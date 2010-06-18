@@ -3931,17 +3931,17 @@ class GenericGraph(GenericGraph_pyx):
         are the the two sides ::
 
             sage: g = graphs.CompleteBipartiteGraph(5,6)
-            sage: [ value, edges, [ setA, setB ]] = g.max_cut(vertices=True)                  # optional - requires Glpk or COIN-OR/CBC
-            sage: value == 5*6                                                                # optional - requires Glpk or COIN-OR/CBC
+            sage: [ value, edges, [ setA, setB ]] = g.max_cut(vertices=True)                  # optional - GLPK, CBC
+            sage: value == 5*6                                                                # optional - GLPK, CBC
             True
             sage: bsetA, bsetB  = map(list,g.bipartite_sets())
-            sage: (bsetA == setA and bsetB == setB ) or ((bsetA == setB and bsetB == setA ))  # optional - requires Glpk or COIN-OR/CBC
+            sage: (bsetA == setA and bsetB == setB ) or ((bsetA == setB and bsetB == setA ))  # optional - GLPK, CBC
             True
 
         The max cut of a Petersen graph::
 
            sage: g=graphs.PetersenGraph()
-           sage: g.max_cut()                                                                  # optional - requires Glpk or COIN-OR/CBC
+           sage: g.max_cut()                                                                  # optional - GLPK, CBC
            12.0
 
         """
@@ -4376,13 +4376,13 @@ class GenericGraph(GenericGraph_pyx):
         ``ButterflyGraph`` with parameter `2` ::
 
            sage: g=graphs.PappusGraph()
-           sage: g.flow(1,2) # optional - requires Glpk or COIN-OR/CBC
+           sage: g.flow(1,2) # optional - GLPK, CBC
            3.0
 
         ::
 
            sage: b=digraphs.ButterflyGraph(2)
-           sage: b.flow(('00',1),('00',2)) # optional - requires Glpk or COIN-OR/CBC
+           sage: b.flow(('00',1),('00',2)) # optional - GLPK, CBC
            1.0
 
         The flow method can be used to compute a matching in a bipartite graph
@@ -4761,7 +4761,7 @@ class GenericGraph(GenericGraph_pyx):
         A basic illustration on a ``PappusGraph``::
 
            sage: g=graphs.PappusGraph()
-           sage: g.dominating_set(value_only=True)    # optional - requires Glpk or COIN-OR/CBC
+           sage: g.dominating_set(value_only=True)    # optional - GLPK, CBC
            5.0
 
         If we build a graph from two disjoint stars, then link their centers
@@ -4770,9 +4770,9 @@ class GenericGraph(GenericGraph_pyx):
 
            sage: g = 2 * graphs.StarGraph(5)
            sage: g.add_edge(0,6)
-           sage: len(g.dominating_set())                       # optional - requires Glpk or COIN-OR/CBC
+           sage: len(g.dominating_set())                       # optional - GLPK, CBC
            2
-           sage: len(g.dominating_set(independent=True))       # optional - requires Glpk or COIN-OR/CBC
+           sage: len(g.dominating_set(independent=True))       # optional - GLPK, CBC
            6
 
         """
@@ -4850,7 +4850,7 @@ class GenericGraph(GenericGraph_pyx):
         A basic application on the PappusGraph::
 
            sage: g = graphs.PappusGraph()
-           sage: g.edge_connectivity() # optional - requires Glpk or COIN-OR/CBC
+           sage: g.edge_connectivity() # optional - GLPK, CBC
            3.0
 
         The edge connectivity of a complete graph ( and of a random graph )
@@ -4859,21 +4859,21 @@ class GenericGraph(GenericGraph_pyx):
         Star graph::
 
            sage: g = graphs.CompleteGraph(5)
-           sage: [ value, edges, [ setA, setB ]] = g.edge_connectivity(vertices=True) # optional - requires Glpk or COIN-OR/CBC
-           sage: print value                                                          # optional - requires Glpk or COIN-OR/CBC
+           sage: [ value, edges, [ setA, setB ]] = g.edge_connectivity(vertices=True) # optional - GLPK, CBC
+           sage: print value                                                          # optional - GLPK, CBC
            4.0
-           sage: len(setA) == 1 or len(setB) == 1                                     # optional - requires Glpk or COIN-OR/CBC
+           sage: len(setA) == 1 or len(setB) == 1                                     # optional - GLPK, CBC
            True
            sage: cut = Graph()
-           sage: cut.add_edges(edges)                                                 # optional - requires Glpk or COIN-OR/CBC
-           sage: cut.is_isomorphic(graphs.StarGraph(4))                               # optional - requires Glpk or COIN-OR/CBC
+           sage: cut.add_edges(edges)                                                 # optional - GLPK, CBC
+           sage: cut.is_isomorphic(graphs.StarGraph(4))                               # optional - GLPK, CBC
            True
 
         Even if obviously in any graph we know that the edge connectivity
         is less than the minimum degree of the graph::
 
            sage: g = graphs.RandomGNP(10,.3)
-           sage: min(g.degree()) >= g.edge_connectivity()                             # optional - requires Glpk or COIN-OR/CBC
+           sage: min(g.degree()) >= g.edge_connectivity()                             # optional - GLPK, CBC
            True
 
         If we build a tree then assign to its edges a random value, the
@@ -4884,9 +4884,9 @@ class GenericGraph(GenericGraph_pyx):
            sage: tree.add_edges(g.min_spanning_tree())
            sage: for u,v in tree.edge_iterator(labels=None):
            ...        tree.set_edge_label(u,v,random())
-           sage: minimum = min([l for u,v,l in tree.edge_iterator()])                                       # optional - requires Glpk or COIN-OR/CBC
-           sage: [value, [(u,v,l)]] = tree.edge_connectivity(value_only=False, use_edge_labels=True)        # optional - requires Glpk or COIN-OR/CBC
-           sage: l == minimum                                                                               # optional - requires Glpk or COIN-OR/CBC
+           sage: minimum = min([l for u,v,l in tree.edge_iterator()])                                       # optional - GLPK, CBC
+           sage: [value, [(u,v,l)]] = tree.edge_connectivity(value_only=False, use_edge_labels=True)        # optional - GLPK, CBC
+           sage: l == minimum                                                                               # optional - GLPK, CBC
            True
 
         When ``value_only = True``, this function is optimized for small
@@ -5048,7 +5048,7 @@ class GenericGraph(GenericGraph_pyx):
         A basic application on a ``PappusGraph``::
 
            sage: g=graphs.PappusGraph()
-           sage: g.vertex_connectivity() # optional - requires Glpk or COIN-OR/CBC
+           sage: g.vertex_connectivity() # optional - GLPK, CBC
            3.0
 
         In a grid, the vertex connectivity is equal to the
@@ -5056,8 +5056,8 @@ class GenericGraph(GenericGraph_pyx):
         of cardinality `1`::
 
            sage: g = graphs.GridGraph([ 3,3 ])
-           sage: [value, cut, [ setA, setB ]] = g.vertex_connectivity(sets=True) # optional - requires Glpk or COIN-OR/CBC
-           sage: len(setA) == 1 or len(setB) == 1                                # optional - requires Glpk or COIN-OR/CBC
+           sage: [value, cut, [ setA, setB ]] = g.vertex_connectivity(sets=True) # optional - GLPK, CBC
+           sage: len(setA) == 1 or len(setB) == 1                                # optional - GLPK, CBC
            True
 
         A vertex cut in a tree is any internal vertex::
@@ -5065,8 +5065,8 @@ class GenericGraph(GenericGraph_pyx):
            sage: g = graphs.RandomGNP(15,.5)
            sage: tree = Graph()
            sage: tree.add_edges(g.min_spanning_tree())
-           sage: [val, [cut_vertex]] = tree.vertex_connectivity(value_only=False) # optional - requires Glpk or COIN-OR/CBC
-           sage: tree.degree(cut_vertex) > 1                                      # optional - requires Glpk or COIN-OR/CBC
+           sage: [val, [cut_vertex]] = tree.vertex_connectivity(value_only=False) # optional - GLPK, CBC
+           sage: tree.degree(cut_vertex) > 1                                      # optional - GLPK, CBC
            True
 
         When ``value_only = True``, this function is optimized for small
@@ -10736,7 +10736,7 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: g = digraphs.ButterflyGraph(2)
-            sage: g.layout_graphviz() # optional - requires dot2tex and graphviz
+            sage: g.layout_graphviz() # optional - dot2tex, graphviz
             {('00', 0): [...,...],
              ('00', 1): [...,...],
              ('00', 2): [...,...],
@@ -10749,7 +10749,7 @@ class GenericGraph(GenericGraph_pyx):
              ('11', 0): [...,...],
              ('11', 1): [...,...],
              ('11', 2): [...,...]}
-            sage: g.plot(layout = "graphviz") # optional - requires dot2tex and graphviz
+            sage: g.plot(layout = "graphviz") # optional - dot2tex, graphviz
 
         Note: the actual coordinates are not deterministic
 
@@ -10757,12 +10757,12 @@ class GenericGraph(GenericGraph_pyx):
         ``dot`` layout program. One may specify an alternative layout
         program::
 
-            sage: g.plot(layout = "graphviz", prog = "dot")   # optional - requires dot2tex and graphviz
-            sage: g.plot(layout = "graphviz", prog = "neato") # optional - requires dot2tex and graphviz
-            sage: g.plot(layout = "graphviz", prog = "twopi") # optional - requires dot2tex and graphviz
-            sage: g.plot(layout = "graphviz", prog = "fdp")   # optional - requires dot2tex and graphviz
+            sage: g.plot(layout = "graphviz", prog = "dot")   # optional - dot2tex, graphviz
+            sage: g.plot(layout = "graphviz", prog = "neato") # optional - dot2tex, graphviz
+            sage: g.plot(layout = "graphviz", prog = "twopi") # optional - dot2tex, graphviz
+            sage: g.plot(layout = "graphviz", prog = "fdp")   # optional - dot2tex, graphviz
             sage: g = graphs.BalancedTree(5,2)
-            sage: g.plot(layout = "graphviz", prog = "circo") # optional - requires dot2tex and graphviz
+            sage: g.plot(layout = "graphviz", prog = "circo") # optional - dot2tex, graphviz
 
         TODO: put here some cool examples showcasing graphviz features.
 

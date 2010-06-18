@@ -228,29 +228,29 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
     A discrete Hidden Markov model implemented using double precision
     floating point arithmetic.
 
-    INPUT::
+    INPUT:
 
-       - ``A`` -- a list of lists or a square N x N matrix, whose
-         (i,j) entry gives the probability of transitioning from
-         state i to state j.
+        - ``A`` -- a list of lists or a square N x N matrix, whose
+          (i,j) entry gives the probability of transitioning from
+          state i to state j.
 
-       - ``B`` -- a list of N lists or a matrix with N rows, such that
-         B[i,k] gives the probability of emitting symbol k while
-         in state i.
+        - ``B`` -- a list of N lists or a matrix with N rows, such that
+          B[i,k] gives the probability of emitting symbol k while
+          in state i.
 
-       - ``pi`` -- the probabilities of starting in each initial
-         state, i.e,. pi[i] is the probability of starting in
-         state i.
+        - ``pi`` -- the probabilities of starting in each initial
+          state, i.e,. pi[i] is the probability of starting in
+          state i.
 
-       - ``emission_symbols`` -- None or list (default: None); if
-         None, the emission_symbols are the ints [0..N-1], where N
-         is the number of states.  Otherwise, they are the entries
-         of the list emissions_symbols, which must all be hashable.
+        - ``emission_symbols`` -- None or list (default: None); if
+          None, the emission_symbols are the ints [0..N-1], where N
+          is the number of states.  Otherwise, they are the entries
+          of the list emissions_symbols, which must all be hashable.
 
-       - ``normalize`` --bool (default: True); if given, input is
-         normalized to define valid probability distributions,
-         e.g., the entries of A are made nonnegative and the rows
-         sum to 1, and the probabilities in pi are normalized.
+        - ``normalize`` --bool (default: True); if given, input is
+          normalized to define valid probability distributions,
+          e.g., the entries of A are made nonnegative and the rows
+          sum to 1, and the probabilities in pi are normalized.
 
     EXAMPLES::
 
@@ -666,7 +666,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
             - IntList of the actual states the model was in when
               emitting the corresponding symbols
 
-        EXAMPLES::
+        EXAMPLES:
 
         In this example, the emission symbols are not set::
 

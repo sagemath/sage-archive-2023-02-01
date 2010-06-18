@@ -1442,8 +1442,8 @@ class CombinatorialClass(Parent):
         return UnionCombinatorialClass(self, right_cc, name=name)
 
     def map(self, f, name=None):
-        """
-        Returns the image `\{f(x) x in self\}` of this combinatorial
+        r"""
+        Returns the image `\{f(x) | x \in \text{self}\}` of this combinatorial
         class by `f`, as a combinatorial class.
 
         `f` is supposed to be injective.

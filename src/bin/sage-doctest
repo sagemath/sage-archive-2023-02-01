@@ -733,7 +733,7 @@ def parse_only_opt():
         if Z.startswith('only-optional=') or Z.startswith('only_optional='):
             i = Z.find('=')
             del argv[j]
-            return True, set(Z[i+1:].split(','))
+            return True, set(Z[i+1:].lower().split(','))
         elif Z.startswith('only-optional') or Z.startswith('only_optional'):  # no equals
             del argv[j]
             return True, set([])

@@ -3228,8 +3228,8 @@ class GenericGraph(GenericGraph_pyx):
         Definition :
 
         Computing a minimum spanning tree in a graph can be done in `n
-        \log(n)` time (and in linear time if all weights are
-        equal). On the other hand, if one is given a large (possibly
+        \log(n)` time (and in linear time if all weights are equal) where
+        `n = V + E`. On the other hand, if one is given a large (possibly
         weighted) graph and a subset of its vertices, it is NP-Hard to
         find a tree of minimum weight connecting the given set of
         vertices, which is then called a Steiner Tree.
@@ -3274,13 +3274,13 @@ class GenericGraph(GenericGraph_pyx):
         of course, always a tree ::
 
             sage: g = graphs.RandomGNP(30,.5)
-            sage: st = g.steiner_tree(g.vertices()[:5])              # optional - requires GLPK, CBC or CPLEX
-            sage: st.is_tree()                                       # optional - requires GLPK, CBC or CPLEX
+            sage: st = g.steiner_tree(g.vertices()[:5])              # optional - GLPK, CBC
+            sage: st.is_tree()                                       # optional - GLPK, CBC
             True
 
         And all the 5 vertices are contained in this tree ::
 
-            sage: all([v in st for v in g.vertices()[:5] ])          # optional - requires GLPK, CBC or CPLEX
+            sage: all([v in st for v in g.vertices()[:5] ])          # optional - GLPK, CBC
             True
 
         An exception is raised when the problem is impossible, i.e.

@@ -1,8 +1,8 @@
 .. _chapter-doctesting:
 
-=================================
-Parallel Testing the Sage Library
-=================================
+===========================
+Doctesting the Sage Library
+===========================
 
 Doctesting a function ensures that the function performs as claimed by
 its documentation. Testing can be performed using one thread or

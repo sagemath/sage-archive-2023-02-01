@@ -734,25 +734,47 @@ mind:
    It is also immediately clear to the user that the indicated example
    does not currently work.
 
--  If a line contains the text ``optional``, it is not tested unless
-   the ``-optional`` flag is passed, e.g.
-   ``sage -t -optional f.py``. (Note that ``-optional`` must not be
-   the first argument to ``sage``.) Use this to include doctests that
-   require optional packages. For example, the docstring for
-   ``_magma_init_`` in the class
-   ``EllipticCurve_finite_field`` from the file
-   ``SAGE_ROOT/devel/sage/sage/schemes/elliptic_curves/ell_finite_field.py``
-   contains
+- If a line contains the text ``optional``, it is not tested unless
+  either the ``--optional`` flag or the ``--only-optional`` flag is
+  passed to ``sage -t``.  Mark a doctest as ``optional`` if it
+  requires optional packages; even better, mark it as ``optional -
+  PKG_NAME`` if it requires the package ``PKG_NAME``.  Running ``sage
+  -t --optional f.py`` executes all doctests, including those marked
+  as ``optional``.  Running ``sage -t --only-optional=sloane_database
+  f.py`` runs only those doctests marked as ``# optional -
+  sloane_database``.  For example, the file
+  ``SAGE_ROOT/devel/sage/sage/databases/sloane.py`` contains the lines
 
-   ::
+  ::
 
-           sage: E = EllipticCurve(GF(41),[2,5])
-           sage: E._magma_init_() # optional - requires Magma
-           'EllipticCurve([...|GF(41)!0,GF(41)!0,GF(41)!0,GF(41)!2,GF(41)!5])'
+       sage: sloane_sequence(60843)       # optional - internet
+
+  and
+
+  ::
+
+       sage: SloaneEncyclopedia[60843]    # optional - sloane_database
+
+  The first of these just needs internet access, while the second
+  requires that the "sloane_database" package be installed.  Calling
+  ``sage -t --optional`` on this file runs both of these tests, while
+  calling ``sage -t --only-optional=internet`` on it will only run the first
+  test.  A test requiring several packages would be marked
+  ``optional - pkg1 pkg2`` and executed by ``sage -t
+  --only-optional=pkg1,pkg2 f.py``.
+
+  .. note::
+
+      Any text after ``optional`` is interpreted as a package name.
+      Therefore if the doctest is marked ``optional: requires
+      chomp``, then ``requires`` is viewed as a package
+      name, so the test would only be run by either ``sage -t
+      --optional f.py`` or ``sage -t
+      --only-optional=requires,chomp f.py``.
 
 -  If the entire documentation string contains all three words
    ``optional``, ``package``, and ``installed``, then the entire
-   documentation string is not executed unless the ``-optional`` flag
+   documentation string is not executed unless the ``--optional`` flag
    is passed to ``sage -t``. This is useful for a long sequence of
    examples that all require that an optional package be installed.
 

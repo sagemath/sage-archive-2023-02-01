@@ -19,8 +19,8 @@ fi
 
 export FLINT_TUNE
 
-if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
-   echo "64 bit MacIntel"
+if [ "x$SAGE64" = xyes ]; then
+   echo "Building a 64-bit version of the Flint test suite"
    FLINT_TUNE=" -fPIC -m64 -funroll-loops"
 fi
 

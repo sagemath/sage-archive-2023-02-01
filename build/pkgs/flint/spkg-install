@@ -147,6 +147,3 @@ for i in {FLINT/,FLINT/zn_poly/src/}; do
 	fi
 done
 
-if [ "$SAGE_CHECK" = "yes" ]; then
-    cd ..; ./spkg-check
-fi

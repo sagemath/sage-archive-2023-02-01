@@ -467,7 +467,7 @@ class GenericCellComplex(SageObject):
         groups::
 
             sage: S2 = simplicial_complexes.Sphere(2)
-            sage: S2.homology(dim=2, generators=True)  # optional: need CHomP
+            sage: S2.homology(dim=2, generators=True)  # optional - CHomP
             (Z, [(0, 1, 2) - (0, 1, 3) + (0, 2, 3) - (1, 2, 3)])
 
         When generators are computed, Sage returns a pair for each
@@ -477,7 +477,7 @@ class GenericCellComplex(SageObject):
         complexes, each generator is a linear combination of cubes::
 
             sage: S2_cub = cubical_complexes.Sphere(2)
-            sage: S2_cub.homology(dim=2, generators=True)  # optional: need CHomP
+            sage: S2_cub.homology(dim=2, generators=True)  # optional - CHomP
             (Z, [-[[0,1] x [0,1] x [0,0]] + [[0,1] x [0,1] x [1,1]] - [[0,0] x [0,1] x [0,1]] - [[0,1] x [1,1] x [0,1]] + [[0,1] x [0,0] x [0,1]] + [[1,1] x [0,1] x [0,1]]])
         """
         from sage.interfaces.chomp import have_chomp, homcubes, homsimpl

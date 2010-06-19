@@ -696,7 +696,7 @@ class ChainComplex(SageObject):
         a list of cycles, each of which is an element in the
         appropriate free module, and hence is represented as a vector::
 
-            sage: C.homology(1, generators=True)  # optional: need CHomP
+            sage: C.homology(1, generators=True)  # optional - CHomP
             (Z x C3, [(1, 0), (0, 1)])
         """
         from sage.interfaces.chomp import have_chomp, homchain

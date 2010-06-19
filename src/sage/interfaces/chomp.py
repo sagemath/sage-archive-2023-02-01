@@ -87,22 +87,22 @@ class CHomP:
 
         sage: from sage.interfaces.chomp import CHomP
         sage: T = cubical_complexes.Torus()
-        sage: CHomP()('homcubes', T) # optional: need CHomP
+        sage: CHomP()('homcubes', T) # optional - CHomP
         {0: 0, 1: Z x Z, 2: Z}
 
     Relative homology of a segment relative to its endpoints::
 
         sage: edge = simplicial_complexes.Simplex(1)
         sage: ends = edge.n_skeleton(0)
-        sage: CHomP()('homsimpl', edge)  # optional: need CHomP
+        sage: CHomP()('homsimpl', edge)  # optional - CHomP
         {0: 0}
-        sage: CHomP()('homsimpl', edge, ends)  # optional: need CHomP
+        sage: CHomP()('homsimpl', edge, ends)  # optional - CHomP
         {0: 0, 1: Z}
 
     Homology of a chain complex::
 
         sage: C = ChainComplex({3: 2 * identity_matrix(ZZ, 2)}, degree=-1)
-        sage: CHomP()('homchain', C)  # optional: need CHomP
+        sage: CHomP()('homchain', C)  # optional - CHomP
         {2: C2 x C2}
     """
     def __repr__(self):
@@ -128,7 +128,7 @@ class CHomP:
 
         sage: from sage.interfaces.chomp import CHomP
         sage: T = cubical_complexes.Torus()
-        sage: CHomP()('homcubes', T) # indirect doctest, optional: need CHomP
+        sage: CHomP()('homcubes', T) # indirect doctest, optional - CHomP
         {0: 0, 1: Z x Z, 2: Z}
         """
         from sage.misc.misc import tmp_filename
@@ -408,7 +408,7 @@ class CHomP:
         EXAMPLES::
 
             sage: from sage.interfaces.chomp import CHomP
-            sage: CHomP().help('homcubes')   # optional: need CHomP
+            sage: CHomP().help('homcubes')   # optional - CHomP
             HOMCUBES, ver. ... Copyright (C) ... by Pawel Pilarczyk...
         """
         from subprocess import Popen, PIPE
@@ -442,23 +442,23 @@ def homsimpl(complex=None, subcomplex=None, **kwds):
         sage: M8 = simplicial_complexes.MooreSpace(8)
         sage: M4 = simplicial_complexes.MooreSpace(4)
         sage: X = T.disjoint_union(T).disjoint_union(T).disjoint_union(M8).disjoint_union(M4)
-        sage: homsimpl(X)[1]  # optional: need CHomP
+        sage: homsimpl(X)[1]  # optional - CHomP
         Z^6 x C4 x C8
 
     Relative homology::
 
         sage: S = simplicial_complexes.Simplex(3)
         sage: bdry = S.n_skeleton(2)
-        sage: homsimpl(S, bdry)[3]   # optional: need CHomP
+        sage: homsimpl(S, bdry)[3]   # optional - CHomP
         Z
 
     Generators: these are given as a list after the homology group.
     Each generator is specified as a linear combination of simplices::
 
-        sage: homsimpl(S, bdry, generators=True)[3]   # optional: need CHomP
+        sage: homsimpl(S, bdry, generators=True)[3]   # optional - CHomP
         (Z, [(0, 1, 2, 3)])
 
-        sage: homsimpl(simplicial_complexes.Sphere(1), generators=True)   # optional: need CHomP
+        sage: homsimpl(simplicial_complexes.Sphere(1), generators=True)   # optional - CHomP
         {0: 0, 1: (Z, [(0, 1) - (0, 2) + (1, 2)])}
 
     TESTS:
@@ -466,7 +466,7 @@ def homsimpl(complex=None, subcomplex=None, **kwds):
     Generators for a simplicial complex whose vertices are not integers::
 
         sage: S1 = simplicial_complexes.Sphere(1)
-        sage: homsimpl(S1.join(S1), generators=True)[3][1]  # optional: need CHomP
+        sage: homsimpl(S1.join(S1), generators=True)[3][1]  # optional - CHomP
         [-('L0', 'L1', 'R0', 'R1') + ('L0', 'L1', 'R0', 'R2') - ('L0', 'L1', 'R1', 'R2') + ('L0', 'L2', 'R0', 'R1') - ('L0', 'L2', 'R0', 'R2') + ('L0', 'L2', 'R1', 'R2') - ('L1', 'L2', 'R0', 'R1') + ('L1', 'L2', 'R0', 'R2') - ('L1', 'L2', 'R1', 'R2')]
     """
     from sage.homology.all import SimplicialComplex
@@ -504,20 +504,20 @@ def homcubes(complex=None, subcomplex=None, **kwds):
 
         sage: from sage.interfaces.chomp import homcubes
         sage: S = cubical_complexes.Sphere(3)
-        sage: homcubes(S)[3]   # optional: need CHomP
+        sage: homcubes(S)[3]   # optional - CHomP
         Z
 
     Relative homology::
 
         sage: C3 = cubical_complexes.Cube(3)
         sage: bdry = C3.n_skeleton(2)
-        sage: homcubes(C3, bdry)   # optional: need CHomP
+        sage: homcubes(C3, bdry)   # optional - CHomP
         {0: 0, 1: 0, 2: 0, 3: Z}
 
     Generators: these are given as a list after the homology group.
     Each generator is specified as a linear combination of cubes::
 
-        sage: print homcubes(cubical_complexes.Sphere(1), generators=True)[1][1]   # optional: need CHomP
+        sage: print homcubes(cubical_complexes.Sphere(1), generators=True)[1][1]   # optional - CHomP
         [[[1,1] x [0,1]] - [[0,1] x [1,1]] + [[0,1] x [0,0]] - [[0,0] x [0,1]]]
     """
     from sage.homology.all import CubicalComplex
@@ -551,7 +551,7 @@ def homchain(complex=None, **kwds):
 
         sage: from sage.interfaces.chomp import homchain
         sage: C = cubical_complexes.Sphere(3).chain_complex()
-        sage: homchain(C)[3]   # optional: need CHomP
+        sage: homchain(C)[3]   # optional - CHomP
         Z
 
     Generators: these are given as a list after the homology group.
@@ -559,9 +559,9 @@ def homchain(complex=None, **kwds):
     appropriate free module over the base ring::
 
         sage: C2 = delta_complexes.Sphere(2).chain_complex()
-        sage: homchain(C2, generators=True)[2]  # optional: need CHomP
+        sage: homchain(C2, generators=True)[2]  # optional - CHomP
         (Z, [(1, -1)])
-        sage: homchain(C2, generators=True, base_ring=GF(2))[2]  # optional: need CHomP
+        sage: homchain(C2, generators=True, base_ring=GF(2))[2]  # optional - CHomP
         (Vector space of dimension 1 over Finite Field of size 2, [(1, 1)])
 
     TESTS:
@@ -569,10 +569,10 @@ def homchain(complex=None, **kwds):
     Chain complexes concentrated in negative dimensions, cochain complexes, etc.::
 
         sage: C = ChainComplex({-5: 4 * identity_matrix(ZZ, 2)}, degree=-1)
-        sage: homchain(C)   # optional: need CHomP
+        sage: homchain(C)   # optional - CHomP
         {-6: C4 x C4}
         sage: C = ChainComplex({-5: 4 * identity_matrix(ZZ, 2)}, degree=1)
-        sage: homchain(C, generators=True)   # optional: need CHomP
+        sage: homchain(C, generators=True)   # optional - CHomP
         {-4: (C4 x C4, [(1, 0), (0, 1)])}
     """
     from sage.homology.all import ChainComplex

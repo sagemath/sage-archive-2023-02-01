@@ -7,14 +7,14 @@ homology calculator.
 TESTS::
 
     sage: from sage.homology.tests import test_random_chain_complex
-    sage: test_random_chain_complex(trials=20)  # optional: need CHomP
-    sage: test_random_chain_complex(level=2, trials=20)  # optional: need CHomP
-    sage: test_random_chain_complex(level=4, trials=20)  # long time # optional: need CHomP
+    sage: test_random_chain_complex(trials=20)  # optional - CHomP
+    sage: test_random_chain_complex(level=2, trials=20)  # optional - CHomP
+    sage: test_random_chain_complex(level=4, trials=20)  # long time # optional - CHomP
 
     sage: from sage.homology.tests import test_random_simplicial_complex
-    sage: test_random_simplicial_complex(level=1, trials=20)  # optional: need CHomP
-    sage: test_random_simplicial_complex(level=2, trials=20)  # optional: need CHomP
-    sage: test_random_simplicial_complex(level=3, trials=10)  # long time # optional: need CHomP
+    sage: test_random_simplicial_complex(level=1, trials=20)  # optional - CHomP
+    sage: test_random_simplicial_complex(level=2, trials=20)  # optional - CHomP
+    sage: test_random_simplicial_complex(level=3, trials=10)  # long time # optional - CHomP
 """
 from sage.misc.random_testing import random_testing
 
@@ -69,7 +69,7 @@ def test_random_chain_complex(level=1, trials=1, verbose=False):
     EXAMPLES::
 
         sage: from sage.homology.tests import test_random_chain_complex
-        sage: test_random_chain_complex(trials=2)  # optional: need CHomP
+        sage: test_random_chain_complex(trials=2)  # optional - CHomP
     """
     for i in range(trials):
         C = random_chain_complex(level=level)
@@ -128,7 +128,7 @@ def test_random_simplicial_complex(level=1, trials=1, verbose=False):
     EXAMPLES::
 
         sage: from sage.homology.tests import test_random_simplicial_complex
-        sage: test_random_simplicial_complex(trials=2)  # optional: need CHomP
+        sage: test_random_simplicial_complex(trials=2)  # optional - CHomP
     """
     for i in range(trials):
         X = random_simplicial_complex(level=level)

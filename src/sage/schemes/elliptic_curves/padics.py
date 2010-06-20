@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Miscellaneous p-adic functions
 
@@ -25,7 +26,7 @@ import sage.rings.all as rings
 import padic_lseries as plseries
 import sage.rings.arith as arith
 from sage.rings.all import (
-    Qp,
+    Qp, Zp,
     Integers,
     Integer,
     O,
@@ -42,6 +43,21 @@ import sage.schemes.hyperelliptic_curves.hypellfrob
 from constructor import EllipticCurve
 
 def __check_padic_hypotheses(self, p):
+    r"""
+    Helper function that determines if `p`
+    is an odd prime of good ordinary reduction.
+
+    EXAMPLES::
+        sage: E = EllipticCurve('11a1')
+        sage: from sage.schemes.elliptic_curves.padics import __check_padic_hypotheses
+        sage: __check_padic_hypotheses(E,5)
+        5
+        sage: __check_padic_hypotheses(E,29)
+        Traceback (most recent call last):
+        ...
+        ArithmeticError: p must be a good ordinary prime
+
+    """
     p = rings.Integer(p)
     if not p.is_prime():
         raise ValueError, "p = (%s) must be prime"%p
@@ -1426,8 +1442,59 @@ def padic_E2(self, p, prec=20, check=False, check_hypotheses=True, algorithm="au
     return output_ring(E2_of_X * fudge_factor_inverse)
 
 def matrix_of_frobenius(self, p, prec=20, check=False, check_hypotheses=True, algorithm="auto"):
-    """
-    See the parameters and documentation for padic_E2.
+    r"""
+    Returns the matrix of Frobenius on the Monsky Washnitzer cohomology of the elliptic curve.
+
+    INPUT:
+
+    -  ``p`` - prime (= 5) for which `E` is good
+       and ordinary
+
+    -  ``prec`` - (relative) `p`-adic precision for
+       result  (default 20)
+
+    -  ``check`` - boolean (default: False), whether to perform a
+       consistency check. This will slow down the computation by a
+       constant factor 2. (The consistency check is to verify
+       that its trace is correct to the specified precision. Otherwise,
+       the trace is used to compute one column from the other one
+       (possibly after a change of basis).)
+
+    -  ``check_hypotheses`` - boolean, whether to check
+       that this is a curve for which the `p`-adic sigma function makes
+       sense
+
+    -  ``algorithm`` - one of "standard", "sqrtp", or
+       "auto". This selects which version of Kedlaya's algorithm is used.
+       The "standard" one is the one described in Kedlaya's paper. The
+       "sqrtp" one has better performance for large `p`, but only
+       works when `p > 6N` (`N=` prec). The "auto" option
+       selects "sqrtp" whenever possible.
+
+       Note that if the "sqrtp" algorithm is used, a consistency check
+       will automatically be applied, regardless of the setting of the
+       "check" flag.
+
+    OUTPUT: a matrix of `p`-adic number to precision ``prec``
+
+    See also the documentation of padic_E2.
+
+    EXAMPLES::
+
+        sage: E = EllipticCurve('37a1')
+        sage: E.matrix_of_frobenius(7)
+        [             2*7 + 4*7^2 + 5*7^4 + 6*7^5 + 6*7^6 + 7^8 + 4*7^9 + 3*7^10 + 2*7^11 + 5*7^12 + 4*7^14 + 7^16 + 2*7^17 + 3*7^18 + 4*7^19 + 3*7^20 + O(7^21)                                   2 + 3*7 + 6*7^2 + 7^3 + 3*7^4 + 5*7^5 + 3*7^7 + 7^8 + 3*7^9 + 6*7^13 + 7^14 + 7^16 + 5*7^17 + 4*7^18 + 7^19 + O(7^20)]
+        [    2*7 + 3*7^2 + 7^3 + 3*7^4 + 6*7^5 + 2*7^6 + 3*7^7 + 5*7^8 + 3*7^9 + 2*7^11 + 6*7^12 + 5*7^13 + 4*7^16 + 4*7^17 + 6*7^18 + 6*7^19 + 4*7^20 + O(7^21) 6 + 4*7 + 2*7^2 + 6*7^3 + 7^4 + 6*7^7 + 5*7^8 + 2*7^9 + 3*7^10 + 4*7^11 + 7^12 + 6*7^13 + 2*7^14 + 6*7^15 + 5*7^16 + 4*7^17 + 3*7^18 + 2*7^19 + O(7^20)]
+        sage: M = E.matrix_of_frobenius(11,prec=3); M
+        [   9*11 + 9*11^3 + O(11^4)          10 + 11 + O(11^3)]
+        [     2*11 + 11^2 + O(11^4) 6 + 11 + 10*11^2 + O(11^3)]
+        sage: M.det()
+        11 + O(11^4)
+        sage: M.trace()
+        6 + 10*11 + 10*11^2 + O(11^3)
+        sage: E.ap(11)
+        -5
+
     """
     # TODO change the basis back to the original equation.
     # TODO, add lots of comments like the above
@@ -1506,7 +1573,7 @@ def matrix_of_frobenius(self, p, prec=20, check=False, check_hypotheses=True, al
         check = True
 
 
-    return frob_p
+    # return frob_p ## why was this here ?
 
     if check:
         trace_of_frobenius = frob_p.trace().lift() % p**prec

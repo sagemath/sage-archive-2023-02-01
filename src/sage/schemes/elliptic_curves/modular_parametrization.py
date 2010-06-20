@@ -66,13 +66,17 @@ class ModularParameterization:
 
     """
     def __init__(self, E):
-        """
+        r"""
         EXAMPLES::
         s
             sage: from sage.schemes.elliptic_curves.ell_rational_field import ModularParameterization
             sage: phi = ModularParameterization(EllipticCurve('389a'))
             sage: phi(CC.0/5)
             (27.1965586309057 : -144.727322178983 : 1.00000000000000)
+
+            sage: phi == loads(dumps(phi))
+            True
+
         """
         self._E = E
 
@@ -101,6 +105,22 @@ class ModularParameterization:
             'Modular parameterization from the upper half plane to Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field'
         """
         return "Modular parameterization from the upper half plane to %s" % self._E
+
+    def __cmp__(self,other):
+        r"""
+        Compares two modular parametrizations by simply comparing the elliptic curves.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('37a1')
+            sage: phi = E.modular_parametrization()
+            sage: phi == phi
+            True
+        """
+        c = cmp(type(self), type(other))
+        if c:
+            return c
+        return cmp(self._E, other._E)
 
     def __call__(self, z, prec=None):
         r"""

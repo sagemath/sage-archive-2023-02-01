@@ -142,6 +142,12 @@ class pAdicLseries(SageObject):
            are normalized. See ``modular_symbol`` of
            an elliptic curve over Q for more details.
 
+        EXAMPLES::
+
+            sage: E = EllipticCurve('11a1')
+            sage: Lp = E.padic_lseries(3)
+            sage: Lp.series(2,prec=3)
+            2 + 3 + 3^2 + 2*3^3 + O(3^4) + (1 + O(3))*T + (1 + O(3))*T^2 + O(T^3)
         """
         self._E = E
         self._p = ZZ(p)
@@ -161,8 +167,18 @@ class pAdicLseries(SageObject):
 
     def __add_negative_space(self):
         r"""
+        A helper function not designed for direct use.
+
         This function add the attribute ``_negative_modular_symbol`` to the class. This may take time
         and will only be needed when twisting with negative fundamental discriminants.
+
+        EXAMPLES::
+
+        sage: E = EllipticCurve('11a1')
+        sage: lp = E.padic_lseries(5)
+        sage: lp.modular_symbol(1/7,sign=-1)  #indirect doctest
+        -1
+
         """
         if self._use_eclib:
             verbose('Currently there is no negative modular symbols in eclib, so we have to fall back on the implementation of modular symbols in sage')
@@ -542,11 +558,11 @@ class pAdicLseries(SageObject):
             n += 1
 
 
-    def _c_bounds(self, n):
-        raise NotImplementedError
+#    def _c_bounds(self, n):
+#        raise NotImplementedError
 
-    def _prec_bounds(self, n,prec):
-        raise NotImplementedError
+#    def _prec_bounds(self, n,prec):
+#        raise NotImplementedError
 
     def teichmuller(self, prec):
         r"""
@@ -574,6 +590,26 @@ class pAdicLseries(SageObject):
                [a.residue(prec).lift() for a in K.teichmuller_system()]
 
     def _e_bounds(self, n, prec):
+        r"""
+        A helper function not designed for direct use.
+
+        It computes the valuations of the coefficients of `\omega_n = (1+T)^{p^n}-1`.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('11a1')
+            sage: Lp = E.padic_lseries(2)
+            sage: Lp._e_bounds(1,10)
+            [+Infinity, 1, 0]
+            sage: Lp._e_bounds(2,10)
+            [+Infinity, 2, 1, 2, 0]
+            sage: Lp._e_bounds(3,10)
+            [+Infinity, 3, 2, 3, 1, 3, 2, 3, 0]
+            sage: Lp._e_bounds(4,10)
+            [+Infinity, 4, 3, 4, 2, 4, 3, 4, 1, 4]
+
+
+        """
         p = self._p
         prec = max(2,prec)
         R = PowerSeriesRing(ZZ,'T',prec+1)
@@ -582,6 +618,21 @@ class pAdicLseries(SageObject):
         return [infinity] + [valuation(w[j],p) for j in range(1,min(w.degree()+1,prec))]
 
     def _get_series_from_cache(self, n, prec, D):
+        r"""
+        A helper function not designed for direct use.
+
+        It picks up the series in the cache if it has been previously computed.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('11a1')
+            sage: Lp = E.padic_lseries(5)
+            sage: Lp._get_series_from_cache(3,5,1)
+            sage: Lp.series(3,prec=5)
+            5 + 4*5^2 + 4*5^3 + O(5^4) + O(5)*T + O(5)*T^2 + O(5)*T^3 + O(5)*T^4 + O(T^5)
+            sage: Lp._get_series_from_cache(3,5,1)
+            5 + 4*5^2 + 4*5^3 + O(5^4) + O(5)*T + O(5)*T^2 + O(5)*T^3 + O(5)*T^4 + O(T^5)
+        """
         try:
             return self.__series[(n,prec,D)]
         except AttributeError:
@@ -593,6 +644,21 @@ class pAdicLseries(SageObject):
         return None
 
     def _set_series_in_cache(self, n, prec, D, f):
+        r"""
+        A helper function not designed for direct use.
+
+        It picks up the series in the cache if it has been previously computed.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('11a1')
+            sage: Lp = E.padic_lseries(5)
+            sage: Lp.series(3,prec=5)
+            5 + 4*5^2 + 4*5^3 + O(5^4) + O(5)*T + O(5)*T^2 + O(5)*T^3 + O(5)*T^4 + O(T^5)
+            sage: Lp._set_series_in_cache(3,5,1, 0)
+            sage: Lp.series(3,prec=5)
+            0
+        """
         self.__series[(n,prec,D)] = f
 
 
@@ -854,6 +920,23 @@ class pAdicLseriesOrdinary(pAdicLseries):
         return False
 
     def _c_bound(self):
+        r"""
+        A helper function not designed for direct use.
+
+        It returns the maximal `p`-adic valuation of the possible denominators
+        of the modular symbols.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('11a1')
+            sage: Lp = E.padic_lseries(5)
+            sage: Lp._c_bound()
+            1
+            sage: Lp = E.padic_lseries(17)
+            sage: Lp._c_bound()
+            0
+
+        """
         try:
             return self.__c_bound
         except AttributeError:
@@ -871,6 +954,26 @@ class pAdicLseriesOrdinary(pAdicLseries):
         return ans
 
     def _prec_bounds(self, n, prec):
+        r"""
+        A helper function not designed for direct use.
+
+        It returns the `p`-adic precisions of the approximation
+        to the `p`-adic L-function.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('11a1')
+            sage: Lp = E.padic_lseries(5)
+            sage: Lp._prec_bounds(3,10)
+            [+Infinity, 1, 1, 1, 1, 0, 1, 1, 1, 1]
+            sage: Lp._prec_bounds(3,12)
+            [+Infinity, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1]
+            sage: Lp._prec_bounds(4,5)
+            [+Infinity, 2, 2, 2, 2]
+            sage: Lp._prec_bounds(15,5)
+            [+Infinity, 13, 13, 13, 13]
+
+        """
         p = self._p
         e = self._e_bounds(n-1, prec)
         c = self._c_bound()
@@ -989,12 +1092,49 @@ class pAdicLseriesSupersingular(pAdicLseries):
     power_series = series
 
     def is_ordinary(self):
+        r"""
+        Return True if the elliptic that this L-function is attached
+        to is ordinary.
+
+        EXAMPLES::
+
+            sage: L = EllipticCurve('11a').padic_lseries(19)
+            sage: L.is_ordinary()
+            False
+        """
         return False
 
     def is_supersingular(self):
+        r"""
+        Return True if the elliptic that this L function is attached
+        to is supersingular.
+
+        EXAMPLES::
+
+            sage: L = EllipticCurve('11a').padic_lseries(19)
+            sage: L.is_supersingular()
+            True
+        """
         return True
 
     def _prec_bounds(self, n,prec):
+        r"""
+        A helper function not designed for direct use.
+
+        It returns the `p`-adic precisions of the approximation
+        to the `p`-adic L-function.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('11a1')
+            sage: Lp = E.padic_lseries(19)
+            sage: Lp._prec_bounds(3,5)
+            [[+Infinity, +Infinity], [-1, -1], [-1, -1], [-1, -1], [-1, -1]]
+            sage: Lp._prec_bounds(2,5)
+            [[+Infinity, +Infinity], [-1, -2], [-1, -2], [-1, -2], [-1, -2]]
+            sage: Lp._prec_bounds(10,5)
+            [[+Infinity, +Infinity], [3, 2], [3, 2], [3, 2], [3, 2]]
+        """
         p = self._p
         e = self._e_bounds(n-1,prec)
         c0 = ZZ(n+2)/2
@@ -1066,7 +1206,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
 
         - ``method`` - either 'mw' (default) for Monsky-Washintzer
           or 'approx' for the method described by Bernardi and Perrin-Riou
-          (much slower)
+          (much slower and not fully tested)
 
 
         EXAMPLES::
@@ -1123,7 +1263,32 @@ class pAdicLseriesSupersingular(pAdicLseries):
 
     def __phi_bpr(self, prec=0):
         r"""
-        Returns the phi using the definition of bernardi-perrin-riou on page 232.
+        This returns a geometric Frobenius `\varphi` on the Dieudonne module `D_p(E)`
+        with respect to the basis `\omega`, the invariant differential, and `\eta=x\omega`.
+        It satisfies  `\varphi^2 - a_p/p\, \varphi + 1/p = 0`.
+
+        The algorithm used here is described in bernardi-perrin-riou on page 232.
+
+        .. note: Warning. This function has not been sufficiently tested. It is very slow.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('11a1')
+            sage: lp = E.padic_lseries(19)
+            sage: lp.frobenius(prec=1,method="approx")   #indirect doctest
+            [          O(19^0) 4*19^-1 + O(19^0)]
+            [       14 + O(19)           O(19^0)]
+
+            sage: E = EllipticCurve('17a1')
+            sage: lp = E.padic_lseries(3)
+            sage: lp.frobenius(prec=3,method="approx")
+            [             O(3) 2*3^-1 + 2 + O(3)]
+            [       1 + O(3^2)              O(3)]
+            sage: lp.frobenius(prec=5,method="approx")
+            [             3 + O(3^2) 2*3^-1 + 2 + 3 + O(3^2)]
+            [     1 + 2*3^2 + O(3^3)            2*3 + O(3^2)]
+
+
         """
         E = self._E
         p = self._p
@@ -1179,7 +1344,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
         R = Qp(p,max(dpr,dga)+1)
         delta = R(delta,absprec=dpr)
         gamma = R(gamma,absprec=dga)
-        verbose("result delta = %s\n      gamma = %s\n check : %s"%(delta,gamma, [Qp(3,k)(delta * cs[k] - gamma * ds[k] - cs[k-1]) for k in range(1,prec+1)] ))
+        verbose("result delta = %s\n      gamma = %s\n check : %s"%(delta,gamma, [Qp(p,k)(delta * cs[k] - gamma * ds[k] - cs[k-1]) for k in range(1,prec+1)] ))
         a = delta
         c = -gamma
         d = E.ap(p) - a

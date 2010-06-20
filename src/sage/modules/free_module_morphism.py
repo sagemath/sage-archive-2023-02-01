@@ -1,8 +1,11 @@
 """
 Morphisms of free modules.
 
-AUTHOR:
-    - William Stein
+AUTHORS:
+    - William Stein: initial version
+
+    - Miguel Marco (2010-06-19): added eigenvalues, eigenvectors and minpoly functions
+
 
 TESTS::
 
@@ -374,3 +377,130 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
         assert self(t) == x
         return t
 
+    def eigenvalues(self,extend=True):
+        """
+        Returns a list with the eigenvalues of the endomorphism of vector spaces.
+
+        If the option extend is set to True (default), then eigenvalues in extensions
+        of the base field are considered.
+
+        EXAMPLES:
+
+        We compute the eigenvalues of an endomorphism of QQ^3::
+
+            sage: V=QQ^3
+            sage: H=V.endomorphism_ring()([[1,-1,0],[-1,1,1],[0,3,1]])
+            sage: H.eigenvalues()
+            [3, 1, -1]
+
+
+        Note the effect of the extend option::
+
+            sage: V=QQ^2
+            sage: H=V.endomorphism_ring()([[0,-1],[1,0]])
+            sage: H.eigenvalues()
+            [-1*I, 1*I]
+            sage: H.eigenvalues(extend=False)
+            []
+
+
+
+        """
+        if self.base_ring().is_field():
+            if self.is_endomorphism():
+                return self.matrix().eigenvalues(extend=extend)
+            else:
+                raise TypeError, "not an endomorphism"
+        else:
+            raise NotImplementedError, "module must be a vector space"
+
+    def eigenvectors(self,extend=True):
+        """
+        Computes the subspace of eigenvectors of a given eigenvalue.
+
+        INPUT:
+
+        - extend (True) decides if base field extensions should be considered or not.
+
+        OUTPUT:
+
+        A sequence of tuples. Each tuple contains an eigenvalue, a list with a basis
+        of the corresponding subspace of eigenvectors, and the algebraic multiplicity
+        of the eigenvalue.
+
+        EXAMPLES:
+
+
+        ::
+
+            sage: V=(QQ^4).subspace([[0,2,1,4],[1,2,5,0],[1,1,1,1]])
+            sage: H=(V.Hom(V))([[0,1,0],[-1,0,0],[0,0,3]])
+            sage: H.eigenvectors()
+            [(3, [(0, 0, 1, -6/7)], 1), (-1*I, [(1, 1*I, 0, -0.571428571428572? + 2.428571428571429?*I)], 1), (1*I, [(1, -1*I, 0, -0.571428571428572? - 2.428571428571429?*I)], 1)]
+            sage: H.eigenvectors(extend=False)
+            [(3, [(0, 0, 1, -6/7)], 1)]
+            sage: H1=(V.Hom(V))([[2,1,0],[0,2,0],[0,0,3]])
+            sage: H1.eigenvectors()
+            [(3, [(0, 0, 1, -6/7)], 1), (2, [(0, 1, 0, 17/7)], 2)]
+            sage: H1.eigenvectors(extend=False)
+            [(3, [(0, 0, 1, -6/7)], 1), (2, [(0, 1, 0, 17/7)], 2)]
+
+
+        """
+        if self.base_ring().is_field():
+            if self.is_endomorphism():
+                seigenvec=self.matrix().eigenvectors_left(extend=extend)
+                resu=[]
+                for i in seigenvec:
+                    V=self.domain().base_extend(i[0].parent())
+                    svectors=map(lambda j: V(j * V.basis_matrix()),i[1])
+                    resu.append(tuple([i[0],svectors,i[2]]))
+                return resu
+            else:
+                raise TypeError, "not an endomorphism"
+        else:
+            raise NotImplementedError, "module must be a vector space"
+
+
+    def minpoly(self,var='x'):
+        """
+        Computes the minimal polynomial.
+
+        INPUT:
+
+        - ``var`` - string (default: 'x') a variable
+
+        OUTPUT:
+
+        polynomial in var - the minimal polynomial of the endomorphism.
+
+        EXAMPLES:
+
+        Compute the minimal polynomial, and check it
+
+        ::
+
+            sage: V=GF(7)^3
+            sage: H=V.Hom(V)([[0,1,2],[-1,0,3],[2,4,1]])
+            sage: H
+            Free module morphism defined by the matrix
+            [0 1 2]
+            [6 0 3]
+            [2 4 1]
+            Domain: Vector space of dimension 3 over Finite Field of size 7
+            Codomain: Vector space of dimension 3 over Finite Field of size 7
+            sage: H.minpoly()
+            x^3 + 6*x^2 + 6*x + 1
+            sage: H^3+6*H^2+6*H+1
+            Free module morphism defined by the matrix
+            [0 0 0]
+            [0 0 0]
+            [0 0 0]
+            Domain: Vector space of dimension 3 over Finite Field of size 7
+            Codomain: Vector space of dimension 3 over Finite Field of size 7
+
+        """
+        if self.is_endomorphism():
+            return self.matrix().minpoly(var)
+        else:
+            raise TypeError, "not an endomorphism"

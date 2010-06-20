@@ -2,6 +2,14 @@
 """
 Base class for matrices, part 2
 
+AUTHORS:
+    - William Stein: initial version
+
+    - Miguel Marco (2010-06-19): modified eigenvalues and eigenvectors functions to
+        allow the option extend=False
+
+
+
 TESTS::
 
     sage: m = matrix(ZZ['x'], 2, 3, [1..6])
@@ -3831,12 +3839,15 @@ cdef class Matrix(matrix1.Matrix):
 
     right_eigenspaces = eigenspaces_right
 
-    def eigenvalues(self):
+    def eigenvalues(self,extend=True):
         r"""
         Return a sequence of the eigenvalues of a matrix, with
         multiplicity. If the eigenvalues are roots of polynomials in QQ,
         then QQbar elements are returned that represent each separate
         root.
+
+        If the option extend is set to False, only eigenvalues in the base
+        ring are considered.
 
         EXAMPLES::
 
@@ -3886,9 +3897,27 @@ cdef class Matrix(matrix1.Matrix):
             From: Number Field in a with defining polynomial y^4 - 2*y^3 - 507*y^2 + 4988*y - 8744
             To:   Algebraic Real Field
             Defn: a |--> 16.35066086057957?)
+
+
+        Notice the effect of the extend option.
+
+        ::
+
+            sage: M=matrix(QQ,[[0,-1,0],[1,0,0],[0,0,2]])
+            sage: M.eigenvalues()
+            [2, -1*I, 1*I]
+            sage: M.eigenvalues(extend=False)
+            [2]
+
         """
         x = self.fetch('eigenvalues')
         if not x is None:
+            if not extend:
+                x1=Sequence([])
+                for i in x:
+                    if i in self.base_ring():
+                        x1.append(i)
+                x=x1
             return x
 
         if not self.base_ring().is_exact():
@@ -3902,21 +3931,30 @@ cdef class Matrix(matrix1.Matrix):
         for h, e in G:
             if h.degree() == 1:
                 alpha = [-h[0]/h[1]]
+                V.extend(alpha*e)
             else:
-                F = h.root_field('%s%s'%('a',i))
-                try:
-                    alpha = F.gen(0).galois_conjugates(QQbar)
-                except AttributeError, TypeError:
-                    raise NotImplementedError, "eigenvalues() is not implemented for matrices with eigenvalues that are not in the fraction field of the base ring or in QQbar"
-            V.extend(alpha*e)
+                if extend:
+                    F = h.root_field('%s%s'%('a',i))
+                    try:
+                        alpha = F.gen(0).galois_conjugates(QQbar)
+                    except AttributeError, TypeError:
+                        raise NotImplementedError, "eigenvalues() is not implemented for matrices with eigenvalues that are not in the fraction field of the base ring or in QQbar"
+                    V.extend(alpha*e)
             i+=1
         V = Sequence(V)
-        self.cache('eigenvalues', V)
+        if extend:
+            self.cache('eigenvalues', V)
+        if not extend:
+            V1=Sequence([])
+            for i in V:
+                if i in self.base_ring():
+                    V1.append(i)
+            V=V1
         return V
 
 
 
-    def eigenvectors_left(self):
+    def eigenvectors_left(self,extend=True):
         r"""
         Compute the left eigenvectors of a matrix.
 
@@ -3924,6 +3962,9 @@ cdef class Matrix(matrix1.Matrix):
         where e is the eigenvalue, V is a list of eigenvectors forming a
         basis for the corresponding left eigenspace, and n is the algebraic
         multiplicity of the eigenvalue.
+
+        If the option extend is set to False, then only the eigenvalues that
+        live in the base ring are considered.
 
         EXAMPLES: We compute the left eigenvectors of a `3\times 3`
         rational matrix.
@@ -3944,6 +3985,21 @@ cdef class Matrix(matrix1.Matrix):
             sage: delta = eval*evec - evec*A
             sage: abs(abs(delta)) < 1e-10
             True
+
+        Notice the difference between considering ring extensions or not.
+
+        ::
+
+            sage: M=matrix(QQ,[[0,-1,0],[1,0,0],[0,0,2]])
+            sage: M.eigenvectors_left()
+            [(2, [
+            (0, 0, 1)
+            ], 1), (-1*I, [(1, -1*I, 0)], 1), (1*I, [(1, 1*I, 0)], 1)]
+            sage: M.eigenvectors_left(extend=False)
+            [(2, [
+            (0, 0, 1)
+            ], 1)]
+
         """
         x = self.fetch('eigenvectors_left')
         if not x is None:
@@ -3965,19 +4021,20 @@ cdef class Matrix(matrix1.Matrix):
             eigval = ev[0]
             eigbasis = ev[1].basis()
             eigmult = ev[2]
-            if eigval.parent().fraction_field() == F:
-                evec_eval_list.append((eigval, eigbasis, eigmult))
-            else:
-                try:
-                    eigval_conj = eigval.galois_conjugates(QQbar)
-                except AttributeError, TypeError:
-                    raise NotImplementedError, "eigenvectors are not implemented for matrices with eigenvalues that are not in the fraction field of the base ring or in QQbar"
+            if eigval in self.base_ring() or extend:
+                if eigval.parent().fraction_field() == F:
+                    evec_eval_list.append((eigval, eigbasis, eigmult))
+                else:
+                    try:
+                        eigval_conj = eigval.galois_conjugates(QQbar)
+                    except AttributeError, TypeError:
+                        raise NotImplementedError, "eigenvectors are not implemented for matrices with eigenvalues that are not in the fraction field of the base ring or in QQbar"
 
-                for e in eigval_conj:
-                    m = hom(eigval.parent(), e.parent(), e)
-                    space = (e.parent())**n
-                    evec_list = [(space)([m(i) for i in v]) for v in eigbasis]
-                    evec_eval_list.append( (e, evec_list, eigmult))
+                    for e in eigval_conj:
+                        m = hom(eigval.parent(), e.parent(), e)
+                        space = (e.parent())**n
+                        evec_list = [(space)([m(i) for i in v]) for v in eigbasis]
+                        evec_eval_list.append( (e, evec_list, eigmult))
 
         return evec_eval_list
 

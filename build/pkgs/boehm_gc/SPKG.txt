@@ -27,6 +27,10 @@ None. Sources in src are vanilla.
 
 == Changelog ==
 
+=== boehm_gc-7.1.p6 (David Kirkby, 20th June 2010) ===
+ * #9067: boehmc_gc does not run self-tests when SAGE_CHECK=yes
+   A spkg-check file was added for this purpose
+
 === boehm_gc-7.1.p5 (Mike Hansen, May 26th, 2010) ===
  * #9067: boehmc_gc was still failing in Cygwin.
 

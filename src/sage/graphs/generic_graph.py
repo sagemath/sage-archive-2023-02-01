@@ -4400,7 +4400,7 @@ class GenericGraph(GenericGraph_pyx):
         from sage.numerical.mip import MixedIntegerLinearProgram
         g=self
         p=MixedIntegerLinearProgram(maximization=True)
-        flow=p.new_variable(dim=2)
+        flow=p.new_variable(dim=1)
 
         if use_edge_labels:
             from sage.rings.real_mpfr import RR
@@ -4408,95 +4408,314 @@ class GenericGraph(GenericGraph_pyx):
         else:
             capacity=lambda x: 1
 
-        # maximizes z, which is the flow leaving from x
-
         if g.is_directed():
             # This function return the balance of flow at X
-            flow_sum=lambda X: sum([flow[X][v] for (u,v) in g.outgoing_edges([X],labels=None)])-sum([flow[u][X] for (u,v) in g.incoming_edges([X],labels=None)])
+            flow_sum=lambda X: sum([flow[(X,v)] for (u,v) in g.outgoing_edges([X],labels=None)])-sum([flow[(u,X)] for (u,v) in g.incoming_edges([X],labels=None)])
 
-            # Maximizes the flow leaving x
-            p.set_objective(flow_sum(x))
+            # The flow leaving x
+            flow_leaving = lambda X : sum([flow[(uu,vv)] for (uu,vv) in g.outgoing_edges([X],labels=None)])
 
-            # Elsewhere, the flow is equal to 0-
-            for v in g:
-                if v!=x and v!=y:
-                    p.add_constraint(flow_sum(v),min=0,max=0)
-
-            # Capacity constraints
-            for (u,v,w) in g.edges():
-                p.add_constraint(flow[u][v],max=capacity(w))
-
-            if vertex_bound:
-                for v in g.vertices():
-                    if v!=x and v!=y:
-                        p.add_constraint(sum([flow[uu][vv] for (uu,vv) in g.outgoing_edges([v],labels=None)]),max=1)
+            # The flow to be considered when defining the capacity contraints
+            capacity_sum = lambda u,v : flow[(u,v)]
 
         else:
             # This function return the balance of flow at X
-            flow_sum=lambda X:sum([flow[X][v]-flow[v][X] for v in g[X]])
+            flow_sum=lambda X:sum([flow[(X,v)]-flow[(v,X)] for v in g[X]])
 
-            # Maximizes the flow leaving x
-            p.set_objective(flow_sum(x))
+            # The flow leaving x
+            flow_leaving = lambda X : sum([flow[(X,vv)] for vv in g[X]])
 
-            # Elsewhere, the flow is equal to 0
+            # The flow to be considered when defining the capacity contraints
+            capacity_sum = lambda u,v : flow[(u,v)] + flow[(v,u)]
+
+        # Maximizes the flow leaving x
+        p.set_objective(flow_sum(x))
+
+        # Elsewhere, the flow is equal to 0
+        for v in g:
+            if v!=x and v!=y:
+                p.add_constraint(flow_sum(v),min=0,max=0)
+
+        # Capacity constraints
+        for (u,v,w) in g.edges():
+            p.add_constraint(capacity_sum(u,v),max=capacity(w))
+
+        # No vertex except the sources can send more than 1
+        if vertex_bound:
             for v in g:
                 if v!=x and v!=y:
-                    p.add_constraint(flow_sum(v),min=0,max=0)
-
-            # Capacity constraints
-            for (u,v,w) in g.edges():
-                p.add_constraint(flow[u][v]+flow[v][u],max=capacity(w))
-
-            if vertex_bound:
-                for v in g:
-                    if v!=x and v!=y:
-                        p.add_constraint([flow[X][v] for X in g[v]],max=1)
-
+                    p.add_constraint(flow_leaving(v),max=1)
 
         if integer:
             p.set_integer(flow)
 
 
         if value_only:
-            return p.solve(objective_only=True, solver=solver, log=verbose)
+            return p.solve(objective_only=True)
 
-        obj=p.solve(solver=solver, log=verbose)
+        obj=p.solve()
+
         flow=p.get_values(flow)
+        # Builds a clean flow Draph
+        flow_graph = g._build_flow_graph(flow, integer=integer)
 
-        flow_graph = g.copy()
-
-        if g.is_directed():
-            for (u,v) in g.edges(labels=None):
-                # We do not want to see both edges (u,v) and (v,u)
-                # with a positive flow
-                if g.has_edge(v,u):
-                    m=min(flow[u][v],flow[v][u])
-                    flow[u][v]-=m
-                    flow[v][u]-=m
-
-            for (u,v) in g.edge_iterator(labels=None):
-                if flow[u][v]>0:
-                    flow_graph.set_edge_label(u,v,flow[u][v])
-                else:
-                    flow_graph.delete_edge(u,v)
-
-        else:
-            for (u,v) in g.edges(labels=None):
-                m=min(flow[u][v],flow[v][u])
-                flow[u][v]-=m
-                flow[v][u]-=m
-
-            # We do not want to see both edges (u,v) and (v,u)
-            # with a positive flow
-            for (u,v) in g.edges(labels=None):
-                if flow[u][v]>0:
-                    flow_graph.set_edge_label(u,v,flow[u][v])
-                elif flow[v][u]>0:
-                    flow_graph.set_edge_label(v,u,flow[v][u])
-                else:
-                    flow_graph.delete_edge(v,u)
+        # Which could be a Graph
+        if not self.is_directed():
+            from sage.graphs.graph import Graph
+            flow_graph = Graph(flow_graph)
 
         return [obj,flow_graph]
+
+    def multicommodity_flow(self, terminals, integer=True, use_edge_labels=False,vertex_bound=False, solver=None, verbose=0):
+        r"""
+        Solves a multicommodity flow problem.
+
+        In the multicommodity flow problem, we are given a set of pairs
+        `(s_i, t_i)`, called terminals meaning that `s_i` is willing
+        some flow to `t_i`.
+
+        Even though it is a natural generalisation of the flow problem
+        this version of it is NP-Complete to solve when the flows
+        are required to be integer.
+
+        For more information, see the
+        `Wikipedia page on multicommodity flows
+        <http://en.wikipedia.org/wiki/Multi-commodity_flow_problem>`.
+
+        INPUT:
+
+        - ``terminals`` -- a list of pairs `(s_i, t_i)` or triples
+          `(s_i, t_i, w_i)` representing a flow from `s_i` to `t_i`
+          of intensity `w_i`. When the pairs are of size `2`, a intensity
+          of `1` is assumed.
+
+        - ``integer`` (boolean) -- whether to require an integer multicommodity
+          flow
+
+        - ``use_edge_labels`` (boolean) -- whether to consider the label of edges
+          as numerical values representing a capacity. If set to ``False``, a capacity
+          of `1` is assumed
+
+        - ``vertex_bound`` (boolean) -- whether to require that a vertex can stand at most
+          `1` commodity of flow through it of intensity `1`. Terminals can obviously
+          still send or receive several units of flow even though vertex_bound is set
+          to ``True``, as this parameter is meant to represent topological properties.
+
+        - ``solver`` -- Specify a Linear Program solver to be used.
+          If set to ``None``, the default one is used.
+          function of ``MixedIntegerLinearProgram``. See the documentation  of ``MixedIntegerLinearProgram.solve``
+          for more informations.
+
+        - ``verbose`` (integer) -- sets the level of verbosity. Set to 0
+          by default (quiet).
+
+        ALGORITHM:
+
+        (Mixed Integer) Linear Program, depending on the value of ``integer``.
+
+        EXAMPLE:
+
+        An easy way to obtain a satisfiable multiflow is to compute
+        a matching in a graph, and to consider the paired vertices
+        as terminals ::
+
+            sage: g = graphs.PetersenGraph()
+            sage: matching = [(u,v) for u,v,_ in g.matching()]               # optional - GLPK, CBC
+            sage: h = g.multicommodity_flow(matching)
+            sage: len(h)
+            5
+
+        We could also have considered ``g`` as symmetric and computed
+        the multiflow in this version instead. In this case, however
+        edges can be used in both directions at the same time::
+
+            sage: h = DiGraph(g).multicommodity_flow(matching)               # optional - GLPK, CBC
+            sage: len(h)
+            5
+
+        An exception is raised when the problem has no solution ::
+
+            sage: h = g.multicommodity_flow([(u,v,3) for u,v in matching])   # optional - GLPK, CBC
+            Traceback (most recent call last):
+            ...
+            ValueError: The multiflow problem has no solution
+        """
+
+        from sage.numerical.mip import MixedIntegerLinearProgram
+        g=self
+        p=MixedIntegerLinearProgram(maximization=True)
+
+        # Adding the intensity if not present
+        terminals = [(x if len(x) == 3 else (x[0],x[1],1)) for x in terminals]
+
+        # defining the set of terminals
+        set_terminals = set([])
+        for s,t,_ in terminals:
+            set_terminals.add(s)
+            set_terminals.add(t)
+
+        # flow[i][(u,v)] is the flow of commodity i going from u to v
+        flow=p.new_variable(dim=2)
+
+        # Whether to use edge labels
+        if use_edge_labels:
+            from sage.rings.real_mpfr import RR
+            capacity=lambda x: x if x in RR else 1
+        else:
+            capacity=lambda x: 1
+
+        if g.is_directed():
+            # This function return the balance of flow at X
+            flow_sum=lambda i,X: sum([flow[i][(X,v)] for (u,v) in g.outgoing_edges([X],labels=None)])-sum([flow[i][(u,X)] for (u,v) in g.incoming_edges([X],labels=None)])
+
+            # The flow leaving x
+            flow_leaving = lambda i,X : sum([flow[i][(uu,vv)] for (uu,vv) in g.outgoing_edges([X],labels=None)])
+
+            # the flow to consider when defining the capacity contraints
+            capacity_sum = lambda i,u,v : flow[i][(u,v)]
+
+        else:
+            # This function return the balance of flow at X
+            flow_sum=lambda i,X:sum([flow[i][(X,v)]-flow[i][(v,X)] for v in g[X]])
+
+            # The flow leaving x
+            flow_leaving = lambda i, X : sum([flow[i][(X,vv)] for vv in g[X]])
+
+            # the flow to consider when defining the capacity contraints
+            capacity_sum = lambda i,u,v : flow[i][(u,v)] + flow[i][(v,u)]
+
+
+        # Flow constraints
+        for i,(s,t,l) in enumerate(terminals):
+            for v in g:
+                if v == s:
+                    p.add_constraint(flow_sum(i,v),min=l,max=l)
+                elif v == t:
+                    p.add_constraint(flow_sum(i,v),min=-l,max=-l)
+                else:
+                    p.add_constraint(flow_sum(i,v),min=0,max=0)
+
+
+        # Capacity constraints
+        for (u,v,w) in g.edges():
+            p.add_constraint(sum([capacity_sum(i,u,v) for i in range(len(terminals))]),max=capacity(w))
+
+
+        if vertex_bound:
+
+            # Any vertex
+            for v in g.vertices():
+
+                # which is an endpoint
+                if v in set_terminals:
+                    for i,(s,t,_) in enumerate(terminals):
+
+                        # only tolerates the commodities of which it is an endpoint
+                        if not (v==s or v==t):
+                            p.add_constraint(flow_leaving(i,v), max = 0)
+
+                # which is not an endpoint
+                else:
+                    # can stand at most 1 unit of flow through itself
+                    p.add_constraint(sum([flow_leaving(i,v) for i in range(len(terminals))]), max = 1)
+
+        p.set_objective(None)
+
+        if integer:
+            p.set_integer(flow)
+
+        from sage.numerical.mip import MIPSolverException
+
+        try:
+            obj=p.solve()
+        except MIPSolverException:
+            raise ValueError("The multiflow problem has no solution")
+
+        flow=p.get_values(flow)
+
+        # building clean flow digraphs
+        flow_graphs = [g._build_flow_graph(flow[i], integer=integer) for i in range(len(terminals))]
+
+        # which could be .. graphs !
+        if not self.is_directed():
+            from sage.graphs.graph import Graph
+            flow_graphs = map(Graph, flow_graphs)
+
+        return flow_graphs
+
+    def _build_flow_graph(self, flow, integer):
+        r"""
+        Builds a "clean" flow graph
+
+        It build it, then looks for circuits and removes them
+
+        INPUT:
+
+        - ``flow`` -- a dictionary associating positive numerical values
+          to edges
+
+        - ``integer`` (boolean) -- whether the values from ``flow`` are the solution
+          of an integer flow. In this case, a value of less than .5 is assumed to be 0
+
+
+        EXAMPLE:
+
+        This method is tested in ``flow`` and ``multicommodity_flow``::
+
+            sage: g = Graph()
+            sage: g.add_edge(0,1)
+            sage: f = g._build_flow_graph({(0,1):1}, True)
+        """
+
+        from sage.graphs.digraph import DiGraph
+        g = DiGraph()
+
+        # add significant edges
+        for (u,v),l in flow.iteritems():
+            if l > 0 and not (integer and l<.5):
+                g.add_edge(u,v,l)
+
+        # stupid way to find Cycles. Will be fixed by #8932
+        # for any vertex, for any of its in-neighbors, tried to find a cycle
+        for v in g:
+            for u in g.neighbor_in_iterator(v):
+
+                # the edge from u to v could have been removed in a previous iteration
+                if not g.has_edge(u,v):
+                    break
+                sp = g.shortest_path(v,u)
+                if sp != []:
+
+                    #find the minimm value along the cycle.
+                    m = g.edge_label(u,v)
+                    for i in range(len(sp)-1):
+                        m = min(m,g.edge_label(sp[i],sp[i+1]))
+
+                    # removes it from all the edges of the cycle
+                    sp.append(v)
+                    for i in range(len(sp)-1):
+                        l = g.edge_label(sp[i],sp[i+1]) - m
+
+                        # an edge with flow 0 is removed
+                        if l == 0:
+                            g.delete_edge(sp[i],sp[i+1])
+                        else:
+                            g.set_edge_label(l)
+
+        # if integer is set, round values and deletes zeroes
+        if integer:
+            for (u,v,l) in g.edges():
+                if l<.5:
+                    g.delete_edge(u,v)
+                else:
+                    g.set_edge_label(u,v, round(l))
+
+        # returning a graph with the same embedding, the corersponding name, etc ...
+        h = self.subgraph(edges=[])
+        h.delete_vertices([v for v in self if (v not in g) or g.degree(v)==0])
+        h.add_edges(g.edges())
+
+        return h
 
     def edge_disjoint_paths(self, s, t):
         r"""

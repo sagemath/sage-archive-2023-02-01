@@ -4,7 +4,7 @@ Sage, LaTeX and Friends
 
 AUTHOR:  Rob Beezer (2010-05-23)
 
-Sage and the `\mbox{\LaTeX}` dialect of `\mbox{\TeX}` have an
+Sage and the LaTeX dialect of TeX have an
 intensely synergistic relationship. This section aims to
 introduce the variety of interactions, beginning with the most
 basic and proceeding to the more unusual and arcane.  (So you may
@@ -14,23 +14,25 @@ this tutorial.)
 Overview
 ========
 
-It may be easiest to understand the various uses of `\mbox{\LaTeX}` with a
+It may be easiest to understand the various uses of LaTeX with a
 brief overview of the mechanics of the three principal methods
 employed by Sage.
 
-    #. Every "object" in Sage is required to have a `\mbox{\LaTeX}` representation.
+    #. Every "object" in Sage is required to have a LaTeX representation.
        You can access this representation by executing, in the notebook or
        at the sage command line, ``latex(foo)`` where ``foo`` is some object
        in Sage.  The output is a string that should render a reasonably accurate
-       representation of ``foo`` when used in `\mbox{\TeX}`'s math-mode (for example,
+       representation of ``foo`` when used in TeX's math-mode (for example,
        when enclosed between a pair of single dollar signs).  Some examples of
        this follow below.
 
        In this way, Sage can be used effectively for constructing portions of
-       a `\mbox{\LaTeX}` document: create or compute an object in Sage, print ``latex()``
+       a LaTeX document: create or compute an object in Sage, print ``latex()``
        of the object and cut/paste it into your document.
 
-    #. The notebook interface is configured to use jsMath to render mathematics
+    #. The notebook interface is configured to use
+       `jsMath <http://www.math.union.edu/~dpvc/jsMath/>`_
+       to render mathematics
        cleanly in a web browser.  jsMath is a collection of JavaScript routines
        and associated fonts.  Typically, these fonts live on a server and are
        sent to a browser along with the web page that displays them.  In the
@@ -40,26 +42,26 @@ employed by Sage.
        mathematics in your web browser when you use the Sage notebook.
 
        jsMath is implemented to be able to render a large, but
-       not totally complete, subset of `\mbox{\TeX}`.  It has no support for
+       not totally complete, subset of TeX.  It has no support for
        things like complicated tables, sectioning or document
        management, as it is oriented towards accurately rendering
-       "snippets" of `\mbox{\TeX}`. Seemingly automatic rendering of math in the
+       "snippets" of TeX. Seemingly automatic rendering of math in the
        notebook is provided by converting the ``latex()``
        representation of an object (as described above) into a form of
        HTML palatable to jsMath.
 
        Since jsMath uses its own scalable fonts, it is superior to other methods that
-       rely on converting equations, or other snippets of `\mbox{\TeX}`, into static inline images.
+       rely on converting equations, or other snippets of TeX, into static inline images.
 
        jsMath is likely to be superseded by MathJAX, a similar technology
        from the same author, which has broad support from technical publishers
        and professional societies.
 
-    #. At the Sage command-line, or in the notebook when `\mbox{\LaTeX}` code is
+    #. At the Sage command-line, or in the notebook when LaTeX code is
        more involved than jsMath can handle, a system-wide installation of
-       `\mbox{\LaTeX}` can be employed.  Sage includes almost everything you need to
-       build and use Sage, but a significant exception is `\mbox{\TeX}` itself.  So in these
-       situations you need to have `\mbox{\TeX}` installed, along with some associated
+       LaTeX can be employed.  Sage includes almost everything you need to
+       build and use Sage, but a significant exception is TeX itself.  So in these
+       situations you need to have TeX installed, along with some associated
        conversion utilities, to utilize the full power.
 
 Here we demonstrate some basic uses of the ``latex()`` function. ::
@@ -83,7 +85,7 @@ Here we demonstrate some basic uses of the ``latex()`` function. ::
 Basic jsMath functionality is largely automatic in the notebook, but
 we can partially demonstrate this support with the ``JSMath`` class,
 The ``eval`` function of this class converts a Sage object to its
-`\mbox{\LaTeX}` representation and then wraps it in HTML that invokes the CSS
+LaTeX representation and then wraps it in HTML that invokes the CSS
 "math" class, which then employs jsMath.  ::
 
     sage: from sage.misc.latex import JSMath
@@ -103,29 +105,29 @@ Basic Use
 =========
 
 As indicated in the overview, the simplest way to exploit Sage's
-support of `\mbox{\LaTeX}` is to use the ``latex()`` function to create
-legitimate `\mbox{\LaTeX}` code to represent mathematical objects.  These
-strings can then be incorporated into standalone `\mbox{\LaTeX}` documents.
+support of LaTeX is to use the ``latex()`` function to create
+legitimate LaTeX code to represent mathematical objects.  These
+strings can then be incorporated into standalone LaTeX documents.
 This works identically in the notebook and at the Sage command
 line.
 
 At the other extreme is the ``view()`` command.  At the Sage
-command line the command ``view(foo)`` will create the `\mbox{\LaTeX}`
-representation of ``foo``, incorporate this into a simple `\mbox{\LaTeX}`
+command line the command ``view(foo)`` will create the LaTeX
+representation of ``foo``, incorporate this into a simple LaTeX
 document, and then process that document with your system-wide
-`\mbox{\TeX}` installation.  Finally, the appropriate viewer will be called
-to display the output from the `\mbox{\TeX}` command.  Which version of `\mbox{\TeX}`
+TeX installation.  Finally, the appropriate viewer will be called
+to display the output from the TeX command.  Which version of TeX
 is used, and therefore the nature of the output and associated
 viewer, can be customized (see :ref:`sec-custom-processing`).
 
 In the notebook, the ``view(foo)`` command creates the
 appropriate combination of HTML and CSS so that jsMath will
-render the `\mbox{\LaTeX}` representation properly in the worksheet.  To the
+render the LaTeX representation properly in the worksheet.  To the
 user, it simply creates a nicely formatted version of the output,
 distinct from the default ASCII output of Sage.  Not every
-mathematical object in Sage has a `\mbox{\LaTeX}` representation amenable to
+mathematical object in Sage has a LaTeX representation amenable to
 the limited capabilities of jsMath.  In these cases, the jsMath
-interpretation can be bypassed, the system-wide `\mbox{\TeX}` called
+interpretation can be bypassed, the system-wide TeX called
 instead, and the subsequent output converted to a graphic image
 for display in the worksheet.  Affecting and controlling this
 process is discussed below in the section
@@ -141,7 +143,7 @@ the notebook.  ::
     sage: pretty_print(integrate(sin(x), x))
     <html><span class="math">\newcommand{\Bold}[1]{\mathbf{#1}}-\cos\left(x\right)</span></html>
 
-The notebook has two other features for employing `\mbox{\TeX}`.
+The notebook has two other features for employing TeX.
 The first is the "Typeset" button just above the first cell of a
 worksheet, to the right of the four drop-down boxes.  When
 checked, any subsequent evaluations of cells will result in
@@ -151,7 +153,7 @@ need to be re-evaluated.  Essentially, checking the "Typeset"
 button is identical to wrapping the output of each cell in the
 ``view()`` command.
 
-A second feature of the notebook is entering `\mbox{\TeX}` as
+A second feature of the notebook is entering TeX as
 part of annotating a worksheet.  When the cursor is placed
 between cells of a worksheet so that a blue bar appears, then a
 shift-click will open a mini-word-processor, TinyMCE.  This
@@ -166,7 +168,7 @@ interpreted by jsMath as inline or display math (respectively).
 Customizing LaTeX Generation
 ============================
 
-There are several ways to customize the actual `\mbox{\LaTeX}` code generated by
+There are several ways to customize the actual LaTeX code generated by
 the ``latex()`` command.  In the notebook and at the Sage command-line
 there is a pre-defined object named ``latex`` which has several methods,
 which you can list by typing ``latex.``, followed by the tab key
@@ -176,7 +178,7 @@ A good example is the ``latex.matrix_delimiters`` method.  It can be
 used to change the notation surrounding a matrix -- large parentheses,
 brackets, braces, vertical bars.  No notion of style is enforced,
 you can mix and match as you please.  Notice how the backslashes
-needed in `\mbox{\LaTeX}` require an extra slash so they are escaped
+needed in LaTeX require an extra slash so they are escaped
 properly within the Python string.  ::
 
     sage: A = matrix(ZZ, 2, 2, range(4))
@@ -216,12 +218,12 @@ done in written work.  This is accomplished by redefining the
     sage: latex.blackboard_bold(True)
     sage: js(QQ)
     <html><div class="math">\newcommand{\Bold}[1]{\mathbb{#1}}\Bold{Q}</div></html>
-
+    sage: latex.blackboard_bold(False)
 
 It is possible to take advantage of the extensible nature of
 tex by adding in new macros and new packages.  First,
 individual macros can be added so that they are used when
-jsMath interprets a snippet of `\mbox{\TeX}` in the notebook.  ::
+jsMath interprets a snippet of TeX in the notebook.  ::
 
     sage: latex.extra_macros()
     ''
@@ -238,15 +240,16 @@ jsMath interprets a snippet of `\mbox{\TeX}` in the notebook.  ::
     <html><div class="math">\newcommand{\Bold}[1]{\mathbf{#1}}\newcommand{\foo}{bar}x + y</div></html>
 
 Additional macros added this way will also be used in the event
-that the system-wide version of `\mbox{\TeX}` is called on
+that the system-wide version of TeX is called on
 something larger than jsMath can handle.  The command
 ``latex_extra_preamble`` is used to build the preamble of a
-complete `\mbox{\LaTeX}` document, so the following illustrates
+complete LaTeX document, so the following illustrates
 how this is accomplished. As usual note the need for the
 double-backslashes in the Python strings.  ::
 
 
     sage: latex.extra_macros('')
+    sage: latex.extra_preamble('')
     sage: from sage.misc.latex import latex_extra_preamble
     sage: print latex_extra_preamble()
     \newcommand{\ZZ}{\Bold{Z}}
@@ -259,9 +262,9 @@ double-backslashes in the Python strings.  ::
     \newcommand{\Bold}[1]{\mathbf{#1}}
     \newcommand{\foo}{bar}
 
-Again, for larger or more complicated `\mbox{\LaTeX}`
+Again, for larger or more complicated LaTeX
 expressions, it is possible to add packages (or anything else) to
-the preamble of the `\mbox{\LaTeX}` file.  Anything may be
+the preamble of the LaTeX file.  Anything may be
 incorporated into the preamble with the ``latex.add_to_preamble``
 command, and the specialized command
 ``latex.add_package_to_preamble_if_available`` will first check
@@ -269,7 +272,7 @@ if a certain package is actually available before trying to add
 it to the preamble.
 
 Here we add the geometry package to the preamble and use it to
-set the size of the region on the page that `\mbox{\TeX}` will
+set the size of the region on the page that TeX will
 use (effectively setting the margins).  As usual, note the need
 for the double-backslashes in the Python strings.  ::
 
@@ -306,16 +309,16 @@ the preamble a package that presumably does not exist. ::
 Customizing LaTeX Processing
 ============================
 
-It is also possible to control which variant of `\mbox{\TeX}` is
+It is also possible to control which variant of TeX is
 used for system-wide invocations, thus also influencing the
 nature of the output.  Similarly, it is also possible to control
-when the notebook will use jsMath (simple `\mbox{\TeX}` snippets)
-or the system-wide `\mbox{\TeX}` installation (more complicated
-`\mbox{\LaTeX}` expressions).
+when the notebook will use jsMath (simple TeX snippets)
+or the system-wide TeX installation (more complicated
+LaTeX expressions).
 
 The ``latex.engine()`` command can be used to control if the
 system-wide executables ``latex``, ``pdflatex`` or ``xelatex``
-are employed for more complicated `\mbox{\LaTeX}` expressions.
+are employed for more complicated LaTeX expressions.
 When ``view()`` is called from the sage command-line and the
 engine is set to ``latex``, a dvi file is produced and Sage will
 use a dvi viewer (like xdvi) to display the result.  In contrast,
@@ -325,16 +328,17 @@ call your system's utility for displaying PDF files (acrobat,
 okular, evince, etc.).
 
 In the notebook, it is necessary to intervene in the decision as
-to whether jsMath will interpret a snippet of `\mbox{\TeX}`, or
-if the `\mbox{\LaTeX}` is complicated enough that the system-wide
-installation of `\mbox{\TeX}` should do the work instead.  The
+to whether jsMath will interpret a snippet of TeX, or
+if the LaTeX is complicated enough that the system-wide
+installation of TeX should do the work instead.  The
 device is a list of strings, which if any one is discovered in a
-piece of `\mbox{\LaTeX}` code signal the notebook to bypass
+piece of LaTeX code signal the notebook to bypass
 jsMath and invoke latex (or whichever executable is set by the
 ``latex.engine()`` command).  This list is managed by the
 ``latex.add_to_jsmath_avoid_list`` and
 ``latex.jsmath_avoid_list`` commands. ::
 
+    sage: latex.jsmath_avoid_list([])
     sage: latex.jsmath_avoid_list()
     []
     sage: latex.jsmath_avoid_list(['foo', 'bar'])
@@ -347,12 +351,12 @@ jsMath and invoke latex (or whichever executable is set by the
     sage: latex.jsmath_avoid_list()
     []
 
-Suppose a `\mbox{\LaTeX}` expression is produced in the notebook
+Suppose a LaTeX expression is produced in the notebook
 with ``view()`` or while the "Typeset" button is checked, and
-then recognized as requiring the external `\mbox{\LaTeX}`
+then recognized as requiring the external LaTeX
 installation through the "jsmath avoid list."  Then the selected
 executable (as specified by ``latex.engine()``) will process the
-`\mbox{\LaTeX}`.  However, instead of then spawning an external
+LaTeX.  However, instead of then spawning an external
 viewer (which is the command-line behavior), Sage will attempt to
 convert the result into a single, tightly-cropped image, which is
 then inserted into the worksheet as the output of the cell.
@@ -361,12 +365,12 @@ Just how this conversion proceeds depends on several factors --
 mostly which executable you have specified as the engine and
 which conversion utilities are available on your system.  Four
 useful converters that will cover all eventualities are
-``dvips``, ``ps2pdf``, ``dvipng`` and from the ImageMagick suite,
+``dvips``, ``ps2pdf``, ``dvipng`` and from the ``ImageMagick`` suite,
 ``convert``.  The goal is to produce a PNG file as the output for
-inclusion back into the worksheet.  When a `\mbox{\LaTeX}`
+inclusion back into the worksheet.  When a LaTeX
 expression can be converted successfully to a dvi by the latex
 engine, then dvipng should accomplish the conversion.  If the
-`\mbox{\LaTeX}` expression and chosen engine creates a dvi with
+LaTeX expression and chosen engine creates a dvi with
 specials that dvipng cannot handle, then dvips will create a
 PostScript file. Such a PostScript file, or a PDF file created by
 an engine such as ``pdflatex``, is then processed into a PNG with
@@ -374,10 +378,13 @@ the ``convert`` utility.  The presence of two of these converters
 can be tested with the ``have_dvipng()`` and ``have_convert()``
 routines.
 
+These conversions are done automatically if you have the necessary
+converters installed; if not, then an error message is printed telling
+you what's missing and where to download it.
 
-For a concrete example of how complicated `\mbox{\LaTeX}`
+For a concrete example of how complicated LaTeX
 expressions can be processed, see the example in the next section
-(:ref:`sec-tkz-graph`) for using the `\mbox{\LaTeX}`
+(:ref:`sec-tkz-graph`) for using the LaTeX
 ``tkz-graph`` package to produce high-quality renderings of
 combinatorial graphs.  For other examples, there are some
 pre-packaged test cases.  To use these, it is necessary to import
@@ -416,19 +423,19 @@ High-quality illustrations of combinatorial graphs (henceforth
 just "graphs") are possible with the ``tkz-graph`` package.
 This package is built on top of the ``tikz`` front-end to the
 ``pgf`` library.  So all of these components need to be part
-of a system-wide `\mbox{\TeX}` installation, and it may be possible
+of a system-wide TeX installation, and it may be possible
 that these components may not be at their most current
-versions as packaged in some `\mbox{\TeX}` implementations. So for
+versions as packaged in some TeX implementations. So for
 best results, it could be necessary or advisable to install
 these as part of your personal texmf tree.  Creating,
-maintaining and customizing a system-wide or personal `\mbox{\TeX}`
+maintaining and customizing a system-wide or personal TeX
 installation is beyond the scope of this document, but it should
 be easy to find instructions.  The necessary files are listed in
 :ref:`sec-system-wide-tex`.
 
 Thus, to start we need to insure that the relevant packages
 are included by adding them to the preamble of the eventual
-`\mbox{\LaTeX}` document.  The images of graphs do not form properly
+LaTeX document.  The images of graphs do not form properly
 when a dvi file is used as an intermediate format, so it is
 best to set the latex engine to the ``pdflatex`` executable.
 At this point a command like ``view(graphs.CompleteGraph(4))``
@@ -436,7 +443,7 @@ should succeed at the Sage command-line and produce a PDF
 with an appropriate image of the complete graph `K_4`.
 
 For a similar experience in the notebook, it is necessary
-to disable jsMath processing of the `\mbox{\LaTeX}` code for the graph
+to disable jsMath processing of the LaTeX code for the graph
 by using the "jsmath avoid list."  Graphs are included with a
 ``tikzpicture`` environment, so this is a good choice for
 a string to include in the avoidance list.  Now,
@@ -445,7 +452,7 @@ should call pdflatex to create a PDF and then the
 ``convert`` utility will extract a PNG graphic to
 insert into the output cell of the worksheet.
 The following commands illustrate the steps to get
-graphs processed by `\mbox{\LaTeX}` in the notebook. ::
+graphs processed by LaTeX in the notebook. ::
 
     sage: from sage.graphs.graph_latex import setup_latex_preamble
     sage: setup_latex_preamble()
@@ -460,7 +467,7 @@ At this point, a command like ``view(graphs.CompleteGraph(4))``
 should produce a graphic version of the graph pasted into the
 notebook, having used ``pdflatex`` to process ``tkz-graph``
 commands to realize the graph. Note that there is a variety of
-options to affect how a graph is rendered in `\mbox{\LaTeX}` via
+options to affect how a graph is rendered in LaTeX via
 ``tkz-graph``, which is again outside the scope of this section,
 see the section of the Reference manual titled "LaTeX Options for
 Graphs" for instructions and details.
@@ -470,16 +477,18 @@ Graphs" for instructions and details.
 A Fully Capable TeX Installation
 ================================
 Many of the more advanced features of the integration of
-`\mbox{\TeX}` with Sage requires a system-wide installation of
-`\mbox{\TeX}`.  Many versions of Linux have base `\mbox{\TeX}`
-packages based on `\mbox{\TeX}`-live, for OSX there is
-`\mbox{\TeX}`{}shop and for Windows there is Mik{}`\mbox{\TeX}`.
-The ``convert`` utility is part of the ImageMagick suite (which
-should be a package or an easy download) and the the other
-conversion utilities possibly needed are ``dvips``, ``ps2pdf``,
-and ``dvipng``, which may be included with a `\mbox{\TeX}`
-distribution, or part of a collection of tools, or available
-separately.
+TeX with Sage requires a system-wide installation of
+TeX.  Many versions of Linux have base TeX
+packages based on TeX-live, for OSX there is
+TeXshop and for Windows there is MikTeX.
+The ``convert`` utility is part of the
+`ImageMagick <http://www.imagemagick.org/>`_ suite (which
+should be a package or an easy download), and the three
+programs ``dvipng``, ``ps2pdf``, and ``dvips`` may be
+included with your TeX distribution.  The first two may
+also be obtained, respectively, from
+http://sourceforge.net/projects/dvipng/ and as part of
+`Ghostscript <http://www.ghostscript.com/>`_.
 
 Rendering combinatorial graphs requires a recent version of the
 PGF library, and the files ``tkz-graph.sty``, ``tkz-arith.sty``
@@ -490,13 +499,13 @@ External Programs
 =================
 
 There are three programs available to further integrate
-`\mbox{\TeX}` and Sage. The first is sagetex.  A concise
+TeX and Sage. The first is sagetex.  A concise
 description of sagetex is that it is a collection of
-`\mbox{\TeX}` macros that allow a `\mbox{\LaTeX}` document to
+TeX macros that allow a LaTeX document to
 include instructions to have Sage compute various objects and/or
 format objects using the ``latex()`` support built in to Sage.
-So as an intermediate step of compiling a `\mbox{\LaTeX}`
-document, all of the computational and `\mbox{\LaTeX}`-formatting
+So as an intermediate step of compiling a LaTeX
+document, all of the computational and LaTeX-formatting
 features of Sage can be handled automatically.  As an example, a
 mathematics examination can maintain a correct correspondence
 between questions and answers by using sagetex to have Sage
@@ -504,19 +513,19 @@ compute one from the other.  See :ref:`sec-sagetex` for more
 information.
 
 
-tex2sws begins with a `\mbox{\LaTeX}` document, but defines extra
+tex2sws begins with a LaTeX document, but defines extra
 environments for the placement of Sage code.  When processed with
 the right tools, the result is a Sage worksheet, with content
 properly formatted for jsMath and the Sage code incorporated as
 input cells.  So a textbook or article can be authored in
-`\mbox{\LaTeX}`, blocks of Sage code included, and the whole
+LaTeX, blocks of Sage code included, and the whole
 document can be transformed into a Sage worksheet where the
 mathematical text is nicely formatted and the blocks of Sage code
 are "live."  Currently in development, see `tex2sws @ BitBucket
 <http://bitbucket.org/rbeezer/tex2sws/>`_ for more information.
 
 sws2tex reverses the process by beginning with a Sage worksheet
-and converting it to legitimate `\mbox{\LaTeX}` for subsequent
-processing with all the tools available for `\mbox{\LaTeX}`
+and converting it to legitimate LaTeX for subsequent
+processing with all the tools available for LaTeX
 documents.  Currently in development, see `sws2tex @ BitBucket
 <http://bitbucket.org/whuss/sws2tex/>`_ for more information.

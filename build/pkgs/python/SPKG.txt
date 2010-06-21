@@ -70,7 +70,7 @@ http://www.python.org/community/
 
 == Changelog ==
 
-=== python-2.6.4.p9 (Robert Bradsure and David Kirkby, 30th May 2010) ===
+=== python-2.6.4.p9 (Robert Bradsure and David Kirkby, June 21st, 2010) ===
  * #9042 - Cython fails to build on OpenSolaris x64
    This adds the -m64 flag to OPT to build distutils extensions.
    (Robert Bradsure, 25th May 2010)
@@ -79,6 +79,7 @@ http://www.python.org/community/
  * Ensure the _socket module builds on OpenSolaris x64 (this solves
    #9041 and #9022)
    David Kirkby (30th May 2010)
+ * #9295 Add an spkg-check file for Python
 
 === python-2.6.4.p8 (Mike Hansen, 25th May, 2010) ===
  * Added '--enabled-shared' which is needed on certain platforms

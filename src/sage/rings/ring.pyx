@@ -1245,12 +1245,14 @@ cdef class IntegralDomain(CommutativeRing):
             True
             sage: QQbar.is_integrally_closed()
             True
+            sage: GF(5).is_integrally_closed()
+            True
             sage: Z5 = Integers(5); Z5
             Ring of integers modulo 5
             sage: Z5.is_integrally_closed()
             Traceback (most recent call last):
             ...
-            AttributeError: 'IntegerModRing_generic' object has no attribute 'is_integrally_closed'
+            AttributeError: 'IntegerModRing_generic_with_category' object has no attribute 'is_integrally_closed'
         """
         raise NotImplementedError
 

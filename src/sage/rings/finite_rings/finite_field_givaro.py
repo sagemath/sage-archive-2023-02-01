@@ -389,7 +389,7 @@ class FiniteField_givaro(FiniteField):
             sage: S.prime_subfield()
             Finite Field of size 5
             sage: type(S.prime_subfield())
-            <class 'sage.rings.finite_rings.finite_field_prime_modn.FiniteField_prime_modn'>
+            <class 'sage.rings.finite_rings.finite_field_prime_modn.FiniteField_prime_modn_with_category'>
         """
         try:
             return self._prime_subfield

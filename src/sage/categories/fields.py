@@ -16,9 +16,8 @@ from sage.misc.cachefunc import cached_method
 
 class Fields(Category):
     """
-    The category of fields
-    commutative fields, i.e. commutative rings where all non-zero elements have
-    multiplicative inverses
+    The category of (commutative) fields, i.e. commutative rings where
+    all non-zero elements have multiplicative inverses
 
     EXAMPLES::
 
@@ -116,7 +115,26 @@ class Fields(Category):
             raise TypeError, "unable to associate a field to %s"%x
 
     class ParentMethods:
-        pass
+
+        def is_integrally_closed(self):
+            r"""
+
+            Return ``True``, as per :meth:`IntegralDomain.is_integraly_closed`:
+            for every field `F`, `F` is its own field of fractions,
+            hence every element of `F` is integral over `F`.
+
+            EXAMPLES::
+
+                sage: QQ.is_integrally_closed()
+                True
+                sage: QQbar.is_integrally_closed()
+                True
+                sage: Z5 = GF(5); Z5
+                Finite Field of size 5
+                sage: Z5.is_integrally_closed()
+                True
+            """
+            return True
 
     class ElementMethods:
         pass

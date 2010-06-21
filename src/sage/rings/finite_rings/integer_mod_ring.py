@@ -125,8 +125,7 @@ class IntegerModFactory(UniqueFactory):
         EXAMPLES::
 
             sage: R = Integers(10)
-            sage: loads(dumps(R)) is R
-            True
+            sage: TestSuite(R).run() # indirect doctest
         """
         if order < 0:
             order = -order
@@ -170,7 +169,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         sage: a**(10^62)
         61
     """
-    def __init__(self, order, cache=None):
+    def __init__(self, order, cache=None, category=None):
         """
         Create with the command IntegerModRing(order)
 
@@ -179,6 +178,8 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
         -  ``order`` - an integer 1
 
+        - ``category`` - a subcategory of ``CommutativeRings()`` (the default)
+          (currently only available for subclasses)
 
         OUTPUT:
 
@@ -196,6 +197,8 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             sage: FF = IntegerModRing(17)
             sage: FF
             Ring of integers modulo 17
+            sage: FF.category()
+            Join of Category of commutative rings and Category of finite enumerated sets
             sage: FF.is_field()
             True
             sage: FF.characteristic()
@@ -211,12 +214,22 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             sage: def pow(i): return a**i
             sage: [pow(i) for i in range(16)]
             [1, 3, 9, 10, 13, 5, 15, 11, 16, 14, 8, 7, 4, 12, 2, 6]
+            sage: TestSuite(FF).run()
+
+        One can force `FF` to be in the category of fields::
+
+            sage: FF = IntegerModRing(17, category = Fields()) # todo: not implemented
+            sage: FF.category()                                # todo: not implemented
+            Join of Category of fields and Category of finite enumerated sets
+            sage: TestSuite(FF).run()                          # todo: not implemented
 
         Next we compute with the integers modulo `16`.
 
         ::
 
             sage: Z16 = IntegerModRing(16)
+            sage: Z16.category()
+            Join of Category of commutative rings and Category of finite enumerated sets
             sage: Z16.is_field()
             False
             sage: Z16.order()
@@ -241,12 +254,12 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             2
             sage: b.multiplicative_order()
             4
+            sage: TestSuite(Z16).run()
 
         Saving and loading::
 
             sage: R = Integers(100000)
-            sage: loads(R.dumps()) == R
-            True
+            sage: TestSuite(R).run()
         """
         ZZ = integer_ring.IntegerRing()
         order = ZZ(order)
@@ -257,7 +270,14 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         self.__unit_group_exponent = None
         self.__factored_order = None
         quotient_ring.QuotientRing_generic.__init__(self, ZZ, ZZ.ideal(order), names=None)
-        ParentWithGens.__init__(self, self)
+        from sage.categories.commutative_rings import CommutativeRings
+        #from sage.categories.fields import Fields
+        from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+        if category is None:
+            #category = Fields()  if order.is_prime() else CommutativeRings()
+            category = CommutativeRings()
+        category = category.join([category, FiniteEnumeratedSets()])
+        ParentWithGens.__init__(self, self, category = category)
         if cache is None:
             cache = order < 500
         if cache:
@@ -879,14 +899,18 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         """
         EXAMPLES::
 
-            sage: F = GF(11)
-            sage: F
+            sage: Z11 = IntegerModRing(11); Z11
+            Ring of integers modulo 11
+            sage: Z12 = IntegerModRing(12); Z12
+            Ring of integers modulo 12
+            sage: Z13 = IntegerModRing(13); Z13
+            Ring of integers modulo 13
+            sage: F = GF(11); F
             Finite Field of size 11
-            sage: R = IntegerModRing(11)
-            sage: R == F
-            False
+            sage: Z11 == Z11, Z11 == Z12, Z11 == Z13, Z11 == F
+            (True, False, False, False)
         """
-        if type(other) != IntegerModRing_generic:   # so that GF(p) =/= Z/pZ
+        if type(other) is not type(self):   # so that GF(p) =/= Z/pZ
             return cmp(type(self), type(other))
         return cmp(self.__order, other.__order)
 

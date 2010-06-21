@@ -7,8 +7,7 @@ AUTHORS:
 
 TESTS:
     sage: k = GF(3)
-    sage: loads(dumps(k)) == k
-    True
+    sage: TestSuite(k).run()
 """
 
 #*****************************************************************************
@@ -58,7 +57,8 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         p = integer.Integer(p)
         if not arith.is_prime(p):
             raise ArithmeticError, "p must be prime"
-        integer_mod_ring.IntegerModRing_generic.__init__(self, p)
+        from sage.categories.fields import Fields
+        integer_mod_ring.IntegerModRing_generic.__init__(self, p, category = Fields())
         import sage.structure.factorization as factorization
         self._IntegerModRing_generic__factored_order = factorization.Factorization([(p,1)], integer.Integer(1))
         self._kwargs = {}

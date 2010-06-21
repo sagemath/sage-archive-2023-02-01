@@ -14,7 +14,7 @@ using the PARI implementation.
 
 EXAMPLES:
     sage: k = GF(5); type(k)
-    <class 'sage.rings.finite_rings.finite_field_prime_modn.FiniteField_prime_modn'>
+    <class 'sage.rings.finite_rings.finite_field_prime_modn.FiniteField_prime_modn_with_category'>
     sage: k = GF(5^2,'c'); type(k)
     <class 'sage.rings.finite_rings.finite_field_givaro.FiniteField_givaro'>
     sage: k = GF(2^16,'c'); type(k)
@@ -1752,18 +1752,17 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         EXAMPLE:
             sage: k = GF(2**8, 'a')
             sage: e = k.random_element()
-            sage: loads(dumps(e)) == e
-            True
+            sage: TestSuite(e).run() # indirect doctest
         """
         return unpickle_FiniteField_givaroElement,(self.parent(),self.element)
 
 def unpickle_FiniteField_givaroElement(parent, int x):
     """
-    EXAMPLE:
+    TESTS::
+
         sage: k = GF(3**4, 'a')
         sage: e = k.random_element()
-        sage: loads(dumps(e)) == e # indirect doctest
-        True
+        sage: TestSuite(e).run() # indirect doctest
     """
     return make_FiniteField_givaroElement(parent._cache, x)
 

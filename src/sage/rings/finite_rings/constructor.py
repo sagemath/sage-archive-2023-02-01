@@ -53,7 +53,7 @@ finite fields yet.
 EXAMPLES::
 
     sage: k = GF(5); type(k)
-    <class 'sage.rings.finite_rings.finite_field_prime_modn.FiniteField_prime_modn'>
+    <class 'sage.rings.finite_rings.finite_field_prime_modn.FiniteField_prime_modn_with_category'>
 
 ::
 
@@ -98,7 +98,7 @@ We output the base rings of several finite fields.
 ::
 
     sage: k = GF(3); type(k)
-    <class 'sage.rings.finite_rings.finite_field_prime_modn.FiniteField_prime_modn'>
+    <class 'sage.rings.finite_rings.finite_field_prime_modn.FiniteField_prime_modn_with_category'>
     sage: k.base_ring()
     Finite Field of size 3
 
@@ -360,8 +360,7 @@ class FiniteFieldFactory(UniqueFactory):
         EXAMPLES::
 
             sage: K = GF(19)
-            sage: loads(dumps(K)) is K
-            True
+            sage: TestSuite(K).run()
         """
         order, name, modulus, impl, _ = key
 

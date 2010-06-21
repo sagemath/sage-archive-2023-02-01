@@ -4521,8 +4521,8 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g = graphs.PetersenGraph()
             sage: matching = [(u,v) for u,v,_ in g.matching()]               # optional - GLPK, CBC
-            sage: h = g.multicommodity_flow(matching)
-            sage: len(h)
+            sage: h = g.multicommodity_flow(matching)                        # optional - GLPK, CBC
+            sage: len(h)                                                     # optional - GLPK, CBC
             5
 
         We could also have considered ``g`` as symmetric and computed
@@ -4530,7 +4530,7 @@ class GenericGraph(GenericGraph_pyx):
         edges can be used in both directions at the same time::
 
             sage: h = DiGraph(g).multicommodity_flow(matching)               # optional - GLPK, CBC
-            sage: len(h)
+            sage: len(h)                                                     # optional - GLPK, CBC
             5
 
         An exception is raised when the problem has no solution ::

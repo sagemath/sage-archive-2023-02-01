@@ -3185,11 +3185,11 @@ class Graph(GenericGraph):
         to the current graph.
 
         A module `M` of a graph `G` is a subset of its vertices such
-        that for all `u \in V(G)-M, v,v'\in M` the relation `u \sim v
-        \Leftrightarrow u \sim v'` holds, where `\sim` denotes the
-        adjacncy relation in `G`. Equivalently, `G` is a module if all
-        its vertices have the same adjacency relations with the
-        vertices outside of the module.
+        that for all `u \in V(G)-M, v,w\in M` the relation `u \sim v
+        \Leftrightarrow u \sim w` holds, where `\sim` denotes the
+        adjacency relation in `G`. Equivalently, `M \subset V(G)` is a
+        module if all its vertices have the same adjacency relations
+        with each vertex outside of the module (vertex by vertex).
 
         A connected component `C` of a disconnected graph `G`, for
         instance, is a module, as no vertex of `C` has a neighbor
@@ -3197,12 +3197,13 @@ class Graph(GenericGraph):
         non-anticonnected graph).
 
         Of course, a module of a graph may itself contain, when
-        considered as a graph, submodules, which can then constitute a
-        recursive decomposition of the whole graph, the modular
-        decomposition.
+        considered as an induced subgraph, submodules, which can
+        then constitute a recursive decomposition of the whole graph,
+        called the modular decomposition.
 
-        For more information on modular decomposition, see the
-        `Wikipedia article on modular decomposition
+        For more information on modular decomposition, in particular
+        for an explanation of the terms "Parallel," "Prime" and
+        "Serie," see the `Wikipedia article on modular decomposition
         <http://en.wikipedia.org/wiki/Modular_decomposition>`_.
 
         OUTPUT:
@@ -3215,8 +3216,9 @@ class Graph(GenericGraph):
                 * ``"Prime"``
                 * ``"Serie"``
 
-            * The list of submodules (as list of pairs ``(type, list)``, recursively...)
-              or the vertex's name if the module is a singleton.
+            * The list of submodules (as list of pairs ``(type, list)``,
+              recursively...) or the vertex's name if the module is a
+              singleton.
 
         EXAMPLES:
 
@@ -3275,7 +3277,9 @@ class Graph(GenericGraph):
 
     def is_prime(self):
         r"""
-        Tests whether the current graph is prime
+        Tests whether the current graph is prime. A graph is prime if
+        all its modules are trivial (i.e. empty, all of the graph or
+        singletons)-- see `self.modular_decomposition?`.
 
         EXAMPLE:
 

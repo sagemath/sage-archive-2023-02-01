@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Elliptic curves over number fields.
 
@@ -550,6 +551,14 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E.global_integral_model()
             Elliptic Curve defined by y^2 = x^3 + 1444*a*x + 27436 over Number Field in a with defining polynomial x^2 - 38
 
+        trac #9266::
+
+            sage: K.<s> = NumberField(x^2-5)
+            sage: w = (1+s)/2
+            sage: E = EllipticCurve(K,[2,w])
+            sage: E.global_integral_model()
+            Elliptic Curve defined by y^2 = x^3 + 2*x + (1/2*s+1/2) over Number Field in s with defining polynomial x^2 - 5
+
         """
         K = self.base_field()
         ai = self.a_invariants()
@@ -560,7 +569,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
                    e  = min([(ai[i].valuation(P)/[1,2,3,4,6][i]) for i in range(5)]).floor()
                    ai = [ai[i]/pi**(e*[1,2,3,4,6][i]) for i in range(5)]
         for z in ai:
-            assert z.denominator() == 1, "bug in global_integral_model: %s" % ai
+            assert z.is_integral(), "bug in global_integral_model: %s" % list(ai)
         return EllipticCurve(list(ai))
 
     integral_model = global_integral_model

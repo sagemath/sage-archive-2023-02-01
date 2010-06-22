@@ -87,16 +87,16 @@ parser.add_option('-c', '--candidates', action='store_true',
 parser.add_option('-v', '--verbose', action='store_true',
                   help='Display the results of each test')
 parser.add_option('-n', '--num-threads', action='store', type='int', default=2,
-                  help='Number of threads to work with')
+                  help='Number of threads to work with.  Default 2.')
 parser.add_option('-r', '--repository',
                   choices = repositories.keys(), default='sage',
-                  help='Which repository to apply to. Choices: %r' % repositories.keys())
+                  help="Which repository to apply to. Choices: %r.  Default 'sage'." % repositories.keys())
 parser.add_option('-t', '--test', default='files',
-                  help='What things to doctest. Choices: %r or any prefix of a choice.' % DOCTEST_OPTIONS)
+                  help='What things to doctest. Choices: %r or the first letter(s) any choice.' % DOCTEST_OPTIONS)
 parser.add_option('-o', '--overwrite', action='store_true', default=False,
-                  help='Whether to overwrite files when downloading.')
+                  help='Whether to overwrite files when downloading.  Default False')
 parser.add_option('-d', '--directory', default='',
-                  help='Directory to store patches in.')
+                  help='Directory to store patches in.  Default: a temporary directory.')
 
 parser.set_defaults(behavior='pop')
 
@@ -469,7 +469,7 @@ def merge_and_run(n,
                                                             directory, overwrite)
 
     return apply_and_test(n, patches, directory, behavior, default_repo,
-                          verbose=verbose, order=order, num_threads=2)
+                          verbose=verbose, order=order, num_threads=num_threads)
 
 
 def apply_and_test(n, patches, directory, behavior, default_repo, verbose=False,
@@ -630,14 +630,18 @@ def run_tests(patches,
     if test_success:
         # we want to either commit or leave the queue as-is for
         # further testing
+        if test_type != 'none':
+            test_msg = "All tests passed! "
+        else:
+            test_msg = "Doctests skipped. "
         if behavior == 'leave':
-            print "All tests passed! Leaving patches in queue."
+            print test_msg + "Leaving patches in queue."
         elif behavior == 'finish':
-            print "All tests passed! Committing queue to repository..."
+            print test_msg + "Committing queue to repository..."
             commit_queue(repos_used)
-            print "All tests passed! Committing queue to repository... DONE"
+            print test_msg + "Committing queue to repository... DONE"
         elif behavior == 'pop':
-            print "All tests passed! Popping patches from queue ..."
+            print test_msg + "Popping patches from queue ..."
             clear_queue(applied_patches, repos_used)
         return None
     else:
@@ -736,7 +740,7 @@ if __name__ == '__main__':
     (options, args) = parser.parse_args()
 
     if options.directory:
-        directory = os.path.abspath(opt)
+        directory = os.path.abspath(options.directory)
         if not os.path.exists(directory):
             os.makedirs(directory)
 

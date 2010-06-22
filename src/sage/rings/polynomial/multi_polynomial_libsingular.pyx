@@ -218,7 +218,7 @@ from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 from sage.rings.number_field.number_field_base cimport NumberField
 
 from sage.rings.arith import gcd
-from sage.structure.element import coerce_binop
+from sage.structure.element import coerce_binop, get_coercion_model
 
 from sage.structure.parent cimport Parent
 from sage.structure.parent_base cimport ParentWithBase
@@ -2056,7 +2056,8 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             raise TypeError, "number of arguments does not match number of variables in parent"
 
         try:
-            x = [parent._coerce_c(e) for e in x]
+            # Attempt evaluation via singular.
+            coerced_x = [parent.coerce(e) for e in x]
         except TypeError:
             # give up, evaluate functional
             y = parent.base_ring()(0)
@@ -2065,13 +2066,18 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             return y
 
         cdef poly *res
-        singular_polynomial_call(&res, self._poly, _ring, x, MPolynomial_libsingular_get_element)
+        singular_polynomial_call(&res, self._poly, _ring, coerced_x, MPolynomial_libsingular_get_element)
+        res_parent = get_coercion_model().common_parent(parent._base, *x)
 
         if res == NULL:
-            return parent._base._zero_element
+            return res_parent(0)
         if p_LmIsConstant(res, _ring):
-            return si2sa(p_GetCoeff(res, _ring), _ring, parent._base)
-        return new_MP(parent, res)
+            sage_res = si2sa( p_GetCoeff(res, _ring), _ring, parent._base )
+        else:
+            sage_res = new_MP(parent, res)
+        if parent(sage_res) is not res_parent:
+            sage_res = res_parent(sage_res)
+        return sage_res
 
     # you may have to replicate this boilerplate code in derived classes if you override
     # __richcmp__.  The python documentation at  http://docs.python.org/api/type-structs.html
@@ -4642,6 +4648,15 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: f == loads(dumps(f))
             True
 
+        TESTS:
+
+        Verify that trac #9220 is fixed.
+
+            sage: R=QQ['x']
+            sage: S=QQ['x','y']
+            sage: h=S.0^2
+            sage: parent(h(R.0,0))
+            Univariate Polynomial Ring in x over Rational Field
         """
         return sage.rings.polynomial.multi_polynomial_libsingular.unpickle_MPolynomial_libsingular, ( self._parent, self.dict() )
 

@@ -612,6 +612,65 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
         return all, None
 
+    def common_parent(self, *args):
+        """
+        Computes a common parent for all the inputs. It's essentially
+        an n-ary canonical coercion except it can operate on Parents
+        rather than just elements.
+
+        INPUT:
+
+            args -- a set of elements and/or parents
+
+        OUTPUT:
+
+            A Parent into which each input should coerce, or raises a
+            TypeError if no such Parent can be found.
+
+        EXAMPLES::
+
+            sage: cm = sage.structure.element.get_coercion_model()
+            sage: cm.common_parent(ZZ, QQ)
+            Rational Field
+            sage: cm.common_parent(ZZ, QQ, RR)
+            Real Field with 53 bits of precision
+            sage: cm.common_parent(ZZ[['T']], QQ['T'], RDF)
+            Power Series Ring in T over Real Double Field
+            sage: cm.common_parent(4r, 5r)
+            <type 'int'>
+            sage: cm.common_parent(int, float, ZZ)
+            <type 'float'>
+            sage: cm.common_parent(*[RealField(prec) for prec in [10,20..100]])
+            Real Field with 10 bits of precision
+
+        There are some cases where the ordering does matter, but if a parent
+        can be found it is always the same::
+
+            sage: cm.common_parent(QQ['x,y'], QQ['y,z']) == cm.common_parent(QQ['y,z'], QQ['x,y'])
+            True
+            sage: cm.common_parent(QQ['x,y'], QQ['y,z'], QQ['z,t'])
+            Multivariate Polynomial Ring in x, y, z, t over Rational Field
+            sage: cm.common_parent(QQ['x,y'], QQ['z,t'], QQ['y,z'])
+            Traceback (most recent call last):
+            ...
+            TypeError: no common canonical parent for objects with parents: 'Multivariate Polynomial Ring in x, y over Rational Field' and 'Multivariate Polynomial Ring in z, t over Rational Field'
+        """
+        base = None
+        for x in args:
+            if not isinstance(x, Parent) and not isinstance(x, type):
+               x = parent_c(x)
+            if base is None:
+                base = x
+            if isinstance(base, Parent) and (<Parent>base).has_coerce_map_from(x):
+                continue
+            elif isinstance(x, Parent) and (<Parent>x).has_coerce_map_from(base):
+                base = x
+            else:
+                a = base.an_element() if isinstance(base, Parent) else base(1)
+                b = x.an_element() if isinstance(x, Parent) else x(1)
+                base = parent_c(self.canonical_coercion(a, b)[0])
+        return base
+
     cpdef Parent division_parent(self, Parent parent):
         r"""
         Deduces where the result of division in parent lies by calculating

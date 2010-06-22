@@ -3184,27 +3184,51 @@ class Graph(GenericGraph):
         Returns the modular decomposition corresponding
         to the current graph.
 
-        A module `M` of a graph `G` is a subset of its vertices such
-        that for all `u \in V(G)-M, v,w\in M` the relation `u \sim v
-        \Leftrightarrow u \sim w` holds, where `\sim` denotes the
-        adjacency relation in `G`. Equivalently, `M \subset V(G)` is a
-        module if all its vertices have the same adjacency relations
-        with each vertex outside of the module (vertex by vertex).
+        Crash course on modular decomposition:
 
-        A connected component `C` of a disconnected graph `G`, for
-        instance, is a module, as no vertex of `C` has a neighbor
-        outside of it (similarly, with an anticomponent of an
-        non-anticonnected graph).
+        A module `M` of a graph `G` is a proper subset of its vertices
+        such that for all `u \in V(G)-M, v,w\in M` the relation `u
+        \sim v \Leftrightarrow u \sim w` holds, where `\sim` denotes
+        the adjacency relation in `G`. Equivalently, `M \subset V(G)`
+        is a module if all its vertices have the same adjacency
+        relations with each vertex outside of the module (vertex by
+        vertex).
 
-        Of course, a module of a graph may itself contain, when
-        considered as an induced subgraph, submodules, which can
-        then constitute a recursive decomposition of the whole graph,
-        called the modular decomposition.
+        Hence, for a set like a module, it is very easy to encode the
+        information of the adjacencies between the vertices inside and
+        outside the module -- we can actually add a new vertex `v_M`
+        to our graph representing our module `M`, and let `v_M` be
+        adjacent to `u\in V(G)-M` if and only if some `v\in M` (and
+        hence all the vertices contained in the module) is adjacent to
+        `u`. We can now independently (and recursively) study the
+        structure of our module `M` and the new graph `G-M+\{v_M\}`,
+        without any loss of information.
+
+        Here are two very simple modules :
+
+            * A connected component `C` (or the union of some --but
+              not all-- of them) of a disconnected graph `G`, for
+              instance, is a module, as no vertex of `C` has a
+              neighbor outside of it.
+
+            * An anticomponent `C` (or the union of some --but not
+              all-- of them) of an non-anticonnected graph `G`, for
+              the same reason (it is just the complement of the
+              previous graph !).
+
+        These modules being of special interest, the disjoint union of
+        graphs is called a Parallel composition, and the complement of
+        a disjoint union is called a Parallel composition. A graph
+        whose only modules are singletons is called Prime.
 
         For more information on modular decomposition, in particular
         for an explanation of the terms "Parallel," "Prime" and
         "Serie," see the `Wikipedia article on modular decomposition
         <http://en.wikipedia.org/wiki/Modular_decomposition>`_.
+
+        You may also be interested in the survey from Michel Habib and
+        Christophe Paul entitled "A survey on Algorithmic aspects of
+        modular decomposition" [HabPau10]_.
 
         OUTPUT:
 
@@ -3250,6 +3274,10 @@ class Graph(GenericGraph):
 
             * Computation of the tree itself [CapHabMont02]_.
 
+        .. SEEALSO::
+
+        - :meth:`is_prime` -- Tests whether a graph is prime.
+
         REFERENCE:
 
         .. [FMDec] Fabien de Montgolfier
@@ -3263,6 +3291,12 @@ class Graph(GenericGraph):
         .. [CapHabMont02] C. Capelle, M. Habib et F. de Montgolfier
           Graph decomposition and Factorising Permutations
           Discrete Mathematics and Theoretical Computer Sciences, vol 5 no. 1 , 2002.
+
+        .. [HabPau10] Michel Habib and Christophe Paul
+          A survey of the algorithmic aspects of modular decomposition
+          Computer Science Review
+          vol 4, number 1, pages 41--59, 2010
+          http://www.lirmm.fr/~paul/md-survey.pdf
         """
 
         from sage.graphs.modular_decomposition.modular_decomposition import modular_decomposition

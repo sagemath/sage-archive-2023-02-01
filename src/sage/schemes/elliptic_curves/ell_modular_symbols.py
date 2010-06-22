@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Modular symbols
 
@@ -286,7 +287,7 @@ class ModularSymbol(SageObject):
             at0 = self(0)
             # print 'modular symbol evaluates to ',at0,' at 0'
             if at0 != 0 :
-                l1 = self.__lalg(1)
+                l1 = self.__lalg__(1)
                 if at0 != l1:
                     verbose('scale modular symbols by %s'%(l1/at0))
                     self._scaling = l1/at0
@@ -313,11 +314,11 @@ class ModularSymbol(SageObject):
                         msn = ModularSymbolSage(self._E,sign = -1,normalize = "L_ratio")
                         sc = msn._scaling
                     if sc == 0 or self._use_eclib : #
-                        self.__scale_by_periods_only()
+                        self.__scale_by_periods_only__()
                     else :
                         self._scaling = sc
                 else :
-                    l1 = self.__lalg(D)
+                    l1 = self.__lalg__(D)
                     if at0 != l1:
                         verbose('scale modular symbols by %s'%(l1/at0))
                         self._scaling = l1/at0
@@ -337,15 +338,15 @@ class ModularSymbol(SageObject):
                 j += 1
             if j == 9 and at0 == 0: # no more hope for a normalization
                 # we do at least a scaling with the quotient of the periods
-                self.__scale_by_periods_only()
+                self.__scale_by_periods_only__()
             else :
-                l1 = self.__lalg(D)
+                l1 = self.__lalg__(D)
                 if at0 != l1:
                     verbose('scale modular symbols by %s'%(l1/at0))
                     self._scaling = l1/at0
 
 
-    def __lalg(self,D):
+    def __lalg__(self,D):
         r"""
         For positive `D`, this function evaluates the quotient
         `L(E_D,1)\cdot \sqrt(D)/\Omega_E` where `E_D` is the twist of
@@ -354,6 +355,16 @@ class ModularSymbol(SageObject):
         `L(E_D,1)\cdot \sqrt(-D)/\Omega^{-}_E`
         where `\Omega^{-}_E` is the least positive imaginary part of a
         non-real period of `E`.
+
+        EXMAPLES::
+
+            sage: E = EllipticCurve('11a1')
+            sage: m = E.modular_symbol(sign=+1)
+            sage: m.__lalg__(1)
+            1/5
+            sage: m.__lalg__(3)
+            5/2
+
         """
         from sage.functions.all import sqrt
         # the computation of the L-value could take a lot of time,
@@ -377,12 +388,29 @@ class ModularSymbol(SageObject):
         verbose('real approximation is %s'%q)
         return lv/8 * QQ(int(round(q)))
 
-    def __scale_by_periods_only(self):
+    def __scale_by_periods_only__(self):
         r"""
         If we fail to scale with ``_find_scaling_L_ratio``, we drop here
         to try and find the scaling by the quotient of the
         periods to the `X_0`-optimal curve. The resulting ``_scaling``
         is not guaranteed to be correct, but could well be.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('11a1')
+            sage: m = E.modular_symbol(sign=+1)
+            sage: m.__scale_by_periods_only__()
+            Warning : Could not normalize the modular symbols, maybe all further results will be multiplied by -1, 2 or -2.
+            sage: m._scaling
+            1
+
+            sage: E = EllipticCurve('11a3')
+            sage: m = E.modular_symbol(sign=+1, use_eclib=True)
+            sage: m.__scale_by_periods_only__()
+            Warning : Could not normalize the modular symbols, maybe all further results will be multiplied by -1, 2 or -2.
+            sage: m._scaling
+            1/5
+
         """
         # we only do this inside the cremona-tables.
         try :

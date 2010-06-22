@@ -5,8 +5,48 @@ Tate-Shafarevich group
 If `E` is an elliptic curve over a global field `K`, the Shafarevich-Tate group
 is the subgroup of elements in `H^1(K,E)` which map to zero under every global-to-local
 restriction map `H^1(K,E) \to H^1(K_v,E)`, one for each place `v`
-of `K`. It is known to be a torsion group and the `m`-torsion is finite for all `m>1`.
-It is conjectured to be finite.
+of `K`.
+
+The group is usually denoted by the Russian letter Sha.
+
+Sha is known to be an abelian torsion group. It is conjectured that the Tate-Shafarevich group is finite for any elliptic curve over a global field. But it is not known in general.
+
+A theorem of Kolyvagin and Gross-Zagier using Heegner points shows that if the L-series of an elliptic curve `E/\mathbb{Q}` does not
+vanish at 1 or has a simple zero there, then Sha is finite.
+
+A theorem of Kato, together with theorems from Iwasawa theory, allow for certain primes `p` to show that the `p`-primary part of Sha is finite and gives an effective upper bound for it.
+
+The (`p`-adic) conjecture of Birch and Swinnerton-Dyer predicts the order of Sha from the leading term of the (`p`-adic) L-series of the elliptic curve.
+
+Sage can compute a few things about Sha. The commands ``an``, ``an_numerical`` and ``an_padic`` compute the conjectural order of Sha as a real or `p`-adic number. With ``p_primary_bound`` one can find an upper bound of the size of the `p`-primary part of Sha. Finally, if the analytic rank is at most 1, then ``bound_kato`` and ``bound_kolyvagin`` find all primes for which we the theorems of Kato and Kolyvagin respectively do not prove the triviality the `p`-primary part of Sha.
+
+EXAMPLES::
+
+    sage: E = EllipticCurve('11a1')
+    sage: S = E.sha()
+    sage: S.bound_kato()
+    [2, 3, 5]
+    sage: S.bound_kolyvagin()
+    ([2, 5], 1)
+    sage: S.an_padic(7,3)  #long
+    1 + O(7^5)
+    sage: S.an()
+    1
+    sage: S.an_numerical()
+    1.00000000000000
+
+    sage: E = EllipticCurve('389a')
+    sage: S = E.sha(); S
+    Shafarevich-Tate group for the Elliptic Curve defined by y^2 + y = x^3 + x^2 - 2*x over Rational Field
+    sage: S.an_numerical()
+    1.00000000000000
+    sage: S.p_primary_bound(5) #long
+    0
+    sage: S.an_padic(5)  #long
+    1 + O(5)
+    sage: S.an_padic(5,prec=4) #long
+    1 + O(5^3)
+
 
 AUTHORS:
 
@@ -59,15 +99,82 @@ class Sha(SageObject):
 
     EXAMPLES::
 
+        sage: E = EllipticCurve('571a1')
+        sage: S = E.sha()
+        sage: S.bound_kato()
+        [2, 3]
+        sage: S.bound_kolyvagin()
+        ([2], 1)
+        sage: S.an_padic(7,3)  #long
+        4 + O(7^5)
+        sage: S.an()
+        4
+        sage: S.an_numerical()
+        4.00000000000000
+
         sage: E = EllipticCurve('389a')
-        sage: E.sha()
+        sage: S = E.sha(); S
         Shafarevich-Tate group for the Elliptic Curve defined by y^2 + y = x^3 + x^2 - 2*x over Rational Field
+        sage: S.an_numerical()
+        1.00000000000000
+        sage: S.p_primary_bound(5) #long
+        0
+        sage: S.an_padic(5)  #long
+        1 + O(5)
+        sage: S.an_padic(5,prec=4) #long
+        1 + O(5^3)
+
+
 
     """
     def __init__(self, E):
+        r"""
+        The Shafarevich-Tate group associated to an elliptic curve.
+
+        INPUT:
+        a elliptic curve over `\mathbb{Q}`
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('11a1')
+            sage: S = E.sha()
+            sage: S
+            Shafarevich-Tate group for the Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
+
+            sage: S == loads(dumps(S))
+            True
+
+        """
         self.E = E
 
+    def __cmp__(self,other):
+        r"""
+        Compares two Tate-Shafarevich groups by simply comparing the elliptic curves.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('37a1')
+            sage: S = E.sha()
+            sage: S == S
+            True
+        """
+        c = cmp(type(self), type(other))
+        if c:
+            return c
+        return cmp(self.E, other.E)
+
     def __repr__(self):
+        r"""
+        String representation of the Tats-Shafarevich group.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('11a1')
+            sage: S = E.sha()
+            sage: S.__repr__()
+            'Shafarevich-Tate group for the Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field'
+
+        """
         return "Shafarevich-Tate group for the " + repr(self.E)
 
     ########################################################################
@@ -195,7 +302,7 @@ class Sha(SageObject):
             RuntimeError: Unable to compute the rank, hence generators, with certainty (lower bound=0, generators found=[]).  This could be because Sha(E/Q)[2] is nontrivial.
             Try increasing descent_second_limit then trying this command again.
 
-        You can increase the `descent_second_limit` (in the above example,
+        You can increase the ``descent_second_limit`` (in the above example,
         set to the default, 12) option to try again::
 
             sage: E.sha().an(descent_second_limit=16)
@@ -665,7 +772,8 @@ class Sha(SageObject):
         This returns the 2-rank, i.e. the `\mathbb{F}_2`-dimension
         of the 2-torsion part of Sha, provided we can determine the
         rank of `E`.
-        EXAMPLE::
+
+        EXAMPLES::
 
             sage: sh = EllipticCurve('571a1').sha()
             sage: sh.two_selmer_bound()

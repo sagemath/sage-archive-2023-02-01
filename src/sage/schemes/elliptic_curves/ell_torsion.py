@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Torsion subgroups of elliptic curves over number fields (including `\QQ`).
 
@@ -150,6 +151,10 @@ class EllipticCurveTorsionSubgroup(groups.AbelianGroup_class):
             Torsion Subgroup isomorphic to Multiplicative Abelian Group isomorphic to C5 associated to the Elliptic Curve defined by y^2 + y = x^3 + (-1)*x^2 + (-10)*x + (-20) over Number Field in i with defining polynomial x^2 + 1
             sage: type(T)
             <class 'sage.schemes.elliptic_curves.ell_torsion.EllipticCurveTorsionSubgroup_with_category'>
+
+            sage: T == loads(dumps(T))
+            True
+
         """
         self.__E = E
         self.__K = E.base_field()
@@ -223,6 +228,23 @@ class EllipticCurveTorsionSubgroup(groups.AbelianGroup_class):
             'Torsion Subgroup isomorphic to Multiplicative Abelian Group isomorphic to C5 associated to the Elliptic Curve defined by y^2 + y = x^3 + (-1)*x^2 + (-10)*x + (-20) over Number Field in i with defining polynomial x^2 + 1'
         """
         return "Torsion Subgroup isomorphic to %s associated to the %s" % (groups.AbelianGroup_class._repr_(self), self.__E)
+
+    def __cmp__(self,other):
+        r"""
+        Compares two torsion groups by simply comparing the elliptic curves.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('37a1')
+            sage: tor  = E.torsion_subgroup()
+            sage: tor == tor
+            True
+        """
+        c = cmp(type(self), type(other))
+        if c:
+            return c
+        return cmp(self.__E, other.__E)
+
 
     def gen(self, i=0):
         """

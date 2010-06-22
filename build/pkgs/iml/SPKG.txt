@@ -36,6 +36,10 @@ The following build instructions by William Stein might be incomplete and/or out
 
 Provide a changelog of the spkg here.
 
+=== iml-1.0.1.p13 (David Kirkby, 22nd June, 2010) ===
+ * #9309 Add an spkg-check file for the IML library. There are only
+   two self-tests, but at least there is some testing.
+
 === iml-1.0.1.p12 (Jaap Spies, Jan 25th, 2010) ===
  * Let SAGE64 work for Open Solaris 64 bit
  * Update SPKG.txt

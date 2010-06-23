@@ -1091,9 +1091,28 @@ cdef class MPolynomial(CommutativeRingElement):
             a + b + 0.300000000000000
             sage: f.denominator()
             1.00000000000000
+
+        Check that the denominator is an element over the base whenever the base
+        has no denominator function. This closes #9063
+
+        ::
+
+            sage: R.<a,b,c> = GF(5)[]
+            sage: x = R(0)
+            sage: x.denominator()
+            1
+            sage: type(x.denominator())
+            <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>
+            sage: type(a.denominator())
+            <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>
+            sage: from sage.rings.polynomial.multi_polynomial_element import MPolynomial
+            sage: isinstance(a / b, MPolynomial)
+            False
+            sage: isinstance(a.numerator() / a.denominator(), MPolynomial)
+            True
         """
         if self.degree() == -1:
-            return 1
+            return self.base_ring().one_element()
         x = self.coefficients()
         try:
             d = x[0].denominator()
@@ -1101,7 +1120,7 @@ cdef class MPolynomial(CommutativeRingElement):
                 d = d.lcm(y.denominator())
             return d
         except(AttributeError):
-            return self.parent().base_ring().one_element()
+            return self.base_ring().one_element()
 
     def numerator(self):
         """

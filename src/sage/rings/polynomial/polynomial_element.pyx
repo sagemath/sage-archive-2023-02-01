@@ -2106,9 +2106,26 @@ cdef class Polynomial(CommutativeAlgebraElement):
             x + 0.300000000000000
             sage: f.denominator()
             1.00000000000000
+
+        Check that the denominator is an element over the base whenever the base
+        has no denominator function. This closes #9063.
+
+        ::
+
+            sage: R.<a> = GF(5)[]
+            sage: x = R(0)
+            sage: x.denominator()
+            1
+            sage: type(x.denominator())
+            <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>
+            sage: isinstance(x.numerator() / x.denominator(), Polynomial)
+            True
+            sage: isinstance(x.numerator() / R(1), Polynomial)
+            False
         """
+
         if self.degree() == -1:
-            return 1
+            return self.base_ring().one_element()
         #This code was in the original algorithm, but seems irrelevant
         #R = self.base_ring()
         x = self.list()
@@ -2120,7 +2137,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             #start to fail, ex. "sage/rings/polynomial/complex_roots.py"
             return d
         except(AttributeError):
-            return self.parent().one_element()
+            return self.base_ring().one_element()
 
     def numerator(self):
         """

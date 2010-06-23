@@ -906,6 +906,18 @@ class SBox(SageObject):
              (1, -2, -4), (1, -2, -3),
              (-1, -2, 4), (-1, -2, 3)]
 
+        S-Boxes with m!=n also work:
+
+            sage: o = range(8) + range(8)
+            sage: shuffle(o)
+            sage: S = mq.SBox(o)
+            sage: S.is_permutation()
+            False
+
+            sage: len(S.cnf()) == 3*2^4
+            True
+
+
         TESTS:
 
             sage: S = mq.SBox(1,2,0,3, big_endian=False)
@@ -925,7 +937,7 @@ class SBox(SageObject):
         if len(xi) != m:
             raise TypeError("first arg required to have length %d, got %d instead."%(m,len(xi)))
 
-        if len(xi) != n:
+        if len(yi) != n:
             raise TypeError("second arg required to have length %d, got %d instead."%(n,len(yi)))
 
         output_bits = range(n)
@@ -934,7 +946,7 @@ class SBox(SageObject):
 
         C = [] # the set of clauses
         for e in xrange(2**m):
-            x = self.to_bits(e)
+            x = self.to_bits(e, m)
             y = self(x) # evaluate at x
             for output_bit in output_bits: # consider each bit
                 clause = [(-1)**(int(v)) * i for v,i in zip(x, xi)]

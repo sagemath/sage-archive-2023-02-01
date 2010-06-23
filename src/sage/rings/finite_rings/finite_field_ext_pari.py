@@ -244,9 +244,21 @@ class FiniteField_ext_pari(FiniteField_generic):
         self._zero_element = self(0)
         self._one_element = self(1)
 
+    def __reduce__(self):
+        """
+        EXAMPLES::
+
+            sage: k.<b> = GF(5^20); type(k)
+            <class 'sage.rings.finite_rings.finite_field_ext_pari.FiniteField_ext_pari'>
+            sage: k is loads(dumps(k))
+            True
+        """
+        return self._factory_data[0].reduce_data(self)
+
     def __cmp__(self, other):
         """
-        EXAMPLE:
+        EXAMPLES::
+
             sage: k = GF(7^20,'a')
             sage: k == loads(dumps(k))
             True

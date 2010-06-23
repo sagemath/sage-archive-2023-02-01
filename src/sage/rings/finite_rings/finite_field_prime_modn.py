@@ -66,6 +66,17 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         self.__gen = self(1)  # self(int(pari.pari(p).znprimroot().lift()))
         ParentWithGens.__init__(self, self, ('x',), normalize=False)
 
+    def __reduce__(self):
+        """
+        EXAMPLES::
+
+            sage: k = FiniteField(5); type(k)
+            <class 'sage.rings.finite_rings.finite_field_prime_modn.FiniteField_prime_modn_with_category'>
+            sage: k is loads(dumps(k))
+            True
+        """
+        return self._factory_data[0].reduce_data(self)
+
     def __cmp__(self, other):
         r"""
         Compare \code{self} with \code{other}. Two finite prime fields

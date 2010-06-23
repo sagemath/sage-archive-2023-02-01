@@ -362,6 +362,19 @@ class FiniteFieldFactory(UniqueFactory):
             sage: K = GF(19)
             sage: TestSuite(K).run()
         """
+
+        # IMPORTANT!  If you add a new class to the list of classes
+        # that get cached by this factor object, then you *must* add
+        # the following method to that class in order to fully support
+        # pickling:
+        #
+        #     def __reduce__(self):   # and include good doctests, please!
+        #         return self._factory_data[0].reduce_data(self)
+        #
+        # This is not in the base class for finite fields, since some finite
+        # fields need not be created using this factory object, e.g., residue
+        # class fields.
+
         order, name, modulus, impl, _ = key
 
         if isinstance(modulus, str) and modulus.startswith("random"):

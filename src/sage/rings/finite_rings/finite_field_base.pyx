@@ -1,3 +1,11 @@
+"""
+TESTS::
+
+    sage: K.<a> = NumberField(x^2 + 1)
+    sage: F = K.factor(3)[0][0].residue_field()
+    sage: loads(dumps(F)) == F
+    True
+"""
 include "../../ext/stdsage.pxi"
 
 from sage.structure.parent cimport Parent
@@ -651,27 +659,6 @@ cdef class FiniteField(Field):
             9088054599082082 # 64-bit
         """
         return hash("GF") + hash(self.order())
-
-    def __reduce__(self):
-        """
-        Used in pickling.
-
-        EXAMPLES::
-
-            sage: A = FiniteField(127)
-            sage: A == loads(dumps(A)) # indirect doctest
-            True
-            sage: B = FiniteField(3^3,'b')
-            sage: B == loads(dumps(B))
-            True
-            sage: C = FiniteField(2^16,'c')
-            sage: C == loads(dumps(C))
-            True
-            sage: D = FiniteField(3^20,'d')
-            sage: D == loads(dumps(D))
-            True
-        """
-        return self._factory_data[0].reduce_data(self)
 
     def algebraic_closure(self):
         """

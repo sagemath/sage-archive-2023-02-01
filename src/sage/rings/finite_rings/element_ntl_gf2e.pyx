@@ -262,6 +262,17 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
 
         GF2EContext_construct_GF2X(&self.F, &ntl_m)
 
+    def __reduce__(self):
+        """
+        EXAMPLES::
+
+            sage: k.<a> = GF(2^20) ; type(k)
+            <type 'sage.rings.finite_rings.element_ntl_gf2e.FiniteField_ntl_gf2e'>
+            sage: loads(dumps(k)) is k
+            True
+        """
+        return self._factory_data[0].reduce_data(self)
+
     def __dealloc__(FiniteField_ntl_gf2e self):
         GF2EContext_destruct(&self.F)
 

@@ -2228,21 +2228,26 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
 
     def prime_to_S_part(self,S):
         r"""
-        This function returns the part of the fractional ideal self which is coprime to the prime ideals
-        in the list S
+        Return the part of this fractional ideal which is coprime to the prime ideals in the list ``S``.
 
-        NOTE:
-        This function assumes S is a list of prime ideals, it does not check this.
-        This function will fail if S is not a list of prime ideals.
+        .. note::
+
+           This function assumes that `S` is a list of prime ideals,
+           but does not check this.  This function will fail if `S` is
+           not a list of prime ideals.
 
         INPUT:
-         - "self" - fractional ideal
-         - "S" - a list of prime ideals
+
+        - `S` - a list of prime ideals
 
         OUTPUT:
-         - an ideal coprime to the ideals in S
+
+        A fractional ideal coprime to the primes in `S`, whose prime
+        factorization is that of ``self`` withe the primes in `S`
+        removed.
 
         EXAMPLES::
+
             sage: K.<a> = NumberField(x^2-23)
             sage: I = K.ideal(24)
             sage: S = [K.ideal(-a+5),K.ideal(5)]
@@ -2266,37 +2271,58 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
         return a
 
     def is_S_unit(self,S):
-       r''' Returns True if the ideal is an unit with respect to the
-list of primes S.
+       r"""
+       Return True if this fractional ideal is a unit with respect to the list of primes ``S``.
 
-       INPUT::
-           - `S` - a list of prime ideals (not checked if they are
-indeed prime).
+       INPUT:
 
-       OUTPUT::
-           True, if the ideal is `S`-unit. False, otherwise.
+       - `S` - a list of prime ideals (not checked if they are
+         indeed prime).
+
+       .. note::
+
+          This function assumes that `S` is a list of prime ideals,
+          but does not check this.  This function will fail if `S` is
+          not a list of prime ideals.
+
+       OUTPUT:
+
+       True, if the ideal is an `S`-unit: that is, if the valuations of
+       the ideal at all primes not in `S` are zero. False, otherwise.
 
        EXAMPLES::
+
            sage: K.<a> = NumberField(x^2+23)
            sage: I = K.ideal(2)
            sage: P = I.factor()[0][0]
            sage: I.is_S_unit([P])
            False
-       '''
+       """
        return self.prime_to_S_part(S).is_trivial()
 
     def is_S_integral(self,S):
-       r''' Returns True if the ideal is an unit with respect to the
-list of primes S.
+       r"""
+       Return True if this fractional ideal is integral with respect to the list of primes ``S``.
 
-       INPUT::
-           - `S` - a list of prime ideals (not checked if they are
-indeed prime).
+       INPUT:
 
-       OUTPUT::
-           True, if the ideal is `S`-integral. False, otherwise.
+       - `S` - a list of prime ideals (not checked if they are indeed
+         prime).
+
+       .. note::
+
+          This function assumes that `S` is a list of prime ideals,
+          but does not check this.  This function will fail if `S` is
+          not a list of prime ideals.
+
+       OUTPUT:
+
+       True, if the ideal is `S`-integral: that is, if the valuations
+       of the ideal at all primes not in `S` are non-negative. False,
+       otherwise.
 
        EXAMPLES::
+
            sage: K.<a> = NumberField(x^2+23)
            sage: I = K.ideal(1/2)
            sage: P = K.ideal(2,1/2*a - 1/2)
@@ -2306,7 +2332,7 @@ indeed prime).
            sage: J = K.ideal(1/5)
            sage: J.is_S_integral(J.[K.ideal(5)])
            True
-       '''
+       """
        if self.is_integral():
            return True
        return self.prime_to_S_part(S).is_integral()

@@ -940,6 +940,17 @@ def srange(start, end=None, step=1, universe=None, check=True, include_endpoint=
         [0.0, 0.1, 0.2]
         sage: srange(0, 0.3, 0.1, universe=RDF, include_endpoint=True)
         [0.0, 0.1, 0.2, 0.3]
+
+    TESTS:
+
+    These are doctests from trac ticket #6409::
+
+        sage: srange(1,0,include_endpoint=True)
+        []
+        sage: srange(1,QQ(0),include_endpoint=True)
+        []
+        sage: srange(3,0,-1,include_endpoint=True)
+        [3, 2, 1, 0]
     """
     from sage.structure.sequence import Sequence
     from sage.rings.all import ZZ
@@ -961,22 +972,7 @@ def srange(start, end=None, step=1, universe=None, check=True, include_endpoint=
         else: # universe is int or universe is long:
             return range(start, end, step)
 
-    count = (end-start)/step
-    if not isinstance(universe, type) and universe.is_exact():
-        icount = int(math.ceil(float(count)))
-        if icount != count:
-            include_endpoint = False
-    else:
-        icount = int(math.ceil(float(count) - endpoint_tolerance))
-        if abs(float(count) - icount) > endpoint_tolerance:
-            include_endpoint = False
-
-    L = []
-    for k in xrange(icount):
-        L.append(start)
-        start += step
-    if include_endpoint:
-        L.append(end)
+    L = list(xsrange(start,end,step,universe,check,include_endpoint,endpoint_tolerance))
     return L
 
 
@@ -1034,6 +1030,15 @@ def xsrange(start, end=None, step=1, universe=None, check=True, include_endpoint
         [4, 3, 2]
         sage: list(sxrange(4,1,-1/2))
         [4, 7/2, 3, 5/2, 2, 3/2]
+
+    TESTS:
+
+    These are doctests from trac ticket #6409::
+
+        sage: list(xsrange(1,QQ(0),include_endpoint=True))
+        []
+        sage: list(xsrange(1,QQ(0),-1,include_endpoint=True))
+        [1, 0]
     """
     from sage.structure.sequence import Sequence
     from sage.rings.all import ZZ
@@ -1055,7 +1060,7 @@ def xsrange(start, end=None, step=1, universe=None, check=True, include_endpoint
             return xrange(start, end, step)
 
     count = (end-start)/step
-    if universe is long or not isinstance(universe, type) and universe.is_exact():
+    if not isinstance(universe, type) and universe.is_exact():
         icount = int(math.ceil(float(count)))
         if icount != count:
             include_endpoint = False
@@ -1065,15 +1070,15 @@ def xsrange(start, end=None, step=1, universe=None, check=True, include_endpoint
             include_endpoint = False
 
     def generic_xsrange():
-        cur = start
-        for k in xrange(icount):
-            yield cur
-            cur += step
-        if include_endpoint:
-            yield end
+        if icount >=0:
+            cur = start
+            for k in xrange(icount):
+                yield cur
+                cur += step
+            if include_endpoint:
+                yield end
 
     return generic_xsrange()
-
 
 
 sxrange = xsrange

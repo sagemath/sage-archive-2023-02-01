@@ -2330,7 +2330,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
            False
 
            sage: J = K.ideal(1/5)
-           sage: J.is_S_integral(J.[K.ideal(5)])
+           sage: J.is_S_integral([K.ideal(5)])
            True
        """
        if self.is_integral():

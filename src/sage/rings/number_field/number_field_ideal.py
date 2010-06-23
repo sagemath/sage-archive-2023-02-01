@@ -10,6 +10,9 @@ AUTHORS:
 - William Stein and John Cremona (2007-01-28): new class
   NumberFieldFractionalIdeal now used for all except the 0 ideal
 
+- Radoslav Kirov and Alyson Deines (2010-06-22):
+   prime_to_S_part, is_S_unit, is_S_integral
+
 We test that pickling works::
 
     sage: K.<a> = NumberField(x^2 - 5)
@@ -2222,6 +2225,91 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
         return prod([(np-1)*np**(e-1) \
                      for np,e in [(p.absolute_norm(),e) \
                                   for p,e in self.factor()]])
+
+    def prime_to_S_part(self,S):
+        r"""
+        This function returns the part of the fractional ideal self which is coprime to the prime ideals
+        in the list S
+
+        NOTE:
+        This function assumes S is a list of prime ideals, it does not check this.
+        This function will fail if S is not a list of prime ideals.
+
+        INPUT:
+         - "self" - fractional ideal
+         - "S" - a list of prime ideals
+
+        OUTPUT:
+         - an ideal coprime to the ideals in S
+
+        EXAMPLES::
+            sage: K.<a> = NumberField(x^2-23)
+            sage: I = K.ideal(24)
+            sage: S = [K.ideal(-a+5),K.ideal(5)]
+            sage: I.prime_to_S_part(S)
+            Fractional ideal (3)
+            sage: J = K.ideal(15)
+            sage: J.prime_to_S_part(S)
+            Fractional ideal (3)
+
+            sage: K.<a> = NumberField(x^5-23)
+            sage: I = K.ideal(24)
+            sage: S = [K.ideal(15161*a^4 + 28383*a^3 + 53135*a^2 + 99478*a + 186250),K.ideal(2*a^4 + 3*a^3 + 4*a^2 + 15*a + 11), K.ideal(101)]
+            sage: I.prime_to_S_part(S)
+            Fractional ideal (24)
+
+        """
+        a = self
+        for p in S:
+            n = a.valuation(p)
+            a = a*p**(-n)
+        return a
+
+    def is_S_unit(self,S):
+       r''' Returns True if the ideal is an unit with respect to the
+list of primes S.
+
+       INPUT::
+           - `S` - a list of prime ideals (not checked if they are
+indeed prime).
+
+       OUTPUT::
+           True, if the ideal is `S`-unit. False, otherwise.
+
+       EXAMPLES::
+           sage: K.<a> = NumberField(x^2+23)
+           sage: I = K.ideal(2)
+           sage: P = I.factor()[0][0]
+           sage: I.is_S_unit([P])
+           False
+       '''
+       return self.prime_to_S_part(S).is_trivial()
+
+    def is_S_integral(self,S):
+       r''' Returns True if the ideal is an unit with respect to the
+list of primes S.
+
+       INPUT::
+           - `S` - a list of prime ideals (not checked if they are
+indeed prime).
+
+       OUTPUT::
+           True, if the ideal is `S`-integral. False, otherwise.
+
+       EXAMPLES::
+           sage: K.<a> = NumberField(x^2+23)
+           sage: I = K.ideal(1/2)
+           sage: P = K.ideal(2,1/2*a - 1/2)
+           sage: I.is_S_integral([P])
+           False
+
+           sage: J = K.ideal(1/5)
+           sage: J.is_S_integral(J.[K.ideal(5)])
+           True
+       '''
+       if self.is_integral():
+           return True
+       return self.prime_to_S_part(S).is_integral()
 
     def prime_to_idealM_part(self, M):
         r"""

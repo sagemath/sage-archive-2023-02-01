@@ -305,7 +305,7 @@ class UniqueRepresentation:
         sage: x.__dict__
         {'value': 1}
 
-    .. rubric:: Migrating classes to :class:`UniqueRepresentation` and unpickling
+    .. rubric:: Migrating classes to ``UniqueRepresentation`` and unpickling
 
     We check that, when migrating a class to :class:`UniqueRepresentation`,
     older pickle can still be reasonably unpickled. Let us create a

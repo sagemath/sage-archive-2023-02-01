@@ -610,6 +610,17 @@ class EllipticCurveLocalData(SageObject):
             sage: EL = E.base_extend(L)
             sage: da = EL.local_data()  # indirect doctest
 
+        EXAMPLES:
+
+        The following example shows that the bug at #9324 is fixed:
+
+            sage: K.<a> = NumberField(x^2-x+6)
+            sage: E = EllipticCurve([0,0,0,-53160*a-43995,-5067640*a+19402006])
+            sage: E.conductor() # indirect doctest
+            Fractional ideal (18, 6*a)
+
+
+
         """
         E = self._curve
         P = self._prime
@@ -637,6 +648,7 @@ class EllipticCurveLocalData(SageObject):
             pi = K.uniformizer(P, 'positive')
             verbose("P is not principal, uniformizer pi = %s"%pi, t, 1)
         pi2 = pi*pi; pi3 = pi*pi2; pi4 = pi*pi3
+        pi_neg = None
         prime = pi if K is QQ else P
 
         pval = lambda x: x.valuation(prime)
@@ -941,19 +953,20 @@ class EllipticCurveLocalData(SageObject):
                     fp = val_disc - 8
                     cp = 1
                     break #return
-                if not principal_flag:
-                    pi = K.uniformizer(P, 'negative')
-                pie = pi
-                a1 /= pie
-                pie *= pi # now pie=pi^2
-                a2 /= pie
-                pie *= pi # now pie=pi^3
-                a3 /= pie
-                pie *= pi # now pie=pi^4
-                a4 /= pie
-                pie *= pi # now pie=pi^5
-                pie *= pi # now pie=pi^6
-                a6 /= pie
+                if pi_neg is None:
+                    if principal_flag:
+                        pi_neg = pi
+                    else:
+                        pi_neg = K.uniformizer(P, 'negative')
+                    pi_neg2 = pi_neg*pi_neg
+                    pi_neg3 = pi_neg*pi_neg2
+                    pi_neg4 = pi_neg*pi_neg3
+                    pi_neg6 = pi_neg4*pi_neg2
+                a1 /= pi_neg
+                a2 /= pi_neg2
+                a3 /= pi_neg3
+                a4 /= pi_neg4
+                a6 /= pi_neg6
                 verbose("Non-minimal equation, dividing out...\nNew model is %s"%([a1, a2, a3, a4, a6]), t, 1)
         C = C._tidy_model()
         return (C, p, val_disc, fp, KS, cp, split)

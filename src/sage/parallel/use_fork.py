@@ -109,25 +109,29 @@ class p_iter_fork:
                                 os.kill(pid,9)
                                 X[-1] = ' (timed out)'
                     else:
-                        # collect data from process that successfully terminated
-                        sobj = os.path.join(dir, '%s.sobj'%pid)
-                        if not os.path.exists(sobj):
-                            X = "NO DATA" + workers[pid][-1]  # the message field
-                        else:
-                            X = load(sobj, compress=False)
-                            os.unlink(sobj)
-                        out = os.path.join(dir, '%s.out'%pid)
-                        if not os.path.exists(out):
-                            output = "NO OUTPUT"
-                        else:
-                            output = open(out).read()
-                            os.unlink(out)
+                        # If the computation was interrupted the pid
+                        # might not be in the workers list, in which
+                        # case we skip this.
+                        if pid in workers:
+                            # collect data from process that successfully terminated
+                            sobj = os.path.join(dir, '%s.sobj'%pid)
+                            if not os.path.exists(sobj):
+                                X = "NO DATA" + workers[pid][-1]  # the message field
+                            else:
+                                X = load(sobj, compress=False)
+                                os.unlink(sobj)
+                            out = os.path.join(dir, '%s.out'%pid)
+                            if not os.path.exists(out):
+                                output = "NO OUTPUT"
+                            else:
+                                output = open(out).read()
+                                os.unlink(out)
 
-                        if output.strip():
-                            print output,
+                            if output.strip():
+                                print output,
 
-                        yield (workers[pid][0], X)
-                        del workers[pid]
+                            yield (workers[pid][0], X)
+                            del workers[pid]
 
         except Exception, msg:
             print msg

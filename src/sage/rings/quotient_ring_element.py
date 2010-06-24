@@ -275,34 +275,93 @@ class QuotientRingElement(ring_element.RingElement):
         element, ``right``. If the quotient is `R/I`, the division is
         carried out in `R` and then reduced to `R/I`.
 
-        TODO: This is not implemented in general -- see the first 'test'
-        below for an illustration.
-
         EXAMPLES::
+
+            sage: R.<x,y> = QQ[]
+            sage: I = R.ideal([x^2 + 1, y^3 - 2])
+            sage: S.<i,cuberoot> = R.quotient(I)
+            sage: 1/(1+i)
+            -1/2*i + 1/2
+
+        Confirm via symbolic computation::
+
+            sage: 1/(1+sqrt(-1))
+            -1/2*I + 1/2
+
+        Another more complicated quotient::
+
+            sage: b = 1/(i+cuberoot); b
+            1/5*i*cuberoot^2 - 2/5*i*cuberoot + 2/5*cuberoot^2 - 1/5*i + 1/5*cuberoot - 2/5
+            sage: b*(i+cuberoot)
+            1
+
+
+        Another really easy example::
 
             sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
             <class 'sage.rings.quotient_ring_element.QuotientRingElement'>
             sage: a / S(2)
             1/2*a
-
-        TESTS::
-
             sage: (a*b)._div_(b)
+            a
+
+        An example in which we try to divide in a ring that is not a
+        field::
+
+            sage: R.<x,y> = QQ[]
+            sage: I = R.ideal([x^2 - 1, y^3 - 2])
+            sage: S.<a,cuberoot> = R.quotient(I)
+            sage: 1/cuberoot
+            1/2*cuberoot^2
+            sage: 1/a
+            a
+
+        An example over a polynomial ring over a polynomial ring,
+        which doesn't work (yet; obviously, this could be made to work
+        by converting to a single polynomial quotient ring
+        internally)::
+
+            sage: R.<x> = QQ[]
+            sage: S.<y,z> = R[]
+            sage: Z.<ybar,zbar> = S.quotient([y^2 - 2, z^2 - 3])
             Traceback (most recent call last):
             ...
-            NotImplementedError
-            sage: a._div_(S(2))
-            1/2*a
-            sage: S(2).is_unit()
-            True
-            sage: a.is_unit()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
+            TypeError: Can only reduce polynomials over fields.
         """
-        if not right.is_unit():
-            raise ZeroDivisionError
-        return self._mul_(right.__invert__())
+        # Special case: if self==0 (and right is nonzero), just return self.
+        if not self:
+            if not right: raise ZeroDivisionError
+            return self
+
+        # We are computing L/R modulo the ideal.
+        (L, R) = (self.__rep, right.__rep)
+        P  = self.parent()
+        I = P.defining_ideal()
+
+        if not hasattr(I, 'groebner_basis'):
+            # Try something very naive -- somebody will improve this
+            # in the future.
+            try:
+                return L * R.inverse_mod(I)
+            except NotImplementedError:
+                if R.is_unit():
+                    return L * R.__invert__()
+                else:
+                    raise
+
+        # Now the parent is a polynomial ring, so we have an algorithm
+        # at our disposal.
+
+        # Our algorithm is to write L in terms of R and a Groebner
+        # basis for the defining ideal.  We compute a Groebner basis
+        # here explicitly purely for efficiency reasons, since it
+        # makes the implicit Groebner basis computation of [R]+B
+        # that is done in the lift command below faster.
+        B  = I.groebner_basis()
+        XY = L.lift([R] + B)
+        if XY == [0]*len(XY):
+            raise NotImplementedError
+        return P(XY[0])
 
     def __int__(self):
         """
@@ -413,6 +472,10 @@ class QuotientRingElement(ring_element.RingElement):
 
             sage: S(2/3).__invert__()
             3/2
+
+        Note that a is not invertible as an element of R, and
+        extending the base field is implemented yet::
+
             sage: a.__invert__()
             Traceback (most recent call last):
             ...
@@ -421,10 +484,7 @@ class QuotientRingElement(ring_element.RingElement):
         try:
             inv = self.__rep.inverse_mod(self.parent().defining_ideal())
         except NotImplementedError:
-            if self.__rep.is_unit():
-                inv = self.__rep.__invert__()
-            else:
-                raise
+            return self.parent()(1)/self
         return QuotientRingElement(self.parent(), inv)
 
     def __float__(self):

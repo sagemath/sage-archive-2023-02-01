@@ -1344,7 +1344,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             if is_Ring(S):
                 try:
                     K = S._pseudo_fraction_field()
-                except (TypeError, AttributeError):
+                except (TypeError, AttributeError, NotImplementedError):
                     K = None
             elif PY_TYPE_CHECK(S, Parent):
                 K = S

@@ -1694,12 +1694,14 @@ class Category(UniqueRepresentation, SageObject):
         full featured version is available elsewhere in Sage, and
         should be used insted.
 
-        Technical note: by default FooBar(...).example() is
+        Technical note: by default ``FooBar(...).example()`` is
         constructed by looking up
-        sage.categories.examples.foo_bar.Example and calling it as
-        ``Example(category = FooBar)``. Extra positional or named
-        parameters are also passed down. Categories are welcome to
-        override this.
+        ``sage.categories.examples.foo_bar.Example`` and calling it as
+        ``Example()``. Extra positional or named parameters are also
+        passed down. For a category over base ring, the base ring is
+        further passed down as an optional argument.
+
+        Categories are welcome to override this default implementation.
 
         EXAMPLES::
 
@@ -1723,6 +1725,13 @@ class Category(UniqueRepresentation, SageObject):
             cls = module.Example
         except AttributeError:
             return NotImplemented
+        # Add the base ring as optional argument if this is a category over base ring
+        # This really should be in Category_over_base_ring.example,
+        # but that would mean duplicating the documentation above.
+        from category_types import Category_over_base_ring
+        if isinstance(self, Category_over_base_ring): # Huh, smelly Run Time Type Checking, isn't it?
+            if "base_ring" not in keywords:
+                keywords["base_ring"]=self.base_ring()
         return cls(*args, **keywords)
 
 

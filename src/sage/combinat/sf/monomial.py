@@ -19,8 +19,8 @@ Monomial symmetric functions
 
 import classical, sfa, dual
 import sage.libs.symmetrica.all as symmetrica
-from sage.rings.all import ZZ, QQ, Integer, PolynomialRing
-from sage.combinat.partition import Partition, Partitions
+from sage.rings.integer import Integer
+from sage.combinat.partition import Partition
 
 class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_classical):
     def __init__(self, R):
@@ -99,16 +99,18 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
 
     def from_polynomial(self, f, check=True):
         """
+        Conversion from polynomial
+
         This function converts a symmetric polynomial `f` in a polynomial ring in finitely
         many variables to a symmetric function in the monomial
         basis of the ring of symmetric functions over the same base ring.
 
         EXAMPLES::
 
+            sage: m = SymmetricFunctions(QQ).m()
             sage: P = PolynomialRing(QQ, 'x', 3)
             sage: x = P.gens()
             sage: f = x[0] + x[1] + x[2]
-            sage: m = SFAMonomial(QQ)
             sage: m.from_polynomial(f)
             m[1]
             sage: f = x[0]**2+x[1]**2+x[2]**2
@@ -127,11 +129,55 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
             m[1, 1] + 2*m[2, 1] + 3*m[3]
         """
         assert self.base_ring() == f.base_ring()
-        d = dict([(e,c) for e,c in f.dict().iteritems() if tuple(sorted(e)) == tuple(reversed(e))])
-        out = self.sum(d[la]*self(Partition(la)) for la in d.keys())
+        out = self.sum_of_terms((Partition(e), c)
+                                for (e,c) in f.dict().iteritems()
+                                if tuple(sorted(e)) == tuple(reversed(e)))
         if check and out.expand(f.parent().ngens(),f.parent().gens()) <> f:
             raise ValueError, "%s is not a symmetric polynomial"%f
         return out
+
+    def from_polynomial_exp(self, p):
+        r"""
+        Conversion from polynomial in exponential notation
+
+        INPUT:
+         - ``p`` -- a multivariate polynomial over the same base ring as ``self``
+
+        This returns a symmetric function by mapping each monomial of
+        `p` with exponents ``exp`` into `m_\lambda` where `\lambda` is
+        the partition with exponential notation ``exp``.
+
+        EXAMPLES::
+
+            sage: m = SymmetricFunctions(QQ).m()
+            sage: P = PolynomialRing(QQ,'x',5)
+            sage: x = P.gens()
+
+        The exponential notation of the partition `(5,5,5,3,1,1)` is:
+
+            sage: Partition([5,5,5,3,1,1]).to_exp()
+            [2, 0, 1, 0, 3]
+
+        Therefore, the monomial::
+
+            sage: f = x[0]^2 * x[2] * x[4]^3
+
+        is mapped to::
+
+            sage: m.from_polynomial_exp(f)
+            m[5, 5, 5, 3, 1, 1]
+
+        Furthermore, this function is linear::
+
+            sage: f = 3 * x[3] + 2 * x[0]^2 * x[2] * x[4]^3
+            sage: m.from_polynomial_exp(f)
+            3*m[4] + 2*m[5, 5, 5, 3, 1, 1]
+
+        See also: :function:`Partition`, :meth:`Partition.to_exp`
+        """
+        assert self.base_ring() == p.parent().base_ring()
+        return self.sum_of_terms((Partition(exp=monomial), coeff)
+                                 for (monomial, coeff) in p.dict().iteritems())
 
 
     class Element(classical.SymmetricFunctionAlgebra_classical.Element):

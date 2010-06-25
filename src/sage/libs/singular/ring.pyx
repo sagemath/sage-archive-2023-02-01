@@ -1,9 +1,11 @@
 """
 Wrapper for Singular's Rings
 
-AUTHOR:
+AUTHORS:
 
 - Martin Albrecht (2009-07): initial implementation
+
+- Kwankyu Lee (2010-06): added matrix term order support
 """
 #*****************************************************************************
 #       Copyright (C) 2009 Martin Albrecht <malb@informatik.uni-bremen.de>
@@ -20,7 +22,7 @@ from sage.libs.gmp.mpz cimport mpz_init_set_ui, mpz_init_set
 from sage.libs.singular.decl cimport number, lnumber, napoly, ring, currRing
 from sage.libs.singular.decl cimport rChangeCurrRing, rCopy0, rComplete, rDelete
 from sage.libs.singular.decl cimport omAlloc0, omStrDup, omAlloc, omAlloc0Bin,  sip_sring_bin, rnumber_bin
-from sage.libs.singular.decl cimport ringorder_dp, ringorder_Dp, ringorder_lp, ringorder_rp, ringorder_ds, ringorder_Ds, ringorder_ls, ringorder_C
+from sage.libs.singular.decl cimport ringorder_dp, ringorder_Dp, ringorder_lp, ringorder_rp, ringorder_ds, ringorder_Ds, ringorder_ls, ringorder_M, ringorder_C
 from sage.libs.singular.decl cimport p_Copy
 
 from sage.rings.integer cimport Integer
@@ -105,7 +107,7 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
     cdef ring* _ring
     cdef char **_names
     cdef char *_name
-    cdef int i
+    cdef int i,j
     cdef int nblcks
     cdef int offset
     cdef int characteristic
@@ -113,6 +115,7 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
     cdef MPolynomialRing_libsingular k
     cdef MPolynomial_libsingular minpoly
     cdef lnumber *nmp
+    cdef int * m
 
     cdef __mpz_struct* ringflaga
     cdef unsigned long ringflagb
@@ -236,10 +239,10 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
     nblcks = len(order.blocks)
     offset = 0
 
-    _ring.wvhdl  = <int **>omAlloc0((nblcks + 2) * sizeof(int*))
-    _ring.order  = <int *>omAlloc0((nblcks + 2) * sizeof(int *))
-    _ring.block0 = <int *>omAlloc0((nblcks + 2) * sizeof(int *))
-    _ring.block1 = <int *>omAlloc0((nblcks + 2) * sizeof(int *))
+    _ring.wvhdl  = <int **>omAlloc0((nblcks + 2) * sizeof(int *))
+    _ring.order  = <int *>omAlloc0((nblcks + 2) * sizeof(int))
+    _ring.block0 = <int *>omAlloc0((nblcks + 2) * sizeof(int))
+    _ring.block1 = <int *>omAlloc0((nblcks + 2) * sizeof(int))
 
     if order.is_local():
         _ring.OrdSgn = -1
@@ -247,7 +250,15 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
         _ring.OrdSgn = 1
 
     for i from 0 <= i < nblcks:
-        _ring.order[i] = order_dict.get(order[i].singular_str(), ringorder_dp)
+        if order[i].singular_str()[0] == 'M':
+            _ring.order[i] = ringorder_M
+            mtx = order[i].matrix().list()
+            m = <int *>omAlloc0(len(mtx)*sizeof(int))
+            for j in range(len(mtx)):
+                m[j] = int(mtx[j])
+            _ring.wvhdl[i] = m
+        else:
+            _ring.order[i] = order_dict.get(order[i].singular_str(), ringorder_dp)
         _ring.block0[i] = offset + 1
         if len(order[i]) == 0: # may be zero in some cases
             _ring.block1[i] = offset + n

@@ -214,6 +214,39 @@ The same result can be achieved by::
     sage: a > e^4
     True
 
+Finally Sage supports matrix term order. Given a square matrix `A`,
+
+    `x^a < x^b \Leftrightarrow x^{Aa} <_{\mathrm{lex}} x^{Ab}`
+
+where `<_{\mathrm{lex}}` is the lexicographic term order.
+
+EXAMPLE::
+
+    sage: m = matrix(2,[2,3,0,1]); m
+    [2 3]
+    [0 1]
+    sage: T = TermOrder(m); T
+    Matrix term order with matrix
+    [2 3]
+    [0 1]
+    sage: P.<a,b> = PolynomialRing(QQ,2,order=T)
+    sage: P
+    Multivariate Polynomial Ring in a, b over Rational Field
+    sage: a > b
+    False
+    sage: a^3 < b^2
+    True
+    sage: S = TermOrder('M(2,3,0,1)')
+    sage: T == S
+    True
+
+A matrix term ordering is not allowed in block ordering yet::
+
+    sage: T+S
+    Traceback (most recent call last):
+    ...
+    NotImplementedError: Cannot use a matrix term order as a block.
+
 If any other unsupported term ordering is given the provided string
 is passed through as is to Singular, Macaulay2, and Magma. This
 ensures that it is for example possible to calculate a Groebner
@@ -232,50 +265,56 @@ AUTHORS:
 - Kiran S. Kedlaya: added macaulay2 interface
 
 - Martin Albrecht: implemented native term orderings, refactoring
+
+- Kwankyu Lee (2010-06): implemented matrix term ordering
 """
 
 import re
 from sage.structure.sage_object import SageObject
 
-print_name_mapping =     {'lex'          :'Lexicographic',
-                          'invlex'       :'Inverse Lexicographic',
-                          'degrevlex'    :'Degree reverse lexicographic',
-                          'deglex'       :'Degree lexicographic',
-                          'neglex'       :'Negative lexicographic',
-                          'negdegrevlex' :'Negative degree reverse lexicographic',
-                          'negdeglex'    :'Negative degree lexicographic'}
+print_name_mapping = {
+    'lex'          :'Lexicographic',
+    'invlex'       :'Inverse Lexicographic',
+    'degrevlex'    :'Degree reverse lexicographic',
+    'deglex'       :'Degree lexicographic',
+    'neglex'       :'Negative lexicographic',
+    'negdegrevlex' :'Negative degree reverse lexicographic',
+    'negdeglex'    :'Negative degree lexicographic'}
 
-singular_name_mapping =  {'lex'          :'lp',
-                          'invlex'       :'rp',
-                          'degrevlex'    :'dp',
-                          'deglex'       :'Dp',
-                          'neglex'       :'ls',
-                          'negdegrevlex' :'ds',
-                          'negdeglex'    :'Ds'}
+singular_name_mapping = {
+    'lex'          :'lp',
+    'invlex'       :'rp',
+    'degrevlex'    :'dp',
+    'deglex'       :'Dp',
+    'neglex'       :'ls',
+    'negdegrevlex' :'ds',
+    'negdeglex'    :'Ds'}
 
-macaulay2_name_mapping = {'lex'          :'Lex',
-                          'revlex'       :'RevLex, Global=>false',
-                          'degrevlex'    :'GRevLex',
-                          'deglex'       :'GLex'}
+inv_singular_name_mapping = {
+    'lp'           :'lex',
+    'rp'           :'invlex',
+    'dp'           :'degrevlex',
+    'Dp'           :'deglex',
+    'ls'           :'neglex',
+    'ds'           :'negdegrevlex',
+    'Ds'           :'negdeglex'}
 
-inv_macaulay2_name_mapping = { 'Lex':'lex',
-                               'RevLex, Global=>false':'revlex',
-                               'GRevLex':"degrevlex",
-                               'GLex':'deglex'}
+macaulay2_name_mapping = {
+    'lex'          :'Lex',
+    'revlex'       :'RevLex, Global=>false',
+    'degrevlex'    :'GRevLex',
+    'deglex'       :'GLex'}
 
-magma_name_mapping =     {'lex'          :'"lex"',
-                          'degrevlex'    :'"grevlex"',
-                          'deglex'       :'"glex"'}
+inv_macaulay2_name_mapping = {
+    'Lex'          :'lex',
+    'RevLex,Global=>false' :'revlex',
+    'GRevLex'      :"degrevlex",
+    'GLex'         :'deglex'}
 
-
-inv_singular_name_mapping ={'lp':'lex'          ,
-                            'rp':'invlex'       ,
-                            'dp':'degrevlex'    ,
-                            'Dp':'deglex'       ,
-                            'ls':'neglex'       ,
-                            'ds':'negdegrevlex' ,
-                            'Ds':'negdeglex'    }
-
+magma_name_mapping =     {
+    'lex'          :'"lex"',
+    'degrevlex'    :'"grevlex"',
+    'deglex'       :'"glex"'}
 
 lp_description = """
 Lexicographic (lex) term ordering.
@@ -332,6 +371,13 @@ description_mapping = {
     "Ds":Ds_description,
     "ds":ds_description}
 
+M_description = """
+Matrix term ordering defined by a matrix A.
+
+$x^a < x^b \Leftrightarrow x^{Aa} <_{\mathrm{lex}} x^{Ab}$
+where $<_{\mathrm{lex}}$ is the lexicographic term ordering
+"""
+
 class TermOrder(SageObject):
     r"""
     A term order.
@@ -345,16 +391,15 @@ class TermOrder(SageObject):
 
         INPUT:
 
+        - ``name`` - name of the term ordering (default: lex)
 
-        -  ``name`` - name of the term ordering (default: lex)
-
-        -  ``n`` - number of variables in the polynomial ring
+        - ``n`` - number of variables in the polynomial ring
            (default: 0)
 
-        -  ``blocks`` - controls whether a list of blocks is
+        - ``blocks`` - controls whether a list of blocks is
            maintained (internal use only, default:True)
 
-        -  ``force`` - ignore unknown term orderings.
+        - ``force`` - ignore unknown term orderings.
 
         See the ``sage.rings.polynomial.term_order`` module
         for help which names and orderings are available.
@@ -395,39 +440,94 @@ class TermOrder(SageObject):
                 n = len(name)
             try:
                 force = name.__force
-            except AttributeError: # pickled old TermOrders dont have this field
+            except AttributeError: # pickled old TermOrders don't have this field
                 force = False
             name = name.name()
+        else:
+            try: # name is a matrix
+                name = 'M('+','.join(["%i"%(i,) for i in name.list()])+')'
+            except:
+                pass
         name = name.lower()
 
+        split_pattern = "([^(),]+(?:\([^()]*\)[^(),]*)*)" # split by outermost commas
+        length_pattern  = re.compile("\(([0-9]+)\)$") # match with parenthesized block length at end
+        matrix_pattern = "([0-9,]+)" # match with list of integers
+
         self.__force = force
+        self.__length = 0
+        self.__name = ""
+        self.__singular_str = ""
+        self.__macaulay2_str = ""
+        self.__magma_str = ""
+        self.__matrix = None # only for matrix ordering
 
-        #Block Orderings
-        if "," in name:
-            pattern  = re.compile("\(([0-9]+)\)$")
+        block_names = re.findall(split_pattern,name)
 
-            self.__length = 0
-            self.__name = ""
-            self.__singular_str = "("
-            self.__macaulay2_str = "{"
-            self.__magma_str = "" # I (malb) believe MAGMA doesn't support this
+        if len(block_names) == 0:
+            raise TypeError, "No term ordering specified"
+        elif len(block_names) == 1:
+            name = block_names[0]
+            if re.match('m\(([0-9,]+)\)$',name) != None: # matrix ordering
+                integers_str = re.search(matrix_pattern,name).group()
+                integers = map(int,integers_str.split(','))
 
+                if n == 0:
+                    from math import sqrt
+                    n = int(sqrt(len(integers)))
+
+                if len(integers) != n**2:
+                    raise TypeError, "%s does not specify a square matrix"%(name,)
+
+                self.__matrix = []
+                for idx in range(0,len(integers),n):
+                    self.__matrix.append(integers[idx:idx+n])
+
+                self.__length = n
+                self.__name = "M(%s)"%(integers_str,)
+                self.__singular_str = "M(%s)"%(integers_str,)
+                self.__macaulay2_str = "" # Macaulay2 does not support matrix term order directly
+                self.__magma_str = '"weight",[%s]'%(integers_str,)
+                self.__doc__ = M_description
+
+            else: # simple ordering
+                self.__length = n
+                self.__name = name
+                self.__singular_str = singular_name_mapping.get(name,name)
+                self.__macaulay2_str = macaulay2_name_mapping.get(name,name)
+                self.__magma_str = magma_name_mapping.get(name,name)
+
+                if self.__singular_str in description_mapping:
+                    self.__doc__ = description_mapping[self.__singular_str]
+
+            from sage.misc.misc import verbose
+            if blocks:
+                # we allow deglex_asc here which is used by PolyBoRi
+                if self.__matrix == None and \
+                   name not in singular_name_mapping.keys() and \
+                   name not in singular_name_mapping.values() and not force:
+                    verbose("Term ordering '%s' unknown."%name,level=0)
+                self.blocks = (TermOrder(self.__name,n,blocks=False,force=force),)
+            else:
+                self.blocks = tuple()
+
+        else: # block ordering
             length = 0
             blocks = []
             name_str = []
             singular_str = []
             macaulay2_str = []
 
-            for block in name.split(","):
+            for block in block_names:
                 try:
-                    block_name, block_length, _ = re.split(pattern,block)
+                    block_name, block_length, _ = re.split(length_pattern,block)
                 except ValueError:
                     raise TypeError, "%s is not a valid term ordering"%(name,)
 
                 block_length = int(block_length)
 
-                blocks.append( TermOrder(block_name, block_length, force=force) )
-                name_str.append("%s(%d)"%(block_name, block_length))
+                blocks.append( TermOrder(block_name,block_length,force=force) )
+                name_str.append("%s(%d)"%(block_name,block_length))
                 singular_str.append("%s(%d)"%(singular_name_mapping.get(block_name, block_name), block_length))
                 macaulay2_str.append("%s => %d"%(macaulay2_name_mapping.get(block_name, block_name), block_length))
 
@@ -438,29 +538,10 @@ class TermOrder(SageObject):
             self.__name = ",".join(name_str)
             self.__singular_str = "(" + ",".join(singular_str) + ")"
             self.__macaulay2_str = "(" + ",".join(macaulay2_str) + ")"
-            self.__magma_str = ""
+            self.__magma_str = "" # Magma does not support block order
 
-            if n!=0 and self.__length != n:
-                raise TypeError, "Term order length does not match number of generators"
-
-        else:
-            from sage.misc.misc import verbose
-            if blocks:
-                # we allow deglex_asc here which is used by PolyBoRi
-                if name not in singular_name_mapping.keys() and \
-                        name not in singular_name_mapping.values() and not force:
-                    verbose("Term ordering '%s' unknown."%name,level=0)
-                self.blocks = (TermOrder(name,n,blocks=False, force=force),)
-            else:
-                self.blocks = tuple()
-            self.__length = n
-            self.__name = name
-            self.__singular_str = singular_name_mapping.get(name,name)
-            self.__macaulay2_str = macaulay2_name_mapping.get(name,name)
-            self.__magma_str = magma_name_mapping.get(name,name)
-
-            if self.__singular_str in description_mapping:
-                self.__doc__ = description_mapping[self.__singular_str]
+            if n != 0 and self.__length != n:
+                raise TypeError, "Term order length does not match the number of generators"
 
     def __getattr__(self,name):
         """
@@ -476,18 +557,53 @@ class TermOrder(SageObject):
             sage: TermOrder('deglex').compare_tuples
             <bound method TermOrder.compare_tuples_Dp of Degree lexicographic term order>
         """
-        if name=='compare_tuples':
+        if name == 'compare_tuples':
             if len(self.blocks) <= 1:
-                return getattr(self,'compare_tuples_'+self.__singular_str)
+                if self.__matrix != None:
+                    return self.compare_tuples_matrix
+                else:
+                    return getattr(self,'compare_tuples_'+self.__singular_str)
             else:
                 return self.compare_tuples_block
-        elif name=='greater_tuple':
+        elif name == 'greater_tuple':
             if len(self.blocks) <= 1:
-                return getattr(self,'greater_tuple_'+self.__singular_str)
+                if self.__matrix != None:
+                    return self.greater_tuple_matrix
+                else:
+                    return getattr(self,'greater_tuple_'+self.__singular_str)
             else:
                 return self.greater_tuple_block
         else:
             raise AttributeError,name
+
+    def compare_tuples_matrix(self,f,g):
+        """
+        Compares two exponent tuples with respect to the matrix
+        term order.
+
+        INPUT:
+
+        - ``f`` - exponent tuple
+
+        - ``g`` - exponent tuple
+
+        EXAMPLES::
+
+            sage: P.<x,y> = PolynomialRing(QQbar, 2, order='m(1,3,1,0)')
+            sage: y > x^2 # indirect doctest
+            True
+            sage: y > x^3
+            False
+        """
+        for row in self.__matrix:
+            mf = sum(l*r for (l,r) in zip(row,f))
+            mg = sum(l*r for (l,r) in zip(row,g))
+
+            if mf > mg:
+                return 1
+            elif mf < mg:
+                return -1
+        return 0
 
     def compare_tuples_lp(self,f,g):
         """
@@ -496,11 +612,9 @@ class TermOrder(SageObject):
 
         INPUT:
 
+        - ``f`` - exponent tuple
 
-        -  ``f`` - exponent tuple
-
-        -  ``g`` - exponent tuple
-
+        - ``g`` - exponent tuple
 
         EXAMPLE::
 
@@ -525,11 +639,9 @@ class TermOrder(SageObject):
 
         INPUT:
 
+        - ``f`` - exponent tuple
 
-        -  ``f`` - exponent tuple
-
-        -  ``g`` - exponent tuple
-
+        - ``g`` - exponent tuple
 
         EXAMPLE::
 
@@ -548,11 +660,9 @@ class TermOrder(SageObject):
 
         INPUT:
 
+        - ``f`` - exponent tuple
 
-        -  ``f`` - exponent tuple
-
-        -  ``g`` - exponent tuple
-
+        - ``g`` - exponent tuple
 
         EXAMPLE::
 
@@ -578,11 +688,9 @@ class TermOrder(SageObject):
 
         INPUT:
 
+        - ``f`` - exponent tuple
 
-        -  ``f`` - exponent tuple
-
-        -  ``g`` - exponent tuple
-
+        - ``g`` - exponent tuple
 
         EXAMPLE::
 
@@ -601,7 +709,6 @@ class TermOrder(SageObject):
         elif sf == sg:
             return (-1)*self.compare_tuples_lp(f.reversed(),g.reversed())
 
-
     def compare_tuples_ls(self,f,g):
         """
         Compares two exponent tuples with respect to the negative
@@ -609,11 +716,9 @@ class TermOrder(SageObject):
 
         INPUT:
 
+        - ``f`` - exponent tuple
 
-        -  ``f`` - exponent tuple
-
-        -  ``g`` - exponent tuple
-
+        - ``g`` - exponent tuple
 
         EXAMPLE::
 
@@ -632,11 +737,9 @@ class TermOrder(SageObject):
 
         INPUT:
 
+        - ``f`` - exponent tuple
 
-        -  ``f`` - exponent tuple
-
-        -  ``g`` - exponent tuple
-
+        - ``g`` - exponent tuple
 
         EXAMPLE::
 
@@ -662,11 +765,9 @@ class TermOrder(SageObject):
 
         INPUT:
 
+        - ``f`` - exponent tuple
 
-        -  ``f`` - exponent tuple
-
-        -  ``g`` - exponent tuple
-
+        - ``g`` - exponent tuple
 
         EXAMPLE::
 
@@ -692,11 +793,9 @@ class TermOrder(SageObject):
 
         INPUT:
 
+        - ``f`` - exponent tuple
 
-        -  ``f`` - exponent tuple
-
-        -  ``g`` - exponent tuple
-
+        - ``g`` - exponent tuple
 
         EXAMPLE::
 
@@ -714,6 +813,35 @@ class TermOrder(SageObject):
             n += len(order)
         return 0
 
+    def greater_tuple_matrix(self,f,g):
+        """
+        Return the greater exponent tuple with respect to the matrix
+        term order.
+
+        INPUT:
+
+        - ``f`` - exponent tuple
+
+        - ``g`` - exponent tuple
+
+        EXAMPLE::
+
+            sage: P.<x,y> = PolynomialRing(QQbar, 2, order='m(1,3,1,0)')
+            sage: y > x^2 # indirect doctest
+            True
+            sage: y > x^3
+            False
+        """
+        for row in self.__matrix:
+            mf = sum(l*r for (l,r) in zip(row,f))
+            mg = sum(l*r for (l,r) in zip(row,g))
+
+            if mf>mg:
+                return f
+            elif mf<mg:
+                return g
+        return g
+
     def greater_tuple_lp(self,f,g):
         """
         Returns the greater exponent tuple with respect to the
@@ -721,11 +849,9 @@ class TermOrder(SageObject):
 
         INPUT:
 
+        - ``f`` - exponent tuple
 
-        -  ``f`` - exponent tuple
-
-        -  ``g`` - exponent tuple
-
+        - ``g`` - exponent tuple
 
         EXAMPLES::
 
@@ -745,11 +871,9 @@ class TermOrder(SageObject):
 
         INPUT:
 
+        - ``f`` - exponent tuple
 
-        -  ``f`` - exponent tuple
-
-        -  ``g`` - exponent tuple
-
+        - ``g`` - exponent tuple
 
         EXAMPLE::
 
@@ -771,11 +895,9 @@ class TermOrder(SageObject):
 
         INPUT:
 
+        - ``f`` - exponent tuple
 
-        -  ``f`` - exponent tuple
-
-        -  ``g`` - exponent tuple
-
+        - ``g`` - exponent tuple
 
         EXAMPLE::
 
@@ -798,11 +920,9 @@ class TermOrder(SageObject):
 
         INPUT:
 
+        - ``f`` - exponent tuple
 
-        -  ``f`` - exponent tuple
-
-        -  ``g`` - exponent tuple
-
+        - ``g`` - exponent tuple
 
         EXAMPLES::
 
@@ -816,7 +936,8 @@ class TermOrder(SageObject):
         ``MPolynomial_polydict``.
         """
         return (sum(f.nonzero_values(sort=False))>sum(g.nonzero_values(sort=False))
-                or (sum(f.nonzero_values(sort=False))==sum(g.nonzero_values(sort=False)) and f.reversed() < g.reversed())) and f or g
+                or (sum(f.nonzero_values(sort=False))==sum(g.nonzero_values(sort=False))
+                    and f.reversed() < g.reversed())) and f or g
 
     def greater_tuple_ds(self,f,g):
         """
@@ -825,11 +946,9 @@ class TermOrder(SageObject):
 
         INPUT:
 
+        - ``f`` - exponent tuple
 
-        -  ``f`` - exponent tuple
-
-        -  ``g`` - exponent tuple
-
+        - ``g`` - exponent tuple
 
         EXAMPLE::
 
@@ -856,11 +975,9 @@ class TermOrder(SageObject):
 
         INPUT:
 
+        - ``f`` - exponent tuple
 
-        -  ``f`` - exponent tuple
-
-        -  ``g`` - exponent tuple
-
+        - ``g`` - exponent tuple
 
         EXAMPLE::
 
@@ -890,11 +1007,9 @@ class TermOrder(SageObject):
 
         INPUT:
 
+        - ``f`` - exponent tuple
 
-        -  ``f`` - exponent tuple
-
-        -  ``g`` - exponent tuple
-
+        - ``g`` - exponent tuple
 
         EXAMPLE::
 
@@ -919,11 +1034,9 @@ class TermOrder(SageObject):
 
         INPUT:
 
+        - ``f`` - exponent tuple
 
-        -  ``f`` - exponent tuple
-
-        -  ``g`` - exponent tuple
-
+        - ``g`` - exponent tuple
 
         EXAMPLE::
 
@@ -960,8 +1073,11 @@ class TermOrder(SageObject):
             sage: TermOrder('lex') # indirect doctest
             Lexicographic term order
         """
-        s = print_name_mapping.get(self.__name,self.__name)
-        return '%s term order'%s
+        if self.__name[0] == 'M':
+            return 'Matrix term order with matrix\n%s'%self.matrix()
+        else:
+            s = print_name_mapping.get(self.__name,self.__name)
+            return '%s term order'%s
 
     def singular_str(self):
         """
@@ -1028,6 +1144,21 @@ class TermOrder(SageObject):
         """
         return self.__magma_str
 
+    def matrix(self):
+        """
+        Return the matrix defining matrix ordering.
+
+        EXAMPLE::
+
+            sage: t = TermOrder("M(1,2,0,1)")
+            sage: t.matrix()
+            [1 2]
+            [0 1]
+
+        """
+        from sage.matrix.constructor import matrix
+        return matrix(self.__matrix)
+
     def __cmp__(self, other):
         """
         Only equality testing makes sense here.
@@ -1063,16 +1194,13 @@ class TermOrder(SageObject):
                 return cmp(type(self), type(other))
         return cmp(self.singular_str(), other.singular_str())
 
-
     def __add__(self, other):
         """
         Block ordering constructor.
 
         INPUT:
 
-
-        -  ``other`` - a term order
-
+        - ``other`` - a term order
 
         OUTPUT: a block ordering
 
@@ -1092,6 +1220,8 @@ class TermOrder(SageObject):
 
         name = []
         for block_order in self.blocks + other.blocks:
+            if 'M' in block_order.singular_str():
+                raise NotImplementedError, "Cannot use a matrix term order as a block."
             nom = block_order.singular_str()
             name.append("%s(%d)"%(inv_singular_name_mapping.get(nom,nom), len(block_order)))
 
@@ -1121,9 +1251,7 @@ class TermOrder(SageObject):
 
         INPUT:
 
-
-        -  ``i`` - index
-
+        - ``i`` - index
 
         EXAMPLE::
 

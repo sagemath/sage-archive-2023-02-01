@@ -202,7 +202,6 @@ cdef extern from "libsingular.h":
     ctypedef struct poly "polyrec":
         poly *next
 
-
     # groebner basis options
 
     cdef enum tHomog:
@@ -237,7 +236,6 @@ cdef extern from "libsingular.h":
         int (*get "operator[]")(int i)
         int row
         int col
-
 
     # omalloc bins
 
@@ -285,7 +283,6 @@ cdef extern from "libsingular.h":
         bint *pairtest
         void *R
         int *S_2_R
-
 
     ctypedef struct data_union:
         ring *uring
@@ -375,8 +372,6 @@ cdef extern from "libsingular.h":
 
     void feInitResources(char *name)
 
-
-
     void *omAlloc(size_t size)
 
     # calloc
@@ -401,7 +396,6 @@ cdef extern from "libsingular.h":
     void omFree(void *)
 
     void omfree(void *)
-
 
     # construct ring with characteristic, number of vars and names
 
@@ -438,7 +432,6 @@ cdef extern from "libsingular.h":
     # return True if ring has components
 
     int rRing_has_Comp(ring *r)
-
 
     # return new empty monomial
 
@@ -663,9 +656,6 @@ cdef extern from "libsingular.h":
 
     int pGetComp(poly *p)
 
-
-
-
     # general number constructor
 
     number *n_Init(int n, ring *r)
@@ -799,7 +789,6 @@ cdef extern from "libsingular.h":
 
     # map Q -> Q(a)
     number *naMap00(number *c)
-
 
     # init integer
     number *nrzInit(int i)
@@ -990,12 +979,9 @@ cdef extern from "libsingular.h":
     void setFlag(leftv *A, int F)
     void resetFlag(leftv *A, int F)
 
-
 cdef extern from "prCopy.h":
     poly *prCopyR_NoSort(poly *p, ring *r, ring *dest_r)
     poly *prCopyR(poly *p, ring *r, ring *dest_r)
-
-
 
     cdef int LANG_TOP
 

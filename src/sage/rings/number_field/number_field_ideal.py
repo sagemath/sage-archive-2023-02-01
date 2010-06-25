@@ -840,6 +840,30 @@ class NumberFieldIdeal(Ideal_generic):
                 self.__reduced_generators = tuple([g])
             return self.__is_principal
 
+    def _ideal_class_log(self, proof=None):
+        r"""
+        Return the output of Pari's 'bnfisprincipal' for this ideal,
+        i.e. a vector expressing the class of this ideal in terms of a
+        set of generators for the class group.
+
+        EXAMPLE::
+
+            sage: K.<a, b> = NumberField([x^3 - x + 1, x^2 + 26])
+            sage: K.primes_above(7)[0]._ideal_class_log() # random
+            [1, 2]
+        """
+        proof = get_flag(proof, "number_field")
+        try:
+            return self.__ideal_class_log[proof]
+        except AttributeError:
+            self.__ideal_class_log = {}
+            return self._ideal_class_log(proof)
+        except KeyError:
+            bnf = self.number_field().pari_bnf(proof)
+            v = bnf.bnfisprincipal(self.pari_hnf())
+            self.__ideal_class_log[proof] = list(v[0])
+            return self.__ideal_class_log[proof]
+
     def is_zero(self):
         """
         Return True iff self is the zero ideal

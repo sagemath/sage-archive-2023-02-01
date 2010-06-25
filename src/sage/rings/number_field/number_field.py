@@ -2601,7 +2601,7 @@ class NumberField_generic(number_field_base.NumberField):
         # Next gens is a list of ideals.
         gens = [self.ideal([self(convert_from_zk_basis(self, y)) for y in x]) for x in gens]
 
-        G = ClassGroup(cycle_structure, names, self, gens)
+        G = ClassGroup(cycle_structure, names, self, gens, proof=proof)
         self.__class_group[proof,names] = G
         return G
 

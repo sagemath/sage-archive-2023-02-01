@@ -1,5 +1,10 @@
-"""
+r"""
 Class Groups of Number Fields
+
+An element of a class group is stored as a pair consisting of both an explicit
+ideal in that ideal class, and a list of exponents giving that ideal class in
+terms of the generators of the parent class group. These can be accessed with
+the ``ideal()`` and ``list()`` methods respectively.
 
 EXAMPLES::
 
@@ -8,6 +13,8 @@ EXAMPLES::
     Fractional ideal class (2, 1/2*a - 1/2)
     sage: J = I * I; J
     Fractional ideal class (2, 1/2*a + 1/2)
+    sage: J.list()
+    [2]
     sage: O = K.OK(); O
     Maximal Order in Number Field in a with defining polynomial x^2 + 23
     sage: O*(2, 1/2*a + 1/2)
@@ -19,18 +26,21 @@ EXAMPLES::
 """
 
 from sage.groups.abelian_gps.abelian_group import AbelianGroup_class
-
 from sage.structure.sequence import Sequence
-
-from sage.structure.element import MultiplicativeGroupElement
+from sage.structure.element import MonoidElement
+from sage.groups.abelian_gps.abelian_group_element import AbelianGroupElement
+from sage.groups.group import Group
 
 class ClassGroup(AbelianGroup_class):
-    """
+    r"""
     The class group of a number field.
     """
-    def __init__(self, invariants, names, number_field, gens):
-        """
+    def __init__(self, invariants, names, number_field, gens, proof=True):
+        r"""
         Create a class group.
+
+        Note that the error in the test suite below is caused by the fact that
+        there is no category of additive abelian groups.
 
         EXAMPLES::
 
@@ -41,47 +51,66 @@ class ClassGroup(AbelianGroup_class):
             sage: G.category()
             Category of groups
             sage: TestSuite(G).run() # see #7945
-            Failure in _test_an_element:
-              ...
-            AssertionError: self.an_element() is not in self
+              Failure in _test_category:
             ...
-            The following tests failed: _test_an_element, _test_elements, _test_elements_eq, _test_inverse, _test_some_elements
+            The following tests failed: _test_elements
         """
-        self.__number_field = number_field
-        self.__gens = Sequence([FractionalIdealClass(x, self) for x in gens], immutable=True,
-                               universe=self, check=False)
         AbelianGroup_class.__init__(self, len(invariants), invariants, names)
+        self._proof_flag = proof
+        self.__number_field = number_field
+        self.__gens = Sequence([FractionalIdealClass(self, x) for x in gens], immutable=True,
+                               universe=self, check=False)
 
     def __call__(self, *args, **kwds):
-        """
+        r"""
+        Call method. This exists *purely* to override the old-fashioned
+        behaviour of the parent AbelianGroup class and ensure that
+        :meth:`element_constructor` gets called.
 
-        EXAMPLES::
+        EXAMPLE::
 
             sage: K.<b> = NumberField(x^2 + 389)
             sage: C = K.class_group()
             sage: C(K.ideal(b))
             Trivial principal fractional ideal class
-            sage: C(K.ideal(59049, b + 35312))
-            Fractional ideal class (59049, b + 35312)
-            sage: C((59049, b + 35312))
-            Fractional ideal class (59049, b + 35312)
-            sage: C(59049, b + 35312)
-            Fractional ideal class (59049, b + 35312)
         """
-        return FractionalIdealClass(self.__number_field.ideal(*args, **kwds), self)
+        return Group.__call__(self, *args, **kwds)
 
-    def _coerce_impl(self, x):
-        """
-        Canonical coercion of x into this class group.
+    def _element_constructor_(self, *args, **kwds):
+        r"""
+        Create an element of this class group from the given data. This may be:
+        an ideal class in this number field; an ideal class in a subfield; or
+        anything from which an ideal in this number field can be constructed.
 
         EXAMPLES::
 
+            sage: K.<b> = NumberField(x^2 + 389)
+            sage: C = K.class_group()
+            sage: C(K.ideal(b)) # indirect doctest
+            Trivial principal fractional ideal class
+            sage: C(K.ideal(59049, b + 35312)) # indirect doctest
+            Fractional ideal class (59049, b + 35312)
+            sage: C((59049, b + 35312)) # indirect doctest
+            Fractional ideal class (59049, b + 35312)
+            sage: C(59049, b + 35312) # indirect doctest
+            Fractional ideal class (59049, b + 35312)
 
+            sage: K.<a> = QuadraticField(-23)
+            sage: L.<b> = K.extension(x^2 - 2)
+            sage: CK = K.class_group()
+            sage: CL = L.class_group()
+            sage: [CL(I).list() for I in CK]
+            [[0], [2], [4]]
         """
-        return self(x)
+        if isinstance(args[0], FractionalIdealClass):
+            return FractionalIdealClass(self, self.__number_field.ideal(args[0].ideal()))
+        else:
+            I = self.__number_field.ideal(*args, **kwds)
+            if I.is_zero(): raise TypeError, "The zero ideal is not a fractional ideal"
+            return FractionalIdealClass(self, I)
 
     def gens(self):
-        """
+        r"""
         Return generators for the class group.
 
         EXAMPLES::
@@ -93,7 +122,7 @@ class ClassGroup(AbelianGroup_class):
         return self.__gens
 
     def ngens(self):
-        """
+        r"""
         Return the number of generators of the class group.
 
         EXAMPLES::
@@ -103,19 +132,19 @@ class ClassGroup(AbelianGroup_class):
             sage: C.ngens()
             2
         """
-        return len(self.__gens)
+        return len(self.invariants())
 
     def gen(self, i=0):
-        """
+        r"""
         Return the i-th generator for this class group.
 
         EXAMPLES::
 
             sage: C = NumberField(x^2 + 120071, 'a').class_group(); C
             Class group of order 500 with structure C250 x C2 of Number Field in a with defining polynomial x^2 + 120071
-            sage: C.gen(0)
+            sage: C.gen(0) # random
             Fractional ideal class (130, 1/2*a + 137/2)
-            sage: C.gen(1)
+            sage: C.gen(1) # random
             Fractional ideal class (7, a)
         """
         if i < 0 or i >= len(self.__gens):
@@ -139,7 +168,8 @@ class ClassGroup(AbelianGroup_class):
             [Trivial principal fractional ideal class, Fractional ideal class (2, 1/2*a^2 + a - 1/2), Fractional ideal class (2, 1/2*a^2 + 1/2)] # 32-bit
             [Trivial principal fractional ideal class, Fractional ideal class (2, 1/2*a^2 - a + 3/2), Fractional ideal class (2, 1/2*a^2 + 1/2)] # 64-bit
 
-        TESTS:
+        TESTS::
+
             sage: K.<a> = NumberField(x^2 + 1)
             sage: G = K.class_group()
             sage: G
@@ -148,11 +178,6 @@ class ClassGroup(AbelianGroup_class):
             [Trivial principal fractional ideal class]
             sage: G.list()
             [Trivial principal fractional ideal class]
-
-            sage: C = NumberField(x^2 + x + 23899, 'a').class_group(); C
-            Class group of order 68 with structure C34 x C2 of Number Field in a with defining polynomial x^2 + x + 23899
-            sage: len(list(C.__iter__()))
-            68
         """
         from sage.misc.mrange import mrange
         invs = self.invariants()
@@ -167,7 +192,7 @@ class ClassGroup(AbelianGroup_class):
             yield self(1)
 
     def _repr_(self):
-        """
+        r"""
         Return string representation of self.
 
         EXAMPLES::
@@ -182,7 +207,7 @@ class ClassGroup(AbelianGroup_class):
             self.number_field())
 
     def number_field(self):
-        """
+        r"""
         Return the number field that this class group is attached to.
 
         EXAMPLES::
@@ -195,8 +220,8 @@ class ClassGroup(AbelianGroup_class):
         return self.__number_field
 
 
-class FractionalIdealClass(MultiplicativeGroupElement):
-    """
+class FractionalIdealClass(AbelianGroupElement):
+    r"""
     A fractional ideal class in a number field.
 
     EXAMPLES::
@@ -205,37 +230,106 @@ class FractionalIdealClass(MultiplicativeGroupElement):
         Class group of order 3 with structure C3 of Number Field in a with defining polynomial x^2 + 23
         sage: I = G.0; I
         Fractional ideal class (2, 1/2*a - 1/2)
-        sage: I*I
-        Fractional ideal class (2, 1/2*a + 1/2)
-        sage: I*I*I
-        Trivial principal fractional ideal class
     """
-    def __init__(self, ideal, class_group):
+    def __init__(self, parent, ideal, element=None):
         """
         Returns the ideal class of this fractional ideal.
+
+        EXAMPLE::
+
+            sage: K.<a> = NumberField(x^2 + 23,'a'); G = K.class_group()
+            sage: G(K.ideal(13, a + 4))
+            Fractional ideal class (13, a + 4)
         """
         self.__ideal = ideal
-        MultiplicativeGroupElement.__init__(self, class_group)
+        if element is None:
+            element = ideal._ideal_class_log(proof = parent._proof_flag)
+        AbelianGroupElement.__init__(self, parent, element)
 
     def _repr_(self):
-        """
+        r"""
         Return string representation of this fractional ideal class.
+
+         EXAMPLE::
+
+            sage: K.<a> = NumberField(x^2 + 23,'a'); G = K.class_group()
+            sage: G(K.ideal(13, a + 4))._repr_()
+            'Fractional ideal class (13, a + 4)'
+            sage: G(K.ideal(59, a+6))._repr_()
+            'Trivial principal fractional ideal class'
         """
         if self.is_principal():
-            return 'Trivial principal fractional ideal class' #%self.__ideal.number_field()
-        return 'Fractional ideal class %s'%self.__ideal._repr_short() #, self.__ideal.number_field())
-
-    def __cmp__(self, other):
-        q = self.__ideal / other.__ideal
-        if q.is_principal():
-            return 0
-        return cmp(self.__ideal, other.__ideal)
+            return 'Trivial principal fractional ideal class'
+        return 'Fractional ideal class %s'%self.__ideal._repr_short()
 
     def _mul_(self, other):
-        return self.parent()((self.__ideal * other.__ideal).reduce_equiv())
+        r"""
+        Multiplication of two ideal classes.
+
+        EXAMPLE::
+
+            sage: G = NumberField(x^2 + 23,'a').class_group(); G
+            Class group of order 3 with structure C3 of Number Field in a with defining polynomial x^2 + 23
+            sage: I = G.0; I
+            Fractional ideal class (2, 1/2*a - 1/2)
+            sage: I*I # indirect doctest
+            Fractional ideal class (2, 1/2*a + 1/2)
+            sage: I*I*I # indirect doctest
+            Trivial principal fractional ideal class
+        """
+        m = AbelianGroupElement._mul_(self, other)
+        return FractionalIdealClass(self.parent(), (self.__ideal * other.__ideal).reduce_equiv(), m.list())
+
+    def __pow__(self, n):
+        r"""
+        Raise this element to the power n.
+
+        EXAMPLE::
+
+            sage: K.<a> = NumberField(x^3 - 3*x + 8)
+            sage: C=K.class_group()
+            sage: c = C(2, a)
+            sage: c^2
+            Fractional ideal class (2, a^2 + 2*a - 1)
+            sage: c^3
+            Trivial principal fractional ideal class
+            sage: c^1000
+            Fractional ideal class (2, a)
+        """
+        # We use MonoidElement's __pow__ routine, since that does
+        # repeated squaring, and hence the ideal gets reduced as
+        # we go along; actually computing self.__ideal ** n would
+        # be disastrous.
+        n = n % self.order()
+        return MonoidElement.__pow__(self, n)
+
+    def inverse(self):
+        r"""
+        Return the multiplicative inverse of this ideal class.
+
+        EXAMPLE::
+
+            sage: K.<a> = NumberField(x^3 - 3*x + 8); G = K.class_group()
+            sage: G(2, a).inverse()
+            Fractional ideal class (2, a^2 + 2*a - 1)
+        """
+        m = AbelianGroupElement.inverse(self)
+        return FractionalIdealClass(self.parent(), (~self.__ideal).reduce_equiv(), m.list())
+
+    def __invert__(self):
+        r"""
+        Return the multiplicative inverse of this ideal class.
+
+        EXAMPLE::
+
+            sage: K.<a> = NumberField(x^3 - 3*x + 8); G = K.class_group()
+            sage: ~G(2, a)
+            Fractional ideal class (2, a^2 + 2*a - 1)
+        """
+        return self.inverse()
 
     def is_principal(self):
-        """
+        r"""
         Returns True iff this ideal class is the trivial (principal) class
 
         EXAMPLES::
@@ -252,10 +346,10 @@ class FractionalIdealClass(MultiplicativeGroupElement):
             sage: (c^3).is_principal()
             True
         """
-        return self.__ideal.is_principal()
+        return self.is_one()
 
     def reduce(self):
-        """
+        r"""
         Return representative for this ideal class that has been
         reduced using PARI's idealred.
 
@@ -273,7 +367,7 @@ class FractionalIdealClass(MultiplicativeGroupElement):
         return self.parent()(self.__ideal.reduce_equiv())
 
     def order(self):
-        """
+        r"""
         Return the order of this ideal class in the class group.
 
         EXAMPLE::
@@ -295,17 +389,23 @@ class FractionalIdealClass(MultiplicativeGroupElement):
             [38, 2]
 
         """
-        try:
-            return self.__multiplicative_order
-        except AttributeError:
-            from sage.groups.generic import order_from_multiple
-            self.__multiplicative_order = order_from_multiple(self,self.parent().order(),operation='*')
-            return self.__multiplicative_order
+        # an old method with a new docstring
+        return AbelianGroupElement.order(self)
 
-    multiplicative_order = order
+    def multiplicative_order(self):
+        r"""
+        Alias for :meth:`order`.
+
+        EXAMPLE::
+
+            sage: K.<w>=QuadraticField(-23)
+            sage: K.class_group()(K.primes_above(2)[0]).multiplicative_order()
+            3
+        """
+        return self.order()
 
     def ideal(self):
-        """
+        r"""
         Return a representative ideal in this ideal class.
 
         EXAMPLE::
@@ -322,7 +422,7 @@ class FractionalIdealClass(MultiplicativeGroupElement):
         return self.__ideal
 
     def gens(self):
-        """
+        r"""
         Return generators for a representative ideal in this
         ideal class.
 

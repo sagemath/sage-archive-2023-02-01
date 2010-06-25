@@ -116,7 +116,7 @@ EXTERN int two_descent_ok(const struct two_descent* t);
 
 EXTERN long two_descent_get_certain(const struct two_descent* t);
 
-EXTERN void two_descent_saturate(struct two_descent* t, long sat_bd); // = 0 for unbounded
+EXTERN void two_descent_saturate(struct two_descent* t, long sat_bd); // = -1 for default set in eclib/src/qcurves/saturate.h (currently 100)
 
 EXTERN char* two_descent_regulator(struct two_descent* t);
 

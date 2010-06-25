@@ -1776,7 +1776,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
              only_use_mwrank=True,
              proof = None,
              use_database = True,
-             descent_second_limit=12):
+             descent_second_limit=12,
+             sat_bound = 1000):
         """
         Compute and return generators for the Mordell-Weil group E(Q)
         *modulo* torsion.
@@ -1815,6 +1816,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
            attempts to find curve and gens in the (optional) database
 
         -  ``descent_second_limit`` - (default: 12)- used in 2-descent
+
+        - ``sat_bound`` - (default: 1000) - bound on primes used in
+           saturation.  If the computed bound on the index of the
+           points found by two-descent in the Mordell-Weil group is
+           greater than this, a warning message will be displayed.
 
         OUTPUT:
 
@@ -1924,6 +1930,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             if not (verbose is None):
                 C.set_verbose(verbose)
             C.two_descent(verbose=verbose, second_limit=descent_second_limit)
+            C.saturate(bound=sat_bound)
             G = C.gens()
             if proof is True and C.certain() is False:
                 del self.__mwrank_curve
@@ -1943,7 +1950,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             # In fact it would be much better to avoid the mwrank console at
             # all for gens() and just use the library. This is in
             # progress (see trac #1949).
-            X = self.mwrank('-p 100')
+            X = self.mwrank('-p 100 -S '+str(sat_bound))
             misc.verbose("Calling mwrank shell.")
             if not 'The rank and full Mordell-Weil basis have been determined unconditionally' in X:
                 msg = 'Generators not provably computed.'

@@ -14,6 +14,7 @@
    sage/plot/contour_plot
    sage/plot/density_plot
    sage/plot/disk
+   sage/plot/ellipse
    sage/plot/line
    sage/plot/step
    sage/plot/matrix_plot

@@ -11,6 +11,9 @@ The following graphics primitives are supported:
 
 -  :func:`circle() <sage.plot.circle.circle>` - a circle with given radius
 
+-  :func:`ellipse() <sage.plot.ellipse.ellipse>` - an ellipse with given radii
+   and angle
+
 -  :func:`disk() <sage.plot.disk.disk>` - a filled disk (i.e. a sector or wedge of a circle)
 
 -  :func:`line() <sage.plot.line.line>` - a line determined by a sequence of points (this need not

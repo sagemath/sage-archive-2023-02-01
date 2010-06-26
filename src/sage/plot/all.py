@@ -21,6 +21,7 @@ from ellipse import ellipse
 from contour_plot import contour_plot, implicit_plot, region_plot
 from density_plot import density_plot
 from complex_plot import complex_plot
+from arc import arc
 
 from animate import Animation as animate
 

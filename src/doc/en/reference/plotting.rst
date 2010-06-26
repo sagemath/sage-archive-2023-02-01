@@ -6,6 +6,7 @@
 
    sage/plot/plot
    sage/plot/animate
+   sage/plot/arc
    sage/plot/arrow
    sage/plot/bar_chart
    sage/plot/bezier_path

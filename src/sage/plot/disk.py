@@ -148,8 +148,8 @@ class Disk(GraphicPrimitive):
         """
         import matplotlib.patches as patches
         options = self.options()
-        deg1 = self.rad1*(360.0/(2.0*pi)) #convert radians to degrees
-        deg2 = self.rad2*(360.0/(2.0*pi))
+        deg1 = self.rad1*(180./pi) #convert radians to degrees
+        deg2 = self.rad2*(180./pi)
         z = int(options.pop('zorder', 0))
         p = patches.Wedge((float(self.x), float(self.y)), float(self.r), float(deg1),
                             float(deg2), zorder=z)

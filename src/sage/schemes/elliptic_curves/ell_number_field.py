@@ -268,6 +268,13 @@ class EllipticCurve_number_field(EllipticCurve_field):
             (1, 3, [...])
         """
 
+        try:
+            result = self._simon_two_descent_data[lim1,lim3,limtriv,maxprob,limbigprime]
+            if verbose == 0:
+                return result
+        except AttributeError:
+            self._simon_two_descent_data = {}
+
         x = PolynomialRing(self.base_ring(), 'x').gen(0)
         t = simon_two_descent(self,
                               verbose=verbose, lim1=lim1, lim3=lim3, limtriv=limtriv,
@@ -275,6 +282,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         prob_rank = Integer(t[0])
         two_selmer_rank = Integer(t[1])
         prob_gens = [self(P) for P in t[2]]
+        self._simon_two_descent_data[lim1,lim3,limtriv,maxprob,limbigprime] = (prob_rank, two_selmer_rank, prob_gens)
         return prob_rank, two_selmer_rank, prob_gens
 
     def height_pairing_matrix(self, points=None, precision=None):
@@ -1542,6 +1550,189 @@ class EllipticCurve_number_field(EllipticCurve_field):
          """
         T = self.torsion_subgroup() # make sure it is cached
         return sorted(T.points())           # these are also cached in T
+
+    def rank_bounds(self,verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, limbigprime=30):
+        r"""
+        Returns the lower and upper bounds using simon_two_descent.  The results of simon_two_descent are cached.
+
+        .. NOTE::
+
+            These optional parameters control the Simon two descent algorithm.
+
+        INPUT:
+
+        - ``verbose`` -- 0, 1, 2, or 3 (default: 0), the verbosity level
+
+        - ``lim1``    -- (default: 5) limit on trivial points on quartics
+
+        - ``lim3``  -- (default: 50) limit on points on ELS quartics
+
+        - ``limtriv`` -- (default: 10) limit on trivial points on elliptic curve
+
+        - ``maxprob`` -- (default: 20)
+
+        - ``limbigprime`` -- (default: 30) to distinguish between
+          small and large prime numbers. Use probabilistic tests for
+          large primes. If 0, don't use probabilistic tests.
+
+        OUTPUT:
+
+        lower and upper bounds
+
+
+        .. NOTE::
+
+           For non-quadratic number fields, this code does
+           return, but it takes a long time.
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^2 + 23, 'a')
+            sage: E = EllipticCurve(K, '37')
+            sage: E == loads(dumps(E))
+            True
+            sage: E.rank_bounds()
+            (2, 2)
+
+        Here is a curve with two-torsion, so here the algorithm gives
+        bounds on the rank::
+
+            sage: Qrt5.<rt5>=NumberField(x^2-5)
+            sage: E=EllipticCurve([0,5-rt5,0,rt5,0])
+            sage: E.rank_bounds()
+            (1, 2)
+
+        IMPLEMENTATION:
+
+        Uses Denis Simon's GP/PARI scripts from
+        \url{http://www.math.unicaen.fr/~simon/}.
+
+        """
+
+        lower, upper, gens = self.simon_two_descent(verbose=verbose,lim1=lim1,lim3=lim3,limtriv=limtriv,maxprob=maxprob,limbigprime=limbigprime)
+        return lower,upper
+
+    def rank(self,verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, limbigprime=30):
+        r"""
+        Return the rank of this elliptic curve, if it can be determined.
+
+        INPUT:
+
+        - ``verbose`` -- 0, 1, 2, or 3 (default: 0), the verbosity level
+
+        - ``lim1``    -- (default: 5) limit on trivial points on quartics
+
+        - ``lim3``  -- (default: 50) limit on points on ELS quartics
+
+        - ``limtriv`` -- (default: 10) limit on trivial points on elliptic curve
+
+        - ``maxprob`` -- (default: 20)
+
+        - ``limbigprime`` -- (default: 30) to distinguish between
+          small and large prime numbers. Use probabilistic tests for
+          large primes. If 0, don't use probabilistic tests.
+
+        OUTPUT:
+
+        If the upper and lower bounds given by Simon two-descent are
+        the same, then the rank has been uniquely identified and we
+        return this. Otherwise, we return the upper and lower bounds
+        with a warning that these are not the same.
+
+        .. NOTE::
+
+           Note: For non-quadratic number fields, this code does
+           return, but it takes a long time.
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^2 + 23, 'a')
+            sage: E = EllipticCurve(K, '37')
+            sage: E == loads(dumps(E))
+            True
+            sage: E.rank()
+            2
+
+        Here is a curve with two-torsion, so here the algorithm gives
+        bounds on the rank::
+
+            sage: Qrt5.<rt5>=NumberField(x^2-5)
+            sage: E=EllipticCurve([0,5-rt5,0,rt5,0])
+            sage: E.rank()
+            Traceback (most recent call last):
+            ...
+            ValueError: There is insufficient data to determine the rank.
+
+        IMPLEMENTATION:
+
+        Uses Denis Simon's GP/PARI scripts from
+        \url{http://www.math.unicaen.fr/~simon/}.
+
+        """
+
+        lower,upper = self.rank_bounds(verbose=verbose,lim1=lim1,lim3=lim3,limtriv=limtriv,maxprob=maxprob,limbigprime=limbigprime)
+        if lower == upper:
+            return lower
+        else:
+            raise ValueError, 'There is insufficient data to determine the rank.'
+
+    def gens(self,verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, limbigprime=30):
+        r"""
+        Returns some generators of this elliptic curve.  Check rank or rank_bound to verify the number of generators.
+
+        INPUT:
+
+        - ``verbose`` -- 0, 1, 2, or 3 (default: 0), the verbosity level
+
+        - ``lim1``    -- (default: 5) limit on trivial points on quartics
+
+        - ``lim3``  -- (default: 50) limit on points on ELS quartics
+
+        - ``limtriv`` -- (default: 10) limit on trivial points on elliptic curve
+
+        - ``maxprob`` -- (default: 20)
+
+        - ``limbigprime`` -- (default: 30) to distinguish between
+          small and large prime numbers. Use probabilistic tests for
+          large primes. If 0, don't use probabilistic tests.
+
+        OUTPUT:
+
+        The linearly independent elements given by the Simon two-descent.
+
+        .. NOTE::
+
+           Note: For non-quadratic number fields, this code does
+           return, but it takes a long time.
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^2 + 23, 'a')
+            sage: E = EllipticCurve(K, '37')
+            sage: E == loads(dumps(E))
+            True
+            sage: E.gens()
+            [(-1 : 0 : 1), (1/2*a - 5/2 : -1/2*a - 13/2 : 1)]
+
+
+        Here is a curve with two-torsion, so here the algorithm gives
+        bounds on the rank::
+
+            sage: Qrt5.<rt5>=NumberField(x^2-5)
+            sage: E=EllipticCurve([0,5-rt5,0,rt5,0])
+            sage: E.gens()
+            [(3/2*rt5 + 5/2 : -9/2*rt5 - 15/2 : 1), (-1/2*rt5 + 3/2 : 3/2*rt5 - 9/2 : 1), (0 : 0 : 1)]
+
+        IMPLEMENTATION:
+
+        Uses Denis Simon's GP/PARI scripts from
+        \url{http://www.math.unicaen.fr/~simon/}.
+
+        """
+
+        lower,upper,gens = self.simon_two_descent(verbose=verbose,lim1=lim1,lim3=lim3,limtriv=limtriv,maxprob=maxprob,limbigprime=limbigprime)
+        return gens
+
 
     def period_lattice(self, embedding):
         r"""

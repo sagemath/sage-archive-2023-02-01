@@ -21,6 +21,7 @@ Website: http://pari.math.u-bordeaux.fr/
 GPL
 
 == SPKG Maintainers ==
+ * Robert Bradshaw
  * Craig Citro
  * William Stein
  * David Kirkby
@@ -65,7 +66,10 @@ exactly where it says native, but I would expect a grep to find it.
 
 == Changelog ==
 
-=== pari-2.3.5.p1 (Mike Hansen, May 25th 2010) ===
+=== pari-2.4.3.svn.p1 (Robert Bradshaw and William Stein, June 26, 2010) ===
+ * Major new version
+
+=== pari-2.3.5.p1 (Mike Hansen, May 25th, 2010) ===
  * Do the same fix for Cygwin that we do on Solaris.
 
 === pari-2.3.5.p0 (Georg S. Weber, May 2nd, 2010 ===

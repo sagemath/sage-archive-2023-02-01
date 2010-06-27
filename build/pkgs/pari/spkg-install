@@ -16,9 +16,11 @@ fi
 
 cd src
 
-# extract the SEA data file in the appropriate place, so that the build pari will support
-# fast point counting over finite fields
-tar xf ../seadata.tar
+# Extract the SEA data file in the appropriate place, so that the build pari will support
+# fast point counting over finite fields.  Note that one has to download the seadata file
+# from the PARI website and add it to src/.  This is the small version of that file -- there
+# is also a huge version.
+tar xf seadata.tar
 
 #cp "$TOP"/patches/get_dlld config/
 

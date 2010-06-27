@@ -455,7 +455,6 @@ def D_inverse(s, n):
     m = "".join(l)
     return m[:n*n]
 
-
 # Exhaustive search in graphs
 
 cpdef list subgraph_search(G, H, bint induced=False):

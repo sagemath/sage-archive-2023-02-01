@@ -3621,7 +3621,7 @@ class GenericGraph(GenericGraph_pyx):
         return classes
 
 
-    def edge_cut(self, s, t, value_only=True, use_edge_labels=False, vertices=False, solver=None, verbose=0):
+    def edge_cut(self, s, t, value_only=True, use_edge_labels=False, vertices=False, method="FF", solver=None, verbose=0):
         r"""
         Returns a minimum edge cut between vertices `s` and `t`
         represented by a list of edges.
@@ -3648,9 +3648,21 @@ class GenericGraph(GenericGraph_pyx):
           a weight defined by its label (if an edge has no label, `1`
           is assumed). Otherwise, each edge has weight `1`.
 
-        - ``vertices`` -- boolean (default: ``False``). When set to ``True``,
-          also returns the two sets of vertices that are disconnected by
-          the cut. Implies ``value_only=False``.
+        - ``vertices`` -- boolean (default: ``False``). When set to
+          ``True``, returns a list of edges in the edge cut and the
+          two sets of vertices that are disconnected by the cut.
+
+          Note: ``vertices=True`` implies ``value_only=False``.
+
+        - ``method`` -- There are currently two different
+          implementations of this method :
+
+              * If ``method = "FF"`` (default), a Python
+                implementation of the Ford-Fulkerson algorithm is
+                used.
+
+              * If ``method = "LP"``, the flow problem is solved using
+                Linear Programming.
 
         - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
           solver to be used. If set to ``None``, the default one is used. For
@@ -3663,6 +3675,11 @@ class GenericGraph(GenericGraph_pyx):
         - ``verbose`` -- integer (default: ``0``). Sets the level of
           verbosity. Set to 0 by default, which means quiet.
 
+        .. NOTE::
+
+           The use of Linear Programming for non-integer problems may
+           possibly mean the presence of a (slight) numerical noise.
+
         OUTPUT:
 
         Real number or tuple, depending on the given arguments
@@ -3674,7 +3691,14 @@ class GenericGraph(GenericGraph_pyx):
 
            sage: g = graphs.PappusGraph()
            sage: g.edge_cut(1, 2, value_only=True)
-           3.0
+           3
+
+        Or on Petersen's graph, with the corresponding bipartition of
+        the vertex set::
+
+           sage: g = graphs.PetersenGraph()
+           sage: g.edge_cut(0, 3, vertices=True)
+           [3, [(0, 1, None), (0, 4, None), (0, 5, None)], [[0], [1, 2, 3, 4, 5, 6, 7, 8, 9]]]
 
         If the graph is a path with randomly weighted edges::
 
@@ -3685,10 +3709,10 @@ class GenericGraph(GenericGraph_pyx):
         The edge cut between the two ends is the edge of minimum weight::
 
            sage: minimum = min([l for u,v,l in g.edge_iterator()])
-           sage: abs(minimum - g.edge_cut(0, 14, use_edge_labels=True)) < 10**(-5)
+           sage: minimum == g.edge_cut(0, 14, use_edge_labels=True)
            True
-           sage: [value,[[u,v]]] = g.edge_cut(0, 14, use_edge_labels=True, value_only=False)
-           sage: g.edge_label(u, v) == minimum
+           sage: [value,[e]] = g.edge_cut(0, 14, use_edge_labels=True, value_only=False)
+           sage: g.edge_label(e[0],e[1]) == minimum
            True
 
         The two sides of the edge cut are obviously shorter paths::
@@ -3700,20 +3724,65 @@ class GenericGraph(GenericGraph_pyx):
            True
            sage: len(set1) + len(set2) == g.order()
            True
+
+        TESTS:
+
+        If method is set to an exotic value::
+
+           sage: g = graphs.PetersenGraph()
+           sage: g.edge_cut(0,1, method="Divination")
+           Traceback (most recent call last):
+           ...
+           ValueError: The method argument has to be equal to either "FF" or "LP"
+
+        Same result for both methods::
+
+           sage: g = graphs.RandomGNP(20,.3)
+           sage: for u,v in g.edges(labels=False):
+           ...      g.set_edge_label(u,v,round(random(),5))
+           sage: g.edge_cut(0,1, method="FF") == g.edge_cut(0,1,method="LP")
+           True
         """
+
+        if vertices:
+            value_only = False
+
+        if use_edge_labels:
+            weight = lambda x: x if (x!={} and x is not None) else 1
+        else:
+            weight = lambda x: 1
+
+        if method == "FF":
+            if value_only:
+                return self.flow(s,t,value_only=value_only,use_edge_labels=use_edge_labels, method=method)
+
+            flow_value, flow_graph = self.flow(s,t,value_only=value_only,use_edge_labels=use_edge_labels, method=method)
+            g = self.copy()
+            for u,v,l in flow_graph.edge_iterator():
+                if (not use_edge_labels or
+                    (weight(g.edge_label(u,v)) == weight(l))):
+                    g.delete_edge(u,v)
+
+            return_value = [flow_value]
+
+            reachable_from_s = list(g.breadth_first_search(s))
+
+            return_value.append(self.edge_boundary(reachable_from_s))
+
+            if vertices:
+                return_value.append([reachable_from_s,list(set(self.vertices())-set(reachable_from_s))])
+
+            return return_value
+
+        if method != "LP":
+            raise ValueError("The method argument has to be equal to either \"FF\" or \"LP\"")
+
+
         from sage.numerical.mip import MixedIntegerLinearProgram, Sum
         g = self
         p = MixedIntegerLinearProgram(maximization=False)
         b = p.new_variable(dim=2)
         v = p.new_variable()
-
-        if vertices:
-            value_only = False
-        if use_edge_labels:
-            from sage.rings.real_mpfr import RR
-            weight = lambda x: x if x in RR else 1
-        else:
-            weight = lambda x: 1
 
         # Some vertices belong to part 1, others to part 0
         p.add_constraint(v[s], min=0, max=0)
@@ -4555,7 +4624,7 @@ class GenericGraph(GenericGraph_pyx):
         except MIPSolverException:
             raise ValueError("The given graph is not hamiltonian")
 
-    def flow(self, x, y, value_only=True, integer=False, use_edge_labels=True, vertex_bound=False, solver=None, verbose=0):
+    def flow(self, x, y, value_only=True, integer=False, use_edge_labels=True, vertex_bound=False, method = None, solver=None, verbose=0):
         r"""
         Returns a maximum flow in the graph from ``x`` to ``y``
         represented by an optimal valuation of the edges. For more
@@ -4608,13 +4677,39 @@ class GenericGraph(GenericGraph_pyx):
             a vertex different from `x` to `1` (useful for vertex
             connectivity parameters).
 
+        - ``method`` -- There are currently two different
+          implementations of this method :
+
+              * If ``method = "FF"``, a Python implementation of the
+                Ford-Fulkerson algorithm is used (only available when
+                ``vertex_bound = False``)
+
+              * If ``method = "LP"``, the flow problem is solved using
+                Linear Programming.
+
+              * If ``method = None`` (default), the Ford-Fulkerson
+                implementation is used iif ``vertex_bound = False``.
+
         - ``solver`` -- Specify a Linear Program solver to be used.
-          If set to ``None``, the default one is used.
-          function of ``MixedIntegerLinearProgram``. See the documentation  of ``MixedIntegerLinearProgram.solve``
-          for more information.
+          If set to ``None``, the default one is used.  function of
+          ``MixedIntegerLinearProgram``. See the documentation of
+          ``MixedIntegerLinearProgram.solve`` for more information.
+
+          Only useful when LP is used to solve the flow problem.
 
         - ``verbose`` (integer) -- sets the level of verbosity. Set to 0
           by default (quiet).
+
+          Only useful when LP is used to solve the flow problem.
+
+        .. NOTE::
+
+           Even though the two different implementations are meant to
+           return the same Flow values, they can not be expected to
+           return the same Flow graphs.
+
+           Besides, the use of Linear Programming may possibly mean a
+           (slight) numerical noise.
 
         EXAMPLES:
 
@@ -4623,13 +4718,13 @@ class GenericGraph(GenericGraph_pyx):
 
            sage: g=graphs.PappusGraph()
            sage: g.flow(1,2)
-           3.0
+           3
 
         ::
 
            sage: b=digraphs.ButterflyGraph(2)
            sage: b.flow(('00',1),('00',2))
-           1.0
+           1
 
         The flow method can be used to compute a matching in a bipartite graph
         by linking a source `s` to all the vertices of the first set and linking
@@ -4642,10 +4737,46 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.add_edges([(4+i,'t') for i in range(4)])
             sage: [cardinal, flow_graph] = g.flow('s','t',integer=True,value_only=False)
             sage: flow_graph.delete_vertices(['s','t'])
-            sage: len(flow_graph.edges(labels=None))
+            sage: len(flow_graph.edges())
             4
 
+        TESTS:
+
+        An exception if raised when forcing "FF" with ``vertex_bound = True``::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g.flow(0,1,vertex_bound = True, method = "FF")
+            Traceback (most recent call last):
+            ...
+            ValueError: This method does not support both vertex_bound=True and method="FF".
+
+        Or if the method is different from the expected values::
+
+            sage: g.flow(0,1, method="Divination")
+            Traceback (most recent call last):
+            ...
+            ValueError: The method argument has to be equal to either "FF", "LP" or None
+
+        The two methods are indeed returning the same results::
+
+           sage: g = graphs.RandomGNP(20,.3)
+           sage: for u,v in g.edges(labels=False):
+           ...      g.set_edge_label(u,v,round(random(),5))
+           sage: g.flow(0,1, method="FF") == g.flow(0,1,method="LP")
+           True
         """
+
+        if vertex_bound == True and method == "FF":
+            raise ValueError("This method does not support both vertex_bound=True and method=\"FF\".")
+
+        if (method == "FF" or
+            (method == None and vertex_bound == False)):
+            return self._ford_fulkerson(x,y, value_only=value_only, integer=integer, use_edge_labels=use_edge_labels)
+
+        if method != "LP" and method != None:
+            raise ValueError("The method argument has to be equal to either \"FF\", \"LP\" or None")
+
+
         from sage.numerical.mip import MixedIntegerLinearProgram, Sum
         g=self
         p=MixedIntegerLinearProgram(maximization=True)
@@ -4714,6 +4845,170 @@ class GenericGraph(GenericGraph_pyx):
             flow_graph = Graph(flow_graph)
 
         return [obj,flow_graph]
+
+    def _ford_fulkerson(self, s, t, use_edge_labels = False, integer = False, value_only = True):
+        r"""
+        Python implementation of the Ford-Fulkerson algorithm.
+
+        This method is a Python implementation of the Ford-Fulkerson
+        max-flow algorithm, which is (slightly) faster than the LP
+        implementation.
+
+        INPUT:
+
+        - ``s`` -- Source vertex
+
+        - ``t`` -- Sink vertex
+
+        - ``value_only`` -- boolean (default: ``True``)
+
+          - When set to ``True``, only the value of a maximal
+            flow is returned.
+
+          - When set to ``False``, is returned a pair whose first element
+            is the value of the maximum flow, and whose second value is
+            a flow graph (a copy of the current graph, such that each edge
+            has the flow using it as a label, the edges without flow being
+            omitted).
+
+        - ``integer`` -- boolean (default: ``False``)
+
+          - When set to ``True``, computes an optimal solution under the
+            constraint that the flow going through an edge has to be an
+            integer.
+
+        - ``use_edge_labels`` -- boolean (default: ``True``)
+
+          - When set to ``True``, computes a maximum flow
+            where each edge has a capacity defined by its label. (If
+            an edge has no label, `1` is assumed.)
+
+          - When set to ``False``, each edge has capacity `1`.
+
+        EXAMPLES:
+
+        Two basic applications of the flow method for the ``PappusGraph`` and the
+        ``ButterflyGraph`` with parameter `2` ::
+
+           sage: g=graphs.PappusGraph()
+           sage: g._ford_fulkerson(1,2)
+           3
+
+        ::
+
+           sage: b=digraphs.ButterflyGraph(2)
+           sage: b._ford_fulkerson(('00',1),('00',2))
+           1
+
+        The flow method can be used to compute a matching in a bipartite graph
+        by linking a source `s` to all the vertices of the first set and linking
+        a sink `t` to all the vertices of the second set, then computing
+        a maximum `s-t` flow ::
+
+            sage: g = DiGraph()
+            sage: g.add_edges([('s',i) for i in range(4)])
+            sage: g.add_edges([(i,4+j) for i in range(4) for j in range(4)])
+            sage: g.add_edges([(4+i,'t') for i in range(4)])
+            sage: [cardinal, flow_graph] = g._ford_fulkerson('s','t',integer=True,value_only=False)
+            sage: flow_graph.delete_vertices(['s','t'])
+            sage: len(flow_graph.edges(labels=None))
+            4
+        """
+        from sage.graphs.digraph import DiGraph
+
+        # Whether we should consider the edges labeled
+        if use_edge_labels:
+            l_capacity=lambda x: 1 if (x is None or x == {}) else (floor(x) if integer else x)
+        else:
+            l_capacity=lambda x: 1
+
+        directed = self.is_directed()
+
+        # Associated to each edge (u,v) of the flow graph its capacity
+        capacity = {}
+        # Associates to each edge (u,v) of the graph the (directed)
+        # flow going through it
+        flow = {}
+
+        # Residual graph. Only contains edge on which some flow can be
+        # sent. This can happen both when the flow going through the
+        # current edge is strictly less than its capacity, or when
+        # there exists a back arc with non-null flow
+        residual = DiGraph()
+
+        # Initializing the variables
+        if directed:
+            for u,v,l in self.edge_iterator():
+                if l_capacity(l) > 0:
+                    capacity[(u,v)] = l_capacity(l) + capacity.get((u,v),0)
+                    capacity[(v,u)] = capacity.get((v,u),0)
+                    residual.add_edge(u,v)
+                    flow[(u,v)] = 0
+                    flow[(v,u)] = 0
+        else:
+            for u,v,l in self.edge_iterator():
+                if l_capacity(l) > 0:
+                    capacity[(u,v)] = l_capacity(l) + capacity.get((u,v),0)
+                    capacity[(v,u)] = l_capacity(l) + capacity.get((v,u),0)
+                    residual.add_edge(u,v)
+                    residual.add_edge(v,u)
+                    flow[(u,v)] = 0
+                    flow[(v,u)] = 0
+
+        # Reqrites a path as a list of edges :
+        # ex : [0,1,2,3,4,5] becomes [(0,1), (1,2), (2,3), (3,4), (4,5)]
+        path_to_edges = lambda P : zip(P[:-1],P[1:])
+
+        # Rewrites a path as a list of edges labeled with their
+        # available capacity
+        path_to_labelled_edges = lambda P : map(lambda (x,y) : (x,y,capacity[(x,y)]-flow[(x,y)] + flow[(y,x)]),path_to_edges(P))
+
+        # Total flow going from s to t
+        flow_intensity = 0
+
+        while True:
+
+            # If there is a shortest path from s to t
+            path = residual.shortest_path(s,t)
+            if not path:
+                break
+
+            # We are rewriting the shortest path as a sequence of
+            # edges whose labels are their available capacities
+            edges = path_to_labelled_edges(path)
+
+            # minimum capacity available on the whole path
+            epsilon = min(map( lambda x : x[2], edges))
+
+            flow_intensity = flow_intensity + epsilon
+
+            # Updating variables
+            for uu,vv,ll in edges:
+
+                # The flow on the back arc
+                other = flow[(vv,uu)]
+                flow[(uu,vv)] = flow[(uu,vv)] + max(0,epsilon-other)
+                flow[(vv,uu)] = other - min(other, epsilon)
+
+                # If the current edge is fully used, we do not need it
+                # anymore in the residual graph
+                if capacity[(uu,vv)] - flow[(uu,vv)] + flow[(vv,uu)] == 0:
+                    residual.delete_edge(uu,vv)
+
+                # If the back arc does not exist, it now does as the
+                # edge (uu,vv) has a flow of at least epsilon>0
+                if not residual.has_edge(vv,uu):
+                    residual.add_edge(vv,uu,epsilon)
+
+        if value_only:
+            return flow_intensity
+
+        # Building and returning the flow graph
+        g = DiGraph()
+        g.add_edges([(x,y,l) for ((x,y),l) in flow.iteritems() if l > 0])
+        g.set_pos(self.get_pos())
+
+        return flow_intensity, g
 
     def multicommodity_flow(self, terminals, integer=True, use_edge_labels=False,vertex_bound=False, solver=None, verbose=0):
         r"""
@@ -5014,7 +5309,7 @@ class GenericGraph(GenericGraph_pyx):
         except ValueError:
             raise ValueError("The disjoint routed paths do not exist.")
 
-    def edge_disjoint_paths(self, s, t):
+    def edge_disjoint_paths(self, s, t, method = "FF"):
         r"""
         Returns a list of edge-disjoint paths between two
         vertices as given by Menger's theorem.
@@ -5026,6 +5321,17 @@ class GenericGraph(GenericGraph_pyx):
         edge-independent paths from `s` to `t`.
 
         This function returns a list of such paths.
+
+        INPUT:
+
+        - ``method`` -- There are currently two different
+          implementations of this method :
+
+              * If ``method = "FF"`` (default), a Python implementation of the
+                Ford-Fulkerson algorithm is used.
+
+              * If ``method = "LP"``, the flow problem is solved using
+                Linear Programming.
 
         .. NOTE::
 
@@ -5041,7 +5347,7 @@ class GenericGraph(GenericGraph_pyx):
             [[0, 2, 1], [0, 3, 1], [0, 4, 1]]
         """
 
-        [obj, flow_graph] = self.flow(s,t,value_only=False, integer=True, use_edge_labels=False)
+        [obj, flow_graph] = self.flow(s,t,value_only=False, integer=True, use_edge_labels=False, method=method)
 
         paths = []
 

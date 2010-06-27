@@ -3452,7 +3452,7 @@ class Graph(GenericGraph):
 
         return D[0] == "Prime" and len(D[1]) == self.order()
 
-    def _gomory_hu_tree(self, vertices=None):
+    def _gomory_hu_tree(self, vertices=None, method="FF"):
         r"""
         Returns a Gomory-Hu tree associated to self.
 
@@ -3468,6 +3468,16 @@ class Graph(GenericGraph):
         - ``vertices`` - a set of "real" vertices, as opposed to the
           fakes one introduced during the computations. This variable is
           useful for the algorithm and for recursion purposes.
+
+        - ``method`` -- There are currently two different
+          implementations of this method :
+
+              * If ``method = "FF"`` (default), a Python
+                implementation of the Ford-Fulkerson algorithm is
+                used.
+
+              * If ``method = "LP"``, the flow problem is solved using
+                Linear Programming.
 
         EXAMPLE:
 
@@ -3488,7 +3498,7 @@ class Graph(GenericGraph):
 
         # Small case, not really a problem ;-)
         if self.order() == 1:
-            return copy(g)
+            return self.copy()
 
         # This is a sign that this is the first call
         # to this recursive function
@@ -3501,7 +3511,7 @@ class Graph(GenericGraph):
             if not self.is_connected():
                 g = Graph()
                 for cc in self.connected_components_subgraphs():
-                    g = g.union(cc._gomory_hu_tree())
+                    g = g.union(cc._gomory_hu_tree(method=method))
                 g.set_pos(self.get_pos())
                 return g
             # All the vertices is this graph are the "real ones"
@@ -3520,7 +3530,7 @@ class Graph(GenericGraph):
         # flow is the connectivity between u and v
         # edges of a min cut
         # sets1, sets2 are the two sides of the edge cut
-        flow,edges,[set1,set2] = self.edge_cut(u, v, use_edge_labels=True, vertices=True)
+        flow,edges,[set1,set2] = self.edge_cut(u, v, use_edge_labels=True, vertices=True, method=method)
 
         # One graph for each part of the previous one
         g1,g2 = self.subgraph(set1), self.subgraph(set2)
@@ -3538,7 +3548,8 @@ class Graph(GenericGraph):
 
         # We must preserve the labels. They sum.
 
-        for x,y in edges:
+        for e in edges:
+            x,y = e[0],e[1]
             # Assumes x is in g1
             if x in g2:
                 x,y = y,x
@@ -3556,8 +3567,8 @@ class Graph(GenericGraph):
 
         # Recursion for the two new graphs... The new "real" vertices are the intersection with
         # with the previous set of "real" vertices
-        g1_tree = g1._gomory_hu_tree(vertices=(vertices & Set(g1.vertices())))
-        g2_tree = g2._gomory_hu_tree(vertices=(vertices & Set(g2.vertices())))
+        g1_tree = g1._gomory_hu_tree(vertices=(vertices & Set(g1.vertices())), method=method)
+        g2_tree = g2._gomory_hu_tree(vertices=(vertices & Set(g2.vertices())), method=method)
 
         # Union of the two partial trees ( it is disjoint, but
         # disjoint_union does not preserve the name of the vertices )
@@ -3571,7 +3582,7 @@ class Graph(GenericGraph):
 
         return g
 
-    def gomory_hu_tree(self):
+    def gomory_hu_tree(self, method="FF"):
         r"""
         Returns a Gomory-Hu tree of self.
 
@@ -3584,6 +3595,18 @@ class Graph(GenericGraph):
         between any two vertices is the same in `G` as in `T`. See the
         `Wikipedia article on Gomory-Hu tree <http://en.wikipedia.org/wiki/Gomory%E2%80%93Hu_tree>`_.
         Note that, in general, a graph admits more than one Gomory-Hu tree.
+
+        INPUT:
+
+        - ``method`` -- There are currently two different
+          implementations of this method :
+
+              * If ``method = "FF"`` (default), a Python
+                implementation of the Ford-Fulkerson algorithm is
+                used.
+
+              * If ``method = "LP"``, the flow problems are solved
+                using Linear Programming.
 
         OUTPUT:
 
@@ -3628,7 +3651,7 @@ class Graph(GenericGraph):
             sage: g.edge_connectivity() == min(t.edge_labels())
             True
         """
-        return self._gomory_hu_tree()
+        return self._gomory_hu_tree(method=method)
 
 
     def two_factor_petersen(self):

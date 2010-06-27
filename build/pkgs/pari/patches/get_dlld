@@ -97,7 +97,6 @@ if test -n "$DLLD"; then
       *) shared=-shared;;
     esac
     DLLDFLAGS="$shared $extra \$(CFLAGS) \$(DLCFLAGS) $DLLDFLAGS"
-    fi
   fi
   case "$osname" in
 # Beware: will run through 'eval' [ hence ${...} instead of \$(...) ]

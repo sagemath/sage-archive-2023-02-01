@@ -37,8 +37,11 @@ GPL
 
 Here is how to build a new version of the PARI SAGE spkg:
 
-  1) Get the latest stable source code from
+  1) Get the latest code from
            http://pari.math.u-bordeaux.fr/download.html
+
+           svn export svn://pari.math.u-bordeaux.fr/pari/trunk pari
+
      (NOTE -- just like last time, at some point the devel version will be
               the way to go, since that's where all the bug fixes are.
         The PARI stable/devel model is complicated.)
@@ -46,11 +49,12 @@ Here is how to build a new version of the PARI SAGE spkg:
   2) Extract the above code and make it the directory src in the
      current directory.
 
-  3) Type ./spkg-dist in the above directory.
-
-  4) Extract the file galdata.tgz from
+  3) Extract the files galdata.tgz and seadata.tgz (the small one) from
      http://pari.math.u-bordeaux.fr/download.html
      in the directory pari-*/src/
+
+  4) Carefully check on the files in patches/
+
 
 Note from David Kirkby that could be relevant to building on Solaris:
 
@@ -66,7 +70,7 @@ exactly where it says native, but I would expect a grep to find it.
 
 == Changelog ==
 
-=== pari-2.4.3.svn.p1, p2 (Robert Bradshaw and William Stein, June 26, 2010) ===
+=== pari-2.4.3.svn.p1, p2, p3 (Robert Bradshaw and William Stein, June 26, 2010) ===
  * Major new version
 
 === pari-2.3.5.p1 (Mike Hansen, May 25th, 2010) ===

@@ -863,7 +863,7 @@ class PanAxiomElement(ExpectElement):
         P = self._check_valid()
         type = str(self.type())
 
-        if type == "Domain":
+        if type in ["Type", "Domain"]:
             return self._sage_domain()
 
         if type == "Float":

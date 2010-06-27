@@ -16,26 +16,30 @@ fi
 
 cd src
 
-cp "$TOP"/patches/get_dlld config/
+# extract the SEA data file in the appropriate place, so that the build pari will support
+# fast point counting over finite fields
+tar xf ../seadata.tar
+
+#cp "$TOP"/patches/get_dlld config/
 
 # mabshoff: This patch is to get around problem in PPC 32-bit Linux build
 # (but it is ok on any other machine)
-cp "$TOP"/patches/get_dlcflags config/
+#cp "$TOP"/patches/get_dlcflags config/
 
 # pjeremy: fix for FreeBSD: #7825
-cp "$TOP"/patches/get_kernel config/
+#cp "$TOP"/patches/get_kernel config/
 
 # cwitty: disable -rpath
-cp "$TOP"/patches/get_ld config/
+#cp "$TOP"/patches/get_ld config/
 
 # cwitty: disable TeX; allow bz2 compression
-cp "$TOP"/patches/gphelp.in doc/
+#cp "$TOP"/patches/gphelp.in doc/
 
 # Minh Van Nguyen: copy over patched get_cc (see ticket #7092). It's
 # reported that 32-bit Fedora 11 would fail to build otherwise.
-if [ `uname` = "Linux" ]; then
-    cp "$TOP"/patches/get_cc config/get_cc
-fi
+#if [ `uname` = "Linux" ]; then
+#    cp "$TOP"/patches/get_cc config/get_cc
+#fi
 
 # This is needed or there are weird locale problems involving rpath
 # with building Sage.

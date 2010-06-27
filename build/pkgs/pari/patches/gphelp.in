@@ -1,6 +1,6 @@
 #!@perl@
 #
-# $Id: gphelp.in 7757 2006-03-06 18:05:00Z kb $
+# $Id: gphelp.in 12437 2010-06-18 07:59:23Z kb $
 #
 # Copyright (C) 2000  The PARI group.
 #
@@ -65,14 +65,9 @@ if ($#ARGV < 0) { &treat($_); cleanexit(); }
 
 &pretex() if (!$detex);
 for (@ARGV) { &treat($_); }
-
-
 if ($apropos) { &apropos_final_print(); cleanexit(); }
-if (!$found) { &clean if (!$detex); cleanexit(); }
-
 &posttex() if (!$detex);
-
-print $gpmsg if (!$detex && $fromgp);
+print "ugly_kludge_done\n" if (!$detex && $fromgp);
 cleanexit();
 
 #
@@ -99,7 +94,9 @@ sub options {
     if ($_ eq "-fromgp")
       { $fromgp = 1; }
     elsif ($_ eq "-k")
-      { $apropos = 1; }
+      { $apropos = $detex = 1; }
+    elsif ($_ eq "-balloon")
+      { $balloon = 1; }
     elsif ($_ eq "-detex" || $_ eq "-d")
       { $detex = 1; }
     elsif ($_ eq "-raw")
@@ -116,7 +113,7 @@ sub options {
   $ch = "\e[m$ch";
   $cu .= $cu ? "\e[1m": "\e[4m";
   $cb .= "\e[1m";
-  $detex = 1 if (!$detex && !$ENV{DISPLAY});
+  $detex = 1 if (!$ENV{DISPLAY});
   # Disable TeX for Sage.
   $detex = 1;
 }
@@ -142,7 +139,6 @@ sub get_docdir {
 }
 
 sub init {
-  $gpmsg = "ugly_kludge_done\n";
   &inittr();
 
   $indent = "   ";
@@ -273,12 +269,16 @@ sub treat {
 
   if (!$apropos && $transl{$_}) { $_ = $transl{$_}; &choose_chap; }
   s/(\W)/\\$1/g;
+  s/_/\\\\_/g;
       ($pipe && open(DOC,"$pipe $docfile |"))
   || (!$pipe && open(DOC,"$docfile")) || die "Cannot open $docfile: $!";
   return &apropos($_) if ($apropos);
-  if (/^\\[<>=!]=?|[|&]{1,2}$/)
-    { $_ = 'Comparison and boolean operators'; }
+
+  if (/^\\[<>=!](\\=)?$/ || /^\\\|\\\||\\&\\&$/ || /\\\||&/ || /===/)
+    { $_ = 'Comparison and Boolean operators'; }
   $help = $_;
+
+  my ($first);
   while (<DOC>)
   {
     if (/^\\(subsubsec[a-z]*|subsec[a-z]*|section|chapter){$help}/)
@@ -290,11 +290,13 @@ sub treat {
     return;
   }
   $found = 1;
-
-  if (!$detex) { &tex(); return; }
-
-  &detex(); print "\n" if (!$fromgp);
-  do {local $/; <DOC>} if $^O eq 'os2' and $pipe; # Avoid broken pipe from zcat
+  if (!$detex) { tex($first); }
+  else
+  {
+    &detex(); print "\n" if (!$fromgp);
+    # Avoid broken pipe from zcat
+    do {local $/; <DOC>} if $^O eq 'os2' and $pipe;
+  }
   close(DOC);
 }
 
@@ -390,50 +392,68 @@ sub apropos {
   &apropos_check($line, $current);
 }
 
-#
-#  Tex Part
-#
-sub tex_mktmp {
-  my $basedir = $ENV{GPHELP_TMPDIR} || $ENV{GPTMPDIR} || $ENV{TMPDIR} || "/tmp";
-  $tmpdir = "$basedir/gp.help$$";
-  mkdir $tmpdir, 0755 || die("Cannot create temporary directory");
-  $texfile = "$tmpdir/gp.help";
-}
-
+##
+##  Tex Part
+##
+# Actual text is in file TEX. Parimacro + Geometry info goes to WRAP
 sub pretex {
-  &tex_mktmp;
+  my ($basedir) = $ENV{GPHELP_TMPDIR} || $ENV{GPTMPDIR} || $ENV{TMPDIR} || "/tmp";
+  $tmpdir = "$basedir/gp.help$$";
+  mkdir $tmpdir, 0755 || die "Cannot create temporary directory";
+  $texfile = "$tmpdir/gp.help";
+
   open(TEX,">$texfile.tex") || die "Couldn't open $texfile.tex";
-  print TEX << "EOT";
-\\def\\fromgphelp\{\}
-\\input $docdir/parimacro.tex
-EOT
 }
 
-sub tex {
-  print TEX "$first";
+sub tex { my ($first) = @_;
+  print TEX $first;
   while (<DOC>)
   {
     last if /^\\(section|sub[sub]*sec)/i;
     print TEX;
   }
-  close(DOC);
 }
 
 sub posttex {
-  print TEX "\\vfill\\eject\\bye";
+  my ($wrap) = "$tmpdir/gpwrapper.help";
+  my (@goners) = ("$texfile.tex",
+                  "$wrap.tex", "$wrap.dvi", "$wrap.log", "$wrap.aux");
+  if (!$found) { unlink @goners; rmdir("$tmpdir"); cleanexit(); }
+
+  open(WRAP, ">$wrap.tex") || die "Couldn't open $wrap.tex";
+  if ($balloon) {
+    print WRAP '\nopagenumbers\def\fromgphelp{}'
+    . "\\input $docdir/parimacro.tex"
+    . '\setbox0\vbox{'
+    . "\\input $texfile.tex"
+    . ' }
+\dimen0=\the\ht0 \advance\dimen0 by \dp0
+\advance\dimen0 by 60pt
+\dimen1=\the\wd0
+\advance\dimen1 by 60pt
+\vsize \dimen0
+\hsize \dimen1
+\advance\voffset 30pt\advance\hoffset 30pt
+\advance\hoffset-1in \advance\voffset-1in
+\special{papersize=\the\dimen1,\the\dimen0}
+\noindent\box0
+\end';
+  } else {
+    print WRAP '\nopagenumbers\def\fromgphelp{}'
+    . "\\input $docdir/parimacro.tex"
+    . "\\input $texfile.tex"
+    . '\end';
+  }
+  close(WRAP) || die "Error closing '$wrap.tex': $!";
   close(TEX) || die "Error closing '$texfile.tex': $!";
 
   chdir($tmpdir);
-  $out = `tex $texfile.tex 2>&1 < /dev/null`;
-  $? == 0 && -f "$texfile.dvi"
-    || die "could not create '$texfile.dvi': status=$?, $out";
+  $out = `tex $wrap.tex 2>&1 < /dev/null`;
+  -f "$wrap.dvi"
+    || die "could not create '$wrap.dvi': status=$?, $out";
   safe_setsid();
-  system("($xdvi $texfile.dvi 2>/dev/null >/dev/null; rm -f $texfile.tex $texfile.dvi $texfile.log;rmdir $tmpdir)&");
-}
-
-sub clean {
-  unlink("$texfile.tex","$texfile.dvi","$texfile.log");
-  rmdir("$tmpdir");
+  my ($goners) = join(" ", @goners);
+  system("($xdvi $wrap.dvi 2>/dev/null >/dev/null; rm -f $goners; rmdir $tmpdir)&");
 }
 
 #
@@ -688,7 +708,6 @@ sub basic_subst {
      { \s* ((?:[^{}]|\{[^{}]*\})*) } \s*
      { \s* ((?:[^{}]|\{[^{}]*\})*) }
    /\\noindent{\\tt $1 \$\\key{$2}\$($3)}/gx;
-  s/\\funs\s*\{((?:[^{}]|\{[^{}]*\})*)\}\s*\{((?:[^{}]|\{[^{}]*\})*)\}/\\fun{}{$1}{$2}/g;
   s/\\fun\s*\{([^{}]*)\}\s*\{((?:[^{}]|\{[^{}]*\})*)\}\s*\{((?:[^{}]|\{[^{}]*\})*)\}/\\kbd{$1 \\key{$2}($3)}\\sidx{$2}/g;
 
   s/\\\\(?=[a-zA-Z])/\\bs /g;
@@ -760,7 +779,7 @@ sub basic_subst {
       | alpha | beta | chi | delta | epsilon | varepsilon | phi | gamma | eta
       | iota | varphi | kappa | lambda | mu | nu | omicron | pi | theta | rho
       | sigma | tau | ypsilon | varpi | omega | xi | psi | zeta
-      | int | expr | seq | args | gcd | sum | prod | Re | infty )
+      | int | expr | seq | args | gcd | lcm | sum | prod | Re | infty )
       (?![a-zA-Z])/$tr{startword}$1$tr{endword}/xg;
   s/ *\\in(?![a-zA-Z]) */ belongs to /g;
   s/\\pm(?![a-zA-Z])/$tr{pm}/g;
@@ -816,8 +835,8 @@ sub basic_subst {
   s/\\p(?![a-zA-Z])/$tr{startbold}p$tr{endbold}$1/g;
   s/\\point\{([^\}]*)\}/$tr{startbold}* $1$tr{endbold}/g;
   s/(\\bullet|\\item)/$tr{startbold}*$tr{endbold}/g;
-  s/\\misctitle\{([^\}]*)\}/$tr{startbold}$1$tr{endbold}/g;
-  s/\\subsec\{([^\}]*)\}/$tr{startbold}$1$tr{endbold}/g unless $to_pod;
+  s/\\misctitle\{([^\}]*)\}/$tr{startbold}$1.$tr{endbold}/g;
+  s/\\subsec\{([^\}]*)\}/$tr{startbold}$1.$tr{endbold}/g unless $to_pod;
   s/\\teb\{([^\}]*)\}/\\sidx{$1}$tr{startbold}$1$tr{endbold}/g;
   s/\\tet\{([^\}]*)\}/\\sidx{$1}$tr{startcode}$1$tr{endcode}/g;
   s/\\tev\{([^\}]*)\}/\\sidx{$1}$tr{startit}$1$tr{endit}/g;
@@ -841,6 +860,11 @@ sub basic_subst {
   s/\\kbdsidx/\\sidx/g;
   s/\\sidx\{[^\}]*\}//g unless $to_pod;
   s/\\[a-zA-Z]*idx\{([^\}]*)\}/$1/g unless $to_pod;
+  s/{\\text{(st|nd|th)}}/\\text{$1}/g;
+  s/\^\\text{th}/-th/g;
+  s/1\^\\text{st}/1st/g;
+  s/2\^\\text{nd}/2nd/g;
+
   s/\\(text|hbox|Big)//g;
   s/^([ \t]+)\{ *\\(it|sl|bf|tt)\b/S<$1>{\\$2/gm;
   s/\{ *\\(it|sl) *(([^{}]+(?=[{}])|\{[^{}]*\})*)\}/$tr{startit}$2$tr{endit}/g;
@@ -1112,7 +1136,7 @@ sub TeXprint {
   s/\@\[start(bold|code|bcode|bi)\]/$cb/g;
   s/\@\[startit\]/$cu/g;
   s/\@\[(dollar|empty|endl?word|endpodcode|startl?word|startpodcode)\]//g;
-  s/\@\[pm\]/±/g;
+  s/\@\[pm\]/+\/-/g;
   s/\@\[lt\]/</g;
   s/\@\[gt\]/>/g;
   s/\\([\{\}])/$1/g;

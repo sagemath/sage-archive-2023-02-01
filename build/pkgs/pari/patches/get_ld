@@ -30,15 +30,27 @@ if test "$LD" = "$CC"; then
 fi
 if ($LDused -v 2>&1 | grep GNU > /dev/null); then GNULDused=yes; fi
 
+tmp=
 if test "$GNULDused" = "yes"; then
-  tmp=`./ldflags "$LDneedsWl" "--export-dynamic"`
-  ldflags="$ldflags $tmp"
+  case "$osname" in
+    cygwin|mingw) ;; # PE does not support --export-dynamic
+    *) tmp=--export-dynamic ;;
+  esac
 else
   case "$osname-$arch" in
-    aix-*) ldflags='-brtl' ;; # in case we link against a shared library
-    hpux-*) ldflags='-Wl,-E' ;;
+    aix-*)  tmp=-brtl ;; # in case we link against a shared library
+    hpux-*) tmp=-E ;;
   esac
 fi
+case "$osname" in
+  darwin) tmp=$tmp -search_paths_first;;
+esac
+
+if test -n "$tmp"; then
+  tmp=`./ldflags "$LDneedsWl" $tmp`
+  ldflags="$ldflags $tmp"
+fi
+
 case "$osname-$arch" in
   os2-*)  ldflags="$ldflags -Zexe"
           if test "$optimization" = "full"; then ldflags="$ldflags -s"; fi

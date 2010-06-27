@@ -18,7 +18,7 @@ case "$osname" in
          soname=$sodest;;
   hpux) soname= ; sodest= ; DLSUFFIX=sl;;
   irix) soname= ; sodest= ;;
-  os2|cygwin)soname= ; sodest= ; DLSUFFIX=dll ;;
+  os2|cygwin|mingw)soname= ; sodest= ; DLSUFFIX=dll ;;
   darwin)soname= ; sodest= ; DLSUFFIX=dylib;;
   *) do_dll=no ;;
 esac
@@ -27,12 +27,13 @@ esac
 # On FreeBSD 2.2.5 (Y. Uchikawa) and Cygwin, this does not work.
 case "$osname" in
   freebsd|cygwin) DL_DFLT_NAME="\\\"\$(LIBPARI_DYN)\\\"" ;;
+  mingw) DL_DFLT_NAME="\\\"\$(LIBPARI_SO)\\\"" ;;
   *) DL_DFLT_NAME=NULL ;;
 esac
 
 # if DLLD is defined at this point, respect it, even if do_dll=no
 if test $do_dll = yes -a -z "$DLLD"; then
-  if test -n "$__gnuc__" -o "$osname"=solaris; then
+  if test -n "$__gnuc__" -o "$osname" = "solaris"; then
     DLLD="$CC"
   else
     DLLD=$ld # don't take risks
@@ -59,6 +60,7 @@ if test -n "$DLLD"; then
   fi
 
 # Which Flags for Dynamic Lib Linker ?
+  dlldflags="$DLLDFLAGS"
   DLLDFLAGS=
   if test -n "$GNUdlld"; then
     DLLDFLAGS="-shared -soname=\$(LIBPARI_SONAME)"
@@ -73,28 +75,32 @@ if test -n "$DLLD"; then
       solaris) DLLDFLAGS="-G -h \$(LIBPARI_SONAME)" ;;
       sunos)   DLLDFLAGS='-assert nodefinitions' ;;
       os2)     ;; # see below
+      linux)   ;; # for e.g. the Portland Group cc (pgcc)
       *)         DLLD=;;
     esac
   fi
   if test -n "$DLLDFLAGS"; then
-    DLLDFLAGS=`./ldflags "$DLLDisGCC" "$DLLDFLAGS"`
+    DLLDFLAGS=`./ldflags "$DLLDisGCC" $DLLDFLAGS`
   fi
   case "$osname" in
     os2) DLLDFLAGS="$CFLAGS -Zdll" ;; # assume DLLD = gcc
     cygwin) DLLDFLAGS="-Wl,--out-implib=\$(LIBPARI_SO)\$(_A),--export-all-symbols";;
+    mingw) DLLDFLAGS="-Wl,--out-implib=\$(LIBPARI_SO)\$(_A)";;
   esac
   if test -n "$DLLDisGCC"; then
     case "$arch" in
       sparc*) extra='-mimpure-text';;
       *) extra=;;
     esac
-    if test "$osname" = darwin; then
-        DLLDFLAGS="-dynamiclib $extra \$(CFLAGS) \$(DLCFLAGS) $DLLDFLAGS"
-    else
-        DLLDFLAGS="-shared $extra \$(CFLAGS) \$(DLCFLAGS) $DLLDFLAGS"
+    case "$osname" in
+      darwin) shared=-dynamiclib;;
+      *) shared=-shared;;
+    esac
+    DLLDFLAGS="$shared $extra \$(CFLAGS) \$(DLCFLAGS) $DLLDFLAGS"
     fi
   fi
   case "$osname" in
+# Beware: will run through 'eval' [ hence ${...} instead of \$(...) ]
     gnu*|osf1|freebsd|linux|sunos|solaris) EXTRADLLDFLAGS='-lc ${LIBS}';;
   esac
 
@@ -103,6 +109,7 @@ if test -n "$DLLD"; then
     dflt=$DLLDFLAGS; rep=; . ./myread
     DLLDFLAGS=$ans
   fi
+  DLLDFLAGS="$DLLDFLAGS $dlldflags"
 fi
 
 if test -z "$DLLD"; then

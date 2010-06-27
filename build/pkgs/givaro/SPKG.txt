@@ -21,6 +21,9 @@ Website: http://www-lmc.imag.fr/CASYS/LOGICIELS/givaro/
 
 == Changelog ==
 
+=== givaro-3.2.13rc1.p2 (John Palmieri, June 27th, 2010) ===
+ * #9352: Trivial typo in spkg-check.
+
 === givaro-3.2.13rc1.p1 (Willem Jan Palenstijn, Apr 30th, 2010) ===
  * #8788: Avoid local static object with destructor to prevent double frees
    on some platforms.

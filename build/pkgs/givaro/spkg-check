@@ -9,7 +9,7 @@ cd src
 make check
 
 if [ $? -ne 0 ]; then
-    echo "Error while running the R testsuite ... exiting"
+    echo "Error while running the Givaro testsuite ... exiting"
     exit 1
 fi
 

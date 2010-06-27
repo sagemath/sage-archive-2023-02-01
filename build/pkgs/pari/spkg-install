@@ -152,13 +152,14 @@ build()
         fi
 
         cd `config/objdir`
-        cp -f libpari* $SAGE_LOCAL/lib
+        cp -f libpari* "$SAGE_LOCAL"/lib
         cd "$CUR"
 
         # Also another patch since paripriv.h won't compile right on OS X
         # when used by client Sage code.  So we replace it by a slightly
         # modified version.
-	cp -pf "$TOP"/patches/paripriv-osx.h $SAGE_LOCAL/include/pari/paripriv.h
+	cp -pf "$TOP"/patches/paripriv.h "$SAGE_LOCAL"/include/pari/paripriv.h
+	cp -pf "$TOP"/patches/paridecl.h "$SAGE_LOCAL"/include/pari/paridecl.h
     fi
     # Like on OS X (see above), the Sage library would not build
     # without some changes. Though on Solaris the changes are much simpler than
@@ -167,11 +168,11 @@ build()
        set -e
        echo "Patching include/pari/paripriv.h so it works on Solaris"
        echo "The changes are much smaller than needed on OS X"
-       cp  "$TOP"/patches/paripriv-Solaris.h $SAGE_LOCAL/include/pari/paripriv.h
+       cp  "$TOP"/patches/paripriv.h $SAGE_LOCAL/include/pari/paripriv.h
        set +e
     elif [ "$UNAME" = "CYGWIN" ]; then
        # We need to the same thing on Cygwin that we have to do on Solaris
-       cp  "$TOP"/patches/paripriv-Solaris.h $SAGE_LOCAL/include/pari/paripriv.h
+       cp  "$TOP"/patches/paripriv.h $SAGE_LOCAL/include/pari/paripriv.h
     fi
 
     echo "Installing extra Galois groups data."

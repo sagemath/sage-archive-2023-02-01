@@ -211,13 +211,7 @@ GEN  polsym_gen(GEN P, GEN y0, long n, GEN T, GEN N);
 GEN  ZXQ_charpoly_sqf(GEN A, GEN B, long *lambda, long v);
 GEN  ZX_disc_all(GEN,ulong);
 GEN  ZX_resultant_all(GEN A, GEN B, GEN dB, ulong bound);
-/*
-Coment out the following two lines, as they cause problems on
-Solaris. I was originally going to do this on all platforms, not just
-Solaris, but I noticed there was already an altered partpriv-osx.h,
-so this modified version will only be copied over if using Solaris.
-GEN  ZY_ZXY_resultant_all(GEN A, GEN B0, long *lambda, GEN *LPRS);
-*/
+GEN  ZX_ZXY_resultant_all(GEN A, GEN, long *lambda, GEN *LPRS);
 GEN  RgX_gcd_simple(GEN x, GEN y);
 GEN  RgX_extgcd_simple(GEN a, GEN b, GEN *pu, GEN *pv);
 GEN  RgXQ_minpoly_naive(GEN y, GEN P);
@@ -339,16 +333,13 @@ typedef struct {
   pari_timer *T;
 } gp_data;
   /* GP_DATA->flags */
-/*
 
-Coment out the following two enum, as it causes problems on
-Solaris. I was originally going to do this on all platforms, not just
-Solaris, but I noticed there was already an altered partpriv-osx.h,
-so this modified version will only be copied over if using Solaris.
-enum { QUIET=1, TEST=2, SIMPLIFY=4, CHRONO=8, ECHO=16, STRICTMATCH=32,
+/* The ECHO symbol is already defined in Sage when building on OS X. Since this is paripriv.h,
+   it's very unlikely that anything in here is used, so this should be safe. */
+
+enum { QUIET=1, TEST=2, SIMPLIFY=4, CHRONO=8, xxECHOxx=16, STRICTMATCH=32,
        USE_READLINE=64, SECURE=128, EMACS=256, TEXMACS=512, BREAKLOOP=1024,
        RECOVER=2048};
-*/
 
 extern gp_data *GP_DATA;
 

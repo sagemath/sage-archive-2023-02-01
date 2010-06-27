@@ -66,7 +66,7 @@ exactly where it says native, but I would expect a grep to find it.
 
 == Changelog ==
 
-=== pari-2.4.3.svn.p1 (Robert Bradshaw and William Stein, June 26, 2010) ===
+=== pari-2.4.3.svn.p1, p2 (Robert Bradshaw and William Stein, June 26, 2010) ===
  * Major new version
 
 === pari-2.3.5.p1 (Mike Hansen, May 25th, 2010) ===

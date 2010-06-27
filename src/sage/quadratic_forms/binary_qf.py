@@ -350,7 +350,7 @@ class BinaryQF(SageObject):
 
             sage: f = BinaryQF((778,1115,400)); f
             778*x^2 + 1115*x*y + 400*y^2
-            sage: latex(f)
+            sage: latex(f) # indirect doctest
             778 x^{2} + 1115 x y + 400 y^{2}
         """
         return self.polynomial()._latex_()

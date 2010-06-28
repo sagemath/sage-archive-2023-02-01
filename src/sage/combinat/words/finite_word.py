@@ -3552,31 +3552,193 @@ exponent %s: the length of the word (%s) times the exponent \
         from sage.combinat.permutation import Permutation
         return Permutation(result)
 
-    def charge(self, check=True):
+    def _s(self, i):
         r"""
+        Implements Lascoux and Schutzenberger's `s_i` operator, swapping the
+        number of `i` and `i+1`s in a word.
+
         EXAMPLES::
 
-            sage: Word([1,1,2,2,3]).charge()
-            0
-            sage: Word([3,1,1,2,2]).charge()
-            1
-            sage: Word([2,1,1,2,3]).charge()
-            1
-            sage: Word([2,1,1,3,2]).charge()
-            2
-            sage: Word([3,2,1,1,2]).charge()
-            2
-            sage: Word([2,2,1,1,3]).charge()
-            3
-            sage: Word([3,2,2,1,1]).charge()
-            4
+            sage: w = Word([1,1,2,1,2,2,1,3,1,2])
+            sage: w._s(1)
+            word: 1221221312
 
         TESTS::
 
+            sage: w = Word([])
+            sage: w._s(1)
+            word:
+            sage: w = Words(3)([2,1,2])
+            sage: w._s(1).parent()
+            Words over Ordered Alphabet [1, 2, 3]
+        """
+        unpaired_i  = [] # positions of unpaired is
+        unpaired_ip = [] # positions of unpaired i+1s
+        for p,x in enumerate(self):
+            if x == i:
+                if unpaired_ip:
+                    unpaired_ip.pop()
+                else:
+                    unpaired_i.append(p)
+            elif x == i+1:
+                unpaired_ip.append(p)
+
+        unpaired = unpaired_i + unpaired_ip
+
+        out = list(self)
+
+        # replace the unpaired subword i^a (i+1)^b
+        # with i^b (i+1)^a
+
+        for j,p in enumerate(unpaired):
+            if j < len(unpaired_ip):
+                out[p] = i
+            else:
+                out[p] = i+1
+        return self.parent()(out)
+
+    def _to_partition_content(self):
+        r"""
+        Returns the conversion of self to a word with partition content using
+        the `s_i` operators of Lascoux and Schutzenberger.
+
+        EXAMPLES:
+            sage: w = Word([1,3,2,1,2,3,4,6,4,2,3,2])
+            sage: w._to_partition_content()
+            word: 132112454132
+            sage: Word([])._to_partition_content()
+            word:
+        """
+        if self.length() == 0:
+            return self
+
+        from sage.combinat.words.word import Word
+        n = max(self)
+        ev = Word( Words(n)(self).evaluation() )
+        sig = ev.reversal().standard_permutation().reduced_word()
+
+        # sig is now the reverse complement of a reduced word for a minimal
+        # length permutation which would sort the letters of ev into a
+        # partition
+
+        out = self
+        for i in reversed(sig):
+            out = out._s(n-i)
+        return out
+
+    def cocharge(self):
+        r"""
+        Returns the cocharge of self.  For a word `w`, this can be defined as
+        `n_{ev} - ch(w)`, where `ch(w)` is the charge of `w` and `ev` is the
+        evaluation of `w`, and `n_{ev}` is `\sum_{i<j} min(ev_i, ev_j)`.
+
+        EXAMPLES::
+
+            sage: Word([1,2,3]).cocharge()
+            0
+            sage: Word([3,2,1]).cocharge()
+            3
+            sage: Word([1,1,2]).cocharge()
+            0
+            sage: Word([2,1,2]).cocharge()
+            1
+
+        TESTS::
+
+            sage: Word([]).cocharge()
+            0
+        """
+        return self.evaluation_partition().weighted_size() - self.charge()
+
+    def charge(self, check=True):
+        r"""
+        Returns the charge of self.  This is defined as follows.
+
+        If `w` is a permutation of length `n`, (in other words, the evaluation
+        of `w` is `(1, 1, \dots, 1)`), the statistic charge(`w`) is given by
+        `\sum_{i=1}^n c_i(w)` where `c_1(w) = 0` and `c_i(w)` is defined
+        recursively by setting `p_i` equal to `1` if `i` appears to the right
+        of `i-1` in `w` and `0` otherwise.  Then we set `c_i(w) = c_{i-1}(w) +
+        p_i`.
+
+        EXAMPLES::
+
+            sage: Word([1, 2, 3]).charge()
+            3
+            sage: Word([3, 5, 1, 4, 2]).charge() == 0 + 1 + 1 + 2 + 2
+            True
+
+        If `w` is not a permutation, but the evaluation of `w` is a partition,
+        the charge of `w` is defined to be the sum of its charge subwords
+        (each of which will be a permutation).  The first charge subword is
+        found by starting at the end of `w` and moving left until the first
+        `1` is found.  This is marked, and we continue to move to the left
+        until the first `2` is found, wrapping around from the beginning of
+        the word back to the end, if necessary.  We mark this `2`, and
+        continue on until we have marked the largest letter in `w`.  The
+        marked letters, with relative order preserved, form the first charge
+        subword of `w`.  This subword is removed, and the next charge subword
+        is found in the same manner from the remaining letters.  In the
+        following example, `w1, w2, w3` are the charge subwords of `w`.
+
+        EXAMPLE::
+
+            sage: w = Word([5,2,3,4,4,1,1,1,2,2,3])
+            sage: w1 = Word([5, 2, 4, 1, 3])
+            sage: w2 = Word([3, 4, 1, 2])
+            sage: w3 = Word([1, 2])
+            sage: w.charge() == w1.charge() + w2.charge() + w3.charge()
+            True
+
+        Finally, if `w` does not have partition content, we apply the
+        Lascoux-Schutzenberger standardization operators `s_i` in such a
+        manner as to obtain a word with partition content. (The word we obtain
+        is independent of the choice of operators.)  The charge is then
+        defined to be the charge of this word::
+
             sage: Word([3,3,2,1,1]).charge()
-            Traceback (most recent call last):
-            ...
-            ValueError: the evaluation of the word must be a partition
+            0
+            sage: Word([1,2,3,1,2]).charge()
+            2
+
+        Note that this differs from the definition of charge given in
+        Macdonald's book.  The difference amounts to a choice of
+        reading a word from left-to-right or right-to-left.  The choice in
+        Sage was made to agree with the definition of a reading word of a
+        tableau in Sage, and seems to be the more common convention in the
+        literature.
+
+        REFERENCES:
+
+        [1] Ian Macdonald, *Symmetric Functions and Hall Polynomials* second
+        edition, 1995, Oxford University Press
+
+        [2] A. Lascoux, L. Lapointe, and J. Morse.  *Tableau atoms and a new
+        Macdonald positivity conjecture.* Duke Math Journal, **116 (1)**,
+        2003.  Available at: [http://arxiv.org/abs/math/0008073]
+
+        [3] A. Lascoux, B. Leclerc, and J.Y. Thibon.  *The Plactic Monoid*.
+        Survey article available at
+        [http://www.combinatorics.net/lascoux/articles/plactic.ps]
+
+        TESTS::
+
+            sage: Word([1,1,2,2,3]).charge()
+            4
+            sage: Word([3,1,1,2,2]).charge()
+            3
+            sage: Word([2,1,1,2,3]).charge()
+            2
+            sage: Word([2,1,1,3,2]).charge()
+            2
+            sage: Word([3,2,1,1,2]).charge()
+            1
+            sage: Word([2,2,1,1,3]).charge()
+            1
+            sage: Word([3,2,2,1,1]).charge()
+            0
+            sage: Word([]).charge()
+            0
         """
         if check:
             ev_dict = self.evaluation_dict()
@@ -3584,24 +3746,25 @@ exponent %s: the length of the word (%s) times the exponent \
             evaluation = [ev_dict[a] for a in ordered_alphabet]
             from sage.combinat.partition import Partitions
             if evaluation not in Partitions():
-                raise ValueError, "the evaluation of the word must be a partition"
+                return self._to_partition_content().charge()
         res = 0
         w = self.to_integer_list()
         while len(w) != 0:
-            i = 0
+            i =len(w) - 1
             l = min(w)
             index = 0
             while len(w) != 0 and l <= max(w):
                 while w[i] != l:
-                    i += 1
-                    if i >= len(w):
-                        i = 0
+                    i -= 1
+                    if i < 0:
+                        i = len(w) - 1
                         index += 1
                 res += index
                 l += 1
                 w.pop(i)
-                if i >= len(w):
-                    i = 0
+                i -= 1
+                if i < 0:
+                    i = len(w) - 1
                     index += 1
         return res
 

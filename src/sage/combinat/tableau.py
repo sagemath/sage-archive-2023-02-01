@@ -1138,8 +1138,11 @@ class Tableau_class(CombinatorialObject):
                 return False
 
     def charge(self):
-        """
-        EXAPMLES::
+        r"""
+        Returns the charge of the reading word of self.  See
+        :meth:`sage.combinat.words.finite_word.charge` for more information.
+
+        EXAMPLES::
 
             sage: Tableau([[1,1],[2,2],[3]]).charge()
             0
@@ -1156,28 +1159,31 @@ class Tableau_class(CombinatorialObject):
             sage: Tableau([[1,1,2,2,3]]).charge()
             4
         """
-        return self.to_word().reversal().charge()
+        return self.to_word().charge()
 
     def cocharge(self):
-        """
-        EXAPMLES::
+        r"""
+        Returns the cocharge of the reading word of self.  See
+        :meth:`sage.combinat.words.finite_word.cocharge` for more information.
+
+        EXAMPLES::
 
             sage: Tableau([[1,1],[2,2],[3]]).cocharge()
             4
             sage: Tableau([[1,1,3],[2,2]]).cocharge()
             3
             sage: Tableau([[1,1,2],[2],[3]]).cocharge()
-            2
+            3
             sage: Tableau([[1,1,2],[2,3]]).cocharge()
             2
             sage: Tableau([[1,1,2,3],[2]]).cocharge()
-            1
+            2
             sage: Tableau([[1,1,2,2],[3]]).cocharge()
             1
             sage: Tableau([[1,1,2,2,3]]).cocharge()
             0
         """
-        return self.to_word().charge()
+        return self.to_word().cocharge()
 
 
     ##############

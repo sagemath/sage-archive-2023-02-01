@@ -33,6 +33,12 @@ This spkg builds ATLAS for Sage. It is build per default on Linux, but should al
 
 == ChangeLog ==
 
+=== atlas-3.8.3.p13 (John Palmieri, June 27th, 2010) ===
+ * #9356. Fix system_alias.py so that it works properly with Solaris:
+   when we build ATLAS on Solaris, we do not install liblapack.so --
+   see make_correct_shared.sh.  So we shouldn't test for its
+   existence when using SAGE_ATLAS_LIB, either.
+
 === atlas-3.8.3.p12 (Jaap Spies, Februari 22th 2010) ===
  * #8039 For use with the Sun ld with SAGE64="yes" change ldflag -melf_86_64 to -64
  * See also the remarks from David Kirky on atlas-3.8.3.p5

@@ -12,7 +12,10 @@ if os.environ.has_key('SAGE_ATLAS_LIB'):
     if os.path.isdir(ATLAS_LIB):
 
         has_atlas = os.path.exists(ATLAS_LIB+'/lib//libatlas.so')
-        has_lapack = os.path.exists(ATLAS_LIB+'/lib/liblapack.so')
+        if sys.platform.startswith('sunos'):
+            has_lapack = os.path.exists(ATLAS_LIB+'/lib/liblapack.a')
+        else:
+            has_lapack = os.path.exists(ATLAS_LIB+'/lib/liblapack.so')
         has_cblas = os.path.exists(ATLAS_LIB+'/lib/libcblas.so')
         has_f77blas = os.path.exists(ATLAS_LIB+'/lib/libf77blas.so')
         has_atlas_headers = os.path.exists(ATLAS_LIB+'/include/atlas')

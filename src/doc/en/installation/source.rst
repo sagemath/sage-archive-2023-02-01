@@ -177,30 +177,29 @@ about the Fortran compiler and library location. Do this by typing ::
     export SAGE_FORTRAN=/exact/path/to/gfortran
     export SAGE_FORTRAN_LIB=/path/to/fortran/libs/libgfortran.so
 
-Note that the ``SAGE_FORTRAN`` environment variable is supposed to
+Note that the :envvar:`SAGE_FORTRAN` environment variable is supposed to
 impact *only* the Fortran Sage package, otherwise known as the Fortran
 spkg. Apart from that, this variable is *not* designed to do anything
 at all to other spkg's that use Fortran. For example, the Lapack spkg
 uses Fortran, but the compilation process of Lapack should ignore the
-``SAGE_FORTRAN`` environment variable. The ``SAGE_FORTRAN``
+:envvar:`SAGE_FORTRAN` environment variable. The :envvar:`SAGE_FORTRAN`
 environment variable does not mean "build any spkg that uses Fortran
 using this Fortran". It means "when installing the Fortran spkg, setup
 the ``sage_fortran`` script to run the Fortran compiler specified by
-the ``SAGE_FORTRAN`` variable".
+the :envvar:`SAGE_FORTRAN` variable".
 
 On Mac OS X, you are not required to have a Fortran compiler on your
 system. The Sage source distribution is shipped with a Fortran
 compiler for Mac OS X. This Fortran compiler is used, unless you
-specify another Fortran compiler via the variable ``SAGE_FORTRAN``.
+specify another Fortran compiler via the variable :envvar:`SAGE_FORTRAN`.
 
 On platforms such as AIX, HP-UX, and Solaris, where both 32- and
 64-bit builds are supported, the library path variable
-``SAGE_FORTRAN_LIB`` must point to the 32-bit library if you are
-building Sage in 32-bit. Also, ``SAGE_FORTRAN_LIB`` must point to a
+:envvar:`SAGE_FORTRAN_LIB` must point to the 32-bit library if you are
+building Sage in 32-bit. Also, :envvar:`SAGE_FORTRAN_LIB` must point to a
 64-bit library if you are building Sage in 64-bit. For example, on
-Solaris both of the variables ``SAGE_FORTRAN`` and
-``SAGE_FORTRAN_LIB`` could be set as follows (you need to check
-this)::
+Solaris both of the variables :envvar:`SAGE_FORTRAN` and
+:envvar:`SAGE_FORTRAN_LIB` could be set as follows::
 
     # SPARC and x86
     SAGE_FORTRAN=/path/to/gcc/install/directory/bin/gfortran
@@ -269,18 +268,14 @@ components do not build if there are spaces in the path.
 
    This compiles Sage and all dependencies. Note that you do not need
    to be logged in as root, since no files are changed outside of the
-   ``sage-x.y.z`` directory. [1]_ This command does the usual steps for
+   ``sage-x.y.z`` directory (with one exception -- the ``.ipythonrc`` directory is created in
+   your ``HOME`` directory if it doesn't exist).  This command does the usual steps for
    each of the packages, but puts all the results in the local build
    tree. This can take close to an hour on some machines. Depending on the
    architecture of your system (e.g., Celeron, Pentium Mobile, Pentium 4,
    etc.), it can take over three hours to build Sage from source.  If the
    build is successful, you will not see the word ERROR in the last 3-4 lines
    of output.
-
-.. [1]
-   There is one exception--the ``.ipythonrc`` directory is created in
-   your ``HOME`` directory if it doesn't exist.
-
 
        The directory where you built Sage is NOT hardcoded. You should
        be able to safely move or rename that directory. (It's a bug if
@@ -323,7 +318,7 @@ components do not build if there are spaces in the path.
    formal requirements for bug reports - just send them; we appreciate
    everything.)
 
-   After starts, try a command:
+   After Sage starts, try a command:
 
    ::
 
@@ -394,7 +389,7 @@ components do not build if there are spaces in the path.
        > Auf Wiedersehen.
        sage:
 
-#. Optional: Check the interfaces to any non-included software that
+#. Optional: Check the interfaces to any other software that
    you have available. Note that each interface calls its
    corresponding program by a particular name: Mathematica is invoked
    by calling ``math``, Maple by calling ``maple``, et cetera. The
@@ -487,6 +482,244 @@ components do not build if there are spaces in the path.
 
 
 Have fun! Discover some amazing conjectures!
+
+Environment variables
+---------------------
+
+Sage uses several environment variables to control its build process.
+Most users won't need to use any of these: the build process just
+works on many platforms.  Building Sage involves building about 100
+packages, each of which has its own compilation instructions.
+
+Here are some of the more commonly used variables affecting the build
+process:
+
+- :envvar:`MAKE` - one common setting for this variable when building
+  Sage is ``export MAKE='make -jNUM'`` to tell the "make" program to
+  run NUM jobs in parallel when building individual packages.  (Not
+  all packages support this, but the ones for which this could be
+  problematic should automatically disable it.)
+
+- :envvar:`SAGE_CHECK` - if this is set to "yes", then during the
+  build process, run the test suite for each package which has one.
+
+- :envvar:`SAGE_PARALLEL_SPKG_BUILD` - set this to "yes" to build
+  multiple packages in parallel.  This only has an effect if
+  :envvar:`MAKE` is also set to run several jobs in parallel.  As of
+  this writing (June 2010), this is still in the experimental stages,
+  but turning this on can greatly speed up the build process.
+
+- :envvar:`SAGE64` - Set this to "yes" to build a 64-bit binary.  This
+  is required if you want a 64-bit binary but the default for your
+  platform is to build 32-bit binaries.  It adds the compiler flag
+  -m64 when compiling programs.  The SAGE64 variable is mainly of use
+  is on OS X (pre 10.6), Solaris and OpenSolaris, though it will add
+  the -m64 on any operating system. If you are running version 10.6 of
+  OS X on a 64-bit machine, then Sage will automatically build a
+  64-bit binary, so this variable does not need setting.
+
+- :envvar:`SAGE_FORTRAN` - see above, the "Fortran" section.
+
+- :envvar:`SAGE_FORTRAN_LIB` - see above, the "Fortran" section.
+
+- :envvar:`SAGE_DEBUG` - about half a dozen Sage packages use this
+  variable.  If it is unset (the default) or set to "yes", then
+  debugging is turned on.  If it is set to anything else, then
+  debugging is turned off.
+
+- :envvar:`SAGE_FAT_BINARY` - to prepare a binary distribution that
+  will run on the widest range of target machines, set this variable
+  to "yes" before building Sage::
+
+      export SAGE_FAT_BINARY="yes"
+      make
+      ./sage -bdist x.y.z-fat
+
+Variables to set if you're trying to build Sage with an unusual setup,
+e.g., an unsupported machine or an unusual compiler:
+
+- :envvar:`SAGE_PORT` - if you try to build Sage on a platform which
+  is recognized as being unsupported (e.g., x86 Solaris, AIX, or
+  HP-UX), or with a compiler which is unsupported (anything except
+  gcc), you will see a message saying something like ::
+
+        You are attempting to build Sage on IBM's AIX operating system,
+        which is not a supported platform for Sage yet. Things may or
+        may not work. If you would like to help port Sage to AIX,
+        please join the sage-devel discussion list - see
+        http://groups.google.com/group/sage-devel
+        The Sage community would also appreciate any patches you submit.
+
+        To get past this message, export the variable SAGE_PORT to
+        something non-empty.
+
+  If this is the situation, follow the directions: set
+  :envvar:`SAGE_PORT` to something non-empty (and expect to run into
+  problems).
+
+- :envvar:`SAGE_USE_OLD_GCC` - the Sage build process requires version
+  4.0.1 of gcc.  If the most recent version of gcc is 3.4.x and you
+  want to try building anyway, then set :envvar:`SAGE_USE_OLD_GCC` to
+  something nonempty. Expect the build to fail in this case: Sage is
+  only guaranteed to build using gcc 4.0.1 or later, so if you insist
+  on working with gcc 3.4.x, you will have to modify some source code
+  to get things to work.
+
+- :envvar:`CFLAG64` - default value "-m64".  If Sage detects that it
+  should build a 64-bit binary, then it uses this flag when compiling
+  C code.  Modify it if necessary for your system and C compiler.
+  This should not be necessary on most systems -- this flag will
+  typically be set automatically, based on the setting of
+  :envvar:`SAGE64`, for example.
+
+Environment variables dealing with specific Sage packages:
+
+- :envvar:`SAGE_ATLAS_LIB` - if you have an installation of ATLAS on
+  your system and you want Sage to use it instead of building and
+  installing its own version of ATLAS, set this variable to be the
+  parent directory of your ATLAS installation: it should have a
+  subdirectory :file:`lib` containing the files :file:`libatlas.so`,
+  :file:`liblapack.so`, :file:`libcblas.so`, and
+  :file:`libf77blas.so`, and it should have a subdirectory
+  :file:`include/atlas/` containing header files.
+
+- :envvar:`SAGE_MATPLOTLIB_GUI` - set this to anything nonempty except
+  "no", and Sage will attempt to build the graphical backend when it
+  builds the matplotlib package.
+
+- :envvar:`INCLUDE_MPFR_PATCH` - This is used to add a patch to MPFR
+  to bypass a bug in the memset function affecting sun4v machines with
+  versions of Solaris earlier than Solaris 10 update 8
+  (10/09). Earlier versions of Solaris 10 can be patched by applying
+  Sun patch 142542-01.  Recognized values are:
+
+  - ``INCLUDE_MPFR_PATCH=0`` - never include the patch - useful if you
+    know all sun4v machines Sage will be used are running Solaris
+    10 update 8 or later, or have been patched with Sun patch
+    142542-01.
+
+  - ``INCLUDE_MPFR_PATCH=1`` - always include the patch, so the binary
+    will work on a sun4v machine, even if created on an older sun4u
+    machine.
+
+  If this variable is unset, include the patch on sun4v machines only.
+
+- :envvar:`SAGE_BINARY_BUILD` - used by the pil package.  If set to
+  "yes", then force Sage to use the versions of libjpeg, libtiff and
+  libpng from :file:`$SAGE_ROOT/local/lib`.  Otherwise, allow the use
+  of the system's versions of these libraries.
+
+- :envvar:`SAGE_PIL_NOTK` - used by the pil package.  If set to "yes",
+  then disable building TK.  If this is not set, then this should be
+  dealt with automatically: Sage tries to build the pil package with
+  TK support enabled, but if it runs into problems, it tries building
+  again with TK disabled.  So only use this variable to force TK to be
+  disabled.  (Building the pil package is pretty fast -- less than a
+  minute on many systems -- so allowing it to build twice is not a
+  serious issue.)
+
+Some standard environment variables which you should probably **not**
+set:
+
+- :envvar:`CC` - while some programs allow you to use this to specify
+  your C compiler, the Sage packages do **not** all recognize this.
+  In fact, setting this variable for building Sage is likely to cause
+  the build process to fail.
+
+- :envvar:`CXX` - similarly, this will set the C++ complier for some
+  Sage packages, and similarly, using it is likely quite risky.
+
+- :envvar:`CFLAGS`, :envvar:`CXXFLAGS` - the flags for the C compiler
+  and the C++ compiler, respectively.  The same comments apply to
+  these: setting them may cause problems, because they are not
+  universally respected among the Sage packages.
+
+Sage uses the following environment variables when it runs:
+
+- :envvar:`DOT_SAGE` - this is the directory, to which the user has
+  read and write access, where Sage stores a number of files.  The
+  default location is ``~/.sage/``, but you can change that by setting
+  this variable.
+
+- :envvar:`SAGE_STARTUP_FILE` - a file including commands to be
+  executed every time Sage starts.  The default value is
+  ``$DOT_SAGE/init.sage``.
+
+- :envvar:`SAGE_SERVER` - if you want to install a Sage package using
+  ``sage -i PKG_NAME``, Sage downloads the file from the web, using
+  the address ``http://www.sagemath.org/`` by default, or the address
+  given by :envvar:`SAGE_SERVER` if it is set.  If you wish to set up
+  your own server, then note that Sage will search the directories
+  ``SAGE_SERVER/packages/standard/``,
+  ``SAGE_SERVER/packages/optional/``,
+  ``SAGE_SERVER/packages/experimental/``, and
+  ``SAGE_SERVER/packages/archive/`` for packages.  See the script
+  :file:`$SAGE_ROOT/local/bin/sage-download_package` for the
+  implementation.
+
+- :envvar:`SAGE_PATH` - a colon-separated list of directories which
+  Sage searches when trying to locate Python libraries.
+
+- :envvar:`SAGE_BROWSER` - on most platforms, Sage will detect the
+  command to run a web browser, but if this doesn't seem to work on
+  your machine, set this variable to the appropriate command.
+
+- :envvar:`SAGE_ORIG_LD_LIBRARY_PATH_SET` - set this to something
+  nonempty to force Sage to set the :envvar:`LD_LIBRARY_PATH` before
+  executing system commands.
+
+- :envvar:`SAGE_ORIG_DYLD_LIBRARY_PATH_SET` - similar, but only used
+  on Mac OS X to set the :envvar:`DYLD_LIBRARY_PATH`.
+
+- :envvar:`SAGE_CBLAS` - used in the file
+  :file:`SAGE_ROOT/devel/sage/sage/misc/cython.py`.  Set this to the
+  base name of the BLAS library file on your system if you want to
+  override the default setting.  That is, if the relevant file is
+  called :file:`libcblas_new.so` or :file:`libcblas_new.dylib`, then
+  set this to "cblas_new".
+
+Variables dealing with doctesting:
+
+- :envvar:`SAGE_TESTDIR` - a temporary directory used during Sage's
+  doctesting.  The default is to use the directory ``$DOT_SAGE/tmp``,
+  but you can override that by setting this variable.
+
+- :envvar:`SAGE_TIMEOUT` - used for Sage's doctesting: the number of
+  seconds to allow a doctest before timing it out.  If this isn't set,
+  the default is 360 seconds (6 minutes).
+
+- :envvar:`SAGE_TIMEOUT_LONG` - used for Sage's doctesting: the number
+  of seconds to allow a doctest before timing it out, if tests are run
+  using ``sage -t --long``.  If this isn't set, the default is 1800
+  seconds (30 minutes).
+
+- :envvar:`SAGE_PICKLE_JAR` - if you want to update the the standard
+  pickle jar, set this to something nonempty and run the doctest
+  suite.  See the documentation for the functions :func:`picklejar`
+  and :func:`unpickle_all` in
+  :file:`SAGE_ROOT/devel/sage/sage/structure/sage_object.pyx`, online
+  `here (picklejar)
+  <http://sagemath.org/doc/reference/sage/structure/sage_object.html#sage.structure.sage_object.picklejar>`_
+  and `here (unpickle_all)
+  <http://sagemath.org/doc/reference/sage/structure/sage_object.html#sage.structure.sage_object.unpickle_all>`_.
+
+..
+  THIS INDENTED BLOCK IS A COMMENT.  FIX IT ONCE WE UNDERSTAND
+  THESE VARIABLES.
+
+  Variables dealing with valgrind and friends:
+
+  - :envvar:`SAGE_TIMEOUT_VALGRIND` - used for Sage's doctesting: the
+    number of seconds to allow a doctest before timing it out, if tests
+    are run using ``??``.  If this isn't set, the default is 1024*1024
+    seconds.
+
+  - :envvar:`SAGE_VALGRIND` - ?
+
+  - :envvar:`SAGE_MEMCHECK_FLAGS`, :envvar:`SAGE_MASSIF_FLAGS`,
+    :envvar:`SAGE_CACHEGRIND_FLAGS`, :envvar:`SAGE_OMEGA_FLAGS` - flags
+    used when using valgrind and one of the tools "memcheck", "massif",
+    "cachegrind", or "omega"
 
 Installation in a Multiuser Environment
 ---------------------------------------

@@ -1106,6 +1106,11 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 Zmod = IntegerModRing
 Integers = IntegerModRing
 
+# Register unpickling methods for backward compatibility.
+
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override('sage.rings.integer_mod_ring', 'IntegerModRing_generic', IntegerModRing_generic)
+
 ## def GF(p):
 ##     """
 ##     EXAMPLES:

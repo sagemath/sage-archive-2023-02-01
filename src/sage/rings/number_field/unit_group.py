@@ -104,6 +104,13 @@ A relative extension example, which worked thanks to the code review by F.W.Clar
     sage: K.unit_group()
     Unit group with structure C2 x Z x Z x Z x Z x Z x Z x Z of Number Field in c with defining polynomial Y^2 + (-2*b - 3)*a - 2*b - 6 over its base field
 
+TESTS::
+
+    sage: UK == loads(dumps(UK))
+    True
+    sage: UL == loads(dumps(UL))
+    True
+
 AUTHOR:
 
 - John Cremona
@@ -253,14 +260,19 @@ class UnitGroup(AbelianGroup_class):
         m.insert(0,m.pop())
         return AbelianGroupElement(self, m)
 
-    def _coerce_impl(self, x):
-        """
-        Canonical coercion of ``x`` into this unit group.
-
-        EXAMPLES:
-
-        """
-        return self(x)
+# Commented out, because for any Sage parent X, _coerce_impl needs to either
+# work on all of X or raise an error on every element of X, which this doesn't.
+#
+#    def _coerce_impl(self, x):
+#        """
+#        Canonical coercion of ``x`` into this unit group.
+#
+#        EXAMPLES:
+#
+#            sage: K.<z> = CyclotomicField(9)
+#            sage: K.unit_group().coerce(z)
+#        """
+#        return self(x)
 
     def gens(self):
         """

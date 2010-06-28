@@ -2108,7 +2108,8 @@ class NumberField_relative(NumberField_generic):
         if type is None:
             raise NotImplementedError, "Galois groups of relative extensions not implemented (use the corresponding absolute field)"
         else:
-            return self._galois_group_cached(type, algorithm, names)
+            # silly bug in cached_method
+            return NumberField_generic.galois_group.f(self, type, algorithm, names)
 
     def is_free(self, proof=None):
         r"""

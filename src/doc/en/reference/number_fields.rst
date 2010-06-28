@@ -11,6 +11,9 @@ Algebraic Number Fields
    sage/rings/number_field/order
    sage/rings/number_field/number_field_ideal
    sage/rings/number_field/number_field_ideal_rel
+   sage/rings/number_field/morphism
+   sage/rings/number_field/number_field_morphisms
+   sage/rings/number_field/maps
    sage/rings/number_field/class_group
    sage/rings/number_field/galois_group
    sage/rings/number_field/unit_group

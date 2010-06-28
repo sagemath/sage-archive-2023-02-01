@@ -629,6 +629,14 @@ class NumberField_relative(NumberField_generic):
         The degree, unqualified, of a relative number field is deliberately
         not implemented, so that a user cannot mistake the absolute degree
         for the relative degree, or vice versa.
+
+        EXAMPLE::
+
+            sage: K.<a> = NumberFieldTower([x^2 - 17, x^3 - 2])
+            sage: K.degree()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: For a relative number field you must use relative_degree or absolute_degree as appropriate
         """
         raise NotImplementedError, "For a relative number field you must use relative_degree or absolute_degree as appropriate"
 
@@ -685,35 +693,31 @@ class NumberField_relative(NumberField_generic):
         Return string representation of this relative number field.
 
         The base field is not part of the string representation.  To
-        find out what the base field is use ``self.base_field()``.
+        find out what the base field is use :meth:`~base_field`.
 
         EXAMPLES::
 
             sage: k.<a, b> = NumberField([x^5 + 2, x^7 + 3])
-            sage: k
-            Number Field in a with defining polynomial x^5 + 2 over its base field
+            sage: repr(k) # indirect doctest
+            'Number Field in a with defining polynomial x^5 + 2 over its base field'
             sage: k.base_field()
             Number Field in b with defining polynomial x^7 + 3
         """
 
         return "Number Field in %s with defining polynomial %s over its base field"%(self.variable_name(), self.relative_polynomial())
 
-        #return "Extension by %s of the Number Field in %s with defining polynomial %s"%(
-        #self.polynomial(), self.base_field().variable_name(),
-        #    self.base_field().polynomial())
-
     def _Hom_(self, codomain, cat=None):
         """
         Return homset of homomorphisms from this relative number field
         to the codomain.
 
-        The cat option is currently ignored.   The result is not cached.
+        The cat option is currently ignored. The result is not cached.
 
         EXAMPLES:
         This function is implicitly called by the Hom method or function.::
 
             sage: K.<a,b> = NumberField([x^3 - 2, x^2+1])
-            sage: K.Hom(K)
+            sage: K.Hom(K) # indirect doctest
             Automorphism group of Number Field in a with defining polynomial x^3 - 2 over its base field
             sage: type(K.Hom(K))
             <class 'sage.rings.number_field.morphism.RelativeNumberFieldHomset_with_category'>
@@ -966,90 +970,19 @@ class NumberField_relative(NumberField_generic):
         Canonical coercion of x into this relative number field.
 
         Currently integers, rationals, the base field, and this field
-        itself coerce canonical into this field.
-
-        EXAMPLES::
-
-            sage: S.<y> = NumberField(x^3 + x + 1)
-            sage: S.coerce(int(4))
-            4
-            sage: S.coerce(long(7))
-            7
-            sage: S.coerce(-Integer(2))
-            -2
-            sage: z = S.coerce(-7/8); z, type(z)
-            (-7/8, <type 'sage.rings.number_field.number_field_element.NumberFieldElement_absolute'>)
-            sage: S.coerce(y) is y
-            True
-
-        Fields with embeddings into an ambient field coerce naturally.::
-
-            sage: CyclotomicField(15).coerce(CyclotomicField(5).0 - 17/3)
-            zeta15^3 - 17/3
-            sage: K.<a> = CyclotomicField(16)
-            sage: K(CyclotomicField(4).0)
-            a^4
-            sage: QuadraticField(-3, 'a').coerce_map_from(CyclotomicField(3))
-            Generic morphism:
-              From: Cyclotomic Field of order 3 and degree 2
-              To:   Number Field in a with defining polynomial x^2 + 3
-              Defn: zeta3 -> 1/2*a - 1/2
-
-        There are situations for which one might imagine canonical
-        coercion could make sense (at least after fixing choices), but
-        which are not yet implemented::
-
-            sage: K.<a> = QuadraticField(2)
-            sage: K.coerce(sqrt(2))
-            Traceback (most recent call last):
-            ...
-            TypeError: no canonical coercion from Symbolic Ring to Number Field in a with defining polynomial x^2 - 2
-
-        TESTS::
-
-            sage: K.<a> = NumberField(polygen(QQ)^3-2)
-            sage: type(K.coerce_map_from(QQ))
-            <type 'sage.structure.coerce_maps.DefaultConvertMap_unique'>
-
-        Make sure we still get our optimized morphisms for special fields::
-
-            sage: K.<a> = NumberField(polygen(QQ)^2-2)
-            sage: type(K.coerce_map_from(QQ))
-            <type 'sage.rings.number_field.number_field_element_quadratic.Q_to_quadratic_field_element'>
-        """
-        if R in [self, int, long, ZZ, QQ, self.base_field()]:
-            return self._generic_convert_map(R)
-        from sage.rings.number_field.order import is_NumberFieldOrder
-        if is_NumberFieldOrder(R) and R.number_field().has_coerce_map_from(self):
-            return self._generic_convert_map(R)
-        if is_NumberField(R) and R != QQ:
-            if R.coerce_embedding() is not None:
-                if self.coerce_embedding() is not None:
-                    try:
-                        from sage.categories.pushout import pushout
-                        ambient_field = pushout(R.coerce_embedding().codomain(), self.coerce_embedding().codomain())
-                        if ambient_field is not None:
-                            return number_field_morphisms.EmbeddedNumberFieldMorphism(R, self)
-                    except (TypeError, ValueError):
-                        pass
-
-    def _coerce_map_from_(self, R):
-        """
-        Canonical implicit coercion of ``R`` into self.
-
-        Elements of this field canonically coerce in, as does anything
-        that coerces into the base field of this field.
+        itself coerce canonically into this field (and hence so does
+        anything that coerces into one of these).
 
         EXAMPLES::
 
             sage: k.<a> = NumberField([x^5 + 2, x^7 + 3])
             sage: b = k(k.base_field().gen())
-            sage: b = k.coerce(k.base_field().gen())
+            sage: b = k.coerce(k.base_field().gen()) # indirect doctest
             sage: b^7
             -3
             sage: k.coerce(2/3)
             2/3
-            sage: c = a + b  # this works
+            sage: c = a + b # no output
         """
         if R in [int, long, ZZ, QQ, self.base_field()]:
             return self._generic_convert_map(R)
@@ -1106,9 +1039,9 @@ class NumberField_relative(NumberField_generic):
             sage: k.<a> = NumberField([x^2 + 3, x^2 + 1])
             sage: m = k.base_field(); m
             Number Field in a1 with defining polynomial x^2 + 1
-            sage: k._coerce_(m.0 + 2/3)
+            sage: k.coerce(m.0 + 2/3) # indirect doctest
             a1 + 2/3
-            sage: s = k._coerce_(m.0); s
+            sage: s = k.coerce(m.0); s
             a1
             sage: s^2
             -1
@@ -1116,9 +1049,9 @@ class NumberField_relative(NumberField_generic):
         This implicitly tests this coercion map::
 
             sage: K.<a> = NumberField([x^2 + p for p in [5,3,2]])
-            sage: K._coerce_(K.base_field().0)
+            sage: K.coerce(K.base_field().0)
             a1
-            sage: K._coerce_(K.base_field().0)^2
+            sage: K.coerce(K.base_field().0)^2
             -3
 
         TESTS:
@@ -1336,7 +1269,16 @@ class NumberField_relative(NumberField_generic):
         r"""
         For a relative number field, ``vector_space()`` is
         deliberately not implemented, so that a user cannot confuse
-        ``relative_vector_space()`` with ``absolute_vector_space()``.
+        :meth:`~relative_vector_space` with :meth:`~absolute_vector_space`.
+
+        EXAMPLE::
+
+            sage: K.<a> = NumberFieldTower([x^2 - 17, x^3 - 2])
+            sage: K.vector_space()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: For a relative number field L you must use either L.relative_vector_space() or L.absolute_vector_space() as appropriate
+
         """
         raise NotImplementedError, "For a relative number field L you must use either L.relative_vector_space() or L.absolute_vector_space() as appropriate"
 
@@ -1407,7 +1349,7 @@ class NumberField_relative(NumberField_generic):
             sage: y = polygen(k)
             sage: m.<b> = k.extension(y^2+3); m
             Number Field in b with defining polynomial x^2 + 3 over its base field
-            sage: c = m.gen(); c
+            sage: c = m.gen(); c # indirect doctest
             b
             sage: c^2 + 3
             0
@@ -1637,7 +1579,7 @@ class NumberField_relative(NumberField_generic):
 
         EXAMPLES::
 
-            sage: NumberField(x^2 + (2/3)*x - 9/17,'a').polynomial_ntl()
+            sage: NumberField(x^2 + (2/3)*x - 9/17,'a').absolute_polynomial_ntl()
             ([-27 34 51], 51)
         """
         try:
@@ -1702,8 +1644,16 @@ class NumberField_relative(NumberField_generic):
     def polynomial(self):
         """
         For a relative number field, ``polynomial()`` is deliberately
-        not implemented.  Either ``relative_polynomial()`` or
-        ``absolute_polynomial()`` must be used.
+        not implemented.  Either :meth:`~relative_polynomial` or
+        :meth:`~absolute_polynomial` must be used.
+
+        EXAMPLE::
+
+            sage: K.<a> = NumberFieldTower([x^2 + x + 1, x^3 + x + 1])
+            sage: K.polynomial()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: For a relative number field L you must use either L.relative_polynomial() or L.absolute_polynomial() as appropriate
         """
         raise NotImplementedError, "For a relative number field L you must use either L.relative_polynomial() or L.absolute_polynomial() as appropriate"
 
@@ -1962,6 +1912,14 @@ class NumberField_relative(NumberField_generic):
         The different, unqualified, of a relative number field is deliberately
         not implemented, so that a user cannot mistake the absolute different
         for the relative different, or vice versa.
+
+        EXAMPLE::
+
+            sage: K.<a> = NumberFieldTower([x^2 + x + 1, x^3 + x + 1])
+            sage: K.different()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: For a relative number field you must use relative_different or absolute_different as appropriate
         """
         raise NotImplementedError, "For a relative number field you must use relative_different or absolute_different as appropriate"
 
@@ -2027,6 +1985,14 @@ class NumberField_relative(NumberField_generic):
         The discriminant, unqualified, of a relative number field is deliberately
         not implemented, so that a user cannot mistake the absolute discriminant
         for the relative discriminant, or vice versa.
+
+        EXAMPLE::
+
+            sage: K.<a> = NumberFieldTower([x^2 + x + 1, x^3 + x + 1])
+            sage: K.discriminant()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: For a relative number field you must use relative_discriminant or absolute_discriminant as appropriate
         """
         raise NotImplementedError, "For a relative number field you must use relative_discriminant or absolute_discriminant as appropriate"
 
@@ -2035,6 +2001,14 @@ class NumberField_relative(NumberField_generic):
         The discriminant, unqualified, of a relative number field is deliberately
         not implemented, so that a user cannot mistake the absolute discriminant
         for the relative discriminant, or vice versa.
+
+        EXAMPLE::
+
+            sage: K.<a> = NumberFieldTower([x^2 + x + 1, x^3 + x + 1])
+            sage: K.disc()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: For a relative number field you must use relative_discriminant or absolute_discriminant as appropriate
         """
         raise NotImplementedError, "For a relative number field you must use relative_discriminant or absolute_discriminant as appropriate"
 

@@ -1,21 +1,100 @@
 """
-Enumeration of Totally Real Fields
+Enumeration of Primitive Totally Real Fields
 
-AUTHORS:
-    -- Craig Citro and John Voight (2008-02-10):
-        * Final modifications for submission.
-    -- Craig Citro and John Voight (2007-11-04):
-        * Additional doctests and type checking.
-    -- John Voight (2007-10-27):
-        * Separated DSage component.
-    -- John Voight (2007-10-17):
-        * Added pari functions to avoid recomputations.
-    -- John Voight (2007-10-09):
-        * Added DSage module.
-    -- John Voight (2007-09-19):
-        * Various optimization tweaks.
-    -- John Voight (2007-09-01):
-        * Initial version.
+This module contains functions for enumerating all primitive
+totally real number fields of given degree and small discriminant.
+Here a number field is called *primitive* if it contains no proper
+subfields except `\QQ`.
+
+See also :mod:`sage.rings.number_field.totallyreal_rel`, which handles the non-primitive
+case using relative extensions.
+
+Algorithm
+---------
+
+We use Hunter's algorithm ([C]_, Section 9.3) with modifications
+due to Takeuchi [T]_ and the author [V]_.
+
+We enumerate polynomials `f(x) = x^n + a_{n-1} x^{n-1} + \dots + a_0`.
+Hunter's theorem gives bounds on `a_{n-1}` and `a_{n-2}`; then given
+`a_{n-1}` and `a_{n-2}`, one can recursively compute bounds on `a_{n-3},
+\dots, a_0`, using the fact that the polynomial is totally real by
+looking at the zeros of successive derivatives and applying
+Rolle's theorem. See [T]_ for more details.
+
+Examples
+--------
+
+In this first simple example, we compute the totally real quadratic
+fields of discriminant `\le 50`.
+
+::
+
+    sage: enumerate_totallyreal_fields_prim(2,50)
+    [[5, x^2 - x - 1],
+     [8, x^2 - 2],
+     [12, x^2 - 3],
+     [13, x^2 - x - 3],
+     [17, x^2 - x - 4],
+     [21, x^2 - x - 5],
+     [24, x^2 - 6],
+     [28, x^2 - 7],
+     [29, x^2 - x - 7],
+     [33, x^2 - x - 8],
+     [37, x^2 - x - 9],
+     [40, x^2 - 10],
+     [41, x^2 - x - 10],
+     [44, x^2 - 11]]
+    sage: [ d for d in range(5,50) if (is_squarefree(d) and d%4 == 1) or (d%4 == 0 and is_squarefree(d/4)) ]
+    [5, 8, 12, 13, 17, 20, 21, 24, 28, 29, 33, 37, 40, 41, 44]
+
+Next, we compute all totally real quintic fields of discriminant `\le 10^5`::
+
+    sage: ls = enumerate_totallyreal_fields_prim(5,10^5) ; ls
+    [[14641, x^5 - x^4 - 4*x^3 + 3*x^2 + 3*x - 1],
+     [24217, x^5 - 5*x^3 - x^2 + 3*x + 1],
+     [36497, x^5 - 2*x^4 - 3*x^3 + 5*x^2 + x - 1],
+     [38569, x^5 - 5*x^3 + 4*x - 1],
+     [65657, x^5 - x^4 - 5*x^3 + 2*x^2 + 5*x + 1],
+     [70601, x^5 - x^4 - 5*x^3 + 2*x^2 + 3*x - 1],
+     [81509, x^5 - x^4 - 5*x^3 + 3*x^2 + 5*x - 2],
+     [81589, x^5 - 6*x^3 + 8*x - 1],
+     [89417, x^5 - 6*x^3 - x^2 + 8*x + 3]]
+     sage: len(ls)
+     9
+
+We see that there are 9 such fields (up to isomorphism!).
+
+References
+----------
+
+.. [C] Henri Cohen, Advanced topics in computational number
+   theory, Graduate Texts in Mathematics, vol. 193,
+   Springer-Verlag, New York, 2000.
+
+.. [M] Jacques Martinet, Petits discriminants des corps de nombres, Journ. Arithm. 1980,
+   Cambridge Univ. Press, 1982, 151--193.
+
+.. [T] Kisao Takeuchi, Totally real algebraic number fields of
+   degree 9 with small discriminant, Saitama Math. J.
+   17 (1999), 63--85 (2000).
+
+.. [V] John Voight, Enumeration of totally real number fields
+   of bounded root discriminant, to appear in
+   Lect. Notes in Comp. Sci.
+
+Authors
+-------
+
+- John Voight (2007-09-01): Initial version.
+- John Voight (2007-09-19): Various optimization tweaks.
+- John Voight (2007-10-09): Added DSage module.
+- John Voight (2007-10-17): Added pari functions to avoid recomputations.
+- John Voight (2007-10-27): Separated DSage component.
+- Craig Citro and John Voight (2007-11-04): Additional doctests and type checking.
+- Craig Citro and John Voight (2008-02-10): Final modifications for submission.
+
+------
 """
 
 #*****************************************************************************
@@ -69,23 +148,24 @@ cpdef double odlyzko_bound_totallyreal(int n):
     The bounds for n > 50 are not necessarily optimal.
 
     INPUT:
-    n -- integer, the degree
+
+    - n (integer) the degree
 
     OUTPUT:
-    a lower bound on the root discriminant
 
-    EXAMPLES:
-    sage: [sage.rings.number_field.totallyreal.odlyzko_bound_totallyreal(n) for n in range(1,5)]
-    [1.0, 2.2229999999999999, 3.6099999999999999, 5.0670000000000002]
+    a lower bound on the root discriminant (as a real number)
+
+    EXAMPLES::
+
+        sage: [sage.rings.number_field.totallyreal.odlyzko_bound_totallyreal(n) for n in range(1,5)]
+        [1.0, 2.2229999999999999, 3.6099999999999999, 5.0670000000000002]
 
     AUTHORS:
+
     - John Voight (2007-09-03)
 
     NOTES:
-    The values are calculated by Martinet [M].
-
-        [M] Jacques Martinet, Petits discriminants des corps de nombres, Journ. Arithm. 1980,
-            Cambridge Univ. Press, 1982, 151--193.
+    The values are calculated by Martinet [M]_.
     """
 
     if n <= 10:
@@ -107,110 +187,55 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
                                       just_print=False):
     r"""
     This function enumerates primitive totally real fields of degree
-    $n>1$ with discriminant $d \leq B$; optionally one can specify the
-    first few coefficients, where the sequence $a$ corresponds to a
-    polynomial by
-        $$ a[d]*x^n + ... + a[0]*x^(n-d) $$
-    where length(a) = d+1, so in particular always a[d] = 1.
+    `n>1` with discriminant `d \leq B`; optionally one can specify the
+    first few coefficients, where the sequence `a` corresponds to
 
-    If verbose == 1 (or 2), then print to the screen (really)
-    verbosely; if verbose is a string, then print verbosely to the
-    file specified by verbose.
+    ::
 
-    If return_seqs, then return the polynomials as sequences (for
-    easier exporting to a file).
+        a[d]*x^n + ... + a[0]*x^(n-d)
 
-    If keep_fields, then keep fields up to B*log(B); if keep_fields is
-    an integer, then keep fields up to that integer.
+    where ``length(a) = d+1``, so in particular always ``a[d] = 1``.
 
-    If t_2 = T, then keep only polynomials with t_2 norm >= T.
+    .. note::
 
-    If just_print is not False, instead of creating a sorted list of
-    totally real number fields, we simply write each totally real
-    field we find to the file whose filename is given by
-    just_print. In this case, we don't return anything.
-
-    NOTE:
         This is guaranteed to give all primitive such fields, and
         seems in practice to give many imprimitive ones.
 
     INPUT:
-        n -- integer, the degree
-        B -- integer, the discriminant bound
-        a -- list (default: []), the coefficient list to begin with
-        verbose -- boolean or string (default: False)
-        phc -- boolean or integer (default: False)
+
+    - ``n`` (integer): the degree
+    - ``B`` (integer): the discriminant bound
+    - ``a`` (list, default: []): the coefficient list to begin with
+    - ``verbose`` (integer or string, default: 0): if ``verbose == 1``
+      (or ``2``), then print to the screen (really) verbosely; if verbose is
+      a string, then print verbosely to the file specified by verbose.
+    - ``return_seqs`` (boolean, default False)If ``return_seqs``, then return
+      the polynomials as sequences (for easier exporting to a file).
+    - ``phc`` -- boolean or integer (default: False)
+    - ``keep_fields`` (boolean or integer, default: False) If ``keep_fields`` is True,
+      then keep fields up to ``B*log(B)``; if ``keep_fields`` is an integer, then
+      keep fields up to that integer.
+    - ``t_2`` (boolean or integer, default: False) If ``t_2 = T``, then keep
+      only polynomials with t_2 norm >= T.
+    - ``just_print`` (boolean, default: False): if ``just_print`` is not False,
+      instead of creating a sorted list of totally real number fields, we simply
+      write each totally real field we find to the file whose filename is given by
+      ``just_print``. In this case, we don't return anything.
 
     OUTPUT:
-        the list of fields with entries [d,f], where d is the
-          discriminant and f is a defining polynomial, sorted by
-          discriminant.
 
-    EXAMPLES:
-    In this first simple example, we compute the totally real quadratic
-    fields of discriminant <= 50.
-        sage: enumerate_totallyreal_fields_prim(2,50)
-        [[5, x^2 - x - 1],
-         [8, x^2 - 2],
-         [12, x^2 - 3],
-         [13, x^2 - x - 3],
-         [17, x^2 - x - 4],
-         [21, x^2 - x - 5],
-         [24, x^2 - 6],
-         [28, x^2 - 7],
-         [29, x^2 - x - 7],
-         [33, x^2 - x - 8],
-         [37, x^2 - x - 9],
-         [40, x^2 - 10],
-         [41, x^2 - x - 10],
-         [44, x^2 - 11]]
-        sage: [ d for d in range(5,50) if (is_squarefree(d) and d%4 == 1) or (d%4 == 0 and is_squarefree(d/4)) ]
-        [5, 8, 12, 13, 17, 20, 21, 24, 28, 29, 33, 37, 40, 41, 44]
+    the list of fields with entries ``[d,f]``, where ``d`` is the
+    discriminant and ``f`` is a defining polynomial, sorted by
+    discriminant.
 
-    Next, we compute all totally real quintic fields of discriminant <= 10^5.
-        sage: ls = enumerate_totallyreal_fields_prim(5,10^5) ; ls
-        [[14641, x^5 - x^4 - 4*x^3 + 3*x^2 + 3*x - 1],
-         [24217, x^5 - 5*x^3 - x^2 + 3*x + 1],
-         [36497, x^5 - 2*x^4 - 3*x^3 + 5*x^2 + x - 1],
-         [38569, x^5 - 5*x^3 + 4*x - 1],
-         [65657, x^5 - x^4 - 5*x^3 + 2*x^2 + 5*x + 1],
-         [70601, x^5 - x^4 - 5*x^3 + 2*x^2 + 3*x - 1],
-         [81509, x^5 - x^4 - 5*x^3 + 3*x^2 + 5*x - 2],
-         [81589, x^5 - 6*x^3 + 8*x - 1],
-         [89417, x^5 - 6*x^3 - x^2 + 8*x + 3]]
-         sage: len(ls)
-         9
-
-    We see that there are 9 such fields (up to isomorphism!).
-
-    NOTES:
-    This function uses Hunter's algorithm [C, Section 9.3] and
-    modifications due to Takeuchi [T] and the author [V].
-
-    We enumerate polynomials
-        f(x) = x^n + a[n-1]*x^(n-1) + ... + a[0].
-    Hunter's theorem gives bounds on a[n-1] and a[n-2]; then given
-    a[n-1] and a[n-2], one can recursively compute bounds on a[n-3],
-    ..., a[0] using the fact that the polynomial is totally real by
-    looking at the zeros of successive derivatives and applying
-    Rolle's theorem!  See [T] for more details.
-
-        REFERENCES:
-            [C] Henri Cohen, Advanced topics in computational number
-                theory, Graduate Texts in Mathematics, vol. 193,
-                Springer-Verlag, New York, 2000.
-            [T] Kisao Takeuchi, Totally real algebraic number fields of
-                degree 9 with small discriminant, Saitama Math. J.
-                17 (1999), 63--85 (2000).
-            [V] John Voight, Enumeration of totally real number fields
-                of bounded root discriminant, to appear in
-                Lect. Notes in Comp. Sci.
 
     AUTHORS:
-        - John Voight (2007-09-03)
-        - Craig Citro (2008-09-19): moved to Cython for speed improvement
 
-    TESTS:
+    - John Voight (2007-09-03)
+    - Craig Citro (2008-09-19): moved to Cython for speed improvement
+
+    TESTS::
+
         sage: len(enumerate_totallyreal_fields_prim(2,10**4))
         3043
         sage: len(enumerate_totallyreal_fields_prim(3,3**8))
@@ -456,11 +481,12 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
 
 def weed_fields(S, Py_ssize_t lenS=0):
     r"""
-    Function used internally by the enumerate_totallyreal_fields()
+    Function used internally by the :func:`~enumerate_totallyreal_fields_prim`
     routine. (Weeds the fields listed by [discriminant, polynomial]
     for isomorphism classes.) Returns the size of the resulting list.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: ls = [[5,pari('x^2-3*x+1')],[5,pari('x^2-5')]]
         sage: sage.rings.number_field.totallyreal.weed_fields(ls)
         1
@@ -500,12 +526,15 @@ def timestr(m):
     Converts seconds to a human-readable time string.
 
     INPUT:
-        m -- integer, number of seconds
+
+    - m -- integer, number of seconds
 
     OUTPUT:
-        The time in days, hours, etc.
 
-    EXAMPLES:
+    The time in days, hours, etc.
+
+    EXAMPLES::
+
         sage: sage.rings.number_field.totallyreal.timestr(3765)
         '1h 2m 45.0s'
     """

@@ -1,10 +1,78 @@
-
-"""
+r"""
 Enumeration of Totally Real Fields: Relative Extensions
 
+This module contains functions to enumerate primitive extensions `L / K`, where
+`K` is a given totally real number field, with given degree and small root
+discriminant. This is a relative analogue of the problem described in
+:mod:`sage.rings.number_field.totallyreal`, and we use a similar approach
+based on a relative version of Hunter's theorem.
+
+In this first simple example, we compute the totally real quadratic
+fields of `F = \QQ(\sqrt{2})` of discriminant `\le 2000`.
+
+::
+
+    sage: ZZx = ZZ['x']
+    sage: F.<t> = NumberField(x^2-2)
+    sage: enumerate_totallyreal_fields_rel(F, 2, 2000)
+    [[1600, x^4 - 6*x^2 + 4, xF^2 + xF - 1]]
+
+There is indeed only one such extension, given by `F(\sqrt{5})`.
+
+Next, we list all totally real quadratic extensions of `\QQ(\sqrt 5)`
+with root discriminant `\le 10`.
+
+::
+
+    sage: F.<t> = NumberField(x^2-5)
+    sage: ls = enumerate_totallyreal_fields_rel(F, 2, 10^4)
+    sage: ls # random (the second factor is platform-dependent)
+    [[725, x^4 - x^3 - 3*x^2 + x + 1, xF^2 + (-1/2*t - 7/2)*xF + 1],
+     [1125, x^4 - x^3 - 4*x^2 + 4*x + 1, xF^2 + (-1/2*t - 7/2)*xF + 1/2*t + 3/2],
+     [1600, x^4 - 6*x^2 + 4, xF^2 - 2],
+     [2000, x^4 - 5*x^2 + 5, xF^2 - 1/2*t - 5/2],
+     [2225, x^4 - x^3 - 5*x^2 + 2*x + 4, xF^2 + (-1/2*t + 1/2)*xF - 3/2*t - 7/2],
+     [2525, x^4 - 2*x^3 - 4*x^2 + 5*x + 5, xF^2 + (-1/2*t - 1/2)*xF - 1/2*t - 5/2],
+     [3600, x^4 - 2*x^3 - 7*x^2 + 8*x + 1, xF^2 - 3],
+     [4225, x^4 - 9*x^2 + 4, xF^2 + (-1/2*t - 1/2)*xF - 3/2*t - 9/2],
+     [4400, x^4 - 7*x^2 + 11, xF^2 - 1/2*t - 7/2],
+     [4525, x^4 - x^3 - 7*x^2 + 3*x + 9, xF^2 + (-1/2*t - 1/2)*xF - 3],
+     [5125, x^4 - 2*x^3 - 6*x^2 + 7*x + 11, xF^2 + (-1/2*t - 1/2)*xF - t - 4],
+     [5225, x^4 - x^3 - 8*x^2 + x + 11, xF^2 + (-1/2*t - 1/2)*xF - 1/2*t - 7/2],
+     [5725, x^4 - x^3 - 8*x^2 + 6*x + 11, xF^2 + (-1/2*t + 1/2)*xF - 1/2*t - 7/2],
+     [6125, x^4 - x^3 - 9*x^2 + 9*x + 11, xF^2 + (-1/2*t + 1/2)*xF - t - 4],
+     [7225, x^4 - 11*x^2 + 9, xF^2 + (-1)*xF - 4],
+     [7600, x^4 - 9*x^2 + 19, xF^2 - 1/2*t - 9/2],
+     [7625, x^4 - x^3 - 9*x^2 + 4*x + 16, xF^2 + (-1/2*t - 1/2)*xF - 4],
+     [8000, x^4 - 10*x^2 + 20, xF^2 - t - 5],
+     [8525, x^4 - 2*x^3 - 8*x^2 + 9*x + 19, xF^2 + (-1)*xF - 1/2*t - 9/2],
+     [8725, x^4 - x^3 - 10*x^2 + 2*x + 19, xF^2 + (-1/2*t - 1/2)*xF - 1/2*t - 9/2],
+     [9225, x^4 - x^3 - 10*x^2 + 7*x + 19, xF^2 + (-1/2*t + 1/2)*xF - 1/2*t - 9/2]]
+    sage: [ f[0] for f in ls ]
+    [725, 1125, 1600, 2000, 2225, 2525, 3600, 4225, 4400, 4525, 5125, 5225, 5725, 6125, 7225, 7600, 7625, 8000, 8525, 8725, 9225]
+
+    sage: [NumberField(ZZx(x[1]), 't').is_galois() for x in ls]
+    [False, True, True, True, False, False, True, True, False, False, False, False, False, True, True, False, False, True, False, False, False]
+
+Eight out of 21 such fields are Galois (with Galois group `C_4`
+or `C_2 \times C_2`); the others have have Galois closure of degree 8
+(with Galois group `D_8`).
+
+Finally, we compute the cubic extensions of `\QQ(\zeta_7)^+` with
+discriminant `\le 17 \times 10^9`.
+
+::
+
+    sage: F.<t> = NumberField(ZZx([1,-4,3,1]))
+    sage: F.disc()
+    49
+    sage: enumerate_totallyreal_fields_rel(F, 3, 17*10^9) # not tested
+    [[16240385609L, x^9 - x^8 - 9*x^7 + 4*x^6 + 26*x^5 - 2*x^4 - 25*x^3 - x^2 + 7*x + 1, xF^3 + (-t^2 - 4*t + 1)*xF^2 + (t^2 + 3*t - 5)*xF + 3*t^2 + 11*t - 5]]    # 32 bit
+    [[16240385609, x^9 - x^8 - 9*x^7 + 4*x^6 + 26*x^5 - 2*x^4 - 25*x^3 - x^2 + 7*x + 1, xF^3 + (-t^2 - 4*t + 1)*xF^2 + (t^2 + 3*t - 5)*xF + 3*t^2 + 11*t - 5]]    # 64 bit
+
 AUTHORS:
-    -- John Voight (2007-11-03):
-        * Initial version.
+
+- John Voight (2007-11-03): Initial version.
 """
 
 #***********************************************************************************************
@@ -43,13 +111,12 @@ def integral_elements_in_box(K, C):
 
     INPUT:
 
-        - `K` -- a totally real number field
+    - `K` -- a totally real number field
+    - `C` -- a list [[lower, upper], ...] of lower and upper bounds,
+      for each embedding
 
-        - `C` -- a list [[lower, upper], ...] of lower and upper bounds,
-                 for each embedding
 
-
-    EXAMPLES:
+    EXAMPLES::
 
         sage: x = polygen(QQ)
         sage: K.<alpha> = NumberField(x^2-2)
@@ -174,18 +241,21 @@ class tr_data_rel:
         Initialization routine (constructor).
 
         INPUT:
-        F -- number field, the base field
-        m -- integer, the relative degree
-        B -- integer, the discriminant bound
-        a -- list (default: []), the coefficient list to begin with, where
-             a[len(a)]*x^n + ... + a[0]x^(n-len(a))
+
+        - ``F`` -- number field, the base field
+        - ``m`` -- integer, the relative degree
+        - ``B`` -- integer, the discriminant bound
+        - ``a`` -- list (default: []), the coefficient list to begin with,
+          corresponding to ``a[len(a)]*x^n + ... + a[0]x^(n-len(a))``.
 
         OUTPUT:
+
         the data initialized to begin enumeration of totally real fields
         with base field F, degree n, discriminant bounded by B, and starting
         with coefficients a.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F.<t> = NumberField(x^2-2)
             sage: T = sage.rings.number_field.totallyreal_rel.tr_data_rel(F, 2, 2000)
         """
@@ -295,14 +365,23 @@ class tr_data_rel:
         polynomial.
 
         INPUT:
-            f_out -- an integer sequence, to be written with the
-                     coefficients of the next polynomial
-            verbose -- boolean to print verbosely computational details
-            haltk -- integer, the level at which to halt the inductive
-                     coefficient bounds
+
+        - ``f_out`` -- an integer sequence, to be written with the
+          coefficients of the next polynomial
+        - ``verbose`` -- boolean to print verbosely computational details
+        - ``haltk`` -- integer, the level at which to halt the inductive
+          coefficient bounds
 
         OUTPUT:
+
         the successor polynomial as a coefficient list.
+
+        EXAMPLES:
+
+        As this function is heavily used internally by the various enumeration
+        routines, there is no separate test::
+
+            sage: pass # not tested
         """
 
         import numpy
@@ -564,11 +643,15 @@ class tr_data_rel:
 def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0, return_seqs=False):
     r"""
     This function enumerates (primitive) totally real field extensions of
-    degree $m>1$ of the totally real field F with discriminant $d \leq B$;
-    optionally one can specify the first few coefficients, where the sequence $a$
+    degree `m>1` of the totally real field F with discriminant `d \leq B`;
+    optionally one can specify the first few coefficients, where the sequence ``a``
     corresponds to a polynomial by
-        $$ a[d]*x^n + ... + a[0]*x^(n-d) $$
-    if length(a) = d+1, so in particular always a[d] = 1.
+
+    ::
+
+        a[d]*x^n + ... + a[0]*x^(n-d)
+
+    if ``length(a) = d+1``, so in particular always ``a[d] = 1``.
     If verbose == 1 (or 2), then print to the screen (really) verbosely; if
     verbose is a string, then print verbosely to the file specified by verbose.
     If return_seqs, then return the polynomials as sequences (for easier
@@ -579,89 +662,30 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0, return_seqs=Fal
     seems in practice to give many imprimitive ones.
 
     INPUT:
-    F -- number field, the base field
-    m -- integer, the degree
-    B -- integer, the discriminant bound
-    a -- list (default: []), the coefficient list to begin with
-    verbose -- boolean or string (default: 0)
-    return_seqs -- boolean (default: False)
+
+    - ``F`` -- number field, the base field
+    - ``m`` -- integer, the degree
+    - ``B`` -- integer, the discriminant bound
+    - ``a`` -- list (default: []), the coefficient list to begin with
+    - ``verbose`` -- boolean or string (default: 0)
+    - ``return_seqs`` -- boolean (default: False)
 
     OUTPUT:
+
     the list of fields with entries [d,fabs,f], where
-      d is the discriminant, fabs is an absolute defining polynomial,
-      and f is a defining polynomial relative to F,
+    d is the discriminant, fabs is an absolute defining polynomial,
+    and f is a defining polynomial relative to F,
     sorted by discriminant.
 
-    EXAMPLES:
-    In this first simple example, we compute the totally real quadratic
-    fields of Q(sqrt(2)) of discriminant <= 2000.
+    EXAMPLES::
 
-    sage: ZZx = ZZ['x']
-    sage: F.<t> = NumberField(x^2-2)
-    sage: enumerate_totallyreal_fields_rel(F, 2, 2000)
-    [[1600, x^4 - 6*x^2 + 4, xF^2 + xF - 1]]
-
-    There is indeed only one such extension, given by F(sqrt(5)).
-
-    Next, we list all totally real quadratic extensions of Q(sqrt(5))
-    with root discriminant <= 10.
-
-    sage: F.<t> = NumberField(x^2-5)
-    sage: ls = enumerate_totallyreal_fields_rel(F, 2, 10^4)
-    sage: ls # random (the second factor is platform-dependent)
-    [[725, x^4 - x^3 - 3*x^2 + x + 1, xF^2 + (-1/2*t - 7/2)*xF + 1],
-     [1125, x^4 - x^3 - 4*x^2 + 4*x + 1, xF^2 + (-1/2*t - 7/2)*xF + 1/2*t + 3/2],
-     [1600, x^4 - 6*x^2 + 4, xF^2 - 2],
-     [2000, x^4 - 5*x^2 + 5, xF^2 - 1/2*t - 5/2],
-     [2225, x^4 - x^3 - 5*x^2 + 2*x + 4, xF^2 + (-1/2*t + 1/2)*xF - 3/2*t - 7/2],
-     [2525, x^4 - 2*x^3 - 4*x^2 + 5*x + 5, xF^2 + (-1/2*t - 1/2)*xF - 1/2*t - 5/2],
-     [3600, x^4 - 2*x^3 - 7*x^2 + 8*x + 1, xF^2 - 3],
-     [4225, x^4 - 9*x^2 + 4, xF^2 + (-1/2*t - 1/2)*xF - 3/2*t - 9/2],
-     [4400, x^4 - 7*x^2 + 11, xF^2 - 1/2*t - 7/2],
-     [4525, x^4 - x^3 - 7*x^2 + 3*x + 9, xF^2 + (-1/2*t - 1/2)*xF - 3],
-     [5125, x^4 - 2*x^3 - 6*x^2 + 7*x + 11, xF^2 + (-1/2*t - 1/2)*xF - t - 4],
-     [5225, x^4 - x^3 - 8*x^2 + x + 11, xF^2 + (-1/2*t - 1/2)*xF - 1/2*t - 7/2],
-     [5725, x^4 - x^3 - 8*x^2 + 6*x + 11, xF^2 + (-1/2*t + 1/2)*xF - 1/2*t - 7/2],
-     [6125, x^4 - x^3 - 9*x^2 + 9*x + 11, xF^2 + (-1/2*t + 1/2)*xF - t - 4],
-     [7225, x^4 - 11*x^2 + 9, xF^2 + (-1)*xF - 4],
-     [7600, x^4 - 9*x^2 + 19, xF^2 - 1/2*t - 9/2],
-     [7625, x^4 - x^3 - 9*x^2 + 4*x + 16, xF^2 + (-1/2*t - 1/2)*xF - 4],
-     [8000, x^4 - 10*x^2 + 20, xF^2 - t - 5],
-     [8525, x^4 - 2*x^3 - 8*x^2 + 9*x + 19, xF^2 + (-1)*xF - 1/2*t - 9/2],
-     [8725, x^4 - x^3 - 10*x^2 + 2*x + 19, xF^2 + (-1/2*t - 1/2)*xF - 1/2*t - 9/2],
-     [9225, x^4 - x^3 - 10*x^2 + 7*x + 19, xF^2 + (-1/2*t + 1/2)*xF - 1/2*t - 9/2]]
-    sage: [ f[0] for f in ls ]
-    [725, 1125, 1600, 2000, 2225, 2525, 3600, 4225, 4400, 4525, 5125, 5225, 5725, 6125, 7225, 7600, 7625, 8000, 8525, 8725, 9225]
-
-    sage: [NumberField(ZZx(x[1]), 't').is_galois() for x in ls]
-    [False, True, True, True, False, False, True, True, False, False, False, False, False, True, True, False, False, True, False, False, False]
-
-    Eight out of 21 such fields are Galois (with Galois group Z/4Z
-    or Z/2Z + Z/2Z); the others have have Galois closure of degree 8
-    (with Galois group D_8).
-
-    Finally, we compute the cubic extensions of Q(zeta_7)^+ with
-    discriminant <= 17*10^9.
-
-    sage: F.<t> = NumberField(ZZx([1,-4,3,1]))
-    sage: F.disc()
-    49
-    sage: enumerate_totallyreal_fields_rel(F, 3, 17*10^9) # not tested
-    [[16240385609L, x^9 - x^8 - 9*x^7 + 4*x^6 + 26*x^5 - 2*x^4 - 25*x^3 - x^2 + 7*x + 1, xF^3 + (-t^2 - 4*t + 1)*xF^2 + (t^2 + 3*t - 5)*xF + 3*t^2 + 11*t - 5]]    # 32 bit
-    [[16240385609, x^9 - x^8 - 9*x^7 + 4*x^6 + 26*x^5 - 2*x^4 - 25*x^3 - x^2 + 7*x + 1, xF^3 + (-t^2 - 4*t + 1)*xF^2 + (t^2 + 3*t - 5)*xF + 3*t^2 + 11*t - 5]]    # 64 bit
-
-    NOTES:
-    We enumerate polynomials
-        f(x) = x^n + a[n-1]*x^(n-1) + ... + a[0].
-    A relative Hunter's theorem gives bounds on a[n-1] and a[n-2];
-    then given a[n-1] and a[n-2], one can recursively compute bounds on
-    a[n-3], ..., a[0] using the fact that the polynomial is totally real
-    by looking at the zeros of successive derivatives and applying
-    Rolle's theorem!
-
-    See references in totallyreal.py.
+        sage: ZZx = ZZ['x']
+        sage: F.<t> = NumberField(x^2-2)
+        sage: enumerate_totallyreal_fields_rel(F, 2, 2000)
+        [[1600, x^4 - 6*x^2 + 4, xF^2 + xF - 1]]
 
     AUTHORS:
+
     - John Voight (2007-11-01)
     """
 
@@ -805,7 +829,7 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0, return_seqs=Fal
             K = F.extension(Fx([-1,6,-5,1]), 'tK')
             Kabs = K.absolute_field('tKabs')
             Kabs_pari = pari(Kabs.defining_polynomial())
-            d = K.disc()
+            d = K.absolute_discriminant()
             if abs(d) <= B:
                 ng = Kabs_pari.polredabs()
                 ind = bisect.bisect_left(S, [d,ng])
@@ -835,8 +859,19 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0, return_seqs=Fal
 
 def enumerate_totallyreal_fields_all(n, B, verbose=0, return_seqs=False):
     r"""
-    Enumerates all totally real fields of degree n with discriminant <= B.
-    See enumerate_totallyreal_fields_prim() for examples.
+    Enumerates *all* totally real fields of degree `n` with discriminant `\le B`,
+    primitive or otherwise.
+
+    EXAMPLES::
+
+        sage: enumerate_totallyreal_fields_all(4, 2000)
+        [[725, x^4 - x^3 - 3*x^2 + x + 1],
+        [1125, x^4 - x^3 - 4*x^2 + 4*x + 1],
+        [1600, x^4 - 6*x^2 + 4],
+        [1957, x^4 - 4*x^2 - x + 1],
+        [2000, x^4 - 5*x^2 + 5]]
+
+    In practice most of these will be found by :func:`~sage.rings.number_field.totallyreal.enumerate_totallyreal_fields_prim`, which is guaranteed to return all primitive fields but often returns many non-primitive ones as well. For instance, only one of the five fields in the example above is primitive, but :func:`~sage.rings.number_field.totallyreal.enumerate_totallyreal_fields_prim` finds four out of the five (the exception being `x^4 - 6x^2 + 4`).
     """
 
     S = []

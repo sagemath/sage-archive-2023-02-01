@@ -56,10 +56,6 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
         sage: i = K.ideal(38); i
         Fractional ideal (38)
 
-    .. warning::
-
-       Ideals in relative number fields are broken::
-
         sage: K.<a0, a1> = NumberField([x^2 + 1, x^2 + 2]); K
         Number Field in a0 with defining polynomial x^2 + 1 over its base field
         sage: i = K.ideal([a0+1]); i # random
@@ -70,6 +66,13 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
         True
         sage: ((a0 + 1) / g).is_integral()
         True
+
+    TESTS: one test fails, because ideals aren't fully integrated into the categories framework yet::
+
+        sage: TestSuite(i).run()
+        Failure in _test_category:
+        ...
+        The following tests failed: _test_category
     """
     def __cmp__(self, other):
         """
@@ -97,7 +100,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
 
             sage: K.<a, b> = NumberField([x^2 + 23, x^2 - 7])
             sage: I = K.ideal(2, (a + 2*b + 3)/2)
-            sage: [z in I for z in [a, b, 2, a + b]]
+            sage: [z in I for z in [a, b, 2, a + b]] # indirect doctest
             [False, False, True, True]
         """
         abs_ideal = self.absolute_ideal()
@@ -108,6 +111,13 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
         """
         Return PARI's representation of this relative ideal in Hermite
         normal form.
+
+        EXAMPLE::
+
+            sage: K.<a, b> = NumberField([x^2 + 23, x^2 - 7])
+            sage: I = K.ideal(2, (a + 2*b + 3)/2)
+            sage: I.pari_rhnf()
+            [[1, -2; 0, 1], [[2, 1; 0, 1], [1/2, 0; 0, 1/2]]]
         """
         try:
             return self.__pari_rhnf
@@ -206,9 +216,37 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
         return L.ideal(map(to_L, id.gens()))
 
     def free_module(self):
+        r"""
+        Return this ideal as a `\ZZ`-submodule of the `\QQ`-vector
+        space corresponding to the ambient number field.
+
+        EXAMPLES::
+
+            sage: K.<a, b> = NumberField([x^3 - x + 1, x^2 + 23])
+            sage: I = K.ideal(a*b - 1)
+            sage: I.free_module()
+            Free module of degree 6 and rank 6 over Integer Ring
+            User basis matrix:
+            ...
+            sage: I.free_module().is_submodule(K.maximal_order().free_module())
+            True
+
+        """
         return self.absolute_ideal().free_module()
 
     def gens_reduced(self):
+        r"""
+        Return a small set of generators for this ideal. This will always
+        return a single generator if one exists (i.e. if the ideal is
+        principal), and otherwise two generators.
+
+        EXAMPLE::
+
+            sage: K.<a, b> = NumberField([x^2 + 1, x^2 - 2])
+            sage: I = K.ideal((a + 1)*b/2 + 1)
+            sage: I.gens_reduced()
+            (1/2*b*a + 1/2*b + 1,)
+        """
         try:
             ## Compute the single generator, if it exists
             dummy = self.is_principal()
@@ -272,6 +310,17 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             return self.__is_principal
 
     def is_zero(self):
+        r"""
+        Return True if this is the zero ideal.
+
+        EXAMPLE::
+
+            sage: K.<a, b> = NumberField([x^2 + 3, x^3 + 4])
+            sage: K.ideal(17).is_zero()
+            False
+            sage: K.ideal(0).is_zero()
+            True
+        """
         zero = self.number_field().pari_rnf().rnfidealhnf(0)
         return self.pari_rhnf() == zero
 
@@ -332,6 +381,14 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
         The norm of a fractional ideal in a relative number field is deliberately
         unimplemented, so that a user cannot mistake the absolute norm
         for the relative norm, or vice versa.
+
+        EXAMPLE::
+
+            sage: K.<a, b> = NumberField([x^2 + 1, x^2 - 2])
+            sage: K.ideal(2).norm()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: For a fractional ideal in a relative number field you must use relative_norm or absolute_norm as appropriate
         """
         raise NotImplementedError, "For a fractional ideal in a relative number field you must use relative_norm or absolute_norm as appropriate"
 
@@ -592,9 +649,10 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             sage: I = K.ideal(3, c)
             sage: I.relative_ramification_index()
             2
-            sage: I.ideal_below()
-            Fractional ideal (-b)  # 32-bit
-            Fractional ideal (b)   # 64-bit
+            sage: I.ideal_below()  # random sign
+            Fractional ideal (b)
+            sage: I.ideal_below() == K.ideal(b)
+            True
             sage: K.ideal(b) == I^2
             True
         """
@@ -608,8 +666,16 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
         r"""
         For ideals in relative number fields, ``ramification_index``
         is deliberately not implemented in order to avoid ambiguity.
-        Either ``relative_ramification_index`` or
-        ``absolute_ramification_index`` should be used instead.
+        Either :meth:`~relative_ramification_index` or
+        :meth:`~absolute_ramification_index` should be used instead.
+
+        EXAMPLE::
+
+            sage: K.<a, b> = NumberField([x^2 + 1, x^2 - 2])
+            sage: K.ideal(2).ramification_index()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: For an ideal in a relative number field you must use relative_ramification_index or absolute_ramification_index as appropriate
         """
         raise NotImplementedError, "For an ideal in a relative number field you must use relative_ramification_index or absolute_ramification_index as appropriate"
 

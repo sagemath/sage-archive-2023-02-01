@@ -29,8 +29,6 @@ cdef class NumberFieldElement(FieldElement):
     cdef void _ntl_coeff_as_mpz(self, mpz_t* z, long i)
     cdef void _ntl_denom_as_mpz(self, mpz_t* z)
 
-    # _parent_poly_c_ is deprecated -- refer to doc-string
-    cdef void _parent_poly_c_(self, ZZX_c *num, ZZ_c *den)
     cdef void _invert_c_(self, ZZX_c *num, ZZ_c *den)
     cdef void _reduce_c_(self)
     cpdef ModuleElement _add_(self, ModuleElement right)

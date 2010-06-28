@@ -4,6 +4,7 @@ Algebraic Number Fields
 .. toctree::
    :maxdepth: 2
 
+   sage/rings/number_field/number_field_base
    sage/rings/number_field/number_field
    sage/rings/number_field/number_field_rel
    sage/rings/number_field/number_field_element
@@ -18,4 +19,6 @@ Algebraic Number Fields
    sage/rings/number_field/galois_group
    sage/rings/number_field/unit_group
    sage/rings/number_field/small_primes_of_degree_one
+   sage/rings/number_field/totallyreal
+   sage/rings/number_field/totallyreal_rel
    sage/rings/qqbar

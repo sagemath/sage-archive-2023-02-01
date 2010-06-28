@@ -2685,11 +2685,21 @@ class QuotientMap:
     Class to hold data needed by quotient maps from number field
     orders to residue fields.  These are only partial maps: the exact
     domain is the appropriate valuation ring.  For examples, see
-    residue_field().
+    :meth:`~sage.rings.number_field.number_field_ideal.NumberFieldFractionalIdeal.residue_field`.
     """
     def __init__(self, K, M_OK_change, Q, I):
         """
         Initialize this QuotientMap.
+
+        EXAMPLE::
+
+            sage: K.<a> = NumberField(x^3 + 4)
+            sage: f = K.ideal(1 + a^2/2).residue_field().reduction_map(); f # indirect doctest
+            Partially defined reduction map:
+              From: Number Field in a with defining polynomial x^3 + 4
+              To:   Residue field of Fractional ideal (1/2*a^2 + 1)
+            sage: f.__class__
+            <type 'sage.rings.residue_field.ReductionMap'>
         """
         self.__M_OK_change = M_OK_change
         self.__Q = Q
@@ -2702,7 +2712,15 @@ class QuotientMap:
         Apply this QuotientMap to an element of the number field.
 
         INPUT:
+
             x -- an element of the field
+
+        EXAMPLE::
+
+            sage: K.<a> = NumberField(x^3 + 4)
+            sage: f = K.ideal(1 + a^2/2).residue_field().reduction_map()
+            sage: f(a)
+            2
         """
         v = self.__to_L(x)
         w = v * self.__M_OK_change
@@ -2711,6 +2729,13 @@ class QuotientMap:
     def __repr__(self):
         """
         Return a string representation of this QuotientMap.
+
+        EXAMPLE::
+
+            sage: K.<a> = NumberField(x^3 + 4)
+            sage: f = K.ideal(1 + a^2/2).residue_field().reduction_map()
+            sage: repr(f)
+            'Partially defined reduction map:\n  From: Number Field in a with defining polynomial x^3 + 4\n  To:   Residue field of Fractional ideal (1/2*a^2 + 1)'
         """
         return "Partially defined quotient map from %s to an explicit vector space representation for the quotient of the ring of integers by (p,I) for the ideal I=%s."%(self.__K, self.__I)
 
@@ -2722,6 +2747,14 @@ class LiftMap:
     def __init__(self, OK, M_OK_map, Q, I):
         """
         Initialize this LiftMap.
+
+        EXAMPLE::
+
+            sage: K.<a> = NumberField(x^3 + 4)
+            sage: I = K.ideal(1 + a^2/2)
+            sage: f = I.residue_field().lift_map()
+            sage: f.__class__
+            <type 'sage.rings.residue_field.LiftingMap'>
         """
         self.__I = I
         self.__OK = OK
@@ -2731,6 +2764,14 @@ class LiftMap:
     def __call__(self, x):
         """
         Apply this LiftMap to an element of the residue field.
+
+        EXAMPLE::
+
+            sage: K.<a> = NumberField(x^3 + 4)
+            sage: R = K.ideal(1 + a^2/2).residue_field()
+            sage: f = R.lift_map()
+            sage: f(R(a/17))
+            1
         """
         # This lifts to OK tensor F_p
         v = self.__Q.lift(x)
@@ -2743,6 +2784,13 @@ class LiftMap:
     def __repr__(self):
         """
         Return a string representation of this QuotientMap.
+
+        EXAMPLE::
+
+            sage: K.<a> = NumberField(x^3 + 4)
+            sage: R = K.ideal(1 + a^2/2).residue_field()
+            sage: repr(R.lift_map())
+            'Lifting map:\n  From: Residue field of Fractional ideal (1/2*a^2 + 1)\n  To:   Maximal Order in Number Field in a with defining polynomial x^3 + 4'
         """
         return "Lifting map to %s from quotient of integers by %s"%(self.__OK, self.__I)
 

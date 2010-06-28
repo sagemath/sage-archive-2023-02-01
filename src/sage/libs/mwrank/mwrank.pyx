@@ -338,7 +338,7 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
             sage: from sage.libs.mwrank.mwrank import _Curvedata
             sage: E = _Curvedata(1,2,3,4,5)
             sage: E.silverman_bound()
-            6.5222617951910102
+            6.52226179519101...
             sage: type(E.silverman_bound())
             <type 'float'>
         """
@@ -370,7 +370,7 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
         Note that this is a better bound than Silverman's in this case::
 
             sage: E.silverman_bound()
-            6.5222617951910102
+            6.52226179519101...
         """
         cdef double x
         # We declare x so there are *no* Python library

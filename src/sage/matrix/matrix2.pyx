@@ -4040,14 +4040,17 @@ cdef class Matrix(matrix1.Matrix):
 
     left_eigenvectors = eigenvectors_left
 
-    def eigenvectors_right(self):
+    def eigenvectors_right(self, extend=True):
         r"""
         Compute the right eigenvectors of a matrix.
 
         For each distinct eigenvalue, returns a list of the form (e,V,n)
         where e is the eigenvalue, V is a list of eigenvectors forming a
         basis for the corresponding right eigenspace, and n is the
-        algebraic multiplicity of the eigenvalue.
+        algebraic multiplicity of the eigenvalue. If ``extend = True``
+        (the default), this will return eigenspaces over the algebraic
+        closure of the base field where this is implemented; otherwise
+        it will restrict to eigenvalues in the base field.
 
         EXAMPLES: We compute the right eigenvectors of a
         `3\times 3` rational matrix.
@@ -4064,12 +4067,16 @@ cdef class Matrix(matrix1.Matrix):
             ], 1),
             (-1.348469228349535?, [(1, 0.1303061543300932?, -0.7393876913398137?)], 1),
             (13.34846922834954?, [(1, 3.069693845669907?, 5.139387691339814?)], 1)]
+            sage: A.eigenvectors_right(extend=False)
+            [(0, [
+            (1, -2, 1)
+            ], 1)]
             sage: eval, [evec], mult = es[0]
             sage: delta = eval*evec - A*evec
             sage: abs(abs(delta)) < 1e-10
             True
         """
-        return self.transpose().eigenvectors_left()
+        return self.transpose().eigenvectors_left(extend=extend)
 
     right_eigenvectors = eigenvectors_right
 

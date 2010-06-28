@@ -44,6 +44,7 @@ import sage.matrix.all as matrix
 import sage.misc.misc as misc
 import sage.modules.free_module as free_module
 import matrix_morphism
+from sage.structure.sequence import Sequence
 
 import free_module_homspace
 
@@ -378,23 +379,24 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
         return t
 
     def eigenvalues(self,extend=True):
-        """
+        r"""
         Returns a list with the eigenvalues of the endomorphism of vector spaces.
 
-        If the option extend is set to True (default), then eigenvalues in extensions
-        of the base field are considered.
+        INPUT:
+
+        - ``extend`` -- boolean (default: True) decides if base field
+          extensions should be considered or not.
 
         EXAMPLES:
 
-        We compute the eigenvalues of an endomorphism of QQ^3::
+        We compute the eigenvalues of an endomorphism of `\QQ^3`::
 
             sage: V=QQ^3
             sage: H=V.endomorphism_ring()([[1,-1,0],[-1,1,1],[0,3,1]])
             sage: H.eigenvalues()
             [3, 1, -1]
 
-
-        Note the effect of the extend option::
+        Note the effect of the ``extend`` option::
 
             sage: V=QQ^2
             sage: H=V.endomorphism_ring()([[0,-1],[1,0]])
@@ -402,9 +404,6 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
             [-1*I, 1*I]
             sage: H.eigenvalues(extend=False)
             []
-
-
-
         """
         if self.base_ring().is_field():
             if self.is_endomorphism():
@@ -420,13 +419,14 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
 
         INPUT:
 
-        - extend (True) decides if base field extensions should be considered or not.
+        - ``extend`` -- boolean (default: True) decides if base field
+          extensions should be considered or not.
 
         OUTPUT:
 
-        A sequence of tuples. Each tuple contains an eigenvalue, a list with a basis
-        of the corresponding subspace of eigenvectors, and the algebraic multiplicity
-        of the eigenvalue.
+        A sequence of tuples. Each tuple contains an eigenvalue, a sequence
+        with a basis of the corresponding subspace of eigenvectors, and the
+        algebraic multiplicity of the eigenvalue.
 
         EXAMPLES:
 
@@ -436,14 +436,30 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
             sage: V=(QQ^4).subspace([[0,2,1,4],[1,2,5,0],[1,1,1,1]])
             sage: H=(V.Hom(V))([[0,1,0],[-1,0,0],[0,0,3]])
             sage: H.eigenvectors()
-            [(3, [(0, 0, 1, -6/7)], 1), (-1*I, [(1, 1*I, 0, -0.571428571428572? + 2.428571428571429?*I)], 1), (1*I, [(1, -1*I, 0, -0.571428571428572? - 2.428571428571429?*I)], 1)]
+            [(3, [
+            (0, 0, 1, -6/7)
+            ], 1), (-1*I, [
+            (1, 1*I, 0, -0.571428571428572? + 2.428571428571429?*I)
+            ], 1), (1*I, [
+            (1, -1*I, 0, -0.571428571428572? - 2.428571428571429?*I)
+            ], 1)]
             sage: H.eigenvectors(extend=False)
-            [(3, [(0, 0, 1, -6/7)], 1)]
+            [(3, [
+            (0, 0, 1, -6/7)
+            ], 1)]
             sage: H1=(V.Hom(V))([[2,1,0],[0,2,0],[0,0,3]])
             sage: H1.eigenvectors()
-            [(3, [(0, 0, 1, -6/7)], 1), (2, [(0, 1, 0, 17/7)], 2)]
+            [(3, [
+            (0, 0, 1, -6/7)
+            ], 1), (2, [
+            (0, 1, 0, 17/7)
+            ], 2)]
             sage: H1.eigenvectors(extend=False)
-            [(3, [(0, 0, 1, -6/7)], 1), (2, [(0, 1, 0, 17/7)], 2)]
+            [(3, [
+            (0, 0, 1, -6/7)
+            ], 1), (2, [
+            (0, 1, 0, 17/7)
+            ], 2)]
 
 
         """
@@ -453,8 +469,8 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
                 resu=[]
                 for i in seigenvec:
                     V=self.domain().base_extend(i[0].parent())
-                    svectors=map(lambda j: V(j * V.basis_matrix()),i[1])
-                    resu.append(tuple([i[0],svectors,i[2]]))
+                    svectors=Sequence(map(lambda j: V(j * V.basis_matrix()),i[1]), cr=True)
+                    resu.append((i[0],svectors,i[2]))
                 return resu
             else:
                 raise TypeError, "not an endomorphism"
@@ -468,7 +484,7 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
 
         INPUT:
 
-        - ``var`` - string (default: 'x') a variable
+        - ``var`` - string (default: 'x') a variable name
 
         OUTPUT:
 
@@ -504,3 +520,4 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
             return self.matrix().minpoly(var)
         else:
             raise TypeError, "not an endomorphism"
+

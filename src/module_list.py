@@ -807,7 +807,7 @@ ext_modules = [
     Extension('sage.matrix.matrix_mod2_dense',
               sources = ['sage/matrix/matrix_mod2_dense.pyx'],
               libraries = ['gmp','m4ri', 'gd', 'png12', 'z'],
-              depends = [SAGE_ROOT + "/local/include/png.h"]),
+              depends = [SAGE_ROOT + "/local/include/png.h", SAGE_ROOT + "/local/include/m4ri/m4ri.h"]),
 
     Extension('sage.matrix.matrix_modn_dense',
               sources = ['sage/matrix/matrix_modn_dense.pyx'],
@@ -995,7 +995,7 @@ ext_modules = [
     Extension('sage.modules.vector_mod2_dense',
               sources = ['sage/modules/vector_mod2_dense.pyx'],
               libraries = ['gmp','m4ri', 'png12', 'gd'],
-              depends = [SAGE_ROOT + "/local/include/png.h"]),
+              depends = [SAGE_ROOT + "/local/include/png.h", SAGE_ROOT + "/local/include/m4ri/m4ri.h"]),
 
     Extension('sage.modules.vector_rational_dense',
               sources = ['sage/modules/vector_rational_dense.pyx'],

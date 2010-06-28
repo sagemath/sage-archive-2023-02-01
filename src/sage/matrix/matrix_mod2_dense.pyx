@@ -1010,15 +1010,16 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
     #    * Matrix windows -- only if you need strassen for that base
     ########################################################################
 
-    def echelonize(self, algorithm='m4ri', cutoff=0, reduced=True, **kwds):
+    def echelonize(self, algorithm='heuristic', cutoff=0, reduced=True, **kwds):
         """
         Puts self in (reduced) row echelon form.
 
         INPUT:
             self -- a mutable matrix
-            algorithm -- 'm4ri' -- uses M4RI (default)
-                         'classical' -- uses classical Gaussian elimination
+            algorithm -- 'heuristic' -- uses M4RI and PLUQ (default)
+                         'm4ri' -- uses M4RI
                          'pluq' -- uses PLUQ factorization
+                         'classical' -- uses classical Gaussian elimination
             k --  the parameter 'k' of the M4RI algorithm. It MUST be between
                   1 and 16 (inclusive). If it is not specified it will be calculated as
                   3/4 * log_2( min(nrows, ncols) ) as suggested in the M4RI paper.
@@ -1066,7 +1067,20 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         x = self.fetch('in_echelon_form')
         if not x is None: return  # already known to be in echelon form
 
-        if algorithm == 'm4ri':
+        if algorithm == 'heuristic':
+
+            self.check_mutability()
+            self.clear_cache()
+
+            _sig_on
+            r =  mzd_echelonize(self._entries, full)
+            _sig_off
+
+            self.cache('in_echelon_form',True)
+            self.cache('rank', r)
+            self.cache('pivots', self._pivots())
+
+        elif algorithm == 'm4ri':
 
             self.check_mutability()
             self.clear_cache()
@@ -1078,10 +1092,6 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
                     raise RuntimeError,"k must be between 1 and 16"
                 k = round(k)
             else:
-                #n = min(self._nrows, self._ncols)
-                #k = round(min(0.75 * log(n,2), 16))
-                #if k<1:
-                #    k = 1
                 k = 0
 
             _sig_on
@@ -1681,7 +1691,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: float(d)
             0.63184899999999999
             sage: A.density(approx=True)
-            0.631445000000000
+            0.631849000000000
             sage: float(len(A.nonzero_positions())/1000^2)
             0.63184899999999999
         """
@@ -1691,18 +1701,18 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         else:
             return matrix_dense.Matrix_dense.density(self)
 
-    def rank(self, algorithm='lqup'):
+    def rank(self, algorithm='pls'):
         """
         Return the rank of this matrix.
 
-        On average 'lqup' should be faster than 'm4ri' and hence it is
+        On average 'pls' should be faster than 'm4ri' and hence it is
         the default choice. However, for small - i.e. quite few
         thousand rows & columns - and sparse matrices 'm4ri' might be
         a better choice.
 
         INPUT:
 
-        - ``algorithm`` - either "lqup" or "m4ri"
+        - ``algorithm`` - either "pls" or "m4ri"
 
         EXAMPLE::
 
@@ -1722,10 +1732,10 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef mzd_t *A = mzd_copy(NULL, self._entries)
         cdef mzp_t *P, *Q
 
-        if algorithm == 'lqup':
+        if algorithm == 'pls':
             P = mzp_init(self._entries.nrows)
             Q = mzp_init(self._entries.ncols)
-            r = mzd_lqup(A, P, Q, 0)
+            r = mzd_pls(A, P, Q, 0)
             mzp_free(P)
             mzp_free(Q)
         elif algorithm == 'm4ri':
@@ -2060,9 +2070,9 @@ def pluq(Matrix_mod2_dense A, algorithm="standard", int param=0):
     mzp_free(q)
     return B,P,Q
 
-def lqup(Matrix_mod2_dense A, algorithm="standard", int param=0):
+def pls(Matrix_mod2_dense A, algorithm="standard", int param=0):
     """
-    Return LQUP factorization of A.
+    Return PLS factorization of A.
 
     INPUT:
         A -- matrix
@@ -2074,14 +2084,14 @@ def lqup(Matrix_mod2_dense A, algorithm="standard", int param=0):
 
     EXAMPLE::
 
-        sage: from sage.matrix.matrix_mod2_dense import lqup
+        sage: from sage.matrix.matrix_mod2_dense import pls
         sage: A = random_matrix(GF(2),4,4); A
         [1 0 0 1]
         [1 1 0 1]
         [0 1 0 1]
         [0 1 1 0]
 
-        sage: LU, P, Q = lqup(A)
+        sage: LU, P, Q = pls(A)
         sage: LU
         [1 0 0 1]
         [1 1 0 0]
@@ -2095,7 +2105,7 @@ def lqup(Matrix_mod2_dense A, algorithm="standard", int param=0):
         [0, 1, 2, 3]
 
         sage: A = random_matrix(GF(2),1000,1000)
-        sage: lqup(A) == lqup(A,'mmpf') == lqup(A,'naive')
+        sage: pls(A) == pls(A,'mmpf') == pls(A,'naive')
         True
     """
     cdef Matrix_mod2_dense B = A.__copy__()
@@ -2104,15 +2114,15 @@ def lqup(Matrix_mod2_dense A, algorithm="standard", int param=0):
 
     if algorithm == 'standard':
         _sig_on
-        mzd_lqup(B._entries, p, q, param)
+        mzd_pls(B._entries, p, q, param)
         _sig_off
     elif algorithm == "mmpf":
         _sig_on
-        _mzd_lqup_mmpf(B._entries, p, q, param)
+        _mzd_pls_mmpf(B._entries, p, q, param)
         _sig_off
     elif algorithm == "naive":
         _sig_on
-        _mzd_lqup_naive(B._entries, p, q)
+        _mzd_pls_naive(B._entries, p, q)
         _sig_off
     else:
         raise ValueError("Algorithm '%s' unknown."%algorithm)

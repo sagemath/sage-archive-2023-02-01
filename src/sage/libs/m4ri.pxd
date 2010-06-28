@@ -141,6 +141,9 @@ cdef extern from "m4ri/m4ri.h":
     # reduced row echelon form from upper triangular form
     cdef void mzd_top_echelonize_m4ri(mzd_t *m, int k)
 
+    # heuristic choice of algorithms
+    cdef int mzd_echelonize(mzd_t *m, int full)
+
     # matrix inversion using Gray codes
     cdef mzd_t *mzd_invert_m4ri(mzd_t *m, mzd_t *identity, int k)
 
@@ -153,14 +156,14 @@ cdef extern from "m4ri/m4ri.h":
     # cubic PLUQ factorization
     cdef long _mzd_pluq_naive(mzd_t *A, mzp_t *P, mzp_t *Q)
 
-    # asymptotically fast LQUP factorization
-    cdef long mzd_lqup(mzd_t *A, mzp_t *P, mzp_t *Q, int cutoff)
+    # asymptotically fast PLS factorization
+    cdef long mzd_pls(mzd_t *A, mzp_t *P, mzp_t *Q, int cutoff)
 
-    # LQUP factorization using Gray codes
-    cdef long _mzd_lqup_mmpf(mzd_t *A, mzp_t *P, mzp_t *Q, int k)
+    # PLS factorization using Gray codes
+    cdef long _mzd_pls_mmpf(mzd_t *A, mzp_t *P, mzp_t *Q, int k)
 
-    # cubic LQUP factorization
-    cdef long _mzd_lqup_naive(mzd_t *A, mzp_t *P, mzp_t *Q)
+    # cubic PLS factorization
+    cdef long _mzd_pls_naive(mzd_t *A, mzp_t *P, mzp_t *Q)
 
     # reduced row echelon form using PLUQ factorization
     cdef long mzd_echelonize_pluq(mzd_t *A, int full)

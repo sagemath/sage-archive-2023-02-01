@@ -797,7 +797,8 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
 
     def __invert__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K.<a> = NumberField(x^2-5)
             sage: ~a
             1/5*a
@@ -813,7 +814,22 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             21/41*a + 14/41
             sage: (3*a-2)/7 * b
             1
+
+        This fixes ticket #9357::
+
+            sage: K.<a> = NumberField(x^2+1)
+            sage: d = K(0)
+            sage: ~d
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError
+            sage: K.random_element()/d
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError
         """
+        if mpz_cmp_ui(self.a, 0) == 0 and mpz_cmp_ui(self.b, 0) == 0:
+            raise ZeroDivisionError
         cdef NumberFieldElement_quadratic res = <NumberFieldElement_quadratic>self._new()
         cdef mpz_t tmp, gcd
         mpz_init(tmp)

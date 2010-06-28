@@ -40,9 +40,17 @@ include "sage/misc/bitset_pxd.pxi"
 include "sage/misc/bitset.pxi"
 include "../ext/python_string.pxi"
 
-# for details about the implementation of walsh_hadamard transform,
-# reed_muller transform, and a lot more, see 'Matters computational'
-# available on www.jjj.de
+# for details about the implementation of hamming_weight_int,
+# walsh_hadamard transform, reed_muller transform, and a lot
+# more, see 'Matters computational' available on www.jjj.de.
+
+cdef inline unsigned int hamming_weight_int(unsigned int x):
+    # valid for 32bits
+    x -=  (x>>1) & 0x55555555UL                        # 0-2 in 2 bits
+    x  = ((x>>2) & 0x33333333UL) + (x & 0x33333333UL)  # 0-4 in 4 bits
+    x  = ((x>>4) + x) & 0x0f0f0f0fUL                   # 0-8 in 8 bits
+    x *= 0x01010101UL
+    return x>>24
 
 cdef walsh_hadamard(long *f, int ldn):
     """
@@ -208,14 +216,13 @@ cdef class BooleanFunction(SageObject):
     """
 
     cdef bitset_t _truth_table
-    cdef _walsh_hadamard_transform
-    cdef _nvariables
-    cdef _nonlinearity
-    cdef _correlation_immunity
-    cdef _autocorrelation
-    cdef _absolut_indicator
-    cdef _sum_of_square_indicator
-    cdef long index
+    cdef object _walsh_hadamard_transform
+    cdef object _nvariables
+    cdef object _nonlinearity
+    cdef object _correlation_immunity
+    cdef object _autocorrelation
+    cdef object _absolut_indicator
+    cdef object _sum_of_square_indicator
 
     def __cinit__(self, x):
         r"""
@@ -730,6 +737,30 @@ cdef class BooleanFunction(SageObject):
         """
         return self.walsh_hadamard_transform()[0] == 0
 
+    def is_symmetric(self):
+        """
+        Return True if the function is symmetric, i.e. invariant under
+        permutation of its input bits. Another way to see it is that the
+        output depends only on the Hamming weight of the input.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.boolean_function import BooleanFunction
+            sage: B = BooleanFunction(5)
+            sage: B[3] = 1
+            sage: B.is_symmetric()
+            False
+            sage: V_B = [0, 1, 1, 0, 1, 0]
+            sage: for i in srange(32): B[i] = V_B[i.popcount()]
+            sage: B.is_symmetric()
+            True
+        """
+        cdef list T = [ self(2**i-1) for i in range(self._nvariables+1) ]
+        for i in xrange(2**self._nvariables):
+            if T[ hamming_weight_int(i) ] != bitset_in(self._truth_table, i):
+                return False
+        return True
+
     def nonlinearity(self):
         """
         Return the nonlinearity of the function. This is the distance
@@ -782,13 +813,14 @@ cdef class BooleanFunction(SageObject):
             sage: B.correlation_immunity()
             2
         """
+        cdef int c
         if self._correlation_immunity is None:
             c = self._nvariables
             W = self.walsh_hadamard_transform()
             for 0 < i < len(W):
                 if (W[i] != 0):
-                    c = min( c , ZZ(i).popcount() )
-            self._correlation_immunity = c-1
+                    c = min( c , hamming_weight_int(i) )
+            self._correlation_immunity = ZZ(c-1)
         return self._correlation_immunity
 
     def resiliency_order(self):

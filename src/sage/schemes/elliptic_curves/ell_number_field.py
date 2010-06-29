@@ -91,6 +91,7 @@ REFERENCE:
 
 from ell_field import EllipticCurve_field
 import ell_point
+import sage.matrix.all as matrix
 from sage.rings.ring import Ring
 from sage.rings.arith import lcm, gcd
 from sage.misc.misc import prod
@@ -100,7 +101,7 @@ from ell_generic import is_EllipticCurve
 
 from gp_simon import simon_two_descent
 from constructor import EllipticCurve
-from sage.rings.all import PolynomialRing, QQ, ZZ, is_Ideal, is_NumberFieldElement, is_NumberFieldFractionalIdeal,is_NumberField, GF, prime_range
+from sage.rings.all import PolynomialRing, QQ, ZZ, is_Ideal, is_NumberFieldElement, is_NumberFieldFractionalIdeal,is_NumberField, GF, prime_range, RealField
 from sage.misc.misc import verbose, forall
 from sage.misc.functional import ideal
 from kodaira_symbol import KodairaSymbol
@@ -274,6 +275,189 @@ class EllipticCurve_number_field(EllipticCurve_field):
         two_selmer_rank = Integer(t[1])
         prob_gens = [self(P) for P in t[2]]
         return prob_rank, two_selmer_rank, prob_gens
+
+    def height_pairing_matrix(self, points=None, precision=None):
+        r"""
+        Returns the height pairing matrix of the given points.
+
+        INPUT:
+
+        - points - either a list of points, which must be on this
+          curve, or (default) None, in which case self.gens() will be
+          used.
+
+        - precision - number of bits of precision of result
+          (default: None, for default RealField precision)
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve([0, 0, 1, -1, 0])
+            sage: E.height_pairing_matrix()
+            [0.0511114082399688]
+
+        For rank 0 curves, the result is a valid 0x0 matrix::
+
+            sage: EllipticCurve('11a').height_pairing_matrix()
+            []
+            sage: E=EllipticCurve('5077a1')
+            sage: E.height_pairing_matrix([E.lift_x(x) for x in [-2,-7/4,1]], precision=100)
+            [  1.3685725053539301120518194471  -1.3095767070865761992624519454 -0.63486715783715592064475542573]
+            [ -1.3095767070865761992624519454   2.7173593928122930896610589220   1.0998184305667292139777571432]
+            [-0.63486715783715592064475542573   1.0998184305667292139777571432  0.66820516565192793503314205089]
+
+            sage: E = EllipticCurve('389a1')
+            sage: E = EllipticCurve('389a1')
+            sage: P,Q = E.point([-1,1,1]),E.point([0,-1,1])
+            sage: E.height_pairing_matrix([P,Q])
+            [0.686667083305587 0.268478098806726]
+            [0.268478098806726 0.327000773651605]
+
+        Over a number field::
+
+            sage: x = polygen(QQ)
+            sage: K.<t> = NumberField(x^2+47)
+            sage: EK = E.base_extend(K)
+            sage: EK.height_pairing_matrix([EK(P),EK(Q)])
+            [0.686667083305586 0.268478098806726]
+            [0.268478098806726 0.327000773651605]
+
+        ::
+
+            sage: K.<i> = QuadraticField(-1)
+            sage: E = EllipticCurve([0,0,0,i,i])
+            sage: P, Q = E.simon_two_descent()[2]
+            sage: E.height_pairing_matrix([P,Q])
+            [0.770335599645036 0.440758796326832]
+            [0.440758796326832  2.16941934493768]
+            sage: E.regulator_of_points([P,Q])
+            1.47691263542463
+
+        ::
+
+            sage: K.<i> = QuadraticField(-1)
+            sage: E = EllipticCurve([0,0,0,i,i])
+            sage: P, Q = E.simon_two_descent()[2]
+            sage: E.height_pairing_matrix([P,Q])
+            [0.770335599645036 0.440758796326832]
+            [0.440758796326832  2.16941934493768]
+
+        """
+        if points is None:
+            points = self.gens()
+        else:
+            for P in points:
+                assert P.curve() == self
+
+        r = len(points)
+        if precision is None:
+            RR = RealField()
+        else:
+            RR = RealField(precision)
+        M = matrix.MatrixSpace(RR, r)
+        mat = M()
+        for j in range(r):
+            mat[j,j] = points[j].height(precision=precision)
+        for j in range(r):
+            for k in range(j+1,r):
+                mat[j,k]=((points[j]+points[k]).height(precision=precision) - mat[j,j] - mat[k,k])/2
+                mat[k,j]=mat[j,k]
+        return mat
+
+    def regulator_of_points(self, points=[], precision=None):
+        """
+        Returns the regulator of the given points on this curve.
+
+        INPUT:
+
+        - ``points`` -(default: empty list)  a list of points on this curve
+
+        - ``precision`` - int or None (default: None): the precision
+          in bits of the result (default real precision if None)
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('37a1')
+            sage: P = E(0,0)
+            sage: Q = E(1,0)
+            sage: E.regulator_of_points([P,Q])
+            0.000000000000000
+            sage: 2*P==Q
+            True
+
+        ::
+
+            sage: E = EllipticCurve('5077a1')
+            sage: points = [E.lift_x(x) for x in [-2,-7/4,1]]
+            sage: E.regulator_of_points(points)
+            0.417143558758384
+            sage: E.regulator_of_points(points,precision=100)
+            0.41714355875838396981711954462
+
+        ::
+
+            sage: E = EllipticCurve('389a')
+            sage: E.regulator_of_points()
+            1.00000000000000
+            sage: points = [P,Q] = [E(-1,1),E(0,-1)]
+            sage: E.regulator_of_points(points)
+            0.152460177943144
+            sage: E.regulator_of_points(points, precision=100)
+            0.15246017794314375162432475705
+            sage: E.regulator_of_points(points, precision=200)
+            0.15246017794314375162432475704945582324372707748663081784028
+            sage: E.regulator_of_points(points, precision=300)
+            0.152460177943143751624324757049455823243727077486630817840280980046053225683562463604114816
+
+        Examples over number fields::
+
+            sage: K.<a> = QuadraticField(97)
+            sage: E = EllipticCurve(K,[1,1])
+            sage: P = E(0,1)
+            sage: P.height()
+            0.476223106404866
+            sage: E.regulator_of_points([P])
+            0.476223106404866
+
+        ::
+
+            sage: E = EllipticCurve('11a1')
+            sage: x = polygen(QQ)
+            sage: K.<t> = NumberField(x^2+47)
+            sage: EK = E.base_extend(K)
+            sage: T = EK(5,5)
+            sage: T.order()
+            5
+            sage: P = EK(-2, -1/2*t - 1/2)
+            sage: P.order()
+            +Infinity
+            sage: EK.regulator_of_points([P,T])
+            -1.23259516440783e-32
+
+        ::
+
+            sage: E = EllipticCurve('389a1')
+            sage: P,Q = E.gens()
+            sage: E.regulator_of_points([P,Q])
+            0.152460177943144
+            sage: K.<t> = NumberField(x^2+47)
+            sage: EK = E.base_extend(K)
+            sage: EK.regulator_of_points([EK(P),EK(Q)])
+            0.152460177943144
+
+        ::
+
+            sage: K.<i> = QuadraticField(-1)
+            sage: E = EllipticCurve([0,0,0,i,i])
+            sage: P, Q = E.simon_two_descent()[2]
+            sage: E.regulator_of_points([P,Q])
+            1.47691263542463
+
+        """
+        if points is None:
+            points = []
+        mat = self.height_pairing_matrix(points=points, precision=precision)
+        return mat.det(algorithm="hessenberg")
+
 
     def is_local_integral_model(self,*P):
         r"""

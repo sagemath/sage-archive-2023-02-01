@@ -3457,6 +3457,11 @@ class AlgebraicReal(AlgebraicNumber_base):
             1.414213562373095? + 1.414213562373095?*I
             sage: AA(-16)^(1/4)/QQbar.zeta(8)
             2
+
+        We check that #7859 is fixed::
+
+            sage: (AA(2)^(1/2)-AA(2)^(1/2))^(1/2)
+            0
         """
         e = QQ._coerce_(e)
         n = e.numerator()

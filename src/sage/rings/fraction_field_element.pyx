@@ -114,11 +114,25 @@ cdef class FractionFieldElement(FieldElement):
             sage: f = FractionFieldElement(K, 'hi', 1, coerce=False, reduce=False)
             sage: f.numerator()
             'hi'
+
+            sage: x = var('x')
+            sage: K((x + 1)/(x^2 + x + 1))
+            (x + 1)/(x^2 + x + 1)
+            sage: K(355/113)
+            355/113
         """
         FieldElement.__init__(self, parent)
         if coerce:
-            self.__numerator   = parent.ring()(numerator)
-            self.__denominator = parent.ring()(denominator)
+            try:
+                self.__numerator   = parent.ring()(numerator)
+                self.__denominator = parent.ring()(denominator)
+            except (TypeError, ValueError):
+                # workaround for symbolic ring
+                if denominator == 1 and hasattr(numerator, 'numerator'):
+                    self.__numerator   = parent.ring()(numerator.numerator())
+                    self.__denominator = parent.ring()(numerator.denominator())
+                else:
+                    raise
         else:
             self.__numerator   = numerator
             self.__denominator = denominator

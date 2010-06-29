@@ -507,9 +507,9 @@ def hecke_images_gamma0_weight2(int u, int v, int N, indices, R):
        P1 = P1List(N) in terms of a subset of P1.
 
 
-    OUTPUT: a dense matrix with rational entries whose columns are the
-    images T_n(x) for n in indices and x the Manin symbol (u,v),
-    expressed in terms of the basis.
+    OUTPUT: a dense matrix whose columns are the images T_n(x)
+    for n in indices and x the Manin symbol (u,v), expressed
+    in terms of the basis.
 
     EXAMPLES::
 
@@ -525,6 +525,16 @@ def hecke_images_gamma0_weight2(int u, int v, int N, indices, R):
         sage: z = M((1,0))
         sage: [M.T(n)(z).element() for n in [1..6]]
         [(1, 0, 0), (3, 0, -1), (4, -2, -1), (7, -2, -2), (6, 0, -2), (12, -2, -4)]
+
+    TESTS::
+
+        sage: M = ModularSymbols(389,2,1,GF(7))
+        sage: C = M.cuspidal_subspace()
+        sage: N = C.new_subspace()
+        sage: D = N.decomposition()
+        sage: D[1].q_eigenform(10, 'a') # indirect doctest
+        q + 4*q^2 + 2*q^3 + 6*q^5 + q^6 + 5*q^7 + 6*q^8 + q^9 + O(q^10)
+
     """
     cdef p1list.P1List P1 = p1list.P1List(N)
 
@@ -534,7 +544,8 @@ def hecke_images_gamma0_weight2(int u, int v, int N, indices, R):
     from sage.matrix.all import matrix
     from sage.rings.all import QQ
     T = matrix(QQ, len(indices), len(P1), sparse=False)
-    if R.base_ring() != QQ:
+    original_base_ring = R.base_ring()
+    if original_base_ring != QQ:
         R = R.change_ring(QQ)
 
     cdef Py_ssize_t i, j
@@ -592,6 +603,9 @@ def hecke_images_gamma0_weight2(int u, int v, int N, indices, R):
         ans = T * R
         sage.misc.misc.verbose("did reduction using dense multiplication",
                                t, level=1, caller_name='hecke_images_gamma0_weight2')
+
+    if original_base_ring != QQ:
+        ans = ans.change_ring(original_base_ring)
 
     return ans
 

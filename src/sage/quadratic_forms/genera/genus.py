@@ -918,15 +918,20 @@ class Genus_Symbol_p_adic_ring(object):
             sage: p = 2
             sage: s2 = p_adic_symbol(A, p, 2); s2
             [[0, 2, 3, 1, 4], [1, 1, 1, 1, 1], [2, 1, 1, 1, 1]]
-            sage: Genus_Symbol_p_adic_ring(p, s2)
+            sage: G = Genus_Symbol_p_adic_ring(p,s2);G
             Genus symbol at 2 : [[0, 2, 3, 1, 4], [1, 1, 1, 1, 1], [2, 1, 1, 1, 1]]
+            sage: G == loads(dumps(G))
+            True
 
             sage: A = diagonal_matrix(ZZ, [1,2,3,4])
             sage: p = 3
             sage: s3 = p_adic_symbol(A, p, 1); s3
             [[0, 3, -1], [1, 1, 1]]
-            sage: Genus_Symbol_p_adic_ring(p, s3)
+            sage: G = Genus_Symbol_p_adic_ring(p,s3);G
             Genus symbol at 3 : [[0, 3, -1], [1, 1, 1]]
+            sage: G == loads(dumps(G))
+            True
+
 
         """
         if check:
@@ -1445,11 +1450,13 @@ class GenusSymbol_global_ring(object):
             sage: from sage.quadratic_forms.genera.genus import GenusSymbol_global_ring
 
             sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
-            sage: GenusSymbol_global_ring(A)
+            sage: G = GenusSymbol_global_ring(A);G
             Genus of [2 0 0 0]
             [0 4 0 0]
             [0 0 6 0]
             [0 0 0 8]
+            sage: G == loads(dumps(G))
+            True
 
         """
         D = A.determinant()

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Elliptic curves over number fields.
+Elliptic curves over number fields
 
 An elliptic curve `E` over a number field `K` can be given
 by a Weierstrass equation whose coefficients lie in `K` or by
@@ -12,10 +12,10 @@ not have class number one.
 Another difference is the lack of understanding of modularity for
 general elliptic curves over general number fields.
 
-Currently sage can obtain local information about `E/K_v` for finite
-place `v`, it has an interface to Denis Simon's script for 2-descent,
-it can compute the torsion subgroup of the Mordell-Weil group `E(K)`,
-and it can work with isogenies defined over `K`.
+Currently Sage can obtain local information about `E/K_v` for finite places
+`v`, it has an interface to Denis Simon's script for 2-descent, it can compute
+the torsion subgroup of the Mordell-Weil group `E(K)`, and it can work with
+isogenies defined over `K`.
 
 EXAMPLE::
 
@@ -164,8 +164,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
     def simon_two_descent(self, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, limbigprime=30):
         r"""
-        Computes lower and upper bounds on the rank of the
-        Mordell-Weil group, and a list of independent points.
+        Computes lower and upper bounds on the rank of the Mordell-Weil group,
+        and a list of independent points. Used internally by the :meth:`~rank`,
+        :meth:`~rank_bounds` and :meth:`~gens` methods.
 
         INPUT:
 
@@ -200,7 +201,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         IMPLEMENTATION:
 
-        Uses Denis Simon's GP/PARI scripts from  \url{http://www.math.unicaen.fr/~simon/}.
+        Uses Denis Simon's GP/PARI scripts from
+        http://www.math.unicaen.fr/~simon/.
 
         EXAMPLES::
 
@@ -1553,11 +1555,14 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
     def rank_bounds(self,verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, limbigprime=30):
         r"""
-        Returns the lower and upper bounds using simon_two_descent.  The results of simon_two_descent are cached.
+        Returns the lower and upper bounds using :meth:`~simon_two_descent`.
+        The results of :meth:`~simon_two_descent` are cached.
 
         .. NOTE::
 
-            These optional parameters control the Simon two descent algorithm.
+            The optional parameters control the Simon two descent algorithm;
+            see the documentation of :meth:`~simon_two_descent` for more
+            details.
 
         INPUT:
 
@@ -1605,7 +1610,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         IMPLEMENTATION:
 
         Uses Denis Simon's GP/PARI scripts from
-        \url{http://www.math.unicaen.fr/~simon/}.
+        http://www.math.unicaen.fr/~simon/.
 
         """
 
@@ -1615,6 +1620,12 @@ class EllipticCurve_number_field(EllipticCurve_field):
     def rank(self,verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, limbigprime=30):
         r"""
         Return the rank of this elliptic curve, if it can be determined.
+
+        .. NOTE::
+
+            The optional parameters control the Simon two descent algorithm;
+            see the documentation of :meth:`~simon_two_descent` for more
+            details.
 
         INPUT:
 
@@ -1636,13 +1647,13 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         If the upper and lower bounds given by Simon two-descent are
         the same, then the rank has been uniquely identified and we
-        return this. Otherwise, we return the upper and lower bounds
-        with a warning that these are not the same.
+        return this. Otherwise, we raise a ValueError with an error
+        message specifying the upper and lower bounds.
 
         .. NOTE::
 
-           Note: For non-quadratic number fields, this code does
-           return, but it takes a long time.
+           For non-quadratic number fields, this code does return, but it takes
+           a long time.
 
         EXAMPLES::
 
@@ -1653,20 +1664,21 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E.rank()
             2
 
-        Here is a curve with two-torsion, so here the algorithm gives
-        bounds on the rank::
+        Here is a curve with two-torsion, so here the bounds given by the
+        algorithm do not uniquely determine the rank::
 
             sage: Qrt5.<rt5>=NumberField(x^2-5)
             sage: E=EllipticCurve([0,5-rt5,0,rt5,0])
             sage: E.rank()
             Traceback (most recent call last):
             ...
-            ValueError: There is insufficient data to determine the rank.
+            ValueError: There is insufficient data to determine the rank -
+            2-descent gave lower bound 1 and upper bound 2
 
         IMPLEMENTATION:
 
         Uses Denis Simon's GP/PARI scripts from
-        \url{http://www.math.unicaen.fr/~simon/}.
+        http://www.math.unicaen.fr/~simon/.
 
         """
 
@@ -1674,11 +1686,18 @@ class EllipticCurve_number_field(EllipticCurve_field):
         if lower == upper:
             return lower
         else:
-            raise ValueError, 'There is insufficient data to determine the rank.'
+            raise ValueError, 'There is insufficient data to determine the rank - 2-descent gave lower bound %s and upper bound %s' % (lower, upper)
 
     def gens(self,verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, limbigprime=30):
         r"""
-        Returns some generators of this elliptic curve.  Check rank or rank_bound to verify the number of generators.
+        Returns some generators of this elliptic curve. Check :meth:`~rank` or
+        :meth:`~rank_bounds` to verify the number of generators.
+
+        .. NOTE::
+
+            The optional parameters control the Simon two descent algorithm;
+            see the documentation of :meth:`~simon_two_descent` for more
+            details.
 
         INPUT:
 
@@ -1702,8 +1721,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         .. NOTE::
 
-           Note: For non-quadratic number fields, this code does
-           return, but it takes a long time.
+           For non-quadratic number fields, this code does return, but it takes
+           a long time.
 
         EXAMPLES::
 
@@ -1715,8 +1734,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
             [(-1 : 0 : 1), (1/2*a - 5/2 : -1/2*a - 13/2 : 1)]
 
 
-        Here is a curve with two-torsion, so here the algorithm gives
-        bounds on the rank::
+        Here is a curve with two-torsion, so here the algorithm does not
+        uniquely determine the rank::
 
             sage: Qrt5.<rt5>=NumberField(x^2-5)
             sage: E=EllipticCurve([0,5-rt5,0,rt5,0])
@@ -1726,8 +1745,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         IMPLEMENTATION:
 
         Uses Denis Simon's GP/PARI scripts from
-        \url{http://www.math.unicaen.fr/~simon/}.
-
+        http://www.math.unicaen.fr/~simon/.
         """
 
         lower,upper,gens = self.simon_two_descent(verbose=verbose,lim1=lim1,lim3=lim3,limtriv=limtriv,maxprob=maxprob,limbigprime=limbigprime)

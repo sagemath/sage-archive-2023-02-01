@@ -37,7 +37,6 @@ import math
 import sage.misc.misc as misc
 import sage.matrix.all as matrix
 sqrt = math.sqrt
-import padic_height as pheight
 import monsky_washnitzer
 import sage.schemes.hyperelliptic_curves.hypellfrob
 from constructor import EllipticCurve

@@ -1923,13 +1923,26 @@ def rational_reconstruction(a, m, algorithm='fast'):
         Traceback (most recent call last):
         ...
         ValueError: Rational reconstruction of 655 (mod 292393) does not exist.
+
+    TESTS:
+
+    Check that ticket #9345 is fixed::
+
+        sage: rational_reconstruction(1, 0)
+        Traceback (most recent call last):
+        ...
+        ZeroDivisionError: The modulus cannot be zero
+        sage: rational_reconstruction(randint(-10^6, 10^6), 0)
+        Traceback (most recent call last):
+        ...
+        ZeroDivisionError: The modulus cannot be zero
     """
     if algorithm == 'fast':
         return ZZ(a).rational_reconstruction(m)
     elif algorithm == 'python':
         return _rational_reconstruction_python(a,m)
     else:
-        raise ValueError, "unknown algorithm"
+        raise ValueError("unknown algorithm")
 
 def _rational_reconstruction_python(a,m):
     """

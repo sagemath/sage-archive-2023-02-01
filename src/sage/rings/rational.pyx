@@ -3231,7 +3231,22 @@ def pyrex_rational_reconstruction(integer.Integer a, integer.Integer m):
         34
         sage: sage.rings.rational.pyrex_rational_reconstruction(34, 100)
         2/3
+
+    TEST:
+
+    Check that ticket #9345 is fixed::
+
+        sage: sage.rings.rational.pyrex_rational_reconstruction(0,0)
+        Traceback (most recent call last):
+        ...
+        ZeroDivisionError: The modulus cannot be zero
+        sage: sage.rings.rational.pyrex_rational_reconstruction(ZZ.random_element(-10^6, 10^6), 0)
+        Traceback (most recent call last):
+        ...
+        ZeroDivisionError: The modulus cannot be zero
     """
+    if not m.__nonzero__():
+        raise ZeroDivisionError("The modulus cannot be zero")
     cdef Rational x
     x = <Rational> PY_NEW(Rational)
     mpq_rational_reconstruction(x.value, a.get_value()[0], m.get_value()[0])

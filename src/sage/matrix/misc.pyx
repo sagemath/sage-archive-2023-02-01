@@ -69,7 +69,19 @@ def matrix_integer_dense_rational_reconstruction(Matrix_integer_dense A, Integer
         [ 1/3  2/3    1 -4/3]
         [ 7/3  2/3    6    1]
         [ 4/3    1  4/3  5/3]
+
+    TEST:
+
+    Check that ticket #9345 is fixed::
+
+        sage: A = random_matrix(ZZ, 3)
+        sage: sage.matrix.misc.matrix_integer_dense_rational_reconstruction(A, 0)
+        Traceback (most recent call last):
+        ...
+        ZeroDivisionError: The modulus cannot be zero
     """
+    if not N.__nonzero__():
+        raise ZeroDivisionError("The modulus cannot be zero")
     cdef Matrix_rational_dense R
     R = Matrix_rational_dense.__new__(Matrix_rational_dense,
                                       A.parent().change_ring(QQ), 0,0,0)
@@ -132,7 +144,19 @@ def matrix_integer_sparse_rational_reconstruction(Matrix_integer_sparse A, Integ
         [1/3   2   3  -4]
         [  7   2   2   3]
         [  4   3   4 5/7]
+
+    TEST:
+
+    Check that ticket #9345 is fixed::
+
+        sage: A = random_matrix(ZZ, 3, sparse=True)
+        sage: sage.matrix.misc.matrix_integer_sparse_rational_reconstruction(A, 0)
+        Traceback (most recent call last):
+        ...
+        ZeroDivisionError: The modulus cannot be zero
     """
+    if not N.__nonzero__():
+        raise ZeroDivisionError("The modulus cannot be zero")
     cdef Matrix_rational_sparse R
     R = Matrix_rational_sparse.__new__(Matrix_rational_sparse,
                                       A.parent().change_ring(QQ), 0,0,0)

@@ -3135,6 +3135,16 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: B = (A/3 % 389).change_ring(ZZ)
             sage: B.rational_reconstruction(389) == A/3
             True
+
+        TEST:
+
+        Check that ticket #9345 is fixed::
+
+            sage: A = random_matrix(ZZ, 3, 3)
+            sage: A.rational_reconstruction(0)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: The modulus cannot be zero
         """
         import misc
         return misc.matrix_integer_dense_rational_reconstruction(self, N)

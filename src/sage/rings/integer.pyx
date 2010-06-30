@@ -2771,6 +2771,20 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             29
             sage: (29).rational_reconstruction(100)
             3/7
+
+        TEST:
+
+        Check that ticket #9345 is fixed::
+
+            sage: ZZ(1).rational_reconstruction(0)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: The modulus cannot be zero
+            sage: m = ZZ.random_element(-10^6,10^6)
+            sage: m.rational_reconstruction(0)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: The modulus cannot be zero
         """
         import rational
         return rational.pyrex_rational_reconstruction(self, m)

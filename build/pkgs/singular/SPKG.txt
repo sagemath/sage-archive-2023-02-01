@@ -42,6 +42,17 @@ MPIR, NTL, Termcap, Readline and MPFR
    investigated as a possible cause later.
 
 == ChangeLog ==
+
+=== singular-3.1.0.4.p8  (David Kirkby, 30th June 2010) ===
+ * #9397 "Resolve corrupted patches to permit Singular to build on Solaris x86/x64"
+   A previous patch made to add a Singular target x86-SunOS has been overwritten
+   by a later patch. I resolved these two issues, so the patch contained both changes
+   A patch file, and a diff made from it were removed, so the patches directory has two
+   less files than before.
+ * #9397 Set CC="$CC -m64" and CXX="$CXX-m64" to force the -m64 flag to fully propogate
+   thoughtout the Singular build process - otherwise it fails to do so. Setting
+   CFALGS/CXXFLAGS is insufficient.
+
 === singular-3.1.0.4.p7  (Mitesh Patel, 8th June 2010) ===
  * #9185: Set an empty MAKEFLAGS variable before "make".  On OS X, at
    least, this fixes building multiple spkgs in parallel (cf. #8306).

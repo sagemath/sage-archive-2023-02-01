@@ -78,6 +78,12 @@ if [ "x$SAGE64" = xyes ]; then
     CXXFLAGS="-O2 -g -m64"
     CPPFLAGS="-O2 -g -m64"
     LDFLAGS="-m64 "; export LDFLAGS
+    if [ "x`uname`" = xSunOS ] ; then
+      CC="$CC -m64"
+      export CC
+      CXX="$CXX -m64"
+      export CXX
+    fi
 fi
 
 CPPFLAGS="-I$SAGE_LOCAL/include $CPPFLAGS"
@@ -104,7 +110,6 @@ patch()
     cp patches/mminit.cc src/kernel/
     cp patches/assert.h src/factory/
     cp patches/kernel.rmodulon.cc src/kernel/rmodulon.cc
-    cp patches/src.Singular.Makefile.in src/Singular/Makefile.in
     cp patches/Singular.libsingular.h src/Singular/libsingular.h
     cp patches/factory.GNUmakefile.in src/factory/GNUmakefile.in
     cp patches/libfac.charset.alg_factor.cc src/libfac/charset/alg_factor.cc

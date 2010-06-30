@@ -110,6 +110,16 @@ def matrix(*args, **kwds):
 
     ::
 
+        sage: matrix(QQ,2,3,lambda x, y: x+y)
+        [0 1 2]
+        [1 2 3]
+        sage: matrix(QQ,3,2,lambda x, y: x+y)
+        [0 1]
+        [1 2]
+        [2 3]
+
+    ::
+
         sage: v1=vector((1,2,3))
         sage: v2=vector((4,5,6))
         sage: m=matrix([v1,v2]); m; m.parent()
@@ -525,7 +535,7 @@ def matrix(*args, **kwds):
                 raise ValueError, "When passing in a callable, the dimensions of the matrix must be specified"
             if ncols is None:
                 ncols = nrows
-            else:
+            elif nrows is None:
                 nrows = ncols
 
             f = args[0]

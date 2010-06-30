@@ -63,9 +63,8 @@ if [ "x$SAGE64" = xyes ] ; then
    # CFLAGS = -O -DLARGE_MEM -DVERBOSE
    # This will be changed to:
    # CFLAGS = ${CFLAG64} -O -DLARGE_MEM -DVERBOSE
-   TMPFILE=`mktemp`
-   sed 's/CFLAGS = -O -DLARGE_MEM -DVERBOSE/CFLAGS = ${CFLAG64} -O -DLARGE_MEM -DVERBOSE/' src/dik/makefile > $TMPFILE
-   mv $TMPFILE src/dik/makefile
+   sed 's/CFLAGS = -O -DLARGE_MEM -DVERBOSE/CFLAGS = ${CFLAG64} -O -DLARGE_MEM -DVERBOSE/' src/dik/makefile > makefile.full-64-bit-build
+   mv makefile.full-64-bit-build src/dik/makefile
 fi
 
 

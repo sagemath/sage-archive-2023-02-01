@@ -25,6 +25,12 @@ Eric Dietz (GPL) http://www.wrongway.org/?rubiksource
 
 == Changelog ==
 
+=== rubiks-20070912.p12 (David Kirkby, 30th June 2010) ===
+ * #9388 Corrected my unportable use of 'mktemp' which I erronously
+   believed was portable, but it is not defined as a command (only
+   a system call) by POSIX. The revised version avoids this.
+
+
 === rubiks-20070912.p11 (David Kirkby, 30th May 2010) ===
  * #9030 rubiks is building part 32-bit and part 64-bit on OpenSolaris x64.
    Added ${CFLAG64} to src/dik/makefile. CFLAG64 gets set to -m64 (by default)

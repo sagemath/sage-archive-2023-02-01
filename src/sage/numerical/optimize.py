@@ -697,8 +697,21 @@ def binpacking(items,maximum=1,k=None):
     `1/5, 1/4, 2/3, 3/4, 5/7`::
 
         sage: from sage.numerical.optimize import binpacking
-        sage: print sorted(binpacking([1/5,1/3,2/3,3/4, 5/7])) # optional - GLPK, CBC
-        [[1/5, 3/4], [1/3, 2/3], [5/7]]
+        sage: values = [1/5, 1/3, 2/3, 3/4, 5/7]
+        sage: bins = binpacking(values) # optional - GLPK, CBC
+        sage: len(bins)
+        3
+
+    Checking the bins are of correct size ::
+
+        sage: all([ sum(b)<= 1 for b in bins ])
+        True
+
+    Checking every item is in a bin ::
+
+        sage: b1, b2, b3 = bins
+        sage: all([ (v in b1 or v in b2 or v in b3) for v in values ])
+        True
 
     One way to use only three boxes (which is best possible) is to put
     `1/5 + 3/4` together in a box, `1/3+2/3` in another, and `5/7`

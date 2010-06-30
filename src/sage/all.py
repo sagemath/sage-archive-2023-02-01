@@ -178,11 +178,11 @@ del globs, wraps, partial, name, func
 ###################################################################
 
 # maximize memory resources
-try:
-    import resource   # unix only...
-    resource.setrlimit(resource.RLIMIT_AS, (-1,-1))
-except:
-    pass
+#try:
+#    import resource   # unix only...
+#    resource.setrlimit(resource.RLIMIT_AS, (-1,-1))
+#except:
+#    pass
 
 # very useful 2-letter shortcuts
 CC = ComplexField()

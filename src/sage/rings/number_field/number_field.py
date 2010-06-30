@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Number Fields
 
@@ -117,6 +118,7 @@ from sage.misc.latex import latex_variable_name, latex_varify
 
 from unit_group import UnitGroup
 from class_group import ClassGroup
+from class_group import SClassGroup
 
 from sage.structure.element import is_Element
 from sage.structure.sequence import Sequence
@@ -2729,20 +2731,23 @@ class NumberField_generic(number_field_base.NumberField):
         proof = proof_flag(proof)
         return self.class_group(proof).order()
 
-    def S_class_group(self, S, proof=True):
+    def S_class_group(self, S, proof=None, names='c'):
         """
-        Returns a list of representatives which generate the S-class group of
-        this number field over its base field.
+        Returns the S-class group of this number field over its base field.
 
         INPUT:
 
         - ``S`` - a set of primes of the base field
 
-        - ``proof`` - if False, assume the GRH in computing the class group
+        - ``proof`` - if False, assume the GRH in computing the class group.
+          Default is True. Call ``number_field_proof`` to change this
+          default globally.
+
+        - ``names`` - names of the generators of this class group.
 
         OUTPUT:
 
-        A list of fractional ideal representatives of the class group generators.
+        The S-class group of this number field.
 
         EXAMPLE:
 
@@ -2750,16 +2755,31 @@ class NumberField_generic(number_field_base.NumberField):
 
             sage: K.<a> = QuadraticField(-5)
             sage: K.S_class_group([])
-            [Fractional ideal (2, a + 1)]
+            Class group of order 2 with structure C2 of Number Field in a with defining polynomial x^2 + 5
 
         When we include the prime `(2, a+1)`, the S-class group becomes
         trivial::
 
             sage: K.S_class_group([K.ideal(2,a+1)])
-            []
+            Class group of order 1 of Number Field in a with defining polynomial x^2 + 5
+
+        TESTS::
+
+            sage: K.<a> = QuadraticField(-14)
+            sage: I = K.ideal(2,a)
+            sage: S = (I,)
+            sage: CS = K.S_class_group(S);CS
+            Class group of order 2 with structure C2 of Number Field in a with defining polynomial x^2 + 14
+            sage: T = tuple([])
+            sage: CT = K.S_class_group(T);CT
+            Class group of order 4 with structure C4 of Number Field in a with defining polynomial x^2 + 14
+            sage: K.class_group()
+            Class group of order 4 with structure C4 of Number Field in a with defining polynomial x^2 + 14
 
         """
-        return [self.ideal(gen) for gen, order, pr in self._S_class_group_and_units(tuple(S), proof=proof)[1]]
+        proof = proof_flag(proof)
+        Slist = self._S_class_group_and_units(tuple(S), proof = proof)[1]
+        return SClassGroup([s[1] for s in Slist],names,self,[s[0] for s in Slist],S)
 
     def S_units(self, S, proof=True):
         """
@@ -2844,6 +2864,33 @@ class NumberField_generic(number_field_base.NumberField):
                 clgp_gens.append(   (I, order, self((I**order).gens_reduced()[0]))   )
 
         return units, clgp_gens
+
+    @cached_method
+    def _S_class_group_quotient_matrix(self, S):
+        r"""
+        Return the matrix of the quotient map from the class group to the
+        S-class group. The result is cached.
+
+        EXAMPLES::
+
+            sage: K.<a> = QuadraticField(-21)
+            sage: K._S_class_group_quotient_matrix((K.ideal([2, a+1]),))
+            [1]
+            [0]
+            sage: K._S_class_group_quotient_matrix((K.ideal([5, a+2]),))
+            [0]
+            [1]
+            sage: K._S_class_group_quotient_matrix(())
+            [1 0]
+            [0 1]
+        """
+        from sage.matrix.constructor import matrix
+        clgp_gens = self._S_class_group_and_units(S)[1]
+        C = self.class_group()
+        a = len(clgp_gens)
+        c = C.ngens()
+        M = matrix(ZZ, [C(x).list() for x in ([u[0] for u in clgp_gens] + list(S))])
+        return (M.hermite_form(transformation=True)[1][:a,:c]).transpose()
 
     def selmer_group(self, S, m, proof=True):
         r"""

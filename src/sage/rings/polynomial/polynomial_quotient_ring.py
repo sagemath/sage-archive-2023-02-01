@@ -735,7 +735,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
         EXAMPLES::
             sage: K.<a> = QuadraticField(-3)
             sage: K.class_group()
-            Class group of order 1 with structure  of Number Field in a with defining polynomial x^2 + 3
+            Class group of order 1 of Number Field in a with defining polynomial x^2 + 3
             sage: K.<a> = QQ['x'].quotient(x^2 + 3)
             sage: K.class_group()
             []

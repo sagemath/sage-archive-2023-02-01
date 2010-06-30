@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Class Groups of Number Fields
 
@@ -30,6 +31,7 @@ from sage.structure.sequence import Sequence
 from sage.structure.element import MonoidElement
 from sage.groups.abelian_gps.abelian_group_element import AbelianGroupElement
 from sage.groups.group import Group
+from sage.rings.arith import LCM
 
 class ClassGroup(AbelianGroup_class):
     r"""
@@ -171,7 +173,7 @@ class ClassGroup(AbelianGroup_class):
             sage: K.<a> = NumberField(x^2 + 1)
             sage: G = K.class_group()
             sage: G
-            Class group of order 1 with structure  of Number Field in a with defining polynomial x^2 + 1
+            Class group of order 1 of Number Field in a with defining polynomial x^2 + 1
             sage: list(G)
             [Trivial principal fractional ideal class]
             sage: G.list()
@@ -199,10 +201,11 @@ class ClassGroup(AbelianGroup_class):
             sage: C._repr_()
             'Class group of order 3 with structure C3 of Number Field in a with defining polynomial x^2 + 23'
         """
-        return 'Class group of order %s with structure %s of %s'%(
-            self.order(),
-            self._group_notation(self.invariants()),
-            self.number_field())
+        s = 'Class group of order %s '%self.order()
+        if self.order() > 1:
+            s += 'with structure %s '%self._group_notation(self.invariants())
+        s += 'of %s'%self.number_field()
+        return s
 
     def number_field(self):
         r"""
@@ -436,3 +439,211 @@ class FractionalIdealClass(AbelianGroupElement):
             (2, 1/2*w - 1/2)
         """
         return self.ideal().gens()
+
+class SClassGroup(ClassGroup):
+    r"""
+    The S-class group of a number field.
+    """
+    def __init__(self, invariants, names, number_field, gens, S):
+        r"""
+        Create an S-class group.
+
+        EXAMPLES::
+
+            sage: K.<a> = QuadraticField(-14)
+            sage: I = K.ideal(2,a)
+            sage: S = (I,)
+            sage: CS = K.S_class_group(S);CS
+            Class group of order 2 with structure C2 of Number Field in a with defining polynomial x^2 + 14
+        """
+        ClassGroup.__init__(self, invariants, names, number_field, gens)
+        self.__S = S
+    def S(self):
+        r"""
+        Return the set (or rather tuple) of primes used to define this class group.
+
+        EXAMPLES::
+
+            sage: K.<a> = QuadraticField(-14)
+            sage: I = K.ideal(2,a)
+            sage: S = (I,)
+            sage: CS = K.S_class_group(S);CS
+            Class group of order 2 with structure C2 of Number Field in a with defining polynomial x^2 + 14
+            sage: T = tuple([])
+            sage: CT = K.S_class_group(T);CT
+            Class group of order 4 with structure C4 of Number Field in a with defining polynomial x^2 + 14
+            sage: CS.S()
+            (Fractional ideal (2, a),)
+            sage: CT.S()
+            ()
+        """
+        return self.__S
+    def __call__(self, *args, **kwds):
+        r"""
+        Call method.
+
+        EXAMPLES::
+
+            sage: K.<a> = QuadraticField(-14)
+            sage: I = K.ideal(2,a)
+            sage: S = (I,)
+            sage: CS = K.S_class_group(S)
+            sage: J = K.ideal(7,a)
+            sage: G = K.ideal(3,a+1)
+            sage: CS(I)
+            Class of the Fractional ideal (2, a) in the S-class group of Number Field in a with defining polynomial x^2 + 14
+            sage: CS(J)
+            Class of the Fractional ideal (7, a) in the S-class group of Number Field in a with defining polynomial x^2 + 14
+            sage: CS(G)
+            Class of the Fractional ideal (3, a + 1) in the S-class group of Number Field in a with defining polynomial x^2 + 14
+
+        """
+        return Group.__call__(self, *args, **kwds)
+    def _element_constructor_(self, *args, **kwds):
+        r"""
+        Create an element of this class group from the given data.
+
+        EXAMPLES::
+
+            sage: K.<a> = QuadraticField(-14)
+            sage: I = K.ideal(2,a)
+            sage: S = (I,)
+            sage: CS = K.S_class_group(S)
+            sage: J = K.ideal(7,a)
+            sage: G = K.ideal(3,a+1)
+            sage: CS(I)
+            Class of the Fractional ideal (2, a) in the S-class group of Number Field in a with defining polynomial x^2 + 14
+            sage: CS(J)
+            Class of the Fractional ideal (7, a) in the S-class group of Number Field in a with defining polynomial x^2 + 14
+            sage: CS(G)
+            Class of the Fractional ideal (3, a + 1) in the S-class group of Number Field in a with defining polynomial x^2 + 14
+
+        """
+        if isinstance(args[0], FractionalIdealClass):
+            return SFractionalIdealClass(self, args[0].ideal())
+        else:
+            I = self.number_field().ideal(*args, **kwds)
+            if I.is_zero(): raise TypeError, "The zero ideal is not a fractional ideal"
+            return SFractionalIdealClass(self, I)
+
+class SFractionalIdealClass(AbelianGroupElement):
+    r"""
+    An S-fractional ideal class in a number field for a tuple of primes S.
+    """
+    def __init__(self, parent, idl, element=None):
+        r"""
+        Returns the S-ideal class of this fractional ideal.
+
+        EXAMPLES::
+
+            sage: K.<a> = QuadraticField(-14)
+            sage: I = K.ideal(2,a)
+            sage: S = (I,)
+            sage: CS = K.S_class_group(S)
+            sage: J = K.ideal(7,a)
+            sage: G = K.ideal(3,a+1)
+            sage: CS(I)
+            Class of the Fractional ideal (2, a) in the S-class group of Number Field in a with defining polynomial x^2 + 14
+            sage: CS(J)
+            Class of the Fractional ideal (7, a) in the S-class group of Number Field in a with defining polynomial x^2 + 14
+            sage: CS(G)
+            Class of the Fractional ideal (3, a + 1) in the S-class group of Number Field in a with defining polynomial x^2 + 14
+
+        """
+        self.__idl = idl
+        if element is None:
+            element = idl._S_ideal_class_log(parent.S())
+        AbelianGroupElement.__init__(self, parent, element)
+    def _repr_(self):
+        r"""
+        Returns a string representation of the S-ideal class of this fractional ideal.
+
+        EXAMPLE::
+
+            sage: K.<a> = QuadraticField(-14)
+            sage: I = K.ideal(2,a)
+            sage: S = (I,)
+            sage: CS = K.S_class_group(S)
+            sage: CS(I)
+            Class of the Fractional ideal (2, a) in the S-class group of Number Field in a with defining polynomial x^2 + 14
+        """
+        return 'Class of the %s in the S-class group of %s'%( self.ideal(), self.parent().number_field())
+    def ideal(self):
+        r"""
+        Returns a representative ideal for this S-ideal class.
+
+        EXAMPLES::
+
+            sage: K.<a> = QuadraticField(-14)
+            sage: I = K.ideal(2,a)
+            sage: S = (I,)
+            sage: CS = K.S_class_group(S)
+            sage: J = K.ideal(7,a)
+            sage: G = K.ideal(3,a+1)
+            sage: CS(I).ideal()
+            Fractional ideal (2, a)
+            sage: CS(J).ideal()
+            Fractional ideal (7, a)
+            sage: CS(G).ideal()
+            Fractional ideal (3, a + 1)
+
+        """
+        return self.__idl
+    def order(self):
+        r"""
+        Finds the order of the given S-ideal class.
+
+        EXAMPLES::
+
+            sage: K.<a> = QuadraticField(-14)
+            sage: I = K.ideal(2,a)
+            sage: S = (I,)
+            sage: CS = K.S_class_group(S)
+            sage: J = K.ideal(7,a)
+            sage: G = K.ideal(3,a+1)
+            sage: CS(I).order()
+            1
+            sage: CS(J).order()
+            1
+            sage: CS(G).order()
+            2
+        """
+        return LCM([e.additive_order() for e in self.list()])
+    def _mul_(self, other):
+        r"""
+        Multiplies together two S-ideal classes.
+
+        EXAMPLES::
+
+            sage: K.<a> = QuadraticField(-14)
+            sage: I = K.ideal(2,a)
+            sage: S = (I,)
+            sage: CS = K.S_class_group(S)
+            sage: G = K.ideal(3,a+1)
+            sage: CS(G)*CS(G)
+            Class of the Fractional ideal (2, a) in the S-class group of Number Field in a with defining polynomial x^2 + 14
+
+        """
+
+        m = AbelianGroupElement._mul_(self, other)
+        return SFractionalIdealClass(self.parent(), (self.ideal() * other.ideal()).reduce_equiv(), m.list())
+    def inverse(self):
+        r"""
+        Finds the inverse of the given S-ideal class.
+
+        EXAMPLES::
+
+            sage: K.<a> = QuadraticField(-14)
+            sage: I = K.ideal(2,a)
+            sage: S = (I,)
+            sage: CS = K.S_class_group(S)
+            sage: G = K.ideal(3,a+1)
+            sage: CS(G).inverse()
+            Class of the Fractional ideal class (3, a + 2) in the S-class group of Number Field in a with defining polynomial x^2 + 14
+
+        """
+        m = AbelianGroupElement.inverse(self)
+        return SFractionalIdealClass(self.parent(), self.parent().number_field().class_group()(self.ideal()).inverse() , m.list())
+
+
+

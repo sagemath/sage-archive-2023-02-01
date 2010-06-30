@@ -136,7 +136,7 @@ Here's an example involving a more general type of number field:
     sage: K.discriminant()
     25603125
     sage: K.class_group()
-    Class group of order 1 with structure  of Number Field in a with defining
+    Class group of order 1 of Number Field in a with defining
     polynomial x^5 + 10*x + 1
     sage: K.class_number()
     1

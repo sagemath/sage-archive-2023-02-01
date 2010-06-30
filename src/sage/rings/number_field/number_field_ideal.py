@@ -1037,6 +1037,31 @@ class NumberFieldIdeal(Ideal_generic):
             self.__ideal_class_log[proof] = list(v[0])
             return self.__ideal_class_log[proof]
 
+    def _S_ideal_class_log(self, S):
+        r"""
+        S-class group version of :meth:`_ideal_class_log`.
+
+        EXAMPLES::
+
+            sage: K.<a> = QuadraticField(-14)
+            sage: S = K.primes_above(2)
+            sage: I = K.ideal(3, a-1)
+            sage: I._S_ideal_class_log(S)
+            [1]
+            sage: I._S_ideal_class_log([])
+            [1]
+            sage: I._ideal_class_log()
+            [1]
+        """
+        from sage.modules.free_module_element import vector
+        from sage.rings.finite_rings.integer_mod_ring import Zmod
+        v = vector(ZZ, self._ideal_class_log())
+        D = self.number_field()._S_class_group_and_units(tuple(S))
+        M = self.number_field()._S_class_group_quotient_matrix(tuple(S))
+        L = (v * M).list()
+        invs = [x[1] for x in D[1]]
+        return [Zmod(invs[i])(L[i]) for i in xrange(len(L))]
+
     def is_zero(self):
         """
         Return True iff self is the zero ideal

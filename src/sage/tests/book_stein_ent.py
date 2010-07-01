@@ -611,13 +611,13 @@ True
 sage: T = lambda v: EllipticCurve(v
 ...          ).torsion_subgroup().invariants()
 sage: T([-5,4])
-[2]
+(2,)
 sage: T([-43,166])
-[7]
+(7,)
 sage: T([-4,0])
-[2, 2]
+(2, 2)
 sage: T([-1386747, 368636886])
-[8, 2]
+(2, 8)
 sage: r = lambda v: EllipticCurve(v).rank()
 sage: r([-5,4])
 1

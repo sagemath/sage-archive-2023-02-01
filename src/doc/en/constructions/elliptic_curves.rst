@@ -70,9 +70,9 @@ can compute its set of :math:`\mathbb{F}`-rational points
     sage: E.cardinality()
     5
     sage: G = E.abelian_group()
-    sage: G              # random choice of generator
-    (Multiplicative Abelian Group isomorphic to C5, ((1 : 0 : 1),))
-    sage: G[0].permutation_group()
+    sage: G
+    Additive abelian group isomorphic to Z/5 embedded in Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 + 4*x^2 over Finite Field of size 5
+    sage: G.permutation_group()
     Permutation Group with generators [(1,2,3,4,5)]
 
 .. index::

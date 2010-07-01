@@ -2204,7 +2204,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             sage: [(A.abvarquo_rational_cuspidal_subgroup().invariants(), A.T(19)[0,0]) for A in D]
             [((), 0), ((3,), 2)]
             sage: [(E.torsion_subgroup().invariants(),E.ap(19)) for E in cremona_optimal_curves([37])]
-            [([], 0), ([3], 2)]
+            [((), 0), ((3,), 2)]
 
         Next we consider level 54, where the rational cuspidal
         subgroups of the quotients are also cuspidal::
@@ -2214,7 +2214,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             sage: [A.abvarquo_rational_cuspidal_subgroup().invariants() for A in D]
             [(3,), (3,)]
             sage: [E.torsion_subgroup().invariants() for E in cremona_optimal_curves([54])]
-            [[3], [3]]
+            [(3,), (3,)]
 
         Level 66 is interesting, since not all torsion of the quotient
         is rational. In fact, for each elliptic curve quotient, the
@@ -2227,7 +2227,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             sage: [(A.abvarquo_rational_cuspidal_subgroup().invariants(), A.T(19)[0,0]) for A in D]
             [((3,), -4), ((2,), 4), ((), 0)]
             sage: [(E.torsion_subgroup().invariants(),E.ap(19)) for E in cremona_optimal_curves([66])]
-            [([6], -4), ([4], 4), ([10], 0)]
+            [((6,), -4), ((4,), 4), ((10,), 0)]
             sage: [A.abelian_variety().rational_cuspidal_subgroup().invariants() for A in D]
             [[6], [4], [10]]
 

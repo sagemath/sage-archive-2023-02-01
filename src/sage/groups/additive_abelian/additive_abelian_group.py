@@ -238,6 +238,32 @@ class AdditiveAbelianGroup_fixed_gens(AdditiveAbelianGroup_class):
         """
         return tuple(self._orig_gens)
 
+    def identity(self):
+        r"""
+        Return the identity (zero) element of this group.
+
+        EXAMPLE::
+
+            sage: G = AdditiveAbelianGroup([2, 3])
+            sage: G.identity()
+            (0, 0)
+        """
+        return self(0)
+
+    def permutation_group(self):
+        r"""
+        Return the permutation group attached to this group.
+
+        EXAMPLE::
+
+            sage: G = AdditiveAbelianGroup([2, 3])
+            sage: G.permutation_group()
+            Permutation Group with generators [(1,4,2,5,3,6)]
+        """
+        from sage.groups.perm_gps.permgroup import PermutationGroup
+        s = 'Image(IsomorphismPermGroup(AbelianGroup(%s)))'%(list(self.invariants()),)
+        return PermutationGroup(gap_group=s)
+
 class AdditiveAbelianGroupElement(FGP_Element):
 
     def _hermite_lift(self):

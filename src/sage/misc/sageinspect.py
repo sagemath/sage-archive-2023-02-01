@@ -965,7 +965,7 @@ def sage_getvariablename(obj, omit_underscore_names=True):
 
     If the user has assigned an object ``obj`` to a variable name,
     then return that variable name.  If several variables point to
-    ``obj``, return a list of those names.  If
+    ``obj``, return a sorted list of those names.  If
     ``omit_underscore_names`` is True (the default) then omit names
     starting with an underscore "_".
 
@@ -1000,7 +1000,7 @@ def sage_getvariablename(obj, omit_underscore_names=True):
     if len(result) == 1:
         return result[0]
     else:
-        return result
+        return sorted(result)
 
 __internal_teststring = '''
 import os                                  # 1

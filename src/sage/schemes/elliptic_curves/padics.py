@@ -619,7 +619,7 @@ def padic_height(self, p, prec=20, sigma=None, check_hypotheses=True):
     A torsion point in both the good and supersingular cases::
 
         sage: E = EllipticCurve('11a')
-        sage: P = E.torsion_subgroup().gens()[0]; P
+        sage: P = E.torsion_subgroup().gen(0).element(); P
         (5 : 5 : 1)
         sage: h = E.padic_height(19, 5)
         sage: h(P)

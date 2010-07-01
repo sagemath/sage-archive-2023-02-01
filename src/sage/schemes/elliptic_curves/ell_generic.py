@@ -48,7 +48,7 @@ AUTHORS:
 import math
 
 from sage.rings.all import PolynomialRing, polygen
-import sage.groups.abelian_gps as groups
+import sage.groups.additive_abelian.additive_abelian_group as groups
 import sage.groups.generic as generic
 import sage.plot.all as plot
 
@@ -587,7 +587,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: E = EllipticCurve([0,0,0,-49,0])
             sage: T = E.torsion_subgroup()
             sage: [E(t) for t in T]
-            [(0 : 1 : 0), (0 : 0 : 1), (7 : 0 : 1), (-7 : 0 : 1)]
+            [(0 : 1 : 0), (7 : 0 : 1), (0 : 0 : 1), (-7 : 0 : 1)]
 
         ::
 
@@ -600,9 +600,8 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             R = self.base_ring()
             return self.point([R(0),R(1),R(0)], check=False)
         P = args[0]
-        if isinstance(P,groups.abelian_group_element.AbelianGroupElement) and isinstance(P.parent(),ell_torsion.EllipticCurveTorsionSubgroup):
-            T = P.parent()
-            return sum([zi*Ti for zi,Ti in zip(P.list(),T.gens())],T.curve()(0))
+        if isinstance(P, groups.AdditiveAbelianGroupElement) and isinstance(P.parent(),ell_torsion.EllipticCurveTorsionSubgroup):
+            return self(P.element())
         if isinstance(args[0],
               (ell_point.EllipticCurvePoint_field, \
                ell_point.EllipticCurvePoint_number_field, \

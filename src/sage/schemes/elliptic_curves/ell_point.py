@@ -1185,6 +1185,7 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         An example over a number field::
 
             sage: P,Q = EllipticCurve('11a1').change_ring(CyclotomicField(5)).torsion_subgroup().gens()
+            sage: P, Q = (P.element(), Q.element())
             sage: (P.order(),Q.order())
             (5, 5)
             sage: P.weil_pairing(Q,5)
@@ -2164,7 +2165,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: Ls = [E.period_lattice(e) for e in embs]
             sage: [L.real_flag for L in Ls]
             [0, 0, -1]
-            sage: P = E.torsion_points()[0]
+            sage: P = E(-1,0)  # order 2
             sage: [L.elliptic_logarithm(P) for L in Ls]
             [-1.73964256006716 - 1.07861534489191*I, -0.363756518406398 - 1.50699412135253*I, 1.90726488608927]
 
@@ -2363,7 +2364,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             if x.valuation() >=0:  # P is still not in E^1
                 t = E.local_data(p).bad_reduction_type()
                 if t is None:
-                    m = E.reduction(p).abelian_group()[0].exponent()
+                    m = E.reduction(p).abelian_group().exponent()
                 else:
                     m = p - t
                 if debug:
@@ -2439,13 +2440,13 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
 
         EXAMPLE::
 
-            sage: F=GF(3^6,'a')
-            sage: a=F.gen()
-            sage: E= EllipticCurve([0,1,1,a,a])
+            sage: F = GF(3^6,'a')
+            sage: a = F.gen()
+            sage: E = EllipticCurve([0,1,1,a,a])
             sage: E.cardinality()
             762
-            sage: A,G=E.abelian_group() ## set since this E is cyclic
-            sage: P=G[0]
+            sage: A = E.abelian_group()
+            sage: P = A.gen(0).element()
             sage: Q=400*P
             sage: P.discrete_log(Q)
             400

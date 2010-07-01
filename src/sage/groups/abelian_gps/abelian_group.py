@@ -533,9 +533,10 @@ class AbelianGroup_class(group.AbelianGroup):
 
         EXAMPLES::
 
-            sage: E = EllipticCurve([0,82])
-            sage: T = E.torsion_subgroup()
+            sage: T = AbelianGroup([2, 3])
             sage: bool(T) # indirect doctest
+            True
+            sage: bool(AbelianGroup([]))
             False
         """
         return len(self.invariants()) != 0

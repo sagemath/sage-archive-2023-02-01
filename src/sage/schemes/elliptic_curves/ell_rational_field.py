@@ -3583,17 +3583,16 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         EXAMPLES::
 
             sage: EllipticCurve('11a').torsion_subgroup()
-            Torsion Subgroup isomorphic to Multiplicative Abelian Group isomorphic to C5 associated to the Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
+            Torsion Subgroup isomorphic to Z/5 associated to the Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
             sage: EllipticCurve('37b').torsion_subgroup()
-            Torsion Subgroup isomorphic to Multiplicative Abelian Group isomorphic to C3 associated to the Elliptic Curve defined by y^2 + y = x^3 + x^2 - 23*x - 50 over Rational Field
+            Torsion Subgroup isomorphic to Z/3 associated to the Elliptic Curve defined by y^2 + y = x^3 + x^2 - 23*x - 50 over Rational Field
 
         ::
 
             sage: e = EllipticCurve([-1386747,368636886]);e
             Elliptic Curve defined by y^2  = x^3 - 1386747*x + 368636886 over Rational Field
             sage: G = e.torsion_subgroup(); G
-            Torsion Subgroup isomorphic to Multiplicative Abelian
-            Group isomorphic to C8 x C2 associated to the Elliptic
+            Torsion Subgroup isomorphic to Z/2 + Z/8 associated to the Elliptic
             Curve defined by y^2 = x^3 - 1386747*x + 368636886 over
             Rational Field
             sage: G.0
@@ -3601,7 +3600,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: G.1
             (282 : 0 : 1)
             sage: list(G)
-            [1, P1, P0, P0*P1, P0^2, P0^2*P1, P0^3, P0^3*P1, P0^4, P0^4*P1, P0^5, P0^5*P1, P0^6, P0^6*P1, P0^7, P0^7*P1]
+            [(0 : 1 : 0), (1227 : 22680 : 1), (2307 : -97200 : 1), (8787 : 816480 : 1), (1011 : 0 : 1), (8787 : -816480 : 1), (2307 : 97200 : 1), (1227 : -22680 : 1), (282 : 0 : 1), (-933 : 29160 : 1), (-285 : -27216 : 1), (147 : 12960 : 1), (-1293 : 0 : 1), (147 : -12960 : 1), (-285 : 27216 : 1), (-933 : -29160 : 1)]
         """
         try:
             return self.__torsion_subgroup
@@ -3640,7 +3639,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
             sage: E=EllipticCurve([-1386747,368636886])
             sage: T=E.torsion_subgroup(); T
-            Torsion Subgroup isomorphic to Multiplicative Abelian Group isomorphic to C8 x C2 associated to the Elliptic Curve defined by y^2  = x^3 - 1386747*x + 368636886 over Rational Field
+            Torsion Subgroup isomorphic to Z/2 + Z/8 associated to the Elliptic Curve defined by y^2  = x^3 - 1386747*x + 368636886 over Rational Field
             sage: T == E.torsion_subgroup(algorithm="doud")
             True
             sage: T == E.torsion_subgroup(algorithm="lutz_nagell")
@@ -3663,18 +3662,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             (8787 : -816480 : 1),
             (8787 : 816480 : 1)]
         """
-        multiples = sage.groups.generic.multiples
-        gens = self.torsion_subgroup(algorithm).gens()
-        ngens = len(gens)
-        if ngens == 0:
-            return [self(0)]
-        pts = list(multiples(gens[0],gens[0].order()))
-        if ngens == 1:
-            pts.sort()
-            return pts
-        pts = [P+Q for P in pts for Q in multiples(gens[1],gens[1].order())]
-        pts.sort()
-        return pts
+        return sorted(self.torsion_subgroup(algorithm).points())
 
     ## def newform_eval(self, z, prec):
 ##         """

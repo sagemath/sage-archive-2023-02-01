@@ -40,9 +40,9 @@ from sage.modules.free_module import FreeModule, VectorSpace
 from sage.matrix.matrix0 import Matrix
 from sage.matrix.constructor import matrix, prepare_dict
 from sage.misc.latex import latex
-from sage.groups.abelian_gps.abelian_group import AbelianGroup
+from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup, AdditiveAbelianGroup_fixed_gens
 from sage.modules.free_module import FreeModule
-from sage.groups.abelian_gps.abelian_group import AbelianGroup_class
+#from sage.groups.abelian_gps.abelian_group import AbelianGroup_class
 from sage.rings.all import GF, prime_range
 
 def dhsw_snf(mat, verbose=False):
@@ -1177,12 +1177,11 @@ class ChainComplex(SageObject):
                 string += _latex_module(ring, mat.ncols())
         return string
 
-class HomologyGroup_class(AbelianGroup_class):
+class HomologyGroup_class(AdditiveAbelianGroup_fixed_gens):
     """
     Abelian group on `n` generators. This class inherits from
-    ``AbelianGroup``; see that for more documentation.  The main
-    difference between the classes is in the print representation;
-    also, this class does not accept a ``names`` argument.
+    ``AdditiveAbelianGroup``; see that for more documentation. The main
+    difference between the classes is in the print representation.
 
     EXAMPLES::
 
@@ -1210,7 +1209,12 @@ class HomologyGroup_class(AbelianGroup_class):
             sage: H = HomologyGroup(5,[5,5,7,8,9]); H
             C5 x C5 x C7 x C8 x C9
         """
-        AbelianGroup_class.__init__(self, n, invfac)
+        n = len(invfac)
+        A = ZZ**n
+        B = A.span([A.gen(i) * invfac[i] for i in xrange(n)])
+
+        AdditiveAbelianGroup_fixed_gens.__init__(self, A, B, A.gens())
+        self._original_invts = invfac
 
     def _repr_(self):
         """
@@ -1225,7 +1229,7 @@ class HomologyGroup_class(AbelianGroup_class):
             sage: HomologyGroup(6)
             Z^6
         """
-        eldv = self.invariants()
+        eldv = self._original_invts
         if len(eldv) == 0:
             return "0"
         rank = len(filter(lambda x: x == 0, eldv))
@@ -1261,7 +1265,7 @@ class HomologyGroup_class(AbelianGroup_class):
             sage: latex(HomologyGroup(6))
             \ZZ^{6}
         """
-        eldv = self.invariants()
+        eldv = self._original_invts
         if len(eldv) == 0:
             return "0"
         rank = len(filter(lambda x: x == 0, eldv))
@@ -1287,9 +1291,8 @@ class HomologyGroup_class(AbelianGroup_class):
 def HomologyGroup(n, invfac=None):
     """
     Abelian group on `n` generators. This class inherits from
-    ``AbelianGroup``; see that for more documentation.  The main
-    difference between the classes is in the print representation;
-    also, this class does not accept a ``names`` argument.
+    ``AdditiveAbelianGroup``; see that for more documentation.  The main
+    difference between the classes is in the print representation.
 
     EXAMPLES::
 

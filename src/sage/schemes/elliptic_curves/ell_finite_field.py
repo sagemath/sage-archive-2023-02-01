@@ -38,7 +38,7 @@ import sage.rings.ring as ring
 from sage.rings.all import Integer, ZZ, PolynomialRing, ComplexField, FiniteField, GF, polygen
 import gp_cremona
 import sea
-from sage.groups.all import AbelianGroup
+from sage.groups.all import AdditiveAbelianGroup
 import sage.groups.generic as generic
 import ell_point
 from sage.functions.all import log
@@ -197,9 +197,10 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             [(0 : 1 : 0), (0 : a : 1), (0 : a + 1 : 1), (1 : 0 : 1), (1 : 1 : 1), (a : 0 : 1), (a : 1 : 1), (a + 1 : 0 : 1), (a + 1 : 1 : 1)]
         """
         # TODO, eliminate when polynomial calling is fast
-        G, pts = self.abelian_group()
+        G = self.abelian_group()
+        pts = [x.element() for x in G.gens()]
 
-        ni = G.invariants()
+        ni = G.generator_orders()
         ngens = G.ngens()
 
         H0=[self(0)]
@@ -1322,8 +1323,8 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             True
         """
         try:
-            A, G =  self.abelian_group()
-            return G
+            G =  self.abelian_group()
+            return [x.element() for x in G.gens()]
         except AttributeError:
             pass
 
@@ -1418,33 +1419,33 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
             sage: E=EllipticCurve(GF(11),[2,5])
             sage: E.abelian_group()
-            (Multiplicative Abelian Group isomorphic to C10, ...
+            Additive abelian group isomorphic to Z/10 embedded in Abelian group of points on Elliptic Curve defined by y^2 = x^3 + 2*x + 5 over Finite Field of size 11
 
         ::
 
             sage: E=EllipticCurve(GF(41),[2,5])
             sage: E.abelian_group()
-            (Multiplicative Abelian Group isomorphic to C22 x C2, ...
+            Additive abelian group isomorphic to Z/2 + Z/22 ...
 
         ::
 
             sage: F.<a>=GF(3^6,'a')
             sage: E=EllipticCurve([a^4 + a^3 + 2*a^2 + 2*a, 2*a^5 + 2*a^3 + 2*a^2 + 1])
             sage: E.abelian_group()
-            (Multiplicative Abelian Group isomorphic to C26 x C26, ...
+            Additive abelian group isomorphic to Z/26 + Z/26 ...
 
         ::
 
             sage: F.<a>=GF(101^3,'a')
             sage: E=EllipticCurve([2*a^2 + 48*a + 27, 89*a^2 + 76*a + 24])
             sage: E.abelian_group()
-            (Multiplicative Abelian Group isomorphic to C1031352, ...
+            Additive abelian group isomorphic to Z/1031352 ...
 
         The group can be trivial::
 
             sage: E=EllipticCurve(GF(2),[0,0,1,1,1])
             sage: E.abelian_group()
-            (Trivial Abelian Group, ())
+            Trivial group embedded in Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 + x + 1 over Finite Field of size 2
 
         Of course, there are plenty of points if we extend the field::
 
@@ -1654,14 +1655,15 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
         # Finished: record group order, structure and generators
 
+        from sage.groups.additive_abelian.additive_abelian_wrapper import AdditiveAbelianGroupWrapper
         self._order = n1*n2
         if n1==1:
-            self.__abelian_group = AbelianGroup([]), ()
+            self.__abelian_group = AdditiveAbelianGroupWrapper(self.point_homset(), [], [])
         else:
             if n2==1:
-                self.__abelian_group = AbelianGroup([n1]), (P1,)
+                self.__abelian_group = AdditiveAbelianGroupWrapper(self.point_homset(), [P1], [n1])
             else:
-                self.__abelian_group = AbelianGroup([n1,n2]), (P1,P2)
+                self.__abelian_group = AdditiveAbelianGroupWrapper(self.point_homset(), [P1, P2], [n1, n2])
         return self.__abelian_group
 
     def is_isogenous(self, other, field=None, proof=True):

@@ -1023,7 +1023,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             0
             sage: c2 is c3
             False
-            sage: cmp(c1, 1)
+            sage: cmp(c1, 1) * cmp(1, c1)
             -1
         """
         if is_Cone(right):

@@ -416,8 +416,8 @@ class ToricLatticeClass(FreeModule_ambient_pid):
             -1
             sage: cmp(N3, M3)
             1
-            sage: cmp(N3, 3)
-            -1
+            sage: abs( cmp(N3, 3) )
+            1
             sage: cmp(N3, ToricLattice(3))
             0
         """

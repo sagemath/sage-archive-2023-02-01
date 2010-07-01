@@ -1,7 +1,8 @@
 r"""
-Binary Quadratic Forms with integer coefficients.
+Binary Quadratic Forms with Integer Coefficients.
 
-The form `a x^2 + b x y + c y^2` is stored as a triple (a, b, c) of integers.
+This module provides a specialized class for working with a binary quadratic
+form `a x^2 + b x y + c y^2`, stored as a triple of integers `(a, b, c)`.
 
 EXAMPLES::
 
@@ -22,17 +23,16 @@ TESTS::
 
 AUTHORS:
 
-    - Jon Hanke (2006-08-08):
-        * Appended to add the reduced_representatives, dyadic_trace,
-          is_reduced, and + on 8-3-2006 for Coding Sprint #2.
-        * Added Documentation and complex_point() method on 8-8-2006.
+- Jon Hanke (2006-08-08):
 
-    - Nick Alexander: add doctests and clean code for Doc Days 2
+  - Appended to add the methods :func:`BinaryQF_reduced_representatives`,
+    :meth:`~BinaryQF.is_reduced`, and ``__add__`` on 8-3-2006 for Coding Sprint
+    #2.
+  - Added Documentation and :meth:`~BinaryQF.complex_point` method on 8-8-2006.
 
-    - William Stein (2009-08-05): composition; some ReSTification.
-
-    - William Stein (2009-09-18): make immutable.
-
+- Nick Alexander: add doctests and clean code for Doc Days 2
+- William Stein (2009-08-05): composition; some ReSTification.
+- William Stein (2009-09-18): make immutable.
 """
 
 #*****************************************************************************
@@ -57,7 +57,7 @@ from sage.misc.cachefunc import cached_method
 
 class BinaryQF(SageObject):
     """
-    A binary quadratic form.
+    A binary quadratic form over `\ZZ`.
 
     INPUT:
 
@@ -66,7 +66,8 @@ class BinaryQF(SageObject):
 
 
     OUTPUT:
-        the binary quadratic form a*x^2 + b*x*y + c*y^2.
+
+    the binary quadratic form a*x^2 + b*x*y + c*y^2.
 
     EXAMPLES::
 
@@ -154,10 +155,12 @@ class BinaryQF(SageObject):
         Gauss composition of binary quadratic forms.  The result is
         not reduced.
 
-        EXAMPLES::
+        EXAMPLES:
 
         We explicitly compute in the group of classes of positive
         definite binary quadratic forms of discriminant -23.
+
+        ::
 
             sage: R = BinaryQF_reduced_representatives(-23); R
             [x^2 + x*y + 6*y^2, 2*x^2 - x*y + 3*y^2, 2*x^2 + x*y + 3*y^2]
@@ -401,7 +404,6 @@ class BinaryQF(SageObject):
 
         EXAMPLES::
 
-
             sage: Q = BinaryQF([1,0,1])
             sage: Q.discriminant()
             -4
@@ -489,6 +491,9 @@ class BinaryQF(SageObject):
     @cached_method
     def reduced_form(self):
         """
+        Return the unique reduced form equivalent to ``self``. See also
+        :meth:`~is_reduced`.
+
         EXAMPLES::
 
             sage: a = BinaryQF([33,11,5])
@@ -522,7 +527,7 @@ class BinaryQF(SageObject):
 
         INPUT:
 
-            - ``right`` -- a binary quadratic form
+        - ``right`` -- a binary quadratic form
 
         EXAMPLES::
 
@@ -589,12 +594,13 @@ class BinaryQF(SageObject):
         return [z  for z in Q1.complex_roots()  if z.imag() > 0][0]
 
     def matrix_action_left(self, M):
-        """
+        r"""
         Return the binary quadratic form resulting from the left action
         of the 2-by-2 matrix ``M`` on the quadratic form ``self``.
 
-        Here the action of the matrix ``M = matrix([[a, b], [c, d]])``
-        on the form `Q(x, y)` produces the form `Q(ax+by, cx+dy)`.
+        Here the action of the matrix `M = \begin{pmatrix} a & b \\ c & d
+        \end{pmatrix}` on the form `Q(x, y)` produces the form `Q(ax+by,
+        cx+dy)`.
 
         EXAMPLES::
 
@@ -611,12 +617,13 @@ class BinaryQF(SageObject):
         return BinaryQF([a1, b1, c1])
 
     def matrix_action_right(self, M):
-        """
+        r"""
         Return the binary quadratic form resulting from the right action
         of the 2-by-2 matrix ``M`` on the quadratic form ``self``.
 
-        Here the action of the matrix ``M = matrix([[a, b], [c, d]])``
-        on the form `Q(x, y)` produces the form `Q(ax+cy, bx+dy)`.
+        Here the action of the matrix `M = \begin{pmatrix} a & b \\ c & d
+        \end{pmatrix}` on the form `Q(x, y)` produces the form `Q(ax+cy,
+        bx+dy)`.
 
         EXAMPLES::
 
@@ -640,18 +647,18 @@ def BinaryQF_reduced_representatives(D, primitive_only=False):
 
     INPUT:
 
-        - `D` -- (integer) A negative discriminant.
+    - `D` -- (integer) A negative discriminant.
 
-        - ``primitive_only`` -- (bool, default False) flag controlling
-          whether only primitive forms are included.
+    - ``primitive_only`` -- (bool, default False) flag controlling whether only
+      primitive forms are included.
 
     OUTPUT:
 
-    (list) A ordered Lexicographically list of inequivalent reduced
-    representatives for the equivalence classes of positive definite
-    binary forms of discriminant `D`.  If ``primitive_only`` is
-    ``True`` then imprimitive forms (which only exist when `D` is not
-    fundamental) are omitted; otherwise they are included.
+    (list) A lexicographically-ordered list of inequivalent reduced
+    representatives for the equivalence classes of positive definite binary
+    forms of discriminant `D`.  If ``primitive_only`` is ``True`` then
+    imprimitive forms (which only exist when `D` is not fundamental) are
+    omitted; otherwise they are included.
 
     EXAMPLES::
 

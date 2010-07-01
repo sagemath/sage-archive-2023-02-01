@@ -1,5 +1,5 @@
 """
-Theta series of quadratic forms
+Theta Series of Quadratic Forms
 
 AUTHORS:
 
@@ -8,6 +8,7 @@ AUTHORS:
 - Gonzalo Tornaria (2009-02-22): fixes and doctests
 
 - Gonzalo Tornaria (2010-03-23): theta series of degree 2
+
 """
 
 from copy import deepcopy
@@ -28,8 +29,8 @@ from sage.misc.misc import cputime, verbose
 def theta_series(self, Max=10, var_str='q', safe_flag=True):
     """
     Compute the theta series as a power series in the variable given
-    in var_str (which defaults to 'q'), up to the specified precision
-    O(q^max).
+    in var_str (which defaults to '`q`'), up to the specified precision
+    `O(q^max)`.
 
     This uses the PARI/GP function qfrep, wrapped by the
     theta_by_pari() method.  This caches the result for future
@@ -48,13 +49,15 @@ def theta_series(self, Max=10, var_str='q', safe_flag=True):
     is related to the Sturm bound, but we'll need to be careful about
     this (particularly for half-integral weights!).
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: Q = DiagonalQuadraticForm(ZZ, [1,3,5,7])
         sage: Q.theta_series()
         1 + 2*q + 2*q^3 + 6*q^4 + 2*q^5 + 4*q^6 + 6*q^7 + 8*q^8 + 14*q^9 + O(q^10)
 
         sage: Q.theta_series(25)
         1 + 2*q + 2*q^3 + 6*q^4 + 2*q^5 + 4*q^6 + 6*q^7 + 8*q^8 + 14*q^9 + 4*q^10 + 12*q^11 + 18*q^12 + 12*q^13 + 12*q^14 + 8*q^15 + 34*q^16 + 12*q^17 + 8*q^18 + 32*q^19 + 10*q^20 + 28*q^21 + 16*q^23 + 44*q^24 + O(q^25)
+
     """
     ## Sanity Check: Max is an integer or an allowed string:
     try:
@@ -79,11 +82,11 @@ def theta_series(self, Max=10, var_str='q', safe_flag=True):
 def theta_by_pari(self, Max, var_str='q', safe_flag=True):
     """
     Use PARI/GP to compute the theta function as a power series (or
-    vector) up to the precision O(q^Max).  This also caches the result
+    vector) up to the precision `O(q^Max)`.  This also caches the result
     for future computations.
 
-    If var_str = '', then we return a vector v where v[i] counts the
-    number of vectors of length i.
+    If var_str = '', then we return a vector `v` where `v[i]` counts the
+    number of vectors of length `i`.
 
     The safe_flag allows us to select whether we want a copy of the
     output, or the original output.  It is only meaningful when a
@@ -94,7 +97,15 @@ def theta_by_pari(self, Max, var_str='q', safe_flag=True):
     vulnerable to being corrupted by the user.
 
 
-    EXAMPLES:
+    INPUT:
+        Max -- an integer >=0
+        var_str -- a string
+
+    OUTPUT:
+        a power series or a vector
+
+    EXAMPLES::
+
         sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1,1])
         sage: Prec = 100
         sage: compute = Q.theta_by_pari(Prec, '')
@@ -102,12 +113,6 @@ def theta_by_pari(self, Max, var_str='q', safe_flag=True):
         sage: compute == exact
         True
 
-    INPUT:
-        Max -- an integer >=0
-        var_str -- a string
-
-    OUTPUT:
-        a power series or a vector
     """
     ## Try to use the cached result if it's enough precision
     if hasattr(self, '__theta_vec') and len(self.__theta_vec) >= Max:
@@ -142,17 +147,18 @@ def theta_by_pari(self, Max, var_str='q', safe_flag=True):
 
 
 def theta_by_cholesky(self, q_prec):
-    """
-    Uses the real Cholesky decomposition to compute (the q-expansion
-    of) the theta function of the quadratic form as a power series in
-    q with terms correct up to the power q ^ q_prec.  (So its error is
-    O(q ^ (q_prec + 1)).)
+    r"""
+    Uses the real Cholesky decomposition to compute (the `q`-expansion of) the
+    theta function of the quadratic form as a power series in `q` with terms
+    correct up to the power `q^{\text{q\_prec}}`. (So its error is `O(q^
+    {\text{q\_prec} + 1})`.)
 
-    REFERENCE: From Cohen's "A Course in Computational Algebraic
-        Number Theory" book, p 102.
+    REFERENCE:
+        From Cohen's "A Course in Computational Algebraic Number Theory" book,
+        p 102.
 
+    EXAMPLES::
 
-    EXAMPLES:
         ## Check the sum of 4 squares form against Jacobi's formula
         sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1,1])
         sage: Theta = Q.theta_by_cholesky(10)
@@ -163,6 +169,8 @@ def theta_by_cholesky(self, q_prec):
         [1, 8, 24, 32, 24, 48, 96, 64, 24, 104, 144]
         sage: Theta.list() == Expected
         True
+
+    ::
 
         ## Check the form x^2 + 3y^2 + 5z^2 + 7w^2 represents everything except 2 and 22.
         sage: Q = DiagonalQuadraticForm(ZZ, [1,3,5,7])
@@ -323,20 +331,19 @@ def theta_by_cholesky(self, q_prec):
 
 
 def theta_series_degree_2(Q, prec):
-    """
+    r"""
     Compute the theta series of degree 2 for the quadratic form Q.
 
     INPUT:
 
-    - ``prec`` - an integer.
+    - ``prec`` -- an integer.
 
     OUTPUT:
 
-    dictionary -- where:
+    dictionary, where:
 
-    - keys are GL(2,ZZ)-reduced binary quadratic forms (given as triples
-      of coefficients)
-
+    - keys are `{\rm GL}_2(\ZZ)`-reduced binary quadratic forms (given as triples of
+      coefficients)
     - values are coefficients
 
     EXAMPLES::

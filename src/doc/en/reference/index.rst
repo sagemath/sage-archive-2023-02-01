@@ -75,6 +75,7 @@ Enjoy Sage!
    power_series
    semirings
    algebras
+   quadratic_forms
    quat_algebras
    matrices
    modules

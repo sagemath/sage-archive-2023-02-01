@@ -1,4 +1,6 @@
-
+"""
+Neighbors
+"""
 from sage.modules.free_module_element import vector
 from sage.rings.integer_ring import ZZ
 from copy import deepcopy
@@ -14,16 +16,20 @@ from sage.matrix.constructor import matrix
 
 def find_primitive_p_divisible_vector__random(self, p):
     """
-    Finds a random p-primitive vector in L/pL whose value is p-divisible.
+    Finds a random `p`-primitive vector in `L/pL` whose value is `p`-divisible.
 
-    Note: Since there are about p^(n-2) of these lines, we have a 1/p chance
-        of randomly finding an appropriate vector.
+    .. note::
 
-    WARNING: If there are local obstructions for this to happen, then
-        this algorithm will never terminate... =(  We should check for
-        this too!
+        Since there are about `p^{(n-2)}` of these lines, we have a `1/p`
+        chance of randomly finding an appropriate vector.
 
-    EXAMPLES:
+    .. warning::
+
+        If there are local obstructions for this to happen, then this algorithm
+        will never terminate... =(  We should check for this too!
+
+    EXAMPLES::
+
         sage: Q = QuadraticForm(ZZ, 2, [10,1,4])
         sage: Q.find_primitive_p_divisible_vector__random(5)    # random
         (1, 1)
@@ -66,9 +72,9 @@ def find_primitive_p_divisible_vector__random(self, p):
 
 def find_primitive_p_divisible_vector__next(self, p, v=None):
     """
-    Finds the next p-primitive vector (up to scaling) in L/pL whose
-    value is p-divisible, where the last vector returned was v.  For
-    an intial call, no v needs to be passed.
+    Finds the next `p`-primitive vector (up to scaling) in `L/pL` whose
+    value is `p`-divisible, where the last vector returned was `v`.  For
+    an intial call, no `v` needs to be passed.
 
     Returns vectors whose last non-zero entry is normalized to 0 or 1 (so no
     lines are counted repeatedly).  The ordering is by increasing the
@@ -78,7 +84,8 @@ def find_primitive_p_divisible_vector__next(self, p, v=None):
     OUTPUT:
         vector or None
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: Q = QuadraticForm(ZZ, 2, [10,1,4])
         sage: v = Q.find_primitive_p_divisible_vector__next(5); v
         (1, 1)
@@ -152,14 +159,16 @@ def find_primitive_p_divisible_vector__next(self, p, v=None):
 
 def find_p_neighbor_from_vec(self, p, v):
     """
-    Finds the p-neighbor of this quadratic form associated to a given
-    vector v satisfying:
-        a) Q(v) = 0  (mod p)
-        b) v is a non-singular point of the conic Q(v) = 0 (mod p).
+    Finds the `p`-neighbor of this quadratic form associated to a given
+    vector `v` satisfying:
+
+    #. `Q(v) = 0  \pmod p`
+    #. `v` is a non-singular point of the conic `Q(v) = 0 \pmod p`.
 
     Reference:  Gonzalo Tornaria's Thesis, Thrm 3.5, p34.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: Q = DiagonalQuadraticForm(ZZ,[1,1,1,1])
         sage: v = vector([0,2,1,1])
         sage: X = Q.find_p_neighbor_from_vec(3,v); X

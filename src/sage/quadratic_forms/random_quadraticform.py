@@ -1,3 +1,6 @@
+"""
+Creating A Random Quadratic Form
+"""
 from sage.quadratic_forms.quadratic_form import QuadraticForm
 from sage.rings.ring import is_Ring
 
@@ -7,34 +10,40 @@ from sage.rings.ring import is_Ring
 
 def random_quadraticform(R, n, rand_arg_list=[]):
     """
-    Create a random quadratic form in n variables defined over the
-    ring R.
+    Create a random quadratic form in `n` variables defined over the ring `R`.
 
-    The last (and optional) argument rand_arg_list is a list of at
-    most 3 elements which is passed (as at most 3 separate variables)
-    into the method R.random_element().
+    The last (and optional) argument ``rand_arg_list`` is a list of at most 3
+    elements which is passed (as at most 3 separate variables) into the method
+    ``R.random_element()``.
 
     INPUT:
-        R -- a ring.
-        n -- an integer >= 0
-        rand_arg_list -- a list of at most 3 arguments which can be
-            taken by R.random_element()
+
+    - `R` -- a ring.
+    - `n` -- an integer `\ge 0`
+    - ``rand_arg_list`` -- a list of at most 3 arguments which can be taken by
+      ``R.random_element()``.
 
     OUTPUT:
-        A quadratic form over the ring R.
 
-    EXAMPLES:
+    A quadratic form over the ring `R`.
+
+    EXAMPLES::
+
         sage: random_quadraticform(ZZ, 3, [1,5])    ## RANDOM
         Quadratic form in 3 variables over Integer Ring with coefficients:
         [ 3 2 3 ]
         [ * 1 4 ]
         [ * * 3 ]
 
+    ::
+
         sage: random_quadraticform(ZZ, 3, [-5,5])    ## RANDOM
         Quadratic form in 3 variables over Integer Ring with coefficients:
         [ 3 2 -5 ]
         [ * 2 -2 ]
         [ * * -5 ]
+
+    ::
 
         sage: random_quadraticform(ZZ, 3, [-50,50])    ## RANDOM
         Quadratic form in 3 variables over Integer Ring with coefficients:
@@ -66,18 +75,19 @@ def random_quadraticform(R, n, rand_arg_list=[]):
 
 def random_quadraticform_with_conditions(R, n, condition_list=[], rand_arg_list=[]):
     """
-    Create a random quadratic form in n variables defined over the
-    ring R satisfying a list of boolean (i.e. True/False) conditions.
+    Create a random quadratic form in `n` variables defined over the ring `R`
+    satisfying a list of boolean (i.e. True/False) conditions.
 
-    The conditions c appearing in the list must be boolean functions
-    which can be called either as Q.c() or c(Q), where Q is the random
+    The conditions `c` appearing in the list must be boolean functions which
+    can be called either as ``Q.c()`` or ``c(Q)``, where ``Q`` is the random
     quadratic form.
 
-    The last (and optional) argument rand_arg_list is a list of at
-    most 3 elements which is passed (as at most 3 separate variables)
-    into the method R.random_element().
+    The last (and optional) argument ``rand_arg_list`` is a list of at most 3
+    elements which is passed (as at most 3 separate variables) into the method
+    ``R.random_element()``.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: Q = random_quadraticform_with_conditions(ZZ, 3, [QuadraticForm.is_positive_definite], [-5, 5])
         sage: Q    ## RANDOM
         Quadratic form in 3 variables over Integer Ring with coefficients:

@@ -1,4 +1,6 @@
-
+"""
+Local Density Interfaces
+"""
 ## // This is needed in the filter for primitivity...
 ## #include "../max-min.h"
 
@@ -20,13 +22,14 @@ def local_density(self, p, m):
     routines performing the computations!
 
     INPUT:
-        p -- a prime number > 0
-        m -- an integer
+        `p` -- a prime number > 0
+        `m` -- an integer
 
     OUTPUT:
         a rational number
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1,1])   ## NOTE: This is already in local normal form for *all* primes p!
         sage: Q.local_density(p=2, m=1)
         1
@@ -77,13 +80,14 @@ def local_primitive_density(self, p, m):
     the routines performing the computations!
 
     INPUT:
-        p -- a prime number > 0
-        m -- an integer
+        `p` -- a prime number > 0
+        `m` -- an integer
 
     OUTPUT:
         a rational number
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: Q = QuadraticForm(ZZ, 4, range(10))
         sage: Q[0,0] = 5
         sage: Q[1,1] = 10

@@ -1,3 +1,6 @@
+r"""
+Optimised Cython code for counting congruence solutions
+"""
 
 include "../ext/cdefs.pxi"
 include "../ext/gmp.pxi"
@@ -28,16 +31,15 @@ def extract_sublist_indices(Biglist, Smalllist):
 
     TO DO: *** Please revisit this routine, and eliminate it! ***
 
-
-
     INPUT:
-        Biglist, Smalllist -- two lists of a common type, where
-                              Biglist has no repeated entries.
+        Biglist, Smalllist -- two lists of a common type, where Biglist has no
+        repeated entries.
 
     OUTPUT:
         a list of integers >= 0
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.quadratic_forms.quadratic_form__local_density_congruence import extract_sublist_indices
 
         sage: biglist = [1,3,5,7,8,2,4]
@@ -82,19 +84,21 @@ def count_modp__by_gauss_sum(n, p, m, Qdet):
     quadratic form of dimension n >= 1 and has Gram determinant Qdet.
 
     REFERENCE:
-               These are defined in Table 1 on p363 of Hanke's "Local
+        These are defined in Table 1 on p363 of Hanke's "Local
         Densities..." paper.
 
     INPUT:
-        n -- an integer >= 1
-        p -- a prime number > 2
-        m -- an integer
-        Qdet -- a integer which is non-zero mod p
+
+    - n -- an integer >= 1
+    - p -- a prime number > 2
+    - m -- an integer
+    - Qdet -- a integer which is non-zero mod p
 
     OUTPUT:
         an integer >= 0
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.quadratic_forms.count_local_2 import count_modp__by_gauss_sum
 
         sage: count_modp__by_gauss_sum(3, 3, 0, 1)    ## for Q = x^2 + y^2 + z^2  => Gram Det = 1 (mod 3)
@@ -231,22 +235,25 @@ cdef CountAllLocalTypesNaive_cdef(Q, p, k, m, zvec, nzvec):
 def CountAllLocalTypesNaive(Q, p, k, m, zvec, nzvec):
     """
     This is an internal routine, which is called by
-    QuadraticForm.count_congruence_solutions_by_type().  See that
-    documentation for more details.
+    :meth:`sage.quadratic_forms.quadratic_form.QuadraticForm.count_congruence_solutions_by_type
+    QuadraticForm.count_congruence_solutions_by_type`. See the documentation of
+    that method for more details.
 
     INPUT:
-        Q -- quadratic form over ZZ
-        p -- prime number > 0
-        k -- an integer > 0
-        m -- an integer (depending only on mod p^k)
-        zvec, nzvec -- a list of integers in range(Q.dim()), or None
+
+    - `Q` -- quadratic form over `\ZZ`
+    - `p` -- prime number > 0
+    - `k` -- an integer > 0
+    - `m` -- an integer (depending only on mod `p^k`)
+    - ``zvec``, ``nzvec`` -- a list of integers in ``range(Q.dim())``, or ``None``
 
     OUTPUT:
-        a list of six integers >= 0 representing the solution types:
-            [All, Good, Zero, Bad, BadI, BadII]
+        a list of six integers `\ge 0` representing the solution types: ``[All,
+        Good, Zero, Bad, BadI, BadII]``
 
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.quadratic_forms.count_local_2 import CountAllLocalTypesNaive
         sage: Q = DiagonalQuadraticForm(ZZ, [1,2,3])
         sage: CountAllLocalTypesNaive(Q, 3, 1, 1, None, None)

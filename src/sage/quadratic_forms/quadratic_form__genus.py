@@ -1,3 +1,8 @@
+"""
+Local and Global Genus Symbols
+
+"""
+
 
 #############################################################
 ##                                                         ##
@@ -29,13 +34,16 @@ def global_genus_symbol(self):
     are defined by a collection of local genus symbols (a la Chapter
     15 of Conway-Sloane), and a signature.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: Q = DiagonalQuadraticForm(ZZ, [1,2,3,4])
         sage: Q.global_genus_symbol()
         Genus of [2 0 0 0]
         [0 4 0 0]
         [0 0 6 0]
         [0 0 0 8]
+
+    ::
 
         sage: Q = QuadraticForm(ZZ, 4, range(10))
         sage: Q.global_genus_symbol()
@@ -66,18 +74,23 @@ def local_genus_symbol(self, p):
     p^m*A at p, where A is a unimodular symmetric matrix with
     coefficients the p-adic integers) of the following form:
 
-        1) If p>2 then return triples of the form [m, n, d] where
-            m = valuation of the component
-            n = rank of A
-            d = det(A) in {1,u} for normalized quadratic non-residue u.
+        1. If p>2 then return triples of the form [`m`, `n`, `d`] where
+            `m` = valuation of the component
 
-        2) If p=2 then return quintuples of the form [m, n, s, d, o]
-        where
-            m = valuation of the component
-            n = rank of A
-            d = det(A) in {1,3,5,7}
-            s = 0 (or 1) if A is even (or odd)
-            o = oddity of A (= 0 if s = 0) in Z/8Z
+            `n` = rank of A
+
+            `d` = det(A) in {1,u} for normalized quadratic non-residue u.
+
+        2. If p=2 then return quintuples of the form [`m`,`n`,`s`, `d`, `o`] where
+            `m` = valuation of the component
+
+            `n` = rank of A
+
+            `d` = det(A) in {1,3,5,7}
+
+            `s` = 0 (or 1) if A is even (or odd)
+
+            `o` = oddity of A (= 0 if s = 0) in Z/8Z
               = the trace of the diagonalization of A
 
     NOTE: The Conway-Sloane convention for describing the prime 'p =
@@ -86,13 +99,15 @@ def local_genus_symbol(self, p):
     (3rd ed) for a discussion of this convention.
 
     INPUT:
-        p -- a prime number > 0
+
+        -`p` -- a prime number > 0
 
     OUTPUT:
         Returns a Conway-Sloane genus symbol at p, which is an
         instance of the Genus_Symbol_p_adic_ring class.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: Q = DiagonalQuadraticForm(ZZ, [1,2,3,4])
         sage: Q.local_genus_symbol(2)
         Genus symbol at 2 : [[1, 2, 3, 1, 4], [2, 1, 1, 1, 1], [3, 1, 1, 1, 1]]
@@ -100,6 +115,7 @@ def local_genus_symbol(self, p):
         Genus symbol at 3 : [[0, 3, 1], [1, 1, -1]]
         sage: Q.local_genus_symbol(5)
         Genus symbol at 5 : [[0, 4, 1]]
+
     """
     ## Check that p is prime and that the form is defined over ZZ.
     if not is_prime(p):
@@ -123,11 +139,13 @@ def CS_genus_symbol_list(self, force_recomputation=False):
     """
     Returns the list of Conway-Sloane genus symbols in increasing order of primes dividing 2*det.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: Q = DiagonalQuadraticForm(ZZ, [1,2,3,4])
         sage: Q.CS_genus_symbol_list()
         [Genus symbol at 2 : [[1, 2, 3, 1, 4], [2, 1, 1, 1, 1], [3, 1, 1, 1, 1]],
-         Genus symbol at 3 : [[0, 3, 1], [1, 1, -1]]]
+        Genus symbol at 3 : [[0, 3, 1], [1, 1, -1]]]
+
     """
     ## Try to use the cached list
     if force_recomputation == False:

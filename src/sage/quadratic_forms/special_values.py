@@ -1,6 +1,6 @@
-##########################################################
-## Routines for computing special values of L-functions ##
-##########################################################
+"""
+Routines for computing special values of L-functions
+"""
 
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.arith import kronecker_symbol, bernoulli, factorial, fundamental_discriminant
@@ -22,7 +22,8 @@ def gamma__exact(n):
     Evaluates the exact value of the gamma function at an integer or
     half-integer argument.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: gamma__exact(4)
         6
         sage: gamma__exact(3)
@@ -79,16 +80,17 @@ def gamma__exact(n):
 ## ------------- The Riemann Zeta Function  --------------
 
 def zeta__exact(n):
-    """
+    r"""
     Returns the exact value of the Riemann Zeta function
 
     References:
-        Iwasawa's "Lectures on p-adic L-functions", p13
-            Special value of zeta(2k)
-        Ireland and Rosen's "A Classical Introduction to Modern Number Theory"
-        Washington's "Cyclotomic Fields"
 
-    EXAMPLES:
+    - Iwasawa's "Lectures on p-adic L-functions", p13, "Special value of `\zeta(2k)`"
+    - Ireland and Rosen's "A Classical Introduction to Modern Number Theory"
+    - Washington's "Cyclotomic Fields"
+
+    EXAMPLES::
+
         sage: ## Testing the accuracy of the negative special values
         sage: RR = RealField(100)
         sage: for i in range(1,10):
@@ -133,13 +135,14 @@ def zeta__exact(n):
 ## ---------- Dirichlet L-functions with quadratic characters ----------
 
 def QuadraticBernoulliNumber(k, d):
-    """
+    r"""
     Compute k-th Bernoulli number for the primitive
-    quadratic character associated to chi(x) = (d/x).
+    quadratic character associated to `\chi(x) = \left(\frac{d}{x}\right)`.
 
-    References:  Iwasawa's "Lectures on p-adic L-functions", pp7-16.
+    Reference: Iwasawa's "Lectures on p-adic L-functions", pp7-16.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: ## Makes a set of odd fund discriminants < -3
         sage: Fund_odd_test_set = [D  for D in range(-163, -3, 4)  if is_fundamental_discriminant(D)]
 
@@ -147,9 +150,6 @@ def QuadraticBernoulliNumber(k, d):
         sage: for D in Fund_odd_test_set:
         ...      if len(BinaryQF_reduced_representatives(D)) != -QuadraticBernoulliNumber(1, D):
         ...          print "Oops!  There is an error at D = ", D
-
-
-
     """
     ## Ensure the character is primitive
     d1 = fundamental_discriminant(d)
@@ -167,16 +167,19 @@ def QuadraticBernoulliNumber(k, d):
 
 
 def quadratic_L_function__exact(n, d):
-    """
-    Returns the exact value of a quadratic twist of the Riemann Zeta function by chi_d(x) = (d/x).
+    r"""
+    Returns the exact value of a quadratic twist of the Riemann Zeta function
+    by `\chi_d(x) = \left(\frac{d}{x}\right)`.
 
     References:
-        Iwasawa's "Lectures on p-adic L-functions", p16-17
-            Special values of L(1-n, chi) and L(n, chi)
-        Ireland and Rosen's "A Classical Introduction to Modern Number Theory"
-        Washington's "Cyclotomic Fields"
 
-    EXAMPLES:
+    - Iwasawa's "Lectures on p-adic L-functions", p16-17, "Special values of
+      `L(1-n, \chi)` and `L(n, \chi)`
+    - Ireland and Rosen's "A Classical Introduction to Modern Number Theory"
+    - Washington's "Cyclotomic Fields"
+
+    EXAMPLES::
+
         sage: bool(quadratic_L_function__exact(1, -4) == pi/4)
         True
 
@@ -218,7 +221,8 @@ def quadratic_L_function__numerical(n, d, num_terms=1000):
     Evaluate the Dirichlet L-function (for quadratic character) numerically
     (in a very naive way).
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage:  ## Test several values for a given character
         sage: RR = RealField(100)
         sage: for i in range(5):

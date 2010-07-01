@@ -1,4 +1,6 @@
-
+"""
+Shimura Mass
+"""
 ######################################################
 ## Routines to compute the mass of a quadratic form ##
 ######################################################
@@ -34,7 +36,7 @@ def shimura_mass__maximal(self,):
     """
     Use Shimura's exact mass formula to compute the mass of a maximal
     quadratic lattice. This works for any totally real number field,
-    but has a small technical restriction when n is odd.
+    but has a small technical restriction when `n` is odd.
 
     INPUT:
         none
@@ -42,7 +44,8 @@ def shimura_mass__maximal(self,):
     OUTPUT:
         a rational number
 
-    EXAMPLE:
+    EXAMPLE::
+
         sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1])
         sage: Q.shimura_mass__maximal()
 
@@ -64,7 +67,8 @@ def GHY_mass__maximal(self):
     OUTPUT:
         a rational number
 
-    EXAMPLE:
+    EXAMPLE::
+
         sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1])
         sage: Q.GHY_mass__maximal()
 

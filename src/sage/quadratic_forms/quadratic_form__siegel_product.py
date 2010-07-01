@@ -1,5 +1,6 @@
-
-
+"""
+Siegel Products
+"""
 from sage.rings.arith import fundamental_discriminant
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
@@ -28,9 +29,10 @@ from sage.misc.misc import verbose
 def siegel_product(self, u):
     """
     Computes the infinite product of local densities of the quadratic
-    form for the number u.
+    form for the number `u`.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1,1])
         sage: Q.theta_series(11)
         1 + 8*q + 24*q^2 + 32*q^3 + 24*q^4 + 48*q^5 + 96*q^6 + 64*q^7 + 24*q^8 + 104*q^9 + 144*q^10 + O(q^11)

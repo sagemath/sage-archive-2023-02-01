@@ -1,4 +1,6 @@
-
+"""
+Local Masses and Siegel Densities
+"""
 ######################################################################################################
 ##  Computes the local masses (rep'n densities of a form by itself) for a quadratic forms over ZZ
 ##      using the papers of Pall [PSPUM VIII (1965), pp95--105]  for p>2, and Watson [Mathematika
@@ -31,27 +33,33 @@ def mass__by_Siegel_densities(self, odd_algorithm="Pall", even_algorithm="Watson
     WARNING: THIS IS BROKEN RIGHT NOW... =(
 
     Optional Arguments:
-        When p > 2  --  odd_algorithm = "Pall" (only one choice for now)
-        When p = 2  --  even_algorithm = "Kitaoka" or "Watson"
+
+    - When p > 2  --  odd_algorithm = "Pall" (only one choice for now)
+    - When p = 2  --  even_algorithm = "Kitaoka" or "Watson"
 
     REFERENCES:
-        Nipp's Book "Tables of Quaternary Quadratic Forms".
-        Papers of Pall (only for p>2) and Watson (for p=2 -- tricky!).
-        Siegel, Milnor-Hussemoller, Conway-Sloane Paper IV, Kitoaka
-            (all of which have problems...)
 
-    EXAMPLES:
+    - Nipp's Book "Tables of Quaternary Quadratic Forms".
+    - Papers of Pall (only for p>2) and Watson (for `p=2` -- tricky!).
+    - Siegel, Milnor-Hussemoller, Conway-Sloane Paper IV, Kitoaka (all of which
+      have problems...)
+
+    EXAMPLES::
+
         sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1,1])
         sage: Q.mass__by_Siegel_densities()
         1/384
         sage: Q.mass__by_Siegel_densities() - (2^Q.dim() * factorial(Q.dim()))^(-1)
         0
 
+    ::
+
         sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1])
         sage: Q.mass__by_Siegel_densities()
         1/48
         sage: Q.mass__by_Siegel_densities() - (2^Q.dim() * factorial(Q.dim()))^(-1)
         0
+
     """
     ## Setup
     n = self.dim()
@@ -128,19 +136,20 @@ def mass__by_Siegel_densities(self, odd_algorithm="Pall", even_algorithm="Watson
 def Pall_mass_density_at_odd_prime(self, p):
     """
     Returns the local representation density of a form (for
-    representing itself) defined over ZZ, at some prime p>2.
+    representing itself) defined over `ZZ`, at some prime `p>2`.
 
     REFERENCES:
         Pall's article "The Weight of a Genus of Positive n-ary Quadratic Forms"
         appearing in Proc. Symp. Pure Math. VIII (1965), pp95--105.
 
     INPUT:
-        p -- a prime number > 2.
+        `p` -- a prime number > 2.
 
     OUTPUT:
         a rational number.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: Q = QuadraticForm(ZZ, 3, [1,0,0,1,0,1])
         sage: Q.Pall_mass_density_at_odd_prime(3)
         [(0, Quadratic form in 3 variables over Integer Ring with coefficients:
@@ -149,6 +158,7 @@ def Pall_mass_density_at_odd_prime(self, p):
         [ * * 1 ]
         )] [(0, 3, 8)] [8/9] 8/9
         8/9
+
     """
     ## Check that p is a positive prime -- unnecessary since it's done implicitly in the next step. =)
     if p<=2:
@@ -191,7 +201,7 @@ def Pall_mass_density_at_odd_prime(self, p):
 
 def Watson_mass_at_2(self):
     """
-    Returns the local mass of the quadratic form when p=2, according
+    Returns the local mass of the quadratic form when `p=2`, according
     to Watson's Theorem 1 of "The 2-adic density of a quadratic form"
     in Mathematika 23 (1976), pp 94--106.
 
@@ -201,10 +211,12 @@ def Watson_mass_at_2(self):
     OUTPUT:
         a rational number
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1])
         sage: Q.Watson_mass_at_2()               ## WARNING:  WE NEED TO CHECK THIS CAREFULLY!
         384
+
     """
     ## Make a 0-dim'l quadratic form (for initialization purposes)
     Null_Form = copy.deepcopy(self)
@@ -295,7 +307,7 @@ def Watson_mass_at_2(self):
 
 def Kitaoka_mass_at_2(self):
     """
-    Returns the local mass of the quadratic form when p=2, according
+    Returns the local mass of the quadratic form when `p=2`, according
     to Theorem 5.6.3 on pp108--9 of Kitaoka's Book "The Arithmetic of
     Quadratic Forms".
 
@@ -305,7 +317,8 @@ def Kitaoka_mass_at_2(self):
     OUTPUT:
         a rational number > 0
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1])
         sage: Q.Kitaoka_mass_at_2()   ## WARNING:  WE NEED TO CHECK THIS CAREFULLY!
         1/2
@@ -396,7 +409,7 @@ def Kitaoka_mass_at_2(self):
 
 def mass_at_two_by_counting_mod_power(self, k):
     """
-    Computes the local mass at p=2 assuming that it's stable (mod 2^k).
+    Computes the local mass at `p=2` assuming that it's stable `(mod 2^k)`.
 
     Note: This is **way** too slow to be useful, even when k=1!!!
 
@@ -409,7 +422,8 @@ def mass_at_two_by_counting_mod_power(self, k):
     OUTPUT:
         a rational number
 
-    EXAMPLE:
+    EXAMPLE::
+
         sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1])
         sage: Q.mass_at_two_by_counting_mod_power(1)
         4

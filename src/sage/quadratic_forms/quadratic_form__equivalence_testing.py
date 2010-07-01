@@ -1,3 +1,7 @@
+"""
+Equivalence Testing
+"""
+
 from sage.matrix.constructor import Matrix
 from sage.misc.mrange import mrange
 from sage.rings.arith import hilbert_symbol, prime_divisors, is_prime, valuation, GCD, legendre_symbol
@@ -23,6 +27,14 @@ def is_globally_equivalent__souvigner(self, other, return_transformation=False):
     """
     Uses the Souvigner code to compute the number of automorphisms.
 
+    INPUT:
+        a QuadraticForm
+
+    OUTPUT:
+        boolean, and optionally a matrix
+
+    EXAMPLES::
+
         sage: Q = QuadraticForm(ZZ, 3, [1, 0, -1, 2, -1, 5])
         sage: Q1 = QuadraticForm(ZZ, 3, [8, 6, 5, 3, 4, 2])
         sage: M = Q.is_globally_equivalent__souvigner(Q1, True) ; M   # optional -- souvigner
@@ -31,6 +43,7 @@ def is_globally_equivalent__souvigner(self, other, return_transformation=False):
         [-1  1  1]
         sage: Q1(M) == Q                                              # optional -- souvigner
         True
+
     """
     ## Write an input text file
     F_filename = '/tmp/tmp_isom_input' + str(random()) + ".txt"
@@ -124,15 +137,19 @@ def is_globally_equivalent_to(self, other, return_matrix=False, check_theta_to_p
     OUTPUT:
         boolean, and optionally a matrix
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1,1])
         sage: M = Matrix(ZZ, 4, 4, [1,2,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1])
         sage: Q1 = Q(M)
-        sage: Q.is_globally_equivalent_to(Q1)
+        sage: Q.(Q1)                                                    # optional -- souvigner
         True
         sage: MM = Q.is_globally_equivalent_to(Q1, return_matrix=True)  # optional -- souvigner
         sage: Q(MM) == Q1                                               # optional -- souvigner
         True
+
+    ::
+
         sage: Q1 = QuadraticForm(ZZ, 3, [1, 0, -1, 2, -1, 5])
         sage: Q2 = QuadraticForm(ZZ, 3, [2, 1, 2, 2, 1, 3])
         sage: Q3 = QuadraticForm(ZZ, 3, [8, 6, 5, 3, 4, 2])
@@ -146,11 +163,15 @@ def is_globally_equivalent_to(self, other, return_matrix=False, check_theta_to_p
         [-1  0  0]
         sage: Q1(M) == Q3                                               # optional -- souvigner
         True
+
+    ::
+
         sage: Q = DiagonalQuadraticForm(ZZ, [1, -1])
         sage: Q.is_globally_equivalent_to(Q)
         Traceback (most recent call last):
         ...
         ValueError: not a definite form in QuadraticForm.is_globally_equivalent_to()
+
     """
     ## only for definite forms
     if not self.is_definite():
@@ -219,12 +240,18 @@ def is_locally_equivalent_to(self, other, check_primes_only=False, force_jordan_
     """
     Determines if the current quadratic form (defined over ZZ) is
     locally equivalent to the given form over the real numbers and the
-    p-adic integers for every prime p.
+    `p`-adic integers for every prime p.
 
     This works by comparing the local Jordan decompositions at every
     prime, and the dimension and signature at the real place.
 
-    EXAMPLES:
+    INPUT:
+        a QuadraticForm
+
+    OUTPUT:
+        boolean
+
+    EXAMPLES::
 
         sage: Q1 = QuadraticForm(ZZ, 3, [1, 0, -1, 2, -1, 5])
         sage: Q2 = QuadraticForm(ZZ, 3, [2, 1, 2, 2, 1, 3])
@@ -232,6 +259,7 @@ def is_locally_equivalent_to(self, other, check_primes_only=False, force_jordan_
         False
         sage: Q1.is_locally_equivalent_to(Q2)
         True
+
     """
     ## TO IMPLEMENT:
     if self.det() == 0:
@@ -275,23 +303,32 @@ def has_equivalent_Jordan_decomposition_at_prime(self, other, p):
     Determines if the given quadratic form has a Jordan decomposition
     equivalent to that of self.
 
-    sage: Q1 = QuadraticForm(ZZ, 3, [1, 0, -1, 1, 0, 3])
-    sage: Q2 = QuadraticForm(ZZ, 3, [1, 0, 0, 2, -2, 6])
-    sage: Q3 = QuadraticForm(ZZ, 3, [1, 0, 0, 1, 0, 11])
-    sage: [Q1.level(), Q2.level(), Q3.level()]
-    [44, 44, 44]
-    sage: Q1.has_equivalent_Jordan_decomposition_at_prime(Q2,2)
-    False
-    sage: Q1.has_equivalent_Jordan_decomposition_at_prime(Q2,11)
-    False
-    sage: Q1.has_equivalent_Jordan_decomposition_at_prime(Q3,2)
-    False
-    sage: Q1.has_equivalent_Jordan_decomposition_at_prime(Q3,11)
-    True
-    sage: Q2.has_equivalent_Jordan_decomposition_at_prime(Q3,2)
-    True
-    sage: Q2.has_equivalent_Jordan_decomposition_at_prime(Q3,11)
-    False
+    INPUT:
+        a QuadraticForm
+
+    OUTPUT:
+        boolean
+
+    EXAMPLES::
+
+        sage: Q1 = QuadraticForm(ZZ, 3, [1, 0, -1, 1, 0, 3])
+        sage: Q2 = QuadraticForm(ZZ, 3, [1, 0, 0, 2, -2, 6])
+        sage: Q3 = QuadraticForm(ZZ, 3, [1, 0, 0, 1, 0, 11])
+        sage: [Q1.level(), Q2.level(), Q3.level()]
+        [44, 44, 44]
+        sage: Q1.has_equivalent_Jordan_decomposition_at_prime(Q2,2)
+        False
+        sage: Q1.has_equivalent_Jordan_decomposition_at_prime(Q2,11)
+        False
+        sage: Q1.has_equivalent_Jordan_decomposition_at_prime(Q3,2)
+        False
+        sage: Q1.has_equivalent_Jordan_decomposition_at_prime(Q3,11)
+        True
+        sage: Q2.has_equivalent_Jordan_decomposition_at_prime(Q3,2)
+        True
+        sage: Q2.has_equivalent_Jordan_decomposition_at_prime(Q3,11)
+        False
+
     """
     ## Sanity Checks
     #if not isinstance(other, QuadraticForm):

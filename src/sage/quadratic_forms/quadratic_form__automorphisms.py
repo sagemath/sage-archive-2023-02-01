@@ -1,4 +1,6 @@
-
+"""
+Automorphisms of Quadratic Forms
+"""
 from sage.interfaces.gp import gp
 from sage.matrix.constructor import Matrix
 from sage.rings.rational_field import QQ
@@ -16,7 +18,7 @@ from random import random
 
 def basis_of_short_vectors(self, show_lengths=False, safe_flag=True):
     """
-    Return a basis for ZZ^n made of vectors with minimal lengths Q(v).
+    Return a basis for `ZZ^n` made of vectors with minimal lengths Q(`v`).
 
     The safe_flag allows us to select whether we want a copy of the
     output, or the original output.  By default safe_flag = True, so
@@ -27,12 +29,14 @@ def basis_of_short_vectors(self, show_lengths=False, safe_flag=True):
     OUTPUT:
         a list of vectors, and optionally a list of values for each vector.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: Q = DiagonalQuadraticForm(ZZ, [1,3,5,7])
         sage: Q.basis_of_short_vectors()
         [(1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1)]
         sage: Q.basis_of_short_vectors(True)
         ([(1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1)], [1, 3, 5, 7])
+
     """
     ## Try to use the cached results
     try:
@@ -144,17 +148,18 @@ def basis_of_short_vectors(self, show_lengths=False, safe_flag=True):
 
 def short_vector_list_up_to_length(self, len_bound, up_to_sign_flag=False):
     """
-    Return a list of lists of short vectors v, sorted by length, with
-    Q(v) < len_bound.  The list in output[i] indexes all vectors of
-    length i.  If the up_to_sign_flag is set to True, then only one of
-    the vectors of the pair [v, -v] is listed.
+    Return a list of lists of short vectors `v`, sorted by length, with
+    Q(`v`) < len_bound.  The list in output `[i]` indexes all vectors of
+    length `i`.  If the up_to_sign_flag is set to True, then only one of
+    the vectors of the pair `[v, -v]` is listed.
 
-    Note:  This processes the PARI/GP output to always give elements of type ZZ.
+    Note:  This processes the PARI/GP output to always give elements of type `ZZ`.
 
     OUTPUT:
         a list of lists of vectors.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: Q = DiagonalQuadraticForm(ZZ, [1,3,5,7])
         sage: Q.short_vector_list_up_to_length(3)
         [[(0, 0, 0, 0)], [(1, 0, 0, 0), [-1, 0, 0, 0]], []]
@@ -211,17 +216,18 @@ def short_vector_list_up_to_length(self, len_bound, up_to_sign_flag=False):
 
 def short_primitive_vector_list_up_to_length(self, len_bound, up_to_sign_flag=False):
     """
-    Return a list of lists of short primitive vectors v, sorted by length, with
-    Q(v) < len_bound.  The list in output[i] indexes all vectors of
-    length i.  If the up_to_sign_flag is set to True, then only one of
-    the vectors of the pair [v, -v] is listed.
+    Return a list of lists of short primitive vectors `v`, sorted by length, with
+    Q(`v`) < len_bound.  The list in output `[i]` indexes all vectors of
+    length `i`.  If the up_to_sign_flag is set to True, then only one of
+    the vectors of the pair `[v, -v]` is listed.
 
-    Note:  This processes the PARI/GP output to always give elements of type ZZ.
+    Note:  This processes the PARI/GP output to always give elements of type `ZZ`.
 
     OUTPUT:
         a list of lists of vectors.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: Q = DiagonalQuadraticForm(ZZ, [1,3,5,7])
         sage: Q.short_vector_list_up_to_length(5, True)
         [[(0, 0, 0, 0)],
@@ -253,36 +259,42 @@ def automorphisms(self):
     """
     Return a list of the automorphisms of the quadratic form.
 
-    sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1])
-    sage: Q.number_of_automorphisms()                     # optional -- souvigner
-    48
-    sage: 2^3 * factorial(3)
-    48
-    sage: len(Q.automorphisms())
-    48
+    EXAMPLES::
 
-    sage: Q = DiagonalQuadraticForm(ZZ, [1,3,5,7])
-    sage: Q.number_of_automorphisms()                     # optional -- souvigner
-    16
-    sage: aut = Q.automorphisms()
-    sage: len(aut)
-    16
-    sage: print([Q(M) == Q for M in aut])
-    [True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True]
+        sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1])
+        sage: Q.number_of_automorphisms()                     # optional -- souvigner
+        48
+        sage: 2^3 * factorial(3)
+        48
+        sage: len(Q.automorphisms())
+        48
 
-    sage: Q = QuadraticForm(ZZ, 3, [2, 1, 2, 2, 1, 3])
-    sage: Q.automorphisms()
-    [
-    [1 0 0]  [-1  0  0]
-    [0 1 0]  [ 0 -1  0]
-    [0 0 1], [ 0  0 -1]
-    ]
+    ::
 
-    sage: Q = DiagonalQuadraticForm(ZZ, [1, -1])
-    sage: Q.automorphisms()
-    Traceback (most recent call last):
-    ...
-    ValueError: not a definite form in QuadraticForm.automorphisms()
+        sage: Q = DiagonalQuadraticForm(ZZ, [1,3,5,7])
+        sage: Q.number_of_automorphisms()                     # optional -- souvigner
+        16
+        sage: aut = Q.automorphisms()
+        sage: len(aut)
+        16
+        sage: print([Q(M) == Q for M in aut])
+        [True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True]
+
+        sage: Q = QuadraticForm(ZZ, 3, [2, 1, 2, 2, 1, 3])
+        sage: Q.automorphisms()
+        [
+        [1 0 0]  [-1  0  0]
+        [0 1 0]  [ 0 -1  0]
+        [0 0 1], [ 0  0 -1]
+        ]
+
+    ::
+
+        sage: Q = DiagonalQuadraticForm(ZZ, [1, -1])
+        sage: Q.automorphisms()
+        Traceback (most recent call last):
+        ...
+        ValueError: not a definite form in QuadraticForm.automorphisms()
     """
     ## only for definite forms
     if not self.is_definite():
@@ -354,7 +366,8 @@ def number_of_automorphisms(self, recompute=False):
     OUTPUT:
         an integer >= 2.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: Q = QuadraticForm(ZZ, 3, [1, 0, 0, 1, 0, 1], unsafe_initialization=True, number_of_automorphisms=-1)
         sage: Q.list_external_initializations()
         ['number_of_automorphisms']
@@ -365,17 +378,22 @@ def number_of_automorphisms(self, recompute=False):
         sage: Q.list_external_initializations()                   # optional -- souvigner
         []
 
+    ::
+
         sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1,1])
         sage: Q.number_of_automorphisms()                         # optional -- souvigner
         384
         sage: 2^4 * factorial(4)
         384
 
+    ::
+
         sage: Q = DiagonalQuadraticForm(ZZ, [1, -1])
         sage: Q.number_of_automorphisms()
         Traceback (most recent call last):
         ...
         ValueError: not a definite form in QuadraticForm.number_of_automorphisms()
+
     """
     ## only for definite forms
     if not self.is_definite():
@@ -406,11 +424,14 @@ def number_of_automorphisms__souvigner(self):
     """
     Uses the Souvigner code to compute the number of automorphisms.
 
-    sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1,1,1])
-    sage: Q.number_of_automorphisms__souvigner()                           # optional -- souvigner
-    3840
-    sage: 2^5 * factorial(5)
-    3840
+    EXAMPLES::
+
+        sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1,1,1])
+        sage: Q.number_of_automorphisms__souvigner()                           # optional -- souvigner
+        3840
+        sage: 2^5 * factorial(5)
+        3840
+
     """
     ## Write an input text file
     F_filename = '/tmp/tmp_isom_input' + str(random()) + ".txt"
@@ -469,7 +490,8 @@ def set_number_of_automorphisms(self, num_autos):
     OUTPUT:
         None
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: Q = DiagonalQuadraticForm(ZZ, [1, 1, 1])
         sage: Q.list_external_initializations()
         []

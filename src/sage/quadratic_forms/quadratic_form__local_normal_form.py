@@ -1,3 +1,8 @@
+"""
+Local Normal Form
+
+"""
+
 #*****************************************************************************
 #       Copyright (C) 2007 William Stein and Jonathan Hanke
 #
@@ -35,12 +40,13 @@ def find_entry_with_minimal_scale_at_prime(self, p):
     Hessian) associated to the form.
 
     INPUT:
-        p -- a prime number > 0
+        `p` -- a prime number > 0
 
     OUTPUT:
         a pair of integers >= 0
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: Q = QuadraticForm(ZZ, 2, [6, 2, 20]); Q
         Quadratic form in 2 variables over Integer Ring with coefficients:
         [ 6 2 ]
@@ -87,19 +93,22 @@ def local_normal_form(self, p):
     the 2x2 blocks in each Jordan component.)
 
     INPUT:
-        p -- a positive prime number.
+        `p` -- a positive prime number.
 
     OUTPUT:
         a quadratic form over ZZ
 
     WARNING:  Currently this only works for quadratic forms defined over ZZ.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: Q = QuadraticForm(ZZ, 2, [10,4,1])
         sage: Q.local_normal_form(5)
         Quadratic form in 2 variables over Integer Ring with coefficients:
         [ 1 0 ]
         [ * 6 ]
+
+    ::
 
         sage: Q.local_normal_form(3)
         Quadratic form in 2 variables over Integer Ring with coefficients:
@@ -269,45 +278,54 @@ def local_normal_form(self, p):
 
 def jordan_blocks_by_scale_and_unimodular(self, p, safe_flag=True):
     """
-    Returns a list of pairs (s_i, L_i) where L_i is a maximal
-    p^(s_i)-unimodular Jordan component which is further
-    decomposed into block diagonals of block size <= 2.  For each
-    L_i the 2x2 blocks are listed after the 1x1 blocks (which
-    follows from the convention of the local_normal_form method).
+    Returns a list of pairs `(s_i, L_i)` where `L_i` is a maximal
+    `p^{s_i}`-unimodular Jordan component which is further decomposed into
+    block diagonals of block size `\le 2`. For each `L_i` the 2x2 blocks are
+    listed after the 1x1 blocks (which follows from the convention of the
+    :meth:`local_normal_form` method).
 
-    Note: The decomposition of each L_i into smaller block is not
-        unique!
+    ..note ::
 
-    The safe_flag allows us to select whether we want a copy of the
-    output, or the original output.  By default safe_flag = True, so
-    we return a copy of the cached information.  If this is set to
-    False, then the routine is much faster but the return values are
-    vulnerable to being corrupted by the user.
+        The decomposition of each `L_i` into smaller block is not unique!
+
+    The ``safe_flag`` argument allows us to select whether we want a copy of
+    the output, or the original output.  By default ``safe_flag = True``, so we
+    return a copy of the cached information.  If this is set to ``False``, then
+    the routine is much faster but the return values are vulnerable to being
+    corrupted by the user.
 
     INPUT:
-        p -- a prime number > 0.
+
+    - `p` -- a prime number > 0.
 
     OUTPUT:
-        A list of pairs (s_i, L_i) where:
-        s_i is an integer,
-            L_i is a block-diagonal unimodular quadratic form over Z_p.
-        Note: These forms L_i are defined over the p-adic integers,
-        but by a matrix over ZZ (or QQ?).
 
-    EXAMPLES:
+    A list of pairs `(s_i, L_i)` where:
+
+    - `s_i` is an integer,
+    - `L_i` is a block-diagonal unimodular quadratic form over `\ZZ_p`.
+
+    .. note::
+
+        These forms `L_i` are defined over the `p`-adic integers, but by a
+        matrix over `\ZZ` (or `\QQ`?).
+
+    EXAMPLES::
+
         sage: Q = DiagonalQuadraticForm(ZZ, [1,9,5,7])
         sage: Q.jordan_blocks_by_scale_and_unimodular(3)
         [(0,
-          Quadratic form in 3 variables over Integer Ring with coefficients:
-          [ 1 0 0 ]
-          [ * 5 0 ]
-          [ * * 7 ]
-          ),
-           (2,
-            Quadratic form in 1 variables over Integer Ring with coefficients:
-          [ 1 ]
-          )]
+        Quadratic form in 3 variables over Integer Ring with coefficients:
+        [ 1 0 0 ]
+        [ * 5 0 ]
+        [ * * 7 ]
+        ),
+        (2,
+        Quadratic form in 1 variables over Integer Ring with coefficients:
+        [ 1 ]
+        )]
 
+    ::
 
         sage: Q2 = QuadraticForm(ZZ, 2, [1,1,1])
         sage: Q2.jordan_blocks_by_scale_and_unimodular(2)
@@ -408,12 +426,13 @@ def jordan_blocks_in_unimodular_list_by_scale_power(self, p):
 
     INPUT:
         self -- a quadratic form over ZZ, which has integer Gram matrix if p == 2
-        p -- a prime number > 0
+        `p` -- a prime number > 0
 
     OUTPUT:
         a list of p-unimodular quadratic forms
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: Q = QuadraticForm(ZZ, 3, [2, -2, 0, 3, -5, 4])
         sage: Q.jordan_blocks_in_unimodular_list_by_scale_power(2)
         Traceback (most recent call last):

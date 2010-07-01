@@ -105,15 +105,15 @@ else:
 ## The other two options control the way the linker creates a namespace
 ## for the dynamic library; check the man page for ld on a mac to see
 ## the details.
+if os.environ['SAGE64']=="yes":
+    # We want the debug and optimization flags, since debug symbols are so useful, etc.
+    print "64 bit mode"
+    env.Append( CFLAGS="-O2 -g -m64" )
+    env.Append( CXXFLAGS="-O2 -g -m64" )
+    env.Append( LINKFLAGS="-m64" )
+
 if env['PLATFORM']=="darwin":
-    if os.environ['SAGE64']=="yes":
-        # We want the debug and optimization flags, since debug symbols are so useful, etc.
-        print "MacIntel in 64 bit mode"
-        env.Append( CFLAGS="-O2 -g -m64" )
-        env.Append( CXXFLAGS="-O2 -g -m64" )
-        env.Append( LINKFLAGS="-m64 -single_module -flat_namespace -undefined dynamic_lookup" )
-    else:
-        env.Append( LINKFLAGS="-single_module -flat_namespace -undefined dynamic_lookup" )
+    env.Append( LINKFLAGS=" -single_module -flat_namespace -undefined dynamic_lookup" )
 
 # SCons doesn't automatically pull in system environment variables
 # However, we only need SAGE_LOCAL, so that's easy.

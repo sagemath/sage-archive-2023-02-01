@@ -522,7 +522,7 @@ class IntegralRayCollection(SageObject,
             0
             sage: c2 is c3
             False
-            sage: cmp(c1, 1)
+            sage: cmp(c1, 1) * cmp(1, c1)
             -1
         """
         c = cmp(type(self), type(right))

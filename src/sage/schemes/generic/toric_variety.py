@@ -488,7 +488,7 @@ class ToricVariety_field(AmbientSpace):
             0
             sage: P1xP1 is P1xP1b
             False
-            sage: cmp(P1xP1, 1)
+            sage: cmp(P1xP1, 1) * cmp(1, P1xP1)
             -1
         """
         c = cmp(type(self), type(right))

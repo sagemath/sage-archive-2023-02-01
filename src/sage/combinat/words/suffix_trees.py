@@ -602,7 +602,7 @@ class ImplicitSuffixTree(SageObject):
             sage: w = Words('cao')('cacao')
             sage: s = ImplicitSuffixTree(w)
             sage: s._word_content
-            doctest:492: DeprecationWarning: _word_content is deprecated, use _letters instead
+            doctest:...: DeprecationWarning: _word_content is deprecated, use _letters instead
             ['c', 'a', 'c', 'a', 'o']
         """
         from sage.misc.misc import deprecation

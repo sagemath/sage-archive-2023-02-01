@@ -1725,6 +1725,43 @@ class LinearFunction:
         """
         return LinearConstraint(self).__eq__(other)
 
+def Sum(L):
+    r"""
+    Efficiently computes the sum of a sequence of
+    ``LinearFunction`` elements
+
+    INPUT:
+
+    - ``L`` a list of ``LinearFunction`` instances.
+
+    .. NOTE::
+
+        The use of the regular ``sum`` function is not recommended as it is much less efficient than this one.
+
+    EXAMPLES::
+
+        sage: p = MixedIntegerLinearProgram()
+        sage: v = p.new_variable()
+
+    The following command::
+
+        sage: from sage.numerical.mip import Sum
+        sage: s = Sum([v[i] for i in xrange(90)])
+
+    is much more efficient than::
+
+        sage: s = sum([v[i] for i in xrange(90)])
+
+    """
+
+    d = {}
+    for v in L:
+        for (id,coeff) in v._f.iteritems():
+            d[id] = coeff + d.get(id,0)
+
+    return LinearFunction(d)
+
+
 
 class LinearConstraint:
     """

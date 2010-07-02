@@ -295,6 +295,11 @@ def CPRFanoToricVariety(Delta=None,
         sage: P1xP1 = CPRFanoToricVariety(Delta_polar=diamond)
         sage: P1xP1
         2-d CPR-Fano toric variety covered by 4 affine patches
+        sage: P1xP1.fan()
+        Rational polyhedral fan in 2-d lattice N
+        sage: P1xP1.fan().ray_matrix()
+        [ 1  0 -1  0]
+        [ 0  1  0 -1]
 
     "Unfortunately," this variety is smooth to start with and we cannot
     perform any subdivisions of the underlying fan without leaving the
@@ -575,7 +580,7 @@ def CPRFanoToricVariety(Delta=None,
         trans[n] = rays.index(ray)
     cones = tuple(tuple(sorted(trans[r] for r in cone.ambient_ray_indices()))
                   for cone in fan)
-    fan = Fan(cones, rays, check=False, normalize=False)
+    fan = Fan(cones, rays, check=False)
     # Check/normalize base_field
     if base_field is None:
         base_field = QQ

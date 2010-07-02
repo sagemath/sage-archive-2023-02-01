@@ -1120,6 +1120,16 @@ class NumberField_relative(NumberField_generic):
             a1
             sage: K._coerce_(K.base_field().0)^2
             -3
+
+        TESTS:
+
+        Check that #5828 is solved::
+
+            sage: K.<w> = QuadraticField(-1)
+            sage: KX.<X> = K[]
+            sage: H.<h> = K.extension(X-1)
+            sage: H(w)
+            w
         """
         abs_base, from_abs_base, to_abs_base = self.absolute_base_field()
         # Write element in terms of the absolute base field

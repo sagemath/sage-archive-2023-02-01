@@ -547,6 +547,117 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
 
         return D
 
+    def descend_to(self, K, f=None):
+        r"""
+        Given a subfield `K` and an elliptic curve self defined over a field `L`,
+        this function determines whether there exists an elliptic curve over `K`
+        which is isomorphic over `L` to self. If one exists, it finds it.
+
+        INPUT:
+
+        - `K` -- a subfield of the base field of self.
+        - `f` -- an embedding of `K` into the base field of self.
+
+        OUTPUT:
+
+        Either an elliptic curve defined over `K` which is isomorphic to self
+        or None if no such curve exists.
+
+        .. NOTE::
+
+            This only works over number fields and QQ.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve([1,2,3,4,5])
+            sage: E.descend_to(ZZ)
+            Traceback (most recent call last):
+            ...
+            TypeError: Input must be a field.
+
+        ::
+
+            sage: F.<b> = QuadraticField(23)
+            sage: G.<a> = F.extension(x^3+5)
+            sage: E = EllipticCurve(j=1728*b).change_ring(G)
+            sage: E.descend_to(F)
+            Elliptic Curve defined by y^2 = x^3 + (8957952*b-206032896)*x + (-247669456896*b+474699792384) over Number Field in b with defining polynomial x^2 - 23
+
+        ::
+
+            sage: L.<a> = NumberField(x^4 - 7)
+            sage: K.<b> = NumberField(x^2 - 7)
+            sage: E = EllipticCurve([a^6,0])
+            sage: E.descend_to(K)
+            Elliptic Curve defined by y^2 = x^3 + 1296/49*b*x over Number Field in b with defining polynomial x^2 - 7
+
+        ::
+
+            sage: K.<a> = QuadraticField(17)
+            sage: E = EllipticCurve(j = 2*a)
+            sage: print E.descend_to(QQ)
+            None
+        """
+        if not K.is_field():
+            raise TypeError, "Input must be a field."
+        if self.base_field()==K:
+            return self
+        j = self.j_invariant()
+        from sage.rings.all import QQ
+        if K == QQ:
+            f = QQ.embeddings(self.base_field())[0]
+            if j in QQ:
+                jbase = QQ(j)
+            else:
+                return None
+        elif f == None:
+            embeddings = K.embeddings(self.base_field())
+            if len(embeddings) == 0:
+                raise TypeError, "Input must be a subfield of the base field of the curve."
+            for g in embeddings:
+                try:
+                    jbase = g.preimage(j)
+                    f = g
+                    break
+                except:
+                    pass
+            if f == None:
+                return None
+        else:
+            try:
+                jbase = f.preimage(j)
+            except:
+                return None
+        E = EllipticCurve(j=jbase)
+        E2 = EllipticCurve(self.base_field(), [f(a) for a in E.a_invariants()])
+        if jbase==0:
+            d = self.is_sextic_twist(E2)
+            if d == 1:
+                return E
+            if d == 0:
+                return None
+            Etwist = E2.sextic_twist(d)
+        elif jbase==1728:
+            d = self.is_quartic_twist(E2)
+            if d == 1:
+                return E
+            if d == 0:
+                return None
+            Etwist = E2.quartic_twist(d)
+        else:
+            d = self.is_quadratic_twist(E2)
+            if d == 1:
+                return E
+            if d == 0:
+                return None
+            Etwist = E2.quadratic_twist(d)
+        if Etwist.is_isomorphic(self):
+            try:
+                Eout = EllipticCurve(K, [f.preimage(a) for a in Etwist.a_invariants()])
+            except:
+                return None
+            else:
+                return Eout
 
     def isogeny(self, kernel, codomain=None, degree=None, model=None, check=True):
         r"""

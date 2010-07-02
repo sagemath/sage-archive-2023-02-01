@@ -93,7 +93,7 @@ from ell_field import EllipticCurve_field
 import ell_point
 import sage.matrix.all as matrix
 from sage.rings.ring import Ring
-from sage.rings.arith import lcm, gcd
+from sage.rings.arith import lcm, gcd, prime_divisors
 from sage.misc.misc import prod
 import sage.databases.cremona
 import ell_torsion
@@ -1014,6 +1014,25 @@ class EllipticCurve_number_field(EllipticCurve_field):
             proof = sage.structure.proof.proof.get_flag(None, "number_field")
 
         return self.local_data(P, proof).tamagawa_number()
+
+    def tamagawa_numbers(self):
+        """
+        Return a list of all Tamagawa numbers for all prime divisors of the
+        conductor (in order).
+
+        EXAMPLES::
+
+            sage: e = EllipticCurve('30a1')
+            sage: e.tamagawa_numbers()
+            [2, 3, 1]
+            sage: vector(e.tamagawa_numbers())
+            (2, 3, 1)
+            sage: K.<a>=NumberField(x^2+3)
+            sage: eK = e.base_extend(K)
+            sage: eK.tamagawa_numbers()
+            [4, 6, 1]
+        """
+        return [self.tamagawa_number(p) for p in prime_divisors(self.conductor())]
 
     def tamagawa_exponent(self, P, proof = None):
         r"""

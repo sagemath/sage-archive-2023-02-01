@@ -2759,21 +2759,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             return 2
         return 4
 
-    def tamagawa_numbers(self):
-        """
-        Return a list of all Tamagawa numbers for all prime divisors of the
-        conductor (in order).
-
-        EXAMPLES::
-
-            sage: e = EllipticCurve('30a1')
-            sage: e.tamagawa_numbers()
-            [2, 3, 1]
-            sage: vector(e.tamagawa_numbers())
-            (2, 3, 1)
-        """
-        return [self.tamagawa_number(p) for p in arith.prime_divisors(self.conductor())]
-
     def tamagawa_product(self):
         """
         Returns the product of the Tamagawa numbers.

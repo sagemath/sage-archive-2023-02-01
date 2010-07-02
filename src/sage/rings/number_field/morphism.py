@@ -258,6 +258,65 @@ class NumberFieldHomomorphism_im_gens(RingHomomorphism_im_gens):
         linear_inverse = ~V.hom(map(L_into_W*self*V_into_K, V.basis()))
         return L.hom(map(V_into_K*linear_inverse*L_into_W, [L.gen()]))
 
+    def preimage(self, y):
+        r"""
+        Computes a preimage of `y` in the domain, provided one exists.
+        Raises a ValueError if `y` has no preimage.
+
+        INPUT:
+
+        - `y` -- an element of the codomain of self.
+
+        OUTPUT:
+
+        Returns the preimage of `y` in the domain, if one exists.
+        Raises a ValueError if `y` has no preimage.
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^2 - 7)
+            sage: L.<b> = NumberField(x^4 - 7)
+            sage: f = K.embeddings(L)[0]
+            sage: f.preimage(3*b^2 - 12/7)
+            3*a - 12/7
+            sage: f.preimage(b)
+            Traceback (most recent call last):
+            ...
+            ValueError: Element 'b' is not in the image of this homomorphism.
+
+        ::
+
+            sage: F.<b> = QuadraticField(23)
+            sage: G.<a> = F.extension(x^3+5)
+            sage: f = F.embeddings(G)[0]
+            sage: f.preimage(a^3+2*b+3)
+            2*b - 2
+
+        """
+
+        # Throughout this method I am using the convention that self is a homomorphism from the number field K to the number field L
+        # Therefore, I use the names K and L in place of domain and codomain
+
+        # try to get the cached transformation matrix and vector space isomorphisms if they exist
+        try:
+            M,LtoV,VtoK = self._transformation_data
+        except:
+            # get the identifications of K and L with vector spaces over Q
+            V,VtoL,LtoV = self.codomain().absolute_vector_space()
+            V,VtoK,KtoV = self.domain().absolute_vector_space()
+            # construct the transformation matrix from K to L by making the columns be the image of the basis of V_K in V_L using the homomorphism
+            from sage.matrix.constructor import matrix
+            from sage.rings.all import QQ
+            M = matrix(QQ, [LtoV(self(VtoK(e))) for e in V.basis()]).transpose()
+            self._transformation_data = (M,LtoV,VtoK)
+
+        # get the coordinate vector of y, solve the linear system, pass to domain
+        yvec = LtoV(y)                  # pass from a point in L to its vector space representation
+        try:
+            xvec = M.solve_right(yvec)      # solve the linear system, throws an exception if there is no solution
+        except ValueError:
+            raise ValueError, "Element '%s' is not in the image of this homomorphism."%y
+        return VtoK(xvec)               # pass from the vector space representation of K back to a point in K
 
 class RelativeNumberFieldHomset(NumberFieldHomset):
     """

@@ -30,6 +30,7 @@ from sage.structure.sage_object import SageObject
 from sage.matrix.all import matrix, identity_matrix
 from sage.geometry.fan import Fan
 from sage.geometry.lattice_polytope import LatticePolytope
+from sage.rings.all import ZZ
 from sage.schemes.generic.toric_variety import ToricVariety
 from sage.schemes.generic.fano_toric_variety import CPRFanoToricVariety
 
@@ -369,7 +370,7 @@ class ToricVarietyFactory(SageObject):
 
         INPUT:
 
-        - ``n`` -- integer. The dimension of the projective space.
+        - ``n`` -- positive integer. The dimension of the projective space.
 
         OUTPUT:
 
@@ -380,18 +381,28 @@ class ToricVarietyFactory(SageObject):
 
             sage: P3 = toric_varieties.P(3)
             sage: P3
-            3-d toric variety covered by 4 affine patches
+            3-d CPR-Fano toric variety covered by 4 affine patches
             sage: P3.fan().ray_matrix()
-            [-1  1  0  0]
-            [-1  0  1  0]
-            [-1  0  0  1]
+            [ 1  0  0 -1]
+            [ 0  1  0 -1]
+            [ 0  0  1 -1]
             sage: P3.gens()
             (z0, z1, z2, z3)
         """
-        rays = [ tuple([-1]*n) ] + identity_matrix(n).columns()
-        cones = [ range(0,i)+range(i+1,n+1) for i in range(0,n+1) ]
-        fan = Fan(cones, rays)
-        return ToricVariety(fan)
+        # We are going to eventually switch off consistency checks, so we need
+        # to be sure that the input is acceptable.
+        try:
+            n = ZZ(n)   # make sure that we got a "mathematical" integer
+        except TypeError:
+            raise TypeError("dimension of the projective space must be a "
+                            "positive integer!\nGot: %s" % n)
+        if n <= 0:
+            raise ValueError("only projective spaces of positive dimension "
+                             "can be constructed!\nGot: %s" % n)
+        m = identity_matrix(n).augment(matrix(n, 1, [-1]*n))
+        charts = [ range(0,i)+range(i+1,n+1) for i in range(0,n+1) ]
+        return CPRFanoToricVariety(Delta_polar=LatticePolytope(m),
+                                   charts=charts, check=self._check)
 
     def A1(self):
         r"""
@@ -442,7 +453,7 @@ class ToricVarietyFactory(SageObject):
 
         INPUT:
 
-        - ``n`` -- integer. The dimension of the affine space.
+        - ``n`` -- positive integer. The dimension of the affine space.
 
         OUTPUT:
 
@@ -461,9 +472,19 @@ class ToricVarietyFactory(SageObject):
             sage: A3.gens()
             (z0, z1, z2)
         """
+        # We are going to eventually switch off consistency checks, so we need
+        # to be sure that the input is acceptable.
+        try:
+            n = ZZ(n)   # make sure that we got a "mathematical" integer
+        except TypeError:
+            raise TypeError("dimension of the affine space must be a "
+                            "positive integer!\nGot: %s" % n)
+        if n <= 0:
+            raise ValueError("only affine spaces of positive dimension can "
+                             "be constructed!\nGot: %s" % n)
         rays = identity_matrix(n).columns()
         cones = [ range(0,n) ]
-        fan = Fan(cones, rays)
+        fan = Fan(cones, rays, check=self._check)
         return ToricVariety(fan)
 
     def A2_Z2(self):
@@ -658,7 +679,7 @@ class ToricVarietyFactory(SageObject):
 
     def Cube_deformation(self,k):
         r"""
-        Construct, for each `k\in\ZZ`, a toric variety with
+        Construct, for each `k\in\ZZ_{\geq 0}`, a toric variety with
         `\ZZ_k`-torsion in the Chow group.
 
         The fans of this sequence of toric varieties all equal the
@@ -695,6 +716,16 @@ class ToricVarietyFactory(SageObject):
             William Fulton, Bernd Sturmfels, "Intersection Theory on
             Toric Varieties", http://arxiv.org/abs/alg-geom/9403002
         """
+        # We are going to eventually switch off consistency checks, so we need
+        # to be sure that the input is acceptable.
+        try:
+            k = ZZ(k)   # make sure that we got a "mathematical" integer
+        except TypeError:
+            raise TypeError("cube deformations X_k are defined only for "
+                            "non-negative integer k!\nGot: %s" % k)
+        if k < 0:
+            raise ValueError("cube deformations X_k are defined only for "
+                             "non-negative k!\nGot: %s" % k)
         rays = lambda kappa: matrix([[ 1, 1, 2*kappa+1],[ 1,-1, 1],[-1, 1, 1],[-1,-1, 1],
                                        [-1,-1,-1],[-1, 1,-1],[ 1,-1,-1],[ 1, 1,-1]])
         cones = [[0,1,2,3],[4,5,6,7],[0,1,7,6],[4,5,3,2],[0,2,5,7],[4,6,1,3]]

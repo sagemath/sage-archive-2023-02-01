@@ -629,15 +629,15 @@ def random_stress():
         if Gnew.in_degrees[i] != Gold.in_degree(i):
             raise RuntimeError( "NO" )
 
-def _test_adjacency_sequence():
+def _test_adjacency_sequence_out():
     """
-    Randomly test the method ``DenseGraph.adjacency_sequence()``. No output
+    Randomly test the method ``DenseGraph.adjacency_sequence_out()``. No output
     indicates that no errors were found.
 
     TESTS::
 
-        sage: from sage.graphs.base.dense_graph import _test_adjacency_sequence
-        sage: _test_adjacency_sequence()  # long time
+        sage: from sage.graphs.base.dense_graph import _test_adjacency_sequence_out
+        sage: _test_adjacency_sequence_out()  # long time
     """
     from sage.graphs.digraph import DiGraph
     from sage.graphs.graph_generators import GraphGenerators
@@ -662,7 +662,7 @@ def _test_adjacency_sequence():
     cdef int *seq
     for 0 <= i < randint(50, 101):
         u = randint(low, n - 1)
-        seq = g.adjacency_sequence(n, V, u)
+        seq = g.adjacency_sequence_out(n, V, u)
         A = [seq[k] for k in range(n)]
         try:
             assert A == list(M[u])

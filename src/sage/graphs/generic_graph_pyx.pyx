@@ -22,8 +22,6 @@ include '../ext/stdsage.pxi'
 # import from Python standard library
 from sage.misc.prandom import random
 
-# import from third-party library
-from sage.graphs.base.dense_graph cimport DenseGraph
 
 cdef extern from *:
     double sqrt(double)
@@ -457,189 +455,318 @@ def D_inverse(s, n):
 
 # Exhaustive search in graphs
 
-cpdef list subgraph_search(G, H, bint induced=False):
+cdef class SubgraphSearch:
     r"""
-    Returns a set of vertices in ``G`` representing a copy of ``H``.
+    This class implements methods to exhaustively search for labelled
+    copies of a graph `H` in a larger graph `G`.
+
+    It is possible to look for induced subgraphs instead, and to
+    iterate or count the number of their occurrences.
 
     ALGORITHM:
 
-    This algorithm is a brute-force search.
-    Let `V(H) = \{h_1,\dots,h_k\}`.  It first tries
-    to find in `G` a possible representant of `h_1`, then a
-    representant of `h_2` compatible with `h_1`, then
-    a representant of `h_3` compatible with the first
+    The algorithm is a brute-force search.  Let `V(H) =
+    \{h_1,\dots,h_k\}`.  It first tries to find in `G` a possible
+    representant of `h_1`, then a representant of `h_2` compatible
+    with `h_1`, then a representant of `h_3` compatible with the first
     two, etc.
 
-    This way, most of the time we need to test far less than
-    `k! \binom{|V(G)|}{k}` subsets, and hope this brute-force
-    technique can sometimes be useful.
-
-    INPUT:
-
-    - ``G``, ``H`` -- two graphs such that ``H`` is a subgraph of ``G``.
-
-    - ``induced`` -- boolean (default: ``False``); whether to require that
-      the subgraph is an induced subgraph.
-
-    OUTPUT:
-
-    A list of vertices inducing a copy of ``H`` in ``G``. If none is found,
-    an empty list is returned.
-
-    EXAMPLES:
-
-    A Petersen graph contains an induced path graph `P_5`::
-
-        sage: from sage.graphs.generic_graph_pyx import subgraph_search
-        sage: g = graphs.PetersenGraph()
-        sage: subgraph_search(g, graphs.PathGraph(5), induced=True)
-        [0, 1, 2, 3, 8]
-
-    It also contains a the claw `K_{1,3}`::
-
-        sage: subgraph_search(g, graphs.ClawGraph())
-        [0, 1, 4, 5]
-
-    Though it contains no induced `P_6`::
-
-        sage: subgraph_search(g, graphs.PathGraph(6), induced=True)
-        []
-
-    TESTS:
-
-    Let `G` and `H` be graphs having orders `m` and `n`, respectively. If
-    `m < n`, then there are no copies of `H` in `G`::
-
-        sage: from sage.graphs.generic_graph_pyx import subgraph_search
-        sage: m = randint(100, 200)
-        sage: n = randint(m + 1, 300)
-        sage: G = graphs.RandomGNP(m, random())
-        sage: H = graphs.RandomGNP(n, random())
-        sage: G.order() < H.order()
-        True
-        sage: subgraph_search(G, H)
-        []
+    This way, most of the time we need to test far less than `k!
+    \binom{|V(G)|}{k}` subsets, and hope this brute-force technique
+    can sometimes be useful.
     """
-    # TODO: This is a brute-force search and can be very inefficient. Write
-    # a more efficient subgraph search implementation.
-    cdef int ng = G.order()
-    cdef int nh = H.order()
-    if ng < nh:
-        return []
-    cdef int i, j, k
-    cdef int *tmp_array
-    cdef (bint) (*is_admissible) (int, int *, int *)
-    if induced:
-        is_admissible = vectors_equal
-    else:
-        is_admissible = vectors_inferior
-    # static copies of the two graphs for more efficient operations
-    cdef DenseGraph g = DenseGraph(ng)
-    cdef DenseGraph h = DenseGraph(nh)
-    # copying the adjacency relations in both G and H
-    i = 0
-    for row in G.adjacency_matrix():
-        j = 0
-        for k in row:
-            if k:
-                g.add_arc(i, j)
-            j += 1
-        i += 1
-    i = 0
-    for row in H.adjacency_matrix():
-        j = 0
-        for k in row:
-            if k:
-                h.add_arc(i, j)
-            j += 1
-        i += 1
-    # A vertex is said to be busy if it is already part of the partial copy
-    # of H in G.
-    cdef int *busy = <int *>sage_malloc(ng * sizeof(int))
-    memset(busy, 0, ng * sizeof(int))
-    # 0 is the first vertex we use, so it is at first busy
-    busy[0] = 1
-    # stack -- list of the vertices which are part of the partial copy of H
-    # in G.
-    #
-    # stack[i] -- the integer corresponding to the vertex of G representing
-    # the i-th vertex of H.
-    #
-    # stack[i] = -1 means that i is not represented
-    # ... yet!
-    cdef int *stack = <int *>sage_malloc(nh * sizeof(int))
-    stack[0] = 0
-    stack[1] = -1
-    # Number of representants we have already found. Set to 1 as vertex 0
-    # is already part of the partial copy of H in G.
-    cdef int active = 1
-    # vertices is equal to range(nh), as an int *variable
-    cdef int *vertices = <int *>sage_malloc(nh * sizeof(int))
-    for 0 <= i < nh:
-        vertices[i] = i
-    # line_h[i] represents the adjacency sequence of vertex i
-    # in h relative to vertices 0, 1, ..., i-1
-    cdef int **line_h = <int **>sage_malloc(nh * sizeof(int *))
-    for 0 <= i < nh:
-        line_h[i] = <int *>h.adjacency_sequence(i, vertices, i)
-    # the sequence of vertices to be returned
-    cdef list value = []
+    def __init__(self, G, H, induced = False):
+        r"""
+        Constructor
 
-    _sig_on
+        This constructor only checks there is no inconsistency in the
+        input : `G` and `H` are both graphs or both digraphs.
+        """
+        if sum([G.is_directed(), H.is_directed()]) == 1:
+            raise ValueError("One graph can not be directed while the other is not.")
 
-    # as long as there is a non-void partial copy of H in G
-    while active:
-        # If we are here and found nothing yet, we try the next possible
-        # vertex as a representant of the active i-th vertex of H.
-        i = stack[active] + 1
-        # Looking for a vertex that is not busy and compatible with the
-        # partial copy we have of H.
-        while i < ng:
-            if busy[i]:
-                i += 1
-            else:
-                tmp_array = g.adjacency_sequence(active, stack, i)
-                if is_admissible(active, tmp_array, line_h[active]):
-                    sage_free(tmp_array)
-                    break
-                else:
-                    sage_free(tmp_array)
-                    i += 1
-        # If we found none, it means that we cannot extend the current copy
-        # of H so we update the status of stack[active] and prepare to change
-        # the previous vertex.
-        if i >= ng:
-            if stack[active] != -1:
-                busy[stack[active]] = 0
-            stack[active] = -1
-            active -= 1
-        # If we have found a good representant of H's i-th vertex in G
+    def __iter__(self):
+        r"""
+        Returns an iterator over all the labeleld subgraphs of `G`
+        isomorphic to `H`.
+
+        EXAMPLE:
+
+        Iterating through all the `P_3` of `P_5`::
+
+            sage: from sage.graphs.generic_graph_pyx import SubgraphSearch
+            sage: g = graphs.PathGraph(5)
+            sage: h = graphs.PathGraph(3)
+            sage: S = SubgraphSearch(g, h)
+            sage: for p in S:
+            ...      print p
+            [0, 1, 2]
+            [1, 2, 3]
+            [2, 1, 0]
+            [2, 3, 4]
+            [3, 2, 1]
+            [4, 3, 2]
+        """
+        self._initialization()
+        return self
+
+    def cardinality(self):
+        r"""
+        Returns the number of labelled subgraphs of `G` isomorphic to
+        `H`.
+
+        .. NOTE::
+
+           This method counts the subgraphs by enumerating them all !
+           Hence it probably is not a good idea to count their number
+           before enumerating them :-)
+
+        EXAMPLE:
+
+        Counting the number of labelled `P_3` in `P_5`::
+
+            sage: from sage.graphs.generic_graph_pyx import SubgraphSearch
+            sage: g = graphs.PathGraph(5)
+            sage: h = graphs.PathGraph(3)
+            sage: S = SubgraphSearch(g, h)
+            sage: S.cardinality()
+            6
+        """
+        if self.nh > self.ng:
+            return 0
+
+        self._initialization()
+        cdef int i
+
+        i=0
+        for _ in self:
+            i+=1
+
+        return i
+
+    def _initialization(self):
+        r"""
+        Initialization of the variables.
+
+        Once the memory allocation is done in :meth:`__cinit__`,
+        several variables need to be set to a default value. As this
+        operation needs to be performed before any call to
+        :meth:`__iter__` or to :meth:`cardinality`, it is cleaner to
+        create a dedicated method.
+
+        EXAMPLE:
+
+        Finding two times the first occurrence through the
+        re-initialization of the instance ::
+
+            sage: from sage.graphs.generic_graph_pyx import SubgraphSearch
+            sage: g = graphs.PathGraph(5)
+            sage: h = graphs.PathGraph(3)
+            sage: S = SubgraphSearch(g, h)
+            sage: S.__next__()
+            [0, 1, 2]
+            sage: S._initialization()
+            sage: S.__next__()
+            [0, 1, 2]
+        """
+
+        memset(self.busy, 0, self.ng * sizeof(int))
+        # 0 is the first vertex we use, so it is at first busy
+        self.busy[0] = 1
+        # stack -- list of the vertices which are part of the partial copy of H
+        # in G.
+        #
+        # stack[i] -- the integer corresponding to the vertex of G representing
+        # the i-th vertex of H.
+        #
+        # stack[i] = -1 means that i is not represented
+        # ... yet!
+
+        self.stack[0] = 0
+        self.stack[1] = -1
+
+        # Number of representants we have already found. Set to 1 as vertex 0
+        # is already part of the partial copy of H in G.
+        self.active = 1
+
+    def __cinit__(self, G, H, induced = False):
+        r"""
+        Cython constructor
+
+        This method initializes all the C values.
+        """
+
+        # Storing the number of vertices
+        self.ng = G.order()
+        self.nh = H.order()
+
+
+
+        # Storing the list of vertices
+        self.g_vertices = G.vertices()
+
+        # Are the graphs directed (at the end of the code is checked
+        # whether both are of the same type)
+        self.directed = G.is_directed()
+
+        cdef int i, j, k
+        cdef int *tmp_array
+
+        # Should we look for induced subgraphs ?
+        if induced:
+            self.is_admissible = vectors_equal
         else:
-            if stack[active] != -1:
-                busy[stack[active]] = 0
-            stack[active] = i
-            busy[stack[active]] = 1
-            active += 1
-            # We have found our copy!!!
-            if active == nh:
-                g_vertices = G.vertices()
-                value = [g_vertices[stack[i]] for i in xrange(nh)]
-                break
+            self.is_admissible = vectors_inferior
+
+        # static copies of the two graphs for more efficient operations
+        self.g = DenseGraph(self.ng)
+        self.h = DenseGraph(self.nh)
+
+        # copying the adjacency relations in both G and H
+        i = 0
+        for row in G.adjacency_matrix():
+            j = 0
+            for k in row:
+                if k:
+                    self.g.add_arc(i, j)
+                j += 1
+            i += 1
+        i = 0
+        for row in H.adjacency_matrix():
+            j = 0
+            for k in row:
+                if k:
+                    self.h.add_arc(i, j)
+                j += 1
+            i += 1
+
+        # A vertex is said to be busy if it is already part of the partial copy
+        # of H in G.
+        self.busy = <int *>sage_malloc(self.ng * sizeof(int))
+        self.stack = <int *>sage_malloc(self.nh * sizeof(int))
+
+        # vertices is equal to range(nh), as an int *variable
+        self.vertices = <int *>sage_malloc(self.nh * sizeof(int))
+        for 0 <= i < self.nh:
+            self.vertices[i] = i
+
+        # line_h_out[i] represents the adjacency sequence of vertex i
+        # in h relative to vertices 0, 1, ..., i-1
+        self.line_h_out = <int **>sage_malloc(self.nh * sizeof(int *))
+        for 0 <= i < self.nh:
+            self.line_h_out[i] = <int *>self.h.adjacency_sequence_out(i, self.vertices, i)
+
+        # Similarly in the opposite direction (only useful if the
+        # graphs are directed)
+        if self.directed:
+            self.line_h_in = <int **>sage_malloc(self.nh * sizeof(int *))
+            for 0 <= i < self.nh:
+                self.line_h_in[i] = <int *>self.h.adjacency_sequence_in(i, self.vertices, i)
+
+        self._initialization()
+
+    def __next__(self):
+        r"""
+        Returns the next isomorphic subgraph if any, and raises a
+        ``StopIteration`` otherwise.
+
+        EXAMPLE::
+
+            sage: from sage.graphs.generic_graph_pyx import SubgraphSearch
+            sage: g = graphs.PathGraph(5)
+            sage: h = graphs.PathGraph(3)
+            sage: S = SubgraphSearch(g, h)
+            sage: S.__next__()
+            [0, 1, 2]
+        """
+        _sig_on
+        cdef int *tmp_array_out
+        cdef int *tmp_array_in
+        cdef bool is_admissible
+
+        # as long as there is a non-void partial copy of H in G
+        while self.active >= 0:
+            # If we are here and found nothing yet, we try the next possible
+            # vertex as a representant of the active i-th vertex of H.
+            self.i = self.stack[self.active] + 1
+            # Looking for a vertex that is not busy and compatible with the
+            # partial copy we have of H.
+            while self.i < self.ng:
+                if self.busy[self.i]:
+                    self.i += 1
+                else:
+                    # Testing whether the vertex we picked is a
+                    # correct extension by checking the edges from the
+                    # vertices already selected to self.i satisfy the
+                    # constraints
+                    tmp_array_out = self.g.adjacency_sequence_out(self.active, self.stack, self.i)
+                    is_admissible = self.is_admissible(self.active, tmp_array_out, self.line_h_out[self.active])
+                    sage_free(tmp_array_out)
+
+                    # If G and H are digraphs, we also need to ensure
+                    # the edges going in the opposite direction
+                    # satisfy the constraints
+                    if is_admissible and self.directed:
+                        tmp_array_in = self.g.adjacency_sequence_in(self.active, self.stack, self.i)
+                        is_admissible = is_admissible and self.is_admissible(self.active, tmp_array_in, self.line_h_in[self.active])
+                        sage_free(tmp_array_in)
+
+                    if is_admissible:
+                        break
+                    else:
+                        self.i += 1
+
+            # If we have found a good representant of H's i-th vertex in G
+            if self.i < self.ng:
+
+                # updating the last vertex of the stack
+                if self.stack[self.active] != -1:
+                    self.busy[self.stack[self.active]] = 0
+                self.stack[self.active] = self.i
+
+                # We have found our copy !!!
+                if self.active == self.nh-1:
+                    return [self.g_vertices[self.stack[l]] for l in xrange(self.nh)]
+
+                # We are still missing several vertices ...
+                else:
+                    self.busy[self.stack[self.active]] = 1
+                    self.active += 1
+
+                    # we begin the search of the next vertex at 0
+                    self.stack[self.active] = -1
+
+            # If we found no representant for the i-th vertex, it
+            # means that we cannot extend the current copy of H so we
+            # update the status of stack[active] and prepare to change
+            # the previous vertex.
+
             else:
-                # we begin the search of the next vertex at 0
-                stack[active] = -1
+                if self.stack[self.active] != -1:
+                    self.busy[self.stack[self.active]] = 0
+                self.stack[self.active] = -1
+                self.active -= 1
 
-    _sig_off
+        _sig_off
+        raise StopIteration
 
-    # Free the memory
-    sage_free(busy)
-    sage_free(stack)
-    sage_free(vertices)
-    for 0 <= i < nh:
-        sage_free(line_h[i])
-    sage_free(line_h)
+    def __dealloc__(self):
+        r"""
+        Freeing the allocated memory.
+        """
 
-    return value
+        # Free the memory
+        sage_free(self.busy)
+        sage_free(self.stack)
+        sage_free(self.vertices)
+        for 0 <= i < self.nh:
+            sage_free(self.line_h_out[i])
+        sage_free(self.line_h_out)
+
+        if self.directed:
+            for 0 <= i < self.nh:
+                sage_free(self.line_h_in[i])
+            sage_free(self.line_h_in)
 
 cdef inline bint vectors_equal(int n, int *a, int *b):
     r"""

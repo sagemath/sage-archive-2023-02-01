@@ -8470,6 +8470,10 @@ class GenericGraph(GenericGraph_pyx):
           is no copy (induced or otherwise) of ``G`` in ``self``, we return
           ``None``.
 
+        .. NOTE::
+
+            This method also works on digraphs.
+
         ALGORITHM:
 
         Brute-force search.
@@ -8520,19 +8524,144 @@ class GenericGraph(GenericGraph_pyx):
 
         The empty graph is a subgraph of every graph::
 
-            sage: g.subgraph_search(graphs.EmptyGraph())
-            Graph on 0 vertices
-            sage: g.subgraph_search(graphs.EmptyGraph(), induced=True)
-            Graph on 0 vertices
+             sage: g.subgraph_search(graphs.EmptyGraph())
+             Graph on 0 vertices
+             sage: g.subgraph_search(graphs.EmptyGraph(), induced=True)
+             Graph on 0 vertices
         """
-        from sage.graphs.generic_graph_pyx import subgraph_search
+        from sage.graphs.generic_graph_pyx import SubgraphSearch
         from sage.graphs.graph_generators import GraphGenerators
         if G.order() == 0:
             return GraphGenerators().EmptyGraph()
-        H = subgraph_search(self, G, induced=induced)
-        if H == []:
-            return None
-        return self.subgraph(H)
+
+        S = SubgraphSearch(self, G, induced = induced)
+
+        for g in S:
+            return self.subgraph(g)
+
+        return None
+
+    def subgraph_search_count(self, G, induced=False):
+        r"""
+        Returns the number of labelled occurences of ``G`` in ``self``.
+
+        INPUT:
+
+        - ``G`` -- the graph whose copies we are looking for in
+          ``self``.
+
+        - ``induced`` -- boolean (default: ``False``). Whether or not
+          to count induced copies of ``G`` in ``self``.
+
+        ALGORITHM:
+
+        Brute-force search.
+
+        .. NOTE::
+
+            This method also works on digraphs.
+
+        EXAMPLES:
+
+        Counting the number of paths `P_5` in a PetersenGraph::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g.subgraph_search_count(graphs.PathGraph(5))
+            240
+
+        Requiring these subgraphs be induced::
+
+            sage: g.subgraph_search_count(graphs.PathGraph(5), induced = True)
+            120
+
+        If we define the graph `T_k` (the transitive tournament on `k`
+        vertices) as the graph on `\{0, ..., k-1\}` such that `ij \in
+        T_k` iif `i<j`, how many directed triangles can be found in
+        `T_5` ? The answer is of course `0` ::
+
+             sage: T5 = DiGraph()
+             sage: T5.add_edges([(i,j) for i in xrange(5) for j in xrange(i+1, 5)])
+             sage: T5.subgraph_search_count(digraphs.Circuit(3))
+             0
+
+        If we count instead the number of `T_3` in `T_5`, we expect
+        the answer to be `{5 \choose 3}`::
+
+             sage: T3 = T5.subgraph([0,1,2])
+             sage: T5.subgraph_search_count(T3)
+             10
+             sage: binomial(5,3)
+             10
+
+        The empty graph is a subgraph of every graph::
+
+            sage: g.subgraph_search_count(graphs.EmptyGraph())
+            1
+        """
+        from sage.graphs.generic_graph_pyx import SubgraphSearch
+
+        if G.order() == 0:
+            return 1
+
+        if self.order() == 0:
+            return 0
+
+        S = SubgraphSearch(self, G, induced = induced)
+
+        return S.cardinality()
+
+    def subgraph_search_iterator(self, G, induced=False):
+        r"""
+        Returns an iterator over the labelled copies of ``G`` in ``self``.
+
+        INPUT:
+
+        - ``G`` -- the graph whose copies we are looking for in
+          ``self``.
+
+        - ``induced`` -- boolean (default: ``False``). Whether or not
+          to iterate over the induced copies of ``G`` in ``self``.
+
+        ALGORITHM:
+
+        Brute-force search.
+
+        OUTPUT:
+
+            Iterator over the labelled copies of ``G`` in ``self``, as
+            *lists*. For each value `(v_1, v_2, ..., v_k)` returned,
+            the first vertex of `G` is associated with `v_1`, the
+            second with `v_2`, etc ...
+
+        .. NOTE::
+
+            This method also works on digraphs.
+
+        EXAMPLE:
+
+        Iterating through all the labelled `P_3` of `P_5`::
+
+            sage: g = graphs.PathGraph(5)
+            sage: for p in g.subgraph_search_iterator(graphs.PathGraph(3)):
+            ...      print p
+            [0, 1, 2]
+            [1, 2, 3]
+            [2, 1, 0]
+            [2, 3, 4]
+            [3, 2, 1]
+            [4, 3, 2]
+        """
+
+        if G.order() == 0:
+            from sage.graphs.graph_generators import GraphGenerators
+            return [GraphGenerators().EmptyGraph()]
+
+        elif self.order() == 0:
+            return []
+
+        else:
+            from sage.graphs.generic_graph_pyx import SubgraphSearch
+            return SubgraphSearch(self, G, induced = induced)
 
     def random_subgraph(self, p, inplace=False):
         """

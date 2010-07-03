@@ -840,22 +840,75 @@ cdef class CGraph:
         """
         raise NotImplementedError()
 
-    cdef int *adjacency_sequence(self, int n, int *vertices, int v):
+    cdef int * adjacency_sequence_in(self, int n, int *vertices, int v):
         r"""
         Returns the adjacency sequence corresponding to a list of vertices
-        and a vertex. See the function ``_test_adjacency_sequence()`` of
+        and a vertex.
+
+        See the OUTPUT section for a formal definition.
+
+        See the function ``_test_adjacency_sequence()`` of
         ``dense_graph.pyx`` and ``sparse_graph.pyx`` for unit tests.
 
         INPUT:
 
-        - ``n`` -- nonnegative integer; the maximum index in ``vertices`` up
-          to which we want to consider. If ``n = 0``, we only want to know if
-          ``v`` is adjacent to ``vertices[0]``. If ``n = 1``, we want to know
-          if ``v`` is adjacent to both ``vertices[0]`` and ``vertices[1]``.
-          Let ``k`` be the length of ``vertices``. If ``0 <= n < k``, then we
-          want to know if ``v`` is adjacent to each of
-          ``vertices[0], vertices[1], ..., vertices[n]``. Where ``n = k - 1``,
-          then we consider all elements in the list ``vertices``.
+        - ``n`` -- nonnegative integer; the maximum index in
+          ``vertices`` up to which we want to consider. If ``n = 0``,
+          we only want to know if ``(vertices[0],v)`` is an edge. If
+          ``n = 1``, we want to know whether ``(vertices[0],v)`` and
+          ``(vertices[1],v)`` are edges.  Let ``k`` be the length of
+          ``vertices``. If ``0 <= n < k``, then we want to know if
+          ``v`` is adjacent to each of ``vertices[0], vertices[1],
+          ..., vertices[n]``. Where ``n = k - 1``, then we consider
+          all elements in the list ``vertices``.
+
+        - ``vertices`` -- list of vertices.
+
+        - ``v`` -- a vertex.
+
+        - ``reverse`` (bool) -- if set to ``True``, considers the
+          edges ``(v,vertices[i])`` instead of ``(v,vertices[i])``
+          (only useful for digraphs).
+
+        OUTPUT:
+
+        Returns a list of ``n`` integers, whose i-th element is set to
+        `1` iff ``(v,vertices[i])`` is an edge.
+
+        .. SEEALSO::
+
+            - :meth:`adjacency_sequence_out` -- Similar method for
+            ``(v, vertices[i])`` instead of ``(vertices[i], v)`` (the
+            difference only matters for digraphs).
+        """
+        cdef int i = 0
+        cdef int *seq = <int *>sage_malloc(n * sizeof(int))
+        for 0 <= i < n:
+            seq[i] = 1 if self.has_arc_unsafe(vertices[i], v) else 0
+
+        return seq
+
+    cdef int * adjacency_sequence_out(self, int n, int *vertices, int v):
+        r"""
+        Returns the adjacency sequence corresponding to a list of vertices
+        and a vertex.
+
+        See the OUTPUT section for a formal definition.
+
+        See the function ``_test_adjacency_sequence()`` of
+        ``dense_graph.pyx`` and ``sparse_graph.pyx`` for unit tests.
+
+        INPUT:
+
+        - ``n`` -- nonnegative integer; the maximum index in
+          ``vertices`` up to which we want to consider. If ``n = 0``,
+          we only want to know if ``(v, vertices[0])`` is an edge. If
+          ``n = 1``, we want to know whether ``(v, vertices[0])`` and
+          ``(v, vertices[1])`` are edges.  Let ``k`` be the length of
+          ``vertices``. If ``0 <= n < k``, then we want to know if
+          each of ``vertices[0], vertices[1], ..., vertices[n]`` is
+          adjacent to ``v``. Where ``n = k - 1``, then we consider all
+          elements in the list ``vertices``.
 
         - ``vertices`` -- list of vertices.
 
@@ -863,14 +916,23 @@ cdef class CGraph:
 
         OUTPUT:
 
-        Returns a list of ``n`` integers, whose i-th element
-        is set to 1 iff ``v`` is adjacent to ``vertices[i]``.
+        Returns a list of ``n`` integers, whose i-th element is set to
+        `1` iff ``(v,vertices[i])`` is an edge.
+
+        .. SEEALSO::
+
+            - :meth:`adjacency_sequence_in` -- Similar method for
+            ``(vertices[i],v)`` instead of ``(v,vertices[i])`` (the
+            difference only matters for digraphs).
+
         """
         cdef int i = 0
         cdef int *seq = <int *>sage_malloc(n * sizeof(int))
         for 0 <= i < n:
             seq[i] = 1 if self.has_arc_unsafe(v, vertices[i]) else 0
+
         return seq
+
 
     cpdef list all_arcs(self, int u, int v):
         """

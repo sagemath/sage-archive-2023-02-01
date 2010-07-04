@@ -2651,6 +2651,26 @@ cdef class Matrix(matrix1.Matrix):
             [   1 -2/7    0 -2/7]
             sage: ker.0 * k
             (0, 0, 0, 0)
+
+        Test that trac ticket #9425 is fixed.
+
+        ::
+
+            sage: V = span([[1/7,0,0] ,[0,1,0]], ZZ); V
+            Free module of degree 3 and rank 2 over Integer Ring
+            Echelon basis matrix:
+            [1/7   0   0]
+            [  0   1   0]
+            sage: T = matrix(ZZ,3,[1,0,0,0,0,0,0,0,0]); T
+            [1 0 0]
+            [0 0 0]
+            [0 0 0]
+            sage: W = T.kernel_on(V); W.basis()
+            [
+            (0, 1, 0)
+            ]
+            sage: W.is_submodule(V)
+            True
         """
         A = self.restrict(V, check=check)
         if not poly is None:
@@ -2662,7 +2682,7 @@ cdef class Matrix(matrix1.Matrix):
             A = V.basis_matrix()
             B = W.basis_matrix()
             C = B*A
-            return C.row_module()
+            return C.row_module(base_ring=V.base_ring())
 
 
     def integer_kernel(self, ring=ZZ):

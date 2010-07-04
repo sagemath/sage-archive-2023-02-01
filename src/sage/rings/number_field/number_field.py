@@ -1058,6 +1058,18 @@ class NumberField_generic(number_field_base.NumberField):
             sage: F.<b> = K.extension(polygen(K))
             sage: F([a])
             a
+
+        Using a GAP element may be tricky, as it may contain
+        an exclamation mark::
+
+            sage: L.<tau> = NumberField(x^3-2)
+            sage: gap(tau^3)
+            2
+            sage: gap(tau)^3
+            !2
+            sage: L(gap(tau)^3)     # indirect doctest
+            2
+
         """
         if isinstance(x, number_field_element.NumberFieldElement):
             K = x.parent()
@@ -1073,6 +1085,11 @@ class NumberField_generic(number_field_base.NumberField):
                     return self._element_class(self, x)
                 x = L(x)
             return self._coerce_from_other_number_field(x)
+        elif sage.interfaces.gap.is_GapElement(x):
+            s = repr(x)
+            if self.variable_name() in s:
+                return self._coerce_from_str(s)
+            return self._coerce_from_str(s.replace('!',''))
         elif isinstance(x,str):
             return self._coerce_from_str(x)
         elif isinstance(x, (tuple, list)) or \
@@ -2600,21 +2617,39 @@ class NumberField_generic(number_field_base.NumberField):
 
         EXAMPLE::
 
-            sage: F=CyclotomicField(8)
-            sage: F.gen()
-            zeta8
-            sage: F._gap_init_() # the following variable name $sage1 represents the F.base_ring() in gap and is somehow random
-            'CallFuncList(function() local x,E; x:=Indeterminate($sage1,"x"); E:=AlgebraicExtension($sage1,x^4 + 1,"zeta8"); return E; end,[])'
-            sage: f=gap(F)
-            sage: f
-            <algebraic extension over the Rationals of degree 4>
-            sage: f.GeneratorsOfDivisionRing()
-            [ zeta8 ]
+            sage: z = QQ['z'].0
+            sage: K.<zeta> = NumberField(z^2 - 2)
+            sage: K._gap_init_() # the following variable name $sage1 represents the F.base_ring() in gap and is somehow random
+            'CallFuncList(function() local z,E; z:=Indeterminate($sage1,"z"); E:=AlgebraicExtension($sage1,z^2 - 2,"zeta"); return E; end,[])'
+            sage: k = gap(K)
+            sage: k
+            <algebraic extension over the Rationals of degree 2>
+            sage: k.GeneratorsOfDivisionRing()
+            [ zeta ]
+
+        The following tests that it is possible to use a defining
+        polynomial in the variable ``E``, even though by default
+        ``E`` is used as a local variable in the above GAP
+        ``CallFuncList``::
+
+            sage: P.<E> = QQ[]
+            sage: L.<tau> = NumberField(E^3 - 2)
+            sage: l = gap(L); l
+            <algebraic extension over the Rationals of degree 3>
+            sage: l.GeneratorsOfField()
+            [ tau ]
+            sage: gap(tau)^3
+            !2
+
         """
         if not self.is_absolute():
             raise NotImplementedError, "Currently, only simple algebraic extensions are implemented in gap"
         G = sage.interfaces.gap.gap
-        return 'CallFuncList(function() local x,E; x:=Indeterminate(%s,"x"); E:=AlgebraicExtension(%s,%s,"%s"); return E; end,[])'%(G(self.base_ring()).name(),G(self.base_ring()).name(),self.polynomial().__repr__(),str(self.gen()))
+        q = self.polynomial()
+        if q.variable_name()!='E':
+            return 'CallFuncList(function() local %s,E; %s:=Indeterminate(%s,"%s"); E:=AlgebraicExtension(%s,%s,"%s"); return E; end,[])'%(q.variable_name(),q.variable_name(),G(self.base_ring()).name(),q.variable_name(),G(self.base_ring()).name(),self.polynomial().__repr__(),str(self.gen()))
+        else:
+            return 'CallFuncList(function() local %s,F; %s:=Indeterminate(%s,"%s"); F:=AlgebraicExtension(%s,%s,"%s"); return F; end,[])'%(q.variable_name(),q.variable_name(),G(self.base_ring()).name(),q.variable_name(),G(self.base_ring()).name(),self.polynomial().__repr__(),str(self.gen()))
 
     def characteristic(self):
         """

@@ -1820,10 +1820,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: seven_acre_wood.is_forest()
             True
         """
-        for g in self.connected_components_subgraphs():
-            if not g.is_tree():
-                return False
-        return True
+        number_of_connected_components = len(self.connected_components())
+
+        return self.num_verts() == self.num_edges() + number_of_connected_components
 
     def is_overfull(self):
         r"""

@@ -97,17 +97,37 @@ cdef class Matrix(matrix0.Matrix):
         EXAMPLES::
 
             sage: A = MatrixSpace(QQ,3,3)([0,1,2,3,4,5,6,7,8])
-            sage: g=gap(A) # indirect doctest
+            sage: g = gap(A) # indirect doctest
             sage: g
             [ [ 0, 1, 2 ], [ 3, 4, 5 ], [ 6, 7, 8 ] ]
             sage: g.CharacteristicPolynomial()
             x_1^3-12*x_1^2-18*x_1
-            sage: A = MatrixSpace(CyclotomicField(4),2,2)([0,1,2,3])
-            sage: g=gap(A)
-            sage: g
-            [ [ !0, !1 ], [ !2, !3 ] ]
+            sage: A.characteristic_polynomial()
+            x^3 - 12*x^2 - 18*x
+            sage: matrix(g,QQ) == A
+            True
+
+        Particularly difficult is the case of matrices over
+        cyclotomic fields and general number fields. See
+        tickets #5618 and #8909.
+        ::
+
+            sage: K.<zeta> = CyclotomicField(8)
+            sage: A = MatrixSpace(K,2,2)([0,1+zeta,2*zeta,3])
+            sage: g = gap(A); g
+            [ [ 0, 1+E(8) ], [ 2*E(8), 3 ] ]
+            sage: matrix(g,K) == A
+            True
             sage: g.IsMatrix()
             true
+
+            sage: L.<tau> = NumberField(x^3-2)
+            sage: A = MatrixSpace(L,2,2)([0,1+tau,2*tau,3])
+            sage: g = gap(A); g
+            [ [ !0, tau+1 ], [ 2*tau, !3 ] ]
+            sage: matrix(g,L) == A
+            True
+
         """
         cdef Py_ssize_t i, j
         v = []

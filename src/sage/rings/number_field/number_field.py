@@ -6820,7 +6820,7 @@ class NumberField_cyclotomic(NumberField_absolute):
                 # it may be that a number field element's string representation
                 # in GAP has an exclamation mark in it.
                 return self(rational.Rational(s.replace('!','')))
-            except:
+            except TypeError:
                 # There is no 'E(...)' in the string representation. But it may
                 # be that 'E(...)' was overwritten in GAP. We can only hope that
                 # by coincidence the name in GAP is the same as the name in self

@@ -299,7 +299,7 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, log=0):
 
        sage: from sage.graphs.graph_coloring import vertex_coloring
        sage: g = graphs.PetersenGraph()
-       sage: vertex_coloring(g, value_only=True) # optional - GLPK, CBC
+       sage: vertex_coloring(g, value_only=True)
        3
     """
     from sage.numerical.mip import MixedIntegerLinearProgram
@@ -518,7 +518,7 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, log=0):
 
        sage: from sage.graphs.graph_coloring import edge_coloring
        sage: g = graphs.PetersenGraph()
-       sage: edge_coloring(g, value_only=True) # optional - GLPK, CBC
+       sage: edge_coloring(g, value_only=True)
        4
 
     Complete graphs are colored using the linear-time round-robin coloring::
@@ -731,22 +731,22 @@ def linear_arboricity(g, hex_colors=False, value_only=False, k=1, **kwds):
     are an admissible partition::
 
         sage: from sage.graphs.graph_coloring import linear_arboricity
-        sage: g = graphs.GridGraph([4,4])                                 # optional - GLPK, CBC
-        sage: g1,g2 = linear_arboricity(g, k=0)                           # optional - GLPK, CBC
+        sage: g = graphs.GridGraph([4,4])
+        sage: g1,g2 = linear_arboricity(g, k=0)
 
     Each graph is of course a forest::
 
-        sage: g1.is_forest() and g2.is_forest()                           # optional - GLPK, CBC
+        sage: g1.is_forest() and g2.is_forest()
         True
 
     Of maximum degree 2::
 
-        sage: max(g1.degree()) <= 2 and max(g2.degree()) <= 2             # optional - GLPK, CBC
+        sage: max(g1.degree()) <= 2 and max(g2.degree()) <= 2
         True
 
     Which constitutes a partition of the whole edge set::
 
-        sage: all([g1.has_edge(e) or g2.has_edge(e) for e in g.edges(labels = None)])  # optional - GLPK, CBC
+        sage: all([g1.has_edge(e) or g2.has_edge(e) for e in g.edges(labels = None)])
         True
 
     REFERENCES:
@@ -910,21 +910,21 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, **kwds):
 
         sage: from sage.graphs.graph_coloring import acyclic_edge_coloring
         sage: g = graphs.CompleteGraph(8)
-        sage: colors = acyclic_edge_coloring(g)                                     # optional - GLPK, CBC
+        sage: colors = acyclic_edge_coloring(g)
 
     Each color class is of course a matching ::
 
-        sage: all([max(gg.degree())<=1 for gg in colors])                           # optional - GLPK, CBC
+        sage: all([max(gg.degree())<=1 for gg in colors])
         True
 
     These matchings being a partition of the edge set::
 
-        sage: all([ any([gg.has_edge(e) for gg in colors]) for e in g.edges(labels = False)])     # optional - GLPK, CBC
+        sage: all([ any([gg.has_edge(e) for gg in colors]) for e in g.edges(labels = False)])
         True
 
     Besides, the union of any two of them is a forest ::
 
-        sage: all([g1.union(g2).is_forest() for g1 in colors for g2 in colors])     # optional - GLPK, CBC
+        sage: all([g1.union(g2).is_forest() for g1 in colors for g2 in colors])
         True
 
     If one wants to acyclically color a cycle on `4` vertices,
@@ -932,15 +932,15 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, **kwds):
     an exception when asked to color it with only 2::
 
         sage: g = graphs.CycleGraph(4)
-        sage: acyclic_edge_coloring(g, k=2)                                         # optional - GLPK, CBC
+        sage: acyclic_edge_coloring(g, k=2)
         Traceback (most recent call last):
         ...
         ValueError: This graph can not be colored with the given number of colors.
 
     The optimal coloring give us `3` classes::
 
-        sage: colors = acyclic_edge_coloring(g, k=None)                             # optional - GLPK, CBC
-        sage: len(colors)                                                           # optional - GLPK, CBC
+        sage: colors = acyclic_edge_coloring(g, k=None)
+        sage: len(colors)
         3
 
     """

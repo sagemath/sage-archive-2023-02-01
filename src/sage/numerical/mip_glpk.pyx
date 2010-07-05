@@ -38,7 +38,7 @@ def solve_glpk(self, log=0, objective_only=False):
     Solving a simple Linear Program using Coin as a solver
     ( Computation of a maximum stable set in Petersen's graph )::
 
-        sage: from sage.numerical.mip_glpk import solve_glpk    # optional - GLPK
+        sage: from sage.numerical.mip_glpk import solve_glpk
         sage: g = graphs.PetersenGraph()
         sage: p = MixedIntegerLinearProgram(maximization=True)
         sage: b = p.new_variable()
@@ -46,7 +46,7 @@ def solve_glpk(self, log=0, objective_only=False):
         sage: for (u,v) in g.edges(labels=None):
         ...       p.add_constraint(b[u] + b[v], max=1)
         sage: p.set_binary(b)
-        sage: solve_glpk(p, objective_only=True)     # optional - GLPK
+        sage: solve_glpk(p, objective_only=True)
         4.0
     """
 
@@ -120,7 +120,7 @@ def write_mps(self, filename,modern=True):
         sage: x = p.new_variable()
         sage: p.set_objective(x[1] + x[2])
         sage: p.add_constraint(-3*x[1] + 2*x[2], max=2,name="OneConstraint")
-        sage: p.write_mps(SAGE_TMP+"/lp_problem.mps") # optional - GLPK
+        sage: p.write_mps(SAGE_TMP+"/lp_problem.mps")
 
 
     For information about the MPS file format :
@@ -161,7 +161,7 @@ def write_lp(self, filename):
         sage: x = p.new_variable()
         sage: p.set_objective(x[1] + x[2])
         sage: p.add_constraint(-3*x[1] + 2*x[2], max=2)
-        sage: p.write_lp(SAGE_TMP+"/lp_problem.lp") # optional - GLPK
+        sage: p.write_lp(SAGE_TMP+"/lp_problem.lp")
 
     For more information about the LP file format :
     http://lpsolve.sourceforge.net/5.5/lp-format.htm

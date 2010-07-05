@@ -1164,7 +1164,7 @@ class DiGraph(GenericGraph):
             sage: dcycle=DiGraph(cycle)
             sage: cycle.size()
             5
-            sage: dcycle.feedback_edge_set(value_only=True)    # optional - GLPK, CBC
+            sage: dcycle.feedback_edge_set(value_only=True)
             5.0
 
         And in this situation, for any edge `uv` of the first graph, `uv` of `vu`
@@ -1172,9 +1172,9 @@ class DiGraph(GenericGraph):
 
            sage: g = graphs.RandomGNP(5,.3)
            sage: dg = DiGraph(g)
-           sage: feedback = dg.feedback_edge_set()             # optional - GLPK, CBC
+           sage: feedback = dg.feedback_edge_set()
            sage: (u,v,l) = g.edge_iterator().next()
-           sage: (u,v) in feedback or (v,u) in feedback        # optional - GLPK, CBC
+           sage: (u,v) in feedback or (v,u) in feedback
            True
         """
 
@@ -1284,19 +1284,19 @@ class DiGraph(GenericGraph):
 
             sage: cycle=graphs.CycleGraph(5)
             sage: dcycle=DiGraph(cycle)
-            sage: cycle.vertex_cover(value_only=True)         # optional - GLPK, CBC
+            sage: cycle.vertex_cover(value_only=True)
             3
-            sage: feedback = dcycle.feedback_vertex_set()     # optional - GLPK, CBC
-            sage: feedback.cardinality()                      # optional - GLPK, CBC
+            sage: feedback = dcycle.feedback_vertex_set()
+            sage: feedback.cardinality()
             3
             sage: (u,v,l) = cycle.edge_iterator().next()
-            sage: u in feedback or v in feedback              # optional - GLPK, CBC
+            sage: u in feedback or v in feedback
             True
 
         For a circuit, the minimum feedback arc set is clearly `1`::
 
             sage: circuit = digraphs.Circuit(5)
-            sage: circuit.feedback_vertex_set(value_only=True) == 1    # optional - GLPK, CBC
+            sage: circuit.feedback_vertex_set(value_only=True) == 1
             True
         """
 

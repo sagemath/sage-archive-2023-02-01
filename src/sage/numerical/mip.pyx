@@ -41,7 +41,7 @@ class MixedIntegerLinearProgram:
          sage: for (u,v) in g.edges(labels=None):
          ...       p.add_constraint(b[u] + b[v], max=1)
          sage: p.set_binary(b)
-         sage: p.solve(objective_only=True)     # optional - GLPK, CBC
+         sage: p.solve(objective_only=True)
          4.0
     """
 
@@ -486,7 +486,7 @@ class MixedIntegerLinearProgram:
             sage: x = p.new_variable()
             sage: p.set_objective(x[1] + x[2])
             sage: p.add_constraint(-3*x[1] + 2*x[2], max=2,name="OneConstraint")
-            sage: p.write_mps(SAGE_TMP+"/lp_problem.mps") # optional - GLPK
+            sage: p.write_mps(SAGE_TMP+"/lp_problem.mps")
 
         For information about the MPS file format :
         http://en.wikipedia.org/wiki/MPS_%28format%29
@@ -519,7 +519,7 @@ class MixedIntegerLinearProgram:
             sage: x = p.new_variable()
             sage: p.set_objective(x[1] + x[2])
             sage: p.add_constraint(-3*x[1] + 2*x[2], max=2)
-            sage: p.write_lp(SAGE_TMP+"/lp_problem.lp") # optional - GLPK
+            sage: p.write_lp(SAGE_TMP+"/lp_problem.lp")
 
         For more information about the LP file format :
         http://lpsolve.sourceforge.net/5.5/lp-format.htm
@@ -558,12 +558,12 @@ class MixedIntegerLinearProgram:
             sage: y = p.new_variable(dim=2)
             sage: p.set_objective(x[3] + 3*y[2][9] + x[5])
             sage: p.add_constraint(x[3] + y[2][9] + 2*x[5], max=2)
-            sage: p.solve() # optional - GLPK, CBC
+            sage: p.solve()
             6.0
 
         To return  the optimal value of ``y[2][9]``::
 
-            sage: p.get_values(y[2][9]) # optional - GLPK, CBC
+            sage: p.get_values(y[2][9])
             2.0
 
         To get a dictionary identical to ``x`` containing optimal
@@ -642,10 +642,10 @@ class MixedIntegerLinearProgram:
             sage: p.set_objective(x[1] + 5*x[2])
             sage: p.add_constraint(x[1] + 2/10*x[2], max=4)
             sage: p.add_constraint(1.5*x[1]+3*x[2], max=4)
-            sage: round(p.solve(),5)     # optional - GLPK, CBC
+            sage: round(p.solve(),5)
             6.66667
             sage: p.set_objective(None)
-            sage: p.solve() #optional - GLPK, CBC
+            sage: p.solve()
             0.0
         """
 
@@ -707,7 +707,7 @@ class MixedIntegerLinearProgram:
             sage: p.set_objective(x[1] + 5*x[2])
             sage: p.add_constraint(x[1] + 0.2*x[2], max=4)
             sage: p.add_constraint(1.5*x[1] + 3*x[2], max=4)
-            sage: round(p.solve(),6)     # optional - GLPK, CBC
+            sage: round(p.solve(),6)
             6.666667
 
         There are two different ways to add the constraint
@@ -737,7 +737,7 @@ class MixedIntegerLinearProgram:
             sage: p.set_objective(x[1] + 5*x[2])
             sage: p.add_constraint(x[1] + 0.2*x[2] <= 4)
             sage: p.add_constraint(1.5*x[1] + 3*x[2] <= 4)
-            sage: p.solve()     # optional - GLPK, CBC
+            sage: p.solve()
             6.6666666666666661
 
 
@@ -1050,9 +1050,9 @@ class MixedIntegerLinearProgram:
             sage: p.set_objective(x[1] + 5*x[2])
             sage: p.add_constraint(x[1] + 0.2*x[2], max=4)
             sage: p.add_constraint(1.5*x[1] + 3*x[2], max=4)
-            sage: round(p.solve(),6)  # optional - GLPK, CBC
+            sage: round(p.solve(),6)
             6.666667
-            sage: p.get_values(x)     # optional random - GLPK, CBC
+            sage: p.get_values(x)
             {0: 0.0, 1: 1.3333333333333333}
 
          Computation of a maximum stable set in Petersen's graph::
@@ -1064,7 +1064,7 @@ class MixedIntegerLinearProgram:
             sage: for (u,v) in g.edges(labels=None):
             ...       p.add_constraint(b[u] + b[v], max=1)
             sage: p.set_binary(b)
-            sage: p.solve(objective_only=True)     # optional - GLPK, CBC
+            sage: p.solve(objective_only=True)
             4.0
         """
 
@@ -1262,7 +1262,7 @@ class MIPSolverException(Exception):
 
          Tests of GLPK's Exceptions::
 
-            sage: p.solve(solver="GLPK") # optional - GLPK
+            sage: p.solve(solver="GLPK")
             Traceback (most recent call last):
             ...
             MIPSolverException: 'GLPK : Solution is undefined'
@@ -1278,7 +1278,7 @@ class MIPSolverException(Exception):
 
          Tests of GLPK's Exceptions::
 
-            sage: p.solve(solver="GLPK") # optional - GLPK
+            sage: p.solve(solver="GLPK")
             Traceback (most recent call last):
             ...
             MIPSolverException: 'GLPK : Solution is undefined'

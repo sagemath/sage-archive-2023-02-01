@@ -1603,14 +1603,50 @@ class ExpectElement(RingElement):
         return hash('%s%s'%(self, self._session_number))
 
     def __cmp__(self, other):
+        """
+        Comparison is done by GAP.
+
+        GAP may raise an error when comparing objects. We catch these
+        errors. Moreover, GAP does not recognise certain objects as
+        equal even if there definitions are identical.
+
+        TESTS:
+
+        Here are examples in which GAP succeeds with a comparison::
+
+            sage: gap('SymmetricGroup(8)')==gap('SymmetricGroup(8)')
+            True
+            sage: gap('SymmetricGroup(8)')>gap('AlternatingGroup(8)')
+            False
+            sage: gap('SymmetricGroup(8)')<gap('AlternatingGroup(8)')
+            True
+
+        Here, GAP fails to compare, and so ``False`` is returned.
+        In previous Sage versions, this example actually resulted
+        in an error; compare #5962.
+        ::
+
+            sage: gap('DihedralGroup(8)')==gap('DihedralGroup(8)')
+            False
+
+        """
         P = self.parent()
-        if P.eval("%s %s %s"%(self.name(), P._equality_symbol(),
-                                 other.name())) == P._true_symbol():
-            return 0
-        elif P.eval("%s %s %s"%(self.name(), P._lessthan_symbol(), other.name())) == P._true_symbol():
-            return -1
-        elif P.eval("%s %s %s"%(self.name(), P._greaterthan_symbol(), other.name())) == P._true_symbol():
-            return 1
+        try:
+            if P.eval("%s %s %s"%(self.name(), P._equality_symbol(),
+                                     other.name())) == P._true_symbol():
+                return 0
+        except RuntimeError:
+            pass
+        try:
+            if P.eval("%s %s %s"%(self.name(), P._lessthan_symbol(), other.name())) == P._true_symbol():
+                return -1
+        except RuntimeError:
+            pass
+        try:
+            if P.eval("%s %s %s"%(self.name(), P._greaterthan_symbol(), other.name())) == P._true_symbol():
+                return 1
+        except:
+            pass
 
         # everything is supposed to be comparable in Python, so we define
         # the comparison thus when no comparison is available in interfaced system.

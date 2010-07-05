@@ -296,3 +296,14 @@ ecl
 ecl-config
 testcc.sh
 testcxx.sh
+fsdump
+fsoids
+fsrefs
+fstail
+mkzeoinst
+repozo
+runzeo
+zdaemon
+zeoctl
+zeopack
+zeopasswd

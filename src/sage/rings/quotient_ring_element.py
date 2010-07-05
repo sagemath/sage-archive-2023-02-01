@@ -225,7 +225,7 @@ class QuotientRingElement(ring_element.RingElement):
             sage: a._add_(b)
             a + b
         """
-        return QuotientRingElement(self.parent(), self.__rep + right.__rep)
+        return self.parent()(self.__rep + right.__rep)
 
     def _sub_(self, right):
         """
@@ -245,7 +245,7 @@ class QuotientRingElement(ring_element.RingElement):
             sage: a._sub_(b)
             a - b
         """
-        return QuotientRingElement(self.parent(), self.__rep - right.__rep)
+        return self.parent()(self.__rep - right.__rep)
 
     def _mul_(self, right):
         """
@@ -267,7 +267,7 @@ class QuotientRingElement(ring_element.RingElement):
             sage: a._mul_(a)
             -b^2
         """
-        return QuotientRingElement(self.parent(), self.__rep * right.__rep)
+        return self.parent()(self.__rep * right.__rep)
 
     def _div_(self, right):
         """
@@ -444,7 +444,7 @@ class QuotientRingElement(ring_element.RingElement):
             sage: -(a+b)
             -a - b
         """
-        return QuotientRingElement(self.parent(), -self.__rep)
+        return self.parent()(-self.__rep)
 
     def __pos__(self):
         """
@@ -485,7 +485,7 @@ class QuotientRingElement(ring_element.RingElement):
             inv = self.__rep.inverse_mod(self.parent().defining_ideal())
         except NotImplementedError:
             return self.parent()(1)/self
-        return QuotientRingElement(self.parent(), inv)
+        return self.parent()(inv)
 
     def __float__(self):
         """
@@ -546,7 +546,7 @@ class QuotientRingElement(ring_element.RingElement):
             sage: (a+3*a*b+b).lt()
             3*a*b
         """
-        return QuotientRingElement(self.parent(),self.__rep.lt())
+        return self.parent()(self.__rep.lt())
 
     def lm(self):
         """
@@ -569,7 +569,7 @@ class QuotientRingElement(ring_element.RingElement):
             a*b
 
         """
-        return QuotientRingElement(self.parent(),self.__rep.lm())
+        return self.parent()(self.__rep.lm())
 
     def lc(self):
         """
@@ -595,6 +595,13 @@ class QuotientRingElement(ring_element.RingElement):
 
     def variables(self):
         """
+        Return all variables occurring in ``self``.
+
+        OUTPUT:
+
+        A tuple of linear monomials, one for each variable occurring
+        in ``self``.
+
         EXAMPLES::
 
             sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
@@ -610,10 +617,16 @@ class QuotientRingElement(ring_element.RingElement):
             sage: (a+b).variables()
             (a, b)
         """
-        return tuple([QuotientRingElement(self.parent(),v) for v in self.__rep.variables()])
+        return tuple([self.parent()(v) for v in self.__rep.variables()])
 
     def monomials(self):
         """
+        Return the monomials in ``self``.
+
+        OUTPUT:
+
+        A list of monomials.
+
         EXAMPLES::
 
             sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
@@ -623,7 +636,7 @@ class QuotientRingElement(ring_element.RingElement):
             sage: (a+a*b).monomials()
             [a*b, a]
         """
-        return [QuotientRingElement(self.parent(),m) for m in self.__rep.monomials()]
+        return [self.parent()(m) for m in self.__rep.monomials()]
 
     def _singular_(self, singular=singular_default):
         """
@@ -711,4 +724,4 @@ class QuotientRingElement(ring_element.RingElement):
             pass
         # reduction w.r.t. the defining ideal is performed in the
         # constructor
-        return QuotientRingElement(self.parent(), self.__rep.reduce(G))
+        return self.parent()(self.__rep.reduce(G))

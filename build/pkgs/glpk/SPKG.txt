@@ -41,6 +41,12 @@ http://www.gnu.org/software/glpk/#maintainer
 
 == Changelog ==
 
+== glpk-4.44 (Nathann Cohen, 5th July 2010) ==
+
+ * Removed the patch/ directory which was only useful for backward
+   compatibility (and had been for some time already), and updated
+   consequently several files
+
 === glpk-4.44 (David Kirkby, 23rd June 2010) ===
  * Updated to the latest upstream code, version 4.44.
  * Added code to allow a 64-bit build on any platform.
@@ -83,6 +89,3 @@ http://www.gnu.org/software/glpk/#maintainer
  * The 'patch' directory is left - I think this should be removed
    but I'll leave it to those that know the software better
    than me to mess with this.
-
-== ??? Nathan should fill in previous ChangeLog entries here ==
-

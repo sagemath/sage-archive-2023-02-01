@@ -19,6 +19,7 @@
 # 8: the doctesting framework raised an exception
 # 16: script called with bad options
 # 32: (used internally in sage-ptest)
+# 64: time out
 # 128: failed doctests
 ####################################################################
 
@@ -679,8 +680,8 @@ def test_file(file, library_code):
             sys.exit(2)
 
         if time.time() - tm >= TIMEOUT:
-            err += "*** *** Error: TIMED OUT! *** ***"
             print err
+            sys.exit(64)
 
         s, numfail = post_process(out, file, f)
         s += err

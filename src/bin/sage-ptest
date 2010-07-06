@@ -140,6 +140,8 @@ def process_result(result):
             numfail = ol.count('Expected:') + ol.count('Expected nothing') + ol.count('Exception raised:')
             failed.append(abs(F)+(" # %s doctests failed" % numfail))
             ret = numfail
+        elif ret == 64:
+            failed.append(abs(F)+" # Time out")
         elif ret == 8:
             failed.append(abs(F)+" # Exception from doctest framework")
         elif ret == 4:

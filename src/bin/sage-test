@@ -94,6 +94,8 @@ def test(F, cmd):
         failed.append(sage_test_command(F)+" # Killed/crashed")
     elif err == 8: # process exit code 8: Unhandled doctest exception
         failed.append(sage_test_command(F)+" # Exception from doctest framework")
+    elif err == 64: # process exit code 64: Time out
+        failed.append(sage_test_command(F)+" # Time out")
     elif err == 128: # process exit code 128: Regular doctest failures
         failed.append(sage_test_command(F))
     elif err != 0:

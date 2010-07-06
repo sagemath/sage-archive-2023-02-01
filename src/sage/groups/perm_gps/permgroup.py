@@ -990,7 +990,7 @@ class PermutationGroup_generic(group.Group):
 
             G = G_0 \supset G_1 \supset G_2 \supset \dots \supset G_n = \{e\}
 
-         Then the algorithm returns `[ G_i.\mathrm{transversals}(\mathrm{pos}_{i+1})]_{1 \leqslant i \leqslant n}`
+         Then the algorithm returns `[ G_i.\mathrm{transversals}(\mathrm{pos}_{i+1})]_{1 \leq i \leq n}`
 
          INPUT:
 

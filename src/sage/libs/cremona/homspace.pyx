@@ -116,19 +116,29 @@ cdef class ModularSymbols:
 
     def hecke_matrix(self, long p, dual=False, verbose=False):
         """
-        Return the matrix of the p-th Hecke operator acting on this space
-        of modular symbols.
+        Return the matrix of the ``p``-th Hecke operator acting on
+        this space of modular symbols.
 
         The result of this command is not cached.
 
         INPUT:
-            p -- a prime number, coprime to the level
-            dual -- (default: False)
-                    whether to compute the Hecke operator acting on the dual space, i.e., the
-                    transpose of the Hecke operator
-            verbose -- (default: False) print verbose output
 
-        EXAMPLES:
+        - ``p`` -- a prime number
+
+        - ``dual`` -- (default: False) whether to compute the Hecke
+                    operator acting on the dual space, i.e., the
+                    transpose of the Hecke operator
+
+        - ``verbose`` -- (default: False) print verbose output
+
+        OUTPUT:
+
+        (matrix) If ``p`` divides the level, the matrix of the
+        Atkin-Lehner involution `W_p` at ``p``; otherwise the matrix of the
+        Hecke operator `T_p`,
+
+        EXAMPLES::
+
             sage: M = CremonaModularSymbols(37)
             sage: t = M.hecke_matrix(2); t
             5 x 5 Cremona matrix over Rational Field
@@ -146,9 +156,17 @@ cdef class ModularSymbols:
             [ 0  1 -1  0  1]
             [ 0  0  0 -1  1]
             [ 0  0  0  1 -1]
+            sage: w = M.hecke_matrix(37); w
+            5 x 5 Cremona matrix over Rational Field
+            sage: w.charpoly().factor()
+            (x - 1)^2 * (x + 1)^3
+            sage: sw = w.sage_matrix_over_ZZ()
+            sage: st = t.sage_matrix_over_ZZ()
+            sage: sw^2 == sw.parent()(1)
+            True
+            sage: st*sw == sw*st
+            True
         """
-        if self.level() % p == 0:
-            raise NotImplementedError, "computation of Hecke operator only implemented for p coprime to the level."
         _sig_on
         cdef mat M = self.H.heckeop(p, dual, verbose)
         _sig_off

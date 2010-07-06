@@ -117,7 +117,7 @@ def test_file(F):
             finished_time = time.time() - t
         except:
             ol = outfile.read()
-            return (F, 5, 0, ol)
+            return (F, 32, 0, ol)
         ol = outfile.read()
         if ret != 0:
             break

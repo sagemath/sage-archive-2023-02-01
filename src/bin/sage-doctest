@@ -18,6 +18,7 @@
 # 4: doctest process was terminated by a signal
 # 8: the doctesting framework raised an exception
 # 16: script called with bad options
+# 32: (used internally in sage-ptest)
 # 128: failed doctests
 ####################################################################
 

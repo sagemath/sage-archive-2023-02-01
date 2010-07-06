@@ -698,19 +698,19 @@ def binpacking(items,maximum=1,k=None):
 
         sage: from sage.numerical.optimize import binpacking
         sage: values = [1/5, 1/3, 2/3, 3/4, 5/7]
-        sage: bins = binpacking(values) # optional - GLPK, CBC
-        sage: len(bins) # optional - GLPK, CBC
+        sage: bins = binpacking(values)
+        sage: len(bins)
         3
 
     Checking the bins are of correct size ::
 
-        sage: all([ sum(b)<= 1 for b in bins ]) # optional - GLPK, CBC
+        sage: all([ sum(b)<= 1 for b in bins ])
         True
 
     Checking every item is in a bin ::
 
-        sage: b1, b2, b3 = bins # optional - GLPK, CBC
-        sage: all([ (v in b1 or v in b2 or v in b3) for v in values ]) # optional - GLPK, CBC
+        sage: b1, b2, b3 = bins
+        sage: all([ (v in b1 or v in b2 or v in b3) for v in values ])
         True
 
     One way to use only three boxes (which is best possible) is to put
@@ -720,7 +720,7 @@ def binpacking(items,maximum=1,k=None):
     Of course, we can also check that there is no solution using only two boxes ::
 
         sage: from sage.numerical.optimize import binpacking
-        sage: binpacking([0.2,0.3,0.8,0.9], k=2)              # optional - GLPK, CBC
+        sage: binpacking([0.2,0.3,0.8,0.9], k=2)
         Traceback (most recent call last):
         ...
         ValueError: This problem has no solution !

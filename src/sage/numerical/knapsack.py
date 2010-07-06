@@ -50,7 +50,7 @@ defined by (1,2), (1.5,1), (0.5,3), and a bag of maximum weight 2,
 you can easily solve it this way::
 
     sage: from sage.numerical.knapsack import knapsack
-    sage: knapsack( [(1,2), (1.5,1), (0.5,3)], max=2) # optional - requires Glpk or COIN-OR/CBC
+    sage: knapsack( [(1,2), (1.5,1), (0.5,3)], max=2)
     [5.0, [(1, 2), (0.500000000000000, 3)]]
 
 Super-increasing sequences
@@ -593,10 +593,10 @@ def knapsack(seq, binary=True, max=1, value_only=False):
     and a bag of maximum weight 2, you can easily solve it this way::
 
         sage: from sage.numerical.knapsack import knapsack
-        sage: knapsack( [(1,2), (1.5,1), (0.5,3)], max=2) # optional - requires Glpk or COIN-OR/CBC
+        sage: knapsack( [(1,2), (1.5,1), (0.5,3)], max=2)
         [5.0, [(1, 2), (0.500000000000000, 3)]]
 
-        sage: knapsack( [(1,2), (1.5,1), (0.5,3)], max=2, value_only=True) # optional - requires Glpk or COIN-OR/CBC
+        sage: knapsack( [(1,2), (1.5,1), (0.5,3)], max=2, value_only=True)
         5.0
 
     In the case where all the values (usefulness) of the items
@@ -605,7 +605,7 @@ def knapsack(seq, binary=True, max=1, value_only=False):
     `(1,1), (1.5,1), (0.5,1)` the command::
 
         sage: from sage.numerical.knapsack import knapsack
-        sage: knapsack([1,1.5,0.5], max=2, value_only=True) # optional - requires Glpk or COIN-OR/CBC
+        sage: knapsack([1,1.5,0.5], max=2, value_only=True)
         2.0
 
     INPUT:

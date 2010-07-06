@@ -86,6 +86,7 @@ giftogd2
 givaro-config
 givaro-makefile
 gp
+glpsol
 gsl-config
 gsl-histogram
 gsl-randist

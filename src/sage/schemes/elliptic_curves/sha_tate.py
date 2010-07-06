@@ -865,8 +865,10 @@ class Sha(SageObject):
         it returns False.
 
         THEOREM (Kato): Suppose `L(E,1) \neq 0` and `p \neq 2, 3` is a prime such that
+
             - `E` does not have additive reduction at `p`,
             - the mod-`p` representation is surjective.
+
         Then `{ord}_p(\#Sha(E))` divides `{ord}_p(L(E,1)\cdot\#E(\QQ)_{tor}^2/(\Omega_E \cdot \prod c_q))`.
 
         EXAMPLES::

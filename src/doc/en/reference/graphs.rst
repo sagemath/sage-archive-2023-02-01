@@ -20,4 +20,4 @@ Graph Theory
    sage/graphs/base/sparse_graph
    sage/graphs/base/dense_graph
 
-   sage/graphs/pq_trees.py
+   sage/graphs/pq_trees

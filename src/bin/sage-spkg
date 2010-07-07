@@ -390,6 +390,7 @@ if [ $? -eq 0 ]; then
         echo "Now cleaning up tmp files."
         if [ -d "$SAGE_PACKAGES/build/$PKG_NAME" ]; then
            # the if is there only to avoid the possibility of a weird bug.
+            cd "$SAGE_PACKAGES/build/"
             rm -rf "$SAGE_PACKAGES/build/$PKG_NAME"
         fi
     else

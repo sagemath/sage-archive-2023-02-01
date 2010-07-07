@@ -1112,11 +1112,18 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
         """
         return False
 
-    def is_field(self,**kwds):
+    def is_field(self, *args, **kwds):
         """
-        Since Infinite Polynomial Rings must have at least one
-        generator, they have infinitely many variables and thus never
-        are fields.
+        Return ``False``: Since Infinite Polynomial Rings must have at
+        least one generator, they have infinitely many variables and thus
+        never are fields.
+
+        EXAMPLES::
+
+            sage: R.<x, y> = InfinitePolynomialRing(QQ)
+            sage: R.is_field()
+            False
+
 
         TESTS::
 
@@ -1125,6 +1132,13 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
             Infinite polynomial ring in x over Finite Field of size 2
             sage: R.is_field()
             False
+
+        Ticket #9443::
+
+            sage: W = PowerSeriesRing(InfinitePolynomialRing(QQ,'a'),'x')
+            sage: W.is_field()
+            False
+
 
         """
         return False
@@ -1287,33 +1301,29 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
         """
         return self._base.characteristic()
 
-    def is_field(self):
+    def is_integral_domain(self, *args, **kwds):
         """
-        Return ``False``, since an infinite polynomial ring has at least one
-        generator, hence, infinitely many variables.
-
-        EXAMPLES::
-
-            sage: R.<x, y> = InfinitePolynomialRing(QQ)
-            sage: R.is_field()
-            False
-        """
-        return False
-
-    def is_integral_domain(self):
-        """
-        An infinite polynomial ring is an integral domain if and only if the
-        base ring is.
+        An infinite polynomial ring is an integral domain if and only if
+        the base ring is.  Arguments are passed to is_integral_domain
+        method of base ring.
 
         EXAMPLES::
 
             sage: R.<x, y> = InfinitePolynomialRing(QQ)
             sage: R.is_integral_domain()
             True
-        """
-        return self._base.is_integral_domain()
 
-    def is_noetherian(self):
+        TESTS:
+
+        Ticket #9443::
+
+            sage: W = PolynomialRing(InfinitePolynomialRing(QQ,'a'),2,'x,y')
+            sage: W.is_integral_domain()
+            True
+        """
+        return self._base.is_integral_domain(*args, **kwds)
+
+    def is_noetherian(self, *args, **kwds):
         """
         Return ``False``, since polynomial rings in infinitely many
         variables are never Noetherian rings.
@@ -1330,7 +1340,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
         """
         return False
 
-    def krull_dimension(self):
+    def krull_dimension(self, *args, **kwds):
         """
         Return ``Infinity``, since polynomial rings in infinitely many
         variables have infinite Krull dimension.

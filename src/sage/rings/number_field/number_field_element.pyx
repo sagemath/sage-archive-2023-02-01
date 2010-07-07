@@ -962,6 +962,44 @@ cdef class NumberFieldElement(FieldElement):
         """
         return complex(CC(self))
 
+    def factor(self):
+        """
+        Factors self as a product of prime elements.  Raise ValueError if
+        the factorization of the ideal (self) contains a non-principal
+        prime ideal.
+
+        EXAMPLES::
+
+            sage: K.<i> = NumberField(x^2+1)
+            sage: (6*i + 6).factor()
+            (-i) * (i + 1)^3 * 3
+
+        In the following example, the class number is 2.  If a factorization
+        in prime elements exists, we will find it::
+
+            sage: K.<a> = NumberField(x^2-10)
+            sage: factor(169*a + 531)
+            (-6*a - 19) * (-2*a + 9) * (-3*a - 1)
+            sage: factor(K(3))
+            Traceback (most recent call last):
+            ...
+            ValueError: Non-principal ideal in factorization
+        """
+        K = self.parent()
+        fac = K.ideal(self).factor()
+        # Check whether all prime ideals in `fac` are principal
+        if (K.class_number() > 1):
+            for P,e in fac:
+                if not P.is_principal():
+                    raise ValueError, "Non-principal ideal in factorization"
+        element_fac = [(P.gens_reduced()[0],e) for P,e in fac]
+        # Compute the product of the p^e to figure out the unit
+        element_product = K(1)
+        for p,e in element_fac:
+            element_product *= (p**e)
+        from sage.structure.factorization import Factorization
+        return Factorization(element_fac, unit=self/element_product)
+
     def is_totally_positive(self):
         """
         Returns True if self is positive for all real embeddings of its

@@ -534,12 +534,24 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
             sage: Mod(5,9).log(Mod(2, 9))
             5
 
+        We test against a bug (side effect on PARI) fixed in #9438::
+
+            sage: R.<a, b> = QQ[]
+            sage: pari(b)
+            b
+            sage: GF(7)(5).log()
+            5
+            sage: pari(b)
+            b
+
         AUTHORS:
 
         - David Joyner and William Stein (2005-11)
 
         - William Stein (2007-01-27): update to use PARI as requested
           by David Kohel.
+
+        - Simon King (2010-07-07): fix a side effect on PARI
         """
         if b is None:
             b = self._parent.multiplicative_generator()
@@ -550,7 +562,9 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
 
             # use PARI
 
-            cmd = 'b=Mod(%s,%s); znlog(%s,b)'%(b, self.__modulus.sageInteger, self)
+            cmd = 'if(znorder(Mod(%s,%s))!=eulerphi(%s),-1,znlog(%s,Mod(%s,%s)))'%(b, self.__modulus.sageInteger,
+                                                      self.__modulus.sageInteger,
+                                             self, b, self.__modulus.sageInteger)
             try:
                 n = Integer(pari(cmd))
                 return n

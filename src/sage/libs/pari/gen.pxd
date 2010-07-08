@@ -17,7 +17,7 @@ cdef class gen(sage.structure.element.RingElement):
 cimport sage.structure.parent_base
 
 cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
-    cdef gen ZERO, ONE, TWO
+    cdef gen PARI_ZERO, PARI_ONE, PARI_TWO
     cdef gen new_gen(self, GEN x)
     cdef gen new_gen_noclear(self, GEN x)
     cdef gen new_gen_from_mpz_t(self, mpz_t value)

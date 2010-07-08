@@ -103,6 +103,8 @@ from sage.structure.sequence import Sequence
 
 from matrix_modn_dense import Matrix_modn_dense
 from matrix_modn_dense cimport Matrix_modn_dense
+from matrix_mod2_dense import Matrix_mod2_dense
+from matrix_mod2_dense cimport Matrix_mod2_dense
 
 from matrix2 import decomp_seq
 
@@ -1197,12 +1199,30 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             mpz_mod(self._matrix[i][j], self._matrix[i][j], modulus.value)
 
     def _mod_int(self, modulus):
+        """
+        Reduce the integer matrix modulo a positive integer.
+
+        EXAMPLES::
+            sage: matrix(QQ,2,[1,0,0,1]).change_ring(GF(2)) - 1
+            [0 0]
+            [0 0]
+
+        """
         cdef mod_int c = modulus
         if int(c) != modulus:
             raise OverflowError
-        return self._mod_int_c(modulus)
+        else:
+            return self._mod_int_c(modulus)
+
+    cdef _mod_two(self):
+        cdef Matrix_mod2_dense res
+        res = Matrix_mod2_dense.__new__(Matrix_mod2_dense, matrix_space.MatrixSpace(IntegerModRing(2), self._nrows, self._ncols, sparse=False), None, None, None)
+        res.__init__(matrix_space.MatrixSpace(IntegerModRing(2), self._nrows, self._ncols, sparse=False), self.list(), None, None)
+        return res
 
     cdef _mod_int_c(self, mod_int p):
+        if p == 2:
+            return self._mod_two()
         cdef Py_ssize_t i, j
         cdef Matrix_modn_dense res
         cdef mpz_t* self_row

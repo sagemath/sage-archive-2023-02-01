@@ -16,6 +16,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):
     cdef object _pivots
     cdef int mpz_height(self, mpz_t height) except -1
     cdef _mod_int_c(self, mod_int modulus)
+    cdef _mod_two(self)
 
     cdef _zero_out_matrix(self)
     cdef _new_unitialized_matrix(self, Py_ssize_t nrows, Py_ssize_t ncols)

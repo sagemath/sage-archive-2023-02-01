@@ -964,9 +964,17 @@ cdef class NumberFieldElement(FieldElement):
 
     def factor(self):
         """
-        Factors self as a product of prime elements.  Raise ValueError if
-        the factorization of the ideal (self) contains a non-principal
-        prime ideal.
+        Return factorization of this element into prime elements and a unit.
+
+        OUTPUT:
+
+        (Factorization) If all the prime ideals in the support are
+        principal, the output is a Factorization as a product of prime
+        elements raised to appropriate powers, with an appropriate
+        unit factor.
+
+        Raise ValueError if the factorization of the
+        ideal (self) contains a non-principal prime ideal.
 
         EXAMPLES::
 
@@ -984,20 +992,30 @@ cdef class NumberFieldElement(FieldElement):
             Traceback (most recent call last):
             ...
             ValueError: Non-principal ideal in factorization
+
+        Factorization of 0 is not allowed::
+
+            sage: K.<i> = QuadraticField(-1)
+            sage: K(0).factor()
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: Factorization of 0 not defined.
+
         """
+        if self.is_zero():
+            raise ArithmeticError, "Factorization of 0 not defined."
+
         K = self.parent()
         fac = K.ideal(self).factor()
         # Check whether all prime ideals in `fac` are principal
-        if (K.class_number() > 1):
-            for P,e in fac:
-                if not P.is_principal():
-                    raise ValueError, "Non-principal ideal in factorization"
+        for P,e in fac:
+            if not P.is_principal():
+                raise ValueError, "Non-principal ideal in factorization"
         element_fac = [(P.gens_reduced()[0],e) for P,e in fac]
         # Compute the product of the p^e to figure out the unit
-        element_product = K(1)
-        for p,e in element_fac:
-            element_product *= (p**e)
-        from sage.structure.factorization import Factorization
+        from sage.misc.all import prod
+        element_product = prod([p**e for p,e in element_fac], K(1))
+        from sage.structure.all import Factorization
         return Factorization(element_fac, unit=self/element_product)
 
     def is_totally_positive(self):

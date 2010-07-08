@@ -2182,6 +2182,12 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
         sage: factor(2^197 + 1)       # takes a long time (e.g., 3 seconds!)
         3 * 197002597249 * 1348959352853811313 * 251951573867253012259144010843
 
+    Any object which has a factor method can be factored like this::
+
+        sage: K.<i> = QuadraticField(-1)
+        sage: factor(122+454*i)
+        (-i) * (3*i - 2) * (4*i + 1) * (i + 1)^3 * (2*i + 1)^3
+
     To access the data in a factorization::
 
         sage: f = factor(420); f
@@ -2194,6 +2200,7 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
         [2, 1, 1, 1]
         sage: [p^e for p,e in f]
         [4, 3, 5, 7]
+
     """
     if not isinstance(n, (int,long, integer.Integer)):
         # this happens for example if n = x**2 + y**2 + 2*x*y

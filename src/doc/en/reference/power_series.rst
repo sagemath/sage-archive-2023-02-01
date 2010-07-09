@@ -8,6 +8,7 @@ Power Series Rings
 
    sage/rings/power_series_ring
    sage/rings/power_series_ring_element
+   sage/rings/power_series_poly
 
    sage/rings/laurent_series_ring
    sage/rings/laurent_series_ring_element

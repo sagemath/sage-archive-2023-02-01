@@ -109,7 +109,7 @@ if [ `uname` = "Darwin" ]; then
     ./configure --prefix="$SAGE_LOCAL" --enable-R-shlib --with-x=$XSUPPORT --with-readline="$SAGE_LOCAL" $OSXFW
 else
      echo "Configuring R with ATLAS"
-     if [ "$SAGE_FAT_BINARY" = "yes" ];
+     if [ "x$SAGE_FAT_BINARY" = xyes ] ; then
       ./configure --prefix="$SAGE_LOCAL" --enable-R-shlib --with-x=$XSUPPORT --with-readline="$SAGE_LOCAL" --with-blas="-L$SAGE_LOCAL/lib -lf77blas -latlas" --with-lapack="-L$SAGE_LOCAL/lib -llapack -lcblas" --with-ICU=no
      else
       ./configure --prefix="$SAGE_LOCAL" --enable-R-shlib --with-x=$XSUPPORT --with-readline="$SAGE_LOCAL" --with-blas="-L$SAGE_LOCAL/lib -lf77blas -latlas" --with-lapack="-L$SAGE_LOCAL/lib -llapack -lcblas" $SUN_FLAGS

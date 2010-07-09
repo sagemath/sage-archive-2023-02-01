@@ -22,13 +22,13 @@
 
 == Changelog ==
 
+=== r-2.10.1.p3 (Mariah Lenox, 30 Jun 2010) ===
+ * added "--with-ICU=no" to configure line of spkg-install (#9396)
+
 === r-2.10.1.p2 (Mitesh Patel, June 8th 2010) ===
  * #9186: Set an empty MAKEFLAGS variable before "make install".  On
    OS X, at least, this fixes building multiple spkgs in parallel (cf.
    #8306).
-
-=== r-2.10.1.p2 (Mariah Lenox, 30 Jun 2010) ===
- * added "--with-ICU=no" to configure line of spkg-install (#9396)
 
 === r-2.10.1.p1 (Karl-Dieter Crisman, April 12th 2010) ===
  * Re-enable Aqua support on OSX

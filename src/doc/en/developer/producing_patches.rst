@@ -134,6 +134,9 @@ Sage includes these Mercurial repositories:
 
 - ``SAGE_ROOT/local/bin``: Sage shell scripts.
 
+- ``SAGE_ROOT``: Sage root -- text files in the main Sage directory
+  and in ``SAGE_ROOT/spkg``.
+
 The previous section discussed using Mercurial with the Sage library,
 via the command ``hg_sage``. There are corresponding commands for each
 of the repositories:
@@ -143,6 +146,8 @@ of the repositories:
 - use ``hg_extcode`` for the external system code
 
 - use ``hg_scripts`` for the Sage shell scripts.
+
+- use ``hg_root`` for the Sage root.
 
 Since version 3.4, both the Sage library and documentation
 repositories are managed by the command ``hg_sage``.

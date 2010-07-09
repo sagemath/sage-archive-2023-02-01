@@ -1265,6 +1265,12 @@ hg_examples = HG('%s/data/examples'%SAGE_ROOT,
                  push_url='%s/examples/'%SAGE_OUTGOING_SERVER,
                  obj_name='examples')
 
+hg_root = HG(SAGE_ROOT,
+             'Sage Root',
+             pull_url=SAGE_INCOMING_SERVER,
+             push_url=SAGE_OUTGOING_SERVER,
+             obj_name='root')
+
 hg_sagenb = HG('%s/devel/sagenb' % SAGE_ROOT,
                'SageNB Source Code',
                pull_url='http://boxen.math.washington.edu:8123',

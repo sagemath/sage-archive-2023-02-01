@@ -793,6 +793,14 @@ def _sage_getdoc_unformatted(obj):
         sage: _sage_getdoc_unformatted(identity_matrix)[5:44]
         'Return the `n \\times n` identity matrix'
 
+    TESTS:
+
+    Test that we suppress useless built-in output (Ticket #3342)
+
+        sage: from sage.misc.sageinspect import _sage_getdoc_unformatted
+        sage: _sage_getdoc_unformatted(isinstance.__class__)
+        ''
+
     AUTHORS:
 
     - William Stein
@@ -812,6 +820,13 @@ def _sage_getdoc_unformatted(obj):
 
     if r is None:
         return ''
+
+    # Check if the __doc__ attribute was actually a string, and
+    # not a 'getset_descriptor' or similar.
+    import types
+    if not isinstance(r, types.StringTypes):
+        return ''
+
     from sagenb.misc.misc import encoded_str
     return encoded_str(r)
 

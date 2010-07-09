@@ -100,10 +100,6 @@ include "../ext/cdefs.pxi"
 include '../ext/stdsage.pxi'
 include '../ext/random.pxi'
 
-cdef extern from *:
-    int memcmp(void* a, void* b, long n)
-    void* memcpy(void* dst, void* src, long n)
-
 import sage.ext.multi_modular
 cimport sage.rings.fast_arith
 import sage.rings.fast_arith

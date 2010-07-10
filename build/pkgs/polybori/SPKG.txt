@@ -15,7 +15,6 @@ reference implementation for Gröbner basis computation.
 ==Maintainers ==
 
  * Tim Abbott
- * Michael Abshoff
  * Martin Albrecht
  * Burcin Eröcal
 
@@ -31,8 +30,21 @@ reference implementation for Gröbner basis computation.
  * Python
  * Scons
  * Boost
+ * gd (FIXME/TODO: should be added to deps, I think. Leif, 2010-07-10)
+ * M4RI/libm4ri (already included in deps)
+ * png/libpng12 (accomplished because Python and gd depend on it, too)
+ * libz         (accomplished because e.g. libpng depends on it)
 
 == Releases ==
+
+=== polybori-0.6.4.p2 (Leif Leonhardy, July 10th, 2010) ===
+ * Removed Michael Abshoff from maintainer list (see #7738)
+ * Deleted Boost source tree again since it was split off into a separate
+   spkg (see below, 0.5.rc.p7), modified spkg-install accordingly
+ * Deleted M4RI source tree, because it is a standard Sage package
+ * Little clean-up and minor fixes in patches/custom.py
+   - Note that CFLAGS etc. are still *overwritten* rather than modified!
+ * Updated "Dependencies" section above
 
 === polybori-0.6.4.p1 (Mike Hansen, May 26th, 2010) ===
  * Added a patch to make PolyBoRi build on Cygwin (#7337)
@@ -41,7 +53,6 @@ reference implementation for Gröbner basis computation.
  * upgraded to current upstream release
  * removed obsolete patches (SConstruct, cpu_stats.c)
  * removed obsolete work arounds (delete shared libraries and touch pbori.pyx)
-
 
 === polybori-0.6.3-r1647-20091028 (Martin Albrecht, October 29th, 2009) ===
  * upgraded to current mercurial tip (which did pass the PolyBoRi testsuite last night)

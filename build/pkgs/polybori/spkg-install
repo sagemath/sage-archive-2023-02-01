@@ -14,7 +14,11 @@ SCONS=scons
 # make install failures, so copy it over.
 #mkdir src/boost_1_34_1.cropped
 #cp -r $SAGE_LOCAL/include/boost src/boost_1_34_1.cropped
-BOOSTDIR=boost_1_34_1.cropped
+
+#BOOSTDIR=boost_1_34_1.cropped	# obsolete, only used by spkg-install
+#BOOSTINCDIR=${WORKDIR}/${BOOSTDIR}
+BOOSTINCDIR=${SAGE_LOCAL}/include/boost # we now only use that; Boost is a standard spkg
+export BOOSTINCDIR # used by scons
 
 patch()
 {
@@ -32,7 +36,7 @@ patch()
 build_polybori()
 {
     cd ${PBDIR}
-    BOOSTINCDIR=${WORKDIR}/${BOOSTDIR} ${SCONS} prepare-devel ${MAKEOPTS}
+    ${SCONS} prepare-devel ${MAKEOPTS}
     if [ $? -ne 0 ]; then
         echo "Error building PolyBoRi."
         exit 1
@@ -43,7 +47,7 @@ build_polybori()
 install_polybori()
 {
     cd ${PBDIR}
-    BOOSTINCDIR=${WORKDIR}/${BOOSTDIR} ${SCONS} devel-install install PREFIX=${SAGE_LOCAL} INSTALLDIR=${SAGE_LOCAL}/share/polybori
+    ${SCONS} devel-install install PREFIX=${SAGE_LOCAL} INSTALLDIR=${SAGE_LOCAL}/share/polybori
     if [ $? -ne 0 ]; then
         echo "Error installing PolyBoRi."
         exit 1

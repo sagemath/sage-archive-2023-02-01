@@ -2342,6 +2342,36 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
     else:
         raise ValueError, "Algorithm is not known"
 
+def radical(n, *args, **kwds):
+    """
+    Return the product of the prime divisors of n.
+
+    This calls ``n.radical(*args, **kwds)``.  If that doesn't work, it
+    does ``n.factor(*args, **kwds)`` and returns the product of the prime
+    factors in the resulting factorization.
+
+    EXAMPLES::
+
+        sage: radical(2 * 3^2 * 5^5)
+        30
+        sage: radical(0)
+        Traceback (most recent call last):
+        ...
+        ArithmeticError: Radical of 0 not defined.
+        sage: K.<i> = QuadraticField(-1)
+        sage: radical(K(2))
+        i + 1
+
+    The next example shows how to compute the radical of a number,
+    assuming no prime > 100000 has exponent > 1 in the factorization::
+
+        sage: n = 2^1000-1; n / radical(n, limit=100000)
+        125
+    """
+    try:
+        return n.radical(*args, **kwds)
+    except AttributeError:
+        return n.factor(*args, **kwds).radical_value()
 
 def prime_divisors(n):
     """

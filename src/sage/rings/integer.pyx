@@ -4218,11 +4218,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             b = Integer(b)
         return mpz_kronecker(self.value, (<Integer>b).value)
 
-    def radical(self):
+    def radical(self, *args, **kwds):
         r"""
-        Return the product of the prime divisors of self.
-
-        If self is 0, returns 1.
+        Return the product of the prime divisors of self.  Computing
+        the radical of zero gives an error.
 
         EXAMPLES::
 
@@ -4230,20 +4229,16 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             10
             sage: Integer(20).radical()
             10
-            sage: Integer(-20).radical()
-            -10
+            sage: Integer(-100).radical()
+            10
             sage: Integer(0).radical()
-            1
-            sage: Integer(36).radical()
-            6
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: Radical of 0 not defined.
         """
         if self.is_zero():
-            return ONE
-        F = self.factor()
-        n = one
-        for p, e in F:
-            n *= p
-        return n * F.unit()
+            raise ArithmeticError, "Radical of 0 not defined."
+        return self.factor(*args, **kwds).radical_value()
 
     def squarefree_part(self, long bound=-1):
         r"""

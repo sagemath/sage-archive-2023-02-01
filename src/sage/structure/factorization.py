@@ -195,6 +195,7 @@ import sage.misc.latex as latex
 from sage.structure.sage_object import SageObject
 from sage.structure.sequence import Sequence
 from sage.rings.integer import Integer
+from sage.misc.all import prod
 
 class Factorization(SageObject):
     """
@@ -227,14 +228,18 @@ class Factorization(SageObject):
         - ``x`` - a list of (p, e) pairs with e an integer (or a TypeError
           is raised).
 
-        - ``unit`` - (default: 1) the unit part of the factorization
+        - ``unit`` - (default: 1) the unit part of the factorization.
 
         - ``cr`` - (default: False) if True, print the factorization with
-          carriage returns between factors
+          carriage returns between factors.
 
         - ``sort`` - (default: True) if True, sort the factors by
           calling the sort function after creating the factorization.
           See the documentation for self.sort for how this works.
+
+        - ``simplify`` - (default: True) if True, remove duplicate
+          factors from the factorization.  See the documentation for
+          self.simplify.
 
         OUTPUT:
 
@@ -623,7 +628,7 @@ class Factorization(SageObject):
 
     def simplify(self):
         """
-        Combine adjacent products that commute as much as possible.
+        Combine adjacent products as much as possible.
 
         TESTS::
 
@@ -1122,10 +1127,10 @@ class Factorization(SageObject):
 
         EXAMPLES::
 
-            sage: F = factor(2006); F
-            2 * 17 * 59
+            sage: F = factor(-2006); F
+            -1 * 2 * 17 * 59
             sage: F.value()
-            2006
+            -2006
 
             sage: R.<x,y> = FreeAlgebra(ZZ, 2)
             sage: F = Factorization([(x,3), (y, 2), (x,1)]); F
@@ -1133,10 +1138,7 @@ class Factorization(SageObject):
             sage: F.value()
             x^3*y^2*x
         """
-        x = self.__unit
-        for f, e in self:
-            x *= (f**e)
-        return x
+        return prod([p**e for p,e in self.__x], self.__unit)
 
     def expand(self):
         r"""
@@ -1267,6 +1269,55 @@ class Factorization(SageObject):
             False
 
         """
-        return all([t[1] >=0 for t in self.__x])
+        return all([e >=0 for p,e in self.__x])
 
+    def radical(self):
+        """
+        Return the factorization of the radical of the value of self.
+
+        First, check that all exponents in the factorization are
+        positive, raise ValueError otherwise.  If all exponents are
+        positive, return self with all exponents set to 1 and with the
+        unit set to 1.
+
+        EXAMPLES::
+
+            sage: F = factor(-100); F
+            -1 * 2^2 * 5^2
+            sage: F.radical()
+            2 * 5
+            sage: factor(1/2).radical()
+            Traceback (most recent call last):
+            ...
+            ValueError: All exponents in the factorization must be positive.
+        """
+        if not all([e > 0 for p,e in self.__x]):
+            raise ValueError, "All exponents in the factorization must be positive."
+        return Factorization([(p,1) for p,e in self.__x], unit=self.unit().parent()(1), cr=self.__cr, sort=False, simplify=False)
+
+
+    def radical_value(self):
+        """
+        Return the product of the prime factors in self.
+
+        First, check that all exponents in the factorization are
+        positive, raise ValueError otherwise.  If all exponents are
+        positive, return the product of the prime factors in self.
+        This should be functionally equivalent to
+        self.radical().value()
+
+        EXAMPLES::
+
+            sage: F = factor(-100); F
+            -1 * 2^2 * 5^2
+            sage: F.radical_value()
+            10
+            sage: factor(1/2).radical_value()
+            Traceback (most recent call last):
+            ...
+            ValueError: All exponents in the factorization must be positive.
+        """
+        if not all([e > 0 for p,e in self.__x]):
+            raise ValueError, "All exponents in the factorization must be positive."
+        return prod([p for p,e in self.__x])
 

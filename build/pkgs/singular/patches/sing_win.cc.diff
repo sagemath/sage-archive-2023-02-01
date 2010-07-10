@@ -1,7 +1,16 @@
-41c41,44
-<   HtmlHelpA(NULL, path, HH_KEYWORD_LOOKUP, (DWORD)&link);
----
->    /* Commented out, since this breaks building on *Cygwin* for SAGE, which evidently
->       isn't setup to open the standard Windows help system.  Since we use Singular
->       as a library anyways, this is reasonable to comment out for now. */
->    /* HtmlHelpA(NULL, path, HH_KEYWORD_LOOKUP, (DWORD)&link); */
+--- ../src/Singular/sing_win.cc	2009-11-02 10:12:22.000000000 +0000
++++ sing_win.cc	2010-07-10 14:29:10.231490567 +0100
+@@ -38,7 +38,12 @@
+    link.pszMsgTitle =  NULL ;
+    link.pszWindow =    NULL ;
+    link.fIndexOnFail = TRUE ;
+-  HtmlHelpA(NULL, path, HH_KEYWORD_LOOKUP, (DWORD)&link);
++
++   /* Commented out, since this breaks building on *Cygwin* for SAGE,
++      which evidently isn't setup to open the standard Windows help
++      system.  Since we use Singular as a library anyways, this is
++      reasonable to comment out for now. */
++   /* HtmlHelpA(NULL, path, HH_KEYWORD_LOOKUP, (DWORD)&link); */
+ }
+ 
+ void heOpenWinntHlp(const char* keyw, char* helppath )

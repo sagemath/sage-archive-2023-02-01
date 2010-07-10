@@ -1,5 +1,5 @@
---- src/Singular/Makefile.in	Wed May 20 10:44:37 2009
-+++ patches/Singular.Makefile.in	Tue Jun 29 23:45:06 2010
+--- ../src/Singular/Makefile.in	2010-06-24 14:10:14.000000000 +0100
++++ Singular.Makefile.in	2010-07-10 14:28:06.552750836 +0100
 @@ -130,6 +130,12 @@
  LIBSINGULAR_LIBS = -lsingfac -lsingcf -lntl -lreadline -lgmp -lomalloc  -lhtmlhelp
  endif
@@ -13,25 +13,3 @@
  #
  # End libSINGULAR
  #
-@@ -528,13 +534,19 @@
- 	${INSTALL_DATA} `pwd`/LIB/gftables/* ${slibdir}/gftables/
- 
- install-libsingular: libsingular
-+	${MKINSTALLDIRS} ${includedir}/singular
- 	for file in *.$(SO_SUFFIX); do \
- 	  ${INSTALL_PROGRAM}  $$file ${libdir}; \
- 	done
- 	${INSTALL_PROGRAM} libsingular.h ${includedir}
-+	${INSTALL_PROGRAM} subexpr.h ${includedir}/singular
-+	${INSTALL_PROGRAM} tok.h ${includedir}/singular
-+	${INSTALL_PROGRAM} grammar.h ${includedir}/singular
-+	${INSTALL_PROGRAM} ipid.h ${includedir}/singular
-+	${INSTALL_PROGRAM} ipshell.h ${includedir}/singular
-+	${INSTALL_PROGRAM} lists.h ${includedir}/singular
-+	${INSTALL_PROGRAM} attrib.h ${includedir}/singular
- 
--
--
- uninstall: uninstallbin
- 
- uninstallbin:

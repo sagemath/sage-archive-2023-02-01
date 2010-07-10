@@ -1,7 +1,7 @@
 /****************************************
 *  Computer Algebra System SINGULAR     *
 ****************************************/
-/* $Id: sing_win.cc,v 1.7 2008/06/10 14:39:43 wienand Exp $ */
+/* $Id: sing_win.cc 12231 2009-11-02 10:12:22Z hannes $ */
 
 /*
 * ABSTRACT: Windows specific routines
@@ -38,9 +38,11 @@ HH_ALINKA link;
    link.pszMsgTitle =  NULL ;
    link.pszWindow =    NULL ;
    link.fIndexOnFail = TRUE ;
-   /* Commented out, since this breaks building on *Cygwin* for SAGE, which evidently
-      isn't setup to open the standard Windows help system.  Since we use Singular
-      as a library anyways, this is reasonable to comment out for now. */
+
+   /* Commented out, since this breaks building on *Cygwin* for SAGE,
+      which evidently isn't setup to open the standard Windows help
+      system.  Since we use Singular as a library anyways, this is
+      reasonable to comment out for now. */
    /* HtmlHelpA(NULL, path, HH_KEYWORD_LOOKUP, (DWORD)&link); */
 }
 

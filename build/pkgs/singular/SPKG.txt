@@ -1,32 +1,32 @@
 = Singular =
 
 == Description ==
-Singular is a computer algebra system for polynomial
-computations, with special emphasis on commutative and
-non-commutative algebra, algebraic geometry, and
-singularity theory.
+
+Singular is a computer algebra system for polynomial computations,
+with special emphasis on commutative and non-commutative algebra,
+algebraic geometry, and singularity theory.
 
 == License ==
-src/COPYING says Singular may be distributed under version 2 or
-3 of the GPL
+
+GPLv2 or GPLv3
 
 == PKG Maintainers ==
 
+Martin Albrecht <martinralbrecht@googlemail.com>
 
 == Upstream Contact ==
+
 decker@mathematik.uni-kl.de
 http://www.singular.uni-kl.de/
 
 == Dependencies ==
-Looking at spkg/standard/deps it would suggest
+
 MPIR, NTL, Termcap, Readline and MPFR
 
 == Special Update/Build Instructions ==
  Several patches are applied.
  * assert.h: logic seems to be broken on some platforms
  * src.Singular.Makefile.in: adding SunOS for libSingular
- * kernel.rmodulon.cc: simple bugfix
- * mminit.cc: Work around problem with the wrong free being picked causing double frees
  * src/Singular/libparse.cc and src/factory/configure touched
    to avoid attempts to regenerate these files. (See #9160 and #3158)
 
@@ -42,6 +42,11 @@ MPIR, NTL, Termcap, Readline and MPFR
    investigated as a possible cause later.
 
 == ChangeLog ==
+
+=== singular-3-1-1-3.p0 (Martin Albrecht, 10th July 2010) ===
+ * new upstream release
+ * updated SPKG.txt
+ * reverting name to reflect actual Singular version format
 
 === singular-3.1.0.4.p8  (David Kirkby, 30th June 2010) ===
  * #9397 "Resolve corrupted patches to permit Singular to build on Solaris x86/x64"

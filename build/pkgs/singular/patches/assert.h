@@ -1,5 +1,5 @@
 /* emacs edit mode for this file is -*- C -*- */
-/* $Id: assert.h,v 1.11 2009/01/06 13:58:20 Singular Exp $ */
+/* $Id: assert.h 12231 2009-11-02 10:12:22Z hannes $ */
 
 /* This is for compatibility with standard assert.h */
 #if defined (NDEBUG) && ! defined (NOASSERT)
@@ -127,6 +127,7 @@ extern "C" {
 #define PVIRT_CHARCC(msg) = 0
 #endif /* NOASSERT */
 /* }}} */
+
 
 
 /* SAGE hack: This is *critically* needed to compile on some systems

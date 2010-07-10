@@ -179,8 +179,11 @@ CXXSOURCES=grammar.cc scanner.cc attrib.cc \
     libparse.cc sing_win.cc\
     gms.cc pcv.cc maps_ip.cc\
     walk.cc walk_ip.cc \
-    cntrlc.cc misc.cc \
-    calcSVD.cc
+    cntrlc.cc misc_ip.cc \
+    calcSVD.cc \
+    Minor.cc \
+    MinorProcessor.cc \
+    MinorInterface.cc
 
 # stuff for MP
 MPSR_SOURCES = mpsr_Put.cc mpsr_PutPoly.cc mpsr_GetPoly.cc mpsr_sl.cc\
@@ -346,7 +349,6 @@ libsingular.a: mod2.h Makefile version.h $(WIN_LIBS) scanner.cc  ${OBJS} \
 	ar x ../../kernel/libkernel.a; \
 	ar x ../../$(SINGUNAME)/lib/libsingfac.a; \
 	ar x ../../$(SINGUNAME)/lib/libsingcf.a; \
-	ar x ../../$(SINGUNAME)/lib/libsingcf.a; \
 	ar x ../../$(SINGUNAME)/lib/libntl.a; \
 	ar x ../../$(SINGUNAME)/lib/libomalloc_ndebug.a; \
 	cd ..)
@@ -389,10 +391,13 @@ version.h: ${SOURCES} ${HEADERS} Makefile.in mod2.h.in \
 	echo "#define CXX \"" ${CXX} ${CXXFLAGS} ${DEFS} "\"" >>version.h
 
 libparse: libparse_main.o utils.o
-	${CXX}  ${CPPFLAGS} -DSTANDALONE_PARSER -o libparse libparse_main.o utils.o ../kernel/fegetopt.o ${LDFLAGS2} -lomalloc_ndebug
+	${CXX}  ${CPPFLAGS} -DSTANDALONE_PARSER -o libparse libparse_main.o utils.o ../kernel/fegetopt.o ${LDFLAGS2} -lomalloc
 
 libparse_main.o: libparse.cc
 	${CXX} ${CPPFLAGS} -c -o libparse_main.o libparse.cc  -DSTANDALONE_PARSER
+
+utils.o: utils.cc
+	${CXX} ${CPPFLAGS} -c -o utils.o utils.cc  -DSTANDALONE_PARSER
 
 libparse.cc: libparse.l
 	@if test "x${LEX}" = x; then \
@@ -495,6 +500,8 @@ endif
 ##
 install: all installbin installslib
 
+install_all: install
+
 install-nolns: all installbin-nolns installslib-nolns
 
 installbin: ${SING_EXEC} libparse ESingular TSingular ${RUN_SINGULARS}
@@ -595,9 +602,9 @@ install-bindist: $(HEADERS) $(SOURCES) Makefile depend
 	sleep 1
 	${MAKE} ${SING_EXEC} ESingular TSingular libparse ${RUN_SINGULARS}
 	${MKINSTALLDIRS} ${install_bindir}
-	${INSTALL_PROGRAM} -s  ${SING_EXEC} ${install_bindir}/Singular
+	${INSTALL_PROGRAM} ${SING_EXEC} ${install_bindir}/Singular
 	-${INSTALL_PROGRAM} *.so ${install_bindir}
-	${INSTALL_PROGRAM} -s  libparse ${RUN_SINGULARS} ESingular TSingular ${DL_LIBS} ${install_bindir}
+	${INSTALL_PROGRAM} -s  libparse ${RUN_SINGULARS} ESingular TSingular ${install_bindir}
 	${INSTALL_PROGRAM} surfex ${install_bindir}
 	echo "#undef MAKE_DISTRIBUTION " > distrib.h
 
@@ -695,7 +702,6 @@ $(OBJG2) : %.og: %.c
 
 Singularg${S_EXT}: scanner.cc  $(OBJG)  $(DL_LIBSG)\
            iparith.og mpsr_Tok.og claptmpl.og tesths.cc version.h
-	(cd ../kernel;make libkernel_g.a;make install;cd ../Singular)
 	$(CXXG) ${CXXFLAGSG} ${CXXTEMPLFLAGSG} ${CPPFLAGS} ${DEFSG} -o Singularg${S_EXT} \
 	tesths.cc iparith.og mpsr_Tok.og claptmpl.og $(OBJG) ${LDFLAGSG} ${LIBSG} -lomalloc ../kernel/mmalloc.og \
 	${LD_DYN_FLAGS} ${LD_LIBC}
@@ -747,7 +753,7 @@ CCP		= ${CC}
 CXXP		= ${CXX}
 
 CFLAGSP		= -g -pg -O -Wall -Wno-unused ${PIPE}
-CXXFLAGSG	= -g -pg -O -Wall -Wno-unused ${PIPE}
+CXXFLAGSP	= -g -pg -O -Wall -Wno-unused ${PIPE}
 CXXTEMPLFLAGSP	= -fno-implicit-templates
 DEFSP		= -D@SING_UNAME@ @DEFS@ -DDL_TAIL=$(DL_TAILP)
 
@@ -777,7 +783,7 @@ Singularp${S_EXT}: scanner.cc  $(OBJP)  $(DL_LIBSP)\
            iparith.op mpsr_Tok.op claptmpl.op tesths.cc version.h
 	(cd ../kernel;make libkernel_p.a;make install;cd ../Singular)
 	$(CXXP) ${CXXFLAGSP} ${CXXTEMPLFLAGSP} ${CPPFLAGS} ${DEFSP} -o Singularp${S_EXT} \
-	tesths.cc iparith.op mpsr_Tok.op claptmpl.op $(OBJP) ${LDFLAGSP} ${LIBSP} -lomalloc_p ../kernel/mmalloc.op \
+	tesths.cc iparith.op mpsr_Tok.op claptmpl.op $(OBJP) ${LDFLAGSP} ${LIBSP} -lomalloc ../kernel/mmalloc.op \
 	${LD_DYN_FLAGS} ${LD_LIBC}
 
 iparith.op: iparith.inc iparith.cc
@@ -803,7 +809,7 @@ installp: Singularp
 	$(CCM) ${CPPFLAGS} ${DEFSG} $< >> $@
 
 depend:   $(CXXSOURCES:.cc=.dd) $(ESOURCES:.cc=.dd) $(CSOURCES:.c=.d) mod2.h claptmpl.dd
-	-cat *.dd >>depend
+	-cat *.dd >depend
 
 ifeq (depend,$(wildcard depend))
 include depend

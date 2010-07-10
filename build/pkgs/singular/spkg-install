@@ -107,24 +107,16 @@ clean_headers()
 patch()
 {
     # work-around patches
-    cp patches/mminit.cc src/kernel/
     cp patches/assert.h src/factory/
-    cp patches/kernel.rmodulon.cc src/kernel/rmodulon.cc
-    cp patches/Singular.libsingular.h src/Singular/libsingular.h
-    cp patches/factory.GNUmakefile.in src/factory/GNUmakefile.in
-    cp patches/libfac.charset.alg_factor.cc src/libfac/charset/alg_factor.cc
-    cp patches/kernel.Makefile.in src/kernel/Makefile.in
+
+    # Solaris support
     cp patches/Singular.Makefile.in src/Singular/Makefile.in
-    cp patches/Singular.tesths.cc src/Singular/tesths.cc
 
     if [ "$UNAME" = "CYGWIN" ]; then
         # Fine to make this patch on any system, because it is code that is only compiled on Windows.
         cp patches/sing_win.cc src/Singular/
         cp patches/IntegerProgramming-Makefile.in src/IntegerProgramming/Makefile.in
     fi
-
-    #cp patches/Singular.configure src/Singular/configure
-    #cp patches/Singular.configure.in src/Singular/configure.in
 }
 
 distclean()

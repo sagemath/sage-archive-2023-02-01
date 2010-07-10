@@ -54,6 +54,8 @@ all: $(MAIN1) $(MAIN2) $(MAIN3) $(MAIN4) $(LLL)
 
 install-nolns: install
 
+install_all: install
+
 install: $(MAIN1) $(MAIN2) $(MAIN3) $(MAIN4) $(LLL)
 	${MKINSTALLDIRS} ${bindir}
 	${INSTALL_PROGRAM} $(MAIN1).exe ${bindir}

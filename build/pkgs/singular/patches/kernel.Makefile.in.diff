@@ -1,4 +1,0 @@
-296d295
-< 	${MKINSTALLDIRS} ${includedir}/singular
-299a299
-> 	${INSTALL_PROGRAM} kInline.cc ${includedir}/singular

@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+    echo "SAGE_LOCAL undefined ... exiting";
+    echo "Maybe run 'sage -sh'?"
+    exit 1
+fi
+
+if [ "$SAGE64" = "yes" ]; then
+    CFLAGS="-O2 -g -m64 "; export CFLAGS
+    CPPFLAGS="-O2 -g -m64 "; export CPPFLAGS
+fi
+
+cd src
+
+echo "Testing the M4RI library"
+
+make check
+
+if [ $? -ne 0 ]; then
+    echo "Error testing M4RI"
+    exit 1
+fi

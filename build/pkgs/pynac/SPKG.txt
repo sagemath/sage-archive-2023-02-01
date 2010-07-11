@@ -32,6 +32,9 @@ in the src directory.
 
 == Changelog ==
 
+=== pynac-0.2.0.p4 (Burcin Erocal, July 11, 2010) ===
+ * Fix latex typesetting of rational functions. #9314
+
 === pynac-0.2.0.p3 (William Stein, June 4, 2010) ===
  * Change to src/ for trac 9135.
 

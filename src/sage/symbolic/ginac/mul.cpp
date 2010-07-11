@@ -268,6 +268,10 @@ void mul::do_print_rat_func(const print_context & c, unsigned level,
 			     }
 			} else {
 			     if (numer.is_equal(_ex1) || numer.is_equal(_ex_1)) {
+			          const numeric &coeff = ex_to<numeric>(numer);
+				  if (coeff.is_equal(*_num_1_p) && !coeff.is_parent_pos_char()) {
+				        c.s<<"-";
+				  }
 			         mul(others).eval().print(c);
 			     } else {
 				 mul(numer,mul(others).eval()).hold().print(c);

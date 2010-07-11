@@ -186,7 +186,7 @@ fi
 # multiple people use a Solaris machine as temporary files created by one user
 # can't be removed by another.
 
-if [ "x$UNAME" = xSunOs ] ; then
+if [ "x$UNAME" = xSunOS ] ; then
   rm -f /tmp/ECL*
 fi
 

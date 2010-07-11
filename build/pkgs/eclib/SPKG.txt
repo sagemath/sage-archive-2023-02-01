@@ -37,6 +37,11 @@ over 25 years of hard work.
 
 == Changelog ==
 
+=== eclib-20100711 (John Cremona, 11 July 2010) ===
+ * Four changesets applied to source code, including
+ * Implementation of support for "minus space" modular symbols spaces
+ * Some improvements to sparse linear algebra (nothing dramatic)
+
 === eclib-20080310.p10 (Mitesh Patel, 2nd March 2010) ===
  * Suppress writing 'PRIMES' on exit.  See line 327 in
    src/procs/marith.cc.

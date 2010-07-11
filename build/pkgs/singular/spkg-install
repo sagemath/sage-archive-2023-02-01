@@ -109,8 +109,12 @@ patch()
     # work-around patches
     cp patches/assert.h src/factory/
 
-    # Solaris support
+    # Solaris/OpenSolaris support on x86/x84 chips (not SPARC)
     cp patches/Singular.Makefile.in src/Singular/Makefile.in
+    if [ $? -ne 0 ]; then
+        echo "Unable to copy the file patches/Singular.Makefile.in to src/Singular/Makefile.in"
+        exit 1
+    fi
 
     if [ "$UNAME" = "CYGWIN" ]; then
         # Fine to make this patch on any system, because it is code that is only compiled on Windows.
@@ -192,6 +196,10 @@ build_singular()
     fi
 
     cd $SRC
+    if [ $? -ne 0 ]; then
+        echo "Unable to change to directory $SRC"
+        exit 1
+    fi
 
     make slibdir="$SAGE_LOCAL/share/singular" install-nolns
 
@@ -239,6 +247,10 @@ create_singular_script()
 build_libsingular()
 {
     cd $SRC
+    if [ $? -ne 0 ]; then
+        echo "Unable to change to directory $SRC"
+        exit 1
+    fi
 
     make libsingular
 
@@ -301,6 +313,10 @@ build_factory()
 build_libfac()
 {
     cd $SRC/libfac
+    if [ $? -ne 0 ]; then
+        echo "Error changing to directory $SRC/libfac"
+        exit 1
+    fi
 
     make distclean
 
@@ -342,35 +358,26 @@ build_libfac()
 install_docs()
 {
     cp $SHARED/singular.hlp $SAGE_LOCAL/share/singular/
+    if [ $? -ne 0 ]; then
+        echo "Error installing documentation while copying singular.hlp"
+        exit 1
+    fi
     cp $SHARED/singular.idx $SAGE_LOCAL/share/singular/
+    if [ $? -ne 0 ]; then
+        echo "Error installing documentation while copying singular.idx"
+        exit 1
+    fi
 }
 
 build()
 {
-    clean_headers
-
-    patch
-
-    distclean
-
-    config
-
-    build_singular
-
-    build_libsingular
-
-    build_factory
-
-    build_libfac
-
-    create_singular_script
-
-    install_docs
+    for i in clean_headers patch distclean config build_singular build_libsingular build_factory build_libfac create_singular_script install_docs ; do
+    $i
+    if [ $? -ne 0 ]; then
+        echo "Error building Singular at stage '$i'."
+        exit 1
+    fi
+    done
 }
-
 build
 
-if [ $? -ne 0 ]; then
-    echo "Error somewhere building Singular."
-    exit 1
-fi

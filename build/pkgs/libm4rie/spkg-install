@@ -44,7 +44,13 @@ fi
 export CFLAGS
 export CPPFLAGS
 
-./configure --prefix=$SAGE_LOCAL --includedir=$SAGE_LOCAL/include/ $ENABLE_DEBUG
+if ["x$SAGE_FAT_BINARY" = "xyes"]; then
+    SSE2_SUPPORT="--disable-sse2"
+else
+    SSE2_SUPPORT=""
+fi
+
+./configure --prefix=$SAGE_LOCAL --includedir=$SAGE_LOCAL/include/ $ENABLE_DEBUG $SSE2_SUPPORT
 
 if [ $? -ne 0 ]; then
     echo "Error configuring libm4ri"

@@ -32,6 +32,9 @@ in the src directory.
 
 == Changelog ==
 
+=== pynac-0.2.0.p3 (William Stein, June 4, 2010) ===
+ * Change to src/ for trac 9135.
+
 === pynac-0.2.0.p2 (William Stein and Mike Hansen, June 3, 2010) ===
  * autoreconf and merge in trac 9086
 

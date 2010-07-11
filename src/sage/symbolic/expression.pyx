@@ -603,6 +603,17 @@ cdef class Expression(CommutativeRingElement):
             \frac{-1}{x}
             sage: latex(1/-x)
             \frac{-1}{x}
+
+        More tests for the sign (#9314)::
+
+            sage: latex(-2/x)
+            \frac{-2}{x}
+            sage: latex(-x/y)
+            \frac{-x}{y}
+            sage: latex(-x*z/y)
+            \frac{-x z}{y}
+            sage: latex(-x/z/y)
+            \frac{-x}{y z}
         """
         return self._parent._latex_element_(self)
 

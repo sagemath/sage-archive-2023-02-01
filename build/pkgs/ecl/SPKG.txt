@@ -45,6 +45,16 @@ Website: http://ecls.sourceforge.net/
 
 == Changelog ==
 
+=== ecl-10.2.1.p0 (David Kirkby, 11th July 2010) ===
+  * #9474 Revert ECL back to version 10.2.1 (along with Maxima too)
+    since some Maxima tests have failed on sage.math.
+  * #8089 Add the configure option '--with-dffi=no' on
+    OpenSolaris on the x86 processor. This disables assembly code.
+    This was originally #8089, but is back-ported to 10.2.1
+  * Delete temp files in /tmp, as they cause problems building
+    ECL in a multi-user environment. This was originally
+    #8951
+
 === ecl-10.2.1 (William Stein, 14 February 2010) ===
   * Upgrade to latest stable upstream release.
 

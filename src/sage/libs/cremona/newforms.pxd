@@ -31,7 +31,7 @@ cdef extern from "eclib/newforms.h":
         int verbose
         long maxdepth
         long cuspidal
-        long plusflag
+        long sign
 
         #member functions
         void (* createfromcurve)(CurveRed CR)

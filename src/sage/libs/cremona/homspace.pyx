@@ -4,9 +4,10 @@ cdef MatrixFactory MF = MatrixFactory()
 
 cdef class ModularSymbols:
     """
-    Class of Cremona Modular Symbols of given level, sign, etc.
+    Class of Cremona Modular Symbols of given level and sign (and weight 2).
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: M = CremonaModularSymbols(225)
         sage: type(M)
         <type 'sage.libs.cremona.homspace.ModularSymbols'>
@@ -15,12 +16,26 @@ cdef class ModularSymbols:
         """
         Called when creating a space of Cremona modular symbols.
 
-        EXAMPLES:
+        INPUT:
+
+        - ``level`` (int) -- the level: an integer, at least 2.
+        - ``sign`` (int, default 0) -- the sign: 0, +1 or -1
+        - ``cuspidal`` (boolean, default False) -- True for cuspidal homology
+        - ``verbose`` (int, default 0) -- verbosity level
+
+        EXAMPLES::
+
             sage: CremonaModularSymbols(123, sign=1, cuspidal=True)
             Cremona Cuspidal Modular Symbols space of dimension 13 for Gamma_0(123) of weight 2 with sign 1
+            sage: CremonaModularSymbols(123, sign=-1, cuspidal=True)
+            Cremona Cuspidal Modular Symbols space of dimension 12 for Gamma_0(123) of weight 2 with sign -1
+            sage: CremonaModularSymbols(123, sign=0, cuspidal=True)
+            Cremona Cuspidal Modular Symbols space of dimension 26 for Gamma_0(123) of weight 2 with sign 0
+            sage: CremonaModularSymbols(123, sign=0, cuspidal=False)
+            Cremona Modular Symbols space of dimension 29 for Gamma_0(123) of weight 2 with sign 0
         """
-        if not (sign == 0 or sign==1):
-            raise ValueError, "sign (= %s) is not supported; use 0 or +1"%sign
+        if not (sign == 0 or sign == 1 or sign == -1):
+            raise ValueError, "sign (= %s) is not supported; use 0, +1 or -1"%sign
         if level <= 1:
             raise ValueError, "the level (= %s) must be at least 2"%level
         _sig_on
@@ -35,7 +50,8 @@ cdef class ModularSymbols:
         String representation of space of Cremona modular symbols.
 
         EXAMPLES:
-        We test various types of spaces that impact printing:
+
+        We test various types of spaces that impact printing::
 
             sage: M = CremonaModularSymbols(37, sign=1)
             sage: M.__repr__()
@@ -53,7 +69,8 @@ cdef class ModularSymbols:
         """
         Return the level of this modular symbols space.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = CremonaModularSymbols(1234, sign=1)
             sage: M.level()
             1234
@@ -65,7 +82,8 @@ cdef class ModularSymbols:
         """
         Return the dimension of this modular symbols space.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = CremonaModularSymbols(1234, sign=1)
             sage: M.dimension()
             156
@@ -77,7 +95,8 @@ cdef class ModularSymbols:
         Return the number of cusps for $\Gamma_0(N)$, where $N$ is the
         level.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = CremonaModularSymbols(225)
             sage: M.number_of_cusps()
             24
@@ -87,9 +106,10 @@ cdef class ModularSymbols:
     #cpdef int sign(self):
     def sign(self):
         """
-        Return the sign of this Cremona modular symbols space.  The sign is either 0 or +1.
+        Return the sign of this Cremona modular symbols space.  The sign is either 0, +1 or -1.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = CremonaModularSymbols(1122, sign=1); M
             Cremona Modular Symbols space of dimension 224 for Gamma_0(1122) of weight 2 with sign 1
             sage: M.sign()
@@ -98,6 +118,10 @@ cdef class ModularSymbols:
             Cremona Modular Symbols space of dimension 433 for Gamma_0(1122) of weight 2 with sign 0
             sage: M.sign()
             0
+            sage: M = CremonaModularSymbols(1122, sign=-1); M
+            Cremona Modular Symbols space of dimension 209 for Gamma_0(1122) of weight 2 with sign -1
+            sage: M.sign()
+            -1
         """
         return self.H.plusflag
 
@@ -106,7 +130,8 @@ cdef class ModularSymbols:
         """
         Return whether or not this space is cuspidal.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = CremonaModularSymbols(1122); M.is_cuspidal()
             0
             sage: M = CremonaModularSymbols(1122, cuspidal=True); M.is_cuspidal()

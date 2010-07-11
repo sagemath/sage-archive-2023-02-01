@@ -10,7 +10,8 @@ cdef class Matrix:
     """
     A Cremona Matrix.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: M = CremonaModularSymbols(225)
         sage: t = M.hecke_matrix(2)
         sage: type(t)
@@ -22,7 +23,8 @@ cdef class Matrix:
         """
         Called when the matrix is being created.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: t = CremonaModularSymbols(11).hecke_matrix(2); t
             3 x 3 Cremona matrix over Rational Field
             sage: type(t)
@@ -35,7 +37,8 @@ cdef class Matrix:
         String representation of this matrix.  Use print self.str() to
         print out the matrix entries on the screen.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = CremonaModularSymbols(23)
             sage: t = M.hecke_matrix(2); t
             5 x 5 Cremona matrix over Rational Field
@@ -52,7 +55,8 @@ cdef class Matrix:
         """
         Return full string representation of this matrix, never in compact form.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = CremonaModularSymbols(22, sign=1)
             sage: t = M.hecke_matrix(13)
             sage: t.str()
@@ -103,7 +107,8 @@ cdef class Matrix:
         """
         Return the number of rows of this matrix.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = CremonaModularSymbols(19, sign=1)
             sage: t = M.hecke_matrix(13); t
             2 x 2 Cremona matrix over Rational Field
@@ -116,7 +121,8 @@ cdef class Matrix:
         """
         Return the number of columns of this matrix.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = CremonaModularSymbols(1234, sign=1)
             sage: t = M.hecke_matrix(3); t.ncols()
             156
@@ -152,7 +158,8 @@ cdef class Matrix:
         """
         Return new matrix obtained by adding s to each diagonal entry of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = CremonaModularSymbols(23, cuspidal=True, sign=1)
             sage: t = M.hecke_matrix(2); print t.str()
             [ 0  1]
@@ -168,11 +175,14 @@ cdef class Matrix:
         Return the characteristic polynomial of this matrix, viewed as
         as a matrix over the integers.
 
-        ALGORITHM: Note that currently, this function converts this
-        matrix into a dense matrix over the integers, then calls the
-        charpoly algorithm on that, which I think is LinBox's.
+        ALGORITHM:
 
-        EXAMPLES:
+        Note that currently, this function converts this matrix into a
+        dense matrix over the integers, then calls the charpoly
+        algorithm on that, which I think is LinBox's.
+
+        EXAMPLES::
+
             sage: M = CremonaModularSymbols(33, cuspidal=True, sign=1)
             sage: t = M.hecke_matrix(2)
             sage: t.charpoly()
@@ -186,11 +196,13 @@ cdef class Matrix:
         """
         Return corresponding Sage matrix over the integers.
 
-        INPUTS:
-            sparse -- (default: True) whether the return matrix has a
-                      sparse representation
+        INPUT:
 
-        EXAMPLES:
+        - ``sparse`` -- (default: True) whether the return matrix has
+          a sparse representation
+
+        EXAMPLES::
+
             sage: M = CremonaModularSymbols(23, cuspidal=True, sign=1)
             sage: t = M.hecke_matrix(2)
             sage: s = t.sage_matrix_over_ZZ(); s

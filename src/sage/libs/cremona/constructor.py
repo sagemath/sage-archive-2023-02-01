@@ -3,12 +3,14 @@ def CremonaModularSymbols(level, sign=0, cuspidal=False, verbose=0):
     Return the space of Cremona modular symbols with given level, sign, etc.
 
     INPUT:
-        level -- an integer >= 2  (at least 2, not just positive!)
-        sign -- an integer either 0 (the default) or 1.
-        cuspidal -- (default: False); if True, compute only the cuspidal subspace
-        verbose -- (default: False): if True, print verbose information while creating space
 
-    EXAMPLES:
+    - ``level`` -- an integer >= 2  (at least 2, not just positive!)
+    - ``sign`` -- an integer either 0 (the default) or 1 or -1.
+    - ``cuspidal`` -- (default: False); if True, compute only the cuspidal subspace
+    - ``verbose`` -- (default: False): if True, print verbose information while creating space
+
+    EXAMPLES::
+
         sage: M = CremonaModularSymbols(43); M
         Cremona Modular Symbols space of dimension 7 for Gamma_0(43) of weight 2 with sign 0
         sage: M = CremonaModularSymbols(43, sign=1); M
@@ -18,8 +20,9 @@ def CremonaModularSymbols(level, sign=0, cuspidal=False, verbose=0):
         sage: M = CremonaModularSymbols(43, cuspidal=True, sign=1); M
         Cremona Cuspidal Modular Symbols space of dimension 3 for Gamma_0(43) of weight 2 with sign 1
 
-    When run interactively, the following command will display verbose output:
-        sage: M = CremonaModularSymbols(43, verbose=1); M   # not tested, since verbose output annoyingly goes to stderr.
+    When run interactively, the following command will display verbose output::
+
+        sage: M = CremonaModularSymbols(43, verbose=1); M   # not tested, since verbose output goes to stderr.
         After 2-term relations, ngens = 22
         predicted value of ngens = 22
         ngens     = 22
@@ -38,7 +41,8 @@ def CremonaModularSymbols(level, sign=0, cuspidal=False, verbose=0):
         Finished constructing homspace.
         Cremona Modular Symbols space of dimension 7 for Gamma_0(43) of weight 2 with sign 0
 
-    The input must be valid or a ValueError is raised:
+    The input must be valid or a ValueError is raised::
+
         sage: M = CremonaModularSymbols(-1)
         Traceback (most recent call last):
         ...
@@ -48,17 +52,17 @@ def CremonaModularSymbols(level, sign=0, cuspidal=False, verbose=0):
         ...
         ValueError: the level (= 0) must be at least 2
 
-    The sign can only be 0 or 1.
+    The sign can only be 0 or 1 or -1::
+
         sage: M = CremonaModularSymbols(10, sign = -2)
         Traceback (most recent call last):
         ...
-        ValueError: sign (= -2) is not supported; use 0 or +1
+        ValueError: sign (= -2) is not supported; use 0, +1 or -1
 
-    Not even -1 is allowed as a sign:
-        sage: M = CremonaModularSymbols(10, sign = -1)
-        Traceback (most recent call last):
-        ...
-        ValueError: sign (= -1) is not supported; use 0 or +1
+    We do allow -1 as a sign (see #9476)::
+
+        sage: CremonaModularSymbols(10, sign = -1)
+        Cremona Modular Symbols space of dimension 0 for Gamma_0(10) of weight 2 with sign -1
     """
     from homspace import ModularSymbols
     return ModularSymbols(level=level, sign=sign, cuspidal=cuspidal, verbose=verbose)

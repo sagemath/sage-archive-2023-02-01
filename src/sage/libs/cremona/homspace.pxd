@@ -16,7 +16,7 @@ cdef extern from "eclib/homspace.h":
     ctypedef struct homspace "homspace":
         # attributes
         long modulus
-        int plusflag
+        int plusflag # sign
         int cuspidal
 
         # member functions

@@ -2282,6 +2282,16 @@ class DiGraph(GenericGraph):
             True
             sage: all([ Set(scc) in scc_digraph.vertices() for scc in g.strongly_connected_components()])
             True
+
+        The following digraph has three strongly connected components,
+        and the digraph of those is a chain::
+
+            sage: g = DiGraph({0:[1,2,3],1:[2],2:[1,3]})
+            sage: scc_digraph = g.strongly_connected_components_digraph()
+            sage: scc_digraph.vertices()
+            [{0}, {3}, {1, 2}]
+            sage: scc_digraph.edges()
+            [({0}, {3}, None), ({0}, {1, 2}, None), ({1, 2}, {3}, None)]
         """
 
         from sage.sets.set import Set
@@ -2298,10 +2308,8 @@ class DiGraph(GenericGraph):
         g.add_vertices(scc_set)
         g.allow_multiple_edges(False)
 
-        g.add_edges( (scc_set[d[u]], scc_set[d[u]]) for u,v in self.edges(labels=False) )
-
+        g.add_edges( (scc_set[d[u]], scc_set[d[v]]) for u,v in self.edges(labels=False) )
         return g
-
 
 
     def is_strongly_connected(self):

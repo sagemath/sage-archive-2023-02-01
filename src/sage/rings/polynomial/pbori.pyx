@@ -896,8 +896,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         gens = flatten(gens)
         return BooleanPolynomialIdeal(self, gens, coerce)
 
-    def random_element(self, degree=2, terms=5, choose_degree=True,
-                       vars_set=None):
+    def random_element(self, degree=None, terms=None, choose_degree=True, vars_set=None):
         """
         Return a random boolean polynomial. Generated polynomial has the
         given number of terms, and at most given degree.
@@ -905,9 +904,9 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         INPUT:
 
 
-        -  ``degree`` - maximum degree (default: 2)
+        -  ``degree`` - maximum degree (default: 2 for len(var_set) > 1, 1 otherwise)
 
-        -  ``terms`` - number of terms (default: 5)
+        -  ``terms`` - number of terms (default: 5 for len(var_set) > 2, smaller otherwise)
 
         -  ``choose_degree`` - choose degree of monomials
            randomly first, rather than monomials uniformly random
@@ -927,8 +926,19 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             sage: P.random_element(degree=1, terms=2)
             z + 1
 
+        In corner cases this function will return fewer terms by default::
+
+            sage: P = BooleanPolynomialRing(2,'y')
+            sage: P.random_element()
+            y0*y1 + 1
+
+            sage: P = BooleanPolynomialRing(1,'y')
+            sage: P.random_element()
+            1
+
         TESTS::
 
+            sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: P.random_element(degree=4)
             Traceback (most recent call last):
             ...
@@ -954,6 +964,20 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         if not vars_set:
             vars_set=range(self.ngens())
         nvars = len(vars_set)
+
+        if terms is None:
+            if nvars > 2:
+                terms = 5
+            elif nvars == 2:
+                terms = 2
+            elif nvars == 1:
+                terms = 1
+
+        if degree is None:
+            if nvars > 1:
+                degree = 2
+            else:
+                degree = 1
 
         if degree > nvars:
             raise ValueError, "Given degree should be less than or equal to number of variables (%s)"%(nvars)

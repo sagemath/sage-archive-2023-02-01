@@ -4,7 +4,6 @@
 ## Singular
 ###########################################
 
-SAGE_DEBUG=0
 SRC=`pwd`/src
 SHARED=`pwd`/shared
 
@@ -51,7 +50,7 @@ if [ "$UNAME" = "Darwin" ]; then
      export MACOSX_DEPLOYMENT_TARGET
 fi
 
-if [ "$SAGE_DEBUG" = "1" ]; then
+if [ "x$SAGE_DEBUG" = "xyes" ]; then
   ENABLE_DEBUG="--enable-debug"
   CXXFLAGS="$CXXFLAGS -O0 -g"
   CFLAGS="$CFLAGS -O0 -g"

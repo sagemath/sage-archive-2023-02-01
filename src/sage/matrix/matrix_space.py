@@ -1525,16 +1525,7 @@ def test_trivial_matrices_inverse(ring, sparse=True, checkrank=True):
         sage: tinv(CyclotomicField(7), sparse=True)
         sage: tinv(CyclotomicField(7), sparse=False)
         sage: tinv(QQ['x,y'], sparse=True)
-
-   TODO: As soon as rank of dense matrix over QQ['x,y'] is implemented,
-   please remove the following test and the ``checkrank=False`` in the next one:
-
-        sage: MatrixSpace(QQ['x,y'], 3, 3, sparse=False)(1).rank()
-        Traceback (most recent call last):
-        ...
-        RuntimeError: BUG: matrix pivots should have been set but weren't, matrix parent = 'Full MatrixSpace of 3 by 3 dense matrices over Multivariate Polynomial Ring in x, y over Rational Field'
-
-        sage: tinv(QQ['x,y'], sparse=False, checkrank=False)
+        sage: tinv(QQ['x,y'], sparse=False)
 
     """
     # Check that the empty 0x0 matrix is it's own inverse with det=1.

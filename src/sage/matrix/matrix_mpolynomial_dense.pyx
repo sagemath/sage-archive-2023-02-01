@@ -134,6 +134,32 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
 
         return E
 
+    def pivots(self):
+        """
+        Return the pivot column positions of this matrix as a list of
+        Python integers.
+
+        This returns a list, of the position of the first nonzero
+        entry in each row of the echelon form.
+
+        OUTPUT:
+
+        -  ``list`` - a list of Python ints
+
+        EXAMPLES:
+
+            sage: matrix([PolynomialRing(GF(2),2,'x').gen()]).pivots()
+            [0]
+        """
+        x = self.fetch('pivots')
+        if not x is None: return x
+        self.echelon_form('frac')
+        x = self.fetch('pivots')
+        if x is None:
+            raise RuntimeError("BUG: matrix pivots should have been set but weren't, matrix parent = '%s'"%self.parent())
+        return x
+
+
     def echelonize(self, algorithm="row_reduction", **kwds):
         r"""
         Transform self into a matrix in echelon form over the same

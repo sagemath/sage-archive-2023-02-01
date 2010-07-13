@@ -4942,7 +4942,7 @@ class GraphGenerators():
 #   Graph Iterators
 ###########################################################################
 
-    def __call__(self, vertices, property=lambda x: True, augment='edges',
+    def __call__(self, vertices=None, property=lambda x: True, augment='edges',
         size=None, deg_seq=None, loops=False, implementation='c_graph',
         sparse=True):
         """
@@ -4965,6 +4965,20 @@ class GraphGenerators():
             Graph on 2 vertices
             Graph on 3 vertices
 
+        ::
+
+            sage: for g in graphs():
+            ...    if g.num_verts() > 3: break
+            ...    print g
+            Graph on 0 vertices
+            Graph on 1 vertex
+            Graph on 2 vertices
+            Graph on 2 vertices
+            Graph on 3 vertices
+            Graph on 3 vertices
+            Graph on 3 vertices
+            Graph on 3 vertices
+
         For more examples, see the class level documentation, or type::
 
             sage: graphs? # not tested
@@ -4977,6 +4991,8 @@ class GraphGenerators():
         """
         from sage.graphs.all import Graph
         if deg_seq is not None:
+            if vertices is None:
+                raise NotImplementedError
             if len(deg_seq) != vertices or sum(deg_seq)%2 or sum(deg_seq) > vertices*(vertices-1):
                 raise ValueError("Invalid degree sequence.")
             deg_seq = sorted(deg_seq)
@@ -4991,11 +5007,20 @@ class GraphGenerators():
         else:
             extra_property = lambda x: True
         if augment == 'vertices':
+            if vertices is None:
+                raise NotImplementedError
             g = Graph(loops=loops, implementation=implementation, sparse=sparse)
             for gg in canaug_traverse_vert(g, [], vertices, property, loops=loops, implementation=implementation, sparse=sparse):
                 if extra_property(gg):
                     yield gg
         elif augment == 'edges':
+            if vertices is None:
+                from sage.rings.all import Integer
+                vertices = Integer(0)
+                while True:
+                    for g in self(vertices, loops=loops, implementation=implementation, sparse=sparse):
+                        yield g
+                    vertices += 1
             g = Graph(vertices, loops=loops, implementation=implementation, sparse=sparse)
             gens = []
             for i in range(vertices-1):
@@ -5007,7 +5032,7 @@ class GraphGenerators():
                 if extra_property(gg):
                     yield gg
         else:
-            raise NotImplementedError()
+            raise NotImplementedError
 
     def trees(self, vertices):
         """

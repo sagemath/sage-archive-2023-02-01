@@ -1296,11 +1296,11 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             sage: magma(MatrixSpace(Integers(8),2,3))           # optional - magma
             Full RMatrixSpace of 2 by 3 matrices over IntegerRing(8)
         """
-        K = self.base_ring()._magma_init_(magma)
+        K = magma(self.base_ring())
         if self.__nrows == self.__ncols:
-            s = 'MatrixAlgebra(%s,%s)'%(K, self.__nrows)
+            s = 'MatrixAlgebra(%s,%s)'%(K.name(), self.__nrows)
         else:
-            s = 'RMatrixSpace(%s,%s,%s)'%(K, self.__nrows, self.__ncols)
+            s = 'RMatrixSpace(%s,%s,%s)'%(K.name(), self.__nrows, self.__ncols)
         return s
 
 def dict_to_list(entries, nrows, ncols):

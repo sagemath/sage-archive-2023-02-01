@@ -1592,7 +1592,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         """
         R = magma(self.parent())
         a = R.gen(1).name()
-        return '%s!(%s)'%(R.name(), self.parent()._element_poly_repr(self, a))
+        return '%s!(%s)'%(R.name(), self._cache._element_poly_repr(self, a))
 
     def multiplicative_order(FiniteField_givaroElement self):
         """

@@ -91,7 +91,7 @@ from sage.libs.singular.decl cimport ggetid, IDEAL_CMD, CMD_M, POLY_CMD, PROC_CM
 from sage.libs.singular.decl cimport MODUL_CMD, LIST_CMD, MATRIX_CMD, VECTOR_CMD, STRING_CMD, V_LOAD_LIB, V_REDEFINE, INTMAT_CMD, NONE, PACKAGE_CMD
 from sage.libs.singular.decl cimport IsCmd, rChangeCurrRing, currRing, p_Copy
 from sage.libs.singular.decl cimport IDROOT, enterid, currRingHdl, memcpy, IDNEXT, IDTYP, IDPACKAGE
-from sage.libs.singular.decl cimport errorreported, verbose, Sy_bit
+from sage.libs.singular.decl cimport errorreported, verbose, Sy_bit, currentVoice, myynest
 from sage.libs.singular.decl cimport intvec_new_int3, intvec_new, matrix, mpNew
 from sage.libs.singular.decl cimport p_Add_q, p_SetComp, p_GetComp, pNext, p_Setm, IDELEMS
 from sage.libs.singular.decl cimport idInit, syStrategy, atSet, atGet, setFlag, FLAG_STD
@@ -784,11 +784,11 @@ cdef class BaseCallHandler:
     A call handler is an abstraction which hides the details of the
     implementation differences between kernel and library functions.
     """
-    cdef leftv* handle_call(self, Converter argument_list) except NULL:
+    cdef leftv* handle_call(self, Converter argument_list):
         """
         Actual function call.
         """
-        raise NotImplementedError
+        return NULL
 
     cdef bint free_res(self):
         """
@@ -979,7 +979,7 @@ cdef class SingularFunction(SageObject):
             sage: size(1,2, ring=P)
             Traceback (most recent call last):
             ...
-            RuntimeError
+            RuntimeError: An error occurred when calling the Singular function 'size'.
 
             sage: size('foobar', ring=P)
             6
@@ -995,6 +995,24 @@ cdef class SingularFunction(SageObject):
         So we tell Singular that ``I`` is indeed a Groebner basis::
 
             sage: hilb(I,attributes={I:{'isSB':1}}) # no complaint from Singular
+
+
+        TESTS:
+
+        We show that the interface recovers gracefully from errors::
+
+            sage: P.<e,d,c,b,a> = PolynomialRing(QQ,5,order='lex')
+            sage: I = sage.rings.ideal.Cyclic(P)
+
+            sage: triangL = sage.libs.singular.ff.triang__lib.triangL
+            sage: _ = triangL(I)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: An error occurred when calling the Singular function 'triangL'.
+
+            sage: G= Ideal(I.groebner_basis())
+            sage: triangL(G,attributes={G:{'isSB':1}})
+            [[e + d + c + b + a, ...]]
         """
         if ring is None:
             ring = self.common_ring(args, ring)
@@ -1141,6 +1159,8 @@ The Singular documentation for '%s' is given below.
 cdef inline call_function(SingularFunction self, tuple args, MPolynomialRing_libsingular R, bint signal_handler=True, attributes=None):
     global currRingHdl
     global errorreported
+    global currentVoice
+    global myynest
 
     cdef ring *si_ring = R._ring
 
@@ -1156,6 +1176,10 @@ cdef inline call_function(SingularFunction self, tuple args, MPolynomialRing_lib
 
     cdef leftv * _res
 
+    currentVoice = NULL
+    myynest = 0
+    errorreported = 0
+
     with opt_ctx: # we are preserving the global options state here
         if signal_handler:
             _sig_on
@@ -1164,9 +1188,15 @@ cdef inline call_function(SingularFunction self, tuple args, MPolynomialRing_lib
         else:
             _res = self.call_handler.handle_call(argument_list)
 
+    if myynest:
+        myynest = 0
+
+    if currentVoice:
+        currentVoice = NULL
+
     if errorreported:
         errorreported = 0
-        raise RuntimeError
+        raise RuntimeError("An error occurred when calling the Singular function '%s'."%(self._name))
 
     res = argument_list.to_python(_res)
 

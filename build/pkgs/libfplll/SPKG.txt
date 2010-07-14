@@ -11,7 +11,6 @@ Website: http://perso.ens-lyon.fr/damien.stehle/english.html
 
 == SPKG Maintainers ==
  * Martin Albrecht
- * Michael Abshoff
 
 == Upstream Contact ==
  * Damien Stehle
@@ -22,6 +21,21 @@ Website: http://perso.ens-lyon.fr/damien.stehle/english.html
  * mpfr
 
 == Changelog ==
+
+=== libfplll-3.0.12.p1 (David Kirkby and Willem Jan Palenstijn, 14th July 2010) ===
+ * #7864 "libfplll tries to link 64-bit objects to 32-bit libstdc++.so"
+   Since setting CFLAGS and CXXFLAGS to include the compiler option -m64
+   was not resulting in a successful 64-bit build of libfplll on OpenSolaris,
+   another approach had to be taken. The changes redefined CC and CXX.
+   For most users, the changes will set CC="gcc -m64", CXX="g++ -m64"
+   if the environment variable SAGE64 is set to "yes", though neither
+   the compilers nor the compiler option for building 64-bit binaries
+   is hard-coded - they can be overridden by environment
+   variables. The changes allow a 64-bit version of libfplll to be built
+   on Solaris 10 on SPARC and OpenSolaris on x64.
+ * #7738 Removed Michael Abshoff as a package maintainer, as he no longer works
+   on the Sage project.
+
 
 === libfplll-3.0.12.p0 (Michael Abshoff, May 20th, 2009) ===
  * Patch dpe.h with a Solaris specific compile workaround.

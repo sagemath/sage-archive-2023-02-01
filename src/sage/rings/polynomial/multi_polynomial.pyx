@@ -999,48 +999,6 @@ cdef class MPolynomial(CommutativeRingElement):
         from sage.misc.misc_c import prod
         return prod(v).change_ring(k.prime_subfield())
 
-    def _factor_over_nonprime_finite_field(self):
-        """
-        Factor a multivariate polynomial over a non-prime field by
-        reducing to the case of a prime field and gcd's over the
-        non-prime field.  Note that proof=False for this function.
-
-        EXAMPLES::
-
-            sage: k.<a> = GF(9)
-            sage: R.<x,y> = PolynomialRing(k)
-            sage: f = (x-a)*(y-a)
-            sage: f._factor_over_nonprime_finite_field()
-            (y + (-a)) * (x + (-a))
-        """
-        P = self.parent()
-        k = P.base_ring()
-        if not k.is_field() and k.is_finite():
-            raise TypeError, "k must be a finite field"
-        d = k.degree()
-        p = k.characteristic()
-        unit = self.lt().coefficients()[0]
-        f = (1/unit) * self
-        nrm = f._norm_over_nonprime_finite_field()
-        F = nrm.factor(proof=False)
-        v = []
-        for pr, e in F:
-            h = f.gcd(P(pr))  #  the P(pr) should be just pr; see trac #5072
-            u = h.lt().coefficients()[0]
-            assert h.degree() > 0, "bug in Singular factoring an auxiliary polynomial over GF(p): bad degree"
-            h = (1/u)*h
-
-            z = [h] + [h.map_coefficients(k.hom([k.gen()**(p**i)])) for i in range(1,d)]
-            conj = set(z)
-            assert d % len(conj) == 0, "bug in Singular factoring an auxiliary polynomial over GF(p): bad conjugate count (%s, %s)"%(
-                d, len(conj))
-            assert e % (d//len(conj)) == 0, "bug in Singular factoring an auxiliary polynomial over GF(p): bad multiplicity (%s, %s)"%(
-                e, d//len(conj))
-            n = e // (d // len(conj))
-            v.append( (h, n)  )
-        from sage.structure.factorization import Factorization
-        return Factorization(v, unit)
-
     def denominator(self):
         """
         Return a denominator of self.

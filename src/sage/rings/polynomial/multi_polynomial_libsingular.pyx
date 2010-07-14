@@ -3615,8 +3615,6 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                 raise NotImplementedError, "Factorization of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented."
             if proof:
                 raise NotImplementedError, "proof = True factorization not implemented.  Call factor with proof=False."
-            if not self._parent._base.is_prime_field():
-                return self._factor_over_nonprime_finite_field()
 
         # I make a temporary copy of the poly in self because singclap_factorize appears to modify it's parameter
         ptemp = p_Copy(self._poly,_ring)

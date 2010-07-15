@@ -66,6 +66,8 @@ class FpT(FractionField_1poly_field):
 
     def iter(self, bound=None, start=None):
         """
+        EXAMPLES::
+
             sage: from sage.rings.fraction_field_FpT import *
             sage: R.<t> = FpT(GF(5)['t'])
             sage: list(R.iter(2))[350:355]
@@ -353,7 +355,9 @@ cdef class FpTElement(RingElement):
 
     cdef int _cmp_c_impl(self, Element other) except -2:
         """
-        Compares this with another element.
+        Compares this with another element.  The ordering is arbitrary,
+        but it is an ordering, and it is consistent between runs.  It has
+        nothing to do with the algebra structure.
 
         TESTS::
 
@@ -373,13 +377,21 @@ cdef class FpTElement(RingElement):
             True
             sage: 2*t/2 == t
             True
+
+            sage: a = (t^3 + 3*t)/(5*t-2); b = (t^2-2)/(t-1)
+            sage: b < a
+            True
+            sage: a < b
+            False
+            sage: 1/a < b
+            True
+            sage: b < 1/a
+            False
         """
         # They are normalized.
-        if (zmod_poly_equal(self._numer, (<FpTElement>other)._numer) and
-            zmod_poly_equal(self._denom, (<FpTElement>other)._denom)):
-            return 0
-        else:
-            return -1
+        cdef int j = sage_cmp_zmod_poly_t(self._numer, (<FpTElement>other)._numer)
+        if j: return j
+        return sage_cmp_zmod_poly_t(self._denom, (<FpTElement>other)._denom)
 
     def __hash__(self):
         """
@@ -394,11 +406,13 @@ cdef class FpTElement(RingElement):
             sage: hash(K(5))
             5
             sage: set([1, t, 1/t, t, t, 1/t, 1+1/t, t/t])
-            set([1, t, 1/t, (t + 1)/t])
+            set([1, 1/t, t, (t + 1)/t])
+            sage: a = (t+1)/(t^2-1); hash(a) == hash((a.numer(),a.denom()))
+            True
         """
         if self.denom() == 1:
             return hash(self.numer())
-        return hash((self.numer(), self.numer()))
+        return hash((self.numer(), self.denom()))
 
     def __neg__(self):
         """
@@ -633,31 +647,6 @@ cdef class FpTElement(RingElement):
                     zmod_poly_clear(g)
         return next
 
-#         if zmod_poly_degree(self._numer) == -1:
-#             zmod_poly_set_coeff_ui(x._numer, 0, 1)
-#             zmod_poly_set_coeff_ui(x._denom, 0, 1)
-#             return x
-#         elif zmod_poly_degree(self._numer) == 0:
-#             zmod_poly_set_coeff_ui(x._numer, 0, zmod_poly_get_coeff_ui(self._numer, 0) + 1)
-#             zmod_poly_set_coeff_ui(x._denom, 0, 1)
-#             if zmod_poly_get_coeff_ui(x._numer, 0) == 0:
-#                 zmod_poly_set_coeff_ui(x._numer, 1, 1)
-#             return x
-#         cdef zmod_poly_t g
-#         zmod_poly_init(g, self.p)
-#         zmod_poly_set(x._numer, self._numer)
-#         zmod_poly_set(x._denom, self._denom)
-#         while True:
-#             zmod_poly_inc(x._denom, True)
-#             if zmod_poly_degree(x._numer) < zmod_poly_degree(x._denom):
-#                 zmod_poly_inc(x._numer, False)
-#                 zmod_poly_zero(x._denom)
-#                 zmod_poly_set_coeff_ui(x._denom, 0, 1)
-#             zmod_poly_gcd(g, x._numer, x._denom)
-#             if zmod_poly_is_one(g):
-#                 zmod_poly_clear(g)
-#                 return x
-
     cpdef _sqrt_or_None(self):
         """
         Returns the squre root of self, or None. Differs from sqrt() by not raising an exception.
@@ -891,7 +880,7 @@ cdef class FpT_iter:
 
     def __dealloc__(self):
         """
-        Deallocating of the self.g
+        Deallocating of self.g.
 
         TESTS::
 
@@ -1772,3 +1761,28 @@ def unpickle_FpT_element(K, numer, denom):
         (t + 1)/t
     """
     return FpTElement(K, numer, denom, coerce=False, reduce=False)
+
+
+#  Somehow this isn't in FLINT, evidently.  It could be moved
+#  elsewhere at some point.
+cdef int sage_cmp_zmod_poly_t(zmod_poly_t L, zmod_poly_t R):
+    """
+    Compare two zmod_poly_t in a Pythonic way, so this returns -1, 0,
+    or 1, and is consistent.
+    """
+    cdef int j
+    cdef Py_ssize_t i
+
+    # First compare the degrees
+    j = zmod_poly_degree(L) - zmod_poly_degree(R)
+    if j<0: return -1
+    elif j>0: return 1
+
+    # Same degree, so compare coefficients, term by term
+    for i in range(zmod_poly_degree(L)+1):
+        j = zmod_poly_get_coeff_ui(L,i) - zmod_poly_get_coeff_ui(R,i)
+        if j<0: return -1
+        elif j>0: return 1
+
+    # Two polynomials are equal
+    return 0

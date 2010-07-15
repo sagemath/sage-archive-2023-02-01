@@ -1,45 +1,49 @@
-r"""
-This module contains lattice related functions relevant in cryptography.
+"""
+Hard Lattice Generator
+
+This module contains lattice related functions relevant in
+cryptography.
 
 Feel free to add more functionality.
 
 AUTHORS:
-    Richard Lindner <rlindner@cdc.informatik.tu-darmstadt.de>
-    Michael Schneider <mischnei@cdc.informatik.tu-darmstadt.de>
+  *  Richard Lindner <rlindner@cdc.informatik.tu-darmstadt.de>
+  *  Michael Schneider <mischnei@cdc.informatik.tu-darmstadt.de>
 """
 
 def gen_lattice(type='modular', n=4, m=8, q=11, seed=None, \
                 quotient=None, dual=False, ntl=False):
-    r"""
-    This function generates different types of integral lattice
-    bases of row vectors relevant in cryptography.
+    """
+    This function generates different types of integral lattice bases
+    of row vectors relevant in cryptography.
 
-    Randomness can be set either with ``seed'', or by using
-    set_random_seed(...) in SAGE.
+    Randomness can be set either with ``seed``, or by using
+    :func:`sage.misc.randstate.set_random_seed`.
 
     INPUT:
 
     * ``type`` - one of the following strings
-        * ``'modular'`` (default). A class of lattices for which asymptotic
-        worst-case to average-case connections hold. For more refer to [A96].
-        * ``'random'`` - Special case of modular (n=1). A dense class of
-        lattice used for testing basis reduction algorithms proposed by
-        Goldstein and Mayer [GM02].
-        * ``'ideal'`` - Special case of modular. Allows for a more compact
-        representation proposed by [LM06].
-        * ``'cyclotomic'`` - Special case of ideal. Allows for efficient
-        processing proposed by [LM06].
-    * ``n`` - Determinant size, det(L) = q^n. For ideal lattices this is also
-    the degree of the quotient polynomial.
-    * ``m`` - Lattice dimension, L \subseteq Z^m.
-    * ``q`` - Coefficent size, q*Z^m \subseteq L.
+        * ``'modular'`` (default). A class of lattices for which
+          asymptotic worst-case to average-case connections hold. For
+          more refer to [A96]_.
+        * ``'random'`` - Special case of modular (n=1). A dense class
+          of lattice used for testing basis reduction algorithms
+          proposed by Goldstein and Mayer [GM02]_.
+        * ``'ideal'`` - Special case of modular. Allows for a more
+          compact representation proposed by [LM06]_.
+        * ``'cyclotomic'`` - Special case of ideal. Allows for
+          efficient processing proposed by [LM06]_.
+    * ``n`` - Determinant size, `det(L) = q^n`. For ideal lattices this
+      is also the degree of the quotient polynomial.
+    * ``m`` - Lattice dimension, `L \subseteq Z^m`.
+    * ``q`` - Coefficent size, `q*Z^m \subseteq L`.
     * ``seed`` - Randomness seed.
     * ``quotient`` - For the type ideal, this determines the quotient
-    polynomial. Ignored for all other types.
-    * ``dual`` - Set this flag if you want a basis for q*dual(L), for example
-    for Regev's LWE bases [R05].
+      polynomial. Ignored for all other types.
+    * ``dual`` - Set this flag if you want a basis for `q*dual(L)`, for example
+      for Regev's LWE bases [R05]_.
     * ``ntl`` - Set this flag if you want the lattice basis in NTL readable
-    format.
+      format.
 
     OUTPUT: ``B`` a unique size-reduced triangular (lower=primal, upper=dual)
     basis of row vectors for the lattice in question.
@@ -62,8 +66,7 @@ def gen_lattice(type='modular', n=4, m=8, q=11, seed=None, \
 
     * Random basis ::
 
-        sage: sage.crypto.gen_lattice(type='random', n=1, m=10, q=11^4, \
-        seed=42)
+        sage: sage.crypto.gen_lattice(type='random', n=1, m=10, q=11^4, seed=42)
         [14641     0     0     0     0     0     0     0     0     0]
         [  431     1     0     0     0     0     0     0     0     0]
         [-4792     0     1     0     0     0     0     0     0     0]
@@ -99,8 +102,8 @@ def gen_lattice(type='modular', n=4, m=8, q=11, seed=None, \
         [ 3  3  4 -2  0  0  1  0]
         [ 2  3  3  4  0  0  0  1]
 
-    * Dual modular bases are related to Regev's famous public-key encryption
-    [R05] ::
+    * Dual modular bases are related to Regev's famous public-key
+      encryption [R05]_ ::
 
         sage: sage.crypto.gen_lattice(type='modular', m=10, seed=42, dual=True)
         [ 1  0  0  0 -2 -1  4  2  5  4]
@@ -123,21 +126,21 @@ def gen_lattice(type='modular', n=4, m=8, q=11, seed=None, \
 
     REFERENCES:
 
-    [A96] Mikl{\'o}s Ajtai.
-    Generating hard instances of lattice problems (extended abstract).
-    STOC, pp. 99--108, ACM, 1996.
+.. [A96] Miklos Ajtai.
+   Generating hard instances of lattice problems (extended abstract).
+   STOC, pp. 99--108, ACM, 1996.
 
-    [GM02] Daniel Goldstein and Andrew Mayer.
-    On the equidistribution of Hecke points.
-    Forum Mathematicum, 15:2, pp. 165--189, De Gruyter, 2003.
+.. [GM02] Daniel Goldstein and Andrew Mayer.
+   On the equidistribution of Hecke points.
+   Forum Mathematicum, 15:2, pp. 165--189, De Gruyter, 2003.
 
-    [LM06] Vadim Lyubashevsky and Daniele Micciancio.
-    Generalized compact knapsacks are collision resistant.
-    ICALP, pp. 144--155, Springer, 2006.
+.. [LM06] Vadim Lyubashevsky and Daniele Micciancio.
+   Generalized compact knapsacks are collision resistant.
+   ICALP, pp. 144--155, Springer, 2006.
 
-    [R05] Oded Regev.
-    On lattices, learning with errors, random linear codes, and cryptography.
-    STOC, pp. 84--93, ACM, 2005.
+.. [R05] Oded Regev.
+   On lattices, learning with errors, random linear codes, and cryptography.
+   STOC, pp. 84--93, ACM, 2005.
     """
     from sage.rings.finite_rings.integer_mod_ring \
         import IntegerModRing

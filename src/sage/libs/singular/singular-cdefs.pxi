@@ -14,7 +14,6 @@ include "sage/ext/cdefs.pxi"
 cdef extern from "stdlib.h":
     void delete "delete" (void *ptr)
 
-
 cdef extern from "factory.h":
 
     #
@@ -995,6 +994,10 @@ cdef extern from "lists.h":
         int    nr
         leftv  *m
         void (*Init)(int n)
+
+cdef extern from "kstd1.h":
+    cdef extern int Kstd1_deg   # degBound, default 0
+    cdef extern int Kstd1_mu    # multBound, default 0
 
 cdef extern from "intvec.h":
     # for the moment we need only new, as we use the cleanup of sleftv

@@ -381,6 +381,7 @@ class Singular(Expect):
         self.option("redTail")
         self.option("redThrough")
         self.option("intStrategy")
+        self._saved_options = self.option('get')
 
     def __reduce__(self):
         """

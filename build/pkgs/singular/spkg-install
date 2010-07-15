@@ -101,13 +101,6 @@ patch()
     # work-around patches
     cp patches/assert.h src/factory/
 
-    # Solaris/OpenSolaris support on x86/x84 chips (not SPARC)
-    cp patches/Singular.Makefile.in src/Singular/Makefile.in
-    if [ $? -ne 0 ]; then
-        echo "Unable to copy the file patches/Singular.Makefile.in to src/Singular/Makefile.in"
-        exit 1
-    fi
-
     if [ "$UNAME" = "CYGWIN" ]; then
         # Fine to make this patch on any system, because it is code that is only compiled on Windows.
         cp patches/sing_win.cc src/Singular/

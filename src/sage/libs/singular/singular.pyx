@@ -36,6 +36,7 @@ from sage.libs.singular.decl cimport nrzInit, nr2mMapZp, nrnMapGMP
 from sage.libs.singular.decl cimport siInit
 from sage.libs.singular.decl cimport n_Int, n_Init
 from sage.libs.singular.decl cimport rChangeCurrRing
+from sage.libs.singular.decl cimport WerrorS_callback, const_char_ptr
 
 from sage.rings.rational_field import RationalField
 from sage.rings.integer_ring cimport IntegerRing_class
@@ -646,6 +647,8 @@ cdef init_libsingular():
     """
     global singular_options
     global max_exponent_size
+    global WerrorS_callback
+    global error_messages
 
     cdef void *handle = NULL
 
@@ -681,10 +684,18 @@ cdef init_libsingular():
     else:
         max_exponent_size = 1<<16-1;
 
+    WerrorS_callback = libsingular_error_callback
+
+    error_messages = []
+
 cdef inline unsigned long get_max_exponent_size():
     global max_exponent_size
     return max_exponent_size
 
 # call the init routine
 init_libsingular()
+
+cdef void libsingular_error_callback(const_char_ptr s):
+    _s = s
+    error_messages.append(_s)
 

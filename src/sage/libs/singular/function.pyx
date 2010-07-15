@@ -100,11 +100,15 @@ from sage.libs.singular.option import opt_ctx
 from sage.libs.singular.polynomial cimport singular_vector_maximal_component
 from sage.libs.singular.singular cimport sa2si, si2sa, si2sa_intvec
 
+from sage.libs.singular.singular import error_messages
+
 from sage.interfaces.singular import get_docstring
 
 from sage.misc.misc import get_verbose
 
 from sage.structure.sequence import Sequence
+
+
 
 cdef poly* sage_vector_to_poly(v, ring *r) except <poly*> -1:
     """
@@ -979,7 +983,8 @@ cdef class SingularFunction(SageObject):
             sage: size(1,2, ring=P)
             Traceback (most recent call last):
             ...
-            RuntimeError: An error occurred when calling the Singular function 'size'.
+            RuntimeError: Error in Singular function call 'size':
+             size(`int`,`int`) failed
 
             sage: size('foobar', ring=P)
             6
@@ -1008,7 +1013,9 @@ cdef class SingularFunction(SageObject):
             sage: _ = triangL(I)
             Traceback (most recent call last):
             ...
-            RuntimeError: An error occurred when calling the Singular function 'triangL'.
+            RuntimeError: Error in Singular function call 'triangL':
+             The input is no groebner basis.
+             leaving triang.lib::triangL
 
             sage: G= Ideal(I.groebner_basis())
             sage: triangL(G,attributes={G:{'isSB':1}})
@@ -1161,6 +1168,8 @@ cdef inline call_function(SingularFunction self, tuple args, MPolynomialRing_lib
     global errorreported
     global currentVoice
     global myynest
+    global error_messages
+
 
     cdef ring *si_ring = R._ring
 
@@ -1180,6 +1189,9 @@ cdef inline call_function(SingularFunction self, tuple args, MPolynomialRing_lib
     myynest = 0
     errorreported = 0
 
+    while error_messages:
+        error_messages.pop()
+
     with opt_ctx: # we are preserving the global options state here
         if signal_handler:
             _sig_on
@@ -1196,7 +1208,9 @@ cdef inline call_function(SingularFunction self, tuple args, MPolynomialRing_lib
 
     if errorreported:
         errorreported = 0
-        raise RuntimeError("An error occurred when calling the Singular function '%s'."%(self._name))
+        error_msg = " " + "\n ".join(error_messages)
+        raise RuntimeError("Error in Singular function call '%s':\n%s"%(self._name,
+                                                                           error_msg))
 
     res = argument_list.to_python(_res)
 

@@ -363,6 +363,9 @@ cdef extern from "libsingular.h":
     cdef void * currentVoice
     cdef int myynest
 
+    ctypedef char * const_char_ptr "const char *"
+    cdef extern void (*WerrorS_callback)(const_char_ptr)
+
     #
     # FUNCTIONS
     #

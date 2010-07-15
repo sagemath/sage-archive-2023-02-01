@@ -57,3 +57,5 @@ cdef inline int overflow_check(long e) except -1
 
 cdef init_libsingular()
 cdef inline unsigned long get_max_exponent_size()
+
+

@@ -20,7 +20,7 @@ Library for matrix multiplication, reduction and inversion over GF(2).
 
 == Releases ==
 
-=== libm4ri-20100107 (Martin Albrecht, July 11th, 2010) ===
+=== libm4ri-20100701 (Martin Albrecht, July 11th, 2010) ===
  * new upstream release
    + refactoring (function names match what the function is doing now)
    + heuristic algorithm choice for RREF

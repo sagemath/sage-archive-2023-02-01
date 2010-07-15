@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+unset RM
+
 if [ "$SAGE_LOCAL" = "" ]; then
     echo "SAGE_LOCAL undefined ... exiting";
     echo "Maybe run 'sage -sh'?"
@@ -7,8 +9,7 @@ if [ "$SAGE_LOCAL" = "" ]; then
 fi
 
 if [ "$SAGE64" = "yes" ]; then
-    CFLAGS="-O2 -g -m64 "; export CFLAGS
-    CPPFLAGS="-O2 -g -m64 "; export CPPFLAGS
+    CFLAGS="-m64 "; export CFLAGS
 fi
 
 cd src

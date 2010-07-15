@@ -314,6 +314,24 @@ if [ $? -ne 0 ]; then
 fi
 echo "****************************************************"
 
+
+##################################################################
+# If spkg-install is a Python script, verify that the Sage Python
+# has already been installed.
+##################################################################
+# Check the first line of the file for the string "python".
+head -1 spkg-install | grep python > /dev/null
+if [ $? -eq 0 ]; then   # if it is found, then the exit code will be 0
+    if [ ! -f "$SAGE_LOCAL"/bin/python ]; then   # now check if the python program is in local/bin/
+         # if so, exit with an error.
+         echo "The spkg-install script depends on the Sage Python package,"
+         echo "but the Sage Python package is not yet installed.  This may be"
+         echo "a bug in the Sage build system dependency file.  Please"
+         echo "update the $SAGE_ROOT/spkg/standard/deps makefile."
+         exit 1
+    fi
+fi
+
 BASEDIR=`pwd`
 if [ -n "$DEBIAN_RELEASE" ]; then
     SAGE_CHECK=''

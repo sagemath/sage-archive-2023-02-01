@@ -31,13 +31,6 @@ unset LD
 # found in build process
 unset TMPDIR
 
-# since parallel make breaks the singular build
-MAKE="make"
-export MAKE
-# We clear MAKEFLAGS to fix building multiple spkgs in parallel on OS X.
-MAKEFLAGS=
-export MAKEFLAGS
-
 # disable the dynamic kernel, except on Linux
 if [ "$UNAME" = "Linux" ]; then
      DYNAMIC_KERNEL=""

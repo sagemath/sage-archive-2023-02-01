@@ -1,13 +1,16 @@
 r"""
-A collection of constructors of common graphs.
+A Collection of Constructors of Common Graphs
 
-USE:
+Usage
+=====
 
 To see a list of all graph constructors, type "graphs." and then
 press the tab key. The documentation for each constructor includes
 information about each graph, which provides a useful reference.
 
-PLOTTING:
+
+Plotting
+========
 
 All graphs (i.e., networks) have an associated Sage
 graphics object, which you can display::
@@ -34,95 +37,131 @@ dodecahedral, random and empty graphs), the position dictionary is
 filled in, instead of using the spring-layout algorithm.
 
 For further visual examples and explanation, see the docstrings
-below, particularly for CycleGraph, StarGraph, WheelGraph,
-CompleteGraph and CompleteBipartiteGraph.
+below, particularly for
+:meth:`CycleGraph <GraphGenerators.CycleGraph>`,
+:meth:`StarGraph <GraphGenerators.StarGraph>`,
+:meth:`WheelGraph <GraphGenerators.WheelGraph>`,
+:meth:`CompleteGraph <GraphGenerators.CompleteGraph>`, and
+:meth:`CompleteBipartiteGraph <GraphGenerators.CompleteBipartiteGraph>`.
 
-ORGANIZATION:
+
+.. _organization:
+
+Organization
+============
 
 The constructors available in this database are
-organized as follows::
+organized as follows.
 
-    Basic Structures:
-        - BarbellGraph
-        - BullGraph
-        - CircularLadderGraph
-        - ClawGraph
-        - CycleGraph
-        - Circuit
-        - DiamondGraph
-        - EmptyGraph
-        - Grid2dGraph
-        - GridGraph
-        - HouseGraph
-        - HouseXGraph
-        - KrackhardtKiteGraph
-        - LadderGraph
-        - LollipopGraph
-        - PathGraph
-        - StarGraph
-        - ToroidalGrid2dGraph
-        - WheelGraph
-    Platonic Solids:
-        - TetrahedralGraph
-        - HexahedralGraph
-        - OctahedralGraph
-        - IcosahedralGraph
-        - DodecahedralGraph
-    Named Graphs:
-        - ChvatalGraph
-        - DesarguesGraph
-        - FlowerSnark
-        - FruchtGraph
-        - HeawoodGraph
-        - HigmanSimsGraph
-        - HoffmanSingletonGraph
-        - MoebiusKantorGraph
-        - Pappus Graph
-        - PetersenGraph
-        - ThomsenGraph
-    Families of Graphs:
-        - BalancedTree
-        - BubbleSortGraph
-        - CirculantGraph
-        - CompleteGraph
-        - CompleteBipartiteGraph
-        - CompleteMultipartiteGraph
-        - CubeGraph
-        - FibonacciTree
-        - FuzzyBallGraph
-        - GeneralizedPetersenGraph
-        - HyperStarGraph
-        - KneserGraph
-        - LCFGraph
-        - NKStarGraph
-        - NStarGraph
-        - OddGraph
-    Pseudofractal Graphs:
-        - DorogovtsevGoltsevMendesGraph
-    Random Graphs:
-        - RandomGNP
-        - RandomBarabasiAlbert
-        - RandomBipartite
-        - RandomGNM
-        - RandomNewmanWattsStrogatz
-        - RandomHolmeKim
-        - RandomInterval
-        - RandomLobster
-        - RandomTreePowerlaw
-        - RandomRegular
-        - RandomShell
-    Random Directed Graphs:
-        - RandomDirectedGN
-        - RandomDirectedGNC
-        - RandomDirectedGNR
-    Graphs with a given degree sequence:
-        - DegreeSequence
-        - DegreeSequenceBipartite
-        - DegreeSequenceConfigurationModel
-        - DegreeSequenceTree
-        - DegreeSequenceExpected
-    Oddities :
-        - WorldMap
+
+Basic structures
+----------------
+
+- :meth:`BarbellGraph <GraphGenerators.BarbellGraph>`
+- :meth:`BullGraph <GraphGenerators.BullGraph>`
+- :meth:`CircularLadderGraph <GraphGenerators.CircularLadderGraph>`
+- :meth:`ClawGraph <GraphGenerators.ClawGraph>`
+- :meth:`CycleGraph <GraphGenerators.CycleGraph>`
+- :meth:`DiamondGraph <GraphGenerators.DiamondGraph>`
+- :meth:`EmptyGraph <GraphGenerators.EmptyGraph>`
+- :meth:`Grid2dGraph <GraphGenerators.Grid2dGraph>`
+- :meth:`GridGraph <GraphGenerators.GridGraph>`
+- :meth:`HouseGraph <GraphGenerators.HouseGraph>`
+- :meth:`HouseXGraph <GraphGenerators.HouseXGraph>`
+- :meth:`KrackhardtKiteGraph <GraphGenerators.KrackhardtKiteGraph>`
+- :meth:`LadderGraph <GraphGenerators.LadderGraph>`
+- :meth:`LCFGraph <GraphGenerators.LCFGraph>`
+- :meth:`LollipopGraph <GraphGenerators.LollipopGraph>`
+- :meth:`PathGraph <GraphGenerators.PathGraph>`
+- :meth:`StarGraph <GraphGenerators.StarGraph>`
+- :meth:`ToroidalGrid2dGraph <GraphGenerators.ToroidalGrid2dGraph>`
+- :meth:`WheelGraph <GraphGenerators.WheelGraph>`
+
+
+Platonic solids
+---------------
+
+- :meth:`DodecahedralGraph <GraphGenerators.DodecahedralGraph>`
+- :meth:`HexahedralGraph <GraphGenerators.HexahedralGraph>`
+- :meth:`IcosahedralGraph <GraphGenerators.IcosahedralGraph>`
+- :meth:`OctahedralGraph <GraphGenerators.OctahedralGraph>`
+- :meth:`TetrahedralGraph <GraphGenerators.TetrahedralGraph>`
+
+
+Named Graphs
+------------
+
+- :meth:`ChvatalGraph <GraphGenerators.ChvatalGraph>`
+- :meth:`DesarguesGraph <GraphGenerators.DesarguesGraph>`
+- :meth:`FlowerSnark <GraphGenerators.FlowerSnark>`
+- :meth:`FruchtGraph <GraphGenerators.FruchtGraph>`
+- :meth:`HeawoodGraph <GraphGenerators.HeawoodGraph>`
+- :meth:`HigmanSimsGraph <GraphGenerators.HigmanSimsGraph>`
+- :meth:`HoffmanSingletonGraph <GraphGenerators.HoffmanSingletonGraph>`
+- :meth:`MoebiusKantorGraph <GraphGenerators.MoebiusKantorGraph>`
+- :meth:`PappusGraph <GraphGenerators.PappusGraph>`
+- :meth:`PetersenGraph <GraphGenerators.PetersenGraph>`
+- :meth:`ThomsenGraph <GraphGenerators.ThomsenGraph>`
+
+
+Families of graphs
+------------------
+
+- :meth:`BalancedTree <GraphGenerators.BalancedTree>`
+- :meth:`BubbleSortGraph <GraphGenerators.BubbleSortGraph>`
+- :meth:`CirculantGraph <GraphGenerators.CirculantGraph>`
+- :meth:`CompleteBipartiteGraph <GraphGenerators.CompleteBipartiteGraph>`
+- :meth:`CompleteGraph <GraphGenerators.CompleteGraph>`
+- :meth:`CubeGraph <GraphGenerators.CubeGraph>`
+- :meth:`FibonacciTree <GraphGenerators.FibonacciTree>`
+- :meth:`FuzzyBallGraph <GraphGenerators.FuzzyBallGraph>`
+- :meth:`GeneralizedPetersenGraph <GraphGenerators.GeneralizedPetersenGraph>`
+- :meth:`HanoiTowerGraph <GraphGenerators.HanoiTowerGraph>`
+- :meth:`HyperStarGraph <GraphGenerators.HyperStarGraph>`
+- :meth:`KneserGraph <GraphGenerators.KneserGraph>`
+- :meth:`LCFGraph <GraphGenerators.LCFGraph>`
+- :meth:`NKStarGraph <GraphGenerators.NKStarGraph>`
+- :meth:`NStarGraph <GraphGenerators.NStarGraph>`
+- :meth:`OddGraph <GraphGenerators.OddGraph>`
+- :meth:`trees <GraphGenerators.trees>`
+
+
+Pseudofractal graphs
+--------------------
+
+- :meth:`DorogovtsevGoltsevMendesGraph <GraphGenerators.DorogovtsevGoltsevMendesGraph>`
+
+
+Random graphs
+-------------
+
+- :meth:`RandomBarabasiAlbert <GraphGenerators.RandomBarabasiAlbert>`
+- :meth:`RandomBipartite <GraphGenerators.RandomBipartite>`
+- :meth:`RandomGNM <GraphGenerators.RandomGNM>`
+- :meth:`RandomGNP <GraphGenerators.RandomGNP>`
+- :meth:`RandomHolmeKim <GraphGenerators.RandomHolmeKim>`
+- :meth:`RandomInterval <GraphGenerators.RandomInterval>`
+- :meth:`RandomLobster <GraphGenerators.RandomLobster>`
+- :meth:`RandomNewmanWattsStrogatz <GraphGenerators.RandomNewmanWattsStrogatz>`
+- :meth:`RandomRegular <GraphGenerators.RandomRegular>`
+- :meth:`RandomShell <GraphGenerators.RandomShell>`
+- :meth:`RandomTreePowerlaw <GraphGenerators.RandomTreePowerlaw>`
+
+
+Graphs with a given degree sequence
+-----------------------------------
+
+- :meth:`DegreeSequence <GraphGenerators.DegreeSequence>`
+- :meth:`DegreeSequenceBipartite <GraphGenerators.DegreeSequenceBipartite>`
+- :meth:`DegreeSequenceConfigurationModel <GraphGenerators.DegreeSequenceConfigurationModel>`
+- :meth:`DegreeSequenceExpected <GraphGenerators.DegreeSequenceExpected>`
+- :meth:`DegreeSequenceTree <GraphGenerators.DegreeSequenceTree>`
+
+
+Miscellaneous
+-------------
+
+- :meth:`WorldMap <GraphGenerators.WorldMap>`
 
 
 AUTHORS:
@@ -157,27 +196,32 @@ AUTHORS:
 - Harald Schilly and Yann Laigle-Chapuy (2010-03-24): added Fibonacci Tree
 """
 
-################################################################################
+###########################################################################
+
 #           Copyright (C) 2006 Robert L. Miller <rlmillster@gmail.com>
 #                              and Emily A. Kirkman
 #           Copyright (C) 2009 Michael C. Yurko <myurko@gmail.com>
 #
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
-################################################################################
+###########################################################################
 
+# import from Python standard library
+from math import sin, cos, pi
+
+# import from Sage library
 import graph
-from   math import sin, cos, pi
 from sage.misc.randstate import current_randstate
 
 class GraphGenerators():
     r"""
     A class consisting of constructors for several common graphs, as
-    well as orderly generation of isomorphism class representatives.
+    well as orderly generation of isomorphism class representatives. See the
+    section :ref:`organization` for a list of supported constructors.
 
-    A list of all graphs and graph structures (other than iso. class
-    rep's) in this database is available via tab completion. Type
-    "graphs." and then hit tab to see which graphs are available.
+    A list of all graphs and graph structures (other than isomorphism class
+    representatives) in this database is available via tab completion. Type
+    "graphs." and then hit the tab key to see which graphs are available.
 
     The docstrings include educational information about each named
     graph with the hopes that this class can be used as a reference.
@@ -186,83 +230,10 @@ class GraphGenerators():
     dodecahedral, random and empty graphs), the position dictionary is
     filled to override the spring-layout algorithm.
 
-    The constructors currently in this class include::
 
-                Basic Structures:
-                    - BarbellGraph
-                    - BullGraph
-                    - CircularLadderGraph
-                    - ClawGraph
-                    - CycleGraph
-                    - Circuit
-                    - DiamondGraph
-                    - EmptyGraph
-                    - Grid2dGraph
-                    - GridGraph
-                    - HouseGraph
-                    - HouseXGraph
-                    - KrackhardtKiteGraph
-                    - LadderGraph
-                    - LollipopGraph
-                    - PathGraph
-                    - StarGraph
-                    - ToroidalGrid2dGraph
-                    - WheelGraph
-                Platonic Solids:
-                    - TetrahedralGraph
-                    - HexahedralGraph
-                    - OctahedralGraph
-                    - IcosahedralGraph
-                    - DodecahedralGraph
-                Named Graphs:
-                    - ChvatalGraph
-                    - DesarguesGraph
-                    - FlowerSnark
-                    - FruchtGraph
-                    - HeawoodGraph
-                    - HigmanSimsGraph
-                    - HoffmanSingletonGraph
-                    - MoebiusKantorGraph
-                    - PappusGraph
-                    - PetersenGraph
-                    - ThomsenGraph
-                Families of Graphs:
-                    - BalancedTree
-                    - CirculantGraph
-                    - CompleteGraph
-                    - CompleteBipartiteGraph
-                    - CompleteMultipartiteGraph
-                    - CubeGraph
-                    - FuzzyBallGraph
-                    - FibonacciTree
-                    - KneserGraph
-                    - LCFGraph
-                    - OddGraph
-                Pseudofractal Graphs:
-                    - DorogovtsevGoltsevMendesGraph
-                Random Graphs:
-                    - RandomGNP
-                    - RandomBarabasiAlbert
-                    - RandomBipartite
-                    - RandomGNM
-                    - RandomNewmanWattsStrogatz
-                    - RandomHolmeKim
-                    - RandomInterval
-                    - RandomLobster
-                    - RandomTreePowerlaw
-                    - RandomRegular
-                    - RandomShell
-                Graphs with a given degree sequence:
-                    - DegreeSequence
-                    - DegreeSequenceBipartite
-                    - DegreeSequenceConfigurationModel
-                    - DegreeSequenceTree
-                    - DegreeSequenceExpected
-                Oddities :
-                    - WorldMap
+    ORDERLY GENERATION::
 
-    ORDERLY GENERATION: graphs(vertices, property=lambda x: True,
-    augment='edges', size=None)
+        graphs(vertices, property=lambda x: True, augment='edges', size=None)
 
     This syntax accesses the generator of isomorphism class
     representatives. Iterates over distinct, exhaustive
@@ -270,47 +241,50 @@ class GraphGenerators():
 
     INPUT:
 
+    - ``vertices`` -- natural number.
 
-    -  ``vertices`` - natural number
+    - ``property`` -- (default: ``lambda x: True``) any property to be tested
+      on graphs before generation. (Ignored if ``deg_seq`` is specified.)
 
-    -  ``property`` - any property to be tested on graphs
-       before generation. (Ignored if deg_seq is specified.)
+    - ``augment`` -- (default: ``'edges'``) possible values:
 
-    -  ``augment`` - choices:
+      - ``'vertices'`` -- augments by adding a vertex and
+        edges incident to that vertex. In this case, all graphs up to
+        ``n=vertices`` are generated. If for any graph G satisfying the
+        property, every subgraph, obtained from G by deleting one vertex
+        and only edges incident to that vertex, satisfies the property,
+        then this will generate all graphs with that property. If this does
+        not hold, then all the graphs generated will satisfy the property,
+        but there will be some missing.
 
-    -  ``'vertices'`` - augments by adding a vertex, and
-       edges incident to that vertex. In this case, all graphs on up to
-       n=vertices are generated. If for any graph G satisfying the
-       property, every subgraph, obtained from G by deleting one vertex
-       and only edges incident to that vertex, satisfies the property,
-       then this will generate all graphs with that property. If this does
-       not hold, then all the graphs generated will satisfy the property,
-       but there will be some missing.
+      - ``'edges'`` -- augments a fixed number of vertices by
+        adding one edge. In this case, all graphs on exactly ``n=vertices`` are
+        generated. If for any graph G satisfying the property, every
+        subgraph, obtained from G by deleting one edge but not the vertices
+        incident to that edge, satisfies the property, then this will
+        generate all graphs with that property. If this does not hold, then
+        all the graphs generated will satisfy the property, but there will
+        be some missing.
 
-    -  ``'edges'`` - augments a fixed number of vertices by
-       adding one edge In this case, all graphs on exactly n=vertices are
-       generated. If for any graph G satisfying the property, every
-       subgraph, obtained from G by deleting one edge but not the vertices
-       incident to that edge, satisfies the property, then this will
-       generate all graphs with that property. If this does not hold, then
-       all the graphs generated will satisfy the property, but there will
-       be some missing.
+    - ``size`` -- (default: ``None``) the size of the graph to be generated.
 
-    -  ``deg_seq`` - a sequence of non-negative integers,
-       or None. If specified, the generated graphs will have these
-       integers for degrees. In this case property and size are both
-       ignored.
+    - ``deg_seq`` -- (default: ``None``) a sequence of non-negative integers,
+      or ``None``. If specified, the generated graphs will have these
+      integers for degrees. In this case, property and size are both
+      ignored.
 
-    -  ``loops`` - whether to allow loops in the graph or
-       not.
+    - ``loops`` -- (default: ``False``) whether to allow loops in the graph
+      or not.
 
-    -  ``implementation`` - which underlying implementation to use (see Graph?)
+    - ``implementation`` -- (default: ``'c_graph'``) which underlying
+      implementation to use (see ``Graph?``).
 
-    -  ``sparse`` - ignored if implementation is not ``c_graph``
+    - ``sparse`` -- (default: ``True``) ignored if implementation is not
+      ``'c_graph'``.
 
-    EXAMPLES: Print graphs on 3 or less vertices.
+    EXAMPLES:
 
-    ::
+    Print graphs on 3 or less vertices::
 
         sage: for G in graphs(3, augment='vertices'):
         ...    print G
@@ -4715,60 +4689,21 @@ class GraphGenerators():
         import networkx
         return graph.Graph(networkx.expected_degree_graph([int(i) for i in deg_sequence], seed=seed), loops=True)
 
-################################################################################
+###########################################################################
 #   Graph Iterators
-################################################################################
+###########################################################################
 
     def __call__(self, vertices, property=lambda x: True, augment='edges',
         size=None, deg_seq=None, loops=False, implementation='c_graph',
         sparse=True):
         """
         Accesses the generator of isomorphism class representatives.
-        Iterates over distinct, exhaustive representatives.
+        Iterates over distinct, exhaustive representatives. See the docstring
+        of this class for full documentation.
 
-        INPUT:
+        EXAMPLES:
 
-
-        -  ``vertices`` - natural number
-
-        -  ``property`` - any property to be tested on graphs
-           before generation. (Ignored if deg_seq is specified.)
-
-        -  ``augment`` - choices:
-
-        -  ``'vertices'`` - augments by adding a vertex, and
-           edges incident to that vertex. In this case, all graphs on up to
-           n=vertices are generated. If for any graph G satisfying the
-           property, every subgraph, obtained from G by deleting one vertex
-           and only edges incident to that vertex, satisfies the property,
-           then this will generate all graphs with that property. If this does
-           not hold, then all the graphs generated will satisfy the property,
-           but there will be some missing.
-
-        -  ``'edges'`` - augments a fixed number of vertices by
-           adding one edge In this case, all graphs on exactly n=vertices are
-           generated. If for any graph G satisfying the property, every
-           subgraph, obtained from G by deleting one edge but not the vertices
-           incident to that edge, satisfies the property, then this will
-           generate all graphs with that property. If this does not hold, then
-           all the graphs generated will satisfy the property, but there will
-           be some missing.
-
-        -  ``deg_seq`` - a sequence of non-negative integers,
-           or None. If specified, the generated graphs will have these
-           integers for degrees. In this case property and size are both
-           ignored.
-
-        -  ``loops`` - whether to allow loops in the graph or
-           not.
-
-        -  ``implementation`` - which underlying implementation to use (see Graph?)
-
-        -  ``sparse`` - ignored if implementation is not ``c_graph``
-
-        EXAMPLES: Print graphs on 3 or less vertices.
-
-        ::
+        Print graphs on 3 or less vertices::
 
             sage: for G in graphs(3, augment='vertices'):
             ...    print G
@@ -4781,9 +4716,7 @@ class GraphGenerators():
             Graph on 2 vertices
             Graph on 3 vertices
 
-        For more examples, see the class level documentation, or type
-
-        ::
+        For more examples, see the class level documentation, or type::
 
             sage: graphs? # not tested
 

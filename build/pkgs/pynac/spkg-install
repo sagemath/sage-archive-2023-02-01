@@ -14,9 +14,11 @@ if [ "$SAGE_LOCAL" = "" ]; then
 fi
 
 if [ "$SAGE64" = "yes" ]; then
-    echo "64-bit bulid enabled"
+    echo "Building a 64-bit version of pynac"
     CXXFLAGS="-m64 -O2 -g"; export CXXFLAGS
     LDFLAGS="-m64"; export LDFLAGS
+    CC="$CC -m64" ; export CC
+    CXX="$CXX -m64" ; export CXX
 fi
 
 WORKDIR=${PWD}/src

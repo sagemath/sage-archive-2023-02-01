@@ -32,6 +32,13 @@ in the src directory.
 
 == Changelog ==
 
+=== pynac-0.2.0.p5 (David Kirkby, 16th July, 2010) ===
+ * #7861 Export CC="$CC -m64" and CXX="$CXX -m64" if
+   SAGE64 is set to "yes". This is because setting
+   CFLAGS and CXXFLAGS to include the -m64 option was
+   not sufficient to get this to build properly as 64-bit
+   on Solaris 10 or OpenSolaris.
+
 === pynac-0.2.0.p4 (Burcin Erocal, July 11, 2010) ===
  * Fix latex typesetting of rational functions. #9314
 

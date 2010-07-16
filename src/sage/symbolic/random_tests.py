@@ -6,6 +6,36 @@ import sage.calculus.calculus
 import sage.symbolic.pynac
 from sage.symbolic.constants import *
 
+def _mk_full_functions():
+    r"""
+    A simple function that returns a list of all Pynac functions of known
+    arity, sorted by name.
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.random_tests import _mk_full_functions
+        sage: [f for (one,f,arity) in _mk_full_functions()]
+        [Ei, abs, arccos, arccosh, arccot, arccoth, arccsc, arccsch,
+        arcsec, arcsech, arcsin, arcsinh, arctan, arctan2, arctanh,
+        binomial, ceil, conjugate, cos, cosh, cot, coth, csc, csch,
+        dickman_rho, dilog, dirac_delta, elliptic_e, elliptic_ec,
+        elliptic_eu, elliptic_f, elliptic_kc, elliptic_pi, erf, exp,
+        factorial, floor, heaviside, imag_part, integrate,
+        kronecker_delta, log, polylog, real_part, sec, sech, sgn, sin,
+        sinh, tan, tanh, unit_step, zeta, zetaderiv]
+
+    Note that this doctest will fail whenever a Pynac function is added or
+    removed.  In that case, it is very likely that the doctests for
+    random_expr will fail as well.  That's OK; just fix the doctest
+    to match the new output.
+    """
+    items = sage.symbolic.pynac.symbol_table['functions'].items()
+    items.sort()
+    return [(1.0, f, f.number_of_arguments())
+            for (name, f) in items
+            if hasattr(f, 'number_of_arguments') and
+               f.number_of_arguments() > 0]
+
 # For creating simple expressions
 
 fast_binary = [(0.4, operator.add), (0.1, operator.sub), (0.5, operator.mul)]
@@ -17,10 +47,7 @@ fast_nodes = [(0.9, fast_binary, 2), (0.1, fast_unary, 1)]
 # etc.)
 full_binary = [(0.3, operator.add), (0.1, operator.sub), (0.3, operator.mul), (0.2, operator.div), (0.1, operator.pow)]
 full_unary = [(0.8, operator.neg), (0.2, operator.inv)]
-full_functions = [(1.0, f, f.number_of_arguments())
-        for f in sage.symbolic.pynac.symbol_table['functions'].values()
-            if hasattr(f, 'number_of_arguments') and
-                f.number_of_arguments() > 0 ]
+full_functions = _mk_full_functions()
 full_nullary = [(1.0, c) for c in [pi, e]] + [(0.05, c) for c in
         [golden_ratio, log2, euler_gamma, catalan, khinchin, twinprime,
             mertens, brun]]
@@ -207,12 +234,11 @@ def random_expr(size, nvars=1, ncoeffs=None, var_frac=0.5, internal=full_interna
 
         sage: from sage.symbolic.random_tests import *
         sage: random_expr(50, nvars=3, coeff_generator=CDF.random_element)
-        arctanh(sinh(-1/erf(-((2.62756608636 + 1.20798164491*I)*v3 + (2.62756608636 + 1.20798164491*I)*e)*pi*v1) + csch((-0.708874026302 - 0.954135400334*I)*v3) - elliptic_pi(0.520184609653 - 0.734276246499*I, v3, pi)))^(-elliptic_f((v2^2 + (0.067987275089 + 1.08529153495*I)*v3)^(-v1 - v3), (5.29385548262 + 2.57440711353*I)*e/arccoth((-0.615761347729 - 0.529231982037*I)*kronecker_delta(-0.436810529675 + 0.736945423566*I, v2))))
+        factorial(floor((-0.314177274493 + 0.144437996366*I)/cosh(-v1^2*e/v3) + cos((-0.708874026302 - 0.954135400334*I)*v3) - zetaderiv(-0.228070288671 + 0.33842966472*I, 0.520184609653 - 0.734276246499*I)))^(-arccoth(-abs(((-0.804514286089 - 0.0293247734576*I)*v1 + (-0.804514286089 - 0.0293247734576*I)*v3 - 1.0)*elliptic_ec((-0.0263902659909 + 0.153261789843*I)*arccot(pi*catalan)))))
         sage: random_expr(5, verbose=True)
-        About to apply <built-in function mul> to [v1, v1]
-        About to apply <built-in function add> to [-1/3, v1]
-        About to apply <built-in function add> to [v1^2, v1 - 1/3]
-        v1^2 + v1 - 1/3
+        About to apply <built-in function add> to [v1, v1]
+        About to apply <built-in function div> to [-1/3, 2*v1]
+        -1/6/v1
     """
     vars = [(1.0, sage.calculus.calculus.var('v%d' % (n+1))) for n in range(nvars)]
     if ncoeffs is None:

@@ -3,6 +3,11 @@
 == Description ==
 
 Library for matrix multiplication, reduction and inversion over GF(2).
+(See also src/README for a brief overview.)
+
+== License ==
+
+ * GNU General Public License Version 2 or later (see src/COPYING)
 
 == Maintainers ==
 
@@ -10,22 +15,47 @@ Library for matrix multiplication, reduction and inversion over GF(2).
 
 == Upstream Contact ==
 
- * Author: Gregory Bard and Martin Albrecht
- * Email: M.R.Albrecht@rhul.ac.uk
+ * Authors: Gregory Bard and Martin Albrecht
+ * Email:   M.R.Albrecht@rhul.ac.uk (alternatively martinralbrecht@googlemail.com)
  * Website: http://m4ri.sagemath.org
 
 == Dependencies ==
 
- None
+ None (Note: If this ever changes, edit spkg-install accordingly, too.)
 
-== Releases ==
+== Special Update/Build Instructions ==
+ * Delete the upstream Mercurial repository (file src/.hgtags, directory src/.hg).
+ * Delete the directory src/autom4te.cache (if present).
+ * Delete m4ri.vcproj (and perhaps other unnecessary baggage).
+ * Touch src/configure to make sure it is newer than its sources.
+
+== Releases/Changelog ==
+
+=== libm4ri-20100701.p1 (Leif Leonhardy, July 15th 2010) ===
+ * Committed Martin Albrecht's changes of July 13th (minor fixes, see #9475).
+ * SPKG.txt:
+   - Added "License" and "Special Update/Build Instructions" sections,
+     fixed some typos, some additions.
+ * spkg-install:
+   - Fixed old typo (CLFAGS), fixed syntax error due to missing spaces that
+     prevented SAGE_FAT_BINARY working.
+   - Renamed $SSE2_SUPPORT to $DISABLE_SSE2.
+   - Removed $SAGE_LOCAL/include from preprocessor search path since M4RI
+     doesn't depend on any Sage package (similarly for library search path).
+   - Removed redundant --includedir=... from configure.
+   - Some restructuring.
+ * spkg-check:
+   - Replaced "make" by "$MAKE".
+   - *Append* "-m64" to $CFLAGS rather than overwrite them if $SAGE64 is "yes".
+ * Removed extra baggage (see "Special Update/Build Instructions" above).
+ * (Note: There was no official p0. The above changes are all #9475.)
 
 === libm4ri-20100701 (Martin Albrecht, July 11th, 2010) ===
  * new upstream release
-   + refactoring (function names match what the function is doing now)
+   + refactoring (function names now match what the function is doing)
    + heuristic algorithm choice for RREF
    + OpenMP tuning and fixes
-   + new option to supress SSE2 instruction
+   + new option to suppress SSE2 instructions
  * respecting SAGE_FAT_BINARY (cf. #9381)
  * adding spkg-check (cf. #9281)
 

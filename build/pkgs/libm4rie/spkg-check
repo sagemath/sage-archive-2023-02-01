@@ -3,22 +3,28 @@
 unset RM
 
 if [ "$SAGE_LOCAL" = "" ]; then
-    echo "SAGE_LOCAL undefined ... exiting";
+    echo "SAGE_LOCAL undefined ... exiting"
     echo "Maybe run 'sage -sh'?"
     exit 1
 fi
 
 if [ "$SAGE64" = "yes" ]; then
-    CFLAGS="-m64 "; export CFLAGS
+    CFLAGS="$CFLAGS -m64"; export CFLAGS
+    # FIXME: Do we need LDFLAGS here, too?
+    #        But looks as if all linking is performed by libtool/
+    #        gcc, so we do not really need it here.
+    #        In general, "-m64" should be added to CPPFLAGS and
+    #        CXXFLAGS as well. (There are no C++ sources though.)
 fi
 
 cd src
 
 echo "Testing the M4RI library"
 
-make check
+$MAKE check
 
 if [ $? -ne 0 ]; then
     echo "Error testing M4RI"
     exit 1
 fi
+

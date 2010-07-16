@@ -1,30 +1,30 @@
 #!/usr/bin/env bash
 
 if [ "$SAGE_LOCAL" = "" ]; then
-   echo "SAGE_LOCAL undefined ... exiting";
+   echo "SAGE_LOCAL undefined ... exiting"
    echo "Maybe run 'sage -sh'?"
    exit 1
 fi
 
 unset RM
 
+# M4RI (currently) does not depend on any Sage package,
+# so we don't need this:
+# INCLUDES="-I$SAGE_LOCAL/include"
+# LIBDIRS="-L$SAGE_LOCAL/lib"
+INCLUDES=""
+LIBDIRS=""
+
+CFLAGS="$CFLAGS $INCLUDES $LIBDIRS -g"
+
 COMPILER=`./testcc.sh`
 
-cd src
-
-$MAKE clean
-
-INCLUDES="-I$SAGE_LOCAL/include/"
-
-CFLAGS="$CFLAGS $INCLUDES -L$SAGE_LOCAL/lib -g"
-
-
 if [ "x$COMPILER"  = "xGNU" ] ; then
-   CFLAGS="$CFLAGS -fPIC -Wall -pedantic "
+   CFLAGS="$CFLAGS -fPIC -Wall -pedantic"
 elif [ "x$COMPILER" = "xSun_on_Solaris" ] ; then
-   CLFAGS="$CLFAGS -Kpic "
+   CFLAGS="$CFLAGS -Kpic"
 elif [ "x$COMPILER" = "xHP_on_HPUX" ] ; then
-   CFLAGS="$CFLAGS + z "
+   CFLAGS="$CFLAGS + z"
 fi
 
 CPPFLAGS="$INCLUDES"
@@ -39,18 +39,28 @@ fi
 
 if [ "x$SAGE64" = "xyes" ]; then
     CFLAGS="$CFLAGS -m64"
+    CPPFLAGS="$CPPFLAGS -m64"
+    # FIXME: Do we need LDFLAGS here, too?
+    #        But looks as if all linking is performed by libtool/
+    #        gcc, so we do not really need it here.
 fi
 
 export CFLAGS
 export CPPFLAGS
+# export LDFLAGS
 
-if ["x$SAGE_FAT_BINARY" = "xyes"]; then
-    SSE2_SUPPORT="--disable-sse2"
+if [ "x$SAGE_FAT_BINARY" = "xyes" ]; then
+    DISABLE_SSE2="--disable-sse2"
 else
-    SSE2_SUPPORT=""
+    DISABLE_SSE2=""
 fi
 
-./configure --prefix=$SAGE_LOCAL --includedir=$SAGE_LOCAL/include/ $ENABLE_DEBUG $SSE2_SUPPORT
+
+cd src
+
+$MAKE clean
+
+./configure --prefix=$SAGE_LOCAL $ENABLE_DEBUG $DISABLE_SSE2
 
 if [ $? -ne 0 ]; then
     echo "Error configuring libm4ri"
@@ -58,12 +68,14 @@ if [ $? -ne 0 ]; then
 fi
 
 $MAKE
+
 if [ $? -ne 0 ]; then
     echo "Error building libm4ri"
     exit 1
 fi
 
 $MAKE install
+
 if [ $? -ne 0 ]; then
     echo "Error installing libm4ri"
     exit 1

@@ -385,7 +385,7 @@ if [ "$1" = '-sh'  -o "$1" = '--sh' ]; then
     echo
     # We must start a new shell with no .profile or .bashrc files
     # processed, so that we know our path is correct
-    PS1="${PWD}\nsage subshell$ "
+    PS1="SAGE_ROOT=${SAGE_ROOT}\n(sage subshell) \h:\W \u\$ "
     export PS1
     case $SHELL_NAME in
         bash)

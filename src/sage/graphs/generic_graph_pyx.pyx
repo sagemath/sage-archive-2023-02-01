@@ -20,7 +20,7 @@ include '../ext/cdefs.pxi'
 include '../ext/stdsage.pxi'
 
 # import from Python standard library
-from random import random
+from sage.misc.prandom import random
 
 # import from third-party library
 from sage.graphs.base.dense_graph cimport DenseGraph
@@ -50,7 +50,7 @@ def spring_layout_fast_split(G, **options):
         sage: for i in range(10): G.add_cycle(range(100*i, 100*i+3))
         sage: from sage.graphs.generic_graph_pyx import spring_layout_fast_split
         sage: spring_layout_fast_split(G)
-        {0: [..., ...], ..., 502: [..., ...]}
+        {0: [0.452..., 0.247...], ..., 502: [25.7..., 0.505...]}
 
     AUTHOR:
         Robert Bradshaw
@@ -92,7 +92,7 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
         sage: for i in range(10): G.add_cycle(range(100*i, 100*i+3))
         sage: from sage.graphs.generic_graph_pyx import spring_layout_fast
         sage: spring_layout_fast(G)
-        {0: [..., ...], ..., 502: [..., ...]}
+        {0: [-0.0733..., 0.157...], ..., 502: [-0.551..., 0.682...]}
 
     With ``split=True``, each component of G is layed out separately,
     placing them adjacent to each other. This is done because on a
@@ -110,7 +110,7 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
         sage: for i in range(10): G.add_cycle(range(100*i, 100*i+3))
         sage: from sage.graphs.generic_graph_pyx import spring_layout_fast
         sage: spring_layout_fast(G, by_component = True)
-        {0: [..., ...], ..., 502: [..., ...]}
+        {0: [2.12..., -0.321...], ..., 502: [26.0..., -0.812...]}
     """
 
     if by_component:

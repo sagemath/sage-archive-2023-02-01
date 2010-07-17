@@ -126,11 +126,11 @@ class GraphPlot(SageObject):
             but due to numerical noise we do not check the values themselves.
 
             sage: g.get_pos()
-            {0: [..., ...],
-             1: [..., ...],
-             2: [..., ...],
-             3: [..., ...],
-             4: [..., ...]}
+            {0: [...e-17, 1.0],
+             1: [-0.951..., 0.309...],
+             2: [-0.587..., -0.809...],
+             3: [0.587..., -0.809...],
+             4: [0.951..., 0.309...]}
 
             sage: T = list(graphs.trees(7))
             sage: t = T[3]

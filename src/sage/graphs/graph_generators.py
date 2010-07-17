@@ -2339,6 +2339,13 @@ class GraphGenerators():
             2
             sage: HS.num_verts()
             50
+
+        Note that you get a different layout each time you create the graph.
+
+            sage: HS.layout()[1]
+            (-0.844..., 0.535...)
+            sage: graphs.HoffmanSingletonGraph().layout()[1]
+            (-0.904..., 0.425...)
         """
         H = graph.Graph({ \
         'q00':['q01'], 'q01':['q02'], 'q02':['q03'], 'q03':['q04'], 'q04':['q00'], \
@@ -2358,7 +2365,7 @@ class GraphGenerators():
                     H.add_edge(('q%d%d'%(k,con),'p%d%d'%(j,i)))
         H.name('Hoffman-Singleton graph')
         from sage.combinat.combinat import permutations
-        from random import randint
+        from sage.misc.prandom import randint
         P = permutations([1,2,3,4])
         qpp = [0]+P[randint(0,23)]
         ppp = [0]+P[randint(0,23)]

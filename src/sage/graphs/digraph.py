@@ -2082,6 +2082,10 @@ class DiGraph(GenericGraph):
         EXAMPLES::
 
             sage: H = DiGraph({0:[1,2],1:[3],2:[3],3:[],5:[1,6],6:[2,3]})
+
+        The actual layout computed will depend on whether dot2tex and
+        graphviz are installed, so we don't test it.
+
             sage: H.layout_acyclic()
             {0: [..., ...], 1: [..., ...], 2: [..., ...], 3: [..., ...], 5: [..., ...], 6: [..., ...]}
 
@@ -2102,7 +2106,7 @@ class DiGraph(GenericGraph):
 
             sage: H = DiGraph({0:[1,2],1:[3],2:[3],3:[],5:[1,6],6:[2,3]})
             sage: H.layout_acyclic_dummy()
-            {0: [..., 0], 1: [..., 1], 2: [..., 2], 3: [..., 3], 5: [..., 0], 6: [..., 1]}
+            {0: [1.00..., 0], 1: [1.00..., 1], 2: [1.51..., 2], 3: [1.50..., 3], 5: [2.01..., 0], 6: [2.00..., 1]}
 
             sage: H = DiGraph({0:[1,2],1:[3],2:[3],3:[1],5:[1,6],6:[2,3]})
             sage: H.layout_acyclic_dummy()

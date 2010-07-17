@@ -432,10 +432,13 @@ class DiGraphGenerators():
 
         EXAMPLE::
 
-            sage: digraphs.RandomDirectedGNP(10, .2).num_verts()
+            sage: D = digraphs.RandomDirectedGNP(10, .2)
+            sage: D.num_verts()
             10
+            sage: D.edges(labels=False)
+            [(0, 1), (0, 3), (0, 6), (0, 8), (1, 4), (3, 7), (4, 1), (4, 8), (5, 2), (5, 6), (5, 8), (6, 4), (7, 6), (8, 4), (8, 5), (8, 7), (8, 9), (9, 3), (9, 4), (9, 6)]
         """
-        from random import random
+        from sage.misc.prandom import random
         D = DiGraph(n)
         for i in xrange(n):
             for j in xrange(i):

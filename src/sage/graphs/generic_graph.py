@@ -1564,9 +1564,9 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G = graphs.PetersenGraph()
             sage: G.get_pos()
-            {0: (..., ...),
+            {0: (...e-17, 1.0),
              ...
-             9: (..., ...)}
+             9: (0.475..., 0.154...)}
         """
         if dim == 2:
             return self._pos
@@ -4934,7 +4934,7 @@ class GenericGraph(GenericGraph_pyx):
         paths, the first one from the top-left corner
         to the bottom-left corner, and the second from
         the top-right corner to the bottom-right corner
-        is ... easy ::
+        is easy ::
 
             sage: g = graphs.GridGraph([5,5])
             sage: p1,p2 = g.disjoint_routed_paths( [((0,0), (0,4)), ((4,4), (4,0))])
@@ -5864,7 +5864,7 @@ class GenericGraph(GenericGraph_pyx):
         ``l`` is the label of edge `(u,v)`::
 
             sage: g.random_edge()
-            (...,...,...)
+            (3, 4, None)
         """
         from sage.misc.prandom import randint
         it = self.edge_iterator(**kwds)
@@ -10935,10 +10935,10 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g = digraphs.ButterflyGraph(1)
             sage: g.layout()
-            {('1', 1): [..., ...],
-             ('0', 0): [..., ...],
-             ('1', 0): [..., ...],
-             ('0', 1): [..., ...]}
+            {('1', 1): [2.50..., -0.545...],
+             ('0', 0): [2.22..., 0.832...],
+             ('1', 0): [1.12..., -0.830...],
+             ('0', 1): [0.833..., 0.543...]}
 
             sage: 1+1
             2
@@ -10949,10 +10949,10 @@ class GenericGraph(GenericGraph_pyx):
 
 
             sage: g.layout(dim = 3)
-            {('1', 1): [..., ..., ...],
-             ('0', 0): [..., ..., ...],
-             ('1', 0): [..., ..., ...],
-             ('0', 1): [..., ..., ...]}
+            {('1', 1): [1.07..., -0.260..., 0.927...],
+             ('0', 0): [2.02..., 0.528..., 0.343...],
+             ('1', 0): [0.674..., -0.528..., -0.343...],
+             ('0', 1): [1.61..., 0.260..., -0.927...]}
 
         Here is the list of all the available layout options::
 
@@ -11007,7 +11007,7 @@ class GenericGraph(GenericGraph_pyx):
         return pos
 
 
-    def layout_spring(self, heights = None, by_component = True, **options):
+    def layout_spring(self, by_component = True, **options):
         """
         Computes a spring layout for this graph
 
@@ -11024,15 +11024,15 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: g = graphs.LadderGraph(3) #TODO!!!!
-            sage: g.layout_ranked(heights = dict( (i,[i, i+3]) for i in range(3) ))
-            {0: [..., 0],
-             1: [..., 1],
-             2: [..., 2],
-             3: [..., 0],
-             4: [..., 1],
-             5: [..., 2]}
+            sage: g.layout_spring()
+            {0: [1.28..., -0.943...],
+             1: [1.57..., -0.101...],
+             2: [1.83..., 0.747...],
+             3: [0.531..., -0.757...],
+             4: [0.795..., 0.108...],
+             5: [1.08..., 0.946...]}
             sage: g = graphs.LadderGraph(7)
-            sage: g.plot(layout = "ranked", heights = dict( (i,[i, i+7]) for i in range(7) ))
+            sage: g.plot(layout = "spring")
         """
         return spring_layout_fast(self, by_component = by_component, **options)
 
@@ -11062,12 +11062,12 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g = graphs.LadderGraph(3)
             sage: g.layout_ranked(heights = dict( (i,[i, i+3]) for i in range(3) ))
-            {0: [..., 0],
-             1: [..., 1],
-             2: [..., 2],
-             3: [..., 0],
-             4: [..., 1],
-             5: [..., 2]}
+            {0: [0.668..., 0],
+             1: [0.667..., 1],
+             2: [0.677..., 2],
+             3: [1.34..., 0],
+             4: [1.33..., 1],
+             5: [1.33..., 2]}
             sage: g = graphs.LadderGraph(7)
             sage: g.plot(layout = "ranked", heights = dict( (i,[i, i+7]) for i in range(7) ))
         """
@@ -11130,8 +11130,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: H.layout_extend_randomly({('0',0): (0,0), ('1',1): (1,1)})
             {('1', 1): (1, 1),
              ('0', 0): (0, 0),
-             ('1', 0): [0..., 0...],
-             ('0', 1): [0..., 0...]}
+             ('1', 0): [0.111..., 0.514...],
+             ('0', 1): [0.0446..., 0.332...]}
         """
         assert dim == 2 # 3d not yet implemented
         from sage.misc.randstate import current_randstate
@@ -11576,20 +11576,19 @@ class GenericGraph(GenericGraph_pyx):
              9: (0.47..., 0.15...)}
             sage: P = G.plot(save_pos=True, layout='spring')
 
-            The following illustrates the format of a position dictionary,
-            but due to numerical noise we do not check the values themselves.
+            The following illustrates the format of a position dictionary.
 
             sage: G.get_pos()
-            {0: [..., ...],
-             1: [..., ...],
-             2: [..., ...],
-             3: [..., ...],
-             4: [..., ...],
-             5: [..., ...],
-             6: [..., ...],
-             7: [..., ...],
-             8: [..., ...],
-             9: [..., ...]}
+            {0: [1.17..., -0.855...],
+             1: [1.81..., -0.0990...],
+             2: [1.35..., 0.184...],
+             3: [1.51..., 0.644...],
+             4: [2.00..., -0.507...],
+             5: [0.597..., -0.236...],
+             6: [2.04..., 0.687...],
+             7: [1.46..., -0.473...],
+             8: [0.902..., 0.773...],
+             9: [2.48..., -0.119...]}
 
         ::
 

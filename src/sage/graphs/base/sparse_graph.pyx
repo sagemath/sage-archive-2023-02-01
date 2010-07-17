@@ -1208,6 +1208,10 @@ def random_stress():
     cdef SparseGraph Gnew
     num_verts = 10
     Gnew = SparseGraph(num_verts)
+    # This code deliberately uses random instead of sage.misc.prandom,
+    # so that every time it is run it does different tests, instead of
+    # doing the same random stress test every time.  (Maybe it should
+    # use sage.misc.random_testing?)
     from random import randint
     from sage.graphs.all import DiGraph
     from sage.misc.misc import uniq

@@ -25,14 +25,14 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-make
+$MAKE
 
 if [ $? -ne 0 ]; then
     echo "Error building GSL"
     exit 1
 fi
 
-make install
+$MAKE install
 
 if [ $? -ne 0 ]; then
     echo "Error installing GSL"

@@ -47,6 +47,8 @@ GSL mailing lists:
    to patch a very updated version of GSL.
  * Remove the compiler options -O2 -g, since GSL defaults to
    those options.
+ * Used $MAKE for building, as builing in parallel seems
+   relieable.
 
 === gsl-1.10.p2 (Jaap Spies,  Jan 25th, 2010) ===
  * Made SAGE64=yes work for Open Solaris 64 bit

@@ -2,7 +2,7 @@
 
 cd src
 
-make check
+$MAKE check
 
 if [ $? -ne 0 ]; then
     echo "Error: make check for GSL failed"

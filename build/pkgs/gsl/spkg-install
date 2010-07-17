@@ -1,30 +1,41 @@
 #!/usr/bin/env bash
 
 if [ "$SAGE64" = "yes" ]; then
-   echo "64 bit build"
-   CFLAGS="-O2 -g -m64 "; export CFLAGS
-   CPPFLAGS="-O2 -g -m64 "; export CPPFLAGS
+   echo "Building a 64-bit version of the GNU Scientific Library (GSL)"
+   CFLAGS="-m64 "; export CFLAGS
+   CPPFLAGS="-m64 "; export CPPFLAGS
 fi
 
-echo "patching infnan to force the use of the gsl's isinf"
-cp -f patches/infnan.c src/sys/
+# There is no need to add compiler options like -g -O2,
+# as GSL includes them.
 
-cd src/
+# An error "/bin/rm: cannot remove `libtoolT': No such file or directory"
+# often resulted. The following web site suggests export RM to "rm -f"
+# http://toxpenguin.blogspot.com/2009/09/solution-for-libtoolt-error.html
+# which solved the problem.
 
-./configure --prefix="$SAGE_LOCAL" --enable-shared
+export RM="rm -f"
+
+cd src
+
+./configure --prefix="$SAGE_LOCAL"
 
 if [ $? -ne 0 ]; then
     echo "Error configuring GSL"
+    exit 1
 fi
 
 make
 
 if [ $? -ne 0 ]; then
     echo "Error building GSL"
+    exit 1
 fi
 
 make install
 
 if [ $? -ne 0 ]; then
     echo "Error installing GSL"
+    exit 1
 fi
+

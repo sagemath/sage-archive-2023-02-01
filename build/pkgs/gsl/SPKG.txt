@@ -31,6 +31,23 @@ GSL mailing lists:
 
 == Changelog ==
 
+=== gsl-1.14 (David Kirkby, 17th July 2010) ===
+ * #9533 Update GSL to the latest upstream release - the previous
+   version was nearly 3 years old.
+ * Added 'exit 1' to spkg-install so the build terminates
+   if 'configure' fails to run properly.
+ * Same as above, when running 'make'
+ * Same as above, when running 'make install'
+ * Removed the option --enable-shared from the
+   configure script, as the default is to make
+   shared libraries (see src/INSTALL)
+ * Removed patches. I doubt they are useful when they
+   are on a version of GSL that is nearly 3 years old.
+   It is better to resolve problems if found, rather than try
+   to patch a very updated version of GSL.
+ * Remove the compiler options -O2 -g, since GSL defaults to
+   those options.
+
 === gsl-1.10.p2 (Jaap Spies,  Jan 25th, 2010) ===
  * Made SAGE64=yes work for Open Solaris 64 bit
  * Removed Michael as maintainer

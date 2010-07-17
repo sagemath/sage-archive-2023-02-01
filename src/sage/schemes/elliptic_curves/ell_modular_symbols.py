@@ -458,10 +458,6 @@ class ModularSymbolECLIB(ModularSymbol):
             sage: M=sage.schemes.elliptic_curves.ell_modular_symbols.ModularSymbolECLIB(E,+1)
             sage: M(0)
             1
-            sage: M=sage.schemes.elliptic_curves.ell_modular_symbols.ModularSymbolECLIB(E,-1)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Negative spaces of Modular Symbols using eclib has not yet been implemented.
 
         This is a rank 1 case with vanishing positive twists.
         The modular symbol can not be adjusted::
@@ -487,14 +483,20 @@ class ModularSymbolECLIB(ModularSymbol):
             sage: [C.modular_symbol(use_eclib=True,normalize='none')(0) for C in E.isogeny_class()[0]]
             [1/8, 1/8, 1/8, 1/8, 1/8, 1/8, 1/8, 1/8]
 
+        Note that ``eclib`` now supports negative spaces of modular symbols,
+        but there is still an issue with normalization::
+
+            sage: M=sage.schemes.elliptic_curves.ell_modular_symbols.ModularSymbolECLIB(E,-1)
+            Warning : Could not normalize the modular symbols, maybe all further results will be multiplied by -1, 2 or -2.
+            sage: M(1/5)
+            3/8
+
         """
         self._sign = ZZ(sign)
         if self._sign != sign:
             raise TypeError, 'sign must be an integer'
         if self._sign != -1 and self._sign != 1:
             raise TypeError, 'sign must -1 or 1'
-        if self._sign == -1:
-            raise NotImplementedError, 'Negative spaces of Modular Symbols using eclib has not yet been implemented.'
         self._E = E
         self._use_eclib = True
         self._base_ring = QQ

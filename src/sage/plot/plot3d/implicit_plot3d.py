@@ -230,6 +230,11 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
     produces an empty plot::
 
         sage: implicit_plot3d(x^2 + y^2 + z^2 - 5000, (x, -2, 2), (y, -2, 2), (z, -2, 2), plot_points=6)
+
+    Make sure that implicit_plot3d doesn't error if the function cannot
+    be symbolically differentiated::
+
+        sage: implicit_plot3d(max_symbolic(x, y^2) - z, (x, -2, 2), (y, -2, 2), (z, -2, 2), plot_points=6)
     """
 
     # These options aren't fully implemented yet:

@@ -937,6 +937,28 @@ cdef class ImplicitSurface(IndexFaceSet):
         self.contours = [float(c) for c in contours]
         if region is not None:
             self.region = fast_float(region, *self.vars)
+
+        # Comments from Carl Witty, who first wrote this some of this code
+        # See Trac 9483
+        # When I first wrote the code, I had the idea to create a
+        # direct-to-tachyon backend that would use vertex normals
+        # to create much nicer-looking plots with smaller numbers
+        # of plot_points, and laid the groundwork for this backend
+        # with the gradient and smooth arguments. But I abandoned the
+        # code without writing this backend (and leaving many other parts
+        # of the code unfinished).
+        # When William Cauchois took over and finished the code (thank you,
+        # William!), he only wrote an IndexFaceSet backend, that can't
+        # (currently) make use of vertex normals. So the gradient code is
+        # currently useless.
+        # But it's still open for somebody to write a direct-to-tachyon backend,
+        # or to extend IndexFaceSet to support vertex normals.
+
+        # Since IndexFaceSet doesn't even support smooth shading, we overwrite
+        # the passed-in smooth parameter.
+        smooth=False
+
+
         self.smooth = smooth
         if smooth and gradient is None:
             try:
@@ -1098,7 +1120,6 @@ cdef class ImplicitSurface(IndexFaceSet):
         options = dict(xrange=self.xrange, yrange=self.yrange, zrange=self.zrange,
                        region=self.region, smooth=self.smooth,
                        gradient=self.gradient,
-                       smooth=False, # Since IndexFaceSet doesn't even support smooth shading.
                        vertex_color=self.vertex_color,
                        plot_points=self.plot_points)
         cube_marchers = [MarchingCubesTriangles(contour=x, **options) for x in self.contours]

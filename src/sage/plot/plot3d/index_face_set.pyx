@@ -240,6 +240,27 @@ cdef class IndexFaceSet(PrimitiveObject):
                 cur_pt += 1
 
     cdef realloc(self, vcount, fcount, icount):
+        r"""
+        Allocates memory for vertices, faces, and face indices.  Can
+        only be called from Cython, so the doctests must be indirect.
+
+        EXAMPLES::
+
+            sage: var('x,y,z')
+            (x, y, z)
+            sage: G = implicit_plot3d(x^2+y^2+z^2 - 1, (x, -2, 2), (y, -2, 2), (z, -2, 2), plot_points=6)
+            sage: G.triangulate()  # indirect doctest
+            sage: len(G.face_list())
+            44
+            sage: len(G.vertex_list())
+            132
+            sage: G = implicit_plot3d(x^2+y^2+z^2 - 100, (x, -2, 2), (y, -2, 2), (z, -2, 2), plot_points=6)
+            sage: G.triangulate()  # indirect doctest
+            sage: len(G.face_list())
+            0
+            sage: len(G.vertex_list())
+            0
+        """
         if self.vs == NULL:
             self.vs = <point_c *> sage_malloc(sizeof(point_c) * vcount)
         else:
@@ -252,7 +273,7 @@ cdef class IndexFaceSet(PrimitiveObject):
             self.face_indices = <int *> sage_malloc(sizeof(int) * icount)
         else:
             self.face_indices = <int *> sage_realloc(self.face_indices, sizeof(int) * icount)
-        if self.vs == NULL or self.face_indices == NULL or self._faces == NULL:
+        if (self.vs == NULL and vcount > 0) or (self.face_indices == NULL and icount > 0) or (self._faces == NULL and fcount > 0):
             raise MemoryError, "Out of memory allocating triangulation for %s" % type(self)
 
     def _clean_point_list(self):

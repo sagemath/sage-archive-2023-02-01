@@ -225,6 +225,11 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
     Extra keyword arguments will be passed to show()::
 
         sage: implicit_plot3d(x^2 + y^2 + z^2, (x, -2, 2), (y, -2, 2), (z, -2, 2), contour=4, viewer='tachyon')
+
+    An implicit plot that doesn't include any surface in the view volume
+    produces an empty plot::
+
+        sage: implicit_plot3d(x^2 + y^2 + z^2 - 5000, (x, -2, 2), (y, -2, 2), (z, -2, 2), plot_points=6)
     """
 
     # These options aren't fully implemented yet:

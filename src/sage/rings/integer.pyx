@@ -137,6 +137,12 @@ include "../ext/python_int.pxi"
 include "../structure/coerce.pxi"   # for parent_c
 include "../libs/pari/decl.pxi"
 
+cdef extern from "limits.h":
+    long LONG_MAX
+
+cdef extern from "math.h":
+    double sqrt_double "sqrt"(double)
+
 cdef extern from "mpz_pylong.h":
     cdef mpz_get_pylong(mpz_t src)
     cdef mpz_get_pyintlong(mpz_t src)
@@ -2903,6 +2909,113 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         A C version of the __hash__ function.
         """
         return mpz_pythonhash(self.value)
+
+    def trial_division(self, long bound=LONG_MAX):
+        """
+        Return smallest prime divisor of self up to limit, or
+        abs(self) if no such divisor is found.
+
+        INPUT:
+            - ``bound`` -- positive integer
+
+        OUTPUT:
+            - a positive integer
+
+        EXAMPLES::
+
+            sage: n = next_prime(10^6)*next_prime(10^7); n.trial_division()
+            1000003
+            sage: (-n).trial_division()
+            1000003
+            sage: n.trial_division(bound=100)
+            10000049000057
+            sage: n.trial_division(bound=-10)
+            Traceback (most recent call last):
+            ...
+            ValueError: bound must be positive
+            sage: n.trial_division(bound=0)
+            Traceback (most recent call last):
+            ...
+            ValueError: bound must be positive
+            sage: ZZ(0).trial_division()
+            Traceback (most recent call last):
+            ...
+            ValueError: self must be nonzero
+
+            sage: n = next_prime(10^5) * next_prime(10^40); n.trial_division()
+            100003
+            sage: n.trial_division(bound=10^4)
+            1000030000000000000000000000000000000012100363
+            sage: (-n).trial_division(bound=10^4)
+            1000030000000000000000000000000000000012100363
+            sage: (-n).trial_division()
+            100003
+            sage: n = 2 * next_prime(10^40); n.trial_division()
+            2
+            sage: n = 3 * next_prime(10^40); n.trial_division()
+            3
+            sage: n = 5 * next_prime(10^40); n.trial_division()
+            5
+            sage: n = 2 * next_prime(10^4); n.trial_division()
+            2
+            sage: n = 3 * next_prime(10^4); n.trial_division()
+            3
+            sage: n = 5 * next_prime(10^4); n.trial_division()
+            5
+        """
+        if bound <= 0:
+            raise ValueError, "bound must be positive"
+        if mpz_sgn(self.value) == 0:
+            raise ValueError, "self must be nonzero"
+        cdef unsigned long n, m=7, i=1, limit, dif[8]
+        dif[0]=6;dif[1]=4;dif[2]=2;dif[3]=4;dif[4]=2;dif[5]=4;dif[6]=6;dif[7]=2
+        cdef Integer x = PY_NEW(Integer)
+        if mpz_size(self.value) <= 1:
+            n = mpz_get_ui(self.value)   # ignores the sign automatically
+            if n == 1: return one
+            if n%2==0:
+                mpz_set_ui(x.value,2); return x
+            if n%3==0:
+                mpz_set_ui(x.value,3); return x
+            if n%5==0:
+                mpz_set_ui(x.value,5); return x
+
+            limit = <unsigned long> sqrt_double(<double> n)
+            if bound < limit: limit = bound
+            # Algorithm: only trial divide by numbers that
+            # are congruent to 1,7,11,13,17,19,23,29 mod 30=2*3*5.
+            while m <= limit:
+                if n%m == 0:
+                    mpz_set_ui(x.value, m); return x
+                m += dif[i%8]
+                i += 1
+            mpz_abs(x.value, self.value)
+            return x
+        else:
+            # self is big -- it doesn't fit in unsigned long.
+            if mpz_even_p(self.value):
+                mpz_set_ui(x.value,2); return x
+            if  mpz_divisible_ui_p(self.value,3):
+                mpz_set_ui(x.value,3); return x
+            if  mpz_divisible_ui_p(self.value,5):
+                mpz_set_ui(x.value,5); return x
+
+            # x.value = floor(sqrt(self.value))
+            mpz_abs(x.value, self.value)
+            mpz_sqrt(x.value, x.value)
+            if mpz_cmp_si(x.value, bound) < 0:
+                limit = mpz_get_ui(x.value)
+            else:
+                limit = bound
+            _sig_on
+            while m <= limit:
+                if  mpz_divisible_ui_p(self.value, m):
+                    mpz_set_ui(x.value, m); return x
+                m += dif[i%8]
+                i += 1
+            _sig_off
+            mpz_abs(x.value, self.value)
+            return x
 
     def _factor_trial_division(self, limit):
         """

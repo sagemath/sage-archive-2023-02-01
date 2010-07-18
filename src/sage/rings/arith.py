@@ -2048,18 +2048,10 @@ def trial_division(n, bound=None):
         sage: trial_division(387833, 400)
         389
     """
-    if n == 1: return 1
-    for p in [2, 3, 5]:
-        if n%p == 0: return p
-    if bound == None: bound = n
-    dif = [6, 4, 2, 4, 2, 4, 6, 2]
-    m = 7; i = 1
-    while m <= bound and m*m <= n:
-        if n%m == 0:
-            return m
-        m += dif[i%8]
-        i += 1
-    return n
+    if bound is None:
+        return ZZ(n).trial_division()
+    else:
+        return ZZ(n).trial_division(bound)
 
 def __factor_using_trial_division(n):
     """
@@ -2220,6 +2212,8 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
         -1
         sage: f.value()
         -20
+        sage: factor( -next_prime(10^2) * next_prime(10^7) )
+        -1 * 101 * 10000019
 
     ::
 
@@ -2302,7 +2296,10 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
         raise ArithmeticError, "Prime factorization of 0 not defined."
     if n == 1:
         return factorization.Factorization([], unit)
-    #if n < 10000000000: return __factor_using_trial_division(n)
+
+    if n < 10000000000000:
+        return factorization.Factorization(__factor_using_trial_division(n), unit)
+
     if algorithm == 'pari':
         return factorization.Factorization(__factor_using_pari(n,
                                    int_=int_, debug_level=verbose, proof=proof), unit)

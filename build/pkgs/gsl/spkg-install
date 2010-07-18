@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
 
-if [ "$SAGE64" = "yes" ]; then
+if [ "x$SAGE64" = xyes ]; then
    echo "Building a 64-bit version of the GNU Scientific Library (GSL)"
-   CFLAGS="-m64 "; export CFLAGS
-   CPPFLAGS="-m64 "; export CPPFLAGS
+   CFLAGS="$CFLAGS -m64 "
+   CPPFLAGS="$CPPFLAGS -m64" ; export CPPFLAGS
 fi
 
-# There is no need to add compiler options like -g -O2,
-# as GSL includes them.
+CFLAGS="$CFLAGS -g -O2"
+export CFLAGS
 
 # An error "/bin/rm: cannot remove `libtoolT': No such file or directory"
 # often resulted. The following web site suggests export RM to "rm -f"
-# http://toxpenguin.blogspot.com/2009/09/solution-for-libtoolt-error.html
+# http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=523750
 # which solved the problem.
 
 export RM="rm -f"

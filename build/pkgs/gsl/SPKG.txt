@@ -4,14 +4,17 @@
 
 Website: http://www.gnu.org/software/gsl/
 
-From the website above: The GNU Scientific Library (GSL) is a numerical library for C and C++ programmers. It is free software under the GNU General Public License.
+From the website above: The GNU Scientific Library (GSL) is a numerical
+library for C and C++ programmers. It is free software under the GNU General
+Public License.
 
-The library provides a wide range of mathematical routines such as random number generators, special functions and least-squares fitting. There are over 1000 functions in total with an extensive test suite.
+The library provides a wide range of mathematical routines such as random
+number generators, special functions and least-squares fitting. There are
+over 1000 functions in total with an extensive test suite.
 
 == License ==
 
- * GPL V3 or later (1.10 release)
- * GPL V2 or later (1.9 release)
+ * GPL V3
 
 == SPKG Maintainers ==
 
@@ -19,21 +22,29 @@ The library provides a wide range of mathematical routines such as random number
 
 == Upstream Contact ==
 
+ * http://www.gnu.org/software/gsl/
+
 GSL mailing lists:
 
- * Bug-gsl <bug-gsl@gnu.org> mailing list -- bug reports for the GNU Scientific Library should be sent here
- * Help-gsl <help-gsl@gnu.org> users mailing list -- for questions about installation, how GSL works and how it is used, or general questions concerning GSL.
- * Info-gsl <info-gsl@gnu.org> mailing list -- announcements of new releases are made here.
+ * Bug-gsl <bug-gsl@gnu.org> mailing list -- bug reports for the GNU
+   Scientific Library should be sent to bug-gsl@gnu.org
+ * Help-gsl <help-gsl@gnu.org> users mailing list -- for questions about
+   installation, how GSL works and how it is used, or general questions
+   concerning GSL.
+ * Info-gsl <info-gsl@gnu.org> mailing list -- announcements of new releases
+   are made there.
 
 == Dependencies ==
 
- * ATLAS, but it seems to be only required when actually linking the gsl extensions
+ * ATLAS, but it seems to be only required when actually linking the gsl
+   extensions
 
 == Changelog ==
 
 === gsl-1.14 (David Kirkby, 17th July 2010) ===
  * #9533 Update GSL to the latest upstream release - the previous
-   version was nearly 3 years old.
+   version (1.10) was nearly 3 years old.
+ * Reformatted this file for 80 characters width.
  * Added 'exit 1' to spkg-install so the build terminates
    if 'configure' fails to run properly.
  * Same as above, when running 'make'
@@ -44,11 +55,19 @@ GSL mailing lists:
  * Removed patches. I doubt they are useful when they
    are on a version of GSL that is nearly 3 years old.
    It is better to resolve problems if found, rather than try
-   to patch a very updated version of GSL.
- * Remove the compiler options -O2 -g, since GSL defaults to
-   those options.
- * Used $MAKE for building, as builing in parallel seems
-   relieable.
+   to use patches made against a very outdated version of GSL.
+ * Used $MAKE for building, as building in parallel is
+   reliable.
+ * $MAKE is also used in spkg-check for testing GSL in
+   parallel. The GSL has been tested on around 50 builds in
+   total on Linux, OpenSolaris, OS X and Solaris. Each time
+   all the self-tests of GSL pass. From 2 to 1000 threads were
+   used.
+ * Removed reference to GPL 2 in earlier releases - it is
+   irrelevant what licence previous releases of GSL were
+   released under.
+ * Removed notes about patches on OS X. GSL would appear to
+   handle OS X properly.
 
 === gsl-1.10.p2 (Jaap Spies,  Jan 25th, 2010) ===
  * Made SAGE64=yes work for Open Solaris 64 bit
@@ -71,6 +90,5 @@ GSL mailing lists:
  * initial release
 
 == Build Notes ==
- * On OSX we use a slighly modified isinf method since the system one is buggy. See the patches directory for a patch
- * Download: ftp://mirrors.kernel.org/gnu/gsl/
+ * None
 

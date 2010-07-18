@@ -7,8 +7,6 @@ $MAKE check
 if [ $? -ne 0 ]; then
     echo "Error: make check for GSL failed"
     exit 1
-else
-    echo "The self-tests of GSL were successfully passed"
-    exit 0
 fi
+echo "The self-tests of GSL were successfully passed"
 

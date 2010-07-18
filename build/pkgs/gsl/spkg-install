@@ -1,12 +1,36 @@
 #!/usr/bin/env bash
 
-if [ "x$SAGE64" = xyes ]; then
-   echo "Building a 64-bit version of the GNU Scientific Library (GSL)"
-   CFLAGS="$CFLAGS -m64 "
-   CPPFLAGS="$CPPFLAGS -m64" ; export CPPFLAGS
+if [ -z $SAGE_LOCAL ] ; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
 fi
 
-CFLAGS="$CFLAGS -g -O2"
+# Let the user set an environment variable CFLAG64 to
+# indicate the C compiler flag for 64-bit builds. By
+# default this will be -m64. IBM's compiler on AIX
+# and HP's on HP-UX do NOT use -m64.
+
+if [ -z $CFLAG64 ] ; then
+   CFLAG64=-m64
+fi
+
+# There is no C++ code in GSL, so no need to do likewise
+# with CXXFLAG64.
+
+if [ "x$SAGE64" = xyes ]; then
+   echo "Building a 64-bit version of the GNU Scientific Library (GSL)"
+   CFLAGS="$CFLAGS $CFLAG64"
+   CPPFLAGS="$CPPFLAGS $CFLAG64" ; export CPPFLAGS
+   LDFLAGS="$LDFLAGS $CFLAG64" ; export LDFLAGS
+fi
+
+if [ "x$SAGE_DEBUG" = xyes ] ; then
+  CFLAGS="$CFLAGS -g -O0" # No optimisation, aids debugging.
+else
+  CFLAGS="$CFLAGS -g -O2" # Normal optimisation.
+fi
+
 export CFLAGS
 
 # An error "/bin/rm: cannot remove `libtoolT': No such file or directory"

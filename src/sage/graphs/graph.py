@@ -2169,6 +2169,160 @@ class Graph(GenericGraph):
 
         return d
 
+    def bounded_outdegree_orientation(self, bound):
+        r"""
+        Computes an orientation of ``self`` such that every vertex `v`
+        has out-degree less than `b(v)`
+
+        INPUT:
+
+        - ``bound`` -- Maximum bound on the out-degree. Can be of
+          three different types :
+
+             * An integer `k`. In this case, computes an orientation
+               whose maximum out-degree is less than `k`.
+
+             * A dictionary associating to each vertex its associated
+               maximum out-degree.
+
+             * A function associating to each vertex its associated
+               maximum out-degree.
+
+        OUTPUT:
+
+        A DiGraph representing the orientation if it exists. A
+        ``ValueError`` exception is raised otherwise.
+
+        ALGORITHM:
+
+        The problem is solved through a maximum flow :
+
+        Given a graph `G`, we create a ``DiGraph`` `D` defined on
+        `E(G)\cup V(G)\cup \{s,t\}`. We then link `s` to all of `V(G)`
+        (these edges having a capacity equal to the bound associated
+        to each element of `V(G)`), and all the elements of `E(G)` to
+        `t` . We then link each `v \in V(G)` to each of its incident
+        edges in `G`. A maximum integer flow of value `|E(G)|`
+        corresponds to an admissible orientation of `G`. Otherwise,
+        none exists.
+
+        EXAMPLES:
+
+        There is always an orientation of a graph `G` such that a
+        vertex `v` has out-degree at most `\lceil \frac {d(v)} 2
+        \rceil`::
+
+            sage: g = graphs.RandomGNP(40, .4)
+            sage: b = lambda v : ceil(g.degree(v)/2)
+            sage: D = g.bounded_outdegree_orientation(b)
+            sage: all( D.out_degree(v) <= b(v) for v in g )
+            True
+
+
+        Chvatal's graph, being 4-regular, can be oriented in such a
+        way that its maximum out-degree is 2::
+
+            sage: g = graphs.ChvatalGraph()
+            sage: D = g.bounded_outdegree_orientation(2)
+            sage: max(D.out_degree())
+            2
+
+        For any graph `G`, it is possible to compute an orientation
+        such that the maximum out-degree is at most the maximum
+        average degree of `G` divided by 2. Anything less, though, is
+        impossible.
+
+            sage: g = graphs.RandomGNP(40, .4)
+            sage: mad = g.maximum_average_degree()
+
+        Hence this is possible ::
+
+            sage: d = g.bounded_outdegree_orientation(ceil(mad/2))
+
+        While this is not::
+
+            sage: try:
+            ...      g.bounded_outdegree_orientation(ceil(mad/2-1))
+            ...      print "Error"
+            ... except ValueError:
+            ...       pass
+
+        TESTS:
+
+        As previously for random graphs, but more intensively::
+
+            sage: for i in xrange(30):                                   # long
+            ...       g = graphs.RandomGNP(40, .4)                       # long
+            ...       b = lambda v : ceil(g.degree(v)/2)                 # long
+            ...       D = g.bounded_outdegree_orientation(b)             # long
+            ...       if not (                                           # long
+            ...            all( D.out_degree(v) <= b(v) for v in g ) or  # long
+            ...            D.size() != g.size()):                        # long
+            ...           print "Something wrong happened"               # long
+
+        """
+        from sage.graphs.all import DiGraph
+        n = self.order()
+
+        if n == 0:
+            return DiGraph()
+
+        vertices = self.vertices()
+        vertices_id = dict(map(lambda (x,y):(y,x), list(enumerate(vertices))))
+
+        b = {}
+
+
+        # Checking the input type. We make a dictionay out of it
+        if isinstance(bound, dict):
+            b = bound
+        else:
+            try:
+                b = dict(zip(vertices,map(bound, vertices)))
+
+            except TypeError:
+                b = dict(zip(vertices, [bound]*n))
+
+        d = DiGraph()
+
+        # Adding the edges (s,v) and ((u,v),t)
+        d.add_edges( ('s', vertices_id[v], b[v]) for v in vertices)
+
+        d.add_edges( ((vertices_id[u], vertices_id[v]), 't', 1)
+                     for (u,v) in self.edges(labels=None) )
+
+        # each v is linked to its incident edges
+
+        for u,v in self.edges(labels = None):
+            u,v = vertices_id[u], vertices_id[v]
+            d.add_edge(u, (u,v), 1)
+            d.add_edge(v, (u,v), 1)
+
+        # Solving the maximum flow
+        value, flow = d.flow('s','t', value_only = False, integer = True, use_edge_labels = True)
+
+        if value != self.size():
+            raise ValueError("No orientation exists for the given bound")
+
+        D = DiGraph()
+        D.add_vertices(vertices)
+
+        # The flow graph may not contain all the vertices, if they are
+        # not part of the flow...
+
+        for u in [x for x in range(n) if x in flow]:
+
+            for (uu,vv) in flow.neighbors_out(u):
+                v = vv if vv != u else uu
+                D.add_edge(vertices[u], vertices[v])
+
+        # I do not like when a method destroys the embedding ;-)
+
+        D.set_pos(self.get_pos())
+
+        return D
+
+
     ### Coloring
 
     def bipartite_color(self):

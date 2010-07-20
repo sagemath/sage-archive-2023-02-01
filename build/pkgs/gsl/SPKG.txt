@@ -90,9 +90,14 @@ GSL mailing lists:
    improve the performance of some of GSL's functionality.
  * Force GSL to be build with no optimisation if SAGE_DEBUG is set to "yes"
  * Check that $SAGE_ROOT is defined both in spkg-install and spkg-check.
- * Exported LDFLAGS and CPPFLAGS on 64-bit builds. This is unnecessary
-   with the current version of GSL, but it may become necessary on later
-   revisions, so it is safer to add this now.
+ * Exported LDFLAGS and CPPFLAGS when SAGE64 is set to "yes". This environment
+   variable would be set to "yes" to create 64-bit binaries on platforms
+   which default to 32-bit. These platforms include Solaris and OpenSolaris,
+   some versions of OS X and at least versions of HP-UX. Exporting CPPFLAGS
+   and LDFLAGS is unnecessary with the current version of GSL, but it may
+   become necessary on later revisions, so it is safer to add this now.  On
+   platforms where the default it to create 64-bit binaries, there is no
+   need to set SAGE64.
  * spkg-install and spkg-check now make use of the environment variable
    CFLAG64 which can be used to specify an alternate compiler flag to
    -m64 when building a 64-bit version of the library.

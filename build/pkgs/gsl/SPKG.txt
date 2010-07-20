@@ -11,7 +11,7 @@ Public License.
 The library provides a wide range of mathematical routines such as random
 number generators, special functions and least-squares fitting. There are
 over 1000 functions in total with an extensive test suite. If the variable
-SAGE_CHECK is exported to the val "yes" when building Sage, GSL's test suite
+SAGE_CHECK is exported to the value "yes" when building Sage, GSL's test suite
 is run.
 
 == License ==

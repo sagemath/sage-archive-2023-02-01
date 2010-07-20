@@ -10,7 +10,9 @@ Public License.
 
 The library provides a wide range of mathematical routines such as random
 number generators, special functions and least-squares fitting. There are
-over 1000 functions in total with an extensive test suite.
+over 1000 functions in total with an extensive test suite. If the variable
+SAGE_CHECK is exported to the val "yes" when building Sage, GSL's test suite
+is run.
 
 == License ==
 
@@ -36,12 +38,21 @@ GSL mailing lists:
 
 == Dependencies ==
 
- * ATLAS, but it seems to be only required when actually linking the gsl
-   extensions
+ * None - GSL does currently not depend on any other Sage package to
+   compile, link and pass all GSL's self-tests. However, as of
+   20th July 2010, ATLAS is listed as a dependency in spkg/standard/deps.
+
+== Special Update/Build Instructions ==
+ * According to the GSL web page: http://www.gnu.org/software/gsl/
+   "GSL requires a BLAS library for vector and matrix operations. The
+   default CBLAS library supplied with GSL can be replaced by the tuned
+   ATLAS library for better performance". Exactly how one would use ATLAS is
+   not clear (there are no obvious options for the 'configure' script),
+   but in principle it could be done.
 
 == Changelog ==
 
-=== gsl-1.14 (David Kirkby, 17th July 2010) ===
+=== gsl-1.14 (David Kirkby, 20th July 2010) ===
  * #9533 Update GSL to the latest upstream release - the previous
    version (1.10) was nearly 3 years old.
  * Reformatted this file for 80 characters width.
@@ -52,14 +63,17 @@ GSL mailing lists:
  * Removed the option --enable-shared from the
    configure script, as the default is to make
    shared libraries (see src/INSTALL)
- * Removed patches. I doubt they are useful when they
-   are on a version of GSL that is nearly 3 years old.
-   It is better to resolve problems if found, rather than try
-   to use patches made against a very outdated version of GSL.
+ * Removed all patches. I doubt they are useful when they are on a version
+   of GSL that is nearly 3 years old.  It is better to resolve problems if
+   found, rather than try to use patches made against a very outdated
+   version of GSL.
+   The GSL test suite has passed all tests on systems running Cygwin,
+   Linux, HP-UX (PA-RISC processor), OpenSolaris x64, OS X (x86) and
+   Solaris (SPARC processor).
  * Used $MAKE for building, as building in parallel is
    reliable.
  * $MAKE is also used in spkg-check for testing GSL in
-   parallel. The GSL has been tested on around 50 builds in
+   parallel. The GSL has been tested on around 50 parallel builds in
    total on Linux, OpenSolaris, OS X and Solaris. Each time
    all the self-tests of GSL pass. From 2 to 1000 threads were
    used.
@@ -68,6 +82,20 @@ GSL mailing lists:
    released under.
  * Removed notes about patches on OS X. GSL would appear to
    handle OS X properly.
+ * Added the "Special Update/Build Instructions" section from SPKG.txt which
+   was previously missing.
+ * Added notes to SPKG.txt about an unnecessary ATLAS dependency in
+   $SAGE_ROOT/spkg/standard/deps
+ * Added notes to SPKG.txt about how ATLAS could in principle be used to
+   improve the performance of some of GSL's functionality.
+ * Force GSL to be build with no optimisation if SAGE_DEBUG is set to "yes"
+ * Check that $SAGE_ROOT is defined both in spkg-install and spkg-check.
+ * Exported LDFLAGS and CPPFLAGS on 64-bit builds. This is unnecessary
+   with the current version of GSL, but it may become necessary on later
+   revisions, so it is safer to add this now.
+ * spkg-install and spkg-check now make use of the environment variable
+   CFLAG64 which can be used to specify an alternate compiler flag to
+   -m64 when building a 64-bit version of the library.
 
 === gsl-1.10.p2 (Jaap Spies,  Jan 25th, 2010) ===
  * Made SAGE64=yes work for Open Solaris 64 bit

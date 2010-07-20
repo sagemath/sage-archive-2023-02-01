@@ -56,7 +56,9 @@ static void gmp_free(void *ptr, size_t old_size){
 int pari_kernel_init(void)
 {
   /* Use pari_malloc instead of malloc */
-  return 0; mp_set_memory_functions((void *(*)(size_t)) pari_malloc, gmp_realloc, gmp_free);
+  /* patch for Sage
+  mp_set_memory_functions((void *(*)(size_t)) pari_malloc, gmp_realloc, gmp_free);
+  */
   return 0;
 }
 

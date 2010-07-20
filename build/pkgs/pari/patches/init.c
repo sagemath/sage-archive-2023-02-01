@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
 /*                                                                 */
 /*******************************************************************/
 #include <string.h>
-#include <stdlib.h>
+#include <stdlib.h>  /* patch for Sage */
 #include "pari.h"
 #include "paripriv.h"
 #include "anal.h"
@@ -685,9 +685,8 @@ pari_thread_start(struct pari_thread *t)
 static void
 pari_exit(void)
 {
-
-	abort();
-	fprintferr("  ***   Error in the PARI system. End of program.\n");
+  abort(); /* patch for Sage */
+  fprintferr("  ***   Error in the PARI system. End of program.\n");
   exit(1);
 }
 

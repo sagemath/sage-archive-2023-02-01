@@ -1,0 +1,20 @@
+if [ -z $SAGE_LOCAL ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+if [ "x$SAGE64" = xyes ]; then
+    CFLAGS="-g -m64 " && export CFLAGS
+fi
+
+cd src
+
+make test-all
+
+if [ $? -ne 0 ] ; then
+   echo "Pari failed the self-tests when running 'make test-all'"
+   exit 1
+fi
+
+

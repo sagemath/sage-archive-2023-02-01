@@ -211,7 +211,7 @@ GEN  polsym_gen(GEN P, GEN y0, long n, GEN T, GEN N);
 GEN  ZXQ_charpoly_sqf(GEN A, GEN B, long *lambda, long v);
 GEN  ZX_disc_all(GEN,ulong);
 GEN  ZX_resultant_all(GEN A, GEN B, GEN dB, ulong bound);
-GEN  ZX_ZXY_resultant_all(GEN A, GEN, long *lambda, GEN *LPRS);
+GEN  ZX_ZXY_resultant_all(GEN A, GEN B, long *lambda, GEN *LPRS);
 GEN  RgX_gcd_simple(GEN x, GEN y);
 GEN  RgX_extgcd_simple(GEN a, GEN b, GEN *pu, GEN *pv);
 GEN  RgXQ_minpoly_naive(GEN y, GEN P);

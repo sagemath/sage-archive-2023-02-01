@@ -47,14 +47,13 @@ Here is how to build a new version of the PARI SAGE spkg:
         The PARI stable/devel model is complicated.)
 
   2) Extract the above code and make it the directory src in the
-     current directory.
+     current directory.  Remove the subdirectory .svn/ .
 
   3) Extract the files galdata.tgz and seadata.tgz (the small one) from
      http://pari.math.u-bordeaux.fr/packages.html
      in the directory pari-*/src/
 
-  4) Carefully check on the files in patches/
-
+  4) Carefully check on the files in patches/ after reading patches/README.txt
 
 Note from David Kirkby that could be relevant to building on Solaris:
 
@@ -74,6 +73,7 @@ exactly where it says native, but I would expect a grep to find it.
 June 26, 2010; John Cremona July 13, 2010) ===
  * Major new version
  * p4 contains pari 2.4.3 version svn 12534
+ * p5 contains pari 2.4.3 version svn 12541, adds spkg-check by David Kirkby
 
 === pari-2.3.5.p1 (Mike Hansen, May 25th, 2010) ===
  * Do the same fix for Cygwin that we do on Solaris.

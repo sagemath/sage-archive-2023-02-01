@@ -1,9 +1,13 @@
-B1;2000;0c#!/bin/sh
+#!/bin/sh
 ###########################################
 ## PARI
 ###########################################
 
 TOP=`pwd`
+
+###########################################################
+## patching src files.  See patches/README.txt for details
+###########################################################
 
 # As of PARI 2.3.3, the compiler flag -fPIC is not added on Solaris, but it
 # needs to be if using gcc. I assume the equivalent will be needed on
@@ -36,11 +40,11 @@ cp "$TOP"/patches/get_ld config/
 # cwitty: disable TeX; allow bz2 compression
 cp "$TOP"/patches/gphelp.in doc/
 
-# Minh Van Nguyen: copy over patched get_cc (see ticket #7092). It's
-# reported that 32-bit Fedora 11 would fail to build otherwise.
-if [ `uname` = "Linux" ]; then
-    cp "$TOP"/patches/get_cc config/get_cc
-fi
+# John Cremona: copy over a lightly patched get_test, so that make
+# test-all does not test ellglobalred (which requires the elldata
+# package Sage does not install).
+cp "$TOP"/patches/get_test config/get_test
+
 
 # This is needed or there are weird locale problems involving rpath
 # with building Sage.
@@ -158,7 +162,6 @@ build()
         # when used by client Sage code.  So we replace it by a slightly
         # modified version.
 	cp -pf "$TOP"/patches/paripriv.h "$SAGE_LOCAL"/include/pari/paripriv.h
-	cp -pf "$TOP"/patches/paridecl.h "$SAGE_LOCAL"/include/pari/paridecl.h
     fi
     # Like on OS X (see above), the Sage library would not build
     # without some changes. Though on Solaris the changes are much simpler than

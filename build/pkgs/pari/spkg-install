@@ -40,10 +40,10 @@ cp "$TOP"/patches/get_ld config/
 # cwitty: disable TeX; allow bz2 compression
 cp "$TOP"/patches/gphelp.in doc/
 
-# John Cremona: copy over a lightly patched get_test, so that make
+# John Cremona: copy over a lightly patched get_tests, so that make
 # test-all does not test ellglobalred (which requires the elldata
 # package Sage does not install).
-cp "$TOP"/patches/get_test config/get_test
+cp "$TOP"/patches/get_tests config/get_tests
 
 
 # This is needed or there are weird locale problems involving rpath

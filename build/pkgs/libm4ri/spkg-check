@@ -27,7 +27,7 @@ CXXFLAGS="$CXXFLAGS $INCLUDES $LIBDIRS -g"
 export CFLAGS
 export CXXFLAGS
 
-cd m4rie
+cd m4ri
 
 echo "Testing the M4RI library"
 
@@ -38,6 +38,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+cd ..
 cd m4rie
 
 echo "Testing the M4RIE library"

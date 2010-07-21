@@ -9,7 +9,8 @@ if [ "$SAGE_LOCAL" = "" ]; then
 fi
 
 if [ "$SAGE64" = "yes" ]; then
-    CFLAGS="$CFLAGS -m64"; export CFLAGS
+    CFLAGS="$CFLAGS -m64";
+    CXXFLAGS="$CXXFLAGS -m64";
     # FIXME: Do we need LDFLAGS here, too?
     #        But looks as if all linking is performed by libtool/
     #        gcc, so we do not really need it here.
@@ -17,7 +18,16 @@ if [ "$SAGE64" = "yes" ]; then
     #        CXXFLAGS as well. (There are no C++ sources though.)
 fi
 
-cd src
+INCLUDES="-I$SAGE_LOCAL/include"
+LIBDIRS="-L$SAGE_LOCAL/lib"
+
+CFLAGS="$CFLAGS $INCLUDES $LIBDIRS -g"
+CXXFLAGS="$CXXFLAGS $INCLUDES $LIBDIRS -g"
+
+export CFLAGS
+export CXXFLAGS
+
+cd m4rie
 
 echo "Testing the M4RI library"
 
@@ -25,6 +35,17 @@ $MAKE check
 
 if [ $? -ne 0 ]; then
     echo "Error testing M4RI"
+    exit 1
+fi
+
+cd m4rie
+
+echo "Testing the M4RIE library"
+
+$MAKE check
+
+if [ $? -ne 0 ]; then
+    echo "Error testing M4RIE"
     exit 1
 fi
 

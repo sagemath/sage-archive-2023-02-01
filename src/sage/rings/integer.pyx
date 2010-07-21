@@ -2970,7 +2970,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef unsigned long n, m=7, i=1, limit, dif[8]
         dif[0]=6;dif[1]=4;dif[2]=2;dif[3]=4;dif[4]=2;dif[5]=4;dif[6]=6;dif[7]=2
         cdef Integer x = PY_NEW(Integer)
-        if mpz_size(self.value) <= 1:
+        if mpz_fits_ulong_p(self.value):
             n = mpz_get_ui(self.value)   # ignores the sign automatically
             if n == 1: return one
             if n%2==0:

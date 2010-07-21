@@ -8,12 +8,8 @@ fi
 
 unset RM
 
-# M4RI (currently) does not depend on any Sage package,
-# so we don't need this:
-# INCLUDES="-I$SAGE_LOCAL/include"
-# LIBDIRS="-L$SAGE_LOCAL/lib"
-INCLUDES=""
-LIBDIRS=""
+INCLUDES="-I$SAGE_LOCAL/include"
+LIBDIRS="-L$SAGE_LOCAL/lib"
 
 CFLAGS="$CFLAGS $INCLUDES $LIBDIRS -g"
 
@@ -55,8 +51,9 @@ else
     DISABLE_SSE2=""
 fi
 
+#build M4RI
 
-cd src
+cd m4ri
 
 $MAKE clean
 
@@ -78,6 +75,35 @@ $MAKE install
 
 if [ $? -ne 0 ]; then
     echo "Error installing libm4ri"
+    exit 1
+fi
+
+cd ..
+
+# build M4RIE
+
+cd m4rie
+
+$MAKE clean
+
+./configure --prefix=$SAGE_LOCAL $ENABLE_DEBUG $DISABLE_SSE2
+
+if [ $? -ne 0 ]; then
+    echo "Error configuring libm4rie"
+    exit 1
+fi
+
+$MAKE
+
+if [ $? -ne 0 ]; then
+    echo "Error building libm4rie"
+    exit 1
+fi
+
+$MAKE install
+
+if [ $? -ne 0 ]; then
+    echo "Error installing libm4rie"
     exit 1
 fi
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-if [ -z $SAGE_LOCAL ] ; then
+if [ -z "$SAGE_LOCAL" ] ; then
    echo "SAGE_LOCAL undefined ... exiting";
    echo "Maybe run 'sage -sh'?"
    exit 1
@@ -11,7 +11,7 @@ fi
 # default this will be -m64. IBM's compiler on AIX
 # and HP's on HP-UX do NOT use -m64.
 
-if [ -z $CFLAG64 ] ; then
+if [ -z "$CFLAG64" ] ; then
    CFLAG64=-m64
 fi
 

@@ -38,21 +38,19 @@ GSL mailing lists:
 
 == Dependencies ==
 
- * None - GSL does currently not depend on any other Sage package to
-   compile, link and pass all GSL's self-tests. However, as of
-   20th July 2010, ATLAS is listed as a dependency in spkg/standard/deps.
+ * None - GSL 1.14 does not depend on any other Sage package to compile,
+   link and pass all of GSL's self-tests. Despite that fact, as of
+   21st July 2010, ATLAS is listed as a dependency in spkg/standard/deps.
+   (It comes with its own CBLAS implementation that is e.g. used when running
+   the GSL test suite during installation; however, the Sage library only
+   uses it as a fall-back, if e.g. ATLAS's CBLAS library is not present.)
 
 == Special Update/Build Instructions ==
- * According to the GSL web page: http://www.gnu.org/software/gsl/
-   "GSL requires a BLAS library for vector and matrix operations. The
-   default CBLAS library supplied with GSL can be replaced by the tuned
-   ATLAS library for better performance". Exactly how one would use ATLAS is
-   not clear (there are no obvious options for the 'configure' script),
-   but in principle it could be done.
+ * Currently, nothing special to be done.
 
 == Changelog ==
 
-=== gsl-1.14 (David Kirkby, 20th July 2010) ===
+=== gsl-1.14 (David Kirkby, 21st July 2010) ===
  * #9533 Update GSL to the latest upstream release - the previous
    version (1.10) was nearly 3 years old.
  * Reformatted this file for 80 characters width.
@@ -82,13 +80,14 @@ GSL mailing lists:
    released under.
  * Removed notes about patches on OS X. GSL would appear to
    handle OS X properly.
- * Added the "Special Update/Build Instructions" section from SPKG.txt which
-   was previously missing.
+ * Added the "Special Update/Build Instructions" section to SPKG.txt which
+   was previously missing, though currently no special steps are required.
  * Added notes to SPKG.txt about an unnecessary ATLAS dependency in
-   $SAGE_ROOT/spkg/standard/deps
+   $SAGE_ROOT/spkg/standard/deps, and an explanation why GSL does *not*
+   depend on ATLAS.
  * Added notes to SPKG.txt about how ATLAS could in principle be used to
    improve the performance of some of GSL's functionality.
- * Force GSL to be build with no optimisation if SAGE_DEBUG is set to "yes"
+ * Force GSL to be built with no optimisation if SAGE_DEBUG is set to "yes"
  * Check that $SAGE_ROOT is defined both in spkg-install and spkg-check.
  * Exported LDFLAGS and CPPFLAGS when SAGE64 is set to "yes". This environment
    variable would be set to "yes" to create 64-bit binaries on platforms

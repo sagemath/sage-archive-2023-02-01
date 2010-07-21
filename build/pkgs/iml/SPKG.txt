@@ -4,7 +4,7 @@
 
 IML is a free library of C source code which implements algorithms for computing exact solutions to dense systems of linear equations over the integers. IML is designed to be used with the ATLAS/BLAS library and GMP bignum library.
 
-Website http://www.cs.uwaterloo.ca/~z4chen/iml.html
+Website: http://www.cs.uwaterloo.ca/~astorjoh/iml.html
 
 == License ==
 
@@ -16,13 +16,17 @@ GPL
 
 == Upstream Contact ==
 
-Provide information for upstream contact.
+ * Zhuliang Chen z4chen@uwaterloo.ca
+ * Arne Storjohann astorjoh@uwaterloo.ca
 
 == Dependencies ==
- * GMP
+ * GMP/MPIR
  * ATLAS
 
 == Special Update/Build Instructions ==
+
+ * Sage's current version is fairly out of date. As of July 21st 2010, the
+   latest upstream release is 1.0.3 (dated July 28th 2008).
 
 The following build instructions by William Stein might be incomplete and/or out of date:
 

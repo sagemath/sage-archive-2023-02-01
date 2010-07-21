@@ -12,7 +12,7 @@ REFERENCE:
 """
 
 #*****************************************************************************
-#      Copyright (C) 2006 - 2008 Robert L. Miller <rlmillster@gmail.com>
+#      Copyright (C) 2006 - 2011 Robert L. Miller <rlmillster@gmail.com>
 #
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
@@ -49,13 +49,14 @@ def isomorphic(G1, G2, partn, ordering2, dig, use_indicator_function, sparse=Fal
     {0: 1, 1: 2, 2: 0}
 
     """
-    cdef int **part
+    cdef PartitionStack *part
     cdef int *output, *ordering
     cdef CGraph G
     cdef GraphStruct GS1 = GraphStruct()
     cdef GraphStruct GS2 = GraphStruct()
     cdef GraphStruct GS
-    cdef int i, j, n = -1
+    cdef int i, j, k, n = -1, cell_len
+    cdef list partition, cell
 
     from sage.graphs.all import Graph, DiGraph
     from sage.graphs.generic_graph import GenericGraph
@@ -82,6 +83,8 @@ def isomorphic(G1, G2, partn, ordering2, dig, use_indicator_function, sparse=Fal
                 if first:
                     partition = [[to[v] for v in cell] for cell in partn]
             else:
+                if first:
+                    partition = partn
                 to = range(n)
                 frm = to
             if sparse:
@@ -104,6 +107,8 @@ def isomorphic(G1, G2, partn, ordering2, dig, use_indicator_function, sparse=Fal
             to = {}
             for a in G.verts(): to[a]=a
             frm = to
+            if first:
+                partition = partn
         else:
             raise TypeError("G must be a Sage graph.")
         if first: frm1=frm;to1=to
@@ -116,23 +121,12 @@ def isomorphic(G1, G2, partn, ordering2, dig, use_indicator_function, sparse=Fal
     if n == 0:
         return {}
 
-    part = <int **> sage_malloc((len(partn)+1) * sizeof(int *))
+    part = PS_from_list(partition)
     ordering = <int *> sage_malloc(n * sizeof(int))
     if part is NULL or ordering is NULL:
-        if part is not NULL: sage_free(part)
+        if part is not NULL: PS_dealloc(part)
         if ordering is not NULL: sage_free(ordering)
         raise MemoryError
-    for i from 0 <= i < len(partn):
-        part[i] = <int *> sage_malloc((len(partn[i])+1) * sizeof(int))
-        if part[i] is NULL:
-            for j from 0 <= j < i:
-                sage_free(part[j])
-            sage_free(part)
-            raise MemoryError
-        for j from 0 <= j < len(partn[i]):
-            part[i][j] = to1[partn[i][j]]
-        part[i][len(partn[i])] = -1
-    part[len(partn)] = NULL
     for i from 0 <= i < n:
         ordering[i] = to2[ordering2[i]]
 
@@ -141,16 +135,13 @@ def isomorphic(G1, G2, partn, ordering2, dig, use_indicator_function, sparse=Fal
     if GS1.scratch is NULL or GS2.scratch is NULL:
         if GS1.scratch is not NULL: sage_free(GS1.scratch)
         if GS2.scratch is not NULL: sage_free(GS2.scratch)
-        for j from 0 <= j < len(partition):
-            sage_free(part[j])
-        sage_free(part)
+        PS_dealloc(part)
+        sage_free(ordering)
         raise MemoryError
 
-    output = double_coset(GS1, GS2, part, ordering, n, &all_children_are_equivalent, &refine_by_degree, &compare_graphs)
+    output = double_coset(<void *>GS1, <void *>GS2, part, ordering, n, &all_children_are_equivalent, &refine_by_degree, &compare_graphs, NULL)
 
-    for i from 0 <= i < len(partn):
-        sage_free(part[i])
-    sage_free(part)
+    PS_dealloc(part)
     sage_free(ordering)
     sage_free(GS1.scratch)
     sage_free(GS2.scratch)
@@ -350,8 +341,8 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
     cdef CGraph G
     cdef int i, j, n
     cdef Integer I
-    cdef aut_gp_and_can_lab_return *output
-    cdef int **part
+    cdef aut_gp_and_can_lab *output
+    cdef PartitionStack *part
     from sage.graphs.all import Graph, DiGraph
     from sage.graphs.generic_graph import GenericGraph
     from copy import copy
@@ -387,34 +378,44 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
     else:
         raise TypeError("G must be a Sage graph.")
 
-    part = <int **> sage_malloc((len(partition)+1) * sizeof(int *))
-    if part is NULL:
-        raise MemoryError
-    for i from 0 <= i < len(partition):
-        part[i] = <int *> sage_malloc((len(partition[i])+1) * sizeof(int))
-        if part[i] is NULL:
-            for j from 0 <= j < i:
-                sage_free(part[j])
-            sage_free(part)
-            raise MemoryError
-        for j from 0 <= j < len(partition[i]):
-            part[i][j] = partition[i][j]
-        part[i][len(partition[i])] = -1
-    part[len(partition)] = NULL
-
     cdef GraphStruct GS = GraphStruct()
     GS.G = G
     GS.directed = 1 if dig else 0
     GS.use_indicator = 1 if use_indicator_function else 0
+
+    if n == 0:
+        return_tuple = [[]]
+        if dict_rep:
+            return_tuple.append({})
+        if lab:
+            if isinstance(G_in, GenericGraph):
+                G_C = copy(G_in)
+            else:
+                if isinstance(G, SparseGraph):
+                    G_C = SparseGraph(n)
+                else:
+                    G_C = DenseGraph(n)
+            return_tuple.append(G_C)
+        if certify:
+            return_tuple.append({})
+        if base:
+            return_tuple.append([])
+        if order:
+            return_tuple.append(Integer(1))
+        if len(return_tuple) == 1:
+            return return_tuple[0]
+        else:
+            return tuple(return_tuple)
+
     GS.scratch = <int *> sage_malloc( (3*G.num_verts + 1) * sizeof(int) )
-    if GS.scratch is NULL:
-        for j from 0 <= j < len(partition):
-            sage_free(part[j])
-        sage_free(part)
+    part = PS_from_list(partition)
+    if GS.scratch is NULL or part is NULL:
+        if part is not NULL: PS_dealloc(part)
+        if GS.scratch is not NULL: sage_free(GS.scratch)
         raise MemoryError
 
     lab_new = lab or certify
-    output = get_aut_gp_and_can_lab(GS, part, G.num_verts, &all_children_are_equivalent, &refine_by_degree, &compare_graphs, lab_new, base, order)
+    output = get_aut_gp_and_can_lab(<void *>GS, part, G.num_verts, &all_children_are_equivalent, &refine_by_degree, &compare_graphs, lab, NULL)
     sage_free( GS.scratch )
     # prepare output
     list_of_gens = []
@@ -445,18 +446,14 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
             dd[frm[i]] = output.relabeling[i]
         return_tuple.append(dd)
     if base:
-        return_tuple.append([output.base[i] for i from 0 <= i < output.base_size])
+        return_tuple.append([output.group.base_orbits[i][0] for i from 0 <= i < output.group.base_size])
     if order:
         I = Integer()
-        mpz_set(I.value, output.order)
+        SC_order(output.group, 0, I.value)
         return_tuple.append(I)
-    for i from 0 <= i < len(partition):
-        sage_free(part[i])
-    sage_free(part)
-    mpz_clear(output.order)
+    PS_dealloc(part)
     sage_free(output.generators)
-    if base:
-        sage_free(output.base)
+    SC_dealloc(output.group)
     if lab_new:
         sage_free(output.relabeling)
     sage_free(output)
@@ -465,7 +462,7 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
     else:
         return tuple(return_tuple)
 
-cdef int refine_by_degree(PartitionStack *PS, object S, int *cells_to_refine_by, int ctrb_len):
+cdef int refine_by_degree(PartitionStack *PS, void *S, int *cells_to_refine_by, int ctrb_len):
     r"""
     Refines the input partition by checking degrees of vertices to the given
     cells.
@@ -584,7 +581,7 @@ cdef int refine_by_degree(PartitionStack *PS, object S, int *cells_to_refine_by,
     else:
         return 0
 
-cdef int compare_graphs(int *gamma_1, int *gamma_2, object S1, object S2):
+cdef int compare_graphs(int *gamma_1, int *gamma_2, void *S1, void *S2):
     r"""
     Compare gamma_1(S1) and gamma_2(S2).
 
@@ -611,7 +608,7 @@ cdef int compare_graphs(int *gamma_1, int *gamma_2, object S1, object S2):
                 return -1
     return 0
 
-cdef bint all_children_are_equivalent(PartitionStack *PS, object S):
+cdef bint all_children_are_equivalent(PartitionStack *PS, void *S):
     """
     Return True if every refinement of the current partition results in the
     same structure.
@@ -681,48 +678,6 @@ cdef inline int degree(PartitionStack *PS, CGraph G, int entry, int cell_index, 
                 break
     return num_arcs
 
-cdef inline int sort_by_function(PartitionStack *PS, int start, int *degrees):
-    """
-    A simple counting sort, given the degrees of vertices to a certain cell.
-
-    INPUT:
-    PS -- the partition stack to be checked
-    start -- beginning index of the cell to be sorted
-    degrees -- the values to be sorted by
-
-    """
-    cdef int n = PS.degree
-    cdef int i, j, max, max_location
-    cdef int *counts = degrees + n, *output = degrees + 2*n + 1
-    for i from 0 <= i <= n:
-        counts[i] = 0
-    i = 0
-    while PS.levels[i+start] > PS.depth:
-        counts[degrees[i]] += 1
-        i += 1
-    counts[degrees[i]] += 1
-    # i+start is the right endpoint of the cell now
-    max = counts[0]
-    max_location = 0
-    for j from 0 < j <= n:
-        if counts[j] > max:
-            max = counts[j]
-            max_location = j
-        counts[j] += counts[j - 1]
-    for j from i >= j >= 0:
-        counts[degrees[j]] -= 1
-        output[counts[degrees[j]]] = PS.entries[start+j]
-    max_location = counts[max_location]+start
-    for j from 0 <= j <= i:
-        PS.entries[start+j] = output[j]
-    j = 1
-    while j <= n and counts[j] <= i:
-        if counts[j] > 0:
-            PS.levels[start + counts[j] - 1] = PS.depth
-        PS_move_min_to_front(PS, start + counts[j-1], start + counts[j] - 1)
-        j += 1
-    return max_location
-
 def all_labeled_graphs(n):
     """
     Returns all labeled graphs on n vertices {0,1,...,n-1}. Used in
@@ -773,7 +728,7 @@ def all_labeled_graphs(n):
     return Glist
 
 
-def random_tests(num=20, n_max=50, perms_per_graph=8):
+def random_tests(num=10, n_max=60, perms_per_graph=5):
     """
     Tests to make sure that C(gamma(G)) == C(G) for random permutations gamma
     and random graphs G, and that isomorphic returns an isomorphism.
@@ -796,8 +751,8 @@ def random_tests(num=20, n_max=50, perms_per_graph=8):
     TESTS::
 
         sage: import sage.groups.perm_gps.partn_ref.refinement_graphs
-        sage: sage.groups.perm_gps.partn_ref.refinement_graphs.random_tests()  # long time (up to 25s on sage.math, 2011)
-        All passed: 640 random tests on 40 graphs.
+        sage: sage.groups.perm_gps.partn_ref.refinement_graphs.random_tests()  # long time
+        All passed: 200 random tests on 20 graphs.
     """
     from sage.misc.prandom import random, randint
     from sage.graphs.graph_generators import GraphGenerators
@@ -982,7 +937,7 @@ def coarsest_equitable_refinement(CGraph G, list partition, bint directed):
     GS.G = G
     GS.scratch = <int *> sage_malloc((3*n+1) * sizeof(int))
     if GS.scratch is NULL:
-        PS_clear(nu)
+        PS_dealloc(nu)
         raise MemoryError
     GS.directed = directed
     GS.use_indicator = 0
@@ -991,7 +946,7 @@ def coarsest_equitable_refinement(CGraph G, list partition, bint directed):
     cdef int num_cells = len(partition)
     cdef int *alpha = <int *>sage_malloc(n * sizeof(int))
     if alpha is NULL:
-        PS_clear(nu)
+        PS_dealloc(nu)
         sage_free(GS.scratch)
         raise MemoryError
     j = 0
@@ -1000,7 +955,7 @@ def coarsest_equitable_refinement(CGraph G, list partition, bint directed):
         j += len(partition[i])
 
     # refine, and get the result
-    refine_by_degree(nu, GS, alpha, num_cells)
+    refine_by_degree(nu, <void *>GS, alpha, num_cells)
 
     eq_part = []
     cell = []
@@ -1010,7 +965,7 @@ def coarsest_equitable_refinement(CGraph G, list partition, bint directed):
             eq_part.append(cell)
             cell = []
 
-    PS_clear(nu)
+    PS_dealloc(nu)
     sage_free(GS.scratch)
     sage_free(alpha)
 

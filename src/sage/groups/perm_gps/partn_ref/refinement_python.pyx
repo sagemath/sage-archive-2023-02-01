@@ -20,7 +20,7 @@ debugger.
 """
 
 #*****************************************************************************
-#      Copyright (C) 2006 - 2009 Robert L. Miller <rlmillster@gmail.com>
+#      Copyright (C) 2006 - 2011 Robert L. Miller <rlmillster@gmail.com>
 #
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
@@ -376,32 +376,35 @@ class PythonObjectWrapper:
         self.rari_fn = rari_fn
         self.cs_fn = cs_fn
 
-cdef bint all_children_are_equivalent_python(PartitionStack *PS, object S):
+cdef bint all_children_are_equivalent_python(PartitionStack *PS, void *S):
     """
     Python conversion of all_children_are_equivalent function.
     """
     cdef PythonPartitionStack Py_PS = PythonPartitionStack(PS.degree)
+    cdef object S_obj = <object> S
     PS_copy_from_to(PS, Py_PS.c_ps)
-    return S.acae_fn(Py_PS, S.obj)
+    return S_obj.acae_fn(Py_PS, S_obj.obj)
 
-cdef int refine_and_return_invariant_python(PartitionStack *PS, object S, int *cells_to_refine_by, int ctrb_len):
+cdef int refine_and_return_invariant_python(PartitionStack *PS, void *S, int *cells_to_refine_by, int ctrb_len):
     """
     Python conversion of refine_and_return_invariant function.
     """
     cdef PythonPartitionStack Py_PS = PythonPartitionStack(PS.degree)
+    cdef object S_obj = <object> S
     PS_copy_from_to(PS, Py_PS.c_ps)
     cdef int i
-    cdef list ctrb_py = [cells_to_refine_by[i] for i from 0 <= i < PS.degree]
-    return S.rari_fn(Py_PS, S.obj, ctrb_py)
+    cdef list ctrb_py = [cells_to_refine_by[i] for i from 0 <= i < ctrb_len]
+    return S_obj.rari_fn(Py_PS, S_obj.obj, ctrb_py)
 
-cdef int compare_structures_python(int *gamma_1, int *gamma_2, object S1, object S2):
+cdef int compare_structures_python(int *gamma_1, int *gamma_2, void *S1, void *S2):
     """
     Python conversion of compare_structures function.
     """
     cdef int i
-    cdef list gamma_1_py = [gamma_1[i] for i from 0 <= i < S1.degree]
-    cdef list gamma_2_py = [gamma_2[i] for i from 0 <= i < S1.degree]
-    return S1.cs_fn(gamma_1_py, gamma_2_py, S1.obj, S2.obj)
+    cdef object S1_obj = <object> S1, S2_obj = <object> S2
+    cdef list gamma_1_py = [gamma_1[i] for i from 0 <= i < S1_obj.degree]
+    cdef list gamma_2_py = [gamma_2[i] for i from 0 <= i < S1_obj.degree]
+    return S1_obj.cs_fn(gamma_1_py, gamma_2_py, S1_obj.obj, S2_obj.obj)
 
 def aut_gp_and_can_lab_python(S, partition, n,
     all_children_are_equivalent,
@@ -455,31 +458,20 @@ def aut_gp_and_can_lab_python(S, partition, n,
 
     """
     obj_wrapper = PythonObjectWrapper(S, all_children_are_equivalent, refine_and_return_invariant, compare_structures, n)
-    cdef aut_gp_and_can_lab_return *output
+    cdef aut_gp_and_can_lab *output
     cdef PythonPartitionStack Py_PS = PythonPartitionStack(n)
     cdef int i, j
     cdef Integer I
 
-    cdef int **part = <int **> sage_malloc((len(partition)+1) * sizeof(int *))
+    cdef PartitionStack *part = PS_from_list(partition)
     if part is NULL:
         raise MemoryError
-    for i from 0 <= i < len(partition):
-        part[i] = <int *> sage_malloc((len(partition[i])+1) * sizeof(int))
-        if part[i] is NULL:
-            for j from 0 <= j < i:
-                sage_free(part[j])
-            sage_free(part)
-            raise MemoryError
-        for j from 0 <= j < len(partition[i]):
-            part[i][j] = partition[i][j]
-        part[i][len(partition[i])] = -1
-    part[len(partition)] = NULL
 
-    output = get_aut_gp_and_can_lab(obj_wrapper, part, n,
+    output = get_aut_gp_and_can_lab(<void *> obj_wrapper, part, n,
         &all_children_are_equivalent_python,
         &refine_and_return_invariant_python,
         &compare_structures_python,
-        canonical_label, base, order)
+        canonical_label, NULL)
 
     list_of_gens = []
     for i from 0 <= i < output.num_gens:
@@ -488,18 +480,14 @@ def aut_gp_and_can_lab_python(S, partition, n,
     if canonical_label:
         return_tuple.append([output.relabeling[i] for i from 0 <= i < n])
     if base:
-        return_tuple.append([output.base[i] for i from 0 <= i < output.base_size])
+        return_tuple.append([output.group.base_orbits[i][0] for i from 0 <= i < output.group.base_size])
     if order:
         I = Integer()
-        mpz_set(I.value, output.order)
+        SC_order(output.group, 0, I.value)
         return_tuple.append(I)
-    for i from 0 <= i < len(partition):
-        sage_free(part[i])
-    sage_free(part)
-    mpz_clear(output.order)
+    PS_dealloc(part)
     sage_free(output.generators)
-    if base:
-        sage_free(output.base)
+    SC_dealloc(output.group)
     if canonical_label:
         sage_free(output.relabeling)
     sage_free(output)
@@ -559,36 +547,22 @@ def double_coset_python(S1, S2, partition1, ordering2, n,
     obj_wrapper1 = PythonObjectWrapper(S1, all_children_are_equivalent, refine_and_return_invariant, compare_structures, n)
     obj_wrapper2 = PythonObjectWrapper(S2, all_children_are_equivalent, refine_and_return_invariant, compare_structures, n)
 
-    cdef int **part = <int **> sage_malloc((len(partition1)+1) * sizeof(int *))
+    cdef PartitionStack *part = PS_from_list(partition1)
     cdef int *ordering = <int *> sage_malloc(n * sizeof(int))
     if part is NULL or ordering is NULL:
-        if part is not NULL:
-            sage_free(part)
-        if ordering is not NULL:
-            sage_free(ordering)
+        if part is not NULL: PS_dealloc(part)
+        if ordering is not NULL: sage_free(ordering)
         raise MemoryError
-    for i from 0 <= i < len(partition1):
-        part[i] = <int *> sage_malloc((len(partition1[i])+1) * sizeof(int))
-        if part[i] is NULL:
-            for j from 0 <= j < i:
-                sage_free(part[j])
-            sage_free(part)
-            raise MemoryError
-        for j from 0 <= j < len(partition1[i]):
-            part[i][j] = partition1[i][j]
-        part[i][len(partition1[i])] = -1
-    part[len(partition1)] = NULL
     for i from 0 <= i < n:
         ordering[i] = ordering2[i]
 
-    cdef int *output = double_coset(obj_wrapper1, obj_wrapper2, part, ordering, n,
+    cdef int *output = double_coset(<void *> obj_wrapper1, <void *> obj_wrapper2,
+        part, ordering, n,
         &all_children_are_equivalent_python,
         &refine_and_return_invariant_python,
-        &compare_structures_python)
+        &compare_structures_python, NULL)
 
-    for i from 0 <= i < len(partition1):
-        sage_free(part[i])
-    sage_free(part)
+    PS_dealloc(part)
     sage_free(ordering)
 
     if output is NULL:

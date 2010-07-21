@@ -266,9 +266,9 @@ def matching_polynomial(G, complement=True, name=None):
 
     # Computing the signless matching polynomial
 
-    _sig_on
+    sig_on()
     delete_and_add(edges, nverts, nedges, nverts, 0, pol)
-    _sig_off
+    sig_off()
 
     # Building the actual matching polynomial
 

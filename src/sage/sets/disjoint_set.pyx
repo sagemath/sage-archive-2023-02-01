@@ -60,7 +60,7 @@ Disjoint set of hashables objects::
 include '../groups/perm_gps/partn_ref/data_structures_pyx.pxi'
 
 import itertools
-from sage.rings.all import Integer
+from sage.rings.integer import Integer
 from sage.structure.sage_object cimport SageObject
 
 def DisjointSet(arg):

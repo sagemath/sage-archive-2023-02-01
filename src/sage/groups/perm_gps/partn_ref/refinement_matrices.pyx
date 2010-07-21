@@ -16,7 +16,7 @@ REFERENCE:
 """
 
 #*****************************************************************************
-#      Copyright (C) 2006 - 2008 Robert L. Miller <rlmillster@gmail.com>
+#      Copyright (C) 2006 - 2011 Robert L. Miller <rlmillster@gmail.com>
 #
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
@@ -81,9 +81,8 @@ cdef class MatrixStruct:
     def __dealloc__(self):
         PS_dealloc(self.temp_col_ps)
         if self.output is not NULL:
-            mpz_clear(self.output.order)
             sage_free(self.output.generators)
-            sage_free(self.output.base)
+            SC_dealloc(self.output.group)
             sage_free(self.output.relabeling)
             sage_free(self.output)
 
@@ -148,34 +147,23 @@ cdef class MatrixStruct:
             True
 
         """
-        cdef int **part, i, j
+        cdef int i, n = self.degree
+        cdef PartitionStack *part
         cdef NonlinearBinaryCodeStruct S_temp
         for i from 0 <= i < self.nsymbols:
             S_temp = <NonlinearBinaryCodeStruct> self.symbol_structs[i]
             S_temp.first_time = 1
 
         if partition is None:
-            partition = [range(self.degree)]
-        part = <int **> sage_malloc((len(partition)+1) * sizeof(int *))
+            part = PS_new(n, 1)
+        else:
+            part = PS_from_list(partition)
         if part is NULL:
             raise MemoryError
-        for i from 0 <= i < len(partition):
-            part[i] = <int *> sage_malloc((len(partition[i])+1) * sizeof(int))
-            if part[i] is NULL:
-                for j from 0 <= j < i:
-                    sage_free(part[j])
-                sage_free(part)
-                raise MemoryError
-            for j from 0 <= j < len(partition[i]):
-                part[i][j] = partition[i][j]
-            part[i][len(partition[i])] = -1
-        part[len(partition)] = NULL
 
-        self.output = get_aut_gp_and_can_lab(self, part, self.degree, &all_matrix_children_are_equivalent, &refine_matrix, &compare_matrices, 1, 1, 1)
+        self.output = get_aut_gp_and_can_lab(<void *> self, part, self.degree, &all_matrix_children_are_equivalent, &refine_matrix, &compare_matrices, 1, NULL)
 
-        for i from 0 <= i < len(partition):
-            sage_free(part[i])
-        sage_free(part)
+        PS_dealloc(part)
 
 
     def automorphism_group(self):
@@ -193,7 +181,7 @@ cdef class MatrixStruct:
 
         """
         cdef int i, j
-        cdef object generators, base
+        cdef list generators, base
         cdef Integer order
         if self.output is NULL:
             self.run()
@@ -201,8 +189,8 @@ cdef class MatrixStruct:
         for i from 0 <= i < self.output.num_gens:
             generators.append([self.output.generators[i*self.degree + j] for j from 0 <= j < self.degree])
         order = Integer()
-        mpz_set(order.value, self.output.order)
-        base = [self.output.base[i] for i from 0 <= i < self.output.base_size]
+        SC_order(self.output.group, 0, order.value)
+        base = [self.output.group.base_orbits[i][0] for i from 0 <= i < self.output.group.base_size]
         return generators, order, base
 
     def canonical_relabeling(self):
@@ -234,41 +222,27 @@ cdef class MatrixStruct:
             [0, 2, 4, 1, 3, 5]
 
         """
-
-        cdef int **part, i, j
+        cdef int i, j, n = self.degree
         cdef int *output, *ordering
+        cdef PartitionStack *part
         cdef NonlinearBinaryCodeStruct S_temp
         for i from 0 <= i < self.nsymbols:
             S_temp = self.symbol_structs[i]
             S_temp.first_time = 1
             S_temp = other.symbol_structs[i]
             S_temp.first_time = 1
-        partition = [range(self.degree)]
-        part = <int **> sage_malloc((len(partition)+1) * sizeof(int *))
+        part = PS_new(n, 1)
         ordering = <int *> sage_malloc(self.degree * sizeof(int))
         if part is NULL or ordering is NULL:
-            if part is not NULL: sage_free(part)
+            if part is not NULL: PS_dealloc(part)
             if ordering is not NULL: sage_free(ordering)
             raise MemoryError
-        for i from 0 <= i < len(partition):
-            part[i] = <int *> sage_malloc((len(partition[i])+1) * sizeof(int))
-            if part[i] is NULL:
-                for j from 0 <= j < i:
-                    sage_free(part[j])
-                sage_free(part)
-                raise MemoryError
-            for j from 0 <= j < len(partition[i]):
-                part[i][j] = partition[i][j]
-            part[i][len(partition[i])] = -1
-        part[len(partition)] = NULL
         for i from 0 <= i < self.degree:
             ordering[i] = i
 
-        output = double_coset(self, other, part, ordering, self.degree, &all_matrix_children_are_equivalent, &refine_matrix, &compare_matrices)
+        output = double_coset(<void *> self, <void *> other, part, ordering, self.degree, &all_matrix_children_are_equivalent, &refine_matrix, &compare_matrices, NULL)
 
-        for i from 0 <= i < len(partition):
-            sage_free(part[i])
-        sage_free(part)
+        PS_dealloc(part)
         sage_free(ordering)
 
         if output is NULL:
@@ -278,21 +252,20 @@ cdef class MatrixStruct:
             sage_free(output)
             return output_py
 
-cdef int refine_matrix(PartitionStack *PS, object S, int *cells_to_refine_by, int ctrb_len):
+cdef int refine_matrix(PartitionStack *PS, void *S, int *cells_to_refine_by, int ctrb_len):
     cdef MatrixStruct M = <MatrixStruct> S
     cdef int i, temp_inv, invariant = 1
     cdef bint changed = 1
     while changed:
         PS_copy_from_to(PS, M.temp_col_ps)
         for BCS in M.symbol_structs:
-            temp_inv = refine_by_bip_degree(PS, BCS, cells_to_refine_by, ctrb_len)
+            temp_inv = refine_by_bip_degree(PS, <void *> BCS, cells_to_refine_by, ctrb_len)
             invariant *= temp_inv + 1
-        if (memcmp(PS.entries, M.temp_col_ps.entries, M.degree * sizeof(int)) == 0
-         and memcmp(PS.levels, M.temp_col_ps.levels, M.degree * sizeof(int)) == 0):
+        if memcmp(PS.entries, M.temp_col_ps.entries, 2*M.degree * sizeof(int)) == 0:
             changed = 0
     return invariant
 
-cdef int compare_matrices(int *gamma_1, int *gamma_2, object S1, object S2):
+cdef int compare_matrices(int *gamma_1, int *gamma_2, void *S1, void *S2):
     cdef MatrixStruct MS1 = <MatrixStruct> S1
     cdef MatrixStruct MS2 = <MatrixStruct> S2
     M1 = MS1.matrix
@@ -305,10 +278,10 @@ cdef int compare_matrices(int *gamma_1, int *gamma_2, object S1, object S2):
         MM2.set_column(i, M2.column(gamma_2[i]))
     return cmp(sorted(MM1.rows()), sorted(MM2.rows()))
 
-cdef bint all_matrix_children_are_equivalent(PartitionStack *PS, object S):
+cdef bint all_matrix_children_are_equivalent(PartitionStack *PS, void *S):
     return 0
 
-def random_tests(n=15, nrows_max=50, ncols_max=50, nsymbols_max=20, perms_per_matrix=10, density_range=(.1,.9)):
+def random_tests(n=10, nrows_max=50, ncols_max=50, nsymbols_max=10, perms_per_matrix=5, density_range=(.1,.9)):
     """
     Tests to make sure that C(gamma(M)) == C(M) for random permutations gamma
     and random matrices M, and that M.is_isomorphic(gamma(M)) returns an

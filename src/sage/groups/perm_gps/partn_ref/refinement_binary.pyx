@@ -16,7 +16,7 @@ REFERENCE:
 """
 
 #*****************************************************************************
-#      Copyright (C) 2006 - 2008 Robert L. Miller <rlmillster@gmail.com>
+#      Copyright (C) 2006 - 2011 Robert L. Miller <rlmillster@gmail.com>
 #
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
@@ -222,30 +222,20 @@ cdef class LinearBinaryCodeStruct(BinaryCodeStruct):
             17868913969917295853568000000
 
         """
-        cdef int **part, i, j
+        cdef int i, n = self.degree
+        cdef PartitionStack *part
         if partition is None:
-            partition = [range(self.degree)]
-        part = <int **> sage_malloc((len(partition)+1) * sizeof(int *))
+            part = PS_new(n, 1)
+        else:
+            part = PS_from_list(partition)
         if part is NULL:
             raise MemoryError
-        for i from 0 <= i < len(partition):
-            part[i] = <int *> sage_malloc((len(partition[i])+1) * sizeof(int))
-            if part[i] is NULL:
-                for j from 0 <= j < i:
-                    sage_free(part[j])
-                sage_free(part)
-                raise MemoryError
-            for j from 0 <= j < len(partition[i]):
-                part[i][j] = partition[i][j]
-            part[i][len(partition[i])] = -1
-        part[len(partition)] = NULL
+
         self.first_time = 1
 
-        self.output = get_aut_gp_and_can_lab(self, part, self.degree, &all_children_are_equivalent, &refine_by_bip_degree, &compare_linear_codes, 1, 1, 1)
+        self.output = get_aut_gp_and_can_lab(<void *>self, part, n, &all_children_are_equivalent, &refine_by_bip_degree, &compare_linear_codes, 1, NULL)
 
-        for i from 0 <= i < len(partition):
-            sage_free(part[i])
-        sage_free(part)
+        PS_dealloc(part)
 
     def automorphism_group(self):
         """
@@ -262,7 +252,7 @@ cdef class LinearBinaryCodeStruct(BinaryCodeStruct):
 
         """
         cdef int i, j
-        cdef object generators, base
+        cdef list generators, base
         cdef Integer order
         if self.output is NULL:
             self.run()
@@ -270,8 +260,8 @@ cdef class LinearBinaryCodeStruct(BinaryCodeStruct):
         for i from 0 <= i < self.output.num_gens:
             generators.append([self.output.generators[i*self.degree + j] for j from 0 <= j < self.degree])
         order = Integer()
-        mpz_set(order.value, self.output.order)
-        base = [self.output.base[i] for i from 0 <= i < self.output.base_size]
+        SC_order(self.output.group, 0, order.value)
+        base = [self.output.group.base_orbits[i][0] for i from 0 <= i < self.output.group.base_size]
         return generators, order, base
 
     def canonical_relabeling(self):
@@ -311,42 +301,29 @@ cdef class LinearBinaryCodeStruct(BinaryCodeStruct):
             [0, 1, 2, 5, 3, 4]
 
         """
-        cdef int **part, i, j
+        cdef int i, n = self.degree
         cdef int *output, *ordering
-        partition = [range(self.degree)]
-        part = <int **> sage_malloc((len(partition)+1) * sizeof(int *))
+        cdef PartitionStack *part
+        part = PS_new(n, 1)
         ordering = <int *> sage_malloc(self.degree * sizeof(int))
         if part is NULL or ordering is NULL:
-            if part is not NULL: sage_free(part)
+            if part is not NULL: PS_dealloc(part)
             if ordering is not NULL: sage_free(ordering)
             raise MemoryError
-        for i from 0 <= i < len(partition):
-            part[i] = <int *> sage_malloc((len(partition[i])+1) * sizeof(int))
-            if part[i] is NULL:
-                for j from 0 <= j < i:
-                    sage_free(part[j])
-                sage_free(part)
-                raise MemoryError
-            for j from 0 <= j < len(partition[i]):
-                part[i][j] = partition[i][j]
-            part[i][len(partition[i])] = -1
-        part[len(partition)] = NULL
-        for i from 0 <= i < self.degree:
+        for i from 0 <= i < n:
             ordering[i] = i
         self.first_time = 1
         other.first_time = 1
 
-        output = double_coset(self, other, part, ordering, self.degree, &all_children_are_equivalent, &refine_by_bip_degree, &compare_linear_codes)
+        output = double_coset(<void *> self, <void *> other, part, ordering, n, &all_children_are_equivalent, &refine_by_bip_degree, &compare_linear_codes, NULL)
 
-        for i from 0 <= i < len(partition):
-            sage_free(part[i])
-        sage_free(part)
+        PS_dealloc(part)
         sage_free(ordering)
 
         if output is NULL:
             return False
         else:
-            output_py = [output[i] for i from 0 <= i < self.degree]
+            output_py = [output[i] for i from 0 <= i < n]
             sage_free(output)
             return output_py
 
@@ -361,9 +338,8 @@ cdef class LinearBinaryCodeStruct(BinaryCodeStruct):
         sage_free(self.alpha_is_wd); PS_dealloc(self.word_ps)
         sage_free(self.alpha); sage_free(self.scratch)
         if self.output is not NULL:
-            mpz_clear(self.output.order)
             sage_free(self.output.generators)
-            sage_free(self.output.base)
+            SC_dealloc(self.output.group)
             sage_free(self.output.relabeling)
             sage_free(self.output)
 
@@ -468,9 +444,8 @@ cdef class NonlinearBinaryCodeStruct(BinaryCodeStruct):
         sage_free(self.alpha_is_wd); PS_dealloc(self.word_ps)
         sage_free(self.alpha); sage_free(self.scratch)
         if self.output is not NULL:
-            mpz_clear(self.output.order)
             sage_free(self.output.generators)
-            sage_free(self.output.base)
+            SC_dealloc(self.output.group)
             sage_free(self.output.relabeling)
             sage_free(self.output)
 
@@ -513,30 +488,19 @@ cdef class NonlinearBinaryCodeStruct(BinaryCodeStruct):
             [2, 3, 4, 5, 0, 1]
 
         """
-        cdef int **part, i, j
+        cdef int n = self.degree
+        cdef PartitionStack *part
         if partition is None:
-            partition = [range(self.degree)]
-        part = <int **> sage_malloc((len(partition)+1) * sizeof(int *))
+            part = PS_new(n, 1)
+        else:
+            part = PS_from_list(partition)
         if part is NULL:
             raise MemoryError
-        for i from 0 <= i < len(partition):
-            part[i] = <int *> sage_malloc((len(partition[i])+1) * sizeof(int))
-            if part[i] is NULL:
-                for j from 0 <= j < i:
-                    sage_free(part[j])
-                sage_free(part)
-                raise MemoryError
-            for j from 0 <= j < len(partition[i]):
-                part[i][j] = partition[i][j]
-            part[i][len(partition[i])] = -1
-        part[len(partition)] = NULL
         self.first_time = 1
 
-        self.output = get_aut_gp_and_can_lab(self, part, self.degree, &all_children_are_equivalent, &refine_by_bip_degree, &compare_nonlinear_codes, 1, 1, 1)
+        self.output = get_aut_gp_and_can_lab(<void *> self, part, self.degree, &all_children_are_equivalent, &refine_by_bip_degree, &compare_nonlinear_codes, 1, NULL)
 
-        for i from 0 <= i < len(partition):
-            sage_free(part[i])
-        sage_free(part)
+        PS_dealloc(part)
 
     def automorphism_group(self):
         """
@@ -559,7 +523,7 @@ cdef class NonlinearBinaryCodeStruct(BinaryCodeStruct):
 
         """
         cdef int i, j
-        cdef object generators, base
+        cdef list generators, base
         cdef Integer order
         if self.output is NULL:
             self.run()
@@ -567,8 +531,8 @@ cdef class NonlinearBinaryCodeStruct(BinaryCodeStruct):
         for i from 0 <= i < self.output.num_gens:
             generators.append([self.output.generators[i*self.degree + j] for j from 0 <= j < self.degree])
         order = Integer()
-        mpz_set(order.value, self.output.order)
-        base = [self.output.base[i] for i from 0 <= i < self.output.base_size]
+        SC_order(self.output.group, 0, order.value)
+        base = [self.output.group.base_orbits[i][0] for i from 0 <= i < self.output.group.base_size]
         return generators, order, base
 
     def canonical_relabeling(self):
@@ -602,36 +566,23 @@ cdef class NonlinearBinaryCodeStruct(BinaryCodeStruct):
             [2, 3, 0, 1, 4, 5]
 
         """
-        cdef int **part, i, j
+        cdef int i, n = self.degree
         cdef int *output, *ordering
-        partition = [range(self.degree)]
-        part = <int **> sage_malloc((len(partition)+1) * sizeof(int *))
-        ordering = <int *> sage_malloc(self.degree * sizeof(int))
+        cdef PartitionStack *part
+        part = PS_new(n, 1)
+        ordering = <int *> sage_malloc(n * sizeof(int))
         if part is NULL or ordering is NULL:
-            if part is not NULL: sage_free(part)
+            if part is not NULL: PS_dealloc(part)
             if ordering is not NULL: sage_free(ordering)
             raise MemoryError
-        for i from 0 <= i < len(partition):
-            part[i] = <int *> sage_malloc((len(partition[i])+1) * sizeof(int))
-            if part[i] is NULL:
-                for j from 0 <= j < i:
-                    sage_free(part[j])
-                sage_free(part)
-                raise MemoryError
-            for j from 0 <= j < len(partition[i]):
-                part[i][j] = partition[i][j]
-            part[i][len(partition[i])] = -1
-        part[len(partition)] = NULL
-        for i from 0 <= i < self.degree:
+        for i from 0 <= i < n:
             ordering[i] = i
         self.first_time = 1
         other.first_time = 1
 
-        output = double_coset(self, other, part, ordering, self.degree, &all_children_are_equivalent, &refine_by_bip_degree, &compare_nonlinear_codes)
+        output = double_coset(<void *> self, <void *> other, part, ordering, n, &all_children_are_equivalent, &refine_by_bip_degree, &compare_nonlinear_codes, NULL)
 
-        for i from 0 <= i < len(partition):
-            sage_free(part[i])
-        sage_free(part)
+        PS_dealloc(part)
         sage_free(ordering)
 
         if output is NULL:
@@ -646,7 +597,7 @@ cdef int ith_word_nonlinear(BinaryCodeStruct self, int i, bitset_s *word):
     bitset_copy(word, &NBCS.words[i])
     return 0
 
-cdef int refine_by_bip_degree(PartitionStack *col_ps, object S, int *cells_to_refine_by, int ctrb_len):
+cdef int refine_by_bip_degree(PartitionStack *col_ps, void *S, int *cells_to_refine_by, int ctrb_len):
     """
     Refines the input partition by checking degrees of vertices to the given
     cells in the associated bipartite graph (vertices split into columns and
@@ -711,7 +662,7 @@ cdef int refine_by_bip_degree(PartitionStack *col_ps, object S, int *cells_to_re
                 # now, i points to the next cell (before refinement)
                 if necessary_to_split_cell:
                     invariant += 8
-                    first_largest_subcell = sort_by_function(col_ps, current_cell, col_degrees, col_counts, col_output, BCS.nwords+1)
+                    first_largest_subcell = sort_by_function_codes(col_ps, current_cell, col_degrees, col_counts, col_output, BCS.nwords+1)
                     invariant += col_degree(col_ps, BCS, i-1, ctrb[current_cell_against], word_ps)
                     invariant += first_largest_subcell
                     against_index = current_cell_against
@@ -746,7 +697,7 @@ cdef int refine_by_bip_degree(PartitionStack *col_ps, object S, int *cells_to_re
                 # now, i points to the next cell (before refinement)
                 if necessary_to_split_cell:
                     invariant += 64
-                    first_largest_subcell = sort_by_function(word_ps, current_cell, word_degrees, word_counts, word_output, BCS.degree+1)
+                    first_largest_subcell = sort_by_function_codes(word_ps, current_cell, word_degrees, word_counts, word_output, BCS.degree+1)
                     invariant += word_degree(word_ps, BCS, i-1, ctrb[current_cell_against], col_ps)
                     invariant += first_largest_subcell
                     against_index = current_cell_against
@@ -770,7 +721,7 @@ cdef int refine_by_bip_degree(PartitionStack *col_ps, object S, int *cells_to_re
         current_cell_against += 1
     return invariant
 
-cdef int compare_linear_codes(int *gamma_1, int *gamma_2, object S1, object S2):
+cdef int compare_linear_codes(int *gamma_1, int *gamma_2, void *S1, void *S2):
     """
     Compare gamma_1(S1) and gamma_2(S2).
 
@@ -843,7 +794,7 @@ cdef int compare_linear_codes(int *gamma_1, int *gamma_2, object S1, object S2):
                     return <int>bitset_check(&basis_2[i], gamma_2[cur_col]) - <int>bitset_check(&basis_1[i], gamma_1[cur_col])
     return 0
 
-cdef int compare_nonlinear_codes(int *gamma_1, int *gamma_2, object S1, object S2):
+cdef int compare_nonlinear_codes(int *gamma_1, int *gamma_2, void *S1, void *S2):
     """
     Compare gamma_1(S1) and gamma_2(S2).
 
@@ -923,7 +874,7 @@ cdef int compare_nonlinear_codes(int *gamma_1, int *gamma_2, object S1, object S
 
     return 0
 
-cdef bint all_children_are_equivalent(PartitionStack *col_ps, object S):
+cdef bint all_children_are_equivalent(PartitionStack *col_ps, void *S):
     """
     Returns True if any refinement of the current partition results in the same
     structure.
@@ -1022,7 +973,7 @@ cdef inline int col_degree(PartitionStack *col_ps, BinaryCodeStruct BCS, int ent
     bitset_free(word)
     return degree
 
-cdef inline int sort_by_function(PartitionStack *PS, int start, int *degrees, int *counts, int *output, int count_max):
+cdef inline int sort_by_function_codes(PartitionStack *PS, int start, int *degrees, int *counts, int *output, int count_max):
     """
     A simple counting sort, given the degrees of vertices to a certain cell.
 

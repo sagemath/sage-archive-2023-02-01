@@ -437,30 +437,52 @@ ext_modules = [
 
     Extension('sage.groups.perm_gps.partn_ref.automorphism_group_canonical_label',
               sources = ['sage/groups/perm_gps/partn_ref/automorphism_group_canonical_label.pyx'],
-              libraries = ['gmp']),
+              libraries = ['gmp', 'flint'],
+              include_dirs = [SAGE_ROOT + '/local/include/FLINT/'],
+              extra_compile_args = ['-std=c99'],
+              depends = [SAGE_ROOT + "/local/include/FLINT/flint.h"]),
 
     Extension('sage.groups.perm_gps.partn_ref.double_coset',
-              sources = ['sage/groups/perm_gps/partn_ref/double_coset.pyx']),
+              sources = ['sage/groups/perm_gps/partn_ref/double_coset.pyx'],
+              libraries = ['gmp', 'flint'],
+              include_dirs = [SAGE_ROOT + '/local/include/FLINT/'],
+              extra_compile_args = ['-std=c99'],
+              depends = [SAGE_ROOT + "/local/include/FLINT/flint.h"]),
 
     Extension('sage.groups.perm_gps.partn_ref.refinement_binary',
               sources = ['sage/groups/perm_gps/partn_ref/refinement_binary.pyx'],
-              libraries = ['gmp']),
+              libraries = ['gmp', 'flint'],
+              include_dirs = [SAGE_ROOT + '/local/include/FLINT/'],
+              extra_compile_args = ['-std=c99'],
+              depends = [SAGE_ROOT + "/local/include/FLINT/flint.h"]),
 
     Extension('sage.groups.perm_gps.partn_ref.refinement_graphs',
               sources = ['sage/groups/perm_gps/partn_ref/refinement_graphs.pyx'],
-              libraries = ['gmp']),
+              libraries = ['gmp', 'flint'],
+              include_dirs = [SAGE_ROOT + '/local/include/FLINT/'],
+              extra_compile_args = ['-std=c99'],
+              depends = [SAGE_ROOT + "/local/include/FLINT/flint.h"]),
 
     Extension('sage.groups.perm_gps.partn_ref.refinement_lists',
               sources = ['sage/groups/perm_gps/partn_ref/refinement_lists.pyx'],
-              libraries = ['gmp']),
+              libraries = ['gmp', 'flint'],
+              include_dirs = [SAGE_ROOT + '/local/include/FLINT/'],
+              extra_compile_args = ['-std=c99'],
+              depends = [SAGE_ROOT + "/local/include/FLINT/flint.h"]),
 
     Extension('sage.groups.perm_gps.partn_ref.refinement_matrices',
               sources = ['sage/groups/perm_gps/partn_ref/refinement_matrices.pyx'],
-              libraries = ['gmp']),
+              libraries = ['gmp', 'flint'],
+              include_dirs = [SAGE_ROOT + '/local/include/FLINT/'],
+              extra_compile_args = ['-std=c99'],
+              depends = [SAGE_ROOT + "/local/include/FLINT/flint.h"]),
 
     Extension('sage.groups.perm_gps.partn_ref.refinement_python',
               sources = ['sage/groups/perm_gps/partn_ref/refinement_python.pyx'],
-              libraries = ['gmp']),
+              libraries = ['gmp', 'flint'],
+              include_dirs = [SAGE_ROOT + '/local/include/FLINT/'],
+              extra_compile_args = ['-std=c99'],
+              depends = [SAGE_ROOT + "/local/include/FLINT/flint.h"]),
 
     ################################
     ##
@@ -1584,7 +1606,11 @@ ext_modules = [
     ################################
 
     Extension('sage.sets.disjoint_set',
-              sources = ['sage/sets/disjoint_set.pyx']),
+              sources = ['sage/sets/disjoint_set.pyx'],
+              libraries = ['gmp', 'flint'],
+              include_dirs = [SAGE_ROOT + '/local/include/FLINT/'],
+              extra_compile_args = ['-std=c99'],
+              depends = [SAGE_ROOT + "/local/include/FLINT/flint.h"]),
 
     ################################
     ##

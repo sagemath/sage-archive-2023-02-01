@@ -36,6 +36,7 @@ fi
 if [ "x$SAGE64" = "xyes" ]; then
     CFLAGS="$CFLAGS -m64"
     CPPFLAGS="$CPPFLAGS -m64"
+    CXXFLAGS="$CXXFLAGS -m64"
     # FIXME: Do we need LDFLAGS here, too?
     #        But looks as if all linking is performed by libtool/
     #        gcc, so we do not really need it here.
@@ -43,6 +44,7 @@ fi
 
 export CFLAGS
 export CPPFLAGS
+export CXXFLAGS
 # export LDFLAGS
 
 if [ "x$SAGE_FAT_BINARY" = "xyes" ]; then

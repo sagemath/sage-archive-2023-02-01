@@ -85,8 +85,6 @@ GSL mailing lists:
  * Added notes to SPKG.txt about an unnecessary ATLAS dependency in
    $SAGE_ROOT/spkg/standard/deps, and an explanation why GSL does *not*
    depend on ATLAS.
- * Added notes to SPKG.txt about how ATLAS could in principle be used to
-   improve the performance of some of GSL's functionality.
  * Force GSL to be built with no optimisation if SAGE_DEBUG is set to "yes"
  * Check that $SAGE_ROOT is defined both in spkg-install and spkg-check.
  * Exported LDFLAGS and CPPFLAGS when SAGE64 is set to "yes". This environment

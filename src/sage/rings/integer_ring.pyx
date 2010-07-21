@@ -713,7 +713,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             Relative Order in Number Field in a with defining polynomial x^2 + 1 over its base field
         """
         if embedding is not None:
-            raise NotImplementedError
+            if embedding!=[None]*len(embedding):
+                raise NotImplementedError
         from sage.rings.number_field.order import EquationOrder
         return EquationOrder(poly, names)
 

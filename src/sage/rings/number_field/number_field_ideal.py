@@ -246,6 +246,19 @@ class NumberFieldIdeal(Ideal_generic):
         """
         Compare an ideal of a number field to something else.
 
+        REMARK:
+
+        By default, comparing ideals is the same as comparing
+        their generator list. But of course, different generators
+        can give rise to the same ideal. And this can easily
+        be detected using Hermite normal form.
+
+        Unfortunately, there is a difference between "cmp" and
+        "==": In the first case, this method is directly called.
+        In the second case, it is only called *after coercion*.
+        However, we ensure that "cmp(I,J)==0" and "I==J" will
+        always give the same answer for number field ideals.
+
         EXAMPLES::
 
             sage: K.<a> = NumberField(x^2 + 3); K
@@ -262,9 +275,29 @@ class NumberFieldIdeal(Ideal_generic):
             True
             sage: f[1][0] == GF(7)(5)
             False
+
+        TESTS::
+
+            sage: L.<b> = NumberField(x^8-x^4+1)
+            sage: F_2 = L.fractional_ideal(b^2-1)
+            sage: F_4 = L.fractional_ideal(b^4-1)
+            sage: F_2 == F_4
+            True
+
         """
         if not isinstance(other, NumberFieldIdeal):
+            # this can only occur with cmp(,)
             return cmp(type(self), type(other))
+        if self.parent()!=other.parent():
+            # again, this can only occur if cmp(,)
+            # is called
+            if self==other:
+                return 0
+            c = cmp(self.pari_hnf(), other.pari_hnf())
+            if c: return c
+            return cmp(self.parent(),other.parent())
+        # We can now assume that both have the same parent,
+        # even if originally cmp(,) was called.
         return cmp(self.pari_hnf(), other.pari_hnf())
 
     def coordinates(self, x):

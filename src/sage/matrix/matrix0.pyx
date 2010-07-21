@@ -3769,13 +3769,13 @@ cdef class Matrix(sage.structure.element.Matrix):
             [ 6 11]
             sage: parent(d)
             Full MatrixSpace of 2 by 2 dense matrices over Rational Field
-            sage: d = b*c; d
+            sage: d = b+c
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '*': 'Full MatrixSpace of 2 by 2 dense matrices over Finite Field of size 7' and 'Full MatrixSpace of 2 by 2 dense matrices over Rational Field'
-            sage: d = b*c.change_ring(GF(7)); d
-            [2 3]
-            [6 4]
+            TypeError: unsupported operand parent(s) for '+': 'Full MatrixSpace of 2 by 2 dense matrices over Finite Field of size 7' and 'Full MatrixSpace of 2 by 2 dense matrices over Rational Field'
+            sage: d = b+c.change_ring(GF(7)); d
+            [0 2]
+            [4 6]
 
         EXAMPLE of matrix times matrix where one matrix is sparse and the
         other is dense (in such mixed cases, the result is always dense)::

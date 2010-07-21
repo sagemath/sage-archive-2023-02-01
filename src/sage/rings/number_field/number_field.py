@@ -369,9 +369,8 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True,
           To:   Number Field in b with defining polynomial x^6 - x^2 + 1/10
           Defn: a -> b^2
 
-    The ``QuadraticField`` and
-    ``CyclotomicField`` constructors create an embedding by
-    default unless otherwise specified.
+    The ``QuadraticField`` and ``CyclotomicField`` constructors
+    create an embedding by default unless otherwise specified.
 
     ::
 
@@ -419,6 +418,15 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True,
         sage: W.<a> = NumberField(x^2 + 1); W
         Number Field in a with defining polynomial x^2 + 1 over its base field
 
+    The following has been fixed in trac ticket #8800::
+
+        sage: P.<x> = QQ[]
+        sage: K.<a> = NumberField(x^3-5,embedding=0)
+        sage: L.<b> = K.extension(x^2+a)
+        sage: F, R = L.construction()
+        sage: F(R) == L    # indirect doctest
+        True
+
     """
     if name is None and names is None:
         raise TypeError, "You must specify the name of the generator."
@@ -426,7 +434,7 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True,
         name = names
 
     if isinstance(polynomial, (list, tuple)):
-        return NumberFieldTower(polynomial, name)
+        return NumberFieldTower(polynomial, name, embeddings=embedding)
 
     name = sage.structure.parent_gens.normalize_names(1, name)
 
@@ -1023,6 +1031,76 @@ class NumberField_generic(number_field_base.NumberField):
         self._integral_basis_dict = {}
         embedding = number_field_morphisms.create_embedding_from_approx(self, embedding)
         self._populate_coercion_lists_(embedding=embedding)
+
+    def construction(self):
+        r"""
+        Construction of self
+
+        EXAMPLE::
+
+            sage: K.<a>=NumberField(x^3+x^2+1,embedding=CC.gen())
+            sage: F,R = K.construction()
+            sage: F
+            AlgebraicExtensionFunctor
+            sage: R
+            Rational Field
+            sage: F(R) == K
+            True
+
+        Note that, if a number field is provided with an embedding,
+        the construction functor applied to the rationals is not
+        necessarily identic with the number field. The reason is
+        that the construction functor uses a value for the embedding
+        that is equivalent, but not necessarily equal, to the one
+        provided in the definition of the number field::
+
+            sage: F(R) is K
+            False
+            sage: F.embeddings
+            [0.2327856159383841? + 0.7925519925154479?*I]
+
+        TEST::
+
+            sage: K.<a> = NumberField(x^3+x+1)
+            sage: R.<t> = ZZ[]
+            sage: a+t     # indirect doctest
+            t + a
+            sage: (a+t).parent()
+            Univariate Polynomial Ring in t over Number Field in a with defining polynomial x^3 + x + 1
+
+        The construction works for non-absolute number fields as well::
+
+            sage: K.<a,b,c>=NumberField([x^3+x^2+1,x^2+1,x^7+x+1])
+            sage: F,R = K.construction()
+            sage: F(R) == K
+            True
+
+        ::
+
+            sage: P.<x> = QQ[]
+            sage: K.<a> = NumberField(x^3-5,embedding=0)
+            sage: L.<b> = K.extension(x^2+a)
+            sage: a*b
+            a*b
+
+        """
+        from sage.categories.pushout import AlgebraicExtensionFunctor
+        from sage.all import QQ
+        if self.is_absolute():
+            return (AlgebraicExtensionFunctor([self.polynomial()], [self.variable_name()], [None if self.coerce_embedding() is None else self.coerce_embedding()(self.gen())]), QQ)
+        names = self.variable_names()
+        polys = []
+        embeddings = []
+        K = self
+        while (1):
+            if K.is_absolute():
+                break
+            polys.append(K.relative_polynomial())
+            embeddings.append(None if K.coerce_embedding() is None else K.coerce_embedding()(self.gen()))
+            K = K.base_field()
+        polys.append(K.relative_polynomial())
+        embeddings.append(None if K.coerce_embedding() is None else K.coerce_embedding()(K.gen()))
+        return (AlgebraicExtensionFunctor(polys, names, embeddings), QQ)
 
     def _element_constructor_(self, x):
         r"""
@@ -4385,13 +4463,15 @@ class NumberField_generic(number_field_base.NumberField):
             ...
             ValueError: Fractional ideal (5) is not a prime ideal
         """
+        from sage.rings.number_field.number_field_ideal import is_NumberFieldIdeal
+        if is_NumberFieldIdeal(prime) and prime.number_field() is not self:
+            raise ValueError, "%s is not an ideal of %s"%(prime,self)
         # This allows principal ideals to be specified using a generator:
         try:
             prime = self.ideal(prime)
         except TypeError:
             pass
 
-        from sage.rings.number_field.number_field_ideal import is_NumberFieldIdeal
         if not is_NumberFieldIdeal(prime) or prime.number_field() is not self:
             raise ValueError, "%s is not an ideal of %s"%(prime,self)
         if check and not prime.is_prime():
@@ -4843,23 +4923,50 @@ class NumberField_absolute(NumberField_generic):
         """
         Coerce a number field element x into this number field.
 
-        In most cases this currently doesn't work (since it is
-        barely implemented) -- it only works for constants.
+        REMARK:
+
+        The name of this method was chosen for historical reasons.
+        In fact, what it does is not a coercion but a conversion.
 
         INPUT:
-            x -- an element of some number field
 
-        EXAMPLES:
+        ``x`` -- an element of some number field
+
+        ASSUMPTION:
+
+        ``x`` should be an element of a number field whose underlying
+        polynomial ring allows conversion into the polynomial ring of
+        ``self``.
+
+        Note that it is only tested that there is a method
+        ``x.polynomial()`` yielding an output that can be converted
+        into ``self.polynomial_ring()``.
+
+        OUTPUT:
+
+        An element of ``self`` corresponding to ``x``.
+
+        EXAMPLES::
+
             sage: K.<a> = NumberField(x^3 + 2)
             sage: L.<b> = NumberField(x^2 + 1)
             sage: K._coerce_from_other_number_field(L(2/3))
             2/3
+
+        TESTS:
+
+        The following was fixed in trac ticket #8800::
+
+            sage: P.<x> = QQ[]
+            sage: K.<a> = NumberField(x^3-5,embedding=0)
+            sage: L.<b> = K.extension(x^2+a)
+            sage: F,R = L.construction()
+            sage: F(R) == L   #indirect doctest
+            True
+
         """
-        f = x.polynomial()
-        if f.degree() <= 0:
-            return self._element_class(self, f[0])
-        # todo: more general coercion if embedding have been asserted
-        raise TypeError, "Cannot coerce element into this number field"
+        f = self.polynomial_ring()(x.polynomial())
+        return self._element_class(self, f)
 
     def _coerce_non_number_field_element_in(self, x):
         """
@@ -4948,10 +5055,15 @@ class NumberField_absolute(NumberField_generic):
 
     def _coerce_map_from_(self, R):
         """
-        Canonical coercion of x into self.
+        Canonical coercion of a ring R into self.
 
-        Currently integers, rationals, and this field itself coerce
-        canonically into this field.
+        Currently any ring coercing into the base ring canonically coerces
+        into this field, as well as orders in any number field coercing into
+        this field, and of course the field itself as well.
+
+        Two embedded number fields may mutually coerce into each other, if
+        the pushout of the two ambient fields exists and if it is possible
+        to construct an :class:`~sage.rings.number_field.number_field_morphisms.EmbeddedNumberFieldMorphism`.
 
         EXAMPLES::
 
@@ -4967,7 +5079,8 @@ class NumberField_absolute(NumberField_generic):
             sage: S.coerce(y) is y
             True
 
-        Fields with embeddings into an ambient field coerce naturally.
+        Fields with embeddings into an ambient field coerce naturally by the given embedding::
+
             sage: CyclotomicField(15).coerce(CyclotomicField(5).0 - 17/3)
             zeta15^3 - 17/3
             sage: K.<a> = CyclotomicField(16)
@@ -4979,29 +5092,58 @@ class NumberField_absolute(NumberField_generic):
               To:   Number Field in a with defining polynomial x^2 + 3
               Defn: zeta3 -> 1/2*a - 1/2
 
-        There are situations for which one might imagine canonical
-        coercion could make sense (at least after fixing choices), but
-        which aren't yet implemented:
+        Two embedded number fields with mutual coercions (testing against a
+        bug that was fixed in trac ticket #8800)::
+
+            sage: K.<r4> = NumberField(x^4-2)
+            sage: L1.<r2_1> = NumberField(x^2-2, embedding = r4**2)
+            sage: L2.<r2_2> = NumberField(x^2-2, embedding = -r4**2)
+            sage: r2_1+r2_2    # indirect doctest
+            0
+            sage: (r2_1+r2_2).parent() is L1
+            True
+            sage: (r2_2+r2_1).parent() is L2
+            True
+
+        Coercion of an order (testing against a bug that was fixed in
+        trac ticket #8800)::
+
+            sage: K.has_coerce_map_from(L1)
+            True
+            sage: L1.has_coerce_map_from(K)
+            False
+            sage: K.has_coerce_map_from(L1.maximal_order())
+            True
+            sage: L1.has_coerce_map_from(K.maximal_order())
+            False
+
+        There are situations for which one might imagine conversion
+        could make sense (at least after fixing choices), but of course
+        there will be no coercion from the Symbolic Ring to a Number Field::
+
             sage: K.<a> = QuadraticField(2)
             sage: K.coerce(sqrt(2))
             Traceback (most recent call last):
             ...
             TypeError: no canonical coercion from Symbolic Ring to Number Field in a with defining polynomial x^2 - 2
 
-        TESTS:
+        TESTS::
+
             sage: K.<a> = NumberField(polygen(QQ)^3-2)
             sage: type(K.coerce_map_from(QQ))
             <type 'sage.structure.coerce_maps.DefaultConvertMap_unique'>
 
-        Make sure we still get our optimized morphisms for special fields:
+        Make sure we still get our optimized morphisms for special fields::
+
             sage: K.<a> = NumberField(polygen(QQ)^2-2)
             sage: type(K.coerce_map_from(QQ))
             <type 'sage.rings.number_field.number_field_element_quadratic.Q_to_quadratic_field_element'>
+
         """
         if R in [int, long, ZZ, QQ, self.base()]:
             return self._generic_convert_map(R)
         from sage.rings.number_field.order import is_NumberFieldOrder
-        if is_NumberFieldOrder(R) and R.number_field().has_coerce_map_from(self):
+        if is_NumberFieldOrder(R) and self.has_coerce_map_from(R.number_field()):
             return self._generic_convert_map(R)
         if is_NumberField(R) and R != QQ:
             if R.coerce_embedding() is not None:
@@ -5010,9 +5152,23 @@ class NumberField_absolute(NumberField_generic):
                         from sage.categories.pushout import pushout
                         ambient_field = pushout(R.coerce_embedding().codomain(), self.coerce_embedding().codomain())
                         if ambient_field is not None:
+                            try:
+                                # the original ambient field
+                                return number_field_morphisms.EmbeddedNumberFieldMorphism(R, self, ambient_field)
+                            except ValueError: # no embedding found
+                                # there might be one in the alg. completion
+                                return number_field_morphisms.EmbeddedNumberFieldMorphism(R, self, ambient_field.algebraic_closure() if hasattr(ambient_field,'algebraic_closure') else ambient_field)
+                    except (ValueError, TypeError, sage.structure.coerce_exceptions.CoercionException),msg:
+                        # no success with the pushout
+                        try:
                             return number_field_morphisms.EmbeddedNumberFieldMorphism(R, self)
-                    except (TypeError, ValueError):
-                        pass
+                        except (TypeError, ValueError):
+                            pass
+                else:
+                    # R is embedded, self isn't. So, we could only have
+                    # the forgetful coercion. But this yields to non-commuting
+                    # coercions, as was pointed out at ticket #8800
+                    return None
 
     def _magma_init_(self, magma):
         """
@@ -6502,6 +6658,11 @@ class NumberField_cyclotomic(NumberField_absolute):
             True
         """
         return NumberField_cyclotomic_v1, (self.__n, self.variable_name(), self.gen_embedding())
+
+    def construction(self):
+        F,R = NumberField_generic.construction(self)
+        F.cyclotomic = self.__n
+        return F,R
 
     def _magma_init_(self, magma):
         """

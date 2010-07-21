@@ -160,7 +160,8 @@ residue_field_cache = {}
 class ResidueFieldFactory(UniqueFactory):
     """
     A factory that returns the residue class field of a prime ideal p
-    of the ring of integers of a number field, or of a polynomial ring over a finite field.
+    of the ring of integers of a number field, or of a polynomial ring
+    over a finite field.
 
     INPUT:
 
@@ -296,12 +297,13 @@ class ResidueFieldFactory(UniqueFactory):
 
     def create_object(self, version, key, **kwds):
         p, names, impl = key
+        pring = p.ring()
 
-        if p.ring() is ZZ:
+        if pring is ZZ:
             return ResidueFiniteField_prime_modn(p, names, p.gen(), None, None, None)
-        if is_PolynomialRing(p.ring()):
-            K = p.ring().fraction_field()
-            Kbase = p.ring().base_ring()
+        if is_PolynomialRing(pring):
+            K = pring.fraction_field()
+            Kbase = pring.base_ring()
             f = p.gen()
             if f.degree() == 1 and Kbase.is_prime_field() and (impl is None or impl == 'modn'):
                 return ResidueFiniteField_prime_modn(p, None, Kbase.order(), None, None, None)
@@ -320,9 +322,9 @@ class ResidueFieldFactory(UniqueFactory):
         if is_NumberFieldIdeal(p):
             characteristic = p.smallest_integer()
         else: # ideal of a function field
-            characteristic = p.ring().base_ring().characteristic()
+            characteristic = pring.base_ring().characteristic()
         # Once we have function fields, we should probably have an if statement here.
-        K = p.ring().fraction_field()
+        K = pring.fraction_field()
         #OK = K.maximal_order() # Need to change to p.order inside the __init__s for the residue fields.
 
         U, to_vs, to_order = p._p_quotient(characteristic)
@@ -454,9 +456,19 @@ class ResidueField_generic(Field):
 
     def _element_constructor_(self, x):
         """
-        This is called after x fails to coerce into the finite field (without the convert map from the number field).
+        This is called after x fails to convert into ``self`` as
+        abstract finite field (without considering the underlying
+        number field).
 
-        So the strategy is to try to coerce into the number field, and then use the convert map.
+        So the strategy is to try to convert into the number field,
+        and then proceed to the residue field.
+
+        NOTE:
+
+        The behaviour of this method was changed in trac ticket #8800.
+        Before, an error was raised if there was no coercion. Now,
+        a conversion is possible even when there is no coercion.
+        This is like for different finite fields.
 
         EXAMPLES::
 
@@ -467,17 +479,49 @@ class ResidueField_generic(Field):
             sage: F = OK.residue_field(P)
             sage: ResidueField_generic._element_constructor_(F, i)
             8
-            sage: ResidueField_generic._element_constructor_(F, GF(13)(8))
-            Traceback (most recent call last):
-            ...
-            TypeError: cannot coerce <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>
 
-            #sage: R.<t> = GF(17)[]; P = R.ideal(t^3 + t^2 + 7)
-            #sage: k.<a> = P.residue_field()
-            #sage: ResidueField_generic._element_constructor_(k, t)
-            #a
-            #sage: ResidueField_generic._element_constructor_(k, GF(17)(4))
-            #4
+        With ticket #8800, we also have::
+
+            sage: ResidueField_generic._element_constructor_(F, GF(13)(8))
+            8
+
+        Here is a test that was temporarily removed, but newly introduced
+        in ticket #8800::
+
+            sage: R.<t> = GF(17)[]; P = R.ideal(t^3 + t^2 + 7)
+            sage: k.<a> = P.residue_field()
+            sage: k(t)
+            a
+            sage: k(GF(17)(4))
+            4
+
+        In the remaining tests, we elaborate a bit more on the difference of
+        coercion and conversion::
+
+            sage: K.<r4> = NumberField(x^4-2)
+            sage: L.<r4> = NumberField(x^4-2, embedding=CDF.0)
+            sage: FK = K.fractional_ideal(K.0)
+            sage: FL = L.fractional_ideal(L.0)
+
+        There is no coercion from the embedded to the unembedded
+        number field. Hence, the two fractional ideals are different.
+        By consequence, the resulting residue fields are different::
+
+            sage: RL = ResidueField(FL)
+            sage: RK = ResidueField(FK)
+            sage: RK == RL
+            False
+
+        Since ``RL`` is defined with the embedded number field ``L``, there
+        is no coercion from the maximal order of ``K`` to ``RL``. However,
+        conversion is possible::
+
+            sage: OK = K.maximal_order()
+            sage: RL.has_coerce_map_from(OK)
+            False
+            sage: RL(OK.1)
+            0
+
         """
         K = OK = self.p.ring()
         if OK.is_field():
@@ -495,7 +539,10 @@ class ResidueField_generic(Field):
         elif K.has_coerce_map_from(R):
             x = K(x)
         else:
-            raise TypeError, "cannot coerce %s"%type(x)
+            try:
+                x = K(x)
+            except (TypeError, ValueError):
+                raise TypeError, "cannot coerce %s"%type(x)
         return self(x)
 
     def _coerce_map_from_(self, R):

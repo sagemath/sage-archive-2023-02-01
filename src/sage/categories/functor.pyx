@@ -9,7 +9,8 @@ AUTHORS:
 
 - Robert Bradshaw (2007-06-23): Pyrexify
 
-- Simon King (2010-04-30): more examples, several bug fixes, re-implementation of the default call method,
+- Simon King (2010-04-30): more examples, several bug fixes,
+  re-implementation of the default call method,
   making functors applicable to morphisms (not only to objects)
 
 """
@@ -44,16 +45,18 @@ cdef class Functor(SageObject):
       Instead, one should implement three methods, which are composed in the
       default call method:
 
-      - ``_coerce_into_domain(self, x)``: Return an object of ``self``'s domain,
-        corresponding to ``x``, or raise a ``TypeError``.
+      - ``_coerce_into_domain(self, x)``: Return an object of ``self``'s
+        domain, corresponding to ``x``, or raise a ``TypeError``.
 
         - Default: Raise ``TypeError`` if ``x`` is not in ``self``'s domain.
 
-      - ``_apply_functor(self, x)``: Apply ``self`` to an object ``x`` of ``self``'s domain.
+      - ``_apply_functor(self, x)``: Apply ``self`` to an object ``x`` of
+        ``self``'s domain.
 
         - Default: Conversion into ``self``'s codomain.
 
-      - ``_apply_functor_to_morphism(self, f)``: Apply ``self`` to a morphism ``f`` in ``self``'s domain.
+      - ``_apply_functor_to_morphism(self, f)``: Apply ``self`` to a morphism
+        ``f`` in ``self``'s domain.
         - Default: Return ``self(f.domain()).hom(f,self(f.codomain()))``.
 
     EXAMPLES::
@@ -76,9 +79,9 @@ cdef class Functor(SageObject):
         sage: is_Functor(I)
         True
 
-    Note that by default, an instance of the class Functor is coercion from the
-    domain into the codomain. The above subclasses overloaded this behaviour. Here
-    we illustrate the default::
+    Note that by default, an instance of the class Functor is coercion
+    from the domain into the codomain. The above subclasses overloaded
+    this behaviour. Here we illustrate the default::
 
         sage: from sage.categories.functor import Functor
         sage: F = Functor(Rings(),Fields())
@@ -89,9 +92,9 @@ cdef class Functor(SageObject):
         sage: F(GF(2))
         Finite Field of size 2
 
-    Functors are not only about the objects of a category, but also about their
-    morphisms. We illustrate it, again, with the coercion functor from rings
-    to fields.
+    Functors are not only about the objects of a category, but also about
+    their morphisms. We illustrate it, again, with the coercion functor
+    from rings to fields.
 
     ::
 
@@ -108,6 +111,27 @@ cdef class Functor(SageObject):
           From: Fraction Field of Univariate Polynomial Ring in x over Integer Ring
           To:   Fraction Field of Multivariate Polynomial Ring in a, b over Rational Field
           Defn: x |--> a + b
+        sage: F(f)(1/x)
+        1/(a + b)
+
+    We can also apply a polynomial ring construction functor to our homomorphism. The
+    result is a homomorphism that is defined on the base ring::
+
+        sage: F = QQ['t'].construction()[0]
+        sage: F
+        Poly[t]
+        sage: F(f)
+        Ring morphism:
+          From: Univariate Polynomial Ring in t over Univariate Polynomial Ring in x over Integer Ring
+          To:   Univariate Polynomial Ring in t over Multivariate Polynomial Ring in a, b over Rational Field
+          Defn: Induced from base ring by
+                Ring morphism:
+                  From: Univariate Polynomial Ring in x over Integer Ring
+                  To:   Multivariate Polynomial Ring in a, b over Rational Field
+                  Defn: x |--> a + b
+        sage: p = R1['t']('(-x^2 + x)*t^2 + (x^2 - x)*t - 4*x^2 - x + 1')
+        sage: F(f)(p)
+        (-a^2 - 2*a*b - b^2 + a + b)*t^2 + (a^2 + 2*a*b + b^2 - a - b)*t - 4*a^2 - 8*a*b - 4*b^2 - a - b + 1
 
     """
     def __init__(self, domain, codomain):
@@ -133,7 +157,7 @@ cdef class Functor(SageObject):
 
     def _apply_functor(self, x):
         """
-        Apply the functor to an object of ``self``'s domain
+        Apply the functor to an object of ``self``'s domain.
 
         NOTE:
 
@@ -153,13 +177,13 @@ cdef class Functor(SageObject):
 
     def _apply_functor_to_morphism(self, f):
         """
-        Apply the functor to a morphism between two objects of ``self``'s domain
+        Apply the functor to a morphism between two objects of ``self``'s domain.
 
         NOTE:
 
-        Each subclass of :class:`Functor` should overload this method. By default,
-        this method coerces into the codomain, without checking whether the
-        argument belongs to the domain.
+        Each subclass of :class:`Functor` should overload this method. By
+        default, this method coerces into the codomain, without checking
+        whether the argument belongs to the domain.
 
         TESTS::
 
@@ -169,7 +193,8 @@ cdef class Functor(SageObject):
             sage: f = k.hom([-a-4])
             sage: R.<t> = k[]
             sage: fR = R.hom(f,R)
-            sage: fF = F(fR); fF
+            sage: fF = F(fR)         # indirect doctest
+            sage: fF
             Ring endomorphism of Fraction Field of Univariate Polynomial Ring in t over Finite Field in a of size 5^2
               Defn: Induced from base ring by
                     Ring endomorphism of Univariate Polynomial Ring in t over Finite Field in a of size 5^2
@@ -187,15 +212,16 @@ cdef class Functor(SageObject):
 
     def _coerce_into_domain(self, x):
         """
-        Interprete the argument as an object of self's domain
+        Interprete the argument as an object of self's domain.
 
         NOTE:
 
-        Each subclass of :class:`Functor` should overload this method. It should return
-        an object of self's domain, and should raise a ``TypeError`` if this is impossible.
+        A subclass of :class:`Functor` may overload this method. It should
+        return an object of self's domain, and should raise a ``TypeError``
+        if this is impossible.
 
-        By default, the argument will not be changed, but a ``TypeError`` will be raised if
-        the argument does not belong to the domain.
+        By default, the argument will not be changed, but a ``TypeError``
+        will be raised if the argument does not belong to the domain.
 
         TEST::
 
@@ -207,7 +233,6 @@ cdef class Functor(SageObject):
             Traceback (most recent call last):
             ...
             TypeError: x (=Integer Ring) is not in Category of fields
-
 
         """
         if not (x in  self.__domain):
@@ -229,7 +254,8 @@ cdef class Functor(SageObject):
         """
         NOTE:
 
-        Implement _coerce_into_domain and _apply_functor when subclassing Functor.
+        Implement _coerce_into_domain, _apply_functor and
+        _apply_functor_to_morphism when subclassing Functor.
 
         TESTS:
 
@@ -397,28 +423,32 @@ class ForgetfulFunctor_generic(Functor):
         """
         NOTE:
 
-        It is tested whether the second argument belongs to the class of forgetful functors
-        and has the same domain and codomain as self. If the second argument is a functor
-        of a different class but happens to be a forgetful functor, both arguments will
+        It is tested whether the second argument belongs to the class
+        of forgetful functors and has the same domain and codomain as
+        self. If the second argument is a functor of a different class
+        but happens to be a forgetful functor, both arguments will
         still be considered as being *different*.
 
         TEST::
 
             sage: F1 = ForgetfulFunctor(FiniteFields(),Fields())
 
-        This is to test against a bug occuring in a previous version (see ticket 8800)::
+        This is to test against a bug occuring in a previous version
+        (see ticket 8800)::
 
             sage: F1 == QQ #indirect doctest
             False
 
-        We now compare with the fraction field functor, that has a different domain:
+        We now compare with the fraction field functor, that has a
+        different domain::
 
             sage: F2 = QQ.construction()[0]
             sage: F1 == F2 #indirect doctest
             False
 
         """
-        if not isinstance(other, self.__class__):
+        from sage.categories.pushout import IdentityConstructionFunctor
+        if not isinstance(other, (self.__class__,IdentityConstructionFunctor)):
             return -1
         if self.domain() == other.domain() and \
            self.codomain() == other.codomain():
@@ -445,6 +475,16 @@ class IdentityFunctor_generic(ForgetfulFunctor_generic):
         ...
         TypeError: x (=Integer Ring) is not in Category of fields
 
+    TESTS::
+
+        sage: R = IdentityFunctor(Rings())
+        sage: P, _ = QQ['t'].construction()
+        sage: R == P
+        False
+        sage: P == R
+        False
+        sage: R == QQ
+        False
     """
     def __init__(self, C):
         """
@@ -485,6 +525,8 @@ class IdentityFunctor_generic(ForgetfulFunctor_generic):
 
     def _apply_functor(self, x):
         """
+        Apply the functor to an object of ``self``'s domain.
+
         TESTS::
 
             sage: fields = Fields()
@@ -533,8 +575,8 @@ def ForgetfulFunctor(domain, codomain):
 
     OUTPUT:
 
-    A functor that returns the corresponding object of ``D`` for any element of ``C``,
-    by forgetting the extra structure.
+    A functor that returns the corresponding object of ``D`` for
+    any element of ``C``, by forgetting the extra structure.
 
     ASSUMPTION:
 
@@ -567,5 +609,4 @@ def ForgetfulFunctor(domain, codomain):
     if not domain.is_subcategory(codomain):
         raise ValueError, "Forgetful functor not supported for domain %s"%domain
     return ForgetfulFunctor_generic(domain, codomain)
-
 

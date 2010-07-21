@@ -13,6 +13,7 @@ Category Theory
    sage/categories/homset
    sage/categories/morphism
    sage/categories/functor
+   sage/categories/pushout
 
 Functorial constructions
 ========================

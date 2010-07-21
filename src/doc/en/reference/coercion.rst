@@ -586,14 +586,14 @@ These are accessed via the :meth:`construction` method, which returns a
     sage: CC.construction()
     (AlgebraicClosureFunctor, Real Field with 53 bits of precision)
     sage: RR.construction()
-    (CompletionFunctor, Rational Field)
+    (Completion[+Infinity], Rational Field)
     sage: QQ.construction()
     (FractionField, Integer Ring)
     sage: ZZ.construction()  # None
 
     sage: Qp(5).construction()
-    (CompletionFunctor, Rational Field)
-    sage: QQ.completion(5, 100)
+    (Completion[5], Rational Field)
+    sage: QQ.completion(5, 100, {})
     5-adic Field with capped relative precision 100
     sage: c, R = RR.construction()
     sage: a = CC.construction()[0]
@@ -608,7 +608,7 @@ These are accessed via the :meth:`construction` method, which returns a
     (FractionField, Univariate Polynomial Ring in x over Complex Double Field),
     (Poly[x], Complex Double Field),
     (AlgebraicClosureFunctor, Real Double Field),
-    (CompletionFunctor, Rational Field),
+    (Completion[+Infinity], Rational Field),
     (FractionField, Integer Ring)]
 
 Given Parents R and S, such that there is no coercion either from R to

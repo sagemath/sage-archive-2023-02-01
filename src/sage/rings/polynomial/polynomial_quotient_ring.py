@@ -234,18 +234,18 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
     def __reduce__(self):
         return PolynomialQuotientRing_generic, (self.__ring, self.__polynomial, self.variable_names())
 
-    def __call__(self, x):
+    def _element_constructor_(self, x):
         """
-        Coerce x into this quotient ring. Anything that can be coerced into
-        the polynomial ring can be coerced into the quotient.
+        Convert x into this quotient ring. Anything that can be converted into
+        the polynomial ring can be converted into the quotient.
 
         INPUT:
 
 
-        -  ``x`` - object to be coerced
+        -  ``x`` - object to be converted
 
 
-        OUTPUT: an element obtained by coercing x into this ring.
+        OUTPUT: an element obtained by converting x into this ring.
 
         EXAMPLES::
 
@@ -263,15 +263,59 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
             alpha + 1
             sage: S(S.gen()^10+1)
             90*alpha^2 - 109*alpha + 28
+
+        TESTS:
+
+        Conversion should work even if there is no coercion.
+        This was fixed in trac ticket #8800::
+
+            sage: P.<x> = QQ[]
+            sage: Q1 = P.quo([(x^2+1)^2*(x^2-3)])
+            sage: Q = P.quo([(x^2+1)^2])
+            sage: Q1.has_coerce_map_from(Q)
+            False
+            sage: Q1(Q.gen())
+            xbar
+
         """
         if isinstance(x, PolynomialQuotientRingElement):
             P = x.parent()
             if P is self:
                 return x
-            elif P == self:
-                return PolynomialQuotientRingElement(self, self.__ring(x.lift()), check=False)
+            return PolynomialQuotientRingElement(self, self.__ring(x.lift()), check=False)
         return PolynomialQuotientRingElement(
                         self, self.__ring(x) , check=True)
+
+    def _coerce_map_from_(self, R):
+        """
+        Anything coercing into ``self``'s polynomial ring coerces into ``self``.
+        Any quotient polynomial ring whose polynomial ring coerces into
+        ``self``'s polynomial ring and whose modulus is divided by the modulus
+        of ``self`` coerces into ``self``.
+
+        AUTHOR:
+
+        - Simon King (2010-12): Trac ticket #8800
+
+        TESTS::
+
+            sage: P5.<x> = GF(5)[]
+            sage: Q = P5.quo([(x^2+1)^2])
+            sage: P.<x> = ZZ[]
+            sage: Q1 = P.quo([(x^2+1)^2*(x^2-3)])
+            sage: Q2 = P.quo([(x^2+1)^2*(x^5+3)])
+            sage: Q.has_coerce_map_from(Q1)  #indirect doctest
+            True
+            sage: Q1.has_coerce_map_from(Q)
+            False
+            sage: Q1.has_coerce_map_from(Q2)
+            False
+
+        """
+        if self.__ring.has_coerce_map_from(R):
+            return True
+        if isinstance(R, PolynomialQuotientRing_generic):
+            return self.__ring.has_coerce_map_from(R.polynomial_ring()) and self.__polynomial.divides(R.modulus())
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
         try:
@@ -367,6 +411,29 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
         return "Univariate Quotient Polynomial Ring in %s over %s with modulus %s"%(
             self.variable_name(), self.base_ring(), self.modulus())
 
+    def construction(self):
+        """
+        Functorial construction of ``self``
+
+        EXAMPLES::
+
+            sage: P.<t>=ZZ[]
+            sage: Q = P.quo(5+t^2)
+            sage: F, R = Q.construction()
+            sage: F(R) == Q
+            True
+            sage: P.<t> = GF(3)[]
+            sage: Q = P.quo([2+t^2])
+            sage: F, R = Q.construction()
+            sage: F(R) == Q
+            True
+
+        AUTHOR:
+
+        -- Simon King (2010-05)
+        """
+        from sage.categories.pushout import QuotientFunctor
+        return QuotientFunctor([self.modulus()]*self.base(),self.variable_names(),self.is_field()), self.base()
 
     def base_ring(self):
         r"""

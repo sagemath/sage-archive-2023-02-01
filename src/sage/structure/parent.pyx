@@ -1649,7 +1649,20 @@ cdef class Parent(category_object.CategoryObject):
         usually denotes a special relationship (e.g. sub-objects, choice of
         completion, etc.)
 
-        EXAMPLES:
+        EXAMPLES::
+
+            sage: K.<a>=NumberField(x^3+x^2+1,embedding=1)
+            sage: K.coerce_embedding()
+            Generic morphism:
+              From: Number Field in a with defining polynomial x^3 + x^2 + 1
+              To:   Real Lazy Field
+              Defn: a -> -1.465571231876768?
+            sage: K.<a>=NumberField(x^3+x^2+1,embedding=CC.gen())
+            sage: K.coerce_embedding()
+            Generic morphism:
+              From: Number Field in a with defining polynomial x^3 + x^2 + 1
+              To:   Complex Lazy Field
+              Defn: a -> 0.2327856159383841? + 0.7925519925154479?*I
         """
         return self._embedding
 
@@ -1808,7 +1821,7 @@ cdef class Parent(category_object.CategoryObject):
             return self.coerce_map_from(S._type)
         if self._coerce_from_hash is None: # this is because parent.__init__() does not always get called
             self.init_coerce(False)
-        cdef object ret
+        #cdef object ret
         try:
             return self._coerce_from_hash[S]
         except KeyError:

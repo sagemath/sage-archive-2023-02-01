@@ -4115,6 +4115,9 @@ class CoordinateFunction:
             ...
             TypeError: Cannot coerce element into this number field
         """
+        from sage.all import parent
+        if not self.__K.has_coerce_map_from(parent(x)):
+            raise TypeError, "Cannot coerce element into this number field"
         return self.__W.coordinates(self.__to_V(self.__K(x)))
 
     def __cmp__(self, other):

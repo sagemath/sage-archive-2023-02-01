@@ -634,7 +634,7 @@ class EllipticCurveLocalData(SageObject):
         - ``cp`` (int) is the Tamagawa number
 
 
-        EXAMPLES (this raised an type error in sage prior to 4.4.4, see ticket #7930) ::
+        EXAMPLES (this raised a type error in sage prior to 4.4.4, see ticket #7930) ::
 
             sage: E = EllipticCurve('99d1')
 
@@ -651,14 +651,12 @@ class EllipticCurveLocalData(SageObject):
 
         EXAMPLES:
 
-        The following example shows that the bug at #9324 is fixed:
+        The following example shows that the bug at #9324 is fixed::
 
             sage: K.<a> = NumberField(x^2-x+6)
             sage: E = EllipticCurve([0,0,0,-53160*a-43995,-5067640*a+19402006])
             sage: E.conductor() # indirect doctest
             Fractional ideal (18, 6*a)
-
-
 
         """
         E = self._curve
@@ -692,9 +690,26 @@ class EllipticCurveLocalData(SageObject):
 
         pval = lambda x: x.valuation(prime)
         pdiv = lambda x: x.is_zero() or pval(x) > 0
-        pinv = lambda x: F.lift(~F(x))
-        proot = lambda x,e: F.lift(F(x).nth_root(e, extend = False, all = True)[0])
-        preduce = lambda x: F.lift(F(x))
+        # Since ResidueField is cached in a way that
+        # does not care much about embeddings of number
+        # fields, it can happen that F.p.ring() is different
+        # from K. This is a problem: If F.p.ring() has no
+        # embedding but K has, then there is no coercion
+        # from F.p.ring().maximal_order() to K. But it is
+        # no problem to do an explicit conversion in that
+        # case (Simon King, trac ticket #8800).
+
+        from sage.categories.pushout import pushout, CoercionException
+        try:
+            if hasattr(F.p.ring(), 'maximal_order'): # it is not ZZ
+                _tmp_ = pushout(F.p.ring().maximal_order(),K)
+            pinv = lambda x: F.lift(~F(x))
+            proot = lambda x,e: F.lift(F(x).nth_root(e, extend = False, all = True)[0])
+            preduce = lambda x: F.lift(F(x))
+        except CoercionException: # the pushout does not exist, we need conversion
+            pinv = lambda x: K(F.lift(~F(x)))
+            proot = lambda x,e: K(F.lift(F(x).nth_root(e, extend = False, all = True)[0]))
+            preduce = lambda x: K(F.lift(F(x)))
 
         def _pquadroots(a, b, c):
             r"""

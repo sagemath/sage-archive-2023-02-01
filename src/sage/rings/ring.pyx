@@ -1245,6 +1245,12 @@ cdef class CommutativeRing(Ring):
         - ``poly`` -- A polynomial whose coefficients are coercible into self
         - ``name`` -- (optional) name for the root of f
 
+        NOTE:
+
+        Using this method on an algebraically complete field does *not*
+        return this field; the construction self[x] / (f(x)) is done
+        anyway.
+
         EXAMPLES::
 
             sage: R = QQ['x']
@@ -1272,7 +1278,7 @@ cdef class CommutativeRing(Ring):
         if name is None:
             name = str(poly.parent().gen(0))
         if embedding is not None:
-            raise NotImplementedError
+            raise NotImplementedError, "ring extension with prescripted embedding is not implemented"
         R = self[name]
         I = R.ideal(R(poly.list()))
         return R.quotient(I, name)

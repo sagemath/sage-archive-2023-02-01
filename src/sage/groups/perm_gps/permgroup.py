@@ -341,7 +341,7 @@ class PermutationGroup_generic(group.Group):
         if gens is None:
             self._gap_string = gap_group if isinstance(gap_group, str) else str(gap_group)
             self._gens = self._gens_from_gap()
-            return
+            return None
 
         gens = [self._element_class()(x, check=False).list() for x in gens]
         self._deg = max([0]+[max(g) for g in gens])
@@ -1111,8 +1111,13 @@ class PermutationGroup_generic(group.Group):
         EXAMPLES::
 
             sage: G = PermutationGroup([[(1,2,3),(4,5)], [(1,2)]])
-            sage: G.random_element()
-            (1,2)(4,5)
+            sage: a = G.random_element()
+            sage: a in G
+            True
+            sage: a.parent() is G
+            True
+            sage: a^6
+            ()
         """
         current_randstate().set_seed_gap()
 

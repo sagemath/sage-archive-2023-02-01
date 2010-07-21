@@ -848,6 +848,17 @@ class AlgebraicField(_uniq_alg, AlgebraicField_common):
         """
         return self
 
+    def construction(self):
+        """
+        EXAMPLE::
+
+            sage: QQbar.construction()
+            (AlgebraicClosureFunctor, Rational Field)
+        """
+        from sage.categories.pushout import AlgebraicClosureFunctor
+        from sage.all import QQ
+        return (AlgebraicClosureFunctor(), QQ)
+
     def gens(self):
         return(QQbar_I, )
 

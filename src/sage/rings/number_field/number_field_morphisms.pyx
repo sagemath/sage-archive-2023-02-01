@@ -109,6 +109,23 @@ cdef class EmbeddedNumberFieldMorphism(NumberFieldEmbedding):
     This allows one to go from one number field in another consistently,
     assuming they both have specified embeddings into an ambient field
     (by default it looks for an embedding into `\CC`).
+
+    EXAMPLES::
+
+        sage: K.<i> = NumberField(x^2+1,embedding=QQbar(I))
+        sage: L.<i> = NumberField(x^2+1,embedding=-QQbar(I))
+        sage: from sage.rings.number_field.number_field_morphisms import EmbeddedNumberFieldMorphism
+        sage: EmbeddedNumberFieldMorphism(K,L,CDF)
+        Generic morphism:
+          From: Number Field in i with defining polynomial x^2 + 1
+          To:   Number Field in i with defining polynomial x^2 + 1
+          Defn: i -> -i
+        sage: EmbeddedNumberFieldMorphism(K,L,QQbar)
+        Generic morphism:
+          From: Number Field in i with defining polynomial x^2 + 1
+          To:   Number Field in i with defining polynomial x^2 + 1
+          Defn: i -> -i
+
     """
     cdef readonly ambient_field
 
@@ -191,11 +208,11 @@ cdef class EmbeddedNumberFieldConversion(Map):
             sage: from sage.rings.number_field.number_field_morphisms import EmbeddedNumberFieldConversion
             sage: K.<a> = NumberField(x^2-17, embedding=4.1)
             sage: L.<b> = NumberField(x^4-17, embedding=2.0)
-            sage: f = EmbeddedNumberFieldConversion(L, K)
-            sage: f(b^2)
-            a
-            sage: f(L(a/2-11))
-            1/2*a - 11
+            sage: f = EmbeddedNumberFieldConversion(K, L)
+            sage: f(a)
+            b^2
+            sage: f(K(b^2/2-11))
+            1/2*b^2 - 11
         """
         if ambient_field is None:
             from sage.rings.complex_double import CDF
@@ -269,6 +286,10 @@ cpdef matching_root(poly, target, ambient_field=None, margin=1, max_prec=None):
                 return r
     else:
         # since things are inexact, try and pick the closest one
+        # -- unless the ambient field is inexact and has no prec(),
+        # which holds, e.g., for the symbolic ring
+        if not hasattr(ambient_field,'prec'):
+            return None
         if max_prec is None:
             max_prec = ambient_field.prec() * 32
         while ambient_field.prec() < max_prec:

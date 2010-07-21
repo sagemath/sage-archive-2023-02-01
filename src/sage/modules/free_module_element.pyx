@@ -1498,13 +1498,24 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             70
             sage: 2*5*7
             70
+
+        TESTS:
+
+        The following was fixed in trac ticket #8800::
+
+            sage: M = GF(5)^3
+            sage: v = M((4,0,2))
+            sage: v.denominator()
+            1
+
         """
         R = self.base_ring()
         if self.degree() == 0: return 1
         x = self.list()
-        d = x[0].denominator()
+        # it may be that the marks do not have a denominator!
+        d = x[0].denominator() if hasattr(x[0],'denominator') else 1
         for y in x:
-            d = d.lcm(y.denominator())
+            d = d.lcm(y.denominator()) if hasattr(y,'denominator') else d
         return d
 
     def dict(self, copy=True):

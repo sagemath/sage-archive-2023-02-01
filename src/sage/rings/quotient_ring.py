@@ -249,7 +249,14 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         from sage.categories.pushout import QuotientFunctor
         # Is there a better generic way to distinguish between things like Z/pZ as a field and Z/pZ as a ring?
         from sage.rings.field import Field
-        return QuotientFunctor(self.__I, as_field=isinstance(self, Field)), self.__R
+        try:
+            names = self.variable_names()
+        except ValueError:
+            try:
+                names = self.cover_ring().variable_names()
+            except ValueError:
+                names = None
+        return QuotientFunctor(self.__I, names=names, as_field=isinstance(self, Field)), self.__R
 
     def _repr_(self):
         """

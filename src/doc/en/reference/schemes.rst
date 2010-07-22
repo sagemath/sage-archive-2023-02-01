@@ -18,6 +18,7 @@ Schemes
    sage/schemes/generic/projective_space
    sage/schemes/generic/toric_variety
    sage/schemes/generic/fano_toric_variety
+   sage/schemes/generic/toric_variety_library
    sage/schemes/generic/algebraic_scheme
    sage/schemes/generic/hypersurface
 

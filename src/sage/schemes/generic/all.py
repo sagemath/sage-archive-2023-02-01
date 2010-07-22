@@ -9,5 +9,6 @@ from morphism         import is_SchemeMorphism
 from projective_space import ProjectiveSpace, is_ProjectiveSpace
 from scheme           import is_Scheme, is_AffineScheme
 from toric_variety import AffineToricVariety, ToricVariety
+from toric_variety_library import toric_varieties
 from hypersurface     import ProjectiveHypersurface, AffineHypersurface
 

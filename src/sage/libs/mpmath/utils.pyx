@@ -233,6 +233,9 @@ def sage_to_mpmath(x, prec):
     or ComplexNumber of the given precision into an mpmath mpf or mpc.
     Integers are currently converted to int.
 
+    Lists, tuples and dicts passed as input are converted
+    recursively.
+
     EXAMPLES::
 
         sage: import sage.libs.mpmath.all as a
@@ -253,6 +256,13 @@ def sage_to_mpmath(x, prec):
         mpf('nan')
         sage: a.sage_to_mpmath(0, 53)
         0
+        sage: a.sage_to_mpmath([0.5, 1.5], 53)
+        [mpf('0.5'), mpf('1.5')]
+        sage: a.sage_to_mpmath((0.5, 1.5), 53)
+        (mpf('0.5'), mpf('1.5'))
+        sage: a.sage_to_mpmath({'n':0.5}, 53)
+        {'n': mpf('0.5')}
+
     """
     cdef RealNumber y
     if isinstance(x, Element):
@@ -272,19 +282,30 @@ def sage_to_mpmath(x, prec):
                 return x._mpmath_()
     if PY_TYPE_CHECK(x, tuple) or PY_TYPE_CHECK(x, list):
         return type(x)([sage_to_mpmath(v, prec) for v in x])
+    if PY_TYPE_CHECK(x, dict):
+        return dict([(k, sage_to_mpmath(v, prec)) for (k, v) in x.items()])
     return x
 
 def call(func, *args, **kwargs):
     """
     Call an mpmath function with Sage objects as inputs and
-    convert the result back to a Sage real or complex number. Use the
-    keyword argument prec=n to set the working precision in bits
-    (by default mpmath's global working precision is used).
+    convert the result back to a Sage real or complex number.
+
+    By default, a RealNumber or ComplexNumber with the current
+    working precision of mpmath (mpmath.mp.prec) will be returned.
+
+    If prec=n is passed among the keyword arguments, the temporary
+    working precision will be set to n and the result will also
+    have this precision.
+
+    If parent=P is passed, P.prec() will be used as working
+    precision and the result will be coerced to P (or the
+    corresponding complex field if necessary).
 
     Arguments should be Sage objects that can be coerced into RealField
-    or ComplexField elements. Arguments may also be tuples/lists (which
-    are converted recursively), or any type that mpmath understands
-    natively (e.g. Python floats, strings for options).
+    or ComplexField elements. Arguments may also be tuples, lists or
+    dicts (which are converted recursively), or any type that mpmath
+    understands natively (e.g. Python floats, strings for options).
 
     EXAMPLES::
 
@@ -317,20 +338,43 @@ def call(func, *args, **kwargs):
         -1.00000000000000
         sage: a.call(a.gamma, infinity)
         +infinity
+        sage: a.call(a.polylog, 2, 1/2, parent=RR)
+        0.582240526465012
+        sage: a.call(a.polylog, 2, 2, parent=RR)
+        2.46740110027234 - 2.17758609030360*I
+        sage: a.call(a.polylog, 2, 1/2, parent=RealField(100))
+        0.58224052646501250590265632016
+        sage: a.call(a.polylog, 2, 2, parent=RealField(100))
+        2.4674011002723396547086227500 - 2.1775860903036021305006888982*I
+        sage: a.call(a.polylog, 2, 1/2, parent=CC)
+        0.582240526465012
+        sage: type(_)
+        <type 'sage.rings.complex_number.ComplexNumber'>
+        sage: a.call(a.polylog, 2, 1/2, parent=RDF)
+        0.582240526465
+        sage: type(_)
+        <type 'sage.rings.real_double.RealDoubleElement'>
+
     """
     from mpmath import mp
     orig = mp.prec
     prec = kwargs.pop('prec', orig)
+    parent = kwargs.pop('parent', None)
+    if parent is not None:
+        prec = parent.prec()
     prec2 = prec + 20
-    args = [sage_to_mpmath(x, prec2) for x in args]
-    if kwargs:
-        kwargs = dict([(key, sage_to_mpmath(value, prec2)) for (key, value) in \
-            kwargs.items()])
+    args = sage_to_mpmath(args, prec2)
+    kwargs = sage_to_mpmath(kwargs, prec2)
     try:
         mp.prec = prec
         y = func(*args, **kwargs)
     finally:
         mp.prec = orig
-    return mpmath_to_sage(y, prec)
-
+    y = mpmath_to_sage(y, prec)
+    if parent is None:
+        return y
+    try:
+        return parent(y)
+    except TypeError:
+        return parent.complex_field()(y)
 

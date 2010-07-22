@@ -1,3 +1,9 @@
+r"""
+Exceptions
+
+This module defines Sage-specific exceptions.
+"""
+
 class OptionalPackageNotFoundError(RuntimeError):
     """
     This class defines the exception that should be raised when a

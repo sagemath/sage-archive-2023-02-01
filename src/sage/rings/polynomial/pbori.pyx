@@ -4490,25 +4490,20 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
             sage: F,s = sr.polynomial_system()
             sage: I = F.ideal()
             sage: I.interreduced_basis()
-            [k100 + k003 + 1,
-             k101 + k003,
-             k102,
-             k103 + k003,
-             x100 + 1,
-             x101 + 1,
-             x102 + 1,
-             x103 + k003,
-             w100 + k003,
-             w101,
-             w102 + k003 + 1,
-             w103 + k003 + 1,
-             s000 + 1,
-             s001 + 1,
-             s002 + 1,
-             s003 + k003 + 1,
-             k000 + k003 + 1,
-             k001,
-             k002 + k003]
+            [k100 + k003,
+            k101 + k003,
+            k102 + k003 + 1,
+            k103, x100 + k003,
+            x101, x102 + 1,
+            x103, w100 + 1,
+            w101 + k003, w102,
+            w103 + k003 + 1,
+            s000 + k003 + 1,
+            s001, s002 + 1,
+            s003,
+            k000 + 1,
+            k001 + k003 + 1,
+            k002]
         """
         R = self.ring()
         set_cring(R)

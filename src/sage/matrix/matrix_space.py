@@ -38,7 +38,7 @@ import matrix_modn_dense
 import matrix_modn_sparse
 
 import matrix_mod2_dense
-#import matrix_mod2_sparse
+import matrix_mod2e_dense
 
 import matrix_integer_dense
 import matrix_integer_sparse
@@ -917,6 +917,8 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
                 # elif R.order() < matrix_modn_dense.MAX_MODULUS:
                 #     return matrix_modn_dense.Matrix_modn_dense
                 return matrix_generic_dense.Matrix_generic_dense
+            elif sage.rings.finite_rings.all.is_FiniteField(R) and R.characteristic() == 2 and R.order() <= 1024:
+                return matrix_mod2e_dense.Matrix_mod2e_dense
             elif sage.rings.polynomial.multi_polynomial_ring_generic.is_MPolynomialRing(R) and R.base_ring().is_field():
                 return matrix_mpolynomial_dense.Matrix_mpolynomial_dense
             #elif isinstance(R, sage.rings.padics.padic_ring_capped_relative.pAdicRingCappedRelative):

@@ -26,7 +26,7 @@ AUTHORS:
 # http://www.gnu.org/licenses/
 ###########################################################################
 
-from sage.matrix.matrix_generic_dense import Matrix_generic_dense
+from sage.matrix.matrix_dense import Matrix_dense
 from sage.matrix.matrix_space import MatrixSpace, MatrixSpace_generic
 from sage.monoids.string_monoid import BinaryStrings
 from sage.monoids.string_monoid_element import StringMonoidElement
@@ -536,11 +536,14 @@ class MiniAES(SageObject):
             ...
             TypeError: round key must be a 2 x 2 matrix over GF(16)
         """
-        if not isinstance(block, (MatrixSpace_generic, Matrix_generic_dense)):
+        if not isinstance(block, Matrix_dense) or \
+                not (block.base_ring().order() == 16 and block.base_ring().is_field()):
             raise TypeError, "input block must be a 2 x 2 matrix over GF(16)"
         if not (block.nrows() == block.ncols() == 2):
             raise TypeError, "input block must be a 2 x 2 matrix over GF(16)"
-        if not isinstance(rkey, (MatrixSpace_generic, Matrix_generic_dense)):
+
+        if not isinstance(rkey, Matrix_dense) or \
+                not (rkey.base_ring().order() == 16 and rkey.base_ring().is_field()):
             raise TypeError, "round key must be a 2 x 2 matrix over GF(16)"
         if not (rkey.nrows() == rkey.ncols() == 2):
             raise TypeError, "round key must be a 2 x 2 matrix over GF(16)"
@@ -705,11 +708,13 @@ class MiniAES(SageObject):
             ...
             TypeError: secret key must be a 2 x 2 matrix over GF(16)
         """
-        if not isinstance(C, (MatrixSpace_generic, Matrix_generic_dense)):
+        if not isinstance(C, Matrix_dense) or \
+                not (C.base_ring().order() == 16 and C.base_ring().is_field()):
             raise TypeError, "ciphertext block must be a 2 x 2 matrix over GF(16)"
         if not (C.nrows() == C.ncols() == 2):
             raise TypeError, "ciphertext block must be a 2 x 2 matrix over GF(16)"
-        if not isinstance(key, (MatrixSpace_generic, Matrix_generic_dense)):
+        if not isinstance(key, Matrix_dense) or \
+                not (key.base_ring().order() == 16 and key.base_ring().is_field()):
             raise TypeError, "secret key must be a 2 x 2 matrix over GF(16)"
         if not (key.nrows() == key.ncols() == 2):
             raise TypeError, "secret key must be a 2 x 2 matrix over GF(16)"
@@ -864,11 +869,13 @@ class MiniAES(SageObject):
             ...
             TypeError: secret key must be a 2 x 2 matrix over GF(16)
         """
-        if not isinstance(P, (MatrixSpace_generic, Matrix_generic_dense)):
+        if not isinstance(P, Matrix_dense) or \
+                not (P.base_ring().order() == 16 and P.base_ring().is_field()):
             raise TypeError, "plaintext block must be a 2 x 2 matrix over GF(16)"
         if not (P.nrows() == P.ncols() == 2):
             raise TypeError, "plaintext block must be a 2 x 2 matrix over GF(16)"
-        if not isinstance(key, (MatrixSpace_generic, Matrix_generic_dense)):
+        if not isinstance(key, Matrix_dense) or \
+                not (key.base_ring().order() == 16 and key.base_ring().is_field()):
             raise TypeError, "secret key must be a 2 x 2 matrix over GF(16)"
         if not (key.nrows() == key.ncols() == 2):
             raise TypeError, "secret key must be a 2 x 2 matrix over GF(16)"
@@ -1016,7 +1023,8 @@ class MiniAES(SageObject):
             ...
             TypeError: input block must be a 2 x 2 matrix over GF(16)
         """
-        if not isinstance(block, (MatrixSpace_generic, Matrix_generic_dense)):
+        if not isinstance(block, Matrix_dense) or \
+                not (block.base_ring().order() == 16 and block.base_ring().is_field()):
             raise TypeError, "input block must be a 2 x 2 matrix over GF(16)"
         if not (block.nrows() == block.ncols() == 2):
             raise TypeError, "input block must be a 2 x 2 matrix over GF(16)"
@@ -1206,7 +1214,8 @@ class MiniAES(SageObject):
             ...
             ValueError: the algorithm for nibble-sub must be either 'encrypt' or 'decrypt'
         """
-        if not isinstance(block, (MatrixSpace_generic, Matrix_generic_dense)):
+        if not isinstance(block, Matrix_dense) or \
+                not (block.base_ring().order() == 16 and block.base_ring().is_field()):
             raise TypeError, "input block must be a 2 x 2 matrix over GF(16)"
         if not (block.nrows() == block.ncols() == 2):
             raise TypeError, "input block must be a 2 x 2 matrix over GF(16)"
@@ -1349,7 +1358,8 @@ class MiniAES(SageObject):
             ...
             TypeError: secret key must be a 2 x 2 matrix over GF(16)
         """
-        if not isinstance(key, (MatrixSpace_generic, Matrix_generic_dense)):
+        if not isinstance(key, Matrix_dense) or \
+                not (key.base_ring().order() == 16 and key.base_ring().is_field()):
             raise TypeError, "secret key must be a 2 x 2 matrix over GF(16)"
         if not (key.nrows() == key.ncols() == 2):
             raise TypeError, "secret key must be a 2 x 2 matrix over GF(16)"
@@ -1498,7 +1508,8 @@ class MiniAES(SageObject):
             ...
             TypeError: input block must be a 2 x 2 matrix over GF(16)
         """
-        if not isinstance(block, (MatrixSpace_generic, Matrix_generic_dense)):
+        if not isinstance(block, Matrix_dense) or \
+                not (block.base_ring().order() == 16 and block.base_ring().is_field()):
             raise TypeError, "input block must be a 2 x 2 matrix over GF(16)"
         if not (block.nrows() == block.ncols() == 2):
             raise TypeError, "input block must be a 2 x 2 matrix over GF(16)"
@@ -1652,7 +1663,7 @@ class MiniAES(SageObject):
             S = "".join([str(self._GF_to_bin[g]) for g in G])
             return B(S)
         # G is a matrix over GF(16)
-        elif isinstance(G, (MatrixSpace_generic, Matrix_generic_dense)):
+        elif isinstance(G, Matrix_dense):
             if not (G.base_ring() is K):
                 raise TypeError, "input G must be an element of GF(16), a list of elements of GF(16), or a matrix over GF(16)"
             S = "".join([str(self._GF_to_bin[G[i][j]]) for i in xrange(G.nrows()) for j in xrange(G.ncols())])
@@ -1783,7 +1794,7 @@ class MiniAES(SageObject):
                 raise ValueError, "input G must be an element of GF(16), a list of elements of GF(16), or a matrix over GF(16)"
             return [self._GF_to_int[g] for g in G]
         # G is a matrix over GF(16)
-        elif isinstance(G, (MatrixSpace_generic, Matrix_generic_dense)):
+        elif isinstance(G, Matrix_dense):
             if not (G.base_ring() is K):
                 raise TypeError, "input G must be an element of GF(16), a list of elements of GF(16), or a matrix over GF(16)"
             return [self._GF_to_int[G[i][j]] for i in xrange(G.nrows()) for j in xrange(G.ncols())]

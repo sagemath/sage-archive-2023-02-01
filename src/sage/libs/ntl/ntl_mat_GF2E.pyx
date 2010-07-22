@@ -25,6 +25,7 @@
 
 include "../../ext/interrupt.pxi"
 include "../../ext/stdsage.pxi"
+include '../../ext/random.pxi'
 include 'misc.pxi'
 include 'decl.pxi'
 
@@ -49,7 +50,8 @@ cdef class ntl_mat_GF2E:
             ncols -- number of columns
             v     -- either a list or a matrix over GF(2^x)
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: k.<a> = GF(2^4)
             sage: ctx = ntl.GF2EContext(k)
             sage: ntl.GF2XHexOutput(1)
@@ -146,7 +148,8 @@ cdef class ntl_mat_GF2E:
         """
         Returns the structure that holds the underlying NTL GF2E modulus.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ntl.GF2XHexOutput(0)
             sage: ctx = ntl.GF2EContext( ntl.GF2X([1,1,0,1,1,0,0,0,1]) )
             sage: a = ntl.GF2E(ntl.ZZ_pX([1,1,3],2), ctx)
@@ -163,6 +166,8 @@ cdef class ntl_mat_GF2E:
 
     def __reduce__(self):
         """
+        EXAMPLE::
+
             sage: k.<a> = GF(2^4)
             sage: ctx = ntl.GF2EContext(k)
             sage: A = ntl.mat_GF2E(ctx, 5,5, [0..24])
@@ -175,7 +180,8 @@ cdef class ntl_mat_GF2E:
         """
         Return the string representation of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ctx = ntl.GF2EContext([1,1,0,1,1,0,0,0,1])
             sage: ntl.GF2XHexOutput(1)
             sage: ntl.mat_GF2E(ctx, 2,2,range(4)).__repr__()
@@ -189,7 +195,8 @@ cdef class ntl_mat_GF2E:
 
     def __mul__(ntl_mat_GF2E self, other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ctx = ntl.GF2EContext([1,1,0,1,1,0,0,0,1])
             sage: ntl.GF2XHexOutput(1)
             sage: m = ntl.mat_GF2E(ctx, 5,5,[0..24])
@@ -214,7 +221,8 @@ cdef class ntl_mat_GF2E:
 
     def __sub__(ntl_mat_GF2E self, other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ctx = ntl.GF2EContext([1,1,0,1,1,0,0,0,1])
             sage: m = ntl.mat_GF2E(ctx, 5,5,[0..24])
             sage: n = ntl.mat_GF2E(ctx, 5,5,[3..27])
@@ -239,7 +247,8 @@ cdef class ntl_mat_GF2E:
 
     def __add__(ntl_mat_GF2E self, other):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ctx = ntl.GF2EContext([1,1,0,1,1,0,0,0,1])
             sage: m = ntl.mat_GF2E(ctx, 5,5,[0..24])
             sage: n = ntl.mat_GF2E(ctx, 5,5,[3..27])
@@ -263,7 +272,8 @@ cdef class ntl_mat_GF2E:
 
     def __neg__(ntl_mat_GF2E self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ctx = ntl.GF2EContext([1,1,0,1,1,0,0,0,1])
             sage: m = ntl.mat_GF2E(ctx, 5,5,[0..24])
             sage: -m == m ## indirect doctest
@@ -277,7 +287,8 @@ cdef class ntl_mat_GF2E:
 
     def __pow__(ntl_mat_GF2E self, long e, ignored):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ctx = ntl.GF2EContext([1,1,0,1,1,0,0,0,1])
             sage: m = ntl.mat_GF2E(ctx, 5,5,[0..24])
             sage: m**2 == m*m ## indirect doctest
@@ -291,7 +302,8 @@ cdef class ntl_mat_GF2E:
 
     def __richcmp__(ntl_mat_GF2E self, other, op):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ctx = ntl.GF2EContext([1,1,0,1,1,0,0,0,1])
             sage: m = ntl.mat_GF2E(ctx, 5,5,[0..24])
             sage: n = ntl.mat_GF2E(ctx, 5,5,[3..27])
@@ -319,7 +331,8 @@ cdef class ntl_mat_GF2E:
         """
         Return the number of rows in self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ctx = ntl.GF2EContext([1,1,0,1,1,0,0,0,1])
             sage: m = ntl.mat_GF2E(ctx, 5,5,[0..24]) ; m.NumRows()
             5
@@ -330,7 +343,8 @@ cdef class ntl_mat_GF2E:
         """
         Return the number of columns in self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ctx = ntl.GF2EContext([1,1,0,1,1,0,0,0,1])
             sage: m = ntl.mat_GF2E(ctx, 5,5,[0..24]) ; m.NumCols()
             5
@@ -339,6 +353,8 @@ cdef class ntl_mat_GF2E:
 
     def __setitem__(self, ij, x):
         """
+        EXAMPLES::
+
             sage: ctx = ntl.GF2EContext([1,1,0,1,1,0,0,0,1])
             sage: m = ntl.mat_GF2E(ctx, 5,5,[0..24])
             sage: ntl.GF2XHexOutput(0)
@@ -375,6 +391,8 @@ cdef class ntl_mat_GF2E:
 
     def __getitem__(self, ij):
         """
+        EXAMPLES::
+
             sage: ctx = ntl.GF2EContext([1,1,0,1,1,0,0,0,1])
             sage: m = ntl.mat_GF2E(ctx, 5,5,[0..24])
             sage: m[0,1]
@@ -406,7 +424,8 @@ cdef class ntl_mat_GF2E:
         """
         Returns the determinant.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ctx = ntl.GF2EContext([1,1,0,1,1,0,0,0,1])
             sage: ntl.GF2XHexOutput(0)
             sage: ntl.mat_GF2E(ctx, 5,5,[0..24]).determinant()
@@ -429,9 +448,11 @@ cdef class ntl_mat_GF2E:
         ncols columns).
 
         INPUT:
-           ncols -- number of columns to process (default: all)
 
-        EXAMPLES:
+        - ``ncols`` - number of columns to process (default: all)
+
+        EXAMPLES::
+
             sage: m = ctx = ntl.GF2EContext(ntl.GF2X([1,1,0,1,1,0,0,0,1]))
             sage: ntl.mat_GF2E(ctx, 5,5,[3..27]).gauss()
             5
@@ -448,7 +469,8 @@ cdef class ntl_mat_GF2E:
         """
         Returns a list of the entries in this matrix
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ctx = ntl.GF2EContext([1,1,0,1,1,0,0,0,1])
             sage: m = ntl.mat_GF2E(ctx, 2,2,[ntl.GF2E_random(ctx) for x in xrange(2*2)])
             sage: ntl.GF2XHexOutput(0)
@@ -461,7 +483,8 @@ cdef class ntl_mat_GF2E:
         """
         Return True if self is zero, and false otherwise.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ctx = ntl.GF2EContext([1,1,0,1,1,0,0,0,1])
             sage: m = ntl.mat_GF2E(ctx, 5,5,[0..24])
             sage: n = ntl.mat_GF2E(ctx, 5,5)
@@ -478,17 +501,18 @@ cdef class ntl_mat_GF2E:
 
     def _sage_(ntl_mat_GF2E self, k=None):
         """
-        Returns a \class{Matrix} over a FiniteField representation
+        Returns a ``Matrix`` over a ``FiniteField`` representation
         of this element.
 
         INPUT:
-            self  -- \class{mat_GF2E} element
-            k     -- optional GF(2**deg)
+
+        - ``k`` - optional GF(2**deg)
 
         OUTPUT:
             Matrix over k
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ctx = ntl.GF2EContext([1,1,0,1])
             sage: m = ntl.mat_GF2E(ctx, 2,2,[3..6])
             sage: ntl.GF2XHexOutput(0)
@@ -518,7 +542,8 @@ cdef class ntl_mat_GF2E:
         OUTPUT:
             transposed Matrix
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ctx = ntl.GF2EContext([1,1,0,1,1,0,0,0,1])
             sage: m = ntl.mat_GF2E(ctx, 5,5,[0..24])
             sage: n = m.transpose()
@@ -537,7 +562,8 @@ cdef class ntl_mat_GF2E:
         """
         Return $X = A^{-1}$; an error is raised if A is singular.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ctx = ntl.GF2EContext([1,1,0,1,1,0,0,0,1])
             sage: m = ntl.mat_GF2E(ctx, 5,5,[0..24])
             sage: n = ~m
@@ -555,7 +581,8 @@ cdef class ntl_mat_GF2E:
         """
         test if A is the n x n identity matrix
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ctx = ntl.GF2EContext([1,1,0,1,1,0,0,0,1])
             sage: m = ntl.mat_GF2E(ctx, 5,5,[0..24])
             sage: n = ~m
@@ -569,9 +596,10 @@ cdef class ntl_mat_GF2E:
 
     def IsDiag(self, long n, ntl_GF2E d):
         """
-        test if X is an  n x n diagonal matrix with d on diagonal
+        Test if X is an  n x n diagonal matrix with d on diagonal.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ctx = ntl.GF2EContext([1,1,0,1,1,0,0,0,1])
             sage: m = ntl.mat_GF2E(ctx, 3,3,[[0,1],0,0, 0,[0,1],0, 0,0,[0,1]])
             sage: m.IsDiag(2, ntl.GF2E([0,1],ctx))
@@ -586,7 +614,8 @@ cdef class ntl_mat_GF2E:
         The rows of X are computed as basis of A's row space.  X is is
         row echelon form.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: ctx = ntl.GF2EContext([1,1,0,1,1,0,0,0,1])
             sage: m = ntl.mat_GF2E(ctx, 3,3,[0..24])
             sage: ntl.GF2XHexOutput(1)
@@ -604,10 +633,11 @@ cdef class ntl_mat_GF2E:
 
     def kernel(self):
         """
-        Computes a basis for the kernel of the map x -> x*A. where x is a
-        row vector.
+        Computes a basis for the kernel of the map ``x -> x*A``, where
+        ``x`` is a row vector.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: ctx = ntl.GF2EContext([1,1,0,1,1,0,0,0,1])
             sage: m = ntl.mat_GF2E(ctx, 3,3,[0..24])
             sage: ntl.GF2XHexOutput(1)
@@ -619,3 +649,76 @@ cdef class ntl_mat_GF2E:
         mat_GF2E_kernel(X.x, self.x)
         sig_off()
         return X
+
+    def randomize(self, density=1, nonzero=False):
+        """
+        Randomize ``density`` proportion of the entries of this matrix,
+        leaving the rest unchanged.
+
+        INPUT:
+
+        -  ``density`` - float; proportion (roughly) to be considered for
+           changes
+        -  ``nonzero`` - Bool (default: ``False``); whether the new entries
+           are forced to be non-zero
+
+        EXAMPLES::
+
+            sage: k.<a> = GF(2^4)
+            sage: ctx = ntl.GF2EContext(k)
+            sage: ntl.GF2XHexOutput(1)
+            sage: A = ntl.mat_GF2E(ctx, 100,100)
+            sage: A.randomize()
+            sage: len([e for e in A.list() if e!=0])
+            9389
+
+            sage: A = ntl.mat_GF2E(ctx, 100,100)
+            sage: A.randomize(nonzero=True)
+            sage: len([e for e in A.list() if e!=0])
+            10000
+
+            sage: A = ntl.mat_GF2E(ctx, 100,100)
+            sage: A.randomize(nonzero=True, density=0.1)
+            sage: len([e for e in A.list() if e!=0])
+            994
+
+        """
+        cdef long i,j
+        cdef GF2E_c tmp
+
+        cdef float _density = density
+        cdef randstate rstate = current_randstate()
+
+        if _density <= 0:
+            return
+        if _density > 1:
+            _density = 1.0
+
+        if not nonzero:
+            if _density == 1.0:
+                for i in xrange(self.x.NumRows()):
+                    for j in xrange(self.x.NumCols()):
+                        tmp = GF2E_random()
+                        mat_GF2E_setitem(&self.x, i, j, &tmp)
+            else:
+                for i in xrange(self.x.NumRows()):
+                    for j in xrange(self.x.NumCols()):
+                        if rstate.c_rand_double() <= _density:
+                            tmp = GF2E_random()
+                            mat_GF2E_setitem(&self.x, i, j, &tmp)
+        else:
+            if _density == 1.0:
+                for i in xrange(self.x.NumRows()):
+                    for j in xrange(self.x.NumCols()):
+                        tmp = GF2E_random()
+                        while GF2E_IsZero(tmp):
+                            tmp = GF2E_random()
+                        mat_GF2E_setitem(&self.x, i, j, &tmp)
+            else:
+                for i in xrange(self.x.NumRows()):
+                    for j in xrange(self.x.NumCols()):
+                        if rstate.c_rand_double() <= _density:
+                            tmp = GF2E_random()
+                            while GF2E_IsZero(tmp):
+                                tmp = GF2E_random()
+                            mat_GF2E_setitem(&self.x, i, j, &tmp)

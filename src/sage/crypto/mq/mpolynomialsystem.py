@@ -30,6 +30,7 @@ As an example consider a small scale variant of the AES::
 We can construct a polynomial system for a random plaintext-ciphertext
 pair and study it::
 
+   sage: set_random_seed(1)
    sage: F,s = sr.polynomial_system()
    sage: F
    Polynomial Sequence with 112 Polynomials in 64 Variables
@@ -102,9 +103,7 @@ easily::
     sage: A.rank()
     4056
     sage: A[4055]*v
-    (k002*k003)
-
-The last output tells us that ``k002`` and ``k003`` can't both be 1.
+    (k001*k002 + k001*k003)
 
 TEST::
 
@@ -296,9 +295,7 @@ class MPolynomialRoundSystem_generic(SageObject):
             sage: F,s = sr.polynomial_system()
             sage: r = F.part(0)
             sage: copy(r)
-            (w100 + k000 + (a^3 + a + 1), w101 + k001 + (a^3 + 1),
-            w102 + k002 + (a^3 + a^2 + 1), w103 + k003 + (a^3 + a^2 +
-            a))
+            (w100 + k000 + (a^2 + 1), w101 + k001 + (a), w102 + k002 + (a^2), w103 + k003 + (a + 1))
             sage: type(r) == type(copy(r))
             True
         """
@@ -826,18 +823,17 @@ class MPolynomialSystem_generic(SageObject):
             sage: P = F.ring()
             sage: I = F.ideal()
             sage: I.elimination_ideal(P('s000*s001*s002*s003*w100*w101*w102*w103*x100*x101*x102*x103'))
-            Ideal (k002 + (a^2)*k003 + 1,
-                   k001 + (a^3)*k003 + (a + 1),
-                   k000 + (a^3 + a^2 + a)*k003 + (a^3 + a^2 + a),
-                   k103 + (a^3)*k003 + (a^2 + 1),
-                   k102 + (a^3 + a^2 + a)*k003 + (a^3 + 1),
-                   k101 + k003 + (a^2 + a),
-                   k100 + (a^2)*k003 + (a^2 + a),
-                   k003^2 + (a^3 + a^2 + a)*k003 + (a^3 + a^2 + a))
-            of Multivariate Polynomial Ring in k100, k101, k102, k103,
-            x100, x101, x102, x103, w100, w101, w102, w103, s000,
-            s001, s002, s003, k000, k001, k002, k003 over Finite Field
-            in a of size 2^4
+            Ideal (k002 + (a^3 + a^2 + 1)*k003 + (a^3),
+                   k001 + (a^3 + a^2 + a + 1)*k003 + (a^3 + a^2 + a),
+                   k000 + (a + 1)*k003 + (a^2 + a + 1),
+                   k103 + (a^3 + a)*k003 + (a^3 + a),
+                   k102 + (a^2 + a + 1)*k003 + (a^3 + a^2 + a),
+                   k101 + (a^3)*k003 + (a^3),
+                   k100 + (a^3 + a + 1)*k003 + (a^2 + 1),
+                   k003^2 + (a + 1)*k003 + (a^2 + a + 1))
+            of Multivariate Polynomial Ring in
+            k100, k101, k102, k103, x100, x101, x102, x103, w100, w101, w102, w103,
+            s000, s001, s002, s003, k000, k001, k002, k003 over Finite Field in a of size 2^4
         """
         return self._ring.ideal(self.gens())
 

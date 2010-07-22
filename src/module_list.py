@@ -927,6 +927,14 @@ ext_modules = [
               extra_compile_args = ['-std=c99'] + m4ri_extra_compile_args,
               depends = [SAGE_INC + "png.h", SAGE_INC + "m4ri/m4ri.h"]),
 
+    Extension('sage.matrix.matrix_mod2e_dense',
+              sources = ['sage/matrix/matrix_mod2e_dense.pyx'],
+              libraries = ['m4rie', 'm4ri', 'givaro', 'ntl', 'gmpxx', 'gmp', 'm', 'stdc++'],
+              depends = [SAGE_INC + "m4rie/m4rie.h"],
+              include_dirs = [SAGE_INC + 'm4rie'],
+              extra_compile_args = m4ri_extra_compile_args,
+              language="c++"),
+
     Extension('sage.matrix.matrix_modn_dense',
               sources = ['sage/matrix/matrix_modn_dense.pyx'],
               libraries = ['gmp']),

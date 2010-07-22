@@ -78,6 +78,7 @@ cdef class Cache_givaro(SageObject):
     cpdef int characteristic(self)
     cpdef FiniteField_givaroElement gen(self)
     cpdef FiniteField_givaroElement element_from_data(self, e)
+    cdef FiniteField_givaroElement _new_c(self, int value)
 
 cdef class FiniteField_givaro_iterator:
     cdef int iterator

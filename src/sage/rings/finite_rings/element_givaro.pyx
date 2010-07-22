@@ -766,6 +766,9 @@ cdef class Cache_givaro(SageObject):
             rep = 'int'
         return unpickle_Cache_givaro, (self.parent, p, k, self.parent.polynomial(), rep, self._has_array)
 
+    cdef FiniteField_givaroElement _new_c(self, int value):
+        return make_FiniteField_givaroElement(self, value)
+
 
 def unpickle_Cache_givaro(parent, p, k, modulus, rep, cache):
     """

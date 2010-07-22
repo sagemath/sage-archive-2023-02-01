@@ -522,6 +522,12 @@ class LatticePolytopeClass(SageObject):
             if compute_vertices:
                 self._vertices = self._embed(H_polytope.vertices())
 
+            M = self._embedding_matrix
+            basis = matrix( M.columns() + M.integer_kernel().basis() ).transpose()
+            self._dual_embedding_scale = basis.det()
+            dualbasis = matrix(ZZ, self._dual_embedding_scale * basis.inverse())
+            self._dual_embedding_matrix = dualbasis.submatrix(0,0,M.ncols())
+
     def _compute_faces(self):
         r"""
         Compute and cache faces of this polytope.
@@ -1506,14 +1512,30 @@ class LatticePolytopeClass(SageObject):
             (0, -1, 1)
             sage: p.facet_constant(0)
             1
+
+        A lattice polytope of strictly smaller dimension (=2) than the
+        ambient dimension(=4)::
+
+            sage: LatticePolytope(matrix([(1, -1, 0), (-1, -1, 0), (1, 1, 0), (3, 3, 0)]))
+            A lattice polytope: 2-dimensional, 3 vertices.
+            sage: lp = LatticePolytope(matrix([(1, -1, 0), (-1, -1, 0), (1, 1, 0), (3, 3, 0)]))
+            sage: lp.vertices()
+            [ 1 -1  0]
+            [-1 -1  0]
+            [ 1  1  0]
+            [ 3  3  0]
+            sage: matrix([[ lp.facet_normal(i)*lp.vertex(j) + lp.facet_constant(i) for i in range(0,3)] for j in range(0,3)])
+            [-22   0   0]
+            [  0 -22   0]
+            [  0   0 -11]
         """
         if self.is_reflexive():
             return 1
         elif self.ambient_dim() == self.dim():
             return self._facet_constants[i]
         else:
-            return (self._sublattice_polytope.facet_constant(i)
-                    - self.facet_normal(i) * self._shift_vector)
+            return (self._sublattice_polytope.facet_constant(i) * self._dual_embedding_scale
+                    - self.facet_normal(i) * self._shift_vector )
 
     def facet_normal(self, i):
         r"""
@@ -1565,14 +1587,38 @@ class LatticePolytopeClass(SageObject):
             (0, -1, 1)
             sage: p.facet_constant(0)
             1
+
+        Here is an example of a 3-dimensional polytope in 4d::
+
+            sage: lp = LatticePolytope(matrix([[1,1,-1,0],[1,-1,-1,0],[1,1,1,0],[3,3,3,0]]))
+            sage: lp.vertices()
+            [ 1  1 -1  0]
+            [ 1 -1 -1  0]
+            [ 1  1  1  0]
+            [ 3  3  3  0]
+            sage: ker = lp.vertices().integer_kernel().matrix()
+            sage: ker
+            [ 0  0  3 -1]
+            sage: [ ker * lp.facet_normal(i) for i in range(0,4) ]
+            [(0), (0), (0), (0)]
+            sage: matrix([lp.facet_normal(i) for i in range(0,4)]) * lp.vertices()
+            [  0   0 -20   0]
+            [  0 -20   0   0]
+            [ 10  10  10   0]
+            [-20   0   0   0]
+            sage: matrix([[ lp.facet_normal(i)*lp.vertex(j) + lp.facet_constant(i) for i in range(0,4)] for j in range(0,4)])
+            [  0   0   0 -20]
+            [  0 -20   0   0]
+            [-20   0   0   0]
+            [  0   0 -10   0]
         """
         if self.is_reflexive():
             return self.polar().vertex(i)
         elif self.ambient_dim() == self.dim():
             return self._facet_normals[i]
         else:
-            return (self._embedding_matrix
-                    * self._sublattice_polytope.facet_normal(i))
+            return ( self._sublattice_polytope.facet_normal(i) *
+                     self._dual_embedding_matrix )
 
     def facets(self):
         r"""

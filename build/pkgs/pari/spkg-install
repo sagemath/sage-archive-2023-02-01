@@ -51,7 +51,7 @@ cp "$PATCHED/get_tests" config/get_tests
 
 # jdemeyer: patch config/version with the status saved during
 # spkg-make.
-echo 'status=`cat $TOP/../patches/status`' >>config/version
+echo 'if [ -f $TOP/../patches/status ]; then status=`cat $TOP/../patches/status`; fi' >>config/version
 
 
 # This is needed or there are weird locale problems involving rpath

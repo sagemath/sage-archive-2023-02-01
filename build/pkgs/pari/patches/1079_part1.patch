@@ -1,5 +1,5 @@
---- a/src/basemath/base2.c
-+++ b/src/basemath/base2.c
+--- src/basemath/base2.c
++++ src/basemath/base2.c
 @@ -3344,10 +3344,7 @@ polcompositum0(GEN A, GEN B, long flall)
      for (i=1; i<l; i++)
      { /* invmod possibly very costly */

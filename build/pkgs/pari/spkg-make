@@ -85,7 +85,7 @@ for patch in ../patches/*.patch; do
 		echo "Bad patch file $patch.  It must patch exactly one file."
 	fi
 
-	srcfile=`sed -n 's|^+++ \([^\t]*\)\t.*|\1|p' "$patch"`
+	srcfile=`sed -n 's|^+++ \([^\t]*\)\(\t.*\)\?|\1|p' "$patch"`
 	outfile="../patches/files/`basename $srcfile`"
 	patch -o "$outfile" -p0 <"$patch" || exit
 	chmod "--reference=$srcfile" "$outfile"

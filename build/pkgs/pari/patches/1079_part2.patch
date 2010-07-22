@@ -1,5 +1,5 @@
---- a/src/basemath/polarit3.c
-+++ b/src/basemath/polarit3.c
+--- src/basemath/polarit3.c
++++ src/basemath/polarit3.c
 @@ -2536,6 +2536,8 @@ END:
    if (plambda) *plambda = lambda;
    if (LERS)

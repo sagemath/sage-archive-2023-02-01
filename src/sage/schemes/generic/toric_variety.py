@@ -2023,10 +2023,10 @@ def certify_names(names):
         Traceback (most recent call last):
         ...
         ValueError: name must start with a letter! Got 0
-        sage: certify_names(["a", "x0", "Щ_45"])
+        sage: certify_names(["a", "x0", "@_45"])
         Traceback (most recent call last):
         ...
-        ValueError: name must be alphanumeric! Got Щ_45
+        ValueError: name must be alphanumeric! Got @_45
         sage: certify_names(["a", "x0", "x0"])
         Traceback (most recent call last):
         ...

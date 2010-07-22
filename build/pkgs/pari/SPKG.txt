@@ -25,6 +25,7 @@ GPL
  * Craig Citro
  * William Stein
  * David Kirkby
+ * Jeroen Demeyer
 
 == Upstream Contact ==
  * Karim Belabas, http://www.math.u-bordeaux.fr/~belabas/
@@ -35,25 +36,33 @@ GPL
 
 == Build Notes ==
 
-Here is how to build a new version of the PARI SAGE spkg:
+Most of the building of a new version of the PARI spkg is automated
+in the script spkg-make.  Normally, the following should work.  In case
+of doubt, have a look at the file spkg-make.
 
-  1) Get the latest code from
-           http://pari.math.u-bordeaux.fr/download.html
+  1) ./spkg-make
+     This will download the SVN sources to the directory parisvn/
+     and will also download galdata.tgz and ellsea-small.tgz.
+     Then, a src/ directory will be created and the patches in
+     patches/*.patch will be applied (with the patched files stored
+     in patches/files).
+     WARNING: This script will remove any existing src/ and
+     patches/files/ directories.
+     NOTES: The script ./spkg-make will actually compile PARI/GP, but
+     the compiled files are not used for the spkg.  We only need a few
+     files, in particular those created by bison.
+     Running spkg-make should be done on a reasonably standard machine
+     on which PARI/GP compiles out of the box.
 
-           svn export svn://pari.math.u-bordeaux.fr/pari/trunk pari
+  2) Check that everything is okay somehow.  In particular, look at
+     patches/README.txt
 
-     (NOTE -- just like last time, at some point the devel version will be
-              the way to go, since that's where all the bug fixes are.
-        The PARI stable/devel model is complicated.)
+  3) rm -rf parisvn
+     The directory parisvn is a temporary SVN copy of the PARI sources.
+     When making this package just for testing, you can keep the parisvn
+     directory.  However, it should not be there in a final version.
 
-  2) Extract the above code and make it the directory src in the
-     current directory.  Remove the subdirectory .svn/ .
-
-  3) Extract the files galdata.tgz and seadata.tgz (the small one) from
-     http://pari.math.u-bordeaux.fr/packages.html
-     in the directory pari-*/src/
-
-  4) Carefully check on the files in patches/ after reading patches/README.txt
+  4) cd ..; sage -pkg pari-version-name
 
 Note from David Kirkby that could be relevant to building on Solaris:
 

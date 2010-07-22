@@ -1,0 +1,12 @@
+--- src/kernel/gmp/mp.c	(revision 12541)
++++ src/kernel/gmp/mp.c	(working copy)
+@@ -56,7 +56,9 @@
+ int pari_kernel_init(void)
+ {
+   /* Use pari_malloc instead of malloc */
++  /* patch for Sage
+   mp_set_memory_functions((void *(*)(size_t)) pari_malloc, gmp_realloc, gmp_free);
++  */
+   return 0;
+ }
+ 

@@ -1,0 +1,11 @@
+--- config/get_dlcflags	(revision 12541)
++++ config/get_dlcflags	(working copy)
+@@ -4,7 +4,7 @@
+   # *-i?86|*-sparc*|*-powerpc|*-s390|*-mips) DLCFLAGS=
+   case "$osname-$arch" in
+     *-hppa|*-ia64|*-alpha|*-arm|*-m68k|*linux-ppc) DLCFLAGS=-fPIC ;;
+-    *-x86_64|*-sparc*) case "$sizeof_long" in
++    *-x86_64|*-sparc*|*-amd64) case "$sizeof_long" in
+               8) DLCFLAGS=-fPIC;;
+               esac;;
+     darwin-*) DLCFLAGS=-fno-common;;

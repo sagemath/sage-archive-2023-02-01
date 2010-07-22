@@ -4,6 +4,7 @@
 ###########################################
 
 TOP=`pwd`
+PATCHED="$TOP/patches/files"
 
 ###########################################################
 ## patching src files.  See patches/README.txt for details
@@ -21,29 +22,29 @@ fi
 cd src
 
 # These two are needed so that Sage can catch pari's error signals.
-cp "$TOP"/patches/init.c  src/language/init.c
-cp "$TOP"/patches/mp.c    src/kernel/gmp/mp.c
+cp "$PATCHED/init.c"  src/language/init.c
+cp "$PATCHED/mp.c"    src/kernel/gmp/mp.c
 
 
-cp "$TOP"/patches/get_dlld config/
+cp "$PATCHED/get_dlld" config/
 
 # mabshoff: This patch is to get around problem in PPC 32-bit Linux build
 # (but it is ok on any other machine)
-cp "$TOP"/patches/get_dlcflags config/
+cp "$PATCHED/get_dlcflags" config/
 
 # pjeremy: fix for FreeBSD: #7825
-cp "$TOP"/patches/get_kernel config/
+cp "$PATCHED/get_kernel" config/
 
 # cwitty: disable -rpath
-cp "$TOP"/patches/get_ld config/
+cp "$PATCHED/get_ld" config/
 
 # cwitty: disable TeX; allow bz2 compression
-cp "$TOP"/patches/gphelp.in doc/
+cp "$PATCHED/gphelp.in" doc/
 
 # John Cremona: copy over a lightly patched get_tests, so that make
 # test-all does not test ellglobalred (which requires the elldata
 # package Sage does not install).
-cp "$TOP"/patches/get_tests config/get_tests
+cp "$PATCHED/get_tests" config/get_tests
 
 
 # This is needed or there are weird locale problems involving rpath
@@ -145,9 +146,9 @@ build()
     # The following is a hack to get the library installed correctly
     # on OS X.
     if [ $UNAME = "Darwin" ]; then
-	echo "MAC OS X hack -- delete and reinstall libpari.a"
-	rm -f Odarwin-ppc/*lib*
-	$MAKE install-lib-sta
+        echo "MAC OS X hack -- delete and reinstall libpari.a"
+        rm -f Odarwin-ppc/*lib*
+        $MAKE install-lib-sta
 
         if [ $? -ne 0 ]; then
             echo "Error Re-installing PARI static libraries (OS X trick)"
@@ -161,7 +162,7 @@ build()
         # Also another patch since paripriv.h won't compile right on OS X
         # when used by client Sage code.  So we replace it by a slightly
         # modified version.
-	cp -pf "$TOP"/patches/paripriv.h "$SAGE_LOCAL"/include/pari/paripriv.h
+        cp -pf "$PATCHED/paripriv.h" "$SAGE_LOCAL/include/pari/paripriv.h"
     fi
     # Like on OS X (see above), the Sage library would not build
     # without some changes. Though on Solaris the changes are much simpler than
@@ -170,11 +171,11 @@ build()
        set -e
        echo "Patching include/pari/paripriv.h so it works on Solaris"
        echo "The changes are much smaller than needed on OS X"
-       cp  "$TOP"/patches/paripriv.h $SAGE_LOCAL/include/pari/paripriv.h
+       cp  "$PATCHED/paripriv.h" $SAGE_LOCAL/include/pari/paripriv.h
        set +e
     elif [ "$UNAME" = "CYGWIN" ]; then
        # We need to the same thing on Cygwin that we have to do on Solaris
-       cp  "$TOP"/patches/paripriv.h $SAGE_LOCAL/include/pari/paripriv.h
+       cp  "$PATCHED/paripriv.h" $SAGE_LOCAL/include/pari/paripriv.h
     fi
 
     echo "Installing extra Galois groups data."

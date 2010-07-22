@@ -302,7 +302,7 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, log=0):
        sage: vertex_coloring(g, value_only=True)
        3
     """
-    from sage.numerical.mip import MixedIntegerLinearProgram
+    from sage.numerical.mip import MixedIntegerLinearProgram, Sum
     from sage.plot.colors import rainbow
 
     # If k==None, tries to find an optimal coloring
@@ -419,7 +419,7 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, log=0):
         p = MixedIntegerLinearProgram(maximization=True)
         color = p.new_variable(dim=2)
         # a vertex has exactly one color
-        [p.add_constraint(sum([color[v][i] for i in xrange(k)]), min=1, max=1)
+        [p.add_constraint(Sum([color[v][i] for i in xrange(k)]), min=1, max=1)
              for v in g.vertices()]
         # adjacent vertices have different colors
         [p.add_constraint(color[u][i] + color[v][i], max=1)
@@ -450,6 +450,160 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, log=0):
             return dict(zip(rainbow(len(classes)), classes))
         else:
             return classes
+
+def grundy_coloring(g, k, value_only = True, solver = None, verbose = 0):
+    r"""
+    Computes the worst-case of a first-fit coloring with less than `k`
+    colors.
+
+    Definition :
+
+    A first-fit coloring is obtained by sequentially coloring the
+    vertices of a graph, assigning them the smallest color not already
+    assigned to one of its neighbors. The result is clearly a proper
+    coloring, which usually requires much more colors than an optimal
+    vertex coloring of the graph, and heavily depends on the ordering
+    of the vertices.
+
+    The number of colors required by the worst-case application of
+    this algorithm on a graph `G` is called the Grundy number, written
+    `\Gamma (G)`.
+
+    Equivalent formulation :
+
+    Equivalently, a Grundy coloring is a proper vertex coloring such
+    that any vertex colored with `i` has, for every `j<i`, a neighbor
+    colored with `j`. This can define a Linear Program, which is used
+    here to compute the Grundy number of a graph.
+
+    .. NOTE:
+
+       This method computes a grundy coloring using at *MOST* `k`
+       colors. If this method returns a value equal to `k`, it can not
+       be assumed that `k` is equal to `\Gamma(G)`. Meanwhile, if it
+       returns any value `k' < k`, this is a certificate that the
+       Grundy number of the given graph is `k'`.
+
+       As `\Gamma(G)\leq \Delta(G)+1`, it can also be assumed that
+       `\Gamma(G) = k` if ``grundy_coloring(g, k)`` returns `k` when
+       `k = \Delta(G) +1`.
+
+    INPUT:
+
+    - ``k`` (integer) -- Maximum number of colors
+
+    - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+      solver to be used. If set to ``None``, the default one is used. For
+      more information on LP solvers and which default solver is used, see
+      the method
+      :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+      of the class
+      :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+    - ``value_only`` -- boolean (default: ``True``). When set to
+      ``True``, only the number of colors is returned. Otherwise, the
+      pair ``(nb_colors, coloring)`` is returned, where ``coloring``
+      is a dictionary associating its color (integer) to each vertex
+      of the graph.
+
+    - ``verbose`` -- integer (default: ``0``). Sets the level of
+      verbosity. Set to 0 by default, which means quiet.
+
+    ALGORITHM:
+
+    Integer Linear Program.
+
+    EXAMPLES:
+
+    The Grundy number of a `P_4` is equal to 3::
+
+        sage: from sage.graphs.graph_coloring import grundy_coloring
+        sage: g = graphs.PathGraph(4)
+        sage: grundy_coloring(g, 4)
+        3
+
+    The Grundy number of the PetersenGraph is equal to 4::
+
+        sage: g = graphs.PetersenGraph()
+        sage: grundy_coloring(g, 5)
+        4
+
+    It would have been sufficient to set the value of ``k`` to 4 in
+    this case, as `4 = \Delta(G)+1`.
+    """
+    from sage.numerical.mip import MixedIntegerLinearProgram
+    from sage.numerical.mip import MIPSolverException, Sum
+
+    p = MixedIntegerLinearProgram()
+
+    # List of colors
+    classes = range(k)
+
+    # b[v][i] is set to 1 if and only if v is colored with i
+    b = p.new_variable(dim=2)
+
+    # is_used[i] is set to 1 if and only if color [i] is used by some
+    # vertex
+    is_used = p.new_variable()
+
+    # Each vertex is in exactly one class
+    for v in g:
+        p.add_constraint(Sum( b[v][i] for i in classes ), max = 1, min = 1)
+
+    # Two adjacent vertices have different classes
+    for u,v in g.edges(labels = None):
+        for i in classes:
+            p.add_constraint(b[v][i] + b[u][i], max = 1)
+
+    # The following constraints ensure that if v is colored with i,
+    # then it has a neighbor colored with j for every j<i
+
+    for i in range(k):
+        for j in range(i):
+            for v in g:
+
+                # If b[v][i] == 0, then the following constraint is
+                # always satisfied, as a sum of binary variables is
+                # always positive. If it is equal to 1, then at least
+                # one of fthe other variables must be set to 1 too.
+
+                p.add_constraint( Sum( b[u][j] for u in g.neighbors(v) ) - b[v][i]  ,min = 0)
+
+    # is_used[i] can be set to 1 only if the color is used
+    for i in classes:
+        p.add_constraint( Sum( b[v][i] for v in g ) - is_used[i], min = 0)
+
+    # Both variables are binary
+    p.set_binary(b)
+    p.set_binary(is_used)
+
+    # Trying to use as many colors as possible
+    p.set_objective( Sum( is_used[i] for i in classes ) )
+
+    try:
+        obj = p.solve(solver = solver, log = verbose, objective_only = value_only)
+        from sage.rings.integer import Integer
+        obj = Integer(obj)
+
+    except MIPSolverException:
+        raise ValueError("This graph can not be colored with k colors")
+
+    if value_only:
+        return obj
+
+    # Building the dictionary associating its color to every vertex
+
+    b = p.get_values(b)
+    coloring = {}
+
+    for v in g:
+        for i in classes:
+            if b[v][i] == 1:
+                coloring[v] = i
+                break
+
+    return obj, coloring
+
 
 def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, log=0):
     r"""
@@ -529,7 +683,7 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, log=0):
     """
     from sage.numerical.mip import MixedIntegerLinearProgram
     from sage.plot.colors import rainbow
-    from sage.numerical.mip import MIPSolverException
+    from sage.numerical.mip import MIPSolverException, Sum
 
     if g.is_clique():
         if value_only:
@@ -561,11 +715,11 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, log=0):
         k += 1
     #  A vertex can not have two incident edges with the same color.
     [p.add_constraint(
-            sum([color[R(e)][i] for e in g.edges_incident(v, labels=False)]), max=1)
+            Sum([color[R(e)][i] for e in g.edges_incident(v, labels=False)]), max=1)
                 for v in g.vertex_iterator()
                     for i in xrange(k)]
     # an edge must have a color
-    [p.add_constraint(sum([color[R(e)][i] for i in xrange(k)]), max=1, min=1)
+    [p.add_constraint(Sum([color[R(e)][i] for i in xrange(k)]), max=1, min=1)
          for e in g.edge_iterator(labels=False)]
     # anything is good as an objective value as long as it is satisfiable
     e = g.edge_iterator(labels=False).next()
@@ -715,7 +869,6 @@ def linear_arboricity(g, hex_colors=False, value_only=False, k=1, **kwds):
       function of ``MixedIntegerLinearProgram``. See the documentation
       of ``MixedIntegerLinearProgram.solve`` for more informations.
 
-
     ALGORITHM:
 
     Linear Programming
@@ -769,7 +922,7 @@ def linear_arboricity(g, hex_colors=False, value_only=False, k=1, **kwds):
     elif k==0:
         k = (Integer(max(g.degree()))/2).ceil()
 
-    from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
+    from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException, Sum
     from sage.plot.colors import rainbow
 
     p = MixedIntegerLinearProgram()
@@ -787,7 +940,7 @@ def linear_arboricity(g, hex_colors=False, value_only=False, k=1, **kwds):
 
     # Partition of the edges
     for u,v in g.edges(labels=None):
-        p.add_constraint(sum([c[i][E(u,v)] for i in range(k)]), max=1, min=1)
+        p.add_constraint(Sum([c[i][E(u,v)] for i in range(k)]), max=1, min=1)
 
     for i in range(k):
 
@@ -798,10 +951,10 @@ def linear_arboricity(g, hex_colors=False, value_only=False, k=1, **kwds):
 
         # Maximum degree 2
         for u in g.vertices():
-            p.add_constraint(sum([c[i][E(u,v)] for v in g.neighbors(u)]),max = 2)
+            p.add_constraint(Sum([c[i][E(u,v)] for v in g.neighbors(u)]),max = 2)
 
             # no cycles
-            p.add_constraint(sum([r[i][(u,v)] for v in g.neighbors(u)]),max = MAD)
+            p.add_constraint(Sum([r[i][(u,v)] for v in g.neighbors(u)]),max = MAD)
 
 
     p.set_objective(None)
@@ -962,7 +1115,7 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, **kwds):
     elif k==0:
         k = max(g.degree())+2
 
-    from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
+    from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException, Sum
     from sage.plot.colors import rainbow
 
     p = MixedIntegerLinearProgram()
@@ -979,19 +1132,19 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, **kwds):
 
     # Partition of the edges
     for u,v in g.edges(labels=None):
-        p.add_constraint(sum([c[i][E(u,v)] for i in range(k)]), max=1, min=1)
+        p.add_constraint(Sum([c[i][E(u,v)] for i in range(k)]), max=1, min=1)
 
 
     for i in range(k):
 
         # Maximum degree 1
         for u in g.vertices():
-            p.add_constraint(sum([c[i][E(u,v)] for v in g.neighbors(u)]),max = 1)
+            p.add_constraint(Sum([c[i][E(u,v)] for v in g.neighbors(u)]),max = 1)
 
     for i,j in Subsets(range(k),2):
         # r is greater than c
         for u in g.vertices():
-            p.add_constraint(sum([r[(i,j)][(u,v)] for v in g.neighbors(u)]),max = MAD)
+            p.add_constraint(Sum([r[(i,j)][(u,v)] for v in g.neighbors(u)]),max = MAD)
 
         # r greater than c
         for u,v in g.edges(labels=None):

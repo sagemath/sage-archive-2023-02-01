@@ -25,6 +25,9 @@ cd src
 cp "$PATCHED/init.c"  src/language/init.c
 cp "$PATCHED/mp.c"    src/kernel/gmp/mp.c
 
+# Fix for PARI bug 1079 (jdemeyer: temporary until this is fixed upstream)
+cp "$PATCHED/base2.c" "$PATCHED/polarit3.c" src/basemath/
+
 
 cp "$PATCHED/get_dlld" config/
 

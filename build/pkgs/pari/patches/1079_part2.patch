@@ -1,0 +1,11 @@
+--- a/src/basemath/polarit3.c
++++ b/src/basemath/polarit3.c
+@@ -2536,6 +2536,8 @@ END:
+   if (plambda) *plambda = lambda;
+   if (LERS)
+   {
++    if (typ(H0)==t_INT) H0 = scalarpol(H0,vY);
++    if (typ(H1)==t_INT) H1 = scalarpol(H1,vY);
+     *LERS = mkvec2(H0,H1);
+     gerepileall(av, 2, &H, LERS);
+     return H;

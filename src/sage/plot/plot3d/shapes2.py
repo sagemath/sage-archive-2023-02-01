@@ -698,7 +698,7 @@ class Point(PrimitiveObject):
 
             sage: P = point3d((1,2,3),size=3,color='purple')
             sage: P.tachyon_repr(P.default_render_params())
-            'Sphere center 1.0 2.0 3.0 Rad 0.015 texture84'
+            'Sphere center 1.0 2.0 3.0 Rad 0.015 texture85'
         """
         transform = render_params.transform
         if transform is None:
@@ -715,7 +715,7 @@ class Point(PrimitiveObject):
 
             sage: P = point3d((1,2,3),size=3,color='purple')
             sage: P.obj_repr(P.default_render_params())[0][0:2]
-            ['g obj_1', 'usemtl texture86']
+            ['g obj_1', 'usemtl texture87']
         """
         T = render_params.transform
         if T is None:
@@ -823,7 +823,7 @@ class Line(PrimitiveObject):
 
             sage: L = line3d([(cos(i),sin(i),i^2) for i in srange(0,10,.01)],color='red')
             sage: L.tachyon_repr(L.default_render_params())[0]
-            'FCylinder base 1.0 0.0 0.0 apex 0.999950000417 0.00999983333417 0.0001 rad 0.005 texture126'
+            'FCylinder base 1.0 0.0 0.0 apex 0.999950000417 0.00999983333417 0.0001 rad 0.005 texture127'
         """
         T = render_params.transform
         cmds = []

@@ -78,11 +78,20 @@ exactly where it says native, but I would expect a grep to find it.
 
 == Changelog ==
 
+=== pari-2.4.3.svn.p6 (Jeroen Demeyer, July 22, 2010) ===
+ * pari 2.4.3 version svn 12541
+ * Added spkg-make script to automate building of this spkg
+ * Changed patch logic in spkg-install
+ * Add patches for PARI bug 1079
+
+=== pari-2.4.3.svn.p5 (John Cremona July 13, 2010) ===
+ * pari 2.4.3 version svn 12541
+ * adds spkg-check by David Kirkby
+
 === pari-2.4.3.svn.p1, p2, p3, p4 (Robert Bradshaw and William Stein,
 June 26, 2010; John Cremona July 13, 2010) ===
  * Major new version
  * p4 contains pari 2.4.3 version svn 12534
- * p5 contains pari 2.4.3 version svn 12541, adds spkg-check by David Kirkby
 
 === pari-2.3.5.p1 (Mike Hansen, May 25th, 2010) ===
  * Do the same fix for Cygwin that we do on Solaris.

@@ -91,9 +91,13 @@ for patch in ../patches/*.patch; do
 	chmod "--reference=$srcfile" "$outfile"
 done
 
+cd ..
+
+# Get status from svn and store in patches/status (for lack of a better place)
+( cd parisvn; TOP=.; . config/version; echo "$status" ) >patches/status
+
 
 # We're done!
-cd ..  # up from parisvn
 echo "======================================================"
 echo "Done downloading PARI and creating the src/ directory."
 echo "If everything looks okay, proceed as follows:"

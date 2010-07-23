@@ -737,6 +737,10 @@ class MixedIntegerLinearProgram:
             Traceback (most recent call last):
             ...
             ValueError: min and max arguments are required to be numerical
+            sage: p.add_constraint(v[3] + v[5], max = v[6])
+            Traceback (most recent call last):
+            ...
+            ValueError: min and max arguments are required to be numerical
 
         """
         if linear_function is None or linear_function is 0:

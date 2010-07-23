@@ -63,7 +63,7 @@ class MixedIntegerLinearProgram:
             sage: p = MixedIntegerLinearProgram(maximization=True)
         """
 
-
+        self._default_solver = None
 
         try:
             if self._default_solver == None:
@@ -721,8 +721,8 @@ class MixedIntegerLinearProgram:
             sage: p.set_objective(x[1] + 5*x[2])
             sage: p.add_constraint(x[1] + 0.2*x[2] <= 4)
             sage: p.add_constraint(1.5*x[1] + 3*x[2] <= 4)
-            sage: p.solve()
-            6.6666666666666661
+            sage: round(p.solve(), 5)
+            6.66667
 
 
         TESTS::

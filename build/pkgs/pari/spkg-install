@@ -10,15 +10,6 @@ PATCHED="$TOP/patches/files"
 ## patching src files.  See patches/README.txt for details
 ###########################################################
 
-# As of PARI 2.3.3, the compiler flag -fPIC is not added on Solaris, but it
-# needs to be if using gcc. I assume the equivalent will be needed on
-# other compilers.
-
-if [ `uname` = "SunOS" ]; then
-    sed 's/-fomit-frame-pointer/-fomit-frame-pointer -fPIC/g' src/config/get_cc > src/config/get_cc.$$
-    mv src/config/get_cc.$$ src/config/get_cc
-fi
-
 cd src
 
 # These two are needed so that Sage can catch pari's error signals.
@@ -30,13 +21,6 @@ cp "$PATCHED/base2.c" "$PATCHED/polarit3.c" src/basemath/
 
 
 cp "$PATCHED/get_dlld" config/
-
-# mabshoff: This patch is to get around problem in PPC 32-bit Linux build
-# (but it is ok on any other machine)
-cp "$PATCHED/get_dlcflags" config/
-
-# pjeremy: fix for FreeBSD: #7825
-cp "$PATCHED/get_kernel" config/
 
 # cwitty: disable -rpath
 cp "$PATCHED/get_ld" config/

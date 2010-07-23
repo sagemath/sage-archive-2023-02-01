@@ -68,7 +68,7 @@ make gp doc || exit
 tar c `config/get_MANIFEST` | ( cd ../src && tar xv )
 
 # Save svn version (see config/settar)
-svnversion >config/svnversion
+svnversion >../src/config/svnversion
 
 
 # Extract the tgz files

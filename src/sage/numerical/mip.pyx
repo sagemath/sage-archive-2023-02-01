@@ -668,7 +668,7 @@ class MixedIntegerLinearProgram:
         - ``max`` -- An upper bound on the constraint (set to ``None``
           by default). This must be a numerical value.
         - ``min`` -- A lower bound on the constraint.  This must be a
-          numerical value
+          numerical value.
         - ``name`` -- A name for the constraint.
 
         EXAMPLE:
@@ -729,9 +729,25 @@ class MixedIntegerLinearProgram:
 
             sage: p=MixedIntegerLinearProgram()
             sage: p.add_constraint(sum([]),min=2)
+
+        Min/Max are numerical ::
+
+            sage: v = p.new_variable()
+            sage: p.add_constraint(v[3] + v[5], min = v[6])
+            Traceback (most recent call last):
+            ...
+            ValueError: min and max arguments are required to be numerical
+
         """
         if linear_function is None or linear_function is 0:
             return None
+
+        # Raising an exception when min/max are not as expected
+        from sage.rings.all import RR
+        if ((min is not None and min not in RR)
+            or (max is not None and max not in RR)):
+
+            raise ValueError("min and max arguments are required to be numerical")
 
         if isinstance(linear_function, LinearFunction):
 

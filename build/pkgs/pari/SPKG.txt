@@ -79,7 +79,7 @@ exactly where it says native, but I would expect a grep to find it.
 == Changelog ==
 
 === pari-2.4.3.svn.p7 (Jeroen Demeyer, July 23, 2010) ===
- * pari 2.4.3 version svn 12542
+ * pari 2.4.3 version svn 12543
  * Remove patches for get_cc, get_dlcflags, get_kernel, get_dlld
 
 === pari-2.4.3.svn.p6 (Jeroen Demeyer, July 22, 2010) ===

@@ -33,10 +33,6 @@ cp "$PATCHED/gphelp.in" doc/
 # package Sage does not install).
 cp "$PATCHED/get_tests" config/get_tests
 
-# jdemeyer: patch config/version with the status saved during
-# spkg-make.
-echo 'if [ -f $TOP/../patches/status ]; then status=`cat $TOP/../patches/status`; fi' >>config/version
-
 
 # This is needed or there are weird locale problems involving rpath
 # with building Sage.

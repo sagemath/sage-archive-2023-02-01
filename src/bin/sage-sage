@@ -596,6 +596,7 @@ if [ "$1" = '-ba' ]; then
    echo " *** WARNING *** "
    echo " You are about to rebuild the entire Sage library."
    echo " This will take a significant amount of time."
+   echo " (Use -ba-force instead of -ba to skip this prompt.)"
    echo -n " Do you want to proceed? [y/n] "
    read CHOICE
    while [ "$CHOICE" != "y" -a "$CHOICE" != "n" ]; do

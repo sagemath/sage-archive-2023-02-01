@@ -308,3 +308,11 @@ zdaemon
 zeoctl
 zeopack
 zeopasswd
+gfortran
+gfortran-4.0
+gfortran-4.2
+gfortran-64
+gfortran-uninstall
+i686-apple-darwin8-gfortran-4.2
+powerpc-apple-darwin8-gfortran-4.2
+zope-testrunner

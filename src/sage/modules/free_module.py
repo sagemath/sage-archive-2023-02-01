@@ -176,6 +176,7 @@ import sage.rings.finite_rings.integer_mod_ring
 import sage.rings.infinity
 import sage.rings.integer
 import sage.structure.parent_gens as gens
+from sage.categories.principal_ideal_domains import PrincipalIdealDomains
 from sage.misc.randstate import current_randstate
 from sage.structure.sequence import Sequence
 
@@ -1942,9 +1943,13 @@ class FreeModule_generic_pid(FreeModule_generic):
             sage: FreeModule(PolynomialRing(GF(7),'x'), 2)
             Ambient free module of rank 2 over the principal ideal domain Univariate Polynomial Ring in x over Finite Field of size 7
         """
-        if not isinstance(base_ring, principal_ideal_domain.PrincipalIdealDomain):
-            raise TypeError, "The base_ring must be a principal ideal domain."
-        FreeModule_generic.__init__(self, base_ring, rank, degree, sparse)
+        # The first check should go away once everything is categorized...
+        if (not isinstance(base_ring,
+                           principal_ideal_domain.PrincipalIdealDomain)
+            and base_ring not in PrincipalIdealDomains()):
+            raise TypeError("The base_ring must be a principal ideal domain.")
+        super(FreeModule_generic_pid, self).__init__(base_ring, rank, degree,
+                                                     sparse)
 
     def scale(self, other):
         """
@@ -4566,85 +4571,122 @@ class FreeModule_ambient_field(FreeModule_generic_field, FreeModule_ambient_pid)
 ###############################################################################
 
 class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
+    r"""
+    Construct a submodule of a free module over PID with a distiguished basis.
+
+    INPUT:
+
+    - ``ambient`` -- ambient free module over a principal ideal domain `R`,
+      i.e. `R^n`;
+
+    - ``basis`` -- list of elements of `K^n`, where `K` is the fraction field
+      of `R`. These elements must be linearly independent and will be used as
+      the default basis of the constructed submodule;
+
+    - ``check`` -- (default: ``True``) if ``False``, correctness of the input
+      will not be checked and type conversion may be omitted, use with care;
+
+    - ``echelonize`` -- (default:``False``) if ``True``, ``basis`` will be
+      echelonized and the result will be used as the default basis of the
+      constructed submodule;
+
+    - `` echelonized_basis`` -- (default: ``None``) if not ``None``, must be
+      the echelonized basis spanning the same submodule as ``basis``;
+
+    - ``already_echelonized`` -- (default: ``False``) if ``True``, ``basis``
+      must be already given in the echelonized form.
+
+    OUTPUT:
+
+    - `R`-submodule of `K^n` with the user-specified ``basis``.
+
+    EXAMPLES::
+
+        sage: M = ZZ^3
+        sage: W = M.span_of_basis([[1,2,3],[4,5,6]]); W
+        Free module of degree 3 and rank 2 over Integer Ring
+        User basis matrix:
+        [1 2 3]
+        [4 5 6]
+
+    Now we create a submodule of the ambient vector space, rather than
+    ``M`` itself::
+
+        sage: W = M.span_of_basis([[1,2,3/2],[4,5,6]]); W
+        Free module of degree 3 and rank 2 over Integer Ring
+        User basis matrix:
+        [  1   2 3/2]
+        [  4   5   6]
     """
-    An `R`-submodule of `K^n` with distinguished basis,
-    where `K` is the fraction field of a principal ideal domain
-    `R`.
-    """
+
     def __init__(self, ambient, basis, check=True,
         echelonize=False, echelonized_basis=None, already_echelonized=False):
-        """
-        Create a free module with basis over a PID.
+        r"""
+        See :class:`FreeModule_submodule_with_basis_pid` for documentation.
 
-        EXAMPLES::
+        TESTS::
 
             sage: M = ZZ^3
-            sage: W = M.span_of_basis([[1,2,3],[4,5,6]]); W
+            sage: W = M.span_of_basis([[1,2,3],[4,5,6]])
+            sage: TestSuite(W).run()
+
+        We test that the issue at Trac #9502 is solved::
+
+            sage: parent(W.basis()[0])
             Free module of degree 3 and rank 2 over Integer Ring
             User basis matrix:
             [1 2 3]
             [4 5 6]
-
-        ::
-
-            sage: W = M.span_of_basis([[1,2,3/2],[4,5,6]]); W
+            sage: parent(W.echelonized_basis()[0])
             Free module of degree 3 and rank 2 over Integer Ring
             User basis matrix:
-            [  1   2 3/2]
-            [  4   5   6]
+            [1 2 3]
+            [4 5 6]
         """
         if not isinstance(ambient, FreeModule_ambient_pid):
-            raise TypeError, "ambient (=%s) must be ambient."%ambient
-        if not isinstance(basis, (list, tuple)):
-            raise TypeError, "basis (=%s) must be a list"%basis
-        basis = list(basis) # make it a list rather than a tuple
-        if check:
-            V = ambient.vector_space()
-            basis = [V(x) for x in basis]
-
+            raise TypeError("ambient (=%s) must be ambient." % ambient)
         self.__ambient_module = ambient
-
+        if not isinstance(basis, (list, tuple)):
+            raise TypeError("basis (=%s) must be a list" % basis)
+        basis = list(basis) # make it a list rather than a tuple
         if check:
             V = ambient.ambient_vector_space()
             for i in range(len(basis)):
                 x = basis[i]
-                if not (x in V):
+                if x not in V:
                     try:
                         basis[i] = V(x)
                     except TypeError:
-                        raise TypeError, "each element of basis must be in the ambient vector space"
-        R = ambient.base_ring()
-
+                        raise TypeError("each element of basis must be in "
+                                        "the ambient vector space")
         if echelonize and not already_echelonized:
             basis = self._echelonized_basis(ambient, basis)
-
-        FreeModule_generic.__init__(self, R, rank=len(basis), degree=ambient.degree(), sparse=ambient.is_sparse())
-
+        R = ambient.base_ring()
+        # The following is WRONG - we should call __init__ of
+        # FreeModule_generic_pid. However, it leads to a bunch of errors.
+        FreeModule_generic.__init__(self, R,
+                                    rank=len(basis), degree=ambient.degree(),
+                                    sparse=ambient.is_sparse())
         C = self.element_class()
         try:
-            w = [C(self, x.list(),
-                          coerce=False, copy=True) for x in basis]
+            w = [C(self, x.list(), coerce=False, copy=True) for x in basis]
         except TypeError:
             C = element_class(R.fraction_field(), self.is_sparse())
             self._element_class = C
-            w = [C(self, x.list(),
-                          coerce=False, copy=True) for x in basis]
+            w = [C(self, x.list(), coerce=False, copy=True) for x in basis]
         self.__basis = basis_seq(self, w)
 
-        if echelonized_basis != None:
-
-            self.__echelonized_basis = basis_seq(self, echelonized_basis)
-
+        if echelonize or already_echelonized:
+            self.__echelonized_basis = self.__basis
         else:
-
-            if echelonize or already_echelonized:
-                self.__echelonized_basis = self.__basis
-            else:
-                w = self._echelonized_basis(ambient, basis)
-                self.__echelonized_basis = basis_seq(self, w)
-
+            if echelonized_basis is None:
+                echelonized_basis = self._echelonized_basis(ambient, basis)
+            w = [C(self, x.list(), coerce=False, copy=True)
+                 for x in echelonized_basis]
+            self.__echelonized_basis = basis_seq(self, w)
         if check and len(basis) != len(self.__echelonized_basis):
-            raise ValueError, "The given basis vectors must be linearly independent."
+            raise ValueError("The given basis vectors must be linearly "
+                             "independent.")
 
     def __hash__(self):
         """

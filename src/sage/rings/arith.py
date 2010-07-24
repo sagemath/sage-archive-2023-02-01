@@ -523,12 +523,12 @@ def is_pseudoprime(n, flag=0):
 
 def is_prime_power(n, flag=0):
     r"""
-    Returns True if `x` is a prime power, and False otherwise.  The
+    Returns True if `n` is a prime power, and False otherwise.  The
     result is proven correct - *this is NOT a pseudo-primality test!*.
 
     INPUT:
 
-        -  ``n`` - an integer
+        -  ``n`` - an integer or rational number
         -  ``flag (for primality testing)`` - int
         - ``0`` (default): use a combination of algorithms.
         - ``1``: certify primality using the Pocklington-Lehmer Test.
@@ -551,11 +551,27 @@ def is_prime_power(n, flag=0):
         True
         sage: is_prime_power(997^100)
         True
+        sage: is_prime_power(1/2197)
+        True
+        sage: is_prime_power(1/100)
+        False
+        sage: is_prime_power(2/5)
+        False
     """
+    try:
+        n = ZZ(n)
+    except TypeError:
+        # n might be a nonintegral rational number, in which case it is a
+        # prime power iff the integer 1/n is a prime power
+        r = QQ(1/n)
+        if not r.is_integral():
+            return False
+        n = ZZ(r)
+
     from sage.structure.proof.all import arithmetic
     proof = arithmetic()
     if proof:
-        return ZZ(n).is_prime_power(flag=flag)
+        return n.is_prime_power(flag=flag)
     else:
         return is_pseudoprime_small_power(n)
 

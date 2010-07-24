@@ -233,8 +233,8 @@ cdef class ToricLatticeElement(Vector_integer_dense):
             ...
             TypeError: mutable vectors are unhashable
             sage: n.set_immutable()
-            sage: hash(n)  # 64-bit
-            2528502973977326415
+            sage: hash(n) == hash(n)
+            True
         """
         return Vector_integer_dense.__hash__(self)
 

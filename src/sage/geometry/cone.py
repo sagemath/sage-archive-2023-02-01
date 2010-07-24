@@ -557,8 +557,8 @@ class IntegralRayCollection(SageObject,
         TESTS::
 
             sage: c = Cone([(1,0), (0,1)])
-            sage: hash(c)  # 64-bit
-            4372618627376133801
+            sage: hash(c) == hash(c)
+            True
         """
         if "_hash" not in self.__dict__:
             self._hash = hash(self._rays)

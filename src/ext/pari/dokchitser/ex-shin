@@ -45,7 +45,7 @@ initLdata("a(k)");      \\ Initalized L-series with coefficients a(k)
                         \\ actually uses cflength()=386 coeffs
 
 print("EXAMPLE: L(s)=Shintani's zeta function");
-print("         with ",default(realprecision,,1)," digits precision");
+print("         with ",default(realprecision)," digits precision");
 print("Verifying functional equation. Error: ",errprint(checkfeq()));
 print("L(2)     = ",L(2));
 print(" (check) = ",L(2,1.1));

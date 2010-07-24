@@ -24,7 +24,7 @@ initLdata("sigma(k,K-1)");  \\ initialize L-series
 
 print("EXAMPLE: L-function associated to the modular form G_",K," of weight ",K);
 print("         coefficients = divisor function sigma(n,",K-1,")");
-print("         with ",default(realprecision,,1)," digits precision");
+print("         with ",default(realprecision)," digits precision");
 print("Verifying functional equation. Error: ",errprint(checkfeq()));
 print("L(1)       = ",lval = L(1));
 print(" (check)   = ",lval2 = L(1,1.1),"  (err=",errprint(lval-lval2),")");

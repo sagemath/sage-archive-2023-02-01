@@ -1007,7 +1007,7 @@ if( DEBUGLEVEL_ell >= 2, print(" vient du point trivial ",point));
       idealfactorzc = idealfactor(ext,zc);
       idealfactorzc[,2] *= -1;
       idealfactorzc[,2] \= 2;
-      idealzc = factorback(idealfactorzc,,ext);
+      idealzc = idealfactorback(ext,idealfactorzc);
       if( idealzc == 1, idealzc = matid(3));
       baseidealzc = vector(3,i,nfbasistoalg(ext,idealzc[,i]));
       q2 = matrix(3,3,i,j,trace(zc*baseidealzc[i]*baseidealzc[j]/polprime));

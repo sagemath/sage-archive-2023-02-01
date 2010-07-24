@@ -15,7 +15,7 @@ zinit     = zetakinit(nf);        \\ and the built-in Dedekind zeta-function
 LPari(x)  = zetak(zinit,x);
 
 print("EXAMPLE: Dedekind zeta-function L(s)=zeta_F(s) of number field F");
-print("         with ",default(realprecision,,1)," digits precision");
+print("         with ",default(realprecision)," digits precision");
 print("F                   = Q(root of ",fpol,")");
 print("[F:Q]               = ",Fdegree = poldegree(fpol));
 print("Discriminant        = ",disc    = nf.disc);

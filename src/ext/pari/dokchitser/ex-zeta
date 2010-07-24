@@ -19,7 +19,7 @@ initLdata("1");             \\ initialize the package; all coeffs equal to 1
 
 
 print("EXAMPLE: L(s)=zeta(s), Riemann zeta function");
-print("         with ",default(realprecision,,1)," digits precision");
+print("         with ",default(realprecision)," digits precision");
 print("Verifying functional equation. Error: ",errprint(checkfeq()));
 print("zeta(2)    = ",L(2),     "   using the package");
 print("           = ",L(2,1.1), "   using a different cutoff point");

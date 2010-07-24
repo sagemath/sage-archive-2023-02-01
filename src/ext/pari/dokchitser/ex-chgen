@@ -33,7 +33,7 @@ sgneq = Vec(checkfeq());       \\ checkfeq() returns c1+X*c2, should be 0
 sgn   = -sgneq[2]/sgneq[1];    \\ hence solve for the sign
 
 print("EXAMPLE: L(s)=L(Chi,s), Chi=character of order p-1 modulo p");
-print("         with ",default(realprecision,,1)," digits precision");
+print("         with ",default(realprecision)," digits precision");
 print("         take p=",p);
 print("Chi(",lift(prim),")      = exp(2*Pi*I/",p-1,\
       ")    defines the character (mod ",p,")");

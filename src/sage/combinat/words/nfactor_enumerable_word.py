@@ -610,35 +610,35 @@ class Word_nfactor_enumerable(Word_class):
 
             sage: w = words.ThueMorseWord()[:30]
             sage: for i in range(10):
-            ...     for u in w.bispecial_factors_iterator(i):
+            ...     for u in sorted(w.bispecial_factors_iterator(i)):
             ...         print i,u
             0 word:
-            1 word: 1
             1 word: 0
-            2 word: 10
+            1 word: 1
             2 word: 01
-            3 word: 101
+            2 word: 10
             3 word: 010
+            3 word: 101
             4 word: 0110
             4 word: 1001
-            6 word: 100110
             6 word: 011001
+            6 word: 100110
             8 word: 10010110
 
         ::
 
-            sage: for u in w.bispecial_factors_iterator(): u
+            sage: for u in sorted(w.bispecial_factors_iterator(), key=lambda u:(len(u),u)): print u
             word:
-            word: 1
             word: 0
-            word: 10
+            word: 1
             word: 01
-            word: 101
+            word: 10
             word: 010
+            word: 101
             word: 0110
             word: 1001
-            word: 100110
             word: 011001
+            word: 100110
             word: 10010110
         """
         if n is None:

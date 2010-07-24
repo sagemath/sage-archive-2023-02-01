@@ -26,8 +26,6 @@ cp "$PATCHED/mp.c"    src/kernel/gmp/mp.c
 cp "$PATCHED/base2.c" "$PATCHED/polarit3.c" src/basemath/
 
 
-cp "$PATCHED/get_dlld" config/
-
 # cwitty: disable -rpath
 cp "$PATCHED/get_ld" config/
 

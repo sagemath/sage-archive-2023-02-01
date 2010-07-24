@@ -20,7 +20,7 @@ initLdata("1");             \\ initialize the package; all coeffs equal to 1
 
 print("EXAMPLE: L(s)=zeta(s), Riemann zeta function");
 print("         for s with large imaginary part");
-print("         with ",default(realprecision,,1)," digits precision");
+print("         with ",default(realprecision)," digits precision");
 print("Verifying functional equation. Error: ",errprint(checkfeq()));
 print("For large imaginary s there is precision loss and a warning is printed");
 print("");

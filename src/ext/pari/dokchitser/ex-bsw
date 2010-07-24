@@ -27,7 +27,7 @@ initLdata("a(k)",1);  \\ initialize the vector of coefficients
                       \\ so set cutoff=1, saves some coefficients
 
 print("EXAMPLE: Birch-Swinnerton-Dyer on an elliptic curve over Q");
-print("         with ",default(realprecision,,1)," digits precision");
+print("         with ",default(realprecision)," digits precision");
 print("Elliptic curve : ", elleq);
 print("Points         : ", points);
 print("Conductor      = ", conductor);

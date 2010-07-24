@@ -39,7 +39,7 @@ weight    = 2;                 \\ L(s)=sgn*L(weight-s)
 initLdata("coef[k]",-450);     \\ initialize the L-series data
 
 print("EXAMPLE: L-function of a genus 4 curve over Q");
-print("         with ",default(realprecision,,1)," digits precision");
+print("         with ",default(realprecision)," digits precision");
 print("C: y^2+(x^5+x+1)y=x^7-x^6+x^4 (genus 4, hyperelliptic)");
 
 print("Actually need ",cflength()," coeficients to properly verify functional equation");

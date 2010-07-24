@@ -153,7 +153,7 @@ concatstr(s1="",s2="",s3="",s4="")=concat(Str(s1),concat(Str(s2),concat(Str(s3),
 \\ Print a ``small error'', e.g. 0.00000013 as "1E-7"
 {
 errprint(x)=if(type(x)=="t_COMPLEX",x=abs(x));
-   if(x==0,concatstr("1E-",default(realprecision,,1)+1),
+   if(x==0,concatstr("1E-",default(realprecision)+1),
    concatstr(truncate(x/10^floor(log(abs(x))/log(10))),"E",floor(log(abs(x))/log(10))));
 }
 
@@ -170,10 +170,10 @@ errprint(x)=if(type(x)=="t_COMPLEX",x=abs(x));
 {
 gammaseries(z0,terms,
     Avec,Bvec,Qvec,n,z,err,res,c0,c1,c2,c3,sinser,reflect,digits,srprec,negint)=
-  srprec=default(seriesprecision,,1);
+  srprec=default(seriesprecision);
   if (z0==real(round(z0)),z0=real(round(z0)));    \\ you don't want to know
   negint=type(z0)=="t_INT" && z0<=0;              \\ z0 is a pole
-  default(seriesprecision,terms+1+negint,1);
+  default(seriesprecision,terms+1+negint);
   if (terms==0 && !negint,res=gamma(z0)+O(x),     \\ faster to use
   if (terms==1 && !imag(z0) && !negint,           \\   built-in functions
       res=gamma(z0)*(1+psi(z0)*x+O(x^2)),         \\   in special cases
@@ -181,8 +181,8 @@ gammaseries(z0,terms,
   if (z0==1, res=gamma(1+x),
   if (z0==2, res=gamma(1+x)*(1+x),
   \\ otherwise use Luke's rational approximations for psi(x)
-  digits=default(realprecision,,1);   \\ save working precision
-  default(realprecision,digits+3,1);  \\   and work with 3 digits more
+  digits=default(realprecision);   \\ save working precision
+  default(realprecision,digits+3);  \\   and work with 3 digits more
   reflect=real(z0)<0.5;               \\ left of 1/2 use reflection formula
   if (reflect,z0=1-z0);
   z=subst(Ser(precision(1.*z0,digits+3)+X),X,x);
@@ -208,9 +208,9 @@ gammaseries(z0,terms,
     if (negint,sinser[1]=0);          \\ taking slight care at integers<0
     res=subst(Pi/res/Ser(sinser),x,-x);
   );
-  default(realprecision,digits,1);
+  default(realprecision,digits);
   )))));
-  default(seriesprecision,srprec,1);
+  default(seriesprecision,srprec);
   res;
 }
 
@@ -232,7 +232,7 @@ fullgamma(ss) = if(ss!=lastFGs,lastFGs=ss;\
 {
 fullgammaseries(ss,extraterms,
     digits,GSD)=
-  digits=default(realprecision,,1);
+  digits=default(realprecision);
   if (lastFGSs!=ss || lastFGSterms!=extraterms,
     GSD=sum(j=1,numpoles,(abs((ss+poles[j])/2-round(real((ss+poles[j])/2)))<10^(2-digits)) * PoleOrders[j] )+extraterms;
     lastFGSs=ss;
@@ -268,10 +268,10 @@ RecursionsAtInfinity(gammaV,
   ));
 
   \\ Delta polynomials
-  OldSeriesPrecision = default(seriesprecision,,1);
-  default(seriesprecision,2*d+2,1);
+  OldSeriesPrecision = default(seriesprecision);
+  default(seriesprecision,2*d+2);
   deltapol=subst(Vec( (sinh(x)/x)^tvar ),tvar,x);
-  default(seriesprecision,OldSeriesPrecision,1);
+  default(seriesprecision,OldSeriesPrecision);
 
   \\ recursion coefficients for phi at infinity
   recF=vector(d+1,p,
@@ -331,11 +331,13 @@ EvaluateContFrac(cfvec,terms,t,
 \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
 {
+/* jdemeyer: second argument is never used, it gets overriden in the
+ * first line */
 cflength(cutoff=1.2,
-    vA,d,expdifff,asympconstf,err,t,t1=0,t2=2,tt,res,lfundigits)=
+    vA_not_used,d,expdifff,asympconstf,err,t,t1=0,t2=2,tt,res,lfundigits)=
   vA = sqrt(conductor/Pi^length(gammaV));
   d  = length(gammaV);
-  lfundigits = default(realprecision,,1) +
+  lfundigits = default(realprecision) +
      max(ceil(-log(abs(fullgamma(0.7*weight+MaxImaginaryPart*I)))/log(10)),0);
   expdifff = (sum(k=1,d,gammaV[k])+1)/d-1;
   asympconstf = 2*prod(k=1,d,gamma(k/d));
@@ -392,7 +394,7 @@ initLdata(vstr,cutoff=1.2,vdualstr="",
 
   \\ Calculate the necessary amount of extra digits
 
-  answerdigits = default(realprecision,,1);
+  answerdigits = default(realprecision);
   vA=sqrt(conductor/Pi^d);
   lfundigits = answerdigits +
      max(ceil(-log(abs(fullgamma(0.7*weight+MaxImaginaryPart*I)))/log(10)),0);
@@ -402,7 +404,7 @@ initLdata(vstr,cutoff=1.2,vdualstr="",
 
   \\ Exponential factor defined to maximal precision
 
-  default(realprecision,taylordigits,1);
+  default(realprecision,taylordigits);
   vA     = sqrt(precision(conductor,taylordigits)/Pi^d); \\ exp. factor
   lastt  = len/vA;
 
@@ -418,7 +420,7 @@ initLdata(vstr,cutoff=1.2,vdualstr="",
 
   \\ Initialize the asymptotic coefficients at infinity
 
-  default(realprecision,asympdigits,1);
+  default(realprecision,asympdigits);
 
   recFG=RecursionsAtInfinity(gammaV);
   recF=recFG[1];
@@ -467,7 +469,7 @@ initLdata(vstr,cutoff=1.2,vdualstr="",
 
   \\ Recursions for phi(t) and G(t,s) at the origin
 
-  default(realprecision,taylordigits,1);
+  default(realprecision,taylordigits);
 
   \\ Initial values of the gamma factors for recursions
 
@@ -482,7 +484,7 @@ initLdata(vstr,cutoff=1.2,vdualstr="",
   until((phiVnn>3)&&(vecmax(abs(phiV[phiVnn]))*((PhiCaseBound+1)*vA)^(2*phiVnn)<10^(-termdigits-1)),
     RecursephiV());
 
-  default(realprecision,answerdigits,1);
+  default(realprecision,answerdigits);
 }
 
 
@@ -505,7 +507,7 @@ RecursephiV()=     \\ compute one more term for the recursions at the origin
 {
 phi0(t,                              \\ phi(t) using series expansion at t=0
     t2,LogTTerm,TPower,res=0,nn=0,totalold)=
-  default(realprecision,taylordigits,1);
+  default(realprecision,taylordigits);
   t        = precision(t,taylordigits);
   t2       = t^2;
   LogTTerm = vector(vecmax(PoleOrders),k,(-log(t))^(k-1)/(k-1)!)~;
@@ -516,20 +518,20 @@ phi0(t,                              \\ phi(t) using series expansion at t=0
     res+=TPower*phiV[nn]*LogTTerm;
     TPower*=t2;
   );
-  default(realprecision,termdigits,1);
+  default(realprecision,termdigits);
   res
 }
 
 {                          \\ phi(t) using asymptotic expansion at infinity
 phiinf(t,ncf=fncf,
     res,d,td2) =
-  default(realprecision,asympdigits,1);
+  default(realprecision,asympdigits);
   t=precision(t,asympdigits);
   d=length(gammaV);
   td2=t^(-2/d);
   res=EvaluateContFrac(fcf,ncf,td2);
   res=res*asympconstf*exp(-d/td2)*t^expdifff;
-  default(realprecision,termdigits,1);
+  default(realprecision,termdigits);
   res;
 }
 
@@ -569,7 +571,7 @@ MakeLogSum(ss,der,
 {
 G0(t,ss,der,                 \\ G(t,s,der) computed using Taylor series at 0
     t2,LT,TPower,res,nn,term,gmser,gmcf,dgts)=
-  default(realprecision,taylordigits,1);
+  default(realprecision,taylordigits);
   ss     = precision(ss,taylordigits);
   if ([ss,der]!=lastLSs,LogSum=[]);
   t      = precision(t,taylordigits);
@@ -589,7 +591,7 @@ G0(t,ss,der,                 \\ G(t,s,der) computed using Taylor series at 0
   gmser=fullgammaseries(ss,der)/t^(S+ss);
   gmcf=polcoeff(gmser,der,S)*der!;
   res=(gmcf-res);
-  default(realprecision,termdigits,1);
+  default(realprecision,termdigits);
   res
 }
 
@@ -597,7 +599,7 @@ G0(t,ss,der,                 \\ G(t,s,der) computed using Taylor series at 0
 {
 Ginf(t,ss,der,ncf=-1,     \\ G(t,s,der) computed using asymptotic expansion
     res,d,tt) =           \\ at infinity and associated continued fraction
-  default(realprecision,asympdigits,1);
+  default(realprecision,asympdigits);
   ss=precision(ss,asympdigits);
   t=precision(t,asympdigits);
   if (ncf==-1,ncf=gncf);
@@ -605,7 +607,7 @@ Ginf(t,ss,der,ncf=-1,     \\ G(t,s,der) computed using asymptotic expansion
   tt=t^(-2/d);
   res=EvaluateContFrac(gcf,ncf,tt);
   res=asympconstg*exp(-d/tt)*t^expdiffg*tt^der*res;
-  default(realprecision,termdigits,1);
+  default(realprecision,termdigits);
   res;
 }
 
@@ -613,7 +615,7 @@ Ginf(t,ss,der,ncf=-1,     \\ G(t,s,der) computed using asymptotic expansion
 {
 initGinf(ss,der,          \\ pre-compute asymptotic expansions for a given s
     d,gvec,gncf,terms,t1)=
-  default(realprecision,asympdigits,1);
+  default(realprecision,asympdigits);
   ss=precision(ss,asympdigits);
   d=length(gammaV);
   gvec=Gvec;
@@ -629,7 +631,7 @@ initGinf(ss,der,          \\ pre-compute asymptotic expansions for a given s
       (abs(Ginf(t1,ss,der,terms-1)-Ginf(t1,ss,der,terms)))<10^(-termdigits-2),terms-=1);
     if (sum(j=1,terms,gcf[2*j])<ncoeff,Ginfterms[k]=terms,GCaseBound=k*termstep);
   );
-  default(realprecision,termdigits,1);
+  default(realprecision,termdigits);
 }
 
 
@@ -662,7 +664,7 @@ checkfeq(t=6/5,             \\ determine residues if they are not yet set
   );
   res=ltheta(t)-sgn*t^(-weight)*ldualtheta(1/t)+
     sum(k=1,length(Lpoles),Lresidues[k]*(t^-Lpoles[k]-sgn*t^(-weight+Lpoles[k])));
-  default(realprecision,answerdigits,1);
+  default(realprecision,answerdigits);
   res;
 }
 
@@ -678,7 +680,7 @@ L(ss,cutoff=1,der=0)=polcoeff(Lseries(ss,cutoff,der),der)*der!
 {       \\ Lseries(s,,der) = L(s)+L'(s)S+L''(s)*S^2/2!+... ,first der terms
 Lseries(ss,cutoff=1,der=0,
     FGSeries,LGSeries,res)=
-  default(realprecision,lfundigits,1);
+  default(realprecision,lfundigits);
   FGSeries = fullgammaseries(ss,der)*vA^(ss+S);
   if (length(Lpoles) && (vecmin(abs(vector(length(Lpoles),k,Lpoles[k]-ss)))<10^(-answerdigits) ||
     vecmin(abs(vector(length(Lpoles),k,weight-Lpoles[k]-ss)))<10^(-answerdigits)),
@@ -692,7 +694,7 @@ Lseries(ss,cutoff=1,der=0,
     print("Warning: Loss of ",PrecisionLoss," digits due to cancellation"));
   LSSeries = sum(k=0,der,Lstar(ss,cutoff,k)*S^k/k!)+O(S^(der+1));
   res=LSSeries/FGSeries;
-  default(realprecision,answerdigits,1);
+  default(realprecision,answerdigits);
   res;
 }
 
@@ -705,7 +707,7 @@ Lstar(ss,cutoff=1,der=0,                \\ Lstar(s) = L(s) * Gamma factor
   cutoff = precision(cutoff,taylordigits);
   ncf1   = min(round(lastt*vA*cutoff),length(cfvec));
   ncf2   = min(round(lastt*vA/cutoff),length(cfvec));
-  default(realprecision,termdigits,1);
+  default(realprecision,termdigits);
   res=(-sum(k=1,length(Lpoles),(-1)^der*der!*Lresidues[k]/(ss-Lpoles[k])^(der+1)*cutoff^(-Lpoles[k]))
        -sgn*sum(k=1,length(Lpoles),Lresidues[k]*der!/(weight-Lpoles[k]-ss)^(der+1)*cutoff^(-weight+Lpoles[k]))
        +sgn*sum(k=1,ncf1,if(cfdualvec[k],cfdualvec[k]*(-1)^der*G(k/vA/cutoff,weight-ss,der),0)/cutoff^weight)

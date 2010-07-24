@@ -29,7 +29,7 @@ initLdata("tau(k)");        \\ L-series coefficients a(k)
 
 print("EXAMPLE: L-function associated to the modular form Delta of weight 12");
 print("         coefficients = Ramanujan's tau function");
-print("         with ",default(realprecision,,1)," digits precision");
+print("         with ",default(realprecision)," digits precision");
 print("Verifying functional equation. Error: ",errprint(checkfeq()));
 print("L(1)       = ",lval = L(1));
 print(" (check)   = ",lval2 = L(1,1.1),"  (err=",errprint(lval-lval2),")");

@@ -41,7 +41,7 @@ g1(n)=1+mu1(n)/12-mu21(n)/4-mu31(n)/3-c1(n)/2;
 ss0(n,p)=
 {
   if(isprime(p)==0 || n%p==0,
-   printp("Function format: ss0(N,p) where p is prime and doesn't divide N.")
+   print("Function format: ss0(N,p) where p is prime and doesn't divide N.")
   ,g0(n*p)-2*g0(n)+1);
 }
 \\
@@ -54,76 +54,76 @@ if(n<4,g0(N*p),1+muXNp(n,p)/12-mu2XNp(n,p)/4-mu3XNp(n,p)/3-cXNp(n,p)/2);
 ss1(n,p)=
 {
   if(isprime(p)==0 || n%p==0,
-   printp("Function format: ss1(N,p) where p is prime and doesn't divide N.")
+   print("Function format: ss1(N,p) where p is prime and doesn't divide N.")
   ,gXNp(n,p)-2*g1(n)+1);
 }
 \\
 eisen(p)=
 {
-  if(isprime(p)==0,printp("Function format: eisen(N) where N is prime.")
+  if(isprime(p)==0,print("Function format: eisen(N) where N is prime.")
   ,numer((p-1)/12));
 }
 \\
 S0(n,k)=
 {
-  if(n<1,printp("S0(N,k), N must be a positive integer")
+  if(n<1,print("S0(N,k), N must be a positive integer")
   ,if(k<=0 || k%2,0,
   if(k==2,g0(n),(k-1)*(g0(n)-1)+(k/2-1)*c0(n)+mu20(n)*(k\4)+mu30(n)*(k\3))));
 }
 \\
 M0(n,k)=
 {
-  if(n<1,printp("M0(N,k), N must be a positive integer")
+  if(n<1,print("M0(N,k), N must be a positive integer")
   ,if(k<=0 || k%2,0,S0(n,k)+c0(n)-(k==2)));
 }
 S1(n,k)=
 {
-  if(n<1,printp("S1(N,k), N must be a positive integer")
+  if(n<1,print("S1(N,k), N must be a positive integer")
   ,if(k<=0 || (n<3 && k%2),0,
-  if(k==1,printp("S1(N,k), k=1 not programmed for N>2.")
+  if(k==1,print("S1(N,k), k=1 not programmed for N>2.")
   ,if(k==2,g1(n)
   ,if(n<3,S0(n,k)
   ,(k-1)*(g1(n)-1)+(k/2-1)*c1(n)+(n==4 && k%2)/2+(n==3)*k\3)))));
 }
 M1(n,k)=
 {
-  if(n<1,printp("M1(N,k), N must be a positive integer")
-  ,if(k<=1,printp("M1(N,k), k must be >=2"),S1(n,k)+c1(k)-(k==2)))
+  if(n<1,print("M1(N,k), N must be a positive integer")
+  ,if(k<=1,print("M1(N,k), k must be >=2"),S1(n,k)+c1(k)-(k==2)))
 }
 \\  coefficients of zeta(s)^-2
 mumu(n,x,k,p)=
 {
-  if(type(n)!="t_INT" || n<1,printp("mumu(N): N must be a positive integer.")
+  if(type(n)!="t_INT" || n<1,print("mumu(N): N must be a positive integer.")
   ,x=factor(n);k=matsize(x)[1];p=1;
   for(y=1,k,if(x[y,2]>2,p=0,if(x[y,2]==1,p=-2*p,)));p);
 }
 \\
 nf0(n,k)=
 {
-  if(n<1 || type(n)!="t_INT",printp("nf0(N,k): N must be a positive integer.")
-  ,if(type(k)!="t_INT",printp("nf0(N,k): k must be an integer.")
+  if(n<1 || type(n)!="t_INT",print("nf0(N,k): N must be a positive integer.")
+  ,if(type(k)!="t_INT",print("nf0(N,k): k must be an integer.")
   ,sumdiv(n,x,S0(x,k)*mumu(n/x))));
 }
 \\
 nf1(n,k)=
 {
-  if(n<1 || type(n)!="t_INT",printp("nf1(N,k): N must be a positive integer.")
-  ,if(type(k)!="t_INT",printp("nf1(N,k): k must be an integer.")
+  if(n<1 || type(n)!="t_INT",print("nf1(N,k): N must be a positive integer.")
+  ,if(type(k)!="t_INT",print("nf1(N,k): k must be an integer.")
   ,sumdiv(n,x,S1(x,k)*mumu(n/x))));
 }
 \\
-printp("c0(N) -- calculates the number of cusps on X_0(N).");
-printp("g0(N) -- calculates the genus of X_0(N).");
-printp("ss0(N,p) -- calculates the number of s.s. points at p of X_0(N).");
-printp("S0(N,k) -- calculates the dim of the wt. k cusp forms on Gamma_0(N).");
-printp("nf0(N,k) -- calculates the dim of the wt. k newforms on Gamma_0(N).");
-printp("eisen(N) -- (N PRIME!) calcs. the order of (0)-(\infty) on J_0(N).");
-printp("c1(N) -- calculates the number of cusps on X_1(N).");
-printp("g1(N) -- calculates the genus of X_1(N).");
-printp("ss1(N,p) -- calculates the number of s.s. points at p of X_1(N).");
-printp("S1(N,k) -- calculates the dim of the wt. k cusp forms on Gamma_1(N).");
-printp("nf1(N,k) -- calculates the dim of the wt. k newforms on Gamma_1(N).");
-printp("Please notify me (buzzard@ic.ac.uk) if any of these functions seem");
-printp("to be giving erroneous answers.");
-printp("Original version by Bruce Kaskel.");
+print("c0(N) -- calculates the number of cusps on X_0(N).");
+print("g0(N) -- calculates the genus of X_0(N).");
+print("ss0(N,p) -- calculates the number of s.s. points at p of X_0(N).");
+print("S0(N,k) -- calculates the dim of the wt. k cusp forms on Gamma_0(N).");
+print("nf0(N,k) -- calculates the dim of the wt. k newforms on Gamma_0(N).");
+print("eisen(N) -- (N PRIME!) calcs. the order of (0)-(\infty) on J_0(N).");
+print("c1(N) -- calculates the number of cusps on X_1(N).");
+print("g1(N) -- calculates the genus of X_1(N).");
+print("ss1(N,p) -- calculates the number of s.s. points at p of X_1(N).");
+print("S1(N,k) -- calculates the dim of the wt. k cusp forms on Gamma_1(N).");
+print("nf1(N,k) -- calculates the dim of the wt. k newforms on Gamma_1(N).");
+print("Please notify me (buzzard@ic.ac.uk) if any of these functions seem");
+print("to be giving erroneous answers.");
+print("Original version by Bruce Kaskel.");
 

@@ -28,7 +28,7 @@ LPari(x)  = zetak(zinit,x)/zeta(x);
   \\ divided by the Riemann zeta function
 
 print("EXAMPLE: L(s)=L(Chi(P),s), Chi(P)=(Legendre) quadratic character modulo P");
-print("         with ",default(realprecision,,1)," digits precision");
+print("         with ",default(realprecision)," digits precision");
 print("         take P=",P);
 print("Verifying functional equation. Error: ",errprint(checkfeq()));
 print("L(Chi(P),2) = ",L(2));

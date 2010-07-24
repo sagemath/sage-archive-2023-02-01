@@ -1,13 +1,28 @@
-#!/bin/sh
-if [ -z $SAGE_LOCAL ]; then
+#!/usr/bin/env bash
+if [ -z "$SAGE_LOCAL" ]; then
    echo "SAGE_LOCAL undefined ... exiting";
    echo "Maybe run 'sage -sh'?"
    exit 1
 fi
 
-if [ "x$SAGE64" = xyes ]; then
-    CFLAGS="-g -m64 " && export CFLAGS
+# Let the user chose a flag other than -m64 for 64-bit builds
+# if needed.
+if [ -z "$CFLAG64" ] ; then
+   CFLAG64=-m64
 fi
+
+if [ "x$SAGE64" = xyes ]; then
+    CFLAGS="$CFLAGS $CFLAG64"
+    CC="$CC $CFLAG64" && export CC
+fi
+
+if [ "x$SAGE_DEBUG" = xyes ] ; then
+   CFLAGS="$CFLAGS -O0 -g" # No optimisation. Good for debugging or working around compiler bugs.
+else
+   CFLAGS="$CFLAGS -O3 -g" # Default optimisation.
+fi
+
+export CFLAGS
 
 cd src
 
@@ -21,3 +36,7 @@ fi
 if [ -d ../parisvn ] ; then
 	echo "WARNING: you should delete the parisvn directory before submitting this spkg."
 fi
+
+echo "The Pari self-tests all passed"
+exit 0
+

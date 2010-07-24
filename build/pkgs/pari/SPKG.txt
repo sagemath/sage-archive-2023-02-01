@@ -32,7 +32,9 @@ GPL
  * pari-dev@list.cr.yp.to
 
 == Dependencies ==
- * gmp
+ * MPIR (in place of GMP)
+ * Readline
+ * Termcap
 
 == Build Notes ==
 

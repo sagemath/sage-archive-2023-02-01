@@ -674,7 +674,7 @@ class Cone_of_fan(ConvexRationalPolyhedralCone):
             sgi = set(range(fan.nrays()))
             for ray in self.ambient_ray_indices():
                 sgi.intersection_update(fan._ray_to_cones(ray))
-            self._star_generatori_indices = tuple(sorted(sgi))
+            self._star_generator_indices = tuple(sorted(sgi))
         return self._star_generator_indices
 
     def star_generators(self):
@@ -826,9 +826,9 @@ class RationalPolyhedralFan(IntegralRayCollection,
 
         OUTPUT:
 
-        - 0 if ``right`` is of the same type as ``self``, their rays are
-          the same and stored in the same order, and their generating cones
-          are the same and stored in the same order. 1 or -1 otherwise.
+        - 0 if ``right`` is also a fan, their rays are the same and stored in
+          the same order, and their generating cones are the same and stored
+          in the same order. 1 or -1 otherwise.
 
         TESTS::
 
@@ -852,11 +852,11 @@ class RationalPolyhedralFan(IntegralRayCollection,
             sage: cmp(f1, 1) * cmp(1, f1)
             -1
         """
-        c = cmp(type(self), type(right))
-        if c:
-            return c
-        return cmp([self.rays(), self.generating_cones()],
-                   [right.rays(), right.generating_cones()])
+        if is_Fan(right):
+            return cmp([self.rays(), self.generating_cones()],
+                       [right.rays(), right.generating_cones()])
+        else:
+            return cmp(type(self), type(right))
 
     def __contains__(self, data):
         r"""
@@ -2060,7 +2060,7 @@ class EnhancedCone(Cone_of_fan):
     - ``ambient`` -- ambient fan of this cone. If not given, will be the same
       as for ``cone``;
 
-    OR:
+    OR (these parameters must be given as keywords):
 
     - ``ambient`` -- ambient fan of this cone;
 
@@ -2099,8 +2099,17 @@ class EnhancedCone(Cone_of_fan):
         """
         if cone is None:
             # Then both other attributes must be given and we can make cone
-            fan = ambient._base_fan if is_EnhancedFan(ambient) else ambient
-            cone = Cone_of_fan(fan, ambient_ray_indices)
+            # We try to keep "the level of enhancement" the same for all cones
+            # of the same ambient
+            base = ambient._base_fan if is_EnhancedFan(ambient) else ambient
+            if is_EnhancedFan(base):
+                cone_type = base._cone_type
+            elif is_Fan(base):
+                cone_type = Cone_of_fan
+            else:
+                cone_type = ConvexRationalPolyhedralCone
+            cone = cone_type(ambient=base,
+                             ambient_ray_indices=ambient_ray_indices)
         for attribute in [# Cone attributes
                           "_rays",
                           "_lattice",
@@ -2220,7 +2229,7 @@ class EnhancedFan(RationalPolyhedralFan):
         for element in L:
             cone = element.element
             if is_Cone(cone):
-                elements.append(self._cone_type(cone))
+                elements.append(self._cone_type(cone, ambient=self))
             else:
                 # The last element is the fan itself
                 elements.append(self)

@@ -228,7 +228,7 @@ implementing them on your own as a patch for inclusion!
 #*****************************************************************************
 
 
-from sage.geometry.all import Cone, Fan
+from sage.geometry.fan import Fan, EnhancedCone, EnhancedFan, is_EnhancedFan
 from sage.matrix.all import matrix
 from sage.misc.all import latex
 from sage.modules.free_module_element import vector
@@ -245,6 +245,128 @@ from sage.structure.sequence import Sequence
 
 # Default prefix for indexed coordinates
 DEFAULT_PREFIX = "z"
+
+
+class Cone_of_toric_variety(EnhancedCone):
+    r"""
+    Construct a cone associated to a toric variety.
+
+    INPUT:
+
+    - same as for :class:`~sage.geometry.fan.EnhancedCone`.
+
+    TESTS::
+
+        sage: cone = Cone([(1,2), (3,4)])
+        sage: X = AffineToricVariety(cone)
+        sage: Xcone = X.fan().generating_cone(0)
+        sage: Xcone == cone
+        True
+        sage: Xcone.toric_variety()
+        2-d affine toric variety
+        sage: cone.toric_variety()
+        Traceback (most recent call last):
+        ...
+        AttributeError: 'ConvexRationalPolyhedralCone'
+        object has no attribute 'toric_variety'
+        """
+
+    def toric_variety(self):
+        r"""
+        Return the toric variety associated to ``self``.
+
+        OUTPUT:
+
+        - :class:`toric variety <ToricVariety_field>`.
+
+        EXAMPLES::
+
+            sage: cone = Cone([(1,2), (3,4)])
+            sage: X = AffineToricVariety(cone)
+            sage: Xcone = X.fan().generating_cone(0)
+            sage: Xcone.toric_variety()
+            2-d affine toric variety
+        """
+        return self.ambient().toric_variety()
+
+
+class Fan_of_toric_variety(EnhancedFan):
+    r"""
+    Construct a fan associated to a toric variety.
+
+    This class binds an existing fan to a toric variety: the constructed fan
+    is exactly the same as the input one, but it (and all of its cones) will
+    know the associated toric variety.
+
+    INPUT:
+
+    - ``fan`` -- :class:`rational polyhedral fan
+      <sage.geometry.fan.RationalPolyhedralFan>`;
+
+    - ``toric_variety`` -- :class:`toric variety <ToricVariety_field>`.
+
+    TESTS::
+
+        sage: fan = FaceFan(lattice_polytope.octahedron(3))
+        sage: P = ToricVariety(fan)
+        sage: P.fan() == fan
+        True
+        sage: P.fan().toric_variety()
+        3-d toric variety covered by 8 affine patches
+        sage: fan.toric_variety()
+        Traceback (most recent call last):
+        ...
+        AttributeError: 'RationalPolyhedralFan'
+        object has no attribute 'toric_variety'
+    """
+
+    def __init__(self, fan, toric_variety):
+        r"""
+        See :class:`Fan_of_toric_variety` for documentation.
+
+        TESTS::
+
+            sage: fan = FaceFan(lattice_polytope.octahedron(3))
+            sage: P = ToricVariety(fan)
+            sage: P.fan() == fan
+            True
+            sage: P.fan().toric_variety()
+            3-d toric variety covered by 8 affine patches
+            sage: fan.toric_variety()
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'RationalPolyhedralFan'
+            object has no attribute 'toric_variety'
+
+        Check that newly constructed cones have appropriate type::
+
+            sage: P2 = toric_varieties.P2()
+            sage: c = P2.fan().cone_containing((0,1))
+            sage: type(c)
+            <class 'sage.schemes.generic.toric_variety.Cone_of_toric_variety'>
+        """
+        # Strip all existing enhancements
+        while is_EnhancedFan(fan):
+            fan = fan._base_fan
+        super(Fan_of_toric_variety, self).__init__(fan, Cone_of_toric_variety)
+        self._toric_variety = toric_variety
+
+    def toric_variety(self):
+        r"""
+        Return the toric variety associated to ``self``.
+
+        OUTPUT:
+
+        - :class:`toric variety <ToricVariety_field>`.
+
+        EXAMPLES::
+
+            sage: fan = FaceFan(lattice_polytope.octahedron(3))
+            sage: P = ToricVariety(fan)
+            sage: P.fan().toric_variety()
+            3-d toric variety covered by 8 affine patches
+        """
+        return self._toric_variety
 
 
 def is_ToricVariety(x):
@@ -449,7 +571,7 @@ class ToricVariety_field(AmbientSpace):
             sage: fan = FaceFan(lattice_polytope.octahedron(2))
             sage: P1xP1 = ToricVariety(fan)
         """
-        self._fan = fan
+        self._fan = Fan_of_toric_variety(fan, self)
         super(ToricVariety_field, self).__init__(fan.lattice_dim(),
                                                  base_field)
         self._torus_factor_dim = fan.lattice_dim() - fan.dim()
@@ -997,7 +1119,7 @@ class ToricVariety_field(AmbientSpace):
             sage: P1xP1 = ToricVariety(fan)
             sage: P1xP1.fan()
             Rational polyhedral fan in 2-d lattice N
-            sage: P1xP1.fan() is fan
+            sage: P1xP1.fan() == fan
             True
             sage: P1xP1.fan(1)[0]
             1-d cone of Rational polyhedral fan in 2-d lattice N

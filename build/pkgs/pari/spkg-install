@@ -1,7 +1,13 @@
-#!/bin/sh
+#!/usr/bin/env bash
 ###########################################
 ## PARI
 ###########################################
+
+if [ -z "$SAGE_LOCAL" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
 
 TOP=`pwd`
 PATCHED="$TOP/patches/files"
@@ -44,9 +50,27 @@ export LANG
 build()
 {
     #  add the proper flags for 64-bit build mode on OS X and Open Solaris x64
-    if [ "x$SAGE64" = xyes ]; then
-	CFLAGS="-g -m64 " && export CFLAGS
+    # Setting CFLAGS is not sufficient on Solaris since Pari 2.4.3, as this
+    # flag is not being used when the check for GMP and Readline are made
+    # so the checks for them fail.  One must redefine CC and export that.
+
+    # Let the user chose a flag other than -m64 for 64-bit builds
+    # if needed.
+    if [ -z "$CFLAG64" ] ; then
+       CFLAG64=-m64
     fi
+
+    if [ "x$SAGE64" = xyes ]; then
+	CFLAGS="$CFLAGS $CFLAG64"
+        CC="$CC $CFLAG64" && export CC
+    fi
+
+    if [ "x$SAGE_DEBUG" = xyes ] ; then
+       CFLAGS="$CFLAGS -O0 -g" # No optimisation. Good for debugging or working around compiler bugs.
+    else
+       CFLAGS="$CFLAGS -O3 -g" # Default optimisation.
+    fi
+    export CFLAGS
 
     CUR=`pwd`
 
@@ -61,7 +85,19 @@ build()
         PARI_EXTRA_OPTS=" --graphic=none "
     fi
 
-    ./Configure $PARI_EXTRA_OPTS --prefix=$SAGE_LOCAL --with-readline=$SAGE_LOCAL --with-gmp=$SAGE_LOCAL --kernel=gmp --graphic=none
+    # Allow the user to tune Pari - this is time-consuming, but some may want to do it.
+    if [ "x$SAGE_TUNE_pari" = xyes ] ; then
+       echo "Pari will be tuned for your system since you set SAGE_TUNE_pari=\"yes\". This can be slow"
+       ./Configure $PARI_EXTRA_OPTS --prefix=$SAGE_LOCAL --with-readline=$SAGE_LOCAL --with-gmp=$SAGE_LOCAL --kernel=gmp --graphic=none --tune
+    else
+       echo "To sage build time, Pari will not be tuned for your systems"
+       echo "If you want higher performance, at the expense of a slower build"
+       echo "set the environment variable SAGE_TUNE_pari=yes by typing the following"
+       echo "before building Sage (or at least before building Pari)"
+       echo "SAGE_TUNE_pari=yes"
+       echo "export SAGE_TUNE_pari"
+       ./Configure $PARI_EXTRA_OPTS --prefix=$SAGE_LOCAL --with-readline=$SAGE_LOCAL --with-gmp=$SAGE_LOCAL --kernel=gmp --graphic=none
+    fi
 
     if [ $? -ne 0 ]; then
         echo "ERROR - configure PARI with readline and gmp failed."

@@ -9,6 +9,9 @@ the place to fix it.
 
 == Releases ==
 
+=== genus2reduction-0.3.p7 (Jeroen Demeyer, July 24, 2010) ===
+ * upgrade to PARI 2.4.3
+
 === genus2reduction-0.3.p6 (Jaap Spies, Jan 25th, 2010) ===
  * made SAGE64=yes also work with Open Solaris 64 bit
 

@@ -294,6 +294,29 @@ class Cone_of_toric_variety(EnhancedCone):
         """
         return self.ambient().toric_variety()
 
+    def cohomology_class(self):
+        r"""
+        Return the cohomology class associated to the cone.
+
+        OUTPUT:
+
+        Returns the cohomology class of the orbit closure (a
+        subvariety of the toric variety) associated to the cone.
+
+        EXAMPLES::
+
+            sage: dP6 = toric_varieties.dP6()
+            sage: cone = dP6.fan().cone_containing(2,3); cone
+            2-d cone of Rational polyhedral fan in 2-d lattice N
+            sage: cone.cohomology_class()
+            [-w^2]
+        """
+        if "_cohomology_class" not in self.__dict__:
+            idx = self.ambient_ray_indices()
+            self._cohomology_class = \
+                prod( self.toric_variety().cohomology_ring().gen(i) for i in idx )
+        return self._cohomology_class
+
 
 class Fan_of_toric_variety(EnhancedFan):
     r"""
@@ -1656,30 +1679,6 @@ class ToricVariety_field(AmbientSpace):
         self._cohomology_basis = basis
         return self._cohomology_basis
 
-    def cohomology_class(self, cone):
-        r"""
-        Return the cohomology class associated to a cone.
-
-        INPUT:
-
-        - ``cone`` -- a cone of the fan of the toric variety.
-
-        OUTPUT:
-
-        Returns the cohomology class of the orbit closure (a
-        subvariety of the toric variety) associated to the cone.
-
-        EXAMPLES::
-
-            sage: dP6 = toric_varieties.dP6()
-            sage: dP6.cohomology_class( dP6.fan().cone_containing(2,3) )
-            [-w^2]
-        """
-        assert is_Cone(cone)
-
-        idx = cone.ambient_ray_indices()
-        return prod( self.cohomology_ring().gen(i) for i in idx )
-
     def volume_class(self):
         """
         Return the cohomology class of the volume form on the toric
@@ -1716,7 +1715,7 @@ class ToricVariety_field(AmbientSpace):
         if "_volume_class" not in self.__dict__:
             def V(cone): return abs(cone.ray_matrix().determinant())
             min_cone = min( self._fan.generating_cones(), key=V)
-            self._volume_class = self.cohomology_class(min_cone) / V(min_cone)
+            self._volume_class = min_cone.cohomology_class() / V(min_cone)
 
         if self._volume_class.is_zero():
             raise ValueError, 'Volume class does not exist.'
@@ -1741,7 +1740,7 @@ class ToricVariety_field(AmbientSpace):
         EXAMPLES::
 
             sage: dP6 = toric_varieties.dP6()
-            sage: D = [ dP6.cohomology_class(c) for c in dP6.fan(dim=1) ]
+            sage: D = [ c.cohomology_class() for c in dP6.fan(dim=1) ]
             sage: matrix([ [ D[i]*D[j] for i in range(0,6) ] for j in range(0,6) ])
             [ [w^2] [-w^2]    [0]    [0]    [0] [-w^2]]
             [[-w^2]  [w^2] [-w^2]    [0]    [0]    [0]]
@@ -2800,7 +2799,7 @@ def is_CohomologyClass(x):
         sage: from sage.schemes.generic.toric_variety import is_CohomologyClass
         sage: is_CohomologyClass( P2.cohomology_ring().one() )
         True
-        sage: is_CohomologyClass( P2.cohomology_class(P2.fan(1)[0]) )
+        sage: is_CohomologyClass( (P2.fan(1)[0]).cohomology_class() )
         True
         sage: is_CohomologyClass('z')
         False
@@ -2819,12 +2818,13 @@ class CohomologyClass(QuotientRingElement):
         generators of the cohomology ring can be obtained from
         :meth:`ToricVariety_field.cohomology_ring`
         and the cohomology class associated to cones of the fan from
-        :meth:`ToricVariety_field.cohomology_class`
+        :meth:`Cone_of_toric_variety.cohomology_class`
 
     EXAMPLES::
 
         sage: P2 = toric_varieties.P2()
-        sage: P2.cohomology_class( P2.fan(1)[0] )
+        sage: cone = P2.fan(1)[0]
+        sage: cone.cohomology_class()
         [z]
         sage: P2.cohomology_ring().gen(0)
         [z]

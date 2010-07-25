@@ -446,6 +446,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         18
         sage: Integer('012')
         10
+
+    Conversion from PARI::
+
+        sage: Integer(pari('-10380104371593008048799446356441519384'))
+        -10380104371593008048799446356441519384
+        sage: Integer(pari('Pol([-3])'))
+        -3
     """
 
     def __cinit__(self):

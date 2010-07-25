@@ -328,6 +328,8 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         sage: Rational(pari('-939082/3992923'))
         -939082/3992923
+        sage: Rational(pari('Pol([-1/2])'))  #9595
+        -1/2
     """
     def __cinit__(self):
         global the_rational_ring
@@ -496,6 +498,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             mpq_canonicalize(self.value)
 
         elif isinstance(x, sage.libs.pari.all.pari_gen):
+            x = x.simplify()
             if typ((<pari_gen>x).g) == t_FRAC:
                 t_FRAC_to_QQ(self.value, (<pari_gen>x).g)
             elif typ((<pari_gen>x).g) == t_INT:

@@ -11578,7 +11578,7 @@ class GenericGraph(GenericGraph_pyx):
 
             The following illustrates the format of a position dictionary.
 
-            sage: G.get_pos()
+            sage: G.get_pos() # currently random across platforms, see #9593
             {0: [1.17..., -0.855...],
              1: [1.81..., -0.0990...],
              2: [1.35..., 0.184...],

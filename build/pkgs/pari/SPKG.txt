@@ -42,6 +42,9 @@ Most of the building of a new version of the PARI spkg is automated
 in the script spkg-make.  Normally, the following should work.  In case
 of doubt, have a look at the file spkg-make.
 
+  0) Edit the line "svn update -r 12546" in spkg-make and set the
+     desired SVN version.
+
   1) ./spkg-make
      This will download the SVN sources to the directory parisvn/
      and will also download galdata.tgz and ellsea-small.tgz.
@@ -79,6 +82,10 @@ all the same. But it is not right. I have not looked at pari to see
 exactly where it says native, but I would expect a grep to find it.
 
 == Changelog ==
+
+=== pari-2.4.3.svn-12546 (Jeroen Demeyer, July 25, 2010) ===
+ * Removed the non-existent get_dlld patching.
+ * Cleaned up patches/README.txt
 
 === pari-2.4.3.svn.p7 (Jeroen Demeyer, July 23, 2010) ===
  * pari 2.4.3 version svn 12543

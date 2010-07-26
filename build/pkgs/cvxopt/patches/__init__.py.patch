@@ -1,0 +1,29 @@
+--- __init__.py	2010-07-26 12:59:04.743011401 +0300
++++ ../src/src/python/__init__.py	2010-07-26 13:17:06.959013994 +0300
+@@ -53,7 +53,7 @@
+         from cvxopt import gsl
+     except:
+         from cvxopt.base import matrix
+-        from sage.misc.prandom import gauss
++        from random import gauss
+         return matrix([gauss(mean, std) for k in xrange(nrows*ncols)],
+                       (nrows,ncols), 'd' )
+         
+@@ -84,7 +84,7 @@
+         from cvxopt import gsl
+     except:
+         from cvxopt.base import matrix
+-        from sage.misc.prandom import uniform
++        from random import uniform
+         return matrix([uniform(a, b) for k in xrange(nrows*ncols)],
+                       (nrows,ncols), 'd' )
+ 
+@@ -105,7 +105,7 @@
+         from cvxopt import gsl
+         gsl.setseed(val)
+     except:
+-        from sage.misc.prandom import seed
++        from random import seed
+         if val is 0: val = None
+         seed(val)
+         

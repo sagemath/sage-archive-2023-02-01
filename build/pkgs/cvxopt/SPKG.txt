@@ -22,6 +22,31 @@ Downloaded from
 
 == Releases ==
 
+=== cvxopt-1.1.2 (Dima Pasechnik, 26 July 2010) ===
+(as the previous iteration never made it into a release, the version
+ number of the spkg stays the same)
+
+ * implemented changes requested in comment 28 of track ticket #6456:
+ <quite>
+  1. I don't think there should be a patches-old directory...
+  2. Files are modified in place in the src/ directory...
+  3. In the patches directory, the patches should be unified diffs (diff -Naur).
+  4. In spkg-install, you should just remove the old,
+     unnecessary code instead of just commenting it out.
+     Also, I don't think the SAGE_LOCAL check is necessary.
+  </quote>
+
+  (kept a harmless SAGE_LOCAL check)
+
+   Also, added a check in spkg-install that the installation went OK.
+
+   On building cvxopt extensions:
+   the non-required extension are not built;
+   however, it is possible to switch on the dsdp and dsl extensions by
+   flipping the BUILD_..-flags in setup.py (and modifying dirs for dsdp)
+   Remaining extensions were not tested; it should not be hard to have
+   them provided the corresponding libs are there (e.g. parts of Sage)
+
 === cvxopt-1.1.2 (Harald Schilly, Jan 26th, 2010, Dima Pasechnik, Mar 2010) ===
 
  * modified setup.py to streamline and make it more Sage-like;

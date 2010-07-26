@@ -5,21 +5,36 @@ if [ "$SAGE_LOCAL" = "" ]; then
    echo "Maybe run 'sage -sh'?"
    exit 1
 fi
+# Normally for a 64-bit build the -m64 option is added to
+# gcc, but other compilers will not accept that, so
+# allow it to be configured as something different if need
+# be.
+
+if [ -z $CFLAG64 ] ; then
+   CFLAG64=-m64
+fi
+
+if [ "x$SAGE64" = xyes ]; then
+   echo "64 bit build of cddlib"
+   CFLAGS="$CFLAGS $CFLAG64"; export CFLAGS
+fi
 
 CUR=`pwd`
 
-#VER_STRING="`sage_fortran --version`"
-#case "$VER_STRING" in
-#    G95*)
-#        echo "Using g95"
-#        cp "patches/setup_f95.py" "src/src/setup.py"
-#        ;;
-#    *)
-#        echo "Using gfortran"
-#        cp "patches/setup_gfortran.py" "src/src/setup.py"
-#        ;;
-#esac
+# Solaris-specific patches
+cp -p patches/sun_complex.h src/src/C/
+cp -p patches/cvxopt.h src/src/C/
+
+# patch to use Sage's random instead of GSL's
+cp -p patches/__init__.py src/src/python/
+
+# setting Sage-specific libraries locations, etc.
+cp -p patches/setup.py src/src/
 
 cd src/src
-
 python setup.py install
+if [ $? -ne 0 ]; then
+   echo "Error building/installing cvxopt"
+   exit 1
+fi
+

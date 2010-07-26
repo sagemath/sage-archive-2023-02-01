@@ -1,9 +1,0 @@
-28a29,33
-> 
-> /* work around Solaris 10 specific problem in complex.h */
-> #if defined (__sun)
-> #include "sun_complex.h"
-> #else
-29a35,36
-> #endif
-> 

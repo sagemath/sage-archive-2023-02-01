@@ -26,7 +26,7 @@ import os
 from sage.misc.misc_c import is_64_bit
 
 from sage.libs.singular.decl cimport intvec
-from sage.libs.singular.decl cimport SR_HDL, SR_INT, SR_TO_INT, singular_options, singular_verbose_options
+from sage.libs.singular.decl cimport SR_HDL, SR_INT, SR_TO_INT, singular_options
 from sage.libs.singular.decl cimport On, Off, SW_USE_NTL, SW_USE_NTL_GCD_0, SW_USE_EZGCD, SW_USE_NTL_SORT, SW_USE_NTL_GCD_P
 from sage.libs.singular.decl cimport napoly, lnumber, Sy_bit, OPT_REDSB, OPT_INTSTRATEGY, OPT_REDTAIL, OPT_REDTHROUGH
 from sage.libs.singular.decl cimport nlGetNom, nlGetDenom, nlDelete, nlInit2gmp
@@ -47,8 +47,6 @@ from sage.libs.pari.all import pari
 
 from sage.structure.parent_base cimport ParentWithBase
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular
-
-_saved_options = (int(0),0,0)
 
 cdef Rational si2sa_QQ(number *n, ring *_ring):
     """
@@ -647,7 +645,6 @@ cdef init_libsingular():
     far is to load the library again and to specify ``RTLD_GLOBAL``.
     """
     global singular_options
-    global singular_verbose_options
     global max_exponent_size
 
     cdef void *handle = NULL
@@ -670,12 +667,8 @@ cdef init_libsingular():
 
     dlclose(handle)
 
-    # we set and save some global Singular options
+    # we set some global Singular options
     singular_options = singular_options | Sy_bit(OPT_REDSB) | Sy_bit(OPT_INTSTRATEGY) | Sy_bit(OPT_REDTAIL) | Sy_bit(OPT_REDTHROUGH)
-    global _saved_options
-    global _saved_verbose_options
-    _saved_options = (int(singular_options), 0, 0)
-    _saved_verbose_options = int(singular_verbose_options)
 
     On(SW_USE_NTL)
     On(SW_USE_NTL_GCD_0)

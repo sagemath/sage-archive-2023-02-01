@@ -37,7 +37,7 @@ FFTW_INC_DIR = '/usr/include'
 # Set to 1 if you are installing the glpk module.
 # (can only do this if glpk (optional at this moment)
 # package in installed
-BUILD_GLPK = 0
+BUILD_GLPK = 1
 
 # Directory containing libglpk (used only when BUILD_GLPK = 1).
 GLPK_LIB_DIR = SAGE_LIB
@@ -73,7 +73,7 @@ if BUILD_FFTW:
     extmods += [fftw];
 
 if BUILD_GLPK:
-    glpk = Extension('glpk', libraries = ['glpk'],
+    glpk = Extension('glpk', libraries = libraries+['glpk'],
         include_dirs = [ GLPK_INC_DIR ],
         library_dirs = [ GLPK_LIB_DIR ],
         sources = ['C/glpk.c'] )

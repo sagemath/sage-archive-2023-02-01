@@ -22,6 +22,9 @@ Downloaded from
 
 == Releases ==
 
+=== cvxopt-1.1.2.p1 (Dima Pasechnik, 26 July 2010) ===
+ * incorporating building the GLPK extension (track #9598)
+
 === cvxopt-1.1.2 (Dima Pasechnik, 26 July 2010) ===
 (as the previous iteration never made it into a release, the version
  number of the spkg stays the same)

@@ -3424,7 +3424,7 @@ class GenericGraph(GenericGraph_pyx):
         By Edmond's theorem, a graph which is `k`-connected always has `k` edge-disjoint
         arborescences, regardless of the root we pick::
 
-            sage: g = digraphs.RandomDirectedGNP(30,.3)
+            sage: g = digraphs.RandomDirectedGNP(28,.3) # reduced from 30 to 28, cf. #9584
             sage: k = Integer(g.edge_connectivity())
             sage: arborescences = g.edge_disjoint_spanning_trees(k)
             sage: all([a.is_directed_acyclic() for a in arborescences])

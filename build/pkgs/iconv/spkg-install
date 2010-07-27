@@ -15,7 +15,7 @@ if [ "x$UNAME" != xSunOS ] && [ "x$UNAME" != xHP-UX ] && [ "x$UNAME" != xCYGWIN 
   exit 0
 fi
 
-echo "Installing iconv as the operating system is Solaris or Cygwin"
+echo "Installing iconv as the operating system is Cygwin, HP-UX or Solaris"
 
 
 echo "Removing old iconv files if they exist"

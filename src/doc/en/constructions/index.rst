@@ -44,7 +44,6 @@ interface http://www.sagenb.org/ on the web.
    number_fields
    algebraic_geometry
    interface_issues
-   functional_programming
    contributions
 
 

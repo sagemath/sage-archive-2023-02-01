@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 r"""
 Elliptic curves over number fields
 
@@ -1139,6 +1140,12 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: [dav.tamagawa_number() for dav in da]
             [1, 1]
 
+        An example over `\mathbb{Q}` (trac #9413)::
+
+            sage: E = EllipticCurve('30a')
+            sage: E.tamagawa_product_bsd()
+            6
+
         REFERENCES:
 
         - [Ta2] Tate, John, On the conjectures of Birch and Swinnerton-Dyer and a geometric analog. Seminaire Bourbaki, Vol. 9, Exp. No. 306.
@@ -1154,7 +1161,15 @@ class EllipticCurve_number_field(EllipticCurve_field):
             # uu is the quotient of the Neron differential at pp divided by
             # the differential associated to this particular equation E
             uu = self.isomorphism_to(dav.minimal_model()).u
-            uu_abs_val = pp.smallest_integer()**(pp.residue_class_degree()*valuation(uu,pp))
+            if self.base_field().degree() == 1:
+                p = pp.gens_reduced()[0]
+                f = 1
+                v = valuation(ZZ(uu),p)
+            else:
+                p = pp.smallest_integer()
+                f = pp.residue_class_degree()
+                v = valuation(uu,pp)
+            uu_abs_val = p**(f*v)
             pr *= cv * uu_abs_val
         return pr
 

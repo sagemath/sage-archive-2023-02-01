@@ -456,7 +456,7 @@ graphs processed by LaTeX in the notebook. ::
 
     sage: from sage.graphs.graph_latex import setup_latex_preamble
     sage: setup_latex_preamble()
-    sage: latex.extra_preamble()
+    sage: latex.extra_preamble() # random - depends on system's TeX installation
     '\\usepackage{tikz}\n\\usepackage{tkz-graph}\n\\usepackage{tkz-berge}\n'
     sage: latex.engine('pdflatex')
     sage: latex.add_to_jsmath_avoid_list('tikzpicture')

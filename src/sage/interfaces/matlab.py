@@ -265,7 +265,7 @@ for hints on how to do that).
         return self.strip_answer(s)
 
     def strip_answer(self, s):
-        """
+        r"""
         Returns the string s with Matlab's answer prompt removed.
 
         EXAMPLES::

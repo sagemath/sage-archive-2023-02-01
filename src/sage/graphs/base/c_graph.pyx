@@ -44,7 +44,7 @@ Classes and methods
 include "../../misc/bitset.pxi"
 
 from graph_backends import GenericGraphBackend
-from sage.rings.integer import Integer
+from sage.rings.integer cimport Integer
 
 cdef class CGraph:
     """
@@ -1078,14 +1078,29 @@ cdef int get_vertex(object u, dict vertex_ints, dict vertex_labels,
         sage: G.add_vertex(x)
         sage: G.vertices()
         [a^2, x]
+
+    And that the bug described in #9610 is gone::
+
+        sage: n = 20
+        sage: k = 3
+        sage: g = DiGraph()
+        sage: g.add_edges( (i,Mod(i+j,n)) for i in range(n) for j in range(1,k+1) )
+        sage: g.vertices()
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+        sage: g.strongly_connected_components()
+        [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]]
+
     """
+    cdef int u_int
     if u in vertex_ints:
         return vertex_ints[u]
-    if (not isinstance(u, (int, long, Integer)) or
-        u < 0 or u >= G.active_vertices.size or
-        u in vertex_labels):
+    try:
+        u_int = u
+    except:
         return -1
-    return u
+    if u_int < 0 or u_int >= G.active_vertices.size or u_int in vertex_labels:
+        return -1
+    return u_int
 
 cdef object vertex_label(int u_int, dict vertex_ints, dict vertex_labels,
                          CGraph G):

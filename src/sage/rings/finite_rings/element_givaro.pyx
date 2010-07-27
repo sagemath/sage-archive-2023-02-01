@@ -659,7 +659,7 @@ cdef class Cache_givaro(SageObject):
             sage: k._cache._element_int_repr(a^20)
             '74'
         """
-        return str(int(e))
+        return str(e.integer_representation())
 
     def _element_poly_repr(self, FiniteField_givaroElement e, varname = None):
         """
@@ -1345,6 +1345,28 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
     def __int__(FiniteField_givaroElement self):
         """
         Return the int representation of self.  When self is in the
+        prime subfield, the integer returned is equal to self, otherwise
+        an error is raised.
+
+        EXAMPLES:
+            sage: k.<b> = GF(5^2); k
+            Finite Field in b of size 5^2
+            sage: int(k(4))
+            4
+            sage: int(b)
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot coerce element to an integer.
+
+        """
+        cdef int self_int = self._cache.log_to_int(self.element)
+        if self_int%self._cache.characteristic() != self_int:
+            raise TypeError("Cannot coerce element to an integer.")
+        return self_int
+
+    def integer_representation(FiniteField_givaroElement self):
+        """
+        Return the integer representation of self.  When self is in the
         prime subfield, the integer returned is equal to self and not
         to \code{log_repr}.
 
@@ -1355,11 +1377,11 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         EXAMPLES:
             sage: k.<b> = GF(5^2); k
             Finite Field in b of size 5^2
-            sage: int(k(4))
+            sage: k(4).integer_representation()
             4
-            sage: int(b)
+            sage: b.integer_representation()
             5
-            sage: type(int(b))
+            sage: type(b.integer_representation())
             <type 'int'>
         """
         return self._cache.log_to_int(self.element)
@@ -1530,7 +1552,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
 
         variable = k.gen()._pari_()
 
-        quo = int(self)
+        quo = self.integer_representation()
         b   = int(self._cache.characteristic())
 
         ret = k._pari_one() - k._pari_one()    # TODO -- weird

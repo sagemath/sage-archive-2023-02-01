@@ -152,7 +152,7 @@ cdef class ntl_GF2X:
                 x=x._pari_().centerlift().centerlift().subst('a',2).int_unsafe()
                 x="0x"+hex(x)[2:][::-1]
         elif PY_TYPE_CHECK(x, FiniteField_givaroElement):
-            x = "0x"+hex(int(x))[2:][::-1]
+            x = "0x"+hex(x.integer_representation())[2:][::-1]
         elif PY_TYPE_CHECK(x, FiniteField_ntl_gf2eElement):
             x = x.polynomial().list()
         s = str(x).replace(","," ")

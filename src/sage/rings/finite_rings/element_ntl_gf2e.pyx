@@ -1119,6 +1119,35 @@ cdef class FiniteField_ntl_gf2eElement(FiniteFieldElement):
     def __int__(FiniteField_ntl_gf2eElement self):
         """
         Return the int representation of self.  When self is in the
+        prime subfield, the integer returned is equal to self and otherwise
+        raises an error.
+
+        EXAMPLE:
+            sage: k.<a> = GF(2^20)
+            sage: int(k(0))
+            0
+            sage: int(k(1))
+            1
+            sage: int(a)
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot coerce element to an integer.
+            sage: int(a^2 + 1)
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot coerce element to an integer.
+
+        """
+        if self == 0:
+            return int(0)
+        elif self == 1:
+            return int(1)
+        else:
+            raise TypeError("Cannot coerce element to an integer.")
+
+    def integer_representation(FiniteField_ntl_gf2eElement self):
+        """
+        Return the int representation of self.  When self is in the
         prime subfield, the integer returned is equal to self and not
         to \code{log_repr}.
 
@@ -1128,12 +1157,12 @@ cdef class FiniteField_ntl_gf2eElement(FiniteFieldElement):
 
         EXAMPLE:
             sage: k.<a> = GF(2^20)
-            sage: int(a)
+            sage: a.integer_representation()
             2
-            sage: int(a^2 + 1)
+            sage: (a^2 + 1).integer_representation()
             5
             sage: k.<a> = GF(2^70)
-            sage: int(a^65 + a^64 + 1)
+            sage: (a^65 + a^64 + 1).integer_representation()
             55340232221128654849L
         """
         cdef unsigned int i = 0
@@ -1403,7 +1432,7 @@ cdef class FiniteField_ntl_gf2eElement(FiniteFieldElement):
             sage: {a:1,a:0} # indirect doctest
             {a: 0}
         """
-        return hash(int(self)) # todo, come up with a faster version
+        return hash(self.integer_representation()) # todo, come up with a faster version
 
     def _vector_(FiniteField_ntl_gf2eElement self, reverse=False):
         r"""

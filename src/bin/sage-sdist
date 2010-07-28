@@ -14,6 +14,30 @@ fi
 
 SAGE_VERSION=$1
 SAGE_ROOT=$2
+
+# are we trying to sdist a bdist copy? If so, tell the user about it and
+# fail.
+if [ -f $SAGE_ROOT/spkg/standard/.from_bdist ]
+then
+  cat <<EOF
+You are running 'sage -sdist' on a copy of Sage that was created with
+'sage -bdist'; this copy includes placeholders for the spkg files and
+does not have the SAGE_ROOT/spkg/base directory, so a source
+distribution cannot be made from this copy of Sage.
+
+You can fix this by:
+
+  * putting the "real" spkg files into spkg/standard; get a source
+    tarball for this version of Sage and copy the directory.
+  * copying the spkg/base directory from the source tarball into this
+    copy of Sage.
+  * removing the file spkg/standard/.from_bdist.
+
+Cannot create source distribution. Exiting.
+EOF
+  exit 1
+fi
+
 LD_LIBRARY_PATH="$SAGE_ROOT/local/lib:$LD_LIBRARY_PATH" && export LD_LIBRARY_PATH
 export SAGE_ROOT SAGE_VERSION
 TARGET="sage-"$1

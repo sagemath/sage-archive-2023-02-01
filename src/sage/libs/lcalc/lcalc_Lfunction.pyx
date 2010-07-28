@@ -777,8 +777,8 @@ def Lfunction_from_elliptic_curve(E, number_of_coeffs=10000):
         sage: L = Lfunction_from_elliptic_curve(EllipticCurve('37'))
         sage: L
         L-function with real Dirichlet coefficients
-        sage: L.value(0.5)
-        0
+        sage: L.value(0.5).abs() < 1e-15
+        True
         sage: L.value(0.5, derivative=1)
         0.305999...
     """

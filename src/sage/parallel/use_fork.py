@@ -15,21 +15,15 @@ class p_iter_fork:
     """
     A parallel iterator implemented using fork.
     """
-    def __init__(self, ncpus, timeout=0, verbose=True, reset_interfaces=True):
+    def __init__(self, ncpus, timeout=0, verbose=True):
         """
         Create fork-based parallel iterator.
 
         INPUT:
 
             - ``ncpus`` -- the maximal number of simultaneous processes to spawn
-            - ``timeout`` -- (float) time in seconds until a
-              subprocess is automatically killed
-            - ``verbose`` -- whether to print anything about what the
-              iterator does (e.g., killing subprocesses)
-            - ``reset_interface`` -- if True (the default), all the
-              pexpect interfaces are reset in the forked off
-              subprocesses.  You definitely want this, since not doing
-              this can lead to weird issues.
+            - ``timeout`` -- (float) time in seconds until a subprocess is automatically killed
+            - ``verbose`` -- whether to print anything about what the iterator does (e.g., killing subprocesses)
 
         EXAMPLES::
 
@@ -47,7 +41,6 @@ class p_iter_fork:
             raise TypeError, "ncpus must be an integer"
         self.timeout = float(timeout)  # require a float
         self.verbose = verbose
-        self.reset_interfaces = reset_interfaces
 
     def __call__(self, f, inputs):
         """
@@ -202,8 +195,7 @@ class p_iter_fork:
 
             # The expect interfaces (and objects defined in them) are
             # not valid.
-            if self.reset_interfaces:
-                sage.interfaces.quit.invalidate_all()
+            sage.interfaces.quit.invalidate_all()
 
             # Now evaluate the function f.
             value = f(*x[0], **x[1])

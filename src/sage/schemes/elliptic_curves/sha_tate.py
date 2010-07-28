@@ -1,24 +1,25 @@
 # -*- coding: utf-8 -*-
+# would have been nice to be able to use Ш
 r"""
 Tate-Shafarevich group
 
-If `E` is an elliptic curve over a global field `K`, the Shafarevich-Tate group
+If `E` is an elliptic curve over a global field `K`, the Tate-Shafarevich group
 is the subgroup of elements in `H^1(K,E)` which map to zero under every global-to-local
 restriction map `H^1(K,E) \to H^1(K_v,E)`, one for each place `v`
 of `K`.
 
-The group is usually denoted by the Russian letter Sha.
+The group is usually denoted by the Russian letter Sha, in this document it will be denoted by `Sha`.
 
-Sha is known to be an abelian torsion group. It is conjectured that the Tate-Shafarevich group is finite for any elliptic curve over a global field. But it is not known in general.
+`Sha` is known to be an abelian torsion group. It is conjectured that the Tate-Shafarevich group is finite for any elliptic curve over a global field. But it is not known in general.
 
-A theorem of Kolyvagin and Gross-Zagier using Heegner points shows that if the L-series of an elliptic curve `E/\mathbb{Q}` does not
-vanish at 1 or has a simple zero there, then Sha is finite.
+A theorem of Kolyvagin and Gross-Zagier using Heegner points shows that if the L-series of an elliptic curve `E/\QQ` does not
+vanish at 1 or has a simple zero there, then `Sha` is finite.
 
-A theorem of Kato, together with theorems from Iwasawa theory, allow for certain primes `p` to show that the `p`-primary part of Sha is finite and gives an effective upper bound for it.
+A theorem of Kato, together with theorems from Iwasawa theory, allow for certain primes `p` to show that the `p`-primary part of `Sha` is finite and gives an effective upper bound for it.
 
-The (`p`-adic) conjecture of Birch and Swinnerton-Dyer predicts the order of Sha from the leading term of the (`p`-adic) L-series of the elliptic curve.
+The (`p`-adic) conjecture of Birch and Swinnerton-Dyer predicts the order of `Sha` from the leading term of the (`p`-adic) L-series of the elliptic curve.
 
-Sage can compute a few things about Sha. The commands ``an``, ``an_numerical`` and ``an_padic`` compute the conjectural order of Sha as a real or `p`-adic number. With ``p_primary_bound`` one can find an upper bound of the size of the `p`-primary part of Sha. Finally, if the analytic rank is at most 1, then ``bound_kato`` and ``bound_kolyvagin`` find all primes for which we the theorems of Kato and Kolyvagin respectively do not prove the triviality the `p`-primary part of Sha.
+Sage can compute a few things about `Sha`. The commands ``an``, ``an_numerical`` and ``an_padic`` compute the conjectural order of `Sha` as a real or `p`-adic number. With ``p_primary_bound`` one can find an upper bound of the size of the `p`-primary part of `Sha`. Finally, if the analytic rank is at most 1, then ``bound_kato`` and ``bound_kolyvagin`` find all primes for which we the theorems of Kato and Kolyvagin respectively do not prove the triviality the `p`-primary part of `Sha`.
 
 EXAMPLES::
 
@@ -37,7 +38,7 @@ EXAMPLES::
 
     sage: E = EllipticCurve('389a')
     sage: S = E.sha(); S
-    Shafarevich-Tate group for the Elliptic Curve defined by y^2 + y = x^3 + x^2 - 2*x over Rational Field
+    Tate-Shafarevich group for the Elliptic Curve defined by y^2 + y = x^3 + x^2 - 2*x over Rational Field
     sage: S.an_numerical()
     1.00000000000000
     sage: S.p_primary_bound(5) #long
@@ -90,9 +91,9 @@ Q = RationalField()
 
 class Sha(SageObject):
     r"""
-    The Shafarevich-Tate group associated to an elliptic curve.
+    The Tate-Shafarevich group associated to an elliptic curve.
 
-    If `E` is an elliptic curve over a global field `K`, the Shafarevich-Tate group
+    If `E` is an elliptic curve over a global field `K`, the Tate-Shafarevich group
     is the subgroup of elements in `H^1(K,E)` which map to zero under every global-to-local
     restriction map `H^1(K,E) \to H^1(K_v,E)`, one for each place `v`
     of `K`.
@@ -114,7 +115,7 @@ class Sha(SageObject):
 
         sage: E = EllipticCurve('389a')
         sage: S = E.sha(); S
-        Shafarevich-Tate group for the Elliptic Curve defined by y^2 + y = x^3 + x^2 - 2*x over Rational Field
+        Tate-Shafarevich group for the Elliptic Curve defined by y^2 + y = x^3 + x^2 - 2*x over Rational Field
         sage: S.an_numerical()
         1.00000000000000
         sage: S.p_primary_bound(5) #long
@@ -124,22 +125,20 @@ class Sha(SageObject):
         sage: S.an_padic(5,prec=4) #long
         1 + O(5^3)
 
-
-
     """
     def __init__(self, E):
         r"""
-        The Shafarevich-Tate group associated to an elliptic curve.
+        The Tate-Shafarevich group associated to an elliptic curve.
 
         INPUT:
-        a elliptic curve over `\mathbb{Q}`
+        a elliptic curve over `\QQ`
 
         EXAMPLES::
 
             sage: E = EllipticCurve('11a1')
             sage: S = E.sha()
             sage: S
-            Shafarevich-Tate group for the Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
+            Tate-Shafarevich group for the Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
 
             sage: S == loads(dumps(S))
             True
@@ -165,17 +164,17 @@ class Sha(SageObject):
 
     def __repr__(self):
         r"""
-        String representation of the Tats-Shafarevich group.
+        String representation of the Tate-Shafarevich group.
 
         EXAMPLES::
 
             sage: E = EllipticCurve('11a1')
             sage: S = E.sha()
             sage: S.__repr__()
-            'Shafarevich-Tate group for the Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field'
+            'Tate-Shafarevich group for the Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field'
 
         """
-        return "Shafarevich-Tate group for the " + repr(self.E)
+        return "Tate-Shafarevich group for the " + repr(self.E)
 
     ########################################################################
     # Functions related to the BSD conjecture.
@@ -184,7 +183,7 @@ class Sha(SageObject):
     def an_numerical(self, prec = None,
                          use_database=True, proof=None):
         r"""
-        Return the numerical analytic order of Sha, which is
+        Return the numerical analytic order of `Sha`, which is
         a floating point number in all cases.
 
         INPUT:
@@ -270,15 +269,15 @@ class Sha(SageObject):
 
     def an(self, use_database=False, descent_second_limit=12):
         r"""
-        Returns the Birch and Swinnerton-Dyer conjectural order of Sha
+        Returns the Birch and Swinnerton-Dyer conjectural order of `Sha`
         as a provably correct integer, unless the analytic rank is > 1,
         in which case this function returns a numerical value.
 
         INPUT:
 
             - ``use_database`` -- bool (default: False); if True, try to use any
-              databases installed to lookup the analytic order of Sha, if
-              possible.  The order of Sha is computed if it can't be looked up.
+              databases installed to lookup the analytic order of `Sha`, if
+              possible.  The order of `Sha` is computed if it can't be looked up.
 
             - ``descent_second_limit`` -- int (default: 12); limit to use on
               point searching for the quartic twist in the hard case
@@ -287,7 +286,7 @@ class Sha(SageObject):
         and the Manin constant is <= 2.
 
         If the optional parameter ``use_database`` is True (default:
-        False), this function returns the analytic order of Sha as
+        False), this function returns the analytic order of `Sha` as
         listed in Cremona's tables, if this curve appears in Cremona's
         tables.
 
@@ -322,13 +321,13 @@ class Sha(SageObject):
             sage: EllipticCurve('14a4').sha().an(use_database=True)   # will be faster if you have large Cremona database installed
             1
 
-        The smallest conductor curve with nontrivial Sha::
+        The smallest conductor curve with nontrivial `Sha`::
 
             sage: E = EllipticCurve([1,1,1,-352,-2689])     # 66b3
             sage: E.sha().an()
             4
 
-        The four optimal quotients with nontrivial Sha and conductor <= 1000::
+        The four optimal quotients with nontrivial `Sha` and conductor <= 1000::
 
             sage: E = EllipticCurve([0, -1, 1, -929, -10595])       # 571A
             sage: E.sha().an()
@@ -422,7 +421,7 @@ class Sha(SageObject):
 
     def an_padic(self, p, prec=0, use_twists=True):
         r"""
-        Returns the conjectural order of Sha(E),
+        Returns the conjectural order of `Sha(E/\QQ)`,
         according to the `p`-adic analogue of the Birch
         and Swinnerton-Dyer conjecture as formulated
         in [MTT] and [BP].
@@ -454,10 +453,10 @@ class Sha(SageObject):
           curve itself. If False it forces the computation using the
           modular symbols of the curve itself.
 
-        OUTPUT:  `p`-adic number - that conjecturally equals `Sha(E)(p)`.
+        OUTPUT:  `p`-adic number - that conjecturally equals `\# Sha(E/\QQ)`.
 
         If prec is set to zero (default) then the precision is set so that
-        at least the first `p`-adic digit of conjectural `Sha(E)(p)` is
+        at least the first `p`-adic digit of conjectural `\# Sha(E/\QQ)` is
         determined.
 
         EXAMPLES:
@@ -690,7 +689,7 @@ class Sha(SageObject):
         r"""
         Returns a provable upper bound for the order of `Sha(E)(p)`. In particular,
         if this algorithm does not fail, then it proves that the `p`-primary
-        part of Sha is finite.
+        part of `Sha` is finite.
 
         INPUT: ``p`` -- a prime > 2
 
@@ -769,8 +768,8 @@ class Sha(SageObject):
 
     def two_selmer_bound(self):
         r"""
-        This returns the 2-rank, i.e. the `\mathbb{F}_2`-dimension
-        of the 2-torsion part of Sha, provided we can determine the
+        This returns the 2-rank, i.e. the `\GF{2}`-dimension
+        of the 2-torsion part of `Sha`, provided we can determine the
         rank of `E`.
 
         EXAMPLES::
@@ -807,7 +806,7 @@ class Sha(SageObject):
         Given a fundamental discriminant `D \neq -3,-4` that satisfies the
         Heegner hypothesis for `E`, return a list of primes so that
         Kolyvagin's theorem (as in Gross's paper) implies that any
-        prime divisor of Sha is in this list.
+        prime divisor of `Sha` is in this list.
 
         INPUT:
 
@@ -822,7 +821,7 @@ class Sha(SageObject):
 
         OUTPUT:
 
-        - list - a list of primes such that if `p` divides Sha(E/K), then
+        - list - a list of primes such that if `p` divides `Sha(E/K)`, then
           `p` is in this list, unless `E/K` has complex multiplication or
           analytic rank greater than 2 (in which case we return 0).
 
@@ -966,7 +965,7 @@ class Sha(SageObject):
         r"""
         Returns a list `p` of primes such that the theorems of Kato's [Ka]
         and others (e.g., as explained in a paper/thesis of Grigor
-        Grigorov [Gri]) imply that if `p` divides  the order of Sha(E) then `p` is in
+        Grigorov [Gri]) imply that if `p` divides  the order of `Sha(E/\QQ)` then `p` is in
         the list.
 
         If `L(E,1) = 0`, then this function gives no information, so
@@ -991,7 +990,7 @@ class Sha(SageObject):
             sage: E.sha().bound_kato()
             [2, 3]
 
-        For the following curve one really has that 25 divides the order of Sha (by Grigorov-Stein paper [GS])::
+        For the following curve one really has that 25 divides the order of `Sha` (by Grigorov-Stein paper [GS])::
 
             sage: E = EllipticCurve([1, -1, 0, -332311, -73733731])   # 1058D1
             sage: E.sha().bound_kato()                 # long time (about 1 second)
@@ -999,7 +998,7 @@ class Sha(SageObject):
             sage: E.galois_representation().non_surjective()                # long time (about 1 second)
             []
 
-        For this one, Sha is divisible by 7::
+        For this one, `Sha` is divisible by 7::
 
             sage: E = EllipticCurve([0, 0, 0, -4062871, -3152083138])   # 3364C1
             sage: E.sha().bound_kato()                 # long time (< 10 seconds)
@@ -1049,9 +1048,9 @@ class Sha(SageObject):
 
     def bound(self):
         r"""
-        Compute a provably correct bound on the order of the Shafarevich-Tate
+        Compute a provably correct bound on the order of the Tate-Shafarevich
         group of this curve. The bound is a either False (no bound) or a list
-        ``B`` of primes such that any divisor of Sha is in this list.
+        ``B`` of primes such that any divisor of `Sha` is in this list.
 
         EXAMPLES::
 

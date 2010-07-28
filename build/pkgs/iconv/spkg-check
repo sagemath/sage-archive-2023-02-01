@@ -5,30 +5,35 @@ if [ -z "$SAGE_LOCAL" ]; then
     exit 1
 fi
 
-# Only test iconv on Solaris, HP-UX and Cygwin
-if [ "x$UNAME" != xSunOS ] && [ "x$UNAME" != xCYGWIN ] && [ "x$UNAME" != xHP-UX ]; then
-  echo "'make check' for iconv will not be run, since iconv is"
-  echo "only installed on HP-UX, Solaris and Cygwin - see:"
-  echo "http://trac.sagemath.org/sage_trac/ticket/8567"
-  exit 0
+# Only test iconv on Solaris, HP-UX and Cygwin, at that is
+# the only platforms on which iconv is installed. On
+# other platforms Sage uses the system iconv.
+
+if [ "x$UNAME" = xSunOS ] || [ "x$UNAME" = xCYGWIN ] || [ "x$UNAME" = xHP-UX ]; then
+   # We must test iconv, but on Solaris some tests will always fail.
+   if [ "x`uname`" = xSunOS ] ; then
+      echo "If you see 3 core dumps, do not be too alarmed. See"
+      echo "http://trac.sagemath.org/sage_trac/ticket/8270"
+      echo "This is a Solaris bug and can be safely ignored"
+      echo "http://bugs.opensolaris.org/bugdatabase/view_bug.do?bug_id=6550204"
+      echo "It will probably be fixed in later releases of Solaris 10"
+      echo "It was fixed in build 66 of OpenSolaris."
+   fi
+
+   cd src
+
+   make check
+
+   if [ $? -ne 0 ]; then
+       echo "Error encountered while running the iconv testsuite ... exiting"
+       exit 1
+   fi
+   echo "All the tests for iconv passed"
+   exit 0
+else
+   echo "iconv was not be tested, as the system iconv will be used"
+   echo "and not the iconv supplied with Sage. The iconv"
+   echo "supplied with Sage is only used on Cygwin, HP-UX and Solaris"
+   exit 0
 fi
 
-if [ "x`uname`" = xSunOS ] ; then
-   echo "If you see 3 core dumps, do not be too alarmed. See"
-   echo "http://trac.sagemath.org/sage_trac/ticket/8270"
-   echo "This is a Solaris bug and can be safely ignored"
-   echo "http://bugs.opensolaris.org/bugdatabase/view_bug.do?bug_id=6550204"
-   echo "It will probably be fixed in later releases of Solaris 10"
-fi
-
-cd src
-
-make check
-
-if [ $? -ne 0 ]; then
-    echo "Error encountered while running the iconv testsuite ... exiting"
-    exit 1
-fi
-
-echo "All the tests for iconv passed"
-exit 0

@@ -36,6 +36,9 @@ GPL 3 and LGPL 3. So we can link against the library ok.
    two previous platforms this was installed on
    (Solaris and Cygwin)
  * Additionally force make-check to run on HP-UX
+ * Change the format of the tests in spkg-install and
+   spkg-check to be a little clearer.
+ * Add a few extra comments.
 
 === iconv-1.13.1.p2 (John Palmieri, March 31st 2010) ===
  * spkg-check: only run 'make check' on Solaris and Cygwin.

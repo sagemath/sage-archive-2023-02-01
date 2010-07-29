@@ -45,6 +45,12 @@ Website: http://ecls.sourceforge.net/
 
 == Changelog ==
 
+=== ecl-10.2.1.p2 (David Kirkby, 30th July 2010) ===
+  * #9643 Force ECL to disable assembly code on Solaris 10 as
+    it does on OpenSolaris. The conditions for disabling
+    assembly code were relaxed, so the release (Solaris 10
+    or OpenSolaris) are now ignored.
+
 === ecl-10.2.1.p1 (Mitesh Patel, 11th July 2010) ===
   * Originally #9187, backported to 10.2.1:  Set an empty MAKEFLAGS
     variable before "make".  On OS X, at least, this fixes building

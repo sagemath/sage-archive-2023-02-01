@@ -860,7 +860,7 @@ class Sha(SageObject):
             sage: E.sha().bound_kolyvagin()
             ([2, 7], 49)
 
-        We get no information the curve has rank 2.::
+        We get no information when the curve has rank 2.::
 
             sage: E = EllipticCurve('389a')
             sage: E.sha().bound_kolyvagin()

@@ -26,9 +26,7 @@ EXAMPLES::
     sage: v[1]
     [1, 1]~
 
-Arithmetic obeys the usual coercion rules.
-
-::
+Arithmetic obeys the usual coercion rules::
 
     sage: type(pari(1) + 1)
     <type 'sage.libs.pari.gen.gen'>
@@ -135,8 +133,18 @@ curves and want to compute with a precision other than the default
     3.6054636014326520859158205642077267748102690
 
 Number fields and precision: TODO
+
+TESTS:
+
+Check that output from PARI's print command is actually seen by
+Sage (ticket #9636)::
+
+    sage: pari('print("test")')
+    test
+
 """
 
+import sys
 import math
 import types
 import operator
@@ -7984,6 +7992,28 @@ cdef class gen(sage.structure.element.RingElement):
 
 cdef unsigned long num_primes
 
+# Callbacks from PARI to print stuff using sys.stdout.write() instead
+# of C library functions like puts().
+cdef extern:
+    PariOUT defaultOut
+    PariOUT defaultErr
+
+cdef void sage_putchar(char c):
+    cdef char str[2]
+    str[0] = c
+    str[1] = 0
+    sys.stdout.write(str)
+    return
+
+cdef void sage_puts(char* s):
+    sys.stdout.write(s)
+    return
+
+cdef void sage_flush():
+    sys.stdout.flush()
+    return
+
+
 cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
     def __init__(self, long size=16000000, unsigned long maxprime=500000):
         """
@@ -8047,6 +8077,11 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         #prec_bits = RealField().prec()
         prec = prec_bits_to_words(53)
         GP_DATA.fmt.sigd = prec_bits_to_dec(53)
+
+        # Set printing functions
+        defaultOut.putch = sage_putchar
+        defaultOut.puts = sage_puts
+        defaultOut.flush = sage_flush
 
         # Take control of SIGSEGV back from PARI.
         import signal

@@ -1607,3 +1607,9 @@ cdef extern from 'pari/paripriv.h':
     long *   int_LSW(GEN x)
     long *   int_precW(long * xp)
     long *   int_nextW(long * xp)
+
+cdef extern:   # paristio.h
+    ctypedef struct PariOUT:
+        void (*putch)(char)
+        void (*puts)(char*)
+        void (*flush)()

@@ -1634,6 +1634,12 @@ class NumberField_generic(number_field_base.NumberField):
         is used.  If you want embeddings into the 53-bit double
         precision, which is faster, use ``self.embeddings(RDF)``.
 
+        .. NOTE::
+
+            This function uses finite precision real numbers.
+            In functions that should output proven results, one
+            could use ``self.embeddings(AA)`` instead.
+
         EXAMPLES::
 
             sage: K.<a> = NumberField(x^3 + 2)
@@ -1658,6 +1664,20 @@ class NumberField_generic(number_field_base.NumberField):
               To:   Real Field with 100 bits of precision
               Defn: a |--> -1.2599210498948731647672106073
             ]
+
+        As this is a numerical function, the number of embeddings
+        may be incorrect if the precision is too low::
+
+            sage: K = NumberField(x^2+2*10^1000*x + 10^2000+1, 'a')
+            sage: len(K.real_embeddings())
+            2
+            sage: len(K.real_embeddings(100))
+            2
+            sage: len(K.real_embeddings(10000))
+            0
+            sage: len(K.embeddings(AA))
+            0
+
         """
         K = sage.rings.real_mpfr.RealField(prec)
         return self.embeddings(K)
@@ -4034,10 +4054,7 @@ class NumberField_generic(number_field_base.NumberField):
             if theta.trace() < 0:
                 theta *= -1
             if theta.trace() >= C[0] and theta.trace() <= C[1]:
-                inbounds = True
-                for v in self.real_embeddings():
-                    inbounds = inbounds and v(theta) > 0
-                if inbounds:
+                if self(theta).is_totally_positive():
                     S.append(self(theta))
         return S
 

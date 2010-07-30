@@ -1070,8 +1070,33 @@ cdef class NumberFieldElement(FieldElement):
             False
             sage: (b^2).is_totally_positive()
             True
+
+        TESTS:
+
+        Check that the output is correct even for numbers that are
+        very close to zero (ticket #9596)::
+
+            sage: K.<sqrt2> = QuadraticField(2)
+            sage: a = 30122754096401; b = 21300003689580
+            sage: (a/b)^2 > 2
+            True
+            sage: (a/b+sqrt2).is_totally_positive()
+            True
+            sage: r = RealField(3020)(2).sqrt()*2^3000
+            sage: a = floor(r)/2^3000
+            sage: b = ceil(r)/2^3000
+            sage: (a+sqrt2).is_totally_positive()
+            False
+            sage: (b+sqrt2).is_totally_positive()
+            True
+
+        Check that 0 is handled correctly::
+
+            sage: K.<a> = NumberField(x^5+4*x+1)
+            sage: K(0).is_totally_positive()
+            False
         """
-        for v in self.number_field().real_embeddings():
+        for v in self.number_field().embeddings(sage.rings.qqbar.AA):
             if v(self) <= 0:
                 return False
         return True

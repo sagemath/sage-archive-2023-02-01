@@ -2,9 +2,9 @@ r"""
 Modules With Basis
 
 AUTHORS:
-- Nicolas Thiery (2008): initial revision
+- Nicolas M. Thiery (2008-2010): initial revision
 - Jason Bandlow & Florent Hivert (2010): Triangular Morphisms
-
+- Christian Stump (2010): #9648: module_morphism's to a wider class of codomains
 """
 #*****************************************************************************
 #  Copyright (C) 2008 Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
@@ -18,7 +18,7 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import attrcall, deprecated_function_alias
 from sage.misc.sage_itertools import max_cmp, min_cmp
-from sage.categories.all import Modules, Fields, HomCategory, Homset
+from sage.categories.all import Sets, CommutativeAdditiveSemigroups, Modules, HomCategory, Homset
 from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.tensor import tensor, TensorProductsCategory
 from sage.categories.dual import DualObjectsCategory
@@ -188,20 +188,20 @@ class ModulesWithBasis(Category_over_base_ring):
 
             INPUT:
 
-             - ``self`` - a parent `X` in ``ModulesWithBasis(R)``, with basis `x`
+             - ``self`` -- a parent `X` in ``ModulesWithBasis(R)``, with basis `x`
                indexed by `I`
-             - ``codomain`` - the codomain `Y` of `f`: defaults to ``f.codomain()``
+             - ``codomain`` -- the codomain `Y` of `f`: defaults to ``f.codomain()``
                if the later is defined
-             - ``zero`` - the zero of the codomain; defaults to
-               ``codomain.zero()`` or 0 if codomain is not specified
-             - ``position`` - a non negative integer; defaults to 0
-             - ``on_basis`` - a function `f` which accepts elements of `I`
-               as position-th argument and returns  elements of `Y`
-             - ``diagonal`` - a function `d` from `I` to `R`
-             - ``triangular`` - "upper" or "lower" or None
+             - ``zero`` -- the zero of the codomain; defaults to ``codomain.zero()``
+               Can be used (with care) to define affine maps
+             - ``position`` -- a non negative integer; defaults to 0
+             - ``on_basis`` -- a function `f` which accepts elements of `I`
+               as position-th argument and returns elements of `Y`
+             - ``diagonal`` -- a function `d` from `I` to `R`
+             - ``triangular`` -- "upper" or "lower" or None
                  - "upper": if the `leading_support()`  of the image of `F(i)` is `i`, or
                  - "lower": if the `trailing_support()` of the image of `F(i)` is `i`.
-             - ``category`` - a category. By default, this is
+             - ``category`` -- a category. By default, this is
                ``ModulesWithBasis(R)`` if `Y` is in this category, and
                otherwise this lets `\hom(X,Y)` decide
 
@@ -223,9 +223,96 @@ class ModulesWithBasis(Category_over_base_ring):
                 Generic morphism:
                 From: X
                 To:   Y
-                sage: x = X.basis()
+                sage: phi.category_for()
+                Category of modules with basis over Rational Field
+                sage: x = X.basis(); y = Y.basis()
                 sage: phi(x[1] + x[3])
                 B[1] + 2*B[2] + B[3] + 2*B[4]
+
+            With the ``zero`` argument, one can define affine morphisms:
+
+                sage: phi = X.module_morphism(lambda i: Y.monomial(i) + 2*Y.monomial(i+1), codomain = Y, zero = 10*y[1])
+                sage: phi(x[1] + x[3])
+                11*B[1] + 2*B[2] + B[3] + 2*B[4]
+                sage: phi.category_for()
+                Category of sets
+
+            One can construct morphisms with the base ring as codomain::
+
+                sage: X = CombinatorialFreeModule(ZZ,[1,-1])
+                sage: phi = X.module_morphism( on_basis=lambda i: i, codomain=ZZ )
+                sage: phi( 2 * X.monomial(1) + 3 * X.monomial(-1) )
+                -1
+                sage: phi.category_for()
+                Category of commutative additive semigroups
+                sage: phi.category_for() # todo: not implemented (ZZ is currently not in Modules(ZZ))
+                Category of modules over Integer Ring
+
+            Or more generaly any ring admitting a coercion map from the base ring:
+
+                sage: phi = X.module_morphism(on_basis= lambda i: i, codomain=RR )
+                sage: phi( 2 * X.monomial(1) + 3 * X.monomial(-1) )
+                -1.00000000000000
+                sage: phi.category_for()
+                Category of commutative additive semigroups
+                sage: phi.category_for() # todo: not implemented (RR is currently not in Modules(ZZ))
+                Category of modules over Integer Ring
+
+                sage: phi = X.module_morphism(on_basis= lambda i: i, codomain=Zmod(4) )
+                sage: phi( 2 * X.monomial(1) + 3 * X.monomial(-1) )
+                3
+
+                sage: phi = Y.module_morphism(on_basis= lambda i: i, codomain=Zmod(4) )
+                Traceback (most recent call last):
+                ...
+                AssertionError: codomain should be a module over base_ring
+
+            On can also define module morphism betweem free modules
+            over different base rings; here we implement the natural
+            map from `X = \RR^2` to `Y = \CC`::
+
+                sage: X = CombinatorialFreeModule(RR,['x','y'])
+                sage: Y = CombinatorialFreeModule(CC,['z'])
+                sage: x = X.monomial('x')
+                sage: y = X.monomial('y')
+                sage: z = Y.monomial('z')
+                sage: def on_basis( a ):
+                ...       if a == 'x':
+                ...           return CC(1) * z
+                ...       elif a == 'y':
+                ...           return CC(I) * z
+                sage: phi = X.module_morphism( on_basis=on_basis, codomain=Y )
+                sage: v = 3 * x + 2 * y; v
+                3.00000000000000*B['x'] + 2.00000000000000*B['y']
+                sage: phi(v)
+                (3.00000000000000+2.00000000000000*I)*B['z']
+                sage: phi.category_for()
+                Category of commutative additive semigroups
+                sage: phi.category_for() # todo: not implemented (CC is currently not in Modules(RR)!)
+                Category of vector spaces over Real Field with 53 bits of precision
+
+                sage: Y = CombinatorialFreeModule(CC['q'],['z'])
+                sage: z = Y.monomial('z')
+                sage: phi = X.module_morphism( on_basis=on_basis, codomain=Y )
+                sage: phi(v)
+                (3.00000000000000+2.00000000000000*I)*B['z']
+
+            Of course, there should be a coercion between the
+            respective base rings of the domain and the codomain for
+            this to be meaningful::
+
+                sage: Y = CombinatorialFreeModule(QQ,['z'])
+                sage: phi = X.module_morphism( on_basis=on_basis, codomain=Y )
+                Traceback (most recent call last):
+                ...
+                AssertionError: codomain should be a module over base_ring
+
+                sage: Y = CombinatorialFreeModule(RR['q'],['z'])
+                sage: phi = Y.module_morphism( on_basis=on_basis, codomain=X )
+                Traceback (most recent call last):
+                ...
+                AssertionError: codomain should be a module over base_ring
+
 
             With the ``diagonal`` argument, this returns the module morphism `g` such that:
 
@@ -1022,7 +1109,7 @@ class ModuleMorphismByLinearity(Morphism):
          - ``codomain`` -- a parent in Modules(...); defaults to f.codomain() if the later is defined
          - ``position`` -- a non negative integer; defaults to 0
          - ``on_basis`` -- a function which accepts indices of the basis of domain as position-th argument (optional)
-         - ``zero`` -- the zero of the codomain; defaults to codomain.zero() or 0 if codomain is not specified
+         - ``zero`` -- the zero of the codomain; defaults to ``codomain.zero()``
 
         ``on_basis`` may alternatively be provided in derived classes by implementing or setting ``_on_basis``.
 
@@ -1050,19 +1137,49 @@ class ModuleMorphismByLinearity(Morphism):
         by making sure to create ``phi`` through its parent.
 
         """
+        # Might want to assert that domain is a module with basis
+        base_ring = domain.base_ring()
+
         if codomain is None and hasattr(on_basis, 'codomain'):
             codomain = on_basis.codomain()
-        if zero is None:
-            if codomain is not None:
-                zero = codomain.zero()
-            else:
-                zero = 0
-        assert domain.base_ring()    == codomain.base_ring()
-        if category is None and codomain is not None and codomain.category().is_subcategory(ModulesWithBasis(domain.base_ring())):
-            category = ModulesWithBasis(domain.base_ring())
         assert codomain is not None
-        Morphism.__init__(self, Hom(domain, codomain, category = category))
+        assert hasattr( codomain, 'base_ring' )
+        # codomain should be a module over base_ring
+        # The natural test would be ``codomains in Modules(base_ring)``
+        # But this is not properly implemented yet:
+        #     sage: CC in Modules(QQ)
+        #     False
+        #     sage: QQ in Modules(QQ)
+        #     False
+        #     sage: CC[x] in Modules(QQ)
+        #     False
+        # The test below is a bit more restrictive
+        assert codomain.base_ring().has_coerce_map_from(base_ring) or \
+            codomain.has_coerce_map_from(base_ring),                  \
+            "codomain should be a module over base_ring"
+
+        if zero is None:
+            zero = codomain.zero()
         self._zero = zero
+
+        self._is_module_with_basis_over_same_base_ring = \
+            codomain in ModulesWithBasis( base_ring ) and zero == codomain.zero()
+
+        if category is None:
+            if self._is_module_with_basis_over_same_base_ring:
+                category = ModulesWithBasis(base_ring)
+            elif zero == codomain.zero():
+                if codomain in Modules(base_ring):
+                    category = Modules(base_ring)
+                else:
+                    # QQ is not in Modules(QQ)!
+                    category = CommutativeAdditiveSemigroups()
+            else:
+                category = Sets()
+
+        Morphism.__init__(self, Hom(domain, codomain, category = category))
+
+
         self._position = position
         if on_basis is not None:
             self._on_basis = on_basis
@@ -1129,7 +1246,11 @@ class ModuleMorphismByLinearity(Morphism):
         after = args[self._position+1:len(args)]
         x = args[self._position]
         assert(x.parent() is self.domain())
-        return sum([self._on_basis(*(before+(index,)+after))._lmul_(coeff) for (index, coeff) in args[self._position]], self._zero)
+
+        if self._is_module_with_basis_over_same_base_ring:
+            return self.codomain().sum(self._on_basis(*(before+(index,)+after))._lmul_(coeff) for (index, coeff) in args[self._position])
+        else:
+            return sum(( coeff * self._on_basis(*(before+(index,)+after)) for (index, coeff) in args[self._position]), self._zero)
 
     # As per the specs of Map, we should in fact implement _call_.
     # However we currently need to abuse Map.__call__ (which strict

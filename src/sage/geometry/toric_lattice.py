@@ -11,6 +11,7 @@ you from doing "wrong" operations with objects from different lattices.
 AUTHORS:
 
 - Andrey Novoseltsev (2010-05-27): initial version.
+- Andrey Novoseltsev (2010-07-30): sublattices and quotients.
 
 EXAMPLES:
 
@@ -147,6 +148,9 @@ Or you can create a homomorphism from one lattice to any other::
 
 from sage.geometry.toric_lattice_element import (ToricLatticeElement,
                                                  is_ToricLatticeElement)
+from sage.misc.all import latex, parent
+from sage.modules.fg_pid.fgp_element import FGP_Element
+from sage.modules.fg_pid.fgp_module import FGP_Module_class
 from sage.modules.free_module import (FreeModule_ambient_pid,
                                       FreeModule_generic_pid,
                                       FreeModule_submodule_pid,
@@ -465,6 +469,34 @@ class ToricLattice_generic(FreeModule_generic_pid):
             None
         """
         return None
+
+    def quotient(self, sub, check=True):
+        """
+        Return the quotient of ``self`` by the given sublattice ``sub``.
+
+        INPUT:
+
+        - ``sub`` -- sublattice of self;
+
+        - ``check`` -- (default: True) whether or not to check that ``sub`` is
+          a valid sublattice.
+
+        EXAMPLES::
+
+            sage: N = ToricLattice(3)
+            sage: Ns = N.submodule([N(2,4,0), N(9,12,0)])
+            sage: Q = N/Ns
+            sage: Q
+            Torsion quotient of 3-d lattice N
+            by Sublattice <N(1, 8, 0), N(0, 12, 0)>
+        """
+        if check:
+            try:
+                sub = self.submodule(sub)
+            except (TypeError, ArithmeticError):
+                raise ArithmeticError("cannot interpret %s as a sublattice "
+                                      "of %s!" % (sub, self))
+        return ToricLattice_quotient(self, sub, check=False)
 
     def span(self, *args, **kwds):
         """
@@ -796,7 +828,7 @@ class ToricLattice_sublattice_with_basis(ToricLattice_generic,
             sage: L = ToricLattice(3, "L")
             sage: L.submodule_with_basis([(3,2,1),(1,2,3)])
             Sublattice <L(3, 2, 1), L(1, 2, 3)>
-            sage: L.submodule([(3,2,1),(1,2,3)])
+            sage: print L.submodule([(3,2,1),(1,2,3)])._repr_()
             Sublattice <L(1, 2, 3), L(0, 4, 8)>
         """
         s = 'Sublattice '
@@ -875,3 +907,281 @@ class ToricLattice_sublattice(ToricLattice_sublattice_with_basis,
         ]
     """
     pass
+
+
+class ToricLattice_quotient(FGP_Module_class):
+    r"""
+    Construct the quotient of a toric lattice ``V`` by its sublattice ``W``.
+
+    INPUT:
+
+    - ``V`` -- ambient toric lattice;
+
+    - ``W`` -- sublattice of ``V``;
+
+    - ``check`` -- (default: ``True``) whether to check correctness of input
+      or not.
+
+    OUTPUT:
+
+    - quotient of ``V`` by ``W``.
+
+    EXAMPLES:
+
+    The intended way to get objects of this class is to use
+    :meth:`quotient` method of toric lattices::
+
+        sage: N = ToricLattice(3)
+        sage: sublattice = N.submodule([(1,1,0), (3,2,1)])
+        sage: Q = N/sublattice
+        sage: Q
+        1-d lattice, quotient of 3-d lattice N
+        by Sublattice <N(1, 0, 1), N(0, 1, -1)>
+    """
+
+    # As in many other cases, it is bad to override this function from the
+    # point of view of the coercion model, but we don't have much choice
+    # given how the base class behaves and how we want it to behave here.
+    def __call__(self, *x, **kwds):
+        r"""
+        Construct an element of ``self``.
+
+        INPUT:
+
+        - element of a compatible toric object (lattice, sublattice, quotient)
+          or something that defines such an element (list, generic vector,
+          etc.).
+
+        OUTPUT:
+
+        - :class:`toric lattice quotient element
+          <ToricLattice_quotient_element>`.
+
+        EXAMPLES::
+
+            sage: N = ToricLattice(3)
+            sage: Ns = N.submodule([N(2,4,0), N(9,12,0)])
+            sage: Q = N/Ns
+            sage: x = Q(1,2,3)
+            sage: x
+            N[1, 2, 3]
+            sage: type(x)
+            <class 'sage.geometry.toric_lattice.ToricLattice_quotient_element'>
+            sage: x is Q(x)
+            True
+            sage: x.parent() is Q
+            True
+            sage: x == Q(N(1,2,3))
+            True
+            sage: y = Q(3,6,3)
+            sage: y
+            N[3, 6, 3]
+            sage: x == y
+            True
+        """
+        if len(x) == 1:
+            x = x[0]
+        if parent(x) is self:
+            return x
+        try:
+            x = x.lift()
+        except AttributeError:
+            pass
+        return self._element_class()(self, self._V(x), **kwds)
+
+    def _element_class(self):
+        r"""
+        Return a constructor for elements of ``self``.
+
+        TESTS::
+
+            sage: N = ToricLattice(3)
+            sage: Ns = N.submodule([N(2,4,0), N(9,12,0)])
+            sage: Q = N/Ns
+            sage: Q._element_class()
+            <class 'sage.geometry.toric_lattice.ToricLattice_quotient_element'>
+        """
+        # Should be overridden in derived classes.
+        return ToricLattice_quotient_element
+
+    def _latex_(self):
+        r"""
+        Return a LaTeX representation of ``self``.
+
+        OUTPUT:
+
+        - string.
+
+        TESTS::
+
+            sage: N = ToricLattice(3)
+            sage: Ns = N.submodule([N(2,4,0), N(9,12,0)])
+            sage: Q = N/Ns
+            sage: print Q._latex_()
+            N / \left\langle\left(1,8,0\right)_{N},
+            \left(0,12,0\right)_{N}\right\rangle
+            sage: Ns = N.submodule([N(1,4,0)])
+            sage: Q = N/Ns
+            sage: print Q._latex_()
+            N / \left\langle\left(1,4,0\right)_{N}\right\rangle
+        """
+        return "%s / %s" % (latex(self.V()), latex(self.W()))
+
+    def _repr_(self):
+        r"""
+        Return a string representation of ``self``.
+
+        OUTPUT:
+
+        - string.
+
+        TESTS::
+
+            sage: N = ToricLattice(3)
+            sage: Ns = N.submodule([N(2,4,0), N(9,12,0)])
+            sage: Q = N/Ns
+            sage: print Q._repr_()
+            Torsion quotient of 3-d lattice N
+            by Sublattice <N(1, 8, 0), N(0, 12, 0)>
+            sage: Ns = N.submodule([N(1,4,0)])
+            sage: Q = N/Ns
+            sage: print Q._repr_()
+            2-d lattice, quotient of 3-d lattice N
+            by Sublattice <N(1, 4, 0)>
+        """
+        if self.is_torsion_free():
+            return "%d-d lattice, quotient of %s by %s" % (self.rank(),
+                                                           self.V(), self.W())
+        else:
+            return "Torsion quotient of %s by %s" % (self.V(), self.W())
+
+    def _subquotient_class(self):
+        r"""
+        Return a constructor for subquotients of ``self``.
+
+        TESTS::
+
+            sage: N = ToricLattice(3)
+            sage: Ns = N.submodule([N(2,4,0), N(9,12,0)])
+            sage: Q = N/Ns
+            sage: Q._subquotient_class()
+            <class 'sage.geometry.toric_lattice.ToricLattice_quotient'>
+        """
+        # Should be overridden in derived classes.
+        return ToricLattice_quotient
+
+    def is_torsion_free(self):
+        r"""
+        Check if ``self`` is torsion-free.
+
+        OUTPUT:
+
+        - ``True`` is ``self`` has no torsion and ``False`` otherwise.
+
+        EXAMPLES::
+
+            sage: N = ToricLattice(3)
+            sage: Ns = N.submodule([N(2,4,0), N(9,12,0)])
+            sage: Q = N/Ns
+            sage: Q.is_torsion_free()
+            False
+            sage: Ns = N.submodule([N(1,4,0)])
+            sage: Q = N/Ns
+            sage: Q.is_torsion_free()
+            True
+        """
+        return sum(self.invariants()) == 0
+
+    def rank(self):
+        r"""
+        Return the rank of ``self``.
+
+        OUTPUT:
+
+        - integer.
+
+        EXAMPLES::
+
+            sage: N = ToricLattice(3)
+            sage: Ns = N.submodule([N(2,4,0), N(9,12,0)])
+            sage: Q = N/Ns
+            sage: Q.rank()
+            1
+            sage: Ns = N.submodule([N(1,4,0)])
+            sage: Q = N/Ns
+            sage: Q.rank()
+            2
+        """
+        return self.V().rank() - self.W().rank()
+
+
+class ToricLattice_quotient_element(FGP_Element):
+    r"""
+    Create an element of a toric lattice quotient.
+
+    .. WARNING::
+
+        You probably should not construct such elements explicitly.
+
+    INPUT:
+
+    - same as for :class:`~sage.modules.fg_pid.fgp_element.FGP_Element`.
+
+    OUTPUT:
+
+    - element of a toric lattice quotient.
+
+    TESTS::
+
+        sage: N = ToricLattice(3)
+        sage: sublattice = N.submodule([(1,1,0), (3,2,1)])
+        sage: Q = N/sublattice
+        sage: e = Q(1,2,3)
+        sage: e
+        N[1, 2, 3]
+        sage: e2 = Q(N(2,3,3))
+        sage: e2
+        N[2, 3, 3]
+        sage: e == e2
+        True
+        sage: e.vector()
+        (4)
+        sage: e2.vector()
+        (4)
+    """
+
+    def _latex_(self):
+        r"""
+        Return a LaTeX representation of ``self``.
+
+        OUTPUT:
+
+        - string.
+
+        TESTS::
+
+            sage: N = ToricLattice(3)
+            sage: Ns = N.submodule([N(2,4,0), N(9,12,0)])
+            sage: Q = N/Ns
+            sage: print Q.gen(0)._latex_()
+            \left[0,1,0\right]_{N}
+        """
+        return latex(self.lift()).replace("(", "[", 1).replace(")", "]", 1)
+
+    def _repr_(self):
+        r"""
+        Return a string representation of ``self``.
+
+        OUTPUT:
+
+        - string.
+
+        TESTS::
+
+            sage: N = ToricLattice(3)
+            sage: Ns = N.submodule([N(2,4,0), N(9,12,0)])
+            sage: Q = N/Ns
+            sage: print Q.gen(0)._repr_()
+            N[0, 1, 0]
+        """
+        return str(self.lift()).replace("(", "[", 1).replace(")", "]", 1)

@@ -479,7 +479,7 @@ def contour_plot(f, xrange, yrange, **options):
     g.add_primitive(ContourPlot(xy_data_array, xrange, yrange, options))
     return g
 
-@options(plot_points=150, contours=(0,0), fill=False)
+@options(plot_points=150, contours=(0,0), fill=False, cmap=["blue"])
 def implicit_plot(f, xrange, yrange, **options):
     r"""
     ``implicit_plot`` takes a function of two variables, `f(x,y)`
@@ -513,6 +513,9 @@ def implicit_plot(f, xrange, yrange, **options):
     - ``linestyle`` -- string (default: None), the style of the line to be
       plotted, one of: solid, dashed, dashdot or dotted.
 
+    - ``color`` -- string (default: ``blue``), the color of the plot. Colors are
+      defined in sage.plot.colors.
+
     - ``legend_label`` -- the label for this item in the legend
 
     EXAMPLES:
@@ -545,6 +548,10 @@ def implicit_plot(f, xrange, yrange, **options):
         sage: var("x y")
         (x, y)
         sage: implicit_plot(x^2+y^2 == 2, (x,-3,3), (y,-3,3)).show(aspect_ratio=1)
+
+    You can even change the color of the plot::
+
+        sage: implicit_plot(x^2+y^2 == 2, (x,-3,3), (y,-3,3), color="red").show(aspect_ratio=1)
 
     We can define a level-`n` approximation of the boundary of the
     Mandelbrot set::
@@ -582,6 +589,10 @@ def implicit_plot(f, xrange, yrange, **options):
         f = f.lhs() - f.rhs()
     linewidths = options.pop('linewidth', None)
     linestyles = options.pop('linestyle', None)
+
+    if 'color' in options:
+        options['cmap']=[options.pop('color', None)]
+
     return contour_plot(f, xrange, yrange, linewidths=linewidths, linestyles=linestyles, **options)
 
 @options(plot_points=100, incol='blue', outcol='white', bordercol=None, borderstyle=None, borderwidth=None,frame=False,axes=True, legend_label=None)

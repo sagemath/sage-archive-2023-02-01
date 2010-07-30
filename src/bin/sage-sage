@@ -127,10 +127,21 @@ usage_advanced() {
     exit 1
 }
 
-. $SAGE_ROOT/local/bin/sage-env   1>/dev/null 2>/dev/null
+# TODO: Perhaps test for existence of "$SAGE_ROOT"/local/bin/sage-env first...
+#       (to catch a specific simple error earlier)
 
+# Do NOT redirect stderr and stdout to /dev/null,
+# since sage-env might print important error messages:
+. "$SAGE_ROOT"/local/bin/sage-env
+
+# The following doesn't make much sense, since we *source* sage-env,
+# and if that does exit, it exits *this* shell(!). Only if sourcing
+# the file itself fails (because e.g. sage-env does not exist, or a
+# syntax error occurs in its last command), the error message below
+# will be printed:
 if [ $? -ne 0 ]; then
-   echo "Error setting environment variables by running $SAGE_ROOT/local/bin/sage-env; possibly contact sage-devel (see http://groups.google.com/group/sage-devel)."
+   echo "Error setting environment variables by running \"$SAGE_ROOT/local/bin/sage-env\";"
+   echo "possibly contact sage-devel (see http://groups.google.com/group/sage-devel)."
 fi
 
 # SAGE startup script passes some funny options, which are

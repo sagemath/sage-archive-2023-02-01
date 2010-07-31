@@ -9,8 +9,8 @@
 
 ******************************************************************************/
 
-#ifndef FOO_H
-#define FOO_H
+#ifndef C_LIB_INCLUDE_INTERRUPT_H
+#define C_LIB_INCLUDE_INTERRUPT_H
 #include <setjmp.h>
 #include <Python.h>
 #include <signal.h>
@@ -239,7 +239,7 @@ void set_sage_signal_handler_message(const char* s);
 
 #define _sig_check _sig_on _sig_off
 
-#endif /* FOO_H */
+#endif /* C_LIB_INCLUDE_INTERRUPT_H */
 
 /*
 I thought maybe the following would work nicely, instead of just

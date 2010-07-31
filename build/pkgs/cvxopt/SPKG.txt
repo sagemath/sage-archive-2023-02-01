@@ -29,7 +29,7 @@ Downloaded from
  * turned on GSL extension (this is the default mode for CVXOPT, and GSL is a standard Sage spkg, so
    this makes perfect sense); this in particular allowed to get rid of strange random seed-related
    import bugs uncovered by David Kirkby's spkg-check
-   TODO: one might want to enchance the code to allow other Sage random sources,
+   TODO(?): one might want to enchance the code to allow other Sage random sources,
     at the moment only GSL is used in CVXOPT-1.1.2 spkg, apparently it will need an unclear
     to me "with seed(..)" construct.
    TODO: We will need to make sure that CVXOPT is built after GSL
@@ -38,7 +38,10 @@ Downloaded from
    to cd there and run "python covsel" (and ignore covsel.bin -- this is an input)
  * corrected the .patch files in patches/ to be in right order --- just run the makepatchfiles
    script to re-create these files!
-
+ * removed html doc files in src/doc; the .rst doc files are there, so it's a question of
+   rebuilding them
+   (e.g. one can do sage -sh; cd src/doc; make html)
+   TODO: incorporate docs buiding into spkg-install, and/or merge into Sage documentation
 
 === cvxopt-1.1.2 (Harald Schilly, Dima Pasechnik, David Kirkby, March-July 2010) ===
  * #6456 Update to cvxopt 1.1.2

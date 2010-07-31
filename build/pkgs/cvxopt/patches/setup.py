@@ -17,7 +17,7 @@ else:
 
 # Set to 1 if you are using the random number generators in the GNU
 # Scientific Library.
-BUILD_GSL = 0
+BUILD_GSL = 1
 
 # Directory containing libgsl (used only when BUILD_GSL = 1).
 GSL_LIB_DIR = SAGE_LIB
@@ -59,7 +59,7 @@ extmods = []
 # optional modules
 
 if BUILD_GSL:
-    gsl = Extension('gsl', libraries = ['m', 'gsl', 'blas'],
+    gsl = Extension('gsl', libraries = libraries+['gsl'],
         include_dirs = [ GSL_INC_DIR ],
         library_dirs = [ GSL_LIB_DIR ],
         sources = ['C/gsl.c'] )

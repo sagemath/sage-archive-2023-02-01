@@ -49,14 +49,7 @@ def normal(nrows, ncols=1, mean=0.0, std=1.0):
     std       standard deviation of the distribution
     '''
 
-    try:
-        from cvxopt import gsl
-    except:
-        from cvxopt.base import matrix
-        from sage.misc.prandom import gauss
-        return matrix([gauss(mean, std) for k in xrange(nrows*ncols)],
-                      (nrows,ncols), 'd' )
-
+    from cvxopt import gsl
     return gsl.normal(nrows, ncols, mean, std)
 
 def uniform(nrows, ncols=1, a=0, b=1):
@@ -80,14 +73,7 @@ def uniform(nrows, ncols=1, a=0, b=1):
     b         upper bound
     '''
 
-    try:
-        from cvxopt import gsl
-    except:
-        from cvxopt.base import matrix
-        from sage.misc.prandom import uniform
-        return matrix([uniform(a, b) for k in xrange(nrows*ncols)],
-                      (nrows,ncols), 'd' )
-
+    from cvxopt import gsl
     return gsl.uniform(nrows, ncols, a, b)
 
 def setseed(val = 0):
@@ -101,13 +87,8 @@ def setseed(val = 0):
               is used.
     '''
 
-    try:
-        from cvxopt import gsl
-        gsl.setseed(val)
-    except:
-        from sage.misc.prandom import seed
-        if val is 0: val = None
-        seed(val)
+    from cvxopt import gsl
+    gsl.setseed(val)
 
 
 def getseed():
@@ -117,12 +98,8 @@ def getseed():
     getseed()
     '''
 
-    try:
-        from cvxopt import gsl
-        return gsl.getseed()
-    except:
-        raise NotImplementedError, "getseed() not installed (requires GSL) "
-
+    from cvxopt import gsl
+    return gsl.getseed()
 
 
 import __builtin__

@@ -15,11 +15,10 @@ if [ -z $CFLAG64 ] ; then
 fi
 
 if [ "x$SAGE64" = xyes ]; then
-   echo "64 bit build of cddlib"
+   echo "Building a 64 bit version of cvxopt"
    CFLAGS="$CFLAGS $CFLAG64"; export CFLAGS
+   CC="$CC $CFLAG64" ; export CC
 fi
-
-CUR=`pwd`
 
 # Solaris-specific patches
 cp -p patches/sun_complex.h src/src/C/

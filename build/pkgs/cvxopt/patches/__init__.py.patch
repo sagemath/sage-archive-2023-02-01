@@ -1,29 +1,67 @@
---- __init__.py	2010-07-26 12:59:04.743011401 +0300
-+++ ../src/src/python/__init__.py	2010-07-26 13:17:06.959013994 +0300
-@@ -53,7 +53,7 @@
-         from cvxopt import gsl
-     except:
-         from cvxopt.base import matrix
--        from sage.misc.prandom import gauss
-+        from random import gauss
-         return matrix([gauss(mean, std) for k in xrange(nrows*ncols)],
-                       (nrows,ncols), 'd' )
-         
-@@ -84,7 +84,7 @@
-         from cvxopt import gsl
-     except:
-         from cvxopt.base import matrix
--        from sage.misc.prandom import uniform
-+        from random import uniform
-         return matrix([uniform(a, b) for k in xrange(nrows*ncols)],
-                       (nrows,ncols), 'd' )
+--- ../src/src/python/__init__.py	2009-11-28 08:00:23.000000000 +0200
++++ __init__.py	2010-08-01 00:43:09.749811078 +0300
+@@ -49,14 +49,7 @@
+     std       standard deviation of the distribution
+     '''
  
-@@ -105,7 +105,7 @@
-         from cvxopt import gsl
-         gsl.setseed(val)
-     except:
--        from sage.misc.prandom import seed
-+        from random import seed
-         if val is 0: val = None
-         seed(val)
-         
+-    try:    
+-        from cvxopt import gsl
+-    except:
+-        from cvxopt.base import matrix
+-        from random import gauss
+-        return matrix([gauss(mean, std) for k in xrange(nrows*ncols)],
+-                      (nrows,ncols), 'd' )
+-        
++    from cvxopt import gsl
+     return gsl.normal(nrows, ncols, mean, std)
+ 
+ def uniform(nrows, ncols=1, a=0, b=1):
+@@ -80,14 +73,7 @@
+     b         upper bound
+     '''
+ 
+-    try:    
+-        from cvxopt import gsl
+-    except:
+-        from cvxopt.base import matrix
+-        from random import uniform
+-        return matrix([uniform(a, b) for k in xrange(nrows*ncols)],
+-                      (nrows,ncols), 'd' )
+-
++    from cvxopt import gsl
+     return gsl.uniform(nrows, ncols, a, b)
+ 
+ def setseed(val = 0):
+@@ -101,14 +87,9 @@
+               is used. 
+     '''    
+ 
+-    try:    
+-        from cvxopt import gsl
+-        gsl.setseed(val)
+-    except:
+-        from random import seed
+-        if val is 0: val = None
+-        seed(val)
+-        
++    from cvxopt import gsl
++    gsl.setseed(val)
++
+  
+ def getseed():
+     '''
+@@ -117,12 +98,8 @@
+     getseed()
+     '''
+ 
+-    try:    
+-        from cvxopt import gsl
+-        return gsl.getseed()
+-    except:
+-        raise NotImplementedError, "getseed() not installed (requires GSL) "
+-    
++    from cvxopt import gsl
++    return gsl.getseed()
+ 
+ 
+ import __builtin__

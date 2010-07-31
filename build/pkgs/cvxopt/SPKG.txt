@@ -22,15 +22,32 @@ Downloaded from
 
 == Releases ==
 
-=== cvxopt-1.1.2.p1 (Dima Pasechnik, 26 July 2010) ===
+=== cvxopt-1.1.2 (Dima Pasechnik, August 2010) ===
+ * bug-fixing re-release of the spkg:
+
+ * corrected the 64-bit specific int* bug reported by pjeremy
+ * turned on GSL extension (this is the default mode for CVXOPT, and GSL is a standard Sage spkg, so
+   this makes perfect sense); this in particular allowed to get rid of strange random seed-related
+   import bugs uncovered by David Kirkby's spkg-check
+   TODO: one might want to enchance the code to allow other Sage random sources,
+    at the moment only GSL is used in CVXOPT-1.1.2 spkg, apparently it will need an unclear
+    to me "with seed(..)" construct.
+   TODO: We will need to make sure that CVXOPT is built after GSL
+ * modified spkg-check to report test names
+   TODO: add more tests; fix the examples/doc/chap7 testing that fails, as one needs
+   to cd there and run "python covsel" (and ignore covsel.bin -- this is an input)
+ * corrected the .patch files in patches/ to be in right order --- just run the makepatchfiles
+   script to re-create these files!
+
+
+=== cvxopt-1.1.2 (Harald Schilly, Dima Pasechnik, David Kirkby, March-July 2010) ===
+ * #6456 Update to cvxopt 1.1.2
  * incorporating building the GLPK extension (track #9598)
-
-=== cvxopt-1.1.2 (Dima Pasechnik, 26 July 2010) ===
-(as the previous iteration never made it into a release, the version
- number of the spkg stays the same)
-
+ * #9525 Correct the fact installation of cvxopt will allways report it was
+   successful, even if it failed.
+ * Add a spkg-check file, as #9281 listed cvxopt was missing such a file
  * implemented changes requested in comment 28 of track ticket #6456:
- <quite>
+ <quote>
   1. I don't think there should be a patches-old directory...
   2. Files are modified in place in the src/ directory...
   3. In the patches directory, the patches should be unified diffs (diff -Naur).
@@ -41,16 +58,12 @@ Downloaded from
 
   (kept a harmless SAGE_LOCAL check)
 
-   Also, added a check in spkg-install that the installation went OK.
-
    On building cvxopt extensions:
    the non-required extension are not built;
    however, it is possible to switch on the dsdp and dsl extensions by
    flipping the BUILD_..-flags in setup.py (and modifying dirs for dsdp)
    Remaining extensions were not tested; it should not be hard to have
    them provided the corresponding libs are there (e.g. parts of Sage)
-
-=== cvxopt-1.1.2 (Harald Schilly, Jan 26th, 2010, Dima Pasechnik, Mar 2010) ===
 
  * modified setup.py to streamline and make it more Sage-like;
    in particular got rid of f77blas and f95 dependences that
@@ -59,10 +72,8 @@ Downloaded from
    (only cvxopt.h needed to be patched, while the old
     native cvxopt random framework is now gone (since cvxopt-1.1
     at least)
- * removed examples and docs
  * modified setup.py and src/python/__init__.py
  * moved old patches to patches-old (solaris, ...) for future reference
- * added patch from http://trac.sagemath.org/sage_trac/ticket/6456#comment:6
  * simplifying spkg-install
 
 === cvxopt-0.9.p8 (Gonzalo Tornaria, June 19th, 2009) ===

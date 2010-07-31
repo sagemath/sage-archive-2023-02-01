@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# creating patch files for all patched files
+
+CUR=`pwd`
+
+rm *.patch
+
+i='setup.py'
+diff -Naur ../src/src/$i $i >$i.patch
+
+i='__init__.py'
+diff -Naur ../src/src/python/$i $i >$i.patch
+
+for i in `ls *.h` ; do
+   diff -Naur ../src/src/C/$i $i >$i.patch
+done
+

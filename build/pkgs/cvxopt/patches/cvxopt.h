@@ -61,7 +61,7 @@ static void * malloc_aligned(size_t size) {
 typedef struct {
   PyObject_HEAD
   void *buffer;          /* in column-major-mode array of type 'id' */
-  int_t nrows, ncols;    /* number of rows and columns */
+  int nrows, ncols;    /* number of rows and columns */
   int   id;              /* DOUBLE, INT, COMPLEX */
 } matrix;
 

@@ -348,7 +348,7 @@ cdef int add_mpq_vector_init(mpq_vector* sum,
     # end while
     z.num_nonzero = k
     for i from k <= i < z.num_nonzero:
-        mpz_clear(z.entries[i])
+        mpq_clear(z.entries[i])
     mpq_clear(tmp)
     return 0
 

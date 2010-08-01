@@ -7,7 +7,7 @@ fashion.
 ::
 
     sage: R.<t> = PowerSeriesRing(QQ)
-    sage: R.random_element(6)
+    sage: R.random_element(6)  # random
     -4 - 1/2*t^2 - 1/95*t^3 + 1/2*t^4 - 12*t^5 + O(t^6)
 
 The default precision is specified at construction, but does not
@@ -16,7 +16,7 @@ bound the precision of created elements.
 ::
 
     sage: R.<t> = PowerSeriesRing(QQ, default_prec=5)
-    sage: R.random_element(6)
+    sage: R.random_element(6)  # random
     1/2 - 1/4*t + 2/3*t^2 - 5/2*t^3 + 2/3*t^5 + O(t^6)
 
 ::
@@ -619,41 +619,70 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
         """
         return 1
 
-    def random_element(self, prec, bound=None):
+    def random_element(self, prec=None, *args, **kwds):
         r"""
         Return a random power series.
 
+
         INPUT:
 
+        -  ``prec`` - Integer specifying precision of output (default:
+           default precision of self)
 
-        -  ``prec`` - an integer
-
-        -  ``bound`` - an integer (default: None, which tries
-           to spread choice across ring, if implemented)
-
+        -  ``*args, **kwds`` - Passed on to the ``random_element`` method for
+           the base ring
 
         OUTPUT:
 
-
-        -  ``power series`` - a power series such that the
-           coefficient of `x^i`, for `i` up to
-           ``degree``, are coercions to the base ring of random
-           integers between -``bound`` and
-           ``bound``.
+        -  Power series with precision ``prec`` whose coefficients are
+           random elements from the base ring, randomized subject to the
+           arguments ``*args`` and ``**kwds``
 
 
-        IMPLEMENTATION: Call the random_element method on the underlying
+        IMPLEMENTATION::
+
+        Call the ``random_element`` method on the underlying
         polynomial ring.
 
         EXAMPLES::
 
             sage: R.<t> = PowerSeriesRing(QQ)
-            sage: R.random_element(5)
+            sage: R.random_element(5)  # random
             -4 - 1/2*t^2 - 1/95*t^3 + 1/2*t^4 + O(t^5)
-            sage: R.random_element(5,20)
-            1/15 + 19/17*t + 10/3*t^2 + 5/2*t^3 + 1/2*t^4 + O(t^5)
+            sage: R.random_element(10)  # random
+            -1/2 + 2*t - 2/7*t^2 - 25*t^3 - t^4 + 2*t^5 - 4*t^7 - 1/3*t^8 - t^9 + O(t^10)
+
+        If given no argument, random_element uses default precision of self::
+
+            sage: T = PowerSeriesRing(ZZ,'t')
+            sage: T.default_prec()
+            20
+            sage: T.random_element()  # random
+            4 + 2*t - t^2 - t^3 + 2*t^4 + t^5 + t^6 - 2*t^7 - t^8 - t^9 + t^11 - 6*t^12 + 2*t^14 + 2*t^16 - t^17 - 3*t^18 + O(t^20)
+            sage: S = PowerSeriesRing(ZZ,'t', default_prec=4)
+            sage: S.random_element()  # random
+            2 - t - 5*t^2 + t^3 + O(t^4)
+
+
+        Further arguments are passed to the underlying base ring (ticket #9481)::
+
+            sage: SZ = PowerSeriesRing(ZZ,'v')
+            sage: SQ = PowerSeriesRing(QQ,'v')
+            sage: SR = PowerSeriesRing(RR,'v')
+
+            sage: SZ.random_element(x=4, y=6)  # random
+            4 + 5*v + 5*v^2 + 5*v^3 + 4*v^4 + 5*v^5 + 5*v^6 + 5*v^7 + 4*v^8 + 5*v^9 + 4*v^10 + 4*v^11 + 5*v^12 + 5*v^13 + 5*v^14 + 5*v^15 + 5*v^16 + 5*v^17 + 4*v^18 + 5*v^19 + O(v^20)
+            sage: SZ.random_element(3, x=4, y=6)  # random
+            5 + 4*v + 5*v^2 + O(v^3)
+            sage: SQ.random_element(3, num_bound=3, den_bound=100)  # random
+            1/87 - 3/70*v - 3/44*v^2 + O(v^3)
+            sage: SR.random_element(3, max=10, min=-10)  # random
+            2.85948321262904 - 9.73071330911226*v - 6.60414378519265*v^2 + O(v^3)
+
         """
-        return self(self.__poly_ring.random_element(prec, bound), prec)
+        if prec is None:
+            prec = self.default_prec()
+        return self(self.__poly_ring.random_element(prec-1, *args, **kwds), prec)
 
     def __cmp__(self, other):
         """

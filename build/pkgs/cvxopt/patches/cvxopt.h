@@ -27,8 +27,8 @@
 
 #ifndef NO_ANSI99_COMPLEX
 
+#include <complex.h>
 /* work around Solaris 10 specific problem in complex.h */
- #include <complex.h>
  #if defined(__sun__) && defined(__GNUC__)
     #if __GNUC__ < 4  || ( __GNUC__ == 4 && __GNUC_MINOR__ < 5   )
 

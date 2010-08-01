@@ -10,7 +10,7 @@ CVXOPT is a free software package for convex optimization based on the Python pr
    * Harald Schilly
    * Dima Pasechnik
 
-== Download Source ==
+== Upstream Contact ==
 
 NEW:
 Downloaded from
@@ -20,7 +20,17 @@ OLD:
 Downloaded from
    http://www.ee.ucla.edu/~vandenbe/cvxopt/
 
-== Releases ==
+== License ==
+multiple licenses: GPLv2, GPLv3, GNU Lesser General Public License, v2.1
+(Sage-compatible)
+
+== Dependencies ==
+GSL, GLPK
+
+== Special Update/Build Instructions ==
+none
+
+== Changelog ==
 
 === cvxopt-1.1.2 (Dima Pasechnik, August 2010) ===
  * bug-fixing re-release of the spkg:
@@ -40,12 +50,17 @@ Downloaded from
  * removed html doc files in src/doc; the .rst doc files are there, so it's a question of
    rebuilding them
    (e.g. one can do sage -sh; cd src/doc; make html)
-   TODO: incorporate docs buiding into spkg-install, and/or merge into Sage documentation
+   TODO: incorporate docs buiding into spkg-install, and/or merge into
+   Sage documentation
+ * included David's shortened and gcc-version targeted Sun-specific patch
+   (comment 88 on #6456); removed sun_complex.h
+ * took care of SPKG.txt sections, as mentioned in comment 87 on #6456
 
 === cvxopt-1.1.2 (Harald Schilly, Dima Pasechnik, David Kirkby, March-July 2010) ===
  * #6456 Update to cvxopt 1.1.2
  * incorporating building the GLPK extension (track #9598)
- * #9525 Correct the fact installation of cvxopt will allways report it was
+ * #9525 Correct the fact that installation of cvxopt will allways
+   report it was
    successful, even if it failed.
  * Add a spkg-check file, as #9281 listed cvxopt was missing such a file
  * implemented changes requested in comment 28 of track ticket #6456:

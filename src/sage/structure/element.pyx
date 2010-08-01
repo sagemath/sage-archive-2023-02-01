@@ -17,6 +17,7 @@ AUTHORS:
 
 - Robert Bradshaw (2007-2010): arithmetic operators and coercion
 
+- Maarten Derickx (2010-07): added architecture for is_square and sqrt
 
 The Abstract Element Class Hierarchy
 ------------------------------------
@@ -1584,7 +1585,6 @@ cdef class RingElement(ModuleElement):
             return self
         return 1/self
 
-    ##################################################
 
     def order(self):
         """
@@ -1850,6 +1850,183 @@ cdef class CommutativeRingElement(RingElement):
             I = self._parent.ideal(I)
             #raise TypeError, "I = %s must be an ideal in %s"%(I, self.parent())
         return I.reduce(self)
+
+    ##################################################
+    # square roots
+    ##################################################
+
+    def is_square(self, root=False):
+        """
+        Returns whether or not ring element is a square. If the optional
+        argument root is True, then also returns the square root (or None,
+        if the it is not a square).
+
+        INPUT:
+
+
+        -  ``root`` - whether or not to also return a square
+           root (default: False)
+
+
+        OUTPUT:
+
+
+        -  ``bool`` - whether or not a square
+
+        -  ``object`` - (optional) an actual square root if
+           found, and None otherwise.
+
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: f = 12*(x+1)^2 * (x+3)^2
+            sage: f.is_square()
+            False
+            sage: f.is_square(root=True)
+            (False, None)
+            sage: h = f/3
+            sage: h.is_square()
+            True
+            sage: h.is_square(root=True)
+            (True, 2*x^2 + 8*x + 6)
+
+        .. NOTE:
+
+        This is the is_square implementation for general commutative ring
+        elements. It's implementation is to raise a NotImplementedError.
+        The function definition is here to show what functionality is expected and
+        provide a general framework.
+        """
+        raise NotImplementedError("is_square() not implemented for elements of %s" %self.parent())
+
+
+    def sqrt(self, extend = True, all = False, name=None ):
+        """
+        It computes the square root.
+
+        INPUT:
+
+        -  ``extend`` - Whether to make a ring extension containing a square root if self is not a square (default: True)
+
+        -  ``all`` - Whether to return a list of all square roots or just a square root (default: False)
+
+        -  ``name`` - Required when extend=True and self is not a square. This will be the name of the generator extension.
+
+        OUTPUT:
+
+        - if all=False it returns a square root. (throws an error if extend=False and self is not a square)
+
+        - if all=True it returns a list of all the square roots (could be empty if extend=False and self is not a square)
+
+        ALGORITHM:
+
+        It uses is_square(root=true) for the hard part of the work, the rest is just wrapper code.
+
+        EXAMPLES::
+
+                sage: R.<x> = ZZ[]
+                sage: (x^2).sqrt()
+                x
+                sage: f=x^2-4*x+4; f.sqrt(all=True)
+                [x - 2, -x + 2]
+                sage: sqrtx=x.sqrt(name="y"); sqrtx
+                y
+                sage: sqrtx^2
+                x
+                sage: x.sqrt(all=true,name="y")
+                [y, -y]
+                sage: x.sqrt(extend=False,all=True)
+                []
+                sage: x.sqrt()
+                Traceback (most recent call last):
+                ...
+                TypeError: Polynomial is not a square. You must specify the name of the square root when using the default extend = True
+                sage: x.sqrt(extend=False)
+                Traceback (most recent call last):
+                ...
+                ValueError: trying to take square root of non-square x with extend = False
+
+        TESTS::
+
+                sage: f = (x+3)^2; f.sqrt()
+                x + 3
+                sage: f = (x+3)^2; f.sqrt(all=True)
+                [x + 3, -x - 3]
+                sage: f = (x^2 - x + 3)^2; f.sqrt()
+                x^2 - x + 3
+                sage: f = (x^2 - x + 3)^6; f.sqrt()
+                x^6 - 3*x^5 + 12*x^4 - 19*x^3 + 36*x^2 - 27*x + 27
+                sage: g = (R.random_element(15))^2
+                sage: g.sqrt()^2 == g
+                True
+
+                sage: R.<x> = GF(250037)[]
+                sage: f = x^2/(x+1)^2; f.sqrt()
+                x/(x + 1)
+                sage: f = 9 * x^4 / (x+1)^2; f.sqrt()
+                3*x^2/(x + 1)
+                sage: f = 9 * x^4 / (x+1)^2; f.sqrt(all=True)
+                [3*x^2/(x + 1), 250034*x^2/(x + 1)]
+
+                sage: R.<x> = QQ[]
+                sage: a = 2*(x+1)^2 / (2*(x-1)^2); a.sqrt()
+                (2*x + 2)/(2*x - 2)
+                sage: sqrtx=(1/x).sqrt(name="y"); sqrtx
+                y
+                sage: sqrtx^2
+                1/x
+                sage: (1/x).sqrt(all=true,name="y")
+                [y, -y]
+                sage: (1/x).sqrt(extend=False,all=True)
+                []
+                sage: (1/(x^2-1)).sqrt()
+                Traceback (most recent call last):
+                ...
+                TypeError: Polynomial is not a square. You must specify the name of the square root when using the default extend = True
+                sage: (1/(x^2-3)).sqrt(extend=False)
+                Traceback (most recent call last):
+                ...
+                ValueError: trying to take square root of non-square 1/(x^2 - 3) with extend = False
+
+        """
+        #This code is very general, it works for all integral domains that have the
+        #is_square(root = True) option
+
+        from sage.rings.integral_domain import is_IntegralDomain
+        P=self._parent
+        is_sqr, sq_rt = self.is_square( root = True )
+        if is_sqr:
+            if all:
+                if not is_IntegralDomain(P):
+                    raise NotImplementedError('sqrt() with all=True is only implemented for integral domains, not for %s' % P)
+                if P.characteristic()==2 or sq_rt==0:
+                    #0 has only one square root, and in charasteristic 2 everything also has only 1 root
+                    return [ sq_rt ]
+                return [ sq_rt, -sq_rt ]
+            return sq_rt
+        #from now on we know that self is not a square
+        if not is_IntegralDomain(P):
+            raise NotImplementedError('sqrt() of non squares is only implemented for integral domains, not for %s' % P)
+        if not extend:
+            #all square roots of a non-square should be an empty list
+            if all:
+                return []
+            raise ValueError, 'trying to take square root of non-square %s with extend = False' % self
+
+        if name == None:
+            raise TypeError ("Polynomial is not a square. You must specify the name of the square root when using the default extend = True")
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        PY = PolynomialRing(P,'y')
+        y = PY.gen()
+        sq_rt = PY.quotient(y**2-self, names = name)(y)
+        if all:
+            if P.characteristic() == 2:
+                return [ sq_rt ]
+            return [ sq_rt, -sq_rt ]
+        return sq_rt
+
+    ##############################################
 
 cdef class Vector(ModuleElement):
     cdef bint is_sparse_c(self):

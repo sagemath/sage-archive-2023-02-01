@@ -628,7 +628,19 @@ cdef class LazyFieldElement(FieldElement):
     cpdef int depth(self):
         raise NotImplementedError, "Subclasses must override this method."
 
-    def __getattr__(self, name):
+    def __dir__(self):
+        """
+        Adds the named_unops to __dir__ so that tab completion works.
+
+        TESTS::
+
+        sage: "log" in RLF(sqrt(8)).__dir__()
+        True
+
+        """
+        return FieldElement.__dir__(self) + named_unops
+
+    def __getattribute__(self, name):
         """
         Simulates a list of methods found on the real/complex mpfr classes.
 
@@ -644,7 +656,7 @@ cdef class LazyFieldElement(FieldElement):
         if name in named_unops:
             return LazyNamedUnop(self._parent, self, name)
         else:
-            raise AttributeError, name
+            return FieldElement.__getattribute__(self, name)
 
 
 def make_element(parent, *args):

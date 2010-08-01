@@ -250,6 +250,69 @@ cdef class FractionFieldElement(FieldElement):
         """
         return self.__denominator
 
+
+    def is_square(self,root=False):
+        """
+        Returns whether or not self is a perfect square. If the optional
+        argument root is True, then also returns a square root (or None,
+        if the fraction field element is not square).
+
+        INPUT:
+
+
+        -  ``root`` - whether or not to also return a square
+           root (default: False)
+
+
+        OUTPUT:
+
+
+        -  ``bool`` - whether or not a square
+
+        -  ``object`` - (optional) an actual square root if
+           found, and None otherwise.
+
+        EXAMPLES::
+
+            sage: R.<t> = QQ[]
+            sage: (1/t).is_square()
+            False
+            sage: (1/t^6).is_square()
+            True
+            sage: ((1+t)^4/t^6).is_square()
+            True
+            sage: (4*(1+t)^4/t^6).is_square()
+            True
+            sage: (2*(1+t)^4/t^6).is_square()
+            False
+            sage: ((1+t)/t^6).is_square()
+            False
+
+            sage: (4*(1+t)^4/t^6).is_square(root=True)
+            (True, (2*t^2 + 4*t + 2)/t^3)
+            sage: (2*(1+t)^4/t^6).is_square(root=True)
+            (False, None)
+
+            sage: R.<x> = QQ[]
+            sage: a = 2*(x+1)^2 / (2*(x-1)^2); a
+            (2*x^2 + 4*x + 2)/(2*x^2 - 4*x + 2)
+            sage: a.numerator().is_square()
+            False
+            sage: a.is_square()
+            True
+            sage: (0/x).is_square()
+            True
+        """
+        a = self.numerator()
+        b = self.denominator()
+        if not root:
+            return  (a*b).is_square( root = False )
+        is_sqr, sq_rt = (a*b).is_square( root = True )
+        if is_sqr:
+            return True, self._parent( sq_rt/b )
+        return False, None
+
+
     def __hash__(self):
         """
         This function hashes in a special way to ensure that generators of

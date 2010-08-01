@@ -28,11 +28,18 @@
 #ifndef NO_ANSI99_COMPLEX
 
 /* work around Solaris 10 specific problem in complex.h */
-#if defined (__sun)
-#include "sun_complex.h"
-#else
-#include "complex.h"
-#endif
+ #include <complex.h>
+ #if defined(__sun__) && defined(__GNUC__)
+    #if __GNUC__ < 4  || ( __GNUC__ == 4 && __GNUC_MINOR__ < 5   )
+
+       #undef  _Complex_I
+       #define _Complex_I (__extension__ 1.0iF)
+
+       #undef I
+       #define I _Complex_I
+
+    #endif
+ #endif
 
 #define MAT_BUFZ(O)  ((complex *)((matrix *)O)->buffer)
 #endif

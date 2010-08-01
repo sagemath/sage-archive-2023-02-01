@@ -20,11 +20,11 @@ if [ "x$SAGE64" = xyes ]; then
    CC="$CC $CFLAG64" ; export CC
 fi
 
-# Solaris-specific patches
-cp -p patches/sun_complex.h src/src/C/
+# Solaris-specific and other patches
+# cp -p patches/sun_complex.h src/src/C/
 cp -p patches/cvxopt.h src/src/C/
 
-# patch to use Sage's random instead of GSL's
+# patch to use always use GSL's random
 cp -p patches/__init__.py src/src/python/
 
 # setting Sage-specific libraries locations, etc.

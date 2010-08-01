@@ -20,8 +20,10 @@ if [ "x$SAGE64" = xyes ]; then
    CC="$CC $CFLAG64" ; export CC
 fi
 
+# Ensure FreeBSD build finds new, local math.h and complex.h
+[ "$UNAME" = 'FreeBSD' ] && export CPPFLAGS="$CPPFLAGS -I$SAGE_LOCAL/include"
+
 # Solaris-specific and other patches
-# cp -p patches/sun_complex.h src/src/C/
 cp -p patches/cvxopt.h src/src/C/
 
 # patch to use always use GSL's random

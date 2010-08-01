@@ -33,9 +33,8 @@ Downloaded from
     at the moment only GSL is used in CVXOPT-1.1.2 spkg, apparently it will need an unclear
     to me "with seed(..)" construct.
    TODO: We will need to make sure that CVXOPT is built after GSL
- * modified spkg-check to report test names
-   TODO: add more tests; fix the examples/doc/chap7 testing that fails, as one needs
-   to cd there and run "python covsel" (and ignore covsel.bin -- this is an input)
+ * modified spkg-check to report test names, cd to appropriate subdirs, and skip .bin files.
+   TODO: add more tests.
  * corrected the .patch files in patches/ to be in right order --- just run the makepatchfiles
    script to re-create these files!
  * removed html doc files in src/doc; the .rst doc files are there, so it's a question of

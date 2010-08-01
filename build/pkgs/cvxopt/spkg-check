@@ -36,11 +36,17 @@ fi
 
 export CFLAGS
 
-for i in `ls $CUR/src/examples/doc/chap*/*` ; do
+for di in `ls $CUR/src/examples/doc | grep chap` ; do
+ echo "Testing in src/examples/doc/$di "
+ cd $CUR/src/examples/doc/$di
+ for i in `ls | grep -v bin` ; do
    echo "Testing  $i ..."
    python $i
    if [ $? -ne 0 ]; then
      echo "Error: $SAGE_LOCAL/bin/python $i failed"
    fi
+ done
 done
+cd $CUR
+
 

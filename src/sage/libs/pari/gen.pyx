@@ -8362,6 +8362,12 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             sage: b = pari(list(v)); b,b.type()
             ([1.20000000000000, 3.40000000000000, 5.60000000000000], 't_VEC')
 
+        Some commands are just executed without returning a value::
+
+            sage: pari("dummy = 0; kill(dummy)")
+            sage: type(pari("dummy = 0; kill(dummy)"))
+            <type 'NoneType'>
+
         Some more exotic examples::
 
             sage: K.<a>=NumberField(x^3-2)
@@ -8401,6 +8407,9 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         t = str(s)
         _sig_str('evaluating PARI string')
         g = gp_read_str(t)
+        if g == gnil:
+            _sig_off
+            return None
         return self.new_gen(g)
 
     cdef GEN integer_matrix_GEN(self, mpz_t** B, Py_ssize_t nr, Py_ssize_t nc) except <GEN>0:

@@ -8796,34 +8796,61 @@ class GenericGraph(GenericGraph_pyx):
                 vertices.append(v)
         return self.subgraph(vertices=vertices, inplace=inplace)
 
-    def is_chordal(self):
+    def is_chordal(self, certificate = False):
         r"""
         Tests whether the given graph is chordal.
 
-        A Graph `G` is said to be chordal if it contains no induced
-        hole. Being chordal is equivalent to having an elimination
-        order on the vertices such that the neighborhood of each
-        vertex, before being removed from the graph, is a complete
-        graph [Fulkerson65]_.
+        A Graph `G` is said to be chordal if it contains no induced hole (a
+        cycle of length at least 4).
 
-        Such an ordering is called a Perfect Elimination Order.
+        Alternatively, chordality can be defined using a Perfect Elimination
+        Order :
+
+        A Perfect Elimination Order of a graph `G` is an ordering `v_1,...,v_n`
+        of its vertex set such that for all `i`, the neighbors of `v_i` whose
+        index is greater that `i` induce a complete subgraph in `G`. Hence, the
+        graph `G` can be totally erased by successively removing vertices whose
+        neighborhood is a clique (also called *simplicial* vertices)
+        [Fulkerson65]_.
+
+        (It can be seen that if `G` contains an induced hole, then it can not
+        have a perfect elimination order. Indeed, if we write `h_1,...,h_k` the
+        `k` vertices of such a hole, then the first of those vertices to be
+        removed would have two non-adjacent neighbors in the graph.)
+
+        A Graph is then chordal if and only if it has a Perfect Elimination
+        Order.
+
+        INPUT:
+
+        - ``certificate`` (boolean) -- Whether to return a certificate.
+
+            * If ``certificate = False`` (default), returns ``True`` or
+              ``False`` accordingly.
+
+            * If ``certificate = True``, returns :
+
+                * ``(True, peo)`` when the graph is chordal, where ``peo`` is a
+                  perfect elimination order of its vertices.
+
+                * ``(False, Hole)`` when the graph is not chordal, where
+                  ``Hole`` (a ``Graph`` object) is an induced subgraph of
+                  ``self`` isomorphic to a hole.
 
         ALGORITHM:
 
-        This algorithm works through computing a Lex BFS on the
-        graph, then checking whether the order is a Perfect
-        Elimination Order by computing for each vertex `v` the
-        subgraph induces by its non-deleted neighbors, then
-        testing whether this graph is complete.
+        This algorithm works through computing a Lex BFS on the graph, then
+        checking whether the order is a Perfect Elimination Order by computing
+        for each vertex `v` the subgraph induces by its non-deleted neighbors,
+        then testing whether this graph is complete.
 
-        This problem can be solved in `O(m)` [Rose75]_ ( where `m`
-        is the number of edges in the graph ) but this
-        implementation is not linear because of the complexity of
-        Lex BFS. Improving Lex BFS to linear complexity would make
-        this algorithm linear.
+        This problem can be solved in `O(m)` [Rose75]_ ( where `m` is the number
+        of edges in the graph ) but this implementation is not linear because of
+        the complexity of Lex BFS. Improving Lex BFS to linear complexity would
+        make this algorithm linear.
 
-        The complexity of this algorithm is equal to the
-        complexity of the implementation of Lex BFS.
+        The complexity of this algorithm is equal to the complexity of the
+        implementation of Lex BFS.
 
         EXAMPLES:
 
@@ -8846,6 +8873,15 @@ class GenericGraph(GenericGraph_pyx):
             sage: (2*g).is_chordal()
             True
 
+        Let us check the certificate given by Sage is indeed a perfect elimintion order::
+
+            sage: (_, peo) = g.is_chordal(certificate = True)
+            sage: for v in peo:
+            ...       if not g.subgraph(g.neighbors(v)).is_clique():
+            ...            print "This should never happen !"
+            ...       g.delete_vertex(v)
+            sage: print "Everything is fine !"
+            Everything is fine !
 
         Of course, the Petersen Graph is not chordal as it has girth 5 ::
 
@@ -8854,6 +8890,14 @@ class GenericGraph(GenericGraph_pyx):
             5
             sage: g.is_chordal()
             False
+
+        We can even obtain such a cycle as a certificate ::
+
+            sage: (_, hole) = g.is_chordal(certificate = True)
+            sage: hole
+            Subgraph of (Petersen graph): Graph on 5 vertices
+            sage: hole.is_isomorphic(graphs.CycleGraph(5))
+            True
 
         REFERENCES:
 
@@ -8868,27 +8912,69 @@ class GenericGraph(GenericGraph_pyx):
           Vol. 15, number 3, pages 835--855
         """
 
+        # If the graph is not connected, we are computing the result on each component
         if not self.is_connected():
-            for gg in self.connected_components_subgraphs():
-                if not gg.is_chordal():
-                    return False
 
-            return True
+            # If the user wants a certificate, we had no choice but to
+            # collect the perfect elimination orders... But we return
+            # a hole immediately if we find any !
+            if certificate:
+                peo = []
+                for gg in self.connected_components_subgraphs():
 
+                    b, certif = gg.is_chordal(certificate = True)
+                    if not b:
+                        return certif
+                    else:
+                        peo.extend(certif)
+
+                return True, peo
+
+            # One line if no certificate is requested
+            else:
+                return all( gg.is_chordal() for gg in self.connected_components_subgraphs() )
 
         peo,t_peo = self.lex_BFS(tree=True)
 
         g = self.copy()
+        peo.reverse()
 
+        # Remembering the (closed) neighborhoods of each vertex
         from sage.combinat.subset import Subsets
         neighbors_subsets = dict([(v,Subsets(self.neighbors(v)+[v])) for v in self.vertex_iterator()])
 
-        while peo:
-            v = peo.pop()
+        # Iteratively removing vertices and checking everything is fine.
+        for v in peo:
+
             if t_peo.out_degree(v)>0 and g.neighbors(v) not in neighbors_subsets[t_peo.neighbor_out_iterator(v).next()]:
-                return False
+
+                if certificate:
+
+                    # In this case, let us take two nonadjacent neighbors of v
+
+                    x = t_peo.neighbor_out_iterator(v).next()
+                    S = neighbors_subsets[x]
+
+                    for y in g.neighbors(v):
+                        if [y] not in S:
+                            break
+
+                    g.delete_vertex(v)
+
+                    # Our hole is v + (a shortest path between x and y
+                    # not containing v)
+
+                    return (False, self.subgraph([v] + g.shortest_path(x,y)))
+                else:
+                    return False
+
             g.delete_vertex(v)
-        return True
+
+        if certificate:
+            return True, peo
+
+        else:
+            return True
 
     def is_interval(self, certificate = False):
         r"""

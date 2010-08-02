@@ -441,8 +441,10 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: P = EK(-2, -1/2*t - 1/2)
             sage: P.order()
             +Infinity
-            sage: EK.regulator_of_points([P,T])
+            sage: EK.regulator_of_points([P,T]) # random very small output
             -1.23259516440783e-32
+            sage: EK.regulator_of_points([P,T]).abs() < 1e-30
+            True
 
         ::
 

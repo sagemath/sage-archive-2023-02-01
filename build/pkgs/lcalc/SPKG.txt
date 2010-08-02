@@ -26,6 +26,9 @@ version 1.23, which I removed. (David Kirkby, 27th May 2010).
 
 Michael Rubinstein <mrubinst@uwaterloo.ca>
 
+=== lcalc-1.23.p1 (Rishikesh, 2nd Aug 2010)  ===
+ * Detect OS X 10.4 and copy to libLfunction.dylib instead of libLfunction.so
+
 === lcalc-1.23.p0 (David Kirkby, 27th May 2010)  ===
  * See: #9043 - lcalc failing to build on OpenSolaris x64.
  * Force 64-bit build if SAGE64 is set to "yes" and not "yes"

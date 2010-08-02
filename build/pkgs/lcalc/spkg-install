@@ -211,8 +211,22 @@ echo "Now copying over lcalc binary"
 # Exit if the copy fails, by using set -e.
 set -e
 cp lcalc "$SAGE_LOCAL"/bin
+
 echo "Now copying over lcalc library"
+
+#Remove next few lines  when OSX 10.4 is no longer supported
+#10.4 does not seem to compile with .so extension in the library files
+if [ $UNAME = "Darwin" ]; then
+    if [ `sysctl -n kern.osrelease | cut -d . -f 1` -lt 9 ]; then
+        cp libLfunction.so $SAGE_LOCAL/lib/libLfunction.dylib
+    fi
+fi #End of Mac OS X 10.4 specific instructions
+
 cp libLfunction.so $SAGE_LOCAL/lib/
+
+
+
+echo "Now copying over lcalc library header files"
 if `test -d $SAGE_LOCAL/include/lcalc`; then
     rm -fr $SAGE_LOCAL/include/lcalc
     mkdir $SAGE_LOCAL/include/lcalc

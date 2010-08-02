@@ -2,13 +2,13 @@
 
 == Description ==
 
-OpenOpt 0.24, a free Python-written numerical optimization framework
-with some own solvers and connections to tens of 3rd party ones, has
-been released.
+OpenOpt Suite 0.29, a free Python-written numerical optimization framework
+with some own solvers and connections to tens of 3rd party ones.
 
 == Maintainers ==
 
  * William Stein
+ * Harald Schilly
 
 == Upstream Contact ==
 
@@ -18,9 +18,14 @@ been released.
 
 == Dependencies ==
 
-  None?
+ * Python
 
 == Releases ==
+
+=== openopt-0.29 (Harald Schilly, Mar 16th, 2010) ===
+ * this is the openopt suite, which includes not only openopt,
+   but also func-designer and der-approximator
+ * modified spkg-install to call the install_all.py (which calles 3 times setup.py install)
 
 === openopt-0.24 (William Stein, June 15, 2009) ===
  * make the first version

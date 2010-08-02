@@ -1,5 +1,16 @@
 #!/usr/bin/env bash
 
-cd src
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
 
-python setup.py install
+cd src
+python install_all.py
+
+if [ $? -ne 0 ]; then
+   echo "Error installing openopt package."
+   exit 1
+fi
+

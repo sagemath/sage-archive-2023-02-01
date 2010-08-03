@@ -2,7 +2,7 @@
 r"""
 Modular parametrization of elliptic curves over `\QQ`.
 
-By the work of Talyor-Wiles et al. it is known that there
+By the work of Taylor--Wiles et al. it is known that there
 is a surjective morphism
 
 .. math::
@@ -19,8 +19,8 @@ EXMAPLES::
         Modular parameterization from the upper half plane to Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
         sage: phi(0.5+CDF(I))
         (285684.320516... + 7.01033491...e-11*I : 1.526964169...e8 + 5.6214048527...e-8*I : 1.00000000000000)
-        sage: phi.power_series()
-        (q^-2 + 2*q^-1 + 4 + 5*q + 8*q^2 + q^3 + 7*q^4 - 11*q^5 + 10*q^6 - 12*q^7 - 18*q^8 - 22*q^9 + 26*q^10 - 11*q^11 + 41*q^12 + 44*q^13 - 15*q^14 + 19746*q^15 + 51565*q^16 + 150132*q^17 + O(q^18), -q^-3 - 3*q^-2 - 7*q^-1 - 13 - 17*q - 26*q^2 - 19*q^3 - 37*q^4 + 15*q^5 + 16*q^6 + 67*q^7 + 6*q^8 + 144*q^9 - 92*q^10 + 66*q^11 - 119*q^12 - 95*q^13 + 176205*q^14 + 669718*q^15 + 2562150*q^16 + O(q^17))
+        sage: phi.power_series(prec = 7)
+        (q^-2 + 2*q^-1 + 4 + 5*q + 8*q^2 + q^3 + 7*q^4 + O(q^5), -q^-3 - 3*q^-2 - 7*q^-1 - 13 - 17*q - 26*q^2 - 19*q^3 + O(q^4))
 
 AUTHORS:
 
@@ -222,11 +222,13 @@ class ModularParameterization:
             lattice_point *= q
         return lattice_point
 
-    def power_series(self):
+    def power_series(self, prec=20):
         r"""
         Computes and returns the power series of this modular parametrization.
 
-        The curve must be a a minimal model.
+        The curve must be a a minimal model.  The prec parameter determines
+        the number of significant terms.  This means that X will be given up
+        to O(q^(prec-2)) and Y will be given up to O(q^(prec-3)).
 
         OUTPUT: A list of two Laurent series ``[X(x),Y(x)]`` of degrees -2, -3
         respectively, which satisfy the equation of the elliptic curve.
@@ -245,11 +247,16 @@ class ModularParameterization:
 
             sage: E=EllipticCurve('389a1')
             sage: phi = E.modular_parametrization()
+            sage: X,Y = phi.power_series(prec = 10)
+            sage: X
+            q^-2 + 2*q^-1 + 4 + 7*q + 13*q^2 + 18*q^3 + 31*q^4 + 49*q^5 + 74*q^6 + 111*q^7 + O(q^8)
+            sage: Y
+            -q^-3 - 3*q^-2 - 8*q^-1 - 17 - 33*q - 61*q^2 - 110*q^3 - 186*q^4 - 320*q^5 - 528*q^6 + O(q^7)
             sage: X,Y = phi.power_series()
             sage: X
-            q^-2 + 2*q^-1 + 4 + 7*q + 13*q^2 + 18*q^3 + 31*q^4 + 49*q^5 + 74*q^6 + 111*q^7 + 173*q^8 + 251*q^9 + 379*q^10 + 560*q^11 + 824*q^12 + 1199*q^13 + 1773*q^14 + 2365*q^15 + 3463*q^16 + 4508*q^17 + O(q^18)
+            q^-2 + 2*q^-1 + 4 + 7*q + 13*q^2 + 18*q^3 + 31*q^4 + 49*q^5 + 74*q^6 + 111*q^7 + 173*q^8 + 251*q^9 + 379*q^10 + 560*q^11 + 824*q^12 + 1199*q^13 + 1773*q^14 + 2548*q^15 + 3722*q^16 + 5374*q^17 + O(q^18)
             sage: Y
-            -q^-3 - 3*q^-2 - 8*q^-1 - 17 - 33*q - 61*q^2 - 110*q^3 - 186*q^4 - 320*q^5 - 528*q^6 - 861*q^7 - 1383*q^8 - 2218*q^9 - 3472*q^10 - 5451*q^11 - 8447*q^12 - 13020*q^13 - 20083*q^14 - 29512*q^15 - 39682*q^16 + O(q^17)
+            -q^-3 - 3*q^-2 - 8*q^-1 - 17 - 33*q - 61*q^2 - 110*q^3 - 186*q^4 - 320*q^5 - 528*q^6 - 861*q^7 - 1383*q^8 - 2218*q^9 - 3472*q^10 - 5451*q^11 - 8447*q^12 - 13020*q^13 - 19923*q^14 - 30403*q^15 - 46003*q^16 + O(q^17)
 
         The following should give 0, but only approximately::
 
@@ -265,13 +272,13 @@ class ModularParameterization:
             sage: f/q == (X.derivative()/(2*Y+a1*X+a3))
             True
         """
-#        from sage.libs.all import pari
-#        old_prec = pari.get_series_precision()
-#        pari.set_series_precision(prec)
         R = LaurentSeriesRing(RationalField(),'q')
         if not self._E.is_minimal():
             raise NotImplementedError, "Only implemented for minimal curves."
+        from sage.libs.all import pari
+        old_prec = pari.get_series_precision()
+        pari.set_series_precision(prec-1)
         XY = self._E.pari_mincurve().elltaniyama()
-#        pari.set_series_precision(old_prec)
-        return 1/R(1/XY[0]),1/R(1/XY[1])
+        pari.set_series_precision(old_prec)
+        return R(XY[0]),R(XY[1])
 

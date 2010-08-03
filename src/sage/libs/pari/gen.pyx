@@ -3516,6 +3516,28 @@ cdef class gen(sage.structure.element.RingElement):
         _sig_off
         return v
 
+    def _valp(gen x):
+        """
+        Return the valuation of x where x is a p-adic number (t_PADIC)
+        or a laurent series (t_SER).  If x is a different type, this
+        will give a bogus number.
+
+        EXAMPLES::
+
+            sage: pari('1/x^2 + O(x^10)')._valp()
+            -2
+            sage: pari('O(x^10)')._valp()
+            10
+            sage: pari('(1145234796 + O(3^10))/771966234')._valp()
+            -2
+            sage: pari('O(2^10)')._valp()
+            10
+            sage: pari('x')._valp()   # random
+            -35184372088832
+        """
+        # This is a simple macro, so we don't need _sig_on
+        return valp(x.g)
+
     def variable(gen x):
         """
         variable(x): Return the main variable of the object x, or p if x is

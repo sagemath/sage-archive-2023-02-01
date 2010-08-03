@@ -18,11 +18,13 @@ import weakref
 
 import laurent_series_ring_element
 import power_series_ring
+import polynomial
 import commutative_ring
 import integral_domain
 import field
 
 from sage.structure.parent_gens import ParentWithGens
+from sage.libs.all import pari_gen
 
 
 laurent_series = {}
@@ -188,6 +190,29 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
             1/2 + 1/4*I*u^2 - 1/8*u^4 - 1/16*I*u^6 + 1/32*u^8 +
             1/64*I*u^10 - 1/128*u^12 - 1/256*I*u^14 + 1/512*u^16 +
             1/1024*I*u^18 + O(u^20)
+
+        Various conversions from PARI (see also #2508)::
+
+            sage: L.<q> = LaurentSeriesRing(QQ)
+            sage: L.set_default_prec(10)
+            sage: L(pari('1/x'))
+            q^-1
+            sage: L(pari('poltchebi(5)'))
+            5*q - 20*q^3 + 16*q^5
+            sage: L(pari('poltchebi(5) - 1/x^4'))
+            -q^-4 + 5*q - 20*q^3 + 16*q^5
+            sage: L(pari('1/poltchebi(5)'))
+            1/5*q^-1 + 4/5*q + 64/25*q^3 + 192/25*q^5 + 2816/125*q^7 + O(q^9)
+            sage: L(pari('poltchebi(5) + O(x^40)'))
+            5*q - 20*q^3 + 16*q^5 + O(q^40)
+            sage: L(pari('poltchebi(5) - 1/x^4 + O(x^40)'))
+            -q^-4 + 5*q - 20*q^3 + 16*q^5 + O(q^40)
+            sage: L(pari('1/poltchebi(5) + O(x^10)'))
+            1/5*q^-1 + 4/5*q + 64/25*q^3 + 192/25*q^5 + 2816/125*q^7 + 8192/125*q^9 + O(q^10)
+            sage: L(pari('1/poltchebi(5) + O(x^10)'), -10)  # Multiply by q^-10
+            1/5*q^-11 + 4/5*q^-9 + 64/25*q^-7 + 192/25*q^-5 + 2816/125*q^-3 + 8192/125*q^-1 + O(1)
+            sage: L(pari('O(x^-10)'))
+            O(q^-10)
         """
         from sage.rings.fraction_field_element import is_FractionFieldElement
         from sage.rings.polynomial.polynomial_element import is_Polynomial
@@ -195,11 +220,24 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
 
         if isinstance(x, laurent_series_ring_element.LaurentSeries) and n==0 and self is x.parent():
             return x  # ok, since Laurent series are immutable (no need to make a copy)
+        elif isinstance(x, pari_gen):
+            t = x.type()
+            if t == "t_RFRAC":   # Rational function
+                x = self(self.polynomial_ring()(x.numerator())) / \
+                    self(self.polynomial_ring()(x.denominator()))
+                return (x << n)
+            elif t == "t_SER":   # Laurent series
+                n += x._valp()
+                bigoh = n + x.length()
+                x = self(self.polynomial_ring()(x.Vec()))
+                return (x << n).add_bigoh(bigoh)
+            else:  # General case, pretend to be a polynomial
+                return self(self.polynomial_ring()(x)) << n
         elif is_FractionFieldElement(x) and \
              (x.base_ring() is self.base_ring() or x.base_ring() == self.base_ring()) and \
              (is_Polynomial(x.numerator()) or is_MPolynomial(x.numerator())):
             x = self(x.numerator())/self(x.denominator())
-            return self.gen()**n * x
+            return (x << n)
         else:
             return laurent_series_ring_element.LaurentSeries(self, x, n)
 
@@ -276,6 +314,24 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
 
     def ngens(self):
         return 1
+
+    def polynomial_ring(self):
+        r"""
+        If this is the Laurent series ring `R((t))`, return the
+        polynomial ring `R[t]`.
+
+        EXAMPLES::
+
+            sage: R = LaurentSeriesRing(QQ, "x")
+            sage: R.polynomial_ring()
+            Univariate Polynomial Ring in x over Rational Field
+        """
+        try:
+            return self.__polynomial_ring
+        except AttributeError:
+            self.__polynomial_ring = polynomial.polynomial_ring_constructor.PolynomialRing( \
+                                         self.base_ring(), self.variable_name(), sparse=self.is_sparse())
+            return self.__polynomial_ring
 
     def power_series_ring(self):
         r"""

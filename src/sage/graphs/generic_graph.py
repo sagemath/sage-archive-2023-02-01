@@ -9203,7 +9203,7 @@ class GenericGraph(GenericGraph_pyx):
 
     ### Cores
 
-    def cores(self, with_labels=False):
+    def cores(self, k = None, with_labels=False):
         """
         Returns the core number for each vertex in an ordered list.
 
@@ -9232,6 +9232,17 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
+        - ``k`` (integer) --
+
+            * If ``k = None`` (default), returns the core number for
+              each vertex, according to the value of ``with_labels``.
+
+            * Otherwise, returns a pair ``(ordering, core)``, where
+              ``core`` is the list of vertices in the `k`-core of
+              ``self``, and ``ordering`` is an elimination order for
+              the others vertices such that each vertex is of degree
+              strictly less than `k` when it is to be eliminated from
+              the graph.
 
         -  ``with_labels`` - default False returns list as
            described above. True returns dict keyed by vertex labels.
@@ -9266,6 +9277,13 @@ class GenericGraph(GenericGraph_pyx):
             {0: 3, 1: 3, 2: 3, 3: 3, 4: 2, 5: 2, 6: 3, 7: 1, 8: 3, 9: 3, 10: 3, 11: 3, 12: 3, 13: 3, 14: 2, 15: 3, 16: 3, 17: 3, 18: 3, 19: 3}
             sage: [v for v,c in cores.items() if c>=2] # the vertices in the 2-core
             [0, 1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+
+        Checking the 2-core of a random lobster is indeed the empty set::
+
+            sage: g = graphs.RandomLobster(20,.5,.5)
+            sage: ordering, core = g.cores(2)
+            sage: len(core) == 0
+            True
         """
         # compute the degrees of each vertex
         degrees=self.degree(labels=True)
@@ -9286,6 +9304,12 @@ class GenericGraph(GenericGraph_pyx):
         nbrs=dict((v,set(self.neighbors(v))) for v in self)
         # form vertex core building up from smallest
         for v in verts:
+
+            # If all the vertices have a degree larger than k, we can
+            # return our answer if k != None
+            if k is not None and core[v] >= k:
+                return verts[:vert_pos[v]], verts[vert_pos[v]:]
+
             for u in nbrs[v]:
                 if core[u] > core[v]:
                     nbrs[u].remove(v)
@@ -9302,6 +9326,9 @@ class GenericGraph(GenericGraph_pyx):
                     verts[bin_start],verts[pos]=verts[pos],verts[bin_start]
                     bin_boundaries[core[u]]+=1
                     core[u] -= 1
+
+        if k is not None:
+            return verts, []
 
         if with_labels:
             return core

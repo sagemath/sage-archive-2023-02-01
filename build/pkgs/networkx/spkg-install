@@ -6,12 +6,22 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
+export MAKE=make
+
 echo "Deleting old networkX installs"
 rm -rf "$SAGE_LOCAL"/lib/python/networkx*
 rm -rf "$SAGE_LOCAL"/lib/python/site-packages/networkx*
+rm -rf "$SAGE_LOCAL"/spkg/network*
 
-#echo "Patching"
+echo "Patching"
 #cp patches/nx_pylab.py src/networkx/drawing/
+#This patch will be fixed in networkx 1.2
+#cp patches/random_graphs.py src/networkx/generators/
+#if [ $? -ne 0]; then
+#    echo "Error copying patched random_graphs.py"
+#    exit 1
+#fi
+
 
 cd src
 

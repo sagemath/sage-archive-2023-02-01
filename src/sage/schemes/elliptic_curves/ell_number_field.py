@@ -632,7 +632,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         raise DeprecationWarning, "local_information is deprecated; use local_data instead"
         return self.local_data(P,proof)
 
-    def local_data(self, P=None, proof = None):
+    def local_data(self, P=None, proof = None, algorithm="pari"):
         r"""
         Local data for this elliptic curve at the prime `P`.
 
@@ -644,6 +644,12 @@ class EllipticCurve_number_field(EllipticCurve_field):
           (default controlled by global proof module).  Note that the
           proof module is number_field, not elliptic_curves, since the
           functions that actually need the flag are in number fields.
+
+        - ``algorithm`` (string, default: "pari") -- Ignored unless the
+          base field is `\QQ`.  If "pari", use the PARI C-library
+          ``ellglobalred`` implementation of Tate's algorithm over
+          `\QQ`. If "generic", use the general number field
+          implementation.
 
         OUTPUT:
 
@@ -714,9 +720,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
         from sage.schemes.elliptic_curves.ell_local_data import check_prime
         P = check_prime(self.base_field(),P)
 
-        return self._get_local_data(P,proof)
+        return self._get_local_data(P,proof,algorithm)
 
-    def _get_local_data(self, P, proof):
+    def _get_local_data(self, P, proof, algorithm="pari"):
         r"""
         Internal function to create data for this elliptic curve at the prime `P`.
 
@@ -733,6 +739,12 @@ class EllipticCurve_number_field(EllipticCurve_field):
           proof module is number_field, not elliptic_curves, since the
           functions that actually need the flag are in number fields.
 
+        - ``algorithm`` (string, default: "pari") -- Ignored unless the
+          base field is `\QQ`.  If "pari", use the PARI C-library
+          ``ellglobalred`` implementation of Tate's algorithm over
+          `\QQ`. If "generic", use the general number field
+          implementation.
+
         EXAMPLES::
 
             sage: K.<i> = NumberField(x^2+1)
@@ -747,22 +759,25 @@ class EllipticCurve_number_field(EllipticCurve_field):
             Kodaira Symbol: I0
             Tamagawa Number: 1
 
-        Verify that we cache based on the proof value::
+        Verify that we cache based on the proof value and the algorithm choice::
 
             sage: E._get_local_data(p, False) is E._get_local_data(p, True)
             False
+
+            sage: E._get_local_data(p, None, "pari") is E._get_local_data(p, None, "generic")
+            False
         """
         try:
-            return self._local_data[P, proof]
+            return self._local_data[P, proof, algorithm]
         except AttributeError:
             self._local_data = {}
         except KeyError:
             pass
         from sage.schemes.elliptic_curves.ell_local_data import EllipticCurveLocalData
-        self._local_data[P, proof] = EllipticCurveLocalData(self, P, proof)
-        return self._local_data[P, proof]
+        self._local_data[P, proof, algorithm] = EllipticCurveLocalData(self, P, proof, algorithm)
+        return self._local_data[P, proof, algorithm]
 
-    def local_minimal_model(self, P, proof = None):
+    def local_minimal_model(self, P, proof = None, algorithm="pari"):
         r"""
         Returns a model which is integral at all primes and minimal at `P`.
 
@@ -774,6 +789,12 @@ class EllipticCurve_number_field(EllipticCurve_field):
           (default controlled by global proof module).  Note that the
           proof module is number_field, not elliptic_curves, since the
           functions that actually need the flag are in number fields.
+
+        - ``algorithm`` (string, default: "pari") -- Ignored unless the
+          base field is `\QQ`.  If "pari", use the PARI C-library
+          ``ellglobalred`` implementation of Tate's algorithm over
+          `\QQ`. If "generic", use the general number field
+          implementation.
 
         OUTPUT:
 
@@ -802,7 +823,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             # We use the "number_field" flag because the actual proof dependence is in Pari's number field functions.
             proof = sage.structure.proof.proof.get_flag(None, "number_field")
 
-        return self.local_data(P, proof).minimal_model()
+        return self.local_data(P, proof, algorithm).minimal_model()
 
     def has_good_reduction(self, P):
         r"""

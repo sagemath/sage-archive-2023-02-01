@@ -13513,11 +13513,14 @@ class GenericGraph(GenericGraph_pyx):
         """
         Returns the unique graph on \{0,1,...,n-1\} ( n = self.order() ) which
             - is isomorphic to self,
-            - has canonical vertex labels,
-            - allows only permutations of vertices respecting the input set partition (if given).
+            - is invariant in the isomorphism class.
 
-        Canonical here means that all graphs isomorphic to self (and respecting the input set partition)
-        have the same canonical vertex labels.
+        In other words, given two graphs ``G`` and ``H`` which are isomorphic,
+        suppose ``G_c`` and ``H_c`` are the graphs returned by
+        ``canonical_label``. Then the following hold:
+            - ``G_c == H_c``
+            - ``G_c.adjacency_matrix() == H_c.adjacency_matrix()``
+            - ``G_c.graph6_string() == H_c.graph6_string()``
 
         INPUT:
 

@@ -53,7 +53,6 @@ REFERENCES:
 #*****************************************************************************
 
 
-#from sage.combinat.permutation import Permutation_Class
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -63,7 +62,7 @@ from sage.structure.element import Element
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
 from sage.misc.flatten import flatten
-from sage.combinat.permutation import Permutation
+from sage.combinat.permutation import Permutation, Permutation_class
 from sage.sets.set import Set
 from sage.combinat.partition import Partition
 from sage.misc.misc_c import prod
@@ -149,6 +148,24 @@ class PerfectMatching(ElementWrapper):
              sage: TestSuite(m).run()
              sage: m=PerfectMatching([])
              sage: TestSuite(m).run()
+             sage: PerfectMatching(6)
+             Traceback (most recent call last):
+             ...
+             ValueError: cannot convert p (= 6) to a PerfectMatching
+             sage: PerfectMatching([(1,2,3)])
+             Traceback (most recent call last):
+             ...
+             ValueError: [(1, 2, 3)] is not a valid perfect matching:
+             all elements of the list must be pairs
+             sage: PerfectMatching([(1,1)])
+             Traceback (most recent call last):
+             ...
+             ValueError: [(1, 1)] is not a valid perfect matching:
+             there are some repetitions
+             sage: PerfectMatching(Permutation([4,2,1,3]))
+             Traceback (most recent call last):
+             ...
+             ValueError: The permutation p (= [4, 2, 1, 3]) is not a fixed point free involution
         """
         # we have to extract from the argument p the set of objects of the
         # matching and the list of pairs.
@@ -159,19 +176,21 @@ class PerfectMatching(ElementWrapper):
             data=(map(tuple,p))
             #check if the data are correct
             if not all([len(t)==2 for t in data]):
-                raise ValueError, "%s is not a valid perfect matching: all elements of the list must be pairs"%p
+                raise ValueError, ("%s is not a valid perfect matching:\n"
+                    "all elements of the list must be pairs"%p)
             if len(objects) < 2*len(data):
-                raise ValueError, "%s is not a valid perfect matching: there are some repetitions"%p
+                raise ValueError, ("%s is not a valid perfect matching:\n"
+                    "there are some repetitions"%p)
         # Second case: p is a permutation or a list of integers, we have to
         # check if it is a fix-point-free involution.
         elif ((isinstance(p,list) and
             all(map(lambda x: (isinstance(x,Integer) or isinstance(x,int)),p )))
-            or isinstance(p,sage.combinat.permutation.Permutation_class)):
+            or isinstance(p,Permutation_class)):
             p=Permutation(p)
             n=len(p)
             if not(p.cycle_type()==[2 for i in range(n//2)]):
-                s="The permutation p (= %s) is not a fixpoint-free involution"%p
-                raise ValueError,s
+                raise ValueError, ("The permutation p (= %s) is not a "
+                        "fixed point free involution"%p)
             objects=Set(range(1,n+1))
             data=p.to_cycles()
         # Third case: p is already a perfect matching, we return p directly

@@ -314,6 +314,24 @@ class DiGraph(GenericGraph):
             True
             sage: g.get_pos() == graphs.PetersenGraph().get_pos()
             True
+
+        Invalid sequence of edges given as an input (they do not all
+        have the same length)::
+
+            sage: g = DiGraph([(1,2),(2,3),(2,3,4)])
+            Traceback (most recent call last):
+            ...
+            ValueError: Edges input must all follow the same format.
+
+
+        Two different labels given for the same edge in a graph
+        without multiple edges::
+
+            sage: g = Graph([(1,2,3),(1,2,4)], multiedges = False)
+            Traceback (most recent call last):
+            ...
+            ValueError: Two different labels given for the same edge in a graph without multiple edges.
+
         """
         msg = ''
         GenericGraph.__init__(self)
@@ -359,6 +377,81 @@ class DiGraph(GenericGraph):
         if format is None and data is None:
             format = 'int'
             data = 0
+
+        # Input is a list of edges
+        if format is None and isinstance(data, list):
+
+            # If we are given a list (we assume it is a list of
+            # edges), we convert the problem to a dict_of_dicts or a
+            # dict_of_lists
+
+            edges = data
+
+            # Along the process, we are assuming all edges have the
+            # same length. If it is not true, a ValueError will occur
+            try:
+
+                # The edges are not labelled
+                if len(data[0]) == 2:
+                    data = {}
+                    for u,v in edges:
+                        if not u in data:
+                            data[u] = []
+
+                        data[u].append(v)
+
+                    format = 'dict_of_lists'
+
+                # The edges are labelled
+                elif len(data[0]) == 3:
+                    data = {}
+                    for u,v,l in edges:
+
+                        if not u in data:
+                            data[u] = {}
+
+                        # Now the key exists, and is a dictionary ...
+
+                        # If we notice for the first time that there
+                        # are multiple edges, we update the whole
+                        # dictionary so that data[u][v] is a list
+
+                        if (multiedges is None and
+                            (u in data[v])):
+                            multiedges = True
+                            for uu, dd in data.iteritems():
+                                for vv, ddd in dd.iteritems():
+                                    dd[vv] = [ddd]
+
+                        # If multiedges is set to False while the same
+                        # edge is present in the list with different
+                        # values of its label
+                        elif (multiedges is False and
+                            (v in data[u] and data[u][v] != l)):
+                                raise ValueError("MULTIEDGE")
+
+                        # Now we are behaving as if multiedges == None
+                        # means multiedges = False. If something bad
+                        # happens later, the whole dictionary will be
+                        # updated anyway
+
+                        if multiedges is True:
+                            if v not in data[u]:
+                                data[u][v] = []
+
+                            data[u][v].append(l)
+
+                        else:
+                            data[u][v] = l
+
+                    format = 'dict_of_dicts'
+
+            except ValueError as ve:
+                if str(ve) == "MULTIEDGE":
+                    raise ValueError("Two different labels given for the same edge in a graph without multiple edges.")
+                else:
+                    raise ValueError("Edges input must all follow the same format.")
+
         if format is None:
             import networkx
             data = networkx.MultiDiGraph(data)

@@ -209,6 +209,11 @@ examples are covered here.
        ...
        ValueError: There must be two nonzero entries (-1 & 1) per column.
 
+-  a list of edges::
+
+       sage: g = Graph([(1,3),(3,8),(5,2)])
+       sage: g
+       Graph on 5 vertices
 
 Generators
 ----------
@@ -729,6 +734,17 @@ class Graph(GenericGraph):
             ...
             ValueError: Non-symmetric or non-square matrix assumed to be an incidence matrix: Each column represents an edge: -1 goes to 1.
 
+    #. a list of edges, or labelled edges::
+
+          sage: g = Graph([(1,3),(3,8),(5,2)])
+          sage: g
+          Graph on 5 vertices
+
+          ::
+
+          sage: g = Graph([(1,2,"Peace"),(7,-9,"and"),(77,2, "Love")])
+          sage: g
+          Graph on 5 vertices
 
     #. A NetworkX MultiGraph::
 
@@ -789,6 +805,22 @@ class Graph(GenericGraph):
             sage: g.get_pos() == h.get_pos()
             True
 
+        Invalid sequence of edges given as an input (they do not all
+        have the same length)::
+
+            sage: g = Graph([(1,2),(2,3),(2,3,4)])
+            Traceback (most recent call last):
+            ...
+            ValueError: Edges input must all follow the same format.
+
+
+        Two different labels given for the same edge in a graph
+        without multiple edges::
+
+            sage: g = Graph([(1,2,3),(1,2,4)], multiedges = False)
+            Traceback (most recent call last):
+            ...
+            ValueError: Two different labels given for the same edge in a graph without multiple edges.
         """
         GenericGraph.__init__(self)
         msg = ''
@@ -841,6 +873,90 @@ class Graph(GenericGraph):
         if format is None and data is None:
             format = 'int'
             data = 0
+
+        # Input is a list of edges
+        if format is None and isinstance(data, list):
+
+            # If we are given a list (we assume it is a list of
+            # edges), we convert the problem to a dict_of_dicts or a
+            # dict_of_lists
+
+            edges = data
+
+            # Along the process, we are assuming all edges have the
+            # same length. If it is not true, a ValueError will occur
+            try:
+
+                # The edges are not labelled
+                if len(data[0]) == 2:
+                    data = {}
+                    for u,v in edges:
+                        if not u in data:
+                            data[u] = []
+                        if not v in data:
+                            data[v] = []
+                        data[u].append(v)
+                        data[v].append(u)
+
+                    format = 'dict_of_lists'
+
+                # The edges are labelled
+                elif len(data[0]) == 3:
+                    data = {}
+                    for u,v,l in edges:
+
+                        if not u in data:
+                            data[u] = {}
+                        if not v in data:
+                            data[v] = {}
+
+                        # Now the keys exists, and are dictionaries ...
+
+
+                        # If we notice for the first time that there
+                        # are multiple edges, we update the whole
+                        # dictionary so that data[u][v] is a list
+
+                        if (multiedges is None and
+                            (u in data[v])):
+                            multiedges = True
+                            for uu, dd in data.iteritems():
+                                for vv, ddd in dd.iteritems():
+                                    dd[vv] = [ddd]
+
+                        # If multiedges is set to False while the same
+                        # edge is present in the list with different
+                        # values of its label
+                        elif (multiedges is False and
+                            (u in data[v] and data[v][u] != l)):
+                                raise ValueError("MULTIEDGE")
+
+                        # Now we are behaving as if multiedges == None
+                        # means multiedges = False. If something bad
+                        # happens later, the whole dictionary will be
+                        # updated anyway
+
+                        if multiedges is True:
+                            if v not in data[u]:
+                                data[u][v] = []
+                                data[v][u] = []
+
+                            data[u][v].append(l)
+                            data[v][u].append(l)
+
+                        else:
+                            data[u][v] = l
+                            data[v][u] = l
+
+                    format = 'dict_of_dicts'
+
+            except ValueError as ve:
+                if str(ve) == "MULTIEDGE":
+                    raise ValueError("Two different labels given for the same edge in a graph without multiple edges.")
+                else:
+                    raise ValueError("Edges input must all follow the same format.")
+
+
         if format is None:
             import networkx
             data = networkx.MultiGraph(data)

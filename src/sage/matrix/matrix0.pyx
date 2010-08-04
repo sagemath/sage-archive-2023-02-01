@@ -427,7 +427,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def set_immutable(self):
         r"""
-        Call this function to matrix a matrix immutable.
+        Call this function to set the matrix as immutable.
 
         Matrices are always mutable by default, i.e., you can change their
         entries using ``A[i,j] = x``. However, mutable matrices

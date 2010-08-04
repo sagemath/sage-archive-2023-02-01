@@ -13512,15 +13512,20 @@ class GenericGraph(GenericGraph_pyx):
     def canonical_label(self, partition=None, certify=False, verbosity=0, edge_labels=False):
         """
         Returns the unique graph on \{0,1,...,n-1\} ( n = self.order() ) which
-            - is isomorphic to self,
-            - is invariant in the isomorphism class.
+
+        - is isomorphic to self,
+
+        - is invariant in the isomorphism class.
 
         In other words, given two graphs ``G`` and ``H`` which are isomorphic,
         suppose ``G_c`` and ``H_c`` are the graphs returned by
         ``canonical_label``. Then the following hold:
-            - ``G_c == H_c``
-            - ``G_c.adjacency_matrix() == H_c.adjacency_matrix()``
-            - ``G_c.graph6_string() == H_c.graph6_string()``
+
+        - ``G_c == H_c``
+
+        - ``G_c.adjacency_matrix() == H_c.adjacency_matrix()``
+
+        - ``G_c.graph6_string() == H_c.graph6_string()``
 
         INPUT:
 

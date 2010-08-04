@@ -23,13 +23,13 @@ We create some example elements of the continued fraction field::
     sage: c = continued_fraction([3,7,15,1,292]); c
     [3, 7, 15, 1, 292]
     sage: c = continued_fraction(pi); c
-    [3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14, 3]
+    [3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14]
     sage: c.value()
-    245850922/78256779
+    80143857/25510582
     sage: QQ(c)
-    245850922/78256779
+    80143857/25510582
     sage: RealField(200)(QQ(c) - pi)
-    -7.8179366199075435400152113059910891481153981448107195930950e-17
+    -5.7908701643756732744264903067012149647564522968979302505514e-16
 
 We can also create matrices, polynomials, vectors, etc., over the continued
 fraction field.
@@ -180,7 +180,7 @@ class ContinuedFractionField_class(Field):
             return self(x)
         return self._coerce_try(x, [QQ, RDF])
 
-    def __call__(self, x, bits=None):
+    def __call__(self, x, bits=None, nterms=None):
         """
         INPUT:
 
@@ -194,9 +194,9 @@ class ContinuedFractionField_class(Field):
             sage: CFF(1.5)
             [1, 2]
             sage: CFF(e)
-            [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 11]
+            [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1]
             sage: CFF(pi)
-            [3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14, 3]
+            [3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14]
             sage: CFF([1,2,3])
             [1, 2, 3]
             sage: CFF(15/17)
@@ -208,17 +208,24 @@ class ContinuedFractionField_class(Field):
         We illustrate varying the bits parameter::
 
             sage: CFF(pi)
-            [3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14, 3]
-            sage: CFF(pi, bits=5)
-            [3, 8]
+            [3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14]
+            sage: CFF(pi, bits=20)
+            [3, 7]
             sage: CFF(pi, bits=80)
-            [3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14, 2, 1, 1, 2, 2, 2, 2, 1, 84, 1]
+            [3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14, 2, 1, 1, 2, 2, 2, 2, 1]
             sage: CFF(pi, bits=100)
-            [3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14, 2, 1, 1, 2, 2, 2, 2, 1, 84, 2, 1, 1, 15, 3, 14]
+            [3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14, 2, 1, 1, 2, 2, 2, 2, 1, 84, 2, 1, 1, 15, 3]
+
+        And varying the nterms parameter::
+
+            sage: CFF(pi, nterms=3)
+            [3, 7, 15]
+            sage: CFF(pi, nterms=10)
+            [3, 7, 15, 1, 292, 1, 1, 1, 2, 1]
+            sage: CFF(pi, bits=10, nterms=10)
+            [3, 7, 15, 1, 292, 1, 1, 1, 2, 1]
         """
-        if not bits is None:
-            x = RealField(bits)(x)
-        return ContinuedFraction(self, x)
+        return ContinuedFraction(self, x, bits, nterms)
 
     def __len__(self):
         """
@@ -345,11 +352,11 @@ class ContinuedFraction(FieldElement):
     EXAMPLES::
 
         sage: continued_fraction(pi)
-        [3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14, 3]
+        [3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14]
         sage: CFF(pi)
-        [3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14, 3]
+        [3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14]
     """
-    def __init__(self, parent, x):
+    def __init__(self, parent, x, bits=None, nterms=None):
         """
         EXAMPLES::
 
@@ -370,7 +377,7 @@ class ContinuedFraction(FieldElement):
                     raise ValueError, "each entry except the first must be positive"
             self._x = list(x)
         else:
-            self._x = [ZZ(a) for a in continued_fraction_list(x)]
+            self._x = [ZZ(a) for a in continued_fraction_list(x, bits=bits, nterms=nterms)]
 
     def __getitem__(self, n):
         """
@@ -382,10 +389,10 @@ class ContinuedFraction(FieldElement):
         EXAMPLES::
 
             sage: a = continued_fraction(pi); a
-            [3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14, 3]
+            [3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14]
             sage: a[4]
             292
-            sage: a[-2]
+            sage: a[-1]
             14
         """
         return self._x[n]
@@ -399,13 +406,13 @@ class ContinuedFraction(FieldElement):
         EXAMPLES::
 
             sage: a = continued_fraction(pi); a
-            [3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14, 3]
+            [3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14]
             sage: a[2:5]
             [15, 1, 292]
             sage: a[:3]
             [3, 7, 15]
             sage: a[4:]
-            [292, 1, 1, 1, 2, 1, 3, 1, 14, 3]
+            [292, 1, 1, 1, 2, 1, 3, 1, 14]
         """
         return ContinuedFraction(self.parent(), self._x[i:j])
 
@@ -414,7 +421,7 @@ class ContinuedFraction(FieldElement):
         EXAMPLES::
 
             sage: a = continued_fraction(pi); a
-            [3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14, 3]
+            [3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14]
             sage: a.rename('continued fraction of pi')
             sage: a
             continued fraction of pi
@@ -432,14 +439,14 @@ class ContinuedFraction(FieldElement):
 
         EXAMPLES::
 
-            sage: a = CFF(pi, bits=33); a
-            [3, 7, 15, 1, 292, 2]
+            sage: a = CFF(pi, bits=34); a
+            [3, 7, 15, 1, 292]
             sage: a.convergents()
-            [3, 22/7, 333/106, 355/113, 103993/33102, 208341/66317]
+            [3, 22/7, 333/106, 355/113, 103993/33102]
             sage: a.value()
-            208341/66317
-            sage: a[:-1].value()
             103993/33102
+            sage: a[:-1].value()
+            355/113
         """
         return convergents(self._x)
 
@@ -453,10 +460,10 @@ class ContinuedFraction(FieldElement):
 
         EXAMPLES::
 
-            sage: a = CFF(pi, bits=33); a
-            [3, 7, 15, 1, 292, 2]
+            sage: a = CFF(pi, bits=34); a
+            [3, 7, 15, 1, 292]
             sage: a.convergents()
-            [3, 22/7, 333/106, 355/113, 103993/33102, 208341/66317]
+            [3, 22/7, 333/106, 355/113, 103993/33102]
             sage: a.convergent(0)
             3
             sage: a.convergent(1)
@@ -485,13 +492,13 @@ class ContinuedFraction(FieldElement):
         EXAMPLES::
 
             sage: c = continued_fraction(pi); c
-            [3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14, 3]
+            [3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14]
             sage: c.pn(0), c.qn(0)
             (3, 1)
             sage: len(c)
-            14
-            sage: c.pn(13), c.qn(13)
-            (245850922, 78256779)
+            13
+            sage: c.pn(12), c.qn(12)
+            (80143857, 25510582)
         """
         if n < -2:
             raise ValueError, "n must be at least -2"
@@ -517,13 +524,13 @@ class ContinuedFraction(FieldElement):
         EXAMPLES::
 
             sage: c = continued_fraction(pi); c
-            [3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14, 3]
+            [3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14]
             sage: c.qn(0), c.pn(0)
             (1, 3)
             sage: len(c)
-            14
-            sage: c.pn(13), c.qn(13)
-            (245850922, 78256779)
+            13
+            sage: c.pn(12), c.qn(12)
+            (80143857, 25510582)
         """
         if n < -2:
             raise ValueError, "n must be at least -2"
@@ -730,18 +737,18 @@ class ContinuedFraction(FieldElement):
             sage: a = CFF(4/19); a
             [0, 4, 1, 3]
             sage: b = a.sqrt(); b
-            [0, 2, 5, 1, 1, 2, 1, 16, 1, 2, 1, 1, 5, 4, 5, 1, 1, 2, 1, 15, 2]
+            [0, 2, 5, 1, 1, 2, 1, 16, 1, 2, 1, 1, 5, 4, 5, 1, 1, 2, 1]
             sage: b.value()
-            146231375/318703893
+            4508361/9825745
             sage: float(b.value()^2 - a)
-            4.0935373134057017e-17
+            -5.4514925256726876e-16
             sage: b = a.sqrt(prec=100); b
-            [0, 2, 5, 1, 1, 2, 1, 16, 1, 2, 1, 1, 5, 4, 5, 1, 1, 2, 1, 16, 1, 2, 1, 1, 5, 4, 5, 1, 1, 2, 1, 16, 1, 2, 1, 1, 5, 5]
+            [0, 2, 5, 1, 1, 2, 1, 16, 1, 2, 1, 1, 5, 4, 5, 1, 1, 2, 1, 16, 1, 2, 1, 1, 5, 4, 5, 1, 1, 2, 1, 16, 1, 2, 1, 1, 5]
             sage: b^2
-            [0, 4, 1, 3, 49545773063556658177372134479, 1, 3, 4]
+            [0, 4, 1, 3, 7849253184229368265220252099, 1, 3]
             sage: a.sqrt(all=True)
-            [[0, 2, 5, 1, 1, 2, 1, 16, 1, 2, 1, 1, 5, 4, 5, 1, 1, 2, 1, 15, 2],
-             [-1, 1, 1, 5, 1, 1, 2, 1, 16, 1, 2, 1, 1, 5, 4, 5, 1, 1, 2, 1, 15, 2]]
+            [[0, 2, 5, 1, 1, 2, 1, 16, 1, 2, 1, 1, 5, 4, 5, 1, 1, 2, 1],
+             [-1, 1, 1, 5, 1, 1, 2, 1, 16, 1, 2, 1, 1, 5, 4, 5, 1, 1, 2, 1]]
             sage: a = CFF(4/25).sqrt(); a
             [0, 2, 2]
             sage: a.value()
@@ -763,10 +770,10 @@ class ContinuedFraction(FieldElement):
         EXAMPLES::
 
             sage: a = CFF(e); v = a.list(); v
-            [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 11]
+            [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1]
             sage: v[0] = 5
             sage: a
-            [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 11]
+            [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1]
         """
         return list(self._x)
 
@@ -779,9 +786,9 @@ class ContinuedFraction(FieldElement):
 
             sage: a = CFF(e)
             sage: hash(a)
-            340185673
+            19952398
             sage: hash(QQ(a))
-            340185673
+            19952398
         """
         return hash(self._rational_())
 
@@ -793,7 +800,7 @@ class ContinuedFraction(FieldElement):
 
             sage: a = CFF(e)
             sage: b = ~a; b
-            [0, 2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 11]
+            [0, 2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 2]
             sage: b*a
             [1]
         """
@@ -885,9 +892,9 @@ class ContinuedFraction(FieldElement):
         EXAMPLES::
 
             sage: c = continued_fraction(0.12345); c
-            [0, 8, 9, 1, 21, 1, 1, 4, 1]
+            [0, 8, 9, 1, 21, 1, 1]
             sage: pari(c)
-            [0, 8, 9, 1, 21, 1, 1, 4, 1]
+            [0, 8, 9, 1, 21, 1, 1]
         """
         return pari(self._x)
 
@@ -899,13 +906,13 @@ class ContinuedFraction(FieldElement):
         EXAMPLES::
 
             sage: c = continued_fraction(0.12345); c
-            [0, 8, 9, 1, 21, 1, 1, 4, 1]
+            [0, 8, 9, 1, 21, 1, 1]
             sage: gp(c)
-            [0, 8, 9, 1, 21, 1, 1, 4, 1]
+            [0, 8, 9, 1, 21, 1, 1]
             sage: gap(c)
-            [ 0, 8, 9, 1, 21, 1, 1, 4, 1 ]
+            [ 0, 8, 9, 1, 21, 1, 1 ]
             sage: maxima(c)
-            [0,8,9,1,21,1,1,4,1]
+            [0,8,9,1,21,1,1]
         """
         return str(self._x)
 
@@ -953,23 +960,26 @@ def ContinuedFractionField():
     """
     return CFF
 
-def continued_fraction(x, bits=None):
+def continued_fraction(x, bits=None, nterms=None):
     """
-    Return the finite continued fraction expansion of the real number
-    `x`, computed with a floating point approximation of `x` to the
-    given number of bits of precision.  The returned continued
+    Return the truncated continued fraction expansion of the real number
+    `x`, computed with an interval floating point approximation of `x`
+    to the given number of bits of precision. The returned continued
     fraction is a list-like object, with a value method and partial
     convergents method.
 
     If bits is not given, then use the number of valid bits of
     precision of `x`, if `x` is a floating point number, or 53 bits
-    otherwise.
+    otherwise. If nterms is given, the precision is increased until
+    the specified number of terms can be computed, if possible.
 
     INPUT:
 
         - `x` -- number
 
         - ``bits`` -- None (default) or a positive integer
+
+        - ``nterms`` -- None (default) or a positive integer
 
     OUTPUT:
 
@@ -978,7 +988,9 @@ def continued_fraction(x, bits=None):
     EXAMPLES::
 
         sage: v = continued_fraction(sqrt(2)); v
-        [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1]
+        [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+        sage: v = continued_fraction(sqrt(2), nterms=22); v
+        [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
         sage: type(v)
         <class 'sage.rings.contfrac.ContinuedFraction'>
         sage: parent(v)
@@ -992,7 +1004,7 @@ def continued_fraction(x, bits=None):
         sage: [RR(x) for x in v.convergents()]
         [1.00000000000000, 1.50000000000000, 1.40000000000000, 1.41666666666667, ...1.41421356237310]
         sage: continued_fraction(sqrt(2), 10)
-        [1, 2, 2, 2, 2]
+        [1, 2, 2]
         sage: v.numerator()
         131836323
         sage: v.denominator()
@@ -1002,39 +1014,23 @@ def continued_fraction(x, bits=None):
         sage: [v.qn(i) for i in range(10)]
         [1, 2, 5, 12, 29, 70, 169, 408, 985, 2378]
 
-    We emphasize that the continued fraction output for an exact
-    symbolic object `x` is obtained by taking a floating point
-    approximation for `x`, then computing the continued fraction
-    expansion of that approximation using the standard continued
-    fraction algorithm.  This is potentially different than truncating
-    the infinite continued fraction at a point.  For example::
-
-        sage: v = continued_fraction(sqrt(109)); v
-        [10, 2, 3, 1, 2, 4, 1, 6, 6, 1, 4, 2, 1, 3, 2, 20, 3]
-        sage: w = continued_fraction(sqrt(109),100); w
-        [10, 2, 3, 1, 2, 4, 1, 6, 6, 1, 4, 2, 1, 3, 2, 20, 2, 3, 1, 2, 4, 1, 6, 6, 1, 4, 2, 1, 3, 2, 20]
-
-    Note above that the infinite continued fraction truncated ends
-    with 2, but the finite continued fraction of the double precision
-    approximation of sqrt(109) ends with 3.  The actual value of this
-    latter approximation to double precision is still correct.
-
-    ::
-
-        sage: RR(v.value()) == RR(sqrt(109))
-        True
-
     Here are some more examples::
 
         sage: continued_fraction(e, bits=20)
-        [2, 1, 2, 1, 1, 4, 1, 1, 6]
+        [2, 1, 2, 1, 1, 4, 1, 1]
         sage: continued_fraction(e, bits=30)
-        [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1]
+        [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8]
         sage: continued_fraction(RealField(200)(e))
         [2, 1, 2, 1, 1, 4, 1, 1, 6, ...36, 1, 1, 38, 1, 1]
 
+    Initial rounding can result in incorrect trailing digits::
+
+        sage: continued_fraction(RealField(39)(e))
+        [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 2]
+        sage: continued_fraction(RealIntervalField(39)(e))
+        [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10]
     """
-    return CFF(x, bits=bits)
+    return CFF(x, bits=bits, nterms=nterms)
 
 
 

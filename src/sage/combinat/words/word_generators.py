@@ -830,7 +830,7 @@ class WordGenerator(object):
             sage: words.CharacteristicSturmianWord(1/golden_ratio^2, bits=30)
             word: 0100101001001010010100100101001001010010...
             sage: _.length()
-            28657
+            6765
 
         ::
 

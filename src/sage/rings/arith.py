@@ -26,6 +26,7 @@ from sage.structure.element import RingElement, canonical_coercion, bin_op, pare
 from sage.interfaces.all import gp
 from sage.misc.misc import prod, union
 from sage.rings.fraction_field_element import is_FractionFieldElement
+from sage.rings.real_mpfi import RealIntervalField
 
 import fast_arith
 
@@ -3643,7 +3644,7 @@ def farey(v, lim):
 ##         w.append(int(pn), int(qn))
 ##     return w
 
-def continued_fraction_list(x, partial_convergents=False, bits=None):
+def continued_fraction_list(x, partial_convergents=False, bits=None, nterms=None):
     r"""
     Returns the continued fraction of x as a list.
 
@@ -3657,13 +3658,13 @@ def continued_fraction_list(x, partial_convergents=False, bits=None):
         sage: continued_fraction_list(45/17)
         [2, 1, 1, 1, 5]
         sage: continued_fraction_list(e, bits=20)
-        [2, 1, 2, 1, 1, 4, 1, 1, 6]
+        [2, 1, 2, 1, 1, 4, 1, 1]
         sage: continued_fraction_list(e, bits=30)
-        [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1]
+        [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8]
         sage: continued_fraction_list(sqrt(2))
-        [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1]
+        [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
         sage: continued_fraction_list(sqrt(4/19))
-        [0, 2, 5, 1, 1, 2, 1, 16, 1, 2, 1, 1, 5, 4, 5, 1, 1, 2, 1, 15, 2]
+        [0, 2, 5, 1, 1, 2, 1, 16, 1, 2, 1, 1, 5, 4, 5, 1, 1, 2, 1]
         sage: continued_fraction_list(RR(pi), partial_convergents=True)
         ([3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14, 3],
          [(3, 1),
@@ -3681,60 +3682,84 @@ def continued_fraction_list(x, partial_convergents=False, bits=None):
           (80143857, 25510582),
           (245850922, 78256779)])
         sage: continued_fraction_list(e)
-        [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 11]
+        [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1]
         sage: continued_fraction_list(RR(e))
-        [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 11]
+        [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1]
         sage: continued_fraction_list(RealField(200)(e))
         [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 14, 1, 1, 16, 1, 1, 18, 1, 1, 20, 1, 1, 22, 1, 1, 24, 1, 1, 26, 1, 1, 28, 1, 1, 30, 1, 1, 32, 1, 1, 34, 1, 1, 36, 1, 1, 38, 1, 1]
+
+    TESTS::
+
+        sage: continued_fraction_list(1 + 10^-10, nterms=3)
+        [1, 10000000000]
+        sage: continued_fraction_list(1 + 10^-20 - e^-100, bits=10, nterms=3)
+        [1, 100000000000000000000, 2688]
+        sage: continued_fraction_list(1 + 10^-20 - e^-100, bits=10, nterms=5)
+        [1, 100000000000000000000, 2688, 8, 1]
+        sage: continued_fraction_list(1 + 10^-20 - e^-100, bits=1000, nterms=5)
+        [1, 100000000000000000000, 2688, 8, 1]
     """
-    from sage.symbolic.expression import Expression
+    if isinstance(x, (integer.Integer, int, long)):
+        if partial_convergents:
+            return [x], [(x,1)]
+        else:
+            return [x]
 
-    if bits is not None:
-        try:
-            x = sage.rings.real_mpfr.RealField(bits)(x)
-        except  TypeError:
-            raise TypeError, "can only find the continued fraction of a real number"
-    elif isinstance(x, float):
-        from real_double import RDF
-        x = RDF(x)
-    elif isinstance(x, Expression):
-        # if x is a SymbolicExpression, try coercing it to a real number with 53 bits precision
-        try:
-            x = sage.rings.real_mpfr.RR(x)
-        except TypeError:
-            raise TypeError, "can only find the continued fraction of a real number"
-    elif not partial_convergents and \
-           isinstance(x, (integer.Integer, sage.rings.rational.Rational,
-                      int, long)):
-        return pari(x).contfrac().python()
+    if isinstance(x, sage.rings.rational.Rational):
+        if bits is not None and nterms is None:
+            x = RealIntervalField(bits)(x)
+        else:
+            # Pari is faster than the pure Python below, but doesn't give us the convergents.
+            v = pari(x).contfrac().python()
+            if nterms is not None:
+                v = v[:nterms]
+            if partial_convergents:
+                w = [(0,1), (1,0)]
+                for a in v:
+                    pn = a*w[-1][0] + w[-2][0]
+                    qn = a*w[-1][1] + w[-2][1]
+                    w.append((pn, qn))
+                return v, w[2:]
+            else:
+                return v
 
-    x_in = x
+    # Work in interval field, increasing precision as needed.
+    if bits is None:
+        try:
+            bits = x.prec()
+        except AttributeError:
+            bits = 53
+    RIF = RealIntervalField(bits)
     v = []
-    w = [(0,1), (1,0)] # keep track of convergents
-    start = x
-    i = 0
-    try:
-        last = None
-        while True:
-            i += 1
-            a = ZZ(int(x.floor()))
-            v.append(a)
-            n = len(v)-1
-            pn = v[n]*w[n+1][0] + w[n][0]
-            qn = v[n]*w[n+1][1] + w[n][1]
+    w = [(0,1), (1,0)]
+    orig, x = x, RIF(x)
+
+    while True:
+        try:
+            a = x.unique_floor()
+        except ValueError:
+            # Either we're done or we need more precision.
+            if nterms is None:
+                break
+            else:
+                RIF = RIF.to_prec(2*RIF.prec())
+                x = RIF(orig)
+                for a in v: x = ~(x-a)
+                continue
+        if partial_convergents:
+            pn = a*w[-1][0] + w[-2][0]
+            qn = a*w[-1][1] + w[-2][1]
             w.append((pn, qn))
-            x -= a
-            s = start - pn/qn
-            if abs(s) == 0 or (not last is None  and last == s):
-                del w[0]; del w[0]
-                if partial_convergents:
-                    return v, w
-                else:
-                    return v
-            last = s
-            x = 1/x
-    except (AttributeError, NotImplementedError, TypeError), msg:
-        raise NotImplementedError, "%s\ncomputation of continued fraction of x not implemented; try computing continued fraction of RR(x) instead."%msg
+        v.append(a)
+        if x == a or nterms is not None and len(v) >= nterms:
+            break
+        x = ~(x-a)
+
+    if partial_convergents:
+        return v, w[2:]
+    else:
+        return v
+
 
 def convergent(v, n):
     r"""

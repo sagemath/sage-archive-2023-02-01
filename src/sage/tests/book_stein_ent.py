@@ -387,15 +387,19 @@ sage: find_sqrt(5,389)         # random: either 303 or 86
 303
 sage: find_sqrt(5,389)         # see, it's random
 86
+
+# Several of the examples below had to be changed due to improved
+# behavior of the continued_fraction function #8017.
+
 sage: continued_fraction(17/23)
 [0, 1, 2, 1, 5]
 sage: reset('e')
 sage: continued_fraction(e)
-[2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 11]
-sage: continued_fraction(e, bits=20)
+[2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1]
+sage: continued_fraction(e, bits=21)
 [2, 1, 2, 1, 1, 4, 1, 1, 6]
 sage: continued_fraction(e, bits=30)
-[2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1]
+[2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8]
 sage: a = continued_fraction(17/23); a
 [0, 1, 2, 1, 5]
 sage: a.value()
@@ -404,18 +408,18 @@ sage: b = continued_fraction(6/23); b
 [0, 3, 1, 5]
 sage: a + b
 [1]
-sage: c = continued_fraction(pi,bits=33); c
-[3, 7, 15, 1, 292, 2]
+sage: c = continued_fraction(pi,bits=35); c
+[3, 7, 15, 1, 292, 1]
 sage: c.convergents()
-[3, 22/7, 333/106, 355/113, 103993/33102, 208341/66317]
+[3, 22/7, 333/106, 355/113, 103993/33102, 104348/33215]
 sage: c = continued_fraction(pi); c
-[3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14, 3]
+[3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14]
 sage: for n in range(-1, len(c)):
 ...    print c.pn(n)*c.qn(n-1) - c.qn(n)*c.pn(n-1),
-1 -1 1 -1 1 -1 1 -1 1 -1 1 -1 1 -1 1
+1 -1 1 -1 1 -1 1 -1 1 -1 1 -1 1 -1
 sage: for n in range(len(c)):
 ...    print c.pn(n)*c.qn(n-2) - c.qn(n)*c.pn(n-2),
-3 -7 15 -1 292 -1 1 -1 2 -1 3 -1 14 -3
+3 -7 15 -1 292 -1 1 -1 2 -1 3 -1 14
 sage: c = continued_fraction([1,2,3,4,5])
 sage: c.convergents()
 [1, 3/2, 10/7, 43/30, 225/157]
@@ -434,22 +438,18 @@ sage: def cf(bits):
 ...   x = (1 + sqrt(RealField(bits)(5))) / 2
 ...   return continued_fraction(x)
 sage: cf(10)
-[1, 1, 1, 1, 1, 1, 1, 3]
+[1, 1, 1, 1, 1, 1, 1]
 sage: cf(30)
-[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
- 1, 1, 1, 2]
+[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 sage: cf(50)
-[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
- 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 sage: def cf_sqrt_d(d, bits):
 ...   x = sqrt(RealField(bits)(d))
 ...   return continued_fraction(x)
 sage: cf_sqrt_d(389,50)
-[19, 1, 2, 1, 1, 1, 1, 2, 1, 38, 1, 2, 1, 1, 1, 1, 2, 1, 38]
+[19, 1, 2, 1, 1, 1, 1, 2, 1, 38, 1, 2, 1, 1, 1, 1, 2, 1, 38, 2]
 sage: cf_sqrt_d(389,100)
-[19, 1, 2, 1, 1, 1, 1, 2, 1, 38, 1, 2, 1, 1, 1, 1, 2, 1, 38,
- 1, 2, 1, 1, 1, 1, 2, 1, 38, 1, 2, 1, 1, 1, 1, 2, 1, 38, 1,
- 2, 1, 1]
+[19, 1, 2, 1, 1, 1, 1, 2, 1, 38, 1, 2, 1, 1, 1, 1, 2, 1, 38, 1, 2, 1, 1, 1, 1, 2, 1, 38, 1, 2, 1, 1, 1, 1, 2, 1, 38, 1, 2, 1, 1]
 sage: def newton_root(f, iterates=2, x0=0, prec=53):
 ...    x = RealField(prec)(x0)
 ...    R = PolynomialRing(ZZ,'x')
@@ -462,7 +462,7 @@ sage: reset('x')
 sage: a = newton_root(3847*x^2 - 14808904*x + 36527265); a
 2.46815700480740
 sage: cf = continued_fraction(a); cf
-[2, 2, 7, 2, 1, 5, 1, 1, 1, 1, 1, 1, 103, 8, 1, 2, 3, 1, 1]
+[2, 2, 7, 2, 1, 5, 1, 1, 1, 1, 1, 1, 103, 8, 1, 2, 3]
 sage: c = cf[:12]; c
 [2, 2, 7, 2, 1, 5, 1, 1, 1, 1, 1, 1]
 sage: c.value()

@@ -2649,6 +2649,56 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 #     def _pari_(self):
 #         return sage.libs.pari.all.pari.new_with_bits_prec(str(self), (<RealIntervalField>self._parent).__prec)
 
+    def unique_floor(self):
+        """
+        Returns the unique floor of this interval, if it is well defined,
+        otherwise raises a ValueError.
+
+        EXAMPLES::
+
+            sage: RIF(pi).unique_floor()
+            3
+            sage: RIF(100*pi).unique_floor()
+            314
+            sage: RIF(100, 200).unique_floor()
+            Traceback (most recent call last):
+            ...
+            ValueError: interval does not have a unique floor
+        """
+        a, b = self.lower().floor(), self.upper().floor()
+        if a == b:
+            return a
+        else:
+            raise ValueError, "interval does not have a unique floor"
+
+    def unique_integer(self):
+        """
+        Returns the unique integer in this interval, if there is exactly one,
+        otherwise raises a ValueError.
+
+        EXAMPLES::
+
+            sage: RIF(pi).unique_integer()
+            Traceback (most recent call last):
+            ...
+            ValueError: interval contains no integer
+            sage: RIF(pi, pi+1).unique_integer()
+            4
+            sage: RIF(pi, pi+2).unique_integer()
+            Traceback (most recent call last):
+            ...
+            ValueError: interval contains more than one integer
+            sage: RIF(100).unique_integer()
+            100
+        """
+        a, b = self.lower().ceil(), self.upper().floor()
+        if a == b:
+            return a
+        elif a < b:
+            raise ValueError, "interval contains more than one integer"
+        else:
+            raise ValueError, "interval contains no integer"
+
     def simplest_rational(self, low_open=False, high_open=False):
         """
         Returns the simplest rational in this interval. Given rationals a/b

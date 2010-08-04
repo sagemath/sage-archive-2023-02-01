@@ -1346,6 +1346,41 @@ def zero_matrix(ring, nrows, ncols=None, sparse=False):
         ring = rings.ZZ
     return matrix_space.MatrixSpace(ring, nrows, ncols, sparse)(0)
 
+def ones_matrix(ring, nrows, ncols=None, sparse=False):
+    r"""
+    Return the `nrows \times ncols` all-ones matrix over the given
+    ring.
+
+    The default ring is the integers.
+
+    EXAMPLES::
+
+        sage: M = ones_matrix(QQ, 2); M
+        [1 1]
+        [1 1]
+        sage: M.parent()
+        Full MatrixSpace of 2 by 2 dense matrices over Rational Field
+        sage: M = ones_matrix(2, 3); M
+        [1 1 1]
+        [1 1 1]
+        sage: M.parent()
+        Full MatrixSpace of 2 by 3 dense matrices over Integer Ring
+        sage: M = ones_matrix(3, 1, sparse=True); M
+        [1]
+        [1]
+        [1]
+        sage: M.parent()
+        Full MatrixSpace of 3 by 1 sparse matrices over Integer Ring
+    """
+    if isinstance(ring, (int, long, rings.Integer)):
+        nrows, ncols = (ring, nrows)
+        ring = rings.ZZ
+    if ncols is None:
+        nents = nrows**2
+    else:
+        nents = nrows*ncols
+    return matrix_space.MatrixSpace(ring, nrows, ncols, sparse).matrix([1]*nents)
+
 
 def block_matrix(sub_matrices, nrows=None, ncols=None, subdivide=True):
     """

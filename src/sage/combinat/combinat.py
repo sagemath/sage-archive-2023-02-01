@@ -16,6 +16,8 @@ AUTHORS:
 
 - Florent Hivert (2009-02): combinatorial class cleanup
 
+- Fredrik Johansson (2010-07): fast implementation of ``stirling_number2``
+
 This module implements some combinatorial functions, as listed
 below. For a more detailed description, see the relevant
 docstrings.
@@ -233,6 +235,7 @@ from sage.structure.sage_object import SageObject
 from sage.structure.parent import Parent
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc import deprecation
+from combinat_cython import _stirling_number2
 ######### combinatorial sequences
 
 def bell_number(n):
@@ -555,31 +558,99 @@ def stirling_number1(n,k):
     """
     return ZZ(gap.eval("Stirling1(%s,%s)"%(ZZ(n),ZZ(k))))
 
-def stirling_number2(n,k):
+def stirling_number2(n, k, algorithm=None):
     """
     Returns the n-th Stirling number `S_2(n,k)` of the second
     kind (the number of ways to partition a set of n elements into k
     pairwise disjoint nonempty subsets). (The n-th Bell number is the
-    sum of the `S_2(n,k)`'s, `k=0,...,n`.) Wraps GAP's
-    Stirling2.
+    sum of the `S_2(n,k)`'s, `k=0,...,n`.)
 
-    EXAMPLES: Stirling numbers satisfy
-    `S_2(n,k) = S_2(n-1,k-1) + kS_2(n-1,k)`::
+    INPUT:
 
-        sage: 5*stirling_number2(9,5) + stirling_number2(9,4)
-        42525
-        sage: stirling_number2(10,5)
-        42525
+       *  ``n`` - nonnegative machine-size integer
+       *  ``k`` - nonnegative machine-size integer
+       * ``algorithm``:
 
-    ::
+         * None (default) - use native implementation
+         * ``"maxima"`` - use Maxima's stirling2 function
+         * ``"gap"`` - use GAP's Stirling2 function
 
-        sage: n = stirling_number2(20,11); n
+    EXAMPLES:
+
+    Print a table of the first several Stirling numbers of the second kind::
+
+        sage: for n in range(10):
+        ...       for k in range(10):
+        ...           print str(stirling_number2(n,k)).rjust(k and 6),
+        ...       print
+        ...
+        1      0      0      0      0      0      0      0      0      0
+        0      1      0      0      0      0      0      0      0      0
+        0      1      1      0      0      0      0      0      0      0
+        0      1      3      1      0      0      0      0      0      0
+        0      1      7      6      1      0      0      0      0      0
+        0      1     15     25     10      1      0      0      0      0
+        0      1     31     90     65     15      1      0      0      0
+        0      1     63    301    350    140     21      1      0      0
+        0      1    127    966   1701   1050    266     28      1      0
+        0      1    255   3025   7770   6951   2646    462     36      1
+
+    Stirling numbers satisfy `S_2(n,k) = S_2(n-1,k-1) + kS_2(n-1,k)`::
+
+         sage: 5*stirling_number2(9,5) + stirling_number2(9,4)
+         42525
+         sage: stirling_number2(10,5)
+         42525
+
+    TESTS::
+
+        sage: stirling_number2(500,501)
+        0
+        sage: stirling_number2(500,500)
+        1
+        sage: stirling_number2(500,499)
+        124750
+        sage: stirling_number2(500,498)
+        7739801875
+        sage: stirling_number2(500,497)
+        318420320812125
+        sage: stirling_number2(500,0)
+        0
+        sage: stirling_number2(500,1)
+        1
+        sage: stirling_number2(500,2)
+        1636695303948070935006594848413799576108321023021532394741645684048066898202337277441635046162952078575443342063780035504608628272942696526664263794687
+        sage: stirling_number2(500,3)
+        6060048632644989473730877846590553186337230837666937173391005972096766698597315914033083073801260849147094943827552228825899880265145822824770663507076289563105426204030498939974727520682393424986701281896187487826395121635163301632473646
+        sage: stirling_number2(500,30)
+        13707767141249454929449108424328432845001327479099713037876832759323918134840537229737624018908470350134593241314462032607787062188356702932169472820344473069479621239187226765307960899083230982112046605340713218483809366970996051181537181362810003701997334445181840924364501502386001705718466534614548056445414149016614254231944272872440803657763210998284198037504154374028831561296154209804833852506425742041757849726214683321363035774104866182331315066421119788248419742922490386531970053376982090046434022248364782970506521655684518998083846899028416459701847828711541840099891244700173707021989771147674432503879702222276268661726508226951587152781439224383339847027542755222936463527771486827849728880
+        sage: stirling_number2(500,31)
+        5832088795102666690960147007601603328246123996896731854823915012140005028360632199516298102446004084519955789799364757997824296415814582277055514048635928623579397278336292312275467402957402880590492241647229295113001728653772550743446401631832152281610081188041624848850056657889275564834450136561842528589000245319433225808712628826136700651842562516991245851618481622296716433577650218003181535097954294609857923077238362717189185577756446945178490324413383417876364657995818830270448350765700419876347023578011403646501685001538551891100379932684279287699677429566813471166558163301352211170677774072447414719380996777162087158124939742564291760392354506347716119002497998082844612434332155632097581510486912
+        sage: n = stirling_number2(20,11)
+        sage: n
         1900842429486
         sage: type(n)
         <type 'sage.rings.integer.Integer'>
-    """
-    return ZZ(gap.eval("Stirling2(%s,%s)"%(ZZ(n),ZZ(k))))
+        sage: n = stirling_number2(20,11,algorithm='gap')
+        sage: n
+        1900842429486
+        sage: type(n)
+        <type 'sage.rings.integer.Integer'>
+        sage: n = stirling_number2(20,11,algorithm='maxima')
+        sage: n
+        1900842429486
+        sage: type(n)
+        <type 'sage.rings.integer.Integer'>
 
+     """
+    if algorithm is None:
+        return _stirling_number2(n, k)
+    elif algorithm == 'gap':
+        return ZZ(gap.eval("Stirling2(%s,%s)"%(ZZ(n),ZZ(k))))
+    elif algorithm == 'maxima':
+        return ZZ(maxima.eval("stirling2(%s,%s)"%(ZZ(n),ZZ(k))))
+    else:
+        raise ValueError("unknown algorithm: %s" % algorithm)
 
 class CombinatorialObject(SageObject):
     def __init__(self, l):

@@ -1026,7 +1026,8 @@ class GraphGenerators():
         the small disk off peg 0 and onto (the empty) peg 1.
         So the solution to a 3-disk puzzle (with at least
         two pegs) can be expressed by the shortest path between
-        ``(0,0,0)`` and ``(1,1,1)``.
+        ``(0,0,0)`` and ``(1,1,1)``.  For more on this representation
+        of the graph, or its properties, see [ARETT-DOREE]_.
 
         For greatest speed we create graphs with integer vertices,
         where we encode the tuples as integers with a base equal
@@ -1112,8 +1113,9 @@ class GraphGenerators():
 
         .. rubric:: Citations
 
-        .. [ARETT-DOREE] Danielle Arett and Su Doree, Coloring and counting on the tower of Hanoi graphs,
-           Mathematics Magazine, to appear.
+        .. [ARETT-DOREE] Arett, Danielle and Doree, Suzanne
+           "Coloring and counting on the Hanoi graphs"
+           Mathematics Magazine, Volume 83, Number 3, June 2010, pages 200-9
 
 
         AUTHOR:

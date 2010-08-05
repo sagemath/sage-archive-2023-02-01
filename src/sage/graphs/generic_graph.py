@@ -2856,7 +2856,6 @@ class GenericGraph(GenericGraph_pyx):
            whether or not the boundary order may be permuted. (Default is
            True, which means the boundary order is preserved.)
 
-
         EXAMPLES::
 
             sage: g = graphs.PetersenGraph()
@@ -2916,6 +2915,20 @@ class GenericGraph(GenericGraph_pyx):
             NotImplementedError: Can't compute the maximal genus of a graph with loops or multiple edges
 
 
+        We break graphs with cut vertices into their blocks, which greatly speeds up
+        computation of minimal genus.  This is not implemented for maximal genus.
+
+            sage: K5 = graphs.CompleteGraph(5)
+            sage: G = K5.copy()
+            sage: s = 4
+            sage: for i in range(1,100):
+            ...       k = K5.relabel(range(s,s+5),inplace=False)
+            ...       G.add_edges(k.edges())
+            ...       s += 4
+            ...
+            sage: G.genus()
+            100
+
         """
         if not self.is_connected():
             raise TypeError("Graph must be connected to use Euler's Formula to compute minimal genus.")
@@ -2973,14 +2986,36 @@ class GenericGraph(GenericGraph_pyx):
             if set_embedding:
                 if self.has_loops() or self.is_directed() or self.has_multiple_edges():
                     raise NotImplementedError, "Can't work with embeddings of non-simple graphs"
-                g = genus.simple_connected_graph_genus(G, True, check = False, minimal = minimal)
-                self._embedding = G._embedding
+                if minimal:
+                    B,C = G.blocks_and_cut_vertices()
+                    embedding = {}
+                    g = 0
+                    for block in B:
+                        H = G.subgraph(block)
+                        g += genus.simple_connected_graph_genus(H, set_embedding = True, check = False, minimal = True)
+                        emb = H.get_embedding()
+                        for v in emb:
+                            if embedding.has_key(v):
+                                embedding[v] += emb[v]
+                            else:
+                                embedding[v] = emb[v]
+                    self._embedding = embedding
+                else:
+                    g = genus.simple_connected_graph_genus(G, set_embedding = True, check = False, minimal = minimal)
+                    self._embedding = G._embedding
                 return g
             else:
                 if maximal and (self.has_multiple_edges() or self.has_loops()):
                     raise NotImplementedError, "Can't compute the maximal genus of a graph with loops or multiple edges"
-
-                return genus.simple_connected_graph_genus(G, set_embedding = False, check=False, minimal=minimal)
+                if minimal:
+                    B,C = G.blocks_and_cut_vertices()
+                    g = 0
+                    for block in B:
+                        H = G.subgraph(block)
+                        g += genus.simple_connected_graph_genus(H, set_embedding = False, check = False, minimal = True)
+                    return g
+                else:
+                    return genus.simple_connected_graph_genus(G, set_embedding = False, check=False, minimal=minimal)
 
 
 

@@ -390,37 +390,34 @@ cdef class simple_connected_genus_backtracker:
             j = self.face_map[j]
         return 1
 
-
     cdef void flip(self, int v, int i):
         """
 
         This is where the real work happens.  Once cycles
         have been counted for the initial face_map, we
         make small local changes, and look at their effect
-        on the number of cycles.  It is important to note
-        that after `self.flip`() has been called once,
-        `self.visited` is full of garbage.
+        on the number of cycles.
 
         Consider a vertex whose embedding is given by the
         cycle
 
-        `self.vertex_darts[v] = [..., a0, a1, a2, ... ]`.
+        `self.vertex_darts[v] = [..., v0, v1, v2, ... ]`.
 
         which implies that the vertex map has the cycle
 
-        `... -> a0 -> a1 -> a2 -> ... `
+        `... -> v0 -> v1 -> v2 -> ... `
 
         and say we'd like to exchange a1 and a2.  Then,
         we'll change the vertex map to
 
-        `... -> a0 -> a2 -> a1 -> ...`
+        `... -> v0 -> v2 -> v1 -> ...`
 
         and when this happens, we change the face map orbit
-        of `b0 = e(a0)`, `b1 = e(a1)`, and `b2 = e(a2)`,
+        of `e0 = e(av)`, `e1 = e(v1)`, and `e2 = e(v2)`,
         where `e` denotes the edge map.
 
         In fact, the only orbits that can change are those
-        of `b0`, `b1`, and `b2`. Thus, to determine the
+        of `e0`, `e1`, and `e2`. Thus, to determine the
         effect of the flip on the cycle structure, we need
         only consider these orbits.
 
@@ -442,48 +439,64 @@ cdef class simple_connected_genus_backtracker:
              distinct orbits, or maintains status quo.
 
              To differentiate these situations, we need only
-             look at the order of `a0`, `a1`, and `a2` under
-             the orbit. If `b0 -> ... -> b2 -> ... -> b1`
+             look at the order of `v0`, `v1`, and `v2` under
+             the orbit. If `e0 -> ... -> e2 -> ... -> e1`
              before the flip, the cycle breaks into three.
              Otherwise, the number of cycles stays the same.
 
-        Therefore, we are able to count the change in cycles
-        with at most two calls to `self.run_cycle`.
+
 
         """
 
 
         cdef int cycles = 0
         cdef int *w = self.vertex_darts[v]
-        cdef int *visited = self.visited
         cdef int *face_map = self.face_map
 
-        cdef int a0,a1,a2,b0,b1,b2
+        cdef int v0,v1,v2,e0,e1,e2,f0,f1,f2, j, k
 
-        a0 = w[i-1]
-        a1 = w[i]
-        a2 = w[i+1]
+        v0 = w[i-1]
+        v1 = w[i]
+        v2 = w[i+1]
 
-        b0 = edge_map(a0)
-        b1 = edge_map(a1)
-        b2 = edge_map(a2)
+        e0 = edge_map(v0)
+        e1 = edge_map(v1)
+        e2 = edge_map(v2)
 
-        visited[b0] = visited[b1] = visited[b2] = 0
+        f0 = face_map[e0]
+        f1 = face_map[e1]
+        f2 = face_map[e2]
 
-        self.run_cycle(b0)
-        if 0 < visited[b2] < visited[b1]:
-            self.num_cycles += 2
-        elif visited[b1] == visited[b2] == 0:
-            self.run_cycle(b1)
-            if visited[b2] == 0:
-                self.num_cycles -= 2
+        face_map[e0] = -1
+        face_map[e1] = -2
+        face_map[e2] = -3
 
-        face_map[b0] = a2
-        face_map[b1] = face_map[b2]
-        face_map[b2] = a1
+        j = face_map[f0]
+        while j >= 0:
+            j = face_map[j]
+        if j != -2:
+            k = face_map[f1]
+            while k >= 0:
+                k = face_map[k]
 
-        w[i] = a2
-        w[i+1] = a1
+            # Magic function follows.  There are only four possibilities for j and k
+            # since j != -2.  We use magic to avoid branching.
+            #  j | k  | MF(j,k)
+            # ---+----+--------
+            # -1 | -2 |   -2
+            # -1 | -3 |    0
+            # -3 | -1 |    2
+            # -3 | -2 |    0
+
+            self.num_cycles += (2*k + 1 - j)%4
+
+
+        face_map[e0] = v2
+        face_map[e1] = f2
+        face_map[e2] = v1
+
+        w[i] = v2
+        w[i+1] = v1
 
 
     cdef int count_cycles(self):
@@ -655,7 +668,6 @@ cdef int max_genus_check(simple_connected_genus_backtracker self,
     """
 
     cdef int g = 1 - (self.num_verts - self.num_darts/2 + self.num_cycles)/2
-
     if g > self.record_genus or initial == 1:
         self.record_genus = g
         if record_embedding:

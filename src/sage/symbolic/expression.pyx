@@ -4981,7 +4981,7 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(1.0).sinh()
             1.17520119364380
             sage: maxima('sinh(1.0)')
-            1.175201193643801
+            1.17520119364380...
 
             sinh(1.0000000000000000000000000)
             sage: SR(1).sinh().n(90)

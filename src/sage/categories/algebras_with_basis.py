@@ -53,7 +53,7 @@ class AlgebrasWithBasis(Category_over_base_ring):
         B[word: acb]
 
         sage: A.product
-        Generic endomorphism of An example of an algebra with basis: the free algebra on the generators ('a', 'b', 'c') over Rational Field
+        <bound method FreeAlgebra_with_category._product_from_product_on_basis_multiply of An example of an algebra with basis: the free algebra on the generators ('a', 'b', 'c') over Rational Field>
         sage: A.product(a*b,b)
         B[word: abb]
 
@@ -272,12 +272,17 @@ class AlgebrasWithBasis(Category_over_base_ring):
                 3*B[word: ac] + 6*B[word: bc]
             """
             if self.product_on_basis is not NotImplemented:
-                return self._module_morphism(self._module_morphism(self.product_on_basis, position = 0, codomain=self),
-                                                                                          position = 1)
+                return self._product_from_product_on_basis_multiply
+#                return self._module_morphism(self._module_morphism(self.product_on_basis, position = 0, codomain=self),
+#                                                                                          position = 1)
             elif hasattr(self, "_multiply") or hasattr(self, "_multiply_basis"):
                 return self._product_from_combinatorial_algebra_multiply
             else:
                 return NotImplemented
+
+        # Provides a product using the product_on_basis by calling linear_combination only once
+        def _product_from_product_on_basis_multiply( self, left, right ):
+            return self.linear_combination( ( self.product_on_basis( mon_left, mon_right ), coeff_left * coeff_right ) for ( mon_left, coeff_left ) in left.monomial_coefficients().iteritems() for ( mon_right, coeff_right ) in right.monomial_coefficients().iteritems() )
 
         # Backward compatibility temporary cruft to help migrating form CombinatorialAlgebra
         def _product_from_combinatorial_algebra_multiply(self,left,right):

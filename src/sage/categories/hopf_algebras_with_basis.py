@@ -55,7 +55,7 @@ class HopfAlgebrasWithBasis(Category_over_base_ring):
         B[(1,2)]
 
         sage: A.product           # todo: not quite ...
-        Generic endomorphism of A
+        <bound method MyGroupAlgebra_with_category._product_from_product_on_basis_multiply of A>
         sage: A.product(b,b)
         B[()]
 

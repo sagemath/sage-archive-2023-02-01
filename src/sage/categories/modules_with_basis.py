@@ -1248,7 +1248,7 @@ class ModuleMorphismByLinearity(Morphism):
         assert(x.parent() is self.domain())
 
         if self._is_module_with_basis_over_same_base_ring:
-            return self.codomain().sum(self._on_basis(*(before+(index,)+after))._lmul_(coeff) for (index, coeff) in args[self._position])
+            return self.codomain().linear_combination( (self._on_basis(*(before+(index,)+after)), coeff ) for (index, coeff) in args[self._position] )
         else:
             return sum(( coeff * self._on_basis(*(before+(index,)+after)) for (index, coeff) in args[self._position]), self._zero)
 

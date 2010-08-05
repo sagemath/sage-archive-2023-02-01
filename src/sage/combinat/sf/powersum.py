@@ -89,7 +89,7 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
         """
         p = self.parent()
         if 1 not in part:
-            return 0
+            return p(0)
         else:
             return len([i for i in part if i == 1])*p(part[:-1])
 

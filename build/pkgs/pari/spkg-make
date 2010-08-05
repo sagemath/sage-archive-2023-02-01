@@ -15,8 +15,8 @@
 # This script does the following:
 # * If the directory ./parisvn/ exists, it is assumed to be a SVN
 #   repository of the PARI sources.  If it does not exist, the SVN
-#   sources are automatically downloaded.  You can update the SVN
-#   repository by hand by doing cd parisvn; svn update
+#   sources are automatically downloaded.  In any case, the SVN sources
+#   are updated to a specific version.
 # * If the file parisvn/galdata.tgz does not exist, it is downloaded.
 # * The same for the file parisvn/seadata-small.tgz
 # * PARI is configured and built in the parisvn directory.  The built
@@ -25,11 +25,11 @@
 # * The necessary files are copied from parisvn/ to src/ using a
 #   mechanism very similar to "make svnsnapshot" from PARI.
 # * The files parisvn/galdata.tgz and parisvn/seadata-small.tgz are
-#   extracted to src/src.
+#   extracted.
 # * The patches in patches/*.patch are applied and the complete patched
 #   files are copied to patches/files
 #
-# AUTHOR: Jeroen Demeyer
+# AUTHOR: Jeroen Demeyer (July 2010)
 
 
 # Sanity check: must be run from current directory
@@ -59,7 +59,7 @@ fi
 
 # Use the specified SVN version
 cd parisvn
-svn update -r 12546
+svn update -r 12577
 
 
 # make pari (must run bison, etc...)

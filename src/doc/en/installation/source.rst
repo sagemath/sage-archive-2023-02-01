@@ -632,6 +632,62 @@ process:
   spkgs might also assume that certain programs are available on the
   system (for example, ``latex`` or ``pdflatex``).
 
+- :envvar:`SAGE_BUILD_DIR` - the default behavior is to build each
+  spkg in a subdirectory of :file:`$SAGE_ROOT/spkg/build/`; for
+  example, build :file:`atlas-3.8.3.p12.spkg` in the directory
+  :file:`$SAGE_ROOT/spkg/build/atlas-3.8.3.p12/`.  If this variable is
+  set, build in :file:`$SAGE_BUILD_DIR/atlas-3.8.3.p12/`
+  instead.  If the directory :file:`$SAGE_BUILD_DIR` does not
+  exist, it is created.  As of this writing (Sage 4.8), when building
+  the standard Sage packages, this may require 1.5 gigabytes of free
+  space in this directory (or more if :envvar:`SAGE_KEEP_BUILT_SPKGS`
+  is "yes" -- see below); the exact amount of required space varies
+  from platform to platform.  For example, the block size of the file
+  system will affect the amount of space used, since some spkgs
+  contain many small files.
+
+  .. warning::
+
+    The variable :envvar:`SAGE_BUILD_DIR` must be set to the full
+    path name of either an existing directory for which the user has write
+    permissions, or to the full path name of a nonexistent directory
+    which the user has permission to create.  The path name must
+    contain no spaces.
+
+- :envvar:`SAGE_KEEP_BUILT_SPKGS` - the default behavior is to delete
+  each build directory -- the appropriate subdirectory of
+  :file:`$SAGE_ROOT/spkg/build` or :file:`$SAGE_BUILD_DIR` --
+  after each spkg is successfully built.  The subdirectory is not
+  deleted if there were errors installing the spkg.  Set this variable
+  to "yes" to keep the subdirectory regardless.  Furthermore, if you
+  install an spkg for which there is already a corresponding
+  subdirectory, for example left over from a previous build, then the
+  default behavior is to delete that old subdirectory.  If this
+  variable is set to "yes", then the old subdirectory is moved to
+  :file:`$SAGE_ROOT/spkg/build/old/` (or
+  :file:`$SAGE_BUILD_DIR/old`), overwriting any already
+  existing file or directory with the same name.
+
+  .. note::
+
+     After a full build of Sage (as of version 4.8), these
+     subdirectories can take up to 6 gigabytes of storage, in total,
+     depending on the platform and the block size of the file system.
+     If you always set this variable to "yes", it can take even more
+     space: rebuilding every spkg would use double the amount of
+     space, and any upgrades to spkgs would create still more
+     directories, using still more space.
+
+  .. note::
+
+     In an existing Sage installation, running ``sage -i -s new.spkg``
+     or ``sage -f -s new.spkg`` installs the spkg ``new.spkg`` and
+     keeps the corresponding build directory; thus setting
+     :envvar:`SAGE_KEEP_BUILT_SPKGS` to "yes" mimics this behavior
+     when building Sage from scratch or when installing individual
+     spkgs.  So you can set this variable to "yes" instead of using
+     the ``-s`` flag for ``sage -i`` or ``sage -f``.
+
 - :envvar:`SAGE_FAT_BINARY` - to prepare a binary distribution that
   will run on the widest range of target machines, set this variable
   to "yes" before building Sage::
@@ -947,4 +1003,4 @@ Special Notes
   :ref:`installation in a multiuser environment
   <sagetex_installation_multiuser>`.
 
-  **This page was last updated in November 2011**
+  **This page was last updated in February 2012**

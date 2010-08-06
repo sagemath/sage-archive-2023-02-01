@@ -173,6 +173,35 @@ class AdditiveAbelianGroup_class(FGP_Module_class, AbelianGroup):
         else:
             return "Additive abelian group isomorphic to %s" % self.short_name()
 
+    def _latex_(self):
+        r"""
+        Returns a Latex representation of the group, using the invariants.
+
+        EXAMPLE::
+
+            sage: G=AdditiveAbelianGroup([66, 77, 0, 0])
+            sage: G._latex_()
+            '\\frac{\\ZZ}{11\\ZZ} \\oplus \\frac{\\ZZ}{462\\ZZ} \\oplus \\ZZ \\oplus \\ZZ'
+
+        A trivial group is represented as zero, rather than Z/1Z. ::
+
+            sage: G=AdditiveAbelianGroup([1])
+            sage: G._latex_()
+            '0'
+        """
+        inv = self.invariants()
+        if not inv:
+            inv = (1,)
+        terms=[]
+        for i in range(len(inv)):
+            if inv[i] == 0:
+                terms.append('\\ZZ')
+            elif inv[i] == 1:
+                terms.append('0')
+            else:
+                terms.append('\\frac{\\ZZ}{' + str(inv[i]) + '\\ZZ}')
+        return ' \\oplus '.join(terms)
+
     def short_name(self):
         r"""
         Return a name for the isomorphism class of this group.
@@ -262,6 +291,35 @@ class AdditiveAbelianGroup_class(FGP_Module_class, AbelianGroup):
             False
         """
         return False
+
+    def is_cyclic(self):
+        r"""
+        Returns ``True`` if the group is cyclic.
+
+        EXAMPLES:
+
+        With no common factors between the orders of the generators,
+        the group will be cyclic. ::
+
+            sage: G=AdditiveAbelianGroup([6, 7, 55])
+            sage: G.is_cyclic()
+            True
+
+        Repeating primes in the orders will create a non-cyclic group. ::
+
+            sage: G=AdditiveAbelianGroup([6, 15, 21, 33])
+            sage: G.is_cyclic()
+            False
+
+        A trivial group is trivially cyclic. ::
+
+            sage: T=AdditiveAbelianGroup([1])
+            sage: T.is_cyclic()
+            True
+        """
+        # One invariant is characteristic of a cyclic group
+        # while zero invariants is characteristic of the trivial group
+        return len(self.invariants()) < 2
 
 class AdditiveAbelianGroup_fixed_gens(AdditiveAbelianGroup_class):
     r"""

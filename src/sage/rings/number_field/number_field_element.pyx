@@ -958,6 +958,27 @@ cdef class NumberFieldElement(FieldElement):
         except TypeError:
             raise TypeError, "cannot convert %s to real number"%(self)
 
+    def __float__(self):
+        """
+        EXAMPLES::
+
+            sage: k.<a> = NumberField(x^2 + 1)
+            sage: float(a^2)
+            -1.0
+            sage: float(a)
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot convert a to real number
+
+            sage: (a^2).__float__()
+            -1.0
+        """
+        tres = CC(self)
+        try:
+            return float(tres)
+        except TypeError:
+            raise TypeError, "cannot convert %s to real number"%(self)
+
     def _complex_double_(self, CDF):
         """
         EXAMPLES::

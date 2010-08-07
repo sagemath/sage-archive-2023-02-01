@@ -602,6 +602,13 @@ Note that conversions to real fields will give TypeErrors::
     ...
     TypeError: cannot convert I to real number
 
+Expressions involving I that are real-valued can be converted to real fields::
+
+    sage: float(I*I)
+    -1.0
+    sage: RR(I*I)
+    -1.00000000000000
+
 We can convert to complex fields::
 
     sage: C = ComplexField(200); C

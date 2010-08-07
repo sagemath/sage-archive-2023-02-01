@@ -324,6 +324,13 @@ ext_modules = [
               depends = ['sage/graphs/modular_decomposition/src/dm.c',
                          'sage/graphs/modular_decomposition/src/dm_english.h']),
 
+    Extension('sage.graphs.matchpoly',
+              sources = ['sage/graphs/matchpoly.pyx'],
+              libraries = ['gmp', 'flint'],
+              include_dirs = [SAGE_ROOT + '/local/include/FLINT/'],
+              extra_compile_args = ['-std=c99'],
+              depends = [SAGE_ROOT + "/local/include/FLINT/flint.h"]),
+
     Extension('sage.graphs.planarity',
               sources = ['sage/graphs/planarity/graphColorVertices.c',
                          'sage/graphs/planarity/graphColorVertices_Extensions.c',

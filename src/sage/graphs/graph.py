@@ -2688,6 +2688,50 @@ class Graph(GenericGraph):
 
         return rs_dict
 
+    ### Matching
+
+    def matching_polynomial(self, complement=True, name=None):
+        """
+        Computes the matching polynomial of the graph G.
+
+        The algorithm used is a recursive one, based on the following observation:
+
+        - If e is an edge of G, G' is the result of deleting the edge e, and G''
+            is the result of deleting each vertex in e, then the matching
+            polynomial of G is equal to that of G' minus that of G''.
+
+        INPUT:
+
+        - ``complement`` - (default: True) whether to use a simple formula to
+          compute the matching polynomial from that of the graphs complement
+
+        - ``name`` - optional string for the variable name in the polynomial
+
+        EXAMPLES::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g.matching_polynomial()
+            x^10 - 15*x^8 + 75*x^6 - 145*x^4 + 90*x^2 - 6
+            sage: g.matching_polynomial(complement=False)
+            x^10 - 15*x^8 + 75*x^6 - 145*x^4 + 90*x^2 - 6
+            sage: g.matching_polynomial(name='tom')
+            tom^10 - 15*tom^8 + 75*tom^6 - 145*tom^4 + 90*tom^2 - 6
+            sage: g = Graph()
+            sage: L = [graphs.RandomGNP(8, .3) for i in [1..5]]
+            sage: prod([h.matching_polynomial() for h in L]) == sum(L, g).matching_polynomial()
+            True
+
+        NOTE:
+
+        The ``complement`` option uses matching polynomials of complete graphs,
+        which are cached. So if you are crazy enough to try computing the
+        matching polynomial on a graph with millions of vertices, you might not
+        want to use this option, since it will end up caching millions of
+        polynomials of degree in the millions.
+
+        """
+        from matchpoly import matching_polynomial
+        return matching_polynomial(self, complement=complement, name=name)
 
     ### Centrality
 

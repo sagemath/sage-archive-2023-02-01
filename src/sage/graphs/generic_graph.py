@@ -1748,11 +1748,15 @@ class GenericGraph(GenericGraph_pyx):
         from sage.rings.rational import Rational
         n = self.order()
         if self.allows_loops():
+            if n == 0:
+                return Rational(0)
             if self._directed:
                 return Rational(self.size())/Rational(n**2)
             else:
                 return Rational(self.size())/Rational((n**2 + n)/2)
         else:
+            if n < 2:
+                return Rational(0)
             if self._directed:
                 return Rational(self.size())/Rational((n**2 - n))
             else:

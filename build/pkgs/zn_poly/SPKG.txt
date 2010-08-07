@@ -20,10 +20,30 @@ GPL V2 or V3. Some of the code has been copied from other projects - see src/COP
 
 == Dependencies ==
 
- * gmp
+ * MPIR
+
+== Special Update/Build Instructions ==
+ * Although this is configured with --ntl-prefix=$SAGE_LOCAL,
+   apparently NTL is only used if specific targets are created, so this
+   can probably be removed.
 
 == Changelog ==
 
+
+=== zn_poly-0.9.p5 (David Kirkby, July 14th, 2010) ===
+ * #9358 Ensure that spkg-install can handle the case
+   of where SAGE64=yes and Solaris with a Sun linker. Previously
+   this worked properly if SAGE64 was yes, OR if the operating system
+   was Solaris with the sun linker. But spkg-install failed
+   to work properly if both SAGE64=yes AND the operating system
+   was Solaris with the Sun linker.
+ * No longer run 'make check' from spkg-check. Since this was quick to run
+   it has already been run from spkg-install, so it was pointless running
+   it from spkg-check too. Instead a much more comprehensive test suite is
+   run, using
+   $ test/test all
+ * Change the dependancy from GMP to MPIR in this SPKG.txt file, as Sage no
+   longer uses GMP.
 
 === zn_poly-0.9.p4 (Willem Jan Palenstijn, William Stein, April 26th, 2010) ===
  * Ticket #8711: Fix build error on gcc 4.5, and check if make tune succeeded.

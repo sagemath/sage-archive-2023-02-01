@@ -6,26 +6,37 @@
 #
 ################################################################
 
-if [ "$SAGE_LOCAL" = "" ]; then
+if [ -z "$SAGE_LOCAL" ]; then
    echo "SAGE_LOCAL undefined ... exiting";
    echo "Maybe run 'sage -sh'?"
    exit 1
 fi
 
+# Let the user set an environment variable CFLAG64 to
+# indicate the C compiler flag for 64-bit builds. By
+# default this will be -m64. IBM's compiler on AIX
+# and HP's on HP-UX do NOT use -m64.
+
+if [ -z "$CFLAG64" ] ; then
+   CFLAG64=-m64
+fi
+
 if [ "x$SAGE64" = xyes ]; then
-   echo "64 bit build"
-   CFLAGS="-O3 -g -m64 -fPIC -L."; export CFLAGS
-   LDFLAGS="-m64 "; export LDFLAGS
+   echo "Building a 64-bit version of zn_poly"
+   CFLAGS="$CFLAGS $CFLAG64"
+   CPPFLAGS="$CPPFLAGS $CFLAG64" ; export CPPFLAGS
+   LDFLAGS="$LDFLAGS $CFLAG64" ; export LDFLAGS
    cp patches/makemakefile.py src/makemakefile.py
-elif [ `uname` = "SunOS" -a "`ld  --version  2>&1  | grep GNU`" = ""  ]; then
+   CC="$CC $CFLAG64" ; export CC
+fi
+
+CFLAGS="$CFLAGS -g -fPIC -O3 -L."; export CFLAGS
+LDFLAGS="$LDFLAGS"; export LDFLAGS
+
+if [ "x$UNAME" = xSunOS ] && [  "`ld  --version  2>&1  | grep GNU`" = ""  ]; then
    # Change -soname to -h if the Sun linker is used.
    sed 's/-soname/-h/g' src/makemakefile.py > /tmp/makemakefile.py.$$
    mv /tmp/makemakefile.py.$$ src/makemakefile.py
-   CFLAGS="-fPIC -O3 -L."; export CFLAGS
-   LDFLAGS=""; export LDFLAGS
-else
-   CFLAGS="-fPIC -O3 -L."; export CFLAGS
-   LDFLAGS=""; export LDFLAGS
 fi
 
 cp patches/mpn_mulmid-tune.c patches/mul-tune.c patches/mulmid-tune.c src/tune
@@ -52,21 +63,26 @@ if [ $? -ne 0 ]; then
 	exit 1
 fi
 
+make
+if [ $? -ne 0 ]; then
+	echo "Error building zn_poly."
+	exit 1
+fi
 
 # run test suite (quick version)
 make check
 
 if [ $? -ne 0 ]; then
-	echo "Error running test suite."
-	exit 1
+   echo "Error running zn_poly's quick test suite (make check)."
+   exit 1
+else
+   echo ""
+   echo "zn_poly's *quick* test suite passed. A more comprehensive"
+   echo "test suite can be run if SAGE_CHECK is exported to \"yes\""
+   echo "but it takes about 10x as long to run"
+   echo ""
 fi
 
-make
-
-if [ $? -ne 0 ]; then
-	echo "Error building."
-	exit 1
-fi
 
 # UNIX
 if [ $UNAME != "Darwin" ]; then

@@ -6,19 +6,65 @@
 #
 ################################################################
 
-if [ "$SAGE_LOCAL" = "" ]; then
+if [ -z "$SAGE_LOCAL" ]; then
    echo "SAGE_LOCAL undefined ... exiting";
    echo "Maybe run 'sage -sh'?"
    exit 1
 fi
 
+# Let the user set an environment variable CFLAG64 to
+# indicate the C compiler flag for 64-bit builds. By
+# default this will be -m64. IBM's compiler on AIX
+# and HP's on HP-UX do NOT use -m64.
+
+if [ -z "$CFLAG64" ] ; then
+   CFLAG64=-m64
+fi
+
+if [ "x$SAGE64" = xyes ]; then
+   CFLAGS="$CFLAGS $CFLAG64"
+   CPPFLAGS="$CPPFLAGS $CFLAG64" ; export CPPFLAGS
+   LDFLAGS="$LDFLAGS $CFLAG64" ; export LDFLAGS
+   CC="$CC CFLAG64" ; export CC
+fi
 
 cd src
 
-make check
+# The methods for testing zn_poly are more complex than most other packages.
+# A 'make check' does some quick tests. These are run from spkg-install
+# to check zn_poly is not obviously disfunctional
+
+# However, a more comprehensive set of tests can be run
+# by first building a test program, then running that test program.
+
+# To quote from the file src/README
+#
+# make check
+#    Runs some quick tests to make sure that everything appears to be working.
+
+# make test
+#    Builds a test program. Running "test/test all" runs the whole zn_poly test
+#    suite, which tests zn_poly much more thoroughly than "make check".
+
+make test  #  Make sure the test program is built
 
 if [ $? -ne 0 ]; then
-    echo "zn_poly test suite failed."
+    echo "zn_poly failed to build the test program"
+    echo "So zn_poly's extensive test suite can not be run"
     exit 1
+fi
+
+echo ""
+echo "zn_poly's extensive test suite will now be run"
+echo ""
+
+test/test all # Run the extensive test suite
+
+if [ $? -ne 0 ]; then
+    echo "zn_poly failed to pass the extensive test suite"
+    exit 1
+else
+    echo "zn_poly has passed the extensive test suite."
+    exit 0
 fi
 

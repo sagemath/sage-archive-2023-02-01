@@ -33,8 +33,8 @@ def gen_lattice(type='modular', n=4, m=8, q=11, seed=None, \
           compact representation proposed by [LM06]_.
         * ``'cyclotomic'`` - Special case of ideal. Allows for
           efficient processing proposed by [LM06]_.
-    * ``n`` - Determinant size, `det(L) = q^n`. For ideal lattices this
-      is also the degree of the quotient polynomial.
+    * ``n`` - Determinant size, primal:`det(L) = q^n`, dual:`det(L) = q^{m-n}`.
+      For ideal lattices this is also the degree of the quotient polynomial.
     * ``m`` - Lattice dimension, `L \subseteq Z^m`.
     * ``q`` - Coefficent size, `q*Z^m \subseteq L`.
     * ``seed`` - Randomness seed.
@@ -45,8 +45,8 @@ def gen_lattice(type='modular', n=4, m=8, q=11, seed=None, \
     * ``ntl`` - Set this flag if you want the lattice basis in NTL readable
       format.
 
-    OUTPUT: ``B`` a unique size-reduced triangular (lower=primal, upper=dual)
-    basis of row vectors for the lattice in question.
+    OUTPUT: ``B`` a unique size-reduced triangular (primal: lower_left,
+      dual: lower_right) basis of row vectors for the lattice in question.
 
     EXAMPLES:
 
@@ -106,22 +106,23 @@ def gen_lattice(type='modular', n=4, m=8, q=11, seed=None, \
       encryption [R05]_ ::
 
         sage: sage.crypto.gen_lattice(type='modular', m=10, seed=42, dual=True)
-        [ 1  0  0  0 -2 -1  4  2  5  4]
-        [ 0  1  0  0 -4  5 -3  3  5  3]
-        [ 0  0  1  0 -3  4  1  4 -3 -2]
-        [ 0  0  0  1 -5 -2 -1  1 -3  5]
-        [ 0  0  0  0 11  0  0  0  0  0]
-        [ 0  0  0  0  0 11  0  0  0  0]
-        [ 0  0  0  0  0  0 11  0  0  0]
-        [ 0  0  0  0  0  0  0 11  0  0]
-        [ 0  0  0  0  0  0  0  0 11  0]
         [ 0  0  0  0  0  0  0  0  0 11]
+        [ 0  0  0  0  0  0  0  0 11  0]
+        [ 0  0  0  0  0  0  0 11  0  0]
+        [ 0  0  0  0  0  0 11  0  0  0]
+        [ 0  0  0  0  0 11  0  0  0  0]
+        [ 0  0  0  0 11  0  0  0  0  0]
+        [ 0  0  0  1 -5 -2 -1  1 -3  5]
+        [ 0  0  1  0 -3  4  1  4 -3 -2]
+        [ 0  1  0  0 -4  5 -3  3  5  3]
+        [ 1  0  0  0 -2 -1  4  2  5  4]
 
     * Relation of primal and dual bases ::
 
         sage: B_primal=sage.crypto.gen_lattice(m=10, q=11, seed=42)
         sage: B_dual=sage.crypto.gen_lattice(m=10, q=11, seed=42, dual=True)
-        sage: transpose(B_primal)*B_dual == 11*identity_matrix(10)
+        sage: B_dual_alt=transpose(11*B_primal.inverse()).change_ring(ZZ)
+        sage: B_dual_alt.hermite_form() == B_dual.hermite_form()
         True
 
     REFERENCES:
@@ -144,7 +145,7 @@ def gen_lattice(type='modular', n=4, m=8, q=11, seed=None, \
     """
     from sage.rings.finite_rings.integer_mod_ring \
         import IntegerModRing
-    from sage.matrix.constructor import Matrix, \
+    from sage.matrix.constructor import matrix, \
         identity_matrix, block_matrix
     from sage.matrix.matrix_space import MatrixSpace
     from sage.rings.integer_ring import IntegerRing
@@ -198,15 +199,14 @@ def gen_lattice(type='modular', n=4, m=8, q=11, seed=None, \
     A_prime = A[n:m].lift().apply_map(minrep)
 
     if not dual:
-        B = block_matrix([ZZ(q), ZZ.zero() , A_prime, ZZ.one() ], 2 , 2 , \
+        B = block_matrix([ZZ(q), ZZ.zero() , A_prime, ZZ.one() ], 2, 2, \
                          False)
     else:
-        B = block_matrix([ZZ.one() , -A_prime.transpose(), ZZ.zero() , \
+        B = block_matrix([ZZ.one(), -A_prime.transpose(), ZZ.zero(), \
                          ZZ(q)], 2 , 2 , False)
+        for i in range(m//2): B.swap_rows(i,m-i-1)
 
     if not ntl:
         return B
     else:
-        from sage.libs.ntl.ntl_ZZ import ntl_ZZ
-        from sage.libs.ntl.ntl_mat_ZZ import ntl_mat_ZZ
-        return ntl_mat_ZZ(m, m, map(ntl_ZZ, B.list()))
+        return B._ntl_()

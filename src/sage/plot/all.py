@@ -5,6 +5,7 @@ from plot import list_plot_loglog, list_plot_semilogx, list_plot_semilogy
 from line import line, line2d
 from arrow import arrow, arrow2d
 from bar_chart import bar_chart
+from histogram import histogram
 from bezier_path import bezier_path
 from scatter_plot import scatter_plot
 from disk import disk

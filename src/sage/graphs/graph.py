@@ -2531,7 +2531,7 @@ class Graph(GenericGraph):
             sage: (graphs.ChvatalGraph()).centrality_betweenness()
             {0: 0.069696969696969688, 1: 0.069696969696969688, 2: 0.060606060606060601, 3: 0.060606060606060601, 4: 0.069696969696969688, 5: 0.069696969696969688, 6: 0.060606060606060601, 7: 0.060606060606060601, 8: 0.060606060606060601, 9: 0.060606060606060601, 10: 0.060606060606060601, 11: 0.060606060606060601}
             sage: (graphs.ChvatalGraph()).centrality_betweenness(normalized=False)
-            {0: 7.6666666666666661, 1: 7.6666666666666661, 2: 6.6666666666666661, 3: 6.6666666666666661, 4: 7.6666666666666661, 5: 7.6666666666666661, 6: 6.6666666666666661, 7: 6.6666666666666661, 8: 6.6666666666666661, 9: 6.6666666666666661, 10: 6.6666666666666661, 11: 6.6666666666666661}
+            {0: 3.833333333333333, 1: 3.833333333333333, 2: 3.333333333333333, 3: 3.333333333333333, 4: 3.833333333333333, 5: 3.833333333333333, 6: 3.333333333333333, 7: 3.333333333333333, 8: 3.333333333333333, 9: 3.333333333333333, 10: 3.333333333333333, 11: 3.333333333333333}
             sage: D = DiGraph({0:[1,2,3], 1:[2], 3:[0,1]})
             sage: D.show(figsize=[2,2])
             sage: D = D.to_undirected()
@@ -2573,7 +2573,10 @@ class Graph(GenericGraph):
             1.0
         """
         import networkx
-        return networkx.degree_centrality(self.networkx_graph(copy=False), v)
+        if v==None:
+            return networkx.degree_centrality(self.networkx_graph(copy=False))
+        else:
+            return networkx.degree_centrality(self.networkx_graph(copy=False))[v]
 
     def centrality_closeness(self, v=None):
         r"""
@@ -2870,10 +2873,11 @@ class Graph(GenericGraph):
         else:
             raise NotImplementedError("Only 'networkx' and 'cliquer' are supported.")
 
-    def cliques_number_of(self, vertices=None, cliques=None, with_labels=False):
+    def cliques_number_of(self, vertices=None, cliques=None):
         """
-        Returns a list of the number of maximal cliques containing each
-        vertex. (Returns a single value if only one input vertex).
+        Returns a dictionary of the number of maximal cliques containing each
+        vertex, keyed by vertex. (Returns a single value if
+        only one input vertex).
 
         .. NOTE::
 
@@ -2885,9 +2889,6 @@ class Graph(GenericGraph):
         -  ``vertices`` - the vertices to inspect (default is
            entire graph)
 
-        -  ``with_labels`` - (boolean) default False returns
-           list as above True returns a dictionary keyed by vertex labels
-
         -  ``cliques`` - list of cliques (if already
            computed)
 
@@ -2896,14 +2897,14 @@ class Graph(GenericGraph):
 
             sage: C = Graph('DJ{')
             sage: C.cliques_number_of()
-            [1, 1, 1, 1, 2]
+            {0: 1, 1: 1, 2: 1, 3: 1, 4: 2}
             sage: E = C.cliques_maximal()
             sage: E
             [[4, 0], [4, 1, 2, 3]]
             sage: C.cliques_number_of(cliques=E)
-            [1, 1, 1, 1, 2]
+            {0: 1, 1: 1, 2: 1, 3: 1, 4: 2}
             sage: F = graphs.Grid2dGraph(2,3)
-            sage: X = F.cliques_number_of(with_labels=True)
+            sage: X = F.cliques_number_of()
             sage: for v in sorted(X.iterkeys()):
             ...    print v, X[v]
             (0, 0) 2
@@ -2913,14 +2914,14 @@ class Graph(GenericGraph):
             (1, 1) 3
             (1, 2) 2
             sage: F.cliques_number_of(vertices=[(0, 1), (1, 2)])
-            [3, 2]
+            {(0, 1): 3, (1, 2): 2}
             sage: G = Graph({0:[1,2,3], 1:[2], 3:[0,1]})
             sage: G.show(figsize=[2,2])
             sage: G.cliques_number_of()
-            [2, 2, 1, 1]
+            {0: 2, 1: 2, 2: 1, 3: 1}
         """
         import networkx
-        return networkx.number_of_cliques(self.networkx_graph(copy=False), vertices, cliques, with_labels)
+        return networkx.number_of_cliques(self.networkx_graph(copy=False), vertices, cliques)
 
     def cliques_get_max_clique_graph(self, name=''):
         """
@@ -2998,10 +2999,11 @@ class Graph(GenericGraph):
         return max_clique(self.complement())
 
     def cliques_vertex_clique_number(self, algorithm="cliquer", vertices=None,
-                                     with_labels=False, cliques=None):
-        r"""
-        Returns a list of sizes of the largest maximal cliques containing
-        each vertex. (Returns a single value if only one input vertex).
+                                     cliques=None):
+        """
+        Returns a dictionary of sizes of the largest maximal cliques containing
+        each vertex, keyed by vertex. (Returns a single value if only one
+        input vertex).
 
         .. NOTE::
 
@@ -3020,10 +3022,6 @@ class Graph(GenericGraph):
         -  ``vertices`` - the vertices to inspect (default is entire graph).
            Ignored unless ``algorithm=='networkx'``.
 
-        -  ``with_labels`` - (boolean) default False returns list as above
-           True returns a dictionary keyed by vertex labels. Ignored unless
-           ``algorithm=='networkx'``.
-
         -  ``cliques`` - list of cliques (if already computed).  Ignored unless
            ``algorithm=='networkx'``.
 
@@ -3031,14 +3029,14 @@ class Graph(GenericGraph):
 
             sage: C = Graph('DJ{')
             sage: C.cliques_vertex_clique_number()
-            [2, 4, 4, 4, 4]
+            {0: 2, 1: 4, 2: 4, 3: 4, 4: 4}
             sage: E = C.cliques_maximal()
             sage: E
             [[4, 0], [4, 1, 2, 3]]
             sage: C.cliques_vertex_clique_number(cliques=E,algorithm="networkx")
-            [2, 4, 4, 4, 4]
+            {0: 2, 1: 4, 2: 4, 3: 4, 4: 4}
             sage: F = graphs.Grid2dGraph(2,3)
-            sage: X = F.cliques_vertex_clique_number(with_labels=True,algorithm="networkx")
+            sage: X = F.cliques_vertex_clique_number(algorithm="networkx")
             sage: for v in sorted(X.iterkeys()):
             ...    print v, X[v]
             (0, 0) 2
@@ -3048,11 +3046,11 @@ class Graph(GenericGraph):
             (1, 1) 2
             (1, 2) 2
             sage: F.cliques_vertex_clique_number(vertices=[(0, 1), (1, 2)])
-            [2, 2]
+            {(0, 1): 2, (1, 2): 2}
             sage: G = Graph({0:[1,2,3], 1:[2], 3:[0,1]})
             sage: G.show(figsize=[2,2])
             sage: G.cliques_vertex_clique_number()
-            [3, 3, 3, 3]
+            {0: 3, 1: 3, 2: 3, 3: 3}
 
         """
 
@@ -3060,21 +3058,22 @@ class Graph(GenericGraph):
             from sage.graphs.cliquer import clique_number
             if vertices==None:
                 vertices=self
-            value=[]
+            value={}
             for v in vertices:
-                value.append(1+clique_number(self.subgraph(self.neighbors(v))))
+                value[v] = 1+clique_number(self.subgraph(self.neighbors(v)))
                 self.subgraph(self.neighbors(v)).plot()
             return value
         elif algorithm=="networkx":
             import networkx
-            return networkx.node_clique_number(self.networkx_graph(copy=False), vertices, with_labels, cliques)
+            return networkx.node_clique_number(self.networkx_graph(copy=False),vertices, cliques)
         else:
             raise NotImplementedError("Only 'networkx' and 'cliquer' are supported.")
 
-    def cliques_containing_vertex(self, vertices=None, cliques=None, with_labels=False):
+    def cliques_containing_vertex(self, vertices=None, cliques=None):
         """
-        Returns the cliques containing each vertex, represented as a list
-        of lists. (Returns a single list if only one input vertex).
+        Returns the cliques containing each vertex, represented as a dictionary
+        of lists of lists, keyed by vertex. (Returns a single list if only one
+        input vertex).
 
         .. NOTE::
 
@@ -3086,9 +3085,6 @@ class Graph(GenericGraph):
         -  ``vertices`` - the vertices to inspect (default is
            entire graph)
 
-        -  ``with_labels`` - (boolean) default False returns
-           list as above True returns a dictionary keyed by vertex labels
-
         -  ``cliques`` - list of cliques (if already
            computed)
 
@@ -3096,14 +3092,14 @@ class Graph(GenericGraph):
 
             sage: C = Graph('DJ{')
             sage: C.cliques_containing_vertex()
-            [[[4, 0]], [[4, 1, 2, 3]], [[4, 1, 2, 3]], [[4, 1, 2, 3]], [[4, 0], [4, 1, 2, 3]]]
+            {0: [[4, 0]], 1: [[4, 1, 2, 3]], 2: [[4, 1, 2, 3]], 3: [[4, 1, 2, 3]], 4: [[4, 0], [4, 1, 2, 3]]}
             sage: E = C.cliques_maximal()
             sage: E
             [[4, 0], [4, 1, 2, 3]]
             sage: C.cliques_containing_vertex(cliques=E)
-            [[[4, 0]], [[4, 1, 2, 3]], [[4, 1, 2, 3]], [[4, 1, 2, 3]], [[4, 0], [4, 1, 2, 3]]]
+            {0: [[4, 0]], 1: [[4, 1, 2, 3]], 2: [[4, 1, 2, 3]], 3: [[4, 1, 2, 3]], 4: [[4, 0], [4, 1, 2, 3]]}
             sage: F = graphs.Grid2dGraph(2,3)
-            sage: X = F.cliques_containing_vertex(with_labels=True)
+            sage: X = F.cliques_containing_vertex()
             sage: for v in sorted(X.iterkeys()):
             ...    print v, X[v]
             (0, 0) [[(0, 1), (0, 0)], [(1, 0), (0, 0)]]
@@ -3113,15 +3109,15 @@ class Graph(GenericGraph):
             (1, 1) [[(0, 1), (1, 1)], [(1, 2), (1, 1)], [(1, 0), (1, 1)]]
             (1, 2) [[(1, 2), (0, 2)], [(1, 2), (1, 1)]]
             sage: F.cliques_containing_vertex(vertices=[(0, 1), (1, 2)])
-            [[[(0, 1), (0, 0)], [(0, 1), (0, 2)], [(0, 1), (1, 1)]], [[(1, 2), (0, 2)], [(1, 2), (1, 1)]]]
+            {(0, 1): [[(0, 1), (0, 0)], [(0, 1), (0, 2)], [(0, 1), (1, 1)]], (1, 2): [[(1, 2), (0, 2)], [(1, 2), (1, 1)]]}
             sage: G = Graph({0:[1,2,3], 1:[2], 3:[0,1]})
             sage: G.show(figsize=[2,2])
             sage: G.cliques_containing_vertex()
-            [[[0, 1, 2], [0, 1, 3]], [[0, 1, 2], [0, 1, 3]], [[0, 1, 2]], [[0, 1, 3]]]
+            {0: [[0, 1, 2], [0, 1, 3]], 1: [[0, 1, 2], [0, 1, 3]], 2: [[0, 1, 2]], 3: [[0, 1, 3]]}
 
         """
         import networkx
-        return networkx.cliques_containing_node(self.networkx_graph(copy=False), vertices, cliques, with_labels)
+        return networkx.cliques_containing_node(self.networkx_graph(copy=False),vertices, cliques)
 
     def clique_complex(self):
         """

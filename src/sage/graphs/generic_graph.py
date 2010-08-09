@@ -8478,8 +8478,8 @@ class GenericGraph(GenericGraph_pyx):
 
     def cluster_triangles(self, nbunch=None, with_labels=False):
         r"""
-        Returns the number of triangles for nbunch of vertices as an
-        ordered list.
+        Returns the number of triangles for nbunch of vertices as a
+        dictionary keyed by vertex.
 
         The clustering coefficient of a graph is the fraction of possible
         triangles that are triangles, `c_i = triangles_i /
@@ -8494,9 +8494,6 @@ class GenericGraph(GenericGraph_pyx):
         -  ``nbunch`` - The vertices to inspect. If
            nbunch=None, returns data for all vertices in the graph
 
-        -  ``with_labels`` - (boolean) default False
-           returns list as above True returns dict keyed by vertex labels.
-
 
         REFERENCE:
 
@@ -8506,15 +8503,15 @@ class GenericGraph(GenericGraph_pyx):
 
         EXAMPLES::
 
-            sage: (graphs.FruchtGraph()).cluster_triangles()
+            sage: (graphs.FruchtGraph()).cluster_triangles().values()
             [1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0]
-            sage: (graphs.FruchtGraph()).cluster_triangles(with_labels=True)
+            sage: (graphs.FruchtGraph()).cluster_triangles()
             {0: 1, 1: 1, 2: 0, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 0, 9: 1, 10: 1, 11: 0}
             sage: (graphs.FruchtGraph()).cluster_triangles(nbunch=[0,1,2])
-            [1, 1, 0]
+            {0: 1, 1: 1, 2: 0}
         """
         import networkx
-        return networkx.triangles(self.networkx_graph(copy=False), nbunch, with_labels)
+        return networkx.triangles(self.networkx_graph(copy=False), nbunch)
 
     def clustering_average(self):
         r"""
@@ -8541,10 +8538,10 @@ class GenericGraph(GenericGraph_pyx):
         import networkx
         return networkx.average_clustering(self.networkx_graph(copy=False))
 
-    def clustering_coeff(self, nbunch=None, with_labels=False, weights=False):
+    def clustering_coeff(self, nbunch=None, weights=False):
         r"""
-        Returns the clustering coefficient for each vertex in nbunch as an
-        ordered list.
+        Returns the clustering coefficient for each vertex in nbunch as a
+        dictionary keyed by vertex.
 
         The clustering coefficient of a graph is the fraction of possible
         triangles that are triangles, `c_i = triangles_i /
@@ -8557,9 +8554,6 @@ class GenericGraph(GenericGraph_pyx):
 
         -  ``nbunch`` - the vertices to inspect (default
            None returns data on all vertices in graph)
-
-        -  ``with_labels`` - (boolean) default False
-           returns list as above True returns dict keyed by vertex labels.
 
         -  ``weights`` - default is False. If both
            with_labels and weights are True, then returns a clustering
@@ -8576,19 +8570,19 @@ class GenericGraph(GenericGraph_pyx):
 
         EXAMPLES::
 
-            sage: (graphs.FruchtGraph()).clustering_coeff()
+            sage: (graphs.FruchtGraph()).clustering_coeff().values()
             [0.33333333333333331, 0.33333333333333331, 0.0, 0.33333333333333331, 0.33333333333333331, 0.33333333333333331, 0.33333333333333331, 0.33333333333333331, 0.0, 0.33333333333333331, 0.33333333333333331, 0.0]
-            sage: (graphs.FruchtGraph()).clustering_coeff(with_labels=True)
+            sage: (graphs.FruchtGraph()).clustering_coeff()
             {0: 0.33333333333333331, 1: 0.33333333333333331, 2: 0.0, 3: 0.33333333333333331, 4: 0.33333333333333331, 5: 0.33333333333333331, 6: 0.33333333333333331, 7: 0.33333333333333331, 8: 0.0, 9: 0.33333333333333331, 10: 0.33333333333333331, 11: 0.0}
-            sage: (graphs.FruchtGraph()).clustering_coeff(with_labels=True,weights=True)
+            sage: (graphs.FruchtGraph()).clustering_coeff(weights=True)
             ({0: 0.33333333333333331, 1: 0.33333333333333331, 2: 0.0, 3: 0.33333333333333331, 4: 0.33333333333333331, 5: 0.33333333333333331, 6: 0.33333333333333331, 7: 0.33333333333333331, 8: 0.0, 9: 0.33333333333333331, 10: 0.33333333333333331, 11: 0.0}, {0: 0.083333333333333329, 1: 0.083333333333333329, 2: 0.083333333333333329, 3: 0.083333333333333329, 4: 0.083333333333333329, 5: 0.083333333333333329, 6: 0.083333333333333329, 7: 0.083333333333333329, 8: 0.083333333333333329, 9: 0.083333333333333329, 10: 0.083333333333333329, 11: 0.083333333333333329})
             sage: (graphs.FruchtGraph()).clustering_coeff(nbunch=[0,1,2])
-            [0.33333333333333331, 0.33333333333333331, 0.0]
-            sage: (graphs.FruchtGraph()).clustering_coeff(nbunch=[0,1,2],with_labels=True,weights=True)
+            {0: 0.33333333333333331, 1: 0.33333333333333331, 2: 0.0}
+            sage: (graphs.FruchtGraph()).clustering_coeff(nbunch=[0,1,2],weights=True)
             ({0: 0.33333333333333331, 1: 0.33333333333333331, 2: 0.0}, {0: 0.33333333333333331, 1: 0.33333333333333331, 2: 0.33333333333333331})
         """
         import networkx
-        return networkx.clustering(self.networkx_graph(copy=False), nbunch, with_labels, weights)
+        return networkx.clustering(self.networkx_graph(copy=False), nbunch, weights)
 
     def cluster_transitivity(self):
         r"""

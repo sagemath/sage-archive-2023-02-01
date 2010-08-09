@@ -105,6 +105,9 @@ class SBox(SageObject):
             Traceback (most recent call last):
             ...
             TypeError: Lookup table length is not a power of 2.
+            sage: S = mq.SBox(5, 6, 0, 3, 4, 2, 1, 2)
+            sage: S.n
+            3
         """
         if "S" in kwargs:
             S = kwargs["S"]
@@ -127,7 +130,7 @@ class SBox(SageObject):
         self._S = S
 
         self.m = ZZ(len(S)).exact_log(2)
-        self.n = ZZ(max(S)+1).exact_log(2)
+        self.n = ZZ(max(S)).nbits()
         self._F = GF(2)
         self._big_endian = kwargs.get("big_endian",True)
 

@@ -1,0 +1,28 @@
+= PyCryptPlus =
+
+== Description ==
+
+Extension for PyCrypto which provides more ciphers. For details see
+
+  http://wiki.yobi.be/wiki/PyCryptoPlus
+
+== License ==
+
+Most of it is licenced under the MIT license except for some ciphers
+(see src/LICENSE)
+
+== PKG Maintainers ==
+
+Martin Albrecht <martinralbrecht@googlemail.com>
+
+== Upstream Contact ==
+
+Philippe Teuwen <phil@teuwen.org>
+
+== Dependencies ==
+PyCrypto
+
+== ChangeLog ==
+=== pycryptoplus-20100809-git  (Martin, 9th August 2010) ===
+ * initial release
+

@@ -30,7 +30,7 @@ from sage.algebras.algebra import Algebra
 from sage.algebras.algebra_element import AlgebraElement
 from sage.rings.all import IntegerRing
 from sage.groups.group import Group
-from sage.structure.formal_sum import FormalSums_generic, FormalSums, FormalSum
+from sage.structure.formal_sum import FormalSums, FormalSum
 from sage.sets.set import Set
 
 

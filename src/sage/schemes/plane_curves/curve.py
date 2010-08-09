@@ -36,8 +36,19 @@ class Curve_generic(AlgebraicScheme_subscheme):
     def defining_polynomial(self):
         return self.defining_polynomials()[0]
 
-    def divisor_group(self, K=None):
-        """
+    def divisor_group(self, base_ring=None):
+        r"""
+        Return the divisor group of the curve.
+
+        INPUT:
+
+        - ``base_ring`` -- the base ring of the divisor
+          group. Usually, this is `\ZZ` (default) or `\QQ`.
+
+        OUTPUT:
+
+        The divisor group of the curve.
+
         EXAMPLES:
             sage: x,y,z = PolynomialRing(QQ, 3, names='x,y,z').gens()
             sage: C  = Curve(y^2*z - x^3 - 17*x*z^2 + y*z^2)
@@ -45,16 +56,13 @@ class Curve_generic(AlgebraicScheme_subscheme):
             sage: C.divisor_group() is Cp.divisor_group()
             True
         """
-        if K is None:
-            K = self.base_ring()
-        elif not is_Field(K):
-            raise TypeError, "Argument K (=%s) must be a field"%K
-        # TODO: check that there exists a canonical map self.base_ring -> K
-        # TODO: allow a morphism of rings
-        return DivisorGroup(self, K)
+        return DivisorGroup(self, base_ring)
 
-    def divisor(self, v, check=True, reduce=True):
-        return Divisor_curve(v, check=check, reduce=reduce, parent=self.divisor_group())
+    def divisor(self, v, base_ring=None, check=True, reduce=True):
+        r"""
+        Return the divisor specified by ``v``.
+        """
+        return Divisor_curve(v, check=check, reduce=reduce, parent=self.divisor_group(base_ring))
 
     def genus(self):
         """

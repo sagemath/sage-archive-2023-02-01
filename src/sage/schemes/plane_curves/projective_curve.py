@@ -601,7 +601,7 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
         Dsupport = D.support()
         Dcoeffs = []
         for x in pnts:
-            Dcoeffs.append(D.coeff(x))
+            Dcoeffs.append(D.coefficient(x))
         Dstr = str(tuple(Dcoeffs))
         G = singular(','.join([str(x) for x in Dcoeffs]), type='intvec')
         T = X2[1][2]

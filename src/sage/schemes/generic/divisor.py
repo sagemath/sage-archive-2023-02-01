@@ -9,6 +9,8 @@ AUTHORS:
 
 - David Joyner
 
+- Volker Braun (2010-07-16): Documentation, doctests, coercion fixes, bugfixes.
+
 EXAMPLES::
 
     sage: x,y,z = ProjectiveSpace(2, GF(5), names='x,y,z').gens()
@@ -30,30 +32,35 @@ EXAMPLES::
     -(x, z) + 3*(x, y) + 10*(x + 2*z, y + z)
 """
 #*******************************************************************************
+#  Copyright (C) 2010 Volker Braun <vbraun.name@gmail.com>
 #  Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu.au>
 #  Copyright (C) 2005 William Stein
+#
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*******************************************************************************
 
 import sage.misc.misc #as repr_lincomb
-
 from sage.structure.formal_sum import FormalSum
-
 from sage.rings.all import ZZ
-
 from projective_space import is_ProjectiveSpace
-
 from affine_space import is_AffineSpace
-
 from morphism import is_SchemeMorphism
-
-import divisor_group
-
 from sage.misc.search import search
 
 
 def CurvePointToIdeal(C,P):
+    r"""
+    Return the vanishing ideal of a point on a curve.
+
+    EXAMPLES::
+
+        sage: x,y = AffineSpace(2, QQ, names='xy').gens()
+        sage: C = Curve(y^2 - x^9 - x)
+        sage: from sage.schemes.generic.divisor import CurvePointToIdeal
+        sage: CurvePointToIdeal(C, (0,0))
+        Ideal (x, y) of Multivariate Polynomial Ring in x, y over Rational Field
+    """
     A = C.ambient_space()
     R = A.coordinate_ring()
     n = A.ngens()
@@ -82,14 +89,52 @@ def CurvePointToIdeal(C,P):
         polys.append(x[i])
     return R.ideal(polys)
 
-def is_Divisor(Div):
-    return isinstance(Div, Divisor_generic)
 
-def is_DivisorGroup(Div):
-    return isinstance(Div, DivisorGroup_generic)
+def is_Divisor(x):
+    r"""
+    Test whether ``x`` is an instance of :class:`Divisor_generic`
+
+    INPUT:
+
+    - ``x`` -- anything.
+
+    OUTPUT:
+
+    ``True`` or ``False``.
+
+    EXAMPLES::
+
+        sage: from sage.schemes.generic.divisor import is_Divisor
+        sage: x,y = AffineSpace(2, GF(5), names='xy').gens()
+        sage: C = Curve(y^2 - x^9 - x)
+        sage: is_Divisor( C.divisor([]) )
+        True
+        sage: is_Divisor("Ceci n'est pas un diviseur")
+        False
+    """
+    return isinstance(x, Divisor_generic)
+
 
 class Divisor_generic(FormalSum):
-    def __init__(self, v, check=True, reduce=True, parent=None):
+    r"""
+    A Divisor.
+    """
+
+    def __init__(self, v, parent, check=True, reduce=True):
+        r"""
+        Construct a :class:`Divisor_generic`.
+
+        INPUT:
+
+        See :meth:`sage.structure.formal_sum.FormalSum.__init__`
+
+        EXAMPLES::
+
+            sage: from sage.schemes.generic.divisor import Divisor_generic
+            sage: from sage.schemes.generic.divisor_group import DivisorGroup
+            sage: Divisor_generic( [(4,5)], DivisorGroup(Spec(ZZ)), False, False)
+            4*5
+        """
         FormalSum.__init__(self, v, parent, check, reduce)
 
     def scheme(self):
@@ -108,6 +153,7 @@ class Divisor_generic(FormalSum):
             Affine Curve over Finite Field of size 5 defined by -x^9 + y^2 - x
         """
         return self.parent().scheme()
+
 
 class Divisor_curve(Divisor_generic):
     r"""
@@ -146,21 +192,29 @@ class Divisor_curve(Divisor_generic):
         sage: E.divisor([(3,P), (-4,5*P)])
         3*(x, y) - 4*(x - 1/4*z, y + 5/8*z)
     """
-    def __init__(self, v, check=True, reduce=True, parent=None):
+    def __init__(self, v, parent=None, check=True, reduce=True):
         """
+        Construct a divisor on a curve.
+
         INPUT:
 
+        - ``v`` -- a list of pairs ``(c, P)``, where ``c`` is an
+           integer and ``P`` is a point on a curve. The P's must all
+           lie on the same curve.
 
-        -  ``v`` - a list of pairs (c, P), where c is an
-           integer and P is a point on a curve. The P's must all lie on the
-           same curve.
 
+        - To create the divisor 0 use ``[(0, P)]``, so as to give the curve.
 
-        To create the 0 divisor use [(0, P)], so as to give the curve.
+        EXAMPLES::
 
-        TODO: Include an extension field in the definition of the divisor
-        group.
+            sage: E = EllipticCurve([0, 0, 1, -1, 0])
+            sage: P = E(0,0)
+            sage: from sage.schemes.generic.divisor import Divisor_curve
+            sage: from sage.schemes.generic.divisor_group import DivisorGroup
+            sage: Divisor_curve([(1,P)], parent=DivisorGroup(E))
+            (x, y)
         """
+        from sage.schemes.generic.divisor_group import DivisorGroup_generic, DivisorGroup_curve
         if not isinstance(v, (list, tuple)):
             v = [(1,v)]
 
@@ -179,12 +233,12 @@ class Divisor_curve(Divisor_generic):
                     except TypeError:
                         raise TypeError, \
                               "Argument v (= %s) must consist of multiplicities and points on a scheme."
-                parent = divisor_group.DivisorGroup(C)
+                parent = DivisorGroup(C)
             else:
                 raise TypeError, \
                       "Argument v (= %s) must consist of multiplicities and points on a scheme."
         else:
-            if not isinstance(parent, divisor_group.DivisorGroup_curve):
+            if not isinstance(parent, DivisorGroup_curve):
                 raise TypeError, "parent (of type %s) must be a DivisorGroup_curve"%type(parent)
             C = parent.scheme()
 
@@ -213,9 +267,22 @@ class Divisor_curve(Divisor_generic):
             self, v, check=False, reduce=True, parent=parent)
 
         if know_points:
-            self.__points = points
+            self._points = points
 
     def _repr_(self):
+        r"""
+        Return a string representation.
+
+        OUTPUT:
+
+        A string.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve([0, 0, 1, -1, 0])
+            sage: E.divisor( E(0,0) )._repr_()
+            '(x, y)'
+        """
         ideals = [ z[1] for z in self ]
         coeffs = [ z[0] for z in self ]
         polys = [ tuple(I.gens()) for I in ideals ]
@@ -232,21 +299,21 @@ class Divisor_curve(Divisor_generic):
             sage: C = Curve(y^2 - x^9 - x)
             sage: pts = C.rational_points(); pts
             [(0, 0), (2, 2), (2, 3), (3, 1), (3, 4)]
-            sage: D = C.divisor([(3,pts[0]), (-1, pts[1])]); D
+            sage: D = C.divisor_group()([(3,pts[0]), (-1, pts[1])]); D
             3*(x, y) - (x - 2, y - 2)
             sage: D.support()
             [(0, 0), (2, 2)]
         """
         try:
-            return self.__support
+            return self._support
         except AttributeError:
             try:
-                self.__support = [s[1] for s in self.__points]
-                return self.__support
+                self._support = [s[1] for s in self._points]
+                return self._support
             except AttributeError:
                 raise NotImplementedError
 
-    def coeff(self, P):
+    def coefficient(self, P):
         """
         Return the coefficient of a given point P in this divisor.
 
@@ -257,22 +324,47 @@ class Divisor_curve(Divisor_generic):
             sage: pts = C.rational_points(); pts
             [(0, 0), (2, 2), (2, 3), (3, 1), (3, 4)]
             sage: D = C.divisor(pts[0])
-            sage: D.coeff(pts[0])
+            sage: D.coefficient(pts[0])
             1
             sage: D = C.divisor([(3,pts[0]), (-1,pts[1])]); D
             3*(x, y) - (x - 2, y - 2)
-            sage: D.coeff(pts[0])
+            sage: D.coefficient(pts[0])
             3
-            sage: D.coeff(pts[1])
+            sage: D.coefficient(pts[1])
             -1
         """
         P = self.parent().scheme()(P)
         if not(P in self.support()):
-            return ZZ(0)
+            return self.base_ring().zero()
         t, i = search(self.support(), P)
         assert t
         try:
-            return self.__points[i][0]
+            return self._points[i][0]
         except AttributeError:
                 raise NotImplementedError
+
+    def coef(self,P):
+        r"""
+        Synonym for :meth:`coefficient`
+
+        .. WARNING::
+
+            This method is deprecated. It will be removed in a future
+            release of Sage. Please use the ``coefficient(P)`` method
+            instead.
+
+        EXAMPLES::
+
+            sage: x,y = AffineSpace(2, GF(5), names='xy').gens()
+            sage: C = Curve(y^2 - x^9 - x)
+            sage: pts = C.rational_points(); pts
+            [(0, 0), (2, 2), (2, 3), (3, 1), (3, 4)]
+            sage: D = C.divisor(pts[0])
+            sage: D.coefficient(pts[0])
+            1
+        """
+        from sage.misc.misc import deprecation
+        deprecation("This method is deprecated. It will be removed in a future release of Sage. Please use the coefficient() method instead.")
+        return self.coefficient(P)
+
 

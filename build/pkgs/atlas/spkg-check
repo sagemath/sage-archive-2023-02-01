@@ -1,17 +1,37 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 ###########################################
 ## ATLAS
 ###########################################
 
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
 check()
 {
-	# make sure everthing build correctly
+	# make sure everything builds correctly
 	cd $CUR/ATLAS-build
 	make check
+        if [ $? -ne 0 ]; then
+            echo "An error occurred when running the ATLAS self-tests."
+            exit 1
+        else
+           echo "The ATLAS self-tests successfully passed"
+        fi
+
 
 	# and we should collect some timings
 	make time
+        if [ $? -ne 0 ]; then
+            echo "The ATLAS timing data failed to be collected"
+            exit 1
+        else
+           echo "The ATLAS timing data was successfully collected"
+           exit 0
+        fi
 }
 
 CUR=`pwd`

@@ -91,15 +91,26 @@ build()
              sed 's/--whole-archive/-z allextract/g' Makefile > makefile.tmp
              sed 's/--no-whole-archive/-z defaultextract/g' makefile.tmp > Makefile
              rm makefile.tmp
-             echo "Change ldflag -melf_x86_64 to -64 as needed for Sun ld"
-             if [ "x$SAGE64" = xyes ]; then
+             if [ "x$SAGE64" = xyes ] && [ "x`uname -m`" = xi86pc ] ; then
+                # Solaris or OpenSolaris on x86/x64 on a 64-bit build
+                echo "Change ldflag -melf_x86_64 to -64 as needed for Sun ld"
+                echo "on 64-bit builds of ATLAS on x64 hardware"
                 sed 's/-melf_x86_64/-64/g' Make.inc > makeinc
+                mv makeinc Make.inc
+             fi
+             if [ "x$SAGE64" != xyes ] && [ "x`uname -m`" = xi86pc ] ; then
+                # Solaris or OpenSolaris on x86/x64 on a 32-bit build
+                echo "Remove the linker flag -melf_i386 as needed for Sun ld"
+                echo "on 32-bit builds of ATLAS on x86/x64 hardware"
+                sed 's/-melf_i386//g' Make.inc > makeinc
                 mv makeinc Make.inc
              fi
           else
              echo "WARNING You are using the GNU linker from 'binutils'"
              echo "Generally it is considered better to use the Sun linker"
              echo "but Sage has been built on Solaris using the GNU linker"
+             echo "although that was a very old version of Sage, which"
+             echo "never passes all the Sage test-suite."
           fi
         fi
 

@@ -49,10 +49,41 @@ if [ `uname` = "Linux" ] || [ `uname` = "FreeBSD" ]; then
 
 fi
 
-# on Solaris a dynamic liblapack.so leads to import erros in numpy, so delete them for now.
-if [ `uname` = "SunOS" ]; then
-    echo "Deleting liblapack.so on Solaris due to bug in numpy/scipy"
-    cd "$SAGE_LOCAL"/lib
-    rm -rf liblapack.so*
+# Build dynamic libraries on Solaris, using the Sun equivalent of the GNU
+# options above. Rather than call 'ld', the exact path to 'ld' is given
+# since we know for 100% sure that 'ld' will reside in /usr/ccs/bin
+# on Solaris - this is true of both Solaris 10 and OpenSolaris
+# I'm not 100% sure if these options are optimal (there might be some
+# unnecessary commands, but its the exact equivalent of the GNU
+# commands above.
+
+if [ "x`uname`" = xSunOS ]; then
+   cd "$SAGE_LOCAL/lib"
+
+   if [ "x$SAGE64" = xyes ] ; then
+      # To create a 64-bit shared library, the linker flag
+      # '-64' must be added. Note this is not the same as
+      # the compiler flag '-m64'
+      LINKER_FLAG=-64
+   fi
+
+   # Build libatlas.so libf77blas.so and libcblas.so
+   # Actually, libatlas.so and libcblas.so gets built from spkg-install,
+   # but this is not working correctly for 64-bit libraries. Hence I simply
+   # remake those two libraries here. This is why 4 libraries are built
+   # in this Solaris section, but only two are shown above for FreeBSD,
+   # OS X and Linux.
+
+   for ATLAS_LIBRARY in libatlas libf77blas libcblas ; do
+      echo "Building shared library $ATLAS_LIBRARY.so from the static library $ATLAS_LIBRARY.a"
+     /usr/ccs/bin/ld $LINKER_FLAG -L"$SAGE_LOCAL/lib"  -G -h $ATLAS_LIBRARY.so -o $ATLAS_LIBRARY.so  -zallextract  $ATLAS_LIBRARY.a -zdefaultextract -lc -lm -lgfortran
+      if [ $? -ne 0 ]; then
+         echo "Failed to build ATLAS library $ATLAS_LIBRARY.so"
+         exit 1
+      else
+         echo "$ATLAS_LIBRARY.so has been built on Solaris."
+      fi
+   done
+   rm liblapack.so # liblapack.so causes problems with R on Solaris.
 fi
 

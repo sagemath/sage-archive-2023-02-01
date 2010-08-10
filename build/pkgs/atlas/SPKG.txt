@@ -2,7 +2,10 @@
 
 == Description ==
 
-This spkg builds ATLAS for Sage. It is build per default on Linux, but should also work on OSX and Solaris. The build is currently disabled on OSX until we sort out some linking issues on OSX. On FreeBSD dynamic libraries don't won since the wrong flags are passed to the linker. This will be fixed soon.
+This spkg builds ATLAS for Sage. It is build per default on Linux, but should
+also work on OSX and Solaris. The build is currently disabled on OSX until we
+sort out some linking issues on OSX. On FreeBSD dynamic libraries don't won
+since the wrong flags are passed to the linker. This will be fixed soon.
 
 == License ==
 
@@ -24,14 +27,35 @@ This spkg builds ATLAS for Sage. It is build per default on Linux, but should al
 
 == Build Instructions/Notes ==
 
- * patches/archinfo_linux.c.patch: Fix Itanium2 support on modern RHEL 5 and SLES 10 systems
+ * patches/archinfo_linux.c.patch: Fix Itanium2 support on modern
+   RHEL 5 and SLES 10 systems
  * patches/archinfo_x86.c.patch: add cpuid support for Pentium D, E models
  * patches/Make.top.patch: add make install target for shared libs
  * patches/probe_comp.c.patch: work around -m64 issue on Itanium2
  * Tuning info for K732SSE1.tgz, PM32SSE2.tgz and PPCG432.tgz
  * Changes linker flags on Solaris if the Sun linker is used.
+ * AN UPDATE TO THE LATEST ATLAS IS WELL OVERDUE, BUT THIS IS NON-TRIVIAL
 
 == ChangeLog ==
+
+== atlas-3.8.3.p14 (David Kirkby, August 10th 2010) ==
+ * #9508 Fix multiple ATLAS build issues on Solaris 10 and OpenSolaris.
+ * Remove an inaccurate comment from spkg-install-script
+   about the number of shred libraries built.
+ * Build shared libraries libatlas.so libf77blas.so libcblas.so
+   on Solaris properly using the Sun linker. The library
+   liblapack.so is NOT built as it causes problems with R.
+ * Delete liblapack.so in make_correct_shared.sh on Solaris just
+   in case it is built by ATLAS, which does build some
+   libraries. (This is probably an unneessary step, but
+   it's better to be safe than sorry).
+ * Correct linker options on 32-bit Solaris 10 or 32-bit
+   OpenSolaris builds on x86. These may not be optimal, but at
+   least they allow ATLAS to build.
+ * Make SPKG.txt have lines with less than 80 characters
+ * Fix a couple of spelling errors.
+ * Report whether the tests pass or fail in spkg-check.
+ * Report whether the timing data is collected correctly in spkg-check
 
 === atlas-3.8.3.p13 (John Palmieri, June 27th, 2010) ===
  * #9356. Fix system_alias.py so that it works properly with Solaris:
@@ -40,8 +64,9 @@ This spkg builds ATLAS for Sage. It is build per default on Linux, but should al
    existence when using SAGE_ATLAS_LIB, either.
 
 === atlas-3.8.3.p12 (Jaap Spies, Februari 22th 2010) ===
- * #8039 For use with the Sun ld with SAGE64="yes" change ldflag -melf_86_64 to -64
- * See also the remarks from David Kirky on atlas-3.8.3.p5
+ * #8039 For use with the Sun ld with SAGE64="yes" change ldflag
+   -melf_86_64 to -64
+ * See also the remarks from David Kirkby on atlas-3.8.3.p5
 
 === atlas-3.8.3.p11 (Peter Jeremy, 2010-01-25)===
  * #7827: Fix atlas-3.8.3.p9 compilation on FreeBSD
@@ -58,15 +83,16 @@ This spkg builds ATLAS for Sage. It is build per default on Linux, but should al
 === atlas-3.8.3.p6 (David Kirkby, July 19th 2009) ===
  * Trac #6558
    This is an enhancement to trac #6276, which applies a Solaris patch
-   to only those based on the sun4v architcture, rather than all Solaris
+   to only those based on the sun4v architecture, rather than all Solaris
    machines.
  * Finished off an unfinished sentance in a comment in spkg-install
 
 === atlas-3.8.3.p5 (David Kirkby, June 24th 2009) ===
  * Made a backup of ATLAS-build/lib/Makefile to ATLAS-build/lib/Makefile.orig
- * Alter the flags in ATLAS-build/lib/Makefile with those that will work if the linker
-   used is the Sun linker. The default Makefile makes use of the GNU linker's
-   flags, such as "-shared" which is not acceptable to the Sun linker.
+ * Alter the flags in ATLAS-build/lib/Makefile with those that will work if
+   the linker used is the Sun linker. The default Makefile makes use of the
+   GNU linker's flags, such as "-shared" which is not acceptable to the Sun
+   linker.
 
    The patch is only applied if the operating system is Solaris, and the
    linker is not the GNU linker. The flags charged are:
@@ -100,7 +126,8 @@ This spkg builds ATLAS for Sage. It is build per default on Linux, but should al
  * Change SAGE_SIMD_MODE --> SAGE_FAT_BINARY
 
 === atlas-3.8.3.p1 (Michael Abshoff, April 17th, 2009) ===
- * Introduce SAGE_SIMD_MODE. If set to SSE2 only use SSE1 and SSE2 instructions (#5219)
+ * Introduce SAGE_SIMD_MODE. If set to SSE2 only use SSE1 and SSE2
+   instructions (#5219)
  * Detect Atom CPUs as Core2 (#5741)
  * unbreak parallel make on system with "real" sh (#5742)
 
@@ -116,7 +143,8 @@ This spkg builds ATLAS for Sage. It is build per default on Linux, but should al
  * revert dumb mistake from atlas-3.8.2.p1 make_correct_shared.sh
 
 === atlas-3.8.2.p1 (Michael Abshoff, January 2nd, 2009) ===
- * Do not create any dynamic liblapack.so on non-Linux since they break numpy and scipy
+ * Do not create any dynamic liblapack.so on non-Linux since they break
+   numpy and scipy
 
 === atlas-3.8.2.p0 (Michael Abshoff, January 2nd, 2009) ===
  * copy Make.top into the right directory
@@ -158,10 +186,14 @@ This spkg builds ATLAS for Sage. It is build per default on Linux, but should al
  * Apply row-major GEMM major ATLAS errata (#1787)
 
 === atlas-3.8.p8 (Josh Kantor, Jan. 19th, 2008) ===
- * Added optional environment variable SAGE_ATLAS_LIB. This should be a directory that contains liblapack.so,libcblas.so, libf77blas.so, libatlas.so. Instead of building atlas we make symlinks to these libraries in $SAGE_LOCAL/lib
+ * Added optional environment variable SAGE_ATLAS_LIB. This should be a
+   directory that contains liblapack.so,libcblas.so, libf77blas.so,
+   libatlas.so. Instead of building atlas we make symlinks to these
+   libraries in $SAGE_LOCAL/lib
 
 === atlas-3.8.p6 (Josh Kantor, Dec. 15th, 2007) ===
- * check if ATLAS bailed out due to unprecise timings. This happens if the system is too loaded.
+ * check if ATLAS bailed out due to unprecise timings. This happens if the
+   system is too loaded.
 
 === atlas-3.8.p5 (Josh Kantor, Dec. 14th, 2007) ===
  * introduce workaround for 32 bit userspace build on 64 bit CPUs - see #1497

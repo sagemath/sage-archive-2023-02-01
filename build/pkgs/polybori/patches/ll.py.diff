@@ -1,0 +1,82 @@
+--- ../src/polybori-0.6.4/pyroot/polybori/ll.py	2010-01-29 09:02:02.000000000 +0000
++++ ll.py	2010-08-10 13:05:12.068850487 +0100
+@@ -17,7 +17,10 @@
+ 
+ def llredsb_Cudd_style(polys):
+ 
+-  reductors=Polynomial(1).set()
++  if polys:
++      reductors=Polynomial( polys[0].ring().one()).set()
++  else:
++      reductors=Polynomial(1).set()
+   
+   linear_lead=sorted(polys,key=lead_index,reverse=True)
+   assert len(set([p.lex_lead() for p in linear_lead]))==len(polys)
+@@ -47,9 +50,10 @@
+   else:
+       reduce=None
+ 
+-  
+-  reductors=Polynomial(1).set()
+-  
++  if polys:
++      reductors=Polynomial(polys[0].ring().one()).set()
++  else:
++      reductors=Polynomial(1).set()      
+   
+   
+   last=None
+@@ -118,15 +122,16 @@
+   return (linear_leads,llnf,reduced_list)
+   
+ def construct_map_by_indices(to_ring, idx_mapping):
+-  v=BoolePolynomialVector(to_ring.n_variables()*[to_ring.zero()])
++  v=BoolePolynomialVector((max(idx_mapping.keys())+1)*[to_ring.zero()])
+   for (from_idx, to_idx) in idx_mapping.iteritems():
+-      v[from_idx]=to_ring.var(to_idx)
++      val = to_ring.var(to_idx)
++      v[from_idx]= val
+   return v
+ 
+ 
+ def eliminate_ll_ranked(ll_system, to_reduce, reduction_function=ll_red_nf_noredsb, reduce_ll_system=False, prot=False):
+   from_ring=global_ring()
+-  to_ring=from_ring.clone()
++
+   ll_ranks=rank(ll_system)
+   add_vars=set(used_vars_set(to_reduce).variables()).difference(ll_ranks.keys())
+   for v in add_vars:
+@@ -140,6 +145,7 @@
+   def var_index(v):
+       return iter(Monomial(v).variables()).next().index()
+   #sorted_var_indices=[var_index(v) for v in sorted_vars]
++  to_ring=Ring(len(sorted_vars))
+   map_back_indices = dict([(i, var_index(v)) for (i, v) in enumerate(sorted_vars)])
+   map_from_indices = dict([(var_index(v), i) for (i, v) in enumerate(sorted_vars)])
+   #dict([(v,k) for (k,v) in enumerate(sorted_var_indices)])
+@@ -148,11 +154,16 @@
+       to_ring.set()
+       for (i, v) in enumerate(sorted_vars):
+         assert var_names[i]==str(v), (var_names[i], v, var_index(v), i)
+-        set_variable_name(i, var_names[i])
++        set_variable_name(i, var_names[i] + "TO")
+   finally:
+       from_ring.set()
+       
+-  map_from_vec=construct_map_by_indices(to_ring, map_from_indices)
++  try:
++      to_ring.set()
++      map_from_vec=construct_map_by_indices(to_ring, map_from_indices)
++  finally:
++      from_ring.set()
++
+   map_back_vec=construct_map_by_indices(from_ring, map_back_indices)
+   def map_from(p):
+       res=substitute_variables(map_from_vec, p)
+@@ -171,4 +182,4 @@
+       opt_eliminated=[llnf(p) for p in to_reduce]
+   finally:
+       from_ring.set()
+-  return (llnf, opt_eliminated)
+\ No newline at end of file
++  return (llnf, opt_eliminated)

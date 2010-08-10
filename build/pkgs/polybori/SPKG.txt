@@ -37,6 +37,9 @@ reference implementation for Gröbner basis computation.
 
 == Releases ==
 
+=== polybori-0.6.4.p3 (Martin Albrecht, August 10th, 2010) ===
+ * Applying a patch by Alexander Dreyer to fix error in some crypto example
+
 === polybori-0.6.4.p2 (Leif Leonhardy, July 10th, 2010) ===
  * Removed Michael Abshoff from maintainer list (see #7738)
  * Deleted Boost source tree again since it was split off into a separate

@@ -20,10 +20,18 @@ See http://networkx.lanl.gov/
  * numpy
  * scipy
 
+== Option Dependencies ==
+ * matplotlib
+
 == Special Update/Build Instructions ==
  * remove the src/doc/data directory containing various pngs
 
 == Changelog ==
+
+=== networkx-1.2.p1 (Ben Edwards, August 10, 2010) ===
+
+* Patches small readwrite which allows for the reading of gml
+  graphs using matplotlibs version of pyparser.
 
 === networkx-1.2 (Ben Edwards, July 20,2010) ===
 

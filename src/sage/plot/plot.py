@@ -40,25 +40,25 @@ The following plotting functions are supported:
 
 -  :func:`polar_plot`
 
--  :func:`region_plot <sage.plot.contour_plot.region_plot>`
+-  :func:`region_plot() <sage.plot.contour_plot.region_plot>`
 
 -  :func:`list_plot`
 
--  :func:`scatter_plot <sage.plot.scatter_plot.scatter_plot>`
+-  :func:`scatter_plot() <sage.plot.scatter_plot.scatter_plot>`
 
--  :func:`bar_chart <sage.plot.bar_chart.bar_chart>`
+-  :func:`bar_chart() <sage.plot.bar_chart.bar_chart>`
 
--  :func:`contour_plot <sage.plot.contour_plot.contour_plot>`
+-  :func:`contour_plot() <sage.plot.contour_plot.contour_plot>`
 
--  :func:`density_plot <sage.plot.density_plot.density_plot>`
+-  :func:`density_plot() <sage.plot.density_plot.density_plot>`
 
--  :func:`plot_vector_field <sage.plot.plot_field.plot_vector_field>`
+-  :func:`plot_vector_field() <sage.plot.plot_field.plot_vector_field>`
 
--  :func:`plot_slope_field <sage.plot.plot_field.plot_slope_field>`
+-  :func:`plot_slope_field() <sage.plot.plot_field.plot_slope_field>`
 
--  :func:`matrix_plot <sage.plot.matrix_plot.matrix_plot>`
+-  :func:`matrix_plot() <sage.plot.matrix_plot.matrix_plot>`
 
--  :func:`complex_plot <sage.plot.complex_plot.complex_plot>`
+-  :func:`complex_plot() <sage.plot.complex_plot.complex_plot>`
 
 -  :func:`graphics_array`
 
@@ -70,7 +70,7 @@ The following miscellaneous Graphics functions are included:
 
 -  :func:`is_Graphics`
 
--  :func:`hue`
+-  :func:`hue() <sage.plot.colors.hue>`
 
 
 Type ``?`` after each primitive in Sage for help and examples.

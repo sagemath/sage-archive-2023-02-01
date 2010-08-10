@@ -514,7 +514,7 @@ def implicit_plot(f, xrange, yrange, **options):
       plotted, one of: solid, dashed, dashdot or dotted.
 
     - ``color`` -- string (default: ``blue``), the color of the plot. Colors are
-      defined in sage.plot.colors.
+      defined in :mod:`sage.plot.colors`; try ``colors?`` to see them all.
 
     - ``legend_label`` -- the label for this item in the legend
 
@@ -552,6 +552,16 @@ def implicit_plot(f, xrange, yrange, **options):
     You can even change the color of the plot::
 
         sage: implicit_plot(x^2+y^2 == 2, (x,-3,3), (y,-3,3), color="red").show(aspect_ratio=1)
+
+    Here is a beautiful (and long) example which also tests that all
+    colors work with this::
+
+        sage: G = Graphics()
+        sage: counter = 0
+        sage: for col in colors.keys(): # long time
+        ...       G += implicit_plot(x^2+y^2==1+counter*.1, (x,-4,4),(y,-4,4),color=col)
+        ...       counter += 1
+        sage: G.show(aspect_ratio=1,frame=False)
 
     We can define a level-`n` approximation of the boundary of the
     Mandelbrot set::

@@ -1,5 +1,5 @@
 """
-Arcs of circle and ellipse
+Arcs of circles and ellipses
 """
 #*****************************************************************************
 #       Copyright (C) 2010 Vincent Delecroix <20100.delecroix@gmail.com>,
@@ -22,15 +22,9 @@ from sage.plot.misc import options, rename_keyword
 
 from math import fmod, floor, sin, cos, sqrt, tan, pi, atan
 
-def is_cyclic_ordered(x1,x2,x3):
-    return (
-      (x1 < x2 and x2 < x3) or
-      (x2 < x3 and x3 < x1) or
-      (x3 < x1 and x1 < x2))
-
 class Arc(GraphicPrimitive):
     """
-    Primitive class for the Arc graphics type.  See arc? for information
+    Primitive class for the Arc graphics type.  See ``arc?`` for information
     about actually plotting an arc of a circle or an ellipse.
 
     INPUT:
@@ -47,7 +41,7 @@ class Arc(GraphicPrimitive):
 
     EXAMPLES:
 
-    Note that the construction should be done using arc::
+    Note that the construction should be done using ``arc``::
 
         sage: from sage.plot.arc import Arc
         sage: print Arc(0,0,1,1,pi/4,pi/4,pi/2,{})
@@ -55,7 +49,7 @@ class Arc(GraphicPrimitive):
     """
     def __init__(self, x, y, r1, r2, angle, s1, s2, options):
         """
-        Initializes base class Arc.
+        Initializes base class ``Arc``.
 
         EXAMPLES:
 
@@ -117,7 +111,7 @@ class Arc(GraphicPrimitive):
             sage: d['ymax']
             5.0
 
-        The same example with a rotation of angle pi/2::
+        The same example with a rotation of angle `\pi/2`::
 
             sage: p = arc((-2, 3), 1, 2, pi/2)
             sage: d = p.get_minmax_data()
@@ -202,6 +196,12 @@ class Arc(GraphicPrimitive):
             aymin = fmod(aymax + pi, twopi)
 
         if s < twopi-epsilon: # bb determined by the sector
+            def is_cyclic_ordered(x1,x2,x3):
+                return (
+                  (x1 < x2 and x2 < x3) or
+                  (x2 < x3 and x3 < x1) or
+                  (x3 < x1 and x1 < x2))
+
             x1 = cos_angle*r1*cos(s1) - sin_angle*r2*sin(s1)
             x2 = cos_angle*r1*cos(s2) - sin_angle*r2*sin(s2)
             y1 = sin_angle*r1*cos(s1) + cos_angle*r2*sin(s1)
@@ -218,7 +218,7 @@ class Arc(GraphicPrimitive):
 
     def _allowed_options(self):
         """
-        Return the allowed options for the Arc class.
+        Return the allowed options for the ``Arc`` class.
 
         EXAMPLES::
 
@@ -235,7 +235,7 @@ class Arc(GraphicPrimitive):
 
     def _repr_(self):
         """
-        String representation of Arc primitive.
+        String representation of ``Arc`` primitive.
 
         EXAMPLES::
 
@@ -274,7 +274,7 @@ class Arc(GraphicPrimitive):
 
     def plot3d(self):
         r"""
-        TESTS:
+        TESTS::
 
             sage: from sage.plot.arc import Arc
             sage: Arc(0,0,1,1,0,0,1,{}).plot3d()
@@ -296,12 +296,12 @@ def arc(center, r1, r2=None, angle=0.0, sector=(0.0,2*pi), **options):
 
     - ``center`` - 2-tuple of real numbers - position of the center.
 
-    - ``r1``, ``r2`` - positive real numbers - radii of the ellipse. If only r1 is set
-      then the two radii are supposed to be equal and this function returns an
-      arc of of circle.
+    - ``r1``, ``r2`` - positive real numbers - radii of the ellipse. If only ``r1``
+      is set, then the two radii are supposed to be equal and this function returns
+      an arc of of circle.
 
     - ``angle`` - real number - angle between the horizontal and the axis that
-      corresponds to r1.
+      corresponds to ``r1``.
 
     - ``sector`` - 2-tuple (default: (0,2*pi))- angles sector in which the arc will
       be drawn.
@@ -320,15 +320,15 @@ def arc(center, r1, r2=None, angle=0.0, sector=(0.0,2*pi), **options):
     EXAMPLES:
 
     Plot an arc of circle centered at (0,0) with radius 1 in the sector
-    (pi/4,3*pi/4)::
+    `(\pi/4,3*\pi/4)`::
 
         sage: arc((0,0), 1, sector=(pi/4,3*pi/4))
 
-    Plot an arc of an ellipse between the angles 0 and pi/2::
+    Plot an arc of an ellipse between the angles 0 and `\pi/2`::
 
         sage: arc((2,3), 2, 1, sector=(0,pi/2))
 
-    Plot an arc of a rotated ellipse between the angles 0 and pi/2::
+    Plot an arc of a rotated ellipse between the angles 0 and `\pi/2`::
 
         sage: arc((2,3), 2, 1, angle=pi/5, sector=(0,pi/2))
 
@@ -336,7 +336,7 @@ def arc(center, r1, r2=None, angle=0.0, sector=(0.0,2*pi), **options):
 
         sage: arc((0,0), 2, 1, 0, (0,pi/2), linestyle="dashed", color="red")
 
-    It is not possible to draw ellipses in 3-D::
+    It is not possible to draw ellipses in 3D::
 
         sage: A = arc((0,0,0), 1)
         Traceback (most recent call last):

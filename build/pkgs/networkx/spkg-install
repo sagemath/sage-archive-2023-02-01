@@ -22,7 +22,8 @@ if [ $? -ne 0]; then
     echo "Error copying patched gml.py"
     exit 1
 fi
-cp patches/test_gml.py src/networx/readwrite/tests
+
+cp patches/test_gml.py src/networkx/readwrite/tests
 if [ $? -ne 0]; then
     echo "Error copying patched test_gml.py"
     exit 1

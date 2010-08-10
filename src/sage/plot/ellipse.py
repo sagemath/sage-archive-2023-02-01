@@ -22,18 +22,18 @@ from math import sin, cos, tan, sqrt, pi, floor, fmod
 
 class Ellipse(GraphicPrimitive):
     """
-    Primitive class for the Ellipse graphics type.  See ellipse? for information
-    about actually plotting ellipses.
+    Primitive class for the ``Ellipse`` graphics type.  See ``ellipse?`` for
+    information about actually plotting ellipses.
 
     INPUT:
 
-    - ``x,y`` - coordinates of the center of the Ellipse
+    - ``x,y`` - coordinates of the center of the ellipse
 
     - ``r1, r2`` - radii of the ellipse
 
     - ``angle`` - angle
 
-    - ``options`` - dictionnary of options
+    - ``options`` - dictionary of options
 
     EXAMPLES:
 
@@ -45,7 +45,7 @@ class Ellipse(GraphicPrimitive):
     """
     def __init__(self, x, y, r1, r2, angle, options):
         """
-        Initializes base class Ellipse.
+        Initializes base class ``Ellipse``.
 
         TESTS::
 
@@ -72,11 +72,11 @@ class Ellipse(GraphicPrimitive):
         """
         Returns a dictionary with the bounding box data.
 
-        The bounding box is computed as minimal as possible.
+        The bounding box is computed to be as minimal as possible.
 
         EXAMPLES:
 
-        An example without angle::
+        An example without an angle::
 
             sage: p = ellipse((-2, 3), 1, 2)
             sage: d = p.get_minmax_data()
@@ -89,7 +89,7 @@ class Ellipse(GraphicPrimitive):
             sage: d['ymax']
             5.0
 
-        The same example with a rotation of angle pi/2::
+        The same example with a rotation of angle `\pi/2`::
 
             sage: p = ellipse((-2, 3), 1, 2, pi/2)
             sage: d = p.get_minmax_data()
@@ -131,7 +131,7 @@ class Ellipse(GraphicPrimitive):
 
     def _allowed_options(self):
         """
-        Return the allowed options for the Ellipse class.
+        Return the allowed options for the ``Ellipse`` class.
 
         EXAMPLES::
 
@@ -153,7 +153,7 @@ class Ellipse(GraphicPrimitive):
 
     def _repr_(self):
         """
-        String representation of Ellipse primitive.
+        String representation of ``Ellipse`` primitive.
 
         TESTS::
 
@@ -186,7 +186,7 @@ class Ellipse(GraphicPrimitive):
 
     def plot3d(self):
         r"""
-        Plot 3d is not implemented.
+        Plotting in 3D is not implemented.
 
         TESTS::
 
@@ -202,8 +202,8 @@ class Ellipse(GraphicPrimitive):
 @options(alpha=1, fill=False, thickness=1, edgecolor='black', facecolor='red', linestyle='solid', zorder=5)
 def ellipse(center, r1, r2, angle=0, **options):
     """
-    Return an ellipse centered at a point center = `(x,y)` with radii =
-    `r1,r2` and angle ``angle``.  Type ``ellipse.options`` to see all
+    Return an ellipse centered at a point center = ``(x,y)`` with radii =
+    ``r1,r2`` and angle ``angle``.  Type ``ellipse.options`` to see all
     options.
 
     INPUT:
@@ -219,11 +219,12 @@ def ellipse(center, r1, r2, angle=0, **options):
 
     - ``alpha`` - default: 1 - transparency
 
-    - ``fill`` - default: False - fill or not the ellipse
+    - ``fill`` - default: False - whether to fill the ellipse or not
 
     - ``thickness`` - default: 1 - thickness of the line
 
-    - ``rgbcolor`` - default: (0,0,0) - color of the ellipse (overwrites edgecolor and facecolor)
+    - ``rgbcolor`` - default: (0,0,0) - color of the ellipse
+      (overwrites ``edgecolor`` and ``facecolor``)
 
     - ``linestyle`` - default: 'solid'
 
@@ -242,12 +243,12 @@ def ellipse(center, r1, r2, angle=0, **options):
         sage: ellipse((0,0),3,1,pi/6,fill=True,alpha=0.3)
         sage: ellipse((0,0),3,1,pi/6,fill=True,edgecolor='blue',facecolor='red')
 
-    One can not yet plot ellipse in 3d::
+    One cannot yet plot ellipses in 3D::
 
         sage: ellipse((0,0,0),2,1)
         Traceback (most recent call last):
         ...
-        NotImplementedError: plotting ellipse in 3d is not implemented
+        NotImplementedError: plotting ellipse in 3D is not implemented
     """
     from sage.plot.plot import Graphics
     g = Graphics()
@@ -256,4 +257,4 @@ def ellipse(center, r1, r2, angle=0, **options):
     if len(center)==2:
         return g
     elif len(center)==3:
-        raise NotImplementedError, "plotting ellipse in 3d is not implemented"
+        raise NotImplementedError, "plotting ellipse in 3D is not implemented"

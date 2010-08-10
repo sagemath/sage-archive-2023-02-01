@@ -7085,6 +7085,7 @@ def substitute_variables(vec, BooleanPolynomial poly):
     ``var(i)`` is replaced by ``vec[i]`` in ``poly``.
 
     EXAMPLE::
+
         sage: B.<a,b,c> = BooleanPolynomialRing()
         sage: f = a*b + c + 1
         sage: from polybori import substitute_variables
@@ -7096,6 +7097,17 @@ def substitute_variables(vec, BooleanPolynomial poly):
         a*b + a + b + c
         sage: substitute_variables([a+1,b+1,B(0)],f)
         a*b + a + b
+
+    Substitution is also allowed with different rings::
+
+        sage: B.<a,b,c> = BooleanPolynomialRing()
+        sage: f = a*b + c + 1
+        sage: B.<w,x,y,z> = BooleanPolynomialRing(order='deglex')
+
+        sage: from polybori import substitute_variables
+        sage: substitute_variables([x,y,z], f) * w
+        w*x*y + w*z + w
+
     """
     cdef BooleanPolynomialVector _vec
 
@@ -7105,7 +7117,7 @@ def substitute_variables(vec, BooleanPolynomial poly):
         _vec = BooleanPolynomialVector()
         for f in vec:
             _vec.append(f)
-    return new_BP_from_PBPoly((<BooleanPolynomialRing>poly._parent), pb_substitute_variables(_vec._vec, poly._pbpoly))
+    return new_BP_from_PBPoly((<BooleanPolynomialRing>_vec._parent), pb_substitute_variables(_vec._vec, poly._pbpoly))
 
 
 def set_random_seed(seed):

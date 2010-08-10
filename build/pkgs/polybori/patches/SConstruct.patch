@@ -1,5 +1,5 @@
---- ../src/polybori-0.6.4/SConstruct	2010-01-29 01:02:02.000000000 -0800
-+++ SConstruct	2010-04-27 00:22:46.000000000 -0700
+--- ../src/polybori-0.6.4/SConstruct	2010-01-29 10:02:02.000000000 +0100
++++ SConstruct	2010-08-10 23:01:27.362127000 +0200
 @@ -164,7 +164,14 @@
      else:
          print "Flags", flag, "not in default environment!"        
@@ -34,6 +34,15 @@
          env.Append(CPPDEFINES=["HAVE_GD"])
      if external_m4ri:
         env['LIBS'] += ['m4ri']
+@@ -409,7 +416,7 @@
+        env['CPPPATH'] += ['M4RI']
+ 
+        # generate M4RI/m4ri, to allow canonical #include <m4ri/m4ri.h>
+-       if not path.exists(m4ri_inc):
++       if not (external_m4ri) and not (path.exists(m4ri_inc)):
+            print "Symlinking to", m4ri_inc, "..."
+            os.symlink('.', m4ri_inc)
+ 
 @@ -530,8 +537,11 @@
  slib = env.SharedLibrary
  if env['SHLIBVERSIONING']:

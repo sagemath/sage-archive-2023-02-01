@@ -17,8 +17,8 @@ SCONS=scons
 
 #BOOSTDIR=boost_1_34_1.cropped	# obsolete, only used by spkg-install
 #BOOSTINCDIR=${WORKDIR}/${BOOSTDIR}
-BOOSTINCDIR=${SAGE_LOCAL}/include/boost # we now only use that; Boost is a standard spkg
-export BOOSTINCDIR # used by scons
+#BOOSTINCDIR=${SAGE_LOCAL}/include/boost # we now only use that; Boost is a standard spkg
+#export BOOSTINCDIR # used by scons - that's also obsolete
 
 patch()
 {

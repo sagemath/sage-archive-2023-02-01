@@ -28,8 +28,9 @@ if os.environ.get('SAGE64', "no") == "yes":
     # LINKFLAGS=["-m64"]
     LINKFLAGS=["-m64"] + LINKFLAGS
 
-# (BOOSTINCDIR is set and now exported in spkg-install:)
-CPPPATH=[os.environ['BOOSTINCDIR']]+[os.environ['SAGE_LOCAL']+"/include"]
+CPPPATH=[os.environ['SAGE_LOCAL']+"/include"]
+LIBPATH=[os.environ['SAGE_LOCAL']+"/lib"]
+
 PYPREFIX=os.environ['PYTHONHOME']
 PBP=os.environ['PYTHONHOME']+'/bin/python'
 

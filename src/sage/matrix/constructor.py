@@ -24,7 +24,7 @@ from sage.structure.element import is_Vector
 from sage.structure.sequence import Sequence
 from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
-from sage.rings.integer_ring import ZZ
+from sage.rings.all import ZZ, QQ
 from sage.misc.misc_c import running_total
 from matrix import is_Matrix
 from copy import copy
@@ -1235,3 +1235,354 @@ def jordan_block(eigenvalue, size, sparse=False):
         block[i,i+1]=1
     return block
 
+def random_rref_matrix(num_row, num_col, num_pivots,ring=QQ):
+    r"""
+    Generate a matrix already in reduced row-echelon form with the desired row dimension, column dimension, and rank over the designated ring.
+
+    INPUT:
+
+    - ``num_row`` - The number of rows desired for the return matrix.
+
+    - ``num_col`` - The number of columns desired for the return matrix.
+
+    - ``num_pivots`` - The desired rank of the return matrix.
+
+    - ``ring`` - The desired ring for the return matrix to be built over.
+
+    OUTPUT:
+
+    A matrix in reduced row echelon form with dimensions ``num_row`` x ``num_col`` and a rank of
+    ``num_pivot``.
+
+    EXAMPLES:
+
+    Matrices generated are in reduced row-echelon form with the default ring of QQ and specified rank. ::
+
+        sage: from sage.matrix.constructor import random_rref_matrix
+        sage: A=random_rref_matrix(5,6,4); A # random
+        [ 1  0  0 -6  0 -3]
+        [ 0  1  0  2  0  3]
+        [ 0  0  1 -4  0 -2]
+        [ 0  0  0  0  1  3]
+        [ 0  0  0  0  0  0]
+        sage: A.rank()
+        4
+        sage: A.base_ring()
+        Rational Field
+        sage: A==A.rref()
+        True
+
+    Matrices can be generated over other fields. ::
+
+        sage: B=random_rref_matrix(4,4,3,GF(7)); B # random
+        [1 0 0 0]
+        [0 1 0 6]
+        [0 0 1 4]
+        [0 0 0 0]
+        sage: B.base_ring()
+        Finite Field of size 7
+        sage: B==B.rref()
+        True
+
+    TESTS:
+
+    Row dimension input for a matrix must be whole valued. ::
+
+       sage: random_rref_matrix(66.9,19,12)
+       Traceback (most recent call last):
+       ...
+       TypeError: inputs for matrix dimensions and rank must be integers.
+
+    Column dimension input for a matrix must be whole valued. ::
+
+       sage: random_rref_matrix(31,74.2,6)
+       Traceback (most recent call last):
+       ...
+       TypeError: inputs for matrix dimensions and rank must be integers.
+
+    Rank input of a matrix must be whole valued. ::
+
+        sage: random_rref_matrix(120,56,61/2)
+        Traceback (most recent call last):
+        ...
+        TypeError: inputs for matrix dimensions and rank must be integers.
+
+    Matrices must be generated over exact fields. ::
+
+       sage: random_rref_matrix(40,88,39,RR)
+       Traceback (most recent call last):
+       ...
+       TypeError: input ring must be exact.
+
+    Matrices must have the number of pivot columns be less than or equal to the number of rows. ::
+
+        sage: C=random_rref_matrix(6,4,7); C
+        Traceback (most recent call last):
+        ...
+        ValueError: number of pivot column cannot exceed the number of rows or columns.
+
+    Matrices must have the number of pivot columns be less than or equal to the number of columns. ::
+
+        sage: D=random_rref_matrix(1,3,5); D
+        Traceback (most recent call last):
+        ...
+        ValueError: number of pivot column cannot exceed the number of rows or columns.
+
+    Matrices must have the number of pivot columns be greater than zero. ::
+
+        sage: random_rref_matrix(5,4,0)
+        Traceback (most recent call last):
+        ...
+        ValueError: matrices must have dimensions and rank greater than zero.
+
+    AUTHOR:
+
+    Billy Wonderly (2010-07)
+    """
+
+    import sage.gsl.probability_distribution as pd
+    from sage.misc.prandom import randint
+
+    try:
+        num_row=ZZ(num_row)
+        num_col=ZZ(num_col)
+        num_pivots=ZZ(num_pivots)
+    except TypeError:
+        raise TypeError("inputs for matrix dimensions and rank must be integers.")
+    if not ring.is_exact():
+        raise TypeError("input ring must be exact.")
+    if num_pivots>num_row or num_pivots>num_col:
+        raise ValueError("number of pivot column cannot exceed the number of rows or columns.")
+    if num_pivots<=0:
+        raise ValueError("matrices must have dimensions and rank greater than zero.")
+    else:
+        one=ring.one()
+        # Create a matrix of the desired size to be modified and then returned.
+        return_matrix=matrix(ring,num_row,num_col)
+        pivots=[0] #Force first column to be a pivot.
+        # Probability distribution for the placement of leading one's.
+        pivot_generator=pd.RealDistribution("beta",[1.6,4.3])
+        while len(pivots)<num_pivots:
+            pivot_column=int(pivot_generator.get_random_element()*num_col)
+            if pivot_column not in pivots:
+                pivots.append(pivot_column)
+        pivots.sort()
+        pivot_row=0
+        # Use the list of pivot columns to set the pivot entries of the return_matrix to leading ones.
+        while pivot_row<num_pivots:
+            return_matrix[pivot_row,pivots[pivot_row]]=one
+            pivot_row+=1
+        if ring==QQ or ring==ZZ:
+            # Keep track of the non-pivot columns by using the pivot_index, start at the first column to
+            # the right of the initial pivot column, go until the first column to the left of the next
+            # pivot column.
+            for pivot_index in range(num_pivots-1):
+                for non_pivot_column_index in range(pivots[pivot_index]+1,pivots[pivot_index+1]):
+                    entry_generator1=pd.RealDistribution("beta",[6,4])
+                    # Experimental distribution used to generate the values.
+                    for non_pivot_column_entry in range(pivot_index+1):
+                        sign1=(2*randint(0,1)-1)
+                        return_matrix[non_pivot_column_entry,non_pivot_column_index]=sign1*int(entry_generator1.get_random_element()*((1-non_pivot_column_entry/return_matrix.ncols())*7))
+            # Use index to fill entries of the columns to the right of the last pivot column.
+            for rest_non_pivot_column in range(pivots[num_pivots-1]+1,num_col):
+                entry_generator2=pd.RealDistribution("beta",[2.6,4])
+                # experimental distribution to generate small values.
+                for rest_entries in range(num_pivots):
+                    sign2=(2*randint(0,1)-1)
+                    return_matrix[rest_entries,rest_non_pivot_column]=sign2*int(entry_generator2.get_random_element()*5)
+        else:
+            for pivot_index in range(num_pivots-1):
+                for non_pivot_column_index in range(pivots[pivot_index]+1,pivots[pivot_index+1]):
+                    for non_pivot_column_entry in range(pivot_index+1):
+                            return_matrix[non_pivot_column_entry,non_pivot_column_index]=ring.random_element()
+            for rest_non_pivot_column in range(pivots[num_pivots-1]+1,num_col):
+                for rest_entries in range(num_pivots):
+                    return_matrix[rest_entries,rest_non_pivot_column]=ring.random_element()
+    return return_matrix
+
+def random_echelonizable_matrix(rows,columns,rank,upper_bound=None,ring=QQ):
+    r"""
+    Generate a matrix of a desired size and rank, over a desired ring, whose reduced
+    row-echelon form has only integral values.
+
+    INPUT:
+
+    - ``rows`` - The row dimension of the desired matrix, taking only integers greater than zero.
+
+    - ``columns`` - The column dimension of the desired matrix, taking only integers greater than zero.
+
+    - ``rank`` - The desired rank, or number of leading ones, for the return matrix.
+
+    - ``upper_bound`` - If designated, size control of the matrix entries is desired, ``upper_bound`` is 1 + the maximum value entries can achieve.
+      If None, no size control occurs. (default: None)
+
+    - ``ring`` - The desired ring for the matrix to be generated over (default: QQ).
+
+
+    OUTPUT:
+
+    A matrix not in reduced row-echelon form with the desired dimensions and properties.
+
+    EXAMPLES:
+
+    Generated matrices have the desired dimensions, rank and entry size. The matrix in reduced row-echelon form has only integer entries. ::
+
+        sage: from sage.matrix.constructor import random_echelonizable_matrix
+        sage: A=random_echelonizable_matrix(5,6,4,upper_bound=40,ring=QQ); A # random
+        [  1  -1   1  -3  -4   6]
+        [  5  -4   0   8   4  19]
+        [ -3   3  -2   4   7 -16]
+        [ -4   5  -7  26  31 -31]
+        [  2  -3   4 -11 -14  17]
+        sage: A.rank()
+        4
+        sage: max(map(abs,A.list()))<40
+        True
+        sage: A.rref()==A.rref().change_ring(ZZ)
+        True
+
+    An example with default settings (ring=QQ, no entry size control). ::
+
+        sage: C=random_echelonizable_matrix(6,7,5); C # random
+        [  1   0   5  -2 -26 -16   0]
+        [ -3   1 -19   6  97  61   1]
+        [  0   4 -15  -1  71  50   3]
+        [  2   4  -9   0  39  25   8]
+        [  2   2   3  -3 -18  -9   3]
+        [ -3  -4  -2  14  14  -6   4]
+        sage: C.rank()
+        5
+        sage: C.rref()==C.rref().change_ring(ZZ)
+        True
+
+    A matrix without size control may have very large entry sizes. ::
+
+        sage: D=random_echelonizable_matrix(7,8,6,ring=ZZ); D # random
+        [    9   -53  -255    45 -1519  4043  9819  3324]
+        [    3   -14   -64     8  -369   972  2350   810]
+        [    2   -14   -65     9  -377  1000  2420   829]
+        [    4   -24  -116    21  -693  1846  4485  1516]
+        [   -3    14    68   -16   426 -1134 -2767  -919]
+        [   -5    21    92   -13   548 -1432 -3466 -1183]
+        [    1    -9   -42     7  -254   670  1624   547]
+
+    Matrices can be generated over a different ring. ::
+
+        sage: F.<a>=GF(2^3)
+        sage: B=random_echelonizable_matrix(4,5,4,None,F); B # random
+        [      a + 1 a^2 + a + 1         a^2           0           1]
+        [          1           a       a + 1         a^2     a^2 + a]
+        [          a         a^2 a^2 + a + 1       a + 1           1]
+        [          1           0 a^2 + a + 1           0     a^2 + 1]
+        sage: B.rank()
+        4
+
+    Square matrices over ZZ or QQ with full rank are unimodular. ::
+
+        sage: E=random_echelonizable_matrix(7,7,7); E # random
+        [  1  -1   5  12 -24 -41  47]
+        [  0   1  -1   3   0 -11  40]
+        [  1  -1   6   6 -19 -20 -11]
+        [ -2   1 -10 -12  35  44  -4]
+        [  3  -1   9   7 -35 -40 -18]
+        [  0   0   0  -4   4  13 -32]
+        [  3  -3  11   6 -33 -31 -35]
+        sage: det(E)
+        1
+
+    TESTS:
+
+    Matrices must have a row dimension greater than zero. ::
+
+        sage: random_echelonizable_matrix(0,5,3)
+        Traceback (most recent call last):
+        ...
+        ValueError: matrices must have dimensions and rank greater than zero.
+
+    Matrices must have a column dimension greater than zero. ::
+
+        sage: random_echelonizable_matrix(9,0,4)
+        Traceback (most recent call last):
+        ...
+        ValueError: matrices must have dimensions and rank greater than zero.
+
+    Matrices must have a rank greater than zero. ::
+
+        sage: random_echelonizable_matrix(3,4,0)
+        Traceback (most recent call last):
+        ...
+        ValueError: matrices must have dimensions and rank greater than zero.
+
+    AUTHOR:
+
+    Billy Wonderly (2010-07)
+    """
+
+    from sage.misc.prandom import randint
+
+    if rows<=0 or columns<=0 or rank<=0:
+        raise ValueError("matrices must have dimensions and rank greater than zero.")
+    # Entries of matrices over the ZZ or QQ can get large, entry size is regulated by finding the largest
+    # entry of the resultant matrix after addition of scalar multiple of a row.
+    if ring==QQ or ring==ZZ:
+        matrix=random_rref_matrix(rows,columns,rank,ring)
+        matrix_copy=copy(matrix)
+        # If upper_bound is not set, don't control entry size.
+        if upper_bound==None:
+            upper_bound=50
+            size=False
+        else:
+            size=True
+        if size:
+            for pivots in range(len(matrix.pivots())-1,-1,-1):
+            # keep track of the pivot column positions from the pivot column with the largest index to
+            # the one with the smallest.
+                row_index=0
+                while row_index<rows:
+                    # To each row in a pivot column add a scalar multiple of the pivot row.
+                    if pivots!=row_index:
+                    # To ensure a leading one is not removed by the addition of the pivot row by its
+                    # additive inverse.
+                        matrix_copy=matrix.with_added_multiple_of_row(row_index,matrix.pivot_rows()[pivots],randint(-5,5))
+                        # Range for scalar multiples determined experimentally.
+                    if max(map(abs,matrix_copy.list()))<upper_bound:
+                    # Continue if the the largest entry after a row operation is within the bound.
+                        matrix=matrix_copy
+                        row_index+=1
+            # The leading one in row one has not been altered, so add a scalar multiple of a random row
+            # to row one.
+            row1=0
+            if rows>1:
+                while row1<1:
+                    matrix_copy=matrix.with_added_multiple_of_row(0,randint(1,rows-1),randint(-3,3))
+                    if max(map(abs,matrix_copy.list()))<upper_bound:
+                        matrix=matrix_copy
+                        row1+=1
+        # If size control is not desired, the routine will run slightly faster, particularly with large matrices.
+        else:
+            for pivots in range(rank-1,-1,-1):
+                row_index=0
+                while row_index<rows:
+                    if pivots==row_index:
+                        row_index+=1
+                    if pivots!=row_index and row_index!=rows:
+                        matrix.add_multiple_of_row(row_index,matrix.pivot_rows()[pivots],randint(-5,5))
+                        row_index+=1
+            if rows>1:
+                matrix.add_multiple_of_row(0,randint(1,rows-1),randint(-3,3))
+    # If the matrix generated over a different ring, random elements from the designated ring are used as and
+    # the routine is run similarly to the size unchecked version for rationals and integers.
+    else:
+        matrix=random_rref_matrix(rows,columns,rank,ring)
+        matrix_copy=copy(matrix)
+        for pivots in range(rank-1,-1,-1):
+            row_index=0
+            while row_index<rows:
+                if pivots==row_index:
+                    row_index+=1
+                if pivots!=row_index and row_index!=rows:
+                    matrix.add_multiple_of_row(row_index,matrix.pivot_rows()[pivots],ring.random_element())
+                    row_index+=1
+        if rows>1:
+            matrix.add_multiple_of_row(0,randint(1,rows-1),ring.random_element())
+    return matrix

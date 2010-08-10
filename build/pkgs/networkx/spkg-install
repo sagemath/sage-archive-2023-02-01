@@ -18,12 +18,12 @@ echo "Patching"
 # as pyparsing is not included in the base install of sage
 # but is included in matplotlib.
 cp patches/gml.py src/networkx/readwrite
-if [ $? -ne 0] then
+if [ $? -ne 0]; then
     echo "Error copying patched gml.py"
     exit 1
 fi
 cp patches/test_gml.py src/networx/readwrite/tests
-if [ $? -ne 0] then
+if [ $? -ne 0]; then
     echo "Error copying patched test_gml.py"
     exit 1
 fi

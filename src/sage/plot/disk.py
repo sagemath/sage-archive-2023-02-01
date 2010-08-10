@@ -24,20 +24,20 @@ from math import sin, cos, pi
 
 class Disk(GraphicPrimitive):
     """
-    Primitive class for the Disk graphics type.  See disk? for information
-    about actually plotting a disk (the Sage term for a sector or wedge
-    of a circle).
+    Primitive class for the ``Disk`` graphics type.  See ``disk?`` for
+    information about actually plotting a disk (the Sage term for a sector
+    or wedge of a circle).
 
     INPUT:
 
-    - point - coordinates of center of Disk
+    - ``point`` - coordinates of center of disk
 
-    - r - radius of Disk object
+    - ``r`` - radius of disk
 
-    - angle - beginning and ending angles of Disk object (i.e.
+    - ``angle`` - beginning and ending angles of disk (i.e.
       angle extent of sector/wedge)
 
-    - options - dict of valid plot options to pass to constructor
+    - ``options`` - dict of valid plot options to pass to constructor
 
     EXAMPLES:
 
@@ -60,7 +60,7 @@ class Disk(GraphicPrimitive):
     """
     def __init__(self, point, r, angle, options):
         """
-        Initializes base class Disk.
+        Initializes base class ``Disk``.
 
         EXAMPLES::
 
@@ -75,6 +75,8 @@ class Disk(GraphicPrimitive):
             'red'
             sage: D[0].options()['alpha']
             0.500000000000000
+            sage: print loads(dumps(D))
+            Graphics object consisting of 1 graphics primitive
         """
         self.x = float(point[0])
         self.y = float(point[1])
@@ -87,7 +89,8 @@ class Disk(GraphicPrimitive):
         """
         Returns a dictionary with the bounding box data.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: D = disk((5,4), 1, (pi/2, pi))
             sage: d = D.get_minmax_data()
             sage: d['xmin']
@@ -107,7 +110,7 @@ class Disk(GraphicPrimitive):
 
     def _allowed_options(self):
         """
-        Return the allowed options for the Disk class.
+        Return the allowed options for the ``Disk`` class.
 
         EXAMPLES::
 
@@ -126,7 +129,7 @@ class Disk(GraphicPrimitive):
 
     def _repr_(self):
         """
-        String representation of Disk primitive.
+        String representation of ``Disk`` primitive.
 
         EXAMPLES::
 
@@ -172,7 +175,7 @@ class Disk(GraphicPrimitive):
 
         - Karl-Dieter Crisman (05-09)
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: disk((0,0), 1, (0, pi/2)).plot3d()
             sage: disk((0,0), 1, (0, pi/2)).plot3d(z=2)
@@ -186,6 +189,7 @@ class Disk(GraphicPrimitive):
             0.300000000000000
 
         ::
+
             sage: D = disk((2,3), 1, (pi/4,pi/3), hue=.8, alpha=.3, fill=False)
             sage: d = D[0]
             sage: dd = d.plot3d(z=2)
@@ -256,14 +260,14 @@ def disk(point, radius, angle, **options):
     as ways of specifying the color of the graphic.
 
     We can also use this command to plot three-dimensional disks parallel
-    to the `xy`-plane.
+    to the `xy`-plane::
 
         sage: d = disk((1,1,3), 1, (pi,3*pi/2), rgbcolor=(1,0,0))
         sage: d
         sage: type(d)
         <type 'sage.plot.plot3d.index_face_set.IndexFaceSet'>
 
-    Extra options will get passed on to show(), as long as they are valid::
+    Extra options will get passed on to ``show()``, as long as they are valid::
 
         sage: disk((0, 0), 5, (0, pi/2), xmin=0, xmax=5, ymin=0, ymax=5, figsize=(2,2), rgbcolor=(1, 0, 1))
         sage: disk((0, 0), 5, (0, pi/2), rgbcolor=(1, 0, 1)).show(xmin=0, xmax=5, ymin=0, ymax=5, figsize=(2,2)) # These are equivalent

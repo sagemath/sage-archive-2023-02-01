@@ -149,6 +149,7 @@ Or you can create a homomorphism from one lattice to any other::
 from sage.geometry.toric_lattice_element import (ToricLatticeElement,
                                                  is_ToricLatticeElement)
 from sage.misc.all import latex, parent
+from sage.modules.all import vector
 from sage.modules.fg_pid.fgp_element import FGP_Element
 from sage.modules.fg_pid.fgp_module import FGP_Module_class
 from sage.modules.free_module import (FreeModule_ambient_pid,
@@ -391,11 +392,28 @@ class ToricLattice_generic(FreeModule_generic_pid):
 
             sage: N(0)
             N(0, 0, 0)
+
+        Quotients of toric lattices can be converted to a new toric
+        lattice of the appropriate dimension::
+
+            sage: N3 = ToricLattice(3, 'N3')
+            sage: Q = N3 / N3.span([ N(1,2,3) ])
+            sage: Q.an_element()
+            N3[0, 0, 1]
+            sage: N2 = ToricLattice(2, 'N2')
+            sage: N2( Q.an_element() )
+            N2(1, 0)
         """
         supercall = super(ToricLattice_generic, self).__call__
         if args == (0, ):
             # Special treatment for N(0) to return (0,...,0)
             return supercall(*args, **kwds)
+
+        if (isinstance(args[0], ToricLattice_quotient_element)
+            and args[0].parent().is_torsion_free()):
+            # convert a torsion free quotient lattice
+            return supercall(list(args[0]), **kwds)
+
         try:
             coordinates = map(ZZ, args)
         except TypeError:
@@ -470,7 +488,7 @@ class ToricLattice_generic(FreeModule_generic_pid):
         """
         return None
 
-    def quotient(self, sub, check=True):
+    def quotient(self, sub, check=True, positive_point=None, positive_dual_point=None):
         """
         Return the quotient of ``self`` by the given sublattice ``sub``.
 
@@ -481,14 +499,32 @@ class ToricLattice_generic(FreeModule_generic_pid):
         - ``check`` -- (default: True) whether or not to check that ``sub`` is
           a valid sublattice.
 
+        If the quotient is one-dimensional and torsion free, the
+        following two mutually exclusive keyword arguments are also
+        allowed. They decide the sign choice for the (single)
+        generator of the quotient lattice:
+
+        - ``positive_point`` -- a lattice point of ``self`` not in the
+          sublattice ``sub`` (that is, not zero in the quotient
+          lattice). The quotient generator will be in the same
+          direction as ``positive_point``.
+
+        - ``positive_dual_point`` -- a dual lattice point. The
+          quotient generator will be chosen such that its lift has a
+          positive product with ``positive_dual_point``. Note: if
+          ``positive_dual_point`` is not zero on the sublattice
+          ``sub``, then the notion of positivity will depend on the
+          choice of lift!
+
         EXAMPLES::
 
             sage: N = ToricLattice(3)
             sage: Ns = N.submodule([N(2,4,0), N(9,12,0)])
             sage: Q = N/Ns
             sage: Q
-            Torsion quotient of 3-d lattice N
-            by Sublattice <N(1, 8, 0), N(0, 12, 0)>
+            Quotient with torsion of 3-d lattice N by Sublattice <N(1, 8, 0), N(0, 12, 0)>
+
+        See :class:`ToricLattice_quotient` for more examples.
         """
         if check:
             try:
@@ -496,7 +532,9 @@ class ToricLattice_generic(FreeModule_generic_pid):
             except (TypeError, ArithmeticError):
                 raise ArithmeticError("cannot interpret %s as a sublattice "
                                       "of %s!" % (sub, self))
-        return ToricLattice_quotient(self, sub, check=False)
+        return ToricLattice_quotient(self, sub, check=False,
+                                     positive_point=positive_point,
+                                     positive_dual_point=positive_dual_point)
 
     def span(self, *args, **kwds):
         """
@@ -518,9 +556,9 @@ class ToricLattice_generic(FreeModule_generic_pid):
             vector space.
 
         See also :meth:`span_of_basis`,
-        meth:`~sage.modules.free_module.FreeModule_generic_pid.submodule`,
+        :meth:`~sage.modules.free_module.FreeModule_generic_pid.submodule`,
         and
-        meth:`~sage.modules.free_module.FreeModule_generic_pid.submodule_with_basis`,
+        :meth:`~sage.modules.free_module.FreeModule_generic_pid.submodule_with_basis`,
 
         EXAMPLES::
 
@@ -566,9 +604,9 @@ class ToricLattice_generic(FreeModule_generic_pid):
             vector space.
 
         See also :meth:`span`,
-        meth:`~sage.modules.free_module.FreeModule_generic_pid.submodule`,
+        :meth:`~sage.modules.free_module.FreeModule_generic_pid.submodule`,
         and
-        meth:`~sage.modules.free_module.FreeModule_generic_pid.submodule_with_basis`,
+        :meth:`~sage.modules.free_module.FreeModule_generic_pid.submodule_with_basis`,
 
         EXAMPLES::
 
@@ -922,6 +960,22 @@ class ToricLattice_quotient(FGP_Module_class):
     - ``check`` -- (default: ``True``) whether to check correctness of input
       or not.
 
+    If the quotient is one-dimensional and torsion free, the following
+    two mutually exclusive keyword arguments are also allowed. They
+    decide the sign choice for the (single) generator of the quotient
+    lattice:
+
+    - ``positive_point`` -- a lattice point of ``self`` not in the
+      sublattice ``sub`` (that is, not zero in the quotient
+      lattice). The quotient generator will be in the same direction
+      as ``positive_point``.
+
+    - ``positive_dual_point`` -- a dual lattice point. The quotient
+      generator will be chosen such that its lift has a positive
+      product with ``positive_dual_point``. Note: if
+      ``positive_dual_point`` is not zero on the sublattice ``sub``,
+      then the notion of positivity will depend on the choice of lift!
+
     OUTPUT:
 
     - quotient of ``V`` by ``W``.
@@ -935,9 +989,95 @@ class ToricLattice_quotient(FGP_Module_class):
         sage: sublattice = N.submodule([(1,1,0), (3,2,1)])
         sage: Q = N/sublattice
         sage: Q
-        1-d lattice, quotient of 3-d lattice N
-        by Sublattice <N(1, 0, 1), N(0, 1, -1)>
+        1-d lattice, quotient of 3-d lattice N by Sublattice <N(1, 0, 1), N(0, 1, -1)>
+        sage: Q.gens()
+        (N[0, 0, 1],)
+
+    Here, ``sublattice`` happens to be of codimension one in ``N``. If
+    you want to prescribe the sign of the quotient generator, you can
+    do either::
+
+        sage: Q = N.quotient(sublattice, positive_point=N(0,0,-1)); Q
+        1-d lattice, quotient of 3-d lattice N by Sublattice <N(1, 0, 1), N(0, 1, -1)>
+        sage: Q.gens()
+        (N[0, 0, -1],)
+
+    or::
+
+        sage: M = N.dual()
+        sage: Q = N.quotient(sublattice, positive_dual_point=M(0,0,-1)); Q
+        1-d lattice, quotient of 3-d lattice N by Sublattice <N(1, 0, 1), N(0, 1, -1)>
+        sage: Q.gens()
+        (N[0, 0, -1],)
+
+    TESTS::
+
+        sage: loads(dumps(Q)) == Q
+        True
+        sage: loads(dumps(Q)).gens() == Q.gens()
+        True
     """
+
+    def __init__(self, V, W, check=True, positive_point=None, positive_dual_point=None):
+        r"""
+        The constructor
+
+        See :class:`ToricLattice_quotient` for an explanation of the arguments.
+
+        EXAMPLES::
+
+            sage: N = ToricLattice(3)
+            sage: from sage.geometry.toric_lattice import ToricLattice_quotient
+            sage: ToricLattice_quotient(N, N.span([N(1,2,3)]))
+            2-d lattice, quotient of 3-d lattice N by Sublattice <N(1, 2, 3)>
+        """
+        super(ToricLattice_quotient, self).__init__(V, W, check)
+        if (positive_point, positive_dual_point) == (None, None):
+            self._flip_sign_of_generator = False
+            return
+
+        self._flip_sign_of_generator = False
+        assert self.is_torsion_free() and self.ngens()==1, \
+            'You may only specify a positive direction in the codimension one case.'
+        quotient_generator = self.gen(0)
+        lattice = self.V().ambient_module()
+        if (positive_point!=None) and (positive_dual_point==None):
+            assert positive_point in lattice, 'positive_point must be a lattice point.'
+            point_quotient = self(positive_point)
+            scalar_product = quotient_generator.vector()[0] * point_quotient.vector()[0]
+            if scalar_product==0:
+                raise ValueError, str(positive_point)+' is zero in the quotient.'
+        elif (positive_point==None) and (positive_dual_point!=None):
+            assert positive_dual_point in lattice.dual(), 'positive_point must be a dual lattice point.'
+            scalar_product = quotient_generator.lift() * positive_dual_point
+            if scalar_product==0:
+                raise ValueError, str(positive_dual_point)+' is zero in the lift of the quotient generator.'
+        else:
+            raise ValueError, 'You may not specify both positive_point and positive_dual_point.'
+        self._flip_sign_of_generator = (scalar_product<0)
+
+    def gens(self):
+        """
+        Return the generators of the quotient.
+
+        OUTPUT:
+
+        A tuple of :class:`ToricLattice_quotient_element` generating
+        the quotient.
+
+        EXAMPLES::
+
+            sage: N = ToricLattice(3)
+            sage: Q = N.quotient(N.span([N(1,2,3), N(0,2,1)]), positive_point=N(0,-1,0))
+            sage: Q.gens()
+            (N[0, -1, 0],)
+        """
+        gens = self.smith_form_gens()
+        if self._flip_sign_of_generator:
+            assert len(gens)==1
+            return (-gens[0],)
+        else:
+            return gens
 
     # As in many other cases, it is bad to override this function from the
     # point of view of the coercion model, but we don't have much choice
@@ -1041,7 +1181,7 @@ class ToricLattice_quotient(FGP_Module_class):
             sage: Ns = N.submodule([N(2,4,0), N(9,12,0)])
             sage: Q = N/Ns
             sage: print Q._repr_()
-            Torsion quotient of 3-d lattice N
+            Quotient with torsion of 3-d lattice N
             by Sublattice <N(1, 8, 0), N(0, 12, 0)>
             sage: Ns = N.submodule([N(1,4,0)])
             sage: Q = N/Ns
@@ -1053,7 +1193,7 @@ class ToricLattice_quotient(FGP_Module_class):
             return "%d-d lattice, quotient of %s by %s" % (self.rank(),
                                                            self.V(), self.W())
         else:
-            return "Torsion quotient of %s by %s" % (self.V(), self.W())
+            return "Quotient with torsion of %s by %s" % (self.V(), self.W())
 
     def _subquotient_class(self):
         r"""
@@ -1098,21 +1238,60 @@ class ToricLattice_quotient(FGP_Module_class):
 
         OUTPUT:
 
-        - integer.
+        Integer. The dimension of the free part of the quotient.
 
         EXAMPLES::
 
             sage: N = ToricLattice(3)
             sage: Ns = N.submodule([N(2,4,0), N(9,12,0)])
             sage: Q = N/Ns
+            sage: Q.ngens()
+            2
             sage: Q.rank()
             1
             sage: Ns = N.submodule([N(1,4,0)])
             sage: Q = N/Ns
+            sage: Q.ngens()
+            2
             sage: Q.rank()
             2
         """
         return self.V().rank() - self.W().rank()
+
+    def coordinate_vector(self, x, reduce=False):
+        """
+        Return coordinates of x with respect to the optimized
+        representation of self.
+
+        INPUT:
+
+        - ``x`` -- element of ``self`` or convertable to ``self``.
+
+        - ``reduce`` -- (default: False); if True, reduce coefficients
+          modulo invariants.
+
+        OUTPUT:
+
+        The coordinates as a tuple of integers.
+
+        EXAMPLES::
+
+            sage: N = ToricLattice(3)
+            sage: Q = N.quotient(N.span([N(1,2,3), N(0,2,1)]), positive_point=N(0,-1,0))
+            sage: q = Q.gen(0); q
+            N[0, -1, 0]
+            sage: q.vector()  # indirect test
+            (1,)
+            sage: Q.coordinate_vector(q)
+            (1,)
+        """
+        coordinates = super(ToricLattice_quotient, self).coordinate_vector(x,reduce)
+        if self._flip_sign_of_generator:
+            assert len(coordinates)==1
+            return (-coordinates[0],)
+        else:
+            return coordinates
+
 
 
 class ToricLattice_quotient_element(FGP_Element):
@@ -1185,3 +1364,4 @@ class ToricLattice_quotient_element(FGP_Element):
             N[0, 1, 0]
         """
         return str(self.lift()).replace("(", "[", 1).replace(")", "]", 1)
+

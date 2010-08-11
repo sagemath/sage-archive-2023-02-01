@@ -95,11 +95,13 @@ Or you can create a homomorphism from one lattice to any other::
 #*****************************************************************************
 
 
+include '../ext/cdefs.pxi'
 include '../ext/stdsage.pxi' # Needed for PY_NEW
 
 from sage.modules.vector_integer_dense cimport Vector_integer_dense
 from sage.structure.coerce_exceptions import CoercionException
 from sage.structure.element cimport Element, Vector
+from sage.rings.integer cimport Integer
 
 
 def is_ToricLatticeElement(x):
@@ -370,3 +372,54 @@ cdef class ToricLatticeElement(Vector_integer_dense):
         """
         return (self.parent().ambient_module()._name
                 + super(ToricLatticeElement, self)._repr_())
+
+    def __reduce__(self):
+        """
+        Override the base ``__reduce__`` to correctly pickle/unpickle elements.
+
+        EXAMPLES::
+
+            sage: N = ToricLattice(3)
+            sage: loads(dumps(N(1,2,3)))
+            N(1, 2, 3)
+        """
+        return (unpickle_v1, (self._parent, self.list(), self._degree, self._is_mutable))
+
+
+def unpickle_v1(parent, entries, degree, is_mutable):
+    """
+    Unpickle a :class:`ToricLatticeElement`
+
+    INPUT:
+
+    - ``parent`` -- The parent toric lattice.
+
+    - ``entries`` -- a list. The coordinates of the lattice point.
+
+    - ``degree`` -- integer. the dimension of the toric lattice.
+
+    - ``is_mutable`` -- boolean. Whether the lattice element is
+      mutable.
+
+    OUTPUT:
+
+    The :class:`ToricLatticeElement` determined by the input data.
+
+    EXAMPLES::
+
+        sage: N = ToricLattice(3, "lattice")
+        sage: loads(dumps(N(1,2,3)))   # indirect test
+        lattice(1, 2, 3)
+        sage: from sage.geometry.toric_lattice_element import unpickle_v1
+        sage: unpickle_v1(N,[1,2,3],3,True)
+        lattice(1, 2, 3)
+    """
+    cdef ToricLatticeElement v
+    v = PY_NEW(ToricLatticeElement)
+    v._init(degree, parent)
+    cdef Integer z
+    for i from 0 <= i < degree:
+        z = Integer(entries[i])
+        mpz_init_set(v._entries[i], z.value)
+    v._is_mutable = is_mutable
+    return v

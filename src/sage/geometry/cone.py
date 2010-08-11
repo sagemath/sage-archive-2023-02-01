@@ -25,6 +25,9 @@ AUTHORS:
 - Andrey Novoseltsev (2010-06-17): substantial improvement during review by
   Volker Braun.
 
+- Volker Braun (2010-06-21): various spanned/quotient/dual lattice
+  computations added.
+
 EXAMPLES:
 
 Use :func:`Cone` to construct cones::
@@ -150,11 +153,19 @@ corresponding to cones::
 
 And of course you are always welcome to suggest new features that should be
 added to cones!
+
+REFERENCES:
+
+..  [Fulton]
+    Wiliam Fulton, "Introduction to Toric Varieties", Princeton
+    University Press
 """
 
 #*****************************************************************************
+#       Copyright (C) 2010 Volker Braun <vbraun.name@gmail.com>
 #       Copyright (C) 2010 Andrey Novoseltsev <novoselt@gmail.com>
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>
+#
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -833,6 +844,60 @@ class IntegralRayCollection(SageObject,
             return self._rays
         else:
             return tuple(self.ray_iterator(ray_list))
+
+    def ray_basis(self):
+        r"""
+        Returns a linearly independent subset of the rays.
+
+        OUTPUT:
+
+        Returns a random but fixed choice of a `\QQ`-basis (of
+        N-lattice points) for the vector space spanned by the rays.
+
+        .. NOTE::
+
+            See :meth:`sage.geometry.cone.ConvexRationalPolyhedralCone.sublattice`
+            if you need a `\ZZ`-basis.
+
+        EXAMPLES::
+
+            sage: c = Cone([(1,1,1,1), (1,-1,1,1), (-1,-1,1,1), (-1,1,1,1), (0,0,0,1)])
+            sage: c.ray_basis()
+            (N(1, 1, 1, 1), N(1, -1, 1, 1), N(-1, -1, 1, 1), N(0, 0, 0, 1))
+        """
+        if "_ray_basis" not in self.__dict__:
+            indices = self.ray_matrix().pivots()
+            self._ray_basis = tuple(self.ray(i) for i in indices)
+        return self._ray_basis
+
+    def ray_basis_matrix(self):
+        r"""
+        Returns a linearly independent subset of the rays as a matrix.
+
+        OUTPUT:
+
+        - Returns a random but fixed choice of a `\QQ`-basis (of
+          N-lattice points) for the vector space spanned by the rays.
+
+        - The linearly independent rays are the columns of the returned matrix.
+
+        .. NOTE::
+
+            * see also :meth:`ray_basis`.
+
+            * See :meth:`sage.geometry.cone.ConvexRationalPolyhedralCone.sublattice`
+              if you need a `\ZZ`-basis.
+
+        EXAMPLES::
+
+            sage: c = Cone([(1,1,1,1), (1,-1,1,1), (-1,-1,1,1), (-1,1,1,1), (0,0,0,1)])
+            sage: c.ray_basis_matrix()
+            [ 1  1 -1  0]
+            [ 1 -1 -1  0]
+            [ 1  1  1  0]
+            [ 1  1  1  1]
+        """
+        return matrix(ZZ, self.ray_basis()).transpose()
 
 
 # Derived classes MUST allow construction of their objects using ``ambient``
@@ -1881,6 +1946,22 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
                 self._is_smooth = abs(m.det()) == 1
         return self._is_smooth
 
+    def is_trivial(self):
+        """
+        Checks if the cone has no rays.
+
+        OUTPUT:
+
+        - ``True`` if the cone has at least one ray, ``False`` otherwise.
+
+        EXAMPLES::
+
+            sage: c0 = Cone([(0)], lattice=ToricLattice(3))
+            sage: c0.is_trivial()
+            True
+        """
+        return self.nrays() == 0
+
     def is_strictly_convex(self):
         r"""
         Check if ``self`` is strictly convex.
@@ -2098,6 +2179,467 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
                 quotient._is_strictly_convex = True
                 self._strict_quotient = quotient
         return self._strict_quotient
+
+    def _split_ambient_lattice(self):
+        r"""
+        Compute a decomposition of the ``N``-lattice into `N_\sigma`
+        and its complement `N(\sigma)`.
+
+        You should not call this function directly, but call
+        :meth:`sublattice` and :meth:`sublattice_complement` instead.
+
+        EXAMPLES::
+
+            sage: c = Cone([ (1,2) ])
+            sage: c._split_ambient_lattice()
+            sage: c._sublattice
+            Sublattice <N(1, 2)>
+            sage: c._sublattice_complement
+            Sublattice <N(0, 1)>
+            sage: c._orthogonal_sublattice
+            Sublattice <M(-2, 1)>
+            sage: c._orthogonal_sublattice_complement
+            Sublattice <M(1, 0)>
+            sage: N = c.lattice()
+            sage: n = N(27,31)
+            sage: N(0) + c._sublattice.gen(0) * (c._orthogonal_sublattice_complement.gen(0)*n) + c._sublattice_complement.gen(0) * (c._orthogonal_sublattice.gen(0)*n)
+            N(27, 31)
+
+        Degenerate cases::
+
+            sage: C2_Z2 = Cone([(1,0),(1,2)])
+            sage: C2_Z2._split_ambient_lattice()
+            sage: C2_Z2._sublattice
+            Sublattice <N(1, 0), N(0, 1)>
+            sage: C2_Z2._orthogonal_sublattice
+            Sublattice <>
+
+        Trivial cone::
+
+            sage: trivial_cone = Cone([], lattice=ToricLattice(3))
+            sage: trivial_cone._split_ambient_lattice()
+            sage: trivial_cone._sublattice
+            Sublattice <>
+            sage: trivial_cone._sublattice_complement
+            Sublattice <N(1, 0, 0), N(0, 1, 0), N(0, 0, 1)>
+            sage: trivial_cone._orthogonal_sublattice
+            Sublattice <M(1, 0, 0), M(0, 1, 0), M(0, 0, 1)>
+            sage: trivial_cone._orthogonal_sublattice_complement
+            Sublattice <>
+        """
+        if self.is_trivial():
+            Nsigma = matrix(ZZ, self.lattice().dimension(), 0)
+        else:
+            Nsigma = self.ray_basis_matrix()
+        r = Nsigma.ncols()
+        D, U, V = Nsigma.smith_form()  # D = U*N*V <=> N = Uinv*D*Vinv
+        Uinv = U.inverse()
+        n = Uinv.ncols()
+
+        # basis for the spanned lattice
+        basis = [ Uinv.column(i) for i in range(0,r) ]
+        self._sublattice = self.lattice().submodule_with_basis(basis)
+
+        # basis for a complement to the spanned lattice
+        basis = [ Uinv.column(i) for i in range(r,n) ]
+        self._sublattice_complement = self.lattice().submodule_with_basis(basis)
+
+        # basis for the dual spanned lattice
+        if r<n:
+            basis = [ U.row(i) for i in range(r,n) ]
+        else:
+            basis = []
+        self._orthogonal_sublattice = \
+            self.lattice().dual().submodule_with_basis(basis)
+
+        # basis for a complement to the dual spanned lattice
+        if r>0:
+            basis = [ U.row(i) for i in range(0,r) ]
+        else:
+            basis = []
+        self._orthogonal_sublattice_complement = \
+            self.lattice().dual().submodule_with_basis(basis)
+
+    def sublattice(self):
+        r"""
+        The sublattice spanned by the cone.
+
+        Let `\sigma` be the given cone and `N=` ``self.lattice()`` the
+        ambient lattice. Then, in the notation of [Fulton]_, this
+        method returns the sublattice
+
+        .. MATH::
+
+            N_\sigma \stackrel{\text{def}}{=} \mathop{span}( N\cap \sigma )
+
+        OUTPUT:
+
+        - A :class:`sage.geometry.toric_lattice.ToricLattice_sublattice_with_basis`.
+
+        .. NOTE::
+
+            * The sublattice spanned by the cone is the saturation of
+              the sublattice generated by the rays of the cone.
+
+            * See
+              :meth:`sage.geometry.cone.IntegralRayCollection.ray_basis`
+              if you only need a `\QQ`-basis.
+
+            * The returned lattice points are usually not rays of the
+              cone. In fact, for a non-smooth cone the rays do not
+              generate the sublattice `N_\sigma`, but only a finite
+              index sublattice.
+
+        EXAMPLES::
+
+            sage: cone = Cone([(1, 1, 1), (1, -1, 1), (-1, -1, 1), (-1, 1, 1)])
+            sage: cone.ray_basis_matrix()
+            [ 1  1 -1]
+            [ 1 -1 -1]
+            [ 1  1  1]
+            sage: cone.ray_basis_matrix().det()
+            -4
+            sage: cone.sublattice()
+            Sublattice <N(1, 1, 1), N(0, 1, 0), N(1, 0, 0)>
+            sage: matrix( cone.sublattice().gens() ).det()
+            -1
+
+        Another example::
+
+            sage: c = Cone([(1,2,3), (4,-5,1)])
+            sage: c
+            2-d cone in 3-d lattice N
+            sage: c.rays()
+            (N(1, 2, 3), N(4, -5, 1))
+            sage: c.sublattice()
+            Sublattice <N(1, 2, 3), N(0, 13, 11)>
+        """
+        if "_sublattice" not in self.__dict__:
+            self._split_ambient_lattice()
+        return self._sublattice
+
+    def sublattice_quotient(self, point=None):
+        r"""
+        The quotient of the ambient lattice by the sublattice spanned
+        by the cone.
+
+        INPUT:
+
+        - ``point`` (optional argument): A lattice point to project to
+          the quotient.
+
+        OUTPUT:
+
+        - if ``point`` was specified, its image in the quotient
+          lattice.
+
+        - if ``point`` was not specified, the quotient lattice as an
+          instance of
+          :class:`sage.geometry.toric_lattice.ToricLattice_sublattice_with_basis`.
+
+        EXAMPLES::
+
+            sage: C2_Z2 = Cone([(1,0),(1,2)])     # C^2/Z_2
+            sage: c1, c2 = C2_Z2.facets()
+            sage: c2.sublattice_quotient()
+            1-d lattice, quotient of 2-d lattice N by Sublattice <N(1, 2)>
+            sage: N = C2_Z2.lattice()
+            sage: n = N(1,1)
+            sage: n_bar = c2.sublattice_quotient(n); n_bar
+            N[1, 1]
+            sage: n_bar.lift()
+            N(1, 1)
+            sage: vector(n_bar)
+            (-1)
+        """
+        if "_sublattice_quotient" not in self.__dict__:
+            self._sublattice_quotient = self.lattice() / self.sublattice()
+
+        if point==None:
+            return self._sublattice_quotient
+        else:
+            return self._sublattice_quotient(point)
+
+    def sublattice_complement(self):
+        r"""
+        A complement of the sublattice spanned by the cone.
+
+        In other words, :meth:`sublattice` and
+        :meth:`sublattice_complement` together form a
+        `\ZZ`-basis for the ambient :meth:`lattice()
+        <sage.geometry.cone.IntegralRayCollection.lattice>`.
+
+        In the notation of [Fulton]_, let `\sigma` be the given cone
+        and `N=` ``self.lattice()`` the ambient lattice. Then this
+        method returns
+
+        .. MATH::
+
+            N(\sigma) \stackrel{\text{def}}{=} N_\sigma / N
+
+        lifted (non-canonically) to a sublattice on `N`.
+
+        OUTPUT:
+
+        - Returns an arbitrary, but fixed sublattice
+          (:class:`sage.geometry.toric_lattice.ToricLattice_sublattice_with_basis`)
+          that, together with the lattice :meth:`sublattice` spanned
+          by the cone, generates the whole ambient lattice.
+
+        EXAMPLES::
+
+            sage: C2_Z2 = Cone([(1,0),(1,2)])     # C^2/Z_2
+            sage: c1, c2 = C2_Z2.facets()
+            sage: c2.sublattice()
+            Sublattice <N(1, 2)>
+            sage: c2.sublattice_complement()
+            Sublattice <N(0, 1)>
+
+        A more complicated example::
+
+            sage: c = Cone([(1,2,3), (4,-5,1)])
+            sage: c.sublattice()
+            Sublattice <N(1, 2, 3), N(0, 13, 11)>
+            sage: c.sublattice_complement()
+            Sublattice <N(-7, -8, -16)>
+            sage: m = matrix( c.sublattice().gens() + c.sublattice_complement().gens() )
+            sage: m
+            [  1   2   3]
+            [  0  13  11]
+            [ -7  -8 -16]
+            sage: m.det()
+            -1
+            """
+        if "_sublattice_complement" not in self.__dict__:
+            self._split_ambient_lattice()
+        return self._sublattice_complement
+
+    def orthogonal_sublattice(self):
+        r"""
+        The sublattice (in the dual lattice) orthogonal to the
+        sublattice spanned by the cone.
+
+        Let `M=` ``self.lattice().dual()`` the lattice dual to the
+        ambient lattice of the given cone `\sigma`. Then, in the
+        notation of [Fulton]_, this method returns the sublattice
+
+        .. MATH::
+
+            M(\sigma) \stackrel{\text{def}}{=}
+            \sigma^\perp \cap M
+            \subset M
+
+        OUTPUT:
+
+        - A
+          :class:`sage.geometry.toric_lattice.ToricLattice_sublattice_with_basis`.
+
+        EXAMPLES::
+
+            sage: c = Cone([(1,1,1), (1,-1,1), (-1,-1,1), (-1,1,1)])
+            sage: c.orthogonal_sublattice()
+            Sublattice <>
+            sage: c12 = Cone([(1,1,1), (1,-1,1)])
+            sage: c12.sublattice()
+            Sublattice <N(1, 1, 1), N(0, 1, 0)>
+            sage: c12.orthogonal_sublattice()
+            Sublattice <M(-1, 0, 1)>
+        """
+        if "_orthogonal_sublattice" not in self.__dict__:
+                self._split_ambient_lattice()
+        return self._orthogonal_sublattice
+
+    def relative_quotient(self, subcone):
+        r"""
+        The quotient of the spanned lattice by the lattice spanned by
+        a subcone.
+
+        In the notation of [Fulton]_, let `N` be the ambient lattice
+        and `N_\sigma` the sublattice spanned by the given cone
+        `\sigma`. If `\rho < \sigma` is a subcone, then `N_\rho` =
+        ``rho.sublattice()`` is a saturated sublattice of `N_\sigma` =
+        ``self.sublattice()``. This method returns the quotient
+        lattice. The lifts of the quotient generators are
+        `\dim(\sigma)-\dim(\rho)` linearly independent primitive
+        lattice lattice points that, together with `N_\rho`, generate
+        `N_\sigma`.
+
+        OUTPUT:
+
+        - A tuple of points in the sublattice spanned by the given
+          cone that, together with ``rho.sublattice()``, form a
+          `\ZZ`-basis for the sublattice spanned by given cone.
+
+        .. NOTE::
+
+            * The quotient `N_\sigma / N_\rho` of spanned sublattices
+              has no torsion since the sublattice is saturated.
+
+            * In the codimension one case, `\sigma / N_\rho` lies in
+              one half-space of `N_\sigma / N_\rho`. The returned
+              lattice point is chosen such that it lies in this
+              half-space as well.
+
+        EXAMPLES:
+
+        First example::
+
+            sage: sigma = Cone([(1,1,1,3),(1,-1,1,3),(-1,-1,1,3),(-1,1,1,3)])
+            sage: rho   = Cone([(-1, -1, 1, 3), (-1, 1, 1, 3)])
+            sage: sigma.sublattice()
+            Sublattice <N(1, 1, 1, 3), N(1, 0, 0, 0), N(0, 1, 0, 0)>
+            sage: rho.sublattice()
+            Sublattice <N(-1, 1, 1, 3), N(0, 1, 0, 0)>
+            sage: sigma.relative_quotient(rho)
+            1-d lattice, quotient of Sublattice <N(1, 1, 1, 3), N(1, 0, 0, 0), N(0, 1, 0, 0)> by Sublattice <N(1, 0, -1, -3), N(0, 1, 0, 0)>
+            sage: sigma.relative_quotient(rho).gens()
+            (N[1, 0, 0, 0],)
+
+        More complicated example::
+
+            sage: rho = Cone([(1, 2, 3), (1, -1, 1)])
+            sage: sigma = Cone([(1, 2, 3), (1, -1, 1), (-1, 1, 1), (-1, -1, 1)])
+            sage: sigma.sublattice()
+            Sublattice <N(3, 0, 1), N(2, 1, 0), N(1, 0, 0)>
+            sage: rho.sublattice()
+            Sublattice <N(1, -1, 1), N(0, 3, 2)>
+            sage: sigma.relative_quotient(rho).gens()
+            (N[0, -2, -1],)
+            sage: N = rho.lattice()
+            sage: N.span(rho.sublattice().gens() + tuple(q.lift() for q in sigma.relative_quotient(rho).gens()) ) == N.span( sigma.sublattice().gens() )
+            True
+
+        Sign choice in the codimension one case::
+
+            sage: sigma1 = Cone([(1, 2, 3), (1, -1, 1), (-1, 1, 1), (-1, -1, 1)])  # 3d
+            sage: sigma2 = Cone([(1, 1, -1), (1, 2, 3), (1, -1, 1), (1, -1, -1)])  # 3d
+            sage: rho = sigma1.intersection(sigma2)
+            sage: rho.sublattice()
+            Sublattice <N(1, -1, 1), N(0, 3, 2)>
+            sage: sigma1.relative_quotient(rho)
+            1-d lattice, quotient of Sublattice <N(3, 0, 1), N(2, 1, 0), N(1, 0, 0)> by Sublattice <N(1, 2, 3), N(0, 3, 2)>
+            sage: sigma1.relative_quotient(rho).gens()
+            (N[0, -2, -1],)
+            sage: sigma2.relative_quotient(rho).gens()
+            (N[0, -1, -1],)
+        """
+        try:
+            cached_values = self._relative_quotient
+        except AttributeError:
+            self._relative_quotient = {}
+            cached_values = self._relative_quotient
+
+        try:
+            return cached_values[subcone]
+        except KeyError:
+            pass
+
+        Ncone = self.sublattice()
+        Nsubcone = subcone.sublattice()
+
+        extra_ray = None
+        if Ncone.dimension()-Nsubcone.dimension()==1:
+            extra_ray = set(self.ray_set() - subcone.ray_set()).pop()
+
+        Q = Ncone.quotient(Nsubcone, positive_point=extra_ray)
+        assert Q.is_torsion_free()
+        cached_values[subcone] = Q
+        return Q
+
+    def relative_orthogonal_quotient(self, supercone):
+        r"""
+        The quotient of the dual spanned lattice by the dual of the
+        supercone's spanned lattice.
+
+        In the notation of [Fulton]_, if ``supercone`` = `\rho >
+        \sigma` = ``self`` is a cone that contains `\sigma` as a face,
+        then `M(\rho)` = ``supercone.orthogonal_sublattice()`` is a
+        saturated sublattice of `M(\sigma)` =
+        ``self.orthogonal_sublattice()``. This method returns the
+        quotient lattice. The lifts of the quotient generators are
+        `\dim(\rho)-\dim(\sigma)` linearly independent M-lattice
+        lattice points that, together with `M(\rho)`, generate
+        `M(\sigma)`.
+
+        OUTPUT:
+
+        - A
+          :class:`sage.geometry.toric_lattice.ToricLattice_sublattice_with_basis`.
+
+        - If we call the output ``Mrho``, then
+
+            - ``Mrho.cover() == self.orthogonal_sublattice()``, and
+
+            - ``Mrho.relations() == supercone.orthogonal_sublattice()``.
+
+        .. NOTE::
+
+            * `M(\sigma) / M(\rho)` has no torsion since the sublattice is
+              saturated.
+
+            * In the codimension one case, `\sigma / M(\rho)` lies in
+              one half-space of `M(\sigma) / M(\rho)`. The returned
+              generator (as a dual lattice point) is chosen to lie in
+              this half-space as well.
+
+        EXAMPLES::
+
+            sage: rho = Cone([(1,1,1,3),(1,-1,1,3),(-1,-1,1,3),(-1,1,1,3)])
+            sage: rho.orthogonal_sublattice()
+            Sublattice <M(0, 0, 3, -1)>
+            sage: sigma = rho.facets()[0]
+            sage: sigma.orthogonal_sublattice()
+            Sublattice <M(0, 1, 1, 0), M(0, 3, 0, 1)>
+            sage: sigma.is_face_of(rho)
+            True
+            sage: Q = sigma.relative_orthogonal_quotient(rho); Q
+            1-d lattice, quotient of Sublattice <M(0, 1, 1, 0), M(0, 3, 0, 1)> by Sublattice <M(0, 0, 3, -1)>
+            sage: Q.gens()
+            (M[0, 1, 1, 0],)
+
+        Different codimension::
+
+            sage: rho = Cone([[1,-1,1,3],[-1,-1,1,3]])
+            sage: sigma = rho.facets()[0]
+            sage: sigma.orthogonal_sublattice()
+            Sublattice <M(0, 1, 1, 0), M(1, 1, 0, 0), M(0, 3, 0, 1)>
+            sage: rho.orthogonal_sublattice()
+            Sublattice <M(0, 1, 1, 0), M(0, 3, 0, 1)>
+            sage: sigma.relative_orthogonal_quotient(rho).gens()
+            (M[-1, -1, 0, 0],)
+
+        Sign choice in the codimension one case::
+
+            sage: sigma1 = Cone([(1, 2, 3), (1, -1, 1), (-1, 1, 1), (-1, -1, 1)])  # 3d
+            sage: sigma2 = Cone([(1, 1, -1), (1, 2, 3), (1, -1, 1), (1, -1, -1)])  # 3d
+            sage: rho = sigma1.intersection(sigma2)
+            sage: rho.relative_orthogonal_quotient(sigma1).gens()
+            (M[-5, -2, 3],)
+            sage: rho.relative_orthogonal_quotient(sigma2).gens()
+            (M[5, 2, -3],)
+        """
+        try:
+            cached_values = self._relative_orthogonal_quotient
+        except AttributeError:
+            self._relative_orthogonal_quotient = {}
+            cached_values = self._relative_orthogonal_quotient
+
+        try:
+            return cached_values[supercone]
+        except KeyError:
+            pass
+
+        Mcone = self.orthogonal_sublattice()
+        Msupercone = supercone.orthogonal_sublattice()
+
+        extra_ray = None
+        if Mcone.dimension()-Msupercone.dimension()==1:
+            extra_ray = set(supercone.ray_set() - self.ray_set()).pop()
+
+        Q = Mcone.quotient(Msupercone, positive_dual_point=extra_ray)
+        assert Q.is_torsion_free()
+        cached_values[supercone] = Q
+        return Q
 
 
 def hasse_diagram_from_incidences(atom_to_coatoms, coatom_to_atoms,

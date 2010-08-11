@@ -42,6 +42,10 @@ MPIR, NTL, Termcap, Readline and MPFR
 
 == ChangeLog ==
 
+=== singular-3-1-1-4.p0 (Mitesh Patel, 10th August 2010) ===
+ * #8059: For now, restore building the package serially, to avoid
+   parallel build problems.
+
 === singular-3-1-1-4 (Martin Albrecht, 15th July 2010) ===
  * new upstream release
  * updated SPKG.txt

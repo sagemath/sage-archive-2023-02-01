@@ -1048,10 +1048,10 @@ class ToricLattice_quotient(FGP_Module_class):
             if scalar_product==0:
                 raise ValueError, str(positive_point)+' is zero in the quotient.'
         elif (positive_point==None) and (positive_dual_point!=None):
-            assert positive_dual_point in lattice.dual(), 'positive_point must be a dual lattice point.'
+            assert positive_dual_point in lattice.dual(), 'positive_dual_point must be a dual lattice point.'
             scalar_product = quotient_generator.lift() * positive_dual_point
             if scalar_product==0:
-                raise ValueError, str(positive_dual_point)+' is zero in the lift of the quotient generator.'
+                raise ValueError, str(positive_dual_point)+' is zero on the lift of the quotient generator.'
         else:
             raise ValueError, 'You may not specify both positive_point and positive_dual_point.'
         self._flip_sign_of_generator = (scalar_product<0)
@@ -1272,7 +1272,7 @@ class ToricLattice_quotient(FGP_Module_class):
 
         OUTPUT:
 
-        The coordinates as a tuple of integers.
+        The coordinates as a vector.
 
         EXAMPLES::
 
@@ -1281,14 +1281,14 @@ class ToricLattice_quotient(FGP_Module_class):
             sage: q = Q.gen(0); q
             N[0, -1, 0]
             sage: q.vector()  # indirect test
-            (1,)
+            (1)
             sage: Q.coordinate_vector(q)
-            (1,)
+            (1)
         """
         coordinates = super(ToricLattice_quotient, self).coordinate_vector(x,reduce)
         if self._flip_sign_of_generator:
-            assert len(coordinates)==1
-            return (-coordinates[0],)
+            assert len(coordinates)==1, "Sign flipped for a multi-dimensional quotient!"
+            return -coordinates
         else:
             return coordinates
 

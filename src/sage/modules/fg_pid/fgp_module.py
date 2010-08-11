@@ -887,7 +887,8 @@ class FGP_Module_class(Module):
 
         OUTPUT:
 
-        - ``tuple`` of elements of base ring
+        The coordinates as a vector. That is, the same type as
+        ``self.V()``, but in general with fewer entries.
 
         EXAMPLES::
 

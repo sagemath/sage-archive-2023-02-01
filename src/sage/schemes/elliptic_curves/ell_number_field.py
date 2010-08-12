@@ -574,7 +574,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
     integral_model = global_integral_model
 
-    def _tidy_model(self):
+    def _reduce_model(self):
         r"""
 
         Transforms the elliptic curve to a model in which `a_1`,
@@ -596,22 +596,22 @@ class EllipticCurve_number_field(EllipticCurve_field):
             -39*a + 237,
             368258520200522046806318224*a - 2270097978636731786720858047,
             8456608930180227786550494643437985949781*a - 52130038506835491453281450568107193773505)
-            sage: E._tidy_model().ainvs()
+            sage: E._reduce_model().ainvs()
             (a,
             a + 1,
             a + 1,
             368258520200522046806318444*a - 2270097978636731786720859345,
             8456608930173478039472018047583706316424*a - 52130038506793883217874390501829588391299)
-            sage: EllipticCurve([101,202,303,404,505])._tidy_model().ainvs()
+            sage: EllipticCurve([101,202,303,404,505])._reduce_model().ainvs()
             (1, 1, 0, -2509254, 1528863051)
-            sage: EllipticCurve([-101,-202,-303,-404,-505])._tidy_model().ainvs()
+            sage: EllipticCurve([-101,-202,-303,-404,-505])._reduce_model().ainvs()
             (1, -1, 0, -1823195, 947995262)
         """
         ZK = self.base_ring().maximal_order()
         try:
             (a1, a2, a3, a4, a6) = [ZK(a) for a in self.a_invariants()]
         except TypeError:
-            raise TypeError, "_tidy_model() requires an integral model."
+            raise TypeError, "_reduce_model() requires an integral model."
         # N.B. Must define s, r, t in the right order.
         if ZK.degree() == 1:
             s = ((-a1)/2).round('up')
@@ -1287,7 +1287,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         primes = self.base_ring()(self.discriminant()).support()
         for P in primes:
             E = E.local_data(P,proof).minimal_model()
-        return E._tidy_model()
+        return E._reduce_model()
 
     def reduction(self,place):
        r"""

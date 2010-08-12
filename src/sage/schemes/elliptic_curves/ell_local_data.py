@@ -263,8 +263,8 @@ class EllipticCurveLocalData(SageObject):
             self._KS = KodairaSymbol(data[1].python())
             self._cp = data[3].python()
             # We use a global minimal model since we can:
-            self._Emin_tidy = Eint.minimal_model()
-            self._val_disc = self._Emin_tidy.discriminant().valuation(p)
+            self._Emin_reduced = Eint.minimal_model()
+            self._val_disc = self._Emin_reduced.discriminant().valuation(p)
             if self._fp>0:
                 self._reduction_type = Eint.ap(p) # = 0,-1 or +1
         else:
@@ -297,14 +297,16 @@ class EllipticCurveLocalData(SageObject):
             red_type = ["bad non-split multiplicative","bad additive","bad split multiplicative"][1+self._reduction_type]
         return "Local data at %s:\nReduction type: %s\nLocal minimal model: %s\nMinimal discriminant valuation: %s\nConductor exponent: %s\nKodaira Symbol: %s\nTamagawa Number: %s"%(self._prime,red_type,self.minimal_model(),self._val_disc,self._fp,self._KS,self._cp)
 
-    def minimal_model(self, tidy=True):
+    def minimal_model(self, reduce=True):
         """
         Return the (local) minimal model from this local reduction data.
 
         INPUT:
 
-        - ``tidy`` -- (default: True) if set to True the EC returned by Tate's algorithm will be
-          "tidied" as specified in _tidy_model() for curves over number fields.
+        - ``reduce`` -- (default: True) if set to True the EC returned
+          by Tate's algorithm will be
+          "reduced" as specified in _reduce_model() for curves over
+          number fields.
 
         EXAMPLES::
 
@@ -317,39 +319,39 @@ class EllipticCurveLocalData(SageObject):
             sage: data.minimal_model() == E.local_minimal_model(2)
             True
 
-        To demonstrate the behaviour of the parameter ``tidy``::
+        To demonstrate the behaviour of the parameter ``reduce``::
 
             sage: K.<a> = NumberField(x^3+x+1)
             sage: E = EllipticCurve(K, [0, 0, a, 0, 1])
             sage: E.local_data(K.ideal(a-1)).minimal_model()
             Elliptic Curve defined by y^2 + a*y = x^3 + 1 over Number Field in a with defining polynomial x^3 + x + 1
-            sage: E.local_data(K.ideal(a-1)).minimal_model(tidy=False)
+            sage: E.local_data(K.ideal(a-1)).minimal_model(reduce=False)
             Elliptic Curve defined by y^2 + (a+2)*y = x^3 + 3*x^2 + 3*x + (-a+1) over Number Field in a with defining polynomial x^3 + x + 1
 
             sage: E = EllipticCurve([2, 1, 0, -2, -1])
-            sage: E.local_data(ZZ.ideal(2), algorithm="generic").minimal_model(tidy=False)
+            sage: E.local_data(ZZ.ideal(2), algorithm="generic").minimal_model(reduce=False)
             Elliptic Curve defined by y^2 + 2*x*y + 2*y = x^3 + x^2 - 4*x - 2 over Rational Field
-            sage: E.local_data(ZZ.ideal(2), algorithm="pari").minimal_model(tidy=False)
+            sage: E.local_data(ZZ.ideal(2), algorithm="pari").minimal_model(reduce=False)
             Traceback (most recent call last):
             ...
-            ValueError: the argument tidy must not be False if algorithm=pari is used
+            ValueError: the argument reduce must not be False if algorithm=pari is used
             sage: E.local_data(ZZ.ideal(2), algorithm="generic").minimal_model()
             Elliptic Curve defined by y^2 = x^3 - x^2 - 3*x + 2 over Rational Field
             sage: E.local_data(ZZ.ideal(2), algorithm="pari").minimal_model()
             Elliptic Curve defined by y^2 = x^3 - x^2 - 3*x + 2 over Rational Field
         """
-        if tidy:
+        if reduce:
             try:
-                return self._Emin_tidy
+                return self._Emin_reduced
             except AttributeError:
                 pass
-            self._Emin_tidy = self._Emin._tidy_model()
-            return self._Emin_tidy
+            self._Emin_reduced = self._Emin._reduce_model()
+            return self._Emin_reduced
         else:
             try:
                 return self._Emin
             except AttributeError:
-                raise ValueError, "the argument tidy must not be False if algorithm=pari is used"
+                raise ValueError, "the argument reduce must not be False if algorithm=pari is used"
 
     def prime(self):
         """

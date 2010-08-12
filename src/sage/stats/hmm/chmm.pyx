@@ -130,9 +130,9 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
     for which our observation sequence is more likely::
 
         sage: m.baum_welch(obs)
-        (-10.610333495739708, 14)
+        (-10.6103334957397..., 14)
         sage: m.log_likelihood(obs)
-        -10.610333495739708
+        -10.6103334957397...
 
     Notice that running Baum-Welch changed our model::
 
@@ -568,7 +568,7 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
 
             sage: m = hmm.GaussianHiddenMarkovModel([[0.5,0.5],[0.5,0.5]], [(0,1),(10,1)], [0.5,0.5])
             sage: m.viterbi([0,1,10,10,1])
-            ([0, 0, 1, 1, 0], -9.0604285688230899)
+            ([0, 0, 1, 1, 0], -9.0604285688230...)
 
         Another example in which the most likely states change based
         on the last observation::

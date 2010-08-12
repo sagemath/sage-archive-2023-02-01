@@ -2122,6 +2122,64 @@ class GenericGraph(GenericGraph_pyx):
             M[index,index]+=1
             return abs(M.determinant())
 
+    def cycle_basis(self):
+        r"""
+        Returns a list of cycles which form a basis of the cycle space
+        of ``self``.
+
+        A basis of cycles of a graph is a minimal collection of cycles
+        (considered as sets of edges) such that the edge set of any
+        cycle in the graph can be written as a `Z/2Z` sum of the
+        cycles in the basis.
+
+        OUTPUT:
+
+        A list of lists, each of them representing the vertices of a
+        cycle in a basis.
+
+        ALGORITHM:
+
+        Uses the NetworkX library.
+
+        EXAMPLE:
+
+        A cycle basis in Petersen's Graph ::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g.cycle_basis()
+            [[1, 2, 7, 5, 0], [8, 3, 2, 7, 5], [4, 3, 2, 7, 5, 0], [4, 9, 7, 5, 0], [8, 6, 9, 7, 5], [1, 6, 9, 7, 5, 0]]
+
+        Checking the given cycles are algebraically free::
+
+            sage: g = graphs.RandomGNP(30,.4)
+            sage: basis = g.cycle_basis()
+
+        Building the space of (directed) edges over `Z/2Z`. On the way,
+        building a dictionary associating an unique vector to each
+        undirected edge::
+
+            sage: m = g.size()
+            sage: edge_space = VectorSpace(FiniteField(2),m)
+            sage: edge_vector = dict( zip( g.edges(labels = False), edge_space.basis() ) )
+            sage: for (u,v),vec in edge_vector.items():
+            ...      edge_vector[(v,u)] = vec
+
+        Defining a lambda function associating a vector to the
+        vertices of a cycle::
+
+            sage: vertices_to_edges = lambda x : zip( x, x[1:] + [x[0]] )
+            sage: cycle_to_vector = lambda x : sum( edge_vector[e] for e in vertices_to_edges(x) )
+
+        Finally checking the cycles are a free set::
+
+            sage: basis_as_vectors = map( cycle_to_vector, basis )
+            sage: edge_space.span(basis_as_vectors).rank() == len(basis)
+            True
+        """
+
+        import networkx
+        return networkx.cycle_basis(self.networkx_graph(copy=False))
+
     def minimum_outdegree_orientation(self, use_edge_labels=False, solver=None, verbose=0):
         r"""
         Returns a DiGraph which is an orientation with the smallest

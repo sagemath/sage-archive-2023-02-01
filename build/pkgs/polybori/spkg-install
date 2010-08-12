@@ -32,6 +32,7 @@ patch()
     cp patches/PyPolyBoRi.py         src/${PBDIR}/pyroot/polybori
     cp patches/pbori_routines_misc.h src/${PBDIR}/polybori/include/
     cp patches/ll.py                 src/${PBDIR}/pyroot/polybori
+    cp patches/nf.cc                 src/${PBDIR}/groebner/src/
 
 }
 

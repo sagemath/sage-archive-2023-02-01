@@ -1,0 +1,38 @@
+--- ../src/polybori-0.6.4/groebner/src/nf.cc	2010-01-29 09:02:02.000000000 +0000
++++ nf.cc	2010-08-12 19:37:13.266700932 +0100
+@@ -1890,6 +1890,15 @@
+         
+     }
+ };
++
++class PolyMonomialPairComparerLess{
++public:
++    bool operator() (const pair<Polynomial,Monomial>& a,const pair<Polynomial, Monomial>& b){
++        return a.second < b.second;
++        
++    }
++};
++
+ //typedef std::map<int,Monomial> to_term_map_type;
+ typedef Exponent::idx_map_type from_term_map_type;
+ void setup_order_tables(vector<Exponent>& terms_as_exp,vector<Exponent>& terms_as_exp_lex,std::vector<int>& ring_order2lex,vector<int>& lex_order2ring,from_term_map_type& from_term_map, const MonomialSet& terms){
+@@ -2093,8 +2102,10 @@
+         if LIKELY(!(polys[i].isZero()))
+             polys_lm.push_back(pair < Polynomial, Monomial > (polys[i], polys[i].lead()));
+     }
+-std::  sort(polys_lm.begin(), polys_lm.end(), PolyMonomialPairComparerLexLess());
++std::  sort(polys_lm.begin(), polys_lm.end(), PolyMonomialPairComparerLess());
+     polys.clear();
++    
++    //special cases
+     if UNLIKELY(polys_lm.size() == 0)
+         return;
+     Monomial        last;
+@@ -2126,6 +2137,7 @@
+         }
+     }
+     polys.clear();
++    std::reverse(polys_triangular.begin(), polys_triangular.end());
+     terms_unique = add_up_generic(terms_unique_vec, terms.ring().zero());
+     assert(terms_step1.diff(terms).emptiness());
+     assert(polys_triangular.size()!=0);

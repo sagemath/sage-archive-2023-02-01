@@ -38,10 +38,14 @@ reference implementation for Gröbner basis computation.
 == Releases ==
 
 === polybori-0.6.4.p4 (Alexander Dreyer, August 10th, 2010) ===
- * Fix handling of external M4RI library
+ * Importing PolyBoRi patches from upstream mercurial to fix
+   interaction with external M4RI library (#9717)
+   -  http://bitbucket.org/brickenstein/polybori/changeset/6ef7402d935b
+   -  http://bitbucket.org/brickenstein/polybori/changeset/b692c8181e94
 
 === polybori-0.6.4.p3 (Martin Albrecht, August 10th, 2010) ===
- * Applying a patch by Alexander Dreyer to fix error in some crypto example
+ * Applying a patch by Alexander Dreyer to fix error in some crypto
+   example (#9717)
 
 === polybori-0.6.4.p2 (Leif Leonhardy, July 10th, 2010) ===
  * Removed Michael Abshoff from maintainer list (see #7738)

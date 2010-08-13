@@ -22,12 +22,13 @@
 
 #include "Lcommandline_elliptic.h"
 
+
 //returns 0 if initialization goes smoothly, 1 if there's an error
 // given the elliptic curve
 // y^2 + a1 xy + a3 y = x^3 + a2 x^2 + a4 x + a6
-// computes the sign, the conductor, and first N_terms dirichlet coefficients
+// i.e. computes, the sign, the conductor, and first N_terms dirichlet coefficients
 // of the corresponding L-function. The nth dirichlet coefficient is normalized by
-// sqrt(n) so as to have functional equation s <-> 1-s rather than s <-> 2-s
+// sqrt(n)
 //
 
 #ifdef INCLUDE_PARI
@@ -90,6 +91,17 @@ void initialize_new_L(char *a1, char *a2, char *a3, char *a4, char *a6, int N_te
 }
 
 
+// SAGE -- used below -- needed for Cygwin.
+#ifndef llrint
+inline long long int llrint (double x)
+{
+    long long int llrintres;
+    asm
+    ("fistpll %0"
+    : "=m" (llrintres) : "t" (x) : "st");
+    return llrintres;
+}
+#endif
 
 
 // given the elliptic curve
@@ -121,11 +133,11 @@ void data_E(char *a1, char *a2, char *a3, char *a4, char *a6, int N_terms,Double
 
 
     F = cgetg(6, t_VEC);
-    F[1] = (long)cgeti(BIGDEFAULTPREC);
-    F[2] = (long)cgeti(BIGDEFAULTPREC);
-    F[3] = (long)cgeti(BIGDEFAULTPREC);
-    F[4] = (long)cgeti(BIGDEFAULTPREC);
-    F[5] = (long)cgeti(BIGDEFAULTPREC);
+    F[1] = lgeti(BIGDEFAULTPREC);
+    F[2] = lgeti(BIGDEFAULTPREC);
+    F[3] = lgeti(BIGDEFAULTPREC);
+    F[4] = lgeti(BIGDEFAULTPREC);
+    F[5] = lgeti(BIGDEFAULTPREC);
 
     //gaffsg(a1,(GEN) F[1]);
     //gaffsg(a2,(GEN) F[2]);
@@ -145,8 +157,8 @@ void data_E(char *a1, char *a2, char *a3, char *a4, char *a6, int N_terms,Double
 
     x=gtodouble((GEN) C[1]);
 
-    //if(x<1e18) conductor=(Long) (x+.1);
 
+    //if(x<1e18) conductor=Long(x+.1);
     if(x<Double(1.*my_LLONG_MAX)) conductor=Long(x+.1);
 
     else{

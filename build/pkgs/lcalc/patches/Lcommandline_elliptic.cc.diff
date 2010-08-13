@@ -1,15 +1,12 @@
-diff patces/Lcommandline_elliptic.cc src/src/Lcommandline_elliptic.cc
-94,105d93
-< // SAGE -- used below -- needed for Cygwin.
-< #ifndef llrint
-< inline long long int llrint (double x)
-< {
-<     long long int llrintres;
-<     asm
-<     ("fistpll %0"
-<     : "=m" (llrintres) : "t" (x) : "st");
-<     return llrintres;
-< }
-< #endif
-<
-
+124,128c124,128
+<     F[1] = (long)cgeti(BIGDEFAULTPREC);
+<     F[2] = (long)cgeti(BIGDEFAULTPREC);
+<     F[3] = (long)cgeti(BIGDEFAULTPREC);
+<     F[4] = (long)cgeti(BIGDEFAULTPREC);
+<     F[5] = (long)cgeti(BIGDEFAULTPREC);
+---
+>     F[1] = lgeti(BIGDEFAULTPREC);
+>     F[2] = lgeti(BIGDEFAULTPREC);
+>     F[3] = lgeti(BIGDEFAULTPREC);
+>     F[4] = lgeti(BIGDEFAULTPREC);
+>     F[5] = lgeti(BIGDEFAULTPREC);

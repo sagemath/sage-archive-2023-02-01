@@ -1952,13 +1952,15 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         OUTPUT:
 
-        - ``True`` if the cone has at least one ray, ``False`` otherwise.
+        - ``True`` if the cone has no rays, ``False`` otherwise.
 
         EXAMPLES::
 
             sage: c0 = Cone([(0)], lattice=ToricLattice(3))
             sage: c0.is_trivial()
             True
+            sage: c0.nrays()
+            0
         """
         return self.nrays() == 0
 
@@ -2202,7 +2204,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             Sublattice <M(1, 0)>
             sage: N = c.lattice()
             sage: n = N(27,31)
-            sage: N(0) + c._sublattice.gen(0) * (c._orthogonal_sublattice_complement.gen(0)*n) + c._sublattice_complement.gen(0) * (c._orthogonal_sublattice.gen(0)*n)
+            sage: (N(0) + c._sublattice.gen(0) * (c._orthogonal_sublattice_complement.gen(0)*n)
+            ...         + c._sublattice_complement.gen(0) * (c._orthogonal_sublattice.gen(0)*n))
             N(27, 31)
 
         Degenerate cases::
@@ -2260,7 +2263,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         self._orthogonal_sublattice_complement = \
             self.lattice().dual().submodule_with_basis(basis)
 
-    def sublattice(self):
+    def sublattice(self, *args, **kwds):
         r"""
         The sublattice spanned by the cone.
 
@@ -2272,9 +2275,16 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             N_\sigma \stackrel{\text{def}}{=} \mathop{span}( N\cap \sigma )
 
+        INPUT:
+
+        - either nothing or something that can be turned into an element of
+          this lattice.
+
         OUTPUT:
 
-        - A :class:`sage.geometry.toric_lattice.ToricLattice_sublattice_with_basis`.
+        - if no arguments were given, a :class:`toric sublattice
+          <sage.geometry.toric_lattice.ToricLattice_sublattice_with_basis>`,
+          otherwise the corresponding element of it.
 
         .. NOTE::
 
@@ -2313,29 +2323,35 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             (N(1, 2, 3), N(4, -5, 1))
             sage: c.sublattice()
             Sublattice <N(1, 2, 3), N(0, 13, 11)>
+            sage: c.sublattice(5, -3, 4)
+            N(5, -3, 4)
+            sage: c.sublattice(1, 0, 0)
+            Traceback (most recent call last):
+            ...
+            TypeError: element (= [1, 0, 0]) is not in free module
         """
         if "_sublattice" not in self.__dict__:
             self._split_ambient_lattice()
-        return self._sublattice
+        if args or kwds:
+            return self._sublattice(*args, **kwds)
+        else:
+            return self._sublattice
 
-    def sublattice_quotient(self, point=None):
+    def sublattice_quotient(self, *args, **kwds):
         r"""
         The quotient of the ambient lattice by the sublattice spanned
         by the cone.
 
         INPUT:
 
-        - ``point`` (optional argument): A lattice point to project to
-          the quotient.
+        - either nothing or something that can be turned into an element of
+          this lattice.
 
         OUTPUT:
 
-        - if ``point`` was specified, its image in the quotient
-          lattice.
-
-        - if ``point`` was not specified, the quotient lattice as an
-          instance of
-          :class:`sage.geometry.toric_lattice.ToricLattice_sublattice_with_basis`.
+        - if no arguments were given, a :class:`quotient of a toric lattice
+          <sage.geometry.toric_lattice.ToricLattice_quotient>`,
+          otherwise the corresponding element of it.
 
         EXAMPLES::
 
@@ -2354,13 +2370,12 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         """
         if "_sublattice_quotient" not in self.__dict__:
             self._sublattice_quotient = self.lattice() / self.sublattice()
-
-        if point==None:
-            return self._sublattice_quotient
+        if args or kwds:
+            return self._sublattice_quotient(*args, **kwds)
         else:
-            return self._sublattice_quotient(point)
+            return self._sublattice_quotient
 
-    def sublattice_complement(self):
+    def sublattice_complement(self, *args, **kwds):
         r"""
         A complement of the sublattice spanned by the cone.
 
@@ -2375,16 +2390,20 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         .. MATH::
 
-            N(\sigma) \stackrel{\text{def}}{=} N_\sigma / N
+            N(\sigma) \stackrel{\text{def}}{=} N / N_\sigma
 
-        lifted (non-canonically) to a sublattice on `N`.
+        lifted (non-canonically) to a sublattice of `N`.
+
+        INPUT:
+
+        - either nothing or something that can be turned into an element of
+          this lattice.
 
         OUTPUT:
 
-        - Returns an arbitrary, but fixed sublattice
-          (:class:`sage.geometry.toric_lattice.ToricLattice_sublattice_with_basis`)
-          that, together with the lattice :meth:`sublattice` spanned
-          by the cone, generates the whole ambient lattice.
+        - if no arguments were given, a :class:`toric sublattice
+          <sage.geometry.toric_lattice.ToricLattice_sublattice_with_basis>`,
+          otherwise the corresponding element of it.
 
         EXAMPLES::
 
@@ -2412,14 +2431,17 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             """
         if "_sublattice_complement" not in self.__dict__:
             self._split_ambient_lattice()
-        return self._sublattice_complement
+        if args or kwds:
+            return self._sublattice_complement(*args, **kwds)
+        else:
+            return self._sublattice_complement
 
-    def orthogonal_sublattice(self):
+    def orthogonal_sublattice(self, *args, **kwds):
         r"""
         The sublattice (in the dual lattice) orthogonal to the
         sublattice spanned by the cone.
 
-        Let `M=` ``self.lattice().dual()`` the lattice dual to the
+        Let `M=` ``self.lattice().dual()`` be the lattice dual to the
         ambient lattice of the given cone `\sigma`. Then, in the
         notation of [Fulton]_, this method returns the sublattice
 
@@ -2429,10 +2451,16 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             \sigma^\perp \cap M
             \subset M
 
+        INPUT:
+
+        - either nothing or something that can be turned into an element of
+          this lattice.
+
         OUTPUT:
 
-        - A
-          :class:`sage.geometry.toric_lattice.ToricLattice_sublattice_with_basis`.
+        - if no arguments were given, a :class:`toric sublattice
+          <sage.geometry.toric_lattice.ToricLattice_sublattice_with_basis>`,
+          otherwise the corresponding element of it.
 
         EXAMPLES::
 
@@ -2447,7 +2475,10 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         """
         if "_orthogonal_sublattice" not in self.__dict__:
                 self._split_ambient_lattice()
-        return self._orthogonal_sublattice
+        if args or kwds:
+            return self._orthogonal_sublattice(*args, **kwds)
+        else:
+            return self._orthogonal_sublattice
 
     def relative_quotient(self, subcone):
         r"""
@@ -2466,23 +2497,19 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         OUTPUT:
 
-        - A tuple of points in the sublattice spanned by the given
-          cone that, together with ``rho.sublattice()``, form a
-          `\ZZ`-basis for the sublattice spanned by given cone.
+        - :class:`toric lattice quotient
+          <sage.geometry.toric_lattice.ToricLattice_quotient>`.
 
         .. NOTE::
 
             * The quotient `N_\sigma / N_\rho` of spanned sublattices
-              has no torsion since the sublattice is saturated.
+              has no torsion since the sublattice `N_\rho` is saturated.
 
-            * In the codimension one case, `\sigma / N_\rho` lies in
-              one half-space of `N_\sigma / N_\rho`. The returned
-              lattice point is chosen such that it lies in this
-              half-space as well.
+            * In the codimension one case, the generator of
+              `N_\sigma / N_\rho` is chosen to be in the same direction as the
+              image `\sigma / N_\rho`
 
-        EXAMPLES:
-
-        First example::
+        EXAMPLES::
 
             sage: sigma = Cone([(1,1,1,3),(1,-1,1,3),(-1,-1,1,3),(-1,1,1,3)])
             sage: rho   = Cone([(-1, -1, 1, 3), (-1, 1, 1, 3)])
@@ -2491,7 +2518,9 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: rho.sublattice()
             Sublattice <N(-1, 1, 1, 3), N(0, 1, 0, 0)>
             sage: sigma.relative_quotient(rho)
-            1-d lattice, quotient of Sublattice <N(1, 1, 1, 3), N(1, 0, 0, 0), N(0, 1, 0, 0)> by Sublattice <N(1, 0, -1, -3), N(0, 1, 0, 0)>
+            1-d lattice, quotient
+            of Sublattice <N(1, 1, 1, 3), N(1, 0, 0, 0), N(0, 1, 0, 0)>
+            by Sublattice <N(1, 0, -1, -3), N(0, 1, 0, 0)>
             sage: sigma.relative_quotient(rho).gens()
             (N[1, 0, 0, 0],)
 
@@ -2499,14 +2528,17 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: rho = Cone([(1, 2, 3), (1, -1, 1)])
             sage: sigma = Cone([(1, 2, 3), (1, -1, 1), (-1, 1, 1), (-1, -1, 1)])
-            sage: sigma.sublattice()
+            sage: N_sigma = sigma.sublattice()
+            sage: N_sigma
             Sublattice <N(3, 0, 1), N(2, 1, 0), N(1, 0, 0)>
-            sage: rho.sublattice()
+            sage: N_rho = rho.sublattice()
+            sage: N_rho
             Sublattice <N(1, -1, 1), N(0, 3, 2)>
             sage: sigma.relative_quotient(rho).gens()
             (N[0, -2, -1],)
             sage: N = rho.lattice()
-            sage: N.span(rho.sublattice().gens() + tuple(q.lift() for q in sigma.relative_quotient(rho).gens()) ) == N.span( sigma.sublattice().gens() )
+            sage: N_sigma == N.span(N_rho.gens() + tuple(q.lift()
+            ...              for q in sigma.relative_quotient(rho).gens()))
             True
 
         Sign choice in the codimension one case::
@@ -2517,7 +2549,9 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: rho.sublattice()
             Sublattice <N(1, -1, 1), N(0, 3, 2)>
             sage: sigma1.relative_quotient(rho)
-            1-d lattice, quotient of Sublattice <N(3, 0, 1), N(2, 1, 0), N(1, 0, 0)> by Sublattice <N(1, 2, 3), N(0, 3, 2)>
+            1-d lattice, quotient
+            of Sublattice <N(3, 0, 1), N(2, 1, 0), N(1, 0, 0)>
+            by Sublattice <N(1, 2, 3), N(0, 3, 2)>
             sage: sigma1.relative_quotient(rho).gens()
             (N[0, -2, -1],)
             sage: sigma2.relative_quotient(rho).gens()
@@ -2563,10 +2597,10 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         OUTPUT:
 
-        - A
-          :class:`sage.geometry.toric_lattice.ToricLattice_sublattice_with_basis`.
+        - :class:`toric lattice quotient
+          <sage.geometry.toric_lattice.ToricLattice_quotient>`.
 
-        - If we call the output ``Mrho``, then
+        If we call the output ``Mrho``, then
 
             - ``Mrho.cover() == self.orthogonal_sublattice()``, and
 
@@ -2574,13 +2608,11 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         .. NOTE::
 
-            * `M(\sigma) / M(\rho)` has no torsion since the sublattice is
-              saturated.
+            * `M(\sigma) / M(\rho)` has no torsion since the sublattice
+              `M(\rho)` is saturated.
 
-            * In the codimension one case, `\sigma / M(\rho)` lies in
-              one half-space of `M(\sigma) / M(\rho)`. The returned
-              generator (as a dual lattice point) is chosen to lie in
-              this half-space as well.
+            * In the codimension one case, (a lift of) the generator of
+              `M(\sigma) / M(\rho)` is chosen to be positive on `\sigma`.
 
         EXAMPLES::
 
@@ -2593,7 +2625,9 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: sigma.is_face_of(rho)
             True
             sage: Q = sigma.relative_orthogonal_quotient(rho); Q
-            1-d lattice, quotient of Sublattice <M(0, 1, 1, 0), M(0, 3, 0, 1)> by Sublattice <M(0, 0, 3, -1)>
+            1-d lattice, quotient
+            of Sublattice <M(0, 1, 1, 0), M(0, 3, 0, 1)>
+            by Sublattice <M(0, 0, 3, -1)>
             sage: Q.gens()
             (M[0, 1, 1, 0],)
 

@@ -6492,16 +6492,35 @@ class GenericGraph(GenericGraph_pyx):
         else:
             return iter(set(self._backend.iterator_nbrs(vertex)))
 
-    def vertices(self, boundary_first=False):
-        """
+    def vertices(self, key=None, boundary_first=False):
+        r"""
         Return a list of the vertices.
 
         INPUT:
 
+        - ``key`` - default: ``None`` - a function that takes
+          a vertex as its one argument and returns a value that
+          can be used for comparisons in the sorting algorithm.
 
-        -  ``boundary_first`` - Return the boundary vertices
-           first.
+        - ``boundary_first`` - default:  ``False`` - if ``True``,
+          return the boundary vertices first.
 
+        OUTPUT:
+
+        The vertices of the list.
+
+        .. warning::
+
+            There is always an attempt to sort the list before
+            returning the result. However, since any object may
+            be a vertex, there is no guarantee that any two
+            vertices will be comparable.  With default objects
+            for vertices (all integers), or when all the vertices
+            are of the same simple type, then there should not be
+            a problem with how the vertices will be sorted. However,
+            if you need to guarantee a total order for the sort,
+            use the ``key`` argument, as illustrated in the
+            examples below.
 
         EXAMPLES::
 
@@ -6509,9 +6528,10 @@ class GenericGraph(GenericGraph_pyx):
             sage: P.vertices()
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
-        Note that the output of the vertices() function is always sorted.
-        This is sub-optimal, speed-wise, but note the following
-        optimizations::
+        If you do not care about sorted output and you are
+        concerned about the time taken to sort, consider the
+        following alternatives.  The moral is: if you want a
+        fast vertex iterator, call the dictionary directly. ::
 
             sage: timeit V = P.vertices()                     # not tested
             100000 loops, best of 3: 8.85 [micro]s per loop
@@ -6520,11 +6540,42 @@ class GenericGraph(GenericGraph_pyx):
             sage: timeit V = list(P._nxg.adj.iterkeys())      # not tested
             100000 loops, best of 3: 3.45 [micro]s per loop
 
-        In other words, if you want a fast vertex iterator, call the
-        dictionary directly.
+        We illustrate various ways to use a ``key`` to sort the list::
+
+            sage: H=graphs.HanoiTowerGraph(3,3,labels=False)
+            sage: H.vertices()
+            [0, 1, 2, 3, 4, ... 22, 23, 24, 25, 26]
+            sage: H.vertices(key=lambda x: -x)
+            [26, 25, 24, 23, 22, ... 4, 3, 2, 1, 0]
+
+        ::
+
+            sage: G=graphs.HanoiTowerGraph(3,3)
+            sage: G.vertices()
+            [(0, 0, 0), (0, 0, 1), (0, 0, 2), (0, 1, 0), ... (2, 2, 1), (2, 2, 2)]
+            sage: G.vertices(key = lambda x: (x[1], x[2], x[0]))
+            [(0, 0, 0), (1, 0, 0), (2, 0, 0), (0, 0, 1), ... (1, 2, 2), (2, 2, 2)]
+
+        ::
+
+            sage: t = polygen(QQ, 't')
+            sage: K = Graph({5*t:[t^2], t^2:[t^2+2], t^2+2:[4*t^2-6], 4*t^2-6:[5*t]})
+            sage: dsc = sage.rings.polynomial.polynomial_element_generic.Polynomial_rational_dense.discriminant
+            sage: K.vertices(key=dsc)
+            [t^2 + 2, t^2, 5*t, 4*t^2 - 6]
+
+        If boundary vertices are requested first, then they are sorted
+        separately from the remainder (which are also sorted). ::
+
+            sage: P = graphs.PetersenGraph()
+            sage: P.set_boundary((5..9))
+            sage: P.vertices(boundary_first=True)
+            [5, 6, 7, 8, 9, 0, 1, 2, 3, 4]
+            sage: P.vertices(boundary_first=True, key=lambda x: -x)
+            [9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
         """
         if not boundary_first:
-            return sorted(list(self.vertex_iterator()))
+            return sorted(list(self.vertex_iterator()), key=key)
 
         bdy_verts = []
         int_verts = []
@@ -6533,7 +6584,7 @@ class GenericGraph(GenericGraph_pyx):
                 bdy_verts.append(v)
             else:
                 int_verts.append(v)
-        return sorted(bdy_verts) + sorted(int_verts)
+        return sorted(bdy_verts, key=key) + sorted(int_verts, key=key)
 
     def neighbors(self, vertex):
         """

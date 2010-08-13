@@ -7176,22 +7176,37 @@ class GenericGraph(GenericGraph_pyx):
                     label = None
         return self._backend.has_edge(u, v, label)
 
-    def edges(self, labels=True, sort=True):
-        """
-        Return a list of edges. Each edge is a triple (u,v,l) where u and v
-        are vertices and l is a label.
+    def edges(self, labels=True, sort=True, key=None):
+        r"""
+        Return a list of the edges of the graph as triples (u,v,l)
+        where u and v are vertices and l is a label.
 
         INPUT:
 
+        - ``labels`` - default: ``True`` - if ``False``, each
+          edge is simply a pair (u,v) of vertices.
 
-        -  ``labels`` - (bool; default: True) if False, each
-           edge is a tuple (u,v) of vertices.
+        - ``sort`` - default: ``True`` - if ``True``, edges are
+          sorted according to the default ordering.
 
-        -  ``sort`` - (bool; default: True) if True, ensure
-           that the list of edges is sorted.
-
+        - ``key`` - default: ``None`` - a function  takes an edge
+          (a pair or a triple, according to the ``labels`` keyword)
+          as its one argument and returns a value that can be used
+          for comparisons in the sorting algorithm.
 
         OUTPUT: A list of tuples. It is safe to change the returned list.
+
+        .. warning::
+
+            Since any object may be a vertex, there is no guarantee
+            that any two vertices will be comparable, and thus no
+            guarantee how two edges may compare.  With default
+            objects for vertices (all integers), or when all the
+            vertices are of the same simple type, then there should
+            not be a problem with how the vertices will be sorted.
+            However, if you need to guarantee a total order for
+            the sorting of the edges, use the ``key`` argument,
+            as illustrated in the examples below.
 
         EXAMPLES::
 
@@ -7210,10 +7225,41 @@ class GenericGraph(GenericGraph_pyx):
             [(0, 1, {}), (0, 10, {}), (0, 19, {}), (1, 0, {}), (1, 2, {}), (1, 8, {}), (2, 1, {}), (2, 3, {}), (2, 6, {}), (3, 2, {}), (3, 4, {}), (3, 19, {}), (4, 3, {}), (4, 5, {}), (4, 17, {}), (5, 4, {}), (5, 6, {}), (5, 15, {}), (6, 2, {}), (6, 5, {}), (6, 7, {}), (7, 6, {}), (7, 8, {}), (7, 14, {}), (8, 1, {}), (8, 7, {}), (8, 9, {}), (9, 8, {}), (9, 10, {}), (9, 13, {}), (10, 0, {}), (10, 9, {}), (10, 11, {}), (11, 10, {}), (11, 12, {}), (11, 18, {}), (12, 11, {}), (12, 13, {}), (12, 16, {}), (13, 9, {}), (13, 12, {}), (13, 14, {}), (14, 7, {}), (14, 13, {}), (14, 15, {}), (15, 5, {}), (15, 14, {}), (15, 16, {}), (16, 12, {}), (16, 15, {}), (16, 17, {}), (17, 4, {}), (17, 16, {}), (17, 18, {}), (18, 11, {}), (18, 17, {}), (18, 19, {}), (19, 0, {}), (19, 3, {}), (19, 18, {})]
             sage: D.edges(labels = False)
             [(0, 1), (0, 10), (0, 19), (1, 0), (1, 2), (1, 8), (2, 1), (2, 3), (2, 6), (3, 2), (3, 4), (3, 19), (4, 3), (4, 5), (4, 17), (5, 4), (5, 6), (5, 15), (6, 2), (6, 5), (6, 7), (7, 6), (7, 8), (7, 14), (8, 1), (8, 7), (8, 9), (9, 8), (9, 10), (9, 13), (10, 0), (10, 9), (10, 11), (11, 10), (11, 12), (11, 18), (12, 11), (12, 13), (12, 16), (13, 9), (13, 12), (13, 14), (14, 7), (14, 13), (14, 15), (15, 5), (15, 14), (15, 16), (16, 12), (16, 15), (16, 17), (17, 4), (17, 16), (17, 18), (18, 11), (18, 17), (18, 19), (19, 0), (19, 3), (19, 18)]
+
+        The default is to sort the returned list in the default fashion, as in the above examples.
+        this can be overridden by specifying a key function. This first example just ignores
+        the labels in the third component of the triple.  ::
+
+            sage: G=graphs.CycleGraph(5)
+            sage: G.edges(key = lambda x: (x[1],-x[0]))
+            [(0, 1, {}), (1, 2, {}), (2, 3, {}), (3, 4, {}), (0, 4, {})]
+
+        We set the labels to characters and then perform a default sort
+        followed by a sort according to the labels. ::
+
+            sage: G=graphs.CycleGraph(5)
+            sage: for e in G.edges():
+            ...     G.set_edge_label(e[0], e[1], chr(ord('A')+e[0]+5*e[1]))
+            sage: G.edges(sort=True)
+            [(0, 1, 'F'), (0, 4, 'U'), (1, 2, 'L'), (2, 3, 'R'), (3, 4, 'X')]
+            sage: G.edges(key=lambda x: x[2])
+            [(0, 1, 'F'), (1, 2, 'L'), (2, 3, 'R'), (0, 4, 'U'), (3, 4, 'X')]
+
+        TESTS:
+
+        It is an error to turn off sorting while providing a key function for sorting. ::
+
+            sage: P=graphs.PetersenGraph()
+            sage: P.edges(sort=False, key=lambda x: x)
+            Traceback (most recent call last):
+            ...
+            ValueError: sort keyword is False, yet a key function is given
         """
+        if not(sort) and key:
+            raise ValueError('sort keyword is False, yet a key function is given')
         L = list(self.edge_iterator(labels=labels))
         if sort:
-            L.sort()
+            L.sort(key=key)
         return L
 
     def edge_boundary(self, vertices1, vertices2=None, labels=True):

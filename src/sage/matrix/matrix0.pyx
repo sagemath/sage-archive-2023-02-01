@@ -1097,6 +1097,11 @@ cdef class Matrix(sage.structure.element.Matrix):
             Traceback (most recent call last):
             ...
             ValueError: matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).
+            sage: A=matrix([[1,2],[3,4]]); B=matrix([[1,3],[5,7]])
+            sage: A[1:2,1:2]=B[1:2,1:2]
+            sage: A
+            [1 2]
+            [3 7]
 
 
         More examples::

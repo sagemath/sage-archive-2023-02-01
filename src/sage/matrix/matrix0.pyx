@@ -1302,10 +1302,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             no_col_index = 1
             row_index = key
             col_list_len = ncols
-            if col_list_len==1:
-                col = 0
-                single_col = 1
-            elif col_list_len==0:
+            if col_list_len==0:
                 return
 
         # Special-case a single-row.
@@ -1320,10 +1317,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         else:
             row_list = normalize_index(row_index, nrows)
             row_list_len = len(row_list)
-            if row_list_len==1:
-                row = row_list[0]
-                single_row = 1
-            elif row_list_len==0:
+            if row_list_len==0:
                return
 
         if single_row and single_col and not no_col_index:

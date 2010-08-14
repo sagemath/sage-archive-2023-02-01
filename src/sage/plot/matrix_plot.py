@@ -104,11 +104,18 @@ class MatrixPlot(GraphicPrimitive):
 
             sage: m = matrix_plot(matrix([[1,3,5,1],[2,4,5,6],[1,3,5,7]]))[0]
             sage: list(sorted(m.get_minmax_data().items()))
-            [('xmax', 4), ('xmin', 0), ('ymax', 3), ('ymin', 0)]
+            [('xmax', 3.5), ('xmin', -0.5), ('ymax', -0.5), ('ymin', 2.5)]
+
 
         """
         from sage.plot.plot import minmax_data
-        return minmax_data(self.xrange, self.yrange, dict=True)
+        limits= minmax_data(self.xrange, self.yrange, dict=True)
+        if self.options()['origin']!='lower':
+            # flip y-axis so that the picture looks correct.
+            limits['ymin'],limits['ymax']=limits['ymax'],limits['ymin']
+        for k,v in limits.iteritems():
+            limits[k]-=0.5
+        return limits
 
     def _allowed_options(self):
         """
@@ -126,7 +133,11 @@ class MatrixPlot(GraphicPrimitive):
                         for available colormap names.""",
                 'zorder':"The layer level in which to draw",
                 'marker':"The marker for sparse plots",
-                'markersize':"The marker size for sparse plots"}
+                'markersize':"The marker size for sparse plots",
+                'norm': "The normalization function",
+                'vmin': "The minimum value",
+                'vmax': "The maximum value",
+                'origin': "If 'lower', draw the matrix with the first row on the bottom of the graph"}
 
     def _repr_(self):
         """
@@ -148,15 +159,35 @@ class MatrixPlot(GraphicPrimitive):
         """
         options = self.options()
         cmap = get_cmap(options.pop('cmap',None))
+        origin=options['origin']
+
+        norm=options['norm']
+
+        if norm=='value':
+            import matplotlib
+            norm=matplotlib.colors.NoNorm()
 
         if hasattr(self.xy_data_array, 'tocoo'):
             # Sparse matrix -- use spy
-            subplot.spy(self.xy_data_array, **options)
+            opts=options.copy()
+            for opt in ['vmin', 'vmax', 'norm', 'origin']:
+                del opts[opt]
+            if origin=='lower':
+                subplot.spy(self.xy_data_array.tocsr()[::-1], **opts)
+            else:
+                subplot.spy(self.xy_data_array, **opts)
         else:
-            subplot.imshow(self.xy_data_array, cmap=cmap, interpolation='nearest', extent=(0,self.xrange[1],0,self.yrange[1]))
+            opts = dict(cmap=cmap, interpolation='nearest', aspect='equal',
+                      norm=norm, vmin=options['vmin'], vmax=options['vmax'],
+                      origin=origin,zorder=options.get('zorder',None))
+            subplot.imshow(self.xy_data_array, **opts)
+        if origin=='upper':
+            subplot.xaxis.tick_top()
+        elif origin=='lower':
+            subplot.xaxis.tick_bottom()
 
-
-@options(cmap='gray',marker='.',frame=True)
+@options(cmap='gray',marker='.',frame=True, axes=False, norm=None,
+         vmin=None, vmax=None, origin='upper',axes_integer=True)
 def matrix_plot(mat, **options):
     r"""
     A plot of a given matrix or 2D array.
@@ -184,6 +215,19 @@ def matrix_plot(mat, **options):
       Type: ``import matplotlib.cm; matplotlib.cm.datad.keys()``
       for available colormap names.
 
+    - ``norm`` - If None, the value range is scaled to the interval
+      [0,1].  If 'value', then the actual value is used with no
+      scaling.  A :class:`matplotlib.colors.Normalize` instance may
+      also passed.
+
+    - ``vmin`` - The minimum value (values below this are set to this value)
+
+    - ``vmax`` - The maximum value (values above this are set to this value)
+
+    - ``origin`` - If 'upper' (default), the first row of the matrix
+      is on the top of the graph.  If 'lower', the first row is on the
+      bottom of the graph.
+
     EXAMPLES:
 
     A matrix over `\ZZ` colored with different grey levels::
@@ -194,6 +238,32 @@ def matrix_plot(mat, **options):
     to color the matrix elements different RGB colors::
 
         sage: matrix_plot(random_matrix(RDF, 50), cmap='hsv')
+
+    By default, entries are scaled to the interval [0,1] before
+    determining colors from the color map.  That means the two plots
+    below are the same::
+
+        sage: matrix_plot(matrix(2,[1,1,3,3]))
+        sage: matrix_plot(matrix(2,[2,2,3,3]))
+
+    However, we can specify which values scale to 0 or 1 with the
+    ``vmin`` and ``vmax`` parameters (values outside the range are
+    clipped).  The two plots below are now distinguished::
+
+        sage: matrix_plot(matrix(2,[1,1,3,3]), vmin=0, vmax=3)
+        sage: matrix_plot(matrix(2,[2,2,3,3]), vmin=0, vmax=3)
+
+    We can also specify a norm function of 'value', which means that
+    there is no scaling performed::
+
+        sage: matrix_plot(random_matrix(ZZ,10)*.05, norm='value')
+
+    Generally matrices are plotted with the (0,0) entry in the upper
+    left.  However, sometimes if we are plotting an image, we'd like
+    the (0,0) entry to be in the lower left.  We can do that with the
+    ``origin`` argument::
+
+        sage: matrix_plot(identity_matrix(100), origin='lower')
 
     Another random plot, but over `\GF{389}`::
 
@@ -210,6 +280,27 @@ def matrix_plot(mat, **options):
         sage: matrix_plot(sparse)
         sage: A=random_matrix(ZZ,100000,density=.00001,sparse=True)
         sage: matrix_plot(A,marker=',')
+
+    As with dense matrices, sparse matrix entries are automatically
+    converted to floating point numbers before plotting.  Thus the
+    following works::
+
+        sage: b=random_matrix(GF(2),200,sparse=True,density=0.01)
+        sage: matrix_plot(b)
+
+    While this returns an error::
+
+        sage: b=random_matrix(CDF,200,sparse=True,density=0.01)
+        sage: matrix_plot(b)
+        Traceback (most recent call last):
+        ...
+        ValueError: can not convert entries to floating point numbers
+
+    To plot the absolute value of a complex matrix, use the
+    ``apply_map`` method::
+
+        sage: b=random_matrix(CDF,200,sparse=True,density=0.01)
+        sage: matrix_plot(b.apply_map(abs))
 
     Plotting lists of lists also works::
 
@@ -240,19 +331,21 @@ def matrix_plot(mat, **options):
         sage: matrix_plot([[sin(x), cos(x)], [1, 0]])
         Traceback (most recent call last):
         ...
-        ValueError: can not convert array entries to floating point numbers
+        ValueError: can not convert entries to floating point numbers
     """
     import numpy as np
     import scipy.sparse as scipysparse
     from sage.plot.plot import Graphics
     from sage.matrix.all import is_Matrix
     from sage.rings.all import RDF
-
     if is_Matrix(mat):
         sparse = mat.is_sparse()
         if sparse:
             entries = list(mat._dict().items())
-            data = np.asarray([d for _,d in entries])
+            try:
+                data = np.asarray([d for _,d in entries], dtype=float)
+            except:
+                raise ValueError, "can not convert entries to floating point numbers"
             positions = np.asarray([[row for (row,col),_ in entries],
                                     [col for (row,col),_ in entries]], dtype=int)
             mat = scipysparse.coo_matrix((data,positions), shape=(mat.nrows(), mat.ncols()))
@@ -272,7 +365,7 @@ def matrix_plot(mat, **options):
     except TypeError:
         raise TypeError, "mat must be a Matrix or a two dimensional array"
     except ValueError:
-        raise ValueError, "can not convert array entries to floating point numbers"
+        raise ValueError, "can not convert entries to floating point numbers"
 
     if len(xy_data_array.shape) < 2:
         raise TypeError, "mat must be a Matrix or a two dimensional array"

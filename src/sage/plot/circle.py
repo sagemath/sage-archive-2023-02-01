@@ -266,27 +266,30 @@ def circle(center, radius, **options):
     Note that the ``rgbcolor`` option overrides the other coloring options.
     This produces red fill in a blue circle::
 
-        sage: C = circle((2,3), 1, fill=True, edgecolor='blue')
+        sage: circle((2,3), 1, fill=True, edgecolor='blue')
 
     This produces an all-green filled circle::
 
-        sage: C = circle((2,3), 1, fill=True, edgecolor='blue', rgbcolor='green')
+        sage: circle((2,3), 1, fill=True, edgecolor='blue', rgbcolor='green')
 
     The option ``hue`` overrides *all* other options, so be careful with its use.
     This produces a purplish filled circle::
 
-        sage: C = circle((2,3), 1, fill=True, edgecolor='blue', rgbcolor='green', hue=.8)
+        sage: circle((2,3), 1, fill=True, edgecolor='blue', rgbcolor='green', hue=.8)
 
     Extra options will get passed on to show(), as long as they are valid::
 
         sage: circle((0, 0), 2, figsize=[10,10]) # That circle is huge!
+
+    ::
+
         sage: circle((0, 0), 2).show(figsize=[10,10]) # These are equivalent
 
     TESTS:
 
     We cannot currently plot circles in more than three dimensions::
 
-        sage: c = circle((1,1,1,1), 1, rgbcolor=(1,0,0))
+        sage: circle((1,1,1,1), 1, rgbcolor=(1,0,0))
         Traceback (most recent call last):
         ...
         ValueError: The center of a plotted circle should have two or three coordinates.

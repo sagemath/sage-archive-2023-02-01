@@ -52,6 +52,9 @@ class Polygon(GraphicPrimitive_xydata):
     We test creating polygons::
 
         sage: polygon([(0,0), (1,1), (0,1)])
+
+    ::
+
         sage: polygon([(0,0,1), (1,1,1), (2,0,1)])
     """
     def __init__(self, xdata, ydata, options):

@@ -64,7 +64,7 @@ class MatrixPlot(GraphicPrimitive):
 
     We test creating a matrix plot::
 
-        sage: M = matrix_plot([[mod(i,5)^j for i in range(5)] for j in range(1,6)])
+        sage: matrix_plot([[mod(i,5)^j for i in range(5)] for j in range(1,6)])
     """
     def __init__(self, xy_data_array, xrange, yrange, options):
         """
@@ -241,15 +241,17 @@ def matrix_plot(mat, **options):
     determining colors from the color map.  That means the two plots
     below are the same::
 
-        sage: matrix_plot(matrix(2,[1,1,3,3]))
-        sage: matrix_plot(matrix(2,[2,2,3,3]))
+        sage: P = matrix_plot(matrix(2,[1,1,3,3]))
+        sage: Q = matrix_plot(matrix(2,[2,2,3,3]))
+        sage: P; Q
 
     However, we can specify which values scale to 0 or 1 with the
     ``vmin`` and ``vmax`` parameters (values outside the range are
     clipped).  The two plots below are now distinguished::
 
-        sage: matrix_plot(matrix(2,[1,1,3,3]), vmin=0, vmax=3)
-        sage: matrix_plot(matrix(2,[2,2,3,3]), vmin=0, vmax=3)
+        sage: P = matrix_plot(matrix(2,[1,1,3,3]), vmin=0, vmax=3)
+        sage: Q = matrix_plot(matrix(2,[2,2,3,3]), vmin=0, vmax=3)
+        sage: P; Q
 
     We can also specify a norm function of 'value', which means that
     there is no scaling performed::
@@ -276,6 +278,9 @@ def matrix_plot(mat, **options):
 
         sage: sparse = matrix(dict([((randint(0, 10), randint(0, 10)), 1) for i in xrange(100)]))
         sage: matrix_plot(sparse)
+
+    ::
+
         sage: A=random_matrix(ZZ,100000,density=.00001,sparse=True)
         sage: matrix_plot(A,marker=',')
 

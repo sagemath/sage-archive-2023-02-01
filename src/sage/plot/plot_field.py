@@ -143,6 +143,9 @@ def plot_vector_field((f, g), xrange, yrange, **options):
 
         sage: x,y = var('x y')
         sage: plot_vector_field((sin(x), cos(y)), (x,-3,3), (y,-3,3))
+
+    ::
+
         sage: plot_vector_field(( y, (cos(x)-2)*sin(x)), (x,-pi,pi), (y,-pi,pi))
 
     Plot a gradient field::
@@ -162,6 +165,10 @@ def plot_vector_field((f, g), xrange, yrange, **options):
 
         sage: x,y = var('x,y')
         sage: plot_vector_field( (-x/sqrt(x^2+y^2), -y/sqrt(x^2+y^2)), (x, -10, 10), (y, -10, 10))
+
+    ::
+
+        sage: x,y = var('x,y')
         sage: plot_vector_field( (-x/sqrt(x+y), -y/sqrt(x+y)), (x, -10, 10), (y, -10, 10))
 
     Extra options will get passed on to show(), as long as they are valid::

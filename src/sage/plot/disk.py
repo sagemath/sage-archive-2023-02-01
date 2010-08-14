@@ -56,7 +56,7 @@ class Disk(GraphicPrimitive):
 
     We test creating a disk::
 
-        sage: D = disk((2,3), 2, (0,pi/2))
+        sage: disk((2,3), 2, (0,pi/2))
     """
     def __init__(self, point, r, angle, options):
         """

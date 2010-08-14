@@ -364,6 +364,8 @@ def show_default(default=None):
         return SHOW_DEFAULT
     SHOW_DEFAULT = bool(default)
 
+# If do_verify is True, options are checked when drawing a
+# GraphicsPrimitive.  See primitive.py
 do_verify = True
 
 from sage.misc.randstate import current_randstate #for plot adaptive refinement
@@ -1426,7 +1428,7 @@ class Graphics(SageObject):
         ::
 
             sage: b = bar_chart([-3,5,-6,11], color='red')
-            sage: b.show(gridlines=([-1,-0.5,..,4],True), \
+            sage: b.show(gridlines=([-1,-0.5,..,4],True),
             ...     gridlinesstyle=dict(color="blue", linestyle=":"))
 
         Change the style of the horizontal or vertical grid lines
@@ -1435,8 +1437,8 @@ class Graphics(SageObject):
         ::
 
             sage: p = polar_plot(2 + 2*cos(x), 0, 2*pi, color=hue(0.3))
-            sage: p.show(gridlines=True, \
-            ...     hgridlinesstyle=dict(color="orange", linewidth=1.0), \
+            sage: p.show(gridlines=True,
+            ...     hgridlinesstyle=dict(color="orange", linewidth=1.0),
             ...     vgridlinesstyle=dict(color="blue", linestyle=":"))
 
         Change the style of each grid line individually.
@@ -1444,7 +1446,7 @@ class Graphics(SageObject):
         ::
 
             sage: x, y = var('x, y')
-            sage: p = implicit_plot((y^2-x^2)*(x-1)*(2*x-3)-4*(x^2+y^2-2*x)^2, \
+            sage: p = implicit_plot((y^2-x^2)*(x-1)*(2*x-3)-4*(x^2+y^2-2*x)^2,
             ...             (x,-2,2), (y,-2,2), plot_points=1000)
             sage: p.show(gridlines=(
             ...    [
@@ -2232,7 +2234,7 @@ def SelectiveFormatter(formatter, skip_values):
         sage: ax=fig.add_subplot(111)
         sage: t = numpy.arange(0.0, 2.0, 0.01)
         sage: s = numpy.sin(2*numpy.pi*t)
-        sage: line=ax.plot(t, s)
+        sage: p = ax.plot(t, s)
         sage: formatter=SelectiveFormatter(ax.xaxis.get_major_formatter(),skip_values=[0,1])
         sage: ax.xaxis.set_major_formatter(formatter)
         sage: fig.savefig(os.path.join(SAGE_TMP, 'test.png'))

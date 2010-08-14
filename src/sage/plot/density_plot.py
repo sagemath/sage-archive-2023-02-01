@@ -58,7 +58,7 @@ class DensityPlot(GraphicPrimitive):
     We test creating a density plot::
 
         sage: x,y = var('x,y')
-        sage: D = density_plot(x^2-y^3+10*sin(x*y), (x, -4, 4), (y, -4, 4),plot_points=121,cmap='hsv')
+        sage: density_plot(x^2-y^3+10*sin(x*y), (x, -4, 4), (y, -4, 4),plot_points=121,cmap='hsv')
     """
     def __init__(self, xy_data_array, xrange, yrange, options):
         """
@@ -208,11 +208,17 @@ def density_plot(f, xrange, yrange, **options):
     variables `x`, `y`::
 
         sage: density_plot(y^2 + 1 - x^3 - x, (y,-pi,pi), (x,-pi,pi))
+
+    ::
+
         sage: density_plot(y^2 + 1 - x^3 - x, (x,-pi,pi), (y,-pi,pi))
 
     Extra options will get passed on to show(), as long as they are valid::
 
         sage: density_plot(log(x) + log(y), (x, 1, 10), (y, 1, 10), dpi=20)
+
+    ::
+
         sage: density_plot(log(x) + log(y), (x, 1, 10), (y, 1, 10)).show(dpi=20) # These are equivalent
     """
     from sage.plot.plot import Graphics

@@ -134,8 +134,7 @@ def scatter_plot(datalist, **options):
 
     EXAMPLES::
 
-        sage: s = scatter_plot([[0,1],[2,2],[4.3,1.1]], marker='s')
-        sage: s
+        sage: scatter_plot([[0,1],[2,2],[4.3,1.1]], marker='s')
 
     Extra options will get passed on to show(), as long as they are valid::
 

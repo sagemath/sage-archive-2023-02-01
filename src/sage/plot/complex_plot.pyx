@@ -260,8 +260,17 @@ def complex_plot(f, xrange, yrange, **options):
     Here we plot a couple of simple functions::
 
         sage: complex_plot(sqrt(x), (-5, 5), (-5, 5))
+
+    ::
+
         sage: complex_plot(sin(x), (-5, 5), (-5, 5))
+
+    ::
+
         sage: complex_plot(log(x), (-10, 10), (-10, 10))
+
+    ::
+
         sage: complex_plot(exp(x), (-10, 10), (-10, 10))
 
     A function with some nice zeros and a pole::
@@ -280,6 +289,9 @@ def complex_plot(f, xrange, yrange, **options):
     Extra options will get passed on to show(), as long as they are valid::
 
         sage: complex_plot(lambda z: z, (-3, 3), (-3, 3), figsize=[1,1])
+
+    ::
+
         sage: complex_plot(lambda z: z, (-3, 3), (-3, 3)).show(figsize=[1,1]) # These are equivalent
 
     TESTS:
@@ -292,7 +304,8 @@ def complex_plot(f, xrange, yrange, **options):
         sage: P = complex_plot(f, (-10, 10), (-10, 10))
         sage: Q = complex_plot(g, (-10, 10), (-10, 10))
         sage: R = complex_plot(h, (-10, 10), (-10, 10))
-        sage: complex_plot(exp(x)-sin(x), (-10, 10), (-10, 10))
+        sage: S = complex_plot(exp(x)-sin(x), (-10, 10), (-10, 10))
+        sage: P; Q; R; S
 
     Test to make sure symbolic functions still work without declaring
     a variable.  (We don't do this in practice because it doesn't use

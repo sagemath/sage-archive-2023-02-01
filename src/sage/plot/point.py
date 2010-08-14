@@ -61,7 +61,7 @@ class Point(GraphicPrimitive_xydata):
 
     We test creating a point::
 
-        sage: P = point((3,3))
+        sage: point((3,3))
     """
     def __init__(self, xdata, ydata, options):
         """
@@ -286,8 +286,17 @@ def point(points, **kwds):
     EXAMPLES::
 
         sage: point((1,2))
+
+    ::
+
         sage: point((1,2,3))
+
+    ::
+
         sage: point([(0,0), (1,1)])
+
+    ::
+
         sage: point([(0,0,1), (1,1,1)])
 
     Extra options will get passed on to show(), as long as they are valid::
@@ -344,6 +353,9 @@ def point2d(points, **options):
     ``pointsize`` is still supported::
 
         sage: point((3,4), size=100)
+
+    ::
+
         sage: point((3,4), pointsize=100)
     """
     from sage.plot.plot import xydata_from_point_list, Graphics

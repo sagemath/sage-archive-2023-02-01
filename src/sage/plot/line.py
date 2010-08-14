@@ -234,6 +234,9 @@ def line(points, **kwds):
     EXAMPLES::
 
         sage: line([(0,0), (1,1)])
+
+    ::
+
         sage: line([(0,0,1), (1,1,1)])
     """
     try:

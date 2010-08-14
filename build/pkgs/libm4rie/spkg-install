@@ -49,8 +49,10 @@ export CXXFLAGS
 
 if [ "x$SAGE_FAT_BINARY" = "xyes" ]; then
     DISABLE_SSE2="--disable-sse2"
+    ENABLE_CACHETUNE=""
 else
     DISABLE_SSE2=""
+    ENABLE_CACHETUNE="--enable-cachetune"
 fi
 
 #build M4RI
@@ -59,7 +61,7 @@ cd m4ri
 
 $MAKE clean
 
-./configure --prefix=$SAGE_LOCAL $ENABLE_DEBUG $DISABLE_SSE2
+./configure --prefix=$SAGE_LOCAL $ENABLE_DEBUG $DISABLE_SSE2 $ENABLE_CACHETUNE
 
 if [ $? -ne 0 ]; then
     echo "Error configuring libm4ri"
@@ -88,7 +90,7 @@ cd m4rie
 
 $MAKE clean
 
-./configure --prefix=$SAGE_LOCAL $ENABLE_DEBUG $DISABLE_SSE2
+./configure --prefix=$SAGE_LOCAL $ENABLE_DEBUG $DISABLE_SSE2 $ENABLE_CACHETUNE
 
 if [ $? -ne 0 ]; then
     echo "Error configuring libm4rie"

@@ -1102,6 +1102,11 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: A
             [1 2]
             [3 7]
+            sage: A=matrix([[1,2],[3,4]]); B=matrix([[1,3],[5,7]])
+            sage: A[1,0:1]=B[1,1:2]
+            sage: A
+            [1 2]
+            [7 4]
 
 
         More examples::
@@ -1297,10 +1302,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             else:
                 col_list = normalize_index(col_index, ncols)
                 col_list_len = len(col_list)
-                if col_list_len==1:
-                    col = col_list[0]
-                    single_col = 1
-                elif col_list_len==0:
+                if col_list_len==0:
                     return
 
         else:

@@ -2090,25 +2090,25 @@ class Graphics(SageObject):
                 # We set the label positions according to where we are
                 # drawing the axes.
                 if xaxis=='bottom':
-                    yaxis_labely=1
+                    yaxis_labely=subplot.get_ylim()[1]
                     yaxis_labeloffset=8
                     yaxis_vert='bottom'
                     xaxis_labely=0
                     xaxis_vert='baseline'
                 else:
-                    yaxis_labely=0
+                    yaxis_labely=subplot.get_ylim()[0]
                     yaxis_labeloffset=-8
                     yaxis_vert='top'
                     xaxis_labely=1
                     xaxis_vert='top'
 
                 if yaxis=='left':
-                    xaxis_labelx=1
+                    xaxis_labelx=subplot.get_xlim()[1]
                     xaxis_labeloffset=8
                     xaxis_horiz='left'
                     yaxis_labelx=0
                 else:
-                    xaxis_labelx=0
+                    xaxis_labelx=subplot.get_xlim()[0]
                     xaxis_labeloffset=-8
                     xaxis_horiz='right'
                     yaxis_labelx=1

@@ -1230,7 +1230,7 @@ class Colormaps(collections.MutableMapping):
             0
             sage: maps.load_maps()
             sage: len(maps.maps)
-            116
+            134
         """
         global cm
         if not cm:
@@ -1274,7 +1274,7 @@ class Colormaps(collections.MutableMapping):
             sage: from sage.plot.colors import Colormaps
             sage: maps = Colormaps()
             sage: len(maps)
-            116
+            134
         """
         self.load_maps()
         return len(self.maps)

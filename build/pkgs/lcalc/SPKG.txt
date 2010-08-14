@@ -28,6 +28,8 @@ Michael Rubinstein <mrubinst@uwaterloo.ca>
 
 === lcalc-1.23.p2 (John Cremona, August 13 2010 following Jeroen Demeyer, July 24, 2010)  ===
  * Upgrade to PARI/GP 2.4.3 (#9343 and #9592).
+ * Removed some code from spkg-install made redundant when upgrading to 1.23
+   in March 2010.
 
 === lcalc-1.23.p1 (Rishikesh, 2nd Aug 2010)  ===
  * Detect OS X 10.4 and copy to libLfunction.dylib instead of libLfunction.so

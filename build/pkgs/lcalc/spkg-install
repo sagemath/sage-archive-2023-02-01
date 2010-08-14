@@ -177,14 +177,6 @@ export ABI
 
 cd src/src
 
-if [ "$UNAME" = "SunOS" ]; then
-    LCALC_LIBS="-lpari -lmpfr -lgmpxx -lgmp -liberty"
-else
-    LCALC_LIBS="-lpari -lmpfr -lgmpxx -lgmp"
-fi
-export LCALC_LIBS
-echo "Using LCALC_LIBS=$LCALC_LIBS"
-
 success() {
     set +e
     if [ $? -ne 0 ]; then
@@ -194,7 +186,6 @@ success() {
     set -e
 }
 
-cp ../../patches/Lcommandline_elliptic.cc .
 
 # disable Cygwin build for now
 if [ "$UNAME" = "CYGWIN" ]; then
@@ -205,6 +196,9 @@ fi
 
 
 export DEFINES=""
+
+# Copy sage specific modifications and build
+cp ../../patches/Lcommandline_elliptic.cc .
 cp ../../patches/Makefile.sage Makefile
 set +e
 make

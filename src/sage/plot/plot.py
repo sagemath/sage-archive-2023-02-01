@@ -7,25 +7,25 @@ rendering is done using the matplotlib Python library.
 The following graphics primitives are supported:
 
 
--  :func:`arrow() <sage.plot.arrow.arrow>` - an arrow from a min point to a max point.
+-  :func:`~sage.plot.arrow.arrow` - an arrow from a min point to a max point.
 
--  :func:`circle() <sage.plot.circle.circle>` - a circle with given radius
+-  :func:`~sage.plot.circle.circle` - a circle with given radius
 
--  :func:`ellipse() <sage.plot.ellipse.ellipse>` - an ellipse with given radii
+-  :func:`~sage.plot.ellipse.ellipse` - an ellipse with given radii
    and angle
 
--  :func:`arc() <sage.plot.arc.arc>` - an arc of a circle or an ellipse
+-  :func:`~sage.plot.arc.arc` - an arc of a circle or an ellipse
 
--  :func:`disk() <sage.plot.disk.disk>` - a filled disk (i.e. a sector or wedge of a circle)
+-  :func:`~sage.plot.disk.disk` - a filled disk (i.e. a sector or wedge of a circle)
 
--  :func:`line() <sage.plot.line.line>` - a line determined by a sequence of points (this need not
+-  :func:`~sage.plot.line.line` - a line determined by a sequence of points (this need not
    be straight!)
 
--  :func:`point() <sage.plot.point.point>` - a point
+-  :func:`~sage.plot.point.point` - a point
 
--  :func:`text() <sage.plot.text.text>` - some text
+-  :func:`~sage.plot.text.text` - some text
 
--  :func:`polygon() <sage.plot.polygon.polygon>` - a filled polygon
+-  :func:`~sage.plot.polygon.polygon` - a filled polygon
 
 
 The following plotting functions are supported:
@@ -36,29 +36,29 @@ The following plotting functions are supported:
 
 -  :func:`parametric_plot`
 
--  :func:`implicit_plot() <sage.plot.contour_plot.implicit_plot>`
+-  :func:`~sage.plot.contour_plot.implicit_plot`
 
 -  :func:`polar_plot`
 
--  :func:`region_plot() <sage.plot.contour_plot.region_plot>`
+-  :func:`~sage.plot.contour_plot.region_plot`
 
 -  :func:`list_plot`
 
--  :func:`scatter_plot() <sage.plot.scatter_plot.scatter_plot>`
+-  :func:`~sage.plot.scatter_plot.scatter_plot`
 
--  :func:`bar_chart() <sage.plot.bar_chart.bar_chart>`
+-  :func:`~sage.plot.bar_chart.bar_chart`
 
--  :func:`contour_plot() <sage.plot.contour_plot.contour_plot>`
+-  :func:`~sage.plot.contour_plot.contour_plot`
 
--  :func:`density_plot() <sage.plot.density_plot.density_plot>`
+-  :func:`~sage.plot.density_plot.density_plot`
 
--  :func:`plot_vector_field() <sage.plot.plot_field.plot_vector_field>`
+-  :func:`~sage.plot.plot_field.plot_vector_field`
 
--  :func:`plot_slope_field() <sage.plot.plot_field.plot_slope_field>`
+-  :func:`~sage.plot.plot_field.plot_slope_field`
 
--  :func:`matrix_plot() <sage.plot.matrix_plot.matrix_plot>`
+-  :func:`~sage.plot.matrix_plot.matrix_plot`
 
--  :func:`complex_plot() <sage.plot.complex_plot.complex_plot>`
+-  :func:`~sage.plot.complex_plot.complex_plot`
 
 -  :func:`graphics_array`
 
@@ -70,7 +70,7 @@ The following miscellaneous Graphics functions are included:
 
 -  :func:`is_Graphics`
 
--  :func:`hue() <sage.plot.colors.hue>`
+-  :func:`~sage.plot.colors.hue`
 
 
 Type ``?`` after each primitive in Sage for help and examples.

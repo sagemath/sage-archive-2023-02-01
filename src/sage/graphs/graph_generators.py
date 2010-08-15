@@ -145,6 +145,7 @@ Random graphs
 - :meth:`RandomNewmanWattsStrogatz <GraphGenerators.RandomNewmanWattsStrogatz>`
 - :meth:`RandomRegular <GraphGenerators.RandomRegular>`
 - :meth:`RandomShell <GraphGenerators.RandomShell>`
+- :meth:`RandomTree <GraphGenerators.RandomTree>`
 - :meth:`RandomTreePowerlaw <GraphGenerators.RandomTreePowerlaw>`
 
 
@@ -196,6 +197,8 @@ AUTHORS:
 - Harald Schilly and Yann Laigle-Chapuy (2010-03-24): added Fibonacci Tree
 
 - Jason Grout (2010-06-04): cospectral_graphs
+
+- Edward Scheinerman (2010-08-11): RandomTree
 """
 
 ###########################################################################
@@ -4145,6 +4148,69 @@ class GraphGenerators():
             seed = current_randstate().long_seed()
         import networkx
         return graph.Graph(networkx.random_lobster(n, p, q, seed=seed))
+
+    def RandomTree(self, n):
+        """
+        Returns a random tree on `n` nodes numbered `0` through `n-1`.
+
+        By Cayley's theorem, there are `n^{n-2}` trees with vertex
+        set `\{0,1,...,n-1\}`. This constructor chooses one of these uniformly
+        at random.
+
+        The algoritm works by generating an `(n-2)`-long
+        random sequence of numbers chosen independently and uniformly
+        from `\{0,1,\ldots,n-1\}` and then applies an inverse
+        Prufer transformation.
+
+        INPUT:
+
+        -  ``n`` - number of vertices in the tree
+
+        EXAMPLE::
+
+            sage: G = graphs.RandomTree(10)
+            sage: G.is_tree()
+            True
+            sage: G.show() # long time
+
+
+        """
+        from sage.misc.prandom import randint
+        g = graph.Graph()
+
+        # create random Prufer code
+        code = [ randint(0,n-1) for i in xrange(n-2) ]
+
+        # flags to show which vertices are available (unused)
+        avail = [ True for i in xrange(n) ]
+
+        # We count the number of symbols of each type.
+        # count[k] is the no. of times k appears in code
+        count = [ 0 for i in xrange(n) ]
+        for k in xrange(n-2):
+            count[code[k]] += 1
+
+        g.add_vertices(range(n))
+
+        idx = 0
+
+        while idx < len(code):
+            xlist = [k for k in range(n) if avail[k] and count[k]==0 ]
+            if len(xlist)==0: break
+            x = xlist[0]
+            avail[x] = False
+            s = code[idx]
+            g.add_edge(x,s)
+            count[s] -= 1
+            idx += 1
+
+        last_edge = [ v for v in range(n) if avail[v] ]
+
+        g.add_edge(last_edge)
+
+        return g
+
+
 
     def RandomTreePowerlaw(self, n, gamma=3, tries=100, seed=None):
         """

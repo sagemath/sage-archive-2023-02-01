@@ -747,6 +747,39 @@ cdef class Matrix_sparse(matrix.Matrix):
                         A.set_unsafe(new_row, new_col, entry)
         return A
 
+    def stack(self, other):
+        """
+        Return the augmented matrix self on top of other:
+
+          [ self  ]
+          [ other ]
+
+        EXAMPLES::
+
+          sage: M = Matrix(QQ, 2, 3, range(6), sparse=True)
+          sage: N = Matrix(QQ, 1, 3, [10,11,12], sparse=True)
+          sage: M.stack(N)
+          [ 0  1  2]
+          [ 3  4  5]
+          [10 11 12]
+        """
+        if not isinstance(other, matrix.Matrix):
+            raise TypeError, "other must be a matrix"
+
+        if self._ncols != other.ncols():
+            raise TypeError, "number of columns must be the same"
+
+        if not (self._base_ring is other.base_ring()):
+            other = other.change_ring(self._base_ring)
+
+        cdef Matrix_sparse Z
+        Z = self.new_matrix(nrows = self._nrows + other.nrows())
+
+        for i, j in self.nonzero_positions(copy=False):
+            Z.set_unsafe(i, j, self.get_unsafe(i,j))
+        for i, j in other.nonzero_positions(copy=False):
+            Z.set_unsafe(i + self._nrows, j, (<matrix.Matrix>other).get_unsafe(i,j))
+        return Z
 
 ##     def _echelon_in_place_classical(self):
 ##         """

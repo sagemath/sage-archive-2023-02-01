@@ -6162,23 +6162,19 @@ cdef class gen(sage.structure.element.RingElement):
     ###########################################
     def bnfcertify(self):
         r"""
-        ``bnf`` being as output by ``bnfinit``,
-        checks whether the result is correct, i.e. whether the calculation
-        of the contents of self are correct without assuming the
-        Generalized Riemann Hypothesis. If it is correct, the answer is 1.
-        If not, the program may output some error message, but more
-        probably will loop indefinitely. In *no* occasion can the program
-        give a wrong answer (barring bugs of course): if the program
-        answers 1, the answer is certified.
+        ``bnf`` being as output by ``bnfinit``, checks whether the result is
+        correct, i.e. whether the calculation of the contents of ``self``
+        are correct without assuming the Generalized Riemann Hypothesis.
+        If it is correct, the answer is 1. If not, the program may output
+        some error message or loop indefinitely.
 
-        .. warning::
+        For more information about PARI and the Generalized Riemann
+        Hypothesis, see [PariUsers], page 120.
 
-           By default, most of the bnf routines depend on the
-           correctness of a heuristic assumption which is stronger
-           than GRH.  In order to obtain a provably-correct result you
-           *must* specify `c=c_2=12` for the technical optional
-           parameters to the function. There are known counterexamples
-           for smaller `c` (which is the default).
+        REFERENCES:
+
+        .. [PariUsers] User's Guide to PARI/GP,
+           http://pari.math.u-bordeaux.fr/pub/pari/manuals/2.4.2/users.pdf
         """
         cdef long n
         _sig_on
@@ -8005,26 +8001,27 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
         .. note::
 
-           - In py_pari, the PARI stack is different than in gp or the
-             PARI C library. In Python, instead of the PARI stack
-             holding the results of all computations, it *only*
-             holds the results of an individual computation. Each time
-             a new Python/PARI object is computed, it it copied to its
-             own space in the Python heap, and the memory it occupied
-             on the PARI stack is freed. Thus it is not necessary to
-             make the stack very large. Also, unlike in PARI, if the
-             stack does overflow, in most cases the PARI stack is
-             automatically increased and the relevant step of the
-             computation rerun.
+           In py_pari, the PARI stack is different than in gp or the
+           PARI C library. In Python, instead of the PARI stack
+           holding the results of all computations, it *only* holds
+           the results of an individual computation. Each time a new
+           Python/PARI object is computed, it it copied to its own
+           space in the Python heap, and the memory it occupied on the
+           PARI stack is freed. Thus it is not necessary to make the
+           stack very large. Also, unlike in PARI, if the stack does
+           overflow, in most cases the PARI stack is automatically
+           increased and the relevant step of the computation rerun.
 
-             This design obviously involves some performance penalties
-             over the way PARI works, but it scales much better and is
-             far more robust for large projects.
+           This design obviously involves some performance penalties
+           over the way PARI works, but it scales much better and is
+           far more robust for large projects.
 
-           - If you do not want prime numbers, put ``maxprime=2``, but be
-             careful because many PARI functions require this
-             table. If you get the error message "not enough
-             precomputed primes", increase this parameter.
+        .. note::
+
+           If you do not want prime numbers, put ``maxprime=2``, but be
+           careful because many PARI functions require this table. If
+           you get the error message "not enough precomputed primes",
+           increase this parameter.
         """
         if bot:
             return  # pari already initialized.

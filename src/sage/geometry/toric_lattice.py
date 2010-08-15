@@ -495,9 +495,7 @@ class ToricLattice_generic(FreeModule_generic_pid):
             sage: N = ToricLattice(3)
             sage: Ns = N.submodule([N.gen(0)])
             sage: Ns.span([N.gen(1)])
-            Free module of degree 3 and rank 1 over Integer Ring
-            Echelon basis matrix:
-            [0 1 0]
+            Sublattice <N(0, 1, 0)>
             sage: Ns.submodule([N.gen(1)])
             Traceback (most recent call last):
             ...
@@ -545,14 +543,9 @@ class ToricLattice_generic(FreeModule_generic_pid):
             sage: N = ToricLattice(3)
             sage: Ns = N.span_of_basis([(1,2,3)])
             sage: Ns.span_of_basis([(2,4,0)])
-            Free module of degree 3 and rank 1 over Integer Ring
-            User basis matrix:
-            [2 4 0]
+            Sublattice <N(2, 4, 0)>
             sage: Ns.span_of_basis([(1/5,2/5,0), (1/7,1/7,0)])
-            Free module of degree 3 and rank 2 over Integer Ring
-            User basis matrix:
-            [1/5 2/5   0]
-            [1/7 1/7   0]
+            Sublattice <(1/5, 2/5, 0), (1/7, 1/7, 0)>
 
         Of course the input basis vectors must be linearly independent::
 
@@ -790,7 +783,48 @@ class ToricLattice_sublattice_with_basis(ToricLattice_generic,
         ]
     """
 
-    pass
+    def _repr_(self):
+        r"""
+        Return a string representation of ``self``.
+
+        OUTPUT:
+
+        - string.
+
+        TESTS::
+
+            sage: L = ToricLattice(3, "L")
+            sage: L.submodule_with_basis([(3,2,1),(1,2,3)])
+            Sublattice <L(3, 2, 1), L(1, 2, 3)>
+            sage: L.submodule([(3,2,1),(1,2,3)])
+            Sublattice <L(1, 2, 3), L(0, 4, 8)>
+        """
+        s = 'Sublattice '
+        s += '<'
+        s += ', '.join(map(str,self.basis()))
+        s += '>'
+        return s
+
+    def _latex_(self):
+        r"""
+        Return a LaTeX representation of ``self``.
+
+        OUTPUT:
+
+        - string.
+
+        TESTS::
+
+            sage: L = ToricLattice(3, "L")
+            sage: L.submodule_with_basis([(3,2,1),(1,2,3)])._latex_()
+            '\\left\\langle\\left(3,2,1\\right)_{L}, \\left(1,2,3\\right)_{L}\\right\\rangle'
+            sage: L.submodule([(3,2,1),(1,2,3)])._latex_()
+            '\\left\\langle\\left(1,2,3\\right)_{L}, \\left(0,4,8\\right)_{L}\\right\\rangle'
+        """
+        s  = '\\left\\langle'
+        s += ', '.join([ b._latex_() for b in self.basis() ])
+        s += '\\right\\rangle'
+        return s
 
 
 class ToricLattice_sublattice(ToricLattice_sublattice_with_basis,
@@ -840,5 +874,4 @@ class ToricLattice_sublattice(ToricLattice_sublattice_with_basis,
         N(0, 1, -1)
         ]
     """
-
     pass

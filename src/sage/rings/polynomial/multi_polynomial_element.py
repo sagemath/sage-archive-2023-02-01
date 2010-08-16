@@ -1424,14 +1424,13 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         ALGORITHM: Use univariate factorization code.
 
         If a polynomial is univariate, the appropriate univariate
-        factorization code is called.
-
-        ::
+        factorization code is called::
 
             sage: R.<z> = PolynomialRing(CC,1)
             sage: f = z^4 - 6*z + 3
             sage: f.factor()
-            (z - 1.60443920904349) * (z - 0.511399619393097) * (z + 1.05791941421830 - 1.59281852704435*I) * (z + 1.05791941421830 + 1.59281852704435*I)
+            (z - 1.60443920904349 - 2.91339356278998e-26*I) * (z - 0.511399619393097 + 6.96082630860956e-26*I) * (z + 1.05791941421830 - 1.59281852704435*I) * (z + 1.05791941421830 + 1.59281852704435*I)  # 32-bit
+            (z - 1.60443920904349) * (z - 0.511399619393097) * (z + 1.05791941421830 - 1.59281852704435*I) * (z + 1.05791941421830 + 1.59281852704435*I)  # 64-bit
 
         TESTS:
 

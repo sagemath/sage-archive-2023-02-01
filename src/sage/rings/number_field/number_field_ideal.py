@@ -110,9 +110,9 @@ def convert_from_idealprimedec_form(field, ideal):
         sage: K_bnf = gp(K.pari_bnf())
         sage: ideal = K_bnf.idealprimedec(3)[1]
         sage: convert_from_idealprimedec_form(K, ideal)
-        Fractional ideal (1/2*a - 3/2)
+        Fractional ideal (-a)
         sage: K.factor(3)
-        (Fractional ideal (1/2*a - 3/2))^2
+        (Fractional ideal (-a))^2
 
     """
     p = ZZ(ideal[1])
@@ -200,7 +200,7 @@ class NumberFieldIdeal(Ideal_generic):
             sage: K.<a> = NumberField(x^2 + 3); K
             Number Field in a with defining polynomial x^2 + 3
             sage: f = K.factor(15); f
-            (Fractional ideal (1/2*a - 3/2))^2 * (Fractional ideal (5))
+            (Fractional ideal (-a))^2 * (Fractional ideal (5))
             sage: cmp(f[0][0], f[1][0])
             -1
             sage: cmp(f[0][0], f[0][0])
@@ -1372,8 +1372,6 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             sage: J = K.ideal(17+a)
             sage: I/J
             Fractional ideal (-17/1420*a + 1/284)
-            sage: (I/J) * J
-            Fractional ideal (-1/5*a)
             sage: (I/J) * J == I
             True
         """
@@ -1466,7 +1464,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             sage: K.<a> = NumberField(x^2 + 2); K
             Number Field in a with defining polynomial x^2 + 2
             sage: f = K.factor(2); f
-            (Fractional ideal (-a))^2
+            (Fractional ideal (a))^2
             sage: f[0][0].ramification_index()
             2
             sage: K.ideal(13).ramification_index()
@@ -1668,9 +1666,9 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             sage: ires =  K.ideal(2).invertible_residues(); ires  # random address
             <generator object at 0xa2feb6c>
             sage: list(ires)
-            [-1, -i]
+            [1, -i]
             sage: list(K.ideal(2+i).invertible_residues())
-            [1, 2, -1, -2]
+            [1, 2, 4, 3]
             sage: list(K.ideal(i).residues())
             [0]
             sage: list(K.ideal(i).invertible_residues())
@@ -1729,7 +1727,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             sage: k.<a> = NumberField(x^2 +23)
             sage: I = k.ideal(a)
             sage: list(I.invertible_residues_mod([-1]))
-            [1, 5, 2, 10, 4, -3, 8, -6, -7, 11, 9]
+            [1, 5, 2, 10, 4, 20, 8, 17, 16, 11, 9]
             sage: list(I.invertible_residues_mod([1/2]))
             [1, 5]
             sage: list(I.invertible_residues_mod([23]))
@@ -1800,9 +1798,9 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             sage: I = K.ideal((3+4*i)/5); I
             Fractional ideal (4/5*i + 3/5)
             sage: I.denominator()
-            Fractional ideal (2*i + 1)
+            Fractional ideal (-i + 2)
             sage: I.numerator()
-            Fractional ideal (-i - 2)
+            Fractional ideal (i + 2)
             sage: I.numerator().is_integral() and I.denominator().is_integral()
             True
             sage: I.numerator() + I.denominator() == K.unit_ideal()
@@ -1830,9 +1828,9 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             sage: I = K.ideal((3+4*i)/5); I
             Fractional ideal (4/5*i + 3/5)
             sage: I.denominator()
-            Fractional ideal (2*i + 1)
+            Fractional ideal (-i + 2)
             sage: I.numerator()
-            Fractional ideal (-i - 2)
+            Fractional ideal (i + 2)
             sage: I.numerator().is_integral() and I.denominator().is_integral()
             True
             sage: I.numerator() + I.denominator() == K.unit_ideal()
@@ -1969,7 +1967,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             sage: k.<a> = NumberField(x^2 + 5)
             sage: I = k.ideal(a)
             sage: I.small_residue(14)
-            -1
+            4
 
         ::
 
@@ -2148,7 +2146,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             Fractional ideal (a^2 - 4*a + 2)
             68
             sage: r = A.element_1_mod(B); r
-            a^2 + 5
+            -a^2 + 4*a - 1
             sage: r in A
             True
             sage: 1-r in B
@@ -2427,9 +2425,9 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             Basis matrix:
             [1 3]
             sage: quo
-            Partially defined quotient map from Number Field in i with defining polynomial x^2 + 1 to an explicit vector space representation for the quotient of the ring of integers by (p,I) for the ideal I=Fractional ideal (-i - 2).
+            Partially defined quotient map from Number Field in i with defining polynomial x^2 + 1 to an explicit vector space representation for the quotient of the ring of integers by (p,I) for the ideal I=Fractional ideal (i + 2).
             sage: lift
-            Lifting map to Maximal Order in Number Field in i with defining polynomial x^2 + 1 from quotient of integers by Fractional ideal (-i - 2)
+            Lifting map to Maximal Order in Number Field in i with defining polynomial x^2 + 1 from quotient of integers by Fractional ideal (i + 2)
         """
         return quotient_char_p(self, p)
 
@@ -2474,11 +2472,10 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
 
             sage: K.<i> = NumberField(x^2 + 1)
             sage: P1, P2 = [g[0] for g in K.factor(5)]; (P1,P2)
-            (Fractional ideal (-i - 2), Fractional ideal (2*i + 1))
+            (Fractional ideal (i + 2), Fractional ideal (-i + 2))
             sage: a = 1/(1+2*i)
             sage: F1, F2 = [g.residue_field() for g in [P1,P2]]; (F1,F2)
-            (Residue field of Fractional ideal (-i - 2),
-            Residue field of Fractional ideal (2*i + 1))
+            (Residue field of Fractional ideal (i + 2), Residue field of Fractional ideal (-i + 2))
             sage: a.valuation(P1)
             0
             sage: F1(i/7)
@@ -2489,7 +2486,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             -1
             sage: F2(a)
             Traceback (most recent call last):
-            ZeroDivisionError: Cannot reduce field element -2/5*i + 1/5 modulo Fractional ideal (2*i + 1): it has negative valuation
+            ZeroDivisionError: Cannot reduce field element -2/5*i + 1/5 modulo Fractional ideal (-i + 2): it has negative valuation
 
         An example with a relative number field::
 
@@ -2646,7 +2643,7 @@ def quotient_char_p(I, p):
         []
 
         sage: I = K.factor(13)[0][0]; I
-        Fractional ideal (-3*i - 2)
+        Fractional ideal (-2*i + 3)
         sage: I.residue_class_degree()
         1
         sage: quotient_char_p(I, 13)[0]

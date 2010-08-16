@@ -15,7 +15,7 @@ cdef extern from "gmp_globals.h":
     # changed sqr to ssqr due to a collision with ntl
     cdef mpq_t tmp
 
-    cdef mpz_t a1, a2, mod1, mod2, g, s, t, xx
+    cdef mpz_t a1, a2, mod1, sage_mod2, g, s, t, xx
 
     cdef mpz_t crtrr_a, crtrr_mod
 
@@ -187,8 +187,8 @@ cdef int mpz_crt_intvec(mpz_t* answer, mpz_t* modulus,
     mpz_set_ui(mod1, m[0])
     for i from 1 <= i < n:
         mpz_set_ui(a2, v[i])
-        mpz_set_ui(mod2, m[i])
-        mpz_gcdext(g, s, t, mod1, mod2)
+        mpz_set_ui(sage_mod2, m[i])
+        mpz_gcdext(g, s, t, mod1, sage_mod2)
         if mpz_cmp_si(g,1) != 0:
             raise ArithmeticError, "Moduli must be coprime (gcd=%s)."%mpz_to_str(g)
         # Set a1 = a1 + (a2-a1) * s * mod1
@@ -196,8 +196,8 @@ cdef int mpz_crt_intvec(mpz_t* answer, mpz_t* modulus,
         mpz_mul(xx, xx, s)
         mpz_mul(xx, xx, mod1)
         mpz_add(a1, a1, xx)
-        # Set mod1 = mod1*mod2
-        mpz_mul(mod1, mod1, mod2)
+        # Set mod1 = mod1*sage_mod2
+        mpz_mul(mod1, mod1, sage_mod2)
 
     # Now a1 is the CRT for the whole list v and mod1 is the modulus
     mpz_set(answer[0], a1)

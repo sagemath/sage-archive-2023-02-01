@@ -214,7 +214,7 @@ class Sha(SageObject):
 
             sage: EllipticCurve('11a').sha().an_numerical()
             1.00000000000000
-            sage: EllipticCurve('37a').sha().an_numerical() # long time
+            sage: EllipticCurve('37a').sha().an_numerical()
             1.00000000000000
             sage: EllipticCurve('389a').sha().an_numerical() # long time
             1.00000000000000

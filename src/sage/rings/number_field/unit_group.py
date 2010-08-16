@@ -10,8 +10,10 @@ EXAMPLES::
 
 The first generator is a primitive root of unity in the field::
 
-    sage: UK.gens() # random
-    [1/12*a^3 - 1/6*a, 1/24*a^3 + 1/4*a^2 - 1/12*a - 1]
+    sage: UK.gens()  # random
+    [-1/12*a^3 + 1/6*a, 1/24*a^3 + 1/4*a^2 - 1/12*a - 1]
+    sage: UK.gens()[0]
+    -1/12*a^3 + 1/6*a
     sage: [u.multiplicative_order() for u in UK.gens()]
     [4, +Infinity]
 
@@ -28,16 +30,16 @@ as elements of an abstract multiplicative group::
     sage: UK(-1)
     u0^2
     sage: [UK(u) for u in (x^4-1).roots(K,multiplicities=False)]
-    [1, u0^2, u0, u0^3]
+    [1, u0^2, u0^3, u0]
 
     sage: UK.fundamental_units() # random
     [1/24*a^3 + 1/4*a^2 - 1/12*a - 1]
     sage: UK.torsion_generator()
-    1/12*a^3 - 1/6*a
+    -1/12*a^3 + 1/6*a
     sage: UK.zeta_order()
     4
     sage: UK.roots_of_unity()
-    [1/12*a^3 - 1/6*a, -1, -1/12*a^3 + 1/6*a, 1]
+    [-1/12*a^3 + 1/6*a, -1, 1/12*a^3 - 1/6*a, 1]
 
 Exp and log functions provide maps between units as field elements and exponent
 vectors with respect to the generators::
@@ -69,31 +71,7 @@ A relative number field example::
     sage: UL.zeta_order()
     24
     sage: UL.roots_of_unity()
-    [-b^3*a - b^3,
-    -b^2*a,
-    b,
-    a + 1,
-    -b^3*a,
-    b^2,
-    b*a + b,
-    a,
-    b^3,
-    b^2*a + b^2,
-    b*a,
-    -1,
-    b^3*a + b^3,
-    b^2*a,
-    -b,
-    -a - 1,
-    b^3*a,
-    -b^2,
-    -b*a - b,
-    -a,
-    -b^3,
-    -b^2*a - b^2,
-    -b*a,
-    1]
-
+    [b*a, -b^2*a - b^2, b^3, -a, b*a + b, -b^2, -b^3*a, -a - 1, b, b^2*a, -b^3*a - b^3, -1, -b*a, b^2*a + b^2, -b^3, a, -b*a - b, b^2, b^3*a, a + 1, -b, -b^2*a, b^3*a + b^3, 1]
 
 A relative extension example, which worked thanks to the code review by F.W.Clarke::
 
@@ -190,16 +168,7 @@ class UnitGroup(AbelianGroup_class):
         n, z = pK.nfrootsof1()
         n = ZZ(n)
         self.__ntu = n
-
-        # For an absolute field we can now set z = K(z), but this
-        # does not work for relative fields, so we work harder:
-        if K.is_absolute():
-            z = K(z)
-        else:
-            zk = pK.getattr('zk')
-            z = z.mattranspose()
-            cc = [z[0,i] for i in range(z.ncols())]
-            z = sum([K(c*d) for d,c in zip(zk,cc)])
+        z = K(z)
 
         # If we replaced z by another torsion generator we would need
         # to allow for this in the dlog function!  So we do not.
@@ -385,7 +354,7 @@ class UnitGroup(AbelianGroup_class):
             sage: K.<b> = NumberField(x^2+1)
             sage: U = UnitGroup(K)
             sage: zs = U.roots_of_unity(); zs
-            [b, -1, -b, 1]
+            [-b, -1, b, 1]
             sage: [ z**U.zeta_order() for z in zs ]
             [1, 1, 1, 1]
         """
@@ -449,9 +418,9 @@ class UnitGroup(AbelianGroup_class):
             sage: K.<b> = NumberField(x^2+1)
             sage: U = UnitGroup(K)
             sage: U.zeta(4)
-            b
+            -b
             sage: U.zeta(4,all=True)
-            [b, -b]
+            [-b, b]
             sage: U.zeta(3)
             Traceback (most recent call last):
             ...
@@ -529,7 +498,7 @@ class UnitGroup(AbelianGroup_class):
             [0, 0, 0, 0, 1, 0],
             [0, 0, 0, 0, 0, 1]]
             sage: vec = [65,6,7,8,9,10]
-            sage: unit = UK.exp(vec); unit
+            sage: unit = UK.exp(vec); unit  # random
             -253576*z^11 + 7003*z^10 - 395532*z^9 - 35275*z^8 - 500326*z^7 - 35275*z^6 - 395532*z^5 + 7003*z^4 - 253576*z^3 - 59925*z - 59925
             sage: UK.log(unit)
             [13, 6, 7, 8, 9, 10]

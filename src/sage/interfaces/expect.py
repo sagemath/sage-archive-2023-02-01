@@ -1532,7 +1532,7 @@ class ExpectElement(RingElement):
             return 1
 
         # everything is supposed to be comparable in Python, so we define
-        # the comparison thus when no comparable in interfaced system.
+        # the comparison thus when no comparison is available in interfaced system.
         if (hash(self) < hash(other)):
             return -1
         else:

@@ -11,14 +11,14 @@ EXAMPLES::
 
     sage: K.<a,b> = NumberField([x^2 + 1, x^2 + 2])
     sage: A = K.absolute_field('z')
-    sage: I = A.factor(3)[0][0]
+    sage: I = A.factor(7)[0][0]
     sage: from_A, to_A = A.structure()
     sage: G = [from_A(z) for z in I.gens()]; G
-    [3, (-2*b - 1)*a + b - 1]
+    [7, -2*b*a - 1]
     sage: K.fractional_ideal(G)
-    Fractional ideal ((b - 1)*a)
+    Fractional ideal (2*b*a + 1)
     sage: K.fractional_ideal(G).absolute_norm().factor()
-    3^2
+    7^2
 """
 
 #*****************************************************************************
@@ -301,7 +301,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             sage: K.<a> = NumberField(x^2+6)
             sage: L.<b> = K.extension(K['x'].gen()^4 + a)
             sage: N = L.ideal(b).relative_norm(); N
-            Fractional ideal (-a)
+            Fractional ideal (a)
             sage: N.parent()
             Monoid of ideals of Number Field in a with defining polynomial x^2 + 6
             sage: N.ring()
@@ -592,8 +592,8 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             sage: I.relative_ramification_index()
             2
             sage: I.ideal_below()
-            Fractional ideal (-b)
-            sage: K.ideal(-b) == I^2
+            Fractional ideal (b)
+            sage: K.ideal(b) == I^2
             True
         """
         if self.is_prime():
@@ -772,7 +772,7 @@ def is_NumberFieldFractionalIdeal_rel(x):
         sage: is_NumberFieldFractionalIdeal_rel(I)
         True
         sage: N = I.relative_norm(); N
-        Fractional ideal (-a)
+        Fractional ideal (a)
         sage: is_NumberFieldFractionalIdeal_rel(N)
         False
         sage: is_NumberFieldFractionalIdeal(N)

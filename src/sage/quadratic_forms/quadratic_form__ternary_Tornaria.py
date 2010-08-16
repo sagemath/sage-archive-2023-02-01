@@ -492,7 +492,7 @@ def lll(self):
         True
         sage: Q.lll()
         Quadratic form in 4 variables over Integer Ring with coefficients:
-        [ 1 0 -1 0 ]
+        [ 1 0 1 0 ]
         [ * 4 3 3 ]
         [ * * 6 3 ]
         [ * * * 6 ]

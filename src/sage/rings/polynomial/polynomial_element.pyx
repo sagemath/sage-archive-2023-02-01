@@ -2397,19 +2397,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         EXAMPLES:
 
-        We factor some polynomials over `\QQ`.
-
-        ::
+        We factor some polynomials over `\QQ`::
 
             sage: x = QQ['x'].0
             sage: f = (x^3 - 1)^2
             sage: f.factor()
             (x - 1)^2 * (x^2 + x + 1)^2
 
-        Notice that over the field `\QQ` the irreducible
-        factors are monic.
-
-        ::
+        Notice that over the field `\QQ` the irreducible factors are
+        monic::
 
             sage: f = 10*x^5 - 1
             sage: f.factor()
@@ -2418,8 +2414,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.factor()
             (10) * (x - 1) * (x^4 + x^3 + x^2 + x + 1)
 
-        Over `\ZZ` the irreducible factors need not be
-        monic::
+        Over `\ZZ` the irreducible factors need not be monic::
 
             sage: x = ZZ['x'].0
             sage: f = 10*x^5 - 1
@@ -2427,9 +2422,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             10*x^5 - 1
 
         We factor a non-monic polynomial over the finite field
-        `F_{25}`.
-
-        ::
+        `F_{25}`::
 
             sage: k.<a> = GF(25)
             sage: R.<x> = k[]
@@ -2437,50 +2430,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: F = f.factor(); F
             (2) * (x + a + 2) * (x^2 + 3*x + 4*a + 4) * (x^2 + (a + 1)*x + a + 2) * (x^5 + (3*a + 4)*x^4 + (3*a + 3)*x^3 + 2*a*x^2 + (3*a + 1)*x + 3*a + 1)
 
-        Notice that the unit factor is included when we multiply
-        `F` back out.
-
-        ::
+        Notice that the unit factor is included when we multiply `F`
+        back out::
 
             sage: expand(F)
             2*x^10 + 2*x + 2*a
-
-        Factorization also works even if the variable of the finite field
-        is nefariously labeled "x".
-
-        ::
-
-            sage: x = GF(3^2, 'a')['x'].0
-            sage: f = x^10 +7*x -13
-            sage: G = f.factor(); G
-            (x + a) * (x + 2*a + 1) * (x^4 + (a + 2)*x^3 + (2*a + 2)*x + 2) * (x^4 + 2*a*x^3 + (a + 1)*x + 2)
-            sage: prod(G) == f
-            True
-
-        ::
-
-            sage: f.parent().base_ring()._assign_names(['a'])
-            sage: f.factor()
-            (x + a) * (x + 2*a + 1) * (x^4 + (a + 2)*x^3 + (2*a + 2)*x + 2) * (x^4 + 2*a*x^3 + (a + 1)*x + 2)
-
-        ::
-
-            sage: k = GF(9,'x')    # purposely calling it x to test robustness
-            sage: x = PolynomialRing(k,'x0').gen()
-            sage: f = x^3 + x + 1
-            sage: f.factor()
-            (x0 + 2) * (x0 + x) * (x0 + 2*x + 1)
-            sage: f = 0*x
-            sage: f.factor()
-            Traceback (most recent call last):
-            ...
-            ValueError: factorization of 0 not defined
-
-        ::
-
-            sage: f = x^0
-            sage: f.factor()
-            1
 
         Arbitrary precision real and complex factorization::
 
@@ -2506,37 +2460,27 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: expand(F)
             I*x^2 + I
 
-        Over a complicated number field::
+        Over a number field::
 
-            sage: x = polygen(QQ, 'x')
-            sage: f = x^6 + 10/7*x^5 - 867/49*x^4 - 76/245*x^3 + 3148/35*x^2 - 25944/245*x + 48771/1225
-            sage: K.<a> = NumberField(f)
-            sage: S.<T> = K[]
-            sage: ff = S(f); ff
-            T^6 + 10/7*T^5 - 867/49*T^4 - 76/245*T^3 + 3148/35*T^2 - 25944/245*T + 48771/1225
-            sage: F = ff.factor()
-            sage: len(F)
-            4
-            sage: F[:2]
-            [(T - a, 1), (T - 40085763200/924556084127*a^5 - 145475769880/924556084127*a^4 + 527617096480/924556084127*a^3 + 1289745809920/924556084127*a^2 - 3227142391585/924556084127*a - 401502691578/924556084127, 1)]
-            sage: expand(F)
-            T^6 + 10/7*T^5 - 867/49*T^4 - 76/245*T^3 + 3148/35*T^2 - 25944/245*T + 48771/1225
+            sage: K.<z> = CyclotomicField(15)
+            sage: x = polygen(K)
+            sage: f = (x^3 + z*x + 1)^3*(x - z); f.factor()
+            (x - z) * (x^3 + z*x + 1)^3
+            sage: cyclotomic_polynomial(12).change_ring(K).factor()
+            (x^2 - z^5 - 1) * (x^2 + z^5)
+            sage: f = (x^3 + z*x + 1)^3*(x/(z+2) - 1/3); f.factor()
+            (-1/331*z^7 + 3/331*z^6 - 6/331*z^5 + 11/331*z^4 - 21/331*z^3 + 41/331*z^2 - 82/331*z + 165/331) * (x - 1/3*z - 2/3) * (x^3 + z*x + 1)^3
 
-        ::
+        Over a relative number field::
 
-            sage: f = x^2 - 1/3 ; K.<a> = NumberField(f) ; A.<T> = K[] ; g = A(x^2-1)
-            sage: g.factor()
-            (T - 1) * (T + 1)
-
-        ::
-
-            sage: h = A(3*x^2-1) ; h.factor()
-            (3) * (T - a) * (T + a)
-
-        ::
-
-            sage: h = A(x^2-1/3) ; h.factor()
-            (T - a) * (T + a)
+            sage: x = polygen(QQ)
+            sage: K.<z> = CyclotomicField(3)
+            sage: L.<a> = K.extension(x^3 - 2)
+            sage: x = polygen(L)
+            sage: f = (x^3 + x + a)*(x^5 + x + z); f
+            x^8 + x^6 + a*x^5 + x^4 + z*x^3 + x^2 + (a + z)*x + z*a
+            sage: f.factor()
+            (x^3 + x + a) * (x^5 + x + z)
 
         Over the real double field::
 
@@ -2555,9 +2499,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             [1.00000859959, 0.999995700205 + 7.44736245561e-06*I, 0.999995700205 - 7.44736245561e-06*I]
 
         Over the complex double field. Because this is approximate, all
-        factors will occur with multiplicity 1.
-
-        ::
+        factors will occur with multiplicity 1::
 
             sage: x = CDF['x'].0; i = CDF.0
             sage: f = (x^2 + 2*i)^3
@@ -2565,16 +2507,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             (1.0*x + -0.999994409957 + 1.00001040378*I) * (1.0*x + -0.999993785062 + 0.999989956987*I) * (1.0*x + -1.00001180498 + 0.999999639235*I) * (1.0*x + 0.999995530902 - 0.999987780431*I) * (1.0*x + 1.00001281704 - 1.00000223945*I) * (1.0*x + 0.999991652054 - 1.00000998012*I)
             sage: f(-f.factor()[0][0][0])   # random low order bits
             -2.38358052913e-14 - 2.57571741713e-14*I
-
-        Over a relative number field::
-
-            sage: x = QQ['x'].0
-            sage: L.<a> = CyclotomicField(3).extension(x^3 - 2)
-            sage: x = L['x'].0
-            sage: f = (x^3 + x + a)*(x^5 + x + L.1); f
-            x^8 + x^6 + a*x^5 + x^4 + zeta3*x^3 + x^2 + (a + zeta3)*x + zeta3*a
-            sage: f.factor()
-            (x^3 + x + a) * (x^5 + x + zeta3)
 
         Factoring polynomials over `\ZZ/n\ZZ` for
         composite `n` is not implemented::
@@ -2625,7 +2557,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: F = f^2 * g^3 * 7; F.factor()
             7 * (12*x^10 + x^9 + 432*x^3 + 9011)^2 * (13*x^11 + 89*x^3 + 1)^3
 
-        This example came up in ticket #7097:
+        This example came up in ticket #7097::
 
             sage: x = polygen(QQ)
             sage: f = 8*x^9 + 42*x^6 + 6*x^3 - 1
@@ -2641,6 +2573,74 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = QQbar['x'](1)
             sage: f.factor()
             1
+
+        Factorization also works even if the variable of the finite
+        field is nefariously labeled "x"::
+
+            sage: x = GF(3^2, 'a')['x'].0
+            sage: f = x^10 +7*x -13
+            sage: G = f.factor(); G
+            (x + a) * (x + 2*a + 1) * (x^4 + (a + 2)*x^3 + (2*a + 2)*x + 2) * (x^4 + 2*a*x^3 + (a + 1)*x + 2)
+            sage: prod(G) == f
+            True
+
+        ::
+
+            sage: f.parent().base_ring()._assign_names(['a'])
+            sage: f.factor()
+            (x + a) * (x + 2*a + 1) * (x^4 + (a + 2)*x^3 + (2*a + 2)*x + 2) * (x^4 + 2*a*x^3 + (a + 1)*x + 2)
+
+        ::
+
+            sage: k = GF(9,'x')    # purposely calling it x to test robustness
+            sage: x = PolynomialRing(k,'x0').gen()
+            sage: f = x^3 + x + 1
+            sage: f.factor()
+            (x0 + 2) * (x0 + x) * (x0 + 2*x + 1)
+            sage: f = 0*x
+            sage: f.factor()
+            Traceback (most recent call last):
+            ...
+            ValueError: factorization of 0 not defined
+
+        ::
+
+            sage: f = x^0
+            sage: f.factor()
+            1
+
+        Over a complicated number field::
+
+            sage: x = polygen(QQ, 'x')
+            sage: f = x^6 + 10/7*x^5 - 867/49*x^4 - 76/245*x^3 + 3148/35*x^2 - 25944/245*x + 48771/1225
+            sage: K.<a> = NumberField(f)
+            sage: S.<T> = K[]
+            sage: ff = S(f); ff
+            T^6 + 10/7*T^5 - 867/49*T^4 - 76/245*T^3 + 3148/35*T^2 - 25944/245*T + 48771/1225
+            sage: F = ff.factor()
+            sage: len(F)
+            4
+            sage: F[:2]
+            [(T - a, 1), (T - 40085763200/924556084127*a^5 - 145475769880/924556084127*a^4 + 527617096480/924556084127*a^3 + 1289745809920/924556084127*a^2 - 3227142391585/924556084127*a - 401502691578/924556084127, 1)]
+            sage: expand(F)
+            T^6 + 10/7*T^5 - 867/49*T^4 - 76/245*T^3 + 3148/35*T^2 - 25944/245*T + 48771/1225
+
+        ::
+
+            sage: f = x^2 - 1/3 ; K.<a> = NumberField(f) ; A.<T> = K[] ; g = A(x^2-1)
+            sage: g.factor()
+            (T - 1) * (T + 1)
+
+        ::
+
+            sage: h = A(3*x^2-1) ; h.factor()
+            (3) * (T - a) * (T + a)
+
+        ::
+
+            sage: h = A(x^2-1/3) ; h.factor()
+            (T - a) * (T + a)
+
         """
         # PERFORMANCE NOTE:
         #     In many tests with SMALL degree PARI is substantially
@@ -3692,7 +3692,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: pari(f)
             Traceback (most recent call last):
             ...
-            PariError: (8)
+            PariError: (5)
 
         Stacked polynomial rings, first with a univariate ring on the
         bottom::
@@ -3730,7 +3730,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: pari(x^2 + 2*x)
             Mod(1, 8)*x^2 + Mod(2, 8)*x
             sage: pari(a*x + 10*x^3)
-            Mod(2, 8)*x^3 + (Mod(1, 8)*a)*x
+            Mod(2, 8)*x^3 + Mod(1, 8)*a*x
         """
         return self._pari_with_name(self.parent().variable_name())
 
@@ -3887,7 +3887,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.resultant(g)
             Traceback (most recent call last):
             ...
-            PariError: (8)
+            PariError: (5)
         """
         variable = self.parent().gen()._pari_()
         # The 0 flag tells PARI to use exact arithmetic
@@ -3972,7 +3972,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.discriminant()
             Traceback (most recent call last):
             ...
-            PariError: (8)
+            PariError: (5)
         """
         n = self.degree()
         d = self.derivative()
@@ -4304,6 +4304,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: p = p^2 * (y^2 - 2)
             sage: p.roots(ring=CIF)
             [(-1.414213562373095?, 1), (1.414213562373095?, 1), (-1.214638932244183? - 0.141425052582394?*I, 2), (-0.141425052582394? + 1.214638932244183?*I, 2), (0.141425052582394? - 1.214638932244183?*I, 2), (1.214638932244183? + 0.141425052582394?*I, 2)]
+
+        We can also find roots over number fields:
+
+            sage: K.<z> = CyclotomicField(15)
+            sage: R.<x> = PolynomialRing(K)
+            sage: (x^2 + x + 1).roots()
+            [(z^5, 1), (-z^5 - 1, 1)]
 
         There are many combinations of floating-point input and output
         types that work. (Note that some of them are quite pointless...

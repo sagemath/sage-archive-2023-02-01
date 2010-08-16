@@ -128,7 +128,6 @@ def hilbert_class_polynomial(D, algorithm=None):
     prec =  c2*RR(3.142)*RR(D).abs().sqrt() + h*c1  # bound on log
     prec = prec * 1.45   # bound on log_2 (1/log(2) = 1.44..)
     prec = 10 + prec.ceil()  # allow for rounding error
-#    print "prec = ",prec
 
     # set appropriate precision for further computing
 

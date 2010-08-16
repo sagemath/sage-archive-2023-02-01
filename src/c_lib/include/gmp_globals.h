@@ -11,7 +11,7 @@
 EXTERN mpz_t u, v, q, u0, u1, u2, v0, v1, v2, t0, t1, t2, x, y, ssqr, m2;
 EXTERN mpq_t tmp;
 
-EXTERN mpz_t a1, a2, mod1, mod2, g, s, t, xx;
+EXTERN mpz_t a1, a2, mod1, sage_mod2, g, s, t, xx;
 
 EXTERN mpz_t crtrr_a, crtrr_mod;
 

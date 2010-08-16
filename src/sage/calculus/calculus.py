@@ -658,7 +658,7 @@ def nintegral(ex, x, a, b,
         sage: gp.eval('intnum(x=17,42,exp(-x^2)*log(x))')
         '2.5657285005610514829173563961304785900147709554020 E-127'
         sage: gp.set_real_precision(old_prec)
-        57
+        50
 
     Note that the input function above is a string in PARI syntax.
     """

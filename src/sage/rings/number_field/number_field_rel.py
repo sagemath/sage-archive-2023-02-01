@@ -1459,7 +1459,7 @@ class NumberField_relative(NumberField_generic):
 
             sage: k.<a> = NumberField([x^4 + 3, x^2 + 2])
             sage: k.pari_rnf()
-            [Mod(1, y^2 + 2)*x^4 + Mod(3, y^2 + 2), [], [[108, 0; 0, 108], [3, 0]~], ... 0]
+            [x^4 + 3, [], [[108, 0; 0, 108], 3], [8, 0; 0, 8], [], [], [[1, x - 1, x^2 - 1, x^3 - x^2 - x - 3], ..., 0]
         """
         return self._pari_base_nf().rnfinit(self.pari_relative_polynomial())
 
@@ -2011,7 +2011,7 @@ class NumberField_relative(NumberField_generic):
             sage: PF.<Y> = F[]
             sage: K.<c> = F.extension(Y^2 - (1 + a)*(a + b)*a*b)
             sage: K.relative_discriminant()
-            Fractional ideal (-4*b)
+            Fractional ideal (4*b)
         """
         nf = self._pari_base_nf()
         base = self.base_field()
@@ -2310,7 +2310,7 @@ class NumberField_relative(NumberField_generic):
 
             sage: K.<a, b> = NumberField([x^2 + 23, x^2 - 3])
             sage: P = K.prime_factors(5)[0]; P
-            Fractional ideal (5, (-1/2*b + 5/2)*a - 5/2*b - 11/2)
+            Fractional ideal (5, (-1/2*b - 5/2)*a + 5/2*b - 11/2)
             sage: u = K.uniformizer(P)
             sage: u.valuation(P)
             1

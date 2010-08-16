@@ -4335,13 +4335,15 @@ cdef class Matrix(matrix1.Matrix):
             sage: OL = L.ring_of_integers()
             sage: m = matrix(OL, 2, 2, [1,2,3,4+w])
             sage: m.echelon_form()
-            [    1    -2]
+            [    1     2]
             [    0 w - 2]
-            sage: m.echelon_form(transformation=True)
+            sage: E, T = m.echelon_form(transformation=True); E,T
             (
-            [    1    -2]  [-3*w - 2    w + 1]
-            [    0 w - 2], [      -3        1]
+            [    1     2]  [ 1  0]
+            [    0 w - 2], [-3  1]
             )
+            sage: E == T*m
+            True
         """
         self.check_mutability()
         cdef Matrix d, a
@@ -7021,11 +7023,15 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: R = EquationOrder(x^2 + 5, 's') # class number 2
             sage: s = R.ring_generators()[0]
-            sage: matrix(R, 2, 2, [s-1,-s,-s,2*s+1]).smith_form()
+            sage: A = matrix(R, 2, 2, [s-1,-s,-s,2*s+1])
+            sage: D, U, V = A.smith_form()
+            sage: D, U, V
             (
-            [     1      0]  [   -1    -1]  [    1 s + 1]
-            [     0 -s - 6], [    s s - 1], [    0     1]
+            [     1      0]  [    4 s + 4]  [       1 -5*s + 6]
+            [     0 -s - 6], [    s s - 1], [       0        1]
             )
+            sage: D == U*A*V
+            True
 
         Others don't, but they fail quite constructively::
 
@@ -7125,7 +7131,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: m = matrix(OL, 3, 5, [a^2 - 3*a - 1, a^2 - 3*a + 1, a^2 + 1, -a^2 + 2, -3*a^2 - a - 1, -6*a - 1, a^2 - 3*a - 1, 2*a^2 + a + 5, -2*a^2 + 5*a + 1, -a^2 + 13*a - 3, -2*a^2 + 4*a - 2, -2*a^2 + 1, 2*a, a^2 - 6, 3*a^2 - a])
             sage: r,s,p = m._echelon_form_PID()
             sage: s[2]
-            (0, 0, -3*a^2 - 18*a + 34, -68*a^2 + 134*a - 53, -111*a^2 + 275*a - 90)
+            (0, 0, 3*a^2 + 18*a - 34, 68*a^2 - 134*a + 53, 111*a^2 - 275*a + 90)
             sage: r * m == s and r.det() == 1
             True
 
@@ -7199,11 +7205,14 @@ def _smith_diag(d):
 
         sage: from sage.matrix.matrix2 import _smith_diag
         sage: OE = EquationOrder(x^2 - x + 2, 'w')
-        sage: _smith_diag(matrix(OE, 2, [2,0,0,3]))
+        sage: A = matrix(OE, 2, [2,0,0,3])
+        sage: D,U,V = _smith_diag(A); D,U,V
         (
-        [1 0]  [-1  1]  [ 1 -3]
-        [0 6], [-3  2], [ 1 -2]
+        [1 0]  [2 1]  [ 1 -3]
+        [0 6], [3 2], [-1  4]
         )
+        sage: D == U*A*V
+        True
         sage: m = matrix(GF(7),2, [3,0,0,6]); d,u,v = _smith_diag(m); d
         [1 0]
         [0 1]

@@ -297,6 +297,10 @@ class ComplexField_class(field.Field):
                 return complex_number.ComplexNumber(self, re, im)
 
             try:
+                return self(x.sage())
+            except:
+                pass
+            try:
                 return x._complex_mpfr_field_( self )
             except AttributeError:
                 pass

@@ -170,7 +170,7 @@ class Order(IntegralDomain):
             sage: K.<a> = NumberField(x^2 + 2)
             sage: R = K.maximal_order()
             sage: R.fractional_ideal(2/3 + 7*a, a)
-            Fractional ideal (-1/3*a)
+            Fractional ideal (1/3*a)
         """
         return self.number_field().fractional_ideal(*args, **kwds)
 

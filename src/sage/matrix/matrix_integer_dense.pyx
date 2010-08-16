@@ -2162,12 +2162,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [x^3 - 12*x^2 - 18*x]
             sage: A.frobenius(1, var='y')
             [y^3 - 12*y^2 - 18*y]
-            sage: A.frobenius(2)
-            (
-            [ 0  0  0]  [    -1      2     -1]
-            [ 1  0 18]  [     0  23/15 -14/15]
-            [ 0  1 12], [     0  -2/15   1/15]
-            )
+            sage: F, B = A.frobenius(2)
+            sage: A == B^(-1)*F*B
+            True
             sage: a=matrix([])
             sage: a.frobenius(2)
             ([], [])
@@ -2475,7 +2472,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [4 5 6 7]
             sage: M._kernel_matrix_using_pari()
             [ 1 -1 -1  1]
-            [ 0 -1  2 -1]
+            [ 1 -2  1  0]
 
         Testing matrices with no rows or no columns::
 
@@ -2568,18 +2565,15 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [1 0]
             [0 1]
 
-        Semidefinite and indefinite forms raise a ValueError::
+        Semidefinite and indefinite forms no longer raise a ValueError::
 
             sage: Matrix(ZZ,2,2,[2,6,6,3]).LLL_gram()
-            Traceback (most recent call last):
-            ...
-            ValueError: not a definite matrix
+            [-3 -1]
+            [ 1  0]
             sage: Matrix(ZZ,2,2,[1,0,0,-1]).LLL_gram()
-            Traceback (most recent call last):
-            ...
-            ValueError: not a definite matrix
+            [ 0 -1]
+            [ 1  0]
 
-        BUGS: should work for semidefinite forms (PARI is ok)
         """
         if self._nrows != self._ncols:
             raise ArithmeticError, "self must be a square matrix"

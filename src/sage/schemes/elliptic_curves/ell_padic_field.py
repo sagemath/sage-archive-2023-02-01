@@ -85,7 +85,7 @@ class EllipticCurve_padic_field(EllipticCurve_field, HyperellipticCurve_padic_fi
         sage: E._pari_()
         Traceback (most recent call last):
         ...
-        PariError:  (8)
+        PariError:  (5)
         """
         try:
             return self.__pari

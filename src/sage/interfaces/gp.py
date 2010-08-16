@@ -4,7 +4,7 @@ Interface to GP/Pari
 Type ``gp.[tab]`` for a list of all the functions
 available from your Gp install. Type ``gp.[tab]?`` for
 Gp's help about a given function. Type ``gp(...)`` to
-create a new Gp object, and ``gp.eval(...)`` to run a
+create a new Gp object, and ``gp.eval(...)`` to evaluate a
 string using Gp (and get the result back as a string).
 
 EXAMPLES: We illustrate objects that wrap GP objects (gp is the
@@ -60,7 +60,7 @@ Note that gp ASCII plots *do* work in Sage, as follows::
 
     sage: print gp.eval("plot(x=0,6,sin(x))")
     <BLANKLINE>
-    0.9988963 |''''''''''''_x"...x_''''''''''''''''''''''''''''''''''''''''''|
+    0.9988963 |''''''''''''_x...x_''''''''''''''''''''''''''''''''''''''''''|
               |          x"        "x                                        |
               |        _"            "_                                      |
               |       x                x                                     |
@@ -70,8 +70,8 @@ Note that gp ASCII plots *do* work in Sage, as follows::
               |  _                          _                                |
               | _                            _                               |
               |_                              _                              |
-              _,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-              |                                "                             |
+              _                                                              |
+              `````````````````````````````````"``````````````````````````````
               |                                 "                            |
               |                                  "                           |
               |                                   "                          "
@@ -137,8 +137,24 @@ class Gp(Expect):
     Type ``gp.[tab]`` for a list of all the functions
     available from your Gp install. Type ``gp.[tab]?`` for
     Gp's help about a given function. Type ``gp(...)`` to
-    create a new Gp object, and ``gp.eval(...)`` to run a
+    create a new Gp object, and ``gp.eval(...)`` to evaluate a
     string using Gp (and get the result back as a string).
+
+        INPUT:
+
+        - ``stacksize`` (int, default 10000000) -- the initial PARI
+          stacksize in bytes (default 10MB)
+        - ``maxread`` (int, default 100000) -- ??
+        - ``script_subdirectory`` (string, default None) -- name of the subdirectory of SAGE_ROOT/data/extcode/pari from which to read scripts
+        - ``logfile`` (string, default None) -- log file for the pexpect interface
+        - ``server`` -- name of remote server
+        - ``server_tmpdir`` -- name of temporary directory on remote server
+        - ``init_list_length`` (int, default 1024) -- length of initial list of local variables.
+
+        EXAMPLES::
+
+            sage: Gp()
+            GP/PARI interpreter
     """
     def __init__(self, stacksize=10000000,   # 10MB
                  maxread=100000, script_subdirectory=None,
@@ -147,6 +163,19 @@ class Gp(Expect):
                  server_tmpdir=None,
                  init_list_length=1024):
         """
+        Initialization of this PARI gp interpreter.
+
+        INPUT:
+
+        - ``stacksize`` (int, default 10000000) -- the initial PARI
+          stacksize in bytes (default 10MB)
+        - ``maxread`` (int, default 100000) -- ??
+        - ``script_subdirectory`` (string, default None) -- name of the subdirectory of SAGE_ROOT/data/extcode/pari from which to read scripts
+        - ``logfile`` (string, default None) -- log file for the pexpect interface
+        - ``server`` -- name of remote server
+        - ``server_tmpdir`` -- name of temporary directory on remote server
+        - ``init_list_length`` (int, default 1024) -- length of initial list of local variables.
+
         EXAMPLES::
 
             sage: gp == loads(dumps(gp))
@@ -167,12 +196,27 @@ class Gp(Expect):
         self.__seq = 0
         self.__var_store_len = 0
         self.__init_list_length = init_list_length
+        # gp starts up with this set to 1, which makes pexpect hang:
+        self.set_default('breakloop',0)
+
+    def _start(self, alt_message=None, block_during_init=True):
+        r"""
+        Restart the underlying process.
+
+        .. note:: This is handled by the Expect class, except that we
+           need to reset the breakloop configuration parameter.
+        """
+        Expect._start(self, alt_message=alt_message, block_during_init=block_during_init)
+        self.set_default('breakloop',0)
+
 
     def _repr_(self):
         """
+        String representation of this PARI gp interpreter.
+
         EXAMPLES::
 
-            sage: gp
+            sage: gp # indirect doctest
             GP/PARI interpreter
         """
         return 'GP/PARI interpreter'
@@ -271,34 +315,58 @@ class Gp(Expect):
             28              # 32-bit
             38              # 64-bit
         """
-        a = self.eval('\\p')
-        i = a.find('=')
-        j = a.find('significant')
-        return int(a[i+1:j])
+        return self.get_default('realprecision')
 
     get_real_precision = get_precision
 
     def set_precision(self, prec=None):
         """
-        Sets the current PARI precision (in decimal digits) for real number
-        computations, and returns the old one.
+        Sets the PARI precision (in decimal digits) for real computations, and returns the old value.
 
         EXAMPLES::
 
-            sage: old_prec = gp.set_precision(53)
+            sage: old_prec = gp.set_precision(53); old_prec
+            28              # 32-bit
+            38              # 64-bit
             sage: gp.get_precision()
-            57
+            53
             sage: gp.set_precision(old_prec)
-            57
+            53
             sage: gp.get_precision()
             28              # 32-bit
             38              # 64-bit
         """
-        old = self.get_precision()
-        self.eval('\\p %s'%int(prec))
-        return old
+        return self.set_default('realprecision', prec)
 
     set_real_precision = set_precision
+
+    def get_series_precision(self):
+        """
+        Return the current PARI power series precision.
+
+        EXAMPLES::
+
+            sage: gp.get_series_precision()
+            16
+        """
+        return self.get_default('seriesprecision')
+
+    def set_series_precision(self, prec=None):
+        """
+        Sets the PARI power series precision, and returns the old precision.
+
+        EXAMPLES::
+
+            sage: old_prec = gp.set_series_precision(50); old_prec
+            16
+            sage: gp.get_series_precision()
+            50
+            sage: gp.set_series_precision(old_prec)
+            50
+            sage: gp.get_series_precision()
+            16
+        """
+        return self.set_default('seriesprecision', prec)
 
     def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True):
         """
@@ -357,9 +425,68 @@ class Gp(Expect):
             return m - t
         return m
 
+    def set_default(self, var=None, value=None):
+        """
+        Set a PARI gp configuration variable, and return the old value.
+
+        INPUT:
+
+        - ``var`` (string, default None) -- the name of a PARI gp
+          configuration variable.  (See ``gp.default()`` for a list.)
+        - ``value`` -- the value to set the variable to.
+
+        EXAMPLES::
+
+            sage: old_prec = gp.set_default('realprecision',100); old_prec
+            28              # 32-bit
+            38              # 64-bit
+            sage: gp.get_default('realprecision')
+            100
+            sage: gp.set_default('realprecision',old_prec)
+            100
+            sage: gp.get_default('realprecision')
+            28              # 32-bit
+            38              # 64-bit
+        """
+        old = self.get_default(var)
+        self._eval_line('default(%s,%s)'%(var,value))
+        return old
+
+    def get_default(self, var=None):
+        """
+        Return the current value of a PARI gp configuration variable.
+
+        INPUT:
+
+        - ``var`` (string, default None) -- the name of a PARI gp
+          configuration variable.  (See ``gp.default()`` for a list.)
+
+        OUTPUT:
+
+        (string) the value of the variable.
+
+        EXAMPLES::
+
+            sage: gp.get_default('log')
+            0
+            sage: gp.get_default('logfile')
+            'pari.log'
+            sage: gp.get_default('seriesprecision')
+            16
+            sage: gp.get_default('realprecision')
+            28              # 32-bit
+            38              # 64-bit
+        """
+        return eval(self._eval_line('default(%s)'%var))
+
     def set(self, var, value):
         """
-        Set the variable var to the given value.
+        Set the GP variable var to the given value.
+
+        INPUT:
+
+        - ``var`` (string) -- a valid GP variable identifier
+        - ``value`` -- a value for the variable
 
         EXAMPLES::
 
@@ -375,7 +502,11 @@ class Gp(Expect):
 
     def get(self, var):
         """
-        Get the value of the variable var.
+        Get the value of the GP variable var.
+
+        INPUT:
+
+        - ``var`` (string) -- a valid GP variable identifier
 
         EXAMPLES::
 
@@ -387,6 +518,12 @@ class Gp(Expect):
 
     def kill(self, var):
         """
+        Kill the value of the GP variable var.
+
+        INPUT:
+
+        - ``var`` (string) -- a valid GP variable identifier
+
         EXAMPLES::
 
             sage: gp.set('xx', '22')
@@ -413,6 +550,8 @@ class Gp(Expect):
 
     def _next_var_name(self):
         """
+        Return the name of the next unused interface variable name.
+
         EXAMPLES::
 
             sage: g = Gp()
@@ -436,6 +575,8 @@ class Gp(Expect):
 
     def quit(self, verbose=False, timeout=0.25):
         """
+        Terminate the GP process.
+
         EXAMPLES::
 
             sage: a = gp('10'); a
@@ -458,12 +599,11 @@ class Gp(Expect):
 
         EXAMPLES::
 
-            sage: gp.console() #not tested
-            GP/PARI CALCULATOR Version 2.3.3 (released)
+            sage: gp.console()  # not tested
+            GP/PARI CALCULATOR Version 2.4.3 (development svn-12577)
             amd64 running linux (x86-64/GMP-4.2.1 kernel) 64-bit version
-            compiled: Feb 22 2008, gcc-4.1.3 20070929 (prerelease) (Ubuntu 4.1.2-16ubuntu2)
-            (readline v5.2 enabled, extended help available)
-            ...
+            compiled: Jul 21 2010, gcc-4.6.0 20100705 (experimental) (GCC)
+            (readline v6.0 enabled, extended help enabled)
         """
         gp_console()
 
@@ -473,8 +613,8 @@ class Gp(Expect):
 
         EXAMPLES::
 
-            sage: gp.version()
-            ((2, 3, 5), 'GP/PARI CALCULATOR Version 2.3.5 (released)')
+            sage: gp.version()  # not tested
+            ((2, 4, 3), 'GP/PARI CALCULATOR Version 2.4.3 (development svn-12577)')
         """
         return gp_version()
 
@@ -602,16 +742,18 @@ class Gp(Expect):
             sage: new_prec = pi_150.precision(); new_prec
             48                                             # 32-bit
             57                                             # 64-bit
-            sage: old_prec = gp.get_precision()
-            sage: gp.set_precision(new_prec)
+            sage: old_prec = gp.set_precision(new_prec); old_prec
             28                                             # 32-bit
             38                                             # 64-bit
             sage: pi_150
-            3.14159265358979323846264338327950288419716939937  # 32-bit
+            3.14159265358979323846264338327950288419716939938  # 32-bit
             3.14159265358979323846264338327950288419716939937510582098  # 64-bit
             sage: gp.set_precision(old_prec)
             48                                             # 32-bit
             57                                             # 64-bit
+            sage: gp.get_precision()
+            28                                             # 32-bit
+            38                                             # 64-bit
         """
         if precision:
             old_prec = self.get_real_precision()
@@ -640,18 +782,44 @@ class GpElement(ExpectElement):
     view of PARI::
 
         sage: E = gp('ellinit([1,2,3,4,5])')
-        sage: loads(E.dumps()) == E
+        sage: loads(dumps(E)) == E
         False
         sage: loads(E.dumps())
-        [1, 2, 3, 4, 5, 9, 11, 29, 35, -183, -3429, -10351, 6128487/10351, [-1.618909932267371342378000940, -0.3155450338663143288109995302 - 2.092547096911958607981689447*I, -0.3155450338663143288109995302 + 2.092547096911958607981689447*I]~, 2.780740013766729771063197627, -1.390370006883364885531598814 + 1.068749776356193066159263547*I, -1.554824121162190164275074561 + 3.415713103000000000000000000 E-29*I, 0.7774120605810950821375372806 - 1.727349756386839866714149879*I, 2.971915267817909670771647951] # 32-bit
-        [1, 2, 3, 4, 5, 9, 11, 29, 35, -183, -3429, -10351, 6128487/10351, [-1.6189099322673713423780009396072169750, -0.31554503386631432881099953019639151248 - 2.0925470969119586079816894466366945829*I, -0.31554503386631432881099953019639151248 + 2.0925470969119586079816894466366945829*I]~, 2.7807400137667297710631976271813584994, -1.3903700068833648855315988135906792497 + 1.0687497763561930661592635474375038788*I, -1.5548241211621901642750745610982915039 + 7.9528267991764473360000000000000000000 E-39*I, 0.77741206058109508213753728054914575197 - 1.7273497563868398667141498789110695181*I, 2.9719152678179096707716479509361896060]  # 64-bit
+        [1, 2, 3, 4, 5, 9, 11, 29, 35, -183, -3429, -10351, 6128487/10351, [-1.618909932267371342378000940, -0.3155450338663143288109995302 - 2.092547096911958607981689447*I, -0.3155450338663143288109995302 + 2.092547096911958607981689447*I]~, 2.780740013766729771063197627, 1.390370006883364885531598814 - 1.068749776356193066159263548*I, 3.109648242324380328550149122 + 1.009741959000000000000000000 E-28*I, 1.554824121162190164275074561 + 1.064374745210273756943885994*I, 2.971915267817909670771647951] # 32-bit
+        [1, 2, 3, 4, 5, 9, 11, 29, 35, -183, -3429, -10351, 6128487/10351, [-1.6189099322673713423780009396072169751, -0.31554503386631432881099953019639151248 - 2.0925470969119586079816894466366945829*I, -0.31554503386631432881099953019639151248 + 2.0925470969119586079816894466366945829*I]~, 2.7807400137667297710631976271813584994, 1.3903700068833648855315988135906792497 - 1.0687497763561930661592635474375038788*I, 3.1096482423243803285501491221965830079 + 2.3509887016445750160000000000000000000 E-38*I, 1.5548241211621901642750745610982915040 + 1.0643747452102737569438859937299427442*I, 2.9719152678179096707716479509361896060] # 64-bit
         sage: E
-        [1, 2, 3, 4, 5, 9, 11, 29, 35, -183, -3429, -10351, 6128487/10351, [-1.618909932267371342378000940, -0.3155450338663143288109995302 - 2.092547096911958607981689447*I, -0.3155450338663143288109995302 + 2.092547096911958607981689447*I]~, 2.780740013766729771063197627, -1.390370006883364885531598814 + 1.068749776356193066159263547*I, -1.554824121162190164275074561 + 3.415713103 E-29*I, 0.7774120605810950821375372806 - 1.727349756386839866714149879*I, 2.971915267817909670771647951]   # 32-bit
-        [1, 2, 3, 4, 5, 9, 11, 29, 35, -183, -3429, -10351, 6128487/10351, [-1.6189099322673713423780009396072169750, -0.31554503386631432881099953019639151248 - 2.0925470969119586079816894466366945829*I, -0.31554503386631432881099953019639151248 + 2.0925470969119586079816894466366945829*I]~, 2.7807400137667297710631976271813584994, -1.3903700068833648855315988135906792497 + 1.0687497763561930661592635474375038788*I, -1.5548241211621901642750745610982915039 + 7.952826799176447336 E-39*I, 0.77741206058109508213753728054914575197 - 1.7273497563868398667141498789110695181*I, 2.9719152678179096707716479509361896060]  # 64-bit
+        [1, 2, 3, 4, 5, 9, 11, 29, 35, -183, -3429, -10351, 6128487/10351, [-1.618909932267371342378000940, -0.3155450338663143288109995302 - 2.092547096911958607981689447*I, -0.3155450338663143288109995302 + 2.092547096911958607981689447*I]~, 2.780740013766729771063197627, 1.390370006883364885531598814 - 1.068749776356193066159263548*I, 3.109648242324380328550149122 + 1.009741959 E-28*I, 1.554824121162190164275074561 + 1.064374745210273756943885994*I, 2.971915267817909670771647951] # 32-bit
+        [1, 2, 3, 4, 5, 9, 11, 29, 35, -183, -3429, -10351, 6128487/10351, [-1.6189099322673713423780009396072169751, -0.31554503386631432881099953019639151248 - 2.0925470969119586079816894466366945829*I, -0.31554503386631432881099953019639151248 + 2.0925470969119586079816894466366945829*I]~, 2.7807400137667297710631976271813584994, 1.3903700068833648855315988135906792497 - 1.0687497763561930661592635474375038788*I, 3.1096482423243803285501491221965830079 + 2.350988701644575016 E-38*I, 1.5548241211621901642750745610982915040 + 1.0643747452102737569438859937299427442*I, 2.9719152678179096707716479509361896060]  # 64-bit
 
     The two elliptic curves look the same, but internally the floating
     point numbers are slightly different.
     """
+
+    def _sage_(self):
+        """
+        Convert this GpElement into a Sage object, if possible.
+
+        EXAMPLES::
+
+            sage: gp(I).sage()
+            i
+            sage: gp(I).sage().parent()
+            Maximal Order in Number Field in i with defining polynomial x^2 + 1
+
+        ::
+
+            sage: M = Matrix(ZZ,2,2,[1,2,3,4]); M
+            [1 2]
+            [3 4]
+            sage: gp(M)
+            [1, 2; 3, 4]
+            sage: gp(M).sage()
+            [1 2]
+            [3 4]
+            sage: gp(M).sage() == M
+            True
+        """
+        return pari(str(self)).python()
 
     def __long__(self):
         """
@@ -691,22 +859,30 @@ class GpElement(ExpectElement):
 
     def _complex_mpfr_field_(self, CC):
         """
+        Return ComplexField element of self.
+
+        INPUT:
+
+        - ``CC`` -- a Complex or Real Field.
+
         EXAMPLES::
 
-            sage: CC(gp(1+15*I))
-             1.00000000000000 + 15.0000000000000*I
+            sage: z = gp(1+15*I); z
+            1 + 15*I
+            sage: z._complex_mpfr_field_(CC)
+            1.00000000000000 + 15.0000000000000*I
+            sage: CC(z) # CC(gp(1+15*I))
+            1.00000000000000 + 15.0000000000000*I
             sage: CC(gp(11243.9812+15*I))
-             11243.9812000000 + 15.0000000000000*I
+            11243.9812000000 + 15.0000000000000*I
             sage: ComplexField(10)(gp(11243.9812+15*I))
-             11000. + 15.*I
+            11000. + 15.*I
         """
-        GP = self.parent()
-        orig = GP.get_real_precision()
-        GP.set_real_precision(int(CC.prec()*3.33)+1)
-        real = str(self.real()).replace(' E','e')
-        imag = str(self.imag()).replace(' E','e')
-        GP.set_real_precision(orig)
-        return sage.rings.complex_number.ComplexNumber(CC, real, imag )
+        # Multiplying by CC(1) is necessary here since
+        # sage: pari(gp(1+I)).sage().parent()
+        # Maximal Order in Number Field in i with defining polynomial x^2 + 1
+
+        return CC((CC(1)*pari(self))._sage_())
 
     def _complex_double_(self, CDF):
         """
@@ -791,7 +967,9 @@ def is_GpElement(x):
     return isinstance(x, GpElement)
 
 # An instance
-gp = Gp()
+#gp = Gp()
+from sage.misc.all import DOT_SAGE
+gp = Gp(logfile=DOT_SAGE+'/gp-expect.log') # useful for debugging!
 
 def reduce_load_GP():
     """
@@ -812,12 +990,11 @@ def gp_console():
 
     EXAMPLES::
 
-        sage: gp.console() #not tested
-        GP/PARI CALCULATOR Version 2.3.3 (released)
+        sage: gp.console()  # not tested
+        GP/PARI CALCULATOR Version 2.4.3 (development svn-12577)
         amd64 running linux (x86-64/GMP-4.2.1 kernel) 64-bit version
-        compiled: Feb 22 2008, gcc-4.1.3 20070929 (prerelease) (Ubuntu 4.1.2-16ubuntu2)
-        (readline v5.2 enabled, extended help available)
-        ...
+        compiled: Jul 21 2010, gcc-4.6.0 20100705 (experimental) (GCC)
+        (readline v6.0 enabled, extended help enabled)
     """
     os.system('gp')
 
@@ -826,8 +1003,8 @@ def gp_version():
     """
     EXAMPLES::
 
-        sage: gp.version()      # random output
-        ((2, 3, 1), 'GP/PARI CALCULATOR Version 2.3.1 (0)')
+        sage: gp.version()  # not tested
+        ((2, 4, 3), 'GP/PARI CALCULATOR Version 2.4.3 (development svn-12577)')
     """
     v = gp.eval(r'\v')
     i = v.find("Version ")

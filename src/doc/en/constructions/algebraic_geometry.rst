@@ -10,18 +10,15 @@ Point counting on curves
 How do you count points on an elliptic curve over a finite field in
 Sage?
 
-Over prime finite fields, includes both the the baby step giant
-step method, as implemented in PARI's ``ellap``, and the SEA
-(Schoof-Elkies-Atkin) algorithm as implemented in PARI by
-Christophe Doche and Sylvain Duquesne. An example taken form the
+Over prime finite fields, includes both the the baby step giant step
+method and the SEA (Schoof-Elkies-Atkin) algorithm (implemented in PARI
+by Christophe Doche and Sylvain Duquesne). An example taken form the
 Reference manual:
 
 ::
 
     sage: E = EllipticCurve(GF(10007),[1,2,3,4,5])
-    sage: E.cardinality(algorithm='sea')
-    10076
-    sage: E.cardinality(algorithm='bsgs')
+    sage: E.cardinality()
     10076
 
 The command ``E.points()`` will return the actual list of rational

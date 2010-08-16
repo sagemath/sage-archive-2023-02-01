@@ -11,7 +11,9 @@ AUTHORS:
 
 - Robert Bradshaw (2008-10): specified embeddings into ambient fields
 
-- Simon King(2010-05): Improve coercion from GAP
+- Simon King (2010-05): Improve coercion from GAP
+
+- Jeroen Demeyer (2010-07): Upgrade to PARI 2.4.3
 
 .. note::
 
@@ -552,9 +554,7 @@ def NumberFieldTower(v, names, check=True, embeddings=None):
         sage: K.base_field().base_field()
         Number Field in a2 with defining polynomial x^2 + 1
 
-    A bigger tower of quadratic fields.
-
-    ::
+    A bigger tower of quadratic fields::
 
         sage: K.<a2,a3,a5,a7> = NumberField([x^2 + p for p in [2,3,5,7]]); K
         Number Field in a2 with defining polynomial x^2 + 2 over its base field
@@ -2311,7 +2311,8 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.<z> = CyclotomicField(10)
             sage: Ps = K.primes_of_degree_one_list(3)
             sage: Ps
-            [Fractional ideal (z^3 + z + 1), Fractional ideal (3*z^3 - z^2 + z - 1), Fractional ideal (2*z^3 - 3*z^2 + z - 2)]
+            [Fractional ideal (2*z^3 - z^2 - 1), Fractional ideal (2*z^3 - 2*z^2 + 2*z - 3), Fractional ideal (2*z^3 - 3*z^2 + z - 2)]  # 32-bit
+            [Fractional ideal (2*z^3 - z^2 - 1), Fractional ideal (-z^3 - 2*z^2), Fractional ideal (2*z^3 - 3*z^2 + z - 2)]  # 64-bit
             sage: [ P.norm() for P in Ps ]
             [11, 31, 41]
             sage: [ P.residue_class_degree() for P in Ps ]
@@ -2823,7 +2824,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.selmer_group([K.ideal(2, -a+1), K.ideal(3, a+1)], 3)
             [2, a + 1]
             sage: K.selmer_group([K.ideal(2, -a+1), K.ideal(3, a+1), K.ideal(a)], 3)
-            [2, a + 1, -a]
+            [2, a + 1, a]
             sage: K.<a> = NumberField(polygen(QQ))
             sage: K.selmer_group([],5)
             []
@@ -2938,7 +2939,7 @@ class NumberField_generic(number_field_base.NumberField):
 
         Let's check that embeddings are being respected::
 
-            sage: x = ZZ['x'].0
+            sage: x = polygen(ZZ)
             sage: K0.<b> = CyclotomicField(7, 'a').subfields(3)[0][0].change_names()
             sage: K1.<a1> = K0.extension(x^2 - 2*b^2, 'a1').absolute_field()
             sage: K2.<a2> = K0.extension(x^2 - 3*b^2, 'a2').absolute_field()
@@ -3277,8 +3278,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.elements_of_norm(3)
             []
             sage: K.elements_of_norm(50)
-            [7*a - 1, -5*a + 5, a - 7]           # 32-bit
-            [7*a - 1, -5*a + 5, -7*a - 1]        # 64-bit
+            [-7*a + 1, -5*a - 5, a - 7]
         """
         proof = proof_flag(proof)
         B = self.pari_bnf(proof).bnfisintnorm(n)
@@ -3295,9 +3295,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: L.<b> = K.extension(t^2 + a); L
             Number Field in b with defining polynomial t^2 + a over its base field
 
-        We create another extension.
-
-        ::
+        We create another extension::
 
             sage: k.<a> = NumberField(x^2 + 1); k
             Number Field in a with defining polynomial x^2 + 1
@@ -3312,9 +3310,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: b.minpoly('z')
             z^2 + 2
 
-        A relative extension of a relative extension.
-
-        ::
+        A relative extension of a relative extension::
 
             sage: k.<a> = NumberField([x^2 + 1, x^3 + x + 1])
             sage: R.<z> = k[]
@@ -3348,26 +3344,19 @@ class NumberField_generic(number_field_base.NumberField):
         Here are the factors::
 
             sage: fi, fj = K.factor(13); fi,fj
-            ((Fractional ideal (-3*I - 2), 1), (Fractional ideal (3*I - 2), 1))
+            ((Fractional ideal (-2*I + 3), 1), (Fractional ideal (-2*I - 3), 1))
 
         Now we extract the reduced form of the generators::
 
             sage: zi = fi[0].gens_reduced()[0]; zi
-            -3*I - 2
+            -2*I + 3
             sage: zj = fj[0].gens_reduced()[0]; zj
-            3*I - 2
+            -2*I - 3
 
-        We recover the integer that was factored in `\ZZ[i]`::
+        We recover the integer that was factored in `\ZZ[i]` up to a unit::
 
             sage: zi*zj
-            13
-
-        We can see units are not considered::
-
-            sage: K.factor(2)
-            (Fractional ideal (I + 1))^2
-            sage: expand((I+1)^2)
-            2*I
+            -13
 
         One can also factor elements or ideals of the number field::
 
@@ -3377,16 +3366,13 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.factor(1+a)
             Fractional ideal (a + 1)
             sage: K.factor(1+a/5)
-            (Fractional ideal (-3*a - 2)) * (Fractional ideal (a + 1)) * (Fractional ideal (-a - 2))^-1 * (Fractional ideal (2*a + 1))^-1
+            (Fractional ideal (-2*a + 3)) * (Fractional ideal (a + 1)) * (Fractional ideal (a + 2))^-1 * (Fractional ideal (-a + 2))^-1
 
-        The slightly odd syntax in the next example is to ensure
-        the same result with both 32- and 64-bit systems.
-
-        ::
+        An example over a relative number field::
 
             sage: L.<b> = K.extension(x^2 - 7)
-            sage: list(L.factor(a + 1)) == [(L.ideal((a + b + 2)/2), 1), (L.ideal((a - b - 2)/2), 1)]
-            True
+            sage: L.factor(a + 1)
+            (Fractional ideal (1/2*a*b + a + 1/2)) * (Fractional ideal (-1/2*a*b + a + 1/2))
 
         It doesn't make sense to factor the ideal (0), so this raises an error::
 
@@ -3699,7 +3685,7 @@ class NumberField_generic(number_field_base.NumberField):
 
             sage: K.<a> = NumberField(x^3 + x^2 - 2*x + 8)
             sage: K._compute_integral_basis()
-            [1, a, 1/2*a^2 + 1/2*a]
+            [1, a, 1/2*a^2 - 1/2*a]
             sage: K.integral_basis()
             [1, 1/2*a^2 + 1/2*a, a^2]
         """
@@ -3733,8 +3719,8 @@ class NumberField_generic(number_field_base.NumberField):
 
         -  ``self`` - number field, the base field
 
-        -  ``prec (default: None)`` - the precision with which
-           to compute the Minkowski embedding. (See NOTE below.)
+        -  ``prec (default: None)`` - the precision with which to
+           compute the Minkowski embedding.
 
 
         OUTPUT:
@@ -3752,9 +3738,6 @@ class NumberField_generic(number_field_base.NumberField):
            be integral; however, it may only be only "almost" LLL-reduced
            when the precision is not sufficiently high.
 
-        If the following run-time error occurs: "PariError: not a definite
-        matrix in lllgram (42)" try increasing the prec parameter,
-
         EXAMPLES::
 
             sage: F.<t> = NumberField(x^6-7*x^4-x^3+11*x^2+x-1)
@@ -3764,19 +3747,6 @@ class NumberField_generic(number_field_base.NumberField):
             [-1, -1/2*t^5 + 1/2*t^4 + 3*t^3 - 3/2*t^2 - 4*t - 1/2, t, 1/2*t^5 + 1/2*t^4 - 4*t^3 - 5/2*t^2 + 7*t + 1/2, 1/2*t^5 - 1/2*t^4 - 2*t^3 + 3/2*t^2 - 1/2, 1/2*t^5 - 1/2*t^4 - 3*t^3 + 5/2*t^2 + 4*t - 5/2]
             sage: CyclotomicField(12).reduced_basis()
             [1, zeta12^2, zeta12, zeta12^3]
-
-        ::
-
-            sage: F.<alpha> = NumberField(x^4+x^2+712312*x+131001238)
-            sage: F.integral_basis()
-            [1, alpha, 1/2*alpha^3 + 1/2*alpha^2, alpha^3]
-            sage: F.reduced_basis(prec=64)
-            [1, alpha, alpha^3 - 2*alpha^2 + 15*alpha, 16*alpha^3 - 31*alpha^2 + 469*alpha + 267109]     # 32-bit
-            Traceback (most recent call last):                 # 64-bit
-            ...                                                # 64-bit
-            PariError: not a definite matrix in lllgram (42)   # 64-bit
-            sage: F.reduced_basis(prec=96)
-            [1, alpha, alpha^3 - 2*alpha^2 + 15*alpha, 16*alpha^3 - 31*alpha^2 + 469*alpha + 267109]
         """
         if self.is_totally_real():
             try:
@@ -4409,36 +4379,18 @@ class NumberField_generic(number_field_base.NumberField):
             sage: A = x^4 - 10*x^3 + 20*5*x^2 - 15*5^2*x + 11*5^3
             sage: K = NumberField(A, 'a')
             sage: K.units()
-            [8/275*a^3 - 12/55*a^2 + 15/11*a - 2]
+            [1/275*a^3 + 4/55*a^2 - 5/11*a + 3]
 
-        Sage might not be able to provably compute the unit group::
+        For big number fields, provably computing the unit group can
+        take a very long time.  In this case, one can ask for the
+        conjectural unit group (correct if the Generalized Riemann
+        Hypothesis is true)::
 
             sage: K = NumberField(x^17 + 3, 'a')
-            sage: K.units(proof=True) # default
-            Traceback (most recent call last):
+            sage: K.units(proof=True)  # takes forever, not tested
             ...
-            PariError: not enough precomputed primes, need primelimit ~  (35)
-
-        In this case, one can ask for the conjectural unit group (correct
-        if the Generalized Riemann Hypothesis is true)::
-
             sage: K.units(proof=False)
-            [a^9 + a - 1,
-            a^16 - a^15 + a^14 - a^12 + a^11 - a^10 - a^8 + a^7 - 2*a^6 + a^4 - 3*a^3 + 2*a^2 - 2*a + 1,
-            2*a^16 - a^14 - a^13 + 3*a^12 - 2*a^10 + a^9 + 3*a^8 - 3*a^6 + 3*a^5 + 3*a^4 - 2*a^3 - 2*a^2 + 3*a + 4,
-            2*a^16 - 3*a^15 + 3*a^14 - 3*a^13 + 3*a^12 - a^11 + a^9 - 3*a^8 + 4*a^7 - 5*a^6 + 6*a^5 - 4*a^4 + 3*a^3 - 2*a^2 - 2*a + 4,
-            a^15 - a^12 + a^10 - a^9 - 2*a^8 + 3*a^7 + a^6 - 3*a^5 + a^4 + 4*a^3 - 3*a^2 - 2*a + 2,
-            a^16 - a^15 - 3*a^14 - 4*a^13 - 4*a^12 - 3*a^11 - a^10 + 2*a^9 + 4*a^8 + 5*a^7 + 4*a^6 + 2*a^5 - 2*a^4 - 6*a^3 - 9*a^2 - 9*a - 7,
-            a^15 + a^14 + 2*a^11 + a^10 - a^9 + a^8 + 2*a^7 - a^5 + 2*a^3 - a^2 - 3*a + 1,
-            3*a^16 + 3*a^15 + 3*a^14 + 3*a^13 + 3*a^12 + 2*a^11 + 2*a^10 + 2*a^9 + a^8 - a^7 - 2*a^6 - 3*a^5 - 3*a^4 - 4*a^3 - 6*a^2 - 8*a - 8]
-
-        The provable and the conjectural results are cached separately
-        (this fixes trac #2504)::
-
-            sage: K.units(proof=True)
-            Traceback (most recent call last):
-            ...
-            PariError: not enough precomputed primes, need primelimit ~  (35)
+            [a^9 + a - 1, a^15 - a^12 + a^10 - a^9 - 2*a^8 + 3*a^7 + a^6 - 3*a^5 + a^4 + 4*a^3 - 3*a^2 - 2*a + 2, a^15 + a^14 + a^13 + a^12 + a^10 - a^7 - a^6 - a^2 - 1, 2*a^16 - 3*a^15 + 3*a^14 - 3*a^13 + 3*a^12 - a^11 + a^9 - 3*a^8 + 4*a^7 - 5*a^6 + 6*a^5 - 4*a^4 + 3*a^3 - 2*a^2 - 2*a + 4, a^16 - a^15 + a^14 - a^12 + a^11 - a^10 - a^8 + a^7 - 2*a^6 + a^4 - 3*a^3 + 2*a^2 - 2*a + 1, a^16 - 2*a^15 - 2*a^13 - a^12 - a^11 - 2*a^10 + a^9 - 2*a^8 + 2*a^7 - 3*a^6 - 3*a^4 - 2*a^3 - a^2 - 4*a + 2, a^15 + a^14 + 2*a^11 + a^10 - a^9 + a^8 + 2*a^7 - a^5 + 2*a^3 - a^2 - 3*a + 1, 3*a^16 + 3*a^15 + 3*a^14 + 3*a^13 + 3*a^12 + 2*a^11 + 2*a^10 + 2*a^9 + a^8 - a^7 - 2*a^6 - 3*a^5 - 3*a^4 - 4*a^3 - 6*a^2 - 8*a - 8]
         """
         proof = proof_flag(proof)
 
@@ -4488,42 +4440,23 @@ class NumberField_generic(number_field_base.NumberField):
             sage: U = K.unit_group(); U
             Unit group with structure C10 x Z of Number Field in a with defining polynomial x^4 - 10*x^3 + 100*x^2 - 375*x + 1375
             sage: U.gens()
-            [-1/275*a^3 + 7/55*a^2 - 6/11*a + 4, 8/275*a^3 - 12/55*a^2 + 15/11*a - 2]
+            [-7/275*a^3 + 1/11*a^2 - 9/11*a - 1, 1/275*a^3 + 4/55*a^2 - 5/11*a + 3]
             sage: U.invariants()
             [10, 0]
             sage: [u.multiplicative_order() for u in U.gens()]
             [10, +Infinity]
 
-        Sage might not be able to provably compute the unit group::
+        For big number fields, provably computing the unit group can
+        take a very long time.  In this case, one can ask for the
+        conjectural unit group (correct if the Generalized Riemann
+        Hypothesis is true)::
 
             sage: K = NumberField(x^17 + 3, 'a')
-            sage: K.unit_group(proof=True) # default
-            Traceback (most recent call last):
+            sage: K.unit_group(proof=True)  # takes forever, not tested
             ...
-            PariError: not enough precomputed primes, need primelimit ~  (35)
-
-        In this case, one can ask for the conjectural unit group (correct if
-        the Generalized Riemann Hypothesis is true)::
-
             sage: U = K.unit_group(proof=False); U; U.gens()
             Unit group with structure C2 x Z x Z x Z x Z x Z x Z x Z x Z of Number Field in a with defining polynomial x^17 + 3
-            [-1,
-            a^9 + a - 1,
-            a^16 - a^15 + a^14 - a^12 + a^11 - a^10 - a^8 + a^7 - 2*a^6 + a^4 - 3*a^3 + 2*a^2 - 2*a + 1,
-            2*a^16 - a^14 - a^13 + 3*a^12 - 2*a^10 + a^9 + 3*a^8 - 3*a^6 + 3*a^5 + 3*a^4 - 2*a^3 - 2*a^2 + 3*a + 4,
-            2*a^16 - 3*a^15 + 3*a^14 - 3*a^13 + 3*a^12 - a^11 + a^9 - 3*a^8 + 4*a^7 - 5*a^6 + 6*a^5 - 4*a^4 + 3*a^3 - 2*a^2 - 2*a + 4,
-            a^15 - a^12 + a^10 - a^9 - 2*a^8 + 3*a^7 + a^6 - 3*a^5 + a^4 + 4*a^3 - 3*a^2 - 2*a + 2,
-            a^16 - a^15 - 3*a^14 - 4*a^13 - 4*a^12 - 3*a^11 - a^10 + 2*a^9 + 4*a^8 + 5*a^7 + 4*a^6 + 2*a^5 - 2*a^4 - 6*a^3 - 9*a^2 - 9*a - 7,
-            a^15 + a^14 + 2*a^11 + a^10 - a^9 + a^8 + 2*a^7 - a^5 + 2*a^3 - a^2 - 3*a + 1,
-            3*a^16 + 3*a^15 + 3*a^14 + 3*a^13 + 3*a^12 + 2*a^11 + 2*a^10 + 2*a^9 + a^8 - a^7 - 2*a^6 - 3*a^5 - 3*a^4 - 4*a^3 - 6*a^2 - 8*a - 8]
-
-        The provable and the conjectural results are cached separately
-        (this fixes trac #2504)::
-
-            sage: K.units(proof=True)
-            Traceback (most recent call last):
-            ...
-            PariError: not enough precomputed primes, need primelimit ~  (35)
+            [-1, a^9 + a - 1, a^15 - a^12 + a^10 - a^9 - 2*a^8 + 3*a^7 + a^6 - 3*a^5 + a^4 + 4*a^3 - 3*a^2 - 2*a + 2, a^15 + a^14 + a^13 + a^12 + a^10 - a^7 - a^6 - a^2 - 1, 2*a^16 - 3*a^15 + 3*a^14 - 3*a^13 + 3*a^12 - a^11 + a^9 - 3*a^8 + 4*a^7 - 5*a^6 + 6*a^5 - 4*a^4 + 3*a^3 - 2*a^2 - 2*a + 4, a^16 - a^15 + a^14 - a^12 + a^11 - a^10 - a^8 + a^7 - 2*a^6 + a^4 - 3*a^3 + 2*a^2 - 2*a + 1, a^16 - 2*a^15 - 2*a^13 - a^12 - a^11 - 2*a^10 + a^9 - 2*a^8 + 2*a^7 - 3*a^6 - 3*a^4 - 2*a^3 - a^2 - 4*a + 2, a^15 + a^14 + 2*a^11 + a^10 - a^9 + a^8 + 2*a^7 - a^5 + 2*a^3 - a^2 - 3*a + 1, 3*a^16 + 3*a^15 + 3*a^14 + 3*a^13 + 3*a^12 + 2*a^11 + 2*a^10 + 2*a^9 + a^8 - a^7 - 2*a^6 - 3*a^5 - 3*a^4 - 4*a^3 - 6*a^2 - 8*a - 8]
         """
         try:
             return self._unit_group
@@ -4689,6 +4622,13 @@ class NumberField_generic(number_field_base.NumberField):
             -a
             sage: z.multiplicative_order()
             6
+
+            sage: x = polygen(QQ)
+            sage: F.<a,b> = NumberField([x^2 - 2, x^2 - 3])
+            sage: y = polygen(F)
+            sage: K.<c> = F.extension(y^2 - (1 + a)*(a + b)*a*b)
+            sage: K.primitive_root_of_unity()
+            -1
         """
         try:
             return self._unit_group.torsion_generator()
@@ -4702,13 +4642,7 @@ class NumberField_generic(number_field_base.NumberField):
         pK = self.pari_nf()
         n, z = pK.nfrootsof1()
         n = ZZ(n)
-        if self.is_absolute():
-            z = self(z)
-        else:
-            zk = pK.getattr('zk')
-            z = z.mattranspose()
-            cc = [z[0,i] for i in range(z.ncols())]
-            z = sum([self(c*d) for d,c in zip(zk,cc)])
+        z = self(z)
 
         primitives = [z**i for i in n.coprime_integers(n)]
         primitives.sort(cmp=lambda z,w: len(str(z))-len(str(w)))
@@ -5163,19 +5097,21 @@ class NumberField_absolute(NumberField_generic):
              x^3 - 3*x^2 + 3*x + 1,
              x^3 - 3*x^2 + 3*x - 17,
              x^6 - 3*x^5 + 6*x^4 - 11*x^3 + 12*x^2 + 3*x + 1]
-             sage: R.<t> = QQ[]
-             sage: L = NumberField(t^3 - 3*t + 1, 'c')
-             sage: [k[1] for k in L.subfields()]
-             [Ring morphism:
-               From: Number Field in c0 with defining polynomial t
-               To:   Number Field in c with defining polynomial t^3 - 3*t + 1
-               Defn: 0 |--> 0,
-              Ring morphism:
-               From: Number Field in c1 with defining polynomial t^3 - 3*t + 1
-               To:   Number Field in c with defining polynomial t^3 - 3*t + 1
-               Defn: c1 |--> c]
-            sage: L.subfields(2)
-            []
+            sage: R.<t> = QQ[]
+            sage: L = NumberField(t^3 - 3*t + 1, 'c')
+            sage: [k[1] for k in L.subfields()]
+            [Ring morphism:
+              From: Number Field in c0 with defining polynomial t
+              To:   Number Field in c with defining polynomial t^3 - 3*t + 1
+              Defn: 0 |--> 0,
+             Ring morphism:
+              From: Number Field in c1 with defining polynomial t^3 - 3*t + 1
+              To:   Number Field in c with defining polynomial t^3 - 3*t + 1
+              Defn: c1 |--> c]
+            sage: len(L.subfields(2))
+            0
+            sage: len(L.subfields(1))
+            1
         """
         return self._subfields_helper(degree=degree, name=name,
                                       both_maps=True, optimize=False)
@@ -7569,7 +7505,7 @@ class NumberField_quadratic(NumberField_absolute):
 
     def hilbert_class_field_defining_polynomial(self, name='x'):
         r"""
-        Returns a polynomial over `\QQ` whose roots generate
+        Returns a polynomial over `\QQ` whose roots generate the
         Hilbert class field of this quadratic field as an extension of
         this quadratic field.
 
@@ -7582,11 +7518,10 @@ class NumberField_quadratic(NumberField_absolute):
 
             sage: K.<b> = QuadraticField(-23)
             sage: K.hilbert_class_field_defining_polynomial()
-            x^3 + x^2 - 1
+            x^3 - x^2 + 1
 
-        Note that this polynomial is not the actual Hilbert class polynomial: see ``hilbert_class_polynomial``.
-
-        ::
+        Note that this polynomial is not the actual Hilbert class
+        polynomial: see ``hilbert_class_polynomial``::
 
             sage: K.hilbert_class_polynomial()
             x^3 + 3491750*x^2 - 5151296875*x + 12771880859375
@@ -7597,9 +7532,9 @@ class NumberField_quadratic(NumberField_absolute):
             sage: K.class_number()
             21
             sage: K.hilbert_class_field_defining_polynomial(name='z')
-            z^21 + z^20 - 13*z^19 - 50*z^18 + 592*z^17 - 2403*z^16 + 5969*z^15 - 10327*z^14 + 13253*z^13 - 12977*z^12 + 9066*z^11 - 2248*z^10 - 5523*z^9 + 11541*z^8 - 13570*z^7 + 11315*z^6 - 6750*z^5 + 2688*z^4 - 577*z^3 + 9*z^2 + 15*z + 1
+            z^21 + 6*z^20 + 9*z^19 - 4*z^18 + 33*z^17 + 140*z^16 + 220*z^15 + 243*z^14 + 297*z^13 + 461*z^12 + 658*z^11 + 743*z^10 + 722*z^9 + 681*z^8 + 619*z^7 + 522*z^6 + 405*z^5 + 261*z^4 + 119*z^3 + 35*z^2 + 7*z + 1
         """
-        f = pari('quadhilbert(%s))'%self.discriminant())
+        f = pari(self.discriminant()).quadhilbert()
         return QQ[name](f)
 
     def hilbert_class_field(self, names):
@@ -7618,11 +7553,11 @@ class NumberField_quadratic(NumberField_absolute):
 
             sage: K.<a> = NumberField(x^2 + 23)
             sage: L = K.hilbert_class_field('b'); L
-            Number Field in b with defining polynomial x^3 + x^2 - 1 over its base field
+            Number Field in b with defining polynomial x^3 - x^2 + 1 over its base field
             sage: L.absolute_field('c')
-            Number Field in c with defining polynomial x^6 + 2*x^5 + 70*x^4 + 90*x^3 + 1631*x^2 + 1196*x + 12743
+            Number Field in c with defining polynomial x^6 - 2*x^5 + 70*x^4 - 90*x^3 + 1631*x^2 - 1196*x + 12743
             sage: K.hilbert_class_field_defining_polynomial()
-            x^3 + x^2 - 1
+            x^3 - x^2 + 1
         """
         f = self.hilbert_class_field_defining_polynomial()
         return self.extension(f, names)

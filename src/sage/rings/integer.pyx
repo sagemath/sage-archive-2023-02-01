@@ -3042,7 +3042,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: n = 920384092842390423848290348203948092384082349082
             sage: n._factor_trial_division(1000)
             2 * 11 * 41835640583745019265831379463815822381094652231
-            sage: n._factor_trial_division(2^30)
+            sage: n._factor_trial_division(2000)
             2 * 11 * 1531 * 27325696005058797691594630609938486205809701
         """
         import sage.structure.factorization as factorization
@@ -3092,6 +3092,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
             sage: n.factor(limit=1000)
             2 * 11 * 41835640583745019265831379463815822381094652231
+
+        TESTS::
+
+            sage: n.factor(algorithm='foobar')
+            Traceback (most recent call last):
+            ...
+            ValueError: Algorithm is not known
         """
         if limit is not None:
             return self._factor_trial_division(limit)

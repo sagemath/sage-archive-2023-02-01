@@ -22,7 +22,7 @@ EXAMPLES::
     1
     sage: K.<a> = QuadraticField(-8)
     sage: K.factor(3)
-    (Fractional ideal (1/2*a + 1)) * (Fractional ideal (-1/2*a + 1))
+    (Fractional ideal (-1/2*a - 1)) * (Fractional ideal (1/2*a - 1))
 
 Next try an inert prime::
 
@@ -3021,7 +3021,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
             sage: P = y.kolyvagin_point(); P
             Kolyvagin point of discriminant -7 on elliptic curve of conductor 37
             sage: P.numerical_approx()
-            (-3.4...e-16 - 2.00...e-16*I : 3.4...e-16 + 2.000...e-16*I : 1.00000000000000)
+            (-3.4...e-16 - 2.00...e-16*I : 3.4...e-16 + 2.00...e-16*I : 1.00000000000000)
         """
         return KolyvaginPoint(self)
 
@@ -3124,7 +3124,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
             sage: P.numerical_approx(10)
             (0.0030 - 0.0028*I : -0.0030 + 0.0028*I : 1.0)
             sage: P.numerical_approx(100)[0]
-            8.4419827889841225189186778139e-31 + 6.0876...e-31*I
+            8.4...e-31 + 6.0...e-31*I
             sage: E = EllipticCurve('37a'); P = E.heegner_point(-40); P
             Heegner point of discriminant -40 on elliptic curve of conductor 37
             sage: P.numerical_approx()
@@ -3137,7 +3137,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
             sage: P = E.heegner_point(-7); P
             Heegner point of discriminant -7 on elliptic curve of conductor 389
             sage: P.numerical_approx()
-            (4.08580183114324e28 + 1.50348132882460e28*I : -7.84283601876376e42 - 4.58366020722762e42*I : 1.00000000000000)   # 64-bit
+            (4.085...e28 + 1.503...e28*I : -7.842...e42 - 4.583...e42*I : 1.00000000000000)   # 64-bit
             (0 : 1.00000000000000 : 0)   # 32-bit
             sage: P.numerical_approx(70)
             (0 : 1.0000000000000000000 : 0)
@@ -3969,7 +3969,7 @@ class KolyvaginPoint(HeegnerPoint):
             sage: P.numerical_approx(10)
             (0.0030 - 0.0028*I : -0.0030 + 0.0028*I : 1.0)
             sage: P.numerical_approx(100)[0]
-            8.4419827889841225189186778139e-31 + 6.087647...e-31*I
+            8.441982...e-31 + 6.087647...e-31*I
 
             sage: P = EllipticCurve('389a1').kolyvagin_point(-7, 5); P
             Kolyvagin point of discriminant -7 and conductor 5 on elliptic curve of conductor 389
@@ -4109,7 +4109,7 @@ class KolyvaginPoint(HeegnerPoint):
 
             sage: E = EllipticCurve('37a1'); P = E.kolyvagin_point(-67)
             sage: P.numerical_approx()
-            (6.00000000000000 + 8.0...e-16*I : -15.0000000000000 - 2.96897922913431e-15*I : 1.00000000000000)
+            (6.00000000000000 + 8.0...e-16*I : -15.0000000000000 - 2.96...e-15*I : 1.00000000000000)
             sage: P.trace_to_real_numerical()
             (1.61355529131986 : -2.18446840788880 : 1.00000000000000)
             sage: P.trace_to_real_numerical(prec=80)
@@ -5216,7 +5216,7 @@ class HeegnerQuatAlg(SageObject):
             sage: [b.dot_product(k118.element().change_ring(GF(3))) for b in V.basis()]
             [1, 0]
             sage: [b.dot_product(k104.element().change_ring(GF(3))) for b in V.basis()]
-            [1, 0]
+            [2, 0]
 
         By the way, the above is the first ever provable verification
         of Kolyvagin's conjecture for any curve of rank at least 2.
@@ -5247,7 +5247,7 @@ class HeegnerQuatAlg(SageObject):
             sage: V = H.modp_dual_elliptic_curve_factor(EllipticCurve('389a'), q, 5)
             sage: k = H.kolyvagin_sigma_operator(D, 17*41, 104)     # long time
             sage: k                                                 # long time
-            (990, 656, 219, ..., 246, 534, 1254)
+            (494, 472, 1923, 1067, ..., 102, 926)
             sage: [b.dot_product(k.element().change_ring(GF(3))) for b in V.basis()]   # long time (but only because depends on something slow)
             [0, 0]
         """
@@ -5364,13 +5364,13 @@ class HeegnerQuatAlg(SageObject):
             sage: N = 389; D = -7; ell = 5; c = 17; q = 3
             sage: H = heegner_points(N).reduce_mod(ell)
             sage: k = H.rational_kolyvagin_divisor(D, c); k
-            (2, 0, 0, 0, 0, 0, 16, 0, 0, 0, 0, 4, 0, 0, 9, 11, 0, 6, 0, 0, 7, 0, 0, 0, 0, 14, 12, 13, 15, 17, 0, 0, 0, 0, 8, 0, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+            (14, 16, 0, 0, ... 0, 0, 0)
             sage: V = H.modp_dual_elliptic_curve_factor(EllipticCurve('389a'), q, 2)
             sage: [b.dot_product(k.element().change_ring(GF(q))) for b in V.basis()]
             [0, 0]
             sage: k = H.rational_kolyvagin_divisor(D, 59)
             sage: [b.dot_product(k.element().change_ring(GF(q))) for b in V.basis()]
-            [2, 0]
+            [1, 0]
         """
         if not self.satisfies_heegner_hypothesis(D, c):
             raise ValueError, "D and c must be coprime to N and ell"
@@ -6217,7 +6217,7 @@ def kolyvagin_point(self, D, c=ZZ(1), check=True):
         sage: P = E.kolyvagin_point(-67); P
         Kolyvagin point of discriminant -67 on elliptic curve of conductor 37
         sage: P.numerical_approx()
-        (6.00000000000000 + 8.0...e-16*I : -15.0000000000000 - 2.96897922913431e-15*I : 1.00000000000000)
+        (6.00000000000000 + 8.0...e-16*I : -15.0000000000000 - 2.96...e-15*I : 1.00000000000000)
         sage: P.index()
         6
         sage: g = E((0,-1,1)) # a generator
@@ -6795,22 +6795,22 @@ def heegner_sha_an(self, D, prec=53):
     An example where E has conductor 11::
 
         sage: E = EllipticCurve('11a')
-        sage: E.heegner_sha_an(-7)                                  # long
+        sage: E.heegner_sha_an(-7)                                  # long time
         1.00000000000000
 
     The cache works::
 
-        sage: E.heegner_sha_an(-7) is E.heegner_sha_an(-7)          # long
+        sage: E.heegner_sha_an(-7) is E.heegner_sha_an(-7)          # long time
         True
 
     Lower precision::
 
-        sage: E.heegner_sha_an(-7,10)                               # long
+        sage: E.heegner_sha_an(-7,10)                               # long time
         1.0
 
     Checking that the cache works for any precision::
 
-        sage: E.heegner_sha_an(-7,10) is E.heegner_sha_an(-7,10)    # long
+        sage: E.heegner_sha_an(-7,10) is E.heegner_sha_an(-7,10)    # long time
         True
 
     Next we consider a rank 1 curve with nontrivial Sha over the
@@ -6818,31 +6818,31 @@ def heegner_sha_an(self, D, prec=53):
     over `\QQ` or for the quadratic twist of `E`::
 
         sage: E = EllipticCurve('37a')
-        sage: E.heegner_sha_an(-40)                                 # long
+        sage: E.heegner_sha_an(-40)                                 # long time
         4.00000000000000
-        sage: E.quadratic_twist(-40).sha().an()                     # long
+        sage: E.quadratic_twist(-40).sha().an()                     # long time
         1
-        sage: E.sha().an()                                          # long
+        sage: E.sha().an()                                          # long time
         1
 
     A rank 2 curve::
 
-        sage: E = EllipticCurve('389a')                             # long
-        sage: E.heegner_sha_an(-7)                                  # long
+        sage: E = EllipticCurve('389a')                             # long time
+        sage: E.heegner_sha_an(-7)                                  # long time
         1.00000000000000
 
     If we remove the hypothesis that `E(K)` has rank 1 in Conjecture
     2.3 in [Gross-Zagier, 1986, page 311], then that conjecture is
     false, as the following example shows::
 
-        sage: E = EllipticCurve('65a')                              # long
-        sage: E.heegner_sha_an(-56)                                 # long
+        sage: E = EllipticCurve('65a')                              # long time
+        sage: E.heegner_sha_an(-56)                                 # long time
         1.00000000000000
-        sage: E.torsion_order()                                     # long
+        sage: E.torsion_order()                                     # long time
         2
-        sage: E.tamagawa_product()                                  # long
+        sage: E.tamagawa_product()                                  # long time
         1
-        sage: E.quadratic_twist(-56).rank()                         # long
+        sage: E.quadratic_twist(-56).rank()                         # long time
         2
     """
     # check conditions, then return from cache if possible.

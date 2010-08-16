@@ -37,8 +37,6 @@ from sage.schemes.hyperelliptic_curves.hyperelliptic_finite_field import Hyperel
 import sage.rings.ring as ring
 from sage.rings.all import Integer, ZZ, PolynomialRing, ComplexField, FiniteField, GF, polygen
 from sage.rings.finite_rings.all import is_FiniteFieldElement
-import gp_cremona
-import sea
 from sage.groups.all import AdditiveAbelianGroup
 import sage.groups.generic as generic
 import ell_point
@@ -119,29 +117,6 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         F = self.base_ring()
         self.__pari = pari('ellinit(Mod(1,%s)*%s)'%(F.characteristic(), [b._pari_() for b in self.ainvs()]))
         return self.__pari
-
-    def _gp(self):
-        """
-        Return an elliptic curve in a GP/PARI interpreter with all
-        Cremona's code for finite fields preloaded. This includes
-        generators, which will vary from run to run.
-
-        The base field must have prime order.
-
-        EXAMPLES::
-
-            sage: EllipticCurve(GF(41),[2,5])._gp()
-            [Mod(0, 41), Mod(0, 41), Mod(0, 41), Mod(2, 41), Mod(5, 41), Mod(0, 41), Mod(4, 41), Mod(20, 41), Mod(37, 41), Mod(27, 41), Mod(26, 41), Mod(4, 41), Mod(11, 41), 44, [2, 2; 11, 1], [22, 2], ...
-        """
-        try:
-            return self.__gp
-        except AttributeError:
-            pass
-        F = self.base_ring()
-        if not F.is_prime_field():
-            raise NotImplementedError
-        self.__gp = gp_cremona.ellinit(list(self.a_invariants()), F.characteristic())
-        return self.__gp
 
     def plot(self, *args, **kwds):
         """
@@ -796,27 +771,18 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
            only for point counting over prime fields
 
             -  ``'heuristic'`` - use a heuristic to choose between
-               pari, bsgs and sea.
+               pari and bsgs.
 
-            -  ``'pari'`` - use the baby step giant step method as
-               implemented in PARI via the C-library function ellap.
-
-            -  ``'sea'`` - use sea.gp as implemented in PARI by
-               Christophe Doche and Sylvain Duquesne.  ('sea' stands
-               for 'Schoof-Elkies-Atkin'.)
+            - ``'pari'`` - use the baby step giant step or SEA methods
+               as implemented in PARI via the C-library function ellap.
 
             -  ``bsgs`` - use the baby step giant step method as
                implemented in Sage, with the Cremona -
                Sutherland version of Mestre's trick.
 
-            - ``all`` - (over prime fields only) compute
-              cardinality with all of pari, sea and
-              bsgs; return result if they agree or raise
-              a RuntimeError if they do not.
-
-        -  ``early_abort`` - bool (default: False); this is
-           used only by sea. if True, stop early if a small factor of the
-           order is found.
+            - ``all`` - (over prime fields only) compute cardinality
+              with all of pari and bsgs; return result if they agree
+              or raise a RuntimeError if they do not.
 
         -  ``extension_degree`` - int (default: 1); if the
            base field is `k=GF(p^n)` and extension_degree=d, returns
@@ -860,11 +826,9 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
             sage: EllipticCurve(GF(10007),[1,2,3,4,5]).cardinality()
             10076
-            sage: EllipticCurve(GF(10007),[1,2,3,4,5]).cardinality(algorithm='sea')
-            10076
             sage: EllipticCurve(GF(10007),[1,2,3,4,5]).cardinality(algorithm='pari')
             10076
-            sage: EllipticCurve(GF(next_prime(10**20)),[1,2,3,4,5]).cardinality(algorithm='sea')
+            sage: EllipticCurve(GF(next_prime(10**20)),[1,2,3,4,5]).cardinality()
             100000000011093199520
 
         The cardinality is cached::
@@ -877,6 +841,13 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             128
             sage: EllipticCurve(GF(11^100,'a'),[3,3]).cardinality()
             137806123398222701841183371720896367762643312000384671846835266941791510341065565176497846502742959856128
+
+        TESTS::
+
+            sage: EllipticCurve(GF(10007),[1,2,3,4,5]).cardinality(algorithm='foobar')
+            Traceback (most recent call last):
+            ...
+            ValueError: Algorithm is not known
         """
         if extension_degree>1:
             # A recursive call to cardinality() with
@@ -916,24 +887,23 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
         if d == 1:
             if algorithm == 'heuristic':
-                algorithm = 'sea' if p > 10**18 else 'pari'
+                algorithm = 'pari'
             if algorithm == 'pari':
                 N = self.cardinality_pari()
             elif algorithm == 'sea':
-                N = self.cardinality_sea()
+                N = self.cardinality_pari()  # purely for backwards compatibility
             elif algorithm == 'bsgs':
                 N = self.cardinality_bsgs()
             elif algorithm == 'all':
                 N1 = self.cardinality_pari()
-                N2 = self.cardinality_sea()
-                N3 = self.cardinality_bsgs()
-                if N1 == N2 and N2 == N3:
+                N2 = self.cardinality_bsgs()
+                if N1 == N2:
                     N = N1
                 else:
                     if N1!=N2:
-                        raise RuntimeError, "BUG! Cardinality with pari=%s but with sea=%s"%(N1, N2)
-                    if N1!=N3:
-                        raise RuntimeError, "BUG! Cardinality with pari=%s but with bsgs=%s"%(N1, N3)
+                        raise RuntimeError, "BUG! Cardinality with pari=%s but with bsgs=%s"%(N1, N2)
+            else:
+                raise ValueError, "Algorithm is not known"
             self._order = Integer(N)
             return self._order
 
@@ -1113,50 +1083,6 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             return ZZ(p + 1 - int(self._pari_().ellap(p)))
         else:
             raise ValueError, "cardinality_pari() only works over prime fields."
-
-    def cardinality_sea(self, early_abort=False):
-        r"""
-        Return the cardinality of self over the (prime) base field using sea.
-
-        INPUT:
-
-        - ``early_abort`` - bool (default: False).  if True, an early
-          abort technique is used and the computation is interrupted
-          as soon as a small divisor of the order is detected.  The
-          function then returns 0.  This is useful for ruling out
-          curves whose cardinality is divisible by a small prime.
-
-        The result is not cached.
-
-        EXAMPLES::
-
-            sage: p=next_prime(10^3)
-            sage: E=EllipticCurve(GF(p),[3,4])
-            sage: E.cardinality_sea()
-            1020
-            sage: K=GF(next_prime(10^6))
-            sage: E=EllipticCurve(K,[1,0,0,1,1])
-            sage: E.cardinality_sea()
-            999945
-
-        TESTS::
-
-            sage: K.<a>=GF(3^20)
-            sage: E=EllipticCurve(K,[1,0,0,1,a])
-            sage: E.cardinality_sea()
-            Traceback (most recent call last):
-            ...
-            ValueError: cardinality_sea() only works over prime fields.
-            sage: E.cardinality()
-            3486794310
-
-        """
-        k = self.base_ring()
-        p = k.characteristic()
-        if k.degree()==1:
-            return sea.ellsea(list(self.a_invariants()), p, early_abort=early_abort)
-        else:
-            raise ValueError, "cardinality_sea() only works over prime fields."
 
     def cardinality_bsgs(self, verbose=False):
         r"""
@@ -1520,8 +1446,8 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                 N=self.cardinality_exhaustive()
             elif d==1:
                 if debug:
-                    print "Computing group order using SEA"
-                N=self.cardinality(algorithm='sea')
+                    print "Computing group order using PARI"
+                N=self.cardinality()
             else:
                 if debug:
                     print "Computing group order using bsgs"

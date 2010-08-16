@@ -1005,7 +1005,7 @@ def check_prime(K,P):
         sage: check_prime(K,a+1)
         Fractional ideal (a + 1)
         sage: [check_prime(K,P) for P in K.primes_above(31)]
-        [Fractional ideal (-5/2*a - 1/2), Fractional ideal (-5/2*a + 1/2)]
+        [Fractional ideal (5/2*a + 1/2), Fractional ideal (5/2*a - 1/2)]
     """
     if K is QQ:
         if isinstance(P, (int,long,Integer)):

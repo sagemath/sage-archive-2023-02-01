@@ -56,14 +56,12 @@ import ell_tate_curve
 import ell_torsion
 import formal_group
 import heegner
-import gp_cremona
 from   gp_simon import simon_two_descent
 from   lseries_ell import Lseries_ell
 import mod5family
 from   modular_parametrization import ModularParameterization
 import padic_lseries
 import padics
-import sea
 
 import sage.modular.modform.constructor
 import sage.modular.modform.element
@@ -788,45 +786,16 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             11
             sage: E.Np(11)
             11
+
+        This even works when the prime is large::
+
+            sage: E = EllipticCurve('37a')
+            sage: E.Np(next_prime(10^30))
+            1000000000000001426441464441649
         """
         if self.conductor() % p == 0:
             return p + 1 - self.ap(p)
-        #raise ArithmeticError, "p (=%s) must be a prime of good reduction"%p
-        if p < 1125899906842624:   # TODO: choose more wisely?
-            return p+1 - self.ap(p)
-        else:
-            return self.sea(p)
-
-    def sea(self, p, early_abort=False):
-        r"""
-        Return the number of points on `E` over
-        `\GF{p}` computed using the SEA algorithm, as
-        implemented in PARI by Christophe Doche and Sylvain Duquesne.
-
-        INPUT:
-
-
-        -  ``p`` - a prime number
-
-        -  ``early_abort`` - bool (default: False); if True an
-           early abort technique is used and the computation is interrupted as
-           soon as a small divisor of the order is detected.
-
-
-        .. note::
-
-           As of 2006-02-02 this function does not work on Microsoft
-           Windows under Cygwin (though it works under VMWare of
-           course).
-
-        EXAMPLES::
-
-            sage: E = EllipticCurve('37a')
-            sage: E.sea(next_prime(10^30))
-            1000000000000001426441464441649
-        """
-        p = rings.Integer(p)
-        return sea.ellsea(list(self.minimal_model().a_invariants()), p, early_abort=early_abort)
+        return p+1 - self.ap(p)
 
     #def __pari_double_prec(self):
     #    EllipticCurve_number_field._EllipticCurve__pari_double_prec(self)
@@ -1303,19 +1272,19 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         return self.q_expansion(prec)
 
-    def analytic_rank(self, algorithm="cremona"):
+    def analytic_rank(self, algorithm="pari", leading_coefficient=False):
         r"""
         Return an integer that is *probably* the analytic rank of this
-        elliptic curve.
+        elliptic curve.  If leading_coefficient is ``True`` (only implemented
+        for pari), return a tuple `(rank, lead)` where `lead` is the value of
+        the first non-zero derivative of the L-function of the elliptic
+        curve.
 
         INPUT:
 
         - algorithm -
 
-          - 'cremona' (default) - Use the Buhler-Gross algorithm as
-            implemented in GP by Tom Womack and John Cremona, who note
-            that their implementation is practical for any rank and
-            conductor `\leq 10^{10}` in 10 minutes.
+          - 'pari' (default) - use the pari library function.
 
           - 'sympow' -use Watkins's program sympow
 
@@ -1342,7 +1311,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         EXAMPLES::
 
             sage: E = EllipticCurve('389a')
-            sage: E.analytic_rank(algorithm='cremona')
+            sage: E.analytic_rank(algorithm='pari')
             2
             sage: E.analytic_rank(algorithm='rubinstein')
             2
@@ -1352,6 +1321,21 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             2
             sage: E.analytic_rank(algorithm='all')
             2
+
+        With the optional parameter leading_coefficient set to ``True``, a
+        tuple of both the analytic rank and the leading term of the
+        L-series at `s = 1` is returned::
+
+            sage: EllipticCurve([0,-1,1,-10,-20]).analytic_rank(leading_coefficient=True)
+            (0, 0.25384186085591068...)
+            sage: EllipticCurve([0,0,1,-1,0]).analytic_rank(leading_coefficient=True)
+            (1, 0.30599977383405230...)
+            sage: EllipticCurve([0,1,1,-2,0]).analytic_rank(leading_coefficient=True)
+            (2, 1.518633000576853...)
+            sage: EllipticCurve([0,0,1,-7,6]).analytic_rank(leading_coefficient=True)
+            (3, 10.39109940071580...)
+            sage: EllipticCurve([0,0,1,-7,36]).analytic_rank(leading_coefficient=True)
+            (4, 196.170903794579...)
 
         TESTS:
 
@@ -1366,84 +1350,42 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             ...
             RuntimeError: failed to compute analytic rank
         """
-        if algorithm == 'cremona':
-            return rings.Integer(gp_cremona.ellanalyticrank(list(self.minimal_model().a_invariants())))
+        if algorithm == 'pari':
+            rank_lead = self.pari_curve().ellanalyticrank()
+            if leading_coefficient:
+                return (rings.Integer(rank_lead[0]), rank_lead[1].python())
+            else:
+                return rings.Integer(self.pari_curve().ellanalyticrank()[0])
         elif algorithm == 'rubinstein':
+            if leading_coefficient:
+                raise NotImplementedError, "Cannot compute leading coefficient using rubinstein algorithm"
             try:
                 from sage.lfunctions.lcalc import lcalc
                 return lcalc.analytic_rank(L=self)
             except TypeError,msg:
                 raise RuntimeError, "unable to compute analytic rank using rubinstein algorithm ('%s')"%msg
         elif algorithm == 'sympow':
+            if leading_coefficient:
+                raise NotImplementedError, "Cannot compute leading coefficient using sympow"
             from sage.lfunctions.sympow import sympow
             return sympow.analytic_rank(self)[0]
         elif algorithm == 'magma':
+            if leading_coefficient:
+                raise NotImplementedError, "Cannot compute leading coefficient using magma"
             from sage.interfaces.all import magma
             return rings.Integer(magma(self).AnalyticRank())
         elif algorithm == 'all':
-            S = list(set([self.analytic_rank('cremona'),
-                     self.analytic_rank('rubinstein'), self.analytic_rank('sympow')]))
+            if leading_coefficient:
+                S = set([self.analytic_rank('pari', True)])
+            else:
+                S = set([self.analytic_rank('pari'),
+                    self.analytic_rank('rubinstein'), self.analytic_rank('sympow')])
             if len(S) != 1:
-                raise RuntimeError, "Bug in analytic rank; algorithms don't agree! (E=%s)"%E
-            return S[0]
+                raise RuntimeError, "Bug in analytic_rank; algorithms don't agree! (E=%s)"%E
+            return list(S)[0]
         else:
             raise ValueError, "algorithm %s not defined"%algorithm
 
-    def p_isogenous_curves(self, p=None):
-        r"""
-        Return a list of pairs `(p, L)` where `p` is a
-        prime and `L` is a list of the elliptic curves over
-        `\QQ` that are `p`-isogenous to this
-        elliptic curve.
-
-        INPUT:
-
-
-        -  ``p`` - prime or None (default: None); if a prime,
-           returns a list of the p-isogenous curves. Otherwise, returns a list
-           of all prime-degree isogenous curves sorted by isogeny degree.
-
-
-        This is implemented using Cremona's GP script
-        ``allisog.gp``.
-
-        EXAMPLES::
-
-            sage: E = EllipticCurve([0,-1,0,-24649,1355209])
-            sage: E.p_isogenous_curves()
-            [(2, [Elliptic Curve defined by y^2  = x^3 - x^2 - 91809*x - 9215775 over Rational Field, Elliptic Curve defined by y^2  = x^3 - x^2 - 383809*x + 91648033 over Rational Field, Elliptic Curve defined by y^2  = x^3 - x^2 + 1996*x + 102894 over Rational Field])]
-
-        The isogeny class of the curve 11a2 has three curves in it. But
-        ``p_isogenous_curves`` only returns one curves, since
-        there is only one curve `5`-isogenous to 11a2.
-
-        ::
-
-            sage: E = EllipticCurve('11a2')
-            sage: E.p_isogenous_curves()
-            [(5, [Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field])]
-            sage: E.p_isogenous_curves(5)
-            [Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field]
-            sage: E.p_isogenous_curves(3)
-            []
-
-        In contrast, the curve 11a1 admits two `5`-isogenies::
-
-            sage: E = EllipticCurve('11a1')
-            sage: E.p_isogenous_curves(5)
-            [Elliptic Curve defined by y^2 + y = x^3 - x^2 - 7820*x - 263580 over Rational Field,
-             Elliptic Curve defined by y^2 + y = x^3 - x^2 over Rational Field]
-        """
-        if p is None:
-            X = eval(gp_cremona.allisog(list(self.minimal_model().a_invariants())))
-            Y = [(p, [constructor.EllipticCurve(ainvs) for ainvs in L]) for p, L in X]
-            Y.sort()
-            return Y
-        else:
-            X = eval(gp_cremona.p_isog(list(self.minimal_model().a_invariants()), p))
-            Y = [constructor.EllipticCurve(ainvs) for ainvs in X]
-            Y.sort()
-            return Y
 
     def simon_two_descent(self, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, limbigprime=30):
         r"""
@@ -1535,7 +1477,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E = EllipticCurve([0, 0, 1, -79, 342])
             sage: set_random_seed(0)
             sage: E.simon_two_descent()
-            (5, 5, [(5 : 8 : 1), (3 : 11 : 1), (17/4 : 69/8 : 1), (33/4 : -131/8 : 1), (33 : 183 : 1)])
+            (5, 5, [(5 : 8 : 1), (4 : 9 : 1), (3 : 11 : 1), (-1 : 20 : 1), (-6 : -25 : 1)])
             sage: E = EllipticCurve([1, 1, 0, -2582, 48720])
             sage: set_random_seed(0)
             sage: r, s, G = E.simon_two_descent(); r,s
@@ -2903,10 +2845,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: P = E([0,2])
             sage: z = P.elliptic_logarithm() # default precision is 100 here
             sage: E.elliptic_exponential(z)
-            (-7.4445166...e-30 : 2.0000000000000000000000000000 : 1.0000000000000000000000000000)
+            (...e-30 : 2.0000000000000000000000000000 : 1.0000000000000000000000000000)
             sage: z = E([0,2]).elliptic_logarithm(precision=200)
             sage: E.elliptic_exponential(z)
-            (-1.07731...e-60 : 2.0000000000000000000000000000000000000000000000000000000000 : 1.0000000000000000000000000000000000000000000000000000000000)
+            (...e-60 : 2.0000000000000000000000000000000000000000000000000000000000 : 1.0000000000000000000000000000000000000000000000000000000000)
 
         ::
 
@@ -2918,7 +2860,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: P.elliptic_logarithm()
             0.47934825019021931612953301006 + 0.98586885077582410221120384908*I
             sage: E.elliptic_exponential(P.elliptic_logarithm())
-            (-1.0000000000000000000000000000 + 4.3761255...e-31*I : 1.0000000000000000000000000000 - 1.4587084969798853407242847702e-31*I : 1.0000000000000000000000000000)
+            (-1.0000000000000000000000000000 + ...e-31*I : 1.0000000000000000000000000000 - ...e-31*I : 1.0000000000000000000000000000)
 
 
         Some torsion examples::
@@ -5071,8 +5013,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: Pi = E.gens(); Pi
             [(-4 : 1 : 1), (-3 : 5 : 1), (-11/4 : 43/8 : 1), (-2 : 6 : 1)]
             sage: Qi, U = E.lll_reduce(Pi)
-            sage: Qi
-            [(0 : 6 : 1), (1 : -7 : 1), (-4 : 1 : 1), (-3 : 5 : 1)]
+            sage: sorted(Qi)
+            [(-4 : 1 : 1), (-3 : 5 : 1), (-2 : 6 : 1), (0 : 6 : 1)]
             sage: U.det()
             1
             sage: E.regulator_of_points(Pi)
@@ -5110,7 +5052,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: points = [E.lift_x(x) for x in xi]
             sage: newpoints, U = E.lll_reduce(points) # long time (2m)
             sage: [P[0] for P in newpoints]           # long time
-            [6823803569166584943, 5949539878899294213, 2005024558054813068, 5864879778877955778, 23955263915878682727/4, 5922188321411938518, 5286988283823825378, 11465667352242779838, -11451575907286171572, 3502708072571012181, 1500143935183238709184/225, 27180522378120223419/4, -5811874164190604461581/625, 26807786527159569093, 7041412654828066743, 475656155255883588, 265757454726766017891/49, 7272142121019825303, 50628679173833693415/4, 6951643522366348968, 6842515151518070703, 111593750389650846885/16, 2607467890531740394315/9, -1829928525835506297]
+            [6823803569166584943, 5949539878899294213, 2005024558054813068, 5864879778877955778, 23955263915878682727/4, 5922188321411938518, 5286988283823825378, 175620639884534615751/25, -11451575907286171572, 3502708072571012181, 1500143935183238709184/225, 27180522378120223419/4, -5811874164190604461581/625, 26807786527159569093, 7404442636649562303, 475656155255883588, 265757454726766017891/49, 7272142121019825303, 50628679173833693415/4, 6951643522366348968, 6842515151518070703, 111593750389650846885/16, 2607467890531740394315/9, -1829928525835506297]
         """
         r = len(points)
         if height_matrix is None:

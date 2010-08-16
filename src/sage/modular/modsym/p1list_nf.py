@@ -58,7 +58,7 @@ Lift an MSymbol to a matrix in `SL(2, R)`:
 
     sage: alpha = MSymbol(N, a + 2, 3*a^2)
     sage: alpha.lift_to_sl2_Ok()
-    [-a - 1, 15*a^2 - 38*a + 86, a + 2, -a^2 + 9*a - 19]
+    [1, -4*a^2 + 9*a - 21, a + 2, a^2 - 3*a + 3]
     sage: Ok = k.ring_of_integers()
     sage: M = Matrix(Ok, 2, alpha.lift_to_sl2_Ok())
     sage: det(M)
@@ -613,7 +613,7 @@ class P1NFList(SageObject):
             sage: N = k.ideal(5, a + 3)
             sage: P = P1NFList(N)
             sage: P.normalize(3, a)
-            M-symbol (1: 2*a) of level Fractional ideal (5, a + 3)
+            M-symbol (1: 2*a) of level Fractional ideal (5, a - 2)
 
         We can use an MSymbol as input:
 
@@ -621,14 +621,14 @@ class P1NFList(SageObject):
 
             sage: alpha = MSymbol(N, 3, a)
             sage: P.normalize(alpha)
-            M-symbol (1: 2*a) of level Fractional ideal (5, a + 3)
+            M-symbol (1: 2*a) of level Fractional ideal (5, a - 2)
 
         If we are interested in the normalizing scalar:
 
         ::
 
             sage: P.normalize(alpha, with_scalar=True)
-            (-a, M-symbol (1: 2*a) of level Fractional ideal (5, a + 3))
+            (-a, M-symbol (1: 2*a) of level Fractional ideal (5, a - 2))
             sage: r, beta = P.normalize(alpha, with_scalar=True)
             sage: (r*beta.c - alpha.c in N) and (r*beta.d - alpha.d in N)
             True
@@ -651,7 +651,7 @@ class P1NFList(SageObject):
             sage: N = k.ideal(5, a + 3)
             sage: P = P1NFList(N)
             sage: P.N()
-            Fractional ideal (5, a + 3)
+            Fractional ideal (5, a - 2)
         """
         return self.__N
 

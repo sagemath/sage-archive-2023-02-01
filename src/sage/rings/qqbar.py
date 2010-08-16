@@ -1046,7 +1046,7 @@ def do_polred(poly):
         sage: do_polred(x^2-5)
         (-1/2*x + 1/2, -2*x + 1, x^2 - x - 1)
         sage: do_polred(x^2-x-11)
-        (-1/3*x + 2/3, -3*x + 2, x^2 - x - 1)
+        (1/3*x + 1/3, 3*x - 1, x^2 - x - 1)
         sage: do_polred(x^3 + 123456)
         (-1/4*x, -4*x, x^3 - 1929)
     """
@@ -1315,10 +1315,10 @@ def number_field_elements_from_algebraics(numbers, minimal=False):
 
         sage: (fld,nums,hom) = number_field_elements_from_algebraics((rt2, rt3, qqI, z3))
         sage: fld,nums,hom
-        (Number Field in a with defining polynomial y^8 - y^4 + 1, [-a^5 + a^3 + a, a^6 - 2*a^2, a^6, -a^4], Ring morphism:
-            From: Number Field in a with defining polynomial y^8 - y^4 + 1
-            To:   Algebraic Field
-            Defn: a |--> -0.2588190451025208? - 0.9659258262890683?*I)
+        (Number Field in a with defining polynomial y^8 - y^4 + 1, [-a^5 + a^3 + a, a^6 - 2*a^2, -a^6, a^4 - 1], Ring morphism:
+        From: Number Field in a with defining polynomial y^8 - y^4 + 1
+        To:   Algebraic Field
+        Defn: a |--> -0.2588190451025208? + 0.9659258262890683?*I)
         sage: (nfrt2, nfrt3, nfI, nfz3) = nums
         sage: hom(nfrt2)
         1.414213562373095? + 0.?e-18*I
@@ -1331,7 +1331,7 @@ def number_field_elements_from_algebraics(numbers, minimal=False):
         sage: nfI^2
         -1
         sage: sum = nfrt2 + nfrt3 + nfI + nfz3; sum
-        2*a^6 - a^5 - a^4 + a^3 - 2*a^2 + a
+        -a^5 + a^4 + a^3 - 2*a^2 + a - 1
         sage: hom(sum)
         2.646264369941973? + 1.866025403784439?*I
         sage: hom(sum) == rt2 + rt3 + qqI + z3
@@ -1362,8 +1362,7 @@ def number_field_elements_from_algebraics(numbers, minimal=False):
         (Number Field in a with defining polynomial y^4 + 2*y^2 + 4, 1/2*a^3, Ring morphism:
             From: Number Field in a with defining polynomial y^4 + 2*y^2 + 4
             To:   Algebraic Field
-            Defn: a |--> -0.7071067811865475? + 1.224744871391589?*I) # 32-bit
-            Defn: a |--> -0.7071067811865475? - 1.224744871391589?*I) # 64-bit
+            Defn: a |--> -0.7071067811865475? - 1.224744871391589?*I)
         sage: number_field_elements_from_algebraics(rt2c, minimal=True)
         (Number Field in a with defining polynomial y^2 - 2, a, Ring morphism:
             From: Number Field in a with defining polynomial y^2 - 2
@@ -1650,9 +1649,6 @@ class AlgebraicGenerator(SageObject):
         # XXX need more caching here
         newpol, self_pol, k = pari_nf.rnfequation(my_factor, 1)
         k = int(k)
-        # print newpol
-        # print self_pol
-        # print k
 
         newpol_sage = QQx(newpol)
         newpol_sage_y = QQy(newpol_sage)
@@ -2665,7 +2661,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: QQbar(2)._exact_field()
             Trivial generator
             sage: (sqrt(QQbar(2)) + sqrt(QQbar(19)))._exact_field()
-            Number Field in a with defining polynomial y^4 - 20*y^2 + 81 with a in 3.789313782671036?
+            Number Field in a with defining polynomial y^4 - 20*y^2 + 81 with a in 2.375100220297941?
             sage: (QQbar(7)^(3/5))._exact_field()
             Number Field in a with defining polynomial y^5 - 7 with a in 1.475773161594552?
         """
@@ -2686,7 +2682,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: QQbar(2)._exact_value()
             2
             sage: (sqrt(QQbar(2)) + sqrt(QQbar(19)))._exact_value()
-            1/9*a^3 + a^2 - 11/9*a - 10 where a^4 - 20*a^2 + 81 = 0 and a in 3.789313782671036?
+            -1/9*a^3 - a^2 + 11/9*a + 10 where a^4 - 20*a^2 + 81 = 0 and a in 2.375100220297941?
             sage: (QQbar(7)^(3/5))._exact_value()
             a^3 where a^5 - 7 = 0 and a in 1.475773161594552?
         """
@@ -5674,7 +5670,10 @@ class ANBinaryExpr(ANDescr):
 
     def exactify(self):
         """
-        TESTS:
+        TESTS::
+
+            sage: rt2c = QQbar.zeta(3) + AA(sqrt(2)) - QQbar.zeta(3)
+            sage: rt2c.exactify()
 
         We check to make sure that this method still works even.  We
         do this by increasing the recursion level at each step and

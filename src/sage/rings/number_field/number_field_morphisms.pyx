@@ -213,6 +213,10 @@ cdef class EmbeddedNumberFieldConversion(Map):
             sage: f = EmbeddedNumberFieldConversion(K, L)
             sage: f(zeta12^4) # indirect doctest
             zeta15^5
+            sage: f(zeta12)
+            Traceback (most recent call last):
+            ...
+            ValueError: No consistent embedding of Cyclotomic Field of order 12 and degree 4 into Cyclotomic Field of order 15 and degree 8.
         """
         minpoly = x.minpoly()
         gen_image = matching_root(minpoly.change_ring(self._codomain), x, self.ambient_field, 4)
@@ -263,7 +267,6 @@ cpdef matching_root(poly, target, ambient_field=None, margin=1, max_prec=None):
         for r in roots:
             if ambient_field(r) == target_approx:
                 return r
-
     else:
         # since things are inexact, try and pick the closest one
         if max_prec is None:

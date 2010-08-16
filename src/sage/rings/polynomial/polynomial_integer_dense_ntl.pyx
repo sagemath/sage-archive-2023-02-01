@@ -980,9 +980,9 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         p = Integer(p)
         if not p.is_prime():
             raise ValueError, "p must be prime"
-        f = self._pari_()
-        if f * pari('Mod(1,%s)'%p) == pari(0):
+        if all([c%p==0 for c in self.coefficients()]):
             raise ValueError, "factorization of 0 not defined"
+        f = self._pari_()
         G = f.factormod(p)
         k = FiniteField(p)
         R = k[self.parent().variable_name()]

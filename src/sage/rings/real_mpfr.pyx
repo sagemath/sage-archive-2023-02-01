@@ -2569,9 +2569,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         The current Pari precision affects the printing of this number, but
         Pari does maintain the same 250-bit number on both 32-bit and
-        64-bit platforms.
-
-        ::
+        64-bit platforms::
 
             sage: RealField(250).pi()._pari_()
             3.14159265358979
@@ -2590,9 +2588,16 @@ cdef class RealNumber(sage.structure.element.RingElement):
             128                                        # 64-bit
             sage: for i in xrange(1, 1000):
             ...       assert(RR(i).sqrt() == RR(i).sqrt()._pari_().python())
-        """
-        # return sage.libs.pari.all.pari.new_with_bits_prec(str(self), (<RealField_class>self._parent).__prec)
 
+        TESTS:
+
+        Check that we create real zeros without mantissa::
+
+            sage: RDF(0)._pari_().sizeword()
+            2
+            sage: RealField(100)(0.0)._pari_().sizeword()
+            2
+        """
         # This uses interfaces of MPFR and Pari which are documented
         # (and not marked subject-to-change).  It could be faster
         # by using internal interfaces of MPFR, which are documented
@@ -2601,12 +2606,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
         if mpfr_nan_p(self.value) or mpfr_inf_p(self.value):
             raise ValueError, 'Cannot convert NaN or infinity to Pari float'
 
-        cdef int wordsize
-
-        if sage.misc.misc.is_64_bit:
-            wordsize = 64
-        else:
-            wordsize = 32
+        # wordsize for PARI
+        cdef unsigned long wordsize = sizeof(long)*8
 
         cdef int prec
         prec = (<RealField_class>self._parent).__prec
@@ -2619,33 +2620,28 @@ cdef class RealNumber(sage.structure.element.RingElement):
         if rounded_prec > prec:
             self = RealField(rounded_prec)(self)
 
-        # Now we can extract the mantissa, and it will be normalized
-        # (the most significant bit of the most significant word will be 1).
         cdef mpz_t mantissa
         cdef mp_exp_t exponent
-        mpz_init(mantissa)
-
-        exponent = mpfr_get_z_exp(mantissa, self.value)
-
         cdef GEN pari_float
-        pari_float = cgetr(2 + rounded_prec / wordsize)
-
-        mpz_export(&pari_float[2], NULL, 1, wordsize/8, 0, 0, mantissa)
 
         if mpfr_zero_p(self.value):
-            setexpo(pari_float, -rounded_prec)
+            pari_float = real_0_bit(-rounded_prec)
         else:
+            # Now we can extract the mantissa, and it will be normalized
+            # (the most significant bit of the most significant word will be 1).
+            mpz_init(mantissa)
+            exponent = mpfr_get_z_exp(mantissa, self.value)
+
+            # Create a PARI REAL
+            pari_float = cgetr(2 + rounded_prec / wordsize)
+            mpz_export(&pari_float[2], NULL, 1, wordsize/8, 0, 0, mantissa)
+            mpz_clear(mantissa)
             setexpo(pari_float, exponent + rounded_prec - 1)
-        setsigne(pari_float, mpfr_sgn(self.value))
+            setsigne(pari_float, mpfr_sgn(self.value))
 
         cdef PariInstance P
         P = sage.libs.pari.all.pari
-
-        gen = P.new_gen(pari_float)
-
-        mpz_clear(mantissa)
-
-        return gen
+        return P.new_gen(pari_float)
 
     def _mpmath_(self, prec=None, rounding=None):
         """

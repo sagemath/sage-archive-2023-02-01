@@ -1248,7 +1248,11 @@ class SEA(Benchmark):
         """
         E = EllipticCurve([1,2,3,4,5])
         t = walltime()
-        n = E.sea(self.__p)
+        # Note that from pari 2.4.3, the SEA algorithm is used by the
+        # pari library, but only for large primes, so for a better
+        # test a prime > 2^30 should be used and not 5.  In fact
+        # next_prime(2^100) works fine (<<1s).
+        n = E.change_ring(GF(self.__p)).cardinality_pari()
         return False, walltime(t)
 
     def magma(self):

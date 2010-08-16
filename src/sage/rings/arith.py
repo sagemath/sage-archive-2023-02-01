@@ -1199,7 +1199,7 @@ def divisors(n):
         sage: divisors(K.ideal(7))
         [Fractional ideal (1), Fractional ideal (-a), Fractional ideal (7)]
         sage: divisors(K.ideal(3))
-        [Fractional ideal (1), Fractional ideal (3), Fractional ideal (a - 2), Fractional ideal (-a - 2)]
+        [Fractional ideal (1), Fractional ideal (3), Fractional ideal (a - 2), Fractional ideal (a + 2)]
         sage: divisors(K.ideal(35))
         [Fractional ideal (1), Fractional ideal (35), Fractional ideal (-5*a), Fractional ideal (5), Fractional ideal (-a), Fractional ideal (7)]
 
@@ -2274,7 +2274,7 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
 
         sage: K.<i> = QuadraticField(-1)
         sage: factor(122+454*i)
-        (-i) * (3*i - 2) * (4*i + 1) * (i + 1)^3 * (2*i + 1)^3
+        (-1) * (-2*i - 3) * (-i + 4) * (i + 1)^3 * (-i + 2)^3
 
     To access the data in a factorization::
 

@@ -61,7 +61,7 @@ Obtain transformation matrix for equivalent cusps:
 
     sage: t, M = alpha.is_Gamma0_equivalent(beta, N, Transformation=True)
     sage: M
-    [2*a - 4, -3*a - 4, -5*a + 2, 3*a + 13]
+    [-2*a + 4, 3*a + 4, 5*a - 2, -3*a - 13]
     sage: alpha.apply(M) == beta
     True
 
@@ -1257,7 +1257,7 @@ def units_mod_ideal(I):
         [1]
         sage: I = k.ideal(3)
         sage: units_mod_ideal(I)
-        [1, a, -1, -a]
+        [1, -a, -1, a]
 
     ::
 

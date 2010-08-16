@@ -864,7 +864,7 @@ cdef class Expression(CommutativeRingElement):
             sage: zeta(x).subs(x=I)._complex_mpfr_field_(ComplexField(70))
             0.0033002236853241028742 - 0.41815544914132167669*I
             sage: gamma(x).subs(x=I)._complex_mpfr_field_(ComplexField(60))
-            -0.15494982830181069 - 0.49801566811835604*I
+            -0.1549498283018106... - 0.49801566811835604*I
             sage: log(x).subs(x=I)._complex_mpfr_field_(ComplexField(50))
             1.5707963267949*I
 

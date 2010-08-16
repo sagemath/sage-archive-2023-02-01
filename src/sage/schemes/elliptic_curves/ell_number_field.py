@@ -237,19 +237,12 @@ class EllipticCurve_number_field(EllipticCurve_field):
             A = 0
             B = Mod(1, y^2 + 7)
             C = Mod(y, y^2 + 7)
-            LS2gen = [Mod(Mod(-5, y^2 + 7)*x^2 + Mod(-3*y, y^2 + 7)*x + Mod(8, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1, y^2 + 7)*x^2 + Mod(1/2*y - 1/2, y^2 + 7)*x - 1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))]
+            LS2gen = [Mod(Mod(-5, y^2 + 7)*x^2 + Mod(-3*y, y^2 + 7)*x + Mod(8, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1, y^2 + 7)*x^2 + Mod(1/2*y + 1/2, y^2 + 7)*x - 1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))]
             #LS2gen = 2
             Recherche de points triviaux sur la courbe
             points triviaux sur la courbe = [[1, 1, 0], [Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7), 1]]
             zc = Mod(Mod(-5, y^2 + 7)*x^2 + Mod(-3*y, y^2 + 7)*x + Mod(8, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
             symbole de Hilbert (Mod(2, y^2 + 7),Mod(-5, y^2 + 7)) = -1
-            zc = Mod(Mod(1, y^2 + 7)*x^2 + Mod(1/2*y - 1/2, y^2 + 7)*x + Mod(-1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
-            symbole de Hilbert (Mod(-2*y + 2, y^2 + 7),Mod(1, y^2 + 7)) = 0
-            sol de Legendre = [1, 0, 1]~
-            zc*z1^2 = Mod(Mod(2*y - 2, y^2 + 7)*x + Mod(2*y + 10, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
-            quartique : (-1/2*y + 1/2)*Y^2 = x^4 + (-3*y - 15)*x^2 + (-8*y - 16)*x + (-11/2*y - 15/2)
-            reduite: Y^2 = (-1/2*y + 1/2)*x^4 - 4*x^3 + (-3*y + 3)*x^2 + (2*y - 2)*x + (1/2*y + 3/2)
-            non ELS en [2, [0, 1]~, 1, 1, [1, 1]~]
             zc = Mod(Mod(1, y^2 + 7)*x^2 + Mod(1/2*y + 1/2, y^2 + 7)*x + Mod(-1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
             vient du point trivial [Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7), 1]
             m1 = 1
@@ -336,22 +329,13 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
             sage: K.<i> = QuadraticField(-1)
             sage: E = EllipticCurve([0,0,0,i,i])
-            sage: P, Q = E.simon_two_descent()[2]
+            sage: P = E(-9+4*i,-18-25*i)
+            sage: Q = E(i,-i)
             sage: E.height_pairing_matrix([P,Q])
-            [0.770335599645036 0.440758796326832]
-            [0.440758796326832  2.16941934493768]
+            [  2.16941934493768 -0.870059380421505]
+            [-0.870059380421505  0.424585837470709]
             sage: E.regulator_of_points([P,Q])
-            1.47691263542463
-
-        ::
-
-            sage: K.<i> = QuadraticField(-1)
-            sage: E = EllipticCurve([0,0,0,i,i])
-            sage: P, Q = E.simon_two_descent()[2]
-            sage: E.height_pairing_matrix([P,Q])
-            [0.770335599645036 0.440758796326832]
-            [0.440758796326832  2.16941934493768]
-
+            0.164101403936070
         """
         if points is None:
             points = self.gens()
@@ -461,9 +445,13 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
             sage: K.<i> = QuadraticField(-1)
             sage: E = EllipticCurve([0,0,0,i,i])
-            sage: P, Q = E.simon_two_descent()[2]
+            sage: P = E(-9+4*i,-18-25*i)
+            sage: Q = E(i,-i)
+            sage: E.height_pairing_matrix([P,Q])
+            [  2.16941934493768 -0.870059380421505]
+            [-0.870059380421505  0.424585837470709]
             sage: E.regulator_of_points([P,Q])
-            1.47691263542463
+            0.164101403936070
 
         """
         if points is None:
@@ -679,14 +667,14 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: K.<i> = NumberField(x^2+1)
             sage: E = EllipticCurve([1 + i, 0, 1, 0, 0])
             sage: E.local_data()
-            [Local data at Fractional ideal (2*i + 1):
+            [Local data at Fractional ideal (-i + 2):
             Reduction type: bad non-split multiplicative
             Local minimal model: Elliptic Curve defined by y^2 + (i+1)*x*y + y = x^3 over Number Field in i with defining polynomial x^2 + 1
             Minimal discriminant valuation: 1
             Conductor exponent: 1
             Kodaira Symbol: I1
             Tamagawa Number: 1,
-            Local data at Fractional ideal (-3*i - 2):
+            Local data at Fractional ideal (-2*i + 3):
             Reduction type: bad split multiplicative
             Local minimal model: Elliptic Curve defined by y^2 + (i+1)*x*y + y = x^3 over Number Field in i with defining polynomial x^2 + 1
             Minimal discriminant valuation: 2
@@ -1171,10 +1159,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: K.<a>=NumberField(x^2-5)
             sage: E=EllipticCurve([20, 225, 750, 625*a + 6875, 31250*a + 46875])
             sage: bad_primes = E.discriminant().support(); bad_primes
-            [Fractional ideal (-a),
-            Fractional ideal (7/2*a - 81/2),
-            Fractional ideal (a + 52),
-            Fractional ideal (2)]
+            [Fractional ideal  (a), Fractional ideal (7/2*a - 81/2), Fractional ideal (-a - 52), Fractional ideal (2)]  # 32-bit
+            [Fractional ideal (-a), Fractional ideal (7/2*a - 81/2), Fractional ideal (-a - 52), Fractional ideal (2)]  # 64-bit
             sage: [E.kodaira_symbol(P) for P in bad_primes]
             [I0, I1, I1, II]
             sage: K.<a> = QuadraticField(-11)

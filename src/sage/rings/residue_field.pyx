@@ -408,15 +408,15 @@ class ResidueField_generic(Field):
 
         EXAMPLES:
             sage: I = QQ[2^(1/3)].factor(2)[0][0]; I
-            Fractional ideal (-a)
+            Fractional ideal (a)
             sage: k = I.residue_field(); k
-            Residue field of Fractional ideal (-a)
+            Residue field of Fractional ideal (a)
             sage: pi = k.reduction_map(); pi
-            Partially defined reduction map from Number Field in a with defining polynomial x^3 - 2 to Residue field of Fractional ideal (-a)
+            Partially defined reduction map from Number Field in a with defining polynomial x^3 - 2 to Residue field of Fractional ideal (a)
             sage: pi.domain()
             Number Field in a with defining polynomial x^3 - 2
             sage: pi.codomain()
-            Residue field of Fractional ideal (-a)
+            Residue field of Fractional ideal (a)
         """
         return self._structure[0]
 
@@ -424,13 +424,13 @@ class ResidueField_generic(Field):
         """
         EXAMPLES:
             sage: I = QQ[3^(1/3)].factor(5)[1][0]; I
-            Fractional ideal (-a + 2)
+            Fractional ideal (a - 2)
             sage: k = I.residue_field(); k
-            Residue field of Fractional ideal (-a + 2)
+            Residue field of Fractional ideal (a - 2)
             sage: f = k.lift_map(); f
-            Lifting map from Residue field of Fractional ideal (-a + 2) to Number Field in a with defining polynomial x^3 - 3
+            Lifting map from Residue field of Fractional ideal (a - 2) to Number Field in a with defining polynomial x^3 - 3
             sage: f.domain()
-            Residue field of Fractional ideal (-a + 2)
+            Residue field of Fractional ideal (a - 2)
             sage: f.codomain()
             Number Field in a with defining polynomial x^3 - 3
             sage: f(k.0)
@@ -446,9 +446,10 @@ class ResidueField_generic(Field):
         EXAMPLES:
             sage: K.<a> = NumberField(x^3-11)
             sage: F = K.ideal(37).factor(); F
-            (Fractional ideal (37, a + 12)) * (Fractional ideal (-2*a + 5)) * (Fractional ideal (37, a + 9))
-            sage: k =K.residue_field(F[0][0])
-            sage: l =K.residue_field(F[1][0])
+            (Fractional ideal (37, a + 12)) * (Fractional ideal (-2*a + 5)) * (Fractional ideal (37, a + 9))  # 32-bit
+            (Fractional ideal (37, a + 12)) * (Fractional ideal  (2*a - 5)) * (Fractional ideal (37, a + 9))  # 64-bit
+            sage: k = K.residue_field(F[0][0])
+            sage: l = K.residue_field(F[1][0])
             sage: k == l
             False
         """
@@ -520,7 +521,7 @@ class ReductionMap:
             sage: K.<a> = NumberField(x^3 + 128)
             sage: F = K.factor(2)[0][0].residue_field()
             sage: F.reduction_map().codomain()
-            Residue field of Fractional ideal (-1/4*a)
+            Residue field of Fractional ideal (1/4*a)
         """
         return self.__F
 
@@ -547,11 +548,10 @@ class ReductionMap:
         has been fixed.
             sage: K.<i> = NumberField(x^2 + 1)
             sage: P1, P2 = [g[0] for g in K.factor(5)]; (P1,P2)
-            (Fractional ideal (-i - 2), Fractional ideal (2*i + 1))
+            (Fractional ideal (i + 2), Fractional ideal (-i + 2))
             sage: a = 1/(1+2*i)
             sage: F1, F2 = [g.residue_field() for g in [P1,P2]]; (F1,F2)
-            (Residue field of Fractional ideal (-i - 2),
-            Residue field of Fractional ideal (2*i + 1))
+            (Residue field of Fractional ideal (i + 2), Residue field of Fractional ideal (-i + 2))
             sage: a.valuation(P1)
             0
             sage: F1(i/7)
@@ -562,7 +562,7 @@ class ReductionMap:
             -1
             sage: F2(a)
             Traceback (most recent call last):
-            ZeroDivisionError: Cannot reduce field element -2/5*i + 1/5 modulo Fractional ideal (2*i + 1): it has negative valuation
+            ZeroDivisionError: Cannot reduce field element -2/5*i + 1/5 modulo Fractional ideal (-i + 2): it has negative valuation
 
         """
         # The reduction map is just x |--> F(to_vs(x) * (PB**(-1))) if

@@ -668,17 +668,13 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
             sage: R.<x> = K[]
             sage: S.<xbar> = R.quotient(x^2 + 23)
             sage: S.S_class_group([])
-            [((3, -3*a, 3/2*xbar - 3/2, (-1/2*a + 1)*xbar - 1/2*a + 1),
-              6,
-              (1/2*a - 101/2)*xbar + 187/2*a + 67/2)]
+            [((2, -a + 1, 1/2*xbar + 1/2, -1/2*a*xbar + 1/2*a + 1), 6, 1/2*xbar - 3/2)]
             sage: S.S_class_group([K.ideal(3, a-1)])
             []
             sage: S.S_class_group([K.ideal(2, a+1)])
             []
             sage: S.S_class_group([K.ideal(a)])
-            [((3, -3*a, 3/2*xbar - 3/2, (-1/2*a + 1)*xbar - 1/2*a + 1),
-              6,
-              (1/2*a - 101/2)*xbar + 187/2*a + 67/2)]
+            [((2, -a + 1, 1/2*xbar + 1/2, -1/2*a*xbar + 1/2*a + 1), 6, 1/2*xbar - 3/2)]
 
         Now we take an example over a nontrivial base with two factors, each
         contributing to the class group::
@@ -687,40 +683,13 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
             sage: R.<x> = K[]
             sage: S.<xbar> = R.quotient((x^2 + 23)*(x^2 + 31))
             sage: S.S_class_group([])
-            [((3/8*xbar^2 + 93/8,
-               -3/8*a*xbar^2 - 93/8*a, 3/16*xbar^3 - 3/16*xbar^2 + 93/16*xbar - 93/16,
-               (-1/16*a + 1/8)*xbar^3 + (-1/16*a + 1/8)*xbar^2 + (-31/16*a + 31/8)*xbar - 31/16*a + 31/8),
-              6,
-              (1/16*a - 101/16)*xbar^3 + (187/16*a + 65/16)*xbar^2 + (31/16*a - 3131/16)*xbar + 5797/16*a + 2031/16),
-             ((-1/4*xbar^2 - 23/4,
-               (1/8*a - 1/8)*xbar^2 + 23/8*a - 23/8,
-               -1/16*xbar^3 ...xbar^2 - 23/16*xbar ...,
-               1/16*a*xbar^3 ...xbar^2 + 23/16*a*xbar ...),
-              6,
-              1/16*xbar^3 + 1/16*xbar^2 + 23/16*xbar + 39/16),
-             ((-5/4*xbar^2 - 115/4,
-               5/4*a*xbar^2 + 115/4*a,
-               -5/16*xbar^3 - 5/16*xbar^2 - 115/16*xbar - 115/16,
-               1/16*a*xbar^3 + 13/16*a*xbar^2 + 23/16*a*xbar + 299/16*a),
-              2,
-              5/16*xbar^3 - 33/16*xbar^2 + 115/16*xbar - 743/16)]
+            [((1/4*xbar^2 + 31/4, (-1/8*a + 1/8)*xbar^2 - 31/8*a + 31/8, 1/16*xbar^3 + 1/16*xbar^2 + 31/16*xbar + 31/16, -1/16*a*xbar^3 + (1/16*a + 1/8)*xbar^2 - 31/16*a*xbar + 31/16*a + 31/8), 6, 1/16*xbar^3 - 5/16*xbar^2 + 31/16*xbar - 139/16), ((-1/4*xbar^2 - 23/4, (1/8*a - 1/8)*xbar^2 + 23/8*a - 23/8, -1/16*xbar^3 - 1/16*xbar^2 - 23/16*xbar - 23/16, 1/16*a*xbar^3 + (-1/16*a - 1/8)*xbar^2 + 23/16*a*xbar - 23/16*a - 23/8), 6, -1/16*xbar^3 + 1/16*xbar^2 - 23/16*xbar + 39/16), ((-5/4*xbar^2 - 115/4, 5/4*a*xbar^2 + 115/4*a, -5/16*xbar^3 + 5/16*xbar^2 - 115/16*xbar + 115/16, 1/16*a*xbar^3 + 7/16*a*xbar^2 + 23/16*a*xbar + 161/16*a), 2, -5/16*xbar^3 - 33/16*xbar^2 - 115/16*xbar - 743/16)]
 
         By using the ideal `(a)`, we cut the part of the class group coming from
         `x^2 + 31` from 12 to 2, i.e. we lose a generator of order 6::
 
             sage: S.S_class_group([K.ideal(a)])
-            [((3/8*xbar^2 + 93/8,
-               -3/8*a*xbar^2 - 93/8*a,
-               3/16*xbar^3 - 3/16*xbar^2 + 93/16*xbar - 93/16,
-               (-1/16*a + 1/8)*xbar^3 + (-1/16*a + 1/8)*xbar^2 + (-31/16*a + 31/8)*xbar - 31/16*a + 31/8),
-              6,
-              (...1/16*a ... 101/16)*xbar^3 + (...187/16*a ...)*xbar^2 + (...31/16*a ... 3131/16)*xbar ... 5797/16*a ...),
-             ((-1/4*xbar^2 - 23/4,
-               (1/8*a - 1/8)*xbar^2 + 23/8*a - 23/8,
-               -1/16*xbar^3 ...,
-               1/16*a*xbar^3 ...),
-              2,
-              -1/8*xbar^2 - 15/8)]
+            [((1/4*xbar^2 + 31/4, (-1/8*a + 1/8)*xbar^2 - 31/8*a + 31/8, 1/16*xbar^3 + 1/16*xbar^2 + 31/16*xbar + 31/16, -1/16*a*xbar^3 + (1/16*a + 1/8)*xbar^2 - 31/16*a*xbar + 31/16*a + 31/8), 6, 1/16*xbar^3 - 5/16*xbar^2 + 31/16*xbar - 139/16), ((-1/4*xbar^2 - 23/4, (1/8*a - 1/8)*xbar^2 + 23/8*a - 23/8, -1/16*xbar^3 - 1/16*xbar^2 - 23/16*xbar - 23/16, 1/16*a*xbar^3 + (-1/16*a - 1/8)*xbar^2 + 23/16*a*xbar - 23/16*a - 23/8), 2, -1/8*xbar^2 - 15/8)]
 
         Note that all the returned values live where we expect them to::
 
@@ -788,9 +757,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
             sage: R.<x> = K[]
             sage: S.<xbar> = R.quotient(x^2 + 23)
             sage: S.class_group()
-            [((3, -3*a, 3/2*xbar - 3/2, (-1/2*a + 1)*xbar - 1/2*a + 1),
-              6,
-              (1/2*a - 101/2)*xbar + 187/2*a + 67/2)]
+            [((2, -a + 1, 1/2*xbar + 1/2, -1/2*a*xbar + 1/2*a + 1), 6, 1/2*xbar - 3/2)]
 
         Here is an example of a product of number fields, both of which
         contribute to the class group::
@@ -798,14 +765,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
             sage: R.<x> = QQ[]
             sage: S.<xbar> = R.quotient((x^2 + 23)*(x^2 + 47))
             sage: S.class_group()
-            [((1/12*xbar^2 + 47/12,
-               1/48*xbar^3 - 1/48*xbar^2 + 47/48*xbar - 47/48),
-              3,
-              -1/48*xbar^3 - 5/48*xbar^2 - 47/48*xbar - 187/48),
-             ((-1/12*xbar^2 - 23/12,
-               -1/48*xbar^3 - ...xbar^2 - 23/48*xbar - ...),
-              5,
-              -1/48*xbar^3 ...xbar^2 - 23/48*xbar ...)]
+            [((1/12*xbar^2 + 47/12, 1/48*xbar^3 - 1/48*xbar^2 + 47/48*xbar - 47/48), 3, -1/48*xbar^3 - 5/48*xbar^2 - 47/48*xbar - 187/48), ((-1/12*xbar^2 - 23/12, -1/48*xbar^3 - 1/48*xbar^2 - 23/48*xbar - 23/48), 5, 1/48*xbar^3 + 11/48*xbar^2 + 23/48*xbar + 301/48)]
 
         Now we take an example over a nontrivial base with two factors, each
         contributing to the class group::
@@ -814,23 +774,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
             sage: R.<x> = K[]
             sage: S.<xbar> = R.quotient((x^2 + 23)*(x^2 + 31))
             sage: S.class_group()
-            [((3/8*xbar^2 + 93/8,
-               -3/8*a*xbar^2 - 93/8*a, 3/16*xbar^3 - 3/16*xbar^2 + 93/16*xbar - 93/16,
-               (-1/16*a + 1/8)*xbar^3 + (-1/16*a + 1/8)*xbar^2 + (-31/16*a + 31/8)*xbar - 31/16*a + 31/8),
-              6,
-              (1/16*a - 101/16)*xbar^3 + (187/16*a + 65/16)*xbar^2 + (31/16*a - 3131/16)*xbar + 5797/16*a + 2031/16),
-             ((-1/4*xbar^2 - 23/4,
-               (1/8*a - 1/8)*xbar^2 + 23/8*a - 23/8,
-               -1/16*xbar^3 ...,
-               1/16*a*xbar^3 ...),
-              6,
-              1/16*xbar^3 + 1/16*xbar^2 + 23/16*xbar + 39/16),
-             ((-5/4*xbar^2 - 115/4,
-               5/4*a*xbar^2 + 115/4*a,
-               -5/16*xbar^3 - 5/16*xbar^2 - 115/16*xbar - 115/16,
-               1/16*a*xbar^3 + 13/16*a*xbar^2 + 23/16*a*xbar + 299/16*a),
-              2,
-              5/16*xbar^3 - 33/16*xbar^2 + 115/16*xbar - 743/16)]
+            [((1/4*xbar^2 + 31/4, (-1/8*a + 1/8)*xbar^2 - 31/8*a + 31/8, 1/16*xbar^3 + 1/16*xbar^2 + 31/16*xbar + 31/16, -1/16*a*xbar^3 + (1/16*a + 1/8)*xbar^2 - 31/16*a*xbar + 31/16*a + 31/8), 6, 1/16*xbar^3 - 5/16*xbar^2 + 31/16*xbar - 139/16), ((-1/4*xbar^2 - 23/4, (1/8*a - 1/8)*xbar^2 + 23/8*a - 23/8, -1/16*xbar^3 - 1/16*xbar^2 - 23/16*xbar - 23/16, 1/16*a*xbar^3 + (-1/16*a - 1/8)*xbar^2 + 23/16*a*xbar - 23/16*a - 23/8), 6, -1/16*xbar^3 + 1/16*xbar^2 - 23/16*xbar + 39/16), ((-5/4*xbar^2 - 115/4, 5/4*a*xbar^2 + 115/4*a, -5/16*xbar^3 + 5/16*xbar^2 - 115/16*xbar + 115/16, 1/16*a*xbar^3 + 7/16*a*xbar^2 + 23/16*a*xbar + 161/16*a), 2, -5/16*xbar^3 - 33/16*xbar^2 - 115/16*xbar - 743/16)]
 
         Note that all the returned values live where we expect them to::
 
@@ -884,21 +828,11 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
             sage: L.<b> = K['y'].quotient(y^3 + 5); L
             Univariate Quotient Polynomial Ring in b over Number Field in a with defining polynomial x^2 + 3 with modulus y^3 + 5
             sage: L.S_units([])
-            [(-1/2*a + 1/2, 6),
-             ((...1/3*a - 1)*b^2 + ...*b + ...*a + ..., +Infinity),
-             ((...1/3*a + 1)*b^2 ...*b ...*a ..., +Infinity)]
+            [(-1/2*a + 1/2, 6), ((-1/3*a - 1)*b^2 + (2/3*a - 2)*b + 13/6*a + 1/2, +Infinity), ((-1/3*a - 1)*b^2 + (2/3*a - 2)*b + 13/6*a - 1/2, +Infinity)]
             sage: L.S_units([K.ideal(1/2*a - 3/2)])
-            [((...1/6*a - 1/2)*b^2 + (...1/3*a + 1)*b ... 2/3*a - 2, +Infinity),
-             (-1/2*a + 1/2, 6),
-             ((-1/3*a + 1)*b^2 + (2/3*a - 2)*b - 5/6*a + 7/2, +Infinity),
-             ((...1/3*a ... 1)*b^2 + (...2/3*a - 2)*b + ...*a + ..., +Infinity)]
+            [(-1/3*a*b^2 + 2/3*a*b - 4/3*a, +Infinity), (-1/2*a + 1/2, 6), ((-1/3*a - 1)*b^2 + (2/3*a - 2)*b + 13/6*a + 1/2, +Infinity), ((-1/3*a - 1)*b^2 + (2/3*a - 2)*b + 13/6*a - 1/2, +Infinity)]
             sage: L.S_units([K.ideal(2)])
-            [((...*a ... 1/2)*b^2 + (...a ... 1)*b + ...*a ... 3/2, +Infinity),
-             ((1/6*a + 1/2)*b^2 + (-1/3*a - 1)*b + 1/6*a + 3/2, +Infinity),
-             ((...*a + 1/2)*b^2 + (...a - 1)*b ...*a + ..., +Infinity),
-             (-1/2*a + 1/2, 6),
-             ((-1/3*a + 1)*b^2 + (2/3*a - 2)*b - 5/6*a + 7/2, +Infinity),
-             ((-1/3*a + 1)*b^2 - 4/3*a*b - 4/3*a - 3, +Infinity)]
+            [((1/6*a - 1/2)*b^2 + (-1/3*a + 1)*b + 1/6*a - 3/2, +Infinity), ((-1/6*a + 1/2)*b^2 + (1/3*a - 1)*b - 2/3*a + 1, +Infinity), ((1/2*a + 1/2)*b^2 + (-a - 1)*b + 3/2*a + 3/2, +Infinity), (-1/2*a + 1/2, 6), ((-1/3*a - 1)*b^2 + (2/3*a - 2)*b + 13/6*a + 1/2, +Infinity), ((-1/3*a - 1)*b^2 + (2/3*a - 2)*b + 13/6*a - 1/2, +Infinity)]
 
         Note that all the returned values live where we expect them to::
 
@@ -948,16 +882,12 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
             sage: L.<b> = K['y'].quotient(y^3 + 5); L
             Univariate Quotient Polynomial Ring in b over Number Field in a with defining polynomial x^2 + 3 with modulus y^3 + 5
             sage: L.units()
-            [(-1/2*a + 1/2, 6),
-             ((...1/3*a - 1)*b^2 + ...*b + ...*a + ..., +Infinity),
-             ((-1/3*a + 1)*b^2 + (2/3*a - 2)*b - 5/6*a + 7/2, +Infinity)]
+            [(-1/2*a + 1/2, 6), ((-1/3*a - 1)*b^2 + (2/3*a - 2)*b + 13/6*a + 1/2, +Infinity), ((-1/3*a - 1)*b^2 + (2/3*a - 2)*b + 13/6*a - 1/2, +Infinity)]
             sage: L.<b> = K.extension(y^3 + 5)
             sage: L.unit_group()
             Unit group with structure C6 x Z x Z of Number Field in b with defining polynomial x^3 + 5 over its base field
             sage: L.unit_group().gens()
-            [-1/2*a + 1/2,
-             (...1/3*a - 1)*b^2 + ...*b + ...*a + ...,
-             (-1/3*a + 1)*b^2 + (2/3*a - 2)*b - 5/6*a + 7/2]
+            [-1/2*a + 1/2, (-1/3*a - 1)*b^2 + (2/3*a - 2)*b + 13/6*a + 1/2, (-1/3*a - 1)*b^2 + (2/3*a - 2)*b + 13/6*a - 1/2]
 
         Note that all the returned values live where we expect them to::
 
@@ -1139,7 +1069,8 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
             sage: D.selmer_group([K.ideal(2, -a+1), K.ideal(3, a+1)], 3)
             [2, -a - 1]
             sage: D.selmer_group([K.ideal(2, -a+1), K.ideal(3, a+1), K.ideal(a)], 3)
-            [2, -a - 1, -a]
+            [2, -a - 1, a]   # 32-bit
+            [2, -a - 1, -a]  # 64-bit
 
         """
         units, clgp_gens = self._S_class_group_and_units(tuple(S), proof=proof)
@@ -1350,8 +1281,7 @@ class PolynomialQuotientRing_field(PolynomialQuotientRing_domain, field.Field):
             [2.9757207403766761469671194565, -2.4088994371613850098316292196 + 1.9025410530350528612407363802*I, -2.4088994371613850098316292196 - 1.9025410530350528612407363802*I, 0.92103906697304693634806949137 - 3.0755331188457794473265418086*I, 0.92103906697304693634806949137 + 3.0755331188457794473265418086*I]
         """
         CC = sage.rings.complex_field.ComplexField(prec)
-        f = self.modulus().base_extend(CC)
-        v = f.roots(multiplicities=False)
+        v = self.modulus().roots(multiplicities=False, ring=CC)
         return [self.hom([a], check=False) for a in v]
 
 

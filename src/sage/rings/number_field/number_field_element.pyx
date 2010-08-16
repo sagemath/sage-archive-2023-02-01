@@ -520,9 +520,7 @@ cdef class NumberFieldElement(FieldElement):
 
         Note that _pari_init_ can fail because of reserved words in
         PARI, and since it actually works by obtaining the PARI
-        representation of something.
-
-        ::
+        representation of something::
 
             sage: K.<theta> = NumberField(x^5 - x - 1)
             sage: b = (1/2 - 2/3*theta)^3; b
@@ -530,12 +528,10 @@ cdef class NumberFieldElement(FieldElement):
             sage: b._pari_init_('theta')
             Traceback (most recent call last):
             ...
-            PariError: unexpected character (2)
+            PariError:  (26)
 
         Fortunately pari_init returns everything in terms of x by
-        default.
-
-        ::
+        default::
 
             sage: pari(b)
             Mod(-8/27*x^3 + 2/3*x^2 - 1/2*x + 1/8, x^5 - x - 1)
@@ -2662,7 +2658,7 @@ cdef class NumberFieldElement(FieldElement):
 
             sage: P5s = F(5).support()
             sage: P5s
-            [Fractional ideal (-t^2 - 1), Fractional ideal (t^2 - 2*t - 1)]
+            [Fractional ideal (t^2 + 1), Fractional ideal (t^2 - 2*t - 1)]
             sage: all(5 in P5 for P5 in P5s)
             True
             sage: all(P5.is_prime() for P5 in P5s)
@@ -2844,7 +2840,7 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
             sage: I._pari_('I')
             Traceback (most recent call last):
             ...
-            PariError: forbidden (45)
+            PariError: incorrect type (11)
 
         Instead, request the variable be named different for the coercion::
 

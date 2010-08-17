@@ -88,13 +88,13 @@ build()
 
     # Allow the user to tune Pari - this is time-consuming, but some may want to do it.
     if [ "x$SAGE_TUNE_pari" = xyes ] ; then
-       echo "Pari will be tuned for your system since you set SAGE_TUNE_pari=\"yes\". This can be slow"
+       echo "Pari will be tuned for your system since you set SAGE_TUNE_pari=\"yes\". This can take a long time."
        ./Configure $PARI_EXTRA_OPTS --prefix=$SAGE_LOCAL --with-readline=$SAGE_LOCAL --with-gmp=$SAGE_LOCAL --kernel=gmp --graphic=none --tune
     else
-       echo "To sage build time, Pari will not be tuned for your systems"
-       echo "If you want higher performance, at the expense of a slower build"
-       echo "set the environment variable SAGE_TUNE_pari=yes by typing the following"
-       echo "before building Sage (or at least before building Pari)"
+       echo "To minimize sage build time, Pari will not be tuned for your system."
+       echo "If you want higher performance at the expense of a slower build, set"
+       echo "the environment variable SAGE_TUNE_pari=yes by typing the following"
+       echo "before building Sage (or at least before building Pari):"
        echo "SAGE_TUNE_pari=yes"
        echo "export SAGE_TUNE_pari"
        ./Configure $PARI_EXTRA_OPTS --prefix=$SAGE_LOCAL --with-readline=$SAGE_LOCAL --with-gmp=$SAGE_LOCAL --kernel=gmp --graphic=none

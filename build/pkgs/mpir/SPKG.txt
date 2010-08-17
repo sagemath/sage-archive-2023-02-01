@@ -3,9 +3,8 @@
 == Description ==
 
 MPIR is an open source multiprecision integer library derived from
-version 4.2.1 of the GMP (GNU Multi Precision) project (which was
-licensed LGPL v2+). Note MPIR 1.2.2 is overall LGPL v3+ due to the
-inclusion of an LGPL v3 file (mpf/set_str.c).
+version 5.0.1 of the GMP (GNU Multi Precision) project (which was
+licensed LGPL v2+).
 
 See http://www.mpir.org
 
@@ -26,6 +25,9 @@ See http://www.mpir.org
  * None
 
 == Changelog ==
+
+=== mpir-2.1.1 (Mike Hansen, August 16th, 2010) ===
+ * #8664: Upgrade Sage's MPIR spkg to version 2.1.1
 
 === mpir-1.2.2.p1 (Georg S. Weber, May 18th 2010) ===
  * Update the License information (e.g. above), as kindly requested

@@ -116,16 +116,6 @@ build()
             exit 1
         fi
     fi
-
-    # to install the gmpcompat bits fully we need to run a second install target
-    $MAKE install-gmpcompat
-    if [ $? -ne 0 ]; then
-        if [ "$UNAME" != "CYGWIN" ]; then  # on cygwin error is not fatal.
-            echo "Error installing MPIR."
-            exit 1
-        fi
-    fi
-
 }
 
 cd src
@@ -135,8 +125,4 @@ build
 if ! [ $? -eq 0 ]; then
     echo "Failed to build shared MPIR library."
     exit 1
-fi
-
-if [ "$SAGE_CHECK" = "yes" ]; then
-    cd ..; ./spkg-check
 fi

@@ -1,0 +1,10 @@
+--- config/get_dlcflags	2010-08-05 22:32:03.000000000 +0200
++++ config/get_dlcflags	2010-08-17 17:10:20.000000000 +0200
+@@ -2,6 +2,7 @@
+ if test -n "$__gnuc__"; then
+   case $osname in
+     cygwin|mingw) DLCFLAGS=;;
++    darwin) DLCFLAGS="-fPIC -fno-common";;
+     *) DLCFLAGS=-fPIC;;
+   esac
+ else #assume native compiler

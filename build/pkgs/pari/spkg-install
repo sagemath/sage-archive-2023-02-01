@@ -35,7 +35,10 @@ cp "$PATCHED/gphelp.in" doc/
 # John Cremona: copy over a lightly patched get_tests, so that make
 # test-all does not test ellglobalred (which requires the elldata
 # package Sage does not install).
-cp "$PATCHED/get_tests" config/get_tests
+cp "$PATCHED/get_tests" config/
+
+# Add -fno-common to DLCFLAGS on Darwin
+cp "$PATCHED/get_dlcflags" config/
 
 
 # This is needed or there are weird locale problems involving rpath

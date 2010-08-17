@@ -3,7 +3,7 @@ See below for information on files which used to be patched but are no
 longer (do not delete that!)
 
 ======================================================================
-Files patched as of pari-2.4.3.svn.p7:
+Files patched as of pari-2.4.3.svn-12577.p2:
 ======================================================================
 
 Configuration files:
@@ -11,6 +11,7 @@ Configuration files:
 * config/get_tests: John Cremona: disable testing of ellglobalred in
                     "make test-all" in spkg-check, since it requires
                     the elldata database which we do not include.
+* config/get_dlcflags: Add -fno-common to DLCFLAGS on Darwin.
 
 Documentation:
 * doc/gphelp.in: cwitty: disable TeX; allow bz2 compression

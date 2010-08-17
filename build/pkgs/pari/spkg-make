@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Script to prepare a PARI spkg for Sage.  This script is only for the
 # package maintainer, not for building PARI during a Sage install.

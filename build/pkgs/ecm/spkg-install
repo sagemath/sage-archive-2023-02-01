@@ -1,11 +1,5 @@
 #!/usr/bin/env bash
 
-if [ "$SAGE_LOCAL" = "" ]; then
-   echo "SAGE_LOCAL undefined ... exiting";
-   echo "Maybe run 'sage -sh'?"
-   exit 1
-fi
-
 if [ "$SAGE64" = "yes" ]; then
    echo "64 bit build"
    CFLAGS="-O2 -g -m64 -fPIC"; export CFLAGS
@@ -23,6 +17,8 @@ rm -f "$SAGE_LOCAL"/lib/libecm.*
 rm -r "$SAGE_LOCAL"/include/ecm.h
 
 cd src
+
+unset RM
 
 ./configure --with-gmp=$SAGE_LOCAL  --prefix=$SAGE_LOCAL
 

@@ -35,7 +35,7 @@ GF(2^k) for 2 <= k <= 16.
 
 == Releases/Changelog ==
 
-=== libm4ri-20100815 (Martin Albrecht, August 14th 2010) ===
+=== libm4ri-20100817 (Martin Albrecht, August 18th 2010) ===
  * Including M4RIE, an extension to M4RI for small extensions of GF(2).
  * Enable tuning code to detect "cache sizes"
 

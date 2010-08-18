@@ -36,6 +36,8 @@ We test that pickling works::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+SMALL_DISC = 1000000
+
 import operator
 
 import sage.misc.latex as latex
@@ -179,6 +181,21 @@ class NumberFieldIdeal(Ideal_generic):
             raise ValueError, "gens must have length at least 1 (zero ideal is not a fractional ideal)"
         Ideal_generic.__init__(self, field, gens, coerce)
 
+    def __hash__(self):
+        """
+        EXAMPLES::
+
+            sage: NumberField(x^2 + 1, 'a').ideal(7).__hash__()
+            -9223372036854775779                 # 64-bit
+            -2147483619                          # 32-bit
+        """
+        try: return self._hash
+        # At some point in the future (e.g., for relative extensions), we'll likely
+        # have to consider other hashes, like the following.
+        #except AttributeError: self._hash = hash(self.gens())
+        except AttributeError: self._hash = self.pari_hnf().__hash__()
+        return self._hash
+
     def _latex_(self):
         """
         EXAMPLES::
@@ -188,8 +205,27 @@ class NumberFieldIdeal(Ideal_generic):
             '\\left(2, \\frac{1}{2} a - \\frac{1}{2}\\right)'
             sage: latex(K.ideal([2, 1/2*a - 1/2]))
             \left(2, \frac{1}{2} a - \frac{1}{2}\right)
+
+        The gens are reduced only if the norm of the discriminant of
+        the defining polynomial is at most
+        sage.rings.number_field.number_field_ideal.SMALL_DISC::
+
+            sage: K.<a> = NumberField(x^2 + 902384092834); K
+            Number Field in a with defining polynomial x^2 + 902384092834
+            sage: I = K.factor(19)[0][0]; I._latex_()
+            '\\left(19\\right)'
+
+        We can make the generators reduced by increasing SMALL_DISC.
+        We had better also set proof to False, or computing reduced
+        gens could take too long::
+
+            sage: proof.number_field(False)
+            sage: sage.rings.number_field.number_field_ideal.SMALL_DISC = 10^20
+            sage: K.<a> = NumberField(x^4 + 3*x^2 - 17)
+            sage: K.ideal([17*a,17,17,17*a])._latex_()
+            '\\left(17\\right)'
         """
-        return '\\left(%s\\right)'%(", ".join(map(latex.latex, self.gens_reduced())))
+        return '\\left(%s\\right)'%(", ".join(map(latex.latex, self._gens_repr())))
 
     def __cmp__(self, other):
         """
@@ -363,7 +399,14 @@ class NumberFieldIdeal(Ideal_generic):
 
     def _repr_short(self):
         """
-        Efficient string representation of this fraction ideal.
+        Compact string representation of this ideal.  When the norm of
+        the discriminant of the defining polynomial of the number field
+        is less than
+
+            sage.rings.number_field.number_field_ideal.SMALL_DISC
+
+        then display reduced generators.  Otherwise display two
+        generators.
 
         EXAMPLES::
 
@@ -373,12 +416,62 @@ class NumberFieldIdeal(Ideal_generic):
             Fractional ideal (17, a^2 - 6)
             sage: I._repr_short()
             '(17, a^2 - 6)'
+
+        We use reduced gens, because the discriminant is small::
+
+            sage: K.<a> = NumberField(x^2 + 17); K
+            Number Field in a with defining polynomial x^2 + 17
+            sage: I = K.factor(17)[0][0]; I
+            Fractional ideal (-a)
+
+        Here the discriminant is 'large', so the gens aren't reduced::
+
+            sage: sage.rings.number_field.number_field_ideal.SMALL_DISC
+            1000000
+            sage: K.<a> = NumberField(x^2 + 902384094); K
+            Number Field in a with defining polynomial x^2 + 902384094
+            sage: I = K.factor(19)[0][0]; I
+            Fractional ideal (19, a + 14)
+            sage: I.gens_reduced()                 # long time
+            (19, a + 14)
         """
-        #NOTE -- we will *have* to not reduce the gens soon, since this
-        # makes things insanely slow in general.
-        # When I fix this, I *have* to also change the _latex_ method.
-        return '(%s)'%(', '.join(map(str, self.gens_reduced())))
-#         return '(%s)'%(', '.join(map(str, self.gens())))
+        return '(%s)'%(', '.join(map(str, self._gens_repr())))
+
+    def _gens_repr(self):
+        """
+        Returns tuple of generators to be used for printing this number
+        field ideal. The gens are reduced only if the absolute value of
+        the norm of the discriminant of the defining polynomial is at
+        most sage.rings.number_field.number_field_ideal.SMALL_DISC.
+
+        EXAMPLES::
+
+            sage: sage.rings.number_field.number_field_ideal.SMALL_DISC
+            1000000
+            sage: K.<a> = NumberField(x^4 + 3*x^2 - 17)
+            sage: K.discriminant()  # too big
+            -1612688
+            sage: I = K.ideal([17*a*(2*a-2),17*a*(2*a-3)]); I._gens_repr()
+            (289, 17*a)
+            sage: I.gens_reduced()
+            (17*a,)
+        """
+        # If the discriminant is small, it is easy to find nice gens.
+        # Otherwise it is potentially very hard.
+        try:
+            if abs(self.number_field().defining_polynomial().discriminant().norm()) <= SMALL_DISC:
+                return self.gens_reduced()
+        except TypeError:
+            # In some cases with relative extensions, computing the
+            # discriminant of the defining polynomial is not
+            # supported.
+            pass
+        # Return two generators unless the second one is zero
+        two_gens = self.gens_two()
+        if two_gens[1]:
+            return two_gens
+        else:
+            return (two_gens[0],)
 
     def _pari_(self):
         """
@@ -604,12 +697,15 @@ class NumberFieldIdeal(Ideal_generic):
             sage: J = K.ideal([a+2, 9])
             sage: J.gens()
             (a + 2, 9)
-            sage: J.gens_reduced()
+            sage: J.gens_reduced()  # random sign
             (a + 2,)
             sage: K.ideal([a+2, 3]).gens_reduced()
             (3, a + 2)
 
         TESTS::
+
+            sage: len(J.gens_reduced()) == 1
+            True
 
             sage: all(j.parent() is K for j in J.gens())
             True
@@ -1328,7 +1424,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             sage: K.<a> = CyclotomicField(11); K
             Cyclotomic Field of order 11 and degree 10
             sage: I = K.factor(31)[0][0]; I
-            Fractional ideal (-3*a^7 - 4*a^5 - 3*a^4 - 3*a^2 - 3*a - 3)
+            Fractional ideal (31, a^5 + 10*a^4 - a^3 + a^2 + 9*a - 1)
             sage: I.divides(I)
             True
             sage: I.divides(31)
@@ -1351,11 +1447,11 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             sage: I = K.ideal(19); I
             Fractional ideal (19)
             sage: F = I.factor(); F
-            (Fractional ideal (a^2 + 2*a + 2)) * (Fractional ideal (a^2 - 2*a + 2))
+            (Fractional ideal (19, 1/2*a^2 + a - 17/2)) * (Fractional ideal (19, 1/2*a^2 - a - 17/2))
             sage: type(F)
             <class 'sage.structure.factorization.Factorization'>
             sage: list(F)
-            [(Fractional ideal (a^2 + 2*a + 2), 1), (Fractional ideal (a^2 - 2*a + 2), 1)]
+            [(Fractional ideal (19, 1/2*a^2 + a - 17/2), 1), (Fractional ideal (19, 1/2*a^2 - a - 17/2), 1)]
             sage: F.prod()
             Fractional ideal (19)
         """

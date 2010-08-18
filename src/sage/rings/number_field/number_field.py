@@ -4311,7 +4311,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.<a> = NumberField(x^4+3*x^2-17)
             sage: P = K.ideal(61).factor()[0][0]
             sage: K.residue_field(P)
-            Residue field in abar of Fractional ideal (-2*a^2 + 1)
+            Residue field in abar of Fractional ideal (61, a^2 + 30)
 
         ::
 
@@ -4325,7 +4325,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: L.residue_field(P)
             Traceback (most recent call last):
             ...
-            ValueError: Fractional ideal (-2*a^2 + 1) is not an ideal of Number Field in b with defining polynomial x^2 + 5
+            ValueError: Fractional ideal (61, a^2 + 30) is not an ideal of Number Field in b with defining polynomial x^2 + 5
             sage: L.residue_field(2)
             Traceback (most recent call last):
             ...
@@ -7069,7 +7069,7 @@ class NumberField_cyclotomic(NumberField_absolute):
 
             sage: C20 = CyclotomicField(20)
             sage: C20.different()
-            Fractional ideal (-4*zeta20^7 + 8*zeta20^5 - 12*zeta20^3 + 6*zeta20)
+            Fractional ideal (10, 2*zeta20^6 - 4*zeta20^4 - 4*zeta20^2 + 2)
             sage: C18 = CyclotomicField(18)
             sage: D = C18.different().norm()
             sage: D == C18.discriminant().abs()

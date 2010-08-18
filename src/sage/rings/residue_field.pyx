@@ -172,7 +172,7 @@ def ResidueField(p, names = None, check = True):
     An example where the residue class field is large but of degree 1::
 
         sage: K.<a> = NumberField(x^3-875); P = K.ideal(2007).factor()[0][0]; k = K.residue_field(P); k
-        Residue field of Fractional ideal (-2/25*a^2 - 2/5*a - 3)
+        Residue field of Fractional ideal (223, 1/5*a + 11)
         sage: k(a)
         168
         sage: k(a)^3 - 875
@@ -468,8 +468,7 @@ class ResidueField_generic(Field):
 
             sage: K.<a> = NumberField(x^3-11)
             sage: F = K.ideal(37).factor(); F
-            (Fractional ideal (37, a + 12)) * (Fractional ideal (2*a - 5)) * (Fractional ideal (37, a + 9))   # 32-bit
-            (Fractional ideal (37, a + 12)) * (Fractional ideal (-2*a + 5)) * (Fractional ideal (37, a + 9))  # 64-bit
+            (Fractional ideal (37, a + 12)) * (Fractional ideal (-2*a + 5)) * (Fractional ideal (37, a + 9))
             sage: k = K.residue_field(F[0][0])
             sage: l = K.residue_field(F[1][0])
             sage: k == l

@@ -46,7 +46,7 @@ degree larger than one.  In short, if you can contribute, please do!
 EXAMPLES::
 
     sage: x = ZZ['x'].gen()
-    sage: F.<a> = NumberField(x^2 - 2, 'a')
+    sage: F.<a> = NumberField(x^2 - 2)
     sage: Ps = F.primes_of_degree_one_list(3)
     sage: Ps # random
     [Fractional ideal (2*a + 1), Fractional ideal (-3*a + 1), Fractional ideal (-a + 5)]
@@ -59,7 +59,7 @@ EXAMPLES::
 
 The next two examples are for relative number fields.::
 
-    sage: L.<b> = F.extension(x^3 - a, 'b')
+    sage: L.<b> = F.extension(x^3 - a)
     sage: Ps = L.primes_of_degree_one_list(3)
     sage: Ps # random
     [Fractional ideal (17, b - 5), Fractional ideal (23, b - 4), Fractional ideal (31, b - 2)]
@@ -69,7 +69,7 @@ The next two examples are for relative number fields.::
     True
     sage: all(P.residue_class_degree() == 1 for P in Ps)
     True
-    sage: M.<c> = NumberField(x^2 - x*b^2 + b, 'c')
+    sage: M.<c> = NumberField(x^2 - x*b^2 + b)
     sage: Ps = M.primes_of_degree_one_list(3)
     sage: Ps # random
     [Fractional ideal (17, c - 2), Fractional ideal (c - 1), Fractional ideal (41, c + 15)]

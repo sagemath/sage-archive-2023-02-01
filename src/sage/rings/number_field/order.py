@@ -673,7 +673,7 @@ class Order(IntegralDomain):
             sage: P = K.ideal(61).factor()[0][0]
             sage: OK = K.maximal_order()
             sage: OK.residue_field(P)
-            Residue field in abar of Fractional ideal (-2*a^2 + 1)
+            Residue field in abar of Fractional ideal (61, a^2 + 30)
         """
         if self.is_maximal():
             return self.number_field().residue_field(prime, name, check)

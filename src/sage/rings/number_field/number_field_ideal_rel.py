@@ -192,7 +192,8 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             sage: J.absolute_norm()
             22584817
             sage: J.absolute_ideal()
-            Fractional ideal (188/812911*a^5 - 1/812911*a^4 + 45120/812911*a^3 - 56/73901*a^2 + 3881638/812911*a + 50041/812911)
+            Fractional ideal (22584817, -4417/2438733*a^5 - 2867/1625822*a^4 - 1307249/4877466*a^3 - 112151/443406*a^2 - 22904674/2438733*a - 13720435234111/2438733)  # 32-bit
+            Fractional ideal (22584817, -1473/812911*a^5 + 8695/4877466*a^4 - 1308209/4877466*a^3 + 117415/443406*a^2 - 22963264/2438733*a - 13721081784272/2438733)   # 64-bit
             sage: J.absolute_ideal().norm()
             22584817
 
@@ -414,8 +415,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             sage: K.<c> = F.extension(Y^2 - (1 + a)*(a + b)*a*b)
             sage: I = K.ideal(3, c)
             sage: J = I.ideal_below(); J
-            Fractional ideal (b)   # 32-bit
-            Fractional ideal (-b)  # 64-bit
+            Fractional ideal (b)
             sage: J.number_field() == F
             True
         """
@@ -593,8 +593,8 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             sage: I.relative_ramification_index()
             2
             sage: I.ideal_below()
-            Fractional ideal (b)   # 32-bit
-            Fractional ideal (-b)  # 64-bit
+            Fractional ideal (-b)  # 32-bit
+            Fractional ideal (b)   # 64-bit
             sage: K.ideal(b) == I^2
             True
         """
@@ -770,7 +770,7 @@ def is_NumberFieldFractionalIdeal_rel(x):
         sage: K.<a> = NumberField(x^2+6)
         sage: L.<b> = K.extension(K['x'].gen()^4 + a)
         sage: I = L.ideal(b); I
-        Fractional ideal (b)
+        Fractional ideal (6, b)
         sage: is_NumberFieldFractionalIdeal_rel(I)
         True
         sage: N = I.relative_norm(); N

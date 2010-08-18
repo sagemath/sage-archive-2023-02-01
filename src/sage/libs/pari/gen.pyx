@@ -419,8 +419,19 @@ cdef class gen(sage.structure.element.RingElement):
         return P.new_gen_to_string(self.g)
 
     def __hash__(self):
+        """
+        Return the hash of self, computed using PARI's hash_GEN().
+
+        TESTS::
+
+            sage: type(pari('1 + 2.0*I').__hash__())
+            <type 'int'>
+        """
+        cdef long h
         _sig_on
-        return hash(P.new_gen_to_string(self.g))
+        h = hash_GEN(self.g)
+        _sig_off
+        return h
 
     def _testclass(self):
         import test

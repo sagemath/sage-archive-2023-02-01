@@ -636,7 +636,10 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
             if sum(part) not in cache_dict:
                 cache_function(sum(part))
             for part2, c2 in cache_dict[sum(part)][part].iteritems():
-                z_elt[ part2 ] = z_elt.get(part2, zero) + BR(c*c2.subs(**subs_dict))
+                c3 = c*c2
+                if hasattr(c3,'subs'): # c3 may be in the base ring
+                    c3 = c3.subs(**subs_dict)
+                z_elt[ part2 ] = z_elt.get(part2, zero) + BR(c3)
         return self._from_dict(z_elt)
 
 

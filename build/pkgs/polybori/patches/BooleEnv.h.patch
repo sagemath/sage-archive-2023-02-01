@@ -1,0 +1,27 @@
+--- ../src/polybori-0.6.4/polybori/include/BooleEnv.h	2010-01-29 01:02:02.000000000 -0800
++++ BooleEnv.h	2010-08-19 07:56:45.000000000 -0700
+@@ -37,7 +37,7 @@
+ 
+ // Obey stricter dependence of Sun Studio compiler
+ // todo: resolve dependency 
+-#if defined(__SUNPRO_C) || defined(__SUNPRO_CC)
++#if 1 // defined(__SUNPRO_C) || defined(__SUNPRO_CC)
+ # define PBORI_ENV_RING_NOTINLINED
+ #endif
+ 
+@@ -45,7 +45,6 @@
+ 
+ 
+ class BoolePolyRing;
+-extern BoolePolyRing active_ring;
+ class CDynamicOrderBase;
+ 
+ /** @class BooleEnv
+@@ -122,6 +121,7 @@
+   static ring_type& ring();
+ #else
+   static ring_type& ring() {
++    static BooleEnv::ring_type active_ring(1000, CTypes::lp, false);
+     return active_ring;
+   }
+ #endif

@@ -1,0 +1,41 @@
+--- ../src/polybori-0.6.4/polybori/src/BooleEnv.cc	2010-01-29 01:02:02.000000000 -0800
++++ BooleEnv.cc	2010-08-19 07:34:30.000000000 -0700
+@@ -42,14 +42,17 @@
+ BEGIN_NAMESPACE_PBORI
+ 
+ 
+-BooleEnv::ring_type active_ring;
++//BooleEnv::ring_type active_ring;
+ // Note, direct access via friends, to  active_ring.pOrder and pMgt, because
+ // inline doesn't work up to now, because os the undefined type issue.
+ 
+ /// @todo needs inlining!!!
+ #ifdef PBORI_ENV_RING_NOTINLINED
+-BooleEnv::ring_type& BooleEnv::ring() { return active_ring; }
+-#endif 
++BooleEnv::ring_type& BooleEnv::ring() {
++  static BooleEnv::ring_type active_ring(1000, CTypes::lp, false);
++  return active_ring; 
++}
++#endif
+ 
+ BooleEnv::block_iterator 
+ BooleEnv::blockBegin() {
+@@ -77,7 +80,7 @@
+ 
+ BooleEnv::idx_type
+ BooleEnv::lastBlockStart() {
+-  return active_ring.lastBlockStart();
++  return ring().lastBlockStart();
+ }
+ 
+ 
+@@ -160,7 +163,7 @@
+   }
+ 
+ 
+-void BooleEnv::set(ring_type& theRing) { active_ring = theRing; }
++void BooleEnv::set(ring_type& theRing) { ring() = theRing; }
+ 
+ 
+ 

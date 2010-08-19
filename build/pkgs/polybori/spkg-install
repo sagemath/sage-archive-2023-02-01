@@ -33,7 +33,8 @@ patch()
     cp patches/pbori_routines_misc.h src/${PBDIR}/polybori/include/
     cp patches/ll.py                 src/${PBDIR}/pyroot/polybori
     cp patches/nf.cc                 src/${PBDIR}/groebner/src/
-
+    cp patches/BooleEnv.h            src/${PBDIR}/polybori/include/
+    cp patches/BooleEnv.cc           src/${PBDIR}/polybori/src/
 }
 
 
@@ -71,20 +72,6 @@ clean_polybori()
     rm -rf ${SAGE_LOCAL}/include/cudd
 }
 
-remove_dylib()
-{
-    # linking dynamic libraries causes segfaults at exit (see #2822)
-    if [ `uname` = "Darwin" ]; then
-        rm -f $SAGE_LOCAL/lib/libpolybori.dylib
-        rm -f $SAGE_LOCAL/lib/libpboriCudd.dylib
-        rm -f $SAGE_LOCAL/lib/libgroebner.dylib
-    else
-        rm -f $SAGE_LOCAL/lib/libpolybori.so
-        rm -f $SAGE_LOCAL/lib/libpboriCudd.so
-        rm -f $SAGE_LOCAL/lib/libgroebner.so
-    fi
-}
-
 patch
 
 cd src
@@ -102,7 +89,3 @@ echo "Done build_polybori."
 echo "Installing PolyBoRi..."
 install_polybori
 echo "Done installing PolyBoRi."
-
-echo "Removing dynamic libraries..."
-remove_dylib
-echo "Done removing dynamic libraries."

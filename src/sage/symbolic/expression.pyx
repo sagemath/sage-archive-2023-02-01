@@ -5085,8 +5085,8 @@ cdef class Expression(CommutativeRingElement):
             arcsinh(1)
             sage: SR(1.0).arcsinh()
             0.881373587019543
-            sage: maxima('asinh(1.0)')
-            0.881373587019543
+            sage: maxima('asinh(2.0)')
+            1.44363547517881
 
         Sage automatically applies certain identities::
             sage: SR(3/2).arcsinh().cosh()

@@ -199,13 +199,14 @@ there are sufficient examples and doctests in the documentation, and
 to try to make sure that the code does, mathematically, what it is
 supposed to.
 
-If someone (other than you) has posted a patch for a ticket on the
-trac server, you can review it. Look at the patch (by clicking on
-the file name in the list of attachments) to see if it makes sense.
-Download it (from the window displaying the patch, see the
-"Download" option at the bottom of the page). Apply it (using
-``hg_sage.patch('filename')``, for example) to your copy of
-Sage, and build Sage with the new code by typing ``sage -b``.
+If someone (other than you) has posted a patch for a ticket on the trac
+server, you can review it! Look at the patch (by clicking on the file name
+in the list of attachments) to see if it makes sense.  Download it (from
+the window displaying the patch, see the "Download" option at the bottom of
+the page). Apply it (using ``hg_sage.patch('filename')``, for example) to
+your copy of Sage, and build Sage with the new code by typing ``sage -b``.
+See the walkthrough section :ref:`section-review-patch-walkthrough` for
+more details on downloading and applying patches.
 
 Now ask yourself questions such as the following:
 
@@ -224,10 +225,14 @@ Now ask yourself questions such as the following:
   ``sage -coverage <files>`` to see the coverage percentage of
   ``<files>``.
 
-- In particular, is there a doctest illustrating that the bug has
-  been fixed? If a function used to give the wrong answer and this
-  patch fixes that, then if possible, it should include a doctest
-  illustrating its new success.
+- In particular, is there a doctest illustrating that the bug has been
+  fixed? If a function used to give the wrong answer and this patch fixes
+  that, then it should include a doctest illustrating its new success.
+  That doctest should be marked with the ticket number as an in-line
+  comment.
+
+- Is the ticket number noted in the comment line near the top of the patch?
+  Is the patch author noted in all the files which were edited?
 
 - If the patch claims to speed up some computation, does the ticket
   contain code examples to illustrate the claim? The ticket should
@@ -245,11 +250,16 @@ Now ask yourself questions such as the following:
   ``sage -docbuild reference pdf`` to test it out. The latter command
   requires that you have LaTeX installed on your system.
 
-- Do all doctests pass without errors? You can test the Sage
-  library with ``make test`` or ``make ptest`` (edit the number
-  of threads in ``$SAGE_ROOT/makefile`` before using ``ptest``). See
-  :ref:`chapter-doctesting` for more information on doctesting the
-  Sage library.
+- Do all doctests pass without errors? This too is **very** important.  It
+  is extremely difficult to predict which components of Sage will be
+  affected by a given patch (especially if you don't have working knowledge
+  of the **entire** Sage library), so you should run tests on the whole
+  library--including those flagged as ``#long``--before giving a positive
+  review.  (For that matter, the patch writer should run these tests before
+  uploading the patch.)  You can test the Sage library with ``make
+  testlong`` or ``make ptestlong`` (edit the number of threads in
+  ``$SAGE_ROOT/makefile`` before using ``ptestlong``). See
+  :ref:`chapter-doctesting` for more information.
 
 - Do the code and documentation follow conventions documented in the
   following sections?
@@ -258,12 +268,14 @@ Now ask yourself questions such as the following:
   - :ref:`chapter-python`
   - :ref:`chapter-cython`
 
-If the answers to these and other such reasonable questions are yes,
-then you might want to give the patch a positive review. On the main
-ticket page, write a comment in the box explaining your review. If you
-think there are issues with the patch, explain them in the comment box
-as well. Browse the tickets on the trac server to see how things are
-done.
+If the answers to these and other such reasonable questions are yes, then
+you might want to give the patch a positive review. On the main ticket
+page, write a comment in the box explaining your review. If you don't feel
+experienced enough for this, make a comment explaining what you checked,
+and end by asking if someone more experienced will take a look.  If you
+think there are issues with the patch, explain them in the comment box and
+change the status to "needs work". Browse the tickets on the trac server to
+see how things are done.
 
 
 Closing tickets

@@ -435,6 +435,7 @@ link ``devel/sage`` points to the directory ``devel/sage-main``, but the
 actual path to the directory has been specified instead of its
 symbolic link.
 
+.. _section-parallel-test-whole-library:
 
 Parallel testing the whole Sage library
 =======================================

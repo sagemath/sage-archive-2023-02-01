@@ -168,13 +168,15 @@ basic arguments as output by ``./sage -help``.
 Reviewing a patch
 -----------------
 
-See also the section :ref:`section-review-patches` for further
-guidelines on reviewing patches. Before reviewing a patch, you can
-choose to download a patch file from the Trac server (the little
-download icon next to the file name is the easiest way).  Clicking on
-the file name will show you a side-by-side comparison view that is
-useful for previewing changes; red shading is deletions, green shading
-is additions.
+See the Trac section :ref:`section-review-patches` for further guidelines
+on reviewing patches; this section walks through the process of downloading
+and applying patches.  When viewing a Trac ticket, you will see available
+patches listed near the top in the Attachments section.  Clicking on the
+file name will show you a `diff <http://en.wikipedia.org/wiki/Diff>`_
+comparison view that is useful for previewing changes; red shading is
+deletions, green shading is additions.  Once you've decided to review the
+patch, download the patch file from the Trac server using the little
+download icon next to the file name.
 
 To apply a patch to the code in your sandbox (see
 :ref:`section-create-sandbox` for information on creating a sandbox),
@@ -189,31 +191,38 @@ follow these steps:
 #. Rebuild Sage: use the command ``./sage -b`` to rebuild the affected
    files in the Sage library.
 
-In step 2, you are using Sage's simplified interface to the
-`Mercurial <http://mercurial.selenic.com>`_
-revision control system.  This command will add the patch as a new
-"changeset" and "commit" the changes.  At the Sage command line, you
-can run ``hg_sage.log()`` to see before/after changes to the Sage
-library. In step 4, you should only see a few files copied, modified,
-etc.  Unaffected files should not be part of this step.  Look for
-compilation errors in this output and modify your changes as
-appropriate. Avoid producing patches that result in compilation
-errors or errors in building the documentation. (You want a working
-Sage installation, right?)
+In step 2, you are using Sage's simplified interface to the `Mercurial
+<http://mercurial.selenic.com>`_ revision control system.  This command
+will add the patch as a new "changeset" and "commit" the changes.  At the
+Sage command line, you can run ``hg_sage.log()`` to see before/after
+changes to the Sage library. In step 4, you should only see a few files
+copied, modified, etc.  Unaffected files should not be part of this step.
+Look for compilation errors in this output and modify your changes as
+appropriate. Avoid producing patches that result in compilation errors or
+errors in building the documentation. (You want a working Sage
+installation, right?)  See also the section
+:ref:`section-review-patches-queues-walkthrough` for another way to apply
+patches with Mercurial.
 
-To actually test out a patch, do the following:
+To actually test out a patch, do the following.  Even if you're new to Sage
+development and tentative about reviewing, reporting the success or failure
+of these steps on the ticket Trac page will be quite helpful:
 
 #. Experiment with the functionality proposed by the patch. Verify
    results are correct by hand computations, test bad input, outrageous
    situations, etc.
-#. Run tests on the affected files. From ``SAGE_ROOT``, issue the
-   command ``./sage -t devel/sage-test/path-to-directory-or-file`` to
-   run doctests on the affected file(s). Failures should be reported
-   on the ticket and are reason to move the ticket to "needs work".
-#. If affected files pass tests, then run ``./sage -testall``. This
-   will take a while to complete. No, it is not optional.  A reviewer
-   or release manager could discover this step was skipped and request
-   that you modify your patch to fix any resulting doctest failures.
+#. Run tests on the affected files. From ``SAGE_ROOT``, issue the command
+   ``./sage -t devel/sage-test/path-to-directory-or-file`` to run doctests
+   on the affected file(s). Failures should be reported on the ticket and
+   are reason to move the ticket to "needs work".  (See
+   :ref:`chapter-doctesting` for more information.)
+#. Test the entire Sage library, including ``#long`` doctests.  From
+   ``SAGE_ROOT``, issue the command ``./sage --testall --long``.  (See
+   :ref:`section-parallel-test-whole-library` for information about testing
+   in parallel.)  This will take a while to complete. No, it is not
+   optional.  It is entirely possible that changes to one part of Sage
+   break something in an entirely different part of Sage; patches which
+   introduce new doctest failures cannot be included in new releases.
 #. Ensure that the documentation builds. From ``SAGE_ROOT``, run
    ``./sage -docbuild reference html``, which will build the HTML
    version of the documentation.  Check the "look" of affected files
@@ -222,9 +231,25 @@ To actually test out a patch, do the following:
    ``./sage -coverage <file>``  which will provide a complete report.
    Less than 100% coverage is another reason to return a patch to
    "needs work" status.
+#. Look at :ref:`section-review-patches` for more guidelines on reviewing.
 
-For more information on doctesting the Sage library, see
-:ref:`chapter-doctesting`.
+
+Once you've tested the patch, either by hand or with doctests (or both!),
+report any failures on the Trac page for the ticket.  Make suggestions
+about simplifying the code or fixing typos you noticed.  Mark it as "needs
+work" if there is anything to do.  Otherwise, mark it as "positive review",
+and mention in a comment all the things you checked.  If you don't feel
+experienced enough for that, add a comment on the Trac page explaining what
+you have checked, what the results were, and that you think someone more
+experienced should take a look.
+
+Tickets relating to doctests or the Sage documentation may be a good place
+to get started reviewing.  A list of such tickets with patches ready for review
+can be found using the following Trac `custom query
+<http://trac.sagemath.org/sage_trac/query?status=needs_review&component=doctest&component=documentation&order=priority&col=id&col=summary&col=status&col=type&col=priority&col=milestone&col=component>`_.
+Alternatively, you can search for tickets needing review in a component
+whose mathematics you know well, or for tickets needing review which have
+priority "minor" or "trivial".
 
 
 Creating a change

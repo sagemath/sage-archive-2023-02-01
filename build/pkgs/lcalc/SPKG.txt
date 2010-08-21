@@ -26,6 +26,10 @@ version 1.23, which I removed. (David Kirkby, 27th May 2010).
 
 Michael Rubinstein <mrubinst@uwaterloo.ca>
 
+=== lcalc-1.23.p2 (Mike Hansen, August 21, 2010) ===
+ * Update to work on Cygwin.
+ * #9775: lcalc should make a .dll file on Cygwin instead of .so file
+
 === lcalc-1.23.p2 (John Cremona, August 13 2010 following Jeroen Demeyer, July 24, 2010)  ===
  * Upgrade to PARI/GP 2.4.3 (#9343 and #9592).
  * Removed some code from spkg-install made redundant when upgrading to 1.23

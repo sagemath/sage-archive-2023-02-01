@@ -186,15 +186,6 @@ success() {
     set -e
 }
 
-
-# disable Cygwin build for now
-if [ "$UNAME" = "CYGWIN" ]; then
-#    cp ../../patches/Lcommandline_elliptic.cc .
-    echo "Sorry, the lcalc build is currently broken"
-    echo 1
-fi
-
-
 export DEFINES=""
 
 # Copy sage specific modifications and build
@@ -219,9 +210,12 @@ if [ $UNAME = "Darwin" ]; then
     fi
 fi #End of Mac OS X 10.4 specific instructions
 
-cp libLfunction.so $SAGE_LOCAL/lib/
 
-
+if [ $UNAME = "CYGWIN" ]; then
+    cp libLfunction.so $SAGE_LOCAL/lib/libLfunction.dll
+else
+    cp libLfunction.so $SAGE_LOCAL/lib/
+fi
 
 echo "Now copying over lcalc library header files"
 if `test -d $SAGE_LOCAL/include/lcalc`; then

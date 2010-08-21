@@ -1585,7 +1585,7 @@ if is_package_installed('glpk'):
                   ["sage/numerical/mip_glpk.pyx"],
                   include_dirs = [SAGE_ROOT+"/local/include/", "sage/c_lib/include/"],
                   language = 'c++',
-                  libraries=["csage", "stdc++", "glpk"])
+                  libraries=["csage", "stdc++", "glpk", "gmp", "z"])
         )
 
 if is_package_installed('cbc'):

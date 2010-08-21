@@ -83,6 +83,9 @@ exactly where it says native, but I would expect a grep to find it.
 
 == Changelog ==
 
+=== pari-2.4.3.svn-12577.p3 (Jeroen Demeyer, August 21, 2010) ===
+ * Cosmetic changes
+
 === pari-2.4.3.svn-12577.p2 (Jeroen Demeyer, August 17, 2010) ===
  * Patch get_dlcflags on Darwin
 

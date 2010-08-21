@@ -51,7 +51,7 @@ export LANG
 build()
 {
     #  add the proper flags for 64-bit build mode on OS X and Open Solaris x64
-    # Setting CFLAGS is not sufficient on Solaris since Pari 2.4.3, as this
+    # Setting CFLAGS is not sufficient on Solaris since PARI 2.4.3, as this
     # flag is not being used when the check for GMP and Readline are made
     # so the checks for them fail.  One must redefine CC and export that.
 
@@ -62,7 +62,7 @@ build()
     fi
 
     if [ "x$SAGE64" = xyes ]; then
-	CFLAGS="$CFLAGS $CFLAG64"
+        CFLAGS="$CFLAGS $CFLAG64"
         CC="$CC $CFLAG64" && export CC
     fi
 
@@ -86,17 +86,26 @@ build()
         PARI_EXTRA_OPTS=" --graphic=none "
     fi
 
-    # Allow the user to tune Pari - this is time-consuming, but some may want to do it.
+    # Allow the user to tune PARI - this is time-consuming, but some may want to do it.
+    # It is also very unreliable
     if [ "x$SAGE_TUNE_pari" = xyes ] ; then
-       echo "Pari will be tuned for your system since you set SAGE_TUNE_pari=\"yes\". This can take a long time."
+       echo ""
+       echo "PARI will be tuned for your system since you set SAGE_TUNE_pari=\"yes\"."
+       echo "This can take a long time."
+       echo "WARNING: Tuning PARI is VERY unreliable. You may find your build"
+       echo "of PARI fails, or PARI does not work properly once built."
+       echo ""
        ./Configure $PARI_EXTRA_OPTS --prefix=$SAGE_LOCAL --with-readline=$SAGE_LOCAL --with-gmp=$SAGE_LOCAL --kernel=gmp --graphic=none --tune
     else
-       echo "To minimize sage build time, Pari will not be tuned for your system."
-       echo "If you want higher performance at the expense of a slower build, set"
-       echo "the environment variable SAGE_TUNE_pari=yes by typing the following"
-       echo "before building Sage (or at least before building Pari):"
+       echo "To minimize Sage build time and to ensure the best relieability, PARI"
+       echo "will not be tuned for your system. Experience shows tuning is"
+       echo "unreliable: see http://trac.sagemath.org/sage_trac/ticket/9343"
+       echo "If you wish to test the tuning code, set the environment variable"
+       echo "SAGE_TUNE_pari=yes by typing the following before building Sage (or at"
+       echo "least before building PARI):"
        echo "SAGE_TUNE_pari=yes"
        echo "export SAGE_TUNE_pari"
+       echo ""
        ./Configure $PARI_EXTRA_OPTS --prefix=$SAGE_LOCAL --with-readline=$SAGE_LOCAL --with-gmp=$SAGE_LOCAL --kernel=gmp --graphic=none
     fi
 

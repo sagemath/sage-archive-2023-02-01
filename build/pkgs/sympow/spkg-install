@@ -21,6 +21,19 @@ if [ "x$SAGE64" = xyes ] ; then
    export LDFLAGS
 fi
 
+# Add some code to disable the extended precision of Intel
+# x86 based floating point processors. The code in SYMPOW
+# already works for Linux, so there's no need to do that.
+
+# For now this is only done on Cygwin and Solaris, as its needed
+# on Solaris x86. (It's ignored on SPARC, so there's no need to be specific
+# about it). It might potentially need to be enabled on other systems such
+# as FreeBSD, NetBSD, OpenBSD or anything else that uses an x86 processor.
+
+if [ "x$UNAME"  = xSunOS ] || [ "x$UNAME"  = xCYGWIN ] ; then
+   cp patches/fpu.c src/
+fi
+
 cp patches/Configure src/
 
 cd src/
@@ -36,15 +49,6 @@ make
 
 if [ $? -ne 0 ]; then
    echo "Error building sympow"
-   echo "Trying again without possibility of using assembler"
-   NO_ASSEMBLER="true"
-   export NO_ASSEMBLER
-   ./Configure
-   make
-fi
-
-if [ $? -ne 0 ]; then
-   echo "Error building sympow (even without assembler)"
    exit 1
 fi
 

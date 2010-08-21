@@ -1,4 +1,72 @@
+= sympow =
+
+== Description ==
+SYMPOW is a package to compute special values of symmetric power elliptic
+curve L-functions. It can compute up to about 64 digits of precision.
+
+== License ==
+
+ * See the file src/COPYING
+
+== SPKG Maintainers ==
+ * David Kirkby (I'll do my best, but this is hard to maintain)
+
+== Upstream Contact ==
+  SYMPOW does not appear to be maintained any longer, so there is no
+  upstream web site.
+  Mark Watkins, the package author, now works at Magma.
+  Previous (possibly still usable) email is watkins@maths.usyd.edu.au
+
+== Dependencies ==
+ * None
+
+== Special Update/Build Instructions ==
+ * Some of the code is very dubious, and it is anyones guess really what
+   the compiler does with it. For example, the following line exists in
+   src/eulerfactors.c:
+
+   if ((HECKE) && (d==1)) return hecke_good(p,ap,m,v);
+
+   But since hecke_good is defined as returning void, it's hard to know
+   exactly how this code behaves. I would not be surprised by any bugs
+   that might show up. I (David Kirkby) would personally not trust this
+   code much at all.
+ * This is a difficult package to maintain. A trac ticket (#9758) has been
+   opened to implement Watkins-Delaunay's algorithm for computing modular
+   degrees in Sage. Once implemented, it should be possible to remove this
+   package.
+ * The package is configured such that the data file written are in a directory
+   below where 'sympow' is installed. If Sage is installed globally, then
+   it will be impossible to create the data files without being root.
+   This has been fixed in the Gentoo Linux distribution. Some information
+   from Christopher can be see on http://trac.sagemath.org/sage_trac/ticket/9703
+   but at the time of writing, this package has not been modified.
+ * Experimenting with some of these compiler options to gcc might bring
+   benefits in some cases. -mfpmath=sse, -mpc32, -mpc64, -mpc80.
+
 == Changelog ==
+
+=== sympow-1.018.1.p8 (David Kirkby, 21st August 2010) ===
+ * #9703 + #9166 Implement inline assembly code to set the control
+   word of the floating point processor to round to an
+   IEEE-754 double (53-bit mantissa, 64-bits in total), rather
+   than the default extended precision. This resolves problems with
+   doctest failures on Solaris 10 x86, OpenSolaris on x86 and Cygwin.
+   This is in the file patches/fpu.c
+ * Tidied up SPKG.txt, to conform to the Sage Developers Guide.
+ * Move part of the contents of SPKG.txt to a file called 'email-exchange.txt'
+   which shows some email exchanges between William Stein and Mark
+   Watkins. It was previously here in SPKG.txt, but is rather out of place.
+ * Changed the very badly written Configure script to work with any compiler
+   (not gcc as before). Actually, since the C code is so badly written,
+   the Sun compiler will not compile it, but at least the errors can be seen
+   if one tries.
+ * Changed the Configure script so the code to change the precision control
+   of the floating point processor is implemented on any non-OS X system
+   with an x86 CPU. It now no longer assumes Linux.
+ * Removed code from spkg-install which tries to first build SYMPOW  with
+   assembly code, then without it. The code must be old and redundant, as
+   the varibles set are not anywhere in the SYMPOW source code.
 
 === sympow-1.018.1.p7 (David Kirkby, 25th May 2010) ===
  * #9029 Allow to build 64-bit
@@ -9,86 +77,3 @@
 
 === sympow-1.018.1.p5 ===
  * make sure we pick gcc over cc
-
----------------------------------------------------------------------
-
-A comment from Mark Watkins:
-
-William Stein wrote:
-> Mark (cc: sage-devel)
-> Do you have any comments on the remarks below about sympow?
-> In particular, "Otherwise, sympow would be useless on
-> anything not linux and not x86."   Given that you only use x86,
-> and are perhaps the main user of sympow... ?
-
-SYMPOW doesn't use extended precision --- exactly the opposite, it must
-turn them off if there are on! I thought that SAGE contained something
-else with Bailey's quad-doubles, for which there is the same problem
-(hacking asm-type code to bit-twiddle the FPU settings). SYMPOW should
-work fine on any system that uses 53-bit doubles. On other systems,
-it will still work for computations less than 16 or so digits (though
-the current version might die on start-up).
-
-
-
-
-
-NOTES:
-
-1. getline conflicts with a system-wide function name on
-Cygwin.  So I changed it to getline0 in a whole bunch
-of Mark's files.
-
-
-2.
-Modified Configure by changing line 66 to the following:
-  if [ "$MACH" = "$x" -a `uname` = "Linux" ];
-
-
-From: Mark Watkins <watkins@maths.usyd.edu.au>
-Subject: Re: sympow
-To: wstein@gmail.com (William Stein)
-Date: Mon, 8 May 2006 22:01:40 +1000 (EST)
-
-William Stein wrote:
-> I compiled it on my OS X machine without the fpu_control
-> business, and started up without any special options
-> (in particular, without -noqdcheck).  Still sympow seems
-> to work fine.
-
-This seems right. Linux puts the FPU into extended precision
-(64-bit mantissa), while all other OSs put it into normal double
-precision --- so unless you run a programme that resets it,
-you should get the desired precision.
-
--------------------------------------------------------------
-
-
-Note from Mark Watkins:
-
-
-From: Mark Watkins <watkins@maths.usyd.edu.au>
-Subject: ec/sympow speed
-To: wstein@ucsd.edu (William Stein)
-Date: Mon, 27 Mar 2006 14:02:26 +1100 (EST)
-
-One main difference between ec and sympow for moddeg is that the
-former guesses that fewer terms will be needed to find the modular
-degree, and thus the Euler product need not be expanded as
-far. Changing this would make sympow about as fast, though ec is still
-maybe 5% faster.
-
-
--------------
-
-
-From: Mark Watkins <watkins@maths.usyd.edu.au>
-Subject: sympow moddeg
-To: wstein@ucsd.edu (William Stein)
-Date: Fri, 21 Apr 2006 17:01:10 +1000 (EST)
-
-
-I currently have sympow's moddeg about 10% faster than ec it seems.
-I will test it more thoroughly, and consider adding a "proof" option
-(assuming c=1, etc.).
-

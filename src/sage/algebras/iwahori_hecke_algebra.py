@@ -75,8 +75,8 @@ class IwahoriHeckeAlgebraT(CombinatorialFreeModule):
         `(T_i-q_1)*(T_i-q_2) == 0`
 
     together with the braid relations `T_i T_j T_i ... == T_j T_i T_j ...`,
-    where the number of terms on both sides is `k/2` with `k` the order of
-    `s_i s_j` in the Coxeter group.
+    where the number of terms on both sides is the order of `s_i s_j` in the
+    Coxeter group.
 
     Weyl group elements form a basis of the Iwahori Hecke algebra `H`
     with the property that if `w1` and `w2` are Coxeter group elements

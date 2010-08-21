@@ -17,6 +17,7 @@ __ http://creativecommons.org/licenses/by-sa/3.0/
 
    functional_programming
    group_theory
+   lie
    linear_programming
 
 Indices and tables

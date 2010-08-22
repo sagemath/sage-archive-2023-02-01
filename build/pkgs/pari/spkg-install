@@ -18,7 +18,7 @@ PATCHED="$TOP/patches/files"
 
 cd src
 
-# These two are needed so that Sage can catch pari's error signals.
+# These two are needed so that Sage can catch PARI's error signals.
 cp "$PATCHED/init.c"  src/language/init.c
 cp "$PATCHED/mp.c"    src/kernel/gmp/mp.c
 
@@ -39,6 +39,10 @@ cp "$PATCHED/get_tests" config/
 
 # Add -fno-common to DLCFLAGS on Darwin
 cp "$PATCHED/get_dlcflags" config/
+
+# Two configure patches for Solaris
+cp "$PATCHED/Configure" .
+cp "$PATCHED/Makefile.SH" config/
 
 
 # This is needed or there are weird locale problems involving rpath

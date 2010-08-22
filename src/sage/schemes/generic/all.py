@@ -10,5 +10,6 @@ from projective_space import ProjectiveSpace, is_ProjectiveSpace
 from scheme           import is_Scheme, is_AffineScheme
 from toric_variety import AffineToricVariety, ToricVariety
 from toric_variety_library import toric_varieties
+from toric_divisor import ToricDivisorGroup, ToricDivisor
 from hypersurface     import ProjectiveHypersurface, AffineHypersurface
 

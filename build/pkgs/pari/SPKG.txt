@@ -83,6 +83,10 @@ exactly where it says native, but I would expect a grep to find it.
 
 == Changelog ==
 
+=== pari-2.4.3.svn-12577.p4 (Jeroen Demeyer, August 22, 2010) ===
+ * Change "test -e" to "test -f" for Solaris.
+ * Configure using "#!/usr/bin/env bash" instead of "#!/bin/sh"
+
 === pari-2.4.3.svn-12577.p3 (Jeroen Demeyer, August 21, 2010) ===
  * Cosmetic changes
 

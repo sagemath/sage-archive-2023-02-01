@@ -1,0 +1,10 @@
+Index: Configure
+===================================================================
+--- Configure	(revision 12583)
++++ Configure	(working copy)
+@@ -1,4 +1,4 @@
+-#! /bin/sh
++#!/usr/bin/env bash
+ #
+ # This file is part of the PARI/GP package.
+ #

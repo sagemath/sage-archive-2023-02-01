@@ -1,6 +1,6 @@
 """
 This file contains all the example code from the published book
-'Elementary Number Theory: Primes, Congruences, and Secretes' by
+'Elementary Number Theory: Primes, Congruences, and Secrets' by
 William Stein, Springer-Verlag, 2009.
 """
 

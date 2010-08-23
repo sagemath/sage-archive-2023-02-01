@@ -669,10 +669,38 @@ class Cone_of_fan(ConvexRationalPolyhedralCone):
             sage: cone = P1xP1.generating_cone(0)
             sage: cone.star_generator_indices()
             (0,)
+
+        TESTS:
+
+        A mistake in this function used to cause the problem reported in
+        Trac 9782. We check that now everything is working smoothly::
+
+            sage: f = Fan([(0, 2, 4),
+            ...            (0, 4, 5),
+            ...            (0, 3, 5),
+            ...            (0, 1, 3),
+            ...            (0, 1, 2),
+            ...            (2, 4, 6),
+            ...            (4, 5, 6),
+            ...            (3, 5, 6),
+            ...            (1, 3, 6),
+            ...            (1, 2, 6)],
+            ...           [(-1, 0, 0),
+            ...            (0, -1, 0),
+            ...            (0, 0, -1),
+            ...            (0, 0, 1),
+            ...            (0, 1, 2),
+            ...            (0, 1, 3),
+            ...            (1, 0, 4)])
+            sage: f.is_complete()
+            True
+            sage: X = ToricVariety(f)
+            sage: X.fan().is_complete()
+            True
         """
         if "_star_generator_indices" not in self.__dict__:
             fan = self.ambient()
-            sgi = set(range(fan.nrays()))
+            sgi = set(range(fan.ngenerating_cones()))
             for ray in self.ambient_ray_indices():
                 sgi.intersection_update(fan._ray_to_cones(ray))
             self._star_generator_indices = tuple(sorted(sgi))

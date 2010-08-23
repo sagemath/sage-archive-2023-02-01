@@ -17,7 +17,8 @@ def AdditiveAbelianGroup(invs, remember_generators = True):
 
     INPUTS:
 
-    - ``invs`` (list of integers): the invariants. These should all be `\ge 0`.
+    - ``invs`` (list of integers): the invariants.
+      These should all be greater than or equal to zero.
 
     - ``remember_generators`` (boolean): whether or not to fix a set of
       generators (corresponding to the given invariants, which need not be in
@@ -25,7 +26,7 @@ def AdditiveAbelianGroup(invs, remember_generators = True):
 
     OUTPUT:
 
-    the abelian group `\bigoplus_i \ZZ / n_i \ZZ`, where `n_i` are the invariants.
+    The abelian group `\bigoplus_i \ZZ / n_i \ZZ`, where `n_i` are the invariants.
 
     EXAMPLE::
 
@@ -44,15 +45,68 @@ def AdditiveAbelianGroup(invs, remember_generators = True):
         sage: H.gens()
         ((0, 1, 2), (1, 0, 0))
 
-    .. note ::
+    There are several ways to create elements of an additive abelian group.
+    Realize that there are two sets of generators:  the "obvious" ones composed
+    of zeros and ones, one for each invariant given to construct the group, the
+    other being a set of minimal generators.  Which set is the default varies
+    with the use of the ``remember_generators`` switch.
 
-        TODO: The output of the above tests is somewhat disturbing! I haven't
-        yet come up with a good way of printing these things. Note that (0, -3,
-        -3) is just (0, 1, 0) and (0, -2, -2) is just (0, 0, 1), but I can't
-        think of a way of reducing modulo the relations that is canonical in
-        all cases and still comes up with the "obviously right answer" here.
+    First with "obvious" generators.  Note that a raw list will use the
+    minimal generators and a vector (a module element) will use the generators
+    that pair up naturally with the invariants.  We create the same element
+    repeatedly. ::
+
+        sage: H=AdditiveAbelianGroup([3,2,0], remember_generators=True)
+        sage: H.gens()
+        ((1, 0, 0), (0, 1, 0), (0, 0, 1))
+        sage: [H.0, H.1, H.2]
+        [(1, 0, 0), (0, 1, 0), (0, 0, 1)]
+        sage: p=H.0+H.1+6*H.2; p
+        (1, 1, 6)
+
+        sage: H.smith_form_gens()
+        ((2, 1, 0), (0, 0, 1))
+        sage: q=H([5,6]); q
+        (1, 1, 6)
+        sage: p==q
+        True
+
+        sage: r=H(vector([1,1,6])); r
+        (1, 1, 6)
+        sage: p==r
+        True
+
+        sage: s=H(p)
+        sage: p==s
+        True
+
+    Again, but now where the generators are the minimal set.  Coercing a
+    list or a vector works as before, but the default generators are different. ::
+
+        sage: G=AdditiveAbelianGroup([3,2,0], remember_generators=False)
+        sage: G.gens()
+        ((2, 1, 0), (0, 0, 1))
+        sage: [G.0, G.1]
+        [(2, 1, 0), (0, 0, 1)]
+        sage: p=5*G.0+6*G.1; p
+        (1, 1, 6)
+
+        sage: H.smith_form_gens()
+        ((2, 1, 0), (0, 0, 1))
+        sage: q=G([5,6]); q
+        (1, 1, 6)
+        sage: p==q
+        True
+
+        sage: r=G(vector([1,1,6])); r
+        (1, 1, 6)
+        sage: p==r
+        True
+
+        sage: s=H(p)
+        sage: p==s
+        True
     """
-
     invs = [ZZ(x) for x in invs]
     if not all( [x >= 0 for x in invs] ): raise ValueError, "Invariants must be nonnegative"
     A, B = cover_and_relations_from_invariants(invs)
@@ -64,9 +118,12 @@ def AdditiveAbelianGroup(invs, remember_generators = True):
 
 def cover_and_relations_from_invariants(invs):
     r"""
-    Utility function: given a list of integers, construct the obvious pair of
-    free modules such that the quotient is naturally isomorphic to the
-    corresponding product of cyclic modules.
+    A utility function to construct modules required to initialize the super class.
+
+    Given a list of integers, this routine constructs the obvious pair of
+    free modules such that the quotient of the two free modules over `\ZZ`
+    is naturally isomorphic to the corresponding product of cyclic modules
+    (and hence isomorphic to a direct sum of cyclic groups).
 
     EXAMPLES::
 

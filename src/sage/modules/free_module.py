@@ -133,6 +133,9 @@ AUTHORS:
 - William Stein (2005, 2007)
 
 - David Kohel (2007, 2008)
+
+- Niles Johnson (2010-08): Trac #3893: ``random_element()`` should pass on ``*args`` and ``**kwds``.
+
 """
 
 ###########################################################################
@@ -1708,17 +1711,18 @@ class FreeModule_generic(module.Module):
         """
         return FreeModule(self.base_ring(), self.rank())
 
-    def random_element(self, prob=1.0, **kwds):
+    def random_element(self, prob=1.0, *args, **kwds):
         """
         Returns a random element of self.
 
         INPUT:
 
 
-        -  ``prob`` - float; probability that given coefficient
-           is nonzero.
+        -- ``prob`` - float. Each coefficient will be set to zero with
+           probability `1-prob`. Otherwise coefficients will be chosen
+           randomly from base ring (and may be zero).
 
-        -  ``**kwds`` - passed on to random_element function
+        -- ``*args, **kwds`` - passed on to ``random_element()`` function
            of base ring.
 
 
@@ -1731,11 +1735,18 @@ class FreeModule_generic(module.Module):
             (2, 2)
             sage: M.random_element()
             (1, 1)
+
+        Passes extra positional or keyword arguments through::
+
+            sage: M.random_element(5,10)
+            (9, 9)
+
+
         """
         rand = current_randstate().python_random().random
         R = self.base_ring()
         prob = float(prob)
-        c = [0 if rand() > prob else R.random_element(**kwds) for _ in range(self.rank())]
+        c = [0 if rand() > prob else R.random_element(*args, **kwds) for _ in range(self.rank())]
         return self.linear_combination_of_basis(c)
 
     def rank(self):
@@ -4149,18 +4160,19 @@ class FreeModule_ambient(FreeModule_generic):
         """
         return self.coordinates(v, check=check)
 
-    def random_element(self, prob=1.0, **kwds):
+    def random_element(self, prob=1.0, *args, **kwds):
         """
         Returns a random element of self.
 
         INPUT:
 
 
-        -  ``prob`` - float; probability that given coefficient
-           is nonzero.
+        - ``prob`` - float. Each coefficient will be set to zero with
+           probability `1-prob`. Otherwise coefficients will be chosen
+           randomly from base ring (and may be zero).
 
-        -  ``**kwds`` - passed on to random_element function
-           of base ring.
+        - ``*args, **kwds`` - passed on to random_element function of base
+           ring.
 
 
         EXAMPLES::
@@ -4173,13 +4185,19 @@ class FreeModule_ambient(FreeModule_generic):
             sage: M.random_element()
             (-12, 0, 0)
 
+        Passes extra positional or keyword arguments through::
+
+            sage: M.random_element(5,10)
+            (5, 5, 5)
+
+
         ::
 
             sage: M = FreeModule(ZZ, 16)
             sage: M.random_element()
-            (1, -1, 1, -1, -2, -1, 4, -4, -6, 5, 0, 0, -2, 0, 1, -4)
+            (-6, 5, 0, 0, -2, 0, 1, -4, -6, 1, -1, 1, 1, -1, 1, -1)
             sage: M.random_element(prob=0.3)
-            (0, 0, 0, 0, 0, 0, 0, -6, 1, -1, 1, 0, 1, 0, 0, 0)
+            (0, 0, 0, 0, -3, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, -3)
         """
         rand = current_randstate().python_random().random
         R = self.base_ring()
@@ -4187,7 +4205,7 @@ class FreeModule_ambient(FreeModule_generic):
         prob = float(prob)
         for i in range(self.rank()):
             if rand() <= prob:
-                v[i] = R.random_element(**kwds)
+                v[i] = R.random_element(*args, **kwds)
         return v
 
 

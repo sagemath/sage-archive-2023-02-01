@@ -4,6 +4,9 @@ Field of Arbitrary Precision Complex Numbers
 AUTHORS:
 
 - William Stein (2006-01-26): complete rewrite
+
+- Niles Johnson (2010-08): Trac #3893: ``random_element()`` should pass on ``*args`` and ``**kwds``.
+
 """
 
 #################################################################################
@@ -422,10 +425,11 @@ class ComplexField_class(field.Field):
         return (AlgebraicClosureFunctor(), self._real_field())
 
 
-    def random_element(self, component_max=1):
+    def random_element(self, component_max=1, *args, **kwds):
         r"""
         Returns a uniformly distributed random number inside a square
         centered on the origin (by default, the square [-1,1]x[-1,1]).
+        Passes additional arguments and keywords to underlying real field.
 
         EXAMPLES::
 
@@ -436,10 +440,16 @@ class ComplexField_class(field.Field):
             [-5.7e-7 + 5.4e-7*I, 8.6e-7 + 9.2e-7*I, -5.7e-7 + 6.9e-7*I, -1.2e-7 - 6.9e-7*I, 2.7e-7 + 8.3e-7*I]
             sage: [CC6.random_element(pi^20) for _ in range(5)]
             [-5.0e9*I, 2.8e9 - 5.1e9*I, 2.7e8 + 6.3e9*I, 2.7e8 - 6.4e9*I, 6.7e8 + 1.7e9*I]
+
+        Passes extra positional or keyword arguments through::
+
+            sage: [CC.random_element(distribution='1/n') for _ in range(5)]
+            [-0.227352360839242 + 0.589094456851554*I, 0.0750329809397750 + 0.590691975700246*I, -0.128454377918593 + 0.131058245507370*I, -0.409592358398239 - 0.141913124504965*I, -0.998326992750827 + 0.250548278995221*I]
+
         """
         size = self._real_field()(component_max)
-        re = self._real_field().random_element(-size, size)
-        im = self._real_field().random_element(-size, size)
+        re = self._real_field().random_element(-size, size, *args, **kwds)
+        im = self._real_field().random_element(-size, size, *args, **kwds)
         return self(re, im)
 
     def pi(self):

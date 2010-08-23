@@ -44,6 +44,11 @@ TEST::
     True
     sage: RationalField() is RationalField()
     True
+
+AUTHORS:
+
+- Niles Johnson (2010-08): Trac #3893: ``random_element()`` should pass on ``*args`` and ``**kwds``.
+
 """
 
 import random
@@ -759,21 +764,27 @@ class RationalField(_uniq, number_field_base.NumberField):
     def _an_element_(self):
         return rational.Rational((1,2))
 
-    def random_element(self, num_bound=None, den_bound=None, distribution=None):
+    def random_element(self, num_bound=None, den_bound=None, *args, **kwds):
         """
         EXAMPLES::
 
-            sage: QQ.random_element(10,10) # random output
-            -5/3
+            sage: QQ.random_element(10,10)
+            1/4
+
+        Passes extra positional or keyword arguments through::
+
+            sage: QQ.random_element(10,10, distribution='1/n')
+            -1
+
         """
         global ZZ
         if ZZ is None:
             import integer_ring
             ZZ = integer_ring.ZZ
         if num_bound == None:
-            num = ZZ.random_element(distribution=distribution)
-            den = ZZ.random_element(distribution=distribution)
-            while den == 0: den = ZZ.random_element(distribution=distribution)
+            num = ZZ.random_element(*args, **kwds)
+            den = ZZ.random_element(*args, **kwds)
+            while den == 0: den = ZZ.random_element(*args, **kwds)
             return self((num, den))
         else:
             if num_bound == 0:
@@ -782,8 +793,10 @@ class RationalField(_uniq, number_field_base.NumberField):
                 den_bound = num_bound
                 if den_bound < 1:
                     den_bound = 2
-            return self((ZZ.random_element(-num_bound, num_bound+1, distribution=distribution),
-                         ZZ.random_element(1, den_bound+1, distribution=distribution)))
+            num = ZZ.random_element(-num_bound, num_bound+1, *args, **kwds)
+            den = ZZ.random_element(1, den_bound+1, *args, **kwds)
+            while den == 0: den = ZZ.random_element(1, den_bound+1, *args, **kwds)
+            return self((num,den))
     def zeta(self, n=2):
         """
         Return a root of unity in ``self``.

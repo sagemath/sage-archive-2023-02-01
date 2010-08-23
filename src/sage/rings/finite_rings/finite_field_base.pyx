@@ -575,24 +575,26 @@ cdef class FiniteField(Field):
         return self.order() - 1
 
 
-    def random_element(self, bound=None):
+    def random_element(self, *args, **kwds):
         r"""
-        A random element of the finite field.
-
-        INPUT:
-
-        - ``bound`` -- ignored (exists for consistency with other
-          ``random_element`` methods, e.g. for `\ZZ`)
+        A random element of the finite field.  Passes arguments to
+        ``random_element()`` function of underlying vector space.
 
         EXAMPLES::
 
-            sage: k = GF(2^10, 'a')
-            sage: k.random_element() # random output
-            a^9 + a
+            sage: k = GF(19^4, 'a')
+            sage: k.random_element()
+            a^3 + 3*a^2 + 6*a + 9
+
+        Passes extra positional or keyword arguments through::
+
+            sage: k.random_element(prob=0)
+            0
+
         """
         if self.degree() == 1:
             return self(randrange(self.order()))
-        v = self.vector_space().random_element()
+        v = self.vector_space().random_element(*args, **kwds)
         return self(v)
 
     def some_elements(self):

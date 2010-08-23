@@ -1,12 +1,16 @@
 r"""
 Field of Arbitrary Precision Complex Intervals
 
-AUTHOR:
-  William Stein wrote complex_field.py.
+AUTHORS:
+
+- William Stein wrote complex_field.py.
     -- William Stein (2006-01-26): complete rewrite
   Then complex_field.py was copied to complex_interval_field.py and
   heavily modified:
     -- Carl Witty (2007-10-24): rewrite for intervals
+
+    -- Niles Johnson (2010-08): Trac #3893: ``random_element()`` should pass on ``*args`` and ``**kwds``.
+
 """
 
 #################################################################################
@@ -331,11 +335,11 @@ class ComplexIntervalField_class(field.Field):
             raise IndexError, "n must be 0"
         return complex_interval.ComplexIntervalFieldElement(self, 0, 1)
 
-    def random_element(self, *args):
+    def random_element(self, *args, **kwds):
         """
         Create a random element of self. Simply chooses the real and
-        imaginary part randomly, passing arguments to the underlying
-        real interval field.
+        imaginary part randomly, passing arguments and keywords to the
+        underlying real interval field.
 
         EXAMPLES::
 
@@ -343,9 +347,14 @@ class ComplexIntervalField_class(field.Field):
             -0.30607732607725314? - 0.075929193054320221?*I
             sage: CIF.random_element(10, 20)
             10.809593725498833? + 13.964968616713041?*I
+
+        Passes extra positional or keyword arguments through::
+
+            sage: CIF.random_element(max=0, min=-5)
+            -4.3945698326594416? - 3.8270855512644575?*I
         """
-        return self._real_field().random_element(*args) \
-            + self.gen() * self._real_field().random_element(*args)
+        return self._real_field().random_element(*args, **kwds) \
+            + self.gen() * self._real_field().random_element(*args, **kwds)
 
     def is_field(self, proof = True):
         """

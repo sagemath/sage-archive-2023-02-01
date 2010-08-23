@@ -213,7 +213,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
 
     def random_element(self, double xmin=-1, double xmax=1, double ymin=-1, double ymax=1):
         """
-        Return a random element this complex double field with real and
+        Return a random element of this complex double field with real and
         imaginary part bounded by xmin, xmax, ymin, ymax.
 
         EXAMPLES::

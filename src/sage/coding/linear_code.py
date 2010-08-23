@@ -160,6 +160,8 @@ AUTHORS:
 - Kwankyu Lee (2010-01): added methods gen_mat_systematic, information_set, and
   magma interface for linear codes.
 
+- Niles Johnson (2010-08): Trac #3893: ``random_element()`` should pass on ``*args`` and ``**kwds``.
+
 TESTS::
 
     sage: MS = MatrixSpace(GF(2),4,7)
@@ -2019,9 +2021,10 @@ class LinearCode(module.Module):
         GL2 = MS2(list(B))
         return LinearCode(GL2)
 
-    def random_element(self):
+    def random_element(self, *args, **kwds):
         """
-        Returns a random codeword.
+        Returns a random codeword; passes other positional and keyword
+        arguments to ``random_element()`` method of vector space.
 
         OUTPUT:
 
@@ -2038,10 +2041,20 @@ class LinearCode(module.Module):
             False
             sage: c2 in Cc
             True
+
+        ::
+
+            sage: C.random_element()
+            (1, 0, 0, a + 1, 1, a, a, a + 1, a + 1, 1, 1, 0, a + 1, a, 0, a, a, 0, a, a, 1)
+
+        Passes extra positional or keyword arguments through::
+
+            sage: C.random_element(prob=.5, distribution='1/n')
+            (1, 0, a, 0, 0, 0, 0, a + 1, 0, 0, 0, 0, 0, 0, 0, 0, a + 1, a + 1, 1, 0, 0)
         """
         V = self.ambient_space()
         S = V.subspace(self.basis())
-        return S.random_element()
+        return S.random_element(*args, **kwds)
 
     def redundancy_matrix(C):
         """

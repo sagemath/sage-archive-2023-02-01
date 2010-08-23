@@ -9,6 +9,9 @@ AUTHORS:
 - William Stein (2007-01-24): modifications and clean up and docs,
   etc.
 
+- Niles Johnson (2010-08): Trac #3893: ``random_element()`` should pass on ``*args`` and ``**kwds``.
+
+
 This is a straightforward binding to the MPFI library; it may be
 useful to refer to its documentation for more details.
 
@@ -663,10 +666,10 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
         """
         return __create__RealIntervalField_version0, (self.__prec, self.sci_not)
 
-    def random_element(self, *args):
+    def random_element(self, *args, **kwds):
         """
-        Returns a random element of self. Any arguments are passed onto
-        the random element function in real field.
+        Returns a random element of self. Any arguments or keywords are
+        passed onto the random element function in real field.
 
         By default, this is uniformly distributed in `[-1, 1]`.
 
@@ -678,8 +681,15 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
             -0.075929193054320221?
             sage: RIF.random_element(-100, 100)
             -83.808125490023344?
+
+        Passes extra positional or keyword arguments through::
+
+            sage: RIF.random_element(min=0, max=100)
+            39.649686167130405?
+            sage: RIF.random_element(min=-100, max=0)
+            -87.891396653188821?
         """
-        return self(self._middle_field().random_element(*args))
+        return self(self._middle_field().random_element(*args, **kwds))
 
     def gen(self, i=0):
         if i == 0:

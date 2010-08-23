@@ -551,25 +551,30 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         The default uniform distribution is integers between -2 and 2
         inclusive::
 
-            sage: [ZZ.random_element(distribution="uniform") \
-                    for _ in range(10)]
+            sage: [ZZ.random_element(distribution="uniform") for _ in range(10)]
             [2, -2, 2, -2, -1, 1, -1, 2, 1, 0]
+
+        Here we use the distribution `1/n`::
+
+            sage: [ZZ.random_element(distribution="1/n") for _ in range(10)]
+            [-6, 1, -1, 1, 1, -1, 1, -1, -3, 1]
+
 
         If a range is given, the distribution is uniform in that range::
 
             sage: ZZ.random_element(-10,10)
-            -5
+            -2
             sage: ZZ.random_element(10)
-            7
+            2
             sage: ZZ.random_element(10^50)
-            62498971546782665598023036522931234266801185891699
+            9531604786291536727294723328622110901973365898988
             sage: [ZZ.random_element(5) for _ in range(10)]
-            [1, 3, 4, 0, 3, 4, 0, 3, 0, 1]
+            [3, 1, 2, 3, 0, 0, 3, 4, 0, 3]
 
         Notice that the right endpoint is not included::
 
             sage: [ZZ.random_element(-2,2) for _ in range(10)]
-            [-1, -2, 0, -2, 1, -1, -1, -2, -2, 1]
+            [1, -2, -2, -1, -2, -1, -1, -2, 0, -2]
 
         We compute a histogram over 1000 samples of the default
         distribution::
@@ -579,8 +584,9 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: for _ in range(1000):
             ...       samp = ZZ.random_element()
             ...       d[samp] = d[samp] + 1
+
             sage: sorted(d.items())
-            [(-1026, 1), (-248, 1), (-145, 1), (-81, 1), (-80, 1), (-79, 1), (-75, 1), (-69, 1), (-68, 1), (-63, 2), (-61, 1), (-57, 1), (-50, 1), (-37, 1), (-35, 1), (-33, 1), (-29, 2), (-27, 2), (-25, 1), (-23, 2), (-22, 2), (-20, 1), (-19, 1), (-18, 1), (-16, 4), (-15, 3), (-14, 1), (-13, 2), (-12, 2), (-11, 2), (-10, 7), (-9, 3), (-8, 3), (-7, 7), (-6, 8), (-5, 13), (-4, 24), (-3, 34), (-2, 75), (-1, 207), (0, 209), (1, 189), (2, 64), (3, 35), (4, 13), (5, 11), (6, 10), (7, 4), (8, 4), (10, 1), (11, 1), (12, 1), (13, 1), (14, 1), (16, 3), (18, 1), (19, 1), (26, 2), (27, 1), (28, 1), (29, 1), (30, 1), (32, 1), (33, 2), (35, 1), (37, 1), (39, 1), (41, 1), (42, 1), (52, 1), (91, 1), (94, 1), (106, 1), (111, 1), (113, 2), (132, 1), (134, 1), (232, 1), (240, 1), (2133, 1), (3636, 1)]
+            [(-1955, 1), (-1026, 1), (-357, 1), (-248, 1), (-145, 1), (-81, 1), (-80, 1), (-79, 1), (-75, 1), (-69, 1), (-68, 1), (-63, 2), (-61, 1), (-57, 1), (-50, 1), (-37, 1), (-35, 1), (-33, 1), (-29, 2), (-27, 1), (-25, 1), (-23, 2), (-22, 3), (-20, 1), (-19, 1), (-18, 1), (-16, 4), (-15, 3), (-14, 1), (-13, 2), (-12, 2), (-11, 2), (-10, 7), (-9, 3), (-8, 3), (-7, 7), (-6, 8), (-5, 13), (-4, 24), (-3, 34), (-2, 75), (-1, 206), (0, 208), (1, 189), (2, 63), (3, 35), (4, 13), (5, 11), (6, 10), (7, 4), (8, 3), (10, 1), (11, 1), (12, 1), (13, 1), (14, 1), (16, 3), (18, 2), (19, 1), (26, 2), (27, 1), (28, 2), (29, 1), (30, 1), (32, 1), (33, 2), (35, 1), (37, 1), (39, 1), (41, 1), (42, 1), (52, 1), (91, 1), (94, 1), (106, 1), (111, 1), (113, 2), (132, 1), (134, 1), (232, 1), (240, 1), (2133, 1), (3636, 1)]
         """
         cdef integer.Integer z
         z = <integer.Integer>PY_NEW(integer.Integer)
@@ -615,6 +621,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
                 mpz_urandomm(value, rstate.gmp_state, n_width.value)
                 mpz_add(value, value, n_min.value)
         elif distribution == "mpz_rrandomb":
+            if x is None:
+                raise ValueError("must specify x to use 'distribution=mpz_rrandomb'")
             mpz_rrandomb(value, rstate.gmp_state, int(x))
         else:
             raise ValueError, "Unknown distribution for the integers: %s"%distribution

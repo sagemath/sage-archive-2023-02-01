@@ -38,13 +38,13 @@ fraction field.
 
     sage: a = random_matrix(CFF, 4)
     sage: a
-    [[0, 2]    [1]    [1] [0, 2]]
-    [  [-1]    [1]   [-1]   [-2]]
-    [   [2]    [1]   [-1]    [1]]
-    [  [-1]    [1]   [-2] [0, 2]]
+    [    [-1, 2] [-1, 1, 94]      [0, 2]       [-12]]
+    [       [-1]      [0, 2]  [-1, 1, 3]   [0, 1, 2]]
+    [    [-3, 2]         [0]   [0, 1, 2]        [-1]]
+    [        [1]        [-1]      [0, 3]         [1]]
     sage: f = a.charpoly()
     sage: f
-    [1]*x^4 + ([-1])*x^3 + [3, 1, 3]*x^2 + [3]*x + [-18]
+    [1]*x^4 + ([-2, 3])*x^3 + [14, 1, 1, 1, 9, 1, 8]*x^2 + ([-13, 4, 1, 2, 1, 1, 1, 1, 1, 2, 2])*x + [-6, 1, 5, 9, 1, 5]
     sage: f(a)
     [[0] [0] [0] [0]]
     [[0] [0] [0] [0]]
@@ -52,6 +52,11 @@ fraction field.
     [[0] [0] [0] [0]]
     sage: vector(CFF, [1/2, 2/3, 3/4, 4/5])
     ([0, 2], [0, 1, 2], [0, 1, 3], [0, 1, 4])
+
+AUTHORS:
+
+- Niles Johnson (2010-08): Trac #3893: ``random_element()`` should pass on ``*args`` and ``**kwds``.
+
 """
 from sage.structure.element         import FieldElement
 from sage.structure.parent_gens     import ParentWithGens
@@ -335,14 +340,22 @@ class ContinuedFractionField_class(Field):
         """
         return infinity
 
-    def random_element(self, num_bound=2, den_bound=2):
+    def random_element(self, *args, **kwds):
         """
         EXAMPLES::
 
            sage: CFF.random_element(10,10)
            [0, 4]
+
+        Passes extra positional or keyword arguments through::
+
+           sage: [CFF.random_element(den_bound=10, num_bound=2) for x in range(4)]
+           [[-1, 1, 3], [0, 7], [0, 3], [0, 4]]
+
+
+
         """
-        return self(QQ.random_element(num_bound = num_bound, den_bound = den_bound))
+        return self(QQ.random_element(*args, **kwds))
 
 
 class ContinuedFraction(FieldElement):

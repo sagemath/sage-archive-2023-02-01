@@ -1,5 +1,10 @@
 r"""
 The modular group `{\rm SL}_2(\ZZ)`
+
+AUTHORS:
+
+- Niles Johnson (2010-08): Trac #3893: ``random_element()`` should pass on ``*args`` and ``**kwds``.
+
 """
 
 ################################################################################
@@ -139,10 +144,12 @@ class SL2Z_class(Gamma0_class):
         """
         return Cusp(1,0)
 
-    def random_element(self, bound=100):
+    def random_element(self, bound=100, *args, **kwds):
         r"""
         Return a random element of `{\rm SL}_2(\ZZ)` with entries whose
         absolute value is strictly less than bound (default 100).
+        Additional arguments and keywords are passed to the random_element
+        method of ZZ.
 
         (Algorithm: Generate a random pair of integers at most bound. If they
         are not coprime, throw them away and start again. If they are, find an
@@ -157,13 +164,23 @@ class SL2Z_class(Gamma0_class):
 
         EXAMPLES::
 
-            sage: SL2Z.random_element() # random
-            sage: SL2Z.random_element(5) # still random
-        """
+            sage: SL2Z.random_element()
+            [60 13]
+            [83 18]
+            sage: SL2Z.random_element(5)
+            [-1  3]
+            [ 1 -4]
 
-        if bound <= 1: raise ValueError, "Don't be silly"
-        c = ZZ.random_element(1-bound, bound)
-        d = ZZ.random_element(1-bound, bound)
+        Passes extra positional or keyword arguments through::
+
+            sage: SL2Z.random_element(5, distribution='1/n')
+            [ 1 -1]
+            [ 0  1]
+
+        """
+        if bound <= 1: raise ValueError, "bound must be greater than 1"
+        c = ZZ.random_element(1-bound, bound, *args, **kwds)
+        d = ZZ.random_element(1-bound, bound, *args, **kwds)
         if gcd(c,d) != 1: # try again
             return self.random_element(bound)
         else:

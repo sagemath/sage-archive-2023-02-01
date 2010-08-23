@@ -19,6 +19,8 @@ AUTHORS:
 
 - Martin Albrecht (2007-09): initial version
 
+- Niles Johnson (2010-08): Trac #3893: ``random_element()`` should pass on ``*args`` and ``**kwds``.
+
 EXAMPLES:
 
 We construct SR(1,1,1,4) and study its properties.
@@ -1040,7 +1042,7 @@ class SR_generic(MPolynomialSystemGenerator):
                d.ncols() == self.c and \
                d.base_ring() == self.base_ring()
 
-    def random_state_array(self):
+    def random_state_array(self, *args, **kwds):
         r"""
         Return a random element in ``MatrixSpace(self.base_ring(),
         self.r, self.c)``.
@@ -1052,9 +1054,9 @@ class SR_generic(MPolynomialSystemGenerator):
             [a^3 + a + 1       a + 1]
             [      a + 1         a^2]
         """
-        return random_matrix(self.base_ring(), self._r, self._c)
+        return random_matrix(self.base_ring(), self._r, self._c, *args, **kwds)
 
-    def random_vector(self):
+    def random_vector(self, *args, **kwds):
         """
         Return a random vector as it might appear in the algebraic
         expression of self.
@@ -1084,11 +1086,12 @@ class SR_generic(MPolynomialSystemGenerator):
 
            `\phi` was already applied to the result.
         """
-        return self.vector( self.random_state_array() )
+        return self.vector(self.random_state_array(*args, **kwds))
 
-    def random_element(self, elem_type = "vector"):
+    def random_element(self, elem_type = "vector", *args, **kwds):
         """
-        Return a random element for self.
+        Return a random element for self.  Other arguments and keywords are
+        passed to random_* methods.
 
         INPUT:
 
@@ -1107,11 +1110,19 @@ class SR_generic(MPolynomialSystemGenerator):
             [a^3 + a^2 + a]
             sage: sr.random_element('state_array')
             [a + 1]
+
+        Passes extra positional or keyword arguments through::
+
+            sage: sr.random_element(density=0)
+            [0]
+            [0]
+            [0]
+            [0]
         """
         if elem_type == "vector":
-            return self.random_vector()
+            return self.random_vector(*args, **kwds)
         elif elem_type == "state_array":
-            return self.random_state_array()
+            return self.random_state_array(*args, **kwds)
         else:
             raise TypeError, "parameter type not understood"
 

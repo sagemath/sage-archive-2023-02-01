@@ -4157,6 +4157,8 @@ class GraphGenerators():
         set `\{0,1,...,n-1\}`. This constructor chooses one of these uniformly
         at random.
 
+        ALGORITHM:
+
         The algoritm works by generating an `(n-2)`-long
         random sequence of numbers chosen independently and uniformly
         from `\{0,1,\ldots,n-1\}` and then applies an inverse
@@ -4171,8 +4173,15 @@ class GraphGenerators():
             sage: G = graphs.RandomTree(10)
             sage: G.is_tree()
             True
-            sage: G.show() # long time
+            sage: G.show() # long
 
+        TESTS:
+
+        Ensuring that we encounter no unexpected surprise ::
+
+            sage: all( graphs.RandomTree(10).is_tree()
+            ...        for i in range(100) )
+            True
 
         """
         from sage.misc.prandom import randint
@@ -4181,36 +4190,31 @@ class GraphGenerators():
         # create random Prufer code
         code = [ randint(0,n-1) for i in xrange(n-2) ]
 
-        # flags to show which vertices are available (unused)
-        avail = [ True for i in xrange(n) ]
-
         # We count the number of symbols of each type.
         # count[k] is the no. of times k appears in code
+        #
+        # (count[k] is set to -1 when the corresponding vertex is not
+        # available anymore)
         count = [ 0 for i in xrange(n) ]
-        for k in xrange(n-2):
-            count[code[k]] += 1
+        for k in code:
+            count[k] += 1
 
         g.add_vertices(range(n))
 
-        idx = 0
+        for s in code:
+            for x in range(n):
+                if count[x] == 0:
+                    break
 
-        while idx < len(code):
-            xlist = [k for k in range(n) if avail[k] and count[k]==0 ]
-            if len(xlist)==0: break
-            x = xlist[0]
-            avail[x] = False
-            s = code[idx]
+            count[x] = -1
             g.add_edge(x,s)
             count[s] -= 1
-            idx += 1
 
-        last_edge = [ v for v in range(n) if avail[v] ]
-
+        # Adding as an edge the last two available vertices
+        last_edge = [ v for v in range(n) if count[v] != -1 ]
         g.add_edge(last_edge)
 
         return g
-
-
 
     def RandomTreePowerlaw(self, n, gamma=3, tries=100, seed=None):
         """

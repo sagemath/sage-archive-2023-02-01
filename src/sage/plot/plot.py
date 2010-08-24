@@ -3136,15 +3136,20 @@ def polar_plot(funcs, *args, **kwds):
 
 def list_plot(data, plotjoined=False, **kwargs):
     r"""
-    ``list_plot`` takes a single list of data, in which case it forms
-    a list of tuples `(i,di)` where `i` goes from 0 to
-    `{\rm len}(data)-1` and `di` is the `i^{th}` data value, and puts points
-    at those tuple values.
+    ``list_plot`` takes either a single list of data, a list of tuples,
+    or a dictionary and plots the corresponding points.
+
+    If given a single list of data, ``list_plot`` forms a list of tuples
+    `(i,di)` where `i` goes from 0 to `{\rm len}(data)-1` and `di` is
+    the `i^{th}` data value, and puts points at those tuple values.
 
     ``list_plot`` also takes a list of tuples `(dxi, dyi)` where `dxi`
     is the `i^{th}` data representing the `x`-value, and `dyi` is the
     `i^{th}` `y`-value. If ``plotjoined=True`` , then a line spanning
     all the data is drawn instead.
+
+    If given a dictionary, ``list_plot`` interprets the keys as
+    `x`-values and the values as `y`-values.
 
     EXAMPLES::
 
@@ -3176,7 +3181,12 @@ def list_plot(data, plotjoined=False, **kwargs):
         ...
         TypeError: The second argument 'plotjoined' should be boolean (True or False).  If you meant to plot two lists 'x' and 'y' against each other, use 'list_plot(zip(x,y))'.
 
+    Dictionaries with numeric keys and values can be plotted::
+
+        sage: list_plot({22: 3365, 27: 3295, 37: 3135, 42: 3020, 47: 2880, 52: 2735, 57: 2550})
+
     TESTS:
+
     We check to see that the x/y min/max data are set correctly.
 
     ::
@@ -3188,6 +3198,12 @@ def list_plot(data, plotjoined=False, **kwargs):
         100.0
     """
     from sage.plot.all import line, point
+    if isinstance(data, dict):
+        if plotjoined:
+            list_data = sorted(list(data.iteritems()))
+        else:
+            list_data = list(data.iteritems())
+        return list_plot(list_data, plotjoined=plotjoined, **kwargs)
     if not isinstance(data[0], (list, tuple)):
         data = zip(range(len(data)),data)
     if isinstance(plotjoined, (list, tuple)):

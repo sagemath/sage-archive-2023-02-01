@@ -1,0 +1,8 @@
+* file name: sampleh2.ine
+* a hyperplane with no vertices and rays
+H-representation
+begin
+    1    4   integer
+-1  0  0  1
+end
+

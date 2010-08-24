@@ -1,73 +1,25 @@
+#!/bin/sh
+
+## This is how I created the initial output files
+## for i in * ; do echo $i; ( cat $i | cdd_both_reps_gmp --all > ../output/$i ) ; done
 
 
-TEST_EXPECTED=`mktemp /tmp/test_expected_output.XXXXXXXXXX`
-TEST_ACTUAL=`mktemp /tmp/test_actual_output.XXXXXXXXXX`
+TEST_OUTPUT=`mktemp /tmp/test_actual_output.XXXXXXXXXX`
+echo "Using $TEST_OUTPUT as a temporary file."
 
-cat <<EOF | $SAGE_LOCAL/bin/cdd_both_reps_gmp | grep -v '^#' > $TEST_ACTUAL
-H-representation
-begin
- 8   4   rational
- 0  1  0  0
- 0  0  1  0
- 0  0  0  1
- 1 -1 -1 -1
- 1 -1 -1  0
- 1  0 -1 -1
- 1 -1  0 -1
- 2 -1 -1 -1
-end
-EOF
+run_test() {
+    echo "Testing $1"
+    cat input/$1 | $SAGE_LOCAL/bin/cdd_both_reps_gmp --all > $TEST_OUTPUT
+    # Now, compare the two outputs and error out if there is a discrepancy:
+    diff -n output/$1 $TEST_OUTPUT || ( \
+    	  echo "cdd_both_reps not working as expected"; \
+          exit 1 )
+}
 
 
-cat <<EOF | grep -v '^#' > $TEST_EXPECTED
-# walltime used for complementary representation: 0s
-# walltime used for canonical H-representation: 0s
-# walltime used for canonical V-representation: 0s
+cd tests
+INPUT=`ls input/`
 
-V-representation
-begin
- 4 4 rational
- 1 0 0 1
- 1 0 0 0
- 1 1 0 0
- 1 0 1 0
-end
+for filename in $INPUT; do run_test $filename; done
 
-H-representation
-begin
- 4 4 rational
- 0 1 0 0
- 0 0 1 0
- 0 0 0 1
- 1 -1 -1 -1
-end
-
-Vertex graph
-begin
-  4    4
- 1 3 : 2 3 4
- 2 3 : 1 3 4
- 3 3 : 1 2 4
- 4 3 : 1 2 3
-end
-# walltime used for vertex adjacencies: 0s
-
-Facet graph
-begin
-  4    4
- 1 3 : 2 3 4
- 2 3 : 1 3 4
- 3 3 : 1 2 4
- 4 3 : 1 2 3
-end
-# walltime used for facet adjacencies: 0s
-
-EOF
-
-
-# Now, compare the two outputs and error out if there is a discrepancy:
-diff $TEST_EXPECTED $TEST_ACTUAL || ( \
-     echo "cdd_both_reps_gmp not working as expected"; \
-     exit 1 )
-
-
+rm $TEST_OUTPUT

@@ -43,6 +43,11 @@ From clean upstream sources:
 
 == Changelog ==
 
+
+=== cddlib-094f.p7 (Volker Braun, 7th June 2010) ===
+ * Add command line option to cdd_both_reps to optionally skip
+   adjacency computations.
+
 === cddlib-094f.p7 (Volker Braun, 7th June 2010) ===
  * Rewrite of configure.ac and Makefile.am's
    Now ./configure --with-gmp=<path> works.

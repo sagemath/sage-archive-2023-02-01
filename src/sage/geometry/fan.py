@@ -1242,6 +1242,14 @@ class RationalPolyhedralFan(IntegralRayCollection,
             sage: for cone in new_fan: print cone.ambient_ray_indices()
             (0, 2)
             (1, 2)
+
+        We make sure that this function constructs cones with ordered ambient
+        ray indices (see Trac 9812)::
+
+            sage: C = Cone([(1,0,0), (0,1,0), (1,0,1), (0,1,1)])
+            sage: F = Fan([C]).make_simplicial()
+            sage: [cone.ambient_ray_indices() for cone in F]
+            [(0, 1, 3), (0, 1, 2)]
         """
         dim = self.lattice_dim()
         for cone in self:
@@ -1300,13 +1308,10 @@ class RationalPolyhedralFan(IntegralRayCollection,
         new_fan_rays = list(self.rays())
         new_fan_rays.extend(ray for ray in new_rays
                                 if ray not in self.ray_set())
-        cones = tuple(tuple(new_fan_rays.index(cone_polytope.vertex(v))
-                            for v in range(cone_polytope.nvertices() - 1))
+        cones = tuple(tuple(sorted(new_fan_rays.index(cone_polytope.vertex(v))
+                            for v in range(cone_polytope.nvertices() - 1)))
                       for cone_polytope in cone_polytopes)
         fan = Fan(cones, new_fan_rays, check=False, normalize=False)
-        # Since we already have all lattice polytopes, let's keep them
-        for cone, polytope in zip(fan.generating_cones(), cone_polytopes):
-            cone._lattice_polytope = polytope
         return fan
 
     def cone_containing(self, *points):

@@ -3266,10 +3266,16 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         ans = numpy.dot(self._matrix_numpy, v_numpy)
         return M(ans)
 
-    def numpy(self):
+    def numpy(self, dtype=None):
         """
         This method returns a copy of the matrix as a numpy array. It
         uses the numpy C/api so is very fast.
+
+        INPUT:
+
+        - ``dtype`` - The desired data-type for the array. If not given,
+          then the type will be determined as the minimum type required
+          to hold the objects in the sequence.
 
         EXAMPLES::
 
@@ -3319,7 +3325,11 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: m.numpy()
             array([], shape=(5, 0), dtype=float64)
         """
-        return self._matrix_numpy.copy()
+        import numpy as np
+        if dtype is None or self._numpy_dtype == np.dtype(dtype):
+            return self._matrix_numpy.copy()
+        else:
+            return matrix_dense.Matrix_dense.numpy(self, dtype=dtype)
 
     def _replace_self_with_numpy(self,numpy_matrix):
         """

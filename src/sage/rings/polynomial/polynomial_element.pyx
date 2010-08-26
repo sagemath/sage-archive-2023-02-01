@@ -4200,7 +4200,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             [0, 1, 3, 6]
 
         An example over the complex double field (where root finding is
-        fast, thanks to numpy)::
+        fast, thanks to NumPy)::
 
             sage: R.<x> = CDF[]
             sage: f = R.cyclotomic_polynomial(5); f
@@ -4305,6 +4305,17 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: p.roots(ring=CIF)
             [(-1.414213562373095?, 1), (1.414213562373095?, 1), (-1.214638932244183? - 0.141425052582394?*I, 2), (-0.141425052582394? + 1.214638932244183?*I, 2), (0.141425052582394? - 1.214638932244183?*I, 2), (1.214638932244183? + 0.141425052582394?*I, 2)]
 
+        Note that one should not use NumPy when wanting high precision
+        output as it does not support any of the high precision types::
+
+            sage: R.<x> = RealField(200)[]
+            sage: f = x^2 - R(pi)
+            sage: f.roots()
+            [(-1.7724538509055160272981674833411451827975494561223871282138, 1), (1.7724538509055160272981674833411451827975494561223871282138, 1)]
+            sage: f.roots(algorithm='numpy')
+            doctest... UserWarning: NumPy does not support arbitrary precision arithmetic.  The roots found will likely have less precision than you expect.
+            [(-1.7724538509055158819194275565678253769874572753906250000000, 1), (1.7724538509055158819194275565678253769874572753906250000000, 1)]
+
         We can also find roots over number fields:
 
             sage: K.<z> = CyclotomicField(15)
@@ -4313,9 +4324,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             [(z^5, 1), (-z^5 - 1, 1)]
 
         There are many combinations of floating-point input and output
-        types that work. (Note that some of them are quite pointless...
-        there's no reason to use high-precision input and output, and still
-        use numpy to find the roots.)
+        types that work. (Note that some of them are quite pointless like using
+        ``algorithm='numpy'`` with high-precision types.)
 
         ::
 
@@ -4501,8 +4511,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         seq = []
 
         K = self.parent().base_ring()
-        L = ring
-        if L is None: L = K
+        L = K if ring is None else ring
 
         late_import()
 
@@ -4541,6 +4550,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
                              is_ComplexField(K))
 
             if algorithm == 'numpy' or algorithm == 'either':
+                if K.prec() > 53 and L.prec() > 53:
+                    from warnings import warn
+                    warn('NumPy does not support arbitrary precision arithmetic.  ' +
+                         'The roots found will likely have less precision than ' +
+                         'you expect.')
+
                 import numpy
                 from numpy.linalg.linalg import LinAlgError
                 numpy_dtype = ('complex' if input_complex else 'double')

@@ -22,7 +22,7 @@ if [ "x$UNAME" = xSunOS ] || [ "x$UNAME" = xCYGWIN ] || [ "x$UNAME" = xHP-UX ]; 
 
    cd src
 
-   make check
+   $MAKE check
 
    if [ $? -ne 0 ]; then
        echo "Error encountered while running the iconv test-suite ... exiting"

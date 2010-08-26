@@ -38,13 +38,13 @@ if [ "x$UNAME" = xSunOS ] || [ "x$UNAME" = xHP-UX ] || [ "x$UNAME" = xCYGWIN ]; 
       exit 1
    fi
 
-   make
+   $MAKE
    if [ $? -ne 0 ]; then
       echo "Error building iconv"
       exit 1
    fi
 
-   make install
+   $MAKE install
    if [ $? -ne 0 ]; then
       echo "Error installing iconv"
       exit 1

@@ -1606,6 +1606,19 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
               2-d face of 3-d cone in 4-d lattice N,
               2-d face of 3-d cone in 4-d lattice N),
              (3-d cone in 4-d lattice N,))
+
+        We also ensure that a call to this function does not break
+        :meth:`facets` method (see Trac #9780)::
+
+            sage: cone = toric_varieties.dP8().fan().generating_cone(0)
+            sage: cone
+            2-d cone of Rational polyhedral fan in 2-d lattice N
+            sage: [f.rays() for f in cone.facets()]
+            [(N(1, 1),), (N(0, 1),)]
+            sage: len(cone.faces())
+            3
+            sage: [f.rays() for f in cone.facets()]
+            [(N(1, 1),), (N(0, 1),)]
         """
         if dim is not None and codim is not None:
             raise ValueError(
@@ -1619,7 +1632,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
                                 for level in self.face_lattice().level_sets())
             # To avoid duplication and ensure order consistency
             if self.dim() > 0:
-                self._facets = self._faces[-1]
+                self._facets = self._faces[-2]
         if dim is None:
             return self._faces
         else:

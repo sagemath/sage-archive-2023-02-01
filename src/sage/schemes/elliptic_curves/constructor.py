@@ -179,6 +179,35 @@ def EllipticCurve(x=None, y=None, j=None):
         ...
         ValueError: First parameter must be a ring containing 3/5
 
+    If the universe of the coefficients is a general field, the object
+    constructed has type EllipticCurve_field.  Otherwise it is
+    EllipticCurve_generic.  See trac #9816::
+
+        sage: E = EllipticCurve([QQbar(1),3]); E
+        Elliptic Curve defined by y^2 = x^3 + x + 3 over Algebraic Field
+        sage: type(E)
+        <class 'sage.schemes.elliptic_curves.ell_field.EllipticCurve_field'>
+
+        sage: E = EllipticCurve([RR(1),3]); E
+        Elliptic Curve defined by y^2 = x^3 + 1.00000000000000*x + 3.00000000000000 over Real Field with 53 bits of precision
+        sage: type(E)
+        <class 'sage.schemes.elliptic_curves.ell_field.EllipticCurve_field'>
+
+        sage: E = EllipticCurve([i,i]); E
+        Elliptic Curve defined by y^2 = x^3 + I*x + I over Symbolic Ring
+        sage: type(E)
+        <class 'sage.schemes.elliptic_curves.ell_field.EllipticCurve_field'>
+        sage: is_field(SR)
+        True
+
+        sage: F = FractionField(PolynomialRing(QQ,'t'))
+        sage: t = F.gen()
+        sage: E = EllipticCurve([t,0]); E
+        Elliptic Curve defined by y^2 = x^3 + t*x over Fraction Field of Univariate Polynomial Ring in t over Rational Field
+        sage: type(E)
+        <class 'sage.schemes.elliptic_curves.ell_field.EllipticCurve_field'>
+
+
     """
     import ell_generic, ell_field, ell_finite_field, ell_number_field, ell_rational_field, ell_padic_field  # here to avoid circular includes
 
@@ -300,6 +329,9 @@ def EllipticCurve(x=None, y=None, j=None):
 
     elif rings.is_FiniteField(R) or (rings.is_IntegerModRing(R) and R.characteristic().is_prime()):
         return ell_finite_field.EllipticCurve_finite_field(x, y)
+
+    elif rings.is_Field(R):
+        return ell_field.EllipticCurve_field(x, y)
 
     return ell_generic.EllipticCurve_generic(x, y)
 

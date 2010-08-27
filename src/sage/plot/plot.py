@@ -2981,31 +2981,42 @@ def _plot(funcs, xrange, parametric=False,
 
 ########## misc functions ###################
 
+@options(aspect_ratio=1)
 def parametric_plot(funcs, *args, **kwargs):
     r"""
-    ``parametric_plot`` takes two or three functions as a
+    Plot a parametric curve or surface in 2d or 3d.
+
+    :func:`parametric_plot` takes two or three functions as a
     list or a tuple and makes a plot with the first function giving the
     `x` coordinates, the second function giving the `y`
     coordinates, and the third function (if present) giving the
     `z` coordinates.
 
-    In the 2d case, parametric_plot is equivalent to the plot command
-    with the option parametric=True.  In the 3d case, parametric_plot
-    is equivalent to parametric_plot3d.  See each of these functions
-    for more help and examples.
+    In the 2d case, :func:`parametric_plot` is equivalent to the :func:`plot` command
+    with the option ``parametric=True``.  In the 3d case, :func:`parametric_plot`
+    is equivalent to :func:`~sage.plot.plot3d.parametric_plot3d.parametric_plot3d`.
+    See each of these functions for more help and examples.
 
     INPUT:
 
 
     -  ``funcs`` - 2 or 3-tuple of functions, or a vector of dimension 2 or 3.
 
-    -  ``other options`` - passed to plot or parametric_plot3d
+    -  ``other options`` - passed to :func:`plot` or :func:`~sage.plot.plot3d.parametric_plot3d.parametric_plot3d`
 
 
-    EXAMPLES: We draw some 2d parametric plots::
+    EXAMPLES: We draw some 2d parametric plots.  Note that the default aspect ratio
+    is 1, so that circles look like circles. ::
 
         sage: t = var('t')
+        sage: parametric_plot( (cos(t), sin(t)), (t, 0, 2*pi))
+
+    ::
+
         sage: parametric_plot( (sin(t), sin(2*t)), (t, 0, 2*pi), color=hue(0.6) )
+
+    ::
+
         sage: parametric_plot((1, t), (t, 0, 4))
 
     Note that in parametric_plot, there is only fill or no fill.
@@ -3081,15 +3092,16 @@ def parametric_plot(funcs, *args, **kwargs):
     else:
         raise ValueError, "the number of functions and the number of variable ranges is not a supported combination for a 2d or 3d parametric plots"
 
+@options(aspect_ratio=1)
 def polar_plot(funcs, *args, **kwds):
     r"""
     ``polar_plot`` takes a single function or a list or
     tuple of functions and plots them with polar coordinates in the given
     domain.
 
-    This function is equivalent to the plot command with the option
-    polar=True.  For more help on options, see the documentation for
-    plot.
+    This function is equivalent to the plot command with the options
+    ``polar=True`` and ``aspect_ratio=1``. For more help on options,
+    see the documentation for plot.
 
     INPUT:
 

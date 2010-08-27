@@ -1637,26 +1637,14 @@ class OverconvergentModularFormElement(ModuleElement):
     def _pari_(self):
         r"""
         Return the Pari object corresponding to self, which is just the
-        `q`-expansion of self as a formal power series. At present conversion of
-        power series to Pari is only implemented if the base ring is
-        `\QQ`.
-
-        (At present, in 3.4.1.alpha0, if the base ring isn't QQ then a silly
-        error message comes up because of a trivial typo in
-        sage/rings/power_series_ring_element.py -- isinstance is being given a
-        constructor function, not a class, due to code refactoring. The really
-        silly thing is that there was no doctest to catch this when IntegerRing
-        became a function rather than a class. It's really somewhat astonishing
-        nobody has noticed since.)
+        `q`-expansion of self as a formal power series.
 
         EXAMPLES::
 
             sage: f = OverconvergentModularForms(3, 0, 1/2).1
             sage: pari(f) # indirect doctest
             27*q + 324*q^2 + 2430*q^3 + 13716*q^4 + 64557*q^5 + 265356*q^6 + 983556*q^7 + 3353076*q^8 + 10670373*q^9 + 32031288*q^10 + 91455804*q^11 + 249948828*q^12 + 657261999*q^13 + 1669898592*q^14 + 4113612864*q^15 + 9853898292*q^16 + 23010586596*q^17 + 52494114852*q^18 + 117209543940*q^19 + O(q^20)
-            sage: pari(f.base_extend(Qp(3))) # misleading error message!
-            Traceback (most recent call last):
-            ...
-            TypeError: isinstance() arg 2 must be a class, type, or tuple of classes and types
+            sage: pari(f.base_extend(Qp(3))) # indirect doctest
+            (3^3 + O(3^23))*q + (3^4 + 3^5 + O(3^24))*q^2 + (3^5 + 3^7 + O(3^25))*q^3 + (3^3 + 3^4 + 2*3^5 + 2*3^8 + O(3^23))*q^4 + (2*3^4 + 3^5 + 3^6 + 2*3^7 + 3^10 + O(3^24))*q^5 + (3^6 + 3^7 + 3^8 + 3^9 + 3^10 + 3^11 + O(3^26))*q^6 + (2*3^3 + 3^4 + 2*3^6 + 2*3^7 + 2*3^8 + 3^9 + 3^10 + 2*3^11 + 3^12 + O(3^23))*q^7 + (2*3^4 + 3^5 + 3^8 + 2*3^9 + 2*3^10 + 2*3^13 + O(3^24))*q^8 + (3^7 + 2*3^9 + 2*3^12 + 2*3^14 + O(3^27))*q^9 + (2*3^5 + 3^8 + 3^9 + 2*3^10 + 2*3^13 + 2*3^15 + O(3^25))*q^10 + (3^4 + 2*3^5 + 2*3^6 + 3^8 + 2*3^9 + 3^12 + 3^14 + 2*3^16 + O(3^24))*q^11 + (3^5 + 3^6 + 2*3^8 + 2*3^9 + 2*3^10 + 2*3^12 + 3^14 + 2*3^15 + 2*3^16 + 3^17 + O(3^25))*q^12 + (2*3^3 + 2*3^4 + 2*3^5 + 3^8 + 2*3^9 + 2*3^11 + 3^13 + 2*3^14 + 2*3^17 + 3^18 + O(3^23))*q^13 + (2*3^4 + 2*3^6 + 2*3^7 + 3^8 + 2*3^9 + 3^10 + 3^12 + 3^14 + 2*3^15 + 2*3^16 + 3^18 + 3^19 + O(3^24))*q^14 + (2*3^6 + 3^7 + 3^9 + 3^10 + 3^11 + 2*3^14 + 3^15 + 2*3^16 + 3^17 + 3^18 + 3^20 + O(3^26))*q^15 + (3^3 + 2*3^4 + 2*3^7 + 2*3^8 + 3^9 + 3^10 + 2*3^11 + 3^12 + 2*3^14 + 2*3^15 + 3^17 + 3^18 + 2*3^19 + 2*3^20 + O(3^23))*q^16 + (2*3^5 + 2*3^7 + 2*3^8 + 3^10 + 3^11 + 2*3^12 + 2*3^13 + 3^14 + 3^15 + 3^17 + 2*3^18 + 3^19 + 2*3^21 + O(3^25))*q^17 + (3^8 + 3^9 + 2*3^10 + 2*3^11 + 3^12 + 3^14 + 3^15 + 3^16 + 3^17 + 2*3^21 + 3^22 + O(3^28))*q^18 + (2*3^3 + 3^5 + 2*3^6 + 2*3^8 + 2*3^9 + 3^11 + 2*3^12 + 3^13 + 3^14 + 2*3^15 + 3^16 + 3^17 + 2*3^18 + 3^19 + 2*3^21 + O(3^23))*q^19 + O(q^20)
         """
         return self.q_expansion()._pari_()

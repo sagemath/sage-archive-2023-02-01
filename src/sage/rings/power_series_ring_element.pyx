@@ -1720,28 +1720,29 @@ cdef class PowerSeries(AlgebraElement):
         """
         Return PARI power series corresponding to this series.
 
-        This is currently only implemented over QQ and ZZ.
+        There are currently limits to the possible base rings over which this
+        function works.  See the documentation for
+        ``sage.rings.polynomial.polynomial_element.Polynomial._pari_``
 
         EXAMPLES::
 
             sage: k.<w> = QQ[[]]
             sage: f = 1+17*w+15*w^3+O(w^5)
-            sage: pari(f)
+            sage: pari(f) # indirect doctest
             1 + 17*w + 15*w^3 + O(w^5)
-            sage: pari(1 - 19*w + w^5)
+            sage: pari(1 - 19*w + w^5) # indirect doctest
             Traceback (most recent call last):
             ...
-            RuntimeError: series precision must be finite for conversion to pari object.
+            ValueError: series precision must be finite for conversion to pari object.
+            sage: R.<x> = Zmod(6)[[]]
+            sage: pari(1 + x + 8*x^3 + O(x^8)) # indirect doctest
+            Mod(1, 6) + Mod(1, 6)*x + Mod(2, 6)*x^3 + O(x^8)
         """
-        if not isinstance(self.parent().base_ring(),
-                          (rational_field.RationalField, integer_ring.IntegerRing)):
-            raise NotImplementedError
-        if self.prec() is infinity:
-            raise RuntimeError, "series precision must be finite for conversion to pari object."
-        return sage.libs.pari.all.pari(str(self))
-
-
-
+        n = self.prec()
+        if n is infinity:
+            raise ValueError, "series precision must be finite for conversion to pari object."
+        s = '+'.join([str(self.truncate()._pari_()), 'O(%s^%s)' % (self.variable(), n)])
+        return sage.libs.pari.all.pari(s)
 
 def _solve_linear_de(R, N, L, a, b, f0):
     r"""

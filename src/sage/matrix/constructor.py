@@ -796,40 +796,282 @@ def ncols_from_dict(d):
 Matrix = matrix
 
 
-def random_matrix(R, nrows, ncols=None, sparse=False, density=1, \
-                  *args, **kwds):
-    """
-    Return a random matrix with entries in the ring ``R``.
+def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds):
+    r"""
+    Return a random matrix with entries in a specified ring, and possibly with additional properties.
 
     INPUT:
 
-    -  ``R`` - Ring
+    -  ``ring`` - base ring for entries of the matrix
 
     -  ``nrows`` - Integer; number of rows
 
     -  ``ncols`` - (default: ``None``); number of columns; if ``None``
        defaults to ``nrows``
 
-    -  ``sparse`` - (default: ``False``); whether or not matrix is sparse
+    -  ``algorithm`` - (default: ``randomize``); determines what properties
+       the matrix will have.  See examples below for possible additional
+       arguments.
 
-    -  ``density`` - Integer (default: 1)
+       -  ``randomize`` - randomize the elements of the matrix, possibly
+          controlling the density of non-zero entries.
 
-    -  ``*args, **kwds`` - passed on to randomize function
+       -  ``echelon_form`` - creates a matrix in echelon form
 
-    EXAMPLES::
+       -  ``echelonizable`` - creates a matrix that has a predictable echelon form
 
-        sage: A = random_matrix(ZZ,50,x=2^16)    # entries are up to 2^16 i size
-        sage: A
-        50 x 50 dense matrix over Integer Ring (type 'print A.str()' to see all of the entries)
+    -  ``*args, **kwds`` - arguments and keywords to describe additional properties.
+       See more detailed documentation below.
+
+    .. note::
+
+        When constructing matrices with random entries and no additional properties
+        (i.e. when ``algorithm='randomize'``), most of the randomness
+        is controlled by the ``random_element`` method for elements of the
+        base ring of the matrix, so the documentation of that method may be
+        relevant or useful.  Also, the default is to not create zero entries,
+        unless the ``density`` keyword is set to something strictly less
+        than one.
+
+    EXAMPLES:
+
+    Random integer matrices.  With no arguments, the majority of the entries
+    are -1 and 1, never zero, and rarely "large." ::
+
+        sage: random_matrix(ZZ, 5, 5)
+        [ -8   2   1  -1   2]
+        [  1 -95  -1  -2 -12]
+        [  1  -1   1  -1  -2]
+        [ -1   4  -4  -6   5]
+        [ -2   1  -4  -6   1]
+
+    The ``distribution`` keyword  set to ``uniform`` will limit values
+    between -2 and 2, and never zero. ::
+
+        sage: random_matrix(ZZ, 5, 5, distribution='uniform')
+        [ 1  1  2 -1 -1]
+        [-1 -1  1  1 -2]
+        [ 1  2  1 -1  2]
+        [-2  1 -2  1  2]
+        [-2 -2  1 -1  2]
+
+    The ``x`` and ``y`` keywords can be used to distribute entries uniformly.
+    When both are used ``x`` is the minimum and ``y`` is one greater than the the maximum.
+    But still entries are never zero, even if the range contains zero. ::
+
+        sage: random_matrix(ZZ, 4, 8, x=70, y=100)
+        [89 86 77 86 89 85 92 95]
+        [94 72 89 78 80 89 82 94]
+        [72 90 92 72 82 94 92 70]
+        [78 76 93 81 73 76 75 94]
+
+        sage: random_matrix(ZZ, 3, 7, x=-5, y=5)
+        [-5 -2  1 -2 -2  2 -3]
+        [-4 -2 -1 -5  3 -2  3]
+        [ 3 -3 -3 -5 -3 -3 -1]
+
+    If only ``x`` is given, then it is used as the upper bound of a range starting at 0. ::
+
+        sage: random_matrix(ZZ, 5, 5, x=25)
+        [11 19 16 17 15]
+        [ 7 24  3 17 24]
+        [ 9  4 23 10 24]
+        [19 17 12 10 14]
+        [ 8  4  8 19 14]
+
+    To allow, and control, zero entries use the ``density`` keyword at a value
+    strictly below the default of 1.0, even if distributing entries across an
+    interval that does not contain zero already.  Note that for a square matrix it
+    is only necessary to set a single dimension. ::
+
+        sage: random_matrix(ZZ, 5, x=-10, y=10, density=0.75)
+        [  1   0   0   6   0]
+        [  0  -9   0   0  -8]
+        [ -5   0  -1 -10   0]
+        [  0  -9   0   7   0]
+        [  0  -2  -8   0   0]
+
+        sage: random_matrix(ZZ, 5, x=20, y=30, density=0.75)
+        [ 0  0  0 26 24]
+        [ 0 22 26  0 24]
+        [ 0 24  0 22 21]
+        [ 0  0  0 28 29]
+        [20  0  0 28  0]
+
+    It is possible to construct sparse matrices, where it may now be advisable
+    (but not required) to control the density of nonzero entries. ::
+
+        sage: A=random_matrix(ZZ, 5, 5)
+        sage: A.is_sparse()
+        False
+        sage: A=random_matrix(ZZ, 5, 5, sparse=True)
+        sage: A.is_sparse()
+        True
+
+        sage: random_matrix(ZZ, 5, 5, density=0.3, sparse=True)
+        [ -4   0 240   0   1]
+        [  0   0 -16   0   0]
+        [  0   0   0   0   1]
+        [  0   0   0   0   0]
+        [  0  28   0   0   0]
+
+    For algorithm testing you might want to control the number of bits,
+    say 10,000 entries, each limited to 16 bits.  ::
+
+        sage: A = random_matrix(ZZ, 100, 100, x=2^16); A
+        100 x 100 dense matrix over Integer Ring (type 'print A.str()' to see all of the entries)
+
+    Random rational matrices.  Now ``num_bound`` and ``den_bound`` control the
+    generation of random elements, by specifying limits on the absolute value of
+    numerators and denominators (respectively).  Entries will be positive and
+    negative (map the absolute value function through the entries to get all
+    positive values), and zeros are avoided unless the density is set.  If either
+    the numerator or denominator bound (or both) is not used, then the values
+    default to the distribution for `ZZ` described above that is most frequently
+    positive or negative one. ::
+
+        sage: random_matrix(QQ, 2, 8, num_bound=20, den_bound=4)
+        [ -1/2    16    -5   -20   -11  -7/3   1/2     6]
+        [ -9/2 -11/4  -1/2   1/4     8    10    -6   7/4]
+
+        sage: random_matrix(QQ, 4, density = 0.5, sparse=True)
+        [   0    0    0    0]
+        [   0   -1    1  -13]
+        [  -2    0  1/4    0]
+        [  -1    0    1 -1/3]
+
+        sage: A = random_matrix(QQ, 3, 10, num_bound = 99, den_bound = 99)
+        sage: positives = map(abs, A.list())
+        sage: matrix(QQ, 3, 10, positives)
+        [ 7/24  12/5  13/8  8/25   1/3 61/14 92/45  4/85  3/38 95/16]
+        [82/71   1/5 41/16 55/76    19 28/41 52/51  14/3    43 76/13]
+        [ 8/77 13/38 37/21 17/15 60/61 85/44 75/97 31/55     4  49/8]
+
+        sage: random_matrix(QQ, 4, 10, den_bound = 10)
+        [-1/9    2  2/3    2  1/8   -2   -2    2 -1/2    2]
+        [   1 -2/3  1/6 -1/3 -2/9  2/5  1/9  1/6 1/10    1]
+        [  -1 -1/2  1/3  1/4 -1/6  1/8  1/8 -1/9  1/5  1/7]
+        [ 2/7    2 -1/6 -2/5  1/9 -1/4 -1/5 -1/4 -2/7 -1/3]
+
+    Random matrices over other rings.  Several classes of matrices have specialized
+    ``randomize()`` methods.  You can locate these with the Sage command::
+
+        search_def('randomize')
+
+    The default implementation of :meth:`~sage.matrix.matrix2.randomize` relies
+    on the ``random_element()`` method for the base ring.  The ``density`` and
+    ``sparse`` keywords behave as described above. ::
+
+        sage: K.<a>=FiniteField(3^2)
+        sage: random_matrix(K, 2, 5)
+        [    2*a 2*a + 1   a + 2 2*a + 2   a + 2]
+        [  a + 1   a + 1       2 2*a + 2   a + 1]
+
+        sage: random_matrix(RR, 3, 4, density=0.66)
+        [  0.000000000000000   0.000000000000000   0.000000000000000   0.000000000000000]
+        [  0.000000000000000   0.000000000000000   0.000000000000000   0.839885947013929]
+        [0.00970128228876743  -0.711107146185354   0.000000000000000   0.582088854951784]
+
+        sage: A = random_matrix(ComplexField(32), 3, density=0.8, sparse=True); A
+        [ 0.595498794 + 0.570429906*I -0.306520063 - 0.574051516*I                            0]
+        [-0.307727175 - 0.941724613*I -0.127237880 - 0.756685386*I                            0]
+        [                           0 -0.843041497 - 0.885579092*I -0.247313397 + 0.624939327*I]
+        sage: A.is_sparse()
+        True
+
+    Random matrices in echelon form.  The ``algorithm='echelon_form'`` keyword,
+    along with a requested number of non-zero rows (``num_pivots``) will return
+    a random matrix in echelon form.  When the base ring is ``QQ`` the result has integer
+    entries.  Other exact rings may be also specified. ::
+
+        sage: A=random_matrix(QQ, 4, 8, algorithm='echelon_form', num_pivots=3); A # random
+        [ 1 -5  0 -2  0  1  1 -2]
+        [ 0  0  1 -5  0 -3 -1  0]
+        [ 0  0  0  0  1  2 -2  1]
+        [ 0  0  0  0  0  0  0  0]
+        sage: A.base_ring()
+        Rational Field
+        sage: (A.nrows(), A.ncols())
+        (4, 8)
+        sage: A in sage.matrix.matrix_space.MatrixSpace(ZZ, 4, 8)
+        True
+        sage: A.rank()
+        3
+        sage: A==A.rref()
+        True
+
+    For more, see the documentation of the :func:`~sage.matrix.constructor.random_rref_matrix`
+    function.  In the notebook or at the Sage command-line, first execute the following to make
+    this further documentation available::
+
+        from sage.matrix.constructor import random_rref_matrix
+
+    Random matrices with predictable echelon forms.  The ``algorithm='echelonizable'``
+    keyword, along with a requested rank (``rank``) and optional size control
+    (``upper_bound``) will return a random matrix in echelon form.  When the
+    base ring is ``ZZ`` or ``QQ`` the result has integer entries, whose magnitudes
+    can be limited by the value of ``upper_bound``, and the echelon form of the
+    matrix also has integer entries.  Other exact rings may be also
+    specified, but there is no notion of controlling the size.  Square matrices
+    of full rank generated by this function always have determinant one, and
+    can be constructed with the upcoming ``unimodular`` keyword. ::
+
+        sage: A=random_matrix(QQ, 4, 8, algorithm='echelonizable', rank=3, upper_bound=60); A # random
+        sage: A.base_ring()
+        Rational Field
+        sage: (A.nrows(), A.ncols())
+        (4, 8)
+        sage: A in sage.matrix.matrix_space.MatrixSpace(ZZ, 4, 8)
+        True
+        sage: A.rank()
+        3
+        sage: all([abs(x)<60 for x in A.list()])
+        True
+        sage: A.rref() in sage.matrix.matrix_space.MatrixSpace(ZZ, 4, 8)
+        True
+
+    For more, see the documentation of the :func:`~sage.matrix.constructor.random_echelonizable_matrix`
+    function.  In the notebook or at the Sage command-line, first execute the following to make
+    this further documentation available::
+
+        from sage.matrix.constructor import random_echelonizable_matrix
+
+    TESTS:
+
+    We return an error for a bogus value of ``algorithm``::
+
+        sage: random_matrix(ZZ, 5, algorithm = 'bogus')
+        Traceback (most recent call last):
+        ...
+        ValueError: random matrix algorithm "bogus" is not recognized
+
+    AUTHOR:
+
+    - William Stein (2007-02-06)
+
+    - Rob Beezer (2010-08-25) Documentation, code to allow additional types of output
     """
     if ncols is None:
         ncols = nrows
-    A = copy(matrix_space.MatrixSpace(R, nrows, ncols, sparse=sparse).zero_matrix())
-    if density is None:
-        A.randomize(density=float(1), nonzero=False, *args, **kwds)
+    sparse = kwds.pop('sparse', False)
+    # Construct the parent of the desired matrix
+    parent = matrix_space.MatrixSpace(ring, nrows, ncols, sparse=sparse)
+    if algorithm == 'randomize':
+        density = kwds.pop('density', 1)
+        # zero matrix is immutable, copy is mutable
+        A = copy(parent.zero_matrix())
+        if density is None:
+            A.randomize(density=float(1), nonzero=False, *args, **kwds)
+        else:
+            A.randomize(density=density, nonzero=True, *args, **kwds)
+        return A
+    elif algorithm == 'echelon_form':
+        return random_rref_matrix(parent, *args, **kwds)
+    elif algorithm == 'echelonizable':
+        return random_echelonizable_matrix(parent, *args, **kwds)
     else:
-        A.randomize(density=density, nonzero=True, *args, **kwds)
-    return A
+        raise ValueError('random matrix algorithm "%s" is not recognized' % algorithm)
+
 
 def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=None):
     """
@@ -1235,50 +1477,63 @@ def jordan_block(eigenvalue, size, sparse=False):
         block[i,i+1]=1
     return block
 
-def random_rref_matrix(num_row, num_col, num_pivots,ring=QQ):
+def random_rref_matrix(parent, num_pivots):
     r"""
-    Generate a matrix already in reduced row-echelon form with the desired row dimension, column dimension, and rank over the designated ring.
+    Generate a matrix in reduced row-echelon form with a specified number of non-zero rows.
 
     INPUT:
 
-    - ``num_row`` - The number of rows desired for the return matrix.
+    - ``parent`` - A matrix space specifying the base ring, dimensions and
+      representation (dense/sparse) for the result.  The base ring must be exact.
 
-    - ``num_col`` - The number of columns desired for the return matrix.
-
-    - ``num_pivots`` - The desired rank of the return matrix.
-
-    - ``ring`` - The desired ring for the return matrix to be built over.
+    - ``num_pivots`` - The number of non-zero rows in the result, i.e. the rank.
 
     OUTPUT:
 
-    A matrix in reduced row echelon form with dimensions ``num_row`` x ``num_col`` and a rank of
-    ``num_pivot``.
+    A matrix in reduced row echelon form with ``num_pivots`` non-zero rows. If the
+    base ring is `ZZ` or `QQ` then the entries are all integers.
+
+    .. note::
+
+        It is easiest to use this function via a call to the
+        :func:`~sage.matrix.constructor.random_matrix`
+        function with the ``algorithm='echelon_form'`` keyword.  We provide
+        one example accessing this function directly, while the remainder will
+        use this more general function.
 
     EXAMPLES:
 
-    Matrices generated are in reduced row-echelon form with the default ring of QQ and specified rank. ::
+    Matrices generated are in reduced row-echelon form with specified rank. If the
+    base ring is `QQ` the result has only integer entries.  ::
 
         sage: from sage.matrix.constructor import random_rref_matrix
-        sage: A=random_rref_matrix(5,6,4); A # random
+        sage: matrix_space = sage.matrix.matrix_space.MatrixSpace(QQ, 5, 6)
+        sage: A=random_rref_matrix(matrix_space, num_pivots=4); A # random
         [ 1  0  0 -6  0 -3]
         [ 0  1  0  2  0  3]
         [ 0  0  1 -4  0 -2]
         [ 0  0  0  0  1  3]
         [ 0  0  0  0  0  0]
-        sage: A.rank()
-        4
         sage: A.base_ring()
         Rational Field
+        sage: (A.nrows(), A.ncols())
+        (5, 6)
+        sage: A in sage.matrix.matrix_space.MatrixSpace(ZZ, 5, 6)
+        True
+        sage: A.rank()
+        4
         sage: A==A.rref()
         True
 
-    Matrices can be generated over other fields. ::
+    Matrices can be generated over other exact rings. ::
 
-        sage: B=random_rref_matrix(4,4,3,GF(7)); B # random
+        sage: B=random_matrix(FiniteField(7), 4, 4, algorithm='echelon_form', num_pivots=3); B # random
         [1 0 0 0]
         [0 1 0 6]
         [0 0 1 4]
         [0 0 0 0]
+        sage: B.rank() == 3
+        True
         sage: B.base_ring()
         Finite Field of size 7
         sage: B==B.rref()
@@ -1286,54 +1541,40 @@ def random_rref_matrix(num_row, num_col, num_pivots,ring=QQ):
 
     TESTS:
 
-    Row dimension input for a matrix must be whole valued. ::
+    Rank of a matrix must be an integer. ::
 
-       sage: random_rref_matrix(66.9,19,12)
-       Traceback (most recent call last):
-       ...
-       TypeError: inputs for matrix dimensions and rank must be integers.
-
-    Column dimension input for a matrix must be whole valued. ::
-
-       sage: random_rref_matrix(31,74.2,6)
-       Traceback (most recent call last):
-       ...
-       TypeError: inputs for matrix dimensions and rank must be integers.
-
-    Rank input of a matrix must be whole valued. ::
-
-        sage: random_rref_matrix(120,56,61/2)
+        sage: random_matrix(QQ, 120, 56, algorithm='echelon_form', num_pivots=61/2)
         Traceback (most recent call last):
         ...
-        TypeError: inputs for matrix dimensions and rank must be integers.
+        TypeError: the number of pivots must be an integer.
 
     Matrices must be generated over exact fields. ::
 
-       sage: random_rref_matrix(40,88,39,RR)
-       Traceback (most recent call last):
-       ...
-       TypeError: input ring must be exact.
+        sage: random_matrix(RR, 40, 88, algorithm='echelon_form', num_pivots=39)
+        Traceback (most recent call last):
+        ...
+        TypeError: the base ring must be exact.
 
     Matrices must have the number of pivot columns be less than or equal to the number of rows. ::
 
-        sage: C=random_rref_matrix(6,4,7); C
+        sage: C=random_matrix(ZZ, 6,4, algorithm='echelon_form', num_pivots=7); C
         Traceback (most recent call last):
         ...
-        ValueError: number of pivot column cannot exceed the number of rows or columns.
+        ValueError: number of pivots cannot exceed the number of rows or columns.
 
     Matrices must have the number of pivot columns be less than or equal to the number of columns. ::
 
-        sage: D=random_rref_matrix(1,3,5); D
+        sage: D=random_matrix(QQ, 1,3, algorithm='echelon_form', num_pivots=5); D
         Traceback (most recent call last):
         ...
-        ValueError: number of pivot column cannot exceed the number of rows or columns.
+        ValueError: number of pivots cannot exceed the number of rows or columns.
 
     Matrices must have the number of pivot columns be greater than zero. ::
 
-        sage: random_rref_matrix(5,4,0)
+        sage: random_matrix(QQ, 5, 4, algorithm='echelon_form', num_pivots=0)
         Traceback (most recent call last):
         ...
-        ValueError: matrices must have dimensions and rank greater than zero.
+        ValueError: the number of pivots must be greater than zero.
 
     AUTHOR:
 
@@ -1344,21 +1585,22 @@ def random_rref_matrix(num_row, num_col, num_pivots,ring=QQ):
     from sage.misc.prandom import randint
 
     try:
-        num_row=ZZ(num_row)
-        num_col=ZZ(num_col)
         num_pivots=ZZ(num_pivots)
     except TypeError:
-        raise TypeError("inputs for matrix dimensions and rank must be integers.")
-    if not ring.is_exact():
-        raise TypeError("input ring must be exact.")
-    if num_pivots>num_row or num_pivots>num_col:
-        raise ValueError("number of pivot column cannot exceed the number of rows or columns.")
+        raise TypeError("the number of pivots must be an integer.")
     if num_pivots<=0:
-        raise ValueError("matrices must have dimensions and rank greater than zero.")
+        raise ValueError("the number of pivots must be greater than zero.")
+    ring = parent.base_ring()
+    if not ring.is_exact():
+        raise TypeError("the base ring must be exact.")
+    num_row = parent.nrows()
+    num_col = parent.ncols()
+    if num_pivots>num_row or num_pivots>num_col:
+        raise ValueError("number of pivots cannot exceed the number of rows or columns.")
     else:
         one=ring.one()
         # Create a matrix of the desired size to be modified and then returned.
-        return_matrix=matrix(ring,num_row,num_col)
+        return_matrix=copy(parent.zero_matrix())
         pivots=[0] #Force first column to be a pivot.
         # Probability distribution for the placement of leading one's.
         pivot_generator=pd.RealDistribution("beta",[1.6,4.3])
@@ -1400,35 +1642,43 @@ def random_rref_matrix(num_row, num_col, num_pivots,ring=QQ):
                     return_matrix[rest_entries,rest_non_pivot_column]=ring.random_element()
     return return_matrix
 
-def random_echelonizable_matrix(rows,columns,rank,upper_bound=None,ring=QQ):
+def random_echelonizable_matrix(parent, rank, upper_bound=None):
     r"""
     Generate a matrix of a desired size and rank, over a desired ring, whose reduced
     row-echelon form has only integral values.
 
     INPUT:
 
-    - ``rows`` - The row dimension of the desired matrix, taking only integers greater than zero.
+    - ``parent`` - A matrix space specifying the base ring, dimensions and
+      representation (dense/sparse) for the result.  The base ring must be exact.
 
-    - ``columns`` - The column dimension of the desired matrix, taking only integers greater than zero.
+    - ``rank`` - Rank of result, i.e the number of non-zero rows in the
+      reduced row echelon form.
 
-    - ``rank`` - The desired rank, or number of leading ones, for the return matrix.
-
-    - ``upper_bound`` - If designated, size control of the matrix entries is desired, ``upper_bound`` is 1 + the maximum value entries can achieve.
+    - ``upper_bound`` - If designated, size control of the matrix entries is desired.
+      Set ``upper_bound`` to 1 more than the maximum value entries can achieve.
       If None, no size control occurs. (default: None)
-
-    - ``ring`` - The desired ring for the matrix to be generated over (default: QQ).
-
 
     OUTPUT:
 
     A matrix not in reduced row-echelon form with the desired dimensions and properties.
 
+    .. note::
+
+        It is easiest to use this function via a call to the
+        :func:`~sage.matrix.constructor.random_matrix`
+        function with the ``algorithm='echelonizable'`` keyword.  We provide
+        one example accessing this function directly, while the remainder will
+        use this more general function.
+
     EXAMPLES:
 
-    Generated matrices have the desired dimensions, rank and entry size. The matrix in reduced row-echelon form has only integer entries. ::
+    Generated matrices have the desired dimensions, rank and entry size. The
+    matrix in reduced row-echelon form has only integer entries. ::
 
         sage: from sage.matrix.constructor import random_echelonizable_matrix
-        sage: A=random_echelonizable_matrix(5,6,4,upper_bound=40,ring=QQ); A # random
+        sage: matrix_space = sage.matrix.matrix_space.MatrixSpace(QQ, 5, 6)
+        sage: A=random_echelonizable_matrix(matrix_space, rank=4, upper_bound=40); A # random
         [  1  -1   1  -3  -4   6]
         [  5  -4   0   8   4  19]
         [ -3   3  -2   4   7 -16]
@@ -1441,9 +1691,9 @@ def random_echelonizable_matrix(rows,columns,rank,upper_bound=None,ring=QQ):
         sage: A.rref()==A.rref().change_ring(ZZ)
         True
 
-    An example with default settings (ring=QQ, no entry size control). ::
+    An example with default settings (i.e. no entry size control). ::
 
-        sage: C=random_echelonizable_matrix(6,7,5); C # random
+        sage: C=random_matrix(QQ, 6, 7, algorithm='echelonizable', rank=5); C # random
         [  1   0   5  -2 -26 -16   0]
         [ -3   1 -19   6  97  61   1]
         [  0   4 -15  -1  71  50   3]
@@ -1457,7 +1707,7 @@ def random_echelonizable_matrix(rows,columns,rank,upper_bound=None,ring=QQ):
 
     A matrix without size control may have very large entry sizes. ::
 
-        sage: D=random_echelonizable_matrix(7,8,6,ring=ZZ); D # random
+        sage: D=random_matrix(ZZ, 7, 8, algorithm='echelonizable', rank=6); D # random
         [    9   -53  -255    45 -1519  4043  9819  3324]
         [    3   -14   -64     8  -369   972  2350   810]
         [    2   -14   -65     9  -377  1000  2420   829]
@@ -1466,10 +1716,10 @@ def random_echelonizable_matrix(rows,columns,rank,upper_bound=None,ring=QQ):
         [   -5    21    92   -13   548 -1432 -3466 -1183]
         [    1    -9   -42     7  -254   670  1624   547]
 
-    Matrices can be generated over a different ring. ::
+    Matrices can be generated over any exact ring. ::
 
         sage: F.<a>=GF(2^3)
-        sage: B=random_echelonizable_matrix(4,5,4,None,F); B # random
+        sage: B=random_matrix(F, 4, 5, algorithm='echelonizable', rank=4, upper_bound=None); B # random
         [      a + 1 a^2 + a + 1         a^2           0           1]
         [          1           a       a + 1         a^2     a^2 + a]
         [          a         a^2 a^2 + a + 1       a + 1           1]
@@ -1479,7 +1729,7 @@ def random_echelonizable_matrix(rows,columns,rank,upper_bound=None,ring=QQ):
 
     Square matrices over ZZ or QQ with full rank are unimodular. ::
 
-        sage: E=random_echelonizable_matrix(7,7,7); E # random
+        sage: E=random_matrix(QQ, 7, 7, algorithm='echelonizable', rank=7); E # random
         [  1  -1   5  12 -24 -41  47]
         [  0   1  -1   3   0 -11  40]
         [  1  -1   6   6 -19 -20 -11]
@@ -1492,26 +1742,20 @@ def random_echelonizable_matrix(rows,columns,rank,upper_bound=None,ring=QQ):
 
     TESTS:
 
-    Matrices must have a row dimension greater than zero. ::
+    Matrices must have a rank greater than zero.
+    (For zero rank, just create a zero matrix.) ::
 
-        sage: random_echelonizable_matrix(0,5,3)
+        sage: random_matrix(QQ, 3, 4, algorithm='echelonizable', rank=0)
         Traceback (most recent call last):
         ...
-        ValueError: matrices must have dimensions and rank greater than zero.
+        ValueError: matrices must have rank greater than zero.
 
-    Matrices must have a column dimension greater than zero. ::
+    The base ring must be exact. ::
 
-        sage: random_echelonizable_matrix(9,0,4)
+        sage: random_matrix(RR, 3, 3, algorithm='echelonizable', rank=2)
         Traceback (most recent call last):
         ...
-        ValueError: matrices must have dimensions and rank greater than zero.
-
-    Matrices must have a rank greater than zero. ::
-
-        sage: random_echelonizable_matrix(3,4,0)
-        Traceback (most recent call last):
-        ...
-        ValueError: matrices must have dimensions and rank greater than zero.
+        TypeError: the base ring must be exact.
 
     AUTHOR:
 
@@ -1520,13 +1764,14 @@ def random_echelonizable_matrix(rows,columns,rank,upper_bound=None,ring=QQ):
 
     from sage.misc.prandom import randint
 
-    if rows<=0 or columns<=0 or rank<=0:
-        raise ValueError("matrices must have dimensions and rank greater than zero.")
+    ring = parent.base_ring()
+    rows = parent.nrows()
+    if rank<=0:
+        raise ValueError("matrices must have rank greater than zero.")
+    matrix = random_rref_matrix(parent, rank)
     # Entries of matrices over the ZZ or QQ can get large, entry size is regulated by finding the largest
     # entry of the resultant matrix after addition of scalar multiple of a row.
     if ring==QQ or ring==ZZ:
-        matrix=random_rref_matrix(rows,columns,rank,ring)
-        matrix_copy=copy(matrix)
         # If upper_bound is not set, don't control entry size.
         if upper_bound==None:
             upper_bound=50
@@ -1573,8 +1818,6 @@ def random_echelonizable_matrix(rows,columns,rank,upper_bound=None,ring=QQ):
     # If the matrix generated over a different ring, random elements from the designated ring are used as and
     # the routine is run similarly to the size unchecked version for rationals and integers.
     else:
-        matrix=random_rref_matrix(rows,columns,rank,ring)
-        matrix_copy=copy(matrix)
         for pivots in range(rank-1,-1,-1):
             row_index=0
             while row_index<rows:

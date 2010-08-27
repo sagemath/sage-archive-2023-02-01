@@ -1109,8 +1109,8 @@ def random_tests(num=50, n_max=50, k_max=6, nwords_max=200, perms_per_code=10, d
         nwords = randint(1, min(n-1,nwords_max) )
         S = Permutations(n)
 
-        M = random_matrix(GF(2), k, n, False, p).row_space().basis_matrix()
-        M_n = random_matrix(GF(2), nwords, n, False, p)
+        M = random_matrix(GF(2), k, n, sparse=False, density=p).row_space().basis_matrix()
+        M_n = random_matrix(GF(2), nwords, n, sparse=False, density=p)
         B = LinearBinaryCodeStruct( M )
         B_n = NonlinearBinaryCodeStruct( M_n )
         B.run()

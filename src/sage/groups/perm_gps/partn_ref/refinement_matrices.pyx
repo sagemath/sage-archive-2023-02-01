@@ -351,7 +351,7 @@ def random_tests(n=15, nrows_max=50, ncols_max=50, nsymbols_max=20, perms_per_ma
         ncols = randint(1, ncols_max)
         nsymbols = next_prime(randint(1, nsymbols_max))
         S = Permutations(ncols)
-        MM = random_matrix(GF(nsymbols), nrows, ncols, False, p)
+        MM = random_matrix(GF(nsymbols), nrows, ncols, sparse=False, density=p)
         M = MatrixStruct( MM )
         M.run()
 

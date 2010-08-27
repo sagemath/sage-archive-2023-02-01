@@ -123,10 +123,7 @@ class LazyImport(object):
             sage: from sage.misc.lazy_import import LazyImport
             sage: rm = LazyImport('sage.all', 'random_matrix')
             sage: rm._sage_argspec_()
-            (['R', 'nrows', 'ncols', 'sparse', 'density'],
-             'args',
-             'kwds',
-             (None, False, 1))
+            (['ring', 'nrows', 'ncols', 'algorithm'], 'args', 'kwds', (None, 'randomize'))
         """
         return sageinspect.sage_getargspec(self._get_object())
 

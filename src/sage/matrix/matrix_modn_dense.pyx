@@ -553,7 +553,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         """
         TESTS::
 
-            sage: a = random_matrix(GF(11), 5, 5, range(25))
+            sage: a = random_matrix(GF(11), 5, 5)
             sage: a.set_immutable()
             sage: hash(a) #random
             216

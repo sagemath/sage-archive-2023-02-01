@@ -5,7 +5,6 @@ Cliquer is a set of C routines for finding cliques in an arbitrary
 weighted graph. It uses an exact branch-and-bound algorithm recently
 developed by Patr Ostergard.
 
-
 == License ==
 Cliquer is licensed under the GNU General Public License v2 ( June 1991 )
 
@@ -14,8 +13,22 @@ Nathann Cohen (nathann.cohen@gmail.com)
 
 == Upstream Contact ==
 Cliquer was mainly written by Sampo Niskanen, sampo.niskanenQiki.fi (Q=@).
+http://users.tkk.fi/pat/cliquer.html
+
+== Dependencies ==
+ * Base
+ * SCONS
+
+== Special Update/Build Instructions ==
+ * TODO - Add a spkg-check file - see #9767
 
 == Changelog ==
+
+=== cliquer-1.2.p6 Nathann Cohen (19 August 2010) ===
+ * #9766: Additions to SPKG.txt
+      - URL of the original website to the SPKG.txt file
+      - "Special Update/Build Instructions" section
+      - "Dependencies" section
 
 === cliquer-1.2.p5 Mike Hansen (15 February 2010) ===
  * Fixed Trac #8279 to make the cliquer spkg work on Cygwin with the Sage library.

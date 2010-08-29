@@ -678,6 +678,12 @@ class WeylCharacterRing_class(Algebra):
             sage: [A2(x) for x in [-2,-1,0,1,2,-2*q,-q,q,2*q,(1-q)]]
             [-2*A2(0,0,0), -A2(0,0,0), 0, A2(0,0,0), 2*A2(0,0,0), -2*q*A2(0,0,0), -q*A2(0,0,0),
             q*A2(0,0,0), 2*q*A2(0,0,0), (-q+1)*A2(0,0,0)]
+            sage: R.<q> = ZZ[]
+            sage: A2 = WeylCharacterRing(['A',2], base_ring = R, style="coroots")
+            sage: q*A2(1)
+            q*A2(0,0)
+            sage: [A2(x) for x in [-2,-1,0,1,2,-2*q,-q,q,2*q,(1-q)]]
+            [-2*A2(0,0), -A2(0,0), 0, A2(0,0), 2*A2(0,0), -2*q*A2(0,0), -q*A2(0,0), q*A2(0,0), 2*q*A2(0,0), (-q+1)*A2(0,0)]
         """
         if len(args) == 1:
             x = args[0]
@@ -691,7 +697,7 @@ class WeylCharacterRing_class(Algebra):
             hdict = {self._origin: x}
             return WeylCharacter(self, hdict, hdict)
 
-        if self._style == "coroots" and all(xv in ZZ for xv in x):
+        if self._style == "coroots" and isinstance(x, tuple) and all(xv in ZZ for xv in x):
             x = sum(x[i]*list(self.fundamental_weights())[i] for i in range(self._rank))
 
         if is_Element(x):

@@ -571,7 +571,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             N3 = self.conductor("gp")
             N4 = self.conductor("generic")
             if N1 != N2 or N2 != N3 or N2 != N4:
-                raise ArithmeticError, "Pari, mwrank, gp and Sage compute different conductors (%s,%s,%s,%3) for %s"%(
+                raise ArithmeticError, "PARI, mwrank, gp and Sage compute different conductors (%s,%s,%s,%3) for %s"%(
                     N1, N2, N3, N4, self)
             return N1
         else:
@@ -1258,7 +1258,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         r"""
         Return an integer that is *probably* the analytic rank of this
         elliptic curve.  If leading_coefficient is ``True`` (only implemented
-        for pari), return a tuple `(rank, lead)` where `lead` is the value of
+        for PARI), return a tuple `(rank, lead)` where `lead` is the value of
         the first non-zero derivative of the L-function of the elliptic
         curve.
 
@@ -1266,7 +1266,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         - algorithm -
 
-          - 'pari' (default) - use the pari library function.
+          - 'pari' (default) - use the PARI library function.
 
           - 'sympow' -use Watkins's program sympow
 
@@ -2824,13 +2824,13 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         EXAMPLES::
 
             sage: E = EllipticCurve([1,1,1,-8,6])
-            sage: P = E([0,2])
+            sage: P = E([1,-2])
             sage: z = P.elliptic_logarithm() # default precision is 100 here
             sage: E.elliptic_exponential(z)
-            (...e-30 : 2.0000000000000000000000000000 : 1.0000000000000000000000000000)
-            sage: z = E([0,2]).elliptic_logarithm(precision=200)
+            (1.0000000000000000000000000000 : -2.0000000000000000000000000000 : 1.0000000000000000000000000000)
+            sage: z = E([1,-2]).elliptic_logarithm(precision=200)
             sage: E.elliptic_exponential(z)
-            (...e-60 : 2.0000000000000000000000000000000000000000000000000000000000 : 1.0000000000000000000000000000000000000000000000000000000000)
+            (1.0000000000000000000000000000000000000000000000000000000000 : -2.0000000000000000000000000000000000000000000000000000000000 : 1.0000000000000000000000000000000000000000000000000000000000)
 
         ::
 
@@ -2842,7 +2842,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: P.elliptic_logarithm()
             0.47934825019021931612953301006 + 0.98586885077582410221120384908*I
             sage: E.elliptic_exponential(P.elliptic_logarithm())
-            (-1.0000000000000000000000000000 + ...e-31*I : 1.0000000000000000000000000000 - ...e-31*I : 1.0000000000000000000000000000)
+            (-1.0000000000000000000000000000 : 1.0000000000000000000000000000 : 1.0000000000000000000000000000)
 
 
         Some torsion examples::
@@ -3158,7 +3158,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             Modular parameterization from the upper half plane to Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 - 10*x - 10 over Rational Field
             sage: z = 0.1 + 0.2j
             sage: phi(z)
-            (8.20822465478531 - 13.1562816054682*I : -8.79855099049365 + 69.4006129342200*I : 1.00000000000000)
+            (8.20822465478531 - 13.1562816054682*I : -8.79855099049364 + 69.4006129342200*I : 1.00000000000000)
 
         This map is actually a map on `X_0(N)`, so equivalent representatives
         in the upper half plane map to the same point::
@@ -3395,7 +3395,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         -  ``algorithm`` - string:
 
-        -  ``"pari"`` - (default) use the pari library
+        -  ``"pari"`` - (default) use the PARI library
 
         -  ``"doud"`` - use Doud's algorithm
 
@@ -3448,7 +3448,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         -  ``algorithm`` - string:
 
-           -  "pari" - (default) use the pari library
+           -  "pari" - (default) use the PARI library
 
            -  "doud" - use Doud's algorithm
 
@@ -4983,7 +4983,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         .. note::
 
            If the input points are not independent, the output depends
-           on the undocumented behaviour of pari's ``qflllgram()``
+           on the undocumented behaviour of PARI's ``qflllgram()``
            function when applied to a gram matrix which is not
            positive definite.
 

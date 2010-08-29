@@ -1239,7 +1239,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
         fr = monsky_washnitzer.matrix_of_frobenius(Q, p, adjusted_prec, trace)
         fr = matrix.matrix(output_ring,2,2,fr)
 
-        # return a vector for pari's ellchangecurve to pass from e1 to e2
+        # return a vector for PARI's ellchangecurve to pass from e1 to e2
         def isom(e1,e2):
             if not e1.is_isomorphic(e2):
                 raise ValueError, "Curves must be isomorphic."

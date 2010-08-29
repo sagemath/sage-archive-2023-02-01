@@ -754,17 +754,17 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
            only for point counting over prime fields
 
             -  ``'heuristic'`` - use a heuristic to choose between
-               pari and bsgs.
+               ``'pari'`` and ``'bsgs'``.
 
             - ``'pari'`` - use the baby step giant step or SEA methods
                as implemented in PARI via the C-library function ellap.
 
-            -  ``bsgs`` - use the baby step giant step method as
-               implemented in Sage, with the Cremona -
-               Sutherland version of Mestre's trick.
+            -  ``'bsgs'`` - use the baby step giant step method as
+               implemented in Sage, with the Cremona-Sutherland version
+               of Mestre's trick.
 
-            - ``all`` - (over prime fields only) compute cardinality
-              with all of pari and bsgs; return result if they agree
+            - ``'all'`` - (over prime fields only) compute cardinality
+              with all of PARI and bsgs; return result if they agree
               or raise a RuntimeError if they do not.
 
         -  ``extension_degree`` - int (default: 1); if the
@@ -883,8 +883,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                 if N1 == N2:
                     N = N1
                 else:
-                    if N1!=N2:
-                        raise RuntimeError, "BUG! Cardinality with pari=%s but with bsgs=%s"%(N1, N2)
+                    raise RuntimeError, "BUG! Cardinality with pari=%s but with bsgs=%s"%(N1, N2)
             else:
                 raise ValueError, "Algorithm is not known"
             self._order = Integer(N)
@@ -1033,7 +1032,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
     def cardinality_pari(self):
         r"""
-        Return the cardinality of self over the (prime) base field using pari.
+        Return the cardinality of self over the (prime) base field using PARI.
 
         The result is not cached.
 
@@ -1299,13 +1298,6 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         generators are likely to differ from one run to another; but the
         group is cached so the generators will not change in any one run of
         Sage.
-
-        .. note::
-
-           This function applies to elliptic curves over arbitrary
-           finite fields. The related function
-           abelian_group_prime_field() uses the pari script, for prime
-           fields only; it is now obsolete
 
         INPUT:
 

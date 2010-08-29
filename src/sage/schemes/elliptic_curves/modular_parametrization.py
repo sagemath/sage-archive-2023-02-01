@@ -72,7 +72,7 @@ class ModularParameterization:
             sage: from sage.schemes.elliptic_curves.ell_rational_field import ModularParameterization
             sage: phi = ModularParameterization(EllipticCurve('389a'))
             sage: phi(CC.0/5)
-            (27.1965586309057 : -144.727322178983 : 1.00000000000000)
+            (27.1965586309057 : -144.727322178982 : 1.00000000000000)
 
             sage: phi == loads(dumps(phi))
             True
@@ -146,9 +146,9 @@ class ModularParameterization:
             sage: phi(tau+1)
             (-3.92181329652810 - 12.2578555525366*I : 44.9649874434872 + 14.3257120944681*I : 1.00000000000000)
             sage: phi((6*tau+1) / (11*tau+2))
-            (-3.92181329652853 - 12.2578555525369*I : 44.9649874434897 + 14.3257120944671*I : 1.00000000000000)
+            (-3.9218132965285... - 12.2578555525369*I : 44.964987443489... + 14.325712094467...*I : 1.00000000000000)
 
-        We can also apply the odular parametrization to a Heegner point on `X_0(N)`::
+        We can also apply the modular parametrization to a Heegner point on `X_0(N)`::
 
             sage: H = heegner_points(389,-7,5); H
             All Heegner points of conductor 5 on X_0(389) associated to QQ[sqrt(-7)]
@@ -212,8 +212,8 @@ class ModularParameterization:
         # TODO: for very small imaginary part, maybe try to transform under
         # \Gamma_0(N) to a better representative?
         q = (2*CC.gen()*CC.pi()*z).exp()
-        # TODO: where does nterms come from???
-        nterms = (-prec/q.abs().log2()).ceil()
+        #  nterms'th term is less than 2**-(prec+10) (c.f. eclib code)
+        nterms = (-(prec+10)/q.abs().log2()).ceil()
         # Use Horner's rule to sum the integral of the form
         enumerated_an = list(enumerate(self._E.anlist(nterms)))[1:]
         lattice_point = 0

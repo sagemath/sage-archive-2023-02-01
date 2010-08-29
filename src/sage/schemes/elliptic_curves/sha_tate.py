@@ -207,7 +207,7 @@ class Sha(SageObject):
             large conductor, and the computation time for this may
             increase substantially at greater precision.  However, use of
             very low precision less than about 10 can cause the underlying
-            pari library functions to fail.
+            PARI library functions to fail.
 
         EXAMPLES::
 

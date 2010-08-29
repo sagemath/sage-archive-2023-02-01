@@ -135,9 +135,9 @@ class EllipticCurveTorsionSubgroup(groups.AdditiveAbelianGroupWrapper):
         - ``E`` - An elliptic curve defined over a number field (including `\Q`)
 
         - ``algorithm`` - (string, default None): If not None, must be one
-                     of 'pari', 'doud', 'lutz_nagell'.  For curves
-                     defined over `\QQ`, pari is then used with the
-                     appropriate flag passed to pari's ``elltors()``
+                     of 'PARI', 'doud', 'lutz_nagell'.  For curves
+                     defined over `\QQ`, PARI is then used with the
+                     appropriate flag passed to PARI's ``elltors()``
                      function; this parameter is ignored for curves
                      whose base field is not `\QQ`.
 

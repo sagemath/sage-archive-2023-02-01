@@ -9,10 +9,10 @@ of `\rm{I}_m`, `\rm{II}`, `\rm{III}`, `\rm{IV}`, `\rm{I}^*_m`,
 `\rm{II}^*`, `\rm{III}^*`, `\rm{IV}^*`, where `m` denotes a
 non-negative integer.  These have been encoded by single integers by
 different people.  For convenience we give here the conversion table
-between strings, the eclib coding and the pari encoding.
+between strings, the eclib coding and the PARI encoding.
 
 +----------------------+----------------+--------------------+
-| Kodaira Symbol       |  Eclib coding  |  Pari Coding       |
+| Kodaira Symbol       |  Eclib coding  |  PARI Coding       |
 +======================+================+====================+
 | `\rm{I}_0`           |      `0`       |   `1`              |
 +----------------------+----------------+--------------------+
@@ -80,7 +80,7 @@ class KodairaSymbol_class(SageObject):
 
         - ``symbol`` (string or integer) -- The string should be a
            standard string representation (e.g. III*) of a Kodaira
-           symbol, which will be parsed.  Alternatively, use the Pari
+           symbol, which will be parsed.  Alternatively, use the PARI
            encoding of Kodaira symbols as integers.
 
         EXAMPLES::
@@ -280,7 +280,7 @@ class KodairaSymbol_class(SageObject):
 
     def _pari_code(self):
         """
-        Return the Pari encoding of this Kodaira Symbol.
+        Return the PARI encoding of this Kodaira Symbol.
 
         EXAMPLES::
 
@@ -304,7 +304,7 @@ def KodairaSymbol(symbol):
 
     INPUT:
 
-    - ``symbol`` (string or integer) -- Either a string of the form "I0", "I1", ..., "In", "II", "III", "IV", "I0*", "I1*", ..., "In*", "II*", "III*", or "IV*", or an integer encoding a Kodaira symbol using Pari's conventions.
+    - ``symbol`` (string or integer) -- Either a string of the form "I0", "I1", ..., "In", "II", "III", "IV", "I0*", "I1*", ..., "In*", "II*", "III*", or "IV*", or an integer encoding a Kodaira symbol using PARI's conventions.
 
     OUTPUT:
 

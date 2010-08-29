@@ -65,7 +65,7 @@ upper half plane::
     sage: L.normalised_basis()
     (-1.37588604166076 - 2.58560946624443*I, -2.10339907847356 + 0.428378776460622*I)
 
-We test that bug #8415 (caused by a Pari bug fixed in v2.3.5) is OK::
+We test that bug #8415 (caused by a PARI bug fixed in v2.3.5) is OK::
 
     sage: E = EllipticCurve('37a')
     sage: K.<a> = QuadraticField(-7)
@@ -101,7 +101,7 @@ from sage.rings.complex_number import ComplexNumber as ComplexNumber
 from sage.rings.number_field.number_field import refine_embedding
 from sage.rings.infinity import Infinity
 from sage.functions.other import imag
-from sage.schemes.elliptic_curves.ell_point import EllipticCurvePoint_field
+from sage.schemes.elliptic_curves.constructor import EllipticCurve
 from sage.misc.cachefunc import cached_method
 
 class PeriodLattice(FreeModule_generic_pid):
@@ -337,7 +337,7 @@ class PeriodLattice_ell(PeriodLattice):
         Note that this is actually the inverse of the Weierstrass isomorphism::
 
             sage: L.elliptic_exponential(L(Q))
-            (2.99999999999999 : 4.99999999999998 : 1.00000000000000)
+            (3.00000000000000 : 5.00000000000000 : 1.00000000000000)
 
         An example with negative discriminant, and a torsion point::
 
@@ -367,7 +367,7 @@ class PeriodLattice_ell(PeriodLattice):
 
         - ``algorithm`` (string, default 'sage') -- choice of
           implementation (for real embeddings only) between 'sage'
-          (native Sage implementation) or 'pari' (use the pari
+          (native Sage implementation) or 'pari' (use the PARI
           library: only available for real embeddings).
 
         OUTPUT:
@@ -444,7 +444,7 @@ class PeriodLattice_ell(PeriodLattice):
 
         - ``algorithm`` (string, default 'sage') -- choice of
           implementation (for real embeddings only) between 'sage'
-          (native Sage implementation) or 'pari' (use the pari
+          (native Sage implementation) or 'pari' (use the PARI
           library: only available for real embeddings).
 
         OUTPUT:
@@ -496,7 +496,7 @@ class PeriodLattice_ell(PeriodLattice):
           precision (in bits); if None, use the default precision.
 
         - `algorithm` (string, default 'sage') -- choice of implementation between
-          - `pari`: use the pari library
+          - `pari`: use the PARI library
 
           - `sage`: use a native Sage implementation (with the same underlying algorithm).
 
@@ -705,7 +705,7 @@ class PeriodLattice_ell(PeriodLattice):
 
         - ``algorithm`` (string, default 'sage') -- choice of
           implementation (for real embeddings only) between 'sage'
-          (native Sage implementation) or 'pari' (use the pari
+          (native Sage implementation) or 'pari' (use the PARI
           library: only available for real embeddings).
 
         .. note::
@@ -1019,6 +1019,25 @@ class PeriodLattice_ell(PeriodLattice):
         `n_1`, `n_2` which are the integer parts to the `x`, `y`
         defined above. These are used in :meth:``.reduce``
 
+        EXAMPLES::
+
+            sage: E = EllipticCurve('389a')
+            sage: L = E.period_lattice()
+            sage: w1, w2 = L.basis(prec=100)
+            sage: P = E([-1,1])
+            sage: zP = P.elliptic_logarithm(precision=100); zP
+            0.47934825019021931612953301006 + 0.98586885077582410221120384908*I
+            sage: L.coordinates(zP)
+            (0.19249290511394227352563996419, 0.50000000000000000000000000000)
+            sage: sum([x*w for x,w in zip(L.coordinates(zP), L.basis(prec=100))])
+            0.47934825019021931612953301006 + 0.98586885077582410221120384908*I
+
+            sage: L.coordinates(12*w1+23*w2)
+            (12.000000000000000000000000000, 23.000000000000000000000000000)
+            sage: L.coordinates(12*w1+23*w2, rounding='floor')
+            (11, 22)
+            sage: L.coordinates(12*w1+23*w2, rounding='round')
+            (12, 23)
         """
         C = z.parent()
         if is_RealField(C):
@@ -1054,9 +1073,9 @@ class PeriodLattice_ell(PeriodLattice):
         r"""
         Reduce a complex number modulo the lattice
 
-            INPUT:
+        INPUT:
 
-            - ``z`` (complex) -- A complex number.
+        - ``z`` (complex) -- A complex number.
 
         OUTPUT:
 
@@ -1065,6 +1084,24 @@ class PeriodLattice_ell(PeriodLattice):
         lattice basis.  For curves defined over the reals (i.e. real
         embeddings) the output will be real when possible.
 
+        EXAMPLES::
+
+            sage: E = EllipticCurve('389a')
+            sage: L = E.period_lattice()
+            sage: w1, w2 = L.basis(prec=100)
+            sage: P = E([-1,1])
+            sage: zP = P.elliptic_logarithm(precision=100); zP
+            0.47934825019021931612953301006 + 0.98586885077582410221120384908*I
+            sage: z = zP+10*w1-20*w2; z
+            25.381473858740770069343110929 - 38.448885180257139986236950114*I
+            sage: L.reduce(z)
+            0.47934825019021931612953301006 + 0.98586885077582410221120384908*I
+            sage: L.elliptic_logarithm(2*P)
+            0.958696500380439
+            sage: L.reduce(L.elliptic_logarithm(2*P))
+            0.958696500380439
+            sage: L.reduce(L.elliptic_logarithm(2*P)+10*w1-20*w2)
+            0.958696500380444
         """
         C = z.parent()
         z_is_real = False
@@ -1151,8 +1188,8 @@ class PeriodLattice_ell(PeriodLattice):
 
         Note that this is actually the inverse of the Weierstrass isomorphism::
 
-            sage: pari(E).ellztopoint(_)
-            [3.00000000000000 + 0.E-18*I, 5.00000000000000 + 0.E-18*I]
+            sage: L.elliptic_exponential(_)
+            (3.00000000000000000000000000... : 5.00000000000000000000000000... : 1.000000000000000000000000000)
 
         An example with negative discriminant, and a torsion point::
 
@@ -1260,7 +1297,6 @@ class PeriodLattice_ell(PeriodLattice):
 
             a = C((e1-e3).sqrt())
             b = C((e1-e2).sqrt())
-            c2 = C(e2-e3)
             if (a+b).abs() < (a-b).abs():  b=-b
             u = C((xP-e3).sqrt())
             v = C((xP-e2).sqrt())
@@ -1340,17 +1376,20 @@ class PeriodLattice_ell(PeriodLattice):
 
         OUTPUT:
 
-        (Either an elliptic curve point, or a 2-tuple of real or
-        complex numbers). The elliptic exponential of `z` modulo this
-        period lattice.  If ``to_curve`` is False this is the pair
-        `(x,y) = (\wp(z),\wp'(z))` where $\wp$ denotes the Weierstrass
-        function with respect to this lattice.  If ``to_curve`` is
-        True it is the point with coordinates
-        `(x-b_2/12,y-(a_1(x-b_2/12)-a_3)/2)` as a point in `E(\CC)`.
+        - If ``to_curve`` is False, a 2-tuple of real or complex
+          numbers representing the point `(x,y) = (\wp(z),\wp'(z))`
+          where `\wp` denotes the Weierstrass `\wp`-function with
+          respect to this lattice.
 
-        If the lattice is real and `z` is also real then the output is
-        a pair of real numbers (if ``to_curve`` is True), or a point in
-        `E(\RR)` if ``to_curve`` is False.
+        - If ``to_curve`` is True, the point `(X,Y) =
+          (x-b_2/12,y-(a_1(x-b_2/12)-a_3)/2)` as a point in `E(\RR)`
+          or `E(\CC)`, with `(x,y) = (\wp(z),\wp'(z))` as above, where
+          `E` is the elliptic curve over `\RR` or `\CC` whose period
+          lattice this is.
+
+        - If the lattice is real and `z` is also real then the output
+          is a pair of real numbers if ``to_curve`` is True, or a
+          point in `E(\RR)` if ``to_curve`` is False.
 
         .. note::
 
@@ -1359,20 +1398,100 @@ class PeriodLattice_ell(PeriodLattice):
         EXAMPLES::
 
             sage: E = EllipticCurve([1,1,1,-8,6])
-            sage: P = E(0,2)
+            sage: P = E(1,-2)
             sage: L = E.period_lattice()
             sage: z = L(P); z
-            2.65289807021917
+            1.17044757240090
             sage: L.elliptic_exponential(z)
-            (1.06...e-15 : 2.00000000000000 : 1.00000000000000)
+            (0.999999999999999 : -2.00000000000000 : 1.00000000000000)
             sage: _.curve()
             Elliptic Curve defined by y^2 + 1.00000000000000*x*y + 1.00000000000000*y = x^3 + 1.00000000000000*x^2 - 8.00000000000000*x + 6.00000000000000 over Real Field with 53 bits of precision
-            sage: L.elliptic_exponential(z,False)
-            (0.416666666666668, 2.50000000000000)
+            sage: L.elliptic_exponential(z,to_curve=False)
+            (1.41666666666667, -1.00000000000000)
             sage: z = L(P,prec=200); z
-            2.6528980702191653584337189314791830484705213985544997536510
+            1.1704475724008959229899218848237149350447256167745100799419
             sage: L.elliptic_exponential(z)
-            (-1.0773...e-60 : 2.0000000000000000000000000000000000000000000000000000000000 : 1.0000000000000000000000000000000000000000000000000000000000)
+            (1.0000000000000000000000000000000000000000000000000000000000 : -2.0000000000000000000000000000000000000000000000000000000000 : 1.0000000000000000000000000000000000000000000000000000000000)
+
+        Examples over number fields::
+
+            sage: x = polygen(QQ)
+            sage: K.<a> = NumberField(x^3-2)
+            sage: embs = K.embeddings(CC)
+            sage: E = EllipticCurve('37a')
+            sage: EK = E.change_ring(K)
+            sage: Li = [EK.period_lattice(e) for e in embs]
+            sage: P = EK(-1,-1)
+            sage: Q = EK(a-1,1-a^2)
+            sage: zi = [L.elliptic_logarithm(P) for L in Li]
+            sage: [c.real() for c in Li[0].elliptic_exponential(zi[0])]
+            [-1.00000000000000, -1.00000000000000, 1.00000000000000]
+            sage: [c.real() for c in Li[0].elliptic_exponential(zi[1])]
+            [-1.00000000000000, -1.00000000000000, 1.00000000000000]
+            sage: [c.real() for c in Li[0].elliptic_exponential(zi[2])]
+            [-1.00000000000000, -1.00000000000000, 1.00000000000000]
+
+            sage: zi = [L.elliptic_logarithm(Q) for L in Li]
+            sage: Li[0].elliptic_exponential(zi[0])
+            (-1.62996052494744 - 1.09112363597172*I : 1.79370052598410 - 1.37472963699860*I : 1.00000000000000)
+            sage: [embs[0](c) for c in Q]
+            [-1.62996052494744 - 1.09112363597172*I, 1.79370052598410 - 1.37472963699860*I, 1.00000000000000]
+            sage: Li[1].elliptic_exponential(zi[1])
+            (-1.62996052494744 + 1.09112363597172*I : 1.79370052598410 + 1.37472963699860*I : 1.00000000000000)
+            sage: [embs[1](c) for c in Q]
+            [-1.62996052494744 + 1.09112363597172*I, 1.79370052598410 + 1.37472963699860*I, 1.00000000000000]
+            sage: [c.real() for c in Li[2].elliptic_exponential(zi[2])]
+            [0.259921049894873, -0.587401051968199, 1.00000000000000]
+            sage: [embs[2](c) for c in Q]
+            [0.259921049894873, -0.587401051968200, 1.00000000000000]
+
+        Test to show that #8820 is fixed::
+
+            sage: E = EllipticCurve('37a')
+            sage: K.<a> = QuadraticField(-5)
+            sage: L = E.change_ring(K).period_lattice(K.places()[0])
+            sage: L.elliptic_exponential(CDF(.1,.1))
+            (0.0000142854026029... - 49.9960001066650*I : 249.520141250950 + 250.019855549131*I : 1.00000000000000)
+            sage: L.elliptic_exponential(CDF(.1,.1), to_curve=False)
+            (0.0000142854026029... - 49.9960001066650*I, 250.020141250950 + 250.019855549131*I)
+
+        `z=0` is treated as a special case::
+
+            sage: E = EllipticCurve([1,1,1,-8,6])
+            sage: L = E.period_lattice()
+            sage: L.elliptic_exponential(0)
+            (0 : 1.00000000000000 : 0)
+            sage: L.elliptic_exponential(0, to_curve=False)
+            (+infinity, +infinity)
+
+        ::
+
+            sage: E = EllipticCurve('37a')
+            sage: K.<a> = QuadraticField(-5)
+            sage: L = E.change_ring(K).period_lattice(K.places()[0])
+            sage: P = L.elliptic_exponential(0); P
+            (0 : 1.00000000000000 : 0)
+            sage: P.parent()
+            Abelian group of points on Elliptic Curve defined by y^2 + 1.00000000000000*y = x^3 + (-1.00000000000000)*x over Complex Field with 53 bits of precision
+
+        Very small `z` are handled properly (see #8820)::
+
+            sage: K.<a> = QuadraticField(-1)
+            sage: E = EllipticCurve([0,0,0,a,0])
+            sage: L = E.period_lattice(K.complex_embeddings()[0])
+            sage: L.elliptic_exponential(1e-100)
+            (0 : 1.00000000000000 : 0)
+
+        The elliptic exponential of `z` is returned as (0 : 1 : 0) if
+        the coordinates of z with respect to the period lattice are
+        approximately integral::
+
+            sage: (100/log(2.0,10))/0.8
+            415.241011860920
+            sage: L.elliptic_exponential((RealField(415)(1e-100))).is_zero()
+            True
+            sage: L.elliptic_exponential((RealField(420)(1e-100))).is_zero()
+            False
         """
         C = z.parent()
         z_is_real = False
@@ -1392,43 +1511,49 @@ class PeriodLattice_ell(PeriodLattice):
                     raise TypeError, "%s is not a complex number"%z
         prec = C.precision()
 
-        from sage.libs.all import pari
+        # test for the point at infinity:
 
-        w = pari(z)
-        E = self.curve()
-
-        # Using ellztopoint works a lot better than using ellwp, e.g.,
-        # it takes care of the case when pxy = "point at infinity"
-        # cleanly.
-        pxy = E.pari_curve(prec+5).ellztopoint(w)
-        if len(pxy) == 1:
-            # It's the point at infinity
+        eps = (C(2)**(-0.8*prec)).real()  ## to test integrality w.r.t. lattice within 20%
+        if all([(t.round()-t).abs() < eps for t in self.coordinates(z)]):
+            K = z.parent()
             if to_curve:
-                return E.change_ring(C)(0)
-            return (C('+infinity'),C('+infinity'))
+                return self.curve().change_ring(K)(0)
+            else:
+                return (K('+infinity'),K('+infinity'))
 
-        # NB converting the pari values to Sage values might land up
+        # general number field code (including QQ):
+
+        # We do not use PARI's ellztopoint function since it is only
+        # defined for curves over the reals (note that PARI only
+        # computes the period lattice basis in that case).  But Sage
+        # can compute the period lattice basis over CC, and then
+        # PARI's ellwp function works fine.
+
+        # NB converting the PARI values to Sage values might land up
         # in real/complex fields of spuriously higher precision than
-        # the input, since pari's precision is in word-size chunks.
+        # the input, since PARI's precision is in word-size chunks.
         # So we force the results back into the real/complex fields of
         # the same precision as the input.
-        x,y = [C(t.real().python(),t.imag().python()) for t in pxy]
+
+        from sage.libs.all import pari
+
+        x,y = pari(self.basis(prec=prec)).ellwp(pari(z),flag=1)
+        x,y = [C(t) for t in (x,y)]
 
         if self.real_flag and z_is_real:
             x = x.real()
             y = y.real()
 
-        K = x.parent()
-
         if to_curve:
-            return E.change_ring(K).point((x,y,K(1)), check=False)
-        else:
-            a1 = self.embedding(self.E.a1())
-            a3 = self.embedding(self.E.a3())
+            a1,a2,a3,a4,a6 = [self.embedding(a) for a in self.E.ainvs()]
             b2 = self.embedding(self.E.b2())
-            xnew = x + b2/12
-            ynew = y + (a1*x+a3)/2
-            return (xnew,ynew)
+            x = x - (b2/12)
+            y = y - (a1*x+a3)/2
+            K = x.parent()
+            EK = EllipticCurve(K,[a1,a2,a3,a4,a6])
+            return EK.point((x,y,K(1)), check=False)
+        else:
+            return (x,y)
 
 def reduce_tau(tau):
     r"""

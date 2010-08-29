@@ -12,7 +12,7 @@ EXAMPLES::
 
     sage: E = EllipticCurve('433a')
     sage: P = E.heegner_point(-8,3)
-    sage: z = P.point_exact(200); z
+    sage: z = P.point_exact(201); z
     (-4/3 : 1/27*a - 4/27 : 1)
     sage: parent(z)
     Abelian group of points on Elliptic Curve defined by y^2 + x*y = x^3 + 1 over Number Field in a with defining polynomial x^2 - 44*x + 1159
@@ -2982,9 +2982,11 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
         You can also directly coerce to the complex field::
 
             sage: E = EllipticCurve('389a'); y = E.heegner_point(-7)
-            sage: ComplexField(100)(y)
-            -8.6774699574311298595290142181e-30 - 3.9434754031032964088448153963*I
-        """
+            sage: z = ComplexField(100)(y); z # real part approx. 0
+            -... - 3.9434754031032964088448153963*I
+            sage: E.period_lattice().elliptic_exponential(z)
+            (0 : 1.0000000000000000000000000000 : 0)
+"""
         phi = self.__E.modular_parametrization()
         tau = self.heegner_point_on_X0N().tau()
         return phi.map_to_complex_numbers(tau, prec)
@@ -3020,8 +3022,9 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
             Heegner point of discriminant -7 on elliptic curve of conductor 37
             sage: P = y.kolyvagin_point(); P
             Kolyvagin point of discriminant -7 on elliptic curve of conductor 37
-            sage: P.numerical_approx()
-            (-3.4...e-16 - 2.00...e-16*I : 3.4...e-16 + 2.00...e-16*I : 1.00000000000000)
+            sage: PP = P.numerical_approx() # approximately (0 : 0 : 1)
+            sage: all([c.abs() < 1e-15 for c in PP.xy()])
+            True
         """
         return KolyvaginPoint(self)
 
@@ -3042,15 +3045,15 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
         EXAMPLES::
 
             sage: E = EllipticCurve('77a1')
-            sage: P = E.heegner_point(-19); y = P._trace_numerical_conductor_1(); y
-            (-9.5...e-17 - 1.11...e-16*I : -1.00000000000000 + 2.21...e-16*I : 1.00000000000000)
+            sage: P = E.heegner_point(-19); y = P._trace_numerical_conductor_1(); [c.real() for c in y]
+            [-1.261...e-16, -1.00000000000000, 1.00000000000000]
             sage: -2*E.gens()[0]
             (0 : -1 : 1)
             sage: P._trace_index()
             2
 
-            sage: P = E.heegner_point(-68); P._trace_numerical_conductor_1()
-            (9.2...e28 - 1...e28*I : -2.7...e43 + ...e42*I : 1.00000000000000)
+            sage: P = E.heegner_point(-68); P
+            Heegner point of discriminant -68 on elliptic curve of conductor 77
             sage: N(P)
             (0.219223593595584 - 1.87443160153148*I : -1.34232921921325 - 1.52356748877889*I : 1.00000000000000)
             sage: P._trace_index()
@@ -3119,11 +3122,11 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
 
             sage: E = EllipticCurve('37a'); P = E.heegner_point(-7); P
             Heegner point of discriminant -7 on elliptic curve of conductor 37
-            sage: P.numerical_approx()
-            (-3.41...e-16 - 2.000...e-16*I : 3.42...e-16 + 2.00...e-16*I : 1.00000000000000)
-            sage: P.numerical_approx(10)
+            sage: all([c.abs()< 1e-15 for c in P.numerical_approx().xy()])
+            True
+            sage: P.numerical_approx(10)  # expect random digits
             (0.0030 - 0.0028*I : -0.0030 + 0.0028*I : 1.0)
-            sage: P.numerical_approx(100)[0]
+            sage: P.numerical_approx(100)[0]  # expect random digits
             8.4...e-31 + 6.0...e-31*I
             sage: E = EllipticCurve('37a'); P = E.heegner_point(-40); P
             Heegner point of discriminant -40 on elliptic curve of conductor 37
@@ -3137,10 +3140,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
             sage: P = E.heegner_point(-7); P
             Heegner point of discriminant -7 on elliptic curve of conductor 389
             sage: P.numerical_approx()
-            (4.085...e28 + 1.503...e28*I : -7.842...e42 - 4.583...e42*I : 1.00000000000000)   # 64-bit
-            (0 : 1.00000000000000 : 0)   # 32-bit
-            sage: P.numerical_approx(70)
-            (0 : 1.0000000000000000000 : 0)
+            (0 : 1.00000000000000 : 0)
 
         However, Heegner points of bigger conductor are often nonzero::
 
@@ -3481,9 +3481,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
             sage: y = E.heegner_point(-7,3); y
             Heegner point of discriminant -7 and conductor 3 on elliptic curve of conductor 37
             sage: y._numerical_approx_xy_poly()
-            (X^8 + 6.00000000000000*X^7 + 8.99999999999998*X^6 - 12.0000000000000*X^5 - 42.0000000000000*X^4 - 17.9999999999998*X^3 + 36.0000000000001*X^2 + 35.9999999999999*X + 8.99999999999994, X^8 + 12.0000000000000*X^7 + 72.0000000000000*X^6 + 270.000000000000*X^5 + 678.000000000001*X^4 + 1152.00000000000*X^3 + 1269.00000000000*X^2 + 810.000000000002*X + 225.000000000001)
-            sage: y._numerical_approx_xy_poly(prec=10)
-            (X^8 + 6.0*X^7 + 8.8*X^6 - 12.*X^5 - 42.*X^4 - 17.*X^3 + 37.*X^2 + 36.*X + 9.0, X^8 + 12.*X^7 + 72.*X^6 + 270.*X^5 + 680.*X^4 + 1200.*X^3 + 1300.*X^2 + 820.*X + 230.)
+            (X^8 + 6.00000000000000*X^7 + 8.99999999999998*X^6 - 12.0000000000000*X^5 - 42.0000000000000*X^4 - 17.999999999999...*X^3 + 36.0000000000001*X^2 + 35.9999999999999*X + 8.999999999999..., X^8 + 12.0000000000000*X^7 + 72.0000000000000*X^6 + 270.000000000000*X^5 + 678.000000000001*X^4 + 1152.00000000000*X^3 + 1269.00000000000*X^2 + 810.00000000000...*X + 225.000000000001)
         """
         v = self._numerical_approx_conjugates_over_QQ(prec)
         R = ComplexField(prec)['X']
@@ -3584,8 +3582,8 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
             sage: E = EllipticCurve('57a1')
             sage: P = E.heegner_point(-8); P
             Heegner point of discriminant -8 on elliptic curve of conductor 57
-            sage: P._trace_numerical_conductor_1()
-            (1.00000000000000 + 4.49...e-16*I : 1.77...e-16 - 4.49...e-16*I : 1.00000000000000)
+            sage: P._trace_numerical_conductor_1() # approx. (1 : 0 : 1)
+            (1.00000000000000 + ...e-16*I : ...e-16 - ...e-16*I : 1.00000000000000)
             sage: P = E(2,1) # a generator
             sage: E([1,0]).height()
             0.150298370947295
@@ -3964,17 +3962,15 @@ class KolyvaginPoint(HeegnerPoint):
 
             sage: P = EllipticCurve('37a1').kolyvagin_point(-7); P
             Kolyvagin point of discriminant -7 on elliptic curve of conductor 37
-            sage: P.numerical_approx()
-            (-3.4...e-16 - 2.00...e-16*I : 3.42...e-16 + 2.00...e-16*I : 1.00000000000000)
-            sage: P.numerical_approx(10)
-            (0.0030 - 0.0028*I : -0.0030 + 0.0028*I : 1.0)
-            sage: P.numerical_approx(100)[0]
-            8.441982...e-31 + 6.087647...e-31*I
+            sage: P.numerical_approx() # approx. (0 : 0 : 1)
+            (...e-16 - ...e-16*I : ...e-16 + ...e-16*I : 1.00000000000000)
+            sage: P.numerical_approx(100)[0].abs() < 2.0^-99
+            True
 
             sage: P = EllipticCurve('389a1').kolyvagin_point(-7, 5); P
             Kolyvagin point of discriminant -7 and conductor 5 on elliptic curve of conductor 389
 
-        Numerical approximation is not yet implemented::
+        Numerical approximation is only implemented for points of conductor 1::
 
             sage: P.numerical_approx()
             Traceback (most recent call last):
@@ -4015,11 +4011,6 @@ class KolyvaginPoint(HeegnerPoint):
 
             sage: E = EllipticCurve('389a1'); P = E.kolyvagin_point(-7)
             sage: P.point_exact()
-            Traceback (most recent call last):                          # 64-bit
-            ...                                                         # 64-bit
-            RuntimeError: insufficient precision to find exact point    # 64-bit
-            (0 : 1 : 0)                                                 # 32-bit
-            sage: P.point_exact(100)
             (0 : 1 : 0)
 
         """
@@ -4108,8 +4099,12 @@ class KolyvaginPoint(HeegnerPoint):
         EXAMPLES::
 
             sage: E = EllipticCurve('37a1'); P = E.kolyvagin_point(-67)
-            sage: P.numerical_approx()
-            (6.00000000000000 + 8.0...e-16*I : -15.0000000000000 - 2.96...e-15*I : 1.00000000000000)
+            sage: PP = P.numerical_approx(); PP
+            (6.00000000000000 ... : -15.0000000000000 ... : 1.00000000000000)
+            sage: [c.real() for c in PP]
+            [6.00000000000000, -15.0000000000000, 1.00000000000000]
+            sage: all([c.imag().abs() < 1e-14 for c in PP])
+            True
             sage: P.trace_to_real_numerical()
             (1.61355529131986 : -2.18446840788880 : 1.00000000000000)
             sage: P.trace_to_real_numerical(prec=80)
@@ -4169,9 +4164,9 @@ class KolyvaginPoint(HeegnerPoint):
         EXAMPLES::
 
             sage: E = EllipticCurve('43a'); P = E.heegner_point(-20).kolyvagin_point()
-            sage: q = P.numerical_approx(); q
-            (2.22044604925031e-16 : -1.00000000000000 : 1.00000000000000)
-            sage: P._recognize_point_over_QQ(q, 4)
+            sage: PP = P.numerical_approx(); PP
+            (...e-16 : -1.00000000000000 : 1.00000000000000)
+            sage: P._recognize_point_over_QQ(PP, 4)
             (0 : -1 : 1)
         """
         # Here is where we *should* implement the "method of Cremona
@@ -6216,8 +6211,8 @@ def kolyvagin_point(self, D, c=ZZ(1), check=True):
         sage: E = EllipticCurve('37a1')
         sage: P = E.kolyvagin_point(-67); P
         Kolyvagin point of discriminant -67 on elliptic curve of conductor 37
-        sage: P.numerical_approx()
-        (6.00000000000000 + 8.0...e-16*I : -15.0000000000000 - 2.96...e-15*I : 1.00000000000000)
+        sage: P.numerical_approx() # imaginary parts approx. 0
+        (6.00000000000000 ... : -15.0000000000000 ... : 1.00000000000000)
         sage: P.index()
         6
         sage: g = E((0,-1,1)) # a generator

@@ -326,7 +326,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
     def _pari_init_(self):
         """
         Internal function. Returns a string to initialize this elliptic
-        curve in the pari system.
+        curve in the PARI system.
 
         EXAMPLES::
 
@@ -2849,10 +2849,9 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
     # in turn calls pari(s) where s=E._pari_init_(), as defined in
     # ell_generic.py, which is just an ellinit() string of the form
     # 'ellinit([a1,a2,a3,a4,a6])'.  This way gives better control over
-    # the precision of the returned pari curve: pari(E) will return a
-    # pari elliptic curve with the highest precision computed by any
+    # the precision of the returned PARI curve: pari(E) will return a
+    # PARI elliptic curve with the highest precision computed by any
     # previous call to E.pari_curve(), or 53 bits by default if that
     # function has not previously been called.
-
     _pari_ = pari_curve
 

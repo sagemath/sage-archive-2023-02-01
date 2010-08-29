@@ -642,17 +642,250 @@ cdef class gen(sage.structure.element.RingElement):
     ###########################################
     # ACCESS
     ###########################################
-    #def __getattr__(self, attr):
     def getattr(self, attr):
         t0GEN(str(self) + '.' + str(attr))
         _sig_on
         return self.new_gen(t0)
 
+    def nf_get_diff(self):
+        """
+        Returns the different of this number field as a PARI ideal.
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^4 - 4*x^2 + 1)
+            sage: pari(K).nf_get_diff()
+            [12, 0, 0, 0; 0, 12, 8, 0; 0, 0, 4, 0; 0, 0, 0, 4]
+        """
+        _sig_on
+        # Very bad code, but there doesn't seem to be a better way
+        return self.new_gen(gel(gel(self.g, 5), 5))
+
+    def nf_get_sign(self):
+        """
+        Returns a Python list ``[r1, r2]``, where ``r1`` and ``r2`` are
+        Python ints representing the number of real embeddings and pairs
+        of complex embeddings of this number field, respectively.
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^4 - 4*x^2 + 1)
+            sage: s = K.pari_nf().nf_get_sign(); s
+            [4, 0]
+            sage: type(s); type(s[0])
+            <type 'list'>
+            <type 'int'>
+            sage: CyclotomicField(15).pari_nf().nf_get_sign()
+            [0, 4]
+        """
+        cdef long r1
+        cdef long r2
+        _sig_on
+        nf_get_sign(self.g, &r1, &r2)
+        _sig_off
+        return [r1, r2]
+
+    def nf_get_zk(self):
+        """
+        Returns a vector with a `\ZZ`-basis for the ring of integers of
+        this number field. The first element is always `1`.
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^4 - 4*x^2 + 1)
+            sage: pari(K).nf_get_zk()
+            [1, x, x^3 - 4*x, x^2 - 2]
+        """
+        _sig_on
+        return self.new_gen(nf_get_zk(self.g))
+
+    def bnf_get_cyc(self):
+        """
+        Returns the structure of the class group of this number field as
+        a vector of SNF invariants.
+
+        NOTE: ``self`` must be a "big number field" (``bnf``).
+
+        EXAMPLES::
+
+            sage: K.<a> = QuadraticField(-65)
+            sage: K.pari_bnf().bnf_get_cyc()
+            [4, 2]
+        """
+        _sig_on
+        return self.new_gen(bnf_get_cyc(self.g))
+
+    def bnf_get_gen(self):
+        """
+        Returns a vector of generators of the class group of this
+        number field.
+
+        NOTE: ``self`` must be a "big number field" (``bnf``).
+
+        EXAMPLES::
+
+            sage: K.<a> = QuadraticField(-65)
+            sage: G = K.pari_bnf().bnf_get_gen(); G
+            [[3, 2; 0, 1], [2, 1; 0, 1]]
+            sage: map(lambda J: K.ideal(J), G)
+            [Fractional ideal (3, a + 2), Fractional ideal (2, a + 1)]
+        """
+        _sig_on
+        return self.new_gen(bnf_get_gen(self.g))
+
+    def bnf_get_reg(self):
+        """
+        Returns the regulator of this number field.
+
+        NOTE: ``self`` must be a "big number field" (``bnf``).
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^4 - 4*x^2 + 1)
+            sage: K.pari_bnf().bnf_get_reg()
+            2.66089858019037...
+        """
+        _sig_on
+        return self.new_gen(bnf_get_reg(self.g))
+
+    def pr_get_p(self):
+        """
+        Returns the prime of `\ZZ` lying below this prime ideal.
+
+        NOTE: ``self`` must be a PARI prime ideal (as returned by
+        ``idealfactor`` for example).
+
+        EXAMPLES::
+
+            sage: K.<i> = QuadraticField(-1)
+            sage: F = pari(K).idealfactor(K.ideal(5)); F
+            [[5, [-2, 1]~, 1, 1, [2, 1]~], 1; [5, [2, 1]~, 1, 1, [-2, 1]~], 1]
+            sage: F[0,0].pr_get_p()
+            5
+        """
+        _sig_on
+        return self.new_gen(pr_get_p(self.g))
+
+    def pr_get_e(self):
+        """
+        Returns the ramification index (over `\QQ`) of this prime ideal.
+
+        NOTE: ``self`` must be a PARI prime ideal (as returned by
+        ``idealfactor`` for example).
+
+        EXAMPLES::
+
+            sage: K.<i> = QuadraticField(-1)
+            sage: pari(K).idealfactor(K.ideal(2))[0,0].pr_get_e()
+            2
+            sage: pari(K).idealfactor(K.ideal(3))[0,0].pr_get_e()
+            1
+            sage: pari(K).idealfactor(K.ideal(5))[0,0].pr_get_e()
+            1
+        """
+        cdef long e
+        _sig_on
+        e = pr_get_e(self.g)
+        _sig_off
+        return e
+
+    def pr_get_f(self):
+        """
+        Returns the residue class degree (over `\QQ`) of this prime ideal.
+
+        NOTE: ``self`` must be a PARI prime ideal (as returned by
+        ``idealfactor`` for example).
+
+        EXAMPLES::
+
+            sage: K.<i> = QuadraticField(-1)
+            sage: pari(K).idealfactor(K.ideal(2))[0,0].pr_get_f()
+            1
+            sage: pari(K).idealfactor(K.ideal(3))[0,0].pr_get_f()
+            2
+            sage: pari(K).idealfactor(K.ideal(5))[0,0].pr_get_f()
+            1
+        """
+        cdef long f
+        _sig_on
+        f = pr_get_f(self.g)
+        _sig_off
+        return f
+
+    def pr_get_gen(self):
+        """
+        Returns the second generator of this PARI prime ideal, where the
+        first generator is ``self.pr_get_p()``.
+
+        NOTE: ``self`` must be a PARI prime ideal (as returned by
+        ``idealfactor`` for example).
+
+        EXAMPLES::
+
+            sage: K.<i> = QuadraticField(-1)
+            sage: g = pari(K).idealfactor(K.ideal(2))[0,0].pr_get_gen(); g; K(g)
+            [1, 1]~
+            i + 1
+            sage: g = pari(K).idealfactor(K.ideal(3))[0,0].pr_get_gen(); g; K(g)
+            [3, 0]~
+            3
+            sage: g = pari(K).idealfactor(K.ideal(5))[0,0].pr_get_gen(); g; K(g)
+            [-2, 1]~
+            i - 2
+        """
+        _sig_on
+        return self.new_gen(pr_get_gen(self.g))
+
+    def bid_get_cyc(self):
+        """
+        Returns the structure of the group `(O_K/I)^*`, where `I` is the
+        ideal represented by ``self``.
+
+        NOTE: ``self`` must be a "big ideal" (``bid``) as returned by
+        ``idealstar`` for example.
+
+        EXAMPLES::
+
+            sage: K.<i> = QuadraticField(-1)
+            sage: J = pari(K).idealstar(K.ideal(4*i + 2))
+            sage: J.bid_get_cyc()
+            [4, 2]
+        """
+        _sig_on
+        return self.new_gen(bid_get_cyc(self.g))
+
+    def bid_get_gen(self):
+        """
+        Returns a vector of generators of the group `(O_K/I)^*`, where
+        `I` is the ideal represented by ``self``.
+
+        NOTE: ``self`` must be a "big ideal" (``bid``) with generators,
+        as returned by ``idealstar`` with ``flag`` = 2.
+
+        EXAMPLES::
+
+            sage: K.<i> = QuadraticField(-1)
+            sage: J = pari(K).idealstar(K.ideal(4*i + 2), 2)
+            sage: J.bid_get_gen()
+            [7, [-2, -1]~]
+
+        We get an exception if we do not supply ``flag = 2`` to
+        ``idealstar``::
+
+            sage: J = pari(K).idealstar(K.ideal(3))
+            sage: J.bid_get_gen()
+            Traceback (most recent call last):
+            ...
+            PariError:  (5)
+        """
+        _sig_on
+        return self.new_gen(bid_get_gen(self.g))
+
     def __getitem__(gen self, n):
         """
         Return the nth entry of self. The indexing is 0-based, like in
         Python. Note that this is *different* than the default behavior
-        of the Pari/GP interpreter.
+        of the PARI/GP interpreter.
 
         EXAMPLES::
 
@@ -6407,6 +6640,33 @@ cdef class gen(sage.structure.element.RingElement):
         _sig_on
         return self.new_gen(idealintersect(self.g, t0, t1))
 
+    def ideallist(self, long bound, long flag = 4):
+        """
+        Vector of vectors `L` of all idealstar of all ideals of `norm <= bound`.
+
+        The binary digits of flag mean:
+
+         - 1: give generators;
+         - 2: add units;
+         - 4: (default) give only the ideals and not the bid.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: K.<a> = NumberField(x^2 + 1)
+            sage: L = K.pari_nf().ideallist(100)
+
+        Now we have our list `L`. Entry `L[n-1]` contains all ideals of
+        norm `n`::
+
+            sage: L[0]   # One ideal of norm 1.
+            [[1, 0; 0, 1]]
+            sage: L[64]  # 4 ideals of norm 65.
+            [[65, 8; 0, 1], [65, 47; 0, 1], [65, 18; 0, 1], [65, 57; 0, 1]]
+        """
+        _sig_on
+        return self.new_gen(ideallist0(self.g, bound, flag))
+
     def ideallog(self, x, bid):
         """
         Return the discrete logarithm of the unit x in (ring of integers)/bid.
@@ -6451,6 +6711,26 @@ cdef class gen(sage.structure.element.RingElement):
         t0GEN(x)
         _sig_on
         return self.new_gen(idealnorm(self.g, t0))
+
+    def idealprimedec(nf, p):
+        """
+        Prime ideal decomposition of the prime number `p` in the number
+        field `nf` as a vector of 5 component vectors `[p,a,e,f,b]`
+        representing the prime ideals `p O_K + a O_K`, `e` ,`f` as usual,
+        `a` as vector of components on the integral basis, `b` Lenstra's
+        constant.
+
+        EXAMPLES::
+
+            sage: K.<i> = QuadraticField(-1)
+            sage: F = pari(K).idealprimedec(5); F
+            [[5, [-2, 1]~, 1, 1, [2, 1]~], [5, [2, 1]~, 1, 1, [-2, 1]~]]
+            sage: F[0].pr_get_p()
+            5
+        """
+        t0GEN(p)
+        _sig_on
+        return nf.new_gen(idealprimedec(nf.g, t0))
 
     def idealstar(self, I, long flag=1):
         """
@@ -6527,6 +6807,7 @@ cdef class gen(sage.structure.element.RingElement):
         a root of the polynomial x.
 
         Binary digits of ``flag`` mean:
+
          - 1: assume that no square of a prime>primelimit divides the
               discriminant of ``x``.
          - 2: use round 2 algorithm instead of round 4.
@@ -6598,6 +6879,73 @@ cdef class gen(sage.structure.element.RingElement):
         B = self.new_gen_noclear(nfbasis(self.g, &disc, flag, t0))
         D = self.new_gen(disc);
         return B,D
+
+    def nfbasistoalg(nf, x):
+        r"""
+        Transforms the column vector ``x`` on the integral basis into an
+        algebraic number.
+
+        INPUT:
+
+         - ``nf`` -- a number field
+         - ``x`` -- a column of rational numbers of length equal to the
+           degree of ``nf`` or a single rational number
+
+        OUTPUT:
+
+         - A POLMOD representing the element of ``nf`` whose coordinates
+           are ``x`` in the Z-basis of ``nf``.
+
+        EXAMPLES::
+
+            sage: x = polygen(QQ)
+            sage: K.<a> = NumberField(x^3 - 17)
+            sage: Kpari = K.pari_nf()
+            sage: Kpari.getattr('zk')
+            [1, 1/3*x^2 - 1/3*x + 1/3, x]
+            sage: Kpari.nfbasistoalg(42)
+            Mod(42, x^3 - 17)
+            sage: Kpari.nfbasistoalg("[3/2, -5, 0]~")
+            Mod(-5/3*x^2 + 5/3*x - 1/6, x^3 - 17)
+            sage: Kpari.getattr('zk') * pari("[3/2, -5, 0]~")
+            -5/3*x^2 + 5/3*x - 1/6
+        """
+        t0GEN(x)
+        _sig_on
+        return nf.new_gen(basistoalg(nf.g, t0))
+
+    def nfbasistoalg_lift(nf, x):
+        r"""
+        Transforms the column vector ``x`` on the integral basis into a
+        polynomial representing the algebraic number.
+
+        INPUT:
+
+         - ``nf`` -- a number field
+         - ``x`` -- a column of rational numbers of length equal to the
+           degree of ``nf`` or a single rational number
+
+        OUTPUT:
+
+         - ``nf.nfbasistoalg(x).lift()``
+
+        EXAMPLES::
+
+            sage: x = polygen(QQ)
+            sage: K.<a> = NumberField(x^3 - 17)
+            sage: Kpari = K.pari_nf()
+            sage: Kpari.getattr('zk')
+            [1, 1/3*x^2 - 1/3*x + 1/3, x]
+            sage: Kpari.nfbasistoalg_lift(42)
+            42
+            sage: Kpari.nfbasistoalg_lift("[3/2, -5, 0]~")
+            -5/3*x^2 + 5/3*x - 1/6
+            sage: Kpari.getattr('zk') * pari("[3/2, -5, 0]~")
+            -5/3*x^2 + 5/3*x - 1/6
+        """
+        t0GEN(x)
+        _sig_on
+        return nf.new_gen(gel(basistoalg(nf.g, t0), 2))
 
     def nfdisc(self, long flag=0, p=0):
         """

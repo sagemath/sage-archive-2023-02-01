@@ -40,6 +40,8 @@ SMALL_DISC = 1000000
 
 import operator
 
+import sage.libs.all
+
 import sage.misc.latex as latex
 
 import sage.rings.field_element as field_element
@@ -56,7 +58,7 @@ from sage.rings.finite_rings.constructor import FiniteField
 import number_field
 import number_field_element
 
-from sage.libs.all import pari_gen
+from sage.libs.all import pari_gen, PariError
 from sage.rings.ideal import (Ideal_generic, Ideal_fractional)
 from sage.misc.misc import prod
 from sage.misc.mrange import xmrange_iter
@@ -68,42 +70,18 @@ from sage.structure.proof.proof import get_flag
 QQ = rational_field.RationalField()
 ZZ = integer_ring.IntegerRing()
 
-def convert_from_zk_basis(field, hnf):
-    """
-    Used internally in the number field ideal implementation for
-    converting from the order basis to the number field basis.
-
-    INPUT:
-
-    -  ``field`` - a number field
-
-    -   ``hnf`` - a pari HNF matrix, output by the pari_hnf() function.
-
-    EXAMPLES::
-
-        sage: from sage.rings.number_field.number_field_ideal import convert_from_zk_basis
-        sage: k.<a> = NumberField(x^2 + 23)
-        sage: I = k.factor(3)[0][0]; I
-        Fractional ideal (3, 1/2*a - 1/2)
-        sage: hnf = I.pari_hnf(); hnf
-        [3, 0; 0, 1]
-        sage: convert_from_zk_basis(k, hnf)
-        [3, 1/2*x - 1/2]
-
-    """
-    return field.pari_nf().getattr('zk') * hnf
-
 def convert_from_idealprimedec_form(field, ideal):
     """
     Used internally in the number field ideal implementation for
-    converting from the form output by the pari function ``idealprimedec``
+    converting from the form output by the PARI function ``idealprimedec``
     to a Sage ideal.
 
     INPUT:
 
     -  ``field`` - a number field
 
-    -  ``ideal`` - a pari ideal, as output by the idealprimedec function
+    -  ``ideal`` - a PARI prime ideal, as output by the
+       ``idealprimedec`` or ``idealfactor`` functions
 
     EXAMPLE::
 
@@ -117,8 +95,9 @@ def convert_from_idealprimedec_form(field, ideal):
         (Fractional ideal (-a))^2
 
     """
+    # This indexation is very ugly and should be dealt with in #10002
     p = ZZ(ideal[1])
-    alpha = field( field.pari_nf().getattr('zk') * ideal[2] )
+    alpha = field(field.pari_nf().getattr('zk') * ideal[2])
     return field.ideal(p, alpha)
 
 def convert_to_idealprimedec_form(field, ideal):
@@ -169,14 +148,41 @@ class NumberFieldIdeal(Ideal_generic):
 
         EXAMPLES::
 
-            sage: NumberField(x^2 + 1, 'a').ideal(7)
+            sage: K.<i> = NumberField(x^2 + 1)
+            sage: K.ideal(7)
             Fractional ideal (7)
+
+        Initialization from PARI::
+
+            sage: K.ideal(pari(7))
+            Fractional ideal (7)
+            sage: K.ideal(pari(4), pari(4 + 2*i))
+            Fractional ideal (2)
+            sage: K.ideal(pari("i + 2"))
+            Fractional ideal (i + 2)
+            sage: K.ideal(pari("[3,0;0,3]"))
+            Fractional ideal (3)
+            sage: F = pari(K).idealprimedec(5)
+            sage: K.ideal(F[0])
+            Fractional ideal (-i + 2)
         """
         if not isinstance(field, number_field.NumberField_generic):
             raise TypeError, "field (=%s) must be a number field."%field
 
         if len(gens) == 1 and isinstance(gens[0], (list, tuple)):
             gens = gens[0]
+        if len(gens) == 1 and isinstance(gens[0], pari_gen):
+            # Init from PARI
+            gens = gens[0]
+            if gens.type() == "t_MAT":
+                # Assume columns are generators
+                gens = map(field, field.pari_zk() * gens)
+            elif gens.type() == "t_VEC":
+                # Assume prime ideal form
+                gens = [ZZ(gens.pr_get_p()), field(gens.pr_get_gen())]
+            else:
+                # Assume one element of the field
+                gens = [field(gens)]
         if len(gens)==0:
             raise ValueError, "gens must have length at least 1 (zero ideal is not a fractional ideal)"
         Ideal_generic.__init__(self, field, gens, coerce)
@@ -363,7 +369,7 @@ class NumberFieldIdeal(Ideal_generic):
             [1/17, 1/17*a, a^2 - 8/17*a - 13/17]
         """
         K = self.number_field()
-        return map(K, convert_from_zk_basis(K, hnf))
+        return map(K, K.pari_zk() * hnf)
 
     def __repr__(self):
         """
@@ -969,7 +975,7 @@ class NumberFieldIdeal(Ideal_generic):
             self.__is_principal = not any(v[0])
             if self.__is_principal:
                 K = self.number_field()
-                g = K(bnf.getattr('zk') * v[1])
+                g = K(v[1])
                 self.__reduced_generators = tuple([g])
             return self.__is_principal
 
@@ -1113,9 +1119,12 @@ class NumberFieldIdeal(Ideal_generic):
 
             sage: R.<x> = PolynomialRing(QQ)
             sage: K.<a> = NumberField(x^2+6)
-            sage: I = K.ideal([4,a])/7
+            sage: I = K.ideal([4,a])/7; I
+            Fractional ideal (2/7, 1/7*a)
             sage: I.smallest_integer()
             2
+
+        TESTS::
 
             sage: K.<i> = QuadraticField(-1)
             sage: P1, P2 = [P for P,e in K.factor(13)]
@@ -1141,32 +1150,21 @@ class NumberFieldIdeal(Ideal_generic):
             sage: I.norm() / I.smallest_integer()
             9
         """
-        try:
-            return self.__smallest_integer
-        except AttributeError:
-            pass
-
         if self.is_zero():
-            self.__smallest_integer = ZZ(0)
-            return self.__smallest_integer
+            return ZZ(0)
 
-        if self.is_prime():
-            self.__smallest_integer = ZZ(self._pari_prime.getattr('p'))
-            return self.__smallest_integer
+        # There is no need for caching since pari_hnf() is already cached.
+        q = self.pari_hnf()[0,0]  # PARI integer or rational
+        return ZZ(q.numerator())
 
-
-#   New code by John Cremona, 2008-10-30, using the new coordinates()
-#   function instead of factorization.
-#
-#   Idea: We write 1 as a Q-linear combination of the Z-basis of self,
-#         and return the denominator of this vector.
-#
-#   Note: It seems that in practice for integral ideals the first
-#         element of the integral basis is the smallest integer, but
-#         we cannot rely on this.
-
-        self.__smallest_integer =  self.coordinates(1).denominator()
-        return self.__smallest_integer
+        #Old code by John Cremona, 2008-10-30, using the new coordinates()
+        #function instead of factorization.
+        #
+        #Idea: We write 1 as a Q-linear combination of the Z-basis of self,
+        #and return the denominator of this vector.
+        #
+        #self.__smallest_integer =  self.coordinates(1).denominator()
+        #return self.__smallest_integer
 
     def valuation(self, p):
         r"""
@@ -1462,10 +1460,8 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             F = list(K.pari_nf().idealfactor(self.pari_hnf()))
             P, exps = F[0], F[1]
             A = []
-            zk_basis = K.pari_nf().getattr('zk')
             for i, p in enumerate(P):
-                prime, alpha = p.getattr('gen')
-                I = K.ideal([ZZ(prime), K(zk_basis * alpha)])
+                I = K.ideal([ZZ(p.pr_get_p()), K(p.pr_get_gen())])
                 I._pari_prime = p
                 A.append((I,ZZ(exps[i])))
             self.__factorization = Factorization(A)
@@ -1603,7 +1599,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             ValueError: the fractional ideal (= Fractional ideal (17)) is not prime
         """
         if self.is_prime():
-            return ZZ(self._pari_prime.getattr('e'))
+            return ZZ(self._pari_prime.pr_get_e())
         raise ValueError, "the fractional ideal (= %s) is not prime"%self
 
     def reduce(self, f):
@@ -1740,7 +1736,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             sage: reps=I.residues()
             sage: len(list(reps)) == I.norm()
             True
-            sage: all([r==s or not (r-s) in I for r in reps for s in reps])
+            sage: all([r==s or not (r-s) in I for r in reps for s in reps])  # long time (3s)
             True
 
             sage: K.<a> = NumberField(x^3-10)
@@ -1749,7 +1745,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             True
 
             sage: K.<z> = CyclotomicField(11)
-            sage: len(list(K.primes_above(3)[0].residues())) == 3**5
+            sage: len(list(K.primes_above(3)[0].residues())) == 3**5  # long time (4s)
             True
         """
         if not self.is_integral():
@@ -2138,10 +2134,10 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
         """
         try:
             bid = self._bid
-            if flag==2 and len(bid.getattr('clgp'))<3:
-            #if we want generators and they're not in the current bid structure
-                raise AttributeError
-        except AttributeError:
+            if flag==2:
+                # Try to access generators, we get PariError if this fails.
+                bid.bid_get_gen();
+        except (AttributeError, PariError):
             k = self.number_field()
             bid = k.pari_nf().idealstar(self.pari_hnf(), flag)
             self._bid = bid
@@ -2191,15 +2187,15 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
         """
         k = self.number_field()
         if flag==0 and not hasattr(self, '_bid'):
-            G = k.pari_nf().idealstar(self.pari_hnf(), flag)
+            G = k.pari_nf().idealstar(self.pari_hnf(), 0)
         else:
             G = self._pari_bid_(flag)
-        inv = eval(str(G.getattr('cyc')))
+        inv = [ZZ(c) for c in G.bid_get_cyc()]
 
         from sage.groups.abelian_gps.abelian_group import AbelianGroup
         AG = AbelianGroup(len(inv), inv)
         if flag == 2 or flag == 0:
-            g = G.getattr('gen')
+            g = G.bid_get_gen()
             AG._gens = tuple(map(k, g))
         return AG
 
@@ -2313,7 +2309,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
 
         bnf = K.pari_bnf()
         r = bnf.idealaddtoone(self.pari_hnf(), other.pari_hnf())[0]
-        return K(bnf.getattr('zk')*r)
+        return K(r)
 
     def euler_phi(self):
         r"""
@@ -2654,7 +2650,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             [2, 2, 1]
         """
         if self.is_prime():
-            return ZZ(self._pari_prime.getattr('f'))
+            return ZZ(self._pari_prime.pr_get_f())
         raise ValueError, "the ideal (= %s) is not prime"%self
 
 def is_NumberFieldFractionalIdeal(x):

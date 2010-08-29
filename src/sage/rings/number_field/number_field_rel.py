@@ -131,7 +131,7 @@ import sage.rings.complex_interval_field
 from sage.structure.parent_gens import ParentWithGens
 import number_field_element
 import number_field_element_quadratic
-from number_field_ideal import convert_from_zk_basis, NumberFieldIdeal, is_NumberFieldIdeal, NumberFieldFractionalIdeal
+from number_field_ideal import NumberFieldIdeal, is_NumberFieldIdeal, NumberFieldFractionalIdeal
 from sage.rings.number_field.number_field import NumberField, NumberField_generic, put_natural_embedding_first, proof_flag
 from sage.rings.number_field.number_field_base import is_NumberField
 from sage.rings.number_field.order import RelativeOrder
@@ -1976,7 +1976,7 @@ class NumberField_relative(NumberField_generic):
         abs_base = base.absolute_field('a')
         to_base = abs_base.structure()[0]
         D, d = nf.rnfdisc(self.pari_relative_polynomial())
-        D = map(abs_base, convert_from_zk_basis(abs_base, D))
+        D = map(abs_base, abs_base.pari_zk() * D)
         D = map(to_base, D)
         return base.ideal(D)
 

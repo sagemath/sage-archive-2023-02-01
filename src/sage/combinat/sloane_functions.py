@@ -7393,17 +7393,8 @@ class A001694(SloaneSequence):
         if n < 4:
             n = 4
         # Use PARI directly -- much faster.
-        pari("is_powerful(n)=vecmin(mattranspose(factor(n)[,2]))>1;")
-        s = str(pari('v=listcreate(%s); for(n=%s,%s,if(is_powerful(n),listput(v,n))); v'%(m,n,m)))
-        s = s[5:-1]
-
-        ## GP version -- it's slower, but for completeness we leave it.
-        ## from sage.interfaces.gp import gp
-        ## gp.eval("is_powerful(n)=vecmin(mattranspose(factor(n)[,2]))>1;")
-        ## s = '[' + gp.eval('for(n=%s,%s,if(is_powerful(n),print1(n,",")))'%(n,m)).strip()[1:-1] + ']'
-
-        v = eval(s)
-        return [ZZ(x) for x in v]  # not very many, so not much overhead
+        L = pari('v=listcreate(); for(i=%s,%s,if(vecmin(factor(i)[,2])>1,listput(v,i))); v'%(n,m))
+        return [ZZ(x) for x in L]  # not very many, so not much overhead
 
     def _eval(self, n):
         """

@@ -224,16 +224,12 @@ cdef class NumberFieldElement(FieldElement):
         The following examples illustrate creation of elements of
         number fields, and some basic arithmetic.
 
-        First we define a polynomial over Q.
-
-        ::
+        First we define a polynomial over Q::
 
             sage: R.<x> = PolynomialRing(QQ)
             sage: f = x^2 + 1
 
-        Next we use f to define the number field.
-
-        ::
+        Next we use f to define the number field::
 
             sage: K.<a> = NumberField(f); K
             Number Field in a with defining polynomial x^2 + 1
@@ -247,9 +243,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: z = K(5); 1/z
             1/5
 
-        We create a cube root of 2.
-
-        ::
+        We create a cube root of 2::
 
             sage: K.<b> = NumberField(x^3 - 2)
             sage: b = K.gen()
@@ -257,6 +251,22 @@ cdef class NumberFieldElement(FieldElement):
             2
             sage: (b^2 + b + 1)^3
             12*b^2 + 15*b + 19
+
+        We can create number field elements from PARI::
+
+            sage: K.<a> = NumberField(x^3 - 17)
+            sage: K(pari(42))
+            42
+            sage: K(pari("5/3"))
+            5/3
+            sage: K(pari("[3/2, -5, 0]~"))    # Uses Z-basis
+            -5/3*a^2 + 5/3*a - 1/6
+            sage: K(pari("-5/3*q^2 + 5/3*q - 1/6"))
+            -5/3*a^2 + 5/3*a - 1/6
+            sage: K(pari("Mod(-5/3*q^2 + 5/3*q - 1/6, q^3 - 17)"))
+            -5/3*a^2 + 5/3*a - 1/6
+            sage: K(pari("x^5/17"))
+            a^2
 
         This example illustrates save and load::
 
@@ -291,23 +301,13 @@ cdef class NumberFieldElement(FieldElement):
         else:
             ppr = parent.polynomial_ring()
 
-        cdef long i
         if isinstance(f, pari_gen):
-            if f.type() == "t_COL":
-                newf = ppr(0)
-                Zbasis = self.number_field().pari_nf().getattr('zk')
-                # Note that this integral basis is not the same as that returned by parent.integral_basis() !
-                for i from 0 <= i < parent.absolute_degree():
-                    if f[i] != 0:
-                        newf += QQ(f[i]) * ppr(Zbasis[i])
-                f = newf
+            if f.type() in ["t_INT", "t_FRAC", "t_POL"]:
+                pass
+            elif f.type() == "t_POLMOD":
+                f = f.lift()
             else:
-                if f.type() == "t_POLMOD":
-                    f = f.lift()
-                if f.type() in ["t_INT", "t_FRAC", "t_POL"]:
-                    f = ppr(f)
-                else:
-                    raise TypeError, "Unsupported Pari type"
+                f = self.number_field().pari_nf().nfbasistoalg_lift(f)
         f = ppr(f)
         if f.degree() >= parent.absolute_degree():
             from sage.rings.number_field import number_field_rel
@@ -321,6 +321,7 @@ cdef class NumberFieldElement(FieldElement):
         (<Integer>ZZ(den))._to_ZZ(&self.__denominator)
 
         num = f * den
+        cdef long i
         for i from 0 <= i <= num.degree():
             (<Integer>ZZ(num[i]))._to_ZZ(&coeff)
             ZZX_SetCoeff( self.__numerator, i, coeff )

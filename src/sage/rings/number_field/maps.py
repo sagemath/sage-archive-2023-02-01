@@ -339,8 +339,8 @@ class MapRelativeNumberFieldToRelativeVectorSpace(NumberFieldIsomorphism):
         self.__rnf = K.pari_rnf()
         self.__zero = QQ(0)
         self.__n = K.relative_degree()
-        self.__x = pari('x')
-        self.__y = pari('y')
+        self.__x = pari("'x")
+        self.__y = pari("'y")
         self.__B = K.absolute_base_field()
         NumberFieldIsomorphism.__init__(self, Hom(K, V))
 

@@ -949,9 +949,6 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
                 raise TypeError("S must be a list of prime ideals of the base field.")
 
         from sage.rings.number_field.number_field import NumberField
-        from sage.rings.number_field.number_field_ideal import \
-            convert_to_idealprimedec_form, convert_from_idealprimedec_form
-        from sage.interfaces.gp import gp
 
         F = self.__polynomial.factor()
         rel_fields = []

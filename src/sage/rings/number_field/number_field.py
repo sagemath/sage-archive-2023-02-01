@@ -234,7 +234,7 @@ import sage.rings.complex_interval_field
 from sage.structure.parent_gens import ParentWithGens
 import number_field_element
 import number_field_element_quadratic
-from number_field_ideal import convert_from_zk_basis, NumberFieldIdeal, is_NumberFieldIdeal, NumberFieldFractionalIdeal
+from number_field_ideal import NumberFieldIdeal, is_NumberFieldIdeal, NumberFieldFractionalIdeal
 from sage.rings.number_field.number_field_ideal_rel import NumberFieldFractionalIdeal_rel
 from sage.libs.all import pari, pari_gen
 
@@ -2074,10 +2074,10 @@ class NumberField_generic(number_field_base.NumberField):
             Fractional ideal (9, 1/2*a + 7/2)
             10
         """
-        hnf_ideals = pari('ideallist(%s, %d)'%(self.pari_nf(),bound))
+        hnf_ideals = self.pari_nf().ideallist(bound)
         d = {}
         for i in xrange(bound):
-            d[i+1] = [self.ideal(map(self, convert_from_zk_basis(self, hnf_I))) for hnf_I in hnf_ideals[i]]
+            d[i+1] = [self.ideal(hnf) for hnf in hnf_ideals[i]]
         return d
 
     def primes_above(self, x, degree=None):
@@ -2485,6 +2485,22 @@ class NumberField_generic(number_field_base.NumberField):
             self.__pari_nf = pari([f, self._pari_integral_basis()]).nfinit()
             return self.__pari_nf
 
+    def pari_zk(self):
+        """
+        Integral basis of the PARI number field corresponding to this field.
+
+        This is the same as pari_nf().getattr('zk'), but much faster.
+
+        EXAMPLES::
+
+            sage: k.<a> = NumberField(x^3 - 17)
+            sage: k.pari_zk()
+            [1, 1/3*x^2 - 1/3*x + 1/3, x]
+            sage: k.pari_nf().getattr('zk')
+            [1, 1/3*x^2 - 1/3*x + 1/3, x]
+        """
+        return self.pari_nf().nf_get_zk()
+
     def _pari_(self):
         """
         Converts this number field to PARI.
@@ -2684,13 +2700,10 @@ class NumberField_generic(number_field_base.NumberField):
         except AttributeError:
             self.__class_group = {}
         k = self.pari_bnf(proof)
-        cycle_structure = eval(str(k.getattr('clgp.cyc')))
+        cycle_structure = [ZZ(c) for c in k.bnf_get_cyc()]
 
-        # First gens is a pari list of pari gens
-        gens = k.getattr('clgp.gen')
-
-        # Next gens is a list of ideals.
-        gens = [self.ideal([self(convert_from_zk_basis(self, y)) for y in x]) for x in gens]
+        # Gens is a list of ideals (the generators)
+        gens = [self.ideal(hnf) for hnf in k.bnf_get_gen()]
 
         G = ClassGroup(cycle_structure, names, self, gens, proof=proof)
         self.__class_group[proof,names] = G
@@ -3251,7 +3264,7 @@ class NumberField_generic(number_field_base.NumberField):
 
             sage: k.<a> = NumberField(x^2 + 23)
             sage: d = k.different()
-            sage: d        # random sign in output
+            sage: d
             Fractional ideal (-a)
             sage: d.norm()
             23
@@ -3275,14 +3288,8 @@ class NumberField_generic(number_field_base.NumberField):
         """
         try:
             return self.__different
-
         except AttributeError:
-
-            diff = self.pari_nf().getattr('diff')
-            zk_basis = self.pari_nf().getattr('zk')
-            basis_elts = zk_basis * diff
-            self.__different = self.ideal(map(self, basis_elts))
-
+            self.__different = self.ideal(self.pari_nf().nf_get_diff())
             return self.__different
 
     def discriminant(self, v=None):
@@ -4278,11 +4285,9 @@ class NumberField_generic(number_field_base.NumberField):
             return self.__regulator
         except AttributeError:
             from sage.rings.all import RealField
-            R = RealField(53)
             k = self.pari_bnf(proof)
-            s = str(k.getattr('reg'))
-            self.__regulator = R(s)
-        return self.__regulator
+            self.__regulator = RealField(53)(k.bnf_get_reg())
+            return self.__regulator
 
     def residue_field(self, prime, names = None, check = True):
         """
@@ -4364,7 +4369,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: NumberField(x^3-2, 'a').signature()
             (1, 1)
         """
-        r1, r2 = self.pari_nf().getattr('sign')
+        r1, r2 = self.pari_nf().nf_get_sign()
         return (ZZ(r1), ZZ(r2))
 
     def trace_pairing(self, v):

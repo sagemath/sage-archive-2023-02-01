@@ -36,7 +36,7 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from number_field_ideal import NumberFieldFractionalIdeal, convert_from_zk_basis
+from number_field_ideal import NumberFieldFractionalIdeal
 from sage.structure.factorization import Factorization
 from sage.structure.proof.proof import get_flag
 
@@ -122,10 +122,10 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
         try:
             return self.__pari_rhnf
         except AttributeError:
-            nf = self.number_field().absolute_field('a').pari_nf()
+            nfzk = self.number_field().absolute_field('a').pari_zk()
             rnf = self.number_field().pari_rnf()
             L_hnf = self.absolute_ideal().pari_hnf()
-            self.__pari_rhnf = rnf.rnfidealabstorel(nf.getattr('zk')*L_hnf)
+            self.__pari_rhnf = rnf.rnfidealabstorel(nfzk * L_hnf)
             return self.__pari_rhnf
 
     def absolute_ideal(self):
@@ -374,7 +374,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
         K_abs = K.absolute_field('a')
         to_K = K_abs.structure()[0]
         hnf = L.pari_rnf().rnfidealnormrel(self.pari_rhnf())
-        return K.ideal(map(to_K, map(K_abs, convert_from_zk_basis(K, hnf))))
+        return K.ideal(map(to_K, map(K_abs, K.pari_zk() * hnf)))
 
     def norm(self):
         """
@@ -481,7 +481,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
         K_abs = K.absolute_field('a')
         to_K = K_abs.structure()[0]
         hnf = L.pari_rnf().rnfidealdown(self.pari_rhnf())
-        return K.ideal(map(to_K, map(K_abs, convert_from_zk_basis(K, hnf))))
+        return K.ideal(map(to_K, map(K_abs, K.pari_zk() * hnf)))
 
     def factor(self):
         """
@@ -524,7 +524,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
         r"""
         Return a basis for self as a `\ZZ`-module.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a,b> = NumberField([x^2 + 1, x^2 - 3])
             sage: I = K.ideal(17*b - 3*a)

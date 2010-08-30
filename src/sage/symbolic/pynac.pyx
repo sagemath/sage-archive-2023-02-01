@@ -1578,11 +1578,34 @@ def py_psi2_for_doctests(n, x):
     """
     return py_psi2(n, x)
 
-##################################################################
-# Not yet implemented
-##################################################################
 cdef public object py_li2(object x) except +:
-    raise NotImplementedError
+    """
+    EXAMPLES::
+
+        sage: from sage.symbolic.pynac import py_li2_for_doctests as py_li2
+        sage: py_li2(-1.1)
+        -0.890838090262283
+    """
+    import mpmath
+    if PY_TYPE_CHECK(x, Element) and hasattr((<Element>x)._parent, 'prec'):
+        prec = (<Element>x)._parent.prec()
+    else:
+        prec = 53
+    return mpmath_utils.call(mpmath.polylog, 2, x, prec=prec)
+
+
+def py_li2_for_doctests(x):
+    """
+    This function is a python wrapper so py_psi2 can be tested. The real tests
+    are in the docstring for py_psi2.
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.pynac import py_li2_for_doctests
+        sage: py_li2_for_doctests(-1.1)
+        -0.890838090262283
+    """
+    return py_li2(x)
 
 ##################################################################
 # Constants

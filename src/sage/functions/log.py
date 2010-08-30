@@ -349,6 +349,10 @@ class Function_dilog(GinacFunction):
             1/12*pi^2 - 1/2*log(2)^2
             sage: dilog(x^2+1)
             dilog(x^2 + 1)
+            sage: dilog(-1)
+            -1/12*pi^2
+            sage: dilog(-1.1)
+            -0.890838090262283
             sage: float(dilog(1))
             1.6449340668482262
             sage: var('z')

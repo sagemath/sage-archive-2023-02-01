@@ -611,7 +611,7 @@ class IntegralRayCollection(SageObject,
             sage: c = Cone([(1,0), (0,1)])
             sage: c._ambient_space_point([1,1])
             N(1, 1)
-            sage: c._ambient_space_point(c.lattice().dual()([1,1]))
+            sage: c._ambient_space_point(c.dual_lattice()([1,1]))
             Traceback (most recent call last):
             ...
             TypeError: the point M(1, 1) and
@@ -684,6 +684,32 @@ class IntegralRayCollection(SageObject,
             over the principal ideal domain Integer Ring
         """
         return self._lattice
+
+    def dual_lattice(self):
+        r"""
+        Return the dual of the ambient lattice of ``self``.
+
+        OUTPUT:
+
+        - lattice. If possible (that is, if :meth:`lattice` has a
+          ``dual()`` method), the dual lattice is returned. Otherwise,
+          ``self.lattice()`` is returned.
+
+        EXAMPLES::
+
+            sage: c = Cone([(1,0)])
+            sage: c.dual_lattice()
+            2-d lattice M
+            sage: Cone([], ZZ^3).dual_lattice()
+            Ambient free module of rank 3
+            over the principal ideal domain Integer Ring
+        """
+        if '_dual_lattice' not in self.__dict__:
+            try:
+                self._dual_lattice = self.lattice().dual()
+            except AttributeError:
+                self._dual_lattice = self.lattice()
+        return self._dual_lattice
 
     def lattice_dim(self):
         r"""
@@ -1340,9 +1366,9 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             True
             sage: c.contains((-1,0))
             False
-            sage: c.contains(c.lattice().dual()(1,0)) #random output (warning)
+            sage: c.contains(c.dual_lattice()(1,0)) #random output (warning)
             False
-            sage: c.contains(c.lattice().dual()(1,0))
+            sage: c.contains(c.dual_lattice()(1,0))
             False
             sage: c.contains(1)
             False
@@ -1381,14 +1407,29 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             (M(7, -18, -2), M(1, -4, 0))
             sage: cone.dual().dual() is cone
             True
+
+        We correctly handle the degenerate cases::
+
+            sage: N = ToricLattice(2)
+            sage: Cone([], lattice=N).dual().rays()  # empty cone
+            (M(1, 0), M(-1, 0), M(0, 1), M(0, -1))
+            sage: Cone([(1,0)], lattice=N).dual().rays()  # ray in 2d
+            (M(1, 0), M(0, 1), M(0, -1))
+            sage: Cone([(1,0),(-1,0)], lattice=N).dual().rays()  # line in 2d
+            (M(0, 1), M(0, -1))
+            sage: Cone([(1,0),(0,1)], lattice=N).dual().rays()  # strictly convex cone
+            (M(1, 0), M(0, 1))
+            sage: Cone([(1,0),(-1,0),(0,1)], lattice=N).dual().rays()  # half space
+            (M(0, 1),)
+            sage: Cone([(1,0),(0,1),(-1,-1)], lattice=N).dual().rays()  # whole space
+            ()
         """
         if "_dual" not in self.__dict__:
             rays = list(self.facet_normals())
             for ray in self.orthogonal_sublattice().gens():
                 rays.append(ray)
                 rays.append(-ray)
-            self._dual = Cone(rays, lattice=self.lattice().dual(),
-                              check=False)
+            self._dual = Cone(rays, lattice=self.dual_lattice(), check=False)
             self._dual._dual = self
         return self._dual
 
@@ -1691,9 +1732,20 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             #. The order of normals is random and may be different from the
                one in :meth:`facets`.
 
+            #. The sign of the facet normals is chosen such that they
+               point to the "inside" of the cone if there is such a
+               thing.
+
         OUTPUT:
 
         - :class:`tuple` of vectors.
+
+        If the ambient :meth:`lattice` of ``self`` is a :class:`toric lattice
+        <sage.geometry.toric_lattice.ToricLatticeFactory>`, the facet nomals
+        will be elements of the dual lattice. If it is a general lattice (like
+        ``ZZ^n``) that does not have a ``dual()`` method, the facet normals
+        will be returned as points of the same lattice with respect to the
+        standard inner product.
 
         EXAMPLES::
 
@@ -1716,9 +1768,30 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             (M(7, -18, -2), M(1, -4, 0))
             sage: [lsg*normal for normal in cone.facet_normals()]
             [0, 0]
+
+        A lattice that does not have a ``dual()`` method::
+
+            sage: Cone([(1,1),(0,1)], lattice=ZZ^2).facet_normals()
+            ((-1, 1), (1, 0))
+
+        We correctly handle the degenerate cases::
+
+            sage: N = ToricLattice(2)
+            sage: Cone([], lattice=N).facet_normals()  # empty cone
+            ()
+            sage: Cone([(1,0)], lattice=N).facet_normals()  # ray in 2d
+            (M(1, 0),)
+            sage: Cone([(1,0),(-1,0)], lattice=N).facet_normals()  # line in 2d
+            ()
+            sage: Cone([(1,0),(0,1)], lattice=N).facet_normals()  # strictly convex cone
+            (M(1, 0), M(0, 1))
+            sage: Cone([(1,0),(-1,0),(0,1)], lattice=N).facet_normals()  # half space
+            (M(0, 1),)
+            sage: Cone([(1,0),(0,1),(-1,-1)], lattice=N).facet_normals()  # whole space
+            ()
         """
         if "_facet_normals" not in self.__dict__:
-            M = self.lattice().dual()
+            M = self.dual_lattice()
             P = self.lattice_polytope()
             rotate_lifts = not self.is_strictly_convex()
             if rotate_lifts:
@@ -2335,7 +2408,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         else:
             basis = []
         self._orthogonal_sublattice = \
-            self.lattice().dual().submodule_with_basis(basis)
+            self.dual_lattice().submodule_with_basis(basis)
 
         # basis for a complement to the dual spanned lattice
         if r>0:
@@ -2343,7 +2416,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         else:
             basis = []
         self._orthogonal_sublattice_complement = \
-            self.lattice().dual().submodule_with_basis(basis)
+            self.dual_lattice().submodule_with_basis(basis)
 
     def sublattice(self, *args, **kwds):
         r"""
@@ -2523,7 +2596,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         The sublattice (in the dual lattice) orthogonal to the
         sublattice spanned by the cone.
 
-        Let `M=` ``self.lattice().dual()`` be the lattice dual to the
+        Let `M=` ``self.dual_lattice()`` be the lattice dual to the
         ambient lattice of the given cone `\sigma`. Then, in the
         notation of [Fulton]_, this method returns the sublattice
 

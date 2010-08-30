@@ -1,5 +1,5 @@
 r"""
-Toric divisors
+Toric divisors and divisor classes
 
 Let `X` be a :class:`toric variety
 <sage.schemes.generic.toric_variety.ToricVariety_field>` corresponding to a
@@ -71,6 +71,28 @@ types::
     ...    Cartier.is_QQ_Cartier(),
     ...    Cartier.is_Cartier()]
     [True, True, True, True]
+
+The toric (`\QQ`-Weil) divisors modulo linear equivalence form the
+toric divisor class group :class:`ToricRationalDivisorClassGroup`.  If
+the toric variety `X` is smooth, this equals the **Picard group**
+`\mathop{\mathrm{Pic}}(X)`::
+
+    sage: Cl = dP6.divisor_class_group(); Cl
+    The toric QQ-divisor class group of a 2-d CPR-Fano toric variety covered by 6 affine patches
+    sage: Dx.divisor_class()
+    Divisor class [1,0,0,0]
+    sage: Dx.divisor_class() in Cl
+    True
+
+The (rational) divisor class group is where the Kahler cone lives::
+
+    sage: Kc = dP6.Kaehler_cone(); Kc
+    4-d cone in 4-d lattice
+    sage: Kc.rays()
+    (Divisor class [1,1,0,0], Divisor class [1,1,1,0], Divisor class [0,1,1,1],
+    Divisor class [0,0,1,1], Divisor class [0,1,1,0])
+    sage: Kc.ray(1).lift()
+    V(x) + V(u) + V(y)
 """
 
 
@@ -83,11 +105,16 @@ types::
 ########################################################################
 
 
+from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.element import is_Vector
 from sage.geometry.cone import is_Cone
 from sage.geometry.toric_lattice_element import is_ToricLatticeElement
 from sage.misc.all import latex
 from sage.modules.all import vector
+from sage.modules.free_module import FreeModule_ambient_field
+from sage.modules.vector_rational_dense import Vector_rational_dense
 from sage.rings.all import QQ, ZZ
+from sage.matrix.constructor import identity_matrix
 from sage.schemes.generic.divisor import Divisor_generic
 from sage.schemes.generic.divisor_group import DivisorGroup_generic
 from sage.schemes.generic.toric_variety import CohomologyRing, is_ToricVariety
@@ -737,8 +764,9 @@ class ToricDivisor_generic(Divisor_generic):
 
         .. NOTE::
 
-            This function returns always ``True`` since ``ToricDivisor`` can
-            only describe `\QQ`-Weil divisors.
+            This function returns always ``True`` since
+            :class:`ToricDivisor <ToricDivisor_generic>` can only
+            describe `\QQ`-Weil divisors.
 
         EXAMPLES::
 
@@ -921,4 +949,354 @@ class ToricDivisor_generic(Divisor_generic):
         return self.cohomology_class().exp()
 
     ch = Chern_character
+
+    def divisor_class(self):
+        r"""
+        Return the linear equivalence class of the divisor.
+
+        OUTPUT:
+
+        Returns the class of the divisor in `\mathop{Cl}(X)
+        \otimes_\ZZ \QQ` as an instance of
+        :class:`ToricRationalDivisorClass`.
+
+        EXAMPLE:
+
+            sage: dP6 = toric_varieties.dP6()
+            sage: D = dP6.divisor(0)
+            sage: D.divisor_class()
+            Divisor class [1,0,0,0]
+        """
+        if '_divisor_class' not in self.__dict__:
+            Cl = self._variety.divisor_class_group()(self)
+            self._divisor_class = Cl
+        return self._divisor_class
+
+
+#********************************************************
+class ToricRationalDivisorClassGroup(FreeModule_ambient_field, UniqueRepresentation):
+    r"""
+    The rational divisor class group of a toric variety.
+
+    The **T-Weil divisor class group** `\mathop{Cl}(X)` of a toric
+    variety `X` is a finitely generated abelian group and can contain
+    torsion. Its rank equals the number of rays in the fan of `X`
+    minus the dimension of `X`.
+
+    The **rational divisor class group** is `\mathop{Cl}(X)
+    \otimes_\ZZ \QQ` and never includes torsion. If `X` is *smooth*,
+    this equals the **Picard group** `\mathop{\mathrm{Pic}}(X)`, whose
+    elements are the isomorphism classes of line bundles on `X`. The
+    group law (which we write as addition) is the tensor product of
+    the line bundles. The Picard group of a toric variety is always
+    torsion-free.
+
+    .. WARNING::
+
+        You don't need to instantiate this class yourself. Use
+        :meth:`sage.schemes.generic.ToricVariety_field.divisor_class_group`
+        if you need the divisor class group. Or you can obtain it as
+        the parent of any divisor class constructed, for example, with
+        :meth:`ToricDivisor_generic.divisor_class()`
+
+    EXAMPLES::
+
+        sage: P2 = toric_varieties.P2()
+        sage: P2.divisor_class_group()
+        The toric QQ-divisor class group of a 2-d CPR-Fano
+        toric variety covered by 3 affine patches
+        sage: D = P2.divisor(1); D
+        V(y)
+        sage: Dclass = D.divisor_class(); Dclass
+        Divisor class [1]
+        sage: Dclass.lift()
+        V(x)
+        sage: Dclass.parent()
+        The toric QQ-divisor class group of a 2-d CPR-Fano
+        toric variety covered by 3 affine patches
+    """
+
+    def __init__(self, toric_variety):
+        r"""
+        Construct the toric rational divisor class group.
+
+        EXAMPLES::
+
+            sage: P2 = toric_varieties.P2()
+            sage: from sage.schemes.generic.toric_divisor import ToricRationalDivisorClassGroup
+            sage: ToricRationalDivisorClassGroup(P2)
+            The toric QQ-divisor class group of a 2-d CPR-Fano
+            toric variety covered by 3 affine patches
+        """
+        self._variety = toric_variety
+        nrays = toric_variety.fan().nrays()
+        rk = nrays - toric_variety.fan().lattice_dim()
+        super(ToricRationalDivisorClassGroup,self).__init__(base_field=QQ, dimension=rk, sparse=False)
+        gale = toric_variety.fan().gale_transform()
+        self._projection_matrix = gale.matrix_from_columns(range(0,nrays))
+        self._lift_matrix = self._projection_matrix.solve_right( identity_matrix(rk) )
+
+    def _repr_(self):
+        r"""
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: P2 = toric_varieties.P2()
+            sage: from sage.schemes.generic.toric_divisor import ToricRationalDivisorClassGroup
+            sage: ToricRationalDivisorClassGroup(P2)._repr_()
+            'The toric QQ-divisor class group of a 2-d CPR-Fano toric variety covered by 3 affine patches'
+        """
+        return 'The toric QQ-divisor class group of a '+self._variety._repr_()
+
+    def _latex_(self):
+        r"""
+        Return a LaTeX representation of ``self``.
+
+        EXAMPLES::
+
+            sage: P2 = toric_varieties.P2()
+            sage: from sage.schemes.generic.toric_divisor import ToricRationalDivisorClassGroup
+            sage: ToricRationalDivisorClassGroup(P2)._latex_()
+            '\\mathop{Cl}_{\\QQ}\\left(\\mathbb{P}_{\\Delta^{2}}\\right)'
+        """
+        return '\\mathop{Cl}_{\\QQ}\\left('+self._variety._latex_()+'\\right)'
+
+    def gen(self, i):
+        r"""
+        EXAMPLES::
+
+            sage: toric_varieties.dP8().divisor_class_group().gen(0)
+            Divisor class [1,0]
+        """
+        return self._element_constructor_( super(ToricRationalDivisorClassGroup,self).gen(i) )
+
+    def gens(self):
+        r"""
+        EXAMPLES::
+
+            sage: toric_varieties.dP8().divisor_class_group().gens()
+            (Divisor class [1,0], Divisor class [0,1])
+        """
+        return tuple( self._element_constructor_(x)
+                      for x in  super(ToricRationalDivisorClassGroup,self).gens() )
+
+    def _element_constructor_(self, x):
+        r"""
+        Construct a :class:`ToricRationalDivisorClass`
+
+        EXAMPLES::
+
+            sage: dP6 = toric_varieties.dP6()
+            sage: Cl = dP6.divisor_class_group()
+            sage: D = dP6.divisor(2)
+            sage: Cl._element_constructor_(D)
+            Divisor class [0,0,1,0]
+            sage: Cl(D)
+            Divisor class [0,0,1,0]
+        """
+        if is_ToricDivisor(x):
+            coefficients = list(self._projection_matrix * vector(x))
+            return ToricRationalDivisorClass(self, coefficients)
+        if is_Vector(x):
+            return ToricRationalDivisorClass(self, list(x))
+        return ToricRationalDivisorClass(self, x)
+
+    # parent does not conform to the new-style coercion model
+    __call__ = _element_constructor_
+
+
+#********************************************************
+class ToricRationalDivisorClass(Vector_rational_dense):
+    r"""
+    An element of :class:`ToricRationalDivisorClassGroup`
+
+    EXAMPLES::
+
+        sage: dP6 = toric_varieties.dP6()
+        sage: Cl = dP6.divisor_class_group()
+        sage: D = dP6.divisor(2)
+        sage: Cl(D)
+        Divisor class [0,0,1,0]
+    """
+    def __init__(self, parent, x, coerce=True, copy=True):
+        r"""
+        Construct a :class:`ToricRationalDivisorClass`.
+
+        EXAMPLES::
+
+            sage: dP6 = toric_varieties.dP6()
+            sage: Cl = dP6.divisor_class_group()
+            sage: from sage.schemes.generic.toric_divisor import ToricRationalDivisorClass
+            sage: ToricRationalDivisorClass(Cl, [1,2,3,4])
+            Divisor class [1,2,3,4]
+        """
+        assert isinstance(parent, ToricRationalDivisorClassGroup)
+        super(ToricRationalDivisorClass,self).__init__(parent, x, coerce, copy)
+        self.set_immutable()
+
+    def _vector_(self, ring=QQ):
+        r"""
+        Return a vector representation.
+
+        INPUT:
+
+        - ``ring`` -- the coefficient ring.
+
+        OUTPUT:
+
+        A vector with coefficients in ``ring``.
+
+        EXAMPLES::
+
+            sage: dP8 = toric_varieties.dP8()
+            sage: c = sum( dP8.divisor_class_group().gens() )
+            sage: c._vector_()
+            (1, 1)
+            sage: vector(c)    # indirect test
+            (1, 1)
+        """
+        if ring==None:
+            ring = QQ
+        return vector(ring, list(self))
+
+    def _repr_(self):
+        r"""
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: toric_varieties.P2().divisor(0).divisor_class()._repr_()
+            'Divisor class [1]'
+        """
+        return 'Divisor class [' + ','.join(map(str,list(self))) + ']'
+
+    def _add_(self, right):
+        r"""
+        Return the sum.
+
+        EXAMPLES::
+
+            sage: c = toric_varieties.dP8().divisor_class_group().gens()
+            sage: c[0]._add_(c[1])
+            Divisor class [1,1]
+            sage: c[0] + c[1]      # indirect test
+            Divisor class [1,1]
+        """
+        return self.parent()( super(ToricRationalDivisorClass,self)._add_(right) )
+
+    def _sub_(self, right):
+        r"""
+        Return the difference.
+
+        EXAMPLES::
+
+            sage: c = toric_varieties.dP8().divisor_class_group().gens()
+            sage: c[0]._sub_(c[1])
+            Divisor class [1,-1]
+            sage: c[0] - c[1]      # indirect test
+            Divisor class [1,-1]
+        """
+        return self.parent()( super(ToricRationalDivisorClass,self)._sub_(right) )
+
+    def _dot_product_(self, right):
+        r"""
+        Return ``ValueError``.
+
+        EXAMPLES::
+
+            sage: c = toric_varieties.dP8().divisor_class_group().gens()
+            sage: c[0]._dot_product_(c[1])
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot multiply two divisor classes.
+            sage: c[0] * c[1]      # indirect test
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot multiply two divisor classes.
+        """
+        raise ValueError, 'Cannot multiply two divisor classes.'
+
+    def _pairwise_product_(self, right):
+        r"""
+        Return the pairwise product.
+
+        EXAMPLES::
+
+            sage: c = toric_varieties.dP8().divisor_class_group().gens()
+            sage: c[0]._pairwise_product_(c[1])
+            Divisor class [0,0]
+        """
+        return self.parent()( super(ToricRationalDivisorClass,self)._pairwise_product_(right) )
+
+    def _rmul_(self, left):
+        r"""
+        Return left scalar multiple.
+
+        EXAMPLES::
+
+            sage: c = toric_varieties.dP8().divisor_class_group().gens()
+            sage: c[0]._rmul_(2)
+            Divisor class [2,0]
+            sage: 2 * c[0]
+            Divisor class [2,0]
+        """
+        return self.parent()( super(ToricRationalDivisorClass,self)._rmul_(left) )
+
+    def _lmul_(self, right):
+        r"""
+        Return right scalar multiple.
+
+        EXAMPLES::
+
+            sage: c = toric_varieties.dP8().divisor_class_group().gens()
+            sage: c[0]._lmul_(2)
+            Divisor class [2,0]
+            sage: c[0] * 2
+            Divisor class [2,0]
+        """
+        return self.parent()( super(ToricRationalDivisorClass,self)._lmul_(right) )
+
+    def _neg_(self):
+        r"""
+        Return the negative.
+
+        EXAMPLES::
+
+            sage: c = toric_varieties.dP8().divisor_class_group().gens()
+            sage: c[0]._neg_()
+            Divisor class [-1,0]
+            sage: - c[0]      # indirect test
+            Divisor class [-1,0]
+        """
+        return self.parent()( super(ToricRationalDivisorClass,self)._neg_() )
+
+    def lift(self):
+        r"""
+        Return a divisor in the given divisor class.
+
+        OUTPUT:
+
+        An instance of :class:`ToricDivisor` in the same divisor
+        class.
+
+        EXAMPLES::
+
+            sage: X = toric_varieties.Cube_nonpolyhedral()
+            sage: D = X.divisor([0,1,2,3,4,5,6,7]); D
+            V(z1) + 2*V(z2) + 3*V(z3) + 4*V(z4) + 5*V(z5) + 6*V(z6) + 7*V(z7)
+            sage: D.divisor_class()
+            Divisor class [29,6,8,10,0]
+            sage: Dequiv = D.divisor_class().lift(); Dequiv
+            29/2*V(z0) + 6*V(z1) + 8*V(z2) + 10*V(z3)
+            sage: Dequiv == D
+            False
+            sage: Dequiv.divisor_class() == D.divisor_class()
+            True
+        """
+        if '_lift' not in self.__dict__:
+            lift = self.parent()._lift_matrix * vector(self)
+            self._lift = self.parent()._variety.divisor(lift)
+        return self._lift
+
 

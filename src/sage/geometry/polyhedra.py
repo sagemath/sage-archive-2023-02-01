@@ -3603,58 +3603,34 @@ class Polyhedron(SageObject):
         return True
 
 
-    def contains(self, point):
+    def relative_interior_contains(self, point):
         """
-        Returns whether the polyhedron contains the given
-        ``point``. See also ``Polyhedron.interior_contains(point)``.
+        Returns whether the relative interior of the polyhedron
+        contains the given ``point``.
 
         EXAMPLES::
 
-            sage: P = Polyhedron(vertices=[[1,1],[1,-1],[0,0]])
-            sage: P.contains( [1,0] )
+            sage: P = Polyhedron(vertices=[(1,0), (-1,0)])
+            sage: P.contains( (0,0) )
             True
-            sage: P.contains( P.center() )  # true for any convex set
-            True
-        """
-        p = vector(self.field(), point)
-
-        for H in self.Hrep_generator():
-            if not H.contains(p):
-                return False
-        return True
-
-
-    def interior_contains(self, point):
-        """
-        Returns whether the interior of the polyhedron contains the
-        given ``point``.
-
-        EXAMPLES::
-
-            sage: P = Polyhedron(vertices=[[0,0],[1,1],[1,-1]])
-            sage: P.contains( [1,0] )
-            True
-            sage: P.interior_contains( [1,0] )
+            sage: P.interior_contains( (0,0) )
             False
-
-        If the polyhedron is of strictly smaller dimension than the
-        ambient space, its interior is empty::
-
-            sage: P = Polyhedron(vertices=[[0,1],[0,-1]])
-            sage: P.contains( [0,0] )
+            sage: P.relative_interior_contains( (0,0) )
             True
-            sage: P.interior_contains( [0,0] )
+            sage: P.relative_interior_contains( (1,0) )
             False
         """
         p = vector(self.field(), point)
 
-        for H in self.Hrep_generator():
-            if not H.interior_contains(p):
+        for eq in self.equation_generator():
+            if not eq.contains(p):
                 return False
+
+        for ine in self.inequality_generator():
+            if not ine.interior_contains(p):
+                return False
+
         return True
-
-
-
 
 
 

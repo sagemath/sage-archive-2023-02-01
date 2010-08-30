@@ -1052,7 +1052,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         state.pop("_lattice_polytope", None) # Just to save time and space.
         return state
 
-    def _contains(self, point):
+    def _contains(self, point, test='whole_cone'):
         r"""
         Check if ``point`` is contained in ``self``.
 
@@ -1064,6 +1064,15 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         - ``point`` -- anything. An attempt will be made to convert it into a
           single element of the ambient space of ``self``. If it fails,
           ``False`` is returned.
+
+        - ``test`` -- string. Can be either 'whole_cone' (default),
+          'interior', or 'relative_interior'. By default, a point on
+          the boundary of the cone is considered part of the cone. If
+          you want to test whether the **interior** of the cone
+          contains the point, you need to pass the optional argument
+          ``'interior'``.  If you want to test whether the **relative
+          interior** of the cone contains the point, you need to pass
+          the optional argument ``'relative_interior'``.
 
         OUTPUT:
 
@@ -1085,7 +1094,87 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             return False
         # return all(n * point >= 0 for n in self.facet_normals())
         # The above line does not work for non-full dimensional cones!
-        return self.polyhedron().contains(point)
+        if test=='whole_cone':
+            return self.polyhedron().contains(point)
+        elif test=='interior':
+            return self.polyhedron().interior_contains(point)
+        elif test=='relative_interior':
+            return self.polyhedron().relative_interior_contains(point)
+        else:
+            raise ValueError, 'Unknown value test='+str(test)+'.'
+
+    def interior_contains(self, *args):
+        r"""
+        Check if a given point is contained in the interior of ``self``.
+
+        For a cone of strictly lower-dimension than the ambient space,
+        the interior is always empty. You probably want to use see
+        :meth:`relative_interior_contains` in this case.
+
+        INPUT:
+
+        - anything. An attempt will be made to convert all arguments into a
+          single element of the ambient space of ``self``. If it fails,
+          ``False`` will be returned.
+
+        OUTPUT:
+
+        - ``True`` if the given point is contained in the interior of
+          ``self``, ``False`` otherwise.
+
+        EXAMPLES::
+
+            sage: c = Cone([(1,0), (0,1)])
+            sage: c.contains((1,1))
+            True
+            sage: c.interior_contains((1,1))
+            True
+            sage: c.contains((1,0))
+            True
+            sage: c.interior_contains((1,0))
+            False
+        """
+        point = flatten(args)
+        if len(point) == 1:
+           point = point[0]
+        return self._contains(point, test='interior')
+
+    def relative_interior_contains(self, *args):
+        r"""
+        Check if a given point is contained in the relative interior of ``self``.
+
+        For a full-dimensional cone the relative interior is simply
+        the interior, see :meth:`contains`. For a strictly
+        lower-dimensional cone, the relative interior is the cone
+        without its facets.
+
+        INPUT:
+
+        - anything. An attempt will be made to convert all arguments into a
+          single element of the ambient space of ``self``. If it fails,
+          ``False`` will be returned.
+
+        OUTPUT:
+
+        - ``True`` if the given point is contained in the relative
+          interior of ``self``, ``False`` otherwise.
+
+        EXAMPLES::
+
+            sage: c = Cone([(1,0,0), (0,1,0)])
+            sage: c.contains((1,1,0))
+            True
+            sage: c.relative_interior_contains((1,1,0))
+            True
+            sage: c.contains((1,0,0))
+            True
+            sage: c.relative_interior_contains((1,0,0))
+            False
+        """
+        point = flatten(args)
+        if len(point) == 1:
+           point = point[0]
+        return self._contains(point, test='relative_interior')
 
     def __cmp__(self, right):
         r"""

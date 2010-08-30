@@ -157,7 +157,7 @@ from sage.modules.free_module import (FreeModule_ambient_pid,
                                       FreeModule_submodule_pid,
                                       FreeModule_submodule_with_basis_pid,
                                       is_FreeModule)
-from sage.rings.all import ZZ
+from sage.rings.all import QQ, ZZ
 from sage.structure.factory import UniqueFactory
 
 
@@ -1209,6 +1209,41 @@ class ToricLattice_quotient(FGP_Module_class):
         """
         # Should be overridden in derived classes.
         return ToricLattice_quotient
+
+    def base_extend(self, R):
+        """
+        Return the base change of ``self`` to the ring ``R``.
+
+        INPUT:
+
+        - ``R`` -- either `\ZZ` or `\QQ`.
+
+        OUTPUT:
+
+        - ``self`` if `R=\ZZ`, quotient of the base extension of the ambient
+          lattice by the base extension of the sublattice if `R=\QQ`.
+
+        EXAMPLES::
+
+            sage: N = ToricLattice(3)
+            sage: Ns = N.submodule([N(2,4,0), N(9,12,0)])
+            sage: Q = N/Ns
+            sage: Q.base_extend(ZZ) is Q
+            True
+            sage: Q.base_extend(QQ)
+            Vector space quotient V/W of dimension 1 over Rational Field where
+            V: Vector space of dimension 3 over Rational Field
+            W: Vector space of degree 3 and dimension 2 over Rational Field
+            Basis matrix:
+            [1 0 0]
+            [0 1 0]
+        """
+        if R is ZZ:
+            return self
+        if R is QQ:
+            return self.V().base_extend(R) / self.W().base_extend(R)
+        raise NotImplementedError("quotients of toric lattices can only be "
+                                  "extended to ZZ or QQ, not %s!" % R)
 
     def is_torsion_free(self):
         r"""

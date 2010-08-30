@@ -1356,6 +1356,42 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
            point = point[0]
         return self._contains(point)
 
+    def dual(self):
+        r"""
+        Return the dual cone of ``self``.
+
+        OUTPUT:
+
+        - :class:`cone <ConvexRationalPolyhedralCone>`.
+
+        EXAMPLES::
+
+            sage: cone = Cone([(1,0), (-1,3)])
+            sage: cone.dual().rays()
+            (M(3, 1), M(0, 1))
+
+        Now let's look at a more complicated case::
+
+            sage: cone = Cone([(-2,-1,2), (4,1,0), (-4,-1,-5), (4,1,5)])
+            sage: cone.is_strictly_convex()
+            False
+            sage: cone.dim()
+            3
+            sage: cone.dual().rays()
+            (M(7, -18, -2), M(1, -4, 0))
+            sage: cone.dual().dual() is cone
+            True
+        """
+        if "_dual" not in self.__dict__:
+            rays = list(self.facet_normals())
+            for ray in self.orthogonal_sublattice().gens():
+                rays.append(ray)
+                rays.append(-ray)
+            self._dual = Cone(rays, lattice=self.lattice().dual(),
+                              check=False)
+            self._dual._dual = self
+        return self._dual
+
     def face_lattice(self):
         r"""
         Return the face lattice of ``self``.
@@ -1648,6 +1684,10 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
                hyperplanes whose intersections with the space spanned by
                ``self`` give facets of ``self``.
 
+            #. For a not strictly convex cone facet normals will be orthogonal
+               to the linear subspace of ``self``, i.e. they always will be
+               elements of the dual cone of ``self``.
+
             #. The order of normals is random and may be different from the
                one in :meth:`facets`.
 
@@ -1659,16 +1699,45 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: cone = Cone([(1,0), (-1,3)])
             sage: cone.facet_normals()
-            ((3, 1), (0, 1))
+            (M(3, 1), M(0, 1))
+
+        Now let's look at a more complicated case::
+
+            sage: cone = Cone([(-2,-1,2), (4,1,0), (-4,-1,-5), (4,1,5)])
+            sage: cone.is_strictly_convex()
+            False
+            sage: cone.dim()
+            3
+            sage: cone.linear_subspace().dimension()
+            1
+            sage: lsg = (QQ^3)(cone.linear_subspace().gen(0)); lsg
+            (1, 1/4, 5/4)
+            sage: cone.facet_normals()
+            (M(7, -18, -2), M(1, -4, 0))
+            sage: [lsg*normal for normal in cone.facet_normals()]
+            [0, 0]
         """
         if "_facet_normals" not in self.__dict__:
-            if not self.is_strictly_convex():
-                raise NotImplementedError("facet normals are currently "
-                                "implemented only for strictly convex cones!")
-            lp = self.lattice_polytope()
-            self._facet_normals = tuple(lp.facet_normal(i)
-                                        for i in range(lp.nfacets())
-                                        if lp.facet_constant(i) == 0)
+            M = self.lattice().dual()
+            P = self.lattice_polytope()
+            rotate_lifts = not self.is_strictly_convex()
+            if rotate_lifts:
+                # B will be used to compute "lift-corrections" so that
+                # lifts are orthogonal to the linear subspace of self
+                A = self.linear_subspace().basis_matrix()
+                B = A.stack(identity_matrix(A.ncols()))
+                B = B.matrix_from_rows(B.pivot_rows())
+                tail = [0] * (A.ncols() - A.nrows())
+                Q = M / self.orthogonal_sublattice()
+            normals = []
+            for i in range(P.nfacets()):
+                if P.facet_constant(i) == 0:
+                    normal = P.facet_normal(i)
+                    if rotate_lifts:
+                        normal = Q(normal).lift()
+                        normal -= B.solve_right(vector(list(A*normal) + tail))
+                    normals.append(normal)
+            self._facet_normals = tuple(normalize_rays(normals, M))
         return self._facet_normals
 
     def facet_of(self):

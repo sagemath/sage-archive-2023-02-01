@@ -151,7 +151,7 @@ class DivisorGroup_generic(FormalSums):
             sage: from sage.schemes.generic.divisor_group import DivisorGroup
             sage: DivZZ=DivisorGroup(Spec(ZZ))
             sage: DivZZ([(2,5)])
-            2*5
+            2*V(5)
         """
         if isinstance(x, Divisor_generic):
             P = x.parent()

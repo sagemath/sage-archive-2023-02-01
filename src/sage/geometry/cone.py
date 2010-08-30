@@ -957,7 +957,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
     - ``ambient`` -- ambient structure of this cone, a bigger :class:`cone
       <ConvexRationalPolyhedralCone>` or a :class:`fan
-      <sage,geometry.fan.RationalPolyhedralFan>`, this cone *must be a face
+      <sage.geometry.fan.RationalPolyhedralFan>`, this cone *must be a face
       of* ``ambient``;
 
     - ``ambient_ray_indices`` -- increasing list or tuple of integers, indices

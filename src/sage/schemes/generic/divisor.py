@@ -40,13 +40,15 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #*******************************************************************************
 
-import sage.misc.misc #as repr_lincomb
-from sage.structure.formal_sum import FormalSum
+from sage.misc.all import latex
+from sage.misc.misc import repr_lincomb
+from sage.misc.search import search
 from sage.rings.all import ZZ
-from projective_space import is_ProjectiveSpace
+from sage.structure.formal_sum import FormalSum
+
 from affine_space import is_AffineSpace
 from morphism import is_SchemeMorphism
-from sage.misc.search import search
+from projective_space import is_ProjectiveSpace
 
 
 def CurvePointToIdeal(C,P):
@@ -133,9 +135,76 @@ class Divisor_generic(FormalSum):
             sage: from sage.schemes.generic.divisor import Divisor_generic
             sage: from sage.schemes.generic.divisor_group import DivisorGroup
             sage: Divisor_generic( [(4,5)], DivisorGroup(Spec(ZZ)), False, False)
-            4*5
+            4*V(5)
         """
         FormalSum.__init__(self, v, parent, check, reduce)
+
+    def _latex_(self):
+        r"""
+        Return a LaTeX representation of ``self``.
+
+        OUTPUT:
+
+        - string.
+
+        TESTS::
+
+            sage: R.<x, y> = ZZ[]
+            sage: S = Spec(R)
+            sage: from sage.schemes.generic.divisor import Divisor_generic
+            sage: from sage.schemes.generic.divisor_group import DivisorGroup
+            sage: Div = DivisorGroup(S)
+            sage: D = Divisor_generic([(4, x), (-5, y), (1, x+2*y)], Div)
+            sage: D._latex_()
+            '\\mathrm{V}\\left(x + 2 y\\right)
+            + 4\\mathrm{V}\\left(x\\right)
+            + \\left(-5\\right)\\mathrm{V}\\left(y\\right)'
+        """
+        # The code is copied from _repr_ with latex adjustments
+        terms = list(self)
+        # We sort the terms by variety. The order is "reversed" to keep it
+        # straight - as the test above demonstrates, it results in the first
+        # generator being in front of the second one
+        terms.sort(key=lambda x: x[1], reverse=True)
+        coefficients = []
+        varieties = []
+        for c, v in terms:
+            coefficients.append(c)
+            varieties.append(r"\mathrm{V}\left(%s\right)" % latex(v))
+        return repr_lincomb(varieties, coefficients, is_latex=True)
+
+    def _repr_(self):
+        r"""
+        Return a string representation of ``self``.
+
+        OUTPUT:
+
+        - string.
+
+        TESTS::
+
+            sage: R.<x, y> = ZZ[]
+            sage: S = Spec(R)
+            sage: from sage.schemes.generic.divisor import Divisor_generic
+            sage: from sage.schemes.generic.divisor_group import DivisorGroup
+            sage: Div = DivisorGroup(S)
+            sage: D = Divisor_generic([(4, x), (-5, y), (1, x+2*y)], Div)
+            sage: D._repr_()
+            'V(x + 2*y) + 4*V(x) - 5*V(y)'
+        """
+        # The default representation coming from formal sums does not look
+        # very nice for divisors
+        terms = list(self)
+        # We sort the terms by variety. The order is "reversed" to keep it
+        # straight - as the test above demonstrates, it results in the first
+        # generator being in front of the second one
+        terms.sort(key=lambda x: x[1], reverse=True)
+        coefficients = []
+        varieties = []
+        for c, v in terms:
+            coefficients.append(c)
+            varieties.append("V(%s)" % v)
+        return repr_lincomb(varieties, coefficients, is_latex=False)
 
     def scheme(self):
         """
@@ -286,7 +355,7 @@ class Divisor_curve(Divisor_generic):
         ideals = [ z[1] for z in self ]
         coeffs = [ z[0] for z in self ]
         polys = [ tuple(I.gens()) for I in ideals ]
-        return sage.misc.misc.repr_lincomb(polys, coeffs)
+        return repr_lincomb(polys, coeffs)
 
     def support(self):
         """

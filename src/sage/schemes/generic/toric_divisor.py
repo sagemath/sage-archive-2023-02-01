@@ -1,48 +1,76 @@
 r"""
-Toric Divisors
+Toric divisors
 
-A ``ToricDivisor`` is, in general, a `\QQ` T-Weil divisor, that is, a
-formal `\QQ`-linear combination of torus-invariant subvarieties. In
-homogeneous coordinates `[z_0:\cdots:z_k]`, these are the subvarieties
-`\{z_i=0\}`. Note that there is a finite number of such subvarieties,
-one for each ray of the fan. We generally identify
+Let `X` be a :class:`toric variety
+<sage.schemes.generic.toric_variety.ToricVariety_field>` corresponding to a
+:class:`rational polyhedral fan <sage.geometry.fan.RationalPolyhedralFan>`
+`\Sigma`. A :class:`toric divisor <ToricDivisor_generic>` `D` is a T-Weil
+divisor over a given coefficient ring (usually `\ZZ` or `\QQ`), i.e. a formal
+linear combination of torus-invariant subvarieties of `X` of codimension one.
+In homogeneous coordinates `[z_0:\cdots:z_k]`, these are the subvarieties
+`\{z_i=0\}`. Note that there is a finite number of such subvarieties, one for
+each ray of `\Sigma`. We generally identify
 
-  * Toric divisors `D`
+  * Toric divisor `D`,
 
-  * Piecewise linear support functions on the fan
+  * Sheaf `\mathcal{O}(D)` (if `D` is Cartier, it is a line bundle),
 
-  * The sheaf `\mathcal{O}(D)`
+  * Support function `\phi_D` (if `D` is `\QQ`-Cartier, it is a function
+    linear on each cone of `\Sigma`).
 
-If the divisor is actually a Cartier divisor (see
-:meth:`ToricDivisor_generic.is_Cartier`), then the support function is linear on
-each cone and `\mathcal{O}(D)` is a line bundle.
+EXAMPLES:
 
-EXAMPLES::
+We start with an illustration of basic divisor arithmetic::
 
     sage: dP6 = toric_varieties.dP6()
     sage: Dx,Du,Dy,Dv,Dz,Dw = dP6.toric_divisor_group().gens()
     sage: Dx
-    Divisor x
-    sage: +Dx
-    Divisor x
+    V(x)
     sage: -Dx
-    Divisor -x
+    -V(x)
     sage: 2*Dx
-    Divisor 2*x
+    2*V(x)
     sage: Dx*2
-    Divisor 2*x
-    sage: Dx + Dy
-    Divisor y + x
-    sage: Dx - Dy
-    Divisor -y + x
-    sage: (1/2)*Dx
-    Divisor 1/2*x
-    sage: Dx / 2
-    Divisor 1/2*x
+    2*V(x)
+    sage: (1/2)*Dx + Dy/3 - Dz
+    1/2*V(x) + 1/3*V(y) - V(z)
     sage: Dx.parent()
-    Group of toric ZZ-Weil divisors on 2-d CPR-Fano toric variety covered by 6 affine patches
+    Group of toric ZZ-Weil divisors
+    on 2-d CPR-Fano toric variety covered by 6 affine patches
     sage: (Dx/2).parent()
-    Group of toric QQ-Weil divisors on 2-d CPR-Fano toric variety covered by 6 affine patches
+    Group of toric QQ-Weil divisors
+    on 2-d CPR-Fano toric variety covered by 6 affine patches
+
+Now we create a more complicated variety to demonstrate divisors of different
+types::
+
+    sage: F = Fan(cones=[(0,1,2,3), (0,1,4)],
+    ...       rays=[(1,1,1), (1,-1,1), (1,-1,-1), (1,1,-1), (0,0,1)])
+    sage: X = ToricVariety(F)
+    sage: QQ_Cartier = X.divisor([2,2,1,1,1])
+    sage: Cartier = 2 * QQ_Cartier
+    sage: Weil = X.divisor([1,1,1,0,0])
+    sage: QQ_Weil = 1/2 * Weil
+    sage: [QQ_Weil.is_QQ_Weil(),
+    ...    QQ_Weil.is_Weil(),
+    ...    QQ_Weil.is_QQ_Cartier(),
+    ...    QQ_Weil.is_Cartier()]
+    [True, False, False, False]
+    sage: [Weil.is_QQ_Weil(),
+    ...    Weil.is_Weil(),
+    ...    Weil.is_QQ_Cartier(),
+    ...    Weil.is_Cartier()]
+    [True, True, False, False]
+    sage: [QQ_Cartier.is_QQ_Weil(),
+    ...    QQ_Cartier.is_Weil(),
+    ...    QQ_Cartier.is_QQ_Cartier(),
+    ...    QQ_Cartier.is_Cartier()]
+    [True, True, True, False]
+    sage: [Cartier.is_QQ_Weil(),
+    ...    Cartier.is_Weil(),
+    ...    Cartier.is_QQ_Cartier(),
+    ...    Cartier.is_Cartier()]
+    [True, True, True, True]
 """
 
 
@@ -54,52 +82,42 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 ########################################################################
 
-from sage.structure.sage_object import SageObject
-from sage.structure.unique_representation import UniqueRepresentation
+
+from sage.geometry.cone import is_Cone
+from sage.geometry.toric_lattice_element import is_ToricLatticeElement
+from sage.misc.all import latex
 from sage.modules.all import vector
-from sage.rings.all import ZZ, QQ, Integer, is_Ideal
-from sage.matrix.constructor import matrix
-from sage.misc.all import flatten, prod, subsets
-
-from sage.geometry.toric_lattice import ToricLattice, is_ToricLatticeElement
-from sage.geometry.cone import Cone, is_Cone
-from sage.geometry.fan import Fan
-from sage.schemes.generic.divisor_group import DivisorGroup_generic
+from sage.rings.all import QQ, ZZ
 from sage.schemes.generic.divisor import Divisor_generic
-from sage.schemes.generic.toric_variety import ToricVariety, is_ToricVariety, is_CohomologyClass, CohomologyRing
-from sage.schemes.generic.toric_variety_library import toric_varieties
-
+from sage.schemes.generic.divisor_group import DivisorGroup_generic
+from sage.schemes.generic.toric_variety import CohomologyRing, is_ToricVariety
 
 
 #********************************************************
 class ToricDivisorGroup(DivisorGroup_generic):
     r"""
-    The group of (`\QQ` T-Weil) divisors on a toric variety.
-
-    .. WARNING::
-
-        You should not create instances by hand, but either use
-        :func:`ToricDivisorGroup` or
-        :meth:`sage.schemes.generic.toric_variety.ToricVariety_field.divisor_group`.
+    The group of (`\QQ`-T-Weil) divisors on a toric variety.
 
     EXAMPLES::
 
         sage: P2 = toric_varieties.P2()
         sage: P2.toric_divisor_group()
-        Group of toric ZZ-Weil divisors on 2-d CPR-Fano toric variety covered by 3 affine patches
+        Group of toric ZZ-Weil divisors
+        on 2-d CPR-Fano toric variety covered by 3 affine patches
     """
 
     def __init__(self, toric_variety, base_ring):
         r"""
-        Construct an instance of :class:`ToricDivisorGroup`
+        Construct an instance of :class:`ToricDivisorGroup`.
 
         INPUT:
 
         - ``toric_variety`` -- a
-          :class:`sage.schemes.generic.toric_variety.ToricVariety_generic``.
+          :class:`toric variety
+          <sage.schemes.generic.toric_variety.ToricVariety_field>``;
 
-        - ``base_ring`` -- the coefficient ring of the toric variety,
-          usually `\ZZ` or `\QQ`.
+        - ``base_ring`` -- the coefficient ring of this divisor group,
+          usually `\ZZ` (default) or `\QQ`.
 
         Implementation note: :meth:`__classcall__` sets the default
         value for ``base_ring``.
@@ -113,18 +131,34 @@ class ToricDivisorGroup(DivisorGroup_generic):
             sage: P2 = toric_varieties.P2()
             sage: from sage.schemes.generic.toric_divisor import ToricDivisorGroup
             sage: ToricDivisorGroup(P2, base_ring=ZZ)
-            Group of toric ZZ-Weil divisors on 2-d CPR-Fano toric variety covered by 3 affine patches
+            Group of toric ZZ-Weil divisors
+            on 2-d CPR-Fano toric variety covered by 3 affine patches
 
-        Note that :class:`UniqueRepresentation` correctly
-        distinguishes the parent classes even if the schemes are the
-        same::
+        Note that :class:`UniqueRepresentation` correctly distinguishes the
+        parent classes even if the schemes are the same::
 
             sage: from sage.schemes.generic.divisor_group import DivisorGroup
             sage: DivisorGroup(P2,ZZ) is ToricDivisorGroup(P2,ZZ)
             False
         """
         assert is_ToricVariety(toric_variety), str(toric_variety)+' is not a toric variety!'
-        super(ToricDivisorGroup,self).__init__(toric_variety, base_ring)
+        super(ToricDivisorGroup, self).__init__(toric_variety, base_ring)
+
+    def _latex_(self):
+        r"""
+        Return a LaTeX representation of ``self``.
+
+        OUTPUT:
+
+        - string.
+
+        TESTS::
+
+            sage: toric_varieties.P2().toric_divisor_group()._latex_()
+            '\\mathrm{Div_T}\\left(\\mathbb{P}_{\\Delta^{2}}, \\Bold{Z}\\right)'
+        """
+        return (r"\mathrm{Div_T}\left(%s, %s\right)"
+                % (latex(self.scheme()), latex(self.base_ring())))
 
     def _repr_(self):
         """
@@ -137,7 +171,8 @@ class ToricDivisorGroup(DivisorGroup_generic):
         EXAMPLES::
 
             sage: toric_varieties.P2().toric_divisor_group()._repr_()
-            'Group of toric ZZ-Weil divisors on 2-d CPR-Fano toric variety covered by 3 affine patches'
+            'Group of toric ZZ-Weil divisors
+            on 2-d CPR-Fano toric variety covered by 3 affine patches'
         """
         ring = self.base_ring()
         if ring == ZZ:
@@ -154,7 +189,7 @@ class ToricDivisorGroup(DivisorGroup_generic):
 
         OUTPUT:
 
-        The number of generators equals, which equals the number of
+        The number of generators of ``self``, which equals the number of
         rays in the fan of the toric variety.
 
         EXAMPLES::
@@ -175,16 +210,14 @@ class ToricDivisorGroup(DivisorGroup_generic):
             sage: P2 = toric_varieties.P2()
             sage: TDiv = P2.toric_divisor_group()
             sage: TDiv.gens()
-            [Divisor x, Divisor y, Divisor z]
+            (V(x), V(y), V(z))
         """
-        # Note: self._gens is already defined by parent class
-        try:
-            return self._toric_gens
-        except AttributeError:
-            pass
-        self._toric_gens = [ ToricDivisor_generic([(self.base_ring().one(),c)],self)
-                             for c in self.scheme().gens() ]
-        return self._toric_gens
+        # Note: self._gens is originally incorrectly set by the parent class
+        if self._gens is None:
+            one = self.base_ring().one()
+            self._gens = tuple(ToricDivisor_generic([(one, c)], self)
+                               for c in self.scheme().gens())
+        return self._gens
 
     def gen(self,i):
         r"""
@@ -204,7 +237,7 @@ class ToricDivisorGroup(DivisorGroup_generic):
             sage: P2 = toric_varieties.P2()
             sage: TDiv = P2.toric_divisor_group()
             sage: TDiv.gen(2)
-            Divisor z
+            V(z)
         """
         return self.gens()[i]
 
@@ -225,33 +258,27 @@ class ToricDivisorGroup(DivisorGroup_generic):
             sage: P2 = toric_varieties.P2()
             sage: TDiv = P2.toric_divisor_group()
             sage: TDiv._element_constructor_([ (1,P2.gen(2)) ])
-            Divisor z
+            V(z)
         """
-        if isinstance(x, ToricDivisor_generic):
-            P = x.parent()
-            if P is self:
+        if is_ToricDivisor(x):
+            if x.parent() is self:
                 return x
-            elif P == self:
-                return ToricDivisor_generic(x._data, check=False, reduce=False, parent=self)
             else:
                 x = x._data
-
-        if isinstance(x, list):
-            all( len(xi)==2 for xi in x )
-            all( xi[0] in self.base_ring() for xi in x )
-            all( xi[1] in self.scheme().gens() for xi in x )
-            return ToricDivisor_generic(x, check=check, reduce=reduce, parent=self)
-        elif x in self.scheme().gens():
-            return ToricDivisor_generic([(self.base_ring()(1), x)],
-                                        check=False, reduce=False, parent=self)
-        elif isinstance(x, ZZ) and x == 0:
-            return ToricDivisor_generic([], check=False, reduce=False, parent=self)
-
-        return ToricDivisor(self.scheme(), x)
-
+        return ToricDivisor(self.scheme(), x, self.base_ring(), check, reduce)
 
     def base_extend(self, R):
         """
+        Extend the scalars of ``self`` to ``R``.
+
+        INPUT:
+
+        - ``R`` -- ring.
+
+        OUTPUT:
+
+        - toric divisor group.
+
         EXAMPLES::
 
             sage: P2 = toric_varieties.P2()
@@ -260,13 +287,16 @@ class ToricDivisorGroup(DivisorGroup_generic):
             sage: DivZZ.base_extend(QQ) is DivQQ
             True
         """
+        # This check prevents extension to cohomology rings via coercion
         if isinstance(R,CohomologyRing):
             raise TypeError, 'Coefficient ring cannot be a cohomology ring.'
         if self.base_ring().has_coerce_map_from(R):
             return self
         elif R.has_coerce_map_from(self.base_ring()):
             return ToricDivisorGroup(self.scheme(), base_ring=R)
-
+        else:
+            raise ValueError("the base of %s cannot be extended to %s!"
+                             % ( self, R))
 
 #********************************************************
 def is_ToricDivisor(x):
@@ -289,7 +319,7 @@ def is_ToricDivisor(x):
         False
         sage: P2 = toric_varieties.P2()
         sage: D = P2.divisor(0); D
-        Divisor x
+        V(x)
         sage: is_ToricDivisor(D)
         True
     """
@@ -299,39 +329,35 @@ def is_ToricDivisor(x):
 #********************************************************
 def ToricDivisor(toric_variety, arg=None, ring=None, check=False, reduce=False):
     r"""
-    Construct a divisor of a toric variety.
+    Construct a divisor of ``toric_variety``.
 
     INPUT:
 
-    - ``toric_variety`` must be a :class:`ToricVariety <ToricVariety_field>`
+    - ``toric_variety`` -- a :class:`toric variety
+      <sage.schemes.generic.toric_variety.ToricVariety_field>`;
 
-    - if ``arg`` equals ``None``, the trivial divisor is constructed.
+    - ``arg`` -- one of the following description of the toric divisor to be
+      constructed:
 
-    - if ``arg`` is an integer, the divisor corresponding to the
-      ``arg``-th ray of the fan is constructed. The divisors are in
-      the same order as ``toric_variety.fan().rays()``, which is also
-      the same order as the one-cones ``toric_variety.fan(dim=1)``
+      * ``None`` (the trivial divisor);
 
-    - if ``arg`` is a monomial in the homogeneous coordinates, the
-      corresponding toric divisor is constructed.
+      * integer (divisor corresponding to the ``arg``-th ray of the fan, order
+        is the same as in ``toric_variety.fan().rays()``, which is also the
+        same as for the one-cones ``toric_variety.fan(dim=1)``);
 
-    - if ``arg`` is a one-dimensional cone of the fan of the toric
-      variety or a N-lattice point generating such a ray, the
-      corresponding divisor is constructed.
+      * monomial in the homogeneous coordinates;
 
-    - if ``arg`` is a sequence of rational numbers, one for each ray
-      of the fan, the corresponding linear combination of toric
-      divisors is returned.
+      * one-dimensional cone of the fan of ``toric_variety`` or a lattice
+        point generating such a cone;
 
-    - if ``arg`` is a valid argument for the constructor of
-      :class:`ToricDivisor_generic`, then it is simply passed on.
+      * sequence of rational numbers, specifying multiplicities for each of
+        the toric divisors.
 
     - ``ring`` -- usually either `\ZZ` or `\QQ`. The base ring of the
       divisor group. If ``ring`` is not specified, a coefficient ring
       suitable for ``arg`` is derived.
 
-    - for ``check`` and ``reduce`` see
-      :meth:`ToricDivisor_generic.__init__`.
+    - for ``check`` and ``reduce`` see :meth:`ToricDivisor_generic`.
 
     OUTPUT:
 
@@ -339,91 +365,113 @@ def ToricDivisor(toric_variety, arg=None, ring=None, check=False, reduce=False):
 
     EXAMPLES::
 
+        sage: from sage.schemes.generic.toric_divisor import ToricDivisor
         sage: dP6 = toric_varieties.dP6()
         sage: ToricDivisor(dP6, [(1,dP6.gen(2)), (1,dP6.gen(1))])
-        Divisor y + u
+        V(u) + V(y)
         sage: ToricDivisor(dP6, 1) + ToricDivisor(dP6, 2)
-        Divisor y + u
+        V(u) + V(y)
         sage: ToricDivisor(dP6, (0,1,1,0,0,0), ring=QQ)
-        Divisor u + y
+        V(u) + V(y)
         sage: dP6.inject_variables()
         Defining x, u, y, v, z, w
         sage: ToricDivisor(dP6, u+y)
         Traceback (most recent call last):
         ...
-        ValueError: The polynomial u + y must consist of a single monomial.
+        ValueError: u + y is not a monomial!
         sage: ToricDivisor(dP6, u*y)
-        Divisor u + y
+        V(u) + V(y)
         sage: ToricDivisor(dP6, dP6.fan(dim=1)[0] )
-        Divisor x
+        V(x)
         sage: N = dP6.fan().lattice()
         sage: ToricDivisor(dP6, N(1,1) )
-        Divisor w
+        V(w)
     """
-    assert is_ToricVariety(toric_variety);
-    n_rays = toric_variety.fan().nrays()
-
-    if ring==None:
-        R = ZZ
-    else:
-        R = ring
-
-    if arg==None:
-        divisor = []
-    elif arg in ZZ:
-        cone_index = arg
-        divisor = [ (R(1),toric_variety.gen(cone_index)) ]
-    elif is_Cone(arg):
-        if arg.dim() != 1:
-            raise ValueError, 'Only 1-dimensional cones of the toric variety define divisors.'
-        cone_index = arg.ambient_ray_indices()[0]
-        divisor = [ (R(1),toric_variety.gen(cone_index)) ]
-    elif is_ToricLatticeElement(arg):
+    assert is_ToricVariety(toric_variety)
+    # Zero divisor
+    if arg is None:
+        arg = []
+    # Divisor by lattice point (corresponding to a ray)
+    if is_ToricLatticeElement(arg):
         if arg not in toric_variety.fan().lattice():
-            raise ValueError, 'The argument must be in the N-lattice of the toric variety.'
-        cone = toric_variety.fan().cone_containing(arg)
-        if cone.dim() != 1:
-            raise ValueError, 'The point '+str(arg)+' does not lie on a ray of the fan.'
-        cone_index = cone.ambient_ray_indices()[0]
-        divisor = [ (R(1),toric_variety.gen(cone_index)) ]
-    elif arg in toric_variety.coordinate_ring():
+            raise ValueError("%s is not in the ambient lattice of %s!"
+                             % (arg, toric_variety.fan()))
+        arg = toric_variety.fan().cone_containing(arg)
+    # Divisor by a one-cone
+    if is_Cone(arg):
+        if arg.dim() != 1:
+            raise ValueError("Only 1-dimensional cones of the toric variety "
+                             "define divisors.")
+        arg = arg.ambient_ray_indices()[0]
+    # Divisor by a ray index
+    if arg in ZZ:
+        arg = [(1, toric_variety.gen(arg))]
+    # Divisor by monomial
+    if arg in toric_variety.coordinate_ring():
         if len(list(arg)) != 1:
-            raise ValueError, \
-                'The polynomial '+str(arg)+' must consist of a single monomial.'
-        exponent = arg.exponents()[0]
-        divisor = [ (R(exponent[i]),toric_variety.gen(i))
-                    for i in range(0,n_rays) ]
-    else:
-        # we tried everything else, so assume arg is iterable
-        divisor=list(arg)
+            raise ValueError("%s is not a monomial!" % arg)
+        arg = arg.exponents()[0]
+    # By now either we have converted arg to a list, or it is something else
+    # which should be convertible to a list
+    if not isinstance(arg, list):
         try:
-            # is arg a valid argument for ToricDivisor_generic.__init__?
-            all( len(x)==2 for x in divisor )
-            all( x[1] in toric_variety.gens() for x in divisor )
+            arg = list(arg)
         except TypeError:
-            # if all fails, try to convert arg to a vector over the ring
-            if ring!=None:  # the
-                divisor = vector(ring, arg)
-            else:
-                # Try to deduce a suitable ring
-                try:
-                    divisor = vector(ZZ, arg)
-                    R = ZZ
-                except TypeError:
-                    divisor = vector(QQ, arg)
-                    R = QQ
-            assert len(divisor) == n_rays
-            divisor = [ (R(divisor[i]),toric_variety.gen(i))
-                        for i in range(0,n_rays) ]
-
-    TDiv = ToricDivisorGroup(toric_variety, R)
-    return ToricDivisor_generic(divisor, TDiv, check, reduce)
+            raise TypeError("%s does not define a divisor!" % arg)
+    # Now we have a list of multiplicities or pairs multiplicity-coordinate,
+    # if the coefficient ring was not given, try to use the most common ones.
+    if ring is None:
+        try:
+            return ToricDivisor(toric_variety, arg, ring=ZZ,
+                                check=check, reduce=reduce)
+        except TypeError:
+            pass
+        try:
+            return ToricDivisor(toric_variety, arg, ring=QQ,
+                                check=check, reduce=reduce)
+        except TypeError:
+            raise TypeError("cannot deduce coefficient ring for %s!" % arg)
+    # The ring was given, if we are still here
+    n_rays = toric_variety.fan().nrays()
+    if len(arg) == n_rays and arg[0] in ring:
+        arg = zip(arg, toric_variety.gens())
+    # Now we MUST have a LIST of multiplicity-coordinate pairs
+    try:
+        for i, pair in enumerate(arg):
+            pair = tuple(pair)
+            if len(pair) != 2 or pair[1] not in toric_variety.gens():
+                raise TypeError
+            arg[i] = (ring(pair[0]), pair[1])
+    except TypeError:
+        raise TypeError("%s does not define a divisor!" % arg)
+    TDiv = ToricDivisorGroup(toric_variety, ring)
+    return ToricDivisor_generic(arg, TDiv, check, reduce)
 
 
 #********************************************************
 class ToricDivisor_generic(Divisor_generic):
     """
-    A (`\QQ`-Weil) divisor of a toric variety.
+    Construct a :class:`(toric Weil) divisor <ToricDivisor_generic>` on the
+    given toric variety.
+
+    INPUT:
+
+    - ``v`` -- a list of tuples (multiplicity, coordinate).
+
+    - ``parent`` -- :class:`ToricDivisorGroup`. The parent divisor group.
+
+    - ``check`` -- boolean. Type-check the entries of ``v``, see
+      :meth:`sage.schemes.generic.divisor_group.DivisorGroup_generic.__init__`.
+
+    - ``reduce`` -- boolean. Combine coefficients in ``v``, see
+      :meth:`sage.schemes.generic.divisor_group.DivisorGroup_generic.__init__`.
+
+    .. WARNING::
+
+        Do not construct :class:`ToricDivisor_generic` objects manually.
+        Instead, use either the function :func:`ToricDivisor` or the method
+        :meth:`~sage.schemes.generic.toric_variety.ToricVariety_field.divisor`
+        of toric varieties.
 
     EXAMPLES::
 
@@ -431,49 +479,26 @@ class ToricDivisor_generic(Divisor_generic):
         sage: ray = dP6.fan().ray(0)
         sage: ray
         N(0, 1)
-        sage: D = ToricDivisor(dP6, ray); D
-        Divisor x
+        sage: D = dP6.divisor(ray); D
+        V(x)
         sage: D.parent()
-        Group of toric ZZ-Weil divisors on 2-d CPR-Fano toric variety covered by 6 affine patches
+        Group of toric ZZ-Weil divisors
+        on 2-d CPR-Fano toric variety covered by 6 affine patches
     """
-
-    _desc = "A divisor"
 
     def __init__(self, v, parent, check=True, reduce=True):
         """
-        Construct a :class:`ToricDivisor_generic` object on the given
-        toric variety.
-
-        INPUT:
-
-        - ``v`` -- a list of tuples (multiplicity, equation).
-
-        - ``parent`` -- :class:`ToricDivisorGroup`. The parent divisor
-          group.
-
-        - ``check`` -- boolean. Type check the entries of ``v``, see
-          :meth:'sage.schemes.generic.divisor_group.DivisorGroup_generic.__init__'.
-
-        - ``reduce`` -- boolean. Combine coefficients in ``v``, see
-          :meth:'sage.schemes.generic.divisor_group.DivisorGroup_generic.__init__'.
-
-        .. WARNING::
-
-            Do not construct :class:`ToricDivisor_generic` objects
-            manually. Instead, use either the function
-            :func:`ToricDivisor` or the method
-            :meth:`sage.schemes.generic.toric_variety.divisor` to
-            construct toric divisor.
+        See :class:`ToricDivisor_generic` for documentation.
 
         EXAMPLES::
 
             sage: dP6 = toric_varieties.dP6()
-            sage: from sage.schemes.generic.toric_divisor import ToricDivisorGroup, ToricDivisor_generic
-            sage: TDiv = ToricDivisorGroup(dP6,ZZ)
+            sage: from sage.schemes.generic.toric_divisor import ToricDivisor_generic
+            sage: TDiv = dP6.toric_divisor_group()
             sage: ToricDivisor_generic([], TDiv)
-            Divisor 0
+            0
             sage: ToricDivisor_generic([(2,dP6.gen(1))], TDiv)
-            Divisor 2*u
+            2*V(u)
         """
         self._variety = parent.scheme()
         self._fan = self._variety.fan()
@@ -497,15 +522,15 @@ class ToricDivisor_generic(Divisor_generic):
         EXAMPLES::
 
             sage: dP6 = toric_varieties.dP6()
-            sage: D = ToricDivisor(dP6, (0,1,1,0,0,0)); D
-            Divisor u + y
+            sage: D = dP6.divisor((0,1,1,0,0,0)); D
+            V(u) + V(y)
             sage: D._vector_()
             (0, 1, 1, 0, 0, 0)
             sage: vector(D)        # syntactic sugar
             (0, 1, 1, 0, 0, 0)
             sage: type( vector(D) )
             <type 'sage.modules.vector_integer_dense.Vector_integer_dense'>
-            sage: D_QQ = ToricDivisor(dP6, (0,1,1,0,0,0), ring=QQ);
+            sage: D_QQ = dP6.divisor((0,1,1,0,0,0), base_ring=QQ);
             sage: vector(D_QQ)
             (0, 1, 1, 0, 0, 0)
             sage: type( vector(D_QQ) )
@@ -513,15 +538,15 @@ class ToricDivisor_generic(Divisor_generic):
 
         The vector representation is a suitable input for :func:`ToricDivisor` ::
 
-            sage: ToricDivisor(dP6, vector(D)) == D
+            sage: dP6.divisor(vector(D)) == D
             True
         """
-        if ring==None:
+        if ring is None:
             ring = self.base_ring()
         v = vector(ring, [0]*self._fan.nrays() )
         for coeff, variable in self:
-            v[ self._variety.gens().index(variable) ] = coeff
-        return v;
+            v[ self._variety.gens().index(variable) ] += coeff
+        return v
 
     def coefficient(self, x):
         r"""
@@ -539,8 +564,8 @@ class ToricDivisor_generic(Divisor_generic):
         EXAMPLES::
 
             sage: P2 = toric_varieties.P2()
-            sage: D = ToricDivisor(P2, (11,12,13)); D
-            Divisor 11*x + 12*y + 13*z
+            sage: D = P2.divisor((11,12,13)); D
+            11*V(x) + 12*V(y) + 13*V(z)
             sage: D.coefficient(1)
             12
             sage: P2.inject_variables()
@@ -553,26 +578,32 @@ class ToricDivisor_generic(Divisor_generic):
             variable = self._variety.gen(index)
         except TypeError:
             variable = x
+        total = self.base_ring().zero()
         for coeff, var in self:
-            if var==variable:
-                return coeff
-        return self.base_ring().zero()
+            if var == variable:
+                total += coeff
+        return total
 
     def function_value(self, point):
         r"""
-        Return the value of the piecewise-linear function at the point.
+        Return the value of the support function at ``point``.
+
+        Let `X` be the ambient toric variety of ``self``, `\Sigma` the fan
+        associated to `X`, and `N` the ambient lattice of `\Sigma`.
 
         INPUT:
 
-        - Either the index of a ray; Note that indexing starts at 0 and
-          ends at ``ToricVariety.fan().n_rays()-1``,
+        - ``point`` -- either an integer, interpreted as the index of a ray of
+          `\Sigma`, or a point of the lattice `N`.
 
-        - Or a N-lattice point.
+        OUTPUT:
+
+        - an interger or a rational number.
 
         EXAMPLES::
 
             sage: P2 = toric_varieties.P2()
-            sage: D = ToricDivisor(P2, [11,22,44] )   # total degree 77
+            sage: D = P2.divisor([11,22,44])   # total degree 77
             sage: D.function_value(0)
             11
             sage: N = P2.fan().lattice()
@@ -581,6 +612,9 @@ class ToricDivisor_generic(Divisor_generic):
             sage: D.function_value( P2.fan().ray(0) )
             11
         """
+        if not self.is_QQ_Cartier():
+            raise ValueError("support functions are associated to QQ-Cartier "
+                             "divisors only, %s is not QQ-Cartier!" % self)
         try:
             index = ZZ(point)
             return self.coefficient(index)
@@ -589,31 +623,18 @@ class ToricDivisor_generic(Divisor_generic):
 
         assert point in self._fan.lattice(), 'The point '+str(point)+' is not in the N-lattice.'
         cone = self._fan.cone_containing(point)
-        try:
-           m = self.m(cone)
-        except ValueError: # Not Cartier divisor
-           raise NotImplementedError
-        return point * m
-
-    def _repr_(self):
-        r"""
-        Return the string representation of a divisor.
-        EXAMPLES::
-           sage: dP6 = toric_varieties.dP6()
-           sage: ToricDivisor(dP6, dP6.fan().ray(0) )._repr_()
-           'Divisor x'
-        """
-        return 'Divisor '+super(ToricDivisor_generic,self)._repr_()
+        return point * self.m(cone)
 
     def m(self, cone):
         r"""
-        Return a choice of dual vector that represents the linear
-        function on the cone.
+        Return `m_\sigma` representing `\phi_D` on ``cone``.
 
-        Given the cone `\sigma =\langle v_1, \dots \rangle` in a
-        lattice `N` with dual lattice `M`, this method searches for a
-        vector `m_\sigma \in M_\QQ` such that `f(v_i) = m_\sigma \cdot
-        v_i`.
+        Let `X` be the ambient toric variety of this divisor `D` associated to
+        the fan `\Sigma` in lattice `N`. Let `M` be the lattice dual to `N`.
+        Given the cone `\sigma =\langle v_1, \dots, v_k \rangle` in `\Sigma`,
+        this method searches for a vector `m_\sigma \in M_\QQ` such that
+        `\phi_D(v_i) = \langle m_\sigma, v_i \rangle` for all `i=1, \dots, k`,
+        where `\phi_D` is the support function of `D`.
 
         INPUT:
 
@@ -621,72 +642,72 @@ class ToricDivisor_generic(Divisor_generic):
 
         OUTPUT:
 
-        - If possible, a M-lattice point.
+        - If possible, a point of lattice `M`.
 
-        - If the dual vector cannot be chosen integral, a QQ-vector is
+        - If the dual vector cannot be chosen integral, a rational vector is
           returned.
 
-        - If there is no such vector, a ``ValueError`` is raised.
+        - If there is no such vector (i.e. ``self`` is not even a
+          `\QQ`-Cartier divisor), a ``ValueError`` is raised.
 
         EXAMPLES::
 
-            sage: X = ToricVariety(Fan([[0,1,2,3],[0,1,4]], [(1, 1, 1), (1, -1, 1), (1, -1, -1), (1, 1, -1), (0, 0, 1)]))
+            sage: F = Fan(cones=[(0,1,2,3), (0,1,4)],
+            ...       rays=[(1,1,1), (1,-1,1), (1,-1,-1), (1,1,-1), (0,0,1)])
+            sage: X = ToricVariety(F)
             sage: square_cone = X.fan().cone_containing(0,1,2,3)
             sage: triangle_cone = X.fan().cone_containing(0,1,4)
             sage: ray = X.fan().cone_containing(0)
-            sage: QQ_Cartier = ToricDivisor(X, [1,1,1,1,0]) + ToricDivisor(X, [1,1,0,0,1])
+            sage: QQ_Cartier = X.divisor([2,2,1,1,1])
             sage: QQ_Cartier.m(ray)
             M(0, 2, 0)
             sage: QQ_Cartier.m(square_cone)
             (3/2, 0, 1/2)
             sage: QQ_Cartier.m(triangle_cone)
             M(1, 0, 1)
-            sage: Weil = ToricDivisor(X,[1,1,1,0,0])
-            sage: try:
-            ...       Weil.m(square_cone)
-            ... except ValueError:
-            ...       print "ValueError raised"
+            sage: Weil = X.divisor([1,1,1,0,0])
+            sage: Weil.m(square_cone)
+            Traceback (most recent call last):
             ...
-            ValueError raised
+            ValueError: V(z0) + V(z1) + V(z2) is not QQ-Cartier,
+            cannot choose a dual vector on 3-d cone
+            of Rational polyhedral fan in 3-d lattice N!
             sage: Weil.m(triangle_cone)
             M(1, 0, 0)
         """
         try:
-            cached_values = self._m
+            return self._m[cone]
         except AttributeError:
             self._m = {}
-            cached_values = self._m
-
-        try:
-            return cached_values[cone]
         except KeyError:
             pass
 
         M = self._fan.lattice().dual()
-
         if cone.is_trivial():
-            m = M( [0]*self._variety.dimension() )
-            cached_values[cone]=m
+            m = M(0)
+            self._m[cone] = m
             return m
 
-        b = vector([ self.coefficient(i) for i in cone.ambient_ray_indices() ])
+        b = vector(self.coefficient(i) for i in cone.ambient_ray_indices())
         A = cone.ray_matrix()
-
-        if cone.dim()==self._variety.dimension():
-            # either unique solution or ValueError (if not QQ-Cartier)
-            m=A.solve_left(b)  # A m = b
-        else:
-            # under-determined system; try to find integral solution
-            D,U,V = A.smith_form()   # D = U*A*V
-            bV = b*V
-            m = D.solve_left(bV) * U
+        try:
+            if cone.dim() == self._variety.dimension():
+                # either unique solution or ValueError (if not QQ-Cartier)
+                m = A.solve_left(b)  # A m = b
+            else:
+                # under-determined system; try to find integral solution
+                D,U,V = A.smith_form()   # D = U*A*V
+                bV = b*V
+                m = D.solve_left(bV) * U
+        except ValueError:
+            raise ValueError("%s is not QQ-Cartier, cannot choose a dual "
+                             "vector on %s!" % (self, cone))
 
         try:
             m = M(m)
         except TypeError:  # not integral
             pass
-
-        cached_values[cone]=m
+        self._m[cone] = m
         return m
 
     def is_Weil(self):
@@ -695,23 +716,15 @@ class ToricDivisor_generic(Divisor_generic):
 
         EXAMPLES::
 
-            sage: X = ToricVariety(Fan([[0,1,2,3],[0,1,4]], [(1, 1, 1), (1, -1, 1), (1, -1, -1), (1, 1, -1), (0, 0, 1)]))
-            sage: QQ_Cartier = ToricDivisor(X, [1,1,1,1,0]) + ToricDivisor(X, [1,1,0,0,1])
-            sage: [ QQ_Cartier.is_Cartier(), QQ_Cartier.is_QQ_Cartier(), QQ_Cartier.is_Weil(), QQ_Cartier.is_QQ_Weil() ]
-            [False, True, True, True]
-            sage: Cartier = 2 * QQ_Cartier
-            sage: [ Cartier.is_Cartier(), Cartier.is_QQ_Cartier(), Cartier.is_Weil(), Cartier.is_QQ_Weil() ]
-            [True, True, True, True]
-            sage: Weil = ToricDivisor(X,[1,1,1,0,0])
-            sage: [ Weil.is_Cartier(), Weil.is_QQ_Cartier(), Weil.is_Weil(), Weil.is_QQ_Weil() ]
-            [False, False, True, True]
-            sage: QQ_Weil = 1/2 * Weil
-            sage: [ QQ_Weil.is_Cartier(), QQ_Weil.is_QQ_Cartier(), QQ_Weil.is_Weil(), QQ_Weil.is_QQ_Weil() ]
-            [False, False, False, True]
+            sage: P2 = toric_varieties.P2()
+            sage: D = P2.divisor([1,2,3])
+            sage: D.is_Weil()
+            True
+            sage: (D/2).is_Weil()
+            False
         """
-        if self.base_ring()==ZZ:
+        if self.base_ring() == ZZ:
             return True
-
         try:
             vector(ZZ, vector(self))
             return True
@@ -724,24 +737,17 @@ class ToricDivisor_generic(Divisor_generic):
 
         .. NOTE::
 
-            This function returns always true since ``ToricDivisor`` can only
-            describe `\QQ`-Weil divisors.
+            This function returns always ``True`` since ``ToricDivisor`` can
+            only describe `\QQ`-Weil divisors.
 
         EXAMPLES::
 
-            sage: X = ToricVariety(Fan([[0,1,2,3],[0,1,4]], [(1, 1, 1), (1, -1, 1), (1, -1, -1), (1, 1, -1), (0, 0, 1)]))
-            sage: QQ_Cartier = ToricDivisor(X, [1,1,1,1,0]) + ToricDivisor(X, [1,1,0,0,1])
-            sage: [ QQ_Cartier.is_Cartier(), QQ_Cartier.is_QQ_Cartier(), QQ_Cartier.is_Weil(), QQ_Cartier.is_QQ_Weil() ]
-            [False, True, True, True]
-            sage: Cartier = 2 * QQ_Cartier
-            sage: [ Cartier.is_Cartier(), Cartier.is_QQ_Cartier(), Cartier.is_Weil(), Cartier.is_QQ_Weil() ]
-            [True, True, True, True]
-            sage: Weil = ToricDivisor(X,[1,1,1,0,0])
-            sage: [ Weil.is_Cartier(), Weil.is_QQ_Cartier(), Weil.is_Weil(), Weil.is_QQ_Weil() ]
-            [False, False, True, True]
-            sage: QQ_Weil = 1/2 * Weil
-            sage: [ QQ_Weil.is_Cartier(), QQ_Weil.is_QQ_Cartier(), QQ_Weil.is_Weil(), QQ_Weil.is_QQ_Weil() ]
-            [False, False, False, True]
+            sage: P2 = toric_varieties.P2()
+            sage: D = P2.divisor([1,2,3])
+            sage: D.is_QQ_Weil()
+            True
+            sage: (D/2).is_QQ_Weil()
+            True
         """
         return True
 
@@ -757,38 +763,22 @@ class ToricDivisor_generic(Divisor_generic):
 
         EXAMPLES::
 
-            sage: X = ToricVariety(Fan([[0,1,2,3],[0,1,4]], [(1, 1, 1), (1, -1, 1), (1, -1, -1), (1, 1, -1), (0, 0, 1)]))
-            sage: QQ_Cartier = ToricDivisor(X, [1,1,1,1,0]) + ToricDivisor(X, [1,1,0,0,1])
-            sage: [ QQ_Cartier.is_Cartier(), QQ_Cartier.is_QQ_Cartier(), QQ_Cartier.is_Weil(), QQ_Cartier.is_QQ_Weil() ]
-            [False, True, True, True]
-            sage: Cartier = 2 * QQ_Cartier
-            sage: [ Cartier.is_Cartier(), Cartier.is_QQ_Cartier(), Cartier.is_Weil(), Cartier.is_QQ_Weil() ]
-            [True, True, True, True]
-            sage: Weil = ToricDivisor(X,[1,1,1,0,0])
-            sage: [ Weil.is_Cartier(), Weil.is_QQ_Cartier(), Weil.is_Weil(), Weil.is_QQ_Weil() ]
-            [False, False, True, True]
-            sage: QQ_Weil = 1/2 * Weil
-            sage: [ QQ_Weil.is_Cartier(), QQ_Weil.is_QQ_Cartier(), QQ_Weil.is_Weil(), QQ_Weil.is_QQ_Weil() ]
-            [False, False, False, True]
+            sage: X = toric_varieties.P4_11169()
+            sage: D = X.divisor(3)
+            sage: D.is_Cartier()
+            False
+            sage: D.is_QQ_Cartier()
+            True
         """
         try:
             return self._is_Cartier
         except AttributeError:
             pass
 
-        self._is_Cartier = True
-        for c in self._fan.generating_cones():
-            try:
-                m = self.m(c)
-            except ValueError:
-                self._is_Cartier = False
-                break
-
-            self._is_Cartier = ( m in self._fan.lattice().dual() )
-
-            if not self._is_Cartier:
-                break
-
+        self._is_Cartier = self.is_QQ_Cartier()
+        if self._is_Cartier:
+            M = self._fan.lattice().dual()
+            self._is_Cartier = all(self.m(c) in M for c in self._fan)
         return self._is_Cartier
 
     def is_QQ_Cartier(self):
@@ -800,19 +790,15 @@ class ToricDivisor_generic(Divisor_generic):
 
         EXAMPLES::
 
-            sage: X = ToricVariety(Fan([[0,1,2,3],[0,1,4]], [(1, 1, 1), (1, -1, 1), (1, -1, -1), (1, 1, -1), (0, 0, 1)]))
-            sage: QQ_Cartier = ToricDivisor(X, [1,1,1,1,0]) + ToricDivisor(X, [1,1,0,0,1])
-            sage: [ QQ_Cartier.is_Cartier(), QQ_Cartier.is_QQ_Cartier(), QQ_Cartier.is_Weil(), QQ_Cartier.is_QQ_Weil() ]
-            [False, True, True, True]
-            sage: Cartier = 2 * QQ_Cartier
-            sage: [ Cartier.is_Cartier(), Cartier.is_QQ_Cartier(), Cartier.is_Weil(), Cartier.is_QQ_Weil() ]
-            [True, True, True, True]
-            sage: Weil = ToricDivisor(X,[1,1,1,0,0])
-            sage: [ Weil.is_Cartier(), Weil.is_QQ_Cartier(), Weil.is_Weil(), Weil.is_QQ_Weil() ]
-            [False, False, True, True]
-            sage: QQ_Weil = 1/2 * Weil
-            sage: [ QQ_Weil.is_Cartier(), QQ_Weil.is_QQ_Cartier(), QQ_Weil.is_Weil(), QQ_Weil.is_QQ_Weil() ]
-            [False, False, False, True]
+            sage: X = toric_varieties.P4_11169()
+            sage: D = X.divisor(3)
+            sage: D.is_QQ_Cartier()
+            True
+
+            sage: X = toric_varieties.Cube_face_fan()
+            sage: D = X.divisor(3)
+            sage: D.is_QQ_Cartier()
+            False
         """
         try:
             return self._is_QQ_Cartier
@@ -820,18 +806,10 @@ class ToricDivisor_generic(Divisor_generic):
             pass
 
         try:
-            if self._is_Cartier:
-                return True
-        except AttributeError:
-            pass
-
-        self._is_QQ_Cartier = True
-        for c in self._fan.generating_cones():
-            try:
-                self.m(c)
-            except ValueError:
-                self._is_QQ_Cartier = False
-                break
+            [self.m(c) for c in self._fan]
+            self._is_QQ_Cartier = True
+        except ValueError:
+            self._is_QQ_Cartier = False
         return self._is_QQ_Cartier
 
     def is_integral(self):
@@ -842,9 +820,9 @@ class ToricDivisor_generic(Divisor_generic):
 
             sage: P2 = toric_varieties.P2()
             sage: DZZ = P2.toric_divisor_group(base_ring=ZZ).gen(0); DZZ
-            Divisor x
+            V(x)
             sage: DQQ = P2.toric_divisor_group(base_ring=QQ).gen(0); DQQ
-            Divisor x
+            V(x)
             sage: DZZ.is_integral()
             True
             sage: DQQ.is_integral()
@@ -855,7 +833,7 @@ class ToricDivisor_generic(Divisor_generic):
 
     def move_away_from(self, cone):
         """
-        Move the divisor away from the orbit closure of the cone.
+        Move the divisor away from the orbit closure of ``cone``.
 
         INPUT:
 
@@ -873,76 +851,74 @@ class ToricDivisor_generic(Divisor_generic):
 
         EXAMPLES::
 
-            sage: X = ToricVariety(Fan([[0,1,2,3],[0,1,4]], [(1, 1, 1), (1, -1, 1), (1, -1, -1), (1, 1, -1), (0, 0, 1)]))
+            sage: F = Fan(cones=[(0,1,2,3), (0,1,4)],
+            ...       rays=[(1,1,1), (1,-1,1), (1,-1,-1), (1,1,-1), (0,0,1)])
+            sage: X = ToricVariety(F)
             sage: square_cone = X.fan().cone_containing(0,1,2,3)
             sage: triangle_cone = X.fan().cone_containing(0,1,4)
             sage: line_cone = square_cone.intersection(triangle_cone)
-            sage: Cartier = ToricDivisor(X, [1,1,1,1,0]) + ToricDivisor(X, [1,1,0,0,1]); Cartier
-            Divisor z4 + z3 + z2 + 2*z1 + 2*z0
+            sage: Cartier = X.divisor([2,2,1,1,1])
+            sage: Cartier
+            2*V(z0) + 2*V(z1) + V(z2) + V(z3) + V(z4)
             sage: Cartier.move_away_from(line_cone)
-            Divisor -z2 - z3 + z4
-            sage: QQ_Weil = ToricDivisor(X, [1,0,1,1,0])
+            -V(z2) - V(z3) + V(z4)
+            sage: QQ_Weil = X.divisor([1,0,1,1,0])
             sage: QQ_Weil.move_away_from(line_cone)
-            Divisor z2
+            V(z2)
         """
         m = self.m(cone)
         if m in self._fan.lattice():
             ring = self._ring
         else:
             ring = m.base_ring()
-
         divisor = vector(self)
         values = [ divisor[i] - m*self._fan.ray(i)
-                   for i in range(0,len(divisor)) ]
-
+                   for i in range(len(divisor)) ]
         return ToricDivisor(self._variety, values, ring=ring)
 
-    def c1(self):
+    def cohomology_class(self):
         r"""
         Return the degree-2 cohomology class associated to the divisor.
 
         OUTPUT:
 
         Returns the corresponding cohomology class as an instance of
-        :class:`sage.schemes.generic.toric_variety.CohomologyClass`.
+        :class:`~sage.schemes.generic.toric_variety.CohomologyClass`.
         The cohomology class is the first Chern class of the
         associated line bundle `\mathcal{O}(D)`.
 
         EXAMPLES::
 
             sage: dP6 = toric_varieties.dP6()
-            sage: D = ToricDivisor(dP6, dP6.fan().ray(0) )
-            sage: D.c1()
+            sage: D = dP6.divisor(dP6.fan().ray(0) )
+            sage: D.cohomology_class()
             [y + v - w]
         """
         divisor = vector(self)
         return sum([ divisor[i] * cone.cohomology_class()
                      for [i,cone] in enumerate(self._fan(dim=1)) ])
 
-    def ch(self):
+    def Chern_character(self):
         r"""
         Return the Chern character of the sheaf `\mathcal{O}(D)`
         defined by the divisor `D`.
+
+        You can also use a shortcut :meth:`ch`.
 
         EXAMPLES::
 
             sage: dP6 = toric_varieties.dP6()
             sage: N = dP6.fan().lattice()
-            sage: D3 = ToricDivisor(dP6, dP6.fan().cone_containing( N(0,1)   ))
-            sage: D5 = ToricDivisor(dP6, dP6.fan().cone_containing( N(-1,-1) ))
-            sage: D6 = ToricDivisor(dP6, dP6.fan().cone_containing( N(0,-1)  ))
+            sage: D3 = dP6.divisor(dP6.fan().cone_containing( N(0,1)   ))
+            sage: D5 = dP6.divisor(dP6.fan().cone_containing( N(-1,-1) ))
+            sage: D6 = dP6.divisor(dP6.fan().cone_containing( N(0,-1)  ))
             sage: D = -D3 + 2*D5 - D6
-            sage: D.ch()
+            sage: D.Chern_character()
             [5*w^2 + y - 2*v + w + 1]
             sage: dP6.integrate( D.ch() * dP6.Td() )
             -4
         """
-        return self.c1().exp()
+        return self.cohomology_class().exp()
 
-     # def A(self, ring=ZZ):
-     #    r"""
-     #    Returns the Chow homology class of the divisor.
-     #    """
-     #    return sum([ self._div[i] * f.A(ring)
-     #                 for [i,f] in enumerate(self._variety.fan(1)) ])
+    ch = Chern_character
 

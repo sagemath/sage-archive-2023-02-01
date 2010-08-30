@@ -587,6 +587,9 @@ def desolve_laplace(de, dvar, ics=None, ivar=None):
         sage: de = diff(f,x,x) - 2*diff(f,x) + f
         sage: desolve_laplace(de,f)
         -x*e^x*f(0) + x*e^x*D[0](f)(0) + e^x*f(0)
+
+    ::
+
         sage: desolve_laplace(de,f,ics=[0,1,2])
         x*e^x + e^x
 
@@ -599,6 +602,9 @@ def desolve_laplace(de, dvar, ics=None, ivar=None):
         sage: soln=desolve_laplace(diff(x,t)+x==1, x, ics=[0,2])
         sage: soln
         e^(-t) + 1
+
+    ::
+
         sage: soln(t=3)
         e^(-3) + 1
 
@@ -638,8 +644,9 @@ def desolve_laplace(de, dvar, ics=None, ivar=None):
     def sanitize_var(exprs):  # 'y(x) -> y(x)
         return exprs.replace("'"+str(dvar),str(dvar))
     de0=de._maxima_()
+    P = de0.parent()
     cmd = sanitize_var("desolve("+de0.str()+","+str(dvar)+")")
-    soln=maxima(cmd).rhs()
+    soln=P(cmd).rhs()
     if str(soln).strip() == 'false':
         raise NotImplementedError, "Maxima was unable to solve this ODE."
     soln=soln.sage()
@@ -653,6 +660,8 @@ def desolve_laplace(de, dvar, ics=None, ivar=None):
 def desolve_system(des, vars, ics=None, ivar=None):
     """
     Solves any size system of 1st order ODE's. Initials conditions are optional.
+
+    Onedimensional systems are passed to :meth:`desolve_laplace`.
 
     INPUT:
 
@@ -681,14 +690,29 @@ def desolve_system(des, vars, ics=None, ivar=None):
 
         sage: sol = desolve_system([de1, de2], [x,y], ics=[0,1,2]); sol
         [x(t) == -sin(t) + 1, y(t) == cos(t) + 1]
+
+    ::
+
         sage: solnx, solny = sol[0].rhs(), sol[1].rhs()
-        sage: plot([solnx,solny],(0,1))
-        sage: parametric_plot((solnx,solny),(0,1))
+        sage: plot([solnx,solny],(0,1))  # not tested
+        sage: parametric_plot((solnx,solny),(0,1))  # not tested
+
+    TESTS:
+
+    Trac #9823 fixed::
+
+        sage: t = var('t')
+        sage: x = function('x', t)
+        sage: de1 = diff(x,t) + 1 == 0
+        sage: desolve_system([de1], [x])
+        -t + x(0)
 
     AUTHORS:
 
     - Robert Bradshaw (10-2008)
     """
+    if len(des)==1:
+        return desolve_laplace(des[0], vars[0], ics=ics, ivar=ivar)
     ivars = set([])
     for i, de in enumerate(des):
         if not is_SymbolicEquation(de):
@@ -747,20 +771,35 @@ def desolve_system_strings(des,vars,ics=None):
         sage: s = var('s')
         sage: function('x', s)
         x(s)
+
+    ::
+
         sage: function('y', s)
         y(s)
+
+    ::
+
         sage: de1 = lambda z: diff(z[0],s) + z[1] - 1
         sage: de2 = lambda z: diff(z[1],s) - z[0] + 1
         sage: des = [de1([x(s),y(s)]),de2([x(s),y(s)])]
         sage: vars = ["s","x","y"]
         sage: desolve_system_strings(des,vars)
         ["(1-'y(0))*sin(s)+('x(0)-1)*cos(s)+1", "('x(0)-1)*sin(s)+('y(0)-1)*cos(s)+1"]
+
+    ::
+
         sage: ics = [0,1,-1]
         sage: soln = desolve_system_strings(des,vars,ics); soln
         ['2*sin(s)+1', '1-2*cos(s)']
+
+    ::
+
         sage: solnx, solny = map(SR, soln)
         sage: RR(solnx(s=3))
         1.28224001611973
+
+    ::
+
         sage: P1 = plot([solnx,solny],(0,1))
         sage: P2 = parametric_plot((solnx,solny),(0,1))
 

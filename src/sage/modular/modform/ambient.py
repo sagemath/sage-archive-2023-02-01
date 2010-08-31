@@ -782,3 +782,66 @@ class ModularFormsAmbient(space.ModularFormsSpace,
         B_E = E._compute_q_expansion_basis(prec)
         return B_S + B_E
 
+    def _compute_hecke_matrix(self, n):
+        """
+        Compute the matrix of the Hecke operator T_n acting on self.
+
+        NOTE:
+
+        If self is a level 1 space, the much faster Victor Miller basis
+        is used for this computation.
+
+        EXAMPLES::
+
+            sage: M = ModularForms(11, 2)
+            sage: M._compute_hecke_matrix(6)
+            [ 2  0]
+            [ 0 12]
+
+        TESTS:
+
+        The following Hecke matrix is 43x43 with very large integer entries.
+        We test it indirectly by computing the product and the sum of its
+        eigenvalues, and reducing these two integers modulo all the primes
+        less than 100::
+
+            sage: M = ModularForms(1, 512)
+            sage: t = M._compute_hecke_matrix(5)     # long time (2s)
+            sage: f = t.charpoly()                   # long time (4s)
+            sage: [f[0]%p for p in prime_range(100)] # long time (0s, depends on above)
+            [0, 0, 0, 0, 1, 9, 2, 7, 0, 0, 0, 0, 1, 12, 9, 16, 37, 0, 21, 11, 70, 22, 0, 58, 76]
+            sage: [f[42]%p for p in prime_range(100)] # long time (0s, depends on above)
+            [0, 0, 4, 0, 10, 4, 4, 8, 12, 1, 23, 13, 10, 27, 20, 13, 16, 59, 53, 41, 11, 13, 12, 6, 82]
+        """
+        if self.level() == 1:
+            k = self.weight()
+            d = self.dimension()
+            from sage.modular.all import victor_miller_basis, hecke_operator_on_basis
+            vmb = victor_miller_basis(k, prec=d*n+1)
+            return hecke_operator_on_basis(vmb, n, k)
+        else:
+            return space.ModularFormsSpace._compute_hecke_matrix(self, n)
+
+    def _compute_hecke_matrix_prime_power(self, p, r):
+        r"""
+        Compute the Hecke matrix `T_{p^r}`, where `p` is prime and `r \ge 2`.
+
+        This is an internal method.  End users are encouraged to use the
+        method hecke_matrix() instead.
+
+        TESTS:
+
+            sage: M = ModularForms(1, 12)
+            sage: M._compute_hecke_matrix_prime_power(5, 3)
+            [  116415324211120654296876 11038396588040733750558720]
+            [                         0              -359001100500]
+            sage: delta_qexp(126)[125]
+            -359001100500
+            sage: eisenstein_series_qexp(12, 126)[125]
+            116415324211120654296876
+        """
+        if self.level() == 1:
+            return self._compute_hecke_matrix(p**r)
+        else:
+            return space.ModularFormsSpace._compute_hecke_matrix_prime_power(self, p, r)
+

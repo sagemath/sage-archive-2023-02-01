@@ -464,7 +464,7 @@ class HeckeAlgebraElement_matrix(HeckeAlgebraElement):
             False
             sage: m == n.matrix_form()
             False
-            sage: n.matrix_form() == T(matrix(QQ, 2, [401856, 0, 0, 4051542498456]), check=False)
+            sage: n.matrix_form() == T(matrix(QQ, 2, [4051542498456, 384163586352000, 0, 401856]), check=False)
             True
         """
         if not isinstance(other, HeckeAlgebraElement_matrix):

@@ -18,6 +18,7 @@ EXAMPLES::
     sage: W = pAdicWeightSpace(17)
     sage: W
     Space of 17-adic weight-characters defined over '17-adic Field with capped relative precision 20'
+    sage: R.<x> = QQ[]
     sage: L = Qp(17).extension(x^2 - 17, names='a'); L.rename('L')
     sage: W.base_extend(L)
     Space of 17-adic weight-characters defined over 'L'

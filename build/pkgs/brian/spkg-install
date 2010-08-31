@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+############################## Check dependencies ##############################
+NUMPY=`cd $SAGE_ROOT/spkg/standard/; ./newest_version numpy`
+if [ $? -ne 0 ]; then
+    echo "Failed to find numpy.  Please install the numpy spkg."
+    exit 1
+fi
+
+SCIPY=`cd $SAGE_ROOT/spkg/standard/; ./newest_version scipy`
+if [ $? -ne 0 ]; then
+    echo "Failed to find scipy.  Please install the scipy spkg."
+    exit 1
+fi
+
+MATPLOTLIB=`cd $SAGE_ROOT/spkg/standard/; ./newest_version matplotlib`
+if [ $? -ne 0 ]; then
+    echo "Failed to find matplotlib.  Please install the matplotlib spkg."
+    exit 1
+fi
+
+SYMPY=`cd $SAGE_ROOT/spkg/standard/; ./newest_version sympy`
+if [ $? -ne 0 ]; then
+    echo "Failed to find sympy.  Please install the sympy spkg."
+    exit 1
+fi
+################################################################################
+
+
+################################ Apply patches #################################
+cp patches/units.py src/brian/units.py
+if [ $? -ne 0 ]; then
+    echo "Error copying patch."
+    exit 1
+fi
+################################################################################
+
+cd src
+
+python setup.py build
+if [ $? -ne 0 ]; then
+   echo "Error building Brian."
+   exit 1
+fi
+
+python setup.py install
+if [ $? -ne 0 ]; then
+   echo "Error installing Brian."
+   exit 1
+fi

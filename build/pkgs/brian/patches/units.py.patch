@@ -1,0 +1,14 @@
+--- ../src/brian/units.py	2010-06-09 17:23:14.000000000 +0200
++++ units.py	2010-08-09 17:02:38.000000000 +0200
+@@ -1569,6 +1569,11 @@
+     print
+     pE("", "get_unit(3*msecond)")
+ 
++# To avoid problems with Sage classes and Units
++for k, v in globals().items():
++    if isinstance(v, Unit):
++        exec '* = Quantity.with_dimensions(float(*), *.dim)'.replace('*', k)
++
+ ###################################################
+ ##### ADDITIONAL INFORMATION
+ 

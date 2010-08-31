@@ -1,0 +1,40 @@
+= Brian =
+
+== Description ==
+
+Brian is a simulator for spiking neural networks available on almost all
+platforms. The motivation for this project is that a simulator should not only
+save the time of processors, but also the time of scientists.
+
+Brian is easy to learn and use, highly flexible and easily extensible. The Brian
+ package itself and simulations using it are all written in the Python
+programming language, which is an easy, concise and highly developed language
+with many advanced features and development tools, excellent documentation and a
+ large community of users providing support and extension packages.
+
+== License ==
+
+Brian is being developed by Romain Brette and Dan Goodman. It is released under
+the CeCILL license.
+
+== SPKG Maintainers ==
+
+Oriol Castejon
+
+== Upstream Contact ==
+
+Oriol Castejon, oriol.castejon@gmail.com
+
+== Dependencies ==
+
+Numpy, Scipy, Pylab (module from Matplotlib) and SymPy.
+
+== Changelog ==
+
+=== brian-1.2.1.p0 (Oriol Castejon, 3rd August 2010) ===
+ * Version for Sage of the Python package Brian released.
+
+ * Minor change added to avoid problems with Brian units and Sage Integers and
+   RealNumbers.
+
+

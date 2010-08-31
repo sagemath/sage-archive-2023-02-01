@@ -16,19 +16,22 @@ Cliquer was mainly written by Sampo Niskanen, sampo.niskanenQiki.fi (Q=@).
 http://users.tkk.fi/pat/cliquer.html
 
 == Dependencies ==
- * Base
- * SCONS
+ * None
 
 == Special Update/Build Instructions ==
  * TODO - Add a spkg-check file - see #9767
 
 == Changelog ==
 
-=== cliquer-1.2.p6 Nathann Cohen (19 August 2010) ===
+=== cliquer-1.2.p6 Nathann Cohen, David Kirkby (31 August 2010) ===
  * #9766: Additions to SPKG.txt
       - URL of the original website to the SPKG.txt file
       - "Special Update/Build Instructions" section
       - "Dependencies" section
+ * Added an entry to SPKG showing when this package was first put into
+   Sage. The first mercurial log is dated 17th July 2009.
+ * Added a note on to the cliquer-1.2.p0 entry in SPKG.txt that 'scons'
+   was no longer used.
 
 === cliquer-1.2.p5 Mike Hansen (15 February 2010) ===
  * Fixed Trac #8279 to make the cliquer spkg work on Cygwin with the Sage library.
@@ -50,3 +53,8 @@ http://users.tkk.fi/pat/cliquer.html
    and 64-bit openSUSE 11.1.
  * Add custom compilation and linking flags on top of the Makefile of
    cliquer 1.2.
+ * Removed dependancy of cliquer on 'scons'
+
+=== cliquer-1.2 Nathann Cohen (17th July 2009) ===
+ * First release put into Sage.
+

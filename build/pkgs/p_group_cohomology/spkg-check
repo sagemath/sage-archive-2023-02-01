@@ -178,7 +178,7 @@ def get_docstring(f,cl):
         OUT.append(p)
     return ''
 
-@parallel
+@parallel(ncpus=4)
 def one_test(s,cl,lfd_nr):
     """
     Perform the tests provided by a given docstring.

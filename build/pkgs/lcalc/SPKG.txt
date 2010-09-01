@@ -29,7 +29,7 @@ Michael Rubinstein <mrubinst@uwaterloo.ca>
 === lcalc-1.23.p4 (William Stein, August 31, 2010) ===
  * Add time.h include to Lcommandline_numbertheory.h (this should get upstreamed)
 
-=== lcalc-1.23.p2 (Mike Hansen, August 21, 2010) ===
+=== lcalc-1.23.p3 (Mike Hansen, August 21, 2010) ===
  * Update to work on Cygwin.
  * #9775: lcalc should make a .dll file on Cygwin instead of .so file
 

@@ -189,6 +189,7 @@ success() {
 export DEFINES=""
 
 # Copy sage specific modifications and build
+cp ../../patches/Lcommandline_numbertheory.h ../include/
 cp ../../patches/Lcommandline_elliptic.cc .
 cp ../../patches/Makefile.sage Makefile
 set +e

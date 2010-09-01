@@ -1,4 +1,4 @@
-= p_group_cohomology-2.0 =
+= p_group_cohomology-2.1 =
 
 == Description ==
 
@@ -100,6 +100,7 @@ displayed on screen and can also be find in SAGEROOT/install.log.
 
 == Changelog ==
 
+  * 2.1 (Simon King, September 2010):
   * 2.0 (Simon King, April 2010): The package can now compute modular
     cohomology rings for *any* finite groups (not just for p-groups).
     This is implemented in a new module pGroupCohomology.modular_cohomology,

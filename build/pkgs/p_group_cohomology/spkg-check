@@ -4,7 +4,7 @@
 #
 #    Install script
 #
-#    Copyright (C) 2009 Simon A. King <simon.king@nuigalway.ie>
+#    Copyright (C) 2010 Simon A. King <simon.king@nuigalway.ie>
 #
 #  Distributed under the terms of the GNU General Public License (GPL),
 #  version 2 or later (at your choice)
@@ -21,135 +21,327 @@
 
 import sage
 import sage.all
-from sage.all import walltime
+from sage.all import walltime, parallel
 import inspect
 import sys
 
-def members_by_type(M,t):
-    L = dir(M)
-    if inspect.isclass(M) and len(inspect.getmro(M))>1:
-        H = inspect.getmro(M)[1]  # the parent of M in the class hierarchy
-        LA = [(getattr(M,X), X) for X in L if not (hasattr(H,X) and hasattr(getattr(H,X),'__doc__') and (getattr(H,X).__doc__ == getattr(M,X).__doc__))]  # only those methods that are not just inherited; inheritance is guessed by the doc strings
+from sage.all import tmp_dir
+test_dir = tmp_dir()
+
+class FILE_NR:
+    lfd_nr = -1
+    def __call__(self):
+        self.lfd_nr += 1
+        return self.lfd_nr
+
+file_nr = FILE_NR()
+
+def get_classes(f,root):
+    """
+    List all class definitions (including cdef) in a string.
+
+    INPUT:
+
+    - ``f`` : string, usually obtained by reading a Python or Cython file
+    - ``root``: string, the name of the module defined by ``f``.
+
+    OUTPUT:
+
+    A list of pairs ``(n,s)``, where ``n`` is the line number in ``f`` in
+    which the class definition starts (counted from zero), and ``s`` is the
+    name of the class (including the given module name ``root``).
+
+    """
+    m = []
+    L = f.split('\n')
+    for i in range(len(L)):
+        s = L[i].strip()
+        while '  ' in s:
+            s = s.replace('  ',' ')
+        if (s.startswith('class ') or s.startswith('cdef class ')) and s.endswith(':'):
+            name = s.split('class')[1][:-1] # remove ':' at the end
+            name = (name.split('(')[0]).strip()
+            m.append((i,root+'.'+name))
+    return m
+
+
+def get_methods(f,cl,nextcl=None, funcs = False):
+    """
+    List all method definitions (including cdef and cpdef) of a class in a string.
+
+    INPUT:
+
+    - ``f`` : string, usually obtained by reading a Python or Cython file
+    - ``cl``: pair ``(n,s)``, where ``n`` is the line number in ``f`` in
+      which the class definition starts (counted from zero), and ``s`` is the
+      name of the class.
+    - ``nextcl``: optional pair ``(n,s)``, where ``n`` is the line number in ``f`` in
+      which the class definition *after* ``cl`` starts (counted from zero), and ``s``
+      is the name of the class.
+
+    OUTPUT:
+
+    A list of pairs ``(n,s)``, where ``n`` is the line number in ``f`` in
+    which the method definition starts (counted from zero), and ``s`` is the
+    name of the method (including the name of the given class).
+
+    """
+    m = []
+    ind = []
+    j,root = cl
+    if nextcl is not None:
+        L = f.split('\n')[j:nextcl[0]] #file(f).read().split('\n')[j+1:nextcl[0]]
     else:
-        LA = [(getattr(M,X), X) for X in L]
-    return [(X,Y) for X,Y in LA if (repr(type(X))=="<type '%s'>"%t) and is_member_of(X,M)]
-
-def is_member_of(X, M):
-    """
-    Return True if X is a member/method/... of M
-
-    If M is a class and X is a method that is inherited  from some other
-    class, then False is returned.
-    """
-    if repr(type(M))=="<type 'module'>":
-        return (hasattr(X,'__name__') and X.__name__.startswith(M.__name__)) or (hasattr(X,'__module__') and X.__module__==M.__name__)
-    if (repr(type(M))=="<type 'classobj'>") or (repr(type(M))=="<type 'instance'>") or (repr(type(M))=="<type 'type'>"):
-        return (repr(type(X))=="<type 'instancemethod'>") or (repr(type(X))=="<type 'method_descriptor'>")
-
-def package_tree(M, name=None):
-    """
-    OUTPUT:
-
-    A list. Item number zero is the object's fully qualified name.
-    Number one is its doc string. Number three is the list of its
-    children (modules, classes, instances, methods,...), if there
-    are any.
-    """
-    if name is None:
-        if hasattr(M,'__name__'):
-            name = M.__name__
-        else:
-            raise ValueError, "please tell me the name of %s"%M
-
-
-    members = members_by_type(M,'module') + members_by_type(M,'classobj') + members_by_type(M,'type') + members_by_type(M,'instance') + members_by_type(M,'instancemethod') + members_by_type(M,'method_descriptor')
-    for i in range(len(members)):
-        members[i] = package_tree(members[i][0],name=name+'.'+members[i][1])
-    return [name, getattr(M,'__doc__',''), members]
-
-def docstring_list(L, T):
-    """
-    L is changed in place, no return value. T is a package tree
-    """
-    L.append((T[0],T[1],len(T[2])))
-    for X in T[2]:
-        docstring_list(L, X)
-
-def recursive_doctests(M):
-    """
-    Given a module M, the function recursively tests all examples from M and its members.
-
-    OUTPUT:
-
-    A string (the result of running sage -t on the docstrings) and a
-    list of items without doc string.
-    """
-    from sage.all import tmp_filename
-    import os
-    from sage.all import tmp_dir
-    SAGE_TMP = tmp_dir() # Sorry, that's not the usual meaning of SAGE_TMP...
-    currdir = os.popen('pwd').read().split('\n')[0]
-    os.chdir(SAGE_TMP)
-    L = package_tree(M)
-    D = []
-    O = [] # Ergebnis der Doc Tests
-    NO = [] # Dinge ohne Doc Test
-    docstring_list(D,L)
-    for X in D:
-        if (X[1] is None or (not "sage: " in X[1])):
-            if X[2]==0:
-                #print "Warning: No doc test in", X[0]
-                NO.append(X[0])
-        else:
-            print X[0], '...',
-            sys.stdout.flush()
-            F = file('RecDoctest.py','w')
-            F.write('"""\n%s\n"""\n'%(X[1]))
-            F.close()
-            Res = os.popen('sage -t -optional -long RecDoctest.py').read()
-            if Res.split('\n')[-3]!='All tests passed!':
-                O.append((X[0],Res))
-                print '\b\b\b\b--> Error'
+        L = f.split('\n')[j:] #file(f).read().split('\n')[j+1:]
+    if not funcs:
+        basic_ind = len(L[0])-len(L[0].lstrip())
+        # first, get the right indentation level for methods of cl
+        for i in range(1,len(L)):
+            s = L[i].strip()
+            if (s.startswith('def') or s.startswith('cdef')) and s.endswith(':'):
+                if len(L[i])-len(L[i].lstrip()) <= basic_ind:
+                    L = L[:i]
+                    break
+                ind.append(len(L[i])-len(L[i].lstrip()))
+        if not ind:
+            return []
+        ind = min(ind)
+    else:
+        ind = -1
+    for i in range(len(L)):
+        s = L[i]
+        if (s.startswith((ind*' ')+'def ') or s.startswith((ind*' ')+'cdef ') or s.startswith((ind*' ')+'cpdef ')) and s.endswith(':') and not s.startswith((ind*' ')+'cdef class '):
+            # we found a method
+            s = s.strip()[:-1]
+            while '  ' in s:
+                s = s.replace('  ',' ')
+            if s.startswith('def'):
+                name = (s.split(' ')[1]).split('(')[0].strip()
             else:
-                print '\b\b\b\b--> OK'
-    os.chdir(currdir)
-    return O,NO
+                name = (s.split(' ')[2]).split('(')[0].strip()
+            m.append((j+i+1,root+'.'+name,s.split(' ')[0]))
+    return m
+
+def get_docstring(f,cl):
+    """
+    Return the docstring of a class, method or module
+
+    INPUT:
+
+    - ``f`` : string, usually obtained by reading a Python or Cython file
+    - ``cl``: pair ``(n,s)``, where ``n`` is the line number in ``f`` in
+      which the definition of the class, method or module starts (counted from zero),
+      and ``s`` is the name of the class, method or module.
+
+    NOTE:
+
+    The docstring can be a single line, it can be included in single or double
+    quotes.
+
+    OUTPUT:
+
+    The docstring of the given class, method or module.
+
+    """
+    j,root = cl[:2]
+    L = f.split('\n')[j:]
+    OUT = []
+    if not L:
+        return ''
+    while(1):
+        p = L.pop(0).strip()
+        if p.startswith('cdef class'):
+            continue
+        if p.startswith('class'):
+            continue
+        if p and (not p.startswith('#')):
+            break
+        if not L:
+            return ''
+    if p.startswith('"') or p.startswith('r"'):
+        doub = True
+        if not (p.startswith('"""') or p.startswith('r"""')): # single-lined docstring
+            return p.split('"')[1]
+    elif p.startswith("'") or p.startswith("r'"):
+        doub = False
+        if not (p.startswith("'''") or p.startswith("r'''")): # single-lined docstring
+            return p.split("'")[1]
+    else: # no docstring
+        return ''
+    while (L):
+        p = L.pop(0)
+        ps = p.strip()
+        if (doub and ps.endswith('"""')):
+            return '\n'.join(OUT)
+        elif ((not doub) and ps.endswith("'''")):
+            return '\n'.join(OUT)
+        OUT.append(p)
+    return ''
+
+@parallel
+def one_test(s,cl,lfd_nr):
+    """
+    Perform the tests provided by a given docstring.
+
+    INPUT:
+
+    - ``s``: a string, which is usually a docstring of a class, method or module.
+    - ``cl``: a string, the name of the class, method or module being tested.
+
+    OUTPUT:
+
+    A pair ``(msg1, msg2, t)``, where ``msg1`` is empty if the test succeeds and
+    is an error report otherwise, and ``msg2`` is empty if the test passes certain
+    formal criteria and is a problem report otherwise.
+    ``t`` is the wall time in seconds required for that test.
+
+    """
+    if not s:
+        print cl+' has no docstring'
+        return ('',cl+': No docstring',0.0)
+    if "not tested" in s:
+        print cl+' is not tested'
+        return ('',cl+': Not tested',0.0)
+    if ('sage: ' not in s) or (('TEST' not in s) and ('EXAMPLE' not in s)):
+        print cl+' has no doctest'
+        return ('',cl+': No doctest',0.0)
+    if 'indirect doctest' in s:
+        prob = ''
+    else:
+        prob = cl+' seems not to be tested in its docstring'
+        for l in s.split('\n'):
+            l = l.strip()
+            if l.startswith('sage: ') or l.startswith('... '):
+                if cl.split('.')[-1] in l:
+                    prob = ''
+                    break
+    from sage.all import walltime
+    import os
+    f = file(test_dir+'/file_%d.py'%lfd_nr,'w')
+    f.write('"""\n'+s+'\n"""')
+    f.close()
+    wt = walltime()
+    Res = os.popen('sage -t -optional -long '+f.name).read()
+    wt = walltime(wt)
+    os.unlink(f.name)
+    if Res.split('\n')[-3]!='All tests passed!':
+        print cl+" fails"
+        return (Res,prob,wt)
+    print cl+" passes in %.2f s"%wt
+    import sys
+    sys.stdout.flush()
+    return ('',prob,wt)
+
+def test_module(m, name):
+    """
+    Perform all doctests of a module
+
+    INPUT:
+
+    ``m``: a string, providing the file name (including path) of the
+           file defining the module being tested.
+    ``name``: a string, the name of the module
+
+    OUTPUT:
+
+    Two lists ``Error`` and ``Problem``. The first is a list of pairs
+    ``(s,msg)``, where ``s`` is the name of a class, method or module
+    whose doctest fails with message ``msg``. The second is a list
+    of pairs ``(s,msg)``, where ``s`` is the name of a class, method
+    or module whose doctest is problematic for the reason explained
+    in ``msg``.
+
+    NOTE:
+
+    It is allowed that the module itself has no doctest. But all
+    functions and classes in the module and all methods of all
+    classes must have a test.
+
+    """
+    f = file(m).read()
+    L = [(get_docstring(f, (0,name)), name, 0)]
+    lfd_nr = 0
+    for M in get_methods(f,(0,name),funcs=True): # these are functions
+        lfd_nr += 1
+        L.append((get_docstring(f,M), M[1],lfd_nr))
+    Cl = get_classes(f,name)
+    for i in range(len(Cl)):
+        C = Cl[i]
+        if i< len(Cl)-1:
+            Cnext = Cl[i+1]
+        else:
+            Cnext = None
+        lfd_nr += 1
+        L.append((get_docstring(f,C), C[1], lfd_nr))
+        for M in get_methods(f,C,Cnext):
+            lfd_nr += 1
+            L.append((get_docstring(f,M), M[1], lfd_nr))
+    # now, L should provide the list of all docstrings
+    ERR = []
+    PROB = []
+
+
+    for IN,res in one_test(L): # this does parallel testing!
+        # IN is ((s,cl){}), where s is the docstring and cl the name
+        if res[0]:
+            ERR.append((IN[0][1],res[0]))
+        if res[1] and (IN[0][1]!=name):
+            PROB.append((IN[0][1],res[1]))
+    return (ERR,PROB)
+
+
+def test_all(d):
+    """
+    INPUT:
+
+    ``d``: string, providing the path to the directory being tested
+
+    OUTPUT:
+
+    Test all '.py' and '.pyx' files in the given directory whose name
+    does not start with a dot.
+    """
+    if not d.endswith('/'):
+        d = d+'/'
+    import os
+    D = os.listdir(d)
+    base_name = d.split('/')[-2]
+    to_do = []
+    for n in D:
+        if n=='__init__.py' or n=='all.py':
+            to_do.append((d+n, base_name))
+        elif (n.endswith('.py') or n.endswith('.pyx')) and not n.startswith('.'):
+            to_do.append((d+n, base_name+'.'+n.split('.')[0]))
+    ERR = []
+    PROB = []
+    from sage.all import walltime
+    wt = walltime()
+    for m,name in to_do:
+        newERR, newPROB = test_module(m,name)
+        ERR.extend(newERR)
+        PROB.extend(newPROB)
+    if ERR:
+        print "There were doctest failures:"
+        for a,b in sorted(ERR):
+            print "%s:"%a
+            print b
+            print
+        print "Summary"
+        print "-------"
+        print
+        print "The following tests fail:"
+        for a,b in sorted(ERR):
+            print '  '+a
+    else:
+        print "-------------------------------------------------------------"
+        print "All doc tests passed!"
+        print "-------------------------------------------------------------\n"
+    if PROB:
+        print "The following tests may be incomplete:"
+        for a,b in sorted(PROB):
+            print '  '+b
+    print "Total time: %.2f sec"%walltime(wt)
 
 if __name__ == '__main__':
-    import pGroupCohomology
-    wt = walltime()
-    print "Testing the components of the package pGroupCohomology..."
-    O,NO = recursive_doctests(pGroupCohomology)
-    #from sage.all import SAGE_ROOT
-    from sage.all import tmp_filename
-    ErrorLog = tmp_filename() #SAGE_ROOT+'/test.log'
-    ErrorLog = ErrorLog.replace('//','/')
-    if O or NO:
-        RES = open(ErrorLog,'w')
-    else:
-        RES = None
-    if O:
-        print "Some doc tests resulted in errors."
-        RES.write("The following doc tests had errors:\n")
-        for X in O:
-            RES.write(X[0])
-            RES.write(' resulted in\n')
-            RES.write(X[1])
-            RES.write("\n-------------------------------------------------------------\n")
-    else:
-        print "All doc tests passed!\n-------------------------------------------------------------\n"
-        if RES is not None:
-            RES.write("All doc tests passed!\n-------------------------------------------------------------\n")
-
-    if NO:
-        print "Some items have no doc tests."
-        RES.write("Warning: The following items had no doc tests\n")
-        for X in NO:
-            RES.write('  '+X+'\n')
-
-    if RES is not None:
-        RES.close()
-        #print "Please see the file '%s' in the current directory"%ErrorLog
-        print file(ErrorLog).read()
-    print "Total time: %.2f minutes\n"%(walltime(wt)/60)
-
+    print "Testing the package pGroupCohomology..."
+    test_all('src/pGroupCohomology/')

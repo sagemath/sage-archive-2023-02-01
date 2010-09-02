@@ -431,7 +431,6 @@ def _compute_coordinates(g, x):
         sage: _compute_coordinates(g,r)
         sage: g.get_pos()
         {0: [5, 1], 1: [0, 5], 2: [1, 0], 3: [1, 4], 4: [2, 1], 5: [2, 3], 6: [3, 2]}
-
     """
 
     tree_nodes, (v1, v2, v3) = x

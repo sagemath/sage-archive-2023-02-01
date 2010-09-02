@@ -4574,7 +4574,7 @@ class GenericGraph(GenericGraph_pyx):
             raise ValueError("The given graph is not hamiltonian")
 
 
-    def hamiltonian_cycle(self):
+    def hamiltonian_cycle(self, algorithm='tsp' ):
         r"""
         Returns a hamiltonian cycle/circuit of the current graph/digraph
 
@@ -4588,12 +4588,23 @@ class GenericGraph(GenericGraph_pyx):
 
         ALGORITHM:
 
-        See ``Graph.traveling_salesman_problem``.
+        See ``Graph.traveling_salesman_problem`` for 'tsp' algorithm and
+        ``find_hamiltonian`` from ``sage.graphs.generic_graph_pyx``
+        for 'backtrack' algorithm.
+
+        INPUT:
+
+            - ``algorithm`` - one of 'tsp' or 'backtrack'.
 
         OUTPUT:
 
-        Returns a hamiltonian cycle/circuit if it exists. Otherwise,
-        raises a ``ValueError`` exception.
+        If using the 'tsp' algorithm, returns a hamiltonian cycle/circuit if it
+        exists; otherwise, raises a ``ValueError`` exception. If using the
+        'backtrack' algorithm, returns a pair (B,P). If B is True then P is a
+        hamiltonian cycle and if B is False, P is a longest path found by the
+        algorithm. Observe that if B is False, the graph may still be hamiltonian.
+        The 'backtrack' algorithm is only implemented for undirected
+        graphs.
 
         NOTE:
 
@@ -4601,6 +4612,8 @@ class GenericGraph(GenericGraph_pyx):
         cycle if it exists : the user should *NOT* test for
         hamiltonicity using ``is_hamiltonian`` before calling this
         function, as it would result in computing it twice.
+
+        The backtrack algorithm is only implemented for undirected graphs.
 
         EXAMPLES:
 
@@ -4610,20 +4623,46 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.hamiltonian_cycle()
             TSP from Heawood graph: Graph on 14 vertices
 
-        The Petergraph, though, is not ::
+        The Petersen Graph, though, is not ::
 
             sage: g = graphs.PetersenGraph()
             sage: g.hamiltonian_cycle()
             Traceback (most recent call last):
             ...
             ValueError: The given graph is not hamiltonian
-        """
-        from sage.numerical.mip import MIPSolverException
 
-        try:
-            return self.traveling_salesman_problem(weighted = False)
-        except MIPSolverException:
-            raise ValueError("The given graph is not hamiltonian")
+        Now, using the backtrack algorithm in the Heawood graph ::
+
+            sage: G=graphs.HeawoodGraph()
+            sage: G.hamiltonian_cycle(algorithm='backtrack')
+            (True, [11, 10, 1, 2, 3, 4, 9, 8, 7, 6, 5, 0, 13, 12])
+
+        And now in the Petersen graph ::
+
+            sage: G=graphs.PetersenGraph()
+            sage: G.hamiltonian_cycle(algorithm='backtrack')
+            (False, [6, 8, 5, 0, 1, 2, 7, 9, 4, 3])
+
+        Finally, we test the algorithm in a cube graph, which is hamiltonian ::
+
+            sage: G=graphs.CubeGraph(3)
+            sage: G.hamiltonian_cycle(algorithm='backtrack')
+            (True, ['010', '110', '100', '000', '001', '101', '111', '011'])
+
+        """
+        if algorithm=='tsp':
+            from sage.numerical.mip import MIPSolverException
+
+            try:
+                return self.traveling_salesman_problem(weighted = False)
+            except MIPSolverException:
+                raise ValueError("The given graph is not hamiltonian")
+        elif algorithm=='backtrack':
+            from sage.graphs.generic_graph_pyx import find_hamiltonian as fh
+            return fh( self )
+
+        else:
+            raise ValueError("``algorithm`` (%s) should be 'tsp' or 'backtrack'."%(algorithm))
 
     def flow(self, x, y, value_only=True, integer=False, use_edge_labels=True, vertex_bound=False, method = None, solver=None, verbose=0):
         r"""
@@ -13859,7 +13898,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def is_hamiltonian(self):
         r"""
-        Tests whether the current graph is Hamiltonian
+        Tests whether the current graph is hamiltonian
 
         A graph (resp. digraph) is said to be hamiltonian
         if it contains as a subgraph a cycle (resp. a circuit)

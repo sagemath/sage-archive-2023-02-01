@@ -22,6 +22,8 @@ include '../ext/stdsage.pxi'
 # import from Python standard library
 from sage.misc.prandom import random
 
+# import from third-party library
+from sage.graphs.base.sparse_graph cimport SparseGraph
 
 cdef extern from *:
     double sqrt(double)
@@ -946,3 +948,286 @@ def _test_vectors_equal_inferior():
     finally:
         sage_free(u)
         sage_free(v)
+
+
+cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, long backtrack_bound=1000, find_path=False ):
+    r"""
+
+    Randomized backtracking for finding hamiltonian cycles and paths.
+
+    ALGORITHM:
+
+    A path P is maintained during the execution of the algorithm. Initially
+    the path will contain an edge of the graph. Every 10 iterations the path
+    is reversed. Every ``reset_bound`` iterations the path will be cleared
+    and the procedure is restarted. Every ``backtrack_bound`` steps we discard
+    the last five vertices and continue with the procedure. The total number
+    of steps in the algorithm is controlled by ``max_iter``. If a hamiltonian
+    cycle or hamiltonian path is found it is returned. If the number of steps reaches
+    ``max_iter`` then a longest path is returned. See OUTPUT for more details.
+
+
+    INPUT:
+
+    -  ``G`` - Graph.
+
+    -  ``max_iter`` - Maximum number of iterations.
+
+    -  ``reset_bound`` - Number of iterations before restarting the procedure.
+
+    -  ``backtrack_bound`` - Number of iterations to elapse before discarding
+       the last 5 vertices of the path.
+
+    -  ``find_path`` - If set to ``True``, will search a hamiltonian path. If
+       ``False``, will search for a hamiltonian cycle. Default value is
+       ``False``.
+
+    OUTPUT:
+
+    A pair (B,P), where B is a Boolean and P is a list of vertices.
+    If B is True and find_path is False, P represents a hamiltonian cycle.
+    If B is True and find_path is True, P represents a hamiltonian path.
+    If B is false, then P represents the longest path found during the execution
+    of the algorithm.
+
+    EXAMPLES::
+
+    First we try the algorithm in the Dodecahedral graph, which is hamiltonian,
+    so we are able to find a hamiltonian cycle and a hamiltonian path ::
+
+        sage: from sage.graphs.generic_graph_pyx import find_hamiltonian as fh
+        sage: G=graphs.DodecahedralGraph()
+        sage: fh(G)
+        (True, [9, 10, 0, 19, 3, 2, 1, 8, 7, 6, 5, 4, 17, 18, 11, 12, 16, 15, 14, 13])
+        sage: fh(G,find_path=True)
+        (True, [8, 9, 10, 11, 18, 17, 4, 3, 19, 0, 1, 2, 6, 7, 14, 13, 12, 16, 15, 5])
+
+    Another test, now in the Moebius-Kantor graph which is also hamiltonian, as
+    in our previous example, we are able to find a hamiltonian cycle and path ::
+
+        sage: G=graphs.MoebiusKantorGraph()
+        sage: fh(G)
+        (True, [5, 4, 3, 2, 10, 15, 12, 9, 1, 0, 7, 6, 14, 11, 8, 13])
+        sage: fh(G,find_path=True)
+        (True, [4, 5, 6, 7, 15, 12, 9, 1, 0, 8, 13, 10, 2, 3, 11, 14])
+
+    Now, we try the algorithm on a non hamiltonian graph, the Petersen graph.
+    This graphs is known to be hypohamiltonian, so a hamiltonian path can be found ::
+
+        sage: G=graphs.PetersenGraph()
+        sage: fh(G)
+        (False, [7, 9, 4, 3, 2, 1, 0, 5, 8, 6])
+        sage: fh(G,find_path=True)
+        (True, [3, 8, 6, 1, 2, 7, 9, 4, 0, 5])
+
+    We now show the algorithm working on another known hypohamiltonian graph, the
+    generalized Petersen graph with parameters 11 and 2 ::
+        sage: G=graphs.GeneralizedPetersenGraph(11,2)
+        sage: fh(G)
+        (False, [13, 11, 0, 10, 9, 20, 18, 16, 14, 3, 2, 1, 12, 21, 19, 8, 7, 6, 17, 15, 4, 5])
+        sage: fh(G,find_path=True)
+        (True, [7, 18, 20, 9, 8, 19, 17, 6, 5, 16, 14, 3, 4, 15, 13, 11, 0, 10, 21, 12, 1, 2])
+
+    Finally, an example on a graph which does not have a hamiltonian path ::
+
+        sage: G=graphs.HyperStarGraph(5,2)
+        sage: fh(G,find_path=False)
+        (False, ['00011', '10001', '01001', '11000', '01010', '10010', '00110', '10100', '01100'])
+        sage: fh(G,find_path=True)
+        (False, ['00101', '10001', '01001', '11000', '01010', '10010', '00110', '10100', '01100'])
+
+    """
+
+    from sage.misc.prandom import randint
+    cdef int n = G.order()
+    cdef int m = G.num_edges()
+
+    #Initialize the path.
+    cdef int *path = <int *>sage_malloc(n * sizeof(int))
+    memset(path, -1, n * sizeof(int))
+
+    #Initialize the membership array
+    cdef bint *member = <bint *>sage_malloc(n * sizeof(int))
+    memset(member, 0, n * sizeof(int))
+
+    # static copy of the graph for more efficient operations
+    cdef SparseGraph g = SparseGraph(n)
+    # copying the adjacency relations in G
+    cdef int i
+    cdef int j
+    i = 0
+    for row in G.adjacency_matrix():
+        j = 0
+        for k in row:
+            if k:
+                g.add_arc(i, j)
+            j += 1
+        i += 1
+    # Cache copy of the vertices
+    cdef list vertices = g.verts()
+
+    # A list to store the available vertices at each step
+    cdef list available_vertices=[]
+
+    #We now work towards picking a random edge
+    #  First we pick a random vertex u
+    cdef int x = randint( 0, n-1 )
+    cdef int u = vertices[x]
+    #  Then we pick at random a neighbor of u
+    x = randint( 0, len(g.out_neighbors( u ))-1 )
+    cdef int v = g.out_neighbors( u )[x]
+    # This will be the first edge in the path
+    cdef int length=2
+    path[ 0 ] = u
+    path[ 1 ] = v
+    member[ u ] = True
+    member[ v ] = True
+
+    #Initialize all the variables neccesary to start iterating
+    cdef bint done = False
+    cdef long counter = 0
+    cdef long bigcount = 0
+    cdef int longest = length
+
+    #Initialize a path to contain the longest path
+    cdef int *longest_path = <int *>sage_malloc(n * sizeof(int))
+    memset(longest_path, -1, n * sizeof(int))
+    i = 0
+    for 0 <= i < length:
+        longest_path[ i ] = path[ i ]
+
+    #Initialize a temporary path for flipping
+    cdef int *temp_path = <int *>sage_malloc(n * sizeof(int))
+    memset(temp_path, -1, n * sizeof(int))
+
+    cdef bint longer = False
+    cdef bint good = True
+
+    while not done:
+        counter = counter + 1
+        if counter%10 == 0:
+            #Reverse the path
+
+            i=0
+            for 0<= i < length/2:
+                t=path[ i ]
+                path[ i ] = path[ length - i - 1]
+                path[ length -i -1 ] = t
+
+        if counter > reset_bound:
+            bigcount = bigcount + 1
+            counter = 1
+
+            #Time to reset the procedure
+            for 0 <= i < n:
+                member[ i ]=False
+            #  First we pick a random vertex u
+            x = randint( 0, n-1 )
+            u = vertices[x]
+            #  Then we pick at random a neighbor of u
+            degree = len(g.out_neighbors( u ))
+            x = randint( 0, degree-1 )
+            v = g.out_neighbors( u )[x]
+            #  This will be the first edge in the path
+            length=2
+            path[ 0 ] = u
+            path[ 1 ] = v
+            member[ u ] = True
+            member[ v ] = True
+
+        if counter%backtrack_bound == 0:
+            for 0 <= i < 5:
+                member[ path[length - i - 1] ] = False
+            length = length - 5
+        longer = False
+
+        available_vertices = []
+        for u in g.out_neighbors( path[ length-1 ] ):
+            if not member[ u ]:
+                available_vertices.append( u )
+        n_available=len( available_vertices )
+        if  n_available > 0:
+            longer = True
+            x=randint( 0, n_available-1 )
+            path[ length ] = available_vertices[ x ]
+            length = length + 1
+            member [ available_vertices[ x ] ] = True
+
+        if not longer and length > longest:
+
+            for 0 <= i < length:
+                longest_path[ i ] = path[ i ]
+
+            longest = length
+        if not longer:
+
+            memset(temp_path, -1, n * sizeof(int))
+            degree = len(g.out_neighbors( path[ length-1 ] ))
+            while True:
+                x = randint( 0, degree-1 )
+                u = g.out_neighbors(path[length - 1])[ x ]
+                if u != path[length - 2]:
+                    break
+
+            flag = False
+            i=0
+            j=0
+            for 0 <= i < length:
+                if i > length-j-1:
+                    break
+                if flag:
+                    t=path[ i ]
+                    path[ i ] = path[ length - j - 1]
+                    path[ length - j - 1 ] = t
+                    j=j+1
+                if path[ i ] == u:
+                    flag = True
+        if length == n:
+            if find_path:
+                done=True
+            else:
+                done = g.has_arc( path[n-1], path[0] )
+
+        if bigcount*reset_bound > max_iter:
+            verts=G.vertices()
+            output=[ verts[ longest_path[i] ] for i from 0<= i < longest ]
+            sage_free( member )
+            sage_free( path )
+            sage_free( longest_path )
+            sage_free( temp_path )
+            return (False, output)
+    # #
+    # # Output test
+    # #
+
+    # Test adjacencies
+    for 0 <=i < n-1:
+        u = path[i]
+        v = path[i + 1]
+        #Graph is simple, so both arcs are present
+        if not g.has_arc( u, v ):
+            good = False
+            break
+    if good == False:
+        raise RuntimeError( 'Vertices %d and %d are consecutive in the cycle but are not ajacent.'%(u,v) )
+    if not find_path and not g.has_arc( path[0], path[n-1] ):
+        raise RuntimeError( 'Vertices %d and %d are not ajacent.'%(path[0],path[n-1]) )
+    for 0 <= u < n:
+        member[ u ]=False
+
+    for 0 <= u < n:
+        if member[ u ]:
+            good = False
+            break
+        member[ u ] = True
+    if good == False:
+        raise RuntimeError( 'Vertex %d appears twice in the cycle.'%(u) )
+    verts=G.vertices()
+    output=[ verts[path[i]] for i from 0<= i < length ]
+    sage_free( member )
+    sage_free( path )
+    sage_free( longest_path )
+    sage_free( temp_path )
+
+    return (True,output)
+

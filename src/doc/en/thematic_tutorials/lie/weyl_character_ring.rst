@@ -155,55 +155,118 @@ multiplicative structure of the Weyl character ring:
 ::
 
     sage: chi = spin*spin; chi
-      B3(0,0,0) + B3(1,0,0) + B3(1,1,0) + B3(1,1,1)
+    B3(0,0,0) + B3(1,0,0) + B3(1,1,0) + B3(1,1,1)
 
 We have taken the eight-dimensional spin representation and tensored
 with itself. We see that the tensor square splits into four
 irreducibles, each with multiplicity one.
 
 The highest weights that appear here are available (with their
-coefficients) are available through the method ``hlist``:
+coefficients) through the usual free module accessors::
 
 .. link
 
 ::
 
-    sage: chi = spin*spin
-    sage: chi.hlist()
-    [[(1, 1, 1), 1], [(1, 0, 0), 1], [(1, 1, 0), 1], [(0, 0, 0), 1]]
-    sage: [p[0] for p in chi.hlist()]
-    [(1, 1, 1), (1, 0, 0), (1, 1, 0), (0, 0, 0)]
-    sage: [B3(p[0]) for p in chi.hlist()]
-    [B3(1,1,1), B3(1,0,0), B3(1,1,0), B3(0,0,0)]
-    sage: [B3(p[0]).degree() for p in chi.hlist()]
-    [35, 7, 21, 1]
-    sage: sum(B3(p[0]).degree() for p in chi.hlist())
+    sage: list(chi)
+    [((1, 1, 1), 1), ((1, 0, 0), 1), ((1, 1, 0), 1), ((0, 0, 0), 1)]
+    sage: dict(chi)
+    {(1, 1, 1): 1, (1, 0, 0): 1, (1, 1, 0): 1, (0, 0, 0): 1}
+    sage: chi.monomials()
+    [B3(0,0,0), B3(1,0,0), B3(1,1,0), B3(1,1,1)]
+    sage: chi.support()
+    [(0, 0, 0), (1, 0, 0), (1, 1, 0), (1, 1, 1)]
+    sage: chi.coefficients()
+    [1, 1, 1, 1]
+    sage: [r.degree() for r in chi.monomials()]
+    [1, 7, 21, 35]
+    sage: sum(r.degree() for r in chi.monomials())
     64
 
-Here we've extracted the individual representations, computed
-their degrees and checked that they sum to 64.
+Here we have extracted the individual representations, computed
+their degrees and checked that they sum up to `64`.
 
 
 Weight multiplicities
 ---------------------
 
-The weights of the character are (with their coefficients) are
-available through the method ``mlist``. Continuing from the example in
-the last section:
+The weights of the character are available (with their coefficients)
+through the method ``weight_multiplicities``. Continuing from the
+example in the last section:
 
 .. link
 
 ::
 
-    sage: chi.mlist()
-    [[(0, 1, 0), 4], [(1, -1, 1), 1], [(-1, -1, 1), 1], [(0, 1, 1), 2], [(0, -1, -1), 2], [(0, -1, 0), 4],
-    [(1, -1, -1), 1], [(0, 1, -1), 2], [(-1, 0, 1), 2], [(-1, 1, -1), 1], [(-1, -1, 0), 2], [(-1, 1, 0), 2],
-    [(1, 0, 0), 4], [(-1, 0, 0), 4], [(1, 0, -1), 2], [(0, 0, -1), 4], [(0, -1, 1), 2], [(1, 1, -1), 1],
-    [(0, 0, 1), 4], [(-1, 0, -1), 2], [(-1, 1, 1), 1], [(1, 0, 1), 2], [(0, 0, 0), 8], [(-1, -1, -1), 1],
-    [(1, 1, 1), 1], [(1, 1, 0), 2], [(1, -1, 0), 2]]
+    sage: chi.weight_multiplicities()
+    {(0, 1, 0): 4, (1, -1, 1): 1, (-1, -1, 1): 1, (0, 1, 1): 2,
+     (0, -1, -1): 2, (0, -1, 0): 4, (1, -1, -1): 1, (0, 1, -1): 2,
+     (-1, 0, 1): 2, (1, 1, 0): 2, (-1, 0, 0): 4, (-1, 1, 0): 2,
+     (1, 0, 0): 4, (-1, -1, 0): 2, (1, 0, -1): 2, (0, 0, -1): 4,
+     (0, -1, 1): 2, (1, 1, -1): 1, (0, 0, 1): 4, (-1, 0, -1): 2,
+     (-1, 1, 1): 1, (-1, 1, -1): 1, (0, 0, 0): 8, (-1, -1, -1): 1,
+      (1, 0, 1): 2, (1, 1, 1): 1, (1, -1, 0): 2}
 
-Each element of this list is a pair, consisting of a weight, and its
-multiplicity in the character.
+Each key of this dictionary is a weight, and its value is the
+multiplicity of that weight in the character.
+
+Example
+-------
+
+Suppose that we wish to compute the integral
+
+.. MATH ::
+
+   \int_{U(n)} |tr(g)|^{2k}\,dg
+
+for various `n`. Here `U(n)` is the unitary group, which is the maximal
+compact subroup of `GL(n,\mathbb{C})`. The irreducible unitary representations
+of `U(n)` may be regarded as the basis elements of the WeylCharacterRing of
+type `A_r`, where `r=n-1` so we might work in that ring. The trace `tr(g)` is
+then just the character of the standard representation. We may realize
+it in the WeylCharacterRing by taking the first fundamental weight and
+coercing it into the ring. For example, if `k=5` and `n=3` so `r=2`::
+
+    sage: A2 = WeylCharacterRing("A2")
+    sage: fw = A2.fundamental_weights(); fw
+    Finite family {1: (1, 0, 0), 2: (1, 1, 0)}
+    sage: tr = A2(fw[1]); tr
+    A2(1,0,0)
+
+We may compute the norm square the character ``tr^5`` by decomposing it into
+irreducibles, and taking the sum of the squares of their multiplicities. By
+Schur orthogonality, this gives the inner product of the `tr(g)^5` with
+itself, that is, the integral of `|tr(g)|^{10}`:
+
+.. link
+
+::
+
+    sage: sum(d^2 for d in (tr^5).coefficients())
+    103
+
+So far we have been working with `n=3`. For general `n`::
+
+   sage: def f(n,k):
+   ...      R = WeylCharacterRing(['A',n-1])
+   ...      tr = R(R.fundamental_weights()[1])
+   ...      return sum(d^2 for d in (tr^k).coefficients())
+   ...
+   sage: [f(n,5) for n in [2..7]]
+   [42, 103, 119, 120, 120, 120]
+
+We see that the 10-th moment of `tr(g)` is just `5!` when `n` is sufficiently
+large. What if we fix `n` and vary `k`?
+
+.. link
+
+::
+
+        sage: [f(2,k) for k in [1..10]]
+        [1, 2, 5, 14, 42, 132, 429, 1430, 4862, 16796]
+        sage: [catalan_number(k) for k in [1..k]]
+        [1, 2, 5, 14, 42, 132, 429, 1430, 4862, 16796]
+
 
 Frobenius-Schur indicator
 -------------------------
@@ -216,8 +279,8 @@ compact Lie group `G` with character `\chi` is:
     \int_G\chi(g^2) \, dg
 
 The Haar measure is normalized so that `vol(G) = 1`. The
-Frobenius-Schur indicator equals 1 if the representation is real
-(orthogonal), `-1` if it is quaternionic (symplectic) and 0 if it is
+Frobenius-Schur indicator equals `1` if the representation is real
+(orthogonal), `-1` if it is quaternionic (symplectic) and `0` if it is
 complex (not self-contragredient). This is a method of weight ring
 elements corresponding to irreducible representations. Let us compute
 the Frobenius-Schur indicators of the spin representations of some
@@ -225,7 +288,7 @@ odd spin groups::
 
     sage: def spinrepn(r):
     ...       R = WeylCharacterRing(['B',r])
-    ...       return R(R.fundamental_weights().list()[-1])
+    ...       return R(R.fundamental_weights()[r])
     ...
     sage: spinrepn(3)
     B3(1/2,1/2,1/2)
@@ -323,7 +386,7 @@ if you create the Weyl character ring with the command::
 
 Then you are working with `SL(3)`.
 
-There are some advantages to this arrangement.
+There are some advantages to this arrangement:
 
 - The group `GL(r+1)` arises frequently in practice. For example, even
   if you care mainly about semisimple groups, the group `GL(r+1)` may
@@ -348,7 +411,7 @@ they are ``(1,0,0)`` and ``(1,1,0)``. The work-around is to filter
 them through the method ``coerce_to_sl`` as follows::
 
     sage: A2 = WeylCharacterRing("A2")
-    sage: [fw1,fw2] = [A2.coerce_to_sl(w) for w in A2.fundamental_weights()]
+    sage: [fw1,fw2] = [w.coerce_to_sl() for w in A2.fundamental_weights()]
     sage: [standard, contragredient] = [A2(fw1), A2(fw2)]
     sage: standard, contragredient
     (A2(2/3,-1/3,-1/3), A2(1/3,1/3,-2/3))
@@ -356,11 +419,11 @@ them through the method ``coerce_to_sl`` as follows::
     A2(0,0,0) + A2(1,0,-1)
 
 Sage is not confused by the fractional weights. Note that if you use
-coroot notation, you are working with SL automatically::
+coroot notation, you are working with `SL` automatically::
 
     sage: A2 = WeylCharacterRing("A2", style="coroots")
-    sage: A2(1,0).mlist()
-    [[(2/3, -1/3, -1/3), 1], [(-1/3, 2/3, -1/3), 1], [(-1/3, -1/3, 2/3), 1]]
+    sage: A2(1,0).weight_multiplicities()
+    {(2/3, -1/3, -1/3): 1, (-1/3, 2/3, -1/3): 1, (-1/3, -1/3, 2/3): 1}
 
 There is no convenient way to create the determinant in the Weyl
 character ring if you adopt the coroot style.
@@ -368,7 +431,7 @@ character ring if you adopt the coroot style.
 Just as we coerced the fundamental weights into the `SL` weight
 lattice, you may need to coerce the Weyl vector `\rho` if you are
 working with `SL`. The default value for `\rho` in type `A_r` is
-`(r,r-1,\dots,0)`, but if you are an SL purist you want
+`(r,r-1,\dots,0)`, but if you are an `SL` purist you want
 
 .. MATH::
 
@@ -378,18 +441,18 @@ Therefore take the value of `\rho` that you get from the method of the
 ambient space and coerce it into `SL`::
 
     sage: A2 = WeylCharacterRing("A2", style="coroots")
-    sage: rho = A2.coerce_to_sl(A2.space().rho()); rho
+    sage: rho = A2.space().rho().coerce_to_sl(); rho
     (1, 0, -1)
-    sage: rho == (1/2)*sum(a for a in A2.space().positive_roots())
+    sage: rho == (1/2)*sum(A2.space().positive_roots())
     True
 
 You do not need to do this for other Cartan types. If you are working
-with (say) `F4` then a `\rho` is a `\rho` is a `\rho`::
+with (say) `F4` then a `\rho` is a `\rho`::
 
     sage: F4 = WeylCharacterRing("F4")
     sage: L = F4.space()
     sage: rho = L.rho()
-    sage: rho == (1/2)*sum(a for a in L.positive_roots())
+    sage: rho == (1/2)*sum(L.positive_roots())
     True
 
 
@@ -413,10 +476,10 @@ standard representation. We may realize it in the WeylCharacterRing by taking
 the first fundamental weight and coercing it into the ring. For example, if
 `k=5` and `n=3` so `r=2`::
 
-    sage: A2=WeylCharacterRing("A2")
-    sage: fw=A2.fundamental_weights().list(); fw
-    [(1, 0, 0), (1, 1, 0)]
-    sage: tr = A2(fw[0]); tr
+    sage: A2 = WeylCharacterRing("A2")
+    sage: fw = A2.fundamental_weights(); fw
+    Finite family {1: (1, 0, 0), 2: (1, 1, 0)}
+    sage: tr = A2(fw[1]); tr
     A2(1,0,0)
 
 We may compute the norm square the character ``tr^5`` by decomposing it into
@@ -428,9 +491,13 @@ itself, that is, the integral of `|tr(g)|^{10}`:
 
 ::
 
-    sage: (tr^5).hlist()
-    [[(3, 2, 0), 5], [(2, 2, 1), 5], [(4, 1, 0), 4], [(3, 1, 1), 6], [(5, 0, 0), 1]]
-    sage: sum(x[1]^2 for x in (tr^5).hlist())
+    sage: tr^5
+    5*A2(2,2,1) + 6*A2(3,1,1) + 5*A2(3,2,0) + 4*A2(4,1,0) + A2(5,0,0)
+    sage: (tr^5).monomials()
+    [A2(2,2,1), A2(3,1,1), A2(3,2,0), A2(4,1,0), A2(5,0,0)]
+    sage: (tr^5).coefficients()
+    [5, 6, 5, 4, 1]
+    sage: sum(x^2 for x in (tr^5).coefficients())
     103
 
 So far we have been working with `n=3`. For general `n`::
@@ -438,7 +505,7 @@ So far we have been working with `n=3`. For general `n`::
    sage: def f(n,k):
    ...      R = WeylCharacterRing(['A',n-1])
    ...      tr = R(R.fundamental_weights()[1])
-   ...      return sum(x[1]^2 for x in (tr^k).hlist())
+   ...      return sum(x^2 for x in (tr^k).coefficients())
    ...
    sage: [f(n,5) for n in [2..7]]  # long time (37s on sage.math, 2011)
    [42, 103, 119, 120, 120, 120]
@@ -450,16 +517,75 @@ large. What if we fix `n` and vary `k`?
 
 ::
 
-	sage: [f(2,k) for k in [1..10]]
-	[1, 2, 5, 14, 42, 132, 429, 1430, 4862, 16796]
-	sage: [catalan_number(k) for k in [1..k]]
-	[1, 2, 5, 14, 42, 132, 429, 1430, 4862, 16796]
+        sage: [f(2,k) for k in [1..10]]
+        [1, 2, 5, 14, 42, 132, 429, 1430, 4862, 16796]
+        sage: [catalan_number(k) for k in [1..k]]
+        [1, 2, 5, 14, 42, 132, 429, 1430, 4862, 16796]
 
 
-Caching
--------
+Symmetric and Exterior Powers
+-----------------------------
 
-You may improve the performance of a Weyl character ring by specifying
-``cache=True`` when you create the ring. This means that the results
-of intermediate computations are saved. The amount of improvement
-would depend on the type of computation you are doing.
+We have seen that WeylCharacterRing elements have built-in
+methods for symmetric and exterior square. If you want to
+obtain higher symmetric or exterior powers, you may do it
+as follows. Let us consider the eight dimensional adjoint
+representation of `SL(3)`. We will compute the symmetric
+fifth power and the exterior fourth powers of this.
+The adjoint representation is a homomorphism from `SL(3)`
+to `SL(8)`, so the relevant WeylCharacterRings are `A2`
+and `A7`. First we construct the symmetric fifth power
+and exterior fourth power representations of `A7` ::
+
+        sage: A2 = WeylCharacterRing("A2",style="coroots")
+        sage: A7 = WeylCharacterRing("A7",style="coroots")
+        sage: s = A7.fundamental_weights()[1]; s
+        (1, 0, 0, 0, 0, 0, 0, 0)
+        sage: e = A7.fundamental_weights()[4]; e
+        (1, 1, 1, 1, 0, 0, 0, 0)
+        sage: A7(5*s).degree()
+        792
+        sage: A7(e).degree()
+        70
+
+Now we may branch these representations down to `SL(2)`
+along the adjoint representation. This computes the
+symmetric and exterior powers of `ad`.
+
+.. link
+
+::
+
+       sage: ad=A2(1,1); ad.degree()
+       8
+       sage: sym5 = A7(5*s).branch(A2,rule=branching_rule_from_plethysm(ad,"A7")); sym5 # long time
+       A2(0,0) + A2(0,3) + 2*A2(1,1) + A2(3,0) + A2(1,4) + 2*A2(2,2) + A2(4,1) + A2(2,5) + 2*A2(3,3) + A2(5,2) + A2(4,4) + A2(5,5)
+       sage: ext4 = A7(e).branch(A2,rule=branching_rule_from_plethysm(ad,"A7")); ext4
+       2*A2(1,1) + 2*A2(2,2)
+
+Invariants and multiplicities
+-----------------------------
+
+Sometimes we are only interested in the multiplicity of the trivial
+representation in some character. This may be found by the method
+``invariant_degree``. Continuing from the preceding example,
+
+.. link
+
+::
+
+      sage: sym5.invariant_degree() # long time
+      1
+      sage: ext4.invariant_degree()
+      0
+
+If we want the multiplicity of some other representation, we may
+obtain that using the method ``multiplicity``::
+
+.. link
+
+::
+
+     sage: [rep.multiplicity(A2(3,3)) for rep in [sym5, ext4]] # long time
+     [2, 0]
+

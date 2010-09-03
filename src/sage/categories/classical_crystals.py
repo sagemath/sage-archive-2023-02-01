@@ -178,46 +178,55 @@ class ClassicalCrystals(Category):
             u = [b.weight() for b in u]
             return sum((prod((x[i]**(la[i]) for i in range(n)), P.one()) for la in u), P.zero())
 
-        def character(self, R):
+        def character(self, R=None):
             """
-            Returns the character of the crystal.
+            Returns the character of this crystal.
 
             INPUT:
 
-              - ``R`` -- a ``WeylCharacterRing``
+              - ``R`` -- a :class:`WeylCharacterRing`
+                (default: the default :class:`WeylCharacterRing` for this Cartan type)
+
+            Returns the character of ``self`` as an element of ``R``.
 
             EXAMPLES::
 
-                sage: C = CrystalOfLetters(['A',2])
-                sage: T = TensorProductOfCrystals(C, C)
-                sage: A2 = WeylCharacterRing(C.cartan_type()); A2
-                The Weyl Character Ring of Type ['A', 2] with Integer Ring coefficients
-                sage: chi = T.character(A2); chi
-                A2(1,1,0) + A2(2,0,0)
-                sage: chi.check(verbose = true)
-                [9, 9]
+                sage: C = CrystalOfTableaux("A2", shape=[2,1])
+                sage: chi = C.character(); chi
+                A2(2,1,0)
 
-            TODO: add default value for ``R``
+                sage: T = TensorProductOfCrystals(C,C)
+                sage: chiT = T.character(); chiT
+                A2(2,2,2) + 2*A2(3,2,1) + A2(3,3,0) + A2(4,1,1) + A2(4,2,0)
+                sage: chiT == chi^2
+                True
+
+            One may specify an alternate :class:`WeylCharacterRing`::
+
+                sage: R = WeylCharacterRing("A2", style="coroots")
+                sage: chiT = T.character(R); chiT
+                A2(0,0) + 2*A2(1,1) + A2(0,3) + A2(3,0) + A2(2,2)
+                sage: chiT in R
+                True
+
+            It should have the same cartan type and use the same
+            realization of the weight lattice as ``self``::
+
+                sage: R = WeylCharacterRing("A3", style="coroots")
+                sage: T.character(R)
+                Traceback (most recent call last):
+                ...
+                ValueError: Weyl character ring does not have the right Cartan type
+
             """
-            from sage.combinat.root_system.weyl_characters import WeylCharacter
+            from sage.combinat.root_system.weyl_characters import WeylCharacterRing
+            if R == None:
+                R = WeylCharacterRing(self.cartan_type())
             if not R.cartan_type() == self.cartan_type():
-                raise ValueError, "ring does not have the right Cartan type"
-            hlist = {}
-            mlist = {}
+                raise ValueError, "Weyl character ring does not have the right Cartan type"
+            assert R.basis().keys() == self.weight_lattice_realization()
 
-            for x in self.highest_weight_vectors():
-                k = x.weight()
-                if k in hlist:
-                    hlist[k] += 1
-                else:
-                    hlist[k] = 1
-            for x in self.list():
-                k = x.weight()
-                if k in mlist:
-                    mlist[k] += 1
-                else:
-                    mlist[k] = 1
-            return WeylCharacter(R, hlist, mlist)
+            return R.sum_of_monomials( x.weight() for x in self.highest_weight_vectors() )
 
         def list(self):
             r"""

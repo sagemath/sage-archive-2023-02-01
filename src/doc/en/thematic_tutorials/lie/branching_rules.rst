@@ -89,9 +89,9 @@ representations of `GL(4)` and branch them down to these down to
     sage: [pi.branch(A2, rule="levi") for pi in reps]
     [A2(0,0,0) + A2(1,0,0), A2(1,0,0) + A2(1,1,0), A2(1,1,0) + A2(1,1,1)]
     sage: [pi.branch(A1xA1, rule="levi") for pi in reps]
-    [A1xA1(0,0,1,0) + A1xA1(1,0,0,0),
-     A1xA1(0,0,1,1) + A1xA1(1,0,1,0) + A1xA1(1,1,0,0),
-     A1xA1(1,0,1,1) + A1xA1(1,1,1,0)]
+    [A1xA1(1,0,0,0) + A1xA1(0,0,1,0),
+     A1xA1(1,1,0,0) + A1xA1(1,0,1,0) + A1xA1(0,0,1,1),
+      A1xA1(1,1,1,0) + A1xA1(1,0,1,1)]
 
 Let us redo this calculation in coroot notation. As we have explained,
 coroot notation does not distinguish between representations of
@@ -107,7 +107,7 @@ now working with the groups `SL(4)` and its Levi subgroups `SL(3)` and
     sage: [pi.branch(A2, rule="levi") for pi in reps]
     [A2(0,0) + A2(1,0), A2(0,1) + A2(1,0), A2(0,0) + A2(0,1)]
     sage: [pi.branch(A1xA1, rule="levi") for pi in reps]
-    [A1xA1(0,1) + A1xA1(1,0), 2*A1xA1(0,0) + A1xA1(1,1), A1xA1(0,1) + A1xA1(1,0)]
+    [A1xA1(1,0) + A1xA1(0,1), 2*A1xA1(0,0) + A1xA1(1,1), A1xA1(1,0) + A1xA1(0,1)]
 
 Now we may observe a distinction difference in branching from
 
@@ -145,7 +145,7 @@ we could accomplish the branching in two steps, thus::
     sage: reps = [A3(fw) for fw in A3.fundamental_weights()]
     sage: [pi.branch(C2, rule="symmetric").branch(B2, rule="isomorphic"). \
              branch(D2, rule="extended").branch(A1xA1, rule="isomorphic") for pi in reps]
-    [A1xA1(0,1) + A1xA1(1,0), 2*A1xA1(0,0) + A1xA1(1,1), A1xA1(0,1) + A1xA1(1,0)]
+    [A1xA1(1,0) + A1xA1(0,1), 2*A1xA1(0,0) + A1xA1(1,1), A1xA1(1,0) + A1xA1(0,1)]
 
 As you can see, we've redone the branching rather circuitously this
 way, making use of the branching rules ``A3->C2`` and ``B2->D2``, and
@@ -281,10 +281,10 @@ You *must* use ``rule="orthogonal_sum"``::
      sage: D5=WeylCharacterRing("D5",style="coroots")
      sage: B2xB2=WeylCharacterRing("B2xB2",style="coroots")
      sage: [D5(v).branch(B2xB2,rule="orthogonal_sum") for v in D5.fundamental_weights()]
-     [B2xB2(0,0,1,0) + B2xB2(1,0,0,0),
-      B2xB2(0,0,0,2) + B2xB2(1,0,1,0) + B2xB2(0,2,0,0),
-      B2xB2(0,0,0,2) + B2xB2(1,0,0,2) + B2xB2(0,2,0,0) + B2xB2(0,2,1,0),
-       B2xB2(0,1,0,1), B2xB2(0,1,0,1)]
+     [B2xB2(1,0,0,0) + B2xB2(0,0,1,0),
+      B2xB2(0,2,0,0) + B2xB2(1,0,1,0) + B2xB2(0,0,0,2),
+      B2xB2(0,2,0,0) + B2xB2(0,2,1,0) + B2xB2(1,0,0,2) + B2xB2(0,0,0,2),
+      B2xB2(0,1,0,1), B2xB2(0,1,0,1)]
 
 Symmetric subgroups
 -------------------

@@ -11,7 +11,7 @@ Ambient spaces
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
 from root_lattice_realization import RootLatticeRealizationElement
 from weight_lattice_realization import WeightLatticeRealization
-from sage.rings.all import QQ
+from sage.rings.all import ZZ, QQ
 from sage.misc.cachefunc import ClearCacheOnPickle
 
 class AmbientSpace(ClearCacheOnPickle, CombinatorialFreeModule, WeightLatticeRealization):
@@ -61,6 +61,10 @@ class AmbientSpace(ClearCacheOnPickle, CombinatorialFreeModule, WeightLatticeRea
         # FIXME: here for backward compatibility;
         # Should we use dimension everywhere?
         self.n = self.dimension()
+        ct = root_system.cartan_type()
+        if ct.is_irreducible() and ct.type() == 'E':
+            self._v0 = self([0,0,0,0,0, 0,1, 1])
+            self._v1 = self([0,0,0,0,0,-2,1,-1])
 
 
     def _test_norm_of_simple_roots(self, **options):
@@ -147,6 +151,7 @@ class AmbientSpace(ClearCacheOnPickle, CombinatorialFreeModule, WeightLatticeRea
         else:
             return CombinatorialFreeModule.__call__(self, v)
 
+
     def __getitem__(self,i):
         """
         Note that indexing starts at 1.
@@ -226,6 +231,52 @@ class AmbientSpace(ClearCacheOnPickle, CombinatorialFreeModule, WeightLatticeRea
             return cmp(self.root_system, other.root_system)
         return 0
 
+    def from_vector_notation(self, weight, style="lattice"):
+        """
+        INPUT:
+
+        - ``weight`` - a vector or tuple representing a weight
+
+        Returns an element of self. If the weight lattice is not
+        of full rank, it coerces it into the weight lattice, or
+        its ambient space by orthogonal projection. This arises
+        in two cases: for SL(r+1), the weight lattice is
+        contained in a hyperplane of codimension one in the ambient,
+        space, and for types E6 and E7, the weight lattice is
+        contained in a subspace of codimensions 2 or 3, respectively.
+
+        If style="coroots" and the data is a tuple of integers, it
+        is assumed that the data represent a linear combination of
+        fundamental weights. If style="coroots", and the root lattice
+        is not of full rank in the ambient space, it is projected
+        into the subspace corresponding to the semisimple derived group.
+        This arises with Cartan type A, E6 and E7.
+
+        EXAMPLES:
+
+            sage: RootSystem("A2").ambient_space().from_vector_notation((1,0,0))
+            (1, 0, 0)
+            sage: RootSystem("A2").ambient_space().from_vector_notation([1,0,0])
+            (1, 0, 0)
+            sage: RootSystem("A2").ambient_space().from_vector_notation((1,0),style="coroots")
+            (2/3, -1/3, -1/3)
+        """
+        if style == "coroots" and isinstance(weight, tuple) and all(xv in ZZ for xv in weight):
+            weight = self.linear_combination(zip(self.fundamental_weights(), weight))
+
+        x = self(weight)
+
+        if style == "coroots":
+            cartan_type = self.cartan_type()
+            if cartan_type.is_irreducible() and cartan_type.type() == 'E':
+                if cartan_type.rank() == 6:
+                    x = x.coerce_to_e6()
+                if cartan_type.rank() == 7:
+                    x = x.coerce_to_e7()
+            else:
+                x = x.coerce_to_sl()
+        return x
+
 class AmbientSpaceElement(CombinatorialFreeModuleElement, RootLatticeRealizationElement):
     def __hash__(self):
         """
@@ -302,3 +353,86 @@ class AmbientSpaceElement(CombinatorialFreeModuleElement, RootLatticeRealization
             False
         """
         return self.parent().rho().scalar(self) > 0
+
+    def is_dominant_weight(self): # Or is_dominant_integral_weight?
+        """
+        Tests whether ``self`` is a dominant element of the weight lattice
+
+        TODO: EXAMPLES
+
+        TODO: generalize to any root lattice realization
+        """
+        alphacheck = self.parent().simple_coroots()
+        vp = [self.inner_product(alphacheck[i]) for i in self.parent().index_set()]
+        return all(v in ZZ and v >= 0 for v in vp)
+
+    def coerce_to_sl(self):
+        """
+        For type ['A',r], this coerces the element of the ambient space into the
+        root space by orthogonal projection. The root space has codimension one
+        and corresponds to the Lie algebra of SL(r+1,CC), whereas the full weight
+        space corresponds to the Lie algebra of GL(r+1,CC). So this operation
+        corresponds to multiplication by a (possibly fractional) power of the
+        determinant to give a weight determinant one.
+
+        EXAMPLES::
+
+            sage: [fw.coerce_to_sl() for fw in RootSystem("A2").ambient_space().fundamental_weights()]
+            [(2/3, -1/3, -1/3), (1/3, 1/3, -2/3)]
+            sage: L = RootSystem("A2xA3").ambient_space()
+            sage: L([1,2,3,4,5,0,0]).coerce_to_sl()
+            (-1, 0, 1, 7/4, 11/4, -9/4, -9/4)
+        """
+        cartan_type = self.parent().cartan_type()
+        x = self
+        if cartan_type.is_atomic():
+            if cartan_type.type() == 'A':
+                x = x - self.parent().det(sum(x.to_vector())/(self.parent().dimension()))
+        else:
+            xv = x.to_vector()
+            shifts = cartan_type._shifts
+            types = cartan_type.component_types()
+            for i in range(len(types)):
+                if cartan_type.component_types()[i][0] == 'A':
+                    s = self.parent().ambient_spaces()[i].det(sum(xv[shifts[i]:shifts[i+1]])/(types[i][1]+1))
+                    x = x - self.parent().inject_weights(i, s)
+        return x
+
+    def coerce_to_e7(self):
+        """
+        For type E8, this orthogonally projects the given element of
+        the E8 root lattice into the E7 root lattice. This operation on
+        weights corresponds to intersection with the semisimple subgroup E7.
+
+        EXAMPLES::
+
+            sage: [b.coerce_to_e7() for b in RootSystem("E8").ambient_space().basis()]
+            [(1, 0, 0, 0, 0, 0, 0, 0), (0, 1, 0, 0, 0, 0, 0, 0),
+             (0, 0, 1, 0, 0, 0, 0, 0), (0, 0, 0, 1, 0, 0, 0, 0),
+             (0, 0, 0, 0, 1, 0, 0, 0), (0, 0, 0, 0, 0, 1, 0, 0),
+             (0, 0, 0, 0, 0, 0, 1/2, -1/2), (0, 0, 0, 0, 0, 0, -1/2, 1/2)]
+        """
+        x = self
+        v0 = self.parent()._v0
+        ret = x - (x.inner_product(v0)/2)*v0
+        return ret
+
+    def coerce_to_e6(self):
+        """
+        For type E7 or E8, orthogonally projects an element of the root lattice
+        into the E6 root lattice. This operation on weights corresponds to
+        intersection with the semisimple subgroup E6.
+
+        EXAMPLES::
+
+            sage: [b.coerce_to_e6() for b in RootSystem("E8").ambient_space().basis()]
+            [(1, 0, 0, 0, 0, 0, 0, 0), (0, 1, 0, 0, 0, 0, 0, 0), (0, 0, 1, 0, 0, 0, 0, 0),
+            (0, 0, 0, 1, 0, 0, 0, 0), (0, 0, 0, 0, 1, 0, 0, 0), (0, 0, 0, 0, 0, 1/3, 1/3, -1/3),
+            (0, 0, 0, 0, 0, 1/3, 1/3, -1/3), (0, 0, 0, 0, 0, -1/3, -1/3, 1/3)]
+        """
+        x = self
+        v0 = self.parent()._v0
+        v1 = self.parent()._v1
+        x = x - (x.inner_product(v0)/2)*v0
+        return  x - (x.inner_product(v1)/6)*v1
+

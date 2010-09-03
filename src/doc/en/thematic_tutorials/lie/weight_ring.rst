@@ -28,13 +28,23 @@ representation of `GL(3)`, you may use the method ``mlist``, but
 another way is to coerce it into the weight ring::
 
     sage: A2 = WeylCharacterRing(['A',2])
-    sage: a2 = WeightRing(A2)
     sage: ad = A2(1,0,-1)
-    sage: ad.mlist()
-    [[(-1, 1, 0), 1], [(0, 1, -1), 1], [(1, 0, -1), 1], [(0, 0, 0), 2], [(-1, 0, 1), 1],
-    [(0, -1, 1), 1], [(1, -1, 0), 1]]
+    sage: ad.weight_multiplicities()
+    {(-1, 1, 0): 1, (0, 1, -1): 1, (1, 0, -1): 1, (0, 0, 0): 2,
+     (-1, 0, 1): 1, (0, -1, 1): 1, (1, -1, 0): 1}
+
+This command produces a dictionary of the weights that appear in
+the representation, together with their multiplicities. But another
+way of getting the same information, with an aim of working with it,
+is to coerce it into the weight ring:
+
+.. link
+
+::
+
+    sage: a2 = WeightRing(A2)
     sage: a2(ad)
-    a2(-1,0,1) + a2(-1,1,0) + a2(0,-1,1) + 2*a2(0,0,0) + a2(0,1,-1) + a2(1,-1,0) + a2(1,0,-1)
+    2*a2(0,0,0) + a2(-1,1,0) + a2(-1,0,1) + a2(1,-1,0) + a2(1,0,-1) + a2(0,-1,1) + a2(0,1,-1)
 
 For example, the Weyl denominator formula is usually written this way:
 
@@ -56,11 +66,11 @@ Let us confirm the Weyl denominator formula for ``A2``::
     sage: a2 = WeightRing(A2)
     sage: L = A2.space()
     sage: W = L.weyl_group()
-    sage: rho = A2.coerce_to_sl(L.rho())
+    sage: rho = L.rho().coerce_to_sl()
     sage: lhs = prod(a2(alpha/2)-a2(-alpha/2) for alpha in L.positive_roots()); lhs
-    -a2(-1,0,1) + a2(-1,1,0) + a2(0,-1,1) - a2(0,1,-1) - a2(1,-1,0) + a2(1,0,-1)
+    a2(-1,1,0) - a2(-1,0,1) - a2(1,-1,0) + a2(1,0,-1) + a2(0,-1,1) - a2(0,1,-1)
     sage: rhs = sum((-1)^(w.length())*a2(w.action(rho)) for w in W); rhs
-    -a2(-1,0,1) + a2(-1,1,0) + a2(0,-1,1) - a2(0,1,-1) - a2(1,-1,0) + a2(1,0,-1)
+    a2(-1,1,0) - a2(-1,0,1) - a2(1,-1,0) + a2(1,0,-1) + a2(0,-1,1) - a2(0,1,-1)
     sage: lhs == rhs
     True
 

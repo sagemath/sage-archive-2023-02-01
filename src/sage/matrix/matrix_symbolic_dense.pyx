@@ -113,7 +113,7 @@ Rank::
         :meth:`rank` may return the wrong answer if it cannot determine that a
         matrix element that is equivalent to zero is indeed so.
 
-Copying symbolic matrices:
+Copying symbolic matrices::
 
     sage: m = matrix(SR, 2, [sqrt(2), 3, pi, e])
     sage: n = copy(m)
@@ -188,6 +188,7 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
         algebraic multiplicity of the eigenvalue.
 
         EXAMPLES::
+
             sage: A = matrix(SR,3,3,range(9)); A
             [0 1 2]
             [3 4 5]
@@ -219,7 +220,7 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
         values in a reasonable time.  These examples create 0-1 matrices from
         the adjacency matrices of graphs and illustrate how the format and type
         of the results differ when the base ring changes.  First for matrices
-        over the rational numbers, then the same matrix but viweed as a symbolic
+        over the rational numbers, then the same matrix but viewed as a symbolic
         matrix. ::
 
             sage: G=graphs.CycleGraph(5)

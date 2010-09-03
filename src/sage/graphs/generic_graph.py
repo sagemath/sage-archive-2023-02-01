@@ -3727,7 +3727,7 @@ class GenericGraph(GenericGraph_pyx):
             # Adjacent vertices can belong to different parts only if the
             # edge that connects them is part of the cut
             for (x,y) in g.edges(labels=None):
-                p.add_constraint(v[x] + b[x][y] - v[y], min=0, max=0)
+                p.add_constraint(v[x] + b[x][y] - v[y], min=0)
 
         else:
             # we minimize the number of edges

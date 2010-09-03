@@ -92,9 +92,10 @@ Proceeding anyway..."""
         spkg_txt = "File is missing"
 
     p = Popen("cd %s; sage --hg diff" % dir, shell=True, stdout=PIPE, stderr=PIPE)
-    if len(p.stderr.read()) != 0:
+    std_out, std_err = p.communicate()
+    if len(std_err) != 0:
         hgrepo_txt = "Error reading repository"
-    elif len(p.stdout.read()) != 0:
+    elif len(std_out) != 0:
         hgrepo_txt = "Unchecked in changes"
     else:
         hgrepo_txt = "Good"

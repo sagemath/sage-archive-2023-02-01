@@ -9,8 +9,9 @@ the place to fix it.
 
 == Releases ==
 
-=== genus2reduction-0.3.p8 (Jeroen Demeyer, August 14, 2010) ===
+=== genus2reduction-0.3.p8 (Jeroen Demeyer, Mitesh Patel, September 4, 2010) ===
  * #9738: don't catch signals and exit cleanly upon EOF
+ * #9738: Remove obsolete dist/ directory.  See #5903.
 
 === genus2reduction-0.3.p7 (Jeroen Demeyer, July 24, 2010) ===
  * upgrade to PARI 2.4.3

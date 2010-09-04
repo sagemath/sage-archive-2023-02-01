@@ -1,0 +1,14 @@
+131,134c131,138
+< USEPNG= -DUSEPNG
+< PNGINC= -I$(SAGE_LOCAL)/include
+< PNGLIB= -L$(SAGE_LOCAL)/lib -lpng12 -lz
+< 
+---
+> USEPNG=
+> PNGINC=
+> PNGLIB=
+> 
+> # Uncomment the following lines to enable PNG support
+> #USEPNG= -DUSEPNG
+> #PNGINC= -I/usr/local/include
+> #PNGLIB= -L/usr/local/lib -lpng -lz

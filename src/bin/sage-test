@@ -28,6 +28,8 @@ except KeyError:
     XML_RESULTS = None
 
 
+# TODO: should we set SAGE_TESTDIR to a temporary directory like
+# tempfile.gettempdir()?
 if 'SAGE_TESTDIR' not in os.environ:
     os.environ['SAGE_TESTDIR'] = os.path.join(SAGE_ROOT, "tmp")
 TMP = os.path.join(os.environ['SAGE_TESTDIR'], "tmp")

@@ -191,6 +191,9 @@ if [ -z "${SAGE_ORIG_LD_LIBRARY_PATH_SET}" ]; then
     SAGE_ORIG_LD_LIBRARY_PATH_SET=True && export SAGE_ORIG_LD_LIBRARY_PATH_SET
 fi
 
+# Should this be a temporary directory instead?  Since sage-ptest and
+# sage-test are written in Python, we can set it to
+# tempfile.gettempdir() there.
 if [ -z "$SAGE_TESTDIR" ]; then
     SAGE_TESTDIR="$DOT_SAGE"/tmp && export SAGE_TESTDIR
 fi

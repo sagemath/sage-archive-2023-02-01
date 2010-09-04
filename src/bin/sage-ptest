@@ -10,8 +10,10 @@ import thread
 import tempfile
 import subprocess
 import multiprocessing
+import socket
+import stat
 
-SAGE_ROOT = os.environ['SAGE_ROOT']
+SAGE_ROOT = os.path.realpath(os.environ['SAGE_ROOT'])
 SAGE_SITE = os.path.realpath(os.path.join(os.environ['SAGE_LOCAL'],
                                           'lib', 'python', 'site-packages'))
 BUILD_DIR = os.path.realpath(os.path.join(SAGE_ROOT, 'devel', 'sage', 'build'))
@@ -28,12 +30,6 @@ print 'File iterations: ' + str(numiteration)
 
 # Exit status for the whole run.
 err = 0
-
-def abspath(x):
-    """
-    This function returns the absolute path (adjusted for NFS)
-    """
-    return strip_automount_prefix(os.path.abspath(x))
 
 def strip_automount_prefix(filename):
     """
@@ -56,37 +52,50 @@ def strip_automount_prefix(filename):
             filename = new
     return filename
 
-def abs(f):
+def abspath(x):
+    """
+    This function returns the absolute path (adjusted for NFS)
+    """
+    return strip_automount_prefix(os.path.abspath(x))
+
+def abs_sage_path(f):
+    """
+    Return the absolute path, relative to the sage root or current directory
+    """
+    global CUR
+
+    abs_path = abspath(f)
+    if abs_path.startswith(SAGE_ROOT):
+        abs_path = abs_path[len(SAGE_ROOT) + 1:]
+    elif abs_path.startswith(CUR):
+        abs_path = abs_path[len(CUR) + 1:]
+
+    return abs_path
+
+def test_cmd(f):
     """
     Return the test command for the file
     """
     global opts
-    return "sage -t %s %s"%(opts, abspath(f)[len(SAGE_ROOT)+1:])
-
-def sage_test_cmd(f):
-    """
-    Return the test command for the file as given
-    """
-    global opts
-    return "sage -t %s %s"%(opts, f)
-
-def abs_sage_path(f):
-    """
-    Return the absolute path, relative to the sage root directory
-    """
-    return abspath(f)[len(SAGE_ROOT)+1:]
+    return "sage -t %s %s" % (opts, abs_sage_path(f))
 
 def skip(F):
     """
     Returns true if the file should not be tested
     """
     if not os.path.exists(F):
+        # XXX IMHO this should never happen; in case it does, it's certainly
+        #     an error to be reported (either filesystem, or bad name specified
+        #     on the command line). -leif
         return True
     G = abspath(F)
     i = G.rfind(os.path.sep)
+    # XXX The following should IMHO be performed in populatefilelist():
+    #     (Currently, populatefilelist() only looks for "__nodoctest__".)
     if os.path.exists(os.path.join(G[:i], 'nodoctest.py')):
         printmutex.acquire()
-        print "%s (skipping) -- nodoctest.py file in directory"%abs(F)
+        print "%s (skipping) -- nodoctest.py file in directory" % test_cmd(F)
+        sys.stdout.flush()
         printmutex.release()
         return True
     filenm = os.path.split(F)[1]
@@ -95,7 +104,8 @@ def skip(F):
         return True
     if G.find(os.path.join('doc', 'output')) != -1:
         return True
-    if not (os.path.splitext(F)[1] in ['.py', '.pyx', '.tex', '.pxi', '.sage', '.rst']):
+    # XXX The following is (also/already) handled in populatefilelist():
+    if not (os.path.splitext(F)[1] in ['.py', '.pyx', '.spyx', '.tex', '.pxi', '.sage', '.rst']):
         return True
     return False
 
@@ -115,6 +125,7 @@ def test_file(F):
     for i in range(0,numiteration):
         os.chdir(os.path.dirname(F))
         command = os.path.join(SAGE_ROOT, 'local', 'bin', 'sage-%s' % cmd)
+        # FIXME: Why call bash here? (Also, we use 'shell=True' below anyway.)
         s = 'bash -c "%s %s > %s" ' % (command, filestr, outfile.name)
         try:
             t = time.time()
@@ -143,28 +154,29 @@ def process_result(result):
     if ret != 0:
         if ret == 128:
             numfail = ol.count('Expected:') + ol.count('Expected nothing') + ol.count('Exception raised:')
-            failed.append(abs(F)+(" # %s doctests failed" % numfail))
+            failed.append(test_cmd(F) + (" # %s doctests failed" % numfail))
             ret = numfail
         elif ret == 64:
-            failed.append(abs(F)+" # Time out")
+            failed.append(test_cmd(F) + " # Time out")
         elif ret == 8:
-            failed.append(abs(F)+" # Exception from doctest framework")
+            failed.append(test_cmd(F) + " # Exception from doctest framework")
         elif ret == 4:
-            failed.append(abs(F)+" # Killed/crashed")
+            failed.append(test_cmd(F) + " # Killed/crashed")
         elif ret == 2:
-            failed.append(abs(F)+" # KeyboardInterrupt")
+            failed.append(test_cmd(F) + " # KeyboardInterrupt")
         elif ret == 1:
-            failed.append(abs(F)+" # File not found")
+            failed.append(test_cmd(F) + " # File not found")
         else:
-            failed.append(abs(F))
-    if abspath(F)[:len(CUR)]==CUR:
-        print sage_test_cmd(F[len(CUR)+1:])
-    else:
-        print abs(F)
+            failed.append(test_cmd(F))
+
+    print test_cmd(F)
+    sys.stdout.flush()
+
     if ol!="" and (not ol.isspace()):
         if (ol[len(ol)-1]=="\n"):
             ol=ol[0:len(ol)-1]
         print ol
+        sys.stdout.flush()
     time_dict[abs_sage_path(F)] = finished_time
     if XML_RESULTS:
         t = finished_time
@@ -192,6 +204,7 @@ def process_result(result):
         """.strip() % locals())
         f.close()
     print "\t [%.1f s]"%(finished_time)
+    sys.stdout.flush()
 
 def infiles_cmp(a,b):
     """
@@ -229,9 +242,17 @@ def populatefilelist(filelist):
         for root, dirs, lfiles in os.walk(walkdir):
             for F in lfiles:
                 base, ext = os.path.splitext(F)
-                if not (ext in ['.sage', '.py', '.pyx', '.tex', '.pxi', '.rst']):
+                if not (ext in ['.sage', '.py', '.pyx', '.spyx', '.tex', '.pxi', '.rst']):
                     continue
                 elif '__nodoctest__' in files:
+                    # XXX Shouldn't this be 'lfiles'?
+                    # Also, this test should IMHO be in the outer loop (1 level).
+                    # Furthermore, the current practice is to put "nodoctest.py"
+                    # files in the directories that should be skipped, not
+                    # "__nodoctest__". (I haven't found a single instance of the
+                    # latter in Sage 4.6.1.alpha3.)
+                    # "nodoctest.py" is handled in skip() (!), to also be fixed.
+                    # -leif
                     continue
                 appendstr = os.path.join(root,F)
                 if skip(appendstr):
@@ -252,6 +273,9 @@ for gr in range(0,numglobaliteration):
     argv = [X for X in argv if X[0] != '-']
 
     try:
+        # FIXME: Nice, but <NUMTHREADS> should immediately follow '-tp' etc.,
+        #        i.e., be the next argument. We might have file or directory
+        #        names that properly convert to an int...
         numthreads = int(argv[1])
         infiles = argv[2:]
     except ValueError: # can't convert first arg to an integer: arg was probably omitted
@@ -270,6 +294,8 @@ for gr in range(0,numglobaliteration):
             opts += ' -force_lib'
 
         infiles.append(os.path.join(sagenb_loc, 'sagenb'))
+
+    verbose = ('-verbose' in opts or '--verbose' in opts)
 
     if numthreads == 0:
         # Set numthreads to be the number of processors, with a default
@@ -307,12 +333,16 @@ for gr in range(0,numglobaliteration):
     t0 = time.time()
     filemutex = thread.allocate_lock()
     printmutex = thread.allocate_lock()
+    SAGE_TESTDIR = os.environ['SAGE_TESTDIR']
     #Pick a filename for the timing files -- long vs normal
+    # TODO: perhaps these files shouldn't be hidden?  Also, don't
+    # store them in SAGE_TESTDIR, in case the user wants to test in
+    # some temporary directory: store them somewhere more permanent.
     if opts.count("-long"):
-        time_file_name = os.path.join(os.environ["SAGE_TESTDIR"],
+        time_file_name = os.path.join(SAGE_TESTDIR,
                                       '.ptest_timing_long')
     else:
-        time_file_name = os.path.join(os.environ["SAGE_TESTDIR"],
+        time_file_name = os.path.join(SAGE_TESTDIR,
                                       '.ptest_timing')
     time_dict = { }
     try:
@@ -337,9 +367,23 @@ for gr in range(0,numglobaliteration):
 
     failed = []
 
-    TMP = os.path.join(os.environ['SAGE_TESTDIR'], 'tmp', 'test')
-    if not os.path.exists(TMP):
-        os.makedirs(TMP)
+    HOSTNAME = socket.gethostname().replace('-','_').replace('/','_').replace('\\','_')
+    # Should TMP be a subdirectory of tempfile.gettempdir() rather than SAGE_TESTDIR?
+    TMP = os.path.join(SAGE_TESTDIR, '%s-%s' % (HOSTNAME, os.getpid()))
+    TMP = os.path.abspath(TMP)
+    if os.path.exists(TMP):
+        shutil.rmtree(TMP)
+    os.makedirs(TMP)
+    # Add rwx permissions for user to TMP:
+    os.chmod(TMP, os.stat(TMP)[0] | stat.S_IRWXU)
+    os.environ['SAGE_TESTDIR'] = TMP
+    if verbose:
+        print
+        print "Using the directory"
+        print "   '%s'." % TMP
+        print "for doctesting.  If all doctests pass, this directory will"
+        print "be deleted automatically."
+        print
 
     populatefilelist(infiles)
     #Sort the files by test time
@@ -374,6 +418,25 @@ for gr in range(0,numglobaliteration):
 
     os.chdir(CUR)
 
+    if verbose:
+        print
+        print "Removing the directory '%s'." % TMP
+    try:
+        os.rmdir(TMP)
+        if verbose:
+            print
+            print "-"*int(70)
+    except OSError:
+        # TODO (probably in sage-doctest): if tests were interrupted
+        # but there were no failures in the interrupted files, delete
+        # the temporary files, so that this directory is empty.
+        print "The temporary doctesting directory"
+        print "   %s" % TMP
+        print "was not removed: it is not empty, presumably because doctests"
+        print "failed or doctesting was interrupted."
+        print
+        print "-"*int(70)
+
     if len(failed) == 0:
         if interrupt == False:
             print "All tests passed!"
@@ -403,7 +466,9 @@ for gr in range(0,numglobaliteration):
         for i in range(len(failed)):
                print "\t", failed[i]
         print "-"*int(70)
+
     #Only update timings if we are doing something standard
+    opts = opts.strip()
     if (opts=="-long" or len(opts)==0) and not interrupt:
         with open(time_file_name,"w") as time_file:
             pickle.dump(time_dict, time_file)

@@ -52,3 +52,11 @@ Add a patch to Bio/Wise/__init__.py to skip the doctest. This test fails during 
 === biopython-1.53 ===
 
 Updating to biopython-1.53, which was released December 15th, 2009.  Release notes are at: http://news.open-bio.org/news/2009/12/biopython-release-153/
+
+=== biopython-1.54 ===
+
+Updating to biopython-1.54, which was released May 20th, 2010.  Release notes are at: http://news.open-bio.org/news/2010/05/biopython-release-154/
+
+=== biopython-1.55 ===
+
+Updating to biopython-1.55, which was released August 31, 2010.  Release notes are at: http://news.open-bio.org/news/2010/08/biopython-1-55-released/

@@ -2,7 +2,7 @@
 # Copyright 1994-2007 John E. Stone
 # All Rights Reserved
 #
-# $Id: Make-arch,v 1.157 2007/02/13 08:17:31 johns Exp $
+# $Id: Make-arch,v 1.164 2010/01/18 19:13:41 johns Exp $
 #
 
 # Some machines don't have/need ranlib, in their case, use 'touch'
@@ -24,6 +24,7 @@ default:
 	@echo "              Parallel Versions        "
 	@echo ""
 	@echo "             aix-thr - IBM AIX 5.x      POSIX Threads         "
+	@echo "          aix-64-thr - IBM AIX 5.x      POSIX Threads, 64-bit "
 	@echo "             aix-mpi - IBM AIX 5.x (SP) MPI                   "
 	@echo "        asci-red-mpi - Intel ASCI Red   MPI                   "
 	@echo "        bluegene-mpi - IBM Blue Gene    MPI                   "
@@ -40,20 +41,25 @@ default:
 	@echo "           linux-lam - Linux            MPI (OSC LAM)         "
 	@echo "        linux-lam-64 - Linux AMD64/EM64T, MPI, 64-bit         "
 	@echo "        linux-64-thr - Linux AMD64/EM64T, POSIX Threads, 64-bit"
+	@echo "           linux-mpi - Linux            Generic MPI           "
 	@echo "           linux-thr - Linux            POSIX Threads         "
-	@echo "    linux-p4-icc-thr - Linux, Intel C compilers, P4-optimized  "
+	@echo "    linux-p4-icc-thr - Linux, Intel C compilers, P4-optimized "
 	@echo "      linux-ia64-thr - Linux IA-64, GCC, POSIX Threads        "
 	@echo "linux-ia64-thr-sgicc - Linux IA-64, SGI Pro64 Compilers       "
-	@echo "          macosx-thr - MacOS-X PowerPC, POSIX Threads         "
-	@echo "      macosx-x86-thr - MacOS-X Intel x86, POSIX Threads       "
+	@echo "          macosx-thr - MacOS X PowerPC, POSIX Threads         "
+	@echo "      macosx-x86-thr - MacOS X Intel x86, POSIX Threads       "
 	@echo "   solaris-ultra-hpc - Sun Solaris 9/10 ClusterTools 4.0 MPI  "
 	@echo "         solaris-mpi - Sun Solaris 9/10 MPI (MPICH)           "
 	@echo "         solaris-lam - Sun Solaris 9/10 MPI (OSC LAM)         "
 	@echo "         solaris-thr - Sun Solaris 9/10 UI/Sun Threads        "
+	@echo "solaris-pthreads-gcc-64-bit - 64-bit (should work on SPARC or x64)"
 	@echo "   solaris-ultra-thr - Sun Solaris 9/10 UI/Sun Threads, US-1/2"
 	@echo "  solaris-ultra3-thr - Sun Solaris 9/10 UI/Sun Threads, US-III"
 	@echo "      solaris-64-thr - Sun Solaris 9/10 UI/Sun Threads, 64-bit"
-	@echo "solaris-pthreads-gcc-64-bit - 64-bit (should work on SPARC or x64)"
+	@echo "--------------------------------------------------------------"
+	@echo "            Hybrid Parallel Versions                          "
+	@echo ""
+	@echo "       linux-mpi-thr - Linux    Generic MPI+POSIX Threads     "
 	@echo ""
 	@echo "--------------------------------------------------------------"
 	@echo "              Sequential Versions                             "
@@ -75,7 +81,7 @@ default:
 	@echo "  linux-alpha-ccc - Linux Alpha, Compaq Compilers           "
 	@echo "       linux-ia64 - Linux IA-64, GCC                        "
 	@echo " linux-ia64-sgicc - Linux IA-64, SGI Pro64 Compilers        "
-	@echo "           macosx - MacOS-X (aka Darwin, Rhapsody)          "
+	@echo "           macosx - MacOS X (aka Darwin, Rhapsody)          "
 	@echo "      tru64-alpha - Tru64 Unix, binary can run on AlphaLinux"
 	@echo "          solaris - Sun Solaris 8/9/10                      "
 	@echo "            win32 - Windows 95/NT with Cygnus EGCS/CygWin32 "
@@ -89,6 +95,7 @@ default:
 	@echo "        linux-thr-ogl - Linux POSIX Threads, OpenGL           "
 	@echo "     linux-lam-64-ogl - Linux, 64-bit AMD64/EM64T, LAM MPI, OpenGL"
 	@echo "linux-beowulf-mpi-ogl - Scyld Linux with MPI, OpenGL          "
+	@echo "   macosx-x86-thr-ogl - MacOS X Intel x86, POSIX Threads, OpenGL"
 	@echo "  tru64-alpha-thr-ogl - Tru64/OSF1/DUnix POSIX Threads, OpenGL"
 	@echo ""
 	@echo "--------------------------------------------------------------"
@@ -468,7 +475,7 @@ solaris-pthreads-gcc:
 	$(MAKE) all \
 	"ARCH = solaris-pthreads-gcc" \
 	"CC = gcc" \
-	"CFLAGS = -Wall -O6 -fomit-frame-pointer -ffast-math -D_REENTRANT -DSunOS $(MISCFLAGS) -DTHR -DUSEPOSIXTHREADS" \
+	"CFLAGS = -Wall -O3 -fomit-frame-pointer -ffast-math -D_REENTRANT -DSunOS $(MISCFLAGS) -DTHR -DUSEPOSIXTHREADS" \
 	"AR = ar" \
 	"ARFLAGS = r" \
 	"STRIP = strip" \
@@ -812,6 +819,16 @@ aix-thr:
 	"STRIP = strip" \
 	"LIBS = -L. -ltachyon $(MISCLIB) -lm -lpthread"
 
+aix-64-thr:
+	$(MAKE) all \
+	"ARCH = aix-64-thr" \
+	"CC = xlc" \
+	"CFLAGS = -q64 -O3 -DAIX $(MISCFLAGS) -DTHR -D_REENTRANT" \
+	"AR = ar -X64 " \
+	"ARFLAGS = r" \
+	"STRIP = strip -X64 " \
+	"LIBS = -L. -ltachyon $(MISCLIB) -lm -lpthread"
+
 ##
 ## Architecture flags for HP Unix workstations, no MPI configuration
 ## since no test platform has been available.  The threaded HPUX
@@ -895,15 +912,12 @@ macosx-thr:
 	$(MAKE) all \
 	"ARCH = macosx-thr" \
 	"CC = cc" \
-	"CFLAGS = -Os -ffast-math -DTHR $(MISCFLAGS)" \
+	"CFLAGS = -Os -ffast-math -DBsd -DTHR -F/System/Library/Frameworks $(MISCFLAGS)" \
 	"AR = ar" \
 	"ARFLAGS = r" \
 	"STRIP = strip" \
 	"RANLIB = ranlib" \
-	"LIBS = -L. -ltachyon $(MISCLIB) -lpthread"
-
-#"CFLAGS = -Os -ffast-math -DBsd -DTHR -F/System/Library/Frameworks $(MISCFLAGS)" \
-#"LIBS = -L. -ltachyon $(MISCLIB) -lpthread -framework Carbon"
+	"LIBS = -L. -ltachyon $(MISCLIB) -lpthread -framework Carbon"
 
 macosx-altivec:
 	$(MAKE) all \
@@ -927,6 +941,17 @@ macosx-x86-thr:
 	"RANLIB = ranlib" \
 	"LIBS = -L. -ltachyon $(MISCLIB) -lpthread -framework Carbon"
 
+macosx-x86-thr-ogl:
+	$(MAKE) all \
+	"ARCH = macosx-x86-thr-ogl" \
+	"CC = cc" \
+	"CFLAGS = -O2 -ffast-math -DBsd -DTHR -I/usr/X11R6/include -F/System/Library/Frameworks $(MISCFLAGS) -DUSEOPENGL" \
+	"AR = ar" \
+	"ARFLAGS = r" \
+	"STRIP = strip" \
+	"RANLIB = ranlib" \
+	"LIBS = -L. -ltachyon $(MISCLIB) -lpthread -L/usr/X11R6/lib -lGLU -lGL -lX11 -framework Carbon"
+
 
 ##
 ## BeOS
@@ -936,7 +961,7 @@ beos:
 	$(MAKE) all \
 	"ARCH = beos" \
 	"CC = gcc" \
-	"CFLAGS = -O6 -fomit-frame-pointer -ffast-math $(MISCFLAGS)" \
+	"CFLAGS = -O3 -fomit-frame-pointer -ffast-math $(MISCFLAGS)" \
 	"AR = ar" \
 	"ARFLAGS = r" \
 	"STRIP = strip" \
@@ -952,7 +977,7 @@ bsd:
 	$(MAKE) all \
 	"ARCH = bsd" \
 	"CC = gcc" \
-	"CFLAGS = -O6 -fomit-frame-pointer -ffast-math -DBsd  $(MISCFLAGS)" \
+	"CFLAGS = -O3 -fomit-frame-pointer -ffast-math -DBsd  $(MISCFLAGS)" \
 	"AR = ar" \
 	"ARFLAGS = r" \
 	"STRIP = strip" \
@@ -963,7 +988,7 @@ bsd-sparc:
 	$(MAKE) all \
 	"ARCH = bsd-sparc" \
 	"CC = gcc" \
-	"CFLAGS = -mv8 -msupersparc -O6 -fomit-frame-pointer -ffast-math -DBsd  $(MISCFLAGS)" \
+	"CFLAGS = -mv8 -msupersparc -O3 -fomit-frame-pointer -ffast-math -DBsd  $(MISCFLAGS)" \
 	"AR = ar" \
 	"ARFLAGS = r" \
 	"STRIP = strip" \
@@ -978,7 +1003,7 @@ win32:
 	$(MAKE) all \
 	"ARCH = win32" \
 	"CC = gcc" \
-	"CFLAGS = -Wall -O6 -fomit-frame-pointer -ffast-math -DWIN32 $(MISCFLAGS)" \
+	"CFLAGS = -mpentium -Wall -O3 -fomit-frame-pointer -ffast-math -DWIN32 $(MISCFLAGS)" \
 	"AR = ar" \
 	"ARFLAGS = r" \
 	"STRIP = echo" \
@@ -989,7 +1014,7 @@ win32-mpi:
 	$(MAKE) all \
 	"ARCH = win32-mpi" \
 	"CC = gcc" \
-	"CFLAGS = -Wall -O6 -fomit-frame-pointer -ffast-math -DWIN32 $(MISCFLAGS) -I'/Program files/MPIPro/INCLUDE' -DMPI" \
+	"CFLAGS = -mpentium -Wall -O3 -fomit-frame-pointer -ffast-math -DWIN32 $(MISCFLAGS) -I'/Program files/MPIPro/INCLUDE' -DMPI" \
 	"AR = ar" \
 	"ARFLAGS = r" \
 	"STRIP = echo" \
@@ -1005,10 +1030,22 @@ linux:
 	$(MAKE) all \
 	"ARCH = linux" \
 	"CC = gcc" \
-	"CFLAGS = -m32 -Wall -O6 -g -ffast-math -DLinux $(MISCFLAGS)" \
+	"CFLAGS = -m32 -Wall -O3 -g -ffast-math -DLinux $(MISCFLAGS)" \
 	"AR = ar" \
 	"ARFLAGS = r" \
 	"STRIP = strip" \
+	"RANLIB = ranlib" \
+	"LIBS = -L. -ltachyon $(MISCLIB) -lm"
+
+# Linux on x86, using gcc
+linux-profile:
+	$(MAKE) all \
+	"ARCH = linux-profile" \
+	"CC = gcc" \
+	"CFLAGS = -m32 -Wall -O3 -g -pg -ffast-math -DLinux $(MISCFLAGS)" \
+	"AR = ar" \
+	"ARFLAGS = r" \
+	"STRIP = touch" \
 	"RANLIB = ranlib" \
 	"LIBS = -L. -ltachyon $(MISCLIB) -lm"
 
@@ -1029,7 +1066,7 @@ linux-64:
 	$(MAKE) all \
 	"ARCH = linux-64" \
 	"CC = gcc" \
-	"CFLAGS = -m64 -Wall -O6 -fomit-frame-pointer -ffast-math -DLinux -DLP64 $(MISCFLAGS)" \
+	"CFLAGS = -m64 -Wall -O3 -fomit-frame-pointer -ffast-math -DLinux -DLP64 $(MISCFLAGS)" \
 	"AR = ar" \
 	"ARFLAGS = r" \
 	"STRIP = strip" \
@@ -1054,7 +1091,7 @@ linux-64-thr:
 	$(MAKE) all \
 	"ARCH = linux-64-thr" \
 	"CC = gcc" \
-	"CFLAGS = -m64 -Wall -O6 -fomit-frame-pointer -ffast-math -DLinux -DLP64 -DTHR -D_REENTRANT $(MISCFLAGS)" \
+	"CFLAGS = -m64 -Wall -O3 -fomit-frame-pointer -ffast-math -DLinux -DLP64 -DTHR -D_REENTRANT $(MISCFLAGS)" \
 	"AR = ar" \
 	"ARFLAGS = r" \
 	"STRIP = strip" \
@@ -1067,7 +1104,7 @@ linux-p4:
 	$(MAKE) all \
 	"ARCH = linux-p4" \
 	"CC = gcc" \
-	"CFLAGS = -mcpu=i686 -march=i686 -funroll-loops -fexpensive-optimizations -malign-double -fschedule-insns2 -Wall -O6 -fomit-frame-pointer -ffast-math -DLinux $(MISCFLAGS)" \
+	"CFLAGS = -mcpu=i686 -march=i686 -funroll-loops -fexpensive-optimizations -malign-double -fschedule-insns2 -Wall -O3 -fomit-frame-pointer -ffast-math -DLinux $(MISCFLAGS)" \
 	"AR = ar" \
 	"ARFLAGS = r" \
 	"STRIP = strip" \
@@ -1105,7 +1142,7 @@ linux-athlon:
 	$(MAKE) all \
 	"ARCH = linux-athlon" \
 	"CC = gcc" \
-	"CFLAGS = -mcpu=athlon -march=athlon -funroll-loops -fexpensive-optimizations -malign-double -fschedule-insns2 -Wall -O6 -fomit-frame-pointer -ffast-math -DLinux $(MISCFLAGS)" \
+	"CFLAGS = -mcpu=athlon -march=athlon -funroll-loops -fexpensive-optimizations -malign-double -fschedule-insns2 -Wall -O3 -fomit-frame-pointer -ffast-math -DLinux $(MISCFLAGS)" \
 	"AR = ar" \
 	"ARFLAGS = r" \
 	"STRIP = strip" \
@@ -1116,7 +1153,7 @@ linux-athlon-thr:
 	$(MAKE) all \
 	"ARCH = linux-athlon-thr" \
 	"CC = gcc" \
-	"CFLAGS = -mcpu=athlon -march=athlon -funroll-loops -fexpensive-optimizations -malign-double -fschedule-insns2 -Wall -O6 -fomit-frame-pointer -ffast-math -DLinux -DTHR -D_REENTRANT $(MISCFLAGS)" \
+	"CFLAGS = -mcpu=athlon -march=athlon -funroll-loops -fexpensive-optimizations -malign-double -fschedule-insns2 -Wall -O3 -fomit-frame-pointer -ffast-math -DLinux -DTHR -D_REENTRANT $(MISCFLAGS)" \
 	"AR = ar" \
 	"ARFLAGS = r" \
 	"STRIP = strip" \
@@ -1153,7 +1190,7 @@ linux-thr:
 	$(MAKE) all \
 	"ARCH = linux-thr" \
 	"CC = gcc" \
-	"CFLAGS = -m32 -Wall -O6 -fomit-frame-pointer -ffast-math -DLinux -DTHR -D_REENTRANT $(MISCFLAGS) $(GCCFIX)" \
+	"CFLAGS = -m32 -Wall -O3 -fomit-frame-pointer -ffast-math -DLinux -DTHR -D_REENTRANT $(MISCFLAGS)" \
 	"AR = ar" \
 	"ARFLAGS = r" \
 	"STRIP = strip" \
@@ -1165,7 +1202,7 @@ linux-thr-ogl:
 	$(MAKE) all \
 	"ARCH = linux-thr-ogl" \
 	"CC = cc" \
-	"CFLAGS = -m32 -Wall -O6 -fomit-frame-pointer -ffast-math -DLinux -DTHR -D_REENTRANT $(MISCFLAGS) -DUSEOPENGL $(LINUX_GLX_INCS)" \
+	"CFLAGS = -m32 -Wall -O3 -fomit-frame-pointer -ffast-math -DLinux -DTHR -D_REENTRANT $(MISCFLAGS) -DUSEOPENGL $(LINUX_GLX_INCS)" \
 	"AR = ar" \
 	"ARFLAGS = r" \
 	"STRIP = touch" \
@@ -1176,7 +1213,7 @@ linux-beowulf-mpi-ogl:
 	$(MAKE) all \
 	"ARCH = linux-beowulf-mpi" \
 	"CC = gcc" \
-	"CFLAGS = -m32 -Wall -O6 -fomit-frame-pointer -ffast-math -DLinux -DMPI $(MISCFLAGS) -DUSEOPENGL $(LINUX_GLX_INCS)" \
+	"CFLAGS = -m32 -Wall -O3 -fomit-frame-pointer -ffast-math -DLinux -DMPI $(MISCFLAGS) -DUSEOPENGL $(LINUX_GLX_INCS)" \
 	"AR = ar" \
 	"ARFLAGS = r" \
 	"STRIP = strip" \
@@ -1188,7 +1225,7 @@ linux-beowulf-mpi:
 	$(MAKE) all \
 	"ARCH = linux-beowulf-mpi" \
 	"CC = gcc" \
-	"CFLAGS = -m32 -Wall -O6 -fomit-frame-pointer -ffast-math -DLinux -DMPI $(MISCFLAGS)" \
+	"CFLAGS = -m32 -Wall -O3 -fomit-frame-pointer -ffast-math -DLinux -DMPI $(MISCFLAGS)" \
 	"AR = ar" \
 	"ARFLAGS = r" \
 	"STRIP = strip" \
@@ -1200,7 +1237,7 @@ linux-lam:
 	$(MAKE) all \
 	"ARCH = linux-lam" \
 	"CC = hcc" \
-	"CFLAGS = -m486 -Wall -O6 -fomit-frame-pointer -ffast-math -I$(LAMHOME)/h -DLinux -DMPI $(MISCFLAGS)" \
+	"CFLAGS = -m486 -Wall -O3 -fomit-frame-pointer -ffast-math -I$(LAMHOME)/h -DLinux -DMPI $(MISCFLAGS)" \
 	"AR = ar" \
 	"ARFLAGS = r" \
 	"STRIP = strip" \
@@ -1212,19 +1249,54 @@ linux-lam-64:
 	$(MAKE) all \
 	"ARCH = linux-lam-64" \
 	"CC = hcc" \
-	"CFLAGS = -m64 -Wall -O6 -fomit-frame-pointer -ffast-math -I$(LAMHOME)/h -DLinux -DMPI -DLP64 $(MISCFLAGS)" \
+	"CFLAGS = -m64 -Wall -O3 -fomit-frame-pointer -ffast-math -I$(LAMHOME)/h -DLinux -DMPI -DLP64 $(MISCFLAGS)" \
 	"AR = ar" \
 	"ARFLAGS = r" \
 	"STRIP = strip" \
 	"RANLIB = ranlib" \
 	"LIBS = -L. -L$(LAMHOME)/lib -ltachyon -lmpi $(MISCLIB) -lm"
 
+linux-mpi:
+	$(MAKE) all \
+	"ARCH = linux-mpi" \
+	"CC = mpicc" \
+	"CFLAGS = -DLinux -DMPI $(MISCFLAGS)" \
+	"AR = ar" \
+	"ARFLAGS = r" \
+	"STRIP = strip" \
+	"RANLIB = ranlib" \
+	"LIBS = -L. -ltachyon  $(MISCLIB) -lm"
+
+linux-mpi-thr:
+	$(MAKE) all \
+	"ARCH = linux-mpi-thr" \
+	"CC = mpicc" \
+	"CFLAGS = -DLinux -DMPI -DTHR $(MISCFLAGS)" \
+	"AR = ar" \
+	"ARFLAGS = r" \
+	"STRIP = strip" \
+	"RANLIB = ranlib" \
+	"LIBS = -L. -ltachyon  $(MISCLIB) -lm -lpthread"
+
+linux-mpi-64:
+	$(MAKE) all \
+	"ARCH = linux-mpi-64" \
+	"CC = mpicc" \
+	"CFLAGS = -Wall -O3 -fomit-frame-pointer -ffast-math -I$(LAMHOME)/h -DLinux -DMPI -DLP64 $(MISCFLAGS)" \
+	"AR = ar" \
+	"ARFLAGS = r" \
+	"STRIP = strip" \
+	"RANLIB = ranlib" \
+	"LIBS = -L. -L$(LAMHOME)/lib -ltachyon $(MISCLIB) -lm"
+
+
+
 # Linux AMD64/EM64T using LAM MPI, with OpenGL display
 linux-lam-64-ogl:
 	$(MAKE) all \
 	"ARCH = linux-lam-64-ogl" \
 	"CC = hcc" \
-	"CFLAGS = -m64 -Wall -O6 -fomit-frame-pointer -ffast-math -I$(LAMHOME)/h -DLinux -DMPI -DLP64 -DUSEOPENGL $(LINUX_GLX_INCS) $(MISCFLAGS)" \
+	"CFLAGS = -m64 -Wall -O3 -fomit-frame-pointer -ffast-math -I$(LAMHOME)/h -DLinux -DMPI -DLP64 -DUSEOPENGL $(LINUX_GLX_INCS) $(MISCFLAGS)" \
 	"AR = ar" \
 	"ARFLAGS = r" \
 	"STRIP = strip" \
@@ -1236,7 +1308,7 @@ linux-lam-thr:
 	$(MAKE) all \
 	"ARCH = linux-lam-thr" \
 	"CC = hcc" \
-	"CFLAGS = -m486 -Wall -O6 -fomit-frame-pointer -ffast-math -I$(LAMHOME)/h -DLinux -DMPI -DTHR -D_REENTRANT $(MISCFLAGS)" \
+	"CFLAGS = -m486 -Wall -O3 -fomit-frame-pointer -ffast-math -I$(LAMHOME)/h -DLinux -DMPI -DTHR -D_REENTRANT $(MISCFLAGS)" \
 	"AR = ar" \
 	"ARFLAGS = r" \
 	"STRIP = strip" \
@@ -1248,7 +1320,7 @@ linux-ipaq:
 	$(MAKE) all \
 	"ARCH = linux-ipaq" \
 	"CC = gcc" \
-	"CFLAGS = -Wall -O6 -fomit-frame-pointer -ffast-math -DLinux $(MISCFLAGS)" \
+	"CFLAGS = -Wall -O3 -fomit-frame-pointer -ffast-math -DLinux $(MISCFLAGS)" \
 	"AR = ar" \
 	"ARFLAGS = r" \
 	"STRIP = strip" \
@@ -1260,7 +1332,7 @@ linux-ppc:
 	$(MAKE) all \
 	"ARCH = linux-ppc" \
 	"CC = gcc" \
-	"CFLAGS = -Wall -O6 -fomit-frame-pointer -ffast-math -DLinux $(MISCFLAGS)" \
+	"CFLAGS = -Wall -O3 -fomit-frame-pointer -ffast-math -DLinux $(MISCFLAGS)" \
 	"AR = ar" \
 	"ARFLAGS = r" \
 	"STRIP = strip" \
@@ -1272,7 +1344,7 @@ linux-ps2:
 	$(MAKE) all \
 	"ARCH = linux-ps2" \
 	"CC = gcc" \
-	"CFLAGS = -Wall -O6 -fomit-frame-pointer -ffast-math -DLinux $(MISCFLAGS)" \
+	"CFLAGS = -Wall -O3 -fomit-frame-pointer -ffast-math -DLinux $(MISCFLAGS)" \
 	"AR = ar" \
 	"ARFLAGS = r" \
 	"STRIP = strip" \
@@ -1284,7 +1356,7 @@ linux-alpha:
 	$(MAKE) all \
 	"ARCH = linux-alpha" \
 	"CC = gcc" \
-	"CFLAGS = -Wall -O6 -fomit-frame-pointer -ffast-math -DLinux $(MISCFLAGS)" \
+	"CFLAGS = -Wall -O3 -fomit-frame-pointer -ffast-math -DLinux $(MISCFLAGS)" \
 	"AR = ar" \
 	"ARFLAGS = r" \
 	"STRIP = strip" \

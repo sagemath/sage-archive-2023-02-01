@@ -13,6 +13,7 @@ CUR=`pwd`
 cd unix
 
 cp ../../patches/Make-arch .
+cp ../../patches/Make-config .
 
 finished()
 {
@@ -62,8 +63,8 @@ if [ $UNAME = "Linux" ]; then
     if [ $? -ne 0 ]; then
         echo "Maybe your system is 64-bit; trying again."
         if [ `uname -m` = "ia64" ]; then
-          echo "ia64"
-          make linux-ia64-thr
+	  echo "ia64"
+	  make linux-ia64-thr
         else
           echo "64-bit arch"
           make linux-64-thr

@@ -2,16 +2,32 @@
 
 == Description ==
 
-Describe the package here.
+Tachyon is a raytracer developed by John E. Stone.  "Tachyon supports the typical ray tracer features, most of the common geometric primitives, shading and texturing modes, etc. It also supports less common features such as HDR image output, ambient occlusion lighting, and support for various triangle mesh and volumetric texture formats beneficial for molecular visualization (e.g. rendering VMD scenes)."  - from the project page at http://jedi.ks.uiuc.edu/~johns/raytracer/.
+Currently not all of Tachyon's functionality is supported.
 
 == License ==
 
-See below. This needs to be cleaned up for the 0.98.1 update (#5281)
+ * Copyright (c) 1994-2010 John E. Stone
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. The name of the author may not be used to endorse or promote products
+ *    derived from this software without specific prior written permission.
 
 == SPKG Maintainers ==
 
+ * Marshall Hampton
+ * David Kirkby
+ * Mike Hansen
+ * Andrzej Giniewicz
  * Michael Abshoff
- * William Stein
 
 == Upstream Contact ==
 
@@ -25,9 +41,12 @@ This spkg depends on:
 
 == Special Update/Build Instructions ==
 
-See blow. This needs to be cleaned up for the 0.98.1 update (#5281)
+See below. This needs to be cleaned up for the 0.98.9 update (#5281)
 
 == Changelog ==
+
+=== tachyon-0.98.9 (Marshall Hampton, September 3rd, 2010)
+ * #5281: upgrade to 0.98.9 form 0.98.beta.  Also cleaned up SPKG.txt and spkg-install.
 
 === tachyon-0.98beta.p11 (David Kirkby, May 23rd 2010) ===
  * #9024: tachyon is buiding 32-bit on OpenSolaris x64 even when SAGE64 is set to "yes"

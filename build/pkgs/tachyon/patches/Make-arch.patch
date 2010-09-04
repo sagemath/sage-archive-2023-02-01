@@ -1,72 +1,25 @@
---- ../src/unix/Make-arch	Sun May  6 06:12:48 2007
-+++ Make-arch	Sun May 23 22:46:54 2010
-@@ -53,6 +53,7 @@
- 	@echo "   solaris-ultra-thr - Sun Solaris 9/10 UI/Sun Threads, US-1/2" 
- 	@echo "  solaris-ultra3-thr - Sun Solaris 9/10 UI/Sun Threads, US-III" 
- 	@echo "      solaris-64-thr - Sun Solaris 9/10 UI/Sun Threads, 64-bit" 
-+	@echo "solaris-pthreads-gcc-64-bit - 64-bit (should work on SPARC or x64)" 
- 	@echo ""
- 	@echo "--------------------------------------------------------------"
- 	@echo "              Sequential Versions                             "
-@@ -473,6 +474,16 @@
- 	"STRIP = strip" \
- 	"LIBS = -L. -ltachyon $(MISCLIB) -lm -lpthread"
- 
-+solaris-pthreads-gcc-64-bit:
-+	$(MAKE) all \
-+	"ARCH = solaris-pthreads-gcc" \
-+	"CC = gcc" \
-+	"CFLAGS = -Wall -O4 -m64 -fomit-frame-pointer -ffast-math -D_REENTRANT -DSunOS $(MISCFLAGS) -DTHR -DUSEPOSIXTHREADS" \
-+	"AR = ar" \
-+	"ARFLAGS = r" \
-+	"STRIP = strip" \
-+	"LIBS = -L. -ltachyon $(MISCLIB) -lm -lpthread"
-+
- solaris-thr-x11:
- 	$(MAKE) all \
- 	"ARCH = solaris-thr-x11" \
-@@ -869,6 +880,17 @@
- 	"RANLIB = ranlib" \
- 	"LIBS = -L. -ltachyon $(MISCLIB)"
- 
-+macosx-64:
-+	$(MAKE) all \
-+	"ARCH = macosx" \
-+	"CC = cc" \
-+	"CFLAGS = -Os -m64 -ffast-math -DBsd $(MISCFLAGS)" \
-+	"AR = ar" \
-+	"ARFLAGS = r" \
-+	"STRIP = strip" \
-+	"RANLIB = ranlib" \
-+	"LIBS = -L. -ltachyon $(MISCLIB)"
-+
- macosx-thr:
- 	$(MAKE) all \
- 	"ARCH = macosx-thr" \
-@@ -956,7 +978,7 @@
- 	$(MAKE) all \
- 	"ARCH = win32" \
- 	"CC = gcc" \
--	"CFLAGS = -mpentium -Wall -O6 -fomit-frame-pointer -ffast-math -DWIN32 $(MISCFLAGS)" \
-+	"CFLAGS = -Wall -O6 -fomit-frame-pointer -ffast-math -DWIN32 $(MISCFLAGS)" \
- 	"AR = ar" \
- 	"ARFLAGS = r" \
- 	"STRIP = echo" \
-@@ -967,7 +989,7 @@
- 	$(MAKE) all \
- 	"ARCH = win32-mpi" \
- 	"CC = gcc" \
--	"CFLAGS = -mpentium -Wall -O6 -fomit-frame-pointer -ffast-math -DWIN32 $(MISCFLAGS) -I'/Program files/MPIPro/INCLUDE' -DMPI" \
-+	"CFLAGS = -Wall -O6 -fomit-frame-pointer -ffast-math -DWIN32 $(MISCFLAGS) -I'/Program files/MPIPro/INCLUDE' -DMPI" \
- 	"AR = ar" \
- 	"ARFLAGS = r" \
- 	"STRIP = echo" \
-@@ -1131,7 +1153,7 @@
- 	$(MAKE) all \
- 	"ARCH = linux-thr" \
- 	"CC = gcc" \
--	"CFLAGS = -m32 -Wall -O6 -fomit-frame-pointer -ffast-math -DLinux -DTHR -D_REENTRANT $(MISCFLAGS)" \
-+	"CFLAGS = -m32 -Wall -O6 -fomit-frame-pointer -ffast-math -DLinux -DTHR -D_REENTRANT $(MISCFLAGS) $(GCCFIX)" \
- 	"AR = ar" \
- 	"ARFLAGS = r" \
- 	"STRIP = strip" \
+55d54
+< 	@echo "solaris-pthreads-gcc-64-bit - 64-bit (should work on SPARC or x64)"
+484,493d482
+< solaris-pthreads-gcc-64-bit:
+< 	$(MAKE) all \
+< 	"ARCH = solaris-pthreads-gcc" \
+< 	"CC = gcc" \
+< 	"CFLAGS = -Wall -O4 -m64 -fomit-frame-pointer -ffast-math -D_REENTRANT -DSunOS $(MISCFLAGS) -DTHR -DUSEPOSIXTHREADS" \
+< 	"AR = ar" \
+< 	"ARFLAGS = r" \
+< 	"STRIP = strip" \
+< 	"LIBS = -L. -ltachyon $(MISCLIB) -lm -lpthread"
+< 
+900,910d888
+< macosx-64:
+< 	$(MAKE) all \
+< 	"ARCH = macosx" \
+< 	"CC = cc" \
+< 	"CFLAGS = -Os -m64 -ffast-math -DBsd $(MISCFLAGS)" \
+< 	"AR = ar" \
+< 	"ARFLAGS = r" \
+< 	"STRIP = strip" \
+< 	"RANLIB = ranlib" \
+< 	"LIBS = -L. -ltachyon $(MISCLIB)"
+< 

@@ -1,3 +1,0 @@
-compile/*/libtachyon.a usr/lib
-src/*.h usr/include/tachyon
-compile/*/libtachyon.so usr/lib

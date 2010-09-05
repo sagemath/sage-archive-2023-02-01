@@ -922,7 +922,9 @@ code = setup(name = 'sage',
                      'sage.server.trac',
 
                      'sage.structure',
-                     'sage.structure.proof'
+                     'sage.structure.proof',
+
+                     'sage.tensor'
                      ],
       scripts = [],
 

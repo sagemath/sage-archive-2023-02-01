@@ -138,6 +138,8 @@ from sage.parallel.all   import *
 from sage.ext.fast_callable  import fast_callable
 from sage.ext.fast_eval      import fast_float
 
+from sage.tensor.all     import *
+
 from copy import copy, deepcopy
 
 # The code executed here uses a large amount of Sage components

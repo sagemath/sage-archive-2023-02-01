@@ -90,6 +90,7 @@ Enjoy Sage!
    modfrm
    modabvar
    modmisc
+   tensor
 
    history_and_license
 

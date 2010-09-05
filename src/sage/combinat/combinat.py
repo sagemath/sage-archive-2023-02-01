@@ -642,6 +642,40 @@ def stirling_number2(n, k, algorithm=None):
         sage: type(n)
         <type 'sage.rings.integer.Integer'>
 
+     Sage's implementation splitting the computation of the Stirling
+     numbers of the second kind in two cases according to `n`, let us
+     check the result it gives agree with both maxima and gap.
+
+     For `n<200`::
+
+         sage: for n in Subsets(range(100,200), 5).random_element():
+         ...      for k in Subsets(range(n), 5).random_element():
+         ...         s_sage = stirling_number2(n,k)
+         ...         s_maxima = stirling_number2(n,k, algorithm = "maxima")
+         ...         s_gap = stirling_number2(n,k, algorithm = "gap")
+         ...         if not (s_sage == s_maxima and s_sage == s_gap):
+         ...             print "Error with n<200"
+
+     For `n\geq 200`::
+
+         sage: for n in Subsets(range(200,300), 5).random_element():
+         ...      for k in Subsets(range(n), 5).random_element():
+         ...         s_sage = stirling_number2(n,k)
+         ...         s_maxima = stirling_number2(n,k, algorithm = "maxima")
+         ...         s_gap = stirling_number2(n,k, algorithm = "gap")
+         ...         if not (s_sage == s_maxima and s_sage == s_gap):
+         ...             print "Error with n<200"
+
+
+     TESTS:
+
+     Checking an exception is raised whenever a wrong value is given
+     for ``algorithm``::
+
+         sage: s_sage = stirling_number2(50,3, algorithm = "CloudReading")
+         Traceback (most recent call last):
+         ...
+         ValueError: unknown algorithm: CloudReading
      """
     if algorithm is None:
         return _stirling_number2(n, k)

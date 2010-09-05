@@ -414,7 +414,8 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             sage: K.<c> = F.extension(Y^2 - (1 + a)*(a + b)*a*b)
             sage: I = K.ideal(3, c)
             sage: J = I.ideal_below(); J
-            Fractional ideal (-b)
+            Fractional ideal (b)   # 32-bit
+            Fractional ideal (-b)  # 64-bit
             sage: J.number_field() == F
             True
         """
@@ -592,7 +593,8 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             sage: I.relative_ramification_index()
             2
             sage: I.ideal_below()
-            Fractional ideal (b)
+            Fractional ideal (b)   # 32-bit
+            Fractional ideal (-b)  # 64-bit
             sage: K.ideal(b) == I^2
             True
         """

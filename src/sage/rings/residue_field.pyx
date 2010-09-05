@@ -14,7 +14,8 @@ EXAMPLES::
     841
 
 We reduce mod a prime for which the ring of integers is not
-monogenic (i.e., 2 is an essential discriminant divisor):
+monogenic (i.e., 2 is an essential discriminant divisor)::
+
     sage: K.<a> = NumberField(x^3 + x^2 - 2*x + 8)
     sage: F = K.factor(2); F
     (Fractional ideal (1/2*a^2 - 1/2*a + 1)) * (Fractional ideal (a^2 - 2*a + 3)) * (Fractional ideal (3/2*a^2 - 5/2*a + 4))
@@ -25,7 +26,8 @@ monogenic (i.e., 2 is an essential discriminant divisor):
     sage: F[2][0].residue_field()
     Residue field of Fractional ideal (3/2*a^2 - 5/2*a + 4)
 
-We can also form residue fields from ZZ:
+We can also form residue fields from ZZ::
+
     sage: ZZ.residue_field(17)
     Residue field of Integers modulo 17
 
@@ -35,7 +37,8 @@ AUTHORS:
     -- John Cremona (2008-9): extend reduction maps to the whole valuation ring
                               add support for residue fields of ZZ
 
-TESTS:
+TESTS::
+
     sage: K.<z> = CyclotomicField(7)
     sage: P = K.factor(17)[0][0]
     sage: ff = K.residue_field(P)
@@ -43,7 +46,8 @@ TESTS:
     sage: parent(a*a)
     Residue field in zbar of Fractional ideal (17)
 
-Reducing a curve modulo a prime:
+Reducing a curve modulo a prime::
+
     sage: K.<s> = NumberField(x^2+23)
     sage: OK = K.ring_of_integers()
     sage: E = EllipticCurve([0,0,0,K(1),K(5)])
@@ -52,7 +56,8 @@ Reducing a curve modulo a prime:
     sage: E.base_extend(Fpp)
     Elliptic Curve defined by y^2  = x^3 + x + 5 over Residue field of Fractional ideal (13, s - 4)
 
-Calculating Groebner bases over various residue fields.  First over a small non-prime field:
+Calculating Groebner bases over various residue fields.  First over a small non-prime field::
+
     sage: F1.<u> = NumberField(x^6 + 6*x^5 + 124*x^4 + 452*x^3 + 4336*x^2 + 8200*x + 42316)
     sage: reduct_id = F1.factor(47)[0][0]
     sage: Rf = F1.residue_field(reduct_id)
@@ -67,7 +72,8 @@ Calculating Groebner bases over various residue fields.  First over a small non-
     sage: I.groebner_basis()
     [X + (-19*ubar^2 - 5*ubar - 17)*Y]
 
-And now over a large prime field:
+And now over a large prime field::
+
     sage: x = ZZ['x'].0
     sage: F1.<u> = NumberField(x^2 + 6*x + 324)
     sage: reduct_id = F1.prime_above(next_prime(2^42))
@@ -125,22 +131,26 @@ def ResidueField(p, names = None, check = True):
     of the ring of integers of a number field.
 
     INPUT:
-        p -- a prime ideal of an order in a number field.
-        names -- the variable name for the finite field created.
-                 Defaults to the name of the number field variable but
-                 with bar placed after it.
-        check -- whether or not to check if p is prime.
+
+        - ``p`` -- a prime ideal of an order in a number field.
+        - ``names`` -- the variable name for the finite field created.
+          Defaults to the name of the number field variable but with
+          bar placed after it.
+        - ``check`` -- whether or not to check if p is prime.
 
     OUTPUT:
-         -- The residue field at the prime p.
 
-    EXAMPLES:
+         - The residue field at the prime p.
+
+    EXAMPLES::
+
         sage: K.<a> = NumberField(x^3-7)
         sage: P = K.ideal(29).factor()[0][0]
         sage: ResidueField(P)
         Residue field in abar of Fractional ideal (2*a^2 + 3*a - 10)
 
-    The result is cached:
+    The result is cached::
+
         sage: ResidueField(P) is ResidueField(P)
         True
         sage: k = K.residue_field(P); k
@@ -149,7 +159,8 @@ def ResidueField(p, names = None, check = True):
         841
 
     An example where the generator of the number field doesn't
-    generate the residue class field.
+    generate the residue class field::
+
         sage: K.<a> = NumberField(x^3-875)
         sage: P = K.ideal(5).factor()[0][0]; k = K.residue_field(P); k
         Residue field in abar of Fractional ideal (5, -2/25*a^2 - 1/5*a + 2)
@@ -158,7 +169,8 @@ def ResidueField(p, names = None, check = True):
         sage: k.0^3 - 875
         2
 
-    An example where the residue class field is large but of degree 1:
+    An example where the residue class field is large but of degree 1::
+
         sage: K.<a> = NumberField(x^3-875); P = K.ideal(2007).factor()[0][0]; k = K.residue_field(P); k
         Residue field of Fractional ideal (-2/25*a^2 - 2/5*a - 3)
         sage: k(a)
@@ -167,7 +179,8 @@ def ResidueField(p, names = None, check = True):
         0
 
     In this example, 2 is an inessential discriminant divisor, so divides
-    the index of ZZ[a] in the maximal order for all a.
+    the index of ZZ[a] in the maximal order for all a::
+
         sage: K.<a> = NumberField(x^3 + x^2 - 2*x + 8); P = K.ideal(2).factor()[0][0]; P
         Fractional ideal (1/2*a^2 - 1/2*a + 1)
         sage: F = K.residue_field(P); F
@@ -288,7 +301,8 @@ class ResidueField_generic(Field):
     """
     The class representing a generic residue field.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: I = QQ[i].factor(2)[0][0]; I
         Fractional ideal (I + 1)
         sage: k = I.residue_field(); k
@@ -299,9 +313,10 @@ class ResidueField_generic(Field):
     def __init__(self, p, f, intp):
         """
         INPUT:
-           p -- the prime (ideal) defining this residue field
-           f -- the morphism from the order to self.
-           intp -- the rational prime that p lives over.
+
+           - ``p`` -- the prime (ideal) defining this residue field
+           - ``f`` -- the morphism from the order to self.
+           - ``intp`` -- the rational prime that p lives over.
 
         EXAMPLES::
 
@@ -330,7 +345,8 @@ class ResidueField_generic(Field):
         r"""
         Return the maximal ideal that this residue field is the quotient by.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K.<a> = NumberField(x^3 + x + 1)
             sage: P = K.ideal(29).factor()[0][0]
             sage: k = K.residue_field(P) # indirect doctest
@@ -346,7 +362,8 @@ class ResidueField_generic(Field):
 
     def coerce_map_from_impl(self, R):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K.<i> = NumberField(x^2+1)
             sage: P = K.ideal(-3*i-2)
             sage: OK = K.maximal_order()
@@ -365,7 +382,8 @@ class ResidueField_generic(Field):
         """
         Returns a string describing this residue field.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K.<a> = NumberField(x^3-7)
             sage: P = K.ideal(29).factor()[0][0]
             sage: k = K.residue_field(P)
@@ -384,7 +402,8 @@ class ResidueField_generic(Field):
         Returns a lift of x to the Order, returning a "polynomial" in the
         generator with coefficients between 0 and $p-1$.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K.<a> = NumberField(x^3-7)
             sage: P = K.ideal(29).factor()[0][0]
             sage: k =K.residue_field(P)
@@ -406,7 +425,8 @@ class ResidueField_generic(Field):
         Return the partially defined reduction map from the number
         field to this residue class field.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: I = QQ[2^(1/3)].factor(2)[0][0]; I
             Fractional ideal (a)
             sage: k = I.residue_field(); k
@@ -422,7 +442,8 @@ class ResidueField_generic(Field):
 
     def lift_map(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: I = QQ[3^(1/3)].factor(5)[1][0]; I
             Fractional ideal (a - 2)
             sage: k = I.residue_field(); k
@@ -443,11 +464,12 @@ class ResidueField_generic(Field):
         Compares two residue fields: they are equal iff the primes
         defining them are equal.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K.<a> = NumberField(x^3-11)
             sage: F = K.ideal(37).factor(); F
-            (Fractional ideal (37, a + 12)) * (Fractional ideal (-2*a + 5)) * (Fractional ideal (37, a + 9))  # 32-bit
-            (Fractional ideal (37, a + 12)) * (Fractional ideal  (2*a - 5)) * (Fractional ideal (37, a + 9))  # 64-bit
+            (Fractional ideal (37, a + 12)) * (Fractional ideal (2*a - 5)) * (Fractional ideal (37, a + 9))   # 32-bit
+            (Fractional ideal (37, a + 12)) * (Fractional ideal (-2*a + 5)) * (Fractional ideal (37, a + 9))  # 64-bit
             sage: k = K.residue_field(F[0][0])
             sage: l = K.residue_field(F[1][0])
             sage: k == l
@@ -464,7 +486,8 @@ class ResidueField_generic(Field):
         r"""
         Return the hash of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K.<a> = NumberField(x^3 + x + 1)
             sage: hash(K.residue_field(K.prime_above(17))) # random
             -6463132282686559142
@@ -478,7 +501,8 @@ class ReductionMap:
     A reduction map from a (subset) of a number field to this residue
     class field.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: I = QQ[sqrt(17)].factor(5)[0][0]; I
         Fractional ideal (5)
         sage: k = I.residue_field(); k
@@ -490,7 +514,8 @@ class ReductionMap:
         """
         Create a reduction map.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K.<a> = NumberField(x^3 + x^2 - 2*x + 8)
             sage: F = K.factor(2)[0][0].residue_field()
             sage: F.reduction_map()
@@ -505,7 +530,8 @@ class ReductionMap:
         """
         Return the domain of this reduction map.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K.<a> = NumberField(x^3 + x^2 - 2*x + 32)
             sage: F = K.factor(2)[0][0].residue_field()
             sage: F.reduction_map().domain()
@@ -517,7 +543,8 @@ class ReductionMap:
         """
         Return the codomain of this reduction map.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K.<a> = NumberField(x^3 + 128)
             sage: F = K.factor(2)[0][0].residue_field()
             sage: F.reduction_map().codomain()
@@ -532,7 +559,8 @@ class ReductionMap:
         If x doesn't map because it has negative valuation, then a
         ZeroDivisionError exception is raised.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K.<a> = NumberField(x^2 + 1)
             sage: F = K.factor(2)[0][0].residue_field()
             sage: r = F.reduction_map(); r
@@ -545,7 +573,8 @@ class ReductionMap:
             ZeroDivisionError: Cannot reduce field element 1/2*a modulo Fractional ideal (a + 1): it has negative valuation
 
         An example to show that the issue raised in trac \#1951
-        has been fixed.
+        has been fixed::
+
             sage: K.<i> = NumberField(x^2 + 1)
             sage: P1, P2 = [g[0] for g in K.factor(5)]; (P1,P2)
             (Fractional ideal (i + 2), Fractional ideal (-i + 2))
@@ -562,8 +591,8 @@ class ReductionMap:
             -1
             sage: F2(a)
             Traceback (most recent call last):
+            ...
             ZeroDivisionError: Cannot reduce field element -2/5*i + 1/5 modulo Fractional ideal (-i + 2): it has negative valuation
-
         """
         # The reduction map is just x |--> F(to_vs(x) * (PB**(-1))) if
         # either x is integral or the denominator of x is coprime to
@@ -578,14 +607,14 @@ class ReductionMap:
             except ZeroDivisionError:
                 raise ZeroDivisionError, "Cannot reduce rational %s modulo %s: it has negative valuation"%(x,p)
 
-        dx = x.denominator()
-        if x.is_integral() or dx.gcd(ZZ(p.absolute_norm())) == 1:
+        try:
             return self.__F(self.__to_vs(x) * self.__PBinv)
+        except: pass
 
         # Now we do have to work harder...below this point we handle
         # cases which failed before trac 1951 was fixed.
         R = self.__K.ring_of_integers()
-        dx = R(dx)
+        dx = R(x.denominator())
         nx = R(dx*x)
         vnx = nx.valuation(p)
         vdx = dx.valuation(p)
@@ -593,6 +622,7 @@ class ReductionMap:
             return self(0)
         if vnx < vdx:
             raise ZeroDivisionError, "Cannot reduce field element %s modulo %s: it has negative valuation"%(x,p)
+
         a = self.__K.uniformizer(p,'negative') ** vnx
         nx /= a
         dx /= a
@@ -609,7 +639,8 @@ class ReductionMap:
 
     def __repr__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K.<theta_5> = CyclotomicField(5)
             sage: F = K.factor(7)[0][0].residue_field()
             sage: F.reduction_map().__repr__()
@@ -621,7 +652,8 @@ class LiftingMap:
     """
     Lifting map from residue class field to number field.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: K.<a> = NumberField(x^3 + 2)
         sage: F = K.factor(5)[0][0].residue_field()
         sage: F.degree()
@@ -637,7 +669,8 @@ class LiftingMap:
         """
         Create a lifting map.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K.<theta_5> = CyclotomicField(5)
             sage: F = K.factor(7)[0][0].residue_field()
             sage: F.lift_map()
@@ -666,7 +699,8 @@ class LiftingMap:
         """
         Return the codomain of this lifting map.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K.<a> = CyclotomicField(7)
             sage: F = K.factor(5)[0][0].residue_field()
             sage: L = F.lift_map(); L
@@ -680,7 +714,8 @@ class LiftingMap:
         """
         Lift from this residue class field to the number field.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K.<a> = CyclotomicField(7)
             sage: F = K.factor(5)[0][0].residue_field()
             sage: L = F.lift_map(); L
@@ -700,7 +735,8 @@ class LiftingMap:
 
     def __repr__(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K.<theta_12> = CyclotomicField(12)
             sage: F.<tmod> = K.factor(7)[0][0].residue_field()
             sage: F.lift_map().__repr__()
@@ -716,7 +752,8 @@ cdef class NFResidueFieldHomomorphism(ResidueFieldHomomorphism):
     The class representing a homomorphism from the order of a number
     field to the residue field at a given prime.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: K.<a> = NumberField(x^3-7)
         sage: P  = K.ideal(29).factor()[0][0]
         sage: k  = K.residue_field(P)
@@ -738,7 +775,9 @@ cdef class NFResidueFieldHomomorphism(ResidueFieldHomomorphism):
            im_gen -- The image of the generator of the number field.
 
         EXAMPLES:
-        We create a residue field homomorphism:
+
+        We create a residue field homomorphism::
+
             sage: K.<theta> = CyclotomicField(5)
             sage: P = K.factor(7)[0][0]
             sage: P.residue_class_degree()
@@ -759,9 +798,10 @@ cdef class NFResidueFieldHomomorphism(ResidueFieldHomomorphism):
 
     cpdef Element _call_(self, x):
         """
-        Applies this morphism to an element
+        Applies this morphism to an element.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K.<a> = NumberField(x^3-x+8)
             sage: P = K.ideal(29).factor()[0][0]
             sage: k =K.residue_field(P)
@@ -779,7 +819,8 @@ cdef class NFResidueFieldHomomorphism(ResidueFieldHomomorphism):
         Returns a lift of x to the Order, returning a "polynomial" in
         the generator with coefficients between 0 and p-1.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K.<a> = NumberField(x^3-7)
             sage: P = K.ideal(29).factor()[0][0]
             sage: k = K.residue_field(P)
@@ -804,7 +845,8 @@ class ResidueFiniteField_prime_modn(ResidueField_generic, FiniteField_prime_modn
     """
     The class representing residue fields of number fields that have prime order.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: R.<x> = QQ[]
         sage: K.<a> = NumberField(x^3-7)
         sage: P = K.ideal(29).factor()[1][0]
@@ -828,12 +870,14 @@ class ResidueFiniteField_prime_modn(ResidueField_generic, FiniteField_prime_modn
     def __init__(self, p, name, im_gen = None, intp = None):
         """
         INPUT:
-           p -- A prime ideal of a number field.
-           name -- the name of the generator of this extension
-           im_gen -- the image of the generator of the number field in this finite field.
-           intp -- the rational prime that p lies over.
 
-        EXAMPLES:
+           - ``p`` -- A prime ideal of a number field.
+           - ``name`` -- the name of the generator of this extension
+           - ``im_gen`` -- the image of the generator of the number field in this finite field.
+           - ``intp`` -- the rational prime that p lies over.
+
+        EXAMPLES::
+
             sage: K.<i> = QuadraticField(-1)
             sage: kk = ResidueField(K.factor(5)[0][0])
             sage: type(kk)
@@ -851,9 +895,11 @@ class ResidueFiniteField_prime_modn(ResidueField_generic, FiniteField_prime_modn
     def __call__(self, x):
         """
         INPUT:
-           x -- something to cast in to self.
 
-        EXAMPLES:
+           - ``x`` -- something to cast in to self.
+
+        EXAMPLES::
+
             sage: R.<x> = QQ[]
             sage: K.<a> = NumberField(x^3-7)
             sage: P = K.ideal(29).factor()[1][0]
@@ -881,7 +927,8 @@ class ResidueFiniteField_ext_pari(ResidueField_generic, FiniteField_ext_pari):
     """
     The class representing residue fields of number fields that have non-prime order >= 2^16.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: K.<a> = NumberField(x^3-7)
         sage: P = K.ideal(923478923).factor()[0][0]
         sage: k = K.residue_field(P)
@@ -897,8 +944,10 @@ class ResidueFiniteField_ext_pari(ResidueField_generic, FiniteField_ext_pari):
     """
     def __init__(self, p, q, name, g, intp):
         """
-        EXAMPLES:
-        We create an ext_pari residue field:
+        EXAMPLES::
+
+        We create an ext_pari residue field::
+
             sage: K.<a> = NumberField(x^3-7)
             sage: P = K.ideal(923478923).factor()[0][0]
             sage: type(P.residue_field())
@@ -913,7 +962,8 @@ class ResidueFiniteField_ext_pari(ResidueField_generic, FiniteField_ext_pari):
         """
         Coerce x into self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K.<aa> = NumberField(x^3 - 2)
             sage: P = K.factor(10007)[0][0]
             sage: P.residue_class_degree()
@@ -940,7 +990,8 @@ class ResidueFiniteField_givaro(ResidueField_generic, FiniteField_givaro):
     """
     The class representing residue fields of number fields that have non-prime order < 2**16.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: R.<x> = QQ[]
         sage: K.<a> = NumberField(x^3-7)
         sage: P = K.ideal(29).factor()[0][0]
@@ -958,13 +1009,15 @@ class ResidueFiniteField_givaro(ResidueField_generic, FiniteField_givaro):
     def __init__(self, p, q, name, g, intp):
         """
         INPUT:
-           p -- the prime ideal defining this residue field
-           q -- the order of this residue field (a power of intp)
-           name -- the name of the generator of this extension
-           g -- the polynomial modulus for this extension
-           intp -- the rational prime that p lies over.
 
-        EXAMPLES:
+           - ``p`` -- the prime ideal defining this residue field
+           - ``q`` -- the order of this residue field (a power of intp)
+           - ``name`` -- the name of the generator of this extension
+           - ``g`` -- the polynomial modulus for this extension
+           - ``intp`` -- the rational prime that p lies over.
+
+        EXAMPLES::
+
             sage: R.<x> = QQ[]
             sage: K.<a> = NumberField(x^4+3*x^2-17)
             sage: P = K.ideal(61).factor()[0][0]
@@ -978,9 +1031,11 @@ class ResidueFiniteField_givaro(ResidueField_generic, FiniteField_givaro):
     def __call__(self, x):
         """
         INPUT:
-          x -- Something to cast into self.
 
-        EXAMPLES:
+            - x -- Something to cast into self.
+
+        EXAMPLES::
+
             sage: R.<x> = QQ[]
             sage: K.<a> = NumberField(x^4+3*x^2-17)
             sage: P = K.ideal(61).factor()[0][0]

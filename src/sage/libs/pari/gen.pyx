@@ -6438,18 +6438,53 @@ cdef class gen(sage.structure.element.RingElement):
         _sig_on
         return self.new_gen(modreverse(self.g))
 
-    def nfbasis(self, long flag=0, p=0):
-        cdef gen _p
-        cdef GEN g
-        if p != 0:
-            _p = self.pari(p)
-            g = _p.g
-        else:
-            g = <GEN>NULL
-        _sig_on
-        return self.new_gen(nfbasis0(self.g, flag, g))
+    def nfbasis(self, long flag=0, fa=0):
+        """
+        nfbasis(x, flag, fa): integral basis of the field QQ[a], where ``a`` is
+        a root of the polynomial x.
 
-    def nfbasis_d(self, long flag=0, p=0):
+        Binary digits of ``flag`` mean:
+         - 1: assume that no square of a prime>primelimit divides the
+              discriminant of ``x``.
+         - 2: use round 2 algorithm instead of round 4.
+
+        If present, ``fa`` provides the matrix of a partial factorization of
+        the discriminant of ``x``, useful if one wants only an order maximal at
+        certain primes only.
+
+        EXAMPLES::
+
+            sage: pari('x^3 - 17').nfbasis()
+            [1, x, 1/3*x^2 - 1/3*x + 1/3]
+
+        We test ``flag`` = 1, noting it gives a wrong result when the
+        discriminant (-4 * `p`^2 * `q` in the example below) has a big square
+        factor::
+
+            sage: p = next_prime(10^10); q = next_prime(p)
+            sage: x = polygen(QQ); f = x^2 + p^2*q
+            sage: pari(f).nfbasis(1)   # Wrong result
+            [1, x]
+            sage: pari(f).nfbasis()    # Correct result
+            [1, 1/10000000019*x]
+            sage: pari(f).nfbasis(fa = "[2,2; %s,2]"%p)    # Correct result and faster
+            [1, 1/10000000019*x]
+
+        TESTS:
+
+        ``flag`` = 2 should give the same result::
+
+            sage: pari('x^3 - 17').nfbasis(flag = 2)
+            [1, x, 1/3*x^2 - 1/3*x + 1/3]
+        """
+        global t0
+        t0GEN(fa)
+        if typ(t0) != t_MAT:
+            t0 = <GEN>0
+        _sig_on
+        return self.new_gen(nfbasis0(self.g, flag, t0))
+
+    def nfbasis_d(self, long flag=0, fa=0):
         """
         nfbasis_d(x): Return a basis of the number field defined over QQ
         by x and its discriminant.
@@ -6471,18 +6506,15 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari([-2,0,0,1]).Polrev().nfbasis_d()
             ([1, x, x^2], -108)
         """
-        cdef gen d
-        cdef GEN g
-
-        if p:
-            g = (<gen>self.pari(p)).g
-        else:
-            g = <GEN>NULL
-
+        global t0
+        cdef GEN disc
+        t0GEN(fa)
+        if typ(t0) != t_MAT:
+            t0 = <GEN>0
         _sig_on
-        nfb = self.new_gen(nfbasis(self.g, &t0, flag, g))
-        d = self.new_gen(t0)
-        return nfb, d
+        B = self.new_gen_noclear(nfbasis(self.g, &disc, flag, t0))
+        D = self.new_gen(disc);
+        return B,D
 
     def nfdisc(self, long flag=0, p=0):
         """
@@ -6549,9 +6581,67 @@ cdef class gen(sage.structure.element.RingElement):
         x = f.variable()
         return x.Mod(f)
 
-    def nfinit(self, long flag=0):
+    def nfinit(self, long flag=0, long precision=0):
+        """
+        nfinit(pol, {flag=0}): ``pol`` being a nonconstant irreducible
+        polynomial, gives a vector containing all the data necessary for PARI
+        to compute in this number field.
+
+        ``flag`` is optional and can be set to:
+         - 0: default
+         - 1: do not compute different
+         - 2: first use polred to find a simpler polynomial
+         - 3: outputs a two-element vector [nf,Mod(a,P)], where nf is as in 2
+              and Mod(a,P) is a polmod equal to Mod(x,pol) and P=nf.pol
+
+        EXAMPLES::
+
+            sage: pari('x^3 - 17').nfinit()
+            [x^3 - 17, [1, 1], -867, 3, [[1, 1.68006..., 2.57128...; 1, -0.340034... + 2.65083...*I, -1.28564... - 2.22679...*I], [1, 1.68006..., 2.57128...; 1, 2.31080..., -3.51243...; 1, -2.99087..., 0.941154...], [1, 2, 3; 1, 2, -4; 1, -3, 1], [3, 1, 0; 1, -11, 17; 0, 17, 0], [51, 0, 16; 0, 17, 3; 0, 0, 1], [17, 0, -1; 0, 0, 3; -1, 3, 2], [51, [-17, 6, -1; 0, -18, 3; 1, 0, -16]]], [2.57128..., -1.28564... - 2.22679...*I], [1, 1/3*x^2 - 1/3*x + 1/3, x], [1, 0, -1; 0, 0, 3; 0, 1, 1], [1, 0, 0, 0, -4, 6, 0, 6, -1; 0, 1, 0, 1, 1, -1, 0, -1, 3; 0, 0, 1, 0, 2, 0, 1, 0, 1]]
+
+        TESTS:
+
+        This example only works after increasing precision::
+
+            sage: pari('x^2 + 10^100 + 1').nfinit(precision=64)
+            Traceback (most recent call last):
+            ...
+            PariError: precision too low (10)
+            sage: pari('x^2 + 10^100 + 1').nfinit()
+            [...]
+
+        Throw a PARI error which is not precer::
+
+            sage: pari('1.0').nfinit()
+            Traceback (most recent call last):
+            ...
+            PariError: incorrect type (11)
+        """
+
+        # If explicit precision is given, use only that
+        if precision:
+            return self._nfinit_with_prec(flag, precision)
+
+        # Otherwise, start with 64 bits of precision and increase as needed:
+        precision = 64
+        while True:
+            try:
+                return self._nfinit_with_prec(flag, precision)
+            except PariError, err:
+                if err.errnum() == precer:
+                    precision *= 2
+                else:
+                    raise err
+
+    # NOTE: because of the way _sig_on and Cython exceptions work, this
+    # function MUST NOT be folded into nfinit() above. It has to be a
+    # seperate function.
+    def _nfinit_with_prec(self, long flag, long precision):
+        """
+        See ``self.nfinit()``.
+        """
         _sig_on
-        return P.new_gen(nfinit0(self.g, flag, prec))
+        return P.new_gen(nfinit0(self.g, flag, pbw(precision)))
 
     def nfisisom(self, gen other):
         """
@@ -6875,7 +6965,7 @@ cdef class gen(sage.structure.element.RingElement):
         _sig_on
         return self.new_gen(polgalois(self.g, prec))
 
-    def nfgaloisconj(self, long flag=0, denom=None, long prec=0):
+    def nfgaloisconj(self, long flag=0, denom=None, long precision=0):
         r"""
         Edited from the pari documentation:
 
@@ -6902,7 +6992,7 @@ cdef class gen(sage.structure.element.RingElement):
         else:
             t0 = NULL
         _sig_on
-        return self.new_gen(galoisconj0(self.g, flag, t0, pbw(prec)))
+        return self.new_gen(galoisconj0(self.g, flag, t0, pbw(precision)))
 
     def nfroots(self, poly):
         r"""
@@ -9275,9 +9365,12 @@ cdef int _read_script(char* s) except -1:
 
 cdef extern from "pari/pari.h":
     char *errmessage[]
-    int user
-    int errpile
-    int noer
+    int talker2, bugparier, alarmer, openfiler, talker, flagerr, impl, \
+        archer, notfuncer, precer, typeer, consister, user, errpile, \
+        overflower, matinv1, mattype1, arither1, primer1, invmoder, \
+        constpoler, notpoler, redpoler, zeropoler, operi, operf, gdiver, \
+        memer, negexper, sqrter5, noer
+    int warner, warnprec, warnfile, warnmem
 
 cdef extern from "misc.h":
     int     factorint_withproof_sage(GEN* ans, GEN x, GEN cutoff)
@@ -9300,11 +9393,41 @@ class PariError (RuntimeError):
 
     errmessage = staticmethod(__errmessage)
 
+    def errnum(self):
+        r"""
+        Return the PARI error number corresponding to this exception.
+
+        EXAMPLES::
+
+            sage: try:
+            ...     pari('1/0')
+            ... except PariError, err:
+            ...     print err.errnum()
+            27
+        """
+        return self.args[0]
+
     def __repr__(self):
-        return "PariError(%d)"%self.args[0]
+        r"""
+        TESTS::
+
+            sage: PariError(11)
+            PariError(11)
+        """
+        return "PariError(%d)"%self.errnum()
 
     def __str__(self):
-        return "%s (%d)"%(self.errmessage(self.args[0]),self.args[0])
+        r"""
+        EXAMPLES::
+
+            sage: try:
+            ...     pari('1/0')
+            ... except PariError, err:
+            ...     print err
+            division by zero (27)
+        """
+        return "%s (%d)"%(self.errmessage(self.errnum()), self.errnum())
+
 
 # We expose a trap function to C.
 # If this function returns without raising an exception,

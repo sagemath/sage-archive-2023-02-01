@@ -248,7 +248,10 @@ from sage.rings.real_lazy import RLF, CLF
 
 
 _nf_cache = {}
-def NumberField(polynomial, name=None, check=True, names=None, cache=True, embedding=None, latex_name=None):
+def NumberField(polynomial, name=None, check=True, names=None, cache=True,
+                embedding=None, latex_name=None,
+                assume_disc_small=False,
+                maximize_at_primes=None):
     r"""
     Return *the* number field defined by the given irreducible
     polynomial and with variable with the given name. If check is True
@@ -257,14 +260,23 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True, embed
 
     INPUT:
 
-    -  ``polynomial`` - a polynomial over `\QQ` or a number
-       field, or a list of polynomials.
-    -  ``name`` - a string (default: 'a'), the name of the
-       generator
-    -  ``check`` - bool (default: True); do type checking
-       and irreducibility checking.
-    -  ``embedding`` - image of the generator in an ambient
-       field (default: None)
+        - ``polynomial`` - a polynomial over `\QQ` or a number field,
+          or a list of polynomials.
+        - ``name`` - a string (default: 'a'), the name of the generator
+        - ``check`` - bool (default: True); do type checking and
+          irreducibility checking.
+        - ``embedding`` - image of the generator in an ambient field
+          (default: None)
+        - ``assume_disc_small`` -- (default: False); if True, assume
+          that no square of a prime greater than PARI's primelimit
+          (which should be 500000); only applies for absolute fields
+          at present.
+        - ``maximize_at_primes`` -- (default: None) None or a list of
+          primes; if not None, then the maximal order is computed by
+          maximizing only at the primes in this list, which completely
+          avoids having to factor the discriminant, but of course can
+          lead to wrong results; only applies for absolute fields at
+          present.
 
     EXAMPLES::
 
@@ -454,7 +466,8 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True, embed
 
     if cache:
         key = (polynomial, polynomial.base_ring(), name, latex_name,
-               embedding, embedding.parent() if embedding is not None else None)
+               embedding, embedding.parent() if embedding is not None else None,
+               assume_disc_small, None if maximize_at_primes is None else tuple(maximize_at_primes))
         if _nf_cache.has_key(key):
             K = _nf_cache[key]()
             if not K is None: return K
@@ -466,9 +479,11 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True, embed
         return S
 
     if polynomial.degree() == 2:
-        K = NumberField_quadratic(polynomial, name, latex_name, check, embedding)
+        K = NumberField_quadratic(polynomial, name, latex_name, check, embedding,
+             assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes)
     else:
-        K = NumberField_absolute(polynomial, name, latex_name, check, embedding)
+        K = NumberField_absolute(polynomial, name, latex_name, check, embedding,
+             assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes)
 
     if cache:
         _nf_cache[key] = weakref.ref(K)
@@ -926,7 +941,8 @@ class NumberField_generic(number_field_base.NumberField):
     """
     def __init__(self, polynomial, name,
                  latex_name=None, check=True, embedding=None,
-                 category = None):
+                 category = None,
+                 assume_disc_small=False, maximize_at_primes=None):
         """
         Create a number field.
 
@@ -978,7 +994,8 @@ class NumberField_generic(number_field_base.NumberField):
             ...
             TypeError: polynomial must be defined over rational field
         """
-
+        self._assume_disc_small = assume_disc_small
+        self._maximize_at_primes = maximize_at_primes
         from sage.categories.number_fields import NumberFields
         default_category = NumberFields()
         if category is None:
@@ -2387,7 +2404,7 @@ class NumberField_generic(number_field_base.NumberField):
         """
         PARI number field corresponding to this field.
 
-        This is the number field constructed using nfinit. This is the same
+        This is the number field constructed using nfinit(). This is the same
         as the number field got by doing pari(self) or gp(self).
 
         EXAMPLES::
@@ -2415,6 +2432,23 @@ class NumberField_generic(number_field_base.NumberField):
             Traceback (most recent call last):
             ...
             TypeError: Unable to coerce number field defined by non-integral polynomial to PARI.
+
+        We illustrate the maximize_at_primes and assume_disc_small parameters::
+
+            sage: p = next_prime(10^40); q = next_prime(p)
+
+        The following would take a very long time without the
+        maximize_at_primes option above::
+
+            sage: K.<a> = NumberField(x^2 - p*q, maximize_at_primes=[p])
+            sage: K.pari_nf()
+            [x^2 - 100000000000000000000...]
+
+        Since the discriminant is square-free, this also works::
+
+            sage: K.<a> = NumberField(x^2 - p*q, assume_disc_small=True)
+            sage: K.pari_nf()
+            [x^2 - 100000000000000000000...]
         """
         if self.absolute_polynomial().denominator() != 1:
             raise TypeError, "Unable to coerce number field defined by non-integral polynomial to PARI."
@@ -2422,12 +2456,29 @@ class NumberField_generic(number_field_base.NumberField):
             return self.__pari_nf
         except AttributeError:
             f = self.pari_polynomial()
-            self.__pari_nf = f.nfinit()
+            self.__pari_nf = pari([f, self._pari_integral_basis()]).nfinit()
             return self.__pari_nf
+
+    def _pari_(self):
+        """
+        Converts this number field to PARI.
+
+        This only works if the defining polynomial of this number field is
+        integral and monic.
+
+        EXAMPLES::
+
+            sage: k = NumberField(x^2 + x + 1, 'a')
+            sage: k._pari_()
+            [x^2 + x + 1, [0, 1], -3, 1, ... [1, x], [1, 0; 0, 1], [1, 0, 0, -1; 0, 1, 1, -1]]
+            sage: pari(k)
+            [x^2 + x + 1, [0, 1], -3, 1, ...[1, x], [1, 0; 0, 1], [1, 0, 0, -1; 0, 1, 1, -1]]
+        """
+        return self.pari_nf()
 
     def _pari_init_(self):
         """
-        Needed for conversion of number field to PARI.
+        Converts this number field to PARI.
 
         This only works if the defining polynomial of this number field is
         integral and monic.
@@ -2436,15 +2487,11 @@ class NumberField_generic(number_field_base.NumberField):
 
             sage: k = NumberField(x^2 + x + 1, 'a')
             sage: k._pari_init_()
-            'nfinit(x^2 + x + 1)'
-            sage: k._pari_()
-            [x^2 + x + 1, [0, 1], -3, 1, ... [1, x], [1, 0; 0, 1], [1, 0, 0, -1; 0, 1, 1, -1]]
-            sage: pari(k)
+            '[x^2 + x + 1, [0, 1], -3, 1, ... [1, x], [1, 0; 0, 1], [1, 0, 0, -1; 0, 1, 1, -1]]'
+            sage: gp(k)
             [x^2 + x + 1, [0, 1], -3, 1, ...[1, x], [1, 0; 0, 1], [1, 0, 0, -1; 0, 1, 1, -1]]
         """
-        if self.absolute_polynomial().denominator() != 1:
-            raise TypeError, "Unable to coerce number field defined by non-integral polynomial to PARI."
-        return 'nfinit(%s)'%self.pari_polynomial()
+        return str(self.pari_nf())
 
     def pari_bnf(self, certify=False, units=True):
         """
@@ -2824,7 +2871,8 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.selmer_group([K.ideal(2, -a+1), K.ideal(3, a+1)], 3)
             [2, a + 1]
             sage: K.selmer_group([K.ideal(2, -a+1), K.ideal(3, a+1), K.ideal(a)], 3)
-            [2, a + 1, a]
+            [2, a + 1, a]    # 32-bit
+            [2, a + 1, -a]   # 64-bit
             sage: K.<a> = NumberField(polygen(QQ))
             sage: K.selmer_group([],5)
             []
@@ -3652,17 +3700,14 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.integral_basis()
             [1, 1/2*a^2 + 1/2*a, a^2]
 
-        ALGORITHM: Uses the pari library.
+        ALGORITHM: Uses the pari library (via _pari_integral_basis).
         """
-        return self.maximal_order().basis()
+        return self.maximal_order(v=v).basis()
 
-    def _compute_integral_basis(self, v=None):
+    def _pari_integral_basis(self, v=None):
         """
-        Internal function returning an integral basis of this number field;
-        used in the maximal_order() function.
-
-        Note that this is *not* necessarily the same basis returned by
-        self.integral_basis().
+        Internal function returning an integral basis of this number field in
+        PARI format.
 
         INPUT:
 
@@ -3674,8 +3719,8 @@ class NumberField_generic(number_field_base.NumberField):
         EXAMPLES::
 
             sage: K.<a> = NumberField(x^5 + 10*x + 1)
-            sage: K._compute_integral_basis()
-            [1, a, a^2, a^3, a^4]
+            sage: K._pari_integral_basis()
+            [1, x, x^2, x^3, x^4]
 
         Next we compute the ring of integers of a cubic field in which 2 is
         an "essential discriminant divisor", so the ring of integers is not
@@ -3684,31 +3729,55 @@ class NumberField_generic(number_field_base.NumberField):
         ::
 
             sage: K.<a> = NumberField(x^3 + x^2 - 2*x + 8)
-            sage: K._compute_integral_basis()
-            [1, a, 1/2*a^2 - 1/2*a]
+            sage: K._pari_integral_basis()
+            [1, x, 1/2*x^2 - 1/2*x]
             sage: K.integral_basis()
             [1, 1/2*a^2 + 1/2*a, a^2]
         """
+        if (v is None or len(v) == 0) and self._maximize_at_primes:
+            v = self._maximize_at_primes
+
         v = self._normalize_prime_list(v)
         try:
             return self._integral_basis_dict[v]
         except:
             f = self.pari_polynomial()
-
             if len(v) == 0:
-                B = f.nfbasis()
+                B = f.nfbasis(1 if self._assume_disc_small else 0)
             else:
-                m = pari.matrix(len(v), 2)
-                d = f.poldisc()
-                for i in range(len(v)):
-                    p = pari(ZZ(v[i]))
-                    m[i,0] = p
-                    m[i,1] = d.valuation(p)
-                B = f.nfbasis(p = m)
+                m = self._pari_disc_factorization_matrix(v)
+                B = f.nfbasis(fa = m)
 
-            basis = map(self, B)
-            self._integral_basis_dict[v] = basis
-            return basis
+            self._integral_basis_dict[v] = B
+            return B
+
+    def _pari_disc_factorization_matrix(self, v):
+        """
+        Returns a PARI matrix representation for the partial
+        factorization of the discriminant of the defining polynomial
+        of self, defined by the list of primes in the Python list v.
+        This function is used internally by the number fields code.
+
+        EXAMPLES::
+
+            sage: x = polygen(QQ,'x')
+            sage: f = x^3 + 17*x + 393; f.discriminant().factor()
+            -1 * 5^2 * 29 * 5779
+            sage: K.<a> = NumberField(f)
+            sage: fa = K._pari_disc_factorization_matrix([5,29]); fa
+            [5, 2; 29, 1]
+            sage: fa.type()
+            't_MAT'
+        """
+        f = self.pari_polynomial()
+        m = pari.matrix(len(v), 2)
+        d = f.poldisc()
+        for i in range(len(v)):
+            p = pari(ZZ(v[i]))
+            m[i,0] = p
+            m[i,1] = d.valuation(p)
+        return m
+
 
     def reduced_basis(self, prec=None):
         r"""
@@ -4680,7 +4749,8 @@ class NumberField_generic(number_field_base.NumberField):
 
 class NumberField_absolute(NumberField_generic):
 
-    def __init__(self, polynomial, name, latex_name=None, check=True, embedding=None):
+    def __init__(self, polynomial, name, latex_name=None, check=True, embedding=None,
+                 assume_disc_small=False, maximize_at_primes=None):
         """
         Function to initialize an absolute number field.
 
@@ -4692,7 +4762,8 @@ class NumberField_absolute(NumberField_generic):
             <class 'sage.rings.number_field.number_field.NumberField_absolute_with_category'>
             sage: TestSuite(K).run()
         """
-        NumberField_generic.__init__(self, polynomial, name, latex_name, check, embedding)
+        NumberField_generic.__init__(self, polynomial, name, latex_name, check, embedding,
+                                     assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes)
         self._element_class = number_field_element.NumberFieldElement_absolute
         self._zero_element = self(0)
         self._one_element =  self(1)
@@ -5256,7 +5327,7 @@ class NumberField_absolute(NumberField_generic):
         except KeyError:
             pass
 
-        B = self._compute_integral_basis(v = v)
+        B = map(self, self._pari_integral_basis(v = v))
 
         if len(v) == 0 or v is None:
             is_maximal = True
@@ -6281,7 +6352,7 @@ class NumberField_cyclotomic(NumberField_absolute):
         sage: type(cf3(z1))
         <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
     """
-    def __init__(self, n, names, embedding=None):
+    def __init__(self, n, names, embedding=None, assume_disc_small=False, maximize_at_primes=None):
         """
         A cyclotomic field, i.e., a field obtained by adjoining an n-th
         root of unity to the rational numbers.
@@ -6312,7 +6383,9 @@ class NumberField_cyclotomic(NumberField_absolute):
                                       name= names,
                                       latex_name=latex_name,
                                       check=False,
-                                      embedding = embedding)
+                                      embedding = embedding,
+                                      assume_disc_small=assume_disc_small,
+                                      maximize_at_primes=maximize_at_primes)
         if n%2:
             self.__zeta_order = 2*n
         else:
@@ -7061,10 +7134,10 @@ class NumberField_cyclotomic(NumberField_absolute):
             if p % n == 1:
                 return p
 
-    def integral_basis(self, v=None):
+    def _pari_integral_basis(self, v=None):
         """
-        Return a list of elements of this number field that are a basis for
-        the full ring of integers.
+        Internal function returning an integral basis of this number field in
+        PARI format.
 
         This field is cyclomotic, so this is a trivial computation, since
         the power basis on the generator is an integral basis. Thus the v
@@ -7072,34 +7145,22 @@ class NumberField_cyclotomic(NumberField_absolute):
 
         EXAMPLES::
 
-            sage: CyclotomicField(5).integral_basis()
-            [1, zeta5, zeta5^2, zeta5^3]
+            sage: CyclotomicField(5)._pari_integral_basis()
+            [1, x, x^2, x^3]
+            sage: len(CyclotomicField(137)._pari_integral_basis())
+            136
         """
         try:
             return self._integral_basis_dict[tuple()]
         except KeyError:
-            v = tuple()
-            z = self.gen()
-            a = self(1)
+            z = pari(self.gen())
+            a = pari(1)
             B = []
             for n in xrange(self.degree()):
-                B.append(a)
+                B.append(a.lift())
                 a *= z
-            self._integral_basis_dict[tuple()] = B
+            self._integral_basis_dict[tuple()] = pari(B)
             return B
-
-    def _compute_integral_basis(self, v=None):
-        """
-        Alias for self.integral_basis().
-
-        EXAMPLES::
-
-            sage: len(CyclotomicField(137)._compute_integral_basis())
-            136
-            sage: CyclotomicField(17).integral_basis() == CyclotomicField(17)._compute_integral_basis()
-            True
-        """
-        return self.integral_basis()
 
 
     def zeta_order(self):
@@ -7306,7 +7367,8 @@ class NumberField_quadratic(NumberField_absolute):
         sage: QuadraticField(-4, 'b')
         Number Field in b with defining polynomial x^2 + 4
     """
-    def __init__(self, polynomial, name=None, latex_name=None, check=True, embedding=None):
+    def __init__(self, polynomial, name=None, latex_name=None, check=True, embedding=None,
+                 assume_disc_small=False, maximize_at_primes=None):
         """
         Create a quadratic number field.
 
@@ -7330,7 +7392,9 @@ class NumberField_quadratic(NumberField_absolute):
 
             sage: TestSuite(k).run()
         """
-        NumberField_absolute.__init__(self, polynomial, name=name, check=check, embedding=embedding, latex_name=latex_name)
+        NumberField_absolute.__init__(self, polynomial, name=name, check=check,
+                                      embedding=embedding, latex_name=latex_name,
+                                      assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes)
         self._element_class = number_field_element_quadratic.NumberFieldElement_quadratic
         c, b, a = [rational.Rational(t) for t in self.defining_polynomial().list()]
         # set the generator

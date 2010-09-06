@@ -1,5 +1,5 @@
 r"""
-A module for dealing with lists of graphs.
+Lists of graphs.
 
 AUTHORS:
 

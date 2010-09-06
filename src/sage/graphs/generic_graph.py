@@ -1,7 +1,8 @@
 r"""
 Generic graphs
 
-This module implements the base class for graphs and digraphs.
+This module implements the base class for graphs and digraphs, and
+methods that can be applied on both.
 
 Class and methods
 -----------------

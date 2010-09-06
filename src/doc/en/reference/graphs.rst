@@ -1,23 +1,46 @@
 Graph Theory
 ============
 
+Graph objects and methods
+-------------------------
+
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    sage/graphs/generic_graph
    sage/graphs/graph
    sage/graphs/digraph
    sage/graphs/bipartite_graph
 
-   sage/graphs/cliquer
-   sage/graphs/graph_coloring
-   sage/graphs/graph_database
+
+Constructors and databases
+--------------------------
+
+.. toctree::
+   :maxdepth: 1
+
    sage/graphs/graph_generators
-   sage/graphs/graph_latex
-   sage/graphs/graph_list
+   sage/graphs/graph_database
+
+Low-level implementation
+------------------------
+
+.. toctree::
+   :maxdepth: 1
 
    sage/graphs/base/c_graph
    sage/graphs/base/sparse_graph
    sage/graphs/base/dense_graph
 
+Libraries of algorithms
+--------------------
+
+.. toctree::
+   :maxdepth: 1
+
+   sage/graphs/graph_coloring
+   sage/graphs/cliquer
    sage/graphs/pq_trees
+   sage/graphs/graph_latex
+   sage/graphs/graph_list
+

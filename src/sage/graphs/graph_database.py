@@ -1,5 +1,5 @@
 """
-Graph Database Module
+Graph Database
 
 INFO:
 

@@ -1,5 +1,5 @@
 r"""
-A Collection of Constructors of Common Graphs
+Common Graphs
 
 Usage
 =====

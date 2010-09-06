@@ -1,8 +1,8 @@
 r"""
-Graph Theory
+Undirected Graphs
 
-This module implements many graph theoretic operations and
-concepts.
+This module implements functions and operations involving undirected
+graphs.
 
 AUTHORS:
 

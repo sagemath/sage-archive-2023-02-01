@@ -4030,6 +4030,12 @@ class GraphGenerators():
 
         This definitions follows [boucheron2001]_.
 
+        .. NOTE::
+
+            The vertices are named 0, 1, 2, and so on. The intervals
+            used to create the graph are saved with the graph and can
+            be recovered using ``get_vertex()`` or ``get_vertices()``.
+
         INPUT:
 
         - ``n`` (integer) -- the number of vertices in the random
@@ -4068,18 +4074,19 @@ class GraphGenerators():
         vertex, two vertices being adjacent if the two corresponding
         (closed) intervals intersect.
 
-        The vertices are named 0, 1, 2, and so on. The intervals used
-        to create the graph are saved with the graph and can be
-        recovered using g.get_vertex() or g.get_vertices().
-
         INPUT:
 
         - ``intervals`` -- the list of pairs `(a_i,b_i)`
           defining the graph.
 
-        NOTE:
+        .. NOTE::
 
-        The intervals `(a_i,b_i)` need not verify `a_i<b_i`.
+            * The vertices are named 0, 1, 2, and so on. The
+              intervals used to create the graph are saved with the
+              graph and can be recovered using ``get_vertex()`` or
+              ``get_vertices()``.
+
+            * The intervals `(a_i,b_i)` need not verify `a_i<b_i`.
 
         EXAMPLE:
 

@@ -4068,6 +4068,10 @@ class GraphGenerators():
         vertex, two vertices being adjacent if the two corresponding
         (closed) intervals intersect.
 
+        The vertices are named 0, 1, 2, and so on. The intervals used
+        to create the graph are saved with the graph and can be
+        recovered using g.get_vertex() or g.get_vertices().
+
         INPUT:
 
         - ``intervals`` -- the list of pairs `(a_i,b_i)`
@@ -4075,7 +4079,7 @@ class GraphGenerators():
 
         NOTE:
 
-        The intervals `(a_i,b_i)` must verify `a_i<b_i`.
+        The intervals `(a_i,b_i)` need not verify `a_i<b_i`.
 
         EXAMPLE:
 
@@ -4084,32 +4088,54 @@ class GraphGenerators():
 
             sage: intervals = [(i,i+2) for i in range(9)]
 
-        In the corresponding graph...::
+        In the corresponding graph... ::
 
             sage: g = graphs.IntervalGraph(intervals)
-            sage: sorted(g.neighbors((3,5)))
-            [(1, 3), (2, 4), (4, 6), (5, 7)]
+            sage: g.get_vertex(3)
+            (3, 5)
+            sage: neigh = g.neighbors(3)
+            sage: for v in neigh: print g.get_vertex(v)
+            (1, 3)
+            (2, 4)
+            (4, 6)
+            (5, 7)
 
-        And the clique number is as expected ::
+        The is_interval() method verifies that this graph is an interval
+        graph. ::
 
-            sage: g.clique_number()
-            3
+            sage: g.is_interval()
+            True
+
+        The intervals in the list need not be distinct. ::
+
+            sage: intervals = [ (1,2), (1,2), (1,2), (2,3), (3,4) ]
+            sage: g = graphs.IntervalGraph(intervals)
+            sage: g.clique_maximum()
+            [0, 1, 2, 3]
+            sage: g.get_vertices()
+            {0: (1, 2), 1: (1, 2), 2: (1, 2), 3: (2, 3), 4: (3, 4)}
+
         """
 
-        intervals = sorted(intervals)
-
+        n = len(intervals)
+        g = graph.Graph(vertices=range(n))
 
         edges = []
-        while intervals:
-            x = intervals.pop(0)
-            for y in intervals:
-                if y[0] <= x[1]:
-                    edges.append((x,y))
-                else:
-                    break
-        g = graph.Graph(vertices=intervals)
+
+        for i in range(n-1):
+            I = intervals[i]
+            for j in range(i+1,n):
+                J = intervals[j]
+                if max(I) < min(J) or max(J) < min(I): continue
+                edges.append((i,j))
+
         g.add_edges(edges)
+
+        rep = dict( zip(range(n),intervals) )
+        g.set_vertices(rep)
+
         return g
+
 
     def RandomLobster(self, n, p, q, seed=None):
         """

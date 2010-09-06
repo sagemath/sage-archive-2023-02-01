@@ -3099,9 +3099,9 @@ def polar_plot(funcs, *args, **kwds):
     tuple of functions and plots them with polar coordinates in the given
     domain.
 
-    This function is equivalent to the plot command with the options
+    This function is equivalent to the :func:`plot` command with the options
     ``polar=True`` and ``aspect_ratio=1``. For more help on options,
-    see the documentation for plot.
+    see the documentation for :func:`plot`.
 
     INPUT:
 

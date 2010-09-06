@@ -68,8 +68,9 @@ svn update -r 12588 config/Makefile.SH
 svn update -r 12588 src/test/tune.c
 
 
-# make pari (must run bison, etc...)
-./Configure || exit
+# make pari (must run bison, etc...) but disable optimization to speed
+# up compilation (the output of the compiling is not used anyway).
+env CFLAGS="-O0" ./Configure || exit
 make gp doc || exit
 
 

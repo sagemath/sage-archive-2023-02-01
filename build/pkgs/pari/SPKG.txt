@@ -126,6 +126,8 @@ exactly where it says native, but I would expect a grep to find it.
  * Remove patch for config/Makefile.SH and add upstream fix instead
    in spkg-make.
  * Add upstream fix for src/tune/tune.c which should fix tuning.
+ * Add -O0 to CFLAGS in spkg-make to speed up compiling (the output of
+   the compiling is not used anyway).
 
 === pari-2.4.3.svn-12577.p4 (Jeroen Demeyer, August 22, 2010) ===
  * Change "test -e" to "test -f" for Solaris.

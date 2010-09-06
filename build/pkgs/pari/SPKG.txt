@@ -18,7 +18,7 @@ Website: http://pari.math.u-bordeaux.fr/
 
 == License ==
 
-GPL
+GPL version 2+
 
 == SPKG Maintainers ==
  * Robert Bradshaw
@@ -36,7 +36,7 @@ GPL
  * Readline
  * Termcap
 
-== Build Notes ==
+== Special Update/Build Instructions ==
 
 Most of the building of a new version of the PARI spkg is automated
 in the script spkg-make.  Normally, the following should work.  In case
@@ -71,17 +71,58 @@ of doubt, have a look at the file spkg-make.
 
 Note from David Kirkby that could be relevant to building on Solaris:
 
-Since pari is using -xarch=native, which implies -xarch=v8plusa on my
+Since PARI is using -xarch=native, which implies -xarch=v8plusa on my
 box, but I set -xarch=v8plus (without the last a), this probably means
 there will be different types of object files and so they may not link
 together.  Ick.  Feel free to tell me how to modify the configure
 script.
 
 I got around it by setting CFLAGS -xarch=v8plus myself, so they were
-all the same. But it is not right. I have not looked at pari to see
+all the same. But it is not right. I have not looked at PARI to see
 exactly where it says native, but I would expect a grep to find it.
 
 == Changelog ==
+
+=== pari-2.4.3.svn-12577.p5 (Leif Leonhardy, September 5th, 2010) ===
+ * Added patches to:
+   - config/get_config_options:
+     * Make invalid arguments to "--graphic" a "Configure" error
+       (rather than potentially running into *compilation* errors
+       later).
+   - config/get_fltk: (see also/ported from #9722)
+     * Add libstdc++ to the libraries (to support Fedora 13 et al.).
+     * Also check the presence of the FLTK include directory to
+       prevent compilation errors on broken installations.
+   - config/get_X11: (see also/ported from #9722)
+     * Also search */lib64/* directories when doing a 64-bit build.
+     * Give more specific messages.
+ * Slightly extended existing patch to src/kernel/gmp/mp.c:
+   - Allow disabling PARI's use of "GMP internals" by preprocessor
+     directive (i.e. by adding "-DPARI_DONT_USE_GMP_INTERNALS" to
+     CFLAGS). Brief explanation added.
+ * spkg-install:
+   - Don't override user-specified CFLAGS (w.r.t. optimization, unless
+     SAGE_DEBUG=yes).
+   - Handle PARI_EXTRA_OPTS properly, and print informative messages
+     (regarding graphics support for plotting).
+   - Recognize SAGE_TUNE_PARI in addition to SAGE_TUNE_pari, and
+     add "--tune" to PARI_EXTRA_OPTS if self-tuning was requested.
+   - Clear/unset lots of (environment) variables used by PARI that might
+     unintentionally get their values from user settings.
+   - Quote *all* occurrences of SAGE_LOCAL (and some other expressions).
+   - Use $UNAME instead of `uname` everywhere, use "elif ...".
+   - *Always* use $MAKE (changed for "install-data").
+   - Begin all error messages with "Error".
+   - Removed useless tests of $? at end.
+   - Some clean-up (typos, formatting); some comments, some messages added.
+ * spkg-check:
+   - Use $MAKE instead of "make".
+   - Don't override user-specified CFLAGS (w.r.t. optimization, unless
+     SAGE_DEBUG=yes).
+   - Begin error message with "Error".
+   - Some clean-up.
+ * Slight corrections to SPKG.txt.
+ * Updated patches/README.txt, some cosmetic changes.
 
 === pari-2.4.3.svn-12577.p4 (Jeroen Demeyer, August 22, 2010) ===
  * Change "test -e" to "test -f" for Solaris.

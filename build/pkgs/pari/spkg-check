@@ -1,14 +1,18 @@
 #!/usr/bin/env bash
+###########################################
+## PARI
+###########################################
+
 if [ -z "$SAGE_LOCAL" ]; then
-   echo "SAGE_LOCAL undefined ... exiting";
-   echo "Maybe run 'sage -sh'?"
-   exit 1
+    echo "SAGE_LOCAL undefined ... exiting"
+    echo "Maybe run 'sage -sh'?"
+    exit 1
 fi
 
-# Let the user chose a flag other than -m64 for 64-bit builds
-# if needed.
-if [ -z "$CFLAG64" ] ; then
-   CFLAG64=-m64
+# Let the user choose a flag other than -m64 for 64-bit builds
+# if needed:
+if [ -z "$CFLAG64" ]; then
+    CFLAG64=-m64
 fi
 
 if [ "x$SAGE64" = xyes ]; then
@@ -17,26 +21,28 @@ if [ "x$SAGE64" = xyes ]; then
 fi
 
 if [ "x$SAGE_DEBUG" = xyes ] ; then
-   CFLAGS="$CFLAGS -O0 -g" # No optimisation. Good for debugging or working around compiler bugs.
+    CFLAGS="$CFLAGS -O0 -g" # Disable optimisation, add debug symbols. Good
+                            # for debugging or working around compiler bugs.
 else
-   CFLAGS="$CFLAGS -O3 -g" # Default optimisation.
+    CFLAGS="-O3 -g $CFLAGS" # Default optimisation, with debug symbols.
+                            # Prepend to not override user's setting.
 fi
 
 export CFLAGS
 
 cd src
 
-make test-all
+$MAKE test-all
 
-if [ $? -ne 0 ] ; then
-   echo "Pari failed the self-tests when running 'make test-all'"
-   exit 1
+if [ $? -ne 0 ]; then
+    echo "Error: PARI failed the self-tests when running '$MAKE test-all'"
+    exit 1
 fi
 
-if [ -d ../parisvn ] ; then
-	echo "WARNING: you should delete the parisvn directory before submitting this spkg."
+if [ -d ../parisvn ]; then
+    echo "WARNING: You should delete the parisvn directory before submitting this spkg."
 fi
 
-echo "The Pari self-tests all passed"
+echo "The PARI self-tests all passed"
 exit 0
 

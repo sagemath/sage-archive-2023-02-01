@@ -4,76 +4,99 @@
 ###########################################
 
 if [ -z "$SAGE_LOCAL" ]; then
-   echo "SAGE_LOCAL undefined ... exiting";
-   echo "Maybe run 'sage -sh'?"
-   exit 1
+    echo "SAGE_LOCAL undefined ... exiting"
+    echo "Maybe run 'sage -sh'?"
+    exit 1
 fi
 
 TOP=`pwd`
 PATCHED="$TOP/patches/files"
 
 ###########################################################
-## patching src files.  See patches/README.txt for details
+## Patching src files.  See patches/README.txt for details.
 ###########################################################
 
 cd src
 
 # These two are needed so that Sage can catch PARI's error signals.
+# In addition, let PARI use "GMP internals" (access members of GMP
+# structures directly) *conditionally*. (We *don't* disable that by
+# default, since at least currently this is compatible with both GMP
+# *and* MPIR. To disable the use, add "-DPARI_DONT_USE_GMP_INTERNALS"
+# to CFLAGS. This is a trivial patch to mp.c only; see also the comment
+# there.):
 cp "$PATCHED/init.c"  src/language/init.c
 cp "$PATCHED/mp.c"    src/kernel/gmp/mp.c
 
-# Fix for PARI bug 1079 (jdemeyer: temporary until this is fixed upstream)
+# Fix for PARI bug 1079 (jdemeyer: temporary until this is fixed upstream):
 cp "$PATCHED/base2.c" "$PATCHED/polarit3.c" src/basemath/
 
-
-# cwitty: disable -rpath
+# cwitty: Disable -rpath:
 cp "$PATCHED/get_ld" config/
 
-# cwitty: disable TeX; allow bz2 compression
+# cwitty: Disable TeX; allow bz2 compression:
 cp "$PATCHED/gphelp.in" doc/
 
-# John Cremona: copy over a lightly patched get_tests, so that make
-# test-all does not test ellglobalred (which requires the elldata
-# package Sage does not install).
+# John Cremona: Copy over a lightly patched get_tests, so that "make
+# test-all" does not test ellglobalred (which requires the elldata
+# package Sage does not install, nor ship, since it is about 14 MB):
 cp "$PATCHED/get_tests" config/
 
-# Add -fno-common to DLCFLAGS on Darwin
+# Add -fno-common to DLCFLAGS on Darwin (for Mac OS X 10.4, "Tiger"):
 cp "$PATCHED/get_dlcflags" config/
 
-# Two configure patches for Solaris
+# Two configure patches for Solaris:
 cp "$PATCHED/Configure" .
 cp "$PATCHED/Makefile.SH" config/
 
+# leif: Catch invalid arguments to "--graphic" (and treat such as an error)
+# since otherwise strange compilation errors might occur (cf. #9722, too).
+cp "$PATCHED/get_config_options" config/
+
+# leif: Explicitly link against libstdc++ when using FLTK (for plotting) to
+# support Fedora 13, and do an extra check for the FLTK include dir (cf. #9722):
+cp "$PATCHED/get_fltk" config/
+
+# leif: Also search */lib64/* for X11 libraries (since on some systems this
+# is really a separate directory, i.e. neither a symbolic link to */lib/* nor
+# the target of a symbolic link */lib/*; cf. #9722, too):
+cp "$PATCHED/get_X11" config/
+
 
 # This is needed or there are weird locale problems involving rpath
-# with building Sage.
+# with building Sage:
 LC_ALL=C
 export LC_ALL
 LANG=C
 export LANG
 
+
 build()
 {
-    #  add the proper flags for 64-bit build mode on OS X and Open Solaris x64
+    # Add the proper flags for 64-bit build mode on OS X and OpenSolaris x64.
     # Setting CFLAGS is not sufficient on Solaris since PARI 2.4.3, as this
-    # flag is not being used when the check for GMP and Readline are made
+    # flag is not being used when the checks for GMP and Readline are made,
     # so the checks for them fail.  One must redefine CC and export that.
 
-    # Let the user chose a flag other than -m64 for 64-bit builds
-    # if needed.
-    if [ -z "$CFLAG64" ] ; then
-       CFLAG64=-m64
+    # Let the user choose a flag other than "-m64" for 64-bit builds
+    # if needed:
+    if [ -z "$CFLAG64" ]; then
+        CFLAG64=-m64
     fi
 
     if [ "x$SAGE64" = xyes ]; then
+        echo "Building a 64-bit version of PARI/GP"
         CFLAGS="$CFLAGS $CFLAG64"
         CC="$CC $CFLAG64" && export CC
     fi
 
-    if [ "x$SAGE_DEBUG" = xyes ] ; then
-       CFLAGS="$CFLAGS -O0 -g" # No optimisation. Good for debugging or working around compiler bugs.
+    if [ "x$SAGE_DEBUG" = xyes ]; then
+       # Disable optimisation, add debug symbols. Good for debugging or
+       # working around compiler bugs:
+       CFLAGS="$CFLAGS -O0 -g"
     else
-       CFLAGS="$CFLAGS -O3 -g" # Default optimisation.
+       CFLAGS="-O3 -g $CFLAGS" # Default optimisation, with debug symbols.
+                               # Prepend to not override user's setting.
     fi
     export CFLAGS
 
@@ -86,49 +109,111 @@ build()
     unset AR
     unset AS
 
-    if [ "$PARI_EXTRA_OPTS" = "" ]; then
-        PARI_EXTRA_OPTS=" --graphic=none "
+    # Let the user pass extra parameters to PARI's "Configure", e.g.
+    # to specify desired graphics support (which is disabled by default):
+    if [ -z "$PARI_EXTRA_OPTS" ]; then
+        echo "============================================================"
+        echo "Configuring PARI/GP without graphics support (for plotting)."
+        echo "If you need it, pass the appropriate option(s) to PARI by"
+        echo "setting and exporting \$PARI_EXTRA_OPTS prior to building"
+        echo "Sage (or at least before you build/install the PARI spkg),"
+        echo "e.g. by typing at the shell prompt:"
+        echo "    export PARI_EXTRA_OPTS=\"--graphic=auto\""
+        echo "or"
+        echo "    export PARI_EXTRA_OPTS=\"--with-fltk\""
+        echo "Note that PARI doesn't treat it as an error if the requested"
+        echo "graphics library or the corresponding header files are not"
+        echo "found; it will then simply disable graphics support."
+        echo "Please consult the PARI documentation for further details."
+        echo "============================================================"
+
+        PARI_EXTRA_OPTS="--graphic=none"
+    else
+        echo "============================================================"
+        echo "Configuring PARI/GP with additional user-specified options:"
+        echo "    PARI_EXTRA_OPTS=\"$PARI_EXTRA_OPTS\""
+
+        # Do NOT add "--graphic=none" if the user provided one of these:
+        #     "--with-fltk[=...]", "--with-qt[=...]"
+        # Comment by leif: This misbehavoir seems to have been fixed in
+        #                  PARI 2.4.3; the following doesn't hurt though:
+        if ! (echo "$PARI_EXTRA_OPTS" | egrep -- "--with-fltk|--with-qt") \
+              >/dev/null;
+        then
+            echo "To avoid unexpected behavior, we prepend \"--graphic=none\":"
+            PARI_EXTRA_OPTS="--graphic=none $PARI_EXTRA_OPTS"
+            echo "    \"$PARI_EXTRA_OPTS\""
+            echo "(Disabling graphics can be overridden by user settings.)"
+        fi
+        echo "============================================================"
     fi
 
-    # Allow the user to tune PARI - this is time-consuming, but some may want to do it.
-    # It is also very unreliable
-    if [ "x$SAGE_TUNE_pari" = xyes ] ; then
-       echo ""
-       echo "PARI will be tuned for your system since you set SAGE_TUNE_pari=\"yes\"."
-       echo "This can take a long time."
-       echo "WARNING: Tuning PARI is VERY unreliable. You may find your build"
-       echo "of PARI fails, or PARI does not work properly once built."
-       echo ""
-       ./Configure $PARI_EXTRA_OPTS --prefix=$SAGE_LOCAL --with-readline=$SAGE_LOCAL --with-gmp=$SAGE_LOCAL --kernel=gmp --graphic=none --tune
+    # Allow the user to enable PARI self-tuning.
+    # This is time-consuming, but some may want to do it.
+    # It is also very unreliable, and currently (svn 12577) completely
+    # broken on *many* systems.
+    # Comment by leif: Also, PARI's Configure calls "make" (instead of $MAKE)
+    #                  if we do tuning, so:
+    #            TODO: Replace that in our patched version of Configure!
+    if [ "$SAGE_TUNE_pari" = yes -o "$SAGE_TUNE_PARI" = yes ]; then
+        echo ""
+        echo "PARI will be tuned for your system since you set SAGE_TUNE_pari=\"yes\"."
+        echo "This can take a long time."
+        echo "WARNING: Tuning PARI is currently VERY unreliable. You may find your"
+        echo "build of PARI fails, or PARI does not work properly once built."
+        echo ""
+        PARI_EXTRA_OPTS="$PARI_EXTRA_OPTS --tune"
     else
-       echo "To minimize Sage build time and to ensure the best relieability, PARI"
-       echo "will not be tuned for your system. Experience shows tuning is"
-       echo "unreliable: see http://trac.sagemath.org/sage_trac/ticket/9343"
-       echo "If you wish to test the tuning code, set the environment variable"
-       echo "SAGE_TUNE_pari=yes by typing the following before building Sage (or at"
-       echo "least before building PARI):"
-       echo "SAGE_TUNE_pari=yes"
-       echo "export SAGE_TUNE_pari"
-       echo ""
-       ./Configure $PARI_EXTRA_OPTS --prefix=$SAGE_LOCAL --with-readline=$SAGE_LOCAL --with-gmp=$SAGE_LOCAL --kernel=gmp --graphic=none
+        echo ""
+        echo "To minimize Sage build time and to ensure the best reliability, PARI"
+        echo "will not be tuned for your system. Experience shows tuning is"
+        echo "unreliable: see http://trac.sagemath.org/sage_trac/ticket/9343"
+        echo "If you wish to test the tuning code, set the environment variable"
+        echo "SAGE_TUNE_pari=yes by typing the following before building Sage (or at"
+        echo "least before building/installing PARI):"
+        echo "    SAGE_TUNE_pari=yes"
+        echo "    export SAGE_TUNE_pari"
+        echo ""
     fi
+
+    unset GP_INSTALL_PREFIX # we do not want this to be set by the user
+
+    # In addition, a lot of variables used (internally) by PARI might un-
+    # intentionally get their values from the "global" environment, so it's
+    # safer to clear them here (not further messing up PARI's scripts):
+    unset static tune timing_fun error
+    unset enable_tls
+    unset with_fltk with_qt
+    unset with_ncurses_lib
+    unset with_readline_include with_readline_lib without_readline
+    unset with_gmp_include with_gmp_lib without_gmp
+    unset dfltbindir dfltdatadir dfltemacsdir dfltincludedir
+    unset dfltlibdir dfltmandir dfltsysdatadir dfltobjdir
+    # The following get set because we pass the respective parameters:
+    # prefix kernel with_gmp with_readline
+
+
+    # Note that "--graphic=none" is (usually) added to PARI_EXTRA_OPTS:
+    ./Configure $PARI_EXTRA_OPTS --prefix="$SAGE_LOCAL" \
+        --with-readline="$SAGE_LOCAL" --with-gmp="$SAGE_LOCAL" \
+        --kernel=gmp
 
     if [ $? -ne 0 ]; then
-        echo "ERROR - configure PARI with readline and gmp failed."
+        echo "Error: Configuring PARI with readline and GMP kernel failed."
         exit 1
     fi
 
     if [ ! -f Makefile ]; then
-        echo "Unable to configure PARI."
+        echo "Error: Unable to configure PARI: No Makefile generated!"
         exit 1
     fi
 
-    echo "Building and install PARI"
+    echo "Building and installing PARI/GP..."
     if [ "$UNAME" = "CYGWIN" ]; then
         # There are weird bugs in PARI's build process on Windows XP
         # under Cygwin.
         # Passing in this extra flag gets around the bug.
-        $MAKE GMPINCLUDE=-I$SAGE_LOCAL/include EXTRADLLDFLAGS=-lgmp gp
+        $MAKE GMPINCLUDE="-I$SAGE_LOCAL/include" EXTRADLLDFLAGS=-lgmp gp
     else
         $MAKE gp
     fi
@@ -140,106 +225,101 @@ build()
 
     cp -f gp "$SAGE_LOCAL/bin/"    # avoid "make install"
 
-    # Install documentation source (compressed), for use by gphelp.
+    # Install documentation source (compressed), for use by gphelp:
     mkdir -p "$SAGE_LOCAL/share/pari/doc/"
     cp -f doc/usersch*.tex "$SAGE_LOCAL/share/pari/doc/"
     bzip2 -9 -f "$SAGE_LOCAL/share/pari/doc/"usersch*.tex
     cp -f doc/translations "$SAGE_LOCAL/share/pari/doc/"
 
-    # And install gphelp.
+    # And install gphelp:
     cp -f doc/gphelp "$SAGE_LOCAL/bin/"
 
     $MAKE install-lib-sta
 
     if [ $? -ne 0 ]; then
-        echo "Error installing PARI static library"
+        echo "Error installing PARI's static library"
         exit 1
     fi
 
     # Instead of "make install" we do the following, to avoid building
     # the PARI documentation (which requires latex; or more precisely,
-    # *hangs* under a default cygwin with latex, since some fonts are missing).
-    cd `config/objdir`
+    # *hangs* under a default Cygwin with latex, since some fonts are missing):
+    cd "`config/objdir`"
     $MAKE install-include
 
     if [ $? -ne 0 ]; then
-        echo "Error installing PARI include files"
+        echo "Error installing PARI's include files"
         exit 1
     fi
 
-    cp -f libpari* $SAGE_LOCAL/lib/
+    cp -f libpari* "$SAGE_LOCAL/lib/"
     cd "$CUR"
 
-    # On CYGWIN, need the dll for PARI to be in the same
+    # On Cygwin, we need the dll for PARI to be in the same
     # directory as the gp binary, or it doesn't find it.
     # Note that just using a symlink doesn't work.
-    if [ $UNAME = "CYGWIN" ]; then
-        CUR="`pwd`"
+    if [ "$UNAME" = "CYGWIN" ]; then
+        CUR=`pwd`
         cd "$SAGE_LOCAL"/bin/
         cp -f "$SAGE_LOCAL"/lib/*pari*.dll .
         cd "$CUR"
     fi
 
-    # The following is a hack to get the library installed correctly
-    # on OS X.
-    if [ $UNAME = "Darwin" ]; then
-        echo "MAC OS X hack -- delete and reinstall libpari.a"
+    if [ "$UNAME" = "Darwin" ]; then
+        # The following is a hack to get the library installed correctly
+        # on Mac OS X:
+        echo "Applying Mac OS X hack -- deleting and reinstalling libpari.a ..."
         rm -f Odarwin-ppc/*lib*
         $MAKE install-lib-sta
 
         if [ $? -ne 0 ]; then
-            echo "Error Re-installing PARI static libraries (OS X trick)"
+            echo "Error reinstalling PARI's static libraries (OS X trick)"
             exit 1
         fi
 
-        cd `config/objdir`
+        cd "`config/objdir`"
         cp -f libpari* "$SAGE_LOCAL"/lib
         cd "$CUR"
 
         # Also another patch since paripriv.h won't compile right on OS X
         # when used by client Sage code.  So we replace it by a slightly
-        # modified version.
+        # modified version:
+        echo "Patching include/pari/paripriv.h so it works on Mac OS X..."
         cp -pf "$PATCHED/paripriv.h" "$SAGE_LOCAL/include/pari/paripriv.h"
-    fi
-    # Like on OS X (see above), the Sage library would not build
-    # without some changes. Though on Solaris the changes are much simpler than
-    # on OS X.
-    if [ `uname` = "SunOS" ]; then
-       set -e
-       echo "Patching include/pari/paripriv.h so it works on Solaris"
-       echo "The changes are much smaller than needed on OS X"
-       cp  "$PATCHED/paripriv.h" $SAGE_LOCAL/include/pari/paripriv.h
-       set +e
+
+    elif [ "$UNAME" = "SunOS" ]; then
+        # Like on Mac OS X (see above), the Sage library would not build
+        # without some changes on Solaris, though the changes are much simpler:
+        echo "Patching include/pari/paripriv.h so it works on Solaris..."
+        cp -f "$PATCHED/paripriv.h" "$SAGE_LOCAL/include/pari/paripriv.h"
+
     elif [ "$UNAME" = "CYGWIN" ]; then
-       # We need to the same thing on Cygwin that we have to do on Solaris
-       cp  "$PATCHED/paripriv.h" $SAGE_LOCAL/include/pari/paripriv.h
+        # We need to the same thing on Cygwin that we have to do on Solaris
+        echo "Patching include/pari/paripriv.h so it works on Cygwin..."
+        cp -f "$PATCHED/paripriv.h" "$SAGE_LOCAL/include/pari/paripriv.h"
     fi
 
-    echo "Installing extra Galois groups data."
-    make install-data
+    echo "Installing extra Galois groups data..."
+    $MAKE install-data
     if [ $? -ne 0 ]; then
-        echo "Error installing extra galois groups data."
+        echo "Error installing extra Galois groups data."
         exit 1
     fi
 }
 
 build
 
-if [ $? -ne 0 ]; then
-    echo "Error building PARI."
-    exit 1
-fi
+# All (previous) errors are catched in build(), so we don't test $? here.
+# Although we perhaps should also check success of the numerous copy commands
+# inside build().
 
-if [ $UNAME="Darwin" -a -f $SAGE_LOCAL/lib/libpari.dylib ]; then
-    exit 0
+if [ "$UNAME" = "Darwin" ]; then
+    pari_shlib="libpari.dylib"
+else
+    pari_shlib="libpari.so"
 fi
-
-if [ -f $SAGE_LOCAL/lib/libpari.so ]; then
-    exit 0
-fi
-
-if [ $? -ne 0 ]; then
-    echo "Error building PARI."
+if [ ! -f "$SAGE_LOCAL/lib/$pari_shlib" ]; then
+    echo "Error: PARI's shared library $pari_shlib has not been installed!"
     exit 1
 fi
 

@@ -1,5 +1,5 @@
---- src/kernel/gmp/mp.c	(revision 12541)
-+++ src/kernel/gmp/mp.c	(working copy)
+--- src/kernel/gmp/mp.c	2010-08-22 21:25:46.000000000 +0200
++++ src/kernel/gmp/mp.c	2010-09-06 00:34:54.000000000 +0200
 @@ -56,7 +56,9 @@
  int pari_kernel_init(void)
  {
@@ -10,3 +10,30 @@
    return 0;
  }
  
+@@ -949,7 +951,16 @@
+ 
+ /* EXACT INTEGER DIVISION */
+ 
+-#if 1 /* use undocumented GMP interface */
++#ifndef PARI_DONT_USE_GMP_INTERNALS /* use "undocumented" GMP interface: */
++/* 
++ * Note: "Undocumented" refers to directly accessing ("private") members
++ *       of GMP's mpz_t / __mpz_struct types, which are defined in gmp.h.
++ *       This is in fact (at least) compatible with both
++ *        - GMP (<= 5.0.1) *and*
++ *        - MPIR (<= 2.1.2),
++ *       so we *don't* disable the use by default.
++ */
++
+ static void
+ GEN2mpz(mpz_t X, GEN x)
+ {
+@@ -1008,7 +1019,7 @@
+     mpz2GEN(z, Z); return z;
+   }
+ }
+-#else
++#else /* don't use "undocumented" GMP interface: */
+ /* assume y != 0 and the division is exact */
+ GEN
+ diviuexact(GEN x, ulong y)

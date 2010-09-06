@@ -83,7 +83,7 @@ exactly where it says native, but I would expect a grep to find it.
 
 == Changelog ==
 
-=== pari-2.4.3.svn-12577.p5 (Leif Leonhardy, September 5th, 2010) ===
+=== pari-2.4.3.svn-12577.p5 (Leif Leonhardy, Jeroen Demeyer, September 5th, 2010) ===
  * Added patches to:
    - config/get_config_options:
      * Make invalid arguments to "--graphic" a "Configure" error
@@ -123,6 +123,9 @@ exactly where it says native, but I would expect a grep to find it.
    - Some clean-up.
  * Slight corrections to SPKG.txt.
  * Updated patches/README.txt, some cosmetic changes.
+ * Remove patch for config/Makefile.SH and add upstream fix instead
+   in spkg-make.
+ * Add upstream fix for src/tune/tune.c which should fix tuning.
 
 === pari-2.4.3.svn-12577.p4 (Jeroen Demeyer, August 22, 2010) ===
  * Change "test -e" to "test -f" for Solaris.

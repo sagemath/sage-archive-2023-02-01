@@ -61,6 +61,12 @@ fi
 cd parisvn
 svn update -r 12577
 
+# Patch config/Makefile.SH (for Solaris)
+svn update -r 12588 config/Makefile.SH
+
+# Patch src/test/tune.c (fix tuning)
+svn update -r 12588 src/test/tune.c
+
 
 # make pari (must run bison, etc...)
 ./Configure || exit

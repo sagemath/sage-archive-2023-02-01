@@ -45,9 +45,8 @@ cp "$PATCHED/get_tests" config/
 # Add -fno-common to DLCFLAGS on Darwin (for Mac OS X 10.4, "Tiger"):
 cp "$PATCHED/get_dlcflags" config/
 
-# Two configure patches for Solaris:
+# Use bash for Configure instead of /bin/sh
 cp "$PATCHED/Configure" .
-cp "$PATCHED/Makefile.SH" config/
 
 # leif: Catch invalid arguments to "--graphic" (and treat such as an error)
 # since otherwise strange compilation errors might occur (cf. #9722, too).

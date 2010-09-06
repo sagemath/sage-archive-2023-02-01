@@ -7,13 +7,15 @@ Files patched as of pari-2.4.3.svn-12577.p5:
 ======================================================================
 
 Configuration files:
-* Configure: Use "#!/usr/bin/env bash" instead of "#!/bin/sh".
+* Configure: Use "#!/usr/bin/env bash" instead of "#!/bin/sh".  Note
+  that this is not strictly necessary, but it hopefully makes the
+  script less system-dependent. Since Sage assumes the existence of
+  bash anyway, it doesn't hurt either. -- Jeroen Demeyer
 * config/get_ld: cwitty: Disable -rpath.
 * config/get_tests: John Cremona: Disable testing of ellglobalred in
                     "make test-all" in spkg-check, since it requires
                     the elldata database which we do not include.
 * config/get_dlcflags: Add -fno-common to DLCFLAGS on Darwin.
-* config/Makefile.SH: Change "test -e" to "test -f" for Solaris.
 * config/get_config_options: Catch invalid arguments tp "--graphic".
 * config/get_fltk; Add libstdc++; check presence of FLTK headers, too.
 * config/get_X11: Search X11 library in */lib64/*, too (not just */lib/*).
@@ -63,4 +65,5 @@ Files previously patched:
 * src/headers/paripriv.h: Used to need a dummy variable changed from B0
   to N; now fixed upstream.  NB: There's another patch on this file still
   in place!
-
+* config/Makefile.SH: Change "test -e" to "test -f" for Solaris.  Fixed
+  upstream

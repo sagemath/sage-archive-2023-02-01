@@ -1674,7 +1674,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
            data = data[0]
         return self._contains(data)
 
-    def gale_transform(self):
+    def Gale_transform(self):
         r"""
         Return the Gale transform of ``self``.
 
@@ -1685,15 +1685,15 @@ class RationalPolyhedralFan(IntegralRayCollection,
         EXAMPLES::
 
             sage: fan = FaceFan(lattice_polytope.octahedron(2))
-            sage: fan.gale_transform()
+            sage: fan.Gale_transform()
             [ 1  0  1  0 -2]
             [ 0  1  0  1 -2]
         """
-        if "_gale_transform" not in self.__dict__:
+        if "_Gale_transform" not in self.__dict__:
             m = self.ray_matrix().augment(matrix(self.lattice_dim(), 1))
             m = m.stack(matrix([1]*m.ncols()))
-            self._gale_transform = m.transpose().integer_kernel().matrix()
-        return self._gale_transform
+            self._Gale_transform = m.transpose().integer_kernel().matrix()
+        return self._Gale_transform
 
     def generating_cone(self, n):
         r"""

@@ -1365,15 +1365,16 @@ class ToricVariety_field(AmbientSpace):
             sage: Kc
             2-d cone in 2-d lattice
             sage: Kc.rays()
-            (Divisor class [0,1], Divisor class [1,0])
+            (Divisor class [0, 1], Divisor class [1, 0])
             sage: [ divisor_class.lift() for divisor_class in Kc.rays() ]
             [V(z1), V(z0)]
             sage: Kc.lattice()
-            The toric QQ-divisor class group of a 2-d toric variety covered by 4 affine patches
+            The toric rational divisor class group
+            of a 2-d toric variety covered by 4 affine patches
         """
         if "_Kaehler_cone" not in self.__dict__:
             fan = self.fan()
-            GT = fan.gale_transform().columns()
+            GT = fan.Gale_transform().columns()
             n = fan.nrays()
             K = None
             for cone in fan:
@@ -1384,35 +1385,49 @@ class ToricVariety_field(AmbientSpace):
             self._Kaehler_cone = K
         return self._Kaehler_cone
 
-    def Mori_vectors(self):
+    def Mori_cone(self):
         """
-        Returns the rays of the Mori cone.
+        Returns the Mori cone of ``self``.
 
         OUTPUT:
 
-        - The rays of the Mori cone, that is, the dual of the Kähler cone.
+        - :class:`cone <sage.geometry.cone.ConvexRationalPolyhedralCone>`.
 
-        - The points in the Mori cone are the effective curves in the variety.
+        .. NOTE::
 
-        - The first ``self.fan().nrays()`` integer entries in each
-          Mori vector are the intersection numbers of the curve
-          corresponding to the generator of the ray with the divisors
-          of the toric variety in the same order as :meth:`divisors`.
+            * The Mori cone is dual to the Kähler cone.
 
-        - The last entry is associated to the orgin of the N-lattice.
+            * We think of the Mori cone as living inside the row span of the
+              Gale transform matrix (computed by
+              ``self.fan().Gale_transform()``).
 
-        - The Mori vectors are also known as the gauged linear sigma
-          model charge vectors.
+            * The points in the Mori cone are the effective curves in the
+              variety.
+
+            * The ``i``-th entry in each Mori vector is the intersection
+              number of the curve corresponding to the generator of the
+              ``i``-th ray of the fan with the corresponding divisor class.
+              The very last entry is associated to the orgin of the fan
+              lattice.
+
+            * The Mori vectors are also known as the gauged linear sigma model
+              charge vectors.
 
         EXAMPLES::
 
             sage: P4_11169 = toric_varieties.P4_11169_resolved()
-            sage: P4_11169.Mori_vectors()
-            [(3, 2, 0, 0, 0, 1, -6), (0, 0, 1, 1, 1, -3, 0)]
+            sage: P4_11169.Mori_cone()
+            2-d cone in 7-d lattice
+            sage: P4_11169.Mori_cone().rays()
+            ((3, 2, 0, 0, 0, 1, -6), (0, 0, 1, 1, 1, -3, 0))
         """
-        Mc = [ facet_normal * self._fan.gale_transform()
-               for facet_normal in self.Kaehler_cone().facet_normals() ]
-        return Mc;
+        if "_Mori_cone" not in self.__dict__:
+            # Ideally, self.Kaehler_cone().dual() should be it, but
+            # so far this is not the case.
+            rays = (ray * self._fan.Gale_transform()
+                    for ray in self.Kaehler_cone().dual().rays())
+            self._Mori_cone = Cone(rays, lattice=ZZ**(self._fan.nrays()+1))
+        return self._Mori_cone
 
     def divisor_class_group(self):
         r"""
@@ -1433,7 +1448,8 @@ class ToricVariety_field(AmbientSpace):
 
         OUTPUT:
 
-        - rational divisor class group, represented as `\ZZ^n`.
+        - :class:`rational divisor class group
+          <sage.schemes.generic.toric_divisor.ToricRationalDivisorClassGroup>`.
 
         .. NOTE::
 
@@ -1447,7 +1463,8 @@ class ToricVariety_field(AmbientSpace):
             sage: fan = FaceFan(lattice_polytope.octahedron(2))
             sage: P1xP1 = ToricVariety(fan)
             sage: P1xP1.divisor_class_group()
-            The toric QQ-divisor class group of a 2-d toric variety covered by 4 affine patches
+            The toric rational divisor class group
+            of a 2-d toric variety covered by 4 affine patches
         """
         from sage.schemes.generic.toric_divisor import ToricRationalDivisorClassGroup
         return ToricRationalDivisorClassGroup(self)

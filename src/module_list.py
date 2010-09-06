@@ -1431,6 +1431,9 @@ ext_modules = [
               include_dirs = [SAGE_ROOT+'/local/include/FLINT/'],
               libraries = ['flint', 'gmp', 'ratpoints']),
 
+    Extension('sage.schemes.generic.toric_divisor_class',
+              sources = ['sage/schemes/generic/toric_divisor_class.pyx']),
+
     Extension('sage.schemes.hyperelliptic_curves.hypellfrob',
               sources = ['sage/schemes/hyperelliptic_curves/hypellfrob.pyx',
                          'sage/schemes/hyperelliptic_curves/hypellfrob/hypellfrob.cpp',

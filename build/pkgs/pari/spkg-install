@@ -149,8 +149,6 @@ build()
 
     # Allow the user to enable PARI self-tuning.
     # This is time-consuming, but some may want to do it.
-    # It is also very unreliable, and currently (svn 12577) completely
-    # broken on *many* systems.
     # Comment by leif: Also, PARI's Configure calls "make" (instead of $MAKE)
     #                  if we do tuning, so:
     #            TODO: Replace that in our patched version of Configure!

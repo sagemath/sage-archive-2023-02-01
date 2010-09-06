@@ -15,10 +15,10 @@
  /* EXACT INTEGER DIVISION */
  
 -#if 1 /* use undocumented GMP interface */
-+#ifndef PARI_DONT_USE_GMP_INTERNALS /* use "undocumented" GMP interface: */
++#ifndef PARI_DONT_USE_GMP_INTERNALS /* Use GMP/MPIR internals */
 +/* 
-+ * Note: "Undocumented" refers to directly accessing ("private") members
-+ *       of GMP's mpz_t / __mpz_struct types, which are defined in gmp.h.
++ * Note: This refers to directly accessing ("private") members of
++ *       GMP's mpz_t / __mpz_struct types, which are defined in gmp.h.
 + *       This is in fact (at least) compatible with both
 + *        - GMP (<= 5.0.1) *and*
 + *        - MPIR (<= 2.1.2),
@@ -33,7 +33,7 @@
    }
  }
 -#else
-+#else /* don't use "undocumented" GMP interface: */
++#else /* Don't use GMP/MPIR internals */
  /* assume y != 0 and the division is exact */
  GEN
  diviuexact(GEN x, ulong y)

@@ -23,6 +23,9 @@ Commands:
 - ``desolve_system_rk4`` - Solves numerically IVP for system of first
   order equations, returns list of points
 
+- ``desolve_odeint`` - Solves numerically a system of first-order ordinary
+  differential equations using ``odeint`` from scipy.integrate module.
+
 - ``eulers_method`` - Approximate solution to a 1st order DE,
   presented as a table.
 
@@ -1218,5 +1221,200 @@ def desolve_system_rk4(des, vars, ics=None, ivar=None, end_points=None, step=0.1
     sol=sol_1
     sol.append(ics)
     sol.extend(sol_2)
+
+    return sol
+
+def desolve_odeint(des, ics, times, dvars, ivar=None, compute_jac=False, args=()
+, rtol=None, atol=None, tcrit=None, h0=0.0, hmax=0.0, hmin=0.0, ixpr=0
+, mxstep=0, mxhnil=0, mxordn=12, mxords=5, printmessg=0):
+    r"""
+    Solves numerically a system of first-order ordinary differential equations
+    using ``odeint`` from scipy.integrate module.
+
+    INPUT:
+
+    - ``des``  -- right hand sides of the system
+
+    - ``ics``  -- initial conditions
+
+    - ``times`` -- a sequence of time points in which the solution must be found
+
+    - ``dvars`` -- dependent variables. ATTENTION: the order must be the same as
+      in des, that means: d(dvars[i])/dt=des[i]
+
+    - ``ivar`` -- independent variable, optional.
+
+    - ``compute_jac`` -- boolean. If True, the Jacobian of des is computed and
+      used during the integration of Stiff Systems. Default value is False.
+
+    Other Parameters (taken from the documentation of odeint function from
+      scipy.integrate module)
+
+    - ``rtol``, ``atol`` : float
+      The input parameters rtol and atol determine the error
+      control performed by the solver.  The solver will control the
+      vector, e, of estimated local errors in y, according to an
+      inequality of the form:
+
+        max-norm of (e / ewt) <= 1
+
+      where ewt is a vector of positive error weights computed as:
+
+        ewt = rtol * abs(y) + atol
+
+      rtol and atol can be either vectors the same length as y or scalars.
+
+    - ``tcrit`` : array
+      Vector of critical points (e.g. singularities) where integration
+      care should be taken.
+
+    - ``h0`` : float, (0: solver-determined)
+      The step size to be attempted on the first step.
+
+    - ``hmax`` : float, (0: solver-determined)
+      The maximum absolute step size allowed.
+
+    - ``hmin`` : float, (0: solver-determined)
+      The minimum absolute step size allowed.
+
+    - ``ixpr`` : boolean.
+      Whether to generate extra printing at method switches.
+
+    - ``mxstep`` : integer, (0: solver-determined)
+      Maximum number of (internally defined) steps allowed for each
+      integration point in t.
+
+    - ``mxhnil`` : integer, (0: solver-determined)
+      Maximum number of messages printed.
+
+    - ``mxordn`` : integer, (0: solver-determined)
+      Maximum order to be allowed for the nonstiff (Adams) method.
+
+    - ``mxords`` : integer, (0: solver-determined)
+      Maximum order to be allowed for the stiff (BDF) method.
+
+    OUTPUT:
+
+    Returns a list with the solution of the system at each time in times.
+
+    EXAMPLES:
+
+    Lotka Volterra Equations::
+
+        sage: from sage.calculus.desolvers import desolve_odeint
+        sage: x,y=var('x,y')
+        sage: f=[x*(1-y),-y*(1-x)]
+        sage: sol=desolve_odeint(f,[0.5,2],srange(0,10,0.1),[x,y])
+        sage: p=line(zip(sol[:,0],sol[:,1]))
+        sage: p.show()
+
+    Lorenz Equations::
+
+        sage: x,y,z=var('x,y,z')
+        sage: # Next we define the parameters
+        sage: sigma=10
+        sage: rho=28
+        sage: beta=8/3
+        sage: # The Lorenz equations
+        sage: lorenz=[sigma*(y-x),x*(rho-z)-y,x*y-beta*z]
+        sage: # Time and initial conditions
+        sage: times=srange(0,50.05,0.05)
+        sage: ics=[0,1,1]
+        sage: sol=desolve_odeint(lorenz,ics,times,[x,y,z],rtol=1e-13,atol=1e-14)
+
+    One-dimensional Stiff system::
+
+        sage: y= var('y')
+        sage: epsilon=0.01
+        sage: f=y^2*(1-y)
+        sage: ic=epsilon
+        sage: t=srange(0,2/epsilon,1)
+        sage: sol=desolve_odeint(f,ic,t,y,rtol=1e-9,atol=1e-10,compute_jac=True)
+        sage: p=points(zip(t,sol))
+        sage: p.show()
+
+    Another Stiff system with some optional parameters with no
+    default value::
+
+        sage: y1,y2,y3=var('y1,y2,y3')
+        sage: f1=77.27*(y2+y1*(1-8.375*1e-6*y1-y2))
+        sage: f2=1/77.27*(y3-(1+y1)*y2)
+        sage: f3=0.16*(y1-y3)
+        sage: f=[f1,f2,f3]
+        sage: ci=[0.2,0.4,0.7]
+        sage: t=srange(0,10,0.01)
+        sage: v=[y1,y2,y3]
+        sage: sol=desolve_odeint(f,ci,t,v,rtol=1e-3,atol=1e-4,h0=0.1,hmax=1,hmin=1e-4,mxstep=1000,mxords=17)
+
+    AUTHOR:
+
+    - Oriol Castejon (05-2010)
+    """
+
+    from scipy.integrate import odeint
+    from sage.ext.fast_eval import fast_float
+    from sage.calculus.functions import jacobian
+
+    if ivar==None:
+        if len(dvars)==0 or len(dvars)==1:
+            if len(dvars)==1:
+                des=des[0]
+                dvars=dvars[0]
+            all_vars = set(des.variables())
+        else:
+            all_vars = set([])
+            for de in des:
+                all_vars.update(set(de.variables()))
+        if is_SymbolicVariable(dvars):
+            ivars = all_vars - set([dvars])
+        else:
+            ivars = all_vars - set(dvars)
+
+        if len(ivars)==1:
+            ivar = ivars.pop()
+        elif not ivars:
+            from sage.symbolic.ring import var
+            safe_name = 't_' + str(dvars)
+            ivar = var(safe_name)
+        else:
+            raise ValueError, "Unable to determine independent variable, please specify."
+
+    # one-dimensional systems:
+    if is_SymbolicVariable(dvars):
+        func = fast_float(des,dvars,ivar)
+        if not compute_jac:
+            Dfun=None
+        else:
+            J = diff(des,dvars)
+            J = fast_float(J,dvars,ivar)
+            Dfun = lambda y,t: [J(y,t)]
+
+    # n-dimensional systems:
+    else:
+        desc = []
+        variabs = dvars[:]
+        variabs.append(ivar)
+        for de in des:
+            desc.append(fast_float(de,*variabs))
+
+        def func(y,t):
+            v = list(y[:])
+            v.append(t)
+            return [dec(*v) for dec in desc]
+
+        if not compute_jac:
+            Dfun=None
+        else:
+            J = jacobian(des,dvars)
+            J = [list(v) for v in J]
+            J = fast_float(J,*variabs)
+            def Dfun(y,t):
+                v = list(y[:])
+                v.append(t)
+                return [[element(*v) for element in row] for row in J]
+
+    sol=odeint(func, ics, times, args=args, Dfun=Dfun, rtol=rtol, atol=atol,
+        tcrit=tcrit, h0=h0, hmax=hmax, hmin=hmin, ixpr=ixpr, mxstep=mxstep,
+        mxhnil=mxhnil, mxordn=mxordn, mxords=mxords, printmessg=printmessg)
 
     return sol

@@ -1,5 +1,5 @@
 r"""
-LaTeX Options for Graphs
+LaTeX options for graphs
 
 This module provides a class to hold, manipulate and employ various
 options for rendering a graph in `\mbox{\rm\LaTeX}`.

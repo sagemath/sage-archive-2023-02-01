@@ -1,5 +1,5 @@
 r"""
-Bipartite Graphs
+Bipartite graphs
 
 This module implements bipartite graphs.
 

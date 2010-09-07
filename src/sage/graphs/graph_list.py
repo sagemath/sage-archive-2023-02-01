@@ -1,5 +1,5 @@
 r"""
-Lists of graphs.
+Lists of graphs
 
 AUTHORS:
 

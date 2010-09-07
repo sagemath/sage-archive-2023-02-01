@@ -1,5 +1,5 @@
 """
-Graph Coloring
+Graph coloring
 
 AUTHORS:
 

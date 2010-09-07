@@ -1,5 +1,5 @@
 r"""
-Common Graphs
+Common graphs
 
 Usage
 =====

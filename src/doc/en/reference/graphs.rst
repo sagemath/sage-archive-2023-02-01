@@ -1,6 +1,7 @@
 Graph Theory
 ============
 
+
 Graph objects and methods
 -------------------------
 
@@ -22,6 +23,7 @@ Constructors and databases
    sage/graphs/graph_generators
    sage/graphs/graph_database
 
+
 Low-level implementation
 ------------------------
 
@@ -32,8 +34,9 @@ Low-level implementation
    sage/graphs/base/sparse_graph
    sage/graphs/base/dense_graph
 
+
 Libraries of algorithms
---------------------
+-----------------------
 
 .. toctree::
    :maxdepth: 1
@@ -43,4 +46,3 @@ Libraries of algorithms
    sage/graphs/pq_trees
    sage/graphs/graph_latex
    sage/graphs/graph_list
-

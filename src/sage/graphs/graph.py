@@ -1,5 +1,5 @@
 r"""
-Undirected Graphs
+Undirected graphs
 
 This module implements functions and operations involving undirected
 graphs.

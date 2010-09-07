@@ -1,5 +1,5 @@
 """
-Graph Database
+Graph database
 
 INFO:
 

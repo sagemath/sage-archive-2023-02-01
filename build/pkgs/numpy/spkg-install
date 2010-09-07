@@ -2,28 +2,28 @@
 
 CUR=`pwd`
 
-if [ "$SAGE_LOCAL" = "" ]; then
-   echo "SAGE_LOCAL undefined ... exiting";
+if [ -z "$SAGE_LOCAL" ]; then
+   echo "SAGE_LOCAL undefined ... exiting"
    echo "Maybe run 'sage -sh'?"
    exit 1
 fi
 
-# numpy's distutils is buggy and runs a conftest without
-# taking CFLAGS into account. With 64 bit OSX this results
-# in *boom*
-if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
-   echo "64 bit MacIntel: copying fake gcc"
-   rm $SAGE_LOCAL/bin/gcc
-   cp gcc_fake $SAGE_LOCAL/bin/gcc
-   chmod 755 $SAGE_LOCAL/bin/gcc
+# Setting CFLAGS to have the option -m64 does not work for Numpy when
+# making 64-bit builds on at least OS X and Solaris. Instead set CC
+# to include the the -m64
+
+if [ -z "$CFLAG64" ] ; then
+   CFLAG64=-m64
+fi
+
+if [ "x$SAGE64" = xyes ] ; then
+   CC="$CC $CFLAG64"
+   export CC
 fi
 
 if [ $UNAME = "CYGWIN" ]; then
     echo "CYGWIN: Patching src/numpy/linalg/setup.py"
     cp patches/cygwin-lapack_lite-setup.py src/numpy/linalg/setup.py
-
-    echo "CYGWIN: Patching src/numpy/core/setup.py"
-    cp patches/cygwin-core-setup.py src/numpy/core/setup.py
 fi
 
 cd src
@@ -33,12 +33,16 @@ echo "library_dirs = $SAGE_LOCAL/lib" >> site.cfg
 echo "include_dirs = $SAGE_LOCAL/include" >> site.cfg
 echo "" >> site.cfg
 
-
 if [ `uname` = "Darwin" ]; then
     unset ATLAS
     unset BLAS
     unset LAPACK
+    export FC="sage_fortran"
+else
+    export LDFLAGS="${LDFLAGS} -shared"
 fi
+export FC="${SAGE_LOCAL}/bin/sage_fortran"
+export NUMPY_FCONFIG="config_fc --noopt --noarch"
 
 ################################################
 
@@ -50,18 +54,10 @@ rm -rf "$SAGE_LOCAL"/lib/python/site-packages/numpy
 # Program around a bug in SciPY's distutils.
 unset CFLAGS
 
-python setup.py install
+python setup.py install ${NUMPY_FCONFIG}
 
 if [ $? -ne 0 ]; then
     echo "Error building numpy."
     exit 1
 fi
-
-if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
-   echo "64 bit MacIntel: deleting fake gcc"
-   rm $SAGE_LOCAL/bin/gcc
-fi
-
-#echo "Checking the numpy.pxi file in the Sage source tree..."
-#$CUR/bin/update-pxi.py $CUR/src/numpy/doc/cython/numpy.pxi $SAGE_ROOT/devel/sage/sage/ext/numpy.pxi
 

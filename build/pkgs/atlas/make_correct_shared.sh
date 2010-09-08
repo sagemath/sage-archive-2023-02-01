@@ -1,5 +1,9 @@
 #/bin/sh
 
+# This script is badly named - a couple of the shared libraries often
+# fail to build on Linux, and if liblapack.so is built on Solaris, it causes
+# problems.
+
 ##############Find the location of f95##########
 if [ `./fortran_type.pl` = "g95" ]; then
 f95_dir=$SAGE_LOCAL/lib/gcc-lib
@@ -9,22 +13,6 @@ echo "Using f95, f95 lib in"
 echo $f95_dir
 fi
 ###############################################
-
-
-
-
-if [ `uname` = "Darwin" ]; then
-    cd "$SAGE_LOCAL"/lib
-    atlas_command="ld  -L"$SAGE_LOCAL"/lib  -dylib  -o libatlas.dylib -lm -lc -all_load libatlas.a"
-    cblas_command="ld  -L"$SAGE_LOCAL"/lib -dylib -o libcblas.dylib -lm -lc -latlas -all_load libcblas.a"
-    echo $atlas_command
-    $atlas_command
-    echo $cblas_command
-    $cblas_command
-
-fi
-
-
 
 if [ `uname` = "Linux" ] || [ `uname` = "FreeBSD" ]; then
     if [ `./fortran_type.pl` =  "g95" ]; then

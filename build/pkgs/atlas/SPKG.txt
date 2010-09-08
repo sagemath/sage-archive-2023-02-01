@@ -24,6 +24,8 @@ since the wrong flags are passed to the linker. This will be fixed soon.
 == Dependencies ==
 
  * Fortran
+ * Python
+ * Lapack
 
 == Build Instructions/Notes ==
 
@@ -35,8 +37,35 @@ since the wrong flags are passed to the linker. This will be fixed soon.
  * Tuning info for K732SSE1.tgz, PM32SSE2.tgz and PPCG432.tgz
  * Changes linker flags on Solaris if the Sun linker is used.
  * AN UPDATE TO THE LATEST ATLAS IS WELL OVERDUE, BUT THIS IS NON-TRIVIAL
+ * Changing this package, which takes a long time to build, so it (and the
+   Fortran package) did not use Python, would allow the ATLAS build to be
+   started sooner in parallel builds. This should reduce the overall time to
+   build Sage.
+ * The package is never installed on Cygwin or OS X.
 
 == ChangeLog ==
+
+== atlas-3.8.3.p15 (David Kirkby, September 6th 2010) ==
+ * Make SAGE_ATLAS_LIB use static libraries on all platforms,
+   as building two shared libraries often fails on Linux, and
+   messes things up on Solaris. The static library is less hassle
+   all around. Worth noting is that the ATLAS package only builds
+   the static library and Wolfram Research only ship the static
+   library with Mathematica, despite they usually use shared
+   libraries. To ensure full compatibility with a fresh build
+   of ATLAS, the symbolic links are created for the shared libraries too.
+   The links will fail to be created if the shared libraries do not exist,
+   but will not cause any extra problems.
+ * Update the list of dependencies to include Python and Lapack (see
+   spkg/deps)
+ * Note that the ATLAS build process could be made much quicker if its
+   depenancy on Python was removed. Since the amount of Python code is
+   very small compared to the bash code, this seems logical to do at
+   a later date. The Fortran package would need the same change - but again
+   the amount of Python in that is trivial.
+ * Add a note that make-correct-shared.sh is badly named, as it often fails.
+ * Remove the OS X specific code from make-correct-shared.sh, as ATLAS is
+   never installed on OS X - see the spkg-install-script.
 
 == atlas-3.8.3.p14 (David Kirkby, August 10th 2010) ==
  * #9508 Fix multiple ATLAS build issues on Solaris 10 and OpenSolaris.
@@ -47,7 +76,7 @@ since the wrong flags are passed to the linker. This will be fixed soon.
    liblapack.so is NOT built as it causes problems with R.
  * Delete liblapack.so in make_correct_shared.sh on Solaris just
    in case it is built by ATLAS, which does build some
-   libraries. (This is probably an unneessary step, but
+   libraries. (This is probably an unnecessary step, but
    it's better to be safe than sorry).
  * Correct linker options on 32-bit Solaris 10 or 32-bit
    OpenSolaris builds on x86. These may not be optimal, but at
@@ -188,7 +217,7 @@ since the wrong flags are passed to the linker. This will be fixed soon.
 === atlas-3.8.p8 (Josh Kantor, Jan. 19th, 2008) ===
  * Added optional environment variable SAGE_ATLAS_LIB. This should be a
    directory that contains liblapack.so,libcblas.so, libf77blas.so,
-   libatlas.so. Instead of building atlas we make symlinks to these
+   libatlas.so. Instead of building atlas we make symbolic links to these
    libraries in $SAGE_LOCAL/lib
 
 === atlas-3.8.p6 (Josh Kantor, Dec. 15th, 2007) ===

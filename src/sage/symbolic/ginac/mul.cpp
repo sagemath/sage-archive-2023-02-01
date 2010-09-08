@@ -272,28 +272,46 @@ void mul::do_print_rat_func(const print_context & c, unsigned level,
 	if (!neg_powers.empty()) {
 		// Factors with negative exponent are printed as a fraction
 		if (latex_tags) {
-			c.s << "\\frac{";
 			ex numer = overall_coeff.numer();
-			if (others.empty()) {
-			     if (numer.is_equal(_ex1) || numer.is_equal(_ex_1)) {
-			          const numeric &coeff = ex_to<numeric>(numer);
-				  if (coeff.is_equal(*_num_1_p) && !coeff.is_parent_pos_char()) {
-				        c.s<<"-";
-				  }
-				  c.s<<'1';
-			     } else {
-			          numer.print(c);
-			     }
+			const numeric &coeff_numer = ex_to<numeric>(numer);
+			bool negate = false;
+			if (coeff_numer.is_equal(*_num_1_p) &&
+					!coeff_numer.is_parent_pos_char()) {
+				c.s<<"-";
+				negate = true;
+				//print_numer = coeff_numer.mul(*_num_1_p);
 			} else {
-			     if (numer.is_equal(_ex1) || numer.is_equal(_ex_1)) {
-			          const numeric &coeff = ex_to<numeric>(numer);
-				  if (coeff.is_equal(*_num_1_p) && !coeff.is_parent_pos_char()) {
-				        c.s<<"-";
-				  }
-			         mul(others).eval().print(c);
-			     } else {
-				 mul(numer,mul(others).eval()).hold().print(c);
-			     }
+				std::stringstream tstream;
+				print_context* tcontext_p;
+				if (latex)
+					tcontext_p = new print_latex(tstream, c.options);
+				else
+					tcontext_p = new print_dflt(tstream, c.options);
+				coeff_numer.print(*tcontext_p, 0);
+				if (tstream.peek() == '-') {
+					c.s<<"-";
+					negate = true;
+					//const numeric &print_numer = coeff_numer.mul(*_num_1_p);
+				} /*else {
+					const numeric &print_numer = coeff_numer;
+				}*/
+				delete tcontext_p;
+			}
+
+			numeric print_numer = negate ? coeff_numer.mul(*_num_1_p) : coeff_numer;
+			c.s << "\\frac{";
+			if (others.empty()) {
+				if (print_numer.is_equal(*_num1_p)){
+					c.s<<'1';
+				} else {
+					print_numer.print(c);
+				}
+			} else {
+				if (print_numer.is_equal(*_num1_p)){
+					mul(others).eval().print(c);
+				} else {
+					mul(print_numer,mul(others).eval()).hold().print(c);
+				}
 			}
 			c.s << "}{";
 			ex denom = overall_coeff.denom();

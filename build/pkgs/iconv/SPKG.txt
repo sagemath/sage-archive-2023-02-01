@@ -48,6 +48,9 @@ languages, with different characters to be handled properly.
    Developers Guide.
  * Consistently use "$UNAME" (which is set by 'sage-env') rather than
    `uname`. (Reviewer change. Also further cosmetic changes.)
+ * Stylistic change: Use 'case' statements for $UNAME case distinctions
+   rather than (nested) 'if's with or-lists of 'test' statements.
+   (Reviewer change, too.)
  * All patches/changes made at #9603.
 
 === iconv-1.13.1.p2 (John Palmieri, March 31st 2010) ===

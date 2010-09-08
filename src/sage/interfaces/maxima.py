@@ -2242,9 +2242,13 @@ class MaximaElement(ExpectElement):
             '\\sin^{-1}\\cdot5+\\sqrt{2}+{{1}\\over{3}}'
 
             sage: y,d = var('y,d')
-            sage: latex(maxima(derivative(ceil(x*y*d), d,x,x,y)))
-            d^3\,\left({{{\it \partial}^4}\over{{\it \partial}\,d^4}}\,  {\it ceil}\left(d , x , y\right)\right)\,x^2\,y^3+5\,d^2\,\left({{  {\it \partial}^3}\over{{\it \partial}\,d^3}}\,{\it ceil}\left(d , x   , y\right)\right)\,x\,y^2+4\,d\,\left({{{\it \partial}^2}\over{  {\it \partial}\,d^2}}\,{\it ceil}\left(d , x , y\right)\right)\,y
-
+            sage: f = function('f')
+            sage: latex(maxima(derivative(f(x*y*d), d,x,x,y)))
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: arguments must be distinct variables
+            sage: latex(maxima(derivative(f(x,y,d), d,x,x,y)))
+            {{{\it \partial}^4}\over{{\it \partial}\,d\,{\it \partial}\,x^2\,  {\it \partial}\,y}}\,f\left(x , y , d\right)
 
             sage: latex(maxima(d/(d-2)))
             {{d}\over{d-2}}

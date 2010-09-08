@@ -26,8 +26,12 @@ languages, with different characters to be handled properly.
 === iconv-1.13.1.p3 (David Kirkby, August 10th, 2010) ===
  * Use '$MAKE' instead of 'make' in spkg-install and spkg-check
    to enable parallel builds.
+ * used CC="$CC $CFLAG64" instead of adding $CLFAG64 to
+   CFLAGS. The former cause problems on Solaris 10 x86
+   and an early version of OpenSolaris on x86. It was never
+   a problem on a recent OpenSolaris or Solaris 10 on SPARC.
  * Change the format of the tests in spkg-install and
-   spkg-check to be a little clearer.
+   spkg-check to be a little clearer. See #9718 for a discussion of this.
  * Add a few extra comments.
  * Removed code to remove old files, to avoid causing any confusion.
  * Quoted "$SAGE_LOCAL" where this had been omitted before

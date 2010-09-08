@@ -26,8 +26,8 @@ if [ "x$UNAME" = xSunOS ] || [ "x$UNAME" = xHP-UX ] || [ "x$UNAME" = xCYGWIN ]; 
 
    # If the environment variable SAGE64="yes", then build a 64-bit version.
    if [ "x$SAGE64" = xyes ]; then
-      CFLAGS="$CFLAGS $CFLAG64"
-      export CFLAGS
+      CC="$CC $CFLAG64"
+      export CC
       echo "Building a 64-bit version of iconv"
    fi
 

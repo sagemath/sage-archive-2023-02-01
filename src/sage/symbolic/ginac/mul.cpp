@@ -143,9 +143,8 @@ void mul::print_overall_coeff(const ex coeff_ex, const print_context & c,
 	//print_context tcontext(tstream, c.options);
 	coeff.print(*tcontext_p, 0);
 	std::string coeffstr = tstream.str();
-	delete tcontext_p;
 
-	bool parenthesis = ((coeffstr.find(' ') != std::string::npos)||
+	bool parenthesis =((coeffstr.find(' ') != std::string::npos && !latex)||
 		(coeffstr.find('+') != std::string::npos) ||
 		(coeffstr.find('-',1) != std::string::npos));// ||
 		//(coeffstr.find('/') != std::string::npos) ||
@@ -153,7 +152,25 @@ void mul::print_overall_coeff(const ex coeff_ex, const print_context & c,
 		//(coeffstr.find('^') != std::string::npos));
 	if (coeff.is_equal(*_num_1_p) && !coeff.is_parent_pos_char())
 		c.s<<"-";
-	else if (!coeff.is_equal(*_num1_p)) {
+	else if (parenthesis && coeffstr[0] == '-') {
+		// We want to move the '-' out of the parenthesis if it is
+		// the first character. This allows the printing function in
+		// add objects to detect the '-' and change the sign.
+		// We get x - (2*I - 1)*y instead of x + (-2*I + 1)*y.
+		c.s<<"-";
+		if (latex)
+			c.s<<"\\left(";
+		else
+			c.s<<"(";
+		tstream.str("");
+		coeff.mul(*_num_1_p).print(*tcontext_p, 0);
+		c.s<<tstream.str();
+		if (latex)
+			c.s<<"\\right)";
+		else
+			c.s<<")";
+		c.s << mul_sym;
+	} else if (!coeff.is_equal(*_num1_p)) {
 		if (parenthesis) {
 			if (latex)
 				c.s << "\\left(";
@@ -169,6 +186,7 @@ void mul::print_overall_coeff(const ex coeff_ex, const print_context & c,
 		}
 		c.s << mul_sym;
 	}
+	delete tcontext_p;
 }
 
 /*

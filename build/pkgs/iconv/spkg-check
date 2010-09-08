@@ -18,8 +18,9 @@ SunOS)
     echo "It will probably be fixed in later releases of Solaris 10,"
     echo "and was fixed in build 66 of OpenSolaris:"
     echo "    http://bugs.opensolaris.org/bugdatabase/view_bug.do?bug_id=6550204"
-    ;&
-CYGWIN|HP-UX)
+esac
+case "$UNAME" in
+CYGWIN|HP-UX|SunOS)
 
     cd src
 

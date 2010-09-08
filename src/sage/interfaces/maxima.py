@@ -423,7 +423,7 @@ expression is positive or zero.
     sage: var('Ax,Bx,By')
     (Ax, Bx, By)
     sage: t = -Ax*sin(sqrt(Ax^2)/2)/(sqrt(Ax^2)*sqrt(By^2 + Bx^2))
-    sage: t.limit(Ax=0,dir='above')
+    sage: t.limit(Ax=0, dir='+')
     0
 
 A long complicated input expression::

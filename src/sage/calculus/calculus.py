@@ -921,9 +921,8 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
     INPUT:
 
     -  ``dir`` - (default: None); dir may have the value
-       'plus' (or 'above' or 'from_right') for a limit
-       from above, 'minus' (or 'below' or 'from_left')
-       for a limit from below, or may be omitted
+       'plus' (or '+' or 'right') for a limit from above,
+       'minus' (or '-' or 'left') for a limit from below, or may be omitted
        (implying a two-sided limit is to be computed).
 
     -  ``taylor`` - (default: False); if True, use Taylor
@@ -961,9 +960,9 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
 
     More examples::
 
-        sage: limit(x*log(x), x = 0, dir='above')
+        sage: limit(x*log(x), x = 0, dir='+')
         0
-        sage: lim((x+1)^(1/x),x = 0)
+        sage: lim((x+1)^(1/x), x = 0)
         e
         sage: lim(e^x/x, x = oo)
         +Infinity
@@ -981,9 +980,9 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         -Infinity
         sage: lim(x*sin(1/x), x=0)
         0
-        sage: limit(e^(-1/x), x=0, dir='from_right')
+        sage: limit(e^(-1/x), x=0, dir='right')
         0
-        sage: limit(e^(-1/x), x=0, dir='from_left')
+        sage: limit(e^(-1/x), x=0, dir='left')
         +Infinity
 
     ::
@@ -1003,16 +1002,16 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         sage: lim(x^2, x=2, dir='nugget')
         Traceback (most recent call last):
         ...
-        ValueError: dir must be one of None, 'plus', 'above', 'from_right', 'minus', 'below', 'from_left'
+        ValueError: dir must be one of None, 'plus', '+', 'right', 'minus', '-', 'left'
 
     We check that Trac ticket 3718 is fixed, so that
     Maxima gives correct limits for the floor function::
 
-        sage: limit(floor(x),x=0,dir='below')
+        sage: limit(floor(x), x=0, dir='-')
         -1
-        sage: limit(floor(x),x=0,dir='above')
+        sage: limit(floor(x), x=0, dir='+')
         0
-        sage: limit(floor(x),x=0)
+        sage: limit(floor(x), x=0)
         und
 
     Maxima gives the right answer here, too, showing
@@ -1021,16 +1020,16 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         sage: f = sqrt(1-x^2)
         sage: g = diff(f, x); g
         -x/sqrt(-x^2 + 1)
-        sage: limit(g, x=1, dir='below')
+        sage: limit(g, x=1, dir='-')
         -Infinity
 
-    TESTS::
+    ::
 
-        sage: limit(1/x,x=0)
+        sage: limit(1/x, x=0)
         Infinity
-        sage: limit(1/x,x=0,dir='above')
+        sage: limit(1/x, x=0, dir='+')
         +Infinity
-        sage: limit(1/x,x=0,dir='below')
+        sage: limit(1/x, x=0, dir='-')
         -Infinity
 
     Check that Trac 8942 is fixed::
@@ -1042,6 +1041,15 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         -Infinity
         sage: limit(f(x), x = pi/4)
         Infinity
+
+    Check that we give deprecation warnings for 'above' and 'below' #9200::
+
+        sage: limit(1/x, x=0, dir='above')
+        doctest:...: DeprecationWarning: (Since Sage version 4.6) the keyword 'above' is deprecated. Please use 'right' or '+' instead.
+        +Infinity
+        sage: limit(1/x, x=0, dir='below')
+        doctest:...: DeprecationWarning: (Since Sage version 4.6) the keyword 'below' is deprecated. Please use 'left' or '-' instead.
+        -Infinity
     """
     if not isinstance(ex, Expression):
         ex = SR(ex)
@@ -1056,15 +1064,22 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
     if taylor and algorithm == 'maxima':
         algorithm = 'maxima_taylor'
 
-    if dir not in [None, 'plus', 'above', 'from_right', 'minus', 'below', 'from_left']:
-        raise ValueError( "dir must be one of None, 'plus', 'above', 'from_right', 'minus', 'below', 'from_left'"  )
+    if dir not in [None, 'plus', '+', 'right', 'minus', '-', 'left',
+            'above', 'below']:
+        raise ValueError("dir must be one of None, 'plus', '+', 'right', 'minus', '-', 'left'")
 
     if algorithm == 'maxima':
         if dir is None:
             l = ex._maxima_().limit(v, a)
-        elif dir == 'plus' or dir == 'above' or dir == 'from_right':
+        elif dir in ['plus', '+', 'right', 'above']:
+            if dir == 'above':
+                from sage.misc.misc import deprecation
+                deprecation("the keyword 'above' is deprecated. Please use 'right' or '+' instead.", 'Sage version 4.6')
             l = ex._maxima_().limit(v, a, 'plus')
-        elif dir == 'minus' or dir == 'below' or dir == 'from_left':
+        elif dir in ['minus', '-', 'left', 'below']:
+            if dir == 'below':
+                from sage.misc.misc import deprecation
+                deprecation("the keyword 'below' is deprecated. Please use 'left' or '-' instead.", 'Sage version 4.6')
             l = ex._maxima_().limit(v, a, 'minus')
     elif algorithm == 'maxima_taylor':
         if dir is None:

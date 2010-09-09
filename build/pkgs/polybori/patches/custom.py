@@ -9,10 +9,11 @@ CXXFLAGS=CCFLAGS+["-ftemplate-depth-100"]
 # FIXME: Should we include LDFLAGS here? (see above)
 if not globals().has_key("LINKFLAGS"): LINKFLAGS=[] # s.t. we can *append* below
 
-try:
-  SHLINKFLAGS = os.environ['SAGESOFLAGS']
-except:
-  SHLINKFLAGS = ["-shared"]
+if sys.platform=='sunos':
+  try:
+    SHLINKFLAGS = os.environ['SAGESOFLAGS']
+  except:
+    SHLINKFLAGS = ["$LINKFLAGS", "-shared", "${_sonamecmd(SONAMEPREFIX, TARGET, SONAMESUFFIX, __env__)}"]
 
 
 if sys.platform=='darwin':

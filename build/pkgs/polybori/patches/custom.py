@@ -14,7 +14,6 @@ try:
 except:
   SHLINKFLAGS = ["-shared"]
 
-CFLAGS = ["-fpic", "-fPIC"]
 
 if sys.platform=='darwin':
     FORCE_HASH_MAP=True

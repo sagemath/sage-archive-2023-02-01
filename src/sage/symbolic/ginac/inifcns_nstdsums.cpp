@@ -3844,7 +3844,8 @@ static ex zeta1_eval(const ex& m)
 				return _ex_1_2;
 			}
 			if (y.is_equal(*_num1_p)) {
-				return zeta(m).hold();
+				//return zeta(m).hold();
+				return UnsignedInfinity;
 			}
 			if (y.info(info_flags::posint)) {
 				if (y.info(info_flags::odd)) {

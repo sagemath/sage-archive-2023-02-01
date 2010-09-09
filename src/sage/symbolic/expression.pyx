@@ -4712,9 +4712,11 @@ cdef class Expression(CommutativeRingElement):
         0, and 1 if self > 0, or unevaluated when self is a nonconstant
         symbolic expression.
 
-        It can be somewhat arbitrary when self is not real.
+        If self is not real, return the complex half-plane (left or right)
+        in which the number lies.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: x = var('x')
             sage: SR(-2).csgn()
             -1
@@ -5993,6 +5995,16 @@ cdef class Expression(CommutativeRingElement):
             1
             sage: SR(0).binomial(0)
             1
+            sage: SR(-I).csgn()
+            -1
+            sage: SR(1+I).csgn()
+            1
+            sage: SR(1-I).csgn()
+            1
+            sage: SR(-1+I).csgn()
+            -1
+            sage: SR(-1-I).csgn()
+            -1
         """
         cdef Expression nexp = self.coerce_in(k)
         _sig_on

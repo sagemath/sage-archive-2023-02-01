@@ -850,6 +850,10 @@ void Number_T::archive(archive_node &n) const {
     }
   }
   
+  /** Return the complex half-plane (left or right) in which the number lies.
+   *  csgn(x)==0 for x==0, csgn(x)==1 for Re(x)>0 or Re(x)=0 and Im(x)>0,
+   *  csgn(x)==-1 for Re(x)<0 or Re(x)=0 and Im(x)<0.
+   *  */
   int Number_T::csgn() const { 
     verbose("csgn");
     switch(t) {
@@ -867,8 +871,21 @@ void Number_T::archive(archive_node &n) const {
       return 1;
     case PYOBJECT:
       int result;
-      if (PyObject_Cmp(v._pyobject, ZERO, &result) == -1)
-	py_error("csgn");
+      if (is_real()) {
+	      if (PyObject_Cmp(v._pyobject, ZERO, &result) == -1)
+		      py_error("csgn");
+      } else {
+	      PyObject *t = py_funcs.py_real(v._pyobject);
+	      if (PyObject_Cmp(t, ZERO, &result) == -1)
+		      py_error("csgn");
+	      if (result == 0) {
+		      Py_DECREF(t);
+		      t = py_funcs.py_imag(v._pyobject);
+		      if (PyObject_Cmp(t, ZERO, &result) == -1)
+			      py_error("csgn");
+		      Py_DECREF(t);
+	      }
+      }
       return result;
     default:
       stub("invalid type: csgn() type not handled");

@@ -5328,9 +5328,7 @@ cdef class Expression(CommutativeRingElement):
         TESTS::
 
             sage: t = SR(1).zeta(); t
-            zeta(1)
-            sage: t.n()
-            +infinity
+            Infinity
         """
         _sig_on
         cdef GEx x = g_zeta(self._gobj)

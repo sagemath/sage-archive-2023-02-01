@@ -139,6 +139,11 @@ class Function_zeta(GinacFunction):
             sage: a = loads(dumps(zeta(x)))
             sage: a.operator() == zeta
             True
+
+            sage: zeta(1)
+            Infinity
+            sage: zeta(x).subs(x=1)
+            Infinity
         """
         GinacFunction.__init__(self, "zeta")
 

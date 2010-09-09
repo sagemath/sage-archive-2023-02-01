@@ -104,21 +104,23 @@ defaultenv = Environment()
 if defaultenv['PLATFORM'] == "darwin":
     defaultenv['SHCCFLAGS'] += ["-fvisibility=hidden"]
 
-# See also:  http://trac.sagemath.org/sage_trac/ticket/6437
-def sun_linker_detected():
-    if os.system('ld --version > /dev/null 2>&1 ') == 0:
-        print ("GNU linker detected!")
-        return False
-    else:
-        print ("Sun linker detected.")
-        return True
+# See also: http://trac.sagemath.org/sage_trac/ticket/9872 and #6437
+def detect_linker(env):
+    import re
+    if re.search("Binutils|GNU",  shell_output(env['CC'], '-Wl,-v', '2>&1')):
+        return "gnu"
 
+    # Non-gnu linker or linux (could be Sun or Intel linker) will return 'posix'.
+    return env['PLATFORM']
 
 def sonameprefix(env):
+    linker = detect_linker(env)
+    print linker, "linker detected!"
     if env['PLATFORM']=="darwin":
         return "-Wl,-dylib_install_name -Wl,"
 
-    elif (env['PLATFORM']=="sunos") and sun_linker_detected():
+    elif (env['PLATFORM'] == "sunos") and (linker == 'sunos'):
+        print "Sun linker detected!"
         return '-Wl,-h'
 
     else:

@@ -530,9 +530,12 @@ class InterfaceInit(Converter):
             sage: m.composition(sin(x), sin)
             'Sin[x]'
         """
-        ops = [self(a) for a in ex.operands()]
+        ops = ex.operands()
+        #FIXME: consider stripping pyobjects() in ops
         if hasattr(operator, self.name_init + "evaled_"):
             return getattr(operator, self.name_init + "evaled_")(*ops)
+        else:
+            ops = map(self, ops)
         try:
             op = getattr(operator, self.name_init)()
         except (TypeError, AttributeError):

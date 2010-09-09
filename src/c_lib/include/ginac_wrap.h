@@ -126,3 +126,13 @@ constant* GConstant_construct(void* mem, char* name, char* texname, unsigned dom
 #define NE_WRAP(x,y)  (x)!=(y)
 #define GE_WRAP(x,y)  (x)>=(y)
 
+#define HOLD(fn, x, hold_flag) hold_flag ? ex(fn(x).hold()) : fn(x)
+
+#define HOLD2(fn, x, y, hold_flag) hold_flag ? ex(fn(x,y).hold()) : fn(x,y)
+
+// declare the constant 1/2 so we can use it for a custom square root function
+namespace GiNaC {
+
+extern const ex _ex1_2;
+
+}

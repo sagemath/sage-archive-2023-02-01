@@ -3966,6 +3966,82 @@ cdef class Expression(CommutativeRingElement):
         raise TypeError, "Must construct a function with a tuple (or list) of symbolic variables."
 
     ############################################################################
+    # Basic arithmetic wrappers
+    # which allow disabling automatic evaluation with the hold parameter
+    ############################################################################
+    def power(self, exp, hold=False):
+        """
+        Returns the current expression to the power ``exp``.
+
+        To prevent automatic evaluation use the ``hold`` argument.
+
+        EXAMPLES::
+
+            sage: (x^2).power(2)
+            x^4
+            sage: (x^2).power(2, hold=True)
+            (x^2)^2
+        """
+        cdef Expression nexp = self.coerce_in(exp)
+        return new_Expression_from_GEx(self._parent,
+                g_hold2_wrapper(g_power_construct, self._gobj, nexp._gobj,
+                    hold))
+
+    def add(self, *args, hold=False):
+        """
+        Return the sum of the current expression and the given arguments.
+
+        To prevent automatic evaluation use the ``hold`` argument.
+
+        EXAMPLES::
+
+            sage: x.add(x)
+            2*x
+            sage: x.add(x, hold=True)
+            x + x
+            sage: x.add(x, (2+x), hold=True)
+            x + x + (x + 2)
+            sage: x.add(x, (2+x), x, hold=True)
+            x + x + (x + 2) + x
+            sage: x.add(x, (2+x), x, 2*x, hold=True)
+            x + x + (x + 2) + x + 2*x
+        """
+        nargs = [self.coerce_in(x) for x in args]
+        cdef GExVector vec
+        cdef Py_ssize_t i
+        vec.push_back(self._gobj)
+        for i in range(len(args)):
+            vec.push_back((<Expression>nargs[i])._gobj)
+        return new_Expression_from_GEx(self._parent, g_add_construct(vec, hold))
+
+    def mul(self, *args, hold=False):
+        """
+        Return the product of the current expression and the given arguments.
+
+        To prevent automatic evaluation use the ``hold`` argument.
+
+        EXAMPLES::
+
+            sage: x.mul(x)
+            x^2
+            sage: x.mul(x, hold=True)
+            x*x
+            sage: x.mul(x, (2+x), hold=True)
+            x*x*(x + 2)
+            sage: x.mul(x, (2+x), x, hold=True)
+            x*x*(x + 2)*x
+            sage: x.mul(x, (2+x), x, 2*x, hold=True)
+            x*x*(x + 2)*x*(2*x)
+        """
+        nargs = [self.coerce_in(x) for x in args]
+        cdef GExVector vec
+        cdef Py_ssize_t i
+        vec.push_back(self._gobj)
+        for i in range(len(args)):
+            vec.push_back((<Expression>nargs[i])._gobj)
+        return new_Expression_from_GEx(self._parent, g_mul_construct(vec, hold))
+
+    ############################################################################
     # Polynomial functions
     ############################################################################
     def coefficient(self, s, int n=1):
@@ -4363,6 +4439,12 @@ cdef class Expression(CommutativeRingElement):
             sage: R(f)
             2.7182818284590452353602874714*x^3 + 3.1415926535897932384626433833*y^3 + 1.4142135623730950488016887242 + 1.0000000000000000000000000000*I
 
+        Using the ``hold`` parameter it is possible to prevent automatic
+        evaluation::
+
+            sage: SR(I).conjugate(hold=True)
+            conjugate(I)
+
         TESTS:
 
         This shows that the issue at trac #5755 is fixed (attempting to
@@ -4538,10 +4620,36 @@ cdef class Expression(CommutativeRingElement):
             5
             sage: type(abs(SR(-5)))
             <type 'sage.symbolic.expression.Expression'>
+
+        Using the ``hold`` parameter it is possible to prevent automatic
+        evaluation::
+
+            sage: SR(-5).abs(hold=True)
+            abs(-5)
         """
         return new_Expression_from_GEx(self._parent, g_abs(self._gobj))
 
-    def step(self):
+    def abs(self, hold=False):
+        """
+        Return the absolute value of this expression.
+
+        EXAMPLES::
+
+            sage: var('x, y')
+            (x, y)
+            sage: (x+y).abs()
+            abs(x + y)
+
+        Using the ``hold`` parameter it is possible to prevent automatic
+        evaluation::
+
+            sage: SR(-5).abs(hold=True)
+            abs(-5)
+        """
+        return new_Expression_from_GEx(self._parent,
+                g_hold_wrapper(g_abs, self._gobj, hold))
+
+    def step(self, hold=False):
         """
         Return the value of the Heaviside step function, which is 0 for
         negative x, 1/2 for 0, and 1 for positive x.
@@ -4557,10 +4665,19 @@ cdef class Expression(CommutativeRingElement):
             0
             sage: SR(float(-1)).step()
             0
-        """
-        return new_Expression_from_GEx(self._parent, g_step(self._gobj))
 
-    def csgn(self):
+        Using the ``hold`` parameter it is possible to prevent automatic
+        evaluation::
+
+            sage: SR(2).step()
+            1
+            sage: SR(2).step(hold=True)
+            step(2)
+        """
+        return new_Expression_from_GEx(self._parent,
+                g_hold_wrapper(g_step, self._gobj, hold))
+
+    def csgn(self, hold=False):
         """
         Return the sign of self, which is -1 if self < 0, 0 if self ==
         0, and 1 if self > 0, or unevaluated when self is a nonconstant
@@ -4582,10 +4699,17 @@ cdef class Expression(CommutativeRingElement):
             1
             sage: SR(I).csgn()
             1
-        """
-        return new_Expression_from_GEx(self._parent, g_csgn(self._gobj))
 
-    def conjugate(self):
+        Using the ``hold`` parameter it is possible to prevent automatic
+        evaluation::
+
+            sage: SR(I).csgn(hold=True)
+            csgn(I)
+        """
+        return new_Expression_from_GEx(self._parent,
+                g_hold_wrapper(g_csgn, self._gobj, hold))
+
+    def conjugate(self, hold=False):
         """
         Return the complex conjugate of this symbolic expression.
 
@@ -4612,7 +4736,8 @@ cdef class Expression(CommutativeRingElement):
             sage: ( 1+I  + (2-3*I)*x).conjugate()
             (3*I + 2)*conjugate(x) - I + 1
         """
-        return new_Expression_from_GEx(self._parent, self._gobj.conjugate())
+        return new_Expression_from_GEx(self._parent,
+                g_hold_wrapper(g_conjugate, self._gobj, hold))
 
     def norm(self):
         r"""
@@ -4657,7 +4782,7 @@ cdef class Expression(CommutativeRingElement):
         """
         return (self*self.conjugate()).expand()
 
-    def real_part(self):
+    def real_part(self, hold=False):
         """
         Return the real part of this symbolic expression.
 
@@ -4676,12 +4801,21 @@ cdef class Expression(CommutativeRingElement):
             sage: f = log(x)
             sage: f.real_part()
             log(abs(x))
+
+        Using the ``hold`` parameter it is possible to prevent automatic
+        evaluation::
+
+            sage: SR(2).real_part()
+            2
+            sage: SR(2).real_part(hold=True)
+            real_part(2)
         """
-        return new_Expression_from_GEx(self._parent, self._gobj.real_part())
+        return new_Expression_from_GEx(self._parent,
+                g_hold_wrapper(g_real_part, self._gobj, hold))
 
     real = real_part
 
-    def imag_part(self):
+    def imag_part(self, hold=False):
         r"""
         Return the imaginary part of this symbolic expression.
 
@@ -4711,6 +4845,14 @@ cdef class Expression(CommutativeRingElement):
             sage: f.imag_part()
             arctan2(real_part(b) + imag_part(a), real_part(a) - imag_part(b))
 
+        Using the ``hold`` parameter it is possible to prevent automatic
+        evaluation::
+
+            sage: I.imag_part()
+            1
+            sage: I.imag_part(hold=True)
+            imag_part(I)
+
         TESTS::
 
             sage: x = var('x')
@@ -4723,11 +4865,12 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(CDF(2,3)).imag_part()
             3.0
         """
-        return new_Expression_from_GEx(self._parent, self._gobj.imag_part())
+        return new_Expression_from_GEx(self._parent,
+                g_hold_wrapper(g_imag_part, self._gobj, hold))
 
     imag = imag_part
 
-    def sqrt(self):
+    def sqrt(self, hold=False):
         """
         EXAMPLES:
             sage: var('x, y')
@@ -4738,10 +4881,19 @@ cdef class Expression(CommutativeRingElement):
             sqrt(x^2 + y^2)
             sage: (x^2).sqrt()
             sqrt(x^2)
-        """
-        return new_Expression_from_GEx(self._parent, g_sqrt(self._gobj))
 
-    def sin(self):
+        Using the ``hold`` parameter it is possible to prevent automatic
+        evaluation::
+
+            sage: SR(4).sqrt()
+            2
+            sage: SR(4).sqrt(hold=True)
+            sqrt(4)
+        """
+        return new_Expression_from_GEx(self._parent,
+                g_hold2_wrapper(g_power_construct, self._gobj, g_ex1_2, hold))
+
+    def sin(self, hold=False):
         """
         EXAMPLES::
 
@@ -4755,6 +4907,14 @@ cdef class Expression(CommutativeRingElement):
             sin(1)
             sage: sin(SR(RealField(150)(1)))
             0.84147098480789650665250232163029899962256306
+
+        Using the ``hold`` parameter it is possible to prevent automatic
+        evaluation::
+
+            sage: SR(0).sin()
+            0
+            sage: SR(0).sin(hold=True)
+            sin(0)
 
         TESTS::
 
@@ -4771,9 +4931,10 @@ cdef class Expression(CommutativeRingElement):
             ...
             RuntimeError: sin_eval(): sin(infinity) encountered
         """
-        return new_Expression_from_GEx(self._parent, g_sin(self._gobj))
+        return new_Expression_from_GEx(self._parent,
+                g_hold_wrapper(g_sin, self._gobj, hold))
 
-    def cos(self):
+    def cos(self, hold=False):
         """
         Return the cosine of self.
 
@@ -4798,6 +4959,13 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(float(1)).cos().n()
             0.540302305868140
 
+        To prevent automatic evaluation use the ``hold`` argument::
+
+            sage: pi.cos()
+            -1
+            sage: pi.cos(hold=True)
+            cos(pi)
+
         TESTS::
 
             sage: SR(oo).cos()
@@ -4813,9 +4981,10 @@ cdef class Expression(CommutativeRingElement):
             ...
             RuntimeError: cos_eval(): cos(infinity) encountered
         """
-        return new_Expression_from_GEx(self._parent, g_cos(self._gobj))
+        return new_Expression_from_GEx(self._parent,
+                g_hold_wrapper(g_cos, self._gobj, hold))
 
-    def tan(self):
+    def tan(self, hold=False):
         """
         EXAMPLES::
 
@@ -4829,6 +4998,13 @@ cdef class Expression(CommutativeRingElement):
             tan(1)
             sage: tan(SR(RealField(150)(1)))
             1.5574077246549022305069748074583601730872508
+
+        To prevent automatic evaluation use the ``hold`` argument::
+
+            sage: (pi/12).tan()
+            -sqrt(3) + 2
+            sage: (pi/12).tan(hold=True)
+            tan(1/12*pi)
 
         TESTS::
 
@@ -4845,9 +5021,10 @@ cdef class Expression(CommutativeRingElement):
             ...
             RuntimeError: tan_eval(): tan(infinity) encountered
         """
-        return new_Expression_from_GEx(self._parent, g_tan(self._gobj))
+        return new_Expression_from_GEx(self._parent,
+                g_hold_wrapper(g_tan, self._gobj, hold))
 
-    def arcsin(self):
+    def arcsin(self, hold=False):
         """
         Return the arcsin of x, i.e., the number y between -pi and pi
         such that sin(y) == x.
@@ -4865,6 +5042,13 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(-1/3).arcsin()
             -arcsin(1/3)
 
+        To prevent automatic evaluation use the ``hold`` argument::
+
+            sage: SR(0).arcsin()
+            0
+            sage: SR(0).arcsin(hold=True)
+            arcsin(0)
+
         TESTS::
 
             sage: SR(oo).arcsin()
@@ -4878,9 +5062,10 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(unsigned_infinity).arcsin()
             Infinity
         """
-        return new_Expression_from_GEx(self._parent, g_asin(self._gobj))
+        return new_Expression_from_GEx(self._parent,
+                g_hold_wrapper(g_asin, self._gobj, hold))
 
-    def arccos(self):
+    def arccos(self, hold=False):
         """
         Return the arc cosine of self.
 
@@ -4896,6 +5081,11 @@ cdef class Expression(CommutativeRingElement):
             1.15927948072741
             sage: plot(lambda x: SR(x).arccos(), -1,1)
 
+        To prevent automatic evaluation use the ``hold`` argument::
+
+            sage: SR(1).arccos(hold=True)
+            arccos(1)
+
         TESTS::
 
             sage: SR(oo).arccos()
@@ -4909,9 +5099,10 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(unsigned_infinity).arccos()
             Infinity
         """
-        return new_Expression_from_GEx(self._parent, g_acos(self._gobj))
+        return new_Expression_from_GEx(self._parent,
+                g_hold_wrapper(g_acos, self._gobj, hold))
 
-    def arctan(self):
+    def arctan(self, hold=False):
         """
         Return the arc tangent of self.
 
@@ -4928,6 +5119,11 @@ cdef class Expression(CommutativeRingElement):
             0.463647609000806
             sage: plot(lambda x: SR(x).arctan(), -20,20)
 
+        To prevent automatic evaluation use the ``hold`` argument::
+
+            sage: SR(1).arctan(hold=True)
+            arctan(1)
+
         TESTS::
 
             sage: SR(oo).arctan()
@@ -4939,9 +5135,10 @@ cdef class Expression(CommutativeRingElement):
             ...
             RuntimeError: arctan_eval(): arctan(unsigned_infinity) encountered
         """
-        return new_Expression_from_GEx(self._parent, g_atan(self._gobj))
+        return new_Expression_from_GEx(self._parent,
+                g_hold_wrapper(g_atan, self._gobj, hold))
 
-    def arctan2(self, x):
+    def arctan2(self, x, hold=False):
         """
         Return the inverse of the 2-variable tan function on self and x.
 
@@ -4958,6 +5155,11 @@ cdef class Expression(CommutativeRingElement):
 
             sage: SR(-0.7).arctan2(SR(-0.6))
             -pi + 0.862170054667226
+
+        To prevent automatic evaluation use the ``hold`` argument::
+
+            sage: SR(1/2).arctan2(1/2, hold=True)
+            arctan2(1/2, 1/2)
 
         TESTS:
 
@@ -5022,9 +5224,10 @@ cdef class Expression(CommutativeRingElement):
             RuntimeError: arctan2_eval(): arctan2(x, unsigned_infinity) encountered
         """
         cdef Expression nexp = self.coerce_in(x)
-        return new_Expression_from_GEx(self._parent, g_atan2(self._gobj, nexp._gobj))
+        return new_Expression_from_GEx(self._parent,
+                g_hold2_wrapper(g_atan2, self._gobj, nexp._gobj, hold))
 
-    def sinh(self):
+    def sinh(self, hold=False):
         r"""
         Return sinh of self.
 
@@ -5049,6 +5252,13 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(RIF(1)).sinh()
             1.175201193643802?
 
+        To prevent automatic evaluation use the ``hold`` argument::
+
+            sage: arccosh(x).sinh()
+            sqrt(x - 1)*sqrt(x + 1)
+            sage: arccosh(x).sinh(hold=True)
+            sinh(arccosh(x))
+
         TESTS::
 
             sage: SR(oo).sinh()
@@ -5060,9 +5270,10 @@ cdef class Expression(CommutativeRingElement):
             ...
             RuntimeError: sinh_eval(): sinh(unsigned_infinity) encountered
         """
-        return new_Expression_from_GEx(self._parent, g_sinh(self._gobj))
+        return new_Expression_from_GEx(self._parent,
+                g_hold_wrapper(g_sinh, self._gobj, hold))
 
-    def cosh(self):
+    def cosh(self, hold=False):
         r"""
         Return cosh of self.
 
@@ -5085,6 +5296,13 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(RIF(1)).cosh()
             1.543080634815244?
 
+        To prevent automatic evaluation use the ``hold`` argument::
+
+            sage: arcsinh(x).cosh()
+            sqrt(x^2 + 1)
+            sage: arcsinh(x).cosh(hold=True)
+            cosh(arcsinh(x))
+
         TESTS::
 
             sage: SR(oo).cosh()
@@ -5096,9 +5314,10 @@ cdef class Expression(CommutativeRingElement):
             ...
             RuntimeError: cosh_eval(): cosh(unsigned_infinity) encountered
         """
-        return new_Expression_from_GEx(self._parent, g_cosh(self._gobj))
+        return new_Expression_from_GEx(self._parent,
+                g_hold_wrapper(g_cosh, self._gobj, hold))
 
-    def tanh(self):
+    def tanh(self, hold=False):
         r"""
         Return tanh of self.
 
@@ -5118,6 +5337,13 @@ cdef class Expression(CommutativeRingElement):
             .7615941559557649
             sage: plot(lambda x: SR(x).tanh(), -1, 1)
 
+        To prevent automatic evaluation use the ``hold`` argument::
+
+            sage: arcsinh(x).tanh()
+            x/sqrt(x^2 + 1)
+            sage: arcsinh(x).tanh(hold=True)
+            tanh(arcsinh(x))
+
         TESTS::
 
             sage: SR(oo).tanh()
@@ -5129,9 +5355,10 @@ cdef class Expression(CommutativeRingElement):
             ...
             RuntimeError: tanh_eval(): tanh(unsigned_infinity) encountered
         """
-        return new_Expression_from_GEx(self._parent, g_tanh(self._gobj))
+        return new_Expression_from_GEx(self._parent,
+                g_hold_wrapper(g_tanh, self._gobj, hold))
 
-    def arcsinh(self):
+    def arcsinh(self, hold=False):
         """
         Return the inverse hyperbolic sine of self.
 
@@ -5149,8 +5376,16 @@ cdef class Expression(CommutativeRingElement):
             1.44363547517881
 
         Sage automatically applies certain identities::
+
             sage: SR(3/2).arcsinh().cosh()
             1/2*sqrt(13)
+
+        To prevent automatic evaluation use the ``hold`` argument::
+
+            sage: SR(-2).arcsinh()
+            -arcsinh(2)
+            sage: SR(-2).arcsinh(hold=True)
+            arcsinh(-2)
 
         TESTS::
 
@@ -5161,9 +5396,10 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(unsigned_infinity).arcsinh()
             Infinity
         """
-        return new_Expression_from_GEx(self._parent, g_asinh(self._gobj))
+        return new_Expression_from_GEx(self._parent,
+                g_hold_wrapper(g_asinh, self._gobj, hold))
 
-    def arccosh(self):
+    def arccosh(self, hold=False):
         """
         Return the inverse hyperbolic cosine of self.
 
@@ -5180,6 +5416,13 @@ cdef class Expression(CommutativeRingElement):
             sage: maxima('acosh(0.5)')
             1.047197551196598*%i
 
+        To prevent automatic evaluation use the ``hold`` argument::
+
+            sage: SR(-1).arccosh()
+            I*pi
+            sage: SR(-1).arccosh(hold=True)
+            arccosh(-1)
+
         TESTS::
 
             sage: SR(oo).arccosh()
@@ -5189,9 +5432,10 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(unsigned_infinity).arccosh()
             +Infinity
         """
-        return new_Expression_from_GEx(self._parent, g_acosh(self._gobj))
+        return new_Expression_from_GEx(self._parent,
+                g_hold_wrapper(g_acosh, self._gobj, hold))
 
-    def arctanh(self):
+    def arctanh(self, hold=False):
         """
         Return the inverse hyperbolic tangent of self.
 
@@ -5210,6 +5454,13 @@ cdef class Expression(CommutativeRingElement):
             sage: maxima('atanh(0.5)')
             .5493061443340...
 
+        To prevent automatic evaluation use the ``hold`` argument::
+
+            sage: SR(-1/2).arctanh()
+            -arctanh(1/2)
+            sage: SR(-1/2).arctanh(hold=True)
+            arctanh(-1/2)
+
         TESTS::
 
             sage: SR(1).arctanh()
@@ -5226,9 +5477,10 @@ cdef class Expression(CommutativeRingElement):
             ...
             RuntimeError: arctanh_eval(): arctanh(unsigned_infinity) encountered
         """
-        return new_Expression_from_GEx(self._parent, g_atanh(self._gobj))
+        return new_Expression_from_GEx(self._parent,
+                g_hold_wrapper(g_atanh, self._gobj, hold))
 
-    def exp(self):
+    def exp(self, hold=False):
         """
         Return exponential function of self, i.e., e to the
         power of self.
@@ -5251,6 +5503,11 @@ cdef class Expression(CommutativeRingElement):
             sage: (pi*I).exp()
             -1
 
+        To prevent automatic evaluation use the ``hold`` argument::
+
+            sage: (pi*I).exp(hold=True)
+            e^(I*pi)
+
         TESTS:
 
         Test if #6377 is fixed::
@@ -5264,9 +5521,10 @@ cdef class Expression(CommutativeRingElement):
             ...
             RuntimeError: exp_eval(): exp^(unsigned_infinity) encountered
         """
-        return new_Expression_from_GEx(self._parent, g_exp(self._gobj))
+        return new_Expression_from_GEx(self._parent,
+                g_hold_wrapper(g_exp, self._gobj, hold))
 
-    def log(self, b=None):
+    def log(self, b=None, hold=False):
         """
         Return the logarithm of self.
 
@@ -5293,6 +5551,13 @@ cdef class Expression(CommutativeRingElement):
             -0.69314718055994529
             sage: plot(lambda x: SR(x).log(), 0.1,10)
 
+        To prevent automatic evaluation use the ``hold`` argument::
+
+            sage: I.log()
+            1/2*I*pi
+            sage: I.log(hold=True)
+            log(I)
+
         TESTS::
 
             sage: SR(oo).log()
@@ -5302,13 +5567,14 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(unsigned_infinity).log()
             +Infinity
         """
-        res = new_Expression_from_GEx(self._parent, g_log(self._gobj))
+        res = new_Expression_from_GEx(self._parent,
+                g_hold_wrapper(g_log, self._gobj, hold))
         if b is None:
             return res
         else:
-            return res/self._parent(b).log()
+            return res/self.coerce_in(b).log(hold=hold)
 
-    def zeta(self):
+    def zeta(self, hold=False):
         """
         EXAMPLES::
 
@@ -5325,17 +5591,22 @@ cdef class Expression(CommutativeRingElement):
             0.00330022368532 - 0.418155449141*I
             sage: plot(lambda x: SR(x).zeta(), -10,10).show(ymin=-3,ymax=3)
 
+        To prevent automatic evaluation use the ``hold`` argument::
+
+            sage: SR(2).zeta(hold=True)
+            zeta(2)
+
         TESTS::
 
             sage: t = SR(1).zeta(); t
             Infinity
         """
         _sig_on
-        cdef GEx x = g_zeta(self._gobj)
+        cdef GEx x = g_hold_wrapper(g_zeta, self._gobj, hold)
         _sig_off
         return new_Expression_from_GEx(self._parent, x)
 
-    def factorial(self):
+    def factorial(self, hold=False):
         """
         Return the factorial of self.
 
@@ -5351,13 +5622,18 @@ cdef class Expression(CommutativeRingElement):
             factorial(x)
             sage: (x^2+y^3).factorial()
             factorial(x^2 + y^3)
+
+        To prevent automatic evaluation use the ``hold`` argument::
+
+            sage: SR(5).factorial(hold=True)
+            factorial(5)
         """
         _sig_on
-        cdef GEx x = g_factorial(self._gobj)
+        cdef GEx x = g_hold_wrapper(g_factorial, self._gobj, hold)
         _sig_off
         return new_Expression_from_GEx(self._parent, x)
 
-    def binomial(self, k):
+    def binomial(self, k, hold=False):
         """
         Return binomial coefficient "self choose k".
 
@@ -5374,6 +5650,13 @@ cdef class Expression(CommutativeRingElement):
             sage: x.binomial(y)
             binomial(x, y)
 
+        To prevent automatic evaluation use the ``hold`` argument::
+
+            sage: x.binomial(3, hold=True)
+            binomial(x, 3)
+            sage: SR(5).binomial(3, hold=True)
+            binomial(5, 3)
+
         TESTS:
 
         Check if we handle zero correctly (#8561)::
@@ -5384,11 +5667,11 @@ cdef class Expression(CommutativeRingElement):
         """
         cdef Expression nexp = self.coerce_in(k)
         _sig_on
-        cdef GEx x = g_binomial(self._gobj, nexp._gobj)
+        cdef GEx x = g_hold2_wrapper(g_binomial, self._gobj, nexp._gobj, hold)
         _sig_off
         return new_Expression_from_GEx(self._parent, x)
 
-    def Order(self):
+    def Order(self, hold=False):
         """
         Order, as in big oh notation.
 
@@ -5401,10 +5684,16 @@ cdef class Expression(CommutativeRingElement):
             Order(n^3)
             sage: t.derivative(n)
             Order(n^2)
-        """
-        return new_Expression_from_GEx(self._parent, g_Order(self._gobj))
 
-    def gamma(self):
+        To prevent automatic evaluation use the ``hold`` argument::
+
+            sage: (17*n^3).Order(hold=True)
+            Order(17*n^3)
+        """
+        return new_Expression_from_GEx(self._parent,
+                g_hold_wrapper(g_Order, self._gobj, hold))
+
+    def gamma(self, hold=False):
         """
         Return the Gamma function evaluated at self.
 
@@ -5427,14 +5716,23 @@ cdef class Expression(CommutativeRingElement):
             sage: gp('gamma(1+I)') # 64-bit
             0.49801566811835604271369111746219809195 - 0.15494982830181068512495513048388660520*I
 
+        To prevent automatic evaluation use the ``hold`` argument::
+
+            sage: SR(1/2).gamma()
+            sqrt(pi)
+            sage: SR(1/2).gamma(hold=True)
+            gamma(1/2)
+
+        ::
+
             sage: set_verbose(-1); plot(lambda x: SR(x).gamma(), -6,4).show(ymin=-3,ymax=3)
         """
         _sig_on
-        cdef GEx x = g_tgamma(self._gobj)
+        cdef GEx x = g_hold_wrapper(g_tgamma, self._gobj, hold)
         _sig_off
         return new_Expression_from_GEx(self._parent, x)
 
-    def lgamma(self):
+    def lgamma(self, hold=False):
         """
         This method is deprecated, please use the `.log_gamma()` function
         instead.
@@ -5448,9 +5746,9 @@ cdef class Expression(CommutativeRingElement):
         """
         from sage.misc.misc import deprecation
         deprecation("The lgamma() function is deprecated. Use log_gamma() instead.")
-        return self.log_gamma()
+        return self.log_gamma(hold=hold)
 
-    def log_gamma(self):
+    def log_gamma(self, hold=False):
         """
         Return the log-gamma function evaluated at self.
         This is the logarithm of gamma of self, where
@@ -5472,9 +5770,14 @@ cdef class Expression(CommutativeRingElement):
             sage: math.exp(0.5)
             1.6487212707001282
             sage: plot(lambda x: (SR(x).exp() - SR(-x).exp())/2 - SR(x).sinh(), -1, 1)
+
+        To prevent automatic evaluation use the ``hold`` argument::
+
+            sage: SR(5).log_gamma(hold=True)
+            log_gamma(5)
         """
         _sig_on
-        cdef GEx x = g_lgamma(self._gobj)
+        cdef GEx x = g_hold_wrapper(g_lgamma, self._gobj, hold)
         _sig_off
         return new_Expression_from_GEx(self._parent, x)
 

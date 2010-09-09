@@ -223,6 +223,12 @@ cdef extern from "ginac_wrap.h":
     GEx gdiv "DIV_WRAP" (GEx left, GEx right) except +
     GEx g_pow "pow" (GEx left, GEx exp)      except +
 
+    GEx g_hold_wrapper "HOLD" (GEx (GEx) except+, GEx ex, bint) except +
+    GEx g_hold_wrapper_vec "HOLD" (GEx (GExVector) except+, GExVector vec,
+            bint) except +
+    GEx g_hold2_wrapper "HOLD2" (GEx (GEx, GEx) except+, GEx ex, GEx ex,
+            bint) except +
+
     #GSymbol get_symbol(char* s)              except +
     GSymbol ginac_symbol "GiNaC::symbol" (char* s, char* t, unsigned d) except +
     GSymbol ginac_new_symbol "GiNaC::symbol" () except +
@@ -251,19 +257,24 @@ cdef extern from "ginac_wrap.h":
 
 
     GEx g_abs "GiNaC::abs" (GEx x)           except +
-    GEx g_step "GiNaC::step" (GEx x)	     except +  # step function
-    GEx g_csgn "GiNaC::csgn" (GEx x)	     except + # complex sign
-    GEx g_conjugate "GiNaC::conjugate" (GEx x)	except + # complex conjugation
-    GEx g_real_part "GiNaC::real_part" (GEx x)	except + # real part
-    GEx g_imag_part "GiNaC::imag_part" (GEx x)	except + # imaginary part
-    GEx g_sqrt "GiNaC::sqrt" (GEx x)	except +  # square root (not a GiNaC function, rather an alias for pow(x, numeric(1, 2)))
+    GEx g_step "GiNaC::step" (GEx x)         except +  # step function
+    GEx g_csgn "GiNaC::csgn" (GEx x)         except + # complex sign
+    # complex conjugation
+    GEx g_conjugate "GiNaC::conjugate_function" (GEx x) except +
+    # real part
+    GEx g_real_part "GiNaC::real_part_function" (GEx x) except +
+    # imaginary part
+    GEx g_imag_part "GiNaC::imag_part_function" (GEx x) except +
+    # square root (not a GiNaC function, rather an alias for
+    # pow(x, numeric(1, 2)))
+    GEx g_sqrt "GiNaC::sqrt" (GEx x) except +
     GEx g_sin "GiNaC::sin" (GEx x)	except + # sine
     GEx g_cos "GiNaC::cos" (GEx x)	except + # cosine
     GEx g_tan "GiNaC::tan" (GEx x)	except + # tangent
     GEx g_asin "GiNaC::asin" (GEx x)	except + # inverse sine
     GEx g_acos "GiNaC::acos" (GEx x)	except + # inverse cosine
     GEx g_atan "GiNaC::atan" (GEx x)	except + # inverse tangent
-    GEx g_atan2 "GiNaC::atan2" (GEx y, GEx x) except + 	# inverse tangent with two arguments
+    GEx g_atan2 "GiNaC::atan2" (GEx y, GEx x) except +  # inverse tangent with two arguments
     GEx g_sinh "GiNaC::sinh" (GEx x)	except + # hyperbolic sine
     GEx g_cosh "GiNaC::cosh" (GEx x)	except + # hyperbolic cosine
     GEx g_tanh "GiNaC::tanh" (GEx x)	except + # hyperbolic tangent
@@ -290,6 +301,12 @@ cdef extern from "ginac_wrap.h":
     GEx g_binomial "GiNaC::binomial" (GEx n, GEx k)	except + # binomial coefficients
     GEx g_Order "GiNaC::Order" (GEx x)	        except + # order term function in truncated power series
 
+    # wrapper around arithmetic to allow "hold"ing results
+    GEx g_power_construct "GiNaC::power" (GEx b, GEx p) except +
+    GEx g_add_construct "GiNaC::add" (GExVector, bint) except +
+    GEx g_mul_construct "GiNaC::mul" (GExVector, bint) except +
+
+    GEx g_ex1_2 "GiNaC::_ex1_2"
 
     ctypedef struct GFunction "function":
         unsigned get_serial()

@@ -31,13 +31,13 @@ unset LD
 # found in build process
 unset TMPDIR
 
-# Singular supports parallel builds, but we disable them, for now,
-# since they sometimes fail.
-MAKE="make"
-export MAKE
-# We clear MAKEFLAGS to fix building multiple spkgs in parallel on OS X.
-MAKEFLAGS=
-export MAKEFLAGS
+## Singular supports parallel builds, but we disable them, for now,
+## since they sometimes fail.
+#MAKE="make"
+#export MAKE
+## We clear MAKEFLAGS to fix building multiple spkgs in parallel on OS X.
+#MAKEFLAGS=
+#export MAKEFLAGS
 
 # disable the dynamic kernel, except on Linux
 if [ "$UNAME" = "Linux" ]; then

@@ -404,9 +404,9 @@ cdef class Expression(CommutativeRingElement):
         Check if #7876 is fixed::
 
             sage: (1/2-1/2*I )*sqrt(2)
-            (-1/2*I + 1/2)*sqrt(2)
+            -(1/2*I - 1/2)*sqrt(2)
             sage: latex((1/2-1/2*I )*sqrt(2))
-            \left(-\frac{1}{2} i + \frac{1}{2}\right) \, \sqrt{2}
+            -\left(\frac{1}{2} i - \frac{1}{2}\right) \, \sqrt{2}
         """
         return self._parent._repr_element_(self)
 
@@ -600,20 +600,33 @@ cdef class Expression(CommutativeRingElement):
         Check that the sign is correct (#9086)::
 
             sage: latex(-1/x)
-            \frac{-1}{x}
+            -\frac{1}{x}
             sage: latex(1/-x)
-            \frac{-1}{x}
+            -\frac{1}{x}
 
         More tests for the sign (#9314)::
 
             sage: latex(-2/x)
-            \frac{-2}{x}
+            -\frac{2}{x}
             sage: latex(-x/y)
-            \frac{-x}{y}
+            -\frac{x}{y}
             sage: latex(-x*z/y)
-            \frac{-x z}{y}
+            -\frac{x z}{y}
             sage: latex(-x/z/y)
-            \frac{-x}{y z}
+            -\frac{x}{y z}
+
+        Check if #9394 is fixed::
+
+            sage: var('n')
+            n
+            sage: latex( e^(2*I*pi*n*x - 2*I*pi*n) )
+            e^{\left(2 i \, \pi n x - 2 i \, \pi n\right)}
+            sage: latex( e^(2*I*pi*n*x - (2*I+1)*pi*n) )
+            e^{\left(2 i \, \pi n x - \left(2 i + 1\right) \, \pi n\right)}
+            sage: x+(1-2*I)*y
+            x - (2*I - 1)*y
+            sage: latex(x+(1-2*I)*y)
+            x - \left(2 i - 1\right) \, y
         """
         return self._parent._latex_element_(self)
 

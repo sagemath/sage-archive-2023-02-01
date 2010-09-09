@@ -4176,7 +4176,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             sage: X = var('X')
             sage: f = expand((X-1)*(X-I)^3*(X^2 - sqrt(2))); f
-            -sqrt(2)*X^4 + I*sqrt(2) + X^6 + (-3*I - 1)*X^5 + (3*I - 3)*X^4 + (3*I + 1)*sqrt(2)*X^3 + (I + 3)*X^3 + (-3*I + 3)*sqrt(2)*X^2 - I*X^2 + (-I - 3)*sqrt(2)*X
+            -sqrt(2)*X^4 + I*sqrt(2) + X^6 - (3*I + 1)*X^5 + (3*I - 3)*X^4 + (3*I + 1)*sqrt(2)*X^3 + (I + 3)*X^3 - (3*I - 3)*sqrt(2)*X^2 - I*X^2 - (I + 3)*sqrt(2)*X
             sage: print f.roots()
             [(I, 3), (-2^(1/4), 1), (2^(1/4), 1), (1, 1)]
 

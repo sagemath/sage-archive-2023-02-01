@@ -12655,13 +12655,13 @@ class GenericGraph(GenericGraph_pyx):
               "-1/2" [label=" ", texlbl="$-\frac{1}{2}$"];
               "-1" [label=" ", texlbl="$-1$"];
             <BLANKLINE>
-              "1/2" -> "-2" [label=" ", texlbl="$x \ {\mapsto}\ \frac{-1}{x}$"];
+              "1/2" -> "-2" [label=" ", texlbl="$x \ {\mapsto}\ -\frac{1}{x}$"];
               "1/2" -> "2/3" [label=" ", texlbl="$x \ {\mapsto}\ \frac{1}{x + 1}$"];
-              "1" -> "-1" [label=" ", texlbl="$x \ {\mapsto}\ \frac{-1}{x}$"];
+              "1" -> "-1" [label=" ", texlbl="$x \ {\mapsto}\ -\frac{1}{x}$"];
               "1" -> "1/2" [label=" ", texlbl="$x \ {\mapsto}\ \frac{1}{x + 1}$"];
-              "1/4" -> "-4" [label=" ", texlbl="$x \ {\mapsto}\ \frac{-1}{x}$"];
+              "1/4" -> "-4" [label=" ", texlbl="$x \ {\mapsto}\ -\frac{1}{x}$"];
               "1/4" -> "4/5" [label=" ", texlbl="$x \ {\mapsto}\ \frac{1}{x + 1}$"];
-              "2" -> "-1/2" [label=" ", texlbl="$x \ {\mapsto}\ \frac{-1}{x}$"];
+              "2" -> "-1/2" [label=" ", texlbl="$x \ {\mapsto}\ -\frac{1}{x}$"];
               "2" -> "1/3" [label=" ", texlbl="$x \ {\mapsto}\ \frac{1}{x + 1}$"];
             }
 

@@ -68,11 +68,11 @@ add::add(const ex & lh, const ex & rh)
 	GINAC_ASSERT(is_canonical());
 }
 
-add::add(const exvector & v)
+add::add(const exvector & v, bool hold)
 {
 	tinfo_key = &add::tinfo_static;
 	overall_coeff = _ex0;
-	construct_from_exvector(v);
+	construct_from_exvector(v, hold);
 	GINAC_ASSERT(is_canonical());
 }
 

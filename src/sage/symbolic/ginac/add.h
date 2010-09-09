@@ -38,7 +38,7 @@ class add : public expairseq
 	// other constructors
 public:
 	add(const ex & lh, const ex & rh);
-	add(const exvector & v);
+	add(const exvector & v, bool hold=false);
 	add(const epvector & v);
 	add(const epvector & v, const ex & oc);
 	add(std::auto_ptr<epvector> vp, const ex & oc);

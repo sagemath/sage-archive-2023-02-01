@@ -74,11 +74,11 @@ mul::mul(const ex & lh, const ex & rh)
 	GINAC_ASSERT(is_canonical());
 }
 
-mul::mul(const exvector & v)
+mul::mul(const exvector & v, bool hold)
 {
 	tinfo_key = &mul::tinfo_static;
 	overall_coeff = _ex1;
-	construct_from_exvector(v);
+	construct_from_exvector(v, hold);
 	GINAC_ASSERT(is_canonical());
 }
 

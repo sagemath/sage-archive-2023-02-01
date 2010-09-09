@@ -1025,19 +1025,21 @@ void expairseq::construct_from_expairseq_ex(const expairseq &s,
 	}
 }
 
-void expairseq::construct_from_exvector(const exvector &v)
+void expairseq::construct_from_exvector(const exvector &v, bool hold)
 {
 	// simplifications: +(a,+(b,c),d) -> +(a,b,c,d) (associativity)
 	//                  +(d,b,c,a) -> +(a,b,c,d) (canonicalization)
 	//                  +(...,x,*(x,c1),*(x,c2)) -> +(...,*(x,1+c1+c2)) (c1, c2 numeric())
 	//                  (same for (+,*) -> (*,^)
 
-	make_flat(v);
+	make_flat(v, hold);
 #if EXPAIRSEQ_USE_HASHTAB
 	combine_same_terms();
 #else
-	canonicalize();
-	combine_same_terms_sorted_seq();
+	if (!hold) {
+		canonicalize();
+		combine_same_terms_sorted_seq();
+	}
 #endif // EXPAIRSEQ_USE_HASHTAB
 }
 
@@ -1059,7 +1061,7 @@ void expairseq::construct_from_epvector(const epvector &v, bool do_index_renamin
 
 /** Combine this expairseq with argument exvector.
  *  It cares for associativity as well as for special handling of numerics. */
-void expairseq::make_flat(const exvector &v)
+void expairseq::make_flat(const exvector &v, bool hold)
 {
 	exvector::const_iterator cit;
 	
@@ -1069,17 +1071,20 @@ void expairseq::make_flat(const exvector &v)
 	int noperands = 0;
 	bool do_idx_rename = false;
 	
-	cit = v.begin();
-	while (cit!=v.end()) {
-		if (ex_to<basic>(*cit).tinfo()==this->tinfo()) {
-			++nexpairseqs;
-			noperands += ex_to<expairseq>(*cit).seq.size();
+	if (!hold) {
+		cit = v.begin();
+		while (cit!=v.end()) {
+			if (ex_to<basic>(*cit).tinfo()==this->tinfo()) {
+				++nexpairseqs;
+				noperands += ex_to<expairseq>(*cit).seq.size();
+			}
+			if (is_a<mul>(*this) && (!do_idx_rename) &&
+					cit->info(info_flags::has_indices))
+				do_idx_rename = true;
+			++cit;
 		}
-		if (is_a<mul>(*this) && (!do_idx_rename) &&
-				cit->info(info_flags::has_indices))
-			do_idx_rename = true;
-		++cit;
-	}
+	} else
+		this->setflag(status_flags::evaluated);
 	
 	// reserve seq and coeffseq which will hold all operands
 	seq.reserve(v.size()+noperands-nexpairseqs);
@@ -1088,7 +1093,7 @@ void expairseq::make_flat(const exvector &v)
 	make_flat_inserter mf(v, do_idx_rename);
 	cit = v.begin();
 	while (cit!=v.end()) {
-		if (ex_to<basic>(*cit).tinfo()==this->tinfo()) {
+		if (ex_to<basic>(*cit).tinfo()==this->tinfo() && !hold) {
 			ex newfactor = mf.handle_factor(*cit, _ex1);
 			const expairseq &subseqref = ex_to<expairseq>(newfactor);
 			combine_overall_coeff(subseqref.overall_coeff);

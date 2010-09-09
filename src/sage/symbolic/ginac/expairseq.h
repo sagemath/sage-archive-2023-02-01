@@ -126,9 +126,9 @@ protected:
 	                                const expairseq & s2);
 	void construct_from_expairseq_ex(const expairseq & s,
 	                                 const ex & e);
-	void construct_from_exvector(const exvector & v);
+	void construct_from_exvector(const exvector & v, bool hold=false);
 	void construct_from_epvector(const epvector & v, bool do_index_renaming = false);
-	void make_flat(const exvector & v);
+	void make_flat(const exvector & v, bool hold=false);
 	void make_flat(const epvector & v, bool do_index_renaming = false);
 	void canonicalize();
 	void combine_same_terms_sorted_seq();

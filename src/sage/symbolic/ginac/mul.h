@@ -40,7 +40,7 @@ class mul : public expairseq
 	// other constructors
 public:
 	mul(const ex & lh, const ex & rh);
-	mul(const exvector & v);
+	mul(const exvector & v, bool hold=false);
 	mul(const epvector & v);
 	mul(const epvector & v, const ex & oc, bool do_index_renaming = false);
 	mul(std::auto_ptr<epvector> vp, const ex & oc, bool do_index_renaming = false);

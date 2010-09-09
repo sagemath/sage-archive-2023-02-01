@@ -114,6 +114,11 @@ patch()
         cp patches/sing_win.cc src/Singular/
         cp patches/IntegerProgramming-Makefile.in src/IntegerProgramming/Makefile.in
     fi
+
+    # parallel build patches
+    cp patches/factory-GNUmakefile.in src/factory/GNUmakefile.in
+    cp patches/patches/Singular-Makefile.in src/Singular/Makefile.in
+    cp patches/patches/Makefile.in src/Makefile.in
 }
 
 distclean()

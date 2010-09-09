@@ -1,0 +1,20 @@
+--- ../src/Singular/Makefile.in	2010-07-15 12:19:00.000000000 +0200
++++ Singular-Makefile.in	2010-09-09 09:36:53.975341044 +0200
+@@ -377,7 +377,7 @@
+ claptmpl.o: claptmpl.cc mod2.h
+ 	${CXX} ${CXXFLAGS}  ${CPPFLAGS} ${DEFS} -c $<
+ 
+-iparith.inc: claptmpl.o iparith.cc \
++iparith.inc: ${OBJS} claptmpl.o iparith.cc \
+                           ipconv.cc tok.h mpsr_Tok.cc grammar.h mod2.h
+ 	${CXX} ${CXXFLAGS} ${CPPFLAGS} ${CXXTEMPLFLAGS} ${DEFS} -DGENTABLE \
+ 	     -o gentable1 claptmpl.o iparith.cc tesths.cc mpsr_Tok.cc \
+@@ -385,7 +385,7 @@
+ 	./gentable1
+ 	/bin/rm -f gentable1 gentable1.exe
+ 
+-mpsr_Tok.inc: claptmpl.o iparith.cc \
++mpsr_Tok.inc: ${OBJS} claptmpl.o iparith.cc \
+                           ipconv.cc tok.h mpsr_Tok.cc grammar.h mod2.h
+ 	${CXX} ${CXXFLAGS} ${CPPFLAGS} ${CXXTEMPLFLAGS} ${DEFS} -DGENTABLE \
+ 	     -o gentable2 claptmpl.o iparith.cc tesths.cc mpsr_Tok.cc \

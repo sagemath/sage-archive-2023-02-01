@@ -1,0 +1,27 @@
+--- ../src/numpy/core/src/multiarray/buffer.c	2010-08-22 07:08:35.000000000 +0200
++++ buffer.c	2010-09-09 20:07:46.103577629 +0200
+@@ -671,7 +671,24 @@
+ NPY_NO_EXPORT void
+ _array_dealloc_buffer_info(PyArrayObject *self)
+ {
++    int reset_error_state = 0; 
++    PyObject *ptype, *pvalue, *ptraceback; 
++ 
++     /* This function may be called when processing an exception -- 
++     * we need to stash the error state to avoid confusing PyDict 
++     */ 
++ 
++    if (PyErr_Occurred()) { 
++        reset_error_state = 1; 
++        PyErr_Fetch(&ptype, &pvalue, &ptraceback); 
++    } 
++ 
+     _buffer_clear_info((PyObject*)self);
++    
++     
++    if (reset_error_state) { 
++        PyErr_Restore(ptype, pvalue, ptraceback); 
++    } 
+ }
+ 
+ #else

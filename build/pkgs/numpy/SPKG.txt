@@ -61,6 +61,11 @@ Special Update/Build Instructions:
 
 ===
 
+=== === numpy-1.4.1 (Stefan Reiterer, 4 September 2010) ==
+ * Update to numpy-1.5.0
+ * numpy/core/src/multiarray/buffer.c has to be patched
+   (see on numpy trac ticket #1605)
+
 === numpy-1.4.1 (Stefan Reiterer, 4 September 2010) ==
  * Update to numpy-1.4.1
  * Remove the file gcc_fake from the Numpy package, and instead

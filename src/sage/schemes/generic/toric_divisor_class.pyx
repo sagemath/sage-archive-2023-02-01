@@ -14,7 +14,7 @@ Toric rational divisor clases are elements of the rational class group of a
 toric variety, represented as rational vectors in some basis::
 
     sage: dP6 = toric_varieties.dP6()
-    sage: Cl = dP6.divisor_class_group()
+    sage: Cl = dP6.rational_class_group()
     sage: D = Cl([1, -2, 3, -4])
     sage: D
     Divisor class [1, -2, 3, -4]
@@ -87,7 +87,7 @@ def is_ToricRationalDivisorClass(x):
         sage: is_ToricRationalDivisorClass(1)
         False
         sage: dP6 = toric_varieties.dP6()
-        sage: D = dP6.divisor_class_group().gen(0)
+        sage: D = dP6.rational_class_group().gen(0)
         sage: D
         Divisor class [1, 0, 0, 0]
         sage: is_ToricRationalDivisorClass(D)
@@ -116,7 +116,7 @@ cdef class ToricRationalDivisorClass(Vector_rational_dense):
     TESTS::
 
         sage: dP6 = toric_varieties.dP6()
-        sage: Cl = dP6.divisor_class_group()
+        sage: Cl = dP6.rational_class_group()
         sage: D = dP6.divisor(2)
         sage: Cl(D)
         Divisor class [0, 0, 1, 0]
@@ -129,7 +129,7 @@ cdef class ToricRationalDivisorClass(Vector_rational_dense):
         TESTS::
 
             sage: dP6 = toric_varieties.dP6()
-            sage: Cl = dP6.divisor_class_group()
+            sage: Cl = dP6.rational_class_group()
             sage: D = Cl([1, -2, 3, -4])
             sage: D
             Divisor class [1, -2, 3, -4]
@@ -163,7 +163,7 @@ cdef class ToricRationalDivisorClass(Vector_rational_dense):
         TESTS::
 
             sage: dP6 = toric_varieties.dP6()
-            sage: Cl = dP6.divisor_class_group()
+            sage: Cl = dP6.rational_class_group()
             sage: D = Cl([1, -2, 3, -4])
             sage: D
             Divisor class [1, -2, 3, -4]
@@ -226,7 +226,7 @@ cdef class ToricRationalDivisorClass(Vector_rational_dense):
 
         TESTS::
 
-            sage: c = toric_varieties.dP8().divisor_class_group().gens()
+            sage: c = toric_varieties.dP8().rational_class_group().gens()
             sage: c[0]._dot_product_(c[1])
             Traceback (most recent call last):
             ...
@@ -319,7 +319,7 @@ def _ToricRationalDivisorClass_unpickle_v1(parent, entries,
     TESTS::
 
         sage: dP6 = toric_varieties.dP6()
-        sage: Cl = dP6.divisor_class_group()
+        sage: Cl = dP6.rational_class_group()
         sage: D = Cl([1, -2, 3, -4])
         sage: D
         Divisor class [1, -2, 3, -4]

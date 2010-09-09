@@ -135,6 +135,12 @@ toric_varieties_rays_cones = {
          ( 1, 0, 4)],
         [[0,4,2],[0,4,5],[0,5,3],[0,1,3],[0,1,2],
          [6,4,2],[6,4,5],[6,5,3],[6,1,3],[6,1,2]] ],
+    'P2_112':[
+        [(1,0), (0, 1), (-1, -2)],
+        [[0,1],[1,2],[2,0]] ],
+    'P2_123':[
+        [(1,0), (0, 1), (-2, -3)],
+        [[0,1],[1,2],[2,0]] ],
     'P4_11169':[
         [(1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1), (-9, -6, -1, -1)],
         [[0,1,2,3],[0,1,2,4],[0,1,3,4],[0,2,3,4],[1,2,3,4]] ],
@@ -794,6 +800,52 @@ class ToricVarietyFactory(SageObject):
             (d4, d3, r2, r1, d2, u, d1)
         """
         return self._make_ToricVariety('BCdlOG_base', 'd4 d3 r2 r1 d2 u d1')
+
+    def P2_112(self):
+        r"""
+        Construct the weighted projective space
+        `\mathbb{P}^2(1,1,2)`.
+
+        OUTPUT:
+
+        A :class:`CPR-Fano toric variety
+        <sage.schemes.generic.fano_toric_variety.CPRFanoToricVariety_field>`.
+
+        EXAMPLES::
+
+            sage: P2_112 = toric_varieties.P2_112()
+            sage: P2_112
+            2-d CPR-Fano toric variety covered by 3 affine patches
+            sage: P2_112.fan().ray_matrix()
+            [ 1  0 -1]
+            [ 0  1 -2]
+            sage: P2_112.gens()
+            (z0, z1, z2)
+        """
+        return self._make_CPRFanoToricVariety('P2_112', None)
+
+    def P2_123(self):
+        r"""
+        Construct the weighted projective space
+        `\mathbb{P}^2(1,2,3)`.
+
+        OUTPUT:
+
+        A :class:`CPR-Fano toric variety
+        <sage.schemes.generic.fano_toric_variety.CPRFanoToricVariety_field>`.
+
+        EXAMPLES::
+
+            sage: P2_123 = toric_varieties.P2_123()
+            sage: P2_123
+            2-d CPR-Fano toric variety covered by 3 affine patches
+            sage: P2_123.fan().ray_matrix()
+            [ 1  0 -2]
+            [ 0  1 -3]
+            sage: P2_123.gens()
+            (z0, z1, z2)
+        """
+        return self._make_CPRFanoToricVariety('P2_123', None)
 
     def P4_11169(self):
         r"""

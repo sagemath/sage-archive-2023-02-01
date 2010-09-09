@@ -1355,7 +1355,7 @@ class ToricVariety_field(AmbientSpace):
 
             This cone sits in the rational divisor class group of ``self`` and
             the choice of coordinates agrees with
-            :meth:`divisor_class_group`.
+            :meth:`rational_class_group`.
 
         EXAMPLES::
 
@@ -1380,7 +1380,7 @@ class ToricVariety_field(AmbientSpace):
             for cone in fan:
                 sigma = Cone([GT[i] for i in range(n)
                                     if i not in cone.ambient_ray_indices()],
-                             lattice = self.divisor_class_group())
+                             lattice = self.rational_class_group())
                 K = K.intersection(sigma) if K is not None else sigma
             self._Kaehler_cone = K
         return self._Kaehler_cone
@@ -1429,7 +1429,7 @@ class ToricVariety_field(AmbientSpace):
             self._Mori_cone = Cone(rays, lattice=ZZ**(self._fan.nrays()+1))
         return self._Mori_cone
 
-    def divisor_class_group(self):
+    def rational_class_group(self):
         r"""
         Return the rational divisor class group of ``self``.
 
@@ -1462,7 +1462,7 @@ class ToricVariety_field(AmbientSpace):
 
             sage: fan = FaceFan(lattice_polytope.octahedron(2))
             sage: P1xP1 = ToricVariety(fan)
-            sage: P1xP1.divisor_class_group()
+            sage: P1xP1.rational_class_group()
             The toric rational divisor class group
             of a 2-d toric variety covered by 4 affine patches
         """
@@ -2096,14 +2096,14 @@ class ToricVariety_field(AmbientSpace):
         from sage.schemes.generic.toric_divisor import ToricDivisor
         return ToricDivisor(self, [-1]*self._fan.nrays())
 
-    def divisor(self, arg, base_ring=None, check=False, reduce=False):
+    def divisor(self, arg, base_ring=None, check=True, reduce=True):
         r"""
         Return a divisor.
 
         INPUT:
 
-        - ``arg`` -- something that identifies a divisor, see
-          :func:`sage.schemes.generic.toric_divisor.ToricDivisor`.
+        The arguments are the same as in
+        :func:`sage.schemes.generic.toric_divisor.ToricDivisor`.
 
         OUTPUT:
 

@@ -61,6 +61,13 @@ class Curve_generic(AlgebraicScheme_subscheme):
     def divisor(self, v, base_ring=None, check=True, reduce=True):
         r"""
         Return the divisor specified by ``v``.
+
+        .. WARNING::
+
+            The coefficients of the divisor must be in the base ring
+            and the terms must be reduced. If you set ``check=False``
+            and/or ``reduce=False`` it is your responsibility to pass
+            a valid object ``v``.
         """
         return Divisor_curve(v, check=check, reduce=reduce, parent=self.divisor_group(base_ring))
 

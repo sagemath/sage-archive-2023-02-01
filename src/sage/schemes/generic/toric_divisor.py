@@ -78,7 +78,7 @@ by :class:`ToricRationalDivisorClassGroup`.  If `X` is smooth, this equals the
 **Picard group** `\mathop{\mathrm{Pic}}(X)`. We continue using del Pezzo
 surface of degree 6 introduced above::
 
-    sage: Cl = dP6.divisor_class_group(); Cl
+    sage: Cl = dP6.rational_class_group(); Cl
     The toric rational divisor class group
     of a 2-d CPR-Fano toric variety covered by 6 affine patches
     sage: Cl.ngens()
@@ -134,13 +134,23 @@ degree and a weight::
 
     sage: M = P2.fan().lattice().dual()
     sage: H.cohomology(deg=0, weight=M(-1,0))
+    Vector space of dimension 1 over Rational Field
+    sage: _.dimension()
     1
 
 Here is a more complicated example with `h^1(dP_6, \mathcal{O}(D))=4` ::
 
     sage: D = dP6.divisor([0, 0, -1, 0, 2, -1])
     sage: D.cohomology()
+    {0: Vector space of dimension 0 over Rational Field,
+     1: Vector space of dimension 4 over Rational Field,
+     2: Vector space of dimension 0 over Rational Field}
+    sage: D.cohomology(dim=True)
     (0, 4, 0)
+
+AUTHORS:
+
+- Volker Braun, Andrey Novoseltsev (2010-09-07): initial version.
 """
 
 
@@ -157,7 +167,6 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import is_Vector
 from sage.combinat.combination import Combinations
 from sage.geometry.cone import is_Cone
-from sage.geometry.lattice_polytope import LatticePolytope
 from sage.geometry.polyhedra import Polyhedron
 from sage.geometry.toric_lattice_element import is_ToricLatticeElement
 from sage.homology.simplicial_complex import SimplicialComplex
@@ -407,7 +416,7 @@ def is_ToricDivisor(x):
 
 
 #********************************************************
-def ToricDivisor(toric_variety, arg=None, ring=None, check=False, reduce=False):
+def ToricDivisor(toric_variety, arg=None, ring=None, check=True, reduce=True):
     r"""
     Construct a divisor of ``toric_variety``.
 
@@ -437,7 +446,19 @@ def ToricDivisor(toric_variety, arg=None, ring=None, check=False, reduce=False):
       divisor group. If ``ring`` is not specified, a coefficient ring
       suitable for ``arg`` is derived.
 
-    - for ``check`` and ``reduce`` see :meth:`ToricDivisor_generic`.
+    - ``check`` -- bool (default: True). Whether to coerce
+      coefficients into base ring. Setting it to ``False`` can speed
+      up construction.
+
+    - ``reduce`` -- reduce (default: True). Whether to combine common
+      terms. Setting it to ``False`` can speed up construction.
+
+    .. WARNING::
+
+        The coefficients of the divisor must be in the base ring and
+        the terms must be reduced. If you set ``check=False`` and/or
+        ``reduce=False`` it is your responsibility to pass valid input
+        data ``arg``.
 
     OUTPUT:
 
@@ -466,11 +487,31 @@ def ToricDivisor(toric_variety, arg=None, ring=None, check=False, reduce=False):
         sage: N = dP6.fan().lattice()
         sage: ToricDivisor(dP6, N(1,1) )
         V(w)
+
+    We attempt to guess the correct base ring::
+
+        sage: ToricDivisor(dP6, [(1/2,u)])
+        1/2*V(u)
+        sage: _.parent()
+        Group of toric QQ-Weil divisors on 2-d CPR-Fano toric variety covered by 6 affine patches
+        sage: ToricDivisor(dP6, [(1/2,u), (1/2,u)])
+        V(u)
+        sage: _.parent()
+        Group of toric ZZ-Weil divisors on 2-d CPR-Fano toric variety covered by 6 affine patches
+        sage: ToricDivisor(dP6, [(u,u)])
+        Traceback (most recent call last):
+        ...
+        TypeError: Cannot deduce coefficient ring for [(u, u)]!
     """
     assert is_ToricVariety(toric_variety)
+
+    ##### First convert special arguments into lists
+    ##### of multiplicities or (multiplicity,coordinate)
     # Zero divisor
     if arg is None:
         arg = []
+        check = False
+        reduce = False
     # Divisor by lattice point (corresponding to a ray)
     if is_ToricLatticeElement(arg):
         if arg not in toric_variety.fan().lattice():
@@ -486,6 +527,8 @@ def ToricDivisor(toric_variety, arg=None, ring=None, check=False, reduce=False):
     # Divisor by a ray index
     if arg in ZZ:
         arg = [(1, toric_variety.gen(arg))]
+        check = True    # ensure that the 1 will be coerced into the coefficient ring
+        reduce = False
     # Divisor by monomial
     if arg in toric_variety.coordinate_ring():
         if len(list(arg)) != 1:
@@ -498,32 +541,34 @@ def ToricDivisor(toric_variety, arg=None, ring=None, check=False, reduce=False):
             arg = list(arg)
         except TypeError:
             raise TypeError("%s does not define a divisor!" % arg)
-    # Now we have a list of multiplicities or pairs multiplicity-coordinate,
-    # if the coefficient ring was not given, try to use the most common ones.
+
+    ##### Now convert a list of multiplicities into pairs multiplicity-coordinate
+    try:
+        assert all(len(item)==2 for item in arg)
+    except (AssertionError, TypeError):
+        n_rays = toric_variety.fan().nrays()
+        assert len(arg)==n_rays, \
+            'Argument list {0} is not of the required length {1}!' \
+            .format(arg, n_rays)
+        arg = zip(arg, toric_variety.gens())
+        reduce = False
+
+    ##### Now we must have a list of multiplicity-coordinate pairs
+    assert all(len(item)==2 for item in arg)
     if ring is None:
+        # if the coefficient ring was not given, try to use the most common ones.
         try:
-            return ToricDivisor(toric_variety, arg, ring=ZZ,
-                                check=check, reduce=reduce)
+            TDiv = ToricDivisorGroup(toric_variety, base_ring=ZZ)
+            return ToricDivisor_generic(arg, TDiv,
+                                        check=True, reduce=reduce)
         except TypeError:
             pass
         try:
-            return ToricDivisor(toric_variety, arg, ring=QQ,
-                                check=check, reduce=reduce)
+            TDiv = ToricDivisorGroup(toric_variety, base_ring=QQ)
+            return ToricDivisor_generic(arg, TDiv,
+                                        check=True, reduce=reduce)
         except TypeError:
-            raise TypeError("cannot deduce coefficient ring for %s!" % arg)
-    # The ring was given, if we are still here
-    n_rays = toric_variety.fan().nrays()
-    if len(arg) == n_rays and arg[0] in ring:
-        arg = zip(arg, toric_variety.gens())
-    # Now we MUST have a LIST of multiplicity-coordinate pairs
-    try:
-        for i, pair in enumerate(arg):
-            pair = tuple(pair)
-            if len(pair) != 2 or pair[1] not in toric_variety.gens():
-                raise TypeError
-            arg[i] = (ring(pair[0]), pair[1])
-    except TypeError:
-        raise TypeError("%s does not define a divisor!" % arg)
+            raise TypeError("Cannot deduce coefficient ring for %s!" % arg)
     TDiv = ToricDivisorGroup(toric_variety, ring)
     return ToricDivisor_generic(arg, TDiv, check, reduce)
 
@@ -657,11 +702,11 @@ class ToricDivisor_generic(Divisor_generic):
             variable = self.parent().scheme().gen(index)
         except TypeError:
             variable = x
-        total = self.base_ring().zero()
+
         for coeff, var in self:
             if var == variable:
-                total += coeff
-        return total
+                return coeff
+        return self.base_ring().zero()
 
     def function_value(self, point):
         r"""
@@ -896,7 +941,7 @@ class ToricDivisor_generic(Divisor_generic):
 
     def is_integral(self):
         r"""
-        Return whether the support function is integral on the rays.
+        Return whether the coefficients of the divisor are all integral.
 
         EXAMPLES::
 
@@ -910,8 +955,7 @@ class ToricDivisor_generic(Divisor_generic):
             sage: DQQ.is_integral()
             True
         """
-        return all( self.function_value(r) in ZZ
-                    for r in self.parent().scheme().fan().rays() )
+        return all( coeff in ZZ for coeff, variable in self )
 
     def move_away_from(self, cone):
         """
@@ -1013,9 +1057,9 @@ class ToricDivisor_generic(Divisor_generic):
 
         Returns the class of the divisor in `\mathop{Cl}(X)
         \otimes_\ZZ \QQ` as an instance of
-        :class:`ToricRationalDivisorClass`.
+        :class:`ToricRationalDivisorClassGroup`.
 
-        EXAMPLE:
+        EXAMPLES::
 
             sage: dP6 = toric_varieties.dP6()
             sage: D = dP6.divisor(0)
@@ -1023,7 +1067,7 @@ class ToricDivisor_generic(Divisor_generic):
             Divisor class [1, 0, 0, 0]
         """
         if '_divisor_class' not in self.__dict__:
-            self._divisor_class = self.parent().scheme().divisor_class_group()(self)
+            self._divisor_class = self.parent().scheme().rational_class_group()(self)
         return self._divisor_class
 
     def is_ample(self):
@@ -1040,7 +1084,17 @@ class ToricDivisor_generic(Divisor_generic):
               multiple is Cartier. We return wheher this associtated
               divisor is ample, i.e. corresponds to an ample line bundle.
 
-            * The ample cone is an open cone.
+            * In the orbifold case, the ample cone is an open
+              and full-dimensional cone in the rational divisor class
+              group :class:`ToricRationalDivisorClassGroup`.
+
+            * If the variety has worse than orbifold singularities,
+              the ample cone is a full-dimensional cone within the
+              (not full-dimensional) subspace spanned by the Cartier
+              divisors inside the rational (Weil) divisor class group,
+              that is, :class:`ToricRationalDivisorClassGroup`. The
+              ample cone is then relative open (open in this
+              subspace).
 
             * See also :meth:`is_nef`.
 
@@ -1058,7 +1112,7 @@ class ToricDivisor_generic(Divisor_generic):
             sage: (-K).is_ample()
             True
 
-        Example 6.1.3, 6.1.11, 6.1.17 from Cox/Little/Schenck::
+        Example 6.1.3, 6.1.11, 6.1.17 of [CLS]_::
 
             sage: fan = Fan(cones=[(0,1), (1,2), (2,3), (3,0)],
             ...             rays=[(-1,2), (0,1), (1,0), (0,-1)])
@@ -1072,6 +1126,21 @@ class ToricDivisor_generic(Divisor_generic):
             ...           if D(a,b).is_nef() ]
             [(0, 0), (0, 1), (0, 2), (1, 0),
              (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)]
+
+        A (worse than orbifold) singular Fano threefold::
+
+            sage: points = [(1,0,0),(0,1,0),(0,0,1),(-2,0,-1),(-2,-1,0),(-3,-1,-1),(1,1,1)]
+            sage: facets = [[0,1,3],[0,1,6],[0,2,4],[0,2,6],[0,3,5],[0,4,5],[1,2,3,4,5,6]]
+            sage: X = ToricVariety(Fan(cones=facets, rays=points))
+            sage: X.rational_class_group().dimension()
+            4
+            sage: X.Kaehler_cone().rays()
+            (Divisor class [1, 0, 0, 0],)
+            sage: antiK = -X.K()
+            sage: antiK.divisor_class()
+            Divisor class [2, 0, 0, 0]
+            sage: antiK.is_ample()
+            True
         """
         try:
             return self._is_ample
@@ -1079,9 +1148,8 @@ class ToricDivisor_generic(Divisor_generic):
             pass
 
         assert self.is_QQ_Cartier(), 'The divisor must be QQ-Cartier.'
-        self._is_ample = \
-            self.parent().scheme().Kaehler_cone().interior_contains(
-                                                        self.divisor_class())
+        Kc = self.parent().scheme().Kaehler_cone()
+        self._is_ample = Kc.relative_interior_contains(self.divisor_class())
         return self._is_ample
 
     def is_nef(self):
@@ -1120,7 +1188,7 @@ class ToricDivisor_generic(Divisor_generic):
             sage: (-K).is_nef()
             True
 
-        Example 6.1.3, 6.1.11, 6.1.17 from Cox/Little/Schenck::
+        Example 6.1.3, 6.1.11, 6.1.17 of [CLS]_::
 
             sage: fan = Fan(cones=[(0,1), (1,2), (2,3), (3,0)],
             ...             rays=[(-1,2), (0,1), (1,0), (0,-1)])
@@ -1144,77 +1212,90 @@ class ToricDivisor_generic(Divisor_generic):
         self._is_nef = self.divisor_class() in self.parent().scheme().Kaehler_cone()
         return self._is_nef
 
-    def polytope(self):
+    def polyhedron(self):
         r"""
-        Return the lattice polytope `P_D\subset M` associated to a nef
-        Cartier divisor `D`.
+        Return the polyhedron `P_D\subset M` associated to a toric
+        divisor `D`.
 
         OUTPUT:
 
-        - If `P_D` is not empty, the corresponding :class:`LatticePolytope
-          <sage.geometry.lattice_polytope.LatticePolytopeClass>` object.
-
-        - If `P_D` is empty this method returns ``None``.
+        `P_D` as an instance of :class:`~sage.geometry.polyhedra.Polyhedron`.
 
         EXAMPLES::
 
             sage: dP7 = toric_varieties.dP7()
             sage: D = dP7.divisor(2)
-            sage: D.polytope()
-            A lattice polytope: 0-dimensional, 1 vertices.
-            sage: _.vertices()
-            [0]
-            [0]
+            sage: P_D = D.polyhedron(); P_D
+            A 0-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex.
+            sage: P_D.Vrepresentation()
+            [A vertex at (0, 0)]
             sage: D.is_nef()
             False
             sage: dP7.integrate( D.ch() * dP7.Td() )
             1
-            sage: (-dP7.K()).polytope()
-            A lattice polytope: 2-dimensional, 5 vertices.
-            sage: _.points()
-            [ 1  0  1 -1 -1 -1  0  0]
-            [-1  1  0  1 -1  0 -1  0]
+            sage: P_antiK = (-dP7.K()).polyhedron(); P_antiK
+            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 5 vertices.
+            sage: P_antiK.Vrepresentation()
+            [A vertex at (1, -1), A vertex at (0, 1), A vertex at (1, 0),
+             A vertex at (-1, 1), A vertex at (-1, -1)]
+            sage: P_antiK.integral_points()
+            [(1, -1), (0, 1), (1, 0), (-1, 1), (-1, -1), (-1, 0), (0, -1), (0, 0)]
 
-        Example 6.1.3, 6.1.11, 6.1.17 from Cox/Little/Schenck::
+        Example 6.1.3, 6.1.11, 6.1.17 of [CLS]_::
 
             sage: fan = Fan(cones=[(0,1), (1,2), (2,3), (3,0)],
             ...             rays=[(-1,2), (0,1), (1,0), (0,-1)])
             sage: F2 = ToricVariety(fan,'u1, u2, u3, u4')
             sage: D = F2.divisor(3)
-            sage: D.polytope().vertices()
-            [2 0 0]
-            [1 1 0]
+            sage: D.polyhedron().Vrepresentation()
+            [A vertex at (2, 1), A vertex at (0, 1), A vertex at (0, 0)]
             sage: Dprime = F2.divisor(1) + D
-            sage: Dprime.polytope().vertices()
-            [2 0 0]
-            [1 1 0]
+            sage: Dprime.polyhedron().Vrepresentation()
+            [A vertex at (2, 1), A vertex at (0, 1), A vertex at (0, 0)]
             sage: D.is_ample()
             False
             sage: D.is_nef()
             True
             sage: Dprime.is_nef()
             False
+
+        A more complicated example where `P_D` is not a lattice polytope::
+
+            sage: X = toric_varieties.BCdlOG_base()
+            sage: antiK = -X.K()
+            sage: P_D = antiK.polyhedron()
+            sage: P_D
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 8 vertices.
+            sage: P_D.Vrepresentation()
+            [A vertex at (1, -1, 0), A vertex at (1, 1, 1),
+             A vertex at (1, -3, 1), A vertex at (-5, 1, 1),
+             A vertex at (-5, -3, 1), A vertex at (1, 1, -1/2),
+             A vertex at (1, 1/2, -1/2), A vertex at (-1, -1, 0)]
+            sage: P_D.Hrepresentation()
+            [An inequality (-1, 0, 0) x + 1 >= 0, An inequality (0, -1, 0) x + 1 >= 0,
+             An inequality (0, 0, -1) x + 1 >= 0, An inequality (0, 1, 2) x + 1 >= 0,
+             An inequality (0, 1, 3) x + 1 >= 0, An inequality (1, 0, 4) x + 1 >= 0]
+            sage: P_D.integral_points()
+            [(1, 1, 1), (1, -3, 1), (-5, 1, 1), (-5, -3, 1), (0, 1, 1),
+             (-1, 1, 1), (-2, 1, 1), (-3, 1, 1), (-4, 1, 1), (1, 0, 1),
+             (0, 0, 1), (-1, 0, 1), (-2, 0, 1), (-3, 0, 1), (-4, 0, 1),
+             (-5, 0, 1), (1, -1, 1), (0, -1, 1), (-1, -1, 1), (-2, -1, 1),
+             (-3, -1, 1), (-4, -1, 1), (-5, -1, 1), (1, -2, 1), (0, -2, 1),
+             (-1, -2, 1), (-2, -2, 1), (-3, -2, 1), (-4, -2, 1), (-5, -2, 1),
+             (0, -3, 1), (-1, -3, 1), (-2, -3, 1), (-3, -3, 1), (-4, -3, 1),
+             (1, 1, 0), (0, 1, 0), (-1, 1, 0), (1, 0, 0), (0, 0, 0), (-1, 0, 0),
+             (1, -1, 0), (0, -1, 0), (-1, -1, 0)]
         """
         try:
-            return self._polytope
+            return self._polyhedron
         except AttributeError:
             pass
 
-        X = self.parent().scheme()
-        if not X.is_complete():
-            raise ValueError("%s is not complete!" % X)
-        fan = X.fan()
-
+        fan = self.parent().scheme().fan()
         divisor = vector(self)
         ieqs = [ [divisor[i]] + list(fan.ray(i)) for i in range(fan.nrays()) ]
-        P = Polyhedron(ieqs=ieqs)
-
-        if P.dim()==-1:
-            self._polytope = None
-        else:
-            vertices = matrix(ZZ, P.vertices()).transpose()
-            self._polytope = LatticePolytope(vertices)
-        return self._polytope
+        self._polyhedron = Polyhedron(ieqs=ieqs)
+        return self._polyhedron
 
     def sections(self):
         """
@@ -1250,7 +1331,7 @@ class ToricDivisor_generic(Divisor_generic):
             self._sections = ()
         else:
             self._sections = tuple(M(m)
-                                for m in self.polytope().points().columns())
+                                   for m in self.polyhedron().integral_points())
         return self._sections
 
     def sections_monomials(self):
@@ -1279,6 +1360,7 @@ class ToricDivisor_generic(Divisor_generic):
 
         From [CoxTutorial]_ page 38::
 
+            sage: from sage.geometry.lattice_polytope import LatticePolytope
             sage: lp = LatticePolytope(matrix([[1,1,0,-1,0], [0,1,1,0,-1]]))
             sage: lp
             A lattice polytope: 2-dimensional, 5 vertices.
@@ -1314,8 +1396,8 @@ class ToricDivisor_generic(Divisor_generic):
         monomials in :meth:`ToricVariety.coordinate_ring
         <sage.schemes.generic.toric_variety.ToricVariety_field.coordinate_ring>`.
         Alternatively, the monomials can be described as `M`-lattice
-        points in the polyhedron ``D.polytope()``. This method converts the
-        points `m\in M` into homogeneous polynomials.
+        points in the polyhedron ``D.polyhedron()``. This method
+        converts the points `m\in M` into homogeneous polynomials.
 
         EXAMPLES::
 
@@ -1403,6 +1485,9 @@ class ToricDivisor_generic(Divisor_generic):
         HH = cplx.homology(base_ring=QQ, cohomology=True)
         HH_list = [0]*(d+1)
         for h in HH.iteritems():
+            if h[0]==d:
+                assert(h[1].dimension()==0)
+                continue
             HH_list[ h[0]+1 ] = h[1].dimension()
 
         return vector(ZZ, HH_list)
@@ -1413,8 +1498,16 @@ class ToricDivisor_generic(Divisor_generic):
 
         OUTPUT:
 
-        A ``LatticePolytope`` object that contains all weights `m`
-        for which the sheaf cohomology is *potentially* non-vanishing.
+        A :class:`~sage.geometry.polyhedra.Polyhedron` object that
+        contains all weights `m` for which the sheaf cohomology is
+        *potentially* non-vanishing.
+
+        ALGORITHM:
+
+        See :meth:`cohomology` and note that every `d`-tuple
+        (`d`=dimension of the variety) of rays determines one vertex
+        in the chamber decomposition if none of the hyperplanes are
+        parallel.
 
         EXAMPLES::
 
@@ -1425,35 +1518,31 @@ class ToricDivisor_generic(Divisor_generic):
             sage: D = -D0 + 2*D2 - D3
             sage: supp = D._sheaf_cohomology_support()
             sage: supp
-            A lattice polytope: 2-dimensional, 4 vertices.
-            sage: supp.vertices()
-            [-1  0  0  3]
-            [ 1  2 -1 -1]
+            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices.
+            sage: supp.Vrepresentation()
+            [A vertex at (-1, 1), A vertex at (0, 2), A vertex at (0, -1), A vertex at (3, -1)]
         """
         X = self.parent().scheme()
+        fan = X.fan()
         if not X.is_complete():
             raise ValueError("%s is not complete, its cohomology is not "
                              "finite-dimensional!" % X)
         d = X.dimension()
         chamber_vertices = []
-        for plist in Combinations(X.fan().rays(), d):
-            A = matrix(ZZ, list(plist))
-            b = vector([ self.function_value(p) for p in plist ])
+        for pindexlist in Combinations(range(0,fan.nrays()), d):
+            A = matrix(ZZ, [fan.ray(p) for p in pindexlist])
+            b = vector([ self.coefficient(p) for p in pindexlist ])
             try:
                 chamber_vertices.append(A.solve_right(-b))
             except ValueError:
                 pass
-        # Some of the obtained points may be non-integral, so we cannot use
-        # LatticePolytope constructor immediately
-        chamber_vertices = Polyhedron(vertices=chamber_vertices).vertices()
-        # Now we hope that we got vertices indeed and they are integral
-        chamber_vertices = matrix(chamber_vertices).transpose()
-        return LatticePolytope(chamber_vertices, compute_vertices=False)
+        return Polyhedron(vertices=chamber_vertices)
 
-    def cohomology(self, weight=None, deg=None):
+    def cohomology(self, weight=None, deg=None, dim=False):
         r"""
         Return the cohomology of the line bundle associated to the
-        Cartier divisor, or sheaf associated to the Weil divisor.
+        Cartier divisor or reflexive sheaf associated to the Weil
+        divisor.
 
         .. NOTE::
 
@@ -1466,11 +1555,67 @@ class ToricDivisor_generic(Divisor_generic):
 
         - ``deg`` -- (optional) the degree of the cohomology group.
 
+        - ``dim`` -- boolean. If ``False`` (default), the cohomology
+          groups are returned as vector spaces. If ``True``, only the
+          dimension of the vector space(s) is returned.
+
         OUTPUT:
 
-        The dimension of `H^\text{deg}(X,\mathcal{O}(D))_\text{weight}` (if
-        ``deg`` is specified) or a vector of all such dimensions. If ``weight``
-        is not specified, return the sum of dimensions for all weights.
+        The vector space `H^\text{deg}(X,\mathcal{O}(D))` (if ``deg``
+        is specified) or a dictionary ``{degree:cohomology(degree)}``
+        of all degrees between 0 and the dimension of the variety.
+
+        If ``weight`` is specified, return only the subspace
+        `H^\text{deg}(X,\mathcal{O}(D))_\text{weight}` of the
+        cohomology of the given weight.
+
+        If ``dim==True``, the dimension of the cohomology vector space
+        is returned instead of actual vector space. Moreover, if
+        ``deg`` was not specified, a vector whose entries are the
+        dimensions is returned instead of a dictionary.
+
+        ALGORITHM:
+
+        Roughly, Chech cohomology is used to compute the
+        cohomology. For toric divisors, the local sections can be
+        chosen to be monomials (instead of general homogeneous
+        polynomials), this is the reason for the extra grading by
+        `m\in M`. General refrences would be [Fulton]_, [CLS]_. Here
+        are some salient features of our implementation:
+
+        * First, a finite set of `M`-lattice points is identified that
+          supports the cohomology. The toric divisor determines a
+          (polyhedral) chamber decomposition of `M_\RR`, see Section
+          9.1 and Figure 4 of [CLS]_. The cohomology vanishes on the
+          non-compact chambers. Hence, the convex hull of the vertices
+          of the chamber decomposition contains all non-vanishing
+          cohomology groups. This is returned by the private method
+          :meth:`_sheaf_cohomology_support`.
+
+          It would be more efficient, but more difficult to implement,
+          to keep track of all of the individual chambers. We leave
+          this for future work.
+
+        * For each point `m\in M`, the weight-`m` part of the
+          cohomology can be rewritten as the cohomology of a
+          simplicial complex, see Exercise 9.1.10 of [CLS]_,
+          [Perling]_. This is returned by the private method
+          :meth:`_sheaf_complex`.
+
+          The simplicial complex is the same for all points in a
+          chamber, but we currently do not make use of this and
+          compute each point `m\in M` separately.
+
+        * Finally, the cohomology (over `\QQ`) of this simplicial
+          complex is computed in the private method
+          :meth:`_sheaf_cohomology`. Summing over the supporting
+          points `m\in M` yields the cohomology of the sheaf`.
+
+        REFERENCES:
+
+        ..  [Perling]
+            Markus Perling: Divisorial Cohomology Vanishing on Toric Varieties,
+            http://arxiv.org/abs/0711.4836v2
 
         EXAMPLES:
 
@@ -1484,29 +1629,125 @@ class ToricDivisor_generic(Divisor_generic):
             sage: D6 = dP6.divisor(5)
             sage: D = -D3 + 2*D5 - D6
             sage: D.cohomology()
-            (0, 4, 0)
-            sage: D.cohomology( deg=1 )
-            4
+            {0: Vector space of dimension 0 over Rational Field,
+             1: Vector space of dimension 4 over Rational Field,
+             2: Vector space of dimension 0 over Rational Field}
+            sage: D.cohomology(deg=1)
+            Vector space of dimension 4 over Rational Field
             sage: M = F.dual_lattice()
             sage: D.cohomology( M(0,0) )
-            (0, 1, 0)
-            sage: D.cohomology( M(0,0), deg=1 )
-            1
+            {0: Vector space of dimension 0 over Rational Field,
+             1: Vector space of dimension 1 over Rational Field,
+             2: Vector space of dimension 0 over Rational Field}
+            sage: D.cohomology( weight=M(0,0), deg=1 )
+            Vector space of dimension 1 over Rational Field
             sage: dP6.integrate( D.ch() * dP6.Td() )
             -4
+
+        Note the different output options::
+
+            sage: D.cohomology()
+            {0: Vector space of dimension 0 over Rational Field,
+             1: Vector space of dimension 4 over Rational Field,
+             2: Vector space of dimension 0 over Rational Field}
+            sage: D.cohomology(dim=True)
+            (0, 4, 0)
+            sage: D.cohomology(weight=M(0,0))
+            {0: Vector space of dimension 0 over Rational Field,
+             1: Vector space of dimension 1 over Rational Field,
+             2: Vector space of dimension 0 over Rational Field}
+            sage: D.cohomology(weight=M(0,0), dim=True)
+            (0, 1, 0)
+            sage: D.cohomology(deg=1)
+            Vector space of dimension 4 over Rational Field
+            sage: D.cohomology(deg=1, dim=True)
+            4
+            sage: D.cohomology(weight=M(0,0), deg=1)
+            Vector space of dimension 1 over Rational Field
+            sage: D.cohomology(weight=M(0,0), deg=1, dim=True)
+            1
+
+        Here is a Weil (non-Cartier) divisor example::
+
+            sage: K = toric_varieties.Cube_nonpolyhedral().K()
+            sage: K.is_Weil()
+            True
+            sage: K.is_QQ_Cartier()
+            False
+            sage: K.cohomology(dim=True)
+            (0, 0, 0, 1)
+        """
+        if '_cohomology_vector' in self.__dict__ and weight is None:
+            # cache the cohomology but not the individual weight pieces
+            HH = self._cohomology_vector
+        else:
+            X = self.parent().scheme()
+            M = X.fan().dual_lattice()
+            support = self._sheaf_cohomology_support()
+            if weight is None:
+                m_list = [ M(p) for p in support.integral_points() ]
+            else:
+                m_list = [ M(weight) ]
+
+            HH = vector(ZZ, [0]*(X.dimension()+1))
+            for m_point in m_list:
+                cplx = self._sheaf_complex(m_point)
+                HH += self._sheaf_cohomology(cplx)
+
+            if weight is None:
+                self._cohomology_vector = HH
+
+        if dim:
+            if deg is None:
+                return HH
+            else:
+                return HH[deg]
+        else:
+            from sage.modules.free_module import VectorSpace
+            vectorspaces = dict( [k,VectorSpace(self.scheme().base_ring(),HH[k])]
+                                 for k in range(0,len(HH)) )
+            if deg is None:
+                return vectorspaces
+            else:
+                return vectorspaces[deg]
+
+    def cohomology_support(self):
+        r"""
+        Return the weights for which the cohomology groups do not vanish.
+
+        OUTPUT:
+
+        A tuple of dual lattice points. ``self.cohomology(weight=m)``
+        does not vanish if and only if ``m`` is in the output.
+
+        .. NOTE::
+
+            This method is provided for educational purposes and it is
+            not an efficient way of computing the cohomology groups.
+
+        EXAMPLES::
+
+            sage: F = Fan(cones=[(0,1), (1,2), (2,3), (3,4), (4,5), (5,0)],
+            ...           rays=[(1,0), (1,1), (0,1), (-1,0), (-1,-1), (0,-1)])
+            sage: dP6 = ToricVariety(F)
+            sage: D3 = dP6.divisor(2)
+            sage: D5 = dP6.divisor(4)
+            sage: D6 = dP6.divisor(5)
+            sage: D = -D3 + 2*D5 - D6
+            sage: D.cohomology_support()
+            (M(2, 0), M(1, 0), M(0, 0), M(1, 1))
         """
         X = self.parent().scheme()
         M = X.fan().dual_lattice()
-        if weight is None:
-            m_list = [ M(p) for p in self._sheaf_cohomology_support().points().columns() ]
-        else:
-            m_list = [weight]
-
-        HH = vector(ZZ, [0]*(X.dimension()+1))
-        for m_point in m_list:
-            cplx = self._sheaf_complex(m_point)
-            HH += self._sheaf_cohomology(cplx)
-        return HH if deg is None else HH[deg]
+        support_hull = self._sheaf_cohomology_support()
+        support_hull = [ M(p) for p in support_hull.integral_points() ]
+        support = []
+        for m in support_hull:
+            cplx = self._sheaf_complex(m)
+            HH = self._sheaf_cohomology(cplx)
+            if sum(HH)>0:
+                support.append(m)
+        return tuple(support)
 
 
 #********************************************************
@@ -1530,7 +1771,7 @@ class ToricRationalDivisorClassGroup(FreeModule_ambient_field, UniqueRepresentat
     .. WARNING::
 
         Do not instantiate this class yourself. Use
-        :meth:`~sage.schemes.generic.toric_variety.ToricVariety_field.divisor_class_group`
+        :meth:`~sage.schemes.generic.toric_variety.ToricVariety_field.rational_class_group`
         method of :class:`toric varieties
         <sage.schemes.generic.toric_variety.ToricVariety_field>` if you need
         the divisor class group. Or you can obtain it as the parent of any
@@ -1549,7 +1790,7 @@ class ToricRationalDivisorClassGroup(FreeModule_ambient_field, UniqueRepresentat
     EXAMPLES::
 
         sage: P2 = toric_varieties.P2()
-        sage: P2.divisor_class_group()
+        sage: P2.rational_class_group()
         The toric rational divisor class group of a 2-d CPR-Fano
         toric variety covered by 3 affine patches
         sage: D = P2.divisor(1); D
@@ -1637,7 +1878,7 @@ class ToricRationalDivisorClassGroup(FreeModule_ambient_field, UniqueRepresentat
         EXAMPLES::
 
             sage: dP6 = toric_varieties.dP6()
-            sage: Cl = dP6.divisor_class_group()
+            sage: Cl = dP6.rational_class_group()
             sage: D = dP6.divisor(2)
             sage: Cl._element_constructor_(D)
             Divisor class [0, 0, 1, 0]

@@ -119,7 +119,7 @@ from sage.rings.rational import Rational
 from sage.rings.real_double import RDF
 from sage.modules.free_module_element import vector
 from sage.matrix.constructor import matrix, identity_matrix
-from sage.functions.other import sqrt
+from sage.functions.other import sqrt, floor, ceil
 from sage.functions.trig import sin, cos
 
 from sage.plot.all import point2d, line2d, arrow, polygon2d
@@ -3632,6 +3632,168 @@ class Polyhedron(SageObject):
 
         return True
 
+    def is_lattice_polytope(self):
+        r"""
+        Return whether the polyhedron is a lattice polytope.
+
+        OUTPUT:
+
+        ``True`` if the polyhedron is compact and has only integral
+        vertices, ``False`` otherwise.
+
+        EXAMPLES::
+
+            sage: polytopes.cross_polytope(3).is_lattice_polytope()
+            True
+            sage: polytopes.regular_polygon(5).is_lattice_polytope()
+            False
+        """
+        try:
+            return self._is_lattice_polytope
+        except AttributeError:
+            pass
+
+        self._is_lattice_polytope = False
+        if self.is_compact():
+            try:
+                matrix(ZZ, self.vertices())
+                self._is_lattice_polytope = True
+            except TypeError:
+                pass
+
+        return self._is_lattice_polytope
+
+    def lattice_polytope(self, envelope=False):
+        r"""
+        Return an encompassing lattice polytope.
+
+        INPUT:
+
+        - ``envelope`` -- boolean (default: ``False``). If the
+          polyhedron has non-integral vertices, this option decides
+          whether to return a strictly larger lattice polytope or
+          raise a ``ValueError``. This option has no effect if the
+          polyhedron has already integral vertices.
+
+        OUTPUT:
+
+        A :class:`LatticePolytope
+        <sage.geometry.lattice_polytope.LatticePolytopeClass>`. If the
+        polyhedron is compact and has integral vertices, the lattice
+        polytope equals the polyhedron. If the polyhedron is compact
+        but has at least one non-integral vertex, a strictly larger
+        lattice polytope is returned.
+
+        If the polyhedron is not compact, a ``NotImplementedError`` is
+        raised.
+
+        If the polyhedron is not integral and ``envelope=False``, a
+        ``ValueError`` is raised.
+
+        ALGORITHM:
+
+        For each non-integral vertex, a bounding box of integral
+        points is added and the convex hull of these integral points
+        is returned.
+
+        EXAMPLES:
+
+        First, a polyhedron with integral vertices::
+
+            sage: P = Polyhedron( vertices = [(1, 0), (0, 1), (-1, 0), (0, -1)])
+            sage: lp = P.lattice_polytope(); lp
+            A lattice polytope: 2-dimensional, 4 vertices.
+            sage: lp.vertices()
+            [ 1  0 -1  0]
+            [ 0  1  0 -1]
+
+        Here is a polyhedron with non-integral vertices::
+
+            sage: P = Polyhedron( vertices = [(1/2, 1/2), (0, 1), (-1, 0), (0, -1)])
+            sage: lp = P.lattice_polytope()
+            Traceback (most recent call last):
+            ...
+            ValueError: Some vertices are not integral. You probably want
+            to add the argument "envelope=True" to compute an enveloping
+            lattice polytope.
+            sage: lp = P.lattice_polytope(True); lp
+            A lattice polytope: 2-dimensional, 5 vertices.
+            sage: lp.vertices()
+            [ 0  1  1 -1  0]
+            [ 1  0  1  0 -1]
+        """
+        if not self.is_compact():
+            raise NotImplementedError, 'Only compact lattice polytopes are allowed.'
+
+        def nonintegral_error():
+            raise ValueError, 'Some vertices are not integral. '+\
+                'You probably want to add the argument '+\
+                '"envelope=True" to compute an enveloping lattice polytope.'
+
+        # try to make use of cached values, if possible
+        if envelope:
+            try:
+                return self._lattice_polytope
+            except AttributeError:
+                pass
+        else:
+            try:
+                assert self._is_lattice_polytope
+                return self._lattice_polytope
+            except AttributeError:
+                pass
+            except AssertionError:
+                nonintegral_error()
+
+        # find the integral vertices
+        try:
+            vertices = matrix(ZZ, self.vertices()).transpose()
+            self._is_lattice_polytope = True
+        except TypeError:
+            self._is_lattice_polytope = False
+            if envelope==False: nonintegral_error()
+            vertices = []
+            from sage.combinat.cartesian_product import CartesianProduct
+            for v in self.vertex_generator():
+                vbox = [ set([floor(x),ceil(x)]) for x in v ]
+                vertices.extend( CartesianProduct(*vbox) )
+            vertices = matrix(ZZ, vertices).transpose()
+
+        # construct the (enveloping) lattice polytope
+        from sage.geometry.lattice_polytope import LatticePolytope
+        self._lattice_polytope = LatticePolytope(vertices)
+        return self._lattice_polytope
+
+    def integral_points(self):
+        r"""
+        Return the integral points in the polyhedron.
+
+        OUTPUT:
+
+        The list of integral points in the polyhedron. If the
+        polyhedron is not compact, a ``ValueError`` is raised.
+
+        EXAMPLES::
+
+            sage: Polyhedron(vertices=[(-1,-1),(1,0),(1,1),(0,1)]).integral_points()
+            [(-1, -1), (1, 0), (1, 1), (0, 1), (0, 0)]
+            sage: Polyhedron(vertices=[(-1/2,-1/2),(1,0),(1,1),(0,1)]).lattice_polytope(True).points()
+            [ 0 -1 -1  1  1  0  0]
+            [-1  0 -1  0  1  1  0]
+            sage: Polyhedron(vertices=[(-1/2,-1/2),(1,0),(1,1),(0,1)]).integral_points()
+            [(1, 0), (1, 1), (0, 1), (0, 0)]
+        """
+        if not self.is_compact():
+            raise ValueError, 'Can only enumerate points in a compact polyhedron.'
+
+        lp = self.lattice_polytope(True)
+
+        if self.is_lattice_polytope():
+            return lp.points().columns()
+
+        points = filter(lambda p: self.contains(p),
+                        lp.points().columns())
+        return points
 
 
 #############################################################
@@ -4407,7 +4569,6 @@ class Projection(SageObject):
         """
         return sum([ polygon3d(self.coordinates_of(f), **kwds)
                      for f in self.polygons ])
-
 
 
 #########################################################################

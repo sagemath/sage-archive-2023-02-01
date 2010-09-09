@@ -65,7 +65,6 @@ TESTS::
 #*****************************************************************************
 
 import sage.misc.misc
-import element
 import operator
 import sage.misc.latex
 
@@ -278,21 +277,33 @@ class FormalSum(ModuleElement):
 
             sage: FormalSum([(1,2/3), (3,2/3), (-5, 7)], parent=FormalSums(GF(5)), check=False)
             4*2/3 - 5*7
+
+        Make sure we first reduce before checking coefficient types::
+
+            sage: x,y = var('x, y')
+            sage: FormalSum([(1/2,x), (2,y)], FormalSums(QQ))
+            1/2*x + 2*y
+            sage: FormalSum([(1/2,x), (2,y)], FormalSums(ZZ))
+            Traceback (most recent call last):
+            ...
+            TypeError: no conversion of this rational to integer
+            sage: FormalSum([(1/2,x), (1/2,x), (2,y)], FormalSums(ZZ))
+            x + 2*y
         """
         if x == 0:
             x = []
-        if check:
-            k = parent.base_ring()
-            try:
-                x = [(k(t[0]), t[1]) for t in x]
-            except (IndexError, KeyError), msg:
-                raise TypeError, "%s\nInvalid formal sum"%msg
         self._data = x
         if parent is None:
             parent = formal_sums
         ModuleElement.__init__(self, parent)
-        if reduce:
+        if reduce:  # first reduce
             self.reduce()
+        if check:   # then check
+            k = parent.base_ring()
+            try:
+                self._data = [(k(t[0]), t[1]) for t in self._data]
+            except (IndexError, KeyError), msg:
+                raise TypeError, "%s\nInvalid formal sum"%msg
 
     def __iter__(self):
         """
@@ -450,7 +461,7 @@ class FormalSum(ModuleElement):
         """
         if len(self) == 0:
             return
-        v = [(x,c) for c, x in self if not c.is_zero()]
+        v = [(x,c) for c, x in self if c!=0]
         if len(v) == 0:
             self._data = v
             return
@@ -466,6 +477,6 @@ class FormalSum(ModuleElement):
                     w.append((coeff, last))
                 last = x
                 coeff = c
-        if not coeff.is_zero():
+        if coeff != 0:
             w.append((coeff,last))
         self._data = w

@@ -128,7 +128,27 @@ class Divisor_generic(FormalSum):
 
         INPUT:
 
-        See :meth:`sage.structure.formal_sum.FormalSum.__init__`
+        INPUT:
+
+        - ``v`` -- object. Usually a list of pairs
+          ``(coefficient,divisor)``.
+
+        - ``parent`` -- FormalSums(R) module (default: FormalSums(ZZ))
+
+        - ``check`` -- bool (default: True). Whether to coerce
+          coefficients into base ring. Setting it to ``False`` can
+          speed up construction.
+
+        - ``reduce`` -- reduce (default: True). Whether to combine
+          common terms. Setting it to ``False`` can speed up
+          construction.
+
+        .. WARNING::
+
+            The coefficients of the divisor must be in the base ring
+            and the terms must be reduced. If you set ``check=False``
+            and/or ``reduce=False`` it is your responsibility to pass
+            a valid object ``v``.
 
         EXAMPLES::
 

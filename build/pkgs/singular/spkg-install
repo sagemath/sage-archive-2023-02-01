@@ -117,8 +117,8 @@ patch()
 
     # parallel build patches
     cp patches/factory-GNUmakefile.in src/factory/GNUmakefile.in
-    cp patches/patches/Singular-Makefile.in src/Singular/Makefile.in
-    cp patches/patches/Makefile.in src/Makefile.in
+    cp patches/Singular-Makefile.in src/Singular/Makefile.in
+    cp patches/Makefile.in src/Makefile.in
 }
 
 distclean()

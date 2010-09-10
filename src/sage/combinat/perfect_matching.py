@@ -796,7 +796,7 @@ class PerfectMatchings(UniqueRepresentation,Parent):
         105
         sage: M=PerfectMatchings(('a', 'e', 'b', 'f', 'c', 'd'))
         sage: M.an_element()
-        [('a', 'e'), ('c', 'd'), ('b', 'f')]
+        [('a', 'b'), ('f', 'e'), ('c', 'd')]
         sage: all([PerfectMatchings(i).an_element() in PerfectMatchings(i)
         ...        for i in range(2,11,2)])
         True
@@ -805,7 +805,7 @@ class PerfectMatchings(UniqueRepresentation,Parent):
 
         sage: PerfectMatchings(5).list()
         []
-        sage: TestSuite(PerfectMatchings(5)).run()
+        sage: TestSuite(PerfectMatchings(6)).run()
         sage: TestSuite(PerfectMatchings([])).run()
     """
 
@@ -960,22 +960,40 @@ class PerfectMatchings(UniqueRepresentation,Parent):
         else:
             return Integer(prod(i for i in range(n) if i%2==1))
 
-    def an_element(self):
+    def random_element(self):
         r"""
-        Returns an element of self.
+        Returns a random element of self.
 
         EXAMPLES::
 
             sage: M=PerfectMatchings(('a', 'e', 'b', 'f', 'c', 'd'))
             sage: M.an_element()
-            [('a', 'e'), ('c', 'd'), ('b', 'f')]
-            sage: all([PerfectMatchings(i).an_element() in PerfectMatchings(i)
+            [('a', 'b'), ('f', 'e'), ('c', 'd')]
+            sage: all([PerfectMatchings(2*i).an_element() in PerfectMatchings(2*i)
             ...        for i in range(2,11,2)])
             True
+
+        TESTS::
+
+            sage: p = PerfectMatchings(13).random_element()
+            Traceback (most recent call last):
+            ...
+            ValueError: There is no perfect matching on an odd number of elements
+
         """
-        n=len(self._objects)//2
-        return self([(self._objects[i],self._objects[i+n])
-                                for i in range(n)])
+        n=len(self._objects)
+
+        if n%2==1:
+            raise ValueError("There is no perfect matching on an odd number of elements")
+
+        k = n//2
+
+        from sage.combinat.permutation import Permutations
+        p = Permutations(n).random_element()
+
+        return self([(self._objects[p[2*i]-1],self._objects[p[2*i+1]-1]) for i in range(k)])
+
+    an_element = random_element
 
     @cached_method
     def Weingarten_matrix(self,N):

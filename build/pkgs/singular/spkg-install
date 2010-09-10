@@ -118,6 +118,7 @@ patch()
     # parallel build patches
     cp patches/factory-GNUmakefile.in src/factory/GNUmakefile.in
     cp patches/Singular-Makefile.in src/Singular/Makefile.in
+    cp patches/kernel-Makefile.in src/kernel/Makefile.in
     cp patches/Makefile.in src/Makefile.in
 }
 

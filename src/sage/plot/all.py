@@ -6,7 +6,7 @@ from plot import (Graphics, plot,
                   show_default)
 
 from line import line, line2d
-from arrow import arrow
+from arrow import arrow, arrow2d
 from bar_chart import bar_chart
 from bezier_path import bezier_path
 from scatter_plot import scatter_plot

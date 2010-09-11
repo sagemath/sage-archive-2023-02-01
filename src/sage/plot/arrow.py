@@ -318,9 +318,28 @@ class Arrow(GraphicPrimitive):
         subplot.add_patch(p)
         return p
 
+def arrow(tailpoint=None, headpoint=None, **kwds):
+    """
+    Returns either a 2-dimensional or 3-dimensional arrow depending
+    on value of points.
+
+    For information regarding additional arguments, see either arrow2d?
+    or arrow3d?.
+
+    EXAMPLES::
+
+        sage: arrow((0,0), (1,1))
+        sage: arrow((0,0,1), (1,1,1))
+    """
+    try:
+        return arrow2d(tailpoint, headpoint, **kwds)
+    except ValueError:
+        from sage.plot.plot3d.shapes import arrow3d
+        return arrow3d(tailpoint, headpoint, **kwds)
+
 @rename_keyword(color='rgbcolor')
 @options(width=2, rgbcolor=(0,0,1),zorder=2, head = 1, linestyle='solid')
-def arrow(tailpoint=None, headpoint=None, path=None, **options):
+def arrow2d(tailpoint=None, headpoint=None, path=None, **options):
     """
     If tailpoint and headpoint are provided, returns an arrow from (xmin, ymin)
     to (xmax, ymax).  If tailpoint or headpoint is None and path is not None,
@@ -357,31 +376,31 @@ def arrow(tailpoint=None, headpoint=None, path=None, **options):
 
     A straight, blue arrow::
 
-       sage: arrow((1, 1), (3, 3))
+       sage: arrow2d((1, 1), (3, 3))
 
     Make a red arrow::
 
-       sage: arrow((-1, -1), (2, 3), color=(1,0,0))
-       sage: arrow((-1, -1), (2, 3), color='red')
+       sage: arrow2d((-1, -1), (2, 3), color=(1,0,0))
+       sage: arrow2d((-1, -1), (2, 3), color='red')
 
     You can change the width of an arrow::
 
-        sage: arrow((1, 1), (3, 3), width=5, arrowsize=15)
+        sage: arrow2d((1, 1), (3, 3), width=5, arrowsize=15)
 
     A pretty circle of arrows::
 
-        sage: sum([arrow((0,0), (cos(x),sin(x)), hue=x/(2*pi)) for x in [0..2*pi,step=0.1]]).show(aspect_ratio=1)
+        sage: sum([arrow2d((0,0), (cos(x),sin(x)), hue=x/(2*pi)) for x in [0..2*pi,step=0.1]]).show(aspect_ratio=1)
 
     If we want to draw the arrow between objects, for example, the
     boundaries of two lines, we can use the arrowshorten option
     to make the arrow shorter by a certain number of points::
 
-        sage: line([(0,0),(1,0)],thickness=10)+line([(0,1),(1,1)], thickness=10)+arrow((0.5,0),(0.5,1), arrowshorten=10,rgbcolor=(1,0,0))
+        sage: line([(0,0),(1,0)],thickness=10)+line([(0,1),(1,1)], thickness=10)+arrow2d((0.5,0),(0.5,1), arrowshorten=10,rgbcolor=(1,0,0))
 
     Extra options will get passed on to show(), as long as they are valid::
 
-        sage: arrow((-2, 2), (7,1), frame=True)
-        sage: arrow((-2, 2), (7,1)).show(frame=True)
+        sage: arrow2d((-2, 2), (7,1), frame=True)
+        sage: arrow2d((-2, 2), (7,1)).show(frame=True)
     """
     from sage.plot.plot import Graphics
     g = Graphics()

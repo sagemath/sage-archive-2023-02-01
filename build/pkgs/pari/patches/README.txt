@@ -3,20 +3,15 @@ See below for information on files which used to be patched but are no
 longer, or are still but now for a different reason. (Do not delete that!)
 
 ======================================================================
-Files patched as of pari-2.4.3.svn-12577.p5:
+Files patched as of pari-2.4.3.svn-12577.p6:
 ======================================================================
 
 Configuration files:
-* Configure: Use "#!/usr/bin/env bash" instead of "#!/bin/sh".  Note
-  that this is not strictly necessary, but it hopefully makes the
-  script less system-dependent. Since Sage assumes the existence of
-  bash anyway, it doesn't hurt either. -- Jeroen Demeyer
 * config/get_ld: cwitty: Disable -rpath.
 * config/get_tests: John Cremona: Disable testing of ellglobalred in
                     "make test-all" in spkg-check, since it requires
                     the elldata database which we do not include.
-* config/get_dlcflags: Add -fno-common to DLCFLAGS on Darwin.
-* config/get_config_options: Catch invalid arguments tp "--graphic".
+* config/get_config_options: Catch invalid arguments to "--graphic".
 * config/get_fltk; Add libstdc++; check presence of FLTK headers, too.
 * config/get_X11: Search X11 library in */lib64/*, too (not just */lib/*).
 
@@ -67,3 +62,8 @@ Files previously patched:
   in place!
 * config/Makefile.SH: Change "test -e" to "test -f" for Solaris.  Fixed
   upstream
+* config/get_dlcflags: Add -fno-common to DLCFLAGS on Darwin.  Fixed
+  upstream
+* Configure: First line was changed from "#! /bin/sh" to
+  "#!/usr/bin/env bash".  Now we directly call `bash Configure` instead
+  in spkg-install.

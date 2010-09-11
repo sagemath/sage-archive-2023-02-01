@@ -83,6 +83,11 @@ exactly where it says native, but I would expect a grep to find it.
 
 == Changelog ==
 
+=== pari-2.4.3.svn-12577.p6 (Jeroen Demeyer, September 11th, 2010) ===
+ * Add upstream fix for config/get_dlcflags and remove the patch
+ * Add upstream fix for bnfinit() and the rnfkummer test
+ * Instead of patching Configure, force bash in spkg-install
+
 === pari-2.4.3.svn-12577.p5 (Leif Leonhardy, Jeroen Demeyer, September 5th, 2010) ===
  * Added patches to:
    - config/get_config_options:

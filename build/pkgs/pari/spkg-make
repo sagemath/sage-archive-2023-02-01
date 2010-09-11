@@ -62,10 +62,20 @@ cd parisvn
 svn update -r 12577
 
 # Patch config/Makefile.SH (for Solaris)
+# <http://pari.math.u-bordeaux.fr/cgi-bin/bugreport.cgi?bug=1091>
 svn update -r 12588 config/Makefile.SH
 
 # Patch src/test/tune.c (fix tuning)
+# <http://pari.math.u-bordeaux.fr/cgi-bin/bugreport.cgi?bug=1089>
 svn update -r 12588 src/test/tune.c
+
+# Add -fno-common to DLCFLAGS on Darwin
+# <http://pari.math.u-bordeaux.fr/cgi-bin/bugreport.cgi?bug=1088>
+svn update -r 12594 config/get_dlcflags
+
+# Fix bnfinit() and the rnfkummer test
+# <http://pari.math.u-bordeaux.fr/cgi-bin/bugreport.cgi?bug=1099>
+svn update -r 12596 src/test/*/rnfkummer src/basemath/buch2.c
 
 
 # make pari (must run bison, etc...) but disable optimization to speed

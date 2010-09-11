@@ -51,6 +51,7 @@ from sage.rings.real_double  import RDF
 from sage.modules.free_module_element import vector
 
 from sage.misc.all import srange
+from sage.plot.misc import rename_keyword
 
 from base import Graphics3dGroup, Graphics3d
 
@@ -521,15 +522,16 @@ def LineSegment(start, end, thickness=1, radius=None, **kwds):
         theta = -acos(diff[2]/height)
         return cyl.rotate(axis, theta).translate(start)
 
-def arrow3d(start, end, thickness=1, radius=None, head_radius=None, head_len=None, **kwds):
+@rename_keyword(deprecated='Sage 4.6', deprecated_option='thickness', thickness='width')
+def arrow3d(start, end, width=1, radius=None, head_radius=None, head_len=None, **kwds):
     """
     Create a 3d arrow.
 
     INPUT:
         start -- (x,y,z) point; the starting point of the arrow
         end -- (x,y,z) point; the end point
-        thickness -- (default: 1); how thick the arrow is
-        radius -- (default: thickness/50.0) the radius of the arrow
+        width -- (default: 1); how wide the arrow is
+        radius -- (default: width/50.0) the radius of the arrow
         head_radius -- (default: 3*radius); radius of arrow head
         head_len -- (default: 3*head_radius); len of arrow head
 
@@ -548,6 +550,10 @@ def arrow3d(start, end, thickness=1, radius=None, head_radius=None, head_len=Non
 
     Many arrow arranged in a circle (flying spears?):
         sage: sum([arrow3d((cos(t),sin(t),0),(cos(t),sin(t),1)) for t in [0,0.3,..,2*pi]])
+
+    Change the width of the arrow. (Note: for an arrow that scales with zoom, please consider
+    the 'line3d' function with the option 'arrow_head=True'):
+        sage: arrow3d((0,0,0), (1,1,1), width=1)
 
     TESTS:
     If the arrow is too long, the shaft and part of the head is cut off.
@@ -569,9 +575,15 @@ def arrow3d(start, end, thickness=1, radius=None, head_radius=None, head_len=Non
         sage: a = arrow3d((0,0,0), (0,0,-1))
         sage: a.all[0].get_transformation().transform_point((0,0,1))
         (0.0, 0.0, -1.0)
+
+    The thickness option is now deprecated.  It has been replaced by the width option.
+
+        sage: arrow3d((0,0,0), (1,1,1), thickness=1)
+        doctest:...: DeprecationWarning: (Since Sage 4.6) use the option 'width' instead of 'thickness'
+        <BLANKLINE>
     """
     if radius is None:
-        radius = thickness/50.0
+        radius = width/50.0
     if head_radius == None:
         head_radius = 3*radius
     if head_len == None:

@@ -238,7 +238,7 @@ Using Sage, we will give to our items a random weight::
 
 ::
 
-    sage: poids = {}
+    sage: weight = {}
     sage: usefulness = {}
 
 .. link
@@ -247,7 +247,7 @@ Using Sage, we will give to our items a random weight::
 
     sage: set_random_seed(685474)
     sage: for o in L:
-    ...       poids[o] = random()
+    ...       weight[o] = random()
     ...       usefulness[o] = random()
 
 We can now define the MILP itself
@@ -263,7 +263,7 @@ We can now define the MILP itself
 
 ::
 
-    sage: p.add_constraint(sum(poids[o] * taken[o] for o in L) <= C)
+    sage: p.add_constraint(sum(weight[o] * taken[o] for o in L) <= C)
 
 .. link
 
@@ -285,7 +285,7 @@ The solution found is (of course) admissible
 
 ::
 
-    sage: sum(poids[o] * taken[o] for o in L)
+    sage: sum(weight[o] * taken[o] for o in L)
     0.69649597966191712
 
 Should we take a flashlight?

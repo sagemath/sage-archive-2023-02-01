@@ -2331,7 +2331,7 @@ def xydata_from_point_list(points):
     return xdata, ydata
 
 @rename_keyword(color='rgbcolor')
-@options(alpha=1, thickness=1, fill=None, fillcolor='automatic', fillalpha=0.5, rgbcolor=(0,0,1), plot_points=200,
+@options(alpha=1, thickness=1, fill=False, fillcolor='automatic', fillalpha=0.5, rgbcolor=(0,0,1), plot_points=200,
          adaptive_tolerance=0.01, adaptive_recursion=5, detect_poles = False, exclude = None, __original_opts=True)
 def plot(funcs, *args, **kwds):
     r"""
@@ -2421,7 +2421,7 @@ def plot(funcs, *args, **kwds):
     INPUT:
 
 
-    - ``fill`` - (Default: None) One of:
+    - ``fill`` - (Default: False) One of:
 
       - "axis" or True: Fill the area between the function and the x-axis.
 
@@ -2770,7 +2770,7 @@ def plot(funcs, *args, **kwds):
 
 
 def _plot(funcs, xrange, parametric=False,
-              polar=False, fill=None, label='', randomize=True, **options):
+              polar=False, fill=False, label='', randomize=True, **options):
 
     from sage.plot.misc import setup_for_eval_on_grid
     funcs, ranges = setup_for_eval_on_grid(funcs, [xrange], options['plot_points'])
@@ -2861,7 +2861,7 @@ def _plot(funcs, xrange, parametric=False,
     fillalpha = options.pop('fillalpha', 0.5)
 
     # TODO: Use matplotlib's fill and fill_between commands.
-    if fill is not None:
+    if fill is not False and fill is not None:
         if parametric:
             filldata = data
         else:

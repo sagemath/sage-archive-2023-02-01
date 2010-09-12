@@ -648,16 +648,17 @@ def is_pseudoprime_small_power(n, bound=1024, get_data=False):
     return False
 
 
-def valuation(m, p):
+def valuation(m,*args1, **args2):
     """
-    The exact power of p that divides m.
-
-    m should be an integer or rational (but maybe other types work
-    too.)
-
     This actually just calls the m.valuation() method.
+    See the documentation of m.valuation() for a more precise description.
+    Use of this function by developers is discouraged. Use m.valuation() instead.
 
-    If m is 0, this function returns rings.infinity.
+    .. NOTE::
+
+        This is not always a valuation in the mathematical sense.
+        For more information see:
+        sage.rings.finite_rings.integer_mod.IntegerMod_int.valuation
 
     EXAMPLES::
 
@@ -689,20 +690,18 @@ def valuation(m, p):
         5
         sage: valuation(243*10007,10007)
         1
+        sage: y = QQ['y'].gen()
+        sage: valuation(y^3, y)
+        3
+        sage: x = QQ[['x']].gen()
+        sage: valuation((x^3-x^2)/(x-4))
+        2
+        sage: valuation(4r,2r)
+        2
     """
-    if hasattr(m, 'valuation'):
-        return m.valuation(p)
-    if m == 0:
-        import sage.rings.all
-        return sage.rings.all.infinity
-    if is_FractionFieldElement(m):
-        return valuation(m.numerator()) - valuation(m.denominator())
-    r = 0
-    power = p
-    while not (m % power): # m % power == 0
-        r += 1
-        power *= p
-    return r
+    if isinstance(m,(int,long)):
+        m=ZZ(m)
+    return m.valuation(*args1, **args2)
 
 def prime_powers(start, stop=None):
     r"""

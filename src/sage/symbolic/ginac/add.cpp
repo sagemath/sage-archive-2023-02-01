@@ -127,8 +127,9 @@ void add::print_add(const print_context & c, unsigned level, bool latex) const
 	numeric coeff;
 	bool first = true;
 
+	epvector* sorted_seq = get_sorted_seq();
 	// Then proceed with the remaining factors
-	epvector::const_iterator it = seq.begin(), itend = seq.end();
+	epvector::const_iterator it = sorted_seq->begin(), itend = sorted_seq->end();
 	while (it != itend) {
 		std::stringstream tstream;
 		print_context *tcontext_p;

@@ -829,58 +829,44 @@ ex basic::expand(unsigned options) const
  *  1 greater. */
 int basic::compare(const basic & other) const
 {
-#ifdef GINAC_COMPARE_STATISTICS
-	compare_statistics.total_basic_compares++;
+ #ifdef GINAC_COMPARE_STATISTICS
+        compare_statistics.total_basic_compares++;
 #endif
-	static const tinfo_t function_id = find_tinfo_key("function");
-	static const tinfo_t fderivative_id = find_tinfo_key("fderivative");
-	const tinfo_t typeid_this = tinfo();
-	const tinfo_t typeid_other = other.tinfo();
-
-	// SAGE: If we want orderings to make any sense, it only
-	// makes sense to compare using the hashes when the types
-	// are the same.  WARNING -- doing this *will* presumably
-	// have negative performance implications.
-	/*	if (typeid_this==typeid_other) {
-	  const unsigned hash_this = gethash();
-	  const unsigned hash_other = other.gethash();
-	  if (hash_this<hash_other) return -1;
-	  if (hash_this>hash_other) return 1;
-	}
-	*/
-
+        const unsigned hash_this = gethash();
+        const unsigned hash_other = other.gethash();
+        if (hash_this<hash_other) return -1;
+        if (hash_this>hash_other) return 1;
 #ifdef GINAC_COMPARE_STATISTICS
-	compare_statistics.compare_same_hashvalue++;
+        compare_statistics.compare_same_hashvalue++;
 #endif
 
-	if (typeid_this==typeid_other) {
-		GINAC_ASSERT(typeid(*this)==typeid(other));
-// 		int cmpval = compare_same_type(other);
-// 		if (cmpval!=0) {
-// 			std::cout << "hash collision, same type: " 
-// 			          << *this << " and " << other << std::endl;
-// 			this->print(print_tree(std::cout));
-// 			std::cout << " and ";
-// 			other.print(print_tree(std::cout));
-// 			std::cout << std::endl;
-// 		}
-// 		return cmpval;
+        const tinfo_t& typeid_this = tinfo();//typeid(*this);
+        const tinfo_t& typeid_other = other.tinfo();//typeid(other);
+        if (typeid_this == typeid_other) {
+//              int cmpval = compare_same_type(other);
+//              if (cmpval!=0) {
+//                      std::cout << "hash collision, same type: " 
+//                                << *this << " and " << other << std::endl;
+//                      this->print(print_tree(std::cout));
+//                      std::cout << " and ";
+//                      other.print(print_tree(std::cout));
+//                      std::cout << std::endl;
+//              }
+//              return cmpval;
 #ifdef GINAC_COMPARE_STATISTICS
-		compare_statistics.compare_same_type++;
+                compare_statistics.compare_same_type++;
 #endif
-		return compare_same_type(other);
-	} else if (typeid_other == function_id ||
-			typeid_other == fderivative_id) {
-		return -1;
-	} else {
-// 		std::cout << "hash collision, different types: " 
-// 		          << *this << " and " << other << std::endl;
-// 		this->print(print_tree(std::cout));
-// 		std::cout << " and ";
-// 		other.print(print_tree(std::cout));
-// 		std::cout << std::endl;
+                return compare_same_type(other);
+        } else {
+//              std::cout << "hash collision, different types: " 
+//                        << *this << " and " << other << std::endl;
+//              this->print(print_tree(std::cout));
+//              std::cout << " and ";
+//              other.print(print_tree(std::cout));
+//              std::cout << std::endl;
+                //return (typeid_this.before(typeid_other) ? -1 : 1);
 		return (typeid_this<typeid_other ? -1 : 1);
-	}
+        }
 }
 
 /** Test for syntactic equality.

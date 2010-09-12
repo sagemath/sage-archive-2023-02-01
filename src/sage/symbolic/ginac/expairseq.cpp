@@ -33,6 +33,7 @@
 #include "indexed.h"
 #include "infinity.h"
 #include "compiler.h"
+#include "order.h"
 
 #include <iostream>
 #include <algorithm>
@@ -71,7 +72,7 @@ public:
 
 // public
 
-expairseq::expairseq() : inherited(&expairseq::tinfo_static)
+expairseq::expairseq() : inherited(&expairseq::tinfo_static), seq_sorted(NULL)
 #if EXPAIRSEQ_USE_HASHTAB
                                                    , hashtabsize(0)
 #endif // EXPAIRSEQ_USE_HASHTAB
@@ -110,20 +111,20 @@ void expairseq::copy(const expairseq &other)
 // other constructors
 //////////
 
-expairseq::expairseq(const ex &lh, const ex &rh) : inherited(&expairseq::tinfo_static)
+expairseq::expairseq(const ex &lh, const ex &rh) : inherited(&expairseq::tinfo_static), seq_sorted(NULL)
 {
 	construct_from_2_ex(lh,rh);
 	GINAC_ASSERT(is_canonical());
 }
 
-expairseq::expairseq(const exvector &v) : inherited(&expairseq::tinfo_static)
+expairseq::expairseq(const exvector &v) : inherited(&expairseq::tinfo_static), seq_sorted(NULL)
 {
 	construct_from_exvector(v);
 	GINAC_ASSERT(is_canonical());
 }
 
 expairseq::expairseq(const epvector &v, const ex &oc, bool do_index_renaming)
-  : inherited(&expairseq::tinfo_static), overall_coeff(oc)
+  : inherited(&expairseq::tinfo_static), overall_coeff(oc), seq_sorted(NULL)
 {
 	GINAC_ASSERT(is_a<numeric>(oc));
 	construct_from_epvector(v, do_index_renaming);
@@ -131,7 +132,7 @@ expairseq::expairseq(const epvector &v, const ex &oc, bool do_index_renaming)
 }
 
 expairseq::expairseq(std::auto_ptr<epvector> vp, const ex &oc, bool do_index_renaming)
-  : inherited(&expairseq::tinfo_static), overall_coeff(oc)
+  : inherited(&expairseq::tinfo_static), overall_coeff(oc), seq_sorted(NULL)
 {
 	GINAC_ASSERT(vp.get()!=0);
 	GINAC_ASSERT(is_a<numeric>(oc));
@@ -143,7 +144,7 @@ expairseq::expairseq(std::auto_ptr<epvector> vp, const ex &oc, bool do_index_ren
 // archiving
 //////////
 
-expairseq::expairseq(const archive_node &n, lst &sym_lst) : inherited(n, sym_lst)
+expairseq::expairseq(const archive_node &n, lst &sym_lst) : inherited(n, sym_lst), seq_sorted(NULL)
 #if EXPAIRSEQ_USE_HASHTAB
 	, hashtabsize(0)
 #endif
@@ -492,46 +493,48 @@ int expairseq::compare_same_type(const basic &other) const
 {
 	GINAC_ASSERT(is_a<expairseq>(other));
 	const expairseq &o = static_cast<const expairseq &>(other);
-	
+
 	int cmpval;
-	
+
 	// compare number of elements
 	if (seq.size() != o.seq.size())
 		return (seq.size()<o.seq.size()) ? -1 : 1;
+
+	// compare overall_coeff
+	cmpval = overall_coeff.compare(o.overall_coeff);
+	if (cmpval!=0)
+		return cmpval;
 
 #if EXPAIRSEQ_USE_HASHTAB
 	GINAC_ASSERT(hashtabsize==o.hashtabsize);
 	if (hashtabsize==0) {
 #endif // EXPAIRSEQ_USE_HASHTAB
+
 		epvector::const_iterator cit1 = seq.begin();
 		epvector::const_iterator cit2 = o.seq.begin();
 		epvector::const_iterator last1 = seq.end();
 		epvector::const_iterator last2 = o.seq.end();
 
 		for (; (cit1!=last1)&&(cit2!=last2); ++cit1, ++cit2) {
-			cmpval = (*cit2).compare(*cit1);
+			cmpval = (*cit1).compare(*cit2);
 			if (cmpval!=0) return cmpval;
 		}
 
 		GINAC_ASSERT(cit1==last1);
 		GINAC_ASSERT(cit2==last2);
-	
-		// compare overall_coeff
-		cmpval = overall_coeff.compare(o.overall_coeff);
-		if (cmpval!=0)
-			return cmpval;
-	
+
 		return 0;
+
 #if EXPAIRSEQ_USE_HASHTAB
 	}
-	
+
 	// compare number of elements in each hashtab entry
 	for (unsigned i=0; i<hashtabsize; ++i) {
 		unsigned cursize=hashtab[i].size();
 		if (cursize != o.hashtab[i].size())
 			return (cursize < o.hashtab[i].size()) ? -1 : 1;
 	}
-	
+
 	// compare individual (sorted) hashtab entries
 	for (unsigned i=0; i<hashtabsize; ++i) {
 		unsigned sz = hashtab[i].size();
@@ -549,7 +552,6 @@ int expairseq::compare_same_type(const basic &other) const
 			}
 		}
 	}
-	
 	return 0; // equal
 #endif // EXPAIRSEQ_USE_HASHTAB
 }
@@ -1183,6 +1185,17 @@ void expairseq::make_flat(const epvector &v, bool do_index_renaming)
 void expairseq::canonicalize()
 {
 	std::sort(seq.begin(), seq.end(), expair_rest_is_less());
+}
+
+epvector* expairseq::get_sorted_seq() const
+{
+	if (!this->seq_sorted) {
+		seq_sorted = new epvector(seq.size());
+		partial_sort_copy(seq.begin(), seq.end(),
+				seq_sorted->begin(), seq_sorted->end(),
+				expair_rest_is_greater_degrevlex());
+	}
+	return seq_sorted;
 }
 
 

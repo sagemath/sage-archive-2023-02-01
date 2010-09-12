@@ -1196,6 +1196,7 @@ ex function::derivative(const symbol & s) const
 	return result;
 }
 
+/*
 int function::compare(const basic& other) const
 {
 	static const tinfo_t function_id = find_tinfo_key("function");
@@ -1213,6 +1214,7 @@ int function::compare(const basic& other) const
 		return 1;
 	}
 }
+*/
 
 int function::compare_same_type(const basic & other) const
 {
@@ -1224,6 +1226,7 @@ int function::compare_same_type(const basic & other) const
 	else
 		return exprseq::compare_same_type(o);
 }
+
 
 bool function::is_equal_same_type(const basic & other) const
 {

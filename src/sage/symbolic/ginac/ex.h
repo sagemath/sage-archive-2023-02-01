@@ -83,6 +83,7 @@ class ex {
 	template<class T> friend inline bool is_a(const ex &);
 	template<class T> friend inline bool is_exactly_a(const ex &);
 	
+	friend struct ex_is_greater_degrevlex;
 	// default constructor, copy constructor and assignment operator
 public:
 	ex() throw();
@@ -705,6 +706,7 @@ struct op0_is_equal : public std::binary_function<ex, ex, bool> {
 struct ex_swap : public std::binary_function<ex, ex, void> {
 	void operator() (ex &lh, ex &rh) const { lh.swap(rh); }
 };
+
 
 // Make it possible to print exvectors and exmaps
 std::ostream & operator<<(std::ostream & os, const exvector & e);

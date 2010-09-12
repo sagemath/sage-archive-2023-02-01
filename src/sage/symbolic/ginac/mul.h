@@ -85,7 +85,7 @@ protected:
 	bool can_make_flat(const expair & p) const;
 	ex expand(unsigned options=0) const;
 	void find_real_imag(ex&, ex&) const;
-	int compare(const basic& other) const;
+	//int compare(const basic& other) const;
 	
 	ex eval_infinity(epvector::const_iterator infinity_iter) const;
 	ex eval_exponentials() const;
@@ -97,8 +97,8 @@ protected:
 public:
 	ex algebraic_subs_mul(const exmap & m, unsigned options) const;
 	double total_degree() const;
-	int compare_symbol(const symbol &other) const;
-	int compare_pow(const power &other) const;
+	//int compare_symbol(const symbol &other) const;
+	//int compare_pow(const power &other) const;
 protected:
 	void print_overall_coeff(const ex coeff_ex, const print_context & c,
 			const char *mul_sym, bool latex=false) const;

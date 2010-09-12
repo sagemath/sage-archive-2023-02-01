@@ -108,6 +108,7 @@ class basic : public refcounted
 	GINAC_DECLARE_REGISTERED_CLASS_NO_CTORS(basic, void)
 	
 	friend class ex;
+	friend struct ex_is_greater_degrevlex;
 	
 	// default constructor, destructor, copy constructor and assignment operator
 protected:

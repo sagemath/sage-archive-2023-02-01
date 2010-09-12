@@ -597,5 +597,5 @@ basic & ex::construct_from_pyobject(PyObject* o)
 
 // none
 
-
+//
 } // namespace GiNaC

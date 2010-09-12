@@ -283,6 +283,7 @@ ex symbol::derivative(const symbol & s) const
 		return _ex1;
 }
 
+/*
 int symbol::compare(const basic& other) const
 {
 	static const tinfo_t pow_id = find_tinfo_key("power");
@@ -305,26 +306,14 @@ int symbol::compare(const basic& other) const
 		return (typeid_this<typeid_other ? -1 : 1);
 	}
 }
+*/
 
 int symbol::compare_same_type(const basic & other) const
 {
 	GINAC_ASSERT(is_a<symbol>(other));
 	const symbol *o = static_cast<const symbol *>(&other);
 	if (serial==o->serial) return 0;
-	
-	// SAGE/Pynac: Sorting based on creation order doesn't work for Sage.
-	// instead we sort on variable name. -- William Stein
-
-	return name < (o->name) ? -1 : 1;
-	
-	// This is what Ginac used to return.  It fits with their
-	// philosophy that symbols names have no intrinsic meaning,
-	// only the order of creation of symbols matters.  Also, they
-	// allow multiple symbols with the same name.  Our Pynac
-	// wrapper does not allow for this, and we find the behavior
-	// way too confusing and ad hoc with this convention. 
-
-	// return serial < o->serial ? -1 : 1;
+        return serial < o->serial ? -1 : 1;
 }
 
 bool symbol::is_equal_same_type(const basic & other) const

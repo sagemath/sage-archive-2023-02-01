@@ -67,6 +67,7 @@ class expairseq : public basic
 {
 	GINAC_DECLARE_REGISTERED_CLASS(expairseq, basic)
 
+	friend struct ex_is_greater_degrevlex;
 	// other constructors
 public:
 	expairseq(const ex & lh, const ex & rh);
@@ -157,10 +158,12 @@ protected:
 	std::auto_ptr<epvector> evalchildren(int level) const;
 	std::auto_ptr<epvector> subschildren(const exmap & m, unsigned options = 0) const;
 	
+	epvector* get_sorted_seq() const;
 // member variables
 	
 protected:
 	epvector seq;
+	mutable epvector *seq_sorted;
 	ex overall_coeff;
 #if EXPAIRSEQ_USE_HASHTAB
 	epplistvector hashtab;

@@ -900,39 +900,6 @@ ex power::derivative(const symbol & s) const
 	}
 }
 
-int power::compare(const basic& other) const
-{
-	static const tinfo_t mul_id = find_tinfo_key("mul");
-	static const tinfo_t symbol_id = find_tinfo_key("symbol");
-	static const tinfo_t function_id = find_tinfo_key("function");
-	static const tinfo_t fderivative_id = find_tinfo_key("fderivative");
-	const tinfo_t typeid_this = tinfo();
-	const tinfo_t typeid_other = other.tinfo();
-	if (typeid_this==typeid_other) {
-		GINAC_ASSERT(typeid(*this)==typeid(other));
-		return compare_same_type(other);
-	} else if (typeid_other == mul_id) {
-		return -static_cast<const mul&>(other).compare_pow(*this);
-	} else if (typeid_other == symbol_id) {
-		return compare_symbol(static_cast<const symbol&>(other));
-	} else if (typeid_other == function_id ||
-			typeid_other == fderivative_id) {
-		return -1;
-	} else {
-		return (typeid_this<typeid_other ? -1 : 1);
-	}
-}
-
-int power::compare_symbol(const symbol & other) const
-{
-	int cmpval;
-	cmpval = _ex1.compare(exponent);
-	if (cmpval != 0) {
-		return cmpval;
-	}
-	return basis.compare(other);
-}
-
 int power::compare_same_type(const basic & other) const
 {
 	GINAC_ASSERT(is_exactly_a<power>(other));
@@ -942,11 +909,7 @@ int power::compare_same_type(const basic & other) const
 	if (cmpval)
 		return cmpval;
 	else
-	  // SAGE -- I changed the sign below for consistency with standard
-	  // mathematics and all other math software (except mathematica).
-	  // This makes it so x^5 + x^2 prints correctly instead of 
-	  // as x^2 + x^5.   -- William Stein
-		return -exponent.compare(o.exponent);
+		return exponent.compare(o.exponent);
 }
 
 unsigned power::return_type() const

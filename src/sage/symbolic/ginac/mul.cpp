@@ -37,9 +37,9 @@
 
 #include <iostream>
 #include <vector>
+#include <cmath>
 #include <stdexcept>
 #include <limits>
-#include <cmath>
 #include <sstream>
 #ifdef DO_GINAC_ASSERT
 #  include <typeinfo>
@@ -261,7 +261,9 @@ void mul::do_print_rat_func(const print_context & c, unsigned level,
 
 	// Separate factors into those with negative numeric exponent
 	// and all others
-	epvector::const_iterator it = seq.begin(), itend = seq.end();
+	epvector* sorted_seq = get_sorted_seq();
+	epvector::const_iterator it = sorted_seq->begin(), itend = sorted_seq->end();
+	//epvector::const_iterator it = seq.begin(), itend = seq.end();
 	exvector neg_powers, others;
 	while (it != itend) {
 		GINAC_ASSERT(is_exactly_a<numeric>(it->coeff));
@@ -1142,6 +1144,7 @@ double mul::total_degree() const
 	return tdegree;
 }
 
+/*
 int mul::compare(const basic& other) const
 {
 	static const tinfo_t function_id = find_tinfo_key("function");
@@ -1164,96 +1167,12 @@ int mul::compare(const basic& other) const
 		return (typeid_this<typeid_other ? -1 : 1);
 	}
 }
-
-int mul::compare_symbol(const symbol &other) const
-{
-	int cmpval;
-	double tdeg;
-	tdeg = total_degree();
-	if (tdeg == 1) {
-		cmpval = seq[0].rest.compare(other);
-		if (cmpval != 0) {
-			return cmpval;
-		}
-		cmpval = _ex1.compare(seq[0].coeff);
-		if (cmpval != 0) {
-			return cmpval;
-		}
-		return -1;
-	}
-	return tdeg > 1 ? -1 : 1;
-}
-
-// compare this to a pow object
-// first we compare degrees
-// if equal we compare the first item in the sequence to the base in other
-int mul::compare_pow(const power &other) const
-{
-	double my_deg = total_degree();
-	double odeg;
-	numeric oexp;
-	int cmpval = 0;
-	if (is_a<numeric>(other.exponent)) {
-		numeric oexp = ex_to<numeric>(other.exponent);
-		if (oexp.is_real()) {
-			odeg = oexp.to_double();
-		} else {
-			odeg = std::sqrt(std::pow(oexp.real().to_double(), 2) + 
-					std::pow(oexp.imag().to_double(), 2));
-		}
-		if (odeg != my_deg)
-			return my_deg < odeg ? 1 : -1;
-	} else {
-		cmpval = seq[0].coeff.compare(other.exponent);
-		if (cmpval != 0)
-			return cmpval;
-	}
-	cmpval = seq[0].rest.compare(other.basis);
-	if (cmpval != 0) {
-		return cmpval;
-	}
-	if (seq.size() == 1 && overall_coeff.is_equal(_ex1))
-		return 0;
-	return 1;
-}
+*/
 
 
 int mul::compare_same_type(const basic & other) const
 {
-	int cmpval;
-
-	const mul &o = static_cast<const mul &>(other);
-
-	// compare total degrees
-	double deg1 = total_degree();
-	double deg2 = o.total_degree();
-	if (deg1 != deg2)
-		return deg1 < deg2 ? 1 : -1;
-
-	// compare each item in this product to correnponding element in other
-	epvector::const_iterator cit1 = seq.begin();
-	epvector::const_iterator cit2 = o.seq.begin();
-	epvector::const_iterator last1 = seq.end();
-	epvector::const_iterator last2 = o.seq.end();
-
-	for (; (cit1!=last1)&&(cit2!=last2); ++cit1, ++cit2) {
-		cmpval = (*cit1).compare(*cit2);
-		if (cmpval != 0)
-			return cmpval;
-	}
-
-	// compare sizes
-	if (cit1 != last1) 
-		return 1;
-	else if (cit2 != last2)
-		return -1;
-
-	// compare overall_coeff
-	cmpval = overall_coeff.compare(o.overall_coeff);
-	if (cmpval!=0)
-		return cmpval;
-
-	return 0;
+	return inherited::compare_same_type(other);
 }
 
 unsigned mul::return_type() const

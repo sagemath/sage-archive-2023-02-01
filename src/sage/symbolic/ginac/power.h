@@ -40,6 +40,7 @@ class power : public basic
 {
 	GINAC_DECLARE_REGISTERED_CLASS(power, basic)
 	
+	friend struct ex_is_greater_degrevlex;
 	friend class mul;
 	
 // member functions
@@ -72,8 +73,8 @@ public:
 	ex conjugate() const;
 	ex real_part() const;
 	ex imag_part() const;
-	int compare(const basic& other) const;
-	int compare_symbol(const symbol& other) const;
+	//int compare(const basic& other) const;
+	//int compare_symbol(const symbol& other) const;
 protected:
 	ex derivative(const symbol & s) const;
 	ex eval_ncmul(const exvector & v) const;

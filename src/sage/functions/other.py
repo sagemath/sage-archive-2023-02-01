@@ -1436,6 +1436,20 @@ class Function_conjugate(GinacFunction):
             sage: x.conjugate().operator() == conjugate
             True
 
+        Check if #8755 is fixed::
+
+            sage: conjugate(sqrt(-3))
+            conjugate(sqrt(-3))
+            sage: conjugate(sqrt(3))
+            sqrt(3)
+            sage: conjugate(sqrt(x))
+            conjugate(sqrt(x))
+            sage: conjugate(x^2)
+            conjugate(x)^2
+            sage: var('y',domain='positive')
+            y
+            sage: conjugate(sqrt(y))
+            sqrt(y)
         """
         GinacFunction.__init__(self, "conjugate")
 

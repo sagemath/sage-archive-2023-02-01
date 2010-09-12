@@ -110,10 +110,26 @@ static ex lgamma_series(const ex & arg,
 	return (lgamma(arg+m+_ex1)-recur).series(rel, order, options);
 }
 
+static ex lgamma_conjugate(const ex & x)
+{
+	// conjugate(lgamma(x))==lgamma(conjugate(x)) unless on the branch cut
+	// which runs along the negative real axis.
+	if (x.info(info_flags::positive)) {
+		return lgamma(x);
+	}
+	if (is_exactly_a<numeric>(x) &&
+	    !x.imag_part().is_zero()) {
+		return lgamma(x.conjugate());
+	}
+	return conjugate_function(lgamma(x)).hold();
+}
+
+
 REGISTER_FUNCTION(lgamma, eval_func(lgamma_eval).
                           evalf_func(lgamma_evalf).
                           derivative_func(lgamma_deriv).
                           series_func(lgamma_series).
+                          conjugate_func(lgamma_conjugate).
                           set_name("log_gamma", "\\log \\Gamma"));
 
 
@@ -210,10 +226,18 @@ static ex tgamma_series(const ex & arg,
 static void tgamma_print_dflt(const ex & arg, const print_context & c)
 {  c.s << "gamma("; arg.print(c); c.s << ")"; }
 
+static ex tgamma_conjugate(const ex & x)
+{
+	// conjugate(tgamma(x))==tgamma(conjugate(x))
+	return tgamma(x.conjugate());
+}
+
+
 REGISTER_FUNCTION(tgamma, eval_func(tgamma_eval).
                           evalf_func(tgamma_evalf).
                           derivative_func(tgamma_deriv).
                           series_func(tgamma_series).
+                          conjugate_func(tgamma_conjugate).
                           latex_name("\\Gamma").
 		          print_func<print_dflt>(tgamma_print_dflt));
 
@@ -333,7 +357,7 @@ REGISTER_FUNCTION(beta, eval_func(beta_eval).
                         derivative_func(beta_deriv).
                         series_func(beta_series).
                         latex_name("{\\rm B}").
-						set_symmetry(sy_symm(0, 1)));
+                        set_symmetry(sy_symm(0, 1)));
 
 
 //////////

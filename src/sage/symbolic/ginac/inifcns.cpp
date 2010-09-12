@@ -329,8 +329,8 @@ REGISTER_FUNCTION(step, eval_func(step_eval).
                         evalf_func(step_evalf).
                         series_func(step_series).
                         conjugate_func(step_conjugate).
-								real_part_func(step_real_part).
-								imag_part_func(step_imag_part));
+                        real_part_func(step_real_part).
+                        imag_part_func(step_imag_part));
 
 //////////
 // Complex sign
@@ -653,11 +653,27 @@ static ex Li2_series(const ex &x, const relational &rel, int order, unsigned opt
 	throw do_taylor();  // caught by function::series()
 }
 
+static ex Li2_conjugate(const ex & x)
+{
+	// conjugate(Li2(x))==Li2(conjugate(x)) unless on the branch cuts which
+	// run along the positive real axis beginning at 1.
+	if (x.info(info_flags::negative)) {
+		return Li2(x);
+	}
+	if (is_exactly_a<numeric>(x) &&
+	    (!x.imag_part().is_zero() || x < *_num1_p)) {
+		return Li2(x.conjugate());
+	}
+	return conjugate_function(Li2(x)).hold();
+}
+
+
 unsigned Li2_SERIAL::serial = function::register_new(function_options("dilog", 1).
                        eval_func(Li2_eval).
                        evalf_func(Li2_evalf).
                        derivative_func(Li2_deriv).
                        series_func(Li2_series).
+                       conjugate_func(Li2_conjugate).
                        latex_name("{\\rm Li}_2"));
 
 //////////

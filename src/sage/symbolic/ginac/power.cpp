@@ -800,12 +800,23 @@ ex power::eval_ncmul(const exvector & v) const
 
 ex power::conjugate() const
 {
-	ex newbasis = basis.conjugate();
-	ex newexponent = exponent.conjugate();
-	if (are_ex_trivially_equal(basis, newbasis) && are_ex_trivially_equal(exponent, newexponent)) {
-		return *this;
+	// conjugate(pow(x,y))==pow(conjugate(x),conjugate(y)) unless on the
+	// branch cut which runs along the negative real axis.
+	if (basis.info(info_flags::positive)) {
+		ex newexponent = exponent.conjugate();
+		if (are_ex_trivially_equal(exponent, newexponent)) {
+			return *this;
+		}
+		return (new power(basis, newexponent))->setflag(status_flags::dynallocated);
 	}
-	return (new power(newbasis, newexponent))->setflag(status_flags::dynallocated);
+	if (exponent.info(info_flags::integer)) {
+		ex newbasis = basis.conjugate();
+		if (are_ex_trivially_equal(basis, newbasis)) {
+			return *this;
+		}
+		return (new power(newbasis, exponent))->setflag(status_flags::dynallocated);
+	}
+	return conjugate_function(*this).hold();
 }
 
 ex power::real_part() const

@@ -189,12 +189,19 @@ static void exp_print_latex(const ex & arg, const print_context & c)
 	exp_print(arg, c, true);
 }
 
+static ex exp_conjugate(const ex & x)
+{
+	// conjugate(exp(x))==exp(conjugate(x))
+	return exp(x.conjugate());
+}
+
 REGISTER_FUNCTION(exp, eval_func(exp_eval).
                        evalf_func(exp_evalf).
                        derivative_func(exp_deriv).
                        real_part_func(exp_real_part).
                        imag_part_func(exp_imag_part).
                        power_func(exp_power).
+                       conjugate_func(exp_conjugate).
                        print_func<print_dflt>(exp_print_dflt).
                        print_func<print_latex>(exp_print_latex));
 
@@ -357,12 +364,27 @@ static ex log_imag_part(const ex & x)
 	return atan2(GiNaC::imag_part(x), GiNaC::real_part(x));
 }
 
+static ex log_conjugate(const ex & x)
+{
+	// conjugate(log(x))==log(conjugate(x)) unless on the branch cut which
+	// runs along the negative real axis.
+	if (x.info(info_flags::positive)) {
+		return log(x);
+	}
+	if (is_exactly_a<numeric>(x) &&
+	    !x.imag_part().is_zero()) {
+		return log(x.conjugate());
+	}
+	return conjugate_function(log(x)).hold();
+}
+
 REGISTER_FUNCTION(log, eval_func(log_eval).
                        evalf_func(log_evalf).
                        derivative_func(log_deriv).
                        series_func(log_series).
                        real_part_func(log_real_part).
                        imag_part_func(log_imag_part).
+                       conjugate_func(log_conjugate).
                        latex_name("\\log"));
 
 //////////
@@ -465,11 +487,18 @@ static ex sin_imag_part(const ex & x)
 	return sinh(GiNaC::imag_part(x))*cos(GiNaC::real_part(x));
 }
 
+static ex sin_conjugate(const ex & x)
+{
+	// conjugate(sin(x))==sin(conjugate(x))
+	return sin(x.conjugate());
+}
+
 REGISTER_FUNCTION(sin, eval_func(sin_eval).
                        evalf_func(sin_evalf).
                        derivative_func(sin_deriv).
                        real_part_func(sin_real_part).
                        imag_part_func(sin_imag_part).
+                       conjugate_func(sin_conjugate).
                        latex_name("\\sin"));
 
 //////////
@@ -572,11 +601,18 @@ static ex cos_imag_part(const ex & x)
 	return -sinh(GiNaC::imag_part(x))*sin(GiNaC::real_part(x));
 }
 
+static ex cos_conjugate(const ex & x)
+{
+	// conjugate(cos(x))==cos(conjugate(x))
+	return cos(x.conjugate());
+}
+
 REGISTER_FUNCTION(cos, eval_func(cos_eval).
                        evalf_func(cos_evalf).
                        derivative_func(cos_deriv).
                        real_part_func(cos_real_part).
                        imag_part_func(cos_imag_part).
+                       conjugate_func(cos_conjugate).
                        latex_name("\\cos"));
 
 //////////
@@ -697,12 +733,19 @@ static ex tan_series(const ex &x,
 	return (sin(x)/cos(x)).series(rel, order, options);
 }
 
+static ex tan_conjugate(const ex & x)
+{
+	// conjugate(tan(x))==tan(conjugate(x))
+	return tan(x.conjugate());
+}
+
 REGISTER_FUNCTION(tan, eval_func(tan_eval).
                        evalf_func(tan_evalf).
                        derivative_func(tan_deriv).
                        series_func(tan_series).
                        real_part_func(tan_real_part).
                        imag_part_func(tan_imag_part).
+                       conjugate_func(tan_conjugate).
                        latex_name("\\tan"));
 
 //////////
@@ -769,9 +812,21 @@ static ex asin_deriv(const ex & x, unsigned deriv_param)
 	return power(1-power(x,_ex2),_ex_1_2);
 }
 
+static ex asin_conjugate(const ex & x)
+{
+	// conjugate(asin(x))==asin(conjugate(x)) unless on the branch cuts which
+	// run along the real axis outside the interval [-1, +1].
+	if (is_exactly_a<numeric>(x) &&
+	    (!x.imag_part().is_zero() || (x > *_num_1_p && x < *_num1_p))) {
+		return asin(x.conjugate());
+	}
+	return conjugate_function(asin(x)).hold();
+}
+
 REGISTER_FUNCTION(asin, eval_func(asin_eval).
                         evalf_func(asin_evalf).
                         derivative_func(asin_deriv).
+                        conjugate_func(asin_conjugate).
 			set_name("arcsin", "\\arcsin"));
 
 //////////
@@ -837,11 +892,22 @@ static ex acos_deriv(const ex & x, unsigned deriv_param)
 	return -power(1-power(x,_ex2),_ex_1_2);
 }
 
- 
+static ex acos_conjugate(const ex & x)
+{
+	// conjugate(acos(x))==acos(conjugate(x)) unless on the branch cuts which
+	// run along the real axis outside the interval [-1, +1].
+	if (is_exactly_a<numeric>(x) &&
+	    (!x.imag_part().is_zero() || (x > *_num_1_p && x < *_num1_p))) {
+		return acos(x.conjugate());
+	}
+	return conjugate_function(acos(x)).hold();
+}
 
+ 
 REGISTER_FUNCTION(acos, eval_func(acos_eval).
                         evalf_func(acos_evalf).
                         derivative_func(acos_deriv).
+                        conjugate_func(acos_conjugate).
 			set_name("arccos", "\\arccos"));
 
 //////////
@@ -950,10 +1016,27 @@ static ex atan_series(const ex &arg,
 	throw do_taylor();
 }
 
+static ex atan_conjugate(const ex & x)
+{
+	// conjugate(atan(x))==atan(conjugate(x)) unless on the branch cuts which
+	// run along the imaginary axis outside the interval [-I, +I].
+	if (x.info(info_flags::real))
+		return atan(x);
+	if (is_exactly_a<numeric>(x)) {
+		const numeric x_re = ex_to<numeric>(x.real_part());
+		const numeric x_im = ex_to<numeric>(x.imag_part());
+		if (!x_re.is_zero() ||
+		    (x_im > *_num_1_p && x_im < *_num1_p))
+			return atan(x.conjugate());
+	}
+	return conjugate_function(atan(x)).hold();
+}
+
 REGISTER_FUNCTION(atan, eval_func(atan_eval).
                         evalf_func(atan_evalf).
                         derivative_func(atan_deriv).
                         series_func(atan_series).
+                        conjugate_func(atan_conjugate).
 			set_name("arctan", "\\arctan"));
 
 //////////
@@ -1416,9 +1499,26 @@ static ex asinh_deriv(const ex & x, unsigned deriv_param)
 	return power(_ex1+power(x,_ex2),_ex_1_2);
 }
 
+static ex asinh_conjugate(const ex & x)
+{
+	// conjugate(asinh(x))==asinh(conjugate(x)) unless on the branch cuts which
+	// run along the imaginary axis outside the interval [-I, +I].
+	if (x.info(info_flags::real))
+		return asinh(x);
+	if (is_exactly_a<numeric>(x)) {
+		const numeric x_re = ex_to<numeric>(x.real_part());
+		const numeric x_im = ex_to<numeric>(x.imag_part());
+		if (!x_re.is_zero() ||
+		    (x_im > *_num_1_p && x_im < *_num1_p))
+			return asinh(x.conjugate());
+	}
+	return conjugate_function(asinh(x)).hold();
+}
+
 REGISTER_FUNCTION(asinh, eval_func(asinh_eval).
                          evalf_func(asinh_evalf).
                          derivative_func(asinh_deriv).
+                         conjugate_func(asinh_conjugate).
 			 set_name("arcsinh"));
 
 //////////
@@ -1476,9 +1576,21 @@ static ex acosh_deriv(const ex & x, unsigned deriv_param)
 	return power(x+_ex_1,_ex_1_2)*power(x+_ex1,_ex_1_2);
 }
 
+static ex acosh_conjugate(const ex & x)
+{
+	// conjugate(acosh(x))==acosh(conjugate(x)) unless on the branch cut
+	// which runs along the real axis from +1 to -inf.
+	if (is_exactly_a<numeric>(x) &&
+	    (!x.imag_part().is_zero() || x > *_num1_p)) {
+		return acosh(x.conjugate());
+	}
+	return conjugate_function(acosh(x)).hold();
+}
+
 REGISTER_FUNCTION(acosh, eval_func(acosh_eval).
                          evalf_func(acosh_evalf).
                          derivative_func(acosh_deriv).
+                         conjugate_func(acosh_conjugate).
 			 set_name("arccosh"));
 
 //////////
@@ -1589,10 +1701,22 @@ static ex atanh_series(const ex &arg,
 	throw do_taylor();
 }
 
+static ex atanh_conjugate(const ex & x)
+{
+	// conjugate(atanh(x))==atanh(conjugate(x)) unless on the branch cuts which
+	// run along the real axis outside the interval [-1, +1].
+	if (is_exactly_a<numeric>(x) &&
+	    (!x.imag_part().is_zero() || (x > *_num_1_p && x < *_num1_p))) {
+		return atanh(x.conjugate());
+	}
+	return conjugate_function(atanh(x)).hold();
+}
+
 REGISTER_FUNCTION(atanh, eval_func(atanh_eval).
                          evalf_func(atanh_evalf).
                          derivative_func(atanh_deriv).
                          series_func(atanh_series).
+                         conjugate_func(atanh_conjugate).
 			 set_name("arctanh"));
 
 

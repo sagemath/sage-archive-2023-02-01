@@ -181,10 +181,7 @@ P = pari_instance   # shorthand notation
 # See the polgalois section of the PARI users manual.
 new_galois_format = 1
 
-cdef pari_sp mytop, initial_bot, initial_top
-
-# keep track of the stack
-cdef pari_sp stack_avma
+cdef pari_sp mytop
 
 # real precision in decimal digits: see documentation for
 # get_real_precision() and set_real_precision().  This variable is used
@@ -1203,61 +1200,64 @@ cdef class gen(sage.structure.element.RingElement):
         cdef long l
         cdef Py_ssize_t ii, jj, step
 
-
         sig_on()
-        if PyObject_TypeCheck(y, gen):
-            x = y
-        else:
-            x = pari(y)
+        try:
+            if PyObject_TypeCheck(y, gen):
+                x = y
+            else:
+                x = pari(y)
 
-        if PyObject_TypeCheck(n, tuple):
-            if typ(self.g) != t_MAT:
-                raise TypeError, "cannot index Pari type %s by tuple"%typ(self.g)
+            if PyObject_TypeCheck(n, tuple):
+                if typ(self.g) != t_MAT:
+                    raise TypeError, "cannot index Pari type %s by tuple"%typ(self.g)
 
-            if len(n) != 2:
-                raise ValueError, "matrix index must be of the form [row, column]"
+                if len(n) != 2:
+                    raise ValueError, "matrix index must be of the form [row, column]"
 
-            i = int(n[0])
-            j = int(n[1])
-            ind = (i,j)
+                i = int(n[0])
+                j = int(n[1])
+                ind = (i,j)
 
-            if i < 0 or i >= glength(<GEN>(self.g[1])):
-                raise IndexError, "row i(=%s) must be between 0 and %s"%(i,self.nrows()-1)
-            if j < 0 or j >= glength(self.g):
-                raise IndexError, "column j(=%s) must be between 0 and %s"%(j,self.ncols()-1)
-            self._refers_to[ind] = x
+                if i < 0 or i >= glength(<GEN>(self.g[1])):
+                    raise IndexError, "row i(=%s) must be between 0 and %s"%(i,self.nrows()-1)
+                if j < 0 or j >= glength(self.g):
+                    raise IndexError, "column j(=%s) must be between 0 and %s"%(j,self.ncols()-1)
+                self._refers_to[ind] = x
 
-            (<GEN>(self.g)[j+1])[i+1] = <long>(x.g)
+                (<GEN>(self.g)[j+1])[i+1] = <long>(x.g)
+                return
+
+            elif isinstance(n, slice):
+                l = glength(self.g)
+                inds = xrange(*n.indices(l))
+                k = len(inds)
+                if k > len(y):
+                    raise ValueError, "attempt to assign sequence of size %s to slice of size %s"%(len(y), k)
+
+                # actually set the values
+                for i,j in enumerate(inds):
+                    self[j] = y[i]
+                return
+
+            i = int(n)
+
+            if i < 0 or i >= glength(self.g):
+                raise IndexError, "index (%s) must be between 0 and %s"%(i,glength(self.g)-1)
+
+            # so python memory manager will work correctly
+            # and not free x if PARI part of self is the
+            # only thing pointing to it.
+            self._refers_to[i] = x
+
+            ## correct indexing for t_POLs
+            if typ(self.g) == t_POL:
+                i = i + 1
+
+            ## actually set the value
+            (self.g)[i+1] = <long>(x.g)
             return
-
-        elif isinstance(n, slice):
-            l = glength(self.g)
-            inds = xrange(*n.indices(l))
-            k = len(inds)
-            if k > len(y):
-                raise ValueError, "attempt to assign sequence of size %s to slice of size %s"%(len(y), k)
-
-            # actually set the values
-            for i,j in enumerate(inds):
-                self[j] = y[i]
-            return
-
-        i = int(n)
-
-        if i < 0 or i >= glength(self.g):
-            raise IndexError, "index (%s) must be between 0 and %s"%(i,glength(self.g)-1)
-
-        # so python memory manager will work correctly
-        # and not free x if PARI part of self is the
-        # only thing pointing to it.
-        self._refers_to[i] = x
-
-        ## correct indexing for t_POLs
-        if typ(self.g) == t_POL:
-            i = i + 1
-
-        ## actually set the value
-        (self.g)[i+1] = <long>(x.g)
+        finally:
+            sig_off()
 
     def __len__(gen self):
         return glength(self.g)
@@ -1786,8 +1786,9 @@ cdef class gen(sage.structure.element.RingElement):
             sage: n.isprime(2)
             False
         """
+        cdef bint t
         sig_on()
-        t = bool(gisprime(self.g, flag) != stoi(0))
+        t = (signe(gisprime(self.g, flag)) != 0)
         sig_off()
         return t
 
@@ -2677,6 +2678,7 @@ cdef class gen(sage.structure.element.RingElement):
             lx = lg(x.g)
             vx = valp(x.g)
             if vx < 0:
+                sig_off()
                 raise ValueError, "Vecrev() is not defined for Laurent series"
             y = cgetg(vx+lx-1, t_VEC)
             for i from 1 <= i <= vx:
@@ -3837,6 +3839,7 @@ cdef class gen(sage.structure.element.RingElement):
             2147483647            # 32-bit
             9223372036854775807   # 64-bit
         """
+        cdef long v
         t0GEN(p)
         sig_on()
         v = ggval(x.g, t0)
@@ -5295,7 +5298,8 @@ cdef class gen(sage.structure.element.RingElement):
         if self > num_primes:
             P.init_primes(self + 10)
         if signe(self.g) != 1:
-            return P(0)
+            sig_off()
+            return P.PARI_ZERO
         return P.new_gen(primepi(self.g))
 
     def sumdiv(gen n):
@@ -5671,7 +5675,6 @@ cdef class gen(sage.structure.element.RingElement):
         cdef GEN g
         pari.init_primes(n+1)
         t0GEN(n)
-        sig_on()
         g = primes(gtolong(primepi(t0)))
 
         # 2. Replace each prime in the table by ellap of it.
@@ -6288,9 +6291,12 @@ cdef class gen(sage.structure.element.RingElement):
             sage: e.ellrootno(1009)
             1
         """
+        cdef long rootno
         t0GEN(p)
         sig_on()
-        return ellrootno(self.g, t0)
+        rootno =  ellrootno(self.g, t0)
+        sig_off()
+        return rootno
 
     def ellsigma(self, z, flag=0):
         """
@@ -6811,14 +6817,20 @@ cdef class gen(sage.structure.element.RingElement):
             return self.new_gen(idealtwoelt0(self.g, t0, t1))
 
     def idealval(self, x, p):
+        cdef long v
         t0GEN(x); t1GEN(p)
         sig_on()
-        return idealval(self.g, t0, t1)
+        v = idealval(self.g, t0, t1)
+        sig_off()
+        return v
 
     def elementval(self, x, p):
+        cdef long v
         t0GEN(x); t1GEN(p)
         sig_on()
-        return nfval(self.g, t0, t1)
+        v = nfval(self.g, t0, t1)
+        sig_off()
+        return v
 
     def modreverse(self):
         """
@@ -8089,10 +8101,13 @@ cdef class gen(sage.structure.element.RingElement):
     ###########################################
 
     def hilbert(x, y, p):
+        cdef long ret
         t0GEN(y)
         t1GEN(p)
         sig_on()
-        return hilbert0(x.g, t0, t1)
+        ret = hilbert0(x.g, t0, t1)
+        sig_off()
+        return ret
 
     def chinese(self, y):
         t0GEN(y)
@@ -8605,19 +8620,19 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         if bot:
             return  # pari already initialized.
 
-        global initialized, num_primes, PARI_ZERO, PARI_ONE, PARI_TWO, avma, top, bot, \
-               initial_bot, initial_top, prec
+        global num_primes, avma, top, bot, prec
 
+        # The size here doesn't really matter, because we will allocate
+        # our own stack anyway. We ask PARI not to set up signal handlers.
+        pari_init_opts(10000, maxprime, INIT_JMPm | INIT_DFTm)
+        num_primes = maxprime
 
-        #print "Initializing PARI (size=%s, maxprime=%s)"%(size,maxprime)
-        pari_init(1024, maxprime)
-        initial_bot = bot
-        initial_top = top
-        bot = 0
-
+        # NOTE: sig_on() can only come AFTER pari_init_opts()!
         sig_on()
+
+        # Free the PARI stack and allocate our own (using Cython)
+        pari_free(<void*>bot); bot = 0
         init_stack(size)
-        sig_off()
 
         GP_DATA.fmt.prettyp = 0
 
@@ -8632,29 +8647,17 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         defaultOut.puts = sage_puts
         defaultOut.flush = sage_flush
 
-        # Take control of SIGSEGV back from PARI.
-        import signal
-        signal.signal(signal.SIGSEGV, signal.SIG_DFL)
-
-        # We do the following, since otherwise the IPython pager
-        # causes sage to crash when it is exited early.  This is
-        # because when PARI was initialized it set a trap for this
-        # signal.
-        import signal
-        signal.signal(signal.SIGPIPE, _my_sigpipe)
-        initialized = 1
-        stack_avma = avma
-        num_primes = maxprime
-        self.PARI_ZERO = self.new_gen(gen_0)
-        self.PARI_ONE = self.new_gen(gen_1)
-        self.PARI_TWO = self.new_gen(gen_2)
+        self.PARI_ZERO = self.new_gen_noclear(gen_0)
+        self.PARI_ONE = self.new_gen_noclear(gen_1)
+        self.PARI_TWO = self.new_gen_noclear(gen_2)
+        sig_off()
 
     def _unsafe_deallocate_pari_stack(self):
         if bot:
             sage_free(<void*>bot)
         global top, bot
-        top = initial_top
-        bot = initial_bot
+        top = 0
+        bot = 0
         pari_close()
 
     def __repr__(self):
@@ -8814,18 +8817,23 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
     cdef gen new_gen_from_mpz_t(self, mpz_t value):
         cdef GEN z
-        cdef long limbs = 0
 
-        limbs = mpz_size(value)
-
+        cdef unsigned long limbs = mpz_size(value)
         if (limbs > 500):
             sig_on()
         z = cgetg( limbs+2, t_INT )
         setlgefint( z, limbs+2 )
         setsigne( z, mpz_sgn(value) )
         mpz_export( int_LSW(z), NULL, -1, sizeof(long), 0, 0, value )
+        g = self.new_gen_noclear(z)
+        if (limbs > 500):
+            sig_off()
 
-        return self.new_gen(z)
+        # Clear the PARI stack
+        global mytop, avma
+        avma = mytop
+
+        return g
 
     cdef GEN new_GEN_from_mpz_t(self, mpz_t value):
         ## expects that you sig_on() before entry
@@ -9501,20 +9509,6 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         sig_on()
         return self.new_gen(polzag(n, m))
 
-#  In pari 2.4.3 listcreate is "redundant and obsolete"
-#
-#     def listcreate(self, long n=0):
-#         """
-#         listcreate(): return an empty pari list
-
-#         EXAMPLES::
-
-#             sage: pari.listcreate()
-#             List([])
-#         """
-#         sig_on()
-#         return self.new_gen(listcreate())
-
     def setrand(self, seed):
         """
         Sets Pari's current random number seed.
@@ -9556,6 +9550,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             sage: a == pari.getrand()
             True
         """
+        sig_on()
         return self.new_gen(getrand())
 
     def vector(self, long n, entries=None):
@@ -9619,7 +9614,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 # Used in integer factorization -- must be done
 # after the pari_instance creation above:
 
-cdef gen _tmp = P.new_gen(gp_read_str('1000000000000000'))
+cdef gen _tmp = P.new_gen_noclear(gp_read_str('1000000000000000'))
 cdef GEN ten_to_15 = _tmp.g
 
 ##############################################
@@ -9673,7 +9668,7 @@ cdef int init_stack(size_t size) except -1:
     cdef size_t s
     cdef pari_sp cur_stack_size
 
-    global top, bot, avma, stack_avma, mytop
+    global top, bot, avma, mytop
 
 
     err = False    # whether or not a memory allocation error occurred.
@@ -9685,7 +9680,7 @@ cdef int init_stack(size_t size) except -1:
 
     prev_stack_size = top - bot
     if size == 0:
-        size = 2*(top-bot)
+        size = 2 * prev_stack_size
 
     # Decide on size
     s = fix_size(size)
@@ -9702,19 +9697,13 @@ cdef int init_stack(size_t size) except -1:
         if not bot:
             prev_stack_size /= 2
 
-    #endif
     top = bot + s
     mytop = top
     avma = top
-    stack_avma = avma
 
     if err:
         raise MemoryError, "Unable to allocate %s bytes memory for PARI."%size
 
-
-def _my_sigpipe(signum, frame):
-    # If I do anything, it messes up IPython's pager.
-    pass
 
 cdef size_t fix_size(size_t a):
     cdef size_t b
@@ -9759,40 +9748,6 @@ cdef gen _new_gen (GEN x):
     y = PY_NEW(gen)
     y.init(h, address)
     return y
-
-cdef gen xxx_new_gen(GEN x):
-    cdef gen y
-    y = PY_NEW(gen)
-    y.init(x, 0)
-    sig_off()
-    return y
-
-def min(x,y):
-    """
-    min(x,y): Return the minimum of x and y.
-    """
-    if x <= y:
-        return x
-    return y
-
-def max(x,y):
-    """
-    max(x,y): Return the maximum of x and y.
-    """
-    if x >= y:
-        return x
-    return y
-
-cdef int _read_script(char* s) except -1:
-    sig_on()
-    gp_read_str(s)
-    sig_off()
-
-    # We set top to avma, so the script's affects won't be undone
-    # when we call new_gen again.
-    global mytop, top, avma
-    mytop = avma
-    return 0
 
 
 #######################
@@ -9878,22 +9833,16 @@ cdef void _pari_trap "_pari_trap" (long errno, long retries) except *:
     TESTS::
 
     """
-    sig_off()
     if retries > 100:
+        sig_off()
         raise RuntimeError, "_pari_trap recursion too deep"
     if errno == errpile:
         P.allocatemem(silent=True)
-
-        #raise RuntimeError, "The PARI stack overflowed.  It has automatically been doubled using pari.allocatemem().  Please retry your computation, possibly after you manually call pari.allocatemem() a few times."
-        #print "Stack overflow! (%d retries so far)"%retries
-        #print " enlarge the stack."
-
     elif errno == user:
-
+        sig_off()
         raise Exception, "PARI user exception"
-
     else:
-
+        sig_off()
         raise PariError, errno
 
 

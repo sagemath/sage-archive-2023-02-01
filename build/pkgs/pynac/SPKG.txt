@@ -32,7 +32,16 @@ in the src directory.
 
 == Changelog ==
 
-=== pynac-0.2.0.p5 (David Kirkby, 16th July, 2010) ===
+=== pynac-0.2.1 (Burcin Erocal, September 12, 2010) ===
+ * Print rational functions and mul objects better.
+ * Include patches from GiNaC to fix memory leaks in power::eval and improve
+   conjugation of special functions.
+ * Allow disabling automatic evaluation in add and mul constructors.
+ * zeta(1) now returns UnsignedInfinity.
+ * Fix csgn function to conform to the original GiNaC specification.
+ * Do not generate function.{h,cpp} automatically.
+
+=== pynac-0.2.0.p5 (David Kirkby, July 16, 2010) ===
  * #7861 Export CC="$CC -m64" and CXX="$CXX -m64" if
    SAGE64 is set to "yes". This is because setting
    CFLAGS and CXXFLAGS to include the -m64 option was

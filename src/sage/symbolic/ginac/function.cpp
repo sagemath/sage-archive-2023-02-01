@@ -137,72 +137,6 @@ function_options & function_options::eval_func(eval_funcp_3 e)
 	eval_f = eval_funcp(e);
 	return *this;
 }
-function_options & function_options::eval_func(eval_funcp_4 e)
-{
-	test_and_set_nparams(4);
-	eval_f = eval_funcp(e);
-	return *this;
-}
-function_options & function_options::eval_func(eval_funcp_5 e)
-{
-	test_and_set_nparams(5);
-	eval_f = eval_funcp(e);
-	return *this;
-}
-function_options & function_options::eval_func(eval_funcp_6 e)
-{
-	test_and_set_nparams(6);
-	eval_f = eval_funcp(e);
-	return *this;
-}
-function_options & function_options::eval_func(eval_funcp_7 e)
-{
-	test_and_set_nparams(7);
-	eval_f = eval_funcp(e);
-	return *this;
-}
-function_options & function_options::eval_func(eval_funcp_8 e)
-{
-	test_and_set_nparams(8);
-	eval_f = eval_funcp(e);
-	return *this;
-}
-function_options & function_options::eval_func(eval_funcp_9 e)
-{
-	test_and_set_nparams(9);
-	eval_f = eval_funcp(e);
-	return *this;
-}
-function_options & function_options::eval_func(eval_funcp_10 e)
-{
-	test_and_set_nparams(10);
-	eval_f = eval_funcp(e);
-	return *this;
-}
-function_options & function_options::eval_func(eval_funcp_11 e)
-{
-	test_and_set_nparams(11);
-	eval_f = eval_funcp(e);
-	return *this;
-}
-function_options & function_options::eval_func(eval_funcp_12 e)
-{
-	test_and_set_nparams(12);
-	eval_f = eval_funcp(e);
-	return *this;
-}
-function_options & function_options::eval_func(eval_funcp_13 e)
-{
-	test_and_set_nparams(13);
-	eval_f = eval_funcp(e);
-	return *this;
-}
-function_options & function_options::eval_func(eval_funcp_14 e)
-{
-	test_and_set_nparams(14);
-	eval_f = eval_funcp(e);
-	return *this;
-}
 
 function_options & function_options::evalf_func(evalf_funcp_1 ef)
 {
@@ -219,72 +153,6 @@ function_options & function_options::evalf_func(evalf_funcp_2 ef)
 function_options & function_options::evalf_func(evalf_funcp_3 ef)
 {
 	test_and_set_nparams(3);
-	evalf_f = evalf_funcp(ef);
-	return *this;
-}
-function_options & function_options::evalf_func(evalf_funcp_4 ef)
-{
-	test_and_set_nparams(4);
-	evalf_f = evalf_funcp(ef);
-	return *this;
-}
-function_options & function_options::evalf_func(evalf_funcp_5 ef)
-{
-	test_and_set_nparams(5);
-	evalf_f = evalf_funcp(ef);
-	return *this;
-}
-function_options & function_options::evalf_func(evalf_funcp_6 ef)
-{
-	test_and_set_nparams(6);
-	evalf_f = evalf_funcp(ef);
-	return *this;
-}
-function_options & function_options::evalf_func(evalf_funcp_7 ef)
-{
-	test_and_set_nparams(7);
-	evalf_f = evalf_funcp(ef);
-	return *this;
-}
-function_options & function_options::evalf_func(evalf_funcp_8 ef)
-{
-	test_and_set_nparams(8);
-	evalf_f = evalf_funcp(ef);
-	return *this;
-}
-function_options & function_options::evalf_func(evalf_funcp_9 ef)
-{
-	test_and_set_nparams(9);
-	evalf_f = evalf_funcp(ef);
-	return *this;
-}
-function_options & function_options::evalf_func(evalf_funcp_10 ef)
-{
-	test_and_set_nparams(10);
-	evalf_f = evalf_funcp(ef);
-	return *this;
-}
-function_options & function_options::evalf_func(evalf_funcp_11 ef)
-{
-	test_and_set_nparams(11);
-	evalf_f = evalf_funcp(ef);
-	return *this;
-}
-function_options & function_options::evalf_func(evalf_funcp_12 ef)
-{
-	test_and_set_nparams(12);
-	evalf_f = evalf_funcp(ef);
-	return *this;
-}
-function_options & function_options::evalf_func(evalf_funcp_13 ef)
-{
-	test_and_set_nparams(13);
-	evalf_f = evalf_funcp(ef);
-	return *this;
-}
-function_options & function_options::evalf_func(evalf_funcp_14 ef)
-{
-	test_and_set_nparams(14);
 	evalf_f = evalf_funcp(ef);
 	return *this;
 }
@@ -307,72 +175,6 @@ function_options & function_options::conjugate_func(conjugate_funcp_3 c)
 	conjugate_f = conjugate_funcp(c);
 	return *this;
 }
-function_options & function_options::conjugate_func(conjugate_funcp_4 c)
-{
-	test_and_set_nparams(4);
-	conjugate_f = conjugate_funcp(c);
-	return *this;
-}
-function_options & function_options::conjugate_func(conjugate_funcp_5 c)
-{
-	test_and_set_nparams(5);
-	conjugate_f = conjugate_funcp(c);
-	return *this;
-}
-function_options & function_options::conjugate_func(conjugate_funcp_6 c)
-{
-	test_and_set_nparams(6);
-	conjugate_f = conjugate_funcp(c);
-	return *this;
-}
-function_options & function_options::conjugate_func(conjugate_funcp_7 c)
-{
-	test_and_set_nparams(7);
-	conjugate_f = conjugate_funcp(c);
-	return *this;
-}
-function_options & function_options::conjugate_func(conjugate_funcp_8 c)
-{
-	test_and_set_nparams(8);
-	conjugate_f = conjugate_funcp(c);
-	return *this;
-}
-function_options & function_options::conjugate_func(conjugate_funcp_9 c)
-{
-	test_and_set_nparams(9);
-	conjugate_f = conjugate_funcp(c);
-	return *this;
-}
-function_options & function_options::conjugate_func(conjugate_funcp_10 c)
-{
-	test_and_set_nparams(10);
-	conjugate_f = conjugate_funcp(c);
-	return *this;
-}
-function_options & function_options::conjugate_func(conjugate_funcp_11 c)
-{
-	test_and_set_nparams(11);
-	conjugate_f = conjugate_funcp(c);
-	return *this;
-}
-function_options & function_options::conjugate_func(conjugate_funcp_12 c)
-{
-	test_and_set_nparams(12);
-	conjugate_f = conjugate_funcp(c);
-	return *this;
-}
-function_options & function_options::conjugate_func(conjugate_funcp_13 c)
-{
-	test_and_set_nparams(13);
-	conjugate_f = conjugate_funcp(c);
-	return *this;
-}
-function_options & function_options::conjugate_func(conjugate_funcp_14 c)
-{
-	test_and_set_nparams(14);
-	conjugate_f = conjugate_funcp(c);
-	return *this;
-}
 
 function_options & function_options::real_part_func(real_part_funcp_1 c)
 {
@@ -389,72 +191,6 @@ function_options & function_options::real_part_func(real_part_funcp_2 c)
 function_options & function_options::real_part_func(real_part_funcp_3 c)
 {
 	test_and_set_nparams(3);
-	real_part_f = real_part_funcp(c);
-	return *this;
-}
-function_options & function_options::real_part_func(real_part_funcp_4 c)
-{
-	test_and_set_nparams(4);
-	real_part_f = real_part_funcp(c);
-	return *this;
-}
-function_options & function_options::real_part_func(real_part_funcp_5 c)
-{
-	test_and_set_nparams(5);
-	real_part_f = real_part_funcp(c);
-	return *this;
-}
-function_options & function_options::real_part_func(real_part_funcp_6 c)
-{
-	test_and_set_nparams(6);
-	real_part_f = real_part_funcp(c);
-	return *this;
-}
-function_options & function_options::real_part_func(real_part_funcp_7 c)
-{
-	test_and_set_nparams(7);
-	real_part_f = real_part_funcp(c);
-	return *this;
-}
-function_options & function_options::real_part_func(real_part_funcp_8 c)
-{
-	test_and_set_nparams(8);
-	real_part_f = real_part_funcp(c);
-	return *this;
-}
-function_options & function_options::real_part_func(real_part_funcp_9 c)
-{
-	test_and_set_nparams(9);
-	real_part_f = real_part_funcp(c);
-	return *this;
-}
-function_options & function_options::real_part_func(real_part_funcp_10 c)
-{
-	test_and_set_nparams(10);
-	real_part_f = real_part_funcp(c);
-	return *this;
-}
-function_options & function_options::real_part_func(real_part_funcp_11 c)
-{
-	test_and_set_nparams(11);
-	real_part_f = real_part_funcp(c);
-	return *this;
-}
-function_options & function_options::real_part_func(real_part_funcp_12 c)
-{
-	test_and_set_nparams(12);
-	real_part_f = real_part_funcp(c);
-	return *this;
-}
-function_options & function_options::real_part_func(real_part_funcp_13 c)
-{
-	test_and_set_nparams(13);
-	real_part_f = real_part_funcp(c);
-	return *this;
-}
-function_options & function_options::real_part_func(real_part_funcp_14 c)
-{
-	test_and_set_nparams(14);
 	real_part_f = real_part_funcp(c);
 	return *this;
 }
@@ -477,72 +213,6 @@ function_options & function_options::imag_part_func(imag_part_funcp_3 c)
 	imag_part_f = imag_part_funcp(c);
 	return *this;
 }
-function_options & function_options::imag_part_func(imag_part_funcp_4 c)
-{
-	test_and_set_nparams(4);
-	imag_part_f = imag_part_funcp(c);
-	return *this;
-}
-function_options & function_options::imag_part_func(imag_part_funcp_5 c)
-{
-	test_and_set_nparams(5);
-	imag_part_f = imag_part_funcp(c);
-	return *this;
-}
-function_options & function_options::imag_part_func(imag_part_funcp_6 c)
-{
-	test_and_set_nparams(6);
-	imag_part_f = imag_part_funcp(c);
-	return *this;
-}
-function_options & function_options::imag_part_func(imag_part_funcp_7 c)
-{
-	test_and_set_nparams(7);
-	imag_part_f = imag_part_funcp(c);
-	return *this;
-}
-function_options & function_options::imag_part_func(imag_part_funcp_8 c)
-{
-	test_and_set_nparams(8);
-	imag_part_f = imag_part_funcp(c);
-	return *this;
-}
-function_options & function_options::imag_part_func(imag_part_funcp_9 c)
-{
-	test_and_set_nparams(9);
-	imag_part_f = imag_part_funcp(c);
-	return *this;
-}
-function_options & function_options::imag_part_func(imag_part_funcp_10 c)
-{
-	test_and_set_nparams(10);
-	imag_part_f = imag_part_funcp(c);
-	return *this;
-}
-function_options & function_options::imag_part_func(imag_part_funcp_11 c)
-{
-	test_and_set_nparams(11);
-	imag_part_f = imag_part_funcp(c);
-	return *this;
-}
-function_options & function_options::imag_part_func(imag_part_funcp_12 c)
-{
-	test_and_set_nparams(12);
-	imag_part_f = imag_part_funcp(c);
-	return *this;
-}
-function_options & function_options::imag_part_func(imag_part_funcp_13 c)
-{
-	test_and_set_nparams(13);
-	imag_part_f = imag_part_funcp(c);
-	return *this;
-}
-function_options & function_options::imag_part_func(imag_part_funcp_14 c)
-{
-	test_and_set_nparams(14);
-	imag_part_f = imag_part_funcp(c);
-	return *this;
-}
 
 function_options & function_options::derivative_func(derivative_funcp_1 d)
 {
@@ -559,72 +229,6 @@ function_options & function_options::derivative_func(derivative_funcp_2 d)
 function_options & function_options::derivative_func(derivative_funcp_3 d)
 {
 	test_and_set_nparams(3);
-	derivative_f = derivative_funcp(d);
-	return *this;
-}
-function_options & function_options::derivative_func(derivative_funcp_4 d)
-{
-	test_and_set_nparams(4);
-	derivative_f = derivative_funcp(d);
-	return *this;
-}
-function_options & function_options::derivative_func(derivative_funcp_5 d)
-{
-	test_and_set_nparams(5);
-	derivative_f = derivative_funcp(d);
-	return *this;
-}
-function_options & function_options::derivative_func(derivative_funcp_6 d)
-{
-	test_and_set_nparams(6);
-	derivative_f = derivative_funcp(d);
-	return *this;
-}
-function_options & function_options::derivative_func(derivative_funcp_7 d)
-{
-	test_and_set_nparams(7);
-	derivative_f = derivative_funcp(d);
-	return *this;
-}
-function_options & function_options::derivative_func(derivative_funcp_8 d)
-{
-	test_and_set_nparams(8);
-	derivative_f = derivative_funcp(d);
-	return *this;
-}
-function_options & function_options::derivative_func(derivative_funcp_9 d)
-{
-	test_and_set_nparams(9);
-	derivative_f = derivative_funcp(d);
-	return *this;
-}
-function_options & function_options::derivative_func(derivative_funcp_10 d)
-{
-	test_and_set_nparams(10);
-	derivative_f = derivative_funcp(d);
-	return *this;
-}
-function_options & function_options::derivative_func(derivative_funcp_11 d)
-{
-	test_and_set_nparams(11);
-	derivative_f = derivative_funcp(d);
-	return *this;
-}
-function_options & function_options::derivative_func(derivative_funcp_12 d)
-{
-	test_and_set_nparams(12);
-	derivative_f = derivative_funcp(d);
-	return *this;
-}
-function_options & function_options::derivative_func(derivative_funcp_13 d)
-{
-	test_and_set_nparams(13);
-	derivative_f = derivative_funcp(d);
-	return *this;
-}
-function_options & function_options::derivative_func(derivative_funcp_14 d)
-{
-	test_and_set_nparams(14);
 	derivative_f = derivative_funcp(d);
 	return *this;
 }
@@ -647,72 +251,6 @@ function_options & function_options::power_func(power_funcp_3 d)
 	power_f = power_funcp(d);
 	return *this;
 }
-function_options & function_options::power_func(power_funcp_4 d)
-{
-	test_and_set_nparams(4);
-	power_f = power_funcp(d);
-	return *this;
-}
-function_options & function_options::power_func(power_funcp_5 d)
-{
-	test_and_set_nparams(5);
-	power_f = power_funcp(d);
-	return *this;
-}
-function_options & function_options::power_func(power_funcp_6 d)
-{
-	test_and_set_nparams(6);
-	power_f = power_funcp(d);
-	return *this;
-}
-function_options & function_options::power_func(power_funcp_7 d)
-{
-	test_and_set_nparams(7);
-	power_f = power_funcp(d);
-	return *this;
-}
-function_options & function_options::power_func(power_funcp_8 d)
-{
-	test_and_set_nparams(8);
-	power_f = power_funcp(d);
-	return *this;
-}
-function_options & function_options::power_func(power_funcp_9 d)
-{
-	test_and_set_nparams(9);
-	power_f = power_funcp(d);
-	return *this;
-}
-function_options & function_options::power_func(power_funcp_10 d)
-{
-	test_and_set_nparams(10);
-	power_f = power_funcp(d);
-	return *this;
-}
-function_options & function_options::power_func(power_funcp_11 d)
-{
-	test_and_set_nparams(11);
-	power_f = power_funcp(d);
-	return *this;
-}
-function_options & function_options::power_func(power_funcp_12 d)
-{
-	test_and_set_nparams(12);
-	power_f = power_funcp(d);
-	return *this;
-}
-function_options & function_options::power_func(power_funcp_13 d)
-{
-	test_and_set_nparams(13);
-	power_f = power_funcp(d);
-	return *this;
-}
-function_options & function_options::power_func(power_funcp_14 d)
-{
-	test_and_set_nparams(14);
-	power_f = power_funcp(d);
-	return *this;
-}
 
 function_options & function_options::series_func(series_funcp_1 s)
 {
@@ -729,72 +267,6 @@ function_options & function_options::series_func(series_funcp_2 s)
 function_options & function_options::series_func(series_funcp_3 s)
 {
 	test_and_set_nparams(3);
-	series_f = series_funcp(s);
-	return *this;
-}
-function_options & function_options::series_func(series_funcp_4 s)
-{
-	test_and_set_nparams(4);
-	series_f = series_funcp(s);
-	return *this;
-}
-function_options & function_options::series_func(series_funcp_5 s)
-{
-	test_and_set_nparams(5);
-	series_f = series_funcp(s);
-	return *this;
-}
-function_options & function_options::series_func(series_funcp_6 s)
-{
-	test_and_set_nparams(6);
-	series_f = series_funcp(s);
-	return *this;
-}
-function_options & function_options::series_func(series_funcp_7 s)
-{
-	test_and_set_nparams(7);
-	series_f = series_funcp(s);
-	return *this;
-}
-function_options & function_options::series_func(series_funcp_8 s)
-{
-	test_and_set_nparams(8);
-	series_f = series_funcp(s);
-	return *this;
-}
-function_options & function_options::series_func(series_funcp_9 s)
-{
-	test_and_set_nparams(9);
-	series_f = series_funcp(s);
-	return *this;
-}
-function_options & function_options::series_func(series_funcp_10 s)
-{
-	test_and_set_nparams(10);
-	series_f = series_funcp(s);
-	return *this;
-}
-function_options & function_options::series_func(series_funcp_11 s)
-{
-	test_and_set_nparams(11);
-	series_f = series_funcp(s);
-	return *this;
-}
-function_options & function_options::series_func(series_funcp_12 s)
-{
-	test_and_set_nparams(12);
-	series_f = series_funcp(s);
-	return *this;
-}
-function_options & function_options::series_func(series_funcp_13 s)
-{
-	test_and_set_nparams(13);
-	series_f = series_funcp(s);
-	return *this;
-}
-function_options & function_options::series_func(series_funcp_14 s)
-{
-	test_and_set_nparams(14);
 	series_f = series_funcp(s);
 	return *this;
 }
@@ -1033,61 +505,6 @@ function::function(unsigned ser, const ex & param1, const ex & param2, const ex 
 {
 	tinfo_key = &function::tinfo_static;
 }
-function::function(unsigned ser, const ex & param1, const ex & param2, const ex & param3, const ex & param4)
-	: exprseq(param1, param2, param3, param4), serial(ser)
-{
-	tinfo_key = &function::tinfo_static;
-}
-function::function(unsigned ser, const ex & param1, const ex & param2, const ex & param3, const ex & param4, const ex & param5)
-	: exprseq(param1, param2, param3, param4, param5), serial(ser)
-{
-	tinfo_key = &function::tinfo_static;
-}
-function::function(unsigned ser, const ex & param1, const ex & param2, const ex & param3, const ex & param4, const ex & param5, const ex & param6)
-	: exprseq(param1, param2, param3, param4, param5, param6), serial(ser)
-{
-	tinfo_key = &function::tinfo_static;
-}
-function::function(unsigned ser, const ex & param1, const ex & param2, const ex & param3, const ex & param4, const ex & param5, const ex & param6, const ex & param7)
-	: exprseq(param1, param2, param3, param4, param5, param6, param7), serial(ser)
-{
-	tinfo_key = &function::tinfo_static;
-}
-function::function(unsigned ser, const ex & param1, const ex & param2, const ex & param3, const ex & param4, const ex & param5, const ex & param6, const ex & param7, const ex & param8)
-	: exprseq(param1, param2, param3, param4, param5, param6, param7, param8), serial(ser)
-{
-	tinfo_key = &function::tinfo_static;
-}
-function::function(unsigned ser, const ex & param1, const ex & param2, const ex & param3, const ex & param4, const ex & param5, const ex & param6, const ex & param7, const ex & param8, const ex & param9)
-	: exprseq(param1, param2, param3, param4, param5, param6, param7, param8, param9), serial(ser)
-{
-	tinfo_key = &function::tinfo_static;
-}
-function::function(unsigned ser, const ex & param1, const ex & param2, const ex & param3, const ex & param4, const ex & param5, const ex & param6, const ex & param7, const ex & param8, const ex & param9, const ex & param10)
-	: exprseq(param1, param2, param3, param4, param5, param6, param7, param8, param9, param10), serial(ser)
-{
-	tinfo_key = &function::tinfo_static;
-}
-function::function(unsigned ser, const ex & param1, const ex & param2, const ex & param3, const ex & param4, const ex & param5, const ex & param6, const ex & param7, const ex & param8, const ex & param9, const ex & param10, const ex & param11)
-	: exprseq(param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11), serial(ser)
-{
-	tinfo_key = &function::tinfo_static;
-}
-function::function(unsigned ser, const ex & param1, const ex & param2, const ex & param3, const ex & param4, const ex & param5, const ex & param6, const ex & param7, const ex & param8, const ex & param9, const ex & param10, const ex & param11, const ex & param12)
-	: exprseq(param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12), serial(ser)
-{
-	tinfo_key = &function::tinfo_static;
-}
-function::function(unsigned ser, const ex & param1, const ex & param2, const ex & param3, const ex & param4, const ex & param5, const ex & param6, const ex & param7, const ex & param8, const ex & param9, const ex & param10, const ex & param11, const ex & param12, const ex & param13)
-	: exprseq(param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13), serial(ser)
-{
-	tinfo_key = &function::tinfo_static;
-}
-function::function(unsigned ser, const ex & param1, const ex & param2, const ex & param3, const ex & param4, const ex & param5, const ex & param6, const ex & param7, const ex & param8, const ex & param9, const ex & param10, const ex & param11, const ex & param12, const ex & param13, const ex & param14)
-	: exprseq(param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13, param14), serial(ser)
-{
-	tinfo_key = &function::tinfo_static;
-}
 
 // end of generated lines
 
@@ -1298,39 +715,6 @@ next_context:
 		case 3:
 			((print_funcp_3)(pdt[id]))(seq[1-1], seq[2-1], seq[3-1], c);
 			break;
-		case 4:
-			((print_funcp_4)(pdt[id]))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], c);
-			break;
-		case 5:
-			((print_funcp_5)(pdt[id]))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], c);
-			break;
-		case 6:
-			((print_funcp_6)(pdt[id]))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], c);
-			break;
-		case 7:
-			((print_funcp_7)(pdt[id]))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], c);
-			break;
-		case 8:
-			((print_funcp_8)(pdt[id]))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], c);
-			break;
-		case 9:
-			((print_funcp_9)(pdt[id]))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1], c);
-			break;
-		case 10:
-			((print_funcp_10)(pdt[id]))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1], seq[10-1], c);
-			break;
-		case 11:
-			((print_funcp_11)(pdt[id]))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1], seq[10-1], seq[11-1], c);
-			break;
-		case 12:
-			((print_funcp_12)(pdt[id]))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1], seq[10-1], seq[11-1], seq[12-1], c);
-			break;
-		case 13:
-			((print_funcp_13)(pdt[id]))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1], seq[10-1], seq[11-1], seq[12-1], seq[13-1], c);
-			break;
-		case 14:
-			((print_funcp_14)(pdt[id]))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1], seq[10-1], seq[11-1], seq[12-1], seq[13-1], seq[14-1], c);
-			break;
 
 			// end of generated lines
 		default:
@@ -1417,39 +801,6 @@ ex function::eval(int level) const
 	case 3:
 		eval_result = ((eval_funcp_3)(opt.eval_f))(seq[1-1], seq[2-1], seq[3-1]);
 		break;
-	case 4:
-		eval_result = ((eval_funcp_4)(opt.eval_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1]);
-		break;
-	case 5:
-		eval_result = ((eval_funcp_5)(opt.eval_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1]);
-		break;
-	case 6:
-		eval_result = ((eval_funcp_6)(opt.eval_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1]);
-		break;
-	case 7:
-		eval_result = ((eval_funcp_7)(opt.eval_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1]);
-		break;
-	case 8:
-		eval_result = ((eval_funcp_8)(opt.eval_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1]);
-		break;
-	case 9:
-		eval_result = ((eval_funcp_9)(opt.eval_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1]);
-		break;
-	case 10:
-		eval_result = ((eval_funcp_10)(opt.eval_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1], seq[10-1]);
-		break;
-	case 11:
-		eval_result = ((eval_funcp_11)(opt.eval_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1], seq[10-1], seq[11-1]);
-		break;
-	case 12:
-		eval_result = ((eval_funcp_12)(opt.eval_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1], seq[10-1], seq[11-1], seq[12-1]);
-		break;
-	case 13:
-		eval_result = ((eval_funcp_13)(opt.eval_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1], seq[10-1], seq[11-1], seq[12-1], seq[13-1]);
-		break;
-	case 14:
-		eval_result = ((eval_funcp_14)(opt.eval_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1], seq[10-1], seq[11-1], seq[12-1], seq[13-1], seq[14-1]);
-		break;
 
 		// end of generated lines
 	default:
@@ -1518,28 +869,6 @@ ex function::evalf(int level, PyObject* parent) const
 		return ((evalf_funcp_2)(opt.evalf_f))(eseq[1-1], eseq[2-1], parent);
 	case 3:
 		return ((evalf_funcp_3)(opt.evalf_f))(eseq[1-1], eseq[2-1], eseq[3-1], parent);
-	case 4:
-		return ((evalf_funcp_4)(opt.evalf_f))(eseq[1-1], eseq[2-1], eseq[3-1], eseq[4-1], parent);
-	case 5:
-		return ((evalf_funcp_5)(opt.evalf_f))(eseq[1-1], eseq[2-1], eseq[3-1], eseq[4-1], eseq[5-1], parent);
-	case 6:
-		return ((evalf_funcp_6)(opt.evalf_f))(eseq[1-1], eseq[2-1], eseq[3-1], eseq[4-1], eseq[5-1], eseq[6-1], parent);
-	case 7:
-		return ((evalf_funcp_7)(opt.evalf_f))(eseq[1-1], eseq[2-1], eseq[3-1], eseq[4-1], eseq[5-1], eseq[6-1], eseq[7-1], parent);
-	case 8:
-		return ((evalf_funcp_8)(opt.evalf_f))(eseq[1-1], eseq[2-1], eseq[3-1], eseq[4-1], eseq[5-1], eseq[6-1], eseq[7-1], eseq[8-1], parent);
-	case 9:
-		return ((evalf_funcp_9)(opt.evalf_f))(eseq[1-1], eseq[2-1], eseq[3-1], eseq[4-1], eseq[5-1], eseq[6-1], eseq[7-1], eseq[8-1], eseq[9-1], parent);
-	case 10:
-		return ((evalf_funcp_10)(opt.evalf_f))(eseq[1-1], eseq[2-1], eseq[3-1], eseq[4-1], eseq[5-1], eseq[6-1], eseq[7-1], eseq[8-1], eseq[9-1], eseq[10-1], parent);
-	case 11:
-		return ((evalf_funcp_11)(opt.evalf_f))(eseq[1-1], eseq[2-1], eseq[3-1], eseq[4-1], eseq[5-1], eseq[6-1], eseq[7-1], eseq[8-1], eseq[9-1], eseq[10-1], eseq[11-1], parent);
-	case 12:
-		return ((evalf_funcp_12)(opt.evalf_f))(eseq[1-1], eseq[2-1], eseq[3-1], eseq[4-1], eseq[5-1], eseq[6-1], eseq[7-1], eseq[8-1], eseq[9-1], eseq[10-1], eseq[11-1], eseq[12-1], parent);
-	case 13:
-		return ((evalf_funcp_13)(opt.evalf_f))(eseq[1-1], eseq[2-1], eseq[3-1], eseq[4-1], eseq[5-1], eseq[6-1], eseq[7-1], eseq[8-1], eseq[9-1], eseq[10-1], eseq[11-1], eseq[12-1], eseq[13-1], parent);
-	case 14:
-		return ((evalf_funcp_14)(opt.evalf_f))(eseq[1-1], eseq[2-1], eseq[3-1], eseq[4-1], eseq[5-1], eseq[6-1], eseq[7-1], eseq[8-1], eseq[9-1], eseq[10-1], eseq[11-1], eseq[12-1], eseq[13-1], eseq[14-1], parent);
 
 		// end of generated lines
 	}
@@ -1640,83 +969,6 @@ ex function::series(const relational & r, int order, unsigned options) const
 			res = basic::series(r, order, options);
 		}
 		return res;
-	case 4:
-		try {
-			res = ((series_funcp_4)(opt.series_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1],r,order,options);
-		} catch (do_taylor) {
-			res = basic::series(r, order, options);
-		}
-		return res;
-	case 5:
-		try {
-			res = ((series_funcp_5)(opt.series_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1],r,order,options);
-		} catch (do_taylor) {
-			res = basic::series(r, order, options);
-		}
-		return res;
-	case 6:
-		try {
-			res = ((series_funcp_6)(opt.series_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1],r,order,options);
-		} catch (do_taylor) {
-			res = basic::series(r, order, options);
-		}
-		return res;
-	case 7:
-		try {
-			res = ((series_funcp_7)(opt.series_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1],r,order,options);
-		} catch (do_taylor) {
-			res = basic::series(r, order, options);
-		}
-		return res;
-	case 8:
-		try {
-			res = ((series_funcp_8)(opt.series_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1],r,order,options);
-		} catch (do_taylor) {
-			res = basic::series(r, order, options);
-		}
-		return res;
-	case 9:
-		try {
-			res = ((series_funcp_9)(opt.series_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1],r,order,options);
-		} catch (do_taylor) {
-			res = basic::series(r, order, options);
-		}
-		return res;
-	case 10:
-		try {
-			res = ((series_funcp_10)(opt.series_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1], seq[10-1],r,order,options);
-		} catch (do_taylor) {
-			res = basic::series(r, order, options);
-		}
-		return res;
-	case 11:
-		try {
-			res = ((series_funcp_11)(opt.series_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1], seq[10-1], seq[11-1],r,order,options);
-		} catch (do_taylor) {
-			res = basic::series(r, order, options);
-		}
-		return res;
-	case 12:
-		try {
-			res = ((series_funcp_12)(opt.series_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1], seq[10-1], seq[11-1], seq[12-1],r,order,options);
-		} catch (do_taylor) {
-			res = basic::series(r, order, options);
-		}
-		return res;
-	case 13:
-		try {
-			res = ((series_funcp_13)(opt.series_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1], seq[10-1], seq[11-1], seq[12-1], seq[13-1],r,order,options);
-		} catch (do_taylor) {
-			res = basic::series(r, order, options);
-		}
-		return res;
-	case 14:
-		try {
-			res = ((series_funcp_14)(opt.series_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1], seq[10-1], seq[11-1], seq[12-1], seq[13-1], seq[14-1],r,order,options);
-		} catch (do_taylor) {
-			res = basic::series(r, order, options);
-		}
-		return res;
 
 		// end of generated lines
 	}
@@ -1764,28 +1016,6 @@ ex function::conjugate() const
 		return ((conjugate_funcp_2)(opt.conjugate_f))(seq[1-1], seq[2-1]);
 	case 3:
 		return ((conjugate_funcp_3)(opt.conjugate_f))(seq[1-1], seq[2-1], seq[3-1]);
-	case 4:
-		return ((conjugate_funcp_4)(opt.conjugate_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1]);
-	case 5:
-		return ((conjugate_funcp_5)(opt.conjugate_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1]);
-	case 6:
-		return ((conjugate_funcp_6)(opt.conjugate_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1]);
-	case 7:
-		return ((conjugate_funcp_7)(opt.conjugate_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1]);
-	case 8:
-		return ((conjugate_funcp_8)(opt.conjugate_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1]);
-	case 9:
-		return ((conjugate_funcp_9)(opt.conjugate_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1]);
-	case 10:
-		return ((conjugate_funcp_10)(opt.conjugate_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1], seq[10-1]);
-	case 11:
-		return ((conjugate_funcp_11)(opt.conjugate_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1], seq[10-1], seq[11-1]);
-	case 12:
-		return ((conjugate_funcp_12)(opt.conjugate_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1], seq[10-1], seq[11-1], seq[12-1]);
-	case 13:
-		return ((conjugate_funcp_13)(opt.conjugate_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1], seq[10-1], seq[11-1], seq[12-1], seq[13-1]);
-	case 14:
-		return ((conjugate_funcp_14)(opt.conjugate_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1], seq[10-1], seq[11-1], seq[12-1], seq[13-1], seq[14-1]);
 
 		// end of generated lines
 	}
@@ -1830,28 +1060,6 @@ ex function::real_part() const
 		return ((real_part_funcp_2)(opt.real_part_f))(seq[1-1], seq[2-1]);
 	case 3:
 		return ((real_part_funcp_3)(opt.real_part_f))(seq[1-1], seq[2-1], seq[3-1]);
-	case 4:
-		return ((real_part_funcp_4)(opt.real_part_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1]);
-	case 5:
-		return ((real_part_funcp_5)(opt.real_part_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1]);
-	case 6:
-		return ((real_part_funcp_6)(opt.real_part_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1]);
-	case 7:
-		return ((real_part_funcp_7)(opt.real_part_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1]);
-	case 8:
-		return ((real_part_funcp_8)(opt.real_part_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1]);
-	case 9:
-		return ((real_part_funcp_9)(opt.real_part_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1]);
-	case 10:
-		return ((real_part_funcp_10)(opt.real_part_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1], seq[10-1]);
-	case 11:
-		return ((real_part_funcp_11)(opt.real_part_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1], seq[10-1], seq[11-1]);
-	case 12:
-		return ((real_part_funcp_12)(opt.real_part_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1], seq[10-1], seq[11-1], seq[12-1]);
-	case 13:
-		return ((real_part_funcp_13)(opt.real_part_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1], seq[10-1], seq[11-1], seq[12-1], seq[13-1]);
-	case 14:
-		return ((real_part_funcp_14)(opt.real_part_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1], seq[10-1], seq[11-1], seq[12-1], seq[13-1], seq[14-1]);
 
 		// end of generated lines
 	}
@@ -1896,28 +1104,6 @@ ex function::imag_part() const
 		return ((imag_part_funcp_2)(opt.imag_part_f))(seq[1-1], seq[2-1]);
 	case 3:
 		return ((imag_part_funcp_3)(opt.imag_part_f))(seq[1-1], seq[2-1], seq[3-1]);
-	case 4:
-		return ((imag_part_funcp_4)(opt.imag_part_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1]);
-	case 5:
-		return ((imag_part_funcp_5)(opt.imag_part_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1]);
-	case 6:
-		return ((imag_part_funcp_6)(opt.imag_part_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1]);
-	case 7:
-		return ((imag_part_funcp_7)(opt.imag_part_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1]);
-	case 8:
-		return ((imag_part_funcp_8)(opt.imag_part_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1]);
-	case 9:
-		return ((imag_part_funcp_9)(opt.imag_part_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1]);
-	case 10:
-		return ((imag_part_funcp_10)(opt.imag_part_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1], seq[10-1]);
-	case 11:
-		return ((imag_part_funcp_11)(opt.imag_part_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1], seq[10-1], seq[11-1]);
-	case 12:
-		return ((imag_part_funcp_12)(opt.imag_part_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1], seq[10-1], seq[11-1], seq[12-1]);
-	case 13:
-		return ((imag_part_funcp_13)(opt.imag_part_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1], seq[10-1], seq[11-1], seq[12-1], seq[13-1]);
-	case 14:
-		return ((imag_part_funcp_14)(opt.imag_part_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1], seq[10-1], seq[11-1], seq[12-1], seq[13-1], seq[14-1]);
 
 		// end of generated lines
 	}
@@ -2137,28 +1323,6 @@ ex function::pderivative(unsigned diff_param) const // partial differentiation
 		return ((derivative_funcp_2)(opt.derivative_f))(seq[1-1], seq[2-1],diff_param);
 	case 3:
 		return ((derivative_funcp_3)(opt.derivative_f))(seq[1-1], seq[2-1], seq[3-1],diff_param);
-	case 4:
-		return ((derivative_funcp_4)(opt.derivative_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1],diff_param);
-	case 5:
-		return ((derivative_funcp_5)(opt.derivative_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1],diff_param);
-	case 6:
-		return ((derivative_funcp_6)(opt.derivative_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1],diff_param);
-	case 7:
-		return ((derivative_funcp_7)(opt.derivative_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1],diff_param);
-	case 8:
-		return ((derivative_funcp_8)(opt.derivative_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1],diff_param);
-	case 9:
-		return ((derivative_funcp_9)(opt.derivative_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1],diff_param);
-	case 10:
-		return ((derivative_funcp_10)(opt.derivative_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1], seq[10-1],diff_param);
-	case 11:
-		return ((derivative_funcp_11)(opt.derivative_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1], seq[10-1], seq[11-1],diff_param);
-	case 12:
-		return ((derivative_funcp_12)(opt.derivative_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1], seq[10-1], seq[11-1], seq[12-1],diff_param);
-	case 13:
-		return ((derivative_funcp_13)(opt.derivative_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1], seq[10-1], seq[11-1], seq[12-1], seq[13-1],diff_param);
-	case 14:
-		return ((derivative_funcp_14)(opt.derivative_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1], seq[10-1], seq[11-1], seq[12-1], seq[13-1], seq[14-1],diff_param);
 
 		// end of generated lines
 	}
@@ -2209,28 +1373,6 @@ ex function::power(const ex & power_param) const // power of function
 		return ((power_funcp_2)(opt.power_f))(seq[1-1], seq[2-1],power_param);
 	case 3:
 		return ((power_funcp_3)(opt.power_f))(seq[1-1], seq[2-1], seq[3-1],power_param);
-	case 4:
-		return ((power_funcp_4)(opt.power_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1],power_param);
-	case 5:
-		return ((power_funcp_5)(opt.power_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1],power_param);
-	case 6:
-		return ((power_funcp_6)(opt.power_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1],power_param);
-	case 7:
-		return ((power_funcp_7)(opt.power_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1],power_param);
-	case 8:
-		return ((power_funcp_8)(opt.power_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1],power_param);
-	case 9:
-		return ((power_funcp_9)(opt.power_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1],power_param);
-	case 10:
-		return ((power_funcp_10)(opt.power_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1], seq[10-1],power_param);
-	case 11:
-		return ((power_funcp_11)(opt.power_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1], seq[10-1], seq[11-1],power_param);
-	case 12:
-		return ((power_funcp_12)(opt.power_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1], seq[10-1], seq[11-1], seq[12-1],power_param);
-	case 13:
-		return ((power_funcp_13)(opt.power_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1], seq[10-1], seq[11-1], seq[12-1], seq[13-1],power_param);
-	case 14:
-		return ((power_funcp_14)(opt.power_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], seq[7-1], seq[8-1], seq[9-1], seq[10-1], seq[11-1], seq[12-1], seq[13-1], seq[14-1],power_param);
 
 		// end of generated lines
 	}

@@ -7,11 +7,14 @@
 
 == Changelog ==
 
-=== scipy-0.7.0.p4 (Gonzalo Tornaria; 12 Jan 2010) ===
- * Fixed #7902 by replacing copy_patches.pl by copy_patches.sh
+== scipy-0.8 (Stefan Reiterer; 13 September 2010) ===
+ * upgrade to scipy 0.8.
+ * deleted outdated patches
+ * spkg install changed by F. Bissey, because g95
+   makes trouble on OS X.
 
-=== scipy-0.7.0.p3 (Mike Hansen; 12 Nov 2009) ===
- * Fixed #6825 by adding a patch to scipy/stats/mstats_basic.py
+=== scipy-0.7.1 (Jason Grout; 12 Nov 2009) ===
+ * upgrade to scipy 0.7.1.  The optimize.py patch still needs to be applied in this version of scipy.
 
 === scipy-0.7.0 (Jason Grout; 27 May 2009) ===
  * upgrade to scipy 0.7.0

@@ -1,26 +1,14 @@
 #!/bin/sh
-
-if [ "$SAGE_LOCAL" = "" ]; then
-    echo "SAGE_LOCAL undefined ... exiting";
-    echo "Maybe run 'sage -sh'?"
-    exit 1
-fi
-
-./copy_patches.sh
-if [ $? -ne 0 ]; then
-    echo "Error patching scipy"
-    exit 1
-fi
-
 # These flags confuse numpy's distutils.   In particular,
 # if they are set empty bad things happen.
 
-unset CFLAGS LDFLAGS CXXFLAGS SHAREDFLAGS
+unset CFLAGS CXXFLAGS SHAREDFLAGS
 
 if [ `uname` = "Darwin" ]; then
     unset ATLAS
     unset BLAS
     unset LAPACK
+    export LDFLAGS="-bundle -undefined dynamic_lookup"
 else
     ATLAS="$SAGE_LOCAL"
     export ATLAS
@@ -28,7 +16,9 @@ else
     export BLAS
     LAPACK="$SAGE_LOCAL"
     export LAPACK
+    export LDFLAGS="-shared"
 fi
+export FC="${SAGE_LOCAL}/bin/sage_fortran"
 
 
 # This avoid problems on some systems -- until we officially
@@ -42,6 +32,11 @@ UMFPACK="None"; export UMFPACK
 rm -rf "$SAGE_LOCAL"/lib/python/site-packages/scipy
 
 cd src/
+
+if [ $? -ne 0 ]; then
+    echo "Error patching setup.py"
+    exit 1
+fi
 
 # Build
 python setup.py build

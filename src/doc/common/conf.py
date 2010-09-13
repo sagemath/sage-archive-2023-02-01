@@ -96,7 +96,9 @@ inheritance_edge_attrs = {}
 # -----------------------
 
 # HTML theme (e.g., 'default', 'sphinxdoc').  We use a custom Sage
-# theme to set a Pygments style, stylesheet, and insert jsMath macros.
+# theme to set a Pygments style, stylesheet, and insert jsMath macros. See
+# the directory doc/common/themes/sage/ for files comprising the custom Sage
+# theme.
 html_theme = 'sage'
 
 # Theme options are theme-specific and customize the look and feel of

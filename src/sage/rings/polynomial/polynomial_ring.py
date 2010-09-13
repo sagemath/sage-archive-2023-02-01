@@ -1219,10 +1219,15 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             Univariate Polynomial Ring in x over Complex Field with 53 bits of precision
             sage: type(R.gen())
             <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_dense_field'>
+
+            #Demonstrate that Trac #8762 is fixed
+            sage: R.<x> = PolynomialRing(GF(next_prime(10^20)), sparse=True)
+            sage: x^(10^20) # this should be fast
+            x^100000000000000000000
         """
         if implementation is None: implementation="NTL"
         from sage.rings.finite_rings.finite_field_base import is_FiniteField
-        if implementation == "NTL" and is_FiniteField(base_ring):
+        if implementation == "NTL" and is_FiniteField(base_ring) and not(sparse):
             p=base_ring.characteristic()
             from sage.libs.ntl.ntl_ZZ_pEContext import ntl_ZZ_pEContext
             from sage.libs.ntl.ntl_ZZ_pX import ntl_ZZ_pX

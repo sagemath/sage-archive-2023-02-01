@@ -1223,10 +1223,8 @@ class DiGraph(GenericGraph):
 
             \mbox{Minimize : }&\sum_{(u,v)\in G} b_{(u,v)}\\
             \mbox{Such that : }&\\
-            &\forall v\in G, \sum_{i\in [0,\dots,n-1]}x_{v,i}=1\\
-            &\forall i\in [0,\dots,n-1], \sum_{v\in G}x_{v,i}=1\\
-            &\forall v\in G,\sum_{i\in [0,\dots,n-1]} ix_{v,i}=d_v\\
             &\forall (u,v)\in G, d_u-d_v+nb_{(u,v)}\geq 0\\
+            &\forall u\in G, 0\leq d_u\leq |G|\\
 
         An explanation:
 
@@ -1236,9 +1234,9 @@ class DiGraph(GenericGraph):
         that if `(u,v)\in G`, then `u<v`.
 
         Thus, this linear program is built in order to assign to each vertex
-        `v` a unique number `d_v\in [0,\dots,n-1]` such that if there exists
+        `v` a number `d_v\in [0,\dots,n-1]` such that if there exists
         an edge `(u,v)\in G` such that `d_v<d_u`, then the edge `(u,v)` is
-        removed (`\Rightarrow x_{(u,v)}=1`).
+        removed.
 
         The number of edges removed is then minimized, which is
         the objective.
@@ -1272,24 +1270,17 @@ class DiGraph(GenericGraph):
 
         p=MixedIntegerLinearProgram(maximization=False, solver=solver)
 
-        b=p.new_variable()
-        x=p.new_variable(dim=2)
-        d=p.new_variable()
+        b=p.new_variable(binary = True)
+        d=p.new_variable(integer = True)
+
         n=self.order()
-        N=range(n)
 
-        # First and second constraints
-        [p.add_constraint(Sum([x[v][i] for i in N]),min=1,max=1) for v in self]
-        [p.add_constraint(Sum([x[v][i] for v in self]),min=1,max=1) for i in N]
+        for (u,v) in self.edges(labels=None):
+            p.add_constraint(d[u]-d[v]+n*(b[(u,v)]),min=1)
 
-        # Definition of d_v
-        [p.add_constraint(Sum([i*x[v][i] for i in N])-d[v],max=0,min=0) for v in self]
+        for v in self:
+            p.add_constraint(d[v],min=n)
 
-        # The removed vertices cover all the back arcs ( third condition )
-        [p.add_constraint(d[u]-d[v]+n*(b[(u,v)]),min=0) for (u,v) in self.edges(labels=None)]
-
-        p.set_binary(b)
-        p.set_binary(x)
 
         p.set_objective(Sum([b[(u,v)] for (u,v) in self.edges(labels=None)]))
 
@@ -1346,23 +1337,20 @@ class DiGraph(GenericGraph):
 
             \mbox{Minimize : }&\sum_{v\in G} b_v\\
             \mbox{Such that : }&\\
-            &\forall v\in G, \sum_{i\in [0,\dots,n-1]}x_{v,i}=1\\
-            &\forall i\in [0,\dots,n-1], \sum_{v\in G}x_{v,i}=1\\
-            &\forall v\in G,\sum_{i\in [0,\dots,n-1]} ix_{v,i}=d_v\\
             &\forall (u,v)\in G, d_u-d_v+nb_u+nb_v\geq 0\\
+            &\forall u\in G, 0\leq d_u\leq |G|\\
 
         A brief explanation:
 
         An acyclic digraph can be seen as a poset, and every poset has
-        a linear extension. This means that in any acyclic digraph
-        the vertices can be ordered with a total order `<` in such a way
-        that if `(u,v)\in G`, then `u<v`.
-        Thus, this linear program is built in order to assign to each vertex
-        `v` an unique number `d_v\in [0,\dots,n-1]` such that if there exists
-        an edge `(u,v)\in G` such that `d_v<d_u`, then either `u` is removed
-        (`\Rightarrow b_u=1`) or `v` is removed (`\Rightarrow b_v=1`).
-        The number of vertices removed is then minimized, which is
-        the objective.
+        a linear extension. This means that in any acyclic digraph the
+        vertices can be ordered with a total order `<` in such a way
+        that if `(u,v)\in G`, then `u<v`.  Thus, this linear program
+        is built in order to assign to each vertex `v` a number
+        `d_v\in [0,\dots,n-1]` such that if there exists an edge
+        `(u,v)\in G` then either `d_v<d_u` or one of `u` or `v` is
+        removed.  The number of vertices removed is then minimized,
+        which is the objective.
 
         EXAMPLES:
 
@@ -1394,24 +1382,13 @@ class DiGraph(GenericGraph):
 
         p=MixedIntegerLinearProgram(maximization=False, solver=solver)
 
-        b=p.new_variable()
-        x=p.new_variable(dim=2)
-        d=p.new_variable()
+        b=p.new_variable(binary = True)
+        d=p.new_variable(integer = True)
         n=self.order()
-        N=range(n)
-
-        # First and second constraints
-        [p.add_constraint(Sum([x[v][i] for i in N]),min=1,max=1) for v in self]
-        [p.add_constraint(Sum([x[v][i] for v in self]),min=1,max=1) for i in N]
-
-        # Definition of d_v
-        [p.add_constraint(Sum([i*x[v][i] for i in N])-d[v],max=0,min=0) for v in self]
 
         # The removed vertices cover all the back arcs ( third condition )
-        [p.add_constraint(d[u]-d[v]+n*(b[u]+b[v]),min=0) for (u,v) in self.edges(labels=None)]
-
-        p.set_binary(b)
-        p.set_binary(x)
+        [p.add_constraint(d[u]-d[v]+n*(b[u]+b[v]),min=1) for (u,v) in self.edges(labels=None)]
+        [p.add_constraint(d[u],max=n) for u in self]
 
         p.set_objective(Sum([b[v] for v in self]))
 

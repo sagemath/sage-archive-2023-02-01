@@ -4378,6 +4378,351 @@ class GenericGraph(GenericGraph_pyx):
 
             return val
 
+    def longest_path(self, s = None, t = None, weighted = False, algorithm = "MILP", solver = None, verbose = 0):
+        r"""
+        Returns a longest path of ``self``.
+
+        INPUT:
+
+        - ``s`` (vertex) -- forces the source of the path. Set to
+          ``None`` by default.
+
+        - ``t`` (vertex) -- forces the destination of the path. Set to
+          ``None`` by default.
+
+        - ``weighted`` (boolean) -- whether the label on the edges are
+          tobe considered as weights (a label set to ``None`` or
+          ``{}`` being considered as a weight of `1`). Set to
+          ``False`` by default.
+
+        - ``algorithm`` -- one of ``"MILP"`` (default) or
+          ``"backtrack"``. Two remarks on this respect :
+
+              * While the MILP formulation returns an exact answer,
+                the backtrack algorithm is a randomized heuristic.
+
+              * As the backtrack algorithm does not support edge
+                weighting, setting ``weighted`` to ``True`` will force
+                the use of the MILP algorithm.
+
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+          solver to be used. If set to ``None``, the default one is used. For
+          more information on LP solvers and which default solver is used, see
+          the method
+          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+          of the class
+          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+        - ``verbose`` -- integer (default: ``0``). Sets the level of
+          verbosity. Set to 0 by default, which means quiet.
+
+        .. NOTE::
+
+            The length of a path is assumed to be the number of its
+            edges, or the sum of their labels.
+
+        OUTPUT:
+
+        A subgraph of ``self`` corresponding to a (directed if
+        ``self`` is directed) longest path. If ``weighted == True``, a
+        pair ``weight, path`` is returned.
+
+        ALGORITHM:
+
+        Mixed Integer Linear Programming. (This problem is known to be
+        NP-Hard).
+
+        EXAMPLES:
+
+        Petersen's graph being hypohamiltonian, it has a longest path
+        of length `n-2`::
+
+            sage: g = graphs.PetersenGraph()
+            sage: lp = g.longest_path()
+            sage: lp.order() >= g.order() - 2
+            True
+
+        The heuristic totally agrees::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g.longest_path(algorithm = "backtrack").edges()
+            [(0, 1, None), (1, 2, None), (2, 3, None), (3, 4, None), (4, 9, None), (5, 7, None), (5, 8, None), (6, 8, None), (6, 9, None)]
+
+        Let us compute longest path on random graphs with random
+        weights. We each time ensure the given graph is indeed a
+        path::
+
+            sage: for i in xrange(20):
+            ...       g = graphs.RandomGNP(15,.3)
+            ...       for u,v in g.edges(labels = False):
+            ...          g.set_edge_label(u,v,random())
+            ...       lp = g.longest_path()
+            ...       if (not lp.is_forest() or
+            ...           not max(lp.degree()) <= 2 or
+            ...           not lp.is_connected()):
+            ...           print "Error !"
+            ...           break
+            ...
+            sage: print "Test finished !"
+            Test finished !
+
+        TESTS::
+
+        Disconnected graphs not weighted::
+
+            sage: g1 = graphs.PetersenGraph()
+            sage: g2 = 2 * g1
+            sage: lp1 = g1.longest_path()
+            sage: lp2 = g2.longest_path()
+            sage: len(lp1) == len(lp2)
+            True
+
+        Disconnected graphs weighted::
+
+            sage: g1 = graphs.PetersenGraph()
+            sage: for u,v in g.edges(labels = False):
+            ...       g.set_edge_label(u,v,random())
+            sage: g2 = 2 * g1
+            sage: lp1 = g1.longest_path(weighted = True)
+            sage: lp2 = g2.longest_path(weighted = True)
+            sage: lp1[0] == lp2[0]
+            True
+
+        Empty graphs::
+
+            sage: Graph().longest_path()
+            Graph on 0 vertices
+            sage: Graph().longest_path(weighted = True)
+            [0, Graph on 0 vertices]
+
+        Random test for digraphs::
+
+            sage: for i in xrange(20):
+            ...       g = digraphs.RandomDirectedGNP(15,.3)
+            ...       for u,v in g.edges(labels = False):
+            ...          g.set_edge_label(u,v,random())
+            ...       lp = g.longest_path()
+            ...       if (not lp.is_directed_acyclic() or
+            ...           not max(lp.out_degree()) <= 1 or
+            ...           not max(lp.in_degree()) <= 1 or
+            ...           not lp.is_connected()):
+            ...           print "Error !"
+            ...           break
+            ...
+            sage: print "Test finished !"
+            Test finished !
+        """
+        if weighted:
+            algorithm = "MILP"
+
+
+        # Quick improvement
+        if not self.is_connected():
+            if weighted:
+                return max( g.longest_path(s = s, t = t,
+                                           weighted = weighted,
+                                           algorithm = algorithm)
+                            for g in self.connected_components_subgraphs() )
+            else:
+                return max( (g.longest_path(s = s, t = t,
+                                            weighted = weighted,
+                                            algorithm = algorithm)
+                            for g in self.connected_components_subgraphs() ),
+                            key = lambda x : x.order() )
+
+        # Stupid cases
+
+        # - Graph having less than 1 vertex
+        #
+        # - The source has outdegree 0 in a directed graph, or
+        #   degree 0, or is not a vertex of the graph
+        #
+        # - The destination has indegree 0 in a directed graph, or
+        #   degree 0, or is not a vertex of the graph
+        #
+        # - Both s and t are specified, but there is no path between
+        #   the two in a directed graph (the graph is connected)
+
+        if (self.order() <= 1 or
+            (s != None and (
+                    (s not in self) or
+                    (self._directed and self.degree_out(s) == 0) or
+                    (not self._directed and self.degree(s) == 0))) or
+
+            (t != None and (
+                    (t not in self) or
+                    (self._directed and self.degree_in(t) == 0) or
+                    (not self._directed and self.degree(t) == 0))) or
+
+            (self._directed and s != None and t != None and
+             len(self.shortest_path(s,t) == 0))):
+
+            if self._directed:
+                from sage.graphs.all import DiGraph
+                return [0, DiGraph()] if weighted else DiGraph()
+            else:
+                from sage.graphs.all import Graph
+                return [0, Graph()] if weighted else Graph()
+
+
+        # Calling the backtrack heuristic if asked
+        if algorithm == "backtrack":
+            from sage.graphs.generic_graph_pyx import find_hamiltonian as fh
+            x = fh( self, find_path = True )[1]
+            return self.subgraph(vertices = x,
+                                 edges = zip(x[:-1], x[1:]))
+
+        ##################
+        # LP Formulation #
+        ##################
+
+        # Epsilon... Must be less than 1/(n+1), but we want to avoid
+        # numerical problems...
+        epsilon = 1/(6*float(self.order()))
+
+        # Associating a weight to a label
+        if weighted:
+            weight = lambda x : x if (x is not None and x != {}) else 1
+        else:
+            weight = lambda x : 1
+
+        from sage.numerical.mip import MixedIntegerLinearProgram, Sum
+
+        p = MixedIntegerLinearProgram()
+
+        # edge_used[(u,v)] == 1 if (u,v) is used
+        edge_used = p.new_variable(binary = True)
+
+        # relaxed version of the previous variable, to prevent the
+        # creation of cycles
+        r_edge_used = p.new_variable()
+
+        # vertex_used[v] == 1 if vertex v is used
+        vertex_used = p.new_variable(binary = True)
+
+        if self._directed:
+
+            # if edge uv is used, vu can not be
+            for u,v in self.edges(labels = False):
+                if self.has_edge(v,u):
+                    p.add_constraint(edge_used[(u,v)] + edge_used[(v,u)], max = 1)
+
+
+            # A vertex is used if one of its incident edges is
+            for v in self:
+                for e in self.incoming_edges(labels = False):
+                    p.add_constraint(vertex_used[v] - edge_used[e], min = 0)
+                for e in self.outgoing_edges(labels = False):
+                    p.add_constraint(vertex_used[v] - edge_used[e], min = 0)
+
+            # A path is a tree. If n vertices are used, at most n-1 edges are
+            p.add_constraint(Sum( vertex_used[v] for v in self)
+                             - Sum( edge_used[e] for e in self.edges(labels = False)),
+                             min = 1, max = 1)
+
+            # A vertex has at most one incoming used edge and at most
+            # one outgoing used edge
+            for v in self:
+                p.add_constraint( Sum( edge_used[(u,v)] for u in self.neighbors_in(v) ), max = 1)
+                p.add_constraint( Sum( edge_used[(v,u)] for u in self.neighbors_out(v) ), max = 1)
+
+            # r_edge_used is "more" than edge_used, though it ignores
+            # the direction
+            for u,v in self.edges(labels = False):
+                p.add_constraint(  r_edge_used[(u,v)]
+                                 + r_edge_used[(v,u)]
+                                 - edge_used[(u,v)],
+                                   min = 0)
+
+            # No cycles
+            for v in self:
+                p.add_constraint( Sum( r_edge_used[(u,v)] for u in self.neighbors(v)), max = 1-epsilon)
+
+            # Enforcing the source if asked.. If s is set, it has no
+            # incoming edge and exactly one son
+            if s!=None:
+                p.add_constraint( Sum( edge_used[(u,s)] for u in self.neighbors_in(s)), max = 0, min = 0)
+                p.add_constraint( Sum( edge_used[(s,u)] for u in self.neighbors_out(s)), min = 1, max = 1)
+
+            # Enforcing the destination if asked.. If t is set, it has
+            # no outgoing edge and exactly one parent
+            if t!=None:
+                p.add_constraint( Sum( edge_used[(u,t)] for u in self.neighbors_in(t)), min = 1, max = 1)
+                p.add_constraint( Sum( edge_used[(t,u)] for u in self.neighbors_out(t)), max = 0, min = 0)
+
+
+            # Defining the objective
+            p.set_objective( Sum( weight(l) * edge_used[(u,v)] for u,v,l in self.edges() ) )
+
+        else:
+
+            # f_edge_used calls edge_used through reordering u and v
+            # to avoid having two different variables
+            f_edge_used = lambda u,v : edge_used[ (u,v) if hash(u) < hash(v) else (v,u) ]
+
+            # A vertex is used if one of its incident edges is
+            for v in self:
+                for u in self.neighbors(v):
+                    p.add_constraint(vertex_used[v] - f_edge_used(u,v), min = 0)
+
+            # A path is a tree. If n vertices are used, at most n-1 edges are
+            p.add_constraint( Sum( vertex_used[v] for v in self)
+                              - Sum( f_edge_used(u,v) for u,v in self.edges(labels = False)),
+                              min = 1, max = 1)
+
+            # A vertex has at most two incident edges used
+            for v in self:
+                p.add_constraint( Sum( f_edge_used(u,v) for u in self.neighbors(v) ), max = 2)
+
+            # r_edge_used is "more" than edge_used
+            for u,v in self.edges(labels = False):
+                p.add_constraint(  r_edge_used[(u,v)]
+                                 + r_edge_used[(v,u)]
+                                 - f_edge_used(u,v),
+                                   min = 0)
+
+            # No cycles
+            for v in self:
+                p.add_constraint( Sum( r_edge_used[(u,v)] for u in self.neighbors(v)), max = 1-epsilon)
+
+            # Enforcing the destination if asked.. If s or t are set,
+            # they have exactly one incident edge
+            if s != None:
+                p.add_constraint( Sum( f_edge_used(s,u) for u in self.neighbors(s) ), max = 1, min = 1)
+            if t != None:
+                p.add_constraint( Sum( f_edge_used(t,u) for u in self.neighbors(t) ), max = 1, min = 1)
+
+            # Defining the objective
+            p.set_objective( Sum( weight(l) * f_edge_used(u,v) for u,v,l in self.edges() ) )
+
+        # Computing the result. No exception has to be raised, as this
+        # problem always has a solution (there is at least one edge,
+        # and a path from s to t if they are specified
+
+        p.solve(solver = solver, log = verbose)
+
+        edge_used = p.get_values(edge_used)
+        vertex_used = p.get_values(vertex_used)
+
+        if self._directed:
+            g = self.subgraph( vertices =
+                                  (v for v in self if vertex_used[v] >= .5),
+                               edges =
+                                  ( (u,v,l) for u,v,l in self.edges()
+                                    if edge_used[(u,v)] >= .5 ))
+        else:
+            g = self.subgraph( vertices =
+                                  (v for v in self if vertex_used[v] >= .5),
+                               edges =
+                                  ( (u,v,l) for u,v,l in self.edges()
+                                    if f_edge_used(u,v) >= .5 ))
+
+        if weighted:
+            return sum(map(weight,g.edge_labels())), g
+        else:
+            return g
+
+
     def traveling_salesman_problem(self, weighted = True, solver = None, verbose = 0):
         r"""
         Solves the traveling salesman problem (TSP)

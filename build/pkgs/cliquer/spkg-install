@@ -155,7 +155,7 @@ elif [ "$UNAME" = "Darwin" ]; then
     SAGESOFLAGS="-dynamiclib -single_module -flat_namespace -undefined dynamic_lookup"
     export SAGESOFLAGS
 elif [ "$UNAME" = "SunOS" ]; then
-    SAGESOFLAGS="-G -Bdynamic"
+    SAGESOFLAGS="-shared -Wl,-h,libcliquer.so -Wl,-ztext"
     export SAGESOFLAGS
 elif [ "$UNAME" = "CYGWIN" ]; then
     SAGESOFLAGS="-shared -Wl,-soname,libcliquer.so"

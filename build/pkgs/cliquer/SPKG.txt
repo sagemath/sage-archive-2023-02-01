@@ -19,9 +19,20 @@ http://users.tkk.fi/pat/cliquer.html
  * None
 
 == Special Update/Build Instructions ==
- * TODO - Add a spkg-check file - see #9767
+ * TODO - A MAJOR cleanup of this package is required.
+   See #9870
 
 == Changelog ==
+
+=== cliquer-1.2.p7 David Kirkby, Leif Leonhardy  (14 September 2010) ===
+ * #9871 Change flags passed to the linker on Solaris to avoid problems with the
+   link-editor believing the shared library contains text relocations. This
+   problem can be seen on 32-bit builds of Solaris and OpenSolaris using
+   /usr/bin/elfdump, but the problems are much more serious on 64-bit
+   builds of Solaris - in some cases stopping code from building.
+ * Added the linker flag -ztext on Solaris too, as -ztest forces a fatal
+   error if any  relocations   against   non-writable,  allocatable  sections
+   remain. This will make it easier to catch any similar bugs in future.
 
 === cliquer-1.2.p6 Nathann Cohen, David Kirkby (31 August 2010) ===
  * #9766: Additions to SPKG.txt

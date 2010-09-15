@@ -586,11 +586,27 @@ ex container<C>::eval(int level) const
 template <template <class T, class = std::allocator<T> > class C>
 ex container<C>::subs(const exmap & m, unsigned options) const
 {
+	// After having subs'ed all children, this method subs'es one final
+	// level, but only if the intermediate result is a container! This is
+	// because if the intermediate result has eval'ed to a non-container a
+	// last level substitution would be wrong, as this example involving a
+	// function f and its inverse f^-1 shows:
+	// f(x).subs(x==f^-1(x))
+	//   -> f(f^-1(x))  [subschildren]
+	//   -> x           [eval]   /* must not subs(x==f^-1(x))! */
 	std::auto_ptr<STLT> vp = subschildren(m, options);
-	if (vp.get())
-		return ex_to<basic>(thiscontainer(vp)).subs_one_level(m, options);
-	else
-		return subs_one_level(m, options);
+	if (vp.get()) {
+		ex result(thiscontainer(vp));
+		if (is_a<container<C> >(result))
+			return ex_to<basic>(result).subs_one_level(m, options);
+		else
+			return result;
+	} else {
+		if (is_a<container<C> >(*this))
+			return subs_one_level(m, options);
+		else
+			return *this;
+	}
 }
 
 /** Compare two containers of the same type. */

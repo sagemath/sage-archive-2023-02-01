@@ -10,7 +10,7 @@ cd src/
 
 # remove old copies
 
-rm -rf $SAGE_LOCAL/lib/python2.5/site-packages/Cython*
+rm -rf $SAGE_LOCAL/lib/python2.*/site-packages/Cython*
 rm -rf $SAGE_LOCAL/lib/python/site-packages/Cython*
 
 python setup.py install

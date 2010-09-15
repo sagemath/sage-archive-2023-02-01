@@ -13,6 +13,9 @@ cd src/
 rm -rf $SAGE_LOCAL/lib/python2.*/site-packages/Cython*
 rm -rf $SAGE_LOCAL/lib/python/site-packages/Cython*
 
+# __getattr__ speed bugfix
+cp patches/Code.py src/Cython/Compiler/Code.py
+
 python setup.py install
 
 if [ $? -ne 0 ]; then

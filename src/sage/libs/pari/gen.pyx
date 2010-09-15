@@ -412,10 +412,12 @@ cdef class gen(sage.structure.element.RingElement):
             sage_free(<void*> self.b)
 
     def __repr__(self):
-        return P.GEN_to_str(self.g)
+        _sig_on
+        return P.new_gen_to_string(self.g)
 
     def __hash__(self):
-        return hash(P.GEN_to_str(self.g))
+        _sig_on
+        return hash(P.new_gen_to_string(self.g))
 
     def _testclass(self):
         import test
@@ -1435,6 +1437,73 @@ cdef class gen(sage.structure.element.RingElement):
 
 
     ###########################################
+    # Comparisons (from PARI)
+    ###########################################
+
+    def gequal(gen a, b):
+        r"""
+        Check whether `a` and `b` are equal using PARI's ``gequal``.
+
+        EXAMPLES::
+
+            sage: a = pari(1); b = pari(1.0); c = pari('"some_string"')
+            sage: a.gequal(a)
+            True
+            sage: b.gequal(b)
+            True
+            sage: c.gequal(c)
+            True
+            sage: a.gequal(b)
+            True
+            sage: a.gequal(c)
+            False
+
+        WARNING: this relation is not transitive::
+
+            sage: a = pari('[0]'); b = pari(0); c = pari('[0,0]')
+            sage: a.gequal(b)
+            True
+            sage: b.gequal(c)
+            True
+            sage: a.gequal(c)
+            False
+        """
+        global t0
+        t0GEN(b)
+        _sig_on
+        ret = gequal(a.g, t0)
+        _sig_off
+        return ret != 0
+
+    def gequal_long(gen a, long b):
+        r"""
+        Check whether `a` is equal to the ``long int`` `b` using PARI's ``gequalsg``.
+
+        EXAMPLES::
+
+            sage: a = pari(1); b = pari(2.0); c = pari('3*matid(3)')
+            sage: a.gequal_long(1)
+            True
+            sage: a.gequal_long(-1)
+            False
+            sage: a.gequal_long(0)
+            False
+            sage: b.gequal_long(2)
+            True
+            sage: b.gequal_long(-2)
+            False
+            sage: c.gequal_long(3)
+            True
+            sage: c.gequal_long(-3)
+            False
+        """
+        _sig_on
+        ret = gequalsg(b, a.g)
+        _sig_off
+        return ret != 0
+
+
+    ###########################################
     # arith1.c
     ###########################################
     def isprime(gen self, flag=0):
@@ -2182,7 +2251,7 @@ cdef class gen(sage.structure.element.RingElement):
         _sig_on
         c = GENtostr(self.g)
         v = self.new_gen(strtoGENstr(c))
-        free(c)
+        pari_free(c)
         return v
 
 
@@ -8318,6 +8387,21 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         _sig_off
         return g
 
+    cdef object new_gen_to_string(self, GEN x):
+        """
+        Converts a gen to a Python string, free the \*entire\* stack and call
+        _sig_off. This is meant to be used in place of new_gen().
+        """
+        cdef char* c
+        cdef int n
+        c = GENtostr(x)
+        s = str(c)
+        pari_free(c)
+        global mytop, avma
+        avma = mytop
+        _sig_off
+        return s
+
     cdef void clear_stack(self):
         """
         Clear the entire PARI stack and call _sig_off.
@@ -8694,23 +8778,6 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
     cdef _an_element_c_impl(self):  # override this in Cython
         return self.PARI_ZERO
 
-# Commented out by John Cremona 2008-09-06 -- never used and confusing.
-#
-#     def new_with_prec(self, s, long precision=0):
-#         r"""
-#         pari.new_with_prec(self, s, precision) creates s as a PARI gen
-#         with at least \code{precision} decimal \emph{digits} of precision.
-#         """
-#         global prec
-#         cdef unsigned long old_prec
-#         old_prec = prec
-#         if not precision:
-#             precision = prec
-#         self.set_real_precision(precision)
-#         x = self(s)
-#         self.set_real_precision(old_prec)
-#         return x
-
     def new_with_bits_prec(self, s, long precision):
         r"""
         pari.new_with_bits_prec(self, s, precision) creates s as a PARI
@@ -8737,24 +8804,6 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             s = str(v)
             return fetch_user_var(s)
         return -1
-
-
-    ############################################################
-    # conversion between GEN and string types
-    # Note that string --> GEN evaluates the string in PARI,
-    # where GEN_to_str returns a Python string.
-    ############################################################
-    cdef object GEN_to_str(self, GEN g):
-        cdef char* c
-        cdef int n
-        _sig_off
-        _sig_on
-        c = GENtostr(g)
-        _sig_off
-        s = str(c)
-        free(c)
-        return s
-
 
     ############################################################
     # Initialization
@@ -8789,9 +8838,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         global diffptr, num_primes
         if M <= num_primes:
             return
-        #if not silent:
-        #    print "Extending PARI prime table up to %s"%M
-        free(<void*> diffptr)
+        pari_free(<void*> diffptr)
         num_primes = M
         diffptr = initprimes(M)
 

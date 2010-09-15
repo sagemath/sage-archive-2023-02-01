@@ -19,6 +19,7 @@ cimport sage.structure.parent_base
 cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
     cdef gen PARI_ZERO, PARI_ONE, PARI_TWO
     cdef gen new_gen(self, GEN x)
+    cdef object new_gen_to_string(self, GEN x)
     cdef gen new_gen_noclear(self, GEN x)
     cdef gen new_gen_from_mpz_t(self, mpz_t value)
     cdef gen new_gen_from_mpq_t(self, mpq_t value)
@@ -34,7 +35,6 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
     cdef gen new_ref(self, GEN g, gen parent)
     cdef gen _empty_vector(self, long n)
     cdef int get_var(self, v)
-    cdef object GEN_to_str(self, GEN g)
     cdef GEN toGEN(self, x, int i) except NULL
     cdef GEN integer_matrix_GEN(self, mpz_t** B, Py_ssize_t nr, Py_ssize_t nc) except <GEN>0
     cdef GEN integer_matrix_permuted_for_hnf_GEN(self, mpz_t** B, Py_ssize_t nr, Py_ssize_t nc) except <GEN>0

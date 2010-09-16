@@ -1,14 +1,25 @@
 r"""
-Univariate Power Series Rings
+Power Series Rings
 
-EXAMPLES: Power series rings are constructed in the standard Sage
-fashion.
+Power series rings are constructed in the standard Sage
+fashion.  See also :doc:`multi_power_series_ring`.
 
-::
+EXAMPLES:
+
+Construct rings and elements::
 
     sage: R.<t> = PowerSeriesRing(QQ)
     sage: R.random_element(6)  # random
     -4 - 1/2*t^2 - 1/95*t^3 + 1/2*t^4 - 12*t^5 + O(t^6)
+
+::
+
+    sage: R.<t,u,v> = PowerSeriesRing(QQ); R
+    Multivariate Power Series Ring in t, u, v over Rational Field
+    sage: p = -t + 1/2*t^3*u - 1/4*t^4*u + 2/3*v^5 + R.O(6); p
+    -t + 1/2*t^3*u - 1/4*t^4*u + 2/3*v^5 + O(t, u, v)^6
+    sage: p in R
+    True
 
 The default precision is specified at construction, but does not
 bound the precision of created elements.
@@ -19,21 +30,13 @@ bound the precision of created elements.
     sage: R.random_element(6)  # random
     1/2 - 1/4*t + 2/3*t^2 - 5/2*t^3 + 2/3*t^5 + O(t^6)
 
+Construct univariate power series from a list of coefficients
+
 ::
 
-    sage: S = R([1, 3, 5, 7]); S  # XXX + O(t^5)
+    sage: S = R([1, 3, 5, 7]); S
     1 + 3*t + 5*t^2 + 7*t^3
 
-::
-
-    sage: S.truncate(3)
-    5*t^2 + 3*t + 1
-
-::
-
-    sage: S.<w> = PowerSeriesRing(QQ)
-    sage: S.base_ring()
-    Rational Field
 
 An iterated example::
 
@@ -44,11 +47,11 @@ An iterated example::
     sage: S.base_ring()
     Power Series Ring in t over Integer Ring
 
-We compute with power series over the symbolic ring.
+Sage can compute with power series over the symbolic ring.
 
 ::
 
-    sage: K.<t> = PowerSeriesRing(SR, 5)
+    sage: K.<t> = PowerSeriesRing(SR, default_prec=5)
     sage: a, b, c = var('a,b,c')
     sage: f = a + b*t + c*t^2 + O(t^3)
     sage: f*f
@@ -89,6 +92,8 @@ AUTHORS:
 
 - Jeremy Cho (2006-05-17): some examples (above)
 
+- Niles Johnson (2010-09): implement multivariate power series
+
 TESTS::
 
     sage: R.<t> = PowerSeriesRing(QQ)
@@ -100,6 +105,13 @@ TESTS::
     sage: R.<x> = PowerSeriesRing(QQ, sparse=True)
     sage: R == loads(dumps(R))
     True
+
+::
+
+    sage: M = PowerSeriesRing(QQ, 't,u,v,w', default_prec=20)
+    sage: M == loads(dumps(M))
+    True
+
 """
 
 import weakref
@@ -127,31 +139,37 @@ from sage.structure.parent_gens import ParentWithGens
 
 _cache = {}
 
-def PowerSeriesRing(base_ring, name=None, default_prec=20, names=None,
-                    sparse=False):
-    """
-    Create a power series ring.
+def PowerSeriesRing(base_ring, name=None, arg2=None, names=None,
+                    sparse=False, default_prec=None, order='negdeglex', num_gens=None):
+    r"""
+    Create a univariate or multivariate power series ring over a given
+    (commutative) base ring.
 
     INPUT:
 
 
     -  ``base_ring`` - a commutative ring
 
-    -  ``name`` - name of the indeterminate
+    -  ``name``, ``names`` - name(s) of the indeterminate
 
-    -  ``default_prec`` - (default: 20) the default
-       precision used if an exact object must be changed to an approximate
-       object in order to do an arithmetic operation.
+    - ``default_prec`` - the default precision used if an exact object must
+       be changed to an approximate object in order to do an arithmetic
+       operation.  If left as ``None``, it will be set to 20 in the
+       univariate case, and 12 in the multivariate case.
 
-    -  ``sparse`` - (default: False) whether power series
+    -  ``sparse`` - (default: ``False``) whether power series
        are represented as sparse objects.
+
+    - ``order`` - (default: ``negdeglex``) term ordering, for multivariate case
+
+    - ``num_gens`` - number of generators, for multivariate case
 
 
     There is a unique power series ring over each base ring with given
     variable name. Two power series over the same base ring with
     different variable names are not equal or isomorphic.
 
-    EXAMPLES::
+    EXAMPLES (Univariate)::
 
         sage: R = PowerSeriesRing(QQ, 'x'); R
         Power Series Ring in x over Rational Field
@@ -174,7 +192,144 @@ def PowerSeriesRing(base_ring, name=None, default_prec=20, names=None,
         Power Series Ring in x over Rational Field
         sage: S.default_prec()
         15
+
+    EXAMPLES (Multivariate) See also :doc:`multi_power_series_ring`::
+
+        sage: R = PowerSeriesRing(QQ, 't,u,v'); R
+        Multivariate Power Series Ring in t, u, v over Rational Field
+
+    ::
+
+        sage: N = PowerSeriesRing(QQ,'w',num_gens=5); N
+        Multivariate Power Series Ring in w0, w1, w2, w3, w4 over Rational Field
+
+    Number of generators can be specified before variable name without using keyword::
+
+        sage: M = PowerSeriesRing(QQ,4,'k'); M
+        Multivariate Power Series Ring in k0, k1, k2, k3 over Rational Field
+
+    Multivariate power series can be constructed using angle bracket or double square bracket notation::
+
+        sage: R.<t,u,v> = PowerSeriesRing(QQ, 't,u,v'); R
+        Multivariate Power Series Ring in t, u, v over Rational Field
+
+        sage: ZZ[['s,t,u']]
+        Multivariate Power Series Ring in s, t, u over Integer Ring
+
+    Sparse multivariate power series ring::
+
+        sage: M = PowerSeriesRing(QQ,4,'k',sparse=True); M
+        Sparse Multivariate Power Series Ring in k0, k1, k2, k3 over
+        Rational Field
+
+    Power series ring over polynomial ring::
+
+        sage: H = PowerSeriesRing(PolynomialRing(ZZ,3,'z'),4,'f'); H
+        Multivariate Power Series Ring in f0, f1, f2, f3 over Multivariate
+        Polynomial Ring in z0, z1, z2 over Integer Ring
+
+    Power series ring over finite field::
+
+        sage: S = PowerSeriesRing(GF(65537),'x,y'); S
+        Multivariate Power Series Ring in x, y over Finite Field of size
+        65537
+
+    Power series ring with many variables::
+
+        sage: R = PowerSeriesRing(ZZ, ['x%s'%p for p in primes(100)]); R
+        Multivariate Power Series Ring in x2, x3, x5, x7, x11, x13, x17, x19,
+        x23, x29, x31, x37, x41, x43, x47, x53, x59, x61, x67, x71, x73, x79,
+        x83, x89, x97 over Integer Ring
+
+    - Use :meth:`inject_variables` to make the variables available for
+      interactive use.
+
+      ::
+
+        sage: R.inject_variables()
+        Defining x2, x3, x5, x7, x11, x13, x17, x19, x23, x29, x31, x37,
+        x41, x43, x47, x53, x59, x61, x67, x71, x73, x79, x83, x89, x97
+
+        sage: f = x47 + 3*x11*x29 - x19 + R.O(3)
+        sage: f in R
+        True
+
+
+    Variable ordering determines how series are displayed::
+
+        sage: T.<a,b> = PowerSeriesRing(ZZ,order='deglex'); T
+        Multivariate Power Series Ring in a, b over Integer Ring
+        sage: T.term_order()
+        Degree lexicographic term order
+        sage: p = - 2*b^6 + a^5*b^2 + a^7 - b^2 - a*b^3 + T.O(9); p
+        a^7 + a^5*b^2 - 2*b^6 - a*b^3 - b^2 + O(a, b)^9
+
+        sage: U = PowerSeriesRing(ZZ,'a,b',order='negdeglex'); U
+        Multivariate Power Series Ring in a, b over Integer Ring
+        sage: U.term_order()
+        Negative degree lexicographic term order
+        sage: U(p)
+        -b^2 - a*b^3 - 2*b^6 + a^7 + a^5*b^2 + O(a, b)^9
+
+
+    TESTS::
+
+        sage: N = PowerSeriesRing(QQ,'k',num_gens=5); N
+        Multivariate Power Series Ring in k0, k1, k2, k3, k4 over Rational Field
+
+    The following behavior of univariate power series ring will eventually
+    be deprecated and then changed to return a multivariate power series
+    ring::
+
+        sage: N = PowerSeriesRing(QQ,'k',5); N
+        Power Series Ring in k over Rational Field
+        sage: N.default_prec()
+        5
+        sage: L.<m> = PowerSeriesRing(QQ,5); L
+        Power Series Ring in m over Rational Field
+        sage: L.default_prec()
+        5
+
     """
+    #multivariate case:
+    # examples for first case:
+    # PowerSeriesRing(QQ,'x,y,z')
+    # PowerSeriesRing(QQ,['x','y','z'])
+    # PowerSeriesRing(QQ,['x','y','z'], 3)
+    if names is None and name is not None:
+        names = name
+    if isinstance(names, (tuple, list)) and len(names) > 1 or (isinstance(names, str) and ',' in names):
+        return _multi_variate(base_ring, num_gens=arg2, names=names,
+                     order=order, default_prec=default_prec, sparse=sparse)
+    # examples for second case:
+    # PowerSeriesRing(QQ,3,'t')
+    if arg2 is None and num_gens is not None:
+        arg2 = names
+        names = num_gens
+    if isinstance(arg2, str) and isinstance(names, (int,long,integer.Integer)):
+        return _multi_variate(base_ring, num_gens=names, names=arg2,
+                     order=order, default_prec=default_prec, sparse=sparse)
+
+
+    # univariate case: the arguments to PowerSeriesRing used to be
+    # (base_ring, name=None, default_prec=20, names=None, sparse=False),
+    # and thus that is what the code below expects; this behavior is being
+    # deprecated, and will eventually be removed.
+    if default_prec is None and arg2 is None:
+        default_prec = 20
+    elif arg2 is not None:
+        default_prec = arg2
+
+    ## too many things (padics, elliptic curves) depend on this behavior,
+    ## so no warning for now.
+    ##
+    # from sage.misc.misc import deprecation
+    # if isinstance(name, (int,long,integer.Integer)) or isinstance(arg2,(int,long,integer.Integer)):
+    #     deprecation("This behavior of PowerSeriesRing is being deprecated in favor of constructing multivariate power series rings. (See Trac ticket #1956.)")
+
+
+    # the following is the original, univariate-only code
+
     if isinstance(name, (int,long,integer.Integer)):
         default_prec = name
     if not names is None:
@@ -212,9 +367,58 @@ def PowerSeriesRing(base_ring, name=None, default_prec=20, names=None,
     _cache[key] = weakref.ref(R)
     return R
 
+def _multi_variate(base_ring, num_gens=None, names=None,
+                     order='negdeglex', default_prec=None, sparse=False):
+    """
+    Construct multivariate power series ring.
+
+    TESTS::
+
+    """
+    if names is None:
+        raise TypeError("you must specify a variable name or names")
+
+    if num_gens is None:
+        if isinstance(names,str):
+            num_gens = len(names.split(','))
+        elif isinstance(names, (list, tuple)):
+            num_gens = len(names)
+        else:
+            raise TypeError("variable names must be a string, tuple or list")
+
+    if default_prec is None:
+        default_prec = 12
+
+
+    key = (base_ring, num_gens, str(names), order, default_prec, sparse)
+    if _cache.has_key(key):
+        R = _cache[key]()
+        if not R is None:
+            return R
+
+    if isinstance(base_ring, field.Field):
+        pass
+    elif isinstance(base_ring, integral_domain.IntegralDomain):
+        pass
+    elif isinstance(base_ring, commutative_ring.CommutativeRing):
+        pass
+    else:
+        raise TypeError, "base_ring must be a commutative ring"
+    from sage.rings.multi_power_series_ring import MPowerSeriesRing_generic
+    R = MPowerSeriesRing_generic(base_ring, num_gens, names,
+                                 order=order, default_prec=default_prec, sparse=sparse)
+    _cache[key] = weakref.ref(R)
+    return R
+
+
+def _single_variate():
+    pass
+
 def is_PowerSeriesRing(R):
     """
-    Return True if R is a power series ring.
+    Return True if R is a *univariate* power series ring.  This is in
+    keeping with the behavior of `is_PolynomialRing`
+    v.s. `is_MPolynomialRing`.
 
     EXAMPLES::
 
@@ -224,7 +428,10 @@ def is_PowerSeriesRing(R):
         sage: is_PowerSeriesRing(QQ[['x']])
         True
     """
-    return isinstance(R, PowerSeriesRing_generic)
+    if isinstance(R, PowerSeriesRing_generic):
+        return R.ngens() == 1
+    else:
+        return False
 
 class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
     """
@@ -834,5 +1041,15 @@ class PowerSeriesRing_over_field(PowerSeriesRing_domain):
         return self.laurent_series_ring()
 
 def unpickle_power_series_ring_v0(base_ring, name, default_prec, sparse):
+    """
+    Unpickle (deserialize) a univariate power series ring according to
+    the given inputs.
+
+    EXAMPLES::
+
+        sage: P.<x> = PowerSeriesRing(QQ)
+        sage: loads(dumps(P)) == P # indirect doctest
+        True
+    """
     return PowerSeriesRing(base_ring, name=name, default_prec = default_prec, sparse=sparse)
 

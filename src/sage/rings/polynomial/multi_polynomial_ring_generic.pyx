@@ -118,15 +118,88 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         return self.ideal(self.gens(), check=False)
 
     def completion(self, p, prec=20, extras=None):
+        """
+        Return the completion of self with respect to the ideal generated
+        by the variable(s) ``p``.
+
+        INPUT:
+
+        - ``p`` -- variable or tuple of variables
+
+        - ``prec`` -- default precision of resulting power series ring
+
+        - ``extras`` -- ignored; present for backward compatibility
+
+        EXAMPLES::
+
+            sage: P.<x,y,z,w> = PolynomialRing(ZZ)
+            sage: P.completion((w,x,y))
+            Multivariate Power Series Ring in w, x, y over Univariate Polynomial Ring in z over Integer Ring
+            sage: P.completion((w,x,y,z))
+            Multivariate Power Series Ring in w, x, y, z over Integer Ring
+
+            sage: H = PolynomialRing(PolynomialRing(ZZ,3,'z'),4,'f'); H
+            Multivariate Polynomial Ring in f0, f1, f2, f3 over
+            Multivariate Polynomial Ring in z0, z1, z2 over Integer Ring
+
+            sage: H.completion(H.gens())
+            Multivariate Power Series Ring in f0, f1, f2, f3 over
+            Multivariate Polynomial Ring in z0, z1, z2 over Integer Ring
+
+            sage: H.completion(H.gens()[2])
+            Power Series Ring in f2 over
+            Multivariate Polynomial Ring in f0, f1, f3 over
+            Multivariate Polynomial Ring in z0, z1, z2 over Integer Ring
+
+        """
+        if p in self or isinstance(p,str) and set(p).issubset(set([str(g) for g in self.gens()])):
+            p = tuple([p])
+        elif isinstance(p,(list,tuple)):
+            p = tuple(p)
+        else:
+            raise TypeError("input %s is not of type list or tuple, and is not a variable of %s" % (p,self))
+
         try:
             from sage.rings.power_series_ring import PowerSeriesRing
-            return PowerSeriesRing(self.remove_var(p), p, prec)
+            if len(p) > 1:
+                return PowerSeriesRing(self.remove_var(*p), names=p, default_prec=prec)
+            elif len(p) == 1:
+                p = p[0]
+                return PowerSeriesRing(self.remove_var(p), name=str(p), default_prec=prec)
+            else:
+                return self
+
+            # p is one variable; possibly as a string
+            # check to make sure it is one of the variables of self
+            #if p in self or type(p) == str and set(p).issubset(set([str(g) for g in self.gens()])):
+
         except ValueError:
             raise TypeError, "Cannot complete %s with respect to %s" % (self, p)
 
-    def remove_var(self, var):
+    def remove_var(self, *var):
+        """
+        Remove a variable or sequence of variables from self.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z,w> = PolynomialRing(ZZ)
+            sage: P.remove_var(z)
+            Multivariate Polynomial Ring in x, y, w over Integer Ring
+            sage: P.remove_var(z,x)
+            Multivariate Polynomial Ring in y, w over Integer Ring
+            sage: P.remove_var(y,z,x)
+            Univariate Polynomial Ring in w over Integer Ring
+
+        Removing all variables results in the base ring::
+
+            sage: P.remove_var(y,z,x,w)
+            Integer Ring
+        """
         vars = list(self.variable_names())
-        vars.remove(str(var))
+        for v in var:
+            vars.remove(str(v))
+        if len(vars) == 0:
+            return self.base_ring()
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         return PolynomialRing(self.base_ring(), vars)
 

@@ -453,7 +453,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         """
         if str(p) == self._names[0]:
             from sage.rings.power_series_ring import PowerSeriesRing
-            return PowerSeriesRing(self.base_ring(), self._names[0], prec)
+            return PowerSeriesRing(self.base_ring(), name=self._names[0], default_prec=prec)
         else:
             raise TypeError, "Cannot complete %s with respect to %s" % (self, p)
 

@@ -110,7 +110,7 @@ from complex_interval import (is_ComplexIntervalFieldElement, create_ComplexInte
 
 from complex_double import ComplexDoubleField, ComplexDoubleElement, CDF, is_ComplexDoubleElement
 
-# Power series ring in one variable
+# Power series rings
 from power_series_ring import PowerSeriesRing, is_PowerSeriesRing
 from power_series_ring_element import PowerSeries, is_PowerSeries
 

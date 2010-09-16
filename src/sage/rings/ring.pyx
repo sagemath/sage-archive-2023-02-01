@@ -127,13 +127,17 @@ cdef class Ring(ParentWithGens):
             sage: GF(17)['a,b,c']
             Multivariate Polynomial Ring in a, b, c over Finite Field of size 17
 
-        We can also create power series rings (in one variable) by
-        using double brackets::
+        We can also create power series rings by using double brackets::
 
             sage: QQ[['t']]
             Power Series Ring in t over Rational Field
             sage: ZZ[['W']]
             Power Series Ring in W over Integer Ring
+
+            sage: ZZ[['x,y,z']]
+            Multivariate Power Series Ring in x, y, z over Integer Ring
+            sage: ZZ[['x','T']]
+            Multivariate Power Series Ring in x, T over Integer Ring
 
         Use ``Frac`` (for fraction field) to obtain a Laurent series ring::
 
@@ -212,11 +216,14 @@ cdef class Ring(ParentWithGens):
 
         P = None
         if isinstance(x, list):
-            if len(x) != 1:
-                raise NotImplementedError, "Power series rings only implemented in 1 variable"
-            x = (str(x[0]), )
+            if len(x) == 1:
+                if isinstance(x[0], str):
+                    x = x[0].split(',')
+            x = tuple([str(j) for j in x])
+
             from sage.rings.power_series_ring import PowerSeriesRing
             P = PowerSeriesRing
+
 
         # TODO: is this code ever used? Should it be?
 

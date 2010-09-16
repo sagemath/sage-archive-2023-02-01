@@ -1,20 +1,20 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 if [ "$SAGE_LOCAL" = "" ]; then
-   echo "SAGE_LOCAL undefined ... exiting";
-   echo "Maybe run 'sage -sh'?"
-   exit 1
+    echo "SAGE_LOCAL undefined ... exiting"
+    echo "Maybe run 'sage -sh'?"
+    exit 1
 fi
-
-cd src/
 
 # remove old copies
 
-rm -rf $SAGE_LOCAL/lib/python2.*/site-packages/Cython*
-rm -rf $SAGE_LOCAL/lib/python/site-packages/Cython*
+rm -rf "$SAGE_LOCAL"/lib/python2.*/site-packages/Cython*
+rm -rf "$SAGE_LOCAL"/lib/python/site-packages/Cython*
 
 # __getattr__ speed bugfix
 cp patches/Code.py src/Cython/Compiler/Code.py
+
+cd src/
 
 python setup.py install
 

@@ -7,6 +7,14 @@ if [ -z "$SAGE_LOCAL" ] ; then
 fi
 
 set -e
+# Apply a couple of changes to dpp.c which avoids two compiler warnings.
+# src/src/c/dpp.c:678:5: warning: too few arguments for format
+# src/src/c/dpp.c:680:13: warning: too many arguments for format
+# This is fixed in the upstream source code, so the patch to dpp.c can be
+# removed when ECL is next updated. In fact it *must* be removed, as there
+# are other upstream changes to this file.
+
+cp patches/dpp.c src/src/c/dpp.c
 
 # Add a sensible default optimisation flag. Change if necessary.
 OPTIMIZATION_FLAGS="-O2"

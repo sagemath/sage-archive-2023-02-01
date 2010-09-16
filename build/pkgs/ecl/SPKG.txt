@@ -45,6 +45,14 @@ Website: http://ecls.sourceforge.net/
 
 == Changelog ==
 
+=== ecl-10.2.1.p3 (David Kirkby, David Kirkby, 17th September 2010) ===
+  * #9917 Add a missing argument on line 678 of dpp.c. The code is fixed
+    upstream, so the line is just taken from the upstream source code
+    retrieved on 17th September 2010. Note, the upstream source code has
+    many changes - only this, and the next change were put in Sage. We have
+    NOT updated the ECL version to the latest unstable upstream version.
+  * Remove an extra argument on line 680 of dpp.c Same comments as above.
+
 === ecl-10.2.1.p2 (David Kirkby, 30th July 2010) ===
   * #9643 Force ECL to disable assembly code on Solaris 10 as
     it does on OpenSolaris. The conditions for disabling
@@ -90,7 +98,7 @@ Website: http://ecls.sourceforge.net/
 
 === ecl-9.8.4-cvs-13th-Sept-2009  (David Kirkby and Minh Van Nguyen, Sept 15th, 2009) ===
   * Download the latest CVS from the ECL web site, as version
-    9.8.4 is ackknowledged by the main ECL developer it will not work
+    9.8.4 is acknowledged by the main ECL developer it will not work
     on 64-bit OS X
   * Correct failure to build on OS X ticket #6883 This replaces
     ./configure --prefix=$SAGE_LOCAL --with-system-gmp --enable-boehm=system

@@ -28,8 +28,12 @@ The patches are applied in during the build process.
 
 * setupext.py: link to libpng12 instead of libpng to apparently avoid
   some name clashes on OSX.
+* WrapPython.h: delete unnecessary kludges to compile on Solaris
 
 == Changelog ==
+
+=== matplotlib 1.0.0 (Jason Grout, 16 Sep 2010) ===
+ * Update to matplotlib 1.0.0.
 
 === matplotlib-0.99.3-svn8415 (Jason Grout, 11 Jun 2010) ===
  * Update to SVN revision 8415 (which is 0.99.3 + some bugfixes we

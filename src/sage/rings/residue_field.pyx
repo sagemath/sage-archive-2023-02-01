@@ -54,7 +54,7 @@ Reducing a curve modulo a prime::
     sage: pp = K.factor(13)[0][0]
     sage: Fpp = OK.residue_field(pp)
     sage: E.base_extend(Fpp)
-    Elliptic Curve defined by y^2  = x^3 + x + 5 over Residue field of Fractional ideal (13, s - 4)
+    Elliptic Curve defined by y^2  = x^3 + x + 5 over Residue field of Fractional ideal (13, 1/2*s + 9/2)
 
 Calculating Groebner bases over various residue fields.  First over a small non-prime field::
 
@@ -163,7 +163,7 @@ def ResidueField(p, names = None, check = True):
 
         sage: K.<a> = NumberField(x^3-875)
         sage: P = K.ideal(5).factor()[0][0]; k = K.residue_field(P); k
-        Residue field in abar of Fractional ideal (5, -2/25*a^2 - 1/5*a + 2)
+        Residue field in abar of Fractional ideal (5, 1/25*a^2 - 2/5*a - 1)
         sage: k.polynomial()
         abar^2 + 3*abar + 4
         sage: k.0^3 - 875

@@ -1568,7 +1568,7 @@ class GaloisAutomorphismQuadraticForm(GaloisAutomorphism):
             sage: E = EllipticCurve('389a'); F= E.heegner_point(-20,3).ring_class_field()
             sage: G = F.galois_group(F.quadratic_field())
             sage: G[1].ideal()
-            Fractional ideal (2, -1/2*sqrt_minus_20 + 1)
+            Fractional ideal (2, 1/2*sqrt_minus_20 + 1)
             sage: [s.ideal().gens() for s in G]
             [(1, 3/2*sqrt_minus_20), (2, 3/2*sqrt_minus_20 - 1), (5, 3/2*sqrt_minus_20), (7, 3/2*sqrt_minus_20 - 2)]
         """

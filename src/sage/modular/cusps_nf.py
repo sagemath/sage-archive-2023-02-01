@@ -859,7 +859,7 @@ class NFCusp(Element):
             sage: k.<a> = NumberField(x^2 + 23)
             sage: alpha = NFCusp(k, 3, a-1)
             sage: alpha.ideal()
-            Fractional ideal (3, -1/2*a + 1/2)
+            Fractional ideal (3, 1/2*a - 1/2)
             sage: NFCusp(k, oo).ideal()
             Fractional ideal (1)
         """

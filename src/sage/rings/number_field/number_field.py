@@ -2050,8 +2050,8 @@ class NumberField_generic(number_field_base.NumberField):
             Fractional ideal (2, 1/2*a - 1/2)
             Fractional ideal (2, 1/2*a + 1/2)
             3
-            Fractional ideal (3, -1/2*a + 1/2)
-            Fractional ideal (3, -1/2*a - 1/2)
+            Fractional ideal (3, 1/2*a - 1/2)
+            Fractional ideal (3, 1/2*a + 1/2)
             4
             Fractional ideal (4, 1/2*a + 3/2)
             Fractional ideal (2)
@@ -3473,9 +3473,7 @@ class NumberField_generic(number_field_base.NumberField):
 
             sage: K.<w> = NumberField(x^2 + 23)
             sage: K.prime_factors(w + 1)
-            [Fractional ideal (2, 1/2*w - 1/2),
-            Fractional ideal (2, 1/2*w + 1/2),
-            Fractional ideal (3, -1/2*w - 1/2)]
+            [Fractional ideal (2, 1/2*w - 1/2), Fractional ideal (2, 1/2*w + 1/2), Fractional ideal (3, 1/2*w + 1/2)]
         """
         return self.ideal(x).prime_factors()
 

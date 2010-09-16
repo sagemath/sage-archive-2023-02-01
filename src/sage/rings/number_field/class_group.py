@@ -162,9 +162,9 @@ class ClassGroup(AbelianGroup_class):
             sage: G
             Class group of order 3 with structure C3 of Number Field in a with defining polynomial x^4 + 23
             sage: list(G)
-            [Trivial principal fractional ideal class, Fractional ideal class (2, -1/2*a^2 + a + 1/2), Fractional ideal class (2, 1/2*a^2 + 1/2)]
+            [Trivial principal fractional ideal class, Fractional ideal class (2, 1/4*a^3 - 1/4*a^2 + 1/4*a - 1/4), Fractional ideal class (2, 1/2*a^2 + 1/2)]
             sage: G.list()
-            [Trivial principal fractional ideal class, Fractional ideal class (2, -1/2*a^2 + a + 1/2), Fractional ideal class (2, 1/2*a^2 + 1/2)]
+            [Trivial principal fractional ideal class, Fractional ideal class (2, 1/4*a^3 - 1/4*a^2 + 1/4*a - 1/4), Fractional ideal class (2, 1/2*a^2 + 1/2)]
 
         TESTS::
 
@@ -237,7 +237,7 @@ class FractionalIdealClass(AbelianGroupElement):
 
             sage: K.<a> = NumberField(x^2 + 23,'a'); G = K.class_group()
             sage: G(K.ideal(13, a + 4))
-            Fractional ideal class (13, a + 4)
+            Fractional ideal class (13, 1/2*a + 17/2)
         """
         self.__ideal = ideal
         if element is None:
@@ -252,7 +252,7 @@ class FractionalIdealClass(AbelianGroupElement):
 
             sage: K.<a> = NumberField(x^2 + 23,'a'); G = K.class_group()
             sage: G(K.ideal(13, a + 4))._repr_()
-            'Fractional ideal class (13, a + 4)'
+            'Fractional ideal class (13, 1/2*a + 17/2)'
             sage: G(K.ideal(59, a+6))._repr_()
             'Trivial principal fractional ideal class'
         """
@@ -356,7 +356,7 @@ class FractionalIdealClass(AbelianGroupElement):
             sage: k.<a> = NumberField(x^2 + 20072); G = k.class_group(); G
             Class group of order 76 with structure C38 x C2 of Number Field in a with defining polynomial x^2 + 20072
             sage: I = G.0; I
-            Fractional ideal class (41, a + 10)
+            Fractional ideal class (41, 1/2*a + 5)
             sage: J = G(I.ideal()^5); J
             Fractional ideal class (115856201, 1/2*a + 40407883)
             sage: J.reduce()

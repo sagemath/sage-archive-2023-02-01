@@ -6,6 +6,7 @@ ctypedef struct MPopts:
 
 cdef mpz_set_integer(mpz_t v, x)
 cdef inline mpzi(mpz_t n)
+cdef inline mpzl(mpz_t n)
 cdef inline str rndmode_to_python(int rnd)
 cdef inline rndmode_from_python(str rnd)
 

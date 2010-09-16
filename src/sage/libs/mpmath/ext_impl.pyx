@@ -25,9 +25,9 @@ cdef extern from "mpz_pylong.h":
     cdef long mpz_pythonhash(mpz_t src)
 
 cdef mpz_set_integer(mpz_t v, x):
-    if PyInt_CheckExact(x):
+    if PyInt_Check(x):
         mpz_set_si(v, PyInt_AS_LONG(x))
-    elif PyLong_CheckExact(x):
+    elif PyLong_Check(x):
         mpz_set_pylong(v, x)
     elif PY_TYPE_CHECK(x, Integer):
         mpz_set(v, (<Integer>x).value)
@@ -43,6 +43,9 @@ cdef inline void mpz_add_si(mpz_t a, mpz_t b, long x):
 
 cdef inline mpzi(mpz_t n):
     return mpz_get_pyintlong(n)
+
+cdef inline mpzl(mpz_t n):
+    return mpz_get_pylong(n)
 
 # This should be done better
 cdef int mpz_tstbit_abs(mpz_t z, unsigned long bit_index):

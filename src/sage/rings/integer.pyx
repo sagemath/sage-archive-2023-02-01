@@ -549,6 +549,21 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             Traceback (most recent call last):
             ...
             ValueError: cannot convert float NaN to integer
+
+        ::
+
+            sage: class MyInt(int):
+            ...       pass
+            sage: class MyLong(long):
+            ...       pass
+            sage: class MyFloat(float):
+            ...       pass
+            sage: ZZ(MyInt(3))
+            3
+            sage: ZZ(MyLong(4))
+            4
+            sage: ZZ(MyFloat(5))
+            5
         """
 
         # TODO: All the code below should somehow be in an external
@@ -579,13 +594,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             elif PY_TYPE_CHECK(x, bool):
                 mpz_set_si(self.value, PyInt_AS_LONG(x))
 
-            elif PyInt_CheckExact(x):
+            elif PyInt_Check(x):
                 mpz_set_si(self.value, PyInt_AS_LONG(x))
 
-            elif PyLong_CheckExact(x):
+            elif PyLong_Check(x):
                 mpz_set_pylong(self.value, x)
 
-            elif PyFloat_CheckExact(x):
+            elif PyFloat_Check(x):
                 n = long(x)
                 if n == x:
                     mpz_set_pylong(self.value, n)

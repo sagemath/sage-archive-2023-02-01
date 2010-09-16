@@ -934,18 +934,29 @@ cdef class Context:
         guaranteed that `m` is an optimal bound, but it will never
         be too large by more than 2 (and probably not more than 1).
 
-        **Examples**
+        EXAMPLES::
 
-            >>> from mpmath import *
-            >>> mp.pretty = True
-            >>> mag(10), mag(10.0), mag(mpf(10)), int(ceil(log(10,2)))
+            sage: from mpmath import *
+            sage: mp.pretty = True
+            sage: mag(10), mag(10.0), mag(mpf(10)), int(ceil(log(10,2)))
             (4, 4, 4, 4)
-            >>> mag(10j), mag(10+10j)
+            sage: mag(10j), mag(10+10j)
             (4, 5)
-            >>> mag(0.01), int(ceil(log(0.01,2)))
+            sage: mag(0.01), int(ceil(log(0.01,2)))
             (-6, -6)
-            >>> mag(0), mag(inf), mag(-inf), mag(nan)
+            sage: mag(0), mag(inf), mag(-inf), mag(nan)
             (-inf, +inf, +inf, nan)
+
+        ::
+
+            sage: class MyInt(int):
+            ...       pass
+            sage: class MyLong(long):
+            ...       pass
+            sage: class MyFloat(float):
+            ...       pass
+            sage: mag(MyInt(10)), mag(MyLong(10))
+            (4, 4)
 
         """
         cdef int typ
@@ -1208,6 +1219,26 @@ cdef class mpf(mpf_base):
     def __int__(self):
         MPF_to_fixed(tmp_mpz, &self.value, 0, True)
         return mpzi(tmp_mpz)
+
+    def __long__(self):
+        r"""
+        Convert this mpf value to a long.
+
+        (Due to http://bugs.python.org/issue9869, to allow NZMATH to use
+        this Sage-modified version of mpmath, it is vital that we
+        return a long, not an int.)
+
+        TESTS::
+
+            sage: import mpmath
+            sage: v = mpmath.mpf(2)
+            sage: class MyLong(long):
+            ...       pass
+            sage: MyLong(v)
+            2L
+        """
+        MPF_to_fixed(tmp_mpz, &self.value, 0, True)
+        return mpzl(tmp_mpz)
 
     def __float__(self):
         return MPF_to_double(&self.value, False)

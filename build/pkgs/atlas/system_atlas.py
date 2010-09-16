@@ -12,14 +12,14 @@ if os.environ.has_key('SAGE_ATLAS_LIB'):
     if os.path.isdir(ATLAS_LIB):
 
         # Check for 4 static libraries.
-        has_atlas = os.path.exists(ATLAS_LIB+'/lib//libatlas.a')
+        has_atlas = os.path.exists(ATLAS_LIB+'/lib/libatlas.a')
         has_lapack = os.path.exists(ATLAS_LIB+'/lib/liblapack.a')
         has_cblas = os.path.exists(ATLAS_LIB+'/lib/libcblas.a')
         has_f77blas = os.path.exists(ATLAS_LIB+'/lib/libf77blas.a')
         has_atlas_headers = os.path.exists(ATLAS_LIB+'/include/atlas')
 
         if has_atlas == True and has_lapack == True and has_cblas == True and has_f77blas == True and has_atlas_headers == True:
-
+            print("Do not be alarmed if you see a message like 'readelf: not found' - it is harmless\n")
             s_gfortran = os.popen2('readelf -s ' +ATLAS_LIB+'/lib/libf77blas.so | grep gfortran')[1].read()
             s_g95 = os.popen2('readelf -s ' + ATLAS_LIB + '/lib/libf77blas.so | grep g95')[1].read()
 
@@ -42,11 +42,11 @@ if os.environ.has_key('SAGE_ATLAS_LIB'):
             os.system(' ln -sf ' + ATLAS_LIB + '/lib/liblapack.a '  + SAGE_LOCAL_LIB+'/liblapack.a')
             os.system(' ln -sf ' + ATLAS_LIB + '/lib/libf77blas.a '  + SAGE_LOCAL_LIB+'/libf77blas.a')
             # We might as well include the shared libraries libatlas.so and libcblas.so, as these
-            # build relieably on both Solaris and Linux, and might reduce the size of executable if
+            # build reliably on both Solaris and Linux, and might reduce the size of executable if
             # we link to them.
             os.system(' ln -sf ' + ATLAS_LIB + '/lib/libatlas.so '  + SAGE_LOCAL_LIB+'/libatlas.so')
             os.system(' ln -sf ' + ATLAS_LIB + '/lib/libcblas.so '  + SAGE_LOCAL_LIB+ '/libcblas.so')
-            # Buidling of liblapack.so and libf77blas.so is not reliable, but we will link to them
+            # Building of liblapack.so and libf77blas.so is not reliable, but we will link to them
             # People will have to make sure if they do build them, that they work. But these changes
             # only impact SAGE_ATLAS_LIB, which currently is broken on Solaris and often broken on Linux.
             os.system(' ln -sf ' + ATLAS_LIB + '/lib/liblapack.so '  + SAGE_LOCAL_LIB+'/liblapack.so')
@@ -59,19 +59,26 @@ if os.environ.has_key('SAGE_ATLAS_LIB'):
 
         else:
 
-            print("Unable to find one of liblapack.a, libcblas.a, libatlas.a or libf77blas.a")
-            print("in supplied directory.")
-            print("Set SAGE_ATLAS_LIB to the parent directory of liblapack.a, libcblas.a, libatlas.a and libf77blas.a,")
-            print("to use existing ATLAS libraries, or unset SAGE_ATLAS_LIB to build ATLAS from source.")
-            print("Then type make.")
+            print("\nUnable to find one of liblapack.a, libcblas.a, libatlas.a or libf77blas.a")
+            print("in the directory"),ATLAS_LIB+'/lib'
+            print("\nSet SAGE_ATLAS_LIB to the parent directory of the directory containing")
+            print("liblapack.a, libcblas.a, libatlas.a and libf77blas.a if you wish to use")
+            print("existing ATLAS libraries.\n")
+            print("So if for example those four libraries are in /usr/local/atlas/lib")
+            print("then set SAGE_ATLAS_LIB to be /usr/local/atlas\n")
+            print("Unset SAGE_ATLAS_LIB to build ATLAS from source.")
+            print("Then type make.\n")
             sys.exit(2)
     else:
-            print("Unable to find one of liblapack.a, libcblas.a, libatlas.a or libf77blas.a")
-            print("in supplied directory.")
-            print("Set SAGE_ATLAS_LIB to the parent directory of liblapack.a, libcblas.a, libatlas.a and libf77blas.a,")
-            print("to use existing ATLAS libraries, or unset SAGE_ATLAS_LIB to build ATLAS from source.")
-            print("Then type make.")
-            sys.exit(2)
-
+        print("\nUnable to find one of liblapack.a, libcblas.a, libatlas.a or libf77blas.a")
+        print("in the directory"),ATLAS_LIB+'/lib'
+        print("\nSet SAGE_ATLAS_LIB to the parent directory of the directory containing")
+        print("liblapack.a, libcblas.a, libatlas.a and libf77blas.a if you wish to use")
+        print("existing ATLAS libraries.\n")
+        print("So if for example those four libraries are in /usr/local/atlas/lib")
+        print("then set SAGE_ATLAS_LIB to be /usr/local/atlas\n")
+        print("Unset SAGE_ATLAS_LIB to build ATLAS from source.")
+        print("Then type make.\n")
+        sys.exit(2)
 else:
     sys.exit(1)

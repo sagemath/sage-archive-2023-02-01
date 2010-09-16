@@ -42,6 +42,7 @@ since the wrong flags are passed to the linker. This will be fixed soon.
    started sooner in parallel builds. This should reduce the overall time to
    build Sage.
  * The package is never installed on Cygwin or OS X.
+ * The code which calls 'readelf' can almost certainly be removed.
 
 == ChangeLog ==
 

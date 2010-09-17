@@ -887,7 +887,7 @@ class Gap(Gap_generic):
             raise RuntimeError, msg
 
         if self.__use_workspace_cache and self.__make_workspace:
-            self.eval('SaveWorkspace("%s");'%WORKSPACE)
+            self.save_workspace()
         # Now, as self._expect exists, we can compile some useful pattern:
         self._compiled_full_pattern = self._expect.compile_pattern_list(['@p\d+\.','@@','@[A-Z]','@[123456!"#$%&][^+]*\+',
                               '@e','@c','@f','@h','@i','@m','@n','@r','@s\d','@w.*\+','@x','@z'])
@@ -934,7 +934,26 @@ class Gap(Gap_generic):
             return r/1000.0
 
     def save_workspace(self):
-        self.eval('SaveWorkspace("%s");'%WORKSPACE)
+        r"""
+        Save the GAP workspace.
+
+        TESTS:
+
+        We make sure that #9938 (GAP does not start if the path to the GAP
+        workspace file contains more than 82 characters) is fixed::
+
+            sage: TEMP_WORKSPACE = SAGE_TMP + "gap" + "0"*(80-len(SAGE_TMP))
+            sage: sage.interfaces.gap.WORKSPACE = TEMP_WORKSPACE
+            sage: gap = Gap()
+            sage: gap('3+2')
+            5
+        """
+        # According to the GAP Reference Manual,
+        # [http://www.gap-system.org/Manuals/doc/htm/ref/CHAP003.htm#SSEC011.1]
+        # SaveWorkspace can only be used at the main gap> prompt. It cannot
+        # be included in the body of a loop or function, or called from a
+        # break loop.
+        self.eval('SaveWorkspace("%s");'%WORKSPACE, allow_use_file=False)
 
     # Todo -- this -- but there is a tricky "when does it end" issue!
     # Maybe do via a file somehow?
@@ -1130,7 +1149,7 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
                 print '*** %s'%msg
             pass
     # end for
-    g.eval('SaveWorkspace("%s");'%WORKSPACE)
+    g.save_workspace()
 
 
 # Check to see if we need to auto-regenerate the gap workspace, i.e.,

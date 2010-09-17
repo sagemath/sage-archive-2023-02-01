@@ -1282,8 +1282,8 @@ def render_3d(projection, **kwds):
     """
     if isinstance(projection, Polyhedron): projection = Projection(projection)
     return \
-        projection.render_vertices_3d(thickness=3, color='green', **kwds) +\
-        projection.render_wireframe_3d(thickness=3, color='green', **kwds) + \
+        projection.render_vertices_3d(width=3, color='green', **kwds) +\
+        projection.render_wireframe_3d(width=3, color='green', **kwds) + \
         projection.render_solid_3d(**kwds)
 
 

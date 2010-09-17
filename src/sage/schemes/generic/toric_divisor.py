@@ -1793,12 +1793,12 @@ class ToricRationalDivisorClassGroup(FreeModule_ambient_field, UniqueRepresentat
         sage: P2.rational_class_group()
         The toric rational divisor class group of a 2-d CPR-Fano
         toric variety covered by 3 affine patches
-        sage: D = P2.divisor(1); D
-        V(y)
+        sage: D = P2.divisor(0); D
+        V(x)
         sage: Dclass = D.divisor_class(); Dclass
         Divisor class [1]
         sage: Dclass.lift()
-        V(x)
+        V(y)
         sage: Dclass.parent()
         The toric rational divisor class group of a 2-d CPR-Fano
         toric variety covered by 3 affine patches
@@ -1815,6 +1815,26 @@ class ToricRationalDivisorClassGroup(FreeModule_ambient_field, UniqueRepresentat
             sage: ToricRationalDivisorClassGroup(P2)
             The toric rational divisor class group of a 2-d CPR-Fano
             toric variety covered by 3 affine patches
+
+        TESTS:
+
+        Make sure we lift integral classes to integral divisors::
+
+            sage: rays = [(1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, 0, 1), (2, -1, -1)]
+            sage: cones = [(0, 2, 3), (0, 2, 4), (0, 3, 4), (1, 2, 3), (1, 2, 4), (1, 3, 4)]
+            sage: X = ToricVariety(Fan(cones=cones, rays=rays))
+            sage: Cl = X.rational_class_group()
+            sage: Cl._projection_matrix
+            [1 1 0 0 0]
+            [0 2 1 1 1]
+            sage: Cl._lift_matrix
+            [1 0]
+            [0 0]
+            [0 0]
+            [0 1]
+            [0 0]
+            sage: Cl._lift_matrix.base_ring()
+            Integer Ring
         """
         self._variety = toric_variety
         fan = toric_variety.fan()
@@ -1824,7 +1844,10 @@ class ToricRationalDivisorClassGroup(FreeModule_ambient_field, UniqueRepresentat
                                                 dimension=rk, sparse=False)
         gale = fan.Gale_transform()
         self._projection_matrix = gale.matrix_from_columns(range(nrays))
-        self._lift_matrix = self._projection_matrix.solve_right( identity_matrix(rk) )
+        D, U, V = self._projection_matrix.transpose().smith_form()
+        assert all( D[i,i]==1 for i in range(0,D.ncols()) ), \
+            'This is a property of the Gale transform.'
+        self._lift_matrix = (V*D.transpose()*U).transpose()
 
     def _repr_(self):
         r"""

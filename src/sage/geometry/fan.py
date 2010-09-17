@@ -1680,7 +1680,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
 
         OUTPUT:
 
-        - matrix.
+        A matrix over `ZZ`.
 
         EXAMPLES::
 
@@ -1688,11 +1688,13 @@ class RationalPolyhedralFan(IntegralRayCollection,
             sage: fan.Gale_transform()
             [ 1  0  1  0 -2]
             [ 0  1  0  1 -2]
+            sage: _.base_ring()
+            Integer Ring
         """
         if "_Gale_transform" not in self.__dict__:
             m = self.ray_matrix().augment(matrix(self.lattice_dim(), 1))
             m = m.stack(matrix([1]*m.ncols()))
-            self._Gale_transform = m.transpose().integer_kernel().matrix()
+            self._Gale_transform = matrix(ZZ, m.transpose().integer_kernel().matrix())
         return self._Gale_transform
 
     def generating_cone(self, n):

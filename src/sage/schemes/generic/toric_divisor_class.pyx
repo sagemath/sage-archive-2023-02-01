@@ -286,7 +286,7 @@ cdef class ToricRationalDivisorClass(Vector_rational_dense):
             sage: D.divisor_class()
             Divisor class [29, 6, 8, 10, 0]
             sage: Dequiv = D.divisor_class().lift(); Dequiv
-            29/2*V(z0) + 6*V(z1) + 8*V(z2) + 10*V(z3)
+            6*V(z1) - 17*V(z2) - 22*V(z3) - 7*V(z4) + 25*V(z6) + 32*V(z7)
             sage: Dequiv == D
             False
             sage: Dequiv.divisor_class() == D.divisor_class()

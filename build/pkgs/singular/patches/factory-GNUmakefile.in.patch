@@ -1,10 +1,18 @@
 --- ../src/factory/GNUmakefile.in	2010-07-14 20:21:06.000000000 +0200
-+++ factory-GNUmakefile.in	2010-09-09 09:38:21.616327761 +0200
-@@ -490,6 +490,7 @@
++++ factory-GNUmakefile.in	2010-09-17 15:10:34.492205464 +0200
+@@ -473,7 +473,6 @@
+ 	sed -n '/^\/\*MAKEHEADER/!d; n; s/^#include "//; s/"//; p;' $< | tr '\012' ' ' >> $@tmp
+ 	echo >> $@tmp
+ 	mv $@tmp $@
+-
+ # how to create header files from header templates
+ %.h: %.template
+ 	$(MAKEHEADER) $(MAKEHEADERFLAGS) $< $@
+@@ -490,6 +489,7 @@
  #
  # - explicit targets.
  #
-+$(basefactorysrc:.cc=.o):	factory.h
++$(basefactorysrc:.cc=.o) $(basefactorysrc:.cc=.og): factory.h
  $(libfactory):	$(factoryobj)
  		$(AR) $(ARFLAGS) $@ $^
  		$(RANLIB) $@

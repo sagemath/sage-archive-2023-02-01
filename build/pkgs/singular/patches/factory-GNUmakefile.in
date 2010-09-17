@@ -473,7 +473,6 @@ distfiles :=	\
 	sed -n '/^\/\*MAKEHEADER/!d; n; s/^#include "//; s/"//; p;' $< | tr '\012' ' ' >> $@tmp
 	echo >> $@tmp
 	mv $@tmp $@
-
 # how to create header files from header templates
 %.h: %.template
 	$(MAKEHEADER) $(MAKEHEADERFLAGS) $< $@
@@ -490,7 +489,7 @@ mem:		libcfmem.a
 #
 # - explicit targets.
 #
-$(basefactorysrc:.cc=.o):	factory.h
+$(basefactorysrc:.cc=.o) $(basefactorysrc:.cc=.og): factory.h
 $(libfactory):	$(factoryobj)
 		$(AR) $(ARFLAGS) $@ $^
 		$(RANLIB) $@

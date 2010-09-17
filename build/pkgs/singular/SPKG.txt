@@ -42,6 +42,9 @@ MPIR, NTL, Termcap, Readline and MPFR
 
 == ChangeLog ==
 
+=== singular-3-1-1-4.p2 (Alexander Dreyer, 17th September 2010) ===
+*  #9733, comment comment 41 ff: Added another dependency
+
 === singular-3-1-1-4.p1 (Alexander Dreyer, 10th September 2010) ===
 *  #9733: Restore parallel build, hopefully found all dependencies.
 

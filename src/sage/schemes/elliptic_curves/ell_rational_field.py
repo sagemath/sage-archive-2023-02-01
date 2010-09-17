@@ -4786,7 +4786,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
 
     ########################################################################
-    # The Shafarevich-Tate group
+    # The Tate-Shafarevich group
     ########################################################################
 
     def sha(self):
@@ -4803,7 +4803,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E=EllipticCurve('37a1')
             sage: S=E.sha()
             sage: S
-            Shafarevich-Tate group for the Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
+            Tate-Shafarevich group for the Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
             sage: S.bound_kolyvagin()
             ([2], 1)
         """

@@ -490,7 +490,7 @@ class pAdicLseries(SageObject):
         theorem of Kato [Ka].  This function will terminate if and only if
         the Mazur-Tate-Teitelbaum analogue [MTT] of the BSD conjecture about
         the rank of the curve is true and the subgroup of elements of
-        `p`-power order in the Shafarevich-Tate group of this curve is
+        `p`-power order in the Tate-Shafarevich group of this curve is
         finite.  I.e. if this function terminates (with no errors!),
         then you may conclude that the `p`-adic BSD rank conjecture is
         true and that the `p`-part of Sha is finite.

@@ -1354,6 +1354,23 @@ class Graph(GenericGraph):
             sage: print "Everything is Fine !"
             Everything is Fine !
 
+        TESTS:
+
+        Bug reported in #9925, and fixed by #9420::
+
+            sage: g = Graph(':SiBFGaCEF_@CE`DEGH`CEFGaCDGaCDEHaDEF`CEH`ABCDEF')
+            sage: g.is_even_hole_free()
+            False
+            sage: g.is_even_hole_free(certificate = True)
+            Subgraph of (): Looped multi-graph on 4 vertices
+
+        Making sure there are no other counter-examples around ::
+
+            sage: t = lambda x : (Graph(x).is_forest() or
+            ...         isinstance(Graph(x).is_even_hole_free(certificate = True),Graph))
+            sage: all( t(graphs.RandomBipartite(10,10,.5)) for i in range(100) )
+            True
+
         REFERENCE:
 
         .. [ABCHRS08] L. Addario-Berry, M. Chudnovsky, F. Havet, B. Reed, P. Seymour

@@ -83,6 +83,11 @@ exactly where it says native, but I would expect a grep to find it.
 
 == Changelog ==
 
+=== pari-2.4.3.svn-12577.p7 (Jeroen Demeyer, September 17th, 2010) ===
+ * Add -fno-common to DLCFLAGS on all Darwin systems instead of
+   PPC/PPC64 only.
+ * Add upstream fix for rnfequation(,,1) over Q
+
 === pari-2.4.3.svn-12577.p6 (Jeroen Demeyer, September 11th, 2010) ===
  * Add upstream fix for config/get_dlcflags and remove the patch
  * Add upstream fix for bnfinit() and the rnfkummer test

@@ -77,6 +77,10 @@ svn update -r 12594 config/get_dlcflags
 # <http://pari.math.u-bordeaux.fr/cgi-bin/bugreport.cgi?bug=1099>
 svn update -r 12596 src/test/*/rnfkummer src/basemath/buch2.c
 
+# Fix segmentation fault in rnfequation(,,1) over Q
+# <http://pari.math.u-bordeaux.fr/cgi-bin/bugreport.cgi?bug=1079>
+svn update -r 12605 src/basemath/polarit3.c src/basemath/base2.c
+
 
 # make pari (must run bison, etc...) but disable optimization to speed
 # up compilation (the output of the compiling is not used anyway).

@@ -3,7 +3,7 @@ See below for information on files which used to be patched but are no
 longer, or are still but now for a different reason. (Do not delete that!)
 
 ======================================================================
-Files patched as of pari-2.4.3.svn-12577.p6:
+Files patched as of pari-2.4.3.svn-12577.p7:
 ======================================================================
 
 Configuration files:
@@ -14,6 +14,8 @@ Configuration files:
 * config/get_config_options: Catch invalid arguments to "--graphic".
 * config/get_fltk; Add libstdc++; check presence of FLTK headers, too.
 * config/get_X11: Search X11 library in */lib64/*, too (not just */lib/*).
+* config/get_dlcflags: Add -fno-common to DLCFLAGS on Darwin.  Fixed
+  upstream, but probably in a bad way.
 
 Documentation:
 * doc/gphelp.in: cwitty: Disable TeX; allow bz2 compression.
@@ -26,7 +28,6 @@ C files:
 * src/kernel/gmp/mp.c: Needed so that Sage can catch PARI's error signals.
                        Also allow disabling use of "GMP internals".
 * src/language/init.c: Needed so that Sage can catch PARI's error signals.
-* src/basemath/base2.c and src/basemath/polarit3.c: Fix PARI bug 1079.
 
 ======================================================================
 Files previously patched:
@@ -62,8 +63,8 @@ Files previously patched:
   in place!
 * config/Makefile.SH: Change "test -e" to "test -f" for Solaris.  Fixed
   upstream
-* config/get_dlcflags: Add -fno-common to DLCFLAGS on Darwin.  Fixed
-  upstream
 * Configure: First line was changed from "#! /bin/sh" to
   "#!/usr/bin/env bash".  Now we directly call `bash Configure` instead
   in spkg-install.
+* src/basemath/base2.c and src/basemath/polarit3.c: Fix PARI bug 1079.
+  Now fixed upstream.

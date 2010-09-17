@@ -28,9 +28,6 @@ cd src
 cp "$PATCHED/init.c"  src/language/init.c
 cp "$PATCHED/mp.c"    src/kernel/gmp/mp.c
 
-# Fix for PARI bug 1079 (jdemeyer: temporary until this is fixed upstream):
-cp "$PATCHED/base2.c" "$PATCHED/polarit3.c" src/basemath/
-
 # cwitty: Disable -rpath:
 cp "$PATCHED/get_ld" config/
 
@@ -54,6 +51,10 @@ cp "$PATCHED/get_fltk" config/
 # is really a separate directory, i.e. neither a symbolic link to */lib/* nor
 # the target of a symbolic link */lib/*; cf. #9722, too):
 cp "$PATCHED/get_X11" config/
+
+# Add -fno-common to DLCFLAGS on all Darwin systems instead of
+# PPC/PPC64 only.
+cp "$PATCHED/get_dlcflags" config/
 
 
 # This is needed or there are weird locale problems involving rpath

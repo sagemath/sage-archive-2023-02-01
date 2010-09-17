@@ -45,6 +45,12 @@ SAGE_ROOT = os.environ['SAGE_ROOT']
 SAGE_SITE = os.path.realpath(os.path.join(os.environ['SAGE_LOCAL'],
                                           'lib', 'python', 'site-packages'))
 
+try:
+    XML_RESULTS = os.environ['XML_RESULTS']
+except KeyError:
+    XML_RESULTS = None
+
+
 if 'SAGE_TESTDIR' not in os.environ:
     os.environ['SAGE_TESTDIR'] = os.path.join(SAGE_ROOT, "tmp")
 TMP = os.path.join(os.environ['SAGE_TESTDIR'], "tmp")
@@ -101,7 +107,31 @@ def test(F, cmd):
     elif err != 0:
         failed.append(sage_test_command(F))
     os.system("mv -f __test* %s 2>/dev/null"%(TMP))
-    print "\t [%.1f s]"%(time.time() - t)
+    t = time.time() - t
+    print "\t [%.1f s]" % t
+    if XML_RESULTS:
+        failures = int(err == 128)
+        errors = int(err and not failures)
+        path = F.split(os.path.sep)
+        while 'sage' in path:
+            path = path[path.index('sage')+1:]
+        path[-1] = os.path.splitext(path[-1])[0]
+        module = '.'.join(path)
+        if errors and '#' in failed[-1]:
+            cause = failed[-1].split('#')[-1].strip()
+            failure_item = "<error type='%s'>%s</error>" % (cause, cause)
+        else:
+            failure_item = ""
+        f = open(os.path.join(XML_RESULTS, module + '.xml'), 'w')
+        f.write("""
+            <?xml version="1.0" ?>
+            <testsuite name="%(module)s" errors="%(errors)s" failures="%(failures)s" tests="1" time="%(t)s">
+            <testcase classname="%(module)s" name="test">
+            %(failure_item)s
+            </testcase>
+            </testsuite>
+        """.strip() % locals())
+        f.close()
     return err
 
 

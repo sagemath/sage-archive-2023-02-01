@@ -16,6 +16,11 @@ SAGE_SITE = os.path.realpath(os.path.join(os.environ['SAGE_LOCAL'],
                                           'lib', 'python', 'site-packages'))
 BUILD_DIR = os.path.realpath(os.path.join(SAGE_ROOT, 'devel', 'sage', 'build'))
 
+try:
+    XML_RESULTS = os.environ['XML_RESULTS']
+except KeyError:
+    XML_RESULTS = None
+
 numiteration = int(os.environ.get('SAGE_TEST_ITER', 1))
 numglobaliteration = int(os.environ.get('SAGE_TEST_GLOBAL_ITER', 1))
 print 'Global iterations: ' + str(numglobaliteration)
@@ -161,6 +166,31 @@ def process_result(result):
             ol=ol[0:len(ol)-1]
         print ol
     time_dict[abs_sage_path(F)] = finished_time
+    if XML_RESULTS:
+        t = finished_time
+        failures = int(ret == 128)
+        errors = int(ret and not failures)
+        path = F.split(os.path.sep)
+        while 'sage' in path:
+            path = path[path.index('sage')+1:]
+        path[-1] = os.path.splitext(path[-1])[0]
+        module = '.'.join(path)
+        if (failures or errors) and '#' in failed[-1]:
+            type = "error" if errors else "failure"
+            cause = failed[-1].split('#')[-1].strip()
+            failure_item = "<%s type='%s'>%s</%s>" % (type, cause, cause, type)
+        else:
+            failure_item = ""
+        f = open(os.path.join(XML_RESULTS, module + '.xml'), 'w')
+        f.write("""
+            <?xml version="1.0" ?>
+            <testsuite name="%(module)s" errors="%(errors)s" failures="%(failures)s" tests="1" time="%(t)s">
+            <testcase classname="%(module)s" name="test">
+            %(failure_item)s
+            </testcase>
+            </testsuite>
+        """.strip() % locals())
+        f.close()
     print "\t [%.1f s]"%(finished_time)
 
 def infiles_cmp(a,b):

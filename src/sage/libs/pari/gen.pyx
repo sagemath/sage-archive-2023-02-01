@@ -6197,33 +6197,61 @@ cdef class gen(sage.structure.element.RingElement):
 
     def ellpow(self, z, n):
         """
-        e.ellpow(z, n): return n times the point z on the elliptic curve
-        e.
+        e.ellpow(z, n): return `n` times the point `z` on the elliptic
+        curve `e`.
 
         INPUT:
 
 
         -  ``e`` - elliptic curve
 
-        -  ``z`` - point on e
+        -  ``z`` - point on `e`
 
-        -  ``n`` - integer, or a complex quadratic integer of
-           complex multiplication for e (CM case is currently broken in
-           pari)
+        -  ``n`` - integer, or a complex quadratic integer of complex
+           multiplication for `e`. Complex multiplication currently
+           only works if `e` is defined over `Q`.
 
 
-        EXAMPLES: We consider a CM curve::
+        EXAMPLES: We consider a curve with CM by `Z[i]`::
 
-            sage: e = pari([0,0,0,1,0]).ellinit()
+            sage: e = pari([0,0,0,3,0]).ellinit()
+            sage: p = [1,2]  # Point of infinite order
 
         Multiplication by two::
 
             sage: e.ellpow([0,0], 2)
             [0]
+            sage: e.ellpow(p, 2)
+            [1/4, -7/8]
 
-        Complex multiplication (this is broken at the moment)::
+        Complex multiplication::
 
-            sage: e.ellpow([0,0], I+1) # optional
+            sage: q = e.ellpow(p, 1+I); q
+            [-2*I, 1 + I]
+            sage: e.ellpow(q, 1-I)
+            [1/4, -7/8]
+
+        TESTS::
+
+            sage: for D in [-7, -8, -11, -12, -16, -19, -27, -28]:  # long time (1s)
+            ...       hcpol = hilbert_class_polynomial(D)
+            ...       j = hcpol.roots(multiplicities=False)[0]
+            ...       t = (1728-j)/(27*j)
+            ...       E = EllipticCurve([4*t,16*t^2])
+            ...       P = E.point([0, 4*t])
+            ...       assert(E.j_invariant() == j)
+            ...       #
+            ...       # Compute some CM number and its minimal polynomial
+            ...       #
+            ...       cm = pari('cm = (3*quadgen(%s)+2)'%D)
+            ...       cm_minpoly = pari('minpoly(cm)')
+            ...       #
+            ...       # Evaluate cm_minpoly(cm)(P), which should be zero
+            ...       #
+            ...       e = pari(E)  # Convert E to PARI
+            ...       P2 = e.ellpow(P, cm_minpoly[2]*cm + cm_minpoly[1])
+            ...       P0 = e.elladd(e.ellpow(P, cm_minpoly[0]), e.ellpow(P2, cm))
+            ...       assert(P0 == E(0))
         """
         t0GEN(z); t1GEN(n)
         _sig_on

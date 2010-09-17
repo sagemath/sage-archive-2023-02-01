@@ -10,7 +10,7 @@ Index: config/get_dlcflags
 -      case $arch in
 -        ppc|ppc64) DLCFLAGS="$DLCFLAGS -fno-common"
 -      esac;;
-+    darwin) DLCFLAGS="-fPIC -fno-common"
++    darwin) DLCFLAGS="-fPIC -fno-common";;
      *) DLCFLAGS=-fPIC;;
    esac
  else #assume native compiler

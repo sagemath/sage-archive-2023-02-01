@@ -20,6 +20,7 @@ include sage/server/notebook/templates/*
 include sage/server/notebook/templates/css/*
 include sage/server/notebook/templates/notebook/*
 include sage/server/notebook/templates/worksheet/*
+include sage/tests/french_book/README
 include doc/common/templates/layout.html
 include doc/en/introspect/static/empty
 include doc/en/introspect/templates/layout.html

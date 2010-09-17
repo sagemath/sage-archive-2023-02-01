@@ -894,6 +894,7 @@ code = setup(name = 'sage',
                      'sage.rings.semirings',
 
                      'sage.tests',
+                     'sage.tests.french_book',
 
                      'sage.sets',
 

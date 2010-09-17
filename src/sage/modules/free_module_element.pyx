@@ -262,6 +262,15 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
         sage: v = vector(K, (0, 1) )
         sage: vector(v).base_ring()
         Number Field in sqrt3 with defining polynomial x^2 - 3
+
+    Constructing a vector from a numpy array works::
+
+        sage: import numpy
+        sage: a=numpy.array([1,2,3])
+        sage: v=vector(a); v
+        (1, 2, 3)
+        sage: parent(v)
+        Ambient free module of rank 3 over the principal ideal domain Integer Ring
     """
     if hasattr(arg0, '_vector_'):
         return arg0._vector_(arg1)
@@ -286,10 +295,6 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
     else:
         v = arg0
         R = None
-    if isinstance(v, dict):
-        if sparse is None:
-            sparse = True
-        v, R = prepare_dict(v, R)
 
     from numpy import ndarray
     from free_module import VectorSpace
@@ -306,10 +311,16 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
                 _v=vector_complex_double_dense.Vector_complex_double_dense(V, v)
                 return _v
 
+
+    if isinstance(v, dict):
+        if sparse is None:
+            sparse = True
+        v, R = prepare_dict(v, R)
     else:
         if sparse is None:
             sparse = False
         v, R = prepare(v, R)
+
     if sparse:
         import free_module  # slow -- can we improve
         return free_module.FreeModule(R, len(v), sparse=True)(v)

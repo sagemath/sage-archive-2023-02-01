@@ -1337,17 +1337,22 @@ class Graph(GenericGraph):
         not a forest has an even hole::
 
             sage: g = graphs.RandomBipartite(10, 10, .5)
-            sage: g.is_even_hole_free()
+            sage: g.is_even_hole_free() and not g.is_forest()
             False
 
         We can check the certificate returned is indeed an even
         cycle::
 
-            sage: cycle = g.is_even_hole_free(certificate = True)
-            sage: cycle.order() % 2 == 0
-            True
-            sage: cycle.is_isomorphic(graphs.CycleGraph(cycle.order()))
-            True
+            sage: if not g.is_forest():
+            ...      cycle = g.is_even_hole_free(certificate = True)
+            ...      if cycle.order() % 2 == 1:
+            ...          print "Error !"
+            ...      if not cycle.is_isomorphic(
+            ...             graphs.CycleGraph(cycle.order())):
+            ...          print "Error !"
+            ...
+            sage: print "Everything is Fine !"
+            Everything is Fine !
 
         REFERENCE:
 

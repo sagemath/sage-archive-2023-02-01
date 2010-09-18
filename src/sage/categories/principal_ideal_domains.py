@@ -9,7 +9,6 @@ Principal ideal domains
 #******************************************************************************
 
 from sage.categories.category import Category
-from sage.categories.basic import GcdDomains
 from sage.misc.cachefunc import cached_method
 
 class PrincipalIdealDomains(Category):
@@ -27,7 +26,7 @@ class PrincipalIdealDomains(Category):
       sage: PrincipalIdealDomains()
       Category of principal ideal domains
       sage: PrincipalIdealDomains().super_categories()
-      [Category of gcd domains]
+      [Category of unique factorization domains]
 
     See also: http://en.wikipedia.org/wiki/Principal_ideal_domain
 
@@ -42,9 +41,10 @@ class PrincipalIdealDomains(Category):
         EXAMPLES::
 
             sage: PrincipalIdealDomains().super_categories()
-            [Category of gcd domains]
+            [Category of unique factorization domains]
         """
-        return [GcdDomains()]
+        from sage.categories.basic import UniqueFactorizationDomains
+        return [UniqueFactorizationDomains()]
 
     class ParentMethods:
         pass

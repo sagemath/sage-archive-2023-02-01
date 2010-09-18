@@ -94,6 +94,7 @@ These may change over time::
 
 from sage.structure.element import Element
 import sage.algebras.algebra
+import sage.categories.basic as categories
 import sage.rings.commutative_ring as commutative_ring
 import sage.rings.commutative_algebra as commutative_algebra
 import sage.rings.ring as ring
@@ -183,8 +184,22 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             0
             sage: (x - 2/3)*(x^2 - 8*x + 16)
             x^3 - 26/3*x^2 + 64/3*x - 32/3
+
+            sage: category(ZZ['x'])
+            Category of unique factorization domains
+            sage: category(GF(7)['x'])
+            Category of euclidean domains
         """
-        sage.algebras.algebra.Algebra.__init__(self, base_ring, names=name, normalize=True)
+        R_cat = base_ring.category()
+        if R_cat.is_subcategory(categories.Fields()):
+            category = categories.EuclideanDomains()
+        elif R_cat.is_subcategory(categories.UniqueFactorizationDomains()):
+            category = categories.UniqueFactorizationDomains()
+        elif R_cat.is_subcategory(categories.IntegralDomains()):
+            category = categories.IntegralDomains()
+        else:
+            category = categories.CommutativeRings()
+        sage.algebras.algebra.Algebra.__init__(self, base_ring, names=name, normalize=True, category=category)
         self.__is_sparse = sparse
         if element_class:
             self._polynomial_class = element_class

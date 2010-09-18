@@ -942,11 +942,12 @@ class Gap(Gap_generic):
         We make sure that #9938 (GAP does not start if the path to the GAP
         workspace file contains more than 82 characters) is fixed::
 
-            sage: TEMP_WORKSPACE = SAGE_TMP + "gap" + "0"*(80-len(SAGE_TMP))
-            sage: sage.interfaces.gap.WORKSPACE = TEMP_WORKSPACE
+            sage: ORIGINAL_WORKSPACE = sage.interfaces.gap.WORKSPACE
+            sage: sage.interfaces.gap.WORKSPACE = SAGE_TMP + "gap" + "0"*(80-len(SAGE_TMP))
             sage: gap = Gap()
             sage: gap('3+2')
             5
+            sage: sage.interfaces.gap.WORKSPACE = ORIGINAL_WORKSPACE
         """
         # According to the GAP Reference Manual,
         # [http://www.gap-system.org/Manuals/doc/htm/ref/CHAP003.htm#SSEC011.1]

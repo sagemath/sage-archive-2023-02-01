@@ -94,7 +94,7 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
             sage: R(15/425)
             Traceback (most recent call last):
             ...
-            ValueError: p divides the denominator
+            ValueError: p divides denominator
 
         # todo: the above error message does not agree with the error message
         # in the corresponding capped-relative constructor

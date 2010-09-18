@@ -239,12 +239,17 @@ class pAdicExtensionGeneric(pAdicGeneric):
         if self.is_field() and print_mode is None:
             return self
         print_mode = self._modified_print_mode(print_mode)
-        K = self.ground_ring().fraction_field(print_mode)
-        #the print options will be set due to the ground ring.
+        ground_mode = print_mode.copy()
+        # We don't want to confuse the ground ring with different names.
+        ground_mode['ram_name'] = None
+        ground_mode['unram_name'] = None
+        K = self.ground_ring().fraction_field(ground_mode)
+        #we don't want to set the print options due to the ground ring since
+        #different extension fields (with different options) can share the same ground ring.
         if self.is_lazy():
-            return K.extension(self._pre_poly, prec = self.precision_cap(), halt = self.halting_parameter(), res_name = self.residue_field().variable_name(), names=self.variable_name(), unram_name=self._unram_print(), ram_name=self._uniformizer_print())
+            return K.extension(self._pre_poly, prec = self.precision_cap(), halt = self.halting_parameter(), res_name = self.residue_field().variable_name(), print_mode=print_mode)
         else:
-            return K.extension(self._pre_poly, prec = self.precision_cap(), res_name = self.residue_field().variable_name(), names=self.variable_name(), unram_name=self._unram_print(), ram_name=self._uniformizer_print())
+            return K.extension(self._pre_poly, prec = self.precision_cap(), res_name = self.residue_field().variable_name(), print_mode=print_mode)
 
     def integer_ring(self, print_mode=None):
         r"""
@@ -273,12 +278,17 @@ class pAdicExtensionGeneric(pAdicGeneric):
         if not self.is_field() and print_mode is None:
             return self
         print_mode = self._modified_print_mode(print_mode)
-        K = self.ground_ring().integer_ring(print_mode)
-        #the print options will be set due to the ground ring.
+        ground_mode = print_mode.copy()
+        # We don't want to confuse the ground ring with different names.
+        ground_mode['ram_name'] = None
+        ground_mode['unram_name'] = None
+        K = self.ground_ring().integer_ring(ground_mode)
+        #we don't want to set the print options due to the ground ring since
+        #different extension fields (with different options) can share the same ground ring.
         if self.is_lazy():
-            return K.extension(self._pre_poly, prec = self.precision_cap(), halt = self.halting_parameter(), res_name = self.residue_field().variable_name(), names=self.variable_name(), unram_name=self._unram_print(), ram_name=self._uniformizer_print())
+            return K.extension(self._pre_poly, prec = self.precision_cap(), halt = self.halting_parameter(), res_name = self.residue_field().variable_name(), print_mode=print_mode)
         else:
-            return K.extension(self._pre_poly, prec = self.precision_cap(), res_name = self.residue_field().variable_name(), names=self.variable_name(), unram_name=self._unram_print(), ram_name=self._uniformizer_print())
+            return K.extension(self._pre_poly, prec = self.precision_cap(), res_name = self.residue_field().variable_name(), print_mode=print_mode)
 
     #def hasGNB(self):
     #    raise NotImplementedError

@@ -385,12 +385,10 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         if mpz_sgn(value) == 0:
             self._set_exact_zero()
             return 0
-        _sig_on
         self.ordp = mpz_remove(self.unit, value, self.prime_pow.prime.value)
         self.relprec = relprec
-        _sig_off
         if mpz_sgn(self.unit) == -1 or \
-               (mpz_cmp(self.unit, self.prime_pow.pow_mpz_t_tmp(relprec)) >= 0):
+               (mpz_cmp(self.unit, self.prime_pow.pow_mpz_t_tmp(relprec)[0]) >= 0):
             _sig_on
             mpz_mod(self.unit, self.unit, self.prime_pow.pow_mpz_t_tmp(self.relprec)[0])
             _sig_off
@@ -677,7 +675,9 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         elif self.ordp < 0:
             raise ValueError, "negative valuation"
         elif mpz_sgn(self.unit) == 0:
-            mpz_set(dest, self.prime_pow.pow_mpz_t_tmp(self.ordp))
+            mpz_set_ui(dest, 0)
+            # The following preserved the "right" valuation, but left the range 0..p^N-1.
+            #mpz_set(dest, self.prime_pow.pow_mpz_t_tmp(self.ordp))
         else:
             mpz_set(dest, self.unit)
             if self.ordp > 0:
@@ -687,8 +687,6 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
     cdef int _set_mpq_into(pAdicCappedRelativeElement self, mpq_t dest) except -1:
         """
         Sets dest to a lift of self.
-
-        Not currently used internally.
         """
         if mpz_sgn(self.unit) == -1:
             mpq_set_ui(dest, 0, 1)
@@ -696,7 +694,9 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             mpz_set(mpq_denref(dest), self.prime_pow.pow_mpz_t_tmp(-self.ordp))
             mpz_set(mpq_numref(dest), self.unit)
         elif mpz_sgn(self.unit) == 0:
-            mpq_set_z(dest, self.prime_pow.pow_mpz_t_tmp(self.ordp))
+            mpq_set_ui(dest, 0, 1)
+            # The following preserved the "right" valuation, but left the range 0..p^N-1.
+            #mpq_set_z(dest, self.prime_pow.pow_mpz_t_tmp(self.ordp))
         else:
             mpq_set_z(dest, self.unit)
             if self.ordp > 0:

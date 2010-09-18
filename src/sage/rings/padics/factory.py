@@ -49,6 +49,101 @@ ext_table['u', pAdicRingFixedMod] = UnramifiedExtensionRingFixedMod
 
 import weakref
 
+def get_key_base(p, prec, type, print_mode, halt, names, ram_name, print_pos, print_sep, print_alphabet, print_max_terms, check, valid_non_lazy_types):
+    """
+    This implements create_key for Zp and Qp: moving it here prevents code duplication.
+
+    It fills in unspececified values and checks for contradictions in the input.  It also standardizes irrelevant options so that duplicate parents aren't created.
+
+    EXAMPLES::
+
+        sage: from sage.rings.padics.factory import get_key_base
+        sage: get_key_base(11, 5, 'capped-rel', None, 0, None, None, None, ':', None, None, True, ['capped-rel'])
+        (11, 5, 'capped-rel', 'series', '11', True, '|', (), -1)
+        sage: get_key_base(12, 5, 'capped-rel', 'digits', 0, None, None, None, None, None, None, False, ['capped-rel'])
+        (12, 5, 'capped-rel', 'digits', '12', True, '|', ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B'), -1)
+    """
+    if check:
+        if not isinstance(p, Integer):
+            p = Integer(p)
+        if not isinstance(prec, Integer):
+            prec = Integer(prec)
+        if not isinstance(halt, Integer):
+            halt = Integer(halt)
+        if not p.is_prime():
+            raise ValueError, "p must be prime"
+    print_ram_name = ram_name
+    if isinstance(print_mode, dict):
+        if print_mode.has_key('pos'):
+            print_pos = print_mode['pos']
+        if print_mode.has_key('ram_name'):
+            print_ram_name = print_mode['ram_name']
+        if print_mode.has_key('unram_name'):
+            print_unram_name = print_mode['unram_name']
+        if print_mode.has_key('sep'):
+            print_sep = print_mode['sep']
+        if print_mode.has_key('alphabet'):
+            print_alphabet = print_mode['alphabet']
+        if print_mode.has_key('max_ram_terms'):
+            print_max_terms = print_mode['max_ram_terms']
+        if print_mode.has_key('max_terms'):
+            print_max_terms = print_mode['max_terms']
+        if print_mode.has_key('mode'):
+            print_mode = print_mode['mode']
+        else:
+            print_mode = None
+    if print_mode is None:
+        print_mode = padic_printing._printer_defaults.mode()
+    if print_pos is None:
+        print_pos = not padic_printing._printer_defaults.allow_negatives()
+    if print_sep is None:
+        print_sep = padic_printing._printer_defaults.sep()
+    if print_alphabet is None:
+        print_alphabet = padic_printing._printer_defaults.alphabet()
+    if print_max_terms is None:
+        print_max_terms = padic_printing._printer_defaults.max_series_terms()
+
+    # We eliminate irrelevant print options (e.g. print_pos if p = 2)
+    if p == 2 or print_mode == 'digits':
+        print_pos = True # we want this hard-coded so that we don't get duplicate parents if the keys differ.
+    if print_mode == 'digits':
+        print_ram_name = None
+        print_alphabet = print_alphabet[:p]
+    else:
+        print_alphabet = []
+    if print_mode != 'bars':
+        print_sep = '|'
+    if print_mode in ['terse', 'val-unit']:
+        print_max_terms = -1
+
+    if isinstance(names, tuple):
+        names = names[0]
+    if names is None and print_ram_name is None:
+        name = str(p)
+    elif names is not None and print_ram_name is not None:
+        if not isinstance(names, str):
+            names = str(names)
+        if not isinstance(print_ram_name, str):
+            print_ram_name = str(print_ram_name)
+        if names != print_ram_name:
+            raise ValueError, "If both names (%s) and print_ram_name (%s) are specified, they must agree"%(names, print_ram_name)
+        name = names
+    else:
+        if names is None:
+            names = print_ram_name
+        if isinstance(names, str):
+            name = names
+        else:
+            name = str(names)
+    if type in valid_non_lazy_types:
+        key = (p, prec, type, print_mode, name, print_pos, print_sep, tuple(print_alphabet), print_max_terms)
+    elif type == 'lazy':
+        key = (p, prec, halt, print_mode, name, print_pos, print_sep, tuple(print_alphabet), print_max_terms)
+    else:
+        print type
+        raise ValueError, "type must be %s or lazy"%(", ".join(valid_non_lazy_types))
+    return key
+
 #######################################################################################################
 #
 #  p-Adic Fields
@@ -358,73 +453,9 @@ class Qp_class(UniqueFactory):
         TESTS::
 
             sage: Qp.create_key(5,40)
-            (5, 40, 'capped-rel', 'series', '5', True, '|', ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'), -1)
+            (5, 40, 'capped-rel', 'series', '5', True, '|', (), -1)
         """
-        if check:
-            if not isinstance(p, Integer):
-                p = Integer(p)
-            if not isinstance(prec, Integer):
-                prec = Integer(prec)
-            if not isinstance(halt, Integer):
-                halt = Integer(halt)
-            if not p.is_prime():
-                raise ValueError, "p must be prime"
-        if isinstance(print_mode, dict):
-            if print_mode.has_key('pos'):
-                print_pos = print_mode['pos']
-            if print_mode.has_key('ram_name'):
-                print_ram_name = print_mode['ram_name']
-            if print_mode.has_key('unram_name'):
-                print_unram_name = print_mode['unram_name']
-            if print_mode.has_key('sep'):
-                print_sep = print_mode['sep']
-            if print_mode.has_key('alphabet'):
-                print_alphabet = print_mode['alphabet']
-            if print_mode.has_key('max_ram_terms'):
-                print_max_terms = print_mode['max_ram_terms']
-            if print_mode.has_key('max_terms'):
-                print_max_terms = print_mode['max_terms']
-            if print_mode.has_key('mode'):
-                print_mode = print_mode['mode']
-            else:
-                print_mode = None
-        if print_mode is None:
-            print_mode = padic_printing._printer_defaults.mode()
-        if print_pos is None:
-            print_pos = not padic_printing._printer_defaults.allow_negatives()
-        if print_sep is None:
-            print_sep = padic_printing._printer_defaults.sep()
-        if print_alphabet is None:
-            print_alphabet = padic_printing._printer_defaults.alphabet()
-        if print_max_terms is None:
-            print_max_terms = padic_printing._printer_defaults.max_series_terms()
-        if isinstance(names, tuple):
-            names = names[0]
-        if names is None and ram_name is None:
-            name = str(p)
-        elif names is not None and ram_name is not None:
-            if not isinstance(names, str):
-                names = str(names)
-            if not isinstance(ram_name, str):
-                ram_name = str(ram_name)
-            if names != ram_name:
-                raise ValueError, "If both names and ram_name are specified, they must agree"
-            name = names
-        else:
-            if names is None:
-                names = ram_name
-            if isinstance(names, str):
-                name = names
-            else:
-                name = str(names)
-        if type == 'capped-rel':
-            key = (p, prec, type, print_mode, name, print_pos, print_sep, tuple(print_alphabet), print_max_terms)
-        elif type == 'lazy':
-            key = (p, prec, halt, print_mode, name, print_pos, print_sep, tuple(print_alphabet), print_max_terms)
-        else:
-            raise ValueError, "type must be either 'capped-rel' or 'lazy'"
-        return key
-
+        return get_key_base(p, prec, type, print_mode, halt, names, ram_name, print_pos, print_sep, print_alphabet, print_max_terms, check, ['capped-rel'])
 
     def create_object(self, version, key):
         """
@@ -434,8 +465,8 @@ class Qp_class(UniqueFactory):
 
         TESTS::
 
-            sage: Qp.create_object((3,4,2),(5, 40, 'capped-rel', 'series', '5', True, '|', ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'), -1))
-            5-adic Field with capped relative precision 40
+            sage: Qp.create_object((3,4,2),(5, 41, 'capped-rel', 'series', '5', True, '|', (), -1))
+            5-adic Field with capped relative precision 41
         """
         if version[0] < 3 or (version[0] == 3 and version[1] < 2) or (version[0] == 3 and version[1] == 2 and version[2] < 3):
             p, prec, type, print_mode, name = key
@@ -445,7 +476,18 @@ class Qp_class(UniqueFactory):
         if isinstance(type, Integer):
             # lazy
             raise NotImplementedError, "lazy p-adics need more work.  Sorry."
-        elif type == 'capped-rel':
+        if version[0] < 4 or (len(version) > 1 and version[0] == 4 and version[1] < 5) or (len(version) > 2 and version[0] == 4 and version[1] == 5 and version[2] < 3):
+            # keys changed in order to reduce irrelevant duplications: e.g. two Qps with print_mode 'series' that are identical except for different 'print_alphabet' now return the same object.
+            key = get_key_base(p, prec, type, print_mode, 0, name, None, print_pos, print_sep, print_alphabet, print_max_terms, False, ['capped-rel', 'fixed-mod', 'capped-abs'])
+            try:
+                obj = self._cache[version, key]()
+                if obj is not None:
+                    return obj
+            except KeyError:
+                pass
+            p, prec, type, print_mode, name, print_pos, print_sep, print_alphabet, print_max_terms = key
+
+        if type == 'capped-rel':
             if print_mode == 'terse':
                 return pAdicFieldCappedRelative(p, prec, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet, 'ram_name': name, 'max_terse_terms': print_max_terms}, name)
             else:
@@ -1360,73 +1402,11 @@ class Zp_class(UniqueFactory):
         TESTS::
 
             sage: Zp.create_key(5,40)
-            (5, 40, 'capped-rel', 'series', '5', True, '|', ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'), -1)
-
+            (5, 40, 'capped-rel', 'series', '5', True, '|', (), -1)
+            sage: Zp.create_key(5,40,print_mode='digits')
+            (5, 40, 'capped-rel', 'digits', '5', True, '|', ('0', '1', '2', '3', '4'), -1)
         """
-        if check:
-            if not isinstance(p, Integer):
-                p = Integer(p)
-            if not isinstance(prec, Integer):
-                prec = Integer(prec)
-            if not isinstance(halt, Integer):
-                halt = Integer(halt)
-            if not p.is_prime():
-                raise ValueError, "p must be prime"
-        if isinstance(print_mode, dict):
-            if print_mode.has_key('pos'):
-                print_pos = print_mode['pos']
-            if print_mode.has_key('ram_name'):
-                print_ram_name = print_mode['ram_name']
-            if print_mode.has_key('unram_name'):
-                print_unram_name = print_mode['unram_name']
-            if print_mode.has_key('sep'):
-                print_sep = print_mode['sep']
-            if print_mode.has_key('alphabet'):
-                print_alphabet = print_mode['alphabet']
-            if print_mode.has_key('max_ram_terms'):
-                print_max_terms = print_mode['max_ram_terms']
-            if print_mode.has_key('max_terms'):
-                print_max_terms = print_mode['max_terms']
-            if print_mode.has_key('mode'):
-                print_mode = print_mode['mode']
-            else:
-                print_mode = None
-        if print_mode is None:
-            print_mode = padic_printing._printer_defaults.mode()
-        if print_pos is None:
-            print_pos = not padic_printing._printer_defaults.allow_negatives()
-        if print_sep is None:
-            print_sep = padic_printing._printer_defaults.sep()
-        if print_alphabet is None:
-            print_alphabet = padic_printing._printer_defaults.alphabet()
-        if print_max_terms is None:
-            print_max_terms = padic_printing._printer_defaults.max_series_terms()
-        if isinstance(names, tuple):
-            names = names[0]
-        if names is None and ram_name is None:
-            name = str(p)
-        elif names is not None and ram_name is not None:
-            if not isinstance(names, str):
-                names = str(names)
-            if not isinstance(ram_name, str):
-                ram_name = str(ram_name)
-            if names != ram_name:
-                raise ValueError, "If both names and ram_name are specified, they must agree"
-            name = names
-        else:
-            if names is None:
-                names = ram_name
-            if isinstance(names, str):
-                name = names
-            else:
-                name = str(names)
-        if type in ['capped-rel', 'fixed-mod', 'capped-abs']:
-            key = (p, prec, type, print_mode, name, print_pos, print_sep, tuple(print_alphabet), print_max_terms)
-        elif type == 'lazy':
-            key = (p, prec, halt, print_mode, name, print_pos, print_sep, tuple(print_alphabet), print_max_terms)
-        else:
-            raise ValueError, "type must be one of 'capped-rel', 'fixed-mod', 'capped-abs' or 'lazy'"
-        return key
+        return get_key_base(p, prec, type, print_mode, halt, names, ram_name, print_pos, print_sep, print_alphabet, print_max_terms, check, ['capped-rel', 'fixed-mod', 'capped-abs'])
 
     def create_object(self, version, key):
         """
@@ -1436,8 +1416,8 @@ class Zp_class(UniqueFactory):
 
         TESTS::
 
-            sage: Zp.create_object((3,4,2),(5, 40, 'capped-rel', 'series', '5', True, '|', ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'), -1))
-            5-adic Ring with capped relative precision 40
+            sage: Zp.create_object((3,4,2),(5, 41, 'capped-rel', 'series', '5', True, '|', (), -1))
+            5-adic Ring with capped relative precision 41
         """
         if version[0] < 3 or (len(version) > 1 and version[0] == 3 and version[1] < 2) or (len(version) > 2 and version[0] == 3 and version[1] == 2 and version[2] < 3):
             p, prec, type, print_mode, name = key
@@ -1447,7 +1427,17 @@ class Zp_class(UniqueFactory):
         if isinstance(type, Integer):
             # lazy
             raise NotImplementedError, "lazy p-adics need more work.  Sorry."
-        elif type == 'capped-rel':
+        if version[0] < 4 or (len(version) > 1 and version[0] == 4 and version[1] < 5) or (len(version) > 2 and version[0] == 4 and version[1] == 5 and version[2] < 3):
+            # keys changed in order to reduce irrelevant duplications: e.g. two Zps with print_mode 'series' that are identical except for different 'print_alphabet' now return the same object.
+            key = get_key_base(p, prec, type, print_mode, 0, name, None, print_pos, print_sep, print_alphabet, print_max_terms, False, ['capped-rel', 'fixed-mod', 'capped-abs'])
+            try:
+                obj = self._cache[version, key]()
+                if obj is not None:
+                    return obj
+            except KeyError:
+                pass
+            p, prec, type, print_mode, name, print_pos, print_sep, print_alphabet, print_max_terms = key
+        if type == 'capped-rel':
             return pAdicRingCappedRelative(p, prec, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet, 'ram_name': name, 'max_ram_terms': print_max_terms}, name)
         elif type == 'fixed-mod':
             return pAdicRingFixedMod(p, prec, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet, 'ram_name': name, 'max_ram_terms': print_max_terms}, name)
@@ -2120,7 +2110,7 @@ class pAdicExtension_class(UniqueFactory):
             sage: R = Zp(5,3)
             sage: S.<x> = ZZ[]
             sage: pAdicExtension.create_key_and_extra_args(R, x^4-15,names='w')
-            (('e', 5-adic Ring with capped relative precision 3, x^4 - 15, (1 + O(5^3))*x^4 + (O(5^4))*x^3 + (O(5^4))*x^2 + (O(5^4))*x + (2*5 + 4*5^2 + 4*5^3 + O(5^4)), ('w', None, None, 'w'), 12, None, 'series', True, '|', ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'), -1, -1, -1), {'shift_seed': (3 + O(5^3))})
+            (('e', 5-adic Ring with capped relative precision 3, x^4 - 15, (1 + O(5^3))*x^4 + (O(5^4))*x^3 + (O(5^4))*x^2 + (O(5^4))*x + (2*5 + 4*5^2 + 4*5^3 + O(5^4)), ('w', None, None, 'w'), 12, None, 'series', True, '|', (), -1, -1, -1), {'shift_seed': (3 + O(5^3))})
         """
         if print_mode is None:
             print_mode = base.print_mode()
@@ -2274,7 +2264,7 @@ class pAdicExtension_class(UniqueFactory):
 
             sage: R = Zp(5,3)
             sage: S.<x> = R[]
-            sage: pAdicExtension.create_object(version = (3,4,2), key = ('e', R, x^4 - 15, x^4 - 15, ('w', None, None, 'w'), 12, None, 'series', True, '|', ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'),-1,-1,-1), shift_seed = S(3 + O(5^3)))
+            sage: pAdicExtension.create_object(version = (3,4,2), key = ('e', R, x^4 - 15, x^4 - 15, ('w', None, None, 'w'), 12, None, 'series', True, '|', (),-1,-1,-1), shift_seed = S(3 + O(5^3)))
             Eisenstein Extension of 5-adic Ring with capped relative precision 3 in w defined by (1 + O(5^3))*x^4 + (2*5 + 4*5^2 + 4*5^3 + O(5^4))
         """
         polytype = key[0]

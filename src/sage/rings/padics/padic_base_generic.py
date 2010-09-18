@@ -13,6 +13,7 @@ from sage.rings.infinity import infinity
 from sage.rings.padics.pow_computer import PowComputer
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
+from sage.rings.padics.padic_base_coercion import pAdicCoercion_ZZ_CR, pAdicCoercion_QQ_CR, pAdicConvert_QQ_CR, pAdicCoercion_ZZ_CA, pAdicConvert_QQ_CA, pAdicCoercion_ZZ_FM, pAdicConvert_QQ_FM
 
 class pAdicBaseGeneric(pAdicGeneric):
     def __init__(self, p, prec, print_mode, names, element_class):
@@ -26,9 +27,20 @@ class pAdicBaseGeneric(pAdicGeneric):
         self.prime_pow = PowComputer(p, max(min(prec - 1, 30), 1), prec, self.is_field())
         pAdicGeneric.__init__(self, self, p, prec, print_mode, names, element_class)
         if self.is_field():
-            self._populate_coercion_lists_(coerce_list=[QQ], element_constructor=element_class)
+            coerce_list = [pAdicCoercion_ZZ_CR(self), pAdicCoercion_QQ_CR(self)]
+            convert_list = []
+        elif self.is_capped_relative():
+            coerce_list = [pAdicCoercion_ZZ_CR(self)]
+            convert_list = [pAdicConvert_QQ_CR(self)]
+        elif self.is_capped_absolute():
+            coerce_list = [pAdicCoercion_ZZ_CA(self)]
+            convert_list = [pAdicConvert_QQ_CA(self)]
+        elif self.is_fixed_mod():
+            coerce_list = [pAdicCoercion_ZZ_FM(self)]
+            convert_list = [pAdicConvert_QQ_FM(self)]
         else:
-            self._populate_coercion_lists_(coerce_list=[ZZ], element_constructor=element_class)
+            raise RuntimeError
+        self._populate_coercion_lists_(coerce_list=coerce_list, convert_list=convert_list, element_constructor=element_class)
 
     def fraction_field(self, print_mode=None):
         r"""

@@ -10,7 +10,7 @@ SetsWithPartialMaps
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.categories.category import Category
+from sage.categories.category import Category, HomCategory
 from sage.misc.cachefunc import cached_method
 
 class SetsWithPartialMaps(Category):
@@ -50,3 +50,6 @@ class SetsWithPartialMaps(Category):
         """
         from objects import Objects
         return [Objects()]
+
+    class HomCategory(HomCategory):
+        pass

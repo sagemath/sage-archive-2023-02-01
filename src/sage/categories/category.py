@@ -1204,7 +1204,7 @@ class HomCategory(Category):
         EXAMPLES::
 
             sage: HomCategory(Sets()).super_categories()
-            [Category of hom sets in Category of objects]
+            [Category of hom sets in Category of sets with partial maps]
         """
         return Category.join(self.extra_super_categories() +
                              [category.hom_category()

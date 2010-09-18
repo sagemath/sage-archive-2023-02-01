@@ -1246,10 +1246,9 @@ ext_modules = [
     Extension('sage.rings.padics.local_generic_element',
               sources = ['sage/rings/padics/local_generic_element.pyx']),
 
-    #Extension('sage.rings.padics.morphism',
-    #          sources = ['sage/rings/padics/morphism.pyx'],
-    #          libraries=['gmp', 'ntl', 'csage', 'gmpxx', 'm', 'stdc++'],
-    #          language='c++'),
+    Extension('sage.rings.padics.padic_base_coercion',
+              sources = ['sage/rings/padics/padic_base_coercion.pyx'],
+              libraries=['gmp']),
 
     Extension('sage.rings.padics.padic_base_generic_element',
               sources = ['sage/rings/padics/padic_base_generic_element.pyx'],

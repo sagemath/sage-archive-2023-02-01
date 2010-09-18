@@ -698,6 +698,10 @@ def valuation(m,*args1, **args2):
         2
         sage: valuation(4r,2r)
         2
+        sage: valuation(1r,1r)
+        Traceback (most recent call last):
+        ...
+        ValueError: You can only compute the valuation with respect to a integer larger than 1.
     """
     if isinstance(m,(int,long)):
         m=ZZ(m)

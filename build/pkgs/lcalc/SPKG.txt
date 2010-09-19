@@ -26,7 +26,12 @@ version 1.23, which I removed. (David Kirkby, 27th May 2010).
 
 Michael Rubinstein <mrubinst@uwaterloo.ca>
 
-=== lcalc-1.23.p4 (William Stein, August 31, 2010) ===
+=== lcalc-1.23.p5 (Jeroen Demeyer, September 19, 2010) ===
+ * Remove dist directory
+ * Put back SAGE_LOCAL sanity check in spkg-install
+ * Change "make" to "$MAKE"
+
+=== lcalc-1.23.p4 (Mike Hansen, William Stein, September 2, 2010) ===
  * Add time.h include to Lcommandline_numbertheory.h (this should get upstreamed)
 
 === lcalc-1.23.p3 (Mike Hansen, August 21, 2010) ===

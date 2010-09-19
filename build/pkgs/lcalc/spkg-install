@@ -186,8 +186,8 @@ success "patch: Lcommandline_numbertheory.h"
 cp ../../patches/Lcommandline_elliptic.cc .
 success "patch: Lcommandline_elliptic.cc"
 
-cp ../../patches/Makefile.sage Makefile
-success "patch: Makefile.sage"
+cp ../../patches/Makefile Makefile
+success "patch: Makefile"
 
 $MAKE
 success 'make'

@@ -101,23 +101,6 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
         self._point_class = ell_point.EllipticCurvePoint_finite_field
 
-    def _pari_(self):
-        """
-        Return a GP/PARI elliptic curve
-
-        EXAMPLES::
-
-            sage: EllipticCurve(GF(41),[2,5])._pari_()
-            [Mod(0, 41), Mod(0, 41), Mod(0, 41), Mod(2, 41), Mod(5, 41), Mod(0, 41), Mod(4, 41), Mod(20, 41), Mod(37, 41), Mod(27, 41), Mod(26, 41), Mod(4, 41), Mod(11, 41), 0, 0, 0, 0, 0, 0]
-        """
-        try:
-            return self.__pari
-        except AttributeError:
-            pass
-        F = self.base_ring()
-        self.__pari = pari('ellinit(Mod(1,%s)*%s)'%(F.characteristic(), [b._pari_() for b in self.ainvs()]))
-        return self.__pari
-
     def plot(self, *args, **kwds):
         """
         Draw a graph of this elliptic curve over a prime finite field.

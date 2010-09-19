@@ -132,6 +132,7 @@ import sage.rings.arith as arith
 import sage.misc.misc as misc
 from sage.groups.all import AbelianGroup
 import sage.groups.generic as generic
+from sage.libs.pari.all import pari, PariError
 
 from sage.structure.sequence  import Sequence
 from sage.schemes.generic.morphism import (SchemeMorphism_projective_coordinates_ring,
@@ -204,7 +205,7 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         sage: E=EllipticCurve(K,[0,1,0,-160,308])
         sage: P=E(26,-120)
         sage: Q=E(2+12*i,-36+48*i)
-        sage: P.order() == Q.order() == 4
+        sage: P.order() == Q.order() == 4  # long time (3s)
         True
         sage: 2*P==2*Q
         False
@@ -388,6 +389,44 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
             except TypeError:
                 return -1
         return cmp(self._coords, other._coords)
+
+    def _pari_(self):
+        r"""
+        Converts this point to PARI format.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve([0,0,0,3,0])
+            sage: O = E(0)
+            sage: P = E.point([1,2])
+            sage: O._pari_()
+            [0]
+            sage: P._pari_()
+            [1, 2]
+
+        The following implicitly calls O._pari_() and P._pari_()::
+
+            sage: pari(E).elladd(O,P)
+            [1, 2]
+
+        TESTS::
+
+        Try the same over a finite field::
+
+            sage: E = EllipticCurve(GF(11), [0,0,0,3,0])
+            sage: O = E(0)
+            sage: P = E.point([1,2])
+            sage: O._pari_()
+            [0]
+            sage: P._pari_()
+            [Mod(1, 11), Mod(2, 11)]
+            sage: pari(E).elladd(O,P)
+            [Mod(1, 11), Mod(2, 11)]
+        """
+        if self[2]:
+            return pari([self[0]/self[2], self[1]/self[2]])
+        else:
+            return pari([0])
 
     def scheme(self):
         """
@@ -1184,13 +1223,13 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
 
         An example over a number field::
 
-            sage: P,Q = EllipticCurve('11a1').change_ring(CyclotomicField(5)).torsion_subgroup().gens()
-            sage: P, Q = (P.element(), Q.element())
-            sage: (P.order(),Q.order())
+            sage: P,Q = EllipticCurve('11a1').change_ring(CyclotomicField(5)).torsion_subgroup().gens()  # long time (10s)
+            sage: P,Q = (P.element(), Q.element())  # long time
+            sage: (P.order(),Q.order())  # long time
             (5, 5)
-            sage: P.weil_pairing(Q,5)
+            sage: P.weil_pairing(Q,5)  # long time
             zeta5^2
-            sage: Q.weil_pairing(P,5)
+            sage: Q.weil_pairing(P,5)  # long time
             zeta5^3
 
         ALGORITHM:
@@ -1347,9 +1386,8 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         E = self.curve()
 
         # Special code for curves over Q, calling pari
-        from sage.libs.pari.gen import PariError
         try:
-            n = int(E.pari_curve().ellorder([self[0], self[1]]))
+            n = int(E.pari_curve().ellorder(self))
             if n == 0: n = oo
             self._order = n
             return n
@@ -1807,7 +1845,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             Emin = E.minimal_model()
             iso = E.isomorphism_to(Emin)
             P = iso(self)
-            h = Emin.pari_curve(prec=precision).ellheight([P[0], P[1]],precision=precision)
+            h = Emin.pari_curve(prec=precision).ellheight(P, precision=precision)
             height = rings.RealField(precision)(h)
         else:
             height = (self.nonarchimedian_local_height(prec=precision)
@@ -2229,11 +2267,11 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         x, y = self.xy()
         if rational:        # work with exact coordinates
             E_work = E
-            pt_pari = [pari(x), pari(y)]
+            pt_pari = pari([x,y])
         else:               # use the embedding to get real coordinates
             ai = [emb(a) for a in E.a_invariants()]
             E_work = EllipticCurve(ai) # defined over RR
-            pt_pari = [pari(emb(x)), pari(emb(y))]
+            pt_pari = pari([emb(x), emb(y)])
         working_prec = precision
         E_pari = E_work.pari_curve(prec=working_prec)
         log_pari = E_pari.ellpointtoz(pt_pari, precision=working_prec)
@@ -2248,7 +2286,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
                 emb = refine_embedding(emb, working_prec)
                 ai = [emb(a) for a in E.a_invariants()]
                 E_work = EllipticCurve(ai) # defined over RR
-                pt_pari = [pari(emb(x)), pari(emb(y))]
+                pt_pari = pari([emb(x), emb(y)])
             E_pari = E_work.pari_curve(prec=working_prec)
             log_pari = E_pari.ellpointtoz(pt_pari, precision=working_prec)
 
@@ -2307,11 +2345,11 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: P.padic_elliptic_logarithm(3).lift()
             660257522
             sage: P = E(-11/9,28/27)
-            sage: [(2*P).padic_elliptic_logarithm(p)/P.padic_elliptic_logarithm(p) for p in prime_range(20)]
+            sage: [(2*P).padic_elliptic_logarithm(p)/P.padic_elliptic_logarithm(p) for p in prime_range(20)]  # long time (3s)
             [2 + O(2^19), 2 + O(3^20), 2 + O(5^19), 2 + O(7^19), 2 + O(11^19), 2 + O(13^19), 2 + O(17^19), 2 + O(19^19)]
-            sage: [(3*P).padic_elliptic_logarithm(p)/P.padic_elliptic_logarithm(p) for p in prime_range(12)]
+            sage: [(3*P).padic_elliptic_logarithm(p)/P.padic_elliptic_logarithm(p) for p in prime_range(12)]  # long time (2s)
             [1 + 2 + O(2^19), 3 + 3^20 + O(3^21), 3 + O(5^19), 3 + O(7^19), 3 + O(11^19)]
-            sage: [(5*P).padic_elliptic_logarithm(p)/P.padic_elliptic_logarithm(p) for p in prime_range(12)]
+            sage: [(5*P).padic_elliptic_logarithm(p)/P.padic_elliptic_logarithm(p) for p in prime_range(12)]  # long time (2s)
             [1 + 2^2 + O(2^19), 2 + 3 + O(3^20), 5 + O(5^19), 5 + O(7^19), 5 + O(11^19)]
 
         An example which arose during reviewing #4741::

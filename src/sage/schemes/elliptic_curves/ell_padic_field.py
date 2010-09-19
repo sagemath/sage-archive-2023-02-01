@@ -68,34 +68,6 @@ class EllipticCurve_padic_field(EllipticCurve_field, HyperellipticCurve_padic_fi
         self._point_class = ell_point.EllipticCurvePoint_field
         self._genus = 1
 
-    def _pari_(self):
-        """
-        Convert the elliptic curve to Pari. It requires the p-adic j-valuation
-        to be negative, i.e., the j-valuation must not be a p-adic integer.
-        EXAMPLES:
-        sage: Qp=pAdicField(5, prec=3)
-        sage: E=EllipticCurve(Qp,[3, 4])
-        sage: E._pari_()
-        [O(5^3), O(5^3), O(5^3), 3 + O(5^3), 4 + O(5^3), O(5^3), 1 + 5 + O(5^3), 1 + 3*5 + O(5^3), 1 + 3*5 + 4*5^2 + O(5^3), 1 + 5 + 4*5^2 + O(5^3), 4 + 3*5 + 5^2 + O(5^3), 2*5 + 4*5^2 + O(5^3), 3*5^-1 + O(5), [4 + 4*5 + 4*5^2 + O(5^3)], 1 + 2*5 + 4*5^2 + O(5^3), 1 + 5 + 4*5^2 + O(5^3), 2*5 + 4*5^2 + O(5^3), 3 + 3*5 + 3*5^2 + O(5^3), 0]
-        sage: E.j_invariant()
-        3*5^-1 + O(5)
-        sage: E=EllipticCurve(Qp,[1, 1])
-        sage: E.j_invariant() # the j-invariant is a p-adic integer
-        2 + 4*5^2 + O(5^3)
-        sage: E._pari_()
-        Traceback (most recent call last):
-        ...
-        PariError:  (5)
-        """
-        try:
-            return self.__pari
-        except AttributeError:
-            pass
-        F = self.base_ring()
-        self.__pari = pari('ellinit([%s,%s,%s,%s,%s])'%tuple([b._pari_() for b in self.ainvs()]))
-        return self.__pari
-
-
     def frobenius(self, P=None):
         """
         Returns the Frobenius as a function on the group of points of

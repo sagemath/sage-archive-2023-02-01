@@ -2793,15 +2793,11 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         a1, a2, a3, a4, a6 = self.ainvs()
         return R([a6, a4, a2, 1]), R([a3, a1])
 
-    def pari_curve(self, prec=53):
+    def pari_curve(self):
         """
         Return the PARI curve corresponding to this elliptic curve.
 
-        .. note::
-
-           The result is cached; on subsequent calls the cached value
-           is returned provided that it has sufficient precision,
-           otherwise pari is called again with the new precision.
+        The result is cached.
 
         EXAMPLES::
 
@@ -2813,6 +2809,30 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             't_VEC'
             sage: e.disc()
             37.0000000000000
+
+        Over a finite field::
+
+            sage: EllipticCurve(GF(41),[2,5]).pari_curve()
+            [Mod(0, 41), Mod(0, 41), Mod(0, 41), Mod(2, 41), Mod(5, 41), Mod(0, 41), Mod(4, 41), Mod(20, 41), Mod(37, 41), Mod(27, 41), Mod(26, 41), Mod(4, 41), Mod(11, 41), 0, 0, 0, 0, 0, 0]
+
+        Over a `p`-adic field::
+
+            sage: Qp = pAdicField(5, prec=3)
+            sage: E = EllipticCurve(Qp,[3, 4])
+            sage: E.pari_curve()
+            [O(5^3), O(5^3), O(5^3), 3 + O(5^3), 4 + O(5^3), O(5^3), 1 + 5 + O(5^3), 1 + 3*5 + O(5^3), 1 + 3*5 + 4*5^2 + O(5^3), 1 + 5 + 4*5^2 + O(5^3), 4 + 3*5 + 5^2 + O(5^3), 2*5 + 4*5^2 + O(5^3), 3*5^-1 + O(5), [4 + 4*5 + 4*5^2 + O(5^3)], 1 + 2*5 + 4*5^2 + O(5^3), 1 + 5 + 4*5^2 + O(5^3), 2*5 + 4*5^2 + O(5^3), 3 + 3*5 + 3*5^2 + O(5^3), 0]
+            sage: E.j_invariant()
+            3*5^-1 + O(5)
+
+        The `j`-invariant must have negative `p`-adic valuation::
+
+            sage: E = EllipticCurve(Qp,[1, 1])
+            sage: E.j_invariant() # the j-invariant is a p-adic integer
+            2 + 4*5^2 + O(5^3)
+            sage: E.pari_curve()
+            Traceback (most recent call last):
+            ...
+            PariError:  (5)
         """
         try:
             return self._pari_curve
@@ -2820,5 +2840,19 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             pass
 
         from sage.libs.pari.all import pari
-        self._pari_curve = pari(list(self.a_invariants())).ellinit(precision=prec)
+        self._pari_curve = pari(list(self.a_invariants())).ellinit()
         return self._pari_curve
+
+    # This alias is defined so that pari(E) returns exactly the same
+    # as E.pari_curve().  Without it, pari(E) would call the default
+    # _pari_() as defined in sage.structure.sage_object.pyx, which
+    # in turn calls pari(s) where s=E._pari_init_(), as defined in
+    # ell_generic.py, which is just an ellinit() string of the form
+    # 'ellinit([a1,a2,a3,a4,a6])'.  This way gives better control over
+    # the precision of the returned pari curve: pari(E) will return a
+    # pari elliptic curve with the highest precision computed by any
+    # previous call to E.pari_curve(), or 53 bits by default if that
+    # function has not previously been called.
+
+    _pari_ = pari_curve
+

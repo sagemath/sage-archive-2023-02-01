@@ -657,26 +657,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                     return self._pari_curve[L[-1]]
                 else:
                     prec = int(factor * L[-1])
-        # EllipticCurve('903b3').pari_curve() fails without this loop:
-        while True:
-            try:
-                self._pari_curve[prec] = pari(list(self.a_invariants())).ellinit(precision=prec)
-                return self._pari_curve[prec]
-            except PariError:
-                prec *= 2
-
-    # This alias is defined so that pari(E) returns exactly the same
-    # as E.pari_curve().  Without it, pari(E) would call the default
-    # _pari_() as defined in sage.structure.sage_object.pyx, which
-    # in turn calls pari(s) where s=E._pari_init_(), as defined in
-    # ell_generic.py, which is just an ellinit() string of the form
-    # 'ellinit([a1,a2,a3,a4,a6])'.  This way gives better control over
-    # the precision of the returned pari curve: pari(E) will return a
-    # pari elliptic curve with the highest precision computed by any
-    # previous call to E.pari_curve(), or 53 bits by default if that
-    # function has not previously been called.
-
-    _pari_ = pari_curve
+        self._pari_curve[prec] = pari(list(self.a_invariants())).ellinit(precision=prec)
+        return self._pari_curve[prec]
 
     def pari_mincurve(self, prec = None, factor = 1):
         """
@@ -4770,9 +4752,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 return self.eval_modular_form([points],prec)
         an = self.pari_mincurve().ellan(prec)
         s = 0
-        I = pari("I")
-        pi = pari("Pi")
-        c = pari(2)*pi*I
+        c = pari('2 * Pi * I')
         ans = []
         for z in points:
             s = pari(0)

@@ -45,3 +45,5 @@ from euclidean_domains import EuclideanDomains
 from unique_factorization_domains import UniqueFactorizationDomains
 
 from fields import Fields
+from quotient_fields import QuotientFields
+from finite_fields import FiniteFields

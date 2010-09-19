@@ -40,8 +40,6 @@ from finite_groups import FiniteGroups
 from finite_permutation_groups import FinitePermutationGroups
 
 # fields
-from quotient_fields import QuotientFields
-from finite_fields import FiniteFields
 from number_fields import NumberFields
 
 # modules

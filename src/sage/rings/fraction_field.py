@@ -82,6 +82,7 @@ import sage.misc.latex as latex
 
 from sage.structure.parent import Parent
 from sage.structure.coerce_maps import CallableConvertMap
+from sage.categories.basic import QuotientFields
 
 def FractionField(R, names=None):
     """
@@ -155,7 +156,8 @@ class FractionField_generic(field.Field):
     The fraction field of an integral domain.
     """
     def __init__(self, R,
-            element_class=fraction_field_element.FractionFieldElement):
+            element_class=fraction_field_element.FractionFieldElement,
+            category=QuotientFields()):
         """
         Create the fraction field of the integral domain R.
 
@@ -171,11 +173,13 @@ class FractionField_generic(field.Field):
             Fraction Field of Univariate Polynomial Ring in x over Rational Field
             sage: Frac(QQ['x,y']).variable_names()
             ('x', 'y')
+            sage: category(Frac(QQ['x']))
+            Category of quotient fields
         """
         self._R = R
         self._element_class = element_class
         self._element_init_pass_parent = False
-        Parent.__init__(self, base=R, names=R._names)
+        Parent.__init__(self, base=R, names=R._names, category=category)
 
     def __reduce__(self):
         """

@@ -1693,14 +1693,14 @@ cdef class Field(PrincipalIdealDomain):
     def category(self):
         """
         Return the category of this field, which is the category
-        of fields.
+        of fields or a subcategory thereof.
 
         EXAMPLES:
 
         Examples with fields::
 
             sage: QQ.category()
-            Category of fields
+            Category of quotient fields
             sage: RR.category()
             Category of fields
             sage: CC.category()
@@ -1708,7 +1708,7 @@ cdef class Field(PrincipalIdealDomain):
             sage: R.<x> = PolynomialRing(ZZ)
             sage: Q = R.fraction_field()
             sage: Q.category()
-            Category of fields
+            Category of quotient fields
 
         Although fields themselves, number fields belong to the category
         of 'number fields'::

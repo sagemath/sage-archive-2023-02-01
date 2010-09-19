@@ -1,0 +1,198 @@
+# $Id: Makefile.in 12477 2010-01-29 09:10:49Z hannes $
+#################################################
+SHELL		= /bin/sh
+RM		= -rm -f
+#################################################
+TARGETNAME		= @targetname@
+LIBFACNAME		= @libfac_name@
+LIBFACVERSION		= @libfac_version@
+LIBFACDATE		= @libfac_date@
+LIBFACAUTHOR		= @libfac_author@
+LIBFACNAME		= @libfac@
+SINGLIBFACNAME		= @libsingfac@
+LIBFACINCLUDE		= @factorH@
+#################################################
+##
+## various paths
+##
+srcdir		= @srcdir@
+prefix 		= @prefix@
+exec_prefix	= @exec_prefix@
+libdir 		= @libdir@
+includedir	= @includedir@
+
+##
+## various programs
+##
+AR		= @AR@ cr
+RANLIB		= @RANLIB@
+CXX		= @CXX@
+INSTALL		= ./install-sh -c
+INSTALL_DATA	= ${INSTALL} -m 644
+INSTALL_PROGRAM = ${INSTALL}
+MKINSTALLDIRS	= ./mkinstalldirs
+
+##
+## compiler and linker options
+##
+CXXFLAGS	= @CXXFLAGS@
+CXXTEMPLFLAGS	= @CXXTEMPLFLAGS@
+CPPFLAGS	= -I${srcdir}/factor -I${srcdir}/charset -I${srcdir} @CPPFLAGS@
+DEFS		= @DEFS@
+LDFLAGS		= @LDFLAGS@
+LIBS		= -lfac -lcf -lcfmem -lgmp @LIBS@
+
+##
+## src and objects
+##
+
+FACTORSRC1 =	factor/SqrFree.cc factor/Factor.cc \
+		factor/MVMultiHensel.cc factor/Truefactor.cc \
+		factor/helpstuff.cc  factor/version.cc \
+		factor/homogfactor.cc
+FACTORSRC2 =	factor/tmpl_inst.cc
+FACTORSRC = 	$(FACTORSRC2) $(FACTORSRC1)
+
+CHARSETSRC1 =	charset/csutil.cc charset/charset.cc charset/reorder.cc
+CHARSETSRC = 	$(CHARSETSRC1)
+
+FACTORINCL =	factor/Factor.h factor/MVMultiHensel.h factor/Truefactor.h \
+		factor/tmpl_inst.h factor/SqrFree.h factor/helpstuff.h \
+		factor/debug.h factor/timing.h factor/homogfactor.h \
+                factor/interrupt.h
+CHARSETINCL =	charset/csutil.h charset/charset.h charset/reorder.h \
+		charset/alg_factor.h charset/algfactor.h
+
+OPTFACTOROBJ1 =	OPTOBJ/SqrFree.o OPTOBJ/Factor.o OPTOBJ/MVMultiHensel.o \
+		OPTOBJ/Truefactor.o OPTOBJ/helpstuff.o OPTOBJ/version.o \
+		OPTOBJ/homogfactor.o
+OPTFACTOROBJ2 =	OPTOBJ/tmpl_inst.o
+OPTFACTOROBJ =	$(OPTFACTOROBJ2) $(OPTFACTOROBJ1)
+
+OPTCHARSETOBJ =	OPTOBJ/csutil.o OPTOBJ/charset.o OPTOBJ/reorder.o \
+		OPTOBJ/alg_factor.o OPTOBJ/algfactor.o
+
+DEBOBJ = $(OPTFACTOROBJ1:%.o=%.og) $(OPTCHARSETOBJ:%.o=%.og)
+PROFOBJ = $(OPTFACTOROBJ1:%.o=%.op) $(OPTCHARSETOBJ:%.o=%.op)
+
+##
+## Primary targets
+##
+
+.SUFFIXES:      .cc .h .o .op .og
+
+all: OPTOBJ ${TARGETNAME} libsingfac_g.a
+
+OPTOBJ:
+	${MKINSTALLDIRS} OPTOBJ
+
+OPTOBJ/%.o: %.cc OPTOBJ
+	$(CXX) $(CXXFLAGS) $(CXXTEMPLFLAGS) $(CPPFLAGS) $(DEFS) -c $< -o $@
+
+OPTOBJ/%.o: charset/%.cc OPTOBJ
+	$(CXX) $(CXXFLAGS) $(CXXTEMPLFLAGS) $(CPPFLAGS) $(DEFS) -c $< -o $@
+
+OPTOBJ/%.o: factor/%.cc OPTOBJ
+	$(CXX) $(CXXFLAGS) $(CXXTEMPLFLAGS) $(CPPFLAGS) $(DEFS) -c $< -o $@
+
+OPTOBJ/tmpl_inst.o: factor/tmpl_inst.cc OPTOBJ
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $(DEFS) -c $< -o $@
+
+OPTOBJ/%.op: %.cc OPTOBJ
+	$(CXX) -O -pg $(CXXTEMPLFLAGS) $(CPPFLAGS) $(DEFS) -c $< -o $@
+
+OPTOBJ/%.op: charset/%.cc OPTOBJ
+	$(CXX) -O -pg $(CXXTEMPLFLAGS) $(CPPFLAGS) $(DEFS) -c $< -o $@
+
+OPTOBJ/%.op: factor/%.cc OPTOBJ
+	$(CXX) -O -pg $(CXXTEMPLFLAGS) $(CPPFLAGS) $(DEFS) -c $< -o $@
+
+OPTOBJ/tmpl_inst.op: factor/tmpl_inst.cc OPTOBJ
+	$(CXX) -O -pg $(CPPFLAGS) $(DEFS) -c $< -o $@
+
+OPTOBJ/%.og: %.cc OPTOBJ
+	$(CXX) -g $(CXXTEMPLFLAGS) $(CPPFLAGS) $(DEFS) -c $< -o $@
+
+OPTOBJ/%.og: charset/%.cc OPTOBJ
+	$(CXX) -g $(CXXTEMPLFLAGS) $(CPPFLAGS) $(DEFS) -c $< -o $@
+
+OPTOBJ/%.og: factor/%.cc OPTOBJ
+	$(CXX) -g $(CXXTEMPLFLAGS) $(CPPFLAGS) $(DEFS) -c $< -o $@
+
+OPTOBJ/tmpl_inst.og: factor/tmpl_inst.cc OPTOBJ
+	$(CXX) -g $(CPPFLAGS) $(DEFS) -c $< -o $@
+
+libfac:		OPTOBJ libfac.a
+
+libsingfac:	OPTOBJ libsingfac.a
+
+libsingfac_g:	OPTOBJ libsingfac_g.a
+
+libfac.a:	$(OPTFACTOROBJ) $(OPTCHARSETOBJ)
+		$(AR) ${LIBFACNAME}.a $(OPTFACTOROBJ) $(OPTCHARSETOBJ)
+		$(RANLIB) ${LIBFACNAME}.a
+
+libsingfac.a:	$(OPTFACTOROBJ1) $(OPTCHARSETOBJ)
+		$(AR) ${SINGLIBFACNAME}.a $(OPTFACTOROBJ1) $(OPTCHARSETOBJ)
+		$(RANLIB) ${SINGLIBFACNAME}.a
+
+libsingfac_g.a:	$(DEBOBJ)
+		$(AR) $@ $^
+		$(RANLIB) $@
+
+libsingfac_p.a:	$(PROFOBJ)
+		$(AR) $@ $^
+		$(RANLIB) $@
+
+install-nolns: install
+
+install:	all
+	${MKINSTALLDIRS} ${includedir}
+	${MKINSTALLDIRS} ${libdir}
+	${INSTALL_DATA} ${LIBFACINCLUDE} ${includedir}
+	${INSTALL_DATA} ${TARGETNAME}.a ${libdir}
+	-${INSTALL_DATA} libsingfac_g.a ${libdir}
+	$(RANLIB) ${libdir}/${TARGETNAME}.a
+	-$(RANLIB) ${libdir}/libsingfac_g.a
+
+install_all: install libsingfac_p.a
+	-${INSTALL_DATA} libsingfac_p.a ${libdir}
+	-$(RANLIB) ${libdir}/libsingfac_p.a
+
+uninstall:
+	$(RM) ${includedir}/${LIBFACINCLUDE}
+	$(RM) ${libdir}/${LIBFACNAME}.a
+	$(RM) ${libdir}/${SINGLIBFACNAME}.a
+
+mostlyclean:
+	$(RM)	test testcs ${LIBFACNAME}.a ${SINGLIBFACNAME}.a \
+		libsingfac_g.a libsingfac_p.a
+
+clean:	mostlyclean
+	$(RM) OPTOBJ/optdepend OPTOBJ/debdepend  \
+	      OPTOBJ/*.op OPTOBJ/*.og OPTOBJ/*.o
+
+distclean:	clean
+	$(RM) config.cache config.log config.status Makefile
+
+dist:	distclean
+	$(RM) ../libfac-${LIBFACVERSION}.tgz
+	(cd .. ; gtar -zcvf libfac-${LIBFACVERSION}.tgz libfac-${LIBFACVERSION})
+
+########## From here on: Only for internal use!
+#################################################
+
+factest:	libfac OPTOBJ/test.o
+		$(CXX) -o test $(LDFLAGS) OPTOBJ/test.o $(LIBS)
+
+factests:	factest
+		(cd tests ; factortest )
+
+charsettest:	libfac	OPTOBJ/testcs.o
+		$(CXX) -o testcs $(LDFLAGS) OPTOBJ/testcs.o $(LIBS)
+
+#charsettests:	charsettest
+#		(cd tests ; charsettest )
+
+tests:		factests
+

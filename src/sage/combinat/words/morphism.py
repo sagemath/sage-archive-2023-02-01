@@ -1777,3 +1777,48 @@ class WordMorphism(SageObject):
                 return True
         return False
 
+    def dual_map(self, k=1):
+        r"""
+        Return the dual map `E_k^*` of self (see [1]).
+
+        .. NOTE::
+
+            It is acually implemented only for `k=1`.
+
+        INPUT:
+
+        - ``self`` - unimodular endomorphism defined on integers
+          ``1, 2, \ldots, d``
+        - ``k`` - integer (optional, default: 1)
+
+        OUTPUT:
+
+            an instance of E1Star - the dual map
+
+        EXAMPLES::
+
+            sage: sigma = WordMorphism({1:[2],2:[3],3:[1,2]})
+            sage: sigma.dual_map()
+            E_1^*(WordMorphism: 1->2, 2->3, 3->12)
+
+        ::
+
+            sage: sigma.dual_map(k=2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: The dual map E_k^* is implemented only for k = 1 (not 2)
+
+        REFERENCES:
+
+        - [1] Sano, Y., Arnoux, P. and Ito, S., Higher dimensional
+          extensions of substitutions and their dual maps, Journal
+          d'Analyse Mathematique 83 (2001), 183-206.
+        """
+        if k == 1:
+            from sage.combinat.e_one_star import E1Star
+            return E1Star(self)
+        else:
+            raise NotImplementedError("The dual map E_k^*" +
+                 " is implemented only for k = 1 (not %s)" % k)
+
+

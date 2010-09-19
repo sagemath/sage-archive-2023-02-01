@@ -15,6 +15,7 @@ Combinatorics
    ../sage/combinat/dlx
    ../sage/combinat/matrices/dlxcpp
    ../sage/combinat/dyck_word
+   ../sage/combinat/e_one_star
    ../sage/combinat/finite_class
    ../sage/combinat/integer_list
    ../sage/combinat/integer_vector

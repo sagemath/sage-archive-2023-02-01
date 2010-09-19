@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
-###########################################
-## lcalc-20100428-1.23.p2
-###########################################
+
+if [ -z "$SAGE_LOCAL" ] ; then
+  echo "SAGE_LOCAL undefined ... exiting";
+  echo "Maybe run 'sage -sh'?"
+  exit 1
+fi
 
 # Add a sensible default optimisation flag. Change if necessary.
 OPTIMIZATION_FLAGS="-O3"
@@ -66,7 +69,7 @@ if [ "x$SAGE_DEBUG" = xyes ] ; then
    F77FLAGS="$F77FLAGS -g "
 else
    echo "No debugging information will be used during the build of this package"
-   echo "Unset SAGE_DEBUG if you want debugging information present (-g added)"
+   echo "Set SAGE_DEBUG to yes if you want debugging information present (-g added)"
 fi
 
 # Add appropriate flag(s) to show all warnings.
@@ -186,7 +189,7 @@ success "patch: Lcommandline_elliptic.cc"
 cp ../../patches/Makefile.sage Makefile
 success "patch: Makefile.sage"
 
-make
+$MAKE
 success 'make'
 
 echo "Now copying over lcalc binary"

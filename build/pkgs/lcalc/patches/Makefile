@@ -124,12 +124,12 @@ OBJ3=$(OBJ2) Lcommandline_elliptic.o Lcommandline_twist.o Lcommandline.o cmdline
 OBJECTS = $(OBJ3)
 
 all:
-#	make print_vars
-	make libLfunction.so
-	make lcalc
-	make examples
-#	make find_L
-#	make test
+#	$(MAKE) print_vars
+	$(MAKE) libLfunction.so
+	$(MAKE) lcalc
+	$(MAKE) examples
+#	$(MAKE) find_L
+#	$(MAKE) test
 
 print_vars:
 	@echo OS_NAME = $(OS_NAME)

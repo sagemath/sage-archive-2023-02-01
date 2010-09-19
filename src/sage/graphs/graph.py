@@ -3112,6 +3112,240 @@ class Graph(GenericGraph):
         f.write( print_graph_eps(self.vertices(), self.edge_iterator(), pos) )
         f.close()
 
+    def topological_minor(self, H, vertices = False, paths = False, solver=None, verbose=0):
+        r"""
+        Returns a topological `H`-minor from ``self`` if one exists.
+
+        We say that a graph `G` has a topological `H`-minor (or that
+        it has a graph isomorphic to `H` as a topological minor), if
+        `G` contains a subdivision of a graph isomorphic to `H` (=
+        obtained from `H` through arbitrary subdivision of its edges)
+        as a subgraph.
+
+        For more information, see the `Wikipedia article on graph
+        minor
+        <http://en.wikipedia.org/wiki/Minor_%28graph_theory%29>`_.
+
+        INPUT:
+
+        - ``H`` -- The topological minor to find in the current graph.
+
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+          solver to be used. If set to ``None``, the default one is used. For
+          more information on LP solvers and which default solver is used, see
+          the method
+          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+          of the class
+          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+        - ``verbose`` -- integer (default: ``0``). Sets the level of
+          verbosity. Set to 0 by default, which means quiet.
+
+        OUTPUT:
+
+        The topological `H`-minor found is returned as a subgraph `M`
+        of ``self``, such that the vertex `v` of `M` that represents a
+        vertex `h\in H` has ``h`` as a label (see
+        :meth:`get_vertex <sage.graphs.generic_graph.get_vertex>`
+        and
+        :meth:`set_vertex <sage.graphs.generic_graph.set_vertex>`),
+        and such that every edge of `M` has as a label the edge of `H`
+        it (partially) represents.
+
+        If no topological minor is found, this method returns
+        ``False``.
+
+        ALGORITHM:
+
+        Mixed Integer Linear Programming.
+
+        COMPLEXITY:
+
+        Theoretically, when `H` is fixed, testing for the existence of
+        a topological `H`-minor is polynomial. The known algorithms
+        are highly exponential in `H`, though.
+
+        .. NOTE::
+
+            * This function can be expected to be *very* slow, especially
+              where the topological minor does not exist.
+
+            (CPLEX seems to be *much* more efficient than GLPK on this
+            kind of problem)
+
+        EXAMPLES:
+
+        Petersen's graph has a topological `K_4`-minor::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g.topological_minor(graphs.CompleteGraph(4))
+            Subgraph of (Petersen graph): Graph on ...
+
+        And a topological `K_{3,3}`-minor::
+
+            sage: g.topological_minor(graphs.CompleteBipartiteGraph(3,3))
+            Subgraph of (Petersen graph): Graph on ...
+
+        And of course, a tree has no topological `C_3`-minor::
+
+            sage: g = graphs.RandomGNP(15,.3)
+            sage: g = g.subgraph(edges = g.min_spanning_tree())
+            sage: g.topological_minor(graphs.CycleGraph(3))
+            False
+        """
+
+        # Useful alias ...
+        G = self
+
+        from sage.numerical.mip import MixedIntegerLinearProgram, Sum, MIPSolverException
+        p = MixedIntegerLinearProgram()
+
+        # This is an existence problem
+        p.set_objective(None)
+
+        #######################
+        # Vertex representant #
+        #######################
+        #
+        # v_repr[h][g] = 1 if vertex h from H is represented by vertex
+        # g from G, 0 otherwise
+
+        v_repr = p.new_variable(binary = True, dim = 2)
+
+        # Exactly one representant per vertex of H
+        for h in H:
+            p.add_constraint( Sum( v_repr[h][g] for g in G), min = 1, max = 1)
+
+        # A vertex of G can only represent one vertex of H
+        for g in G:
+            p.add_constraint( Sum( v_repr[h][g] for h in H), max = 1)
+
+
+        ###################
+        # Is representent #
+        ###################
+        #
+        # is_repr[v] = 1 if v represents some vertex of H
+
+        is_repr = p.new_variable(binary = True)
+
+        for g in G:
+            for h in H:
+                p.add_constraint( v_repr[h][g] - is_repr[g], max = 0)
+
+
+        ###################################
+        # paths between the representents #
+        ###################################
+        #
+        # For any edge (h1,h2) in H, we have a corresponding path in G
+        # between the representants of h1 and h2. Which means there is
+        # a flow of intensity 1 from one to the other.
+        # We are then writing a flow problem for each edge of H.
+        #
+        # The variable flow[(h1,h2)][(g1,g2)] indicates the amount of
+        # flow on the edge (g1,g2) representing the edge (h1,h2).
+
+        flow = p.new_variable(binary = True, dim = 2)
+
+        # This lambda function returns the balance of flow
+        # corresponding to commodity C at vertex v v
+
+        flow_in = lambda C, v : Sum( flow[C][(v,u)] for u in G.neighbors(v) )
+        flow_out = lambda C, v : Sum( flow[C][(u,v)] for u in G.neighbors(v) )
+
+        flow_balance = lambda C, v : flow_in(C,v) - flow_out(C,v)
+
+        for h1,h2 in H.edges(labels = False):
+
+            for v in G:
+
+                # The flow balance depends on whether the vertex v is
+                # a representant of h1 or h2 in G, or a reprensentant
+                # of none
+
+                p.add_constraint( flow_balance((h1,h2),v) == v_repr[h1][v] - v_repr[h2][v] )
+
+        #############################
+        # Internal vertex of a path #
+        #############################
+        #
+        # is_internal[C][g] = 1 if a vertex v from G is located on the
+        # path representing the edge (=commodity) C
+
+        is_internal = p.new_variable(dim = 2, binary = True)
+
+        # When is a vertex internal for a commodity ?
+        for C in H.edges(labels = False):
+            for g in G:
+                p.add_constraint( flow_in(C,g) + flow_out(C,g) - is_internal[C][g], max = 1)
+
+
+        ############################
+        # Two paths do not cross ! #
+        ############################
+
+        # A vertex can only be internal for one commodity, and zero if
+        # the vertex is a representent
+
+        for g in G:
+            p.add_constraint( Sum( is_internal[C][g] for C in H.edges(labels = False))
+                              + is_repr[g], max = 1 )
+
+        # (The following inequalities are not necessary, but they seem
+        # to be of help (the solvers find the answer quicker when they
+        # are added)
+
+        # The flow on one edge can go in only one direction. Besides,
+        # it can belong to at most one commodity and has a maximum
+        # intensity of 1.
+
+        for g1,g2 in G.edges(labels = None):
+
+            p.add_constraint(   Sum( flow[C][(g1,g2)] for C in H.edges(labels = False) )
+                              + Sum( flow[C][(g2,g1)] for C in H.edges(labels = False) ),
+                                max = 1)
+
+
+        # Now we can solve the problem itself !
+
+        try:
+            p.solve(solver = solver, log = verbose)
+
+        except MIPSolverException:
+            return False
+
+
+        minor = G.subgraph()
+
+        is_repr = p.get_values(is_repr)
+        v_repr = p.get_values(v_repr)
+        flow = p.get_values(flow)
+
+
+        for u,v in minor.edges(labels = False):
+            used = False
+            for C in H.edges(labels = False):
+
+                if flow[C][(u,v)] + flow[C][(v,u)] > .5:
+                    used = True
+                    minor.set_edge_label(u,v,C)
+                    break
+            if not used:
+                minor.delete_edge(u,v)
+
+        minor.delete_vertices( [v for v in minor
+                                if minor.degree(v) == 0 ] )
+
+        for g in minor:
+            if is_repr[g] > .5:
+                for h in H:
+                    if v_repr[h][v] > .5:
+                        minor.set_vertex(g,h)
+                        break
+
+        return minor
+
 
     ### Cliques
 

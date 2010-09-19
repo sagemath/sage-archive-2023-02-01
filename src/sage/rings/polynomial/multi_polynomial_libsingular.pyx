@@ -610,6 +610,13 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             False
             sage: x in F
             False
+
+        Check if #8228 is fixed::
+
+            sage: P.<x,y> = Zmod(10)[]; P(0)
+            0
+            sage: P.<x,y> = Zmod(2^10)[]; P(0)
+            0
         """
         cdef poly *_p, *mon, *_element
         cdef ring *_ring = self._ring

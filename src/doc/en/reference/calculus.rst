@@ -6,6 +6,7 @@ Symbolic Calculus
 
    sage/symbolic/expression
    sage/symbolic/relation
+   sage/symbolic/function_factory
    sage/calculus/calculus
    sage/symbolic/units
    sage/symbolic/ring

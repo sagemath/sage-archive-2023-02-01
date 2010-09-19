@@ -1,3 +1,7 @@
+r"""
+Symbolic functions
+"""
+
 ###############################################################################
 #   Sage: Open Source Mathematical Software
 #       Copyright (C) 2009 Burcin Erocal <burcin@erocal.org>
@@ -15,9 +19,9 @@ def function_factory(name, nargs=0, latex_name=None, conversions=None,
             conjugate_func=None, real_part_func=None, imag_part_func=None,
             derivative_func=None, tderivative_func=None, power_func=None,
             series_func=None, print_func=None, print_latex_func=None):
-    """
+    r"""
     Create a formal symbolic function. For an explanation of the arguments see
-    the documentation for the method :method:`function`.
+    the documentation for the method :meth:`function`.
 
     EXAMPLES::
 
@@ -87,11 +91,11 @@ def function_factory(name, nargs=0, latex_name=None, conversions=None,
 
 def unpickle_function(name, nargs, latex_name, conversions, evalf_params_first,
         pickled_funcs):
-    """
+    r"""
     This is returned by the ``__reduce__`` method of symbolic functions to be
     called during unpickling to recreate the given function.
 
-    It calls :method:`function_factory` with the supplied arguments.
+    It calls :meth:`function_factory` with the supplied arguments.
 
     EXAMPLES::
 
@@ -124,7 +128,7 @@ def unpickle_function(name, nargs, latex_name, conversions, evalf_params_first,
     return function_factory(*args)
 
 def function(s, *args, **kwds):
-    """
+    r"""
     Create a formal symbolic function with the name *s*.
 
     INPUT:

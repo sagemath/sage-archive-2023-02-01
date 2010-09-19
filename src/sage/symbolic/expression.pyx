@@ -3317,6 +3317,11 @@ cdef class Expression(CommutativeRingElement):
             6
             sage: D
             {v: 2}
+
+        Check if #9891 is fixed::
+
+            sage: exp(x).subs(x=log(x))
+            x
         """
         cdef dict sdict = {}
         if in_dict is not None:

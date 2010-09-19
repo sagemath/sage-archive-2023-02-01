@@ -216,7 +216,4 @@ echo "Now copying over lcalc library header files"
 rm -fr "$SAGE_LOCAL"/include/lcalc
 mkdir -p "$SAGE_LOCAL"/include/lcalc
 cp ../include/* "$SAGE_LOCAL"/include/lcalc
-
-# since 'success' relies on an exit code, call set +e before running it.
 success 'install'
-

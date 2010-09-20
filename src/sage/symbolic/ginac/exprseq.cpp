@@ -37,4 +37,10 @@ template <> bool exprseq::info(unsigned inf) const
 		return inherited::info(inf);
 }
 
+#ifdef _MSC_VER
+  // MSVC does not include exprseq::info() in the library without
+  // defining some kind of dummy function here
+  basic* dummy_func(void) { return new exprseq(); }
+#endif
+
 } // namespace GiNaC

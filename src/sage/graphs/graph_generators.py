@@ -95,6 +95,7 @@ Named Graphs
 - :meth:`DesarguesGraph <GraphGenerators.DesarguesGraph>`
 - :meth:`FlowerSnark <GraphGenerators.FlowerSnark>`
 - :meth:`FruchtGraph <GraphGenerators.FruchtGraph>`
+- :meth:`GrotzschGraph <GraphGenerators.GrotzschGraph>`
 - :meth:`HeawoodGraph <GraphGenerators.HeawoodGraph>`
 - :meth:`HigmanSimsGraph <GraphGenerators.HigmanSimsGraph>`
 - :meth:`HoffmanSingletonGraph <GraphGenerators.HoffmanSingletonGraph>`
@@ -120,6 +121,8 @@ Families of graphs
 - :meth:`HyperStarGraph <GraphGenerators.HyperStarGraph>`
 - :meth:`KneserGraph <GraphGenerators.KneserGraph>`
 - :meth:`LCFGraph <GraphGenerators.LCFGraph>`
+- :meth:`MycielskiGraph <GraphGenerators.MycielskiGraph>`
+- :meth:`MycielskiStep <GraphGenerators.MycielskiStep>`
 - :meth:`NKStarGraph <GraphGenerators.NKStarGraph>`
 - :meth:`NStarGraph <GraphGenerators.NStarGraph>`
 - :meth:`OddGraph <GraphGenerators.OddGraph>`
@@ -199,6 +202,8 @@ AUTHORS:
 - Jason Grout (2010-06-04): cospectral_graphs
 
 - Edward Scheinerman (2010-08-11): RandomTree
+
+- Ed Scheinerman (2010-08-21): added Grotzsch graph and Mycielski graphs
 """
 
 ###########################################################################
@@ -2105,6 +2110,64 @@ class GraphGenerators():
         G = networkx.frucht_graph()
         return graph.Graph(G, pos=pos_dict, name="Frucht graph")
 
+    def GrotzschGraph(self):
+        r"""
+        Creates the Grotzsch graph.
+
+        The Grotzsch graph is an example of a triangle-free graph with
+        chromatic number equal to 4.
+
+        REFERENCE.
+
+        - [1] Weisstein, Eric W. "Grotzsch Graph."
+          From MathWorld--A Wolfram Web Resource.
+          http://mathworld.wolfram.com/GroetzschGraph.html
+
+        EXAMPLE. ::
+
+            sage: g = graphs.GrotzschGraph()
+            sage: g.girth()
+            4
+            sage: g.chromatic_number()
+            4
+            sage: g.is_triangle_free()
+            True
+            sage: g.show() # long time
+        """
+        g = graph.Graph()
+        g.add_vertices(range(11))
+
+        edges = [];
+        for u in range(1,6):
+            edges.append( (0,u) )
+
+        edges.append( (10,6) )
+
+        for u in range(6,10):
+            edges.append( (u,u+1) )
+            edges.append( (u,u-4) )
+
+        edges.append( (10,1) )
+
+        for u in range(7,11):
+            edges.append( (u,u-6) )
+
+        edges.append((6,5))
+
+        g.add_edges(edges)
+
+        pos = {}
+        pos[0] = (0,0)
+        for u in range(1,6):
+            theta = (u-1)*2*pi/5
+            pos[u] = (float(5*sin(theta)),float(5*cos(theta)))
+            pos[u+5] = (2*pos[u][0], 2*pos[u][1])
+
+        g.set_pos(pos)
+        g.name("Grotzsch graph")
+        return g
+
+
     def HeawoodGraph(self):
         """
         Returns a Heawood graph.
@@ -2521,6 +2584,123 @@ class GraphGenerators():
         G=graphs.GeneralizedPetersenGraph(8,3)
         G.name("Moebius-Kantor Graph")
         return G
+
+    def MycielskiGraph(self, k=1, relabel=True):
+        r"""
+        Returns the `k`-th Mycielski Graph.
+
+        The graph `M_k` is triangle-free and has chromatic number
+        equal to `k`. These graphs show, constructively, that there
+        are triangle-free graphs with arbitrarily high chromatic
+        number.
+
+        The Mycielski graphs are built recursively starting with
+        `M_0`, an empty graph; `M_1`, a single vertex graph; and `M_2`
+        is the graph `K_2`.  `M_{k+1}` is then built from `M_k`
+        as follows:
+
+        If the vertices of `M_k` are `v_1,\ldots,v_n`, then the
+        vertices of `M_{k+1}` are
+        `v_1,\ldots,v_n,w_1,\ldots,w_n,z`. Vertices `v_1,\ldots,v_n`
+        induce a copy of `M_k`. Vertices `w_1,\ldots,w_n` are an
+        independent set. Vertex `z` is adjacent to all the
+        `w_i`-vertices. Finally, vertex `w_i` is adjacent to vertex
+        `v_j` iff `v_i` is adjacent to `v_j`.
+
+        INPUT:
+
+        - ``k`` Number of steps in the construction process.
+
+        - ``relabel`` Relabel the vertices so their names are the integers
+          ``range(n)`` where ``n`` is the number of vertices in the graph.
+
+        EXAMPLE:
+
+        The Mycielski graph `M_k` is triangle-free and has chromatic
+        number equal to `k`. ::
+
+            sage: g = graphs.MycielskiGraph(5)
+            sage: g.is_triangle_free()
+            True
+            sage: g.chromatic_number()
+            5
+
+        The graphs `M_4` is (isomorphic to) the Grotzsch graph. ::
+
+            sage: g = graphs.MycielskiGraph(4)
+            sage: g.is_isomorphic(graphs.GrotzschGraph())
+            True
+
+        REFERENCES:
+
+        -  [1] Weisstein, Eric W. "Mycielski Graph."
+           From MathWorld--A Wolfram Web Resource.
+           http://mathworld.wolfram.com/MycielskiGraph.html
+
+        """
+        g = graph.Graph()
+        g.name("Mycielski Graph " + str(k))
+
+        if k<0:
+            raise ValueError, "parameter k must be a nonnegative integer"
+
+        if k == 0:
+            return g
+
+        if k == 1:
+            g.add_vertex(0)
+            return g
+
+        if k == 2:
+            g.add_edge(0,1)
+            return g
+
+        g0 = graphs.MycielskiGraph(k-1)
+        g = graphs.MycielskiStep(g0)
+        g.name("Mycielski Graph " + str(k))
+        if relabel: g.relabel()
+
+        return g
+
+    def MycielskiStep(self, g):
+        r"""
+        Perform one iteration of the Mycielski construction.
+
+        See the documentation for ``MycielskiGraph`` which uses this
+        method. We expose it to all users in case they may find it
+        useful.
+
+        EXAMPLE. One iteration of the Mycielski step applied to the
+        5-cycle yields a graph isomorphic to the Grotzsch graph ::
+
+            sage: g = graphs.CycleGraph(5)
+            sage: h = graphs.MycielskiStep(g)
+            sage: h.is_isomorphic(graphs.GrotzschGraph())
+            True
+        """
+
+        # Make a copy of the input graph g
+        gg = g.copy()
+
+        # rename a vertex v of gg as (1,v)
+        renamer = dict( [ (v, (1,v)) for v in g.vertices() ] )
+        gg.relabel(renamer)
+
+        # add the w vertices to gg as (2,v)
+        wlist = [ (2,v) for v in g.vertices() ]
+        gg.add_vertices(wlist)
+
+        # add the z vertex as (0,0)
+        gg.add_vertex((0,0))
+
+        # add the edges from z to w_i
+        gg.add_edges( [ ( (0,0) , (2,v) ) for v in g.vertices() ] )
+
+        # make the v_i w_j edges
+        for v in g.vertices():
+            gg.add_edges( [ ((1,v),(2,vv)) for vv in g.neighbors(v) ] )
+
+        return gg
 
     def PappusGraph(self):
         """

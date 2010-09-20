@@ -14,6 +14,9 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+# sage-env sets RM which will break libtool
+# See http://trac.sagemath.org/sage_trac/ticket/7818#comment:28
+unset RM
 
 cd src
 

@@ -1279,11 +1279,11 @@ lst clifford_to_lst(const ex & e, const ex & c, bool algebraic)
 	if (algebraic) // check if algebraic method is applicable
 		for (unsigned int i = 0; i < D; i++) 
 			if (pow(c.subs(mu == i, subs_options::no_pattern), 2).is_zero() 
-				or (not is_a<numeric>(pow(c.subs(mu == i, subs_options::no_pattern), 2))))
+				|| (! is_a<numeric>(pow(c.subs(mu == i, subs_options::no_pattern), 2))))
 				algebraic = false;
 	lst V; 
 	ex v0 = remove_dirac_ONE(canonicalize_clifford(e+clifford_prime(e)).normal())/2;
-	if (not v0.is_zero())
+	if (! v0.is_zero())
 		V.append(v0);
 	ex e1 = canonicalize_clifford(e - v0 * dirac_ONE(ex_to<clifford>(c).get_representation_label())); 
 	if (algebraic) {
@@ -1300,7 +1300,7 @@ lst clifford_to_lst(const ex & e, const ex & c, bool algebraic)
 			e1 = canonicalize_clifford(expand_dummy_sum(e, true));
 			V.remove_all();
 			v0 = remove_dirac_ONE(canonicalize_clifford(e1+clifford_prime(e1)).normal())/2;
-			if (not v0.is_zero()) {
+			if (! v0.is_zero()) {
 				V.append(v0);
 				e1 = canonicalize_clifford(e1 - v0 * dirac_ONE(ex_to<clifford>(c).get_representation_label())); 
 			}

@@ -33,6 +33,11 @@
 
 
 namespace GiNaC {
+#ifdef _MSC_VER
+  // MSVC produces a different symbol for _ex0 when it is declared inside   
+  // ex::is_zero() than when it is declared at top level as follows
+  extern const ex _ex0;
+#endif
 
 
 /** Helper class to initialize the library.  There must be one static object
@@ -214,7 +219,12 @@ public:
 	// comparison
 	int compare(const ex & other) const;
 	bool is_equal(const ex & other) const;
-	bool is_zero() const { extern const ex _ex0; return is_equal(_ex0); }
+	bool is_zero() const { 
+#ifndef _MSC_VER
+	  extern const ex _ex0;
+#endif
+	  return is_equal(_ex0); 
+	}
 	bool is_zero_matrix() const;
 	
 	// symmetry

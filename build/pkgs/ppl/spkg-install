@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+
+# Dependencies check
+MPIR_VERSION=`cd $SAGE_ROOT/spkg/standard/; ./newest_version mpir`
+if [ $? -ne 0 ]; then
+    echo "Failed to find mpir.  Please install the mpir spkg"
+    exit 1
+fi
+
+
+cd src
+
+./configure --prefix="$SAGE_LOCAL" --with-gmp="$SAGE_LOCAL"
+if [ $? -ne 0 ]; then
+   echo "Error configuring the Parma Polyhedra Library."
+   exit 1
+fi
+
+$MAKE
+if [ $? -ne 0 ]; then
+   echo "Error building the Parma Polyhedra Library."
+   exit 1
+fi
+
+$MAKE install-strip
+if [ $? -ne 0 ]; then
+   echo "Error installing the Parma Polyhedra Library."
+   exit 1
+fi

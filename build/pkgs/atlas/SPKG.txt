@@ -46,6 +46,10 @@ since the wrong flags are passed to the linker. This will be fixed soon.
 
 == ChangeLog ==
 
+== atlas-3.8.3.p16 (John Palmieri, September 19th 2010) ==
+ * Make spkg-check work when using SAGE_ATLAS_LIB: if SAGE_ATLAS_LIB
+   is set, skip the self-tests.
+
 == atlas-3.8.3.p15 (David Kirkby, September 6th 2010) ==
  * Make SAGE_ATLAS_LIB use static libraries on all platforms,
    as building two shared libraries often fails on Linux, and

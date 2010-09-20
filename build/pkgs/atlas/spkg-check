@@ -5,7 +5,7 @@
 ###########################################
 
 if [ "$SAGE_LOCAL" = "" ]; then
-   echo "SAGE_LOCAL undefined ... exiting";
+   echo "SAGE_LOCAL undefined ... exiting"
    echo "Maybe run 'sage -sh'?"
    exit 1
 fi
@@ -40,5 +40,9 @@ if [ `uname` = "Darwin" ]; then
     exit 0
 fi
 
-check
+if [ "x$SAGE_ATLAS_LIB" != "x" ]; then
+    echo "SAGE_ATLAS_LIB is set to \"$SAGE_ATLAS_LIB\"; skipping the test suite."
+    exit 0
+fi
 
+check

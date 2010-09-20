@@ -17,7 +17,7 @@ fi
 
 cd src
 
-./configure --prefix="$SAGE_LOCAL" --with-gmp="$SAGE_LOCAL"
+./configure --prefix="$SAGE_LOCAL" --with-gmp-prefix="$SAGE_LOCAL"
 if [ $? -ne 0 ]; then
    echo "Error configuring the Parma Polyhedra Library."
    exit 1

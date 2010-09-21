@@ -23,6 +23,10 @@ fi
 
 # Patches to apply on top of the clean upstream source under src/.
 patch() {
+    # A portable random number generator
+    cp -p patches/random.[c,h] src/lib-src/
+    cp -p patches/random.[c,h] src/lib-src-gmp/
+
     # Required by sage.geometry.polyhedra
     cp -p patches/cdd_both_reps.c src/src/
     cp -p patches/cdd_both_reps.c src/src-gmp/

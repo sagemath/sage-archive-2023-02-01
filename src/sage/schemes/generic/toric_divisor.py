@@ -1299,8 +1299,9 @@ class ToricDivisor_generic(Divisor_generic):
 
     def sections(self):
         """
-        Return the global sections (as points of the `M`-lattice) of the
-        line bundle associated to the Cartier divisor.
+        Return the global sections (as points of the `M`-lattice) of
+        the line bundle (or reflexive sheaf) associated to the
+        divisor.
 
         OUTPUT:
 
@@ -1317,21 +1318,29 @@ class ToricDivisor_generic(Divisor_generic):
             (M(0, 0), M(0, -1), M(1, -1))
             sage: P2.divisor(2).sections()
             (M(0, 1), M(1, 0), M(0, 0))
-        """
-        assert self.is_Cartier(), \
-            "This method requires the divisor to be Cartier."
 
+        The divisor can be non-nef yet still have sections::
+
+            sage: rays = [(1,0,0),(0,1,0),(0,0,1),(-2,0,-1),(-2,-1,0),(-3,-1,-1),(1,1,1),(-1,0,0)]
+            sage: cones = [[0,1,3],[0,1,6],[0,2,4],[0,2,6],[0,3,5],[0,4,5],[1,3,7],[1,6,7],[2,4,7],[2,6,7],[3,5,7],[4,5,7]]
+            sage: X = ToricVariety(Fan(rays=rays,cones=cones))
+            sage: D = X.divisor(2); D
+            V(z2)
+            sage: D.is_nef()
+            False
+            sage: D.sections()
+            (M(0, 0, 0),)
+            sage: D.cohomology(dim=True)
+            (1, 0, 0, 0)
+        """
         try:
             return self._sections
         except AttributeError:
             pass
 
         M = self.parent().scheme().fan().dual_lattice()
-        if not self.is_nef():
-            self._sections = ()
-        else:
-            self._sections = tuple(M(m)
-                                   for m in self.polyhedron().integral_points())
+        self._sections = tuple(M(m)
+                               for m in self.polyhedron().integral_points())
         return self._sections
 
     def sections_monomials(self):

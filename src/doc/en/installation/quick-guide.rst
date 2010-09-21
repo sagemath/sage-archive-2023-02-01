@@ -38,6 +38,9 @@ Troubleshooting
   a solution is available at the FAQ wiki page
   http://wiki.sagemath.org/faq#Otherquestions
 
+- Make sure there are no spaces in the path in which you have
+  installed Sage.
+
 - Ask for help on the sage-support mailing list. This mailing list is
   also referred to as the sage-support Google group
   (http://groups.google.com/group/sage-support).

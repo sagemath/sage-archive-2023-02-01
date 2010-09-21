@@ -29,15 +29,15 @@ in a directory which you have permission to read and write:
         tar zxvf sage-x.y.z-x86_64-Linux.tgz
 
 You can move the resulting directory ``sage-x.y.z-x86_64-Linux``
-anywhere and still run ``sage`` from it. You can also copy the file
-``sage`` from that directory and put it anywhere, e.g.,
-``/usr/local/bin/``, but then you have to edit the
-``SAGE_ROOT="....."`` line at the top of that file, replacing the dots
-with the path to the Sage directory ``sage-x.y.z-x86_64-Linux``.  As
-long as ``/usr/local/bin`` is in your ``$PATH``, you can then type
-``sage`` from the command line to run Sage.  Another approach is to
-create a symbolic link from ``sage-x.y.z-x86_64-Linux`` to, say,
-``/usr/local/share/sage``::
+anywhere and still run ``sage`` from it, as long as the full path name
+has **no spaces** in it.  You can also copy the file ``sage`` from
+that directory and put it anywhere, e.g., ``/usr/local/bin/``, but
+then you have to edit the ``SAGE_ROOT="....."`` line at the top of
+that file, replacing the dots with the path to the Sage directory
+``sage-x.y.z-x86_64-Linux``.  As long as ``/usr/local/bin`` is in your
+``$PATH``, you can then type ``sage`` from the command line to run
+Sage.  Another approach is to create a symbolic link, say
+``/usr/local/share/sage``, pointing to ``sage-x.y.z-x86_64-Linux`` ::
 
     ln -s /.../path_to/.../sage-x.y.z-x86_64-Linux /usr/local/share/sage
 
@@ -48,8 +48,8 @@ link and create one from the new directory to
 ``/usr/local/share/sage``.
 
 Finally, you can also combine these two approaches, copying ``sage``
-to ``/usr/local/bin/``, creating a link from
-``sage-x.y.z-x86_64-Linux`` to ``/usr/local/share/sage``, and editing
+to ``/usr/local/bin/``, creating a link ``/usr/local/share/sage``
+pointing to ``sage-x.y.z-x86_64-Linux``, and editing
 the file ``/usr/local/bin/sage``: change the line ::
 
   SAGE_ROOT="....."

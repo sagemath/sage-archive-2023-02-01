@@ -224,12 +224,10 @@ Installation from source is (potentially) very easy, because the
 distribution contains (essentially) everything on which Sage
 depends.
 
-Make sure there are no spaces in the directory name under which you
-build. Running from a directory with spaces in its name is supported but
-discouraged. Building is not possible, since several of the
-components do not build if there are spaces in the path.
-
-
+Make sure there are **no spaces** in the path name for the directory
+in which you build: several of Sage's components will not build if
+there are spaces in the path.  Running Sage from a directory with
+spaces in its name will also fail.
 
 #. Go to http://www.sagemath.org/download-source.html , select a mirror,
    and download the file sage-\*.tar.

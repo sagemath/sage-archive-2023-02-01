@@ -26,6 +26,8 @@ patch() {
     # A portable random number generator
     cp -p patches/random.[c,h] src/lib-src/
     cp -p patches/random.[c,h] src/lib-src-gmp/
+    cp -p patches/cddcore.c src/lib-src/
+    cp -p patches/cddlp.c src/lib-src/
 
     # Required by sage.geometry.polyhedra
     cp -p patches/cdd_both_reps.c src/src/

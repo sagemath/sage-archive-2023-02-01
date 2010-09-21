@@ -65,7 +65,7 @@ from sage.calculus.functional import diff
 maxima = Maxima()
 
 def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False):
-    """
+    r"""
     Solves a 1st or 2nd order linear ODE via maxima. Including IVP and BVP.
 
     *Use* ``desolve? <tab>`` *if the output in truncated in notebook.*
@@ -81,12 +81,13 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
       - for a first-order equation, specify the initial ``x`` and ``y``
 
       - for a second-order equation, specify the initial ``x``, ``y``,
-        and ``dy/dx``
+        and ``dy/dx``, i.e. write `[x_0, y(x_0), y'(x_0)]`
 
       - for a second-order boundary solution, specify initial and
-        final ``x`` and ``y`` initial conditions gives error if the
-        solution is not SymbolicEquation (as happens for example for
-        clairot equation)
+        final ``x`` and ``y`` boundary conditions, i.e. write `[x_0, y(x_0), x_1, y(x_1)]`.
+
+      - gives an error if the solution is not SymbolicEquation (as happens for
+        example for Clairaut equation)
 
     - ``ivar`` - (optional) the independent variable (hereafter called
       x), which must be specified if there is more than one
@@ -103,7 +104,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
       as exact.
 
     - ``contrib_ode`` - (optional) if true, desolve allows to solve
-      clairot, lagrange, riccati and some other equations. May take
+      clairaut, lagrange, riccati and some other equations. May take
       a long time and thus turned off by default.  Initial conditions
       can be used only if the result is one SymbolicEquation (does not
       contain singular solution, for example)
@@ -146,8 +147,14 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
 
         sage: f = desolve(de, y, [10,2,1]); f
         -x + 5*e^(-x + 10) + 7*e^(x - 10)
+
+    ::
+
         sage: f(x=10)
         2
+
+    ::
+
         sage: diff(f,x)(x=10)
         1
 
@@ -156,8 +163,13 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
         sage: de = diff(y,x,2) + y == 0
         sage: desolve(de, y)
         k1*sin(x) + k2*cos(x)
+
+    ::
+
         sage: desolve(de, y, [0,1,pi/2,4])
         4*sin(x) + cos(x)
+
+    ::
 
         sage: desolve(y*diff(y,x)+sin(x)==0,y)
         -1/2*y(x)^2 == c - cos(x)
@@ -172,6 +184,9 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
         sage: a,b,c,n=var('a b c n')
         sage: desolve(x^2*diff(y,x)==a+b*x^n+c*x^2*y^2,y,ivar=x,contrib_ode=True)
         [[y(x) == 0, (b*x^(n - 2) + a/x^2)*c^2*u == 0]]
+
+    ::
+
         sage: desolve(x^2*diff(y,x)==a+b*x^n+c*x^2*y^2,y,ivar=x,contrib_ode=True,show_method=True)
         [[[y(x) == 0, (b*x^(n - 2) + a/x^2)*c^2*u == 0]], 'riccati']
 
@@ -180,8 +195,14 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
 
         sage: desolve(diff(y,x,2)+y*(diff(y,x,1))^3==0,y).expand()
         1/6*y(x)^3 + k1*y(x) == k2 + x
+
+    ::
+
         sage: desolve(diff(y,x,2)+y*(diff(y,x,1))^3==0,y,[0,1,1,3]).expand()
         1/6*y(x)^3 - 5/3*y(x) == x - 3/2
+
+    ::
+
         sage: desolve(diff(y,x,2)+y*(diff(y,x,1))^3==0,y,[0,1,1,3],show_method=True)
         [1/6*y(x)^3 - 5/3*y(x) == x - 3/2, 'freeofx']
 
@@ -189,8 +210,14 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
 
         sage: desolve(diff(y,x)*sin(y) == cos(x),y)
         -cos(y(x)) == c + sin(x)
+
+    ::
+
         sage: desolve(diff(y,x)*sin(y) == cos(x),y,show_method=True)
         [-cos(y(x)) == c + sin(x), 'separable']
+
+    ::
+
         sage: desolve(diff(y,x)*sin(y) == cos(x),y,[pi/2,1])
         -cos(y(x)) == sin(x) - cos(1) - 1
 
@@ -198,8 +225,14 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
 
         sage: desolve(diff(y,x)+(y) == cos(x),y)
         1/2*((sin(x) + cos(x))*e^x + 2*c)*e^(-x)
+
+    ::
+
         sage: desolve(diff(y,x)+(y) == cos(x),y,show_method=True)
         [1/2*((sin(x) + cos(x))*e^x + 2*c)*e^(-x), 'linear']
+
+    ::
+
         sage: desolve(diff(y,x)+(y) == cos(x),y,[0,1])
         1/2*(e^x*sin(x) + e^x*cos(x) + 1)*e^(-x)
 
@@ -260,27 +293,59 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
 
         sage: desolve(diff(y,x,2)+2*diff(y,x)+y == cos(x),y)
         (k2*x + k1)*e^(-x) + 1/2*sin(x)
+
+    ::
+
         sage: desolve(diff(y,x,2)+2*diff(y,x)+y == cos(x),y,show_method=True)
         [(k2*x + k1)*e^(-x) + 1/2*sin(x), 'variationofparameters']
+
+    ::
+
         sage: desolve(diff(y,x,2)+2*diff(y,x)+y == cos(x),y,[0,3,1])
         1/2*(7*x + 6)*e^(-x) + 1/2*sin(x)
+
+    ::
+
         sage: desolve(diff(y,x,2)+2*diff(y,x)+y == cos(x),y,[0,3,1],show_method=True)
         [1/2*(7*x + 6)*e^(-x) + 1/2*sin(x), 'variationofparameters']
+
+    ::
+
         sage: desolve(diff(y,x,2)+2*diff(y,x)+y == cos(x),y,[0,3,pi/2,2])
         3*((e^(1/2*pi) - 2)*x/pi + 1)*e^(-x) + 1/2*sin(x)
+
+    ::
+
         sage: desolve(diff(y,x,2)+2*diff(y,x)+y == cos(x),y,[0,3,pi/2,2],show_method=True)
         [3*((e^(1/2*pi) - 2)*x/pi + 1)*e^(-x) + 1/2*sin(x), 'variationofparameters']
 
+    ::
+
         sage: desolve(diff(y,x,2)+2*diff(y,x)+y == 0,y)
         (k2*x + k1)*e^(-x)
+
+    ::
+
         sage: desolve(diff(y,x,2)+2*diff(y,x)+y == 0,y,show_method=True)
         [(k2*x + k1)*e^(-x), 'constcoeff']
+
+    ::
+
         sage: desolve(diff(y,x,2)+2*diff(y,x)+y == 0,y,[0,3,1])
         (4*x + 3)*e^(-x)
+
+    ::
+
         sage: desolve(diff(y,x,2)+2*diff(y,x)+y == 0,y,[0,3,1],show_method=True)
         [(4*x + 3)*e^(-x), 'constcoeff']
+
+    ::
+
         sage: desolve(diff(y,x,2)+2*diff(y,x)+y == 0,y,[0,3,pi/2,2])
         (2*(2*e^(1/2*pi) - 3)*x/pi + 3)*e^(-x)
+
+    ::
+
         sage: desolve(diff(y,x,2)+2*diff(y,x)+y == 0,y,[0,3,pi/2,2],show_method=True)
         [(2*(2*e^(1/2*pi) - 3)*x/pi + 3)*e^(-x), 'constcoeff']
 
@@ -307,6 +372,15 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
         sage: desolve( diff(y,x,x) == 0, y, [0,1,1])
         x + 1
 
+    Trac #9835 fixed::
+
+        sage: x = var('x')
+        sage: y = function('y', x)
+        sage: desolve(diff(y,x,2)+y*(1-y^2)==0,y,[0,-1,1,1])
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: Unable to use initial condition for this equation (freeofx).
+
 
     AUTHORS:
 
@@ -332,35 +406,39 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
         ivar = ivars[0]
     def sanitize_var(exprs):
         return exprs.replace("'"+dvar_str+"("+ivar_str+")",dvar_str)
-    dvar_str=dvar.operator()._maxima_().str()
-    ivar_str=ivar._maxima_().str()
-    de00 = de._maxima_().str()
+    de00 = de._maxima_()
+    P = de00.parent()
+    dvar_str=P(dvar.operator()).str()
+    ivar_str=P(ivar).str()
+    de00 = de00.str()
     de0 = sanitize_var(de00)
     ode_solver="ode2"
     cmd="(TEMP:%s(%s,%s,%s), if TEMP=false then TEMP else substitute(%s=%s(%s),TEMP))"%(ode_solver,de0,dvar_str,ivar_str,dvar_str,dvar_str,ivar_str)
     # we produce string like this
     # ode2('diff(y,x,2)+2*'diff(y,x,1)+y-cos(x),y(x),x)
-    soln = maxima(cmd)
+    soln = P(cmd)
 
     if str(soln).strip() == 'false':
         if contrib_ode:
             ode_solver="contrib_ode"
-            maxima("load('contrib_ode)")
+            P("load('contrib_ode)")
             cmd="(TEMP:%s(%s,%s,%s), if TEMP=false then TEMP else substitute(%s=%s(%s),TEMP))"%(ode_solver,de0,dvar_str,ivar_str,dvar_str,dvar_str,ivar_str)
             # we produce string like this
             # (TEMP:contrib_ode(x*('diff(y,x,1))^2-(x*y+1)*'diff(y,x,1)+y,y,x), if TEMP=false then TEMP else substitute(y=y(x),TEMP))
-            soln = maxima(cmd)
+            soln = P(cmd)
             if str(soln).strip() == 'false':
                 raise NotImplementedError, "Maxima was unable to solve this ODE."
         else:
             raise NotImplementedError, "Maxima was unable to solve this ODE. Consider to set option contrib_ode to True."
 
     if show_method:
-        maxima_method=maxima("method")
+        maxima_method=P("method")
 
     if (ics is not None):
         if not is_SymbolicEquation(soln.sage()):
-             raise NotImplementedError, "Maxima was unable to use initial condition for this equation (%s)"%(maxima_method.str())
+            if not show_method:
+                maxima_method=P("method")
+            raise NotImplementedError, "Unable to use initial condition for this equation (%s)."%(str(maxima_method).strip())
         if len(ics) == 2:
             tempic=(ivar==ics[0])._maxima_().str()
             tempic=tempic+","+(dvar==ics[1])._maxima_().str()
@@ -368,42 +446,42 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
             cmd=sanitize_var(cmd)
             # we produce string like this
             # (TEMP:ic2(ode2('diff(y,x,2)+2*'diff(y,x,1)+y-cos(x),y,x),x=0,y=3,'diff(y,x)=1),substitute(y=y(x),TEMP))
-            soln=maxima(cmd)
+            soln=P(cmd)
         if len(ics) == 3:
             #fixed ic2 command from Maxima - we have to ensure that %k1, %k2 do not depend on variables, should be removed when fixed in Maxima
-            maxima("ic2_sage(soln,xa,ya,dya):=block([programmode:true,backsubst:true,singsolve:true,temp,%k2,%k1,TEMP_k], \
+            P("ic2_sage(soln,xa,ya,dya):=block([programmode:true,backsubst:true,singsolve:true,temp,%k2,%k1,TEMP_k], \
                 noteqn(xa), noteqn(ya), noteqn(dya), boundtest('%k1,%k1), boundtest('%k2,%k2), \
                 temp: lhs(soln) - rhs(soln), \
                 TEMP_k:solve([subst([xa,ya],soln), subst([dya,xa], lhs(dya)=-subst(0,lhs(dya),diff(temp,lhs(xa)))/diff(temp,lhs(ya)))],[%k1,%k2]), \
                 if not freeof(lhs(ya),TEMP_k) or not freeof(lhs(xa),TEMP_k) then return (false), \
                 temp: maplist(lambda([zz], subst(zz,soln)), TEMP_k), \
                 if length(temp)=1 then return(first(temp)) else return(temp))")
-            tempic=(ivar==ics[0])._maxima_().str()
-            tempic=tempic+","+(dvar==ics[1])._maxima_().str()
-            tempic=tempic+",'diff("+dvar_str+","+ivar_str+")="+(ics[2])._maxima_().str()
+            tempic=P(ivar==ics[0]).str()
+            tempic=tempic+","+P(dvar==ics[1]).str()
+            tempic=tempic+",'diff("+dvar_str+","+ivar_str+")="+P(ics[2]).str()
             cmd="(TEMP:ic2_sage(%s(%s,%s,%s),%s),substitute(%s=%s(%s),TEMP))"%(ode_solver,de00,dvar_str,ivar_str,tempic,dvar_str,dvar_str,ivar_str)
             cmd=sanitize_var(cmd)
             # we produce string like this
             # (TEMP:ic2(ode2('diff(y,x,2)+2*'diff(y,x,1)+y-cos(x),y,x),x=0,y=3,'diff(y,x)=1),substitute(y=y(x),TEMP))
-            soln=maxima(cmd)
+            soln=P(cmd)
             if str(soln).strip() == 'false':
-                raise NotImplementedError, "Maxima was unable to solve this IVP. Remove the initial contition to get the general solution."
+                raise NotImplementedError, "Maxima was unable to solve this IVP. Remove the initial condition to get the general solution."
         if len(ics) == 4:
             #fixed bc2 command from Maxima - we have to ensure that %k1, %k2 do not depend on variables, should be removed when fixed in Maxima
-            maxima("bc2_sage(soln,xa,ya,xb,yb):=block([programmode:true,backsubst:true,singsolve:true,temp,%k1,%k2,TEMP_k], \
+            P("bc2_sage(soln,xa,ya,xb,yb):=block([programmode:true,backsubst:true,singsolve:true,temp,%k1,%k2,TEMP_k], \
                 noteqn(xa), noteqn(ya), noteqn(xb), noteqn(yb), boundtest('%k1,%k1), boundtest('%k2,%k2), \
                 TEMP_k:solve([subst([xa,ya],soln), subst([xb,yb],soln)], [%k1,%k2]), \
                 if not freeof(lhs(ya),TEMP_k) or not freeof(lhs(xa),TEMP_k) then return (false), \
                 temp: maplist(lambda([zz], subst(zz,soln)),TEMP_k), \
                 if length(temp)=1 then return(first(temp)) else return(temp))")
-            cmd="bc2_sage(%s(%s,%s,%s),%s,%s=%s,%s,%s=%s)"%(ode_solver,de00,dvar_str,ivar_str,(ivar==ics[0])._maxima_().str(),dvar_str,(ics[1])._maxima_().str(),(ivar==ics[2])._maxima_().str(),dvar_str,(ics[3])._maxima_().str())
+            cmd="bc2_sage(%s(%s,%s,%s),%s,%s=%s,%s,%s=%s)"%(ode_solver,de00,dvar_str,ivar_str,P(ivar==ics[0]).str(),dvar_str,P(ics[1]).str(),P(ivar==ics[2]).str(),dvar_str,P(ics[3]).str())
             cmd="(TEMP:%s,substitute(%s=%s(%s),TEMP))"%(cmd,dvar_str,dvar_str,ivar_str)
             cmd=sanitize_var(cmd)
             # we produce string like this
             # (TEMP:bc2(ode2('diff(y,x,2)+2*'diff(y,x,1)+y-cos(x),y,x),x=0,y=3,x=%pi/2,y=2),substitute(y=y(x),TEMP))
-            soln=maxima(cmd)
+            soln=P(cmd)
             if str(soln).strip() == 'false':
-                raise NotImplementedError, "Maxima was unable to solve this BVP. Remove the initial contition to get the general solution."
+                raise NotImplementedError, "Maxima was unable to solve this BVP. Remove the initial condition to get the general solution."
 
     soln=soln.sage()
     if is_SymbolicEquation(soln) and soln.lhs() == dvar:

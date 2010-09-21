@@ -3,3 +3,7 @@
 magma/stoll/polys
 \.pyc
 pickle_jar.tar.bz2
+\.DS_Store
+sage/ext/mac-app/build
+sage/ext/mac-app/Sage.xcodeproj/.*.pbxuser
+sage/ext/mac-app/Sage.xcodeproj/.*.mode1v3

@@ -137,10 +137,16 @@ class HTML:
         return HTMLExpr(self.eval(s, globals, locals))
 
     def eval(self, s, globals=None, locals=None):
-        """
+        r"""
         EXAMPLES:
             sage: html.eval('<hr>')
             <html><font color='black'><hr></font></html>
+            ''
+
+        We work around a limitation of jsmath (it can't typeset '\texttt')::
+
+            sage: html.eval('<sage>Primes</sage>')
+            <html><font color='black'><span class="math">\hbox{<class 'sage.sets.primes.Primes'>}</span></font></html>
             ''
         """
         if globals is None:
@@ -160,7 +166,7 @@ class HTML:
                  t += s
                  break
             t += s[:i] + '<span class="math">%s</span>'%\
-                     latex(sage_eval(s[6+i:j], locals=locals))
+                     latex(sage_eval(s[6+i:j], locals=locals)).replace('\\texttt','\\hbox')
             s = s[j+7:]
         print "<html><font color='black'>%s</font></html>"%t
         return ''
@@ -257,9 +263,13 @@ class HTML:
             <td>a <span class="math">x^2</span></td>
             <td><span class="math">1</span></td>
             <td><span class="math">\sin\left(x\right)</span></td>
-
             sage: html._table_columns("a", header = True)
             <th>a</th>
+
+        We work around a limitation of jsmath (it can't typeset '\texttt')::
+
+            sage: html._table_columns([Primes])
+            <td><span class="math">\hbox{<class 'sage.sets.primes.Primes'>}</span></td>
         """
         if header == False:
             column_tag = "<td>%s</td>"
@@ -279,6 +289,8 @@ class HTML:
             elif isinstance(row[column], str):
                 print column_tag % math_parse(row[column])
             else:
-                print column_tag % ('<span class="math">' + latex(row[column]) + '</span>')
+                print column_tag % ('<span class="math">'
+                                    + latex(row[column]).replace('\\texttt','\\hbox')
+                                    + '</span>')
 
 html = HTML()

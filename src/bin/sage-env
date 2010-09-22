@@ -63,11 +63,11 @@ else
 fi
 
 
-# Call with: contains-spaces X${VAR}X
+# Call with: contains_spaces X${VAR}X
 # i.e., WITHOUT quotes but some character(s) around the environment variable to test.
 # (This function does return false for empty/unset variables.)
 
-contains-spaces()
+contains_spaces()
 {
     if [ $# -ne 1 ]; then
         return 0 # true
@@ -77,7 +77,7 @@ contains-spaces()
 }
 
 
-if contains-spaces X${SAGE_ROOT}X ; then
+if contains_spaces X${SAGE_ROOT}X ; then
     echo "Error: The path to the Sage directory (\$SAGE_ROOT) MUST NOT contain spaces."
     echo "It is currently \"$SAGE_ROOT\"."
     echo "Please correct this by moving Sage (or renaming one or more directories) first."

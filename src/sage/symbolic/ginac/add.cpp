@@ -29,6 +29,7 @@
 #include "clifford.h"
 #include "ncmul.h"
 #include "constant.h"
+#include "compiler.h"
 
 #include <sstream>
 #include <iostream>
@@ -436,6 +437,32 @@ ex add::eval(int level) const
 	}
 	if(!pval.is_zero())
 		return pval;
+
+	// if any terms in the sum still are purely numeric, then they are more
+	// appropriately collected into the overall coefficient
+	//last = seq.end();
+	epvector::const_iterator j = seq.begin();
+	int terms_to_collect = 0;
+	while (j != last) {
+		if (unlikely(is_a<numeric>(j->rest)))
+			++terms_to_collect;
+		++j;
+	}
+	if (terms_to_collect) {
+		std::auto_ptr<epvector> s(new epvector);
+		s->reserve(seq_size - terms_to_collect);
+		numeric oc = *_num1_p;
+		j = seq.begin();
+		while (j != last) {
+			if (unlikely(is_a<numeric>(j->rest)))
+				oc = oc.mul(ex_to<numeric>(j->rest)).mul(ex_to<numeric>(j->coeff));
+			else
+				s->push_back(*j);
+			++j;
+		}
+		return (new add(s, ex_to<numeric>(overall_coeff).add_dyn(oc)))
+		        ->setflag(status_flags::dynallocated);
+	}
 
 	return this->hold();
 }

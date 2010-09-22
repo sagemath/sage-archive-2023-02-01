@@ -3587,6 +3587,51 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         """
         return self.submodule_with_basis(gens, check=check, already_echelonized=already_echelonized)
 
+    def complement(self):
+        """
+        Return the complement of ``self`` in the
+        :meth:`~sage.modules.free_module.FreeModule_ambient_field.ambient_vector_space`.
+
+        EXAMPLES::
+
+            sage: V = QQ^3
+            sage: V.complement()
+            Vector space of degree 3 and dimension 0 over Rational Field
+            Basis matrix:
+            []
+            sage: V == V.complement().complement()
+            True
+            sage: W = V.span([[1, 0, 1]])
+            sage: X = W.complement(); X
+            Vector space of degree 3 and dimension 2 over Rational Field
+            Basis matrix:
+            [ 1  0 -1]
+            [ 0  1  0]
+            sage: X.complement() == W
+            True
+            sage: X + W == V
+            True
+
+        Even though we construct a subspace of a subspace, the
+        orthogonal complement is still done in the ambient vector
+        space `\QQ^3`::
+
+            sage: V = QQ^3
+            sage: W = V.subspace_with_basis([[1,0,1],[-1,1,0]])
+            sage: X = W.subspace_with_basis([[1,0,1]])
+            sage: X.complement()
+            Vector space of degree 3 and dimension 2 over Rational Field
+            Basis matrix:
+            [ 1  0 -1]
+            [ 0  1  0]
+        """
+        # Check simple cases
+        if self.dimension() == 0:
+            return self.ambient_vector_space()
+        if self.dimension() == self.ambient_vector_space().dimension():
+            return self.submodule([])
+        return self.basis_matrix().right_kernel()
+
     def vector_space(self, base_field=None):
         """
         Return the vector space associated to self. Since self is a vector

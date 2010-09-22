@@ -1053,6 +1053,16 @@ ext_modules = [
             include_dirs=["local/include/"],
             libraries=["csage","stdc++"]),
 
+    Extension("sage.numerical.backends.generic_backend",
+              ["sage/numerical/backends/generic_backend.pyx"],
+              include_dirs = [SAGE_ROOT+"/local/include/", "sage/c_lib/include/"],
+              libraries=["csage", "stdc++"]),
+
+    Extension("sage.numerical.backends.glpk_backend",
+              ["sage/numerical/backends/glpk_backend.pyx"],
+              include_dirs = [SAGE_ROOT+"/local/include/", "sage/c_lib/include/"],
+              language = 'c++',
+              libraries=["csage", "stdc++", "glpk", "gmp", "z"]),
 
     ################################
     ##
@@ -1617,55 +1627,25 @@ ext_modules = [
 from sage.misc.package import is_package_installed
 
 
-if is_package_installed('glpk'):
+if (os.path.isfile(SAGE_ROOT+"/local/include/cplex.h") and
+    os.path.isfile(SAGE_ROOT+"/local/lib/libcplex.a")):
     ext_modules.append(
-        Extension("sage.numerical.mip_glpk",
-                  ["sage/numerical/mip_glpk.pyx"],
-                  include_dirs = [SAGE_ROOT+"/local/include/", "sage/c_lib/include/"],
-                  language = 'c++',
-                  libraries=["csage", "stdc++", "glpk", "gmp", "z"])
+        Extension("sage.numerical.backends.cplex_backend",
+                  ["sage/numerical/backends/cplex_backend.pyx"],
+                  include_dirs = [SAGE_ROOT+"/local/include/","/sage/c_lib/include/"],
+                  language = 'c',
+                  libraries = ["csage", "stdc++", "cplex"])
         )
 
 if is_package_installed('cbc'):
-
     ext_modules.append(
-        Extension("sage.numerical.osi_interface",
-                  ["sage/numerical/osi_interface.pyx"],
+        Extension("sage.numerical.backends.coin_backend",
+                  ["sage/numerical/backends/coin_backend.pyx"],
                   include_dirs = [SAGE_ROOT+"/local/include/","sage/c_lib/include/"],
                   language = 'c++',
                   libraries = ["csage", "stdc++", "Cbc", "CbcSolver", "Cgl", "Clp", "CoinUtils", "OsiCbc", "OsiClp", "Osi", "OsiVol", "Vol"])
         )
 
-
-    if os.path.isfile(SAGE_ROOT+"/local/include/coin/OsiCpxSolverInterface.hpp"):
-    # if Cplex is installed too
-        ext_modules.append(
-            Extension("sage.numerical.mip_coin",
-                      ["sage/numerical/mip_coin.pyx"],
-                      include_dirs = [SAGE_ROOT+"/local/include/","sage/c_lib/include/"],
-                      language = 'c++',
-                      define_macros=[('BOB','1')],
-                      libraries = ["csage", "stdc++", "Cbc", "CbcSolver", "Cgl", "Clp", "CoinUtils", "OsiCbc", "OsiClp", "Osi", "OsiVol", "Vol", "OsiCpx"])
-
-            )
-        ext_modules.append(
-            Extension("sage.numerical.mip_cplex",
-                      ["sage/numerical/mip_cplex.pyx"],
-                      include_dirs = [SAGE_ROOT+"/local/include/","/sage/c_lib/include/"],
-                      language = 'c++',
-                      libraries = ["csage", "stdc++", "Cbc", "CbcSolver", "Cgl", "Clp", "CoinUtils", "OsiCbc", "OsiClp", "Osi", "OsiVol", "Vol", "OsiCpx"])
-            )
-
-
-    # otherwise
-    else:
-        ext_modules.append(
-            Extension("sage.numerical.mip_coin",
-                      ["sage/numerical/mip_coin.pyx"],
-                      include_dirs = [SAGE_ROOT+"/local/include/","sage/c_lib/include/"],
-                      language = 'c++',
-                      libraries = ["csage", "stdc++", "Cbc", "CbcSolver", "Cgl", "Clp", "CoinUtils", "OsiCbc", "OsiClp", "Osi", "OsiVol", "Vol"])
-            )
 
 if is_package_installed('mpc'):
     ext_modules.append(

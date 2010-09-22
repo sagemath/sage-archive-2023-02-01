@@ -976,6 +976,7 @@ code = setup(name = 'sage',
                      'sage.monoids',
 
                      'sage.numerical',
+                     'sage.numerical.backends',
 
                      'sage.plot',
                      'sage.plot.plot3d',

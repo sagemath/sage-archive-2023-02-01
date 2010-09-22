@@ -4200,7 +4200,7 @@ class GenericGraph(GenericGraph_pyx):
         else:
             raise ValueError("Only two algorithms are available : Cliquer and MILP.")
 
-    def max_cut(self, value_only=True, use_edge_labels=True, vertices=False, solver=None, verbose=0):
+    def max_cut(self, value_only=True, use_edge_labels=False, vertices=False, solver=None, verbose=0):
         r"""
         Returns a maximum edge cut of the graph. For more information, see the
         `Wikipedia article on cuts
@@ -4215,7 +4215,7 @@ class GenericGraph(GenericGraph_pyx):
           - When set to ``False``, both the value and a maximum edge cut
             are returned.
 
-        - ``use_edge_labels`` -- boolean (default: ``True``)
+        - ``use_edge_labels`` -- boolean (default: ``False``)
 
           - When set to ``True``, computes a maximum weighted cut
             where each edge has a weight defined by its label. (If
@@ -4320,9 +4320,11 @@ class GenericGraph(GenericGraph_pyx):
         p.set_objective(Sum([weight(l ) * in_cut[reorder_edge(u,v)] for (u,v,l ) in g.edge_iterator()]))
 
         if value_only:
-            return p.solve(objective_only=True, solver=solver, log=verbose)
+            obj = p.solve(objective_only=True, solver=solver, log=verbose)
+            return obj if use_edge_labels else round(obj)
         else:
-            val = [p.solve(solver=solver, log=verbose)]
+            obj = p.solve(solver=solver, log=verbose)
+            val = [obj if use_edge_labels else round(obj)]
 
             in_cut = p.get_values(in_cut)
             in_set = p.get_values(in_set)
@@ -5801,9 +5803,12 @@ class GenericGraph(GenericGraph_pyx):
         p.set_objective(Sum([weight(l ) * in_cut[reorder_edge(u,v)] for (u,v,l) in g.edge_iterator()]))
 
         if value_only:
-            return p.solve(objective_only=True, solver=solver, log=verbose)
+            obj = p.solve(objective_only=True, solver=solver, log=verbose)
+            return obj if use_edge_labels else round(obj)
+
         else:
-            val = [p.solve(solver=solver, log=verbose)]
+            obj = p.solve(solver=solver, log=verbose)
+            val = [obj if use_edge_labels else round(obj)]
 
             in_cut = p.get_values(in_cut)
             in_set = p.get_values(in_set)

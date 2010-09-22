@@ -1,3 +1,8 @@
+from sage.numerical.backends.generic_backend cimport GenericBackend
+
+include '../../../../../devel/sage/sage/ext/stdsage.pxi'
+include '../../ext/cdefs.pxi'
+
 cdef extern from *:
     ctypedef double* const_double_ptr "const double*"
 
@@ -6,10 +11,21 @@ cdef extern from "../../local/include/coin/CoinPackedVector.hpp":
          void insert(float, float)
      c_CoinPackedVector *new_c_CoinPackedVector "new CoinPackedVector" ()
      void del_CoinPackedVector "delete" (c_CoinPackedVector *)
+
+cdef extern from "../../local/include/coin/CoinShallowPackedVector.hpp":
+     ctypedef struct c_CoinShallowPackedVector "CoinShallowPackedVector":
+         void insert(float, float)
+         int * getIndices ()
+         double * getElements ()
+         int getNumElements ()
+     c_CoinShallowPackedVector *new_c_CoinShallowPackedVector "new CoinShallowPackedVector" ()
+     void del_CoinShallowPackedVector "delete" (c_CoinShallowPackedVector *)
+
 cdef extern from "../../local/include/coin/CoinPackedMatrix.hpp":
      ctypedef struct c_CoinPackedMatrix "CoinPackedMatrix":
          void setDimensions(int, int)
          void appendRow(c_CoinPackedVector)
+         c_CoinShallowPackedVector getVector(int)
      c_CoinPackedMatrix *new_c_CoinPackedMatrix "new CoinPackedMatrix" (bool, double, double)
      void del_CoinPackedMatrix "delete" (c_CoinPackedMatrix *)
 
@@ -38,14 +54,18 @@ cdef extern from "../../local/include/coin/OsiCbcSolverInterface.hpp":
          void initialSolve()
          void branchAndBound()
          void readMps(string)
-         float getObjValue()
+         double getObjValue()
+         int getObjSense()
          double * getColSolution()
          void setObjSense (double )
+         void setObjCoeff(int, double)
+         double * getObjCoefficients ()
          void setLogLevel(int)
          void setInteger(int)
          void setContinuous(int)
          c_CoinMessageHandler * messageHandler ()
          c_CbcModel * getModelPtr  ()
+         int isContinuous (int)
          int isAbandoned ()
          int isProvenOptimal ()
          int isProvenPrimalInfeasible ()
@@ -55,8 +75,19 @@ cdef extern from "../../local/include/coin/OsiCbcSolverInterface.hpp":
          int isIterationLimitReached ()
          void setMaximumSolutions(int)
          int getMaximumSolutions()
+         int getNumCols()
+         int getNumRows()
+         void setColLower (int elementIndex, double elementValue)
+         void setColUpper (int elementIndex, double elementValue)
+         double * getRowLower()
+         double * getRowUpper()
+         double * getColLower()
+         double * getColUpper()
+         void addCol (int numberElements, int *rows, double *elements, double collb, double colub, double obj)
+         void addRow (c_CoinPackedVector vec, double rowlb, double rowub)
+         c_CoinPackedMatrix * getMatrixByRow()
      c_OsiCbcSolverInterface *new_c_OsiCbcSolverInterface "new OsiCbcSolverInterface" ()
      void del_OsiCbcSolverInterface "delete" (c_OsiCbcSolverInterface *)
 
-from sage.numerical.osi_interface cimport Osi_interface
-from sage.numerical.osi_interface cimport c_OsiSolverInterface
+cdef class CoinBackend(GenericBackend):
+    cdef c_OsiCbcSolverInterface* si

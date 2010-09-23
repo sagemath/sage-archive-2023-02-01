@@ -810,7 +810,7 @@ cdef class Matrix_sparse(matrix.Matrix):
             raise TypeError, "other must be a matrix"
 
         if self._nrows != other.nrows():
-            raise TypeError, "number of columns must be the same"
+            raise TypeError, "number of rows must be the same"
 
         if not (self._base_ring is other.base_ring()):
             other = other.change_ring(self._base_ring)

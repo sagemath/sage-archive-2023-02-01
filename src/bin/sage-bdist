@@ -88,8 +88,37 @@ if [ "$UNAME" = "Darwin" ]; then
     cp sage/local/bin/sage-README-osx.txt README.txt
 
     if [ "$SAGE_APP_BUNDLE" = "yes" ]; then
+
+        echo 'Building the Mac Application'
+
+        # Some people don't have the 10.4 sdk installed, but using the default on 10.4 causes problems
+        if [ "$MACOSX_DEPLOYMENT_TARGET" = "10.4" -a -e '/Developer/SDKs/MacOSX10.4u.sdk' ]; then
+            SET_SDKROOT='SDKROOT=/Developer/SDKs/MacOSX10.4u.sdk'
+        else
+            SET_SDKROOT=''
+        fi
+
+        CONFIGURATION='Debug'
+        # Note that we don't have to build this part with the same
+        # compiler as everything else, and in fact it causes problems
+        # to do so.
+        (cd "$SAGE_ROOT/data/extcode/sage/ext/mac-app/" && \
+            unset CC LD && \
+            xcodebuild -target 'Sage' -configuration "$CONFIGURATION" \
+            ARCHES="$(uname -m)" \
+            $SET_SDKROOT)
+
+        if [ $? -ne 0 ]; then
+            echo "Failed to build Sage.app."
+            echo "If you don't wish to build Sage.app set SAGE_APP_BUNDLE=no"
+            exit 1
+        fi
+
         echo 'Copying Sage.app'
-        cp -L$OPT "$SAGE_ROOT/data/extcode/sage/ext/mac-app/Sage.app" ./Sage.app
+        cp -L$OPT "$SAGE_ROOT/data/extcode/sage/ext/mac-app/build/$CONFIGURATION/Sage.app" ./Sage.app
+        # Info.plist is a binary plist, so convert it for processing with sed.
+        # I would just change it to be an xml plist, but xcode changes it back.
+        plutil -convert xml1 ./Sage.app/Contents/Info.plist
         sed -i '' "s/SAGE_VERSION/$SAGE_VERSION/" \
             ./Sage.app/Contents/Info.plist \
             ./Sage.app/Contents/Resources/English.lproj/InfoPlist.strings

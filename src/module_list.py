@@ -16,6 +16,8 @@ else:
     SAGE_ROOT  = os.environ['SAGE_ROOT']
     SAGE_LOCAL = SAGE_ROOT + '/local/'
     SAGE_DEVEL = SAGE_ROOT + '/devel/'
+    SAGE_INC = SAGE_LOCAL + 'include/'
+
 
 #########################################################
 ### BLAS setup
@@ -523,9 +525,16 @@ ext_modules = [
               sources = ["sage/libs/mwrank/mwrank.pyx",
                          "sage/libs/mwrank/wrap.cc"],
               define_macros = [("NTL_ALL",None)],
-              depends = ["sage/libs/mwrank/wrap.h"],
+              depends = ["sage/libs/mwrank/wrap.h"] +
+                        [ SAGE_INC + "eclib/" + h for h in
+                          ["curve.h","egr.h","descent.h","points.h","isogs.h",
+                            "marith.h","htconst.h","interface.h"]
+                        ],
               libraries = ["curvesntl", "g0nntl", "jcntl", "rankntl",
                            "ntl", "gmp", "gmpxx", "stdc++", "m", "pari"]),
+                         # IMHO "pari" could be removed here, but some people
+                         # claim it is needed on Cygwin (see #9896, #9914).
+                         # If so, we should use uname_specific(). -leif
 
     Extension('sage.libs.pari.gen',
               sources = ["sage/libs/pari/gen.pyx"],
@@ -610,22 +619,41 @@ ext_modules = [
               sources = ["sage/libs/cremona/homspace.pyx"],
               libraries = ['g0nntl', 'jcntl', 'gmpxx', 'ntl', 'gmp',
                            'm', 'stdc++', 'pari', 'curvesntl'],
+                         # IMHO "pari" could be removed here, but some people
+                         # claim it is needed on Cygwin (see #9896, #9914).
+                         # If so, we should use uname_specific(). -leif
               language='c++',
-              define_macros = [("NTL_ALL",None)]),
+              define_macros = [("NTL_ALL",None)],
+              depends = [ SAGE_INC + "eclib/" + h for h in
+                          ["interface.h","bigrat.h","rat.h","curve.h",
+                           "moddata.h","symb.h","cusp.h","homspace.h","mat.h"]
+                        ]),
 
     Extension('sage.libs.cremona.mat',
               sources = ["sage/libs/cremona/mat.pyx"],
               libraries = ['g0nntl', 'jcntl', 'gmpxx', 'ntl',
                            'gmp', 'm', 'stdc++', ],
               language='c++',
-              define_macros = [("NTL_ALL",None)]),
+              define_macros = [("NTL_ALL",None)],
+              depends = [ SAGE_INC + "eclib/" + h for h in
+                          ["interface.h","bigrat.h","rat.h","curve.h",
+                           "moddata.h","symb.h","cusp.h","homspace.h","mat.h"]
+                        ]),
 
     Extension('sage.libs.cremona.newforms',
               sources = ["sage/libs/cremona/newforms.pyx"],
               libraries = ['g0nntl', 'jcntl', 'gmpxx', 'ntl', 'gmp',
                            'm', 'stdc++', 'pari', 'curvesntl'],
+                         # IMHO "pari" could be removed here, but some people
+                         # claim it is needed on Cygwin (see #9896, #9914).
+                         # If so, we should use uname_specific(). -leif
               language='c++',
-              define_macros = [("NTL_ALL",None)]),
+              define_macros = [("NTL_ALL",None)],
+              depends = [ SAGE_INC + "eclib/" + h for h in
+                          ["interface.h","bigrat.h","rat.h","curve.h",
+                           "moddata.h","symb.h","cusp.h","xsplit.h","method.h",
+                           "oldforms.h","homspace.h","cperiods.h","newforms.h"]
+                        ]),
 
         ###################################
         ##

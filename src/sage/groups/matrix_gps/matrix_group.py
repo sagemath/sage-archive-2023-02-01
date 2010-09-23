@@ -56,6 +56,11 @@ Loading, saving, ... works::
     [4 1]
     [4 0]
     sage: TestSuite(g).run()
+
+We test that #9437 is fixed::
+
+    sage: len(list(SL(2, Zmod(4))))
+    48
 """
 
 ##############################################################################
@@ -553,7 +558,12 @@ class MatrixGroup_gap(MatrixGroup_generic):
             [[1 0]
             [0 1]]
 
-        ::
+        Another example over a ring (see trac 9437)::
+
+            sage: len(SL(2, Zmod(4)).list())
+            48
+
+        An error is raised if the group is not finite::
 
             sage: GL(2,ZZ).list()
             Traceback (most recent call last):
@@ -571,9 +581,8 @@ class MatrixGroup_gap(MatrixGroup_generic):
         MS = self.matrix_space()
         R = self.base_ring()
         if not R.is_field() or not R.is_finite():
-            s = self._gap_().Elements().str(use_file=True)
-            es = eval(s)
-            v = [self.element_class(MS(x), self, check=False) for x in es]
+            s = list(self._gap_().Elements())
+            v = [self.element_class(x._matrix_(R), self, check=False) for x in s]
             self.__list = v
             return list(v)
 

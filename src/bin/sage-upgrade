@@ -22,7 +22,11 @@ if [ $ERR -ne 0 ]; then
 fi
 
 # Got all new packages, and ready to go.  Now actually do the install.
-cd $SAGE_ROOT/spkg/
+
+# Tell the install script to force rebuilding all dependent packages, too:
+export SAGE_UPGRADING=yes
+
+cd "$SAGE_ROOT"/spkg/
 
 ./install
 

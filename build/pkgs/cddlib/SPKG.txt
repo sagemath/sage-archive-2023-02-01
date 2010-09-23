@@ -47,9 +47,9 @@ From clean upstream sources:
 === cddlib-094f.p8 (Volker Braun, 21th Sept 2010) ===
  * Add command line option to cdd_both_reps to optionally skip
    adjacency computations.
- * Include a portable random number generator to ensure the same
-   output ordering on different platforms, see
-   http://trac.sagemath.org/sage_trac/ticket/9926
+ * Include a simple random number generator (taken from the GNU C
+   library) to ensure the same output ordering on different platforms,
+   see http://trac.sagemath.org/sage_trac/ticket/9926
 
 === cddlib-094f.p7 (Volker Braun, 7th June 2010) ===
  * Rewrite of configure.ac and Makefile.am's

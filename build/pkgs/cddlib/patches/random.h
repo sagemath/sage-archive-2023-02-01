@@ -5,7 +5,7 @@
 
    ----------------------------------------------------------
    Random numbers that return the same sequence on all platforms.
-   implementation taken from the GNU C Library. The same copyright
+   Implementation taken from the GNU C Library. The same copyright
    applies.
    ----------------------------------------------------------
 
@@ -34,11 +34,6 @@
 
 void portable_srand(unsigned int seed);
 int portable_rand (void);
-
-
-
-
-
 
 
 #endif /* RANDOM__H */

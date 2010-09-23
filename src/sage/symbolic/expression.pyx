@@ -130,7 +130,7 @@ import ring
 import sage.rings.integer
 import sage.rings.rational
 from sage.structure.element cimport ModuleElement, RingElement, Element
-from sage.symbolic.function import get_sfunction_from_serial
+from sage.symbolic.function import get_sfunction_from_serial, SymbolicFunction
 from sage.rings.rational import Rational  # Used for sqrt.
 from sage.misc.derivative import multi_derivative
 from sage.rings.infinity import AnInfinity
@@ -1231,8 +1231,9 @@ cdef class Expression(CommutativeRingElement):
             '((x)+(2))>((3/1)^(1/2))'
         """
         from sage.calculus.calculus import maxima
-        l = self.lhs()._maxima_init_()
-        r = self.rhs()._maxima_init_()
+
+        l = self.lhs()._assume_str()
+        r = self.rhs()._assume_str()
         op = self.operator()
         if  op is operator.eq:
             m = 'equal(%s, %s)'%(l, r)
@@ -1241,6 +1242,30 @@ cdef class Expression(CommutativeRingElement):
         else:
             m = '(%s)%s(%s)' % (l, maxima._relation_symbols()[op], r)
         return m
+
+    def _assume_str(self):
+        """
+        TESTS::
+
+            sage: x = var('x')
+            sage: x._assume_str()
+            'x'
+            sage: y = function('y', x)
+            sage: y._assume_str()
+            'y'
+            sage: abs(x)._assume_str()
+            'abs(x)'
+        """
+        # if this is a function with a single argument which is a symbol, i.e.
+        # this is of the form f(x), we pass the string 'f > 0'
+        if is_a_function(self._gobj) and self.nops() == 1 and \
+                is_a_symbol(self._gobj.op(0)):
+                    op = self.operator()
+                    # check if op is a user defined function, for builtin
+                    # functions like abs() we still need to pass 'abs(x) > 0'
+                    if isinstance(op, SymbolicFunction):
+                        return self.operator().name()
+        return self._maxima_init_()
 
     def _is_real(self):
         """

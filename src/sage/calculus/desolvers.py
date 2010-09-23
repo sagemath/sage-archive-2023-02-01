@@ -349,16 +349,13 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
         sage: desolve(diff(y,x,2)+2*diff(y,x)+y == 0,y,[0,3,pi/2,2],show_method=True)
         [(2*(2*e^(1/2*pi) - 3)*x/pi + 3)*e^(-x), 'constcoeff']
 
-
-    This equation can be solved within Maxima but not within Sage. It
-    needs assumptions assume(x>0,y>0) and works in Maxima, but not in Sage::
-
-        sage: assume(x>0) # not tested
-        sage: assume(y>0) # not tested
-        sage: desolve(x*diff(y,x)-x*sqrt(y^2+x^2)-y,y,show_method=True) # not tested
-
-
     TESTS:
+
+    Trac #9961 fixed (allow assumptions on the dependent variable in desolve)::
+
+        sage: y=function('y',x); assume(x>0); assume(y>0)
+        sage: desolve(x*diff(y,x)-x*sqrt(y^2+x^2)-y == 0, y, contrib_ode=True)
+        [x - arcsinh(y(x)/x) == c]
 
     Trac #6479 fixed::
 

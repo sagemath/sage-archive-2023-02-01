@@ -111,6 +111,16 @@ Test if comparison bugs from #6256 are fixed::
     e^sqrt(x) + e^(-sqrt(x))
     sage: t
     e^sqrt(x)
+
+Test if #9947 is fixed::
+
+    sage: real_part(1+2*(sqrt(2)+1)*(sqrt(2)-1))
+    3
+    sage: a=(sqrt(4*(sqrt(3) - 5)*(sqrt(3) + 5) + 48) + 4*sqrt(3))/ (sqrt(3) + 5)
+    sage: a.real_part()
+    4*sqrt(3)/(sqrt(3) + 5)
+    sage: a.imag_part()
+    sqrt(abs(4*(sqrt(3) - 5)*(sqrt(3) + 5) + 48))/(sqrt(3) + 5)
 """
 
 ###############################################################################

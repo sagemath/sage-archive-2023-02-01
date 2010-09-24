@@ -1,19 +1,25 @@
 r"""
 Scheme implementation overview
 
-Various parts of schemes were implemented by David Kohel,
-David Joyner, and William Stein.
+Various parts of schemes were implemented by
+Volker Braun,
+David Joyner,
+David Kohel,
+Andrey Novoseltsev,
+and
+William Stein.
 
 AUTHORS:
 
 - David Kohel (2006-01-03): initial version
 - William Stein (2006-01-05)
 - William Stein (2006-01-20)
+- Andrey Novoseltsev (2010-09-24): update due to addition of toric varieties.
 
 .. comment seperator
 
 - **Scheme:**
-  A scheme whose datatype might be not be defined in terms
+  A scheme whose datatype might not be defined in terms
   of algebraic equations: e.g. the Jacobian of a curve may be
   represented by means of a Scheme.
 
@@ -25,11 +31,11 @@ AUTHORS:
 
 - **AmbientSpaces:**
   Most effective models of algebraic scheme will be
-  defined, not by generic gluings, but by embeddings in some fixed
+  defined not by generic gluings, but by embeddings in some fixed
   ambient space.
 
 - **AffineSpace:**
-  Affine spaces, and their affine subschemes form the most important
+  Affine spaces and their affine subschemes form the most important
   universal objects from which algebraic schemes are built.
   The affine spaces form universal objects in the sense that a morphism
   is uniquely determined by the images of its coordinate functions and
@@ -39,7 +45,7 @@ AUTHORS:
   unless it is created as an affine patch of another object.
 
 - **ProjectiveSpace:**
-  The projective spaces are the most natural ambient spaces for most
+  Projective spaces are the most natural ambient spaces for most
   projective objects.  They are locally universal objects.
 
 - **ProjectiveSpace_ordinary (not implemented)**
@@ -49,11 +55,11 @@ AUTHORS:
 - **ProjectiveSpace_weighted (not implemented):**
   A special subtype for non-standard weights.
 
-- **ToricSpace (not implemented):**
-  This defines a projective toric variety, which defines a space
-  equipped with a toral action and certain defining data.  These
-  generalise projective spaces, but it is not envisioned that the
-  latter should inherit from the ``ToricSpace`` type.
+- **ToricVariety:**
+  Toric varieties are (partial) compactifications of algebraic tori
+  `\left(\CC^*\right)^n` compatible with torus action. Affine and projective
+  spaces are examples of toric varieties, but it is not envisioned that these
+  special cases should inherit from ``ToricVariety``.
 
 - **AlgebraicScheme_subscheme_affine:**
   An algebraic scheme defined by means of an embedding in a
@@ -64,15 +70,14 @@ AUTHORS:
   projective space.
 
 - **QuasiAffineScheme (not yet implemented):**
-  An open subset `U = X \setminus Z` of a closed subset `X` of affine space; note
-  that this is mathematically a quasi-projective scheme, but its
+  An open subset `U = X \setminus Z` of a closed subset `X` of affine space;
+  note that this is mathematically a quasi-projective scheme, but its
   ambient space is an affine space and its points are represented by
   affine rather than projective points.
 
-  .. note::
+  .. NOTE::
 
-     AlgebraicScheme_quasi is implemented, as a base class
-     for this.
+    AlgebraicScheme_quasi is implemented, as a base class for this.
 
 - **QuasiProjectiveScheme (not yet implemented):**
   An open subset of a closed subset of projective space; this datatype
@@ -80,10 +85,13 @@ AUTHORS:
   projective closure `X` plus the closed subscheme `Z` of `X` whose complement
   `U = X \setminus Z` is the quasi-projective scheme.
 
-  Note: the quasi-affine and quasi-projective datatype lets one create
-  schemes like the multiplicative group scheme `\mathbb{G}_m = \mathbb{A}^1\setminus
-  \{(0)\}` and the non-affine scheme `\mathbb{A}^2\setminus \{(0,0)\}`.  The
-  latter is not affine and is not of the form `\mathrm{Spec}(R)`.
+  .. NOTE::
+
+    The quasi-affine and quasi-projective datatype lets one create schemes
+    like the multiplicative group scheme
+    `\mathbb{G}_m = \mathbb{A}^1\setminus \{(0)\}`
+    and the non-affine scheme `\mathbb{A}^2\setminus \{(0,0)\}`.  The latter
+    is not affine and is not of the form `\mathrm{Spec}(R)`.
 
 TODO List
 ---------
@@ -98,7 +106,7 @@ TODO List
         sage: PP
         Projective Space of dimension 2 over Rational Field
 
-  The last line is an abuse of language -- returning the generators
+  The first line is an abuse of language -- returning the generators
   of the coordinate ring by ``gens()``.
 
   A projective space object in the category of schemes is a locally
@@ -109,7 +117,8 @@ TODO List
   ::
 
         sage: PP(QQ)
-        Set of Rational Points of Projective Space of dimension 2 over Rational Field
+        Set of Rational Points of Projective Space
+        of dimension 2 over Rational Field
         sage: PP(QQ)([-2,3,5])
         (-2/5 : 3/5 : 1)
 

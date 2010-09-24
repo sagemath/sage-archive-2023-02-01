@@ -2061,6 +2061,15 @@ class MPolynomialIdeal_singular_repr:
             ...
             ValueError: The dimension of the ideal is 1, but it should be 0
 
+        Check that the issue at trac 7425 is fixed::
+
+            sage: S.<t>=PolynomialRing(QQ)
+            sage: F.<q>=QQ.extension(t^4+1)
+            sage: R.<x,y>=PolynomialRing(F)
+            sage: I=R.ideal(x,y^4+1)
+            sage: I.variety()
+            [...{y: -q^3, x: 0}...]
+
         ALGORITHM: Uses triangular decomposition.
         """
         def _variety(T, V, v=None):

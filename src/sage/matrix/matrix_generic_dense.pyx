@@ -56,6 +56,22 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
     # x * def _unpickle
     ########################################################################
     def __init__(self, parent, entries, copy, coerce):
+        r"""
+        See :class:`Matrix_generic_dense` for documentation.
+
+        TESTS:
+
+        We check that the problem related to Trac #9049 is not an issue any
+        more::
+
+            sage: S.<t>=PolynomialRing(QQ)
+            sage: F.<q>=QQ.extension(t^4+1)
+            sage: R.<x,y>=PolynomialRing(F)
+            sage: M = MatrixSpace(R, 1, 2)
+            sage: from sage.matrix.matrix_generic_dense import Matrix_generic_dense
+            sage: Matrix_generic_dense(M, (x, y), True, True)
+            [x y]
+        """
         matrix.Matrix.__init__(self, parent)
 
         cdef Py_ssize_t i, n
@@ -63,7 +79,7 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
         if entries is None:
             entries = 0
 
-        if not isinstance(entries, list):
+        if not isinstance(entries, (list, tuple)):
             try:
                 x = parent.base_ring()(entries)
                 is_list = 0

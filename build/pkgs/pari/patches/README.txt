@@ -18,7 +18,7 @@ Configuration files:
   upstream, but probably in a bad way.
 
 Documentation:
-* doc/gphelp.in: cwitty: Disable TeX; allow bz2 compression.
+* doc/gphelp.in: cwitty: allow bz2 compression.
 
 Header files:
 * src/headers/paripriv.h: *After* building, on {OS X, SunOS, CYGWIN},

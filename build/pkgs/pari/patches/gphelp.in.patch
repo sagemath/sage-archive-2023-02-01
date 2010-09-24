@@ -9,15 +9,6 @@
  $docdir = &get_docdir();
  
  $refcard = (@ARGV and $ARGV[-1] =~ /refcard/i);
-@@ -112,6 +114,8 @@
-   $cu .= $cu ? "\e[1m": "\e[4m";
-   $cb .= "\e[1m";
-   $detex = 1 if (!$ENV{DISPLAY});
-+  # Disable TeX for Sage.
-+  $detex = 1;
- }
- 
- sub get_docdir {
 @@ -171,8 +175,14 @@
      die "Cannot find $docfile"
        if (! -r "$docfile.z" &&
@@ -25,12 +16,12 @@
 -          ! -r "$docfile.Z");
 -    $pipe = $zcat;
 +          ! -r "$docfile.Z" &&
-+	  ! -r "$docfile.bz2");
++          ! -r "$docfile.bz2");
 +    if (-r "$docfile.bz2") {
-+	$pipe = $bzcat;
-+	$docfile = "$docfile.bz2";
++        $pipe = $bzcat;
++        $docfile = "$docfile.bz2";
 +    } else {
-+	$pipe = $zcat;
++        $pipe = $zcat;
 +    }
    }
  }

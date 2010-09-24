@@ -306,6 +306,13 @@ build()
         echo "Error installing extra Galois groups data."
         exit 1
     fi
+
+    # Copy gprc.expect to $SAGE_LOCAL/etc
+    cp -f "$TOP/gprc.expect" "$SAGE_LOCAL/etc"
+    if [ $? -ne 0 ]; then
+        echo "Error installing gprc.expect"
+        exit 1
+    fi
 }
 
 build

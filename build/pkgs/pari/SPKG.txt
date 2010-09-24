@@ -83,6 +83,10 @@ exactly where it says native, but I would expect a grep to find it.
 
 == Changelog ==
 
+=== pari-2.4.3.svn-12577.p9 (Jeroen Demeyer, September 24th, 2010) ===
+ * Add gprc.expect file to be installed in $SAGE_LOCAL/etc
+ * Remove $detex = 1; from gphelp.in patch
+
 === pari-2.4.3.svn-12577.p7 (Jeroen Demeyer, September 17th, 2010) ===
  * Add -fno-common to DLCFLAGS on all Darwin systems instead of
    PPC/PPC64 only.

@@ -1,9 +1,11 @@
 #!/usr/bin/env python
-#####################################################
+###############################################################################
 #
-# Download to $SAGE_ROOT/spkg/packages each spkg
+# Download to $SAGE_ROOT/spkg/standard each (standard) spkg
 # that has changed from the one currently installed.
-# Once this has completed, run $SAGE_ROOT/spkg/install
+# Once this has completed, $SAGE_ROOT/spkg/install has to be run.
+# (This is done by "sage-upgrade", from which this Python script
+# should be called.)
 #
 # 1. Download new package list.
 # 2. Download each changed package.
@@ -11,7 +13,7 @@
 # AUTHOR:  William Stein, Harald Schilly
 # LICENSE: GPLv2+
 #
-#####################################################
+###############################################################################
 
 import os
 import sys
@@ -25,15 +27,22 @@ from textwrap import fill
 # can be overridden by the first command line argument.
 def get_sage_mirror(ask=False):
     """
-    Find a good Sage mirror.
+    Finds a good Sage mirror.
 
     Retrieves official list of active and up-to-date mirrors.  This
     only works in conjunction with a server script that generates the
-    SAGE_SERVER/mirror_list file every 10 minutes.  Then selects one
-    of the top 3 mirrors, where pinging the host for index.html
+    ``SAGE_SERVER/mirror_list`` file every 10 minutes.  Then selects one
+    of the top 3 mirrors, where pinging the host for ``index.html``
     responses fastest.
 
-    @return: String, URL of suitable Sage mirror
+    INPUT:
+
+    - ``ask`` -- bool (default: ``False``) - selects if the user should be
+      prompted for a choice between the available Sage mirrors
+
+    OUTPUT:
+
+    - a string, the URL of a suitable (or the selected) Sage mirror
     """
     import re
     import time
@@ -56,7 +65,7 @@ def get_sage_mirror(ask=False):
 
     def pinger_urllib(host):
         """
-        Helper function timing the retrieval of index.html's header.
+        Helper function timing the retrieval of ``index.html``'s header.
         """
         try:
             t1 = time.time()
@@ -68,7 +77,7 @@ def get_sage_mirror(ask=False):
             return (time.time() - t1) * 1000.0
         except IOError:
             # socket timeout
-            print '%-30s TIMEOUT' % (host)
+            print '%-30s TIMEOUT' % (host) ; sys.stdout.flush()
             return None
 
     def task(idx, m, timings):
@@ -81,10 +90,11 @@ def get_sage_mirror(ask=False):
             return
         timings.append((delay, m))
         print '    [%-2s] %-30s %5.0f [ms]' % (idx, host, delay)
+        sys.stdout.flush()
 
     # parallelization. safe, since most of the time we are waiting for
     # the network to respond
-    print 'Testing mirrors...\n'
+    print 'Testing mirrors...\n' ; sys.stdout.flush()
     tasks = []
     for idx, m in enumerate(mirrors):
         t = threading.Thread(target=task, args=(idx, m, timings))
@@ -100,23 +110,31 @@ def get_sage_mirror(ask=False):
     random.shuffle(top)
     sel = top[0][1]
     sel_host = re_host.search(sel).group(1)
-    print '\nAutomatically selected server %s (%s)' % (sel_host, sel)
+    print '\nAutomatically selected server %s (%s).' % (sel_host, sel)
+    sys.stdout.flush()
     if ask:
         try:
-            input = raw_input('Press RETURN to continue or enter a number to select another one: ')
+            # raw_input() doesn't flush the output.  In case it is e.g. tee'd
+            # to a log file, the user won't see the prompt and may think
+            # "./sage -upgrade ..." hangs.
+            sys.stdout.write(
+                'Press RETURN to continue or enter a number to select another one: ')
+            sys.stdout.flush()
+            input = raw_input()
             if input:
-                print 'Manually selected %s' % mirrors[int(input)]
+                # FIXME: Lacks a range check (i.e. might raise an IndexError, too):
+                print 'Manually selected %s.' % mirrors[int(input)]
+                sys.stdout.flush()
                 return mirrors[int(input)]
         except ValueError:
-            print 'Error: you have to enter a number or press RETURN!'
-            import sys
+            print 'Error: You have to enter a number or press RETURN!'
             sys.exit(1)
     return sel
 
 cur = 0
 def reporthook(block, size, total):
     """
-    Used with urllib.urlretrieve, prints .'s as a URL is downloaded.
+    Used with ``urllib.urlretrieve()``, prints ``.``'s as a URL is downloaded.
     """
     global cur
     n = block * size * 50 / total
@@ -128,11 +146,14 @@ def reporthook(block, size, total):
 def download_file(file):
     """
     INPUT:
-    file -- a string
+
+    - ``file`` -- a string
+
     OUTPUT:
-        downloads file from PKG_SERVER to a temp file, then if the
-        download finishes it moves it to the proper spkg name, then
-        deletes all old versions of the spkg.
+
+    - Downloads ``file`` from ``PKG_SERVER`` to a temporary file, then if the
+      download finishes it moves it to the proper spkg name, then
+      deletes all old versions of the spkg.
     """
     url = "%s/%s" % (PKG_SERVER, file)
     i = url.rfind('/')
@@ -154,7 +175,7 @@ def download_file(file):
         old_versions = []
 
     if file in old_versions:
-        print "%s already present" % file
+        print "'%s' is already present." % file
         return
 
     print "[",
@@ -163,9 +184,10 @@ def download_file(file):
     # If the downloaded file is suspiciously small, check that it was
     # actually valid.  If not bail and completely kill the entire
     # upgrade process (that's what exit 2 does).
-    if os.path.getsize(file + '.part') < 2000 and 'not found' in open(file + '.part').read().lower():
+    if ( os.path.getsize(file + '.part') < 2000 and
+         'not found' in open(file + '.part').read().lower() ):
         os.unlink(file + '.part')
-        print "Failed to download '%s'" % url
+        print "Failed to download '%s'." % url
         print "Abort."
         sys.exit(2)
     else:
@@ -173,30 +195,34 @@ def download_file(file):
         os.rename(file + '.part', file)
         for X in old_versions:
             if os.path.exists(X):
-                print "Deleting old spkg %s" % X
+                print "Deleting old spkg '%s'..." % X ; sys.stdout.flush()
                 os.unlink(X)
 
 def permission_error():
     """
-    Print a message that user doesn't have sufficient enough
+    Print a message that the user doesn't have sufficient enough
     permissions, and needs to fix that problem.
     """
-    print "You must have write permissions to the following directory: %s" % SPKG_ROOT
+    print "You must have write permissions to the following directory:"
+    print "    %s" % SPKG_ROOT
     print "Please login as UNIX user with appropriate permissions and try again."
     sys.exit(2)
 
 def spkg_list(url):
     """
     INPUT:
-        url -- a url to be appended to PKG_SERVER
+
+    - ``url`` -- a URL (in fact just a pathname) to be appended to ``PKG_SERVER/``
+
     OUTPUT:
-        writes file in the current directory
+
+    - Writes into a temporary file in the current directory.
     """
     # file - file in which to put a list of all spkg's in the given URL.
     file = 'list.tmp'
     web_url = "%s/%s" % (PKG_SERVER, url)
 
-    print "Reading package lists...",
+    print "Reading package lists...", ; sys.stdout.flush()
     # Download the spkg/ directory listing.
     try:
         urllib.urlretrieve(web_url, file, reporthook)
@@ -209,10 +235,10 @@ def spkg_list(url):
     os.unlink(file)
 
     if 'not found' in r.lower():
-        print "\n404 Error: Package server %s not found" % PKG_SERVER
+        print "\n404 Error: Package server '%s' not found." % PKG_SERVER
         print "Abort."
         sys.exit(2)
-    print " Done!"
+    print " Done!" ; sys.stdout.flush()
 
     # This is a pretty silly/arbitrary way to do this but directory
     # listings from HTTP have links to each file, and the code below
@@ -229,9 +255,9 @@ def chop(s, endstring):
 
     INPUT:
 
-    - ``s`` - string; the string to truncate
+    - ``s`` -- string; the string to truncate
 
-    - ``endstring`` - string; the string to remove from the end of
+    - ``endstring`` -- string; the string to remove from the end of
       ``s``, *if* ``s`` ends with ``endstring``
 
     OUTPUT:
@@ -259,7 +285,8 @@ def do_update():
     really want to upgrade.
 
     OUTPUT:
-        Creates and deletes files from SAGE_ROOT/spkg/
+
+    - Creates files in and deletes files from ``SAGE_ROOT/spkg/``
     """
     # Download list of all spkg's
     os.chdir("%s/standard/" % SPKG_ROOT)
@@ -282,19 +309,27 @@ def do_update():
     print fill(' '.join([chop(x, '.spkg') for x in to_download]),
                initial_indent='    ', subsequent_indent='    ') + '\n'
 
-    # Make sure the user really wants to upgrade.  After all
-    # upgrading, is not guaranteed to work, yet.  This is for "power
+    # Make sure the user really wants to upgrade.  After all,
+    # upgrading is not guaranteed to work, yet.  This is for "power
     # users".
-    warning = "WARNING: This is a source-based upgrade, which could take hours, fail, and render your Sage install useless!!"
+    warning = "WARNING: This is a source-based upgrade, which could take hours, "
+    warning += "fail, and render your Sage install useless!!"
 
     for F in os.listdir("."):
         if os.path.isfile(F) and 'Placeholder spkg file' in open(F).readline():
-            warning += " This is a binary install, so upgrading in place is *not* recommended unless you are an expert.  Please consider installing a new binary from http://sagemath.org instead."
+            warning += "  This is a binary install, so upgrading in place is *not*"
+            warning += " recommended unless you are an expert.  Please consider "
+            warning += "installing a new binary from http://sagemath.org instead."
             break
     print fill(warning, initial_indent=' ** ', subsequent_indent=' ** ') + '\n'
 
+    # raw_input() doesn't flush the output.  In case it is e.g. tee'd
+    # to a log file, the user won't see the prompt and may think
+    # "./sage -upgrade ..." hangs.
+    sys.stdout.write("Do you want to continue [y/N]? ")
+    sys.stdout.flush()
+    ans = raw_input()
     # The default answer is "no":
-    ans = raw_input("Do you want to continue [y/N]? ")
     if not ans:
         ans = "n"
     else:
@@ -323,7 +358,7 @@ if __name__ == '__main__':
     # set because sage-update is only supposed to be called by
     # sage-upgrade, which is called only by sage-sage, after sage-env.
     if 'SAGE_ROOT' not in os.environ:
-        raise RuntimeError("The environment variable SAGE_ROOT must be set")
+        raise RuntimeError("The environment variable SAGE_ROOT must be set.")
     SPKG_ROOT = "%s/spkg/" % os.environ["SAGE_ROOT"]
 
     try:
@@ -351,7 +386,8 @@ if __name__ == '__main__':
         PKG_SERVER += '/spkg'
 
     # Announce where we will download from.
-    print "Downloading packages from %s" % PKG_SERVER
+    print "Downloading packages from '%s'." % PKG_SERVER
+    sys.stdout.flush()
 
     try:
         do_update()

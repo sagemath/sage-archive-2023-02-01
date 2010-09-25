@@ -1,4 +1,4 @@
-= p_group_cohomology-2.1 =
+= p_group_cohomology-2.1.1 =
 
 == Description ==
 
@@ -106,11 +106,17 @@ exporting the environment variable SAGE_NUMBER_THREAD (for example:
 
 == Changelog ==
 
+  * 2.1.1 (Simon King, September 2010):
+    - Cohomology data are now by default only created in the private
+      database.
+    - Data in the public database are accessed via symbolic links
+    - Code restructured: The cohomology ring constructor is modularised.
+    - Parallel testing now only if the patch of ticket #10004 is applied.
   * 2.1 (Simon King, September 2010):
     - Full doctest coverage and a parallel test script.
     - Cleaning up code in order to reduce the number of compiler
       warnings.
-    - Builds on little and big endian machines.
+    - Builds and tests on little and big endian machines.
     - Uses features of Singular-3-1-1, but still works with
       Singular-3-1-0.
     - Support for setting random seeds. If the same random seed is

@@ -196,6 +196,7 @@ def get_docstring(f,cl):
     return ''
 
 import os
+from sage.all import gap,singular
 NCPUS = os.environ.get('SAGE_NUMBER_THREADS')
 if not NCPUS:
     NCPUS = int(multiprocessing.cpu_count()/3)+1
@@ -204,6 +205,10 @@ else:
         NCPUS = int(NCPUS)
     except:
         NCPUS = int(multiprocessing.cpu_count()/3)+1
+if NCPUS>1 and gap._local_tmpfile()==singular._local_tmpfile():
+    print "WARNING: You should apply the patch of ticket #10004."
+    print "         Without the patch, parallel testing isn't safe."
+    NCPUS = 1
 
 @parallel(ncpus=NCPUS)
 def one_test(s,cl,lfd_nr):
@@ -246,6 +251,7 @@ def one_test(s,cl,lfd_nr):
     import os
     f = file(test_dir+'/file_%d.py'%lfd_nr,'w')
     f.write('"""\n'+s+'\n"""')
+    os.fsync(f)
     f.close()
     wt = walltime()
     Res = os.popen('sage -t -optional -long '+f.name).read()

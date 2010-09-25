@@ -23,7 +23,8 @@ default:
 	@echo "--------------------------------------------------------------"
 	@echo "              Parallel Versions        "
 	@echo ""
-	@echo "             aix-thr - IBM AIX 5.x      POSIX Threads         "
+	@echo "     aix-generic-thr - IBM AIX POSIX Threads. Generic compiler"
+	@echo "             aix-thr - IBM AIX 5.x POSIX Threads. IBM compiler "
 	@echo "          aix-64-thr - IBM AIX 5.x      POSIX Threads, 64-bit "
 	@echo "             aix-mpi - IBM AIX 5.x (SP) MPI                   "
 	@echo "        asci-red-mpi - Intel ASCI Red   MPI                   "
@@ -32,6 +33,7 @@ default:
 	@echo "        cray-t3e-mpi - Cray T3E         MPI                   "
 	@echo "        cray-xt3-mpi - Cray XT3         MPI                   "
 	@echo "  compaq-alphasc-mpi - Lemieux at PSC   MPI                   "
+	@echo "    hpux-generic-thr - HP/UX POSIX Threads. Generic compiler  "
 	@echo "            hpux-thr - HP/UX 11.x       POSIX Threads         "
 	@echo "       hpux-ia64-thr - HP-UX IA-64, HP C, POSIX Threads       "
 	@echo "           irix6-thr - SGI IRIX 6.5.x   POSIX Threads         "
@@ -64,9 +66,11 @@ default:
 	@echo "--------------------------------------------------------------"
 	@echo "              Sequential Versions                             "
 	@echo ""
-	@echo "              aix - IBM AIX 5.x                             "
+	@echo "              aix - IBM 5.x using IBM's compiler            "
+	@echo "      aix-generic - IBM AIX Generic compiler (gcc etc)      "
 	@echo "              bsd - OpenBSD/FreeBSD/NetBSD                  "
-	@echo "             hpux - HP/UX 11.x                              "
+	@echo "             hpux - HP/UX 11.x  HP's compiler               "
+	@echo "     hpux-generic - HP/UX 11.x  Generic compiler (gcc etc)  "
 	@echo "            irix6 - SGI Irix 6.x                            "
 	@echo "            linux - Linux                                   "
 	@echo "         linux-64 - Linux, AMD64/EM64T, GCC 3.x, 64-bit     "
@@ -787,6 +791,8 @@ irix6-thr-ogl:
 ## available yet, since access to a thread capable test machine is needed
 ## for implementation.  These configurations require xlc.
 ##
+## The AIX and HP-UX target for generic compilers (e.g. gcc) have not been
+## properly tested.
 
 
 aix:
@@ -794,6 +800,21 @@ aix:
 	"ARCH = aix" \
 	"CC = xlc" \
 	"CFLAGS = -O3 -DAIX $(MISCFLAGS)" \
+	"AR = ar" \
+	"ARFLAGS = r" \
+	"STRIP = strip" \
+	"LIBS = -L. -ltachyon $(MISCLIB) -lm"
+
+# The aix-generic target has not been tested.
+# It should work with gcc and perhaps other
+# compilers, as the compiler name is not
+# hard-coded. As long as CFLAGS are set properly
+# it should work both 32-bit and 64-bit.
+aix-generic:
+	$(MAKE) all \
+	"ARCH = aix-generic" \
+	"CC = $(CC)" \
+	"CFLAGS = $(CFLAGS) -DAIX $(MISCFLAGS)" \
 	"AR = ar" \
 	"ARFLAGS = r" \
 	"STRIP = strip" \
@@ -814,6 +835,21 @@ aix-thr:
 	"ARCH = aix-thr" \
 	"CC = xlc" \
 	"CFLAGS = -O3 -DAIX $(MISCFLAGS) -DTHR -D_REENTRANT" \
+	"AR = ar" \
+	"ARFLAGS = r" \
+	"STRIP = strip" \
+	"LIBS = -L. -ltachyon $(MISCLIB) -lm -lpthread"
+
+# The aix-generic-thr target has not been tested.
+# It should work with gcc and perhaps other
+# compilers, as the compiler name is not
+# hard-coded. As long as CFLAGS are set properly
+# it should work both 32-bit and 64-bit.
+aix-generic-thr:
+	$(MAKE) all \
+	"ARCH = aix-generic-thr" \
+	"CC = $(CC)" \
+	"CFLAGS = $(CFLAGS) -DAIX $(MISCFLAGS) -DTHR -D_REENTRANT" \
 	"AR = ar" \
 	"ARFLAGS = r" \
 	"STRIP = strip" \
@@ -846,6 +882,36 @@ hpux:
 	"ARFLAGS = r" \
 	"STRIP = strip" \
 	"LIBS = -L. -ltachyon $(MISCLIB) -lm"
+
+# The hpux-generic target has not been tested.
+# It should work with gcc and perhaps other
+# compilers, as the compiler name is not
+# hard-coded. As long as CFLAGS are set properly
+# it should work both 32-bit and 64-bit.
+hpux-generic:
+	$(MAKE) all \
+	"ARCH = hpux-generic" \
+	"CC = $(CC)" \
+	"CFLAGS = $(CFLAGS) -DHPUX $(MISCFLAGS)" \
+	"AR = ar" \
+	"ARFLAGS = r" \
+	"STRIP = strip" \
+	"LIBS = -L. -ltachyon $(MISCLIB) -lm"
+
+# The hpux-generic-thr target has not been tested.
+# It should work with gcc and perhaps other
+# compilers, as the compiler name is not
+# hard-coded. As long as CFLAGS are set properly
+# it should work both 32-bit and 64-bit.
+hpux-generic-thr:
+	$(MAKE) all \
+	"ARCH = hpux-generic-thr" \
+	"CC = $(CC)" \
+	"CFLAGS = $(CFLAGS) -DHPUX $(MISCFLAGS) -DTHR -D_REENTRANT" \
+	"AR = ar" \
+	"ARFLAGS = r" \
+	"STRIP = strip" \
+	"LIBS = -L. -ltachyon $(MISCLIB) -lm -lpthread"
 
 hpux-thr:
 	$(MAKE) all \

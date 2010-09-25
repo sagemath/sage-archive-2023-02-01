@@ -85,5 +85,20 @@ if [ $UNAME = "SunOS" ]; then
     finished
 fi
 
+if [ "x$UNAME" = xAIX ]; then
+    CFLAGS="$CFLAGS -g -O2"
+    export CFLAGS
+    make aix-generic-thr
+    finished
+fi
+
+if [ "x$UNAME" = xHP-UX ]; then
+    CFLAGS="$CFLAGS -g -O2"
+    export CFLAGS
+    make hpux-generic-thr
+    finished
+fi
+
+
 echo "Tachyon build for $UNAME not implemented (for SAGE) - please complain on sage-devel"
 exit 1

@@ -1,25 +1,167 @@
-55d54
-< 	@echo "solaris-pthreads-gcc-64-bit - 64-bit (should work on SPARC or x64)"
-484,493d482
-< solaris-pthreads-gcc-64-bit:
-< 	$(MAKE) all \
-< 	"ARCH = solaris-pthreads-gcc" \
-< 	"CC = gcc" \
-< 	"CFLAGS = -Wall -O4 -m64 -fomit-frame-pointer -ffast-math -D_REENTRANT -DSunOS $(MISCFLAGS) -DTHR -DUSEPOSIXTHREADS" \
-< 	"AR = ar" \
-< 	"ARFLAGS = r" \
-< 	"STRIP = strip" \
-< 	"LIBS = -L. -ltachyon $(MISCLIB) -lm -lpthread"
-< 
-900,910d888
-< macosx-64:
-< 	$(MAKE) all \
-< 	"ARCH = macosx" \
-< 	"CC = cc" \
-< 	"CFLAGS = -Os -m64 -ffast-math -DBsd $(MISCFLAGS)" \
-< 	"AR = ar" \
-< 	"ARFLAGS = r" \
-< 	"STRIP = strip" \
-< 	"RANLIB = ranlib" \
-< 	"LIBS = -L. -ltachyon $(MISCLIB)"
-< 
+--- src/unix/Make-arch	2010-01-18 19:13:41.000000000 +0000
++++ patches/Make-arch	2010-09-25 10:58:43.137777435 +0100
+@@ -23,7 +23,8 @@
+ 	@echo "--------------------------------------------------------------"
+ 	@echo "              Parallel Versions        "
+ 	@echo ""
+-	@echo "             aix-thr - IBM AIX 5.x      POSIX Threads         "
++	@echo "     aix-generic-thr - IBM AIX POSIX Threads. Generic compiler"
++	@echo "             aix-thr - IBM AIX 5.x POSIX Threads. IBM compiler "
+ 	@echo "          aix-64-thr - IBM AIX 5.x      POSIX Threads, 64-bit "
+ 	@echo "             aix-mpi - IBM AIX 5.x (SP) MPI                   "
+ 	@echo "        asci-red-mpi - Intel ASCI Red   MPI                   "
+@@ -32,6 +33,7 @@
+ 	@echo "        cray-t3e-mpi - Cray T3E         MPI                   "
+ 	@echo "        cray-xt3-mpi - Cray XT3         MPI                   "
+ 	@echo "  compaq-alphasc-mpi - Lemieux at PSC   MPI                   "
++	@echo "    hpux-generic-thr - HP/UX POSIX Threads. Generic compiler  "
+ 	@echo "            hpux-thr - HP/UX 11.x       POSIX Threads         "
+ 	@echo "       hpux-ia64-thr - HP-UX IA-64, HP C, POSIX Threads       "
+ 	@echo "           irix6-thr - SGI IRIX 6.5.x   POSIX Threads         "
+@@ -52,6 +54,7 @@
+ 	@echo "         solaris-mpi - Sun Solaris 9/10 MPI (MPICH)           " 
+ 	@echo "         solaris-lam - Sun Solaris 9/10 MPI (OSC LAM)         " 
+ 	@echo "         solaris-thr - Sun Solaris 9/10 UI/Sun Threads        " 
++	@echo "solaris-pthreads-gcc-64-bit - 64-bit (should work on SPARC or x64)"
+ 	@echo "   solaris-ultra-thr - Sun Solaris 9/10 UI/Sun Threads, US-1/2" 
+ 	@echo "  solaris-ultra3-thr - Sun Solaris 9/10 UI/Sun Threads, US-III" 
+ 	@echo "      solaris-64-thr - Sun Solaris 9/10 UI/Sun Threads, 64-bit" 
+@@ -63,9 +66,11 @@
+ 	@echo "--------------------------------------------------------------"
+ 	@echo "              Sequential Versions                             "
+ 	@echo ""
+-	@echo "              aix - IBM AIX 5.x                             "
++	@echo "              aix - IBM 5.x using IBM's compiler            "
++	@echo "      aix-generic - IBM AIX Generic compiler (gcc etc)      "
+ 	@echo "              bsd - OpenBSD/FreeBSD/NetBSD                  "
+-	@echo "             hpux - HP/UX 11.x                              "
++	@echo "             hpux - HP/UX 11.x  HP's compiler               "
++	@echo "     hpux-generic - HP/UX 11.x  Generic compiler (gcc etc)  "
+ 	@echo "            irix6 - SGI Irix 6.x                            "
+ 	@echo "            linux - Linux                                   "
+ 	@echo "         linux-64 - Linux, AMD64/EM64T, GCC 3.x, 64-bit     "
+@@ -480,6 +485,16 @@
+ 	"STRIP = strip" \
+ 	"LIBS = -L. -ltachyon $(MISCLIB) -lm -lpthread"
+ 
++solaris-pthreads-gcc-64-bit:
++	$(MAKE) all \
++	"ARCH = solaris-pthreads-gcc" \
++	"CC = gcc" \
++	"CFLAGS = -Wall -O4 -m64 -fomit-frame-pointer -ffast-math -D_REENTRANT -DSunOS $(MISCFLAGS) -DTHR -DUSEPOSIXTHREADS" \
++	"AR = ar" \
++	"ARFLAGS = r" \
++	"STRIP = strip" \
++	"LIBS = -L. -ltachyon $(MISCLIB) -lm -lpthread"
++
+ solaris-thr-x11:
+ 	$(MAKE) all \
+ 	"ARCH = solaris-thr-x11" \
+@@ -776,6 +791,8 @@
+ ## available yet, since access to a thread capable test machine is needed
+ ## for implementation.  These configurations require xlc.
+ ##
++## The AIX and HP-UX target for generic compilers (e.g. gcc) have not been
++## properly tested. 
+ 
+ 
+ aix:
+@@ -788,6 +805,21 @@
+ 	"STRIP = strip" \
+ 	"LIBS = -L. -ltachyon $(MISCLIB) -lm"
+ 
++# The aix-generic target has not been tested. 
++# It should work with gcc and perhaps other
++# compilers, as the compiler name is not 
++# hard-coded. As long as CFLAGS are set properly
++# it should work both 32-bit and 64-bit.
++aix-generic:
++	$(MAKE) all \
++	"ARCH = aix-generic" \
++	"CC = $(CC)" \
++	"CFLAGS = $(CFLAGS) -DAIX $(MISCFLAGS)" \
++	"AR = ar" \
++	"ARFLAGS = r" \
++	"STRIP = strip" \
++	"LIBS = -L. -ltachyon $(MISCLIB) -lm"
++
+ aix-mpi:
+ 	$(MAKE) all \
+ 	"ARCH = aix-mpi" \
+@@ -808,6 +840,21 @@
+ 	"STRIP = strip" \
+ 	"LIBS = -L. -ltachyon $(MISCLIB) -lm -lpthread"
+ 
++# The aix-generic-thr target has not been tested. 
++# It should work with gcc and perhaps other
++# compilers, as the compiler name is not 
++# hard-coded. As long as CFLAGS are set properly
++# it should work both 32-bit and 64-bit.
++aix-generic-thr: 
++	$(MAKE) all \
++	"ARCH = aix-generic-thr" \
++	"CC = $(CC)" \
++	"CFLAGS = $(CFLAGS) -DAIX $(MISCFLAGS) -DTHR -D_REENTRANT" \
++	"AR = ar" \
++	"ARFLAGS = r" \
++	"STRIP = strip" \
++	"LIBS = -L. -ltachyon $(MISCLIB) -lm -lpthread"
++
+ aix-64-thr:
+ 	$(MAKE) all \
+ 	"ARCH = aix-64-thr" \
+@@ -836,6 +883,36 @@
+ 	"STRIP = strip" \
+ 	"LIBS = -L. -ltachyon $(MISCLIB) -lm"
+ 
++# The hpux-generic target has not been tested. 
++# It should work with gcc and perhaps other
++# compilers, as the compiler name is not 
++# hard-coded. As long as CFLAGS are set properly
++# it should work both 32-bit and 64-bit.
++hpux-generic:
++	$(MAKE) all \
++	"ARCH = hpux-generic" \
++	"CC = $(CC)" \
++	"CFLAGS = $(CFLAGS) -DHPUX $(MISCFLAGS)" \
++	"AR = ar" \
++	"ARFLAGS = r" \
++	"STRIP = strip" \
++	"LIBS = -L. -ltachyon $(MISCLIB) -lm"
++
++# The hpux-generic-thr target has not been tested. 
++# It should work with gcc and perhaps other
++# compilers, as the compiler name is not 
++# hard-coded. As long as CFLAGS are set properly
++# it should work both 32-bit and 64-bit.
++hpux-generic-thr:
++	$(MAKE) all \
++	"ARCH = hpux-generic-thr" \
++	"CC = $(CC)" \
++	"CFLAGS = $(CFLAGS) -DHPUX $(MISCFLAGS) -DTHR -D_REENTRANT" \
++	"AR = ar" \
++	"ARFLAGS = r" \
++	"STRIP = strip" \
++	"LIBS = -L. -ltachyon $(MISCLIB) -lm -lpthread"
++
+ hpux-thr:
+ 	$(MAKE) all \
+ 	"ARCH = hpux-thr" \
+@@ -886,6 +963,17 @@
+ 	"RANLIB = ranlib" \
+ 	"LIBS = -L. -ltachyon $(MISCLIB)"
+ 
++macosx-64:
++	$(MAKE) all \
++	"ARCH = macosx" \
++	"CC = cc" \
++	"CFLAGS = -Os -m64 -ffast-math -DBsd $(MISCFLAGS)" \
++	"AR = ar" \
++	"ARFLAGS = r" \
++	"STRIP = strip" \
++	"RANLIB = ranlib" \
++	"LIBS = -L. -ltachyon $(MISCLIB)"
++
+ macosx-thr:
+ 	$(MAKE) all \
+ 	"ARCH = macosx-thr" \

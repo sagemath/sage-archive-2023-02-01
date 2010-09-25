@@ -45,8 +45,15 @@ See below. This needs to be cleaned up for the 0.98.9 update (#5281)
 
 == Changelog ==
 
-=== tachyon-0.98.9 (Marshall Hampton, September 3rd, 2010)
- * #5281: upgrade to 0.98.9 form 0.98.beta.  Also cleaned up SPKG.txt and spkg-install.  Deleted scenes folder and msvc folders to save space.
+=== tachyon-0.98.9 (Marshall Hampton, David Kirkby, September 25th, 2010)
+ * #5281: upgrade to 0.98.9 form 0.98.beta.
+ * Also cleaned up SPKG.txt and spkg-install.
+ * Deleted scenes folder and msvc folders to save space.
+ * #9997 Add targets for AIX and HP-UX for a generic compiler
+   such as gcc into patches/Make-arch. These 4 targets are:
+   aix-generic, aix-generic-thr, hpux-generic and hpux-generic-thr
+ * Call the targets aix-generic-thr and hpux-generic-thr from
+   spkg-install on AIX and HP-UX repectively.
 
 === tachyon-0.98beta.p11 (David Kirkby, May 23rd 2010) ===
  * #9024: tachyon is buiding 32-bit on OpenSolaris x64 even when SAGE64 is set to "yes"

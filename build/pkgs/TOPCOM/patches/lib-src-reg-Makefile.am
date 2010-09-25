@@ -1,0 +1,16 @@
+lib_LTLIBRARIES = libCHECKREG.la
+
+libCHECKREG_la_SOURCES = \
+SPXinterface.cc \
+LPinterface.cc \
+RegularityCheck.cc
+
+include_HEADERS = \
+SPXinterface.hh \
+RegularityCheck.hh \
+LPinterface.hh
+
+INCLUDES        = $(GMP_CFLAGS) $(CDD_CFLAGS)
+INCLUDES       += -I../lib-src -I../wrap-gmp-gmpxx
+
+AM_CPPFLAGS     = -DVERBOSE -DGMPRATIONAL -ftemplate-depth-30

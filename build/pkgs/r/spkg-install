@@ -154,15 +154,46 @@ fi
 cd "$CUR"/patches
 python fix_hardcode
 
-echo "Now install rpy"
-
 cd "$CUR"
+
 
 RPY_VER=rpy2-2.0.8
 
-sage -f "$RPY_VER".spkg
-if [ ! -f "$SAGE_ROOT"/spkg/installed/"$RPY_VER" ]; then
-    echo "Error installing rpy."
+echo "Now installing the contained Rpy ($RPY_VER) spkg..."
+
+# Do NOT call $SAGE_ROOT/sage here, since $SAGE_LOCAL/bin/sage-sage
+# might not yet exist.
+# See http://trac.sagemath.org/sage_trac/ticket/8306#comment:29
+# and http://trac.sagemath.org/sage_trac/ticket/9896#comment:95
+# Instead, as a temporary solution before Rpy gets removed from
+# R's spkg (#9906), call $SAGE_LOCAL/bin/sage-spkg directly since
+# it is present in any case (installed by spkg/base/dir-0.1-install)
+# and the environment is already set up:
+
+# sage -f "$RPY_VER".spkg # EVIL
+
+# Sanity check, should never happen:
+if [ ! -x "$SAGE_LOCAL/bin/sage-spkg" ]; then
+    echo "Error: Fatal dependency error:"
+    echo "    $SAGE_LOCAL/bin/sage-spkg"
+    echp "does not (yet) exist (or isn't executable):"
+    ls -l "$SAGE_LOCAL/bin/sage-spkg"
+    echo "Please report this to one of the Google groups"
+    echo "    sage-devel or sage-release."
+    echo "Error installing Rpy, which is part of the R spkg."
+    exit 1
+fi
+
+# Avoid trouble with pipestatus and spaces in the spkg's pathname:
+export RPY_PKG=$CUR/$RPY_VER.spkg
+
+# sage-spkg is in the PATH (but not pipestatus):
+"$SAGE_ROOT/spkg/pipestatus" \
+    "sage-spkg -f '$RPY_PKG' 2>&1" \
+    "tee -a '$SAGE_ROOT/spkg/logs/'$RPY_VER.log"
+
+if [ $? -ne 0 ] || [ ! -f "$SAGE_ROOT"/spkg/installed/"$RPY_VER" ]; then
+    echo "Error installing Rpy, which is part of the R spkg."
     exit 1
 fi
 

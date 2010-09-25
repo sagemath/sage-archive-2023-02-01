@@ -117,9 +117,24 @@ cdef class SymbolicRing(CommutativeRing):
             True
             sage: SR.has_coerce_map_from(GF(9, 'a'))
             True
+
+        TESTS:
+
+        Check if arithmetic with bools work #9560::
+
+            sage: SR.has_coerce_map_from(bool)
+            True
+            sage: SR(5)*True; True*SR(5)
+            5
+            5
+            sage: SR(5)+True; True+SR(5)
+            6
+            6
+            sage: SR(5)-True
+            4
         """
         if isinstance(R, type):
-            if R in [int, float, long, complex]:
+            if R in [int, float, long, complex, bool]:
                 return True
 
             if 'numpy' in R.__module__:

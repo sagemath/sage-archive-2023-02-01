@@ -165,6 +165,14 @@ class NumberFieldIdeal(Ideal_generic):
             sage: F = pari(K).idealprimedec(5)
             sage: K.ideal(F[0])
             Fractional ideal (-i + 2)
+
+        TESTS:
+
+        Check that _pari_prime is set when initializing from a PARI
+        prime ideal::
+
+            sage: K.ideal(pari(K).idealprimedec(5)[0])._pari_prime
+            [5, [-2, 1]~, 1, 1, [2, 1]~]
         """
         if not isinstance(field, number_field.NumberField_generic):
             raise TypeError, "field (=%s) must be a number field."%field
@@ -179,6 +187,7 @@ class NumberFieldIdeal(Ideal_generic):
                 gens = map(field, field.pari_zk() * gens)
             elif gens.type() == "t_VEC":
                 # Assume prime ideal form
+                self._pari_prime = gens
                 gens = [ZZ(gens.pr_get_p()), field(gens.pr_get_gen())]
             else:
                 # Assume one element of the field
@@ -918,25 +927,50 @@ class NumberFieldIdeal(Ideal_generic):
 
             sage: K.<a> = NumberField(x^2 - 17); K
             Number Field in a with defining polynomial x^2 - 17
-            sage: K.ideal(5).is_prime()
+            sage: K.ideal(5).is_prime()   # inert prime
             True
-            sage: K.ideal(13).is_prime()
+            sage: K.ideal(13).is_prime()  # split
             False
-            sage: K.ideal(17).is_prime()
+            sage: K.ideal(17).is_prime()  # ramified
             False
         """
         try:
             return self._pari_prime is not None
         except AttributeError:
-            K = self.number_field()
-            F = list(K.pari_nf().idealfactor(self.pari_hnf()))
-            ### We should definitely cache F as the factorization of self
-            P, exps = F[0], F[1]
-            if len(P) != 1 or exps[0] != 1:
+            F = self.factor()  # factorization with caching
+            if len(F) != 1 or F[0][1] != 1:
                 self._pari_prime = None
             else:
-                self._pari_prime = P[0]
+                self._pari_prime = F[0][0]._pari_prime
             return self._pari_prime is not None
+
+    def pari_prime(self):
+        r"""
+        Returns a PARI prime ideal corresponding to the ideal ``self``.
+
+        INPUT:
+
+         - ``self`` - a prime ideal.
+
+        OUTPUT: a PARI "prime ideal", i.e. a five-component vector `[p,a,e,f,b]`
+        representing the prime ideal `p O_K + a O_K`, `e`, `f` as usual, `a` as
+        vector of components on the integral basis, `b` Lenstra's constant.
+
+        EXAMPLES::
+
+            sage: K.<i> = QuadraticField(-1)
+            sage: K.ideal(3).pari_prime()
+            [3, [3, 0]~, 1, 2, 1]
+            sage: K.ideal(2+i).pari_prime()
+            [5, [2, 1]~, 1, 1, [-2, 1]~]
+            sage: K.ideal(2).pari_prime()
+            Traceback (most recent call last):
+            ...
+            ValueError: Fractional ideal (2) is not a prime ideal
+        """
+        if not self.is_prime():
+           raise ValueError, "%s is not a prime ideal"%self
+        return self._pari_prime
 
     def is_principal(self, proof=None):
         r"""
@@ -1206,7 +1240,7 @@ class NumberFieldIdeal(Ideal_generic):
         if p.ring() != self.number_field():
             raise ValueError, "p (= %s) must be an ideal in %s"%self.number_field()
         nf = self.number_field().pari_nf()
-        return ZZ(nf.idealval(self.pari_hnf(), p._pari_prime))
+        return ZZ(nf.idealval(self.pari_hnf(), p.pari_prime()))
 
     def decomposition_group(self):
         r"""
@@ -1457,13 +1491,11 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             return self.__factorization
         except AttributeError:
             K = self.number_field()
-            F = list(K.pari_nf().idealfactor(self.pari_hnf()))
-            P, exps = F[0], F[1]
+            F = K.pari_nf().idealfactor(self.pari_hnf())
             A = []
-            for i, p in enumerate(P):
-                I = K.ideal([ZZ(p.pr_get_p()), K(p.pr_get_gen())])
-                I._pari_prime = p
-                A.append((I,ZZ(exps[i])))
+            for j in range(0, len(F[0])):
+                I = K.ideal(F[j,0])
+                A.append((I,ZZ(F[j,1])))
             self.__factorization = Factorization(A)
             return self.__factorization
 
@@ -1596,11 +1628,9 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             sage: K.ideal(17).ramification_index()
             Traceback (most recent call last):
             ...
-            ValueError: the fractional ideal (= Fractional ideal (17)) is not prime
+            ValueError: Fractional ideal (17) is not a prime ideal
         """
-        if self.is_prime():
-            return ZZ(self._pari_prime.pr_get_e())
-        raise ValueError, "the fractional ideal (= %s) is not prime"%self
+        return ZZ(self.pari_prime().pr_get_e())
 
     def reduce(self, f):
         """
@@ -2649,9 +2679,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             sage: [i.residue_class_degree() for i, _ in f]
             [2, 2, 1]
         """
-        if self.is_prime():
-            return ZZ(self._pari_prime.pr_get_f())
-        raise ValueError, "the ideal (= %s) is not prime"%self
+        return ZZ(self.pari_prime().pr_get_f())
 
 def is_NumberFieldFractionalIdeal(x):
     """

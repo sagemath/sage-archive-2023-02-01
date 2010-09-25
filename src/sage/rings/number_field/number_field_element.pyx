@@ -2423,11 +2423,10 @@ cdef class NumberFieldElement(FieldElement):
             else:
                 raise TypeError, "P must be an ideal"
         if not P.is_prime():
-            # We always check this because it caches the pari prime representation of this ideal.
             raise ValueError, "P must be prime"
         if self == 0:
             return infinity
-        return Integer_sage(self.number_field()._pari_().elementval(self._pari_(), P._pari_prime))
+        return Integer_sage(self.number_field().pari_nf().elementval(self._pari_(), P.pari_prime()))
 
     def local_height(self, P, prec=None, weighted=False):
         r"""

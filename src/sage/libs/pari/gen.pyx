@@ -6563,6 +6563,11 @@ cdef class gen(sage.structure.element.RingElement):
         sig_on()
         return self.new_gen(buchnarrow(self.g))
 
+    def bnfsunit(bnf, S, long precision=0):
+        t0GEN(S)
+        sig_on()
+        return bnf.new_gen(bnfsunit(bnf.g, t0, pbw(precision)))
+
     def bnfunit(self):
         sig_on()
         return self.new_gen(bnf_get_fu(self.g))

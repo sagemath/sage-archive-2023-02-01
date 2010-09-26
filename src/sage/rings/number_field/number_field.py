@@ -97,10 +97,6 @@ from sage.misc.cachefunc import cached_method
 
 from sage.categories.map import Map
 
-# There will be one running instance of GP for all
-# number field calculations that use the interpreter.
-from sage.interfaces.gp import Gp
-
 import sage.libs.ntl.all as ntl
 import sage.libs.pari.all as pari
 import sage.interfaces.gap
@@ -192,25 +188,6 @@ def proof_flag(t):
         'banana'
     """
     return get_flag(t, "number_field")
-
-_gp = None
-def gp():
-    """
-    Return the unique copy of the gp (PARI) interpreter used for number
-    field computations.
-
-    EXAMPLES::
-
-        sage: from sage.rings.number_field.number_field import gp
-        sage: gp()
-        PARI/GP interpreter
-    """
-    global _gp
-    if not _gp is None:
-        return _gp
-    else:
-        _gp = Gp()
-        return _gp
 
 import operator
 
@@ -2849,49 +2826,22 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K._S_class_group_and_units( (K.ideal(5),) )
             ([5, -1], [])
         """
-        from sage.interfaces.gp import gp
-        from sage.rings.number_field.number_field_ideal import \
-            convert_to_idealprimedec_form, convert_from_idealprimedec_form
         deg = self.absolute_degree()
-        ###############################################################
-        # The following line computes S-class gp and S-units in Pari, #
-        # assuming the Generalized Riemann Hypothesis if certify is   #
-        # False.  When certify=True, the result is unconditional.     #
-        ###############################################################
-        D_gp = gp(self.pari_bnf(certify=proof))
 
-        S_gp = [convert_to_idealprimedec_form(self, p) for p in S]
-        units = []
+        K_pari = self.pari_bnf(certify=proof)
+        S_pari = [p.pari_prime() for p in S]
 
-        result = D_gp.bnfsunit(S_gp)
-        x = self.absolute_generator()
-        for unit in result[1]:
-            sage_unit = QQ(unit.polcoeff(0))
-            for i in xrange(1, unit.poldegree()+1):
-                sage_unit += QQ(unit.polcoeff(i))*x**i
-            units.append(sage_unit)
-        units += self.unit_group().gens()
+        result = K_pari.bnfsunit(S_pari)
+        units = map(self, result[0]) + self.unit_group().gens()
 
-        IB = []
-        for f_gp in D_gp[7][7]:
-            f = QQ(f_gp.polcoeff(0))
-            for i in xrange(1, f_gp.length()):
-                f += QQ(f_gp.polcoeff(i))*x**i
-            IB.append(f)
+        pari_cyc = result[4][1]
+        pari_gens = result[4][2]
         clgp_gens = []
-        k = 1
-        for M in result[5][3]:
-            if result[5][2][k] > 1: # since some generators are given "of order 1"
-                ideal_gens = []
-                for i in xrange(1, deg+1):
-                    col = []
-                    for j in xrange(1, deg+1):
-                        col.append(ZZ(M[j,i]))
-                    ideal_gens.append(sum([IB[j]*col[j] for j in xrange(deg)]))
-                I = self.ideal(ideal_gens)
-                order = ZZ(result[5][2][k])
+        for k in range(0,len(pari_cyc)):
+            order = ZZ(pari_cyc[k])
+            if order > 1: # since some generators are given "of order 1"
+                I = self.ideal(pari_gens[k])
                 clgp_gens.append(   (I, order, self((I**order).gens_reduced()[0]))   )
-            k += 1
 
         return units, clgp_gens
 

@@ -3247,14 +3247,16 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         We mix dense and sparse over different rings::
 
-            sage: v = FreeModule(ZZ,3,sparse=True)([1,2,3])
-            sage: m = matrix(QQ,3,range(9))
-            sage: v*m
-            (24, 30, 36)
-            sage: v = FreeModule(ZZ,3,sparse=False)([1,2,3])
-            sage: m = matrix(QQ,3,range(9), sparse=True)
-            sage: v*m
-            (24, 30, 36)
+            sage: v = FreeModule(ZZ, 3, sparse=True)([1, 2, 3])
+            sage: m = matrix(QQ, 3, 4, range(12))
+            sage: v * m
+            (32, 38, 44, 50)
+            sage: v = FreeModule(ZZ, 3, sparse=False)([1, 2, 3])
+            sage: m = matrix(QQ, 3, 4, range(12), sparse=True)
+            sage: v * m
+            (32, 38, 44, 50)
+            sage: (v * m).parent() is m.row(0).parent()
+            True
         """
         M = sage.modules.free_module.FreeModule(self._base_ring, self.ncols(), sparse=self.is_sparse())
         if self.nrows() != v.degree():
@@ -3271,14 +3273,16 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         EXAMPLES::
 
-            sage: v = FreeModule(ZZ,3,sparse=True)([1,2,3])
-            sage: m = matrix(QQ,3,range(9))
-            sage: m*v
-            (8, 26, 44)
-            sage: v = FreeModule(ZZ,3,sparse=False)([1,2,3])
-            sage: m = matrix(QQ,3,range(9), sparse=True)
-            sage: m*v
-            (8, 26, 44)
+            sage: v = FreeModule(ZZ, 3, sparse=True)([1, 2, 3])
+            sage: m = matrix(QQ, 4, 3, range(12))
+            sage: m * v
+            (8, 26, 44, 62)
+            sage: v = FreeModule(ZZ, 3, sparse=False)([1, 2, 3])
+            sage: m = matrix(QQ, 4, 3, range(12), sparse=True)
+            sage: m * v
+            (8, 26, 44, 62)
+            sage: (m * v).parent() is m.column(0).parent()
+            True
         """
         M = sage.modules.free_module.FreeModule(self._base_ring, self.nrows(), sparse=self.is_sparse())
         if not PY_TYPE_CHECK(v, sage.modules.free_module_element.FreeModuleElement):

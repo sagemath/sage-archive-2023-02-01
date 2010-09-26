@@ -4,7 +4,7 @@ Base class for sparse matrices
 
 cimport matrix
 cimport matrix0
-from   sage.structure.element    cimport Element
+from sage.structure.element cimport Element, Vector
 from sage.rings.ring import is_Ring
 
 include '../ext/cdefs.pxi'
@@ -823,6 +823,72 @@ cdef class Matrix_sparse(matrix.Matrix):
         for i, j in other.nonzero_positions(copy=False):
             Z.set_unsafe(i, j + self._ncols, (<matrix.Matrix>other).get_unsafe(i,j))
         return Z
+
+    cdef Vector _vector_times_matrix_(self, Vector v):
+        """
+        Returns the vector times matrix product.
+
+        INPUT:
+
+            -  ``v`` - a free module element.
+
+        OUTPUT: The vector times matrix product v*A.
+
+        EXAMPLES::
+
+        sage: v = FreeModule(ZZ, 3)([1, 2, 3])
+        sage: m = matrix(QQ, 3, 4, range(12), sparse=True)
+        sage: v * m
+        (32, 38, 44, 50)
+
+        TESTS::
+
+        sage: (v * m).is_sparse()
+        True
+        sage: (v * m).parent() is m.row(0).parent()
+        True
+        """
+        cdef int i, j
+        from sage.modules.free_module import FreeModule
+        if self.nrows() != v.degree():
+            raise ArithmeticError, "number of rows of matrix must equal degree of vector"
+        s = FreeModule(self.base_ring(), self.ncols(), sparse=v.is_sparse()).zero_vector()
+        for (i, j), a in self._dict().iteritems():
+            s[j] += v[i] * a
+        return s
+
+    cdef Vector _matrix_times_vector_(self, Vector v):
+        """
+        Returns the matrix times vector product.
+
+        INPUT:
+
+            -  ``v`` - a free module element.
+
+        OUTPUT: The matrix times vector product A*v.
+
+        EXAMPLES::
+
+        sage: v = FreeModule(ZZ, 3)([1, 2, 3])
+        sage: m = matrix(QQ, 4, 3, range(12), sparse=True)
+        sage: m * v
+        (8, 26, 44, 62)
+
+        TESTS::
+
+        sage: (m * v).is_sparse()
+        True
+        sage: (m * v).parent() is m.column(0).parent()
+        True
+        """
+        cdef int i, j
+        from sage.modules.free_module import FreeModule
+        if self.ncols() != v.degree():
+            raise ArithmeticError, "number of columns of matrix must equal degree of vector"
+        s = FreeModule(v.base_ring(), self.nrows(), sparse=v.is_sparse()).zero_vector()
+        for (i, j), a in self._dict().iteritems():
+            s[i] += v[j] * a
+        return s
 
 ##     def _echelon_in_place_classical(self):
 ##         """

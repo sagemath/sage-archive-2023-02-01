@@ -34,7 +34,7 @@ def gp():
     EXAMPLE::
 
         sage: sage.modular.buzzard.gp()
-        GP/PARI interpreter
+        PARI/GP interpreter
     """
 
     global _gp
@@ -103,7 +103,7 @@ def buzzard_tpslopes(p, N, kmax):
 
     AUTHORS:
 
-    - Kevin Buzzard: several GP/PARI scripts
+    - Kevin Buzzard: several PARI/GP scripts
 
     - William Stein (2006-03-17): small Sage wrapper of Buzzard's
       scripts

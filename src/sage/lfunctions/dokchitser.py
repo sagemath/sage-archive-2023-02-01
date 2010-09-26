@@ -216,7 +216,7 @@ class Dokchitser(SageObject):
             sage: L(2)
             0.546048036215014
             sage: L.gp()
-            GP/PARI interpreter
+            PARI/GP interpreter
         """
         try:
             return self.__gp

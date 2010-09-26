@@ -661,7 +661,7 @@ def nintegral(ex, x, a, b,
     It is just because every floating point evaluation of return -480.0
     in floating point.
 
-    Important note: using GP/PARI one can compute numerical integrals
+    Important note: using PARI/GP one can compute numerical integrals
     to high precision::
 
         sage: gp.eval('intnum(x=17,42,exp(-x^2)*log(x))')

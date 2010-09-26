@@ -1,5 +1,5 @@
 r"""
-Interface to GP/Pari
+Interface to the GP calculator of PARI/GP.
 
 Type ``gp.[tab]`` for a list of all the functions
 available from your Gp install. Type ``gp.[tab]?`` for
@@ -100,6 +100,21 @@ by default::
     sage: f.polgalois()
     [362880, -1, 34, "S9"]
 
+TESTS:
+
+Test error recovery::
+
+    sage: x = gp('1/0')
+    Traceback (most recent call last):
+    ...
+    TypeError: Error executing code in GP:
+    CODE:
+        sage[...]=1/0;
+    PARI/GP ERROR:
+      ***   at top-level: sage[...]=1/0
+      ***                          ^--
+      *** _/_: division by zero
+
 AUTHORS:
 
 - William Stein
@@ -154,7 +169,7 @@ class Gp(Expect):
         EXAMPLES::
 
             sage: Gp()
-            GP/PARI interpreter
+            PARI/GP interpreter
     """
     def __init__(self, stacksize=10000000,   # 10MB
                  maxread=100000, script_subdirectory=None,
@@ -184,7 +199,7 @@ class Gp(Expect):
         Expect.__init__(self,
                         name = 'pari',
                         prompt = '\\? ',
-                        command = "gp --emacs --fast --quiet --stacksize %s"%stacksize,
+                        command = "gp --emacs --quiet --stacksize %s"%stacksize,
                         maxread = maxread,
                         server=server,
                         server_tmpdir=server_tmpdir,
@@ -196,18 +211,6 @@ class Gp(Expect):
         self.__seq = 0
         self.__var_store_len = 0
         self.__init_list_length = init_list_length
-        # gp starts up with this set to 1, which makes pexpect hang:
-        self.set_default('breakloop',0)
-
-    def _start(self, alt_message=None, block_during_init=True):
-        r"""
-        Restart the underlying process.
-
-        .. note:: This is handled by the Expect class, except that we
-           need to reset the breakloop configuration parameter.
-        """
-        Expect._start(self, alt_message=alt_message, block_during_init=block_during_init)
-        self.set_default('breakloop',0)
 
 
     def _repr_(self):
@@ -217,9 +220,9 @@ class Gp(Expect):
         EXAMPLES::
 
             sage: gp # indirect doctest
-            GP/PARI interpreter
+            PARI/GP interpreter
         """
-        return 'GP/PARI interpreter'
+        return 'PARI/GP interpreter'
 
     def __reduce__(self):
         """
@@ -229,7 +232,7 @@ class Gp(Expect):
             (<function reduce_load_GP at 0x...>, ())
             sage: f, args = _
             sage: f(*args)
-            GP/PARI interpreter
+            PARI/GP interpreter
         """
         return reduce_load_GP, tuple([])
 
@@ -469,8 +472,8 @@ class Gp(Expect):
 
             sage: gp.get_default('log')
             0
-            sage: gp.get_default('logfile')
-            'pari.log'
+            sage: gp.get_default('datadir')
+            '.../local/share/pari'
             sage: gp.get_default('seriesprecision')
             16
             sage: gp.get_default('realprecision')
@@ -497,7 +500,7 @@ class Gp(Expect):
         cmd = '%s=%s;'%(var,value)
         out = self.eval(cmd)
         if out.find('***') != -1:
-            raise TypeError, "Error executing code in GP/PARI:\nCODE:\n\t%s\nGP/PARI ERROR:\n%s"%(cmd, out)
+            raise TypeError, "Error executing code in GP:\nCODE:\n\t%s\nPARI/GP ERROR:\n%s"%(cmd, out)
 
 
     def get(self, var):
@@ -966,9 +969,13 @@ def is_GpElement(x):
     """
     return isinstance(x, GpElement)
 
+from sage.misc.all import DOT_SAGE, SAGE_ROOT
+import os
+
+# Set GPRC environment variable to $SAGE_ROOT/local/etc/gprc.expect
+os.environ["GPRC"] = '%s/local/etc/gprc.expect'%SAGE_ROOT
+
 # An instance
-#gp = Gp()
-from sage.misc.all import DOT_SAGE
 gp = Gp(logfile=DOT_SAGE+'/gp-expect.log') # useful for debugging!
 
 def reduce_load_GP():
@@ -979,11 +986,10 @@ def reduce_load_GP():
 
         sage: from sage.interfaces.gp import reduce_load_GP
         sage: reduce_load_GP()
-        GP/PARI interpreter
+        PARI/GP interpreter
     """
     return gp
 
-import os
 def gp_console():
     """
     Spawn a new GP command-line session.

@@ -2,7 +2,7 @@
 Mathematical constants
 
 The following standard mathematical constants are defined in Sage,
-along with support for coercing them into GAP, GP/PARI, KASH,
+along with support for coercing them into GAP, PARI/GP, KASH,
 Maxima, Mathematica, Maple, Octave, and Singular::
 
     sage: pi

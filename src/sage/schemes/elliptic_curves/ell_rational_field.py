@@ -1408,7 +1408,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
            quotient `E(Q)/2E(Q)`.
 
 
-        IMPLEMENTATION: Uses Denis Simon's GP/PARI scripts from
+        IMPLEMENTATION: Uses Denis Simon's PARI/GP scripts from
         http://www.math.unicaen.fr/~simon/
 
         EXAMPLES: These computations use pseudo-random numbers, so we set

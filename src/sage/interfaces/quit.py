@@ -29,7 +29,7 @@ def expect_quitall(verbose=False):
         sage: gp('a')
         a
         sage: sage.interfaces.quit.expect_quitall(verbose=True)
-        Exiting spawned GP/PARI interpreter process.
+        Exiting spawned PARI/GP interpreter process.
     """
     for P in expect_objects:
         R = P()

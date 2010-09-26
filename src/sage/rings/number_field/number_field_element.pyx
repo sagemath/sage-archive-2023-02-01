@@ -524,8 +524,8 @@ cdef class NumberFieldElement(FieldElement):
 
     def _pari_init_(self, var='x'):
         """
-        Return GP/PARI string representation of self. This is used for
-        converting this number field element to GP/PARI. The returned
+        Return PARI/GP string representation of self. This is used for
+        converting this number field element to PARI/GP. The returned
         string defines a pari Mod in the variable is var, which is by
         default 'x' - not the name of the generator of the number field.
 

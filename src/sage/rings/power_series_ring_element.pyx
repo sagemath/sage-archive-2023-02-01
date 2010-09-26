@@ -1690,7 +1690,7 @@ cdef class PowerSeries(AlgebraElement):
         r"""
         Returns the ordinary generating function associated to self.
 
-        This function is known as serlaplace in GP/PARI.
+        This function is known as ``serlaplace`` in PARI/GP.
 
         EXAMPLES::
 
@@ -1705,7 +1705,7 @@ cdef class PowerSeries(AlgebraElement):
         r"""
         Returns the exponential generating function associated to self.
 
-        This function is known as serlaplace in GP/PARI.
+        This can also be computed as ``serconvol(f,exp(t))`` in PARI/GP.
 
         EXAMPLES::
 

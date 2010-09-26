@@ -203,7 +203,7 @@ def gp():
 
         sage: from sage.rings.number_field.number_field import gp
         sage: gp()
-        GP/PARI interpreter
+        PARI/GP interpreter
     """
     global _gp
     if not _gp is None:

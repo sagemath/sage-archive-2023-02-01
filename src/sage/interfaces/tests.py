@@ -8,7 +8,7 @@ sage: 2 * gp('2')
 sage: a = 2 * gp('2'); a
 4
 sage: parent(a)
-GP/PARI interpreter
+PARI/GP interpreter
 sage: a = 2 * gap('2'); a
 4
 sage: parent(a)

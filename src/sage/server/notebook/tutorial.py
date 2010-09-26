@@ -141,7 +141,7 @@ $$
 $$
 \end{verbatim}
 
-\subsubsection{Using Gap, Magma, GP/PARI}
+\subsubsection{Using Gap, Magma, PARI/GP}
 Make the first line of the input block \code{\%gap}
 \code{\%magma}, or \code{\%gp}, etc.  The rest of the block
 is fed directly to the corresponding interpreter.

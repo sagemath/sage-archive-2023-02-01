@@ -195,21 +195,8 @@ def std(v, bias=False):
     if len(v) == 0:
         # standard deviation of empty set defined as NaN
         return NaN
-    for i in range(len(v)):
-        x += (v[i] - mean(v))**2
-    if bias:
-        # population standard deviation
-        if isinstance(x, (int,long)):
-            return sqrt(x/ZZ(len(v)))
-        return sqrt(x/len(v))
-    else:
-        # sample standard deviation
-        if isinstance(x, (int,long)):
-            return sqrt(x/ZZ(len(v)))
-        return sqrt(x/(len(v)-1))
 
-
-
+    return sqrt(variance(v, bias=bias))
 
 def variance(v, bias=False):
     """
@@ -260,6 +247,13 @@ def variance(v, bias=False):
         ...        return 1
         sage: stats.variance(MyClass())
         1
+
+    TESTS:
+
+        The performance issue from #10019 is solved::
+
+        sage: variance([1] * 2^18)
+        0
     """
     if hasattr(v, 'variance'): return v.variance(bias=bias)
     import numpy
@@ -274,8 +268,10 @@ def variance(v, bias=False):
     if len(v) == 0:
         # variance of empty set defined as NaN
         return NaN
-    for i in range(len(v)):
-        x += (v[i] - mean(v))**2
+
+    mu = mean(v)
+    for vi in v:
+        x += (vi - mu)**2
     if bias:
         # population variance
         if isinstance(x, (int,long)):

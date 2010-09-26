@@ -1,3 +1,23 @@
+"""
+Declarations for non-inline functions from PARI.
+
+This file contains all declarations from headers/paridecl.h from
+the PARI distribution, except the inline functions which are in
+sage/libs/pari/declinl.pxi (that file is automatically included by
+this file).
+
+
+AUTHORS:
+
+ - (unknown authors before 2010)
+
+ - Robert Bradshaw, Jeroen Demeyer, William Stein (2010-08-15):
+   Upgrade to PARI 2.4.3 (#9343)
+
+ - Jeroen Demeyer (2010-08-15): big clean up (#9898)
+
+"""
+
 include '../../ext/cdefs.pxi'
 
 cdef extern from 'setjmp.h':

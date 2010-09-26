@@ -3,11 +3,12 @@ Declarations for inline functions from PARI.
 
 This file contains all declarations from headers/pariinl.h from the
 PARI distribution.  All these functions are simple inline functions.
+This file is included by sage/libs/pari/decl.pxi
 
 
 AUTHORS:
 
- - Jeroen Demeyer (2010-08-15): initial version
+ - Jeroen Demeyer (2010-08-15): initial version (#9898)
 
 """
 

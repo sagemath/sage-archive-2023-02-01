@@ -12,6 +12,9 @@ AUTHORS:
 - Gonzalo Tornaria: improvements to conversions; much better error
   handling.
 
+- Robert Bradshaw, Jeroen Demeyer, William Stein (2010-08-15):
+  Upgrade to PARI 2.4.3 (#9343)
+
 EXAMPLES::
 
     sage: pari('5! + 10/x')

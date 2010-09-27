@@ -163,27 +163,35 @@ def LatticePolytope(data, desc=None, compute_vertices=True,
 
     INPUT:
 
+    - ``data`` -- The points (which must be vertices if
+      ``compute_vertices`` is False) spanning the lattice polytope,
+      specified as one of:
 
-    -  ``data`` - matrix whose columns are vertices of the
-       polytope (unless ``compute_vertices`` is True); a file
-       with matrix data, open for reading; or a filename of such a file.
-       See ``read_palp_matrix`` for the file format.
+        * a matrix whose columns are vertices of the polytope.
 
-    -  ``desc`` - (default: "A lattice polytope")
+        * an iterable of iterables (for example, a list of vectors)
+          defining the point coordinates.
+
+        * a file with matrix data, open for reading, or
+
+        * a filename of such a file. See ``read_palp_matrix`` for the
+          file format.
+
+    -  ``desc`` -- (default: "A lattice polytope")
        description of the polytope.
 
-    -  ``compute_vertices`` - (default: True) if True, the
-       convex hull of the given points will be computed for determining
-       vertices. Otherwise, the given points must be vertices.
+    - ``compute_vertices`` -- boolean (default: True) if True, the
+       convex hull of the given points will be computed for
+       determining vertices. Otherwise, the given points must be
+       vertices.
 
-    -  ``copy_vertices`` - (default: True) if False, and
+    - ``copy_vertices`` -- boolean (default: True) if False, and
        compute_vertices is False, and ``data`` is a matrix of
        vertices, it will be made immutable.
 
-    -  ``n`` - (default: 0) if ``data`` is a
-       name of a file, that contains data blocks for several polytopes,
-       the n-th block will be used. *NUMERATION STARTS WITH ZERO*.
-
+    - ``n`` -- integer (default: 0) if ``data`` is a name of a file,
+       that contains data blocks for several polytopes, the n-th block
+       will be used. *ENUMERATION STARTS WITH ZERO*.
 
     OUTPUT: a lattice polytope
 
@@ -220,18 +228,14 @@ def LatticePolytope(data, desc=None, compute_vertices=True,
 
     ::
 
-        sage: m = matrix(ZZ, [[1, 0, 0, -1,  0,  0, 0],
-        ...                   [0, 1, 0,  0, -1,  0, 0],
-        ...                   [0, 0, 1,  0,  0, -1, 0]])
-        ...
-        sage: p = LatticePolytope(m, "A lattice polytope constructed from 7 points")
+        sage: p = LatticePolytope(m.columns() + [(0,0,0)], "A lattice polytope constructed from 7 points")
         sage: p
         A lattice polytope constructed from 7 points: 3-dimensional, 6 vertices.
 
     You can suppress vertex computation for speed but this can lead to
     mistakes::
 
-        sage: p = LatticePolytope(m, "A lattice polytope with WRONG vertices",
+        sage: p = LatticePolytope(m.columns() + [(0,0,0)], "A lattice polytope with WRONG vertices",
         ...                         compute_vertices=False)
         ...
         sage: p
@@ -259,11 +263,32 @@ def LatticePolytope(data, desc=None, compute_vertices=True,
         [ 1  0 -1  0]
         [ 0  1  0 -1]
         [ 0  0  0  0]
+
+    An empty lattice polytope can be specified by a matrix with zero columns:
+
+        sage: p = LatticePolytope(matrix(ZZ,3,0)); p
+        A lattice polytope: -1-dimensional, 0 vertices.
+        sage: p.ambient_dim()
+        3
+        sage: p.npoints()
+        0
+        sage: p.nfacets()
+        0
+        sage: p.points()
+        []
+        sage: p.faces()
+        []
     """
     if isinstance(data, LatticePolytopeClass):
         return data
-    else:
-        return LatticePolytopeClass(data, desc, compute_vertices, copy_vertices, n)
+
+    if not is_Matrix(data) and not isinstance(data,(file,basestring)):
+        try:
+            data = matrix(ZZ,data).transpose()
+        except ValueError:
+            pass
+
+    return LatticePolytopeClass(data, desc, compute_vertices, copy_vertices, n)
 
 copy_reg.constructor(LatticePolytope)   # "safe for unpickling"
 
@@ -343,6 +368,7 @@ def ReflexivePolytopes(dim):
         16
 
     It is not possible to load 4-dimensional polytopes in this way::
+
 
         sage: ReflexivePolytopes(4)
         Traceback (most recent call last):
@@ -486,6 +512,9 @@ class LatticePolytopeClass(SageObject):
         """
         if hasattr(self, "_dim"):
             return
+        if self._vertices.ncols()==0:  # the empty lattice polytope
+            self._dim = -1
+            return
         if compute_vertices:
             points = []
             for point in self._vertices.columns(copy=False):
@@ -572,7 +601,7 @@ class LatticePolytopeClass(SageObject):
                 self._copy_faces(self._polar, reverse=True)
         elif hasattr(self, "_constructed_as_affine_transform"):
                 self._copy_faces(self._original)
-        elif self.dim() == 0:
+        elif self.dim() <= 0:
             self._faces = []
         else:
             self._read_faces(self.poly_x("i", reduce_dimension=True))
@@ -835,7 +864,7 @@ class LatticePolytopeClass(SageObject):
             sage: p._palp("poly.x -f", reduce_dimension=True)
             'M:5 4 F:4\n'
         """
-        if self.dim() == 0:
+        if self.dim() <= 0:
             raise ValueError, ("Cannot run \"%s\" for the zero-dimensional "
                 + "polytope!\nPolytope: %s") % (command, self)
         if self.dim() < self.ambient_dim() and not reduce_dimension:
@@ -2026,7 +2055,7 @@ class LatticePolytopeClass(SageObject):
                 self._nfacets = self.polar().nvertices()
             elif self.dim() == self.ambient_dim():
                 self._nfacets = self._facet_normals.nrows()
-            elif self.dim() == 0:
+            elif self.dim() <= 0:
                 self._nfacets = 0
             else:
                 self._nfacets = self._sublattice_polytope.nfacets()
@@ -2408,7 +2437,7 @@ class LatticePolytopeClass(SageObject):
             [1]
         """
         if not hasattr(self, "_points"):
-            if self.dim() == 0:
+            if self.dim() <= 0:
                 self._points = self._vertices
             else:
                 self._points = self._embed(read_palp_matrix(

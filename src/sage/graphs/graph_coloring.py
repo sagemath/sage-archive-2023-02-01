@@ -605,6 +605,211 @@ def grundy_coloring(g, k, value_only = True, solver = None, verbose = 0):
     return obj, coloring
 
 
+def b_coloring(g, k, value_only = True, solver = None, verbose = 0):
+    r"""
+    Computes a b-coloring with at most k colors that maximizes the
+    number of colors, if such a coloring exists
+
+    Definition :
+
+    Given a proper coloring of a graph `G` and a color class `C` such
+    that none of its vertices have neighbors in all the other color
+    classes, one can eliminate color class `C` assigning to each of
+    its elements a missing color in its neighborhood.
+
+    Let a b-vertex be a vertex with neighbors in all other colorings.
+    Then, one can repeat the above procedure until a coloring
+    is obtained where every color class contains a b-vertex,
+    in which case none of the color classes can be eliminated
+    with the same ideia.  So, one can define a b-coloring as a
+    proper coloring where each color class has a b-vertex.
+
+    In the worst case, after successive applications of the above procedure,
+    one get a proper coloring that uses a number of colors equal to the
+    the b-chromatic number of `G` (denoted `\chi_b(G)`):
+    the maximum `k` such that `G` admits a b-coloring with `k` colors.
+
+    An useful upper bound for calculating the b-chromatic number is
+    the following. If G admits a b-coloring with k colors, then there
+    are `k` vertices of degree at least `k - 1` (the b-vertices of
+    each color class). So, if we set `m(G) = max` \{`k | `there are
+    k vertices of degree at least `k - 1`\}, we have that `\chi_b(G)
+    \leq m(G)`.
+
+
+    .. NOTE::
+
+       This method computes a b-coloring that uses at *MOST* `k`
+       colors. If this method returns a value equal to `k`, it can not
+       be assumed that `k` is equal to `\chi_b(G)`. Meanwhile, if it
+       returns any value `k' < k`, this is a certificate that the
+       Grundy number of the given graph is `k'`.
+
+       As `\chi_b(G)\leq m(G)`, it can be assumed that
+       `\chi_b(G) = k` if ``b_coloring(g, k)`` returns `k` when
+       `k = m(G)`.
+
+    INPUT:
+
+    - ``k`` (integer) -- Maximum number of colors
+
+    - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+      solver to be used. If set to ``None``, the default one is used. For
+      more information on LP solvers and which default solver is used, see
+      the method
+      :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+      of the class
+      :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+    - ``value_only`` -- boolean (default: ``True``). When set to
+      ``True``, only the number of colors is returned. Otherwise, the
+      pair ``(nb_colors, coloring)`` is returned, where ``coloring``
+      is a dictionary associating its color (integer) to each vertex
+      of the graph.
+
+    - ``verbose`` -- integer (default: ``0``). Sets the level of
+      verbosity. Set to 0 by default, which means quiet.
+
+    ALGORITHM:
+
+    Integer Linear Program.
+
+    EXAMPLES:
+
+    The b-chromatic number of a `P_5` is equal to 3::
+
+        sage: from sage.graphs.graph_coloring import b_coloring
+        sage: g = graphs.PathGraph(5)
+        sage: b_coloring(g, 5)
+        3
+
+    The b-chromatic number of the Petersen Graph is equal to 3::
+
+        sage: g = graphs.PetersenGraph()
+        sage: b_coloring(g, 5)
+        3
+
+    It would have been sufficient to set the value of ``k`` to 4 in
+    this case, as `4 = m(G)`.
+    """
+
+    from sage.numerical.mip import MixedIntegerLinearProgram
+    from sage.numerical.mip import MIPSolverException, Sum
+
+
+    # Calculate the upper bound m(G)
+    # To do so, it takes the list of degrees in
+    # non-increasing order and computes the largest
+    # i, such that the ith degree on the list is
+    # at least i - 1 (note that in the code we need
+    # to take in consideration that the indices
+    # of the list starts with 0)
+
+    deg = g.degree()
+    deg.sort(reverse = True)
+    for i in xrange(g.order()):
+        if deg[i] < i:
+            break
+    if i != (g.order() - 1):
+        m = i
+    else:
+        m = g.order()
+
+    # In case the k specified by the user is greater than m(G), make k = m(G)
+    if k > m:
+        k = m
+
+
+    p = MixedIntegerLinearProgram()
+
+    # List of possible colors
+    classes = range(k)
+
+    #color[v][i] is set to 1 if and only if v is colored i
+    color = p.new_variable(dim=2)
+
+    #b[v][i] is set to 1 if and only if v is a b-vertex from color class i
+    b = p.new_variable(dim=2)
+
+    #is_used[i] is set to 1 if and only if color [i] is used by some vertex
+    is_used = p.new_variable()
+
+    # Each vertex is in exactly one class
+    for v in g.vertices():
+        p.add_constraint(Sum(color[v][i] for i in xrange(k)), min=1, max=1)
+
+    # Adjacent vertices have distinct colors
+    for (u, v) in g.edge_iterator(labels=None):
+        for i in classes:
+            p.add_constraint(color[u][i] + color[v][i], max=1)
+
+    # The following constraints ensure that if v is a b-vertex of color i
+    # then it has a neighbor colored j for every j != i
+
+
+    for v in g.vertices():
+        for i in classes:
+            for j in classes:
+                if j != i:
+                    # If v is not a b-vertex of color i, the constraint
+                    # is always satisfied, since the only possible
+                    # negative term in this case is -is_used[j] which is
+                    # cancelled by + 1. If v is a b-vertex of color i
+                    # then we MUST have sum(color[w][j] for w in g.neighbors(v))
+                    # valued at least 1, which means that v has a neighbour in
+                    # color j, as desired.
+                    p.add_constraint(Sum(color[w][j] for w in g.neighbors(v)) - b[v][i]
+                        + 1 - is_used[j], min=0)
+
+    #if color i is used, there is a vertex colored i
+    for i in classes:
+        p.add_constraint(Sum(color[v][i] for v in g.vertices()) - is_used[i], min = 0)
+
+    #if there is a vertex colored with color i, then i is used
+    for v in g.vertices():
+        for i in classes:
+            p.add_constraint(color[v][i] - is_used[i], max = 0)
+
+
+    #a color class is used if and only if it has one b-vertex
+    for i in classes:
+       p.add_constraint(Sum(b[w][i] for w in g.vertices()) - is_used[i], min = 0, max = 0)
+
+
+    #All variables are binary
+    p.set_binary(color)
+    p.set_binary(b)
+    p.set_binary(is_used)
+
+    #We want to maximize the number of used colors
+    p.set_objective(Sum(is_used[i] for i in classes))
+
+
+    try:
+        obj = p.solve(solver = solver, log = verbose, objective_only = value_only)
+        from sage.rings.integer import Integer
+        obj = Integer(obj)
+
+    except MIPSolverException:
+        raise ValueError("This graph can not be colored with k colors")
+
+    if value_only:
+        return obj
+
+
+    # Building the dictionary associating its color to every vertex
+
+    c = p.get_values(color)
+    coloring = {}
+
+    for v in g:
+        for i in classes:
+            if c[v][i] == 1:
+                coloring[v] = i
+                break
+
+    return obj, coloring
+
 def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, log=0):
     r"""
     Properly colors the edges of a graph. See the URL

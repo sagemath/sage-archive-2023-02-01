@@ -2169,8 +2169,10 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         r"""
         Check if ``self`` is smooth.
 
-        A cone is called **smooth** if primitive vectors along its generating
-        rays form a part of an *integral* basis of the ambient space.
+        A cone is called **smooth** if primitive vectors along its
+        generating rays form a part of an *integral* basis of the
+        ambient space. Equivalently, they generate the whole lattice
+        on the linear subspace spanned by the rays.
 
         OUTPUT:
 
@@ -2184,16 +2186,23 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             True
             sage: cone2.is_smooth()
             False
+
+        The following cones are the same up to a `SL(2,\ZZ)`
+        coordinate transformation::
+
+            sage: Cone([(1,0,0), (2,1,-1)]).is_smooth()
+            True
+            sage: Cone([(1,0,0), (2,1,1)]).is_smooth()
+            True
+            sage: Cone([(1,0,0), (2,1,2)]).is_smooth()
+            True
         """
         if "_is_smooth" not in self.__dict__:
             if not self.is_simplicial():
                 self._is_smooth = False
             else:
-                m = self.ray_matrix()
-                if self.dim() != self.lattice_dim():
-                    m = m.augment(identity_matrix(self.lattice_dim()))
-                    m = m.matrix_from_columns(m.pivots())
-                self._is_smooth = abs(m.det()) == 1
+                elementary_divisors = self.ray_matrix().transpose().elementary_divisors()
+                self._is_smooth = (elementary_divisors == [1]*self.nrays())
         return self._is_smooth
 
     def is_trivial(self):

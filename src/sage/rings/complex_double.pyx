@@ -2167,7 +2167,12 @@ cdef class ComplexDoubleElement(FieldElement):
             0.582158059752 - 0.926848564331*I
             sage: zeta(z)
             0.582158059752 - 0.926848564331*I
+            sage: zeta(CDF(1))
+            Infinity
         """
+        if self._complex.dat[0] == 1 and self._complex.dat[1] == 0:
+            import infinity
+            return infinity.unsigned_infinity
         cdef pari_sp sp
         sp = avma
         return self._new_from_gen_c(  gzeta(self._gen(), PREC),   sp)

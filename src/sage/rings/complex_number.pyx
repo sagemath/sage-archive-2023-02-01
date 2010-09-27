@@ -2100,7 +2100,13 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             0.58215806 - 0.92684856*I
             sage: zeta(z)
             0.58215806 - 0.92684856*I
+
+            sage: CC(1).zeta()
+            Infinity
         """
+        if mpfr_zero_p(self.__im) and mpfr_cmp_ui(self.__re, 1) == 0:
+            import infinity
+            return infinity.unsigned_infinity
         return self._parent(self._pari_().zeta())
 
     def algdep(self, n, **kwds):

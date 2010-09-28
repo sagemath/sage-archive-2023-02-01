@@ -1503,7 +1503,7 @@ class Graphics(SageObject):
 
         - ``show_legend`` - (default: None) If True, show the legend
 
-        - ``legend_*`` - all the options valid for :meth:`set_legend_options` prefixed with 'legend_'
+        - ``legend_*`` - all the options valid for :meth:`set_legend_options` prefixed with ``legend_``
 
         EXAMPLES::
 

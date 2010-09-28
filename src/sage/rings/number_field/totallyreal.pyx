@@ -12,15 +12,15 @@ case using relative extensions.
 Algorithm
 ---------
 
-We use Hunter's algorithm ([C]_, Section 9.3) with modifications
-due to Takeuchi [T]_ and the author [V]_.
+We use Hunter's algorithm ([Cohen2000]_, Section 9.3) with modifications
+due to Takeuchi [Takeuchi1999]_ and the author [Voight2008]_.
 
 We enumerate polynomials `f(x) = x^n + a_{n-1} x^{n-1} + \dots + a_0`.
 Hunter's theorem gives bounds on `a_{n-1}` and `a_{n-2}`; then given
 `a_{n-1}` and `a_{n-2}`, one can recursively compute bounds on `a_{n-3},
 \dots, a_0`, using the fact that the polynomial is totally real by
 looking at the zeros of successive derivatives and applying
-Rolle's theorem. See [T]_ for more details.
+Rolle's theorem. See [Takeuchi1999]_ for more details.
 
 Examples
 --------
@@ -68,20 +68,19 @@ We see that there are 9 such fields (up to isomorphism!).
 References
 ----------
 
-.. [C] Henri Cohen, Advanced topics in computational number
+.. [Cohen2000] Henri Cohen, Advanced topics in computational number
    theory, Graduate Texts in Mathematics, vol. 193,
    Springer-Verlag, New York, 2000.
 
-.. [M] Jacques Martinet, Petits discriminants des corps de nombres, Journ. Arithm. 1980,
+.. [Martinet1980] Jacques Martinet, Petits discriminants des corps de nombres, Journ. Arithm. 1980,
    Cambridge Univ. Press, 1982, 151--193.
 
-.. [T] Kisao Takeuchi, Totally real algebraic number fields of
+.. [Takeuchi1999] Kisao Takeuchi, Totally real algebraic number fields of
    degree 9 with small discriminant, Saitama Math. J.
    17 (1999), 63--85 (2000).
 
-.. [V] John Voight, Enumeration of totally real number fields
-   of bounded root discriminant, to appear in
-   Lect. Notes in Comp. Sci.
+.. [Voight2008] John Voight, Enumeration of totally real number fields of bounded root
+   discriminant, Lect. Notes in Comp. Sci. 5011 (2008).
 
 Authors
 -------
@@ -165,7 +164,7 @@ cpdef double odlyzko_bound_totallyreal(int n):
     - John Voight (2007-09-03)
 
     NOTES:
-    The values are calculated by Martinet [M]_.
+    The values are calculated by Martinet [Martinet1980]_.
     """
 
     if n <= 10:

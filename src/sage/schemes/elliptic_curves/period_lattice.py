@@ -90,7 +90,7 @@ AUTHORS:
 
   - Added support for complex embeddings, May 2009.
 
-  - Added complex elliptic logs, March 2009.
+  - Added complex elliptic logs, March 2010; enhanced, October 2010.
 
 """
 
@@ -1146,16 +1146,20 @@ class PeriodLattice_ell(PeriodLattice):
         else:
             return C(z.real(),0)
 
-    def elliptic_logarithm(self, P, prec=None):
+    def elliptic_logarithm(self, P, prec=None, reduce=True):
         r"""
         Return the elliptic logarithm of a point.
 
         INPUT:
 
-        - ``P`` (point) -- A point on the elliptic curve associated with this period lattice.
+        - ``P`` (point) -- A point on the elliptic curve associated
+          with this period lattice.
 
         - ``prec`` (default: ``None``) -- real precision in bits
-            (default real precision if None).
+          (default real precision if None).
+
+        - ``reduce`` (default: ``True``) -- if ``True``, the result
+          is reduced with respect to the period lattice basis.
 
         OUTPUT:
 
@@ -1164,8 +1168,15 @@ class PeriodLattice_ell(PeriodLattice):
         and `\sigma:K\to\CC` the embedding, the the returned value `z`
         is such that `z\pmod{L}` maps to `\sigma(P)` under the
         standard Weierstrass isomorphism from `\CC/L` to `\sigma(E)`.
-        The output is reduced: it is in the fundamental period
-        parallelogram with respect to the normalised lattice basis.
+        If ``reduce`` is ``True``, the output is reduced so that it is
+        in the fundamental period parallelogram with respect to the
+        normalised lattice basis.
+
+        ALGORITHM:   Uses the complex AGM.  See  [Cremona2010]_ for details.
+
+        .. [Cremona2010] J. E. Cremona and T. Thongjunthug, The
+          Complex AGM, periods of elliptic curves over $\CC$ and
+          complex elliptic logarithms.  Preprint 2010.
 
         EXAMPLES::
 
@@ -1205,7 +1216,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: L.real_period() / L.elliptic_logarithm(P)
             5.00000000000000
 
-        An example where precision is problematic:
+        An example where precision is problematic::
 
             sage: E = EllipticCurve([1, 0, 1, -85357462, 303528987048]) #18074g1
             sage: P = E([4458713781401/835903744, -64466909836503771/24167649046528, 1])
@@ -1215,7 +1226,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: L.elliptic_logarithm(P,prec=100)
             0.27656204014107061464076203097
 
-        Some complex exampes, taken from the paper by Cremona and Thongjunthug::
+        Some complex examples, taken from the paper by Cremona and Thongjunthug::
 
             sage: K.<i> = QuadraticField(-1)
             sage: a4 = 9*i-10
@@ -1225,14 +1236,38 @@ class PeriodLattice_ell(PeriodLattice):
             sage: emb = K.embeddings(CC)[1]
             sage: L = E.period_lattice(emb)
             sage: P = E(2-i,4+2*i)
-            sage: L.elliptic_logarithm(P,prec=100)
+
+        By default, the output is reduced with respect to the
+        normalised lattice basis, so that its coordinates with respect
+        to that basis lie in the interval [0,1)::
+
+            sage: z = L.elliptic_logarithm(P,prec=100); z
             0.70448375537782208460499649302 - 0.79246725643650979858266018068*I
+            sage: L.coordinates(z)
+            (0.46247636364807931766105406092, 0.79497588726808704200760395829)
+
+        Using `reduce=False` this step can be omitted.  In this case
+        the coordinates are usually in the interval [-0.5,0.5), but
+        this is not guaranteed.  This option is mainly for testing
+        purposes::
+
+            sage: z = L.elliptic_logarithm(P,prec=100, reduce=False); z
+            0.57002153834710752778063503023 + 0.46476340520469798857457031393*I
+            sage: L.coordinates(z)
+            (0.46247636364807931766105406092, -0.20502411273191295799239604171)
+
+        The elliptic logs of the 2-torsion points are half-periods::
+
             sage: L.elliptic_logarithm(E(e1,0),prec=100)
             0.64607575874356525952487867052 + 0.22379609053909448304176885364*I
             sage: L.elliptic_logarithm(E(e2,0),prec=100)
             0.71330686725892253793705940192 - 0.40481924028150941053684639367*I
             sage: L.elliptic_logarithm(E(e3,0),prec=100)
             0.067231108515357278412180731396 - 0.62861533082060389357861524731*I
+
+        We check this by doubling and seeing that the resulting
+        coordinates are integers::
+
             sage: L.coordinates(2*L.elliptic_logarithm(E(e1,0),prec=100))
             (1.0000000000000000000000000000, 0.00000000000000000000000000000)
             sage: L.coordinates(2*L.elliptic_logarithm(E(e2,0),prec=100))
@@ -1259,6 +1294,19 @@ class PeriodLattice_ell(PeriodLattice):
             (1.00000000000000, 0.500000000000000)
             sage: L.coordinates(L.elliptic_logarithm(E(e3,0)))
             (0.500000000000000, 0.000000000000000)
+
+        TESTS (see #10026)::
+
+            sage: K.<w> = QuadraticField(2)
+            sage: E = EllipticCurve([ 0, -1, 1, -3*w -4, 3*w + 4 ])
+            sage: T = E.simon_two_descent()
+            sage: P,Q = T[2]
+            sage: embs = K.embeddings(CC)
+            sage: Lambda = E.period_lattice(embs[0])
+            sage: Lambda.elliptic_logarithm(P,100)
+            4.7100131126199672766973600998
+
+
         """
         if not P.curve() is self.E:
             raise ValueError, "Point is on the wrong curve"
@@ -1281,88 +1329,132 @@ class PeriodLattice_ell(PeriodLattice):
         if wP.is_zero():  # 2-torsion treated separately
             w1,w2 = self._compute_periods_complex(prec,normalise=False)
             if xP==e1:
-                return self.reduce(w2/2)
-            if xP==e3:
-                return self.reduce(w1/2)
-            return self.reduce((w1+w2)/2)
+                z = w2/2
+            else:
+                if xP==e3:
+                    z = w1/2
+                else:
+                    z = (w1+w2)/2
+            if reduce:
+                z = self.reduce(z)
+            return z
 
         # NB The first block of code works fine for real embeddings as
-        # well as complex embeddings, but at present we keep in the
-        # special code for real embeddings based on Cohen's Algorithm
-        # 7.4.8 since it uses only real arithmetic.  Also, using the
-        # general code gives different normalisations.
+        # well as complex embeddings.  The special code for real
+        # embeddings uses only real arithmetic i nthe iteraion, and is
+        # based on Cremona and Thongjunthug.
 
-        #    if True:
-        if self.real_flag==0:
+        # An older version, based on Cohen's Algorithm 7.4.8 also uses
+        # only real arithmetic, and gives different normalisations,
+        # but also causes problems (see #10026).  It is left in but
+        # commented out below.
+
+        if self.real_flag==0:  # complex case
 
             a = C((e1-e3).sqrt())
             b = C((e1-e2).sqrt())
             if (a+b).abs() < (a-b).abs():  b=-b
-            u = C((xP-e3).sqrt())
-            v = C((xP-e2).sqrt())
-            if (u+v).abs() < (u-v).abs():  v=-v
-            t = C(wP)/(2*u*v) # ! if xP=e2 or e3
-            eps = R(1)>>(prec2-10);
-            nsteps = 0
+            r = C(((xP-e3)/(xP-e2)).sqrt())
+            if r.real()<0: r=-r
+            t = -C(wP)/(2*r*(xP-e2))
+            eps = R(1)>>(prec2);
             while True:
+                s = b*r+a
                 a, b = (a+b)/2, (a*b).sqrt()
                 if (a+b).abs() < (a-b).abs():  b=-b
-                u = (u+v)/2
-                v = (u**2-a**2+b**2).sqrt()
-                if (u+v).abs() < (u-v).abs():  v=-v
-                r = u/v
+                r = (a*(r+1)/s).sqrt()
                 if (r.abs()-1).abs() < eps: break
+                if r.real()<0: r=-r
                 t *= r
-                nsteps += 1
-            # print nsteps, "steps"
-            z = -((a/t).arctan())/a
-            return self.reduce(ComplexField(prec)(z))
+            z = ((a/t).arctan())/a
+            z = ComplexField(prec)(z)
+            if reduce:
+                z =  self.reduce(z)
+            return z
 
-        if self.real_flag==-1:
-            z = self._abc[1] # sqrt(e3-e2)
-            beta = z.norm()
-            alpha = 2*(e3-e2).real()
-            a = beta.sqrt()*2
-            b = (alpha+2*beta).sqrt()
-            #a = 2*z.abs()
-            #b = 2*z.real()
-            c = (xP-e3+beta)/(xP-e3).sqrt()
-        else:
+        if self.real_flag==-1: # real, connected case
+            z = C(self._abc[0]) # sqrt(e3-e1)
+            a, y, b = z.real(), z.imag(), z.abs()
+            uv = (xP-e1).sqrt()
+            u, v = uv.real().abs(), uv.imag().abs()
+            r = (u*a/(u*a+v*y)).sqrt()
+            t = -r*R(wP)/(2*(u**2+v**2))
+            on_egg = False
+        else:                  # real, disconnected case
+            a = R(e3-e1).sqrt()
+            b = R(e3-e2).sqrt()
+            if (a+b).abs() < (a-b).abs():  b=-b
             on_egg = (xP<e3)
             if on_egg:
-                y3 = -(a1*e1+a3)/2
-                lam = (yP-y3)/(xP-e1)
-                x3 = lam*(lam+a1)-a2-xP-e1
-                yP = lam*(xP-x3)-yP-a1*x3-a3
-                xP = x3
-                wP = 2*yP+a1*xP+a3
-            a = self._abc[0] # sqrt(e3-e1)
-            b = self._abc[1] # sqrt(e3-e2)
-            c = (xP-e1).sqrt()
-        # So far the values of a,b,c are algebraic (in AA)
-        a = R(a)
-        b = R(b)
-        c = R(c)
-        a,b,c = extended_agm_iteration(a,b,c)
-        if self.real_flag==-1:
-            z = (a/c).arcsin()
-            if wP*((xP-e3)*(xP-e3)-beta*beta) >= 0:
-                z = pi - z
-            if wP > 0:
-                z += pi
-            z /= a
-        elif self.real_flag==+1:
-            z = (a/c).arcsin()/a
-            w1 = w2 = None
-            if wP > 0:
-                if w1 is None:
-                    w1, w2 = self.basis(prec)
-                z = w1 - z
-            if on_egg:
-                if w2 is None:
-                    w1, w2 = self.basis(prec)
-                z += w2/2
-        return self.reduce(ComplexField(prec)(z))
+                r = a/R(e3-xP).sqrt()
+                t = r*R(wP)/(2*R(xP-e1))
+            else:
+                r = R((xP-e1)/(xP-e2)).sqrt()
+                t = -R(wP)/(2*r*R(xP-e2))
+
+        eps = R(1)>>(prec2);
+        while True:
+            s = b*r+a
+            a, b = (a+b)/2, (a*b).sqrt()
+            r = (a*(r+1)/s).sqrt()
+            if (r-1).abs() < eps: break
+            t *= r
+        z = ((a/t).arctan())/a
+        if on_egg:
+            w1,w2 = self._compute_periods_real(prec)
+            z += w2/2
+        z = ComplexField(prec)(z)
+        if reduce:
+            z =  self.reduce(z)
+        return z
+
+
+#         if self.real_flag==-1:
+#             z = self._abc[1] # sqrt(e3-e2)
+#             beta = z.norm()
+#             alpha = 2*(e3-e2).real()
+#             a = beta.sqrt()*2
+#             b = (alpha+2*beta).sqrt()
+#             c = (xP-e3+beta)/(xP-e3).sqrt()
+#         else:
+#             on_egg = (xP<e3)
+#             if on_egg:
+#                 y3 = -(a1*e1+a3)/2
+#                 lam = (yP-y3)/(xP-e1)
+#                 x3 = lam*(lam+a1)-a2-xP-e1
+#                 yP = lam*(xP-x3)-yP-a1*x3-a3
+#                 xP = x3
+#                 wP = 2*yP+a1*xP+a3
+#             a = self._abc[0] # sqrt(e3-e1)
+#             b = self._abc[1] # sqrt(e3-e2)
+#             c = (xP-e1).sqrt()
+#         # So far the values of a,b,c are algebraic (in AA)
+#         a = R(a)
+#         b = R(b)
+#         c = R(c)
+#         a,b,c = extended_agm_iteration(a,b,c)
+#         if self.real_flag==-1:
+#             z = (a/c).arcsin()
+#             if wP*((xP-e3)*(xP-e3)-beta*beta) >= 0:
+#                 z = pi - z
+#             if wP > 0:
+#                 z += pi
+#             z /= a
+#         elif self.real_flag==+1:
+#             z = (a/c).arcsin()/a
+#             w1 = w2 = None
+#             if wP > 0:
+#                 if w1 is None:
+#                     w1, w2 = self.basis(prec)
+#                 z = w1 - z
+#             if on_egg:
+#                 if w2 is None:
+#                     w1, w2 = self.basis(prec)
+#                 z += w2/2
+#         z =  ComplexField(prec)(z)
+#         if reduce:
+#             z =  self.reduce(z)
+#         return z
 
     def elliptic_exponential(self, z, to_curve=True):
         r"""
@@ -1408,10 +1500,10 @@ class PeriodLattice_ell(PeriodLattice):
             Elliptic Curve defined by y^2 + 1.00000000000000*x*y + 1.00000000000000*y = x^3 + 1.00000000000000*x^2 - 8.00000000000000*x + 6.00000000000000 over Real Field with 53 bits of precision
             sage: L.elliptic_exponential(z,to_curve=False)
             (1.41666666666667, -1.00000000000000)
-            sage: z = L(P,prec=200); z
-            1.1704475724008959229899218848237149350447256167745100799419
+            sage: z = L(P,prec=201); z
+            1.17044757240089592298992188482371493504472561677451007994189
             sage: L.elliptic_exponential(z)
-            (1.0000000000000000000000000000000000000000000000000000000000 : -2.0000000000000000000000000000000000000000000000000000000000 : 1.0000000000000000000000000000000000000000000000000000000000)
+            (1.00000000000000000000000000000000000000000000000000000000000 : -2.00000000000000000000000000000000000000000000000000000000000 : 1.00000000000000000000000000000000000000000000000000000000000)
 
         Examples over number fields::
 

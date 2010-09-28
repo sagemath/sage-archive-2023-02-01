@@ -43,9 +43,20 @@ You can also change how a sequence prints::
 
 TESTS::
 
-    sage: a = sloane.A000001;
+    sage: a = sloane.A000001
     sage: a == loads(dumps(a))
     True
+
+    We agree with the online database::
+
+    sage: for t in sloane.trait_names(): # long time optional, requires internet
+    ...       print t
+    ...       online_list = sloane_sequence(ZZ(t[1:].lstrip('0')))[2]
+    ...       L = max(2, len(online_list) // 2)
+    ...       sage_list = sloane.__getattribute__(t).list(L)
+    ...       if online_list[:L] != sage_list:
+    ...           print t, 'seems wrong'
+
 
 AUTHORS:
 
@@ -1486,7 +1497,7 @@ class A000272(SloaneSequence):
         INPUT:
 
 
-        -  ``n`` - positive integer
+        -  ``n`` - integer
 
 
         OUTPUT:
@@ -1500,23 +1511,21 @@ class A000272(SloaneSequence):
             sage: a = sloane.A000272;a
             Number of labeled rooted trees with n nodes: n^(n-2).
             sage: a(0)
-            Traceback (most recent call last):
-            ...
-            ValueError: input n (=0) must be a positive integer
+            1
             sage: a(1)
             1
             sage: a(2)
             1
             sage: a(10)
             100000000
-            sage: a.list(11)
-            [1, 1, 3, 16, 125, 1296, 16807, 262144, 4782969, 100000000, 2357947691]
+            sage: a.list(12)
+            [1, 1, 1, 3, 16, 125, 1296, 16807, 262144, 4782969, 100000000, 2357947691]
 
         AUTHORS:
 
         - Jaap Spies (2007-01-26)
         """
-        SloaneSequence.__init__(self, offset=1)
+        SloaneSequence.__init__(self, offset=0)
 
     def _repr_(self):
         """
@@ -1534,6 +1543,8 @@ class A000272(SloaneSequence):
             sage: [sloane.A000272._eval(n) for n in range(1,11)]
             [1, 1, 3, 16, 125, 1296, 16807, 262144, 4782969, 100000000]
         """
+        if n == 0:
+            return 1
         return Integer(ZZ(n)**(ZZ(n)-2))
 
 
@@ -8981,6 +8992,77 @@ class A079923(SloaneSequence):
         """
         return perm_mh(n, 4)
 
+class A109814(SloaneSequence):
+    def __init__(self):
+        r"""
+        The `n`th term of the sequence `a(n)` is the
+        largest `k` such that `n` can be written as sum of
+        `k` consecutive integers.
+
+        `n` is the sum of at most `a(n)` consecutive
+        positive integers. Suppose `n` is to be written as sum of
+        `k` consecutive integers starting with `m`, then
+        `2n = k(2m + k - 1)`. Only one of the factors is odd. For
+        each odd divisor `d` of `n` there is a unique
+        corresponding `k = min(d,2n/d)`. `a(n)` is the
+        largest among those `k` . See:
+        http://www.jaapspies.nl/mathfiles/problem2005-2C.pdf
+
+        INPUT:
+
+
+        -  ``n`` - non negative integer
+
+
+        OUTPUT:
+
+
+        -  ``integer`` - function value
+
+
+        EXAMPLES::
+
+            sage: a = sloane.A109814; a
+            a(n) is the largest k such that n can be written as sum of k consecutive positive integers.
+            sage: a(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: input n (=0) must be a positive integer
+            sage: a(2)
+            1
+            sage: a.list(9)
+            [1, 1, 2, 1, 2, 3, 2, 1, 3]
+
+        AUTHORS:
+
+        - Jaap Spies (2007-01-13)
+        """
+        SloaneSequence.__init__(self, offset=1)
+
+    def _repr_(self):
+        """
+        EXAMPLES::
+
+            sage: sloane.A109814._repr_()
+            'a(n) is the largest k such that n can be written as sum of k consecutive positive integers.'
+        """
+        return "a(n) is the largest k such that n can be written as sum of k consecutive positive integers."
+
+    def _eval(self, n):
+        """
+        EXAMPLES::
+
+            sage: [sloane.A109814._eval(n) for n in range(1, 10)]
+            [1, 1, 2, 1, 2, 3, 2, 1, 3]
+        """
+        if n == 1:
+            return 1
+        m = 0
+        for d in [i for i in arith.divisors(n) if i%2]: # d is odd divisor
+            k = min(d, 2*n/d)
+            if k > m:
+                m = k
+        return ZZ(m)
 
 class A111774(SloaneSequence):
     def __init__(self):
@@ -9236,76 +9318,6 @@ class A111775(SloaneSequence):
             return k-1
         else:
             return k-2
-
-class A111776(SloaneSequence):
-    def __init__(self):
-        r"""
-        The `n`th term of the sequence `a(n)` is the
-        largest `k` such that `n` can be written as sum of
-        `k` consecutive integers.
-
-        `n` is the sum of at most `a(n)` consecutive
-        positive integers. Suppose `n` is to be written as sum of
-        `k` consecutive integers starting with `m`, then
-        `2n = k(2m + k - 1)`. Only one of the factors is odd. For
-        each odd divisor `d` of `n` there is a unique
-        corresponding `k = min(d,2n/d)`. `a(n)` is the
-        largest among those `k` . See:
-        http://www.jaapspies.nl/mathfiles/problem2005-2C.pdf
-
-        INPUT:
-
-
-        -  ``n`` - non negative integer
-
-
-        OUTPUT:
-
-
-        -  ``integer`` - function value
-
-
-        EXAMPLES::
-
-            sage: a = sloane.A111776; a
-            a(n) is the largest k such that n can be written as sum of k consecutive integers.
-            sage: a(0)
-            1
-            sage: a(2)
-            1
-            sage: a.list(9)
-            [1, 1, 1, 2, 1, 2, 3, 2, 1]
-
-        AUTHORS:
-
-        - Jaap Spies (2007-01-13)
-        """
-        SloaneSequence.__init__(self, offset=0)
-
-    def _repr_(self):
-        """
-        EXAMPLES::
-
-            sage: sloane.A111776._repr_()
-            'a(n) is the largest k such that n can be written as sum of k consecutive integers.'
-        """
-        return "a(n) is the largest k such that n can be written as sum of k consecutive integers."
-
-    def _eval(self, n):
-        """
-        EXAMPLES::
-
-            sage: [sloane.A111776._eval(n) for n in range(10)]
-            [1, 1, 1, 2, 1, 2, 3, 2, 1, 3]
-        """
-        if n == 1 or n == 0:
-            return 1
-        m = 0
-        for d in [i for i in arith.divisors(n) if i%2]: # d is odd divisor
-            k = min(d, 2*n/d)
-            if k > m:
-                m = k
-        return ZZ(m)
 
 class A111787(SloaneSequence):
     def __init__(self):

@@ -1499,10 +1499,12 @@ class Graphics(SageObject):
             sage: plot(sin(pi*x), (x, -8, 8), ticks=[[-7,-3,0,3,7],[-1/2,0,1/2]]) # Your choices
             sage: plot(sin(pi*x), (x, -8, 8), ticks=[[],[]]) # No ticks at all!
 
-        This can be very helpful in showing certain features of plots.
+        This can be very helpful in showing certain features of plots. ::
+
+            sage: plot(1.5/(1+e^(-x)), (x, -10, 10)) # doesn't quite show value of inflection point
 
         ::
-            sage: plot(1.5/(1+e^(-x)), (x, -10, 10)) # doesn't quite show value of inflection point
+
             sage: plot(1.5/(1+e^(-x)), (x, -10, 10), ticks=[None, 1.5/4]) # It's right at f(x)=0.75!
 
         But be careful to leave enough room for at least two major ticks, so that
@@ -1523,7 +1525,7 @@ class Graphics(SageObject):
             sage: plot(2*x+1,(x,0,5),ticks=[[0,1,e,pi,sqrt(20)],2],tick_formatter="latex")
 
         This is particularly useful when setting custom ticks in multiples
-        of `pi`.
+        of `\pi`.
 
         ::
 
@@ -1531,11 +1533,12 @@ class Graphics(SageObject):
 
         But keep in mind that you will get exactly the formatting you asked
         for if you specify both formatters.  The first syntax is recommended
-        for best style in that case.
+        for best style in that case. ::
+
+            sage: plot(arcsin(x),(x,-1,1),ticks=[None,pi/6],tick_formatter=["latex",pi]) # Nice-looking!
 
         ::
 
-            sage: plot(arcsin(x),(x,-1,1),ticks=[None,pi/6],tick_formatter=["latex",pi]) # Nice-looking!
             sage: plot(arcsin(x),(x,-1,1),ticks=[None,pi/6],tick_formatter=[None,pi]) # Not so nice-looking
 
         """

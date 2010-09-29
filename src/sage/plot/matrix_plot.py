@@ -42,7 +42,7 @@ class MatrixPlot(GraphicPrimitive):
 
     EXAMPLES:
 
-    Note this should normally be used indirectly via ``matrix_plot``::
+    Note this should normally be used indirectly via :func:`matrix_plot`::
 
         sage: from sage.plot.matrix_plot import MatrixPlot
         sage: M = MatrixPlot([[1,3],[2,4]],(1,2),(2,3),options={'cmap':'winter'})
@@ -55,12 +55,7 @@ class MatrixPlot(GraphicPrimitive):
         sage: M.options()
         {'cmap': 'winter'}
 
-    Extra options will get passed on to show(), as long as they are valid::
-
-        sage: matrix_plot([[1, 0], [0, 1]], fontsize=10)
-        sage: matrix_plot([[1, 0], [0, 1]]).show(fontsize=10) # These are equivalent
-
-    Extra options will get passed on to show(), as long as they are valid::
+    Extra options will get passed on to :meth:`~sage.plot.plot.Graphics.show`, as long as they are valid::
 
         sage: matrix_plot([[1, 0], [0, 1]], fontsize=10)
         sage: matrix_plot([[1, 0], [0, 1]]).show(fontsize=10) # These are equivalent
@@ -113,6 +108,9 @@ class MatrixPlot(GraphicPrimitive):
         if self.options()['origin']!='lower':
             # flip y-axis so that the picture looks correct.
             limits['ymin'],limits['ymax']=limits['ymax'],limits['ymin']
+
+        # center the matrix so that, for example, the square representing the
+        # (0,0) entry is centered on the origin.
         for k,v in limits.iteritems():
             limits[k]-=0.5
         return limits
@@ -187,7 +185,7 @@ class MatrixPlot(GraphicPrimitive):
             subplot.xaxis.tick_bottom()
 
 @options(cmap='gray',marker='.',frame=True, axes=False, norm=None,
-         vmin=None, vmax=None, origin='upper',axes_integer=True)
+         vmin=None, vmax=None, origin='upper',ticks_integer=True)
 def matrix_plot(mat, **options):
     r"""
     A plot of a given matrix or 2D array.
@@ -215,7 +213,7 @@ def matrix_plot(mat, **options):
       Type: ``import matplotlib.cm; matplotlib.cm.datad.keys()``
       for available colormap names.
 
-    - ``norm`` - If None, the value range is scaled to the interval
+    - ``norm`` - If None (default), the value range is scaled to the interval
       [0,1].  If 'value', then the actual value is used with no
       scaling.  A :class:`matplotlib.colors.Normalize` instance may
       also passed.

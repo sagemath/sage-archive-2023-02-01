@@ -1199,7 +1199,7 @@ class Graphics(SageObject):
                         fontsize=None, aspect_ratio=None,
                         gridlines=None, gridlinesstyle=None,
                         vgridlinesstyle=None, hgridlinesstyle=None,transparent=False,
-                        axes_pad=.02, axes_integer=False,
+                        axes_pad=.02, ticks_integer=False,
                         ticks=None, tick_formatter=None)
 
     def show(self, **kwds):
@@ -1274,6 +1274,10 @@ class Graphics(SageObject):
           avoid problems like clipping lines because of line-width,
           etc.  To get axes that are exactly the specified limits, set
           ``axes_pad`` to zero.
+
+        - ``ticks_integer`` - (default: False) guarantee that the ticks
+          are integers (the ``ticks`` option, if specified, will
+          override this)
 
         - ``ticks`` - A matplotlib locator for the major ticks, or
           a number. There are several options.  For more information about
@@ -1685,7 +1689,7 @@ class Graphics(SageObject):
                    frame=False, verify=True, aspect_ratio = None,
                    gridlines=None, gridlinesstyle=None,
                    vgridlinesstyle=None, hgridlinesstyle=None,
-                   axes_pad=0.02, axes_integer=None,
+                   axes_pad=0.02, ticks_integer=None,
                    tick_formatter=None, ticks=None):
         r"""
         Return a matplotlib figure object representing the graphic
@@ -1778,7 +1782,7 @@ class Graphics(SageObject):
         subplot.set_xlim([xmin, xmax])
         subplot.set_ylim([ymin,ymax])
 
-        locator_options=dict(nbins=9,steps=[1,2,5,10],integer=axes_integer)
+        locator_options=dict(nbins=9,steps=[1,2,5,10],integer=ticks_integer)
 
 
         if axes is None:

@@ -1220,18 +1220,16 @@ class DiGraph(GenericGraph):
         return sorted(self.out_degree_iterator(), reverse=True)
 
 
-    def feedback_edge_set(self, value_only=False, solver=None, verbose=0):
+    def feedback_edge_set(self, constraint_generation= True, value_only=False, solver=None, verbose=0):
         r"""
-        Computes the minimum feedback edge set of a digraph
-        (also called feedback arc set).
+        Computes the minimum feedback edge set of a digraph (also called
+        feedback arc set).
 
-        The minimum feedback edge set of a digraph is a set of edges
-        that intersect all the circuits of the digraph.
-        Equivalently, a minimum feedback arc set of a DiGraph is a set
-        `S` of arcs such that the digraph `G-S` is acyclic. For more
-        information, see the
-        `Wikipedia article on feedback arc sets
-        <http://en.wikipedia.org/wiki/Feedback_arc_set>`_.
+        The minimum feedback edge set of a digraph is a set of edges that
+        intersect all the circuits of the digraph.  Equivalently, a minimum
+        feedback arc set of a DiGraph is a set `S` of arcs such that the digraph
+        `G-S` is acyclic. For more information, see the `Wikipedia article on
+        feedback arc sets <http://en.wikipedia.org/wiki/Feedback_arc_set>`_.
 
         INPUT:
 
@@ -1240,8 +1238,12 @@ class DiGraph(GenericGraph):
           - When set to ``True``, only the minimum cardinal of a minimum edge
             set is returned.
 
-          - When set to ``False``, the ``Set`` of edges of a minimal edge set
-            is returned.
+          - When set to ``False``, the ``Set`` of edges of a minimal edge set is
+            returned.
+
+        - ``constraint_generation`` (boolean) -- whether to use constraint
+          generation when solving the Mixed Integer Linear Program (default:
+          ``True``).
 
         - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
           solver to be used. If set to ``None``, the default one is used. For
@@ -1254,9 +1256,10 @@ class DiGraph(GenericGraph):
         - ``verbose`` -- integer (default: ``0``). Sets the level of
           verbosity. Set to 0 by default, which means quiet.
 
-        This problem is solved using Linear Programming, which certainly
-        is not the best way and will have to be updated. The program to be
-        solved is the following:
+        ALGORITHM:
+
+        This problem is solved using Linear Programming, in two different
+        ways. The first one is to solve the following formulation:
 
         .. MATH::
 
@@ -1267,25 +1270,39 @@ class DiGraph(GenericGraph):
 
         An explanation:
 
-        An acyclic digraph can be seen as a poset, and every poset has
-        a linear extension. This means that in any acyclic digraph
-        the vertices can be ordered with a total order `<` in such a way
-        that if `(u,v)\in G`, then `u<v`.
+        An acyclic digraph can be seen as a poset, and every poset has a linear
+        extension. This means that in any acyclic digraph the vertices can be
+        ordered with a total order `<` in such a way that if `(u,v)\in G`, then
+        `u<v`.
 
-        Thus, this linear program is built in order to assign to each vertex
-        `v` a number `d_v\in [0,\dots,n-1]` such that if there exists
-        an edge `(u,v)\in G` such that `d_v<d_u`, then the edge `(u,v)` is
-        removed.
+        Thus, this linear program is built in order to assign to each vertex `v`
+        a number `d_v\in [0,\dots,n-1]` such that if there exists an edge
+        `(u,v)\in G` such that `d_v<d_u`, then the edge `(u,v)` is removed.
 
-        The number of edges removed is then minimized, which is
-        the objective.
+        The number of edges removed is then minimized, which is the objective.
+
+        (Constraint Generation)
+
+        If the parameter ``constraint_generation`` is enabled, a more efficient
+        formulation is used :
+
+        .. MATH::
+
+            \mbox{Minimize : }&\sum_{(u,v)\in G} b_{(u,v)}\\
+            \mbox{Such that : }&\\
+            &\forall C\text{ circuits }\subseteq G, \sum_{uv\in C}b_{(u,v)}\geq 1\\
+
+        As the number of circuits contained in a graph is exponential, this LP
+        is solved through constraint generation. This means that the solver is
+        sequentially asked to solved the problem, knowing only a portion of the
+        circuits contained in `G`, each time adding to the list of its
+        constraints the circuit which its last answer had left intact.
 
         EXAMPLES:
 
-        If the digraph is created from a graph, and hence is symmetric
-        (if `uv` is an edge, then `vu` is an edge too), then
-        obviously the cardinality of its feedback arc set is the number
-        of edges in the first graph::
+        If the digraph is created from a graph, and hence is symmetric (if `uv`
+        is an edge, then `vu` is an edge too), then obviously the cardinality of
+        its feedback arc set is the number of edges in the first graph::
 
             sage: cycle=graphs.CycleGraph(5)
             sage: dcycle=DiGraph(cycle)
@@ -1294,8 +1311,8 @@ class DiGraph(GenericGraph):
             sage: dcycle.feedback_edge_set(value_only=True)
             5.0
 
-        And in this situation, for any edge `uv` of the first graph, `uv` of `vu`
-        is in the returned feedback arc set::
+        And in this situation, for any edge `uv` of the first graph, `uv` of
+        `vu` is in the returned feedback arc set::
 
            sage: g = graphs.RandomGNP(5,.3)
            sage: dg = DiGraph(g)
@@ -1303,37 +1320,112 @@ class DiGraph(GenericGraph):
            sage: (u,v,l) = g.edge_iterator().next()
            sage: (u,v) in feedback or (v,u) in feedback
            True
+
+        TESTS:
+
+        Comparing with/without constraint generation::
+
+            sage: g = digraphs.RandomDirectedGNP(10,.3)
+            sage: x = g.feedback_edge_set(value_only = True)
+            sage: y = g.feedback_edge_set(value_only = True,
+            ...          constraint_generation = False)
+            sage: x == y
+            True
         """
+        # It would be a pity to start a LP if the digraph is already acyclic
+        if self.is_directed_acyclic():
+            return 0 if value_only else []
 
         from sage.numerical.mip import MixedIntegerLinearProgram, Sum
 
-        p=MixedIntegerLinearProgram(maximization=False, solver=solver)
+        ########################################
+        # Constraint Generation Implementation #
+        ########################################
+        if constraint_generation:
 
-        b=p.new_variable(binary = True)
-        d=p.new_variable(integer = True)
+            p = MixedIntegerLinearProgram(constraint_generation = True,
+                                          maximization = False)
 
-        n=self.order()
+            # An variable for each edge
+            b = p.new_variable(binary = True, dim = 2)
 
-        for (u,v) in self.edges(labels=None):
-            p.add_constraint(d[u]-d[v]+n*(b[(u,v)]),min=1)
+            # Variables are binary, and their coefficient in the objective is 1
 
-        for v in self:
-            p.add_constraint(d[v],min=n)
+            p.set_objective( Sum( b[u][v]
+                                  for u,v in self.edges(labels = False)))
 
+            p.solve(log = verbose)
 
-        p.set_objective(Sum([b[(u,v)] for (u,v) in self.edges(labels=None)]))
+            # For as long as we do not break because the digraph is
+            # acyclic....
+            while (1):
 
-        if value_only:
-            return p.solve(objective_only=True, log=verbose)
+                # Building the graph without the edges removed by the LP
+                h = DiGraph()
+                for u,v in self.edges(labels = False):
+                    if p.get_values(b[u][v]) < .5:
+                        h.add_edge(u,v)
+
+                # Is the digraph acyclic ?
+                isok, certificate = h.is_directed_acyclic(certificate = True)
+
+                # If so, we are done !
+                if isok:
+                    break
+
+                if verbose:
+                    print "Adding a constraint on circuit : ",certificate
+
+                # There is a circuit left. Let's add the corresponding
+                # constraint !
+
+                p.add_constraint(
+                    Sum( b[u][v] for u,v in
+                         zip(certificate, certificate[1:] + [certificate[0]])),
+                    min = 1)
+
+                obj = p.solve(log = verbose)
+
+            if value_only:
+                return obj
+
+            else:
+
+                # listing the edges contained in the MFAS
+                return [(u,v) for u,v in self.edges(labels = False)
+                        if p.get_values(b[u][v]) > .5]
+
+        ######################################
+        # Ordering-based MILP Implementation #
+        ######################################
         else:
-            p.solve(log=verbose)
+            p=MixedIntegerLinearProgram(maximization=False, solver=solver)
 
-            b_sol=p.get_values(b)
+            b=p.new_variable(binary = True)
+            d=p.new_variable(integer = True)
 
-            from sage.sets.set import Set
-            return Set([(u,v) for (u,v) in self.edges(labels=None) if b_sol[(u,v)]==1])
+            n=self.order()
 
-    def feedback_vertex_set(self, value_only=False, solver=None, verbose=0):
+            for (u,v) in self.edges(labels=None):
+                p.add_constraint(d[u]-d[v]+n*(b[(u,v)]),min=1)
+
+            for v in self:
+                p.add_constraint(d[v],min=n)
+
+
+            p.set_objective(Sum([b[(u,v)] for (u,v) in self.edges(labels=None)]))
+
+            if value_only:
+                return p.solve(objective_only=True, log=verbose)
+            else:
+                p.solve(log=verbose)
+
+                b_sol=p.get_values(b)
+
+                from sage.sets.set import Set
+                return Set([(u,v) for (u,v) in self.edges(labels=None) if b_sol[(u,v)]==1])
+
+    def feedback_vertex_set(self, value_only=False, solver=None, verbose=0, constraint_generation = True):
         r"""
         Computes the minimum feedback vertex set of a digraph.
 
@@ -1349,11 +1441,11 @@ class DiGraph(GenericGraph):
 
         - ``value_only`` -- boolean (default: ``False``)
 
-          - When set to ``True``, only the minimum cardinal of a minimum
-            vertex set is returned.
+          - When set to ``True``, only the minimum cardinal of a minimum vertex
+            set is returned.
 
-          - When set to ``False``, the ``Set`` of vertices of a minimal
-            feedback vertex set is returned.
+          - When set to ``False``, the ``Set`` of vertices of a minimal feedback
+            vertex set is returned.
 
         - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
           solver to be used. If set to ``None``, the default one is used. For
@@ -1366,11 +1458,15 @@ class DiGraph(GenericGraph):
         - ``verbose`` -- integer (default: ``0``). Sets the level of
           verbosity. Set to 0 by default, which means quiet.
 
+        - ``constraint_generation`` (boolean) -- whether to use constraint
+          generation when solving the Mixed Integer Linear Program (default:
+          ``True``).
+
         ALGORITHM:
 
-        This problem is solved using Linear Programming, which certainly
-        is not the best way and will have to be replaced by a better algorithm.
-        The program to be solved is the following:
+        This problem is solved using Linear Programming, which certainly is not
+        the best way and will have to be replaced by a better algorithm.  The
+        program to be solved is the following:
 
         .. MATH::
 
@@ -1381,23 +1477,39 @@ class DiGraph(GenericGraph):
 
         A brief explanation:
 
-        An acyclic digraph can be seen as a poset, and every poset has
-        a linear extension. This means that in any acyclic digraph the
-        vertices can be ordered with a total order `<` in such a way
-        that if `(u,v)\in G`, then `u<v`.  Thus, this linear program
-        is built in order to assign to each vertex `v` a number
-        `d_v\in [0,\dots,n-1]` such that if there exists an edge
-        `(u,v)\in G` then either `d_v<d_u` or one of `u` or `v` is
-        removed.  The number of vertices removed is then minimized,
-        which is the objective.
+        An acyclic digraph can be seen as a poset, and every poset has a linear
+        extension. This means that in any acyclic digraph the vertices can be
+        ordered with a total order `<` in such a way that if `(u,v)\in G`, then
+        `u<v`.  Thus, this linear program is built in order to assign to each
+        vertex `v` a number `d_v\in [0,\dots,n-1]` such that if there exists an
+        edge `(u,v)\in G` then either `d_v<d_u` or one of `u` or `v` is removed.
+        The number of vertices removed is then minimized, which is the
+        objective.
+
+        (Constraint Generation)
+
+        If the parameter ``constraint_generation`` is enabled, a more efficient
+        formulation is used :
+
+        .. MATH::
+
+            \mbox{Minimize : }&\sum_{v\in G} b_{v}\\
+            \mbox{Such that : }&\\
+            &\forall C\text{ circuits }\subseteq G, \sum_{v\in C}b_{v}\geq 1\\
+
+        As the number of circuits contained in a graph is exponential, this LP
+        is solved through constraint generation. This means that the solver is
+        sequentially asked to solved the problem, knowing only a portion of the
+        circuits contained in `G`, each time adding to the list of its
+        constraints the circuit which its last answer had left intact.
 
         EXAMPLES:
 
-        In a digraph built from a graph, any edge is replaced by arcs going
-        in the two opposite directions, thus creating a cycle of length two.
-        Hence, to remove all the cycles from the graph, each edge must see
-        one of its neighbors removed : a feedback vertex set is in this
-        situation a vertex cover::
+        In a digraph built from a graph, any edge is replaced by arcs going in
+        the two opposite directions, thus creating a cycle of length two.
+        Hence, to remove all the cycles from the graph, each edge must see one
+        of its neighbors removed : a feedback vertex set is in this situation a
+        vertex cover::
 
             sage: cycle=graphs.CycleGraph(5)
             sage: dcycle=DiGraph(cycle)
@@ -1415,32 +1527,110 @@ class DiGraph(GenericGraph):
             sage: circuit = digraphs.Circuit(5)
             sage: circuit.feedback_vertex_set(value_only=True) == 1
             True
-        """
+
+        TESTS:
+
+        Comparing with/without constraint generation::
+
+            sage: g = digraphs.RandomDirectedGNP(10,.3)
+            sage: x = g.feedback_vertex_set(value_only = True)
+            sage: y = g.feedback_vertex_set(value_only = True,
+            ...            constraint_generation = False)
+            sage: x == y
+            True
+         """
+
+        # It would be a pity to start a LP if the digraph is already acyclic
+        if self.is_directed_acyclic():
+            if value_only:
+                return 0
+
+            from sage.sets.set import Set
+            return Set([0])
 
         from sage.numerical.mip import MixedIntegerLinearProgram, Sum
 
-        p=MixedIntegerLinearProgram(maximization=False, solver=solver)
+        ########################################
+        # Constraint Generation Implementation #
+        ########################################
+        if constraint_generation:
 
-        b=p.new_variable(binary = True)
-        d=p.new_variable(integer = True)
-        n=self.order()
+            p = MixedIntegerLinearProgram(constraint_generation = True,
+                                          maximization = False)
 
-        # The removed vertices cover all the back arcs ( third condition )
-        for (u, v) in self.edges(labels=False):
-            p.add_constraint(d[u] - d[v] + n*(b[u] + b[v]), min=1)
-        for u in self:
-            p.add_constraint(d[u], max=n)
+            # An variable for each vertex
+            b = p.new_variable(binary = True)
 
-        p.set_objective(Sum([b[v] for v in self]))
+            # Variables are binary, and their coefficient in the objective is 1
 
-        if value_only:
-            return p.solve(objective_only=True, log=verbose)
+            p.set_objective( Sum( b[v] for v in self))
+
+            p.solve(log = verbose)
+
+            # For as long as we do not break because the digraph is
+            # acyclic....
+            while (1):
+
+                # Building the graph without the edges removed by the LP
+                h = self.subgraph(vertices =
+                                  [v for v in self if p.get_values(b[v]) < .5])
+
+                # Is the digraph acyclic ?
+                isok, certificate = h.is_directed_acyclic(certificate = True)
+
+                # If so, we are done !
+                if isok:
+                    break
+
+                if verbose:
+                    print "Adding a constraint on circuit : ",certificate
+
+                # There is a circuit left. Let's add the corresponding
+                # constraint !
+
+                p.add_constraint( Sum( b[v] for v in certificate), min = 1)
+
+                obj = p.solve(log = verbose)
+
+            if value_only:
+                return obj
+
+            else:
+
+                # listing the edges contained in the MFAS
+                from sage.sets.set import Set
+                return Set([v for v in self if p.get_values(b[v]) > .5])
+
+
         else:
-            p.solve(log=verbose)
-            b_sol=p.get_values(b)
 
-            from sage.sets.set import Set
-            return Set([v for v in self if b_sol[v]==1])
+        ######################################
+        # Ordering-based MILP Implementation #
+        ######################################
+
+            p = MixedIntegerLinearProgram(maximization=False, solver=solver)
+
+            b = p.new_variable(binary = True)
+            d = p.new_variable(integer = True)
+            n = self.order()
+
+            # The removed vertices cover all the back arcs ( third condition )
+            for (u,v) in self.edges(labels=None):
+                p.add_constraint(d[u]-d[v]+n*(b[u]+b[v]),min=1)
+
+            for u in self:
+                p.add_constraint(d[u],max=n)
+
+            p.set_objective(Sum([b[v] for v in self]))
+
+            if value_only:
+                return p.solve(objective_only=True, log=verbose)
+            else:
+                p.solve(log=verbose)
+                b_sol=p.get_values(b)
+
+                from sage.sets.set import Set
+                return Set([v for v in self if b_sol[v]==1])
 
 
     ### Construction

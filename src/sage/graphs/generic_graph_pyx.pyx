@@ -949,7 +949,6 @@ def _test_vectors_equal_inferior():
         sage_free(u)
         sage_free(v)
 
-
 cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, long backtrack_bound=1000, find_path=False ):
     r"""
     Randomized backtracking for finding hamiltonian cycles and paths.

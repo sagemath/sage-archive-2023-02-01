@@ -131,6 +131,9 @@ cdef class MixedIntegerLinearProgram:
       - When set to ``False``, the ``MixedIntegerLinearProgram`` is
         defined as a minimization.
 
+    - ``constraint_generation`` -- whether to require the returned solver to
+      support constraint generation (excludes Coin). ``False by default``.
+
     .. SEEALSO::
 
      - :func:`default_mip_solver` -- Returns/Sets the default MIP solver.
@@ -150,7 +153,7 @@ cdef class MixedIntegerLinearProgram:
          4.0
     """
 
-    def __init__(self, solver = None, maximization=True):
+    def __init__(self, solver = None, maximization=True, constraint_generation = False):
         r"""
         Constructor for the ``MixedIntegerLinearProgram`` class.
 
@@ -179,6 +182,9 @@ cdef class MixedIntegerLinearProgram:
           - When set to ``False``, the ``MixedIntegerLinearProgram`` is
             defined as a minimization.
 
+        - ``constraint_generation`` -- whether to require the returned solver to
+          support constraint generation (excludes Coin). ``False by default``.
+
         .. SEEALSO::
 
         - :meth:`default_mip_solver` -- Returns/Sets the default MIP solver.
@@ -190,7 +196,9 @@ cdef class MixedIntegerLinearProgram:
         """
 
         from sage.numerical.backends.generic_backend import get_solver
-        self._backend = get_solver(solver = solver)
+
+        self._backend = get_solver(solver=solver,
+                                   constraint_generation=constraint_generation)
 
         if not maximization:
             self._backend.set_sense(-1)

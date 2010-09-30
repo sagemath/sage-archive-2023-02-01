@@ -2549,6 +2549,109 @@ class Graph(GenericGraph):
         else:
             raise ValueError("The 'algorithm' keyword must be set to either 'DLX' or 'MILP'.")
 
+    def fractional_chromatic_index(self, verbose_constraints = 0, verbose = 0):
+        r"""
+        Computes the fractional chromatic index of ``self``
+
+        The fractional chromatic index is a relaxed version of edge-coloring. An
+        edge coloring of a graph being actually a covering of its edges into the
+        smallest possible number of matchings, the fractional chromatic index of
+        a graph `G` is the smallest real value `\chi_f(G)` such that there
+        exists a list of matchings `M_1, ..., M_k` of `G` and coefficients
+        `\alpha_1, ..., \alpha_k` with the property that each edge is covered by
+        the matchings in the following relaxed way
+
+        .. MATH::
+
+            \forall e \in E(G), \sum_{e \in M_i} \alpha_i \geq 1
+
+        For more information, see the `Wikipedia article on fractional coloring
+        <http://en.wikipedia.org/wiki/Fractional_coloring>`_.
+
+        ALGORITHM:
+
+        The fractional chromatic index is computed through Linear Programming
+        through its dual. The LP solved by sage is actually:
+
+        .. MATH::
+
+            \mbox{Maximize : }&\sum_{e\in E(G)} r_{e}\\
+            \mbox{Such that : }&\\
+            &\forall M\text{ matching }\subseteq G, \sum_{e\in M}r_{v}\leq 1\\
+
+        INPUT:
+
+        - ``verbose_constraints`` -- whether to display which constraints are
+          being generated.
+
+        - ``verbose`` -- level of verbosity required from the LP solver
+
+        .. NOTE::
+
+            This implementation can be improved by computing matchings through a
+            LP formulation, and not using the Python implementation of Edmonds'
+            algorithm (which requires to copy the graph, etc). It may be more
+            efficient to write the matching problem as a LP, as we would then
+            just have to update the weights on the edges between each call to
+            ``solve`` (and so avoiding the generation of all the constraints).
+
+
+        EXAMPLE:
+
+        The fractional chromatic index of a `C_5` is `5/2`::
+
+            sage: g = graphs.CycleGraph(5)
+            sage: g.fractional_chromatic_index()
+            2.5
+        """
+
+        from sage.numerical.mip import MixedIntegerLinearProgram, Sum
+
+        g = self.copy()
+        p = MixedIntegerLinearProgram()
+
+        # One variable per edge
+        r = p.new_variable(dim = 2)
+        R = lambda x,y : r[x][y] if x<y else r[y][x]
+
+        # We want to maximize the sum of weights on the edges
+        p.set_objective( Sum( R(u,v) for u,v in g.edges(labels = False)))
+
+        # Each edge being by itself a matching, its weight can not be more than
+        # 1
+
+        for u,v in g.edges(labels = False):
+            p.add_constraint( R(u,v), max = 1)
+
+        obj = p.solve(log = verbose)
+
+        while True:
+
+            # Updating the value on the edges of g
+            for u,v in g.edges(labels = False):
+                g.set_edge_label(u,v,p.get_values(R(u,v)))
+
+            # Computing a matching of maximum weight...
+
+            matching = g.matching()
+
+            # If the maximum matching has weight at most 1, we are done !
+            if sum(map(lambda x:x[2],matching)) <= 1:
+                break
+
+            # Otherwise, we add a new constraint
+
+            if verbose_constraints:
+                print "Adding a constraint on matching : ",matching
+
+            p.add_constraint( Sum( R(u,v) for u,v,_ in matching), max = 1)
+
+            # And solve again
+            obj = p.solve(log = verbose)
+
+        # Accomplished !
+        return obj
+
     def independent_set_of_representatives(self, family, solver=None, verbose=0):
         r"""
         Returns an independent set of representatives.

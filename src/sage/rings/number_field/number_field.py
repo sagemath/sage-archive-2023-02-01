@@ -332,6 +332,11 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True,
         sage: m
         Number Field in a with defining polynomial y^2 + 3
 
+    In case of conflict of the generator name with the name given by the preparser, the name given by the preparser takes precedence::
+
+        sage: K.<b> = NumberField(x^2 + 5, 'a'); K
+        Number Field in b with defining polynomial x^2 + 5
+
     One can also define number fields with specified embeddings, may be
     used for arithmetic and deduce relations with other number fields
     which would not be valid for an abstract number field::
@@ -639,7 +644,7 @@ def NumberFieldTower(v, names, check=True, embeddings=None):
     return w.extension(f, name, check=check, embedding=embeddings[0])
 
 
-def QuadraticField(D, names, check=True, embedding=True, latex_name='sqrt'):
+def QuadraticField(D, name='a', check=True, embedding=True, latex_name='sqrt', **args):
     r"""
     Return a quadratic field obtained by adjoining a square root of
     `D` to the rational numbers, where `D` is not a
@@ -650,7 +655,7 @@ def QuadraticField(D, names, check=True, embedding=True, latex_name='sqrt'):
 
     -  ``D`` - a rational number
 
-    -  ``names`` - variable name
+    -  ``names`` - variable name, default: 'a'
 
     -  ``check`` - bool (default: True)
 
@@ -715,6 +720,27 @@ def QuadraticField(D, names, check=True, embedding=True, latex_name='sqrt'):
         sage: latex(QuadraticField(-1, 'a', latex_name=None).gen())
         a
 
+    The name of the generator does not interfere with Sage preparser, see #1135::
+
+        sage: K1 = QuadraticField(5, 'x')
+        sage: K2.<x> = QuadraticField(5)
+        sage: K3.<x> = QuadraticField(5, 'x')
+        sage: K1 is K2
+        True
+        sage: K1 is K3
+        True
+        sage: K1
+        Number Field in x with defining polynomial x^2 - 5
+
+
+    Note that, in presence of two different names for the generator,
+    the name given by the preparser takes precedence::
+
+        sage: K4.<y> = QuadraticField(5, 'x'); K4
+        Number Field in y with defining polynomial x^2 - 5
+        sage: K1 == K4
+        False
+
     TESTS::
 
         sage: QuadraticField(-11, 'a') is QuadraticField(-11, 'a', latex_name='Z')
@@ -735,7 +761,7 @@ def QuadraticField(D, names, check=True, embedding=True, latex_name='sqrt'):
             embedding = CLF(D).sqrt()
     if latex_name == 'sqrt':
         latex_name = r'\sqrt{%s}' % D
-    return NumberField(f, names, check=False, embedding=embedding, latex_name=latex_name)
+    return NumberField(f, name, check=False, embedding=embedding, latex_name=latex_name, **args)
 
 def is_AbsoluteNumberField(x):
     """

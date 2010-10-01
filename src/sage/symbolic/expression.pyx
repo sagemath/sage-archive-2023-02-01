@@ -6548,6 +6548,16 @@ cdef class Expression(CommutativeRingElement):
             Traceback (most recent call last):
             ...
             TypeError: unable to convert sqrt(3) to a rational
+
+        Check if #9538 is fixed::
+
+            sage: var('f6,f5,f4,x')
+            (f6, f5, f4, x)
+            sage: e=15*f6*x^2 + 5*f5*x + f4
+            sage: res = e.roots(x); res
+            [(-1/30*(sqrt(-12*f4*f6 + 5*f5^2)*sqrt(5) + 5*f5)/f6, 1), (1/30*(sqrt(-12*f4*f6 + 5*f5^2)*sqrt(5) - 5*f5)/f6, 1)]
+            sage: e.subs(x=res[0][0]).is_zero()
+            True
         """
         if x is None:
             x = self.default_variable()

@@ -361,7 +361,20 @@ from sage.symbolic.integration.integral import indefinite_integral, \
         definite_integral
 import sage.symbolic.pynac
 
-maxima = Maxima(init_code = ['display2d:false', 'domain: complex', 'keepfloat: true', 'load(to_poly_solver)', 'load(simplify_sum)'],
+"""
+Check if maxima has redundant variables defined after initialization #9538::
+
+    sage: maxima = Maxima(init_code = ['load(simplify_sum)'])
+    sage: maxima('f1')
+    binomial(n,k)
+    sage: sage.calculus.calculus.maxima('f1')
+    f1
+"""
+maxima = Maxima(init_code = ['display2d:false', 'domain: complex',
+    'keepfloat: true', 'load(to_poly_solver)', 'load(simplify_sum)',
+    'kill (g1, g2, g3, g4, g5, g6, g7, f1, f2, f3, f4, f5, f6, f7, f8, f9,\
+            f10, h1, h2, h3, h4, h5, h6, h6b, h7, h8, h9, h10, h11, h12, h13,\
+            d1, d2)'],
                 script_subdirectory=None)
 
 ########################################################

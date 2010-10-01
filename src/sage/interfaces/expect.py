@@ -13,6 +13,10 @@ AUTHORS:
   client system missing
 
 - Felix Lawrence (2009-08-21): edited ._sage_() to support lists and float exponents in foreign notation.
+
+- Simon King (2010-09-25): Expect._local_tmpfile() depends on
+  Expect.pid() and is cached; Expect.quit() clears that cache,
+  which is important for forking.
 """
 
 #*****************************************************************************
@@ -68,8 +72,8 @@ failed_to_start = []
 
 #tmp_expect_interface_local='%s/tmp'%SAGE_TMP_INTERFACE
 
-def tmp_expect_interface_local():
-    return '%s/tmp'%SAGE_TMP_INTERFACE + str(os.getpid())
+#def tmp_expect_interface_local():
+#    return '%s/tmp'%SAGE_TMP_INTERFACE + str(os.getpid())
 
 ## On some platforms, e.g., windows, this can easily take 10 seconds!?!  Terrible.  And
 ## it should not be necessary or used anyways.
@@ -523,6 +527,10 @@ If this all works, you can then make calls like:
             ValueError: The maxima session in which this object was defined is no longer running.
         """
         self._session_number += 1
+        try:
+            del self.__local_tmpfile
+        except AttributeError:
+            pass
         if self._expect is None:
             return
         # Send a kill -9 to the process *group*.
@@ -552,10 +560,60 @@ If this all works, you can then make calls like:
         return 'quit'
 
     def _local_tmpfile(self):
+        """
+        Return a filename that is used to buffer long command lines for this interface
+
+        INPUT:
+
+        ``e`` -- an expect interface instance
+
+        OUTPUT:
+
+        A string that provides a temporary filename and is unique for the
+        given interface.
+
+        TEST:
+
+        The filename is cached::
+
+            sage: gap._local_tmpfile() is gap._local_tmpfile()
+            True
+
+        The following two problems were fixed in #10004.
+
+        1. Different interfaces have different temp-files::
+
+            sage: gap._local_tmpfile() != singular._local_tmpfile()
+            True
+
+        2. Interface instances in different branches of a parallelised
+           function have different temp-files::
+
+            sage: @parallel
+            ... def f(n):
+            ...     return gap._local_tmpfile()
+            ...
+            sage: L = [t[1] for t in f(range(5))]
+            sage: len(set(L))
+            5
+
+        The following used to fail::
+
+            sage: s = gap._local_tmpfile()
+            sage: L = [t[1] for t in f(range(5))]
+            sage: len(set(L))
+            5
+
+        AUTHOR:
+
+        - Simon King (2010-09): Making the tmp-file unique for the interface instance
+
+        """
+        #return '%s/tmp'%SAGE_TMP_INTERFACE + str(self.pid())
         try:
             return self.__local_tmpfile
         except AttributeError:
-            self.__local_tmpfile = tmp_expect_interface_local()
+            self.__local_tmpfile = '%s/tmp'%SAGE_TMP_INTERFACE + str(self.pid())
             return self.__local_tmpfile
 
     def _remote_tmpdir(self):

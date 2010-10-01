@@ -266,7 +266,7 @@ class FiniteField_ext_pari(FiniteField_generic):
         """
         if not isinstance(other, FiniteField_ext_pari):
             return cmp(type(self), type(other))
-        return cmp((self.__order, self.variable_name()), (other.__order, other.variable_name()))
+        return cmp((self.__order, self.variable_name(), self.__modulus), (other.__order, other.variable_name(), other.__modulus))
 
     def __richcmp__(left, right, op):
         r"""

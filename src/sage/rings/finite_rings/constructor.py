@@ -265,16 +265,6 @@ class FiniteFieldFactory(UniqueFactory):
         sage: F.<x> = GF(5)[]
         sage: K.<a> = GF(5**2, name='a', modulus=x^2 + 2, check_irreducible=False)
 
-    For example, you may print finite field elements as integers. This
-    currently only works if the order of field is `<2^{16}`,
-    though.
-
-    ::
-
-        sage: k.<a> = GF(2^8,repr='int')
-        sage: a
-        2
-
     The order of a finite field must be a prime power::
 
         sage: GF(100)
@@ -282,15 +272,17 @@ class FiniteFieldFactory(UniqueFactory):
         ...
         ValueError: the order of a finite field must be a prime power
 
-    Finite fields with random modulus are not cached::
+    Finite fields with explicit random modulus are not cached::
 
-        sage: k.<a> = GF(2^17,modulus='random')
-        sage: n.<a> = GF(2^17,modulus='random')
+        sage: k.<a> = GF(5**10, modulus='random')
+        sage: n.<a> = GF(5**10, modulus='random')
         sage: n is k
         False
+        sage: GF(5**10, 'a') is GF(5**10, 'a')
+        True
 
     We check that various ways of creating the same finite field yield
-    the same object.
+    the same object, which is cached.
 
     ::
 
@@ -306,6 +298,16 @@ class FiniteFieldFactory(UniqueFactory):
         sage: M = GF(4,'a', K.modulus().change_variable_name('y'))
         sage: K is M
         True
+
+    You may print finite field elements as integers. This
+    currently only works if the order of field is `<2^{16}`,
+    though.
+
+    ::
+
+        sage: k.<a> = GF(2^8,repr='int')
+        sage: a
+        2
     """
     def create_key_and_extra_args(self, order, name=None, modulus=None, names=None, impl=None, **kwds):
         """
@@ -339,18 +341,17 @@ class FiniteFieldFactory(UniqueFactory):
                         modulus = "minimal_weight"
                     else:
                         modulus = "random"
+            elif modulus == "random":
+                modulus += str(random.randint(0, 1<<128))
 
             if isinstance(modulus, (list, tuple)):
                 modulus = FiniteField(p)['x'](modulus)
             # some classes use 'random' as the modulus to
             # generate a random modulus, but we don't want
             # to cache it
-            elif isinstance(modulus, str):
-                if modulus == 'random':
-                    modulus += str(random.randint(0, 1<<128))
             elif sage.rings.polynomial.polynomial_element.is_Polynomial(modulus):
                 modulus = modulus.change_variable_name('x')
-            else:
+            elif not isinstance(modulus, str):
                 raise ValueError("Modulus parameter not understood")
 
         return (order, name, modulus, impl, str(kwds)), kwds

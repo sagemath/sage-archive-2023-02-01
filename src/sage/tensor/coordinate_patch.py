@@ -114,7 +114,7 @@ class CoordinatePatch(Parent):
     def __cmp__(self, other):
         """
         Compare self and other.  Return equality if and only if other
-        has the same coordinates as self.
+        has the same coordinates as self, in the same order.
 
         EXAMPLES::
 
@@ -132,8 +132,22 @@ class CoordinatePatch(Parent):
             0
             sage: cmp(U, T)
             1
+
+        Note that the order of the coordinates matters::
+
+            sage: x, y, z = var('x, y, z')
+            sage: S = CoordinatePatch((x, y, z)); S
+            Open subset of R^3 with coordinates x, y, z
+            sage: T = CoordinatePatch((x, z, y)); T
+            Open subset of R^3 with coordinates x, z, y
+            sage: cmp(S, T)
+            -1
         """
-        return cmp(self._coordinates, other._coordinates)
+
+        # Convert tuples of coordinates to strings before comparing
+        # (see Trac 10041)
+
+        return cmp(str(self._coordinates), str(other._coordinates))
 
 
     def coordinates(self):

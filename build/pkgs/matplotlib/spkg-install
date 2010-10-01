@@ -18,6 +18,7 @@ python make-setup-config.py
 # Use patched versions.  See SPKG.txt for why and what.
 $CP patches/setupext.py src
 $CP patches/WrapPython.h src/CXX
+$CP patches/font_manager.py src/lib/matplotlib
 cd src
 
 # Now build

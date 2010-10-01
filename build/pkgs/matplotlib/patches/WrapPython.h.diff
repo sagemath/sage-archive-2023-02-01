@@ -1,0 +1,23 @@
+--- src/CXX/WrapPython.h	Tue Jul  6 07:43:39 2010
++++ patches/WrapPython.h	Thu Sep 16 10:53:00 2010
+@@ -43,20 +43,6 @@
+ #include <sys/time.h>
+ #endif
+ 
+-// Prevent multiple conflicting definitions of swab from stdlib.h and unistd.h
+-#if defined(__sun) || defined(sun)
+-#if defined(_XPG4)
+-#undef _XPG4
+-#endif
+-#if defined(_XPG3)
+-#undef _XPG3
+-#endif
+-#endif
+-
+-// Python.h will redefine these and generate warning in the process
+-#undef _XOPEN_SOURCE
+-#undef _POSIX_C_SOURCE
+-
+ // pull in python definitions
+ #include <Python.h>
+ 

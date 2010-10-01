@@ -28,12 +28,13 @@ The patches are applied in during the build process.
 
 * setupext.py: link to libpng12 instead of libpng to apparently avoid
   some name clashes on OSX.
-* WrapPython.h: delete unnecessary kludges to compile on Solaris
+* WrapPython.h: delete unnecessary kludges to compile on Solaris.  A version of this is committed upstream as SVN version #8707, so this patch should be removed when upgrading to the next matplotlib release.
+* font_manager.py: rebuild the font cache when a font file is missing.  This is from the upstream commit SVN version #8712, so this patch should be removed when upgrading to the next matplotlib release.
 
 == Changelog ==
 
-=== matplotlib 1.0.0 (Jason Grout, 16 Sep 2010) ===
- * Update to matplotlib 1.0.0.
+=== matplotlib 1.0.0 (Jason Grout, 01 Oct 2010) ===
+ * Update to matplotlib 1.0.0.  Include two upstream fixes that were committed since 1.0.0.
 
 === matplotlib-0.99.3-svn8415 (Jason Grout, 11 Jun 2010) ===
  * Update to SVN revision 8415 (which is 0.99.3 + some bugfixes we

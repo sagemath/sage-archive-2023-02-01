@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os, sys, time
+import os, sys, time, errno
 from distutils.core import setup
 from distutils.extension import Extension
 
@@ -405,9 +405,10 @@ class sage_build_ext(build_ext):
         prefixes = ['', self.build_lib, self.build_temp]
         for prefix in prefixes:
             path = os.path.join(prefix, relative_ext_dir)
-            if not os.path.exists(path):
+            try:
                 os.makedirs(path)
-
+            except OSError, e:
+                assert e.errno==errno.EEXIST, 'Cannot create %s.' % path
         depends = sources + ext.depends
         if not (self.force or newer_group(depends, ext_filename, 'newer')):
             log.debug("skipping '%s' extension (up-to-date)", ext.name)
@@ -721,8 +722,10 @@ def compile_command0(p):
         # just specializing for the most common use case.
         if retval:
             dirname, filename = os.path.split(pyx_inst_file)
-            if not os.path.exists(dirname):
+            try:
                 os.makedirs(dirname)
+            except OSError, e:
+                assert e.errno==errno.EEXIST, 'Cannot create %s.' % dirname
             retval = os.system('cp %s %s 2>/dev/null'%(f, pyx_inst_file))
             if retval:
                 raise OSError, "cannot copy %s to %s"%(f,pyx_inst_file)

@@ -46,9 +46,6 @@ export NUMPY_FCONFIG="config_fc --noopt --noarch"
 
 ################################################
 
-cp ../patches/gnu.py numpy/distutils/fcompiler/gnu.py
-cp ../patches/__init__.py  numpy/distutils/fcompiler/__init__.py
-
 #This patch should eliminate the segfault errors in
 #the real_roots.pyx file of sage.rings.polynomial
 cp ../patches/buffer.c numpy/core/src/multiarray/buffer.c

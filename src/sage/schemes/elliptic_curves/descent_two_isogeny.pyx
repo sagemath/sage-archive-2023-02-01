@@ -1136,24 +1136,22 @@ def two_descent_by_two_isogeny(E,
 
     Here we contrive an example to demonstrate that a keyboard interrupt
     is caught. Here we let `E` be the smallest optimal curve with two-torsion
-    and nontrivial Sha[2]. This ensures that the two-descent will be looking
+    and nontrivial `Sha[2]`. This ensures that the two-descent will be looking
     for rational points which do not exist, and by setting global_limit_large
-    to a very high bound, it will still be working when we simulate a ctrl-c::
+    to a very high bound, it will still be working when we simulate a ``CTRL-C``::
 
         sage: from sage.schemes.elliptic_curves.descent_two_isogeny import two_descent_by_two_isogeny
-        sage: import signal
+        sage: import sage.tests.interrupt
         sage: E = EllipticCurve('960d'); E
         Elliptic Curve defined by y^2 = x^3 - x^2 - 900*x - 10098 over Rational Field
         sage: E.sha().an()
         4
         sage: try:
-        ...     signal.alarm(2)
+        ...     sage.tests.interrupt.interrupt_after_delay(1000)
         ...     two_descent_by_two_isogeny(E, global_limit_large=10^8)
         ... except KeyboardInterrupt:
         ...     print "Caught!"
-        0
-        ... Caught!
-
+        Caught!
     """
     cdef Integer a1, a2, a3, a4, a6, s2, s4, s6
     cdef Integer c, d, x0

@@ -1673,6 +1673,14 @@ ext_modules = [
               depends = ginac_depends + numpy_depends,
               libraries = ["pynac", "gmp"]),
 
+    ################################
+    ##
+    ## sage.tests
+    ##
+    ################################
+    Extension('sage.tests.interrupt',
+              sources = ['sage/tests/interrupt.pyx', 'sage/tests/c_lib.c']),
+
     ]
 
 # Optional extensions :

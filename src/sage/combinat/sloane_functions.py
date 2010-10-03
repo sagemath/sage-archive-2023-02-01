@@ -407,7 +407,7 @@ class A000027(SloaneSequence):
         SloaneSequence.__init__(self, offset=1)
 
 # is this a good idea to have a link for all sequences? Jaap
-    link = "http://www.research.att.com/~njas/sequences/A000027"
+    link = "http://oeis.org/classic/A000027"
 
     def _repr_(self):
         """
@@ -6856,7 +6856,7 @@ class A001110(RecurrenceSequence):
         self._b = []
         self._precompute()
 
-    link = "http://www.research.att.com/~njas/sequences/A001110"
+    link = "http://oeis.org/classic/A001110"
 
     def _repr_(self):
         """

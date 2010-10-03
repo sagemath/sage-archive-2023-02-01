@@ -53,10 +53,9 @@ with Sage::
     Searching Sloane's online database...
     [[137443, 'First n-digit prime in consecutive digits of e.', [7, 71, 281, 4523, 74713, 904523, 6028747, 72407663, 360287471, 7427466391, 75724709369, 749669676277, 8284590452353, 99959574966967, 724709369995957, 2470936999595749, 28459045235360287, 571382178525166427]]]
 
-Note that the OEIS (http://www.research.att.com/ njas/sequences/)
-claims to limit the number of results to 100. Results are lists of
-the form [ [number, description, list]], and invalid input will
-cause sloane_find to return [].
+Note that the OEIS (http://oeis.org/classic/) claims to limit the number of
+results to 100. Results are lists of the form [[number, description, list]],
+and invalid input will cause sloane_find to return [].
 
 In some cases, these functions may return [] even though the inputs
 are legal. These cases correspond to errors from the OEIS server,
@@ -237,7 +236,7 @@ class SloaneEncyclopediaClass:
 
         return answer
 
-    def install(self, oeis_url="http://www.research.att.com/~njas/sequences/stripped.gz", names_url="http://www.research.att.com/~njas/sequences/names.gz", overwrite=False):
+    def install(self, oeis_url="http://oeis.org/classic/stripped.gz", names_url="http://oeis.org/classic/names.gz", overwrite=False):
         """
         Download and install the online encyclopedia, raising an IOError if
         either step fails.
@@ -555,7 +554,7 @@ def sloane_find(list, nresults = 30, verbose=True):
     try:
         if verbose:
             print "Searching Sloane's online database..."
-        url = "http://www.research.att.com/~njas/sequences/"
+        url = "http://oeis.org/classic/"
         f = urllib.urlopen(url+'?'+urlparams);
         s = f.read()
         f.close()

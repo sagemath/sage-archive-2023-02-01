@@ -138,8 +138,7 @@ class DiGraphGenerators():
         sage: len(L)
         75
 
-    Generate digraphs on the fly: (see
-    http://www.research.att.com/~njas/sequences/A000273)
+    Generate digraphs on the fly: (see http://oeis.org/classic/A000273)
 
     ::
 

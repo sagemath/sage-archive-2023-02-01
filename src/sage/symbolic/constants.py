@@ -1345,7 +1345,7 @@ class Brun(LimitedPrecisionConstant):
         """
         conversions = dict(maxima='brun')
 
-        # digits come from Sloane's tables at http://www.research.att.com/~njas/sequences/table?a=65421&fmt=0
+        # digits come from Sloane's tables at http://oeis.org/classic/table?a=65421&fmt=0
         value = "1.902160583104"
 
         LimitedPrecisionConstant.__init__(self, name, value,

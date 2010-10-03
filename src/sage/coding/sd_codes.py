@@ -167,7 +167,7 @@ def self_dual_codes_binary(n):
         n   2 4 6 8 10 12 14 16 18 20 22 24  26  28  30
         B_n 1 1 1 2  2  3  4  7  9 16 25 55 103 261 731
 
-    According to http://www.research.att.com/~njas/sequences/A003179,
+    According to http://oeis.org/classic/A003179,
     the next 2 entries are: 3295, 24147.
 
     EXAMPLES::

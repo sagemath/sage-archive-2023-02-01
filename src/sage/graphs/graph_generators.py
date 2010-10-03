@@ -369,7 +369,7 @@ class GraphGenerators():
         45
 
     Generate all bipartite graphs on up to 7 vertices: (see
-    http://www.research.att.com/~njas/sequences/A033995)
+    http://oeis.org/classic/A033995)
 
     ::
 
@@ -389,8 +389,7 @@ class GraphGenerators():
         sage: len(L)                                            # long time
         303
 
-    Generate graphs on the fly: (see
-    http://www.research.att.com/~njas/sequences/A000088)
+    Generate graphs on the fly: (see http://oeis.org/classic/A000088)
 
     ::
 
@@ -405,7 +404,7 @@ class GraphGenerators():
         156
 
     Generate all simple graphs, allowing loops: (see
-    http://www.research.att.com/~njas/sequences/A000666)
+    http://oeis.org/classic/A000666)
 
     ::
 
@@ -419,7 +418,7 @@ class GraphGenerators():
         5 544
 
     Generate all graphs with a specified degree sequence (see
-    http://www.research.att.com/~njas/sequences/A002851)::
+    http://oeis.org/classic/A002851)::
 
         sage: for i in [4,6,8]:
         ...       print i, len([g for g in graphs(i, deg_seq=[3]*i) if g.is_connected()])

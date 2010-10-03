@@ -339,7 +339,7 @@ class RationalField(_uniq, number_field_base.NumberField):
         #described in [CalkinWilf].
         #REFERENCES:
         #  [A002487] Sloane's OLEIS,
-        #    http://www.research.att.com/~njas/sequences/A002487
+        #    http://oeis.org/classic/A002487
         #  [CalkinWilf] N. Calkin and H.S. Wilf, Recounting the
         #    rationals, American Mathematical Monthly 107 (2000),
         #    360--363

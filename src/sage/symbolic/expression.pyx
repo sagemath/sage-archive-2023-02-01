@@ -3981,6 +3981,13 @@ cdef class Expression(CommutativeRingElement):
             x^4
             sage: (x^2).power(2, hold=True)
             (x^2)^2
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`simplify`::
+
+            sage: a = (x^2).power(2, hold=True); a.simplify()
+            x^4
+
         """
         cdef Expression nexp = self.coerce_in(exp)
         return new_Expression_from_GEx(self._parent,
@@ -4005,6 +4012,12 @@ cdef class Expression(CommutativeRingElement):
             x + x + (x + 2) + x
             sage: x.add(x, (2+x), x, 2*x, hold=True)
             x + x + (x + 2) + x + 2*x
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`simplify`::
+
+            sage: a = x.add(x, hold=True); a.simplify()
+            2*x
         """
         nargs = [self.coerce_in(x) for x in args]
         cdef GExVector vec
@@ -4032,6 +4045,13 @@ cdef class Expression(CommutativeRingElement):
             x*x*(x + 2)*x
             sage: x.mul(x, (2+x), x, 2*x, hold=True)
             x*x*(x + 2)*x*(2*x)
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`simplify`::
+
+            sage: a = x.mul(x, hold=True); a.simplify()
+            x^2
+
         """
         nargs = [self.coerce_in(x) for x in args]
         cdef GExVector vec
@@ -4439,12 +4459,6 @@ cdef class Expression(CommutativeRingElement):
             sage: R(f)
             2.7182818284590452353602874714*x^3 + 3.1415926535897932384626433833*y^3 + 1.4142135623730950488016887242 + 1.0000000000000000000000000000*I
 
-        Using the ``hold`` parameter it is possible to prevent automatic
-        evaluation::
-
-            sage: SR(I).conjugate(hold=True)
-            conjugate(I)
-
         TESTS:
 
         This shows that the issue at trac #5755 is fixed (attempting to
@@ -4621,8 +4635,16 @@ cdef class Expression(CommutativeRingElement):
             sage: type(abs(SR(-5)))
             <type 'sage.symbolic.expression.Expression'>
 
-        Using the ``hold`` parameter it is possible to prevent automatic
+        Because this overrides a Python builtin function, we do not
+        currently support a ``hold`` parameter to prevent automatic
         evaluation::
+
+            sage: abs(SR(-5),hold=True)
+            Traceback (most recent call last):
+            ...
+            TypeError: abs() takes no keyword arguments
+
+        But this is possible using the method :meth:`abs`::
 
             sage: SR(-5).abs(hold=True)
             abs(-5)
@@ -4645,6 +4667,12 @@ cdef class Expression(CommutativeRingElement):
 
             sage: SR(-5).abs(hold=True)
             abs(-5)
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`simplify`::
+
+            sage: a = SR(-5).abs(hold=True); a.simplify()
+            5
         """
         return new_Expression_from_GEx(self._parent,
                 g_hold_wrapper(g_abs, self._gobj, hold))
@@ -4673,6 +4701,7 @@ cdef class Expression(CommutativeRingElement):
             1
             sage: SR(2).step(hold=True)
             step(2)
+
         """
         return new_Expression_from_GEx(self._parent,
                 g_hold_wrapper(g_step, self._gobj, hold))
@@ -4705,6 +4734,7 @@ cdef class Expression(CommutativeRingElement):
 
             sage: SR(I).csgn(hold=True)
             csgn(I)
+
         """
         return new_Expression_from_GEx(self._parent,
                 g_hold_wrapper(g_csgn, self._gobj, hold))
@@ -4735,6 +4765,26 @@ cdef class Expression(CommutativeRingElement):
             -I
             sage: ( 1+I  + (2-3*I)*x).conjugate()
             (3*I + 2)*conjugate(x) - I + 1
+
+        Using the ``hold`` parameter it is possible to prevent automatic
+        evaluation::
+
+            sage: SR(I).conjugate(hold=True)
+            conjugate(I)
+
+        This also works in functional notation::
+
+            sage: conjugate(I)
+            -I
+            sage: conjugate(I,hold=True)
+            conjugate(I)
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`simplify`::
+
+            sage: a = SR(I).conjugate(hold=True); a.simplify()
+            -I
+
         """
         return new_Expression_from_GEx(self._parent,
                 g_hold_wrapper(g_conjugate, self._gobj, hold))
@@ -4809,6 +4859,19 @@ cdef class Expression(CommutativeRingElement):
             2
             sage: SR(2).real_part(hold=True)
             real_part(2)
+
+        This also works using functional notation::
+
+            sage: real_part(I,hold=True)
+            real_part(I)
+            sage: real_part(I)
+            0
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`simplify`::
+
+            sage: a = SR(2).real_part(hold=True); a.simplify()
+            2
         """
         return new_Expression_from_GEx(self._parent,
                 g_hold_wrapper(g_real_part, self._gobj, hold))
@@ -4853,6 +4916,19 @@ cdef class Expression(CommutativeRingElement):
             sage: I.imag_part(hold=True)
             imag_part(I)
 
+        This also works using functional notation::
+
+            sage: imag_part(I,hold=True)
+            imag_part(I)
+            sage: imag_part(I)
+            1
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`simplify`::
+
+            sage: a = I.imag_part(hold=True); a.simplify()
+            1
+
         TESTS::
 
             sage: x = var('x')
@@ -4889,6 +4965,22 @@ cdef class Expression(CommutativeRingElement):
             2
             sage: SR(4).sqrt(hold=True)
             sqrt(4)
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`simplify`::
+
+            sage: a = SR(4).sqrt(hold=True); a.simplify()
+            2
+
+        To use this parameter in functional notation, you must coerce to
+        the symbolic ring::
+
+            sage: sqrt(SR(4),hold=True)
+            sqrt(4)
+            sage: sqrt(4,hold=True)
+            Traceback (most recent call last):
+            ...
+            TypeError: _do_sqrt() got an unexpected keyword argument 'hold'
         """
         return new_Expression_from_GEx(self._parent,
                 g_hold2_wrapper(g_power_construct, self._gobj, g_ex1_2, hold))
@@ -4915,6 +5007,19 @@ cdef class Expression(CommutativeRingElement):
             0
             sage: SR(0).sin(hold=True)
             sin(0)
+
+        This also works using functional notation::
+
+            sage: sin(0,hold=True)
+            sin(0)
+            sage: sin(0)
+            0
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`simplify`::
+
+            sage: a = SR(0).sin(hold=True); a.simplify()
+            0
 
         TESTS::
 
@@ -4966,6 +5071,19 @@ cdef class Expression(CommutativeRingElement):
             sage: pi.cos(hold=True)
             cos(pi)
 
+        This also works using functional notation::
+
+            sage: cos(pi,hold=True)
+            cos(pi)
+            sage: cos(pi)
+            -1
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`simplify`::
+
+            sage: a = pi.cos(hold=True); a.simplify()
+            -1
+
         TESTS::
 
             sage: SR(oo).cos()
@@ -5005,6 +5123,19 @@ cdef class Expression(CommutativeRingElement):
             -sqrt(3) + 2
             sage: (pi/12).tan(hold=True)
             tan(1/12*pi)
+
+        This also works using functional notation::
+
+            sage: tan(pi/12,hold=True)
+            tan(1/12*pi)
+            sage: tan(pi/12)
+            -sqrt(3) + 2
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`simplify`::
+
+            sage: a = (pi/12).tan(hold=True); a.simplify()
+            -sqrt(3) + 2
 
         TESTS::
 
@@ -5049,6 +5180,19 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(0).arcsin(hold=True)
             arcsin(0)
 
+        This also works using functional notation::
+
+            sage: arcsin(0,hold=True)
+            arcsin(0)
+            sage: arcsin(0)
+            0
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`simplify`::
+
+            sage: a = SR(0).arcsin(hold=True); a.simplify()
+            0
+
         TESTS::
 
             sage: SR(oo).arcsin()
@@ -5085,6 +5229,19 @@ cdef class Expression(CommutativeRingElement):
 
             sage: SR(1).arccos(hold=True)
             arccos(1)
+
+        This also works using functional notation::
+
+            sage: arccos(1,hold=True)
+            arccos(1)
+            sage: arccos(1)
+            0
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`simplify`::
+
+            sage: a = SR(1).arccos(hold=True); a.simplify()
+            0
 
         TESTS::
 
@@ -5124,6 +5281,19 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(1).arctan(hold=True)
             arctan(1)
 
+        This also works using functional notation::
+
+            sage: arctan(1,hold=True)
+            arctan(1)
+            sage: arctan(1)
+            1/4*pi
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`simplify`::
+
+            sage: a = SR(1).arctan(hold=True); a.simplify()
+            1/4*pi
+
         TESTS::
 
             sage: SR(oo).arctan()
@@ -5160,6 +5330,19 @@ cdef class Expression(CommutativeRingElement):
 
             sage: SR(1/2).arctan2(1/2, hold=True)
             arctan2(1/2, 1/2)
+
+        This also works using functional notation::
+
+            sage: arctan2(1,2,hold=True)
+            arctan2(1, 2)
+            sage: arctan2(1,2)
+            arctan(1/2)
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`simplify`::
+
+            sage: a = SR(1/2).arctan2(1/2, hold=True); a.simplify()
+            1/4*pi
 
         TESTS:
 
@@ -5259,6 +5442,19 @@ cdef class Expression(CommutativeRingElement):
             sage: arccosh(x).sinh(hold=True)
             sinh(arccosh(x))
 
+        This also works using functional notation::
+
+            sage: sinh(arccosh(x),hold=True)
+            sinh(arccosh(x))
+            sage: sinh(arccosh(x))
+            sqrt(x - 1)*sqrt(x + 1)
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`simplify`::
+
+            sage: a = arccosh(x).sinh(hold=True); a.simplify()
+            sqrt(x - 1)*sqrt(x + 1)
+
         TESTS::
 
             sage: SR(oo).sinh()
@@ -5303,6 +5499,19 @@ cdef class Expression(CommutativeRingElement):
             sage: arcsinh(x).cosh(hold=True)
             cosh(arcsinh(x))
 
+        This also works using functional notation::
+
+            sage: cosh(arcsinh(x),hold=True)
+            cosh(arcsinh(x))
+            sage: cosh(arcsinh(x))
+            sqrt(x^2 + 1)
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`simplify`::
+
+            sage: a = arcsinh(x).cosh(hold=True); a.simplify()
+            sqrt(x^2 + 1)
+
         TESTS::
 
             sage: SR(oo).cosh()
@@ -5343,6 +5552,19 @@ cdef class Expression(CommutativeRingElement):
             x/sqrt(x^2 + 1)
             sage: arcsinh(x).tanh(hold=True)
             tanh(arcsinh(x))
+
+        This also works using functional notation::
+
+            sage: tanh(arcsinh(x),hold=True)
+            tanh(arcsinh(x))
+            sage: tanh(arcsinh(x))
+            x/sqrt(x^2 + 1)
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`simplify`::
+
+            sage: a = arcsinh(x).tanh(hold=True); a.simplify()
+            x/sqrt(x^2 + 1)
 
         TESTS::
 
@@ -5387,6 +5609,19 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(-2).arcsinh(hold=True)
             arcsinh(-2)
 
+        This also works using functional notation::
+
+            sage: arcsinh(-2,hold=True)
+            arcsinh(-2)
+            sage: arcsinh(-2)
+            -arcsinh(2)
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`simplify`::
+
+            sage: a = SR(-2).arcsinh(hold=True); a.simplify()
+            -arcsinh(2)
+
         TESTS::
 
             sage: SR(oo).arcsinh()
@@ -5422,6 +5657,19 @@ cdef class Expression(CommutativeRingElement):
             I*pi
             sage: SR(-1).arccosh(hold=True)
             arccosh(-1)
+
+        This also works using functional notation::
+
+            sage: arccosh(-1,hold=True)
+            arccosh(-1)
+            sage: arccosh(-1)
+            I*pi
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`simplify`::
+
+            sage: a = SR(-1).arccosh(hold=True); a.simplify()
+            I*pi
 
         TESTS::
 
@@ -5460,6 +5708,19 @@ cdef class Expression(CommutativeRingElement):
             -arctanh(1/2)
             sage: SR(-1/2).arctanh(hold=True)
             arctanh(-1/2)
+
+        This also works using functional notation::
+
+            sage: arctanh(-1/2,hold=True)
+            arctanh(-1/2)
+            sage: arctanh(-1/2)
+            -arctanh(1/2)
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`simplify`::
+
+            sage: a = SR(-1/2).arctanh(hold=True); a.simplify()
+            -arctanh(1/2)
 
         TESTS::
 
@@ -5507,6 +5768,19 @@ cdef class Expression(CommutativeRingElement):
 
             sage: (pi*I).exp(hold=True)
             e^(I*pi)
+
+        This also works using functional notation::
+
+            sage: exp(I*pi,hold=True)
+            e^(I*pi)
+            sage: exp(I*pi)
+            -1
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`simplify`::
+
+            sage: a = (pi*I).exp(hold=True); a.simplify()
+            -1
 
         TESTS:
 
@@ -5558,6 +5832,20 @@ cdef class Expression(CommutativeRingElement):
             sage: I.log(hold=True)
             log(I)
 
+        To then evaluate again, we currently must use Maxima via
+        :meth:`simplify`::
+
+            sage: a = I.log(hold=True); a.simplify()
+            1/2*I*pi
+
+        We do not currently support a ``hold`` parameter in functional
+        notation::
+
+            sage: log(SR(-1),hold=True)
+            Traceback (most recent call last):
+            ...
+            TypeError: log() got an unexpected keyword argument 'hold'
+
         TESTS::
 
             sage: SR(oo).log()
@@ -5596,6 +5884,19 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(2).zeta(hold=True)
             zeta(2)
 
+        This also works using functional notation::
+
+            sage: zeta(2,hold=True)
+            zeta(2)
+            sage: zeta(2)
+            1/6*pi^2
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`simplify`::
+
+            sage: a = SR(2).zeta(hold=True); a.simplify()
+            1/6*pi^2
+
         TESTS::
 
             sage: t = SR(1).zeta(); t
@@ -5627,6 +5928,20 @@ cdef class Expression(CommutativeRingElement):
 
             sage: SR(5).factorial(hold=True)
             factorial(5)
+
+        This also works using functional notation::
+
+            sage: factorial(5,hold=True)
+            factorial(5)
+            sage: factorial(5)
+            120
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`simplify`::
+
+            sage: a = SR(5).factorial(hold=True); a.simplify()
+            120
+
         """
         _sig_on
         cdef GEx x = g_hold_wrapper(g_factorial, self._gobj, hold)
@@ -5656,6 +5971,20 @@ cdef class Expression(CommutativeRingElement):
             binomial(x, 3)
             sage: SR(5).binomial(3, hold=True)
             binomial(5, 3)
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`simplify`::
+
+            sage: a = SR(5).binomial(3, hold=True); a.simplify()
+            10
+
+        We do not currently support a ``hold`` parameter in functional
+        notation::
+
+            sage: binomial(5,3, hold=True)
+            Traceback (most recent call last):
+            ...
+            TypeError: binomial() got an unexpected keyword argument 'hold'
 
         TESTS:
 
@@ -5697,7 +6026,8 @@ cdef class Expression(CommutativeRingElement):
         """
         Return the Gamma function evaluated at self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: x = var('x')
             sage: x.gamma()
             gamma(x)
@@ -5710,11 +6040,19 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(CDF(1,1)).gamma()
             0.498015668118 - 0.154949828302*I
 
+        ::
+
             sage: gp('gamma(1+I)') # 32-bit
             0.4980156681183560427136911175 - 0.1549498283018106851249551305*I
 
+        ::
+
             sage: gp('gamma(1+I)') # 64-bit
             0.49801566811835604271369111746219809195 - 0.15494982830181068512495513048388660520*I
+
+        We plot the familiar plot of this log-convex function::
+
+            sage: plot(gamma(x), -6,4).show(ymin=-3,ymax=3)
 
         To prevent automatic evaluation use the ``hold`` argument::
 
@@ -5723,9 +6061,18 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(1/2).gamma(hold=True)
             gamma(1/2)
 
-        ::
+        This also works using functional notation::
 
-            sage: set_verbose(-1); plot(lambda x: SR(x).gamma(), -6,4).show(ymin=-3,ymax=3)
+            sage: gamma(1/2,hold=True)
+            gamma(1/2)
+            sage: gamma(1/2)
+            sqrt(pi)
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`simplify`::
+
+            sage: a = SR(1/2).gamma(hold=True); a.simplify()
+            sqrt(pi)
         """
         _sig_on
         cdef GEx x = g_hold_wrapper(g_tgamma, self._gobj, hold)
@@ -5775,6 +6122,21 @@ cdef class Expression(CommutativeRingElement):
 
             sage: SR(5).log_gamma(hold=True)
             log_gamma(5)
+
+        To evaluate again, currently we must use numerical evaluation
+        via :meth:`n`::
+
+            sage: a = SR(5).log_gamma(hold=True); a.n()
+            3.17805383034795
+
+        We do not currently support a ``hold`` parameter in functional
+        notation::
+
+            sage: log_gamma(SR(5),hold=True)
+            Traceback (most recent call last):
+            ...
+            TypeError: log_gamma() got an unexpected keyword argument 'hold'
+
         """
         _sig_on
         cdef GEx x = g_hold_wrapper(g_lgamma, self._gobj, hold)

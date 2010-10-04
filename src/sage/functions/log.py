@@ -31,6 +31,19 @@ class Function_exp(GinacFunction):
             sage: exp(RDF('2.5'))
             12.1824939607
 
+        To prevent automatic evaluation, use the ``hold`` parameter::
+
+            sage: exp(I*pi,hold=True)
+            e^(I*pi)
+            sage: exp(0,hold=True)
+            e^0
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`sage.symbolic.expression.Expression.simplify`::
+
+            sage: exp(0,hold=True).simplify()
+            1
+
         ::
 
             sage: exp(pi*I/2)
@@ -57,17 +70,17 @@ class Function_exp(GinacFunction):
 
         Test simplifications when taking powers of exp, #7264::
 
-            sage: var('a,b,c,I')
-            (a, b, c, I)
-            sage: model_exp = exp(I)**a*(b)
+            sage: var('a,b,c,II')
+            (a, b, c, II)
+            sage: model_exp = exp(II)**a*(b)
             sage: sol1_l={b: 5.0, a: 1.1}
             sage: model_exp.subs(sol1_l)
-            5.00000000000000*(e^I)^1.10000000000000
+            5.00000000000000*(e^II)^1.10000000000000
 
         ::
 
-            sage: exp(3)^I*exp(x)
-            (e^3)^I*e^x
+            sage: exp(3)^II*exp(x)
+            (e^3)^II*e^x
             sage: exp(x)*exp(x)
             e^(2*x)
             sage: exp(x)*exp(a)
@@ -140,6 +153,21 @@ class Function_log(GinacFunction):
             3.1415926535897931j
             sage: ln(complex(-1))
             3.1415926535897931j
+
+        We do not currently support a ``hold`` parameter in functional
+        notation::
+
+            sage: log(SR(-1),hold=True)
+            Traceback (most recent call last):
+            ...
+            TypeError: log() got an unexpected keyword argument 'hold'
+
+        This is possible with method notation::
+
+            sage: I.log(hold=True)
+            log(I)
+            sage: I.log(hold=True).simplify()
+            1/2*I*pi
 
         TESTS::
 

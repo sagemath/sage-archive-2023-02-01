@@ -20,6 +20,18 @@ class Function_sin(GinacFunction):
              0.90929742682568169539601986591
              sage: loads(dumps(sin))
              sin
+
+        We can prevent evaluation using the ``hold`` parameter::
+
+            sage: sin(0,hold=True)
+            sin(0)
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`sage.symbolic.expression.Expression.simplify`::
+
+            sage: a = sin(0,hold=True); a.simplify()
+            0
+
         """
         GinacFunction.__init__(self, "sin", latex_name=r"\sin",
                 conversions=dict(maxima='sin',mathematica='Sin'))
@@ -41,6 +53,18 @@ class Function_cos(GinacFunction):
             -0.41614683654714238699756822950
             sage: loads(dumps(cos))
             cos
+
+        We can prevent evaluation using the ``hold`` parameter::
+
+            sage: cos(0,hold=True)
+            cos(0)
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`sage.symbolic.expression.Expression.simplify`::
+
+            sage: a = cos(0,hold=True); a.simplify()
+            1
+
         """
         GinacFunction.__init__(self, "cos", latex_name=r"\cos",
                 conversions=dict(maxima='cos',mathematica='Cos'))
@@ -66,6 +90,18 @@ class Function_tan(GinacFunction):
             tan(1/2)
             sage: RR(tan(1/2))
             0.546302489843790
+
+        We can prevent evaluation using the ``hold`` parameter::
+
+            sage: tan(pi/4,hold=True)
+            tan(1/4*pi)
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`sage.symbolic.expression.Expression.simplify`::
+
+            sage: a = tan(pi/4,hold=True); a.simplify()
+            1
+
         """
         GinacFunction.__init__(self, "tan", latex_name=r"\tan")
 
@@ -91,6 +127,18 @@ class Function_sec(BuiltinFunction):
 
             sage: latex(sec(x))
             \sec\left(x\right)
+
+        We can prevent evaluation using the ``hold`` parameter::
+
+            sage: sec(pi/4,hold=True)
+            sec(1/4*pi)
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`sage.symbolic.expression.Expression.simplify`::
+
+            sage: a = sec(pi/4,hold=True); a.simplify()
+            sqrt(2)
+
         """
         BuiltinFunction.__init__(self, "sec", latex_name=r"\sec")
 
@@ -170,6 +218,18 @@ class Function_csc(BuiltinFunction):
 
             sage: latex(csc(x))
             \csc\left(x\right)
+
+        We can prevent evaluation using the ``hold`` parameter::
+
+            sage: csc(pi/4,hold=True)
+            csc(1/4*pi)
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`sage.symbolic.expression.Expression.simplify`::
+
+            sage: a = csc(pi/4,hold=True); a.simplify()
+            sqrt(2)
+
         """
         BuiltinFunction.__init__(self, "csc", latex_name=r"\csc")
 
@@ -248,6 +308,18 @@ class Function_cot(BuiltinFunction):
 
             sage: latex(cot(x))
             \cot\left(x\right)
+
+        We can prevent evaluation using the ``hold`` parameter::
+
+            sage: cot(pi/4,hold=True)
+            cot(1/4*pi)
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`sage.symbolic.expression.Expression.simplify`::
+
+            sage: a = cot(pi/4,hold=True); a.simplify()
+            1
+
         """
         BuiltinFunction.__init__(self, "cot", latex_name=r"\cot")
 
@@ -326,6 +398,17 @@ class Function_arcsin(GinacFunction):
             sage: arcsin(1 + 1.0*I)
             0.666239432492515 + 1.06127506190504*I
 
+        We can delay evaluation using the ``hold`` parameter::
+
+            sage: arcsin(0,hold=True)
+            arcsin(0)
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`sage.symbolic.expression.Expression.simplify`::
+
+            sage: a = arcsin(0,hold=True); a.simplify()
+            0
+
         TESTS::
 
             sage: arcsin(x).operator()
@@ -351,6 +434,17 @@ class Function_arccos(GinacFunction):
             0.904556894302381 - 1.06127506190504*I
             sage: arccos(3/4).n(100)
             0.72273424781341561117837735264
+
+        We can delay evaluation using the ``hold`` parameter::
+
+            sage: arccos(0,hold=True)
+            arccos(0)
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`sage.symbolic.expression.Expression.simplify`::
+
+            sage: a = arccos(0,hold=True); a.simplify()
+            1/2*pi
 
         TESTS::
 
@@ -378,6 +472,17 @@ class Function_arctan(GinacFunction):
             sage: arctan(1/2).n(100)
             0.46364760900080611621425623146
 
+        We can delay evaluation using the ``hold`` parameter::
+
+            sage: arctan(0,hold=True)
+            arctan(0)
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`sage.symbolic.expression.Expression.simplify`::
+
+            sage: a = arctan(0,hold=True); a.simplify()
+            0
+
         TESTS::
 
             sage: arctan(x).operator()
@@ -401,6 +506,18 @@ class Function_arccot(BuiltinFunction):
             1.10714871779
             sage: arccot(1 + I)
             arccot(I + 1)
+
+        We can delay evaluation using the ``hold`` parameter::
+
+            sage: arccot(1,hold=True)
+            arccot(1)
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`sage.symbolic.expression.Expression.simplify`::
+
+            sage: a = arccot(1,hold=True); a.simplify()
+            1/4*pi
+
         """
         BuiltinFunction.__init__(self, "arccot", latex_name=r'{\rm arccot}',
                                    conversions=dict(maxima='acot'))
@@ -457,6 +574,18 @@ class Function_arccsc(BuiltinFunction):
             0.523598775598
             sage: arccsc(1 + I)
             arccsc(I + 1)
+
+        We can delay evaluation using the ``hold`` parameter::
+
+            sage: arccsc(1,hold=True)
+            arccsc(1)
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`sage.symbolic.expression.Expression.simplify`::
+
+            sage: a = arccsc(1,hold=True); a.simplify()
+            1/2*pi
+
         """
         BuiltinFunction.__init__(self, "arccsc", latex_name=r'{\rm arccsc}',
                                    conversions=dict(maxima='acsc'))
@@ -509,6 +638,18 @@ class Function_arcsec(BuiltinFunction):
             1.0471975512
             sage: arcsec(1 + I)
             arcsec(I + 1)
+
+        We can delay evaluation using the ``hold`` parameter::
+
+            sage: arcsec(1,hold=True)
+            arcsec(1)
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`sage.symbolic.expression.Expression.simplify`::
+
+            sage: a = arcsec(1,hold=True); a.simplify()
+            0
+
         """
         BuiltinFunction.__init__(self, "arcsec", latex_name=r'{\rm arcsec}',
                                    conversions=dict(maxima='asec'))
@@ -598,6 +739,17 @@ class Function_arctan2(GinacFunction):
             -0.46364760900080611621425623146
             sage: arctan2(2,3).n(100)
             0.58800260354756755124561108063
+
+        We can delay evaluation using the ``hold`` parameter::
+
+            sage: arctan2(-1/2,1,hold=True)
+            arctan2(-1/2, 1)
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`sage.symbolic.expression.Expression.simplify`::
+
+            sage: arctan2(-1/2,1,hold=True).simplify()
+            -arctan(1/2)
 
         The function also works with numpy arrays as input::
 

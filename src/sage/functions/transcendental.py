@@ -132,6 +132,18 @@ class Function_zeta(GinacFunction):
             sage: zeta(I).n()
             0.00330022368532410 - 0.418155449141322*I
 
+        It is possible to use the ``hold`` argument to prevent
+        automatic evaluation::
+
+            sage: zeta(2,hold=True)
+            zeta(2)
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`sage.symbolic.expression.Expression.simplify`::
+
+            sage: a = zeta(2,hold=True); a.simplify()
+            1/6*pi^2
+
         TESTS::
 
             sage: latex(zeta(x))

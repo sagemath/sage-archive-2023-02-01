@@ -1588,6 +1588,19 @@ def log_gamma(t):
         4.78749174278205
         sage: log_gamma(x)
         log_gamma(x)
+
+    The only current way to prevent automatic evaluation is to
+    use the ``hold`` argument with the symbolic method, thus::
+
+        sage: SR(5).log_gamma(hold=True)
+        log_gamma(5)
+
+    To evaluate again, currently we must use numerical evaluation
+    via :meth:`n`::
+
+        sage: a = SR(5).log_gamma(hold=True); a.n()
+        3.17805383034795
+
     """
     try:
         return t.log_gamma()
@@ -1607,11 +1620,11 @@ def exp_int(t):
     EXAMPLES::
 
         sage: exp_int(6)
-        doctest:...: DeprecationWarning: The method expint() is deprecated. Use -Ei(-x) or exponential_integral_1(x) as needed instead.
+        doctest:...: DeprecationWarning: The method exp_int() is deprecated. Use -Ei(-x) or exponential_integral_1(x) as needed instead.
         0.000360082452162659
     """
     from sage.misc.misc import deprecation
-    deprecation("The method expint() is deprecated. Use -Ei(-x) or exponential_integral_1(x) as needed instead.")
+    deprecation("The method exp_int() is deprecated. Use -Ei(-x) or exponential_integral_1(x) as needed instead.")
     try:
         return t.eint1()
     except AttributeError:

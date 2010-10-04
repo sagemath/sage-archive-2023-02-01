@@ -510,8 +510,20 @@ class Function_gamma(GinacFunction):
             sage: gamma1(int(5))
             24
 
+        ::
 
             sage: plot(gamma1(x),(x,1,5))
+
+        To prevent automatic evaluation use the ``hold`` argument::
+
+            sage: gamma1(1/2,hold=True)
+            gamma(1/2)
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`sage.symbolic.expression.Expression.simplify`::
+
+            sage: gamma1(1/2,hold=True).simplify()
+            sqrt(pi)
 
         TESTS:
 
@@ -961,7 +973,28 @@ class Function_factorial(GinacFunction):
             sage: factorial(x)^2
             factorial(x)^2
 
-        ::
+        To prevent automatic evaluation use the ``hold`` argument::
+
+            sage: factorial(5,hold=True)
+            factorial(5)
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`sage.symbolic.expression.Expression.simplify`::
+
+            sage: factorial(5,hold=True).simplify()
+            120
+
+        We can also give input other than nonnegative integers.  For
+        other nonnegative numbers, the :func:`gamma` function is used::
+
+            sage: factorial(1/2)
+            1/2*sqrt(pi)
+            sage: factorial(3/4)
+            gamma(7/4)
+            sage: factorial(2.3)
+            2.68343738195577
+
+        But negative input always fails::
 
             sage: factorial(-32)
             Traceback (most recent call last):
@@ -1067,6 +1100,14 @@ class Function_binomial(GinacFunction):
             sage: binomial(k,i)
             binomial(k, i)
 
+        We can use a ``hold`` parameter to prevent automatic evaluation,
+        but only using method notation::
+
+            sage: SR(5).binomial(3, hold=True)
+            binomial(5, 3)
+            sage: SR(5).binomial(3, hold=True).simplify()
+            10
+
         TESTS: We verify that we can convert this function to Maxima and
         bring it back into Sage.
 
@@ -1162,19 +1203,8 @@ def sqrt(x, *args, **kwds):
         -  ``all`` - bool (default: False); if True, return all
            square roots of self, instead of just one.
 
-        EXAMPLES:
+        EXAMPLES::
 
-        This illustrates that the bug reported in #6171 has been fixed::
-
-            sage: a = 1.1
-            sage: a.sqrt(prec=100)  # this is supposed to fail
-            Traceback (most recent call last):
-            ...
-            TypeError: sqrt() got an unexpected keyword argument 'prec'
-            sage: sqrt(a, prec=100)
-            1.0488088481701515469914535137
-            sage: sqrt(4.00, prec=250)
-            2.0000000000000000000000000000000000000000000000000000000000000000000000000
             sage: sqrt(-1)
             I
             sage: sqrt(2)
@@ -1189,6 +1219,31 @@ def sqrt(x, *args, **kwds):
             sqrt(x^2)
             sage: sqrt(2).n()
             1.41421356237310
+
+        To prevent automatic evaluation, one can use the ``hold`` parameter
+        after coercing to the symbolic ring::
+
+            sage: sqrt(SR(4),hold=True)
+            sqrt(4)
+            sage: sqrt(4,hold=True)
+            Traceback (most recent call last):
+            ...
+            TypeError: _do_sqrt() got an unexpected keyword argument 'hold'
+
+        This illustrates that the bug reported in #6171 has been fixed::
+
+            sage: a = 1.1
+            sage: a.sqrt(prec=100)  # this is supposed to fail
+            Traceback (most recent call last):
+            ...
+            TypeError: sqrt() got an unexpected keyword argument 'prec'
+            sage: sqrt(a, prec=100)
+            1.0488088481701515469914535137
+            sage: sqrt(4.00, prec=250)
+            2.0000000000000000000000000000000000000000000000000000000000000000000000000
+
+        One can use numpy input as well::
+
             sage: import numpy
             sage: a = numpy.arange(2,5)
             sage: sqrt(a)
@@ -1222,6 +1277,20 @@ Function_sqrt = type('deprecated_sqrt', (),
 class Function_real_part(GinacFunction):
     def __init__(self):
         r"""
+        Returns the real part of the (possibly complex) input.
+
+        It is possible to prevent automatic evaluation using the
+        ``hold`` parameter::
+
+            sage: real_part(I,hold=True)
+            real_part(I)
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`sage.symbolic.expression.Expression.simplify`::
+
+            sage: real_part(I,hold=True).simplify()
+            0
+
         EXAMPLES::
 
             sage: z = 1+2*I
@@ -1271,6 +1340,20 @@ real = real_part = Function_real_part()
 class Function_imag_part(GinacFunction):
     def __init__(self):
         r"""
+        Returns the imaginary part of the (possibly complex) input.
+
+        It is possible to prevent automatic evaluation using the
+        ``hold`` parameter::
+
+            sage: imag_part(I,hold=True)
+            imag_part(I)
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`sage.symbolic.expression.Expression.simplify`::
+
+            sage: imag_part(I,hold=True).simplify()
+            1
+
         TESTS::
 
             sage: z = 1+2*I
@@ -1314,6 +1397,20 @@ imag = imag_part = imaginary = Function_imag_part()
 class Function_conjugate(GinacFunction):
     def __init__(self):
         r"""
+        Returns the complex conjugate of the input.
+
+        It is possible to prevent automatic evaluation using the
+        ``hold`` parameter::
+
+            sage: conjugate(I,hold=True)
+            conjugate(I)
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`sage.symbolic.expression.Expression.simplify`::
+
+            sage: conjugate(I,hold=True).simplify()
+            -I
+
         TESTS::
 
             sage: x,y = var('x,y')

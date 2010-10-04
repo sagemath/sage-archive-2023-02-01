@@ -85,6 +85,18 @@ class Function_sinh(GinacFunction):
 
             sage: latex(sinh(x))
             \sinh\left(x\right)
+
+        To prevent automatic evaluation, use the ``hold`` parameter::
+
+            sage: sinh(arccosh(x),hold=True)
+            sinh(arccosh(x))
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`sage.symbolic.expression.Expression.simplify`::
+
+            sage: sinh(arccosh(x),hold=True).simplify()
+            sqrt(x - 1)*sqrt(x + 1)
+
         """
         GinacFunction.__init__(self, "sinh", latex_name=r"\sinh")
 
@@ -108,6 +120,18 @@ class Function_cosh(GinacFunction):
 
             sage: latex(cosh(x))
             \cosh\left(x\right)
+
+        To prevent automatic evaluation, use the ``hold`` parameter::
+
+            sage: cosh(arcsinh(x),hold=True)
+            cosh(arcsinh(x))
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`sage.symbolic.expression.Expression.simplify`::
+
+            sage: cosh(arcsinh(x),hold=True).simplify()
+            sqrt(x^2 + 1)
+
         """
         GinacFunction.__init__(self, "cosh", latex_name=r"\cosh")
 
@@ -142,6 +166,17 @@ class Function_tanh(GinacFunction):
             0.99752473197616361034204366446 - 0.0027906876810031453884245163923*I
             sage: CDF(tanh(pi + I*e))
             0.997524731976 - 0.002790687681*I
+
+        To prevent automatic evaluation, use the ``hold`` parameter::
+
+            sage: tanh(arcsinh(x),hold=True)
+            tanh(arcsinh(x))
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`sage.symbolic.expression.Expression.simplify`::
+
+            sage: tanh(arcsinh(x),hold=True).simplify()
+            x/sqrt(x^2 + 1)
 
         TESTS::
 
@@ -295,9 +330,9 @@ class Function_csch(HyperbolicFunction):
 csch = Function_csch()
 
 
-##########################
-# Inverse trig functions #
-##########################
+################################
+# Inverse hyperbolic functions #
+################################
 
 class Function_arcsinh(GinacFunction):
     def __init__(self):
@@ -314,6 +349,17 @@ class Function_arcsinh(GinacFunction):
             arcsinh(1/2)
             sage: arcsinh(1 + I*1.0)
             1.06127506190504 + 0.666239432492515*I
+
+        To prevent automatic evaluation use the ``hold`` argument::
+
+            sage: arcsinh(-2,hold=True)
+            arcsinh(-2)
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`sage.symbolic.expression.Expression.simplify`::
+
+            sage: arcsinh(-2,hold=True).simplify()
+            -arcsinh(2)
 
         TESTS::
 
@@ -343,16 +389,38 @@ class Function_arccosh(GinacFunction):
             sage: cosh(float(arccosh(2)))
             2.0
 
-        Warning: If the input is real the output will be real or NaN::
+        .. warning::
+
+            If the input is in the complex field or symbolic (which
+            includes rational and integer input), the output will
+            be complex.  However, if the input is a real decimal, the
+            output will be real or `NaN`.  See the examples for details.
+
+        ::
 
             sage: arccosh(0.5)
             NaN
-
-        But evaluation where the input is in the complex field yields a
-        complex output::
-
+            sage: arccosh(1/2)
+            arccosh(1/2)
+            sage: arccosh(1/2).n()
+            NaN
             sage: arccosh(CC(0.5))
             1.04719755119660*I
+            sage: arccosh(0)
+            1/2*I*pi
+            sage: arccosh(-1)
+            I*pi
+
+        To prevent automatic evaluation use the ``hold`` argument::
+
+            sage: arccosh(-1,hold=True)
+            arccosh(-1)
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`sage.symbolic.expression.Expression.simplify`::
+
+            sage: arccosh(-1,hold=True).simplify()
+            I*pi
 
         TESTS::
 
@@ -379,6 +447,17 @@ class Function_arctanh(GinacFunction):
             arctanh(1/2)
             sage: arctanh(1 + I*1.0)
             0.402359478108525 + 1.01722196789785*I
+
+        To prevent automatic evaluation use the ``hold`` argument::
+
+            sage: arctanh(-1/2,hold=True)
+            arctanh(-1/2)
+
+        To then evaluate again, we currently must use Maxima via
+        :meth:`sage.symbolic.expression.Expression.simplify`::
+
+            sage: arctanh(-1/2,hold=True).simplify()
+            -arctanh(1/2)
 
         TESTS::
 

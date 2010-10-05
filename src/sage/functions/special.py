@@ -1601,6 +1601,19 @@ def log_gamma(t):
         sage: a = SR(5).log_gamma(hold=True); a.n()
         3.17805383034795
 
+    TESTS:
+
+    ``conjugate(log_gamma(x))==log_gamma(conjugate(x))`` unless on the branch
+    cut which runs along the negative real axis.::
+
+        sage: conjugate(log_gamma(x))
+        conjugate(log_gamma(x))
+        sage: var('y', domain='positive')
+        y
+        sage: conjugate(log_gamma(y))
+        log_gamma(y)
+        sage: conjugate(log_gamma(y+I))
+        conjugate(log_gamma(y + I))
     """
     try:
         return t.log_gamma()

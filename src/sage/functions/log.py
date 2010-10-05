@@ -68,6 +68,11 @@ class Function_exp(GinacFunction):
             sage: latex(exp(sqrt(x)^x))
             e^{\left(\sqrt{x}^{x}\right)}
 
+        Test conjugates::
+
+            sage: conjugate(exp(x))
+            e^conjugate(x)
+
         Test simplifications when taking powers of exp, #7264::
 
             sage: var('a,b,c,II')
@@ -177,6 +182,18 @@ class Function_log(GinacFunction):
             \log\left(\frac{1}{4}\right)
             sage: loads(dumps(ln(x)+1))
             log(x) + 1
+
+        ``conjugate(log(x))==log(conjugate(x))`` unless on the branch cut which
+        runs along the negative real axis.::
+
+            sage: conjugate(log(x))
+            conjugate(log(x))
+            sage: var('y', domain='positive')
+            y
+            sage: conjugate(log(y))
+            log(y)
+            sage: conjugate(log(y+I))
+            conjugate(log(y + I))
 
         Check if float arguments are handled properly.::
 
@@ -392,6 +409,22 @@ class Function_dilog(GinacFunction):
 
             sage: latex(dilog(z))
             {\rm Li}_2\left(z\right)
+
+        TESTS:
+
+        ``conjugate(dilog(x))==dilog(conjugate(x))`` unless on the branch cuts
+        which run along the positive real axis beginning at 1.::
+
+            sage: conjugate(dilog(x))
+            conjugate(dilog(x))
+            sage: var('y',domain='positive')
+            y
+            sage: conjugate(dilog(y))
+            conjugate(dilog(y))
+            sage: conjugate(dilog(1/19))
+            dilog(1/19)
+            sage: conjugate(dilog(1/2*I))
+            dilog(-1/2*I)
         """
         GinacFunction.__init__(self, 'dilog',
                 conversions=dict(maxima='li[2]'))

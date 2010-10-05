@@ -361,6 +361,20 @@ class Function_arcsinh(GinacFunction):
             sage: arcsinh(-2,hold=True).simplify()
             -arcsinh(2)
 
+        ``conjugate(arcsinh(x))==arcsinh(conjugate(x))`` unless on the branch
+        cuts which run along the imaginary axis outside the interval [-I, +I].::
+
+            sage: conjugate(arcsinh(x))
+            conjugate(arcsinh(x))
+            sage: var('y', domain='positive')
+            y
+            sage: conjugate(arcsinh(y))
+            arcsinh(y)
+            sage: conjugate(arcsinh(y+I))
+            conjugate(arcsinh(y + I))
+            sage: conjugate(arcsinh(1/16))
+            arcsinh(1/16)
+
         TESTS::
 
             sage: arcsinh(x).operator()
@@ -422,6 +436,20 @@ class Function_arccosh(GinacFunction):
             sage: arccosh(-1,hold=True).simplify()
             I*pi
 
+        ``conjugate(arccosh(x))==arccosh(conjugate(x))`` unless on the branch
+        cut which runs along the real axis from +1 to -inf.::
+
+            sage: conjugate(arccosh(x))
+            conjugate(arccosh(x))
+            sage: var('y', domain='positive')
+            y
+            sage: conjugate(arccosh(y))
+            conjugate(arccosh(y))
+            sage: conjugate(arccosh(y+I))
+            conjugate(arccosh(y + I))
+            sage: conjugate(arccos(1/16))
+            arccos(1/16)
+
         TESTS::
 
             sage: arccosh(x).operator()
@@ -458,6 +486,20 @@ class Function_arctanh(GinacFunction):
 
             sage: arctanh(-1/2,hold=True).simplify()
             -arctanh(1/2)
+
+        ``conjugate(arctanh(x))==arctanh(conjugate(x))`` unless on the branch
+        cuts which run along the real axis outside the interval [-1, +1].::
+
+            sage: conjugate(arctanh(x))
+            conjugate(arctanh(x))
+            sage: var('y', domain='positive')
+            y
+            sage: conjugate(arctanh(y))
+            conjugate(arctanh(y))
+            sage: conjugate(arctanh(y+I))
+            conjugate(arctanh(y + I))
+            sage: conjugate(arctanh(1/16))
+            arctanh(1/16)
 
         TESTS::
 

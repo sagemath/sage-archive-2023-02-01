@@ -512,6 +512,11 @@ class Function_gamma(GinacFunction):
 
         ::
 
+            sage: conjugate(gamma(x))
+            gamma(conjugate(x))
+
+        ::
+
             sage: plot(gamma1(x),(x,1,5))
 
         To prevent automatic evaluation use the ``hold`` argument::

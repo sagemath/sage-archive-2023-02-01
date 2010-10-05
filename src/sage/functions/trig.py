@@ -12,14 +12,14 @@ class Function_sin(GinacFunction):
 
         EXAMPLES::
 
-             sage: sin(0)
-             0
-             sage: sin(x).subs(x==0)
-             0
-             sage: sin(2).n(100)
-             0.90929742682568169539601986591
-             sage: loads(dumps(sin))
-             sin
+            sage: sin(0)
+            0
+            sage: sin(x).subs(x==0)
+            0
+            sage: sin(2).n(100)
+            0.90929742682568169539601986591
+            sage: loads(dumps(sin))
+            sin
 
         We can prevent evaluation using the ``hold`` parameter::
 
@@ -32,6 +32,10 @@ class Function_sin(GinacFunction):
             sage: a = sin(0,hold=True); a.simplify()
             0
 
+        TESTS::
+
+            sage: conjugate(sin(x))
+            sin(conjugate(x))
         """
         GinacFunction.__init__(self, "sin", latex_name=r"\sin",
                 conversions=dict(maxima='sin',mathematica='Sin'))
@@ -65,6 +69,10 @@ class Function_cos(GinacFunction):
             sage: a = cos(0,hold=True); a.simplify()
             1
 
+        TESTS::
+
+            sage: conjugate(cos(x))
+            cos(conjugate(x))
         """
         GinacFunction.__init__(self, "cos", latex_name=r"\cos",
                 conversions=dict(maxima='cos',mathematica='Cos'))
@@ -102,6 +110,10 @@ class Function_tan(GinacFunction):
             sage: a = tan(pi/4,hold=True); a.simplify()
             1
 
+        TESTS::
+
+            sage: conjugate(tan(x))
+            tan(conjugate(x))
         """
         GinacFunction.__init__(self, "tan", latex_name=r"\tan")
 
@@ -409,6 +421,20 @@ class Function_arcsin(GinacFunction):
             sage: a = arcsin(0,hold=True); a.simplify()
             0
 
+        ``conjugate(arcsin(x))==arcsin(conjugate(x))`` unless on the branch
+        cuts which run along the real axis outside the interval [-1, +1].::
+
+            sage: conjugate(arcsin(x))
+            conjugate(arcsin(x))
+            sage: var('y', domain='positive')
+            y
+            sage: conjugate(arcsin(y))
+            conjugate(arcsin(y))
+            sage: conjugate(arcsin(y+I))
+            conjugate(arcsin(y + I))
+            sage: conjugate(arcsin(1/16))
+            arcsin(1/16)
+
         TESTS::
 
             sage: arcsin(x).operator()
@@ -446,6 +472,20 @@ class Function_arccos(GinacFunction):
             sage: a = arccos(0,hold=True); a.simplify()
             1/2*pi
 
+        ``conjugate(arccos(x))==arccos(conjugate(x))`` unless on the branch
+        cuts which run along the real axis outside the interval [-1, +1].::
+
+            sage: conjugate(arccos(x))
+            conjugate(arccos(x))
+            sage: var('y', domain='positive')
+            y
+            sage: conjugate(arccos(y))
+            conjugate(arccos(y))
+            sage: conjugate(arccos(y+I))
+            conjugate(arccos(y + I))
+            sage: conjugate(arccos(1/16))
+            arccos(1/16)
+
         TESTS::
 
             sage: arccos(x).operator()
@@ -482,6 +522,20 @@ class Function_arctan(GinacFunction):
 
             sage: a = arctan(0,hold=True); a.simplify()
             0
+
+        ``conjugate(arctan(x))==arctan(conjugate(x))`` unless on the branch
+        cuts which run along the imaginary axis outside the interval [-I, +I].::
+
+            sage: conjugate(arctan(x))
+            conjugate(arctan(x))
+            sage: var('y', domain='positive')
+            y
+            sage: conjugate(arctan(y))
+            arctan(y)
+            sage: conjugate(arctan(y+I))
+            conjugate(arctan(y + I))
+            sage: conjugate(arctan(1/16))
+            arctan(1/16)
 
         TESTS::
 

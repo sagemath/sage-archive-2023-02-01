@@ -79,7 +79,7 @@ Arithmetic with a point over an extension of a finite field::
 
 Arithmetic over `\ZZ/N\ZZ` with composite `N` is supported.  When an
 operation tries to invert a non-invertible element, a
-ZeroDivisoinError is raised and a factorization of the modulus appears
+ZeroDivisionError is raised and a factorization of the modulus appears
 in the error message::
 
     sage: N = 1715761513
@@ -781,6 +781,13 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
 
         (bool) -- True if there is a solution, else False.
 
+        .. warning::
+
+           This function usually triggers the computation of the
+           `m`-th division polynomial of the associated elliptic
+           curve, which will be expensive if `m` is large, though it
+           will be cached for subsequent calls with the same `m`.
+
         EXAMPLES::
 
             sage: E = EllipticCurve('389a')
@@ -790,9 +797,98 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
             False
             sage: Q.is_divisible_by(5)
             True
+
+        A finite field example::
+
+            sage: E = EllipticCurve(GF(101),[23,34])
+            sage: E.cardinality().factor()
+            2 * 53
+            sage: Set([T.order() for T in E.points()])
+            {1, 106, 2, 53}
+            sage: len([T for T in E.points() if T.is_divisible_by(2)])
+            53
+            sage: len([T for T in E.points() if T.is_divisible_by(3)])
+            106
+
+        TESTS:
+
+        This shows that the bug reported at #10076 is fixed::
+
+            sage: K = QuadraticField(8,'a')
+            sage: E = EllipticCurve([K(0),0,0,-1,0])
+            sage: P = E([-1,0])
+            sage: P.is_divisible_by(2)
+            False
+            sage: P.division_points(2)
+            []
+
+        Note that it is not sufficient to test that
+        ``self.division_points(m,poly_only=True)`` has roots::
+
+            sage: P.division_points(2, poly_only=True).roots()
+            [(1/2*a - 1, 1), (-1/2*a - 1, 1)]
+
+            sage: tor = E.torsion_points(); len(tor)
+            8
+            sage: [T.order() for T in tor]
+            [2, 4, 4, 2, 4, 1, 4, 2]
+            sage: all([T.is_divisible_by(3) for T in tor])
+            True
+            sage: Set([T for T in tor if T.is_divisible_by(2)])
+            {(0 : 1 : 0), (1 : 0 : 1)}
+            sage: Set([2*T for T in tor])
+            {(0 : 1 : 0), (1 : 0 : 1)}
+
+
         """
-        g = self.division_points(m, poly_only=True)
-        return len(g.roots(multiplicities=False)) > 0
+        # Coerce the input m to an integer
+        m = rings.Integer(m)
+
+        # Check for trivial cases of m = 1, -1 and 0.
+        if m == 1 or m == -1:
+            return True
+        if m == 0:
+            return self == 0 # then m*self=self for all m!
+        m = m.abs()
+
+        # Now the following line would of course be correct, but we
+        # work harder to be more efficient:
+        # return len(self.division_points(m)) > 0
+
+        P = self
+
+        # If P has finite order n and gcd(m,n)=1 then the result is
+        # True.  However, over general fields computing P.order() is
+        # not implemented.
+
+        try:
+            n = P.order()
+            if not n == oo:
+                if m.gcd(n)==1:
+                    return True
+        except NotImplementedError:
+            pass
+
+        P_is_2_torsion = (P==-P)
+        g = P.division_points(m, poly_only=True)
+
+        if not P_is_2_torsion:
+            # In this case deg(g)=m^2, and each root in K lifts to two
+            # points Q,-Q both in E(K), of which exactly one is a
+            # solution.  So we just check the existence of roots:
+            return len(g.roots())>0
+
+        # Now 2*P==0
+
+        if m%2==1:
+            return True # P itself is a solution when m is odd
+
+        # Now m is even and 2*P=0.  Roots of g in K may or may not
+        # lift to solutions in E(K), so we fall back to the default.
+        # Note that division polynomials are cached so this is not
+        # inefficient:
+
+        return len(self.division_points(m)) > 0
 
     def division_points(self, m, poly_only=False):
         r"""

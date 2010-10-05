@@ -737,7 +737,7 @@ def solve_mod(eqns, modulus, solution_dict = False):
        then naively enumerates all possible solutions and finally combines
        the solution using the Chinese Remainder Theorem.
        The interface is good, but the algorithm is horrible if the modulus
-       has some larger prime factors! Sage {does} have the ability to do
+       has some larger prime factors! Sage *does* have the ability to do
        something much faster in certain cases at least by using Groebner
        basis, linear algebra techniques, etc. But for a lot of toy problems
        this function as is might be useful. At least it establishes an interface.

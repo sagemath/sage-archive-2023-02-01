@@ -194,6 +194,10 @@ class Function_log(GinacFunction):
             log(y)
             sage: conjugate(log(y+I))
             conjugate(log(y + I))
+            sage: conjugate(log(-1))
+            -I*pi
+            sage: log(conjugate(-1))
+            I*pi
 
         Check if float arguments are handled properly.::
 
@@ -425,6 +429,10 @@ class Function_dilog(GinacFunction):
             dilog(1/19)
             sage: conjugate(dilog(1/2*I))
             dilog(-1/2*I)
+            sage: dilog(conjugate(1/2*I))
+            dilog(-1/2*I)
+            sage: conjugate(dilog(2))
+            conjugate(dilog(2))
         """
         GinacFunction.__init__(self, 'dilog',
                 conversions=dict(maxima='li[2]'))

@@ -374,6 +374,10 @@ class Function_arcsinh(GinacFunction):
             conjugate(arcsinh(y + I))
             sage: conjugate(arcsinh(1/16))
             arcsinh(1/16)
+            sage: conjugate(arcsinh(I/2))
+            arcsinh(-1/2*I)
+            sage: conjugate(arcsinh(2*I))
+            conjugate(arcsinh(2*I))
 
         TESTS::
 
@@ -447,8 +451,12 @@ class Function_arccosh(GinacFunction):
             conjugate(arccosh(y))
             sage: conjugate(arccosh(y+I))
             conjugate(arccosh(y + I))
-            sage: conjugate(arccos(1/16))
-            arccos(1/16)
+            sage: conjugate(arccosh(1/16))
+            conjugate(arccosh(1/16))
+            sage: conjugate(arccosh(2))
+            arccosh(2)
+            sage: conjugate(arccosh(I/2))
+            arccosh(-1/2*I)
 
         TESTS::
 
@@ -500,6 +508,10 @@ class Function_arctanh(GinacFunction):
             conjugate(arctanh(y + I))
             sage: conjugate(arctanh(1/16))
             arctanh(1/16)
+            sage: conjugate(arctanh(I/2))
+            arctanh(-1/2*I)
+            sage: conjugate(arctanh(-2*I))
+            arctanh(2*I)
 
         TESTS::
 

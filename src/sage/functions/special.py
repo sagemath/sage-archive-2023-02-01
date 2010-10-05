@@ -1614,6 +1614,10 @@ def log_gamma(t):
         log_gamma(y)
         sage: conjugate(log_gamma(y+I))
         conjugate(log_gamma(y + I))
+        sage: conjugate(log_gamma(-2))
+        NaN
+        sage: log_gamma(-2)
+        NaN
     """
     try:
         return t.log_gamma()

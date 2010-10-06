@@ -37,11 +37,13 @@ if [ `uname` = "Darwin" ]; then
     unset ATLAS
     unset BLAS
     unset LAPACK
-    export FC="sage_fortran"
 else
     export LDFLAGS="${LDFLAGS} -shared"
 fi
 export FC="${SAGE_LOCAL}/bin/sage_fortran"
+export F77="${SAGE_LOCAL}/bin/sage_fortran"
+export F90="${SAGE_LOCAL}/bin/sage_fortran"
+export F95="${SAGE_LOCAL}/bin/sage_fortran"
 export NUMPY_FCONFIG="config_fc --noopt --noarch"
 
 ################################################
@@ -49,6 +51,11 @@ export NUMPY_FCONFIG="config_fc --noopt --noarch"
 #This patch should eliminate the segfault errors in
 #the real_roots.pyx file of sage.rings.polynomial
 cp ../patches/buffer.c numpy/core/src/multiarray/buffer.c
+
+# Patches to fix problems reported at #9808.  When numpy 1.5.1 is
+# released, check to see if these patches are still necessary.
+cp ../patches/setup.py numpy/core/setup.py
+cp ../patches/config.py numpy/distutils/command/config.py
 
 rm -rf "$SAGE_LOCAL"/lib/python/site-packages/numpy
 

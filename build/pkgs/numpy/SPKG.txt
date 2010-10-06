@@ -59,9 +59,20 @@ Special Update/Build Instructions:
 
 == Changelog ==
 
-===
+=== numpy-1.5.0 (John Palmieri, 5 October 2010) ==
+ * Fix a bug when building on Solaris: numpy was not built with c99,
+   but used isfinite, which is only defined in c99 on Solaris.  See
+   Sage trac ticket #9808 and numpy trac ticket #1625
+   (http://projects.scipy.org/numpy/ticket/1625).  To fix, apply
+   the patch from numpy trac ticket #1625, patching
+   src/numpy/core/setup.py and src/numpy/distutils/command/config.py.
+   When numpy 1.5.1 is released, check to see if these patches are
+   still necessary.
+ * In spkg-install, export F77, F90, and F95 to make sure that
+   packages which use numpy (like scipy and scipy_sandbox) use the
+   correct Fortran.
 
-=== === numpy-1.4.1 (Stefan Reiterer, 4 September 2010) ==
+=== numpy-1.5.0 (Stefan Reiterer, 4 September 2010) ==
  * Update to numpy-1.5.0
  * numpy/core/src/multiarray/buffer.c has to be patched
    (see on numpy trac ticket #1605)

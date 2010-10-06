@@ -1024,15 +1024,32 @@ cdef class Matrix(matrix1.Matrix):
             sage: d = random_matrix(Integers(10^50),50).det()
 
         We verify that trac 7704 is resolved::
+
             sage: matrix(ZZ, {(0,0):1,(1,1):2,(2,2):3,(3,3):4}).det()
             24
             sage: matrix(QQ, {(0,0):1,(1,1):2,(2,2):3,(3,3):4}).det()
             24
 
+        We verify that trac 10063 is resolved::
+
+            sage: A = GF(2)['x,y,z']
+            sage: A.inject_variables()
+            Defining x, y, z
+            sage: R = A.quotient(x^2 + 1).quotient(y^2 + 1).quotient(z^2 + 1)
+            sage: R.inject_variables()
+            Defining xbarbarbar, ybarbarbar, zbarbarbar
+            sage: M = matrix([[1,1,1,1],[xbarbarbar,ybarbarbar,1,1],[0,1,zbarbarbar,1],[xbarbarbar,zbarbarbar,1,1]])
+            sage: M.determinant()
+            xbarbarbar*ybarbarbar*zbarbarbar + xbarbarbar*ybarbarbar + xbarbarbar*zbarbarbar + ybarbarbar*zbarbarbar + xbarbarbar + ybarbarbar + zbarbarbar + 1
+
         AUTHORS:
 
           - Unknown: No author specified in the file from 2009-06-25
-          - Sebastian Pancratz (2009-06-25): Use the division-free algorithm for charpoly
+          - Sebastian Pancratz (2009-06-25): Use the division-free
+            algorithm for charpoly
+          - Thierry Monteil (2010-10-05): Bugfix for trac ticket #10063,
+            so that the determinant is computed even for rings for which
+            the is_field method is not implemented.
         """
 
         from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
@@ -1091,7 +1108,12 @@ cdef class Matrix(matrix1.Matrix):
         # asymptotics.
         # TODO: Find a reasonable cutoff point.  (This is field specific, but
         # seems to be quite large for Q[x].)
-        if (R.is_field() and R.is_exact() and algorithm is None) or (algorithm == "hessenberg"):
+        if algorithm is None:
+            try:
+                R_is_field_attempt = R.is_field()
+            except NotImplementedError:
+                R_is_field_attempt = False
+        if (algorithm is None and R_is_field_attempt and R.is_exact()) or (algorithm == "hessenberg"):
             try:
                 c = self.charpoly('x', algorithm="hessenberg")[0]
             except ValueError:

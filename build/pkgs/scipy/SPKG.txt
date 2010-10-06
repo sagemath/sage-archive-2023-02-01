@@ -1,17 +1,49 @@
 = scipy =
 
-== maintainers ==
+== Description ==
+SciPy (pronounced "Sigh Pie") is open-source software for mathematics,
+science, and engineering. The SciPy library depends on NumPy, which provides
+convenient and fast N-dimensional array manipulation. The SciPy library is
+built to work with NumPy arrays, and provides many user-friendly and efficient
+numerical routines such as routines for numerical integration and optimization.
+Together, they run on all popular operating systems, are quick to install, and
+are free of charge. NumPy and SciPy are easy to use, but powerful enough to be
+depended upon by some of the world's leading scientists and engineers.
+
+== License ==
+SciPy's license is free for both commercial and non-commercial use, under the
+BSD terms. See http://www.scipy.org/License_Compatibility
+
+== SPKG Maintainers ==
  * William Stein
  * Josh Kantor
  * Jason Grout
 
+== Upstream Contact ==
+ http://www.scipy.org/
+
+== Dependencies ==
+ * Python, which in Sage has numerous dependencies
+ * Numpy
+ * Fortran
+
+== Special Update/Build Instructions ==
+ * None
+
 == Changelog ==
 
-== scipy-0.8 (Stefan Reiterer; 13 September 2010) ===
- * upgrade to scipy 0.8.
- * deleted outdated patches
- * spkg install changed by F. Bissey, because g95
-   makes trouble on OS X.
+== scipy-0.8 (S. Reiterer, F. Bissey, D. Kirkby; 6th October 2010) ===
+ * #9808 Upgrade to scipy 0.8.
+ * Deleted outdated patches
+ * spkg install changed by F. Bissey, because g95 makes trouble on OS X.
+ * Exported FC, F77, F90 and F95 so SciPy does use the compiler
+   we specify. Just setting FC was insufficient on a Sun with Fortran compilers
+   in /usr/bin/f77 and /usr/bin/f90. The variable F95 was only set as a
+   precautionary measure
+ * Added "License information", "Upstream Contact", "Dependencies" and
+   "Special Update/Build Instructions" section to SPKG.txt
+ * Changed "maintainer" to "SPKG Maintainers" in SPKG.txt to be consistent with
+   what is stated in the Sage Developers Guide.
 
 === scipy-0.7.1 (Jason Grout; 12 Nov 2009) ===
  * upgrade to scipy 0.7.1.  The optimize.py patch still needs to be applied in this version of scipy.

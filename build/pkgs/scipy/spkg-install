@@ -18,7 +18,10 @@ else
     export LAPACK
     export LDFLAGS="-shared"
 fi
-export FC="${SAGE_LOCAL}/bin/sage_fortran"
+export FC="$SAGE_LOCAL/bin/sage_fortran"
+export F77="$SAGE_LOCAL/bin/sage_fortran"
+export F90="$SAGE_LOCAL/bin/sage_fortran"
+export F95="$SAGE_LOCAL/bin/sage_fortran"
 
 
 # This avoid problems on some systems -- until we officially

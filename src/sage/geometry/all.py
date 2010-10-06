@@ -11,3 +11,5 @@ from lattice_polytope import LatticePolytope, ReflexivePolytope, ReflexivePolyto
 import lattice_polytope
 
 from toric_lattice import ToricLattice
+
+import toric_plotter

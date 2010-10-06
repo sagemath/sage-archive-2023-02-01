@@ -15,3 +15,6 @@ polytopes and polyhedra (with rational or numerical coordinates).
    sage/geometry/fan
 
    sage/geometry/toric_lattice
+
+   sage/geometry/toric_plotter
+

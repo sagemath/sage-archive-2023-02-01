@@ -148,6 +148,7 @@ Or you can create a homomorphism from one lattice to any other::
 
 from sage.geometry.toric_lattice_element import (ToricLatticeElement,
                                                  is_ToricLatticeElement)
+from sage.geometry.toric_plotter import ToricPlotter
 from sage.misc.all import latex, parent
 from sage.modules.all import vector
 from sage.modules.fg_pid.fgp_element import FGP_Element
@@ -803,6 +804,32 @@ class ToricLattice_ambient(ToricLattice_generic, FreeModule_ambient_pid):
                           self._name, self._latex_dual_name, self._latex_name)
         return self._dual
 
+    def plot(self, **options):
+        r"""
+        Plot ``self``.
+
+        INPUT:
+
+        - any options for toric plots (see :func:`toric_plotter.options
+          <sage.geometry.toric_plotter.options>`), none are mandatory.
+
+        OUTPUT:
+
+        - a plot.
+
+        EXAMPLES::
+
+            sage: N = ToricLattice(3)
+            sage: N.plot()
+        """
+        if "show_lattice" not in options:
+            # Unless user made an explicit decision, we assume that lattice
+            # should be visible no matter what is the size of the bounding box.
+            options["show_lattice"] = True
+        tp = ToricPlotter(options, self.degree())
+        tp.adjust_options()
+        return tp.plot_lattice()
+
 
 class ToricLattice_sublattice_with_basis(ToricLattice_generic,
                                          FreeModule_submodule_with_basis_pid):
@@ -895,6 +922,42 @@ class ToricLattice_sublattice_with_basis(ToricLattice_generic,
         s += ', '.join([ b._latex_() for b in self.basis() ])
         s += '\\right\\rangle'
         return s
+
+    def plot(self, **options):
+        r"""
+        Plot ``self``.
+
+        INPUT:
+
+        - any options for toric plots (see :func:`toric_plotter.options
+          <sage.geometry.toric_plotter.options>`), none are mandatory.
+
+        OUTPUT:
+
+        - a plot.
+
+        EXAMPLES::
+
+            sage: N = ToricLattice(3)
+            sage: sublattice = N.submodule_with_basis([(1,1,0), (3,2,1)])
+            sage: sublattice.plot()
+
+        Now we plot both the ambient lattice and its sublattice::
+
+            sage: N.plot() + sublattice.plot(point_color="red")
+        """
+        if "show_lattice" not in options:
+            # Unless user made an explicit decision, we assume that lattice
+            # should be visible no matter what is the size of the bounding box.
+            options["show_lattice"] = True
+        if "lattice_filter" in options:
+            old = options["lattice_filter"]
+            options["lattice_filter"] = lambda pt: pt in self and old(pt)
+        else:
+            options["lattice_filter"] = lambda pt: pt in self
+        tp = ToricPlotter(options, self.degree())
+        tp.adjust_options()
+        return tp.plot_lattice()
 
 
 class ToricLattice_sublattice(ToricLattice_sublattice_with_basis,

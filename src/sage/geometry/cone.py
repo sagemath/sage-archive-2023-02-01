@@ -181,6 +181,7 @@ from sage.combinat.posets.posets import FinitePoset
 from sage.geometry.lattice_polytope import LatticePolytope
 from sage.geometry.polyhedra import Polyhedron
 from sage.geometry.toric_lattice import ToricLattice, is_ToricLattice
+from sage.geometry.toric_plotter import ToricPlotter, label_list
 from sage.graphs.all import DiGraph
 from sage.matrix.all import matrix, identity_matrix
 from sage.misc.all import flatten, latex
@@ -744,6 +745,27 @@ class IntegralRayCollection(SageObject,
             2
         """
         return len(self._rays)
+
+    def plot(self, **options):
+        r"""
+        Plot ``self``.
+
+        INPUT:
+
+        - any options for toric plots (see :func:`toric_plotter.options
+          <sage.geometry.toric_plotter.options>`), none are mandatory.
+
+        OUTPUT:
+
+        - a plot.
+
+        EXAMPLES::
+
+            sage: quadrant = Cone([(1,0), (0,1)])
+            sage: quadrant.plot()
+        """
+        tp = ToricPlotter(options, self.lattice().degree(), self.rays())
+        return tp.plot_lattice() + tp.plot_rays() + tp.plot_generators()
 
     def ray(self, n):
         r"""
@@ -1764,6 +1786,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: quadrant.ray(0)
             N(1, 0)
 
+        TESTS:
+
         Now we check that "general" cones whose dimension is smaller than the
         dimension of the ambient space work as expected (see Trac #9188)::
 
@@ -2363,6 +2387,44 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
                 self._lines = tuple(normalize_rays(self.polyhedron().lines(),
                                                    self.lattice()))
         return self._lines
+
+    def plot(self, **options):
+        r"""
+        Plot ``self``.
+
+        INPUT:
+
+        - any options for toric plots (see :func:`toric_plotter.options
+          <sage.geometry.toric_plotter.options>`), none are mandatory.
+
+        OUTPUT:
+
+        - a plot.
+
+        EXAMPLES::
+
+            sage: quadrant = Cone([(1,0), (0,1)])
+            sage: quadrant.plot()
+        """
+        # What to do with 3-d cones in 5-d? Use some projection method?
+        deg = self.lattice().degree()
+        tp = ToricPlotter(options, deg, self.rays())
+        # Modify ray labels to match the ambient cone or fan.
+        tp.ray_label = label_list(tp.ray_label, self.nrays(), deg <= 2,
+                                   self.ambient_ray_indices())
+        result = tp.plot_lattice() + tp.plot_rays() + tp.plot_generators()
+        if self.dim() >= 2:
+            # Modify wall labels to match the ambient cone or fan too.
+            walls = self.faces(2)
+            try:
+                ambient_walls = self.ambient().faces(2)
+            except AttributeError:
+                ambient_walls = self.ambient().cones(2)
+            tp.wall_label = label_list(tp.wall_label, len(walls), deg <= 2,
+                                [ambient_walls.index(wall) for wall in walls])
+            tp.set_rays(self.ambient().rays())
+            result += tp.plot_walls(walls)
+        return result
 
     def polyhedron(self):
         r"""

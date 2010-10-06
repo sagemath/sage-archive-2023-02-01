@@ -1429,6 +1429,38 @@ class ToricVariety_field(AmbientSpace):
             self._Mori_cone = Cone(rays, lattice=ZZ**(self._fan.nrays()+1))
         return self._Mori_cone
 
+    def plot(self, **options):
+        r"""
+        Plot ``self``, i.e. the corresponding fan.
+
+        INPUT:
+
+        - any options for toric plots (see :func:`toric_plotter.options
+          <sage.geometry.toric_plotter.options>`), none are mandatory.
+
+        OUTPUT:
+
+        - a plot.
+
+        .. NOTE::
+
+            The difference between ``X.plot()`` and ``X.fan().plot()`` is that
+            in the first case default ray labels correspond to variables of
+            ``X``.
+
+        EXAMPLES::
+
+            sage: X = toric_varieties.Cube_deformation(4)
+            sage: X.plot()
+        """
+        if "ray_label" not in options:
+            gens = self.coordinate_ring().gens()
+            if self.fan().lattice().degree() <= 2:
+                options["ray_label"] = ["$%s$" % latex(z) for z in gens]
+            else:
+                options["ray_label"] = [str(z) for z in gens]
+        return self.fan().plot(**options)
+
     def rational_class_group(self):
         r"""
         Return the rational divisor class group of ``self``.

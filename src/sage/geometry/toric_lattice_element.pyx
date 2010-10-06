@@ -98,6 +98,7 @@ Or you can create a homomorphism from one lattice to any other::
 include '../ext/cdefs.pxi'
 include '../ext/stdsage.pxi' # Needed for PY_NEW
 
+from sage.geometry.toric_plotter import ToricPlotter
 from sage.modules.vector_integer_dense cimport Vector_integer_dense
 from sage.structure.coerce_exceptions import CoercionException
 from sage.structure.element cimport Element, Vector
@@ -384,6 +385,29 @@ cdef class ToricLatticeElement(Vector_integer_dense):
             N(1, 2, 3)
         """
         return (unpickle_v1, (self._parent, self.list(), self._degree, self._is_mutable))
+
+    def plot(self, **options):
+        r"""
+        Plot ``self``.
+
+        INPUT:
+
+        - any options for toric plots (see :func:`toric_plotter.options
+          <sage.geometry.toric_plotter.options>`), none are mandatory.
+
+        OUTPUT:
+
+        - a plot.
+
+        EXAMPLES::
+
+            sage: N = ToricLattice(3)
+            sage: n = N(1,2,3)
+            sage: n.plot()
+        """
+        tp = ToricPlotter(options, self.parent().degree())
+        tp.adjust_options()
+        return tp.plot_points([self])
 
 
 def unpickle_v1(parent, entries, degree, is_mutable):

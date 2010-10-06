@@ -226,9 +226,11 @@ from sage.geometry.lattice_polytope import (LatticePolytope,
                                             all_faces,
                                             all_facet_equations)
 from sage.geometry.toric_lattice import is_ToricLattice
+from sage.geometry.toric_plotter import ToricPlotter
 from sage.graphs.all import DiGraph
 from sage.matrix.all import matrix
 from sage.misc.all import flatten, walltime, prod
+from sage.modules.all import vector
 from sage.rings.all import QQ, RR, ZZ
 from sage.structure.all import Sequence
 from sage.structure.coerce import parent
@@ -2011,6 +2013,30 @@ class RationalPolyhedralFan(IntegralRayCollection,
             2
         """
         return len(self.generating_cones())
+
+    def plot(self, **options):
+        r"""
+        Plot ``self``.
+
+        INPUT:
+
+        - any options for toric plots (see :func:`toric_plotter.options
+          <sage.geometry.toric_plotter.options>`), none are mandatory.
+
+        OUTPUT:
+
+        - a plot.
+
+        EXAMPLES::
+
+            sage: fan = toric_varieties.dP6().fan()
+            sage: fan.plot()
+        """
+        tp = ToricPlotter(options, self.lattice().degree(), self.rays())
+        result = tp.plot_lattice() + tp.plot_rays() + tp.plot_generators()
+        if self.dim() >= 2:
+            result += tp.plot_walls(self(2))
+        return result
 
     def subdivide(self, new_rays=None, make_simplicial=False,
                   algorithm="default", verbose=False):

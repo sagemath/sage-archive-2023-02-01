@@ -962,58 +962,6 @@ class CPRFanoToricVariety_field(ToricVariety_field):
         """
         return self._Delta_polar
 
-    def plot3d(self):
-        r"""
-        Return the 3D plot of the underlying fan of ``self``.
-
-        Since this fan corresponds to a triangulation of the associated
-        reflexive polytope, this function actually plots this polytope with
-        the triangulation.
-
-        OUTPUT:
-
-        - plot.
-
-        .. NOTE::
-
-            This function is currently present to allow quick control over
-            subdivisions. It will be shortly replaced with a superior one
-            allowing great customization of the output.
-
-        EXAMPLES::
-
-            sage: P1xP1xP1 = CPRFanoToricVariety(
-            ...          Delta_polar=lattice_polytope.octahedron(3))
-            sage: P1xP1xP1.plot3d()
-
-        A more subdivided one::
-
-            sage: FTV = CPRFanoToricVariety(
-            ...         Delta=lattice_polytope.octahedron(3),
-            ...         coordinate_points="all but facets")
-            sage: FTV.plot3d()
-        """
-        # This function should be greatly improved! Probably after
-        # plotting capabilities of lattice polytopes are switched to
-        # dictionaries to allow uniformity.
-        #
-        # Get cone polytopes and compute their faces in a single run of PALP
-        dim = self.Delta_polar().dim()
-        lps = [cone.lattice_polytope()
-               for cone in self.fan()]
-        for lp in lps:
-            lp._dim = dim
-        # Put import here in case we actually want to move this function to
-        # another module
-        from sage.geometry.lattice_polytope import all_faces
-        all_faces(lps)
-        # Now build the plot
-        p = None
-        for lp in lps:
-            p += lp.plot3d(show_vindices=False, show_points=False)
-        p += self.Delta_polar().plot3d()
-        return p
-
     def resolve(self, **kwds):
         r"""
         Construct a toric variety whose fan subdivides the fan of ``self``.

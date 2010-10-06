@@ -111,9 +111,9 @@ class DifferentialForms(Algebra):
                                 category = GradedAlgebrasWithBasis(SR))
 
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
-        Compare self with other.
+        Return True if self is equal to other.
 
         EXAMPLES::
 
@@ -129,16 +129,40 @@ class DifferentialForms(Algebra):
             Algebra of differential forms in the variables p, q
             sage: H = DifferentialForms(U); H
             Algebra of differential forms in the variables x, y, z
-            sage: cmp(F, G)
-            1
-            sage: cmp(F, H)
-            0
+            sage: F == G
+            False
+            sage: F == H
+            True
         """
 
         if type(other) == type(self):
-            return cmp(self._patch, other._patch)
+            return self._patch == other._patch
         else:
-            return -1
+            return False
+
+
+    def __ne__(self, other):
+        """
+        Return True if self is not equal to other.
+
+        EXAMPLES::
+
+            sage: x, y, z = var('x, y, z')
+            sage: U = CoordinatePatch((x, y, z)); U
+            Open subset of R^3 with coordinates x, y, z
+            sage: F = DifferentialForms(U); F
+            Algebra of differential forms in the variables x, y, z
+            sage: p, q = var('p, q')
+            sage: V = CoordinatePatch((p, q)); V
+            Open subset of R^2 with coordinates p, q
+            sage: G = DifferentialForms(V); G
+            Algebra of differential forms in the variables p, q
+            sage: F != G
+            True
+        """
+
+        return not self.__eq__(other)
+
 
 
     def ngens(self):

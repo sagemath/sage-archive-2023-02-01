@@ -541,12 +541,54 @@ class DifferentialForm(AlgebraElement):
             True
         """
         if type(other) == type(self):
-            return self.__dict__ == other.__dict__
-        return False
+            if self._degree != other._degree:
+                return False
+            else:
+                # TODO: the following two lines are where most of the
+                # execution time is spent.
+                self._cleanup()
+                other._cleanup()
+
+                if len(self._components) != len(other._components):
+                    return False
 
 
-    #def __ne__(self, other):
-    #    return not self.__eq__(other)
+                # We compare the component dictionary of both differential
+                # forms, keeping in mind that the set of keys is
+                # lexicographically ordered, so that we can simply iterate
+                # over both dictionaries in one go and compare (key, value)
+                # pairs as we go along.
+
+                for (key1, val1), (key2, val2) in \
+                        zip(self._components.iteritems(), \
+                            other._components.iteritems()):
+                    if key1 != key2 or str(val1) != str(val2):
+                        return False
+                return True
+        else:
+            return False
+
+
+    def __ne__(self, other):
+        r"""
+        Test whether two differential forms are not equal.
+
+        EXAMPLES::
+
+            sage: F = DifferentialForms(); F
+            Algebra of differential forms in the variables x, y, z
+            sage: f = DifferentialForm(F, 2)
+            sage: f[1,2] = x; f
+            x*dy/\dz
+            sage: g = DifferentialForm(F, 3)
+            sage: g[0, 1, 2] = 1; g
+            dx/\dy/\dz
+            sage: f != g
+            True
+        """
+
+
+        return not self.__eq__(other)
 
 
     def _neg_(self):
@@ -679,7 +721,7 @@ class DifferentialForm(AlgebraElement):
         zeros = []
 
         for comp in self._components:
-            if self._components[comp] == 0:
+            if self._components[comp].is_zero():
                 zeros.append(comp)
 
         for comp in zeros:

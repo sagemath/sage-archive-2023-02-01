@@ -111,10 +111,10 @@ class CoordinatePatch(Parent):
 
 
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
-        Compare self and other.  Return equality if and only if other
-        has the same coordinates as self, in the same order.
+        Return equality if and only if other has the same coordinates
+        as self, in the same order.
 
         EXAMPLES::
 
@@ -126,12 +126,12 @@ class CoordinatePatch(Parent):
             Open subset of R^2 with coordinates u, v
             sage: U = CoordinatePatch((x, y, z)); U
             Open subset of R^3 with coordinates x, y, z
-            sage: cmp(U, S)
-            0
-            sage: cmp(U, U)
-            0
-            sage: cmp(U, T)
-            1
+            sage: U == S
+            True
+            sage: U == U
+            True
+            sage: U == T
+            False
 
         Note that the order of the coordinates matters::
 
@@ -140,14 +140,31 @@ class CoordinatePatch(Parent):
             Open subset of R^3 with coordinates x, y, z
             sage: T = CoordinatePatch((x, z, y)); T
             Open subset of R^3 with coordinates x, z, y
-            sage: cmp(S, T)
-            -1
+            sage: S == T
+            False
         """
 
-        # Convert tuples of coordinates to strings before comparing
-        # (see Trac 10041)
+        return str(self._coordinates) == str(other._coordinates)
 
-        return cmp(str(self._coordinates), str(other._coordinates))
+
+    def __ne__(self, other):
+        """
+        Test whether two coordinate patches are not equal.
+
+        EXAMPLES::
+
+            sage: x, y, z = var('x, y, z')
+            sage: S = CoordinatePatch((x, y, z)); S
+            Open subset of R^3 with coordinates x, y, z
+            sage: u, v = var('u, v')
+            sage: T = CoordinatePatch((u, v)); T
+            Open subset of R^2 with coordinates u, v
+            sage: S != T
+            True
+        """
+
+        return not self.__eq__(other)
+
 
 
     def coordinates(self):

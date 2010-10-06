@@ -57,17 +57,7 @@ AUTHORS:
 
 include "../../libs/ntl/decl.pxi"
 include "../../ext/interrupt.pxi"
-
-# this fails with a scoping error:
-#   AttributeError: CVoidType instance has no attribute 'scope'
-#include "../../ext/stdsage.pxi"
-
-cdef extern from "stdsage.h":
-    ctypedef void PyObject
-    object PY_NEW(object t)
-    int PY_TYPE_CHECK(object o, object t)
-    void init_csage()
-#init_csage()
+include "../../ext/stdsage.pxi"
 
 from sage.misc.randstate cimport randstate, current_randstate
 from sage.rings.finite_rings.finite_field_base cimport FiniteField

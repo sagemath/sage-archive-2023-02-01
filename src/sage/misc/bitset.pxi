@@ -669,6 +669,7 @@ cdef bitset_string(bitset_t bits):
     Return a python string representing the bitset.
     """
     cdef char* s = bitset_chars(NULL, bits)
+    cdef object py_s
     py_s = s
     sage_free(s)
     return py_s

@@ -6,7 +6,7 @@ cdef int REAL = -1
 cdef int INTEGER = 0
 
 cdef class Osi_interface:
-    cdef float osi_solve(self, LP, c_OsiSolverInterface * si,bool objective_only, bool is_cplex):
+    cdef float osi_solve(self, LP, c_OsiSolverInterface * si, bint objective_only, bint is_cplex):
         from itertools import izip
         n_cols = len(LP._variables_type);
 

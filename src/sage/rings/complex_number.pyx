@@ -154,8 +154,8 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             R = parent._real_field()
             rr = R(real)
             ii = R(imag)
-            mpfr_set(self.__re, <mpfr_t> rr.value, rnd)
-            mpfr_set(self.__im, <mpfr_t> ii.value, rnd)
+            mpfr_set(self.__re, rr.value, rnd)
+            mpfr_set(self.__im, ii.value, rnd)
         except TypeError:
             raise TypeError, "unable to coerce to a ComplexNumber: %s" % type(real)
 
@@ -604,7 +604,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         mpfr_mul(t0, self.__re, self.__re, rnd)
         mpfr_mul(t1, self.__im, self.__im, rnd)
 
-        mpfr_add(<mpfr_t> x.value, t0, t1, rnd)
+        mpfr_add(x.value, t0, t1, rnd)
 
         mpfr_clear(t0)
         mpfr_clear(t1)
@@ -621,8 +621,8 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         mpfr_mul(t0, self.__re, self.__re, rnd)
         mpfr_mul(t1, self.__im, self.__im, rnd)
 
-        mpfr_add(<mpfr_t> x.value, t0, t1, rnd)
-        mpfr_sqrt(<mpfr_t> x.value, <mpfr_t> x.value, rnd)
+        mpfr_add(x.value, t0, t1, rnd)
+        mpfr_sqrt(x.value, x.value, rnd)
 
         mpfr_clear(t0)
         mpfr_clear(t1)
@@ -772,7 +772,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         """
         cdef real_mpfr.RealNumber x
         x = real_mpfr.RealNumber(self._parent._real_field(), None)
-        mpfr_set(<mpfr_t> x.value, self.__re, rnd)
+        mpfr_set(x.value, self.__re, rnd)
         return x
 
     real_part = real
@@ -794,7 +794,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         """
         cdef real_mpfr.RealNumber x
         x = real_mpfr.RealNumber(self._parent._real_field(), None)
-        mpfr_set(<mpfr_t> x.value, self.__im, rnd)
+        mpfr_set(x.value, self.__im, rnd)
         return x
 
     imag_part = imag
@@ -963,7 +963,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             1.4142135623730951
         """
         if mpfr_zero_p(self.__im):
-            return mpfr_get_d(<mpfr_t> self.__re, rnd)
+            return mpfr_get_d(self.__re, rnd)
         else:
             raise TypeError, "Unable to convert %s to float; use abs() or real_part() as desired"%self
 
@@ -1710,7 +1710,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         """
         cdef real_mpfr.RealNumber x
         x = real_mpfr.RealNumber(self._parent._real_field(), None)
-        mpfr_atan2(<mpfr_t> x.value, self.__im, self.__re, rnd)
+        mpfr_atan2(x.value, self.__im, self.__re, rnd)
         return x
 
 
@@ -2016,9 +2016,9 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         rho = abs(self)
         arg = self.argument() / n
         mpfr_init2(r, self._prec)
-        mpfr_root(r, <mpfr_t> rho.value, n, rnd)
+        mpfr_root(r, rho.value, n, rnd)
 
-        mpfr_sin_cos(z.__im, z.__re, <mpfr_t> arg.value, rnd)
+        mpfr_sin_cos(z.__im, z.__re, arg.value, rnd)
         mpfr_mul(z.__re, z.__re, r, rnd)
         mpfr_mul(z.__im, z.__im, r, rnd)
 
@@ -2033,7 +2033,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         for k in range(1, n):
             z = self._new()
             arg += theta
-            mpfr_sin_cos(z.__im, z.__re, <mpfr_t> arg.value, rnd)
+            mpfr_sin_cos(z.__im, z.__re, arg.value, rnd)
             mpfr_mul(z.__re, z.__re, r, rnd)
             mpfr_mul(z.__im, z.__im, r, rnd)
             zlist.append(z)

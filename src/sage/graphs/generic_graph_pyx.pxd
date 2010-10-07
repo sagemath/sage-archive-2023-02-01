@@ -23,7 +23,7 @@ cdef class SubgraphSearch:
     cdef int **line_h_in
     cdef list g_vertices
     cdef int i
-    cdef bool directed
+    cdef bint directed
 
 
 cdef inline bint vectors_equal(int n, int *a, int *b)

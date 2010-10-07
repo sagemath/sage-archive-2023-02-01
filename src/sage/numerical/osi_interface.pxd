@@ -10,7 +10,7 @@ cdef extern from "../../local/include/coin/CoinPackedMatrix.hpp":
      ctypedef struct c_CoinPackedMatrix "CoinPackedMatrix":
          void setDimensions(int, int)
          void appendRow(c_CoinPackedVector)
-     c_CoinPackedMatrix *new_c_CoinPackedMatrix "new CoinPackedMatrix" (bool, double, double)
+     c_CoinPackedMatrix *new_c_CoinPackedMatrix "new CoinPackedMatrix" (bint, double, double)
      void del_CoinPackedMatrix "delete" (c_CoinPackedMatrix *)
 
 cdef extern from "../../local/include/coin/CoinMessageHandler.hpp":
@@ -86,4 +86,4 @@ cdef extern from "../../local/include/coin/OsiCbcSolverInterface.hpp":
      void del_OsiCbcSolverInterface "delete" (c_OsiCbcSolverInterface *)
 
 cdef class Osi_interface:
-     cdef float osi_solve(self, LP, c_OsiSolverInterface * si,bool objective_only, bool is_cplex) except? -687654
+     cdef float osi_solve(self, LP, c_OsiSolverInterface * si, bint objective_only, bint is_cplex) except? -687654

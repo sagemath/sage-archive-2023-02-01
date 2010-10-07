@@ -2543,8 +2543,8 @@ cdef class Search_iterator:
     cdef int direction
     cdef list stack
     cdef bitset_t seen
-    cdef bool test_out
-    cdef bool test_in
+    cdef bint test_out
+    cdef bint test_in
 
     def __init__(self, graph, v, direction=0, reverse=False,
                  ignore_direction=False):

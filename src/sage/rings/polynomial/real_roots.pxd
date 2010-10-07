@@ -1,11 +1,11 @@
-from rational import Rational
+from sage.rings.rational import Rational
 from sage.rings.rational cimport Rational
 
 from sage.modules.vector_integer_dense cimport Vector_integer_dense
 
 from sage.modules.vector_real_double_dense cimport Vector_real_double_dense
 
-from real_mpfi import RealIntervalFieldElement
+from sage.rings.real_mpfi import RealIntervalFieldElement
 from sage.rings.real_mpfi cimport RealIntervalFieldElement
 
 cdef class interval_bernstein_polynomial:

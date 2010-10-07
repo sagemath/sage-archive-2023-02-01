@@ -2773,7 +2773,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         _p = p_Head(self._poly, _ring)
         _n = p_GetCoeff(_p, _ring)
 
-        ret = (not self._poly.next) and n_IsOne(_n, _ring)
+        ret = bool((not self._poly.next) and n_IsOne(_n, _ring))
 
         p_Delete(&_p, _ring)
         return ret

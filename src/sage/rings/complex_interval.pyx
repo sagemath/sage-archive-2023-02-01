@@ -95,8 +95,8 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             R = parent._real_field()
             rr = R(real)
             ii = R(imag)
-            mpfi_set(self.__re, <mpfi_t> rr.value)
-            mpfi_set(self.__im, <mpfi_t> ii.value)
+            mpfi_set(self.__re, rr.value)
+            mpfi_set(self.__im, ii.value)
         except TypeError:
             raise TypeError, "unable to coerce to a ComplexIntervalFieldElement"
 
@@ -246,20 +246,20 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             True
         """
         cdef ComplexIntervalFieldElement a00 = self._new()
-        mpfr_set(<mpfr_t> &a00.__re.left, <mpfr_t> &self.__re.left, GMP_RNDN)
-        mpfi_mid(<mpfr_t> &a00.__re.right, self.__re)
-        mpfr_set(<mpfr_t> &a00.__im.left, <mpfr_t> &self.__im.left, GMP_RNDN)
-        mpfi_mid(<mpfr_t> &a00.__im.right, self.__im)
+        mpfr_set(&a00.__re.left, &self.__re.left, GMP_RNDN)
+        mpfi_mid(&a00.__re.right, self.__re)
+        mpfr_set(&a00.__im.left, &self.__im.left, GMP_RNDN)
+        mpfi_mid(&a00.__im.right, self.__im)
 
         cdef ComplexIntervalFieldElement a01 = self._new()
-        mpfr_set(<mpfr_t> &a01.__re.left, <mpfr_t> &a00.__re.right, GMP_RNDN)
-        mpfr_set(<mpfr_t> &a01.__re.right, <mpfr_t> &self.__re.right, GMP_RNDN)
+        mpfr_set(&a01.__re.left, &a00.__re.right, GMP_RNDN)
+        mpfr_set(&a01.__re.right, &self.__re.right, GMP_RNDN)
         mpfi_set(a01.__im, a00.__im)
 
         cdef ComplexIntervalFieldElement a10 = self._new()
         mpfi_set(a10.__re, a00.__re)
-        mpfi_mid(<mpfr_t> &a10.__im.left, self.__im)
-        mpfr_set(<mpfr_t> &a10.__im.right, <mpfr_t> &self.__im.right, GMP_RNDN)
+        mpfi_mid(&a10.__im.left, self.__im)
+        mpfr_set(&a10.__im.right, &self.__im.right, GMP_RNDN)
 
         cdef ComplexIntervalFieldElement a11 = self._new()
         mpfi_set(a11.__re, a01.__re)
@@ -469,7 +469,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         mpfi_sqr(t0, self.__re)
         mpfi_sqr(t1, self.__im)
 
-        mpfi_add(<mpfi_t> x.value, t0, t1)
+        mpfi_add(x.value, t0, t1)
 
         mpfi_clear(t0)
         mpfi_clear(t1)
@@ -486,8 +486,8 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         mpfi_sqr(t0, self.__re)
         mpfi_sqr(t1, self.__im)
 
-        mpfi_add(<mpfi_t> x.value, t0, t1)
-        mpfi_sqrt(<mpfi_t> x.value, <mpfi_t> x.value)
+        mpfi_add(x.value, t0, t1)
+        mpfi_sqrt(x.value, x.value)
 
         mpfi_clear(t0)
         mpfi_clear(t1)

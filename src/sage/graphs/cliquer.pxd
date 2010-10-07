@@ -8,11 +8,11 @@ cdef extern from "cliquer/cliquer.h":
 
 
 cdef extern from "cliquer/reorder.h":
-     cdef int *reorder_by_greedy_coloring(graph_t *g, bool weighted)
-     cdef int *reorder_by_degree(graph_t *g, bool weighted)
+     cdef int *reorder_by_greedy_coloring(graph_t *g, bint weighted)
+     cdef int *reorder_by_degree(graph_t *g, bint weighted)
 
 cdef extern from "cliquer/cliquer.h":
-     bool clique_print_time(intlevel, int i, int n, int max, double cputime, double realtime, clique_options *opts)
+     bint clique_print_time(intlevel, int i, int n, int max, double cputime, double realtime, clique_options *opts)
 
 
 cdef extern from "cliquer/cl.h":

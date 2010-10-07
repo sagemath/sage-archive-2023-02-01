@@ -1715,7 +1715,7 @@ class LinearFunction:
             5 x_2 +2 x_3
         """
         cdef dict d = deepcopy(self._f)
-        cdef bool first = True
+        cdef bint first = True
         t = ""
 
         if d.has_key(-1):

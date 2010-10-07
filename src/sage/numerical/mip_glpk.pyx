@@ -181,7 +181,7 @@ def write_lp(self, filename):
 
     glp_write_lp(lp,NULL,filename)
 
-cdef int build_glp_prob(c_glp_prob * lp, c_glp_iocp * iocp, LP, int log, bool names) except -1:
+cdef int build_glp_prob(c_glp_prob * lp, c_glp_iocp * iocp, LP, int log, bint names) except -1:
     """
     Builds the GLPK structure corresponding to the LP
 

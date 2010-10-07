@@ -38,6 +38,13 @@ if not os.environ.has_key('SAGE_VERSION'):
 else:
     SAGE_VERSION = os.environ['SAGE_VERSION']
 
+try:
+    compile_result_dir = os.environ['XML_RESULTS']
+    keep_going = True
+except KeyError:
+    compile_result_dir = None
+    keep_going = False
+
 SITE_PACKAGES = '%s/lib/python/site-packages/'%SAGE_LOCAL
 if not os.path.exists(SITE_PACKAGES):
     SITE_PACKAGES = '%s/lib/python2.5/site-packages/'%SAGE_LOCAL
@@ -110,6 +117,64 @@ sage.ext.gen_interpreters.rebuild(SAGE_DEVEL + 'sage/sage/ext/interpreters')
 ext_modules = ext_modules + sage.ext.gen_interpreters.modules
 
 
+#########################################################
+### Testing related stuff
+#########################################################
+
+
+class CompileRecorder(object):
+
+    def __init__(self, f):
+        self._f = f
+        self._obj = None
+
+    def __get__(self, obj, type=None):
+        # Act like a method...
+        self._obj = obj
+        return self
+
+    def __call__(self, *args):
+        t = time.time()
+        try:
+            if self._obj:
+                res = self._f(self._obj, *args)
+            else:
+                res = self._f(*args)
+        except Exception, ex:
+            print ex
+            res = ex
+        t = time.time() - t
+
+        errors = failures = 0
+        if self._f is compile_command0:
+            name = "cythonize." + args[0][1].name
+            failures = int(bool(res))
+        else:
+            name = "gcc." + args[0][1].name
+            errors = int(bool(res))
+        if errors or failures:
+            type = "failure" if failures else "error"
+            failure_item = """<%(type)s/>""" % locals()
+        else:
+            failure_item = ""
+        output = open("%s/%s.xml" % (compile_result_dir, name), "w")
+        output.write("""
+            <?xml version="1.0" ?>
+            <testsuite name="%(name)s" errors="%(errors)s" failures="%(failures)s" tests="1" time="%(t)s">
+            <testcase classname="%(name)s" name="compile">
+            %(failure_item)s
+            </testcase>
+            </testsuite>
+        """.strip() % locals())
+        output.close()
+        return res
+
+if compile_result_dir:
+    record_compile = CompileRecorder
+else:
+    record_compile = lambda x: x
+
+
 ######################################################################
 # CODE for generating C/C++ code from Cython and doing dependency
 # checking, etc.  In theory distutils would run Cython, but I don't
@@ -120,7 +185,7 @@ ext_modules = ext_modules + sage.ext.gen_interpreters.modules
 
 for m in ext_modules:
     m.libraries = ['csage'] + m.libraries + ['stdc++', 'ntl']
-    m.extra_compile_args += extra_compile_args
+    m.extra_compile_args += extra_compile_args # + ["-DCYTHON_REFNANNY"]
     if os.environ.has_key('SAGE_DEBIAN'):
         m.library_dirs += ['/usr/lib','/usr/lib/eclib','/usr/lib/singular','/usr/lib/R/lib','%s/lib' % SAGE_LOCAL]
     else:
@@ -142,11 +207,7 @@ def execute_list_of_commands_in_serial(command_list):
     OUTPUT:
         the given list of commands are all executed in serial
     """
-    for f,v in command_list:
-        r = f(v)
-        if r != 0:
-            print "Error running command, failed with status %s."%r
-            sys.exit(1)
+    process_command_results(f(v) for f,v in command_list)
 
 def run_command(cmd):
     """
@@ -188,10 +249,18 @@ def execute_list_of_commands_in_parallel(command_list, nthreads):
     from multiprocessing import Pool
     import twisted.persisted.styles #doing this import will allow instancemethods to be pickable
     p = Pool(nthreads)
-    for r in p.imap(apply_pair, command_list):
+    process_command_results(p.imap(apply_pair, command_list))
+
+def process_command_results(result_values):
+    error = None
+    for r in result_values:
         if r:
-            print "Parallel build failed with status %s."%r
-            sys.exit(1)
+            print "Error running command, failed with status %s."%r
+            if not keep_going:
+                sys.exit(1)
+            error = r
+    if error:
+        sys.exit(1)
 
 def number_of_threads():
     """
@@ -283,55 +352,16 @@ class sage_build_ext(build_ext):
         # First, sanity-check the 'extensions' list
         self.check_extensions_list(self.extensions)
 
-        # We require MAKE to be set to decide how many cpus are
-        # requested.
-        if not os.environ.has_key('MAKE'):
-            ncpus = 1
-        else:
-            MAKE = os.environ['MAKE']
-            z = [w[2:] for w in MAKE.split() if w.startswith('-j')]
-            if len(z) == 0:  # no command line option
-                ncpus = 1
-            else:
-                # Determine number of cpus from command line argument.
-                # Also, use the OS to cap the number of cpus, in case
-                # user annoyingly makes a typo and asks to use 10000
-                # cpus at once.
-                try:
-                    ncpus = int(z[0])
-                    n = 2*number_of_threads()
-                    if n:  # prevent dumb typos.
-                        ncpus = min(ncpus, n)
-                except ValueError:
-                    ncpus = 1
-
         import time
         t = time.time()
 
-        if ncpus > 1:
+        compile_commands = []
+        for ext in self.extensions:
+            need_to_compile, p = self.prepare_extension(ext)
+            if need_to_compile:
+                compile_commands.append((record_compile(self.build_extension), p))
 
-            # First, decide *which* extensions need rebuilt at
-            # all.
-            extensions_to_compile = []
-            for ext in self.extensions:
-                need_to_compile, p = self.prepare_extension(ext)
-                if need_to_compile:
-                    extensions_to_compile.append(p)
-
-            # If there were any extensions that needed to be
-            # rebuilt, dispatch them using pyprocessing.
-            if extensions_to_compile:
-               from multiprocessing import Pool
-               import twisted.persisted.styles #doing this import will allow instancemethods to be pickable
-               p = Pool(min(ncpus, len(extensions_to_compile)))
-               for r in p.imap(self.build_extension, extensions_to_compile):
-                   pass
-
-        else:
-            for ext in self.extensions:
-                need_to_compile, p = self.prepare_extension(ext)
-                if need_to_compile:
-                    self.build_extension(p)
+        execute_list_of_commands(compile_commands)
 
         print "Total time spent compiling C/C++ extensions: ", time.time() - t, "seconds."
 
@@ -464,7 +494,10 @@ class sage_build_ext(build_ext):
 ###### Dependency checking
 #############################################
 
-CYTHON_INCLUDE_DIRS=[ SAGE_LOCAL + '/lib/python/site-packages/Cython/Includes/' ]
+CYTHON_INCLUDE_DIRS=[
+    SAGE_LOCAL + '/lib/python/site-packages/Cython/Includes/',
+    SAGE_LOCAL + '/lib/python/site-packages/Cython/Includes/Deprecated/',
+]
 
 # matches any dependency
 import re
@@ -574,6 +607,11 @@ class DependencyTree:
                         deps.add(new_path)
                         found_include = True
                         break
+                    new_path = os.path.normpath(idir + base_dependency_name[:-4] + "/__init__.pxd")
+                    if os.path.exists(new_path):
+                        deps.add(new_path)
+                        found_include = True
+                        break
                 # so we really couldn't find the dependency -- raise
                 # an exception.
                 if not found_include:
@@ -646,7 +684,7 @@ def process_filename(f, m):
     else:
         return f
 
-def compile_command(p):
+def compile_command0(p):
     """
     Given a pair p = (f, m), with a .pyx file f which is a part the
     module m, call Cython on f
@@ -669,7 +707,7 @@ def compile_command(p):
             outfile += ".c"
 
         # call cython, abort if it failed
-        cmd = "python `which cython` --embed-positions --directive cdivision=True -I%s -o %s %s"%(os.getcwd(), outfile, f)
+        cmd = "python `which cython` --embed-positions --directive cdivision=True,autotestdict=False -I%s -o %s %s"%(os.getcwd(), outfile, f)
         r = run_command(cmd)
         if r:
             return r
@@ -696,6 +734,10 @@ def compile_command(p):
         r = run_command(cmd)
 
     return r
+
+# Can't pickle decorated functions.
+compile_command = record_compile(compile_command0)
+
 
 def compile_command_list(ext_modules, deps):
     """

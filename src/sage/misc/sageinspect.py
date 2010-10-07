@@ -1055,15 +1055,8 @@ def __internal_tests():
         sage: sage_getdef(sage.rings.integer.Integer.factor, obj_name='factor')
         "factor(algorithm='pari', proof=True, limit=None)"
 
-    A cython method without an embedded position can lead to surprising errors::
-
-        sage: sage_getsource(sage.rings.integer.Integer.__init__, is_binary=True)
-        Traceback (most recent call last):
-        ...
-        TypeError: arg is not a module, class, method, function, traceback, frame, or code object
-
         sage: sage_getdef(sage.rings.integer.Integer.__init__, obj_name='__init__')
-        '__init__( [noargspec] )'
+        '__init__(x=None, base=0)'
 
     Test _extract_source with some likely configurations, including no trailing
     newline at the end of the file::

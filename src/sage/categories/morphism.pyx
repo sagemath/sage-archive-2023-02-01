@@ -286,7 +286,7 @@ cdef class SetMorphism(Morphism):
         self._function = _slots['_function']
         Map._update_slots(self, _slots)
 
-    cpdef bool _eq_c_impl(self, Element other):
+    cpdef bint _eq_c_impl(self, Element other):
         """
         Equality test
 

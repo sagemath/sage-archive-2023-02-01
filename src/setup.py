@@ -759,11 +759,13 @@ def compile_command0(p):
         outfile = f[:-4]
         if m.language == 'c++':
             outfile += ".cpp"
+            cplus = '--cplus'
         else:
             outfile += ".c"
+            cplus = ''
 
         # call cython, abort if it failed
-        cmd = "python `which cython` --embed-positions --directive cdivision=True,autotestdict=False -I%s -o %s %s"%(os.getcwd(), outfile, f)
+        cmd = "python `which cython` %s --embed-positions --directive cdivision=True,autotestdict=False -I%s -o %s %s"%(cplus, os.getcwd(), outfile, f)
         r = run_command(cmd)
         if r:
             return r

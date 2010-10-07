@@ -6,20 +6,34 @@ Python decorators for use in Sage.
 AUTHORS:
 
 - Tim Dumol (5 Dec 2009) -- initial version.
+- Johan S. R. Nielsen (2010) -- collect decorators from various modules
+- Johan S. R. Nielsen (8 apr 2011) -- improve introspection on decorators
 """
 from functools import partial, update_wrapper, WRAPPER_ASSIGNMENTS, WRAPPER_UPDATES
 from copy import copy
 from sage.misc.sageinspect import sage_getsource
 from sage.misc.misc import verbose, deprecation
+from inspect import ArgSpec
 
 def sage_wraps(wrapped, assigned = WRAPPER_ASSIGNMENTS, updated = WRAPPER_UPDATES):
     """
-    Decorator factory to apply update_wrapper() to a wrapper function,
-    and additionally add a _sage_src_ attribute for Sage introspection.
+    Decorator factory which should be used in decorators for making sure that
+    meta-information on the decorated callables are retained through the
+    decorator, such that the introspection functions of
+    ``sage.misc.sageinspect`` retrieves them correctly. This includes
+    documentation string, source, and argument specification. This is an
+    extension of the Python standard library decorator functools.wraps.
 
-    Use this exactly like @wraps from the functools module.
+    That the argument specification is retained from the decorated functions
+    implies, that if one uses ``sage_wraps`` in a decorator which intentionally
+    changes the argument specification, one should add this information to
+    the special attribute ``_sage_argspec_`` of the wrapping function (for an
+    example, see e.g. ``@options`` decorator in this module).
 
     EXAMPLES::
+
+    Demonstrate that documentation string and source are retained from the
+    decorated function
 
         sage: def square(f):
         ...     @sage_wraps(f)
@@ -34,13 +48,34 @@ def sage_wraps(wrapped, assigned = WRAPPER_ASSIGNMENTS, updated = WRAPPER_UPDATE
         4
         sage: g(x)
         x^2
-        sage: g._sage_src_()
-        '@square...def g(x)...'
         sage: g.__doc__
         'My little function'
+        sage: from sage.misc.sageinspect import sage_getsource
+        sage: sage_getsource(g)
+        '@square...def g(x)...'
 
-        # Demonstrate that sage_wraps works for non-function callables
-        # (Trac 9919)
+    Demonstrate that the argument description are retained from the decorated
+    function through the special method (when left unchanged) (see trac #9976).
+
+        sage: def diff_arg_dec(f):
+        ...     @sage_wraps(f)
+        ...     def new_f(y, some_def_arg=2):
+        ...         return f(y+some_def_arg)
+        ...     return new_f
+        sage: @diff_arg_dec
+        ... def g(x):
+        ...     return x
+        sage: g(1)
+        3
+        sage: g(1, some_def_arg=4)
+        5
+        sage: from sage.misc.sageinspect import sage_getargspec
+        sage: sage_getargspec(g)
+        ArgSpec(args=['x'], varargs=None, keywords=None, defaults=None)
+
+    Demonstrate that sage_wraps works for non-function callables
+    (Trac 9919)
+
         sage: def square_for_met(f):
         ...     @sage_wraps(f)
         ...     def new_f(self, x):
@@ -54,8 +89,6 @@ def sage_wraps(wrapped, assigned = WRAPPER_ASSIGNMENTS, updated = WRAPPER_UPDATE
         sage: t = T()
         sage: t.g(2)
         4
-        sage: t.g._sage_src_()
-        '   @square_for_met...def g(self, x)...'
         sage: t.g.__doc__
         'My little method'
     """
@@ -66,6 +99,12 @@ def sage_wraps(wrapped, assigned = WRAPPER_ASSIGNMENTS, updated = WRAPPER_UPDATE
     def f(wrapper):
         update_wrapper(wrapper, wrapped, assigned=assigned, updated=updated)
         wrapper._sage_src_=lambda: sage_getsource(wrapped)
+        #Getting the signature right in documentation by Sphinx (Trac 9976)
+        #The attribute _sage_argspec_() is read by Sphinx if present and used
+        #as the argspec of the function instead of using reflection.
+        from sageinspect import sage_getargspec
+        argspec = sage_getargspec(wrapped)
+        wrapper._sage_argspec_ = lambda: argspec
         return wrapper
     return f
 
@@ -363,6 +402,12 @@ class suboptions(object):
             sage: f(arrow_options={'size':4}, arrow_size=5)
             [('arrow_options', {'size': 5})]
 
+         Demonstrate that the introspected argument specification of the
+         wrapped function is updated (see trac #9976).
+
+            sage: from sage.misc.sageinspect import sage_getargspec
+            sage: sage_getargspec(f)
+            ArgSpec(args=['arrow_size'], varargs='args', keywords='kwds', defaults=(2,))
         """
         @sage_wraps(func)
         def wrapper(*args, **kwds):
@@ -379,6 +424,22 @@ class suboptions(object):
             kwds[self.name + "options"] = suboptions
 
             return func(*args, **kwds)
+
+        #Add the options specified by @options to the signature of the wrapped
+        #function in the Sphinx-generated documentation (Trac 9976), using the
+        #special attribute _sage_argspec_ (see e.g. sage.misc.sageinspect)
+        def argspec():
+            from sageinspect import sage_getargspec
+            argspec = sage_getargspec(func)
+            def listForNone(l):
+                return l if not l is None else []
+            newArgs = [ self.name + opt for opt in self.options.keys() ]
+            args = (argspec.args if not argspec.args is None else []) + newArgs
+            defaults = (argspec.defaults if not argspec.defaults is None else ()) \
+                            + tuple(self.options.values())
+            #Note: argspec.defaults is not always a tuple for some reason
+            return ArgSpec(args, argspec.varargs, argspec.keywords, defaults)
+        wrapper._sage_argspec_ = argspec
 
         return wrapper
 
@@ -401,6 +462,17 @@ class options(object):
             True
             sage: loads(dumps(o)).options
             {'rgbcolor': (0, 0, 1)}
+
+        Demonstrate that the introspected argument specification of the wrapped
+        function is updated (see trac #9976).
+
+            sage: from sage.misc.decorators import options
+            sage: o = options(rgbcolor=(0,0,1))
+            sage: def f(*args, **kwds): print args, list(sorted(kwds.items()))
+            sage: f1 = o(f)
+            sage: from sage.misc.sageinspect import sage_getargspec
+            sage: sage_getargspec(f1)
+            ArgSpec(args=['rgbcolor'], varargs='args', keywords='kwds', defaults=((0, 0, 1),))
         """
         self.options = options
         self.original_opts = options.pop('__original_opts', False)
@@ -431,6 +503,18 @@ class options(object):
             options.update(kwds)
             return func(*args, **options)
 
+        #Add the options specified by @options to the signature of the wrapped
+        #function in the Sphinx-generated documentation (Trac 9976), using the
+        #special attribute _sage_argspec_ (see e.g. sage.misc.sageinspect)
+        def argspec():
+            from sageinspect import sage_getargspec
+            argspec = sage_getargspec(func)
+            args = (argspec.args if not argspec.args is None else []) + self.options.keys()
+            defaults = tuple(argspec.defaults if not argspec.defaults is None else ()) \
+                            + tuple(self.options.values())
+            #Note: argspec.defaults is not always a tuple for some reason
+            return ArgSpec(args, argspec.varargs, argspec.keywords, defaults)
+        wrapper._sage_argspec_ = argspec
 
         def defaults():
             """

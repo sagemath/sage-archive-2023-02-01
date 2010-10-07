@@ -11,6 +11,10 @@
 
     :copyright: Copyright 2007-2009 by the Sphinx team, see AUTHORS.
     :license: BSD, see LICENSE for details.
+
+    AUTHORS:
+    ? (before 2011) - Initial version derived from sphinx.ext.autodoc
+    Johan S. R. Nielsen - Support for _sage_argspec_
 """
 
 import re
@@ -798,29 +802,38 @@ class FunctionDocumenter(ModuleLevelDocumenter):
     def can_document_member(cls, member, membername, isattr, parent):
         return isinstance(member, (FunctionType, BuiltinFunctionType))
 
+    #SAGE TRAC 9976: This function has been rewritten to support the
+    #_sage_argspec_ attribute which makes it possible to get argument
+    #specification of decorated callables in documentation correct. See e.g.
+    #sage.misc.decorators.sage_wraps
     def format_args(self):
-        if inspect.isbuiltin(self.object) or \
-               inspect.ismethoddescriptor(self.object):
-            # can never get arguments of a C function or method unless
-            # a function to do so is supplied
-            if self.env.config.autodoc_builtin_argspec:
-                argspec = self.env.config.autodoc_builtin_argspec(self.object)
-                return inspect.formatargspec(*argspec)
-            else:
-                return None
-        try:
-            argspec = inspect.getargspec(self.object)
-        except TypeError:
-            # if a class should be documented as function (yay duck
-            # typing) we try to use the constructor signature as function
-            # signature without the first argument.
+        def args_on_obj(obj):
+            if hasattr(obj, "_sage_argspec_"):
+                return obj._sage_argspec_()
+            if inspect.isbuiltin(obj) or \
+                   inspect.ismethoddescriptor(obj):
+                # can never get arguments of a C function or method unless
+                # a function to do so is supplied
+                if self.env.config.autodoc_builtin_argspec:
+                    argspec = self.env.config.autodoc_builtin_argspec(obj)
+                    return argspec
+                else:
+                    return None
             try:
-                argspec = inspect.getargspec(self.object.__new__)
+                return inspect.getargspec(obj)
             except TypeError:
-                argspec = inspect.getargspec(self.object.__init__)
-                if argspec[0]:
-                    del argspec[0][0]
-        return inspect.formatargspec(*argspec)
+                # if a class should be documented as function (yay duck
+                # typing) we try to use the constructor signature as function
+                # signature without the first argument.
+                try:
+                    return inspect.getargspec(obj.__new__)
+                except TypeError:
+                    argspec = inspect.getargspec(obj.__init__)
+                    if argspec[0]:
+                        del argspec[0][0]
+                    return argspec
+        argspec = args_on_obj(self.object)
+        return inspect.formatargspec(*argspec) if argspec is not None else None
 
     def document_members(self, all_members=False):
         pass
@@ -1041,29 +1054,38 @@ class MethodDocumenter(ClassLevelDocumenter):
             self.directivetype = 'method'
         return ret
 
+
+    #SAGE TRAC 9976: This function has been rewritten to support the
+    #_sage_argspec_ attribute which makes it possible to get argument
+    #specification of decorated callables in documentation correct. See e.g.
+    #sage.misc.decorators.sage_wraps
     def format_args(self):
-        if inspect.isbuiltin(self.object) or \
-               inspect.ismethoddescriptor(self.object):
-            # can never get arguments of a C function or method unless
-            # a function to do so is supplied
-            if self.env.config.autodoc_builtin_argspec:
-                argspec = self.env.config.autodoc_builtin_argspec(self.object)
-            else:
-                return None
-        else:
-            # The check above misses ordinary Python methods in Cython
-            # files.
-            try:
-                argspec = inspect.getargspec(self.object)
-            except TypeError:
-                if (inspect.ismethod(self.object) and
-                    self.env.config.autodoc_builtin_argspec):
-                    argspec = self.env.config.autodoc_builtin_argspec(self.object.im_func)
+        def args_on_obj(obj):
+            if hasattr(obj, "_sage_argspec_"):
+                argspec = obj._sage_argspec_()
+            elif inspect.isbuiltin(obj) or inspect.ismethoddescriptor(obj):
+                # can never get arguments of a C function or method unless
+                # a function to do so is supplied
+                if self.env.config.autodoc_builtin_argspec:
+                    argspec = self.env.config.autodoc_builtin_argspec(obj)
                 else:
                     return None
-        if argspec[0] and argspec[0][0] in ('cls', 'self'):
-            del argspec[0][0]
-        return inspect.formatargspec(*argspec)
+            else:
+                # The check above misses ordinary Python methods in Cython
+                # files.
+                try:
+                    argspec = inspect.getargspec(obj)
+                except TypeError:
+                    if (inspect.ismethod(obj) and
+                        self.env.config.autodoc_builtin_argspec):
+                        argspec = self.env.config.autodoc_builtin_argspec(obj.im_func)
+                    else:
+                        return None
+            if argspec[0] and argspec[0][0] in ('cls', 'self'):
+                del argspec[0][0]
+            return argspec
+        argspec = args_on_obj(self.object)
+        return inspect.formatargspec(*argspec) if argspec is not None else None
 
     def document_members(self, all_members=False):
         pass

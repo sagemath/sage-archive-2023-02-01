@@ -4,7 +4,7 @@ mpz_t u, v, q, u0, u1, u2, v0, v1, v2, t0, t1, t2, x, y, ssqr, m2;
 //changed sqr to ssqr due to a collision with ntl
 mpq_t tmp;
 
-mpz_t a1, a2, mod1, mod2, g, s, t, xx;
+mpz_t a1, a2, mod1, sage_mod2, g, s, t, xx;
 
 mpz_t crtrr_a, crtrr_mod;
 
@@ -21,7 +21,7 @@ void init_mpz_globals() {
   mpz_init(ssqr);  mpz_init(m2);
   mpq_init(tmp);
 
-  mpz_init(a1); mpz_init(a2); mpz_init(mod1); mpz_init(mod2);
+  mpz_init(a1); mpz_init(a2); mpz_init(mod1); mpz_init(sage_mod2);
   mpz_init(g); mpz_init(s); mpz_init(t); mpz_init(xx);
 
   mpz_init(crtrr_a); mpz_init(crtrr_mod);
@@ -40,7 +40,7 @@ void clear_mpz_globals() {
   mpz_clear(ssqr);  mpz_clear(m2);
   mpq_clear(tmp);
 
-  mpz_clear(a1); mpz_clear(a2); mpz_clear(mod1); mpz_clear(mod2);
+  mpz_clear(a1); mpz_clear(a2); mpz_clear(mod1); mpz_clear(sage_mod2);
   mpz_clear(g); mpz_clear(s); mpz_clear(t); mpz_clear(xx);
 
   mpz_clear(crtrr_a); mpz_clear(crtrr_mod);

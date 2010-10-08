@@ -1701,34 +1701,60 @@ cdef class CommutativeRingElement(RingElement):
             ...
             ZeroDivisionError: reduction modulo right not defined.
 
+        If x has different parent than `self`, they are first coerced to a
+        common parent if possible. If this coercion fails, it returns a
+        TypeError. This fixes \#5759
+
+        ::
+            sage: Zmod(2)(0).divides(Zmod(2)(0))
+            True
+            sage: Zmod(2)(0).divides(Zmod(2)(1))
+            False
+            sage: Zmod(5)(1).divides(Zmod(2)(1))
+            Traceback (most recent call last):
+            ...
+            TypeError: no common canonical parent for objects with parents: 'Ring of integers modulo 5' and 'Ring of integers modulo 2'
+            sage: Zmod(35)(4).divides(Zmod(7)(1))
+            True
+            sage: Zmod(35)(7).divides(Zmod(7)(1))
+            False
         """
-        # First we test some generic conditions:
-        try:
-            if x.is_zero():
-                return True # everything divides 0
-        except (AttributeError, NotImplementedError):
-            pass
+        #Check if the parents are the same:
 
-        try:
-            if self.is_zero():
-                return False # 0 divides nothing else
-        except (AttributeError, NotImplementedError):
-            pass
+        if have_same_parent(self, x):
+            # First we test some generic conditions:
+            try:
+                if x.is_zero():
+                    return True # everything divides 0
+            except (AttributeError, NotImplementedError):
+                pass
 
-        try:
-            if self.is_unit():
-                return True # units divide everything
-        except (AttributeError, NotImplementedError):
-            pass
+            try:
+                if self.is_zero():
+                    return False # 0 divides nothing else
+            except (AttributeError, NotImplementedError):
+                pass
 
-        try:
-            if self.is_one():
-                return True # 1 divides everything
-                            # (is_unit() may not be implemented)
-        except (AttributeError, NotImplementedError):
-            pass
+            try:
+                if self.is_unit():
+                    return True # units divide everything
+            except (AttributeError, NotImplementedError):
+                pass
 
-        return (x % self) == 0
+            try:
+                if self.is_one():
+                    return True # 1 divides everything
+                                # (is_unit() may not be implemented)
+            except (AttributeError, NotImplementedError):
+                pass
+
+            return (x % self) == 0
+
+        else:
+            #Different parents, use coercion
+            global coercion_model
+            a, b = coercion_model.canonical_coercion(self, x)
+            return a.divides(b)
 
     def mod(self, I):
         r"""

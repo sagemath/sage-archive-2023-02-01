@@ -127,6 +127,7 @@ Families of graphs
 - :meth:`NKStarGraph <GraphGenerators.NKStarGraph>`
 - :meth:`NStarGraph <GraphGenerators.NStarGraph>`
 - :meth:`OddGraph <GraphGenerators.OddGraph>`
+- :meth:`line_graph_forbidden_subgraphs <GraphGenerators.line_graph_forbidden_subgraphs>`
 - :meth:`trees <GraphGenerators.trees>`
 
 
@@ -5439,6 +5440,90 @@ class GraphGenerators():
                     yield gg
         else:
             raise NotImplementedError
+
+    def line_graph_forbidden_subgraphs(self):
+        r"""
+        Returns the 9 forbidden subgraphs of a line graph.
+
+        `Wikipedia article on the line graphs
+        <http://en.wikipedia.org/wiki/Line_graph>`_
+
+        The graphs are returned in the ordering given by the Wikipedia
+        drawing, read from left to right and from top to bottom.
+
+        EXAMPLE::
+
+            sage: graphs.line_graph_forbidden_subgraphs()
+            [Claw graph: Graph on 4 vertices,
+            Graph on 6 vertices,
+            Graph on 6 vertices,
+            Graph on 5 vertices,
+            Graph on 6 vertices,
+            Graph on 6 vertices,
+            Graph on 6 vertices,
+            Graph on 6 vertices,
+            Graph on 5 vertices]
+
+        """
+        from sage.graphs.all import Graph
+        graphs = [self.ClawGraph()]
+
+        graphs.append(Graph({
+                    0: [1, 2, 3],
+                    1: [2, 3],
+                    4: [2],
+                    5: [3]
+                    }))
+
+        graphs.append(Graph({
+                    0: [1, 2, 3, 4],
+                    1: [2, 3, 4],
+                    3: [4],
+                    2: [5]
+                    }))
+
+        graphs.append(Graph({
+                    0: [1, 2, 3],
+                    1: [2, 3],
+                    4: [2, 3]
+                    }))
+
+        graphs.append(Graph({
+                    0: [1, 2, 3],
+                    1: [2, 3],
+                    4: [2],
+                    5: [3, 4]
+                    }))
+
+        graphs.append(Graph({
+                    0: [1, 2, 3, 4],
+                    1: [2, 3, 4],
+                    3: [4],
+                    5: [2, 0, 1]
+                    }))
+
+        graphs.append(Graph({
+                    5: [0, 1, 2, 3, 4],
+                    0: [1, 4],
+                    2: [1, 3],
+                    3: [4]
+                    }))
+
+        graphs.append(Graph({
+                    1: [0, 2, 3, 4],
+                    3: [0, 4],
+                    2: [4, 5],
+                    4: [5]
+                    }))
+
+        graphs.append(Graph({
+                    0: [1, 2, 3],
+                    1: [2, 3, 4],
+                    2: [3, 4],
+                    3: [4]
+                    }))
+
+        return graphs
 
     def trees(self, vertices):
         """

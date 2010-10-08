@@ -192,8 +192,8 @@ class NumberFieldIdeal(Ideal_generic):
         EXAMPLES::
 
             sage: NumberField(x^2 + 1, 'a').ideal(7).__hash__()
-            -9223372036854775779                 # 64-bit
-            -2147483619                          # 32-bit
+            -288230376151711715                 # 64-bit
+            -67108835                           # 32-bit
         """
         try: return self._hash
         # At some point in the future (e.g., for relative extensions), we'll likely

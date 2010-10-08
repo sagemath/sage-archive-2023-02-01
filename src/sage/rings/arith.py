@@ -1573,7 +1573,7 @@ def __LCM_sequence(v):
         2*X^3 + 4*X^2
         sage: R.<X>=QQ[]
         sage: __LCM_sequence(Sequence((2*X+4,2*X^2,2)))
-        4*X^3 + 8*X^2
+        X^3 + 2*X^2
     """
     if len(v) == 0:
         return ZZ(1)

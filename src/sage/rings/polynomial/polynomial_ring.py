@@ -70,7 +70,7 @@ These may change over time::
     sage: type(ZZ['x'].0)
     <type 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'>
     sage: type(QQ['x'].0)
-    <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_rational_dense'>
+    <type 'sage.rings.polynomial.polynomial_rational_flint.Polynomial_rational_flint'>
     sage: type(RR['x'].0)
     <type 'sage.rings.polynomial.polynomial_real_mpfr_dense.PolynomialRealDense'>
     sage: type(Integers(4)['x'].0)
@@ -1210,7 +1210,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             sage: R = PRing(QQ, 'x'); R
             Univariate Polynomial Ring in x over Rational Field
             sage: type(R.gen())
-            <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_rational_dense'>
+            <type 'sage.rings.polynomial.polynomial_rational_flint.Polynomial_rational_flint'>
             sage: R = PRing(QQ, 'x', sparse=True); R
             Sparse Univariate Polynomial Ring in x over Rational Field
             sage: type(R.gen())
@@ -1225,28 +1225,34 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             sage: x^(10^20) # this should be fast
             x^100000000000000000000
         """
-        if implementation is None: implementation="NTL"
         from sage.rings.finite_rings.finite_field_base import is_FiniteField
+        from sage.rings.rational_field import QQ
+        from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
+        if implementation is None:
+            implementation = "NTL"
+
         if implementation == "NTL" and is_FiniteField(base_ring) and not(sparse):
-            p=base_ring.characteristic()
             from sage.libs.ntl.ntl_ZZ_pEContext import ntl_ZZ_pEContext
             from sage.libs.ntl.ntl_ZZ_pX import ntl_ZZ_pX
-            self._modulus = ntl_ZZ_pEContext(ntl_ZZ_pX(list(base_ring.polynomial()), p))
             from sage.rings.polynomial.polynomial_zz_pex import Polynomial_ZZ_pEX
-            element_class=Polynomial_ZZ_pEX
+
+            p=base_ring.characteristic()
+            self._modulus = ntl_ZZ_pEContext(ntl_ZZ_pX(list(base_ring.polynomial()), p))
+            element_class = Polynomial_ZZ_pEX
 
         if not element_class:
             if sparse:
                 element_class = polynomial_element_generic.Polynomial_generic_sparse_field
             elif isinstance(base_ring, rational_field.RationalField):
-                element_class = polynomial_element_generic.Polynomial_rational_dense
+                from sage.rings.polynomial.polynomial_rational_flint import Polynomial_rational_flint
+                element_class = Polynomial_rational_flint
             elif is_RealField(base_ring):
                 element_class = PolynomialRealDense
             else:
                 element_class = polynomial_element_generic.Polynomial_generic_dense_field
+
         PolynomialRing_integral_domain.__init__(self, base_ring, name=name, sparse=sparse, element_class=element_class)
 
-        from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
         self._has_singular = can_convert_to_singular(self)
 
     def _ideal_class_(self, n=0):

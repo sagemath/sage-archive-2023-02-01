@@ -80,9 +80,10 @@ Applying an operation is generally done by *calling a method*::
     sage: p.factor()
     6*(x + 1)^2
 
-    sage: pQ = QQ[x] ( p )
+    sage: R.<x> = PolynomialRing(QQ, sparse=True)
+    sage: pQ = R ( p )
     sage: type(pQ)
-    <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_rational_dense'>
+    <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_sparse_field'>
     sage: pQ.factor()
     (6) * (x + 1)^2
 

@@ -126,7 +126,7 @@ class ComplexField_class(field.Field):
         sage: C(S.gen())
         Traceback (most recent call last):
         ...
-        TypeError: unable to coerce to a ComplexNumber: <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_rational_dense'>
+        TypeError: unable to coerce to a ComplexNumber: <type 'sage.rings.polynomial.polynomial_rational_flint.Polynomial_rational_flint'>
 
     This illustrates precision.
 

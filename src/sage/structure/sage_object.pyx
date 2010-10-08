@@ -42,7 +42,7 @@ cdef class SageObject:
 
         EXAMPLES::
 
-            sage: x = PolynomialRing(QQ,'x').gen()
+            sage: x = PolynomialRing(QQ, 'x', sparse=True).gen()
             sage: g = x^3 + x - 5
             sage: g
             x^3 + x - 5

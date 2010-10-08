@@ -40,7 +40,7 @@ def symbolic_expression(x):
         sage: type(a)
         <type 'sage.symbolic.expression.Expression'>
         sage: R.<x> = QQ[]; type(x)
-        <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_rational_dense'>
+        <type 'sage.rings.polynomial.polynomial_rational_flint.Polynomial_rational_flint'>
         sage: a = symbolic_expression(2*x^2 + 3); a
         2*x^2 + 3
         sage: type(a)

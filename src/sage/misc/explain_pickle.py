@@ -17,12 +17,12 @@ EXAMPLES::
     pg_make_integer = unpickle_global('sage.rings.integer', 'make_integer')
     pg_make_integer('c1p')
     sage: explain_pickle(dumps(polygen(QQ)))
-    pg_Polynomial_rational_dense = unpickle_global('sage.rings.polynomial.polynomial_element_generic', 'Polynomial_rational_dense')
+    pg_Polynomial_rational_flint = unpickle_global('sage.rings.polynomial.polynomial_rational_flint', 'Polynomial_rational_flint')
     pg_PolynomialRing = unpickle_global('sage.rings.polynomial.polynomial_ring_constructor', 'PolynomialRing')
     pg_RationalField = unpickle_global('sage.rings.rational_field', 'RationalField')
     pg = unpickle_instantiate(pg_RationalField, ())
     pg_make_rational = unpickle_global('sage.rings.rational', 'make_rational')
-    pg_Polynomial_rational_dense(pg_PolynomialRing(pg, 'x', None, False), [pg_make_rational('0'), pg_make_rational('1')], False, True)
+    pg_Polynomial_rational_flint(pg_PolynomialRing(pg, 'x', None, False), [pg_make_rational('0'), pg_make_rational('1')], False, True)
     sage: sage_eval(explain_pickle(dumps(polygen(QQ)))) == polygen(QQ)
     True
 
@@ -39,9 +39,9 @@ version of Sage; here are the above two examples again::
     from sage.rings.integer import make_integer
     make_integer('c1p')
     sage: explain_pickle(dumps(polygen(QQ)), in_current_sage=True)
-    from sage.rings.polynomial.polynomial_element_generic import Polynomial_rational_dense
+    from sage.rings.polynomial.polynomial_rational_flint import Polynomial_rational_flint
     from sage.rings.rational import make_rational
-    Polynomial_rational_dense(PolynomialRing(RationalField(), 'x', None, False), [make_rational('0'), make_rational('1')], False, True)
+    Polynomial_rational_flint(PolynomialRing(RationalField(), 'x', None, False), [make_rational('0'), make_rational('1')], False, True)
 
 The explain_pickle function has several use cases.
 

@@ -1383,6 +1383,14 @@ ext_modules = [
               language = 'c++',
               include_dirs = ['sage/libs/ntl/']),
 
+    Extension('sage.rings.polynomial.polynomial_rational_flint',
+              sources = ['sage/rings/polynomial/polynomial_rational_flint.pyx', 'sage/libs/flint/fmpq_poly.c'],
+              language = 'c++',
+              extra_compile_args=["-std=c99"] + uname_specific('SunOS', [], ['-D_XPG6']),
+              libraries = ["csage", "flint", "ntl", "gmpxx", "gmp"],
+              include_dirs = [SAGE_ROOT + '/local/include/FLINT/', SAGE_ROOT + '/devel/sage/sage/libs/flint/'],
+              depends = [SAGE_ROOT + "/local/include/FLINT/flint.h"]),
+
     Extension('sage.rings.polynomial.polynomial_modn_dense_ntl',
               sources = ['sage/rings/polynomial/polynomial_modn_dense_ntl.pyx'],
               libraries = ['ntl', 'stdc++', 'gmp'],

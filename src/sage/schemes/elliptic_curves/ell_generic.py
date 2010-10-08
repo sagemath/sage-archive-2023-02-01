@@ -1772,9 +1772,9 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: [E.division_polynomial(3, two_torsion_multiplicity=i) for i in range(3)]
             [3*x^4 - 6*x^2 + 3*x - 1, 3*x^4 - 6*x^2 + 3*x - 1, 3*x^4 - 6*x^2 + 3*x - 1]
             sage: [type(E.division_polynomial(3, two_torsion_multiplicity=i)) for i in range(3)]
-            [<class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_rational_dense'>,
-            <type 'sage.rings.polynomial.multi_polynomial_libsingular.MPolynomial_libsingular'>,
-            <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_rational_dense'>]
+            [<type 'sage.rings.polynomial.polynomial_rational_flint.Polynomial_rational_flint'>,
+             <type 'sage.rings.polynomial.multi_polynomial_libsingular.MPolynomial_libsingular'>,
+             <type 'sage.rings.polynomial.polynomial_rational_flint.Polynomial_rational_flint'>]
 
         ::
 

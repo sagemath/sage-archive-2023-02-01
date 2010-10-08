@@ -163,7 +163,7 @@ def raise_attribute_error(self, name):
         sage: sage.structure.parent.raise_attribute_error(QQ[x].gen(), "bla")
         Traceback (most recent call last):
         ...
-        AttributeError: 'Polynomial_rational_dense' object has no attribute 'bla'
+        AttributeError: 'sage.rings.polynomial.polynomial_rational_flint.Polynomial_rational_flint' object has no attribute 'bla'
     """
     cls = type(self)
     if is_extension_type(cls):
@@ -218,8 +218,12 @@ def getattr_from_other_class(self, cls, name):
         Traceback (most recent call last):
         ...
         AttributeError: 'sage.rings.integer_ring.IntegerRing_class' object has no attribute 'lazy_attribute'
-        sage: getattr_from_other_class(QQ[x].one(), A, "lazy_attribute")
+        sage: getattr_from_other_class(PolynomialRing(QQ, name='x', sparse=True).one(), A, "lazy_attribute")
         '1'
+        sage: getattr_from_other_class(PolynomialRing(QQ, name='x', implementation="FLINT").one(), A, "lazy_attribute")
+        Traceback (most recent call last):
+        ...
+        AttributeError: 'sage.rings.polynomial.polynomial_rational_flint.Polynomial_rational_flint' object has no attribute 'lazy_attribute'
 
     In general, descriptors are not yet well supported, because they
     often do not accept to be cheated with the type of their instance::

@@ -6556,13 +6556,20 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.vertices(key = lambda x: (x[1], x[2], x[0]))
             [(0, 0, 0), (1, 0, 0), (2, 0, 0), (0, 0, 1), ... (1, 2, 2), (2, 2, 2)]
 
-        ::
+        The discriminant of a polynomial is a function that returns an integer.
+        We build a graph whose vertices are polynomials, and use the discriminant
+        function to provide an ordering.  Note that since functions are first-class
+        objects in Python, we can specify precisely the function from the Sage library
+        that we wish to use as the key. ::
 
             sage: t = polygen(QQ, 't')
             sage: K = Graph({5*t:[t^2], t^2:[t^2+2], t^2+2:[4*t^2-6], 4*t^2-6:[5*t]})
-            sage: dsc = sage.rings.polynomial.polynomial_element_generic.Polynomial_rational_dense.discriminant
-            sage: K.vertices(key=dsc)
+            sage: dsc = sage.rings.polynomial.polynomial_rational_flint.Polynomial_rational_flint.discriminant
+            sage: verts = K.vertices(key=dsc)
+            sage: verts
             [t^2 + 2, t^2, 5*t, 4*t^2 - 6]
+            sage: [x.discriminant() for x in verts]
+            [-8, 0, 1, 96]
 
         If boundary vertices are requested first, then they are sorted
         separately from the remainder (which are also sorted). ::

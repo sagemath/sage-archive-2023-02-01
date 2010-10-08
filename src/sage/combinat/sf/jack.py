@@ -495,18 +495,18 @@ class JackPolynomials_p(JackPolynomials_generic):
             sage: l = lambda c: [ (i[0],[j for j in sorted(i[1].items())]) for i in sorted(c.items())]
             sage: P._m_cache(2)
             sage: l(P._self_to_m_cache[2])
-            [([1, 1], [([1, 1], 1)]), ([2], [([1, 1], 2/(t + 1)), ([2], 1)])]
+            [([1, 1], [([1, 1], 1)]), ([2], [([1, 1], -2/(-t - 1)), ([2], 1)])]
             sage: l(P._m_to_self_cache[2])
-            [([1, 1], [([1, 1], 1)]), ([2], [([1, 1], -2/(t + 1)), ([2], 1)])]
+            [([1, 1], [([1, 1], 1)]), ([2], [([1, 1], 2/(-t - 1)), ([2], 1)])]
             sage: P._m_cache(3)
             sage: l(P._m_to_self_cache[3])
             [([1, 1, 1], [([1, 1, 1], 1)]),
              ([2, 1], [([1, 1, 1], -6/(t + 2)), ([2, 1], 1)]),
-             ([3], [([1, 1, 1], 6/(t^2 + 3*t + 2)), ([2, 1], -3/(2*t + 1)), ([3], 1)])]
+             ([3], [([1, 1, 1], -6/(-t^2 - 3*t - 2)), ([2, 1], -3/(2*t + 1)), ([3], 1)])]
             sage: l(P._self_to_m_cache[3])
             [([1, 1, 1], [([1, 1, 1], 1)]),
              ([2, 1], [([1, 1, 1], 6/(t + 2)), ([2, 1], 1)]),
-             ([3], [([1, 1, 1], 6/(2*t^2 + 3*t + 1)), ([2, 1], 3/(2*t + 1)), ([3], 1)])]
+             ([3], [([1, 1, 1], -6/(-2*t^2 - 3*t - 1)), ([2, 1], 3/(2*t + 1)), ([3], 1)])]
         """
         if n in self._self_to_m_cache:
             return
@@ -536,7 +536,7 @@ class JackPolynomials_p(JackPolynomials_generic):
             sage: p11 = Partition([1,1])
             sage: f = P._to_m(p2)
             sage: f(p11)
-            2/(t + 1)
+            -2/(-t - 1)
             sage: f(p2)
             1
             sage: f = P._to_m(p11)
@@ -554,7 +554,7 @@ class JackPolynomials_p(JackPolynomials_generic):
 
             sage: P = JackPolynomialsP(QQ)
             sage: P([1])^2 # indirect doctest
-            (2*t/(t+1))*JackP[1, 1] + JackP[2]
+            (-2*t/(-t-1))*JackP[1, 1] + JackP[2]
             sage: P._m(_)
             2*m[1, 1] + m[2]
             sage: P = JackPolynomialsP(QQ, 2)
@@ -685,7 +685,7 @@ class JackPolynomials_j(JackPolynomials_generic):
 
             sage: s = SFASchur(J.base_ring())
             sage: J(s([3])) # indirect doctest
-            ((t^2-3*t+2)/(6*t^2+18*t+12))*JackJ[1, 1, 1] + ((2*t-2)/(2*t^2+5*t+2))*JackJ[2, 1] + (1/(2*t^2+3*t+1))*JackJ[3]
+            ((-t^2+3*t-2)/(-6*t^2-18*t-12))*JackJ[1, 1, 1] + ((2*t-2)/(2*t^2+5*t+2))*JackJ[2, 1] + (1/(2*t^2+3*t+1))*JackJ[3]
             sage: J(s([2,1]))
             ((t-1)/(3*t+6))*JackJ[1, 1, 1] + (1/(t+2))*JackJ[2, 1]
             sage: J(s([1,1,1]))
@@ -698,9 +698,9 @@ class JackPolynomials_j(JackPolynomials_generic):
 
             sage: J = JackPolynomialsJ(QQ)
             sage: J([1])^2 #indirect doctest
-            (t/(t+1))*JackJ[1, 1] + (1/(t+1))*JackJ[2]
+            (-t/(-t-1))*JackJ[1, 1] + (1/(t+1))*JackJ[2]
             sage: J([2])^2
-            (2*t^2/(2*t^2+3*t+1))*JackJ[2, 2] + (4*t/(3*t^2+4*t+1))*JackJ[3, 1] + ((t+1)/(6*t^2+5*t+1))*JackJ[4]
+            (-2*t^2/(-2*t^2-3*t-1))*JackJ[2, 2] + (-4*t/(-3*t^2-4*t-1))*JackJ[3, 1] + ((t+1)/(6*t^2+5*t+1))*JackJ[4]
         """
         return self( self._P(left) * self._P(right) )
 

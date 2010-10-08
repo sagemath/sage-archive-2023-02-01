@@ -317,6 +317,15 @@ cdef class Expression(CommutativeRingElement):
         # extract the expression from the archive
         GEx_construct_ex(&self._gobj, ar.unarchive_ex(sym_lst, <unsigned>0))
 
+    def __copy__(self):
+        """
+        TESTS::
+
+            sage: copy(x)
+            x
+        """
+        return new_Expression_from_GEx(self._parent, self._gobj)
+
     def _repr_(self):
         """
         Return string representation of this symbolic expression.

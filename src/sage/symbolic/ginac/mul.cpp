@@ -1060,6 +1060,9 @@ bool algebraic_match_mul_with_mul(const mul &e, const ex &pat, lst &repls,
 		int factor, int &nummatches, const std::vector<bool> &subsed,
 		std::vector<bool> &matched)
 {
+	GINAC_ASSERT(subsed.size() == e.nops());
+	GINAC_ASSERT(matched.size() == e.nops());
+
 	if (factor == pat.nops())
 		return true;
 
@@ -1091,8 +1094,8 @@ bool mul::has(const ex & pattern, unsigned options) const
 	if(is_a<mul>(pattern)) {
 		lst repls;
 		int nummatches = std::numeric_limits<int>::max();
-		std::vector<bool> subsed(seq.size(), false);
-		std::vector<bool> matched(seq.size(), false);
+		std::vector<bool> subsed(nops(), false);
+		std::vector<bool> matched(nops(), false);
 		if(algebraic_match_mul_with_mul(*this, pattern, repls, 0, nummatches,
 				subsed, matched))
 			return true;
@@ -1102,8 +1105,7 @@ bool mul::has(const ex & pattern, unsigned options) const
 
 ex mul::algebraic_subs_mul(const exmap & m, unsigned options) const
 {	
-	std::vector<bool> subsed(seq.size(), false);
-	exvector subsresult(seq.size());
+	std::vector<bool> subsed(nops(), false);
 	ex divide_by = 1;
 	ex multiply_by = 1;
 
@@ -1112,7 +1114,7 @@ ex mul::algebraic_subs_mul(const exmap & m, unsigned options) const
 		if (is_exactly_a<mul>(it->first)) {
 retry1:
 			int nummatches = std::numeric_limits<int>::max();
-			std::vector<bool> currsubsed(seq.size(), false);
+			std::vector<bool> currsubsed(nops(), false);
 			lst repls;
 			
 			if(!algebraic_match_mul_with_mul(*this, it->first, repls, 0, nummatches, subsed, currsubsed))

@@ -796,8 +796,10 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             row_right = (<Matrix_modn_dense> right)._matrix[i]
             for j from 0 <= j < self._ncols:
                 if row_self[j] < row_right[j]:
+                    sig_off()
                     return -1
                 elif row_self[j] > row_right[j]:
+                    sig_off()
                     return 1
             #cmp = memcmp(row_self, row_right, sizeof(mod_int)*self._ncols)
             #if cmp:

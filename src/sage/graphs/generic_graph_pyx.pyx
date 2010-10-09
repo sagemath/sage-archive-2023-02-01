@@ -728,6 +728,7 @@ cdef class SubgraphSearch:
 
                 # We have found our copy !!!
                 if self.active == self.nh-1:
+                    sig_off()
                     return [self.g_vertices[self.stack[l]] for l in xrange(self.nh)]
 
                 # We are still missing several vertices ...

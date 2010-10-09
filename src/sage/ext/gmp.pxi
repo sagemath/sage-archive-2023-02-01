@@ -9,6 +9,8 @@
 #
 # to include this in a file.
 
+include '../ext/interrupt.pxi'
+
 ############ The following is the "one global set of vars"
 cdef extern from "gmp_globals.h":
     cdef mpz_t u, v, q, u0, u1, u2, v0, v1, v2, t0, t1, t2, x, y, ssqr, m2
@@ -100,9 +102,11 @@ cdef int mpq_rational_reconstruction(mpq_t answer, mpz_t a, mpz_t m) except -1:
 ##     t = str(s)
 ##     print 'm = ', t
 ##     #debug
+    sig_on()
     mpz_mod(a, a, m)     # a = a % m
     if mpz_sgn(a) == 0 or mpz_sgn(m) == 0:    # a or m is zero
         mpq_set_si(answer, 0, 1)              # return 0
+        sig_off()
         return 0
     if mpz_sgn(m) < 0:  # m negative
         mpz_neg(m, m)   # replace m by -m
@@ -110,6 +114,7 @@ cdef int mpq_rational_reconstruction(mpq_t answer, mpz_t a, mpz_t m) except -1:
         mpz_sub(a, m, a)  # replace a by m - a
     if mpz_cmp_si(a, 1) == 0:   # if a is 1
         mpq_set_si(answer, 1, 1)
+        sig_off()
         return 0
 
     mpz_set(u, m)       # u = m
@@ -139,8 +144,10 @@ cdef int mpq_rational_reconstruction(mpq_t answer, mpz_t a, mpz_t m) except -1:
         mpq_set_z(answer, y)
         mpq_set_z(tmp, x)
         mpq_div(answer, answer, tmp)
+        sig_off()
         return 0
 
+    sig_off()
     raise ValueError, "Rational reconstruction of %s (mod %s) does not exist."%(mpz_to_str(a),mpz_to_str(m))
 
 

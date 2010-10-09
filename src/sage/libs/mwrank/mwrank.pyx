@@ -507,7 +507,6 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
         if verbose:
             sys.stdout.flush()
             sys.stderr.flush()
-        sig_off()
         from sage.misc.all import preparse
         from sage.rings.all import Integer
         return eval(s)
@@ -783,7 +782,6 @@ cdef class _mw:
         """
         sig_on()
         s = string_sigoff(mw_getbasis(self.x))
-        sig_off()
         return s
 
     def regulator(self):
@@ -816,7 +814,6 @@ cdef class _mw:
         cdef float f
         sig_on()
         f = float(string_sigoff(mw_regulator(self.x)))
-        sig_off()
         return f
 
     def rank(self):
@@ -907,7 +904,7 @@ cdef class _mw:
         sig_on()
         index = _bigint()
         ok = mw_saturate(self.x, index.x, &s, sat_bd, odd_primes_only)
-        unsat = string_sigoff(s)   # includes sig_off()
+        unsat = string_sigoff(s)
         return ok, index, unsat
 
     def search(self, h_lim, int moduli_option=0, int verb=0):

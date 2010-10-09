@@ -739,6 +739,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
                 ZZ_pX_InvMod_newton_ram(ans.value, self.value, self.prime_pow.get_top_modulus()[0], self.prime_pow.get_top_context().x)
             ZZ_negate(rZZ.x, rZZ.x)
             ZZ_pX_PowerMod_pre(ans.value, ans.value, rZZ.x, self.prime_pow.get_top_modulus()[0])
+            sig_off()
         else:
             sig_on()
             ZZ_pX_PowerMod_pre(ans.value, self.value, rZZ.x, self.prime_pow.get_top_modulus()[0])

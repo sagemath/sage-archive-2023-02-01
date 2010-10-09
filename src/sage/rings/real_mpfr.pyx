@@ -2598,11 +2598,12 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: RealField(100)(0.0)._pari_().sizeword()
             2
         """
-        # This uses interfaces of MPFR and Pari which are documented
+        # This uses interfaces of MPFR and PARI which are documented
         # (and not marked subject-to-change).  It could be faster
         # by using internal interfaces of MPFR, which are documented
         # as subject-to-change.
 
+        sig_on()
         if mpfr_nan_p(self.value) or mpfr_inf_p(self.value):
             raise ValueError, 'Cannot convert NaN or infinity to Pari float'
 

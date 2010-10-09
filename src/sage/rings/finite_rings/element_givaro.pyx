@@ -256,20 +256,16 @@ cdef class Cache_givaro(SageObject):
                 cPoly.push_back(int( i % p ))
             sig_on()
             self.objectptr = gfq_factorypkp(p, k, cPoly)
-            sig_off()
         elif modulus == "random":
             sig_on()
             self.objectptr = gfq_factorypk(p,k)
-            sig_off()
         else:
             raise ValueError, "Cannot understand modulus"
 
         self._zero_element = make_FiniteField_givaroElement(self,self.objectptr.zero)
         self._one_element = make_FiniteField_givaroElement(self,self.objectptr.one)
-
-        self._zero_element = make_FiniteField_givaroElement(self,self.objectptr.zero)
-        self._one_element = make_FiniteField_givaroElement(self,self.objectptr.one)
         sig_off()
+
         parent._zero_element = self._zero_element
         parent._one_element = self._one_element
         if cache:

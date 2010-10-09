@@ -673,93 +673,96 @@ cdef class Context:
         cdef mpc rc
         cdef MPopts workopts
         cdef int styp, ttyp
-        MPF_init(&sre)
-        MPF_init(&sim)
-        MPF_init(&tre)
-        MPF_init(&tim)
-        MPF_init(&tmp)
         workopts = global_opts
         workopts.prec = workopts.prec * 2 + 50
         workopts.rounding = ROUND_D
         unknown = global_context.zero
-        sig_on()
-        styp = 1
-        for term in terms:
-            ttyp = MPF_set_any(&tre, &tim, term, workopts, 0)
-            if ttyp == 0:
-                if absolute: term = ctx.absmax(term)
-                if squared: term = term**2
-                unknown += term
-                continue
-            if absolute:
-                if squared:
+        try:  # Way down, there is a ``finally`` with sig_off()
+            sig_on()
+            MPF_init(&sre)
+            MPF_init(&sim)
+            MPF_init(&tre)
+            MPF_init(&tim)
+            MPF_init(&tmp)
+            styp = 1
+            for term in terms:
+                ttyp = MPF_set_any(&tre, &tim, term, workopts, 0)
+                if ttyp == 0:
+                    if absolute: term = ctx.absmax(term)
+                    if squared: term = term**2
+                    unknown += term
+                    continue
+                if absolute:
+                    if squared:
+                        if ttyp == 1:
+                            MPF_mul(&tre, &tre, &tre, opts_exact)
+                            MPF_add(&sre, &sre, &tre, workopts)
+                        elif ttyp == 2:
+                            # |(a+bi)^2| = a^2+b^2
+                            MPF_mul(&tre, &tre, &tre, opts_exact)
+                            MPF_add(&sre, &sre, &tre, workopts)
+                            MPF_mul(&tim, &tim, &tim, opts_exact)
+                            MPF_add(&sre, &sre, &tim, workopts)
+                    else:
+                        if ttyp == 1:
+                            MPF_abs(&tre, &tre)
+                            MPF_add(&sre, &sre, &tre, workopts)
+                        elif ttyp == 2:
+                            # |a+bi| = sqrt(a^2+b^2)
+                            MPF_mul(&tre, &tre, &tre, opts_exact)
+                            MPF_mul(&tim, &tim, &tim, opts_exact)
+                            MPF_add(&tre, &tre, &tim, workopts)
+                            MPF_sqrt(&tre, &tre, workopts)
+                            MPF_add(&sre, &sre, &tre, workopts)
+                elif squared:
                     if ttyp == 1:
                         MPF_mul(&tre, &tre, &tre, opts_exact)
                         MPF_add(&sre, &sre, &tre, workopts)
                     elif ttyp == 2:
-                        # |(a+bi)^2| = a^2+b^2
+                        # (a+bi)^2 = a^2-b^2 + 2i*ab
+                        MPF_mul(&tmp, &tre, &tim, opts_exact)
+                        MPF_mul(&tmp, &tmp, &MPF_C_2, opts_exact)
+                        MPF_add(&sim, &sim, &tmp, workopts)
                         MPF_mul(&tre, &tre, &tre, opts_exact)
                         MPF_add(&sre, &sre, &tre, workopts)
                         MPF_mul(&tim, &tim, &tim, opts_exact)
-                        MPF_add(&sre, &sre, &tim, workopts)
+                        MPF_sub(&sre, &sre, &tim, workopts)
+                        styp = 2
                 else:
                     if ttyp == 1:
-                        MPF_abs(&tre, &tre)
                         MPF_add(&sre, &sre, &tre, workopts)
                     elif ttyp == 2:
-                        # |a+bi| = sqrt(a^2+b^2)
-                        MPF_mul(&tre, &tre, &tre, opts_exact)
-                        MPF_mul(&tim, &tim, &tim, opts_exact)
-                        MPF_add(&tre, &tre, &tim, workopts)
-                        MPF_sqrt(&tre, &tre, workopts)
                         MPF_add(&sre, &sre, &tre, workopts)
-            elif squared:
-                if ttyp == 1:
-                    MPF_mul(&tre, &tre, &tre, opts_exact)
-                    MPF_add(&sre, &sre, &tre, workopts)
-                elif ttyp == 2:
-                    # (a+bi)^2 = a^2-b^2 + 2i*ab
-                    MPF_mul(&tmp, &tre, &tim, opts_exact)
-                    MPF_mul(&tmp, &tmp, &MPF_C_2, opts_exact)
-                    MPF_add(&sim, &sim, &tmp, workopts)
-                    MPF_mul(&tre, &tre, &tre, opts_exact)
-                    MPF_add(&sre, &sre, &tre, workopts)
-                    MPF_mul(&tim, &tim, &tim, opts_exact)
-                    MPF_sub(&sre, &sre, &tim, workopts)
-                    styp = 2
+                        MPF_add(&sim, &sim, &tim, workopts)
+                        styp = 2
+            MPF_clear(&tre)
+            MPF_clear(&tim)
+            if styp == 1:
+                rr = PY_NEW(mpf)
+                MPF_set(&rr.value, &sre)
+                MPF_clear(&sre)
+                MPF_clear(&sim)
+                MPF_normalize(&rr.value, global_opts)
+                if unknown is not global_context.zero:
+                    return ctx._stupid_add(rr, unknown)
+                return rr
+            elif styp == 2:
+                rc = PY_NEW(mpc)
+                MPF_set(&rc.re, &sre)
+                MPF_set(&rc.im, &sim)
+                MPF_clear(&sre)
+                MPF_clear(&sim)
+                MPF_normalize(&rc.re, global_opts)
+                MPF_normalize(&rc.im, global_opts)
+                if unknown is not global_context.zero:
+                    return ctx._stupid_add(rc, unknown)
+                return rc
             else:
-                if ttyp == 1:
-                    MPF_add(&sre, &sre, &tre, workopts)
-                elif ttyp == 2:
-                    MPF_add(&sre, &sre, &tre, workopts)
-                    MPF_add(&sim, &sim, &tim, workopts)
-                    styp = 2
-        MPF_clear(&tre)
-        MPF_clear(&tim)
-        if styp == 1:
-            rr = PY_NEW(mpf)
-            MPF_set(&rr.value, &sre)
-            MPF_clear(&sre)
-            MPF_clear(&sim)
-            MPF_normalize(&rr.value, global_opts)
-            if unknown is not global_context.zero:
-                return ctx._stupid_add(rr, unknown)
-            return rr
-        elif styp == 2:
-            rc = PY_NEW(mpc)
-            MPF_set(&rc.re, &sre)
-            MPF_set(&rc.im, &sim)
-            MPF_clear(&sre)
-            MPF_clear(&sim)
-            MPF_normalize(&rc.re, global_opts)
-            MPF_normalize(&rc.im, global_opts)
-            if unknown is not global_context.zero:
-                return ctx._stupid_add(rc, unknown)
-            return rc
-        else:
-            MPF_clear(&sre)
-            MPF_clear(&sim)
-            return +unknown
+                MPF_clear(&sre)
+                MPF_clear(&sim)
+                return +unknown
+        finally:
+            sig_off()
 
     def fdot(ctx, A, B=None, bint conjugate=False):
         r"""

@@ -1330,6 +1330,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         if mpz_sgn(self.value) < 0:
             self_abs = -self
 
+        cdef bint do_sig_on
         if mpz_sgn(self.value) == 0:
             l = [the_integer_ring._zero_element if digits is None else digits[0]]*padto
         elif mpz_cmp_si(_base.value,2) == 0:
@@ -1349,8 +1350,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                     l[i] = o
         else:
             s = mpz_sizeinbase(self.value, 2)
-            if s > 256:
-                sig_on()
+            do_sig_on = (s > 256)
+            if do_sig_on: sig_on()
 
             #   We use a divide and conquer approach (suggested
             # by the prior author, malb?, of the digits method)
@@ -1403,8 +1404,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 # the case due to the optimization of skipping assigns assigning zero.
                 _digits_internal(self.value,l,0,i-1,power_list,digits)
 
-            if s > 256:
-                sig_off()
+            if do_sig_on: sig_off()
 
         # padding should be taken care of with-in the function
         # all we need to do is return
@@ -2089,6 +2089,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         if upper - lower == 2:
             # You could test it by checking rif_m**(lower+1), but I think that's a waste of time since it won't be conclusive
             # We must test with exact integer arithmetic which takes all the bits of self into account.
+            sig_off()
             if self >= m**(lower+1):
                 return lower + 1
             else:
@@ -2119,6 +2120,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                     lower = middle
                     min_power = exp
                 else:
+                    sig_off()
                     if m**middle <= self:
                         return middle
                     else:
@@ -3112,20 +3114,22 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 mpz_set_ui(x.value,5); return x
 
             # x.value = floor(sqrt(self.value))
+            sig_on()
             mpz_abs(x.value, self.value)
             mpz_sqrt(x.value, x.value)
             if mpz_cmp_si(x.value, bound) < 0:
                 limit = mpz_get_ui(x.value)
             else:
                 limit = bound
-            sig_on()
             while m <= limit:
                 if  mpz_divisible_ui_p(self.value, m):
-                    mpz_set_ui(x.value, m); return x
+                    mpz_set_ui(x.value, m)
+                    sig_off()
+                    return x
                 m += dif[i%8]
                 i += 1
-            sig_off()
             mpz_abs(x.value, self.value)
+            sig_off()
             return x
 
     def _factor_trial_division(self, long limit=LONG_MAX):

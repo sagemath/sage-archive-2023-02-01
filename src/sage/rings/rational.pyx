@@ -2319,9 +2319,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             raise ZeroDivisionError, "Rational modulo by zero"
         n = self.numer() % other
         d = self.denom() % other
-        sig_on()
         d = d.inverse_mod(other)
-        sig_off()
         return (n*d)%other
 
     def norm(self):
@@ -3255,7 +3253,7 @@ def pyrex_rational_reconstruction(integer.Integer a, integer.Integer m):
         raise ZeroDivisionError("The modulus cannot be zero")
     cdef Rational x
     x = <Rational> PY_NEW(Rational)
-    mpq_rational_reconstruction(x.value, a.get_value()[0], m.get_value()[0])
+    mpq_rational_reconstruction(x.value, a.value, m.value)
     return x
 
 def make_rational(s):

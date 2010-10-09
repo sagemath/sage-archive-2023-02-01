@@ -144,18 +144,18 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
         sig_on()
         self._entries = <mpq_t *> sage_malloc(sizeof(mpq_t)*(self._nrows * self._ncols))
-        sig_off()
         if self._entries == NULL:
+            sig_off()
             raise MemoryError("out of memory allocating a matrix")
 
         self._matrix =  <mpq_t **> sage_malloc(sizeof(mpq_t*) * self._nrows)
         if self._matrix == NULL:
             sage_free(self._entries)
             self._entries = NULL
+            sig_off()
             raise MemoryError("out of memory allocating a matrix")
 
         # store pointers to the starts of the rows
-        sig_on()
         k = 0
         for i from 0 <= i < self._nrows:
             self._matrix[i] = self._entries + k
@@ -183,17 +183,17 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             if len(entries) != self._nrows * self._ncols:
                 raise TypeError("entries has the wrong length")
 
-            sig_on()
             if coerce:
                 for i from 0 <= i < self._nrows * self._ncols:
                     # TODO: Should use an unsafe un-bounds-checked array access here.
+                    sig_check()
                     z = Rational(entries[i])
                     mpq_set(self._entries[i], z.value)
             else:
                 for i from 0 <= i < self._nrows * self._ncols:
                     # TODO: Should use an unsafe un-bounds-checked array access here.
+                    sig_check()
                     mpq_set(self._entries[i], (<Rational> entries[i]).value)
-            sig_off()
 
         else:
             # is it a scalar?
@@ -1068,6 +1068,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef Integer D
         cdef mpz_t* AB_row,
         cdef mpq_t* res_row
+        sig_on()
         A, A_denom = self._clear_denom()
         B, B_denom = right._clear_denom()
         if algorithm == 'default':
@@ -1075,6 +1076,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         elif algorithm == 'multimodular':
             AB = A._multiply_multi_modular(B)
         else:
+            sig_off()
             raise ValueError("unknown algorithm '%s'"%algorithm)
         D = A_denom * B_denom
         if self._nrows == right._nrows:
@@ -2527,7 +2529,6 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef PariInstance P = sage.libs.pari.gen.pari
         sig_on()
         cdef GEN d = det0(pari_GEN(self), flag)
-        sig_off()
         # now convert d to a Sage rational
         cdef Rational e = Rational()
         t_FRAC_to_QQ(e.value, d)
@@ -2546,7 +2547,6 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef PariInstance P = sage.libs.pari.gen.pari
         sig_on()
         cdef long r = rank(pari_GEN(self))
-        sig_off()
         P.clear_stack()
         return r
 
@@ -2577,7 +2577,6 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef PariInstance P = sage.libs.pari.gen.pari
         sig_on()
         cdef GEN M = gmul(pari_GEN(self), pari_GEN(right))
-        sig_off()
         A = new_matrix_from_pari_GEN(self.matrix_space(self._nrows, right._ncols), M)
         P.clear_stack()
         return A
@@ -2599,18 +2598,17 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
         sig_on()
         M = pari_GEN(self)
-        sig_off()
 
         # unfortunately I can't get signal handling to be good enough
         # to properly catch error (and clean up) when trying to
         # compute inverse, so we have to compute rank.  This does add
         # time... (!) :-(
+        #
+        # TODO: fix this in #10126 -- Jeroen Demeyer
         if rank(M) < self._nrows:
             P.clear_stack()
             raise ZeroDivisionError("input matrix must be nonsingular")
-        sig_on()
         d = ginv(M)
-        sig_off()
         # Convert matrix back to Sage.
         A = new_matrix_from_pari_GEN(self._parent, d)
         P.clear_stack()

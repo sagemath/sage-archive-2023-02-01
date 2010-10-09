@@ -1760,13 +1760,9 @@ cdef class PowComputer_ZZ_pX_small(PowComputer_ZZ_pX):
         if n < 0:
             n = -n
         try:
-            sig_on()
             (<ntl_ZZ_pContext_class>self.c[n]).restore_c()
-            sig_off()
         except IndexError:
-            sig_on()
             (<ntl_ZZ_pContext_class>PowComputer_ZZ_pX.get_context(self, n)).restore_c()
-            sig_off()
 
     cdef ntl_ZZ_pContext_class get_top_context(self):
         """

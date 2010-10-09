@@ -4837,7 +4837,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef PariInstance P = sage.libs.pari.gen.pari
         sig_on()
         cdef GEN d = det0(pari_GEN(self), flag)
-        sig_off()
         # now convert d to a Sage integer e
         cdef Integer e = Integer()
         t_INT_to_ZZ(e.value, d)
@@ -4858,7 +4857,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef PariInstance P = sage.libs.pari.gen.pari
         sig_on()
         cdef long r = rank(pari_GEN(self))
-        sig_off()
         P.clear_stack()
         return r
 
@@ -4914,8 +4912,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         # Actually compute the HNF using PARI.
         sig_on()
         cdef GEN H = mathnf0(A, flag)
-        sig_off()
-
         B = self.extract_hnf_from_pari_matrix(H, flag, include_zero_rows)
         P.clear_stack()
         return B

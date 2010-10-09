@@ -173,7 +173,9 @@ cdef class ntl_ZZ:
             self = ntl_ZZ(self)
         if not PY_TYPE_CHECK(other, ntl_ZZ):
             other = ntl_ZZ(other)
+        sig_on()
         ZZ_mul(r.x, (<ntl_ZZ>self).x, (<ntl_ZZ>other).x)
+        sig_off()
         return r
 
     def __sub__(self, other):
@@ -226,7 +228,9 @@ cdef class ntl_ZZ:
             122008981252869411022491112993141891091036959856659100591281395343249
         """
         cdef ntl_ZZ r = ntl_ZZ()
+        sig_on()
         ZZ_power(r.x, self.x, e)
+        sig_off()
         return r
 
     def __int__(self):

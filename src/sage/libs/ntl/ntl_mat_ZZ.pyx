@@ -24,23 +24,34 @@ from sage.libs.ntl.ntl_ZZX cimport ntl_ZZX
 
 from ntl_ZZ import unpickle_class_args
 
-cdef make_ZZ(ZZ_c* x):
+cdef inline ntl_ZZ make_ZZ(ZZ_c* x):
     cdef ntl_ZZ y
     y = ntl_ZZ()
     y.x = x[0]
     ZZ_delete(x)
+    return y
+
+# You must do sig_on() before calling this function
+cdef inline ntl_ZZ make_ZZ_sig_off(ZZ_c* x):
+    cdef ntl_ZZ y = make_ZZ(x)
     sig_off()
     return y
 
-cdef make_mat_ZZ(mat_ZZ_c* x):
+cdef inline ntl_mat_ZZ make_mat_ZZ(mat_ZZ_c* x):
     cdef ntl_mat_ZZ y
-    sig_off()
     y = ntl_mat_ZZ(_INIT)
     y.x = x[0]
     mat_ZZ_delete(x)
     y.__nrows = mat_ZZ_nrows(&y.x);
     y.__ncols = mat_ZZ_ncols(&y.x);
     return y
+
+# You must do sig_on() before calling this function
+cdef inline ntl_mat_ZZ make_mat_ZZ_sig_off(mat_ZZ_c* x):
+    cdef ntl_mat_ZZ y = make_mat_ZZ(x)
+    sig_off()
+    return y
+
 
 ##############################################################################
 #
@@ -302,7 +313,8 @@ cdef class ntl_mat_ZZ:
         i, j = ij
         if i < 0 or i >= self.__nrows or j < 0 or j >= self.__ncols:
             raise IndexError, "array index out of range"
-        return make_ZZ(mat_ZZ_getitem(&self.x, i+1, j+1))
+        sig_on()
+        return make_ZZ_sig_off(mat_ZZ_getitem(&self.x, i+1, j+1))
 
     def list(self):
         """
@@ -317,9 +329,12 @@ cdef class ntl_mat_ZZ:
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
         """
         cdef int i, j
-        return [make_ZZ(mat_ZZ_getitem(&self.x, i+1, j+1))
+        sig_on()
+        L = [make_ZZ(mat_ZZ_getitem(&self.x, i+1, j+1))
                     for i from 0 <= i < self.__nrows
                         for j from 0 <= j < self.__ncols]
+        sig_off()
+        return L
 
     def determinant(self, deterministic=True):
         """
@@ -340,7 +355,7 @@ cdef class ntl_mat_ZZ:
         if self.__nrows != self.__ncols:
             raise TypeError, "cannot take determinant of non-square matrix."
         sig_on()
-        return make_ZZ(mat_ZZ_determinant(&self.x, deterministic))
+        return make_ZZ_sig_off(mat_ZZ_determinant(&self.x, deterministic))
 
     def HNF(self, D=None):
         r"""
@@ -400,7 +415,7 @@ cdef class ntl_mat_ZZ:
         else:
             _D = ntl_ZZ(D)
         sig_on()
-        return make_mat_ZZ(mat_ZZ_HNF(&self.x, &_D.x))
+        return make_mat_ZZ_sig_off(mat_ZZ_HNF(&self.x, &_D.x))
 
     def charpoly(self):
         """
@@ -1200,13 +1215,11 @@ cdef class ntl_mat_ZZ:
             U = PY_NEW(ntl_mat_ZZ)
             sig_on()
             rank = int(mat_ZZ_LLL_U(&det2, &self.x, &U.x, int(a), int(b), int(verbose)))
-            sig_off()
-            return rank, make_ZZ(det2), U
+            return rank, make_ZZ_sig_off(det2), U
         else:
             sig_on()
             rank = int(mat_ZZ_LLL(&det2,&self.x,int(a),int(b),int(verbose)))
-            sig_off()
-            return rank,make_ZZ(det2)
+            return rank, make_ZZ_sig_off(det2)
 
     def LLL_FP(self, delta=0.75 , return_U=False, verbose=False):
         r"""

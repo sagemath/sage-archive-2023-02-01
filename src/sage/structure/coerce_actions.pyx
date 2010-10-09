@@ -478,7 +478,8 @@ cdef class IntegerMulAction(Action):
 
 
 cdef inline fast_mul(a, n):
-    sig_on()
+    # We cannot use sig_on() here because this may call arbitrary Python
+    # code raising exceptions. -- Jeroen Demeyer
     if n < 0:
         n = -n
         a = -a
@@ -493,10 +494,11 @@ cdef inline fast_mul(a, n):
         if n & 1:
             sum += pow2a
         n = n >> 1
-    sig_off()
     return sum
 
 cdef inline fast_mul_long(a, long n):
+    # We cannot use sig_on() here because this may call arbitrary Python
+    # code raising exceptions. -- Jeroen Demeyer
     if n < 0:
         n = -n
         a = -a
@@ -505,7 +507,6 @@ cdef inline fast_mul_long(a, long n):
         elif n == 1: return a
         elif n == 2: return a+a
         elif n == 3: return a+a+a
-    sig_on()
     pow2a = a
     while n & 1 == 0:
         pow2a += pow2a
@@ -517,5 +518,4 @@ cdef inline fast_mul_long(a, long n):
         if n & 1:
             sum += pow2a
         n = n >> 1
-    sig_off()
     return sum

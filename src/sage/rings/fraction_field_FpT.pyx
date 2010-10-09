@@ -973,6 +973,7 @@ cdef class FpT_iter:
                 if zmod_poly_degree(next._numer) > self.degree:
                     zmod_poly_inc(next._denom, True)
                     if zmod_poly_degree(next._denom) > self.degree:
+                        sig_off()
                         raise StopIteration
                     zmod_poly_zero(next._numer)
                     zmod_poly_set_coeff_ui(next._numer, 0, 1)

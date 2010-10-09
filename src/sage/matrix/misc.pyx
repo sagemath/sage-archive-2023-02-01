@@ -87,49 +87,53 @@ def matrix_integer_dense_rational_reconstruction(Matrix_integer_dense A, Integer
                                       A.parent().change_ring(QQ), 0,0,0)
 
     cdef mpz_t a, bnd, other_bnd, one, denom
-    mpz_init_set_si(denom, 1)
-    mpz_init(a)
-    mpz_init_set_si(one, 1)
-    mpz_init(other_bnd)
-
     cdef Integer _bnd
-    import math
-    _bnd = (N//2).isqrt()
-    mpz_init_set(bnd, _bnd.value)
-    mpz_sub(other_bnd, N.value, bnd)
-
     cdef Py_ssize_t i, j
     cdef int do_it
+    import math
 
-    for i from 0 <= i < A._nrows:
-        for j from 0 <= j < A._ncols:
-            mpz_set(a, A._matrix[i][j])
-            if mpz_cmp(denom, one) != 0:
-                mpz_mul(a, a, denom)
-            mpz_fdiv_r(a, a, N.value)
-            do_it = 0
-            if mpz_cmp(a, bnd) <= 0:
-                do_it = 1
-            elif mpz_cmp(a, other_bnd) >= 0:
-                mpz_sub(a, a, N.value)
-                do_it = 1
-            if do_it:
-                mpz_set(mpq_numref(R._matrix[i][j]), a)
+    try:
+        sig_on()
+        mpz_init_set_si(denom, 1)
+        mpz_init(a)
+        mpz_init_set_si(one, 1)
+        mpz_init(other_bnd)
+
+        _bnd = (N//2).isqrt()
+        mpz_init_set(bnd, _bnd.value)
+        mpz_sub(other_bnd, N.value, bnd)
+
+        for i from 0 <= i < A._nrows:
+            for j from 0 <= j < A._ncols:
+                mpz_set(a, A._matrix[i][j])
                 if mpz_cmp(denom, one) != 0:
-                    mpz_set(mpq_denref(R._matrix[i][j]), denom)
-                    mpq_canonicalize(R._matrix[i][j])
+                    mpz_mul(a, a, denom)
+                mpz_fdiv_r(a, a, N.value)
+                do_it = 0
+                if mpz_cmp(a, bnd) <= 0:
+                    do_it = 1
+                elif mpz_cmp(a, other_bnd) >= 0:
+                    mpz_sub(a, a, N.value)
+                    do_it = 1
+                if do_it:
+                    mpz_set(mpq_numref(R._matrix[i][j]), a)
+                    if mpz_cmp(denom, one) != 0:
+                        mpz_set(mpq_denref(R._matrix[i][j]), denom)
+                        mpq_canonicalize(R._matrix[i][j])
+                    else:
+                        mpz_set_si(mpq_denref(R._matrix[i][j]), 1)
                 else:
-                    mpz_set_si(mpq_denref(R._matrix[i][j]), 1)
-            else:
-                # Otherwise have to do it the hard way
-                mpq_rational_reconstruction(R._matrix[i][j], A._matrix[i][j], N.value)
-                mpz_lcm(denom, denom, mpq_denref(R._matrix[i][j]))
+                    # Otherwise have to do it the hard way
+                    mpq_rational_reconstruction(R._matrix[i][j], A._matrix[i][j], N.value)
+                    mpz_lcm(denom, denom, mpq_denref(R._matrix[i][j]))
 
-    mpz_clear(denom)
-    mpz_clear(a)
-    mpz_clear(one)
-    mpz_clear(other_bnd)
-    mpz_clear(bnd)
+        mpz_clear(denom)
+        mpz_clear(a)
+        mpz_clear(one)
+        mpz_clear(other_bnd)
+        mpz_clear(bnd)
+    finally:
+        sig_off()
     return R
 
 def matrix_integer_sparse_rational_reconstruction(Matrix_integer_sparse A, Integer N):
@@ -162,65 +166,68 @@ def matrix_integer_sparse_rational_reconstruction(Matrix_integer_sparse A, Integ
                                       A.parent().change_ring(QQ), 0,0,0)
 
     cdef mpq_t t
-    mpq_init(t)
-
     cdef mpz_t a, bnd, other_bnd, one, denom
-    mpz_init_set_si(denom, 1)
-    mpz_init(a)
-    mpz_init_set_si(one, 1)
-    mpz_init(other_bnd)
-
     cdef Integer _bnd
-    import math
-    _bnd = (N//2).isqrt()
-    mpz_init_set(bnd, _bnd.value)
-    mpz_sub(other_bnd, N.value, bnd)
-
     cdef Py_ssize_t i, j
     cdef int do_it
     cdef mpz_vector* A_row
     cdef mpq_vector* R_row
+    import math
 
-    for i from 0 <= i < A._nrows:
-        A_row = &A._matrix[i]
-        R_row = &R._matrix[i]
-        reallocate_mpq_vector(R_row, A_row.num_nonzero)
-        R_row.num_nonzero = A_row.num_nonzero
-        R_row.degree = A_row.degree
-        for j from 0 <= j < A_row.num_nonzero:
-            mpz_set(a, A_row.entries[j])
-            if mpz_cmp(denom, one) != 0:
-                mpz_mul(a, a, denom)
-            mpz_fdiv_r(a, a, N.value)
-            do_it = 0
-            if mpz_cmp(a, bnd) <= 0:
-                do_it = 1
-            elif mpz_cmp(a, other_bnd) >= 0:
-                mpz_sub(a, a, N.value)
-                do_it = 1
-            if do_it:
-                mpz_set(mpq_numref(t), a)
+    try:
+        sig_on()
+        mpq_init(t)
+        mpz_init_set_si(denom, 1)
+        mpz_init(a)
+        mpz_init_set_si(one, 1)
+        mpz_init(other_bnd)
+
+        _bnd = (N//2).isqrt()
+        mpz_init_set(bnd, _bnd.value)
+        mpz_sub(other_bnd, N.value, bnd)
+
+        for i from 0 <= i < A._nrows:
+            A_row = &A._matrix[i]
+            R_row = &R._matrix[i]
+            reallocate_mpq_vector(R_row, A_row.num_nonzero)
+            R_row.num_nonzero = A_row.num_nonzero
+            R_row.degree = A_row.degree
+            for j from 0 <= j < A_row.num_nonzero:
+                mpz_set(a, A_row.entries[j])
                 if mpz_cmp(denom, one) != 0:
-                    mpz_set(mpq_denref(t), denom)
-                    mpq_canonicalize(t)
+                    mpz_mul(a, a, denom)
+                mpz_fdiv_r(a, a, N.value)
+                do_it = 0
+                if mpz_cmp(a, bnd) <= 0:
+                    do_it = 1
+                elif mpz_cmp(a, other_bnd) >= 0:
+                    mpz_sub(a, a, N.value)
+                    do_it = 1
+                if do_it:
+                    mpz_set(mpq_numref(t), a)
+                    if mpz_cmp(denom, one) != 0:
+                        mpz_set(mpq_denref(t), denom)
+                        mpq_canonicalize(t)
+                    else:
+                        mpz_set_si(mpq_denref(t), 1)
+                    mpq_set(R_row.entries[j], t)
+                    R_row.positions[j] = A_row.positions[j]
                 else:
-                    mpz_set_si(mpq_denref(t), 1)
-                mpq_set(R_row.entries[j], t)
-                R_row.positions[j] = A_row.positions[j]
-            else:
-                # Otherwise have to do it the hard way
-                mpq_rational_reconstruction(t, A_row.entries[j], N.value)
-                mpq_set(R_row.entries[j], t)
-                R_row.positions[j] = A_row.positions[j]
-                mpz_lcm(denom, denom, mpq_denref(t))
+                    # Otherwise have to do it the hard way
+                    mpq_rational_reconstruction(t, A_row.entries[j], N.value)
+                    mpq_set(R_row.entries[j], t)
+                    R_row.positions[j] = A_row.positions[j]
+                    mpz_lcm(denom, denom, mpq_denref(t))
 
-    mpq_clear(t)
+        mpq_clear(t)
 
-    mpz_clear(denom)
-    mpz_clear(a)
-    mpz_clear(one)
-    mpz_clear(other_bnd)
-    mpz_clear(bnd)
+        mpz_clear(denom)
+        mpz_clear(a)
+        mpz_clear(one)
+        mpz_clear(other_bnd)
+        mpz_clear(bnd)
+    finally:
+        sig_off()
     return R
 
 

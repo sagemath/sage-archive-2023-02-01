@@ -126,7 +126,7 @@ def cremona_letter_code(n):
     INPUT:
 
 
-    -  ``n`` - int
+    -  ``n`` (int) -- a non-negative integer
 
 
     OUTPUT: str
@@ -145,8 +145,38 @@ def cremona_letter_code(n):
         'cb'
         sage: cremona_letter_code(2005)
         'czd'
+
+    TESTS::
+
+        sage: cremona_letter_code(QQ)
+        Traceback (most recent call last):
+        ...
+        ValueError: Cremona letter codes are only defined for non-negative integers
+        sage: cremona_letter_code(x)
+        Traceback (most recent call last):
+        ...
+        ValueError: Cremona letter codes are only defined for non-negative integers
+        sage: cremona_letter_code(-1)
+        Traceback (most recent call last):
+        ...
+        ValueError: Cremona letter codes are only defined for non-negative integers
+        sage: cremona_letter_code(3.14159)
+        Traceback (most recent call last):
+        ...
+        ValueError: Cremona letter codes are only defined for non-negative integers
     """
-    n = int(n)
+    try:
+        m = int(n)
+        if n == m:
+            n = m
+        else:
+            n = -1
+    except (ValueError, TypeError):
+        n = -1
+
+    if n<0:
+        raise ValueError, "Cremona letter codes are only defined for non-negative integers"
+
     if n == 0:
         return "a"
     s = ""

@@ -150,23 +150,12 @@ _init_qqbar()
 #All of these functions should be removed from the top level
 #after a few releases, and this code should be removed.
 #--Mike Hansen 9/25/2008
-globs = globals()
-from functools import wraps, partial
-for name,func in globs.items():
-    if not name.startswith('is_') or not name[3].isupper():
-        continue
+message = "\nUsing %(name)s from the top level is deprecated since it was designed to be used by developers rather than end users.\nIt most likely does not do what you would expect it to do.  If you really need to use it, import it from the module that it is defined in."
+sage.misc.misc.deprecated_callable_import(None, globals(), locals(),
+                                          [name for name in globals().keys()
+                                           if name.startswith('is_') and name[3].isupper()], message)
 
-    def wrapper(func, name, *args, **kwds):
-        sage.misc.misc.deprecation("\nUsing %s from the top level is deprecated since it was designed to be used by developers rather than end users.\nIt most likely does not do what you would expect it to do.  If you really need to use it, import it from the module that it is defined in."%name)
-        return func(*args, **kwds)
-
-    globs[name] = partial(wrapper, func, name)
-
-del globs, wraps, partial, name, func
-
-
-
-
+del message, name
 
 
 ###########################################################

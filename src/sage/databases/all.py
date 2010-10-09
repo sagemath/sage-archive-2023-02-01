@@ -62,9 +62,15 @@ from database import SQLQuery, GenericSQLQuery, GenericSQLDatabase, SQLDatabase
 
 from conway import ConwayPolynomials
 
-from cremona import CremonaDatabase, \
-     cremona_letter_code, parse_cremona_label, \
-     old_cremona_letter_code, is_optimal_id
+from cremona import CremonaDatabase
+
+# Trac #10107
+from sage.misc.misc import deprecated_callable_import
+deprecated_callable_import('sage.databases.cremona', globals(), locals(),
+                           ['cremona_letter_code', 'parse_cremona_label',
+                            'old_cremona_letter_code', 'is_optimal_id'])
+del deprecated_callable_import
+
 
 from gamma0wt2 import Gamma0Wt2Database
 

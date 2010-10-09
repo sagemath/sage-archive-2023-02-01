@@ -2104,6 +2104,67 @@ def deprecated_function_alias(func, version):
     """
     return DeprecatedFunctionAlias(func, version)
 
+def deprecated_callable_import(module_name, globs, locs, fromlist, message=None):
+    """
+    Imports a list of callables into the namespace from
+    which it is called.  These callables however give a deprecation
+    warning whenever they are called.  This is primarily used from
+    deprecating things from Sage's all.py files.
+
+    :param module_name: The name of the module from which to import the callables or None.
+    :type module_name: string or None
+    :param globs: ``globals()`` from where this is being called.
+    :param locs:  ``locals()`` from where this is being called.
+    :param fromlist: a list the names of the callables to deprecate
+    :type fromlist: list of strings
+    :param message: A message to display when the deprecated functions are called.
+    :type message: string
+
+    .. note::
+
+       If *module_name* is *None*, then no importing will be done, and
+       it will be assumed that the functions have already been
+       imported and are present in *globs*
+
+    .. warning::
+
+       This should really only be used for functions.
+
+    EXAMPLES::
+
+       sage: from sage.misc.misc import deprecated_callable_import
+       sage: is_prime(3)
+       True
+       sage: message = "Using %(name)s from here is deprecated."
+       sage: deprecated_callable_import(None, globals(), locals(), ['is_prime'], message)
+       sage: is_prime(3)
+       doctest:...: DeprecationWarning:
+       Using is_prime from here is deprecated.
+       True
+       sage: del is_prime
+       sage: deprecated_callable_import('sage.rings.arith', globals(), locals(), ['is_prime'])
+       sage: is_prime(3)
+       doctest:...: DeprecationWarning:
+       Using is_prime from here is deprecated.  If you need to use it, please import it directly from sage.rings.arith.
+       True
+    """
+    if message is None:
+        message = "\nUsing %(name)s from here is deprecated.  If you need to use it, please import it directly from %(module_name)s."
+    from functools import partial
+    from sage.misc.misc import sage_wraps
+    if module_name is None:
+        mod_dict = globs
+    else:
+        mod_dict = __import__(module_name, globs, locs, fromlist).__dict__
+    for name in fromlist:
+        func = mod_dict[name]
+        def wrapper(func, name, *args, **kwds):
+            from sage.misc.misc import deprecation
+            deprecation(message%{'name': name, 'module_name': module_name})
+            return func(*args, **kwds)
+        globs[name] = sage_wraps(func)(partial(wrapper, func, name))
+    del name
+
 
 #############################################
 # Operators

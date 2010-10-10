@@ -1,201 +1,23 @@
-.. _chapter-cython:
+.. _chapter-other:
 
-=========================
-Coding in Other Languages
-=========================
+==============================================
+Coding using external libraries and interfaces
+==============================================
 
 When writing code for Sage, use Python for the basic structure and
 interface. For speed, efficiency, or convenience, you can implement
-parts of the code using any of the following languages: Cython, C/C++,
-Fortran 95, GAP, Common Lisp, Singular, and GP/PARI. You can also use
+parts of the code using any of the following languages:
+:ref:`Cython <chapter-cython>`, C/C++,
+Fortran 95, GAP, Common Lisp, Singular, and PARI/GP. You can also use
 all C/C++ libraries included with Sage  [3]_. (And if you are okay
 with your code depending on optional Sage packages, you can use
 Octave, or even Magma, Mathematica, or Maple.)
 
-The first section of this chapter discusses Cython, which is a
-compiled language based on Python. Many components of Sage are written
-in Cython. Later sections discuss the interfaces between Sage and
-PARI, GAP, and Singular.
-
-.. _coding-in-cython:
-
-Cython
-======
-
-Cython is a compiled version of Python. It is based on Pyrex
-(http://www.cosc.canterbury.ac.nz/greg.ewing/python/Pyrex/). To a
-large degree, Cython has changed based on what Sage's developers
-needed; Cython has been developed in concert with Sage. However, it is
-an independent project now, which is used beyond the scope of Sage.
-
-As such, it is a young, but developing language, with young, but
-developing documentation. See its web page,
-http://www.cython.org/, for the most up-to-date information.
-
-Python is an interpreted language and has no declared data types for
-variables. These features make it easy to write and debug, but Python
-code can sometimes be slow. Cython code can look a lot like Python,
-but it gets translated into C code (often very efficient C code) and
-then compiled. Thus it offers a language which is familiar to Python
-developers, but with the potential for much greater speed.
-
-There are several ways to create and build Cython code in Sage.
-
-#. In the Sage Notebook, begin any cell with ``%cython``. When you
-   evaluate that cell,
-
-   #. It is saved to a file.
-
-   #. Cython is run on it with all the standard Sage libraries
-      automatically linked if necessary.
-
-   #. The resulting ``.so`` file is then loaded into your running
-      instance of Sage.
-
-   #. The functionality defined in that cell is now available for you
-      to use in the notebook. Also, the output cell has a link to the C
-      program that was compiled to create the ``.so`` file.
-
-#. Create an ``.spyx`` file and attach or load it from the command
-   line. This is similar to creating a ``%cython`` cell in the
-   notebook but works completely from the command line (and not from
-   the notebook).
-
-#. Create a ``.pyx`` file and add it to the Sage library.
-
-   #. First, add a listing for the Cython extension to the variable
-      ``ext_modules`` in the file
-      ``SAGE_ROOT/devel/sage/module_list.py``. See the
-      ``distutils.extension.Extension`` class for more information on
-      creating a new Cython extension.
-
-   #. Then, if you created a new directory for your ``.pyx`` file, add
-      the directory name to the ``packages`` list in the file
-      ``SAGE_ROOT/devel/sage/setup.py``.  (See also the section on
-      "Creating a new directory" in :ref:`chapter-python`.)
-
-   #. Run ``sage -b`` to rebuild Sage.
-
-   For example, the file
-   ``SAGE_ROOT/devel/sage/sage/graphs/chrompoly.pyx`` has the lines
-
-   ::
-
-     Extension('sage.graphs.chrompoly',
-               sources = ['sage/graphs/chrompoly.pyx']),
-
-   in ``module_list.py``. In addition, ``sage.graphs`` is included in
-   the ``packages`` list under the Distutils section of ``setup.py``
-   since ``chrompoly.pyx`` is contained in the directory
-   ``sage/graphs``.
+In this chapter, we discuss interfaces between Sage and
+:ref:`PARI <section-pari-library>`, :ref:`section-gap` and :ref:`section-singular`.
 
 
-Special pragmas
----------------
-
-If Cython code is either attached or loaded as a ``.spyx`` file or
-loaded from the notebook as a ``%cython`` block, the following
-pragmas are available:
-
-* clang --- may be either c or c++ indicating whether a C or C++
-  compiler should be used.
-
-* clib --- additional libraries to be linked in, the space separated
-  list is split and passed to distutils.
-
-* cinclude --- additional directories to search for header files. The
-  space separated list is split and passed to distutils.
-
-For example:
-
-::
-
-    #clang C++
-    #clib givaro
-    #cinclude /usr/local/include/
-
-
-Attaching or loading .spyx
---------------------------
-
-The easiest way to try out Cython without having to learn anything
-about distutils, etc., is to create a file with the extension
-``spyx``, which stands for "Sage Pyrex":
-
-#. Create a file ``power2.spyx``.
-
-#. Put the following in it:
-
-   ::
-
-       def is2pow(n):
-           while n != 0 and n%2 == 0:
-               n = n >> 1
-           return n == 1
-
-#. Start the Sage command line interpreter and load the ``spyx`` file
-   (this will fail if you do not have a C compiler installed).
-
-   .. skip
-
-   ::
-
-       sage: load "power2.spyx"
-       Compiling power2.spyx...
-       sage: is2pow(12)
-       False
-
-Note that you can change ``power2.spyx``, then load it again and it
-will be recompiled on the fly. You can also attach ``power2.spyx`` so
-it is reloaded whenever you make changes:
-
-.. skip
-
-::
-
-    sage: attach "power2.spyx"
-
-Cython is used for its speed. Here is a timed test on a 2.6 GHz
-Opteron:
-
-.. skip
-
-::
-
-    sage: %time [n for n in range(10^5) if is2pow(n)]
-    [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536]
-    CPU times: user 0.60 s, sys: 0.00 s, total: 0.60 s
-    Wall time: 0.60 s
-
-Now, the code in the file ``power2.spyx`` is valid Python, and if we
-copy this to a file ``powerslow.py`` and load that, we get the
-following:
-
-.. skip
-
-::
-
-    sage: load "powerslow.py"
-    sage: %time [n for n in range(10^5) if is2pow(n)]
-    [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536]
-    CPU times: user 1.01 s, sys: 0.04 s, total: 1.05 s
-    Wall time: 1.05 s
-
-By the way, we could gain even a little more speed with the Cython
-version with a type declaration, by changing ``def is2pow(n):`` to
-``def is2pow(unsigned int n):``.
-
-
-Other languages
-===============
-
-Since Sage is based on Python, it interfaces with C and C++, as well
-as other languages. See the Python documentation at
-http://www.python.org/doc/ for more details. In particular, the
-section "Extending and Embedding the Python Interpreter", available at
-http://docs.python.org/ext/ext.html, describes how to write C or
-C++ modules for use in Python.
-
+.. _section-pari-library:
 
 The PARI C library interface
 ============================
@@ -214,47 +36,64 @@ gp interface uses the gp interpreter. The PARI interface uses
 direct calls to the PARI C functions---this is the preferred way
 as it is much faster. Thus this section focuses on using PARI.
 
-We will add a new method to the gen class. This is the abstract
+We will add a new method to the ``gen`` class. This is the abstract
 representation of all PARI library objects. That means that once we
 add a method to this class, every PARI object, whether it is a number,
 polynomial or matrix, will have our new method. So you can do
 ``pari(1).matfrobenius()``, but since PARI wants to apply
 ``matfrobenius`` to matrices, not numbers, you will receive a
-PariError in this case.
+``PariError`` in this case.
 
-The gen class is defined in
-``SAGE_ROOT/devel/sage/sage/libs/pari/gen.pyx``, and this is where we
-add the method ``matfrobenius``:
+The ``gen`` class is defined in
+:file:`SAGE_ROOT/devel/sage/sage/libs/pari/gen.pyx`, and this is where we
+add the method ``matfrobenius``::
 
-::
+    def matfrobenius(self, flag=0):
+        r"""
+        M.matfrobenius(flag=0): Return the Frobenius form of the square
+        matrix M. If flag is 1, return only the elementary divisors (a list
+        of polynomials). If flag is 2, return a two-components vector [F,B]
+        where F is the Frobenius form and B is the basis change so that
+        `M=B^{-1} F B`.
 
-        def matfrobenius(self, flag=0):
-            """
-            matfrobenius(M,{flag}): Return the Frobenius form of the
-            square matrix M. If flag is 1, return only the elementary
-            divisors. If flag is 2, return a two-components vector [F,B]
-            where F is the Frobenius form and B is the basis change
-            so that M=B^-1*F*B.
-            """
-            sig_on()
-            return self.new_gen(matfrobenius(self.g, flag))
+        EXAMPLES::
 
-The ``sig_on()`` statement is some magic for catching segfault signals.
-In this way, it prevents SIGSEGVs from the PARI C library crashing the
-Sage interpreter. Note that ``self.new_gen()`` calls a closing
-``sig_off()`` macro. These two *must always* come in pairs, i.e. every
-``sig_on()`` must be matched by a closing ``sig_off()``. The
-``self.new_gen()`` call constructs a new Sage-python-gen object from a
-given pari-C-gen where the pari-C-gen is stored as the
-Sage-python-gen.g attribute. The ``matfrobenius`` call is just a call
+            sage: a = pari('[1,2;3,4]')
+            sage: a.matfrobenius()
+            [0, 2; 1, 5]
+            sage: a.matfrobenius(flag=1)
+            [x^2 - 5*x - 2]
+            sage: a.matfrobenius(2)
+            [[0, 2; 1, 5], [1, -1/3; 0, 1/3]]
+        """
+        sig_on()
+        return self.new_gen(matfrobenius(self.g, flag, 0))
+
+Note the use of the :ref:`sig_on() statement <section_sig_on>`.
+
+The ``matfrobenius`` call is just a call
 to the PARI C library function ``matfrobenius`` with the appropriate
 parameters.
+
+The ``self.new_gen(GEN x)`` call constructs a new Sage ``gen`` object from a
+given PARI ``GEN`` where the PARI ``GEN`` is stored as the
+``.g`` attribute.
+Apart from this, ``self.new_gen()`` calls a closing ``sig_off()`` macro
+and also clears the PARI stack so it is very convenient to use in a
+``return`` statement as illustrated above.
+So after ``self.new_gen()``, all PARI ``GEN``'s which are not converted
+to Sage ``gen``'s are gone.
+There is also ``self.new_gen_noclear(GEN x)`` which does the same as
+``self.new_gen(GEN x)`` except that it does *not* call ``sig_off()`` nor
+clear the PARI stack.
 
 The information about which function to call and how to call it can be
 retrieved from the PARI user's manual (note: Sage includes the
 development version of PARI, so check that version of the user's
 manual). Looking for ``matfrobenius`` you can find:
-``"The library syntax is matfrobenius(M,flag)"``.
+
+    The library syntax is ``GEN matfrobenius(GEN M, long flag, long v = -1)``,
+    where ``v`` is a variable number.
 
 In case you are familiar with gp, please note that the PARI C function
 may have a name that is different from the corresponding gp function
@@ -263,58 +102,63 @@ may have a name that is different from the corresponding gp function
 We can also add a ``frobenius(flag)`` method to the ``matrix_integer``
 class where we call the ``matfrobenius()`` method on the PARI object
 associated to the matrix after doing some sanity checking. Then we
-convert output from PARI to Sage objects:
+convert output from PARI to Sage objects::
 
-::
+    def frobenius(self, flag=0, var='x'):
+        """
+        Return the Frobenius form (rational canonical form) of this
+        matrix.
 
-        def frobenius(self,flag=0):
-            """
-            If flag is 0 (the default value), return the Frobenius
-                form of this matrix.
-            If flag is 1, return only the elementary divisors.
-            If flag is 2, return a two-component vector [F,B]
-                where F is the Frobenius form and B is the basis change
-                so that M=B^-1*F*B.
+        INPUT:
 
-            INPUT:
-               flag -- 0,1 or 2 as described above
+        -  ``flag`` -- 0 (default), 1 or 2 as follows:
 
-            ALGORITHM: uses pari's matfrobenius()
+            -  ``0`` -- (default) return the Frobenius form of this
+               matrix.
 
-            EXAMPLE:
-               sage: A = MatrixSpace(IntegerRing(), 3)(range(9))
-               sage: A.frobenius(0)
-               [ 0  0  0]
-               [ 1  0 18]
-               [ 0  1 12]
-               sage: A.frobenius(1)
-               [x3 - 12*x2 - 18*x]
-               sage: A.frobenius(2)
-               ([ 0  0  0]
-               [ 1  0 18]
-               [ 0  1 12],
-               [    -1      2     -1]
-               [     0  23/15 -14/15]
-               [     0  -2/15   1/15])
-            """
-            if self.nrows()!=self.ncols():
-                raise ArithmeticError, \
-                "frobenius matrix of non-square matrix not defined."
-            v = self._pari_().matfrobenius(flag)
-            if flag==0:
-                return self.matrix_space()(v.python())
-            elif flag==1:
-                r = polynomial_ring.PolynomialRing(self.base_ring())
-                #BUG: this should be handled in PolynomialRing not here
-                return [eval(str(x).replace("^","**"),{},r.gens_dict())
-                        for x in v.python_list()]
-            elif flag==2:
-                F = matrix_space.MatrixSpace(rational_field.RationalField(),
-                                             self.nrows())(v[0].python())
-                B = matrix_space.MatrixSpace(rational_field.RationalField(),
-                                             self.nrows())(v[1].python())
-                return F,B
+            -  ``1`` -- return only the elementary divisor
+               polynomials, as polynomials in var.
 
+            -  ``2`` -- return a two-components vector [F,B] where F
+               is the Frobenius form and B is the basis change so that
+               `M=B^{-1}FB`.
+
+        -  ``var`` -- a string (default: 'x')
+
+        ALGORITHM: uses PARI's matfrobenius()
+
+        EXAMPLES::
+
+            sage: A = MatrixSpace(ZZ, 3)(range(9))
+            sage: A.frobenius(0)
+            [ 0  0  0]
+            [ 1  0 18]
+            [ 0  1 12]
+            sage: A.frobenius(1)
+            [x^3 - 12*x^2 - 18*x]
+            sage: A.frobenius(1, var='y')
+            [y^3 - 12*y^2 - 18*y]
+        """
+        if not self.is_square():
+            raise ArithmeticError("frobenius matrix of non-square matrix not defined.")
+
+        v = self._pari_().matfrobenius(flag)
+        if flag==0:
+            return self.matrix_space()(v.python())
+        elif flag==1:
+            r = PolynomialRing(self.base_ring(), names=var)
+            retr = []
+            for f in v:
+                retr.append(eval(str(f).replace("^","**"), {'x':r.gen()}, r.gens_dict()))
+            return retr
+        elif flag==2:
+            F = matrix_space.MatrixSpace(QQ, self.nrows())(v[0].python())
+            B = matrix_space.MatrixSpace(QQ, self.nrows())(v[1].python())
+            return F, B
+
+
+
+.. _section-gap:
 
 GAP
 ===
@@ -358,7 +202,7 @@ Note the ``'"G"'`` which is evaluated in GAP as the string ``"G"``.
 The purpose of this section is to use this example to show how one
 might write a Python/Sage program whose input is, say, ``('G',2)`` and
 whose output is the matrix above (but as a Sage Matrix---see the code
-in the directory ``SAGE_ROOT/devel/sage/sage/matrix/`` and the
+in the directory :file:`SAGE_ROOT/devel/sage/sage/matrix/` and the
 corresponding parts of the Sage reference manual).
 
 First, the input must be converted into strings consisting of legal
@@ -442,6 +286,8 @@ A "hard" example is left as an exercise! Here are a few ideas.
   these tables, it probably would be best to have new Python objects
   for this.
 
+
+.. _section-singular:
 
 Singular
 ========

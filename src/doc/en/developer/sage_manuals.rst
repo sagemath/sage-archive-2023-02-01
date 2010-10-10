@@ -246,7 +246,7 @@ http://sphinx.pocoo.org/builders.html .
 Syntax highlighting Cython code
 -------------------------------
 
-If you need to put :ref:`coding-in-cython` code in a ReST file,
+If you need to put :ref:`Cython <chapter-cython>` code in a ReST file,
 you can either precede the code block by ``.. code-block:: cython`` instead
 of the usual ``::`` if you want to highlight one block of code in Cython,
 or you can use ``.. highlight:: cython`` for a whole file.

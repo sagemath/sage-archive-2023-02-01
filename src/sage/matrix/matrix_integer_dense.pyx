@@ -2118,36 +2118,30 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         return D, U, V
 
-    def frobenius(self,flag=0, var='x'):
+    def frobenius(self, flag=0, var='x'):
         """
         Return the Frobenius form (rational canonical form) of this
         matrix.
 
-        INPUT: flag -an integer:
-
-
-        -  ``0`` - (default) return the Frobenius form of this
-           matrix.
-
-        -  ``1`` - return only the elementary divisor
-           polynomials, as polynomials in var.
-
-        -  ``2`` - return a two-components vector [F,B] where F
-           is the Frobenius form and B is the basis change so that
-           `M=B^{-1}FB`.
-
-        -  ``var`` - a string (default: 'x')
-
-
         INPUT:
 
+        -  ``flag`` -- 0 (default), 1 or 2 as follows:
 
-        -  ``flag`` - 0 (default), 1 or 2 as described above
+            -  ``0`` -- (default) return the Frobenius form of this
+               matrix.
 
+            -  ``1`` -- return only the elementary divisor
+               polynomials, as polynomials in var.
 
-        ALGORITHM: uses pari's matfrobenius()
+            -  ``2`` -- return a two-components vector [F,B] where F
+               is the Frobenius form and B is the basis change so that
+               `M=B^{-1}FB`.
 
-        EXAMPLE::
+        -  ``var`` -- a string (default: 'x')
+
+        ALGORITHM: uses PARI's matfrobenius()
+
+        EXAMPLES::
 
             sage: A = MatrixSpace(ZZ, 3)(range(9))
             sage: A.frobenius(0)

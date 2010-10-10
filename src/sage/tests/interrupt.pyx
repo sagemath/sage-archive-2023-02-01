@@ -1,9 +1,9 @@
 """
-Test signal handling in Sage.
+Testing signal handling.
 
 AUTHORS:
 
- - Jeroen Demeyer (2010-09-29): initial version
+ - Jeroen Demeyer (2010-09-29): initial version (#10030)
 
 """
 #*****************************************************************************
@@ -95,9 +95,9 @@ def interrupt_after_delay(ms_delay = 500):
     Send an interrupt signal (``SIGINT``) to the Sage process
     after a delay of ``ms_delay`` milliseconds.
 
-    INPUT::
+    INPUT:
 
-    - ``ms_delay`` - (default: 500) a nonnegative integer indicating
+    - ``ms_delay`` -- (default: 500) a nonnegative integer indicating
       how many milliseconds to wait before raising the interrupt signal.
 
     EXAMPLES:

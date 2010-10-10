@@ -51,7 +51,7 @@ def trace(code, preparse=True):
         sage: s = pexpect.spawn('sage')
         sage: _ = s.sendline("trace('print factor(10)'); print 3+97")
         sage: _ = s.sendline("s"); _ = s.sendline("c");
-        sage: _ = s.expect('100')
+        sage: _ = s.expect('100', timeout=90)
 
     Seeing the ipdb prompt and the 2 \* 5 in the output below is a
     strong indication that the trace command worked correctly.

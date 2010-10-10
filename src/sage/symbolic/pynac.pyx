@@ -17,8 +17,12 @@ include "../ext/cdefs.pxi"
 include "../ext/stdsage.pxi"
 include "../libs/ginac/decl.pxi"
 
-# for complex log
+
+# for complex log and log gamma
 include "../gsl/gsl_complex.pxi"
+include "../gsl/gsl_sf_result.pxi"
+include "../gsl/gsl_gamma.pxi"
+
 
 from sage.structure.element import Element
 from sage.rings.integer_ring import ZZ
@@ -1379,15 +1383,55 @@ cdef public object py_atanh(object x) except +:
     except AttributeError:
         return CC(x).arctanh()
 
-
 cdef public object py_lgamma(object x) except +:
+    """
+    Return the value of the log gamma function at the given value.
+
+    The value is expected to be a numerical object, in RR, CC, RDF or CDF.
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.pynac import py_lgamma_for_doctests as py_lgamma
+        sage: py_lgamma(4)
+        1.79175946922805
+        sage: py_lgamma(4.r)
+        1.791759469228055
+        sage: py_lgamma(4r)
+        1.791759469228055
+        sage: py_lgamma(CC.0)
+        -0.650923199301856 - 1.87243664726243*I
+        sage: py_lgamma(ComplexField(100).0)
+        -0.65092319930185633888521683150 - 1.8724366472624298171188533494*I
+    """
+    cdef gsl_sf_result lnr, arg
+    cdef gsl_complex res
+    if PY_TYPE_CHECK_EXACT(x, int) or PY_TYPE_CHECK_EXACT(x, long):
+        x = float(x)
     if PY_TYPE_CHECK_EXACT(x, float):
-        return sage_lgammal(x)
-    #FIXME: complex
-    try:
-        return x.log_gamma()
-    except AttributeError:
-        return CC(x).log().gamma()
+         return sage_lgammal(x)
+    elif PY_TYPE_CHECK_EXACT(x, complex):
+        gsl_sf_lngamma_complex_e(PyComplex_RealAsDouble(x),PyComplex_ImagAsDouble(x), &lnr, &arg)
+        res = gsl_complex_polar(lnr.val, arg.val)
+        return PyComplex_FromDoubles(res.dat[0], res.dat[1])
+    elif hasattr(x, 'log_gamma'):
+         return x.log_gamma()
+    elif isinstance(x, Integer):
+        return x.gamma().log().n()
+    elif hasattr(x, 'gamma'):
+        return x.gamma().log()
+    return CC(x).gamma().log()
+
+def py_lgamma_for_doctests(x):
+    """
+    This function tests py_lgamma.
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.pynac import py_lgamma_for_doctests
+        sage: py_lgamma_for_doctests(CC(I))
+        -0.650923199301856 - 1.87243664726243*I
+    """
+    return py_lgamma(x)
 
 cdef public object py_isqrt(object x) except +:
     return Integer(x).isqrt()

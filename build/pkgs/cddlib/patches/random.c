@@ -110,12 +110,10 @@ void portable_srand(unsigned int seed)
   kc *= 10;
   while (--kc >= 0)
     portable_rand();
-
-  return 0;
 }
 
 
-int portable_rand (void)
+int portable_rand(void)
 {
   int32_t *fptr = rng_state.fptr;
   int32_t *rptr = rng_state.rptr;

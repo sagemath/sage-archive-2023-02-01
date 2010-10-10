@@ -7233,8 +7233,11 @@ class GenericGraph(GenericGraph_pyx):
 
     def edges(self, labels=True, sort=True, key=None):
         r"""
-        Return a list of the edges of the graph as triples (u,v,l)
-        where u and v are vertices and l is a label.
+        Return a list of edges.
+
+        Each edge is a triple (u,v,l) where u and v are vertices and l is a
+        label. If the parameter ``labels`` is False then a list of couple (u,v)
+        is returned where u and v are vertices.
 
         INPUT:
 
@@ -7317,7 +7320,7 @@ class GenericGraph(GenericGraph_pyx):
             L.sort(key=key)
         return L
 
-    def edge_boundary(self, vertices1, vertices2=None, labels=True):
+    def edge_boundary(self, vertices1, vertices2=None, labels=True, sort=True):
         """
         Returns a list of edges `(u,v,l)` with `u` in ``vertices1``
         and `v` in ``vertices2``. If ``vertices2`` is ``None``, then
@@ -7362,53 +7365,50 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = graphs.DiamondGraph()
             sage: G.edge_boundary([0,1])
             [(0, 2, {}), (1, 2, {}), (1, 3, {})]
-            sage: G = graphs.PetersenGraph()
             sage: G.edge_boundary([0], [0])
             []
-
+            sage: G.edge_boundary([2], [0])
+            [(0, 2, {})]
         """
-        vertices1 = [v for v in vertices1 if v in self]
-        output = []
+        vertices1 = set([v for v in vertices1 if v in self])
         if self._directed:
-            output.extend(self.outgoing_edge_iterator(vertices1,labels=labels))
             if vertices2 is not None:
-                output = [e for e in output if e[1] in vertices2]
+                vertices2 = set([v for v in vertices2 if v in self])
+                output = [e for e in self.outgoing_edge_iterator(vertices1,labels=labels)
+                            if e[1] in vertices2]
             else:
-                output = [e for e in output if e[1] not in vertices1]
-            return output
+                output = [e for e in self.outgoing_edge_iterator(vertices1,labels=labels)
+                            if e[1] not in vertices1]
         else:
-            output.extend(self.edge_iterator(vertices1,labels=labels))
-            output2 = []
             if vertices2 is not None:
-                for e in output:
-                    if e[0] in vertices1:
-                        if e[1] in vertices2:
-                            output2.append(e)
-                    elif e[0] in vertices2: # e[1] in vertices1
-                        output2.append(e)
+                vertices2 = set([v for v in vertices2 if v in self])
+                output = [e for e in self.edge_iterator(vertices1,labels=labels)
+                            if (e[0] in vertices1 and e[1] in vertices2) or
+                            (e[1] in vertices1 and e[0] in vertices2)]
             else:
-                for e in output:
-                    if e[0] in vertices1:
-                        if e[1] not in vertices1:
-                            output2.append(e)
-                    elif e[0] not in vertices1: # e[1] in vertices1
-                        output2.append(e)
-            return output2
+                output = [e for e in self.edge_iterator(vertices1,labels=labels)
+                            if e[1] not in vertices1 or e[0] not in vertices1]
+        if sort:
+            output.sort()
+        return output
 
     def edge_iterator(self, vertices=None, labels=True, ignore_direction=False):
         """
-        Returns an iterator over the edges incident with any vertex given.
-        If the graph is directed, iterates over edges going out only. If
-        vertices is None, then returns an iterator over all edges. If self
-        is directed, returns outgoing edges only.
+        Returns an iterator over edges.
+
+        The iterator returned is over the edges incident with any vertex given
+        in the parameter ``vertices``. If the graph is directed, iterates over
+        edges going out only. If vertices is None, then returns an iterator over
+        all edges. If self is directed, returns outgoing edges only.
 
         INPUT:
 
+        - ``vertices`` - (default: None) a vertex, a list of vertices or None
 
         -  ``labels`` - if False, each edge is a tuple (u,v) of
            vertices.
 
-        -  ``ignore_direction`` - (default False) only applies
+        -  ``ignore_direction`` - bool (default: False) - only applies
            to directed graphs. If True, searches across edges in either
            direction.
 
@@ -7447,28 +7447,33 @@ class GenericGraph(GenericGraph_pyx):
         else:
             vertices = [v for v in vertices if v in self]
         if ignore_direction and self._directed:
-            for e in self._backend.iterator_out_edges(vertices, labels):
-                yield e
-            for e in self._backend.iterator_in_edges(vertices, labels):
-                yield e
+            from itertools import chain
+            return chain(self._backend.iterator_out_edges(vertices, labels),
+                         self._backend.iterator_in_edges(vertices, labels))
         elif self._directed:
-            for e in self._backend.iterator_out_edges(vertices, labels):
-                yield e
+            return self._backend.iterator_out_edges(vertices, labels)
         else:
-            for e in self._backend.iterator_edges(vertices, labels):
-                yield e
+            return self._backend.iterator_edges(vertices, labels)
 
-    def edges_incident(self, vertices=None, labels=True):
+    def edges_incident(self, vertices=None, labels=True, sort=True):
         """
-        Returns a list of edges incident with any vertex given. If vertices
+        Returns incident edges to some vertices.
+
+        If ``vertices` is a vertex, then it returns the list of edges incident to
+        that vertex. If ``vertices`` is a list of vertices then it returns the
+        list of all edges adjacent to those vertices. If ``vertices``
         is None, returns a list of all edges in graph. For digraphs, only
         lists outward edges.
 
         INPUT:
 
+        - ``vertices`` - object (default: None) - a vertex, a list of vertices
+          or None.
 
-        -  ``label`` - if False, each edge is a tuple (u,v) of
-           vertices.
+        -  ``labels`` - bool (default: True) - if False, each edge is a tuple
+           (u,v) of vertices.
+
+        - ``sort`` - bool (default: True) - if True the returned list is sorted.
 
 
         EXAMPLES::
@@ -7480,12 +7485,19 @@ class GenericGraph(GenericGraph_pyx):
             [(0, 1, None)]
             sage: D.edges_incident([1])
             []
+
+        TESTS::
+
+            sage: G = Graph({0:[0]}, loops=True)  # ticket 9581
+            sage: G.edges_incident(0)
+            [(0, 0, None)]
         """
         if vertices in self:
             vertices = [vertices]
-        v = list(self.edge_boundary(vertices, labels=labels))
-        v.sort()
-        return v
+
+        if sort:
+            return sorted(self.edge_iterator(vertices=vertices,labels=labels))
+        return list(self.edge_iterator(vertices=vertices,labels=labels))
 
     def edge_label(self, u, v=None):
         """

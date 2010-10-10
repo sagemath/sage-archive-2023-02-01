@@ -34,7 +34,7 @@ from sage.rings.all import CC
 
 from sage.symbolic.expression cimport Expression, new_Expression_from_GEx
 from sage.symbolic.function import get_sfunction_from_serial
-from sage.symbolic.function cimport Function
+from sage.symbolic.function cimport Function, parent_c
 from sage.symbolic.constants_c cimport PynacConstant
 
 import ring
@@ -1252,6 +1252,8 @@ cdef public object py_log(object x) except +:
         -inf
         sage: py_log(complex(0))
         -inf
+        sage: py_log(2)
+        0.693147180559945
     """
     cdef gsl_complex res
     cdef double real, imag
@@ -1272,6 +1274,8 @@ cdef public object py_log(object x) except +:
             return float('-inf')
         res = gsl_complex_log(gsl_complex_rect(real, imag))
         return PyComplex_FromDoubles(res.dat[0], res.dat[1])
+    elif isinstance(x, Integer):
+        return x.log().n()
     elif hasattr(x, 'log'):
         return x.log()
     try:
@@ -1320,23 +1324,63 @@ cdef public object py_atan(object x) except +:
         return RR(x).arctan()
 
 cdef public object py_atan2(object x, object y) except +:
+    """
+    Return the value of the two argument arctan function at the given values.
+
+    The values are expected to be numerical objects, for example in RR, CC,
+    RDF or CDF.
+
+    Note that the usual call signature of this function has the arguments
+    reversed.
+
+    TESTS::
+
+        sage: from sage.symbolic.pynac import py_atan2_for_doctests as py_atan2
+        sage: py_atan2(0, 1)
+        1.57079632679490
+        sage: py_atan2(0.r, 1.r)
+        1.5707963267948966
+        sage: CC100 = ComplexField(100)
+        sage: py_atan2(CC100(0), CC100(1))
+        1.5707963267948966192313216916
+        sage: RR100 = RealField(100)
+        sage: py_atan2(RR100(0), RR100(1))
+        1.5707963267948966192313216916
+    """
     from sage.symbolic.constants import pi
+    parent = parent_c(x)
+    assert parent is parent_c(y)
+    if parent is ZZ:
+        parent = RR
+    pi_n = parent(pi)
     cdef int sgn_y = cmp(y, 0)
     cdef int sgn_x = cmp(x, 0)
     if sgn_y:
         if sgn_x > 0:
             return py_atan(abs(y/x)) * sgn_y
         elif sgn_x == 0:
-            return pi/2 * sgn_y
+            return pi_n/2 * sgn_y
         else:
-            return (pi - py_atan(abs(y/x))) * sgn_y
+            return (pi_n - py_atan(abs(y/x))) * sgn_y
     else:
         if sgn_x > 0:
             return 0
         elif x == 0:
             raise ValueError, "arctan2(0,0) undefined"
         else:
-            return pi
+            return pi_n
+
+def py_atan2_for_doctests(x, y):
+    """
+    Wrapper function to test py_atan2.
+
+    TESTS::
+
+        sage: from sage.symbolic.pynac import py_atan2_for_doctests
+        sage: py_atan2_for_doctests(0., 1.)
+        1.57079632679490
+    """
+    return py_atan2(x, y)
 
 cdef public object py_sinh(object x) except +:
     try:

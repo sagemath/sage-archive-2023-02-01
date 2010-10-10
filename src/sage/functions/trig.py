@@ -848,6 +848,11 @@ class Function_arctan2(GinacFunction):
 
             sage: arctan2(x,x)._sympy_()
             atan2(x, x)
+
+        Check if numerical evaluation works #9913::
+
+            sage: arctan2(0, -log(2)).n()
+            3.14159265358979
         """
         GinacFunction.__init__(self, "arctan2", nargs=2, latex_name=r'\arctan',
                 conversions=dict(maxima='atan2'))

@@ -5346,7 +5346,7 @@ cdef class Expression(CommutativeRingElement):
             '%pi/4'
 
             sage: SR(-0.7).arctan2(SR(-0.6))
-            -pi + 0.862170054667226
+            -2.27942259892257
 
         To prevent automatic evaluation use the ``hold`` argument::
 

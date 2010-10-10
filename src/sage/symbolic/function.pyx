@@ -13,7 +13,6 @@ Support for symbolic functions.
 
 """
 include "../ext/interrupt.pxi"
-include "../ext/stdsage.pxi"
 include "../ext/cdefs.pxi"
 include "../libs/ginac/decl.pxi"
 
@@ -23,20 +22,6 @@ from expression cimport new_Expression_from_GEx, Expression
 from ring import SR
 
 from sage.structure.parent cimport Parent
-from sage.structure.element cimport Element
-
-# In many applications, such as plotting, these functions are called many times
-# repeatedly. This method is slightly faster than sage.structure.coerce.parent
-# The only difference is the PyNumber_Check clause.
-include "../ext/python_number.pxi"
-cdef inline parent_c(x):
-    if PY_TYPE_CHECK(x, Element):
-        return (<Element>x)._parent
-    elif PyNumber_Check(x):
-        return <object>PY_TYPE(x)
-    elif hasattr(x, 'parent'):
-        return x.parent()
-    return <object>PY_TYPE(x)
 
 # we keep a database of symbolic functions initialized in a session
 # this also makes the .operator() method of symbolic expressions work

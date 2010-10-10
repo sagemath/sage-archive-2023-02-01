@@ -609,7 +609,7 @@ cdef class Function(SageObject):
             sage: import numpy
             sage: a = numpy.arange(5)
             sage: csc(a)
-            array([        Inf,  1.18839511,  1.09975017,  7.0861674 , -1.32134871])
+            array([        inf,  1.18839511,  1.09975017,  7.0861674 , -1.32134871])
 
             sage: factorial(a)
             Traceback (most recent call last):

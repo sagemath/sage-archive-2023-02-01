@@ -1,5 +1,5 @@
 --- ../src/src/setup.py	2010-09-15 21:55:00.000000000 -0700
-+++ setup.py	2010-10-11 15:12:04.000000000 -0700
++++ setup.py	2010-10-11 16:53:01.000000000 -0700
 @@ -1,18 +1,29 @@
  from distutils.core import setup, Extension
  from glob import glob
@@ -13,10 +13,10 @@
 +ATLAS_LIB_DIR = SAGE_LIB
 +
 +if os.uname()[0]=="Darwin":
-+#    libraries = ['m','lapack','blas','cblas','atlas']
 +    libraries = ['m','lapack','gsl','gslcblas','blas','cblas','atlas']
++elif os.environ['UNAME'] == 'CYGWIN':
++    libraries = ['lapack','gsl', 'blas', 'mc', 'md']    
 +else:
-+#    libraries = ['m','lapack','blas','cblas','atlas','gfortran']
 +    libraries = ['m','lapack','gsl','gslcblas','blas','cblas','gfortran','atlas']
  
  # Set to 1 if you are using the random number generators in the GNU
@@ -77,7 +77,7 @@
  
  if BUILD_GLPK:
 -    glpk = Extension('glpk', libraries = ['glpk'],
-+    glpk = Extension('glpk', libraries = libraries+['glpk'],
++    glpk = Extension('glpk', libraries = libraries+['glpk', 'gmp', 'z'],
          include_dirs = [ GLPK_INC_DIR ],
          library_dirs = [ GLPK_LIB_DIR ],
          sources = ['C/glpk.c'] )
@@ -110,8 +110,12 @@
      library_dirs = [ ATLAS_LIB_DIR ],
      define_macros = MACROS,
      sources = ['C/lapack.c'] )
-@@ -106,7 +119,7 @@
-         'C/SuiteSparse/UFconfig' ],
+@@ -103,10 +116,10 @@
+ umfpack = Extension('umfpack', 
+     include_dirs = [ 'C/SuiteSparse/UMFPACK/Include',
+         'C/SuiteSparse/AMD/Include', 'C/SuiteSparse/AMD/Source', 
+-        'C/SuiteSparse/UFconfig' ],
++        'C/SuiteSparse/UFconfig', ],
      library_dirs = [ ATLAS_LIB_DIR ],
      define_macros = MACROS,
 -    libraries = [ 'blas', 'lapack'],
@@ -119,7 +123,7 @@
      sources = [ 'C/umfpack.c',
          'C/SuiteSparse/UMFPACK/Source/umfpack_global.c',
          'C/SuiteSparse/UMFPACK/Source/umfpack_tictoc.c' ] +
-@@ -118,7 +131,7 @@
+@@ -118,10 +131,10 @@
  
  cholmod = Extension('cholmod',
      library_dirs = [ ATLAS_LIB_DIR ],
@@ -127,8 +131,17 @@
 +    libraries = libraries,
      include_dirs = [ 'C/SuiteSparse/CHOLMOD/Include', 
          'C/SuiteSparse/COLAMD', 'C/SuiteSparse/AMD/Include', 
-         'C/SuiteSparse/UFconfig', 'C/SuiteSparse/COLAMD/Include' ],
-@@ -139,7 +152,8 @@
+-        'C/SuiteSparse/UFconfig', 'C/SuiteSparse/COLAMD/Include' ],
++        'C/SuiteSparse/UFconfig', 'C/SuiteSparse/COLAMD/Include',],
+     define_macros = MACROS + [('NPARTITION', '1')],
+     sources = [ 'C/cholmod.c' ] + 
+         ['C/SuiteSparse/AMD/Source/' + s for s in ['amd_global.c',
+@@ -135,16 +148,20 @@
+ 
+ amd = Extension('amd', 
+     include_dirs = [ 'C/SuiteSparse/AMD/Include', 
+-        'C/SuiteSparse/UFconfig' ],
++        'C/SuiteSparse/UFconfig', ],
      define_macros = MACROS,
      sources = [ 'C/amd.c' ] + glob('C/SuiteSparse/AMD/Source/*.c') )
  
@@ -138,7 +151,16 @@
      library_dirs = [ ATLAS_LIB_DIR ],
      define_macros = MACROS,
      sources = ['C/misc_solvers.c'] )
-@@ -166,3 +180,4 @@
+ 
+-extmods += [base, blas, lapack, umfpack, cholmod, amd, misc_solvers] 
++extmods += [base, blas, lapack, umfpack, cholmod, amd, misc_solvers]
++
++for mod in extmods:
++    mod.include_dirs += [ SAGE_INCLUDE ]
+ 
+ setup (name = 'cvxopt', 
+     description = 'Convex optimization package',
+@@ -166,3 +183,4 @@
      ext_modules = extmods,
      package_dir = {"cvxopt": "python"},
      packages = ["cvxopt"])

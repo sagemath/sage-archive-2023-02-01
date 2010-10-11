@@ -190,9 +190,7 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
         e = N.exact_log(2)
         if N==2**e:
             gsl_fft_complex_radix2_forward(self.data, self.stride, self.n)
-        if N!=2**e:
-            #cdef gsl_fft_complex_wavetable * wt
-            #cdef gsl_fft_complex_workspace * mem
+        else:
             mem = gsl_fft_complex_workspace_alloc(self.n)
             wt = gsl_fft_complex_wavetable_alloc(self.n)
             gsl_fft_complex_forward(self.data, self.stride, self.n, wt, mem)
@@ -216,14 +214,24 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
             sage: a.forward_transform()
             sage: a.inverse_transform()
             sage: (a.plot()+b.plot())
+
+        Here we check it with a power of two::
+
+            sage: a = FastFourierTransform(128)
+            sage: b = FastFourierTransform(128)
+            sage: for i in range(1, 60): a[i]=1
+            sage: for i in range(1, 60): b[i]=1
+            sage: a.forward_transform()
+            sage: a.inverse_transform()
+            sage: (a.plot()+b.plot())
         """
         cdef gsl_fft_complex_wavetable * wt
         cdef gsl_fft_complex_workspace * mem
         N = Integer(self.n)
         e = N.exact_log(2)
         if N==2**e:
-            gsl_fft_complex_inverse(self.data, self.stride, self.n, wt, mem)
-        if N!=2**e:
+            gsl_fft_complex_radix2_inverse(self.data, self.stride, self.n)
+        else:
             mem = gsl_fft_complex_workspace_alloc(self.n)
             wt = gsl_fft_complex_wavetable_alloc(self.n)
             gsl_fft_complex_inverse(self.data, self.stride, self.n, wt, mem)
@@ -245,14 +253,24 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
             sage: a.forward_transform()
             sage: a.backward_transform()
             sage: (a.plot() + b.plot()).show(ymin=0)  # long time (2s on sage.math, 2011)
+
+        Here we check it with a power of two::
+
+            sage: a = FastFourierTransform(128)
+            sage: b = FastFourierTransform(128)
+            sage: for i in range(1, 60): a[i]=1
+            sage: for i in range(1, 60): b[i]=1
+            sage: a.forward_transform()
+            sage: a.backward_transform()
+            sage: (a.plot() + b.plot()).show(ymin=0)
         """
         cdef gsl_fft_complex_wavetable * wt
         cdef gsl_fft_complex_workspace * mem
         N = Integer(self.n)
         e = N.exact_log(2)
         if N==2**e:
-            gsl_fft_complex_backward(self.data, self.stride, self.n, wt, mem)
-        if N!=2**e:
+            gsl_fft_complex_radix2_backward(self.data, self.stride, self.n)
+        else:
             mem = gsl_fft_complex_workspace_alloc(self.n)
             wt = gsl_fft_complex_wavetable_alloc(self.n)
             gsl_fft_complex_backward(self.data, self.stride, self.n, wt, mem)

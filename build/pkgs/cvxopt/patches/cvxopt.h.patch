@@ -1,6 +1,6 @@
---- ../src/src/C/cvxopt.h	2009-11-27 21:41:50.000000000 -0800
-+++ cvxopt.h	2010-08-01 11:08:15.000000000 -0700
-@@ -26,7 +26,21 @@
+--- ../src/src/C/cvxopt.h	2010-09-15 21:52:51.000000000 -0700
++++ cvxopt.h	2010-10-11 15:11:27.000000000 -0700
+@@ -27,7 +27,21 @@
  /* ANSI99 complex is disabled during build of CHOLMOD */
  
  #ifndef NO_ANSI99_COMPLEX
@@ -23,7 +23,7 @@
  #define MAT_BUFZ(O)  ((complex *)((matrix *)O)->buffer)
  #endif
  
-@@ -54,7 +68,7 @@
+@@ -55,7 +69,7 @@
  typedef struct {
    PyObject_HEAD
    void *buffer;          /* in column-major-mode array of type 'id' */

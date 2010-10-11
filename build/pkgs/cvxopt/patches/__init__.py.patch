@@ -1,6 +1,6 @@
---- ../src/src/python/__init__.py	2009-11-27 22:00:23.000000000 -0800
-+++ __init__.py	2010-07-31 14:43:09.000000000 -0700
-@@ -49,14 +49,7 @@
+--- ../src/src/python/__init__.py	2010-09-15 21:52:50.000000000 -0700
++++ __init__.py	2010-10-11 15:11:48.000000000 -0700
+@@ -50,14 +50,7 @@
      std       standard deviation of the distribution
      '''
  
@@ -16,7 +16,7 @@
      return gsl.normal(nrows, ncols, mean, std)
  
  def uniform(nrows, ncols=1, a=0, b=1):
-@@ -80,14 +73,7 @@
+@@ -81,14 +74,7 @@
      b         upper bound
      '''
  
@@ -32,7 +32,7 @@
      return gsl.uniform(nrows, ncols, a, b)
  
  def setseed(val = 0):
-@@ -101,14 +87,9 @@
+@@ -102,14 +88,9 @@
                is used. 
      '''    
  
@@ -50,7 +50,7 @@
   
  def getseed():
      '''
-@@ -117,12 +98,8 @@
+@@ -118,12 +99,8 @@
      getseed()
      '''
  

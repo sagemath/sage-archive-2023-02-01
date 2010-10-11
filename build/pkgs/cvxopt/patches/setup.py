@@ -162,7 +162,7 @@ extmods += [base, blas, lapack, umfpack, cholmod, amd, misc_solvers]
 
 setup (name = 'cvxopt',
     description = 'Convex optimization package',
-    version = '1.1.2',
+    version = '1.1.3',
     long_description = '''
 CVXOPT is a free software package for convex optimization based on the
 Python programming language. It can be used with the interactive Python
@@ -173,7 +173,7 @@ applications straightforward by building on Python's extensive standard
 library and on the strengths of Python as a high-level programming
 language.''',
     author = 'J. Dahl and L. Vandenberghe',
-    author_email = 'joachim@es.aau.dk, vandenbe@ee.ucla.edu',
+    author_email = 'dahl.joachim@gmail.com, vandenbe@ee.ucla.edu',
     url = 'http://abel.ee.ucla.edu/cvxopt',
     license = 'GNU GPL version 3',
     ext_package = "cvxopt",

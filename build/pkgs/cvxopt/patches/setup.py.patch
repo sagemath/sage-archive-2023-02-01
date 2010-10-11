@@ -1,5 +1,5 @@
---- ../src/src/setup.py	2009-11-27 21:37:29.000000000 -0800
-+++ setup.py	2010-07-31 14:24:01.000000000 -0700
+--- ../src/src/setup.py	2010-09-15 21:55:00.000000000 -0700
++++ setup.py	2010-10-11 15:12:04.000000000 -0700
 @@ -1,18 +1,29 @@
  from distutils.core import setup, Extension
  from glob import glob

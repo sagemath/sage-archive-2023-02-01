@@ -1143,7 +1143,6 @@ def random_prime(n, proof=None, lbound=2):
 
     INPUT:
 
-
     -  ``n`` - an integer >= 2.
 
     -  ``proof`` - bool or None (default: None) If False, the function uses a
@@ -1154,7 +1153,6 @@ def random_prime(n, proof=None, lbound=2):
     - ``lbound`` - an integer >= 2
       lower bound for the chosen primes
 
-
     EXAMPLES::
 
         sage: random_prime(100000)
@@ -1162,12 +1160,27 @@ def random_prime(n, proof=None, lbound=2):
         sage: random_prime(2)
         2
 
+    Here we generate a random prime between 100 and 200::
+
+        sage: random_prime(200, lbound=100)
+        149
+
+    If all we care about is finding a pseudo prime, then we can pass
+    in ``proof=False`` ::
+
+        sage: random_prime(200, proof=False, lbound=100)
+        149
+
     TESTS::
 
         sage: type(random_prime(2))
         <type 'sage.rings.integer.Integer'>
         sage: type(random_prime(100))
         <type 'sage.rings.integer.Integer'>
+        sage: random_prime(1, lbound=-2)   #caused Sage hang #10112
+        Traceback (most recent call last):
+        ...
+        ValueError: n must be greater than or equal to 2
 
     AUTHORS:
 
@@ -1181,6 +1194,8 @@ def random_prime(n, proof=None, lbound=2):
     from sage.structure.proof.proof import get_flag
     proof = get_flag(proof, "arithmetic")
     n = ZZ(n)
+    if n < 2:
+        raise ValueError, "n must be greater than or equal to 2"
     if n < lbound:
         raise ValueError, "n must be greater than lbound: %s"%(lbound)
     elif n == 2:

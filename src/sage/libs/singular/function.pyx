@@ -1194,9 +1194,9 @@ cdef inline call_function(SingularFunction self, tuple args, MPolynomialRing_lib
 
     with opt_ctx: # we are preserving the global options state here
         if signal_handler:
-            _sig_on
+            sig_on()
             _res = self.call_handler.handle_call(argument_list)
-            _sig_off
+            sig_off()
         else:
             _res = self.call_handler.handle_call(argument_list)
 

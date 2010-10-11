@@ -385,7 +385,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             zstep = <Integer>step
             step_sign = mpz_sgn(zstep.value)
 
-        _sig_on
+        sig_on()
         while mpz_cmp(a.value, b.value)*step_sign < 0:
             last = a
             a = PY_NEW(Integer)
@@ -397,7 +397,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             else:
                 mpz_add(a.value, last.value, zstep.value)
             PyList_Append(L, last)
-        _sig_off
+        sig_off()
         return L
 
     def __iter__(self):
@@ -420,9 +420,9 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
     cdef Integer _coerce_ZZ(self, ZZ_c *z):
         cdef integer.Integer i
         i = PY_NEW(integer.Integer)
-        _sig_on
+        sig_on()
         ZZ_to_mpz(&i.value, z)
-        _sig_off
+        sig_off()
         return i
 
     cpdef _coerce_map_from_(self, S):

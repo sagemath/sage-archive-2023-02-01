@@ -647,9 +647,9 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         cdef ZZ_c tmp_z
         cdef long shift
         mpz_init(tmp_m)
-        _sig_on
+        sig_on()
         shift = mpz_remove(tmp_m, x, self.prime_pow.prime.value)
-        _sig_off
+        sig_off()
         self._set_prec_rel(relprec)
         mpz_to_ZZ(&tmp_z, &tmp_m)
         mpz_clear(tmp_m)
@@ -694,9 +694,9 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         cdef ZZ_c tmp_z
         cdef long shift
         mpz_init(tmp_m)
-        _sig_on
+        sig_on()
         shift = mpz_remove(tmp_m, x, self.prime_pow.prime.value)
-        _sig_off
+        sig_off()
         self.ordp = shift * self.prime_pow.e
         if self._set_prec_both(absprec, relprec) == 1:
             # This indicates that self._set_inexact_zero was called
@@ -822,12 +822,12 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             2*w^15 + 2*w^17 + 3*w^19 + w^22 + O(w^23)
         """
         cdef long num_ordp, den_ordp
-        _sig_on
+        sig_on()
         mpz_init(num_unit)
         mpz_init(den_unit)
         num_ordp = mpz_remove(num_unit, mpq_numref(x), self.prime_pow.prime.value)
         den_ordp = mpz_remove(den_unit, mpq_denref(x), self.prime_pow.prime.value)
-        _sig_off
+        sig_off()
         self.ordp = (num_ordp - den_ordp) * self.prime_pow.e
         if self.ordp < 0 and self.prime_pow.in_field == 0:
             mpz_clear(num_unit)
@@ -1527,12 +1527,12 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             ans._parent = self._parent.fraction_field()
             ans.prime_pow = ans._parent.prime_pow
         ans.ordp = -self.ordp
-        _sig_on
+        sig_on()
         if self.prime_pow.e == 1:
             ZZ_pX_InvMod_newton_unram(ans.unit, self.unit, self.prime_pow.get_modulus(ans.relprec)[0], self.prime_pow.get_context(ans.relprec).x, self.prime_pow.get_context(1).x)
         else:
             ZZ_pX_InvMod_newton_ram(ans.unit, self.unit, self.prime_pow.get_modulus_capdiv(ans.relprec)[0], self.prime_pow.get_context_capdiv(ans.relprec).x)
-        _sig_off
+        sig_off()
         return ans
 
     cdef pAdicZZpXCRElement _lshift_c(self, long n):
@@ -1948,7 +1948,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             mpz_clear(tmp)
         cdef ntl_ZZ rZZ = PY_NEW(ntl_ZZ)
         mpz_to_ZZ(&rZZ.x, &right.value)
-        _sig_on
+        sig_on()
         if mpz_sgn(right.value) < 0:
             if self.prime_pow.e == 1:
                 ZZ_pX_InvMod_newton_unram(ans.unit, self.unit, self.prime_pow.get_modulus(ans.relprec)[0], self.prime_pow.get_context(ans.relprec).x, self.prime_pow.get_context(1).x)
@@ -1958,7 +1958,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             ZZ_pX_PowerMod_pre(ans.unit, ans.unit, rZZ.x, self.prime_pow.get_modulus_capdiv(ans.relprec)[0])
         else:
             ZZ_pX_PowerMod_pre(ans.unit, self.unit, rZZ.x, self.prime_pow.get_modulus_capdiv(ans.relprec)[0])
-        _sig_off
+        sig_off()
         return ans
 
     cpdef ModuleElement _add_(self, ModuleElement _right):
@@ -2145,19 +2145,19 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             return ans
         if self.relprec == right.relprec:
             self.prime_pow.restore_context_capdiv(ans.relprec)
-            _sig_on
+            sig_on()
             ZZ_pX_MulMod_pre(ans.unit, self.unit, right.unit, self.prime_pow.get_modulus_capdiv(ans.relprec)[0])
-            _sig_off
+            sig_off()
         elif self.relprec < right.relprec:
-            _sig_on
+            sig_on()
             ZZ_pX_conv_modulus(modulus_corrected, right.unit, self.prime_pow.get_context_capdiv(ans.relprec).x)
             ZZ_pX_MulMod_pre(ans.unit, self.unit, modulus_corrected, self.prime_pow.get_modulus_capdiv(ans.relprec)[0])
-            _sig_off
+            sig_off()
         else:
-            _sig_on
+            sig_on()
             ZZ_pX_conv_modulus(modulus_corrected, self.unit, self.prime_pow.get_context_capdiv(ans.relprec).x)
             ZZ_pX_MulMod_pre(ans.unit, right.unit, modulus_corrected, self.prime_pow.get_modulus_capdiv(ans.relprec)[0])
-            _sig_off
+            sig_off()
         return ans
 
     cpdef RingElement _div_(self, RingElement right):
@@ -3069,9 +3069,9 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             #print "p^n = %s"%printer_ZZ
             #print "p_shift = %s"%p_shift
             #print "a"
-            _sig_on
+            sig_on()
             ZZ_InvMod(leftover, leftover, self.prime_pow.pow_ZZ_tmp(ans_rprec)[0])
-            _sig_off
+            sig_off()
             #print "b"
             ZZ_pX_mul_ZZ_p(to_add, xpow, ZZ_to_ZZ_p(leftover))
             if self.prime_pow.e == 1:
@@ -3091,9 +3091,9 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                     ZZ_pX_conv_modulus(to_mul, (<PowComputer_ZZ_pX_big_Eis>self.prime_pow).high_shifter[0], self.prime_pow.get_context_capdiv(ans_rprec).x)
                 else:
                     raise RuntimeError, "unrecognized PowComputer type"
-                _sig_on
+                sig_on()
                 ZZ_pX_InvMod_newton_ram(to_mul, to_mul, self.prime_pow.get_modulus_capdiv(ans_rprec)[0], self.prime_pow.get_context_capdiv(ans_rprec).x)
-                _sig_off
+                sig_off()
                 #print "d"
                 ZZ_pX_PowerMod_long_pre(to_mul, to_mul, p_shift, self.prime_pow.get_modulus_capdiv(ans_rprec)[0])
                 ZZ_pX_MulMod_pre(to_add, to_add, to_mul, self.prime_pow.get_modulus_capdiv(ans_rprec)[0])
@@ -3118,9 +3118,9 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             ZZ_conv_to_long(to_shift, ZZ_tmp)
             to_shift = to_shift - ans_ordp
             #print "e"
-            _sig_on
+            sig_on()
             ZZ_InvMod(leftover, leftover, self.prime_pow.pow_ZZ_tmp(ans_rprec)[0])
-            _sig_off
+            sig_off()
             #print "f"
             ZZ_pX_mul_ZZ_p(to_add, xpow, ZZ_to_ZZ_p(leftover))
             if self.prime_pow.e == 1:
@@ -3136,9 +3136,9 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                     ZZ_pX_conv_modulus(to_mul, (<PowComputer_ZZ_pX_big_Eis>self.prime_pow).high_shifter[0], self.prime_pow.get_context_capdiv(ans_rprec).x)
                 else:
                     raise RuntimeError, "unrecognized PowComputer type"
-                _sig_on
+                sig_on()
                 ZZ_pX_InvMod_newton_ram(to_mul, to_mul, self.prime_pow.get_modulus_capdiv(ans_rprec)[0], self.prime_pow.get_context_capdiv(ans_rprec).x)
-                _sig_off
+                sig_off()
                 #print "h"
                 ZZ_pX_PowerMod_long_pre(to_mul, to_mul, p_shift, self.prime_pow.get_modulus_capdiv(ans_rprec)[0])
                 ZZ_pX_MulMod_pre(to_add, to_add, to_mul, self.prime_pow.get_modulus_capdiv(ans_rprec)[0])
@@ -3158,9 +3158,9 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             ZZ_add_long(q, q, -1)
             ZZ_rem(q, q, self.prime_pow.pow_ZZ_tmp(ans_rprec)[0])
             #print "i"
-            _sig_on
+            sig_on()
             ZZ_InvMod(q, q, self.prime_pow.pow_ZZ_tmp(ans_rprec)[0])
-            _sig_off
+            sig_off()
             #print "j"
             ZZ_pX_mul_ZZ_p(ans.unit, ans.unit, ZZ_to_ZZ_p(q))
         if branched:

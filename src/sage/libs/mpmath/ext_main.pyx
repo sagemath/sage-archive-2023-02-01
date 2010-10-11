@@ -682,7 +682,7 @@ cdef class Context:
         workopts.prec = workopts.prec * 2 + 50
         workopts.rounding = ROUND_D
         unknown = global_context.zero
-        _sig_on
+        sig_on()
         styp = 1
         for term in terms:
             ttyp = MPF_set_any(&tre, &tim, term, workopts, 0)

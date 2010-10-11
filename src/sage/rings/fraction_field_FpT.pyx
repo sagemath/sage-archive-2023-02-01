@@ -967,7 +967,7 @@ cdef class FpT_iter:
             self.cur = self.cur.next()
         else:
             next = self.cur._copy_c()
-            _sig_on
+            sig_on()
             while True:
                 zmod_poly_inc(next._numer, False)
                 if zmod_poly_degree(next._numer) > self.degree:
@@ -979,7 +979,7 @@ cdef class FpT_iter:
                 zmod_poly_gcd(self.g, next._numer, next._denom)
                 if zmod_poly_is_one(self.g):
                     break
-            _sig_off
+            sig_off()
             self.cur = next
 #            self.cur = self.cur.next()
 #            if zmod_poly_degree(self.cur._numer) > self.degree:

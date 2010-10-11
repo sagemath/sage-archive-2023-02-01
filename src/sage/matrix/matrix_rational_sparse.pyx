@@ -367,7 +367,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
         mpz_init(x)
         mpz_init_set_si(h, 0)
         cdef int i, j
-        _sig_on
+        sig_on()
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._matrix[i].num_nonzero:
                 mpq_get_num(x, self._matrix[i].entries[j])
@@ -378,7 +378,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
                 mpz_abs(x, x)
                 if mpz_cmp(h,x) < 0:
                     mpz_set(h,x)
-        _sig_off
+        sig_off()
         mpz_set(height, h)
         mpz_clear(h)
         mpz_clear(x)
@@ -389,11 +389,11 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
         cdef Py_ssize_t i, j
         cdef mpq_vector *v
 
-        _sig_on
+        sig_on()
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._matrix[i].num_nonzero:
                 mpz_lcm(d, d, mpq_denref(self._matrix[i].entries[j]))
-        _sig_off
+        sig_off()
         return 0
 
 
@@ -450,14 +450,14 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
         A = MZ.zero_matrix().__copy__()
 
         mpz_init(t)
-        _sig_on
+        sig_on()
         for i from 0 <= i < self._nrows:
             v = &(self._matrix[i])
             for j from 0 <= j < v.num_nonzero:
                 mpz_divexact(t, D.value, mpq_denref(v.entries[j]))
                 mpz_mul(t, t, mpq_numref(v.entries[j]))
                 mpz_vector_set_entry(&(A._matrix[i]), v.positions[j], t)
-        _sig_off
+        sig_off()
         mpz_clear(t)
         A._initialized = 1
         return A, D

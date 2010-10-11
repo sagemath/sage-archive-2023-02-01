@@ -140,7 +140,7 @@ void msg(char* s) {
   fprintf(stderr, s);
   fprintf(stderr, "This probably occurred because a *compiled* component\n");
   fprintf(stderr, "of Sage has a bug in it (typically accessing invalid memory)\n");
-  fprintf(stderr, "or is not properly wrapped with _sig_on, _sig_off.\n");
+  fprintf(stderr, "and is not properly wrapped with sig_on(), sig_off().\n");
   fprintf(stderr, "You might want to run Sage under gdb with 'sage -gdb' to debug this.\n");
   fprintf(stderr, "Sage will now terminate (sorry).\n");
   fprintf(stderr, "------------------------------------------------------------\n\n");

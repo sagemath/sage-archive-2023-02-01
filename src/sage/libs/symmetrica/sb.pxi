@@ -51,9 +51,9 @@ def mult_schubert_schubert_symmetrica(a, b):
         raise err
 
 
-    _sig_on
+    sig_on()
     mult_schubert_schubert(ca, cb, cres)
-    _sig_off
+    sig_off()
 
     res = _py(cres)
 
@@ -82,9 +82,9 @@ def t_SCHUBERT_POLYNOM_symmetrica(a):
         freeall(ca); freeall(cres)
         raise err
 
-    _sig_on
+    sig_on()
     t_SCHUBERT_POLYNOM(ca, cres)
-    _sig_off
+    sig_off()
 
     res = _py(cres)
 
@@ -118,9 +118,9 @@ def t_POLYNOM_SCHUBERT_symmetrica(a):
         else:
             _op_polynom(a, ca)
 
-    _sig_on
+    sig_on()
     t_POLYNOM_SCHUBERT(ca, cres)
-    _sig_off
+    sig_off()
 
     res = _py(cres)
 
@@ -152,9 +152,9 @@ def mult_schubert_variable_symmetrica(a, i):
 
     _op_integer(i, ci)
 
-    _sig_on
+    sig_on()
     mult_schubert_variable(ca, ci, cres)
-    _sig_off
+    sig_off()
 
     res = _py(cres)
 
@@ -202,9 +202,9 @@ def divdiff_perm_schubert_symmetrica(perm, a):
         freeall(ca); freeall(cperm); freeall(cres)
         raise ValueError, r"cannot apply \delta_{%s} to a (= %s)"%(perm, a)
 
-    _sig_on
+    sig_on()
     divdiff_perm_schubert(cperm, ca, cres)
-    _sig_off
+    sig_off()
 
     res = _py(cres)
 
@@ -232,9 +232,9 @@ def scalarproduct_schubert_symmetrica(a, b):
         freeall(ca); freeall(cb); freeall(cres)
         raise err
 
-    _sig_on
+    sig_on()
     scalarproduct_schubert(ca, cb, cres)
-    _sig_off
+    sig_off()
 
     if empty_listp(cres):
         res = Integer(0)
@@ -281,9 +281,9 @@ def divdiff_schubert_symmetrica(i, a):
         freeall(ca); freeall(ci); freeall(cres)
         raise ValueError, r"cannot apply \delta_{%s} to a (= %s)"%(i, a)
 
-    _sig_on
+    sig_on()
     divdiff_schubert(ci, ca, cres)
-    _sig_off
+    sig_off()
 
     res = _py(cres)
 

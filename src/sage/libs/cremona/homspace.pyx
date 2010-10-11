@@ -38,9 +38,9 @@ cdef class ModularSymbols:
             raise ValueError, "sign (= %s) is not supported; use 0, +1 or -1"%sign
         if level <= 1:
             raise ValueError, "the level (= %s) must be at least 2"%level
-        _sig_on
+        sig_on()
         self.H = new_homspace(level, sign, cuspidal, verbose)
-        _sig_off
+        sig_off()
 
     def __dealloc__(self):
         delete_homspace(self.H)
@@ -192,8 +192,8 @@ cdef class ModularSymbols:
             sage: st*sw == sw*st
             True
         """
-        _sig_on
+        sig_on()
         cdef mat M = self.H.heckeop(p, dual, verbose)
-        _sig_off
+        sig_off()
         return MF.new_matrix(M)
 

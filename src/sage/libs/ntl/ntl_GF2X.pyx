@@ -156,10 +156,10 @@ cdef class ntl_GF2X:
         elif PY_TYPE_CHECK(x, FiniteField_ntl_gf2eElement):
             x = x.polynomial().list()
         s = str(x).replace(","," ")
-        _sig_on
+        sig_on()
         # TODO: this is very slow, but we wait until somebody complains
         GF2X_from_str(&self.x, s)
-        _sig_off
+        sig_off()
 
     def __cinit__(self):
         GF2X_construct(&self.x)

@@ -383,7 +383,7 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
 
         cdef double* row
         cdef int O
-        _sig_on
+        sig_on()
         for i in range(1, length):
             accum = 0
             row = self.A._values + q*self.N
@@ -396,7 +396,7 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
                     accum += row[j]
             states._values[i] = q
             obs._values[i] = self.random_sample(q, rstate)
-        _sig_off
+        sig_off()
 
         return obs, states
 

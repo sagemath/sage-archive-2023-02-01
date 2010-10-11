@@ -89,12 +89,12 @@ cdef class ntl_mat_GF2:
             GF2_construct(&_elem)
             v = nrows
             self.x.SetDims(_nrows, _ncols)
-            _sig_on
+            sig_on()
             for i from 0 <= i < _nrows:
                 for j from 0 <= j < _ncols:
                     GF2_conv_long(_elem, int(v[i,j])%2)
                     mat_GF2_setitem(&self.x, i, j, &_elem)
-            _sig_off
+            sig_off()
             GF2_destruct(&_elem)
             return
 
@@ -103,14 +103,14 @@ cdef class ntl_mat_GF2:
         self.x.SetDims(_nrows, _ncols)
 
         if v != None:
-            _sig_on
+            sig_on()
             for i from 0 <= i < _nrows:
                 for j from 0 <= j < _ncols:
                     elem = v[i*_ncols+j]
                     if not PY_TYPE_CHECK(elem, ntl_GF2):
                         elem = ntl_GF2(elem)
                     mat_GF2_setitem(&self.x, i, j, &(<ntl_GF2>elem).x)
-            _sig_off
+            sig_off()
 
     def __cinit__(self):
         mat_GF2_construct(&self.x)
@@ -176,9 +176,9 @@ cdef class ntl_mat_GF2:
         cdef ntl_mat_GF2 r = self._new()
         if not PY_TYPE_CHECK(other, ntl_mat_GF2):
             other = ntl_mat_GF2(other)
-        _sig_on
+        sig_on()
         mat_GF2_mul(r.x, self.x, (<ntl_mat_GF2>other).x)
-        _sig_off
+        sig_off()
         return r
 
     def __sub__(ntl_mat_GF2 self, other):
@@ -203,9 +203,9 @@ cdef class ntl_mat_GF2:
         cdef ntl_mat_GF2 r = self._new()
         if not PY_TYPE_CHECK(other, ntl_mat_GF2):
             other = ntl_mat_GF2(other,)
-        _sig_on
+        sig_on()
         mat_GF2_sub(r.x, self.x, (<ntl_mat_GF2>other).x)
-        _sig_off
+        sig_off()
         return r
 
     def __add__(ntl_mat_GF2 self, other):
@@ -231,9 +231,9 @@ cdef class ntl_mat_GF2:
         cdef ntl_mat_GF2 r = self._new()
         if not PY_TYPE_CHECK(other, ntl_mat_GF2):
             other = ntl_mat_GF2(other)
-        _sig_on
+        sig_on()
         mat_GF2_add(r.x, self.x, (<ntl_mat_GF2>other).x)
-        _sig_off
+        sig_off()
         return r
 
     def __neg__(ntl_mat_GF2 self):
@@ -255,9 +255,9 @@ cdef class ntl_mat_GF2:
             [0 1 1 0]
         """
         cdef ntl_mat_GF2 r = self._new()
-        _sig_on
+        sig_on()
         mat_GF2_negate(r.x, self.x)
-        _sig_off
+        sig_off()
         return r
 
     def __pow__(ntl_mat_GF2 self, long e, ignored):
@@ -292,9 +292,9 @@ cdef class ntl_mat_GF2:
             [0 1 1 0]
         """
         cdef ntl_mat_GF2 r = self._new()
-        _sig_on
+        sig_on()
         mat_GF2_power(r.x, self.x, e)
-        _sig_off
+        sig_off()
         return r
 
     def __richcmp__(ntl_mat_GF2 self, other, op):
@@ -425,9 +425,9 @@ cdef class ntl_mat_GF2:
             1
         """
         cdef ntl_GF2 r = self._new_element()
-        _sig_on
+        sig_on()
         r.x = mat_GF2_determinant(self.x)
-        _sig_off
+        sig_off()
         return r
 
     def gauss(self,ncols=-1):
@@ -509,9 +509,9 @@ cdef class ntl_mat_GF2:
             True
         """
         cdef long isZero
-        _sig_on
+        sig_on()
         isZero = mat_GF2_IsZero(self.x)
-        _sig_off
+        sig_off()
         return bool(isZero)
 
     def _sage_(ntl_mat_GF2 self):
@@ -589,9 +589,9 @@ cdef class ntl_mat_GF2:
             ]
         """
         cdef ntl_mat_GF2 r = self._new()
-        _sig_on
+        sig_on()
         mat_GF2_transpose(r.x, self.x)
-        _sig_off
+        sig_off()
         return r
 
     def __invert__(self):
@@ -609,9 +609,9 @@ cdef class ntl_mat_GF2:
             True
         """
         cdef ntl_mat_GF2 r = self._new()
-        _sig_on
+        sig_on()
         mat_GF2_inv(r.x, self.x)
-        _sig_off
+        sig_off()
         return r
 
     def IsIdent(self, n = -1):
@@ -684,9 +684,9 @@ cdef class ntl_mat_GF2:
             ]
         """
         cdef ntl_mat_GF2 X = self._new()
-        _sig_on
+        sig_on()
         mat_GF2_image(X.x, self.x)
-        _sig_off
+        sig_off()
         return X
 
     def kernel(self):
@@ -709,7 +709,7 @@ cdef class ntl_mat_GF2:
             ]
         """
         cdef ntl_mat_GF2 X = self._new()
-        _sig_on
+        sig_on()
         mat_GF2_kernel(X.x, self.x)
-        _sig_off
+        sig_off()
         return X

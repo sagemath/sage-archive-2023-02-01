@@ -34,13 +34,13 @@ cdef make_ZZ(ZZ_c* x):
     y = ntl_ZZ()
     y.x = x[0]
     ZZ_delete(x)
-    _sig_off
+    sig_off()
     return y
 
 cdef make_ZZX(ZZX_c* x):
     """ These make_XXXX functions are deprecated and should be phased out."""
     cdef ntl_ZZX y
-    _sig_off
+    sig_off()
     y = ntl_ZZX()
     y.x = x[0]
     ZZX_delete(x)
@@ -221,9 +221,9 @@ cdef class ntl_ZZX:
          0
         """
         cdef ntl_ZZ r = ntl_ZZ()
-        _sig_on
+        sig_on()
         r.x = ZZX_coeff(self.x, <long>i)
-        _sig_off
+        sig_off()
         return r
 
     cdef int getitem_as_int(ntl_ZZX self, long i):
@@ -306,9 +306,9 @@ cdef class ntl_ZZX:
             self = ntl_ZZX(self)
         if not PY_TYPE_CHECK(other, ntl_ZZX):
             other = ntl_ZZX(other)
-        _sig_on
+        sig_on()
         ZZX_mul(r.x, (<ntl_ZZX>self).x, (<ntl_ZZX>other).x)
-        _sig_off
+        sig_off()
         return r
 
     def __div__(ntl_ZZX self, ntl_ZZX other):
@@ -330,7 +330,7 @@ cdef class ntl_ZZX:
             ...
             ArithmeticError: self (=[0 1 2 3 4 5 6 7 8 9]) is not divisible by other (=[-1 0 1])
         """
-        _sig_on
+        sig_on()
         cdef int divisible
         cdef ZZX_c* q
         q = ZZX_div(&self.x, &other.x, &divisible)
@@ -361,11 +361,11 @@ cdef class ntl_ZZX:
             self = ntl_ZZX(self)
         if not PY_TYPE_CHECK(other, ntl_ZZX):
             other = ntl_ZZX(other)
-        _sig_on
+        sig_on()
         ZZX_rem(r.x, (<ntl_ZZX>self).x, (<ntl_ZZX>other).x)
-        _sig_off
+        sig_off()
         return r
-        _sig_on
+        sig_on()
 
     def quo_rem(self, ntl_ZZX other):
         """
@@ -381,7 +381,7 @@ cdef class ntl_ZZX:
            True
         """
         cdef ZZX_c *r, *q
-        _sig_on
+        sig_on()
         ZZX_quo_rem(&self.x, &other.x, &r, &q)
         return (make_ZZX(q), make_ZZX(r))
 
@@ -394,7 +394,7 @@ cdef class ntl_ZZX:
             sage: f*f
             [1 0 -2 0 1]
         """
-        _sig_on
+        sig_on()
         return make_ZZX(ZZX_square(&self.x))
 
     def __pow__(ntl_ZZX self, long n, ignored):
@@ -592,7 +592,7 @@ cdef class ntl_ZZX:
             ([-1 3], [2])
         """
         cdef ZZX_c *r, *q
-        _sig_on
+        sig_on()
         ZZX_pseudo_quo_rem(&self.x, &other.x, &r, &q)
         return (make_ZZX(q), make_ZZX(r))
 
@@ -609,7 +609,7 @@ cdef class ntl_ZZX:
             sage: g.gcd(f)
             [1 2 3]
         """
-        _sig_on
+        sig_on()
         return make_ZZX(ZZX_gcd(&self.x, &other.x))
 
     def lcm(self, ntl_ZZX other):
@@ -660,7 +660,7 @@ cdef class ntl_ZZX:
 
         cdef ZZX_c *s, *t
         cdef ZZ_c *r
-        _sig_on
+        sig_on()
         ZZX_xgcd(&self.x, &other.x, &r, &s, &t, proof)
         return (make_ZZ(r), make_ZZX(s), make_ZZX(t))
 
@@ -810,7 +810,7 @@ cdef class ntl_ZZX:
         if m <= 0:
             from copy import copy
             return copy(zero_ZZX)
-        _sig_on
+        sig_on()
         return make_ZZX(ZZX_truncate(&self.x, m))
 
     def multiply_and_truncate(self, ntl_ZZX other, long m):
@@ -865,7 +865,7 @@ cdef class ntl_ZZX:
         if n != ntl_ZZ(1) and n != ntl_ZZ(-1):
             raise ArithmeticError, \
                   "The constant term of self must be 1 or -1."
-        _sig_on
+        sig_on()
         return make_ZZX(ZZX_invert_and_truncate(&self.x, m))
 
     def multiply_mod(self, ntl_ZZX other, ntl_ZZX modulus):
@@ -880,7 +880,7 @@ cdef class ntl_ZZX:
             sage: h.multiply_mod(g, modulus)
             [-10 -34 -36]
         """
-        _sig_on
+        sig_on()
         return make_ZZX(ZZX_multiply_mod(&self.x, &other.x, &modulus.x))
 
     def trace_mod(self, ntl_ZZX modulus):
@@ -895,7 +895,7 @@ cdef class ntl_ZZX:
             sage: f.trace_mod(mod)
             -37
         """
-        _sig_on
+        sig_on()
         return make_ZZ(ZZX_trace_mod(&self.x, &modulus.x))
 
     def trace_list(self):
@@ -918,7 +918,7 @@ cdef class ntl_ZZX:
         """
         if not self.is_monic():
             raise ValueError, "polynomial must be monic."
-        _sig_on
+        sig_on()
         cdef char* t
         t = ZZX_trace_list(&self.x)
         return eval(string_delete(t).replace(' ', ','))
@@ -941,7 +941,7 @@ cdef class ntl_ZZX:
         """
         proof = proof_flag(proof)
         # NOTES: Within a factor of 2 in speed compared to MAGMA.
-        _sig_on
+        sig_on()
         return make_ZZ(ZZX_resultant(&self.x, &other.x, proof))
 
     def norm_mod(self, ntl_ZZX modulus, proof=None):
@@ -964,7 +964,7 @@ cdef class ntl_ZZX:
             [-8846 -594 -60 14 1]
         """
         proof = proof_flag(proof)
-        _sig_on
+        sig_on()
         return make_ZZ(ZZX_norm_mod(&self.x, &modulus.x, proof))
 
     def discriminant(self, proof=None):
@@ -988,11 +988,11 @@ cdef class ntl_ZZX:
             -339
         """
         proof = proof_flag(proof)
-        _sig_on
+        sig_on()
         return make_ZZ(ZZX_discriminant(&self.x, proof))
 
     #def __call__(self, ntl_ZZ a):
-    #    _sig_on
+    #    sig_on()
     #    return make_ZZ(ZZX_polyeval(&self.x, a.x))
 
     def charpoly_mod(self, ntl_ZZX modulus, proof=None):
@@ -1013,7 +1013,7 @@ cdef class ntl_ZZX:
 
         """
         proof = proof_flag(proof)
-        _sig_on
+        sig_on()
         return make_ZZX(ZZX_charpoly_mod(&self.x, &modulus.x, proof))
 
     def minpoly_mod_noproof(self, ntl_ZZX modulus):
@@ -1034,7 +1034,7 @@ cdef class ntl_ZZX:
             sage: f.minpoly_mod_noproof(g)
             [0 0 1]
         """
-        _sig_on
+        sig_on()
         return make_ZZX(ZZX_minpoly_mod(&self.x, &modulus.x))
 
     def clear(self):
@@ -1068,9 +1068,9 @@ cdef class ntl_ZZX:
             sage: f
             [1 2 3 0 0 0 0 0 0 0 5]
         """
-        _sig_on
+        sig_on()
         ZZX_preallocate_space(&self.x, n)
-        _sig_off
+        sig_off()
 
     def squarefree_decomposition(self):
         """
@@ -1088,9 +1088,9 @@ cdef class ntl_ZZX:
         cdef ZZX_c** v
         cdef long* e
         cdef long i, n
-        _sig_on
+        sig_on()
         ZZX_squarefree_decomposition(&v, &e, &n, &self.x)
-        _sig_off
+        sig_off()
         F = []
         for i from 0 <= i < n:
             F.append((make_ZZX(v[i]), e[i]))

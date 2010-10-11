@@ -142,10 +142,10 @@ cdef int ZZ_pX_Eis_init(PowComputer_ZZ_pX prime_pow, ntl_ZZ_pX shift_seed) excep
         (<PowComputer_ZZ_pX_FM_Eis>prime_pow).low_length = low_length
         (<PowComputer_ZZ_pX_FM_Eis>prime_pow).high_length = high_length
 
-        _sig_on
+        sig_on()
         (<PowComputer_ZZ_pX_FM_Eis>prime_pow).low_shifter = <ZZ_pX_Multiplier_c *>sage_malloc(sizeof(ZZ_pX_Multiplier_c) * low_length)
         (<PowComputer_ZZ_pX_FM_Eis>prime_pow).high_shifter = <ZZ_pX_Multiplier_c *>sage_malloc(sizeof(ZZ_pX_Multiplier_c) * high_length)
-        _sig_off
+        sig_off()
         low_shifter_m = (<PowComputer_ZZ_pX_FM_Eis>prime_pow).low_shifter
         high_shifter_m = (<PowComputer_ZZ_pX_FM_Eis>prime_pow).high_shifter
     elif PY_TYPE_CHECK(prime_pow, PowComputer_ZZ_pX_small_Eis):
@@ -153,10 +153,10 @@ cdef int ZZ_pX_Eis_init(PowComputer_ZZ_pX prime_pow, ntl_ZZ_pX shift_seed) excep
         (<PowComputer_ZZ_pX_small_Eis>prime_pow).low_length = low_length
         (<PowComputer_ZZ_pX_small_Eis>prime_pow).high_length = high_length
 
-        _sig_on
+        sig_on()
         (<PowComputer_ZZ_pX_small_Eis>prime_pow).low_shifter = <ZZ_pX_c *>sage_malloc(sizeof(ZZ_pX_c) * low_length)
         (<PowComputer_ZZ_pX_small_Eis>prime_pow).high_shifter = <ZZ_pX_c *>sage_malloc(sizeof(ZZ_pX_c) * high_length)
-        _sig_off
+        sig_off()
         low_shifter_p = (<PowComputer_ZZ_pX_small_Eis>prime_pow).low_shifter
         high_shifter_p = (<PowComputer_ZZ_pX_small_Eis>prime_pow).high_shifter
     elif PY_TYPE_CHECK(prime_pow, PowComputer_ZZ_pX_big_Eis):
@@ -164,10 +164,10 @@ cdef int ZZ_pX_Eis_init(PowComputer_ZZ_pX prime_pow, ntl_ZZ_pX shift_seed) excep
         (<PowComputer_ZZ_pX_big_Eis>prime_pow).low_length = low_length
         (<PowComputer_ZZ_pX_big_Eis>prime_pow).high_length = high_length
 
-        _sig_on
+        sig_on()
         (<PowComputer_ZZ_pX_big_Eis>prime_pow).low_shifter = <ZZ_pX_c *>sage_malloc(sizeof(ZZ_pX_c) * low_length)
         (<PowComputer_ZZ_pX_big_Eis>prime_pow).high_shifter = <ZZ_pX_c *>sage_malloc(sizeof(ZZ_pX_c) * high_length)
-        _sig_off
+        sig_off()
         low_shifter_p = (<PowComputer_ZZ_pX_big_Eis>prime_pow).low_shifter
         high_shifter_p = (<PowComputer_ZZ_pX_big_Eis>prime_pow).high_shifter
     else:
@@ -492,9 +492,9 @@ cdef class PowComputer_ext(PowComputer_class):
             sage: PC = PowComputer_ext_maker(5, 10, 10, 20, False, ntl.ZZ_pX([-5, 0, 1], 5^10), 'small', 'e',ntl.ZZ_pX([1],5^10)) #indirect doctest
         """
         self._initialized = 0
-        _sig_on
+        sig_on()
         self.small_powers = <ZZ_c *>sage_malloc(sizeof(ZZ_c) * (cache_limit + 1))
-        _sig_off
+        sig_off()
         if self.small_powers == NULL:
             raise MemoryError, "out of memory allocating power storing"
         ZZ_construct(&self.top_power)
@@ -509,13 +509,13 @@ cdef class PowComputer_ext(PowComputer_class):
             ZZ_construct(&(self.small_powers[1]))
             mpz_to_ZZ(&(self.small_powers[1]), &prime.value)
 
-        _sig_on
+        sig_on()
         for i from 2 <= i <= cache_limit:
             ZZ_construct(&(self.small_powers[i]))
             ZZ_mul(self.small_powers[i], self.small_powers[i-1], self.small_powers[1])
         mpz_to_ZZ(&self.top_power, &prime.value)
         ZZ_power(self.top_power, self.top_power, prec_cap)
-        _sig_off
+        sig_off()
         mpz_init(self.temp_m)
         ZZ_construct(&self.temp_z)
 
@@ -1653,9 +1653,9 @@ cdef class PowComputer_ZZ_pX_small(PowComputer_ZZ_pX):
 
         self.c = []
         # We cache from 0 to cache_limit inclusive, and provide one extra slot to return moduli above the cache_limit
-        _sig_on
+        sig_on()
         self.mod = <ZZ_pX_Modulus_c *>sage_malloc(sizeof(ZZ_pX_Modulus_c) * (cache_limit + 2))
-        _sig_off
+        sig_off()
         if self.mod == NULL:
             self.cleanup_ext()
             raise MemoryError, "out of memory allocating moduli"
@@ -1760,13 +1760,13 @@ cdef class PowComputer_ZZ_pX_small(PowComputer_ZZ_pX):
         if n < 0:
             n = -n
         try:
-            _sig_on
+            sig_on()
             (<ntl_ZZ_pContext_class>self.c[n]).restore_c()
-            _sig_off
+            sig_off()
         except IndexError:
-            _sig_on
+            sig_on()
             (<ntl_ZZ_pContext_class>PowComputer_ZZ_pX.get_context(self, n)).restore_c()
-            _sig_off
+            sig_off()
 
     cdef ntl_ZZ_pContext_class get_top_context(self):
         """
@@ -2015,9 +2015,9 @@ cdef class PowComputer_ZZ_pX_big(PowComputer_ZZ_pX):
         #if self.c == NULL:
         #    self.cleanup_ext()
         #    raise MemoryError, "out of memory allocating contexts"
-        _sig_on
+        sig_on()
         self.modulus_list = <ZZ_pX_Modulus_c *>sage_malloc(sizeof(ZZ_pX_Modulus_c) * (cache_limit + 1))
-        _sig_off
+        sig_off()
         if self.modulus_list == NULL:
             self.cleanup_ext()
             raise MemoryError, "out of memory allocating moduli"

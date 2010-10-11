@@ -161,9 +161,9 @@ def kbase_libsingular(I):
     cdef ideal *result
     singular_options = singular_options | Sy_bit(OPT_REDSB)
 
-    _sig_on
+    sig_on()
     result = scKBase(-1, i, q)
-    _sig_off
+    sig_off()
 
     id_Delete(&i, r)
     res = singular_ideal_to_sage_sequence(result,r,I.ring())
@@ -189,9 +189,9 @@ def std_libsingular(I):
 
     singular_options = singular_options | Sy_bit(OPT_REDSB)
 
-    _sig_on
+    sig_on()
     result =kStd(i,NULL,hom,NULL)
-    _sig_off
+    sig_off()
 
     idSkipZeroes(result)
 
@@ -232,9 +232,9 @@ def slimgb_libsingular(I):
 
     singular_options = singular_options | Sy_bit(OPT_REDSB)
 
-    _sig_on
+    sig_on()
     result = t_rep_gb(r, i, i.rank, 0)
-    _sig_off
+    sig_off()
 
     id_Delete(&i,r)
 
@@ -281,9 +281,9 @@ def interred_libsingular(I):
 
     bck = singular_options
     singular_options = singular_options | Sy_bit(OPT_REDTAIL)|Sy_bit(OPT_REDSB)
-    _sig_on
+    sig_on()
     result = kInterRed(i,NULL)
-    _sig_off
+    sig_off()
     singular_options = bck
 
 

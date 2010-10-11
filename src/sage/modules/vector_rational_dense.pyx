@@ -106,11 +106,11 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
     def __dealloc__(self):
         cdef Py_ssize_t i
         if self._entries:
-            _sig_on
+            sig_on()
             for i from 0 <= i < self._degree:
                 #print "clearing gmp's entry %s"%i
                 mpq_clear(self._entries[i])
-            _sig_off
+            sig_off()
             #print "clearing python entries"
             sage_free(self._entries)
 

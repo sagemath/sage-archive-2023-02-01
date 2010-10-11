@@ -5,5 +5,11 @@
 ################################################################
 
 cdef extern from 'interrupt.h':
-    int _sig_on, _sig_off, _sig_check
+    void sig_on()
+    void sig_str(char*)
+    void sig_off()
+
+    # These provide backwards compatibility with sage-4.6 and earlier
+    int _sig_on
     void _sig_str(char*)
+    int _sig_off

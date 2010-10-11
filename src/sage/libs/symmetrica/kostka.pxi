@@ -149,9 +149,9 @@ def kostka_tafel_symmetrica(n):
 
     _op_integer(n, cn)
 
-    _sig_on
+    sig_on()
     kostka_tafel(cn, cresult)
-    _sig_off
+    sig_off()
 
     res = _py(cresult)
 

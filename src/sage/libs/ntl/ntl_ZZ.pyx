@@ -32,7 +32,7 @@ cdef make_ZZ(ZZ_c* x):
     y = ntl_ZZ()
     y.x = x[0]
     ZZ_delete(x)
-    _sig_off
+    sig_off()
     return y
 
 
@@ -95,9 +95,9 @@ cdef class ntl_ZZ:
                     (v[1:-1].isdigit() or (len(v) <= 2)) and \
                     (v[-1].isdigit() or (v[-1].lower() in ['l','r']))):
                raise ValueError, "invalid integer: %s"%v
-            _sig_on
+            sig_on()
             ZZ_from_str(&self.x, v)
-            _sig_off
+            sig_off()
 
     def __cinit__(self):
         ZZ_construct(&self.x)
@@ -307,9 +307,9 @@ cdef class ntl_ZZ:
 
         AUTHOR: Joel B. Mohler
         """
-        _sig_on
+        sig_on()
         value._to_ZZ(&self.x)
-        _sig_off
+        sig_off()
 
     def set_from_int_doctest(self, value):
         r"""
@@ -343,9 +343,9 @@ cdef class ntl_ZZ:
         if ZZ_IsZero(self.x):
             from sage.rings.infinity import infinity
             return infinity
-        _sig_on
+        sig_on()
         valuation = ZZ_remove(unit.x, self.x, prime.x)
-        _sig_off
+        sig_off()
         ZZ_conv_from_long(ans.x, valuation)
         return ans
 
@@ -366,9 +366,9 @@ cdef class ntl_ZZ:
         cdef ntl_ZZ val = PY_NEW(ntl_ZZ)
         cdef ntl_ZZ unit = PY_NEW(ntl_ZZ)
         cdef long valuation
-        _sig_on
+        sig_on()
         valuation = ZZ_remove(unit.x, self.x, prime.x)
-        _sig_off
+        sig_off()
         ZZ_conv_from_long(val.x, valuation)
         return val, unit
 
@@ -428,9 +428,9 @@ def ntl_setSeed(x=None):
         seed = ntl_ZZ(str(randint(0,int(2)**64)))
     else:
         seed = ntl_ZZ(str(x))
-    _sig_on
+    sig_on()
     ZZ_SetSeed(seed.x)
-    _sig_off
+    sig_off()
 
 ntl_setSeed()
 
@@ -458,9 +458,9 @@ def randomBnd(q):
     w = q
     cdef ntl_ZZ ans
     ans = PY_NEW(ntl_ZZ)
-    _sig_on
+    sig_on()
     ZZ_RandomBnd(ans.x, w.x)
-    _sig_off
+    sig_off()
     return ans
 
 def randomBits(long n):
@@ -478,7 +478,7 @@ def randomBits(long n):
 
     cdef ntl_ZZ ans
     ans = PY_NEW(ntl_ZZ)
-    _sig_on
+    sig_on()
     ZZ_RandomBits(ans.x, n)
-    _sig_off
+    sig_off()
     return ans

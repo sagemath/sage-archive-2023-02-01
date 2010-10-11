@@ -314,9 +314,9 @@ def strassen_echelon(MatrixWindow A, cutoff):
     """
     if cutoff < 1:
         raise ValueError, "cutoff must be at least 1"
-    _sig_on
+    sig_on()
     strassen_echelon_c(A, cutoff, A._matrix._strassen_default_cutoff(A._matrix))
-    _sig_off
+    sig_off()
 
 cdef strassen_echelon_c(MatrixWindow A, Py_ssize_t cutoff, Py_ssize_t mul_cutoff):
     # The following notation will be used in the comments below, which should be understood to give

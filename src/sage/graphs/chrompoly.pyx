@@ -151,9 +151,9 @@ def chromatic_polynomial(G, return_tree_basis = False):
                     chords2[i] = j
                     i -= 1
     try:
-        _sig_on
+        sig_on()
         contract_and_count(chords1, chords2, num_chords, nverts, tot, parent)
-        _sig_off
+        sig_off()
     except RuntimeError:
         sage_free(queue)
         sage_free(chords1)

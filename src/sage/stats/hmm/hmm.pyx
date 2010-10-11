@@ -211,7 +211,7 @@ cdef class HiddenMarkovModel:
         cdef Py_ssize_t t, T = alpha._length//N
         cdef TimeSeries gamma = TimeSeries(alpha._length, initialize=False)
         cdef double denominator
-        _sig_on
+        sig_on()
         for t in range(T):
             denominator = 0
             for j in range(N):
@@ -219,7 +219,7 @@ cdef class HiddenMarkovModel:
                 denominator += gamma._values[t*N + j]
             for j in range(N):
                 gamma._values[t*N + j] /= denominator
-        _sig_off
+        sig_off()
         return gamma
 
 
@@ -728,7 +728,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
 
         cdef double* row
         cdef int O
-        _sig_on
+        sig_on()
         for i in range(1, length):
             # Choose next state
             accum = 0
@@ -743,7 +743,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
             states._values[i] = q
             # Generate symbol from this new state q
             obs._values[i] = self._gen_symbol(q, rstate.c_rand_double())
-        _sig_off
+        sig_off()
 
         if self._emission_symbols is None:
             # No emission symbol mapping
@@ -1126,7 +1126,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
         cdef double sum
         cdef Py_ssize_t t, T = alpha._length//N
         cdef TimeSeries xi = TimeSeries(T*N*N, initialize=False)
-        _sig_on
+        sig_on()
         for t in range(T-1):
             sum = 0.0
             for i in range(N):
@@ -1137,7 +1137,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
             for i in range(N):
                 for j in range(N):
                     xi._values[t*N*N + i*N + j] /= sum
-        _sig_off
+        sig_off()
         return xi
 
     def baum_welch(self, obs, int max_iter=100, double log_likelihood_cutoff=1e-4, bint fix_emissions=False):

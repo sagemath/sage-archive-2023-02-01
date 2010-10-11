@@ -142,9 +142,9 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
         cdef Py_ssize_t i, k
 
-        _sig_on
+        sig_on()
         self._entries = <mpq_t *> sage_malloc(sizeof(mpq_t)*(self._nrows * self._ncols))
-        _sig_off
+        sig_off()
         if self._entries == NULL:
             raise MemoryError, "out of memory allocating a matrix"
 
@@ -155,7 +155,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             raise MemoryError, "out of memory allocating a matrix"
 
         # store pointers to the starts of the rows
-        _sig_on
+        sig_on()
         k = 0
         for i from 0 <= i < self._nrows:
             self._matrix[i] = self._entries + k
@@ -163,7 +163,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
         for i from 0 <= i < self._nrows * self._ncols:
             mpq_init(self._entries[i])
-        _sig_off
+        sig_off()
 
     def  __dealloc__(self):
         if self._entries == NULL:
@@ -183,7 +183,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             if len(entries) != self._nrows * self._ncols:
                 raise TypeError, "entries has the wrong length"
 
-            _sig_on
+            sig_on()
             if coerce:
                 for i from 0 <= i < self._nrows * self._ncols:
                     # TODO: Should use an unsafe un-bounds-checked array access here.
@@ -193,7 +193,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                 for i from 0 <= i < self._nrows * self._ncols:
                     # TODO: Should use an unsafe un-bounds-checked array access here.
                     mpq_set(self._entries[i], (<Rational> entries[i]).value)
-            _sig_off
+            sig_off()
 
         else:
             # is it a scalar?
@@ -274,7 +274,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             t = s
             len_so_far = 0
 
-            _sig_on
+            sig_on()
             for i from 0 <= i < self._nrows:
                 for j from 0 <= j < self._ncols:
                     m = mpz_sizeinbase (mpq_numref(self._matrix[i][j]), base) + \
@@ -295,7 +295,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                     t[0] = <char>32
                     t[1] = <char>0
                     t = t + 1
-            _sig_off
+            sig_off()
             data = str(s)[:-1]
             sage_free(s)
         return data
@@ -370,7 +370,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef mpq_t *M_row
         cdef mpq_t *self_row
         cdef mpq_t *right_row
-        _sig_on
+        sig_on()
         for i from 0 <= i < self._nrows:
             M_row = M._matrix[i]
             self_row = self._matrix[i]
@@ -380,7 +380,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                 M_row = M_row + 1
                 self_row = self_row + 1
                 right_row = right_row + 1
-        _sig_off
+        sig_off()
         return M
 
     cpdef ModuleElement _sub_(self, ModuleElement right):
@@ -403,7 +403,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef mpq_t *M_row
         cdef mpq_t *self_row
         cdef mpq_t *right_row
-        _sig_on
+        sig_on()
         for i from 0 <= i < self._nrows:
             M_row = M._matrix[i]
             self_row = self._matrix[i]
@@ -413,7 +413,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                 M_row = M_row + 1
                 self_row = self_row + 1
                 right_row = right_row + 1
-        _sig_off
+        sig_off()
         return M
 
     cdef int _cmp_c_impl(self, Element right) except -2:
@@ -491,7 +491,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
         cdef mpq_t *M_row
         cdef mpq_t *self_row
-        _sig_on
+        sig_on()
         for i from 0 <= i < self._nrows:
             M_row = M._matrix[i]
             self_row = self._matrix[i]
@@ -499,7 +499,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                 mpq_neg(M_row[0], self_row[0])
                 M_row = M_row + 1
                 self_row = self_row + 1
-        _sig_off
+        sig_off()
         return M
 
     def __copy__(self):
@@ -520,10 +520,10 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
         cdef mpq_t *M_row
         cdef mpq_t *self_row
-        _sig_on
+        sig_on()
         for i from 0 <= i < self._nrows*self._ncols:
             mpq_set(M._entries[i],self._entries[i])
-        _sig_off
+        sig_off()
         if self.subdivisions is not None:
             M.subdivide(*self.get_subdivisions())
         return M
@@ -577,7 +577,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef mpq_t s, z
         mpq_init(s)
         mpq_init(z)
-        _sig_on
+        sig_on()
         l = 0
         for i from 0 <= i < nr:
             for j from 0 <= j < nc:
@@ -588,7 +588,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                     mpq_add(s, s, z)
                 mpq_set(entries[l], s)
                 l += 1
-        _sig_off
+        sig_off()
         mpq_clear(s)
         mpq_clear(z)
         return M
@@ -717,22 +717,22 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             if self._nrows == 1:
                 if mpq_cmp_si(self._entries[0], 0, 1) == 0:
                     raise ZeroDivisionError
-                _sig_on
+                sig_on()
                 mpq_inv(A._entries[0], self._entries[0])
-                _sig_off
+                sig_off()
                 return A
             elif self._nrows == 2:
-                _sig_on
+                sig_on()
                 mpq_init(det); mpq_init(t1)
                 mpq_mul(det, self._entries[0], self._entries[3])
                 mpq_mul(t1, self._entries[1], self._entries[2])
                 mpq_sub(det, det, t1)
                 i = mpq_cmp_si(det, 0, 1)
-                _sig_off
+                sig_off()
                 if i == 0:
                     mpq_clear(det); mpq_clear(t1)
                     raise ZeroDivisionError
-                _sig_on
+                sig_on()
                 # d/det
                 mpq_div(A._entries[0], self._entries[3], det)
                 # -b/det
@@ -743,7 +743,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                 mpq_div(A._entries[2], A._entries[2], det)
                 # a/det
                 mpq_div(A._entries[3], self._entries[0], det)
-                _sig_off
+                sig_off()
 
                 mpq_clear(det); mpq_clear(t1)
                 return A
@@ -845,13 +845,13 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         mpz_set_si(d,1)
         cdef Py_ssize_t i, j
         cdef mpq_t *self_row
-        _sig_on
+        sig_on()
         for i from 0 <= i < self._nrows:
             self_row = self._matrix[i]
             for j from 0 <= j < self._ncols:
                 mpz_lcm(d, d, mpq_denref(self_row[0]))
                 self_row = self_row + 1
-        _sig_off
+        sig_off()
         return 0
 
     def _clear_denom(self):
@@ -888,7 +888,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         self.mpz_denom(D.value)
         MZ = sage.matrix.matrix_space.MatrixSpace(ZZ, self._nrows, self._ncols, sparse=self.is_sparse())
         A = Matrix_integer_dense.__new__(Matrix_integer_dense, MZ, 0, 0, 0)
-        _sig_on
+        sig_on()
         for i from 0 <= i < self._nrows:
             A_row = A._matrix[i]
             self_row = self._matrix[i]
@@ -898,7 +898,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                 mpz_mul(A_row[0], A_row[0], mpq_numref(self_row[0]))
                 A_row += 1
                 self_row += 1
-        _sig_off
+        sig_off()
         A._initialized = 1
         self.cache('clear_denom', (A,D))
         return A, D
@@ -1094,7 +1094,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                 mpq_canonicalize(res_row[0])
                 AB_row = AB_row + 1
                 res_row = res_row + 1
-        _sig_off
+        sig_off()
         return res
 
 
@@ -1124,7 +1124,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         mpz_init(x)
         mpz_init_set_si(h, 0)
         cdef int i, j
-        _sig_on
+        sig_on()
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:
                 mpq_get_num(x,self._matrix[i][j])
@@ -1135,7 +1135,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                 mpz_abs(x, x)
                 if mpz_cmp(h,x) < 0:
                     mpz_set(h,x)
-        _sig_off
+        sig_off()
         mpz_set(height, h)
         mpz_clear(h)
         mpz_clear(x)
@@ -1143,11 +1143,11 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
     cdef int _rescale(self, mpq_t a) except -1:
         cdef int i, j
-        _sig_on
+        sig_on()
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:
                 mpq_mul(self._matrix[i][j], self._matrix[i][j], a)
-        _sig_off
+        sig_off()
 
     def _adjoint(self):
         """
@@ -2205,7 +2205,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
         if not nonzero:
             # Original code, before adding the ``nonzero`` option.
-            _sig_on
+            sig_on()
             if density == 1:
                 if distribution == "1/n":
                     for i from 0 <= i < self._nrows*self._ncols:
@@ -2234,13 +2234,13 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                         for j from 0 <= j < num_per_row:
                             k = rstate.c_random() % nc
                             mpq_randomize_entry_as_int(self._matrix[i][k], B.value)
-            _sig_off
+            sig_off()
         else:
             # New code, to implement the ``nonzero`` option.  Note that this
             # code is almost the same as above, the only difference being that
             # each entry is set until it's non-zero, that is, there are only
             # six additional lines, all of the form "while mpq_sgn(...) == 0:".
-            _sig_on
+            sig_on()
             if density == 1:
                 if distribution == "1/n":
                     for i from 0 <= i < self._nrows*self._ncols:
@@ -2275,7 +2275,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                             k = rstate.c_random() % nc
                             while mpq_sgn(self._matrix[i][k]) == 0:
                                 mpq_randomize_entry_as_int(self._matrix[i][k], B.value)
-            _sig_off
+            sig_off()
 
     def rank(self):
         """
@@ -2334,11 +2334,11 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                                           self._parent.matrix_space(self._ncols,self._nrows),
                                           0,False,False)
         cdef Py_ssize_t i,j
-        _sig_on
+        sig_on()
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:
                 mpq_set(A._matrix[j][i], self._matrix[i][j])
-        _sig_off
+        sig_off()
 
         if self.subdivisions is not None:
             row_divs, col_divs = self.get_subdivisions()
@@ -2381,7 +2381,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
         cdef Py_ssize_t i,j
         cdef Py_ssize_t ri,rj # reversed i and j
-        _sig_on
+        sig_on()
         ri = nr
         for i from 0 <= i < nr:
             rj = nc
@@ -2389,7 +2389,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             for j from 0 <= j < nc:
                 rj = rj-1
                 mpq_set(A._matrix[rj][ri], self._matrix[i][j])
-        _sig_off
+        sig_off()
 
         if self.subdivisions is not None:
             row_divs, col_divs = self.get_subdivisions()
@@ -2509,9 +2509,9 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         if self._nrows != self._ncols:
             raise ValueError, "incompatible matrix dimensions"
         cdef PariInstance P = sage.libs.pari.gen.pari
-        _sig_on
+        sig_on()
         cdef GEN d = det0(pari_GEN(self), flag)
-        _sig_off
+        sig_off()
         # now convert d to a Sage rational
         cdef Rational e = Rational()
         t_FRAC_to_QQ(e.value, d)
@@ -2528,9 +2528,9 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             2
         """
         cdef PariInstance P = sage.libs.pari.gen.pari
-        _sig_on
+        sig_on()
         cdef long r = rank(pari_GEN(self))
-        _sig_off
+        sig_off()
         P.clear_stack()
         return r
 
@@ -2559,9 +2559,9 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             # This case is easy, since the answer must be the 0 matrix.
             return self.matrix_space(self._nrows, right._ncols).zero_matrix().__copy__()
         cdef PariInstance P = sage.libs.pari.gen.pari
-        _sig_on
+        sig_on()
         cdef GEN M = gmul(pari_GEN(self), pari_GEN(right))
-        _sig_off
+        sig_off()
         A = new_matrix_from_pari_GEN(self.matrix_space(self._nrows, right._ncols), M)
         P.clear_stack()
         return A
@@ -2581,9 +2581,9 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef PariInstance P = sage.libs.pari.gen.pari
         cdef GEN M, d
 
-        _sig_on
+        sig_on()
         M = pari_GEN(self)
-        _sig_off
+        sig_off()
 
         # unfortunately I can't get signal handling to be good enough
         # to properly catch error (and clean up) when trying to
@@ -2592,9 +2592,9 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         if rank(M) < self._nrows:
             P.clear_stack()
             raise ZeroDivisionError, "input matrix must be nonsingular"
-        _sig_on
+        sig_on()
         d = ginv(M)
-        _sig_off
+        sig_off()
         # Convert matrix back to Sage.
         A = new_matrix_from_pari_GEN(self._parent, d)
         P.clear_stack()

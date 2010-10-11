@@ -210,9 +210,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         self._pivots = None
 
         # Allocate an array where all the entries of the matrix are stored.
-        _sig_on
+        sig_on()
         self._entries = <mpz_t *>sage_malloc(sizeof(mpz_t) * (self._nrows * self._ncols))
-        _sig_off
+        sig_off()
         if self._entries == NULL:
             raise MemoryError, "out of memory allocating a matrix"
 
@@ -238,9 +238,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             k = k + self._ncols
 
     cdef _init_linbox(self):
-        _sig_on
+        sig_on()
         linbox.set(self._matrix, self._nrows, self._ncols)
-        _sig_off
+        sig_off()
 
     def __copy__(self):
         r"""
@@ -261,10 +261,10 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         A = Matrix_integer_dense.__new__(Matrix_integer_dense, self._parent,
                                          0, 0, 0)
         cdef Py_ssize_t i
-        _sig_on
+        sig_on()
         for i from 0 <= i < self._nrows * self._ncols:
             mpz_init_set(A._entries[i], self._entries[i])
-        _sig_off
+        sig_off()
         A._initialized = True
         if self.subdivisions is not None:
             A.subdivide(*self.get_subdivisions())
@@ -550,7 +550,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             t = s
             len_so_far = 0
 
-            _sig_on
+            sig_on()
             for i from 0 <= i < self._nrows * self._ncols:
                 m = mpz_sizeinbase (self._entries[i], base)
                 if len_so_far + m + 2 >= n:
@@ -569,7 +569,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 t[0] = <char>32
                 t[1] = <char>0
                 t = t + 1
-            _sig_off
+            sig_off()
             data = str(s)[:-1]
             sage_free(s)
         return data
@@ -610,11 +610,11 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         # Moreover, NTL can also do this quickly.  Why?   I think both have specialized
         # small integer classes. (dmharvey: yes, NTL does not allocate any memory when
         # initializing a ZZ to zero.)
-        _sig_on
+        sig_on()
         cdef Py_ssize_t i
         for i from 0 <= i < self._nrows * self._ncols:
             mpz_init(self._entries[i])
-        _sig_off
+        sig_off()
         self._initialized = True
 
     cdef _new_unitialized_matrix(self, Py_ssize_t nrows, Py_ssize_t ncols):
@@ -706,9 +706,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         B = right
         ans = self.new_matrix(nrows = self.nrows(), ncols = right.ncols())
         self._init_linbox()
-        _sig_on
+        sig_on()
         linbox.matrix_matrix_multiply(ans._matrix, B._matrix, B._nrows, B._ncols)
-        _sig_off
+        sig_off()
         return ans
 
     def _multiply_classical(self, Matrix right):
@@ -757,7 +757,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         mpz_init(s)
         mpz_init(z)
 
-        _sig_on
+        sig_on()
         l = 0
         for i from 0 <= i < nr:
             for j from 0 <= j < nc:
@@ -768,7 +768,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                     mpz_add(s, s, z)
                 mpz_init_set(entries[l], s)
                 l += 1
-        _sig_off
+        sig_off()
         mpz_clear(s)
         mpz_clear(z)
         M._initialized = True
@@ -830,7 +830,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef Matrix_integer_dense M
         M = Matrix_integer_dense.__new__(Matrix_integer_dense, self._parent, None, None, None)
 
-        _sig_on
+        sig_on()
         cdef mpz_t *row_self, *row_right, *row_ans
         for i from 0 <= i < self._nrows:
             row_self = self._matrix[i]
@@ -839,7 +839,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             for j from 0 <= j < self._ncols:
                 mpz_init(row_ans[j])
                 mpz_add(row_ans[j], row_self[j], row_right[j])
-        _sig_off
+        sig_off()
         M._initialized = True
         return M
 
@@ -861,7 +861,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef Matrix_integer_dense M
         M = Matrix_integer_dense.__new__(Matrix_integer_dense, self._parent, None, None, None)
 
-        _sig_on
+        sig_on()
         cdef mpz_t *row_self, *row_right, *row_ans
         for i from 0 <= i < self._nrows:
             row_self = self._matrix[i]
@@ -870,7 +870,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             for j from 0 <= j < self._ncols:
                 mpz_init(row_ans[j])
                 mpz_sub(row_ans[j], row_self[j], row_right[j])
-        _sig_off
+        sig_off()
         M._initialized = True
         return M
 
@@ -1085,13 +1085,13 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             return matrix_dense.Matrix_dense.charpoly(self, var)
         self._init_linbox()
         if typ == 'minpoly':
-            _sig_on
+            sig_on()
             v = linbox.minpoly()
-            _sig_off
+            sig_off()
         else:
-            _sig_on
+            sig_on()
             v = linbox.charpoly()
-            _sig_off
+            sig_off()
         R = self._base_ring[var]
         verbose('finished computing %s'%typ, time)
         return R(v)
@@ -1145,14 +1145,14 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         mpz_init_set_si(h, 0)
         mpz_init(x)
 
-        _sig_on
+        sig_on()
 
         for i from 0 <= i < self._nrows * self._ncols:
             mpz_abs(x, self._entries[i])
             if mpz_cmp(h, x) < 0:
                 mpz_set(h, x)
 
-        _sig_off
+        sig_off()
 
         mpz_init_set(height, h)
         mpz_clear(h)
@@ -1262,12 +1262,12 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if row_list == NULL:
             raise MemoryError, "out of memory allocating multi-modular coefficient list"
 
-        _sig_on
+        sig_on()
         for i from 0 <= i < nr:
             for k from 0 <= k < n:
                 row_list[k] = (<Matrix_modn_dense>res[k])._matrix[i]
             mm.mpz_reduce_vec(self._matrix[i], row_list, nc)
-        _sig_off
+        sig_off()
 
         sage_free(row_list)
         return res
@@ -2028,9 +2028,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     def _elementary_divisors_linbox(self):
         self._init_linbox()
-        _sig_on
+        sig_on()
         d = linbox.smithform()
-        _sig_off
+        sig_off()
         return d
 
     def smith_form(self):
@@ -3203,7 +3203,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         if not nonzero:
             # Original code, before adding the ``nonzero`` option.
-            _sig_on
+            sig_on()
             if density == 1:
                 for i from 0 <= i < self._nrows*self._ncols:
                     the_integer_ring._randomize_mpz(self._entries[i], x, y, \
@@ -3216,12 +3216,12 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                         k = rstate.c_random()%nc
                         the_integer_ring._randomize_mpz(self._matrix[i][k], \
                                                         x, y, distribution)
-            _sig_off
+            sig_off()
         else:
             # New code, to implement the ``nonzero`` option.  Note that this
             # code is almost the same as above, the only difference being that
             # each entry is set until it's non-zero.
-            _sig_on
+            sig_on()
             if density == 1:
                 for i from 0 <= i < self._nrows*self._ncols:
                     while mpz_sgn(self._entries[i]) == 0:
@@ -3236,7 +3236,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                         while mpz_sgn(self._matrix[i][k]) == 0:
                             the_integer_ring._randomize_mpz(self._matrix[i][k],\
                                                             x, y, distribution)
-            _sig_off
+            sig_off()
 
     #### Rank
 
@@ -3298,9 +3298,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         """
         self._init_linbox()
         cdef unsigned long r
-        _sig_on
+        sig_on()
         r = linbox.rank()
-        _sig_off
+        sig_off()
         return Integer(r)
 
     def _rank_modp(self, p=46337):
@@ -3440,9 +3440,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         Compute the determinant of this matrix using Linbox.
         """
         self._init_linbox()
-        _sig_on
+        sig_on()
         d = linbox.det()
-        _sig_off
+        sig_off()
         return Integer(d)
 
     cdef _det_4x4_unsafe(self):
@@ -3457,18 +3457,18 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             270
         """
         cdef Integer d = ZZ(0)
-        _sig_on
+        sig_on()
         four_dim_det(d.value,self._entries)
-        _sig_off
+        sig_off()
         return d
 
     def _det_ntl(self):
         """
         Compute the determinant of this matrix using NTL.
         """
-        _sig_on
+        sig_on()
         d = self._ntl_().determinant()
-        _sig_off
+        sig_off()
         return Integer(d)
 
     #### Rational kernel, via IML
@@ -3489,9 +3489,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef long dim
         cdef mpz_t *mp_N
         time = verbose('computing null space of %s x %s matrix using IML'%(self._nrows, self._ncols))
-        _sig_on
+        sig_on()
         dim = nullspaceMP (self._nrows, self._ncols, self._entries, &mp_N)
-        _sig_off
+        sig_off()
         P = self.matrix_space(self._ncols, dim)
 
         # Now read the answer as a matrix.
@@ -4712,11 +4712,11 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                                           self._parent.matrix_space(self._ncols,self._nrows),
                                           0,False,False)
         cdef Py_ssize_t i,j
-        _sig_on
+        sig_on()
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:
                 mpz_init_set(A._matrix[j][i], self._matrix[i][j])
-        _sig_off
+        sig_off()
         A._initialized = True
         if self.subdivisions is not None:
             row_divs, col_divs = self.get_subdivisions()
@@ -4759,7 +4759,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         cdef Py_ssize_t i,j
         cdef Py_ssize_t ri,rj # reversed i and j
-        _sig_on
+        sig_on()
         ri = nr
         for i from 0 <= i < nr:
             rj = nc
@@ -4767,7 +4767,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             for j from 0 <= j < nc:
                 rj = rj-1
                 mpz_init_set(A._matrix[rj][ri], self._matrix[i][j])
-        _sig_off
+        sig_off()
         A._initialized = True
 
         if self.subdivisions is not None:
@@ -4810,9 +4810,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             0
         """
         cdef PariInstance P = sage.libs.pari.gen.pari
-        _sig_on
+        sig_on()
         cdef GEN d = det0(pari_GEN(self), flag)
-        _sig_off
+        sig_off()
         # now convert d to a Sage integer e
         cdef Integer e = Integer()
         t_INT_to_ZZ(e.value, d)
@@ -4831,9 +4831,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             2
         """
         cdef PariInstance P = sage.libs.pari.gen.pari
-        _sig_on
+        sig_on()
         cdef long r = rank(pari_GEN(self))
-        _sig_off
+        sig_off()
         P.clear_stack()
         return r
 
@@ -4887,9 +4887,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 (<GEN>(A[i+1]))[j+1] = <long>x
 
         # Actually compute the HNF using PARI.
-        _sig_on
+        sig_on()
         cdef GEN H = mathnf0(A, flag)
-        _sig_off
+        sig_off()
 
         B = self.extract_hnf_from_pari_matrix(H, flag, include_zero_rows)
         P.clear_stack()
@@ -4966,7 +4966,7 @@ cdef _clear_columns(Matrix_integer_dense A, pivots, Py_ssize_t n):
     cdef Py_ssize_t i, k, p, l, m = A._ncols
     cdef mpz_t** matrix = A._matrix
     cdef mpz_t c, t
-    _sig_on
+    sig_on()
     mpz_init(c)
     mpz_init(t)
     for i from 0 <= i < len(pivots):
@@ -4981,7 +4981,7 @@ cdef _clear_columns(Matrix_integer_dense A, pivots, Py_ssize_t n):
                         mpz_sub(matrix[k][l], matrix[k][l], t)
     mpz_clear(c)
     mpz_clear(t)
-    _sig_off
+    sig_off()
 
 ###############################################################
 
@@ -5039,12 +5039,12 @@ def _lift_crt(Matrix_integer_dense M, residues, moduli=None):
     if row_list == NULL:
         raise MemoryError, "out of memory allocating multi-modular coefficient list"
 
-    _sig_on
+    sig_on()
     for i from 0 <= i < nr:
         for k from 0 <= k < n:
             row_list[k] = (<Matrix_modn_dense>residues[k])._matrix[i]
         mm.mpz_crt_vec(M._matrix[i], row_list, nc)
-    _sig_off
+    sig_off()
 
     sage_free(row_list)
     return M

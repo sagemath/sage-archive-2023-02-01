@@ -500,10 +500,10 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         cdef ZZ_c tmp_z
         cdef long shift
         mpz_init(tmp_m)
-        _sig_on
+        sig_on()
         shift = mpz_remove(tmp_m, x, self.prime_pow.prime.value)
         mpz_set(tmp_m, x)
-        _sig_off
+        sig_off()
         self._set_prec_both_with_ordp(shift * self.prime_pow.e, absprec, relprec)
         mpz_to_ZZ(&tmp_z, &tmp_m)
         mpz_clear(tmp_m)
@@ -567,11 +567,11 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         cdef mpz_t num_unit
         if mpz_divisible_p(mpq_denref(x), self.prime_pow.prime.value):
             raise ValueError, "p divides the denominator"
-        _sig_on
+        sig_on()
         mpz_init(num_unit)
         num_ordp = mpz_remove(num_unit, mpq_numref(x), self.prime_pow.prime.value)
         mpz_clear(num_unit)
-        _sig_off
+        sig_off()
         self._set_prec_both_with_ordp(num_ordp * self.prime_pow.e, absprec, relprec) # restores context
         self._set_from_mpq_part2(x)
 
@@ -1344,7 +1344,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         else:
             ans = self._new_c(self.prime_pow.ram_prec_cap) # restores context
         cdef ZZ_pX_c self_value
-        _sig_on
+        sig_on()
         if ans.absprec != self.absprec:
             ZZ_pX_conv_modulus(self_value, self.value, self.prime_pow.get_context_capdiv(ans.absprec).x)
             if mpz_sgn(right.value) < 0: # only happens when self.ordp == 0
@@ -1366,7 +1366,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
                 ZZ_pX_PowerMod_pre(ans.value, ans.value, rZZ.x, self.prime_pow.get_modulus_capdiv(ans.absprec)[0])
             else:
                 ZZ_pX_PowerMod_pre(ans.value, self.value, rZZ.x, self.prime_pow.get_modulus_capdiv(ans.absprec)[0])
-        _sig_off
+        sig_off()
         return ans
 
     cpdef ModuleElement _add_(self, ModuleElement _right):

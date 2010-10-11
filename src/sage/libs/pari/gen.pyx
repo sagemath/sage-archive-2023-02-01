@@ -415,7 +415,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage_free(<void*> self.b)
 
     def __repr__(self):
-        _sig_on
+        sig_on()
         return P.new_gen_to_string(self.g)
 
     def __hash__(self):
@@ -428,9 +428,9 @@ cdef class gen(sage.structure.element.RingElement):
             <type 'int'>
         """
         cdef long h
-        _sig_on
+        sig_on()
         h = hash_GEN(self.g)
-        _sig_off
+        sig_off()
         return h
 
     def _testclass(self):
@@ -465,7 +465,7 @@ cdef class gen(sage.structure.element.RingElement):
         return sage.libs.pari.gen_py.pari, (s,)
 
     cpdef ModuleElement _add_(self, ModuleElement right):
-        _sig_on
+        sig_on()
         return P.new_gen(gadd(self.g, (<gen>right).g))
 
     def _add_unsafe(gen self, gen right):
@@ -494,7 +494,7 @@ cdef class gen(sage.structure.element.RingElement):
         return w
 
     cpdef ModuleElement _sub_(self, ModuleElement right):
-        _sig_on
+        sig_on()
         return P.new_gen(gsub(self.g, (<gen> right).g))
 
     def _sub_unsafe(gen self, gen right):
@@ -523,7 +523,7 @@ cdef class gen(sage.structure.element.RingElement):
         return w
 
     cpdef RingElement _mul_(self, RingElement right):
-        _sig_on
+        sig_on()
         return P.new_gen(gmul(self.g, (<gen>right).g))
 
     def _mul_unsafe(gen self, gen right):
@@ -552,7 +552,7 @@ cdef class gen(sage.structure.element.RingElement):
         return w
 
     cpdef RingElement _div_(self, RingElement right):
-        _sig_on
+        sig_on()
         return P.new_gen(gdiv(self.g, (<gen>right).g))
 
     def _div_unsafe(gen self, gen right):
@@ -597,11 +597,11 @@ cdef class gen(sage.structure.element.RingElement):
             sage: n._add_one()
             x^3 + 1
         """
-        _sig_on
+        sig_on()
         return P.new_gen(gaddsg(1, self.g))
 
     def _mod(gen self, gen other):
-        _sig_on
+        sig_on()
         return P.new_gen(gmod(self.g, other.g))
 
     def __mod__(self, other):
@@ -612,7 +612,7 @@ cdef class gen(sage.structure.element.RingElement):
     def __pow__(self, n, m):
         t0GEN(self)
         t1GEN(n)
-        _sig_on
+        sig_on()
         # Note: the prec parameter here has no effect when t0,t1 are
         # real; the precision of the result is the minimum of the
         # precisions of t0 and t1.  In any case the 3rd parameter to
@@ -620,7 +620,7 @@ cdef class gen(sage.structure.element.RingElement):
         return P.new_gen(gpow(t0, t1, prec))
 
     def __neg__(gen self):
-        _sig_on
+        sig_on()
         return P.new_gen(gneg(self.g))
 
     def __xor__(gen self, n):
@@ -628,15 +628,15 @@ cdef class gen(sage.structure.element.RingElement):
               "in Python, and has the wrong precedence."
 
     def __rshift__(gen self, long n):
-        _sig_on
+        sig_on()
         return P.new_gen(gshift(self.g, -n))
 
     def __lshift__(gen self, long n):
-        _sig_on
+        sig_on()
         return P.new_gen(gshift(self.g, n))
 
     def __invert__(gen self):
-        _sig_on
+        sig_on()
         return P.new_gen(ginv(self.g))
 
     ###########################################
@@ -644,7 +644,7 @@ cdef class gen(sage.structure.element.RingElement):
     ###########################################
     def getattr(self, attr):
         t0GEN(str(self) + '.' + str(attr))
-        _sig_on
+        sig_on()
         return self.new_gen(t0)
 
     def nf_get_diff(self):
@@ -657,7 +657,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(K).nf_get_diff()
             [12, 0, 0, 0; 0, 12, 8, 0; 0, 0, 4, 0; 0, 0, 0, 4]
         """
-        _sig_on
+        sig_on()
         # Very bad code, but there doesn't seem to be a better way
         return self.new_gen(gel(gel(self.g, 5), 5))
 
@@ -680,9 +680,9 @@ cdef class gen(sage.structure.element.RingElement):
         """
         cdef long r1
         cdef long r2
-        _sig_on
+        sig_on()
         nf_get_sign(self.g, &r1, &r2)
-        _sig_off
+        sig_off()
         return [r1, r2]
 
     def nf_get_zk(self):
@@ -696,7 +696,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(K).nf_get_zk()
             [1, x, x^3 - 4*x, x^2 - 2]
         """
-        _sig_on
+        sig_on()
         return self.new_gen(nf_get_zk(self.g))
 
     def bnf_get_cyc(self):
@@ -712,7 +712,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: K.pari_bnf().bnf_get_cyc()
             [4, 2]
         """
-        _sig_on
+        sig_on()
         return self.new_gen(bnf_get_cyc(self.g))
 
     def bnf_get_gen(self):
@@ -730,7 +730,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: map(lambda J: K.ideal(J), G)
             [Fractional ideal (3, a + 2), Fractional ideal (2, a + 1)]
         """
-        _sig_on
+        sig_on()
         return self.new_gen(bnf_get_gen(self.g))
 
     def bnf_get_reg(self):
@@ -745,7 +745,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: K.pari_bnf().bnf_get_reg()
             2.66089858019037...
         """
-        _sig_on
+        sig_on()
         return self.new_gen(bnf_get_reg(self.g))
 
     def pr_get_p(self):
@@ -763,7 +763,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: F[0,0].pr_get_p()
             5
         """
-        _sig_on
+        sig_on()
         return self.new_gen(pr_get_p(self.g))
 
     def pr_get_e(self):
@@ -784,9 +784,9 @@ cdef class gen(sage.structure.element.RingElement):
             1
         """
         cdef long e
-        _sig_on
+        sig_on()
         e = pr_get_e(self.g)
-        _sig_off
+        sig_off()
         return e
 
     def pr_get_f(self):
@@ -807,9 +807,9 @@ cdef class gen(sage.structure.element.RingElement):
             1
         """
         cdef long f
-        _sig_on
+        sig_on()
         f = pr_get_f(self.g)
-        _sig_off
+        sig_off()
         return f
 
     def pr_get_gen(self):
@@ -833,7 +833,7 @@ cdef class gen(sage.structure.element.RingElement):
             [-2, 1]~
             i - 2
         """
-        _sig_on
+        sig_on()
         return self.new_gen(pr_get_gen(self.g))
 
     def bid_get_cyc(self):
@@ -851,7 +851,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: J.bid_get_cyc()
             [4, 2]
         """
-        _sig_on
+        sig_on()
         return self.new_gen(bid_get_cyc(self.g))
 
     def bid_get_gen(self):
@@ -878,7 +878,7 @@ cdef class gen(sage.structure.element.RingElement):
             ...
             PariError:  (5)
         """
-        _sig_on
+        sig_on()
         return self.new_gen(bid_get_gen(self.g))
 
     def __getitem__(gen self, n):
@@ -1204,7 +1204,7 @@ cdef class gen(sage.structure.element.RingElement):
         cdef Py_ssize_t ii, jj, step
 
 
-        _sig_on
+        sig_on()
         if PyObject_TypeCheck(y, gen):
             x = y
         else:
@@ -1317,7 +1317,7 @@ cdef class gen(sage.structure.element.RingElement):
         return gcmp_sage(left.g, (<gen>right).g)
 
     def __copy__(gen self):
-        _sig_on
+        sig_on()
         return P.new_gen(gcopy(self.g))
 
     ###########################################
@@ -1494,12 +1494,12 @@ cdef class gen(sage.structure.element.RingElement):
         if typ(g) != t_VEC:
             raise TypeError, "gen must be of PARI type t_VEC"
 
-        _sig_on
+        sig_on()
         L = glength(g)
         v = []
         for n from 0 <= n < L:
             v.append(gtolong(<GEN> (g[n+1])))
-        _sig_off
+        sig_off()
         return v
 
     def python_list_small(gen self):
@@ -1631,9 +1631,9 @@ cdef class gen(sage.structure.element.RingElement):
         Return Python float.
         """
         cdef double d
-        _sig_on
+        sig_on()
         d = gtodouble(self.g)
-        _sig_off
+        sig_off()
         return d
 
     def __complex__(self):
@@ -1660,10 +1660,10 @@ cdef class gen(sage.structure.element.RingElement):
             PariError: incorrect type (11)
         """
         cdef double re, im
-        _sig_on
+        sig_on()
         re = gtodouble(greal(self.g))
         im = gtodouble(gimag(self.g))
-        _sig_off
+        sig_off()
         return complex(re, im)
 
     def __nonzero__(self):
@@ -1717,9 +1717,9 @@ cdef class gen(sage.structure.element.RingElement):
         """
         global t0
         t0GEN(b)
-        _sig_on
+        sig_on()
         ret = gequal(a.g, t0)
-        _sig_off
+        sig_off()
         return ret != 0
 
     def gequal_long(gen a, long b):
@@ -1744,9 +1744,9 @@ cdef class gen(sage.structure.element.RingElement):
             sage: c.gequal_long(-3)
             False
         """
-        _sig_on
+        sig_on()
         ret = gequalsg(b, a.g)
-        _sig_off
+        sig_off()
         return ret != 0
 
 
@@ -1786,9 +1786,9 @@ cdef class gen(sage.structure.element.RingElement):
             sage: n.isprime(2)
             False
         """
-        _sig_on
+        sig_on()
         t = bool(gisprime(self.g, flag) != stoi(0))
-        _sig_off
+        sig_off()
         return t
 
     def qfbhclassno(gen n):
@@ -1829,7 +1829,7 @@ cdef class gen(sage.structure.element.RingElement):
             3
 
         """
-        _sig_on
+        sig_on()
         return P.new_gen(hclassno(n.g))
 
     def ispseudoprime(gen self, flag=0):
@@ -1866,9 +1866,9 @@ cdef class gen(sage.structure.element.RingElement):
             False
         """
         cdef long z
-        _sig_on
+        sig_on()
         z = ispseudoprime(self.g, flag)
-        _sig_off
+        sig_off()
         return (z != 0)
 
     def ispower(gen self, k=None):
@@ -1916,20 +1916,20 @@ cdef class gen(sage.structure.element.RingElement):
         cdef GEN x
 
         if k is None:
-            _sig_on
+            sig_on()
             n = gisanypower(self.g, &x)
             if n == 0:
-                _sig_off
+                sig_off()
                 return 1, self
             else:
                 return n, P.new_gen(x)
         else:
             k = int(k)
             t0GEN(k)
-            _sig_on
+            sig_on()
             n = ispower(self.g, t0, &x)
             if n == 0:
-                _sig_off
+                sig_off()
                 return False, None
             else:
                 return k, P.new_gen(x)
@@ -1944,7 +1944,7 @@ cdef class gen(sage.structure.element.RingElement):
         respect to v (to main variable if v is omitted).
         """
         t0GEN(y)
-        _sig_on
+        sig_on()
         return P.new_gen(divrem(x.g, t0, P.get_var(var)))
 
     def lex(gen x, y):
@@ -1953,7 +1953,7 @@ cdef class gen(sage.structure.element.RingElement):
         if xy)
         """
         t0GEN(y)
-        _sig_on
+        sig_on()
         return lexcmp(x.g, t0)
 
     def max(gen x, y):
@@ -1961,7 +1961,7 @@ cdef class gen(sage.structure.element.RingElement):
         max(x,y): Return the maximum of x and y.
         """
         t0GEN(y)
-        _sig_on
+        sig_on()
         return P.new_gen(gmax(x.g, t0))
 
     def min(gen x, y):
@@ -1969,28 +1969,28 @@ cdef class gen(sage.structure.element.RingElement):
         min(x,y): Return the minimum of x and y.
         """
         t0GEN(y)
-        _sig_on
+        sig_on()
         return P.new_gen(gmin(x.g, t0))
 
     def shift(gen x, long n):
         """
         shift(x,n): shift x left n bits if n=0, right -n bits if n0.
         """
-        _sig_on
+        sig_on()
         return P.new_gen(gshift(x.g, n))
 
     def shiftmul(gen x, long n):
         """
         shiftmul(x,n): Return the product of x by `2^n`.
         """
-        _sig_on
+        sig_on()
         return P.new_gen(gmul2n(x.g, n))
 
     def moebius(gen x):
         """
         moebius(x): Moebius function of x.
         """
-        _sig_on
+        sig_on()
         return P.new_gen(gmoebius(x.g))
 
     def sign(gen x):
@@ -2000,7 +2000,7 @@ cdef class gen(sage.structure.element.RingElement):
         """
         # Pari throws an error if you attempt to take the sign of
         # a complex number.
-        _sig_on
+        sig_on()
         return gsigne(x.g)
 
     def vecmax(gen x):
@@ -2008,7 +2008,7 @@ cdef class gen(sage.structure.element.RingElement):
         vecmax(x): Return the maximum of the elements of the vector/matrix
         x.
         """
-        _sig_on
+        sig_on()
         return P.new_gen(vecmax(x.g))
 
 
@@ -2017,7 +2017,7 @@ cdef class gen(sage.structure.element.RingElement):
         vecmin(x): Return the maximum of the elements of the vector/matrix
         x.
         """
-        _sig_on
+        sig_on()
         return P.new_gen(vecmin(x.g))
 
 
@@ -2073,7 +2073,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari('x + 3*x^3 + O(x^5)').Col()
             [1, 0, 3, 0]~
         """
-        _sig_on
+        sig_on()
         return P.new_gen(gtocol(x.g))
 
     def List(gen x):
@@ -2093,7 +2093,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: w.type()
             't_LIST'
         """
-        _sig_on
+        sig_on()
         return P.new_gen(gtolist(x.g))
 
     def Mat(gen x):
@@ -2156,7 +2156,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: v.Mat()
             [1, 2; 3, 4]
         """
-        _sig_on
+        sig_on()
         return P.new_gen(gtomat(x.g))
 
     def Mod(gen x, y):
@@ -2217,7 +2217,7 @@ cdef class gen(sage.structure.element.RingElement):
             't_POLMOD'
         """
         t0GEN(y)
-        _sig_on
+        sig_on()
         return P.new_gen(gmodulo(x.g,t0))
 
     def Pol(self, v=-1):
@@ -2274,7 +2274,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: v.Pol()
             [1, 3]~*x + [2, 4]~
         """
-        _sig_on
+        sig_on()
         return P.new_gen(gtopoly(self.g, P.get_var(v)))
 
     def Polrev(self, v=-1):
@@ -2320,7 +2320,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: v.Polrev()
             [2, 4]~*x + [1, 3]~
         """
-        _sig_on
+        sig_on()
         return P.new_gen(gtopolyrev(self.g, P.get_var(v)))
 
     def Qfb(gen a, b, c, D=0):
@@ -2366,7 +2366,7 @@ cdef class gen(sage.structure.element.RingElement):
             Qfb(3, 7, 2, 0.E-19)
         """
         t0GEN(b); t1GEN(c); t2GEN(D)
-        _sig_on
+        sig_on()
         return P.new_gen(Qfb0(a.g, t0, t1, t2, prec))
 
 
@@ -2421,7 +2421,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(1).Ser()
             1 + O(x^16)
         """
-        _sig_on
+        sig_on()
         return P.new_gen(gtoser(x.g, P.get_var(v)))
 
 
@@ -2458,7 +2458,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari('["bc","ab","bc"]').Set()
             ["\"ab\"", "\"bc\""]
         """
-        _sig_on
+        sig_on()
         return P.new_gen(gtoset(x.g))
 
 
@@ -2495,7 +2495,7 @@ cdef class gen(sage.structure.element.RingElement):
             't_STR'
         """
         cdef char* c
-        _sig_on
+        sig_on()
         c = GENtostr(self.g)
         v = self.new_gen(strtoGENstr(c))
         pari_free(c)
@@ -2534,7 +2534,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari([83, 97, 103, 101]).Strchr()
             "Sage"
         """
-        _sig_on
+        sig_on()
         return P.new_gen(Strchr(x.g))
 
     def Strexpand(gen x):
@@ -2548,7 +2548,7 @@ cdef class gen(sage.structure.element.RingElement):
         """
         if typ(x.g) != t_VEC:
             raise TypeError, "x must be of type t_VEC."
-        _sig_on
+        sig_on()
         return P.new_gen(Strexpand(x.g))
 
 
@@ -2583,7 +2583,7 @@ cdef class gen(sage.structure.element.RingElement):
         """
         if typ(x.g) != t_VEC:
             x = P.vector(1, [x])
-        _sig_on
+        sig_on()
         return P.new_gen(Strtex(x.g))
 
     def printtex(gen x):
@@ -2618,7 +2618,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari('ab').Vec()
             [1, 0]
         """
-        _sig_on
+        sig_on()
         return P.new_gen(gtovec(x.g))
 
     def Vecrev(gen x):
@@ -2665,7 +2665,7 @@ cdef class gen(sage.structure.element.RingElement):
         """
         cdef long lx, vx, i
         cdef GEN y
-        _sig_on
+        sig_on()
         if typ(x.g) == t_POL:
             lx = lg(x.g)
             y = cgetg(lx-1, t_VEC)
@@ -2686,7 +2686,7 @@ cdef class gen(sage.structure.element.RingElement):
                 __set_lvalue__(gel(y,vx+i), gel(x.g,i+1))
             return P.new_gen(y)
         else:
-            _sig_off
+            sig_off()
             return x.Vec()
 
     def Vecsmall(gen x):
@@ -2714,7 +2714,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(1234).Vecsmall()
             Vecsmall([1234])
         """
-        _sig_on
+        sig_on()
         return P.new_gen(gtovecsmall(x.g))
 
     def binary(gen x):
@@ -2754,7 +2754,7 @@ cdef class gen(sage.structure.element.RingElement):
         """
         if typ(x.g) != t_INT:
             raise TypeError, "x (=%s) must be of type t_INT, but is of type %s."%(x,x.type())
-        _sig_on
+        sig_on()
         return P.new_gen(binaire(x.g))
 
     def bitand(gen x, y):
@@ -2794,7 +2794,7 @@ cdef class gen(sage.structure.element.RingElement):
             -1
         """
         t0GEN(y)
-        _sig_on
+        sig_on()
         return P.new_gen(gbitand(x.g, t0))
 
 
@@ -2840,7 +2840,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: -570 % 2^10
             454
         """
-        _sig_on
+        sig_on()
         return P.new_gen(gbitneg(x.g,n))
 
 
@@ -2874,7 +2874,7 @@ cdef class gen(sage.structure.element.RingElement):
             4
         """
         t0GEN(y)
-        _sig_on
+        sig_on()
         return P.new_gen(gbitnegimply(x.g, t0))
 
 
@@ -2909,7 +2909,7 @@ cdef class gen(sage.structure.element.RingElement):
             13
         """
         t0GEN(y)
-        _sig_on
+        sig_on()
         return P.new_gen(gbitor(x.g, t0))
 
 
@@ -2949,9 +2949,9 @@ cdef class gen(sage.structure.element.RingElement):
             sage: [pari(-3).bittest(n) for n in range(10)]
             [True, False, True, True, True, True, True, True, True, True]
         """
-        _sig_on
+        sig_on()
         b = bool(bittest(x.g, n))
-        _sig_off
+        sig_off()
         return b
 
     def bitxor(gen x, y):
@@ -2983,7 +2983,7 @@ cdef class gen(sage.structure.element.RingElement):
             6
         """
         t0GEN(y)
-        _sig_on
+        sig_on()
         return P.new_gen(gbitxor(x.g, t0))
 
 
@@ -3026,7 +3026,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(x^2+5*x+2.5).ceil()
             x^2 + 5*x + 2.50000000000000
         """
-        _sig_on
+        sig_on()
         return P.new_gen(gceil(x.g))
 
     def centerlift(gen x, v=-1):
@@ -3064,7 +3064,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: f.centerlift('y')
             Mod(x - y, x^2 + 1)
         """
-        _sig_on
+        sig_on()
         return P.new_gen(centerlift0(x.g, P.get_var(v)))
 
 
@@ -3111,7 +3111,7 @@ cdef class gen(sage.structure.element.RingElement):
             ...
             PariError:  (5)
         """
-        _sig_on
+        sig_on()
         return P.new_gen(compo(x.g, n))
 
     def conj(gen x):
@@ -3143,7 +3143,7 @@ cdef class gen(sage.structure.element.RingElement):
             ...
             PariError: incorrect type (11)
         """
-        _sig_on
+        sig_on()
         return P.new_gen(gconj(x.g))
 
     def conjvec(gen x):
@@ -3167,7 +3167,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari('Mod(x,x^3-3)').conjvec()
             [1.44224957030741, -0.721124785153704 + 1.24902476648341*I, -0.721124785153704 - 1.24902476648341*I]~
         """
-        _sig_on
+        sig_on()
         return P.new_gen(conjvec(x.g, prec))
 
     def denominator(gen x):
@@ -3197,7 +3197,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari('[2/3, 5/8, 7/3, 1/5]').denominator()
             120
         """
-        _sig_on
+        sig_on()
         return P.new_gen(denom(x.g))
 
     def floor(gen x):
@@ -3240,7 +3240,7 @@ cdef class gen(sage.structure.element.RingElement):
             ...
             PariError: incorrect type (11)
         """
-        _sig_on
+        sig_on()
         return P.new_gen(gfloor(x.g))
 
     def frac(gen x):
@@ -3266,7 +3266,7 @@ cdef class gen(sage.structure.element.RingElement):
             ...
             PariError: incorrect type (11)
         """
-        _sig_on
+        sig_on()
         return P.new_gen(gfrac(x.g))
 
     def imag(gen x):
@@ -3297,7 +3297,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari('[1,2,3] + [4*I,5,6]').imag()
             [4, 0, 0]
         """
-        _sig_on
+        sig_on()
         return P.new_gen(gimag(x.g))
 
     def length(self):
@@ -3336,7 +3336,7 @@ cdef class gen(sage.structure.element.RingElement):
 
         ??? more examples
         """
-        _sig_on
+        sig_on()
         if v == -1:
             return P.new_gen(lift(x.g))
         return P.new_gen(lift0(x.g, P.get_var(v)))
@@ -3352,7 +3352,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(100).numbpart()
             190569292
         """
-        _sig_on
+        sig_on()
         return P.new_gen(numbpart(x.g))
 
     def numerator(gen x):
@@ -3369,7 +3369,7 @@ cdef class gen(sage.structure.element.RingElement):
 
         EXAMPLES:
         """
-        _sig_on
+        sig_on()
         return P.new_gen(numer(x.g))
 
 
@@ -3394,7 +3394,7 @@ cdef class gen(sage.structure.element.RingElement):
 
         EXAMPLES:
         """
-        _sig_on
+        sig_on()
         return P.new_gen(numtoperm(n, k.g))
 
 
@@ -3442,7 +3442,7 @@ cdef class gen(sage.structure.element.RingElement):
         """
         if typ(x.g) != t_VEC:
             raise TypeError, "x (=%s) must be of type t_VEC, but is of type %s."%(x,x.type())
-        _sig_on
+        sig_on()
         return P.new_gen(permtonum(x.g))
 
     def precision(gen x, long n=-1):
@@ -3464,7 +3464,7 @@ cdef class gen(sage.structure.element.RingElement):
         """
         if n <= -1:
             return precision(x.g)
-        _sig_on
+        sig_on()
         return P.new_gen(precision0(x.g, n))
 
     def random(gen N):
@@ -3488,7 +3488,7 @@ cdef class gen(sage.structure.element.RingElement):
         """
         if typ(N.g) != t_INT:
             raise TypeError, "x (=%s) must be of type t_INT, but is of type %s."%(N,N.type())
-        _sig_on
+        sig_on()
         return P.new_gen(genrand(N.g))
 
     def real(gen x):
@@ -3505,7 +3505,7 @@ cdef class gen(sage.structure.element.RingElement):
 
         EXAMPLES:
         """
-        _sig_on
+        sig_on()
         return P.new_gen(greal(x.g))
 
     def round(gen x, estimate=False):
@@ -3558,7 +3558,7 @@ cdef class gen(sage.structure.element.RingElement):
         cdef int n
         cdef long e
         cdef gen y
-        _sig_on
+        sig_on()
         if not estimate:
             return P.new_gen(ground(x.g))
         y = P.new_gen(grndtoi(x.g, &e))
@@ -3602,7 +3602,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: y.type()
             't_REAL'
         """
-        _sig_on
+        sig_on()
         return P.new_gen(simplify(x.g))
 
     def sizeword(gen x):
@@ -3761,7 +3761,7 @@ cdef class gen(sage.structure.element.RingElement):
         """
         cdef long e
         cdef gen y
-        _sig_on
+        sig_on()
         if not estimate:
             return P.new_gen(gtrunc(x.g))
         y = P.new_gen(gcvtoi(x.g, &e))
@@ -3838,9 +3838,9 @@ cdef class gen(sage.structure.element.RingElement):
             9223372036854775807   # 64-bit
         """
         t0GEN(p)
-        _sig_on
+        sig_on()
         v = ggval(x.g, t0)
-        _sig_off
+        sig_off()
         return v
 
     def _valp(gen x):
@@ -3862,7 +3862,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari('x')._valp()   # random
             -35184372088832
         """
-        # This is a simple macro, so we don't need _sig_on
+        # This is a simple macro, so we don't need sig_on()
         return valp(x.g)
 
     def variable(gen x):
@@ -3892,7 +3892,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari('y0+z0').variable()
             y0
         """
-        _sig_on
+        sig_on()
         return P.new_gen(gpolvar(x.g))
 
 
@@ -3924,7 +3924,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari('x-1.2*x^2').abs()
             1.20000000000000*x^2 - x
         """
-        _sig_on
+        sig_on()
         # the prec parameter here has no effect
         return P.new_gen(gabs(x.g, prec))
 
@@ -3951,7 +3951,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(1.1+i).acos()
             0.849343054245252 - 1.09770986682533*I
         """
-        _sig_on
+        sig_on()
         return P.new_gen(gacos(x.g, pbw(precision)))
 
     def acosh(gen x, precision=0):
@@ -3976,7 +3976,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(i).acosh()
             0.881373587019543 + 1.57079632679490*I
         """
-        _sig_on
+        sig_on()
         return P.new_gen(gach(x.g, pbw(precision)))
 
     def agm(gen x, y, precision=0):
@@ -4006,7 +4006,7 @@ cdef class gen(sage.structure.element.RingElement):
             -0.964731722290876 + 1.15700282952632*I
         """
         t0GEN(y)
-        _sig_on
+        sig_on()
         return P.new_gen(agm(x.g, t0, pbw(precision)))
 
     def arg(gen x, precision=0):
@@ -4024,7 +4024,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(2+i).arg()
             0.463647609000806
         """
-        _sig_on
+        sig_on()
         return P.new_gen(garg(x.g, pbw(precision)))
 
     def asin(gen x, precision=0):
@@ -4046,7 +4046,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(2).asin()
             1.57079632679490 + 1.31695789692482*I
         """
-        _sig_on
+        sig_on()
         return P.new_gen(gasin(x.g, pbw(precision)))
 
     def asinh(gen x, precision=0):
@@ -4067,7 +4067,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(2+i).asinh()
             1.52857091948100 + 0.427078586392476*I
         """
-        _sig_on
+        sig_on()
         return P.new_gen(gash(x.g, pbw(precision)))
 
     def atan(gen x, precision=0):
@@ -4088,7 +4088,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(1.5+i).atan()
             1.10714871779409 + 0.255412811882995*I
         """
-        _sig_on
+        sig_on()
         return P.new_gen(gatan(x.g, pbw(precision)))
 
     def atanh(gen x, precision=0):
@@ -4110,7 +4110,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(2).atanh()
             0.549306144334055 + 1.57079632679490*I
         """
-        _sig_on
+        sig_on()
         return P.new_gen(gath(x.g, pbw(precision)))
 
     def bernfrac(gen x):
@@ -4127,7 +4127,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: [pari(n).bernfrac() for n in range(10)]
             [1, -1/2, 1/6, 0, -1/30, 0, 1/42, 0, -1/30, 0]
         """
-        _sig_on
+        sig_on()
         return P.new_gen(bernfrac(x))
 
     def bernreal(gen x):
@@ -4141,7 +4141,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(18).bernreal()
             54.9711779448622
         """
-        _sig_on
+        sig_on()
         # the argument prec has no effect
         return P.new_gen(bernreal(x, prec))
 
@@ -4163,7 +4163,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: [pari(2*n).bernfrac() for n in range(9)]
             [1, 1/6, -1/30, 1/42, -1/30, 5/66, -691/2730, 7/6, -3617/510]
         """
-        _sig_on
+        sig_on()
         return P.new_gen(bernvec(x))
 
     def besselh1(gen nu, x, precision=0):
@@ -4183,7 +4183,7 @@ cdef class gen(sage.structure.element.RingElement):
             0.486091260585891 - 0.160400393484924*I
         """
         t0GEN(x)
-        _sig_on
+        sig_on()
         return P.new_gen(hbessel1(nu.g, t0, pbw(precision)))
 
     def besselh2(gen nu, x, precision=0):
@@ -4203,7 +4203,7 @@ cdef class gen(sage.structure.element.RingElement):
             0.486091260585891 + 0.160400393484924*I
         """
         t0GEN(x)
-        _sig_on
+        sig_on()
         return P.new_gen(hbessel2(nu.g, t0, pbw(precision)))
 
     def besselj(gen nu, x, precision=0):
@@ -4226,7 +4226,7 @@ cdef class gen(sage.structure.element.RingElement):
             0.486091260585891
         """
         t0GEN(x)
-        _sig_on
+        sig_on()
         return P.new_gen(jbessel(nu.g, t0, pbw(precision)))
 
     def besseljh(gen nu, x, precision=0):
@@ -4251,7 +4251,7 @@ cdef class gen(sage.structure.element.RingElement):
             0.412710032209716     # 64-bit
         """
         t0GEN(x)
-        _sig_on
+        sig_on()
         return P.new_gen(jbesselh(nu.g, t0, pbw(precision)))
 
     def besseli(gen nu, x, precision=0):
@@ -4277,7 +4277,7 @@ cdef class gen(sage.structure.element.RingElement):
             1.12539407613913 + 2.08313822670661*I
         """
         t0GEN(x)
-        _sig_on
+        sig_on()
         return P.new_gen(ibessel(nu.g, t0, pbw(precision)))
 
     def besselk(gen nu, x, long flag=0, precision=0):
@@ -4320,7 +4320,7 @@ cdef class gen(sage.structure.element.RingElement):
             3.74224603319728 E-132 + 2.49071062641525 E-134*I
         """
         t0GEN(x)
-        _sig_on
+        sig_on()
         return P.new_gen(kbessel(nu.g, t0, pbw(precision)))
 
     def besseln(gen nu, x, precision=0):
@@ -4341,7 +4341,7 @@ cdef class gen(sage.structure.element.RingElement):
             -0.280775566958244 - 0.486708533223726*I
         """
         t0GEN(x)
-        _sig_on
+        sig_on()
         return P.new_gen(nbessel(nu.g, t0, pbw(precision)))
 
     def cos(gen x, precision=0):
@@ -4363,7 +4363,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari('x+O(x^8)').cos()
             1 - 1/2*x^2 + 1/24*x^4 - 1/720*x^6 + 1/40320*x^8 + O(x^9)
         """
-        _sig_on
+        sig_on()
         return P.new_gen(gcos(x.g, pbw(precision)))
 
     def cosh(gen x, precision=0):
@@ -4385,7 +4385,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari('x+O(x^8)').cosh()
             1 + 1/2*x^2 + 1/24*x^4 + 1/720*x^6 + O(x^8)
         """
-        _sig_on
+        sig_on()
         return P.new_gen(gch(x.g, pbw(precision)))
 
     def cotan(gen x, precision=0):
@@ -4412,7 +4412,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(x).cotan()         # random
             -8.17674825 E15
         """
-        _sig_on
+        sig_on()
         return P.new_gen(gcotan(x.g, pbw(precision)))
 
     def dilog(gen x, precision=0):
@@ -4434,7 +4434,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(1+i).dilog()
             0.616850275068085 + 1.46036211675312*I
         """
-        _sig_on
+        sig_on()
         return P.new_gen(dilog(x.g, pbw(precision)))
 
     def eint1(gen x, long n=0, precision=0):
@@ -4461,7 +4461,7 @@ cdef class gen(sage.structure.element.RingElement):
 
         EXAMPLES:
         """
-        _sig_on
+        sig_on()
         if n <= 0:
             return P.new_gen(eint1(x.g, pbw(precision)))
         else:
@@ -4487,7 +4487,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(1).erfc()
             0.157299207050285
         """
-        _sig_on
+        sig_on()
         return P.new_gen(gerfc(x.g, pbw(precision)))
 
     def eta(gen x, flag=0, precision=0):
@@ -4515,7 +4515,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(i).eta()
             0.998129069925959
         """
-        _sig_on
+        sig_on()
         if flag == 1:
             return P.new_gen(trueeta(x.g, pbw(precision)))
         return P.new_gen(eta(x.g, pbw(precision)))
@@ -4538,7 +4538,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari('x+O(x^8)').exp()
             1 + x + 1/2*x^2 + 1/6*x^3 + 1/24*x^4 + 1/120*x^5 + 1/720*x^6 + 1/5040*x^7 + O(x^8)
         """
-        _sig_on
+        sig_on()
         return P.new_gen(gexp(self.g, pbw(precision)))
 
     def gamma(gen s, precision=0):
@@ -4567,7 +4567,7 @@ cdef class gen(sage.structure.element.RingElement):
             ...
             PariError:  (5)
         """
-        _sig_on
+        sig_on()
         return P.new_gen(ggamma(s.g, pbw(precision)))
 
     def gammah(gen s, precision=0):
@@ -4589,7 +4589,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(1+i).gammah()
             0.575315188063452 + 0.0882106775440939*I
         """
-        _sig_on
+        sig_on()
         return P.new_gen(ggamd(s.g, pbw(precision)))
 
     def hyperu(gen a, b, x, precision=0):
@@ -4609,7 +4609,7 @@ cdef class gen(sage.structure.element.RingElement):
         """
         t0GEN(b)
         t1GEN(x)
-        _sig_on
+        sig_on()
         return P.new_gen(hyperu(a.g, t0, t1, pbw(precision)))
 
     def incgam(gen s, x, y=None, precision=0):
@@ -4629,7 +4629,7 @@ cdef class gen(sage.structure.element.RingElement):
             -0.0458297859919946 + 0.0433696818726677*I
         """
         t0GEN(x)
-        _sig_on
+        sig_on()
         if y is None:
             return P.new_gen(incgam(s.g, t0, pbw(precision)))
         else:
@@ -4659,7 +4659,7 @@ cdef class gen(sage.structure.element.RingElement):
             0.864664716763387
         """
         t0GEN(x)
-        _sig_on
+        sig_on()
         return P.new_gen(incgamc(s.g, t0, pbw(precision)))
 
     def log(gen x, precision=0):
@@ -4702,7 +4702,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(i).log()
             0.E-19 + 1.57079632679490*I
         """
-        _sig_on
+        sig_on()
         return P.new_gen(glog(x.g, pbw(precision)))
 
     def lngamma(gen x, precision=0):
@@ -4744,7 +4744,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(100).log_gamma()
             359.134205369575
         """
-        _sig_on
+        sig_on()
         return P.new_gen(glngamma(x.g, pbw(precision)))
 
     def polylog(gen x, long m, flag=0, precision=0):
@@ -4772,7 +4772,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(10).polylog(3,2)
             -0.400459056163451
         """
-        _sig_on
+        sig_on()
         return P.new_gen(polylog0(m, x.g, flag, pbw(precision)))
 
     def psi(gen x, precision=0):
@@ -4792,7 +4792,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(1).psi()
             -0.577215664901533
         """
-        _sig_on
+        sig_on()
         return P.new_gen(gpsi(x.g, pbw(precision)))
 
     def sin(gen x, precision=0):
@@ -4812,7 +4812,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(1+i).sin()
             1.29845758141598 + 0.634963914784736*I
         """
-        _sig_on
+        sig_on()
         return P.new_gen(gsin(x.g, pbw(precision)))
 
     def sinh(gen x, precision=0):
@@ -4832,7 +4832,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(1+i).sinh()
             0.634963914784736 + 1.29845758141598*I
         """
-        _sig_on
+        sig_on()
         return P.new_gen(gsh(x.g, pbw(precision)))
 
     def sqr(gen x):
@@ -4858,7 +4858,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: x = pari("1+O(2^5)"); x*x
             1 + O(2^6)
         """
-        _sig_on
+        sig_on()
         return P.new_gen(gsqr(x.g))
 
 
@@ -4876,7 +4876,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(2).sqrt()
             1.41421356237310
         """
-        _sig_on
+        sig_on()
         return P.new_gen(gsqrt(x.g, pbw(precision)))
 
     def sqrtn(gen x, n, precision=0):
@@ -4935,7 +4935,7 @@ cdef class gen(sage.structure.element.RingElement):
         # TODO: ???  lots of good examples in the PARI docs ???
         cdef GEN zetan
         t0GEN(n)
-        _sig_on
+        sig_on()
         ans = P.new_gen_noclear(gsqrtn(x.g, t0, &zetan, pbw(precision)))
         return ans, P.new_gen(zetan)
 
@@ -4956,7 +4956,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(i).tan()
             0.E-19 + 0.761594155955765*I
         """
-        _sig_on
+        sig_on()
         return P.new_gen(gtan(x.g, pbw(precision)))
 
     def tanh(gen x, precision=0):
@@ -4981,7 +4981,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: result.imag()
             1.55740772465490
         """
-        _sig_on
+        sig_on()
         return P.new_gen(gth(x.g, pbw(precision)))
 
     def teichmuller(gen x):
@@ -4996,7 +4996,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari('2+O(7^5)').teichmuller()
             2 + 4*7 + 6*7^2 + 3*7^3 + O(7^5)
         """
-        _sig_on
+        sig_on()
         return P.new_gen(teich(x.g))
 
     def theta(gen q, z, precision=0):
@@ -5015,7 +5015,7 @@ cdef class gen(sage.structure.element.RingElement):
             1.63202590295260
         """
         t0GEN(z)
-        _sig_on
+        sig_on()
         return P.new_gen(theta(q.g, t0, pbw(precision)))
 
     def thetanullk(gen q, long k, precision=0):
@@ -5032,7 +5032,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(0.5).thetanullk(1)
             0.548978532560341
         """
-        _sig_on
+        sig_on()
         return P.new_gen(thetanullk(q.g, k, pbw(precision)))
 
     def weber(gen x, flag=0, precision=0):
@@ -5063,7 +5063,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(i).weber(2)
             1.09050773266526
         """
-        _sig_on
+        sig_on()
         return P.new_gen(weber0(x.g, flag, pbw(precision)))
 
     def zeta(gen s, precision=0):
@@ -5113,7 +5113,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari('1+5*7+2*7^2+O(7^3)').zeta()
             4*7^-2 + 5*7^-1 + O(7^0)
         """
-        _sig_on
+        sig_on()
         return P.new_gen(gzeta(s.g, pbw(precision)))
 
     ###########################################
@@ -5124,7 +5124,7 @@ cdef class gen(sage.structure.element.RingElement):
         cdef gen u, v, g
         cdef GEN U, V, G
         t0GEN(y)
-        _sig_on
+        sig_on()
         G = gbezout(x.g, t0, &U, &V)
         g = P.new_gen_noclear(G)
         u = P.new_gen_noclear(U)
@@ -5152,7 +5152,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari('2+x+O(x^2)').binomial(3)
             1/3*x + O(x^2)
         """
-        _sig_on
+        sig_on()
         return P.new_gen(binomial(x.g, k))
 
     def contfrac(gen x, b=0, long lmax=0):
@@ -5164,7 +5164,7 @@ cdef class gen(sage.structure.element.RingElement):
         expansion.
         """
         t0GEN(b)
-        _sig_on
+        sig_on()
         return P.new_gen(contfrac0(x.g, t0, lmax))
 
     def contfracpnqn(gen x, b=0, long lmax=0):
@@ -5172,7 +5172,7 @@ cdef class gen(sage.structure.element.RingElement):
         contfracpnqn(x): [p_n,p_n-1; q_n,q_n-1] corresponding to the
         continued fraction x.
         """
-        _sig_on
+        sig_on()
         return P.new_gen(pnqn(x.g))
 
     def fibonacci(gen x):
@@ -5186,7 +5186,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: [pari(n).fibonacci() for n in range(10)]
             [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
         """
-        _sig_on
+        sig_on()
         return P.new_gen(fibo(long(x)))
 
 
@@ -5198,7 +5198,7 @@ cdef class gen(sage.structure.element.RingElement):
         and y must be polynomials)
         """
         t0GEN(y)
-        _sig_on
+        sig_on()
         return P.new_gen(ggcd0(x.g, t0))
 
     def issquare(gen x, find_root=False):
@@ -5209,14 +5209,14 @@ cdef class gen(sage.structure.element.RingElement):
         """
         cdef GEN G, t
         cdef gen g
-        _sig_on
+        sig_on()
         if find_root:
             t = gissquareall(x.g, &G)
             v = bool(P.new_gen_noclear(t))
             if v:
                 return v, P.new_gen(G)
             else:
-                _sig_off
+                sig_off()
                 return v, None
         else:
             return P.new_gen(gissquare(x.g))
@@ -5231,9 +5231,9 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(20).issquarefree()
             False
         """
-        _sig_on
+        sig_on()
         t = bool(issquarefree(self.g))
-        _sig_off
+        sig_off()
         return t
 
     def lcm(gen x, y):
@@ -5244,7 +5244,7 @@ cdef class gen(sage.structure.element.RingElement):
             30
         """
         t0GEN(y)
-        _sig_on
+        sig_on()
         return P.new_gen(glcm(x.g, t0))
 
     def numdiv(gen n):
@@ -5256,7 +5256,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(10).numdiv()
             4
         """
-        _sig_on
+        sig_on()
         return P.new_gen(gnumbdiv(n.g))
 
     def phi(gen n):
@@ -5266,7 +5266,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(10).phi()
             4
         """
-        _sig_on
+        sig_on()
         return P.new_gen(geulerphi(n.g))
 
     def primepi(gen self):
@@ -5291,7 +5291,7 @@ cdef class gen(sage.structure.element.RingElement):
             41581
         """
         global num_primes
-        _sig_on
+        sig_on()
         if self > num_primes:
             P.init_primes(self + 10)
         if signe(self.g) != 1:
@@ -5307,7 +5307,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(10).sumdiv()
             18
         """
-        _sig_on
+        sig_on()
         return P.new_gen(sumdiv(n.g))
 
     def sumdivk(gen n, long k):
@@ -5319,7 +5319,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(10).sumdivk(2)
             130
         """
-        _sig_on
+        sig_on()
         return P.new_gen(sumdivk(n.g, k))
 
     def xgcd(gen x, y):
@@ -5407,7 +5407,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari([0,x,0,2*x,1]).ellinit(flag=1)
             [0, x, 0, 2*x, 1, 4*x, 4*x, 4, -4*x^2 + 4*x, 16*x^2 - 96*x, -64*x^3 + 576*x^2 - 864, 64*x^4 - 576*x^3 + 576*x^2 - 432, (256*x^6 - 4608*x^5 + 27648*x^4 - 55296*x^3)/(4*x^4 - 36*x^3 + 36*x^2 - 27)]
         """
-        _sig_on
+        sig_on()
         return P.new_gen(ellinit0(self.g, flag, pbw(precision)))
 
     def ellglobalred(self):
@@ -5442,7 +5442,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: e.ellglobalred()
             [17, [1, 0, 0, 0], 4]
         """
-        _sig_on
+        sig_on()
         return self.new_gen(ellglobalred(self.g))
 
     def elladd(self, z0, z1):
@@ -5478,7 +5478,7 @@ cdef class gen(sage.structure.element.RingElement):
             [-3/4, -15/8]
         """
         t0GEN(z0); t1GEN(z1)
-        _sig_on
+        sig_on()
         return self.new_gen(addell(self.g, t0, t1))
 
     def ellak(self, n):
@@ -5516,7 +5516,7 @@ cdef class gen(sage.structure.element.RingElement):
             0
         """
         t0GEN(n)
-        _sig_on
+        sig_on()
         return self.new_gen(akell(self.g, t0))
 
 
@@ -5550,7 +5550,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: type(v[0])
             <type 'int'>
         """
-        _sig_on
+        sig_on()
         cdef GEN g
         if python_ints:
             g = anell(self.g, n)
@@ -5572,7 +5572,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(E).ellanalyticrank()
             [2, 1.51863300057685]
         """
-        _sig_on
+        sig_on()
         return self.new_gen(ellanalyticrank(self.g, <GEN>0, pbw(precision)))
 
     def ellap(self, p):
@@ -5611,7 +5611,7 @@ cdef class gen(sage.structure.element.RingElement):
             0
         """
         t0GEN(p)
-        _sig_on
+        sig_on()
         return self.new_gen(ellap(self.g, t0))
 
 
@@ -5665,13 +5665,13 @@ cdef class gen(sage.structure.element.RingElement):
             <type 'int'>
         """
         # 1. make a table of primes up to n.
-        _sig_on
+        sig_on()
         if n < 2:
             return self.new_gen(zerovec(0))
         cdef GEN g
         pari.init_primes(n+1)
         t0GEN(n)
-        _sig_on
+        sig_on()
         g = primes(gtolong(primepi(t0)))
 
         # 2. Replace each prime in the table by ellap of it.
@@ -5709,7 +5709,7 @@ cdef class gen(sage.structure.element.RingElement):
             0.418188984498861
         """
         t0GEN(z0); t1GEN(z1)
-        _sig_on
+        sig_on()
         # the prec argument has no effect
         return self.new_gen(bilhell(self.g, t0, t1, prec))
 
@@ -5741,7 +5741,7 @@ cdef class gen(sage.structure.element.RingElement):
             [1, -1, 0, 4, 3]
         """
         t0GEN(ch)
-        _sig_on
+        sig_on()
         return self.new_gen(ellchangecurve(self.g, t0))
 
     def elleta(self):
@@ -5762,7 +5762,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: w1*eta2-w2*eta1 == pari(2*pi*I)
             True
         """
-        _sig_on
+        sig_on()
         # the prec argument has no effect
         return self.new_gen(elleta(self.g, prec))
 
@@ -5810,7 +5810,7 @@ cdef class gen(sage.structure.element.RingElement):
             0.476711659343740
         """
         t0GEN(a)
-        _sig_on
+        sig_on()
         return self.new_gen(ellheight0(self.g, t0, flag, pbw(precision)))
 
     def ellheightmatrix(self, x):
@@ -5838,7 +5838,7 @@ cdef class gen(sage.structure.element.RingElement):
             [0.476711659343740, 0.418188984498861; 0.418188984498861, 0.686667083305587]
         """
         t0GEN(x)
-        _sig_on
+        sig_on()
         # the argument prec has no effect
         return self.new_gen(mathell(self.g, t0, prec))
 
@@ -5865,9 +5865,9 @@ cdef class gen(sage.structure.element.RingElement):
             True
         """
         t0GEN(x)
-        _sig_on
+        sig_on()
         t = bool(oncurve(self.g, t0) == 1)
-        _sig_off
+        sig_off()
         return t
 
     def elllocalred(self, p):
@@ -6022,7 +6022,7 @@ cdef class gen(sage.structure.element.RingElement):
             [2, -10, [1, 96, 1, 316], 4]
         """
         t0GEN(p)
-        _sig_on
+        sig_on()
         return self.new_gen(elllocalred(self.g, t0))
 
     def elllseries(self, s, A=1):
@@ -6064,7 +6064,7 @@ cdef class gen(sage.structure.element.RingElement):
             0.402838047956645
         """
         t0GEN(s); t1GEN(A)
-        _sig_on
+        sig_on()
         # the argument prec has no effect
         return self.new_gen(elllseries(self.g, t0, t1, prec))
 
@@ -6100,7 +6100,7 @@ cdef class gen(sage.structure.element.RingElement):
         cdef GEN x, y
         cdef gen model, change
         cdef pari_sp t
-        _sig_on
+        sig_on()
         x = ellminimalmodel(self.g, &y)
         change = self.new_gen_noclear(y)
         model = self.new_gen(x)
@@ -6134,7 +6134,7 @@ cdef class gen(sage.structure.element.RingElement):
             0
         """
         t0GEN(x)
-        _sig_on
+        sig_on()
         return self.new_gen(orderell(self.g, t0))
 
     def ellordinate(self, x):
@@ -6165,7 +6165,7 @@ cdef class gen(sage.structure.element.RingElement):
             [-2*z - 7*z^2 - 23*z^3 + O(z^4), -1 + 2*z + 7*z^2 + 23*z^3 + O(z^4)]
         """
         t0GEN(x)
-        _sig_on
+        sig_on()
         # the prec argument has no effect
         return self.new_gen(ellordinate(self.g, t0, prec))
 
@@ -6192,7 +6192,7 @@ cdef class gen(sage.structure.element.RingElement):
             0
         """
         t0GEN(P)
-        _sig_on
+        sig_on()
         return self.new_gen(zell(self.g, t0, pbw(precision)))
 
     def ellpow(self, z, n):
@@ -6254,7 +6254,7 @@ cdef class gen(sage.structure.element.RingElement):
             ...       assert(P0 == E(0))
         """
         t0GEN(z); t1GEN(n)
-        _sig_on
+        sig_on()
         return self.new_gen(powell(self.g, t0, t1))
 
     def ellrootno(self, p=1):
@@ -6289,7 +6289,7 @@ cdef class gen(sage.structure.element.RingElement):
             1
         """
         t0GEN(p)
-        _sig_on
+        sig_on()
         return ellrootno(self.g, t0)
 
     def ellsigma(self, z, flag=0):
@@ -6306,7 +6306,7 @@ cdef class gen(sage.structure.element.RingElement):
             1.43490215804166 + 1.80307856719256*I
         """
         t0GEN(z)
-        _sig_on
+        sig_on()
         # the prec argument has no effect
         return self.new_gen(ellsigma(self.g, t0, flag, prec))
 
@@ -6333,11 +6333,11 @@ cdef class gen(sage.structure.element.RingElement):
             [0, 0]
         """
         t0GEN(z0); t1GEN(z1)
-        _sig_on
+        sig_on()
         return self.new_gen(subell(self.g, t0, t1))
 
     def elltaniyama(self):
-        _sig_on
+        sig_on()
         return self.new_gen(taniyama(self.g))
 
     def elltors(self, flag=0):
@@ -6382,7 +6382,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: e.elltors()
             [12, [6, 2], [[-2, 8], [3, -2]]]
         """
-        _sig_on
+        sig_on()
         return self.new_gen(elltors0(self.g, flag))
 
     def ellzeta(self, z):
@@ -6416,7 +6416,7 @@ cdef class gen(sage.structure.element.RingElement):
             -0.350122658523049 - 0.350122658523049*I
         """
         t0GEN(z)
-        _sig_on
+        sig_on()
         # the prec argument has no effect
         return self.new_gen(ellzeta(self.g, t0, prec))
 
@@ -6455,7 +6455,7 @@ cdef class gen(sage.structure.element.RingElement):
             dprec = prec_words_to_dec(z.precision())
         except AttributeError:
             dprec = prec
-        _sig_on
+        sig_on()
         # the prec argument has no effect
         return self.new_gen(pointell(self.g, t0, dprec))
 
@@ -6505,7 +6505,7 @@ cdef class gen(sage.structure.element.RingElement):
             dprec = prec_words_to_dec(self.precision())
         except AttributeError:
             dprec = prec
-        _sig_on
+        sig_on()
         return P.new_gen(jell(self.g, dprec))
 
 
@@ -6529,52 +6529,52 @@ cdef class gen(sage.structure.element.RingElement):
            http://pari.math.u-bordeaux.fr/pub/pari/manuals/2.4.2/users.pdf
         """
         cdef long n
-        _sig_on
+        sig_on()
         n = bnfcertify(self.g)
-        _sig_off
+        sig_off()
         return n
 
     def bnfinit(self, long flag=0, tech=None):
         if tech is None:
-            _sig_on
+            sig_on()
             return P.new_gen(bnfinit0(self.g, flag, <GEN>0, prec))
         else:
             t0GEN(tech)
-            _sig_on
+            sig_on()
             return P.new_gen(bnfinit0(self.g, flag, t0, prec))
 
     def bnfisintnorm(self, x):
         t0GEN(x)
-        _sig_on
+        sig_on()
         return self.new_gen(bnfisintnorm(self.g, t0))
 
     def bnfisprincipal(self, x, long flag=1):
         t0GEN(x)
-        _sig_on
+        sig_on()
         return self.new_gen(bnfisprincipal0(self.g, t0, flag))
 
     def bnfnarrow(self):
-        _sig_on
+        sig_on()
         return self.new_gen(buchnarrow(self.g))
 
     def bnfunit(self):
-        _sig_on
+        sig_on()
         return self.new_gen(bnf_get_fu(self.g))
 
     def bnfisunit(self, x):
         t0GEN(x)
-        _sig_on
+        sig_on()
         return self.new_gen(bnfisunit(self.g, t0))
 
     def dirzetak(self, n):
         t0GEN(n)
-        _sig_on
+        sig_on()
         return self.new_gen(dirzetak(self.g, t0))
 
     def galoisapply(self, aut, x):
         t0GEN(aut)
         t1GEN(x)
-        _sig_on
+        sig_on()
         return self.new_gen(galoisapply(self.g, t0, t1))
 
     def galoisinit(self, den=None):
@@ -6583,41 +6583,41 @@ cdef class gen(sage.structure.element.RingElement):
         for meaning of den
         """
         if den is None:
-            _sig_on
+            sig_on()
             return self.new_gen(galoisinit(self.g, NULL))
         else:
             t0GEN(den)
-            _sig_on
+            sig_on()
             return self.new_gen(galoisinit(self.g, t0))
 
     def galoispermtopol(self, perm):
         t0GEN(perm)
-        _sig_on
+        sig_on()
         return self.new_gen(galoispermtopol(self.g, t0))
 
     def galoisfixedfield(self, v, long flag, long y):
         t0GEN(v);
-        _sig_on
+        sig_on()
         return self.new_gen(galoisfixedfield(self.g, t0, flag, y))
 
     def idealred(self, I, vdir=0):
         t0GEN(I); t1GEN(vdir)
-        _sig_on
+        sig_on()
         return self.new_gen(idealred0(self.g, t0, t1 if vdir else NULL))
 
     def idealadd(self, x, y):
         t0GEN(x); t1GEN(y)
-        _sig_on
+        sig_on()
         return self.new_gen(idealadd(self.g, t0, t1))
 
     def idealaddtoone(self, x, y):
         t0GEN(x); t1GEN(y)
-        _sig_on
+        sig_on()
         return self.new_gen(idealaddtoone0(self.g, t0, t1))
 
     def idealappr(self, x, long flag=0):
         t0GEN(x)
-        _sig_on
+        sig_on()
         return self.new_gen(idealappr(self.g, t0))
 
     def idealcoprime(self, x, y):
@@ -6641,22 +6641,22 @@ cdef class gen(sage.structure.element.RingElement):
             [5/43, 9/43, -1/43]~
         """
         t0GEN(x); t1GEN(y)
-        _sig_on
+        sig_on()
         return self.new_gen(idealcoprime(self.g, t0, t1))
 
     def idealdiv(self, x, y, long flag=0):
         t0GEN(x); t1GEN(y)
-        _sig_on
+        sig_on()
         return self.new_gen(idealdiv0(self.g, t0, t1, flag))
 
     def idealfactor(self, x):
         t0GEN(x)
-        _sig_on
+        sig_on()
         return self.new_gen(idealfactor(self.g, t0))
 
     def idealhnf(self, a, b=None):
         t0GEN(a)
-        _sig_on
+        sig_on()
         if b is None:
             return self.new_gen(idealhnf(self.g, t0))
         else:
@@ -6665,7 +6665,7 @@ cdef class gen(sage.structure.element.RingElement):
 
     def idealintersection(self, x, y):
         t0GEN(x); t1GEN(y)
-        _sig_on
+        sig_on()
         return self.new_gen(idealintersect(self.g, t0, t1))
 
     def ideallist(self, long bound, long flag = 4):
@@ -6692,7 +6692,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: L[64]  # 4 ideals of norm 65.
             [[65, 8; 0, 1], [65, 47; 0, 1], [65, 18; 0, 1], [65, 57; 0, 1]]
         """
-        _sig_on
+        sig_on()
         return self.new_gen(ideallist0(self.g, bound, flag))
 
     def ideallog(self, x, bid):
@@ -6724,12 +6724,12 @@ cdef class gen(sage.structure.element.RingElement):
             [25]~
         """
         t0GEN(x); t1GEN(bid)
-        _sig_on
+        sig_on()
         return self.new_gen(ideallog(self.g, t0, t1))
 
     def idealmul(self, x, y, long flag=0):
         t0GEN(x); t1GEN(y)
-        _sig_on
+        sig_on()
         if flag == 0:
             return self.new_gen(idealmul(self.g, t0, t1))
         else:
@@ -6737,7 +6737,7 @@ cdef class gen(sage.structure.element.RingElement):
 
     def idealnorm(self, x):
         t0GEN(x)
-        _sig_on
+        sig_on()
         return self.new_gen(idealnorm(self.g, t0))
 
     def idealprimedec(nf, p):
@@ -6757,7 +6757,7 @@ cdef class gen(sage.structure.element.RingElement):
             5
         """
         t0GEN(p)
-        _sig_on
+        sig_on()
         return nf.new_gen(idealprimedec(nf.g, t0))
 
     def idealstar(self, I, long flag=1):
@@ -6797,27 +6797,27 @@ cdef class gen(sage.structure.element.RingElement):
             [[[43, 9, 5; 0, 1, 0; 0, 0, 1], [0]], [42, [42]], Mat([[43, [9, 1, 0]~, 1, 1, [-5, -9, 1]~], 1]), [[[[42], [[3, 0, 0]~], [[3, 0, 0]~], [Vecsmall([])], 1]], [[], [], []]], Mat(1)]
         """
         t0GEN(I)
-        _sig_on
+        sig_on()
         return self.new_gen(idealstar0(self.g, t0, flag))
 
     def idealtwoelt(self, x, a=None):
         t0GEN(x)
         if a is None:
-            _sig_on
+            sig_on()
             return self.new_gen(idealtwoelt0(self.g, t0, NULL))
         else:
             t1GEN(a)
-            _sig_on
+            sig_on()
             return self.new_gen(idealtwoelt0(self.g, t0, t1))
 
     def idealval(self, x, p):
         t0GEN(x); t1GEN(p)
-        _sig_on
+        sig_on()
         return idealval(self.g, t0, t1)
 
     def elementval(self, x, p):
         t0GEN(x); t1GEN(p)
-        _sig_on
+        sig_on()
         return nfval(self.g, t0, t1)
 
     def modreverse(self):
@@ -6826,7 +6826,7 @@ cdef class gen(sage.structure.element.RingElement):
 
         EXAMPLES:
         """
-        _sig_on
+        sig_on()
         return self.new_gen(modreverse(self.g))
 
     def nfbasis(self, long flag=0, fa=0):
@@ -6873,7 +6873,7 @@ cdef class gen(sage.structure.element.RingElement):
         t0GEN(fa)
         if typ(t0) != t_MAT:
             t0 = <GEN>0
-        _sig_on
+        sig_on()
         return self.new_gen(nfbasis0(self.g, flag, t0))
 
     def nfbasis_d(self, long flag=0, fa=0):
@@ -6903,7 +6903,7 @@ cdef class gen(sage.structure.element.RingElement):
         t0GEN(fa)
         if typ(t0) != t_MAT:
             t0 = <GEN>0
-        _sig_on
+        sig_on()
         B = self.new_gen_noclear(nfbasis(self.g, &disc, flag, t0))
         D = self.new_gen(disc);
         return B,D
@@ -6939,7 +6939,7 @@ cdef class gen(sage.structure.element.RingElement):
             -5/3*x^2 + 5/3*x - 1/6
         """
         t0GEN(x)
-        _sig_on
+        sig_on()
         return nf.new_gen(basistoalg(nf.g, t0))
 
     def nfbasistoalg_lift(nf, x):
@@ -6972,7 +6972,7 @@ cdef class gen(sage.structure.element.RingElement):
             -5/3*x^2 + 5/3*x - 1/6
         """
         t0GEN(x)
-        _sig_on
+        sig_on()
         return nf.new_gen(gel(basistoalg(nf.g, t0), 2))
 
     def nfdisc(self, long flag=0, p=0):
@@ -7007,7 +7007,7 @@ cdef class gen(sage.structure.element.RingElement):
             g = _p.g
         else:
             g = <GEN>NULL
-        _sig_on
+        sig_on()
         return self.new_gen(nfdisc0(self.g, flag, g))
 
     def nfeltreduce(self, x, I):
@@ -7027,12 +7027,12 @@ cdef class gen(sage.structure.element.RingElement):
             True
         """
         t0GEN(x); t1GEN(I)
-        _sig_on
+        sig_on()
         return self.new_gen(nfreduce(self.g, t0, t1))
 
     def nffactor(self, x):
         t0GEN(x)
-        _sig_on
+        sig_on()
         return self.new_gen(nffactor(self.g, t0))
 
     def nfgenerator(self):
@@ -7092,14 +7092,14 @@ cdef class gen(sage.structure.element.RingElement):
                 else:
                     raise err
 
-    # NOTE: because of the way _sig_on and Cython exceptions work, this
+    # NOTE: because of the way sig_on() and Cython exceptions work, this
     # function MUST NOT be folded into nfinit() above. It has to be a
     # seperate function.
     def _nfinit_with_prec(self, long flag, long precision):
         """
         See ``self.nfinit()``.
         """
-        _sig_on
+        sig_on()
         return P.new_gen(nfinit0(self.g, flag, pbw(precision)))
 
     def nfisisom(self, gen other):
@@ -7139,7 +7139,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: F._pari_().nfisisom(H._pari_())
             0
         """
-        _sig_on
+        sig_on()
         return P.new_gen(nfisisom(self.g, other.g))
 
     def nfrootsof1(self):
@@ -7155,7 +7155,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: nf.nfrootsof1()
             [4, -x]
         """
-        _sig_on
+        sig_on()
         return P.new_gen(rootsof1(self.g))
 
     def nfsubfields(self, long d=0):
@@ -7173,38 +7173,38 @@ cdef class gen(sage.structure.element.RingElement):
 
         -  ``d`` - C long integer
         """
-        _sig_on
+        sig_on()
         return self.new_gen(nfsubfields(self.g, d))
 
     def rnfcharpoly(self, T, a, v='x'):
         t0GEN(T); t1GEN(a); t2GEN(v)
-        _sig_on
+        sig_on()
         return self.new_gen(rnfcharpoly(self.g, t0, t1, gvar(t2)))
 
     def rnfdisc(self, x):
         t0GEN(x)
-        _sig_on
+        sig_on()
         return self.new_gen(rnfdiscf(self.g, t0))
 
     def rnfeltabstorel(self, x):
         t0GEN(x)
-        _sig_on
+        sig_on()
         polymodmod = self.new_gen(rnfelementabstorel(self.g, t0))
         return polymodmod.centerlift().centerlift()
 
     def rnfeltreltoabs(self, x):
         t0GEN(x)
-        _sig_on
+        sig_on()
         return self.new_gen(rnfelementreltoabs(self.g, t0))
 
     def rnfequation(self, poly, long flag=0):
         t0GEN(poly)
-        _sig_on
+        sig_on()
         return self.new_gen(rnfequation0(self.g, t0, flag))
 
     def rnfidealabstorel(self, x):
         t0GEN(x)
-        _sig_on
+        sig_on()
         return self.new_gen(rnfidealabstorel(self.g, t0))
 
     def rnfidealdown(self, x):
@@ -7229,27 +7229,27 @@ cdef class gen(sage.structure.element.RingElement):
             [2, 0; 0, 2]
         """
         t0GEN(x)
-        _sig_on
+        sig_on()
         return self.new_gen(rnfidealdown(self.g, t0))
 
     def rnfidealhnf(self, x):
         t0GEN(x)
-        _sig_on
+        sig_on()
         return self.new_gen(rnfidealhermite(self.g, t0))
 
     def rnfidealnormrel(self, x):
         t0GEN(x)
-        _sig_on
+        sig_on()
         return self.new_gen(rnfidealnormrel(self.g, t0))
 
     def rnfidealreltoabs(self, x):
         t0GEN(x)
-        _sig_on
+        sig_on()
         return self.new_gen(rnfidealreltoabs(self.g, t0))
 
     def rnfidealtwoelt(self, x):
         t0GEN(x)
-        _sig_on
+        sig_on()
         return self.new_gen(rnfidealtwoelement(self.g, t0))
 
     def rnfinit(self, poly):
@@ -7265,14 +7265,14 @@ cdef class gen(sage.structure.element.RingElement):
             sage: L = K.rnfinit(g)
         """
         t0GEN(poly)
-        _sig_on
+        sig_on()
         return P.new_gen(rnfinit(self.g, t0))
 
     def rnfisfree(self, poly):
         t0GEN(poly)
-        _sig_on
+        sig_on()
         r = rnfisfree(self.g, t0)
-        _sig_off
+        sig_off()
         return r
 
     def quadhilbert(self):
@@ -7292,7 +7292,7 @@ cdef class gen(sage.structure.element.RingElement):
             ...
             PariError:  (5)
         """
-        _sig_on
+        sig_on()
         # Precision argument is only used for real quadratic extensions
         # and will be automatically increased by PARI if needed.
         return P.new_gen(quadhilbert(self.g, DEFAULTPREC))
@@ -7309,12 +7309,12 @@ cdef class gen(sage.structure.element.RingElement):
         return self.Vec().Polrev()
 
     def deriv(self, v=-1):
-        _sig_on
+        sig_on()
         return self.new_gen(deriv(self.g, self.get_var(v)))
 
     def eval(self, x):
         t0GEN(x)
-        _sig_on
+        sig_on()
         return self.new_gen(poleval(self.g, t0))
 
     def __call__(self, x):
@@ -7327,7 +7327,7 @@ cdef class gen(sage.structure.element.RingElement):
         (use round 4) or 1 (use Buchmann-Lenstra)
         """
         t0GEN(p)
-        _sig_on
+        sig_on()
         return self.new_gen(factorpadic0(self.g, t0, r, flag))
 
     def factormod(self, p, long flag=0):
@@ -7338,7 +7338,7 @@ cdef class gen(sage.structure.element.RingElement):
         irreducible factors are given.
         """
         t0GEN(p)
-        _sig_on
+        sig_on()
         return self.new_gen(factormod0(self.g, t0, flag))
 
     def intformal(self, y=-1):
@@ -7346,7 +7346,7 @@ cdef class gen(sage.structure.element.RingElement):
         x.intformal(y): formal integration of x with respect to the main
         variable of y, or to the main variable of x if y is omitted
         """
-        _sig_on
+        sig_on()
         return self.new_gen(integ(self.g, self.get_var(y)))
 
     def padicappr(self, a):
@@ -7355,7 +7355,7 @@ cdef class gen(sage.structure.element.RingElement):
         p
         """
         t0GEN(a)
-        _sig_on
+        sig_on()
         return self.new_gen(padicappr(self.g, t0))
 
     def newtonpoly(self, p):
@@ -7370,7 +7370,7 @@ cdef class gen(sage.structure.element.RingElement):
             [1, 1, -1/3, -1/3, -1/3, -1/3, -1/3, -1/3]
         """
         t0GEN(p)
-        _sig_on
+        sig_on()
         return self.new_gen(newtonpoly(self.g, t0))
 
     def polcoeff(self, long n, var=-1):
@@ -7389,39 +7389,39 @@ cdef class gen(sage.structure.element.RingElement):
             sage: f.polcoeff(1, "y")
             x
         """
-        _sig_on
+        sig_on()
         return self.new_gen(polcoeff0(self.g, n, self.get_var(var)))
 
     def polcompositum(self, pol2, long flag=0):
         t0GEN(pol2)
-        _sig_on
+        sig_on()
         return self.new_gen(polcompositum0(self.g, t0, flag))
 
     def poldegree(self, var=-1):
         """
         f.poldegree(var=x): Return the degree of this polynomial.
         """
-        _sig_on
+        sig_on()
         n = poldegree(self.g, self.get_var(var))
-        _sig_off
+        sig_off()
         return n
 
     def poldisc(self, var=-1):
         """
         f.poldist(var=x): Return the discriminant of this polynomial.
         """
-        _sig_on
+        sig_on()
         return self.new_gen(poldisc0(self.g, self.get_var(var)))
 
     def poldiscreduced(self):
-        _sig_on
+        sig_on()
         return self.new_gen(reduceddiscsmith(self.g))
 
     def polgalois(self):
         """
         f.polgalois(): Galois group of the polynomial f
         """
-        _sig_on
+        sig_on()
         return self.new_gen(polgalois(self.g, prec))
 
     def nfgaloisconj(self, long flag=0, denom=None, long precision=0):
@@ -7450,7 +7450,7 @@ cdef class gen(sage.structure.element.RingElement):
             t0GEN(denom)
         else:
             t0 = NULL
-        _sig_on
+        sig_on()
         return self.new_gen(galoisconj0(self.g, flag, t0, pbw(precision)))
 
     def nfroots(self, poly):
@@ -7472,7 +7472,7 @@ cdef class gen(sage.structure.element.RingElement):
             [Mod(-zz, zz^4 + 2), Mod(zz, zz^4 + 2)]
         """
         t0GEN(poly)
-        _sig_on
+        sig_on()
         return self.new_gen(nfroots(self.g, t0))
 
     def polhensellift(self, y, p, long e):
@@ -7483,7 +7483,7 @@ cdef class gen(sage.structure.element.RingElement):
         """
         t0GEN(y)
         t1GEN(p)
-        _sig_on
+        sig_on()
         return self.new_gen(polhensellift(self.g, t0, t1, e))
 
     def polisirreducible(self):
@@ -7491,7 +7491,7 @@ cdef class gen(sage.structure.element.RingElement):
         f.polisirreducible(): Returns True if f is an irreducible
         non-constant polynomial, or False if f is reducible or constant.
         """
-        _sig_on
+        sig_on()
         return bool(self.new_gen(gisirreducible(self.g)))
 
 
@@ -7502,29 +7502,29 @@ cdef class gen(sage.structure.element.RingElement):
         to the main variable of self if v is omitted, with respect to the
         variable v otherwise
         """
-        _sig_on
+        sig_on()
         return self.new_gen(pollead(self.g, self.get_var(v)))
 
     def polrecip(self):
-        _sig_on
+        sig_on()
         return self.new_gen(polrecip(self.g))
 
     def polred(self, flag=0, fa=None):
         if fa is None:
-            _sig_on
+            sig_on()
             return self.new_gen(polred0(self.g, flag, NULL))
         else:
             t0GEN(fa)
-            _sig_on
+            sig_on()
             return self.new_gen(polred0(self.g, flag, t0))
 
     def polredabs(self, flag=0):
-        _sig_on
+        sig_on()
         return self.new_gen(polredabs0(self.g, flag))
 
     def polresultant(self, y, var=-1, flag=0):
         t0GEN(y)
-        _sig_on
+        sig_on()
         return self.new_gen(polresultant0(self.g, t0, self.get_var(var), flag))
 
     def polroots(self, flag=0, precision=0):
@@ -7533,54 +7533,54 @@ cdef class gen(sage.structure.element.RingElement):
         optional, and can be 0: default, uses Schonhage's method modified
         by Gourdon, or 1: uses a modified Newton method.
         """
-        _sig_on
+        sig_on()
         return self.new_gen(roots0(self.g, flag, pbw(precision)))
 
     def polrootsmod(self, p, flag=0):
         t0GEN(p)
-        _sig_on
+        sig_on()
         return self.new_gen(rootmod0(self.g, t0, flag))
 
     def polrootspadic(self, p, r=20):
         t0GEN(p)
-        _sig_on
+        sig_on()
         return self.new_gen(rootpadic(self.g, t0, r))
 
     def polrootspadicfast(self, p, r=20):
         t0GEN(p)
-        _sig_on
+        sig_on()
         return self.new_gen(rootpadicfast(self.g, t0, r))
 
     def polsturm(self, a, b):
         t0GEN(a)
         t1GEN(b)
-        _sig_on
+        sig_on()
         n = sturmpart(self.g, t0, t1)
-        _sig_off
+        sig_off()
         return n
 
     def polsturm_full(self):
-        _sig_on
+        sig_on()
         n = sturmpart(self.g, NULL, NULL)
-        _sig_off
+        sig_off()
         return n
 
     def polsylvestermatrix(self, g):
         t0GEN(g)
-        _sig_on
+        sig_on()
         return self.new_gen(sylvestermatrix(self.g, t0))
 
     def polsym(self, long n):
-        _sig_on
+        sig_on()
         return self.new_gen(polsym(self.g, n))
 
     def serconvol(self, g):
         t0GEN(g)
-        _sig_on
+        sig_on()
         return self.new_gen(convol(self.g, t0))
 
     def serlaplace(self):
-        _sig_on
+        sig_on()
         return self.new_gen(laplace(self.g))
 
     def serreverse(self):
@@ -7601,11 +7601,11 @@ cdef class gen(sage.structure.element.RingElement):
             sage: g.subst('x',f)
             x + O(x^4)
         """
-        _sig_on
+        sig_on()
         return self.new_gen(recip(self.g))
 
     def thueinit(self, flag=0):
-        _sig_on
+        sig_on()
         return self.new_gen(thueinit(self.g, flag, prec))
 
 
@@ -7632,11 +7632,11 @@ cdef class gen(sage.structure.element.RingElement):
         """
         t0GEN(y)
         if z is None:
-            _sig_on
+            sig_on()
             return P.new_gen(shallowextract(self.g, t0))
         else:
             t1GEN(z)
-            _sig_on
+            sig_on()
             return P.new_gen(extract0(self.g, t0, t1))
 
     def ncols(self):
@@ -7649,9 +7649,9 @@ cdef class gen(sage.structure.element.RingElement):
             8
         """
         cdef long n
-        _sig_on
+        sig_on()
         n = glength(self.g)
-        _sig_off
+        sig_off()
         return n
 
     def nrows(self):
@@ -7664,14 +7664,14 @@ cdef class gen(sage.structure.element.RingElement):
             19
         """
         cdef long n
-        _sig_on
+        sig_on()
         # if this matrix has no columns
         # then it has no rows.
         if self.ncols() == 0:
-            _sig_off
+            sig_off()
             return 0
         n = glength(<GEN>(self.g[1]))
-        _sig_off
+        sig_off()
         return n
 
     def mattranspose(self):
@@ -7683,7 +7683,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari('[1,2,3; 4,5,6;  7,8,9]').mattranspose()
             [1, 4, 7; 2, 5, 8; 3, 6, 9]
         """
-        _sig_on
+        sig_on()
         return self.new_gen(gtrans(self.g)).Mat()
 
     def matadjoint(self):
@@ -7697,7 +7697,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari('[a,b,c; d,e,f; g,h,i]').matadjoint()
             [(i*e - h*f), (-i*b + h*c), (f*b - e*c); (-i*d + g*f), i*a - g*c, -f*a + d*c; (h*d - g*e), -h*a + g*b, e*a - d*b]
         """
-        _sig_on
+        sig_on()
         return self.new_gen(adj(self.g)).Mat()
 
     def qflll(self, long flag=0):
@@ -7712,7 +7712,7 @@ cdef class gen(sage.structure.element.RingElement):
         but x may have polynomial coefficients, 8: same as 0 but x may have
         polynomial coefficients.
         """
-        _sig_on
+        sig_on()
         return self.new_gen(qflll0(self.g,flag)).Mat()
 
     def qflllgram(self, long flag=0):
@@ -7725,7 +7725,7 @@ cdef class gen(sage.structure.element.RingElement):
         8: lllgramgen, same as qflllgram when the coefficients are
         polynomials.
         """
-        _sig_on
+        sig_on()
         return self.new_gen(qflllgram0(self.g,flag)).Mat()
 
     def lllgram(self):
@@ -7746,7 +7746,7 @@ cdef class gen(sage.structure.element.RingElement):
         """
         t0GEN(B)
         t1GEN(max)
-        _sig_on
+        sig_on()
         return self.new_gen(qfminim0(self.g,t0,t1,flag,precdl))
 
     def qfrep(self, B, long flag=0):
@@ -7757,7 +7757,7 @@ cdef class gen(sage.structure.element.RingElement):
         return a t_VECSMALL instead of a t_VEC.
         """
         t0GEN(B)
-        _sig_on
+        sig_on()
         return self.new_gen(qfrep0(self.g,t0,flag))
 
     def matsolve(self, B):
@@ -7784,7 +7784,7 @@ cdef class gen(sage.structure.element.RingElement):
             [1/2; 1/2]
         """
         t0GEN(B)
-        _sig_on
+        sig_on()
         return self.new_gen(gauss(self.g,t0))
 
     def matker(self, long flag=0):
@@ -7813,7 +7813,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari('[1,2,3;4,5,6;7,8,9]*Mod(1,2)').matker()
             [Mod(1, 2); Mod(0, 2); Mod(1, 2)]
         """
-        _sig_on
+        sig_on()
         return self.new_gen(matker0(self.g, flag))
 
     def matkerint(self, long flag=0):
@@ -7839,7 +7839,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari('[2,1;2,1]').matkerint(1)
             [1; -2]
         """
-        _sig_on
+        sig_on()
         return self.new_gen(matkerint0(self.g, flag))
 
     def matdet(self, long flag=0):
@@ -7861,7 +7861,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari('[1,2; 3,4]').matdet(1)
             -2
         """
-        _sig_on
+        sig_on()
         return self.new_gen(det0(self.g, flag))
 
     def trace(self):
@@ -7873,7 +7873,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari('[1,2; 3,4]').trace()
             5
         """
-        _sig_on
+        sig_on()
         return self.new_gen(gtrace(self.g))
 
     def mathnf(self, flag=0):
@@ -7899,7 +7899,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari('[1,2,3; 4,5,6;  7,8,9]').mathnf()
             [6, 1; 3, 1; 0, 1]
         """
-        _sig_on
+        sig_on()
         return self.new_gen(mathnf0(self.g, flag))
 
     def mathnfmod(self, d):
@@ -7933,7 +7933,7 @@ cdef class gen(sage.structure.element.RingElement):
             [1, 0, 0; 0, 2, 0; 0, 0, 6]
         """
         t0GEN(d)
-        _sig_on
+        sig_on()
         return self.new_gen(hnfmod(self.g, t0))
 
     def mathnfmodid(self, d):
@@ -7962,7 +7962,7 @@ cdef class gen(sage.structure.element.RingElement):
             [1, 0, 0; 0, 1, 0; 0, 0, 6]
         """
         t0GEN(d)
-        _sig_on
+        sig_on()
         return self.new_gen(hnfmodid(self.g, t0))
 
     def matsnf(self, flag=0):
@@ -7979,7 +7979,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari('[1,2,3; 4,5,6;  7,8,9]').matsnf()
             [0, 3, 1]
         """
-        _sig_on
+        sig_on()
         return self.new_gen(matsnf0(self.g, flag))
 
     def matfrobenius(self, flag=0):
@@ -8021,7 +8021,7 @@ cdef class gen(sage.structure.element.RingElement):
 
         - Martin Albrect (2006-04-02)
         """
-        _sig_on
+        sig_on()
         return self.new_gen(matfrobenius(self.g, flag, 0))
 
 
@@ -8073,14 +8073,14 @@ cdef class gen(sage.structure.element.RingElement):
         """
         cdef int r
         if limit == -1 and typ(self.g) == t_INT and proof:
-            _sig_on
+            sig_on()
             r = factorint_withproof_sage(&t0, self.g, ten_to_15)
             z = P.new_gen(t0)
             if not r:
                 return z
             else:
                 return _factor_int_when_pari_factor_failed(self, z)
-        _sig_on
+        sig_on()
         return P.new_gen(factor0(self.g, limit))
 
 
@@ -8091,16 +8091,16 @@ cdef class gen(sage.structure.element.RingElement):
     def hilbert(x, y, p):
         t0GEN(y)
         t1GEN(p)
-        _sig_on
+        sig_on()
         return hilbert0(x.g, t0, t1)
 
     def chinese(self, y):
         t0GEN(y)
-        _sig_on
+        sig_on()
         return P.new_gen(chinese(self.g, t0))
 
     def order(self):
-        _sig_on
+        sig_on()
         return P.new_gen(order(self.g))
 
     def znprimroot(self):
@@ -8130,14 +8130,14 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(2*109^10).znprimroot()
             Mod(236736367459211723407, 473472734918423446802)
         """
-        _sig_on
+        sig_on()
         return P.new_gen(znprimroot0(self.g))
 
     def __abs__(self):
         return self.abs()
 
     def norm(gen self):
-        _sig_on
+        sig_on()
         return P.new_gen(gnorm(self.g))
 
     def nextprime(gen self, bint add_one=0):
@@ -8152,10 +8152,10 @@ cdef class gen(sage.structure.element.RingElement):
             1267650600228229401496703205653
         """
         if add_one:
-            _sig_on
+            sig_on()
             return P.new_gen(gnextprime(gaddsg(1,self.g)))
         #NOTE: This is much faster than MAGMA's NextPrime with Proof := False.
-        _sig_on
+        sig_on()
         return P.new_gen(gnextprime(self.g))
 
     def subst(self, var, y):
@@ -8180,23 +8180,23 @@ cdef class gen(sage.structure.element.RingElement):
         cdef long n
         n = P.get_var(var)
         t0GEN(y)
-        _sig_on
+        sig_on()
         return P.new_gen(gsubst(self.g, n, t0))
 
     def substpol(self, y, z):
         t0GEN(y)
         t1GEN(z)
-        _sig_on
+        sig_on()
         return self.new_gen(gsubstpol(self.g, t0, t1))
 
     def taylor(self, v=-1):
-        _sig_on
+        sig_on()
         return self.new_gen(tayl(self.g, self.get_var(v), precdl))
 
     def thue(self, rhs, ne):
         t0GEN(rhs)
         t1GEN(ne)
-        _sig_on
+        sig_on()
         return self.new_gen(thue(self.g, t0, t1))
 
     def charpoly(self, var=-1, flag=0):
@@ -8206,13 +8206,13 @@ cdef class gen(sage.structure.element.RingElement):
         Lagrange interpolation) or 2 (use Hessenberg form), 0 being the
         default.
         """
-        _sig_on
+        sig_on()
         return P.new_gen(charpoly0(self.g, P.get_var(var), flag))
 
 
     def kronecker(gen self, y):
         t0GEN(y)
-        _sig_on
+        sig_on()
         return P.new_gen(gkronecker(self.g, t0))
 
 
@@ -8284,7 +8284,7 @@ cdef class gen(sage.structure.element.RingElement):
         t0GEN(ya)
         t1GEN(x)
         cdef GEN dy, g
-        _sig_on
+        sig_on()
         g = polint(self.g, t0, t1, &dy)
         dif = self.new_gen_noclear(dy)
         return self.new_gen(g), dif
@@ -8304,26 +8304,26 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari.set_real_precision(n)
             210
         """
-        _sig_on
+        sig_on()
         return self.new_gen(algdep(self.g, n))
 
     def concat(self, y):
         t0GEN(y)
-        _sig_on
+        sig_on()
         return self.new_gen(concat(self.g, t0))
 
     def lindep(self, flag=0):
-        _sig_on
+        sig_on()
         return self.new_gen(lindep0(self.g, flag))
 
     def listinsert(self, obj, long n):
         t0GEN(obj)
-        _sig_on
+        sig_on()
         return self.new_gen(listinsert(self.g, t0, n))
 
     def listput(self, obj, long n):
         t0GEN(obj)
-        _sig_on
+        sig_on()
         return self.new_gen(listput(self.g, t0, n))
 
 
@@ -8366,7 +8366,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: om.elleisnum(100)
             2.15314248576078 E50
         """
-        _sig_on
+        sig_on()
         # the argument prec has no effect
         return self.new_gen(elleisnum(self.g, k, flag, prec))
 
@@ -8465,7 +8465,7 @@ cdef class gen(sage.structure.element.RingElement):
             n = 0
         if n%2 == 1:
             n = n + 1
-        _sig_on
+        sig_on()
         try:
             dprec = prec_words_to_dec(z.precision())
         except AttributeError:
@@ -8494,7 +8494,7 @@ cdef class gen(sage.structure.element.RingElement):
             True
         """
         t0GEN(y)
-        _sig_on
+        sig_on()
         return self.new_gen(ellchangepoint(self.g, t0))
 
     def debug(gen self, long depth = -1):
@@ -8512,9 +8512,9 @@ cdef class gen(sage.structure.element.RingElement):
                 real = gen_0
                 imag = [&=0000000004c5ef90] REAL(lg=4):0400000000000004 (+,expo=0):6000000000000000 8000000000000000 0000000000000000
         """
-        _sig_on
+        sig_on()
         dbgGEN(self.g, depth)
-        _sig_off
+        sig_off()
         return
 
 
@@ -8615,9 +8615,9 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         initial_top = top
         bot = 0
 
-        _sig_on
+        sig_on()
         init_stack(size)
-        _sig_off
+        sig_off()
 
         GP_DATA.fmt.prettyp = 0
 
@@ -8710,9 +8710,9 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
         s = str(x)
         cdef GEN g
-        _sig_on
+        sig_on()
         g = gp_read_str(s)
-        _sig_off
+        sig_off()
         return g
 
 
@@ -8733,9 +8733,9 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
         k = GP_DATA.fmt.sigd
         s = str(n)
-        _sig_on
+        sig_on()
         sd_realprecision(s, 2)
-        _sig_off
+        sig_off()
         return int(k)  # Python int
 
     def get_real_precision(self):
@@ -8768,19 +8768,19 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
     cdef gen new_gen(self, GEN x):
         """
         Create a new gen, then free the \*entire\* stack and call
-        _sig_off.
+        sig_off().
         """
         cdef gen g
         g = _new_gen(x)
         global mytop, avma
         avma = mytop
-        _sig_off
+        sig_off()
         return g
 
     cdef object new_gen_to_string(self, GEN x):
         """
         Converts a gen to a Python string, free the \*entire\* stack and call
-        _sig_off. This is meant to be used in place of new_gen().
+        sig_off(). This is meant to be used in place of new_gen().
         """
         cdef char* c
         cdef int n
@@ -8789,16 +8789,16 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         pari_free(c)
         global mytop, avma
         avma = mytop
-        _sig_off
+        sig_off()
         return s
 
     cdef void clear_stack(self):
         """
-        Clear the entire PARI stack and call _sig_off.
+        Clear the entire PARI stack and call sig_off().
         """
         global mytop, avma
         avma = mytop
-        _sig_off
+        sig_off()
 
     cdef void set_mytop_to_avma(self):
         global mytop, avma
@@ -8807,7 +8807,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
     cdef gen new_gen_noclear(self, GEN x):
         """
         Create a new gen, but don't free any memory on the stack and don't
-        call _sig_off.
+        call sig_off().
         """
         z = _new_gen(x)
         return z
@@ -8819,7 +8819,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         limbs = mpz_size(value)
 
         if (limbs > 500):
-            _sig_on
+            sig_on()
         z = cgetg( limbs+2, t_INT )
         setlgefint( z, limbs+2 )
         setsigne( z, mpz_sgn(value) )
@@ -8828,7 +8828,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         return self.new_gen(z)
 
     cdef GEN new_GEN_from_mpz_t(self, mpz_t value):
-        ## expects that you _sig_on before entry
+        ## expects that you sig_on() before entry
         cdef GEN z
         cdef long limbs = 0
 
@@ -8842,7 +8842,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         return z
 
     cdef gen new_gen_from_int(self, int value):
-        _sig_on
+        sig_on()
         return self.new_gen(stoi(value))
 
     cdef gen new_gen_from_mpq_t(self, mpq_t value):
@@ -8852,7 +8852,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             2/3
         """
         cdef GEN z
-        _sig_on
+        sig_on()
         QQ_to_t_FRAC(&z, value)
         return self.new_gen(z)
 
@@ -8865,7 +8865,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         cdef GEN z
         cdef int i
 
-        _sig_on
+        sig_on()
         z = cgetg( length + 2, t_POL )
         setvarn(z, varnum)
         if length != 0:
@@ -8881,7 +8881,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
     cdef gen new_gen_from_padic(self, long ordp, long relprec,
                                 mpz_t prime, mpz_t p_pow, mpz_t unit):
         cdef GEN z
-        _sig_on
+        sig_on()
         z = cgetg( 5, t_PADIC )
         setprecp( z, relprec )
         setvalp( z, ordp )
@@ -8925,7 +8925,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         # of precision (that's the number of mantissa bits in an IEEE
         # double).
 
-        _sig_on
+        sig_on()
         if x == 0:
             return self.new_gen(real_0_bit(-53))
         else:
@@ -8944,7 +8944,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         t0GEN(re)
         t1GEN(im)
         cdef GEN cp
-        _sig_on
+        sig_on()
         cp = cgetg(3, t_COMPLEX)
         __set_lvalue__(gel(cp, 1), t0)
         __set_lvalue__(gel(cp, 2), t1)
@@ -9080,10 +9080,10 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
         cdef GEN g
         t = str(s)
-        _sig_str('evaluating PARI string')
+        sig_str('evaluating PARI string')
         g = gp_read_str(t)
         if g == gnil:
-            _sig_off
+            sig_off()
             return None
         return self.new_gen(g)
 
@@ -9119,7 +9119,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             sage: matrix(ZZ,2,[1..6])._pari_()   # indirect doctest
             [1, 2, 3; 4, 5, 6]
         """
-        _sig_on
+        sig_on()
         cdef GEN g
         if permute_for_hnf:
             g = self.integer_matrix_permuted_for_hnf_GEN(B, nr, nc)
@@ -9149,7 +9149,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             sage: matrix(QQ,2,[1..6])._pari_()   # indirect doctest
             [1, 2, 3; 4, 5, 6]
         """
-        _sig_on
+        sig_on()
         cdef GEN g = self.rational_matrix_GEN(B, nr, nc)
         return self.new_gen(g)
 
@@ -9266,7 +9266,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             sage: pari('mysquare(12)')
             144
         """
-        _sig_on
+        sig_on()
         return self.new_gen(gp_read_file(filename))
 
 
@@ -9323,7 +9323,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         """
         if n >= 2:
             self.nth_prime(n)
-        _sig_on
+        sig_on()
         return self.new_gen(primes(n))
 
     def primes_up_to_n(self, long n):
@@ -9360,7 +9360,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         if n <= 0:
             raise ValueError, "nth prime meaningless for non-positive n (=%s)"%n
         cdef GEN g
-        _sig_on
+        sig_on()
         g = prime(n)
         return self.new_gen(g)
 
@@ -9383,7 +9383,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             sage: pari.euler(precision=100).python()
             0.577215664901532860606512090082...
         """
-        _sig_on
+        sig_on()
         return self.new_gen(mpeuler(pbw(precision)))
 
     def pi(self, precision=0):
@@ -9398,7 +9398,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             sage: pari.pi(precision=100).python()
             3.1415926535897932384626433832...
         """
-        _sig_on
+        sig_on()
         return self.new_gen(mppi(pbw(precision)))
 
     def pollegendre(self, long n, v=-1):
@@ -9415,7 +9415,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             sage: pari.pollegendre(0)
             1
         """
-        _sig_on
+        sig_on()
         return self.new_gen(pollegendre(n, self.get_var(v)))
 
     def poltchebi(self, long n, v=-1):
@@ -9432,7 +9432,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             sage: pari.poltchebi(0)
             1
         """
-        _sig_on
+        sig_on()
         return self.new_gen(polchebyshev1(n, self.get_var(v)))
 
     def factorial(self, long n):
@@ -9450,7 +9450,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             sage: pari.factorial(25)
             15511210043330985984000000
         """
-        _sig_on
+        sig_on()
         return self.new_gen(mpfact(n))
 
     def polcyclo(self, long n, v=-1):
@@ -9467,7 +9467,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             sage: pari.polcyclo(1)
             x - 1
         """
-        _sig_on
+        sig_on()
         return self.new_gen(polcyclo(n, self.get_var(v)))
 
     def polsubcyclo(self, long n, long d, v=-1):
@@ -9489,7 +9489,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             []
         """
         cdef gen plist
-        _sig_on
+        sig_on()
         plist = self.new_gen(polsubcyclo(n, d, self.get_var(v)))
         if typ(plist.g) != t_VEC:
             return pari.vector(1, [plist])
@@ -9498,7 +9498,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         #return self.new_gen(polsubcyclo(n, d, self.get_var(v)))
 
     def polzagier(self, long n, long m):
-        _sig_on
+        sig_on()
         return self.new_gen(polzag(n, m))
 
 #  In pari 2.4.3 listcreate is "redundant and obsolete"
@@ -9512,7 +9512,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 #             sage: pari.listcreate()
 #             List([])
 #         """
-#         _sig_on
+#         sig_on()
 #         return self.new_gen(listcreate())
 
     def setrand(self, seed):
@@ -9585,7 +9585,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
     cdef gen _empty_vector(self, long n):
         cdef gen v
-        _sig_on
+        sig_on()
         v = self.new_gen(zerovec(n))
         return v
 
@@ -9598,7 +9598,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         cdef gen A
         cdef gen x
 
-        _sig_on
+        sig_on()
          # The gtomat is very important!!  Without sage/PARI will segfault.
          # I do not know why. -- William Stein
         A = self.new_gen(gtomat(zeromat(m,n)))
@@ -9764,7 +9764,7 @@ cdef gen xxx_new_gen(GEN x):
     cdef gen y
     y = PY_NEW(gen)
     y.init(x, 0)
-    _sig_off
+    sig_off()
     return y
 
 def min(x,y):
@@ -9784,9 +9784,9 @@ def max(x,y):
     return y
 
 cdef int _read_script(char* s) except -1:
-    _sig_on
+    sig_on()
     gp_read_str(s)
-    _sig_off
+    sig_off()
 
     # We set top to avma, so the script's affects won't be undone
     # when we call new_gen again.
@@ -9878,7 +9878,7 @@ cdef void _pari_trap "_pari_trap" (long errno, long retries) except *:
     TESTS::
 
     """
-    _sig_off
+    sig_off()
     if retries > 100:
         raise RuntimeError, "_pari_trap recursion too deep"
     if errno == errpile:

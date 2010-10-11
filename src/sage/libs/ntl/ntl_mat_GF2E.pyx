@@ -93,14 +93,14 @@ cdef class ntl_mat_GF2E:
 
         self.x.SetDims(_nrows, _ncols)
         if v != None:
-            _sig_on
+            sig_on()
             for i from 0 <= i < _nrows:
                 for j from 0 <= j < _ncols:
                     elem = v[i*_ncols+j]
                     if not PY_TYPE_CHECK(elem, ntl_GF2E):
                         elem = ntl_GF2E(elem, modulus)
                     mat_GF2E_setitem(&self.x, i, j, &(<ntl_GF2E>elem).x)
-            _sig_off
+            sig_off()
 
     def __cinit__(self, modulus=None, nrows=0, ncols=0, v=None):
         #################### WARNING ###################
@@ -207,9 +207,9 @@ cdef class ntl_mat_GF2E:
             other = ntl_mat_GF2E(other, self.c)
         if not self.c is (<ntl_mat_GF2E>other).c:
             raise ValueError, "You can not perform arithmetic with matrices over different fields."
-        _sig_on
+        sig_on()
         mat_GF2E_mul(r.x, self.x, (<ntl_mat_GF2E>other).x)
-        _sig_off
+        sig_off()
         return r
 
     def __sub__(ntl_mat_GF2E self, other):
@@ -232,9 +232,9 @@ cdef class ntl_mat_GF2E:
             other = ntl_mat_GF2E(other, self.c)
         if not self.c is (<ntl_mat_GF2E>other).c:
             raise ValueError, "You can not perform arithmetic with matrices over different fields."
-        _sig_on
+        sig_on()
         mat_GF2E_sub(r.x, self.x, (<ntl_mat_GF2E>other).x)
-        _sig_off
+        sig_off()
         return r
 
     def __add__(ntl_mat_GF2E self, other):
@@ -256,9 +256,9 @@ cdef class ntl_mat_GF2E:
             other = ntl_mat_GF2E(other, self.c)
         if not self.c is (<ntl_mat_GF2E>other).c:
             raise ValueError, "You can not perform arithmetic with matrices over different fields."
-        _sig_on
+        sig_on()
         mat_GF2E_add(r.x, self.x, (<ntl_mat_GF2E>other).x)
-        _sig_off
+        sig_off()
         return r
 
     def __neg__(ntl_mat_GF2E self):
@@ -270,9 +270,9 @@ cdef class ntl_mat_GF2E:
             True
         """
         cdef ntl_mat_GF2E r = self._new()
-        _sig_on
+        sig_on()
         mat_GF2E_negate(r.x, self.x)
-        _sig_off
+        sig_off()
         return r
 
     def __pow__(ntl_mat_GF2E self, long e, ignored):
@@ -284,9 +284,9 @@ cdef class ntl_mat_GF2E:
             True
         """
         cdef ntl_mat_GF2E r = self._new()
-        _sig_on
+        sig_on()
         mat_GF2E_power(r.x, self.x, e)
-        _sig_off
+        sig_off()
         return r
 
     def __richcmp__(ntl_mat_GF2E self, other, op):
@@ -415,9 +415,9 @@ cdef class ntl_mat_GF2E:
             [0 1 1 0 0 1]
         """
         cdef ntl_GF2E r = self._new_element()
-        _sig_on
+        sig_on()
         r.x = mat_GF2E_determinant(self.x)
-        _sig_off
+        sig_off()
         return r
 
     def gauss(self,ncols=-1):
@@ -471,9 +471,9 @@ cdef class ntl_mat_GF2E:
             True
         """
         cdef long isZero
-        _sig_on
+        sig_on()
         isZero = mat_GF2E_IsZero(self.x)
-        _sig_off
+        sig_off()
         return bool(isZero)
 
     def _sage_(ntl_mat_GF2E self, k=None):
@@ -528,9 +528,9 @@ cdef class ntl_mat_GF2E:
             True
         """
         cdef ntl_mat_GF2E r = self._new()
-        _sig_on
+        sig_on()
         mat_GF2E_transpose(r.x, self.x)
-        _sig_off
+        sig_off()
         return r
 
     def __invert__(self):
@@ -546,9 +546,9 @@ cdef class ntl_mat_GF2E:
             True
         """
         cdef ntl_mat_GF2E r = self._new()
-        _sig_on
+        sig_on()
         mat_GF2E_inv(r.x, self.x)
-        _sig_off
+        sig_off()
         return r
 
     def IsIdent(self, n = -1):
@@ -597,9 +597,9 @@ cdef class ntl_mat_GF2E:
             ]
         """
         cdef ntl_mat_GF2E X = self._new()
-        _sig_on
+        sig_on()
         mat_GF2E_image(X.x, self.x)
-        _sig_off
+        sig_off()
         return X
 
     def kernel(self):
@@ -615,7 +615,7 @@ cdef class ntl_mat_GF2E:
             []
         """
         cdef ntl_mat_GF2E X = self._new()
-        _sig_on
+        sig_on()
         mat_GF2E_kernel(X.x, self.x)
-        _sig_off
+        sig_off()
         return X

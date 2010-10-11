@@ -48,7 +48,7 @@ done * doctest all existing functions
 done * add copyright headers
 done * wrap differentiation
 done * integrate in burcin's new code
-done * put _sig_on/ _sig_off back so control-c works.
+done * put sig_on()/ sig_off() back so control-c works.
 done (?) * printing sums is still out of wack and non-deterministic
 done * implement isqrt, etc. and other stubs in pynac.pyx
 done * BUG:

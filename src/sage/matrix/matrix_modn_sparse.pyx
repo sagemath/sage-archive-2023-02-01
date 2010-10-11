@@ -508,7 +508,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
                     a_inverse = ai.c_inverse_mod_int(a, self.p)
                     scale_c_vector_modint(&self.rows[r], a_inverse)
                 self.swap_rows_c(r, start_row)
-                _sig_on
+                sig_on()
                 for i from 0 <= i < self._nrows:
                     if i != start_row:
                         b = get_entry(&self.rows[i], c)
@@ -517,7 +517,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
                                                      &self.rows[start_row], self.p - b)
                             clear_c_vector_modint(&self.rows[i])
                             self.rows[i] = tmp
-                _sig_off
+                sig_off()
                 start_row = start_row + 1
 
 
@@ -773,9 +773,9 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         return A
 
     cdef _init_linbox(self):
-        _sig_on
+        sig_on()
         linbox.set(self.p, self._nrows, self._ncols,  self.rows)
-        _sig_off
+        sig_off()
 
     def _rank_linbox(self, method):
         """
@@ -786,12 +786,12 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             if not x is None:
                 return x
             self._init_linbox()
-            _sig_on
+            sig_on()
             # the returend pivots list is currently wrong
             #r, pivots = linbox.rank(1)
             r = linbox.rank(method)
             r = rings.Integer(r)
-            _sig_off
+            sig_off()
             self.cache('rank', r)
             return r
         else:
@@ -952,10 +952,10 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
 
         b = b.transpose() # to make walking the rows easier
         for i in range(X.nrows()):
-            _sig_on
+            sig_on()
             x = &X.rows[i]
             linbox.solve(&x, &b.rows[i], algorithm)
-            _sig_off
+            sig_off()
 
         if not matrix:
             # Convert back to a vector

@@ -4339,9 +4339,9 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
         if "redsb" not in kwds:
             kwds["redsb"]=True
         set_cring(self.ring())
-        _sig_on
+        sig_on()
         gb = groebner_basis(self.gens(), **kwds)
-        _sig_off
+        sig_off()
         if kwds.get("deg_bound", False) is False:
             g = GroebnerStrategy()
             for p in gb:

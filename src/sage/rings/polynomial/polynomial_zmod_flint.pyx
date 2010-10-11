@@ -134,9 +134,9 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             return
 
         # resize to length of list
-        _sig_on
+        sig_on()
         zmod_poly_realloc(&self.x, length)
-        _sig_off
+        sig_off()
 
         for i from 0 <= i < length:
             _zmod_poly_set_coeff_ui(&self.x, i, l_in[i])

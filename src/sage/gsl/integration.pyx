@@ -244,39 +244,39 @@ def numerical_integral(func, a, b=None,
    if algorithm=="qng":
       _a=a
       _b=b
-      _sig_on
+      sig_on()
       gsl_integration_qng(&F,_a,_b,eps_abs,eps_rel,&result,&abs_err,&n)
-      _sig_off
+      sig_off()
 
    elif algorithm=="qag":
       from sage.rings.infinity import Infinity
       if a is -Infinity and b is +Infinity:
          W=<gsl_integration_workspace*>gsl_integration_workspace_alloc(n)
-         _sig_on
+         sig_on()
          gsl_integration_qagi(&F,eps_abs,eps_rel,n,W,&result,&abs_err)
-         _sig_off
+         sig_off()
 
       elif a is -Infinity:
          _b=b
          W=<gsl_integration_workspace*>gsl_integration_workspace_alloc(n)
-         _sig_on
+         sig_on()
          gsl_integration_qagil(&F,_b,eps_abs,eps_rel,n,W,&result,&abs_err)
-         _sig_off
+         sig_off()
 
       elif b is +Infinity:
          _a=a
          W=<gsl_integration_workspace*>gsl_integration_workspace_alloc(n)
-         _sig_on
+         sig_on()
          gsl_integration_qagiu(&F,_a,eps_abs,eps_rel,n,W,&result,&abs_err)
-         _sig_off
+         sig_off()
 
       else:
          _a=a
          _b=b
          W = <gsl_integration_workspace*> gsl_integration_workspace_alloc(n)
-         _sig_on
+         sig_on()
          gsl_integration_qag(&F,_a,_b,eps_abs,eps_rel,n,rule,W,&result,&abs_err)
-         _sig_off
+         sig_off()
 
    else:
       raise TypeError, "invalid integration algorithm"
@@ -329,12 +329,12 @@ def numerical_integral(func, a, b=None,
 
 ##    if interval[0]!='-inf' and interval[1]=='inf':
 ##       a=interval[0]
-##       _sig_on
+##       sig_on()
 ##       W= <gsl_integration_workspace*> gsl_integration_workspace_alloc(n)
 ##       CW=<gsl_integration_workspace*> gsl_integration_workspace_alloc(n)
 ##       wf = <gsl_integration_qawo_table*> gsl_integration_qawo_table_alloc(w,1,sin_or_cos,n)
 ##       gsl_integration_qawf(&F,a,eps_abs,n,W,CW,wf,&result,&abs_err)
-##       _sig_off
+##       sig_off()
 ##    gsl_integration_workspace_free(W)
 ##    gsl_integration_workspace_free(CW)
 ##    gsl_integration_qawo_table_free(wf)

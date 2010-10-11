@@ -314,10 +314,10 @@ cdef int singular_polynomial_pow(poly **ret, poly *p, long exp, ring *r) except 
     if(r != currRing): rChangeCurrRing(r)
     cdef int count = singular_polynomial_length_bounded(p,15)
     if count >= 15 or exp > 15:
-        _sig_on
+        sig_on()
     ret[0] = pPower( p_Copy(p,r), exp)
     if count >= 15 or exp > 15:
-        _sig_off
+        sig_off()
     return 0
 
 cdef int singular_polynomial_neg(poly **ret, poly *p, ring *r):

@@ -97,9 +97,9 @@ cdef class Spline:
     def __call__(self, double x):
         if not self.started:
             self.start_interp()
-        _sig_on
+        sig_on()
         y = gsl_spline_eval(self.spline, x, self.acc)
-        _sig_off
+        sig_off()
         return y
 
 spline = Spline

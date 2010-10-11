@@ -251,9 +251,9 @@ cdef class ntl_zz_p:
             raise ValueError, "arithmetic operands must have the same modulus."
         q = self._new()
         self.c.restore_c()
-        _sig_on
+        sig_on()
         zz_p_div(q.x, self.x, (<ntl_zz_p>other).x)
-        _sig_off
+        sig_off()
         return q
 
     def __pow__(ntl_zz_p self, long n, ignored):

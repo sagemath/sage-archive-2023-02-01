@@ -893,7 +893,7 @@ cdef complex_to_rgb(np.ndarray z_values):
     cdef np.ndarray[np.float_t, ndim=3, mode="c"] rgb = np.empty(
         dtype=np.float, shape=(imax, jmax, 3))
 
-    _sig_on
+    sig_on()
     for i from 0 <= i < imax:
         row = z_values[i]
         for j from 0 <= j < jmax:
@@ -944,7 +944,7 @@ cdef complex_to_rgb(np.ndarray z_values):
             rgb[i, j, 0] = r
             rgb[i, j, 1] = g
             rgb[i, j, 2] = b
-    _sig_off
+    sig_off()
     return rgb
 
 class ColorPlot(GraphicPrimitive):

@@ -109,7 +109,7 @@ def complex_to_rgb(z_values):
     jmax = len(z_values[0])
     cdef cnumpy.ndarray[cnumpy.float_t, ndim=3, mode='c'] rgb = numpy.empty(dtype=numpy.float, shape=(imax, jmax, 3))
 
-    _sig_on
+    sig_on()
     for i from 0 <= i < imax:
 
         row = z_values[i]
@@ -161,7 +161,7 @@ def complex_to_rgb(z_values):
             rgb[i, j, 1] = g
             rgb[i, j, 2] = b
 
-    _sig_off
+    sig_off()
     return rgb
 
 class ComplexPlot(GraphicPrimitive):
@@ -328,10 +328,10 @@ def complex_plot(f, xrange, yrange, **options):
     cdef double x, y
     ignore, ranges = setup_for_eval_on_grid([], [xrange, yrange], options['plot_points'])
     xrange,yrange=[r[:2] for r in ranges]
-    _sig_on
+    sig_on()
     z_values = [[  f(new_CDF_element(x, y)) for x in srange(*ranges[0], include_endpoint=True)]
                                             for y in srange(*ranges[1], include_endpoint=True)]
-    _sig_off
+    sig_off()
     g = Graphics()
     g._set_extra_kwds(Graphics._extract_kwds_for_show(options, ignore=['xmin', 'xmax']))
     g.add_primitive(ComplexPlot(z_values, xrange, yrange, options))

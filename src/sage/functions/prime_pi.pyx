@@ -198,9 +198,9 @@ cdef class PrimePi:
         for prime in tempList:
             self.primes[i] = prime
             i += 1
-        _sig_on
+        sig_on()
         s = Integer(self.prime_phi_large(x, m_max))
-        _sig_off
+        sig_off()
         sage_free(self.primes)
         return s
 

@@ -274,14 +274,14 @@ cdef inline int celement_pow(ZZ_pEX_c* res, ZZ_pEX_c* x, long e, ZZ_pEX_c *modul
         if ZZ_pEX_IsX(x[0]):
             ZZ_pEX_LeftShift(res[0], x[0], e - 1)
         else:
-            _sig_on
+            sig_on()
             ZZ_pEX_power(res[0], x[0], e)
-            _sig_off
+            sig_off()
     else:
         ZZ_pEX_Modulus_build(mod, modulus[0])
-        _sig_on
+        sig_on()
         ZZ_pEX_PowerMod_pre(res[0], x[0], e, mod)
-        _sig_off
+        sig_off()
 
 cdef inline int celement_gcd(ZZ_pEX_c* res, ZZ_pEX_c* a, ZZ_pEX_c *b, cparent parent) except -2:
     """

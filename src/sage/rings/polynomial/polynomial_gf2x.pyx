@@ -135,9 +135,9 @@ cdef class Polynomial_GF2X(Polynomial_template):
 
         if algorithm == "ntl":
             t = cputime()
-            _sig_on
+            sig_on()
             GF2X_CompMod(res.x, self.x, g.x, modulus)
-            _sig_off
+            sig_off()
             verbose("NTL %5.3f s"%cputime(t),level=1)
             return res
 

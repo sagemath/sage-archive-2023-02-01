@@ -51,9 +51,9 @@ cdef class ntl_GF2:
             GF2_conv_long(self.x, int(v) % 2)
         elif v is not None:
             v = str(v)
-            _sig_on
+            sig_on()
             GF2_from_str(&self.x, v)
-            _sig_off
+            sig_off()
 
     def __cinit__(self):
         GF2_construct(&self.x)

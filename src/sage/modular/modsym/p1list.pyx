@@ -208,7 +208,7 @@ def p1list_int(int N):
 
     if N==1: return [(0,0)]
 
-    _sig_on
+    sig_on()
     lst = [(0,1)]
     c = 1
     for d from 0 <= d < N:
@@ -232,7 +232,7 @@ def p1list_int(int N):
                         d1 += h
                     c_p1_normalize_int(N, c, d1, &u, &v, &s, 0)
                     lst.append((u,v))
-    _sig_off
+    sig_off()
     lst.sort()
     return lst
 
@@ -434,7 +434,7 @@ def p1list_llong(int N):
     if N==1: return [(0,0)]
 
     lst = [(0,1)]
-    _sig_on
+    sig_on()
     c = 1
     for d from 0 <= d < N:
         lst.append((c,d))
@@ -457,7 +457,7 @@ def p1list_llong(int N):
                         d1 += h
                     c_p1_normalize_llong(N, c, d1, &u, &v, &s, 0)
                     lst.append((u,v))
-    _sig_off
+    sig_off()
     lst.sort()
     return lst
 

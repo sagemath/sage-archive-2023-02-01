@@ -29,7 +29,7 @@ from sage.libs.ntl.ntl_ZZ import unpickle_class_args
 
 cdef inline make_ZZ_p(ZZ_p_c* x, ntl_ZZ_pContext_class ctx):
     cdef ntl_ZZ_p y
-    _sig_off
+    sig_off()
     y = ntl_ZZ_p(modulus = ctx)
     y.x = x[0]
     ZZ_p_delete(x)
@@ -41,7 +41,7 @@ cdef make_ZZ_pX(ZZ_pX_c* x, ntl_ZZ_pContext_class ctx):
     y.c = ctx
     y.x = x[0]
     ZZ_pX_delete(x)
-    _sig_off
+    sig_off()
     return y
 
 ##############################################################################
@@ -98,9 +98,9 @@ cdef class ntl_ZZ_pX:
                 ZZ_pX_SetCoeff(self.x, i, cc.x)
         elif v is not None:
             s = str(v).replace(',',' ').replace('L','')
-            _sig_on
+            sig_on()
             ZZ_pX_from_str(&self.x, s)
-            _sig_off
+            sig_off()
 
     def __cinit__(self, v=None, modulus=None):
         #################### WARNING ###################
@@ -252,9 +252,9 @@ cdef class ntl_ZZ_pX:
         if i < 0:
             r.set_from_int(0)
         else:
-            _sig_on
+            sig_on()
             r.x = ZZ_pX_coeff( self.x, i)
-            _sig_off
+            sig_off()
         return r
 
     cdef int getitem_as_int(ntl_ZZ_pX self, long i):
@@ -267,10 +267,10 @@ cdef class ntl_ZZ_pX:
         self.c.restore_c()
         cdef ZZ_p_c r
         cdef long l
-        _sig_on
+        sig_on()
         r = ZZ_pX_coeff( self.x, i)
         ZZ_conv_to_long(l, ZZ_p_rep(r))
-        _sig_off
+        sig_off()
         return l
 
     def _getitem_as_int_doctest(self, i):
@@ -316,10 +316,10 @@ cdef class ntl_ZZ_pX:
         if self.c is not other.c:
             raise ValueError, "You can not perform arithmetic with elements of different moduli."
         cdef ntl_ZZ_pX r = self._new()
-        _sig_on
+        sig_on()
         #self.c.restore_c() # restored in _new()
         ZZ_pX_add(r.x, self.x, other.x)
-        _sig_off
+        sig_off()
         return r
 
     def __sub__(ntl_ZZ_pX self, ntl_ZZ_pX other):
@@ -332,10 +332,10 @@ cdef class ntl_ZZ_pX:
         if self.c is not other.c:
             raise ValueError, "You can not perform arithmetic with elements of different moduli."
         cdef ntl_ZZ_pX r = self._new()
-        _sig_on
+        sig_on()
         #self.c.restore_c() # restored in _new()
         ZZ_pX_sub(r.x, self.x, other.x)
-        _sig_off
+        sig_off()
         return r
 
     def __mul__(ntl_ZZ_pX self, ntl_ZZ_pX other):
@@ -356,10 +356,10 @@ cdef class ntl_ZZ_pX:
         if self.c is not other.c:
             raise ValueError, "You can not perform arithmetic with elements of different moduli."
         cdef ntl_ZZ_pX r = self._new()
-        _sig_on
+        sig_on()
         # self.c.restore_c() # restored in _new()
         ZZ_pX_mul(r.x, self.x, other.x)
-        _sig_off
+        sig_off()
         return r
 
     def __div__(ntl_ZZ_pX self, ntl_ZZ_pX other):
@@ -386,10 +386,10 @@ cdef class ntl_ZZ_pX:
             raise ValueError, "You can not perform arithmetic with elements of different moduli."
         cdef int divisible
         cdef ntl_ZZ_pX r = self._new()
-        _sig_on
+        sig_on()
         #self.c.restore_c() # restored in _new()
         divisible = ZZ_pX_divide(r.x, self.x, other.x)
-        _sig_off
+        sig_off()
         if not divisible:
             raise ArithmeticError, "self (=%s) is not divisible by other (=%s)"%(self, other)
         return r
@@ -416,10 +416,10 @@ cdef class ntl_ZZ_pX:
         if self.c is not other.c:
             raise ValueError, "You can not perform arithmetic with elements of different moduli."
         cdef ntl_ZZ_pX r = self._new()
-        _sig_on
+        sig_on()
         #self.c.restore_c() # restored in _new()
         ZZ_pX_rem(r.x, self.x, other.x)
-        _sig_off
+        sig_off()
         return r
 
     def quo_rem(self, ntl_ZZ_pX other):
@@ -440,10 +440,10 @@ cdef class ntl_ZZ_pX:
             raise ValueError, "You can not perform arithmetic with elements of different moduli."
         cdef ntl_ZZ_pX r = self._new()
         cdef ntl_ZZ_pX q = self._new()
-        _sig_on
+        sig_on()
         #self.c.restore_c() # restored in _new()
         ZZ_pX_DivRem(q.x, r.x, self.x, other.x)
-        _sig_off
+        sig_off()
         return q,r
 
     def square(self):
@@ -458,9 +458,9 @@ cdef class ntl_ZZ_pX:
         """
         #self.c.restore_c() # restored in _new()
         cdef ntl_ZZ_pX r = self._new()
-        _sig_on
+        sig_on()
         ZZ_pX_sqr(r.x, self.x)
-        _sig_off
+        sig_off()
         return r
 
     def __pow__(ntl_ZZ_pX self, long n, ignored):
@@ -477,9 +477,9 @@ cdef class ntl_ZZ_pX:
             raise NotImplementedError
         #self.c.restore_c() # restored in _new()
         cdef ntl_ZZ_pX r = self._new()
-        _sig_on
+        sig_on()
         ZZ_pX_power(r.x, self.x, n)
-        _sig_off
+        sig_off()
         return r
 
     def __cmp__(ntl_ZZ_pX self, ntl_ZZ_pX other):
@@ -593,9 +593,9 @@ cdef class ntl_ZZ_pX:
         """
         #self.c.restore_c() # restored in _new()
         cdef ntl_ZZ_pX r = self._new()
-        _sig_on
+        sig_on()
         ZZ_pX_LeftShift(r.x, self.x, n)
-        _sig_off
+        sig_off()
         return r
 
     def right_shift(self, long n):
@@ -617,9 +617,9 @@ cdef class ntl_ZZ_pX:
         """
         #self.c.restore_c() # restored in _new()
         cdef ntl_ZZ_pX r = self._new()
-        _sig_on
+        sig_on()
         ZZ_pX_RightShift(r.x, self.x, n)
-        _sig_off
+        sig_off()
         return r
 
     def _left_pshift(self, ntl_ZZ n):
@@ -664,9 +664,9 @@ cdef class ntl_ZZ_pX:
         """
         #self.c.restore_c() # restored in _new()
         cdef ntl_ZZ_pX r = self._new()
-        _sig_on
+        sig_on()
         ZZ_pX_GCD(r.x, self.x, other.x)
-        _sig_off
+        sig_off()
         return r
 
     def xgcd(self, ntl_ZZ_pX other, plain=True):
@@ -694,12 +694,12 @@ cdef class ntl_ZZ_pX:
         cdef ntl_ZZ_pX s = self._new()
         cdef ntl_ZZ_pX t = self._new()
         cdef ntl_ZZ_pX r = self._new()
-        _sig_on
+        sig_on()
         if plain:
             ZZ_pX_PlainXGCD(r.x, s.x, t.x, self.x, other.x)
         else:
             ZZ_pX_XGCD(r.x, s.x, t.x, self.x, other.x)
-        _sig_off
+        sig_off()
         return (r,s,t)
 
     def degree(self):
@@ -846,9 +846,9 @@ cdef class ntl_ZZ_pX:
             [7 0 19]
         """
         cdef ntl_ZZ_pX r = self._new() #restores context
-        _sig_on
+        sig_on()
         ZZ_pX_diff(r.x, self.x)
-        _sig_off
+        sig_off()
         return r
 
     def factor(self, verbose=False):
@@ -885,9 +885,9 @@ cdef class ntl_ZZ_pX:
         cdef long i, n
         if not self.is_monic():
             raise ValueError, "self must be monic."
-        _sig_on
+        sig_on()
         ZZ_pX_factor(&v, &e, &n, &self.x, verbose)
-        _sig_off
+        sig_off()
         F = []
         for i from 0 <= i < n:
             r = self._new()
@@ -929,9 +929,9 @@ cdef class ntl_ZZ_pX:
         cdef long i, n
         if not self.is_monic():
             raise ValueError, "self must be monic."
-        _sig_on
+        sig_on()
         ZZ_pX_linear_roots(&v, &n, &self.x)
-        _sig_off
+        sig_off()
         F = []
         for i from 0 <= i < n:
             r = PY_NEW(ntl_ZZ_p)
@@ -993,9 +993,9 @@ cdef class ntl_ZZ_pX:
         cdef ntl_ZZ_pX r = self._new()
         if m <= 0:
             return r
-        _sig_on
+        sig_on()
         ZZ_pX_trunc(r.x, self.x, m)
-        _sig_off
+        sig_off()
         return r
 
     def multiply_and_truncate(self, ntl_ZZ_pX other, long m):
@@ -1014,9 +1014,9 @@ cdef class ntl_ZZ_pX:
         cdef ntl_ZZ_pX r = self._new()
         if m <= 0:
             return r
-        _sig_on
+        sig_on()
         ZZ_pX_MulTrunc(r.x, self.x, other.x, m)
-        _sig_off
+        sig_off()
         return r
 
     def square_and_truncate(self, long m):
@@ -1034,9 +1034,9 @@ cdef class ntl_ZZ_pX:
         cdef ntl_ZZ_pX r = self._new()
         if m <= 0:
             return r
-        _sig_on
+        sig_on()
         ZZ_pX_SqrTrunc(r.x, self.x, m)
-        _sig_off
+        sig_off()
         return r
 
     def invert_and_truncate(self, long m):
@@ -1056,9 +1056,9 @@ cdef class ntl_ZZ_pX:
         if m < 0:
             raise ArithmeticError, "m (=%s) must be positive"%m
         cdef ntl_ZZ_pX r = self._new()
-        _sig_on
+        sig_on()
         ZZ_pX_InvTrunc(r.x, self.x, m)
-        _sig_off
+        sig_off()
         return r
 
     def invmod(self, ntl_ZZ_pX modulus):
@@ -1066,9 +1066,9 @@ cdef class ntl_ZZ_pX:
         Returns the inverse of self modulo the modulus using NTL's InvMod.
         """
         cdef ntl_ZZ_pX r = self._new()
-        _sig_on
+        sig_on()
         ZZ_pX_InvMod(r.x, self.x, modulus.x)
-        _sig_off
+        sig_off()
         return r
 
     def invmod_newton(self, ntl_ZZ_pX modulus):
@@ -1130,9 +1130,9 @@ cdef class ntl_ZZ_pX:
             [10 6 4]
         """
         cdef ntl_ZZ_pX r = self._new()
-        _sig_on
+        sig_on()
         ZZ_pX_MulMod(r.x, self.x, other.x, modulus.x)
-        _sig_off
+        sig_off()
         return r
 
     def trace_mod(self, ntl_ZZ_pX modulus):
@@ -1151,9 +1151,9 @@ cdef class ntl_ZZ_pX:
         self.c.restore_c()
         cdef ntl_ZZ_p r = PY_NEW(ntl_ZZ_p)
         r.c = self.c
-        _sig_on
+        sig_on()
         ZZ_pX_TraceMod(r.x, self.x, modulus.x)
-        _sig_off
+        sig_off()
         return r
 
     def trace_list(self):
@@ -1180,7 +1180,7 @@ cdef class ntl_ZZ_pX:
         self.c.restore_c()
         if not self.is_monic():
             raise ValueError, "polynomial must be monic."
-        _sig_on
+        sig_on()
         cdef char* t
         t = ZZ_pX_trace_list(&self.x)
         return eval(string_delete(t).replace(' ', ','))
@@ -1199,9 +1199,9 @@ cdef class ntl_ZZ_pX:
         self.c.restore_c()
         cdef ntl_ZZ_p r = PY_NEW(ntl_ZZ_p)
         r.c = self.c
-        _sig_on
+        sig_on()
         ZZ_pX_resultant(r.x, self.x, other.x)
-        _sig_off
+        sig_off()
         return r
 
     def norm_mod(self, ntl_ZZ_pX modulus):
@@ -1224,9 +1224,9 @@ cdef class ntl_ZZ_pX:
         self.c.restore_c()
         cdef ntl_ZZ_p r = PY_NEW(ntl_ZZ_p)
         r.c = self.c
-        _sig_on
+        sig_on()
         ZZ_pX_NormMod(r.x, self.x, modulus.x)
-        _sig_off
+        sig_off()
         return r
 
     def discriminant(self):
@@ -1266,9 +1266,9 @@ cdef class ntl_ZZ_pX:
             [11 1 8 14 1]
         """
         cdef ntl_ZZ_pX r = self._new()
-        _sig_on
+        sig_on()
         ZZ_pX_CharPolyMod(r.x, self.x, modulus.x)
-        _sig_off
+        sig_off()
         return r
 
     def minpoly_mod(self, ntl_ZZ_pX modulus):
@@ -1290,9 +1290,9 @@ cdef class ntl_ZZ_pX:
             [0 0 1]
         """
         cdef ntl_ZZ_pX r = self._new()
-        _sig_on
+        sig_on()
         ZZ_pX_MinPolyMod(r.x, self.x, modulus.x)
-        _sig_off
+        sig_off()
         return r
 
     def clear(self):
@@ -1330,10 +1330,10 @@ cdef class ntl_ZZ_pX:
             [1 2 3 0 0 0 0 0 0 0 5]
         """
         self.c.restore_c()
-        _sig_on
+        sig_on()
         self.x.SetMaxLength(n)
         #ZZ_pX_preallocate_space(&self.x, n)
-        _sig_off
+        sig_off()
 
 cdef class ntl_ZZ_pX_Modulus:
     """

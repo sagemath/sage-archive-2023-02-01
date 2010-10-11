@@ -1686,13 +1686,13 @@ cdef class RealDoubleElement(FieldElement):
                 return RDF(-1)/RDF(0)
             if self._value < 0:
                 return RDF(0)/RDF(0)
-            _sig_on
+            sig_on()
             a = self._new_c(gsl_sf_log_1plusx(self._value - 1) / log_of_base)
-            _sig_off
+            sig_off()
             return a
-        _sig_on
+        sig_on()
         a = self._new_c(gsl_sf_log(self._value) / log_of_base)
-        _sig_off
+        sig_off()
         return a
 
     def log(self, base=None):
@@ -1745,9 +1745,9 @@ cdef class RealDoubleElement(FieldElement):
         if self < 0:
             from sage.rings.complex_double import CDF
             return CDF(self).log(2)
-        _sig_on
+        sig_on()
         a = self._new_c(gsl_sf_log(self._value) / M_LN2)
-        _sig_off
+        sig_off()
         return a
 
 
@@ -1767,9 +1767,9 @@ cdef class RealDoubleElement(FieldElement):
         if self < 0:
             from sage.rings.complex_double import CDF
             return CDF(self).log(10)
-        _sig_on
+        sig_on()
         a = self._new_c(gsl_sf_log(self._value) / M_LN10)
-        _sig_off
+        sig_off()
         return a
 
     def logpi(self):
@@ -1788,9 +1788,9 @@ cdef class RealDoubleElement(FieldElement):
         if self < 0:
             from sage.rings.complex_double import CDF
             return CDF(self).log(math.pi)
-        _sig_on
+        sig_on()
         a = self._new_c(gsl_sf_log(self._value) / M_LNPI)
-        _sig_off
+        sig_off()
         return a
 
     def exp(self):
@@ -1822,9 +1822,9 @@ cdef class RealDoubleElement(FieldElement):
             sage: RDF(1000).exp()
             +infinity
         """
-        _sig_on
+        sig_on()
         a = self._new_c(gsl_sf_exp(self._value))
-        _sig_off
+        sig_off()
         return a
 
     def exp2(self):
@@ -1849,9 +1849,9 @@ cdef class RealDoubleElement(FieldElement):
             sage: r.exp2()
             1.89117248253e-10
         """
-        _sig_on
+        sig_on()
         a = self._new_c(gsl_sf_exp(self._value * M_LN2))
-        _sig_off
+        sig_off()
         return a
 
     def exp10(self):
@@ -1876,9 +1876,9 @@ cdef class RealDoubleElement(FieldElement):
             sage: r.exp10()
             5.01187233627e-33
         """
-        _sig_on
+        sig_on()
         a = self._new_c(gsl_sf_exp(self._value * M_LN10))
-        _sig_off
+        sig_off()
         return a
 
     def cos(self):
@@ -1967,9 +1967,9 @@ cdef class RealDoubleElement(FieldElement):
             sage: sqrt(x^2+y^2) # overflow
             +infinity
         """
-        _sig_on
+        sig_on()
         a = self._new_c(gsl_sf_hypot(self._value, float(other)))
-        _sig_off
+        sig_off()
         return a
 
     def arccos(self):
@@ -2187,9 +2187,9 @@ cdef class RealDoubleElement(FieldElement):
             sage: RDF(1.5).gamma()
             0.886226925453
         """
-        _sig_on
+        sig_on()
         a = self._new_c(gsl_sf_gamma(self._value))
-        _sig_off
+        sig_off()
         return a
 
     def zeta(self):

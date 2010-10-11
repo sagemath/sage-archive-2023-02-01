@@ -434,7 +434,7 @@ cdef class PolynomialRealDense(Polynomial):
             f = left._new(-1)
         else:
             f = left._new(left._degree + right._degree)
-        _sig_on
+        sig_on()
         mpfr_init2(tmp, left._base_ring.__prec)
         for i from 0 <= i <= f._degree:
             # Yes, we could make this more efficient by initializing with
@@ -445,7 +445,7 @@ cdef class PolynomialRealDense(Polynomial):
                 mpfr_mul(tmp, left._coeffs[i], right._coeffs[j], rnd)
                 mpfr_add(f._coeffs[i+j], f._coeffs[i+j], tmp, rnd)
         mpfr_clear(tmp)
-        _sig_off
+        sig_off()
         return f
 
     def _derivative(self, var=None):
@@ -538,7 +538,7 @@ cdef class PolynomialRealDense(Polynomial):
         r = self * ~leading
         q = self._new(self._degree - other._degree)
         # This is the standard division algorithm
-        _sig_on
+        sig_on()
         mpfr_init2(tmp, self._base_ring.__prec)
         for i from self._degree >= i >= other._degree:
             mpfr_set(q._coeffs[i-other._degree], r._coeffs[i], rnd)
@@ -548,7 +548,7 @@ cdef class PolynomialRealDense(Polynomial):
             r._degree -= 1
             mpfr_clear(r._coeffs[i])
         mpfr_clear(tmp)
-        _sig_off
+        sig_off()
         r._normalize()
         return q, r * leading
 

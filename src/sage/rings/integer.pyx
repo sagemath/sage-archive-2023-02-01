@@ -928,9 +928,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         s = <char *>PyMem_Malloc(n)
         if s == NULL:
             raise MemoryError, "Unable to allocate enough memory for the string representation of an integer."
-        _sig_on
+        sig_on()
         mpz_get_str(s, base, self.value)
-        _sig_off
+        sig_off()
         k = <object> PyString_FromString(s)
         PyMem_Free(s)
         return k
@@ -1277,7 +1277,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         else:
             s = mpz_sizeinbase(self.value, 2)
             if s > 256:
-                _sig_on
+                sig_on()
 
             #   We use a divide and conquer approach (suggested
             # by the prior author, malb?, of the digits method)
@@ -1331,7 +1331,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 _digits_internal(self.value,l,0,i-1,power_list,digits)
 
             if s > 256:
-                _sig_off
+                sig_off()
 
         # padding should be taken care of with-in the function
         # all we need to do is return
@@ -1387,9 +1387,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return &self.value
 
     cdef void _to_ZZ(self, ZZ_c *z):
-        _sig_on
+        sig_on()
         mpz_to_ZZ(z, &self.value)
-        _sig_off
+        sig_off()
 
     cpdef ModuleElement _add_(self, ModuleElement right):
         """
@@ -1528,9 +1528,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         cdef Integer x = <Integer>PY_NEW(Integer)
         if mpz_size(self.value) > 100000:
-            _sig_on
+            sig_on()
             mpz_mul_si(x.value, self.value, n)
-            _sig_off
+            sig_off()
         else:
             mpz_mul_si(x.value, self.value, n)
         return x
@@ -1553,9 +1553,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         if mpz_size(self.value) + mpz_size((<Integer>right).value) > 100000:
             # We only use the signal handler (to enable ctrl-c out) when the
             # product might take a while to compute
-            _sig_on
+            sig_on()
             mpz_mul(x.value, self.value, (<Integer>right).value)
-            _sig_off
+            sig_off()
         else:
             mpz_mul(x.value, self.value, (<Integer>right).value)
         return x
@@ -1564,9 +1564,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         if mpz_size(self.value) + mpz_size((<Integer>right).value) > 100000:
             # We only use the signal handler (to enable ctrl-c out) when the
             # product might take a while to compute
-            _sig_on
+            sig_on()
             mpz_mul(self.value, self.value, (<Integer>right).value)
-            _sig_off
+            sig_off()
         else:
             mpz_mul(self.value, self.value, (<Integer>right).value)
         return self
@@ -1630,9 +1630,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             if not mpz_sgn((<Integer>y).value):
                 raise ZeroDivisionError, "Integer division by zero"
             if mpz_size((<Integer>x).value) > 100000:
-                _sig_on
+                sig_on()
                 mpz_fdiv_q(z.value, (<Integer>x).value, (<Integer>y).value)
-                _sig_off
+                sig_off()
             else:
                 mpz_fdiv_q(z.value, (<Integer>x).value, (<Integer>y).value)
             return z
@@ -1770,9 +1770,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         cdef Integer x = PY_NEW(Integer)
 
-        _sig_on
+        sig_on()
         mpz_pow_ui(x.value, (<Integer>self).value, nn if nn > 0 else -nn)
-        _sig_off
+        sig_off()
 
         if nn < 0:
             return ~x
@@ -1884,9 +1884,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef Integer x
         cdef bint is_exact
         x = PY_NEW(Integer)
-        _sig_on
+        sig_on()
         is_exact = mpz_root(x.value, self.value, n)
-        _sig_off
+        sig_off()
 
         if truncate_mode:
             return x, is_exact
@@ -1936,7 +1936,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         l_min=n_log2/(m_log2+1)
         l_max=n_log2/m_log2
         if l_min != l_max:
-            _sig_on
+            sig_on()
             mpz_init(accum)
             mpz_init(temp_exp)
             mpz_set_ui(accum,1)
@@ -1964,7 +1964,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 l_max=l+(n_log2-(mpz_sizeinbase(accum,2)-1))/m_log2
             mpz_clear(temp_exp)
             mpz_clear(accum)
-            _sig_off
+            sig_off()
         return l_min
 
     cpdef size_t _exact_log_mpfi_log(self,m):
@@ -1999,7 +1999,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         rif_self = R(self)
 
-        _sig_on
+        sig_on()
         rif_m = R(m)
         rif_log = rif_self.log()/rif_m.log()
         # upper is *greater* than the answer
@@ -2050,7 +2050,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                         return middle
                     else:
                         return lower
-        _sig_off
+        sig_off()
 
         if upper == 0:
             raise ValueError, "The input for exact_log is too large and support is not implemented."
@@ -2617,9 +2617,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             if not mpz_sgn((<Integer>y).value):
                 raise ZeroDivisionError, "Integer modulo by zero"
             if mpz_size((<Integer>x).value) > 100000:
-                _sig_on
+                sig_on()
                 mpz_fdiv_r(z.value, (<Integer>x).value, (<Integer>y).value)
-                _sig_off
+                sig_off()
             else:
                 mpz_fdiv_r(z.value, (<Integer>x).value, (<Integer>y).value)
             return z
@@ -2712,9 +2712,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             if mpz_sgn((<Integer>other).value) == 0:
                 raise ZeroDivisionError, "Integer division by zero"
             if mpz_size((<Integer>x).value) > 100000:
-                _sig_on
+                sig_on()
                 mpz_fdiv_qr(q.value, r.value, self.value, (<Integer>other).value)
-                _sig_off
+                sig_off()
             else:
                 mpz_fdiv_qr(q.value, r.value, self.value, (<Integer>other).value)
 
@@ -2752,9 +2752,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         x = PY_NEW(Integer)
 
-        _sig_on
+        sig_on()
         mpz_powm(x.value, self.value, _exp.value, _mod.value)
-        _sig_off
+        sig_off()
 
         return x
 
@@ -2808,9 +2808,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         _mod = Integer(mod)
         x = PY_NEW(Integer)
 
-        _sig_on
+        sig_on()
         mpz_powm_ui(x.value, self.value, exp, _mod.value)
-        _sig_off
+        sig_off()
 
         return x
 
@@ -3029,13 +3029,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 limit = mpz_get_ui(x.value)
             else:
                 limit = bound
-            _sig_on
+            sig_on()
             while m <= limit:
                 if  mpz_divisible_ui_p(self.value, m):
                     mpz_set_ui(x.value, m); return x
                 m += dif[i%8]
                 i += 1
-            _sig_off
+            sig_off()
             mpz_abs(x.value, self.value)
             return x
 
@@ -3239,9 +3239,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         _n = Integer(n)
         if mpz_sgn(self.value) == 0:
             return mpz_sgn(_n.value) == 0
-        _sig_on
+        sig_on()
         t = mpz_divisible_p(_n.value, self.value)
-        _sig_off
+        sig_off()
         return t
 
     cpdef RingElement _valuation(Integer self, Integer p):
@@ -3263,9 +3263,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         v = PY_NEW(Integer)
         cdef mpz_t u
         mpz_init(u)
-        _sig_on
+        sig_on()
         mpz_set_ui(v.value, mpz_remove(u, self.value, p.value))
-        _sig_off
+        sig_off()
         mpz_clear(u)
         return v
 
@@ -3290,9 +3290,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             return (sage.rings.infinity.infinity, u)
         v = PY_NEW(Integer)
         u = PY_NEW(Integer)
-        _sig_on
+        sig_on()
         mpz_set_ui(v.value, mpz_remove(u.value, self.value, p.value))
-        _sig_off
+        sig_off()
         return (v, u)
 
     def valuation(self, p):
@@ -3394,9 +3394,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         if mpz_size(self.value) + mpz_size((<Integer>right).value) > 100000:
             # Only use the signal handler (to enable ctrl-c out) when the
             # quotient might take a while to compute
-            _sig_on
+            sig_on()
             mpz_divexact(x.value, self.value, right.value)
-            _sig_off
+            sig_off()
         else:
             mpz_divexact(x.value, self.value, right.value)
         return x
@@ -3443,9 +3443,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         cdef Integer z
         z = PY_NEW(Integer)
-        _sig_on
+        sig_on()
         mpz_lcm(z.value, self.value, n.value)
-        _sig_off
+        sig_off()
         return z
 
     def denominator(self):
@@ -3506,9 +3506,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         cdef Integer z = PY_NEW(Integer)
 
-        _sig_on
+        sig_on()
         mpz_fac_ui(z.value, mpz_get_ui(self.value))
-        _sig_off
+        sig_off()
 
         return z
 
@@ -3577,7 +3577,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         for i from 0 <= i < prod_count:
             mpz_init(sub_prods[i])
 
-        _sig_on
+        sig_on()
 
         cdef residue = n % k
         cdef int tip = 0
@@ -3595,7 +3595,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         for tip from last > tip >= 0:
             mpz_mul(sub_prods[tip], sub_prods[tip], sub_prods[tip+1])
 
-        _sig_off
+        sig_off()
 
         cdef Integer z = PY_NEW(Integer)
         mpz_swap(z.value, sub_prods[0])
@@ -3843,9 +3843,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                         return 0
                 else: # |n| is not a power of 2, so we use mpz_remove
                     mpz_init(u)
-                    _sig_on
+                    sig_on()
                     b = mpz_remove(u, self.value, nabs)
-                    _sig_off
+                    sig_off()
                     # Having obtained b and u, we're done with nabs
                     mpz_clear(nabs)
                     if mpz_cmp_ui(u, 1) == 0: # self is a power of |n|
@@ -3873,9 +3873,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 return 0
         else: # n > 2, but not a power of 2, so we use mpz_remove
             mpz_init(u)
-            _sig_on
+            sig_on()
             mpz_remove(u, self.value, n.value)
-            _sig_off
+            sig_off()
             a = mpz_cmp_ui(u, 1)
             mpz_clear(u)
             if a == 0:
@@ -4283,7 +4283,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             z = <Integer>PY_NEW(Integer)
             even_part = mpz_scan1(self.value, 0)
             mpz_fdiv_q_2exp(z.value, self.value, even_part ^ (even_part&1))
-            _sig_on
+            sig_on()
             if bound >= 3:
                 while mpz_divisible_ui_p(z.value, 9):
                     mpz_divexact_ui(z.value, z.value, 9)
@@ -4296,7 +4296,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                     p2 = p*p
                     while mpz_divisible_ui_p(z.value, p2):
                         mpz_divexact_ui(z.value, z.value, p2)
-            _sig_off
+            sig_off()
             return z
         else:
             if bound == -1:
@@ -4620,9 +4620,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef Integer x
         x = PY_NEW(Integer)
 
-        _sig_on
+        sig_on()
         mpz_sqrt(x.value, self.value)
-        _sig_off
+        sig_off()
 
         return x
 
@@ -4715,12 +4715,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef int non_square
         cdef Integer z = PY_NEW(Integer)
         cdef mpz_t tmp
-        _sig_on
+        sig_on()
         mpz_init(tmp)
         mpz_sqrtrem(z.value, tmp, self.value)
         non_square = mpz_sgn(tmp) != 0
         mpz_clear(tmp)
-        _sig_off
+        sig_off()
 
         if non_square:
             if not extend:
@@ -4845,9 +4845,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef Integer s = PY_NEW(Integer)
         cdef Integer t = PY_NEW(Integer)
 
-        _sig_on
+        sig_on()
         mpz_gcdext(g.value, s.value, t.value, self.value, n.value)
-        _sig_off
+        sig_off()
 
         # Note: the GMP documentation for mpz_gcdext (or mpn_gcdext for that
         # matter) makes absolutely no claims about any minimality conditions
@@ -5148,9 +5148,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef Integer ans = <Integer>PY_NEW(Integer)
         if mpz_cmp_ui(m.value, 1) == 0:
             return zero
-        _sig_on
+        sig_on()
         r = mpz_invert(ans.value, self.value, m.value)
-        _sig_off
+        sig_off()
         if r == 0:
             raise ZeroDivisionError, "Inverse does not exist."
         return ans
@@ -5177,9 +5177,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             return left.gcd(right)
         cdef Integer m = as_Integer(n)
         cdef Integer g = <Integer>PY_NEW(Integer)
-        _sig_on
+        sig_on()
         mpz_gcd(g.value, self.value, m.value)
-        _sig_off
+        sig_off()
         return g
 
     def crt(self, y, m, n):
@@ -5310,11 +5310,11 @@ cpdef LCM_list(v):
     elif n == 1:
         return v[0].abs()
 
-    _sig_on
+    sig_on()
     mpz_lcm(z.value, (<Integer>v[0]).value, (<Integer>v[1]).value)
     for i from 2 <= i < n:
         mpz_lcm(z.value, z.value, (<Integer>v[i]).value)
-    _sig_off
+    sig_off()
 
     return z
 
@@ -5371,13 +5371,13 @@ def GCD_list(v):
     elif n == 1:
         return v[0].abs()
 
-    _sig_on
+    sig_on()
     mpz_gcd(z.value, (<Integer>v[0]).value, (<Integer>v[1]).value)
     for i from 2 <= i < n:
         if mpz_cmp_ui(z.value, 1) == 0:
             break
         mpz_gcd(z.value, z.value, (<Integer>v[i]).value)
-    _sig_off
+    sig_off()
 
     return z
 

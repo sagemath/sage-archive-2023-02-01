@@ -1641,15 +1641,15 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
             raise ArithmeticError, "0^0 is undefined."
         x = self._new_c()
         if PyInt_CheckExact(exp) and PyInt_AS_LONG(exp) >= 0:
-            _sig_on
+            sig_on()
             mpz_powm_ui(x.value, self.value, PyInt_AS_LONG(exp), self.__modulus.sageInteger.value)
-            _sig_off
+            sig_off()
         else:
             if not PY_TYPE_CHECK_EXACT(exp, Integer):
                 exp = Integer(exp)
-            _sig_on
+            sig_on()
             mpz_powm(x.value, self.value, (<Integer>exp).value, self.__modulus.sageInteger.value)
-            _sig_off
+            sig_off()
         return x
 
     def __invert__(IntegerMod_gmp self):
@@ -2140,10 +2140,10 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             x = mod_pow_int(self.ivalue, mpz_get_si(exp.value), self.__modulus.int32)
         else:
             mpz_init(x_mpz)
-            _sig_on
+            sig_on()
             base = self.lift()
             mpz_powm(x_mpz, base.value, exp.value, self.__modulus.sageInteger.value)
-            _sig_off
+            sig_off()
             x = mpz_get_si(x_mpz)
             mpz_clear(x_mpz)
         return self._new_c(x)
@@ -2942,10 +2942,10 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
             x = mod_pow_int64(self.ivalue, mpz_get_si(exp.value), self.__modulus.int64)
         else:
             mpz_init(x_mpz)
-            _sig_on
+            sig_on()
             base = self.lift()
             mpz_powm(x_mpz, base.value, exp.value, self.__modulus.sageInteger.value)
-            _sig_off
+            sig_off()
             x = mpz_get_si(x_mpz)
             mpz_clear(x_mpz)
         return self._new_c(x)
@@ -3371,7 +3371,7 @@ def fast_lucas(mm, IntegerMod_abstract P):
     d1 = P
     d2 = P*P - two
 
-    _sig_on
+    sig_on()
     cdef int j
     for j from mpz_sizeinbase(m.value, 2)-1 > j > 0:
         if mpz_tstbit(m.value, j):
@@ -3380,7 +3380,7 @@ def fast_lucas(mm, IntegerMod_abstract P):
         else:
             d2 = d1*d2 - P
             d1 = d1*d1 - two
-    _sig_off
+    sig_off()
     if mpz_odd_p(m.value):
         return d1*d2 - P
     else:

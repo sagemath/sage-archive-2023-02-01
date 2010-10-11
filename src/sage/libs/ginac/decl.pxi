@@ -8,7 +8,7 @@
 ###############################################################################
 
 # NOTE: Because of the except+'s below, i.e., C++ exception handling,
-# we do *not* have to use _sig_on and _sig_off. We do use it a little
+# we do *not* have to use sig_on() and sig_off(). We do use it a little
 # in the actual pyx code to catch control-c for long running functions.
 
 cdef extern from "ginac_wrap.h":

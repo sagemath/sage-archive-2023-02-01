@@ -254,7 +254,7 @@ cdef run_spring(int iterations, int dim, double* pos, int* edges, int n, bint he
     else:
         update_dim = dim
 
-    _sig_on
+    sig_on()
 
     for cur_iter from 0 <= cur_iter < iterations:
       cur_edge = 1 # offset by one for fast checking against 2nd element first
@@ -303,7 +303,7 @@ cdef run_spring(int iterations, int dim, double* pos, int* edges, int n, bint he
 
       t -= dt
 
-    _sig_off
+    sig_off()
 
     sage_free(disp)
 
@@ -679,7 +679,7 @@ cdef class SubgraphSearch:
             sage: S.__next__()
             [0, 1, 2]
         """
-        _sig_on
+        sig_on()
         cdef int *tmp_array_out
         cdef int *tmp_array_in
         cdef bint is_admissible
@@ -747,7 +747,7 @@ cdef class SubgraphSearch:
                 self.stack[self.active] = -1
                 self.active -= 1
 
-        _sig_off
+        sig_off()
         raise StopIteration
 
     def __dealloc__(self):

@@ -174,7 +174,7 @@ cdef class Matrix_sparse(matrix.Matrix):
 
         e = {}
         k1 = 0
-        _sig_on
+        sig_on()
         while k1 < len_left:
             row_start = k1
             row = get_ij(left_nonzero, row_start, 0)
@@ -204,7 +204,7 @@ cdef class Matrix_sparse(matrix.Matrix):
                     k2 = k2 + 1
             while k1 < len_left and get_ij(left_nonzero,k1,0) == row:
                 k1 = k1 + 1
-        _sig_off
+        sig_off()
         return left.new_matrix(left._nrows, right._ncols, entries=e, coerce=False, copy=False)
 
     def _multiply_classical_with_cache(Matrix_sparse left, Matrix_sparse right):
@@ -237,10 +237,10 @@ cdef class Matrix_sparse(matrix.Matrix):
         next_col = <Py_ssize_t *> sage_malloc(sizeof(Py_ssize_t) * right._ncols)
         if next_row == NULL or next_col == NULL:
             if next_row != NULL: sage_free(next_row)
-            _sig_off
+            sig_off()
             raise MemoryError, "out of memory multiplying a matrix"
 
-        _sig_on
+        sig_on()
         i = len_left - 1
         for row from left._nrows > row >= 0:
             next_row[row] = i + 1
@@ -283,7 +283,7 @@ cdef class Matrix_sparse(matrix.Matrix):
 
         sage_free(next_row)
         sage_free(next_col)
-        _sig_off
+        sig_off()
 
         return left.new_matrix(left._nrows, right._ncols, entries=e, coerce=False, copy=False)
 

@@ -118,9 +118,9 @@ def hypellfrob(p, N, Q):
    mm = ntl_mat_ZZ(2*g, 2*g)
 
    cdef int result
-   _sig_on
+   sig_on()
    result = hypellfrob_matrix(mm.x, pp.x, N, QQ.x)
-   _sig_off
+   sig_off()
 
    if not result:
       raise ValueError, "Could not compute frobenius matrix, because the curve is singular at p."

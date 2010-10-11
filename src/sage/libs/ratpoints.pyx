@@ -128,9 +128,9 @@ def ratpoints(list coeffs, long H, verbose=False, long max=0):
         sage_int = <Integer> coeffs[i]
         mpz_set(args.cof[i], sage_int.value)
 
-    _sig_on
+    sig_on()
     total = find_points(&args, process, <void *>plist)
-    _sig_off
+    sig_off()
     if total == RATPOINTS_NON_SQUAREFREE:
         raise RuntimeError('Polynomial must be square-free')
     if total == RATPOINTS_BAD_ARGS:
@@ -195,9 +195,9 @@ cdef int ratpoints_mpz_exists_only(mpz_t *coeffs, long H, int degree, bint verbo
     args.num_primes = RATPOINTS_DEFAULT_NUM_PRIMES
     args.max_forbidden = RATPOINTS_DEFAULT_MAX_FORBIDDEN
     args.flags = (RATPOINTS_VERBOSE & verby)
-    _sig_on
+    sig_on()
     total = find_points(&args, process_exists_only, <void *>(&info_s))
-    _sig_off
+    sig_off()
     sage_free(args.domain)
     if total == RATPOINTS_NON_SQUAREFREE:
         raise RuntimeError('Polynomial must be square-free')

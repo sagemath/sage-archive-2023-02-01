@@ -1340,7 +1340,7 @@ cdef class NumberFieldElement(FieldElement):
         cdef ZZX_c temp
         cdef ZZ_c temp1
         x = self._new()
-        _sig_on
+        sig_on()
         # MulMod doesn't handle non-monic polynomials.
         # Therefore, we handle the non-monic case entirely separately.
 
@@ -1357,7 +1357,7 @@ cdef class NumberFieldElement(FieldElement):
                 ZZX_PseudoRem(x.__numerator, x.__numerator, temp)
                 ZZ_mul(x.__denominator, x.__denominator, self.__fld_denominator.x)
                 ZZ_mul(x.__denominator, x.__denominator, temp1)
-        _sig_off
+        sig_off()
         x._reduce_c_()
         return x
 
@@ -1404,7 +1404,7 @@ cdef class NumberFieldElement(FieldElement):
         if not _right:
             raise ZeroDivisionError, "Number field element division by zero"
         x = self._new()
-        _sig_on
+        sig_on()
         _right._invert_c_(&inv_num, &inv_den)
         if ZZ_IsOne(ZZX_LeadCoeff(self.__fld_numerator.x)):
             ZZ_mul(x.__denominator, self.__denominator, inv_den)
@@ -1420,7 +1420,7 @@ cdef class NumberFieldElement(FieldElement):
                 ZZ_mul(x.__denominator, x.__denominator, self.__fld_denominator.x)
                 ZZ_mul(x.__denominator, x.__denominator, temp1)
         x._reduce_c_()
-        _sig_off
+        sig_off()
         return x
 
     def __floordiv__(self, other):

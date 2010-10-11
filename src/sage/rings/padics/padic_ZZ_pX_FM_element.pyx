@@ -269,13 +269,13 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         self.prime_pow.restore_top_context()
         cdef ZZ_c tmp
         cdef mpz_t tmp_m
-        _sig_on
+        sig_on()
         mpz_init(tmp_m)
         mpz_set(tmp_m, x)
         mpz_to_ZZ(&tmp, &tmp_m)
         mpz_clear(tmp_m)
         ZZ_pX_SetCoeff(self.value, 0, ZZ_to_ZZ_p(tmp))
-        _sig_off
+        sig_off()
 
     cdef int _set_from_mpq(self, mpq_t x) except -1:
         """
@@ -299,7 +299,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             raise ValueError, "p divides denominator"
         cdef mpz_t tmp_m
         cdef ZZ_c tmp_z
-        _sig_on
+        sig_on()
         mpz_init(tmp_m)
         mpz_invert(tmp_m, mpq_denref(x), self.prime_pow.pow_mpz_t_top()[0])
         mpz_mul(tmp_m, tmp_m, mpq_numref(x))
@@ -307,7 +307,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         mpz_to_ZZ(&tmp_z, &tmp_m)
         ZZ_pX_SetCoeff(self.value, 0, ZZ_to_ZZ_p(tmp_z))
         mpz_clear(tmp_m)
-        _sig_off
+        sig_off()
         return 0
 
     cdef int _set_from_ZZ_pX(self, ZZ_pX_c* poly, ntl_ZZ_pContext_class ctx) except -1:
@@ -529,12 +529,12 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         if self.valuation_c() > 0:
             raise ValueError, "cannot invert non-unit"
         cdef pAdicZZpXFMElement ans = self._new_c()
-        _sig_on
+        sig_on()
         if self.prime_pow.e == 1:
             ZZ_pX_InvMod_newton_unram(ans.value, self.value, self.prime_pow.get_top_modulus()[0], self.prime_pow.get_top_context().x, self.prime_pow.get_context(1).x)
         else:
             ZZ_pX_InvMod_newton_ram(ans.value, self.value, self.prime_pow.get_top_modulus()[0], self.prime_pow.get_top_context().x)
-        _sig_off
+        sig_off()
         return ans
 
     cdef pAdicZZpXFMElement _lshift_c(self, long n):
@@ -732,7 +732,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         if mpz_sgn((<Integer>right).value) < 0:
             if self.valuation_c() > 0:
                 raise ValueError, "cannot invert non-unit"
-            _sig_on
+            sig_on()
             if self.prime_pow.e == 1:
                 ZZ_pX_InvMod_newton_unram(ans.value, self.value, self.prime_pow.get_top_modulus()[0], self.prime_pow.get_top_context().x, self.prime_pow.get_context(1).x)
             else:
@@ -740,9 +740,9 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             ZZ_negate(rZZ.x, rZZ.x)
             ZZ_pX_PowerMod_pre(ans.value, ans.value, rZZ.x, self.prime_pow.get_top_modulus()[0])
         else:
-            _sig_on
+            sig_on()
             ZZ_pX_PowerMod_pre(ans.value, self.value, rZZ.x, self.prime_pow.get_top_modulus()[0])
-            _sig_off
+            sig_off()
         return ans
 
     cpdef ModuleElement _add_(self, ModuleElement right):
@@ -1198,9 +1198,9 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             ##print "p^n = %s"%printer_ZZ
             ##print "p_shift = %s"%p_shift
             ##print "a"
-            _sig_on
+            sig_on()
             ZZ_InvMod(leftover, leftover, self.prime_pow.pow_ZZ_top()[0])
-            _sig_off
+            sig_off()
             ##print "b"
             ZZ_pX_mul_ZZ_p(to_add, xpow, ZZ_to_ZZ_p(leftover))
             if self.prime_pow.e == 1:

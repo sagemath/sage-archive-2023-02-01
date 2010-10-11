@@ -389,9 +389,9 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         self.relprec = relprec
         if mpz_sgn(self.unit) == -1 or \
                (mpz_cmp(self.unit, self.prime_pow.pow_mpz_t_tmp(relprec)[0]) >= 0):
-            _sig_on
+            sig_on()
             mpz_mod(self.unit, self.unit, self.prime_pow.pow_mpz_t_tmp(self.relprec)[0])
-            _sig_off
+            sig_off()
         self._normalized = 1
         return 0
 
@@ -409,9 +409,9 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         if mpz_sgn(value) == 0:
             self._set_inexact_zero(absprec)
             return 0
-        _sig_on
+        sig_on()
         self.ordp = mpz_remove(self.unit, value, self.prime_pow.prime.value)
-        _sig_off
+        sig_off()
         if self.ordp >= absprec:
             self._set_inexact_zero(absprec)
             return 0
@@ -420,9 +420,9 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             self.relprec = relprec
         if mpz_sgn(self.unit) == -1 or \
                (mpz_cmp(self.unit, self.prime_pow.pow_mpz_t_tmp(self.relprec)) >= 0):
-            _sig_on
+            sig_on()
             mpz_mod(self.unit, self.unit, self.prime_pow.pow_mpz_t_tmp(self.relprec)[0])
-            _sig_off
+            sig_off()
         self._normalized = 1
         return 0
 
@@ -441,9 +441,9 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         if mpq_sgn(value) == 0:
             self._set_exact_zero()
             return 0
-        _sig_on
+        sig_on()
         self.ordp = mpz_remove(self.unit, mpq_numref(value), self.prime_pow.prime.value)
-        _sig_off
+        sig_off()
         if self.ordp == 0:
             self.ordp = mpz_remove(self.unit, mpq_denref(value), self.prime_pow.prime.value)
             if self.ordp > 0 and self.prime_pow.in_field == 0:
@@ -478,13 +478,13 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         if mpq_sgn(value) == 0:
             self._set_inexact_zero(absprec)
             return 0
-        _sig_on
+        sig_on()
         mpz_init(num_unit)
         mpz_init(den_unit)
         num_ordp = mpz_remove(num_unit, mpq_numref(value), self.prime_pow.prime.value)
         den_ordp = mpz_remove(den_unit, mpq_denref(value), self.prime_pow.prime.value)
         self.ordp = num_ordp - den_ordp
-        _sig_off
+        sig_off()
         if self.ordp < 0 and self.prime_pow.in_field == 0:
             mpz_clear(num_unit)
             mpz_clear(den_unit)
@@ -533,9 +533,9 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
                 raise ValueError, "negative valuation"
             if other.relprec > relprec:
                 if mpz_sgn(other.unit) > 0 and mpz_cmp(other.unit, self.prime_pow.pow_mpz_t_top()[0]) >= 0:
-                    _sig_on
+                    sig_on()
                     mpz_mod(self.unit, other.unit, self.prime_pow.pow_mpz_t_top()[0])
-                    _sig_off
+                    sig_off()
                 else:
                     mpz_set(self.unit, other.unit)
                 self.relprec = relprec
@@ -576,9 +576,9 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
                 relprec = absprec - other.ordp
             if other.relprec > relprec:
                 if mpz_sgn(other.unit) > 0 and mpz_cmp(other.unit, self.prime_pow.pow_mpz_t_top()[0]) >= 0:
-                    _sig_on
+                    sig_on()
                     mpz_mod(self.unit, other.unit, self.prime_pow.pow_mpz_t_top()[0])
-                    _sig_off
+                    sig_off()
                 else:
                     mpz_set(self.unit, other.unit)
                 self.relprec = relprec
@@ -976,9 +976,9 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             raise ValueError, "valuation overflow"
         ans.ordp = mpz_get_si(tmp)
         mpz_clear(tmp)
-        _sig_on
+        sig_on()
         mpz_powm(ans.unit, base.unit, right.value, ans.prime_pow.pow_mpz_t_tmp(ans.relprec)[0])
-        _sig_off
+        sig_off()
         return ans
 
     # Once the code for _add_ has stabilized, it may be worth getting rid of the extra function call for _sub_.
@@ -1027,9 +1027,9 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             ans.ordp = self.ordp
             if mpz_size(self.prime_pow.pow_mpz_t_top()[0]) > 10000:
                 # We only enable the signal handler if the product will take a while.
-                _sig_on
+                sig_on()
                 mpz_mul(ans.unit, right.unit, self.prime_pow.pow_mpz_t_tmp(tmpL)[0])
-                _sig_off
+                sig_off()
             else:
                 mpz_mul(ans.unit, right.unit, self.prime_pow.pow_mpz_t_tmp(tmpL)[0])
             mpz_add(ans.unit, ans.unit, self.unit)
@@ -1062,9 +1062,9 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             ans.prime_pow = ans._parent.prime_pow
         ans.ordp = -self.ordp
         ans._set_prec(self.relprec)
-        _sig_on
+        sig_on()
         mpz_invert(ans.unit, self.unit, ans.prime_pow.pow_mpz_t_tmp(ans.relprec)[0])
-        _sig_off
+        sig_off()
         return ans
 
     def __floordiv__(pAdicCappedRelativeElement self, right):
@@ -1119,10 +1119,10 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         ans = self._new_c()
         # We compute the quotient of the unit parts.
         # One might want to compute this inverse to the precision it's actually needed to for speed's sake...
-        _sig_on
+        sig_on()
         mpz_invert(ans.unit, (<pAdicCappedRelativeElement>right).unit, self.prime_pow.pow_mpz_t_tmp((<pAdicCappedRelativeElement>right).relprec)[0])
         mpz_mul(ans.unit, ans.unit, self.unit)
-        _sig_off
+        sig_off()
         # The relative precision is now the minimum of the relative precisions of self and right (though this may decrease)
         if self.relprec <= (<pAdicCappedRelativeElement>right).relprec:
             relprec = self.relprec
@@ -1145,9 +1145,9 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             else:
                 # Otherwise, our relative precision goes down by the difference in valuations, and we set ans.unit to ans.unit // ppow.
                 relprec = relprec - diff
-                _sig_on
+                sig_on()
                 mpz_fdiv_q(ans.unit, ans.unit, self.prime_pow.pow_mpz_t_tmp(diff)[0])
-                _sig_off
+                sig_off()
                 ans.ordp = 0
                 ans._normalized = 0
                 ans._set_prec(relprec)
@@ -1268,9 +1268,9 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
                 ans._set_inexact_zero(0)
             else:
                 relprec = self.relprec - diff
-                _sig_on
+                sig_on()
                 mpz_fdiv_q(ans.unit, self.unit, self.prime_pow.pow_mpz_t_tmp(diff)[0])
-                _sig_off
+                sig_off()
                 ans.ordp = 0
                 ans._set_prec(relprec)
                 ans._normalized = 0
@@ -1364,10 +1364,10 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
                 ans._set_prec(self.relprec)
             else:
                 ans._set_prec((<pAdicCappedRelativeElement>right).relprec)
-            _sig_on
+            sig_on()
             mpz_invert(ans.unit, (<pAdicCappedRelativeElement>right).unit, self.prime_pow.pow_mpz_t_tmp(ans.relprec)[0])
             mpz_mul(ans.unit, ans.unit, self.unit)
-            _sig_off
+            sig_off()
             if mpz_cmp(ans.unit, self.prime_pow.pow_mpz_t_tmp(ans.relprec)[0]) >= 0:
                 ans._normalized = 0
             else:

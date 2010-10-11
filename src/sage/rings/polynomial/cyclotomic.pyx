@@ -156,11 +156,11 @@ def cyclotomic_coeffs(nn, sparse=None):
             d = prod(s)
             dd = n / d
 #            f *= (1-x^dd)
-            _sig_on
+            sig_on()
             for k from deg+dd >= k >= dd:
                 coeffs[k] -= coeffs[k-dd]
             deg += dd
-            _sig_off
+            sig_off()
 
     prime_subsets.reverse()
     for s in prime_subsets:
@@ -168,13 +168,13 @@ def cyclotomic_coeffs(nn, sparse=None):
             d = prod(s)
             dd = n / d
 #            f /= (1-x^dd)
-            _sig_on
+            sig_on()
             for k from deg >= k > deg-dd:
                 coeffs[k] = -coeffs[k]
             for k from deg-dd >= k >= offset:
                 coeffs[k] = coeffs[k+dd] - coeffs[k]
             offset += dd
-            _sig_off
+            sig_off()
 
     cdef long non_zero = 0
     if sparse is None:

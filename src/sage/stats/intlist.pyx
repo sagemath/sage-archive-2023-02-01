@@ -334,10 +334,10 @@ cdef class IntList:
         """
         cdef Py_ssize_t i
         cdef int s=0
-        _sig_on
+        sig_on()
         for i in range(self._length):
             s += self._values[i]
-        _sig_off
+        sig_off()
         return s
 
     cpdef int prod(self):
@@ -362,10 +362,10 @@ cdef class IntList:
          """
         cdef Py_ssize_t i
         cdef int s=1
-        _sig_on
+        sig_on()
         for i in range(self._length):
             s *= self._values[i]
-        _sig_off
+        sig_off()
         return s
 
     def __len__(self):

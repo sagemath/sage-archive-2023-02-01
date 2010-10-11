@@ -49,9 +49,9 @@ ZZ_sage = IntegerRing()
 #    Return a random number modulo p.
 #    """
 #    cdef ntl_ZZ_pE y = ntl_ZZ_pE()
-#    _sig_on
+#    sig_on()
 #    y.x = *(<ntl_ZZ_pE_c>ZZ_pE_random())
-#    _sig_off
+#    sig_off()
 #    return y
 
 
@@ -110,7 +110,7 @@ cdef class ntl_ZZ_pE:
 
         cdef ZZ_c temp
         if v is not None:
-            _sig_on
+            sig_on()
             if PY_TYPE_CHECK(v, ntl_ZZ_pE):
                 if (<ntl_ZZ_pE>v).c is not self.c:
                     raise ValueError, "You cannot cast between rings with different moduli"
@@ -136,7 +136,7 @@ cdef class ntl_ZZ_pE:
             else:
                 v = str(v)
                 ZZ_pE_from_str(&self.x, PyString_AsString(v))
-            _sig_off
+            sig_off()
 
     def __cinit__(ntl_ZZ_pE self, v=None, modulus=None):
         #################### WARNING ###################
@@ -188,7 +188,7 @@ cdef class ntl_ZZ_pE:
     def __repr__(self):
         #return self.get_as_ZZ_pX().__repr__()
         self.c.restore_c()
-        #_sig_on
+        #sig_on()
         return ZZ_pE_to_PyString(&self.x)
         #return string_delete(ans)
 
@@ -211,9 +211,9 @@ cdef class ntl_ZZ_pE:
 #        if not isinstance(other, ntl_ZZ_p):
 #            other = ntl_ZZ_p(other)
 #        y = other
-        _sig_on
+        sig_on()
         t = ZZ_pE_equal(self.x, other.x)
-        _sig_off
+        sig_off()
         # t == 1 if self == other
         if op == 2:
             return t == 1
@@ -229,10 +229,10 @@ cdef class ntl_ZZ_pE:
             [7 3]
         """
         cdef ntl_ZZ_pE r = self._new()
-        _sig_on
+        sig_on()
         self.c.restore_c()
         ZZ_pE_inv(r.x, self.x)
-        _sig_off
+        sig_off()
         return r
 
     def __mul__(ntl_ZZ_pE self, other):
@@ -265,26 +265,26 @@ cdef class ntl_ZZ_pE:
         elif self.c is not (<ntl_ZZ_pE>other).c:
             raise ValueError, "You can not perform arithmetic with elements of different moduli."
         y = other
-        _sig_on
+        sig_on()
         self.c.restore_c()
         ZZ_pE_add(r.x, self.x, y.x)
-        _sig_off
+        sig_off()
         return r
 
     def __neg__(ntl_ZZ_pE self):
         cdef ntl_ZZ_pE r = self._new()
-        _sig_on
+        sig_on()
         self.c.restore_c()
         ZZ_pE_negate(r.x, self.x)
-        _sig_off
+        sig_off()
         return r
 
     def __pow__(ntl_ZZ_pE self, long e, ignored):
         cdef ntl_ZZ_pE r = self._new()
-        _sig_on
+        sig_on()
         self.c.restore_c()
         ZZ_pE_power(r.x, self.x, e)
-        _sig_off
+        sig_off()
         return r
 
 
@@ -295,9 +295,9 @@ cdef class ntl_ZZ_pE:
         self.c.restore_c()
         cdef ntl_ZZ_pX y = PY_NEW(ntl_ZZ_pX)
         y.c = self.c.pc
-        _sig_on
+        sig_on()
         y.x = ZZ_pE_to_ZZ_pX(self.x)
-        _sig_off
+        sig_off()
         return y
 
     def get_as_ZZ_pX_doctest(self):

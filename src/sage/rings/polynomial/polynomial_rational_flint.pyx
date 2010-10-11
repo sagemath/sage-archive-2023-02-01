@@ -180,7 +180,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
             L1 = [e if isinstance(e, Rational) else Rational(e) for e in x]
             n  = <unsigned long> len(x)
-            _sig_on
+            sig_on()
             L2 = <mpq_t *> malloc(n * sizeof(mpq_t))
             for deg from 0 <= deg < n:
                 mpq_init(L2[deg])
@@ -189,7 +189,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             for deg from 0 <= deg < n:
                 mpq_clear(L2[deg])
             free(L2)
-            _sig_off
+            sig_off()
 
 #           deg = 0
 #           for e in x:
@@ -359,9 +359,9 @@ cdef class Polynomial_rational_flint(Polynomial):
         cdef Polynomial_rational_flint res = self._new()
         cdef bint do_sig = _do_sig(self.__poly)
 
-        if do_sig: _sig_on
+        if do_sig: sig_on()
         fmpq_poly_getslice(res.__poly, self.__poly, i, j)
-        if do_sig: _sig_off
+        if do_sig: sig_off()
         return res
 
     cpdef _unsafe_mutate(self, unsigned long n, value):
@@ -385,22 +385,22 @@ cdef class Polynomial_rational_flint(Polynomial):
         cdef bint do_sig = _do_sig(self.__poly)
 
         if PY_TYPE_CHECK(value, int):
-            if do_sig: _sig_on
+            if do_sig: sig_on()
             fmpq_poly_set_coeff_si(self.__poly, n, value)
-            if do_sig: _sig_off
+            if do_sig: sig_off()
         elif PY_TYPE_CHECK(value, Integer):
-            if do_sig: _sig_on
+            if do_sig: sig_on()
             fmpq_poly_set_coeff_mpz(self.__poly, n, (<Integer> value).value)
-            if do_sig: _sig_off
+            if do_sig: sig_off()
         elif PY_TYPE_CHECK(value, Rational):
-            if do_sig: _sig_on
+            if do_sig: sig_on()
             fmpq_poly_set_coeff_mpq(self.__poly, n, (<Rational> value).value)
-            if do_sig: _sig_off
+            if do_sig: sig_off()
         else:
             value = Rational(value)
-            if do_sig: _sig_on
+            if do_sig: sig_on()
             fmpq_poly_set_coeff_mpq(self.__poly, n, (<Rational> value).value)
-            if do_sig: _sig_off
+            if do_sig: sig_off()
 
     def __call__(self, *x, **kwds):
         """
@@ -435,22 +435,22 @@ cdef class Polynomial_rational_flint(Polynomial):
             a = x[0]
             if isinstance(a, Polynomial_rational_flint):
                 f = (<Polynomial_rational_flint> a)._new()
-                _sig_on
+                sig_on()
                 fmpq_poly_compose(f.__poly, self.__poly, \
                     (<Polynomial_rational_flint> a).__poly)
-                _sig_off
+                sig_off()
                 return f
             if isinstance(a, Rational):
                 r = PY_NEW(Rational)
-                _sig_on
+                sig_on()
                 fmpq_poly_evaluate_mpq(r.value, self.__poly, (<Rational> a).value)
-                _sig_off
+                sig_off()
                 return r
             if isinstance(a, Integer):
                 r = PY_NEW(Rational)
-                _sig_on
+                sig_on()
                 fmpq_poly_evaluate_mpz(r.value, self.__poly, (<Integer> a).value)
-                _sig_off
+                sig_off()
                 return r
 
         return Polynomial.__call__(self, *x, **kwds)
@@ -481,9 +481,9 @@ cdef class Polynomial_rational_flint(Polynomial):
             res = self._new()
             if n > 0:
                 do_sig = _do_sig(self.__poly)
-                if do_sig: _sig_on
+                if do_sig: sig_on()
                 fmpq_poly_truncate(res.__poly, self.__poly, n)
-                if do_sig: _sig_off
+                if do_sig: sig_off()
             return res
 
     def reverse(self, n = None):
@@ -574,9 +574,9 @@ cdef class Polynomial_rational_flint(Polynomial):
 
         res = self._new()
         do_sig = _do_sig(self.__poly)
-        if do_sig: _sig_on
+        if do_sig: sig_on()
         fmpq_poly_reverse(res.__poly, self.__poly, len)
-        if do_sig: _sig_off
+        if do_sig: sig_off()
         return res
 
     ###########################################################################
@@ -645,9 +645,9 @@ cdef class Polynomial_rational_flint(Polynomial):
             res = f._new()
             do_sig = fmpq_poly_length(f.__poly) > 5000 or n > 5000
 
-            if do_sig: _sig_on
+            if do_sig: sig_on()
             fmpq_poly_left_shift(res.__poly, f.__poly, k)
-            if do_sig: _sig_off
+            if do_sig: sig_off()
             return res
 
     def __rshift__(self, n):
@@ -673,9 +673,9 @@ cdef class Polynomial_rational_flint(Polynomial):
             res = f._new()
             do_sig = _do_sig(f.__poly)
 
-            if do_sig: _sig_on
+            if do_sig: sig_on()
             fmpq_poly_right_shift(res.__poly, f.__poly, k)
-            if do_sig: _sig_off
+            if do_sig: sig_off()
             return res
 
     ###########################################################################
@@ -705,9 +705,9 @@ cdef class Polynomial_rational_flint(Polynomial):
         cdef Polynomial_rational_flint res = self._new()
         cdef bint do_sig = _do_sig(self.__poly) or _do_sig(op2.__poly)
 
-        if do_sig: _sig_on
+        if do_sig: sig_on()
         fmpq_poly_add(res.__poly, self.__poly, op2.__poly)
-        if do_sig: _sig_off
+        if do_sig: sig_off()
         return res
 
     cpdef ModuleElement _sub_(self, ModuleElement right):
@@ -735,9 +735,9 @@ cdef class Polynomial_rational_flint(Polynomial):
         cdef Polynomial_rational_flint res = self._new()
         cdef bint do_sig = _do_sig(self.__poly) or _do_sig(op2.__poly)
 
-        if do_sig: _sig_on
+        if do_sig: sig_on()
         fmpq_poly_sub(res.__poly, self.__poly, op2.__poly)
-        if do_sig: _sig_off
+        if do_sig: sig_off()
         return res
 
     cpdef ModuleElement _neg_(self):
@@ -761,9 +761,9 @@ cdef class Polynomial_rational_flint(Polynomial):
         cdef Polynomial_rational_flint res = self._new()
         cdef bint do_sig = _do_sig(self.__poly)
 
-        if do_sig: _sig_on
+        if do_sig: sig_on()
         fmpq_poly_neg(res.__poly, self.__poly)
-        if do_sig: _sig_off
+        if do_sig: sig_off()
         return res
 
     @coerce_binop
@@ -791,10 +791,10 @@ cdef class Polynomial_rational_flint(Polynomial):
         cdef Polynomial_rational_flint qq = self._new()
         cdef Polynomial_rational_flint rr = self._new()
 
-        _sig_on
+        sig_on()
         fmpq_poly_divrem(qq.__poly, rr.__poly, self.__poly, \
                          (<Polynomial_rational_flint> right).__poly)
-        _sig_off
+        sig_off()
         return qq, rr
 
     @coerce_binop
@@ -820,10 +820,10 @@ cdef class Polynomial_rational_flint(Polynomial):
         """
         cdef Polynomial_rational_flint res = self._new()
 
-        _sig_on
+        sig_on()
         fmpq_poly_gcd(res.__poly, self.__poly, \
                 (<Polynomial_rational_flint> right).__poly)
-        _sig_off
+        sig_off()
         return res
 
     @coerce_binop
@@ -847,10 +847,10 @@ cdef class Polynomial_rational_flint(Polynomial):
         """
         cdef Polynomial_rational_flint res = self._new()
 
-        _sig_on
+        sig_on()
         fmpq_poly_lcm(res.__poly, self.__poly, \
                       (<Polynomial_rational_flint> right).__poly)
-        _sig_off
+        sig_off()
         return res
 
     @coerce_binop
@@ -876,9 +876,9 @@ cdef class Polynomial_rational_flint(Polynomial):
         cdef Polynomial_rational_flint s = self._new()
         cdef Polynomial_rational_flint t = self._new()
 
-        _sig_on
+        sig_on()
         fmpq_poly_xgcd(d.__poly, s.__poly, t.__poly, self.__poly, (<Polynomial_rational_flint>right).__poly)
-        _sig_off
+        sig_off()
         return d, s, t
 
     cpdef RingElement _mul_(self, RingElement right):
@@ -905,9 +905,9 @@ cdef class Polynomial_rational_flint(Polynomial):
         cdef Polynomial_rational_flint res = self._new()
         cdef bint do_sig = _do_sig(self.__poly) or _do_sig(op2.__poly)
 
-        if do_sig: _sig_on
+        if do_sig: sig_on()
         fmpq_poly_mul(res.__poly, self.__poly, op2.__poly)
-        if do_sig: _sig_off
+        if do_sig: sig_off()
         return res
 
     cpdef ModuleElement _lmul_(self, RingElement right):
@@ -924,10 +924,10 @@ cdef class Polynomial_rational_flint(Polynomial):
         cdef Polynomial_rational_flint res = self._new()
         cdef bint do_sig = _do_sig(self.__poly)
 
-        if do_sig: _sig_on
+        if do_sig: sig_on()
         fmpq_poly_scalar_mul_mpq(res.__poly, self.__poly, \
                                  (<Rational> right).value)
-        if do_sig: _sig_off
+        if do_sig: sig_off()
         return res
 
     cpdef ModuleElement _rmul_(self, RingElement right):
@@ -944,10 +944,10 @@ cdef class Polynomial_rational_flint(Polynomial):
         cdef Polynomial_rational_flint res = self._new()
         cdef bint do_sig = _do_sig(self.__poly)
 
-        if do_sig: _sig_on
+        if do_sig: sig_on()
         fmpq_poly_scalar_mul_mpq(res.__poly, self.__poly, \
                                  (<Rational> right).value)
-        if do_sig: _sig_off
+        if do_sig: sig_off()
         return res
 
     def __pow__(Polynomial_rational_flint self, exp, ignored):
@@ -1009,18 +1009,18 @@ cdef class Polynomial_rational_flint(Polynomial):
             if fmpq_poly_is_zero(self.__poly):
                 raise ZeroDivisionError, "negative exponent in power of zero"
             res = self._new()
-            _sig_on
+            sig_on()
             fmpq_poly_power(res.__poly, self.__poly, -n)
-            _sig_off
+            sig_off()
             return ~res
         else:
             res = self._new()
             if self._is_gen:
                 fmpq_poly_set_coeff_si(res.__poly, n, 1)
             else:
-                _sig_on
+                sig_on()
                 fmpq_poly_power(res.__poly, self.__poly, n)
-                _sig_off
+                sig_off()
             return res
 
     def __floordiv__(Polynomial_rational_flint self, right):
@@ -1057,19 +1057,19 @@ cdef class Polynomial_rational_flint(Polynomial):
                 res = self._new()
                 do_sig = _do_sig(self.__poly)
 
-                if do_sig: _sig_on
+                if do_sig: sig_on()
                 fmpq_poly_scalar_div_mpq(res.__poly, self.__poly,
                                                   (<Rational> QQ(right)).value)
-                if do_sig: _sig_off
+                if do_sig: sig_off()
                 return res
 
             right = self._parent(right)
 
         res = self._new()
-        _sig_on
+        sig_on()
         fmpq_poly_floordiv(res.__poly, self.__poly,
                                      (<Polynomial_rational_flint>right).__poly)
-        _sig_off
+        sig_off()
         return res
 
     def __mod__(Polynomial_rational_flint self, right):
@@ -1104,10 +1104,10 @@ cdef class Polynomial_rational_flint(Polynomial):
             right = self._parent(right)
 
         res = self._new()
-        _sig_on
+        sig_on()
         fmpq_poly_mod(res.__poly, self.__poly,
                                      (<Polynomial_rational_flint>right).__poly)
-        _sig_off
+        sig_off()
         return res
 
     ###########################################################################
@@ -1132,11 +1132,11 @@ cdef class Polynomial_rational_flint(Polynomial):
         cdef Polynomial_integer_dense_flint num = \
                                          PY_NEW(Polynomial_integer_dense_flint)
         parent = ZZ[self.variable_name()]
-        _sig_on
+        sig_on()
         Polynomial_integer_dense_flint.__init__(num, parent, x=None, \
                                     check=False, is_gen=False, construct=False)
         fmpz_poly_set(num.__poly, fmpq_poly_numref(self.__poly))
-        _sig_off
+        sig_off()
         return num
 
     def denominator(self):
@@ -1200,9 +1200,9 @@ cdef class Polynomial_rational_flint(Polynomial):
         der = self._new()
         do_sig = _do_sig(self.__poly)
 
-        if do_sig: _sig_on
+        if do_sig: sig_on()
         fmpq_poly_derivative(der.__poly, self.__poly)
-        if do_sig: _sig_off
+        if do_sig: sig_off()
         return der
 
     def real_root_intervals(self):
@@ -1252,10 +1252,10 @@ cdef class Polynomial_rational_flint(Polynomial):
             0
         """
         cdef Rational res = PY_NEW(Rational)
-        _sig_on
+        sig_on()
         fmpq_poly_resultant(res.value, self.__poly, \
                             (<Polynomial_rational_flint>right).__poly)
-        _sig_off
+        sig_off()
         return res
 
     def is_irreducible(self):
@@ -1302,12 +1302,12 @@ cdef class Polynomial_rational_flint(Polynomial):
         else:
             primitive = PY_NEW(Polynomial_integer_dense_flint)
             parent = ZZ[self.variable_name()]
-            _sig_on
+            sig_on()
             Polynomial_integer_dense_flint.__init__(primitive, parent, \
                              x=None, check=True, is_gen=False, construct=False)
             fmpz_poly_primitive_part(primitive.__poly, \
                                      fmpq_poly_numref(self.__poly))
-            _sig_off
+            sig_off()
             return primitive.is_irreducible()
 
     ###########################################################################

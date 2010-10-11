@@ -91,9 +91,9 @@ cdef class ntl_ZZ_pEX:
         else:
             raise NotImplementedError
             s = str(v).replace(',',' ').replace('L','')
-            #_sig_on
+            #sig_on()
             #ZZ_pEX_from_str(&self.x, s)
-            #_sig_off
+            #sig_off()
 
     def __cinit__(self, v=None, modulus=None):
         #################### WARNING ###################
@@ -247,12 +247,12 @@ cdef class ntl_ZZ_pEX:
         if i < 0:
             raise IndexError, "index (=%s) must be >= 0"%i
         cdef ntl_ZZ_pE r
-        _sig_on
+        sig_on()
         self.c.restore_c()
         r = PY_NEW(ntl_ZZ_pE)
         r.c = self.c
         r.x = ZZ_pEX_coeff( self.x, i)
-        _sig_off
+        sig_off()
         return r
 
     def list(self):
@@ -289,10 +289,10 @@ cdef class ntl_ZZ_pEX:
         if self.c is not other.c:
             raise ValueError, "You can not perform arithmetic with elements of different moduli."
         cdef ntl_ZZ_pEX r = self._new()
-        _sig_on
+        sig_on()
         # self.c.restore_c() # _new restores the context
         ZZ_pEX_add(r.x, self.x, other.x)
-        _sig_off
+        sig_off()
         return r
 
     def __sub__(ntl_ZZ_pEX self, ntl_ZZ_pEX other):
@@ -311,10 +311,10 @@ cdef class ntl_ZZ_pEX:
         if self.c is not other.c:
             raise ValueError, "You can not perform arithmetic with elements of different moduli."
         cdef ntl_ZZ_pEX r = self._new()
-        _sig_on
+        sig_on()
         # self.c.restore_c() # _new restores the context
         ZZ_pEX_sub(r.x, self.x, other.x)
-        _sig_off
+        sig_off()
         return r
 
     def __mul__(ntl_ZZ_pEX self, ntl_ZZ_pEX other):
@@ -339,10 +339,10 @@ cdef class ntl_ZZ_pEX:
         if self.c is not other.c:
             raise ValueError, "You can not perform arithmetic with elements of different moduli."
         cdef ntl_ZZ_pEX r = self._new()
-        _sig_on
+        sig_on()
         # self.c.restore_c() # _new() restores the context
         ZZ_pEX_mul(r.x, self.x, other.x)
-        _sig_off
+        sig_off()
         return r
 
     def __div__(ntl_ZZ_pEX self, ntl_ZZ_pEX other):
@@ -367,10 +367,10 @@ cdef class ntl_ZZ_pEX:
             raise ValueError, "You can not perform arithmetic with elements of different moduli."
         cdef int divisible
         cdef ntl_ZZ_pEX r = self._new()
-        _sig_on
+        sig_on()
         #self.c.restore_c() # _new restores context
         divisible = ZZ_pEX_divide(r.x, self.x, other.x)
-        _sig_off
+        sig_off()
         if not divisible:
             raise ArithmeticError, "self (=%s) is not divisible by other (=%s)"%(self, other)
         return r
@@ -398,10 +398,10 @@ cdef class ntl_ZZ_pEX:
         if self.c is not other.c:
             raise ValueError, "You can not perform arithmetic with elements of different moduli."
         cdef ntl_ZZ_pEX r = self._new()
-        _sig_on
+        sig_on()
         # self.c.restore_c() # _new() restores the context
         ZZ_pEX_rem(r.x, self.x, other.x)
-        _sig_off
+        sig_off()
         return r
 
     def quo_rem(self, ntl_ZZ_pEX other):
@@ -428,10 +428,10 @@ cdef class ntl_ZZ_pEX:
             raise ValueError, "You can not perform arithmetic with elements of different moduli."
         cdef ntl_ZZ_pEX r = self._new()
         cdef ntl_ZZ_pEX q = self._new()
-        _sig_on
+        sig_on()
         # self.c.restore_c() # _new() restores the context
         ZZ_pEX_DivRem(q.x, r.x, self.x, other.x)
-        _sig_off
+        sig_off()
         return q,r
 
     def square(self):
@@ -448,9 +448,9 @@ cdef class ntl_ZZ_pEX:
         """
         # self.c.restore_c() # _new() restores the context
         cdef ntl_ZZ_pEX r = self._new()
-        _sig_on
+        sig_on()
         ZZ_pEX_sqr(r.x, self.x)
-        _sig_off
+        sig_off()
         return r
 
     def __pow__(ntl_ZZ_pEX self, long n, ignored):
@@ -597,9 +597,9 @@ cdef class ntl_ZZ_pEX:
         cdef ntl_ZZ_pEContext_class cE = ntl_ZZ_pEContext(self.c.f.convert_to_modulus(c))
         cE.restore_c()
         cdef ntl_ZZ_pEX ans = PY_NEW(ntl_ZZ_pEX)
-        _sig_on
+        sig_on()
         ZZ_pEX_conv_modulus(ans.x, self.x, c.x)
-        _sig_off
+        sig_off()
         ans.c = cE
         return ans
 
@@ -625,9 +625,9 @@ cdef class ntl_ZZ_pEX:
         """
         # self.c.restore_c() # _new() calls restore
         cdef ntl_ZZ_pEX r = self._new()
-        _sig_on
+        sig_on()
         ZZ_pEX_LeftShift(r.x, self.x, n)
-        _sig_off
+        sig_off()
         return r
 
     def right_shift(self, long n):
@@ -652,9 +652,9 @@ cdef class ntl_ZZ_pEX:
         """
         # self.c.restore_c() # _new() calls restore
         cdef ntl_ZZ_pEX r = self._new()
-        _sig_on
+        sig_on()
         ZZ_pEX_RightShift(r.x, self.x, n)
-        _sig_off
+        sig_off()
         return r
 
     def gcd(self, ntl_ZZ_pEX other, check=True):
@@ -681,9 +681,9 @@ cdef class ntl_ZZ_pEX:
         #If check = True, need to check that ZZ_pE is a field.
         self.c.restore_c()
         cdef ntl_ZZ_pEX r = self._new()
-        _sig_on
+        sig_on()
         ZZ_pEX_GCD(r.x, self.x, other.x)
-        _sig_off
+        sig_off()
         return r
 
     def xgcd(self, ntl_ZZ_pEX other):
@@ -711,9 +711,9 @@ cdef class ntl_ZZ_pEX:
         cdef ntl_ZZ_pEX s = self._new()
         cdef ntl_ZZ_pEX t = self._new()
         cdef ntl_ZZ_pEX r = self._new()
-        _sig_on
+        sig_on()
         ZZ_pEX_XGCD(r.x, s.x, t.x, self.x, other.x)
-        _sig_off
+        sig_off()
         return (r,s,t)
 
     def degree(self):
@@ -812,18 +812,18 @@ cdef class ntl_ZZ_pEX:
         [[1 2] [2 4]]
         """
         cdef ntl_ZZ_pEX r = self._new()
-        _sig_on
+        sig_on()
         ZZ_pEX_diff(r.x, self.x)
-        _sig_off
+        sig_off()
         return r
 
     #def factor(self, verbose=False):
     #    cdef ZZ_pX_c** v
     #    cdef long* e
     #    cdef long i, n
-    #    _sig_on
+    #    sig_on()
     #    ZZ_pX_factor(&v, &e, &n, &self.x, verbose)
-    #    _sig_off
+    #    sig_off()
     #    F = []
     #    for i from 0 <= i < n:
     #        F.append((make_ZZ_pX(v[i], self.c), e[i]))
@@ -838,9 +838,9 @@ cdef class ntl_ZZ_pEX:
     #    """
     #    cdef ZZ_p_c** v
     #    cdef long i, n
-    #    _sig_on
+    #    sig_on()
     #    ZZ_pX_linear_roots(&v, &n, &self.x)
-    #    _sig_off
+    #    sig_off()
     #    F = []
     #    for i from 0 <= i < n:
     #        F.append(make_ZZ_p(v[i], self.c))
@@ -891,9 +891,9 @@ cdef class ntl_ZZ_pEX:
         """
         cdef ntl_ZZ_pEX r = self._new()
         if m > 0:
-            _sig_on
+            sig_on()
             ZZ_pEX_trunc(r.x, self.x, m)
-            _sig_off
+            sig_off()
         return r
 
     def multiply_and_truncate(self, ntl_ZZ_pEX other, long m):
@@ -913,9 +913,9 @@ cdef class ntl_ZZ_pEX:
         """
         cdef ntl_ZZ_pEX r = self._new()
         if m > 0:
-            _sig_on
+            sig_on()
             ZZ_pEX_MulTrunc(r.x, self.x, other.x, m)
-            _sig_off
+            sig_off()
         return r
 
     def square_and_truncate(self, long m):
@@ -934,9 +934,9 @@ cdef class ntl_ZZ_pEX:
         """
         cdef ntl_ZZ_pEX r = self._new()
         if m > 0:
-            _sig_on
+            sig_on()
             ZZ_pEX_SqrTrunc(r.x, self.x, m)
-            _sig_off
+            sig_off()
         return r
 
     def invert_and_truncate(self, long m):
@@ -960,9 +960,9 @@ cdef class ntl_ZZ_pEX:
         #Need to check here if constant term is invertible
         cdef ntl_ZZ_pEX r = self._new()
         if m > 0:
-            _sig_on
+            sig_on()
             ZZ_pEX_InvTrunc(r.x, self.x, m)
-            _sig_off
+            sig_off()
         return r
 
     def multiply_mod(self, ntl_ZZ_pEX other, ntl_ZZ_pEX modulus):
@@ -982,9 +982,9 @@ cdef class ntl_ZZ_pEX:
         """
         self.c.restore_c()
         cdef ntl_ZZ_pEX r = self._new()
-        _sig_on
+        sig_on()
         ZZ_pEX_MulMod(r.x, self.x, other.x, modulus.x)
-        _sig_off
+        sig_off()
         return r
 
     def trace_mod(self, ntl_ZZ_pEX modulus):
@@ -1004,9 +1004,9 @@ cdef class ntl_ZZ_pEX:
         """
         self.c.restore_c()
         cdef ntl_ZZ_pE r = ntl_ZZ_pE(modulus = self.c)
-        _sig_on
+        sig_on()
         ZZ_pEX_TraceMod(r.x, self.x, modulus.x)
-        _sig_off
+        sig_off()
         return r
 
     #def trace_list(self):
@@ -1034,7 +1034,7 @@ cdef class ntl_ZZ_pEX:
     #        raise ValueError, "polynomial must be monic."
     #    cdef long N = self.degree()
     #    cdef vec_ZZ_pE_c
-    #    _sig_on
+    #    sig_on()
     #    cdef char* t
     #    t = ZZ_pX_trace_list(&self.x)
     #    return eval(string(t).replace(' ', ','))
@@ -1056,9 +1056,9 @@ cdef class ntl_ZZ_pEX:
         """
         self.c.restore_c()
         cdef ntl_ZZ_pE r = ntl_ZZ_pE(modulus = self.c)
-        _sig_on
+        sig_on()
         ZZ_pEX_resultant(r.x, self.x, other.x)
-        _sig_off
+        sig_off()
         return r
 
     def norm_mod(self, ntl_ZZ_pEX modulus):
@@ -1078,9 +1078,9 @@ cdef class ntl_ZZ_pEX:
         """
         self.c.restore_c()
         cdef ntl_ZZ_pE r = ntl_ZZ_pE(modulus = self.c)
-        _sig_on
+        sig_on()
         ZZ_pEX_NormMod(r.x, self.x, modulus.x)
-        _sig_off
+        sig_off()
         return r
 
     def discriminant(self):
@@ -1125,9 +1125,9 @@ cdef class ntl_ZZ_pEX:
         """
         self.c.restore_c()
         cdef ntl_ZZ_pEX r = self._new()
-        _sig_on
+        sig_on()
         ZZ_pEX_MinPolyMod(r.x, self.x, modulus.x)
-        _sig_off
+        sig_off()
         return r
 
     def clear(self):
@@ -1145,9 +1145,9 @@ cdef class ntl_ZZ_pEX:
         []
         """
         self.c.restore_c()
-        _sig_on
+        sig_on()
         ZZ_pEX_clear(self.x)
-        _sig_off
+        sig_off()
 
     def preallocate_space(self, long n):
         """
@@ -1167,9 +1167,9 @@ cdef class ntl_ZZ_pEX:
         [[3 2] [1 2] [1 2] [] [] [] [] [] [] [] [1 8]]
         """
         self.c.restore_c()
-        _sig_on
+        sig_on()
         self.x.SetMaxLength(n)
-        _sig_off
+        sig_off()
 
 
 def make_ZZ_pEX(v, modulus):

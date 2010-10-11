@@ -278,9 +278,9 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
             ii = self._to_libsingular(True)
 
             # this is actually a sparse implementation
-            _sig_on
+            sig_on()
             smCallNewBareiss(ii,0,0,res,&iv)
-            _sig_off
+            sig_off()
 
             ivv = iv.ivGetVec()
             l = []
@@ -536,14 +536,14 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
             m = <matrix*>self._to_libsingular(False)
             if smCheckDet(<ideal*>m, self._nrows, True):
                 I = idMatrix2Module(m)
-                _sig_on
+                sig_on()
                 p = smCallDet(I)
-                _sig_off
+                sig_off()
                 id_Delete(&I, _ring)
             else:
-                _sig_on
+                sig_on()
                 p = singclap_det(m)
-                _sig_off
+                sig_off()
                 id_Delete(<ideal**>&m, _ring)
             d = new_MP(R, p)
 

@@ -11,9 +11,9 @@ def plethysm_symmetrica(outer, inner):
     _op_schur(outer, couter)
     _op_schur(inner, cinner)
 
-    _sig_on
+    sig_on()
     plethysm(couter, cinner, cresult)
-    _sig_off
+    sig_off()
 
     res = _py(cresult)
 
@@ -33,9 +33,9 @@ def schur_schur_plet_symmetrica(outer, inner):
     _op_partition(outer, couter)
     _op_partition(inner, cinner)
 
-    _sig_on
+    sig_on()
     schur_schur_plet(couter, cinner, cresult)
-    _sig_off
+    sig_off()
 
     res = _py(cresult)
 

@@ -656,10 +656,10 @@ cdef class ComplexDoubleElement(FieldElement):
            sp.
         """
         cdef gsl_complex x
-        _sig_on
+        sig_on()
         # Signal handling is important, since rtodbl can easily overflow
         x = gsl_complex_rect(  rtodbl(greal(g)), rtodbl(gimag(g))  )
-        _sig_off
+        sig_off()
         z = self._new_c(x)
         if sp:
             avma = sp
@@ -1931,8 +1931,8 @@ cdef class ComplexDoubleElement(FieldElement):
         cdef GEN a, b, c, y, t
 
         # Turn on Sage C interrupt handling.  There must
-        # be no Python code between here and _sig_off.
-        #_sig_on  # we're not using this since it would dominate the runtime
+        # be no Python code between here and sig_off().
+        #sig_on()  # we're not using this since it would dominate the runtime
 
         if self._complex.dat[1] <= 0:
             raise ValueError, "value must be in the upper half plane"
@@ -1941,7 +1941,7 @@ cdef class ComplexDoubleElement(FieldElement):
             # To the precision of doubles for such large imaginary
             # part the answer is automatically 0.  If we don't do
             # this PARI can easily die, which will cause this function
-            # to bomb unless we use _sig_on and _sig_off.  But
+            # to bomb unless we use sig_on() and sig_off().  But
             # I don't want to use those, since they take more time
             # than this entire function!  Moreover, I don't want Sage's
             # eta to every bomb -- this function should work on all input; there's
@@ -1957,7 +1957,7 @@ cdef class ComplexDoubleElement(FieldElement):
         # so we can replace the real part of self by its fractional part.  We
         # do this for two reasons:
         #   (1) Because when the real part is sufficiently large, PARI overflows
-        #       and crashes, and I don't want to use _sig_on/_sig_off to catch this.
+        #       and crashes, and I don't want to use sig_on()/sig_off() to catch this.
         #   (2) Because this is easy and it makes it so our eta always works,
         #       unlike PARI's.
         # convert our complex number to a PARI number
@@ -2151,9 +2151,9 @@ cdef class ComplexDoubleElement(FieldElement):
         """
         cdef pari_sp sp
         sp = avma
-        _sig_on    # because it is somewhat slow and/or unreliable in corner cases.
+        sig_on()    # because it is somewhat slow and/or unreliable in corner cases.
         x = self._new_from_gen_c( incgam(self._gen(), complex_gen(t), PREC),   sp )
-        _sig_off
+        sig_off()
         return x
 
     def zeta(self):
@@ -2207,7 +2207,7 @@ cdef class ComplexDoubleElement(FieldElement):
         """
         cdef sage.libs.pari.gen.PariInstance P
         P = sage.libs.pari.gen.pari
-        _sig_on
+        sig_on()
         f = P.new_gen(algdep0(self._gen(), n, 0))
         from polynomial.polynomial_ring_constructor import PolynomialRing
         from integer_ring import ZZ

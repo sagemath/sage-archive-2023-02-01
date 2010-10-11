@@ -1014,9 +1014,9 @@ cdef int count(mpz_t c_mpz, mpz_t d_mpz, mpz_t *p_list, unsigned long p_list_len
                 print "\nCalling ratpoints for small point search"
             for i from 0 <= i <= 4:
                 mpz_set(coeffs_ratp[i], coeffs[i])
-            _sig_on
+            sig_on()
             found_global_points = ratpoints_mpz_exists_only(coeffs_ratp, global_limit_small, 4, verbose)
-            _sig_off
+            sig_off()
             if found_global_points:
                 if verbosity > 2:
                     a_Int = Integer(0); mpz_set(a_Int.value, coeffs[4])
@@ -1046,9 +1046,9 @@ cdef int count(mpz_t c_mpz, mpz_t d_mpz, mpz_t *p_list, unsigned long p_list_len
                         print "\nCalling ratpoints for large point search"
                     for i from 0 <= i <= 4:
                         mpz_set(coeffs_ratp[i], coeffs[i])
-                    _sig_on
+                    sig_on()
                     found_global_points = ratpoints_mpz_exists_only(coeffs_ratp, global_limit_large, 4, verbose)
-                    _sig_off
+                    sig_off()
                     if found_global_points:
                         if verbosity > 2:
                             print '  -- Found large global point.'

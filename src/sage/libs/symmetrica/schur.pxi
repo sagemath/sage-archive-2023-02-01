@@ -76,9 +76,9 @@ def outerproduct_schur_symmetrica(parta, partb):
     _op_partition(parta, cparta)
     _op_partition(partb, cpartb)
 
-    _sig_on
+    sig_on()
     outerproduct_schur(cparta, cpartb, cresult)
-    _sig_off
+    sig_off()
 
     res = _py(cresult)
 
@@ -101,9 +101,9 @@ def dimension_schur_symmetrica(s):
     ca      = callocobject()
 
     _op_schur(s, ca)
-    _sig_on
+    sig_on()
     dimension_schur(ca, cresult)
-    _sig_off
+    sig_off()
     res = _py(cresult)
 
     freeall(ca)
@@ -122,9 +122,9 @@ def newtrans_symmetrica(perm):
 
     _op_permutation(perm, cperm)
 
-    _sig_on
+    sig_on()
     newtrans(cperm, cresult)
-    _sig_off
+    sig_off()
 
     res = _py(cresult)
 
@@ -165,9 +165,9 @@ def compute_schur_with_alphabet_symmetrica(part, length, alphabet='x'):
         raise NotImplementedError, "n must be an integer or partition"
     _op_integer(length, clength)
 
-    _sig_on
+    sig_on()
     compute_schur_with_alphabet(cpart, clength, cresult)
-    _sig_off
+    sig_off()
 
     res = _py_polynom_alphabet(cresult, alphabet, length)
 
@@ -210,9 +210,9 @@ def compute_homsym_with_alphabet_symmetrica(n, length, alphabet='x'):
 
     _op_integer(length, clength)
 
-    _sig_on
+    sig_on()
     compute_homsym_with_alphabet(cn, clength, cresult)
-    _sig_off
+    sig_off()
 
     res = _py_polynom_alphabet(cresult, alphabet, length)
 
@@ -260,9 +260,9 @@ def compute_elmsym_with_alphabet_symmetrica(n, length, alphabet='x'):
 
     _op_integer(length, clength)
 
-    _sig_on
+    sig_on()
     compute_elmsym_with_alphabet(cn, clength, cresult)
-    _sig_off
+    sig_off()
 
     res = _py_polynom_alphabet(cresult, alphabet, length)
 
@@ -305,9 +305,9 @@ def compute_monomial_with_alphabet_symmetrica(n, length, alphabet='x'):
 
     _op_integer(length, clength)
 
-    _sig_on
+    sig_on()
     compute_monomial_with_alphabet(cn, clength, cresult)
-    _sig_off
+    sig_off()
 
     res = _py_polynom_alphabet(cresult, alphabet, length)
 
@@ -350,9 +350,9 @@ def compute_powsym_with_alphabet_symmetrica(n, length, alphabet='x'):
 
     _op_integer(length, clength)
 
-    _sig_on
+    sig_on()
     compute_powsym_with_alphabet(cn, clength, cresult)
-    _sig_off
+    sig_off()
 
     res = _py_polynom_alphabet(cresult, alphabet, length)
 
@@ -388,9 +388,9 @@ def compute_schur_with_alphabet_det_symmetrica(part, length, alphabet='x'):
 
     _op_integer(length, clength)
 
-    _sig_on
+    sig_on()
     compute_schur_with_alphabet_det(cpart, clength, cresult)
-    _sig_off
+    sig_off()
 
     res = _py_polynom_alphabet(cresult, alphabet, length)
 
@@ -413,9 +413,9 @@ def part_part_skewschur_symmetrica(outer, inner):
     _op_partition(outer, couter)
     _op_partition(inner, cinner)
 
-    _sig_on
+    sig_on()
     part_part_skewschur(couter, cinner, cresult)
-    _sig_off
+    sig_off()
 
     res = _py(cresult)
 
@@ -442,9 +442,9 @@ def hall_littlewood_symmetrica(part):
 
     _op_partition(part, cpart)
 
-    _sig_on
+    sig_on()
     hall_littlewood(cpart, cresult)
-    _sig_off
+    sig_off()
 
     res = _py(cresult)
 
@@ -462,9 +462,9 @@ def t_SCHUR_MONOMIAL_symmetrica(schur):
 
     _op_schur(schur, cschur)
 
-    _sig_on
+    sig_on()
     t_SCHUR_MONOMIAL(cschur, cresult)
-    _sig_off
+    sig_off()
 
     res = _py(cresult)
 
@@ -483,9 +483,9 @@ def t_SCHUR_HOMSYM_symmetrica(schur):
 
     _op_schur(schur, cschur)
 
-    _sig_on
+    sig_on()
     t_SCHUR_HOMSYM(cschur, cresult)
-    _sig_off
+    sig_off()
 
     res = _py(cresult)
 
@@ -503,9 +503,9 @@ def t_SCHUR_ELMSYM_symmetrica(schur):
 
     _op_schur(schur, cschur)
 
-    _sig_on
+    sig_on()
     t_SCHUR_ELMSYM(cschur, cresult)
-    _sig_off
+    sig_off()
 
     res = _py(cresult)
 
@@ -524,9 +524,9 @@ def t_SCHUR_POWSYM_symmetrica(schur):
 
     _op_schur(schur, cschur)
 
-    _sig_on
+    sig_on()
     t_SCHUR_POWSYM(cschur, cresult)
-    _sig_off
+    sig_off()
 
     res = _py(cresult)
 
@@ -547,9 +547,9 @@ def t_POLYNOM_SCHUR_symmetrica(p):
     if not symmetricp(polynom):
         raise ValueError, "the polynomial must be symmetric"
 
-    _sig_on
+    sig_on()
     t_POLYNOM_SCHUR(polynom, cresult)
-    _sig_off
+    sig_off()
 
     res = _py(cresult)
 
@@ -571,9 +571,9 @@ def t_MONOMIAL_HOMSYM_symmetrica(monomial):
 
     _op_monomial(monomial, cmonomial)
 
-    _sig_on
+    sig_on()
     t_MONOMIAL_HOMSYM(cmonomial, cresult)
-    _sig_off
+    sig_off()
 
     res = _py(cresult)
 
@@ -591,9 +591,9 @@ def t_MONOMIAL_ELMSYM_symmetrica(monomial):
 
     _op_monomial(monomial, cmonomial)
 
-    _sig_on
+    sig_on()
     t_MONOMIAL_ELMSYM(cmonomial, cresult)
-    _sig_off
+    sig_off()
 
     res = _py(cresult)
 
@@ -612,9 +612,9 @@ def t_MONOMIAL_SCHUR_symmetrica(monomial):
 
     _op_monomial(monomial, cmonomial)
 
-    _sig_on
+    sig_on()
     t_MONOMIAL_SCHUR(cmonomial, cresult)
-    _sig_off
+    sig_off()
 
     res = _py(cresult)
 
@@ -633,9 +633,9 @@ def t_MONOMIAL_POWSYM_symmetrica(monomial):
 
     _op_monomial(monomial, cmonomial)
 
-    _sig_on
+    sig_on()
     t_MONOMIAL_POWSYM(cmonomial, cresult)
-    _sig_off
+    sig_off()
 
     res = _py(cresult)
 
@@ -656,9 +656,9 @@ def t_POLYNOM_MONOMIAL_symmetrica(p):
     if not symmetricp(polynom):
         raise ValueError, "the polynomial must be symmetric"
 
-    _sig_on
+    sig_on()
     t_POLYNOM_MONOMIAL(polynom, cresult)
-    _sig_off
+    sig_off()
 
     res = _py(cresult)
 
@@ -677,9 +677,9 @@ def t_ELMSYM_SCHUR_symmetrica(elmsym):
 
     _op_elmsym(elmsym, celmsym)
 
-    _sig_on
+    sig_on()
     t_ELMSYM_SCHUR(celmsym, cresult)
-    _sig_off
+    sig_off()
 
     res = _py(cresult)
 
@@ -698,9 +698,9 @@ def t_ELMSYM_POWSYM_symmetrica(elmsym):
 
     _op_elmsym(elmsym, celmsym)
 
-    _sig_on
+    sig_on()
     t_ELMSYM_POWSYM(celmsym, cresult)
-    _sig_off
+    sig_off()
 
     res = _py(cresult)
 
@@ -718,9 +718,9 @@ def t_ELMSYM_MONOMIAL_symmetrica(elmsym):
 
     _op_elmsym(elmsym, celmsym)
 
-    _sig_on
+    sig_on()
     t_ELMSYM_MONOMIAL(celmsym, cresult)
-    _sig_off
+    sig_off()
 
     res = _py(cresult)
 
@@ -740,9 +740,9 @@ def t_ELMSYM_HOMSYM_symmetrica(elmsym):
 
     _op_elmsym(elmsym, celmsym)
 
-    _sig_on
+    sig_on()
     t_ELMSYM_HOMSYM(celmsym, cresult)
-    _sig_off
+    sig_off()
 
     res = _py(cresult)
 
@@ -763,9 +763,9 @@ def t_POLYNOM_ELMSYM_symmetrica(p):
     if not symmetricp(polynom):
         raise ValueError, "the polynomial must be symmetric"
 
-    _sig_on
+    sig_on()
     t_POLYNOM_ELMSYM(polynom, cresult)
-    _sig_off
+    sig_off()
 
     res = _py(cresult)
 
@@ -785,9 +785,9 @@ def t_HOMSYM_SCHUR_symmetrica(homsym):
 
     _op_homsym(homsym, chomsym)
 
-    _sig_on
+    sig_on()
     t_HOMSYM_SCHUR(chomsym, cresult)
-    _sig_off
+    sig_off()
 
     res = _py(cresult)
 
@@ -805,9 +805,9 @@ def t_HOMSYM_POWSYM_symmetrica(homsym):
 
     _op_homsym(homsym, chomsym)
 
-    _sig_on
+    sig_on()
     t_HOMSYM_POWSYM(chomsym, cresult)
-    _sig_off
+    sig_off()
 
     res = _py(cresult)
 
@@ -828,9 +828,9 @@ def t_HOMSYM_MONOMIAL_symmetrica(homsym):
 
     _op_homsym(homsym, chomsym)
 
-    _sig_on
+    sig_on()
     t_HOMSYM_MONOMIAL(chomsym, cresult)
-    _sig_off
+    sig_off()
 
     res = _py(cresult)
 
@@ -848,9 +848,9 @@ def t_HOMSYM_ELMSYM_symmetrica(homsym):
 
     _op_homsym(homsym, chomsym)
 
-    _sig_on
+    sig_on()
     t_HOMSYM_ELMSYM(chomsym, cresult)
-    _sig_off
+    sig_off()
 
     res = _py(cresult)
 
@@ -870,9 +870,9 @@ def t_POWSYM_MONOMIAL_symmetrica(powsym):
 
     _op_powsym(powsym, cpowsym)
 
-    _sig_on
+    sig_on()
     t_POWSYM_MONOMIAL(cpowsym, cresult)
-    _sig_off
+    sig_off()
 
     res = _py(cresult)
 
@@ -893,9 +893,9 @@ def t_POWSYM_SCHUR_symmetrica(powsym):
 
     _op_powsym(powsym, cpowsym)
 
-    _sig_on
+    sig_on()
     t_POWSYM_SCHUR(cpowsym, cresult)
-    _sig_off
+    sig_off()
 
     res = _py(cresult)
 
@@ -913,9 +913,9 @@ def t_POWSYM_ELMSYM_symmetrica(powsym):
 
     _op_powsym(powsym, cpowsym)
 
-    _sig_on
+    sig_on()
     t_POWSYM_ELMSYM(cpowsym, cresult)
-    _sig_off
+    sig_off()
 
     res = _py(cresult)
 
@@ -933,9 +933,9 @@ def t_POWSYM_HOMSYM_symmetrica(powsym):
 
     _op_powsym(powsym, cpowsym)
 
-    _sig_on
+    sig_on()
     t_POWSYM_HOMSYM(cpowsym, cresult)
-    _sig_off
+    sig_off()
 
     res = _py(cresult)
 
@@ -956,9 +956,9 @@ def t_POLYNOM_POWER_symmetrica(p):
     if not symmetricp(polynom):
         raise ValueError, "the polynomial must be symmetric"
 
-    _sig_on
+    sig_on()
     t_POLYNOM_POWER(polynom, cresult)
-    _sig_off
+    sig_off()
 
     res = _py(cresult)
 
@@ -976,9 +976,9 @@ def mult_schur_schur_symmetrica(s1, s2):
     _op_schur(s1, cs1)
     _op_schur(s2, cs2)
 
-    _sig_on
+    sig_on()
     mult_schur_schur(cs1, cs2, cresult)
-    _sig_off
+    sig_off()
 
     res = _py(cresult)
 
@@ -998,9 +998,9 @@ def mult_monomial_monomial_symmetrica(m1, m2):
     _op_monomial(m1, cm1)
     _op_monomial(m2, cm2)
 
-    _sig_on
+    sig_on()
     mult_monomial_monomial(cm1, cm2, cresult)
-    _sig_off
+    sig_off()
 
     res = _py(cresult)
 
@@ -1018,9 +1018,9 @@ def scalarproduct_schur_symmetrica(s1, s2):
     _op_schur(s1, cs1)
     _op_schur(s2, cs2)
 
-    _sig_on
+    sig_on()
     scalarproduct_schur(cs1, cs2, cresult)
-    _sig_off
+    sig_off()
 
     res = _py(cresult)
 

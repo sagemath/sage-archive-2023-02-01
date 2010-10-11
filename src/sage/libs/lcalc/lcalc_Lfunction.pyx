@@ -222,9 +222,9 @@ cdef class Lfunction:
         cdef RealNumber real_T1 = RRR(T1)
         cdef RealNumber real_T2 = RRR(T2)
         cdef RealNumber real_stepsize = RRR(stepsize)
-        _sig_on
+        sig_on()
         self.__find_zeros_v( mpfr_get_d(real_T1.value, GMP_RNDN), mpfr_get_d(real_T2.value, GMP_RNDN), mpfr_get_d(real_stepsize.value, GMP_RNDN),&result)
-        _sig_off
+        sig_off()
         i=result.size()
         returnvalue = []
         for i in range(result.size()):
@@ -279,9 +279,9 @@ cdef class Lfunction:
         cdef Integer rank_I = Integer(rank)
         cdef Integer test_explicit_I = Integer(test_explicit_formula)
         cdef doublevec result
-        _sig_on
+        sig_on()
         self.__find_zeros_via_N_v(mpz_get_si(count_I.value), mpz_get_si(do_negative_I.value), mpfr_get_d(max_refine_R.value, GMP_RNDN), mpz_get_si(rank_I.value), mpz_get_si(test_explicit_I.value), &result)
-        _sig_off
+        sig_off()
         returnvalue = []
         for i in range(result.size()):
             returnvalue.append(  RRR(result.ind(i)))
@@ -695,9 +695,9 @@ cdef class Lfunction_Zeta(Lfunction):
 #         cdef RealNumber max_refine_R = RRR(max_refine)
 #         cdef Integer rank_I = Integer(rank)
 #         cdef Integer test_explicit_I = Integer(test_explicit_formula)
-#         _sig_on
+#         sig_on()
 #         self.thisptr.find_zeros_via_N(mpz_get_si(count_I.value), mpz_get_si(do_negative_I.value), mpfr_get_d(max_refine_R.value, GMP_RNDN), mpz_get_si(rank_I.value), mpz_get_si(test_explicit_I.value),FILE)
-#         _sig_off
+#         sig_off()
 
 ##############################################################################
 # Tools

@@ -157,10 +157,10 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
 
         if isinstance(x, Polynomial):
             if x.parent() is self.parent():
-                _sig_on
+                sig_on()
                 fmpz_poly_set(self.__poly, \
                         (<Polynomial_integer_dense_flint>x).__poly)
-                _sig_off
+                sig_off()
                 return
             else:
                 # coerce coefficients into Sage integers
@@ -179,24 +179,24 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
                 elif i > degree:
                     degree = i
             try:
-                _sig_on
+                sig_on()
                 fmpz_poly_realloc(self.__poly, degree)
-                _sig_off
+                sig_off()
             except RuntimeError:
                 raise OverflowError, "Cannot allocate memory!"
             # now fill them in
             for ii, a in x:
                 i = ii[0] if PY_TYPE_CHECK_EXACT(ii, tuple) else ii
                 if PY_TYPE_CHECK_EXACT(a, int):
-                    _sig_on
+                    sig_on()
                     fmpz_poly_set_coeff_si(self.__poly, i, a)
-                    _sig_off
+                    sig_off()
                 else:
                     if not PY_TYPE_CHECK(a, Integer):
                         a = ZZ(a)
-                    _sig_on
+                    sig_on()
                     fmpz_poly_set_coeff_mpz(self.__poly, i, (<Integer>a).value)
-                    _sig_off
+                    sig_off()
             return
 
         elif isinstance(x, pari_gen):
@@ -211,30 +211,30 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
                  isinstance(x.numerator(), Polynomial_integer_dense_flint):
             if x.denominator() == 1:
                 # fraction of the form f(x)/1
-                _sig_on
+                sig_on()
                 fmpz_poly_set(self.__poly,
                         (<Polynomial_integer_dense_flint>x.numerator()).__poly)
-                _sig_off
+                sig_off()
                 return
 
         elif not isinstance(x, list):
             x = [x]   # constant polynomials
 
-        _sig_on
+        sig_on()
         fmpz_poly_realloc(self.__poly, len(x))
-        _sig_off
+        sig_off()
         for i from 0 <= i < len(x):
             a = x[i]
             if PY_TYPE_CHECK_EXACT(a, int):
-                _sig_on
+                sig_on()
                 fmpz_poly_set_coeff_si(self.__poly, i, a)
-                _sig_off
+                sig_off()
             else:
                 if not PY_TYPE_CHECK(a, Integer):
                     a = ZZ(a)
-                _sig_on
+                sig_on()
                 fmpz_poly_set_coeff_mpz(self.__poly, i, (<Integer>a).value)
-                _sig_off
+                sig_off()
 
 
     cpdef Integer content(self):
@@ -418,10 +418,10 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             -3*x^2 + 2*x + 7
         """
         cdef Polynomial_integer_dense_flint x = self._new()
-        _sig_on
+        sig_on()
         fmpz_poly_add(x.__poly, self.__poly,
                 (<Polynomial_integer_dense_flint>right).__poly)
-        _sig_off
+        sig_off()
         return x
 
 
@@ -438,10 +438,10 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             3*x^2 + 2*x - 5
         """
         cdef Polynomial_integer_dense_flint x = self._new()
-        _sig_on
+        sig_on()
         fmpz_poly_sub(x.__poly, self.__poly,
                 (<Polynomial_integer_dense_flint>right).__poly)
-        _sig_off
+        sig_off()
         return x
 
 
@@ -457,9 +457,9 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             -2*x + 1
         """
         cdef Polynomial_integer_dense_flint x = self._new()
-        _sig_on
+        sig_on()
         fmpz_poly_neg(x.__poly, self.__poly)
-        _sig_off
+        sig_off()
         return x
 
     @coerce_binop
@@ -527,9 +527,9 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         cdef Polynomial_integer_dense_flint qq = self._new()
         cdef Polynomial_integer_dense_flint rr = self._new()
 
-        _sig_on
+        sig_on()
         fmpz_poly_divrem(qq.__poly, rr.__poly, self.__poly, right.__poly)
-        _sig_off
+        sig_off()
         return qq, rr
 
     cpdef bint is_zero(self):
@@ -579,10 +579,10 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             6*x + 47
         """
         cdef Polynomial_integer_dense_flint x = self._new()
-        _sig_on
+        sig_on()
         fmpz_poly_gcd(x.__poly, self.__poly,
                 (<Polynomial_integer_dense_flint>right).__poly)
-        _sig_off
+        sig_off()
         return x
 
 
@@ -646,10 +646,10 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
                 (<Polynomial_integer_dense_flint>right).__poly)
         cdef fmpz_t r = fmpz_init(bound/FLINT_BITS+2)
 
-        _sig_on
+        sig_on()
         fmpz_poly_xgcd(r, ss.__poly, tt.__poly, self.__poly,
                 (<Polynomial_integer_dense_flint>right).__poly)
-        _sig_off
+        sig_off()
         cdef Integer rr = PY_NEW(Integer)
         fmpz_to_mpz(rr.value, r)
         fmpz_clear(r)
@@ -675,10 +675,10 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             x^3 - 10*x^2 + 32*x - 32
         """
         cdef Polynomial_integer_dense_flint x = self._new()
-        _sig_on
+        sig_on()
         fmpz_poly_mul(x.__poly, self.__poly,
                 (<Polynomial_integer_dense_flint>right).__poly)
-        _sig_off
+        sig_off()
         return x
 
 
@@ -695,9 +695,9 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             6*x^2 + 12
         """
         cdef Polynomial_integer_dense_flint x = self._new()
-        _sig_on
+        sig_on()
         fmpz_poly_scalar_mul_mpz(x.__poly, self.__poly, (<Integer>right).value)
-        _sig_off
+        sig_off()
         return x
 
 
@@ -714,9 +714,9 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             6*x^2 + 12
         """
         cdef Polynomial_integer_dense_flint x = self._new()
-        _sig_on
+        sig_on()
         fmpz_poly_scalar_mul_mpz(x.__poly, self.__poly, (<Integer>right).value)
-        _sig_off
+        sig_off()
         return x
 
     def __pow__(Polynomial_integer_dense_flint self, int exp, ignored):
@@ -759,19 +759,19 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             else:
                 return res
         if exp < 0:
-            _sig_on
+            sig_on()
             fmpz_poly_power(res.__poly, self.__poly, -nn)
-            _sig_off
+            sig_off()
             return ~res
         else:
             if self is self._parent.gen():
-                _sig_on
+                sig_on()
                 fmpz_poly_set_coeff_ui(res.__poly, exp, 1)
-                _sig_off
+                sig_off()
             else:
-                _sig_on
+                sig_on()
                 fmpz_poly_power(res.__poly, self.__poly, nn)
-                _sig_off
+                sig_off()
             return res
 
     def __floordiv__(Polynomial_integer_dense_flint self, right):
@@ -808,17 +808,17 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             raise ZeroDivisionError, "division by zero"
         if not PY_TYPE_CHECK(right, Polynomial_integer_dense_flint):
             if right in ZZ:
-                _sig_on
+                sig_on()
                 fmpz_poly_scalar_div_mpz(res.__poly, self.__poly,
                         (<Integer>ZZ(right)).value)
-                _sig_off
+                sig_off()
                 return res
         if self._parent is not right.parent():
             right = self._parent(right)
-        _sig_on
+        sig_on()
         fmpz_poly_div(res.__poly, self.__poly,
                 (<Polynomial_integer_dense_flint>right).__poly)
-        _sig_off
+        sig_off()
         return res
 
     cpdef _unsafe_mutate(self, long n, value):
@@ -844,18 +844,18 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         if n < 0:
             raise IndexError, "n must be >= 0"
         if PY_TYPE_CHECK(value, int):
-            _sig_on
+            sig_on()
             fmpz_poly_set_coeff_si(self.__poly, n, value)
-            _sig_off
+            sig_off()
         elif PY_TYPE_CHECK(value, Integer):
-            _sig_on
+            sig_on()
             fmpz_poly_set_coeff_mpz(self.__poly, n, (<Integer>value).value)
-            _sig_off
+            sig_off()
         else:
             value = Integer(value)
-            _sig_on
+            sig_on()
             fmpz_poly_set_coeff_mpz(self.__poly, n, (<Integer>value).value)
-            _sig_off
+            sig_off()
 
     def real_root_intervals(self):
         """
@@ -1072,10 +1072,10 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         fmpz_poly_to_ZZX(ntl_poly, self.__poly)
 
         if sig_me > 10:
-            _sig_on
+            sig_on()
         ZZX_factor(content, factors, ntl_poly, 0, 0)
         if sig_me > 10:
-            _sig_off
+            sig_off()
 
         results = []
         unit = None
@@ -1263,10 +1263,10 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         cdef fmpz_t res = fmpz_init(bound/FLINT_BITS + 2)
         cdef Integer x = PY_NEW(Integer)
 
-        _sig_on
+        sig_on()
         fmpz_poly_resultant(res, self.__poly,
                 (<Polynomial_integer_dense_flint>other).__poly)
-        _sig_off
+        sig_off()
         fmpz_to_mpz(x.value, res)
         fmpz_clear(res)
         return x

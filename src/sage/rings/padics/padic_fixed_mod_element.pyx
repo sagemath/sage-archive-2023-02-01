@@ -229,9 +229,9 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
             2 + 3*5 + O(5^20)
         """
         if mpz_sgn(value) == -1 or mpz_cmp(value, self.prime_pow.pow_mpz_t_top()[0]) >= 0:
-            _sig_on
+            sig_on()
             mpz_mod(self.value, value, self.prime_pow.pow_mpz_t_top()[0])
-            _sig_off
+            sig_off()
         else:
             mpz_set(self.value, value)
         return 0
@@ -248,11 +248,11 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         """
         if mpz_divisible_p(mpq_denref(x), self.prime_pow.prime.value):
             raise ValueError, "p divides denominator"
-        _sig_on
+        sig_on()
         mpz_invert(self.value, mpq_denref(x), self.prime_pow.pow_mpz_t_top()[0])
         mpz_mul(self.value, self.value, mpq_numref(x))
         mpz_mod(self.value, self.value, self.prime_pow.pow_mpz_t_top()[0])
-        _sig_off
+        sig_off()
         return 0
 
     cdef int _set_mpz_into(pAdicFixedModElement self, mpz_t dest) except -1:
@@ -367,9 +367,9 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
             raise ValueError, "cannot invert non-unit"
         else:
             ans = self._new_c()
-            _sig_on
+            sig_on()
             mpz_invert(ans.value, self.value, self.prime_pow.pow_mpz_t_top()[0])
-            _sig_off
+            sig_off()
             return ans
 
     cdef pAdicFixedModElement _lshift_c(pAdicFixedModElement self, long shift):
@@ -536,9 +536,9 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
             raise ArithmeticError, "0^0 is undefined."
         cdef pAdicFixedModElement ans
         ans = self._new_c()
-        _sig_on
+        sig_on()
         mpz_powm(ans.value, self.value, (<Integer>right).value, self.prime_pow.pow_mpz_t_top()[0])
-        _sig_off
+        sig_off()
         return ans
 
     cpdef ModuleElement _add_(self, ModuleElement right):
@@ -624,11 +624,11 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
             raise ValueError, "cannot invert non-unit"
         else:
             ans = self._new_c()
-            _sig_on
+            sig_on()
             mpz_invert(ans.value, (<pAdicFixedModElement>right).value, self.prime_pow.pow_mpz_t_top()[0])
             mpz_mul(ans.value, ans.value, self.value)
             mpz_fdiv_r(ans.value, ans.value, self.prime_pow.pow_mpz_t_top()[0])
-            _sig_off
+            sig_off()
             return ans
 
     def add_bigoh(self, absprec):
@@ -1090,9 +1090,9 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         else:
             aprec = mpz_get_ui((<Integer>absprec).value)
         if aprec > self.prime_pow.prec_cap:
-            _sig_on
+            sig_on()
             mpz_pow_ui(modulus.value, self.prime_pow.prime.value, aprec)
-            _sig_off
+            sig_off()
         else:
             mpz_set(modulus.value, self.prime_pow.pow_mpz_t_tmp(aprec)[0])
         return Mod(selfvalue, modulus)

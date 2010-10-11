@@ -235,14 +235,14 @@ add the method ``matfrobenius``:
             where F is the Frobenius form and B is the basis change
             so that M=B^-1*F*B.
             """
-            _sig_on
+            sig_on()
             return self.new_gen(matfrobenius(self.g, flag))
 
-The ``_sig_on`` statement is some magic for catching segfault signals.
+The ``sig_on()`` statement is some magic for catching segfault signals.
 In this way, it prevents SIGSEGVs from the PARI C library crashing the
 Sage interpreter. Note that ``self.new_gen()`` calls a closing
-``_sig_off`` macro. These two *must always* come in pairs, i.e. every
-``_sig_on`` must be matched by a closing ``_sig_off``. The
+``sig_off()`` macro. These two *must always* come in pairs, i.e. every
+``sig_on()`` must be matched by a closing ``sig_off()``. The
 ``self.new_gen()`` call constructs a new Sage-python-gen object from a
 given pari-C-gen where the pari-C-gen is stored as the
 Sage-python-gen.g attribute. The ``matfrobenius`` call is just a call

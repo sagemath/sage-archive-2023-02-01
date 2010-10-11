@@ -316,9 +316,9 @@ cdef class ntl_zz_pX:
             raise ValueError, "arithmetic operands must have the same modulus."
         self.c.restore_c()
         y = self._new()
-        _sig_on
+        sig_on()
         zz_pX_mul(y.x, self.x, (<ntl_zz_pX>other).x)
-        _sig_off
+        sig_off()
         return y
 
     def __div__(ntl_zz_pX self, other):
@@ -352,9 +352,9 @@ cdef class ntl_zz_pX:
             raise ValueError, "arithmetic operands must have the same modulus."
         self.c.restore_c()
         q = self._new()
-        _sig_on
+        sig_on()
         divisible = zz_pX_divide(q.x, self.x, (<ntl_zz_pX>other).x)
-        _sig_off
+        sig_off()
         if not divisible:
             raise ArithmeticError, "self (=%s) is not divisible by other (=%s)"%(self, other)
         return q
@@ -382,9 +382,9 @@ cdef class ntl_zz_pX:
             raise ValueError, "arithmetic operands must have the same modulus."
         self.c.restore_c()
         y = self._new()
-        _sig_on
+        sig_on()
         zz_pX_mod(y.x, self.x, (<ntl_zz_pX>other).x)
-        _sig_off
+        sig_off()
         return y
 
     def __pow__(ntl_zz_pX self, long n, ignored):
@@ -400,9 +400,9 @@ cdef class ntl_zz_pX:
             raise ValueError, "Only positive exponents allowed."
         cdef ntl_zz_pX y = self._new()
         self.c.restore_c()
-        _sig_on
+        sig_on()
         zz_pX_power(y.x, self.x, n)
-        _sig_off
+        sig_off()
         return y
 
     def quo_rem(ntl_zz_pX self, ntl_zz_pX right):
@@ -426,9 +426,9 @@ cdef class ntl_zz_pX:
         cdef ntl_zz_pX q = self._new()
         cdef ntl_zz_pX r = self._new()
         self.c.restore_c()
-        _sig_on
+        sig_on()
         zz_pX_divrem(q.x, r.x, self.x, right.x)
-        _sig_off
+        sig_off()
         return q, r
 
     def __floordiv__(ntl_zz_pX self, ntl_zz_pX right):
@@ -443,9 +443,9 @@ cdef class ntl_zz_pX:
         """
         cdef ntl_zz_pX q = self._new()
         self.c.restore_c()
-        _sig_on
+        sig_on()
         zz_pX_div(q.x, self.x, right.x)
-        _sig_off
+        sig_off()
         return q
 
     def __lshift__(ntl_zz_pX self, long n):
@@ -515,9 +515,9 @@ cdef class ntl_zz_pX:
         cdef ntl_zz_pX y
         y = self._new()
         self.c.restore_c()
-        _sig_on
+        sig_on()
         zz_pX_negate(y.x, self.x)
-        _sig_off
+        sig_off()
         return y
 
     def __cmp__(ntl_zz_pX self, other):
@@ -622,9 +622,9 @@ cdef class ntl_zz_pX:
         """
         cdef ntl_zz_pX y = self._new()
         self.c.restore_c()
-        _sig_on
+        sig_on()
         zz_pX_sqr(y.x, self.x)
-        _sig_off
+        sig_off()
         return y
 
     def truncate(self, long m):
@@ -652,9 +652,9 @@ cdef class ntl_zz_pX:
         if m <= 0:
             y.x = zz_pX_zero()
         else:
-            _sig_on
+            sig_on()
             zz_pX_trunc(y.x, self.x, m)
-            _sig_off
+            sig_off()
         return y
 
     def multiply_and_truncate(self, ntl_zz_pX other, long m):
@@ -674,9 +674,9 @@ cdef class ntl_zz_pX:
         if m <= 0:
             y.x = zz_pX_zero()
         else:
-            _sig_on
+            sig_on()
             zz_pX_MulTrunc(y.x, self.x, other.x, m)
-            _sig_off
+            sig_off()
         return y
 
     def square_and_truncate(self, long m):
@@ -695,9 +695,9 @@ cdef class ntl_zz_pX:
         if m <= 0:
             y.x = zz_pX_zero()
         else:
-            _sig_on
+            sig_on()
             zz_pX_SqrTrunc(y.x, self.x, m)
-            _sig_off
+            sig_off()
         return y
 
     def invert_and_truncate(self, long m):
@@ -726,9 +726,9 @@ cdef class ntl_zz_pX:
         if m <= 0:
             y.x = zz_pX_zero()
         else:
-            _sig_on
+            sig_on()
             zz_pX_InvTrunc(y.x, self.x, m)
-            _sig_off
+            sig_off()
         return y
 
 
@@ -859,9 +859,9 @@ cdef class ntl_zz_pX:
             [1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 5]
         """
         self.c.restore_c()
-        _sig_on
+        sig_on()
         self.x.SetMaxLength(n)
-        _sig_off
+        sig_off()
         return
 
 

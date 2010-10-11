@@ -1618,9 +1618,9 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
                 if zz_str == NULL:
                     mpz_clear(self_zz)
                     raise MemoryError, "Unable to allocate memory for integer representation of interval"
-                _sig_on
+                sig_on()
                 mpz_get_str(zz_str, base, self_zz)
-                _sig_off
+                sig_off()
                 v = PyString_FromString(zz_str)
                 PyMem_Free(zz_str)
                 return v
@@ -1643,12 +1643,12 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         cdef mpz_t lower_mpz
         cdef mpz_t upper_mpz
 
-        _sig_on
+        sig_on()
         lower_s = mpfr_get_str(<char*>0, &lower_expo, base, 0,
                                 &self.value.left, GMP_RNDD)
         upper_s = mpfr_get_str(<char*>0, &upper_expo, base, 0,
                                 &self.value.right, GMP_RNDU)
-        _sig_off
+        sig_off()
 
         if lower_s == <char*> 0:
             raise RuntimeError, "Unable to convert interval lower bound to a string"
@@ -1673,12 +1673,12 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             digits -= 1
         upper_expo -= digits
 
-        _sig_on
+        sig_on()
         mpz_init_set_str(lower_mpz, lower_s, base)
         mpz_init_set_str(upper_mpz, upper_s, base)
         mpfr_free_str(lower_s)
         mpfr_free_str(upper_s)
-        _sig_off
+        sig_off()
 
         cdef mpz_t tmp
         mpz_init(tmp)
@@ -3353,9 +3353,9 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         """
         cdef RealIntervalFieldElement x
         x = self._new()
-        _sig_on
+        sig_on()
         mpfi_sqrt(x.value, self.value)
-        _sig_off
+        sig_off()
         return x
 
 # MPFI does not have cbrt.
@@ -3372,18 +3372,18 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 #         """
 #         cdef RealIntervalFieldElement x
 #         x = self._new()
-#         _sig_on
+#         sig_on()
 #         mpfr_cbrt(x.value, self.value, (<RealIntervalField>self._parent).rnd)
-#         _sig_off
+#         sig_off()
 #         return x
 
 # MPFI does not have pow.
 #     def __pow(self, RealIntervalFieldElement exponent):
 #         cdef RealIntervalFieldElement x
 #         x = self._new()
-#         _sig_on
+#         sig_on()
 #         mpfr_pow(x.value, self.value, exponent.value, (<RealIntervalField>self._parent).rnd)
-#         _sig_off
+#         sig_off()
 #         if mpfr_nan_p(x.value):
 #             return self._complex_number_()**exponent._complex_number_()
 #         return x
@@ -3455,9 +3455,9 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             return self.parent().complex_field()(self).log(base)
         if base == 'e':
             x = self._new()
-            _sig_on
+            sig_on()
             mpfi_log(x.value, self.value)
-            _sig_off
+            sig_off()
             return x
         elif base == 10:
             return self.log10()
@@ -3491,9 +3491,9 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         if self < 0:
             return self.parent().complex_field()(self).log(2)
         x = self._new()
-        _sig_on
+        sig_on()
         mpfi_log2(x.value, self.value)
-        _sig_off
+        sig_off()
         return x
 
     def log10(self):
@@ -3528,9 +3528,9 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         if self < 0:
             return self.parent().complex_field()(self).log(10)
         x = self._new()
-        _sig_on
+        sig_on()
         mpfi_log10(x.value, self.value)
-        _sig_off
+        sig_off()
         return x
 
     def exp(self):
@@ -3559,9 +3559,9 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         """
         cdef RealIntervalFieldElement x
         x = self._new()
-        _sig_on
+        sig_on()
         mpfi_exp(x.value, self.value)
-        _sig_off
+        sig_off()
         return x
 
     def exp2(self):
@@ -3588,9 +3588,9 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         """
         cdef RealIntervalFieldElement x
         x = self._new()
-        _sig_on
+        sig_on()
         mpfi_exp2(x.value, self.value)
-        _sig_off
+        sig_off()
         return x
 
     def is_int(self):
@@ -3661,9 +3661,9 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 #         """
 #         cdef RealIntervalFieldElement x
 #         x = self._new()
-#         _sig_on
+#         sig_on()
 #         mpfr_exp10(x.value, self.value, (<RealIntervalField>self._parent).rnd)
-#         _sig_off
+#         sig_off()
 #         return x
 
     def cos(self):
@@ -3692,9 +3692,9 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         """
         cdef RealIntervalFieldElement x
         x = self._new()
-        _sig_on
+        sig_on()
         mpfi_cos(x.value, self.value)
-        _sig_off
+        sig_off()
         return x
 
     def sin(self):
@@ -3709,9 +3709,9 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         """
         cdef RealIntervalFieldElement x
         x = self._new()
-        _sig_on
+        sig_on()
         mpfi_sin(x.value, self.value)
-        _sig_off
+        sig_off()
         return x
 
     def tan(self):
@@ -3729,9 +3729,9 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         """
         cdef RealIntervalFieldElement x
         x = self._new()
-        _sig_on
+        sig_on()
         mpfi_tan(x.value, self.value)
-        _sig_off
+        sig_off()
         return x
 
 # MPFI does not have sincos
@@ -3748,9 +3748,9 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 #         cdef RealIntervalFieldElement x,y
 #         x = self._new()
 #         y = self._new()
-#         _sig_on
+#         sig_on()
 #         mpfi_sin_cos(x.value, y.value, self.value)
-#         _sig_off
+#         sig_off()
 #         return x,y
 
     def arccos(self):
@@ -3778,9 +3778,9 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         """
         cdef RealIntervalFieldElement x
         x = self._new()
-        _sig_on
+        sig_on()
         mpfi_acos(x.value, self.value)
-        _sig_off
+        sig_off()
         return x
 
     def arcsin(self):
@@ -3808,9 +3808,9 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         """
         cdef RealIntervalFieldElement x
         x = self._new()
-        _sig_on
+        sig_on()
         mpfi_asin(x.value, self.value)
-        _sig_off
+        sig_off()
         return x
 
     def arctan(self):
@@ -3838,9 +3838,9 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         """
         cdef RealIntervalFieldElement x
         x = self._new()
-        _sig_on
+        sig_on()
         mpfi_atan(x.value, self.value)
-        _sig_off
+        sig_off()
         return x
 
     def cosh(self):
@@ -3855,9 +3855,9 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         """
         cdef RealIntervalFieldElement x
         x = self._new()
-        _sig_on
+        sig_on()
         mpfi_cosh(x.value, self.value)
-        _sig_off
+        sig_off()
         return x
 
     def sinh(self):
@@ -3872,9 +3872,9 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         """
         cdef RealIntervalFieldElement x
         x = self._new()
-        _sig_on
+        sig_on()
         mpfi_sinh(x.value, self.value)
-        _sig_off
+        sig_off()
         return x
 
     def tanh(self):
@@ -3889,9 +3889,9 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         """
         cdef RealIntervalFieldElement x
         x = self._new()
-        _sig_on
+        sig_on()
         mpfi_tanh(x.value, self.value)
-        _sig_off
+        sig_off()
         return x
 
     def arccosh(self):
@@ -3906,9 +3906,9 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         """
         cdef RealIntervalFieldElement x
         x = self._new()
-        _sig_on
+        sig_on()
         mpfi_acosh(x.value, self.value)
-        _sig_off
+        sig_off()
         return x
 
     def arcsinh(self):
@@ -3925,9 +3925,9 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         """
         cdef RealIntervalFieldElement x
         x = self._new()
-        _sig_on
+        sig_on()
         mpfi_asinh(x.value, self.value)
-        _sig_off
+        sig_off()
         return x
 
     def arctanh(self):
@@ -3944,9 +3944,9 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         """
         cdef RealIntervalFieldElement x
         x = self._new()
-        _sig_on
+        sig_on()
         mpfi_atanh(x.value, self.value)
-        _sig_off
+        sig_off()
         return x
 
     # We implement some inverses in the obvious way (so they will
@@ -4201,9 +4201,9 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 #         else:
 #             _other = other
 #         x = self._new()
-#         _sig_on
+#         sig_on()
 #         mpfi_agm(x.value, self.value, _other.value)
-#         _sig_off
+#         sig_off()
 #         return x
 
 
@@ -4218,9 +4218,9 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 #         """
 #         cdef RealIntervalFieldElement x
 #         x = self._new()
-#         _sig_on
+#         sig_on()
 #         mpfi_erf(x.value, self.value)
-#         _sig_off
+#         sig_off()
 #         return x
 
 
@@ -4237,9 +4237,9 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 #         """
 #         cdef RealIntervalFieldElement x
 #         x = self._new()
-#         _sig_on
+#         sig_on()
 #         mpfi_gamma(x.value, self.value)
-#         _sig_off
+#         sig_off()
 #         return x
 
 #     def zeta(self):
@@ -4279,9 +4279,9 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 #         """
 #         cdef RealIntervalFieldElement x
 #         x = self._new()
-#         _sig_on
+#         sig_on()
 #         mpfi_zeta(x.value, self.value)
-#         _sig_off
+#         sig_off()
 #         return x
 
 

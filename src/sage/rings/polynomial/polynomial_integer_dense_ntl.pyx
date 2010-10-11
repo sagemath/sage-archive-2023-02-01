@@ -896,10 +896,10 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         cdef long i
         cdef int sig_me = ZZX_deg(self.__poly)
         if sig_me > 10:
-            _sig_on
+            sig_on()
         ZZX_factor(content, factors, self.__poly, 0, 0)
         if sig_me > 10:
-            _sig_off
+            sig_off()
         results = []
         unit = None
         if not ZZ_IsOne(content):

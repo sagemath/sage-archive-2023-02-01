@@ -49,9 +49,9 @@ cdef class ntl_GF2EX:
             raise ValueError, "You must specify a modulus when creating a GF2E."
 
         s = str(x)
-        _sig_on
+        sig_on()
         GF2EX_from_str(&self.x, s)
-        _sig_off
+        sig_off()
 
     def __cinit__(self, modulus=None, x=[]):
         #################### WARNING ###################
@@ -153,9 +153,9 @@ cdef class ntl_GF2EX:
         if not isinstance(other, ntl_GF2EX):
             other = ntl_GF2EX(self.c, other)
         y = other
-        _sig_on
+        sig_on()
         GF2EX_mul(r.x, self.x, y.x)
-        _sig_off
+        sig_off()
         return r
 
     def __sub__(ntl_GF2EX self, other):
@@ -172,9 +172,9 @@ cdef class ntl_GF2EX:
         if not isinstance(other, ntl_GF2EX):
             other = ntl_GF2EX(self.c, other)
         y = other
-        _sig_on
+        sig_on()
         GF2EX_sub(r.x, self.x, y.x)
-        _sig_off
+        sig_off()
         return r
 
     def __add__(ntl_GF2EX self, other):
@@ -191,9 +191,9 @@ cdef class ntl_GF2EX:
         if not isinstance(other, ntl_GF2EX):
             other = ntl_GF2EX(self.c, other)
         y = other
-        _sig_on
+        sig_on()
         GF2EX_add(r.x, self.x, y.x)
-        _sig_off
+        sig_off()
         return r
 
     def __neg__(ntl_GF2EX self):
@@ -205,9 +205,9 @@ cdef class ntl_GF2EX:
             [[1] [0 1]]
         """
         cdef ntl_GF2EX r = self._new()
-        _sig_on
+        sig_on()
         GF2EX_negate(r.x, self.x)
-        _sig_off
+        sig_off()
         return r
 
     def __pow__(ntl_GF2EX self, long e, ignored):
@@ -219,7 +219,7 @@ cdef class ntl_GF2EX:
             [[1] [] [0 0 1]]
         """
         cdef ntl_GF2EX r = self._new()
-        _sig_on
+        sig_on()
         GF2EX_power(r.x, self.x, e)
-        _sig_off
+        sig_off()
         return r

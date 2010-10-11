@@ -69,7 +69,7 @@ cdef class ECModularSymbol:
         cdef CurveRed *CR
         cdef int n, t
 
-        _sig_on
+        sig_on()
         a1 = new_bigint(int(E.a1()))
         a2 = new_bigint(int(E.a2()))
         a3 = new_bigint(int(E.a3()))
@@ -85,7 +85,7 @@ cdef class ECModularSymbol:
         self.nfs = new_newforms(n,1,0,0)
         self.nfs.createfromcurve(CR[0])
         self._E = E
-        _sig_off
+        sig_off()
 
     def __repr__(self):
         """
@@ -130,14 +130,14 @@ cdef class ECModularSymbol:
         cdef ZZ_c *Z_n, *Z_d
         cdef long n, d
 
-        _sig_on
+        sig_on()
         r = Rational(r)
         d = r.denom()
         n = r.numer() % d
         _r = new_rational(n,d)
         _s = self.nfs.plus_modular_symbol(_r)
         r = Rational((rational_num(_s), rational_den(_s)))
-        _sig_off
+        sig_off()
         return r
 
 

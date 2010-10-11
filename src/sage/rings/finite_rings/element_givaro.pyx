@@ -254,13 +254,13 @@ cdef class Cache_givaro(SageObject):
         if PY_TYPE_CHECK(modulus, list) or PY_TYPE_CHECK(modulus, tuple):
             for i in modulus:
                 cPoly.push_back(int( i % p ))
-            _sig_on
+            sig_on()
             self.objectptr = gfq_factorypkp(p, k, cPoly)
-            _sig_off
+            sig_off()
         elif modulus == "random":
-            _sig_on
+            sig_on()
             self.objectptr = gfq_factorypk(p,k)
-            _sig_off
+            sig_off()
         else:
             raise ValueError, "Cannot understand modulus"
 
@@ -269,7 +269,7 @@ cdef class Cache_givaro(SageObject):
 
         self._zero_element = make_FiniteField_givaroElement(self,self.objectptr.zero)
         self._one_element = make_FiniteField_givaroElement(self,self.objectptr.one)
-        _sig_off
+        sig_off()
         parent._zero_element = self._zero_element
         parent._one_element = self._one_element
         if cache:
@@ -527,9 +527,9 @@ cdef class Cache_givaro(SageObject):
             raise ArithmeticError, "Cannot serve negative exponent %d"%n
         elif n>=self.order_c():
             raise IndexError, "n=%d must be < self.order()"%n
-        _sig_on
+        sig_on()
         ret = int(self.objectptr.convert(ret, n))
-        _sig_off
+        sig_off()
         return ret
 
     def int_to_log(self, int n):
@@ -553,9 +553,9 @@ cdef class Cache_givaro(SageObject):
             3
         """
         cdef int r
-        _sig_on
+        sig_on()
         ret =  int(self.objectptr.initi(r,n))
-        _sig_off
+        sig_off()
         return ret
 
     def fetch_int(self, int n):

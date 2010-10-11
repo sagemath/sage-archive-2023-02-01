@@ -508,9 +508,9 @@ class ode_solver(object):
             for i from 0<i<=n:
                 while (t < t_end):
                     try:
-                        _sig_on
+                        sig_on()
                         status = gsl_odeiv_evolve_apply (e, c, s, &sys, &t, t_end, &h, y)
-                        _sig_off
+                        sig_off()
                     except:
                         gsl_odeiv_evolve_free (e)
                         gsl_odeiv_control_free (c)
@@ -544,9 +544,9 @@ class ode_solver(object):
             for i from 0<i<n-1:
                 while (t < t_end):
                     try:
-                        _sig_on
+                        sig_on()
                         status = gsl_odeiv_evolve_apply (e, c, s, &sys, &t, t_end, &h, y)
-                        _sig_off
+                        sig_off()
                     except:
                         gsl_odeiv_evolve_free (e)
                         gsl_odeiv_control_free (c)

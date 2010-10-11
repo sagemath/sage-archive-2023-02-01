@@ -548,12 +548,12 @@ cdef class simple_connected_genus_backtracker:
         # infinite recursion.  oops.  Let's skip that.
         if self.num_verts <= 0:
             return 0
-        _sig_on
+        sig_on()
         if style == 1:
             g = self.genus_backtrack(cutoff, record_embedding, &min_genus_check)
         elif style == 2:
             g = self.genus_backtrack(cutoff, record_embedding, &max_genus_check)
-        _sig_off
+        sig_off()
         return g
 
     cdef void reset_swap(self, int v):

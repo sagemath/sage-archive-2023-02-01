@@ -108,9 +108,9 @@ cdef object Rational_mul_(Rational a, Rational b):
     cdef Rational x
     x = <Rational> PY_NEW(Rational)
 
-    _sig_on
+    sig_on()
     mpq_mul(x.value, a.value, b.value)
-    _sig_off
+    sig_off()
 
     return x
 
@@ -118,27 +118,27 @@ cdef object Rational_div_(Rational a, Rational b):
     cdef Rational x
     x = <Rational> PY_NEW(Rational)
 
-    _sig_on
+    sig_on()
     mpq_div(x.value, a.value, b.value)
-    _sig_off
+    sig_off()
 
     return x
 
 cdef Rational_add_(Rational self, Rational other):
     cdef Rational x
     x = <Rational> PY_NEW(Rational)
-    _sig_on
+    sig_on()
     mpq_add(x.value, self.value, other.value)
-    _sig_off
+    sig_off()
     return x
 
 cdef Rational_sub_(Rational self, Rational other):
     cdef Rational x
     x = <Rational> PY_NEW(Rational)
 
-    _sig_on
+    sig_on()
     mpq_sub(x.value, self.value, other.value)
-    _sig_off
+    sig_off()
 
     return x
 
@@ -1458,15 +1458,15 @@ cdef class Rational(sage.structure.element.FieldElement):
             return (sage.rings.infinity.infinity, u)
         v = PY_NEW(integer.Integer)
         u = PY_NEW(Rational)
-        _sig_on
+        sig_on()
         mpz_set_ui(v.value, mpz_remove(mpq_numref(u.value), mpq_numref(self.value), p.value))
-        _sig_off
+        sig_off()
         if mpz_sgn(v.value) != 0:
             mpz_set(mpq_denref(u.value), mpq_denref(self.value))
         else:
-            _sig_on
+            sig_on()
             mpz_set_ui(v.value, mpz_remove(mpq_denref(u.value), mpq_denref(self.value), p.value))
-            _sig_off
+            sig_off()
             mpz_neg(v.value, v.value)
         return (v, u)
 
@@ -1591,7 +1591,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         cdef mpz_t tmp
         cdef int non_square = 0
 
-        _sig_on
+        sig_on()
         mpz_init(tmp)
         mpz_sqrtrem(mpq_numref(z.value), tmp, mpq_numref(self.value))
         if mpz_sgn(tmp) != 0:
@@ -1601,7 +1601,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             if mpz_sgn(tmp) != 0:
                 non_square = 1
         mpz_clear(tmp)
-        _sig_off
+        sig_off()
 
         if non_square:
             if not extend:
@@ -1809,9 +1809,9 @@ cdef class Rational(sage.structure.element.FieldElement):
         if s == NULL:
             raise MemoryError, "Unable to allocate enough memory for the string representation of an integer."
 
-        _sig_on
+        sig_on()
         mpq_get_str(s, base, self.value)
-        _sig_off
+        sig_off()
         k = <object> PyString_FromString(s)
         PyMem_Free(s)
         return k
@@ -1919,9 +1919,9 @@ cdef class Rational(sage.structure.element.FieldElement):
              mpz_sizeinbase (mpq_denref(self.value), 2) > 100000:
             # We only use the signal handler (to enable ctrl-c out) in case
             # self is huge, so the product might actually take a while to compute.
-            _sig_on
+            sig_on()
             mpq_mul(x.value, self.value, (<Rational>right).value)
-            _sig_off
+            sig_off()
         else:
             mpq_mul(x.value, self.value, (<Rational>right).value)
         return x
@@ -1931,9 +1931,9 @@ cdef class Rational(sage.structure.element.FieldElement):
              mpz_sizeinbase (mpq_denref(self.value), 2) > 100000:
             # We only use the signal handler (to enable ctrl-c out) in case
             # self is huge, so the product might actually take a while to compute.
-            _sig_on
+            sig_on()
             mpq_mul(self.value, self.value, (<Rational>right).value)
-            _sig_off
+            sig_off()
         else:
             mpq_mul(self.value, self.value, (<Rational>right).value)
         return self
@@ -2125,7 +2125,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             return x
 
         if nn < 0:
-            _sig_on
+            sig_on()
             # mpz_pow_ui(mpq_denref(x.value), mpq_numref(_self.value), <unsigned long int>(-nn))
             # mpz_pow_ui(mpq_numref(x.value), mpq_denref(_self.value), <unsigned long int>(-nn))
             # The above causes segfaults, so swap after instead...
@@ -2133,13 +2133,13 @@ cdef class Rational(sage.structure.element.FieldElement):
             mpz_pow_ui(mpq_denref(x.value), mpq_denref(_self.value), -nn)
             # mpz_swap(mpq_numref(x.value), mpq_denref(x.value)) # still a segfault
             mpq_inv(x.value, x.value)
-            _sig_off
+            sig_off()
             return x
         elif nn > 0:
-            _sig_on
+            sig_on()
             mpz_pow_ui(mpq_numref(x.value), mpq_numref(_self.value), nn)
             mpz_pow_ui(mpq_denref(x.value), mpq_denref(_self.value), nn)
-            _sig_off
+            sig_off()
             return x
 
 
@@ -2149,7 +2149,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         cdef mpz_t num, den
 
-        _sig_on
+        sig_on()
         mpz_init(num)
         mpz_init(den)
         mpz_pow_ui(num, mpq_numref(_self.value), nn)
@@ -2158,7 +2158,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         mpq_set_den(x.value, den)
         mpz_clear(num)
         mpz_clear(den)
-        _sig_off
+        sig_off()
 
         return x
 
@@ -2175,14 +2175,14 @@ cdef class Rational(sage.structure.element.FieldElement):
 
 
 
-        _sig_on
+        sig_on()
         if nn < 0:  # we used to call (self**(-n)).__invert__()) -- this should be loads faster
             mpz_pow_ui(mpq_denref(x.value), mpq_numref(_self.value), -nn) #we switch den and num to invert
             mpz_pow_ui(mpq_numref(x.value), mpq_denref(_self.value), -nn)
         else:
             mpz_pow_ui(mpq_numref(x.value), mpq_numref(_self.value), nn)
             mpz_pow_ui(mpq_denref(x.value), mpq_denref(_self.value), nn)
-        _sig_off
+        sig_off()
 
         #print "returning"
 
@@ -2284,10 +2284,10 @@ cdef class Rational(sage.structure.element.FieldElement):
         # Documentation from GMP manual:
         # "For the ui variants the return value is the remainder, and
         # in fact returning the remainder is all the div_ui functions do."
-        _sig_on
+        sig_on()
         num = mpz_fdiv_ui(mpq_numref(self.value), n)
         den = mpz_fdiv_ui(mpq_denref(self.value), n)
-        _sig_off
+        sig_off()
         return int((num * ai.inverse_mod_int(den, n)) % n)
 
     def __mod__(Rational self, other):
@@ -2313,9 +2313,9 @@ cdef class Rational(sage.structure.element.FieldElement):
             raise ZeroDivisionError, "Rational modulo by zero"
         n = self.numer() % other
         d = self.denom() % other
-        _sig_on
+        sig_on()
         d = d.inverse_mod(other)
-        _sig_off
+        sig_off()
         return (n*d)%other
 
     def norm(self):
@@ -3022,12 +3022,12 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         cdef Rational x
         x = <Rational> PY_NEW(Rational)
-        _sig_on
+        sig_on()
         if exp < 0:
             mpq_div_2exp(x.value,self.value,-exp)
         else:
             mpq_mul_2exp(x.value,self.value,exp)
-        _sig_off
+        sig_off()
         return x
 
     def __lshift__(x,y):
@@ -3072,12 +3072,12 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         cdef Rational x
         x = <Rational> PY_NEW(Rational)
-        _sig_on
+        sig_on()
         if exp < 0:
             mpq_mul_2exp(x.value,self.value,-exp)
         else:
             mpq_div_2exp(x.value,self.value,exp)
-        _sig_off
+        sig_off()
         return x
 
     def __rshift__(x,y):

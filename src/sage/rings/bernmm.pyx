@@ -73,9 +73,9 @@ def bernmm_bern_rat(long k, int num_threads = 1):
         raise ValueError, "k must be non-negative"
 
     x = Rational()
-    _sig_on
+    sig_on()
     bern_rat(x.value, k, num_threads)
-    _sig_off
+    sig_off()
 
     return x
 
@@ -123,9 +123,9 @@ def bernmm_bern_modp(long p, long k):
     if k < 0:
         raise ValueError, "k must be non-negative"
 
-    _sig_on
+    sig_on()
     x = bern_modp(p, k)
-    _sig_off
+    sig_off()
 
     return x
 

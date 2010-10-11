@@ -245,17 +245,17 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             """
         self._parent._modulus.restore()
         if algorithm=="fast_when_false":
-            _sig_on
+            sig_on()
             res = ZZ_pEX_IterIrredTest(self.x)
-            _sig_off
+            sig_off()
         elif algorithm=="fast_when_true":
-            _sig_on
+            sig_on()
             res = ZZ_pEX_DetIrredTest(self.x)
-            _sig_off
+            sig_off()
         elif algorithm=="probabilistic":
-            _sig_on
+            sig_on()
             res = ZZ_pEX_ProbIrredTest(self.x, iter)
-            _sig_off
+            sig_off()
         else:
             raise ValueError("unknown algorithm")
         return res != 0

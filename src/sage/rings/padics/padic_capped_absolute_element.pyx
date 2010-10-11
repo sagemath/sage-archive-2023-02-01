@@ -264,9 +264,9 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         """
         self._set_prec_abs(absprec)
         if mpz_sgn(x) == -1 or mpz_cmp(x, self.prime_pow.pow_mpz_t_tmp(self.absprec)[0]) >= 0:
-            _sig_on
+            sig_on()
             mpz_mod(self.value, x, self.prime_pow.pow_mpz_t_tmp(self.absprec)[0])
-            _sig_off
+            sig_off()
         else:
             mpz_set(self.value, x)
         return 0
@@ -287,9 +287,9 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         mpz_set(self.value, x)
         self._set_prec_both(absprec, relprec)
         if mpz_sgn(x) == -1 or mpz_cmp(x, self.prime_pow.pow_mpz_t_tmp(self.absprec)[0]) >= 0:
-            _sig_on
+            sig_on()
             mpz_mod(self.value, x, self.prime_pow.pow_mpz_t_tmp(self.absprec)[0])
-            _sig_off
+            sig_off()
         return 0
 
     cdef int _set_from_mpq_abs(self, mpq_t x, long absprec) except -1:
@@ -305,11 +305,11 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         self._set_prec_abs(absprec)
         if mpz_divisible_p(mpq_denref(x), self.prime_pow.prime.value):
             raise ValueError, "p divides denominator"
-        _sig_on
+        sig_on()
         mpz_invert(self.value, mpq_denref(x), self.prime_pow.pow_mpz_t_tmp(absprec)[0])
         mpz_mul(self.value, self.value, mpq_numref(x))
         mpz_mod(self.value, self.value, self.prime_pow.pow_mpz_t_tmp(absprec)[0])
-        _sig_off
+        sig_off()
         return 0
 
     cdef int _set_from_mpq_both(self, mpq_t x, long absprec, long relprec) except -1:
@@ -328,9 +328,9 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
             mpz_set_ui(self.value, 0)
             return 0
         mpz_init(tmp)
-        _sig_on
+        sig_on()
         k = mpz_remove(tmp, mpq_numref(x), self.prime_pow.prime.value)
-        _sig_off
+        sig_off()
         mpz_clear(tmp)
         self.absprec = k + relprec
         if self.absprec > absprec:
@@ -491,14 +491,14 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
             else:
                 absprec = <Integer> min(self.precision_relative() + new * val, preccap)
                 ans._set_prec_abs(mpz_get_ui(absprec.value))
-                _sig_on
+                sig_on()
                 mpz_powm(ans.value, self.value, new.value, self.prime_pow.pow_mpz_t_tmp(ans.absprec)[0])
-                _sig_off
+                sig_off()
         else:
             ans.absprec = self.absprec
-            _sig_on
+            sig_on()
             mpz_powm(ans.value, self.value, new.value, self.prime_pow.pow_mpz_t_tmp(self.absprec)[0])
-            _sig_off
+            sig_off()
         return ans
 
     cpdef ModuleElement _add_(self, ModuleElement _right):
@@ -1364,9 +1364,9 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
             return ans
         elif mpz_divisible_p(self.value, self.prime_pow.prime.value):
             ans = self._new_c()
-            _sig_on
+            sig_on()
             v = mpz_remove(ans.value, self.value, self.prime_pow.prime.value)
-            _sig_off
+            sig_off()
             ans._set_prec_abs(self.absprec - v)
             return ans
         else:

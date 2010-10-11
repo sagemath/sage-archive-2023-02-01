@@ -17,27 +17,27 @@
 
 
 
-/* In your Pyrex code, put
+/* In your Cython code, put
 
-    _sig_on
+    sig_on()
     [pure c code block]
-    _sig_off
+    sig_off()
 
    to get signal handling capabilities.
 
    VERY VERY IMPORTANT:
        1. These *must* always come in pairs. E.g., if you have just
-          a _sig_off without a corresponding _sig_on, then ctrl-c
-          later in the interpreter will sigfault!
+          a sig_off() without a corresponding sig_on(), then ctrl-c
+          later in the interpreter will segfault!
 
-       2. Do *not* put these in the __init__ method of a Pyrex extension
+       2. Do *not* put these in the __init__ method of a Cython extension
           class, or you'll get crashes.
 
        3. Do not put these around any non-pure C code!!!!
 
-       4. If you need to do a check of control-c inside a loop, e.g.,
-          when constructing a matrix, put _sig_check instead of using
-          _sig_on then _sig_off.
+
+
+
 */
 
 /**
@@ -122,7 +122,7 @@ struct sage_signals {
 
   /**
    * An optional string may be passed to the signal handler which will
-   * be printed. Use _sig_str for that.
+   * be printed. Use sig_str() for that.
    */
   char *s;
 
@@ -164,26 +164,26 @@ extern struct sage_signals _signals;
 
 /**
  * Enables SAGE signal handling for the following C block. This macro
- * *MUST* be followed by _sig_off.
+ * *MUST* be followed by sig_off().
  *
  *
- * See also @ref _sig_str
+ * See also @ref sig_str()
  */
 
-#define _sig_on if (_signals.mpio == 0) { _signals.mpio = 1+2; _signals.s = NULL;\
+#define sig_on() if (_signals.mpio == 0) { _signals.mpio = 1+2; _signals.s = NULL;\
                  if (sigsetjmp(_signals.env,1)) { \
                   _signals.mpio = 0;   \
                   return(0); \
-                } } // else { _signals.s = "Unbalanced _sig_on/_sig_off\n"; fprintf(stderr, _signals.s); sage_signal_handler(SIGABRT); }
+                } } // else { _signals.s = "Unbalanced sig_on()/sig_off()\n"; fprintf(stderr, _signals.s); sage_signal_handler(SIGABRT); }
 
 /* /\** */
 /*  * Enables SAGE signal handling for the following C block. This macro */
 /*  * *MUST* be followed by _sig_off_short. */
 /*  * */
 /*  * If the following block takes very little time to compute this macro */
-/*  * is the right choice. Otherwise _sig_on is appropriate. */
+/*  * is the right choice. Otherwise sig_on() is appropriate. */
 /*  * */
-/*  * See also _sig_on and _sig_str. */
+/*  * See also sig_on() and sig_str(). */
 /*  * */
 /*  *\/ */
 
@@ -191,16 +191,16 @@ extern struct sage_signals _signals;
 
 
 /**
- * Same as @ref _sig_on but with string support
+ * Same as @ref sig_on() but with string support
  *
  */
 
-#define _sig_str(mstring) if (_signals.mpio == 0) { _signals.mpio = 1+2; \
+#define sig_str(mstring) if (_signals.mpio == 0) { _signals.mpio = 1+2; \
                 _signals.s = mstring; \
                 if (sigsetjmp(_signals.env,1)) { \
                   _signals.mpio = 0; \
                  return(0); \
-                } } //else { _signals.s = "Unbalanced _sig_str/_sig_off\n"; fprintf(stderr, _signals.s); sage_signal_handler(SIGABRT); }
+                } } //else { _signals.s = "Unbalanced sig_str()/sig_off()\n"; fprintf(stderr, _signals.s); sage_signal_handler(SIGABRT); }
 
 
 /*
@@ -221,7 +221,7 @@ void set_sage_signal_handler_message(const char* s);
  *
  */
 
-#define _sig_off _signals.mpio = 0;
+#define sig_off() _signals.mpio = 0;
 
 
 /* /\** */
@@ -237,7 +237,10 @@ void set_sage_signal_handler_message(const char* s);
  *
  */
 
-#define _sig_check _sig_on _sig_off
+/* These provide backwards compatibility with sage-4.6 and earlier */
+#define _sig_on        sig_on()
+#define _sig_str(s)    sig_str(s)
+#define _sig_off       sig_off()
 
 #endif /* C_LIB_INCLUDE_INTERRUPT_H */
 

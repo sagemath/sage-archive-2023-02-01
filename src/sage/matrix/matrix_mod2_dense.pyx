@@ -736,9 +736,9 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         ans = self.new_matrix(nrows = self.nrows(), ncols = right.ncols())
         if self._nrows == 0 or self._ncols == 0 or right._ncols == 0:
             return ans
-        _sig_on
+        sig_on()
         ans._entries = mzd_mul_m4rm(ans._entries, self._entries, right._entries, k)
-        _sig_off
+        sig_off()
         return ans
 
     def _multiply_classical(Matrix_mod2_dense self, Matrix_mod2_dense right):
@@ -874,9 +874,9 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if self._nrows == 0 or self._ncols == 0 or right._ncols == 0:
             return ans
 
-        _sig_on
+        sig_on()
         ans._entries = mzd_mul(ans._entries, self._entries, right._entries, cutoff)
-        _sig_off
+        sig_off()
         return ans
 
     def __neg__(self):
@@ -931,9 +931,9 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         mzd_set_ui(I, 1)
 
         A = Matrix_mod2_dense.__new__(Matrix_mod2_dense, self._parent, 0, 0, 0, alloc = False)
-        _sig_on
+        sig_on()
         A._entries = mzd_invert_m4ri(self._entries, I, k)
-        _sig_off
+        sig_off()
         mzd_free(I)
 
         if A._entries==NULL:
@@ -1075,9 +1075,9 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             self.check_mutability()
             self.clear_cache()
 
-            _sig_on
+            sig_on()
             r =  mzd_echelonize(self._entries, full)
-            _sig_off
+            sig_off()
 
             self.cache('in_echelon_form',True)
             self.cache('rank', r)
@@ -1097,9 +1097,9 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             else:
                 k = 0
 
-            _sig_on
+            sig_on()
             r =  mzd_echelonize_m4ri(self._entries, full, k)
-            _sig_off
+            sig_off()
 
             self.cache('in_echelon_form',True)
             self.cache('rank', r)
@@ -1111,9 +1111,9 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             self.check_mutability()
             self.clear_cache()
 
-            _sig_on
+            sig_on()
             r =  mzd_echelonize_pluq(self._entries, full)
-            _sig_off
+            sig_off()
 
             self.cache('in_echelon_form',True)
             self.cache('rank', r)
@@ -1248,21 +1248,21 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             else:
                 nc = self._ncols
                 num_per_row = int(density * nc)
-                _sig_on
+                sig_on()
                 for i from 0 <= i < self._nrows:
                     for j from 0 <= j < num_per_row:
                         k = rstate.c_random()%nc
                         mzd_write_bit(self._entries, i, k, rstate.c_random() % 2)
-                _sig_off
+                sig_off()
 
         # New code for the case when ``nonzero`` is ``True``.
         else:
-            _sig_on
+            sig_on()
             for i from 0 <= i < self._nrows:
                 for j from 0 <= j < self._ncols:
                     if rstate.c_rand_double() <= density:
                         mzd_write_bit(self._entries, i, j, 1)
-            _sig_off
+            sig_off()
 
     cdef rescale_row_c(self, Py_ssize_t row, multiple, Py_ssize_t start_col):
         """
@@ -1629,9 +1629,9 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if r == 0 or c == 0:
             return unpickle_matrix_mod2_dense_v1, (r, c, None, 0)
 
-        _sig_on
+        sig_on()
         cdef gdImagePtr im = gdImageCreate(c, r)
-        _sig_off
+        sig_off()
         cdef int black = gdImageColorAllocate(im, 0, 0, 0)
         cdef int white = gdImageColorAllocate(im, 255, 255, 255)
         gdImageFilledRectangle(im, 0, 0, c-1, r-1, white)
@@ -1665,14 +1665,14 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             n = self._nrows*self._ncols*2 + 2
             s = <char*> sage_malloc(n * sizeof(char))
             k = 0
-            _sig_on
+            sig_on()
             for i in range(self._nrows):
                 for j in range(self._ncols):
                     s[k] = <char>(48 + (1 if mzd_read_bit(self._entries,i,j) else 0))  # "0" or "1"
                     k += 1
                     s[k] = <char>32  # space
                     k += 1
-            _sig_off
+            sig_off()
             s[k-1] = <char>0
             data = str(s)
             sage_free(s)
@@ -1922,9 +1922,9 @@ def unpickle_matrix_mod2_dense_v1(r, c, data, size):
     for i from 0 <= i < size:
         buf[i] = data[i]
 
-    _sig_on
+    sig_on()
     cdef gdImagePtr im = gdImageCreateFromPngPtr(size, buf)
-    _sig_off
+    sig_off()
 
     sage_free(buf)
 
@@ -1967,9 +1967,9 @@ def from_png(filename):
     fn.close()
 
     cdef FILE *f = fopen(filename, "rb")
-    _sig_on
+    sig_on()
     cdef gdImagePtr im = gdImageCreateFromPng(f)
-    _sig_off
+    sig_off()
 
     c, r = gdImageSX(im), gdImageSY(im)
 
@@ -2060,17 +2060,17 @@ def pluq(Matrix_mod2_dense A, algorithm="standard", int param=0):
     cdef mzp_t *q = mzp_init(A._entries.ncols)
 
     if algorithm == "standard":
-        _sig_on
+        sig_on()
         mzd_pluq(B._entries, p, q, param)
-        _sig_off
+        sig_off()
     elif algorithm == "mmpf":
-        _sig_on
+        sig_on()
         _mzd_pluq_mmpf(B._entries, p, q, param)
-        _sig_off
+        sig_off()
     elif algorithm == "naive":
-        _sig_on
+        sig_on()
         _mzd_pluq_naive(B._entries, p, q)
-        _sig_off
+        sig_off()
     else:
         raise ValueError("Algorithm '%s' unknown."%algorithm)
 
@@ -2123,17 +2123,17 @@ def pls(Matrix_mod2_dense A, algorithm="standard", int param=0):
     cdef mzp_t *q = mzp_init(A._entries.ncols)
 
     if algorithm == 'standard':
-        _sig_on
+        sig_on()
         mzd_pls(B._entries, p, q, param)
-        _sig_off
+        sig_off()
     elif algorithm == "mmpf":
-        _sig_on
+        sig_on()
         _mzd_pls_mmpf(B._entries, p, q, param)
-        _sig_off
+        sig_off()
     elif algorithm == "naive":
-        _sig_on
+        sig_on()
         _mzd_pls_naive(B._entries, p, q)
-        _sig_off
+        sig_off()
     else:
         raise ValueError("Algorithm '%s' unknown."%algorithm)
 

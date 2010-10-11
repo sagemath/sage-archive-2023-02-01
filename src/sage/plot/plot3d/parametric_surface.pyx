@@ -355,12 +355,12 @@ cdef class ParametricSurface(IndexFaceSet):
         cdef Py_ssize_t m = len(vrange) - 1
         cdef Py_ssize_t ix = 0
 
-        _sig_on
+        sig_on()
         try:
             self.realloc((m+1)*(n+1), m*n, 4*m*n)
             self.eval_grid(urange, vrange)
         except:       # TODO -- this would catch control-C,etc. -- FIX THIS TO CATCH WHAT IS RAISED!!!!
-            _sig_off
+            sig_off()
             self.fcount = self.vcount = 0
             self.render_grid = None
             raise
@@ -445,7 +445,7 @@ cdef class ParametricSurface(IndexFaceSet):
                     # face.vertices[1] == face.vertices[2]
                     face.vertices[2] = face.vertices[3]
 
-        _sig_off
+        sig_off()
 
         self.vcount = (n+1)*(m+1)
         self.fcount = n*m

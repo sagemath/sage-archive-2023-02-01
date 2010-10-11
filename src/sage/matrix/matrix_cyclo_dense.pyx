@@ -972,7 +972,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         cdef Py_ssize_t i
         cdef Matrix_rational_dense mat = self._matrix
 
-        _sig_on
+        sig_on()
         if distribution == "1/n":
             for i from 0 <= i < mat._nrows:
                 mpq_randomize_entry_recip_uniform(mat._matrix[i][col])
@@ -982,7 +982,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         else:
             for i from 0 <= i < mat._nrows:
                 mpq_randomize_entry_as_int(mat._matrix[i][col], nump1)
-        _sig_off
+        sig_off()
 
     def randomize(self, density=1, num_bound=2, den_bound=2, \
                   distribution=None, nonzero=False, *args, **kwds):

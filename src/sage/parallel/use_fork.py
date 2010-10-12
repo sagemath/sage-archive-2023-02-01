@@ -15,7 +15,7 @@ class p_iter_fork:
     """
     A parallel iterator implemented using fork.
     """
-    def __init__(self, ncpus, timeout=0, verbose=True):
+    def __init__(self, ncpus, timeout=0, verbose=False):
         """
         Create fork-based parallel iterator.
 

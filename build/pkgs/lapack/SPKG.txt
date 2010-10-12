@@ -1,3 +1,6 @@
 MAINTAINERS:
     Josh Kantor
     William Stein
+
+-- Oct 2010 --- D. Pasechnik
+added .hgignore

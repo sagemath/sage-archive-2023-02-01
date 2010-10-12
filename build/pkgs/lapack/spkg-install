@@ -1,10 +1,10 @@
 #!/bin/sh
 
 
-if [ "`uname`" = "Darwin" -a "`uname -p`" = "i386" ]; then
-    echo "No need to build lapack on OSX Intel."
-    exit 0
-fi
+#if [ "`uname`" = "Darwin" -a "`uname -p`" = "i386" ]; then
+#    echo "No need to build lapack on OSX Intel."
+#    exit 0
+#fi
 
 cp patches/make.inc src
 

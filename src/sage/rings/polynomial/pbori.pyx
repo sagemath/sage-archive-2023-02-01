@@ -485,8 +485,12 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             sage: P # indirect doctest
             Boolean PolynomialRing in x, y
         """
-        gens = ", ".join(map(str,self.gens()))
-        return "Boolean PolynomialRing in %s"%(gens)
+        # we use this function when we throw exceptions, thus we want
+        # it to be fast.
+        if self._repr is None:
+            gens = ", ".join(self._names)
+            self._repr = "Boolean PolynomialRing in %s"%(gens)
+        return self._repr
 
     cdef _coerce_c_impl(self, other):
         r"""
@@ -643,6 +647,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                 return p
             else:
                 raise ValueError, "cannot coerce monomial %s to %s: %s"%(other,self,msg)
+
         elif PY_TYPE_CHECK(other,BooleanPolynomial) and \
             ((<BooleanPolynomialRing>(<BooleanPolynomial>other)\
             ._parent)._pbring.nVariables() <= self._pbring.nVariables()):
@@ -676,6 +681,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                                     m *= var_mapping[j]
                             p += m
                     return p
+
         elif PY_TYPE_CHECK(other, Element) and \
                 self.base_ring().has_coerce_map_from(other.parent()):
                     if self.base_ring()(other).is_zero():
@@ -688,7 +694,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
     def __call__(self, other):
         """
-        Convert elements of other objects to this boolean polynomial ring.
+        Convert ``other`` to this Boolean polynomial ring.
 
         EXAMPLE::
 
@@ -696,12 +702,8 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             sage: P(5)
             1
 
-        ::
-
             sage: P(x+y)
             x + y
-
-        ::
 
             sage: P.<x,y> = BooleanPolynomialRing(2)
             sage: R = BooleanPolynomialRing(1,'y')
@@ -709,8 +711,6 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             y
             sage: p.parent()
             Boolean PolynomialRing in y
-
-        ::
 
             sage: P = BooleanPolynomialRing(2,'x,y')
             sage: R.<z,x,y> = ZZ['z,x,y']
@@ -728,8 +728,6 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             Traceback (most recent call last):
             ...
             ValueError: cannot convert polynomial x*y + x + y + 1 to Boolean PolynomialRing in y: name x not defined
-
-        ::
 
             sage: P = BooleanPolynomialRing(2,'x,y')
             sage: R.<z,x,y> = ZZ['z,x,y']
@@ -792,8 +790,11 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                     return p
 
         elif PY_TYPE_CHECK(other, str):
+            gd = self.gens_dict()
+            if other in gd:
+                return gd[other]
             other = other.replace("^","**")
-            p = self(eval(other, self.gens_dict(), {}))
+            p = self(eval(other, gd, {}))
             return p
 
         try:
@@ -861,6 +862,64 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         cdef long _hash = hash(self.variable_names()) ^ 42
         _hash ^= hash(self.term_order())
         return _hash
+
+    def __contains__(self, x):
+        """
+        An element ``x`` is considered to be a member of this ring if
+        there is a coercion defined for ``x`` to this ring.
+
+        EXAMPLE::
+
+            sage: B.<a,b,c,d> = BooleanPolynomialRing()
+            sage: a in B
+            True
+
+            sage: e = B.random_element(); e
+            a*c + a*d + a + b*d + 1
+
+            sage: e.lt()
+            a*c
+
+            sage: e.lt() in B
+            True
+
+
+            sage: 0 in B
+            True
+
+        Note that all integers are considered to be in the boolean
+        polynomial ring::
+
+            sage: 7 in B
+            True
+
+            sage: 7 in GF(2)
+            True
+        """
+        try:
+            self._coerce_(x)
+            return True
+        except TypeError:
+            return False
+
+    def gens_dict(self):
+        """
+        Return a dictionary whose entries are ``{var_name:variable,...}``.
+
+        EXAMPLE::
+
+            sage: B.<a,b,c,d> = BooleanPolynomialRing()
+            sage: B.gens_dict()
+            {'a': a, 'c': c, 'b': b, 'd': d}
+        """
+        if self._gens_dict is not None:
+            return self._gens_dict
+
+        v = {}
+        for x in self.gens():
+            v[str(x)] = x
+        self._gens_dict = v
+        return v
 
     def ideal(self, *gens, **kwds):
         """
@@ -1433,6 +1492,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         t = list(self._names)
         t[i] = s
         self._names = tuple(t)
+        self._repr = None
 
 
     def one(self):

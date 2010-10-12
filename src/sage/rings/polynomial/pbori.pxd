@@ -18,6 +18,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
     cdef Py_ssize_t* pbind
     cdef public _monom_monoid
     cdef public object __interface
+    cdef object _repr
 
     # it is very important to keep this cached, since otherwise the magma interface will break
     cdef public object __cover_ring

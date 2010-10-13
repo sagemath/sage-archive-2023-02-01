@@ -6,6 +6,7 @@ import cPickle
 import os
 import sys
 from cStringIO import StringIO
+from sage.misc.sage_unittest import TestSuite
 
 sys_modules = sys.modules
 
@@ -971,15 +972,20 @@ def picklejar(obj, dir=None):
 
     open(base + '.txt', 'w').write(txt)
 
-def unpickle_all(dir, debug=False):
+def unpickle_all(dir = None, debug=False, run_test_suite=False):
     """
     Unpickle all sobj's in the given directory, reporting failures as
     they occur.  Also printed the number of successes and failure.
 
     INPUT:
 
-    - ``dir`` - string; a directory or name of a .tar.bz2 file that
-      decompresses to give a directory full of pickles.
+     - ``dir`` -- a string; the name of a directory (or of a .tar.bz2
+       file that decompresses to a directory) full of pickles.
+       (default: the standard pickle jar)
+     - ``debug`` -- a boolean (default: False)
+       whether to report a stacktrace in case of failure
+     - ``run_test_suite`` -- a boolean (default: False)
+       whether to run ``TestSuite(x).run()`` on the unpickled objects
 
     EXAMPLES::
 
@@ -990,23 +996,36 @@ def unpickle_all(dir, debug=False):
         Failed to unpickle 0 objects.
 
     We unpickle the standard pickle jar. This doctest tests that
-    all "standard pickles" unpickle.  Every so often the standard pickle jar
-    should be updated by running the doctest suite with the environment variable
-    SAGE_PICKLE_JAR set, then copying the files from SAGE_ROOT/tmp/pickle_jar*
-    into the standard pickle jar.
+    all "standard pickles" unpickle::
 
-    ::
-
-        sage: std = os.environ['SAGE_DATA'] + '/extcode/pickle_jar/pickle_jar.tar.bz2'
-        sage: print "x"; sage.structure.sage_object.unpickle_all(std)
+        sage: print "x"; sage.structure.sage_object.unpickle_all()
         x...
         Successfully unpickled ... objects.
         Failed to unpickle 0 objects.
+
+    Every so often the standard pickle jar should be updated by
+    running the doctest suite with the environment variable
+    SAGE_PICKLE_JAR set, then copying the files from
+    SAGE_ROOT/tmp/pickle_jar* into the standard pickle jar.
+
+    Do you want to find *lots* of little issues in Sage? Run the following:
+
+        sage: print "x"; sage.structure.sage_object.unpickle_all(run_test_suite = True) # todo: not tested
+
+    This runs :class:`TestSuite` tests on all objects in the Sage pickle
+    jar. Some of those objects seem to unpickle properly, but do not
+    pass the tests because their internal data structure is messed
+    up. In most cases though it is just that their source file misses
+    a TestSuite call, and therefore some misfeatures went unnoticed
+    (typically Parents not implementing the ``an_element`` method).
     """
+    if dir is None:
+        dir = os.environ['SAGE_DATA'] + '/extcode/pickle_jar/pickle_jar.tar.bz2'
     i = 0
     j = 0
     failed = []
     tracebacks = []
+    # This could use instead Python's tarfile module
     if dir.endswith('.tar.bz2'):
         # create a temporary directory
         from sage.misc.all import tmp_dir
@@ -1019,11 +1038,16 @@ def unpickle_all(dir, debug=False):
     for A in sorted(os.listdir(dir)):
         if A.endswith('.sobj'):
             try:
-                load(dir + '/' + A)
+                object = load(dir + '/' + A)
+                if run_test_suite:
+                    TestSuite(object).run(catch = False)
                 i += 1
             except Exception, msg:
                 j += 1
-                print "** failed: ", A
+                if run_test_suite:
+                    print " * unpickle failure: TestSuite(load('%s')).run()"%(dir+'/'+A)
+                else:
+                    print " * unpickle failure: load('%s')"%(dir+'/'+A)
                 failed.append(A)
                 if debug:
                     tracebacks.append(sys.exc_info())

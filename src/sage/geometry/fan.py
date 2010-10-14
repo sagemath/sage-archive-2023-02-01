@@ -535,7 +535,7 @@ def FaceFan(polytope, lattice=None):
         (N(-1, 0), N(0, -1))
         (N(1, 0), N(0, 1))
         (N(0, 1), N(-1, 0))
-     """
+    """
     if any(d <= 0 for d in polytope.distances([0]*polytope.dim())):
         raise ValueError("face fans are defined only for polytopes containing"
                          "the origin as an interior point!")
@@ -596,7 +596,7 @@ class Cone_of_fan(ConvexRationalPolyhedralCone):
     .. WARNING::
 
         This class does not check that the input defines a valid cone of a
-        fan. You should not construct objects of this class directly.
+        fan. You must not construct objects of this class directly.
 
     In addition to all of the properties of "regular" :class:`cones
     <sage.geometry.cone.ConvexRationalPolyhedralCone>`, such cones know their
@@ -900,9 +900,9 @@ class RationalPolyhedralFan(IntegralRayCollection,
         else:
             return cmp(type(self), type(right))
 
-    def __contains__(self, data):
+    def __contains__(self, cone):
         r"""
-        Check if ``data`` is contained in ``self``.
+        Check if ``cone`` is equivalent to a cone of the fan.
 
         See :meth:`_contains` (which is called by this function) for
         documentation.
@@ -912,14 +912,16 @@ class RationalPolyhedralFan(IntegralRayCollection,
             sage: cone1 = Cone([(0,-1), (1,0)])
             sage: cone2 = Cone([(1,0), (0,1)])
             sage: f = Fan([cone1, cone2])
+            sage: f.generating_cone(0) in f
+            True
             sage: cone1 in f
             True
-            sage: (1,1) in f
-            True
-            sage: (-1,-1) in f
+            sage: (1,1) in f    # not a cone
+            False
+            sage: "Ceci n'est pas un cone" in f
             False
         """
-        return self._contains(data)
+        return self._contains(cone)
 
     def __iter__(self):
         r"""
@@ -1072,24 +1074,21 @@ class RationalPolyhedralFan(IntegralRayCollection,
             elements[labels[0]] = FanFace(tuple(range(self.nrays())), ())
             self._cone_lattice = FinitePoset(L, elements)
 
-    def _contains(self, data):
+    def _contains(self, cone):
         r"""
-        Check if ``data`` is contained in ``self``.
+        Check if ``cone`` is equivalent to a cone of the fan.
 
         This function is called by :meth:`__contains__` and :meth:`contains`
         to ensure the same call depth for warning messages.
 
         INPUT:
 
-        - ``data`` -- anything. If it is not a cone, an attempt will be made
-          to convert it into a single point of the ambient space of ``self``.
-          If it fails, ``False`` will be returned.
+        - ``cone`` -- anything.
 
         OUTPUT:
 
-        - ``True`` if ``data`` is contained in ``self``, ``False`` otherwise.
-
-        TESTS::
+        - ``False`` if ``cone`` is not a cone or if ``cone`` is not
+          equivalent to a cone of the fan. ``True`` otherwise.
 
         TESTS::
 
@@ -1098,26 +1097,94 @@ class RationalPolyhedralFan(IntegralRayCollection,
             sage: f = Fan([cone1, cone2])
             sage: f._contains(cone1)
             True
-            sage: f._contains((1,1))
+            sage: f._contains((1,1))  # this is not a cone!
+            False
+
+        Note that the ambient fan of the cone does not matter::
+
+            sage: cone1_f = f.generating_cone(0)
+            sage: cone1_f is cone1
+            False
+            sage: cone1_f.is_equivalent(cone1)
+            True
+            sage: cone1   in Fan([cone1, cone2])  # not a cone of any particular fan
+            True
+            sage: cone1_f in Fan([cone1, cone2])  # belongs to different fan, but equivalent cone
             True
         """
-        if is_Cone(data):
-            if data.lattice() != self.lattice():
-                warnings.warn("you have checked if a fan contains a cone "
-                              "from another lattice, this is always False!",
-                              stacklevel=3)
-                # We may need to take into account canonical maps, perhaps...
-                return False
-            if (not data.is_strictly_convex()
-                or not data.ray_set().issubset(self.ray_set())):
-                return False
-            try:
-                return data.is_equivalent(self.cone_containing(data.rays()))
-            except ValueError:  # No cone containing all these rays
-                return False
-        # Now we try to treat data as a point
+        if not is_Cone(cone):
+            return False
+        if cone.lattice() != self.lattice():
+            warnings.warn("you have checked if a fan contains a cone "
+                          "from another lattice, this is always False!",
+                          stacklevel=3)
+            # We may need to take into account canonical maps, perhaps...
+            return False
+        if (not cone.is_strictly_convex()
+            or not cone.ray_set().issubset(self.ray_set())):
+            return False
         try:
-            data = self._ambient_space_point(data)
+            return cone.is_equivalent(self.cone_containing(cone.rays()))
+        except ValueError:  # No cone of then fan contains all these rays
+            return False
+
+    def support_contains(self, *args):
+        r"""
+        Check if a point is contained in the support of the fan.
+
+        The support of a fan is the union of all cones of the fan. If
+        you want to know whether the fan contains a given cone, you
+        should use :meth:`contains` instead.
+
+        INPUT:
+
+        - ``*args`` -- an element of ``self.lattice()`` or something
+          that can be converted to it (for example, a list of
+          coordinates).
+
+        OUTPUT:
+
+        - ``True`` if ``point`` is contained in the support of the
+          fan, ``False`` otherwise.
+
+        TESTS::
+
+            sage: cone1 = Cone([(0,-1), (1,0)])
+            sage: cone2 = Cone([(1,0), (0,1)])
+            sage: f = Fan([cone1, cone2])
+
+        We check if some points are in this fan::
+
+            sage: f.support_contains(f.lattice()(1,0))
+            True
+            sage: f.support_contains(cone1)    # a cone is not a point of the lattice
+            False
+            sage: f.support_contains((1,0))
+            True
+            sage: f.support_contains(1,1)
+            True
+            sage: f.support_contains((-1,0))
+            False
+            sage: f.support_contains(f.lattice().dual()(1,0)) #random output (warning)
+            False
+            sage: f.support_contains(f.lattice().dual()(1,0))
+            False
+            sage: f.support_contains(1)
+            False
+            sage: f.support_contains(0)   # 0 converts to the origin in the lattice
+            True
+            sage: f.support_contains(1/2, sqrt(3))
+            True
+            sage: f.support_contains(-1/2, sqrt(3))
+            False
+        """
+        if len(args)==1:
+            point = args[0]
+        else:
+            point = args
+
+        try:
+            point = self._ambient_space_point(point)
         except TypeError, ex:
             if str(ex).endswith("have incompatible lattices!"):
                 warnings.warn("you have checked if a fan contains a point "
@@ -1126,7 +1193,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
             return False
         if self.is_complete():
             return True
-        return any(data in cone for cone in self)
+        return any(point in cone for cone in self)
 
     def _latex_(self):
         r"""
@@ -1339,7 +1406,8 @@ class RationalPolyhedralFan(IntegralRayCollection,
 
         OUTPUT:
 
-        - :class:`cone of fan <Cone_of_fan>`.
+        - A :class:`cone of fan <Cone_of_fan>` whose ambient fan is
+          ``self``.
 
         .. NOTE::
 
@@ -1609,56 +1677,37 @@ class RationalPolyhedralFan(IntegralRayCollection,
         raise ValueError(
                     "dimension and codimension cannot be specified together!")
 
-    def contains(self, *args):
+    def contains(self, cone):
         r"""
-        Check if a given point or cone is contained in ``self``.
+        Check if a given ``cone`` is equivalent to a cone of the fan.
 
         INPUT:
 
-        - anything. If it is not a cone, an attempt will be made to convert
-          the input into a point of the ambient space of ``self``. If it
-          fails, ``False`` will be returned.
+        - ``cone`` -- anything.
 
         OUTPUT:
 
-        - ``True`` if the given point or cone is contained in ``self``,
-          ``False`` otherwise.
+        - ``False`` if ``cone`` is not a cone or if ``cone`` is not
+          equivalent to a cone of the fan. ``True`` otherwise.
 
         .. NOTE::
 
-            A point is contained in a fan if it is contained in its support.
-            A cone is contained in a fan if it is equivalent to one of the
-            cones of the fan, in particular, it is possible that all points of
-            the cone are in the fan, but the cone itself is not.
+            Recall that a fan is a (finite) collection of cones. A
+            cone is contained in a fan if it is equivalent to one of
+            the cones of the fan. In particular, it is possible that
+            all rays of the cone are in the fan, but the cone itself
+            is not.
+
+            If you want to know whether a point is in the support of
+            the fan, you should use :meth:`support_contains`.
 
         EXAMPLES:
 
-        We construct a simple fan::
+        We first construct a simple fan::
 
             sage: cone1 = Cone([(0,-1), (1,0)])
             sage: cone2 = Cone([(1,0), (0,1)])
             sage: f = Fan([cone1, cone2])
-
-        We check if some points are in this fan::
-
-            sage: f.contains(f.lattice()(1,0))
-            True
-            sage: f.contains((1,0))
-            True
-            sage: f.contains(1,1)
-            True
-            sage: f.contains((-1,0))
-            False
-            sage: f.contains(f.lattice().dual()(1,0)) #random output (warning)
-            False
-            sage: f.contains(f.lattice().dual()(1,0))
-            False
-            sage: f.contains(1)
-            False
-            sage: f.contains(1/2, sqrt(3))
-            True
-            sage: f.contains(-1/2, sqrt(3))
-            False
 
         Now we check if some cones are in this fan. First, we make sure that
         the order of rays of the input cone does not matter (``check=False``
@@ -1674,18 +1723,24 @@ class RationalPolyhedralFan(IntegralRayCollection,
 
             sage: f.contains(Cone([(1,0)]))
             True
+            sage: Cone([(1,0)]) in f   # equivalent to the previous command
+            True
 
         Finally, we test some cones which are not in this fan::
 
             sage: f.contains(Cone([(1,1)]))
             False
-            sage: f.contains(Cone([(0,1), (-1,0)]))
+            sage: f.contains(Cone([(1,0), (-0,1)]))
+            True
+
+        A point is not a cone::
+
+            sage: n = f.lattice()(1,1); n
+            N(1, 1)
+            sage: f.contains(n)
             False
         """
-        data = flatten(args)
-        if len(data) == 1:
-           data = data[0]
-        return self._contains(data)
+        return self._contains(cone)
 
     def embed(self, cone):
         r"""

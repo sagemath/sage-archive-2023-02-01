@@ -2266,6 +2266,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             ...
             NotImplementedError: cone isomorphism is not implemented yet!
         """
+        if self is other:
+            return True
         if self.lattice() != other.lattice():
             return False
         raise NotImplementedError("cone isomorphism is not implemented yet!")

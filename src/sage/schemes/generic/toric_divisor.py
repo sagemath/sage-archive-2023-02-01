@@ -348,6 +348,8 @@ class ToricDivisorGroup(DivisorGroup_generic):
             sage: TDiv = P2.toric_divisor_group()
             sage: TDiv._element_constructor_([ (1,P2.gen(2)) ])
             V(z)
+            sage: TDiv( P2.fan(1)[0] )
+            V(x)
         """
         if is_ToricDivisor(x):
             if x.parent() is self:
@@ -482,8 +484,11 @@ def ToricDivisor(toric_variety, arg=None, ring=None, check=True, reduce=True):
         ValueError: u + y is not a monomial!
         sage: ToricDivisor(dP6, u*y)
         V(u) + V(y)
-        sage: ToricDivisor(dP6, dP6.fan(dim=1)[0] )
-        V(x)
+        sage: ToricDivisor(dP6, dP6.fan(dim=1)[2] )
+        V(y)
+        sage: cone = Cone(dP6.fan(dim=1)[2])
+        sage: ToricDivisor(dP6, cone)
+        V(y)
         sage: N = dP6.fan().lattice()
         sage: ToricDivisor(dP6, N(1,1) )
         V(w)
@@ -520,10 +525,14 @@ def ToricDivisor(toric_variety, arg=None, ring=None, check=True, reduce=True):
         arg = toric_variety.fan().cone_containing(arg)
     # Divisor by a one-cone
     if is_Cone(arg):
-        if arg.dim() != 1:
+        fan = toric_variety.fan()
+        cone = fan.embed(arg)
+        if cone.dim() != 1:
             raise ValueError("Only 1-dimensional cones of the toric variety "
                              "define divisors.")
-        arg = arg.ambient_ray_indices()[0]
+
+        assert cone.ambient() is fan
+        arg = cone.ambient_ray_indices()[0]
     # Divisor by a ray index
     if arg in ZZ:
         arg = [(1, toric_variety.gen(arg))]
@@ -789,6 +798,8 @@ class ToricDivisor_generic(Divisor_generic):
             (3/2, 0, 1/2)
             sage: QQ_Cartier.m(triangle_cone)
             M(1, 0, 1)
+            sage: QQ_Cartier.m(Cone(triangle_cone))
+            M(1, 0, 1)
             sage: Weil = X.divisor([1,1,1,0,0])
             sage: Weil.m(square_cone)
             Traceback (most recent call last):
@@ -808,11 +819,14 @@ class ToricDivisor_generic(Divisor_generic):
 
         X = self.parent().scheme()
         M = X.fan().dual_lattice()
+        fan = X.fan()
+        cone = fan.embed(cone)
         if cone.is_trivial():
             m = M(0)
             self._m[cone] = m
             return m
 
+        assert cone.ambient() is fan
         b = vector(self.coefficient(i) for i in cone.ambient_ray_indices())
         A = cone.ray_matrix()
         try:
@@ -1022,8 +1036,9 @@ class ToricDivisor_generic(Divisor_generic):
             [y + v - w]
         """
         divisor = vector(self)
-        return sum([divisor[i] * cone.cohomology_class()
-                    for i, cone in enumerate(self.parent().scheme().fan(1))])
+        variety = self.parent().scheme()
+        HH = variety.cohomology_ring()
+        return sum([ divisor[i] * HH.gen(i) for i in range(0,HH.ngens()) ])
 
     def Chern_character(self):
         r"""

@@ -294,29 +294,6 @@ class Cone_of_toric_variety(EnhancedCone):
         """
         return self.ambient().toric_variety()
 
-    def cohomology_class(self):
-        r"""
-        Return the cohomology class associated to the cone.
-
-        OUTPUT:
-
-        Returns the cohomology class of the orbit closure (a
-        subvariety of the toric variety) associated to the cone.
-
-        EXAMPLES::
-
-            sage: dP6 = toric_varieties.dP6()
-            sage: cone = dP6.fan().cone_containing(2,3); cone
-            2-d cone of Rational polyhedral fan in 2-d lattice N
-            sage: cone.cohomology_class()
-            [-w^2]
-        """
-        if "_cohomology_class" not in self.__dict__:
-            idx = self.ambient_ray_indices()
-            self._cohomology_class = \
-                prod( self.toric_variety().cohomology_ring().gen(i) for i in idx )
-        return self._cohomology_class
-
 
 class Fan_of_toric_variety(EnhancedFan):
     r"""
@@ -1876,7 +1853,7 @@ class ToricVariety_field(AmbientSpace):
                                           'implemented for orbifolds.')
             def V(cone): return abs(cone.ray_matrix().determinant())
             min_cone = min( self._fan.generating_cones(), key=V)
-            self._volume_class = min_cone.cohomology_class() / V(min_cone)
+            self._volume_class = self.cohomology_ring()(min_cone) / V(min_cone)
         if self._volume_class.is_zero():
             raise ValueError, 'Volume class does not exist.'
         return self._volume_class
@@ -1900,7 +1877,8 @@ class ToricVariety_field(AmbientSpace):
         EXAMPLES::
 
             sage: dP6 = toric_varieties.dP6()
-            sage: D = [ c.cohomology_class() for c in dP6.fan(dim=1) ]
+            sage: HH = dP6.cohomology_ring()
+            sage: D = [ HH(c) for c in dP6.fan(dim=1) ]
             sage: matrix([ [ D[i]*D[j] for i in range(0,6) ] for j in range(0,6) ])
             [ [w^2] [-w^2]    [0]    [0]    [0] [-w^2]]
             [[-w^2]  [w^2] [-w^2]    [0]    [0]    [0]]
@@ -2120,9 +2098,10 @@ class ToricVariety_field(AmbientSpace):
         Lets test that the del Pezzo surface `dP_6` has degree 6, as its name implies::
 
             sage: dP6 = toric_varieties.dP6()
+            sage: HH = dP6.cohomology_ring()
             sage: dP6.K()
             -V(x) - V(u) - V(y) - V(v) - V(z) - V(w)
-            sage: dP6.integrate( dP6.K().cohomology_class()^2 )
+            sage: dP6.integrate( HH(dP6.K())^2 )
             6
         """
         from sage.schemes.generic.toric_divisor import ToricDivisor
@@ -2980,9 +2959,26 @@ class CohomologyRing(QuotientRing_generic):
 
         INPUT::
 
-        - ``x`` -- something that defines a cohomology class.
+        - ``x`` -- something that defines a cohomology class. Either a
+          cohomology class, a cone of the fan, or something that can
+          be converted into a polynomial in the homogeneous
+          coordinates.
 
         EXAMPLES::
+
+            sage: dP6 = toric_varieties.dP6()
+            sage: H = dP6.cohomology_ring()
+            sage: cone = dP6.fan().cone_containing(2,3); cone
+            2-d cone of Rational polyhedral fan in 2-d lattice N
+            sage: H(cone)   # indirect doctest
+            [-w^2]
+            sage: H( Cone(cone) )
+            [-w^2]
+            sage: H( dP6.fan(0)[0] )   # trivial cone
+            [1]
+
+
+        Numbers will be converted into the ring::
 
             sage: P2 = toric_varieties.P2()
             sage: H = P2.cohomology_ring()
@@ -2992,11 +2988,28 @@ class CohomologyRing(QuotientRing_generic):
             [1]
             sage: type( H(1) )
             <class 'sage.schemes.generic.toric_variety.CohomologyClass'>
+            sage: P2.inject_variables()
+            Defining x, y, z
+            sage: H(1+x*y+z)
+            [z^2 + z + 1]
         """
+        fan = self._variety.fan()
+        if isinstance(x, CohomologyClass) and x.parent()==self:
+            return x
         if isinstance(x, QuotientRingElement):
             x = x.lift()
+        elif is_Cone(x):
+            cone = fan.embed(x)
+            assert cone.ambient() is fan
+            x = prod((self.cover_ring().gen(i) for i in cone.ambient_ray_indices()),
+                     z=self.cover_ring().one())
         else:
-            x = self.cover_ring()(x)
+            try:
+                # divisor, for example, know how to compute their own cohomology class
+                return x.cohomology_class()
+            except AttributeError:
+                # this ensures that rationals are converted to cohomology ring elements
+                x = self.cover_ring()(x)
         return CohomologyClass(self, x)
 
     # We definitely should not override __call__, but since our
@@ -3080,10 +3093,11 @@ def is_CohomologyClass(x):
     EXAMPLES::
 
         sage: P2 = toric_varieties.P2()
+        sage: HH = P2.cohomology_ring()
         sage: from sage.schemes.generic.toric_variety import is_CohomologyClass
-        sage: is_CohomologyClass( P2.cohomology_ring().one() )
+        sage: is_CohomologyClass( HH.one() )
         True
-        sage: is_CohomologyClass( (P2.fan(1)[0]).cohomology_class() )
+        sage: is_CohomologyClass( HH(P2.fan(1)[0]) )
         True
         sage: is_CohomologyClass('z')
         False
@@ -3099,18 +3113,19 @@ class CohomologyClass(QuotientRingElement):
     .. WARNING::
 
         You should not create instances of this class manually. The
-        generators of the cohomology ring can be obtained from
-        :meth:`ToricVariety_field.cohomology_ring`
-        and the cohomology class associated to cones of the fan from
-        :meth:`Cone_of_toric_variety.cohomology_class`
+        generators of the cohomology ring as well as the cohomology
+        classes associated to cones of the fan can be obtained from
+        :meth:`ToricVariety_field.cohomology_ring`.
 
     EXAMPLES::
 
         sage: P2 = toric_varieties.P2()
-        sage: cone = P2.fan(1)[0]
-        sage: cone.cohomology_class()
-        [z]
         sage: P2.cohomology_ring().gen(0)
+        [z]
+        sage: HH = P2.cohomology_ring()
+        sage: HH.gen(0)
+        [z]
+        sage: cone = P2.fan(1)[0];  HH(cone)
         [z]
     """
 

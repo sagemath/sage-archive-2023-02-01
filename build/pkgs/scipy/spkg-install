@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # These flags confuse numpy's distutils.   In particular,
 # if they are set empty bad things happen.
 

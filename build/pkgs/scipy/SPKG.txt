@@ -32,7 +32,7 @@ BSD terms. See http://www.scipy.org/License_Compatibility
 
 == Changelog ==
 
-== scipy-0.8 (S. Reiterer, F. Bissey, D. Kirkby; 6th October 2010) ===
+== scipy-0.8 (S. Reiterer, F. Bissey, D. Kirkby, J. H. Palmieri; 14 October 2010) ===
  * #9808 Upgrade to scipy 0.8.
  * Deleted outdated patches
  * spkg install changed by F. Bissey, because g95 makes trouble on OS X.
@@ -44,6 +44,8 @@ BSD terms. See http://www.scipy.org/License_Compatibility
    "Special Update/Build Instructions" section to SPKG.txt
  * Changed "maintainer" to "SPKG Maintainers" in SPKG.txt to be consistent with
    what is stated in the Sage Developers Guide.
+ * In spkg-install, changed first line from "#!/bin/sh" to
+   "#!/usr/bin/env bash": otherwise, it fails to build on Solaris.
 
 === scipy-0.7.1 (Jason Grout; 12 Nov 2009) ===
  * upgrade to scipy 0.7.1.  The optimize.py patch still needs to be applied in this version of scipy.

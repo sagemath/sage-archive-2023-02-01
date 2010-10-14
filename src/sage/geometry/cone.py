@@ -1543,6 +1543,111 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             self._dual._dual = self
         return self._dual
 
+    def embed(self, cone):
+        r"""
+        Return the cone equivalent to the given one, but sitting in ``self`` as
+        a face.
+
+        You may need to use this method before calling methods of ``cone`` that
+        depend on the ambient structure, such as
+        :meth:`~sage.geometry.cone.ConvexRationalPolyhedralCone.ambient_ray_indices`
+        or
+        :meth:`~sage.geometry.cone.ConvexRationalPolyhedralCone.facet_of`. The
+        cone returned by this method will have ``self`` as ambient. If ``cone``
+        does not represent a valid cone of ``self``, ``ValueError`` exception
+        is raised.
+
+        .. NOTE::
+
+            This method is very quick if ``self`` is already the ambient
+            structure of ``cone``, so you can use without extra checks and
+            performance hit even if ``cone`` is likely to sit in ``self`` but
+            in principle may not.
+
+        INPUT:
+
+        - ``cone`` -- a :class:`cone
+          <sage.geometry.cone.ConvexRationalPolyhedralCone>`.
+
+        OUTPUT:
+
+        - a :class:`cone <sage.geometry.cone.ConvexRationalPolyhedralCone>`,
+          equivalent to ``cone`` but sitting inside ``self``.
+
+        EXAMPLES:
+
+        Let's take a 3-d cone on 4 rays::
+
+            sage: c = Cone([(1,0,1), (0,1,1), (-1,0,1), (0,-1,1)])
+
+        Then any ray generates a 1-d face of this cone, but if you construct
+        such a face directly, it will not "sit" inside the cone::
+
+            sage: ray = Cone([(0,-1,1)])
+            sage: ray
+            1-d cone in 3-d lattice N
+            sage: ray.ambient_ray_indices()
+            (0,)
+            sage: ray.adjacent()
+            ()
+            sage: ray.ambient()
+            1-d cone in 3-d lattice N
+
+        If we want to operate with this ray as a face of the cone, we need to
+        embed it first::
+
+            sage: e_ray = c.embed(ray)
+            sage: e_ray
+            1-d face of 3-d cone in 3-d lattice N
+            sage: e_ray.rays()
+            (N(0, -1, 1),)
+            sage: e_ray is ray
+            False
+            sage: e_ray.is_equivalent(ray)
+            True
+            sage: e_ray.ambient_ray_indices()
+            (3,)
+            sage: e_ray.adjacent()
+            (1-d face of 3-d cone in 3-d lattice N,
+             1-d face of 3-d cone in 3-d lattice N)
+            sage: e_ray.ambient()
+            3-d cone in 3-d lattice N
+
+        Not every cone can be embedded into a fixed ambient cone::
+
+            sage: c.embed(Cone([(0,0,1)]))
+            Traceback (most recent call last):
+            ...
+            ValueError: 1-d cone in 3-d lattice N is not a face
+            of 3-d cone in 3-d lattice N!
+            sage: c.embed(Cone([(1,0,1), (-1,0,1)]))
+            Traceback (most recent call last):
+            ...
+            ValueError: 2-d cone in 3-d lattice N is not a face
+            of 3-d cone in 3-d lattice N!
+        """
+        assert is_Cone(cone)
+        if cone.ambient() is self:
+            return cone
+        if self.is_strictly_convex():
+            rays = self.rays()
+            try:
+                ray_indices = tuple(sorted(rays.index(ray)
+                                           for ray in cone.rays()))
+                for face in self.faces(cone.dim()):
+                    if face.ambient_ray_indices() == ray_indices:
+                        return face
+            except ValueError:
+                pass
+        else:
+            # We cannot use the trick with indices since rays are not unique.
+            for face in self.faces(cone.dim()):
+                if cone.is_equivalent(face):
+                    return face
+        # If we are here, then either ValueError was raised or we went through
+        # all faces and didn't find the matching one.
+        raise ValueError("%s is not a face of %s!" % (cone, self))
+
     def face_lattice(self):
         r"""
         Return the face lattice of ``self``.
@@ -2057,6 +2162,11 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: cone1.is_equivalent(cone2)
             True
         """
+        if self is other:
+            return True
+        # TODO: Next check is pointless if cones and fans are made to be unique
+        if self.ambient() is other.ambient() and self.is_strictly_convex():
+            return self.ambient_ray_indices() == other.ambient_ray_indices()
         if self.lattice() != other.lattice():
             return False
         if self.ray_set() == other.ray_set():

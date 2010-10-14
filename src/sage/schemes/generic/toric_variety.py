@@ -1545,10 +1545,10 @@ class ToricVariety_field(AmbientSpace):
             sage: TV_res.is_smooth()
             True
             sage: TV_res.fan().ray_matrix()
-            [-1  1  0]
+            [ 1 -1  0]
             [ 1  1  1]
             sage: [cone.ambient_ray_indices() for cone in TV_res.fan()]
-            [(1, 2), (0, 2)]
+            [(0, 2), (1, 2)]
 
         Now let's "automatically" partially resolve a more complicated fan::
 

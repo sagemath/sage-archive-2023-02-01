@@ -1,4 +1,4 @@
-from sage.misc.all import tmp_filename, preparse
+from sage.misc.all import tmp_filename, preparse, SAGE_ROOT
 
 systems = {}
 systems['PARI'] = ['sage.libs.pari', 'sage.interfaces.gp']
@@ -78,7 +78,7 @@ def get_systems(cmd):
     stats = pstats.Stats(filename)
 
     #Strings is a list of method names and modules which get run
-    strings = [a[0] + " " + a[2] for a in stats.stats.keys()]
+    strings = [a[0].replace(SAGE_ROOT, "") + " " + a[2] for a in stats.stats.keys()]
 
     #Remove trivial functions
     bad_res = [re.compile(r'is_.*Element')]

@@ -19,45 +19,20 @@ Dependencies:
   Fortran
 
 Special Update/Build Instructions:
-  * The file $SAGE_ROOT/devel/sage/sage/ext/numpy.pxi comes from this file and must be updated if/when
-    the file src/numpy/doc/cython/numpy.pxi is updated.
-
-  * Josh Kantor has done this the most so get him to do it if possible.
-
-  * To ensure that numpy compiles consistently regardless of what fortrans are on the
-    users system, we patch the files
-    numpy/distutiles/fcompiler/__init__.py and numpy/distutiles/fcompiler/gnu.py
-
-    1. This is done by adding a Sage_FCompiler and Sage_FCompiler_1 compiler clases
-    to gnu.py. Sage_FCompiler is for g95, and Sage_FCompiler_1 is for gfortran
-    In updating to a newer version of numpy  it is usually possible to just
-    copy these classes into the new gnu.py. These classes control what flags
-    are used and libraries are linked in when compiling fortran code (as well as
-    the exact compiler called).
-
-    2.  The __init__.py file is modified so that sage_fortran is always the default
-    compiler, which uses either Sage_FCompiler or Sage_FCompiler_1.
-    This file changes sometimes and the exact modification necessary is not constant
-    so it basically requires figuring out what is going on. For example in the current
-    1.1.0:
-
-    At line 682 we add sage_fortran to the beginning of the list of compilers on all
-    platforms of interest, this is the _default_compilers dict.
-
-    At line 701, we figure out whether we use gfortran or g95 and set cls
-    to Sage_FCompiler or Sage_FCompiler_1 as appropriate (this version string test
-    could probably be better but seems to work consistently).
-
-    At line 742, we add 'sage_fortran':('gnu',cls,"GNU Fortran")
-    to the dictionary of possible compilers. Since we modified the _default_compilers
-    dict, sage_fortran, will be tried first and it will use the compiler class cls
-    which refers to Sage_Fcompilers or Sage_FCompiler_1.
-
-    3. Scipy uses numpy's distutils to control its compilation of fortran code.
+  * Scipy uses numpy's distutils to control its compilation of fortran code.
     Whenever numpy is updated it is necessary to make sure that scipy still builds ok.
 
 
 == Changelog ==
+
+=== numpy-1.5.0 (Karl-Dieter Crisman, 13 October 2010) ==
+ * Fix a bug in architecture detection on Mac OS X where too many
+   architectures were detected on 10.6 for fat binaries.  See
+   Numpy ticket #1399 (http://projects.scipy.org/numpy/ticket/1399).
+   We fix it by patching src/numpy/distutils/fcompiler/gnu.py to
+   remove the ppc64 option in that specific instance.  When
+   numpy 1.5.1 is released, check to see if this patch is still
+   necessary.
 
 === numpy-1.5.0 (John Palmieri, 5 October 2010) ==
  * Fix a bug when building on Solaris: numpy was not built with c99,

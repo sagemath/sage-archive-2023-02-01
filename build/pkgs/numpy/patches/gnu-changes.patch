@@ -1,0 +1,12 @@
+diff -r cca17bf6c183 patches/gnu.py
+--- a/patches/gnu.py    Wed Oct 13 21:35:07 2010 -0400
++++ b/patches/gnu.py    Wed Oct 13 21:35:21 2010 -0400
+@@ -254,7 +254,7 @@
+         if not sys.platform == 'darwin':
+             return []
+         arch_flags = []
+-        for arch in ["ppc", "i686", "x86_64", "ppc64"]:
++        for arch in ["ppc", "i686", "x86_64"]:
+             if _can_target(cmd, arch):
+                 arch_flags.extend(["-arch", arch])
+         return arch_flags

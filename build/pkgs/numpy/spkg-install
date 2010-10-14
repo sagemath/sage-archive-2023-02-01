@@ -56,6 +56,12 @@ cp ../patches/buffer.c numpy/core/src/multiarray/buffer.c
 # released, check to see if these patches are still necessary.
 cp ../patches/setup.py numpy/core/setup.py
 cp ../patches/config.py numpy/distutils/command/config.py
+if [ `uname` = "Darwin" ]; then
+    VER=`uname -r | sed 's/\([0-9]*\)\..*/\1/'`
+    if [ $VER -ge 10 ]; then
+        cp ../patches/gnu-changes.py numpy/distutils/fcompiler/gnu.py
+    fi
+fi
 
 rm -rf "$SAGE_LOCAL"/lib/python/site-packages/numpy
 

@@ -1159,19 +1159,26 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
 
         INPUT:
 
-        - ``l`` -- list of nonnegative integers (default: None). The length
-          of the list must be the number of letters in the alphabet, and
-          the `i`-th integer of ``l`` determines the length of the word
-          mapped to by `i`-th letter of the (ordered) alphabet. If ``l`` is
-          ``None``, then the method iterates through all morphisms.
+        - ``l`` - (optional, default: None) It can be one of the following :
 
-        - ``codomain`` -- (default: None) a combinatorial class of words.
+          - ``None`` - then the method iterates through all morphisms.
+
+          - list of nonnegative integers - The length of the list must be
+            the number of letters in the alphabet, and the `i`-th integer
+            of ``l`` determines the length of the word mapped to by the
+            `i`-th letter of the (ordered) alphabet.
+
+          - tuple `(a, b)` of two integers  - It specifies the range
+            ``range(a, b)`` of values to consider for the sum of the length
+            of the image of each letter in the alphabet.
+
+        - ``codomain`` - (default: None) a combinatorial class of words.
           By default, ``codomain`` is ``self``.
 
-        - ``min_length`` -- (default: 1) nonnegative integer. If ``l`` is
+        - ``min_length`` - (default: 1) nonnegative integer. If ``l`` is
           not specified, then iterate through all the morphisms where the
           length of the images of each letter in the alphabet is at least
-          ``min_length``. This is ignored if ``l`` is not ``None``.
+          ``min_length``. This is ignored if ``l`` is a list.
 
         OUTPUT:
 
@@ -1204,6 +1211,52 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
             WordMorphism: a->, b->b
             WordMorphism: a->aa, b->
             WordMorphism: a->ab, b->
+
+        Iterator over morphisms where the sum of the lengths of the images
+        of the letters is in a specific range::
+
+            sage: for m in W.iter_morphisms((0, 3), min_length=0): print m
+            WordMorphism: a->, b->
+            WordMorphism: a->a, b->
+            WordMorphism: a->b, b->
+            WordMorphism: a->, b->a
+            WordMorphism: a->, b->b
+            WordMorphism: a->aa, b->
+            WordMorphism: a->ab, b->
+            WordMorphism: a->ba, b->
+            WordMorphism: a->bb, b->
+            WordMorphism: a->a, b->a
+            WordMorphism: a->a, b->b
+            WordMorphism: a->b, b->a
+            WordMorphism: a->b, b->b
+            WordMorphism: a->, b->aa
+            WordMorphism: a->, b->ab
+            WordMorphism: a->, b->ba
+            WordMorphism: a->, b->bb
+
+        ::
+
+            sage: for m in W.iter_morphisms( (2, 4) ): print m
+            WordMorphism: a->a, b->a
+            WordMorphism: a->a, b->b
+            WordMorphism: a->b, b->a
+            WordMorphism: a->b, b->b
+            WordMorphism: a->aa, b->a
+            WordMorphism: a->aa, b->b
+            WordMorphism: a->ab, b->a
+            WordMorphism: a->ab, b->b
+            WordMorphism: a->ba, b->a
+            WordMorphism: a->ba, b->b
+            WordMorphism: a->bb, b->a
+            WordMorphism: a->bb, b->b
+            WordMorphism: a->a, b->aa
+            WordMorphism: a->a, b->ab
+            WordMorphism: a->a, b->ba
+            WordMorphism: a->a, b->bb
+            WordMorphism: a->b, b->aa
+            WordMorphism: a->b, b->ab
+            WordMorphism: a->b, b->ba
+            WordMorphism: a->b, b->bb
 
         Iterator over morphisms with specific image lengths::
 
@@ -1298,14 +1351,20 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
         # None, or [l] otherwise)
         if l is None:
             from sage.combinat.integer_list import IntegerListsLex
-            compositions = IntegerListsLex(itertools.count(), \
+            compositions = IntegerListsLex(itertools.count(),
+                    length=n, min_part = max(0,min_length))
+        elif isinstance(l, tuple):
+            if not len(l) == 2 or not all(isinstance(a, (int,Integer)) for a in l):
+                raise TypeError("l (=%s) must be a tuple of 2 integers" %l)
+            from sage.combinat.integer_list import IntegerListsLex
+            compositions = IntegerListsLex(range(*l),
                     length=n, min_part = max(0,min_length))
         else:
             l = list(l)
-            if not len(l) == n or not \
-                    all(isinstance(a, (int,Integer)) for a in l):
-                raise TypeError, \
-                    "l (=%s) must be an iterable of %s integers" %(l, n)
+            if (not len(l) == n or not
+                    all(isinstance(a, (int,Integer)) for a in l)):
+                raise TypeError(
+                    "l (=%s) must be an iterable of %s integers" %(l, n))
             compositions = [l]
 
         # set the codomain

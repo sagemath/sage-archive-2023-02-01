@@ -329,3 +329,32 @@ class Monoids(Category):
                     3*B['']
                 """
                 return self.basis().keys().one()
+
+            def an_element(self):
+                r"""
+                Returns an element of `self`. For the moment, this function is not
+                used because it is defined in a higher category
+                """
+                return (2*self(self.basis().keys().an_element())+
+                        self.base_ring().an_element * self.one())
+
+
+        class ElementMethods:
+
+            def is_central(self):
+                r"""
+                Returns True if the element is central and False otherwise.
+
+                EXAMPLES::
+
+                    sage: A=DihedralGroup(5).algebra(QQ)
+                    sage: sum(i for i in A.basis()).is_central()
+                    True
+                """
+                gen=self.parent().algebra_generators()
+                for i in gen:
+                    if i*self != self*i:
+                        return False
+                return True
+
+

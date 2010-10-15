@@ -431,6 +431,7 @@ class Semigroups(Category):
 
             @cached_method
             def algebra_generators(self):
+                from sage.sets.family import Family
                 r"""
                 The generators of this algebra, as per
                 :meth:`Algebras.ParentMethods.algebra_generators()

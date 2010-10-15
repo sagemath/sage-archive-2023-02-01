@@ -14,6 +14,7 @@ Groups
 from sage.misc.cachefunc import cached_method
 from sage.categories.category import Category
 from sage.categories.monoids import Monoids
+from sage.categories.algebra_functor import AlgebrasCategory
 
 class Groups(Category):
     """
@@ -42,9 +43,21 @@ class Groups(Category):
         """
         return [Monoids()]
 
+    def example(self):
+        from sage.rings.rational_field import QQ
+        from sage.groups.matrix_gps.general_linear import GL
+        """
+        EXAMPLES::
+
+            sage: Groups().example()
+            General Linear Group of degree 4 over Rational Field
+        """
+        return GL(4,QQ)
+
     class ParentMethods:
 
         def group_generators(self):
+            from sage.sets.family import Family
             """
             Returns group generators for self.
 
@@ -55,9 +68,9 @@ class Groups(Category):
 
                 sage: A = AlternatingGroup(4)
                 sage: A.group_generators()
-                [(1,2,3), (2,3,4)]
+                Family ((1,2,3), (2,3,4))
             """
-            return self.gens()
+            return Family(self.gens())
 
         def _test_inverse(self, **options):
             """
@@ -69,7 +82,6 @@ class Groups(Category):
 
                 sage: G = SymmetricGroup(3)
                 sage: G._test_inverse()
-
             """
             tester = self._tester(**options)
             for x in tester.some_elements():
@@ -320,3 +332,104 @@ class Groups(Category):
     class ElementMethods:
         ## inv(x), x/y
         pass
+
+    class Algebras(AlgebrasCategory):
+
+        def extra_super_categories(self):
+            """
+            EXAMPLES::
+
+                sage: Groups().Algebras(QQ).super_categories()
+                [Category of hopf algebras with basis over Rational Field, Category of monoid algebras over Rational Field]
+
+                sage: Groups().example().algebra(ZZ).categories()
+                [Category of group algebras over Integer Ring, Category of hopf algebras with basis over Integer Ring, Category of bialgebras with basis over Integer Ring, Category of coalgebras with basis over Integer Ring, Category of hopf algebras over Integer Ring, Category of bialgebras over Integer Ring, Category of coalgebras over Integer Ring, Category of monoid algebras over Integer Ring, Category of semigroup algebras over Integer Ring, Category of algebras with basis over Integer Ring, Category of algebras over Integer Ring, Category of rings, Category of rngs, Category of semirings, Category of monoids, Category of semigroups, Category of magmas, Category of set algebras over Integer Ring, Category of modules with basis over Integer Ring, Category of modules over Integer Ring, Category of bimodules over Integer Ring on the left and Integer Ring on the right, Category of left modules over Integer Ring, Category of right modules over Integer Ring, Category of commutative additive groups, Category of commutative additive monoids, Category of commutative additive semigroups, Category of additive magmas, Category of sets, Category of sets with partial maps, Category of objects]
+            """
+            from sage.categories.hopf_algebras_with_basis import HopfAlgebrasWithBasis
+            return [HopfAlgebrasWithBasis(self.base_ring())]
+
+        class ParentMethods:
+
+            def _repr_(self):
+                r"""
+                Print the string representation of `self`. For the moment, this
+                function is not used because it is defined in a higher category.
+                """
+                return 'Group algebra of %s over %s'%(self.basis().keys(),self.base_ring())
+
+            def coproduct_on_basis(self, g):
+                r"""
+                Returns the coproduct of the element of the basis (which are
+                group-like). Used to compute the coproduct of any element.
+
+                EXAMPLES::
+
+                    sage: A=CyclicPermutationGroup(6).algebra(ZZ);A
+                    Group algebra of Cyclic group of order 6 as a permutation group over Integer Ring
+                    sage: g=CyclicPermutationGroup(6).an_element();g
+                    (1,2,3,4,5,6)
+                    sage: A.coproduct_on_basis(g)
+                    B[(1,2,3,4,5,6)] # B[(1,2,3,4,5,6)]
+                    sage: a=A.an_element();a
+                    B[()] + 3*B[(1,2,3,4,5,6)] + 3*B[(1,3,5)(2,4,6)]
+                    sage: a.coproduct()
+                    B[()] # B[()] + 3*B[(1,2,3,4,5,6)] # B[(1,2,3,4,5,6)] + 3*B[(1,3,5)(2,4,6)] # B[(1,3,5)(2,4,6)]
+                """
+                from sage.categories.tensor import tensor
+                g = self.term(g)
+                return tensor([g, g])
+
+            def antipode_on_basis(self,g):
+                r"""
+                Returns the antipode of the element of the basis (which are group-
+                like). Used to compute the antipode of any element.
+
+                EXAMPLES::
+
+                    sage: A=CyclicPermutationGroup(6).algebra(ZZ);A
+                    Group algebra of Cyclic group of order 6 as a permutation group over Integer Ring
+                    sage: g=CyclicPermutationGroup(6).an_element();g
+                    (1,2,3,4,5,6)
+                    sage: A.antipode_on_basis(g)
+                    B[(1,6,5,4,3,2)]
+                    sage: a=A.an_element();a
+                    B[()] + 3*B[(1,2,3,4,5,6)] + 3*B[(1,3,5)(2,4,6)]
+                    sage: a.antipode()
+                    B[()] + 3*B[(1,5,3)(2,6,4)] + 3*B[(1,6,5,4,3,2)]
+                """
+                return self.term(g**(-1))
+
+            def counit_on_basis(self,g):
+                r"""
+                Returns the counit of the element of the basis, that is 1 in a
+                group algebra.
+
+                EXAMPLES::
+
+                    sage: A=CyclicPermutationGroup(6).algebra(ZZ);A
+                    Group algebra of Cyclic group of order 6 as a permutation group over Integer Ring
+                    sage: g=CyclicPermutationGroup(6).an_element();g
+                    (1,2,3,4,5,6)
+                    sage: A.counit_on_basis(g)
+                    1
+                """
+                return self.base_ring().one()
+
+            def counit(self,x):
+                r"""
+                Returns the counit of the element x, that is the sum of the
+                coefficient in a group algebra.
+
+                EXAMPLES::
+
+                    sage: A=CyclicPermutationGroup(6).algebra(ZZ);A
+                    Group algebra of Cyclic group of order 6 as a permutation group over Integer Ring
+                    sage: a=A.an_element();a
+                    B[()] + 3*B[(1,2,3,4,5,6)] + 3*B[(1,3,5)(2,4,6)]
+                    sage: a.counit()
+                    7
+                """
+                return sum(x.coefficients())
+
+        class ElementMethods:
+            pass

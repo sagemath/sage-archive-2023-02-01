@@ -74,6 +74,30 @@ class Coalgebras(Category_over_base_ring):
             return tensor([self, self])
 
         @abstract_method
+        def counit(self, x):
+            """
+            Returns the counit of x.
+
+            Eventually, there will be a default implementation,
+            delegating to the overloading mechanism and forcing the
+            conversion back
+
+            EXAMPLES::
+
+                sage: A = HopfAlgebrasWithBasis(QQ).example(); A
+                An example of Hopf algebra with basis: the group algebra of the Dihedral group of order 6 as a permutation group over Rational Field
+                sage: [a,b] = A.algebra_generators()
+                sage: a, A.counit(a)
+                (B[(1,2,3)], 1)
+                sage: b, A.counit(b)
+                (B[(1,3)], 1)
+
+            TODO: implement some tests of the axioms of coalgebras, bialgebras
+            and Hopf algebras using the counit.
+            """
+
+
+        @abstract_method
         def coproduct(self, x):
             """
             Returns the coproduct of x.
@@ -110,6 +134,22 @@ class Coalgebras(Category_over_base_ring):
                 (B[(1,3)], B[(1,3)] # B[(1,3)])
             """
             return self.parent().coproduct(self)
+
+        def counit(self):
+            """
+            Returns the counit of ``self``
+
+            EXAMPLES::
+
+                sage: A = HopfAlgebrasWithBasis(QQ).example(); A
+                An example of Hopf algebra with basis: the group algebra of the Dihedral group of order 6 as a permutation group over Rational Field
+                sage: [a,b] = A.algebra_generators()
+                sage: a, a.counit()
+                (B[(1,2,3)], 1)
+                sage: b, b.counit()
+                (B[(1,3)], 1)
+            """
+            return self.parent().counit(self)
 
     class TensorProducts(TensorProductsCategory):
 

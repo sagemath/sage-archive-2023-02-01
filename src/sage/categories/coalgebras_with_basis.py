@@ -48,7 +48,7 @@ class CoalgebrasWithBasis(Category_over_base_ring):
         @abstract_method(optional = True)
         def coproduct_on_basis(self, i):
             """
-            The product of the algebra on the basis (optional)
+            The coproduct of the algebra on the basis (optional)
 
             INPUT:
              - ``i``: the indices of an element of the basis of self
@@ -66,11 +66,32 @@ class CoalgebrasWithBasis(Category_over_base_ring):
                 B[(1,2,3)] # B[(1,2,3)]
             """
 
+        @abstract_method(optional = True)
+        def counit_on_basis(self, i):
+            """
+            The counit of the algebra on the basis (optional)
+
+            INPUT:
+             - ``i``: the indices of an element of the basis of self
+
+            Returns the counit of the corresponding basis elements
+            If implemented, the counit of the algebra is defined
+            from it by linearity.
+
+            EXAMPLES::
+
+                sage: A = HopfAlgebrasWithBasis(QQ).example(); A
+                An example of Hopf algebra with basis: the group algebra of the Dihedral group of order 6 as a permutation group over Rational Field
+                sage: (a, b) = A._group.gens()
+                sage: A.counit_on_basis(a)
+                1
+            """
+
     class ParentMethods:
         @lazy_attribute
         def coproduct(self):
             """
-            If :meth:`.coproduct_basis` is available, construct the
+            If :meth:`.coproduct_on_basis` is available, construct the
             coproduct morphism from ``self`` to ``self`` `\otimes`
             ``self`` by extending it by linearity
 
@@ -90,6 +111,27 @@ class CoalgebrasWithBasis(Category_over_base_ring):
                 # to create a morphism of algebras with basis instead
                 # should there be a method self.coproduct_hom_category?
                 return Hom(self, tensor([self, self]), ModulesWithBasis(self.base_ring()))(on_basis = self.coproduct_on_basis)
+
+        @lazy_attribute
+        def counit(self):
+            """
+            If :meth:`.counit_on_basis` is available, construct the
+            counit morphism from ``self`` to ``self`` `\otimes`
+            ``self`` by extending it by linearity
+
+            EXAMPLES::
+
+                sage: A = HopfAlgebrasWithBasis(QQ).example(); A
+                An example of Hopf algebra with basis: the group algebra of the Dihedral group of order 6 as a permutation group over Rational Field
+                sage: [a,b] = A.algebra_generators()
+                sage: a, A.counit(a)
+                (B[(1,2,3)], 1)
+                sage: b, A.counit(b)
+                (B[(1,3)], 1)
+
+            """
+            if self.counit_on_basis is not NotImplemented:
+                return self.module_morphism(self.counit_on_basis,codomain=self.base_ring())
 
     class ElementMethods:
         pass

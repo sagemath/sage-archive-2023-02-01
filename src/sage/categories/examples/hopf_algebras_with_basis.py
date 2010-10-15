@@ -109,6 +109,21 @@ class MyGroupAlgebra(CombinatorialFreeModule):
         g = self.monomial(g)
         return tensor([g, g])
 
+    def counit_on_basis(self, g):
+        r"""
+        Counit, on basis elements, as per :meth:`HopfAlgebrasWithBasis.ParentMethods.counit_on_basis`.
+
+        The counit on the basis elements is 1.
+
+        EXAMPLES::
+
+            sage: A = HopfAlgebrasWithBasis(QQ).example()
+            sage: (a, b) = A._group.gens()
+            sage: A.counit_on_basis(a)
+            1
+        """
+        return self.base_ring().one()
+
     def antipode_on_basis(self, g):
         r"""
         Antipode, on basis elements, as per :meth:`HopfAlgebrasWithBasis.ParentMethods.antipode_on_basis`.

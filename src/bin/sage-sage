@@ -40,6 +40,9 @@ usage_advanced() {
     echo "  -br [branch]  -- switch to, build, and run Sage branch in devel/sage-branch"
     echo "  -ba [branch]  -- switch to, rebuild all Cython code, and run Sage branch in devel/sage-branch"
     echo "  -ba-force [branch] -- same as -ba, but don't query before rebuilding"
+    echo "  -bt [...]     -- build and test, arguments like -t below"
+    echo "  -btp <N> [...]-- build and test parallel, arguments like -tp below"
+    echo "  -btnew [...]  -- build and test modified files, arguments like -tnew below"
     echo "  -bdist VER    -- build a binary distribution of Sage"
     echo "  -branch       -- print the current Sage branch"
     echo "  -cleaner      -- run the Sage cleaner"
@@ -639,7 +642,10 @@ if [ "$1" = '-clone' -o "$1" = "--clone" ]; then
    exit $?
 fi
 
-if [ "$1" = '-t' ]; then
+if [ "$1" = '-t' -o "$1" = '-bt' ]; then
+   if [ "$1" = '-bt' ]; then
+      build_sage || exit $?
+   fi
    if ! [  -f  "$DOT_SAGE"/init.sage ]; then
       echo "init.sage does not exist ... creating"
       touch "$DOT_SAGE"/init.sage
@@ -650,7 +656,10 @@ if [ "$1" = '-t' ]; then
    exit $?
 fi
 
-if [ "$1" = '-tp' ]; then
+if [ "$1" = '-tp' -o "$1" = '-btp' ]; then
+   if [ "$1" = '-btp' ]; then
+      build_sage || exit $?
+   fi
    cd "$CUR"
    sage-starts
    if ! [  -f  "$DOT_SAGE"/init.sage ]; then
@@ -662,7 +671,10 @@ if [ "$1" = '-tp' ]; then
    exit $?
 fi
 
-if [ "$1" = '-tnew' ]; then
+if [ "$1" = '-tnew' -o "$1" = '-btnew' ]; then
+   if [ "$1" = '-btnew' ]; then
+      build_sage || exit $?
+   fi
    cd "$CUR"
    shift
    sage-test-new "$@"

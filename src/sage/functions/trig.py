@@ -849,7 +849,7 @@ class Function_arctan2(GinacFunction):
             sage: arctan2(x,x)._sympy_()
             atan2(x, x)
 
-        Check if numerical evaluation works #9913::
+        Check if numerical evaluation works :trac:`9913`::
 
             sage: arctan2(0, -log(2)).n()
             3.14159265358979
@@ -869,6 +869,11 @@ class Function_arctan2(GinacFunction):
             ...
             ValueError: arctan2(0,0) undefined
 
+        Check if :trac:`10062` is fixed, this was caused by
+        ``(I*I)._is_positive()`` returning ``True``::
+
+            sage: arctan2(0, I*I)
+            pi
         """
         GinacFunction.__init__(self, "arctan2", nargs=2, latex_name=r'\arctan',
                 conversions=dict(maxima='atan2', sympy='atan2'))

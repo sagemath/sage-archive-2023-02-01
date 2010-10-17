@@ -952,12 +952,11 @@ def _test_vectors_equal_inferior():
 
 cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, long backtrack_bound=1000, find_path=False ):
     r"""
-
     Randomized backtracking for finding hamiltonian cycles and paths.
 
     ALGORITHM:
 
-    A path P is maintained during the execution of the algorithm. Initially
+    A path ``P`` is maintained during the execution of the algorithm. Initially
     the path will contain an edge of the graph. Every 10 iterations the path
     is reversed. Every ``reset_bound`` iterations the path will be cleared
     and the procedure is restarted. Every ``backtrack_bound`` steps we discard
@@ -969,31 +968,43 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
 
     INPUT:
 
-    -  ``G`` - Graph.
+    - ``G`` - Graph.
 
-    -  ``max_iter`` - Maximum number of iterations.
+    - ``max_iter`` - Maximum number of iterations.
 
-    -  ``reset_bound`` - Number of iterations before restarting the procedure.
+    - ``reset_bound`` - Number of iterations before restarting the
+       procedure.
 
-    -  ``backtrack_bound`` - Number of iterations to elapse before discarding
-       the last 5 vertices of the path.
+    - ``backtrack_bound`` - Number of iterations to elapse before
+       discarding the last 5 vertices of the path.
 
-    -  ``find_path`` - If set to ``True``, will search a hamiltonian path. If
-       ``False``, will search for a hamiltonian cycle. Default value is
-       ``False``.
+    - ``find_path`` - If set to ``True``, will search a hamiltonian
+       path. If ``False``, will search for a hamiltonian
+       cycle. Default value is ``False``.
 
     OUTPUT:
 
-    A pair (B,P), where B is a Boolean and P is a list of vertices.
-    If B is True and find_path is False, P represents a hamiltonian cycle.
-    If B is True and find_path is True, P represents a hamiltonian path.
-    If B is false, then P represents the longest path found during the execution
-    of the algorithm.
+    A pair ``(B,P)``, where ``B`` is a Boolean and ``P`` is a list of vertices.
 
-    EXAMPLES::
+        * If ``B`` is ``True`` and ``find_path`` is ``False``, ``P``
+          represents a hamiltonian cycle.
 
-    First we try the algorithm in the Dodecahedral graph, which is hamiltonian,
-    so we are able to find a hamiltonian cycle and a hamiltonian path ::
+        * If ``B`` is ``True`` and ``find_path`` is ``True``, ``P``
+          represents a hamiltonian path.
+
+        * If ``B`` is false, then ``P`` represents the longest path
+          found during the execution of the algorithm.
+
+    .. WARNING::
+
+        May loop endlessly when run on a graph with vertices of degree
+        1.
+
+    EXAMPLES:
+
+    First we try the algorithm in the Dodecahedral graph, which is
+    hamiltonian, so we are able to find a hamiltonian cycle and a
+    hamiltonian path ::
 
         sage: from sage.graphs.generic_graph_pyx import find_hamiltonian as fh
         sage: G=graphs.DodecahedralGraph()
@@ -1002,8 +1013,9 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
         sage: fh(G,find_path=True)
         (True, [8, 9, 10, 11, 18, 17, 4, 3, 19, 0, 1, 2, 6, 7, 14, 13, 12, 16, 15, 5])
 
-    Another test, now in the Moebius-Kantor graph which is also hamiltonian, as
-    in our previous example, we are able to find a hamiltonian cycle and path ::
+    Another test, now in the Moebius-Kantor graph which is also
+    hamiltonian, as in our previous example, we are able to find a
+    hamiltonian cycle and path ::
 
         sage: G=graphs.MoebiusKantorGraph()
         sage: fh(G)
@@ -1011,8 +1023,9 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
         sage: fh(G,find_path=True)
         (True, [4, 5, 6, 7, 15, 12, 9, 1, 0, 8, 13, 10, 2, 3, 11, 14])
 
-    Now, we try the algorithm on a non hamiltonian graph, the Petersen graph.
-    This graphs is known to be hypohamiltonian, so a hamiltonian path can be found ::
+    Now, we try the algorithm on a non hamiltonian graph, the Petersen
+    graph.  This graph is known to be hypohamiltonian, so a
+    hamiltonian path can be found ::
 
         sage: G=graphs.PetersenGraph()
         sage: fh(G)
@@ -1020,15 +1033,17 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
         sage: fh(G,find_path=True)
         (True, [3, 8, 6, 1, 2, 7, 9, 4, 0, 5])
 
-    We now show the algorithm working on another known hypohamiltonian graph, the
-    generalized Petersen graph with parameters 11 and 2 ::
+    We now show the algorithm working on another known hypohamiltonian
+    graph, the generalized Petersen graph with parameters 11 and 2 ::
+
         sage: G=graphs.GeneralizedPetersenGraph(11,2)
         sage: fh(G)
         (False, [13, 11, 0, 10, 9, 20, 18, 16, 14, 3, 2, 1, 12, 21, 19, 8, 7, 6, 17, 15, 4, 5])
         sage: fh(G,find_path=True)
         (True, [7, 18, 20, 9, 8, 19, 17, 6, 5, 16, 14, 3, 4, 15, 13, 11, 0, 10, 21, 12, 1, 2])
 
-    Finally, an example on a graph which does not have a hamiltonian path ::
+    Finally, an example on a graph which does not have a hamiltonian
+    path ::
 
         sage: G=graphs.HyperStarGraph(5,2)
         sage: fh(G,find_path=False)
@@ -1036,6 +1051,15 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
         sage: fh(G,find_path=True)
         (False, ['00101', '10001', '01001', '11000', '01010', '10010', '00110', '10100', '01100'])
 
+    TESTS:
+
+    Running the algorithm on random instances, just to make sure the
+    answers are still satisfiable path (the algorithm would raise an
+    exception otherwise)::
+
+        sage: for i in range(200):
+        ...      g = graphs.RandomGNP(20,.1)
+        ...      _ = fh(G,find_path=True)
     """
 
     from sage.misc.prandom import randint
@@ -1145,6 +1169,7 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
         for u in g.out_neighbors( path[ length-1 ] ):
             if not member[ u ]:
                 available_vertices.append( u )
+
         n_available=len( available_vertices )
         if  n_available > 0:
             longer = True

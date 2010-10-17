@@ -4606,6 +4606,11 @@ class GenericGraph(GenericGraph_pyx):
         The 'backtrack' algorithm is only implemented for undirected
         graphs.
 
+        .. WARNING::
+
+            The 'backtrack' algorithm may loop endlessly on graphs
+            with vertices of degree 1.
+
         NOTE:
 
         This function, as ``is_hamiltonian``, computes a hamiltonian

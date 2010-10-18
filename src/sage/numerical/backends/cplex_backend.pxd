@@ -15,7 +15,6 @@ cdef class CPLEXBackend(GenericBackend):
     cdef c_cpxlp * lp
     cdef current_sol
 
-
 cdef extern from "../../local/include/cplex.h":
 
      # Create problem

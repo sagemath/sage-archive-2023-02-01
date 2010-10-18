@@ -4316,7 +4316,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             [(-1.7724538509055160272981674833411451827975494561223871282138, 1), (1.7724538509055160272981674833411451827975494561223871282138, 1)]
             sage: f.roots(algorithm='numpy')
             doctest... UserWarning: NumPy does not support arbitrary precision arithmetic.  The roots found will likely have less precision than you expect.
-            [(-1.7724538509055158819194275565678253769874572753906250000000, 1), (1.7724538509055158819194275565678253769874572753906250000000, 1)]
+            [(-1.77245385090551..., 1), (1.77245385090551..., 1)]
 
         We can also find roots over number fields:
 

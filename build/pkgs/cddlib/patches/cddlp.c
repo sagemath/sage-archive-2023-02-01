@@ -24,6 +24,8 @@
 #include "cdd_f.h"
 #endif
 
+#include "random.h"   /* include last - overrides RAND_MAX */
+
 #define dd_CDDLPVERSION  "Version 0.94b (August 25, 2005)"
 
 #define dd_FALSE 0

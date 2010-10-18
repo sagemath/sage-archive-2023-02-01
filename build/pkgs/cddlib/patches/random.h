@@ -24,16 +24,14 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
    02111-1307 USA.  */
 
+void portable_srand(unsigned int seed);
+int portable_rand(void);
+
+#endif /* RANDOM__H */
 
 
 /* The largest number rand will return (same as INT_MAX).  */
-#ifndef RAND_MAX
 #define RAND_MAX        2147483647
-#endif
+/* intentionally outside the #ifdef RANDOM__H block        */
+/* You must overwrite the system RAND_MAX!                 */
 
-
-void portable_srand(unsigned int seed);
-int portable_rand (void);
-
-
-#endif /* RANDOM__H */

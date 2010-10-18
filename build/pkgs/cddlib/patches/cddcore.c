@@ -12,12 +12,12 @@
 
 #include "setoper.h"  /* set operation library header (Ver. June 1, 2000 or later) */
 #include "cdd.h"
-#include "random.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
 #include <string.h>
+#include "random.h"   /* include last - overrides RAND_MAX */
 
 void dd_CheckAdjacency(dd_ConePtr cone,
     dd_RayPtr *RP1, dd_RayPtr *RP2, dd_boolean *adjacent)

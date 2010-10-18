@@ -45,7 +45,7 @@
 		1943B14612411613007C0641 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/MyDocument.nib; sourceTree = "<group>"; };
 		1967A67311D6521700ABC39D /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 		1967A69D11D6543A00ABC39D /* appl.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = appl.icns; sourceTree = "<group>"; };
-		1967A69E11D6543A00ABC39D /* Defaults.plist */ = {isa = PBXFileReference; lastKnownFileType = file.bplist; path = Defaults.plist; sourceTree = "<group>"; };
+		1967A69E11D6543A00ABC39D /* Defaults.plist */ = {isa = PBXFileReference; explicitFileType = text.plist.xml; path = Defaults.plist; sourceTree = "<group>"; };
 		1967A69F11D6543A00ABC39D /* sage-document-py.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = "sage-document-py.icns"; sourceTree = "<group>"; };
 		1967A6A011D6543A00ABC39D /* sage-document-sage.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = "sage-document-sage.icns"; sourceTree = "<group>"; };
 		1967A6A111D6543A00ABC39D /* sage-document-spkg.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = "sage-document-spkg.icns"; sourceTree = "<group>"; };
@@ -224,7 +224,14 @@
 			};
 			buildConfigurationList = C05733CB08A9546B00998B17 /* Build configuration list for PBXProject "Sage" */;
 			compatibilityVersion = "Xcode 2.4";
+			developmentRegion = English;
 			hasScannedForEncodings = 1;
+			knownRegions = (
+				English,
+				Japanese,
+				French,
+				German,
+			);
 			mainGroup = 2A37F4AAFDCFA73011CA2CEA /* Sage */;
 			projectDirPath = "";
 			projectRoot = "";

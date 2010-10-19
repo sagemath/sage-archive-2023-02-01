@@ -349,6 +349,61 @@ from distutils import log
 class sage_build_ext(build_ext):
 
     def build_extensions(self):
+
+        from distutils.debug import DEBUG
+
+        if DEBUG:
+            print "self.compiler.compiler:"
+            print self.compiler.compiler
+            print "self.compiler.compiler_cxx:"
+            print self.compiler.compiler_cxx # currently not used
+            print "self.compiler.compiler_so:"
+            print self.compiler.compiler_so
+            print "self.compiler.linker_so:"
+            print self.compiler.linker_so
+            # There are further interesting variables...
+            sys.stdout.flush()
+
+
+        # At least on MacOS X, the library dir of the *original* Sage
+        # installation is "hard-coded" into the linker *command*, s.t.
+        # that directory is always searched *first*, which causes trouble
+        # after the Sage installation has been moved (or its directory simply
+        # been renamed), especially in conjunction with upgrades (cf. #9896).
+        # (In principle, the Python configuration should be modified on
+        # Sage relocations as well, but until that's done, we simply fix
+        # the most important.)
+        # Since the following is performed only once per call to "setup",
+        # and doesn't hurt on other systems, we unconditionally replace *any*
+        # library directory specified in the (dynamic) linker command by the
+        # current Sage library directory (if it doesn't already match that),
+        # and issue a warning message:
+
+        if True or sys.platform[:6]=="darwin":
+
+            sage_libdir = os.path.normpath(SAGE_LOCAL+"/lib")
+            ldso_cmd = self.compiler.linker_so # a list of strings, like argv
+
+            for i in range(1, len(ldso_cmd)):
+
+                if ldso_cmd[i][:2] == "-L":
+                    libdir = os.path.normpath(ldso_cmd[i][2:])
+                    self.debug_print(
+                      "Library dir found in dynamic linker command: " +
+                      "\"%s\"" % libdir)
+                    if libdir != sage_libdir:
+                        self.compiler.warn(
+                          "Replacing library search directory in linker " +
+                          "command:\n  \"%s\" -> \"%s\"\n" % (libdir,
+                                                              sage_libdir))
+                        ldso_cmd[i] = "-L"+sage_libdir
+
+        if DEBUG:
+            print "self.compiler.linker_so (after fixing library dirs):"
+            print self.compiler.linker_so
+            sys.stdout.flush()
+
+
         # First, sanity-check the 'extensions' list
         self.check_extensions_list(self.extensions)
 

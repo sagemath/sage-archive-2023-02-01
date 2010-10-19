@@ -1,3 +1,10 @@
+##############################################################################
+#       Copyright (C) 2010 Nathann Cohen <nathann.cohen@gmail.com>
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  The full text of the GPL is available at:
+#                  http://www.gnu.org/licenses/
+##############################################################################
+
 cdef class GenericBackend:
     cpdef int add_variable(self)
     cpdef int add_variables(self, int)
@@ -17,7 +24,7 @@ cdef class GenericBackend:
     cpdef write_lp(self, char * name)
     cpdef write_mps(self, char * name, int modern)
     cpdef row(self, int i)
-    cpdef double get_objective_coeff(self, int i)
+    cpdef double get_objective_coefficient(self, int i)
     cpdef int ncols(self)
     cpdef int nrows(self)
     cpdef bint is_variable_binary(self, int)

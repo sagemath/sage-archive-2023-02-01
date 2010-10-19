@@ -1,6 +1,19 @@
-r"""
-CPLEX Backend
 """
+CPLEX Backend
+
+AUTHORS:
+
+- Nathann Cohen (2010-10): initial implementation
+
+"""
+
+##############################################################################
+#       Copyright (C) 2010 Nathann Cohen <nathann.cohen@gmail.com>
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  The full text of the GPL is available at:
+#                  http://www.gnu.org/licenses/
+##############################################################################
+
 
 from sage.numerical.mip import MIPSolverException
 
@@ -149,10 +162,10 @@ cdef class CPLEXBackend(GenericBackend):
             sage: p = get_solver(solver = "CPLEX")  # optional - CPLEX
             sage: p.add_variable()                                 # optional - CPLEX
             1
-            sage: p.get_objective_coeff(0)                         # optional - CPLEX
+            sage: p.get_objective_coefficient(0)                         # optional - CPLEX
             0.0
             sage: p.set_objective_coefficient(0,2)                       # optional - CPLEX
-            sage: p.get_objective_coeff(0)                         # optional - CPLEX
+            sage: p.get_objective_coefficient(0)                         # optional - CPLEX
             2.0
         """
 
@@ -212,7 +225,7 @@ cdef class CPLEXBackend(GenericBackend):
             sage: p.add_variables(5)                                 # optional - CPLEX
             5
             sage: p.set_objective([1, 1, 2, 1, 3])                   # optional - CPLEX
-            sage: map(lambda x :p.get_objective_coeff(x), range(5))  # optional - CPLEX
+            sage: map(lambda x :p.get_objective_coefficient(x), range(5))  # optional - CPLEX
             [1.0, 1.0, 2.0, 1.0, 3.0]
         """
 
@@ -308,7 +321,7 @@ cdef class CPLEXBackend(GenericBackend):
 
     cpdef add_constraint(self, list indices, list coeffs, int direction, double bound):
         r"""
-        Adds a constraint.
+        Adds a linear constraint.
 
         INPUT:
 
@@ -511,7 +524,7 @@ cdef class CPLEXBackend(GenericBackend):
         return (lb if lb != -CPX_INFBOUND else None,
                 ub if ub != +CPX_INFBOUND else None)
 
-    cpdef double get_objective_coeff(self, int index):
+    cpdef double get_objective_coefficient(self, int index):
         r"""
         Sets the coefficient of a variable in the objective function
 
@@ -527,10 +540,10 @@ cdef class CPLEXBackend(GenericBackend):
             sage: p = get_solver(solver = "CPLEX")  # optional - CPLEX
             sage: p.add_variable()                                 # optional - CPLEX
             1
-            sage: p.get_objective_coeff(0)                         # optional - CPLEX
+            sage: p.get_objective_coefficient(0)                         # optional - CPLEX
             0.0
             sage: p.set_objective_coefficient(0,2)                       # optional - CPLEX
-            sage: p.get_objective_coeff(0)                         # optional - CPLEX
+            sage: p.get_objective_coefficient(0)                         # optional - CPLEX
             2.0
         """
 

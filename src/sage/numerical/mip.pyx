@@ -382,11 +382,11 @@ cdef class MixedIntegerLinearProgram:
 
         first = True
         for 0<= i< b.ncols():
-            c = b.get_objective_coeff(i)
+            c = b.get_objective_coefficient(i)
             if c != 0:
 
                 value+= ((" +" if (not first and c>0) else " ") +
-                         str(inv_variables[i]*b.get_objective_coeff(i))
+                         str(inv_variables[i]*b.get_objective_coefficient(i))
                          )
                 first = False
 

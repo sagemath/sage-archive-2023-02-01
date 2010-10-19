@@ -10,7 +10,20 @@ to replace the occurences of ``"Nonexistent_LP_solver"`` by the
 solver's name, and replace ``GenericBackend`` by
 ``SolverName(GenericBackend)`` so that the new solver extends this
 class.
+
+AUTHORS:
+
+- Nathann Cohen (2010-10): initial implementation
+
 """
+
+##############################################################################
+#       Copyright (C) 2010 Nathann Cohen <nathann.cohen@gmail.com>
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  The full text of the GPL is available at:
+#                  http://www.gnu.org/licenses/
+##############################################################################
+
 
 cdef class GenericBackend:
 
@@ -124,10 +137,10 @@ cdef class GenericBackend:
             sage: p = get_solver(solver = "Nonexistent_LP_solver")  # optional - Nonexistent_LP_solver
             sage: p.add_variable()                                 # optional - Nonexistent_LP_solver
             1
-            sage: p.get_objective_coeff(0)                         # optional - Nonexistent_LP_solver
+            sage: p.get_objective_coefficient(0)                         # optional - Nonexistent_LP_solver
             0.0
             sage: p.set_objective_coefficient(0,2)                       # optional - Nonexistent_LP_solver
-            sage: p.get_objective_coeff(0)                         # optional - Nonexistent_LP_solver
+            sage: p.get_objective_coefficient(0)                         # optional - Nonexistent_LP_solver
             2.0
         """
 
@@ -149,7 +162,7 @@ cdef class GenericBackend:
             sage: p.add_variables(5)                                 # optional - Nonexistent_LP_solver
             5
             sage: p.set_objective([1, 1, 2, 1, 3])                   # optional - Nonexistent_LP_solver
-            sage: map(lambda x :p.get_objective_coeff(x), range(5))  # optional - Nonexistent_LP_solver
+            sage: map(lambda x :p.get_objective_coeffient(x), range(5))  # optional - Nonexistent_LP_solver
             [1.0, 1.0, 2.0, 1.0, 3.0]
         """
 
@@ -175,7 +188,7 @@ cdef class GenericBackend:
 
     cpdef add_constraint(self, list indices, list coeffs, int direction, double bound):
         r"""
-        Adds a constraint.
+        Adds a linear constraint.
 
         INPUT:
 
@@ -513,7 +526,7 @@ cdef class GenericBackend:
 
         raise NotImplementedError()
 
-    cpdef double get_objective_coeff(self, int i):
+    cpdef double get_objective_coefficient(self, int i):
         r"""
         Sets the coefficient of a variable in the objective function
 
@@ -529,10 +542,10 @@ cdef class GenericBackend:
             sage: p = get_solver(solver = "Nonexistent_LP_solver")  # optional - Nonexistent_LP_solver
             sage: p.add_variable()                                 # optional - Nonexistent_LP_solver
             1
-            sage: p.get_objective_coeff(0)                         # optional - Nonexistent_LP_solver
+            sage: p.get_objective_coeffient(0)                         # optional - Nonexistent_LP_solver
             0.0
             sage: p.set_objective_coefficient(0,2)                       # optional - Nonexistent_LP_solver
-            sage: p.get_objective_coeff(0)                         # optional - Nonexistent_LP_solver
+            sage: p.get_objective_coeffient(0)                         # optional - Nonexistent_LP_solver
             2.0
         """
 

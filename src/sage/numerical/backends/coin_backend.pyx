@@ -1,6 +1,18 @@
-r"""
-COIN Backend
 """
+COIN Backend
+
+AUTHORS:
+
+- Nathann Cohen (2010-10): initial implementation
+"""
+
+##############################################################################
+#       Copyright (C) 2010 Nathann Cohen <nathann.cohen@gmail.com>
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  The full text of the GPL is available at:
+#                  http://www.gnu.org/licenses/
+##############################################################################
+
 
 from sage.numerical.mip import MIPSolverException
 
@@ -144,10 +156,10 @@ cdef class CoinBackend(GenericBackend):
             sage: p = get_solver(solver = "Coin")  # optional - Coin
             sage: p.add_variable()                                 # optional - Coin
             1
-            sage: p.get_objective_coeff(0)                         # optional - Coin
+            sage: p.get_objective_coefficient(0)                         # optional - Coin
             0.0
             sage: p.set_objective_coefficient(0,2)                       # optional - Coin
-            sage: p.get_objective_coeff(0)                         # optional - Coin
+            sage: p.get_objective_coefficient(0)                         # optional - Coin
             2.0
         """
 
@@ -169,7 +181,7 @@ cdef class CoinBackend(GenericBackend):
             sage: p.add_variables(5)                                 # optional - Coin
             5
             sage: p.set_objective([1, 1, 2, 1, 3])                   # optional - Coin
-            sage: map(lambda x :p.get_objective_coeff(x), range(5))  # optional - Coin
+            sage: map(lambda x :p.get_objective_coefficient(x), range(5))  # optional - Coin
             [1.0, 1.0, 2.0, 1.0, 3.0]
         """
 
@@ -236,7 +248,7 @@ cdef class CoinBackend(GenericBackend):
 
     cpdef add_constraint(self, list indices, list coeffs, int direction, double bound):
         r"""
-        Adds a constraint.
+        Adds a linear constraint.
 
         INPUT:
 
@@ -408,7 +420,31 @@ cdef class CoinBackend(GenericBackend):
         return (lb[i] if lb[i] != - self.si.getInfinity() else None,
                 ub[i] if ub[i] != + self.si.getInfinity() else None)
 
-    cpdef double get_objective_coeff(self, int index):
+    cpdef double get_objective_coefficient(self, int index):
+        """
+        Returns the value of the objective function.
+
+        .. NOTE::
+
+           Has no meaning unless ``solve`` has been called before.
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver = "Coin")  # optional - Coin
+            sage: p.add_variables(2)                               # optional - Coin
+            2
+            sage: p.add_constraint([0, 1], [1, 2], +1, 3)          # optional - Coin
+            sage: p.set_objective([2, 5])                          # optional - Coin
+            sage: p.solve()                                        # optional - Coin
+            0
+            sage: p.get_objective_value()                          # optional - Coin
+            7.5
+            sage: p.get_variable_value(0)                          # optional - Coin
+            0.0
+            sage: p.get_variable_value(1)                          # optional - Coin
+            1.5
+        """
         return self.si.getObjCoefficients()[index]
 
     cpdef add_col(self, list indices, list coeffs):

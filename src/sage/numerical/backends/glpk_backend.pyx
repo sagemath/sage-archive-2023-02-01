@@ -1,6 +1,17 @@
-r"""
-GLPK Backend
 """
+GLPK Backend
+
+AUTHORS:
+
+- Nathann Cohen (2010-10): initial implementation
+"""
+
+##############################################################################
+#       Copyright (C) 2010 Nathann Cohen <nathann.cohen@gmail.com>
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  The full text of the GPL is available at:
+#                  http://www.gnu.org/licenses/
+##############################################################################
 
 from sage.numerical.mip import MIPSolverException
 
@@ -167,10 +178,10 @@ cdef class GLPKBackend(GenericBackend):
             sage: p = get_solver(solver = "GLPK")
             sage: p.add_variable()
             1
-            sage: p.get_objective_coeff(0)
+            sage: p.get_objective_coefficient(0)
             0.0
             sage: p.set_objective_coefficient(0,2)
-            sage: p.get_objective_coeff(0)
+            sage: p.get_objective_coefficient(0)
             2.0
         """
 
@@ -222,7 +233,7 @@ cdef class GLPKBackend(GenericBackend):
             sage: p.add_variables(5)
             5
             sage: p.set_objective([1, 1, 2, 1, 3])
-            sage: map(lambda x :p.get_objective_coeff(x), range(5))
+            sage: map(lambda x :p.get_objective_coefficient(x), range(5))
             [1.0, 1.0, 2.0, 1.0, 3.0]
         """
 
@@ -302,7 +313,7 @@ cdef class GLPKBackend(GenericBackend):
 
     cpdef add_constraint(self, list indices, list coeffs, int direction, double bound):
         r"""
-        Adds a constraint.
+        Adds a linear constraint.
 
         INPUT:
 
@@ -486,7 +497,7 @@ cdef class GLPKBackend(GenericBackend):
             (ub if ub != +DBL_MAX else None)
             )
 
-    cpdef double get_objective_coeff(self, int index):
+    cpdef double get_objective_coefficient(self, int index):
         r"""
         Returns the coefficient of a variable in the objective
         function.
@@ -501,10 +512,10 @@ cdef class GLPKBackend(GenericBackend):
             sage: p = get_solver(solver = "GLPK")
             sage: p.add_variable()
             1
-            sage: p.get_objective_coeff(0)
+            sage: p.get_objective_coefficient(0)
             0.0
             sage: p.set_objective_coefficient(0,2)
-            sage: p.get_objective_coeff(0)
+            sage: p.get_objective_coefficient(0)
             2.0
         """
         return glp_get_obj_coef(self.lp, index + 1)

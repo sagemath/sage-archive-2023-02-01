@@ -14,4 +14,11 @@ fi
 
 
 cd src
-$MAKE check
+
+# There are some unresolved issues with passing options to make check
+# https://www.cs.unipr.it/mantis/view.php?id=118
+# $MAKE check
+
+unset MAKE
+make check
+

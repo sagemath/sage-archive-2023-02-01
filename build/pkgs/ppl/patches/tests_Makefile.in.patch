@@ -1,0 +1,13 @@
+--- ../src/tests/Makefile.in	2010-08-02 21:21:49.000000000 +0100
++++ tests_Makefile.in	2010-10-20 20:56:10.380226210 +0100
+@@ -393,10 +393,7 @@
+ PIP_Problem \
+ Powerset \
+ Partially_Reduced_Product \
+-Box \
+ MIP_Problem \
+-Octagonal_Shape \
+-BD_Shape \
+ Polyhedron \
+ Grid
+ 

@@ -63,6 +63,10 @@ downloading this spkg.
 
 == Changelog ==
 
+=== sagetex-2.3 (Dan Drake, 20 Oct 2010) ===
+
+ * Now includes the sagecommandline environment by Volker Braun.
+
 === sagetex-2.2.5 (Dan Drake, 25 Mar 2010) ===
 
  * Better implementation of the sageexample environment; 3D plots now

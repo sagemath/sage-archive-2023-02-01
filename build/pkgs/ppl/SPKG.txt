@@ -20,6 +20,8 @@ It is written in C++, but comes with interfaces to C, Java, OCaml, and
 Prolog. PPL is one of the fastest implementations of polyhedral
 computations.
 
+Benchmarks are included in this paper: http://arxiv.org/abs/cs/0612085
+
 == License ==
 GPL v3+
 
@@ -39,10 +41,8 @@ Enea Zaffanella (University of Parma)
 
 == Special Update/Build Instructions ==
 
-* Unpack distribution into src/ directory
-
 == Changelog ==
 
-=== ppl-0.11.p0 (Volker Braun, Sept 20, 2010) ===
+=== ppl-0.11 (Volker Braun, Sept 20, 2010) ===
 * initial SPKG
 

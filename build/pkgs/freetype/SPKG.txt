@@ -3,6 +3,11 @@ MAINTAINER:
 
 == Releases ==
 
+=== freetype-2.3.5.p3 (Mitesh Patel, October 21st 2010) ===
+ * #9221, #9896: Increase the patch level to force reinstallation when
+    upgrading to Sage 4.6.  This works around a problem with moved
+    Sage installations.
+
 === freetype-2.3.5.p2 (David Kirkby, January 2nd 2010) ===
  * #7138 Ensure -m64 gets added on all platforms, not just OS X
    A better fix will be to remove all the hard-coded -m64 junk

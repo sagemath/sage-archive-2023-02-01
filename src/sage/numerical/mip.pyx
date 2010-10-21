@@ -753,11 +753,11 @@ cdef class MixedIntegerLinearProgram:
             if min == None and max == None:
                 raise ValueError("Both max and min are set to None ? Weird !")
             elif min == max:
-                self._backend.add_constraint(indices, values, 0, min)
+                self._backend.add_linear_constraint(indices, values, 0, min)
             elif min != None:
-                self._backend.add_constraint(indices, values, -1, min)
+                self._backend.add_linear_constraint(indices, values, -1, min)
             elif max != None:
-                self._backend.add_constraint(indices, values, +1, max)
+                self._backend.add_linear_constraint(indices, values, +1, max)
 
             if name != None:
                 self._backend.row_name(self._backend.nrows()-1,name)

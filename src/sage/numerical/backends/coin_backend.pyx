@@ -211,7 +211,7 @@ cdef class CoinBackend(GenericBackend):
         msg = model.messageHandler()
         msg.setLogLevel(level)
 
-    cpdef add_constraints(self, int number, int direction, double bound):
+    cpdef add_linear_constraints(self, int number, int direction, double bound):
         r"""
         Adds constraints.
 
@@ -235,7 +235,7 @@ cdef class CoinBackend(GenericBackend):
             sage: p = get_solver(solver = "Coin")   # optional - Coin
             sage: p.add_variables(5)                                # optional - Coin
             5
-            sage: p.add_constraints(5, +1, 2)                       # optional - Coin
+            sage: p.add_linear_constraints(5, +1, 2)                       # optional - Coin
             sage: p.row(4)                                      # optional - Coin
             ([], [])
             sage: p.row_bounds(4)                               # optional - Coin
@@ -244,9 +244,9 @@ cdef class CoinBackend(GenericBackend):
 
         cdef int i
         for 0<= i<number:
-            self.add_constraint([],[],direction, bound)
+            self.add_linear_constraint([],[],direction, bound)
 
-    cpdef add_constraint(self, list indices, list coeffs, int direction, double bound):
+    cpdef add_linear_constraint(self, list indices, list coeffs, int direction, double bound):
         r"""
         Adds a linear constraint.
 
@@ -282,7 +282,7 @@ cdef class CoinBackend(GenericBackend):
             sage: p = get_solver(solver = "Coin") # optional - Coin
             sage: p.add_variables(5)                              # optional - Coin
             5
-            sage: p.add_constraint(range(5), range(5), 0, 2)      # optional - Coin
+            sage: p.add_linear_constraint(range(5), range(5), 0, 2)      # optional - Coin
             sage: p.row(0)                                    # optional - Coin
             ([0, 1, 2, 3, 4], [0.0, 1.0, 2.0, 3.0, 4.0])
             sage: p.row_bounds(0)                             # optional - Coin
@@ -315,7 +315,7 @@ cdef class CoinBackend(GenericBackend):
         A pair ``(indices, coeffs)`` where ``indices`` lists the
         entries whose coefficient is nonzero, and to which ``coeffs``
         associates their coefficient on the model of the
-        ``add_constraint`` method.
+        ``add_linear_constraint`` method.
 
         EXAMPLE::
 
@@ -323,7 +323,7 @@ cdef class CoinBackend(GenericBackend):
             sage: p = get_solver(solver = "Coin")  # optional - Coin
             sage: p.add_variables(5)                               # optional - Coin
             5
-            sage: p.add_constraint(range(5), range(5), 0, 2)       # optional - Coin
+            sage: p.add_linear_constraint(range(5), range(5), 0, 2)       # optional - Coin
             sage: p.row(0)                                     # optional - Coin
             ([0, 1, 2, 3, 4], [0.0, 1.0, 2.0, 3.0, 4.0])
             sage: p.row_bounds(0)                              # optional - Coin
@@ -368,7 +368,7 @@ cdef class CoinBackend(GenericBackend):
             sage: p = get_solver(solver = "Coin")  # optional - Coin
             sage: p.add_variables(5)                               # optional - Coin
             5
-            sage: p.add_constraint(range(5), range(5), 0, 2)       # optional - Coin
+            sage: p.add_linear_constraint(range(5), range(5), 0, 2)       # optional - Coin
             sage: p.row(0)                                     # optional - Coin
             ([0, 1, 2, 3, 4], [0.0, 1.0, 2.0, 3.0, 4.0])
             sage: p.row_bounds(0)                              # optional - Coin
@@ -434,7 +434,7 @@ cdef class CoinBackend(GenericBackend):
             sage: p = get_solver(solver = "Coin")  # optional - Coin
             sage: p.add_variables(2)                               # optional - Coin
             2
-            sage: p.add_constraint([0, 1], [1, 2], +1, 3)          # optional - Coin
+            sage: p.add_linear_constraint([0, 1], [1, 2], +1, 3)          # optional - Coin
             sage: p.set_objective([2, 5])                          # optional - Coin
             sage: p.solve()                                        # optional - Coin
             0
@@ -476,7 +476,7 @@ cdef class CoinBackend(GenericBackend):
             0
             sage: p.nrows()                                       # optional - Coin
             0
-            sage: p.add_constraints(5, -1, 0)                      # optional - Coin
+            sage: p.add_linear_constraints(5, -1, 0)                      # optional - Coin
             sage: p.add_col(range(5), range(5))                    # optional - Coin
             sage: p.nrows()                                       # optional - Coin
             5
@@ -508,7 +508,7 @@ cdef class CoinBackend(GenericBackend):
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")    # optional - Coin
-            sage: p.add_constraints(5, -1, 0)       # optional - Coin
+            sage: p.add_linear_constraints(5, -1, 0)       # optional - Coin
             sage: p.add_col(range(5), [1,2,3,4,5])  # optional - Coin
             sage: p.solve()                         # optional - Coin
             0
@@ -519,8 +519,8 @@ cdef class CoinBackend(GenericBackend):
             sage: p = get_solver(solver = "Coin")    # optional - Coin
             sage: p.add_variable()                  # optional - Coin
             1
-            sage: p.add_constraint([0], [1], +1, 4) # optional - Coin
-            sage: p.add_constraint([0], [1], -1, 6) # optional - Coin
+            sage: p.add_linear_constraint([0], [1], +1, 4) # optional - Coin
+            sage: p.add_linear_constraint([0], [1], -1, 6) # optional - Coin
             sage: p.set_objective_coefficient(0,1)        # optional - Coin
             sage: p.solve()                         # optional - Coin
             Traceback (most recent call last):
@@ -561,7 +561,7 @@ cdef class CoinBackend(GenericBackend):
             sage: p = get_solver(solver = "Coin")  # optional - Coin
             sage: p.add_variables(2)                               # optional - Coin
             2
-            sage: p.add_constraint([0, 1], [1, 2], +1, 3)          # optional - Coin
+            sage: p.add_linear_constraint([0, 1], [1, 2], +1, 3)          # optional - Coin
             sage: p.set_objective([2, 5])                          # optional - Coin
             sage: p.solve()                                        # optional - Coin
             0
@@ -589,7 +589,7 @@ cdef class CoinBackend(GenericBackend):
             sage: p = get_solver(solver = "Coin") # optional - Coin
             sage: p.add_variables(2)                              # optional - Coin
             2
-            sage: p.add_constraint([0, 1], [1, 2], +1, 3)         # optional - Coin
+            sage: p.add_linear_constraint([0, 1], [1, 2], +1, 3)         # optional - Coin
             sage: p.set_objective([2, 5])                         # optional - Coin
             sage: p.solve()                                       # optional - Coin
             0
@@ -633,7 +633,7 @@ cdef class CoinBackend(GenericBackend):
             sage: p = get_solver(solver = "Coin") # optional - Coin
             sage: p.nrows()                                      # optional - Coin
             0
-            sage: p.add_constraints(2, -1, 2)                     # optional - Coin
+            sage: p.add_linear_constraints(2, -1, 2)                     # optional - Coin
             sage: p.nrows()                                      # optional - Coin
             2
         """
@@ -811,7 +811,7 @@ cdef class CoinBackend(GenericBackend):
             sage: p = get_solver(solver = "Coin")  # optional - Coin
             sage: p.add_variables(2)                               # optional - Coin
             2
-            sage: p.add_constraint([0, 1], [1, 2], +1, 3)          # optional - Coin
+            sage: p.add_linear_constraint([0, 1], [1, 2], +1, 3)          # optional - Coin
             sage: p.set_objective([2, 5])                          # optional - Coin
             sage: p.write_mps(SAGE_TMP+"/lp_problem.mps", 0)       # optional - Coin
         """
@@ -856,7 +856,7 @@ cdef class CoinBackend(GenericBackend):
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")  # optional - Coin
-            sage: p.add_constraints(1, -1, 2)                      # optional - Coin
+            sage: p.add_linear_constraints(1, -1, 2)                      # optional - Coin
             sage: p.row_name(0, "Empty constraint 1")          # optional - Coin
             sage: print p.row_name(0)                          # optional - Coin
             <BLANKLINE>

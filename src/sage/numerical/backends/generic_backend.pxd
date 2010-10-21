@@ -13,9 +13,9 @@ cdef class GenericBackend:
     cpdef set_objective_coefficient(self, int variable, double coeff)
     cpdef set_objective(self, list coeff)
     cpdef set_verbosity(self, int level)
-    cpdef add_constraint(self, list indices, list coeffs, int direction, double bound)
+    cpdef add_linear_constraint(self, list indices, list coeffs, int direction, double bound)
     cpdef add_col(self, list indices, list coeffs)
-    cpdef add_constraints(self, int number, int direction, double bound)
+    cpdef add_linear_constraints(self, int number, int direction, double bound)
     cpdef int solve(self) except -1
     cpdef double get_objective_value(self)
     cpdef double get_variable_value(self, int variable)

@@ -783,6 +783,85 @@ cdef class GenericBackend:
 
         raise NotImplementedError()
 
+default_solver = None
+
+def default_mip_solver(solver = None):
+    r"""
+    Returns/Sets the default MILP Solver used by Sage
+
+    INPUT:
+
+    - ``solver`` -- defines the solver to use:
+
+        - GLPK (``solver="GLPK"``). See the `GLPK
+          <http://www.gnu.org/software/glpk/>`_ web site.
+
+        - COIN Branch and Cut (``solver="Coin"``). See the `COIN-OR
+          <http://www.coin-or.org>`_ web site.
+
+        - CPLEX (``solver="CPLEX"``). See the
+          `CPLEX <http://www.ilog.com/products/cplex/>`_ web site.
+          An interface to CPLEX is not yet implemented.
+
+        ``solver`` should then be equal to one of ``"GLPK"``,
+        ``"Coin"``, ``"CPLEX"``.
+
+        - If ``solver=None`` (default), the current default solver's name is
+          returned.
+
+    OUTPUT:
+
+    This function returns the current default solver's name if ``solver = None``
+    (default). Otherwise, it sets the default solver to the one given. If this
+    solver does not exist, or is not available, a ``ValueError`` exception is
+    raised.
+
+    EXAMPLE::
+
+        sage: former_solver = default_mip_solver()
+        sage: default_mip_solver("GLPK")
+        sage: default_mip_solver()
+        'GLPK'
+        sage: default_mip_solver("Yeahhhhhhhhhhh")
+        Traceback (most recent call last):
+        ...
+        ValueError: 'solver' should be set to 'GLPK', 'Coin', 'CPLEX' or None.
+        sage: default_mip_solver(former_solver)
+    """
+    global default_solver
+
+    if solver is None:
+
+        if default_solver is not None:
+            return default_solver
+
+        else:
+            for s in ["CPLEX", "Coin", "GLPK"]:
+                try:
+                    default_mip_solver(s)
+                    return s
+                except ValueError:
+                    pass
+
+    elif solver == "CPLEX":
+        try:
+            from sage.numerical.backends.cplex_backend import CPLEXBackend
+            default_solver = solver
+        except ImportError:
+            raise ValueError("CPLEX is not available. Please refer to the documentation to install it.")
+
+    elif solver == "Coin":
+        try:
+            from sage.numerical.backends.coin_backend import CoinBackend
+            default_solver = solver
+        except ImportError:
+            raise ValueError("COIN is not available. Please refer to the documentation to install it.")
+
+    elif solver == "GLPK":
+        default_solver = solver
+
+    else:
+        raise ValueError("'solver' should be set to 'GLPK', 'Coin', 'CPLEX' or None.")
 
 cpdef GenericBackend get_solver(constraint_generation = False, solver = None):
     r"""
@@ -802,16 +881,9 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None):
           `CPLEX <http://www.ilog.com/products/cplex/>`_ web site.
           An interface to CPLEX is not yet implemented.
 
-        ``solver`` should then be equal to one of ``"GLPK"``,
-        ``"Coin"``, ``"CPLEX"``, or ``None``. If ``solver=None``
-        (default), the solvers are tried in this order :
-
-            * CPLEX
-            * Coin
-            * GLPK
-
-        A backend corresponding to the first solver available is then
-        returned
+        ``solver`` should then be equal to one of ``"GLPK"``, ``"Coin"``,
+        ``"CPLEX"``, or ``None``. If ``solver=None`` (default), the default
+        solver is used (see ``default_mip_solver`` method.
 
     - ``constraint_generation`` (boolean) -- whether the solver
       returned is to be used for constraint/variable generation. As
@@ -820,32 +892,25 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None):
       ensures that the backend to Coin is not returned when ``solver =
       None``. This is set to ``False`` by default.
 
+    .. SEEALSO::
+
+    - :func:`default_mip_solver` -- Returns/Sets the default MIP solver.
+
     EXAMPLE::
 
         sage: from sage.numerical.backends.generic_backend import get_solver
         sage: p = get_solver()
-
     """
 
     if solver is None:
+        solver = default_mip_solver()
 
-        try:
-            from sage.numerical.backends.cplex_backend import CPLEXBackend
-            return CPLEXBackend()
-        except ImportError:
-            pass
+        # We do not want to use Coin for constraint_generation. It just does not
+        # work with it.
+        if solver == "Coin" and constraint_generation:
+            solver = "GLPK"
 
-        try:
-            if not constraint_generation:
-                from sage.numerical.backends.coin_backend import CoinBackend
-                return CoinBackend()
-        except ImportError:
-            pass
-
-        from sage.numerical.backends.glpk_backend import GLPKBackend
-        return GLPKBackend()
-
-    elif solver == "Coin":
+    if solver == "Coin":
         from sage.numerical.backends.coin_backend import CoinBackend
         return CoinBackend()
 

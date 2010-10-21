@@ -92,26 +92,47 @@ from copy import deepcopy
 cdef class MixedIntegerLinearProgram:
     r"""
     The ``MixedIntegerLinearProgram`` class is the link between Sage, linear
-    programming (LP) and  mixed integer programming (MIP) solvers. See the
-    Wikipedia article on
-    `linear programming <http://en.wikipedia.org/wiki/Linear_programming>`_
-    for further information. A mixed integer program consists of variables,
-    linear constraints on these variables, and an objective function which is
-    to be maximised or minimised under these constraints. An instance of
-    ``MixedIntegerLinearProgram`` also requires the information on the
-    direction of the optimization.
+    programming (LP) and mixed integer programming (MIP) solvers.
 
-    A ``MixedIntegerLinearProgram`` (or ``LP``) is defined as a maximization
-    if ``maximization=True`` and is a minimization if ``maximization=False``.
+    See the Wikipedia article on `linear programming
+    <http://en.wikipedia.org/wiki/Linear_programming>`_ for further information.
+
+    A mixed integer program consists of variables, linear constraints on these
+    variables, and an objective function which is to be maximised or minimised
+    under these constraints. An instance of ``MixedIntegerLinearProgram`` also
+    requires the information on the direction of the optimization.
 
     INPUT:
 
+    - ``solver`` -- 3 solvers should be available through this class:
+
+      - GLPK (``solver="GLPK"``). See the `GLPK
+        <http://www.gnu.org/software/glpk/>`_ web site.
+
+      - COIN Branch and Cut (``solver="Coin"``). See the `COIN-OR
+        <http://www.coin-or.org>`_ web site.
+
+      - CPLEX (``solver="CPLEX"``). See the `CPLEX
+        <http://www.ilog.com/products/cplex/>`_ web site.  An interface to
+        CPLEX is not yet implemented.
+
+        ``solver`` should then be equal to one of ``"GLPK"``, ``"Coin"``,
+        ``"CPLEX"``, or ``None``.
+
+      - If ``solver=None`` (default), the default solver is used (see
+        ``default_mip_solver`` method.
+
     - ``maximization``
 
-      - When set to ``True`` (default), the ``MixedIntegerLinearProgram`` is
-        defined as a maximization.
-      - When set to ``False``, the ``MixedIntegerLinearProgram`` is defined as
-        a minimization.
+      - When set to ``True`` (default), the ``MixedIntegerLinearProgram``
+        is defined as a maximization.
+
+      - When set to ``False``, the ``MixedIntegerLinearProgram`` is
+        defined as a minimization.
+
+    .. SEEALSO::
+
+     - :func:`default_mip_solver` -- Returns/Sets the default MIP solver.
 
     EXAMPLES:
 
@@ -136,28 +157,19 @@ cdef class MixedIntegerLinearProgram:
 
         - ``solver`` -- 3 solvers should be available through this class:
 
-          - GLPK (``solver="GLPK"``). See the
-            `GLPK <http://www.gnu.org/software/glpk/>`_ web site.
+          - GLPK (``solver="GLPK"``). See the `GLPK
+            <http://www.gnu.org/software/glpk/>`_ web site.
 
-          - COIN Branch and Cut  (``solver="Coin"``). See the
-            `COIN-OR <http://www.coin-or.org>`_ web site.
+          - COIN Branch and Cut (``solver="Coin"``). See the `COIN-OR
+            <http://www.coin-or.org>`_ web site.
 
-          - CPLEX (``solver="CPLEX"``). See the
-            `CPLEX <http://www.ilog.com/products/cplex/>`_ web site.
-            An interface to CPLEX is not yet implemented.
+          - CPLEX (``solver="CPLEX"``). See the `CPLEX
+            <http://www.ilog.com/products/cplex/>`_ web site.  An interface to
+            CPLEX is not yet implemented.
 
-            ``solver`` should then be equal to one of ``"GLPK"``,
-            ``"Coin"``, ``"CPLEX"``, or ``None``. If ``solver=None``
-            (default), the solvers are tried in this order :
-
-                * CPLEX
-                * Coin
-                * GLPK
-
-            A backend corresponding to the first solver available is
-            then returned
-
-
+            ``solver`` should then be equal to one of ``"GLPK"``, ``"Coin"``,
+            ``"CPLEX"``, or ``None``. If ``solver=None`` (default), the default
+            solver is used (see ``default_mip_solver`` method.
 
         - ``maximization``
 
@@ -165,6 +177,11 @@ cdef class MixedIntegerLinearProgram:
             is defined as a maximization.
           - When set to ``False``, the ``MixedIntegerLinearProgram`` is
             defined as a minimization.
+
+        .. SEEALSO::
+
+        - :meth:`default_mip_solver` -- Returns/Sets the default MIP solver.
+
 
         EXAMPLE::
 

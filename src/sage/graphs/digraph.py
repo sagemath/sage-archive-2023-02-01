@@ -1180,7 +1180,7 @@ class DiGraph(GenericGraph):
 
         from sage.numerical.mip import MixedIntegerLinearProgram, Sum
 
-        p=MixedIntegerLinearProgram(maximization=False)
+        p=MixedIntegerLinearProgram(maximization=False, solver=solver)
 
         b=p.new_variable()
         x=p.new_variable(dim=2)
@@ -1204,9 +1204,9 @@ class DiGraph(GenericGraph):
         p.set_objective(Sum([b[(u,v)] for (u,v) in self.edges(labels=None)]))
 
         if value_only:
-            return p.solve(objective_only=True, solver=solver, log=verbose)
+            return p.solve(objective_only=True, log=verbose)
         else:
-            p.solve(solver=solver, log=verbose)
+            p.solve(log=verbose)
 
             b_sol=p.get_values(b)
 
@@ -1302,7 +1302,7 @@ class DiGraph(GenericGraph):
 
         from sage.numerical.mip import MixedIntegerLinearProgram, Sum
 
-        p=MixedIntegerLinearProgram(maximization=False)
+        p=MixedIntegerLinearProgram(maximization=False, solver=solver)
 
         b=p.new_variable()
         x=p.new_variable(dim=2)
@@ -1326,9 +1326,9 @@ class DiGraph(GenericGraph):
         p.set_objective(Sum([b[v] for v in self]))
 
         if value_only:
-            return p.solve(objective_only=True, solver=solver, log=verbose)
+            return p.solve(objective_only=True, log=verbose)
         else:
-            p.solve(solver=solver, log=verbose)
+            p.solve(log=verbose)
             b_sol=p.get_values(b)
 
             from sage.sets.set import Set

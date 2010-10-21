@@ -250,7 +250,7 @@ def chromatic_number(G):
         for C in all_graph_colorings(G,n):
             return n
 
-def vertex_coloring(g, k=None, value_only=False, hex_colors=False, log=0):
+def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver = None, verbose = 0):
     r"""
     Computes the chromatic number of the given graph or tests its
     `k`-colorability. See http://en.wikipedia.org/wiki/Graph_coloring for
@@ -275,11 +275,17 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, log=0):
       partition returned is a dictionary whose keys are colors and whose
       values are the color classes (ideal for plotting).
 
-    - ``log`` -- (default: ``0``) as vertex-coloring is an `NP`-complete
-      problem, this function may take some time depending on the graph.
-      Use ``log`` to define the level of verbosity you want from the
-      linear program solver. By default ``log=0``, meaning that there will
-      be no message printed by the solver.
+    - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+      solver to be used. If set to ``None``, the default one is
+      used. For more information on LP solvers and which default
+      solver is used, see the method :meth:`solve
+      <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the
+      class :class:`MixedIntegerLinearProgram
+      <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+    - ``verbose`` -- integer (default: ``0``). Sets the level of
+       verbosity. Set to 0 by default, which means quiet.
+
 
     OUTPUT:
 
@@ -331,7 +337,7 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, log=0):
         while True:
             # tries to color the graph, increasing k each time it fails.
             tmp = vertex_coloring(g, k=k, value_only=value_only,
-                                  hex_colors=hex_colors, log=log)
+                                  hex_colors=hex_colors, verbose=verbose)
             if tmp is not False:
                 if value_only:
                     return k
@@ -359,7 +365,7 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, log=0):
                     tmp = vertex_coloring(g.subgraph(component), k=k,
                                           value_only=value_only,
                                           hex_colors=hex_colors,
-                                          log=log)
+                                          verbose=verbose)
                     if tmp is False:
                         return False
                 return True
@@ -367,7 +373,7 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, log=0):
             for component in g.connected_components():
                 tmp = vertex_coloring(g.subgraph(component), k=k,
                                       value_only=value_only,
-                                      hex_colors=False, log=log)
+                                      hex_colors=False, verbose=verbose)
                 if tmp is False:
                     return False
                 colorings.append(tmp)
@@ -398,11 +404,11 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, log=0):
                 return vertex_coloring(g.subgraph(list(vertices)), k=k,
                                        value_only=value_only,
                                        hex_colors=hex_colors,
-                                       log=log)
+                                       verbose=verbose)
             value = vertex_coloring(g.subgraph(list(vertices)), k=k,
                                     value_only=value_only,
                                     hex_colors=False,
-                                    log=log)
+                                    verbose=verbose)
             if value is False:
                 return False
             while len(deg) > 0:
@@ -416,7 +422,7 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, log=0):
             else:
                 return value
 
-        p = MixedIntegerLinearProgram(maximization=True)
+        p = MixedIntegerLinearProgram(maximization=True, solver = solver)
         color = p.new_variable(dim=2)
         # a vertex has exactly one color
         [p.add_constraint(Sum([color[v][i] for i in xrange(k)]), min=1, max=1)
@@ -432,10 +438,10 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, log=0):
         from sage.numerical.mip import MIPSolverException
         try:
             if value_only:
-                p.solve(objective_only=True, log=log)
+                p.solve(objective_only=True, log=verbose)
                 return True
             else:
-                chi = p.solve(log=log)
+                chi = p.solve(log=verbose)
         except MIPSolverException:
             return False
 
@@ -534,7 +540,7 @@ def grundy_coloring(g, k, value_only = True, solver = None, verbose = 0):
     from sage.numerical.mip import MixedIntegerLinearProgram
     from sage.numerical.mip import MIPSolverException, Sum
 
-    p = MixedIntegerLinearProgram()
+    p = MixedIntegerLinearProgram(solver = solver)
 
     # List of colors
     classes = range(k)
@@ -581,7 +587,7 @@ def grundy_coloring(g, k, value_only = True, solver = None, verbose = 0):
     p.set_objective( Sum( is_used[i] for i in classes ) )
 
     try:
-        obj = p.solve(solver = solver, log = verbose, objective_only = value_only)
+        obj = p.solve(log = verbose, objective_only = value_only)
         from sage.rings.integer import Integer
         obj = Integer(obj)
 
@@ -720,7 +726,7 @@ def b_coloring(g, k, value_only = True, solver = None, verbose = 0):
         k = m
 
 
-    p = MixedIntegerLinearProgram()
+    p = MixedIntegerLinearProgram(solver = solver)
 
     # List of possible colors
     classes = range(k)
@@ -786,7 +792,7 @@ def b_coloring(g, k, value_only = True, solver = None, verbose = 0):
 
 
     try:
-        obj = p.solve(solver = solver, log = verbose, objective_only = value_only)
+        obj = p.solve(log = verbose, objective_only = value_only)
         from sage.rings.integer import Integer
         obj = Integer(obj)
 
@@ -810,7 +816,7 @@ def b_coloring(g, k, value_only = True, solver = None, verbose = 0):
 
     return obj, coloring
 
-def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, log=0):
+def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver = None,verbose = 0):
     r"""
     Properly colors the edges of a graph. See the URL
     http://en.wikipedia.org/wiki/Edge_coloring for further details on
@@ -841,11 +847,16 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, log=0):
       partition returned is a dictionary whose keys are colors and whose
       values are the color classes (ideal for plotting).
 
-    - ``log`` -- (default: ``0``) as edge-coloring is an `NP`-complete
-      problem, this function may take some time depending on the graph. Use
-      ``log`` to define the level of verbosity you wantfrom the linear
-      program solver. By default ``log=0``, meaning that there will be no
-      message printed by the solver.
+    - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+      solver to be used. If set to ``None``, the default one is
+      used. For more information on LP solvers and which default
+      solver is used, see the method :meth:`solve
+      <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the
+      class :class:`MixedIntegerLinearProgram
+      <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+    - ``verbose`` -- integer (default: ``0``). Sets the level of
+       verbosity. Set to 0 by default, which means quiet.
 
     OUTPUT:
 
@@ -908,7 +919,7 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, log=0):
     if value_only and g.is_overfull():
         return max(g.degree())+1
 
-    p = MixedIntegerLinearProgram(maximization=True)
+    p = MixedIntegerLinearProgram(maximization=True, solver = solver)
     color = p.new_variable(dim=2)
     obj = {}
     k = max(g.degree())
@@ -932,15 +943,19 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, log=0):
     p.set_binary(color)
     try:
         if value_only:
-            p.solve(objective_only=True, log=log)
+            p.solve(objective_only=True, log=verbose)
         else:
-            chi = p.solve(log=log)
+            chi = p.solve(log=verbose)
     except MIPSolverException:
         if value_only:
             return k + 1
         else:
             # if the coloring with Delta colors fails, tries Delta + 1
-            return edge_coloring(g, vizing=True, hex_colors=hex_colors, log=log)
+            return edge_coloring(g,
+                                 vizing=True,
+                                 hex_colors=hex_colors,
+                                 verbose=verbose,
+                                 solver = solver)
     if value_only:
         return k
     # Builds the color classes
@@ -1023,7 +1038,7 @@ def round_robin(n):
         g.delete_vertex(n)
         return g
 
-def linear_arboricity(g, hex_colors=False, value_only=False, k=1, **kwds):
+def linear_arboricity(g, k=1, hex_colors=False, value_only=False, solver = None, verbose = 0):
     r"""
     Computes the linear arboricity of the given graph.
 
@@ -1070,9 +1085,16 @@ def linear_arboricity(g, hex_colors=False, value_only=False, k=1, **kwds):
         - If ``k=None``, computes a decomposition using the
           least possible number of colors.
 
-    - ``**kwds`` -- arguments to be passed down to the ``solve``
-      function of ``MixedIntegerLinearProgram``. See the documentation
-      of ``MixedIntegerLinearProgram.solve`` for more informations.
+    - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+      solver to be used. If set to ``None``, the default one is
+      used. For more information on LP solvers and which default
+      solver is used, see the method :meth:`solve
+      <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the
+      class :class:`MixedIntegerLinearProgram
+      <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+    - ``verbose`` -- integer (default: ``0``). Sets the level of
+       verbosity. Set to 0 by default, which means quiet.
 
     ALGORITHM:
 
@@ -1119,9 +1141,19 @@ def linear_arboricity(g, hex_colors=False, value_only=False, k=1, **kwds):
 
     if k is None:
         try:
-            return linear_arboricity(g, value_only = value_only,hex_colors = hex_colors, k = (Integer(max(g.degree()))/2).ceil() )
+            return linear_arboricity(g,
+                                     k = (Integer(max(g.degree()))/2).ceil(),
+                                     value_only = value_only,
+                                     hex_colors = hex_colors,
+                                     solver = solver,
+                                     verbose = verbose)
         except ValueError:
-            return linear_arboricity(g, value_only = value_only,hex_colors = hex_colors, k = 0)
+            return linear_arboricity(g,
+                                     k = 0,
+                                     value_only = value_only,
+                                     hex_colors = hex_colors,
+                                     solver = solver,
+                                     verbose = verbose)
     elif k==1:
         k = (Integer(1+max(g.degree()))/2).ceil()
     elif k==0:
@@ -1130,7 +1162,7 @@ def linear_arboricity(g, hex_colors=False, value_only=False, k=1, **kwds):
     from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException, Sum
     from sage.plot.colors import rainbow
 
-    p = MixedIntegerLinearProgram()
+    p = MixedIntegerLinearProgram(solver = solver)
 
 
     # c is a boolean value such that c[i][(u,v)] = 1 if and only if (u,v) is colored with i
@@ -1167,9 +1199,9 @@ def linear_arboricity(g, hex_colors=False, value_only=False, k=1, **kwds):
 
     try:
         if value_only:
-            return p.solve(objective_only = True)
+            return p.solve(objective_only = True, log = verbose)
         else:
-            p.solve()
+            p.solve(log = verbose)
 
     except MIPSolverException:
         if k == (Integer(max(g.degree()))/2).ceil():
@@ -1198,7 +1230,7 @@ def linear_arboricity(g, hex_colors=False, value_only=False, k=1, **kwds):
     else:
         return answer
 
-def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, **kwds):
+def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver = None, verbose = 0):
     r"""
     Computes an acyclic edge coloring of the current graph.
 
@@ -1252,9 +1284,16 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, **kwds):
         - If ``k=None``, computes a decomposition using the
           least possible number of colors.
 
-    - ``**kwds`` -- arguments to be passed down to the ``solve``
-      function of ``MixedIntegerLinearProgram``. See the documentation
-      of ``MixedIntegerLinearProgram.solve`` for more informations.
+    - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+      solver to be used. If set to ``None``, the default one is
+      used. For more information on LP solvers and which default
+      solver is used, see the method :meth:`solve
+      <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the
+      class :class:`MixedIntegerLinearProgram
+      <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+    - ``verbose`` -- integer (default: ``0``). Sets the level of
+       verbosity. Set to 0 by default, which means quiet.
 
     ALGORITHM:
 
@@ -1311,7 +1350,12 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, **kwds):
 
         while True:
             try:
-                return acyclic_edge_coloring(g, value_only = value_only,hex_colors = hex_colors, k = k)
+                return acyclic_edge_coloring(g,
+                                             value_only = value_only,
+                                             hex_colors = hex_colors,
+                                             k = k,
+                                             solver = solver,
+                                             verbose = verbose)
             except ValueError:
                 k = k+1
 
@@ -1323,7 +1367,7 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, **kwds):
     from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException, Sum
     from sage.plot.colors import rainbow
 
-    p = MixedIntegerLinearProgram()
+    p = MixedIntegerLinearProgram(solver = solver)
 
     # c is a boolean value such that c[i][(u,v)] = 1 if and only if (u,v) is colored with i
     c = p.new_variable(dim=2)
@@ -1360,9 +1404,9 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, **kwds):
 
     try:
         if value_only:
-            return p.solve(objective_only = True, **kwds)
+            return p.solve(objective_only = True, log = verbose)
         else:
-            p.solve(**kwds)
+            p.solve(log = verbose)
 
     except MIPSolverException:
         if k == max(g.degree()) + 2:

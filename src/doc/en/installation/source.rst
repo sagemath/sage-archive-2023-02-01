@@ -753,6 +753,15 @@ Sage uses the following environment variables when it runs:
   called :file:`libcblas_new.so` or :file:`libcblas_new.dylib`, then
   set this to "cblas_new".
 
+Sage overrides the user's settings of the following variables:
+
+- :envvar:`MPLCONFIGDIR` - ordinarily, this variable lets the user set
+  their matplotlib config directory.  Due to incompatibilies in the
+  contents of this directory among different versions of matplotlib,
+  Sage overrides the user's setting, defining it instead to be
+  ``$DOT_SAGE/matplotlib-VER``,   with "VER" replaced by the
+  current matplotlib version number.
+
 Variables dealing with doctesting:
 
 - :envvar:`SAGE_TESTDIR` - a temporary directory used during Sage's

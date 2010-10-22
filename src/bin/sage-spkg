@@ -127,13 +127,21 @@ if [ ! -f "$PKG_SRC" ]; then
     fi
 fi
 
+# Don't verbosely extract files from spkgs by default (#10040):
+
+if [ "$SAGE_SPKG_LIST_FILES" = "yes" ]; then
+    UNTAR_VERBOSE=v
+else
+    unset UNTAR_VERBOSE
+fi
+
 if [ $INFO -ne 0 ]; then
     if [ ! -f "$PKG_SRC" ]; then
         echo "Package $PKG_NAME not found"
     fi
-    bunzip2 -c "$PKG_SRC" 2>/dev/null | tar Ofx - $PKG_NAME/SAGE.txt 2>/dev/null
+    bunzip2 -c "$PKG_SRC" 2>/dev/null | tar Ofx${UNTAR_VERBOSE} - $PKG_NAME/SAGE.txt 2>/dev/null
     if [ $? -ne 0 ]; then
-        tar Ofx  "$PKG_SRC" "$PKG_NAME/SAGE.txt" 2>/dev/null
+        tar Ofx${UNTAR_VERBOSE} "$PKG_SRC" "$PKG_NAME/SAGE.txt" 2>/dev/null
     fi
     echo ""
     if [ $? -ne 0 ]; then
@@ -239,9 +247,9 @@ if [ -d "$PKG_NAME" ]; then
     rm -rf "$PKG_NAME"
 fi
 
-bunzip2 -c "$PKG_SRC" 2>/dev/null | tar fxv -  2>/dev/null
+bunzip2 -c "$PKG_SRC" 2>/dev/null | tar fx${UNTAR_VERBOSE} -  2>/dev/null
 if [ ! -d "$PKG_NAME" ]; then
-    tar fxv "$PKG_SRC"
+    tar fx${UNTAR_VERBOSE} "$PKG_SRC"
 fi
 echo "Finished extraction"
 
@@ -261,9 +269,9 @@ if [ ! -d "$PKG_NAME" ]; then
     fi
     sage-download_package "$PKG_NAME"
     echo `pwd`
-    bunzip2 -c "$PKG_NAME.spkg"  | tar fxv -
+    bunzip2 -c "$PKG_NAME.spkg"  | tar fx${UNTAR_VERBOSE} -
     if [ ! -d "$PKG_NAME.spkg" ]; then
-        tar fxv "$PKG_NAME.spkg"
+        tar fx${UNTAR_VERBOSE} "$PKG_NAME.spkg"
     fi
     if [ ! -d "$PKG_NAME" ]; then
         echo "Second download resulted in a corrupted package."

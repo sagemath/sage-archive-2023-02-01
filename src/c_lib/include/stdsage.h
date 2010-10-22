@@ -170,13 +170,16 @@ the I/O buffer escapes completely the Python memory manager."
 #define sage_realloc realloc
 
 /**
- * Initialisation of singal handlers, global variables, etc. Called
- * exactly once at SAGE start-up.
- *
- * @note: It is safe to call this function more than once but nothing
- * will happen after the first call.
+ * Initialisation of signal handlers, global variables, etc. Called
+ * exactly once at Sage start-up.
  */
 void init_csage(void);
+
+/**
+ * Initialisation of a Cython module. Called exactly once for every
+ * Cython module. On Cygwin, this calls init_csage().
+ */
+void init_csage_module(void);
 
 
 

@@ -18,7 +18,8 @@ cdef extern from "stdio.h":
     int fprintf(FILE *stream, char *format, ...)
     int sprintf(char *str, char *format, ...)
     FILE *fopen(char *path, char *mode)
-    int fclose(FILE *strea)
+    int fclose(FILE *stream)
+    int fflush(FILE *stream)
     cdef FILE *stdout
     int scanf(char *format, ...)
 

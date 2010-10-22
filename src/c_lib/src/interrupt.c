@@ -1,165 +1,266 @@
-/******************************************************************************
-       Copyright (C) 2006 William Stein <wstein@gmail.com>
-                     2006 Martin Albrecht <malb@informatik.uni-bremen.de>
+/*
+Interrupt and signal handling for Sage
 
-  Distributed under the terms of the GNU General Public License (GPL), Version 2.
+AUTHORS:
 
-  The full text of the GPL is available at:
-                  http://www.gnu.org/licenses/
+- William Stein, Martin Albrecht (2006): initial version
 
-******************************************************************************/
+- Jeroen Demeyer (2010-10-03): almost complete rewrite (#9678)
 
+*/
+
+/*****************************************************************************
+ *       Copyright (C) 2006 William Stein <wstein@gmail.com>
+ *                     2006 Martin Albrecht <malb@informatik.uni-bremen.de>
+ *                     2010 Jeroen Demeyer <jdemeyer@cage.ugent.be>
+ *
+ *  Distributed under the terms of the GNU General Public License (GPL)
+ *  as published by the Free Software Foundation; either version 2 of
+ *  the License, or (at your option) any later version.
+ *                  http://www.gnu.org/licenses/
+ ****************************************************************************/
+
+#include <stdio.h>
+#include <string.h>
+#include <limits.h>
+/* glibc has a backtrace() command since version 2.1 */
+#ifdef __GLIBC__
+#if (__GLIBC__ > 2) || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 1)
+#define HAVE_BACKTRACE 1
+#include <execinfo.h>
+#endif
+#endif
 #include "stdsage.h"
 #include "interrupt.h"
-#include <stdio.h>
 
 
-char sage_signal_handler_message[SAGE_SIGNAL_HANDLER_MESSAGE_LEN + 1] = "";
+struct sage_signals_t _signals;
+
+/* The default signal mask during normal operation,
+ * initialized by setup_sage_signal_handler(). */
+static sigset_t default_sigmask;
+
+/* default_sigmask with SIGINT and SIGALRM added. */
+static sigset_t sigmask_with_sigint;
+
+
+/* Handler for SIGINT */
+void sage_interrupt_handler(int sig)
+{
+#if ENABLE_DEBUG_INTERRUPT
+    fprintf(stderr, "\n*** SIGINT *** %s sig_on\n", (_signals.sig_on_count > 0) ? "inside" : "outside");
+    print_backtrace();
+#endif
+
+    if (_signals.sig_on_count > 0)
+    {
+        if (_signals.block_sigint)
+        {
+            /* SIGINT is blocked, so simply set _signals.interrupt_received. */
+            _signals.interrupt_received = 1;
+            return;
+        }
+
+        /* Raise KeyboardInterrupt */
+        PyErr_SetNone(PyExc_KeyboardInterrupt);
+
+        /* Jump back to sig_on() (the first one if there is a stack) */
+        siglongjmp(_signals.env, sig);
+    }
+    else
+    {
+        /* Set an internal Python flag that an interrupt has been
+         * raised.  This will not immediately raise an exception, only
+         * on the next call of PyErr_CheckSignals().  We cannot simply
+         * raise an exception here because of Python's "global
+         * interpreter lock" -- Jeroen Demeyer */
+        PyErr_SetInterrupt();
+        _signals.interrupt_received = 1;
+    }
+}
+
+/* Call sage_interrupt_handler() "by hand". */
+void call_sage_interrupt_handler(int sig)
+{
+    /* Block SIGINT, SIGALRM */
+    sigprocmask(SIG_BLOCK, &sigmask_with_sigint, NULL);
+    sage_interrupt_handler(sig);
+}
+
+
+
+/* Handler for SIGILL, SIGABRT, SIGFPE, SIGBUS, SIGSEGV */
+void sage_signal_handler(int sig)
+{
+    sig_atomic_t inside = _signals.inside_signal_handler;
+    _signals.inside_signal_handler = 1;
+
+    if (inside == 0 && _signals.sig_on_count > 0)
+    {
+        /* We are inside sig_on(), so we can handle the signal! */
+
+        /* Message to be printed in the Python exception */
+        const char* msg = _signals.s;
+
+        if (!msg)
+        {
+            /* Default: a message depending on which signal we got */
+            switch(sig)
+            {
+                case SIGILL:  msg = "Illegal instruction"; break;
+                case SIGABRT: msg = "Aborted"; break;
+                case SIGFPE:  msg = "Floating point exception"; break;
+                case SIGBUS:  msg = "Bus error"; break;
+                case SIGSEGV: msg = "Segmentation fault"; break;
+                default: msg = "";
+            }
+        }
+
+        /* Raise RuntimeError */
+        PyErr_SetString(PyExc_RuntimeError, msg);
+
+        /* Jump back to sig_on() (the first one if there is a stack) */
+        siglongjmp(_signals.env, sig);
+    }
+    else
+    {
+        /* We are outside sig_on() and have no choice but to terminate Sage */
+
+        /* Reset all signals to their default behaviour and unblock
+         * them in case something goes wrong as of now. */
+        signal(SIGILL, SIG_DFL);
+        signal(SIGABRT, SIG_DFL);
+        signal(SIGFPE, SIG_DFL);
+        signal(SIGBUS, SIG_DFL);
+        signal(SIGSEGV, SIG_DFL);
+        sigprocmask(SIG_SETMASK, &sigmask_with_sigint, NULL);
+
+        if (inside) sigdie(sig, "An error occured during signal handling.");
+
+        /* Quit Sage with an appropriate message. */
+        switch(sig)
+        {
+            case SIGILL:
+                sigdie(sig, "Unhandled SIGILL: An illegal instruction occurred in Sage.");
+                break;  /* This will not be reached */
+            case SIGABRT:
+                sigdie(sig, "Unhandled SIGABRT: An abort() occurred in Sage.");
+                break;  /* This will not be reached */
+            case SIGFPE:
+                sigdie(sig, "Unhandled SIGFPE: An unhandled floating point exception occurred in Sage.");
+                break;  /* This will not be reached */
+            case SIGBUS:
+                sigdie(sig, "Unhandled SIGBUS: A bus error occurred in Sage.");
+                break;  /* This will not be reached */
+            case SIGSEGV:
+                sigdie(sig, "Unhandled SIGSEGV: A segmentation fault occurred in Sage.");
+                break;  /* This will not be reached */
+        };
+        sigdie(sig, "Unknown signal received.\n");
+    }
+}
+
+/* Check whether we received an interrupt before sig_on().
+ * Return 0 if there was an interrupt, 1 otherwise. */
+int _sig_on_interrupt_received()
+{
+    _signals.interrupt_received = 0;
+    if (PyErr_CheckSignals())
+    {
+        _signals.sig_on_count = 0;
+        return 0;
+    }
+    return 1;
+}
+
+/* Recover after siglongjmp() */
+void _sig_on_recover()
+{
+    _signals.block_sigint = 0;
+    _signals.sig_on_count = 0;
+    /* Reset signal mask */
+    sigprocmask(SIG_SETMASK, &default_sigmask, NULL);
+    _signals.inside_signal_handler = 0;
+}
+
+void _sig_off_warning(const char* file, int line)
+{
+    char buf[320];
+    snprintf(buf, sizeof(buf), "sig_off() without sig_on() at %s:%i", file, line);
+    PyErr_WarnEx(PyExc_RuntimeWarning, buf, 2);
+    print_backtrace();
+}
 
 
 void set_sage_signal_handler_message(const char* s)
 {
-   sage_signal_handler_message[SAGE_SIGNAL_HANDLER_MESSAGE_LEN] = 0;
-   strncpy(sage_signal_handler_message, s, SAGE_SIGNAL_HANDLER_MESSAGE_LEN);
+    _signals.s = s;
 }
 
 
-struct sage_signals _signals;
+void setup_sage_signal_handler()
+{
+    /* Reset the _signals structure */
+    memset(&_signals, 0, sizeof(_signals));
 
-void msg(char* s);
+    /* Save the default signal mask */
+    sigprocmask(SIG_BLOCK, NULL, &default_sigmask);
 
-void sage_signal_handler(int sig) {
+    /* Save the signal mask with SIGINT and SIGALRM */
+    sigprocmask(SIG_BLOCK, NULL, &sigmask_with_sigint);
+    sigaddset(&sigmask_with_sigint, SIGINT);
+    sigaddset(&sigmask_with_sigint, SIGALRM);
 
-  char *s = _signals.s;
-  _signals.s = NULL;
+    /* Install signal handlers */
+    struct sigaction sa;
+    memset(&sa, 0, sizeof(sa));
+    /* Block SIGINT and SIGALRM during the signal handlers */
+    sigemptyset(&sa.sa_mask);
+    sigaddset(&sa.sa_mask, SIGINT);
+    sigaddset(&sa.sa_mask, SIGALRM);
 
-  // if sage_signal_handler_message is non-empty, that overrides _signals.s
-  if (sage_signal_handler_message[0])
-  {
-     s = sage_signal_handler_message;
-  }
-
-  //we override the default handler
-  if ( _signals.mpio & 1 ) {
-
-    //what to do?
-
-    switch(sig) {
-
-    case SIGINT:
-      if( s ) {
-	PyErr_SetString(PyExc_KeyboardInterrupt, s);
-      } else {
-	PyErr_SetString(PyExc_KeyboardInterrupt, "");
-      }
-      break;
-
-    case SIGALRM:
-      if( s ) {
-	PyErr_SetString(PyExc_KeyboardInterrupt, s);
-      } else {
-	PyErr_SetString(PyExc_KeyboardInterrupt, "Alarm received");
-      }
-      break;
-
-    default:
-      if( s ) {
-	PyErr_SetString(PyExc_RuntimeError, s);
-      } else {
-	PyErr_SetString(PyExc_RuntimeError, "");
-      }
-    }
-
-    // clear out sage_signal_handler_message for the next time around
-    sage_signal_handler_message[0] = 0;
-
-
-    //notify 'calling' function
-
-    _signals.mpio |= 4;
-
-    signal(sig, sage_signal_handler);
-    //where to go next?
-    if ( _signals.mpio & 2 ) {
-      siglongjmp(_signals.env, sig);
-    } else {
-      //this case shouldn't happen as _sig_[on|off]_short is disabled
-      return;
-    }
-
-  } else {
-
-    //we use the default handler
-    _signals.mpio = 0;
-
-    switch(sig) {
-    case SIGSEGV:
-      sig_handle_sigsegv(sig);
-      break;
-    case SIGBUS:
-      sig_handle_sigbus(sig);
-      break;
-    case SIGFPE:
-      sig_handle_sigfpe(sig);
-      break;
-    default:
-      _signals.python_handler(sig);
-      break;
-    };
-
-    signal(sig, sage_signal_handler);
-  }
-}
-
-void setup_signal_handler(void) {
-  void *tmp = NULL;
-
-  //we need to make sure not to store our own signal handler as the old one
-  //because that would cause infinite recursion if an error occurs and we are
-  //not supposed to catch it.
-  tmp = signal(SIGINT, sage_signal_handler);
-
-  if(sage_signal_handler != tmp) {
-    _signals.python_handler = tmp;
-  }
-
-  _signals.s = NULL;
-
-/*  signal(SIGBUS, sig_handle_sigbus); */
-  signal(SIGBUS, sage_signal_handler);
-
-  signal(SIGALRM,sage_signal_handler);
-  signal(SIGSEGV,sage_signal_handler);
-  signal(SIGABRT,sage_signal_handler);
-  signal(SIGFPE,sage_signal_handler);
+    sa.sa_handler = sage_interrupt_handler;
+    if (sigaction(SIGINT, &sa, NULL)) {perror("sigaction"); exit(1);}
+    sa.sa_handler = sage_signal_handler;
+    /* Allow signals during signal handling, we have code to deal with
+     * this case. */
+    sa.sa_flags |= SA_NODEFER;
+    if (sigaction(SIGILL, &sa, NULL)) {perror("sigaction"); exit(1);}
+    if (sigaction(SIGABRT, &sa, NULL)) {perror("sigaction"); exit(1);}
+    if (sigaction(SIGFPE, &sa, NULL)) {perror("sigaction"); exit(1);}
+    if (sigaction(SIGBUS, &sa, NULL)) {perror("sigaction"); exit(1);}
+    if (sigaction(SIGSEGV, &sa, NULL)) {perror("sigaction"); exit(1);}
 }
 
 
-void msg(char* s) {
-  fprintf(stderr, "\n\n------------------------------------------------------------\n");
-  fprintf(stderr, s);
-  fprintf(stderr, "This probably occurred because a *compiled* component\n");
-  fprintf(stderr, "of Sage has a bug in it (typically accessing invalid memory)\n");
-  fprintf(stderr, "and is not properly wrapped with sig_on(), sig_off().\n");
-  fprintf(stderr, "You might want to run Sage under gdb with 'sage -gdb' to debug this.\n");
-  fprintf(stderr, "Sage will now terminate (sorry).\n");
-  fprintf(stderr, "------------------------------------------------------------\n\n");
+void print_backtrace()
+{
+    void* backtracebuffer[1024];
+    fflush(stderr);
+#ifdef HAVE_BACKTRACE
+    int btsize = backtrace(backtracebuffer, 1024);
+    backtrace_symbols_fd(backtracebuffer, btsize, 2);
+#endif
 }
 
-void sig_handle_sigsegv(int n) {
-  msg("Unhandled SIGSEGV: A segmentation fault occurred in Sage.\n");
-  PyErr_SetString(PyExc_KeyboardInterrupt, "");
-  exit(1);
-}
 
-void sig_handle_sigbus(int n) {
-  msg("Unhandled SIGBUS: A bus error occurred in Sage.\n");
-  PyErr_SetString(PyExc_KeyboardInterrupt, "");
-  exit(1);
-}
+void sigdie(int sig, const char* s)
+{
+    print_backtrace();
+    fprintf(stderr, "\n"
+        "------------------------------------------------------------------------\n"
+        "%s\n"
+        "This probably occurred because a *compiled* component of Sage has a bug\n"
+        "in it and is not properly wrapped with sig_on(), sig_off(). You might\n"
+        "want to run Sage under gdb with 'sage -gdb' to debug this.\n"
+        "Sage will now terminate.\n"
+        "------------------------------------------------------------------------\n",
+        s);
+    fflush(stderr);
 
-void sig_handle_sigfpe(int n) {
-  msg("Unhandled SIGFPE: An unhandled floating point exception occurred in Sage.\n");
-  PyErr_SetString(PyExc_KeyboardInterrupt, "");
-  exit(1);
+    /* Suicide with signal ``sig`` */
+    kill(getpid(), sig);
+
+    /* We should be dead! */
+    exit(128 + sig);
 }

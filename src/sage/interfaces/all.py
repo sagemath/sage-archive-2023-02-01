@@ -36,9 +36,6 @@ from lie import lie, lie_console, LiE
 from r import r, r_console, R, r_version, is_RElement
 from read_data import read_data
 
-# signal handling
-from get_sigs import *
-
 interfaces = ['gap', 'gap3', 'gp', 'mathematica', 'gnuplot', \
               'kash', 'magma', 'macaulay2', 'maple', 'maxima', \
               'mathematica', 'mwrank', 'octave', 'r', \

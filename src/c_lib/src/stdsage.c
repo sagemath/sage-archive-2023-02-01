@@ -6,16 +6,16 @@
  */
 
 /******************************************************************************
-       Copyright (C) 2006 William Stein <wstein@gmail.com>
-                     2006 David Harvey <dmharvey@math.harvard.edu>
-                     2006 Martin Albrecht <malb@informatik.uni-bremen.de>
-
-  Distributed under the terms of the GNU General Public License (GPL), Version 2.
-
-  The full text of the GPL is available at:
-                  http://www.gnu.org/licenses/
-
-******************************************************************************/
+ *     Copyright (C) 2006 William Stein <wstein@gmail.com>
+ *                   2006 David Harvey <dmharvey@math.harvard.edu>
+ *                   2006 Martin Albrecht <malb@informatik.uni-bremen.de>
+ *                   2011 Jeroen Demeyer <jdemeyer@cage.ugent.be>
+ *
+ *  Distributed under the terms of the GNU General Public License (GPL)
+ *  as published by the Free Software Foundation; either version 2 of
+ *  the License, or (at your option) any later version.
+ *                  http://www.gnu.org/licenses/
+ ****************************************************************************/
 
 
 #include "stdsage.h"
@@ -38,15 +38,22 @@ void init_global_empty_tuple(void) {
  */
 void global_NTL_error_callback(const char* s, void* context)
 {
-   set_sage_signal_handler_message(s);
-   abort();
+    set_sage_signal_handler_message(s);
+    abort();
 }
 
 
-void init_csage(void) {
-  //_CALLED_ONLY_ONCE;
+/* This is called once during Sage startup. On some platforms like
+ * Cygwin, this is also called from init_csage_module(). */
+void init_csage() {
+    init_global_empty_tuple();
+    setup_sage_signal_handler();
+    setup_NTL_error_callback(global_NTL_error_callback, NULL);
+}
 
-  init_global_empty_tuple();
-  setup_signal_handler();
-  setup_NTL_error_callback(global_NTL_error_callback, NULL);
+/* This is called once for every single module that links in stdsage */
+void init_csage_module() {
+#if defined(__CYGWIN32__)
+    init_csage();
+#endif
 }

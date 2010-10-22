@@ -239,6 +239,9 @@ ext_modules = [
     ##
     ################################
 
+    Extension('sage.ext.c_lib',
+              sources = ['sage/ext/c_lib.pyx']),
+
     Extension('sage.ext.fast_callable',
               sources = ['sage/ext/fast_callable.pyx']),
 
@@ -251,9 +254,6 @@ ext_modules = [
     Extension('sage.ext.multi_modular',
               sources = ['sage/ext/multi_modular.pyx'],
               libraries=['gmp']),
-
-    Extension('sage.ext.sig',
-              sources = ['sage/ext/sig.pyx']),
 
     ################################
     ##

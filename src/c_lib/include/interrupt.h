@@ -1,258 +1,365 @@
-/******************************************************************************
-       Copyright (C) 2006 William Stein <wstein@gmail.com>
-                     2006 Martin Albrecht <malb@informatik.uni-bremen.de>
+/*
+Interrupt and signal handling for Sage.
 
-  Distributed under the terms of the GNU General Public License (GPL), Version 2.
+For documentation about how to use these, see the Developer's Guide.
 
-  The full text of the GPL is available at:
-                  http://www.gnu.org/licenses/
 
-******************************************************************************/
+AUTHORS:
+
+- William Stein, Martin Albrecht (2006): initial version
+
+- Jeroen Demeyer (2010-10-03): almost complete rewrite (#9678)
+
+*/
+
+/*****************************************************************************
+ *       Copyright (C) 2006 William Stein <wstein@gmail.com>
+ *                     2006 Martin Albrecht <malb@informatik.uni-bremen.de>
+ *                     2010 Jeroen Demeyer <jdemeyer@cage.ugent.be>
+ *
+ *  Distributed under the terms of the GNU General Public License (GPL)
+ *  as published by the Free Software Foundation; either version 2 of
+ *  the License, or (at your option) any later version.
+ *                  http://www.gnu.org/licenses/
+ ****************************************************************************/
+
+/* Whether or not to enable interrupt debugging (0: disable, 1: enable) */
+#define ENABLE_DEBUG_INTERRUPT 0
+
 
 #ifndef C_LIB_INCLUDE_INTERRUPT_H
 #define C_LIB_INCLUDE_INTERRUPT_H
-#include <setjmp.h>
 #include <Python.h>
+#include <setjmp.h>
 #include <signal.h>
 
-
-
-/* In your Cython code, put
-
-    sig_on()
-    [pure c code block]
-    sig_off()
-
-   to get signal handling capabilities.
-
-   VERY VERY IMPORTANT:
-       1. These *must* always come in pairs. E.g., if you have just
-          a sig_off() without a corresponding sig_on(), then ctrl-c
-          later in the interpreter will segfault!
-
-       2. Do *not* put these in the __init__ method of a Cython extension
-          class, or you'll get crashes.
-
-       3. Do not put these around any non-pure C code!!!!
-
-
-
-
-*/
-
-/**
- * bitmask to enable the sage signal handler
- */
-
-#define SIG_SAGE_HANDLER 1
-
-/**
- * bitmask to enable long jumps
- */
-#define SIG_LONG_JMP 2
-
-/**
- * bitmask that a signal has been received.
- *
- */
-
-#define SIG_SIGNAL_RECEIVED 4
-
-/**
- * default signal handler for SIGINT, SIGALRM, SIGSEGV, SIGABRT,
- * SIGFPE in the context of SAGE. It calls the default Python handler
- * if _signals.sage_handler == 0.
- */
-
-void sage_signal_handler(int n);
-
-
-/**
- * fallback signal handlers
- */
-void sig_handle_sigsegv(int n);
-void sig_handle_sigbus(int n);
-void sig_handle_sigfpe(int n);
-
-/**
- * Supposed to be called exactly once to ensure the SAGE signal
- * handler is the default signal handler. This function implements a
- * mechanism to make sure it is only called once so it is safe to call
- * it more than once.
- *
- */
-
-void setup_signal_handler(void);
-
-#if defined (__sun__) || defined (__sun)   /* Needed for Solaris below. */
-   typedef void (*__sighandler_t )();
+#ifdef __cplusplus
+extern "C" {
 #endif
 
-/**
- * All relevant data for the signal handler is bundled in this struct.
- *
- */
 
-struct sage_signals {
-
-  /**
-   * Bitmask which determines what to do in the signal handler. Let
-   * bit 0 be the least significant bit, then the bitmask is as follows:
-   \verbatim
-     bit | semantic
-     -------------------------------------------
-       0 | use sage signal handler (1) or default (0)
-       1 | use longjmp (1) or return (0)
-       2 | signal received (1) or not (0)
-   \endverbatim
-   *
-   * You may want to use the provided definitions SIG_SAGE_HANDLER,
-   * SIG_LONG_JMP, SIG_SIGNAL_RECEIVED.
-   */
-
-  int mpio;
-
-  /**
-   * An internal buffer holding where to jump after a signal has been
-   * received, don't touch!
-   */
-
-  sigjmp_buf env;
-
-
-  /**
-   * An optional string may be passed to the signal handler which will
-   * be printed. Use sig_str() for that.
-   */
-  char *s;
-
-
-  /**
-   * Unfortunately signal handler function declarations vary HUGELY
-   * from platform to platform:
-   */
-
-#if defined(__CYGWIN32__)     /* Windows XP */
-
-  _sig_func_ptr  python_handler;
-
-#elif defined(__FreeBSD__)    /* FreeBSD */
-
-  sig_t  python_handler;
-
-#elif defined(__APPLE__)      /* OSX */
-
-  sig_t  python_handler;
-
-#elif defined (__sun__) || defined (__sun)   /* Solaris */
-
-  __sighandler_t  python_handler;
-
-#else                                   /* Other, e.g., Linux */
-
-  __sighandler_t python_handler;
-
+/* Declare likely() and unlikely() as in Cython */
+#ifdef __GNUC__
+/* Test for GCC > 2.95 */
+#if __GNUC__ > 2 || (__GNUC__ == 2 && (__GNUC_MINOR__ > 95))
+#define HAVE_BUILTIN_EXPECT 1
+#endif
 #endif
 
-};
-
-/**
- * The actual object.
- */
-
-extern struct sage_signals _signals;
-
-/**
- * Enables SAGE signal handling for the following C block. This macro
- * *MUST* be followed by sig_off().
- *
- *
- * See also @ref sig_str()
- */
-
-#define sig_on() if (_signals.mpio == 0) { _signals.mpio = 1+2; _signals.s = NULL;\
-                 if (sigsetjmp(_signals.env,1)) { \
-                  _signals.mpio = 0;   \
-                  return(0); \
-                } } // else { _signals.s = "Unbalanced sig_on()/sig_off()\n"; fprintf(stderr, _signals.s); sage_signal_handler(SIGABRT); }
-
-/* /\** */
-/*  * Enables SAGE signal handling for the following C block. This macro */
-/*  * *MUST* be followed by _sig_off_short. */
-/*  * */
-/*  * If the following block takes very little time to compute this macro */
-/*  * is the right choice. Otherwise sig_on() is appropriate. */
-/*  * */
-/*  * See also sig_on() and sig_str(). */
-/*  * */
-/*  *\/ */
-
-/* #define _sig_on_short _signals.mpio = 1 */
+#if HAVE_BUILTIN_EXPECT
+#define likely(x)   __builtin_expect(!!(x), 1)
+#define unlikely(x) __builtin_expect(!!(x), 0)
+#else
+#define likely(x)   (x)
+#define unlikely(x) (x)
+#endif
 
 
-/**
- * Same as @ref sig_on() but with string support
- *
- */
 
-#define sig_str(mstring) if (_signals.mpio == 0) { _signals.mpio = 1+2; \
-                _signals.s = mstring; \
-                if (sigsetjmp(_signals.env,1)) { \
-                  _signals.mpio = 0; \
-                 return(0); \
-                } } //else { _signals.s = "Unbalanced sig_str()/sig_off()\n"; fprintf(stderr, _signals.s); sage_signal_handler(SIGABRT); }
+/* Print a C backtrace if supported by libc */
+void print_backtrace(void);
+
+/* Print a message s and kill ourselves with signal sig */
+void sigdie(int sig, const char* s);
 
 
 /*
-  This function may be called by the code that *raises* the signal (before raising
-  the signal) to pass an error message back to the handler (for example to appear as the
-  text accompanying the python RuntimeError exception)
+ * The signal handlers for Sage, one for SIGINT and one for other
+ * signals.
+ * Inside sig_on() (i.e. when _signals.sig_on_count is positive), this
+ * raises an exception and jumps back to sig_on().
+ * Outside of sig_on(), sage_interrupt_handler() sets Python's
+ * interrupt flag using PyErr_SetInterrupt(); sage_signal_handler()
+ * terminates Sage.
+ */
+void sage_interrupt_handler(int sig);    /* SIGINT */
+void sage_signal_handler(int sig);       /* Other signals */
+
+/* Wrapper to call sage_interrupt_handler() "by hand". */
+void call_sage_interrupt_handler(int sig);
+
+/*
+ * Setup the signal handlers for SIGINT, SIGILL, SIGABRT, SIGFPE
+ * SIGBUS, SIGSEGV. It is safe to call this more than once.
+ *
+ * We do not handle SIGALRM since there is code to deal with
+ * alarms in sage/misc/misc.py
+ */
+void setup_sage_signal_handler(void);
+
+
+/**********************************************************************
+ * SAGE_SIGNALS_T STRUCTURE                                           *
+ **********************************************************************/
+
+/* All the state of the signal handler is in this struct. */
+struct sage_signals_t
+{
+    /* Reference counter for sig_on().
+     * If this is strictly positive, we are inside a sig_on(). */
+    volatile sig_atomic_t sig_on_count;
+
+    /* If this is nonzero, check for interrupts using PyErr_Occured()
+     * during sig_on() and sig_unblock(). This value is increased
+     * whenever an interrupt happens outside of sig_on() or inside
+     * sig_block(). */
+    volatile sig_atomic_t interrupt_received;
+
+    /* Are we currently handling a signal inside sage_signal_handler()?
+     * This is set to 1 on entry in sage_signal_handler (not in
+     * sage_interrupt_handler) and 0 in _sig_on_postjmp.  This is
+     * needed to check for signals raised within the signal handler. */
+    volatile sig_atomic_t inside_signal_handler;
+
+    /* Non-zero if we currently are in a function which blocks SIGINT,
+     * zero normally.  See sig_block(), sig_unblock(). */
+    volatile sig_atomic_t block_sigint;
+
+    /* A jump buffer holding where to siglongjmp() after a signal has
+     * been received. This is set by sig_on(). */
+    sigjmp_buf env;
+
+    /* An optional string may be passed to the signal handler which
+     * will be used as the text for the exception. This can be set
+     * using sig_str() instead of sig_on() or it can be changed by
+     * set_sage_signal_handler_message() declared below.
+     */
+    const char* s;
+};
+
+/*
+ * The actual object (there is a unique copy of this throughout Sage).
+ */
+extern struct sage_signals_t _signals;
+
+
+/**********************************************************************
+ * IMPLEMENTATION OF SIG_ON/SIG_OFF                                   *
+ **********************************************************************/
+
+/*
+ * Implementation of sig_on().  Applications should not use this
+ * directly, use sig_on() or sig_str() instead.
+ *
+ * _sig_on_(message) is a macro which pretends to be a function.
+ * Since this is declared as "cdef except 0", Cython will know that an
+ * exception occured if the value of _sig_on_() is 0 (false).
+ *
+ * INPUT:
+ *
+ *  - message -- a string to be displayed as error message when the code
+ *    between sig_on() and sig_off() fails and raises an exception.
+ *
+ * OUTPUT: zero if an exception occured, non-zero otherwise.
+ *
+ * The function sigsetjmp() in the _sig_on_() macro can return:
+ *  - zero: this happens in the actual sig_on() call. sigsetjmp() sets
+ *    up the address for the Sage signal handler to jump to.  The
+ *    program continues normally.
+ *  - a signal number (e.g. 2 for SIGINT), assumed to be strictly
+ *    positive: the Sage signal handler handled a signal.  Since
+ *    _sig_on_() will return 0 in this case, the Exception (raised by
+ *    sage_signal_handler) will be detected by Cython.
+ *  - a negative number: this is assumed to come from sig_retry().  In
+ *    this case, the program continues as if nothing happened between
+ *    sig_on() and sig_retry().
+ *
+ * We cannot simply put sigsetjmp() in a function, because when that
+ * function returns, we would lose the stack frame to siglongjmp() to.
+ * That's why we need this hackish macro.  We use the fact that || is
+ * a short-circuiting operator (the second argument is only evaluated
+ * if the first returns 0).
+ */
+#define _sig_on_(message) ( unlikely(_sig_on_prejmp(message, __FILE__, __LINE__)) || _sig_on_postjmp(sigsetjmp(_signals.env,0)) )
+
+/* This will be called during _sig_on_postjmp() when a SIGINT was
+ * received *before* the call to sig_on().
+ * Return 0 if there was an interrupt, 1 otherwise. */
+int _sig_on_interrupt_received(void);
+
+/*
+ * Set message, return 0 if we need to sigsetjmp(), return 1 otherwise.
+ */
+static inline int _sig_on_prejmp(const char* message, const char* file, int line)
+{
+    _signals.s = message;
+#if ENABLE_DEBUG_INTERRUPT
+    fprintf(stderr, "sig_on (counter = %i) at %s:%i\n", _signals.sig_on_count+1, file, line);
+    fflush(stderr);
+#endif
+    if (_signals.sig_on_count > 0)
+    {
+        _signals.sig_on_count++;
+        return 1;
+    }
+
+    /* At this point, _signals.sig_on_count == 0 */
+    return 0;
+}
+
+
+/* Cleanup after siglongjmp() (reset signal mask to the default, set
+ * sig_on_count to zero) */
+void _sig_on_recover(void);
+
+/*
+ * Process the return value of sigsetjmp().
+ * Return 0 if there was an exception, 1 otherwise.
+ */
+static inline int _sig_on_postjmp(int jmpret)
+{
+    if (unlikely(jmpret > 0))
+    {
+        /* An exception occured */
+        _sig_on_recover();
+        return 0;
+    }
+
+    /* When we are here, it's either the original sig_on() call or we
+     * got here after sig_retry(). */
+    _signals.sig_on_count = 1;
+
+    /* Check whether we received an interrupt before this point.
+     * _signals.interrupt_received can only be set by the interrupt
+     * handler if _signals.sig_on_count is zero.  Because of that and
+     * because _signals.sig_on_count and _signals.interrupt_received are
+     * volatile, we can safely evaluate _signals.interrupt_received here
+     * without race conditions. */
+    if (unlikely(_signals.interrupt_received))
+        return _sig_on_interrupt_received();
+
+    return 1;
+}
+
+/* Give a warning that sig_off() was called without sig_on() */
+void _sig_off_warning(const char* file, int line);
+
+/*
+ * Implementation of sig_off().  Applications should not use this
+ * directly, use sig_off() instead.
+ */
+static inline void _sig_off_(const char* file, int line)
+{
+#if ENABLE_DEBUG_INTERRUPT
+    fprintf(stderr, "sig_off (counter = %i) at %s:%i\n", _signals.sig_on_count, file, line);
+    fflush(stderr);
+#endif
+    if (unlikely(_signals.sig_on_count <= 0))
+    {
+        _sig_off_warning(file, line);
+    }
+    else
+    {
+        --_signals.sig_on_count;
+    }
+}
+
+
+
+/**********************************************************************
+ * USER MACROS/FUNCTIONS                                              *
+ **********************************************************************/
+
+/* The actual macros which should be used in a program. */
+#define sig_on()           _sig_on_(NULL)
+#define sig_str(message)   _sig_on_(message)
+#define sig_off()          _sig_off_(__FILE__, __LINE__)
+
+/* These deprecated macros provide backwards compatibility with
+ * sage-4.6 and earlier */
+#define _sig_on        {if (!_sig_on_(NULL)) return 0;}
+#define _sig_str(s)    {if (!_sig_on_(s)) return 0;}
+#define _sig_off       {_sig_off_(__FILE__, __LINE__);}
+
+
+/* sig_check() should be functionally equivalent to sig_on(); sig_off();
+ * but much faster.  Essentially, it checks whether we missed any
+ * interrupts.
+ *
+ * OUTPUT: zero if an interrupt occured, non-zero otherwise.
+ */
+static inline int sig_check()
+{
+    if (unlikely(_signals.interrupt_received) && _signals.sig_on_count == 0)
+        return _sig_on_interrupt_received();
+
+    return 1;
+}
+
+/* Macros behaving exactly like sig_on, sig_str and sig_check
+ * but which are *not* declared cdef except 0.  This is useful if some
+ * Cython code wants to do its own exception handling. */
+#define sig_on_no_except()           sig_on()
+#define sig_str_no_except(message)   sig_str(message)
+#define sig_check_no_except()        sig_check()
+
+
+/*
+ * Temporarily block interrupts from happening inside sig_on().  This
+ * is meant to wrap malloc() for example.  sig_unblock() checks whether
+ * an interrupt happened in the mean time.  If yes, the interrupt is
+ * re-raised.
+ *
+ * NOTES:
+ * - This only works inside sig_on()/sig_off().  Outside of sig_on(),
+ *   interrupts behave as usual.  This is because we can't propagate
+ *   Python exceptions from low-level C code.
+ * - Other signals still go through, because we can't really ignore
+ *   SIGSEGV for example.
+ * - For efficiency reasons, currently these may NOT be nested.
+ *   Nesting could be implemented like src/headers/pariinl.h in PARI.
+ */
+static inline void sig_block()
+{
+    _signals.block_sigint = 1;
+}
+
+static inline void sig_unblock()
+{
+    _signals.block_sigint = 0;
+
+    if (unlikely(_signals.interrupt_received) && _signals.sig_on_count > 0)
+        kill(getpid(), SIGINT);  /* Re-raise the interrupt */
+}
+
+
+/*
+ * Call this before raising an exception to set _signals.s. The string
+ * s will be used as the text for the exception.  Note that s is not
+ * copied, we just store the pointer.
  */
 void set_sage_signal_handler_message(const char* s);
 
+
 /*
-  Above error message will get truncated at this length:
+ * Retry a failed computation starting from sig_on().  This is useful
+ * for PARI: if PARI complains that it doesn't have enough memory, we
+ * allocate a larger stack and retry the computation.
  */
-#define SAGE_SIGNAL_HANDLER_MESSAGE_LEN 256
+static inline void sig_retry()
+{
+    /* If we're outside of sig_on(), we can't jump, so we can only bail
+     * out */
+    if (unlikely(_signals.sig_on_count <= 0))
+    {
+        fprintf(stderr, "sig_retry() without sig_on()\n");
+        abort();
+    }
+    siglongjmp(_signals.env, -1);
+}
 
 
-/**
- *
- *
+/*
+ * This function does nothing, but it is declared cdef except *, so it
+ * can be used to make Cython check whether there is a pending exception
+ * (PyErr_Occurred() is non-NULL).
+ * To Cython, it will look like cython_check_exception() actually
+ * raised the exception.
  */
-
-#define sig_off() _signals.mpio = 0;
-
-
-/* /\** */
-/*  * */
-/*  * */
-/*  *\/ */
-
-/* #define _sig_off_short (_signals.mpio & 4) */
+static inline void cython_check_exception() {return;}
 
 
-/**
- *
- *
- */
-
-/* These provide backwards compatibility with sage-4.6 and earlier */
-#define _sig_on        sig_on()
-#define _sig_str(s)    sig_str(s)
-#define _sig_off       sig_off()
-
+#ifdef __cplusplus
+}  /* extern "C" */
+#endif
 #endif /* C_LIB_INCLUDE_INTERRUPT_H */
-
-/*
-I thought maybe the following would work nicely, instead of just
-returning, but no (it crashes sometimes!).  Also the line number is
-not set correctly.  The only way I can imagine setting this correctly
-is if the following bit of code is generated within pyrex, since pyrex
-knows the line numbers.
-
-	             PyErr_SetString(PyExc_RuntimeError, "(complete C-level traceback not available)"); \
-		     __pyx_filename = __pyx_f[1]; __pyx_lineno = 0; goto __pyx_L1; \
-                }
-
-*/

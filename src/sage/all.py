@@ -56,18 +56,14 @@ from time                import sleep
 from sage.rings.memory import pmem_malloc
 pmem_malloc()
 
-import sage.ext.sig
-sage.ext.sig.get_bad_sigs()
-from sage.interfaces.get_sigs import get_sigs
-get_sigs()
+from sage.ext.c_lib import _init_csage, sig_on_count
+_init_csage()
 
 from sage.misc.all       import *         # takes a while
 
 from sage.misc.sh import sh
 
 from sage.libs.all       import *
-
-get_sigs()
 
 from sage.rings.all      import *
 from sage.matrix.all     import *

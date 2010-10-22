@@ -1,15 +1,29 @@
-################################################################
-# WARNING: Only modify the version of this file in the
-# sage/ext/ directory.  It overwrites all other copies
-# of this file during the SAGE build.
-################################################################
-
+#
+# See c_lib/include/interrupt.h
+#
 cdef extern from 'interrupt.h':
-    void sig_on()
-    void sig_str(char*)
+    int sig_on() except 0
+    int sig_str(char*) except 0
+    int sig_check() except 0
+    int sig_on_no_except()
+    int sig_str_no_except(char*)
+    int sig_check_no_except()
     void sig_off()
+    void sig_retry()
+    void sig_block()
+    void sig_unblock()
+
+    ctypedef struct sage_signals_t:
+        int sig_on_count
+        int sigint_received
+        int inside_signal_handler
+        char* s
+
+    sage_signals_t _signals
 
     # These provide backwards compatibility with sage-4.6 and earlier
     int _sig_on
     void _sig_str(char*)
     int _sig_off
+
+    void cython_check_exception() except *

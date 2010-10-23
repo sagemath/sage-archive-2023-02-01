@@ -258,7 +258,7 @@ Now ask yourself questions such as the following:
   review.  (For that matter, the patch writer should run these tests before
   uploading the patch.)  You can test the Sage library with ``make
   testlong`` or ``make ptestlong`` (edit the number of threads in
-  ``$SAGE_ROOT/makefile`` before using ``ptestlong``). See
+  ``$SAGE_ROOT/Makefile`` before using ``ptestlong``). See
   :ref:`chapter-doctesting` for more information.
 
 - Do the code and documentation follow conventions documented in the

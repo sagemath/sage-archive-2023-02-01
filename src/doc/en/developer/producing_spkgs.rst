@@ -35,7 +35,7 @@ to discourage confusion. Although Sage packages are packed using tar
 and/or bzip2, note that ``.spkg`` files contain control information
 (installation scripts and metadata) that are necessary for building
 and installing them. For source distributions, when you compile Sage
-the file ``SAGE_ROOT/makefile`` takes care of the unpacking,
+the file ``SAGE_ROOT/Makefile`` takes care of the unpacking,
 compilation, and installation of Sage packages for you. You can
 type
 

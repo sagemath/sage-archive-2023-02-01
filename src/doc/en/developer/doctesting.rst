@@ -448,14 +448,14 @@ parallel test the library using ten or more threads::
 
     [mvngu@sage sage-4.1.1]$ ./sage -tp 10 -long devel/sage-main/
 
-Another way is to edit the file ``makefile`` in the top level Sage
+Another way is to edit the file ``Makefile`` in the top level Sage
 directory so that the variable ``NUM_THREADS`` is set to ``10``::
 
     # How many threads should be used when doing parallel testing (and
     # sometime in the future, parallel building)?
     NUM_THREADS=10
 
-After saving all changes to ``makefile``, we can parallel test with the
+After saving all changes to ``Makefile``, we can parallel test with the
 ``-long`` option using ten threads::
 
     [mvngu@sage sage-4.1.1]$ make ptestlong
@@ -481,7 +481,7 @@ by the symbolic link ``devel/sage``.
   * ``SAGE_ROOT/devel/sage/doc/fr``
 
   Finally, the commands doctest the Sage library. For more details on
-  these command, see the files ``SAGE_ROOT/makefile`` and
+  these command, see the files ``SAGE_ROOT/Makefile`` and
   ``SAGE_ROOT/local/bin/sage-maketest``.
 
 * ``make testlong`` --- This command doctests the standard
@@ -492,13 +492,13 @@ by the symbolic link ``devel/sage``.
   * ``SAGE_ROOT/devel/sage/doc/fr``
 
   and then the Sage library. Doctesting is run with the optional
-  argument ``-long``. See the file ``SAGE_ROOT/makefile`` for further
+  argument ``-long``. See the file ``SAGE_ROOT/Makefile`` for further
   details.
 
 * ``make ptest`` --- Similar to the commands ``make test`` and ``make
   check``. However, doctesting is run with the number of threads as
   specified by the variable ``NUM_THREADS``. See the file
-  ``SAGE_ROOT/makefile`` for further details.
+  ``SAGE_ROOT/Makefile`` for further details.
 
 * ``make ptestlong`` --- Similar to the command ``make ptest``, but
   using the optional argument ``-long`` for doctesting.

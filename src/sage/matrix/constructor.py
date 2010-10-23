@@ -445,6 +445,8 @@ def matrix(*args, **kwds):
         ValueError: List of rows is not valid (rows are wrong types or lengths)
         sage: matrix(vector(RR,[1,2,3])).parent()
         Full MatrixSpace of 1 by 3 dense matrices over Real Field with 53 bits of precision
+        sage: matrix(ZZ, [[0] for i in range(10^6)]).is_zero() # see #10158
+        True
 
     AUTHORS:
 
@@ -561,7 +563,9 @@ def matrix(*args, **kwds):
                 elif ncols != len(args[0][0]):
                     raise ValueError, "Number of columns does not match up with specified number."
 
-                entries = sum([list(v) for v in args[0]], [])
+                entries = []
+                for v in args[0]:
+                    entries.extend(v)
 
             else:
                 # We have a flat list; figure out nrows and ncols

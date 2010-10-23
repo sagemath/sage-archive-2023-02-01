@@ -67,6 +67,7 @@ def install_moved():
     if path is None:
         # first time checked (during the build)
         write_location_file()
+        update_library_files()
         initialize_pkgconfig_files()
         return False
     elif path != SAGE_ROOT:

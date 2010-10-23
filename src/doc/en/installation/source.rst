@@ -266,14 +266,14 @@ spaces in its name will also fail.
 
    This compiles Sage and all dependencies. Note that you do not need
    to be logged in as root, since no files are changed outside of the
-   ``sage-x.y.z`` directory (with one exception -- the ``.ipythonrc`` directory is created in
-   your ``HOME`` directory if it doesn't exist).  This command does the usual steps for
-   each of the packages, but puts all the results in the local build
-   tree. This can take close to an hour on some machines. Depending on the
-   architecture of your system (e.g., Celeron, Pentium Mobile, Pentium 4,
-   etc.), it can take over three hours to build Sage from source.  If the
-   build is successful, you will not see the word ERROR in the last 3-4 lines
-   of output.
+   ``sage-x.y.z`` directory (with one exception -- the ``.ipythonrc``
+   directory is created in your ``HOME`` directory if it doesn't exist).
+   This command does the usual steps for each of the packages, but puts
+   all the results in the local build tree. This can take close to an hour
+   on some machines. Depending on the architecture of your system (e.g.,
+   Celeron, Pentium Mobile, Pentium 4, etc.), it can take over three hours
+   to build Sage from source. If the build is successful, you will not see
+   the word ERROR in the last 3-4 lines of output.
 
        The directory where you built Sage is NOT hardcoded. You should
        be able to safely move or rename that directory. (It's a bug if
@@ -516,6 +516,13 @@ process:
   OS X on a 64-bit machine, then Sage will automatically build a
   64-bit binary, so this variable does not need setting.
 
+- :envvar:`CFLAG64` - default value "-m64".  If Sage detects that it
+  should build a 64-bit binary, then it uses this flag when compiling
+  C code.  Modify it if necessary for your system and C compiler.
+  This should not be necessary on most systems -- this flag will
+  typically be set automatically, based on the setting of
+  :envvar:`SAGE64`, for example.
+
 - :envvar:`SAGE_FORTRAN` - see above, the "Fortran" section.
 
 - :envvar:`SAGE_FORTRAN_LIB` - see above, the "Fortran" section.
@@ -524,6 +531,15 @@ process:
   variable.  If it is unset (the default) or set to "yes", then
   debugging is turned on.  If it is set to anything else, then
   debugging is turned off.
+
+- :envvar:`SAGE_SPKG_LIST_FILES` - Set this to "yes" to enable
+  verbose extraction of tar files, i.e. Sage's spkg files. Since
+  some spkgs contain a huge number of files such that the log files
+  get very large and harder to search (and listing the contained
+  files is usually less valuable), we decided to turn this off
+  by default. This variable affects builds of Sage with ``make``
+  (and ``sage -upgrade``) as well as the manual installation of
+  individual spkgs with e.g. ``sage -i``.
 
 - :envvar:`SAGE_FAT_BINARY` - to prepare a binary distribution that
   will run on the widest range of target machines, set this variable
@@ -563,12 +579,6 @@ e.g., an unsupported machine or an unusual compiler:
   on working with gcc 3.4.x, you will have to modify some source code
   to get things to work.
 
-- :envvar:`CFLAG64` - default value "-m64".  If Sage detects that it
-  should build a 64-bit binary, then it uses this flag when compiling
-  C code.  Modify it if necessary for your system and C compiler.
-  This should not be necessary on most systems -- this flag will
-  typically be set automatically, based on the setting of
-  :envvar:`SAGE64`, for example.
 
 Environment variables dealing with specific Sage packages:
 

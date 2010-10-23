@@ -263,7 +263,7 @@ def is_Fan(x):
 
 
 def Fan(cones, rays=None, lattice=None, check=True, normalize=True,
-        is_complete=None):
+        is_complete=None, discard_warning=True):
     r"""
     Construct a rational polyhedral fan.
 
@@ -318,7 +318,13 @@ def Fan(cones, rays=None, lattice=None, check=True, normalize=True,
       pass ``is_complete=False`` option, although it is less likely to be
       beneficial. Of course, passing a wrong value can compromise the
       integrity of data structures of the fan and lead to wrong results, so
-      you should be very careful if you decide to use this option.
+      you should be very careful if you decide to use this option;
+
+    - ``discard_warning`` -- by default, the fan constructor will show a
+      warning the first time you try to construct a fan from non-generating
+      cones, in which case some of them will be automatically discarded. If you
+      are writing a code where it is reasonable to expect extra cones as input,
+      you may pass ``discard_warning=False`` option to suppress this warning.
 
     OUTPUT:
 
@@ -477,7 +483,7 @@ def Fan(cones, rays=None, lattice=None, check=True, normalize=True,
                                 % (g_cone.rays(), cone.rays()))
                 if is_generating:
                     generating_cones.append(cone)
-            if len(cones) > len(generating_cones):
+            if discard_warning and len(cones) > len(generating_cones):
                 warnings.warn("you have provided a non-minimal set of "
                     "generating cones, %d of them were discarded!"
                     % (len(cones) - len(generating_cones)),
@@ -497,7 +503,8 @@ def Fan(cones, rays=None, lattice=None, check=True, normalize=True,
         return RationalPolyhedralFan(cones, rays, lattice, is_complete)
     # If we do need to make all the check, build explicit cone objects first
     return Fan((Cone([rays[n] for n in cone], lattice) for cone in cones),
-               rays, lattice, is_complete=is_complete)
+               rays, lattice, is_complete=is_complete,
+               discard_warning=discard_warning)
 
 
 def FaceFan(polytope, lattice=None):

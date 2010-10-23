@@ -401,7 +401,8 @@ class FanMorphism(FreeModuleMorphism):
         domain_fan = self._domain_fan
         self._codomain_fan = Fan(cones=(domain_cone.ambient_ray_indices()
                                         for domain_cone in domain_fan),
-                                 rays=(self(ray) for ray in domain_fan.rays()))
+                                 rays=(self(ray) for ray in domain_fan.rays()),
+                                 discard_warning=False)
 
     def _latex_(self):
         r"""

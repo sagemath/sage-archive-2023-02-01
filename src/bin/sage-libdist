@@ -52,9 +52,9 @@ libdist_filelist = open('%s/spkg/standard/libdist_filelist'%r
 bin = '%s/local/bin/'%r
 os.makedirs(bin)
 
-# delete existing makefile
+# delete existing Makefile
 
-os.unlink('%s/makefile'%r)
+os.unlink('%s/Makefile'%r)
 
 # deleted not necessary packages and
 # touch appropriate installed files

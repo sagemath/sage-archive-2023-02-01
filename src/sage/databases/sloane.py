@@ -458,11 +458,21 @@ def parse_sequence(text):
         list = signed
     return [seqnum, description, [ZZ(n) for n in list]]
 
-def sloane_sequence(number):
+def sloane_sequence(number, verbose = True):
     """
     Returns a list with the number, name, and values for the sequence
     ``number`` in Sloane's online database of integer
     sequences.
+
+    INPUT:
+
+    - ``number`` (integer) corresponding to the sequence.
+
+    -  ``verbose`` - (boolean) print a string to let the
+       user know that it is working and not hanging.
+
+       Set to ``True`` by default.
+
 
     EXAMPLES::
 
@@ -489,7 +499,7 @@ def sloane_sequence(number):
             number = str(ZZ(number))
         except TypeError:
             raise TypeError, "input must be an integer or string that specifies the id of the Sloane sequence to download"
-    results = sloane_find('id:A%s'%number)
+    results = sloane_find('id:A%s'%number, verbose = verbose)
     if len(results) == 0:
         raise ValueError, "sequence '%s' not found"%number
     return results[0]

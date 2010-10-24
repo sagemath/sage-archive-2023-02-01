@@ -50,8 +50,7 @@ TESTS::
     We agree with the online database::
 
     sage: for t in sloane.trait_names(): # long time optional, requires internet
-    ...       print t
-    ...       online_list = sloane_sequence(ZZ(t[1:].lstrip('0')))[2]
+    ...       online_list = sloane_sequence(ZZ(t[1:].lstrip('0')), verbose = False)[2]
     ...       L = max(2, len(online_list) // 2)
     ...       sage_list = sloane.__getattribute__(t).list(L)
     ...       if online_list[:L] != sage_list:
@@ -8993,33 +8992,57 @@ class A079923(SloaneSequence):
         return perm_mh(n, 4)
 
 class A109814(SloaneSequence):
+    r"""
+    The `n` th term of the sequence `a(n)` is the
+    largest `k` such that `n` can be written as sum of
+    `k` consecutive integers.
+
+    By definition, `n` is the sum of at most `a(n)` consecutive
+    positive integers. Suppose `n` is to be written as sum of `k`
+    consecutive integers starting with `m`, then `2n = k(2m + k -
+    1)`. Only one of the factors is odd. For each odd divisor `d`
+    of `n` there is a unique corresponding `k =
+    min(d,2n/d)`. `a(n)` can be alternatively defined as the
+    largest among those `k` .
+
+    .. SEEALSO::
+
+        * `Wikipedia article on polite numbers
+          <http://en.wikipedia.org/wiki/Polite_number>`_.
+
+        * `An exercise sheet (with answers) about sums of
+          consecutive integers
+          <http://www.jaapspies.nl/mathfiles/problem2005-2C.pdf>`_.
+
+    INPUT:
+
+    -  ``n`` - non negative integer
+
+
+    OUTPUT:
+
+    -  ``integer`` - function value
+
+    EXAMPLES::
+
+        sage: a = sloane.A109814; a
+        a(n) is the largest k such that n can be written as sum of k consecutive positive integers.
+        sage: a(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: input n (=0) must be a positive integer
+        sage: a(2)
+        1
+        sage: a.list(9)
+        [1, 1, 2, 1, 2, 3, 2, 1, 3]
+
+    AUTHORS:
+
+    - Jaap Spies (2007-01-13)
+        """
+
     def __init__(self):
         r"""
-        The `n`th term of the sequence `a(n)` is the
-        largest `k` such that `n` can be written as sum of
-        `k` consecutive integers.
-
-        `n` is the sum of at most `a(n)` consecutive
-        positive integers. Suppose `n` is to be written as sum of
-        `k` consecutive integers starting with `m`, then
-        `2n = k(2m + k - 1)`. Only one of the factors is odd. For
-        each odd divisor `d` of `n` there is a unique
-        corresponding `k = min(d,2n/d)`. `a(n)` is the
-        largest among those `k` . See:
-        http://www.jaapspies.nl/mathfiles/problem2005-2C.pdf
-
-        INPUT:
-
-
-        -  ``n`` - non negative integer
-
-
-        OUTPUT:
-
-
-        -  ``integer`` - function value
-
-
         EXAMPLES::
 
             sage: a = sloane.A109814; a
@@ -9032,10 +9055,6 @@ class A109814(SloaneSequence):
             1
             sage: a.list(9)
             [1, 1, 2, 1, 2, 3, 2, 1, 3]
-
-        AUTHORS:
-
-        - Jaap Spies (2007-01-13)
         """
         SloaneSequence.__init__(self, offset=1)
 

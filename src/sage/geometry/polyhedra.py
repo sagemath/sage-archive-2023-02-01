@@ -128,6 +128,7 @@ from sage.graphs.graph import Graph
 
 from sage.combinat.posets.posets import Poset
 from sage.combinat.combinat import permutations
+from sage.combinat.cartesian_product import CartesianProduct
 from sage.groups.perm_gps.permgroup_named import AlternatingGroup
 
 
@@ -1532,12 +1533,278 @@ class Polyhedron(SageObject):
             cmdline_arg = '--reps'
         self._init_from_cdd_input(s, cmdline_arg, verbose)
 
-        # Only add a show() method if we have one
+
+    def __getstate__(self):
+        r"""
+        Return the dictionary that should be pickled.
+
+        OUTPUT:
+
+        A :class:`dict`.
+
+        EXAMPLES::
+
+            sage: P = polytopes.dodecahedron(QQ)
+            sage: P == loads(dumps(P))
+            True
+        """
+        exclude_keys = ['_is_zero', '_is_positive', '_is_nonneg']
+        state = {}
+        for key,value in self.__dict__.items():
+            if key in exclude_keys:
+                continue
+            state[key] = value
+        return state
+
+
+    def __setstate__(self, state):
+        r"""
+        Return the dictionary that should be pickled.
+
+        OUTPUT:
+
+        A :class:`dict`.
+
+        EXAMPLES::
+
+            sage: P = polytopes.dodecahedron(QQ)
+            sage: Q = loads(dumps(P))
+            sage: P.Hrepresentation(0).polyhedron() is P
+            True
+            sage: Q.Hrepresentation(0).polyhedron() is Q
+            True
+            sage: P == Q
+            True
+            sage: P is Q
+            False
+        """
+        exclude_keys = ['_is_zero', '_is_positive', '_is_nonneg']
+        for key,value in state.items():
+            if key in exclude_keys:
+                continue
+            if key == '_field':
+                self._init_field(value)
+                continue
+            self.__dict__[key] = value
+        return state
+
+
+    def __lt__(self, other):
+        """
+        Test whether ``self`` is a strict sub-polyhedron of ``other``.
+
+        INPUT:
+
+        - ``other`` -- a :class:`Polyhedron`.
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(vertices=[(1,0), (0,1)], rays=[(1,1)])
+            sage: Q = Polyhedron(vertices=[(1,0), (0,1)])
+            sage: P < Q   # indirect doctest
+            False
+            sage: P < P   # indirect doctest
+            False
+            sage: Q < P   # indirect doctest
+            True
+        """
+        return self._is_subpolyhedron(other) and not other._is_subpolyhedron(self)
+
+
+    def __le__(self, other):
+        """
+        Test whether ``self`` is a (not necessarily strict)
+        sub-polyhedron of ``other``.
+
+        INPUT:
+
+        - ``other`` -- a :class:`Polyhedron`.
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(vertices=[(1,0), (0,1)], rays=[(1,1)])
+            sage: Q = Polyhedron(vertices=[(1,0), (0,1)])
+            sage: P <= Q   # indirect doctest
+            False
+            sage: P <= P   # indirect doctest
+            True
+            sage: Q <= P   # indirect doctest
+            True
+        """
+        return self._is_subpolyhedron(other)
+
+
+    def __eq__(self, other):
+        """
+        Test whether ``self`` is a strict sub-polyhedron of ``other``.
+
+        INPUT:
+
+        - ``other`` -- a :class:`Polyhedron`.
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(vertices=[(1,0), (0,1)], rays=[(1,1)])
+            sage: Q = Polyhedron(vertices=[(1,0), (0,1)])
+            sage: P == Q   # indirect doctest
+            False
+            sage: P == P   # indirect doctest
+            True
+            sage: Q == P   # indirect doctest
+            False
+        """
+        return self._is_subpolyhedron(other) and other._is_subpolyhedron(self)
+
+
+    def __ne__(self, other):
+        """
+        Test whether ``self`` is not equal to ``other``.
+
+        INPUT:
+
+        - ``other`` -- a :class:`Polyhedron`.
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(vertices=[(1,0), (0,1)], rays=[(1,1)])
+            sage: Q = Polyhedron(vertices=[(1,0), (0,1)])
+            sage: P != Q   # indirect doctest
+            True
+            sage: P != P   # indirect doctest
+            False
+            sage: Q != P   # indirect doctest
+            True
+        """
+        return not self.__eq__(other)
+
+
+    def __gt__(self, other):
+        """
+        Test whether ``self`` is a strict super-polyhedron of ``other``.
+
+        INPUT:
+
+        - ``other`` -- a :class:`Polyhedron`.
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(vertices=[(1,0), (0,1)], rays=[(1,1)])
+            sage: Q = Polyhedron(vertices=[(1,0), (0,1)])
+            sage: P > Q   # indirect doctest
+            True
+            sage: P > P   # indirect doctest
+            False
+            sage: Q > P   # indirect doctest
+            False
+        """
+        return other._is_subpolyhedron(self) and not self._is_subpolyhedron(other)
+
+
+    def __ge__(self, other):
+        """
+        Test whether ``self`` is a (not necessarily strict)
+        super-polyhedron of ``other``.
+
+        INPUT:
+
+        - ``other`` -- a :class:`Polyhedron`.
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(vertices=[(1,0), (0,1)], rays=[(1,1)])
+            sage: Q = Polyhedron(vertices=[(1,0), (0,1)])
+            sage: P >= Q   # indirect doctest
+            True
+            sage: P >= P   # indirect doctest
+            True
+            sage: Q >= P   # indirect doctest
+            False
+        """
+        return other._is_subpolyhedron(self)
+
+
+    def _is_subpolyhedron(self, other):
+        """
+        Test whether ``self`` is a (not necessarily strict)
+        sub-polyhdedron of ``other``.
+
+        INPUT:
+
+        - ``other`` -- a :class:`Polyhedron`.
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(vertices=[(1,0), (0,1)], rays=[(1,1)])
+            sage: Q = Polyhedron(vertices=[(1,0), (0,1)])
+            sage: P._is_subpolyhedron(Q)
+            False
+            sage: Q._is_subpolyhedron(P)
+            True
+        """
+        if not isinstance(other,Polyhedron):
+            raise ValueError('Can only compare Polyhedron objects.')
+        return all( other_H.contains(self_V)
+                    for other_H, self_V in
+                    CartesianProduct(other.Hrep_generator(), self.Vrep_generator()) )
+
+
+    def plot(self, **kwds):
+        """
+        Return a graphical representation.
+
+        INPUT:
+
+        - ``**kwds`` -- optional keyword parameters.
+
+        See :func:`render_2d`, :func:`render_3d`, :func:`render_4d`
+        for a description of available options for different ambient
+        space dimensions.
+
+        OUTPUT:
+
+        A graphics object.
+
+        TESTS::
+
+            sage: polytopes.n_cube(2).plot()
+        """
         if self.ambient_dim() < len(Polyhedron._render_method):
             render = Polyhedron._render_method[self.ambient_dim()]
             if render != None:
-                self.show = lambda **kwds: render(self,**kwds)
-                self.show.__doc__ = render.__doc__
+                return render(self,**kwds)
+        raise NotImplementedError('Plotting of '+str(self.ambient_dim())+
+                                  '-dimensional polyhedra not implemented')
+
+
+    show = plot
 
 
     def _init_field(self, field):
@@ -3188,7 +3455,7 @@ class Polyhedron(SageObject):
 
     def union(self, other):
         """
-        Deprecated.  Use `self.convex_hull(other)` instead.
+        Deprecated.  Use ``self.convex_hull(other)`` instead.
 
         EXAMPLES::
 
@@ -3725,8 +3992,10 @@ class Polyhedron(SageObject):
 
     def contains(self, point):
         """
-        Returns whether the polyhedron contains the given
-        ``point``. See also ``Polyhedron.interior_contains(point)``.
+        Test whether the polyhedron contains the given ``point``.
+
+        See also :meth:`interior_contains` and
+        :meth:`relative_interior_contains`.
 
         EXAMPLES::
 
@@ -3748,6 +4017,9 @@ class Polyhedron(SageObject):
         """
         Test whether the interior of the polyhedron contains the
         given ``point``.
+
+        See also :meth:`contains` and
+        :meth:`relative_interior_contains`.
 
         INPUT:
 
@@ -3786,6 +4058,8 @@ class Polyhedron(SageObject):
         """
         Test whether the relative interior of the polyhedron
         contains the given ``point``.
+
+        See also :meth:`contains` and :meth:`interior_contains`.
 
         INPUT:
 
@@ -3940,7 +4214,6 @@ class Polyhedron(SageObject):
             self._is_lattice_polytope = False
             if envelope==False: nonintegral_error()
             vertices = []
-            from sage.combinat.cartesian_product import CartesianProduct
             for v in self.vertex_generator():
                 vbox = [ set([floor(x),ceil(x)]) for x in v ]
                 vertices.extend( CartesianProduct(*vbox) )

@@ -203,14 +203,113 @@ from sage.misc.superseded import deprecation
 from combinat_cython import _stirling_number2
 ######### combinatorial sequences
 
-def bell_number(n):
+def bell_number(n, algorithm='dobinski', **options):
     r"""
-    Returns the n-th Bell number (the number of ways to partition a set
-    of n elements into pairwise disjoint nonempty subsets).
+    Return the `n`-th Bell number (the number of ways to partition a set
+    of n elements into pairwise disjoint nonempty subsets). If `n \leq 0`,
+    return `1`.
 
-    If `n \leq 0`, returns `1`.
+    INPUT:
 
-    Wraps GAP's Bell.
+    - ``n`` -- a positive integer
+
+    - ``algorithm`` -- (Default ``'dobinski'``) Can be any one of the
+      following:
+
+      - ``'dobinski'`` -- Use Dobinski's summation formula
+        (when `n < 200`, this just wraps GAP)
+      - ``'gap'`` -- Wrap GAP's ``Bell``
+      - ``'mpmath'`` -- Wrap mpmath's ``bell``
+
+    .. WARNING::
+
+        When using the mpmath algorithm to compute bell numbers and you specify
+        ``prec``, it can return incorrect results due to low precision. See
+        the examples section.
+
+    Let `B_n` denote the `n`-th Bell number. Dobinski's formula is:
+
+    .. MATH::
+
+        B_n = e^{-1} \sum_{k=0}^{\infty} \frac{k^n}{k!}.
+
+    To show our implementation of Dobinski's method works, suppose that `n > 8`
+    and let `k_0` be the smallest integer for that `\frac{k_0^n}{k_0!} < 1`.
+    Note that `k_0 > n` and `k_0 \leq 2n` because we can prove that
+    `\frac{(2n)^n}{(2n)!} < 1` by Stirling.
+
+    Next if `k > k_0`, then we have `\frac{k^n}{k!} < \frac{1}{2^{k-k_0}}`, and
+    the proof is by induction. Let `c_k = \frac{k^n}{k!}`, if `k > n` then
+
+    .. MATH::
+
+        \frac{c_{k+1}}{c_k} = \frac{(1+k^{-1})^n}{k+1} < \frac{(1+n^{-1})^n}{n}
+        < \frac{4}{n} < \frac{1}{2}.
+
+    By using this, we can see that `\frac{c_k}{c_{k_0}} < \frac{1}{2^{k-k_0}}`
+    for `k > k_0 > n`. So summing this it gives that `\sum_{k=k_0+1}^{\infty}
+    \frac{k^n}{k!} < 1`, and hence
+
+    .. MATH::
+
+        B_n = e^{-1} \left( \sum_{k=0}^{k_0} \frac{k^n}{k!} + E_1 \right)
+        = e^{-1} \sum_{k=0}^{k_0} \frac{k^n}{k!} + E_2,
+
+    where `0 < E_1 < 1` and `0 < E_2 < e^{-1}`. Next we have:
+
+    .. MATH::
+
+        \sum_{k=0}^{k_0} \frac{k^n}{k!} = \sum_{k=0}^{k_0} n^{-2} \left\lfloor
+        \frac{n^2 k^n}{k!} \right\rfloor + \frac{E_3}{n^2}
+
+    where `0 \leq E_3 \leq k_0 + 1 \leq 2n + 1 \leq 3n`, so
+
+    .. MATH::
+
+        \sum_{k=0}^{k_0} \frac{k^n}{k!} = \sum_{k=0}{k_0} n^{-2} \left\lfloor
+        \frac{n^2 k^n}{k!} \right\rfloor + E_4,
+
+    where `0 \leq E_4 \leq \frac{3}{n}`. These two bounds gives:
+
+    .. MATH::
+
+        \begin{aligned}
+        B_n & = e^{-1} \sum_{k=0}^{k_0} n^{-2} \left\lfloor
+        \frac{n^2 k^n}{k!} \right\rfloor + e^{-1} E_4 + E_2 \\
+        & = e^{-1} \sum_{k=0}^{k_0} n^{-2} \left\lfloor \frac{n^2 k^n}{k!}
+        \right\rfloor + E_5
+        \end{aligned}
+
+    where
+
+    .. MATH::
+
+        0 \leq E_5 < e^{-1} + \frac{3e^{-1}}{n} \leq e^{-1} \left(1 +
+        \frac{3}{9}\right) < \frac{1}{2}.
+
+    Note `E_5` can be close to 0, so to avoid this, we subtract `\frac{1}{4}`
+    from the sum:
+
+    .. MATH::
+
+        \begin{aligned}
+        B_n & = e^{-1} \sum_{k=0}^{k_0} n^{-2} \left\lfloor \frac{n^2 k^n}{k!}
+        \right\rfloor - \frac{1}{4} + E, \\
+        B_n & = \left\lceil e^{-1} \sum_{k=0}^{k_0} n^{-2} \left\lfloor
+        \frac{n^2 k^n}{k!} \right\rfloor -1/4 \right\rceil
+        \end{aligned}
+
+    where `\frac{1}{4} \leq E < \frac{3}{4}`.
+
+    Lastly, to avoid the costly integer division by `k!`, in one step collect
+    more terms and do only one division, say collect 3 terms:
+
+    .. MATH::
+
+        \frac{k^n}{k!} + \frac{(k+1)^n}{(k+1)!} + \frac{(k+2)^n}{(k+2)!}
+        = \frac{k^n (k+1)(k+2) + (k+1)^n (k+2) + (k+2)^n}{(k+2)!}
+
+    using this all above error terms.
 
     EXAMPLES::
 
@@ -226,9 +325,87 @@ def bell_number(n):
         Traceback (most recent call last):
         ...
         TypeError: no conversion of this rational to integer
+
+    When using the mpmath algorithm, we are required have mpmath's precision
+    set to at least `\log_2(B_n)` bits. If upon computing the Bell number the
+    first time, we deem the precision too low, we use our guess to
+    (temporarily) raise mpmath's precision and the Bell number is recomputed.
+    The result from GAP's bell number was checked agaist OEIS. ::
+
+        sage: k = bell_number(30, 'mpmath'); k
+        846749014511809332450147
+        sage: k == bell_number(30)
+        True
+
+    If you knows what precision is necessary before computing the Bell number,
+    you can use the ``prec`` option::
+
+        sage: k2 = bell_number(30, 'mpmath', prec=30); k2
+        846749014511809332450147
+        sage: k == k2
+        True
+
+    .. WARNING::
+
+            Running mpmath with the precision set too low can result in
+            incorrect results::
+
+                sage: k = bell_number(30, 'mpmath', prec=15); k
+                846749014511809388871680
+                sage: k == bell_number(30)
+                False
+
+    TESTS::
+
+        sage: all([bell_number(n) == bell_number(n,'gap') for n in range(200, 220)])
+        True
+        sage: all([bell_number(n) == bell_number(n,'mpmath', prec=500) for n in range(200, 220)])
+        True
+
+    AUTHORS:
+
+    - Robert Gerbicz
+
+    REFERENCES:
+
+    - :wikipedia:`Bell_number`
+    - http://fredrik-j.blogspot.com/2009/03/computing-generalized-bell-numbers.html
+    - http://mathworld.wolfram.com/DobinskisFormula.html
     """
-    ans=gap.eval("Bell(%s)"%ZZ(n))
-    return ZZ(ans)
+    if algorithm == 'mpmath':
+        from sage.libs.mpmath.all import bell, mp, mag
+        old_prec = mp.dps
+        if 'prec' in options:
+            mp.dps = options['prec']
+            ret = ZZ(int(bell(n)))
+            mp.dps = old_prec
+            return ret
+        ret_mp = bell(n)
+        p = mag(ret_mp) + 10
+        if p > mp.dps:
+            mp.dps = p
+            ret = ZZ(int(bell(n)))
+            mp.dps = old_prec
+            return ret
+        return ZZ(int(ret_mp))
+    if n < 200 or algorithm == 'gap':
+        return ZZ(gap.eval("Bell(%s)"%ZZ(n)))
+    from sage.functions.log import log
+    from sage.misc.functional import ceil, N, isqrt, exp as exp2
+    b, fact, k, n2, si = Integer(0), Integer(1), Integer(1), \
+    Integer(n)**2, isqrt(Integer(n)) // 2
+    while True:
+        mult, v = n2, Integer(0)
+        for i in range(si - 1, -1, -1):
+            v += mult * (k + i)**n
+            mult *= k + i
+        fact *= mult // n2
+        v //= fact
+        b += v
+        k += si
+        if v == 0:
+            break
+    return ZZ(ceil(N((b - n) / n2 * exp2(Integer(-1)) - 1 / 4, log(b, 2) + 3)))
 
 def catalan_number(n):
     r"""
@@ -237,9 +414,10 @@ def catalan_number(n):
     Catalan numbers: The `n`-th Catalan number is given
     directly in terms of binomial coefficients by
 
-    .. math::
+    .. MATH::
 
-               C_n = \frac{1}{n+1}{2n\choose n} = \frac{(2n)!}{(n+1)!\,n!}              \qquad\mbox{ for }\quad n\ge 0.
+        C_n = \frac{1}{n+1}{2n\choose n} = \frac{(2n)!}{(n+1)!\,n!}
+        \qquad\mbox{ for }\quad n\ge 0.
 
 
 

@@ -33,6 +33,10 @@ Website: http://tiswww.case.edu/php/chet/readline/rltop.html
    since it took tons of space; didn't delete anything else.
  * Work around some MacOSX dynamic lib flags
 
+== readline-6.0p3 (Thomas Bächler, Mitesh Patel, October 24th, 2010) ==
+ * #9530: Update openSUSE and Arch Linux workarounds to fix failed
+   builds.
+
 == readline-6.0p2 (Mike Hansen, June 22nd, 2010) ==
  * #7821: readline-6.0.p1 fails on FreeBSD
 

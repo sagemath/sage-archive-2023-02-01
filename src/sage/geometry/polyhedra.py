@@ -315,6 +315,14 @@ class PolyhedronRepresentation(SageObject):
     obtain them from a Polyhedron() class.
 
     """
+
+    # Numeric values for the output of the type() method
+    INEQUALITY = 0
+    EQUATION = 1
+    VERTEX = 2
+    RAY = 3
+    LINE = 4
+
     def __init__(self, polyhedron, data):
         """
         Initializes the PolyhedronRepresentation object.
@@ -663,6 +671,37 @@ class Inequality(Hrepresentation):
         """
         super(Inequality, self).__init__(polyhedron, data)
 
+
+    def type(self):
+        r"""
+        Returns the type (equation/inequality/vertex/ray/line) as an
+        integer.
+
+        OUTPUT:
+
+        Integer. One of ``PolyhedronRepresentation.INEQUALITY``,
+        ``.EQUATION``, ``.VERTEX``, ``.RAY``, or ``.LINE``.
+
+        EXAMPLES::
+
+            sage: p = Polyhedron(vertices = [[0,0,0],[1,1,0],[1,2,0]])
+            sage: repr_obj = p.inequality_generator().next()
+            sage: repr_obj.type()
+            0
+            sage: repr_obj.type() == repr_obj.INEQUALITY
+            True
+            sage: repr_obj.type() == repr_obj.EQUATION
+            False
+            sage: repr_obj.type() == repr_obj.VERTEX
+            False
+            sage: repr_obj.type() == repr_obj.RAY
+            False
+            sage: repr_obj.type() == repr_obj.LINE
+            False
+        """
+        return self.INEQUALITY
+
+
     def is_inequality(self):
         """
         Returns True since this is, by construction, an inequality.
@@ -772,6 +811,37 @@ class Equation(Hrepresentation):
             An equation (0, 0, 1) x + 0 == 0
         """
         super(Equation, self).__init__(polyhedron, data)
+
+
+    def type(self):
+        r"""
+        Returns the type (equation/inequality/vertex/ray/line) as an
+        integer.
+
+        OUTPUT:
+
+        Integer. One of ``PolyhedronRepresentation.INEQUALITY``,
+        ``.EQUATION``, ``.VERTEX``, ``.RAY``, or ``.LINE``.
+
+        EXAMPLES::
+
+            sage: p = Polyhedron(vertices = [[0,0,0],[1,1,0],[1,2,0]])
+            sage: repr_obj = p.equation_generator().next()
+            sage: repr_obj.type()
+            1
+            sage: repr_obj.type() == repr_obj.INEQUALITY
+            False
+            sage: repr_obj.type() == repr_obj.EQUATION
+            True
+            sage: repr_obj.type() == repr_obj.VERTEX
+            False
+            sage: repr_obj.type() == repr_obj.RAY
+            False
+            sage: repr_obj.type() == repr_obj.LINE
+            False
+        """
+        return self.EQUATION
+
 
     def is_equation(self):
         """
@@ -1054,6 +1124,37 @@ class Vertex(Vrepresentation):
         """
         super(Vertex, self).__init__(polyhedron, data)
 
+
+    def type(self):
+        r"""
+        Returns the type (equation/inequality/vertex/ray/line) as an
+        integer.
+
+        OUTPUT:
+
+        Integer. One of ``PolyhedronRepresentation.INEQUALITY``,
+        ``.EQUATION``, ``.VERTEX``, ``.RAY``, or ``.LINE``.
+
+        EXAMPLES::
+
+            sage: p = Polyhedron(vertices = [[0,0,0],[1,1,0],[1,2,0]])
+            sage: repr_obj = p.vertex_generator().next()
+            sage: repr_obj.type()
+            2
+            sage: repr_obj.type() == repr_obj.INEQUALITY
+            False
+            sage: repr_obj.type() == repr_obj.EQUATION
+            False
+            sage: repr_obj.type() == repr_obj.VERTEX
+            True
+            sage: repr_obj.type() == repr_obj.RAY
+            False
+            sage: repr_obj.type() == repr_obj.LINE
+            False
+        """
+        return self.VERTEX
+
+
     def is_vertex(self):
         """
         Tests if this object is a vertex.  By construction it always is.
@@ -1121,6 +1222,37 @@ class Ray(Vrepresentation):
         """
         super(Ray, self).__init__(polyhedron, data)
 
+
+    def type(self):
+        r"""
+        Returns the type (equation/inequality/vertex/ray/line) as an
+        integer.
+
+        OUTPUT:
+
+        Integer. One of ``PolyhedronRepresentation.INEQUALITY``,
+        ``.EQUATION``, ``.VERTEX``, ``.RAY``, or ``.LINE``.
+
+        EXAMPLES::
+
+            sage: p = Polyhedron(ieqs = [[0,0,1],[0,1,0],[1,-1,0]])
+            sage: repr_obj = p.ray_generator().next()
+            sage: repr_obj.type()
+            3
+            sage: repr_obj.type() == repr_obj.INEQUALITY
+            False
+            sage: repr_obj.type() == repr_obj.EQUATION
+            False
+            sage: repr_obj.type() == repr_obj.VERTEX
+            False
+            sage: repr_obj.type() == repr_obj.RAY
+            True
+            sage: repr_obj.type() == repr_obj.LINE
+            False
+        """
+        return self.RAY
+
+
     def is_ray(self):
         """
         Tests if this object is a ray.  Always True by construction.
@@ -1181,6 +1313,37 @@ class Line(Vrepresentation):
             A line in the direction (1, 2, 3)
         """
         super(Line, self).__init__(polyhedron, data)
+
+
+    def type(self):
+        r"""
+        Returns the type (equation/inequality/vertex/ray/line) as an
+        integer.
+
+        OUTPUT:
+
+        Integer. One of ``PolyhedronRepresentation.INEQUALITY``,
+        ``.EQUATION``, ``.VERTEX``, ``.RAY``, or ``.LINE``.
+
+        EXAMPLES::
+
+            sage: p = Polyhedron(ieqs = [[1, 0, 0, 1],[1,1,0,0]])
+            sage: repr_obj = p.line_generator().next()
+            sage: repr_obj.type()
+            4
+            sage: repr_obj.type() == repr_obj.INEQUALITY
+            False
+            sage: repr_obj.type() == repr_obj.EQUATION
+            False
+            sage: repr_obj.type() == repr_obj.VERTEX
+            False
+            sage: repr_obj.type() == repr_obj.RAY
+            False
+            sage: repr_obj.type() == repr_obj.LINE
+            True
+        """
+        return self.LINE
+
 
     def is_line(self):
         """
@@ -2560,27 +2723,6 @@ class Polyhedron(SageObject):
             return self._vertex_incidences
 
 
-    def graph(self):
-        """
-        Return a graph in which the vertices correspond to vertices of the polyhedron,
-        and edges to edges.
-
-        OUTPUT:
-
-        A graph.
-
-        EXAMPLES::
-
-            sage: g3 = polytopes.n_cube(3).graph()
-            sage: len(g3.automorphism_group())
-            48
-            sage: s4 = polytopes.n_simplex(4).graph()
-            sage: s4.is_eulerian()
-            True
-        """
-        return Graph(self.vertex_adjacency_matrix(), loops=True)
-
-
     def inequality_generator(self):
         """
         Return  a generator for the defining inequalities of the
@@ -3757,6 +3899,9 @@ class Polyhedron(SageObject):
             return self._graph
 
 
+    graph = vertex_graph
+
+
     def polar(self):
         """
         Return the polar (dual) polytope.  The original vertices are
@@ -4254,6 +4399,333 @@ class Polyhedron(SageObject):
         points = filter(lambda p: self.contains(p),
                         lp.points().columns())
         return points
+
+
+    def combinatorial_automorphism_group(self):
+        """
+        Computes the combinatorial automorphism group of the vertex
+        graph of the polyhedron.
+
+        OUTPUT:
+
+        A
+        :class:`PermutationGroup<sage.groups.perm_gps.permgroup.PermutationGroup_generic>`
+        that is isomorphic to the combinatorial automorphism group is
+        returned.
+
+        Note that in Sage, permutation groups always act on positive
+        integers while ``self.Vrepresentation()`` is indexed by
+        nonnegative integers. The indexing of the permutation group is
+        chosen to be shifted by ``+1``. That is, ``i`` in the
+        permutation group corresponds to the V-representation object
+        ``self.Vrepresentation(i-1)``.
+
+        EXAMPLES::
+
+            sage: quadrangle = Polyhedron(vertices=[(0,0),(1,0),(0,1),(2,3)])
+            sage: quadrangle.combinatorial_automorphism_group()
+            Permutation Group with generators [(2,3), (1,2)(3,4)]
+            sage: quadrangle.restricted_automorphism_group()
+            Permutation Group with generators [()]
+
+        Permutations can only exchange vertices with vertices, rays
+        with rays, and lines with lines::
+
+            sage: P = Polyhedron(vertices=[(1,0,0), (1,1,0)], rays=[(1,0,0)], lines=[(0,0,1)])
+            sage: P.combinatorial_automorphism_group()
+            Permutation Group with generators [(3,4)]
+        """
+        if '_combinatorial_automorphism_group' in self.__dict__:
+            return self._combinatorial_automorphism_group
+
+        from sage.groups.perm_gps.permgroup import PermutationGroup
+
+        G = Graph(dense=False)
+        for edge in self.vertex_graph().edges():
+            i = edge[0]
+            j = edge[1]
+            G.add_edge(i, j, (self.Vrepresentation(i).type(), self.Vrepresentation(j).type()) )
+
+        group, node_dict = G.automorphism_group(edge_labels=True, translation=True)
+
+        # Relabel the permutation group
+        perm_to_vertex = dict( (i,v+1) for v,i in node_dict.items() )
+        group = PermutationGroup([ [ tuple([ perm_to_vertex[i] for i in cycle ])
+                                     for cycle in generator.cycle_tuples() ]
+                                   for generator in group.gens() ])
+
+        self._combinatorial_automorphism_group = group
+        return group
+
+
+    def _affine_coordinates(self, Vrep_object):
+        r"""
+        Return affine coordinates for a V-representation object.
+
+        INPUT:
+
+        - ``v`` -- a V-representation object or any iterable
+          containing ``self.ambient_dim()`` coordinates. The
+          coordinates must specify a point in the affine plane
+          containing the polyhedron, or the output will be invalid. No
+          checks on the input are performed.
+
+        OUTPUT:
+
+        A ``self.dim()``-dimensional coordinate vector. It contains
+        the coordinates of ``v`` in an arbitrary but fixed basis for
+        the affine span of the polyhedron.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(rays=[(1,0,0),(0,1,0)])
+            sage: P._affine_coordinates( (-1,-2,-3) )
+            (-1, -2)
+            sage: [ P._affine_coordinates(v) for v in P.Vrep_generator() ]
+            [(1, 0), (0, 1), (0, 0)]
+        """
+        if '_affine_coordinates_pivots' not in self.__dict__:
+            v_list = [ vector(v) for v in self.Vrepresentation() ]
+            if len(v_list)>0:
+                origin = v_list[0]
+                v_list = [ v - origin for v in v_list ]
+            coordinates = matrix(v_list)
+            self._affine_coordinates_pivots = coordinates.pivots()
+
+        v = list(Vrep_object)
+        if len(v) != self.ambient_dim():
+            raise ValueError('Incorrect dimension: '+str(v))
+
+        return vector(self.field(), [ v[i] for i in self._affine_coordinates_pivots ])
+
+
+    def restricted_automorphism_group(self):
+        r"""
+        Return the restricted automorphism group.
+
+        First, let the linear automorphism group be the subgroup of
+        the Euclidean group `E(d) = GL(d,\RR) \ltimes \RR^d`
+        preserving the `d`-dimensional polyhedron. The Euclidean group
+        acts in the usual way `\vec{x}\mapsto A\vec{x}+b` on the
+        ambient space.
+
+        The restricted automorphism group is the subgroup of the linear
+        automorphism group generated by permutations of the generators
+        of the same type. That is, vertices can only be permuted with
+        vertices, ray generators with ray generators, and line
+        generators with line generators.
+
+        For example, take the first quadrant
+
+        .. MATH::
+
+            Q = \Big\{ (x,y) \Big| x\geq 0,\; y\geq0 \Big\}
+            \subset \QQ^2
+
+        Then the linear automorphism group is
+
+        .. MATH::
+
+            \mathrm{Aut}(Q) =
+            \left\{
+            \begin{pmatrix}
+            a & 0 \\ 0 & b
+            \end{pmatrix}
+            ,~
+            \begin{pmatrix}
+            0 & c \\ d & 0
+            \end{pmatrix}
+            :~
+            a, b, c, d \in \QQ_{>0}
+            \right\}
+            \subset
+            GL(2,\QQ)
+            \subset
+            E(d)
+
+        Note that there are no translations that map the quadrant `Q`
+        to itself, so the linear automorphism group is contained in
+        the subgroup of rotations of the whole Euclidean group. The
+        restricted automorphism group is
+
+        .. MATH::
+
+            \mathrm{Aut}(Q) =
+            \left\{
+            \begin{pmatrix}
+            1 & 0 \\ 0 & 1
+            \end{pmatrix}
+            ,~
+            \begin{pmatrix}
+            0 & 1 \\ 1 & 0
+            \end{pmatrix}
+            \right\}
+            \simeq \ZZ_2
+
+        OUTPUT:
+
+        A :class:`PermutationGroup<sage.groups.perm_gps.permgroup.PermutationGroup_generic>`
+        that is isomorphic to the restricted automorphism group is
+        returned.
+
+        Note that in Sage, permutation groups always act on positive
+        integers while ``self.Vrepresentation()`` is indexed by
+        nonnegative integers. The indexing of the permutation group is
+        chosen to be shifted by ``+1``. That is, ``i`` in the
+        permutation group corresponds to the V-representation object
+        ``self.Vrepresentation(i-1)``.
+
+        REFERENCES:
+
+        ..  [BSS]
+            David Bremner, Mathieu Dutour Sikiric, Achill Schuermann:
+            Polyhedral representation conversion up to symmetries.
+            http://arxiv.org/abs/math/0702239
+
+        EXAMPLES::
+
+            sage: P = polytopes.cross_polytope(3)
+            sage: AutP = P.restricted_automorphism_group();  AutP
+            Permutation Group with generators [(3,6), (2,3)(5,6), (2,5), (1,2)(4,5), (1,4)]
+            sage: P24 = polytopes.twenty_four_cell()
+            sage: AutP24 = P24.restricted_automorphism_group()
+            sage: PermutationGroup([   # computed with sympow
+            ...    [(1,2),(3,4),(5,6),(7,8),(9,10),(11,12),(13,14),(15,16),(17,21)],
+            ...    [(1,5),(2,6),(3,7),(4,8),(9,13),(10,14),(11,15),(12,16),(19,23)],
+            ...    [(2,5),(4,7),(10,13),(12,15),(17,19),(21,23)],
+            ...    [(1,3),(2,4),(5,7),(6,8),(9,11),(10,12),(13,15),(14,16),(18,22)],
+            ...    [(3,5),(4,6),(11,13),(12,14),(18,19),(22,23)],
+            ...    [(1,9),(2,10),(3,11),(4,12),(5,13),(6,14),(7,15),(8,16),(20,24)],
+            ...    [(3,9),(4,10),(7,13),(8,14),(18,20),(22,24)],
+            ...    [(1,3,11,9),(2,4,12,10),(5,7,15,13),(6,8,16,14),(18,20,22,24)],
+            ...    [(3,9,5),(4,10,6),(7,11,13),(8,12,14),(18,20,19),(22,24,23)],
+            ...    [(1,5,7,15,11,9),(2,6,8,16,12,10),(3,13),(4,14),(18,20,23,22,24,19)],
+            ...    [(2,5,3,9),(4,13),(6,7,11,10),(8,15,12,14),(17,19,18,20),(21,23,22,24)],
+            ...    [(1,2,6,8,16,15,11,9),(3,10,5,4,14,7,12,13),(17,19,18,20,21,23,22,24)],
+            ...    [(1,12,20,16,5,24),(2,21,6,14,18,10),(3,22,7,15,17,11),(4,8,23,13,9,19)]
+            ...   ]) == AutP24
+            True
+
+        Here is the quadrant example mentioned in the beginning::
+
+            sage: P = Polyhedron(rays=[(1,0),(0,1)])
+            sage: P.Vrepresentation()
+            [A ray in the direction (1, 0), A ray in the direction (0, 1), A vertex at (0, 0)]
+            sage: P.restricted_automorphism_group()
+            Permutation Group with generators [(1,2)]
+
+        Also, the polyhedron need not be full-dimensional::
+
+            sage: P = Polyhedron(vertices=[(1,2,3,4,5),(7,8,9,10,11)])
+            sage: P.restricted_automorphism_group()
+            Permutation Group with generators [(1,2)]
+
+        Translations do not change the restricted automorphism
+        group. For example, any non-degenerate triangle has the
+        dihedral group with 6 elements, `D_6`, as its automorphism
+        group::
+
+            sage: initial_points = [vector([1,0]), vector([0,1]), vector([-2,-1])]
+            sage: points = initial_points
+            sage: Polyhedron(vertices=points).restricted_automorphism_group()
+            Permutation Group with generators [(2,3), (1,2)]
+            sage: points = [pt - initial_points[0] for pt in initial_points]
+            sage: Polyhedron(vertices=points).restricted_automorphism_group()
+            Permutation Group with generators [(2,3), (1,2)]
+            sage: points = [pt - initial_points[1] for pt in initial_points]
+            sage: Polyhedron(vertices=points).restricted_automorphism_group()
+            Permutation Group with generators [(2,3), (1,2)]
+            sage: points = [pt - 2*initial_points[1] for pt in initial_points]
+            sage: Polyhedron(vertices=points).restricted_automorphism_group()
+            Permutation Group with generators [(2,3), (1,2)]
+
+        Floating-point computations are supported with a simple fuzzy
+        zero implementation::
+
+            sage: P = Polyhedron(vertices=[(1.0/3.0,0,0),(0,1.0/3.0,0),(0,0,1.0/3.0)], field=RDF)
+            sage: P.restricted_automorphism_group()
+            Permutation Group with generators [(2,3), (1,2)]
+
+        TESTS::
+
+            sage: p = Polyhedron(vertices=[(1,0), (1,1)], rays=[(1,0)])
+            sage: p.restricted_automorphism_group()
+            Permutation Group with generators [(2,3)]
+        """
+        if '_restricted_automorphism_group' in self.__dict__:
+            return self._restricted_automorphism_group
+
+        from sage.groups.perm_gps.permgroup import PermutationGroup
+
+        if self.field() is QQ:
+            def rational_approximation(c):
+                return c
+
+        else:  # self.field() is RDF
+            c_list = []
+            def rational_approximation(c):
+                # Implementation detail: Return unique integer if two
+                # c-values are the same up to machine precision. But
+                # you can think of it as a uniquely-chosen rational
+                # approximation.
+                for i,x in enumerate(c_list):
+                    if self._is_zero(x-c):
+                        return i
+                c_list.append(c)
+                return len(c_list)-1
+
+        # The algorithm identifies the restricted automorphism group
+        # with the automorphism group of a edge-colored graph. The
+        # nodes of the graph are the V-representation objects. If all
+        # V-representation objects are vertices, the edges are
+        # labelled by numbers (to be computed below). Roughly
+        # speaking, the edge label is the inner product of the
+        # coordinate vectors with some orthogonalization thrown in
+        # [BSS].
+        def edge_label_compact(i,j,c_ij):
+            return c_ij
+
+        # In the non-compact case we also label the edges by the type
+        # of the V-representation object. This ensures that vertices,
+        # rays, and lines are only permuted amongst themselves.
+        def edge_label_noncompact(i,j,c_ij):
+            return (self.Vrepresentation(i).type(), c_ij, self.Vrepresentation(j).type())
+
+        if self.is_compact():
+            edge_label = edge_label_compact
+        else:
+            edge_label = edge_label_noncompact
+
+        # good coordinates for the V-representation objects
+        v_list = []
+        for v in self.Vrepresentation():
+            v_coords = list(self._affine_coordinates(v))
+            if v.is_vertex():
+                v_coords = [1]+v_coords
+            else:
+                v_coords = [0]+v_coords
+            v_list.append(vector(v_coords))
+
+        # Finally, construct the graph
+        Qinv = sum( v.transpose() * matrix(v) for v in v_list ).inverse()
+        G = Graph(dense=True)
+        for i in range(0,len(v_list)):
+            for j in range(i+1,len(v_list)):
+                v_i = v_list[i]
+                v_j = v_list[j]
+                c_ij = rational_approximation( v_i * Qinv * v_j )
+                G.add_edge(i,j, edge_label(i,j,c_ij))
+
+        group, node_dict = G.automorphism_group(edge_labels=True, translation=True)
+
+        # Relabel the permutation group
+        perm_to_vertex = dict( (i,v+1) for v,i in node_dict.items() )
+        group = PermutationGroup([ [ tuple([ perm_to_vertex[i] for i in cycle ])
+                                     for cycle in generator.cycle_tuples() ]
+                                   for generator in group.gens() ])
+
+        self._restricted_automorphism_group = group
+        return group
 
 
 #############################################################

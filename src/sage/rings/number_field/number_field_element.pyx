@@ -2265,6 +2265,9 @@ cdef class NumberFieldElement(FieldElement):
         the power basis, where we view the parent field as a field over
         base.
 
+        Specifying base as the base field over which the parent of self
+        is a relative extension is equivalent to base being None
+
         INPUT:
 
 
@@ -2341,8 +2344,27 @@ cdef class NumberFieldElement(FieldElement):
             sage: F.<z> = CyclotomicField(5) ; t = 3*z**3 + 4*z**2 + 2
             sage: t.matrix(F)
             [3*z^3 + 4*z^2 + 2]
+
+        ::
+            sage: x=QQ['x'].gen()
+            sage: K.<v>=NumberField(x^4 + 514*x^2 + 64321)
+            sage: R.<r>=NumberField(x^2 + 4*v*x + 5*v^2 + 514)
+            sage: r.matrix()
+            [           0            1]
+            [-5*v^2 - 514         -4*v]
+            sage: r.matrix(K)
+            [           0            1]
+            [-5*v^2 - 514         -4*v]
+            sage: r.matrix(R)
+            [r]
+            sage: foo=R.random_element()
+            sage: foo.matrix(R) == matrix(1,1,[foo])
+            True
         """
-        if base is not None:
+        from sage.matrix.constructor import matrix
+        if base is self.parent():
+            return matrix(1,1,[self])
+        if base is not None and base is not self.base_ring():
             if number_field.is_NumberField(base):
                 return self._matrix_over_base(base)
             else:

@@ -3,10 +3,10 @@
 ## Readline 6.0
 ###########################################
 
-if [ -z "$SAGE_LOCAL" ] ; then
-   echo "SAGE_LOCAL undefined ... exiting";
-   echo "Maybe run 'sage -sh'?"
-   exit 1
+if [ -z "$SAGE_LOCAL" ]; then
+    echo "SAGE_LOCAL undefined ... exiting"
+    echo "Maybe run 'sage -sh'?"
+    exit 1
 fi
 
 set -e
@@ -158,28 +158,54 @@ rm -rf "$SAGE_LOCAL"/lib/libreadline.*
 
 # OVERWRITE_READLINE=false; export OVERWRITE_READLINE
 
-# First we check for OpenSUSE 11.1 since bash is linked dynamically with a
-# readline that breaks when we build Sage's readline, so we work around this
-# for now.
+set +e # We want the exit codes!
+
+# First we check for OpenSUSE 11.x, since there bash is linked dynamically with a
+# more recent readline such that bash crashes when we build Sage's readline, so
+# we work around this for now by not building Sage's version and instead using
+# the system's one.
 
 if [ -f /etc/SuSE-release ]; then
+    echo "OpenSuSE detected"
+    # Note that "-q" doesn't work with Solaris' non-POSIX grep
+    # in the default path, but we're certainly on Linux here:
     if grep -q 11\\. /etc/SuSE-release 2>/dev/null; then
-        echo "OpenSUSE 11 detected"
+        echo "OpenSuSE 11 detected"
         if [ -d /usr/include/readline/ ]; then
             echo "The development version of libreadline is installed -> copying"
-            if [ `uname -p` = "x86_64" ]; then
-                cp -a /lib64/libreadline.so.6* "$SAGE_LOCAL"/lib
+            # Note that "cp -a" isn't POSIX, but again: We're on Linux.
+            # ("uname -p" gives "unknown" on at least some Linuces, so we
+            # better use the more portable "-m".)
+            if [ "`uname -m`" = "x86_64" ]; then
+                cp -af /lib64/libreadline.so.6* "$SAGE_LOCAL"/lib
             else
-                cp -a /lib/libreadline.so.6* "$SAGE_LOCAL"/lib
+                cp -af /lib/libreadline.so.6* "$SAGE_LOCAL"/lib
             fi
-            ln -s libreadline.so.6 "$SAGE_LOCAL"/lib/libreadline.so
-            cp -r /usr/include/readline  "$SAGE_LOCAL"/include
+            if [ $? -ne 0 ]; then
+                echo "Error copying the system's libreadline"
+                exit 1
+            fi
+            ln -snf libreadline.so.6 "$SAGE_LOCAL"/lib/libreadline.so
+            if [ $? -ne 0 ]; then
+                echo "Error creating symbolic link to libreadline.so.6"
+                exit 1
+            fi
+            cp -rf /usr/include/readline "$SAGE_LOCAL"/include
+            if [ $? -ne 0 ]; then
+                echo "Error copying the system's readline header files"
+                exit 1
+            fi
             exit 0
         else
-            echo "No headers found, building library."
+            echo "No readline headers found. Please install OpenSuSE's development"
+            echo "version of libreadline 6.x since building the version currently"
+            echo "shipped with Sage would break your shell (bash). Sorry."
+            exit 1
 	    # # This variable is only set to "true" on openSUSE 11.1.
             # OVERWRITE_READLINE="true"; export OVERWRITE_READLINE
         fi
+    else
+        echo "... but not OpenSuSE 11 -> building Sage's version of libreadline."
     fi
 fi
 
@@ -187,13 +213,29 @@ fi
 # If anyone knows a better way to fix this, please do.
 
 if [ -f /etc/arch-release ]; then
+    echo "Arch Linux detected"
     if [ -f "/lib/libreadline.so.6" ]; then
-        echo "Copying over system's libreadline."
-        cp -a /lib/libreadline.so.6* "$SAGE_LOCAL"/lib
-        ln -s libreadline.so.6 "$SAGE_LOCAL"/lib/libreadline.so
+        echo "Copying over system's libreadline (version 6.x)."
+        cp -af /lib/libreadline.so.6* "$SAGE_LOCAL"/lib
+        if [ $? -ne 0 ]; then
+            echo "Error copying the system's libreadline"
+            exit 1
+        fi
+        ln -snf libreadline.so.6 "$SAGE_LOCAL"/lib/libreadline.so
+        if [ $? -ne 0 ]; then
+            echo "Error creating symbolic link to libreadline.so.6"
+            exit 1
+        fi
+        # We shouldn't have to copy the headers...
+        # (On Arch Linux, these are installed by default.)
         exit 0
+    elif [ -f "/lib/libreadline.so.5" ]; then
+        # We might have only an older version of libreadline
+        echo "Couldn't find a system copy of libreadline 6.x, only 5.x."
+        echo "Building Sage's more recent version of libreadline."
     else
-        echo "Could not find a system copy of libreadline. Exiting."
+        echo "Could not find a system copy of libreadline 5.x or 6.x."
+        echo "This is abnormal, so we better stop here..."
         exit 1
     fi
 fi
@@ -210,20 +252,24 @@ cd src/
 build()
 {
     ./configure --prefix="$SAGE_LOCAL" $CONF_FLAGS
+    if [ $? -ne 0 ]; then
+        echo "Error configuring readline."
+        exit 1
+    fi
     make install
 }
 
 build
-set +e
 if [ $? -ne 0 ]; then
     echo "Error building and installing readline."
     exit 1
 fi
+
 set -e
 
-if [ $UNAME = "Darwin" ]; then
+if [ "$UNAME" = "Darwin" ]; then
   DYLIB_NAME="$SAGE_LOCAL"/lib/libreadline.dylib
-elif [ $UNAME = "CYGWIN" ]; then
+elif [ "$UNAME" = "CYGWIN" ]; then
   # It is of course very lame that readline names the file .dll.a, but that's what it does.
   DYLIB_NAME="$SAGE_LOCAL"/lib/libreadline.dll.a
 elif [ "$UNAME" = "OpenBSD" ]; then
@@ -251,10 +297,11 @@ fi
 # code of build was.
 if [ -f "$DYLIB_NAME" -a -f "$SAGE_LOCAL"/lib/libreadline.a ]; then
   # Fix permissions.
+  echo "Fixing permissions..."
   chmod 755 "$SAGE_LOCAL"/lib/libreadline.*
   chmod 755 "$SAGE_LOCAL"/lib/libhistory.*
   exit 0
 else
-  echo "Readline's build claims to have finished, but files that should have been built weren't."
+  echo "Error: Readline's build claims to have finished, but files that should have been built weren't."
   exit 1
 fi

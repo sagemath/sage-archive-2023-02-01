@@ -33,14 +33,30 @@ Website: http://tiswww.case.edu/php/chet/readline/rltop.html
    since it took tons of space; didn't delete anything else.
  * Work around some MacOSX dynamic lib flags
 
-== readline-6.0p3 (Thomas Bächler, Mitesh Patel, October 24th, 2010) ==
- * #9530: Update openSUSE and Arch Linux workarounds to fix failed
-   builds.
+== Changelog ==
 
-== readline-6.0p2 (Mike Hansen, June 22nd, 2010) ==
+=== readline-6.0.p4 (Leif Leonhardy, October 28th, 2010) ===
+ * #9530: Reviewer patch. Some clean-up, also making it more
+   portable and robust. (Also fixes "set -e" preventing us to
+   check exit codes and print appropriate error messages.)
+   Now also supports Arch Linux with readline 5.x, then building
+   Sage's version.
+   Now does *not* build Sage's readline on OpenSuSE 11.x when
+   the headers are missing (since this would break bash as well);
+   instead, instruct the user to install OpenSuSE's devel version
+   of libreadline 6.x, which contains these.
+ * Except for the "set -e" issue (and an added error check), the
+   changes again only affect Arch Linux and OpenSuSE.
+ * Bumped the patch level again to avoid confusion.
+
+=== readline-6.0.p3 (Thomas Bächler, Mitesh Patel, October 24th, 2010) ===
+ * #9530: Update openSuSE and Arch Linux workarounds to fix failed
+   builds. No changes that could affect other platforms.
+
+=== readline-6.0.p2 (Mike Hansen, June 22nd, 2010) ===
  * #7821: readline-6.0.p1 fails on FreeBSD
 
-== readline-6.0p1 (Tim Dumol, December 6th, 2009) ==
+=== readline-6.0.p1 (Tim Dumol, December 6th, 2009) ===
  * #7610: Add workaround for Arch Linux readline issues ("undefined
    symbol: PC") by copying over the system version.
 

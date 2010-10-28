@@ -29,7 +29,7 @@ EXAMPLES::
     [2, 3, 5]
     sage: S.bound_kolyvagin()
     ([2, 5], 1)
-    sage: S.an_padic(7,3)  #long
+    sage: S.an_padic(7,3)  #long time
     1 + O(7^5)
     sage: S.an()
     1
@@ -41,11 +41,11 @@ EXAMPLES::
     Tate-Shafarevich group for the Elliptic Curve defined by y^2 + y = x^3 + x^2 - 2*x over Rational Field
     sage: S.an_numerical()
     1.00000000000000
-    sage: S.p_primary_bound(5) #long
+    sage: S.p_primary_bound(5) #long time
     0
-    sage: S.an_padic(5)  #long
+    sage: S.an_padic(5)  #long time
     1 + O(5)
-    sage: S.an_padic(5,prec=4) #long
+    sage: S.an_padic(5,prec=4) #long time
     1 + O(5^3)
 
 
@@ -106,7 +106,7 @@ class Sha(SageObject):
         [2, 3]
         sage: S.bound_kolyvagin()
         ([2], 1)
-        sage: S.an_padic(7,3)  #long
+        sage: S.an_padic(7,3)  #long time
         4 + O(7^5)
         sage: S.an()
         4
@@ -118,11 +118,11 @@ class Sha(SageObject):
         Tate-Shafarevich group for the Elliptic Curve defined by y^2 + y = x^3 + x^2 - 2*x over Rational Field
         sage: S.an_numerical()
         1.00000000000000
-        sage: S.p_primary_bound(5) #long
+        sage: S.p_primary_bound(5) #long time
         0
-        sage: S.an_padic(5)  #long
+        sage: S.an_padic(5)  #long time
         1 + O(5)
-        sage: S.an_padic(5,prec=4) #long
+        sage: S.an_padic(5,prec=4) #long time
         1 + O(5^3)
 
     """
@@ -145,6 +145,7 @@ class Sha(SageObject):
 
         """
         self.E = E
+        self.Emin = E.minimal_model() if not E.is_minimal() else E
 
     def __cmp__(self,other):
         r"""
@@ -232,7 +233,7 @@ class Sha(SageObject):
             sage: EllipticCurve([0, 0, 1, -79, 342]).sha().an_numerical(prec=10, proof=False) # long time -- about 30 seconds.
             1.0
 
-        # See trac #1115 ::
+        See trac #1115 ::
 
             sage: sha=EllipticCurve('37a1').sha()
             sage: [sha.an_numerical(prec) for prec in xrange(40,100,10)] # long time
@@ -242,6 +243,15 @@ class Sha(SageObject):
             1.0000000000000000000,
             1.0000000000000000000000,
             1.0000000000000000000000000]
+
+        See trac #10096: this used to give the wrong result 6.0000
+        before since the minimal model was not used::
+
+            sage: E=EllipticCurve([1215*1216,0]) # non-minimal model
+            sage: E.sha().an()
+            1.00000000000000
+            sage: E.minimal_model().sha().an()
+            1.00000000000000
         """
         if prec is None:
             prec = RealField().precision()
@@ -256,13 +266,15 @@ class Sha(SageObject):
                 pass
         except AttributeError:
             pass
-        r = Integer(self.E.rank(use_database=use_database, proof=proof))
-        L = self.E.lseries().dokchitser(prec=prec2)
+        # it's critical to switch to the minimal model.
+        E = self.Emin
+        r = Integer(E.rank(use_database=use_database, proof=proof))
+        L = E.lseries().dokchitser(prec=prec2)
         Lr= RR2(L.derivative(1,r))  # L.derivative() returns a Complex
-        Om = RR2(self.E.period_lattice().omega(prec2))
-        Reg = self.E.regulator(use_database=use_database, proof=proof, precision=prec2)
-        T = self.E.torsion_order()
-        cp = self.E.tamagawa_product()
+        Om = RR2(E.period_lattice().omega(prec2))
+        Reg = E.regulator(use_database=use_database, proof=proof, precision=prec2)
+        T = E.torsion_order()
+        cp = E.tamagawa_product()
         Sha = RR((Lr*T*T)/(r.factorial()*Om*cp*Reg))
         self.__an_numerical = Sha
         return Sha
@@ -365,17 +377,27 @@ class Sha(SageObject):
             sage: E = EllipticCurve([0,-432*6^2])
             sage: E.sha().an()
             1
+
+        See trac #10096: this used to give the wrong result 6.0000
+        before since the minimal model was not used::
+
+            sage: E=EllipticCurve([1215*1216,0]) # non-minimal model
+            sage: E.sha().an()
+            1.00000000000000
+            sage: E.minimal_model().sha().an()
+            1.00000000000000
+
         """
         if hasattr(self, '__an'):
             return self.__an
         if use_database:
-            d = self.E.database_curve()
+            d = self.Emin.database_curve()
             if hasattr(d, 'db_extra'):
                 self.__an = Integer(round(float(d.db_extra[4])))
                 return self.__an
 
         # it's critical to switch to the minimal model.
-        E = self.E.minimal_model()
+        E = self.Emin
         eps = E.root_number()
         if eps == 1:
             L1_over_omega = E.lseries().L_ratio()
@@ -525,15 +547,16 @@ class Sha(SageObject):
         except KeyError:
             pass
 
-        tam = self.E.tamagawa_product()
-        tors = self.E.torsion_order()**2
-        reg = self.E.padic_regulator(p)
-        # todo : here we should catch the rank computation
-        r = self.E.rank()
+        E = self.Emin
+        tam = E.tamagawa_product()
+        tors = E.torsion_order()**2
+        reg = E.padic_regulator(p)
+        # todo : here we should cache the rank computation
+        r = E.rank()
 
 
         if use_twists and p > 2:
-            Et, D = self.E.minimal_quadratic_twist()
+            Et, D = E.minimal_quadratic_twist()
             # trac 6455 : we have to assure that the twist back is allowed
             D = ZZ(D)
             if D % p == 0:
@@ -546,20 +569,20 @@ class Sha(SageObject):
             de = (D/2**ve).abs()
             if de % 4 == 3:
                 de = -de
-            Et = self.E.quadratic_twist(de)
+            Et = E.quadratic_twist(de)
             # now check individually if we can twist by -1 or 2 or -2
             Nmin = Et.conductor()
             Dmax = de
             for DD in [-4*de,8*de,-8*de]:
-                Et = self.E.quadratic_twist(DD)
+                Et = E.quadratic_twist(DD)
                 if Et.conductor() < Nmin and valuation(Et.conductor(),2) <= valuation(DD,2):
                     Nmin = Et.conductor()
                     Dmax = DD
             D = Dmax
-            Et = self.E.quadratic_twist(D)
+            Et = E.quadratic_twist(D)
             lp = Et.padic_lseries(p)
         else :
-            lp = self.E.padic_lseries(p)
+            lp = E.padic_lseries(p)
             D = 1
 
         if r == 0 and D == 1:
@@ -567,20 +590,20 @@ class Sha(SageObject):
             # to compute the p-adic L-function, the leading
             # term will be the L-value divided by the Neron
             # period.
-            ms = self.E.modular_symbol(sign=+1, normalize='L_ratio')
-            lstar = ms(0)/self.E.real_components()
+            ms = E.modular_symbol(sign=+1, normalize='L_ratio')
+            lstar = ms(0)/E.real_components()
             bsd = tam/tors
             if prec == 0:
                 prec = valuation(lstar/bsd, p)
             shan = Qp(p,prec=prec+2)(lstar/bsd)
 
 
-        elif self.E.is_ordinary(p):
+        elif E.is_ordinary(p):
             K = reg.parent()
             lg = log(K(1+p))
 
-            if (self.E.is_good(p) or self.E.ap(p) == -1):
-                if not self.E.is_good(p):
+            if (E.is_good(p) or E.ap(p) == -1):
+                if not E.is_good(p):
                     eps = 2
                 else:
                     eps = (1-arith.kronecker_symbol(D,p)/lp.alpha())**2
@@ -588,7 +611,7 @@ class Sha(SageObject):
                 bsdp = tam * reg * eps/tors/lg**r
             else:
                 r += 1   # exceptional zero
-                eq = self.E.tate_curve(p)
+                eq = E.tate_curve(p)
                 Li = eq.L_invariant()
 
                 # according to the p-adic BSD (Mazur-Tate-Teitelbaum)
@@ -625,7 +648,7 @@ class Sha(SageObject):
 
             shan = lstar/bsdp
 
-        elif self.E.is_supersingular(p):
+        elif E.is_supersingular(p):
             K = reg[0].parent()
             lg = log(K(1+p))
 
@@ -753,8 +776,9 @@ class Sha(SageObject):
 
         """
         p = Integer(p)
-        if self.E.is_ordinary(p) or self.E.is_good(p):
-            su = self.E.galois_representation().is_surjective(p)
+        E = self.Emin
+        if E.is_ordinary(p) or E.is_good(p):
+            su = E.galois_representation().is_surjective(p)
             if not su :
                 raise ValueError, "The mod-p Galois representation is not surjective. Current knowledge about Euler systems does not provide an upper bound in this case. Try an_padic for a conjectural bound."
             shan = self.an_padic(p,prec = 0,use_twists=True)
@@ -792,9 +816,10 @@ class Sha(SageObject):
             sage: sh.an()
             4
         """
-        S = self.E.selmer_rank()
-        r = self.E.rank()
-        t = self.E.two_torsion_rank()
+        E = self.Emin
+        S = E.selmer_rank()
+        r = E.rank()
+        t = E.two_torsion_rank()
         b = S - r - t
         if  b < 0 :
             b = 0
@@ -872,7 +897,7 @@ class Sha(SageObject):
             ([2, 3], 9)
 
         """
-        E = self.E
+        E = self.Emin
         if E.has_cm():
             return 0, 0
 
@@ -1021,17 +1046,18 @@ class Sha(SageObject):
         - [GS]
 
         """
-        if self.E.has_cm():
+        E = self.Emin
+        if E.has_cm():
             return False
-        if self.E.lseries().L1_vanishes():
+        if E.lseries().L1_vanishes():
             return False
         B = [2, 3]
-        for p in self.E.galois_representation().non_surjective():
+        for p in E.galois_representation().non_surjective():
             if p > 3:
                 B.append(p)
-        N = self.E.conductor()
-        for p in self.E.conductor().prime_divisors():
-            if self.E.has_additive_reduction(p) and p not in B:
+        N = E.conductor()
+        for p in E.conductor().prime_divisors():
+            if E.has_additive_reduction(p) and p not in B:
                 B.append(p)
 
         # The only other p that might divide B are those that divide
@@ -1057,7 +1083,7 @@ class Sha(SageObject):
             sage: EllipticCurve('37a').sha().bound()
             ([2], 1)
         """
-        if self.E.lseries().L1_vanishes():
+        if self.Emin.lseries().L1_vanishes():
             B = self.bound_kolyvagin()
         else:
             B = self.bound_kato()

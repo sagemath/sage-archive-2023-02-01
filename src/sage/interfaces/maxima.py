@@ -544,8 +544,9 @@ class Maxima(Expect):
         self._prompt_wait = [self._prompt] + [re.compile(x) for x in self._ask] + \
                             ['Break [0-9]+'] #note that you might need to change _expect_expr if you
                                              #change this
-        self._error_re = re.compile('(Principal Value|debugmode|Incorrect syntax|Maxima encountered a Lisp error)')
+        self._error_re = re.compile('(Principal Value|debugmode|incorrect syntax|Maxima encountered a Lisp error)')
         self._display2d = False
+
 
 
     def _function_class(self):
@@ -728,10 +729,12 @@ class Maxima(Expect):
 
             sage: maxima._eval_line('1+1;')
             '2'
-            sage: maxima.eval('sage0: x == x;')
+            sage: maxima._eval_line('sage0: x == x;')
             Traceback (most recent call last):
             ...
-            TypeError: error evaluating "sage0: x == x;":...
+            TypeError: Error executing code in Maxima...
+
+
         """
         if len(line) == 0:
             return ''
@@ -750,20 +753,46 @@ class Maxima(Expect):
         else:
             self._sendline(line)
 
+        line_echo = self._expect.readline()
         if not wait_for_prompt:
             return
+        assert line_echo.strip() == line.strip()
+
+        # This broke in maxima-5.22.1 as discussed in http://trac.sagemath.org/sage_trac/ticket/10187
+        #self._expect_expr(self._display_prompt)
+        #pre_out = self._before()
+        #self._expect_expr()
+        #out = self._before()
+        #
+        # if error_check:
+        #     self._error_check(line, pre_out)
+        #     self._error_check(line, out)
+        #
+        # if not reformat:
+        #     return out
+        #
+        # r = self._output_prompt_re
+        # m = r.search(out)
+        # if m is None:
+        #     o = out[:-2]
+        # else:
+        #     o = out[m.end()+1:-2]
+        # o = ''.join([x.strip() for x in o.split()])
+        # return o
+        #
+        # i = o.rfind('(%o')
+        # return o[:i]
 
         self._expect_expr(self._display_prompt)
-        pre_out = self._before()
-        self._expect_expr()
-        out = self._before()
-
+        out = self._before()        # input echo + output prompt + output
         if error_check:
-            self._error_check(line, pre_out)
             self._error_check(line, out)
 
         if not reformat:
             return out
+
+        self._expect_expr()
+        assert len(self._before())==0, 'Maxima expect interface is confused!'
 
         r = self._output_prompt_re
         m = r.search(out)
@@ -773,9 +802,6 @@ class Maxima(Expect):
             o = out[m.end()+1:-2]
         o = ''.join([x.strip() for x in o.split()])
         return o
-
-        i = o.rfind('(%o')
-        return o[:i]
 
 
     def _synchronize(self):
@@ -882,9 +908,9 @@ class Maxima(Expect):
             p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE,
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             res = p.stdout.read()
-            # we are now getting three lines of commented verbosity
+            # we are now getting five lines of commented verbosity
             # every time Maxima starts, so we need to get rid of them
-            for _ in range(3):
+            for _ in range(5):
                 res = res[res.find('\n')+1:]
             return AsciiArtString(res)
         else:
@@ -1240,7 +1266,7 @@ class Maxima(Expect):
         EXAMPLES::
 
             sage: maxima.version()
-            '5.20.1'
+            '5.22.1'
         """
         return maxima_version()
 

@@ -32,6 +32,11 @@ COPYING.
 
 == Changelog ==
 
+=== maxima-5.22.1 (Nils Bruin, Volker Braun, 28 October 2010) ===
+ * Update to the latest upstream version.
+ * Rewrote section to build maxima.fas (ecl library) for new ASDF
+   (see Ticket #8645)
+
 === maxima-5.20.1.p0 (William Stein, 3 April 2010) ===
  * Artificially bump version number to force rebuild, due to Maxima being broken without
    doing so on upgrade.
@@ -110,3 +115,4 @@ Here's what spkg-dist does:
 
   However, this caused problems with calling automake because
   of the changed .in files.
+

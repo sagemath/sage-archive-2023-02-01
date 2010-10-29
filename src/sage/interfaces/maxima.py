@@ -537,7 +537,7 @@ class Maxima(Expect):
                         init_code = init_code,
                         logfile = logfile,
                         eval_using_file_cutoff=eval_using_file_cutoff)
-        self._display_prompt = '<sage-display>'  # must match what is in the file local/ibn/sage-maxima.lisp!!
+        self._display_prompt = '<sage-display>'  # must match what is in the file local/bin/sage-maxima.lisp!!
         self._output_prompt_re = re.compile('\(\%o[0-9]+\)')
         self._ask = ['zero or nonzero?', 'an integer?', 'positive, negative, or zero?',
                      'positive or negative?', 'positive or zero?']
@@ -726,6 +726,8 @@ class Maxima(Expect):
 
         We check that errors are correctly checked::
 
+            sage: maxima._eval_line('1+1;')
+            '2'
             sage: maxima.eval('sage0: x == x;')
             Traceback (most recent call last):
             ...
@@ -2768,7 +2770,7 @@ def maxima_console():
 
         sage: from sage.interfaces.maxima import maxima_console
         sage: maxima_console()                    # not tested
-        Maxima 5.16.3 http://maxima.sourceforge.net
+        Maxima 5.22.1 http://maxima.sourceforge.net
         ...
     """
     os.system('maxima')
@@ -2779,7 +2781,7 @@ def maxima_version():
 
         sage: from sage.interfaces.maxima import maxima_version
         sage: maxima_version()
-        '5.20.1'
+        '5.22.1'
     """
     return os.popen('maxima --version').read().split()[-1]
 

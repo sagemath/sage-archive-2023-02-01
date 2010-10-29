@@ -44,7 +44,7 @@ class MaximaWrapper(SageObject):
             sage: type(u)
             <class 'sage.symbolic.maxima_wrapper.MaximaWrapper'>
             sage: u.logcontract()
-            0
+            log((sqrt(2) - 1)*(sqrt(2) + 1))
             sage: u.logcontract().parent()
             Symbolic Ring
 

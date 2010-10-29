@@ -341,8 +341,9 @@ Check that the problem with Taylor expansions of the gamma function
 (Trac #9217) is fixed::
 
     sage: taylor(gamma(1/3+x),x,0,3)
-    -1/432*((36*(pi*sqrt(3) + 9*log(3))*euler_gamma^2 + 27*pi^2*log(3) + 72*euler_gamma^3 + 243*log(3)^3 + 18*(6*pi*sqrt(3)*log(3) + pi^2 + 27*log(3)^2)*euler_gamma + 36*(6*euler_gamma + pi*sqrt(3) + 9*log(3))*psi(1, 1/3) + (pi^3 + 81*pi*log(3)^2)*sqrt(3))*gamma(1/3) - 72*gamma(1/3)*psi(2, 1/3))*x^3 + 1/24*(6*pi*sqrt(3)*log(3) + 4*(pi*sqrt(3) + 9*log(3))*euler_gamma + pi^2 + 12*euler_gamma^2 + 27*log(3)^2 + 12*psi(1, 1/3))*x^2*gamma(1/3) - 1/6*(6*euler_gamma + pi*sqrt(3) + 9*log(3))*x*gamma(1/3) + gamma(1/3)
-
+    -1/432*((36*(pi*sqrt(3) + 9*log(3))*euler_gamma^2 + 27*pi^2*log(3) + 72*euler_gamma^3 + 243*log(3)^3 + 18*(6*pi*sqrt(3)*log(3) + pi^2 + 27*log(3)^2 + 12*psi(1, 1/3))*euler_gamma + 324*psi(1, 1/3)*log(3) + (pi^3 + 9*(9*log(3)^2 + 4*psi(1, 1/3))*pi)*sqrt(3))*gamma(1/3) - 72*gamma(1/3)*psi(2, 1/3))*x^3 + 1/24*(6*pi*sqrt(3)*log(3) + 4*(pi*sqrt(3) + 9*log(3))*euler_gamma + pi^2 + 12*euler_gamma^2 + 27*log(3)^2 + 12*psi(1, 1/3))*x^2*gamma(1/3) - 1/6*(6*euler_gamma + pi*sqrt(3) + 9*log(3))*x*gamma(1/3) + gamma(1/3)
+    sage: map(lambda f:f[0].n(), _.coeffs())  # numerical coefficients to make comparison easier; Maple 12 gives same answer
+    [2.6789385347..., -8.3905259853..., 26.662447494..., -80.683148377...]
 """
 
 import re
@@ -366,15 +367,12 @@ Check if maxima has redundant variables defined after initialization #9538::
 
     sage: maxima = Maxima(init_code = ['load(simplify_sum)'])
     sage: maxima('f1')
-    binomial(n,k)
+    f1
     sage: sage.calculus.calculus.maxima('f1')
     f1
 """
 maxima = Maxima(init_code = ['display2d:false', 'domain: complex',
-    'keepfloat: true', 'load(to_poly_solver)', 'load(simplify_sum)',
-    'kill (g1, g2, g3, g4, g5, g6, g7, f1, f2, f3, f4, f5, f6, f7, f8, f9,\
-            f10, h1, h2, h3, h4, h5, h6, h6b, h7, h8, h9, h10, h11, h12, h13,\
-            d1, d2)'],
+                             'keepfloat: true', 'load(to_poly_solver)', 'load(simplify_sum)'],
                 script_subdirectory=None)
 
 ########################################################
@@ -422,6 +420,7 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima'):
 
     And some truncations thereof::
 
+        sage: assume(n>1)
         sage: symbolic_sum(binomial(n,k),k,1,n)
         2^n - 1
         sage: symbolic_sum(binomial(n,k),k,2,n)
@@ -1146,7 +1145,7 @@ def laplace(ex, t, s):
         sage: (z + exp(x)).laplace(x, s)
         z/s + 1/(s - 1)
         sage: log(t/t0).laplace(t, s)
-         -(euler_gamma + log(s) + log(t0))/s
+        -(euler_gamma + log(s) - log(1/t0))/s
 
     We do a formal calculation::
 

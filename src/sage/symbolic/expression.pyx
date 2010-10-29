@@ -6316,7 +6316,7 @@ cdef class Expression(CommutativeRingElement):
             sage: t = log(sqrt(2) - 1) + log(sqrt(2) + 1); t
             log(sqrt(2) - 1) + log(sqrt(2) + 1)
             sage: res = t.maxima_methods().logcontract(); res
-            0
+            log((sqrt(2) - 1)*(sqrt(2) + 1))
             sage: type(res)
             <type 'sage.symbolic.expression.Expression'>
         """
@@ -6349,8 +6349,9 @@ cdef class Expression(CommutativeRingElement):
 
     def simplify_full(self):
         """
-        Applies simplify_factorial, simplify_trig, simplify_rational, and simplify_radical
-        to self (in that order).
+        Applies simplify_factorial, simplify_trig, simplify_rational,
+        simplify_radical, simplify_log, and again simplify_rational to
+        self (in that order).
 
         ALIAS: simplify_full and full_simplify are the same.
 
@@ -6386,6 +6387,7 @@ cdef class Expression(CommutativeRingElement):
         x = x.simplify_rational()
         x = x.simplify_radical()
         x = x.simplify_log('one')
+        x = x.simplify_rational()
         return x
 
     full_simplify = simplify_full
@@ -6749,9 +6751,15 @@ cdef class Expression(CommutativeRingElement):
 
         TESTS:
 
-        This shows that the issue at trac #7344 is fixed::
+        This shows that the issue at trac #7334 is fixed. Maxima intentionally
+        keeps the expression inside the log factored::
 
-            sage: (log(sqrt(2)-1)+log(sqrt(2)+1)).simplify_full()
+            sage: log_expr = (log(sqrt(2)-1)+log(sqrt(2)+1))
+            sage: log_expr.simplify_log('all')
+            log((sqrt(2) - 1)*(sqrt(2) + 1))
+            sage: _.simplify_rational()
+            0
+            sage: log_expr.simplify_full()   # applies both simplify_log and simplify_rational
             0
 
         AUTHORS:
@@ -7348,9 +7356,9 @@ cdef class Expression(CommutativeRingElement):
         The following examples show use of the keyword ``to_poly_solve``::
 
             sage: solve(abs(1-abs(1-x)) == 10, x)
-            []
+            [abs(abs(x - 1) - 1) == 10]
             sage: solve(abs(1-abs(1-x)) == 10, x, to_poly_solve=True)
-            [x == 12, x == -10]
+            [x == -10, x == 12]
 
             sage: var('Q')
             Q
@@ -7364,7 +7372,7 @@ cdef class Expression(CommutativeRingElement):
         assumed to be an integer, a real if with ``r``, and so on::
 
             sage: solve( sin(x)==cos(x), x, to_poly_solve=True)
-            [x == 1/4*pi + pi*z45]
+            [x == 1/4*pi + pi*z44]
 
         An effort is made to only return solutions that satisfy the current assumptions::
 
@@ -7404,7 +7412,7 @@ cdef class Expression(CommutativeRingElement):
             sage: from sage.calculus.calculus import maxima
             sage: sol = maxima(cos(x)==0).to_poly_solve(x)
             sage: sol.sage()
-            [[x == -1/2*pi + 2*pi*z57], [x == 1/2*pi + 2*pi*z59]]
+            [[x == -1/2*pi + 2*pi*z56], [x == 1/2*pi + 2*pi*z58]]
 
         If a returned unsolved expression has a denominator, but the
         original one did not, this may also be true::
@@ -7414,7 +7422,7 @@ cdef class Expression(CommutativeRingElement):
             sage: from sage.calculus.calculus import maxima
             sage: sol = maxima(cos(x) * sin(x) == 1/2).to_poly_solve(x)
             sage: sol.sage()
-            [[x == 1/4*pi + pi*z73]]
+            [[x == 1/4*pi + pi*z72]]
 
         Some basic inequalities can be also solved::
 
@@ -7471,8 +7479,7 @@ cdef class Expression(CommutativeRingElement):
         ::
 
             sage: solve(sin(x)==1/2,x,to_poly_solve='force')
-            [x == 5/6*pi + 2*pi*z87, x == 1/6*pi + 2*pi*z85]
-
+            [x == 5/6*pi + 2*pi*z86, x == 1/6*pi + 2*pi*z84]
         """
         import operator
         cdef Expression ex
@@ -7689,7 +7696,7 @@ cdef class Expression(CommutativeRingElement):
             sage: b.solve(t)
             []
             sage: b.solve(t, to_poly_solve=True)
-            [t == 1/450*I*pi*z99 + 1/900*log(3/4*sqrt(41) + 25/4), t == 1/450*I*pi*z97 + 1/900*log(-3/4*sqrt(41) + 25/4)]
+            [t == 1/450*I*pi*z98 + 1/900*log(3/4*sqrt(41) + 25/4), t == 1/450*I*pi*z96 + 1/900*log(-3/4*sqrt(41) + 25/4)]
             sage: n(1/900*log(-3/4*sqrt(41) + 25/4))
             0.000411051404934985
 
@@ -8033,6 +8040,7 @@ cdef class Expression(CommutativeRingElement):
 
         A well known binomial identity::
 
+            sage: assume(n>=0)
             sage: binomial(n,k).sum(k, 0, n)
             2^n
 

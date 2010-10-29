@@ -500,9 +500,9 @@ explicit calls to Maxima or other systems.
 
 ::
 
-    sage: # (NO) (Integrate(x)Abs(x))=Abs(x)*x/2
+    sage: # (YES) (Integrate(x)Abs(x))=Abs(x)*x/2
     sage: integral(abs(x), x)
-    integrate(abs(x), x)
+    1/2*x*abs(x)
 
 ::
 

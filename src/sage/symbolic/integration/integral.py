@@ -183,10 +183,10 @@ class DefiniteIntegral(BuiltinFunction):
         EXAMPLES::
 
             sage: from sage.symbolic.integration.integral import definite_integral
-            sage: h = definite_integral(sin(x)/x^2, x, 1, 2); h
-            integrate(sin(x)/x^2, x, 1, 2)
+            sage: h = definite_integral(sin(x)*log(x)/x^2, x, 1, 2); h
+            integrate(log(x)*sin(x)/x^2, x, 1, 2)
             sage: h.n() # indirect doctest
-            0.4723991772689525...
+            0.14839875208053...
 
         TESTS:
 
@@ -457,13 +457,10 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
     TESTS:
 
     The following integral was broken prior to Maxima 5.15.0 -
-    see #3013
-
-    ::
+    see #3013::
 
         sage: integrate(sin(x)*cos(10*x)*log(x), x)
-        1/18*log(x)*cos(9*x) - 1/22*log(x)*cos(11*x) - 1/18*integrate(cos(9*x)/x, x) + 1/22*integrate(cos(11*x)/x, x)
-
+        1/198*(11*cos(9*x) - 9*cos(11*x))*log(x) + 1/44*Ei(-11*I*x) - 1/36*Ei(-9*I*x) - 1/36*Ei(9*I*x) + 1/44*Ei(11*I*x)
 
     It is no longer possible to use certain functions without an
     explicit variable.  Instead, evaluate the function at a variable,
@@ -484,7 +481,15 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
         sage: _ = var('x,y')
         sage: f = log(x^2+y^2)
         sage: res = integral(f,x,0.0001414, 1.); res
-        2.0*y*arctan(1/y) - 2.0*y*arctan(0.0001414/y) - 0.0001414*log(y^2 + 1.999396e-08) + log(y^2 + 1.0) - 1.9997172
+        Traceback (most recent call last):
+        ...
+        TypeError: Computation failed since Maxima requested additional
+        constraints (try the command 'assume((y-1)*(y+1)>0)' before integral
+        or limit evaluation, for example):
+        Is  (y-1)*(y+1)  positive, negative, or zero?
+        sage: assume(y>1)
+        sage: res = integral(f,x,0.0001414, 1.); res
+        2*y*arctan(1/y) - 2*y*arctan(0.0001414/y) - 0.0001414*log(y^2 + 1.999396e-08) + log(y^2 + 1.0) - 1.9997172
         sage: nres = numerical_integral(f.subs(y=2), 0.0001414, 1.); nres
         (1.4638323264144..., 1.6251803529759...e-14)
         sage: res.subs(y=2).n()
@@ -546,6 +551,15 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
         sage: x.integral()
         doctest:...: DeprecationWarning: Variable of integration should be specified explicitly.
         1/2*x^2
+
+    Test that #8729 is fixed::
+
+        sage: t = var('t')
+        sage: a = sqrt((sin(t))^2 + (cos(t))^2)
+        sage: integrate(a, t, 0, 2*pi)
+        2*pi
+        sage: a.simplify_full().simplify_trig()
+        1
     """
     if isinstance(v, (list, tuple)) and a is None and b is None:
         if len(v)==1: # bare variable in a tuple

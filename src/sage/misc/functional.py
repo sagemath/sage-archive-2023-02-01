@@ -702,10 +702,10 @@ def integral(x, *args, **kwds):
 
     Numerical approximation::
 
-        sage: h = integral(sin(x)/x^2, (x, 1, pi/2)); h
-        integrate(sin(x)/x^2, x, 1, 1/2*pi)
+        sage: h = integral(tan(x)/x, (x, 1, pi/3)); h
+        integrate(tan(x)/x, x, 1, 1/3*pi)
         sage: h.n()
-        0.339447940978915...
+        0.07571599101...
 
     Specific algorithm can be used for integration::
 

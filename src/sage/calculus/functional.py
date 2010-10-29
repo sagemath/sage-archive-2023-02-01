@@ -236,11 +236,16 @@ def integral(f, *args, **kwds):
 
         sage: integral(abs(x), x, 0, 5)
         25/2
-        sage: integral(abs(x), x, 0, a)
-        integrate(abs(x), x, 0, a)
+        sage: integral(abs(x)*x, x, 0, a)
+        Traceback (most recent call last):
+        ...
+        TypeError: Computation failed since Maxima requested additional
+        constraints (try the command 'assume(a>0)' before integral or limit
+        evaluation, for example):
+        Is  a  positive, negative, or zero?
         sage: assume(a>0)
-        sage: integral(abs(x), x, 0, a)
-        1/2*a^2
+        sage: integral(abs(x)*x, x, 0, a)
+        1/3*a^3
         sage: forget()      # forget the assumptions.
 
     We integrate and differentiate a huge mess::

@@ -132,7 +132,7 @@ class ScatterPlot(GraphicPrimitive):
 def scatter_plot(datalist, **options):
     """
     Returns a Graphics object of a scatter plot containing all points in
-    the datalist.  Type `scatter_plot.options` to see all available
+    the datalist.  Type ``scatter_plot.options`` to see all available
     plotting options.
 
     INPUT:

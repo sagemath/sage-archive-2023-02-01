@@ -35,7 +35,7 @@ class BezierPath(GraphicPrimitive_xydata):
         sage: BezierPath([[(0,0),(.5,.5),(1,0)],[(.5,1),(0,0)]],{'linestyle':'dashed'})
         Bezier path from (0, 0) to (0, 0)
 
-    We use :func:`bezier_path` to actually plot Bezier curves:
+    We use :func:`bezier_path` to actually plot Bezier curves::
 
         sage: bezier_path([[(0,0),(.5,.5),(1,0)],[(.5,1),(0,0)]],linestyle="dashed")
     """
@@ -266,7 +266,7 @@ def bezier_path(path, **options):
         sage: curve = bezier_path(path, linestyle='dashed', rgbcolor='green')
         sage: curve
 
-    Extra options will get passed on to :meth:`~sage.plot.plot.show`, as long as they are valid::
+    Extra options will get passed on to :meth:`~sage.plot.plot.Graphics.show`, as long as they are valid::
 
         sage: bezier_path([[(0,1),(.5,0),(1,1)]], fontsize=50)
         sage: bezier_path([[(0,1),(.5,0),(1,1)]]).show(fontsize=50) # These are equivalent

@@ -131,7 +131,7 @@ class ModulesWithBasis(Category_over_base_ring):
 
     def _call_(self, x):
         """
-        Construct a module with basis from the data in ``x``
+        Construct a module with basis from the data in ``x``.
 
         EXAMPLES::
 
@@ -165,7 +165,7 @@ class ModulesWithBasis(Category_over_base_ring):
 
     def is_abelian(self):
         """
-        Returns whether this category is abelian
+        Returns whether this category is abelian.
 
         This is the case if and only if the base ring is a field.
 
@@ -229,7 +229,7 @@ class ModulesWithBasis(Category_over_base_ring):
                 sage: phi(x[1] + x[3])
                 B[1] + 2*B[2] + B[3] + 2*B[4]
 
-            With the ``zero`` argument, one can define affine morphisms:
+            With the ``zero`` argument, one can define affine morphisms::
 
                 sage: phi = X.module_morphism(lambda i: Y.monomial(i) + 2*Y.monomial(i+1), codomain = Y, zero = 10*y[1])
                 sage: phi(x[1] + x[3])
@@ -248,7 +248,7 @@ class ModulesWithBasis(Category_over_base_ring):
                 sage: phi.category_for() # todo: not implemented (ZZ is currently not in Modules(ZZ))
                 Category of modules over Integer Ring
 
-            Or more generaly any ring admitting a coercion map from the base ring:
+            Or more generaly any ring admitting a coercion map from the base ring::
 
                 sage: phi = X.module_morphism(on_basis= lambda i: i, codomain=RR )
                 sage: phi( 2 * X.monomial(1) + 3 * X.monomial(-1) )

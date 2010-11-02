@@ -8,7 +8,7 @@ Class and methods
 -----------------
 """
 
-from sage.plot.misc import options
+from sage.misc.decorators import options
 from sage.misc.prandom import random
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer

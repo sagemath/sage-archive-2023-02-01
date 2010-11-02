@@ -6,7 +6,7 @@ from sagenb.notebook.interact import interact, slider, range_slider, input_box
 from sage.all import sin, plot, point, html, show, latex, SR,exp
 x=SR.var('x')
 
-from sage.misc.misc import sage_wraps
+from sage.misc.decorators import sage_wraps
 from sage.misc.html import html
 
 def library_interact(f):

@@ -7,7 +7,7 @@ from misc import (alarm, ellipsis_range, ellipsis_iter, srange, xsrange, sxrange
                   repr_lincomb, tmp_dir, tmp_filename,
                   pad_zeros, attrcall,
                   DOT_SAGE, SAGE_ROOT, SAGE_URL, SAGE_DB, SAGE_TMP,
-                  is_32_bit, is_64_bit, newton_method_sizes, infix_operator)
+                  is_32_bit, is_64_bit, newton_method_sizes)
 
 from misc_c import prod, running_total, balanced_sum
 
@@ -168,7 +168,7 @@ from explain_pickle import explain_pickle, unpickle_newobj, unpickle_global, unp
 
 from bitset import FrozenBitset, Bitset
 
-from decorators import specialize
+from decorators import specialize, sage_wraps, infix_operator
 
 from unknown import Unknown
 ##########################################################################

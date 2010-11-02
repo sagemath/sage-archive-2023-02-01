@@ -377,7 +377,7 @@ from sage.ext.fast_eval import fast_float, fast_float_constant, is_fast_float
 
 from sage.misc.html import html
 
-from misc import options, rename_keyword, suboptions
+from sage.misc.decorators import options, suboptions, rename_keyword
 
 from colors import hue, rainbow, rgbcolor, Color, to_mpl_color
 

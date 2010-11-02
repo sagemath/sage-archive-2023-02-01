@@ -26,7 +26,7 @@ cimport numpy as cnumpy
 import numpy
 
 from sage.plot.primitive import GraphicPrimitive
-from sage.plot.misc import options
+from sage.misc.decorators import options
 from sage.rings.complex_double cimport ComplexDoubleElement
 from sage.misc.misc import srange
 

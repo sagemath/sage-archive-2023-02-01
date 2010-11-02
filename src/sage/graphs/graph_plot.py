@@ -17,7 +17,7 @@
 from sage.structure.sage_object import SageObject
 import sage.graphs.generic_graph_pyx as generic_graph_pyx
 from sage.plot.all import Graphics, scatter_plot, bezier_path, line, arrow, text, circle
-from sage.plot.misc import options
+from sage.misc.decorators import options
 from math import sqrt, cos, sin, atan, pi
 
 layout_options =   {

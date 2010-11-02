@@ -374,7 +374,7 @@ better way, but the following steps should be easy to follow.)
    ``SAGE_ROOT/devel/sage-test2/`` your working directory.  Then at
    the system command line, run::
 
-       patch -p1 /path-to-somewhere/trac_XXXX_short_descriptor.patch
+       patch -p1 </path-to-somewhere/trac_XXXX_short_descriptor.patch
 
    which will be like you just edited the source files with all the
    changes from your original patch.  Now you can edit to reflect a

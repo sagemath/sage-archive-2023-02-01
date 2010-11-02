@@ -32,7 +32,7 @@ millions of elliptic curves. It's over a 2GB download though!
 Bryan Birch's Birthday Card
 ---------------------------
 
-Bryan Birch's recently had a birthday conference, and I used Sage
+Bryan Birch recently had a birthday conference, and I used Sage
 to draw the cover of his birthday card by enumerating all optimal
 elliptic curves of conductor up to 37, then plotting them with
 thick randomly colored lines. As you can see below, plotting an

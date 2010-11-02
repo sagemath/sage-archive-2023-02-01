@@ -27,11 +27,11 @@ See http://mercurial.selenic.com/ for more information.
 
 == Changelog ==
 
-=== mercurial-1.6.4.p0  (Jeroen Demeyer, November 2nd, 2010) ===
+=== mercurial-1.6.4.p0  (Jeroen Demeyer, Leif Leonhardy, November 2nd, 2010) ===
  * Updated to Mercurial 1.6.4
  * Remove patch for setup.py, since that file now claims the following:
-   In any case, if it fails to build the error will be skipped ('optional').
- * Major spkg-install clean-up: (reviewer patch)
+   "In any case, if it fails to build the error will be skipped ('optional')."
+ * Major spkg-install clean-up:
    - Remove useless code.
    - Quote all instances of $SAGE_ROOT / $SAGE_LOCAL.
    - Test more exit codes (of 'cp' etc.).

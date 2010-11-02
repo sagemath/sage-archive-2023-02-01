@@ -19,16 +19,6 @@ fi
 
 CUR=`pwd`
 
-# Useless, since Mercurial depends on Python, and Python's
-# spkg-install creates that symbolic link:
-# (Also, test -f tests for *regular* files, not directories
-# or symlinks to directories.)
-# if [ ! -f "$SAGE_LOCAL/lib/python" ]; then
-#     cd "$SAGE_LOCAL/lib"
-#     ln -s  python* python
-#     cd "$CUR"
-# fi
-
 cp patches/posix.py src/mercurial/posix.py
 if [ $? -ne 0 ]; then
     echo "Error copying patch"
@@ -36,7 +26,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Remove existing copies of Mercurial:
-rm -rf "$SAGE_LOCAL"/lib/python/mercurial
+rm -rf "$SAGE_LOCAL/lib/python/mercurial"
 
 cd src
 
@@ -47,9 +37,9 @@ if [ $? -ne 0 ]; then
 fi
 
 if [ "$UNAME" = "Darwin" ]; then
-    echo "Copying custom hgmerge script over to \$SAGE_LOCAL/bin/"
+    echo 'Copying custom hgmerge script over to $SAGE_LOCAL/bin/'
     cd "$CUR"
-    cp patches/hgmerge-osx "$SAGE_LOCAL"/bin/hgmerge
+    cp patches/hgmerge-osx "$SAGE_LOCAL/bin/hgmerge"
     if [ $? -ne 0 ]; then
         echo "Error copying custom hgmerge script"
         exit 1 # Really exit?
@@ -57,7 +47,7 @@ if [ "$UNAME" = "Darwin" ]; then
 fi
 
 echo "Deleting dead links"
-cd "$SAGE_LOCAL"/lib
+cd "$SAGE_LOCAL/lib"
 rm -rf python/python2.6 python/python
 
 exit 0

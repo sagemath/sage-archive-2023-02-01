@@ -3,16 +3,17 @@
 #  Copyright 2005-2009 Matt Mackall <mpm@selenic.com> and others
 #
 # This software may be used and distributed according to the terms of the
-# GNU General Public License version 2, incorporated herein by reference.
+# GNU General Public License version 2 or any later version.
 
 from i18n import _
 import osutil
 import os, sys, errno, stat, getpass, pwd, grp
 
-posixfile = file
+posixfile = open
 nulldev = '/dev/null'
 normpath = os.path.normpath
 samestat = os.path.samestat
+rename = os.rename
 expandglobs = False
 
 umask = os.umask(0)
@@ -73,20 +74,20 @@ def set_flags(f, l, x):
     if l:
         if not stat.S_ISLNK(s):
             # switch file to link
-            data = file(f).read()
+            data = open(f).read()
             os.unlink(f)
             try:
                 os.symlink(data, f)
             except:
                 # failed to make a link, rewrite file
-                file(f, "w").write(data)
+                open(f, "w").write(data)
         # no chmod needed at this point
         return
     if stat.S_ISLNK(s):
         # switch link to file
         data = os.readlink(f)
         os.unlink(f)
-        file(f, "w").write(data)
+        open(f, "w").write(data)
         s = 0666 & ~umask # avoid restatting for chmod
 
     sx = s & 0100
@@ -106,6 +107,57 @@ def pconvert(path):
 
 def localpath(path):
     return path
+
+def samefile(fpath1, fpath2):
+    """Returns whether path1 and path2 refer to the same file. This is only
+    guaranteed to work for files, not directories."""
+    return os.path.samefile(fpath1, fpath2)
+
+def samedevice(fpath1, fpath2):
+    """Returns whether fpath1 and fpath2 are on the same device. This is only
+    guaranteed to work for files, not directories."""
+    st1 = os.lstat(fpath1)
+    st2 = os.lstat(fpath2)
+    return st1.st_dev == st2.st_dev
+
+if sys.platform == 'darwin':
+    import fcntl # only needed on darwin, missing on jython
+    def realpath(path):
+        '''
+        Returns the true, canonical file system path equivalent to the given
+        path.
+
+        Equivalent means, in this case, resulting in the same, unique
+        file system link to the path. Every file system entry, whether a file,
+        directory, hard link or symbolic link or special, will have a single
+        path preferred by the system, but may allow multiple, differing path
+        lookups to point to it.
+
+        Most regular UNIX file systems only allow a file system entry to be
+        looked up by its distinct path. Obviously, this does not apply to case
+        insensitive file systems, whether case preserving or not. The most
+        complex issue to deal with is file systems transparently reencoding the
+        path, such as the non-standard Unicode normalisation required for HFS+
+        and HFSX.
+        '''
+        # Constants copied from /usr/include/sys/fcntl.h
+        F_GETPATH = 50
+        O_SYMLINK = 0x200000
+
+        try:
+            fd = os.open(path, O_SYMLINK)
+        except OSError, err:
+            if err.errno is errno.ENOENT:
+                return path
+            raise
+
+        try:
+            return fcntl.fcntl(fd, F_GETPATH, '\0' * 1024).rstrip('\0')
+        finally:
+            os.close(fd)
+else:
+    # Fallback to the likely inadequate Python builtin function.
+    realpath = os.path.realpath
 
 def shellquote(s):
     if os.sys.platform == 'OpenVMS':
@@ -130,17 +182,11 @@ def testpid(pid):
         return inst.errno != errno.ESRCH
 
 def explain_exit(code):
-    """return a 2-tuple (desc, code) describing a process's status"""
-    if os.WIFEXITED(code):
-        val = os.WEXITSTATUS(code)
-        return _("exited with status %d") % val, val
-    elif os.WIFSIGNALED(code):
-        val = os.WTERMSIG(code)
-        return _("killed by signal %d") % val, val
-    elif os.WIFSTOPPED(code):
-        val = os.WSTOPSIG(code)
-        return _("stopped by signal %d") % val, val
-    raise ValueError(_("invalid exit code"))
+    """return a 2-tuple (desc, code) describing a subprocess status
+    (codes from kill are negative - not os.system/wait encoding)"""
+    if code >= 0:
+        return _("exited with status %d") % code, code
+    return _("killed by signal %d") % -code, -code
 
 def isowner(st):
     """Return True if the stat object st is from the current user."""
@@ -215,3 +261,40 @@ def groupname(gid=None):
         return grp.getgrgid(gid)[0]
     except KeyError:
         return str(gid)
+
+def groupmembers(name):
+    """Return the list of members of the group with the given
+    name, KeyError if the group does not exist.
+    """
+    return list(grp.getgrnam(name).gr_mem)
+
+def spawndetached(args):
+    return os.spawnvp(os.P_NOWAIT | getattr(os, 'P_DETACH', 0),
+                      args[0], args)
+
+def gethgcmd():
+    return sys.argv[:1]
+
+def termwidth_():
+    try:
+        import termios, array, fcntl
+        for dev in (sys.stderr, sys.stdout, sys.stdin):
+            try:
+                try:
+                    fd = dev.fileno()
+                except AttributeError:
+                    continue
+                if not os.isatty(fd):
+                    continue
+                arri = fcntl.ioctl(fd, termios.TIOCGWINSZ, '\0' * 8)
+                return array.array('h', arri)[1]
+            except ValueError:
+                pass
+            except IOError, e:
+                if e[0] == errno.EINVAL:
+                    pass
+                else:
+                    raise
+    except ImportError:
+        pass
+    return 80

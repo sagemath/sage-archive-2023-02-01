@@ -1,48 +1,63 @@
 #!/usr/bin/env bash
 
-if [ "$SAGE_LOCAL" = "" ]; then
-   echo "SAGE_LOCAL undefined ... exiting";
-   echo "Maybe run 'sage -sh'?"
-   exit 1
+if [ -z "$SAGE_LOCAL" ]; then
+    echo "SAGE_LOCAL undefined ... exiting"
+    echo "Maybe run 'sage -sh'?"
+    exit 1
 fi
 
 if [ "x$SAGE64" = xyes ]; then
-   echo "Compiling Mercurial as 64-bit"
-   CFLAGS="-O2 -g -m64 "; export CFLAGS
-   CXXFLAGS="-O2 -g -m64 "; export CXXFLAGS
+    echo "Compiling Mercurial as 64-bit"
+    if [ -z "$CFLAG64" ]; then
+        CFLAG64="-m64"
+    fi
+    # Note that while exporting CFLAGS is redundant here,
+    # exporting CXXFLAGS currently is NOT (bug in sage-env):
+    CFLAGS="-O2 -g $CFLAGS $CFLAG64"; export CFLAGS
+    CXXFLAGS="-O2 -g $CXXFLAGS $CFLAG64"; export CXXFLAGS
 fi
 
 CUR=`pwd`
 
-if [ ! -f "$SAGE_LOCAL/lib/python" ]; then
-     cd "$SAGE_LOCAL/lib"
-     ln -s  python* python
+# Useless, since Mercurial depends on Python, and Python's
+# spkg-install creates that symbolic link:
+# (Also, test -f tests for *regular* files, not directories
+# or symlinks to directories.)
+# if [ ! -f "$SAGE_LOCAL/lib/python" ]; then
+#     cd "$SAGE_LOCAL/lib"
+#     ln -s  python* python
+#     cd "$CUR"
+# fi
+
+cp patches/posix.py src/mercurial/posix.py
+if [ $? -ne 0 ]; then
+    echo "Error copying patch"
+    exit 1
 fi
 
-cd "$CUR"
-
-#Remove existing copies of Mercurial
+# Remove existing copies of Mercurial:
 rm -rf "$SAGE_LOCAL"/lib/python/mercurial
-
-cp patches/setup.py src/setup.py
-cp patches/posix.py src/mercurial/posix.py
 
 cd src
 
 python setup.py install --home="$SAGE_LOCAL" --force
-
 if [ $? -ne 0 ]; then
-    echo "Error building mercurial"
+    echo "Error building and installing Mercurial"
     exit 1
 fi
 
-if [ `uname` = "Darwin" ]; then
-   echo "Copying custom hgmerge script over to $SAGE_LOCAL/bin/"
-   cd "$CUR"
-   cp  patches/hgmerge-osx "$SAGE_LOCAL"/bin/hgmerge
+if [ "$UNAME" = "Darwin" ]; then
+    echo "Copying custom hgmerge script over to \$SAGE_LOCAL/bin/"
+    cd "$CUR"
+    cp patches/hgmerge-osx "$SAGE_LOCAL"/bin/hgmerge
+    if [ $? -ne 0 ]; then
+        echo "Error copying custom hgmerge script"
+        exit 1 # Really exit?
+    fi
 fi
 
 echo "Deleting dead links"
-cd $SAGE_LOCAL/lib
-rm -rf python/python2.5 python/python
+cd "$SAGE_LOCAL"/lib
+rm -rf python/python2.6 python/python
 
+exit 0

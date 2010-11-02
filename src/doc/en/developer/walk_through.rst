@@ -168,9 +168,19 @@ basic arguments as output by ``./sage -help``.
 Reviewing a patch
 -----------------
 
-See the Trac section :ref:`section-review-patches` for further guidelines
-on reviewing patches; this section walks through the process of downloading
-and applying patches.  When viewing a Trac ticket, you will see available
+An essential part of improving Sage is reviewing the patches that other
+developers have written; before any patch is accepted into Sage, it needs the
+green light from another developer. This process catches many small bugs and
+omissions that could otherwise easily sneak into such a large project, even if
+it does slow down the development process.
+
+This section goes through the process of downloading, applying patches. You can
+also read about the process in the guide to Trac, see
+:ref:`section-review-patches`. William Stein also wrote this
+`blog entry <http://sagemath.blogspot.com/2010/10/how-to-referee-sage-trac-tickets.html>`_
+on his workflow of reviewing patches.
+
+When viewing a Trac ticket, you will see available
 patches listed near the top in the Attachments section.  Clicking on the
 file name will show you a `diff <http://en.wikipedia.org/wiki/Diff>`_
 comparison view that is useful for previewing changes; red shading is

@@ -1,27 +1,71 @@
 r"""
 Interface to Mathematica
 
-The Mathematica interface will only work if Mathematica is
-installed on your computer with a command line interface that runs
-when you give the ``math`` command. The interface
-offers three pieces of functionality:
+The Mathematica interface will only work if Mathematica is installed on your
+computer with a command line interface that runs when you give the ``math``
+command. The interface lets you send certain Sage objects to Mathematica,
+run Mathematica functions, import certain Mathematica expressions to Sage,
+or any combination of the above.
+
+To send a Sage object ``sobj`` to Mathematica, call ``mathematica(sobj)``.
+This exports the Sage object to Mathematica and returns a new Sage object
+wrapping the Mathematica expression/variable, so that you can use the
+Mathematica variable from within Sage. You can then call Mathematica
+functions on the new object; for example::
+
+    sage: mobj = mathematica(x^2-1)             # optional - mathematica
+    sage: mobj.Factor()                         # optional - mathematica
+    (-1 + x)*(1 + x)
+
+In the above example the factorization is done using Mathematica's
+``Factor[]`` function.
+
+To see Mathematica's output you can simply print the Mathematica wrapper
+object. However if you want to import Mathematica's output back to Sage,
+call the Mathematica wrapper object's ``sage()`` method. This method returns
+a native Sage object::
+
+    sage: mobj = mathematica(x^2-1)             # optional - mathematica
+    sage: mobj2 = mobj.Factor(); mobj2          # optional - mathematica
+    (-1 + x)*(1 + x)
+    sage: mobj2.parent()                        # optional - mathematica
+    Mathematica
+    sage: sobj = mobj2.sage(); sobj             # optional - mathematica
+    (x - 1)*(x + 1)
+    sage: sobj.parent()                         # optional - mathematica
+    Symbolic Ring
 
 
-#. ``mathematica_console()`` - A function that dumps
-   you into an interactive command-line Mathematica session. This is
-   an enhanced version of the usual Mathematica command-line, in that
-   it provides readline editing and history (the usual one doesn't!)
+If you want to run a Mathematica function and don't already have the input
+in the form of a Sage object, then it might be simpler to input a string to
+``mathematica(expr)``. This string will be evaluated as if you had typed it
+into Mathematica::
 
-#. ``mathematica(expr)`` - Creation of a Sage object
-   that wraps a Mathematica object. This provides a Pythonic interface
-   to Mathematica. For example, if
-   ``f=mathematica('x2-1')``, then
-   ``f.Factor()`` returns the factorization of
-   `x^2-1` computed using Mathematica.
+    sage: mathematica('Factor[x^2-1]')          # optional - mathematica
+    (-1 + x)*(1 + x)
+    sage: mathematica('Range[3]')               # optional - mathematica
+    {1, 2, 3}
 
-#. ``mathematica.eval(expr)`` - Evaluation of arbitrary
-   Mathematica expressions, with the result returned as a string.
+If you don't want Sage to go to the trouble of creating a wrapper for the
+Mathematica expression, then you can call ``mathematica.eval(expr)``, which
+returns the result as a Mathematica AsciiArtString formatted string. If you
+want the result to be a string formatted like Mathematica's InputForm, call
+``repr(mobj)`` on the wrapper object ``mobj``. If you want a string
+formatted in Sage style, call ``mobj._sage_repr()``::
 
+    sage: mathematica.eval('x^2 - 1')           # optional - mathematica
+                   2
+             -1 + x
+    sage: repr(mathematica('Range[3]'))         # optional - mathematica
+    '{1, 2, 3}'
+    sage: mathematica('Range[3]')._sage_repr()  # optional - mathematica
+    '[1, 2, 3]'
+
+Finally, if you just want to use a Mathematica command line from within
+Sage, the function ``mathematica_console()`` dumps you into an interactive
+command-line Mathematica session. This is an enhanced version of the usual
+Mathematica command-line, in that it provides readline editing and history
+(the usual one doesn't!)
 
 Tutorial
 --------
@@ -228,14 +272,49 @@ first examples test saving and loading to strings.
     sage: loads(dumps(n)) == n      # optional - mathematica
     True
 
+Complicated translations
+------------------------
+
+The ``mobj.sage()`` method tries to convert a Mathematica object to a Sage
+object. In many cases, it will just work. In particular, it should be able to
+convert expressions entirely consisting of:
+
+- numbers, i.e. integers, floats, complex numbers;
+- functions and named constants also present in Sage, where:
+
+    - Sage knows how to translate the function or constant's name from
+      Mathematica's, or
+    - the Sage name for the function or constant is trivially related to
+      Mathematica's;
+
+- symbolic variables whose names don't pathologically overlap with
+  objects already defined in Sage.
+
+This method will not work when Mathematica's output includes:
+
+- strings;
+- functions unknown to Sage;
+- Mathematica functions with different parameters/parameter order to
+  the Sage equivalent.
+
+If you want to convert more complicated Mathematica expressions, you can
+instead call ``mobj._sage_()`` and supply a translation dictionary::
+
+    sage: m = mathematica('NewFn[x]')       # optional - mathematica
+    sage: m._sage_(locals={'NewFn': sin})   # optional - mathematica
+    sin(x)
+
+For more details, see the documentation for ``._sage_()``.
+
+
 OTHER Examples::
 
     sage: def math_bessel_K(nu,x):
-    ...       return mathematica(nu).BesselK(x).N(20).sage()
+    ...       return mathematica(nu).BesselK(x).N(20)
     ...
     sage: math_bessel_K(2,I)                      # optional - mathematica
-    0.180489972066962*I - 2.592886175491197         # 32-bit
-    -2.592886175491196978 + 0.1804899720669620266*I # 64-bit
+    0.180489972066962*I - 2.592886175491197             # 32-bit
+    -2.59288617549119697817 + 0.18048997206696202663*I  # 64-bit
 
 ::
 
@@ -249,14 +328,14 @@ OTHER Examples::
     sage: slist2[0].parent()                    # optional - mathematica
     Mathematica
     sage: slist3 = mlist.sage(); slist3         # optional - mathematica
-    [[1, 2], 3.00000000000000, I + 4]
+    [[1, 2], 3.0, I + 4]
 
 ::
 
     sage: mathematica('10.^80')     # optional - mathematica
     1.*^80
     sage: mathematica('10.^80').sage()  # optional - mathematica
-    1.00000000000000e80
+    1e+80
 
 AUTHORS:
 
@@ -264,7 +343,8 @@ AUTHORS:
 
 - Doug Cutrell (2006-03-01): Instructions for use under Cygwin/Windows.
 
-- Felix Lawrence (2009-08-21): Added support for importing Mathematica lists and floats with exponents.
+- Felix Lawrence (2009-08-21): Added support for importing Mathematica lists
+  and floats with exponents.
 """
 
 #*****************************************************************************
@@ -283,6 +363,7 @@ AUTHORS:
 #*****************************************************************************
 
 import os
+import re
 
 from expect import (Expect, ExpectElement, ExpectFunction,
                     FunctionElement, AsciiArtString)
@@ -297,6 +378,24 @@ def clean_output(s):
     s = s[:i] + ' '*(j+1-i) + s[j+1:]
     s = s.replace('\\\n','')
     return s.strip('\n')
+
+def _un_camel(name):
+    """
+    Convert `CamelCase` to `camel_case`.
+
+    EXAMPLES::
+
+    sage: sage.interfaces.mathematica._un_camel('CamelCase')
+    'camel_case'
+    sage: sage.interfaces.mathematica._un_camel('EllipticE')
+    'elliptic_e'
+    sage: sage.interfaces.mathematica._un_camel('FindRoot')
+    'find_root'
+    sage: sage.interfaces.mathematica._un_camel('GCD')
+    'gcd'
+    """
+    s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
+    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
 
 class Mathematica(Expect):
     """
@@ -457,6 +556,12 @@ remote connection to a server running Mathematica -- for hints, type
     def _right_list_delim(self):
         return "}"
 
+    def _left_func_delim(self):
+        return "["
+
+    def _right_func_delim(self):
+        return "]"
+
     ###########################################
     # System -- change directory, etc
     ###########################################
@@ -553,34 +658,150 @@ class MathematicaElement(ExpectElement):
         P = self._check_valid()
         return P.get(self._name, ascii_art=False).strip()
 
-    def _sage_(self):
+    def _sage_(self, locals={}):
         r"""
-        Try to convert a mathematica expression back to a Sage expression.
+        Attempt to return a Sage version of this object.
 
-        This currently does not implement a parser for the Mathematica output language,
-        therefore only very simple expressions will convert successfully.
+        This method works successfully when Mathematica returns a result
+        or list of results that consist only of:
+        - numbers, i.e. integers, floats, complex numbers;
+        - functions and named constants also present in Sage, where:
+            - Sage knows how to translate the function or constant's name
+            from Mathematica's naming scheme, or
+            - you provide a translation dictionary `locals`, or
+            - the Sage name for the function or constant is simply the
+             Mathematica name in lower case;
+        - symbolic variables whose names don't pathologically overlap with
+          objects already defined in Sage.
 
-        EXAMPLES::
+        This method will not work when Mathematica's output includes:
+        - strings;
+        - functions unknown to Sage that are not specified in `locals`;
+        - Mathematica functions with different parameters/parameter order to
+          the Sage equivalent. In this case, define a function to do the
+          parameter conversion, and pass it in via the locals dictionary.
 
-            sage: m = mathematica('x^2 + 5*y')                            # optional - mathematica
-            sage: m.sage()                                                # optional - mathematica
+        EXAMPLES:
+
+        Mathematica lists of numbers/constants become Sage lists of
+        numbers/constants::
+
+            sage: m = mathematica('{{1., 4}, Pi, 3.2e100, I}')  # optional - mathematica
+            sage: s = m.sage(); s       # optional - mathematica
+            [[1.0, 4], pi, 3.2*e100, I]
+            sage: s[1].n()              # optional - mathematica
+            3.14159265358979
+            sage: s[3]^2                # optional - mathematica
+            -1
+
+        ::
+
+            sage: m = mathematica('x^2 + 5*y')      # optional - mathematica
+            sage: m.sage()                          # optional - mathematica
             x^2 + 5*y
 
         ::
 
             sage: m = mathematica('Sin[Sqrt[1-x^2]] * (1 - Cos[1/x])^2')  # optional - mathematica
-            sage: m.sage()                                                # optional - mathematica
+            sage: m.sage()                          # optional - mathematica
             (cos(1/x) - 1)^2*sin(sqrt(-x^2 + 1))
 
+        ::
+
+            sage: m = mathematica('NewFn[x]')       # optional - mathematica
+            sage: m._sage_(locals={'NewFn': sin})   # optional - mathematica
+            sin(x)
+
+        ::
+
+            sage: var('bla')                        # optional - mathematica
+            bla
+            sage: m = mathematica('bla^2')          # optional - mathematica
+            sage: bla^2 - m.sage()                  # optional - mathematica
+            0
+
+        ::
+
+            sage: m = mathematica('bla^2')          # optional - mathematica
+            sage: mb = m.sage()                     # optional - mathematica
+            sage: var('bla')                        # optional - mathematica
+            bla
+            sage: bla^2 - mb                        # optional - mathematica
+            0
+
+
+        AUTHORS:
+
+        - Felix Lawrence (2010-11-03): Major rewrite to use ._sage_repr() and
+          sage.calculus.calculus.symbolic_expression_from_string() for greater
+          compatibility, while still supporting conversion of symbolic
+          expressions.
         """
-        result =  self.parent().eval('InputForm[%s]' % self.name())
+        from sage.symbolic.pynac import symbol_table
+        from sage.symbolic.constants import constants_name_table as constants
+        from sage.calculus.calculus import symbolic_expression_from_string
+        from sage.calculus.calculus import _find_func as find_func
+
+        # Get Mathematica's output and perform preliminary formatting
+        res = self._sage_repr()
+        if '"' in res:
+            raise NotImplementedError, "String conversion from Mathematica \
+                does not work.  Mathematica's output was: %s" % res
+
+        # Find all the mathematica functions, constants and symbolic variables
+        # present in `res`.  Convert MMA functions and constants to their
+        # Sage equivalents (if possible), using `locals` and
+        # `sage.symbolic.pynac.symbol_table['mathematica']` as translation
+        # dictionaries.  If a MMA function or constant is not either
+        # dictionary, then we use a variety of tactics listed in `autotrans`.
+        # If a MMA variable is not in any dictionary, then create an
+        # identically named Sage equivalent.
+
+        # Merge the user-specified locals dictionary and the symbol_table
+        # (locals takes priority)
+        lsymbols = symbol_table['mathematica'].copy()
+        lsymbols.update(locals)
+
+        # Strategies for translating unknown functions/constants:
+        autotrans = [   str.lower,      # Try it in lower case
+                        _un_camel,    # Convert `CamelCase` to `camel_case`
+                        lambda x: x     # Try the original name
+                    ]
+
+        # Find the MMA funcs/vars/constants - they start with a letter.
+        # Exclude exponents (e.g. 'e8' from 4.e8)
+        p = re.compile('(?<!\.)[a-zA-Z]\w*')
+        for m in p.finditer(res):
+            # If the function, variable or constant is already in the
+            # translation dictionary, then just move on.
+            if m.group() in lsymbols:
+                pass
+            # Now try to translate all other functions -- try each strategy
+            # in `autotrans` and check if the function exists in Sage
+            elif m.end() < len(res) and res[m.end()] == '(':
+                for t in autotrans:
+                    f = find_func(t(m.group()), create_when_missing = False)
+                    if f != None:
+                        lsymbols[m.group()] = f
+                        break
+                else:
+                    raise NotImplementedError, "Don't know a Sage equivalent \
+                        for Mathematica function '%s'.  Please specify one \
+                        manually using the 'locals' dictionary" % m.group()
+            # Check if Sage has an equivalent constant
+            else:
+                for t in autotrans:
+                    if t(m.group()) in constants:
+                        lsymbols[m.group()] = constants[t(m.group())]
+                        break
+            # If Sage has never heard of the variable, then
+            # symbolic_expression_from_string will automatically create it
         try:
-            # The next few lines are a very crude excuse for a mathematica "parser".
-            result = str(result).lower().replace('[', '(').replace(']', ')')
-            from sage.symbolic.all import SR
-            return SR(result)
-        except TypeError:
-            raise NotImplementedError, "Unable to parse Mathematica output: %s" % result
+            return symbolic_expression_from_string(res, lsymbols,
+                accept_sequence=True)
+        except:
+            raise NotImplementedError, "Unable to parse Mathematica \
+                output: %s" % res
 
     def __str__(self):
         P = self._check_valid()

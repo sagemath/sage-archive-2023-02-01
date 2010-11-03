@@ -1747,7 +1747,7 @@ def _find_var(name):
     except (KeyError, TypeError):
         return var(name)
 
-def _find_func(name):
+def _find_func(name, create_when_missing = True):
     """
     Function to pass to Parser for constructing
     functions from strings.  For internal use.
@@ -1761,6 +1761,7 @@ def _find_func(name):
         sage: f(x)=sin(x)
         sage: sage.calculus.calculus._find_func('f')
         f
+        sage: sage.calculus.calculus._find_func('g', create_when_missing=False)
         sage: s = sage.calculus.calculus._find_func('sin')
         sage: s(0)
         0
@@ -1778,7 +1779,10 @@ def _find_func(name):
         if not isinstance(func, Expression):
             return func
     except (KeyError, TypeError):
-        return function_factory(name)
+        if create_when_missing:
+            return function_factory(name)
+        else:
+            return None
 
 SR_parser = Parser(make_int      = lambda x: SR(Integer(x)),
                    make_float    = lambda x: SR(RealDoubleElement(x)),

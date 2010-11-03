@@ -1172,6 +1172,12 @@ If this all works, you can then make calls like:
     def _right_list_delim(self):
         return "]"
 
+    def _left_func_delim(self):
+        return "("
+
+    def _right_func_delim(self):
+        return ")"
+
     def _assign_symbol(self):
         return "="
 
@@ -1685,6 +1691,11 @@ class ExpectElement(RingElement):
         #TO DO: this could use file transfers when self.is_remote()
 
         string = repr(self).replace('\n',' ').replace('\r', '')
+        # Translate the external program's function notation to Sage's
+        lfd = self.parent()._left_func_delim()
+        if '(' != lfd:  string = string.replace(lfd, '(')
+        rfd = self.parent()._right_func_delim()
+        if ')' != rfd:  string = string.replace(rfd, ')')
         # Translate the external program's list formatting to Sage's
         lld = self.parent()._left_list_delim()
         if '[' != lld:      string = string.replace(lld, '[')
@@ -1714,10 +1725,11 @@ class ExpectElement(RingElement):
 
         - Felix Lawrence (2009-08-21)
         """
+        string = self._sage_repr()
         try:
-            return sage.misc.sage_eval.sage_eval(self._sage_repr())
+            return sage.misc.sage_eval.sage_eval(string)
         except:
-            raise NotImplementedError
+            raise NotImplementedError, "Unable to parse output: %s" % string
 
 
     def sage(self):

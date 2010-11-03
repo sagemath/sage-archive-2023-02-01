@@ -232,6 +232,10 @@ sage.symbolic.pynac.register_symbol(infinity, {'maxima':'inf'})
 sage.symbolic.pynac.register_symbol(minus_infinity, {'maxima':'minf'})
 sage.symbolic.pynac.register_symbol(unsigned_infinity, {'maxima':'infinity'})
 
+from pynac import I
+sage.symbolic.pynac.register_symbol(I, {'mathematica':'I'})
+
+
 def unpickle_Constant(class_name, name, conversions, latex, mathml, domain):
     """
     EXAMPLES::

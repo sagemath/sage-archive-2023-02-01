@@ -239,6 +239,13 @@ class Semigroups(Category):
                 sage: s1 = SymmetricGroup(1); s = s1.cayley_graph(); s.vertices()
                 [()]
 
+            TESTS::
+
+                sage: SymmetricGroup(2).cayley_graph(side="both")
+                Traceback (most recent call last):
+                ...
+                ValueError: option 'side' must be 'left', 'right' or 'twosided'
+
             TODO:
 
              - Add more options for constructing subgraphs of the
@@ -260,6 +267,8 @@ class Semigroups(Category):
             """
             from sage.graphs.digraph import DiGraph
             from groups import Groups
+            if not side in ["left", "right", "twosided"]:
+                raise ValueError, "option 'side' must be 'left', 'right' or 'twosided'"
             if elements is None:
                 assert self.is_finite(), "elements should be specified for infinite semigroups"
                 elements = list(self)

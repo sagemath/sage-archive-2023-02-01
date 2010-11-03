@@ -381,13 +381,13 @@ class sage_build_ext(build_ext):
 
         if True or sys.platform[:6]=="darwin":
 
-            sage_libdir = os.path.normpath(SAGE_LOCAL+"/lib")
+            sage_libdir = os.path.realpath(SAGE_LOCAL+"/lib")
             ldso_cmd = self.compiler.linker_so # a list of strings, like argv
 
             for i in range(1, len(ldso_cmd)):
 
                 if ldso_cmd[i][:2] == "-L":
-                    libdir = os.path.normpath(ldso_cmd[i][2:])
+                    libdir = os.path.realpath(ldso_cmd[i][2:])
                     self.debug_print(
                       "Library dir found in dynamic linker command: " +
                       "\"%s\"" % libdir)

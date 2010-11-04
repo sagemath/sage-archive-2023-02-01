@@ -9,22 +9,41 @@ licensed LGPL v2+).
 See http://www.mpir.org
 
 == License ==
-
  * LGPL V3+
 
 == SPKG Maintainers ==
-
  * William Stein
 
 == Upstream Contact ==
-
  * The Google group mpir-devel
+ * thempirteam@googlemail.com
 
 == Dependencies ==
+ * iconv
 
- * None
+== Special Update/Build Instructions ==
+ * Make sure the patches still apply; also, putting "-Wl,z,noexecstack"
+   into LDFLAGS might not be necessary for later versions.
 
 == Changelog ==
+
+=== mpir-2.1.3.p0 (Leif Leonhardy, November 3rd, 2010) ===
+ * #8664: Upgrade Sage's MPIR spkg to version 2.1.3
+ * Dependencies corrected (might be even more, depending on the configuration).
+ * Work around executable stack issue on Fedora 14 (and other SELinux-
+   enabled systems).
+ * If 'make install' fails, this might be due to a rare race condition;
+   give a hint that rerunning 'make' might be sufficient.
+ * Support SAGE_DEBUG (disabling optimzation), but add debug symbols by
+   default and enable optimization (-O3) if SAGE_DEBUG!="yes".
+ * spkg-install clean-up:
+   - Use $UNAME instead of `uname`.
+   - Support "fat" binaries on Linux i486 and i586 as well,
+     give warning if not supported (e.g. ia64 [?]).
+   - Remove dead code; more or less cosmetic changes.
+ * spkg-check:
+   - Use $MAKE instead of 'make'.
+   - Print messages on success and error.
 
 === mpir-2.1.1 (Mike Hansen, August 16th, 2010) ===
  * #8664: Upgrade Sage's MPIR spkg to version 2.1.1

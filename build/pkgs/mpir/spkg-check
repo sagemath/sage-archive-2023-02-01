@@ -1,10 +1,17 @@
 #!/usr/bin/env bash
 
-if [ "$SAGE_LOCAL" = "" ]; then
-   echo "SAGE_LOCAL undefined ... exiting";
-   echo "Maybe run 'sage -sh'?"
-   exit 1
+if [ -z "$SAGE_LOCAL" ]; then
+    echo "Error: SAGE_LOCAL undefined - exiting..."
+    echo "Maybe run 'sage -sh'?"
+    exit 1
 fi
 
 cd src
-make check
+
+$MAKE check
+if [ $? -ne 0 ]; then
+    echo "Error: The MPIR test suite failed."
+    exit 1
+fi
+
+echo "The MPIR test suite passed successfully."

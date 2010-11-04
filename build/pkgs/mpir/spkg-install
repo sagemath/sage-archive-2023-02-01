@@ -1,29 +1,33 @@
 #!/usr/bin/env bash
 
-if [ "$SAGE_LOCAL" = "" ]; then
-   echo "SAGE_LOCAL undefined ... exiting";
-   echo "Maybe run 'sage -sh'?"
-   exit 1
-fi
-# Add a patch which allow MPIR to build with Sun Studio
-# if
-
-if [ "x`uname`" = "xSunOS" ] ; then
-   echo "Copying a version of gmp-h.in which is patched for Sun Studio"
-   cp patches/gmp-h.in src/
-   if ! [ $? -eq 0 ]; then
-      echo "Failed to patch for Sun Studio"
-      exit 1
-   fi
+if [ -z "$SAGE_LOCAL" ]; then
+    echo "Error: SAGE_LOCAL undefined - exiting..."
+    echo "Maybe run 'sage -sh'?"
+    exit 1
 fi
 
-# The Yasm build uses PYTHON from env to find python, so unset it
-# since the version from newest_version confuses it
+CUR=`pwd`
+
+# Add a patch which allow MPIR to build with Sun Studio:
+if [ "x$UNAME" = "xSunOS" ]; then
+    # XXX Independent of the actual compiler used?
+    echo "Copying a version of gmp-h.in which is patched for Sun Studio..."
+    cp patches/gmp-h.in src/
+    if [ $? -ne 0 ]; then
+        echo "Error: Failed to patch MPIR for Sun Studio."
+        exit 1
+    fi
+fi
+
+# The Yasm build uses PYTHON from the environment to find python,
+# so unset it since the version from newest_version confuses it:
 unset PYTHON
 
 remove_pic_osx_32_bit()
 {
-    echo "Deleting assembly files which depend on PIC assembly working or 32 bit OSX on Intel hardware"
+    # Assumes we are in src/
+    echo "Deleting assembly files which depend on PIC assembly" \
+        "working or 32 bit OSX on Intel hardware..."
     rm mpn/x86/dive_1.asm
     rm mpn/x86/diveby3.asm
     rm mpn/x86/pentium4/sse2/dive_1.asm
@@ -41,15 +45,23 @@ remove_pic_osx_32_bit()
 }
 
 
+if [ "$SAGE_DEBUG" = yes ]; then
+    # Disable optimization, add debug symbols:
+    CFLAGS="$CFLAGS -g -O0"
+else
+    # Add debug symbols by default, enable optimization:
+    CFLAGS="-g -O3 $CFLAGS"
+fi
+
+
 build()
 {
-
     SAGE_CONF_OPTS="--enable-shared --disable-static"
-    case $UNAME in
+    case "$UNAME" in
 
     SunOS)
         if [ "$SAGE64" = "yes" ]; then
-            echo "Building 64 bit Solaris version"
+            echo "Building a 64-bit version of MPIR"
             ABI=64
         else
             ABI=32
@@ -57,12 +69,12 @@ build()
 
     Darwin)
         if [ "$SAGE64" = "yes" ]; then
-            echo "Building 64 bit OS X version"
+            echo "Building a 64-bit version of MPIR"
             ABI=64
         else
             # Do not set ABI=32 on OS X 10.6, since there everything
             # defaults to 64-bit.
-            if [ `uname -r | sed 's/\..*//'` != "10" ]; then
+            if [ "`uname -r | sed 's/\..*//'`" != "10" ]; then
                 ABI=32
                 if [ "`uname -m`" = "i386" ]; then
                     remove_pic_osx_32_bit
@@ -71,58 +83,77 @@ build()
         fi;;
 
     Linux)
+        # Work around (erroneously) set "executable stack" attributes,
+        # causing runtime errors on Fedora 14 and other SELinux-
+        # enabled systems:
+        LDFLAGS="$LDFLAGS -Wl,-z,noexecstack"
+        export LDFLAGS # perhaps redundant, but safe(r)
+
         if [ "$SAGE_FAT_BINARY" = "yes" ]; then
-           # For now we do the same thing -- namely "--enable-fat" --
-           # on both 64-bit and 32-bit, though this is likely to
-           # change.
-           if [ "`uname -m`" = "i686" ]; then
+            # For now we do the same thing -- namely "--enable-fat" --
+            # on both 64-bit and 32-bit, though this is likely to
+            # change.
+            case "`uname -m`" in
+            i[3456]86)
                 echo "** Building with FAT Binary Support (32-bit) **"
                 SAGE_CONF_OPTS=$SAGE_CONF_OPTS" --enable-fat"
-           fi
-           if [ "`uname -m`" = "i386" ]; then
-                echo "** Building with FAT Binary Support (32-bit) **"
-                SAGE_CONF_OPTS=$SAGE_CONF_OPTS" --enable-fat"
-           fi
-           if [ "`uname -m`" = "x86_64" ]; then
+                ;;
+            x86_64|amd64)
                 echo "** Building with FAT Binary Support (64-bit) **"
                 SAGE_CONF_OPTS=$SAGE_CONF_OPTS" --enable-fat"
-           fi
+                ;;
+            *) # e.g. ia64
+                echo "Warning: Fat binary build currently not" \
+                    "supported on this platform"
+                # XXX or exit 1 ?
+            esac
         fi
 
     esac
 
     export ABI CFLAGS CXXFLAGS
 
-    ./configure --prefix="$SAGE_LOCAL" --enable-gmpcompat --enable-cxx=yes  $SAGE_CONF_OPTS
+    ./configure --prefix="$SAGE_LOCAL" --enable-gmpcompat --enable-cxx=yes \
+        $SAGE_CONF_OPTS
     if [ $? -ne 0 ]; then
-        echo "Failed to configure."
+        echo "Error configuring MPIR."
 	exit 1
     fi
 
     $MAKE
     if [ $? -ne 0 ]; then
         echo "Error building MPIR."
+        echo ""
+        echo "If you see a message like:"
+        cat <<EOF
+    cp: cannot stat 'mpir.h': No such file or directory
+    make[6]: *** [install-data-hook] Error 1
+    make[6]: Leaving directory ...
+    make[5]: *** [install-data-am] Error 2
+    make[5]: *** Waiting for unfinished jobs....
+EOF
+        echo "above, this is just due to a rare race condition."
+        echo "Please simply rerun 'make' (or 'sage -i ...')."
+        echo ""
         exit 1
     fi
 
-    echo "Removing old headers and libraries"
+    echo "Removing old headers and libraries..."
     rm -f "$SAGE_LOCAL"/include/mpir*.h "$SAGE_LOCAL"/include/gmp*.h
     rm -f "$SAGE_LOCAL"/lib/libmpir* "$SAGE_LOCAL"/lib/libgmp*
 
     $MAKE install
     if [ $? -ne 0 ]; then
-        if [ "$UNAME" != "CYGWIN" ]; then  # on cygwin error is not fatal.
+        if [ "$UNAME" != "CYGWIN" ]; then  # On Cygwin an error is not fatal.
             echo "Error installing MPIR."
             exit 1
         fi
     fi
-}
+} # build()
 
 cd src
 
 build
 
-if ! [ $? -eq 0 ]; then
-    echo "Failed to build shared MPIR library."
-    exit 1
-fi
+# All errors catched in build(), on Cygwin we ignore the last:
+exit 0

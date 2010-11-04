@@ -1,5 +1,5 @@
 --- ../src/src/setup.py	2010-09-15 21:55:00.000000000 -0700
-+++ setup.py	2010-10-11 16:53:01.000000000 -0700
++++ setup.py	2010-11-03 21:58:00.000000000 -0700
 @@ -1,18 +1,29 @@
  from distutils.core import setup, Extension
  from glob import glob
@@ -15,7 +15,7 @@
 +if os.uname()[0]=="Darwin":
 +    libraries = ['m','lapack','gsl','gslcblas','blas','cblas','atlas']
 +elif os.environ['UNAME'] == 'CYGWIN':
-+    libraries = ['lapack','gsl', 'blas', 'mc', 'md']    
++    libraries = ['lapack','gsl', 'blas', 'gfortran']    
 +else:
 +    libraries = ['m','lapack','gsl','gslcblas','blas','cblas','gfortran','atlas']
  

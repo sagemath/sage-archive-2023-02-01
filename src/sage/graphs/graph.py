@@ -2692,20 +2692,57 @@ class Graph(GenericGraph):
 
     def matching_polynomial(self, complement=True, name=None):
         """
-        Computes the matching polynomial of the graph G.
+        Computes the matching polynomial of the graph `G`.
 
-        The algorithm used is a recursive one, based on the following observation:
+        If `p(G, k)` denotes the number of `k`-matchings (matchings with `k`
+        edges) in `G`, then the matching polynomial is defined as [Godsil93]_:
 
-        - If e is an edge of G, G' is the result of deleting the edge e, and G''
-            is the result of deleting each vertex in e, then the matching
-            polynomial of G is equal to that of G' minus that of G''.
+        .. MATH::
+
+            \mu(x)=\sum_{k \geq 0} (-1)^k p(G,k) x^{n-2k}
+
 
         INPUT:
 
-        - ``complement`` - (default: True) whether to use a simple formula to
-          compute the matching polynomial from that of the graphs complement
+        - ``complement`` - (default: ``True``) whether to use Godsil's duality
+          theorem to compute the matching polynomial from that of the graphs
+          complement (see ALGORITHM).
 
         - ``name`` - optional string for the variable name in the polynomial
+
+        .. NOTE::
+
+            The ``complement`` option uses matching polynomials of complete
+            graphs, which are cached. So if you are crazy enough to try
+            computing the matching polynomial on a graph with millions of
+            vertices, you might not want to use this option, since it will end
+            up caching millions of polynomials of degree in the millions.
+
+        ALGORITHM:
+
+        The algorithm used is a recursive one, based on the following
+        observation [Godsil93]_:
+
+        - If `e` is an edge of `G`, `G'` is the result of deleting the edge `e`,
+          and `G''` is the result of deleting each vertex in `e`, then the
+          matching polynomial of `G` is equal to that of `G'` minus that of
+          `G''`.
+
+          (the algorithm actually computes the *signless* matching polynomial,
+          for which the recursion is the same when one replaces the substraction
+          by an addition. It is then converted into the matching polynomial and
+          returned)
+
+        Depending on the value of ``complement``, Godsil's duality theorem
+        [Godsil93]_ can also be used to compute `\mu(x)` :
+
+        .. MATH::
+
+            \mu(\overline{G}, x) = \sum_{k \geq 0} p(G,k) \mu( K_{n-2k}, x)
+
+
+        Where `\overline{G}` is the complement of `G`, and `K_n` the complete
+        graph on `n` vertices.
 
         EXAMPLES::
 
@@ -2720,15 +2757,6 @@ class Graph(GenericGraph):
             sage: L = [graphs.RandomGNP(8, .3) for i in [1..5]]
             sage: prod([h.matching_polynomial() for h in L]) == sum(L, g).matching_polynomial()
             True
-
-        NOTE:
-
-        The ``complement`` option uses matching polynomials of complete graphs,
-        which are cached. So if you are crazy enough to try computing the
-        matching polynomial on a graph with millions of vertices, you might not
-        want to use this option, since it will end up caching millions of
-        polynomials of degree in the millions.
-
         """
         from matchpoly import matching_polynomial
         return matching_polynomial(self, complement=complement, name=name)

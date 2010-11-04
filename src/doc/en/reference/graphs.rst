@@ -45,5 +45,6 @@ Libraries of algorithms
    sage/graphs/graph_coloring
    sage/graphs/cliquer
    sage/graphs/pq_trees
+   sage/graphs/matchpoly
    sage/graphs/graph_latex
    sage/graphs/graph_list

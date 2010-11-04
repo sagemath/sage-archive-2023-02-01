@@ -317,7 +317,7 @@ def delta_qexp(prec=10, var='q', K=ZZ) :
     - Martin Raum (2009-08-02): use FLINT for polynomial arithmetic (instead of NTL)
     """
     R = PowerSeriesRing(K, var)
-    if R is ZZ or R is QQ:
+    if K in (ZZ, QQ):
         return R(_delta_poly(prec).list(), prec, check=False)
     else:
         return R(_delta_poly(prec).list(), prec, check=True)

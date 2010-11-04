@@ -10,7 +10,7 @@ cdef extern from "FLINT/long_extras.h":
 
     cdef unsigned long z_randbits(unsigned long bits)
 
-    cdef unsigned long z_randprime(unsigned long bits)
+    cdef unsigned long z_randprime(unsigned long bits, int proved)
 
     cdef double z_precompute_inverse(unsigned long n)
 
@@ -54,7 +54,7 @@ cdef extern from "FLINT/long_extras.h":
 
     cdef int z_isprime_precomp(unsigned long n, double ninv)
 
-    cdef unsigned long z_nextprime(unsigned long n)
+    cdef unsigned long z_nextprime(unsigned long n, int proved)
 
     cdef int z_isprime_pocklington(unsigned long n, unsigned long iterations)
 
@@ -78,11 +78,11 @@ cdef extern from "FLINT/long_extras.h":
 
     cdef unsigned long z_intsqrt(unsigned long r)
 
-    cdef int z_issquare(long x)
+    cdef int z_issquare(unsigned long x)
 
     cdef unsigned long z_CRT(unsigned long x1, unsigned long n1, unsigned long x2, unsigned long n2)
 
-    cdef int z_issquarefree(unsigned long n)
+    cdef int z_issquarefree(unsigned long n, int proved)
 
     cdef int z_remove_precomp(unsigned long * n, unsigned long p, double pinv)
 
@@ -99,6 +99,6 @@ cdef extern from "FLINT/long_extras.h":
         unsigned long p[15]
         unsigned long exp[15]
 
-    cdef unsigned long z_factor(factor_t *, unsigned long, int)
+    cdef void z_factor(factor_t * factors, unsigned long n, int proved)
 
 

@@ -174,11 +174,11 @@ green light from another developer. This process catches many small bugs and
 omissions that could otherwise easily sneak into such a large project, even if
 it does slow down the development process.
 
-This section goes through the process of downloading, applying patches. You can
-also read about the process in the guide to Trac, see
+This section goes through the process of downloading and applying
+patches. For detailed information on the review process, see the section
 :ref:`section-review-patches`. William Stein also wrote this
 `blog entry <http://sagemath.blogspot.com/2010/10/how-to-referee-sage-trac-tickets.html>`_
-on his workflow of reviewing patches.
+on his patch reviewing workflow.
 
 When viewing a Trac ticket, you will see available
 patches listed near the top in the Attachments section.  Clicking on the

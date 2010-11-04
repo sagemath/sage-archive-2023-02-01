@@ -20,13 +20,33 @@ LGPL V2+
 
 == Dependencies ==
 
- * gmp
+ * GMP/MPIR (Note: Python is *not* required for ordinary builds.)
 
 == Special Update/Build Instructions ==
 
-src contains upstream code, no patches were applied.
+ * src/ contains upstream code, no patches were applied.
+ * GMP-ECM comes with a self-tuning feature; we could support
+   that as an option ($SAGE_TUNE_*=yes) in the future.
 
 == Changelog ==
+
+=== ecm-6.3.p0 (Leif Leonhardy, November 4th, 2010) ===
+ * #5847: Reviewer patch applied to Mike's spkg (upgrade to 6.3)
+ * There are no patches, but to avoid confusion with the previous
+   one, it's now 'p0'.
+ * Added sanity checks to spkg-install and spkg-check.
+ * Add debug symbols by default, disable optimization if SAGE_DEBUG=yes,
+   enable optimization (-O3) otherwise.
+ * Remove also the manual page of previous installations.
+ * Typo: 'rm -r' -> 'rm -f' (header file)
+ * Removed setting of CXXFLAGS, since we don't have C++ code.
+ * Don't overwrite CFLAGS if SAGE64=yes (instead, append).
+   Removed -O2 -g in that case. Make use of CFLAG64 if set.
+ * Quote $SAGE_LOCAL in the parameters to configure, too.
+ * Use $MAKE instead of 'make' in spkg-check, too.
+ * Some messages changed (e.g. all failures now starting with "Error"),
+   some added.
+ * A few comments/notes added (SPKG.txt, spkg-install).
 
 === ecm-6.3 (Mike Hansen, August 16th, 2010) ===
  * #5847: Update GMP-ECM to 6.3

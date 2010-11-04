@@ -1,36 +1,62 @@
 #!/usr/bin/env bash
 
-if [ "$SAGE64" = "yes" ]; then
-   echo "64 bit build"
-   CFLAGS="-O2 -g -m64 -fPIC"; export CFLAGS
-   CXXFLAGS="-O2 -g -m64 -fPIC"; export CXXFLAGS
-   LDFLAGS="-m64 "; export LDFLAGS
-else
-   CXXFLAGS="$CXXFLAGS -fPIC"; export CXXFLAGS
-   CFLAGS="$CFLAGS -fPIC"; export CFLAGS
+if [ -z "$SAGE_LOCAL" ]; then
+    echo "Error: SAGE_LOCAL undefined - exiting..."
+    exit 1
 fi
 
-# remove old executable/headers/library
-echo "Removing old binary, headers and static library"
+# Note that GMP-ECM is written in C (and assembler) - no C++ sources.
+
+if [ "$SAGE64" = yes ]; then
+    echo "Building a 64-bit version of GMP-ECM"
+    if [ -z "$CFLAG64" ]; then
+        CFLAG64=-m64
+    fi
+    CFLAGS="$CFLAGS $CFLAG64 -fPIC"
+    LDFLAGS="$CFLAG64"; export LDFLAGS
+else
+    CFLAGS="$CFLAGS -fPIC"
+fi
+
+# We add debug symbols by default;
+if [ "$SAGE_DEBUG" = yes ]; then
+    # Disable optimization:
+    CFLAGS="$CFLAGS -g -O0"
+else
+    # Enable optimization, may be overridden by user settings:
+    CFLAGS="-g -O3 $CFLAGS"
+fi
+
+export CFLAGS # usually redundant, but safe(r)
+
+
+# Remove old executable/header/libraries/manpage:
+
+echo "Removing old binary, header file, manual page and libraries..."
 rm -f "$SAGE_LOCAL"/bin/ecm
 rm -f "$SAGE_LOCAL"/lib/libecm.*
-rm -r "$SAGE_LOCAL"/include/ecm.h
+rm -f "$SAGE_LOCAL"/include/ecm.h
+rm -f "$SAGE_LOCAL"/share/man/man1/ecm.1
+
 
 cd src
 
 unset RM
 
-./configure --with-gmp=$SAGE_LOCAL  --prefix=$SAGE_LOCAL
+# Note: Building (also) a *shared* library is disabled by default.
+#       Add "--enable-shared" below if you want it.
+
+./configure --with-gmp="$SAGE_LOCAL"  --prefix="$SAGE_LOCAL"
 
 if [ $? -ne 0 ]; then
-    echo "There was a problem configuring GMP ECM."
+    echo "Error configuring GMP-ECM."
     exit 1
 fi
 
 $MAKE
 
 if [ $? -ne 0 ]; then
-    echo "There was a problem building GMP ECM."
+    echo "Error building GMP-ECM."
     exit 1
 fi
 
@@ -38,6 +64,6 @@ fi
 $MAKE install
 
 if [ $? -ne 0 ]; then
-    echo "There was a problem installing GMP ECM (though it appears to have built fine)."
+    echo "Error installing GMP-ECM (though it appears to have built fine)."
     exit 1
 fi

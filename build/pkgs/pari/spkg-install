@@ -31,9 +31,6 @@ cp "$PATCHED/mp.c"    src/kernel/gmp/mp.c
 # cwitty: Disable -rpath:
 cp "$PATCHED/get_ld" config/
 
-# cwitty: Disable TeX; allow bz2 compression:
-cp "$PATCHED/gphelp.in" doc/
-
 # John Cremona: Copy over a lightly patched get_tests, so that "make
 # test-all" does not test ellglobalred (which requires the elldata
 # package Sage does not install, nor ship, since it is about 14 MB):
@@ -281,23 +278,6 @@ build()
         cd "`config/objdir`"
         cp -f libpari* "$SAGE_LOCAL"/lib
         cd "$CUR"
-
-        # Also another patch since paripriv.h won't compile right on OS X
-        # when used by client Sage code.  So we replace it by a slightly
-        # modified version:
-        echo "Patching include/pari/paripriv.h so it works on Mac OS X..."
-        cp -pf "$PATCHED/paripriv.h" "$SAGE_LOCAL/include/pari/paripriv.h"
-
-    elif [ "$UNAME" = "SunOS" ]; then
-        # Like on Mac OS X (see above), the Sage library would not build
-        # without some changes on Solaris, though the changes are much simpler:
-        echo "Patching include/pari/paripriv.h so it works on Solaris..."
-        cp -f "$PATCHED/paripriv.h" "$SAGE_LOCAL/include/pari/paripriv.h"
-
-    elif [ "$UNAME" = "CYGWIN" ]; then
-        # We need to the same thing on Cygwin that we have to do on Solaris
-        echo "Patching include/pari/paripriv.h so it works on Cygwin..."
-        cp -f "$PATCHED/paripriv.h" "$SAGE_LOCAL/include/pari/paripriv.h"
     fi
 
     echo "Installing extra Galois groups data..."

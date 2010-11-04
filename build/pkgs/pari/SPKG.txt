@@ -42,7 +42,7 @@ Most of the building of a new version of the PARI spkg is automated
 in the script spkg-make.  Normally, the following should work.  In case
 of doubt, have a look at the file spkg-make.
 
-  0) Edit the line "svn update -r 12577" in spkg-make and set the
+  0) Edit the line "svn update -r 12623" in spkg-make and set the
      desired SVN version.
 
   1) ./spkg-make
@@ -82,6 +82,16 @@ all the same. But it is not right. I have not looked at PARI to see
 exactly where it says native, but I would expect a grep to find it.
 
 == Changelog ==
+
+=== pari-2.4.3.alpha.p0 (Jeroen Demeyer, November 4th, 2010) ===
+ * Update to PARI 2.4.3 (by using SVN revision 12623).  Note that the
+   PARI developers consider version 2.4.3 to be an "alpha" version with
+   the idea that 2.4.4 might be a "beta" version and 2.5 will then be
+   the "stable" version.
+ * Removed patch for gphelp.in which is now upstream
+ * Removed patch for paripriv.h because of an upstream change removing
+   the need for the patch
+ * Rebased patch for config/get_fltk
 
 === pari-2.4.3.svn-12577.p9 (Jeroen Demeyer, September 24th, 2010) ===
  * Add gprc.expect file to be installed in $SAGE_LOCAL/etc

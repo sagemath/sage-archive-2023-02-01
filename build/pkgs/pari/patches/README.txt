@@ -3,7 +3,7 @@ See below for information on files which used to be patched but are no
 longer, or are still but now for a different reason. (Do not delete that!)
 
 ======================================================================
-Files patched as of pari-2.4.3.svn-12577.p7:
+Files patched as of pari-2.4.3.alpha.p0:
 ======================================================================
 
 Configuration files:
@@ -16,13 +16,6 @@ Configuration files:
 * config/get_X11: Search X11 library in */lib64/*, too (not just */lib/*).
 * config/get_dlcflags: Add -fno-common to DLCFLAGS on Darwin.  Fixed
   upstream, but probably in a bad way.
-
-Documentation:
-* doc/gphelp.in: cwitty: allow bz2 compression.
-
-Header files:
-* src/headers/paripriv.h: *After* building, on {OS X, SunOS, CYGWIN},
-                          rename "ECHO".
 
 C files:
 * src/kernel/gmp/mp.c: Needed so that Sage can catch PARI's error signals.
@@ -68,3 +61,8 @@ Files previously patched:
   in spkg-install.
 * src/basemath/base2.c and src/basemath/polarit3.c: Fix PARI bug 1079.
   Now fixed upstream.
+* doc/gphelp.in: cwitty: allow bz2 compression.  Now upstream.
+* src/headers/paripriv.h: *After* building, on {OS X, SunOS, CYGWIN},
+  rename "ECHO".  Upstream changed ECHO to gpd_ECHO, so the patch is
+  not needed anymore.
+

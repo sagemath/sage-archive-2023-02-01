@@ -29,11 +29,11 @@ TESTS::
 import math
 
 from sage.matrix.all import MatrixSpace, Matrix
-from sage.rings.all import QQ, ZZ, Integer, binomial, PowerSeriesRing, O as bigO
+from sage.rings.all import QQ, ZZ, Integer, binomial,\
+        PolynomialRing, PowerSeriesRing, O as bigO
 from sage.structure.all import Sequence
 from sage.libs.flint.fmpz_poly import Fmpz_poly
 from sage.misc.all import verbose
-from sage.rings.power_series_ring import PowerSeriesRing
 
 from eis_series_cython import eisenstein_series_poly
 
@@ -264,6 +264,63 @@ def _delta_poly(prec=10):
 
     return f
 
+def _delta_poly_modulo(N, prec=10):
+    """
+    Return the q-expansion of `\Delta` modulo `N`. Used internally by
+    the :func:`~delta_qexp` function. See the docstring of :func:`~delta_qexp`
+    for more information.
+
+    INPUT:
+
+    - `N` -- positive integer modulo which we want to compute `\Delta`
+
+    - ``prec`` -- integer; the absolute precision of the output
+
+    OUTPUT:
+
+        the polynomial of degree ``prec``-1 which is the truncation
+        of `\Delta` modulo `N`, as an element of the polynomial
+        ring in `q` over the integers modulo `N`.
+
+    EXAMPLES::
+
+        sage: from sage.modular.modform.vm_basis import _delta_poly_modulo
+        sage: _delta_poly_modulo(5, 7)
+        2*q^6 + 3*q^4 + 2*q^3 + q^2 + q
+        sage: _delta_poly_modulo(10, 12)
+        2*q^11 + 7*q^9 + 6*q^7 + 2*q^6 + 8*q^4 + 2*q^3 + 6*q^2 + q
+    """
+    if prec <= 0:
+        raise ValueError( "prec must be positive" )
+    v = [0] * prec
+
+    # Let F = \sum_{n >= 0} (-1)^n (2n+1) q^(floor(n(n+1)/2)).
+    # Then delta is F^8.
+
+    stop = int((-1+math.sqrt(8*prec))/2.0)
+
+    for n in xrange(stop+1):
+        v[n*(n+1)//2] = ((N-1)*(2*n+1) if (n & 1) else (2*n+1))
+
+    from sage.rings.polynomial.polynomial_zmod_flint import Polynomial_zmod_flint
+    from sage.rings.all import Integers
+
+    P = PolynomialRing(Integers(N), 'q')
+    f = Polynomial_zmod_flint(P, x=v, check=False)
+    t = verbose('made series')
+    # fast way of computing f*f truncated at prec
+    f = f._mul_short(f, prec)
+    t = verbose('squared (1 of 3)', t)
+    f = f._mul_short(f, prec)
+    t = verbose('squared (2 of 3)', t)
+    f = f._mul_short(f, prec - 1)
+    t = verbose('squared (3 of 3)', t)
+    f = f.shift(1)
+    t = verbose('shifted', t)
+
+    return f
+
+
 def delta_qexp(prec=10, var='q', K=ZZ) :
     """
     Return the `q`-expansion of the weight 12 cusp form `\Delta` as a power
@@ -292,8 +349,9 @@ def delta_qexp(prec=10, var='q', K=ZZ) :
 
         a very simple explicit modular form whose 8th power is `\Delta`. Then
         compute the 8th power using FLINT polynomial arithmetic, which is very
-        fast. (Note that all computations are done over `\ZZ`, and coerced into
-        the given coefficient ring afterwards.)
+        fast. (Note that all computations are done over `\ZZ` or `\ZZ` modulo
+        `N` depending on the characteristic of the given coefficient ring `K`,
+        and coerced into `K` afterwards.)
 
     EXAMPLES::
 
@@ -307,6 +365,15 @@ def delta_qexp(prec=10, var='q', K=ZZ) :
         ValueError: prec must be positive
         sage: delta_qexp(20, K = GF(3))
         q + q^4 + 2*q^7 + 2*q^13 + q^16 + 2*q^19 + O(q^20)
+        sage: delta_qexp(20, K = GF(3^5, 'a'))
+        q + q^4 + 2*q^7 + 2*q^13 + q^16 + 2*q^19 + O(q^20)
+        sage: delta_qexp(10, K = IntegerModRing(60))
+        q + 36*q^2 + 12*q^3 + 28*q^4 + 30*q^5 + 12*q^6 + 56*q^7 + 57*q^9 + O(q^10)
+
+    TESTS::
+
+        sage: delta_qexp(10^4).change_ring(GF(13)) == delta_qexp(10^4, K=GF(13))
+        True
 
     AUTHORS:
 
@@ -319,5 +386,9 @@ def delta_qexp(prec=10, var='q', K=ZZ) :
     R = PowerSeriesRing(K, var)
     if K in (ZZ, QQ):
         return R(_delta_poly(prec).list(), prec, check=False)
+    ch = K.characteristic()
+    if ch > 0 and prec > 150:
+        return R(_delta_poly_modulo(ch, prec), prec, check=False)
     else:
+        # compute over ZZ and coerce
         return R(_delta_poly(prec).list(), prec, check=True)

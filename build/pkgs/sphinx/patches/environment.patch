@@ -1,6 +1,6 @@
---- src/sphinx/environment.py	2009-09-03 14:59:24.000000000 -0700
-+++ patches/environment.py	2009-12-30 07:08:04.165172354 -0800
-@@ -467,10 +467,13 @@
+--- src/sphinx/environment.py	2010-08-23 16:19:38.000000000 -0700
++++ patches/environment.py	2010-11-05 02:27:34.128635428 -0700
+@@ -469,10 +469,13 @@
          else:
              # check if a config value was changed that affects how
              # doctrees are read

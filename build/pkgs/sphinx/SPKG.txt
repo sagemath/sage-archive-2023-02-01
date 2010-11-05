@@ -20,17 +20,91 @@ Mike Hansen <mhansen@gmail.com>
 == Upstream Contact ==
 
 Author:  Georg Brandl <georg at python org>
-Home Page: http://sphinx.pocoo.org/
+Home Page: http://sphinx.pocoo.org
 
 == Dependencies ==
 
-This depends on Jinja >= 2, Pygments>=0.8, and docutils>=0.4.
+This depends on Jinja >= 2, Pygments >= 0.8, and docutils >= 0.4.
 
 == Special Update/Build Instructions ==
 
-A patch was added to support highlighting the "sage:" prompts.
+Here is a description of patches on top of Sphinx 1.0.4:
+
+* patches/autodoc.patch: This patches src/sphinx/ext/autodoc.py. This
+  adds an option to Sphinx to provide a function to get the argspecs of
+  built-in functions.
+
+* patches/environment.patch: This patches the file src/sphinx/environment.py.
+  Patching it should prevent Sphinx from rebuilding documentation that
+  is already built.
+
+* patches/highlighting.patch: This patches the file
+  src/sphinx/highlighting.py. The patch should allow Sphinx to
+  perform special highlighting of the Sage prompt "sage:". That is,
+  treat the Sage prompt "sage:" like the way Sphinx treats the Python
+  prompt ">>>".
+
+* patches/latex.patch: This patches src/sphinx/writers/latex.py to
+  prevent Sphinx from by default inserting the following LaTeX
+  declaration into the preamble of a .tex file:
+
+  \DeclareUnicodeCharacter{00A0}{\nobreakspace}
+
+  This declaration is known to result in a failure to build the PDF
+  version of a document in the Sage standard documentation. See
+  ticket #8183 for further information on this issue.
+
+* patches/Makefile.patch: This patches the file
+  src/sphinx/texinputs/Makefile to increase the save size stack to
+  20,000 and increase the pool size stack to 2,000,000. These
+  increased stack sizes should be sufficient for LaTeX to handle the
+  huge index of the Sage reference manual when building the PDF
+  version of that manual.
 
 == Changelog ==
+
+=== 1.0.4 (Minh Van Nguyen, 2010-11-05) ===
+
+ * Ticket #10118: upgrade to upstream Sphinx version 1.0.4.
+
+ * Describe all patches on top of Sphinx 1.0.4.
+
+ * Change patches/sphinx-build to require Sphinx 1.0.4 since we are now
+   using Sphinx 1.0.4.
+
+ * Legacy patch -- Patch the file src/sphinx/environment.py, which is
+   part of Sphinx 1.0.4. Patching it should prevent Sphinx from
+   rebuilding documentation that is already built. This patch is a
+   carry over from the previous sphinx-0.6.3.p4 package.
+
+ * Legacy patch -- Patch the file src/sphinx/highlighting.py. The
+   patch should allow Sphinx 1.0.4 to perform special highlighting of
+   the Sage prompt "sage:". That is, treat the Sage prompt "sage:"
+   like the way Sphinx treats the Python prompt ">>>". This patch is a
+   carry over from the previous sphinx-0.6.3.p4 package.
+
+ * Legacy patch -- Patch src/sphinx/ext/autodoc.py. This adds an
+   option to Sphinx to provide a function to get the argspecs of
+   built-in functions.
+
+ * New patch -- Patch src/sphinx/writers/latex.py to prevent Sphinx
+   from by default inserting the following LaTeX declaration into the
+   preamble of a .tex file:
+
+   \DeclareUnicodeCharacter{00A0}{\nobreakspace}
+
+   This declaration is known to result in a failure to build the PDF
+   version of a document in the Sage standard documentation. See
+   ticket #8183 for further information on this issue.
+
+ * New patch -- Patch the file src/sphinx/texinputs/Makefile to
+   increase the save size stack to 20,000 and increase the pool size
+   stack to 2,000,000. These increased stack sizes should be
+   sufficient for LaTeX to handle the huge index of the Sage reference
+   manual when building the PDF version of that manual.
+
+ * In spkg-install, put all the patching commands into the new function
+   apply_patch().
 
 === 0.6.3.p4 (Minh Van Nguyen, 2009-12-31) ===
 
@@ -43,7 +117,7 @@ A patch was added to support highlighting the "sage:" prompts.
 === 0.6.3.p3 (Mike Hansen, 2009-12-15) ===
 
  * Add an option to Sphinx to provide a function to get the argspecs
-   of builtin functions.
+   of built-in functions.
 
 === 0.6.3.p2 (Tim Dumol, 2009-10-25) ===
 

@@ -1,10 +1,12 @@
---- ../src/sphinx/highlighting.py	2009-06-04 09:15:11.000000000 -0700
-+++ highlighting.py	2009-09-03 16:20:52.000000000 -0700
-@@ -167,10 +167,15 @@
+--- src/sphinx/highlighting.py	2010-08-11 08:17:48.000000000 -0700
++++ patches/highlighting.py	2010-11-05 03:21:07.888637501 -0700
+@@ -179,12 +179,16 @@
              source = source.decode()
          if not pygments:
              return self.unhighlighted(source)
+-
 +        sage = False
+         # find out which lexer to use
          if lang in ('py', 'python'):
              if source.startswith('>>>'):
                  # interactive session
@@ -16,8 +18,8 @@
              else:
                  # maybe Python -- try parsing it
                  if self.try_parse(source):
-@@ -193,14 +198,25 @@
-                 lexer.add_filter('raiseonerror')
+@@ -221,9 +225,15 @@
+         # highlight via Pygments
          try:
              if self.dest == 'html':
 -                return highlight(source, lexer, self.fmter[bool(linenos)])
@@ -30,7 +32,10 @@
                  hlsource = highlight(source, lexer, self.fmter[bool(linenos)])
 +                if sage:
 +                    hlsource = hlsource.replace(r'>>>', 'sage:')
-                 return hlsource.translate(tex_hl_escape_map)
+                 if hlsource.startswith(r'\begin{Verbatim}[commandchars=\\\{\}'):
+                     # Pygments >= 1.2
+                     return hlsource.translate(tex_hl_escape_map_new)
+@@ -231,7 +241,12 @@
          except ErrorToken:
              # this is most probably not the selected language,
              # so let it pass unhighlighted

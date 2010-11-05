@@ -6,6 +6,18 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
+# Helper functions
+
+apply_patch() {
+    # Copy the patched files over
+    echo "Patching Sphinx..."
+    cp patches/highlighting.py src/sphinx/
+    cp patches/autodoc.py src/sphinx/ext/
+    cp patches/environment.py src/sphinx/
+    cp patches/latex.py src/sphinx/writers/
+    cp patches/Makefile src/sphinx/texinputs/
+}
+
 success() {
     if [ $? -ne 0 ]; then
         echo "Error building Sphinx: '$1'"
@@ -31,10 +43,7 @@ done
 cd "$CUR"
 success 'Error deleting old documentation output'
 
-#Copy the patched file over
-cp patches/highlighting.py src/sphinx/
-cp patches/autodoc.py src/sphinx/ext/
-cp patches/environment.py src/sphinx/
+apply_patch
 
 #Install new version
 cd src

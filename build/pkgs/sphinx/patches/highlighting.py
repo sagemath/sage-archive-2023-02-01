@@ -5,17 +5,22 @@
 
     Highlight code blocks using Pygments.
 
-    :copyright: Copyright 2007-2009 by the Sphinx team, see AUTHORS.
+    :copyright: Copyright 2007-2010 by the Sphinx team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
 import sys
 import cgi
 import re
-import parser
 import textwrap
 
-from sphinx.util.texescape import tex_hl_escape_map
+try:
+    import parser
+except ImportError:
+    # parser is not available on Jython
+    parser = None
+
+from sphinx.util.texescape import tex_hl_escape_map_old, tex_hl_escape_map_new
 
 try:
     import pygments
@@ -29,6 +34,7 @@ try:
     from pygments.styles import get_style_by_name
     from pygments.styles.friendly import FriendlyStyle
     from pygments.token import Generic, Comment, Number
+    from pygments.util import ClassNotFound
 except ImportError:
     pygments = None
     lexers = None
@@ -78,6 +84,7 @@ _LATEX_STYLES = r'''
 \newcommand\PYGZrb{]}
 '''
 
+doctestopt_re = re.compile(r'#\s*doctest:.+$', re.MULTILINE)
 
 parsing_exceptions = (SyntaxError, UnicodeEncodeError)
 if sys.version_info < (2, 5):
@@ -92,7 +99,8 @@ class PygmentsBridge(object):
     html_formatter = HtmlFormatter
     latex_formatter = LatexFormatter
 
-    def __init__(self, dest='html', stylename='sphinx'):
+    def __init__(self, dest='html', stylename='sphinx',
+                 trim_doctest_flags=False):
         self.dest = dest
         if not pygments:
             return
@@ -106,6 +114,7 @@ class PygmentsBridge(object):
                             stylename)
         else:
             style = get_style_by_name(stylename)
+        self.trim_doctest_flags = trim_doctest_flags
         if dest == 'html':
             self.fmter = {False: self.html_formatter(style=style),
                           True: self.html_formatter(style=style, linenos=True)}
@@ -122,7 +131,7 @@ class PygmentsBridge(object):
             # first, escape highlighting characters like Pygments does
             source = source.translate(escape_hl_chars)
             # then, escape all characters nonrepresentable in LaTeX
-            source = source.translate(tex_hl_escape_map)
+            source = source.translate(tex_hl_escape_map_old)
             return '\\begin{Verbatim}[commandchars=@\\[\\]]\n' + \
                    source + '\\end{Verbatim}\n'
 
@@ -155,6 +164,9 @@ class PygmentsBridge(object):
             # just replace all non-ASCII characters.
             src = src.encode('ascii', 'replace')
 
+        if parser is None:
+            return True
+
         try:
             parser.suite(src)
         except parsing_exceptions:
@@ -162,12 +174,13 @@ class PygmentsBridge(object):
         else:
             return True
 
-    def highlight_block(self, source, lang, linenos=False):
+    def highlight_block(self, source, lang, linenos=False, warn=None):
         if isinstance(source, str):
             source = source.decode()
         if not pygments:
             return self.unhighlighted(source)
         sage = False
+        # find out which lexer to use
         if lang in ('py', 'python'):
             if source.startswith('>>>'):
                 # interactive session
@@ -194,8 +207,22 @@ class PygmentsBridge(object):
             if lang in lexers:
                 lexer = lexers[lang]
             else:
-                lexer = lexers[lang] = get_lexer_by_name(lang)
-                lexer.add_filter('raiseonerror')
+                try:
+                    lexer = lexers[lang] = get_lexer_by_name(lang)
+                except ClassNotFound:
+                    if warn:
+                        warn('Pygments lexer name %s is not known' % lang)
+                        return self.unhighlighted(source)
+                    else:
+                        raise
+                else:
+                    lexer.add_filter('raiseonerror')
+
+        # trim doctest options if wanted
+        if isinstance(lexer, PythonConsoleLexer) and self.trim_doctest_flags:
+            source = doctestopt_re.sub('', source)
+
+        # highlight via Pygments
         try:
             if self.dest == 'html':
                 hlsource = highlight(source, lexer, self.fmter[bool(linenos)])
@@ -207,7 +234,10 @@ class PygmentsBridge(object):
                 hlsource = highlight(source, lexer, self.fmter[bool(linenos)])
                 if sage:
                     hlsource = hlsource.replace(r'>>>', 'sage:')
-                return hlsource.translate(tex_hl_escape_map)
+                if hlsource.startswith(r'\begin{Verbatim}[commandchars=\\\{\}'):
+                    # Pygments >= 1.2
+                    return hlsource.translate(tex_hl_escape_map_new)
+                return hlsource.translate(tex_hl_escape_map_old)
         except ErrorToken:
             # this is most probably not the selected language,
             # so let it pass unhighlighted
@@ -225,7 +255,7 @@ class PygmentsBridge(object):
             # no HTML styles needed
             return ''
         if self.dest == 'html':
-            return self.fmter[0].get_style_defs()
+            return self.fmter[0].get_style_defs('.highlight')
         else:
             styledefs = self.fmter[0].get_style_defs()
             # workaround for Pygments < 0.12

@@ -40,26 +40,28 @@ import integer
 def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_digits=None, height_bound=None, proof=False):
     """
     Returns a polynomial of degree at most `degree` which is
-    approximately satisfied by the number `z`. Note that the
-    returned polynomial need not be irreducible, and indeed usually
-    won't be if `z` is a good approximation to an algebraic
-    number of degree less than `degree`.
+    approximately satisfied by the number `z`. Note that the returned
+    polynomial need not be irreducible, and indeed usually won't be if
+    `z` is a good approximation to an algebraic number of degree less
+    than `degree`.
 
-    You can specify the number of known bits or digits with ``known_bits=k`` or
-    ``known_digits=k``; Pari is then told to compute the result using `0.8k`
-    of these bits/digits. (The Pari documentation recommends using a factor
-    between .6 and .9, but internally defaults to .8.) Or, you can specify the
-    precision to use directly with ``use_bits=k`` or ``use_digits=k``. If none
-    of these are specified, then the precision is taken from the input value.
+    You can specify the number of known bits or digits of `z` with
+    ``known_bits=k`` or ``known_digits=k``. PARI is then told to
+    compute the result using `0.8k` of these bits/digits. Or, you can
+    specify the precision to use directly with ``use_bits=k`` or
+    ``use_digits=k``. If none of these are specified, then the precision
+    is taken from the input value.
 
-    A height bound may specified to indicate the maximum coefficient size of
-    the returned polynomial; if a sufficiently small polyomial is not found
-    then ``None`` wil be returned. If ``proof=True`` then the result is returned
-    only if it can be proved correct (i.e. the only possible minimal polynomial
-    satisfying the height bound, or no such polynomial exists). Otherwise a
-    ``ValueError`` is raised indicating that higher precision is required.
+    A height bound may be specified to indicate the maximum coefficient
+    size of the returned polynomial; if a sufficiently small polynomial
+    is not found, then ``None`` will be returned. If ``proof=True`` then
+    the result is returned only if it can be proved correct (i.e. the
+    only possible minimal polynomial satisfying the height bound, or no
+    such polynomial exists). Otherwise a ``ValueError`` is raised
+    indicating that higher precision is required.
 
-    ALGORITHM: Uses LLL for real/complex inputs, PARI C-library algdep command otherwise.
+    ALGORITHM: Uses LLL for real/complex inputs, PARI C-library
+    ``algdep`` command otherwise.
 
     Note that ``algebraic_dependency`` is a synonym for ``algdep``.
 
@@ -70,10 +72,10 @@ def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_dig
 
     -  ``degree`` - an integer
 
-    -  ``height_bound`` - an integer (default ``None``) specifying the maximum
+    -  ``height_bound`` - an integer (default: ``None``) specifying the maximum
                           coefficient size for the returned polynomial
 
-    -  ``proof`` - a boolean (default ``False``), requres height_bound to be set
+    -  ``proof`` - a boolean (default: ``False``), requires height_bound to be set
 
 
     EXAMPLES::
@@ -85,9 +87,7 @@ def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_dig
         sage: algdep(sqrt(2),2)
         x^2 - 2
 
-    This example involves a complex number.
-
-    ::
+    This example involves a complex number::
 
         sage: z = (1/2)*(1 + RDF(sqrt(3)) *CC.0); z
         0.500000000000000 + 0.866025403784439*I
@@ -98,9 +98,7 @@ def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_dig
         sage: z^2 - z + 1
         0
 
-    This example involves a `p`-adic number.
-
-    ::
+    This example involves a `p`-adic number::
 
         sage: K = Qp(3, print_mode = 'series')
         sage: a = K(7/19); a
@@ -109,10 +107,8 @@ def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_dig
         19*x - 7
 
     These examples show the importance of proper precision control. We
-    compute a 200-bit approximation to sqrt(2) which is wrong in the
-    33'rd bit.
-
-    ::
+    compute a 200-bit approximation to `sqrt(2)` which is wrong in the
+    33'rd bit::
 
         sage: z = sqrt(RealField(200)(2)) + (1/2)^33
         sage: p = algdep(z, 4); p
@@ -130,16 +126,12 @@ def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_dig
 
     Using the ``height_bound`` and ``proof`` parameters, we can see that
     `pi` is not the root of an integer polynomial of degree at most 5
-    and coefficients bounded above by 10.
-
-    ::
+    and coefficients bounded above by 10::
 
         sage: algdep(pi.n(), 5, height_bound=10, proof=True) is None
         True
 
-    For stronger results, we need more precicion.
-
-    ::
+    For stronger results, we need more precicion::
 
         sage: algdep(pi.n(), 5, height_bound=100, proof=True) is None
         Traceback (most recent call last):
@@ -155,9 +147,7 @@ def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_dig
         sage: algdep(pi.n(200), 10, height_bound=10, proof=True) is None
         True
 
-    We can also use ``proof=True`` to get positive results.
-
-    ::
+    We can also use ``proof=True`` to get positive results::
 
         sage: a = sqrt(2) + sqrt(3) + sqrt(5)
         sage: algdep(a.n(), 8, height_bound=1000, proof=True)
@@ -589,7 +579,7 @@ def is_pseudoprime_small_power(n, bound=1024, get_data=False):
     INPUT:
 
         -  ``n`` - an integer
-        -  ``bound (default 1024)`` - int: highest power to test.
+        -  ``bound (default: 1024)`` - int: highest power to test.
         -  ``get_data`` - boolean: return small pseudoprime and the power.
 
     EXAMPLES::
@@ -2193,7 +2183,7 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
 
        - ``'magma'`` - use Magma (requires magma be installed)
 
-    -  ``verbose`` - integer (default 0); pari's debug
+    -  ``verbose`` - integer (default: 0); PARI's debug
        variable is set to this; e.g., set to 4 or 8 to see lots of output
        during factorization.
 

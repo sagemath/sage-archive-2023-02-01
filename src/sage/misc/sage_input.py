@@ -160,7 +160,6 @@ sage: test_qq_formatter(qq_sage_input_v4)
 
 """
 
-from sage.misc.functional import parent
 import math
 
 ##########################################################################
@@ -446,6 +445,8 @@ class SageInputBuilder:
         # However, we don't want to assume that hashing x is always
         # efficient, so we only try the lookup if some value of the same
         # type as x has been cached.
+        from sage.misc.functional import parent
+
         if type(x) in self._cached_types:
             v = self._cache.get((parent(x), x))
             if v is not None: return v
@@ -655,6 +656,8 @@ class SageInputBuilder:
             GF_101 = GF(101)
             GF_101(42) + GF_101(43)
         """
+        from sage.misc.functional import parent
+
         self._cached_types.add(type(x))
         self._cache[(parent(x), x)] = sie
         sie._sie_preferred_varname = name

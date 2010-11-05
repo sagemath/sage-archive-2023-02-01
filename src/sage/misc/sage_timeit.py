@@ -9,7 +9,6 @@ AUTHOR:
     -- William Stein, based on code by Fernando Perez included in IPython
 """
 
-import timeit as timeit_, time, math, preparser, interpreter
 
 class SageTimeitResult():
     r"""
@@ -141,6 +140,7 @@ def sage_timeit(stmt, globals, preparse=None, number = 0, repeat = 3, precision 
         True
 
     """
+    import timeit as timeit_, time, math, preparser, interpreter
     number=int(number)
     repeat=int(repeat)
     precision=int(precision)

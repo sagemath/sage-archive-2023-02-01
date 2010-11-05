@@ -107,11 +107,12 @@ import sage.structure.coerce as coerce
 from sage.rings.finite_rings.constructor import FiniteField as GF
 from sage.rings.arith import factor
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
-from sage.plot.all import polygon, text
+from sage.plot.polygon import polygon
+from sage.plot.text import text
 pi = RDF.pi()
 
 
-from sage.plot.plot3d.shapes import *
+from sage.plot.plot3d.shapes import Box
 from sage.plot.plot3d.texture import Texture
 
 ####################### predefined colors ##################

@@ -23,7 +23,6 @@ include "../ext/stdsage.pxi"
 include "../ext/interrupt.pxi"
 
 cimport numpy as cnumpy
-import numpy
 
 from sage.plot.primitive import GraphicPrimitive
 from sage.misc.decorators import options

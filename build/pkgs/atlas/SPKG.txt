@@ -3,9 +3,7 @@
 == Description ==
 
 This spkg builds ATLAS for Sage. It is build per default on Linux, but should
-also work on OSX and Solaris. The build is currently disabled on OSX until we
-sort out some linking issues on OSX. On FreeBSD dynamic libraries don't won
-since the wrong flags are passed to the linker. This will be fixed soon.
+also work on OSX and Solaris.
 
 == License ==
 
@@ -44,7 +42,52 @@ since the wrong flags are passed to the linker. This will be fixed soon.
  * The package is never installed on Cygwin or OS X.
  * The code which calls 'readelf' can almost certainly be removed.
 
+The package can be configured via two environment variables:
+
+ * SAGE_ATLAS_LIB=path
+   If this environment variable is set, path/libatlas.so is used
+   and ATLAS is not compiled.
+
+ * SAGE_ATLAS_ARCH=arch[,isaext1][,isaext2]...[,isaextN]
+   The given architectural default and instruction set extensions are
+   used instead of the empirical tuning. Available architectures are
+
+     POWER3, POWER4, POWER5, PPCG4, PPCG5, P5, P5MMX, PPRO, PII, PIII,
+     PM, CoreSolo, CoreDuo, Core2Solo, Core2, Corei7, P4, P4E,
+     Efficeon, K7, HAMMER, AMD64K10h, UNKNOWNx86, IA64Itan, IA64Itan2,
+     USI, USII, USIII, USIV, UnknownUS, MIPSR1xK, MIPSICE9
+
+   and instruction set extensions are
+
+     AltiVec, SSE3, SSE2, SSE1, 3DNow
+
+   In addition, you can also set
+
+    - SAGE_ATLAS_ARCH=fast picks defaults for a modern (2-3 year old)
+      CPU of your processor line, and
+
+    - SAGE_ATLAS_ARCH=base picks defaults that should work for a ~10
+      year old CPU.
+
+   For example,
+
+     SAGE_ATLAS_ARCH=Corei7,SSE3,SSE2,SSE1
+
+   would be appropriate for a Core i7 CPU.
+
+== TODO ==
+
+ * The build is currently disabled on OSX until we sort out some
+   linking issues on OSX.
+
+ * On FreeBSD dynamic libraries don't work since the wrong flags are
+   passed to the linker. This will be fixed soon.
+
 == ChangeLog ==
+
+== atlas-3.8.3.p17 (Volker Braun, November 5th 2010) ==
+ * Rewrite the spkg-install script in pure python. Introduce the
+   SAGE_ATLAS_ARCH environment variable.
 
 == atlas-3.8.3.p16 (John Palmieri, September 19th 2010) ==
  * Make spkg-check work when using SAGE_ATLAS_LIB: if SAGE_ATLAS_LIB

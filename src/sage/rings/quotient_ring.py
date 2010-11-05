@@ -431,37 +431,39 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             except NotImplementedError:
                 return False
 
-    def is_integral_domain(self, proof = True):
+    def is_integral_domain(self, proof=True):
         r"""
-        If this function returns ``True`` then self is definitely an integral
-        domain. If it returns ``False``, then either self is definitely not an
-        integral domain or this function was unable to determine whether or
-        not self is an integral domain.
+        With ``proof`` equal to ``True``  (the default), this function may
+        raise a ``NotImplementedError``.
 
-        Use ``self.defining_ideal().is_prime()`` to find out
-        for sure whether this quotient ring is really not an integral
-        domain, of if Sage is unable to determine the answer.
+        When ``proof`` is ``False``, if ``True`` is returned, then self is
+        definitely an integral domain.  If the function returns ``False``,
+        then either self is not an integral domain or it was unable to
+        determine whether or not self is an integral domain.
 
         EXAMPLES::
 
-            sage: R = Integers(8)
-            sage: R.is_integral_domain()
+            sage: R.<x,y> = QQ[]
+            sage: R.quo(x^2 - y).is_integral_domain()
+            True
+            sage: R.quo(x^2 - y^2).is_integral_domain()
             False
-            sage: R.<a,b,c> = ZZ['a','b','c']
-            sage: I = R.ideal(a,b)
-            sage: Q = R.quotient_ring(I)
+            sage: R.quo(x^2 - y^2).is_integral_domain(proof=False)
+            False
+            sage: R.<a,b,c> = ZZ[]
+            sage: Q = R.quotient_ring([a, b])
             sage: Q.is_integral_domain()
             Traceback (most recent call last):
             ...
             NotImplementedError
+            sage: Q.is_integral_domain(proof=False)
+            False
         """
         if proof:
             return self.defining_ideal().is_prime()
         else:
             try:
-                return self.defining_ideal.is_prime()
-            except AttributeError:
-                return False
+                return self.defining_ideal().is_prime()
             except NotImplementedError:
                 return False
 

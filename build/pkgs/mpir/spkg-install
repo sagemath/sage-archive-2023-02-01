@@ -88,7 +88,7 @@ build()
                         # Remove x86 assembly code only:
                         remove_pic_osx_32_bit
                         ;;
-                    ppc|ppc64)
+                    ppc|ppc64|Power*) # Apple's 'uname' returns strange strings
                         # The Darwin assembler rejects code using an
                         # extended instruction set by default:
                         CFLAGS="$CFLAGS -Wa,-force_cpusubtype_ALL"

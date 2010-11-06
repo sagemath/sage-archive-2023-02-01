@@ -164,13 +164,13 @@ Here are the Lie groups corresponding to the classical types:
 +---------------+-------------------------+-------------+
 | compact group | complex analytic group  | Cartan type |
 +===============+=========================+=============+
-| `SU(r+1)`     | `SL(r+1,\mathbf{C})`      | `A_r`     |
+| `SU(r+1)`     | `SL(r+1,\mathbf{C})`    |   `A_r`     |
 +---------------+-------------------------+-------------+
-| `spin(2r+1)`  | `spin(2r+1,\mathbf{C})`   | `B_r`     |
+| `spin(2r+1)`  | `spin(2r+1,\mathbf{C})` |   `B_r`     |
 +---------------+-------------------------+-------------+
-| `Sp(2r)`      | `Sp(2r,\mathbf{C})`       | `C_r`     |
+| `Sp(2r)`      | `Sp(2r,\mathbf{C})`     |   `C_r`     |
 +---------------+-------------------------+-------------+
-| `spin(2r)`    | `spin(2r,\mathbf{C})`     | `D_r`     |
+| `spin(2r)`    | `spin(2r,\mathbf{C})`   |   `D_r`     |
 +---------------+-------------------------+-------------+
 
 You may create these Cartan types and their Dynkin diagrams as follows::

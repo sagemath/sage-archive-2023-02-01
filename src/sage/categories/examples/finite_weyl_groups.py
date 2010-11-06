@@ -89,8 +89,8 @@ class SymmetricGroup(UniqueRepresentation, Parent):
         sage: S.cayley_graph(side = "left").plot()
 
     Alternatively, one could have implemented
-    :meth:`.apply_simple_reflection` instead of
-    :meth:`.simple_reflection` and :meth:`.product`. See
+    :meth:`sage.categories.coxeter_groups.CoxeterGroups.ElementMethods.apply_simple_reflection`
+    instead of :meth:`.simple_reflection` and :meth:`.product`. See
     ``CoxeterGroups().example()``.
     """
 

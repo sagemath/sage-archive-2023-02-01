@@ -200,6 +200,17 @@ latex_elements = {}
 # Extended UTF-8 scheme
 latex_elements['inputenc'] = '\\usepackage[utf8x]{inputenc}'
 
+# Prevent Sphinx from by default inserting the following LaTeX
+# declaration into the preamble of a .tex file:
+#
+# \DeclareUnicodeCharacter{00A0}{\nobreakspace}
+#
+# This happens in the file src/sphinx/writers/latex.py in the sphinx
+# spkg.  This declaration is known to result in a failure to build the
+# PDF version of a document in the Sage standard documentation. See
+# ticket #8183 for further information on this issue.
+latex_elements['utf8extra'] = ''
+
 # The paper size ('letterpaper' or 'a4paper').
 #latex_elements['papersize'] = 'letterpaper'
 

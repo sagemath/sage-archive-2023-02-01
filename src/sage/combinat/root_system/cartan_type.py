@@ -1166,8 +1166,9 @@ class CartanType_affine(CartanType_simple, CartanType_crystalographic):
             sage: CartanType(['D', 4, 3]).classical() # todo: double check
             ['G', 2]^* relabelled by {1: 2, 2: 1}
 
-        We check that :meth:`classical`, :meth:`.dynkin_diagram`, and
-        :meth:`.special_node` are consistent::
+        We check that :meth:`classical`,
+        :meth:`sage.combinat.root_system.cartan_type.CartanType_crystalographic.dynkin_diagram`,
+        and :meth:`.special_node` are consistent::
 
             sage: for ct in CartanType.samples(affine = True):
             ...       g1 = ct.classical().dynkin_diagram()

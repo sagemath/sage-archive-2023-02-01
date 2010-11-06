@@ -727,7 +727,9 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
         sage: e['a'] + 3*e['b']
         B['a'] + 3*B['b']
 
-    Some uses of :meth:`.summation` and :meth:`.sum`::
+    Some uses of
+    :meth:`sage.categories.commutative_additive_semigroups.CommutativeAdditiveSemigroups.ParentMethods.summation`
+    and :meth:`.sum`::
 
         sage: F = CombinatorialFreeModule(QQ, [1,2,3,4])
         sage: F.summation(F.monomial(1), F.monomial(3))

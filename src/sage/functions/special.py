@@ -1629,9 +1629,11 @@ elliptic_pi = EllipticPi()
 
 def lngamma(t):
     r"""
-    This method is deprecated, please use :meth:`.log_gamma` instead.
+    This method is deprecated, please use
+    :meth:`sage.functions.special.log_gamma` instead.
 
-    See the :meth:`.log_gamma` method for documentation and examples.
+    See the :meth:`sage.functions.special.log_gamma` method for documentation
+    and examples.
 
     EXAMPLES::
 

@@ -23,6 +23,7 @@ from docutils.utils import assemble_option_dict
 from docutils.statemachine import ViewList
 
 from sphinx.util import rpartition, nested_parse_with_titles, force_decode
+from sphinx.locale import _
 from sphinx.pycode import ModuleAnalyzer, PycodeError
 from sphinx.application import ExtensionError
 from sphinx.util.compat import Directive

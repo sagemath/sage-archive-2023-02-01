@@ -181,7 +181,8 @@ cdef class MPolynomial(CommutativeRingElement):
         Return the nonzero coefficients of this polynomial in a list.
         The returned list is decreasingly ordered by the term ordering
         of ``self.parent()``, i.e. the list of coefficients matches the list
-        of monomials returned by :meth:`.monomials`.
+        of monomials returned by
+        :meth:`sage.rings.polynomial.multi_polynomial_libsingular.MPolynomial_libsingular.monomials`.
 
         EXAMPLES::
 

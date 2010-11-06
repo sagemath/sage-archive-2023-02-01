@@ -27,6 +27,17 @@ See http://www.mpir.org
 
 == Changelog ==
 
+=== mpir-2.1.3.p1 (Leif Leonhardy, November 5th, 2010) ===
+ * #8664: Upgrade Sage's MPIR spkg to version 2.1.3
+ * Fix Darwin assembler errors on PPC by passing the option to allow
+   use of extended instruction set to it. (See also #5847.)
+ * Enable the build of a static MPIR library, to be e.g. used by ECM.
+ * Support additional 'configure' options given by MPIR_EXTRA_OPTS,
+   and print messages how we configure.
+ * Print various environment variable settings (CC, CFLAGS et al.).
+ * Move hint to rerun 'make' on *install* errors to correct place.
+ * Further comments added.
+
 === mpir-2.1.3.p0 (Leif Leonhardy, November 3rd, 2010) ===
  * #8664: Upgrade Sage's MPIR spkg to version 2.1.3
  * Dependencies corrected (might be even more, depending on the configuration).

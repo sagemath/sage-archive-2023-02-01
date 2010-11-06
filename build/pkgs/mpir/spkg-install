@@ -56,7 +56,11 @@ fi
 
 build()
 {
-    SAGE_CONF_OPTS="--enable-shared --disable-static"
+    # Also build the static library to be used by e.g. ECM:
+    # SAGE_CONF_OPTS="--enable-shared --disable-static"
+    SAGE_CONF_OPTS="--enable-shared --enable-static"
+    # (Further options to 'configure' are added below.)
+
     case "$UNAME" in
 
     SunOS)
@@ -69,16 +73,27 @@ build()
 
     Darwin)
         if [ "$SAGE64" = "yes" ]; then
+            # Note that we do not support 64-bit builds on PPC at all,
+            # so we don't special-case on the architecture here.
             echo "Building a 64-bit version of MPIR"
             ABI=64
         else
             # Do not set ABI=32 on OS X 10.6, since there everything
-            # defaults to 64-bit.
+            # defaults to 64-bit:
             if [ "`uname -r | sed 's/\..*//'`" != "10" ]; then
+                # Assume MacOS X 10.4 or 10.5 (Darwin 8 or 9)
                 ABI=32
-                if [ "`uname -m`" = "i386" ]; then
-                    remove_pic_osx_32_bit
-                fi
+                case "`uname -m`" in
+                    i386)
+                        # Remove x86 assembly code only:
+                        remove_pic_osx_32_bit
+                        ;;
+                    ppc|ppc64)
+                        # The Darwin assembler rejects code using an
+                        # extended instruction set by default:
+                        CFLAGS="$CFLAGS -Wa,-force_cpusubtype_ALL"
+                        ;;
+                esac
             fi
         fi;;
 
@@ -96,13 +111,13 @@ build()
             case "`uname -m`" in
             i[3456]86)
                 echo "** Building with FAT Binary Support (32-bit) **"
-                SAGE_CONF_OPTS=$SAGE_CONF_OPTS" --enable-fat"
+                SAGE_CONF_OPTS="$SAGE_CONF_OPTS --enable-fat"
                 ;;
             x86_64|amd64)
                 echo "** Building with FAT Binary Support (64-bit) **"
-                SAGE_CONF_OPTS=$SAGE_CONF_OPTS" --enable-fat"
+                SAGE_CONF_OPTS="$SAGE_CONF_OPTS --enable-fat"
                 ;;
-            *) # e.g. ia64
+            *) # e.g. ia64 (Itanium) or PPC (ppc, ppc64)
                 echo "Warning: Fat binary build currently not" \
                     "supported on this platform"
                 # XXX or exit 1 ?
@@ -113,28 +128,38 @@ build()
 
     export ABI CFLAGS CXXFLAGS
 
-    ./configure --prefix="$SAGE_LOCAL" --enable-gmpcompat --enable-cxx=yes \
-        $SAGE_CONF_OPTS
+    echo "Using CC=$CC"
+    echo "Using CFLAGS=$CFLAGS"
+    echo "Using CPPFLAGS=$CPPFLAGS"
+    echo "Using CXX=$CXX"
+    echo "Using CXXFLAGS=$CXXFLAGS"
+    echo "Using LDFLAGS=$LDFLAGS"
+    echo "Using ABI=$ABI"
+    echo "(These settings may get overridden by 'configure' or Makefiles.)"
+
+    SAGE_CONF_OPTS="--enable-gmpcompat --enable-cxx=yes $SAGE_CONF_OPTS"
+
+    if [ -z "$MPIR_EXTRA_OPTS" ]; then
+        echo "Configuring MPIR with the following options:"
+        echo "    --prefix=\"$SAGE_LOCAL\" $SAGE_CONF_OPTS"
+        echo "You can set MPIR_EXTRA_OPTS to pass additional parameters."
+    else
+        echo "Using additional 'configure' options as specified with" \
+            "MPIR_EXTRA_OPTS:"
+        echo "    $MPIR_EXTRA_OPTS"
+        echo "Configuring MPIR with the following options:"
+        echo "    --prefix=\"$SAGE_LOCAL\" $SAGE_CONF_OPTS $MPIR_EXTRA_OPTS"
+    fi
+
+    ./configure --prefix="$SAGE_LOCAL" $SAGE_CONF_OPTS $MPIR_EXTRA_OPTS
     if [ $? -ne 0 ]; then
-        echo "Error configuring MPIR."
-	exit 1
+        echo "Error configuring MPIR. (See above for the options passed to it.)"
+        exit 1
     fi
 
     $MAKE
     if [ $? -ne 0 ]; then
         echo "Error building MPIR."
-        echo ""
-        echo "If you see a message like:"
-        cat <<EOF
-    cp: cannot stat 'mpir.h': No such file or directory
-    make[6]: *** [install-data-hook] Error 1
-    make[6]: Leaving directory ...
-    make[5]: *** [install-data-am] Error 2
-    make[5]: *** Waiting for unfinished jobs....
-EOF
-        echo "above, this is just due to a rare race condition."
-        echo "Please simply rerun 'make' (or 'sage -i ...')."
-        echo ""
         exit 1
     fi
 
@@ -146,6 +171,19 @@ EOF
     if [ $? -ne 0 ]; then
         if [ "$UNAME" != "CYGWIN" ]; then  # On Cygwin an error is not fatal.
             echo "Error installing MPIR."
+            # XXX This should be a temporary "solution":
+            echo ""
+            echo "If you see a message like:"
+            cat <<EOF
+    cp: cannot stat 'mpir.h': No such file or directory
+    make[6]: *** [install-data-hook] Error 1
+    make[6]: Leaving directory ...
+    make[5]: *** [install-data-am] Error 2
+    make[5]: *** Waiting for unfinished jobs....
+EOF
+            echo "above, this is just due to a rare race condition."
+            echo "Please simply rerun 'make' (or 'sage -i ...')."
+            echo ""
             exit 1
         fi
     fi

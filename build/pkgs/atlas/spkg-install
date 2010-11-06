@@ -385,10 +385,11 @@ def make_lapack_library():
         rc = max(rc, abs(rc_LIB))
 
     # liblapack.so causes problems with R on Solaris.
-    try:
-        os.remove('liblapack.so')
-    except OSError:
-        pass
+    if conf['Solaris?']:
+        try:
+            os.remove('liblapack.so')
+        except OSError:
+            pass
 
     os.chdir(old_cwd)
     return rc

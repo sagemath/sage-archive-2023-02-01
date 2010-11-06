@@ -355,37 +355,41 @@ def make_lapack_library():
 
     libraries = []
 
-    # if conf['Linux?'] or conf['FreeBSD?']:
-    #     if conf['fortran_g95?']:
-    #         fortran_dir = '-L'+conf['fortran_g95_dir']
-    #         fortran_lib = '-lf95'
-    #     else:
-    #         fortran_dir = ''
-    #         fortran_lib = '-lgfortran'
-    #     libraries = ['liblapack', 'libf77blas']
-    #     ld = 'ld ' + fortran_dir + sage_local_lib_dir + \
-    #         ' -shared -soname {0}.so -o {0}.so --whole-archive {0}.a'+ \
-    #         ' --no-whole-archive -lc -lm ' + fortran_lib
+    if conf['Linux?'] or conf['FreeBSD?']:
+        if conf['fortran_g95?']:
+            fortran_dir = '-L'+conf['fortran_g95_dir']
+            fortran_lib = '-lf95'
+        else:
+            fortran_dir = ''
+            fortran_lib = '-lgfortran'
+        libraries = ['liblapack', 'libf77blas']
+        cmd = 'gcc ' + fortran_dir + sage_local_lib_dir + \
+            ' -shared -Wl,-soname,{0}.so -o {0}.so -lc -lm ' + fortran_lib
 
     if conf['Solaris?']:
         if conf['64bit?']:
             linker_flag_64 = '-64'
         else:
             linker_flag_64 = ''
-        # liblapack.so causes problems with R on Solaris.
-        # libraries = ['libatlas', 'libf77blas', 'libcblas']
-        libraries = ['libf77blas', 'libcblas']
-        ld = '/usr/ccs/bin/ld ' + linker_flag_64 + sage_local_lib_dir + \
+        libraries = ['libatlas', 'libf77blas', 'libcblas']
+        cmd = '/usr/ccs/bin/ld ' + linker_flag_64 + sage_local_lib_dir + \
             ' -G -h {0}.so -o {0}.so  -zallextract {0}.a -zdefaultextract -lc -lm -lgfortran'
 
     rc = 0
     for LIB in libraries:
-        cmd = ld.format(LIB)
-        print 'Running', cmd
-        rc_LIB = os.system(cmd)
+        cmd_LIB = cmd.format(LIB)
+        print 'Running', cmd_LIB
+        rc_LIB = os.system(cmd_LIB)
         if rc_LIB!=0:
             print 'Failed to build ATLAS library '+LIB+'.so'
         rc = max(rc, abs(rc_LIB))
+
+    # liblapack.so causes problems with R on Solaris.
+    try:
+        os.remove('liblapack.so')
+    except OSError:
+        pass
+
     os.chdir(old_cwd)
     return rc
 

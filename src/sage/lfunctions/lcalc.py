@@ -113,11 +113,11 @@ class LCalc(SageObject):
 
         EXAMPLES::
 
-            sage: lcalc.zeros(4)                           # long
+            sage: lcalc.zeros(4)                           # long time
             [14.1347251, 21.0220396, 25.0108576, 30.4248761]
-            sage: lcalc.zeros(5, L='--tau')                # long
+            sage: lcalc.zeros(5, L='--tau')                # long time
             [9.22237940, 13.9075499, 17.4427770, 19.6565131, 22.3361036]
-            sage: lcalc.zeros(3, EllipticCurve('37a'))     # long
+            sage: lcalc.zeros(3, EllipticCurve('37a'))     # long time
             [0.000000000, 5.00317001, 6.87039122]
         """
         L = self._compute_L(L)

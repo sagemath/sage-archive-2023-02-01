@@ -1552,7 +1552,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
             sage: s = SFASchur(QQ)
             sage: a = s([8,8])
-            sage: a.itensor(a) #long
+            sage: a.itensor(a) #long time
             s[4, 4, 4, 4] + s[5, 5, 3, 3] + s[5, 5, 5, 1] + s[6, 4, 4, 2] + s[6, 6, 2, 2] + s[6, 6, 4] + s[7, 3, 3, 3] + s[7, 5, 3, 1] + s[7, 7, 1, 1] + s[8, 4, 2, 2] + s[8, 4, 4] + s[8, 6, 2] + s[8, 8] + s[9, 3, 3, 1] + s[9, 5, 1, 1] + s[10, 2, 2, 2] + s[10, 4, 2] + s[10, 6] + s[11, 3, 1, 1] + s[12, 2, 2] + s[12, 4] + s[13, 1, 1, 1] + s[14, 2] + s[16]
         """
         #Convert both self and x to the p basis

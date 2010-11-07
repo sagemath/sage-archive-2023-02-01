@@ -1443,7 +1443,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         ::
 
-            sage: E = EllipticCurve([1, -1, 0, -751055859, -7922219731979])     # long (0.6 seconds)
+            sage: E = EllipticCurve([1, -1, 0, -751055859, -7922219731979])     # long time (0.6 seconds)
             sage: set_random_seed(0)
             sage: E.simon_two_descent ()
             (1, 1, [])
@@ -1530,7 +1530,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         ::
 
-            sage: EllipticCurve('681b').three_selmer_rank(algorithm='Heuristic')   # long (10 seconds); optional - magma
+            sage: EllipticCurve('681b').three_selmer_rank(algorithm='Heuristic')   # long time (10 seconds); optional - magma
             2
         """
         from sage.interfaces.all import magma

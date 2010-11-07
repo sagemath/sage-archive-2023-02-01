@@ -5683,7 +5683,7 @@ class ANBinaryExpr(ANDescr):
             1000
             sage: s = SFASchur(QQ)
             sage: a=s([3,2]).expand(8)(flatten([[QQbar.zeta(3)^d for d in range(3)], [QQbar.zeta(5)^d for d in range(5)]]))
-            sage: a.exactify(); a #long
+            sage: a.exactify(); a # long time
             0
             sage: sys.getrecursionlimit()
             1000

@@ -1294,7 +1294,7 @@ class Graphics(SageObject):
 
         EXAMPLES::
 
-            sage: sum([plot(z*sin(x), 0, 10).plot3d(z) for z in range(6)]) #long time
+            sage: sum([plot(z*sin(x), 0, 10).plot3d(z) for z in range(6)]) # long time
         """
         from sage.plot.plot3d.base import Graphics3dGroup
         g = Graphics3dGroup([g.plot3d(**kwds) for g in self.__objects])
@@ -1582,8 +1582,8 @@ class Graphics(SageObject):
 
             sage: def maple_leaf(t):
             ...     return (100/(100+(t-pi/2)^8))*(2-sin(7*t)-cos(30*t)/2)
-            sage: p = polar_plot(maple_leaf, -pi/4, 3*pi/2, color="red",plot_points=1000) #long time
-            sage: p.show(gridlines=( [-3,-2.75,..,3], xrange(-1,5,2) )) #long time
+            sage: p = polar_plot(maple_leaf, -pi/4, 3*pi/2, color="red",plot_points=1000) # long time
+            sage: p.show(gridlines=( [-3,-2.75,..,3], xrange(-1,5,2) )) # long time
 
         Add grid lines at specific positions (using functions).
 

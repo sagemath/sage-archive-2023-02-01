@@ -1522,7 +1522,7 @@ def test_morphism_0(*args, **kwds):
         sage: set_random_seed(s); v = [fgp.test_morphism_0(2) for _ in range(30)]
         sage: set_random_seed(s); v = [fgp.test_morphism_0(3) for _ in range(10)]
         sage: set_random_seed(s); v = [fgp.test_morphism_0(i) for i in range(1,20)]
-        sage: set_random_seed(s); v = [fgp.test_morphism_0(4) for _ in range(50)]    # long
+        sage: set_random_seed(s); v = [fgp.test_morphism_0(4) for _ in range(50)]    # long time
     """
     phi = random_fgp_morphism_0(*args, **kwds)
     K = phi.kernel()

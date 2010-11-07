@@ -2588,11 +2588,11 @@ class Graph(GenericGraph):
         is not planar, as it has a `K_5` minor::
 
             sage: g = graphs.PetersenGraph()
-            sage: K5_minor = g.minor(graphs.CompleteGraph(5))                    # long
+            sage: K5_minor = g.minor(graphs.CompleteGraph(5))                    # long time
 
         And even a `K_{3,3}` minor::
 
-            sage: K33_minor = g.minor(graphs.CompleteBipartiteGraph(3,3))        # long
+            sage: K33_minor = g.minor(graphs.CompleteBipartiteGraph(3,3))        # long time
 
         (It is much faster to use the linear-time test of
         planarity in this situation, though.)

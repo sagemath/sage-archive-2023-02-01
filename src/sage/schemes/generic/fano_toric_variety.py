@@ -125,9 +125,9 @@ one-dimensional Calabi-Yau manifolds are elliptic curves!
 Now let's take a look at a toric realization of `M`-polarized K3 surfaces
 studied by Adrian Clingher and Charles F. Doran in [CD2007]_::
 
-    sage: p4318 = ReflexivePolytope(3, 4318)  # long
-    sage: FTV = CPRFanoToricVariety(Delta_polar=p4318)  # long
-    sage: FTV.anticanonical_hypersurface()  # long
+    sage: p4318 = ReflexivePolytope(3, 4318)  # long time
+    sage: FTV = CPRFanoToricVariety(Delta_polar=p4318)  # long time
+    sage: FTV.anticanonical_hypersurface()  # long time
     Closed subscheme of 3-d CPR-Fano toric variety
     covered by 4 affine patches defined by:
       a3*z2^12 + a4*z2^6*z3^6 + a2*z3^12

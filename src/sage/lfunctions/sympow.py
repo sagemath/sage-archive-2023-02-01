@@ -272,11 +272,11 @@ class Sympow(SageObject):
             (3, '1.73185e+00')
             sage: sympow.analytic_rank(EllipticCurve([1, -1, 0, -79, 289]))
             (4, '8.94385e+00')
-            sage: sympow.analytic_rank(EllipticCurve([0, 0, 1, -79, 342]))  # long
+            sage: sympow.analytic_rank(EllipticCurve([0, 0, 1, -79, 342]))  # long time
             (5, '3.02857e+01')
-            sage: sympow.analytic_rank(EllipticCurve([1, 1, 0, -2582, 48720]))  # long
+            sage: sympow.analytic_rank(EllipticCurve([1, 1, 0, -2582, 48720]))  # long time
             (6, '3.20781e+02')
-            sage: sympow.analytic_rank(EllipticCurve([0, 0, 0, -10012, 346900]))  # long
+            sage: sympow.analytic_rank(EllipticCurve([0, 0, 0, -10012, 346900]))  # long time
             (7, '1.32517e+03')
         """
         v = self('%s -analrank'%self._curve_str(E))

@@ -255,7 +255,7 @@ class Lseries_ell(SageObject):
 
         EXAMPLES:
             sage: E = EllipticCurve('37a')
-            sage: E.lseries().zeros_in_interval(6, 10, 0.1)      # long
+            sage: E.lseries().zeros_in_interval(6, 10, 0.1)      # long time
             [(6.87039122, 0.248922780), (8.01433081, -0.140168533), (9.93309835, -0.129943029)]
         """
         from sage.lfunctions.lcalc import lcalc
@@ -340,7 +340,7 @@ class Lseries_ell(SageObject):
 
         EXAMPLES:
             sage: E = EllipticCurve('37a')
-            sage: E.lseries().twist_zeros(3, -4, -3)         # long
+            sage: E.lseries().twist_zeros(3, -4, -3)         # long time
             {-4: [1.60813783, 2.96144840, 3.89751747], -3: [2.06170900, 3.48216881, 4.45853219]}
         """
         from sage.lfunctions.lcalc import lcalc

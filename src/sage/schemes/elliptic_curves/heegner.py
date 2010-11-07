@@ -5501,7 +5501,7 @@ def kolyvagin_reduction_data(E, q, first_only=True):
     present)::
 
         sage: E = elliptic_curves.rank(4)[0]
-        sage: kolyvagin_reduction_data(E,3)              # long
+        sage: kolyvagin_reduction_data(E,3)              # long time
         (11, -71, 7, 293060)
         sage: H = heegner_points(293060, -71)
         sage: H.kolyvagin_conductors(1,4,E,3)

@@ -1444,8 +1444,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         ::
 
             sage: E = EllipticCurve([1, -1, 0, -751055859, -7922219731979])     # long time (0.6 seconds)
-            sage: set_random_seed(0)
-            sage: E.simon_two_descent ()
+            sage: set_random_seed(0)        # long time
+            sage: E.simon_two_descent ()    # long time
             (1, 1, [])
 
         The rest of these entries were taken from Tom Womack's page

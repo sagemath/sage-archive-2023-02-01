@@ -2435,18 +2435,24 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         EXAMPLES::
 
             sage: quadrant = Cone([(1,0), (0,1)])
-            sage: ph = quadrant.polyhedron()
-            sage: ph
+            sage: quadrant.polyhedron()
             A 2-dimensional polyhedron in QQ^2 defined as the convex hull
             of 1 vertex and 2 rays.
             sage: line = Cone([(1,0), (-1,0)])
-            sage: ph = line.polyhedron()
-            sage: ph
+            sage: line.polyhedron()
             A 1-dimensional polyhedron in QQ^2 defined as the convex hull
             of 1 vertex and 1 line.
+
+        Here is an example of a trivial cone (see Trac #10237)::
+
+            sage: origin = Cone([], lattice=ZZ^2)
+            sage: origin.polyhedron()
+            A 0-dimensional polyhedron in QQ^2 defined as the convex hull
+            of 1 vertex.
         """
         if "_polyhedron" not in self.__dict__:
-            self._polyhedron = Polyhedron(rays=self.rays())
+            self._polyhedron = Polyhedron(rays=self.rays(),
+                                          vertices=[self.lattice()(0)])
         return self._polyhedron
 
     def strict_quotient(self):

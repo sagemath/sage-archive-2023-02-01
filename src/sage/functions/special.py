@@ -28,10 +28,10 @@ Toy. It is placed under the terms of the General Public License
 
 The (usual) Bessel functions and Airy functions are part of the
 standard Maxima package. Some Bessel functions also are implemented
-in Pari. (Caution: The Pari versions are sometimes different than
-the Maxima version.) For example, the K-Bessel function
-`K_\nu (z)` can be computed using either Maxima or Pari,
-depending on an optional variable you pass to bessel_K.
+in PARI. (Caution: The PARI versions are sometimes different than
+the Maxima version.) For example, the J-Bessel function
+`J_\nu (z)` can be computed using either Maxima or PARI,
+depending on an optional variable you pass to bessel_J.
 
 Next, we summarize some of the properties of the functions
 implemented here.
@@ -362,7 +362,7 @@ Added 16-02-2008 (wdj): optional calls to scipy and replace all
 .. warning::
 
    SciPy's versions are poorly documented and seem less
-   accurate than the Maxima and Pari versions.
+   accurate than the Maxima and PARI versions.
 """
 
 #*****************************************************************************
@@ -670,7 +670,7 @@ def bessel_I(nu,z,algorithm = "pari",prec=53):
     -  ``nu`` - a real (or complex, for pari) number
 
     -  ``z`` - a real (positive) algorithm - "pari" or
-       "maxima" or "scipy" prec - real precision (for Pari only)
+       "maxima" or "scipy" prec - real precision (for PARI only)
 
 
     DEFINITION::
@@ -684,7 +684,7 @@ def bessel_I(nu,z,algorithm = "pari",prec=53):
                             ====
                             k = 0
 
-            Pari:
+            PARI:
 
                              inf
                             ====   - 2 k  2 k
@@ -766,7 +766,7 @@ def bessel_J(nu,z,algorithm="pari",prec=53):
                             ====
                             k = 0
 
-            Pari:
+            PARI:
 
                              inf
                             ====          - 2k    2k
@@ -850,7 +850,7 @@ def bessel_K(nu,z,algorithm="pari",prec=53):
     if nu is not an integer and by taking a limit otherwise.
 
     Sometimes bessel_K(nu,z) is denoted K_nu(z) in the literature. In
-    Pari, nu can be complex and z must be real and positive.
+    PARI, nu can be complex and z must be real and positive.
 
     EXAMPLES::
 
@@ -864,6 +864,13 @@ def bessel_K(nu,z,algorithm="pari",prec=53):
         0.60
         sage: bessel_K(1,1,"pari",100)
         0.60190723019723457473754000154
+
+    TESTS::
+
+        sage: bessel_K(2,1.1, algorithm="maxima")
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: The K-Bessel function is only implemented for the pari and scipy algorithms
     """
     if algorithm=="scipy":
         if prec != 53:
@@ -887,6 +894,8 @@ def bessel_K(nu,z,algorithm="pari",prec=53):
             K = C
         K = z.parent()
         return K(pari(nu).besselk(z, precision=prec))
+    elif algorithm == 'maxima':
+        raise NotImplementedError, "The K-Bessel function is only implemented for the pari and scipy algorithms"
     else:
         raise ValueError, "unknown algorithm '%s'"%algorithm
 
@@ -921,13 +930,16 @@ def bessel_Y(nu,z,algorithm="maxima", prec=53):
         sage: bessel_Y(3.001,2.1)
         -1.0299574976424...
 
-    .. note::
+    TESTS::
 
-       Adding '0'+ inside sage_eval as a temporary bug work-around.
+        sage: bessel_Y(2,1.1, algorithm="pari")
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: The Y-Bessel function is only implemented for the maxima and scipy algorithms
     """
-    if prec != 53:
-        raise ValueError, "for the scipy algorithm the precision must be 53"
     if algorithm=="scipy":
+        if prec != 53:
+            raise ValueError, "for the scipy algorithm the precision must be 53"
         import scipy.special
         ans = str(scipy.special.yv(float(nu),complex(real(z),imag(z))))
         ans = ans.replace("(","")
@@ -935,7 +947,11 @@ def bessel_Y(nu,z,algorithm="maxima", prec=53):
         ans = ans.replace("j","*I")
         return sage_eval(ans)
     elif algorithm == "maxima":
+        if prec != 53:
+            raise ValueError, "for the maxima algorithm the precision must be 53"
         return RR(maxima.eval("bessel_y(%s,%s)"%(float(nu),float(z))))
+    elif algorithm == "pari":
+        raise NotImplementedError, "The Y-Bessel function is only implemented for the maxima and scipy algorithms"
     else:
         raise ValueError, "unknown algorithm '%s'"%algorithm
 
@@ -950,24 +966,82 @@ class Bessel():
         sage: print g
         J-Bessel function of order 2
         sage: g.plot(0,10)
+
+    ::
+
+        sage: Bessel(2, typ='I')(pi)
+        2.61849485263445
+        sage: Bessel(2, typ='J')(pi)
+        0.485433932631509
+        sage: Bessel(2, typ='K')(pi)
+        0.0510986902537926
+        sage: Bessel(2, typ='Y')(pi)
+        -0.0999007139289404
     """
-    def __init__(self, nu, typ = "J", algorithm = "pari", prec = 53):
+    def __init__(self, nu, typ = "J", algorithm = None, prec = 53):
         """
         Initializes new instance of the Bessel class.
 
-        TESTS::
+        INPUT:
 
+         - ``typ`` -- (default: J) the type of Bessel function: 'I', 'J', 'K'
+           or 'Y'.
+
+         - ``algorithm`` -- (default: maxima for type Y, pari for other types)
+           algorithm to use to compute the Bessel function: 'pari', 'maxima' or
+           'scipy'.  Note that type K is not implemented in Maxima and type Y
+           is not implemented in PARI.
+
+         - ``prec`` -- (default: 53) precision in bits of the Bessel function.
+           Only supported for the PARI algorithm.
+
+        EXAMPLES::
+
+            sage: g = Bessel(2); g
+            J_{2}
             sage: Bessel(1,'I')
             I_{1}
+            sage: Bessel(6, prec=120)(pi)
+            0.014545966982505560573660369604001804
+            sage: Bessel(6, algorithm="pari")(pi)
+            0.0145459669825056
+
+        For the Bessel J-function, Maxima returns a symbolic result.  For
+        types I and Y, we always get a numeric result::
+
+            sage: b = Bessel(6, algorithm="maxima")(pi); b
+            bessel_j(6, pi)
+            sage: b.n(53)
+            0.0145459669825056
+            sage: Bessel(6, typ='I', algorithm="maxima")(pi)
+            0.0294619840059568
+            sage: Bessel(6, typ='Y', algorithm="maxima")(pi)
+            -4.33932818939038
+
+        SciPy usually gives less precise results::
+
+            sage: Bessel(6, algorithm="scipy")(pi)
+            0.0145459669825000...
+
+        TESTS::
+
             sage: Bessel(1,'Z')
             Traceback (most recent call last):
             ...
             ValueError: typ must be one of I, J, K, Y
         """
-        self._order = nu
-        self._system = algorithm
         if not (typ in ['I', 'J', 'K', 'Y']):
             raise ValueError, "typ must be one of I, J, K, Y"
+
+        # Did the user ask for the default algorithm?
+        if algorithm is None:
+            if typ == 'Y':
+                algorithm = 'maxima'
+            else:
+                algorithm = 'pari'
+
+        self._system = algorithm
+        self._order = nu
         self._type = typ
         prec = int(prec)
         if prec < 0:
@@ -1040,7 +1114,7 @@ class Bessel():
 
     def system(self):
         """
-        Returns the package used, e.g. Maxima, Pari, or SciPy, to compute with
+        Returns the package used, e.g. Maxima, PARI, or SciPy, to compute with
         this Bessel function.
 
         TESTS::
@@ -1097,12 +1171,9 @@ class Bessel():
             sage: P = Bessel(2,'I').plot(1,5)
             sage: P += Bessel(2,'J').plot(1,5)
             sage: P += Bessel(2,'K').plot(1,5)
-            sage: P += Bessel(2,'Y',algorithm='maxima').plot(1,5) # default algorithm Pari not available for this one
+            sage: P += Bessel(2,'Y').plot(1,5)
             sage: show(P)
         """
-        # TODO: make this part of standard plotting
-        # Namely, the following doesn't work.
-        # sage: plot(Bessel_J(2),3,4,color='red')
         nu = self.order()
         s = self.system()
         t = self.type()
@@ -1122,7 +1193,7 @@ class Bessel():
 
 def hypergeometric_U(alpha,beta,x,algorithm="pari",prec=53):
     r"""
-    Default is a wrap of Pari's hyperu(alpha,beta,x) function.
+    Default is a wrap of PARI's hyperu(alpha,beta,x) function.
     Optionally, algorithm = "scipy" can be used.
 
     The confluent hypergeometric function `y = U(a,b,x)` is

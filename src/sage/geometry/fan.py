@@ -219,9 +219,9 @@ from sage.combinat.posets.posets import FinitePoset
 from sage.geometry.cone import (Cone,
                                 ConvexRationalPolyhedralCone,
                                 IntegralRayCollection,
-                                hasse_diagram_from_incidences,
                                 is_Cone,
                                 normalize_rays)
+from sage.geometry.polyhedra import Hasse_diagram_from_incidences
 from sage.geometry.lattice_polytope import (LatticePolytope,
                                             all_faces,
                                             all_facet_equations)
@@ -990,7 +990,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
         # completeness relies on this function
         if "_is_complete" in self.__dict__ and self._is_complete:
             # We can use a fast way for complete fans
-            self._cone_lattice = hasse_diagram_from_incidences(
+            self._cone_lattice = Hasse_diagram_from_incidences(
                                 self._ray_to_cones(),
                                 (cone.ambient_ray_indices() for cone in self),
                                 FanFace)
@@ -1574,7 +1574,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
             # It seems that there is no reason to believe that the order of
             # faces in level sets has anything to do with the order of
             # vertices in the Hasse diagram of FinitePoset. So, while
-            # hasse_diagram_from_incidences tried to ensure a "good order,"
+            # Hasse_diagram_from_incidences tried to ensure a "good order,"
             # we will sort faces corresponding to rays, as well as faces
             # corresponding to generating cones, if they are all of the same
             # dimension (otherwise it is not very useful).

@@ -78,6 +78,11 @@ Inequalities `A \vec{x} + b \geq 0` (and, similarly, equations) are specified by
     sage: Polyhedron(ieqs = [[0,1,0],[0,0,1],[1,-1,-1]]).Hrepresentation()
     [An inequality (1, 0) x + 0 >= 0, An inequality (0, 1) x + 0 >= 0, An inequality (-1, -1) x + 1 >= 0]
 
+In addition to polyhedra, this module provides the function
+:func:`Hasse_diagram_from_incidences` for computing Hasse diagrams of
+finite atomic and coatomic lattices in the sense of partially ordered
+sets where any two elements have meet and joint. For example, the face
+lattice of a polyhedron.
 
 REFERENCES:
 
@@ -89,7 +94,8 @@ AUTHORS:
     - Marshall Hampton: first version, bug fixes, and various improvements, 2008 and 2009
     - Arnaud Bergeron: improvements to triangulation and rendering, 2008
     - Sebastien Barthelemy: documentation improvements, 2008
-    - Volker Braun: refactoring, handle non-compact case, 2009
+    - Volker Braun: refactoring, handle non-compact case, 2009 and 2010
+    - Andrey Novoseltsev: added Hasse_diagram_from_incidences, 2010
 
 TESTS::
 
@@ -99,6 +105,7 @@ TESTS::
 
 ########################################################################
 #       Copyright (C) 2008 Marshall Hampton <hamptonio@gmail.com>
+#       Copyright (C) 2010 Volker Braun <vbraun.name@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -108,6 +115,7 @@ TESTS::
 
 from sage.structure.sage_object import SageObject
 from sage.structure.sequence import Sequence
+from sage.categories.objects import Objects
 
 from subprocess import Popen, PIPE
 from sage.misc.all import SAGE_TMP, tmp_filename, union
@@ -126,7 +134,6 @@ from sage.plot.all import point2d, line2d, arrow, polygon2d
 from sage.plot.plot3d.all import point3d, line3d, arrow3d, polygon3d
 from sage.graphs.graph import Graph
 
-from sage.combinat.posets.posets import Poset
 from sage.combinat.combinat import permutations
 from sage.combinat.cartesian_product import CartesianProduct
 from sage.groups.perm_gps.permgroup_named import AlternatingGroup
@@ -3713,94 +3720,97 @@ class Polyhedron(SageObject):
                           field=self.coerce_field(cut_frac))
 
 
-    def _v_closure(self, vertex_indices):
-        """
-        Return the list of vertex indices for the vertices in the smallest
-        face containing the input vertices.
-
-        EXAMPLES::
-
-            sage: p = polytopes.n_cube(3)
-            sage: p._v_closure([1,2])
-            [0, 1, 2, 3]
-        """
-        return self._face_vertex_indexset(self._vertex_face_indexset(vertex_indices))
-
-
-    def _vertex_face_indexset(self, Vrep_indices):
-        """
-        Return the maximal list of facet indices whose intersection contains
-        the given vertices, i.e. a list of all the facets which contain all of
-        the given vertices.
-
-        EXAMPLES::
-
-            sage: p = Polyhedron(vertices = [[0, 0, 0], [0, 0, 1], [0, 1, 1], [1, 0, 0], [1, 1, 1], [1, 0, 1], [1, 1, 0]])
-            sage: list( p.Vrep_generator() )
-            [A vertex at (0, 0, 0),
-             A vertex at (0, 0, 1),
-             A vertex at (0, 1, 1),
-             A vertex at (1, 0, 0),
-             A vertex at (1, 1, 1),
-             A vertex at (1, 0, 1),
-             A vertex at (1, 1, 0)]
-            sage: list( p.Hrep_generator() )
-            [An inequality (0, 0, 1) x + 0 >= 0,
-             An inequality (1, -1, 1) x + 0 >= 0,
-             An inequality (1, 0, 0) x + 0 >= 0,
-             An inequality (0, 1, 0) x + 0 >= 0,
-             An inequality (0, -1, 0) x + 1 >= 0,
-             An inequality (0, 0, -1) x + 1 >= 0,
-             An inequality (-1, 0, 0) x + 1 >= 0]
-            sage: p._vertex_face_indexset([2])
-            [1, 2, 4, 5]
-        """
-        if Vrep_indices == []:
-            return range(self.n_Vrepresentation())
-        Vrep_list = [self.Vrepresentation(i) for i in Vrep_indices]
-        faces = []
-        for aface in self.Hrep_generator():
-            if all([aface.is_incident(v) for v in Vrep_list]):
-                faces.append(aface.index())
-        return faces
-
-
-    def _face_vertex_indexset(self, Hrep_indices):
-        """
-        Return the maximal list of vertex indices who lie on the given facets.
-
-        EXAMPLES::
-
-            sage: p = polytopes.icosahedron()
-            sage: p._face_vertex_indexset([0])
-            [1, 3, 8]
-        """
-        if Hrep_indices == []:
-            return range(self.n_Hrepresentation())
-        Hrep_list = [self.Hrepresentation(i) for i in Hrep_indices]
-        verts = []
-        for avert in self.Vrep_generator():
-            if all([avert.is_incident(h) for h in Hrep_list]):
-                verts.append(avert.index())
-        return verts
-
-
     def face_lattice(self):
         """
         Return the face-lattice poset.
 
         OUTPUT:
 
-        A :class:`sage.combinat.posets.posets.FinitePoset`. Elements
-        are tuples of (vertices, facets). This keeps track of both the
-        vertices in each face and all the facets containing them.
+        A :class:`~sage.combinat.posets.posets.FinitePoset`. Elements
+        are given as :class:`~sage.geometry.polyhedra.PolyhedronFace`.
+
+        In the case of a full-dimensional polytope, the faces are
+        pairs (vertices, inequalities) of the spanning vertices and
+        corresponding saturated inequalities. In general, a face is
+        defined by a pair (V-rep. objects, H-rep. objects). The
+        V-representation objects span the face, and the corresponding
+        H-representation objects are those inequalities and equations
+        that are saturated on the face.
+
+        The bottom-most element of the face lattice is the "empty
+        face". It contains no V-representation object. All
+        H-representation objects are incident.
+
+        The top-most element is the "full face". It is spanned by all
+        V-representation objects. The incident H-representation
+        objects are all equations and no inequalities.
+
+        In the case of a full-dimensional polytope, the "empty face"
+        and the "full face" are the empty set (no vertices, all
+        inequalities) and the full polytope (all vertices, no
+        inequalities), respectively.
+
+        ALGORITHM:
+
+        For a full-dimensional polytope, the basic algorithm is
+        described in :func:`Hasse_diagram_from_incidences`. There are
+        three generalizations of [KP2002]_ necessary to deal with more
+        general polytopes, corresponding to the extra
+        H/V-representation objects:
+
+        * Lines are removed before calling
+          :func:`Hasse_diagram_from_incidences`, and then added back
+          to each face V-representation except for the "empty face".
+
+        * Equations are removed before calling
+          :func:`Hasse_diagram_from_incidences`, and then added back
+          to each face H-representation.
+
+        * Rays: Consider the half line as an example. The
+          V-representation objects are a point and a ray, which we can
+          think of as a point at infinity. However, the point at
+          infinity has no inequality associated to it, so there is
+          only one H-representation object alltogether. The face
+          lattice does not contain the "face at infinity". This means
+          that in :func:`Hasse_diagram_from_incidences`, one needs to
+          drop faces with V-representations that have no matching
+          H-representation. In addition, one needs to ensure that
+          every non-empty face contains at least one vertex.
 
         EXAMPLES::
+
+            sage: square = polytopes.n_cube(2)
+            sage: square.face_lattice()
+            Finite poset containing 10 elements
+            sage: list(_)
+            [<>, <0>, <1>, <2>, <3>, <2,3>, <1,3>, <0,1>, <0,2>, <0,1,2,3>]
+            sage: poset_element = _[6]
+            sage: a_face = poset_element.element
+            sage: a_face
+            <1,3>
+            sage: a_face.dim()
+            1
+            sage: set(a_face.Vrepresentation()) == set([square.Vrepresentation(1), square.Vrepresentation(3)])
+            True
+            sage: a_face.Vrepresentation()
+            [A vertex at (-1, 1), A vertex at (-1, -1)]
+            sage: a_face.Hrepresentation()
+            [An inequality (1, 0) x + 1 >= 0]
+
+        A more complicated example::
 
             sage: c5_10 = Polyhedron(vertices = [[i,i^2,i^3,i^4,i^5] for i in range(1,11)])
             sage: c5_10_fl = c5_10.face_lattice()
             sage: [len(x) for x in c5_10_fl.level_sets()]
             [1, 10, 45, 100, 105, 42, 1]
+
+        Note that if the polyhedron contains lines then there is a
+        dimension gap between the empty face and the first non-empty
+        face in the face lattice::
+
+            sage: line = Polyhedron(vertices=[(0,)], lines=[(1,)])
+            sage: [ fl.element.dim() for fl in line.face_lattice() ]
+            [-1, 1]
 
         TESTS::
 
@@ -3811,48 +3821,70 @@ class Polyhedron(SageObject):
             sage: polytopes.n_cube(2).face_lattice().plot()
             sage: level_sets = polytopes.cross_polytope(2).face_lattice().level_sets()
             sage: print level_sets[0], level_sets[-1]
-            [(None, (0, 1, 2, 3))] [((0, 1, 2, 3), None)]
+            [<>] [<0,1,2,3>]
 
-        REFERENCES:
+        Various degenerate polyhedra::
 
-            'Computing the Face Lattice of a Polytope from its
-            Vertex-Facet Incidences', by V. Kaibel and M.E. Pfetsch.
+            sage: Polyhedron(vertices=[[0,0,0],[1,0,0],[0,1,0]]).face_lattice().level_sets()
+            [[<>], [<0>, <1>, <2>], [<0,1>, <1,2>, <0,2>], [<0,1,2>]]
+            sage: Polyhedron(vertices=[(1,0,0),(0,1,0)], rays=[(0,0,1)]).face_lattice().level_sets()
+            [[<>], [<1>, <2>], [<0,1>, <0,2>, <1,2>], [<0,1,2>]]
+            sage: Polyhedron(rays=[(1,0,0),(0,1,0)], vertices=[(0,0,1)]).face_lattice().level_sets()
+            [[<>], [<2>], [<1,2>, <0,2>], [<0,1,2>]]
+            sage: Polyhedron(rays=[(1,0),(0,1)], vertices=[(0,0)]).face_lattice().level_sets()
+            [[<>], [<2>], [<1,2>, <0,2>], [<0,1,2>]]
+            sage: Polyhedron(vertices=[(1,),(0,)]).face_lattice().level_sets()
+            [[<>], [<0>, <1>], [<0,1>]]
+            sage: Polyhedron(vertices=[(1,0,0),(0,1,0)], lines=[(0,0,1)]).face_lattice().level_sets()
+            [[<>], [<0,1>, <0,2>], [<0,1,2>]]
+            sage: Polyhedron(lines=[(1,0,0)], vertices=[(0,0,1)]).face_lattice().level_sets()
+            [[<>], [<0,1>]]
+            sage: Polyhedron(lines=[(1,0),(0,1)], vertices=[(0,0)]).face_lattice().level_sets()
+            [[<>], [<0,1,2>]]
+            sage: Polyhedron(lines=[(1,0)], rays=[(0,1)], vertices=[(0,0)]).face_lattice().level_sets()
+            [[<>], [<0,2>], [<0,1,2>]]
+            sage: Polyhedron(vertices=[(0,)], lines=[(1,)]).face_lattice().level_sets()
+            [[<>], [<0,1>]]
+            sage: Polyhedron(lines=[(1,0)], vertices=[(0,0)]).face_lattice().level_sets()
+            [[<>], [<0,1>]]
         """
         try:
             return self._face_lattice
         except AttributeError:
             pass
-        # dictionary of the form: (vertices,faces):(upper cover keys)
-        f_l_dict = {(None,tuple(range(self.n_Hrepresentation()))):[(tuple([x]),tuple(self._vertex_face_indexset([x])))
-                                 for x in range(self.n_Vrepresentation())]}
-        todolist = f_l_dict.values()[0][:]
-        while todolist != []:
-            todo = todolist.pop()
-            f_l_dict[todo] = []
-            candidates = []
-            for aface in todo[1]:
-                H = self.Hrepresentation(aface)
-                candidates = union(candidates + [v.index() for v in H.incident()])
-            candidates = [x for x in candidates if not x in todo[0]]
-            minimals = []
-            if candidates == []:
-                f_l_dict[todo].append((tuple(range(self.n_Vrepresentation())),
-                                      None))
-            while candidates != []:
-                c = candidates[0]
-                closure = self._v_closure(list(todo[0])+[c])
-                clos_comp = [x for x in closure if not x in list(todo[0])+[c]]
-                clos_comp = [x for x in clos_comp if x in candidates+minimals]
-                if clos_comp == []:
-                    minimals.append(c)
-                    candidates.remove(c)
-                    newelm = (tuple(closure), tuple(self._vertex_face_indexset(closure)))
-                    f_l_dict[todo].append(newelm)
-                    if not f_l_dict.has_key(newelm):
-                        todolist.append(newelm)
-                else:
-                    candidates.remove(c)
-        self._face_lattice = Poset(f_l_dict)
+
+        coatom_to_Hindex = [ h.index() for h in self.inequality_generator() ]
+        Hindex_to_coatom = [None] * self.n_Hrepresentation()
+        for i in range(0,len(coatom_to_Hindex)):
+            Hindex_to_coatom[ coatom_to_Hindex[i] ] = i
+
+        atom_to_Vindex = [ v.index() for v in self.Vrep_generator() if not v.is_line() ]
+        Vindex_to_atom = [None] * self.n_Vrepresentation()
+        for i in range(0,len(atom_to_Vindex)):
+                        Vindex_to_atom[ atom_to_Vindex[i] ] = i
+
+        atoms_incidences   = [ tuple([ Hindex_to_coatom[h.index()]
+                                       for h in v.incident() if h.is_inequality() ])
+                               for v in self.Vrepresentation() if not v.is_line() ]
+
+        coatoms_incidences = [ tuple([ Vindex_to_atom[v.index()]
+                                       for v in h.incident() if not v.is_line() ])
+                               for h in self.Hrepresentation() if h.is_inequality() ]
+
+        atoms_vertices = [ Vindex_to_atom[v.index()] for v in self.vertex_generator() ]
+        equations = [ e.index() for e in self.equation_generator() ]
+        lines     = [ l.index() for l in self.line_generator() ]
+
+        def face_constructor(atoms,coatoms):
+            if len(atoms)==0:
+                Vindices = ()
+            else:
+                Vindices = tuple(sorted([   atom_to_Vindex[i] for i in   atoms ]+lines))
+            Hindices = tuple(sorted([ coatom_to_Hindex[i] for i in coatoms ]+equations))
+            return PolyhedronFace(self, Vindices, Hindices)
+
+        self._face_lattice = Hasse_diagram_from_incidences\
+            (atoms_incidences, coatoms_incidences, face_constructor=face_constructor, required_atoms=atoms_vertices)
         return self._face_lattice
 
 
@@ -6101,3 +6133,394 @@ class Polytopes():
 
 
 polytopes = Polytopes()
+
+
+
+#########################################################################
+class PolyhedronFace(SageObject):
+    r"""
+    A face of a polyhedron.
+
+    This class is for use in
+    :meth:`~sage.geometry.polyhedra.Polyhedron.face_lattice`.
+
+    INPUT:
+
+    No checking is performed whether the H/V-representation indices
+    actually determine a face of the polyhedron. You should not
+    manually create :class:`PolyhedronFace` objects unless you know
+    what you are doing.
+
+    OUTPUT:
+
+    A :class:`PolyhedronFace`.
+
+    EXAMPLES::
+
+        sage: octahedron = polytopes.cross_polytope(3)
+        sage: inequality = octahedron.Hrepresentation(2)
+        sage: face_h = tuple([ inequality ])
+        sage: face_v = tuple( inequality.incident() )
+        sage: face_h_indices = [ h.index() for h in face_h ]
+        sage: face_v_indices = [ v.index() for v in face_v ]
+        sage: from sage.geometry.polyhedra import PolyhedronFace
+        sage: face = PolyhedronFace(octahedron, face_v_indices, face_h_indices)
+        sage: face
+        <0,4,5>
+        sage: face.dim()
+        2
+        sage: face.Hrepresentation()
+        [An inequality (1, 1, -1) x + 1 >= 0]
+        sage: face.Vrepresentation()
+        [A vertex at (0, 0, 1), A vertex at (0, -1, 0), A vertex at (-1, 0, 0)]
+    """
+
+    def __init__(self, polyhedron, V_indices, H_indices):
+        r"""
+        The constructor.
+
+        See :class:`PolyhedronFace` for more information.
+
+        INPUT:
+
+        - ``polyhedron`` -- a :class:`Polyhedron`. The ambient
+          polyhedron.
+
+        - ``V_indices`` -- list of integers. The indices of the
+          face-spanning V-representation objects in the ambient
+          polyhedron.
+
+        - ``H_indices`` -- list of integers. The indices of the
+          H-representation objects of the ambient polyhedron that are
+          saturated on the face.
+
+        TESTS::
+
+            sage: from sage.geometry.polyhedra import PolyhedronFace
+            sage: PolyhedronFace(Polyhedron(), [], [])   # indirect doctest
+            <>
+        """
+        self._polyhedron = polyhedron
+        self._Vrepresentation = Sequence([ polyhedron.Vrepresentation(i) for i in V_indices ],
+                                         universe=Objects())
+        self._Hrepresentation = Sequence([ polyhedron.Hrepresentation(i) for i in H_indices ],
+                                         universe=Objects())
+        self._Vrepresentation.set_immutable()
+        self._Hrepresentation.set_immutable()
+
+
+    def Hrepresentation(self, index=None):
+        r"""
+        Return the H-representation objects defining the face.
+
+        INPUT:
+
+        - ``index`` -- optional. Either an integer or ``None``
+          (default).
+
+        OUTPUT:
+
+        If the optional argument is not present, a sequence of
+        H-representation objects. Each entry is either an inequality
+        or an equation.
+
+        If the optional integer ``index`` is specified, the
+        ``index``-th element of the sequence is returned.
+
+        EXAMPLES::
+
+            sage: square = polytopes.n_cube(2)
+            sage: for fl in square.face_lattice():
+            ...       print fl.element.Hrepresentation()
+            ...
+            [An inequality (0, 1) x + 1 >= 0, An inequality (1, 0) x + 1 >= 0, An inequality (0, -1) x + 1 >= 0, An inequality (-1, 0) x + 1 >= 0]
+            [An inequality (0, -1) x + 1 >= 0, An inequality (-1, 0) x + 1 >= 0]
+            [An inequality (1, 0) x + 1 >= 0, An inequality (0, -1) x + 1 >= 0]
+            [An inequality (0, 1) x + 1 >= 0, An inequality (-1, 0) x + 1 >= 0]
+            [An inequality (0, 1) x + 1 >= 0, An inequality (1, 0) x + 1 >= 0]
+            [An inequality (0, 1) x + 1 >= 0]
+            [An inequality (1, 0) x + 1 >= 0]
+            [An inequality (0, -1) x + 1 >= 0]
+            [An inequality (-1, 0) x + 1 >= 0]
+            []
+        """
+        if index==None:
+            return self._Hrepresentation
+        else:
+            return self._Hrepresentation[index]
+
+
+    def Vrepresentation(self, index=None):
+        r"""
+        Return the V-representation objects defining the face.
+
+        INPUT:
+
+        - ``index`` -- optional. Either an integer or ``None``
+          (default).
+
+        OUTPUT:
+
+        If the optional argument is not present, a sequence of
+        V-representation objects. Each entry is either a vertex, a
+        ray, or a line.
+
+        If the optional integer ``index`` is specified, the
+        ``index``-th element of the sequence is returned.
+
+        EXAMPLES::
+
+            sage: square = polytopes.n_cube(2)
+            sage: for fl in square.face_lattice():
+            ...       print fl.element.Vrepresentation()
+            ...
+            []
+            [A vertex at (1, 1)]
+            [A vertex at (-1, 1)]
+            [A vertex at (1, -1)]
+            [A vertex at (-1, -1)]
+            [A vertex at (1, -1), A vertex at (-1, -1)]
+            [A vertex at (-1, 1), A vertex at (-1, -1)]
+            [A vertex at (1, 1), A vertex at (-1, 1)]
+            [A vertex at (1, 1), A vertex at (1, -1)]
+            [A vertex at (1, 1), A vertex at (-1, 1), A vertex at (1, -1), A vertex at (-1, -1)]
+        """
+        if index==None:
+            return self._Vrepresentation
+        else:
+            return self._Vrepresentation[index]
+
+
+    def dim(self):
+        """
+        Return the dimension of the face.
+
+        OUTPUT:
+
+        Integer.
+
+        EXAMPLES::
+
+            sage: fl = polytopes.dodecahedron().face_lattice()
+            sage: [ x.element.dim() for x in fl ]
+            [-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+              1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+              1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3]
+        """
+        if '_dim' in self.__dict__:
+            return self._dim
+
+        if len(self._Vrepresentation)==0:
+            self._dim = -1
+            return self._dim
+
+        origin = vector(self._Vrepresentation[0])
+        v_list = [ vector(v)-origin for v in self._Vrepresentation ]
+        self._dim = matrix(v_list).rank()
+        return self._dim
+
+
+    def _repr_(self):
+        r"""
+        Return a string representation.
+
+        OUTPUT:
+
+        A string listing the V-representation indices of the face.
+
+        EXAMPLES::
+
+            sage: square = polytopes.n_cube(2)
+            sage: a_face = list( square.face_lattice() )[8].element
+            sage: a_face.__repr__()
+            '<0,2>'
+        """
+        s = '<'
+        s += ','.join([ str(v.index()) for v in self.Vrepresentation() ])
+        s += '>'
+        return s
+
+
+def Hasse_diagram_from_incidences(atom_to_coatoms, coatom_to_atoms,
+                                  face_constructor=None,
+                                  required_atoms=None,
+                                  **kwds):
+    r"""
+    Compute the Hasse diagram of an atomic and coatomic lattice.
+
+    INPUT:
+
+    - ``atom_to_coatoms`` -- list, ``atom_to_coatom[i]`` should list all
+      coatoms over the ``i``-th atom;
+
+    - ``coatom_to_atoms`` -- list, ``coatom_to_atom[i]`` should list all
+      atoms under the ``i``-th coatom;
+
+    - ``face_constructor`` -- function or class taking as the first two
+      arguments sorted :class:`tuple` of integers and any keyword arguments.
+      It will be called to construct a face over atoms passed as the first
+      argument and under coatoms passed as the second argument. Default
+      implementation will just return these two tuples as a tuple;
+
+    - ``required_atoms`` -- list of atoms (default:None). Each
+      non-empty "face" requires at least on of the specified atoms
+      present. Used to ensure that each face has a vertex.
+
+    - all other keyword arguments will be passed to ``face_constructor`` on
+      each call.
+
+    OUTPUT:
+
+    - :class:`finite poset <sage.combinat.posets.posets.FinitePoset>` with
+      elements constructed by ``face_constructor``.
+
+    .. NOTE::
+
+        In addition to the specified partial order, finite posets in Sage have
+        internal total linear order of elements which extends the partial one.
+        This function will try to make this internal order to start with the
+        bottom and atoms in the order corresponding to ``atom_to_coatoms`` and
+        to finish with coatoms in the order corresponding to
+        ``coatom_to_atoms`` and the top. This may not be possible if atoms and
+        coatoms are the same, in which case the preference is given to the
+        first list.
+
+    ALGORITHM:
+
+    The detailed description of the used algorithm is given in [KP2002]_.
+
+    The code of this function follows the pseudo-code description in the
+    section 2.5 of the paper, although it is mostly based on frozen sets
+    instead of sorted lists - this makes the implementation easier and should
+    not cost a big performance penalty. (If one wants to make this function
+    faster, it should be probably written in Cython.)
+
+    While the title of the paper mentions only polytopes, the algorithm (and
+    the implementation provided here) is applicable to any atomic and coatomic
+    lattice if both incidences are given, see Section 3.4.
+
+    In particular, this function can be used for strictly convex cones and
+    complete fans.
+
+    REFERENCES:
+
+    ..  [KP2002]
+        Volker Kaibel and Marc E. Pfetsch,
+        "Computing the Face Lattice of a Polytope from its Vertex-Facet
+        Incidences", Computational Geometry: Theory and Applications,
+        Volume 23, Issue 3 (November 2002), 281-290.
+        Available at http://portal.acm.org/citation.cfm?id=763203
+        and free of charge at http://arxiv.org/abs/math/0106043
+
+    AUTHORS:
+
+    - Andrey Novoseltsev (2010-05-13) with thanks to Marshall Hampton for the
+      reference.
+
+    EXAMPLES:
+
+    Let's construct the Hasse diagram of a lattice of subsets of {0, 1, 2}.
+    Our atoms are {0}, {1}, and {2}, while our coatoms are {0,1}, {0,2}, and
+    {1,2}. Then incidences are ::
+
+        sage: atom_to_coatoms = [(0,1), (0,2), (1,2)]
+        sage: coatom_to_atoms = [(0,1), (0,2), (1,2)]
+
+    and we can compute the Hasse diagram as ::
+
+        sage: L = sage.geometry.cone.Hasse_diagram_from_incidences(
+        ...                       atom_to_coatoms, coatom_to_atoms)
+        sage: L
+        Finite poset containing 8 elements
+        sage: for level in L.level_sets(): print level
+        [((), (0, 1, 2))]
+        [((0,), (0, 1)), ((1,), (0, 2)), ((2,), (1, 2))]
+        [((0, 1), (0,)), ((0, 2), (1,)), ((1, 2), (2,))]
+        [((0, 1, 2), ())]
+
+    For more involved examples see the *source code* of
+    :meth:`sage.geometry.cone.ConvexRationalPolyhedralCone.face_lattice` and
+    :meth:`sage.geometry.fan.RationalPolyhedralFan._compute_cone_lattice`.
+    """
+    from sage.graphs.all import DiGraph
+    from sage.combinat.posets.posets import FinitePoset
+    def default_face_constructor(atoms, coatoms, **kwds):
+        return (atoms, coatoms)
+    if face_constructor is None:
+        face_constructor = default_face_constructor
+    atom_to_coatoms = [frozenset(atc) for atc in atom_to_coatoms]
+    A = frozenset(range(len(atom_to_coatoms)))  # All atoms
+    coatom_to_atoms = [frozenset(cta) for cta in coatom_to_atoms]
+    C = frozenset(range(len(coatom_to_atoms)))  # All coatoms
+    # Comments with numbers correspond to steps in Section 2.5 of the article
+    L = DiGraph()       # 3: initialize L
+    faces = dict()
+    atoms = frozenset()
+    coatoms = C
+    faces[atoms, coatoms] = 0
+    next_index = 1
+    Q = [(atoms, coatoms)]              # 4: initialize Q with the empty face
+    while Q:                            # 5
+        q_atoms, q_coatoms = Q.pop()    # 6: remove some q from Q
+        q = faces[q_atoms, q_coatoms]
+        # 7: compute H = {closure(q+atom) : atom not in atoms of q}
+        H = dict()
+        candidates = set(A.difference(q_atoms))
+        for atom in candidates:
+            coatoms = q_coatoms.intersection(atom_to_coatoms[atom])
+            atoms = A
+            for coatom in coatoms:
+                atoms = atoms.intersection(coatom_to_atoms[coatom])
+            H[atom] = (atoms, coatoms)
+        # 8: compute the set G of minimal sets in H
+        minimals = set([])
+        while candidates:
+            candidate = candidates.pop()
+            atoms = H[candidate][0]
+            if atoms.isdisjoint(candidates) and atoms.isdisjoint(minimals):
+                minimals.add(candidate)
+        # Now G == {H[atom] : atom in minimals}
+        for atom in minimals:   # 9: for g in G:
+            g_atoms, g_coatoms = H[atom]
+            if not required_atoms is None:
+                if g_atoms.isdisjoint(required_atoms):
+                    continue
+            if (g_atoms, g_coatoms) in faces:
+                g = faces[g_atoms, g_coatoms]
+            else:               # 11: if g was newly created
+                g = next_index
+                faces[g_atoms, g_coatoms] = g
+                next_index += 1
+                Q.append((g_atoms, g_coatoms))  # 12
+            L.add_edge(q, g)                    # 14
+    # End of algorithm, now construct a FinitePoset.
+    # In principle, it is recommended to use Poset or in this case perhaps
+    # even LatticePoset, but it seems to take several times more time
+    # than the above computation, makes unnecessary copies, and crashes.
+    # So for now we will mimic the relevant code from Poset.
+
+    # Enumeration of graph vertices must be a linear extension of the poset
+    new_order = L.topological_sort()
+    # Make sure that coatoms are in the end in proper order
+    tail = [faces[atoms, frozenset([coatom])]
+            for coatom, atoms in enumerate(coatom_to_atoms)]
+    tail.append(faces[A, frozenset()])
+    new_order = [n for n in new_order if n not in tail] + tail
+    # Make sure that atoms are in the beginning in proper order
+    head = [0] # We know that the empty face has index 0
+    head.extend(faces[frozenset([atom]), coatoms]
+                for atom, coatoms in enumerate(atom_to_coatoms)
+                if required_atoms is None or atom in required_atoms)
+    new_order = head + [n for n in new_order if n not in head]
+    # "Invert" this list to a dictionary
+    labels = dict()
+    for new, old in enumerate(new_order):
+        labels[old] = new
+    L.relabel(labels)
+    # Construct the actual poset elements
+    elements = [None] * next_index
+    for face, index in faces.items():
+        atoms, coatoms = face
+        elements[labels[index]] = face_constructor(
+                        tuple(sorted(atoms)), tuple(sorted(coatoms)), **kwds)
+    return FinitePoset(L, elements)

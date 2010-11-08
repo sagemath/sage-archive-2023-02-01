@@ -3,6 +3,8 @@
 import os, sys, time, errno
 from distutils.core import setup
 from distutils.extension import Extension
+from glob import glob, fnmatch
+from warnings import warn
 
 #########################################################
 ### List of Extensions
@@ -30,8 +32,8 @@ if not os.environ.has_key('SAGE_ROOT'):
     sys.exit(1)
 else:
     SAGE_ROOT  = os.environ['SAGE_ROOT']
-    SAGE_LOCAL = SAGE_ROOT + '/local/'
-    SAGE_DEVEL = SAGE_ROOT + '/devel/'
+    SAGE_LOCAL = SAGE_ROOT + '/local'
+    SAGE_DEVEL = SAGE_ROOT + '/devel'
 
 if not os.environ.has_key('SAGE_VERSION'):
     SAGE_VERSION=0
@@ -64,11 +66,23 @@ if not os.path.islink(sage_link) or not os.path.exists(sage_link):
     os.system('rm -rf "%s"'%sage_link)
     os.system('cd %s; ln -sf ../../../../devel/sage/build/sage .'%SITE_PACKAGES)
 
-include_dirs = ['%s/include'%SAGE_LOCAL, \
-                '%s/include/csage'%SAGE_LOCAL, \
-                ## this is included, but doesn't actually exist
-                ## '%s/include/python'%SAGE_LOCAL, \
+# search for dependencies and add to gcc -I<path>
+include_dirs = ['%s/include'%SAGE_LOCAL,
+                '%s/include/csage'%SAGE_LOCAL,
                 '%s/sage/sage/ext'%SAGE_DEVEL]
+
+# search for dependencies only
+extra_include_dirs = ['%s/include/python2.6'%SAGE_LOCAL,
+                      # finally, standard C/C++ include dirs
+                      '/usr/local/include/',
+                      '/usr/include']
+
+try:
+    from subprocess import Popen, PIPE
+    gccinclude = Popen(['gcc', '--print-file-name=include'], stdout=PIPE).communicate()[0]
+    extra_include_dirs.extend( gccinclude.splitlines() )
+except OSError:
+    pass
 
 
 #########################################################
@@ -113,7 +127,7 @@ if DEVEL:
 
 # Generate interpreters
 
-sage.ext.gen_interpreters.rebuild(SAGE_DEVEL + 'sage/sage/ext/interpreters')
+sage.ext.gen_interpreters.rebuild(SAGE_DEVEL + '/sage/sage/ext/interpreters')
 ext_modules = ext_modules + sage.ext.gen_interpreters.modules
 
 
@@ -608,7 +622,7 @@ class DependencyTree:
                 self._timestamps[filename] = 0
         return self._timestamps[filename]
 
-    def parse_deps(self, filename, verify=True):
+    def parse_deps(self, filename, ext_module, verify=True):
         """
         Open a Cython file and extract all of its dependencies.
 
@@ -619,8 +633,10 @@ class DependencyTree:
         OUTPUT:
             list of dependency files
         """
+        is_cython_file = lambda f:fnmatch.fnmatch(f,'*.{pyx,pxd,pxi}')
+
         # only parse cython files
-        if filename[-4:] not in ('.pyx', '.pxd', '.pxi'):
+        if not is_cython_file(filename):
             return []
 
         dirname = os.path.split(filename)[0]
@@ -661,8 +677,8 @@ class DependencyTree:
             # Cython include path.
             else:
                 found_include = False
-                for idir in CYTHON_INCLUDE_DIRS:
-                    new_path = os.path.normpath(idir + base_dependency_name)
+                for idir in ext_module.include_dirs + CYTHON_INCLUDE_DIRS + include_dirs + extra_include_dirs:
+                    new_path = os.path.normpath(idir + '/' + base_dependency_name)
                     if os.path.exists(new_path):
                         deps.add(new_path)
                         found_include = True
@@ -675,22 +691,25 @@ class DependencyTree:
                 # so we really couldn't find the dependency -- raise
                 # an exception.
                 if not found_include:
-                    if path[-2:] != '.h':  # there are implicit headers from distutils, etc
-                        raise IOError, "could not find dependency %s included in %s."%(path, filename)
+                    msg = 'could not find dependency %s included in %s.'%(path, filename)
+                    if is_cython_file(filename):
+                        raise IOError, msg
+                    else:
+                        warnings.warn(msg+' I will assume it is a system C/C++ header.')
         f.close()
         return list(deps)
 
-    def immediate_deps(self, filename):
+    def immediate_deps(self, filename, ext_module):
         """
         Returns a list of files directly referenced by this file.
         """
         if (filename not in self._deps
                 or self.timestamp(filename) < self._last_parse[filename]):
-            self._deps[filename] = self.parse_deps(filename)
+            self._deps[filename] = self.parse_deps(filename, ext_module)
             self._last_parse[filename] = self.timestamp(filename)
         return self._deps[filename]
 
-    def all_deps(self, filename, path=None):
+    def all_deps(self, filename, ext_module, path=None):
         """
         Returns all files directly or indirectly referenced by this file.
 
@@ -704,9 +723,9 @@ class DependencyTree:
                 path = set([filename])
             else:
                 path.add(filename)
-            for f in self.immediate_deps(filename):
+            for f in self.immediate_deps(filename, ext_module):
                 if f not in path:
-                    deps.update(self.all_deps(f, path))
+                    deps.update(self.all_deps(f, ext_module, path))
                 else:
                     circular = True
             path.remove(filename)
@@ -716,14 +735,14 @@ class DependencyTree:
                 self._deps_all[filename] = deps
         return self._deps_all[filename]
 
-    def newest_dep(self, filename):
+    def newest_dep(self, filename, ext_module):
         """
         Returns the most recently modified file that filename depends on,
         along with its timestamp.
         """
         nfile = filename
         ntime = self.timestamp(filename)
-        for f in self.all_deps(filename):
+        for f in self.all_deps(filename, ext_module):
             if self.timestamp(f) > ntime:
                 nfile = f
                 ntime = self.timestamp(f)
@@ -816,7 +835,7 @@ def compile_command_list(ext_modules, deps):
         new_sources = []
         for f in m.sources:
             if f.endswith('.pyx'):
-                dep_file, dep_time = deps.newest_dep(f)
+                dep_file, dep_time = deps.newest_dep(f,m)
                 dest_file = "%s/%s"%(SITE_PACKAGES, f)
                 dest_time = deps.timestamp(dest_file)
                 if dest_time < dep_time:

@@ -1117,6 +1117,29 @@ ex power::series(const relational & r, int order, unsigned options) const
 		must_expand_basis = true;
 	}
 
+	bool exponent_is_regular = true;
+	try {
+		exponent.subs(r, subs_options::no_pattern);
+	} catch (pole_error) {
+		exponent_is_regular = false;
+	}
+
+	if (!exponent_is_regular) {
+		ex l = exponent*log(basis);
+		// this == exp(l);
+		ex le = l.series(r, order, options);
+		// Note: expanding exp(l) won't help, since that will attempt
+		// Taylor expansion, and fail (because exponent is "singular")
+		// Still l itself might be expanded in Taylor series.
+		// Examples:
+		// sin(x)/x*log(cos(x))
+		// 1/x*log(1 + x)
+		return exp(le).series(r, order, options);
+		// Note: if l happens to have a Laurent expansion (with
+		// negative powers of (var - point)), expanding exp(le)
+		// will barf (which is The Right Thing).
+	}
+
 	// Is the expression of type something^(-int)?
 	if (!must_expand_basis && !exponent.info(info_flags::negint)
 	 && (!is_a<add>(basis) || !is_a<numeric>(exponent)))

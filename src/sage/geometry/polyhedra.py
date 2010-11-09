@@ -732,9 +732,25 @@ class Inequality(Hrepresentation):
             sage: a = p.inequality_generator().next()
             sage: a._repr_()
             'An inequality (-1, 0, 0) x + 1 >= 0'
+            sage: Polyhedron(ieqs=[(1,-1),(-1,2)]).Hrepresentation()
+            [An inequality (-1) x + 1 >= 0, An inequality (2) x - 1 >= 0]
+            sage: Polyhedron(eqns=[(1,0)]).Hrepresentation()
+            [An equation 1 == 0]
+            sage: Polyhedron(eqns=[(-1,0)]).Hrepresentation()
+            [An equation -1 == 0]
         """
         s = 'An inequality '
-        s += repr(self.A()) + ' x + ' + repr(self.b()) + ' >= 0'
+        have_A = not self.A().is_zero()
+        if have_A:
+            s += repr(self.A()) + ' x '
+        if self.b()>=0:
+            if have_A:
+                s += '+'
+        else:
+            s += '-'
+        if have_A:
+            s += ' '
+        s += repr(abs(self.b())) + ' >= 0'
         return s
 
     def contains(self, Vobj):
@@ -873,9 +889,21 @@ class Equation(Hrepresentation):
             sage: a = p.equation_generator().next()
             sage: a._repr_()
             'An equation (0, 0, 1) x + 0 == 0'
+            sage: Polyhedron().Hrepresentation(0)
+            An equation -1 == 0
         """
         s = 'An equation '
-        s += repr(self.A()) + ' x + ' + repr(self.b()) + ' == 0'
+        have_A = not self.A().is_zero()
+        if have_A:
+            s += repr(self.A()) + ' x '
+        if self.b()>=0:
+            if have_A:
+                s += '+'
+        else:
+            s += '-'
+        if have_A:
+            s += ' '
+        s += repr(abs(self.b())) + ' == 0'
         return s
 
     def contains(self, Vobj):
@@ -1658,7 +1686,7 @@ class Polyhedron(SageObject):
             sage: p = Polyhedron(ieqs=[(-1,0),(1,0)]); p  # incompatible inequalities
             The empty polyhedron in QQ^1.
             sage: p.Hrepresentation()
-            [An equation (0) x + -1 == 0]
+            [An equation -1 == 0]
             sage: p.Vrepresentation()
             []
             sage: p = Polyhedron(eqns=[(0,1,0),(0,0,1)]); p  # equations cutting out a point
@@ -2014,12 +2042,16 @@ class Polyhedron(SageObject):
 
     def _init_empty_polyhedron(self):
         """
-        Initializes an empty polyhedron.  This is not implemented yet.
+        Initializes an empty polyhedron in a zero-dimensional ambient space.
 
         TESTS::
 
-            sage: Polyhedron()
+            sage: empty = Polyhedron(); empty
             The empty polyhedron in QQ^0.
+            sage: empty.Vrepresentation()
+            []
+            sage: empty.Hrepresentation()
+            [An equation -1 == 0]
             sage: Polyhedron(vertices = [])
             The empty polyhedron in QQ^0.
             sage: Polyhedron()._init_empty_polyhedron()
@@ -2030,12 +2062,13 @@ class Polyhedron(SageObject):
         self._Vrepresentation.set_immutable()
 
         self._Hrepresentation = Sequence([])
+        Equation(self, [-1]);
         self._Hrepresentation.set_immutable()
 
         self._V_adjacency_matrix = matrix(ZZ, 0, 0, 0)
         self._V_adjacency_matrix.set_immutable()
 
-        self._H_adjacency_matrix = matrix(ZZ, 0, 0, 0)
+        self._H_adjacency_matrix = matrix(ZZ, 1, 1, 0)
         self._H_adjacency_matrix.set_immutable()
 
 
@@ -2745,11 +2778,11 @@ class Polyhedron(SageObject):
             sage: for v in triangle.inequality_generator(): print(v)
             An inequality (-1, 0) x + 1 >= 0
             An inequality (0, -1) x + 1 >= 0
-            An inequality (1, 1) x + -1 >= 0
+            An inequality (1, 1) x - 1 >= 0
             sage: [ v for v in triangle.inequality_generator() ]
             [An inequality (-1, 0) x + 1 >= 0,
              An inequality (0, -1) x + 1 >= 0,
-             An inequality (1, 1) x + -1 >= 0]
+             An inequality (1, 1) x - 1 >= 0]
             sage: [ [v.A(), v.b()] for v in triangle.inequality_generator() ]
             [[(-1, 0), 1], [(0, -1), 1], [(1, 1), -1]]
         """
@@ -3259,8 +3292,13 @@ class Polyhedron(SageObject):
 
     def center(self):
         """
-        Return the average of the vertices. Returns the origin for
-        the empty polytope. All rays and lines are ignored.
+        Return the average of the vertices.
+
+        OUTPUT:
+
+        The center of the polyhedron. All rays and lines are
+        ignored. Raises a ``ZeroDivisionError`` for the empty
+        polytope.
 
         EXAMPLES::
 
@@ -4174,6 +4212,14 @@ class Polyhedron(SageObject):
         See also :meth:`interior_contains` and
         :meth:`relative_interior_contains`.
 
+        INPUT:
+
+        - ``point`` -- coordinates of a point (an iterable).
+
+        OUTPUT:
+
+        Boolean.
+
         EXAMPLES::
 
             sage: P = Polyhedron(vertices=[[1,1],[1,-1],[0,0]])
@@ -4181,8 +4227,47 @@ class Polyhedron(SageObject):
             True
             sage: P.contains( P.center() )  # true for any convex set
             True
+
+        The point need not have coordinates in the same field as the
+        polyhedron::
+
+            sage: ray = Polyhedron(vertices=[(0,0)], rays=[(1,0)], field=QQ)
+            sage: ray.contains([sqrt(2)/3,0])        # irrational coordinates are ok
+            True
+            sage: a = var('a')
+            sage: ray.contains([a,0])                # a might be negative!
+            False
+            sage: assume(a>0)
+            sage: ray.contains([a,0])
+            True
+            sage: ray.contains(['hello', 'kitty'])   # no common ring for coordinates
+            False
+
+        The empty polyhedron needs extra care, see trac #10238::
+
+            sage: empty = Polyhedron(); empty
+            The empty polyhedron in QQ^0.
+            sage: empty.contains([])
+            False
+            sage: empty.contains([0])               # not a point in QQ^0
+            False
+            sage: full = Polyhedron(vertices=[()]); full
+            A 0-dimensional polyhedron in QQ^0 defined as the convex hull of 1 vertex.
+            sage: full.contains([])
+            True
+            sage: full.contains([0])
+            False
         """
-        p = vector(self.field(), point)
+        try:
+            p = vector(point)
+        except TypeError: # point not iterable or no common ring for elements
+            if len(point)>0:
+                return False
+            else:
+                p = vector(self.field(), [])
+
+        if len(p)!=self.ambient_dim():
+            return False
 
         for H in self.Hrep_generator():
             if not H.contains(p):
@@ -4222,8 +4307,24 @@ class Polyhedron(SageObject):
             True
             sage: P.interior_contains( [0,0] )
             False
+
+        The empty polyhedron needs extra care, see trac #10238::
+
+            sage: empty = Polyhedron(); empty
+            The empty polyhedron in QQ^0.
+            sage: empty.interior_contains([])
+            False
         """
-        p = vector(self.field(), point)
+        try:
+            p = vector(point)
+        except TypeError: # point not iterable or no common ring for elements
+            if len(point)>0:
+                return False
+            else:
+                p = vector(self.field(), [])
+
+        if len(p)!=self.ambient_dim():
+            return False
 
         for H in self.Hrep_generator():
             if not H.interior_contains(p):
@@ -4257,8 +4358,24 @@ class Polyhedron(SageObject):
             True
             sage: P.relative_interior_contains( (1,0) )
             False
+
+        The empty polyhedron needs extra care, see trac #10238::
+
+            sage: empty = Polyhedron(); empty
+            The empty polyhedron in QQ^0.
+            sage: empty.relative_interior_contains([])
+            False
         """
-        p = vector(self.field(), point)
+        try:
+            p = vector(point)
+        except TypeError: # point not iterable or no common ring for elements
+            if len(point)>0:
+                return False
+            else:
+                p = vector(self.field(), [])
+
+        if len(p)!=self.ambient_dim():
+            return False
 
         for eq in self.equation_generator():
             if not eq.contains(p):

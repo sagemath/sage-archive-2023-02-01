@@ -415,7 +415,7 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
     return vector(RDF,min)
 
 
-def linear_program(c,G,h,A=None,b=None):
+def linear_program(c,G,h,A=None,b=None,solver=None):
     """
     Solves the dual linear programs:
 
@@ -436,6 +436,10 @@ def linear_program(c,G,h,A=None,b=None):
     - ``A`` -- a matrix
 
     - ``b`` --- a vector
+
+    - ``solver`` (optional) --- solver to use. If None, the cvxopt's lp-solver
+                                is used. If it is 'glpk', then glpk's solver
+                                is used.
 
     These can be over any field that can be turned into a floating point
     number.
@@ -474,24 +478,35 @@ def linear_program(c,G,h,A=None,b=None):
         sage: sol=linear_program(v,m,h)
         sage: sol['x']
         (45.000000..., 6.2499999...3, 1.00000000...)
+        sage: sol=linear_program(v,m,h,solver='glpk')
+        sage: sol['x']
+        (45.0..., 6.25, 1.0...)
     """
     from cvxopt.base import matrix as m
     from cvxopt import solvers
     solvers.options['show_progress']=False
+    if solver=='glpk':
+        from cvxopt import glpk
+        glpk.options['LPX_K_MSGLEV'] = 0
     c_=m(c.base_extend(RDF).numpy())
     G_=m(G.base_extend(RDF).numpy())
     h_=m(h.base_extend(RDF).numpy())
     if A!=None and b!=None:
         A_=m(A.base_extend(RDF).numpy())
         b_=m(b.base_extend(RDF).numpy())
-        sol=solvers.lp(c_,G_,h_,A_,b_)
+        sol=solvers.lp(c_,G_,h_,A_,b_,solver=solver)
     else:
-        sol=solvers.lp(c_,G_,h_)
+        sol=solvers.lp(c_,G_,h_,solver=solver)
+    status=sol['status']
+    if status != 'optimal':
+       return  {'primal objective':None,'x':None,'s':None,'y':None,
+              'z':None,'status':status}
     x=vector(RDF,list(sol['x']))
     s=vector(RDF,list(sol['s']))
     y=vector(RDF,list(sol['y']))
     z=vector(RDF,list(sol['z']))
-    return  {'x':x,'s':s,'y':y,'z':z}
+    return  {'primal objective':sol['primal objective'],'x':x,'s':s,'y':y,
+               'z':z,'status':status}
 
 
 def find_fit(data, model, initial_guess = None, parameters = None, variables = None, solution_dict = False):

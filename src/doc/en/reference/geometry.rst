@@ -8,13 +8,14 @@ polytopes and polyhedra (with rational or numerical coordinates).
 .. toctree::
    :maxdepth: 2
 
+   sage/geometry/toric_lattice
    sage/geometry/cone
+   sage/geometry/fan
+   sage/geometry/fan_morphism
+   sage/geometry/toric_plotter
+
    sage/rings/polynomial/groebner_fan
+
    sage/geometry/lattice_polytope
    sage/geometry/polyhedra
-   sage/geometry/fan
-
-   sage/geometry/toric_lattice
-
-   sage/geometry/toric_plotter
 

@@ -20,13 +20,17 @@ TARGET="sage-"$1
 
 CUR=`pwd`
 
+SAGE_RELEASE_DATE=`date -u +'%Y-%m-%d %Z'`
 
-# UPDATE SAGE VERSION FILE: this is done here so
+# Update Sage version file in SAGE_ROOT.
+echo "Sage version $SAGE_VERSION, released $SAGE_RELEASE_DATE" > "$SAGE_ROOT"/VERSION.txt
+
+# Update Sage version file in devel/sage/sage: this is done here so
 # the banner produced below this if block is correct.
 if [ -d $SAGE_ROOT/devel/sage/sage ]; then
    cd $SAGE_ROOT/devel/sage/sage
    echo '"""nodoctests"""' > version.py
-   echo "version='"$SAGE_VERSION"'; date='`date '+%Y-%m-%d'`'" >> version.py
+   echo "version='"$SAGE_VERSION"'; date='"$SAGE_RELEASE_DATE"'" >> version.py
    cd $SAGE_ROOT/devel/sage
    python setup.py install
 fi

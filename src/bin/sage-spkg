@@ -362,7 +362,9 @@ if [ $? -eq 0 ]; then
     echo "PACKAGE NAME: $PKG_NAME" > "$PKG_NAME"
     echo "INSTALL DATE: `date`" >> "$PKG_NAME"
     echo "UNAME: `uname -a`" >> "$PKG_NAME"
-    echo "Sage VERSION: `grep Sage $SAGE_LOCAL/bin/sage-banner`" >> "$PKG_NAME"
+    if [ -f "$SAGE_ROOT"/VERSION.txt ]; then
+	cat "$SAGE_ROOT"/VERSION.txt >> "$PKG_NAME"
+    fi
     echo "Successfully installed $PKG_NAME"
 
     cd $BASEDIR

@@ -35,4 +35,3 @@ if [ $? -ne 0 ]; then
     echo "Error installing Sage!"
     exit 1
 fi
-

@@ -142,7 +142,8 @@ rm sage-*~
 
 cp -pr sage-* .hg* ipy_profile_sage.py $SCRIPTS/
 cp -p $SAGE_ROOT/sage-python $SCRIPTS/
-cp -p $SAGE_ROOT/*.txt $SCRIPTS/
+cp -p $SAGE_ROOT/COPYING.txt $SCRIPTS/
+cp -p $SAGE_ROOT/README.txt $SCRIPTS/
 cp -pr $SAGE_ROOT/ipython $SCRIPTS/
 cp -p $SAGE_ROOT/spkg/install $SCRIPTS/
 cp -p $SAGE_ROOT/local/bin/sage-spkg-install $SCRIPTS/spkg-install

@@ -344,6 +344,27 @@ def do_update():
 
     # Download these since the build system requires them to be
     # updated or we can't build correctly.
+    os.chdir(SAGE_ROOT)
+    if os.path.exists("VERSION.txt"):
+        version_file = open("VERSION.txt")
+        old_version = ", updated from %s" % version_file.read()
+        version_file.close()
+    else:
+        old_version = ""
+    download_file("VERSION.txt")
+    version_file = open("VERSION.txt")
+    new_version = version_file.read()
+    new_version = new_version.strip()  # remove trailing newline
+    version_file.close()
+    # sage-upgrade, hence sage-update, gets run twice during the
+    # upgrade process.  If old_version starts with new_version, then
+    # this should be the second time through, so don't update the
+    # VERSION.txt file.
+    if not old_version.startswith(new_version):
+        version_file = open("VERSION.txt", 'w')
+        version_file.write("%s%s" % (new_version, old_version))
+        version_file.close()
+
     os.chdir(SPKG_ROOT)
     download_file("install")
     os.system('chmod +x install')
@@ -359,7 +380,8 @@ if __name__ == '__main__':
     # sage-upgrade, which is called only by sage-sage, after sage-env.
     if 'SAGE_ROOT' not in os.environ:
         raise RuntimeError("The environment variable SAGE_ROOT must be set.")
-    SPKG_ROOT = "%s/spkg/" % os.environ["SAGE_ROOT"]
+    SAGE_ROOT = os.environ["SAGE_ROOT"]
+    SPKG_ROOT = os.path.join(SAGE_ROOT, 'spkg')
 
     try:
         if len(sys.argv) > 1:

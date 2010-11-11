@@ -1,0 +1,56 @@
+--- ./src/support/shobj-conf	Wed Oct 28 13:20:21 2009
++++ ./patches/shobj-conf	Thu Nov 11 18:56:28 2010
+@@ -109,7 +109,7 @@
+ 	;;
+ 
+ # All versions of Linux (including Gentoo/FreeBSD) or the semi-mythical GNU Hurd.
+-linux*-*|gnu*-*|k*bsd*-gnu-*|freebsd*-gentoo)
++linux*-*|gnu*-*|k*bsd*-gnu-*)
+ 	SHOBJ_CFLAGS=-fPIC
+ 	SHOBJ_LD='${CC}'
+ 	SHOBJ_LDFLAGS='-shared -Wl,-soname,$@'
+@@ -128,15 +128,16 @@
+ 	;;
+ 
+ # FreeBSD-3.x ELF
+-freebsd3*|freebsdaout*)
++freebsd3*|freebsdaout*) 
+ 	SHOBJ_CFLAGS=-fPIC
+ 	SHOBJ_LD='${CC}'
+ 
+-	if [ -x /usr/bin/objformat ] && [ "`/usr/bin/objformat`" = "elf" ]; then
++	if [ ! -x /usr/bin/objformat ] || [ "`/usr/bin/objformat`" = "elf" ]; then
+ 		SHOBJ_LDFLAGS='-shared -Wl,-soname,$@'
+ 
+ 		SHLIB_XLDFLAGS='-Wl,-rpath,$(libdir)'
+ 		SHLIB_LIBVERSION='$(SHLIB_LIBSUFF).$(SHLIB_MAJOR)'
++                SHLIB_LIBS='-ltermcap'
+ 	else
+ 		SHOBJ_LDFLAGS='-shared'
+ 
+@@ -145,17 +146,14 @@
+ 	fi
+ 	;;
+ 
+-# FreeBSD-4.x and later have only ELF
+-freebsd[4-9]*|freebsdelf*|dragonfly*)
+-	SHOBJ_CFLAGS=-fPIC
+-	SHOBJ_LD='${CC}'
+-
+-	SHOBJ_LDFLAGS='-shared -Wl,-soname,$@'
+-	SHLIB_XLDFLAGS='-Wl,-rpath,$(libdir)'
+-
+-	SHLIB_LIBVERSION='$(SHLIB_LIBSUFF).$(SHLIB_MAJOR)'
+-	;;
+-
++# FreeBSD-4.x and later have only ELF 
++freebsdelf*|dragonfly*) 
++        SHOBJ_CFLAGS=-fPIC 
++        SHOBJ_LD='${CC}' 
++        SHOBJ_LDFLAGS='-shared -Wl,-soname,$@' 
++        SHLIB_XLDFLAGS='-Wl,-rpath,$(libdir)' 
++	SHLIB_LIBVERSION='$(SHLIB_LIBSUFF).$(SHLIB_MAJOR)' 
++ 	;; 
+ # Darwin/MacOS X
+ darwin[89]*|darwin10*)
+ 	SHOBJ_STATUS=supported

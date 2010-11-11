@@ -35,6 +35,64 @@ Website: http://tiswww.case.edu/php/chet/readline/rltop.html
 
 == Changelog ==
 
+== readline-6.1 (David Kirkby, 11th November 2010) ==
+ * Update to latest version #9523
+ * Removed a hack for Arch Linux, as this is no longer needed
+   with the latest readline (see #9523)
+ * Removed some commented out code from spkg-install - the file
+   was big enough without even more things.
+ * Removed checks that there was not a mix of Sun and
+   GNU compilers. This is a bit pointless now, as
+   the 'prereq' script does this.
+ * Removed checks that SAGE_FORTRAN_LIB exits - again
+   this is taken care of in one place, and does not need
+   to be in every single .spkg file.
+ * Removed reference to ABI, FCFLAGS and F77FLAGS since
+   there's no Fortran in the Readline package, and no ABI
+   to set.
+ * Removed references to CXX and other C++ related items
+   as there is no C++ code.
+ * No longer check if SAGE64=1, since it can only be set to
+   "yes" or "no", so restrict the check for "yes"
+ * Removed a note that a 32-bit build was taking place if
+   SAGE64 was not set to "yes" or "1". This was in
+   inaccurate comment, as many systems build 64-bit by
+   default, and so the comment is inaccurate on many systems.
+   (Though of course it was harmless).
+ * Removed an unnecessary semi-colon on the line
+   echo "SAGE_LOCAL undefined ... exiting"
+   The semi-colon is on various .spkg files, and seems
+   to be the result of a bit of code copied from one
+   package to another.
+ * Updated the file to patch support/shobj-conf (done for
+   FreeBSD), since this file has changed in the latest source
+   code for readline. This should be reported upstream if it
+   has not already been done. It is pointless us patching
+   a file every time, if there's a bug in it that could be
+   solved in the upstream source code.
+ * Add an spkg-check file, though it does nothing useful,
+   as there are no self-tests. However, there is a 'check'
+   target, so running 'make check' does not generate an
+   error, but instead reports there is nothing to be done.
+ * Removed set -e and set +e. Used properly these are useful,
+   but used poorly they are likely to cause more problems than
+   enough. So these have been removed, as it's clear they were
+   not being used properly.
+ * Added support for any compiler flag for 64-bit builds, using
+   $CFLAG64
+ * Use compiler options -g -O0 if SAGE_DEBUG=yes. Otherwise use
+   -g -O2. Other options may be added too.
+ * Removed the 'build' function as it was a bit pointless - it takes
+   less characters to just put the code inline.
+ * Tested exit code of 'configure', 'make' and 'make install'
+   separately - no longer run "make install".
+ * Used $MAKE instead of make, which will allow parallel builds
+   but will need extensive testing.
+ * Change name of library from libreadline.so.6.0 to
+   libreadline.so.6.1 on OpenBSD. This seems logical, but is untested
+   as I don't have an OpenBSD box around, and currently there's even
+   less development going into OpenBSD than there is AIX or HP-UX!!
+
 === readline-6.0.p4 (Leif Leonhardy, October 28th, 2010) ===
  * #9530: Reviewer patch. Some clean-up, also making it more
    portable and robust. (Also fixes "set -e" preventing us to

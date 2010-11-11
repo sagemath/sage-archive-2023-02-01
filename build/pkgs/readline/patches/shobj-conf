@@ -64,7 +64,7 @@ while [ $# -gt 0 ]; do
 	esac
 done
 
-case "${host_os}-${SHOBJ_CC}" in
+case "${host_os}-${SHOBJ_CC}-${host_vendor}" in
 sunos4*-*gcc*)
 	SHOBJ_CFLAGS=-fpic
 	SHOBJ_LD=/usr/bin/ld
@@ -108,7 +108,7 @@ sunos5*|solaris2*)
 	SHLIB_LIBVERSION='$(SHLIB_LIBSUFF).$(SHLIB_MAJOR)'
 	;;
 
-# All versions of Linux or the semi-mythical GNU Hurd.
+# All versions of Linux (including Gentoo/FreeBSD) or the semi-mythical GNU Hurd.
 linux*-*|gnu*-*|k*bsd*-gnu-*)
 	SHOBJ_CFLAGS=-fPIC
 	SHOBJ_LD='${CC}'
@@ -128,7 +128,7 @@ freebsd2*)
 	;;
 
 # FreeBSD-3.x ELF
-freebsd[3-9]*|freebsdelf[3-9]*|freebsdaout[3-9]*|dragonfly*)
+freebsd3*|freebsdaout*)
 	SHOBJ_CFLAGS=-fPIC
 	SHOBJ_LD='${CC}'
 
@@ -146,6 +146,14 @@ freebsd[3-9]*|freebsdelf[3-9]*|freebsdaout[3-9]*|dragonfly*)
 	fi
 	;;
 
+# FreeBSD-4.x and later have only ELF
+freebsdelf*|dragonfly*)
+        SHOBJ_CFLAGS=-fPIC
+        SHOBJ_LD='${CC}'
+        SHOBJ_LDFLAGS='-shared -Wl,-soname,$@'
+        SHLIB_XLDFLAGS='-Wl,-rpath,$(libdir)'
+	SHLIB_LIBVERSION='$(SHLIB_LIBSUFF).$(SHLIB_MAJOR)'
+ 	;;
 # Darwin/MacOS X
 darwin[89]*|darwin10*)
 	SHOBJ_STATUS=supported

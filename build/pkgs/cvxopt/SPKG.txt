@@ -26,7 +26,8 @@ programming language.
 Downloaded from http://abel.ee.ucla.edu/cvxopt/
 
 == License ==
-multiple licenses: GPLv2, GPLv3, GNU Lesser General Public License, v2.1
+GPLv3 or later. Includes parts under GPLv2,
+GNU Lesser General Public License, v2.1.  See src/LICENSE for more details.
 (Sage-compatible)
 
 == Dependencies ==

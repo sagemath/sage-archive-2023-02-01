@@ -9,7 +9,7 @@ SAGE_INCLUDE = os.environ['SAGE_LOCAL']+'/include'
 ATLAS_LIB_DIR = SAGE_LIB
 
 if os.uname()[0]=="Darwin":
-    libraries = ['m','lapack','gsl','gslcblas','blas','cblas','atlas']
+    libraries = ['m','lapack','gsl','gslcblas','blas']
 elif os.environ['UNAME'] == 'CYGWIN':
     libraries = ['lapack','gsl', 'blas', 'gfortran']
 else:

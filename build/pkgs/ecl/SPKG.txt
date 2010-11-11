@@ -39,11 +39,51 @@ Website: http://ecls.sourceforge.net/
 
 == Special Update/Build Instructions ==
  * delete the msvc directory
- * Delete the src/contrib/encodings directory.  So, do not build with
-   --enable-unicode: See
-   http://trac.sagemath.org/sage_trac/ticket/7732
+ * TODO - Add the ECL test suite, and an spkg-check file to run it.
 
 == Changelog ==
+
+=== ecl-10.4.1 (David Kirkby, 11th November 2010) ===
+  * #10187 Update to the latest stable release of ECL, which is needed
+    to build on Fedora 14 (see #10185).
+  * Added a TODO to add an spkg-check file. Doing this is not
+    trivial. The ECL developer has said the test code on the
+    ECL site is outdated, and ECL is not really designed to
+    run the test suite after building. We might need to
+    address this later.
+  * Removed an extra semi-colon on the line:
+    echo "SAGE_LOCAL undefined ... exiting";
+    That line, with the extra semi-colon is in half the Sage packages.
+    Gradually they are getting removed.
+  * Used a more portable test for SAGE_LOCAL.
+  * Replaced 'make' by '$MAKE' but set MAKE to be "$MAKE -j1" so
+    ECL builds serially, and not in parallel.
+  * Removed any code in spkg-install related to Fortran. There is only one
+    Fortran file in ECL, and that's only used on a Cray. Nobody is
+    making any attempt to port Sage to a Cray, and I doubt they will
+    either. Removal of the Fortran related variables aids clarity.
+  * Removed checks for Sun/GNU compilers, as the prereq script does all this.
+  * Likewise remove checks that SAGE_FORTRAN and SAGE_FORTRAN_LIB are
+    set, as the prereq script does this.
+  * Removed comments about removing the src/contrib/encodings directory,
+    as there is no such directory.
+  * Removed code from spkg-install which deleted temporary files, as the bug
+    that required this, has been fixed in the ECL source code. This was
+    originally bug #8951 but was actually fixed in #9474.
+  * Removed the 'patches' directory as there are no patches!
+  * Note, I've left the gmp source code in place, as removing it requires that
+    a hacked configure script be produced. This is dangerous, as someone
+    is bound to at some point not do that step properly. For a couple of MB, it
+    it worth leaving the src unmodified, except for the msvc code. If someone
+    forgets to remove the msvc code it will causes no problems. If someone
+    fails to update the configure script properly, it will cause havoc.
+  * Added variable CFLAG64 and CXXFLAG64 to be consistent with other
+    packages, which will permit Sage to build 64-bit even if the right
+    compiler flag is not -m64.
+  * Removed the patch to dpp.c (bug #9917) as that has been fixed in the
+    upstream source code.
+  * Changed code to set optimisation flag -O0 if SAGE_DEBUG=yes. This
+    is more consistent with other packages.
 
 === ecl-10.2.1.p3 (David Kirkby, David Kirkby, 17th September 2010) ===
   * #9917 Add a missing argument on line 678 of dpp.c. The code is fixed
@@ -134,7 +174,7 @@ Website: http://ecls.sourceforge.net/
     compilers.
   * Remove all the special build instructions from this file,
     as we are not sure they are needed.
-  * Changed dependancy note above from gmp to mpir.
+  * Changed dependency note above from gmp to mpir.
   * Added my own name as a maintainer.
 
 === ecl-9.4.1 (Michael Abshoff, May 15th, 2009) ===

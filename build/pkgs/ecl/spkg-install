@@ -1,164 +1,71 @@
 #!/usr/bin/env bash
 
-if [ -z "$SAGE_LOCAL" ] ; then
-   echo "SAGE_LOCAL undefined ... exiting";
+if [ "x$SAGE_LOCAL" = x ] ; then
+   echo "SAGE_LOCAL undefined ... exiting"
    echo "Maybe run 'sage -sh'?"
    exit 1
 fi
 
-set -e
-# Apply a couple of changes to dpp.c which avoids two compiler warnings.
-# src/src/c/dpp.c:678:5: warning: too few arguments for format
-# src/src/c/dpp.c:680:13: warning: too many arguments for format
-# This is fixed in the upstream source code, so the patch to dpp.c can be
-# removed when ECL is next updated. In fact it *must* be removed, as there
-# are other upstream changes to this file.
+if [ "x$CFLAG64" = x ] ; then
+   CFLAG64=-m64
+fi
 
-cp patches/dpp.c src/src/c/dpp.c
+if [ "x$CXXFLAG64" = x ] ; then
+   CXXFLAG64=-m64
+fi
 
-# Add a sensible default optimisation flag. Change if necessary.
-OPTIMIZATION_FLAGS="-O2"
+# Add a patch which works around a gcc bug on Solaris. Actually
+# the code is not standard C, but a GCC extension, which does
+# not work on Solaris, causing relocation issues - see
+# http://trac.sagemath.org/sage_trac/ticket/9840
+# This is committed to the ECL trunk, so can be removed
+# whenever we update to a version of ECL newer than 10.4.1.
+cp patches/bytecodes.h src/src/h/bytecodes.h
 
-# Most packages do not need all these set
-# But it is better to do them all each time, rather than ommit
-# a flag by mistake.
-
-CFLAGS="$CFLAGS $OPTIMIZATION_FLAGS "
-CXXFLAGS="$CXXFLAGS $OPTIMIZATION_FLAGS "
-FCFLAGS="$FCFLAGS $OPTIMIZATION_FLAGS "
-F77FLAGS="$F77FLAGS $OPTIMIZATION_FLAGS "
 CPPFLAGS="$CPPFLAGS -I$SAGE_LOCAL/include"
 LDFLAGS="$LDFLAGS -L$SAGE_LOCAL/lib"
 
 # Compile for 64-bit if SAGE64 is set to 'yes'
 if [ "x$SAGE64" = "xyes" ]  ; then
    echo "Building a 64-bit version of ECL"
-   CFLAGS="$CFLAGS -m64 "
-   CXXFLAGS="$CXXFLAGS -m64 "
-   FCFLAGS="$FCFLAGS -m64 "
-   F77FLAGS="$F77FLAGS -m64 "
-   # Some packages may need LDFLAGS and/or ABI set here.
-   LDFLAGS="$LDFLAGS -m64 "
-   ABI=64
+   CFLAGS="$CFLAGS $CFLAG64"
+   CXXFLAGS="$CXXFLAGS $CXXFLAG64"
+   LDFLAGS="$LDFLAGS $CFLAG64"
 fi
 
-# If SAGE_DEBUG is set either unset (the default), or set to  'yes'
-# Add debugging information.
-# Since both the Sun and GNU compilers accept -g to give debugging information
-# there is no need to do anything specific to one compiler or the other.
-
-if [ "x$SAGE_DEBUG" = "x" ] || [ "x$SAGE_DEBUG" = "xyes" ] ; then
-   echo "Code will be built with debugging information present. Set 'SAGE_DEBUG' to 'no' if you don't want that."
-   # Actually anything othe than 'yes' or '1' will cause
-   # no debugging information to be added.
-   CFLAGS="$CFLAGS -g "
-   CXXFLAGS="$CXXFLAGS -g "
-   FCFLAGS="$FCFLAGS -g "
-   F77FLAGS="$F77FLAGS -g "
+if [ "x$SAGE_DEBUG" = xyes ] ; then
+   CFLAGS="$CFLAGS -g -O0"
+   CXXFLAGS="$CXXFLAGS -g -O0"
 else
-   echo "No debugging information will be used during the build of this package"
-   echo "Unset SAGE_DEBUG if you want debugging information present (-g added)"
-fi
-
-# Add appropriate flag(s) to show all warnings.
-# This test of a compiler is not perfect by any means, but
-# is better than nothing.
-set +e
-if "$CC" -flags > /dev/null 2>&1 ; then
-   SUN_COMPILER=1
-   # The Sun compilers are fussy, and adding extra
-   # warnings will just show too many.
-else
-   # Assume gcc if not the Sun C compiler.
-   # Add -Wall to show all warnings.
-   CFLAGS="$CFLAGS -Wall "
-   CXXFLAGS="$CXXFLAGS -Wall "
-   FCFLAGS="$FCFLAGS -Wall "
-   F77FLAGS="$F77FLAGS -Wall "
-   GNU_COMPILER=1
-fi
-
-# Determine if the C++ compiler is the Sun or GNU compiler
-# Just to check we are not mising GNU and non-GNU.
-if "$CXX" -flags > /dev/null 2>&1 ; then
-   SUN_COMPILER=1
-else
-   GNU_COMPILER=1
-fi
-
-
-# Determine if the Fortran compiler is the Sun or GNU compiler
-if [ -z "$SAGE_FORTRAN" ] ; then
-   echo "No Fortran compiler has been defined. This is not normally a problem."
-else
-   if "$SAGE_FORTRAN" -flags > /dev/null 2>&1 ;  then
-      SUN_COMPILER=1
-   else
-      GNU_COMPILER=1
-   fi
-fi
-
-set -e
-
-# Check if SAGE_FORTRAN_LIB is defined, that the file actually exists.
-# SAGE_FORTRAN_LIB does not always need to be defined, but if it is defined, then
-# the file should exist.
-
-if [ -n "$SAGE_FORTRAN_LIB" ] &&  [ ! -e "$SAGE_FORTRAN_LIB" ]; then
-   echo "SAGE_FORTRAN_LIB is defined as $SAGE_FORTRAN_LIB, but does not exist"
-   exit 1
-fi
-
-# Checks that the user is not mixing the Sun and GNU compilers. This problem
-# has been seen on code built with the aid of SCons, but in general could
-# happen with any code if the user has specified a C compiler but not a C++ one.
-# This problem is even more likely to occur with the Fortran compiler - I've done
-# it myself when building Sage!
-
-if [ "x$SUN_COMPILER" = "x1" ] && [ "x$GNU_COMPILER" = "x1" ] ; then
-   echo "You are mixing the Sun and GNU C/C++/Fortran compilers"
-   echo "Such a combination will lead to problems."
-   echo "Check CC, CXX & SAGE_FORTRAN carefully."
-   echo "Exiting ..."
-   exit 1
+   CFLAGS="$CFLAGS -g -O2"
+   CXXFLAGS="$CXXFLAGS -g -O2"
 fi
 
 # These are all used by GNU to specify compilers.
 echo "Using CC=$CC"
 echo "Using CXX=$CXX"
-echo "Using FC=$FC"
-echo "Using F77=$F77"
-
-# Used by Sage in connection with Fortran
-echo "Using SAGE_FORTRAN=$SAGE_FORTRAN"
-echo "Using SAGE_FORTRAN_LIB=$SAGE_FORTRAN_LIB"
 
 # Flags which may be set.
 echo "The following environment variables will be exported"
 echo "Using CFLAGS=$CFLAGS"
 echo "Using CXXFLAGS=$CXXFLAGS"
-echo "Using FCFLAGS=$FCFLAGS"
-echo "Using F77FLAGS=$F77FLAGS"
 echo "Using CPPFLAGS=$CPPFLAGS"
 echo "Using LDFLAGS=$LDFLAGS"
-echo "Using ABI=$ABI"
 echo "configure scripts and/or makefiles might override these later"
 echo " "
 
 # export everything. Probably not necessary in most cases.
 export CFLAGS
 export CXXFLAGS
-export FCFLAGS
-export F77FLAGS
 export CPPFLAGS
 export LDFLAGS
-export ABI
 
 # End of pretty general spkg-install file.
 # Now do the specific things needed for this package (ECL)
 
 # 'export MAKE='make -j n' where n>1, breaks ECL builds, so unset make
-unset MAKE
+MAKE="$MAKE -j1"
+
 # We clear MAKEFLAGS to fix building multiple spkgs in parallel on OS X.
 export MAKEFLAGS=
 
@@ -170,12 +77,12 @@ if [ "x`uname -sm`" = "xSunOS i86pc" ] && [ "x$SAGE64" = xyes ]  ; then
    # Need to add --with-dffi=no to disable assembly code on OpenSolaris x64.
    # and Solaris 10 on x64.
    # The option is only given if all the following are true
-   # 1) OpenSolaris (SunOS)
+   # 1) Solaris or OpenSolaris (SunOS)
    # 2) Intel or AMD CPU
    # 3) 64-bit build
-   ./configure --prefix=$SAGE_LOCAL --with-dffi=no
+   ./configure --prefix="$SAGE_LOCAL" --with-dffi=no
 else
-   ./configure --prefix=$SAGE_LOCAL
+   ./configure --prefix="$SAGE_LOCAL"
 fi
 
 if [ $? -ne 0 ]; then
@@ -183,21 +90,10 @@ if [ $? -ne 0 ]; then
    exit 1
 fi
 
-make
+$MAKE
 if [ $? -ne 0 ]; then
    echo "Failed to build ECL ... exiting"
    exit 1
-fi
-
-# The following is a TEMPORARY hack, needed to ensure ECL has a higher
-# probability of building on Solaris. There's a bug in ECL which means it
-# makes an assumption about temporary files which is not correct (neither
-# by POSIX standards or Solaris). This stops a build some times if
-# multiple people use a Solaris machine as temporary files created by one user
-# can't be removed by another.
-
-if [ "x$UNAME" = xSunOS ] ; then
-  rm -f /tmp/ECL*
 fi
 
 # Remove old install of ecl, if any.
@@ -207,7 +103,7 @@ if [ $? -ne 0 ]; then
    exit 1
 fi
 
-make install
+$MAKE install
 if [ $? -ne 0 ]; then
    echo "Failed to install ECL ... exiting"
    exit 1

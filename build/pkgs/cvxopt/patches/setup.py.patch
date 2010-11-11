@@ -1,5 +1,5 @@
 --- ../src/src/setup.py	2010-09-16 12:55:00.000000000 +0800
-+++ setup.py	2010-11-12 01:29:40.000000000 +0800
++++ setup.py	2010-11-12 02:28:22.000000000 +0800
 @@ -1,18 +1,29 @@
  from distutils.core import setup, Extension
  from glob import glob
@@ -13,11 +13,11 @@
 +ATLAS_LIB_DIR = SAGE_LIB
 +
 +if os.uname()[0]=="Darwin":
-+    libraries = ['m','lapack','gsl','gslcblas','blas']
++    libraries = ['m','lapack','gsl','blas']
 +elif os.environ['UNAME'] == 'CYGWIN':
 +    libraries = ['lapack','gsl', 'blas', 'gfortran']    
 +else:
-+    libraries = ['m','lapack','gsl','gslcblas','blas','cblas','gfortran','atlas']
++    libraries = ['m','lapack','gsl','blas','cblas','gfortran','atlas']
  
  # Set to 1 if you are using the random number generators in the GNU
  # Scientific Library.

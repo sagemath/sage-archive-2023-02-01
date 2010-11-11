@@ -9,11 +9,11 @@ SAGE_INCLUDE = os.environ['SAGE_LOCAL']+'/include'
 ATLAS_LIB_DIR = SAGE_LIB
 
 if os.uname()[0]=="Darwin":
-    libraries = ['m','lapack','gsl','gslcblas','blas']
+    libraries = ['m','lapack','gsl','blas']
 elif os.environ['UNAME'] == 'CYGWIN':
     libraries = ['lapack','gsl', 'blas', 'gfortran']
 else:
-    libraries = ['m','lapack','gsl','gslcblas','blas','cblas','gfortran','atlas']
+    libraries = ['m','lapack','gsl','blas','cblas','gfortran','atlas']
 
 # Set to 1 if you are using the random number generators in the GNU
 # Scientific Library.

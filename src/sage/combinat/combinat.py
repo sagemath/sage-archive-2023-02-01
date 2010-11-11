@@ -2645,12 +2645,9 @@ def fibonacci_xrange(start, stop=None, algorithm='pari'):
         else:
             return
 
-
-def bernoulli_polynomial(x,n):
+def bernoulli_polynomial(x, n):
     r"""
-    Return the nth Bernoulli polynomial as a polynomial in x. In
-    particular, if x is anything other than a variable, this will
-    simply be the nth Bernoulli polynomial evaluated at x.
+    Return the nth Bernoulli polynomial evaluated at x.
 
     The generating function for the Bernoulli polynomials is
 
@@ -2666,18 +2663,32 @@ def bernoulli_polynomial(x,n):
 
     One has `B_n(x) = - n\zeta(1 - n,x)`, where
     `\zeta(s,x)` is the Hurwitz zeta function. Thus, in a
-    certain sense, the Hurwitz zeta generalizes the Bernoulli
-    polynomials to non-integer values of n.
+    certain sense, the Hurwitz zeta function generalizes the
+    Bernoulli polynomials to non-integer values of n.
 
     EXAMPLES::
 
         sage: y = QQ['y'].0
-        sage: bernoulli_polynomial(y,5)
+        sage: bernoulli_polynomial(y, 5)
         y^5 - 5/2*y^4 + 5/3*y^3 - 1/6*y
-        sage: bernoulli_polynomial(y,5)(12)
+        sage: bernoulli_polynomial(y, 5)(12)
         199870
-        sage: bernoulli_polynomial(12,5)
+        sage: bernoulli_polynomial(12, 5)
         199870
+        sage: bernoulli_polynomial(y^2 + 1, 5)
+        y^10 + 5/2*y^8 + 5/3*y^6 - 1/6*y^2
+        sage: P.<t> = ZZ[]
+        sage: p = bernoulli_polynomial(t, 6)
+        sage: p.parent()
+        Univariate Polynomial Ring in t over Rational Field
+
+    We verify an instance of the formula which is the origin of
+    the Bernoulli polynomials (and numbers)::
+
+        sage: power_sum = sum(k^4 for k in range(10))
+        sage: 5*power_sum == bernoulli_polynomial(10, 5) - bernoulli(5)
+        True
+
 
     REFERENCES:
 
@@ -2685,10 +2696,34 @@ def bernoulli_polynomial(x,n):
     """
     try:
         n = ZZ(n)
+        if n < 0:
+            raise TypeError
     except TypeError:
-        raise TypeError, "second argument must be an integer"
+        raise ValueError, "The second argument must be a non-negative integer"
+
+    if n == 0:
+        return ZZ(1)
+
+    if n == 1:
+        return x - ZZ(1)/2
+
+    k = n.mod(2)
+    coeffs = [0]*k + sum(([binomial(n, i)*bernoulli(n-i), 0]
+                          for i in range(k, n+1, 2)), [])
+    coeffs[-3] = -n/2
 
     if isinstance(x, Polynomial):
-        return x.parent()([ binomial(n,i) * bernoulli(n-i) for i in range(n+1) ])
-    else:
-        return sum([ binomial(n,i) * bernoulli(i) * x**(n-i) for i in range(n+1) ])
+        try:
+            return x.parent()(coeffs)(x)
+        except TypeError:
+            pass
+
+    x2 = x*x
+    xi = x**k
+    s = 0
+    for i in range(k, n-1, 2):
+        s += coeffs[i]*xi
+        t = xi
+        xi *= x2
+    s += xi - t*x*n/2
+    return s

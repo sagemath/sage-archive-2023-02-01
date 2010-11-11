@@ -2617,7 +2617,31 @@ def sage_wraps(wrapped, assigned = WRAPPER_ASSIGNMENTS, updated = WRAPPER_UPDATE
         '@square...def g(x)...'
         sage: g.__doc__
         'My little function'
+
+        # Demonstrate that sage_wraps works for non-function callables
+        # (Trac 9919)
+        sage: def square_for_met(f):
+        ...     @sage_wraps(f)
+        ...     def new_f(self, x):
+        ...         return f(self,x)*f(self,x)
+        ...     return new_f
+        sage: class T:
+        ...     @square_for_met
+        ...     def g(self, x):
+        ...         "My little method"
+        ...         return x
+        sage: t = T()
+        sage: t.g(2)
+        4
+        sage: t.g._sage_src_()
+        '   @square_for_met...def g(self, x)...'
+        sage: t.g.__doc__
+        'My little method'
     """
+    #TRAC 9919: Workaround for bug in @update_wrapper when used with
+    #non-function callables.
+    assigned= set(assigned).intersection(set(dir(wrapped)))
+    #end workaround
     def f(wrapper):
         update_wrapper(wrapper, wrapped, assigned=assigned, updated=updated)
         wrapper._sage_src_=lambda: sage_getsource(wrapped)

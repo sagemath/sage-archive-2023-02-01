@@ -1050,16 +1050,6 @@ cpdef tuple find_hamiltonian( G, long max_iter=100000, long reset_bound=30000, l
         (False, ['00011', '10001', '01001', '11000', '01010', '10010', '00110', '10100', '01100'])
         sage: fh(G,find_path=True)
         (False, ['00101', '10001', '01001', '11000', '01010', '10010', '00110', '10100', '01100'])
-
-    TESTS:
-
-    Running the algorithm on random instances, just to make sure the
-    answers are still satisfiable path (the algorithm would raise an
-    exception otherwise)::
-
-        sage: for i in range(200):
-        ...      g = graphs.RandomGNP(20,.1)
-        ...      _ = fh(G,find_path=True)
     """
 
     from sage.misc.prandom import randint

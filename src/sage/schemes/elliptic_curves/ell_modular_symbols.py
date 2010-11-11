@@ -241,11 +241,12 @@ class ModularSymbol(SageObject):
             sage: m._scaling
             2
 
-        Some cases that check on the negative twists::
+        Some harder cases fail::
 
             sage: m = EllipticCurve('121b1').modular_symbol(use_eclib=False)
+            Warning : Could not normalize the modular symbols, maybe all further results will be multiplied by -1, 2 or -2.
             sage: m._scaling
-            -2
+            1
             sage: m = EllipticCurve('196a1').modular_symbol(use_eclib=False)
             sage: m._scaling
             1/2
@@ -293,50 +294,36 @@ class ModularSymbol(SageObject):
                     self._scaling = l1/at0
             else :
                 # if [0] = 0, we can still hope to scale it correctly by considering twists of E
-                Dlist = [5,8,12,13,17,21,24,28,29]  # a list of positive fundamental discriminants
+                Dlist = [5,8,12,13,17,21,24,28,29, 33, 37, 40, 41, 44, 53, 56, 57, 60, 61, 65, 69, 73, 76, 77, 85, 88, 89, 92, 93, 97]  # a list of positive fundamental discriminants
                 j = 0
                 at0 = 0
                 # computes [0]+ for the twist of E by D until one value is non-zero
-                while j < 9 and at0 == 0 :
+                while j < 30 and at0 == 0 :
                     D = Dlist[j]
                     # the following line checks if the twist of the newform of E by D is a newform
                     # this is to avoid that we 'twist back'
-                    chtw = True
-                    for ell in prime_divisors(D):
-                        chtw = chtw and ( valuation(E.conductor(),ell)<= valuation(D,ell) )
-                        # print 'does not satisfy the condition.'
-                    if chtw :
+                    if all( valuation(E.conductor(),ell)<= valuation(D,ell) for ell in prime_divisors(D) ) :
                         at0 = sum([kronecker_symbol(D,u) * self(ZZ(u)/D) for u in range(1,abs(D))])
                     j += 1
-                if j == 9 and at0 == 0: # curves like 121b, 196a, ... will arrive here
-                    sc = 1
-                    if not self._use_eclib :
-                        msn = ModularSymbolSage(self._E,sign = -1,normalize = "L_ratio")
-                        sc = msn._scaling
-                    if sc == 0 or self._use_eclib : #
-                        self.__scale_by_periods_only__()
-                    else :
-                        self._scaling = sc
+                if j == 30 and at0 == 0: # curves like "121b1", "225a1", "225e1", "256a1", "256b1", "289a1", "361a1", "400a1", "400c1", "400h1", "441b1", "441c1", "441d1", "441f1 .. will arrive here
+                    self.__scale_by_periods_only__()
                 else :
                     l1 = self.__lalg__(D)
                     if at0 != l1:
-                        verbose('scale modular symbols by %s'%(l1/at0))
+                        verbose('scale modular symbols by %s found at D=%s '%(l1/at0,D), level=2)
                         self._scaling = l1/at0
 
         else : # that is when sign = -1
-            Dlist = [-3,-4,-7,-8,-11,-15,-19,-20,-23,-24]  # a list of negative fundamental discriminants
+            Dlist = [-3,-4,-7,-8,-11,-15,-19,-20,-23,-24, -31, -35, -39, -40, -43, -47, -51, -52, -55, -56, -59, -67, -68, -71, -79, -83, -84, -87, -88, -91]  # a list of negative fundamental discriminants
             j = 0
             at0 = 0
-            while j < 9 and at0 == 0 :
+            while j < 30 and at0 == 0 :
                 # computes [0]+ for the twist of E by D until one value is non-zero
                 D = Dlist[j]
-                chtw = True
-                for ell in prime_divisors(D):
-                    chtw = chtw and ( valuation(E.conductor(),ell)<= valuation(D,ell) )
-                if chtw :
+                if all( valuation(E.conductor(),ell)<= valuation(D,ell) for ell in prime_divisors(D) ) :
                     at0 = - sum([kronecker_symbol(D,u) * self(ZZ(u)/D) for u in range(1,abs(D))])
                 j += 1
-            if j == 9 and at0 == 0: # no more hope for a normalization
+            if j == 30 and at0 == 0: # no more hope for a normalization
                 # we do at least a scaling with the quotient of the periods
                 self.__scale_by_periods_only__()
             else :

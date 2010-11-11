@@ -451,6 +451,10 @@ def change_warning_output(file):
         if ext in ['.py', '.sage']:
             tmpfiles.append(os.path.join(SAGE_TESTDIR, name + '.pyc'))
 
+    # Prefix/suffix for all doctests replacing the starting/ending """
+    doc_prefix = 'r""">>> set_random_seed(0L)\n\n>>> change_warning_output(sys.stdout)\n\n'
+    doc_suffix = '\n>>> sig_on_count()\n0\n"""'
+
     n = 0
     while True:
         i = F.find('"""')
@@ -464,14 +468,14 @@ def change_warning_output(file):
         except SyntaxError:
             doc = F[i:j+3]
         if len(doc):
-            doc = '""">>> set_random_seed(0L)\n\n' + '>>> change_warning_output(sys.stdout)\n\n' + doc[3:]
+            doc = doc_prefix + doc[3:-3] + doc_suffix
             if random_order:
                 n_str = pad_zeros(new_index(n),10)
             else:
                 n_str = str(n)
             s += "def %s_%s():"%(name,n_str)
             n += 1
-            s += "\tr"+ doc + "\n\n"
+            s += "\t"+ doc + "\n\n"
         F = F[j+3:]
 
     if n == 0:
@@ -615,6 +619,7 @@ def post_process(s, file, tmpname):
         s += "For whitespace errors, see the file %s"%tmpname
     return (s, cnt)
 
+
 def test_file(file, library_code):
     if os.path.exists(file):
         name = os.path.basename(file)
@@ -653,7 +658,7 @@ def test_file(file, library_code):
             out = ''; err = ''
             if verbose or gdb or memcheck or massif or cachegrind:
                 import subprocess
-                proc = subprocess.Popen(cmd,shell=True)
+                proc = subprocess.Popen(cmd, shell=True)
                 while time.time()-tm <= TIMEOUT and proc.poll() == None:
                     time.sleep(0.1)
                 if time.time()-tm >=TIMEOUT:
@@ -663,7 +668,8 @@ def test_file(file, library_code):
             else:
                 outf = tempfile.NamedTemporaryFile()
                 import subprocess
-                proc = subprocess.Popen(cmd,shell=True, stdout=outf.file.fileno(), stderr = outf.file.fileno())
+                proc = subprocess.Popen(cmd, shell=True, \
+                        stdout=outf.file.fileno(), stderr = outf.file.fileno())
                 while time.time()-tm <= TIMEOUT and proc.poll() == None:
                     time.sleep(0.1)
                 if time.time()-tm >=TIMEOUT:
@@ -675,7 +681,7 @@ def test_file(file, library_code):
         except KeyboardInterrupt:
             print "KeyboardInterrupt -- interrupted after %.1f seconds!" % (time.time()-tm)
             sys.exit(2)
-        if not verbose and 'raise KeyboardInterrupt' in err:
+        if 'raise KeyboardInterrupt' in err:
             print "*"*80 + "Control-C pressed -- interrupting doctests." + "*"*80
             sys.exit(2)
 
@@ -699,8 +705,7 @@ def test_file(file, library_code):
                 s = "*"*70 + "\n" + "Error: TAB character found.\n" + s
         if e == 255:
             # The doctesting code raised an exception
-            if not verbose:
-                print "Exception raised by doctesting framework. Use -verbose for details."
+            print "Exception raised by doctesting framework. Use -verbose for details."
             sys.exit(8)
 
         if numfail == 0 and e > 0:
@@ -710,8 +715,7 @@ def test_file(file, library_code):
                 print s
             sys.exit(128)
         elif e < 0:
-            if not verbose:
-                print "The doctested process was killed by signal %s" % (-e)
+            print "The doctested process was killed by signal %s" % (-e)
             sys.exit(4)
         else:
             delete_tmpfiles()

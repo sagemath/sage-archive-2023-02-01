@@ -1,6 +1,6 @@
 --- ../src/src/setup.py	2010-09-16 12:55:00.000000000 +0800
-+++ setup.py	2010-11-12 12:56:21.000000000 +0800
-@@ -1,18 +1,29 @@
++++ setup.py	2010-11-12 13:17:09.000000000 +0800
+@@ -1,18 +1,37 @@
  from distutils.core import setup, Extension
  from glob import glob
  
@@ -11,13 +11,21 @@
  # directory containing libblas and liblapack
 -ATLAS_LIB_DIR = '/usr/lib'
 +ATLAS_LIB_DIR = SAGE_LIB
++libdirs = [ATLAS_LIB_DIR]
 +
 +if os.uname()[0]=="Darwin":
 +    libraries = ['m','lapack','gsl','blas','f95']
++    GCC_LIB_DIR=SAGE_LOCAL+"/lib/"
++    if os.path.exists(GCC_LIB_DIR + "gcc-lib"):
++       GCC_LIB_DIR += "gcc-lib/"
++       GCC_LIB_DIR += os.listdir(GCC_LIB_DIR)[0] + "/"
++       GCC_LIB_DIR += os.listdir(GCC_LIB_DIR)[0] + "/"
++    libdirs = [ATLAS_LIB_DIR,GCC_LIB_DIR]
 +elif os.environ['UNAME'] == 'CYGWIN':
 +    libraries = ['lapack','gsl', 'blas', 'gfortran']    
 +else:
 +    libraries = ['m','lapack','gsl','blas','cblas','gfortran','atlas']
++
  
  # Set to 1 if you are using the random number generators in the GNU
  # Scientific Library.
@@ -34,7 +42,7 @@
  
  # Set to 1 if you are installing the fftw module.
  BUILD_FFTW = 0
-@@ -24,29 +35,31 @@
+@@ -24,52 +43,54 @@
  FFTW_INC_DIR = '/usr/include'  
  
  # Set to 1 if you are installing the glpk module.
@@ -70,16 +78,25 @@
 -    gsl = Extension('gsl', libraries = ['m', 'gsl', 'blas'],
 +    gsl = Extension('gsl', libraries = libraries+['gsl'],
          include_dirs = [ GSL_INC_DIR ],
-         library_dirs = [ GSL_LIB_DIR ],
+-        library_dirs = [ GSL_LIB_DIR ],
++        library_dirs = libdirs + [ GSL_LIB_DIR ],
          sources = ['C/gsl.c'] )
-@@ -60,14 +73,14 @@
+     extmods += [gsl];
+ 
+ if BUILD_FFTW:
+     fftw = Extension('fftw', libraries = ['fftw3', 'blas'],
+         include_dirs = [ FFTW_INC_DIR ],
+-        library_dirs = [ FFTW_LIB_DIR, ATLAS_LIB_DIR ],
++        library_dirs = [ FFTW_LIB_DIR] + libdirs,
+         sources = ['C/fftw.c'] )
      extmods += [fftw];
  
  if BUILD_GLPK:
 -    glpk = Extension('glpk', libraries = ['glpk'],
 +    glpk = Extension('glpk', libraries = libraries+['glpk', 'gmp', 'z'],
          include_dirs = [ GLPK_INC_DIR ],
-         library_dirs = [ GLPK_LIB_DIR ],
+-        library_dirs = [ GLPK_LIB_DIR ],
++        library_dirs = libdirs + [ GLPK_LIB_DIR ],
          sources = ['C/glpk.c'] )
      extmods += [glpk];
  
@@ -87,47 +104,56 @@
 -    dsdp = Extension('dsdp', libraries = ['dsdp', 'blas', 'lapack'],
 +    dsdp = Extension('dsdp', libraries = libraries+['dsdp'],
          include_dirs = [ DSDP_INC_DIR ],
-         library_dirs = [ DSDP_LIB_DIR, ATLAS_LIB_DIR ],
+-        library_dirs = [ DSDP_LIB_DIR, ATLAS_LIB_DIR ],
++        library_dirs = [ DSDP_LIB_DIR] + libdirs,
          sources = ['C/dsdp.c'] )
-@@ -85,17 +98,17 @@
+     extmods += [dsdp];
+ 
+@@ -85,28 +106,28 @@
  else:    
      MACROS = []
  
 -base = Extension('base', libraries = ['m','lapack','blas'],
+-    library_dirs = [ ATLAS_LIB_DIR ],
 +base = Extension('base', libraries = libraries,
-     library_dirs = [ ATLAS_LIB_DIR ],
++    library_dirs = libdirs,
      define_macros = MACROS,
      sources = ['C/base.c','C/dense.c','C/sparse.c']) 
  
 -blas = Extension('blas', libraries = ['blas'],
+-    library_dirs = [ ATLAS_LIB_DIR ],
 +blas = Extension('blas', libraries = libraries,
-     library_dirs = [ ATLAS_LIB_DIR ],
++    library_dirs = libdirs,
      define_macros = MACROS,
      sources = ['C/blas.c'] )
  
 -lapack = Extension('lapack', libraries = ['lapack','blas'],
+-    library_dirs = [ ATLAS_LIB_DIR ],
 +lapack = Extension('lapack', libraries = libraries,
-     library_dirs = [ ATLAS_LIB_DIR ],
++    library_dirs = libdirs,
      define_macros = MACROS,
      sources = ['C/lapack.c'] )
-@@ -103,10 +116,10 @@
+ 
  umfpack = Extension('umfpack', 
      include_dirs = [ 'C/SuiteSparse/UMFPACK/Include',
          'C/SuiteSparse/AMD/Include', 'C/SuiteSparse/AMD/Source', 
 -        'C/SuiteSparse/UFconfig' ],
+-    library_dirs = [ ATLAS_LIB_DIR ],
 +        'C/SuiteSparse/UFconfig', ],
-     library_dirs = [ ATLAS_LIB_DIR ],
++    library_dirs = libdirs,
      define_macros = MACROS,
 -    libraries = [ 'blas', 'lapack'],
 +    libraries = libraries,
      sources = [ 'C/umfpack.c',
          'C/SuiteSparse/UMFPACK/Source/umfpack_global.c',
          'C/SuiteSparse/UMFPACK/Source/umfpack_tictoc.c' ] +
-@@ -118,10 +131,10 @@
+@@ -117,11 +138,11 @@
+ if sys.maxint > 2**31: MACROS += [('DLONG','')]
  
  cholmod = Extension('cholmod',
-     library_dirs = [ ATLAS_LIB_DIR ],
+-    library_dirs = [ ATLAS_LIB_DIR ],
 -    libraries = ['lapack', 'blas'],
++    library_dirs = libdirs,
 +    libraries = libraries,
      include_dirs = [ 'C/SuiteSparse/CHOLMOD/Include', 
          'C/SuiteSparse/COLAMD', 'C/SuiteSparse/AMD/Include', 
@@ -136,19 +162,21 @@
      define_macros = MACROS + [('NPARTITION', '1')],
      sources = [ 'C/cholmod.c' ] + 
          ['C/SuiteSparse/AMD/Source/' + s for s in ['amd_global.c',
-@@ -135,16 +148,20 @@
+@@ -135,16 +156,21 @@
  
  amd = Extension('amd', 
      include_dirs = [ 'C/SuiteSparse/AMD/Include', 
 -        'C/SuiteSparse/UFconfig' ],
 +        'C/SuiteSparse/UFconfig', ],
      define_macros = MACROS,
++    library_dirs = libdirs,
      sources = [ 'C/amd.c' ] + glob('C/SuiteSparse/AMD/Source/*.c') )
  
 -misc_solvers = Extension('misc_solvers', libraries = ['lapack', 'blas'],
+-    library_dirs = [ ATLAS_LIB_DIR ],
 +misc_solvers = Extension('misc_solvers',
 +    libraries = libraries, 
-     library_dirs = [ ATLAS_LIB_DIR ],
++    library_dirs = libdirs,
      define_macros = MACROS,
      sources = ['C/misc_solvers.c'] )
  
@@ -160,7 +188,7 @@
  
  setup (name = 'cvxopt', 
      description = 'Convex optimization package',
-@@ -166,3 +183,4 @@
+@@ -166,3 +192,4 @@
      ext_modules = extmods,
      package_dir = {"cvxopt": "python"},
      packages = ["cvxopt"])

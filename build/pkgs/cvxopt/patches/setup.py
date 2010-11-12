@@ -7,13 +7,21 @@ SAGE_INCLUDE = os.environ['SAGE_LOCAL']+'/include'
 
 # directory containing libblas and liblapack
 ATLAS_LIB_DIR = SAGE_LIB
+libdirs = [ATLAS_LIB_DIR]
 
 if os.uname()[0]=="Darwin":
     libraries = ['m','lapack','gsl','blas','f95']
+    GCC_LIB_DIR=SAGE_LOCAL+"/lib/"
+    if os.path.exists(GCC_LIB_DIR + "gcc-lib"):
+       GCC_LIB_DIR += "gcc-lib/"
+       GCC_LIB_DIR += os.listdir(GCC_LIB_DIR)[0] + "/"
+       GCC_LIB_DIR += os.listdir(GCC_LIB_DIR)[0] + "/"
+    libdirs = [ATLAS_LIB_DIR,GCC_LIB_DIR]
 elif os.environ['UNAME'] == 'CYGWIN':
     libraries = ['lapack','gsl', 'blas', 'gfortran']
 else:
     libraries = ['m','lapack','gsl','blas','cblas','gfortran','atlas']
+
 
 # Set to 1 if you are using the random number generators in the GNU
 # Scientific Library.
@@ -61,28 +69,28 @@ extmods = []
 if BUILD_GSL:
     gsl = Extension('gsl', libraries = libraries+['gsl'],
         include_dirs = [ GSL_INC_DIR ],
-        library_dirs = [ GSL_LIB_DIR ],
+        library_dirs = libdirs + [ GSL_LIB_DIR ],
         sources = ['C/gsl.c'] )
     extmods += [gsl];
 
 if BUILD_FFTW:
     fftw = Extension('fftw', libraries = ['fftw3', 'blas'],
         include_dirs = [ FFTW_INC_DIR ],
-        library_dirs = [ FFTW_LIB_DIR, ATLAS_LIB_DIR ],
+        library_dirs = [ FFTW_LIB_DIR] + libdirs,
         sources = ['C/fftw.c'] )
     extmods += [fftw];
 
 if BUILD_GLPK:
     glpk = Extension('glpk', libraries = libraries+['glpk', 'gmp', 'z'],
         include_dirs = [ GLPK_INC_DIR ],
-        library_dirs = [ GLPK_LIB_DIR ],
+        library_dirs = libdirs + [ GLPK_LIB_DIR ],
         sources = ['C/glpk.c'] )
     extmods += [glpk];
 
 if BUILD_DSDP:
     dsdp = Extension('dsdp', libraries = libraries+['dsdp'],
         include_dirs = [ DSDP_INC_DIR ],
-        library_dirs = [ DSDP_LIB_DIR, ATLAS_LIB_DIR ],
+        library_dirs = [ DSDP_LIB_DIR] + libdirs,
         sources = ['C/dsdp.c'] )
     extmods += [dsdp];
 
@@ -99,17 +107,17 @@ else:
     MACROS = []
 
 base = Extension('base', libraries = libraries,
-    library_dirs = [ ATLAS_LIB_DIR ],
+    library_dirs = libdirs,
     define_macros = MACROS,
     sources = ['C/base.c','C/dense.c','C/sparse.c'])
 
 blas = Extension('blas', libraries = libraries,
-    library_dirs = [ ATLAS_LIB_DIR ],
+    library_dirs = libdirs,
     define_macros = MACROS,
     sources = ['C/blas.c'] )
 
 lapack = Extension('lapack', libraries = libraries,
-    library_dirs = [ ATLAS_LIB_DIR ],
+    library_dirs = libdirs,
     define_macros = MACROS,
     sources = ['C/lapack.c'] )
 
@@ -117,7 +125,7 @@ umfpack = Extension('umfpack',
     include_dirs = [ 'C/SuiteSparse/UMFPACK/Include',
         'C/SuiteSparse/AMD/Include', 'C/SuiteSparse/AMD/Source',
         'C/SuiteSparse/UFconfig', ],
-    library_dirs = [ ATLAS_LIB_DIR ],
+    library_dirs = libdirs,
     define_macros = MACROS,
     libraries = libraries,
     sources = [ 'C/umfpack.c',
@@ -130,7 +138,7 @@ import sys
 if sys.maxint > 2**31: MACROS += [('DLONG','')]
 
 cholmod = Extension('cholmod',
-    library_dirs = [ ATLAS_LIB_DIR ],
+    library_dirs = libdirs,
     libraries = libraries,
     include_dirs = [ 'C/SuiteSparse/CHOLMOD/Include',
         'C/SuiteSparse/COLAMD', 'C/SuiteSparse/AMD/Include',
@@ -150,11 +158,12 @@ amd = Extension('amd',
     include_dirs = [ 'C/SuiteSparse/AMD/Include',
         'C/SuiteSparse/UFconfig', ],
     define_macros = MACROS,
+    library_dirs = libdirs,
     sources = [ 'C/amd.c' ] + glob('C/SuiteSparse/AMD/Source/*.c') )
 
 misc_solvers = Extension('misc_solvers',
     libraries = libraries,
-    library_dirs = [ ATLAS_LIB_DIR ],
+    library_dirs = libdirs,
     define_macros = MACROS,
     sources = ['C/misc_solvers.c'] )
 

@@ -1246,7 +1246,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: L.coordinates(z)
             (0.46247636364807931766105406092, 0.79497588726808704200760395829)
 
-        Using `reduce=False` this step can be omitted.  In this case
+        Using ``reduce=False`` this step can be omitted.  In this case
         the coordinates are usually in the interval [-0.5,0.5), but
         this is not guaranteed.  This option is mainly for testing
         purposes::

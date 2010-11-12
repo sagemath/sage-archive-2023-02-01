@@ -46,9 +46,7 @@ as follows::
     ./sage -b main
 
 If ``SAGE_ROOT/devel/sage`` points to the main branch, you could use
-the above command or more simply the following command
-
-::
+the above command or more simply the following command::
 
     ./sage -b
 
@@ -61,9 +59,15 @@ rebuilds whatever branch that the symbolic link
 not rebuild everything in the Sage library, but only those files in the
 library that your changes affect. During the rebuild process, the
 affected source files are copied elsewhere and compiled, Cython files
-get converted to C code and compiled, and so on. Let this process
-manage itself and do not edit the copies of the source files at their
-destination.
+get converted to C code and compiled, and so on.
+
+This build process will copy the necessary files to
+``SAGE_ROOT/devel/sage/build`` and
+``SAGE_ROOT/local/lib/python/site-packages``.
+It is very important that you **do not change files** in these
+directories directly!
+If you would do that, then those files would get overwritten the next
+time you run ``sage -b``.
 
 You may want to create a totally distinct installation of Sage
 compiled from source, where you will work so as to not impact a

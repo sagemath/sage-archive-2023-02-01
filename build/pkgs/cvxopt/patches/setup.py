@@ -10,17 +10,17 @@ ATLAS_LIB_DIR = SAGE_LIB
 libdirs = [ATLAS_LIB_DIR]
 
 if os.uname()[0]=="Darwin":
-    libraries = ['m','lapack','gsl','blas','f95']
-    GCC_LIB_DIR=SAGE_LOCAL+"/lib/"
-    if os.path.exists(GCC_LIB_DIR + "gcc-lib"):
-       GCC_LIB_DIR += "gcc-lib/"
+    libraries = ['m','lapack','gsl','gslcblas','blas','f95']
+    GCC_LIB_DIR=SAGE_LIB
+    if os.path.exists(GCC_LIB_DIR + "/gcc-lib"):
+       GCC_LIB_DIR += "/gcc-lib/"
        GCC_LIB_DIR += os.listdir(GCC_LIB_DIR)[0] + "/"
        GCC_LIB_DIR += os.listdir(GCC_LIB_DIR)[0] + "/"
     libdirs = [ATLAS_LIB_DIR,GCC_LIB_DIR]
 elif os.environ['UNAME'] == 'CYGWIN':
-    libraries = ['lapack','gsl', 'blas', 'gfortran']
+    libraries = ['lapack','gsl','gslcblas','blas', 'gfortran']
 else:
-    libraries = ['m','lapack','gsl','blas','cblas','gfortran','atlas']
+    libraries = ['m','lapack','gsl','blas','gslcblas','cblas','gfortran','atlas']
 
 
 # Set to 1 if you are using the random number generators in the GNU

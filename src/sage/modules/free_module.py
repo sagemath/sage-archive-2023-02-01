@@ -4660,6 +4660,14 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             User basis matrix:
             [1 2 3]
             [4 5 6]
+
+        Now we test that the issue introduced at Trac #9502 and reported at
+        Trac #10250 is solved as well::
+
+            sage: V = (QQ^2).span_of_basis([[1,1]])
+            sage: w = sqrt(2) * V([1,1])
+            sage: 3 * w
+            (3*sqrt(2), 3*sqrt(2))
         """
         if not isinstance(ambient, FreeModule_ambient_pid):
             raise TypeError("ambient (=%s) must be ambient." % ambient)
@@ -4669,14 +4677,11 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         basis = list(basis) # make it a list rather than a tuple
         if check:
             V = ambient.ambient_vector_space()
-            for i in range(len(basis)):
-                x = basis[i]
-                if x not in V:
-                    try:
-                        basis[i] = V(x)
-                    except TypeError:
-                        raise TypeError("each element of basis must be in "
-                                        "the ambient vector space")
+            try:
+                basis = [V(x) for x in basis]
+            except TypeError:
+                raise TypeError("each element of basis must be in "
+                                "the ambient vector space")
         if echelonize and not already_echelonized:
             basis = self._echelonized_basis(ambient, basis)
         R = ambient.base_ring()

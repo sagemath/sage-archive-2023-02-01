@@ -66,7 +66,7 @@ This build process will copy the necessary files to
 ``SAGE_ROOT/local/lib/python/site-packages``.
 It is very important that you **do not change files** in these
 directories directly!
-If you would do that, then those files would get overwritten the next
+If you do that, then those files would get overwritten the next
 time you run ``sage -b``.
 
 You may want to create a totally distinct installation of Sage

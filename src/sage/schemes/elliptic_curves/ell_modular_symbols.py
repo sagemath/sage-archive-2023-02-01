@@ -215,10 +215,10 @@ class ModularSymbol(SageObject):
             1
             sage: m = EllipticCurve('11a2').modular_symbol(use_eclib=True)
             sage: m._scaling
-            5
+            5/2
             sage: m = EllipticCurve('11a3').modular_symbol(use_eclib=True)
             sage: m._scaling
-            1/5
+            1/10
             sage: m = EllipticCurve('11a1').modular_symbol(use_eclib=False)
             sage: m._scaling
             1/5
@@ -240,6 +240,9 @@ class ModularSymbol(SageObject):
             sage: m = EllipticCurve('389a1').modular_symbol(use_eclib=False)
             sage: m._scaling
             2
+            sage: m = EllipticCurve('196a1').modular_symbol(use_eclib=False)
+            sage: m._scaling
+            1/2
 
         Some harder cases fail::
 
@@ -247,11 +250,8 @@ class ModularSymbol(SageObject):
             Warning : Could not normalize the modular symbols, maybe all further results will be multiplied by -1, 2 or -2.
             sage: m._scaling
             1
-            sage: m = EllipticCurve('196a1').modular_symbol(use_eclib=False)
-            sage: m._scaling
-            1/2
 
-        Some checks of consistency::
+        TESTS ::
 
             sage: rk0 = ['11a1', '11a2', '15a1', '27a1', '37b1']
             sage: for la in rk0:
@@ -462,40 +462,47 @@ class ModularSymbolECLIB(ModularSymbol):
             2
             sage: M = EllipticCurve('121d1').modular_symbol(use_eclib=True,normalize='none')
             sage: M(0)
-            4
+            8
 
             sage: E = EllipticCurve('15a1')
             sage: [C.modular_symbol(use_eclib=True,normalize='L_ratio')(0) for C in E.isogeny_class()[0]]
             [1/4, 1/8, 1/4, 1/2, 1/8, 1/16, 1/2, 1]
             sage: [C.modular_symbol(use_eclib=True,normalize='none')(0) for C in E.isogeny_class()[0]]
-            [1/8, 1/8, 1/8, 1/8, 1/8, 1/8, 1/8, 1/8]
+            [1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4, 1/4]
 
-        Note that ``eclib`` now supports negative spaces of modular symbols,
-        but there is still an issue with normalization::
+        Currently, the interface for negative modular symbols in eclib is not yet written::
 
-            sage: M=sage.schemes.elliptic_curves.ell_modular_symbols.ModularSymbolECLIB(E,-1)
-            Warning : Could not normalize the modular symbols, maybe all further results will be multiplied by -1, 2 or -2.
-            sage: M(1/5)
-            3/8
+            sage: E.modular_symbol(use_eclib=True,sign=-1)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Despite that eclib has now -1 modular symbols the interface to them is not yet written.
 
+        TESTS (for trac 10236)::
+
+            sage: E = EllipticCurve('11a1')
+            sage: m = E.modular_symbol(use_eclib=True)
+            sage: m(1/7)
+            7/10
+            sage: m(0)
+            1/5
         """
         self._sign = ZZ(sign)
         if self._sign != sign:
             raise TypeError, 'sign must be an integer'
         if self._sign != -1 and self._sign != 1:
             raise TypeError, 'sign must -1 or 1'
+        if self._sign == -1:
+            raise NotImplementedError, "Despite that eclib has now -1 modular symbols the interface to them is not yet written."
         self._E = E
         self._use_eclib = True
         self._base_ring = QQ
         self._normalize = normalize
         self._modsym = ECModularSymbol(E)
         p = ZZ(2)
-        while 1:
-            if E.is_good(p):
-                break
+        while not E.is_good(p):
             p = p.next_prime()
-        # this computes {0,oo} using the Hacke-operator at p
-        self._atzero = sum([self._modsym(ZZ(a)/p) for a in range(p)])/E.Np(p)/2
+        # this computes {0,oo} using the Hecke-operator at p
+        self._atzero = sum([self._modsym(ZZ(a)/p) for a in range(p)])/E.Np(p)
 
         if normalize == "L_ratio":
             self._find_scaling_L_ratio()

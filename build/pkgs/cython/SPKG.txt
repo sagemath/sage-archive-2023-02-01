@@ -31,6 +31,10 @@ Apache License, Version 2.0
 
 == Changelog ==
 
+=== cython-0.13 ===
+
+ * Removed __getattr__ hack (upstreamed).
+
 === cython-0.13.p0 (Robert Bradshaw, September 16th 2010) ===
  * New upstream release.
  * Add a patch to speed up __getattr__().

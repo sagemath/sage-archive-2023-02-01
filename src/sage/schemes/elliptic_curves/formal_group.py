@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Formal groups of elliptic curves.
 
@@ -485,23 +486,63 @@ class EllipticCurveFormalGroup(SageObject):
         EXAMPLES::
 
             sage: e = EllipticCurve([1, 2])
-            sage: F = e.formal_group().group_law(5); F
-             t1 + O(t1^5) + (1 - 2*t1^4 + O(t1^5))*t2 + (-4*t1^3 + O(t1^5))*t2^2 + (-4*t1^2 - 30*t1^4 + O(t1^5))*t2^3 + (-2*t1 - 30*t1^3 + O(t1^5))*t2^4 + O(t2^5)
-            sage: i = e.formal_group().inverse(5)
+            sage: e.formal_group().group_law(5)
+            t1 + O(t1^5) + (1 - 2*t1^4 + O(t1^5))*t2 + (-4*t1^3 + O(t1^5))*t2^2 + (-4*t1^2 - 30*t1^4 + O(t1^5))*t2^3 + (-2*t1 - 30*t1^3 + O(t1^5))*t2^4 + O(t2^5)
+
+            sage: e = EllipticCurve('14a1')
+            sage: ehat = e.formal()
+            sage: ehat.group_law(3)
+            t1 + O(t1^3) + (1 - t1 - 4*t1^2 + O(t1^3))*t2 + (-4*t1 + O(t1^3))*t2^2 + O(t2^3)
+            sage: ehat.group_law(5)
+            t1 + O(t1^5) + (1 - t1 - 2*t1^3 - 32*t1^4 + O(t1^5))*t2 + (-3*t1^2 - 59*t1^3 - 120*t1^4 + O(t1^5))*t2^2 + (-2*t1 - 59*t1^2 - 141*t1^3 - 347*t1^4 + O(t1^5))*t2^3 + (-32*t1 - 120*t1^2 - 347*t1^3 - 951*t1^4 + O(t1^5))*t2^4 + O(t2^5)
+
+            sage: e = EllipticCurve(GF(7),[3,4])
+            sage: ehat = e.formal()
+            sage: ehat.group_law(3)
+            t1 + O(t1^3) + (1 + O(t1^3))*t2 + O(t2^3)
+            sage: F = ehat.group_law(7); F
+            t1 + O(t1^7) + (1 + t1^4 + 2*t1^6 + O(t1^7))*t2 + (2*t1^3 + 6*t1^5 + O(t1^7))*t2^2 + (2*t1^2 + 3*t1^4 + 2*t1^6 + O(t1^7))*t2^3 + (t1 + 3*t1^3 + 4*t1^5 + O(t1^7))*t2^4 + (6*t1^2 + 4*t1^4 + O(t1^7))*t2^5 + (2*t1 + 2*t1^3 + O(t1^7))*t2^6 + O(t2^7)
+
+        TESTS::
+
+            sage: i = e.formal_group().inverse(7)
             sage: Fx = F.base_extend(F.base_ring().base_extend(i.parent()))
             sage: Fx (i.parent().gen()) (i)
-             O(t^5)
+            O(t^7)
 
         Let's ensure caching with changed precision is working::
 
             sage: e.formal_group().group_law(4)
-             t1 + O(t1^4) + (1 + O(t1^4))*t2 + (-4*t1^3 + O(t1^4))*t2^2 + (-4*t1^2 + O(t1^4))*t2^3 + O(t2^4)
+            t1 + O(t1^4) + (1 + O(t1^4))*t2 + (2*t1^3 + O(t1^4))*t2^2 + (2*t1^2 + O(t1^4))*t2^3 + O(t2^4)
+
+        Test for trac ticket 9646::
+
+            sage: P.<a1, a2, a3, a4, a6> = PolynomialRing(ZZ, 5)
+            sage: E = EllipticCurve(list(P.gens()))
+            sage: F = E.formal().group_law(prec = 4)
+            sage: t2 = F.parent().gen()
+            sage: t1 = F.parent().base_ring().gen()
+            sage: F(t1, 0)
+            t1
+            sage: F(0, t2)
+            t2
+            sage: F[2][1]
+            -a2
+
         """
         prec = max(prec,0)
+        if prec <= 0:
+            raise ValueError, "The precision must be positive."
+
         R1 = rings.PowerSeriesRing(self.curve().base_ring(),"t1")
         R2 = rings.PowerSeriesRing(R1,"t2")
         t1 = R1.gen().add_bigoh(prec)
         t2 = R2.gen().add_bigoh(prec)
+
+        if prec == 1:
+            return R2(O(t2))
+        elif prec == 2:
+            return R2(t1+t2 - self.curve().a1()*t1*t2)
 
         fix_prec = lambda F, final_prec: R2([ c + O(t1**final_prec) for c in F ]) + O(t2**final_prec)
 
@@ -513,10 +554,10 @@ class EllipticCurveFormalGroup(SageObject):
             # we have to 'fix up' coefficient precisions
             return fix_prec(F, prec)
 
-        w = self.w(prec)
+        w = self.w(prec+1)
         tsum = lambda n: sum([t2**m * t1**(n-m-1) for m in range(n)])
-        lam = sum([tsum(n)*w[n] for n in range(3,prec)])
-        w1 = R1(w, prec)
+        lam = sum([tsum(n)*w[n] for n in range(3,prec+1)])
+        w1 = R1(w, prec+1)
         nu = w1 - lam*t1 + O(t1**prec)
         a1, a2, a3, a4, a6 = self.curve().ainvs()
         lam2 = lam*lam
@@ -604,6 +645,17 @@ class EllipticCurveFormalGroup(SageObject):
             sage: F = EllipticCurve(GF(101), [1, 1]).formal_group()
             sage: F.mult_by_n(100, 20)
             100*t + O(t^20)
+
+            sage: P.<a1, a2, a3, a4, a6> = PolynomialRing(ZZ, 5)
+            sage: E = EllipticCurve(list(P.gens()))
+            sage: E.formal().mult_by_n(2,prec=5)
+            2*t - a1*t^2 - 2*a2*t^3 + (a1*a2 - 7*a3)*t^4 + O(t^5)
+
+            sage: E = EllipticCurve(QQ, [1,2,3,4,6])
+            sage: E.formal().mult_by_n(2,prec=5)
+            2*t - t^2 - 4*t^3 - 19*t^4 + O(t^5)
+
+
         """
         if self.curve().base_ring().is_field() and self.curve().base_ring().characteristic() == 0 and n != 0:
             # The following algorithm only works over a field of

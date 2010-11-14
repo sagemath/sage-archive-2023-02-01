@@ -562,6 +562,7 @@ class EllipticCurveFormalGroup(SageObject):
         a1, a2, a3, a4, a6 = self.curve().ainvs()
         lam2 = lam*lam
         lam3 = lam2*lam
+        # note that the following formula differs from the one in Silverman page 119. See trac ticket 9646 for the explanation and justification.
         t3 = -t1 - t2 - \
              (a1*lam + a3*lam2 + a2*nu + 2*a4*lam*nu + 3*a6*lam2*nu)/  \
              (1 + a2*lam + a4*lam2 + a6*lam3)

@@ -9,7 +9,7 @@ SAGE_INCLUDE = os.environ['SAGE_LOCAL']+'/include'
 ATLAS_LIB_DIR = SAGE_LIB
 libdirs = [ATLAS_LIB_DIR]
 
-if os.uname()[0]=="Darwin":
+if os.popen('sage_fortran --version').read()[:3]=='G95':
     libraries = ['m','lapack','gsl','gslcblas','blas','f95']
     GCC_LIB_DIR=SAGE_LIB
     if os.path.exists(GCC_LIB_DIR + "/gcc-lib"):

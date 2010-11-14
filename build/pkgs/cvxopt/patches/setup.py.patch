@@ -1,5 +1,5 @@
 --- ../src/src/setup.py	2010-09-16 12:55:00.000000000 +0800
-+++ setup.py	2010-11-13 02:13:04.000000000 +0800
++++ setup.py	2010-11-14 19:48:09.000000000 +0800
 @@ -1,18 +1,37 @@
  from distutils.core import setup, Extension
  from glob import glob
@@ -13,7 +13,7 @@
 +ATLAS_LIB_DIR = SAGE_LIB
 +libdirs = [ATLAS_LIB_DIR]
 +
-+if os.uname()[0]=="Darwin":
++if os.popen('sage_fortran --version').read()[:3]=='G95':
 +    libraries = ['m','lapack','gsl','gslcblas','blas','f95']
 +    GCC_LIB_DIR=SAGE_LIB
 +    if os.path.exists(GCC_LIB_DIR + "/gcc-lib"):

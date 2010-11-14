@@ -3195,6 +3195,11 @@ def multinomial_coefficients(m, n):
         sage: multinomial(n, *k) == (k[0] + 1) / (n - k[0]) * s
         True
     """
+    if not m:
+        if n:
+            return {}
+        else:
+            return {(): 1}
     if m == 2:
         return binomial_coefficients(n)
     t = [n] + [0] * (m - 1)
@@ -3221,7 +3226,7 @@ def multinomial_coefficients(m, n):
             v = r[tuple(t)]
             t[j] += 1
         # compute the value
-        # NB: the very first step was mixed above
+        # NB: the initialization of v was done above
         for k in xrange(start, m):
             if t[k]:
                 t[k] -= 1

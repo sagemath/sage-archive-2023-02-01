@@ -957,8 +957,8 @@ class WordGenerator(object):
 
         INPUT:
 
-        -  ``alphabet`` - (default: (1,2)) any container that is suitable to
-           build an instance of OrderedAlphabet (list, tuple, str, ...)
+        -  ``alphabet`` - (default: (1,2)) an iterable of two positive
+           integers
 
         OUTPUT:
 
@@ -998,22 +998,24 @@ class WordGenerator(object):
             ...               w = words.KolakoskiWord(alphabet=(i,j))
             ...               assert w[:50] == w.delta()[:50]
 
+        ::
+
+            sage: words.KolakoskiWord((0, 2))
+            Traceback (most recent call last):
+            ...
+            ValueError: The alphabet (=(0, 2)) must consist of two distinct positive integers
+
         REFERENCES:
 
-        [1] William Kolakoski, proposal 5304, American Mathematical Monthly
-            72 (1965), 674; for a partial solution, see "Self Generating Runs,"
-            by Necdet Üçoluk, Amer. Math. Mon. 73 (1966), 681-2.
+        - [1] William Kolakoski, proposal 5304, American Mathematical Monthly
+          72 (1965), 674; for a partial solution, see "Self Generating Runs,"
+          by Necdet Üçoluk, Amer. Math. Mon. 73 (1966), 681-2.
         """
-        try:
-            a = int(alphabet[0])
-            b = int(alphabet[1])
-            if a <=0 or b <= 0 or a == b:
-                raise ValueError, 'The alphabet (=%s) must consist of two distinct positive integers'%alphabet
-            else:
-                return Words(alphabet)(self._KolakoskiWord_iterator(a, b), datatype = 'iter')
-        except:
-            raise ValueError, 'The elements of the alphabet (=%s) must be positive integers'%alphabet
-
+        a, b = alphabet
+        if a not in ZZ or a <= 0 or b not in ZZ or b <= 0 or a == b:
+            msg = 'The alphabet (=%s) must consist of two distinct positive integers'%(alphabet,)
+            raise ValueError, msg
+        return Words(alphabet)(self._KolakoskiWord_iterator(a, b), datatype = 'iter')
 
     def _KolakoskiWord_iterator(self, a=1, b=2):
         r"""

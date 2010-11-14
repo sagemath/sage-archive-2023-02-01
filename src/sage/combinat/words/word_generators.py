@@ -944,7 +944,8 @@ class WordGenerator(object):
         Returns the Kolakoski word over the given alphabet and
         starting with the first letter of the alphabet.
 
-        Let `A = \{a,b\}` be an alphabet. The Kolakoski word `K_{a,b}`
+        Let `A = \{a,b\}` be an alphabet, where `a` and `b` are two
+        distinct positive integers. The Kolakoski word `K_{a,b}`
         over `A` and starting with `a` is the unique infinite word `w`
         such that `w = \Delta(w)`, where `\Delta(w)` is the word
         encoding the runs of `w` (see ``delta()`` method on words for
@@ -973,6 +974,14 @@ class WordGenerator(object):
             sage: w.delta()
             word: 1221121221221121122121121221121121221221...
 
+        The other Kolakoski word on the same alphabet::
+
+            sage: w = words.KolakoskiWord(alphabet = (2,1))
+            sage: w
+            word: 2211212212211211221211212211211212212211...
+            sage: w.delta()
+            word: 2211212212211211221211212211211212212211...
+
         It is naturally generalized to any two integers alphabet::
 
             sage: w = words.KolakoskiWord(alphabet = (2,5))
@@ -995,15 +1004,24 @@ class WordGenerator(object):
             72 (1965), 674; for a partial solution, see "Self Generating Runs,"
             by Necdet Üçoluk, Amer. Math. Mon. 73 (1966), 681-2.
         """
-        return Words(alphabet)(self._KolakoskiWord_iterator(alphabet[0], alphabet[1]),
-                datatype = 'iter')
+        try:
+            a = int(alphabet[0])
+            b = int(alphabet[1])
+            if a <=0 or b <= 0 or a == b:
+                raise ValueError, 'The alphabet (=%s) must consist of two distinct positive integers'%alphabet
+            else:
+                return Words(alphabet)(self._KolakoskiWord_iterator(a, b), datatype = 'iter')
+        except:
+            raise ValueError, 'The elements of the alphabet (=%s) must be positive integers'%alphabet
+
 
     def _KolakoskiWord_iterator(self, a=1, b=2):
         r"""
         Returns an iterator over the Kolakoski word over ``{a,b}``
         and starting with ``a``.
 
-        Let `A = \{a,b\}` be an alphabet. The Kolakoski word `K_{a,b}`
+        Let `A = \{a,b\}` be an alphabet, where `a` and `b` are two
+        distinct positive integers. The Kolakoski word `K_{a,b}`
         over `A` and starting with `a` is the unique infinite word `w`
         such that `w = \Delta(w)`, where `\Delta(w)` is the word
         encoding the runs of `w` (see ``delta()`` method on words for
@@ -1042,17 +1060,18 @@ class WordGenerator(object):
             w.extend([b] * b)
             for _ in range(b):
                 yield b
-            current_run = 2
-        else:
-            current_run = 1
+            w.pop(0)
+        w.pop(0)
+        # Letters swap function
         bar = lambda x : a if x == b else b
+        current_letter = bar(w[-1])
         # Now we are ready to go in the recursive part
         while True:
-            current_letter = bar(w[-1])
-            for _ in range(w[current_run]):
+            for _ in range(w[0]):
                 yield current_letter
                 w.append(current_letter)
-            current_run += 1
+            w.pop(0)
+            current_letter = bar(current_letter)
 
     def LowerMechanicalWord(self, alpha, rho=0, alphabet=None):
         r"""

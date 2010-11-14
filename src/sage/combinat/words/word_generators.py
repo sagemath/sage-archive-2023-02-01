@@ -1903,4 +1903,71 @@ class WordGenerator(object):
         #kwds['check'] = False
         return W(**kwds)
 
+    def PalindromicDefectWord(self, k=1, alphabet='ab'):
+        r"""
+        Returns the finite word `w = a b^k a b^{k-1} a a b^{k-1} a b^{k} a`.
+
+        As described by Brlek, Hamel, Nivat and Reuteunaer in [1], this
+        finite word `w` is such that the infinite periodic word `w^\omega`
+        have palindromic defect ``k``.
+
+        INPUT:
+
+        - ``k`` - positive integer (optional, default: 1)
+        - ``alphabet`` - iterable (optional, default: ``'ab'``) of size two
+
+        OUTPUT:
+
+        finite word
+
+        EXAMPLES::
+
+            sage: words.PalindromicDefectWord(10)
+            word: abbbbbbbbbbabbbbbbbbbaabbbbbbbbbabbbbbbb...
+
+        ::
+
+            sage: w = words.PalindromicDefectWord(3)
+            sage: w
+            word: abbbabbaabbabbba
+            sage: w.defect()
+            0
+            sage: (w^2).defect()
+            3
+            sage: (w^3).defect()
+            3
+
+        On other alphabets::
+
+            sage: words.PalindromicDefectWord(3, alphabet='cd')
+            word: cdddcddccddcdddc
+            sage: words.PalindromicDefectWord(3, alphabet=['c', 3])
+            word: c333c33cc33c333c
+
+        TESTS::
+
+            sage: k = 25
+            sage: (words.PalindromicDefectWord(k)^2).defect()
+            25
+
+        If k is negative or zero, then we get the same word::
+
+            sage: words.PalindromicDefectWord(0)
+            word: aaaaaa
+            sage: words.PalindromicDefectWord(-3)
+            word: aaaaaa
+
+        REFERENCES:
+
+        - [1] S. Brlek, S. Hamel, M. Nivat and C. Reutenauer, On the
+          palindromic complexity of infinite words, Int. J. Found. Comput.
+          Sci. 15: 2 (2004) 293-306.
+        """
+        kk = k-1
+        a, b = alphabet
+        if not (isinstance(a, str) and isinstance(b, str)):
+            a, b = (a,), (b,)
+        w = a + b*k + a + b*kk + a + a + b*kk + a + b*k + a
+        return Words(alphabet)(w)
+
 words = WordGenerator()

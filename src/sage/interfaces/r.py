@@ -1120,12 +1120,13 @@ class R(Expect):
             sage: tmpdir = tempfile.mkdtemp()
             sage: r.chdir(tmpdir)
 
-        On Linux, we could use ``tmpdir == sageobj(r.getwd())``
-        to test this, but Mac prepends ``/private/`` to such
-        directories, so we check that the directory name string
-        is in the working directory string instead::
+        Check that ``tmpdir`` and ``r.getwd()`` refer to the same
+        directory.  We need to use ``realpath()`` in case ``$TMPDIR``
+        (by default ``/tmp``) is a symbolic link (see #10264).
 
-            sage: tmpdir in sageobj(r.getwd())
+        ::
+
+            sage: os.path.realpath(tmpdir) == sageobj(r.getwd())
             True
         """
         self.execute('setwd(%r)' % dir)

@@ -38,6 +38,7 @@ from sage.combinat.combinat import InfiniteAbstractCombinatorialClass
 from sage.combinat.combinat import CombinatorialObject
 from sage.combinat.words.alphabet import OrderedAlphabet
 from sage.misc.lazy_attribute import lazy_attribute
+from sage.plot.misc import rename_keyword
 from sage.misc.mrange import xmrange
 from sage.rings.all import Infinity
 from sage.rings.integer import Integer
@@ -1152,33 +1153,34 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
             for w in self.iterate_by_length(l):
                 yield w
 
-    def iter_morphisms(self, l=None, codomain=None, min_length=1):
+    @rename_keyword(deprecated='Sage version 4.6.1', l='arg')
+    def iter_morphisms(self, arg=None, codomain=None, min_length=1):
         r"""
         Iterate over all morphisms with domain ``self`` and the given
         codmain.
 
         INPUT:
 
-        - ``l`` - (optional, default: None) It can be one of the following :
+        - ``arg`` - (optional, default: None) It can be one of the following :
 
           - ``None`` - then the method iterates through all morphisms.
-
-          - list of nonnegative integers - The length of the list must be
-            the number of letters in the alphabet, and the `i`-th integer
-            of ``l`` determines the length of the word mapped to by the
-            `i`-th letter of the (ordered) alphabet.
 
           - tuple `(a, b)` of two integers  - It specifies the range
             ``range(a, b)`` of values to consider for the sum of the length
             of the image of each letter in the alphabet.
 
+          - list of nonnegative integers - The length of the list must be
+            equal to the size of the alphabet, and the i-th integer of
+            ``arg`` determines the length of the word mapped to by the i-th
+            letter of the (ordered) alphabet.
+
         - ``codomain`` - (default: None) a combinatorial class of words.
           By default, ``codomain`` is ``self``.
 
-        - ``min_length`` - (default: 1) nonnegative integer. If ``l`` is
+        - ``min_length`` - (default: 1) nonnegative integer. If ``arg`` is
           not specified, then iterate through all the morphisms where the
           length of the images of each letter in the alphabet is at least
-          ``min_length``. This is ignored if ``l`` is a list.
+          ``min_length``. This is ignored if ``arg`` is a list.
 
         OUTPUT:
 
@@ -1336,36 +1338,42 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
             sage: list(W.iter_morphisms([0, 1, 2]))
             Traceback (most recent call last):
             ...
-            TypeError: l (=[0, 1, 2]) must be an iterable of 2 integers
+            TypeError: arg (=[0, 1, 2]) must be an iterable of 2 integers
             sage: list(W.iter_morphisms([0, 'a']))
             Traceback (most recent call last):
             ...
-            TypeError: l (=[0, 'a']) must be an iterable of 2 integers
+            TypeError: arg (=[0, 'a']) must be an iterable of 2 integers
             sage: list(W.iter_morphisms([0, 1], codomain='a'))
             Traceback (most recent call last):
             ...
             TypeError: codomain (=a) must be an instance of Words_over_OrderedAlphabet
+
+        The argument ``l`` is now deprecated::
+
+            sage: W = Words('ab')
+            sage: it = W.iter_morphisms(l=None)
+            doctest:...: DeprecationWarning: (Since Sage version 4.6.1) use the option 'arg' instead of 'l'
         """
         n = self.size_of_alphabet()
-        # create an iterable of compositions (all "compositions" if l is
-        # None, or [l] otherwise)
-        if l is None:
+        # create an iterable of compositions (all "compositions" if arg is
+        # None, or [arg] otherwise)
+        if arg is None:
             from sage.combinat.integer_list import IntegerListsLex
             compositions = IntegerListsLex(itertools.count(),
                     length=n, min_part = max(0,min_length))
-        elif isinstance(l, tuple):
-            if not len(l) == 2 or not all(isinstance(a, (int,Integer)) for a in l):
-                raise TypeError("l (=%s) must be a tuple of 2 integers" %l)
+        elif isinstance(arg, tuple):
+            if not len(arg) == 2 or not all(isinstance(a, (int,Integer)) for a in arg):
+                raise TypeError("arg (=%s) must be a tuple of 2 integers" %arg)
             from sage.combinat.integer_list import IntegerListsLex
-            compositions = IntegerListsLex(range(*l),
+            compositions = IntegerListsLex(range(*arg),
                     length=n, min_part = max(0,min_length))
         else:
-            l = list(l)
-            if (not len(l) == n or not
-                    all(isinstance(a, (int,Integer)) for a in l)):
+            arg = list(arg)
+            if (not len(arg) == n or not
+                    all(isinstance(a, (int,Integer)) for a in arg)):
                 raise TypeError(
-                    "l (=%s) must be an iterable of %s integers" %(l, n))
-            compositions = [l]
+                    "arg (=%s) must be an iterable of %s integers" %(arg, n))
+            compositions = [arg]
 
         # set the codomain
         if codomain is None:

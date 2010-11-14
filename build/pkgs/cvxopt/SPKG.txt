@@ -48,6 +48,9 @@ GSL, GLPK
 == Changelog ==
 
 === cvxopt-1.1.3 (Dima Pasechnik, Mike Hansen, Harald Schilly, David Kirkby, Peter Jeremy, November, 2010) ===
+ * fiddled with the lists of libraries to link, on per Fortran compiler basis.
+ * added recongnision of g95 directly, rather than by platform.
+ * added getting the right -L path to libf95 for g95.
  * #6456 Updated to 1.1.3.
  * Modified setup.py to build correctly under Cygwin.
  * applied P.Jeremy's FreeBSD patch (see #6456)

@@ -3934,11 +3934,92 @@ exponent %s: the length of the word (%s) times the exponent \
         """
         return Integer(sum(1 for a in self if a == letter))
 
+    def balance(self):
+        r"""
+        Returns the balance of self.
+
+        The balance of a word is the smallest number `q` such that self is
+        `q`-balanced [1].
+
+        A finite or infinite word `w` is said to be `q`-*balanced* if for
+        any two factors `u`, `v` of `w` of the same length, the difference
+        between the number of `x`'s in each of `u` and `v` is at most `q`
+        for all letters `x` in the alphabet of `w`. A `1`-balanced word is
+        simply said to be balanced. See Chapter 2 of [2].
+
+        OUTPUT:
+
+        integer
+
+        EXAMPLES::
+
+            sage: Word('1111111').balance()
+            0
+            sage: Word('001010101011').balance()
+            2
+            sage: Word('0101010101').balance()
+            1
+
+        ::
+
+            sage: w = Word('11112222')
+            sage: w.is_balanced(2)
+            False
+            sage: w.is_balanced(3)
+            False
+            sage: w.is_balanced(4)
+            True
+            sage: w.is_balanced(5)
+            True
+            sage: w.balance()
+            4
+
+        TESTS::
+
+            sage: Word('1111122222').balance()
+            5
+            sage: Word('').balance()
+            0
+            sage: Word('1').balance()
+            0
+            sage: Word('12').balance()
+            1
+            sage: Word('1112').balance()
+            1
+
+        REFERENCES:
+
+        -  [1] I. Fagnot, L. Vuillon, Generalized balances in Sturmian words,
+           Discrete Applied Mathematics 121 (2002), 83--101.
+        -  [2] M. Lothaire, Algebraic Combinatorics On Words, vol. 90 of
+           Encyclopedia of Mathematics and its Applications, Cambridge
+           University Press, U.K., 2002.
+        """
+        alphabet = set(self)
+        best = 0
+        for i in range(1, self.length()):
+            start = iter(self)
+            end = iter(self)
+            abelian = dict(zip(alphabet, [0]*len(alphabet)))
+            for _ in range(i):
+                abelian[end.next()] += 1
+            abel_max = abelian.copy()
+            abel_min = abelian.copy()
+            for _ in range(self.length() - i):
+                lost = start.next()
+                gain = end.next()
+                abelian[gain] += 1
+                abelian[lost] -= 1
+                abel_max[gain] = max(abel_max[gain], abelian[gain])
+                abel_min[lost] = min(abel_min[lost], abelian[lost])
+            best = max(best, max(abel_max[a] - abel_min[a] for a in alphabet))
+        return best
+
     def is_balanced(self, q=1):
         r"""
         Returns True if self is `q`-balanced, and False otherwise.
 
-        A finite or infinite word `w` is said to be *`q`-balanced* if for
+        A finite or infinite word `w` is said to be `q`-*balanced* if for
         any two factors `u`, `v` of `w` of the same length, the difference
         between the number of `x`'s in each of `u` and `v` is at most `q`
         for all letters `x` in the alphabet of `w`. A `1`-balanced word is

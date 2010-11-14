@@ -1,0 +1,49 @@
+= patch =
+
+== Description ==
+
+'patch' takes a patch file containing a difference listing produced
+by the 'diff' program and applies those differences to one
+or more original files, producing patched versions.
+
+The version of 'patch' included is the GNU one. Some of the 'diff' files
+produced by GNU 'diff' are not acceptble to some versions of the 'patch'
+command, such as the 'patch' command that comes with Solaris.
+
+== License ==
+
+GNU General Public License v3 or later
+
+== SPKG Maintainers ==
+
+David Kirkby. david.kirkby@onetel.net
+
+== Upstream Contact ==
+
+Main web site: http://savannah.gnu.org/projects/patch/
+Bug database at http://savannah.gnu.org/bugs/?group=patch
+Submit bugs at http://savannah.gnu.org/bugs/?func=additem&group=patch
+Mailing lists bug-patch@gnu.org and
+
+== Dependencies ==
+
+None
+
+== Special Update/Build Instructions ==
+
+In the event patches ever need to be made to this package,
+the method of applying the patches should not reply on the
+'patch' existing on the system.
+
+Some of the self-tests require the GNU version of 'diff' so will
+be bypassed on Solaris and OpenSolaris unless the GNU version of
+'diff' is the first version of 'diff' in the path. This does not
+cause any problems, as the tests detect the Sun diff is not
+the GNU diff, so do not run the tests.
+
+
+== Changelog ==
+
+=== patch-2.6.1 (David Kirkby, 14th november 2010)  ===
+ * Initial version.
+

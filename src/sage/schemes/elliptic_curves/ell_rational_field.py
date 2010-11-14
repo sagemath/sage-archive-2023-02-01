@@ -1157,9 +1157,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         ::
 
             sage: E=EllipticCurve('121b1')
+            Warning : Could not normalize the modular symbols, maybe all further results will be multiplied by -1, 2 or -2.
             sage: M=E.modular_symbol()
             sage: M(1/7)
-            2
+            -1
 
         ::
 
@@ -1179,7 +1180,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.modular_symbol(use_eclib=True, normalize='L_ratio')(0)
             1
             sage: E.modular_symbol(use_eclib=True, normalize='none')(0)
-            1/5
+            2/5
             sage: E.modular_symbol(use_eclib=True, normalize='period')(0)
             Traceback (most recent call last):
             ...

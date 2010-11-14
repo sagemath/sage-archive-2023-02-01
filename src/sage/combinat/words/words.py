@@ -1157,7 +1157,7 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
     def iter_morphisms(self, arg=None, codomain=None, min_length=1):
         r"""
         Iterate over all morphisms with domain ``self`` and the given
-        codmain.
+        codomain.
 
         INPUT:
 
@@ -1184,7 +1184,7 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
 
         OUTPUT:
 
-            iterator
+        iterator
 
         EXAMPLES:
 

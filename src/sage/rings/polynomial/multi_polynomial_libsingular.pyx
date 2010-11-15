@@ -3469,7 +3469,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         return f
 
-    def factor(self, proof=True):
+    def factor(self, proof=None):
         r"""
         Return the factorization of this polynomial.
 
@@ -3573,6 +3573,19 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             Traceback (most recent call last):
             ...
             NotImplementedError: Factorization of multivariate polynomials over non-fields is not implemented.
+
+        This shows that ticket \#10270 is fixed::
+
+            sage: R.<x,y,z> = GF(3)[]
+            sage: f = x^2*z^2+x*y*z-y^2
+            sage: proof.polynomial(False)
+            sage: f.factor()
+            x^2*z^2 + x*y*z - y^2
+            sage: proof.polynomial(True)
+            sage: f.factor()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: proof = True factorization not implemented.  Call factor with proof=False.
         """
         cdef ring *_ring
         cdef poly *ptemp
@@ -3584,6 +3597,10 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         parent = self._parent
         _ring = parent._ring
+
+        if proof is None:
+            from sage.structure.proof.proof import get_flag
+            proof = get_flag(proof, "polynomial")
 
         if(_ring != currRing): rChangeCurrRing(_ring)
 

@@ -578,6 +578,12 @@ ext_modules = [
               sources = ["sage/libs/pari/gen.pyx"],
               libraries = ['pari', 'gmp']),
 
+    Extension('sage.libs.ppl',
+              sources = ['sage/libs/ppl.pyx', 'sage/libs/ppl_shim.cc'],
+              libraries = ['ppl', 'gmpxx', 'gmp', 'm'],
+              language="c++",
+              depends = [SAGE_LOCAL + "/include/ppl.hh"]),
+
     Extension('sage.libs.ratpoints',
               sources = ["sage/libs/ratpoints.pyx"],
               depends = [SAGE_ROOT + '/local/include/ratpoints.h'],

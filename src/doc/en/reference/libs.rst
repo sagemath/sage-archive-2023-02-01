@@ -32,3 +32,4 @@ to be aware of the modules described in this chapter.
    sage/libs/mwrank/interface
    sage/libs/singular/function
    sage/libs/singular/option
+   sage/libs/ppl

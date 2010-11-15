@@ -782,3 +782,48 @@ def RandomToleranceGraph(n):
 
     return ToleranceGraph(tolrep)
 
+
+def RandomTriangulation(self, n):
+    """
+    Returns a random triangulation on n vertices.
+
+    A triangulation is a planar graph all of whose faces are
+    triangles (3-cycles).
+
+    The graph is built by independently generating `n` points
+    uniformly at random on the surface of a sphere, finding the
+    convex hull of those points, and then returning the 1-skeleton
+    of that polyhedron.
+
+    INPUT:
+
+    -  ``n`` -- number of vertices (recommend `n \ge 3`)
+
+    EXAMPLES::
+
+        sage: g = graphs.RandomTriangulation(10)
+        sage: g.is_planar()
+        True
+        sage: g.num_edges() == 3*10 - 6
+        True
+    """
+    from sage.misc.prandom import normalvariate
+    from sage.geometry.polyhedra import Polyhedron
+    from sage.rings.real_double import RDF
+
+    # this function creates a random unit vector in R^3
+    def rand_unit_vec():
+        vec = [normalvariate(0, 1) for k in range(3)]
+        mag = sum([x*x for x in vec]) ** 0.5
+        return [x/mag for x in vec]
+
+    # generate n unit vectors at random
+    points = [rand_unit_vec() for k in range(n)]
+
+    # find their convex hull
+    P = Polyhedron(vertices=points, field=RDF)
+
+    # extract the 1-skeleton
+    g = P.vertex_graph()
+    g.rename('Planar triangulation on %d vertices' % n)
+    return g

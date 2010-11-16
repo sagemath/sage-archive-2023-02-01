@@ -1181,6 +1181,11 @@ def random_prime(n, proof=None, lbound=2):
         Traceback (most recent call last):
         ...
         ValueError: n must be greater than or equal to 2
+        sage: random_prime(126, lbound=114)
+        Traceback (most recent call last):
+        ...
+        ValueError: There are no primes between 114 and 126 (inclusive)
+
 
     AUTHORS:
 
@@ -1197,25 +1202,40 @@ def random_prime(n, proof=None, lbound=2):
     if n < 2:
         raise ValueError, "n must be greater than or equal to 2"
     if n < lbound:
-        raise ValueError, "n must be greater than lbound: %s"%(lbound)
+        raise ValueError, "n must be at least lbound: %s"%(lbound)
     elif n == 2:
-        return ZZ(n)
+        return n
+    lbound = max(2, lbound)
+    if lbound > 2:
+        if lbound == 3 or n <= 2*lbound - 2:
+        # check for Betrand's postulate (proved by Chebyshev)
+            if lbound < 25 or n <= 6*lbound/5:
+            # see J. Nagura, Proc. Japan Acad. 28, (1952). 177Ð181.
+                if lbound < 2010760 or n <= 16598*lbound/16597:
+                # see L. Schoenfeld, Math. Comp. 30 (1976), no. 134, 337Ð360.
+                    if proof:
+                        smallest_prime = ZZ(lbound-1).next_prime()
+                    else:
+                        smallest_prime = ZZ(lbound-1).next_probable_prime()
+                    if smallest_prime > n:
+                        raise ValueError, \
+                              "There are no primes between %s and %s (inclusive)" % (lbound, n)
+
+    if proof:
+        prime_test = is_prime
     else:
-        if not proof:
-            prime_test = is_pseudoprime
-        else:
-            prime_test = is_prime
-        randint = current_randstate().python_random().randint
-        while(1):
-            # In order to ensure that the returned prime is chosen
-            # uniformly from the set of primes it is necessary to
-            # choose a random number and then test for primality.
-            # The method of choosing a random number and then returning
-            # the closest prime smaller than it would typically not,
-            # for example, return the first of a pair of twin primes.
-            p = randint(lbound,n)
-            if prime_test(p):
-                return ZZ(p)
+        prime_test = is_pseudoprime
+    randint = current_randstate().python_random().randint
+    while True:
+        # In order to ensure that the returned prime is chosen
+        # uniformly from the set of primes it is necessary to
+        # choose a random number and then test for primality.
+        # The method of choosing a random number and then returning
+        # the closest prime smaller than it would typically not,
+        # for example, return the first of a pair of twin primes.
+        p = randint(lbound, n)
+        if prime_test(p):
+            return ZZ(p)
 
 
 def divisors(n):

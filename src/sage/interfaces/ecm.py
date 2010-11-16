@@ -13,6 +13,7 @@ from math import ceil, floor
 
 from sage.rings.integer import Integer
 from sage.misc.misc import verbose, get_verbose, tmp_filename
+from sage.misc.decorators import rename_keyword
 
 import cleaner
 
@@ -150,7 +151,8 @@ class ECM:
         return self._recommended_B1_list[self.__B1_table_value(factor_digits)]
 
 
-    def one_curve(self, n, factor_digits=None, B1=2000, method="ECM", **kwds):
+    @rename_keyword(deprecated='Sage version 4.6', method="algorithm")
+    def one_curve(self, n, factor_digits=None, B1=2000, algorithm="ECM", **kwds):
         """
         Run one single ECM (or P-1/P+1) curve on input n.
 
@@ -158,7 +160,7 @@ class ECM:
             n -- a positive integer
             factor_digits -- decimal digits estimate of the wanted factor
             B1 -- stage 1 bound (default 2000)
-            method -- either "ECM" (default), "P-1" or "P+1"
+            algorithm -- either "ECM" (default), "P-1" or "P+1"
         OUTPUT:
             a list [p,q] where p and q are integers and n = p * q.
             If no factor was found, then p = 1 and q = n.
@@ -171,23 +173,23 @@ class ECM:
             sage: f.one_curve(n, B1=10000, sigma=1022170541)
             [79792266297612017, 6366805760909027985741435139224233]
             sage: n = 432132887883903108009802143314445113500016816977037257
-            sage: f.one_curve(n, B1=500000, method="P-1")
+            sage: f.one_curve(n, B1=500000, algorithm="P-1")
             [67872792749091946529, 6366805760909027985741435139224233]
             sage: n = 2088352670731726262548647919416588631875815083
-            sage: f.one_curve(n, B1=2000, method="P+1", x0=5)
+            sage: f.one_curve(n, B1=2000, algorithm="P+1", x0=5)
             [328006342451, 6366805760909027985741435139224233]
         """
         n = Integer(n)
         self._validate(n)
         if not factor_digits is None:
             B1 = self.recommended_B1(factor_digits)
-        if method == "P-1":
+        if algorithm == "P-1":
             kwds['pm1'] = ''
-        elif method == "P+1":
+        elif algorithm == "P+1":
             kwds['pp1'] = ''
         else:
-           if not method == "ECM":
-              err = "unexpected method: " + method
+           if not algorithm == "ECM":
+              err = "unexpected algorithm: " + algorithm
               raise ValueError, err
         self.__cmd = self._ECM__startup_cmd(B1, None, kwds)
         child = pexpect.spawn(self.__cmd)

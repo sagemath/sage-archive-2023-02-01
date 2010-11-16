@@ -21,6 +21,7 @@ TODO:
 #*****************************************************************************
 
 from sage.coding.linear_code import hamming_weight, LinearCode
+from sage.misc.decorators import rename_keyword
 
 def syndrome(C, v):
     """
@@ -85,7 +86,8 @@ def coset_leader(C, v):
             break
     return s,w
 
-def decode(C, v, method="syndrome"):
+@rename_keyword(deprecated='Sage version 4.6', method="algorithm")
+def decode(C, v, algorithm="syndrome"):
     """
     The vector v represents a received word, so should
     be in the same ambient space V as C. Returns an
@@ -106,7 +108,7 @@ def decode(C, v, method="syndrome"):
         (1, 2, 0, 1)
         sage: c in C
         True
-        sage: c = decode(C, v, method="nearest neighbor");c
+        sage: c = decode(C, v, algorithm="nearest neighbor");c
         (1, 2, 0, 1)
         sage: C = HammingCode(3,GF(3)); C
         Linear code of length 13, dimension 10 over Finite Field of size 3
@@ -114,7 +116,7 @@ def decode(C, v, method="syndrome"):
         sage: v = V([2]+[0]*12)
         sage: decode(C, v)
         (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-        sage: decode(C, v, method="nearest neighbor")
+        sage: decode(C, v, algorithm="nearest neighbor")
         (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
     """
@@ -122,9 +124,9 @@ def decode(C, v, method="syndrome"):
     if not(type(v)==list):
         v = v.list()
     v = V(v)
-    if method=="nearest neighbor":
+    if algorithm=="nearest neighbor":
         diffs = [[c-v,hamming_weight(c-v)] for c in C]
         diffs.sort(lambda x,y:  x[1]-y[1])
         return diffs[0][0]+v
-    if method=="syndrome":
+    if algorithm=="syndrome":
         return -V(syndrome(C, v)[0])+v

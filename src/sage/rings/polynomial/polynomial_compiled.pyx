@@ -15,6 +15,7 @@ AUTHORS:
 ################################################################################
 
 from sage.misc.sagex_ds cimport BinaryTree
+from sage.misc.decorators import rename_keyword
 
 cdef class CompiledPolynomialFunction:
     """
@@ -38,7 +39,8 @@ cdef class CompiledPolynomialFunction:
     """
 
 
-    def __init__(self, coeffs, method='binary'):
+    @rename_keyword(deprecated='Sage version 4.6', method="algorithm")
+    def __init__(self, coeffs, algorithm='binary'):
         """
         Compiles a polynomial into an evaluation DAG representation which
         is at least as optimal as using Horner's Rule.  For polynomials
@@ -86,7 +88,7 @@ cdef class CompiledPolynomialFunction:
         are filled in, we strip out dummy nodes, and are left with a
         complete representation of our polynomial.
 
-         * The "binary" method (currently the only method; others are
+         * The "binary" algorithm (currently the only algorithm; others are
         forthcoming) requires the gaps to considered in order, and adds
         additional dummies as it goes.  Hence, the gaps are put into a
         binary tree.
@@ -99,9 +101,9 @@ cdef class CompiledPolynomialFunction:
         gaps, dag = self._parse_structure()
         max_gap = <generic_pd>(gaps.get_max())
         if max_gap.label > 1:
-            if method == 'binary':
+            if algorithm == 'binary':
                 self._fill_gaps_binary(gaps)
-            elif method == 'pippenger':
+            elif algorithm == 'pippenger':
                 raise NotImplementedError, "Implementation of Pippenger's Algorithm is not ready for prime time."
                 self._fill_gaps_pippenger()
             else:

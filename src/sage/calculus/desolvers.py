@@ -61,6 +61,7 @@ from sage.plot.all import line
 from sage.symbolic.expression import is_SymbolicEquation
 from sage.symbolic.ring import is_SymbolicVariable
 from sage.calculus.functional import diff
+from sage.misc.decorators import rename_keyword
 
 maxima = Maxima()
 
@@ -828,7 +829,8 @@ def desolve_system_strings(des,vars,ics=None):
     soln = maxima(cmd)
     return [f.rhs()._maxima_init_() for f in soln]
 
-def eulers_method(f,x0,y0,h,x1,method="table"):
+@rename_keyword(deprecated='Sage version 4.6', method="algorithm")
+def eulers_method(f,x0,y0,h,x1,algorithm="table"):
     r"""
     This implements Euler's method for finding numerically the
     solution of the 1st order ODE ``y' = f(x,y)``, ``y(a)=c``. The "x"
@@ -852,14 +854,14 @@ def eulers_method(f,x0,y0,h,x1,method="table"):
     ::
 
         sage: x,y = PolynomialRing(QQ,2,"xy").gens()
-        sage: eulers_method(5*x+y-5,0,1,1/2,1,method="none")
+        sage: eulers_method(5*x+y-5,0,1,1/2,1,algorithm="none")
         [[0, 1], [1/2, -1], [1, -11/4], [3/2, -33/8]]
 
     ::
 
         sage: RR = RealField(sci_not=0, prec=4, rnd='RNDU')
         sage: x,y = PolynomialRing(RR,2,"xy").gens()
-        sage: eulers_method(5*x+y-5,0,1,1/2,1,method="None")
+        sage: eulers_method(5*x+y-5,0,1,1/2,1,algorithm="None")
         [[0, 1], [1/2, -1.0], [1, -2.7], [3/2, -4.0]]
 
     ::
@@ -884,12 +886,12 @@ def eulers_method(f,x0,y0,h,x1,method="table"):
 
     ::
 
-        sage: eulers_method(5*x+y-5,0,1,1/2,1,method="none")
+        sage: eulers_method(5*x+y-5,0,1,1/2,1,algorithm="none")
         [[0, 1], [1/2, -1], [1, -11/4], [3/2, -33/8]]
 
     ::
 
-        sage: pts = eulers_method(5*x+y-5,0,1,1/2,1,method="none")
+        sage: pts = eulers_method(5*x+y-5,0,1,1/2,1,algorithm="none")
         sage: P1 = list_plot(pts)
         sage: P2 = line(pts)
         sage: (P1+P2).show()
@@ -898,21 +900,22 @@ def eulers_method(f,x0,y0,h,x1,method="table"):
 
     - David Joyner
     """
-    if method=="table":
+    if algorithm=="table":
         print "%10s %20s %25s"%("x","y","h*f(x,y)")
     n=int((1.0)*(x1-x0)/h)
     x00=x0; y00=y0
     soln = [[x00,y00]]
     for i in range(n+1):
-        if method=="table":
+        if algorithm=="table":
             print "%10r %20r %20r"%(x00,y00,h*f(x00,y00))
         y00 = y00+h*f(x00,y00)
         x00=x00+h
         soln.append([x00,y00])
-    if method!="table":
+    if algorithm!="table":
         return soln
 
-def eulers_method_2x2(f,g, t0, x0, y0, h, t1,method="table"):
+@rename_keyword(deprecated='Sage version 4.6', method="algorithm")
+def eulers_method_2x2(f,g, t0, x0, y0, h, t1,algorithm="table"):
     r"""
     This implements Euler's method for finding numerically the
     solution of the 1st order system of two ODEs
@@ -935,7 +938,7 @@ def eulers_method_2x2(f,g, t0, x0, y0, h, t1,method="table"):
         sage: from sage.calculus.desolvers import eulers_method_2x2
         sage: t, x, y = PolynomialRing(QQ,3,"txy").gens()
         sage: f = x+y+t; g = x-y
-        sage: eulers_method_2x2(f,g, 0, 0, 0, 1/3, 1,method="none")
+        sage: eulers_method_2x2(f,g, 0, 0, 0, 1/3, 1,algorithm="none")
         [[0, 0, 0], [1/3, 0, 0], [2/3, 1/9, 0], [1, 10/27, 1/27], [4/3, 68/81, 4/27]]
 
     ::
@@ -991,20 +994,20 @@ def eulers_method_2x2(f,g, t0, x0, y0, h, t1,method="table"):
 
     - David Joyner
     """
-    if method=="table":
+    if algorithm=="table":
         print "%10s %20s %25s %20s %20s"%("t", "x","h*f(t,x,y)","y", "h*g(t,x,y)")
     n=int((1.0)*(t1-t0)/h)
     t00 = t0; x00 = x0; y00 = y0
     soln = [[t00,x00,y00]]
     for i in range(n+1):
-        if method=="table":
+        if algorithm=="table":
             print "%10r %20r %25r %20r %20r"%(t00,x00,h*f(t00,x00,y00),y00,h*g(t00,x00,y00))
         x01 = x00 + h*f(t00,x00,y00)
         y00 = y00 + h*g(t00,x00,y00)
         x00 = x01
         t00 = t00 + h
         soln.append([t00,x00,y00])
-    if method!="table":
+    if algorithm!="table":
         return soln
 
 def eulers_method_2x2_plot(f,g, t0, x0, y0, h, t1):

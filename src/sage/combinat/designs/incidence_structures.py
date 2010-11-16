@@ -32,6 +32,7 @@ import types
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.integer_ring import ZZ
 from sage.rings.arith import binomial, integer_floor
+from sage.misc.decorators import rename_keyword
 
 ###  utility functions  -------------------------------------------------------
 
@@ -360,15 +361,16 @@ class IncidenceStructure(object):
            gB.append([x+1 for x in b])
         return "BlockDesign("+str(v)+","+str(gB)+")"
 
-    def dual_incidence_structure(self, method=None):
+    @rename_keyword(deprecated='Sage version 4.6', method="algorithm")
+    def dual_incidence_structure(self, algorithm=None):
         """
         Wraps GAP Design's DualBlockDesign (see [1]). The dual of a block
         design may not be a block design.
 
         Also can be called with ``dual_design``.
 
-        REQUIRES: method="gap" option requires GAP's Design package.
-        method=None option does *not* require GAP's Design.
+        REQUIRES: algorithm="gap" option requires GAP's Design package.
+        algorithm=None option does *not* require GAP's Design.
 
         EXAMPLES::
 
@@ -378,12 +380,12 @@ class IncidenceStructure(object):
             Incidence structure with 4 points and 3 blocks
             sage: D.dual_design()
             Incidence structure with 3 points and 4 blocks
-            sage: print D.dual_design(method="gap")       # optional - gap_design
+            sage: print D.dual_design(algorithm="gap")       # optional - gap_design
             IncidenceStructure<points=[0, 1, 2], blocks=[[0], [0, 1, 2], [1], [1, 2]]>
             sage: BD = IncidenceStructure(range(7),[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]], name="FanoPlane")
             sage: BD
             Incidence structure with 7 points and 7 blocks
-            sage: print BD.dual_design(method="gap")         # optional - gap_design
+            sage: print BD.dual_design(algorithm="gap")         # optional - gap_design
             IncidenceStructure<points=[0, 1, 2, 3, 4, 5, 6], blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
             sage: BD.dual_incidence_structure()
             Incidence structure with 7 points and 7 blocks
@@ -398,7 +400,7 @@ class IncidenceStructure(object):
         from sage.misc.flatten import flatten
         from sage.combinat.designs.block_design import BlockDesign
         from sage.misc.functional import transpose
-        if method=="gap":
+        if algorithm=="gap":
             gap.eval('LoadPackage("design")')
             gD = self._gap_()
             gap.eval("DD:=DualBlockDesign("+gD+")")

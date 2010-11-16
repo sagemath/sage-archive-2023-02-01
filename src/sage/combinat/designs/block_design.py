@@ -53,6 +53,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.arith import binomial, integer_floor
 from sage.rings.finite_rings.constructor import FiniteField
 from sage.combinat.designs.incidence_structures import IncidenceStructure, IncidenceStructureFromMatrix
+from sage.misc.decorators import rename_keyword
 
 ###  utility functions  -------------------------------------------------------
 
@@ -76,7 +77,8 @@ def tdesign_params(t, v, k, L):
     r = integer_floor(L * x/y)
     return (t, v, b, r, k, L)
 
-def ProjectiveGeometryDesign(n, d, F, method=None):
+@rename_keyword(deprecated='Sage version 4.6', method="algorithm")
+def ProjectiveGeometryDesign(n, d, F, algorithm=None):
     """
     Input: n is the projective dimension, so the number of points is v
     = PPn(GF(q)) d is the dimension of the subspaces of P = PPn(GF(q))
@@ -90,14 +92,14 @@ def ProjectiveGeometryDesign(n, d, F, method=None):
 
         sage: ProjectiveGeometryDesign(2, 1, GF(2))
         Incidence structure with 7 points and 7 blocks
-        sage: BD = ProjectiveGeometryDesign(2, 1, GF(2), method="gap") # requires optional gap package 'design'
+        sage: BD = ProjectiveGeometryDesign(2, 1, GF(2), algorithm="gap") # requires optional gap package 'design'
         sage: BD.is_block_design()                                     # requires optional gap package 'design'
         (True, [2, 7, 3, 1])
     """
     q = F.order()
     from sage.interfaces.gap import gap, GapElement
     from sage.sets.set import Set
-    if method == None:
+    if algorithm == None:
         V = VectorSpace(F, n+1)
         points = list(V.subspaces(1))
         flats = list(V.subspaces(d+1))
@@ -110,7 +112,7 @@ def ProjectiveGeometryDesign(n, d, F, method=None):
             blcks.append(b)
         v = (q**(n+1)-1)/(q-1)
         return BlockDesign(v, blcks, name="ProjectiveGeometryDesign")
-    if method == "gap":   # Requires GAP's Design
+    if algorithm == "gap":   # Requires GAP's Design
         gap.eval('LoadPackage("design")')
         gap.eval("D := PGPointFlatBlockDesign( %s, %s, %d )"%(n,q,d))
         v = eval(gap.eval("D.v"))

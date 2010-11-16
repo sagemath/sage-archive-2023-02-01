@@ -100,6 +100,7 @@ include '../modules/binary_search.pxi'
 include '../modules/vector_integer_sparse_h.pxi'
 include '../modules/vector_integer_sparse_c.pxi'
 from matrix_integer_sparse cimport Matrix_integer_sparse
+from sage.misc.decorators import rename_keyword
 
 ################
 # TODO: change this to use extern cdef's methods.
@@ -777,7 +778,8 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         linbox.set(self.p, self._nrows, self._ncols,  self.rows)
         sig_off()
 
-    def _rank_linbox(self, method):
+    @rename_keyword(deprecated='Sage version 4.6', method="algorithm")
+    def _rank_linbox(self, algorithm):
         """
         See self.rank().
         """
@@ -789,7 +791,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             sig_on()
             # the returend pivots list is currently wrong
             #r, pivots = linbox.rank(1)
-            r = linbox.rank(method)
+            r = linbox.rank(algorithm)
             r = rings.Integer(r)
             sig_off()
             self.cache('rank', r)

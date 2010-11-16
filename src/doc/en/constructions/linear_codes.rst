@@ -10,10 +10,9 @@ Codes
 A linear code of length :math:`n` is a finite dimensional
 subspace of :math:`GF(q)^n`. Sage can compute with linear
 error-correcting codes to a limited extent. It basically has some
-wrappers to GAP and GUAVA 2.8 commands (GUAVA 2.8 does not include
-any of Leon's C code which was included in previous versions of
-GUAVA). GUAVA 2.8 is included with Sage's install of GAP 4.4.7 and
-later.
+wrappers to GAP and GUAVA commands. GUAVA 2.8 is not included
+with Sage 4.0's install of GAP but can be installed as an optional
+package.
 
 .. index:
    pair: codes; linear

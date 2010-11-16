@@ -8,6 +8,7 @@ __author__ = "Gustavo Niemeyer <gustavo@niemeyer.net>"
 __license__ = "PSF License"
 
 import datetime
+from sage.misc.decorators import rename_keyword
 
 __all__ = ["easter", "EASTER_JULIAN", "EASTER_ORTHODOX", "EASTER_WESTERN"]
 
@@ -15,31 +16,32 @@ EASTER_JULIAN   = 1
 EASTER_ORTHODOX = 2
 EASTER_WESTERN  = 3
 
-def easter(year, method=EASTER_WESTERN):
+@rename_keyword(deprecated='Sage version 4.6', method="algorithm")
+def easter(year, algorithm=EASTER_WESTERN):
     """
-    This method was ported from the work done by GM Arts,
+    This function was ported from the work done by GM Arts,
     on top of the algorithm by Claus Tondering, which was
     based in part on the algorithm of Ouding (1940), as
     quoted in "Explanatory Supplement to the Astronomical
     Almanac", P.  Kenneth Seidelmann, editor.
 
-    This algorithm implements three different easter
-    calculation methods:
+    This function implements three different easter
+    calculation algorithms:
 
     1 - Original calculation in Julian calendar, valid in
         dates after 326 AD
-    2 - Original method, with date converted to Gregorian
+    2 - Original algorithm, with date converted to Gregorian
         calendar, valid in years 1583 to 4099
-    3 - Revised method, in Gregorian calendar, valid in
+    3 - Revised algorithm, in Gregorian calendar, valid in
         years 1583 to 4099 as well
 
-    These methods are represented by the constants:
+    These algorithms are represented by the constants:
 
     EASTER_JULIAN   = 1
     EASTER_ORTHODOX = 2
     EASTER_WESTERN  = 3
 
-    The default method is method 3.
+    The default algorithm is algorithm 3.
 
     More about the algorithm may be found at:
 
@@ -70,10 +72,10 @@ def easter(year, method=EASTER_WESTERN):
      - Phaedon Sinis (adapted code for sage)
     """
     year = int(year)
-    method = int(method)
+    algorithm = int(algorithm)
 
-    if not (1 <= method <= 3):
-        raise ValueError, "invalid method"
+    if not (1 <= algorithm <= 3):
+        raise ValueError, "invalid algorithm"
 
     # g - Golden year - 1
     # c - Century
@@ -81,31 +83,31 @@ def easter(year, method=EASTER_WESTERN):
     # i - Number of days from March 21 to Paschal Full Moon
     # j - Weekday for PFM (0=Sunday, etc)
     # p - Number of days from March 21 to Sunday on or before PFM
-    #     (-6 to 28 methods 1 & 3, to 56 for method 2)
-    # e - Extra days to add for method 2 (converting Julian
+    #     (-6 to 28 algorithms 1 & 3, to 56 for algorithm 2)
+    # e - Extra days to add for algorithm 2 (converting Julian
     #     date to Gregorian date)
 
     y = year
     g = y % 19
     e = 0
-    if method < 3:
-        # Old method
+    if algorithm < 3:
+        # Old algorithm
         i = (19*g+15)%30
         j = (y+y//4+i)%7
-        if method == 2:
+        if algorithm == 2:
             # Extra dates to convert Julian to Gregorian date
             e = 10
             if y > 1600:
                 e = e+y//100-16-(y//100-16)//4
     else:
-        # New method
+        # New algorithm
         c = y//100
         h = (c-c//4-(8*c+13)//25+19*g+15)%30
         i = h-(h//28)*(1-(h//28)*(29//(h+1))*((21-g)//11))
         j = (y+y//4+i+2-c+c//4)%7
 
     # p can be from -6 to 56 corresponding to dates 22 March to 23 May
-    # (later dates apply to method 2, although 23 May never actually occurs)
+    # (later dates apply to algorithm 2, although 23 May never actually occurs)
     p = i-j+e
     d = 1+(p+27+(p+6)//40)%31
     m = 3+(p+26)//30

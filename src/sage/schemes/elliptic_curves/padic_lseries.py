@@ -88,6 +88,7 @@ import monsky_washnitzer
 from sage.misc.functional import log
 
 from sage.libs.cremona.newforms import ECModularSymbol
+from sage.misc.decorators import rename_keyword
 
 class pAdicLseries(SageObject):
     r"""
@@ -1194,7 +1195,8 @@ class pAdicLseriesSupersingular(pAdicLseries):
         return resu
 
 
-    def frobenius(self, prec=20, method = "mw"):
+    @rename_keyword(deprecated='Sage version 4.6', method="algorithm")
+    def frobenius(self, prec=20, algorithm = "mw"):
         r"""
         This returns a geometric Frobenius `\varphi` on the Diedonne module `D_p(E)`
         with respect to the basis `\omega`, the invariant differential, and `\eta=x\omega`.
@@ -1204,8 +1206,8 @@ class pAdicLseriesSupersingular(pAdicLseries):
 
         - ``prec`` - (default: 20) a positive integer
 
-        - ``method`` - either 'mw' (default) for Monsky-Washintzer
-          or 'approx' for the method described by Bernardi and Perrin-Riou
+        - ``algorithm`` - either 'mw' (default) for Monsky-Washintzer
+          or 'approx' for the algorithm described by Bernardi and Perrin-Riou
           (much slower and not fully tested)
 
 
@@ -1223,12 +1225,12 @@ class pAdicLseriesSupersingular(pAdicLseries):
         """
         E = self._E
         p = self._p
-        if method != "mw" and method !="approx":
-            raise ValueError, "Unknown method %s."%method
-        if method == "approx":
+        if algorithm != "mw" and algorithm !="approx":
+            raise ValueError, "Unknown algorithm %s."%algorithm
+        if algorithm == "approx":
             return self.__phi_bpr(prec=prec)
-        if p < 4 and method == "mw":
-            print "Warning: If this fails try again using method=\"approx\""
+        if p < 4 and algorithm == "mw":
+            print "Warning: If this fails try again using algorithm=\"approx\""
         Ew = E.integral_short_weierstrass_model()
         adjusted_prec = monsky_washnitzer.adjusted_prec(p, prec)
         modprecring = Integers(p**adjusted_prec)
@@ -1275,16 +1277,16 @@ class pAdicLseriesSupersingular(pAdicLseries):
 
             sage: E = EllipticCurve('11a1')
             sage: lp = E.padic_lseries(19)
-            sage: lp.frobenius(prec=1,method="approx")   #indirect doctest
+            sage: lp.frobenius(prec=1,algorithm="approx")   #indirect doctest
             [          O(19^0) 4*19^-1 + O(19^0)]
             [       14 + O(19)           O(19^0)]
 
             sage: E = EllipticCurve('17a1')
             sage: lp = E.padic_lseries(3)
-            sage: lp.frobenius(prec=3,method="approx")
+            sage: lp.frobenius(prec=3,algorithm="approx")
             [             O(3) 2*3^-1 + 2 + O(3)]
             [       1 + O(3^2)              O(3)]
-            sage: lp.frobenius(prec=5,method="approx")
+            sage: lp.frobenius(prec=5,algorithm="approx")
             [             3 + O(3^2) 2*3^-1 + 2 + 3 + O(3^2)]
             [     1 + 2*3^2 + O(3^3)            2*3 + O(3^2)]
 
@@ -1415,9 +1417,9 @@ class pAdicLseriesSupersingular(pAdicLseries):
         n = arith.LCM(n, E.Np(p)) # allowed here because E has good reduction at p
 
         if p < 5:
-            phi = self.frobenius(min(6,prec),method="approx")
+            phi = self.frobenius(min(6,prec),algorithm="approx")
         else:
-            phi = self.frobenius(prec+2,method="mw")
+            phi = self.frobenius(prec+2,algorithm="mw")
 
         def height(P,check=True):
             if P.is_finite_order():
@@ -1527,9 +1529,9 @@ class pAdicLseriesSupersingular(pAdicLseries):
         reg_oe = (reg1 * v2 - reg2 * v1 ) / Dp_pairing(v2,v1)
 
         if p < 5:
-            phi = self.frobenius(min(6,prec),method="approx")
+            phi = self.frobenius(min(6,prec),algorithm="approx")
         else:
-            phi = self.frobenius(prec+2,method="mw")
+            phi = self.frobenius(prec+2,algorithm="mw")
 
         c = phi[1,0]  # this is the 'period' [omega,phi(omega)]
         a = phi[0,0]

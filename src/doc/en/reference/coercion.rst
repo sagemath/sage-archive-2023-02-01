@@ -378,7 +378,7 @@ but that would obscure the main points being made here.)
            Make sure x is a valid member of self, and return the constructed element.
            """
            if isinstance(x, LocalizationElement):
-               x = x._x
+               x = x._value
            else:
                x = QQ(x)
            for p, e in x.denominator().factor():

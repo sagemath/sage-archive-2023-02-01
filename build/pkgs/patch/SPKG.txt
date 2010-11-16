@@ -12,7 +12,10 @@ command, such as the 'patch' command that comes with Solaris.
 
 == License ==
 
-GNU General Public License v3 or later
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2, or (at your option)
+any later version.
 
 == SPKG Maintainers ==
 
@@ -31,19 +34,17 @@ None
 
 == Special Update/Build Instructions ==
 
-In the event patches ever need to be made to this package,
-the method of applying the patches should not reply on the
-'patch' existing on the system.
+In the event patches ever need to be made to this package, the method of
+applying the patches should not rely on the 'patch' existing on the system.
 
-Some of the self-tests require the GNU version of 'diff' so will
-be bypassed on Solaris and OpenSolaris unless the GNU version of
-'diff' is the first version of 'diff' in the path. This does not
-cause any problems, as the tests detect the Sun diff is not
-the GNU diff, so do not run the tests.
+Versions 2.6 and 2.6.1 seem to be broken on OS X 10.4 (and supposedly also
+Solaris too). So do NOT update the package to those versions.
 
+Version 2.6.1 had some self-tests, so assuming the OS X & Solaris bugs get
+fixed at some point, a spkg-check file should be added.
 
 == Changelog ==
 
-=== patch-2.6.1 (David Kirkby, 14th november 2010)  ===
+=== patch-2.5.9 (David Kirkby, Jeroen Demeyer, 16th november 2010)  ===
  * Initial version.
 

@@ -1110,7 +1110,7 @@ end_scene""" % (render_params.antialiasing,
 
             T = self._prepare_for_jmol(frame, axes, frame_aspect_ratio, aspect_ratio, zoom)
             T.export_jmol(archive_name, force_reload=EMBEDDED_MODE, zoom=zoom*100, **kwds)
-            viewer_app = "sage-native-execute " + os.path.join(sage.misc.misc.SAGE_LOCAL, "bin/jmol")
+            viewer_app = os.path.join(sage.misc.misc.SAGE_LOCAL, "bin/jmol")
 
             # We need a script to load the file
             f = open(filename + '.jmol', 'w')

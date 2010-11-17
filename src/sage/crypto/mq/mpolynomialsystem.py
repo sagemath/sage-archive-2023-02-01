@@ -1313,10 +1313,11 @@ class MPolynomialSystem_gf2(MPolynomialSystem_generic):
 
         REFERENCES:
 
-        .. [CB07] Nicolas T\. Courtois, Gregory V\. Bard *Algebraic
-           Cryptanalysis of the Data Encryption Standard*; Cryptography
-           and Coding -- 11th IMA International Conference; 2007;
-           available at http://eprint.iacr.org/2006/402
+        .. [CBJ07] Gregory V\. Bard, and Nicolas T\. Courtois, and Chris
+           Jefferson. *Efficient Methods for Conversion and Solution of
+           Sparse Systems of Low-Degree Multivariate Polynomials over
+           GF(2) via SAT-Solvers*. Cryptology ePrint Archive: Report
+           2007/024. available at http://eprint.iacr.org/2007/024
 
         """
         from polybori.ll import ll_encode

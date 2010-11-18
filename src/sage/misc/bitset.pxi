@@ -52,8 +52,10 @@ cdef inline bint bitset_realloc(bitset_t bits, unsigned long size) except -1:
     cdef unsigned long size_old = bits.size
     if size_old == size: return 0
     bits.limbs = (size - 1)/(8*sizeof(unsigned long)) + 1
-    bits.bits = <unsigned long*>sage_realloc(bits.bits, bits.limbs * sizeof(unsigned long))
-    if bits.bits == NULL:
+    tmp = <unsigned long*>sage_realloc(bits.bits, bits.limbs * sizeof(unsigned long))
+    if tmp != NULL:
+        bits.bits = tmp
+    else:
         bits.limbs = limbs_old
         raise MemoryError
     bits.size = size

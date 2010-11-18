@@ -493,21 +493,29 @@ class SimplicialComplexExamples():
             [1, 11, 51, 80, 40]
             sage: P3.homology()
             {0: 0, 1: C2, 2: 0, 3: Z}
-            sage: P4 = simplicial_complexes.RealProjectiveSpace(4)
-            sage: P4.f_vector()
+            sage: P4 = simplicial_complexes.RealProjectiveSpace(4) # long time: 2 seconds
+            sage: P4.f_vector() # long time
             [1, 16, 120, 330, 375, 150]
-            sage: P4.homology()
+            sage: P4.homology() # long time
             {0: 0, 1: C2, 2: 0, 3: C2, 4: 0}
             sage: P5 = simplicial_complexes.RealProjectiveSpace(5) # long time: 45 seconds
             sage: P5.f_vector()  # long time
             [1, 63, 903, 4200, 8400, 7560, 2520]
-            sage: P5.homology()  # long time
+
+        The following computation can take a long time -- over half an
+        hour -- with Sage's default computation of homology groups,
+        but if you have CHomP installed, Sage will use that and the
+        computation should only take a second or two.  (You can
+        download CHomP from http://chomp.rutgers.edu/, or you can
+        install it as a Sage package using "sage -i chomp"). ::
+
+            sage: P5.homology()  # long time # optional - CHomP
             {0: 0, 1: C2, 2: 0, 3: C2, 4: 0, 5: Z}
             sage: simplicial_complexes.RealProjectiveSpace(2).dimension()
             2
             sage: P3.dimension()
             3
-            sage: P4.dimension()
+            sage: P4.dimension() # long time
             4
             sage: P5.dimension() # long time
             5

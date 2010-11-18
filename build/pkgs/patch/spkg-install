@@ -53,6 +53,6 @@ fi
 # Sanity check that we have the correct version of patch
 # in our PATH.
 if ! patch --version | grep >/dev/null 'patch 2\.5\.9'; then
-    echo "Cannot to find the patch program we just installed"
+    echo "Cannot find the patch program we just installed"
     exit 1
 fi

@@ -1309,7 +1309,7 @@ class MPolynomialSystem_gf2(MPolynomialSystem_generic):
 
         .. note::
 
-            This is called "massaging" in [CB07]_.
+            This is called "massaging" in [CBJ07]_.
 
         REFERENCES:
 

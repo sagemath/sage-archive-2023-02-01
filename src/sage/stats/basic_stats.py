@@ -247,6 +247,21 @@ def variance(v, bias=False):
         ...        return 1
         sage: stats.variance(MyClass())
         1
+        sage: class SillyPythonList:
+        ...     def __init__(self):
+        ...         self.__list = [2L,4L]
+        ...     def __len__(self):
+        ...         return len(self.__list)
+        ...     def __iter__(self):
+        ...         return self.__list.__iter__()
+        ...     def mean(self):
+        ...         return 3L
+        sage: R = SillyPythonList()
+        sage: variance(R)
+        2
+        sage: variance(R, bias=True)
+        1
+
 
     TESTS:
 
@@ -280,7 +295,7 @@ def variance(v, bias=False):
     else:
         # sample variance
         if isinstance(x, (int,long)):
-            return x/ZZ(len(v))
+            return x/ZZ(len(v)-1)
         return x/(len(v)-1)
 
 

@@ -31,7 +31,11 @@ None
 
 == Changelog ==
 
-=== 0.11.1 (Mike Hansen, September 15th, 2008) ===
- * Initial version.
+=== pygments-1.3.1 (Jeroen Demeyer, November 18th, 2010) ===
 
+ * Upgrade to Pygments 1.3.1
+
+=== pygments-0.11.1.p0 (Mike Hansen, September 15th, 2008) ===
+
+ * Initial version.
 

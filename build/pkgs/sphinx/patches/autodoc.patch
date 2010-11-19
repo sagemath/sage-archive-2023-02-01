@@ -1,5 +1,5 @@
 --- src/sphinx/ext/autodoc.py	2010-07-24 03:07:36.000000000 -0700
-+++ patches/autodoc.py	2010-11-05 04:51:44.248635318 -0700
++++ src/sphinx/ext/autodoc.py	2010-11-05 04:51:44.248635318 -0700
 @@ -828,8 +828,13 @@
      def format_args(self):
          if inspect.isbuiltin(self.object) or \

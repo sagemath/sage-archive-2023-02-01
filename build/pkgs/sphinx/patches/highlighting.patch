@@ -1,51 +1,12 @@
---- src/sphinx/highlighting.py	2010-08-11 08:17:48.000000000 -0700
-+++ patches/highlighting.py	2010-11-05 03:21:07.888637501 -0700
-@@ -179,12 +179,16 @@
-             source = source.decode()
-         if not pygments:
-             return self.unhighlighted(source)
--
-+        sage = False
+diff -u -r src/sphinx/highlighting.py src.new/sphinx/highlighting.py
+--- src/sphinx/highlighting.py	2010-08-11 17:17:48.000000000 +0200
++++ src/sphinx/highlighting.py	2010-11-18 20:47:43.968636040 +0100
+@@ -182,7 +182,7 @@
+ 
          # find out which lexer to use
          if lang in ('py', 'python'):
-             if source.startswith('>>>'):
+-            if source.startswith('>>>'):
++            if source.startswith('>>>') or source.startswith('sage: '):
                  # interactive session
                  lexer = lexers['pycon']
-+            elif source.startswith('sage:'):
-+                lexer = lexers['pycon']
-+                source = source.replace('sage:', '>>>')
-+                sage = True
              else:
-                 # maybe Python -- try parsing it
-                 if self.try_parse(source):
-@@ -221,9 +225,15 @@
-         # highlight via Pygments
-         try:
-             if self.dest == 'html':
--                return highlight(source, lexer, self.fmter[bool(linenos)])
-+                hlsource = highlight(source, lexer, self.fmter[bool(linenos)])
-+                if sage:
-+                    hlsource = hlsource.replace(r'&gt;&gt;&gt;', 'sage:')
-+                    hlsource = hlsource.replace(r'>>>', 'sage:')
-+                return hlsource
-             else:
-                 hlsource = highlight(source, lexer, self.fmter[bool(linenos)])
-+                if sage:
-+                    hlsource = hlsource.replace(r'>>>', 'sage:')
-                 if hlsource.startswith(r'\begin{Verbatim}[commandchars=\\\{\}'):
-                     # Pygments >= 1.2
-                     return hlsource.translate(tex_hl_escape_map_new)
-@@ -231,7 +241,12 @@
-         except ErrorToken:
-             # this is most probably not the selected language,
-             # so let it pass unhighlighted
--            return self.unhighlighted(source)
-+            uhlsource = self.unhighlighted(source)
-+            if sage:
-+                uhlsource = uhlsource.replace('@textgreater[]@textgreater[]@textgreater[]', '@PYGaO[sage: ]')
-+                uhlsource = uhlsource.replace(r'&gt;&gt;&gt;', 'sage:')
-+                uhlsource = uhlsource.replace(r'>>>', 'sage:')
-+            return uhlsource
- 
-     def get_stylesheet(self):
-         if not pygments:

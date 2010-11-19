@@ -7,25 +7,12 @@ if [ "$SAGE_LOCAL" = "" ]; then
 fi
 
 # Helper functions
-
-apply_patch() {
-    # Copy the patched files over
-    echo "Patching Sphinx..."
-    cp patches/highlighting.py src/sphinx/
-    cp patches/autodoc.py src/sphinx/ext/
-    cp patches/environment.py src/sphinx/
-    cp patches/latex.py src/sphinx/writers/
-    cp patches/Makefile src/sphinx/texinputs/
-}
-
 success() {
     if [ $? -ne 0 ]; then
         echo "Error building Sphinx: '$1'"
         exit 1
     fi
 }
-
-set +e
 
 echo "Removing old version..."
 rm -rf "$SAGE_LOCAL"/lib/python/site-packages/Sphinx-*
@@ -34,24 +21,30 @@ success 'Error deleting previous version'
 CUR=`pwd`
 
 echo "Deleting old documentation output..."
-cd "$SAGE_ROOT"/devel/
+cd "$SAGE_ROOT/devel"
 for dir in `ls`; do
     if [ -d "$dir"/doc/output ]; then
         rm -rf "$dir"/doc/output
     fi
 done
-cd "$CUR"
 success 'Error deleting old documentation output'
 
-apply_patch
 
-#Install new version
+# Apply patches
+cd "$CUR"
+echo "Patching Sphinx..."
+for p in patches/*.patch; do
+	patch -p0 <$p
+	success "Error applying patch $p"
+done
+
+
+# Install new version
 cd src
 
 python setup.py install
 success 'Error installing Sphinx'
 
-set -e
-
 cd ..
-cp patches/sphinx-build "$SAGE_LOCAL"/bin/
+cp patches/sphinx-build "$SAGE_LOCAL/bin/"
+success "Error copying sphinx-build to $SAGE_LOCAL/bin/"

@@ -1,5 +1,5 @@
---- src/sphinx/texinputs/Makefile	2010-07-24 03:07:38.000000000 -0700
-+++ patches/Makefile	2010-11-06 11:26:00.808639207 -0700
+--- src/sphinx/texinputs/Makefile	2010-07-24 12:07:38.000000000 +0200
++++ src/sphinx/texinputs/Makefile	2010-11-11 22:20:45.828703337 +0100
 @@ -8,6 +8,8 @@
  ARCHIVEPRREFIX =
  # Additional LaTeX options
@@ -9,31 +9,34 @@
  
  all: $(ALLPDF)
  all-pdf: $(ALLPDF)
-@@ -41,12 +43,22 @@
- 	latex $(LATEXOPTS) '$<'
+@@ -33,20 +35,20 @@
+ # The number of LaTeX runs is quite conservative, but I don't expect it
+ # to get run often, so the little extra time won't hurt.
+ %.dvi: %.tex
+-	latex $(LATEXOPTS) '$<'
+-	latex $(LATEXOPTS) '$<'
+-	latex $(LATEXOPTS) '$<'
++	env pool_size=$(POOL_SIZE) save_size=$(SAVE_SIZE) latex $(LATEXOPTS) '$<'
++	env pool_size=$(POOL_SIZE) save_size=$(SAVE_SIZE) latex $(LATEXOPTS) '$<'
++	env pool_size=$(POOL_SIZE) save_size=$(SAVE_SIZE) latex $(LATEXOPTS) '$<'
+ 	-makeindex -s python.ist '$(basename $<).idx'
+-	latex $(LATEXOPTS) '$<'
+-	latex $(LATEXOPTS) '$<'
++	env pool_size=$(POOL_SIZE) save_size=$(SAVE_SIZE) latex $(LATEXOPTS) '$<'
++	env pool_size=$(POOL_SIZE) save_size=$(SAVE_SIZE) latex $(LATEXOPTS) '$<'
  
  %.pdf: %.tex
 -	pdflatex $(LATEXOPTS) '$<'
 -	pdflatex $(LATEXOPTS) '$<'
 -	pdflatex $(LATEXOPTS) '$<'
-+	(pool_size=$(POOL_SIZE) && export pool_size && \
-+	 save_size=$(SAVE_SIZE) && export save_size && \
-+	 pdflatex $(LATEXOPTS) '$<')
-+	(pool_size=$(POOL_SIZE) && export pool_size && \
-+	 save_size=$(SAVE_SIZE) && export save_size && \
-+	 pdflatex $(LATEXOPTS) '$<')
-+	(pool_size=$(POOL_SIZE) && export pool_size && \
-+	 save_size=$(SAVE_SIZE) && export save_size && \
-+	 pdflatex $(LATEXOPTS) '$<')
++	env pool_size=$(POOL_SIZE) save_size=$(SAVE_SIZE) pdflatex $(LATEXOPTS) '$<'
++	env pool_size=$(POOL_SIZE) save_size=$(SAVE_SIZE) pdflatex $(LATEXOPTS) '$<'
++	env pool_size=$(POOL_SIZE) save_size=$(SAVE_SIZE) pdflatex $(LATEXOPTS) '$<'
  	-makeindex -s python.ist '$(basename $<).idx'
 -	pdflatex $(LATEXOPTS) '$<'
 -	pdflatex $(LATEXOPTS) '$<'
-+	(pool_size=$(POOL_SIZE) && export pool_size && \
-+	 save_size=$(SAVE_SIZE) && export save_size && \
-+	 pdflatex $(LATEXOPTS) '$<')
-+	(pool_size=$(POOL_SIZE) && export pool_size && \
-+	 save_size=$(SAVE_SIZE) && export save_size && \
-+	 pdflatex $(LATEXOPTS) '$<')
++	env pool_size=$(POOL_SIZE) save_size=$(SAVE_SIZE) pdflatex $(LATEXOPTS) '$<'
++	env pool_size=$(POOL_SIZE) save_size=$(SAVE_SIZE) pdflatex $(LATEXOPTS) '$<'
  
  clean:
  	rm -f *.pdf *.dvi *.ps

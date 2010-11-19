@@ -40,19 +40,15 @@ Here is a description of patches on top of Sphinx 1.0.4:
 
 * patches/highlighting.patch: This patches the file
   src/sphinx/highlighting.py. The patch should allow Sphinx to
-  perform special highlighting of the Sage prompt "sage:". That is,
-  treat the Sage prompt "sage:" like the way Sphinx treats the Python
-  prompt ">>>".
+  recognize the Sage prompt "sage:" the same way it recognizes the
+  ">>>" from Python.
 
-* patches/latex.patch: This patches src/sphinx/writers/latex.py to
-  prevent Sphinx from by default inserting the following LaTeX
-  declaration into the preamble of a .tex file:
-
-  \DeclareUnicodeCharacter{00A0}{\nobreakspace}
-
-  This declaration is known to result in a failure to build the PDF
-  version of a document in the Sage standard documentation. See
-  ticket #8183 for further information on this issue.
+* patches/pngmath.patch: This replaces \usepackage[utf8x]{inputenc}
+  by \usepackage[utf8]{inputenc} in the LaTeX preamble for building
+  images in the HTML documentation.  This change is done because some
+  LaTeX installations have only utf8, not utf8x (utf8x adds support for
+  much more Unicode characters, but these are needed used to typeset the
+  mathematics in the Sage documentation).
 
 * patches/Makefile.patch: This patches the file
   src/sphinx/texinputs/Makefile to increase the save size stack to
@@ -63,7 +59,25 @@ Here is a description of patches on top of Sphinx 1.0.4:
 
 == Changelog ==
 
-=== 1.0.4 (Minh Van Nguyen, 2010-11-05) ===
+=== sphinx-1.0.4.p3 (Jeroen Demeyer, 2010-11-18) ===
+
+ * Use env instead of export for environment variables in Makefile.
+
+ * More error checking in spkg-install.
+
+ * Use patch instead of cp for patching files.
+
+ * Move the patch src/sphinx/writers/latex.py to doc/common/conf.py
+   in the Sage library.
+
+ * Simplified highlighting.patch by moving the highlighting of the
+   "sage:" prompt to the Pygments spkg (#10290).  Now the
+   highlighting.patch is only needed to recognize the Sage prompt.
+
+ * Add patch for sphinx/ext/pngmath.py to use the utf8 encoding instead
+   of utf8x.
+
+=== sphinx-1.0.4.p0 (Minh Van Nguyen, 2010-11-05) ===
 
  * Ticket #10118: upgrade to upstream Sphinx version 1.0.4.
 

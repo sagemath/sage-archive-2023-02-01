@@ -190,7 +190,7 @@ To expand out this formal square, we use the expand command.
 Adjoining a symbolic expression
 -------------------------------
 
-Given any symbolic expression for which Sage can computes its
+Given any symbolic expression for which Sage can compute its
 minimal polynomial, you can construct the number field obtained by
 adjoining that expression to :math:`\QQ`. The notation is
 quite simple - just type ``QQ[a]`` where ``a`` is the symbolic expression.

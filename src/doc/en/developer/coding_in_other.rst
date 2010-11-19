@@ -17,6 +17,7 @@ compiled language based on Python. Many components of Sage are written
 in Cython. Later sections discuss the interfaces between Sage and
 PARI, GAP, and Singular.
 
+.. _coding-in-cython:
 
 Cython
 ======

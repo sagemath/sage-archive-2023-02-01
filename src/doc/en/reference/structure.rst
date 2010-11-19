@@ -12,6 +12,7 @@ Basic Structures
    sage/structure/element
    sage/structure/unique_representation
    sage/structure/dynamic_class
+   sage/structure/list_clone
    sage/structure/mutability
    sage/structure/sequence
    sage/structure/element_wrapper

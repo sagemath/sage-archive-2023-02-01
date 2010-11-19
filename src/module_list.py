@@ -197,6 +197,11 @@ ext_modules = [
               libraries = ["stdc++"],
               language='c++'),
 
+    Extension('sage.structure.list_clone',
+              sources=['sage/structure/list_clone.pyx']),
+    Extension('sage.structure.list_clone_timings_cy',
+              sources=['sage/structure/list_clone_timings_cy.pyx']),
+
     Extension('sage.combinat.partitions',
               sources = ['sage/combinat/partitions.pyx',
                          'sage/combinat/partitions_c.cc'],

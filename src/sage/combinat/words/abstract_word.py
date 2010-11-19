@@ -1457,3 +1457,92 @@ class Word_class(SageObject):
         from sage.combinat.words.word import Word
         return Word(it, alphabet=alphabet, length=length)
 
+    def sum_digits(self, base=2, mod=None):
+        r"""
+        Return the sequence of the sum modulo ``mod`` of the digits written
+        in base ``base`` of ``self``.
+
+        INPUT:
+
+        -  ``self`` - word over natural numbers
+
+        -  ``base`` - integer (default : 2), greater or equal to 2
+
+        -  ``mod`` - modulo (default: ``None``), can take the following
+           values:
+
+           - integer - the modulo
+
+           - ``None`` - the value ``base`` is considered for the modulo.
+
+        EXAMPLES:
+
+        The Thue-Morse word::
+
+            sage: from itertools import count
+            sage: Word(count()).sum_digits()
+            word: 0110100110010110100101100110100110010110...
+
+        Sum of digits modulo 2 of the prime numbers written in base 2::
+
+            sage: Word(primes(1000)).sum_digits()
+            word: 1001110100111010111011001011101110011011...
+
+        Sum of digits modulo 3 of the prime numbers written in base 3::
+
+            sage: Word(primes(1000)).sum_digits(base=3)
+            word: 2100002020002221222121022221022122111022...
+            sage: Word(primes(1000)).sum_digits(base=3, mod=3)
+            word: 2100002020002221222121022221022122111022...
+
+        Sum of digits modulo 2 of the prime numbers written in base 3::
+
+            sage: Word(primes(1000)).sum_digits(base=3, mod=2)
+            word: 0111111111111111111111111111111111111111...
+
+        Sum of digits modulo 7 of the prime numbers written in base 10::
+
+            sage: Word(primes(1000)).sum_digits(base=10, mod=7)
+            word: 2350241354435041006132432241353546006304...
+
+        TESTS:
+
+        The Thue-Morse word::
+
+            sage: from itertools import count
+            sage: w = Word(count()).sum_digits()
+            sage: t = words.ThueMorseWord()
+            sage: w[:100]  == t[:100]
+            True
+
+        ::
+
+            sage: type(Word(range(10)).sum_digits())
+            <class 'sage.combinat.words.word.FiniteWord_iter_with_caching'>
+        """
+        from functools import partial
+        from sage.combinat.words.word_generators import words
+        from sage.combinat.words.word import FiniteWord_class, InfiniteWord_class, Word
+
+        # The alphabet
+        if mod is None and base >= 2:
+            alphabet = range(base)
+        elif mod in ZZ and mod >= 2:
+            alphabet = range(mod)
+        else:
+            raise ValueError, "base (=%s) and mod (=%s) must be integers greater or equal to 2"%(base, mod)
+
+        # The iterator
+        f = partial(words._ThueMorseWord_nth_digit, alphabet=alphabet, base=base)
+        it = (f(a) for a in self)
+
+        # The length
+        if isinstance(self, FiniteWord_class):
+            length = "finite"
+        elif isinstance(self, InfiniteWord_class):
+            length = None
+        else:
+            length = "unknown"
+
+        return Word(it, alphabet=alphabet, length=length, datatype='iter')
+

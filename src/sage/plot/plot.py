@@ -1889,8 +1889,19 @@ class Graphics(SageObject):
         For input parameters, see the documentation for the
         :meth:`show` method (this function accepts all except the
         transparent argument).
-        """
 
+        TESTS:
+
+        We verify that #10291 is fixed::
+
+          sage: p = plot(sin(x), (x, -2*pi, 2*pi))
+          sage: figure = p.matplotlib()
+          sage: axes_range = p.get_axes_range()
+          sage: figure = p.matplotlib()
+          sage: axes_range2 = p.get_axes_range()
+          sage: axes_range == axes_range2
+          True
+        """
         if not isinstance(ticks, (list, tuple)):
             ticks = (ticks, None)
 
@@ -1915,8 +1926,6 @@ class Graphics(SageObject):
         xmax+=x_pad
         ymin-=y_pad
         ymax+=y_pad
-
-        self.set_axes_range(xmin,xmax,ymin,ymax)
 
         global do_verify
         do_verify = verify

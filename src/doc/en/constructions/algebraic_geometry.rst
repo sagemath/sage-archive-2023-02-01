@@ -306,37 +306,27 @@ Other methods
 Riemann-Roch spaces using Singular
 ==================================
 
-Can you compute a basis of a Riemann-Roch space in Sage?
+To compute a basis of the Riemann-Roch space of a divisor :math:`D`
+on a curve over a field :math:`F`, one can use Sage's wrapper
+``riemann_roch_basis`` of Singular's implementation of the Brill
+Noether algorithm. Note that this wrapper currently only works when
+:math:`F` is prime and the divisor :math:`D` is supported on rational points.
+Below are examples of how to use ``riemann_roch_basis`` and how to use
+Singular itself to help an understanding of how the wrapper works.
 
-Unfortunately, the answer is "no" at the present time. The version
-of Singular currently used by (version 3.0.2) has a Brill-Noether
-algorithm implementation (computing a basis of a Riemann-Roch
-space) which appears to be buggy. The rest of this section is
-included to illustrate the syntax once the bugs in ``brnoeth`` get
-worked out (or to help any developers wishing to work on this
-themselves).
+-  Using ``riemann_roch_basis``:
 
-To compute a basis for the Riemann-Roch space :math:`L(D)`
-associated to a divisor :math:`D` on a curve :math:`X` over a
-field :math:`F`, you can use 's "wrapper" ``riemann_roch_basis``
-to Singular or Singular itself. Both are illustrated below.
-
-
--
    ::
 
        sage: x, y, z = PolynomialRing(GF(5), 3, 'xyz').gens()
        sage: f = x^7 + y^7 + z^7
-       sage: C = Curve(f); pts = C.rational_points()
-       sage: D = C.divisor([ (3, pts[0]), (-1,pts[1]), (10, pts[5]) ])
-       sage: C.riemann_roch_basis(D)
-       [x^8*y/(x^6*z^3 - x^5*y*z^3 + ...  # 32-bit
-       [(x^9 + x^8*y)/(x^6*z^3 - ...  # 64-bit
+       sage: X = Curve(f); pts = X.rational_points()
+       sage: D = X.divisor([ (3, pts[0]), (-1,pts[1]), (10, pts[5]) ])
+       sage: X.riemann_roch_basis(D)
+       [(-2*x + y)/(x + y), (-x + z)/(x + y)]
 
-   The output is somewhat random.
-
--  Singular's ``BrillNoether`` command (for details on this command,
-   see the section Brill-Noether in the Singular online documentation
+-  Using Singular's ``BrillNoether`` command (for details see the section
+   Brill-Noether in the Singular online documentation
    (http://www.singular.uni-kl.de/Manual/html/sing_960.htm and the
    paper {CF}):
 
@@ -353,9 +343,8 @@ to Singular or Singular itself. Both are illustrated below.
        Adjunction divisor computed successfully
        <BLANKLINE>
        The genus of the curve is 2
-       sage: print singular.eval("X = NSplaces(1..2,X);")
+       sage: print singular.eval("X = NSplaces(1,X);")
        Computing non-singular affine places of degree 1 ...
-       Computing non-singular affine places of degree 2 ...
        sage: print singular("X[3];")
        [1]:
           1,1
@@ -370,8 +359,20 @@ to Singular or Singular itself. Both are illustrated below.
        [6]:
           1,6
 
-   The 6 Places in X[3] are of degree 1. We define the rational
-   divisor {G = 4\*C[3][1]+4\*C[3][2]+4\*C[3][3]} (of degree 12):
+   The first integer of each pair in the above list is the degree
+   `d` of a point. The second integer is the index of this point
+   in the list POINTS of the ring X[5][`d`][1]. Note that the
+   order of this latter list is different every time the algorithm
+   is run, e.g. `1`, `1` in the above list refers to a different
+   rational point each time. A divisor is given by defining a list
+   `G` of integers of the same length as X[3] such that if the
+   `k`-th entry of X[3] is `d`, `i`, then the `k`-th entry of `G` is
+   the multiplicity of the divisor at the `i`-th point in the list
+   POINTS of the ring X[5][`d`][1]. Let us proceed by defining a
+   "random" divisor of degree 12 and computing a basis of its
+   Riemann-Roch space:
+
+   .. link
 
    ::
 
@@ -388,26 +389,6 @@ to Singular or Singular itself. Both are illustrated below.
        Vector basis successfully computed
        <BLANKLINE>
 
-   Here is the vector basis of L(G):
-
-   .. link
-
-   ::
-
-       sage: print singular.eval("LG;")
-       [1]:                     # 32-bit
-          _[1]=x2               # 32-bit
-          _[2]=x2+z2            # 32-bit
-       [2]:                     # 32-bit
-          _[1]=-x4+x2z2         # 32-bit
-          _[2]=x2y2+y2z2        # 32-bit
-       [1]:                               # 64-bit
-          _[1]=-x5+x4z-x3y2+2x3z2+x2y2z   # 64-bit
-          _[2]=-x4z+x3y2+z5               # 64-bit
-       [2]:                               # 64-bit
-          _[1]=-2x5-x4z+2x3y2+2x3z2+x2z3  # 64-bit
-          _[2]=-x4z+x3y2+z5               # 64-bit
-       ...
 
 .. index::
    pair: codes; algebraic-geometric
@@ -421,9 +402,10 @@ space :math:`L(D)=L_X(D)`. In addition to the curve :math:`X`
 and the divisor :math:`D`, you must also specify the evaluation
 divisor :math:`E`.
 
-As in the previous section, until the bugs in ``brnoth`` are worked
-out, this section is only included to illustrate syntax (or to help
-any developers wishing to work on this themselves).
+Note that this section has not been updated since the wrapper
+``riemann_roch_basis`` has been fixed. See above for how to
+properly define a divisor for Singular's ``BrillNoether``
+command.
 
 Here's an example, one which computes a generator matrix of an
 associated AG code. This time we use Singular's ``AGCode_L``

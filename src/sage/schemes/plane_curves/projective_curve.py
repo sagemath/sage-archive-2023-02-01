@@ -8,6 +8,8 @@ AUTHORS:
 - David Joyner (2005-11-13)
 
 - David Kohel (2006-01)
+
+- Moritz Minzlaff (2010-11)
 """
 
 #*****************************************************************************
@@ -539,32 +541,24 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
         Return a basis for the Riemann-Roch space corresponding to
         `D`.
 
-        .. warning::
-
-          This function calls a Singular function that
-          appears to be very buggy and should not be trusted.
-
         This uses Singular's Brill-Noether implementation.
 
         INPUT:
 
+        -  ``D`` - a divisor
 
-        -  ``sort`` - bool (default: True), if True return the
-           point list sorted. If False, returns the points in the order
-           computed by Singular.
+        OUTPUT:
 
+        A list of function field elements that form a basis of the Riemann-Roch space
 
         EXAMPLE::
 
             sage: R.<x,y,z> = GF(2)[]
             sage: f = x^3*y + y^3*z + x*z^3
             sage: C = Curve(f); pts = C.rational_points()
-            sage: D = C.divisor([ (4, pts[0]), (0,pts[1]), (4, pts[2]) ])
+            sage: D = C.divisor([ (4, pts[0]), (4, pts[2]) ])
             sage: C.riemann_roch_basis(D)
             [x/y, 1, z/y, z^2/y^2, z/x, z^2/(x*y)]
-
-        The following example illustrates that the Riemann-Roch space
-        function in Singular doesn't *not* work correctly.
 
         ::
 
@@ -572,11 +566,12 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
             sage: f = x^7 + y^7 + z^7
             sage: C = Curve(f); pts = C.rational_points()
             sage: D = C.divisor([ (3, pts[0]), (-1,pts[1]), (10, pts[5]) ])
-            sage: C.riemann_roch_basis(D)    # output is random (!!!!)
-            [x/(y + x), (z + y)/(y + x)]
+            sage: C.riemann_roch_basis(D)
+            [(-2*x + y)/(x + y), (-x + z)/(x + y)]
 
-        The answer has dimension 2 (confirmed via Magma). But it varies
-        between 1 and quite large with Singular.
+
+        .. NOTE::
+            Currently this only works over prime field and divisors supported on rational points.
         """
         f = self.defining_polynomial()._singular_()
         singular = f.parent()
@@ -585,25 +580,31 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
             X1 = f.Adj_div()
         except (TypeError, RuntimeError), s:
             raise RuntimeError, str(s) + "\n\n ** Unable to use the Brill-Noether Singular package to compute all points (see above)."
-
         X2 = singular.NSplaces(1, X1)
-        X3 = singular.extcurve(1, X2)
-        R = X3[1][5]
+        # retrieve list of all computed closed points (possibly of degree >1)
+        v = X2[3].sage_flattened_str_list()    # We use sage_flattened_str_list since iterating through
+                                               # the entire list through the sage/singular interface directly
+                                               # would involve hundreds of calls to singular, and timing issues with
+                                               # the expect interface could crop up.  Also, this is vastly
+                                               # faster (and more robust).
+        v = [ v[i].partition(',') for i in range(len(v)) ]
+        pnts = [ ( int(v[i][0]), int(v[i][2])-1 ) for i in range(len(v))]
+        # retrieve coordinates of rational points
+        R = X2[5][1][1]
         singular.set_ring(R)
-
-        # We use sage_flattened_str_list since iterating through
-        # the entire list through the sage/singular interface directly
-        # would involve hundreds of calls to singular, and timing issues with
-        # the expect interface could crop up.  Also, this is vastly
-        # faster (and more robust).
         v = singular('POINTS').sage_flattened_str_list()
-        pnts = [self(int(v[3*i]), int(v[3*i+1]), int(v[3*i+2])) for i in range(len(v)/3)]
+        coords = [self(int(v[3*i]), int(v[3*i+1]), int(v[3*i+2])) for i in range(len(v)/3)]
+        # build correct representation of D for singular
         Dsupport = D.support()
         Dcoeffs = []
         for x in pnts:
-            Dcoeffs.append(D.coefficient(x))
+            if x[0] == 1:
+                Dcoeffs.append(D.coefficient(coords[x[1]]))
+            else:
+                Dcoeffs.append(0)
         Dstr = str(tuple(Dcoeffs))
         G = singular(','.join([str(x) for x in Dcoeffs]), type='intvec')
+        # call singular's brill noether routine and return
         T = X2[1][2]
         T.set_ring()
         LG = G.BrillNoether(X2)

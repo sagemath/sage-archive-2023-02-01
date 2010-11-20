@@ -18,22 +18,22 @@ import time
 seen = set()
 import_order = []
 elapsed_times = {}
-level = 0
+global_level = 0
 parent = None
 children = {}
 
-def new_import(name, globals={}, locals={}, fromlist=[], dummy=None):
-     global level, parent
+def new_import(name, globals={}, locals={}, fromlist=[], level=-1):
+     global global_level, parent
      if name in seen:
          return old_import(name, globals, locals, fromlist)
      seen.add(name)
-     import_order.append((name, level, parent))
+     import_order.append((name, global_level, parent))
      t1 = time.time()
      old_parent = parent
      parent = name
-     level += 1
-     module = old_import(name, globals, locals, fromlist)
-     level -= 1
+     global_level += 1
+     module = old_import(name, globals, locals, fromlist, level)
+     global_level -= 1
      parent = old_parent
      t2 = time.time()
      elapsed_times[name] = t2-t1

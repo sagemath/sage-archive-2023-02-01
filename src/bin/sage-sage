@@ -428,8 +428,9 @@ if [ "$1" = '-sh'  -o "$1" = '--sh' ]; then
 
     $SHELL_NAME $SHELL_OPTS "$@"
 
+    status=$?
     echo Exited Sage subshell.
-    exit $?
+    exit $status
 fi
 
 if [ "$1" = '-gdb-ipython'  -o "$1" = '--gdb-ipython' ]; then

@@ -318,3 +318,6 @@ patch
 i686-apple-darwin8-gfortran-4.2
 powerpc-apple-darwin8-gfortran-4.2
 zope-testrunner
+homsimpl
+homchain
+homcubes

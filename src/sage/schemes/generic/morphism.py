@@ -437,12 +437,36 @@ class SchemeMorphism_on_points_projective_space(SchemeMorphism_on_points):
           Defn: Defined on coordinates by sending (x : y) to
                 (y : 2*x)
 
+    An example of a morphism between projective plane curves (see #10297)::
+
+        sage: P2.<x,y,z> = ProjectiveSpace(QQ,2)
+        sage: f = x^3+y^3+60*z^3
+        sage: g = y^2*z-( x^3 - 6400*z^3/3)
+        sage: C = Curve(f)
+        sage: E = Curve(g)
+        sage: xbar,ybar,zbar = C.coordinate_ring().gens()
+        sage: H = C.Hom(E)
+        sage: H([zbar,xbar-ybar,-(xbar+ybar)/80])
+        Scheme morphism:
+          From: Projective Curve over Rational Field defined by x^3 + y^3 + 60*z^3
+          To:   Projective Curve over Rational Field defined by -x^3 + y^2*z + 6400/3*z^3
+          Defn: Defined on coordinates by sending (x : y : z) to
+                (zbar : xbar - ybar : -1/80*xbar - 1/80*ybar)
+
     We illustrate some error checking::
 
+        sage: R.<x,y> = QQ[]
+        sage: P1 = ProjectiveSpace(R)
+        sage: H = P1.Hom(P1)
         sage: f = H([x-y, x*y])
         Traceback (most recent call last):
         ...
-        ValueError: polys (=[x - y, x*y]) must be homogeneous of the same degree
+        ValueError: polys (=[x - y, x*y]) must be of the same degree
+
+        sage: H([x-1, x*y+x])
+        Traceback (most recent call last):
+        ...
+        ValueError: polys (=[x - 1, x*y + x]) must be homogeneous
 
         sage: H([exp(x),exp(y)])
         Traceback (most recent call last):
@@ -455,10 +479,16 @@ class SchemeMorphism_on_points_projective_space(SchemeMorphism_on_points):
         if check:
             # morphisms from projective space are always given by
             # homogeneous polynomials of the same degree
-            deg = self.defining_polynomials()[0].degree()
-            for poly in self.defining_polynomials():
-                if (poly.degree() != deg) or not poly.is_homogeneous():
-                    raise ValueError, "polys (=%s) must be homogeneous of the same degree"%polys
+            polys = self.defining_polynomials()
+            try:
+                d = polys[0].degree()
+            except AttributeError:
+                polys = [f.lift() for f in polys]
+            if not all([f.is_homogeneous() for f in polys]):
+                raise  ValueError, "polys (=%s) must be homogeneous"%polys
+            degs = [f.degree() for f in polys]
+            if not all([d==degs[0] for d in degs[1:]]):
+                raise ValueError, "polys (=%s) must be of the same degree"%polys
 
 
 ############################################################################

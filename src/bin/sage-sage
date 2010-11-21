@@ -190,7 +190,7 @@ sage_setup() {
         mkdir -p "$DOT_SAGE"
         cp -r "$SAGE_ROOT/ipython" "$DOT_SAGE/"
     fi
-    sage-cleaner &
+    sage-cleaner &>/dev/null &
 }
 
 
@@ -522,7 +522,7 @@ build_sage() {
 if [ "$1" = "-notebook"  -o "$1" = '--notebook' -o "$1" = '-n' ]; then
    cd "$CUR"
    shift
-   sage-cleaner &
+   sage-cleaner &>/dev/null &
    sage-notebook "$@"
    exit $?
 fi
@@ -530,7 +530,7 @@ fi
 if [ "$1" = "-bn" -o "$1" = "--build-and-notebook" ]; then
     cd "$CUR"
     shift
-    sage-cleaner &
+    sage-cleaner &>/dev/null &
     build_sage && sage-notebook "$@"
     exit $?
 fi
@@ -538,7 +538,7 @@ fi
 if [ "$1" = "-inotebook"  -o "$1" = '--inotebook' ]; then
    cd "$CUR"
    shift
-   sage-cleaner &
+   sage-cleaner &>/dev/null &
    sage-notebook-insecure "$@"
    exit $?
 fi

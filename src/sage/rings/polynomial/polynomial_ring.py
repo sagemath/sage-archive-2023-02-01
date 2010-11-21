@@ -1370,7 +1370,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
         else:
             return [F[i][i] for i in xrange(n)]
 
-    def lagrange_polynomial(self, points, algorithm="divided_difference", previous_row=None):
+    def lagrange_polynomial(self, points, algorithm="divided_difference", previous_row=[]):
         """
         Return the Lagrange interpolation polynomial in ``self`` associated to
         the given list of points.
@@ -1400,7 +1400,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             last row of this table, instead of the full table itself.
             Generating the full table can be memory inefficient.
 
-        - ``previous_row`` -- (default: ``None``) This option is only relevant
+        - ``previous_row`` -- (default: ``[]``) This option is only relevant
           if used together with ``algorithm='neville'``. If provided, this
           should be the last row of the table resulting from a previous use of
           Neville's method. If such a row is passed in, then ``points`` should
@@ -1483,15 +1483,28 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             ...
             ValueError: algorithm must be one of 'divided_difference' or 'neville'
 
+        The return value should always be an element of ``self'', in the case of
+        ``divided_difference'', or a list of elements of ``self'', in the case of
+        ``neville''::
+
+            sage: R = PolynomialRing(QQ, "x")
+            sage: R.lagrange_polynomial([]).parent() == R
+            True
+            sage: R.lagrange_polynomial([(2, 3)]).parent() == R
+            True
+            sage: row = R.lagrange_polynomial([], algorithm='neville')
+            sage: all(poly.parent() == R for poly in row)
+            True
+            sage: row = R.lagrange_polynomial([(2, 3)], algorithm='neville')
+            sage: all(poly.parent() == R for poly in row)
+            True
+
 
         REFERENCES:
 
         .. [BF05] R.L. Burden and J.D. Faires. *Numerical Analysis*.
           Thomson Brooks/Cole, 8th edition, 2005.
         """
-        if len(points) == 0:
-            return 0
-
         var = self.gen()
 
         # use the method of divided-difference
@@ -1501,8 +1514,11 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             # Lagrange interpolation polynomial by means of divided
             # difference.
             n = len(points)
+            if n == 0:
+                return self.zero()
+
             F = self.divided_difference(points)
-            P = F[n-1]
+            P = self(F[n-1])
             for i in xrange(n-2, -1, -1):
                 P *= (var - points[i][0])
                 P += F[i]
@@ -1522,34 +1538,20 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
         # using Neville's method for recursively generating the
         # Lagrange interpolation polynomial
         elif algorithm == "neville":
-            # use results of previous computation
-            if isinstance(previous_row, list) and len(previous_row) > 0:
-                N = len(points)
-                M = len(previous_row)
-                Q = previous_row[:]  # to keep track of the current row
-                [Q.append(0) for i in xrange(N - M)]
-                P = Q[:]  # to keep track of the previous row
-                for i in xrange(M, N):
-                    Q[0] = points[i][1]  # start populating the current row
-                    for j in xrange(1, i+1):
-                        numer = ((var - points[i-j][0]) * Q[j-1]) - ((var - points[i][0]) * P[j-1])
-                        denom = points[i][0] - points[i-j][0]
-                        Q[j] = numer / denom
-                    P = Q[:]  # current row is now previous row
-                return Q  # return the last row in the Neville table
-
-            # no previous results to use, so calculate from scratch
-            Q = [0 for i in xrange(len(points))]  # to keep track of the current row
-            Q[0] = points[0][1]
-            P = Q[:]  # to keep track of the previous row
-            for i in xrange(1, len(points)):
-                Q[0] = points[i][1]  # start populating the current row
-                for j in xrange(1, i+1):
-                    numer = ((var - points[i-j][0]) * Q[j-1]) - ((var - points[i][0]) * P[j-1])
-                    denom = points[i][0] - points[i-j][0]
+            N = len(points)
+            M = len(previous_row)
+            # During the computation, P keeps track of the previous row,
+            # and Q keeps track of the current row
+            P = previous_row + [None] * (N - M) # use results of previous computation if available
+            Q = [None] * N
+            for i in xrange(M, N):
+                Q[0] = self(points[i][1]) # start populating the current row
+                for j in xrange(1, 1 + i):
+                    numer = (var - points[i - j][0]) * Q[j - 1] - (var - points[i][0]) * P[j - 1]
+                    denom = points[i][0] - points[i - j][0]
                     Q[j] = numer / denom
-                P = Q[:]  # current row is now previous row
-            return Q  # return the last row in the Neville table
+                P, Q = Q, P # the current row is complete, reuse the old P to hold the next row
+            return P # return the last row in the Neville table
 
 #        # use the definition of Lagrange interpolation polynomial
 #        elif algorithm == "definition":

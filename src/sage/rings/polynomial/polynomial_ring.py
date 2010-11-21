@@ -1370,7 +1370,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
         else:
             return [F[i][i] for i in xrange(n)]
 
-    def lagrange_polynomial(self, points, algorithm="divided_difference", previous_row=[]):
+    def lagrange_polynomial(self, points, algorithm="divided_difference", previous_row=None):
         """
         Return the Lagrange interpolation polynomial in ``self`` associated to
         the given list of points.
@@ -1400,7 +1400,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             last row of this table, instead of the full table itself.
             Generating the full table can be memory inefficient.
 
-        - ``previous_row`` -- (default: ``[]``) This option is only relevant
+        - ``previous_row`` -- (default: ``None``) This option is only relevant
           if used together with ``algorithm='neville'``. If provided, this
           should be the last row of the table resulting from a previous use of
           Neville's method. If such a row is passed in, then ``points`` should
@@ -1483,9 +1483,9 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             ...
             ValueError: algorithm must be one of 'divided_difference' or 'neville'
 
-        The return value should always be an element of ``self'', in the case of
-        ``divided_difference'', or a list of elements of ``self'', in the case of
-        ``neville''::
+        Make sure that ticket #10304 is fixed. The return value should always
+        be an element of ``self`` in the case of ``divided_difference``, or
+        a list of elements of ``self`` in the case of ``neville``. ::
 
             sage: R = PolynomialRing(QQ, "x")
             sage: R.lagrange_polynomial([]).parent() == R
@@ -1538,6 +1538,8 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
         # using Neville's method for recursively generating the
         # Lagrange interpolation polynomial
         elif algorithm == "neville":
+            if previous_row is None:
+                previous_row = []
             N = len(points)
             M = len(previous_row)
             # During the computation, P keeps track of the previous row,

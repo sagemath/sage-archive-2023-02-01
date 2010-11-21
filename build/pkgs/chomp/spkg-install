@@ -27,27 +27,42 @@ rm src/programs/utils/makefile
 # patch src/include/chomp/multiwork/mwdata.h so it builds on Fedora 12
 cp patches/mwdata.h src/include/chomp/multiwork/mwdata.h
 
-# According to the web page
-# http://chomp.rutgers.edu/advanced/compile.php, we need to use GNU
-# make, version 3.77 or higher.
-if [ -z "`make --version 2>&1 | grep GNU`" ] ; then
-    echo ""
-    echo "GNU make not found.  You must use the GNU version of make"
-    echo "to build CHomP.  Please ensure that a GNU version of make"
-    echo "is first in your path."
-    exit 1
-fi
+# patch src/include/capd/capd/operatingSystemSetting.h so that it
+# detects Solaris on x86 as well as on sparc.
+cp patches/operatingSystemSetting.h src/include/capd/capd/
 
-# disable parallel building
+# The web page http://chomp.rutgers.edu/advanced/compile.php says not
+# to use the "-j" option with make:
 MAKE=make; export MAKE
 
-cd src
-
-if [ `uname` = "Darwin" ]; then
-    target='mac'; export target
-else
-    target='unx'; export target
+if [ "x$CXXFLAG64" = x ] ; then
+    CXXFLAG64=-m64
 fi
+
+if [ "x$SAGE64" = xyes ] ; then
+    CXXFLAGS="$CXXFLAGS $CXXFLAG64"
+    export CXXFLAGS
+fi
+
+case `uname` in
+    "Darwin")
+	compiler_flags="-O2 -ansi -pedantic -Wall"
+	target='mac';;
+    "SunOS")
+	compiler_flags="-O2 -pedantic -Wall"
+	LDFLAGS="$LDFLAGS -s"
+	export LDFLAGS
+        target='sun';;
+    *)
+	compiler_flags="-O2 -ansi -pedantic -Wall"
+	LDFLAGS="$LDFLAGS -s"
+	export LDFLAGS
+	target='unx';;
+esac
+
+export compiler_flags
+
+cd src
 
 # Do not exit script if there is an error, but instead print an
 # informative error message. This is helps in determining why the
@@ -55,7 +70,7 @@ fi
 # the make command.
 set +e
 
-$MAKE target=$target
+$MAKE target=$target COMPILE="${CXX} ${CXXFLAGS} ${compiler_flags}" LINK="${CXX} ${CXXFLAGS} ${LDFLAGS}"
 
 if [ $? -ne 0 ]; then
     echo "Error building CHomP"

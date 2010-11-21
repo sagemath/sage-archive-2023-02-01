@@ -30,11 +30,33 @@ The CHomP software is licensed under version 2 of the GNU GPL.
    http://chomp.rutgers.edu/advanced/compile.php, we are supposed to
    use GNU make, version 3.77 or higher.
 
+ * According to the web page
+   http://chomp.rutgers.edu/advanced/compile.php, avoid using
+   "make -j..."
+
 === Patches ===
 
 None
 
 == Changelog ==
+
+=== chomp-20100213.p2 (John Palmieri, Nov 18, 2010) ===
+
+* add "sun" as a make target
+
+* patch src/include/capd/capd/operatingSystemSetting.h so that it
+  builds on Solaris on x86: the automatic OS detection doesn't
+  expect Solaris on anything except a sparc.  In particular, it tests
+  for Solaris by seeing if "__sparc__" is defined, whereas it should
+  test whether "sun" is defined.
+
+* don't check the version of make: Sage already requires GNU make.
+
+* add compiler flag "-m64" if SAGE64 is set.
+
+* set appropriate compiler flags for different platforms.
+
+* document the requirement that "make -j..." not be used.
 
 === chomp-20100213.p1 (Volker Braun, Feb 26, 2010) ===
 

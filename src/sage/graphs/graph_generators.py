@@ -92,6 +92,7 @@ Platonic solids
 Named Graphs
 ------------
 
+- :meth:`BidiakisCube <GraphGenerators.BidiakisCube>`
 - :meth:`ChvatalGraph <GraphGenerators.ChvatalGraph>`
 - :meth:`DesarguesGraph <GraphGenerators.DesarguesGraph>`
 - :meth:`FlowerSnark <GraphGenerators.FlowerSnark>`
@@ -2076,6 +2077,69 @@ class GraphGenerators():
     #######################################################################
     #   Named Graphs
     #######################################################################
+
+    def BidiakisCube(self):
+        r"""
+        Returns the Bidiakis cube.
+
+        For more information, see this
+        `Wikipedia article on the Bidiakis cube <http://en.wikipedia.org/wiki/Bidiakis_cube>`_.
+
+        EXAMPLES:
+
+        The Bidiakis cube is a 3-regular graph having 12 vertices and 18
+        edges. This means that each vertex has a degree of 3. ::
+
+            sage: g = graphs.BidiakisCube(); g
+            Bidiakis cube: Graph on 12 vertices
+            sage: g.show()  # long time
+            sage: g.order()
+            12
+            sage: g.size()
+            18
+            sage: def is_3regular(G):
+            ...       D = G.degree_sequence()
+            ...       return all(d == 3 for d in D)
+            sage: is_3regular(g)
+            True
+
+        It is a Hamiltonian graph with diameter 3 and girth 4::
+
+            sage: g.is_hamiltonian()
+            True
+            sage: g.diameter()
+            3
+            sage: g.girth()
+            4
+
+        It is a planar graph with characteristic polynomial
+        `(x - 3) (x - 2) (x^4) (x + 1) (x + 2) (x^2 + x - 4)^2` and
+        chromatic number 3::
+
+            sage: g.is_planar()
+            True
+            sage: bool(g.characteristic_polynomial() == expand((x - 3) * (x - 2) * (x^4) * (x + 1) * (x + 2) * (x^2 + x - 4)^2))
+            True
+            sage: g.chromatic_number()
+            3
+        """
+        edge_dict = {
+            0:[1,6,11], 1:[2,5], 2:[3,10], 3:[4,9], 4:[5,8],
+            5:[6], 6:[7], 7:[8,11], 8:[9], 9:[10], 10:[11]}
+        pos_dict = {
+            0: [0, 1],
+            1: [0.5, 0.866025403784439],
+            2: [0.866025403784439, 0.500000000000000],
+            3: [1, 0],
+            4: [0.866025403784439, -0.5],
+            5: [0.5, -0.866025403784439],
+            6: [0, -1],
+            7: [-0.5, -0.866025403784439],
+            8: [-0.866025403784439, -0.5],
+            9: [-1, 0],
+            10: [-0.866025403784439, 0.5],
+            11: [-0.5, 0.866025403784439]}
+        return graph.Graph(edge_dict, pos=pos_dict, name="Bidiakis cube")
 
     def ChvatalGraph(self):
         r"""

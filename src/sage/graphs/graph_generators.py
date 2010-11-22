@@ -93,6 +93,7 @@ Named Graphs
 ------------
 
 - :meth:`BidiakisCube <GraphGenerators.BidiakisCube>`
+- :meth:`BrinkmannGraph <GraphGenerators.BrinkmannGraph>`
 - :meth:`ChvatalGraph <GraphGenerators.ChvatalGraph>`
 - :meth:`DesarguesGraph <GraphGenerators.DesarguesGraph>`
 - :meth:`FlowerSnark <GraphGenerators.FlowerSnark>`
@@ -2137,6 +2138,92 @@ class GraphGenerators():
             10: [-0.866025403784439, 0.5],
             11: [-0.5, 0.866025403784439]}
         return graph.Graph(edge_dict, pos=pos_dict, name="Bidiakis cube")
+
+    def BrinkmannGraph(self):
+        r"""
+        Returns the Brinkmann graph.
+
+        For more information, see the
+        `Wikipedia article on the Brinkmann graph <http://en.wikipedia.org/wiki/Brinkmann_graph>`_.
+
+        EXAMPLES:
+
+        The Brinkmann graph is a 4-regular graph having 21 vertices and 42
+        edges. This means that each vertex has degree 4. ::
+
+            sage: G = graphs.BrinkmannGraph(); G
+            Brinkmann graph: Graph on 21 vertices
+            sage: G.show()  # long time
+            sage: G.order()
+            21
+            sage: G.size()
+            42
+            sage: def is_4regular(G):
+            ...       D = G.degree_sequence()
+            ...       return all(d == 4 for d in D)
+            sage: is_4regular(G)
+            True
+
+        It is an Eulerian graph with radius 3, diameter 3, and girth 5. ::
+
+            sage: G.is_eulerian()
+            True
+            sage: G.radius()
+            3
+            sage: G.diameter()
+            3
+            sage: G.girth()
+            5
+
+        The Brinkmann graph is also Hamiltonian with chromatic number 4::
+
+            sage: G.is_hamiltonian()
+            True
+            sage: G.chromatic_number()
+            4
+        """
+        edge_dict = {
+            0: [2,5,7,13],
+            1: [3,6,7,8],
+            2: [4,8,9],
+            3: [5,9,10],
+            4: [6,10,11],
+            5: [11,12],
+            6: [12,13],
+            7: [15,20],
+            8: [14,16],
+            9: [15,17],
+            10: [16,18],
+            11: [17,19],
+            12: [18,20],
+            13: [14,19],
+            14: [17,18],
+            15: [18,19],
+            16: [19,20],
+            17: [20]}
+        pos_dict = {
+            0: [0, 4],
+            1: [3.12732592987212, 2.49395920743493],
+            2: [3.89971164872729, -0.890083735825258],
+            3: [1.73553495647023, -3.60387547160968],
+            4: [-1.73553495647023, -3.60387547160968],
+            5: [-3.89971164872729, -0.890083735825258],
+            6: [-3.12732592987212, 2.49395920743493],
+            7: [0.867767478235116, 1.80193773580484],
+            8: [1.94985582436365, 0.445041867912629],
+            9: [1.56366296493606, -1.24697960371747],
+            10: [0, -2],
+            11: [-1.56366296493606, -1.24697960371747],
+            12: [-1.94985582436365, 0.445041867912629],
+            13: [-0.867767478235116, 1.80193773580484],
+            14: [0.433883739117558, 0.900968867902419],
+            15: [0.974927912181824, 0.222520933956314],
+            16: [0.781831482468030, -0.623489801858733],
+            17: [0, -1],
+            18: [-0.781831482468030, -0.623489801858733],
+            19: [-0.974927912181824, 0.222520933956315],
+            20: [-0.433883739117558, 0.900968867902419]}
+        return graph.Graph(edge_dict, pos=pos_dict, name="Brinkmann graph")
 
     def ChvatalGraph(self):
         r"""

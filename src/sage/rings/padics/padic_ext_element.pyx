@@ -309,3 +309,61 @@ cdef class pAdicExtElement(pAdicGenericElement):
             [1, 0, -1, 0, 2, 1, 2, 0, 1]
         """
         return self.ext_p_list(pos)
+
+    def frobenius(self, arithmetic=True):
+        """
+        Returns the image of this element under the Frobenius automorphism
+        applied to its parent.
+
+        INPUT:
+
+        - ``self`` -- an element of an unramified extension.
+        - ``arithmetic`` -- whether to apply the arithmetic Frobenius (acting
+          by raising to the `p`-th power on the residue field). If ``False`` is
+          provided, the image of geometric Frobenius (raising to the `(1/p)`-th
+          power on the residue field) will be returned instead.
+
+        EXAMPLES::
+
+            sage: R.<a> = Zq(5^4,3)
+            sage: a.frobenius()
+            (a^3 + a^2 + 3*a) + (3*a + 1)*5 + (2*a^3 + 2*a^2 + 2*a)*5^2 + O(5^3)
+            sage: f = R.defining_polynomial()
+            sage: f(a)
+            O(5^3)
+            sage: f(a.frobenius())
+            O(5^3)
+            sage: for i in range(4): a = a.frobenius()
+            sage: a
+            a + O(5^3)
+
+            sage: K.<a> = Qq(7^3,4)
+            sage: b = (a+1)/7
+            sage: c = b.frobenius(); c
+            (3*a^2 + 5*a + 1)*7^-1 + (6*a^2 + 6*a + 6) + (4*a^2 + 3*a + 4)*7 + (6*a^2 + a + 6)*7^2 + O(7^3)
+            sage: c.frobenius().frobenius()
+            (a + 1)*7^-1 + O(7^3)
+
+        An error will be raised if the parent of self is a ramified extension::
+
+            sage: K.<a> = Qp(5).extension(x^2 - 5)
+            sage: a.frobenius()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Frobenius automorphism only implemented for unramified extensions
+        """
+        R = self.parent()
+        if R.e() != 1:
+            raise NotImplementedError("Frobenius automorphism only implemented for unramified extensions")
+        if self.is_zero(): return self
+        L = self.teichmuller_list()
+        ppow = R.uniformizer_pow(self.valuation())
+        if arithmetic:
+            exp = R.prime()
+        else:
+            exp = R.prime()**(R.degree()-1)
+        ans = ppow * L[0]**exp
+        for m in range(1,len(L)):
+            ppow = ppow << 1
+            ans += ppow * L[m]**exp
+        return ans

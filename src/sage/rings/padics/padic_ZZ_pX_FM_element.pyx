@@ -652,6 +652,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             if self.prime_pow.e == 1:
                 ZZ_pX_right_pshift(ans.value, self.value, self.prime_pow.pow_ZZ_tmp(n)[0], self.prime_pow.get_top_context().x)
             else:
+                # Why is this not eis_shift_capdiv?!!
                 self.prime_pow.eis_shift(&ans.value, &self.value, n, self.prime_pow.prec_cap)
         return ans
 
@@ -1603,13 +1604,58 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         else:
             return [Integer(0)] * ordp + ulist
 
-#    def teichmuller_list(self):
-#        """
-#        Returns a list [$a_0$, $a_1$,..., $a_n$] such that
-#            - $a_i^q = a_i$
-#            - self.unit_part() = $\sum_{i = 0}^n a_i p^i$
-#        """
-#        raise NotImplementedError
+    def teichmuller_list(self):
+        r"""
+        Returns a list [`a_0`, `a_1`,..., `a_n`] such that
+
+        - `a_i^q = a_i`
+        - ``self.unit_part()`` = `\sum_{i = 0}^n a_i \pi^i`, where `\pi` is a
+          uniformizer of self.parent()
+
+        EXAMPLES::
+
+            sage: R.<a> = ZqFM(5^4,4)
+            sage: L = a.teichmuller_list(); L
+            [a + (2*a^3 + 2*a^2 + 3*a + 4)*5 + (4*a^3 + 3*a^2 + 3*a + 2)*5^2 + (4*a^2 + 2*a + 2)*5^3 + O(5^4), (3*a^3 + 3*a^2 + 2*a + 1) + (a^3 + 4*a^2 + 1)*5 + (a^2 + 4*a + 4)*5^2 + (4*a^2 + a + 3)*5^3 + O(5^4), (4*a^3 + 2*a^2 + a + 1) + (2*a^3 + 2*a^2 + 2*a + 4)*5 + (3*a^3 + 2*a^2 + a + 1)*5^2 + (a^3 + a^2 + 2)*5^3 + O(5^4), (a^3 + a^2 + a + 4) + (3*a^3 + 1)*5 + (3*a^3 + a + 2)*5^2 + (3*a^3 + 3*a^2 + 3*a + 1)*5^3 + O(5^4)]
+            sage: sum([5^i*L[i] for i in range(4)])
+            a + O(5^4)
+            sage: all([L[i]^625 == L[i] for i in range(4)])
+            True
+
+            sage: S.<x> = ZZ[]
+            sage: f = x^3 - 98*x + 7
+            sage: W.<w> = ZpFM(7,3).ext(f)
+            sage: b = (1+w)^5; L = b.teichmuller_list(); L
+            [1 + O(w^9), 5 + 5*w^3 + w^6 + 4*w^7 + O(w^9), 3 + 3*w^3 + w^7 + O(w^9), 3 + 3*w^3 + w^7 + O(w^9), O(w^9), 4 + 5*w^3 + w^6 + 4*w^7 + O(w^9), 3 + 3*w^3 + w^7 + O(w^9), 6 + w^3 + 5*w^7 + O(w^9), 6 + w^3 + 5*w^7 + O(w^9)]
+            sage: sum([w^i*L[i] for i in range(len(L))]) == b
+            True
+            sage: all([L[i]^(7^3) == L[i] for i in range(9)])
+            True
+
+            sage: L = W(3).teichmuller_list(); L
+            [3 + 3*w^3 + w^7 + O(w^9), O(w^9), O(w^9), 4 + 5*w^3 + w^6 + 4*w^7 + O(w^9), O(w^9), O(w^9), 3 + 3*w^3 + w^7 + O(w^9), 6 + w^3 + 5*w^7 + O(w^9)]
+            sage: sum([w^i*L[i] for i in range(len(L))])
+            3 + O(w^9)
+        """
+        L = []
+        if ZZ_pX_IsZero(self.value):
+            return L
+        cdef pAdicZZpXFMElement u = self.unit_part()
+        if u is self: u = self.__copy__()
+        cdef pAdicZZpXFMElement v
+        cdef long rp = self.prime_pow.ram_prec_cap - self.valuation_c()
+        while u.valuation_c() < rp:
+            v = self._new_c()
+            self.prime_pow.teichmuller_set_c(&v.value, &u.value, self.prime_pow.ram_prec_cap)
+            L.append(v)
+            if rp == 1: break
+            ZZ_pX_sub(u.value, u.value, v.value)
+            rp -= 1
+            if self.prime_pow.e == 1:
+                ZZ_pX_right_pshift(u.value, u.value, self.prime_pow.pow_ZZ_tmp(1)[0], self.prime_pow.get_top_context().x)
+            else:
+                self.prime_pow.eis_shift(&u.value, &u.value, 1, self.prime_pow.ram_prec_cap)
+        return L
 
     def _teichmuller_set(self):
         """

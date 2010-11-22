@@ -2035,11 +2035,12 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
 
     cdef teichmuller_list(pAdicCappedRelativeElement self):
         r"""
-        Returns a list [$a_0$, $a_1$,..., $a_n$] such that
+        Returns a list [`a_0`, `a_1`,..., `a_n`] such that
 
-            - $a_i^p = a_i$
-            - self.unit_part() = $\sum_{i = 0}^n a_i p^i$
-            - if $a_i \ne 0$, the absolute precision of $a_i$ is self.precision_relative() - i
+        - `a_i^p = a_i`
+        - ``self.unit_part()`` = `\sum_{i = 0}^n a_i p^i`
+        - if `a_i \ne 0`, the absolute precision of `a_i` is
+          ``self.precision_relative() - i``
 
         EXAMPLES::
 

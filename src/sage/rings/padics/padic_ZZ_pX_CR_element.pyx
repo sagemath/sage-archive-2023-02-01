@@ -3300,14 +3300,66 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 #         """
 #         raise NotImplementedError
 
-#     def teichmuller_list(self):
-#         """
-#         Returns a list [`a_0`, `a_1`,..., `a_n`] such that
-#             - `a_i^q = a_i`
-#             - self.unit_part() = `\sum_{i = 0}^n a_i p^i`
-#             - if `a_i \ne 0`, the absolute precision of `a_i` is self.precision_relative() - i
-#         """
-#         raise NotImplementedError
+    def teichmuller_list(self):
+        r"""
+        Returns a list [`a_0`, `a_1`,..., `a_n`] such that
+
+        - `a_i^q = a_i`
+        - ``self.unit_part()`` = `\sum_{i = 0}^n a_i \pi^i`, where `\pi` is a
+          uniformizer of ``self.parent()``
+        - if `a_i \ne 0`, the absolute precision of `a_i` is
+          ``self.precision_relative() - i``
+
+        EXAMPLES::
+
+            sage: R.<a> = ZqCR(5^4,4)
+            sage: L = a.teichmuller_list(); L
+            [a + (2*a^3 + 2*a^2 + 3*a + 4)*5 + (4*a^3 + 3*a^2 + 3*a + 2)*5^2 + (4*a^2 + 2*a + 2)*5^3 + O(5^4), (3*a^3 + 3*a^2 + 2*a + 1) + (a^3 + 4*a^2 + 1)*5 + (a^2 + 4*a + 4)*5^2 + O(5^3), (4*a^3 + 2*a^2 + a + 1) + (2*a^3 + 2*a^2 + 2*a + 4)*5 + O(5^2), (a^3 + a^2 + a + 4) + O(5)]
+            sage: sum([5^i*L[i] for i in range(4)])
+            a + O(5^4)
+            sage: all([L[i]^625 == L[i] for i in range(4)])
+            True
+
+            sage: S.<x> = ZZ[]
+            sage: f = x^3 - 98*x + 7
+            sage: W.<w> = ZpCR(7,3).ext(f)
+            sage: b = (1+w)^5; L = b.teichmuller_list(); L
+            [1 + O(w^9), 5 + 5*w^3 + w^6 + 4*w^7 + O(w^8), 3 + 3*w^3 + O(w^7), 3 + 3*w^3 + O(w^6), O(w^5), 4 + 5*w^3 + O(w^4), 3 + O(w^3), 6 + O(w^2), 6 + O(w)]
+            sage: sum([w^i*L[i] for i in range(9)]) == b
+            True
+            sage: all([L[i]^(7^3) == L[i] for i in range(9)])
+            True
+
+            sage: L = W(3).teichmuller_list(); L
+            [3 + 3*w^3 + w^7 + O(w^9), O(w^8), O(w^7), 4 + 5*w^3 + O(w^6), O(w^5), O(w^4), 3 + O(w^3), 6 + O(w^2)]
+            sage: sum([w^i*L[i] for i in range(len(L))])
+            3 + O(w^9)
+        """
+        L = []
+        cdef long rp = self.relprec
+        if rp == 0:
+            return L
+        cdef pAdicZZpXCRElement u = self.unit_part()
+        cdef pAdicZZpXCRElement v
+        while u.relprec > 0:
+            v = self._new_c(rp)
+            self.prime_pow.teichmuller_set_c(&v.unit, &u.unit, rp)
+            v.ordp = 0
+            L.append(v)
+            if rp == 1: break
+            ZZ_pX_sub(u.unit, u.unit, v.unit)
+            u.relprec = -u.relprec
+            u._normalize()
+            if u.relprec == 0: break
+            rp -= 1
+            u.ordp -= 1
+            while u.ordp > 0:
+                v = self._new_c(0)
+                v._set_inexact_zero(rp)
+                L.append(v)
+                rp -= 1
+                u.ordp -= 1
+        return L
 
     def _teichmuller_set(self):
         """

@@ -402,6 +402,32 @@ cdef class pAdicBaseGenericElement(pAdicGenericElement):
         else:
             return self
 
+    def frobenius(self, arithmetic=True):
+        """
+        Applies a Frobenius automorphism to this element. This is the identity
+        map, since this element lies in `\QQ_p`; it exists for compatibility
+        with the
+        :meth:`~sage.rings.padics.padic_ext_element.pAdicExtElement.frobenius`
+        method of elements of extensions of `\QQ_p`.
+
+        INPUT:
+
+        - ``self`` -- a `p`-adic element
+        - ``arithmetic`` -- whether to apply arithmetic Frobenius (as opposed
+          to geometric Frobenius) -- ignored, since both are the identity map
+          anyway.
+
+        OUTPUT:
+
+        - returns ``self``.
+
+        EXAMPLES::
+
+            sage: Qp(7)(2).frobenius()
+            2 + O(7^20)
+        """
+        return self
+
     cdef int teichmuller_set_c(self, mpz_t value, mpz_t ppow) except -1:
         r"""
         Sets ``value`` to the integer between 0 and ``ppow`` that is

@@ -60,6 +60,7 @@ Basic structures
 - :meth:`BarbellGraph <GraphGenerators.BarbellGraph>`
 - :meth:`BuckyBall <GraphGenerators.BuckyBall>`
 - :meth:`BullGraph <GraphGenerators.BullGraph>`
+- :meth:`ButterflyGraph <GraphGenerators.ButterflyGraph>`
 - :meth:`CircularLadderGraph <GraphGenerators.CircularLadderGraph>`
 - :meth:`ClawGraph <GraphGenerators.ClawGraph>`
 - :meth:`CycleGraph <GraphGenerators.CycleGraph>`
@@ -783,6 +784,60 @@ class GraphGenerators():
         import networkx
         G = networkx.bull_graph()
         return graph.Graph(G, pos=pos_dict, name="Bull graph")
+
+    def ButterflyGraph(self):
+        r"""
+        Returns the butterfly graph.
+
+        Let `C_3` be the cycle graph on 3 vertices. The butterfly or bowtie
+        graph is obtained by joining two copies of `C_3` at a common vertex,
+        resulting in a graph that is isomorphic to the friendship graph `F_2`.
+        For more information, see this
+        `Wikipedia article on the butterfly graph <http://en.wikipedia.org/wiki/Butterfly_graph>`_.
+
+        EXAMPLES:
+
+        The butterfly graph is a planar graph on 5 vertices and having
+        6 edges. ::
+
+            sage: G = graphs.ButterflyGraph(); G
+            Butterfly graph: Graph on 5 vertices
+            sage: G.show()  # long time
+            sage: G.is_planar()
+            True
+            sage: G.order()
+            5
+            sage: G.size()
+            6
+
+        It has diameter 2, girth 3, and radius 1. ::
+
+            sage: G.diameter()
+            2
+            sage: G.girth()
+            3
+            sage: G.radius()
+            1
+
+        The butterfly graph is Eulerian, with chromatic number 3. ::
+
+            sage: G.is_eulerian()
+            True
+            sage: G.chromatic_number()
+            3
+        """
+        edge_dict = {
+            0: [3,4],
+            1: [2,4],
+            2: [4],
+            3: [4]}
+        pos_dict = {
+            0: [-1, 1],
+            1: [1, 1],
+            2: [1, -1],
+            3: [-1, -1],
+            4: [0, 0]}
+        return graph.Graph(edge_dict, pos=pos_dict, name="Butterfly graph")
 
     def CircularLadderGraph(self, n):
         """

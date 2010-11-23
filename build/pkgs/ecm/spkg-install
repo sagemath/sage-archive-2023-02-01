@@ -41,6 +41,14 @@ rm -f "$SAGE_LOCAL"/share/man/man1/ecm.1
 
 cd src
 
+# Patch configure (and configure.in)
+cp -p ../patches/configure ../patches/configure.in .
+if [ $? != 0 ]; then
+	echo >&2 "Error patching configure and configure.in"
+	exit 1
+fi
+
+
 unset RM
 
 # Note: Building (also) a *shared* library is disabled by default.

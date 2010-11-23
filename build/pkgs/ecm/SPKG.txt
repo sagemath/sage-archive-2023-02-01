@@ -30,6 +30,10 @@ LGPL V2+
 
 == Changelog ==
 
+=== ecm-6.3.p1 (Jeroen Demeyer, November 10th, 2010) ===
+ * Apply a patch from upstream to configure.in to fix compilation
+   on 32-bit PowerPC processors.
+
 === ecm-6.3.p0 (Leif Leonhardy, November 4th, 2010) ===
  * #5847: Reviewer patch applied to Mike's spkg (upgrade to 6.3)
  * There are no patches, but to avoid confusion with the previous

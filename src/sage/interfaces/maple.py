@@ -534,7 +534,7 @@ connection to a server running Maple; for hints, type
                 sage.misc.persist.save(v, COMMANDS_CACHE)
             return v
 
-    def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True):
+    def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True, restart_if_needed=False):
         """
         EXAMPLES::
 

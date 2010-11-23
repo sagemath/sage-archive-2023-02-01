@@ -534,7 +534,7 @@ remote connection to a server running Mathematica -- for hints, type
     #    """
     #    self.eval('Clear[%s]'%var)
 
-    def _eval_line(self, line,  allow_use_file=True, wait_for_prompt=True):
+    def _eval_line(self, line,  allow_use_file=True, wait_for_prompt=True, restart_if_needed=False):
         s = Expect._eval_line(self, line,
              allow_use_file=allow_use_file, wait_for_prompt=wait_for_prompt)
         return str(s).strip('\n')

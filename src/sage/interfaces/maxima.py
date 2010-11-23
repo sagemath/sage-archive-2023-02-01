@@ -714,7 +714,7 @@ class Maxima(MaximaAbstract, Expect):
             raise KeyboardInterrupt, msg
 
     def _eval_line(self, line, allow_use_file=False,
-                   wait_for_prompt=True, reformat=True, error_check=True):
+                   wait_for_prompt=True, reformat=True, error_check=True, restart_if_needed=False):
         """
         Return result of line evaluation.
 

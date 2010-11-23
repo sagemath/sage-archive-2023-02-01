@@ -371,7 +371,7 @@ class Gp(Expect):
         """
         return self.set_default('seriesprecision', prec)
 
-    def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True):
+    def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True, restart_if_needed=False):
         """
         EXAMPLES::
 

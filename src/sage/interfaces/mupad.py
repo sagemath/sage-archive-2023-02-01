@@ -236,7 +236,7 @@ command-line version of MuPAD.
         return AsciiArtString(s)
 
     def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True,
-                   need_output=True):
+                   need_output=True, restart_if_needed=False):
         """
         EXAMPLES:
             sage: mupad._eval_line('2+2')  # optional - mupad

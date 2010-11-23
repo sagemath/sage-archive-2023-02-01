@@ -19,6 +19,9 @@ AUTHORS:
 
 - Martin Albrecht (2006-05-18): added sage_poly.
 
+- Simon King (2010-11-23): Reduce the overhead caused by waiting for
+  the Singular prompt by doing garbage collection differently.
+
 - Simon King (2011-06-06): Make conversion from Singular to Sage more flexible.
 
 Introduction
@@ -549,13 +552,19 @@ class Singular(Expect):
             sage: set_verbose(0)
             sage: o = s.hilb()
         """
-        # Synchronize the interface and clear any variables that are queued up to
-        # be cleared.
-        self._synchronize()
-        if len(self.__to_clear) > 0:
-            for var in self.__to_clear:
-                self._eval_line('if(defined(%s)>0){kill %s;};'%(var,var), wait_for_prompt=True)
-            self.__to_clear = []
+        # Simon King:
+        # In previous versions, the interface was first synchronised and then
+        # unused variables were killed. This created a considerable overhead.
+        # By trac ticket #10296, killing unused variables is now done inside
+        # singular.set(). Moreover, it is not done by calling a separate _eval_line.
+        # In that way, the time spent by waiting for the singular prompt is reduced.
+
+        # Before #10296, it was possible that garbage collection occured inside
+        # of _eval_line. But collection of the garbage would launch another call
+        # to _eval_line. The result would have been a dead lock, that could only
+        # be avoided by synchronisation. Since garbage collection is now done
+        # without an additional call to _eval_line, synchronisation is not
+        # needed anymore, saving even more waiting time for the prompt.
 
         # Uncomment the print statements below for low-level debugging of
         # code that involves the singular interfaces.  Everything goes
@@ -586,13 +595,33 @@ class Singular(Expect):
         """
         Set the variable with given name to the given value.
 
+        REMARK:
+
+        If a variable in the Singular interface was previously marked for
+        deletion, the actual deletion is done here, before the new variable
+        is created in Singular.
+
         EXAMPLES::
 
             sage: singular.set('int', 'x', '2')
             sage: singular.get('x')
             '2'
+
+        We test that an unused variable is only actually deleted if this method
+        is called::
+
+            sage: a = singular(3)
+            sage: n = a.name()
+            sage: del a
+            sage: singular.eval(n)
+            '3'
+            sage: singular.set('int', 'y', '5')
+            sage: singular.eval('defined(%s)'%n)
+            '0'
+
         """
-        cmd = '%s %s=%s;'%(type, name, value)
+        cmd = ''.join('if(defined(%s)){kill %s;};'%(v,v) for v in self.__to_clear) + '%s %s=%s;'%(type, name, value)
+        self.__to_clear = []
         try:
             out = self.eval(cmd)
         except RuntimeError, msg:
@@ -612,7 +641,7 @@ class Singular(Expect):
 
     def clear(self, var):
         """
-        Clear the variable named var.
+        Clear the variable named ``var``.
 
         EXAMPLES::
 
@@ -620,8 +649,18 @@ class Singular(Expect):
             sage: singular.get('x')
             '2'
             sage: singular.clear('x')
+
+        "Clearing the variable" means to allow to free the memory
+        that it uses in the Singular sub-process. However, the
+        actual deletion of the variable is only committed when
+        the next element in the Singular interface is created::
+
+            sage: singular.get('x')
+            '2'
+            sage: a = singular(3)
             sage: singular.get('x')
             '`x`'
+
         """
         # We add the variable to the list of vars to clear when we do an eval.
         # We queue up all the clears and do them at once to avoid synchronizing

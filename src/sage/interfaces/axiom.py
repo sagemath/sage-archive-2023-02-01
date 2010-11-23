@@ -411,7 +411,7 @@ class PanAxiom(Expect):
         return s
 
     def _eval_line(self, line, reformat=True, allow_use_file=False,
-                   wait_for_prompt=True):
+                   wait_for_prompt=True, restart_if_needed=False):
         """
         EXAMPLES::
 

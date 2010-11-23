@@ -19,6 +19,11 @@ AUTHORS:
   which is important for forking.
 
 - Jean-Pierre Flori (2010,2011): Split non Pexpect stuff into a parent class.
+
+- Simon King (2010-11-23): Ensure that the interface is started again
+  after a crash, when a command is executed in _eval_line. Allow
+  synchronisation of the GAP interface.
+
 """
 
 #*****************************************************************************
@@ -315,6 +320,28 @@ class Expect(Interface):
         pass
 
     def pid(self):
+        """
+        Return the PID of the underlying sub-process.
+
+        REMARK:
+
+        If the interface terminates unexpectedly, the original
+        PID will still be used. But if it was terminated using
+        :meth:`quit`, a new sub-process with a new PID is
+        automatically started.
+
+        EXAMPLE::
+
+            sage: pid = gap.pid()
+            sage: gap.eval('quit;')
+            ''
+            sage: pid == gap.pid()
+            True
+            sage: gap.quit()
+            sage: pid == gap.pid()
+            False
+
+        """
         if self._expect is None:
             self._start()
         return self._expect.pid
@@ -651,7 +678,56 @@ If this all works, you can then make calls like:
     def _read_in_file_command(self, filename):
         raise NotImplementedError
 
-    def _eval_line_using_file(self, line):
+    def _eval_line_using_file(self, line, restart_if_needed=True):
+        """
+        Evaluate a line of commands, using a temporary file.
+
+        REMARK:
+
+        By default, this is called when a long command is
+        evaluated in :meth:`eval`.
+
+        If the command can not be evaluated since the interface
+        has crashed, it is automatically restarted and tried
+        again *once*.
+
+        INPUT:
+
+        - ``line`` -- (string) a command.
+        - ``restart_if_needed`` - (optional bool, default ``True``) --
+          If it is ``True``, the command evaluation is evaluated
+          a second time after restarting the interface, if an
+          ``EOFError`` occured.
+
+        TESTS::
+
+            sage: singular._eval_line_using_file('def a=3;')
+            '< "...";'
+            sage: singular('a')
+            3
+            sage: singular.eval('quit;')
+            ''
+            sage: singular._eval_line_using_file('def a=3;')
+            Singular crashed -- automatically restarting.
+            '< "...";'
+            sage: singular('a')
+            3
+            sage: singular.eval('quit;')
+            ''
+            sage: singular._eval_line_using_file('def a=3;', restart_if_needed=False)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Singular terminated unexpectedly while reading in a large line
+
+        We end by triggering a re-start of Singular, since otherwise
+        the doc test of another method would fail by a side effect.
+        ::
+
+            sage: singular(3)
+            Singular crashed -- automatically restarting.
+            3
+
+        """
         F = open(self._local_tmpfile(), 'w')
         F.write(line+'\n')
         F.close()
@@ -660,19 +736,121 @@ If this all works, you can then make calls like:
             self._send_tmpfile_to_server()
             tmp_to_use = self._remote_tmpfile()
         try:
-            s = self._eval_line(self._read_in_file_command(tmp_to_use), allow_use_file=False)
+            s = self._eval_line(self._read_in_file_command(tmp_to_use), allow_use_file=False, restart_if_needed=False)
         except pexpect.EOF, msg:
             if self._quit_string() in line:
                 # we expect to get an EOF if we're quitting.
                 return ''
+            elif restart_if_needed==True: # the subprocess might have crashed
+                try:
+                    self._synchronize()
+                    return self._post_process_from_file(self._eval_line_using_file(line, restart_if_needed=False))
+                except RuntimeError, msg:
+                    raise RuntimeError, '%s terminated unexpectedly while reading in a large line:\n%s'%(self,msg[0])
+                except TypeError:
+                    pass
             raise RuntimeError, '%s terminated unexpectedly while reading in a large line'%self
+        except RuntimeError,msg:
+            if self._quit_string() in line:
+                if self._expect is None or not self._expect.isalive():
+                    return ''
+                raise
+            if restart_if_needed==True and (self._expect is None or not self._expect.isalive()):
+                try:
+                    self._synchronize()
+                    return self._post_process_from_file(self._eval_line_using_file(line, restart_if_needed=False))
+                except TypeError:
+                    pass
+                except RuntimeError, msg:
+                    raise RuntimeError, '%s terminated unexpectedly while reading in a large line'%self
+            if "Input/output error" in msg[0]: # This occurs on non-linux machines
+                raise RuntimeError, '%s terminated unexpectedly while reading in a large line'%self
+            raise RuntimeError, '%s terminated unexpectedly while reading in a large line:\n%s'%(self,msg[0])
         return self._post_process_from_file(s)
 
     def _post_process_from_file(self, s):
         return s
 
-    def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True):
-        if allow_use_file and self._eval_using_file_cutoff and len(line) > self._eval_using_file_cutoff:
+    def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True, restart_if_needed=True):
+        """
+        Evaluate a line of commands.
+
+        REMARK:
+
+        By default, a long command (length exceeding ``self._eval_using_file_cutoff``)
+        is evaluated using :meth:`_eval_line_using_file`.
+
+        If the command can not be evaluated since the interface
+        has crashed, it is automatically restarted and tried
+        again *once*.
+
+        If the optional ``wait_for_prompt`` is ``False`` then even a very
+        long line will not be evaluated by :meth:`_eval_line_using_file`,
+        since this does not support the ``wait_for_prompt`` option.
+
+        INPUT:
+
+        - ``line`` -- (string) a command.
+        - ``allow_use_file`` (optional bool, default ``True``) --
+          allow to evaluate long commands using :meth:`_eval_line_using_file`.
+        - ``wait_for_prompt`` (optional bool, default ``True``) --
+          wait until the prompt appears in the sub-process' output.
+        - ``restart_if_needed`` (optional bool, default ``True``) --
+          If it is ``True``, the command evaluation is evaluated
+          a second time after restarting the interface, if an
+          ``EOFError`` occured.
+
+        TESTS::
+
+            sage: singular._eval_line('def a=3;')
+            'def a=3;'
+            sage: singular('a')
+            3
+            sage: singular.eval('quit;')
+            ''
+            sage: singular._eval_line('def a=3;')
+            Singular crashed -- automatically restarting.
+            'def a=3;'
+            sage: singular('a')
+            3
+            sage: singular.eval('kill a')
+            'kill a;'
+
+        We are now sending a command that would run forever. But since
+        we declare that we are not waiting for a prompt, we can interrupt
+        it without a KeyboardInterrupt. At the same time, we test that
+        the line is not forwarded to :meth:`_eval_line_using_file`, since
+        that method would not support the ``wait_for_prompt`` option::
+
+            sage: cutoff = singular._eval_using_file_cutoff
+            sage: singular._eval_using_file_cutoff = 4
+            sage: singular._eval_line('for(int i=1;i<=3;i++){i=1;};', wait_for_prompt=False)
+            ''
+            sage: singular.interrupt(timeout=1)
+            False
+            sage: singular._eval_using_file_cutoff = cutoff
+
+        Last, we demonstrate that by default the execution of a command
+        is tried twice if it fails the first time due to a crashed
+        interface::
+
+            sage: singular.eval('quit;')
+            ''
+            sage: singular._eval_line_using_file('def a=3;', restart_if_needed=False)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Singular terminated unexpectedly while reading in a large line
+
+        Since the doc test of the next method would fail, we re-start
+        Singular now.
+        ::
+
+            sage: singular(2+3)
+            Singular crashed -- automatically restarting.
+            5
+
+        """
+        if allow_use_file and wait_for_prompt and self._eval_using_file_cutoff and len(line) > self._eval_using_file_cutoff:
             return self._eval_line_using_file(line)
         try:
             if self._expect is None:
@@ -686,6 +864,13 @@ If this all works, you can then make calls like:
                     return ''
 
             except OSError, msg:
+                if not E.isalive():
+                    if restart_if_needed==True: # the subprocess might have crashed
+                        try:
+                            self._synchronize()
+                            return self._eval_line(line,allow_use_file=allow_use_file, wait_for_prompt=wait_for_prompt, restart_if_needed=False)
+                        except (TypeError, RuntimeError):
+                            pass
                 raise RuntimeError, "%s\nError evaluating %s in %s"%(msg, line, self)
 
             if len(line)>0:
@@ -707,6 +892,12 @@ If this all works, you can then make calls like:
                     if self._quit_string() in line:
                         # we expect to get an EOF if we're quitting.
                         return ''
+                    elif restart_if_needed==True: # the subprocess might have crashed
+                        try:
+                            self._synchronize()
+                            return self._eval_line(line,allow_use_file=allow_use_file, wait_for_prompt=wait_for_prompt, restart_if_needed=False)
+                        except (TypeError, RuntimeError):
+                            pass
                     raise RuntimeError, "%s\n%s crashed executing %s"%(msg,self, line)
                 out = E.before
             else:
@@ -857,9 +1048,15 @@ If this all works, you can then make calls like:
             Control-C pressed.  Interrupting PARI/GP interpreter. Please wait a few seconds...
             ...
             KeyboardInterrupt: computation timed out because alarm was set for 1 seconds
+
+        Here is a doc test related with trac ticket #10296::
+
+            sage: gap._synchronize()
+
         """
         if expr is None:
-            expr = self._prompt_wait
+            # the following works around gap._prompt_wait not being defined
+            expr = (hasattr(self,'_prompt_wait') and self._prompt_wait) or self._prompt
         if self._expect is None:
             self._start()
         try:
@@ -1214,9 +1411,10 @@ class StdOutContext:
 
             sage: from sage.interfaces.expect import StdOutContext
             sage: with StdOutContext(singular):
-            ...       singular('1+1')
+            ...       singular.eval('1+1')
             ...
-            1+...
+            1+1;
+            ...
         """
         if self.silent:
             return

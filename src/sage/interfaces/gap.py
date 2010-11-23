@@ -380,7 +380,10 @@ class Gap_generic(Expect):
 
 
     def _execute_line(self, line, wait_for_prompt=True, expect_eof=False):
+        if self._expect is None: # interface is down
+            self._start()
         E = self._expect
+
         try:
             if len(line) > 4095:
                 raise RuntimeError("Passing commands this long to gap would hang")
@@ -464,60 +467,114 @@ class Gap_generic(Expect):
         self.quit()
         raise KeyboardInterrupt, "Ctrl-c pressed while running %s"%self
 
-    def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True):
+    def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True, restart_if_needed=True):
         """
-        EXAMPLES::
+        Evaluate a line of commands.
+
+        REMARK:
+
+        By default, a long command (length exceeding ``self._eval_using_file_cutoff``)
+        is evaluated using :meth:`_eval_line_using_file`.
+
+        If the command can not be evaluated since the interface
+        has crashed, it is automatically restarted and tried
+        again *once*.
+
+        If the optional ``wait_for_prompt`` is ``False`` then even a very long line
+        will not be evaluated by :meth:`_eval_line_using_file`, since this does not
+        support the ``wait_for_prompt`` option.
+
+        INPUT:
+
+        - ``line`` -- (string) a command.
+        - ``allow_use_file`` (optional bool, default ``True``) --
+          allow to evaluate long commands using :meth:`_eval_line_using_file`.
+        - ``wait_for_prompt`` (optional bool, default ``True``) --
+          wait until the prompt appears in the sub-process' output.
+        - ``restart_if_needed`` (optional bool, default ``True``) --
+          If it is ``True``, the command evaluation is evaluated
+          a second time after restarting the interface, if an
+          ``EOFError`` occured.
+
+        TESTS::
 
             sage: gap._eval_line('2+2;')
             '4'
+
+        We test the ``wait_for_prompt`` option by sending a command that
+        creates an infinite loop in the GAP sub-process. But if we don't
+        wait for the prompt to appear in the output, we can interrupt
+        the loop without raising a KeyboardInterrupt. At the same time,
+        we test that the line is not forwarded to :meth:`_eval_line_using_file`,
+        since that method would not support the ``wait_for_prompt`` option::
+
+            sage: cutoff = gap._eval_using_file_cutoff
+            sage: gap._eval_using_file_cutoff = 4
+            sage: gap._eval_line('while(1=1) do i:=1;; od;', wait_for_prompt=False)
+            ''
+            sage: gap.interrupt(timeout=1) is not None
+            True
+            sage: gap._eval_using_file_cutoff = cutoff
+
+        The following tests against a bug fixed at trac ticket #10296:
+
+            sage: a = gap(3)
+            sage: gap.eval('quit;')
+            ''
+            sage: a = gap(3)
+            ** Gap crashed or quit executing '$sage...:=3;;' **
+            Restarting Gap and trying again
+            sage: a
+            3
+
         """
         #if line.find('\n') != -1:
         #    raise ValueError, "line must not contain any newlines"
+        E = None
         try:
             if self._expect is None:
                 self._start()
             E = self._expect
             #import pdb; pdb.set_trace()
-            if allow_use_file and len(line) > self._eval_using_file_cutoff:
+            if allow_use_file and wait_for_prompt and len(line) > self._eval_using_file_cutoff:
                 return self._eval_line_using_file(line)
-            try:
-                (normal, error) = self._execute_line(line, wait_for_prompt=wait_for_prompt,
+            (normal, error) = self._execute_line(line, wait_for_prompt=wait_for_prompt,
                                                  expect_eof= (self._quit_string() in line))
 
-                if len(error)> 0:
-                    if 'Error, Rebuild completion files!' in error:
-                        error += "\nRunning gap_reset_workspace()..."
-                        self.quit()
-                        gap_reset_workspace()
-                    error = error.replace('\r','')
-                    raise RuntimeError, "%s produced error output\n%s\n   executing %s"%(self, error,line)
-                if len(normal) == 0:
+            if len(error)> 0:
+                if 'Error, Rebuild completion files!' in error:
+                    error += "\nRunning gap_reset_workspace()..."
+                    self.quit()
+                    gap_reset_workspace()
+                error = error.replace('\r','')
+                raise RuntimeError, "%s produced error output\n%s\n   executing %s"%(self, error,line)
+            if len(normal) == 0:
+                return ''
+
+            if isinstance(wait_for_prompt, str) and normal.ends_with(wait_for_prompt):
+                n = len(wait_for_prompt)
+            elif normal.endswith(self._prompt):
+                n = len(self._prompt)
+            elif normal.endswith(self._continuation_prompt()):
+                n = len(self._continuation_prompt())
+            else:
+                n = 0
+            out = normal[:-n]
+            if len(out) > 0 and out[-1] == "\n":
+                out = out[:-1]
+            return out
+
+        except (RuntimeError,TypeError),message:
+            if 'EOF' in message[0] or E is None or not E.isalive():
+                print "** %s crashed or quit executing '%s' **"%(self, line)
+                print "Restarting %s and trying again"%self
+                self._start()
+                if line != '':
+                    return self._eval_line(line, allow_use_file=allow_use_file)
+                else:
                     return ''
-
-                if isinstance(wait_for_prompt, str) and normal.ends_with(wait_for_prompt):
-                    n = len(wait_for_prompt)
-                elif normal.endswith(self._prompt):
-                    n = len(self._prompt)
-                elif normal.endswith(self._continuation_prompt()):
-                    n = len(self._continuation_prompt())
-                else:
-                    n = 0
-                out = normal[:-n]
-                if len(out) > 0 and out[-1] == "\n":
-                    out = out[:-1]
-                return out
-
-            except (RuntimeError,),message:
-                if 'EOF' in message:
-                    print "** %s crashed or quit executing '%s' **"%(self, line)
-                    print "Restarting %s and trying again"%self
-                    self._start()
-                    if line != '':
-                        return self._eval_line(line, allow_use_file=allow_use_file)
-                    else:
-                        return ''
-                else:
-                    raise RuntimeError, message
+            else:
+                raise RuntimeError, message
 
         except KeyboardInterrupt:
             self._keyboard_interrupt()

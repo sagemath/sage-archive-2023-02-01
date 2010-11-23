@@ -609,7 +609,7 @@ class LiE(Expect):
         except KeyError:
             return "Could not find help for " + command
 
-    def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True):
+    def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True, restart_if_needed=False):
         """
         EXAMPLES:
             sage: lie._eval_line('2+2') #optional -- requires LiE

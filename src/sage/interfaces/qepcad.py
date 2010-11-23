@@ -1112,7 +1112,7 @@ class Qepcad:
             raise AttributeError
         return QepcadFunction(self, attrname)
 
-    def _eval_line(self, cmd):
+    def _eval_line(self, cmd, restart_if_needed=False):
         r"""
         Send a command to QEPCAD, wait for a prompt, and return the
         text printed by QEPCAD before the prompt.  Not intended for

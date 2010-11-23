@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 r"""
 Common graphs
 
@@ -97,6 +99,7 @@ Named Graphs
 - :meth:`BrinkmannGraph <GraphGenerators.BrinkmannGraph>`
 - :meth:`ChvatalGraph <GraphGenerators.ChvatalGraph>`
 - :meth:`DesarguesGraph <GraphGenerators.DesarguesGraph>`
+- :meth:`DurerGraph <GraphGenerators.DurerGraph>`
 - :meth:`FlowerSnark <GraphGenerators.FlowerSnark>`
 - :meth:`FruchtGraph <GraphGenerators.FruchtGraph>`
 - :meth:`GrotzschGraph <GraphGenerators.GrotzschGraph>`
@@ -2353,6 +2356,62 @@ class GraphGenerators():
         G=graphs.GeneralizedPetersenGraph(10,3)
         G.name("Desargues Graph")
         return G
+
+    def DurerGraph(self):
+        r"""
+        Returns the Dürer graph.
+
+        For more information, see this
+        `Wikipedia article on the Dürer graph <http://en.wikipedia.org/wiki/D%C3%BCrer_graph>`_.
+
+        EXAMPLES:
+
+        The Dürer graph is named after Albrecht Dürer. It is a planar graph
+        with 12 vertices and 18 edges. ::
+
+            sage: G = graphs.DurerGraph(); G
+            Durer graph: Graph on 12 vertices
+            sage: G.is_planar()
+            True
+            sage: G.order()
+            12
+            sage: G.size()
+            18
+
+        The Dürer graph has chromatic number 3, diameter 4, and girth 3. ::
+
+            sage: G.chromatic_number()
+            3
+            sage: G.diameter()
+            4
+            sage: G.girth()
+            3
+        """
+        edge_dict = {
+            0: [1,5,6],
+            1: [2,7],
+            2: [3,8],
+            3: [4,9],
+            4: [5,10],
+            5: [11],
+            6: [8,10],
+            7: [9,11],
+            8: [10],
+            9: [11]}
+        pos_dict = {
+            0: [2, 0],
+            1: [1, 1.73205080756888],
+            2: [-1, 1.73205080756888],
+            3: [-2, 0],
+            4: [-1, -1.73205080756888],
+            5: [1, -1.73205080756888],
+            6: [1, 0],
+            7: [0.5, 0.866025403784439],
+            8: [-0.5, 0.866025403784439],
+            9: [-1, 0],
+            10: [-0.5, -0.866025403784439],
+            11: [0.5, -0.866025403784439]}
+        return graph.Graph(edge_dict, pos=pos_dict, name="Durer graph")
 
     def FlowerSnark(self):
         """

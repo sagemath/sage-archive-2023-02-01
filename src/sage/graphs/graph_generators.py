@@ -119,6 +119,7 @@ Families of graphs
 - :meth:`CompleteGraph <GraphGenerators.CompleteGraph>`
 - :meth:`CubeGraph <GraphGenerators.CubeGraph>`
 - :meth:`FibonacciTree <GraphGenerators.FibonacciTree>`
+- :meth:`FriendshipGraph <GraphGenerators.FriendshipGraph>`
 - :meth:`FuzzyBallGraph <GraphGenerators.FuzzyBallGraph>`
 - :meth:`GeneralizedPetersenGraph <GraphGenerators.GeneralizedPetersenGraph>`
 - :meth:`HanoiTowerGraph <GraphGenerators.HanoiTowerGraph>`
@@ -794,6 +795,10 @@ class GraphGenerators():
         resulting in a graph that is isomorphic to the friendship graph `F_2`.
         For more information, see this
         `Wikipedia article on the butterfly graph <http://en.wikipedia.org/wiki/Butterfly_graph>`_.
+
+        .. seealso::
+
+            - :meth:`GraphGenerators.FriendshipGraph`
 
         EXAMPLES:
 
@@ -3104,9 +3109,181 @@ class GraphGenerators():
         G = networkx.complete_bipartite_graph(3,3)
         return graph.Graph(G, pos=pos_dict, name="Thomsen graph")
 
-################################################################################
+###########################################################################
 #   Families of Graphs
-################################################################################
+###########################################################################
+
+    def BalancedTree(self, r, h):
+        r"""
+        Returns the perfectly balanced tree of height `h \geq 1`,
+        whose root has degree `r \geq 2`.
+
+        The number of vertices of this graph is
+        `1 + r + r^2 + \cdots + r^h`, that is,
+        `\frac{r^{h+1} - 1}{r - 1}`. The number of edges is one
+        less than the number of vertices.
+
+        INPUT:
+
+        - ``r`` -- positive integer `\geq 2`. The degree of the root node.
+
+        - ``h`` -- positive integer `\geq 1`. The height of the balanced tree.
+
+        OUTPUT:
+
+        The perfectly balanced tree of height `h \geq 1` and whose root has
+        degree `r \geq 2`. A ``NetworkXError`` is returned if `r < 2` or
+        `h < 1`.
+
+        ALGORITHM:
+
+        Uses `NetworkX <http://networkx.lanl.gov>`_.
+
+        EXAMPLES:
+
+        A balanced tree whose root node has degree `r = 2`, and of height
+        `h = 1`, has order 3 and size 2::
+
+            sage: G = graphs.BalancedTree(2, 1); G
+            Balanced tree: Graph on 3 vertices
+            sage: G.order(); G.size()
+            3
+            2
+            sage: r = 2; h = 1
+            sage: v = 1 + r
+            sage: v; v - 1
+            3
+            2
+
+        Plot a balanced tree of height 5, whose root node has degree `r = 3`::
+
+            sage: G = graphs.BalancedTree(3, 5)
+            sage: G.show()   # long time
+
+        A tree is bipartite. If its vertex set is finite, then it is planar. ::
+
+            sage: r = randint(2, 5); h = randint(1, 7)
+            sage: T = graphs.BalancedTree(r, h)
+            sage: T.is_bipartite()
+            True
+            sage: T.is_planar()
+            True
+            sage: v = (r^(h + 1) - 1) / (r - 1)
+            sage: T.order() == v
+            True
+            sage: T.size() == v - 1
+            True
+
+        TESTS:
+
+        We only consider balanced trees whose root node has degree `r \geq 2`::
+
+            sage: graphs.BalancedTree(1, randint(1, 10^6))
+            Traceback (most recent call last):
+            ...
+            NetworkXError: Invalid graph description, r should be >=2
+            sage: graphs.BalancedTree(randint(-10^6, 1), randint(1, 10^6))
+            Traceback (most recent call last):
+            ...
+            NetworkXError: Invalid graph description, r should be >=2
+
+        The tree must have height `h \geq 1`::
+
+            sage: graphs.BalancedTree(randint(2, 10^6), 0)
+            Traceback (most recent call last):
+            ...
+            NetworkXError: Invalid graph description, h should be >=1
+            sage: graphs.BalancedTree(randint(2, 10^6), randint(-10^6, 0))
+            Traceback (most recent call last):
+            ...
+            NetworkXError: Invalid graph description, h should be >=1
+            sage: graphs.BalancedTree(randint(-10^6, 1), randint(-10^6, 0))
+            Traceback (most recent call last):
+            ...
+            NetworkXError: Invalid graph description, r should be >=2
+        """
+        import networkx
+        return graph.Graph(networkx.balanced_tree(r, h), name="Balanced tree")
+
+    def BubbleSortGraph(self, n):
+        r"""
+        Returns the bubble sort graph `B(n)`.
+
+        The vertices of the bubble sort graph are the set of permutations on
+        `n` symbols. Two vertices are adjacent if one can be obtained from the
+        other by swapping the labels in the `i`-th and `(i+1)`-th positions for
+        `1 \leq i \leq n-1`. In total, `B(n)` has order `n!`. Thus, the order
+        of `B(n)` increases according to `f(n) = n!`.
+
+        INPUT:
+
+        - ``n`` -- positive integer. The number of symbols to permute.
+
+        OUTPUT:
+
+        The bubble sort graph `B(n)` on `n` symbols. If `n < 1`, a
+        ``ValueError`` is returned.
+
+        EXAMPLES::
+
+            sage: g = graphs.BubbleSortGraph(4); g
+            Bubble sort: Graph on 24 vertices
+            sage: g.plot() # long time
+
+        The bubble sort graph on `n = 1` symbol is the trivial graph `K_1`::
+
+            sage: graphs.BubbleSortGraph(1)
+            Bubble sort: Graph on 1 vertex
+
+        If `n \geq 1`, then the order of `B(n)` is `n!`::
+
+            sage: n = randint(1, 8)
+            sage: g = graphs.BubbleSortGraph(n)
+            sage: g.order() == factorial(n)
+            True
+
+        TESTS:
+
+        Input ``n`` must be positive::
+
+            sage: graphs.BubbleSortGraph(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: Invalid number of symbols to permute, n should be >= 1
+            sage: graphs.BubbleSortGraph(randint(-10^6, 0))
+            Traceback (most recent call last):
+            ...
+            ValueError: Invalid number of symbols to permute, n should be >= 1
+
+        AUTHORS:
+
+        - Michael Yurko (2009-09-01)
+        """
+        # sanity checks
+        if n < 1:
+            raise ValueError(
+                "Invalid number of symbols to permute, n should be >= 1")
+        if n == 1:
+            return graph.Graph(self.CompleteGraph(n), name="Bubble sort")
+        from sage.combinat.permutation import Permutations
+        #create set from which to permute
+        label_set = [str(i) for i in xrange(1, n + 1)]
+        d = {}
+        #iterate through all vertices
+        for v in Permutations(label_set):
+            tmp_dict = {}
+            #add all adjacencies
+            for i in xrange(n - 1):
+                #swap entries
+                v[i], v[i + 1] = v[i + 1], v[i]
+                #add new vertex
+                new_vert = ''.join(v)
+                tmp_dict[new_vert] = None
+                #swap back
+                v[i], v[i + 1] = v[i + 1], v[i]
+            #add adjacency dict
+            d[''.join(v)] = tmp_dict
+        return graph.Graph(d, name="Bubble sort")
 
     def CirculantGraph(self, n, adjacency):
         r"""
@@ -3213,8 +3390,6 @@ class GraphGenerators():
             G.add_edges([(v,(v+j)%n) for j in adjacency])
             G.add_edges([(v,(v-j)%n) for j in adjacency])
         return G
-
-
 
     def CompleteGraph(self, n):
         """
@@ -3547,6 +3722,124 @@ class GraphGenerators():
 
         return r
 
+    def FriendshipGraph(self, n):
+        r"""
+        Returns the friendship graph `F_n`.
+
+        The friendship graph is also known as the Dutch windmill graph. Let
+        `C_3` be the cycle graph on 3 vertices. Then `F_n` is constructed by
+        joining `n \geq 1` copies of `C_3` at a common vertex. If `n = 1`,
+        then `F_1` is isomorphic to `C_3` (the triangle graph). If `n = 2`,
+        then `F_2` is the butterfly graph, otherwise known as the bowtie
+        graph. For more information, see this
+        `Wikipedia article on the friendship graph <http://en.wikipedia.org/wiki/Friendship_graph>`_.
+
+        INPUT:
+
+        - ``n`` -- positive integer; the number of copies of `C_3` to use in
+          constructing `F_n`.
+
+        OUTPUT:
+
+        - The friendship graph `F_n` obtained from `n` copies of the cycle
+          graph `C_3`.
+
+        .. seealso::
+
+            - :meth:`GraphGenerators.ButterflyGraph`
+
+        EXAMPLES:
+
+        The first few friendship graphs. ::
+
+            sage: A = []; B = []
+            sage: for i in range(9):
+            ...       g = graphs.FriendshipGraph(i + 1)
+            ...       A.append(g)
+            sage: for i in range(3):
+            ...       n = []
+            ...       for j in range(3):
+            ...           n.append(A[3*i + j].plot(vertex_size=20, vertex_labels=False))
+            ...       B.append(n)
+            sage: G = sage.plot.plot.GraphicsArray(B)
+            sage: G.show()  # long time
+
+        For `n = 1`, the friendship graph `F_1` is isomorphic to the cycle
+        graph `C_3`, whose visual representation is a triangle. ::
+
+            sage: G = graphs.FriendshipGraph(1); G
+            Friendship graph: Graph on 3 vertices
+            sage: G.show()  # long time
+            sage: G.is_isomorphic(graphs.CycleGraph(3))
+            True
+
+        For `n = 2`, the friendship graph `F_2` is isomorphic to the
+        butterfly graph, otherwise known as the bowtie graph. ::
+
+            sage: G = graphs.FriendshipGraph(2); G
+            Friendship graph: Graph on 5 vertices
+            sage: G.is_isomorphic(graphs.ButterflyGraph())
+            True
+
+        If `n \geq 1`, then the friendship graph `F_n` has `2n + 1` vertices
+        and `3n` edges. It has radius 1, diameter 2, girth 3, and
+        chromatic number 3. Furthermore, `F_n` is planar and Eulerian. ::
+
+            sage: n = randint(1, 10^3)
+            sage: G = graphs.FriendshipGraph(n)
+            sage: G.order() == 2*n + 1
+            True
+            sage: G.size() == 3*n
+            True
+            sage: G.radius()
+            1
+            sage: G.diameter()
+            2
+            sage: G.girth()
+            3
+            sage: G.chromatic_number()
+            3
+            sage: G.is_planar()
+            True
+            sage: G.is_eulerian()
+            True
+
+        TESTS:
+
+        The input ``n`` must be a positive integer. ::
+
+            sage: graphs.FriendshipGraph(randint(-10^5, 0))
+            Traceback (most recent call last):
+            ...
+            ValueError: n must be a positive integer
+        """
+        # sanity checks
+        if n < 1:
+            raise ValueError("n must be a positive integer")
+        # construct the friendship graph
+        if n == 1:
+            G = self.CycleGraph(3)
+            G.name("Friendship graph")
+            return G
+        # build the edge and position dictionaries
+        from sage.functions.trig import cos, sin
+        from sage.rings.real_mpfr import RR
+        from sage.symbolic.constants import pi
+        N = 2*n + 1           # order of F_n
+        d = (2*pi) / (N - 1)  # angle between external nodes
+        edge_dict = {}
+        pos_dict = {}
+        for i in range(N - 2):
+            if i & 1:  # odd numbered node
+                edge_dict.setdefault(i, [i + 1, N - 1])
+            else:      # even numbered node
+                edge_dict.setdefault(i, [N - 1])
+            pos_dict.setdefault(i, [RR(cos(i*d)), RR(sin(i*d))])
+        edge_dict.setdefault(N - 2, [0, N - 1])
+        pos_dict.setdefault(N - 2, [RR(cos(d * (N-2))), RR(sin(d * (N-2)))])
+        pos_dict.setdefault(N - 1, [0, 0])
+        return graph.Graph(edge_dict, pos=pos_dict, name="Friendship graph")
+
     def FuzzyBallGraph(self, partition, q):
         r"""
         Construct a Fuzzy Ball graph with the integer partition
@@ -3596,8 +3889,6 @@ class GraphGenerators():
             g.add_edges([(curr_vertex+i, 'a{0}'.format(e+1)) for i in range(p)])
             curr_vertex+=p
         return g
-
-
 
     def FibonacciTree(self, n):
         r"""
@@ -3773,6 +4064,85 @@ class GraphGenerators():
 
         return g
 
+    def LCFGraph(self, n, shift_list, repeats):
+        """
+        Returns the cubic graph specified in LCF notation.
+
+        LCF (Lederberg-Coxeter-Fruchte) notation is a concise way of
+        describing cubic Hamiltonian graphs. The way a graph is constructed
+        is as follows. Since there is a Hamiltonian cycle, we first create
+        a cycle on n nodes. The variable shift_list = [s_0, s_1, ...,
+        s_k-1] describes edges to be created by the following scheme: for
+        each i, connect vertex i to vertex (i + s_i). Then, repeats
+        specifies the number of times to repeat this process, where on the
+        jth repeat we connect vertex (i + j\*len(shift_list)) to vertex (
+        i + j\*len(shift_list) + s_i).
+
+        INPUT:
+
+
+        -  ``n`` - the number of nodes.
+
+        -  ``shift_list`` - a list of integer shifts mod n.
+
+        -  ``repeats`` - the number of times to repeat the
+           process.
+
+
+        EXAMPLES::
+
+            sage: G = graphs.LCFGraph(4, [2,-2], 2)
+            sage: G.is_isomorphic(graphs.TetrahedralGraph())
+            True
+
+        ::
+
+            sage: G = graphs.LCFGraph(20, [10,7,4,-4,-7,10,-4,7,-7,4], 2)
+            sage: G.is_isomorphic(graphs.DodecahedralGraph())
+            True
+
+        ::
+
+            sage: G = graphs.LCFGraph(14, [5,-5], 7)
+            sage: G.is_isomorphic(graphs.HeawoodGraph())
+            True
+
+        The largest cubic nonplanar graph of diameter three::
+
+            sage: G = graphs.LCFGraph(20, [-10,-7,-5,4,7,-10,-7,-4,5,7,-10,-7,6,-5,7,-10,-7,5,-6,7], 1)
+            sage: G.degree()
+            [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
+            sage: G.diameter()
+            3
+            sage: G.show()  # long time
+
+        PLOTTING: LCF Graphs are plotted as an n-cycle with edges in the
+        middle, as described above.
+
+        REFERENCES:
+
+        - [1] Frucht, R. "A Canonical Representation of Trivalent
+          Hamiltonian Graphs." J. Graph Th. 1, 45-60, 1976.
+
+        - [2] Grunbaum, B.  Convex Polytope es. New York: Wiley,
+          pp. 362-364, 1967.
+
+        - [3] Lederberg, J. 'DENDRAL-64: A System for Computer
+          Construction, Enumeration and Notation of Organic Molecules
+          as Tree Structures and Cyclic Graphs. Part II. Topology of
+          Cyclic Graphs.' Interim Report to the National Aeronautics
+          and Space Administration. Grant NsG 81-60. December 15,
+          1965.  http://profiles.nlm.nih.gov/BB/A/B/I/U/_/bbabiu.pdf.
+        """
+        import networkx
+        pos_dict = {}
+        for i in range(n):
+            x = float(cos(pi/2 + ((2*pi)/n)*i))
+            y = float(sin(pi/2 + ((2*pi)/n)*i))
+            pos_dict[i] = [x,y]
+        return graph.Graph(networkx.LCF_graph(n, shift_list, repeats),\
+                           pos=pos_dict, name="LCF Graph")
+
     def NKStarGraph(self,n,k):
         r"""
         Returns the (n,k)-star graph.
@@ -3882,257 +4252,6 @@ class GraphGenerators():
                     v[0], v[i] = v[i], v[0]
             d["".join(v)] = tmp_dict
         return graph.Graph(d, name = "%d-star"%n)
-
-    def BubbleSortGraph(self, n):
-        r"""
-        Returns the bubble sort graph `B(n)`.
-
-        The vertices of the bubble sort graph are the set of permutations on
-        `n` symbols. Two vertices are adjacent if one can be obtained from the
-        other by swapping the labels in the `i`-th and `(i+1)`-th positions for
-        `1 \leq i \leq n-1`. In total, `B(n)` has order `n!`. Thus, the order
-        of `B(n)` increases according to `f(n) = n!`.
-
-        INPUT:
-
-        - ``n`` -- positive integer. The number of symbols to permute.
-
-        OUTPUT:
-
-        The bubble sort graph `B(n)` on `n` symbols. If `n < 1`, a
-        ``ValueError`` is returned.
-
-        EXAMPLES::
-
-            sage: g = graphs.BubbleSortGraph(4); g
-            Bubble sort: Graph on 24 vertices
-            sage: g.plot() # long time
-
-        The bubble sort graph on `n = 1` symbol is the trivial graph `K_1`::
-
-            sage: graphs.BubbleSortGraph(1)
-            Bubble sort: Graph on 1 vertex
-
-        If `n \geq 1`, then the order of `B(n)` is `n!`::
-
-            sage: n = randint(1, 8)
-            sage: g = graphs.BubbleSortGraph(n)
-            sage: g.order() == factorial(n)
-            True
-
-        TESTS:
-
-        Input ``n`` must be positive::
-
-            sage: graphs.BubbleSortGraph(0)
-            Traceback (most recent call last):
-            ...
-            ValueError: Invalid number of symbols to permute, n should be >= 1
-            sage: graphs.BubbleSortGraph(randint(-10^6, 0))
-            Traceback (most recent call last):
-            ...
-            ValueError: Invalid number of symbols to permute, n should be >= 1
-
-        AUTHORS:
-
-        - Michael Yurko (2009-09-01)
-        """
-        # sanity checks
-        if n < 1:
-            raise ValueError(
-                "Invalid number of symbols to permute, n should be >= 1")
-        if n == 1:
-            return graph.Graph(self.CompleteGraph(n), name="Bubble sort")
-        from sage.combinat.permutation import Permutations
-        #create set from which to permute
-        label_set = [str(i) for i in xrange(1, n + 1)]
-        d = {}
-        #iterate through all vertices
-        for v in Permutations(label_set):
-            tmp_dict = {}
-            #add all adjacencies
-            for i in xrange(n - 1):
-                #swap entries
-                v[i], v[i + 1] = v[i + 1], v[i]
-                #add new vertex
-                new_vert = ''.join(v)
-                tmp_dict[new_vert] = None
-                #swap back
-                v[i], v[i + 1] = v[i + 1], v[i]
-            #add adjacency dict
-            d[''.join(v)] = tmp_dict
-        return graph.Graph(d, name="Bubble sort")
-
-    def BalancedTree(self, r, h):
-        r"""
-        Returns the perfectly balanced tree of height `h \geq 1`,
-        whose root has degree `r \geq 2`.
-
-        The number of vertices of this graph is
-        `1 + r + r^2 + \cdots + r^h`, that is,
-        `\frac{r^{h+1} - 1}{r - 1}`. The number of edges is one
-        less than the number of vertices.
-
-        INPUT:
-
-        - ``r`` -- positive integer `\geq 2`. The degree of the root node.
-
-        - ``h`` -- positive integer `\geq 1`. The height of the balanced tree.
-
-        OUTPUT:
-
-        The perfectly balanced tree of height `h \geq 1` and whose root has
-        degree `r \geq 2`. A ``NetworkXError`` is returned if `r < 2` or
-        `h < 1`.
-
-        ALGORITHM:
-
-        Uses `NetworkX <http://networkx.lanl.gov>`_.
-
-        EXAMPLES:
-
-        A balanced tree whose root node has degree `r = 2`, and of height
-        `h = 1`, has order 3 and size 2::
-
-            sage: G = graphs.BalancedTree(2, 1); G
-            Balanced tree: Graph on 3 vertices
-            sage: G.order(); G.size()
-            3
-            2
-            sage: r = 2; h = 1
-            sage: v = 1 + r
-            sage: v; v - 1
-            3
-            2
-
-        Plot a balanced tree of height 5, whose root node has degree `r = 3`::
-
-            sage: G = graphs.BalancedTree(3, 5)
-            sage: G.show()   # long time
-
-        A tree is bipartite. If its vertex set is finite, then it is planar. ::
-
-            sage: r = randint(2, 5); h = randint(1, 7)
-            sage: T = graphs.BalancedTree(r, h)
-            sage: T.is_bipartite()
-            True
-            sage: T.is_planar()
-            True
-            sage: v = (r^(h + 1) - 1) / (r - 1)
-            sage: T.order() == v
-            True
-            sage: T.size() == v - 1
-            True
-
-        TESTS:
-
-        We only consider balanced trees whose root node has degree `r \geq 2`::
-
-            sage: graphs.BalancedTree(1, randint(1, 10^6))
-            Traceback (most recent call last):
-            ...
-            NetworkXError: Invalid graph description, r should be >=2
-            sage: graphs.BalancedTree(randint(-10^6, 1), randint(1, 10^6))
-            Traceback (most recent call last):
-            ...
-            NetworkXError: Invalid graph description, r should be >=2
-
-        The tree must have height `h \geq 1`::
-
-            sage: graphs.BalancedTree(randint(2, 10^6), 0)
-            Traceback (most recent call last):
-            ...
-            NetworkXError: Invalid graph description, h should be >=1
-            sage: graphs.BalancedTree(randint(2, 10^6), randint(-10^6, 0))
-            Traceback (most recent call last):
-            ...
-            NetworkXError: Invalid graph description, h should be >=1
-            sage: graphs.BalancedTree(randint(-10^6, 1), randint(-10^6, 0))
-            Traceback (most recent call last):
-            ...
-            NetworkXError: Invalid graph description, r should be >=2
-        """
-        import networkx
-        return graph.Graph(networkx.balanced_tree(r, h), name="Balanced tree")
-
-    def LCFGraph(self, n, shift_list, repeats):
-        """
-        Returns the cubic graph specified in LCF notation.
-
-        LCF (Lederberg-Coxeter-Fruchte) notation is a concise way of
-        describing cubic Hamiltonian graphs. The way a graph is constructed
-        is as follows. Since there is a Hamiltonian cycle, we first create
-        a cycle on n nodes. The variable shift_list = [s_0, s_1, ...,
-        s_k-1] describes edges to be created by the following scheme: for
-        each i, connect vertex i to vertex (i + s_i). Then, repeats
-        specifies the number of times to repeat this process, where on the
-        jth repeat we connect vertex (i + j\*len(shift_list)) to vertex (
-        i + j\*len(shift_list) + s_i).
-
-        INPUT:
-
-
-        -  ``n`` - the number of nodes.
-
-        -  ``shift_list`` - a list of integer shifts mod n.
-
-        -  ``repeats`` - the number of times to repeat the
-           process.
-
-
-        EXAMPLES::
-
-            sage: G = graphs.LCFGraph(4, [2,-2], 2)
-            sage: G.is_isomorphic(graphs.TetrahedralGraph())
-            True
-
-        ::
-
-            sage: G = graphs.LCFGraph(20, [10,7,4,-4,-7,10,-4,7,-7,4], 2)
-            sage: G.is_isomorphic(graphs.DodecahedralGraph())
-            True
-
-        ::
-
-            sage: G = graphs.LCFGraph(14, [5,-5], 7)
-            sage: G.is_isomorphic(graphs.HeawoodGraph())
-            True
-
-        The largest cubic nonplanar graph of diameter three::
-
-            sage: G = graphs.LCFGraph(20, [-10,-7,-5,4,7,-10,-7,-4,5,7,-10,-7,6,-5,7,-10,-7,5,-6,7], 1)
-            sage: G.degree()
-            [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
-            sage: G.diameter()
-            3
-            sage: G.show()  # long time
-
-        PLOTTING: LCF Graphs are plotted as an n-cycle with edges in the
-        middle, as described above.
-
-        REFERENCES:
-
-        - [1] Frucht, R. "A Canonical Representation of Trivalent
-          Hamiltonian Graphs." J. Graph Th. 1, 45-60, 1976.
-
-        - [2] Grunbaum, B.  Convex Polytope es. New York: Wiley,
-          pp. 362-364, 1967.
-
-        - [3] Lederberg, J. 'DENDRAL-64: A System for Computer
-          Construction, Enumeration and Notation of Organic Molecules
-          as Tree Structures and Cyclic Graphs. Part II. Topology of
-          Cyclic Graphs.' Interim Report to the National Aeronautics
-          and Space Administration. Grant NsG 81-60. December 15,
-          1965.  http://profiles.nlm.nih.gov/BB/A/B/I/U/_/bbabiu.pdf.
-        """
-        import networkx
-        pos_dict = {}
-        for i in range(n):
-            x = float(cos(pi/2 + ((2*pi)/n)*i))
-            y = float(sin(pi/2 + ((2*pi)/n)*i))
-            pos_dict[i] = [x,y]
-        return graph.Graph(networkx.LCF_graph(n, shift_list, repeats),\
-                           pos=pos_dict, name="LCF Graph")
 
 ################################################################################
 #   Pseudofractal Graphs

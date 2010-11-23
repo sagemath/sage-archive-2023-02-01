@@ -24,11 +24,45 @@ LGPL V2+
 
 == Special Update/Build Instructions ==
 
- * src/ contains upstream code, no patches were applied.
+ * src/ contains "stable" upstream code, to which we currently apply
+   two upstream patches (both to 'configure.in'). These (i.e. the
+   files 'patches/configure.in' and 'patches/configure') should be
+   removed on the next upgrade to a stable release.
  * GMP-ECM comes with a self-tuning feature; we could support
    that as an option ($SAGE_TUNE_*=yes) in the future.
+ * We currently work around a linker bug on MacOS X 10.5 PPC (with
+   GCC 4.2.1) which breaks 'configure' if debug symbols are enabled.
+   This *might* get fixed in later upstream releases.
+ * ECM currently does not use the CC and CFLAGS settings from 'gmp.h'
+   since we pass (other) options in CFLAGS (though MPIR currently doesn't
+   use its own CFLAGS for the same reason); we could fix that somehow
+   s.t. "optimized" code generation options ('-mcpu=...', '-mtune=...')
+   are used by gcc. Of course a user can also manually enable them by
+   setting the "global" CFLAGS to e.g. "-march=native" on x86 systems.
+   Note that this doesn't affect the packages' selection of processor-
+   specific optimized [assembly] code.
+   'spkg-install' already reads those settings now, but doesn't yet
+   use them.
+   If SAGE_FAT_BINARY="yes", we should avoid too specific settings of
+   "-mcpu=...", and perhaps pass a more generic "--host=..." to
+   'configure'.
 
 == Changelog ==
+
+=== ecm-6.3.p2 (Leif Leonhardy, November 23rd, 2010) ===
+ * Apply another patch from upstream to 'configure.in' to fix compilation
+   on 32-bit x86 processors supporting SSE2. (#10252)
+   (There's only a single, cumulative patch file since both patches are to
+   'configure.in'.)
+ * Work around linker bug on MacOS X 10.5 PPC (see Special Update/Build
+   Instructions above, and #5847 comment 35 ff.).
+ * Allow passing extra arguments to 'configure' through ECM_EXTRA_OPTS.
+ * Add "-march=native" to CFLAGS on platforms that support it if CFLAGS
+   do not already contain similar.
+ * Print settings of CC, CFLAGS etc. and how we configure.
+ * Print settings of CC and CFLAGS found in 'SAGE_LOCAL/include/gmp.h'
+   and eventually a system-wide 'gmp.h'; these aren't yet used though.
+ * Further clean-up.
 
 === ecm-6.3.p1 (Jeroen Demeyer, November 10th, 2010) ===
  * Apply a patch from upstream to configure.in to fix compilation

@@ -7,31 +7,107 @@ fi
 
 # Note that GMP-ECM is written in C (and assembler) - no C++ sources.
 
+
+# We could use / add these settings (or parts of them) later to "our" CFLAGS,
+# e.g. "-march=..." or "-mcpu=..." and "-mtune=..." to let gcc generate better,
+# processor-specific code, since ECM doesn't use them if we set our own:
+# (But currently MPIR doesn't provide optimized settings either if we pass
+# non-empty CFLAGS; of course the user could set such manually though.)
+gmp_cc_pat='/^[ 	]*#[ 	]*define[ 	]\+__GMP_CC[ 	]\+/s/.*"\([^"]*\)"/\1/p'
+gmp_cflags_pat='/^[ 	]*#[ 	]*define[ 	]\+__GMP_CFLAGS[ 	]\+/s/.*"\([^"]*\)"/\1/p'
+
+gmp_cc=`sed -n -e "$gmp_cc_pat" "$SAGE_LOCAL"/include/gmp.h`
+gmp_cflags=`sed -n -e "$gmp_cflags_pat" "$SAGE_LOCAL"/include/gmp.h`
+
+system_gmp_h=""
+for incdir in /usr/include /usr/local/include; do
+    if [ -f $incdir/gmp.h ]; then
+        system_gmp_h=$incdir/gmp.h
+    fi
+done
+if [ -n "$system_gmp_h" ]; then
+    system_gmp_cc=`sed -n -e "$gmp_cc_pat" $system_gmp_h`
+    system_gmp_cflags=`sed -n -e "$gmp_cflags_pat" $system_gmp_h`
+fi
+
+
 if [ "$SAGE64" = yes ]; then
     echo "Building a 64-bit version of GMP-ECM"
     if [ -z "$CFLAG64" ]; then
         CFLAG64=-m64
     fi
-    CFLAGS="$CFLAGS $CFLAG64 -fPIC"
-    LDFLAGS="$CFLAG64"; export LDFLAGS
+    # CFLAGS="$CFLAGS $CFLAG64 -fPIC"
+    CFLAGS="$CFLAGS $CFLAG64"
+    LDFLAGS="$LDFLAGS $CFLAG64"; export LDFLAGS
 else
-    CFLAGS="$CFLAGS -fPIC"
+    # libtool should add the proper flags:
+    # CFLAGS="$CFLAGS -fPIC"
+    :;
 fi
 
-# We add debug symbols by default;
+
 if [ "$SAGE_DEBUG" = yes ]; then
-    # Disable optimization:
+    # Add debug symbols and disable optimization:
     CFLAGS="$CFLAGS -g -O0"
 else
     # Enable optimization, may be overridden by user settings:
-    CFLAGS="-g -O3 $CFLAGS"
+    case "`uname -srm | tr ' ' '-'`" in
+        Darwin-9*-[Pp]ower*)
+            # Don't add debug symbols because configure otherwise
+            # fails due to a bus error in Apple's 'ld' when trying
+            # to determine if global symbols are prefixed with an
+            # underscore (cf. http://trac.sagemath.org/sage_trac/ticket/5847#comment:35 ff.):
+            echo "Warning: Disabling debug symbols on MacOS X 10.5" \
+                "PowerPC because of a linker (?) bug."
+            echo "See http://trac.sagemath.org/sage_trac/ticket/5847#comment:35" \
+                "ff. for details."
+            echo ""
+            CFLAGS="-O3 $CFLAGS"
+            ;;
+        *)
+            CFLAGS="-g -O3 $CFLAGS"
+    esac
 fi
+
+
+if [ "$SAGE_FAT_BINARY" = yes ]; then
+    echo "Warning: SAGE_FAT_BINARY is currently not really supported by this package."
+else
+    # XXX We don't yet test if CC is really gcc here.
+    # gcc's "-march=native" only works on some platforms:
+    case "`uname -m`" in
+        i[3456]86|i86pc|x86_64|amd64)
+            # Only add it if CFLAGS do not already contain similar:
+            if ! (echo "$CFLAGS" | egrep -- '-march=|-mcpu=|-mtune=' >/dev/null);
+            then
+                CFLAGS="-march=native $CFLAGS"
+            fi;;
+    esac
+fi
+
 
 export CFLAGS # usually redundant, but safe(r)
 
+echo ""
+echo "Settings from SAGE_LOCAL/include/gmp.h (currently not used):"
+echo "    CC=$gmp_cc"
+echo "    CFLAGS=$gmp_cflags"
+if [ -n "$system_gmp_h" ]; then
+    echo "Settings found in $system_gmp_h (also currently not used):"
+    echo "    CC=$system_gmp_cc"
+    echo "    CFLAGS=$system_gmp_cflags"
+fi
+
+echo "Using CC=$CC"
+echo "Using CFLAGS=$CFLAGS"
+echo "Using CPPFLAGS=$CPPFLAGS"
+echo "Using LDFLAGS=$LDFLAGS"
+echo "Using ABI=$ABI"
+echo "(These settings may get overridden by 'configure' or Makefiles.)"
+echo ""
+
 
 # Remove old executable/header/libraries/manpage:
-
 echo "Removing old binary, header file, manual page and libraries..."
 rm -f "$SAGE_LOCAL"/bin/ecm
 rm -f "$SAGE_LOCAL"/lib/libecm.*
@@ -39,38 +115,62 @@ rm -f "$SAGE_LOCAL"/include/ecm.h
 rm -f "$SAGE_LOCAL"/share/man/man1/ecm.1
 
 
+unset RM
+
+
 cd src
 
-# Patch configure (and configure.in)
+
+# Patch configure (and configure.in):
+# - Disable asm-redc on 32-bit Darwin PPCs (upstream revision 1516 / bug #10646)
+# - Fix compilation error on x86 CPUs supporting SSE2. (Sage trac #10252,
+#   upstream revision 1546)
+echo "Copying patched files..."
 cp -p ../patches/configure ../patches/configure.in .
-if [ $? != 0 ]; then
-	echo >&2 "Error patching configure and configure.in"
-	exit 1
+if [ $? -ne 0 ]; then
+    echo "Error copying patched configure and configure.in."
+    exit 1
 fi
 
 
-unset RM
-
 # Note: Building (also) a *shared* library is disabled by default.
-#       Add "--enable-shared" below if you want it.
+#       Add "--enable-shared" below if you want it, though one can
+#       now pass extra 'configure' options through ECM_EXTRA_OPTS.
 
-./configure --with-gmp="$SAGE_LOCAL"  --prefix="$SAGE_LOCAL"
+SAGE_CONF_OPTS=""
 
+echo ""
+if [ -z "$ECM_EXTRA_OPTS" ]; then
+    echo "Configuring GMP-ECM with the following options:"
+    echo "    --prefix=\"$SAGE_LOCAL\" --with-gmp=\"$SAGE_LOCAL\"" \
+        "$SAGE_CONF_OPTS"
+    echo "You can set ECM_EXTRA_OPTS to pass additional parameters,"
+    echo "e.g. \"--enable-shared\" to also build a *shared* library,"
+    echo "or \"--disable-sse2\" if you encounter problems on a Pentium III system."
+else
+    echo "Using additional 'configure' options as specified with" \
+        "ECM_EXTRA_OPTS:"
+    echo "    $ECM_EXTRA_OPTS"
+    echo "Configuring ECM with the following options:"
+    echo "    --prefix=\"$SAGE_LOCAL\" --with-gmp=\"$SAGE_LOCAL\"" \
+        "$SAGE_CONF_OPTS $ECM_EXTRA_OPTS"
+fi
+echo ""
+
+./configure --prefix="$SAGE_LOCAL" --with-gmp="$SAGE_LOCAL" \
+    $SAGE_CONF_OPTS $ECM_EXTRA_OPTS
 if [ $? -ne 0 ]; then
     echo "Error configuring GMP-ECM."
     exit 1
 fi
 
 $MAKE
-
 if [ $? -ne 0 ]; then
     echo "Error building GMP-ECM."
     exit 1
 fi
 
-
 $MAKE install
-
 if [ $? -ne 0 ]; then
     echo "Error installing GMP-ECM (though it appears to have built fine)."
     exit 1

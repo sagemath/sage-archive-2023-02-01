@@ -121,14 +121,20 @@ cdef class simple_connected_genus_backtracker:
         TEST::
 
             sage: import sage.graphs.genus
+            sage: import gc
             sage: G = graphs.CompleteGraph(100)
             sage: G = Graph(G, implementation='c_graph', sparse=False)
+            sage: gc.collect()   # random
+            54
             sage: t = get_memory_usage()
-            sage: gb = sage.graphs.genus.simple_connected_genus_backtracker(G._backend._cg)
-            sage: gb = None  #indirect doctest
-            sage: get_memory_usage(t)
-            0.0
-
+            sage: for i in xrange(1000):
+            ...     gb = sage.graphs.genus.simple_connected_genus_backtracker(G._backend._cg)
+            ...     gb = None  #indirect doctest
+            ...
+            sage: gc.collect()
+            0
+            sage: get_memory_usage(t) <= 0.0
+            True
         """
         cdef int i
 

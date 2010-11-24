@@ -278,11 +278,14 @@ class ode_solver(object):
         sage: f(pi)
         0.5379...
 
-    Unfortunately because python functions are used, this solver
-    is slow on system that require many function evaluations.  It
+    Unfortunately because Python functions are used, this solver
+    is slow on systems that require many function evaluations.  It
     is possible to pass a compiled function by deriving from the
-    class ode_sysem and overloading c_f and c_j with C functions
-    that specify the system. The following will work in notebook::
+    class ``ode_sysem`` and overloading ``c_f`` and ``c_j`` with C
+    functions that specify the system. The following will work in the
+    notebook:
+
+    .. code-block:: cython
 
           %cython
           cimport sage.gsl.ode

@@ -102,6 +102,7 @@ Named Graphs
 - :meth:`DurerGraph <GraphGenerators.DurerGraph>`
 - :meth:`ErreraGraph <GraphGenerators.ErreraGraph>`
 - :meth:`FlowerSnark <GraphGenerators.FlowerSnark>`
+- :meth:`FranklinGraph <GraphGenerators.FranklinGraph>`
 - :meth:`FruchtGraph <GraphGenerators.FruchtGraph>`
 - :meth:`GrotzschGraph <GraphGenerators.GrotzschGraph>`
 - :meth:`HeawoodGraph <GraphGenerators.HeawoodGraph>`
@@ -2532,6 +2533,76 @@ class GraphGenerators():
                             5:[6,10],6:[5,7,17],8:[7,9,13],9:[10,18],11:[10,12], \
                             12:[13,19],13:[14],15:[19],16:[15,17],18:[17,19]}, \
                             pos=pos_dict, name="Flower Snark")
+
+    def FranklinGraph(self):
+        r"""
+        Returns the Franklin graph.
+
+        For more information, see this
+        `Wikipedia article on the Franklin graph <http://en.wikipedia.org/wiki/Franklin_graph>`_.
+
+        EXAMPLES:
+
+        The Franklin graph is named after Philip Franklin. It is a
+        3-regular graph on 12 vertices and having 18 edges. ::
+
+            sage: G = graphs.FranklinGraph(); G
+            Franklin graph: Graph on 12 vertices
+            sage: G.is_regular(3)
+            True
+            sage: G.order()
+            12
+            sage: G.size()
+            18
+
+        The Franklin graph is a Hamiltonian, bipartite graph with radius 3,
+        diameter 3, and girth 4. ::
+
+            sage: G.is_hamiltonian()
+            True
+            sage: G.is_bipartite()
+            True
+            sage: G.radius()
+            3
+            sage: G.diameter()
+            3
+            sage: G.girth()
+            4
+
+        It is a perfect, triangle-free graph having chromatic number 2. ::
+
+            sage: G.is_perfect()
+            True
+            sage: G.is_triangle_free()
+            True
+            sage: G.chromatic_number()
+            2
+        """
+        edge_dict = {
+            0: [1,5,6],
+            1: [2,7],
+            2: [3,8],
+            3: [4,9],
+            4: [5,10],
+            5: [11],
+            6: [7,9],
+            7: [10],
+            8: [9,11],
+            10: [11]}
+        pos_dict = {
+            0: [2, 0],
+            1: [1, 1.73205080756888],
+            2: [-1, 1.73205080756888],
+            3: [-2, 0],
+            4: [-1, -1.73205080756888],
+            5: [1, -1.73205080756888],
+            6: [1, 0],
+            7: [0.5, 0.866025403784439],
+            8: [-0.5, 0.866025403784439],
+            9: [-1, 0],
+            10: [-0.5, -0.866025403784439],
+            11: [0.5, -0.866025403784439]}
+        return graph.Graph(edge_dict, pos=pos_dict, name="Franklin graph")
 
     def FruchtGraph(self):
         """

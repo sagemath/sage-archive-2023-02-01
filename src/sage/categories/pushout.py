@@ -10,7 +10,7 @@ class ConstructionFunctor(Functor):
     def __mul__(self, other):
         if not isinstance(self, ConstructionFunctor) and not isinstance(other, ConstructionFunctor):
             raise CoercionException, "Non-constructive product"
-        return CompositConstructionFunctor(other, self)
+        return CompositeConstructionFunctor(other, self)
 
     def pushout(self, other):
         if self.rank > other.rank:
@@ -46,7 +46,7 @@ class ConstructionFunctor(Functor):
         return [self]
 
 
-class CompositConstructionFunctor(ConstructionFunctor):
+class CompositeConstructionFunctor(ConstructionFunctor):
     """
     A Construction Functor composed by other Construction Functors
 
@@ -57,11 +57,11 @@ class CompositConstructionFunctor(ConstructionFunctor):
 
     EXAMPLES::
 
-        sage: from sage.categories.pushout import CompositConstructionFunctor
-        sage: F = CompositConstructionFunctor(QQ.construction()[0],ZZ['x'].construction()[0],QQ.construction()[0],ZZ['y'].construction()[0])
+        sage: from sage.categories.pushout import CompositeConstructionFunctor
+        sage: F = CompositeConstructionFunctor(QQ.construction()[0],ZZ['x'].construction()[0],QQ.construction()[0],ZZ['y'].construction()[0])
         sage: F
         Poly[y](FractionField(Poly[x](FractionField(...))))
-        sage: F == CompositConstructionFunctor(*F.all)
+        sage: F == CompositeConstructionFunctor(*F.all)
         True
         sage: F(GF(2)['t'])
         Univariate Polynomial Ring in y over Fraction Field of Univariate Polynomial Ring in x over Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
@@ -72,11 +72,11 @@ class CompositConstructionFunctor(ConstructionFunctor):
         """
         TESTS::
 
-            sage: from sage.categories.pushout import CompositConstructionFunctor
-            sage: F = CompositConstructionFunctor(QQ.construction()[0],ZZ['x'].construction()[0],QQ.construction()[0],ZZ['y'].construction()[0])
+            sage: from sage.categories.pushout import CompositeConstructionFunctor
+            sage: F = CompositeConstructionFunctor(QQ.construction()[0],ZZ['x'].construction()[0],QQ.construction()[0],ZZ['y'].construction()[0])
             sage: F
             Poly[y](FractionField(Poly[x](FractionField(...))))
-            sage: F == CompositConstructionFunctor(*F.all)
+            sage: F == CompositeConstructionFunctor(*F.all)
             True
 
         """
@@ -84,7 +84,7 @@ class CompositConstructionFunctor(ConstructionFunctor):
         for c in args:
             if isinstance(c, list):
                 self.all += c
-            elif isinstance(c, CompositConstructionFunctor):
+            elif isinstance(c, CompositeConstructionFunctor):
                 self.all += c.all
             else:
                 self.all.append(c)
@@ -94,8 +94,8 @@ class CompositConstructionFunctor(ConstructionFunctor):
         """
         TESTS::
 
-            sage: from sage.categories.pushout import CompositConstructionFunctor
-            sage: F = CompositConstructionFunctor(QQ.construction()[0],ZZ['x'].construction()[0],QQ.construction()[0],ZZ['y'].construction()[0])
+            sage: from sage.categories.pushout import CompositeConstructionFunctor
+            sage: F = CompositeConstructionFunctor(QQ.construction()[0],ZZ['x'].construction()[0],QQ.construction()[0],ZZ['y'].construction()[0])
             sage: R.<a,b> = QQ[]
             sage: f = R.hom([a+b, a-b])
             sage: F(f) # indirect doctest
@@ -118,8 +118,8 @@ class CompositConstructionFunctor(ConstructionFunctor):
         """
         TESTS::
 
-            sage: from sage.categories.pushout import CompositConstructionFunctor
-            sage: F = CompositConstructionFunctor(QQ.construction()[0],ZZ['x'].construction()[0],QQ.construction()[0],ZZ['y'].construction()[0])
+            sage: from sage.categories.pushout import CompositeConstructionFunctor
+            sage: F = CompositeConstructionFunctor(QQ.construction()[0],ZZ['x'].construction()[0],QQ.construction()[0],ZZ['y'].construction()[0])
             sage: R.<a,b> = QQ[]
             sage: F(R) # indirect doctest
             Univariate Polynomial Ring in y over Fraction Field of Univariate Polynomial Ring in x over Fraction Field of Multivariate Polynomial Ring in a, b over Rational Field
@@ -133,13 +133,13 @@ class CompositConstructionFunctor(ConstructionFunctor):
         """
         TESTS::
 
-            sage: from sage.categories.pushout import CompositConstructionFunctor
-            sage: F = CompositConstructionFunctor(QQ.construction()[0],ZZ['x'].construction()[0],QQ.construction()[0],ZZ['y'].construction()[0])
+            sage: from sage.categories.pushout import CompositeConstructionFunctor
+            sage: F = CompositeConstructionFunctor(QQ.construction()[0],ZZ['x'].construction()[0],QQ.construction()[0],ZZ['y'].construction()[0])
             sage: F == loads(dumps(F)) # indirect doctest
             True
 
         """
-        if isinstance(other, CompositConstructionFunctor):
+        if isinstance(other, CompositeConstructionFunctor):
             return cmp(self.all, other.all)
         else:
             return cmp(type(self), type(other))
@@ -150,25 +150,25 @@ class CompositConstructionFunctor(ConstructionFunctor):
 
         EXAMPLES::
 
-            sage: from sage.categories.pushout import CompositConstructionFunctor
-            sage: F1 = CompositConstructionFunctor(QQ.construction()[0],ZZ['x'].construction()[0])
-            sage: F2 = CompositConstructionFunctor(QQ.construction()[0],ZZ['y'].construction()[0])
+            sage: from sage.categories.pushout import CompositeConstructionFunctor
+            sage: F1 = CompositeConstructionFunctor(QQ.construction()[0],ZZ['x'].construction()[0])
+            sage: F2 = CompositeConstructionFunctor(QQ.construction()[0],ZZ['y'].construction()[0])
             sage: F1*F2
             Poly[x](FractionField(Poly[y](FractionField(...))))
 
         """
-        if isinstance(self, CompositConstructionFunctor):
+        if isinstance(self, CompositeConstructionFunctor):
             all = [other] + self.all
         else:
             all = other.all + [self]
-        return CompositConstructionFunctor(*all)
+        return CompositeConstructionFunctor(*all)
 
     def __str__(self):
         """
         TESTS::
 
-            sage: from sage.categories.pushout import CompositConstructionFunctor
-            sage: F = CompositConstructionFunctor(QQ.construction()[0],ZZ['x'].construction()[0],QQ.construction()[0],ZZ['y'].construction()[0])
+            sage: from sage.categories.pushout import CompositeConstructionFunctor
+            sage: F = CompositeConstructionFunctor(QQ.construction()[0],ZZ['x'].construction()[0],QQ.construction()[0],ZZ['y'].construction()[0])
             sage: F     # indirect doctest
             Poly[y](FractionField(Poly[x](FractionField(...))))
 
@@ -180,7 +180,7 @@ class CompositConstructionFunctor(ConstructionFunctor):
 
     def expand(self):
         """
-        Return expansion of a CompositConstructionFunctor.
+        Return expansion of a CompositeConstructionFunctor.
 
         NOTE:
 
@@ -189,8 +189,8 @@ class CompositConstructionFunctor(ConstructionFunctor):
 
         EXAMPLES::
 
-            sage: from sage.categories.pushout import CompositConstructionFunctor
-            sage: F = CompositConstructionFunctor(QQ.construction()[0],ZZ['x'].construction()[0],QQ.construction()[0],ZZ['y'].construction()[0])
+            sage: from sage.categories.pushout import CompositeConstructionFunctor
+            sage: F = CompositeConstructionFunctor(QQ.construction()[0],ZZ['x'].construction()[0],QQ.construction()[0],ZZ['y'].construction()[0])
             sage: F
             Poly[y](FractionField(Poly[x](FractionField(...))))
             sage: prod(F.expand()) == F
@@ -323,11 +323,11 @@ class MultiPolynomialFunctor(ConstructionFunctor):
             if set(self.vars).intersection(other.vars):
                 raise CoercionException, "Overlapping variables (%s,%s)" % (self.vars, other.vars)
             return MultiPolynomialFunctor(other.vars + self.vars, self.term_order)
-        elif isinstance(other, CompositConstructionFunctor) \
+        elif isinstance(other, CompositeConstructionFunctor) \
               and isinstance(other.all[-1], MultiPolynomialFunctor):
-            return CompositConstructionFunctor(other.all[:-1], self * other.all[-1])
+            return CompositeConstructionFunctor(other.all[:-1], self * other.all[-1])
         else:
-            return CompositConstructionFunctor(other, self)
+            return CompositeConstructionFunctor(other, self)
 
     def merge(self, other):
         """
@@ -563,10 +563,10 @@ class InfinitePolynomialFunctor(ConstructionFunctor):
                 OUTGENS = list(other._gens) + list(self._gens)
             # the orders must coincide
             if self._order != other._order:
-                return CompositConstructionFunctor(other, self)
+                return CompositeConstructionFunctor(other, self)
             # the implementations must coincide
             if self._imple != other._imple:
-                return CompositConstructionFunctor(other, self)
+                return CompositeConstructionFunctor(other, self)
             return InfinitePolynomialFunctor(OUTGENS, self._order, self._imple)
 
         # Polynomial Constructor
@@ -625,10 +625,10 @@ class InfinitePolynomialFunctor(ConstructionFunctor):
             # ok, the overlap is fine, we will return something.
             if RemainingVars: # we can only partially merge other into self
                 if len(RemainingVars)>1:
-                    return CompositConstructionFunctor(MultiPolynomialFunctor(RemainingVars,term_order=other.term_order), self)
-                return CompositConstructionFunctor(PolynomialFunctor(RemainingVars[0]), self)
+                    return CompositeConstructionFunctor(MultiPolynomialFunctor(RemainingVars,term_order=other.term_order), self)
+                return CompositeConstructionFunctor(PolynomialFunctor(RemainingVars[0]), self)
             return self
-        return CompositConstructionFunctor(other, self)
+        return CompositeConstructionFunctor(other, self)
 
     def merge(self,other):
         """
@@ -665,7 +665,7 @@ class InfinitePolynomialFunctor(ConstructionFunctor):
         try:
             OUT = self*other
             # The following happens if "other" has the same order type etc.
-            if not isinstance(OUT, CompositConstructionFunctor):
+            if not isinstance(OUT, CompositeConstructionFunctor):
                 return OUT
         except CoercionException:
             pass

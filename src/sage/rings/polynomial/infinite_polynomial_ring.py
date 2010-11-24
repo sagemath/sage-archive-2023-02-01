@@ -340,11 +340,11 @@ class InfinitePolynomialRingFactory(UniqueFactory):
             return InfinitePolynomialRing(*key)
         # By now, we have different unique keys, based on construction functors
         C,R = key
-        from sage.categories.pushout import CompositConstructionFunctor, InfinitePolynomialFunctor
-        if isinstance(C,CompositConstructionFunctor):
+        from sage.categories.pushout import CompositeConstructionFunctor, InfinitePolynomialFunctor
+        if isinstance(C,CompositeConstructionFunctor):
             F = C.all[-1]
             if len(C.all)>1:
-                R = CompositConstructionFunctor(*C.all[:-1])(R)
+                R = CompositeConstructionFunctor(*C.all[:-1])(R)
         else:
             F = C
         if not isinstance(F, InfinitePolynomialFunctor):

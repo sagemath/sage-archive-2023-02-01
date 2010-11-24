@@ -100,6 +100,7 @@ Named Graphs
 - :meth:`ChvatalGraph <GraphGenerators.ChvatalGraph>`
 - :meth:`DesarguesGraph <GraphGenerators.DesarguesGraph>`
 - :meth:`DurerGraph <GraphGenerators.DurerGraph>`
+- :meth:`ErreraGraph <GraphGenerators.ErreraGraph>`
 - :meth:`FlowerSnark <GraphGenerators.FlowerSnark>`
 - :meth:`FruchtGraph <GraphGenerators.FruchtGraph>`
 - :meth:`GrotzschGraph <GraphGenerators.GrotzschGraph>`
@@ -2418,6 +2419,74 @@ class GraphGenerators():
             10: [-0.5, -0.866025403784439],
             11: [0.5, -0.866025403784439]}
         return graph.Graph(edge_dict, pos=pos_dict, name="Durer graph")
+
+    def ErreraGraph(self):
+        r"""
+        Returns the Errera graph.
+
+        For more information, see this
+        `Wikipedia article on the Errera graph <http://en.wikipedia.org/wiki/Errera_graph>`_.
+
+        EXAMPLES:
+
+        The Errera graph is named after Alfred Errera. It is a planar graph
+        on 17 vertices and having 45 edges. ::
+
+            sage: G = graphs.ErreraGraph(); G
+            Errera graph: Graph on 17 vertices
+            sage: G.is_planar()
+            True
+            sage: G.order()
+            17
+            sage: G.size()
+            45
+
+        The Errera graph is Hamiltonian with radius 3, diameter 4, girth 3,
+        and chromatic number 4. ::
+
+            sage: G.is_hamiltonian()
+            True
+            sage: G.radius()
+            3
+            sage: G.diameter()
+            4
+            sage: G.girth()
+            3
+            sage: G.chromatic_number()
+            4
+
+        Each vertex degree is either 5 or 6. That is, if `f` counts the
+        number of vertices of degree 5 and `s` counts the number of vertices
+        of degree 6, then `f + s` is equal to the order of the Errera
+        graph. ::
+
+            sage: D = G.degree_sequence()
+            sage: D.count(5) + D.count(6) == G.order()
+            True
+
+        The automorphism group of the Errera graph is isomorphic to the
+        dihedral group of order 20. ::
+
+            sage: ag = G.automorphism_group()
+            sage: ag.is_isomorphic(DihedralGroup(10))
+            True
+        """
+        edge_dict = {
+            0: [1,7,14,15,16],
+            1: [2,9,14,15],
+            2: [3,8,9,10,14],
+            3: [4,9,10,11],
+            4: [5,10,11,12],
+            5: [6,11,12,13],
+            6: [7,8,12,13,16],
+            7: [13,15,16],
+            8: [10,12,14,16],
+            9: [11,13,15],
+            10: [12],
+            11: [13],
+            13: [15],
+            14: [16]}
+        return graph.Graph(edge_dict, name="Errera graph")
 
     def FlowerSnark(self):
         """

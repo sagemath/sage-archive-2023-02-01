@@ -2386,6 +2386,12 @@ class GraphGenerators():
             4
             sage: G.girth()
             3
+
+        Its automorphism group is isomorphic to `D_6`. ::
+
+            sage: ag = G.automorphism_group()
+            sage: ag.is_isomorphic(DihedralGroup(6))
+            True
         """
         edge_dict = {
             0: [1,5,6],

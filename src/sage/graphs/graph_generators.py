@@ -2097,10 +2097,7 @@ class GraphGenerators():
             12
             sage: g.size()
             18
-            sage: def is_3regular(G):
-            ...       D = G.degree_sequence()
-            ...       return all(d == 3 for d in D)
-            sage: is_3regular(g)
+            sage: g.is_regular(3)
             True
 
         It is a Hamiltonian graph with diameter 3 and girth 4::

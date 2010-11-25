@@ -233,6 +233,7 @@ from sage.geometry.cone import Cone, is_Cone
 from sage.geometry.fan import Fan
 from sage.matrix.all import matrix
 from sage.misc.all import latex, prod
+from sage.structure.unique_representation import UniqueRepresentation
 from sage.modules.free_module_element import vector
 from sage.rings.all import PolynomialRing, ZZ, QQ, is_Field, is_FractionField
 from sage.rings.quotient_ring_element import QuotientRingElement
@@ -2736,7 +2737,7 @@ def certify_names(names):
 
 
 #*****************************************************************
-class CohomologyRing(QuotientRing_generic):
+class CohomologyRing(QuotientRing_generic, UniqueRepresentation):
     r"""
     The (even) cohomology ring of a toric variety.
 
@@ -2788,6 +2789,35 @@ class CohomologyRing(QuotientRing_generic):
             sage: P2 = toric_varieties.P2()
             sage: P2.cohomology_ring()
             Rational cohomology ring of a 2-d CPR-Fano toric variety covered by 3 affine patches
+
+        TESTS::
+
+            sage: cone1 = Cone([(1,0)]);  cone2 = Cone([(1,0)])
+            sage: cone1 is cone2
+            False
+            sage: fan1 = Fan([cone1]);  fan2 = Fan([cone2])
+            sage: fan1 is fan2
+            False
+            sage: X1 = ToricVariety(fan1);  X2 = ToricVariety(fan2)
+            sage: X1 is X2
+            False
+            sage: X1.cohomology_ring() is X2.cohomology_ring()   # see http://trac.sagemath.org/sage_trac/ticket/10325
+            True
+            sage: TDiv = X1.toric_divisor_group()
+            sage: X1.toric_divisor_group() is TDiv
+            True
+            sage: X2.toric_divisor_group() is TDiv
+            True
+            sage: TDiv.scheme() is X1   # as you expect
+            True
+            sage: TDiv.scheme() is X2   # perhaps less obvious, but toric_divisor_group is unique!
+            False
+            sage: TDiv.scheme() == X2   # isomorphic, but not necessarily identical
+            True
+            sage: TDiv.scheme().cohomology_ring() is X2.cohomology_ring()  # this is where it gets tricky
+            True
+            sage: TDiv.gen(0).Chern_character() * X2.cohomology_ring().one()
+            [1]
         """
         self._variety = variety
 

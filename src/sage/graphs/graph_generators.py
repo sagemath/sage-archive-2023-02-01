@@ -2719,27 +2719,52 @@ class GraphGenerators():
 
     def GrotzschGraph(self):
         r"""
-        Creates the Grotzsch graph.
+        Returns the Grötzsch graph.
 
-        The Grotzsch graph is an example of a triangle-free graph with
-        chromatic number equal to 4.
+        The Grötzsch graph is an example of a triangle-free graph with
+        chromatic number equal to 4. For more information, see this
+        `Wikipedia article on Grötzsch graph <http://en.wikipedia.org/wiki/Gr%C3%B6tzsch_graph>`_.
 
-        REFERENCE.
+        REFERENCE:
 
         - [1] Weisstein, Eric W. "Grotzsch Graph."
           From MathWorld--A Wolfram Web Resource.
           http://mathworld.wolfram.com/GroetzschGraph.html
 
-        EXAMPLE. ::
+        EXAMPLES:
 
-            sage: g = graphs.GrotzschGraph()
-            sage: g.girth()
-            4
-            sage: g.chromatic_number()
-            4
-            sage: g.is_triangle_free()
+        The Grötzsch graph is named after Herbert Grötzsch. It is a
+        Hamiltonian graph with 11 vertices and 20 edges. ::
+
+            sage: G = graphs.GrotzschGraph(); G
+            Grotzsch graph: Graph on 11 vertices
+            sage: G.is_hamiltonian()
             True
-            sage: g.show() # long time
+            sage: G.order()
+            11
+            sage: G.size()
+            20
+
+        The Grötzsch graph is triangle-free and having radius 2, diameter 2,
+        and girth 4. ::
+
+            sage: G.is_triangle_free()
+            True
+            sage: G.radius()
+            2
+            sage: G.diameter()
+            2
+            sage: G.girth()
+            4
+
+        Its chromatic number is 4 and its automorphism group is isomorphic
+        to the dihedral group `D_5`. ::
+
+            sage: G.chromatic_number()
+            4
+            sage: ag = G.automorphism_group()
+            sage: ag.is_isomorphic(DihedralGroup(5))
+            True
         """
         g = graph.Graph()
         g.add_vertices(range(11))

@@ -64,6 +64,9 @@ def get_systems(cmd):
         sage: get_systems('I.primary_decomposition()')
         ['Singular']
 
+        sage: a = var('a')
+        sage: get_systems('((a+1)^2).expand()')
+        ['ginac', 'GMP']
     """
     import cProfile, pstats, re
 
@@ -74,7 +77,7 @@ def get_systems(cmd):
 
     #Run the command and get the stats
     filename = tmp_filename()
-    cProfile.runctx(cmd, globals(), locals(), filename)
+    cProfile.runctx(cmd, globals(), {}, filename)
     stats = pstats.Stats(filename)
 
     #Strings is a list of method names and modules which get run

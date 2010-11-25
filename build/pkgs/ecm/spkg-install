@@ -20,16 +20,6 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# XXX MOVE THIS DOWN (after *successful* build)!!!
-###############################################################################
-# Remove old executable/header/libraries/manpage:
-###############################################################################
-echo "Removing old binary, header file, manual page and libraries..."
-rm -f "$SAGE_LOCAL"/bin/ecm
-rm -f "$SAGE_LOCAL"/lib/libecm.*
-rm -f "$SAGE_LOCAL"/include/ecm.h
-rm -f "$SAGE_LOCAL"/share/man/man1/ecm.1
-
 ###############################################################################
 # Set up environment variables, depending on SAGE_* settings:
 # Note that GMP-ECM is written in C (and assembler) - no C++ sources.
@@ -205,7 +195,7 @@ if [ $? -ne 0 ]; then
 fi
 
 ###############################################################################
-# Now build and install ECM:
+# Now build ECM:
 ###############################################################################
 
 $MAKE
@@ -213,6 +203,19 @@ if [ $? -ne 0 ]; then
     echo "Error building GMP-ECM."
     exit 1
 fi
+
+###############################################################################
+# Remove old executable/header/libraries/manpage:
+###############################################################################
+echo "Build succeeded, removing old binary, header file, manual page and libraries..."
+rm -f "$SAGE_LOCAL"/bin/ecm
+rm -f "$SAGE_LOCAL"/lib/libecm.*
+rm -f "$SAGE_LOCAL"/include/ecm.h
+rm -f "$SAGE_LOCAL"/share/man/man1/ecm.1
+
+###############################################################################
+# Now install ECM:
+###############################################################################
 
 $MAKE install
 if [ $? -ne 0 ]; then

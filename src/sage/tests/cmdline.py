@@ -186,7 +186,7 @@ def test_executable(args, input="", timeout=10.0):
         sage: ret
         42
 
-        sage: (out, err, ret) = test_executable(["sage", "--ipython"], "3**33\n")
+        sage: (out, err, ret) = test_executable(["sage", "--ipython"], "\n3**33\n")
         sage: out.find("5559060566555523") >= 0
         True
         sage: err

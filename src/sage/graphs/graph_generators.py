@@ -104,6 +104,7 @@ Named Graphs
 - :meth:`FlowerSnark <GraphGenerators.FlowerSnark>`
 - :meth:`FranklinGraph <GraphGenerators.FranklinGraph>`
 - :meth:`FruchtGraph <GraphGenerators.FruchtGraph>`
+- :meth:`GoldnerHararyGraph <GraphGenerators.GoldnerHararyGraph>`
 - :meth:`GrotzschGraph <GraphGenerators.GrotzschGraph>`
 - :meth:`HeawoodGraph <GraphGenerators.HeawoodGraph>`
 - :meth:`HigmanSimsGraph <GraphGenerators.HigmanSimsGraph>`
@@ -2646,6 +2647,61 @@ class GraphGenerators():
         import networkx
         G = networkx.frucht_graph()
         return graph.Graph(G, pos=pos_dict, name="Frucht graph")
+
+    def GoldnerHararyGraph(self):
+        r"""
+        Return the Goldner-Harary graph.
+
+        For more information, see this
+        `Wikipedia article on the Goldner-Harary graph <http://en.wikipedia.org/wiki/Goldner%E2%80%93Harary_graph>`_.
+
+        EXAMPLES:
+
+        The Goldner-Harary graph is named after A. Goldner and Frank Harary.
+        It is a planar graph having 11 vertices and 27 edges. ::
+
+            sage: G = graphs.GoldnerHararyGraph(); G
+            Goldner-Harary graph: Graph on 11 vertices
+            sage: G.is_planar()
+            True
+            sage: G.order()
+            11
+            sage: G.size()
+            27
+
+        The Goldner-Harary graph is chordal with radius 2, diameter 2, and
+        girth 3. ::
+
+            sage: G.is_chordal()
+            True
+            sage: G.radius()
+            2
+            sage: G.diameter()
+            2
+            sage: G.girth()
+            3
+
+        Its chromatic number is 4 and its automorphism group is isomorphic to
+        the dihedral group `D_6`. ::
+
+            sage: G.chromatic_number()
+            4
+            sage: ag = G.automorphism_group()
+            sage: ag.is_isomorphic(DihedralGroup(6))
+            True
+        """
+        edge_dict = {
+            0: [1,3,4],
+            1: [2,3,4,5,6,7,10],
+            2: [3,7],
+            3: [7,8,9,10],
+            4: [3,5,9,10],
+            5: [10],
+            6: [7,10],
+            7: [8,10],
+            8: [10],
+            9: [10]}
+        return graph.Graph(edge_dict, name="Goldner-Harary graph")
 
     def GrotzschGraph(self):
         r"""

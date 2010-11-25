@@ -1269,6 +1269,7 @@ class MPolynomialSystem_generic(SageObject):
         from sage.libs.singular.groebner_strategy import GroebnerStrategy
         return GroebnerStrategy(self.ideal())
 
+
 class MPolynomialSystem_gf2(MPolynomialSystem_generic):
     """
     Polynomial Systems over `\mathbb{F}_2`.

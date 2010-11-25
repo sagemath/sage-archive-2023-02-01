@@ -2195,6 +2195,52 @@ class MPolynomialIdeal_singular_repr:
         hs = hilb(gb,1, attributes={gb:{'isSB':1}})
         return sum([ZZ(hs[i])*t**i for i in xrange(len(hs)-1)])/(1-t)**n
 
+    @require_field
+    def _normal_basis_libsingular(self):
+        r"""
+        Returns the normal basis for a given groebner basis. It will use
+        the Groebner Basis as computed by
+        ``MPolynomialIdeal._groebner_basis_libsingular()``.
+
+        EXAMPLES::
+
+            sage: R.<x,y,z> = PolynomialRing(QQ)
+            sage: I = R.ideal(x^2-2*x*z+5, x*y^2+y*z+1, 3*y^2-8*x*z)
+            sage: I.normal_basis()
+            [z^2, y*z, x*z, z, x*y, y, x, 1]
+        """
+        from sage.rings.polynomial.multi_polynomial_ideal_libsingular import kbase_libsingular
+        gb = self._groebner_basis_libsingular()
+
+        return kbase_libsingular(self.ring().ideal(gb))
+
+    @require_field
+    def normal_basis(self, algorithm='libsingular', singular=singular_default):
+        """
+        Returns a vector space basis (consisting of monomials) of the
+        quotient ring by the ideal, resp. of a free module by the module,
+        in case it is finite dimensional and if the input is a standard
+        basis with respect to the ring ordering.
+
+        INPUT: algorithm - defaults to use libsingular, if it is anything
+        else we will use the kbase() command
+
+        EXAMPLES::
+
+            sage: R.<x,y,z> = PolynomialRing(QQ)
+            sage: I = R.ideal(x^2+y^2+z^2-4, x^2+2*y^2-5, x*z-1)
+            sage: I.normal_basis()
+            [y*z^2, z^2, y*z, z, x*y, y, x, 1]
+            sage: I.normal_basis(algorithm='singular')
+            [y*z^2, z^2, y*z, z, x*y, y, x, 1]
+        """
+
+        if algorithm == 'libsingular':
+            return self._normal_basis_libsingular()
+        else:
+            gb = self.groebner_basis()
+            return list(singular.kbase(self.ring().ideal(gb)))
+
 class MPolynomialIdeal_macaulay2_repr:
     """
     An ideal in a multivariate polynomial ring, which has an underlying
@@ -2898,51 +2944,116 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
                 return False
         return True
 
-    @require_field
-    def _normal_basis_libsingular(self):
+    def degree_of_semi_regularity(self):
         r"""
-        Returns the normal basis for a given groebner basis. It will use
-        the Groebner Basis as computed by
-        ``MPolynomialIdeal._groebner_basis_libsingular()``.
+        Return the degree of semi-regularity of this ideal under the
+        assumption that it is semi-regular.
 
-        EXAMPLES::
+        Let `\{f_1, ... , f_m\} \subset K[x_1 , ... , x_n]` be
+        homogeneous polynomials of degrees `d_1,... ,d_m`
+        respectively. This sequence is semi-regular if:
 
-            sage: R.<x,y,z> = PolynomialRing(QQ)
-            sage: I = R.ideal(x^2-2*x*z+5, x*y^2+y*z+1, 3*y^2-8*x*z)
-            sage: I.normal_basis()
-            [z^2, y*z, x*z, z, x*y, y, x, 1]
+         * `\{f_1, ... , f_m\} \neq K[x_1 , ... , x_n]`
+
+         * for all `1 \leq i \leq m` and `g \in K[x_1,\dots,x_n]`:
+           `deg(g \cdot pi ) < D` and
+           `g \cdot f_i \in <f_1 , \dots , f_{i-1}>` implies that
+           `g \in <f_1, ..., f_{i-1}>` where `D` is the degree of regularity.
+
+        This notion can be extended to affine polynomials by
+        considering their homogeneous components of highest degree.
+
+        The degree of regularity of a semi-regular sequence
+        `f_1, ...,f_m` of respective degrees `d_1,...,d_m` is given by the
+        index of the first non-positive coefficient of:
+
+            `\sum c_k z^k = \frac{\prod (1 - z^{d_i})}{(1-z)^n}`
+
+        EXAMPLE:
+
+        We consider a homogeneous example::
+
+            sage: n = 8
+            sage: K = GF(127)
+            sage: P = PolynomialRing(K,n,'x')
+            sage: s = [K.random_element() for _ in range(n)]
+            sage: L = []
+            sage: for i in range(2*n):
+            ...     f = P.random_element(degree=2, terms=binomial(n,2))
+            ...     f -= f(*s)
+            ...     L.append(f.homogenize())
+            sage: I = Ideal(L)
+            sage: I.degree_of_semi_regularity()
+            4
+
+        From this, we expect a Groebner basis computation to reach at
+        most degree 4. For homogeneous systems this is equivalent to
+        the largest degree in the Groebner basis::
+
+            sage: max(f.degree() for f in I.groebner_basis())
+            4
+
+        We increase the number of polynomials and observe a decrease
+        the degree of regularity::
+
+            sage: for i in range(2*n):
+            ...     f = P.random_element(degree=2, terms=binomial(n,2))
+            ...     f -= f(*s)
+            ...     L.append(f.homogenize())
+            sage: I = Ideal(L)
+            sage: I.degree_of_semi_regularity()
+            3
+
+            sage: max(f.degree() for f in I.groebner_basis())
+            3
+
+        The degree of regularity approaches 2 for quadratic systems as
+        the number of polynomials approaches `n^2`::
+
+            sage: for i in range((n-4)*n):
+            ...     f = P.random_element(degree=2, terms=binomial(n,2))
+            ...     f -= f(*s)
+            ...     L.append(f.homogenize())
+            sage: I = Ideal(L)
+            sage: I.degree_of_semi_regularity()
+            2
+
+            sage: max(f.degree() for f in I.groebner_basis())
+            2
+
+        .. note::
+
+            It is unknown whether semi-regular sequences
+            exist. However, it is expected that random systems are
+            semi-regular sequences. For more details about
+            semi-regular sequences see [BFS04]_.
+
+        REFERENCES:
+
+        .. [BFS04] Magali Bardet, Jean-Charles Faugère, and Bruno
+           Salvy, On the complexity of Groebner basis computation of
+           semi-regular overdetermined algebraic equations.
+           Proc. International Conference on Polynomial System Solving
+           (ICPSS), pp. 71-75, 2004.
+
         """
-        from sage.rings.polynomial.multi_polynomial_ideal_libsingular import kbase_libsingular
-        gb = self._groebner_basis_libsingular()
+        degs = [f.degree() for f in self.gens() if f!=0] # we ignore zeroes
+        m, n = self.ngens(), len(set(sum([f.variables() for f in self.gens()],())))
+        if m <= n:
+            raise ValueError("This function requires an overdefined system of polynomials.")
 
-        return kbase_libsingular(self.ring().ideal(gb))
+        from sage.rings.all import QQ
+        from sage.misc.misc_c import prod
+        from sage.rings.power_series_ring import PowerSeriesRing
 
-    @require_field
-    def normal_basis(self, algorithm='libsingular', singular=singular_default):
-        """
-        Returns a vector space basis (consisting of monomials) of the
-        quotient ring by the ideal, resp. of a free module by the module,
-        in case it is finite dimensional and if the input is a standard
-        basis with respect to the ring ordering.
-
-        INPUT: algorithm - defaults to use libsingular, if it is anything
-        else we will use the kbase() command
-
-        EXAMPLES::
-
-            sage: R.<x,y,z> = PolynomialRing(QQ)
-            sage: I = R.ideal(x^2+y^2+z^2-4, x^2+2*y^2-5, x*z-1)
-            sage: I.normal_basis()
-            [y*z^2, z^2, y*z, z, x*y, y, x, 1]
-            sage: I.normal_basis(algorithm='singular')
-            [y*z^2, z^2, y*z, z, x*y, y, x, 1]
-        """
-
-        if algorithm == 'libsingular':
-            return self._normal_basis_libsingular()
+        R,z = PowerSeriesRing(QQ,'z', default_prec=sum(degs)).objgen()
+        dreg = 0
+        s = prod([1-z**d for d in degs]) / (1-z)**n
+        for dreg in xrange(0,sum(degs)):
+            if s[dreg] < 0:
+                return ZZ(dreg)
         else:
-            gb = self.groebner_basis()
-            return list(singular.kbase(self.ring().ideal(gb)))
+            raise ValueError("BUG: Could not compute the degree of semi-regularity")
 
     def plot(self, *args, **kwds):
         """

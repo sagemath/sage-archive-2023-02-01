@@ -67,8 +67,20 @@ fi
 
 # libtool should add the proper flags, but doesn't use "-fPIC"
 # for the *static* library (which the Sage library links to unless
-# we also build the shared one):
-CFLAGS="$CFLAGS -fPIC" # alternatively add '--with-pic' to 'configure' options
+# we also build the shared one). The following only handles the
+# most common cases, not all variations with '=yes' or '=no' etc.:
+if ! (echo $ECM_EXTRA_OPTS | egrep -- "--enable-shared|--with-pic" >/dev/null) ||
+     (echo $ECM_EXTRA_OPTS | egrep -- "--disable-shared" >/dev/null);
+then
+    echo "Adding '-fPIC' to CFLAGS since we don't (also) build a shared library."
+    CFLAGS="$CFLAGS -fPIC" # alternatively add '--with-pic' to 'configure' options
+else
+    # PIC usually slows down the execution, so don't use it for the *static*
+    # library (unless '--with-pic' was given). libtool does the right thing
+    # for the shared one we also build, which then will be used by Sage.
+    echo "Not adding '-fPIC' since we also build a shared library Sage will link"
+    echo "to, or '--with-pic' was given in ECM_EXTRA_OPTS."
+fi
 
 
 if [ "$SAGE_DEBUG" = yes ]; then
@@ -107,7 +119,7 @@ else
 
     # Some gcc 4.0.x versions don't support '-march=native', and it's currently
     # not supported on all platforms supported by Sage:
-    if false && touch foo.c && $CC -march=native -c foo.c &>/dev/null; then
+    if touch foo.c && $CC -march=native -c foo.c &>/dev/null; then
         cpu_params="-march=native"
     else
         # 'native' not supported, see if GMP / MPIR provides us some CPU type:
@@ -165,6 +177,8 @@ cd src
 # (Note: Building (also) a *shared* library is disabled by default.
 #        Add "--enable-shared" below if you want it, though one can
 #        now pass extra 'configure' options through ECM_EXTRA_OPTS.)
+#        If you do so, i.e. add '--enable-shared' by default, also
+#        adapt the logic regarding '-fPIC' above.
 ###############################################################################
 
 SAGE_CONF_OPTS=""

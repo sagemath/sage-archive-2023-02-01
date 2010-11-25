@@ -69,6 +69,8 @@ LGPL V2+
  * Print settings of CC and CFLAGS found in 'SAGE_LOCAL/include/gmp.h'
    and eventually a system-wide 'gmp.h', although the latter aren't (yet)
    used at all, and only processor-specific parts of the former.
+ * Add '-fPIC' conditionally, i.e. not if we're also building a shared
+   library (or '--with-pic' was given).
  * Don't delete previous installations unless the build succeeded.
  * Further clean-up.
 

@@ -452,7 +452,15 @@ class WordGenerator(object):
             sage: WordGenerator()._ThueMorseWord_nth_digit(6, 'abc', base = 7)
             'a'
 
+        Negative input::
+
+            sage: words._ThueMorseWord_nth_digit(-7)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: nth digit of Thue-Morse word is not implemented for negative value of n
         """
+        if n < 0:
+            raise NotImplementedError, "nth digit of Thue-Morse word is not implemented for negative value of n"
         m = len(alphabet)
         if base == 2 and m == 2:
             for tn in count():

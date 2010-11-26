@@ -1505,6 +1505,14 @@ class Word_class(SageObject):
             sage: Word(primes(1000)).sum_digits(base=10, mod=7)
             word: 2350241354435041006132432241353546006304...
 
+        Negative entries::
+
+            sage: w = Word([-1,0,1,2,3,4,5])
+            sage: w.sum_digits()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: nth digit of Thue-Morse word is not implemented for negative value of n
+
         TESTS:
 
         The Thue-Morse word::

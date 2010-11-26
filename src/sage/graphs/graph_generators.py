@@ -111,6 +111,7 @@ Named Graphs
 - :meth:`HigmanSimsGraph <GraphGenerators.HigmanSimsGraph>`
 - :meth:`HoffmanSingletonGraph <GraphGenerators.HoffmanSingletonGraph>`
 - :meth:`MoebiusKantorGraph <GraphGenerators.MoebiusKantorGraph>`
+- :meth:`MoserSpindle <GraphGenerators.MoserSpindle>`
 - :meth:`PappusGraph <GraphGenerators.PappusGraph>`
 - :meth:`PetersenGraph <GraphGenerators.PetersenGraph>`
 - :meth:`ThomsenGraph <GraphGenerators.ThomsenGraph>`
@@ -3217,44 +3218,6 @@ class GraphGenerators():
 
         return g
 
-    def OddGraph(self,n):
-        r"""
-        Returns the Odd Graph with parameter `n`.
-
-        The Odd Graph with parameter `n` is defined as the
-        Kneser Graph with parameters `2n-1,n-1`.
-        Equivalently, the Odd Graph is the graph whose vertices
-        are the `n-1`-subsets of `[0,1,\dots,2(n-1)]`, and such
-        that two vertices are adjacent if their corresponding sets
-        are disjoint.
-
-        For example, the Petersen Graph can be defined
-        as the Odd Graph with parameter `3`.
-
-        EXAMPLE::
-
-            sage: OG=graphs.OddGraph(3)
-            sage: print OG.vertices()
-            [{4, 5}, {1, 3}, {2, 5}, {2, 3}, {3, 4}, {3, 5}, {1, 4}, {1, 5}, {1, 2}, {2, 4}]
-            sage: P=graphs.PetersenGraph()
-            sage: P.is_isomorphic(OG)
-            True
-
-        TESTS::
-
-            sage: KG=graphs.OddGraph(1)
-            Traceback (most recent call last):
-            ...
-            ValueError: Parameter n should be an integer strictly greater than 1
-        """
-
-        if not n>1:
-            raise ValueError, "Parameter n should be an integer strictly greater than 1"
-        g = self.KneserGraph(2*n-1,n-1)
-        g.name("Odd Graph with parameter %s" % n)
-        return g
-
-
     def MoebiusKantorGraph(self):
         """
         Returns a Moebius-Kantor Graph.
@@ -3285,6 +3248,62 @@ class GraphGenerators():
         G=graphs.GeneralizedPetersenGraph(8,3)
         G.name("Moebius-Kantor Graph")
         return G
+
+    def MoserSpindle(self):
+        r"""
+        Returns the Moser spindle.
+
+        For more information, see this
+        `MathWorld article on the Moser spindle <http://mathworld.wolfram.com/MoserSpindle.html>`_.
+
+        EXAMPLES:
+
+        The Moser spindle is a planar graph having 7 vertices and 11 edges. ::
+
+            sage: G = graphs.MoserSpindle(); G
+            Moser spindle: Graph on 7 vertices
+            sage: G.is_planar()
+            True
+            sage: G.order()
+            7
+            sage: G.size()
+            11
+
+        It is a Hamiltonian graph with radius 2, diameter 2, and girth 3. ::
+
+            sage: G.is_hamiltonian()
+            True
+            sage: G.radius()
+            2
+            sage: G.diameter()
+            2
+            sage: G.girth()
+            3
+
+        The Moser spindle has chromatic number 4 and its automorphism
+        group is isomorphic to the dihedral group `D_4`. ::
+
+            sage: G.chromatic_number()
+            4
+            sage: ag = G.automorphism_group()
+            sage: ag.is_isomorphic(DihedralGroup(4))
+            True
+        """
+        edge_dict = {
+            0: [1,4,5,6],
+            1: [2,5],
+            2: [3,5],
+            3: [4,6],
+            4: [6]}
+        pos_dict = {
+            0: [0, 2],
+            1: [-1.90211303259031, 0.618033988749895],
+            2: [-1.17557050458495, -1.61803398874989],
+            3: [1.17557050458495, -1.61803398874989],
+            4: [1.90211303259031, 0.618033988749895],
+            5: [1, 0],
+            6: [-1, 0]}
+        return graph.Graph(edge_dict, pos=pos_dict, name="Moser spindle")
 
     def MycielskiGraph(self, k=1, relabel=True):
         r"""
@@ -4621,6 +4640,43 @@ class GraphGenerators():
                     v[0], v[i] = v[i], v[0]
             d["".join(v)] = tmp_dict
         return graph.Graph(d, name = "%d-star"%n)
+
+    def OddGraph(self,n):
+        r"""
+        Returns the Odd Graph with parameter `n`.
+
+        The Odd Graph with parameter `n` is defined as the
+        Kneser Graph with parameters `2n-1,n-1`.
+        Equivalently, the Odd Graph is the graph whose vertices
+        are the `n-1`-subsets of `[0,1,\dots,2(n-1)]`, and such
+        that two vertices are adjacent if their corresponding sets
+        are disjoint.
+
+        For example, the Petersen Graph can be defined
+        as the Odd Graph with parameter `3`.
+
+        EXAMPLE::
+
+            sage: OG=graphs.OddGraph(3)
+            sage: print OG.vertices()
+            [{4, 5}, {1, 3}, {2, 5}, {2, 3}, {3, 4}, {3, 5}, {1, 4}, {1, 5}, {1, 2}, {2, 4}]
+            sage: P=graphs.PetersenGraph()
+            sage: P.is_isomorphic(OG)
+            True
+
+        TESTS::
+
+            sage: KG=graphs.OddGraph(1)
+            Traceback (most recent call last):
+            ...
+            ValueError: Parameter n should be an integer strictly greater than 1
+        """
+
+        if not n>1:
+            raise ValueError, "Parameter n should be an integer strictly greater than 1"
+        g = self.KneserGraph(2*n-1,n-1)
+        g.name("Odd Graph with parameter %s" % n)
+        return g
 
 ################################################################################
 #   Pseudofractal Graphs

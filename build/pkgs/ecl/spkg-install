@@ -14,14 +14,6 @@ if [ "x$CXXFLAG64" = x ] ; then
    CXXFLAG64=-m64
 fi
 
-# Add a patch which works around a gcc bug on Solaris. Actually
-# the code is not standard C, but a GCC extension, which does
-# not work on Solaris, causing relocation issues - see
-# http://trac.sagemath.org/sage_trac/ticket/9840
-# This is committed to the ECL trunk, so can be removed
-# whenever we update to a version of ECL newer than 10.4.1.
-cp patches/bytecodes.h src/src/h/bytecodes.h
-
 CPPFLAGS="$CPPFLAGS -I$SAGE_LOCAL/include"
 LDFLAGS="$LDFLAGS -L$SAGE_LOCAL/lib"
 

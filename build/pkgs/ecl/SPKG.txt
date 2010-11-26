@@ -38,7 +38,8 @@ Website: http://ecls.sourceforge.net/
  * boehm_gc
 
 == Special Update/Build Instructions ==
- * delete the msvc directory
+ * Delete the contents of the src/msvc directory
+ * Delete the contents of the src/contrib/encodings/
  * TODO - Add the ECL test suite, and an spkg-check file to run it.
 
 == Changelog ==
@@ -65,8 +66,6 @@ Website: http://ecls.sourceforge.net/
   * Removed checks for Sun/GNU compilers, as the prereq script does all this.
   * Likewise remove checks that SAGE_FORTRAN and SAGE_FORTRAN_LIB are
     set, as the prereq script does this.
-  * Removed comments about removing the src/contrib/encodings directory,
-    as there is no such directory.
   * Removed code from spkg-install which deleted temporary files, as the bug
     that required this, has been fixed in the ECL source code. This was
     originally bug #8951 but was actually fixed in #9474.

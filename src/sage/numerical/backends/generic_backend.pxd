@@ -6,16 +6,16 @@
 ##############################################################################
 
 cdef class GenericBackend:
-    cpdef int add_variable(self)
-    cpdef int add_variables(self, int)
+    cpdef int add_variable(self, lower_bound=*, upper_bound=*, binary=*, continuous=*, integer=*) except -1
+    cpdef int add_variables(self, int, lower_bound=*, upper_bound=*, binary=*, continuous=*, integer=*) except -1
     cpdef set_variable_type(self, int variable, int vtype)
     cpdef set_sense(self, int sense)
     cpdef set_objective_coefficient(self, int variable, double coeff)
     cpdef set_objective(self, list coeff)
     cpdef set_verbosity(self, int level)
-    cpdef add_linear_constraint(self, list indices, list coeffs, int direction, double bound)
+    cpdef add_linear_constraint(self, constraints, lower_bound, upper_bound)
     cpdef add_col(self, list indices, list coeffs)
-    cpdef add_linear_constraints(self, int number, int direction, double bound)
+    cpdef add_linear_constraints(self, int number, lower_bound, upper_bound)
     cpdef int solve(self) except -1
     cpdef double get_objective_value(self)
     cpdef double get_variable_value(self, int variable)
@@ -36,6 +36,6 @@ cdef class GenericBackend:
     cpdef col_bounds(self, int index)
     cpdef row_name(self, int index, char * name = *)
     cpdef col_name(self, int index, char * name = *)
-    cpdef variable_max(self, int index, value = *)
-    cpdef variable_min(self, int index, value = *)
+    cpdef variable_upper_bound(self, int index, value = *)
+    cpdef variable_lower_bound(self, int index, value = *)
 

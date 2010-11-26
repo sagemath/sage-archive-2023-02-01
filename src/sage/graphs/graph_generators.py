@@ -107,6 +107,7 @@ Named Graphs
 - :meth:`GoldnerHararyGraph <GraphGenerators.GoldnerHararyGraph>`
 - :meth:`GrotzschGraph <GraphGenerators.GrotzschGraph>`
 - :meth:`HeawoodGraph <GraphGenerators.HeawoodGraph>`
+- :meth:`HerschelGraph <GraphGenerators.HerschelGraph>`
 - :meth:`HigmanSimsGraph <GraphGenerators.HigmanSimsGraph>`
 - :meth:`HoffmanSingletonGraph <GraphGenerators.HoffmanSingletonGraph>`
 - :meth:`MoebiusKantorGraph <GraphGenerators.MoebiusKantorGraph>`
@@ -2799,7 +2800,6 @@ class GraphGenerators():
         g.name("Grotzsch graph")
         return g
 
-
     def HeawoodGraph(self):
         """
         Returns a Heawood graph.
@@ -2839,6 +2839,75 @@ class GraphGenerators():
         import networkx
         G = networkx.heawood_graph()
         return graph.Graph(G, pos=pos_dict, name="Heawood graph")
+
+    def HerschelGraph(self):
+        r"""
+        Returns the Herschel graph.
+
+        For more information, see this
+        `Wikipedia article on the Herschel graph <http://en.wikipedia.org/wiki/Herschel_graph>`_.
+
+        EXAMPLES:
+
+        The Herschel graph is named after Alexander Stewart Herschel. It is
+        a planar, bipartite graph with 11 vertices and 18 edges. ::
+
+            sage: G = graphs.HerschelGraph(); G
+            Herschel graph: Graph on 11 vertices
+            sage: G.is_planar()
+            True
+            sage: G.is_bipartite()
+            True
+            sage: G.order()
+            11
+            sage: G.size()
+            18
+
+        The Herschel graph is a perfect graph with radius 3, diameter 4, and
+        girth 4. ::
+
+            sage: G.is_perfect()
+            True
+            sage: G.radius()
+            3
+            sage: G.diameter()
+            4
+            sage: G.girth()
+            4
+
+        Its chromatic number is 2 and its automorphism group is
+        isomorphic to the dihedral group `D_6`. ::
+
+            sage: G.chromatic_number()
+            2
+            sage: ag = G.automorphism_group()
+            sage: ag.is_isomorphic(DihedralGroup(6))
+            True
+        """
+        edge_dict = {
+            0: [1,3,4],
+            1: [2,5,6],
+            2: [3,7],
+            3: [8,9],
+            4: [5,9],
+            5: [10],
+            6: [7,10],
+            7: [8],
+            8: [10],
+            9: [10]}
+        pos_dict = {
+            0: [2, 0],
+            1: [0, 2],
+            2: [-2, 0],
+            3: [0, -2],
+            4: [1, 0],
+            5: [0.5, 0.866025403784439],
+            6: [-0.5, 0.866025403784439],
+            7: [-1, 0],
+            8: [-0.5, -0.866025403784439],
+            9: [0.5, -0.866025403784439],
+            10: [0, 0]}
+        return graph.Graph(edge_dict, pos=pos_dict, name="Herschel graph")
 
     def HigmanSimsGraph(self, relabel=True):
         r"""

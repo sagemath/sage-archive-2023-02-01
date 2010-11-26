@@ -2701,7 +2701,21 @@ class GraphGenerators():
             7: [8,10],
             8: [10],
             9: [10]}
-        return graph.Graph(edge_dict, name="Goldner-Harary graph")
+
+        pos = {
+            0: (-2, 0),
+            1: (0, 1.5),
+            2: (2, 0),
+            3: (0, -1.5),
+            4: (-1.5, 0),
+            5: (-0.5, 0.5),
+            6: (0.5, 0.5),
+            7: (1.5, 0),
+            8: (0.5, -0.5),
+            9: (-0.5, -0.5),
+            10: (0, 0)}
+
+        return graph.Graph(edge_dict, pos = pos, name="Goldner-Harary graph")
 
     def GrotzschGraph(self):
         r"""

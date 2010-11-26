@@ -35,13 +35,13 @@ if [ `uname` = "Darwin" ]; then
    echo "you will not be able to see the output of the build"
    echo "as it occurs.  Don't worry, the build process did"
    echo "not hang."
-   make >> "$CUR"/output.log  2>> "$CUR"/error.log
+   $MAKE >> "$CUR"/output.log  2>> "$CUR"/error.log
 else
-   make
+   $MAKE
 fi
 check_error "Failed to make Maxima."
 
-make install
+$MAKE install
 check_error "Failed to install Maxima."
 
 echo "creating wrapper script with disabled readline"

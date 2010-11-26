@@ -22,7 +22,9 @@ success "Error deleting previous version"
 
 cd src
 
-cp ../patches/setup.py .
+patch < ../patches/setup.py.patch
+success "Error patching PIL"
+
 python setup.py install
 
 if [ $? -ne 0 ]; then

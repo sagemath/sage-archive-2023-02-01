@@ -14,7 +14,7 @@ CUR=`pwd`
 
 cd src/
 
-unset MAKE  # this can break things
+MAKE="$MAKE -j1"  # force sequential build (1 job)
 
 check_error() {
     if [ $? -ne 0 ]; then
@@ -25,7 +25,7 @@ check_error() {
     fi
 }
 
-./configure --prefix=$SAGE_LOCAL --enable-ecl
+./configure --prefix="$SAGE_LOCAL" --enable-ecl
 check_error "Failed to configure Maxima."
 
 if [ `uname` = "Darwin" ]; then
@@ -70,7 +70,7 @@ ecl \
 ECLLIB=`ecl -eval "(princ (SI:GET-LIBRARY-PATHNAME))" -eval "(quit)"`
 echo
 echo "installing Maxima library as $ECLLIB/maxima.fas"
-cp maxima.fasb $ECLLIB/maxima.fas
+cp maxima.fasb "$ECLLIB/maxima.fas"
 check_error "Failed to install maxima.fasb as a library"
 cd ..
 

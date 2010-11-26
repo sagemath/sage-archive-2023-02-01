@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 ########################################################
-# Build SAGE source distribution
-# This script should be called by the SAGE script
+# Build Sage source distribution
+# This script should be called by the sage-sage script
 ########################################################
 
 PKGDIR=spkg
@@ -20,7 +20,7 @@ TARGET="sage-"$1
 
 CUR=`pwd`
 
-SAGE_RELEASE_DATE=`date -u +'%Y-%m-%d %Z'`
+SAGE_RELEASE_DATE=`date -u +'%Y-%m-%d'`
 
 # Update Sage version file in SAGE_ROOT.
 echo "Sage version $SAGE_VERSION, released $SAGE_RELEASE_DATE" > "$SAGE_ROOT"/VERSION.txt

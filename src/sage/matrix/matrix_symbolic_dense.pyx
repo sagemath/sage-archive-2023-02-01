@@ -260,6 +260,33 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
 
         return result
 
+    def eigenvectors_right(self):
+        r"""
+        Compute the right eigenvectors of a matrix.
+
+        For each distinct eigenvalue, returns a list of the form (e,V,n)
+        where e is the eigenvalue, V is a list of eigenvectors forming a
+        basis for the corresponding right eigenspace, and n is the
+        algebraic multiplicity of the eigenvalue.
+
+        EXAMPLES::
+
+            sage: A = matrix(SR,2,2,range(4)); A
+            [0 1]
+            [2 3]
+            sage: right = A.eigenvectors_right(); right
+            [(-1/2*sqrt(17) + 3/2, [(1, -1/2*sqrt(17) + 3/2)], 1), (1/2*sqrt(17) + 3/2, [(1, 1/2*sqrt(17) + 3/2)], 1)]
+
+        The right eigenvectors are nothing but the left eigenvectors of the
+        transpose matrix::
+
+            sage: left  = A.transpose().eigenvectors_left(); left
+            [(-1/2*sqrt(17) + 3/2, [(1, -1/2*sqrt(17) + 3/2)], 1), (1/2*sqrt(17) + 3/2, [(1, 1/2*sqrt(17) + 3/2)], 1)]
+            sage: right[0][1] == left[0][1]
+            True
+        """
+        return self.transpose().eigenvectors_left()
+
     def exp(self):
         r"""
         Return the matrix exponential of this matrix $X$, which is the matrix

@@ -146,7 +146,7 @@ class Sets(Category):
         <class 'sage.categories.objects.Objects.element_class'>
         <type 'object'>
 
-    FIXME: Objects.element_class is not very meaningfull ...
+    FIXME: Objects.element_class is not very meaningful ...
 
 
     TESTS::
@@ -170,20 +170,43 @@ class Sets(Category):
         """
         return [SetsWithPartialMaps()]
 
-    def __call__(self, X):
+    def _call_(self, X, enumerated_set_if_possible = False):
         r"""
         Construct an object in this category from the data in ``X``.
 
         EXAMPLES::
 
             sage: Sets()(ZZ)
-            Set of elements of Integer Ring
+            Integer Ring
+            sage: Sets()([1, 2, 3])
+            {1, 2, 3}
 
-        FIXME: the above behavior dates back from the first category
-        writeup. It is not consistent with :meth:`Category.__call__`.
-        Should we change it to just return ``ZZ`` instead?
+        .. note::
+
+           Using ``Sets()(A)`` used to implement some sort of
+           forgetful functor into the ``Sets()`` category. This
+           feature has been removed, because it was not consistent
+           with the semantic of :meth:`Category.__call__`. Proper
+           forgetful functors will eventually be implemented, with
+           another syntax.
+
+        - ``enumerated_set_if_possible`` -- an option to ask Sage to
+          try to build an ``EnumeratedSets()`` rather that a
+          ``Sets()`` if possible.  This is experimental an may change
+          in the future::
+
+              sage: S = Sets()([1, 2, 3]); S.category()
+              Category of sets
+              sage: S = Sets()([1, 2, 3], True); S.category()
+              Category of finite enumerated sets
         """
         import sage.sets.all
+        if enumerated_set_if_possible:
+            from sage.categories.enumerated_sets import EnumeratedSets
+            try:
+                return EnumeratedSets()(X)
+            except NotImplementedError:
+                pass
         return sage.sets.all.Set(X)
 
     def example(self, choice = None):

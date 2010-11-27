@@ -48,6 +48,32 @@ class FiniteEnumeratedSets(Category):
         """
         return [EnumeratedSets()]
 
+
+    def _call_(self, X):
+        """
+        Construct an object in this category from the data in ``X``.
+
+        EXAMPLES::
+
+            sage: FiniteEnumeratedSets()(GF(3))
+            Finite Field of size 3
+            sage: FiniteEnumeratedSets()(Partitions(3)) # todo: not implemented: Partitions(3) is not yet in FiniteEnumeratedSets()
+            Partitions of 3
+
+        For now, lists, tuples, sets, Sets are coerced into finite
+        enumerated sets::
+
+            sage: FiniteEnumeratedSets()([1, 2, 3])
+            {1, 2, 3}
+            sage: FiniteEnumeratedSets()((1, 2, 3))
+            {1, 2, 3}
+            sage: FiniteEnumeratedSets()(set([1, 2, 3]))
+            {1, 2, 3}
+            sage: FiniteEnumeratedSets()(Set([1, 2, 3]))
+            {1, 2, 3}
+        """
+        return EnumeratedSets()._call_(X)
+
     class ParentMethods:
 
         def is_finite(self):

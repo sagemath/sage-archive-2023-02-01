@@ -94,6 +94,37 @@ class EnumeratedSets(Category):
         return [Sets()]
 
 
+    def _call_(self, X):
+        """
+        Construct an object in this category from the data in ``X``.
+
+        EXAMPLES::
+
+            sage: EnumeratedSets()(Primes())
+            Set of all prime numbers: 2, 3, 5, 7, ...
+
+        For now, lists, tuples, sets, Sets are coerced into finite
+        enumerated sets::
+
+            sage: S = EnumeratedSets()([1, 2, 3]); S
+            {1, 2, 3}
+            sage: S.category()
+            Category of finite enumerated sets
+
+            sage: S = EnumeratedSets()((1, 2, 3)); S
+            {1, 2, 3}
+            sage: S = EnumeratedSets()(set([1, 2, 3])); S
+            {1, 2, 3}
+            sage: S = EnumeratedSets()(Set([1, 2, 3])); S
+            {1, 2, 3}
+            sage: S.category()
+            Category of finite enumerated sets
+        """
+        import sage.sets.set
+        if isinstance(X, (tuple, list, set, sage.sets.set.Set_object_enumerated)):
+            return sage.sets.all.FiniteEnumeratedSet(X)
+        raise NotImplementedError
+
     class ParentMethods:
 
         def __iter__(self):

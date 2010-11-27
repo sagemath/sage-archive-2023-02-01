@@ -1102,6 +1102,10 @@ ext_modules = [
               sources = ['sage/misc/randstate.pyx'],
               libraries = ['gmp']),
 
+    Extension('sage.misc.readline_extra_commands',
+              sources = ['sage/misc/readline_extra_commands.pyx'],
+              libraries = ['readline']),
+
     Extension('sage.misc.refcount',
               sources = ['sage/misc/refcount.pyx']),
 

@@ -173,6 +173,8 @@ from bitset import FrozenBitset, Bitset
 from decorators import specialize, sage_wraps, infix_operator
 
 from unknown import Unknown
+
+from readline_extra_commands import *
 ##########################################################################
 def benchmark(n=-1):
     """

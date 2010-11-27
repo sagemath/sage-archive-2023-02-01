@@ -35,51 +35,132 @@ cdef class CoinBackend(GenericBackend):
         else:
             self.set_sense(-1)
 
-    cpdef int add_variable(self):
-        r"""
-        Adds a variable.
+    cpdef int add_variable(self, lower_bound=0.0, upper_bound=None, binary=False, continuous=False, integer=False) except -1:
+        """
+        Add a variable.
 
         This amounts to adding a new column to the matrix. By default,
         the variable is both positive and real.
 
+        INPUT:
+
+        - ``lower_bound`` - the lower bound of the variable (default: 0)
+
+        - ``upper_bound`` - the upper bound of the variable (default: ``None``)
+
+        - ``binary`` - ``True`` if the variable is binary (default: ``False``).
+
+        - ``continuous`` - ``True`` if the variable is binary (default: ``True``).
+
+        - ``integer`` - ``True`` if the variable is binary (default: ``False``).
+
+        OUTPUT: The index of the newly created variable
+
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "Coin")    # optional - Coin
+            sage: p = get_solver(solver = "Coin")                  # optional - Coin
             sage: p.ncols()                                         # optional - Coin
             0
-            sage: p.add_variable()                                   # optional - Coin
-            1
+            sage: p.add_variable()                                  # optional - Coin
+            0
             sage: p.ncols()                                         # optional - Coin
             1
+            sage: p.add_variable(binary=True)                       # optional - Coin
+            1
+            sage: p.add_variable(lower_bound=-2.0, integer=True)    # optional - Coin
+            2
+            sage: p.add_variable(continuous=True, integer=True)     # optional - Coin
+            Traceback (most recent call last):
+            ...
+            ValueError: ...
         """
 
-        self.si.addCol(0, NULL, NULL, 0, self.si.getInfinity(), 0)
-        return self.si.getNumCols()
+        cdef int vtype = int(bool(binary)) + int(bool(continuous)) + int(bool(integer))
+        if  vtype == 0:
+            continuous = True
+        elif vtype != 1:
+            raise ValueError("Exactly one parameter of 'binary', 'integer' and 'continuous' must be 'True'.")
 
-    cpdef int add_variables(self, int number):
-        r"""
-        Adds ``number`` variables.
+        self.si.addCol(0, NULL, NULL, 0, self.si.getInfinity(), 0)
+
+        cdef int n
+        n = self.si.getNumCols() - 1
+
+        if lower_bound != 0.0:
+            self.variable_lower_bound(n, lower_bound)
+        if upper_bound is not None:
+            self.variable_upper_bound(n, upper_bound)
+
+        if binary:
+            self.set_variable_type(n,0)
+        elif integer:
+            self.set_variable_type(n,1)
+
+        return n
+
+    cpdef int add_variables(self, int number, lower_bound=0.0, upper_bound=None, binary=False, continuous=False, integer=False) except -1:
+        """
+        Add ``number`` new variables.
 
         This amounts to adding new columns to the matrix. By default,
         the variables are both positive and real.
 
+        INPUT:
+
+        - ``n`` - the number of new variables (must be > 0)
+
+        - ``lower_bound`` - the lower bound of the variable (default: 0)
+
+        - ``upper_bound`` - the upper bound of the variable (default: ``None``)
+
+        - ``binary`` - ``True`` if the variable is binary (default: ``False``).
+
+        - ``continuous`` - ``True`` if the variable is binary (default: ``True``).
+
+        - ``integer`` - ``True`` if the variable is binary (default: ``False``).
+
+        OUTPUT: The index of the variable created last.
+
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "Coin")    # optional - Coin
-            sage: p.ncols()                                         # optional - Coin
+            sage: p = get_solver(solver = "Coin")                         # optional - Coin
+            sage: p.ncols()                                                # optional - Coin
             0
-            sage: p.add_variables(5)                                 # optional - Coin
+            sage: p.add_variables(5)                                       # optional - Coin
+            4
+            sage: p.ncols()                                                # optional - Coin
             5
-            sage: p.ncols()                                         # optional - Coin
-            5
+            sage: p.add_variables(2, lower_bound=-2.0, integer=True)       # optional - Coin
+            6
         """
+        cdef int vtype = int(bool(binary)) + int(bool(continuous)) + int(bool(integer))
+        if  vtype == 0:
+            continuous = True
+        elif vtype != 1:
+            raise ValueError("Exactly one parameter of 'binary', 'integer' and 'continuous' must be 'True'.")
+
+        cdef int n
+        n = self.si.getNumCols()
 
         cdef int i
-        for 0<= i< number:
+
+        for 0<= i < number:
+
             self.si.addCol(0, NULL, NULL, 0, self.si.getInfinity(), 0)
-        return self.si.getNumCols()
+
+            if lower_bound != 0.0:
+                self.variable_lower_bound(n + i, lower_bound)
+            if upper_bound is not None:
+                self.variable_upper_bound(n + i, upper_bound)
+
+            if binary:
+                self.set_variable_type(n + i,0)
+            elif integer:
+                self.set_variable_type(n + i,1)
+
+        return n + number -1
 
     cpdef set_variable_type(self, int variable, int vtype):
         r"""
@@ -102,7 +183,7 @@ cdef class CoinBackend(GenericBackend):
             sage: p.ncols()                                        # optional - Coin
             0
             sage: p.add_variable()                                  # optional - Coin
-            1
+            0
             sage: p.set_variable_type(0,1)                          # optional - Coin
             sage: p.is_variable_integer(0)                          # optional - Coin
             True
@@ -155,7 +236,7 @@ cdef class CoinBackend(GenericBackend):
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")  # optional - Coin
             sage: p.add_variable()                                 # optional - Coin
-            1
+            0
             sage: p.get_objective_coefficient(0)                         # optional - Coin
             0.0
             sage: p.set_objective_coefficient(0,2)                       # optional - Coin
@@ -179,7 +260,7 @@ cdef class CoinBackend(GenericBackend):
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")    # optional - Coin
             sage: p.add_variables(5)                                 # optional - Coin
-            5
+            4
             sage: p.set_objective([1, 1, 2, 1, 3])                   # optional - Coin
             sage: map(lambda x :p.get_objective_coefficient(x), range(5))  # optional - Coin
             [1.0, 1.0, 2.0, 1.0, 3.0]
@@ -211,95 +292,75 @@ cdef class CoinBackend(GenericBackend):
         msg = model.messageHandler()
         msg.setLogLevel(level)
 
-    cpdef add_linear_constraints(self, int number, int direction, double bound):
-        r"""
-        Adds constraints.
+    cpdef add_linear_constraints(self, int number, lower_bound, upper_bound):
+        """
+        Add ``'number`` linear constraints.
 
         INPUT:
 
         - ``number`` (integer) -- the number of constraints to add.
 
-        - ``direction`` (integer) -- the direction of the constraint,
-          where :
+        - ``lower_bound`` - a lower bound, either a real value or ``None``
 
-              * +1 indicates : function `\leq` ``bound``
-              *  0 indicates : function `=` ``bound``
-              * -1 indicates : function `\geq` ``bound``
-
-        - ``bound`` (double) -- value of the right-hand side (as
-          illustrated immediately above).
+        - ``upper_bound`` - an upper bound, either a real value or ``None``
 
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "Coin")   # optional - Coin
-            sage: p.add_variables(5)                                # optional - Coin
-            5
-            sage: p.add_linear_constraints(5, +1, 2)                       # optional - Coin
-            sage: p.row(4)                                      # optional - Coin
+            sage: p = get_solver(solver = "Coin")        # optional - Coin
+            sage: p.add_variables(5)                     # optional - Coin
+            4
+            sage: p.add_linear_constraints(5, None, 2)   # optional - Coin
+            sage: p.row(4)                               # optional - Coin
             ([], [])
-            sage: p.row_bounds(4)                               # optional - Coin
+            sage: p.row_bounds(4)                        # optional - Coin
             (None, 2.0)
         """
 
         cdef int i
         for 0<= i<number:
-            self.add_linear_constraint([],[],direction, bound)
+            self.add_linear_constraint([],lower_bound, upper_bound)
 
-    cpdef add_linear_constraint(self, list indices, list coeffs, int direction, double bound):
-        r"""
-        Adds a linear constraint.
+    cpdef add_linear_constraint(self, coefficients, lower_bound, upper_bound):
+        """
+        Add a linear constraint.
 
         INPUT:
 
-        - ``indices`` (list of integers) -- this list constains the
-          indices of the variables whose coefficient is nonzero in the
-          constraint.
+        - ``coefficients`` an iterable with ``(c,v)`` pairs where ``c``
+          is a variable index (integer) and ``v`` is a value (real
+          value).
 
-        - ``coeffs`` (list of real values) -- associates a coefficient
-          to the variables listed by ``indices``. Namely, the ith
-          entry of ``coeffs`` corresponds to the coefficient of the
-          variable represented by the ith entry in ``indices``.
+        - ``lower_bound`` - a lower bound, either a real value or ``None``
 
-        - ``direction`` (integer) -- the direction of the constraint,
-          where :
-
-              * +1 indicates : function `\leq` ``bound``
-              *  0 indicates : function `=` ``bound``
-              * -1 indicates : function `\geq` ``bound``
-
-        - ``bound`` (double) -- value of the right-hand side (as
-          illustrated immediately above).
-
-        .. NOTE::
-
-            ``indices`` and ``coeffs`` are expected to be of the same
-            length.
+        - ``upper_bound`` - an upper bound, either a real value or ``None``
 
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "Coin") # optional - Coin
-            sage: p.add_variables(5)                              # optional - Coin
-            5
-            sage: p.add_linear_constraint(range(5), range(5), 0, 2)      # optional - Coin
-            sage: p.row(0)                                    # optional - Coin
+            sage: p = get_solver(solver = "Coin")                              # optional - Coin
+            sage: p.add_variables(5)                                           # optional - Coin
+            4
+            sage: p.add_linear_constraint( zip(range(5), range(5)), 2.0, 2.0)  # optional - Coin
+            sage: p.row(0)                                                     # optional - Coin
             ([0, 1, 2, 3, 4], [0.0, 1.0, 2.0, 3.0, 4.0])
-            sage: p.row_bounds(0)                             # optional - Coin
+            sage: p.row_bounds(0)                                              # optional - Coin
             (2.0, 2.0)
         """
+        if lower_bound is None and upper_bound is None:
+            raise ValueError("At least one of 'upper_bound' or 'lower_bound' must be set.")
 
         cdef int i
-        cdef int n = len(indices)
+        cdef double c
         cdef c_CoinPackedVector* row
         row = new_c_CoinPackedVector();
 
-        for 0<= i<n:
-            row.insert(indices[i], coeffs[i])
+        for i,c in coefficients:
+            row.insert(i, c)
 
         self.si.addRow (row[0],
-                        bound if direction != +1 else -self.si.getInfinity(),
-                        bound if direction != -1 else +self.si.getInfinity())
+                        lower_bound if lower_bound != None else -self.si.getInfinity(),
+                        upper_bound if upper_bound != None else +self.si.getInfinity())
 
 
     cpdef row(self, int index):
@@ -322,8 +383,8 @@ cdef class CoinBackend(GenericBackend):
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")  # optional - Coin
             sage: p.add_variables(5)                               # optional - Coin
-            5
-            sage: p.add_linear_constraint(range(5), range(5), 0, 2)       # optional - Coin
+            4
+            sage: p.add_linear_constraint(zip(range(5), range(5)), 2, 2)       # optional - Coin
             sage: p.row(0)                                     # optional - Coin
             ([0, 1, 2, 3, 4], [0.0, 1.0, 2.0, 3.0, 4.0])
             sage: p.row_bounds(0)                              # optional - Coin
@@ -367,8 +428,8 @@ cdef class CoinBackend(GenericBackend):
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")  # optional - Coin
             sage: p.add_variables(5)                               # optional - Coin
-            5
-            sage: p.add_linear_constraint(range(5), range(5), 0, 2)       # optional - Coin
+            4
+            sage: p.add_linear_constraint(zip(range(5), range(5)), 2, 2)       # optional - Coin
             sage: p.row(0)                                     # optional - Coin
             ([0, 1, 2, 3, 4], [0.0, 1.0, 2.0, 3.0, 4.0])
             sage: p.row_bounds(0)                              # optional - Coin
@@ -403,10 +464,10 @@ cdef class CoinBackend(GenericBackend):
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")  # optional - Coin
             sage: p.add_variable()                                 # optional - Coin
-            1
+            0
             sage: p.col_bounds(0)                              # optional - Coin
             (0.0, None)
-            sage: p.variable_max(0, 5)                         # optional - Coin
+            sage: p.variable_upper_bound(0, 5)                         # optional - Coin
             sage: p.col_bounds(0)                              # optional - Coin
             (0.0, 5.0)
         """
@@ -433,8 +494,8 @@ cdef class CoinBackend(GenericBackend):
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")  # optional - Coin
             sage: p.add_variables(2)                               # optional - Coin
-            2
-            sage: p.add_linear_constraint([0, 1], [1, 2], +1, 3)          # optional - Coin
+            1
+            sage: p.add_linear_constraint([(0, 1), (1, 2)], None, 3)          # optional - Coin
             sage: p.set_objective([2, 5])                          # optional - Coin
             sage: p.solve()                                        # optional - Coin
             0
@@ -476,7 +537,7 @@ cdef class CoinBackend(GenericBackend):
             0
             sage: p.nrows()                                       # optional - Coin
             0
-            sage: p.add_linear_constraints(5, -1, 0)                      # optional - Coin
+            sage: p.add_linear_constraints(5, 0, None)                      # optional - Coin
             sage: p.add_col(range(5), range(5))                    # optional - Coin
             sage: p.nrows()                                       # optional - Coin
             5
@@ -508,7 +569,7 @@ cdef class CoinBackend(GenericBackend):
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")    # optional - Coin
-            sage: p.add_linear_constraints(5, -1, 0)       # optional - Coin
+            sage: p.add_linear_constraints(5, 0, None)       # optional - Coin
             sage: p.add_col(range(5), [1,2,3,4,5])  # optional - Coin
             sage: p.solve()                         # optional - Coin
             0
@@ -518,9 +579,9 @@ cdef class CoinBackend(GenericBackend):
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")    # optional - Coin
             sage: p.add_variable()                  # optional - Coin
-            1
-            sage: p.add_linear_constraint([0], [1], +1, 4) # optional - Coin
-            sage: p.add_linear_constraint([0], [1], -1, 6) # optional - Coin
+            0
+            sage: p.add_linear_constraint([(0, 1)], None, 4) # optional - Coin
+            sage: p.add_linear_constraint([(0, 1)], 6, None) # optional - Coin
             sage: p.set_objective_coefficient(0,1)        # optional - Coin
             sage: p.solve()                         # optional - Coin
             Traceback (most recent call last):
@@ -560,8 +621,8 @@ cdef class CoinBackend(GenericBackend):
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")  # optional - Coin
             sage: p.add_variables(2)                               # optional - Coin
-            2
-            sage: p.add_linear_constraint([0, 1], [1, 2], +1, 3)          # optional - Coin
+            1
+            sage: p.add_linear_constraint([(0, 1), (1, 2)], None, 3)          # optional - Coin
             sage: p.set_objective([2, 5])                          # optional - Coin
             sage: p.solve()                                        # optional - Coin
             0
@@ -588,8 +649,8 @@ cdef class CoinBackend(GenericBackend):
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin") # optional - Coin
             sage: p.add_variables(2)                              # optional - Coin
-            2
-            sage: p.add_linear_constraint([0, 1], [1, 2], +1, 3)         # optional - Coin
+            1
+            sage: p.add_linear_constraint([(0, 1), (1, 2)], None, 3)          # optional - Coin
             sage: p.set_objective([2, 5])                         # optional - Coin
             sage: p.solve()                                       # optional - Coin
             0
@@ -616,7 +677,7 @@ cdef class CoinBackend(GenericBackend):
             sage: p.ncols()                                       # optional - Coin
             0
             sage: p.add_variables(2)                               # optional - Coin
-            2
+            1
             sage: p.ncols()                                       # optional - Coin
             2
         """
@@ -633,7 +694,7 @@ cdef class CoinBackend(GenericBackend):
             sage: p = get_solver(solver = "Coin") # optional - Coin
             sage: p.nrows()                                      # optional - Coin
             0
-            sage: p.add_linear_constraints(2, -1, 2)                     # optional - Coin
+            sage: p.add_linear_constraints(2, 2, None)                     # optional - Coin
             sage: p.nrows()                                      # optional - Coin
             2
         """
@@ -655,7 +716,7 @@ cdef class CoinBackend(GenericBackend):
             sage: p.ncols()                                       # optional - Coin
             0
             sage: p.add_variable()                                 # optional - Coin
-            1
+            0
             sage: p.set_variable_type(0,0)                         # optional - Coin
             sage: p.is_variable_binary(0)                          # optional - Coin
             True
@@ -663,8 +724,8 @@ cdef class CoinBackend(GenericBackend):
         """
 
         return (0 == self.si.isContinuous(index) and
-                self.variable_min(index) == 0 and
-                self.variable_max(index) == 1)
+                self.variable_lower_bound(index) == 0 and
+                self.variable_upper_bound(index) == 1)
 
     cpdef bint is_variable_integer(self, int index):
         r"""
@@ -681,14 +742,14 @@ cdef class CoinBackend(GenericBackend):
             sage: p.ncols()                                       # optional - Coin
             0
             sage: p.add_variable()                                 # optional - Coin
-            1
+            0
             sage: p.set_variable_type(0,1)                         # optional - Coin
             sage: p.is_variable_integer(0)                         # optional - Coin
             True
         """
         return (0 == self.si.isContinuous(index) and
-                (self.variable_min(index) != 0 or
-                self.variable_max(index) != 1))
+                (self.variable_lower_bound(index) != 0 or
+                self.variable_upper_bound(index) != 1))
 
     cpdef bint is_variable_continuous(self, int index):
         r"""
@@ -705,7 +766,7 @@ cdef class CoinBackend(GenericBackend):
             sage: p.ncols()                                       # optional - Coin
             0
             sage: p.add_variable()                                 # optional - Coin
-            1
+            0
             sage: p.is_variable_continuous(0)                      # optional - Coin
             True
             sage: p.set_variable_type(0,1)                         # optional - Coin
@@ -733,7 +794,7 @@ cdef class CoinBackend(GenericBackend):
 
         return self.si.getObjSense() == -1
 
-    cpdef variable_max(self, int index, value = False):
+    cpdef variable_upper_bound(self, int index, value = False):
         r"""
         Returns or defines the upper bound on a variable
 
@@ -750,10 +811,10 @@ cdef class CoinBackend(GenericBackend):
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")  # optional - Coin
             sage: p.add_variable()                                 # optional - Coin
-            1
+            0
             sage: p.col_bounds(0)                              # optional - Coin
             (0.0, None)
-            sage: p.variable_max(0, 5)                         # optional - Coin
+            sage: p.variable_upper_bound(0, 5)                         # optional - Coin
             sage: p.col_bounds(0)                              # optional - Coin
             (0.0, 5.0)
         """
@@ -765,7 +826,7 @@ cdef class CoinBackend(GenericBackend):
         else:
             self.si.setColUpper(index, value if value is not None else +self.si.getInfinity())
 
-    cpdef variable_min(self, int index, value = False):
+    cpdef variable_lower_bound(self, int index, value = False):
         r"""
         Returns or defines the lower bound on a variable
 
@@ -782,10 +843,10 @@ cdef class CoinBackend(GenericBackend):
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")  # optional - Coin
             sage: p.add_variable()                                 # optional - Coin
-            1
+            0
             sage: p.col_bounds(0)                              # optional - Coin
             (0.0, None)
-            sage: p.variable_min(0, 5)                         # optional - Coin
+            sage: p.variable_lower_bound(0, 5)                         # optional - Coin
             sage: p.col_bounds(0)                              # optional - Coin
             (5.0, None)
         """
@@ -810,8 +871,8 @@ cdef class CoinBackend(GenericBackend):
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")  # optional - Coin
             sage: p.add_variables(2)                               # optional - Coin
-            2
-            sage: p.add_linear_constraint([0, 1], [1, 2], +1, 3)          # optional - Coin
+            1
+            sage: p.add_linear_constraint([(0, 1), (1, 2)], None, 3)          # optional - Coin
             sage: p.set_objective([2, 5])                          # optional - Coin
             sage: p.write_mps(SAGE_TMP+"/lp_problem.mps", 0)       # optional - Coin
         """
@@ -856,7 +917,7 @@ cdef class CoinBackend(GenericBackend):
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")  # optional - Coin
-            sage: p.add_linear_constraints(1, -1, 2)                      # optional - Coin
+            sage: p.add_linear_constraints(1, 2, None)                      # optional - Coin
             sage: p.row_name(0, "Empty constraint 1")          # optional - Coin
             sage: print p.row_name(0)                          # optional - Coin
             <BLANKLINE>
@@ -880,7 +941,7 @@ cdef class CoinBackend(GenericBackend):
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")  # optional - Coin
             sage: p.add_variable()                                 # optional - Coin
-            1
+            0
             sage: p.col_name(0, "I am a variable")             # optional - Coin
             sage: print p.col_name(0)                          # optional - Coin
             <BLANKLINE>

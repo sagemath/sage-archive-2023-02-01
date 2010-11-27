@@ -19,7 +19,6 @@ cdef class GenericBackend:
     cpdef int solve(self) except -1
     cpdef double get_objective_value(self)
     cpdef double get_variable_value(self, int variable)
-    cpdef name(self)
     cpdef bint is_maximization(self)
     cpdef write_lp(self, char * name)
     cpdef write_mps(self, char * name, int modern)

@@ -723,6 +723,15 @@ cdef class MixedIntegerLinearProgram:
 
         TESTS::
 
+        Complex constraints::
+
+            sage: p = MixedIntegerLinearProgram()
+            sage: b = p.new_variable()
+            sage: p.add_constraint( b[8] - b[15] <= 3*b[8] + 9)
+            sage: p.show()
+
+        Empty constraint::
+
             sage: p=MixedIntegerLinearProgram()
             sage: p.add_constraint(sum([]),min=2)
 
@@ -773,9 +782,6 @@ cdef class MixedIntegerLinearProgram:
                 self._backend.row_name(self._backend.nrows()-1,name)
 
         elif isinstance(linear_function,LinearConstraint):
-            #######
-            ####### IS THIS DEAD CODE???
-            #######
             functions = linear_function.constraints
 
             if linear_function.equality:

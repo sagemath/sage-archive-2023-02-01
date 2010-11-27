@@ -218,13 +218,13 @@ cdef class GenericBackend:
         """
         raise NotImplementedError()
 
-    cpdef add_linear_constraint(self, constraints, lower_bound, upper_bound):
+    cpdef add_linear_constraint(self, coefficients, lower_bound, upper_bound):
         """
         Add a linear constraint.
 
         INPUT:
 
-        - ``contraints`` an iterable with ``(c,v)`` pairs where ``c``
+        - ``coefficients`` an iterable with ``(c,v)`` pairs where ``c``
           is a variable index (integer) and ``v`` is a value (real
           value).
 

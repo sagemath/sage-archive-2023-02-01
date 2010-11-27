@@ -319,13 +319,13 @@ cdef class GLPKBackend(GenericBackend):
         else:
             self.iocp.msg_lev = GLP_MSG_ALL
 
-    cpdef add_linear_constraint(self, constraints, lower_bound, upper_bound):
+    cpdef add_linear_constraint(self, coefficients, lower_bound, upper_bound):
         """
         Add a linear constraint.
 
         INPUT:
 
-        - ``contraints`` an iterable with ``(c,v)`` pairs where ``c``
+        - ``coefficients`` an iterable with ``(c,v)`` pairs where ``c``
           is a variable index (integer) and ``v`` is a value (real
           value).
 
@@ -354,14 +354,14 @@ cdef class GLPKBackend(GenericBackend):
         cdef int * row_i
         cdef double * row_values
 
-        row_i = <int *> sage_malloc((len(constraints)+1) * sizeof(int))
-        row_values = <double *> sage_malloc((len(constraints)+1) * sizeof(double))
+        row_i = <int *> sage_malloc((len(coefficients)+1) * sizeof(int))
+        row_values = <double *> sage_malloc((len(coefficients)+1) * sizeof(double))
 
-        for i,(c,v) in enumerate(constraints):
+        for i,(c,v) in enumerate(coefficients):
             row_i[i+1] = c+1
             row_values[i+1] = v
 
-        glp_set_mat_row(self.lp, n, len(constraints), row_i, row_values)
+        glp_set_mat_row(self.lp, n, len(coefficients), row_i, row_values)
 
         if upper_bound is not None and lower_bound is None:
             glp_set_row_bnds(self.lp, n, GLP_UP, upper_bound, upper_bound)

@@ -34,53 +34,135 @@ cdef class CPLEXBackend(GenericBackend):
         else:
             self.set_sense(-1)
 
-    cpdef int add_variable(self):
-        r"""
-        Adds a variable.
+    cpdef int add_variable(self, lower_bound=0.0, upper_bound=None, binary=False, continuous=False, integer=False) except -1:
+        """
+        Add a variable.
 
         This amounts to adding a new column to the matrix. By default,
         the variable is both positive and real.
 
+        INPUT:
+
+        - ``lower_bound`` - the lower bound of the variable (default: 0)
+
+        - ``upper_bound`` - the upper bound of the variable (default: ``None``)
+
+        - ``binary`` - ``True`` if the variable is binary (default: ``False``).
+
+        - ``continuous`` - ``True`` if the variable is binary (default: ``True``).
+
+        - ``integer`` - ``True`` if the variable is binary (default: ``False``).
+
+        OUTPUT: The index of the newly created variable
+
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "CPLEX")                    # optional - CPLEX
+            sage: p = get_solver(solver = "CPLEX")                  # optional - CPLEX
             sage: p.ncols()                                         # optional - CPLEX
             0
-            sage: p.add_variable()                                   # optional - CPLEX
-            1
+            sage: p.add_variable()                                  # optional - CPLEX
+            0
             sage: p.ncols()                                         # optional - CPLEX
             1
+            sage: p.add_variable(binary=True)                       # optional - CPLEX
+            1
+            sage: p.add_variable(lower_bound=-2.0, integer=True)    # optional - CPLEX
+            2
+            sage: p.add_variable(continuous=True, integer=True)     # optional - CPLEX
+            Traceback (most recent call last):
+            ...
+            ValueError: ...
         """
+
+        cdef int vtype = int(bool(binary)) + int(bool(continuous)) + int(bool(integer))
+        if  vtype == 0:
+            continuous = True
+        elif vtype != 1:
+            raise ValueError("Exactly one parameter of 'binary', 'integer' and 'continuous' must be 'True'.")
 
         cdef int status
         status = CPXnewcols(self.env, self.lp, 1, NULL, NULL, NULL, NULL, NULL)
         check(status)
-        return CPXgetnumcols(self.env, self.lp)
 
-    cpdef int add_variables(self, int number):
-        r"""
-        Adds ``number`` variables.
+        cdef int n
+        n = CPXgetnumcols(self.env, self.lp) - 1
+
+        if lower_bound != 0.0:
+            self.variable_lower_bound(n, lower_bound)
+        if upper_bound is not None:
+            self.variable_upper_bound(n, upper_bound)
+
+        if binary:
+            self.set_variable_type(n,0)
+        elif integer:
+            self.set_variable_type(n,1)
+
+        return n
+
+    cpdef int add_variables(self, int number, lower_bound=0.0, upper_bound=None, binary=False, continuous=False, integer=False) except -1:
+        """
+        Add ``number`` new variables.
 
         This amounts to adding new columns to the matrix. By default,
         the variables are both positive and real.
 
+        INPUT:
+
+        - ``n`` - the number of new variables (must be > 0)
+
+        - ``lower_bound`` - the lower bound of the variable (default: 0)
+
+        - ``upper_bound`` - the upper bound of the variable (default: ``None``)
+
+        - ``binary`` - ``True`` if the variable is binary (default: ``False``).
+
+        - ``continuous`` - ``True`` if the variable is binary (default: ``True``).
+
+        - ``integer`` - ``True`` if the variable is binary (default: ``False``).
+
+        OUTPUT: The index of the variable created last.
+
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "CPLEX")                    # optional - CPLEX
-            sage: p.ncols()                                         # optional - CPLEX
+            sage: p = get_solver(solver = "CPLEX")                         # optional - CPLEX
+            sage: p.ncols()                                                # optional - CPLEX
             0
-            sage: p.add_variables(5)                                 # optional - CPLEX
+            sage: p.add_variables(5)                                       # optional - CPLEX
+            4
+            sage: p.ncols()                                                # optional - CPLEX
             5
-            sage: p.ncols()                                         # optional - CPLEX
-            5
+            sage: p.add_variables(2, lower_bound=-2.0, integer=True)       # optional - CPLEX
+            6
         """
+        cdef int vtype = int(bool(binary)) + int(bool(continuous)) + int(bool(integer))
+        if  vtype == 0:
+            continuous = True
+        elif vtype != 1:
+            raise ValueError("Exactly one parameter of 'binary', 'integer' and 'continuous' must be 'True'.")
 
         cdef int status
         status = CPXnewcols(self.env, self.lp, number, NULL, NULL, NULL, NULL, NULL)
         check(status)
-        return CPXgetnumcols(self.env, self.lp)
+
+        cdef int n
+        n = CPXgetnumcols(self.env, self.lp) - 1
+
+        cdef int i
+
+        for 0<= i < number:
+            if lower_bound != 0.0:
+                self.variable_lower_bound(n - i, lower_bound)
+            if upper_bound is not None:
+                self.variable_upper_bound(n - i, upper_bound)
+
+            if binary:
+                self.set_variable_type(n - i,0)
+            elif integer:
+                self.set_variable_type(n - i,1)
+
+        return n
 
     cpdef set_variable_type(self, int variable, int vtype):
         r"""
@@ -103,7 +185,7 @@ cdef class CPLEXBackend(GenericBackend):
             sage: p.ncols()                                        # optional - CPLEX
             0
             sage: p.add_variable()                                  # optional - CPLEX
-            1
+            0
             sage: p.set_variable_type(0,1)                          # optional - CPLEX
             sage: p.is_variable_integer(0)                          # optional - CPLEX
             True
@@ -161,7 +243,7 @@ cdef class CPLEXBackend(GenericBackend):
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "CPLEX")  # optional - CPLEX
             sage: p.add_variable()                                 # optional - CPLEX
-            1
+            0
             sage: p.get_objective_coefficient(0)                         # optional - CPLEX
             0.0
             sage: p.set_objective_coefficient(0,2)                       # optional - CPLEX
@@ -223,7 +305,7 @@ cdef class CPLEXBackend(GenericBackend):
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "CPLEX")    # optional - CPLEX
             sage: p.add_variables(5)                                 # optional - CPLEX
-            5
+            4
             sage: p.set_objective([1, 1, 2, 1, 3])                   # optional - CPLEX
             sage: map(lambda x :p.get_objective_coefficient(x), range(5))  # optional - CPLEX
             [1.0, 1.0, 2.0, 1.0, 3.0]
@@ -266,128 +348,146 @@ cdef class CPLEXBackend(GenericBackend):
             status = CPXsetintparam (self.env, CPX_PARAM_SCRIND, CPX_ON)
             check(status)
 
-    cpdef add_linear_constraints(self, int number, int direction, double bound):
-        r"""
-        Adds constraints.
+    cpdef add_linear_constraints(self, int number, lower_bound, upper_bound):
+        """
+        Add ``'number`` linear constraints.
 
         INPUT:
 
         - ``number`` (integer) -- the number of constraints to add.
 
-        - ``direction`` (integer) -- the direction of the constraint,
-          where :
+        - ``lower_bound`` - a lower bound, either a real value or ``None``
 
-              * +1 indicates : function `\leq` ``bound``
-              *  0 indicates : function `=` ``bound``
-              * -1 indicates : function `\geq` ``bound``
-
-        - ``bound`` (double) -- value of the right-hand side (as
-          illustrated immediately above).
+        - ``upper_bound`` - an upper bound, either a real value or ``None``
 
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "CPLEX")   # optional - CPLEX
-            sage: p.add_variables(5)                                # optional - CPLEX
-            5
-            sage: p.add_linear_constraints(5, +1, 2)                       # optional - CPLEX
-            sage: p.row(4)                                      # optional - CPLEX
+            sage: p = get_solver(solver = "CPLEX")       # optional - CPLEX
+            sage: p.add_variables(5)                     # optional - CPLEX
+            4
+            sage: p.add_linear_constraints(5, None, 2)   # optional - CPLEX
+            sage: p.row(4)                               # optional - CPLEX
             ([], [])
-            sage: p.row_bounds(4)                               # optional - CPLEX
+            sage: p.row_bounds(4)                        # optional - CPLEX
             (None, 2.0)
         """
+        if lower_bound is None and upper_bound is None:
+            raise ValueError("At least one of 'upper_bound' or 'lower_bound' must be set.")
 
-        cdef char * c_types = <char *> sage_malloc(number * sizeof(char))
-        cdef double * c_bounds = <double *> sage_malloc(number * sizeof(double))
-        cdef int i
         cdef int status
+        cdef char * sense = <char *> sage_malloc(number * sizeof(char))
+        cdef double * bound = <double *> sage_malloc(number * sizeof(double))
+        cdef double * rng = NULL
+        cdef int i
 
-        c_bounds[0] = bound
+        if upper_bound == lower_bound:
+            sense[0] = 'E'
+            bound[0] = lower_bound
 
-        if direction == +1:
-            c_types[0] = 'L'
-        elif direction == -1:
-            c_types[0] = 'G'
-        else:
-            c_types[0] = 'E'
+        elif upper_bound is not None and lower_bound is not None:
+            if  upper_bound < lower_bound:
+                raise ValueError("The upper bound must be at least equal to the lower bound !")
 
-        for 1<= i < number:
-            c_types[i] = c_types[0]
-            c_bounds[i] = c_bounds[0]
+            rng = <double *> sage_malloc(number * sizeof(double))
+
+            sense[0] = 'R'
+            bound[0] = lower_bound
+            rng[0] = upper_bound - lower_bound
 
 
-        status = CPXnewrows(self.env, self.lp, number, c_bounds, c_types, NULL, NULL)
+        elif upper_bound is not None:
+            sense[0] = 'L'
+            bound[0] = upper_bound
+
+        elif lower_bound is not None:
+            sense[0] = 'G'
+            bound[0] = lower_bound
+
+        for 1<= i <number:
+            sense[i] = sense[0]
+            bound[i] = bound[0]
+            if rng != NULL:
+                rng[i] = rng[0]
+
+        status = CPXnewrows(self.env, self.lp, number, bound, sense, rng, NULL)
         check(status)
 
-    cpdef add_linear_constraint(self, list indices, list coeffs, int direction, double bound):
-        r"""
-        Adds a linear constraint.
+    cpdef add_linear_constraint(self, coefficients, lower_bound, upper_bound):
+        """
+        Add a linear constraint.
 
         INPUT:
 
-        - ``indices`` (list of integers) -- this list constains the
-          indices of the variables whose coefficient is nonzero in the
-          constraint.
+        - ``coefficients`` an iterable with ``(c,v)`` pairs where ``c``
+          is a variable index (integer) and ``v`` is a value (real
+          value).
 
-        - ``coeffs`` (list of real values) -- associates a coefficient
-          to the variables listed by ``indices``. Namely, the ith
-          entry of ``coeffs`` corresponds to the coefficient of the
-          variable represented by the ith entry in ``indices``.
+        - ``lower_bound`` - a lower bound, either a real value or ``None``
 
-        - ``direction`` (integer) -- the direction of the constraint,
-          where :
-
-              * +1 indicates : function `\leq` ``bound``
-              *  0 indicates : function `=` ``bound``
-              * -1 indicates : function `\geq` ``bound``
-
-        - ``bound`` (double) -- value of the right-hand side (as
-          illustrated immediately above).
-
-        .. NOTE::
-
-            ``indices`` and ``coeffs`` are expected to be of the same
-            length.
+        - ``upper_bound`` - an upper bound, either a real value or ``None``
 
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "CPLEX") # optional - CPLEX
-            sage: p.add_variables(5)                              # optional - CPLEX
-            5
-            sage: p.add_linear_constraint(range(5), range(5), 0, 2)      # optional - CPLEX
-            sage: p.row(0)                                    # optional - CPLEX
+            sage: p = get_solver(solver = "CPLEX")                             # optional - CPLEX
+            sage: p.add_variables(5)                                           # optional - CPLEX
+            4
+            sage: p.add_linear_constraint( zip(range(5), range(5)), 2.0, 2.0)  # optional - CPLEX
+            sage: p.row(0)                                                     # optional - CPLEX
             ([1, 2, 3, 4], [1.0, 2.0, 3.0, 4.0])
-            sage: p.row_bounds(0)                             # optional - CPLEX
+            sage: p.row_bounds(0)                                              # optional - CPLEX
             (2.0, 2.0)
         """
+        if lower_bound is None and upper_bound is None:
+            raise ValueError("At least one of 'upper_bound' or 'lower_bound' must be set.")
 
         cdef int status
-        cdef int i
-        cdef int n = len(indices)
+        cdef int i, j
+        cdef int n = len(coefficients)
         cdef int nrows = self.nrows()
         cdef char sense
 
-        if direction == 1:
-            sense = 'L'
-        elif direction == -1:
-            sense = 'G'
-        else:
-            sense = 'E'
+        cdef double * c_coeff
+        cdef int * c_indices
+        cdef int * c_row
+        cdef double bound
+        cdef double rng
+        cdef double c
 
-        status = CPXnewrows(self.env, self.lp, 1, &bound, &sense, NULL, NULL)
-        check(status)
+        c_coeff = <double *> sage_malloc(n * sizeof(double))
+        c_indices = <int *> sage_malloc(n * sizeof(int))
+        c_row = <int *> sage_malloc(n * sizeof(int))
 
-        cdef double * c_coeff = <double *> sage_malloc(n * sizeof(double))
-        cdef int * c_indices = <int *> sage_malloc(n * sizeof(int))
-        cdef int * c_row = <int *> sage_malloc(n * sizeof(int))
-
-        for 0<= i < n:
-            c_coeff[i] = coeffs[i]
-            c_indices[i] = indices[i]
+        for i, (j, c) in enumerate(coefficients):
+            c_coeff[i] = c
+            c_indices[i] = j
             c_row[i] = nrows
 
+        if upper_bound is None and lower_bound is None:
+            pass
 
+        elif upper_bound == lower_bound:
+            sense = 'E'
+            bound = lower_bound
+
+        elif upper_bound is not None and lower_bound is not None:
+            if  upper_bound < lower_bound:
+                raise ValueError("The upper bound must be at least equal to the lower bound !")
+
+            sense = 'R'
+            bound = lower_bound
+
+        elif upper_bound is not None:
+            sense = 'L'
+            bound = upper_bound
+
+        elif lower_bound is not None:
+            sense = 'G'
+            bound = lower_bound
+
+        status = CPXnewrows(self.env, self.lp, 1, &bound, &sense, &rng, NULL)
+        check(status)
         status = CPXchgcoeflist(self.env, self.lp, n, c_row, c_indices, c_coeff)
         check(status)
 
@@ -411,8 +511,8 @@ cdef class CPLEXBackend(GenericBackend):
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "CPLEX")  # optional - CPLEX
             sage: p.add_variables(5)                               # optional - CPLEX
-            5
-            sage: p.add_linear_constraint(range(5), range(5), 0, 2)       # optional - CPLEX
+            4
+            sage: p.add_linear_constraint(zip(range(5), range(5)), 2, 2)       # optional - CPLEX
             sage: p.row(0)                                     # optional - CPLEX
             ([1, 2, 3, 4], [1.0, 2.0, 3.0, 4.0])
             sage: p.row_bounds(0)                              # optional - CPLEX
@@ -460,8 +560,8 @@ cdef class CPLEXBackend(GenericBackend):
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "CPLEX")  # optional - CPLEX
             sage: p.add_variables(5)                               # optional - CPLEX
-            5
-            sage: p.add_linear_constraint(range(5), range(5), 0, 2)       # optional - CPLEX
+            4
+            sage: p.add_linear_constraint(zip(range(5), range(5)), 2, 2)       # optional - CPLEX
             sage: p.row(0)                                     # optional - CPLEX
             ([1, 2, 3, 4], [1.0, 2.0, 3.0, 4.0])
             sage: p.row_bounds(0)                              # optional - CPLEX
@@ -469,6 +569,7 @@ cdef class CPLEXBackend(GenericBackend):
         """
 
         cdef int status
+        cdef double rng
         cdef double value
         status = CPXgetrhs(self.env, self.lp, &value, index, index)
         check(status)
@@ -481,8 +582,12 @@ cdef class CPLEXBackend(GenericBackend):
             return (None, value)
         elif direction == 'G':
             return (value, None)
-        else:
+        elif direction == 'E':
             return (value, value)
+        elif direction == 'R':
+            status = CPXgetrngval(self.env, self.lp, &rng, index, index)
+            check(status)
+            return (value, value + rng)
 
     cpdef col_bounds(self, int index):
         r"""
@@ -503,10 +608,10 @@ cdef class CPLEXBackend(GenericBackend):
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "CPLEX")  # optional - CPLEX
             sage: p.add_variable()                                 # optional - CPLEX
-            1
+            0
             sage: p.col_bounds(0)                              # optional - CPLEX
             (0.0, None)
-            sage: p.variable_max(0, 5)                         # optional - CPLEX
+            sage: p.variable_upper_bound(0, 5)                         # optional - CPLEX
             sage: p.col_bounds(0)                              # optional - CPLEX
             (0.0, 5.0)
         """
@@ -539,7 +644,7 @@ cdef class CPLEXBackend(GenericBackend):
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "CPLEX")  # optional - CPLEX
             sage: p.add_variable()                                 # optional - CPLEX
-            1
+            0
             sage: p.get_objective_coefficient(0)                         # optional - CPLEX
             0.0
             sage: p.set_objective_coefficient(0,2)                       # optional - CPLEX
@@ -583,7 +688,7 @@ cdef class CPLEXBackend(GenericBackend):
             0
             sage: p.nrows()                                       # optional - CPLEX
             0
-            sage: p.add_linear_constraints(5, -1, 0)                      # optional - CPLEX
+            sage: p.add_linear_constraints(5, 0, None)                      # optional - CPLEX
             sage: p.add_col(range(5), range(5))                    # optional - CPLEX
             sage: p.nrows()                                       # optional - CPLEX
             5
@@ -626,7 +731,7 @@ cdef class CPLEXBackend(GenericBackend):
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "CPLEX") # optional - CPLEX
-            sage: p.add_linear_constraints(5, -1, 0)                     # optional - CPLEX
+            sage: p.add_linear_constraints(5, 0, None)                     # optional - CPLEX
             sage: p.add_col(range(5), range(5))                   # optional - CPLEX
             sage: p.solve()                                       # optional - CPLEX
             0
@@ -677,8 +782,8 @@ cdef class CPLEXBackend(GenericBackend):
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "CPLEX")  # optional - CPLEX
             sage: p.add_variables(2)                               # optional - CPLEX
-            2
-            sage: p.add_linear_constraint([0, 1], [1, 2], +1, 3)          # optional - CPLEX
+            1
+            sage: p.add_linear_constraint([(0,1), (1,2)], None, 3)          # optional - CPLEX
             sage: p.set_objective([2, 5])                          # optional - CPLEX
             sage: p.solve()                                        # optional - CPLEX
             0
@@ -711,8 +816,8 @@ cdef class CPLEXBackend(GenericBackend):
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "CPLEX") # optional - CPLEX
             sage: p.add_variables(2)                              # optional - CPLEX
-            2
-            sage: p.add_linear_constraint([0, 1], [1, 2], +1, 3)         # optional - CPLEX
+            1
+            sage: p.add_linear_constraint([(0,1), (1,2)], None, 3)         # optional - CPLEX
             sage: p.set_objective([2, 5])                         # optional - CPLEX
             sage: p.solve()                                       # optional - CPLEX
             0
@@ -744,7 +849,7 @@ cdef class CPLEXBackend(GenericBackend):
             sage: p.ncols()                                       # optional - CPLEX
             0
             sage: p.add_variables(2)                               # optional - CPLEX
-            2
+            1
             sage: p.ncols()                                       # optional - CPLEX
             2
         """
@@ -761,7 +866,7 @@ cdef class CPLEXBackend(GenericBackend):
             sage: p = get_solver(solver = "CPLEX") # optional - CPLEX
             sage: p.nrows()                                      # optional - CPLEX
             0
-            sage: p.add_linear_constraints(2, -1, 2)                     # optional - CPLEX
+            sage: p.add_linear_constraints(2, 2, None)                     # optional - CPLEX
             sage: p.nrows()                                      # optional - CPLEX
             2
         """
@@ -783,7 +888,7 @@ cdef class CPLEXBackend(GenericBackend):
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "CPLEX")  # optional - CPLEX
-            sage: p.add_linear_constraints(1, -1, 2)                      # optional - CPLEX
+            sage: p.add_linear_constraints(1, 2, None)                      # optional - CPLEX
             sage: p.row_name(0, "Empty constraint 1")          # optional - CPLEX
             sage: p.row_name(0)                                # optional - CPLEX
             'Empty constraint 1'
@@ -828,7 +933,7 @@ cdef class CPLEXBackend(GenericBackend):
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "CPLEX")  # optional - CPLEX
             sage: p.add_variable()                                 # optional - CPLEX
-            1
+            0
             sage: p.col_name(0, "I am a variable")             # optional - CPLEX
             sage: p.col_name(0)                                # optional - CPLEX
             'I am a variable'
@@ -872,7 +977,7 @@ cdef class CPLEXBackend(GenericBackend):
             sage: p.ncols()                                       # optional - CPLEX
             0
             sage: p.add_variable()                                 # optional - CPLEX
-            1
+            0
             sage: p.set_variable_type(0,0)                         # optional - CPLEX
             sage: p.is_variable_binary(0)                          # optional - CPLEX
             True
@@ -908,7 +1013,7 @@ cdef class CPLEXBackend(GenericBackend):
             sage: p.ncols()                                       # optional - CPLEX
             0
             sage: p.add_variable()                                 # optional - CPLEX
-            1
+            0
             sage: p.set_variable_type(0,1)                         # optional - CPLEX
             sage: p.is_variable_integer(0)                         # optional - CPLEX
             True
@@ -943,7 +1048,7 @@ cdef class CPLEXBackend(GenericBackend):
             sage: p.ncols()                                       # optional - CPLEX
             0
             sage: p.add_variable()                                 # optional - CPLEX
-            1
+            0
             sage: p.is_variable_continuous(0)                      # optional - CPLEX
             True
             sage: p.set_variable_type(0,1)                         # optional - CPLEX
@@ -983,7 +1088,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         return -1 == CPXgetobjsen(self.env, self.lp)
 
-    cpdef variable_max(self, int index, value = False):
+    cpdef variable_upper_bound(self, int index, value = False):
         r"""
         Returns or defines the upper bound on a variable
 
@@ -1000,10 +1105,10 @@ cdef class CPLEXBackend(GenericBackend):
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "CPLEX")  # optional - CPLEX
             sage: p.add_variable()                                 # optional - CPLEX
-            1
+            0
             sage: p.col_bounds(0)                              # optional - CPLEX
             (0.0, None)
-            sage: p.variable_max(0, 5)                         # optional - CPLEX
+            sage: p.variable_upper_bound(0, 5)                         # optional - CPLEX
             sage: p.col_bounds(0)                              # optional - CPLEX
             (0.0, 5.0)
         """
@@ -1026,7 +1131,7 @@ cdef class CPLEXBackend(GenericBackend):
             status = CPXchgbds(self.env, self.lp, 1, &index, &x, &c_value)
             check(status)
 
-    cpdef variable_min(self, int index, value = False):
+    cpdef variable_lower_bound(self, int index, value = False):
         r"""
         Returns or defines the lower bound on a variable
 
@@ -1043,10 +1148,10 @@ cdef class CPLEXBackend(GenericBackend):
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "CPLEX")  # optional - CPLEX
             sage: p.add_variable()                                 # optional - CPLEX
-            1
+            0
             sage: p.col_bounds(0)                              # optional - CPLEX
             (0.0, None)
-            sage: p.variable_min(0, 5)                         # optional - CPLEX
+            sage: p.variable_lower_bound(0, 5)                         # optional - CPLEX
             sage: p.col_bounds(0)                              # optional - CPLEX
             (5.0, None)
         """
@@ -1079,8 +1184,8 @@ cdef class CPLEXBackend(GenericBackend):
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "CPLEX")  # optional - CPLEX
             sage: p.add_variables(2)                               # optional - CPLEX
-            2
-            sage: p.add_linear_constraint([0, 1], [1, 2], +1, 3)          # optional - CPLEX
+            1
+            sage: p.add_linear_constraint([(0, 1), (1, 2)], None, 3)          # optional - CPLEX
             sage: p.set_objective([2, 5])                          # optional - CPLEX
             sage: p.write_lp(SAGE_TMP+"/lp_problem.lp")            # optional - CPLEX
         """
@@ -1103,8 +1208,8 @@ cdef class CPLEXBackend(GenericBackend):
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "CPLEX")  # optional - CPLEX
             sage: p.add_variables(2)                               # optional - CPLEX
-            2
-            sage: p.add_linear_constraint([0, 1], [1, 2], +1, 3)          # optional - CPLEX
+            1
+            sage: p.add_linear_constraint([(0, 1), (1, 2)], None, 3)          # optional - CPLEX
             sage: p.set_objective([2, 5])                          # optional - CPLEX
             sage: p.write_lp(SAGE_TMP+"/lp_problem.lp")            # optional - CPLEX
         """

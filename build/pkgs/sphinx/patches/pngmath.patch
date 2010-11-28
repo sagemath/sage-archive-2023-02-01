@@ -1,6 +1,6 @@
-diff -r -u src.old/sphinx/ext/pngmath.py src/sphinx/ext/pngmath.py
+diff -ur src/sphinx/ext/pngmath.py src.patched/sphinx/ext/pngmath.py
 --- src/sphinx/ext/pngmath.py	2010-07-24 12:07:36.000000000 +0200
-+++ src/sphinx/ext/pngmath.py	2010-11-18 09:38:05.428635584 +0100
++++ src.patched/sphinx/ext/pngmath.py	2010-11-28 12:00:17.938636725 +0100
 @@ -34,7 +34,7 @@
  
  DOC_HEAD = r'''

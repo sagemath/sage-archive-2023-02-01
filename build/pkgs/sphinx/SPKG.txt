@@ -24,7 +24,7 @@ Home Page: http://sphinx.pocoo.org
 
 == Dependencies ==
 
-This depends on Jinja >= 2, Pygments >= 0.8, and docutils >= 0.4.
+This depends on Jinja >= 2, Pygments >= 1.3.1, docutils >= 0.4.
 
 == Special Update/Build Instructions ==
 
@@ -47,7 +47,7 @@ Here is a description of patches on top of Sphinx 1.0.4:
   by \usepackage[utf8]{inputenc} in the LaTeX preamble for building
   images in the HTML documentation.  This change is done because some
   LaTeX installations have only utf8, not utf8x (utf8x adds support for
-  much more Unicode characters, but these are needed used to typeset the
+  much more Unicode characters, but these are not needed to typeset the
   mathematics in the Sage documentation).
 
 * patches/Makefile.patch: This patches the file
@@ -58,6 +58,20 @@ Here is a description of patches on top of Sphinx 1.0.4:
   version of that manual.
 
 == Changelog ==
+
+=== sphinx-1.0.4.p4 (Jeroen Demeyer, 2010-11-28) ===
+
+ * Redirect standard input of (pdf)latex from /dev/null, to avoid
+   latex hanging with messages like
+
+       ! LaTeX Error: File `titlesec.sty' not found.
+
+       Type X to quit or <RETURN> to proceed,
+       or enter new name. (Default extension: sty)
+
+ * Create and apply patches according to #9419.
+
+ * Fix some typos.
 
 === sphinx-1.0.4.p3 (Jeroen Demeyer, 2010-11-18) ===
 

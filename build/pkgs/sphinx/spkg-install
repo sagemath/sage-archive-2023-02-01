@@ -31,17 +31,15 @@ success 'Error deleting old documentation output'
 
 
 # Apply patches
-cd "$CUR"
+cd "$CUR/src"
 echo "Patching Sphinx..."
-for p in patches/*.patch; do
-	patch -p0 <$p
+for p in ../patches/*.patch; do
+	patch -p1 <$p
 	success "Error applying patch $p"
 done
 
 
 # Install new version
-cd src
-
 python setup.py install
 success 'Error installing Sphinx'
 

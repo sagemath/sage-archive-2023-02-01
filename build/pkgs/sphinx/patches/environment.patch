@@ -1,5 +1,6 @@
---- src/sphinx/environment.py	2010-08-23 16:19:38.000000000 -0700
-+++ src/sphinx/environment.py	2010-11-05 02:27:34.128635428 -0700
+diff -ur src/sphinx/environment.py src.patched/sphinx/environment.py
+--- src/sphinx/environment.py	2010-08-24 01:19:38.000000000 +0200
++++ src.patched/sphinx/environment.py	2010-11-28 12:02:00.998657620 +0100
 @@ -469,10 +469,13 @@
          else:
              # check if a config value was changed that affects how

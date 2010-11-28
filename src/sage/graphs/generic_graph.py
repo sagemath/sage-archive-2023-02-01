@@ -4384,26 +4384,29 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``s`` (vertex) -- forces the source of the path. Set to
-          ``None`` by default.
+        - ``s`` (vertex) -- forces the source of the path (the method then
+          returns the longest path starting at ``s``). The argument is set to
+          ``None`` by default, which means that no constraint is set upon the
+          first vertex in the path.
 
-        - ``t`` (vertex) -- forces the destination of the path. Set to
-          ``None`` by default.
+        - ``t`` (vertex) -- forces the destination of the path (the method then
+          returns the longest path ending at ``t``). The argument is set to
+          ``None`` by default, which means that no constraint is set upon the
+          last vertex in the path.
 
-        - ``weighted`` (boolean) -- whether the labels on the edges are
-          to be considered as weights (a label set to ``None`` or
-          ``{}`` being considered as a weight of `1`). Set to
-          ``False`` by default.
+        - ``weighted`` (boolean) -- whether the labels on the edges are to be
+          considered as weights (a label set to ``None`` or ``{}`` being
+          considered as a weight of `1`). Set to ``False`` by default.
 
-        - ``algorithm`` -- one of ``"MILP"`` (default) or
-          ``"backtrack"``. Two remarks on this respect:
+        - ``algorithm`` -- one of ``"MILP"`` (default) or ``"backtrack"``. Two
+          remarks on this respect:
 
-              * While the MILP formulation returns an exact answer,
-                the backtrack algorithm is a randomized heuristic.
+              * While the MILP formulation returns an exact answer, the
+                backtrack algorithm is a randomized heuristic.
 
-              * As the backtrack algorithm does not support edge
-                weighting, setting ``weighted=True`` will force
-                the use of the MILP algorithm.
+              * As the backtrack algorithm does not support edge weighting,
+                setting ``weighted=True`` will force the use of the MILP
+                algorithm.
 
         - ``solver`` -- (default: ``None``) Specify the Linear Program (LP)
           solver to be used. If set to ``None``, the default one is used. For
@@ -4418,19 +4421,18 @@ class GenericGraph(GenericGraph_pyx):
 
         .. NOTE::
 
-            The length of a path is assumed to be the number of its
-            edges, or the sum of their labels.
+            The length of a path is assumed to be the number of its edges, or
+            the sum of their labels.
 
         OUTPUT:
 
-        A subgraph of ``self`` corresponding to a (directed if
-        ``self`` is directed) longest path. If ``weighted == True``, a
-        pair ``weight, path`` is returned.
+        A subgraph of ``self`` corresponding to a (directed if ``self`` is
+        directed) longest path. If ``weighted == True``, a pair ``weight, path``
+        is returned.
 
         ALGORITHM:
 
-        Mixed Integer Linear Programming. (This problem is known to be
-        NP-Hard).
+        Mixed Integer Linear Programming. (This problem is known to be NP-Hard).
 
         EXAMPLES:
 
@@ -4448,9 +4450,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.longest_path(algorithm="backtrack").edges()
             [(0, 1, None), (1, 2, None), (2, 3, None), (3, 4, None), (4, 9, None), (5, 7, None), (5, 8, None), (6, 8, None), (6, 9, None)]
 
-        Let us compute longest paths on random graphs with random
-        weights. Each time, we ensure the resulting graph is indeed a
-        path::
+        Let us compute longest paths on random graphs with random weights. Each
+        time, we ensure the resulting graph is indeed a path::
 
             sage: for i in range(20):
             ...       g = graphs.RandomGNP(15, 0.3)

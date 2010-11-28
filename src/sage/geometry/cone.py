@@ -1760,12 +1760,32 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         """
         if "_face_lattice" not in self.__dict__:
             if self._ambient is self:
-                # We need to compute face lattice on our own
-                if not self.is_strictly_convex():
-                    raise NotImplementedError("face lattice is currently "
-                                "implemented only for strictly convex cones!")
-                def ConeFace(rays, facets):
+                # We need to compute face lattice on our own. To accommodate
+                # non-strictly convex cones we split rays (or rather their
+                # indicies) into those in the linear subspace and others, which
+                # we refer to as atoms.
+                S = self.linear_subspace()
+                subspace_rays = []
+                atom_to_ray = []
+                atom_to_facets = []
+                normals = self.facet_normals()
+                facet_to_atoms = [[] for normal in normals]
+                for i, ray in enumerate(self):
+                    if ray in S:
+                        subspace_rays.append(i)
+                    else:
+                        facets = [j for j, normal in enumerate(normals)
+                                    if ray * normal == 0]
+                        atom_to_facets.append(facets)
+                        atom = len(atom_to_ray)
+                        for j in facets:
+                            facet_to_atoms[j].append(atom)
+                        atom_to_ray.append(i)
+
+                def ConeFace(atoms, facets):
                     if facets:
+                        rays = sorted([atom_to_ray[a] for a in atoms]
+                                      + subspace_rays)
                         face = ConvexRationalPolyhedralCone(
                                     ambient=self, ambient_ray_indices=rays)
                         # It may be nice if this functionality is exposed,
@@ -1775,19 +1795,9 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
                         return face
                     else:
                         return self
-                ray_to_facets = []
-                facet_to_rays = []
-                for ray in self:
-                    ray_to_facets.append([])
-                for normal in self.facet_normals():
-                    facet_to_rays.append([])
-                for i, ray in enumerate(self):
-                    for j, normal in enumerate(self.facet_normals()):
-                        if ray * normal == 0:
-                            ray_to_facets[i].append(j)
-                            facet_to_rays[j].append(i)
+
                 self._face_lattice = Hasse_diagram_from_incidences(
-                                    ray_to_facets, facet_to_rays, ConeFace)
+                                    atom_to_facets, facet_to_atoms, ConeFace)
             else:
                 # Get face lattice as a sublattice of the ambient one
                 allowed_indices = frozenset(self._ambient_ray_indices)
@@ -1852,10 +1862,10 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
           :class:`tuple` of :class:`cones <ConvexRationalPolyhedralCone>`;
 
         - if neither ``dim`` nor ``codim`` is given, the output will be the
-          :class:`tuple` of tuples as above, giving faces of all dimension. If
-          you care about inclusion relations between faces, consider using
-          :meth:`face_lattice` or :meth:`adjacent`, :meth:`facet_of`, and
-          :meth:`facets`.
+          :class:`tuple` of tuples as above, giving faces of all existing
+          dimensions. If you care about inclusion relations between faces,
+          consider using :meth:`face_lattice` or :meth:`adjacent`,
+          :meth:`facet_of`, and :meth:`facets`.
 
         EXAMPLES:
 
@@ -1884,6 +1894,28 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             (0,)
             sage: quadrant.ray(0)
             N(1, 0)
+
+        Note that it is OK to ask for faces of too small or high dimension::
+
+            sage: quadrant.faces(-1)
+            ()
+            sage: quadrant.faces(3)
+            ()
+
+        In the case of non-strictly convex cones even faces of small
+        non-negative dimension may be missing::
+
+            sage: halfplane = Cone([(1,0), (0,1), (-1,0)])
+            sage: halfplane.faces(0)
+            ()
+            sage: halfplane.faces()
+            ((1-d face of 2-d cone in 2-d lattice N,),
+             (2-d cone in 2-d lattice N,))
+            sage: plane = Cone([(1,0), (0,1), (-1,-1)])
+            sage: plane.faces(1)
+            ()
+            sage: plane.faces()
+            ((2-d cone in 2-d lattice N,),)
 
         TESTS:
 
@@ -1918,19 +1950,17 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             raise ValueError(
                     "dimension and codimension cannot be specified together!")
         dim = self.dim() - codim if codim is not None else dim
-        if dim is not None and (dim < 0 or dim > self.dim()):
-            raise ValueError("%s does not have faces of dimension %d!"
-                             % (self, dim))
         if "_faces" not in self.__dict__:
             self._faces = tuple(self._sort_faces(e.element for e in level)
                                 for level in self.face_lattice().level_sets())
             # To avoid duplication and ensure order consistency
-            if self.dim() > 0:
+            if len(self._faces) > 1:
                 self._facets = self._faces[-2]
         if dim is None:
             return self._faces
         else:
-            return self._faces[dim]
+            lsd = self.linear_subspace().dimension()
+            return self._faces[dim - lsd] if lsd <= dim <= self.dim() else ()
 
     def facet_normals(self):
         r"""
@@ -2206,8 +2236,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         if self._ambient is cone._ambient:
             # Cones are always faces of their ambient structure, so
             return self.ray_set().issubset(cone.ray_set())
-        # Cases of the origin and the whole cone (we don't have empty cones)
-        if self.nrays() == 0 or self.is_equivalent(cone):
+        if self.is_equivalent(cone):
             return True
         # Obviously False cases
         if (self.dim() >= cone.dim() # if == and face, we return True above
@@ -2518,18 +2547,27 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         # Modify ray labels to match the ambient cone or fan.
         tp.ray_label = label_list(tp.ray_label, self.nrays(), deg <= 2,
                                    self.ambient_ray_indices())
-        result = tp.plot_lattice() + tp.plot_rays() + tp.plot_generators()
-        if self.dim() >= 2:
-            # Modify wall labels to match the ambient cone or fan too.
-            walls = self.faces(2)
-            try:
-                ambient_walls = self.ambient().faces(2)
-            except AttributeError:
-                ambient_walls = self.ambient().cones(2)
-            tp.wall_label = label_list(tp.wall_label, len(walls), deg <= 2,
-                                [ambient_walls.index(wall) for wall in walls])
-            tp.set_rays(self.ambient().rays())
-            result += tp.plot_walls(walls)
+        result = tp.plot_lattice() + tp.plot_generators()
+        # To deal with non-strictly convex cones we separate rays and labels.
+        result += tp.plot_ray_labels()
+        tp.ray_label = None
+        lsd = self.linear_subspace().dimension()
+        if lsd == 1:
+            # Plot only rays of the line
+            v = self.lines()[0]
+            tp.set_rays([v, -v])
+        if lsd <= 1:
+            result += tp.plot_rays()
+        # Modify wall labels to match the ambient cone or fan too.
+        walls = self.faces(2)
+        try:
+            ambient_walls = self.ambient().faces(2)
+        except AttributeError:
+            ambient_walls = self.ambient().cones(2)
+        tp.wall_label = label_list(tp.wall_label, len(walls), deg <= 2,
+                            [ambient_walls.index(wall) for wall in walls])
+        tp.set_rays(self.ambient().rays())
+        result += tp.plot_walls(walls)
         return result
 
     def polyhedron(self):

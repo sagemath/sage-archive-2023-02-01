@@ -6570,7 +6570,7 @@ def Hasse_diagram_from_incidences(atom_to_coatoms, coatom_to_atoms,
     coatom_to_atoms = [frozenset(cta) for cta in coatom_to_atoms]
     C = frozenset(range(len(coatom_to_atoms)))  # All coatoms
     # Comments with numbers correspond to steps in Section 2.5 of the article
-    L = DiGraph()       # 3: initialize L
+    L = DiGraph(1)       # 3: initialize L
     faces = dict()
     atoms = frozenset()
     coatoms = C

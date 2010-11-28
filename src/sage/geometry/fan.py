@@ -1630,7 +1630,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
 
         - :class:`tuple` of cones of ``self`` of the specified (co)dimension,
           if either ``dim`` or ``codim`` is given. Otherwise :class:`tuple` of
-          such tuples for all dimensions.
+          such tuples for all existing dimensions.
 
         EXAMPLES::
 
@@ -1647,11 +1647,24 @@ class RationalPolyhedralFan(IntegralRayCollection,
             N(-1, 0)
             sage: fan.cones(2)
             (2-d cone of Rational polyhedral fan in 2-d lattice N,)
+
+        You cannot specify both dimension and codimension, even if they
+        "agree"::
+
             sage: fan(dim=1, codim=1)
             Traceback (most recent call last):
             ...
             ValueError: dimension and codimension
             cannot be specified together!
+
+        But it is OK to ask for cones of too high or low (co)dimension::
+
+            sage: fan(-1)
+            ()
+            sage: fan(3)
+            ()
+            sage: fan(codim=4)
+            ()
         """
         if "_cones" not in self.__dict__:
             levels = [(e.element for e in level) # Generators
@@ -1675,14 +1688,14 @@ class RationalPolyhedralFan(IntegralRayCollection,
                 rays.sort(key=lambda cone: cone.ambient_ray_indices()[0])
                 levels[1] = rays
             self._cones = tuple(tuple(level) for level in levels)
-        if dim is None and codim is None:
-            return self._cones
-        elif dim is None:
-            return self._cones[self.dim() - codim]
-        elif codim is None:
-            return self._cones[dim]
-        raise ValueError(
+        if dim is None:
+            if codim is None:
+                return self._cones
+            dim = self.dim() - codim
+        elif codim is not None:
+            raise ValueError(
                     "dimension and codimension cannot be specified together!")
+        return self._cones[dim] if 0 <= dim < len(self._cones) else ()
 
     def contains(self, cone):
         r"""

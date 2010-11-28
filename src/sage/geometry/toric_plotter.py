@@ -56,7 +56,7 @@ from sage.modules.all import vector
 from sage.plot.all import (Color, Graphics,
                            arrow, disk, line, point, polygon, rainbow, text)
 from sage.plot.plot3d.all import text3d
-from sage.rings.all import RDF, RR
+from sage.rings.all import RDF
 from sage.structure.sage_object import SageObject
 
 
@@ -213,9 +213,19 @@ class ToricPlotter(SageObject):
             raise ValueError("toric objects can be plotted only for "
                              "dimensions 1, 2, and 3, not %s!" % dimension)
         self.dimension = dimension
-        self.origin = vector(RR, max(dimension, 2)) # 1-d is plotted in 2-d
+        self.origin = vector(RDF, max(dimension, 2)) # 1-d is plotted in 2-d
         if self.mode not in ["box", "generators", "round"]:
             raise ValueError("unrecognized plotting mode: %s!" % mode)
+        # If radius was explicitly set by the user, it sets other bounds too.
+        # If we don't take it into account here, they will be replaced by
+        # automatically computed values.
+        if sd["radius"] is not None:
+            for key in ["xmin", "ymin", "zmin"]:
+                if sd[key] is None:
+                    sd[key] = - sd["radius"]
+            for key in ["xmax", "ymax", "zmax"]:
+                if sd[key] is None:
+                    sd[key] = sd["radius"]
         # We also set some of the "extra_options" if they were not given.
         if "axes" not in extra_options:
             extra_options["axes"] = False
@@ -288,7 +298,7 @@ class ToricPlotter(SageObject):
         sd = self.__dict__
         bounds = ["radius", "xmin", "xmax", "ymin", "ymax", "zmin", "zmax"]
         bounds = [abs(sd[bound]) for bound in bounds if sd[bound] is not None]
-        r = RR(max(bounds + [0.5]) if bounds else 2.5)
+        r = RDF(max(bounds + [0.5]) if bounds else 2.5)
         self.radius = r
         round = self.mode == "round"
         for key in ["xmin", "ymin", "zmin"]:
@@ -296,13 +306,13 @@ class ToricPlotter(SageObject):
                 sd[key] = - r
             if sd[key] > - 0.5:
                 sd[key] = - 0.5
-            sd[key] = RR(sd[key])
+            sd[key] = RDF(sd[key])
         for key in ["xmax", "ymax", "zmax"]:
             if round or sd[key] is None:
                 sd[key] = r
             if sd[key] < 0.5:
                 sd[key] = 0.5
-            sd[key] = RR(sd[key])
+            sd[key] = RDF(sd[key])
         if self.show_lattice is None:
             self.show_lattice = (r <= 5) if d <= 2 else r <= 3
 
@@ -340,7 +350,7 @@ class ToricPlotter(SageObject):
         """
         if not points:
             return
-        points = [vector(RR, pt) for pt in points]
+        points = [vector(RDF, pt) for pt in points]
         sd = self.__dict__
 
         def update(bound, new_value, points):
@@ -402,6 +412,7 @@ class ToricPlotter(SageObject):
                 if d <= 2:
                     result += arrow(origin, generator,
                                     color=color, width=thickness,
+                                    arrowsize=thickness + 1,
                                     zorder=zorder, **extra_options)
                 else:
                     result += line([origin, generator], arrow_head=True,
@@ -510,9 +521,33 @@ class ToricPlotter(SageObject):
         return point(points, color=self.point_color, size=self.point_size,
                      zorder=self.point_zorder, **self.extra_options)
 
+    def plot_ray_labels(self):
+        r"""
+        Plot ray labels.
+
+        Usually ray labels are plotted together with rays, but in some cases it
+        is desirable to output them separately.
+
+        Ray generators must be specified during construction or using
+        :meth:`set_rays` before calling this method.
+
+        OUTPUT:
+
+        - a plot.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.toric_plotter import ToricPlotter
+            sage: tp = ToricPlotter(dict(), 2, [(3,4)])
+            sage: print tp.plot_ray_labels()
+            Graphics object consisting of 1 graphics primitive
+        """
+        return self.plot_labels(self.ray_label,
+                                [1.1 * ray for ray in self.rays])
+
     def plot_rays(self):
         r"""
-        Plot ray generators and their labels.
+        Plot rays and their labels.
 
         Ray generators must be specified during construction or using
         :meth:`set_rays` before calling this method.
@@ -541,7 +576,7 @@ class ToricPlotter(SageObject):
             result += line([origin, end],
                            color=color, thickness=thickness,
                            zorder=zorder, **extra_options)
-        result += self.plot_labels(self.ray_label, [1.1 * ray for ray in rays])
+        result += self.plot_ray_labels()
         return result
 
     def plot_walls(self, walls):
@@ -594,17 +629,47 @@ class ToricPlotter(SageObject):
         elif mode == "generators":
             origin = self.origin
             for wall, color in zip(walls, colors):
-                r1, r2 = (rays[i] for i in wall.ambient_ray_indices())
-                result += polygon([origin, r1, r2],
+                vertices = [rays[i] for i in wall.ambient_ray_indices()]
+                vertices.append(origin)
+                result += Polyhedron(vertices=vertices, field=RDF).render_solid(
                     alpha=alpha, color=color, zorder=zorder, **extra_options)
-        elif mode == "round":
-            for wall, color in zip(walls, colors):
+        label_sectors = []
+        round = mode == "round"
+        for wall, color in zip(walls, colors):
+            S = wall.linear_subspace()
+            lsd = S.dimension()
+            if lsd == 0:    # Strictly convex wall
                 r1, r2 = (rays[i] for i in wall.ambient_ray_indices())
+            elif lsd == 1:  # wall is a half-plane
+                for i, ray in zip(wall.ambient_ray_indices(), wall.rays()):
+                    if ray in S:
+                        r1 = rays[i]
+                    else:
+                        r2 = rays[i]
+                if round:
+                    # Plot one "extra" sector
+                    result += sector(- r1, r2,
+                      alpha=alpha, color=color, zorder=zorder, **extra_options)
+            else:           # wall is a plane
+                r1, r2 = S.basis()
+                r1 = vector(RDF, r1)
+                r1 = r1 / r1.norm() * self.radius
+                r2 = vector(RDF, r2)
+                r2 = r2 / r2.norm() * self.radius
+                if round:
+                    # Plot three "extra" sectors
+                    result += sector(r1, - r2,
+                      alpha=alpha, color=color, zorder=zorder, **extra_options)
+                    result += sector(- r1, r2,
+                      alpha=alpha, color=color, zorder=zorder, **extra_options)
+                    result += sector(- r1, - r2,
+                      alpha=alpha, color=color, zorder=zorder, **extra_options)
+            label_sectors.append([r1, r2])
+            if round:
                 result += sector(r1, r2,
                     alpha=alpha, color=color, zorder=zorder, **extra_options)
         result += self.plot_labels(self.wall_label,
-                          [sum(rays[i] for i in wall.ambient_ray_indices()) / 3
-                           for wall in walls])
+                    [sum(label_sector) / 3 for label_sector in label_sectors])
         return result
 
     def set_rays(self, generators):
@@ -637,9 +702,9 @@ class ToricPlotter(SageObject):
         """
         d = self.dimension
         if d == 1:
-            generators = [vector(RR, 2, (gen[0], 0)) for gen in generators]
+            generators = [vector(RDF, 2, (gen[0], 0)) for gen in generators]
         else:
-            generators = [vector(RR, d, gen) for gen in generators]
+            generators = [vector(RDF, d, gen) for gen in generators]
         self.generators = generators
         if self.mode == "box":
             rays = []
@@ -1026,8 +1091,8 @@ def sector(ray1, ray2, **extra_options):
         sage: print sector((3,2,1), (1,2,3))
         Graphics3d Object
     """
-    ray1 = vector(RR, ray1)
-    ray2 = vector(RR, ray2)
+    ray1 = vector(RDF, ray1)
+    ray2 = vector(RDF, ray2)
     r = ray1.norm()
     if len(ray1) == 2:
         # Plot an honest sector
@@ -1045,5 +1110,5 @@ def sector(ray1, ray2, **extra_options):
         dr = (ray2 - ray1) / n
         points = (ray1 + i * dr for i in range(n + 1))
         points = [r / pt.norm() * pt for pt in points]
-        points.append(vector(RR, 3))
+        points.append(vector(RDF, 3))
         return polygon(points, **extra_options)

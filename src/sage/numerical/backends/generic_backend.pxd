@@ -6,16 +6,16 @@
 ##############################################################################
 
 cdef class GenericBackend:
-    cpdef int add_variable(self, lower_bound=*, upper_bound=*, binary=*, continuous=*, integer=*) except -1
-    cpdef int add_variables(self, int, lower_bound=*, upper_bound=*, binary=*, continuous=*, integer=*) except -1
+    cpdef int add_variable(self, lower_bound=*, upper_bound=*, binary=*, continuous=*, integer=*, obj=*, name=*) except -1
+    cpdef int add_variables(self, int, lower_bound=*, upper_bound=*, binary=*, continuous=*, integer=*, obj=*, names=*) except -1
     cpdef set_variable_type(self, int variable, int vtype)
     cpdef set_sense(self, int sense)
-    cpdef set_objective_coefficient(self, int variable, double coeff)
+    cpdef objective_coefficient(self, int variable, coeff=*)
     cpdef set_objective(self, list coeff)
     cpdef set_verbosity(self, int level)
-    cpdef add_linear_constraint(self, constraints, lower_bound, upper_bound)
+    cpdef add_linear_constraint(self, constraints, lower_bound, upper_bound, name=*)
     cpdef add_col(self, list indices, list coeffs)
-    cpdef add_linear_constraints(self, int number, lower_bound, upper_bound)
+    cpdef add_linear_constraints(self, int number, lower_bound, upper_bound, names=*)
     cpdef int solve(self) except -1
     cpdef double get_objective_value(self)
     cpdef double get_variable_value(self, int variable)
@@ -23,7 +23,6 @@ cdef class GenericBackend:
     cpdef write_lp(self, char * name)
     cpdef write_mps(self, char * name, int modern)
     cpdef row(self, int i)
-    cpdef double get_objective_coefficient(self, int i)
     cpdef int ncols(self)
     cpdef int nrows(self)
     cpdef bint is_variable_binary(self, int)
@@ -33,8 +32,8 @@ cdef class GenericBackend:
     cpdef problem_name(self, char * name = *)
     cpdef row_bounds(self, int index)
     cpdef col_bounds(self, int index)
-    cpdef row_name(self, int index, char * name = *)
-    cpdef col_name(self, int index, char * name = *)
+    cpdef row_name(self, int index)
+    cpdef col_name(self, int index)
     cpdef variable_upper_bound(self, int index, value = *)
     cpdef variable_lower_bound(self, int index, value = *)
 

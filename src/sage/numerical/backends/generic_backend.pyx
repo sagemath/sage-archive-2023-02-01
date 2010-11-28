@@ -26,7 +26,7 @@ AUTHORS:
 
 
 cdef class GenericBackend:
-    cpdef int add_variable(self, lower_bound=0.0, upper_bound=None, binary=False, continuous=True, integer=False) except -1:
+    cpdef int add_variable(self, lower_bound=0.0, upper_bound=None, binary=False, continuous=True, integer=False, obj=0.0, name=None) except -1:
         """
         Add a variable.
 
@@ -44,6 +44,10 @@ cdef class GenericBackend:
         - ``continuous`` - ``True`` if the variable is binary (default: ``True``).
 
         - ``integer`` - ``True`` if the variable is binary (default: ``False``).
+
+        - ``obj`` - (optional) coefficient of this variable in the objective function (default: 0.0)
+
+        - ``name`` - an optional name for the newly added variable (default: ``None``).
 
         OUTPUT: The index of the newly created variable
 
@@ -65,10 +69,16 @@ cdef class GenericBackend:
             Traceback (most recent call last):
             ...
             ValueError: ...
+            sage: p.add_variable(name='x',obj=1.0)                    # optional - Nonexistent_LP_solver
+            3
+            sage: p.col_name(3)                                       # optional - Nonexistent_LP_solver
+            'x'
+            sage: p.objective_coefficient(3)                          # optional - Nonexistent_LP_solver
+            1.0
         """
         raise NotImplementedError()
 
-    cpdef int add_variables(self, int n, lower_bound=0.0, upper_bound=None, binary=False, continuous=True, integer=False) except -1:
+    cpdef int add_variables(self, int n, lower_bound=0.0, upper_bound=None, binary=False, continuous=True, integer=False, obj=0.0, names=None) except -1:
         """
         Add ``n`` variables.
 
@@ -89,6 +99,10 @@ cdef class GenericBackend:
 
         - ``integer`` - ``True`` if the variable is binary (default: ``False``).
 
+        - ``obj`` - (optional) coefficient of all variables in the objective function (default: 0.0)
+
+        - ``names`` - optional list of names (default: ``None``)
+
         OUTPUT: The index of the variable created last.
 
         EXAMPLE::
@@ -101,7 +115,7 @@ cdef class GenericBackend:
             4
             sage: p.ncols()                                           # optional - Nonexistent_LP_solver
             5
-            sage: p.add_variables(2, lower_bound=-2.0, integer=True)  # optional - Nonexistent_LP_solver
+            sage: p.add_variables(2, lower_bound=-2.0, integer=True, names=['a','b']) # optional - Nonexistent_LP_solver
             6
         """
         raise NotImplementedError()
@@ -157,9 +171,10 @@ cdef class GenericBackend:
         """
         raise NotImplementedError()
 
-    cpdef  set_objective_coefficient(self, int variable, double coeff):
+    cpdef  objective_coefficient(self, int variable, coeff=None):
         """
-        Set the coefficient of a variable in the objective function
+        Set or get the coefficient of a variable in the objective
+        function
 
         INPUT:
 
@@ -173,10 +188,10 @@ cdef class GenericBackend:
             sage: p = get_solver(solver = "Nonexistent_LP_solver")  # optional - Nonexistent_LP_solver
             sage: p.add_variable()                                 # optional - Nonexistent_LP_solver
             1
-            sage: p.get_objective_coefficient(0)                         # optional - Nonexistent_LP_solver
+            sage: p.objective_coefficient(0)                         # optional - Nonexistent_LP_solver
             0.0
-            sage: p.set_objective_coefficient(0,2)                       # optional - Nonexistent_LP_solver
-            sage: p.get_objective_coefficient(0)                         # optional - Nonexistent_LP_solver
+            sage: p.objective_coefficient(0,2)                       # optional - Nonexistent_LP_solver
+            sage: p.objective_coefficient(0)                         # optional - Nonexistent_LP_solver
             2.0
         """
         raise NotImplementedError()
@@ -197,7 +212,7 @@ cdef class GenericBackend:
             sage: p.add_variables(5)                                 # optional - Nonexistent_LP_solver
             5
             sage: p.set_objective([1, 1, 2, 1, 3])                   # optional - Nonexistent_LP_solver
-            sage: map(lambda x :p.get_objective_coeffient(x), range(5))  # optional - Nonexistent_LP_solver
+            sage: map(lambda x :p.objective_coefficient(x), range(5))  # optional - Nonexistent_LP_solver
             [1.0, 1.0, 2.0, 1.0, 3.0]
         """
         raise NotImplementedError()
@@ -218,7 +233,7 @@ cdef class GenericBackend:
         """
         raise NotImplementedError()
 
-    cpdef add_linear_constraint(self, coefficients, lower_bound, upper_bound):
+    cpdef add_linear_constraint(self, coefficients, lower_bound, upper_bound, name=None):
         """
         Add a linear constraint.
 
@@ -232,6 +247,8 @@ cdef class GenericBackend:
 
         - ``upper_bound`` - an upper bound, either a real value or ``None``
 
+        - ``name`` - an optional name for this row (default: ``None``)
+
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
@@ -243,6 +260,9 @@ cdef class GenericBackend:
             ([4, 3, 2, 1], [4.0, 3.0, 2.0, 1.0])                   # optional - Nonexistent_LP_solver
             sage: p.row_bounds(0)                                  # optional - Nonexistent_LP_solver
             (2.0, 2.0)
+            sage: p.add_linear_constraint( zip(range(5), range(5)), 1.0, 1.0, name='foo') # optional - Nonexistent_LP_solver
+            sage: p.row_name(-1)                                                          # optional - Nonexistent_LP_solver
+            "foo"
         """
         raise NotImplementedError()
 
@@ -282,7 +302,7 @@ cdef class GenericBackend:
         """
         raise NotImplementedError()
 
-    cpdef add_linear_constraints(self, int number, lower_bound, upper_bound):
+    cpdef add_linear_constraints(self, int number, lower_bound, upper_bound, names=None):
         """
         Add constraints.
 
@@ -293,6 +313,8 @@ cdef class GenericBackend:
         - ``lower_bound`` - a lower bound, either a real value or ``None``
 
         - ``upper_bound`` - an upper bound, either a real value or ``None``
+
+        - ``names`` - an optional list of names (default: ``None``)
 
         EXAMPLE::
 
@@ -326,7 +348,7 @@ cdef class GenericBackend:
             sage: p.add_col(range(5), range(5))                    # optional - Nonexistent_LP_solver
             sage: p.solve()                                        # optional - Nonexistent_LP_solver
             0
-            sage: p.set_objective_coefficient(0,1)                 # optional - Nonexistent_LP_solver
+            sage: p.objective_coefficient(0,1)                 # optional - Nonexistent_LP_solver
             sage: p.solve()                                        # optional - Nonexistent_LP_solver
             Traceback (most recent call last):
             ...
@@ -530,30 +552,6 @@ cdef class GenericBackend:
         """
         raise NotImplementedError()
 
-    cpdef double get_objective_coefficient(self, int i):
-        """
-        Set the coefficient of a variable in the objective function
-
-        INPUT:
-
-        - ``variable`` (integer) -- the variable's id
-
-        - ``coeff`` (double) -- its coefficient
-
-        EXAMPLE::
-
-            sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "Nonexistent_LP_solver")  # optional - Nonexistent_LP_solver
-            sage: p.add_variable()                                 # optional - Nonexistent_LP_solver
-            1
-            sage: p.get_objective_coeffient(0)                         # optional - Nonexistent_LP_solver
-            0.0
-            sage: p.set_objective_coefficient(0,2)                       # optional - Nonexistent_LP_solver
-            sage: p.get_objective_coeffient(0)                         # optional - Nonexistent_LP_solver
-            2.0
-        """
-        raise NotImplementedError()
-
     cpdef row_bounds(self, int index):
         """
         Return the bounds of a specific constraint.
@@ -680,32 +678,28 @@ cdef class GenericBackend:
         """
         raise NotImplementedError()
 
-    cpdef row_name(self, int index, char * name = NULL):
+    cpdef row_name(self, int index):
         """
-        Return or define the ``index`` th row name
+        Return the ``index`` th row name
 
         INPUT:
 
         - ``index`` (integer) -- the row's id
 
-        - ``name`` (``char *``) -- its name. When set to ``NULL``
-          (default), the method returns the current name.
-
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Nonexistent_LP_solver")  # optional - Nonexistent_LP_solver
-            sage: p.add_linear_constraints(1, 2, None)         # optional - Nonexistent_LP_solver
-            sage: p.row_name(0, "Empty constraint 1")          # optional - Nonexistent_LP_solver
-            sage: p.row_name(0)                                # optional - Nonexistent_LP_solver
+            sage: p.add_linear_constraints(1, 2, None, name="Empty constraint 1")  # optional - Nonexistent_LP_solver
+            sage: p.row_name(0)                                     # optional - Nonexistent_LP_solver
             'Empty constraint 1'
 
         """
         raise NotImplementedError()
 
-    cpdef col_name(self, int index, char * name = NULL):
+    cpdef col_name(self, int index):
         """
-        Return or define the ``index`` th col name
+        Return the ``index`` th col name
 
         INPUT:
 
@@ -718,10 +712,9 @@ cdef class GenericBackend:
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Nonexistent_LP_solver")  # optional - Nonexistent_LP_solver
-            sage: p.add_variable()                                 # optional - Nonexistent_LP_solver
+            sage: p.add_variable(name="I am a variable")            # optional - Nonexistent_LP_solver
             1
-            sage: p.col_name(0, "I am a variable")             # optional - Nonexistent_LP_solver
-            sage: p.col_name(0)                                # optional - Nonexistent_LP_solver
+            sage: p.col_name(0)                                     # optional - Nonexistent_LP_solver
             'I am a variable'
         """
         raise NotImplementedError()

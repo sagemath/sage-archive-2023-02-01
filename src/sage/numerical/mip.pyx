@@ -274,23 +274,23 @@ cdef class MixedIntegerLinearProgram:
 
         self._backend.problem_name(name)
 
-    def _update_variables_name(self):
-        r"""
-        Updates the names of the variables.
+    # def _update_variables_name(self):
+    #     r"""
+    #     Updates the names of the variables.
 
-        Only called before writing the Problem to a MPS or LP file.
+    #     Only called before writing the Problem to a MPS or LP file.
 
-        EXAMPLE::
+    #     EXAMPLE::
 
-            sage: p=MixedIntegerLinearProgram()
-            sage: v=p.new_variable(name="Test")
-            sage: v[5]+v[99]
-            x_0 +x_1
-            sage: p._update_variables_name()
-        """
+    #         sage: p=MixedIntegerLinearProgram()
+    #         sage: v=p.new_variable(name="Test")
+    #         sage: v[5]+v[99]
+    #         x_0 +x_1
+    #         sage: p._update_variables_name()
+    #     """
 
-        for v in self._mipvariables:
-            v._update_variables_name()
+    #     for v in self._mipvariables:
+    #         v._update_variables_name()
 
 
     def new_variable(self, real=False, binary=False, integer=False, dim=1,name=None):
@@ -386,7 +386,7 @@ cdef class MixedIntegerLinearProgram:
         cdef int i, j
         cdef double c
         cdef GenericBackend b = self._backend
-        self._update_variables_name()
+        #self._update_variables_name()
 
         inv_variables = [0]*len(self._variables)
         for (v,id) in self._variables.iteritems():
@@ -399,11 +399,11 @@ cdef class MixedIntegerLinearProgram:
 
         first = True
         for 0<= i< b.ncols():
-            c = b.get_objective_coefficient(i)
+            c = b.objective_coefficient(i)
             if c != 0:
 
                 value+= ((" +" if (not first and c>0) else " ") +
-                         str(inv_variables[i]*b.get_objective_coefficient(i))
+                         str(inv_variables[i]*b.objective_coefficient(i))
                          )
                 first = False
 
@@ -729,6 +729,13 @@ cdef class MixedIntegerLinearProgram:
             sage: b = p.new_variable()
             sage: p.add_constraint( b[8] - b[15] <= 3*b[8] + 9)
             sage: p.show()
+            Maximization:
+            <BLANKLINE>
+            Constraints:
+              -2.0 x_0 -1.0 x_1 <= 9.0
+            Variables:
+              x_0 is a real variable (min=0.0, max=+oo)
+              x_1 is a real variable (min=0.0, max=+oo)
 
         Empty constraint::
 
@@ -776,10 +783,7 @@ cdef class MixedIntegerLinearProgram:
             if min == None and max == None:
                 raise ValueError("Both max and min are set to None ? Weird!")
 
-            self._backend.add_linear_constraint(C, min, max)
-
-            if name != None:
-                self._backend.row_name(self._backend.nrows()-1,name)
+            self._backend.add_linear_constraint(C, min, max, name)
 
         elif isinstance(linear_function,LinearConstraint):
             functions = linear_function.constraints
@@ -1335,33 +1339,32 @@ cdef class MIPVariable:
             self._dict[i] = MIPVariable(self._p, self._vtype, dim=self._dim-1)
             return self._dict[i]
 
-    def _update_variables_name(self, prefix=None):
-        r"""
-        Updates the names of the variables in the parent instant of ``MixedIntegerLinearProgram``.
+    # def _update_variables_name(self, prefix=None):
+    #     r"""
+    #     Updates the names of the variables in the parent instant of ``MixedIntegerLinearProgram``.
 
-        Only called before writing the Problem to a MPS or LP file.
+    #     Only called before writing the Problem to a MPS or LP file.
 
-        EXAMPLE::
+    #     EXAMPLE::
 
-            sage: p=MixedIntegerLinearProgram()
-            sage: v=p.new_variable(name="Test")
-            sage: v[5]+v[99]
-            x_0 +x_1
-            sage: v._update_variables_name()
-        """
+    #         sage: p=MixedIntegerLinearProgram()
+    #         sage: v=p.new_variable(name="Test")
+    #         sage: v[5]+v[99]
+    #         x_0 +x_1
+    #         sage: v._update_variables_name()
+    #     """
 
-        if prefix == None:
-            prefix = self._name
+    #     if prefix == None:
+    #         prefix = self._name
 
-        if self._dim == 1:
-            for (k,v) in self._dict.iteritems():
-                name = prefix + "[" + str(k) + "]"
-                self._p._backend.col_name(self._p._variables[v], name)
-                #self._p._variables_name[self._p._variables[v]]=prefix + "[" + str(k) + "]"
-        else:
-            for v in self._dict.itervalues():
-                v._update_variables_name(prefix=prefix + "(" + str(k) + ")")
-
+    #     if self._dim == 1:
+    #         for (k,v) in self._dict.iteritems():
+    #             name = prefix + "[" + str(k) + "]"
+    #             self._p._backend.col_name(self._p._variables[v], name)
+    #             #self._p._variables_name[self._p._variables[v]]=prefix + "[" + str(k) + "]"
+    #     else:
+    #         for v in self._dict.itervalues():
+    #             v._update_variables_name(prefix=prefix + "(" + str(k) + ")")
 
 
     def __repr__(self):

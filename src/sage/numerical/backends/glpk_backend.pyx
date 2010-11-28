@@ -35,12 +35,13 @@ cdef class GLPKBackend(GenericBackend):
         else:
             self.set_sense(-1)
 
-    cpdef int add_variable(self, lower_bound=0.0, upper_bound=None, binary=False, continuous=False, integer=False) except -1:
+    cpdef int add_variable(self, lower_bound=0.0, upper_bound=None, binary=False, continuous=False, integer=False, obj=0.0, name=None) except -1:
         """
         Add a variable.
 
         This amounts to adding a new column to the matrix. By default,
-        the variable is both positive and real.
+        the variable is both positive, real and the coefficient in the
+        objective function is 0.0.
 
         INPUT:
 
@@ -53,6 +54,10 @@ cdef class GLPKBackend(GenericBackend):
         - ``continuous`` - ``True`` if the variable is binary (default: ``True``).
 
         - ``integer`` - ``True`` if the variable is binary (default: ``False``).
+
+        - ``obj`` - (optional) coefficient of this variable in the objective function (default: 0.0)
+
+        - ``name`` - an optional name for the newly added variable (default: ``None``).
 
         OUTPUT: The index of the newly created variable
 
@@ -74,6 +79,12 @@ cdef class GLPKBackend(GenericBackend):
             Traceback (most recent call last):
             ...
             ValueError: ...
+            sage: p.add_variable(name='x',obj=1.0)
+            3
+            sage: p.col_name(3)
+            'x'
+            sage: p.objective_coefficient(3)
+            1.0
         """
         cdef int vtype = int(bool(binary)) + int(bool(continuous)) + int(bool(integer))
         if  vtype == 0:
@@ -94,14 +105,21 @@ cdef class GLPKBackend(GenericBackend):
         elif integer:
             glp_set_col_kind(self.lp, n_var, GLP_IV)
 
+        if name is not None:
+            glp_set_col_name(self.lp, n_var, name)
+
+        if obj:
+            self.objective_coefficient(n_var - 1, obj)
+
         return n_var - 1
 
-    cpdef int add_variables(self, int number, lower_bound=0.0, upper_bound=None, binary=False, continuous=False, integer=False) except -1:
+    cpdef int add_variables(self, int number, lower_bound=0.0, upper_bound=None, binary=False, continuous=False, integer=False, obj=0.0, names=None) except -1:
         """
         Add ``number`` new variables.
 
         This amounts to adding new columns to the matrix. By default,
-        the variables are both positive and real.
+        the variables are both positive, real and theor coefficient in
+        the objective function is 0.0.
 
         INPUT:
 
@@ -117,6 +135,10 @@ cdef class GLPKBackend(GenericBackend):
 
         - ``integer`` - ``True`` if the variable is binary (default: ``False``).
 
+        - ``obj`` - (optional) coefficient of all variables in the objective function (default: 0.0)
+
+        - ``names`` - optional list of names (default: ``None``)
+
         OUTPUT: The index of the variable created last.
 
         EXAMPLE::
@@ -129,7 +151,7 @@ cdef class GLPKBackend(GenericBackend):
             4
             sage: p.ncols()
             5
-            sage: p.add_variables(2, lower_bound=-2.0, integer=True)
+            sage: p.add_variables(2, lower_bound=-2.0, integer=True, names=['a','b'])
             6
         """
         cdef int vtype = int(bool(binary)) + int(bool(continuous)) + int(bool(integer))
@@ -154,6 +176,13 @@ cdef class GLPKBackend(GenericBackend):
                 glp_set_col_kind(self.lp, n_var - i, GLP_BV)
             elif integer:
                 glp_set_col_kind(self.lp, n_var - i, GLP_IV)
+
+            if obj:
+                self.bjective_coefficient(n_var - i - 1, obj)
+
+            if names is not None:
+                glp_set_col_name(self.lp, n_var, names[number - i - 1])
+
         return n_var - 1
 
     cpdef set_variable_type(self, int variable, int vtype):
@@ -218,15 +247,16 @@ cdef class GLPKBackend(GenericBackend):
         else:
             glp_set_obj_dir(self.lp, GLP_MIN)
 
-    cpdef set_objective_coefficient(self, int variable, double coeff):
+    cpdef objective_coefficient(self, int variable, coeff=None):
         """
-        Set the coefficient of a variable in the objective function
+        Set or get the coefficient of a variable in the objective function
 
         INPUT:
 
         - ``variable`` (integer) -- the variable's id
 
-        - ``coeff`` (double) -- its coefficient
+        - ``coeff`` (double) -- its coefficient or ``None`` for
+          reading (default: ``None``)
 
         EXAMPLE::
 
@@ -234,13 +264,16 @@ cdef class GLPKBackend(GenericBackend):
             sage: p = get_solver(solver = "GLPK")
             sage: p.add_variable()
             0
-            sage: p.get_objective_coefficient(0)
+            sage: p.objective_coefficient(0)
             0.0
-            sage: p.set_objective_coefficient(0,2)
-            sage: p.get_objective_coefficient(0)
+            sage: p.objective_coefficient(0,2)
+            sage: p.objective_coefficient(0)
             2.0
         """
-        glp_set_obj_coef(self.lp, variable + 1, coeff)
+        if coeff is None:
+            return glp_get_obj_coef(self.lp, variable + 1)
+        else:
+            glp_set_obj_coef(self.lp, variable + 1, coeff)
 
     cpdef problem_name(self, char * name = NULL):
         """
@@ -287,7 +320,7 @@ cdef class GLPKBackend(GenericBackend):
             sage: p.add_variables(5)
             4
             sage: p.set_objective([1, 1, 2, 1, 3])
-            sage: map(lambda x :p.get_objective_coefficient(x), range(5))
+            sage: map(lambda x :p.objective_coefficient(x), range(5))
             [1.0, 1.0, 2.0, 1.0, 3.0]
         """
         cdef int i
@@ -319,7 +352,7 @@ cdef class GLPKBackend(GenericBackend):
         else:
             self.iocp.msg_lev = GLP_MSG_ALL
 
-    cpdef add_linear_constraint(self, coefficients, lower_bound, upper_bound):
+    cpdef add_linear_constraint(self, coefficients, lower_bound, upper_bound, name=None):
         """
         Add a linear constraint.
 
@@ -333,6 +366,8 @@ cdef class GLPKBackend(GenericBackend):
 
         - ``upper_bound`` - an upper bound, either a real value or ``None``
 
+        - ``name`` - an optional name for this row (default: ``None``)
+
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
@@ -344,6 +379,9 @@ cdef class GLPKBackend(GenericBackend):
             ([4, 3, 2, 1], [4.0, 3.0, 2.0, 1.0])
             sage: p.row_bounds(0)
             (2.0, 2.0)
+            sage: p.add_linear_constraint( zip(range(5), range(5)), 1.0, 1.0, name='foo')
+            sage: p.row_name(1)
+            'foo'
         """
         if lower_bound is None and upper_bound is None:
             raise ValueError("At least one of 'upper_bound' or 'lower_bound' must be set.")
@@ -373,10 +411,13 @@ cdef class GLPKBackend(GenericBackend):
             else:
                 glp_set_row_bnds(self.lp, n, GLP_DB, lower_bound, upper_bound)
 
+        if name is not None:
+            glp_set_row_name(self.lp, n, name)
+
         sage_free(row_i)
         sage_free(row_values)
 
-    cpdef add_linear_constraints(self, int number, lower_bound, upper_bound):
+    cpdef add_linear_constraints(self, int number, lower_bound, upper_bound, names=None):
         """
         Add ``'number`` linear constraints.
 
@@ -387,6 +428,8 @@ cdef class GLPKBackend(GenericBackend):
         - ``lower_bound`` - a lower bound, either a real value or ``None``
 
         - ``upper_bound`` - an upper bound, either a real value or ``None``
+
+        - ``names`` - an optional list of names (default: ``None``)
 
         EXAMPLE::
 
@@ -399,6 +442,7 @@ cdef class GLPKBackend(GenericBackend):
             ([], [])
             sage: p.row_bounds(4)
             (None, 2.0)
+            sage: p.add_linear_constraints(2, None, 2, names=['foo','bar'])
         """
         if lower_bound is None and upper_bound is None:
             raise ValueError("At least one of 'upper_bound' or 'lower_bound' must be set.")
@@ -417,6 +461,8 @@ cdef class GLPKBackend(GenericBackend):
                     glp_set_row_bnds(self.lp, n-i, GLP_FX, lower_bound, upper_bound)
                 else:
                     glp_set_row_bnds(self.lp, n-i, GLP_DB, lower_bound, upper_bound)
+            if names is not None:
+                glp_set_row_name(self.lp, n-i, names[number-i-1])
 
     cpdef row(self, int index):
         r"""
@@ -537,30 +583,6 @@ cdef class GLPKBackend(GenericBackend):
             (ub if ub != +DBL_MAX else None)
             )
 
-    cpdef double get_objective_coefficient(self, int index):
-        """
-        Return the coefficient of a variable in the objective
-        function.
-
-        INPUT:
-
-        - ``index`` (integer) -- the variable's id.
-
-        EXAMPLE::
-
-            sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "GLPK")
-            sage: p.add_variable()
-            0
-            sage: p.get_objective_coefficient(0)
-            0.0
-            sage: p.set_objective_coefficient(0,2)
-            sage: p.get_objective_coefficient(0)
-            2.0
-        """
-        return glp_get_obj_coef(self.lp, index + 1)
-
-
     cpdef add_col(self, list indices, list coeffs):
         """
         Add a column.
@@ -632,7 +654,7 @@ cdef class GLPKBackend(GenericBackend):
             sage: p.add_col(range(5), range(5))
             sage: p.solve()
             0
-            sage: p.set_objective_coefficient(0,1)
+            sage: p.objective_coefficient(0,1)
             sage: p.solve()
             Traceback (most recent call last):
             ...
@@ -741,72 +763,58 @@ cdef class GLPKBackend(GenericBackend):
 
         return glp_get_num_rows(self.lp)
 
-    cpdef col_name(self, int index, char * name = NULL):
+    cpdef col_name(self, int index):
         """
-        Return or define the ``index`` th col name
+        Return the ``index`` th col name
 
         INPUT:
 
         - ``index`` (integer) -- the col's id
 
-        - ``name`` (``char *``) -- its name. When set to ``NULL``
-          (default), the method returns the current name.
-
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "GLPK")
-            sage: p.add_variable()
+            sage: p.add_variable(name='I am a variable')
             0
-            sage: p.col_name(0, "I am a variable")
             sage: p.col_name(0)
             'I am a variable'
         """
         cdef char * s
 
-        if name == NULL:
-            glp_create_index(self.lp)
-            s = <char*> glp_get_col_name(self.lp, index + 1)
+        glp_create_index(self.lp)
+        s = <char*> glp_get_col_name(self.lp, index + 1)
 
-            if s != NULL:
-                return s
-            else:
-                return ""
+        if s != NULL:
+            return s
         else:
-            glp_set_col_name(self.lp, index + 1, name)
+            return ""
 
-    cpdef row_name(self, int index, char * name = NULL):
+    cpdef row_name(self, int index):
         """
-        Return or define the ``index`` th row name
+        Return the ``index`` th row name
 
         INPUT:
 
         - ``index`` (integer) -- the row's id
 
-        - ``name`` (``char *``) -- its name. When set to ``NULL``
-          (default), the method returns the current name.
-
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "GLPK")
-            sage: p.add_linear_constraints(1, 2, None)
-            sage: p.row_name(0, "Empty constraint 1")
+            sage: p.add_linear_constraints(1, 2, None, names=['Empty constraint 1'])
             sage: p.row_name(0)
             'Empty constraint 1'
         """
         cdef char *  s
 
-        if name == NULL:
-            glp_create_index(self.lp)
-            s = <char*> glp_get_row_name(self.lp, index + 1)
+        glp_create_index(self.lp)
+        s = <char*> glp_get_row_name(self.lp, index + 1)
 
-            if s != NULL:
-                return s
-            else:
-                return ""
+        if s != NULL:
+            return s
         else:
-            glp_set_row_name(self.lp, index + 1, name)
+            return ""
 
     cpdef bint is_variable_binary(self, int index):
         """

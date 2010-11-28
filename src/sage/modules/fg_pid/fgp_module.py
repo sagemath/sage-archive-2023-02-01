@@ -443,6 +443,102 @@ class FGP_Module_class(Module):
             return False
         return self._V == other._V and self._W == other._W
 
+    def __ne__(self, other):
+        """
+        True iff self is not equal to other.
+
+        This may not be needed for modules created using the function
+        :func:`FGP_Module`, since those have uniqueness built into
+        them, but if the modules are created directly using the
+        __init__ method for this class, then this may fail; in
+        particular, for modules M and N with ``M == N`` returning
+        True, it may be the case that ``M != N`` may also return True.
+        In particular, for derived classes whose __init__ methods just
+        call the __init__ method for this class need this.  See
+        http://trac.sagemath.org/sage_trac/ticket/9940 for
+        illustrations.
+
+        EXAMPLES:
+
+        Make sure that the problems in
+        http://trac.sagemath.org/sage_trac/ticket/9940 are fixed::
+
+            sage: G = AdditiveAbelianGroup([0,0])
+            sage: H = AdditiveAbelianGroup([0,0])
+            sage: G == H
+            True
+            sage: G != H # indirect doctest
+            False
+
+            sage: N1 = ToricLattice(3)
+            sage: sublattice1 = N1.submodule([(1,1,0), (3,2,1)])
+            sage: Q1 = N1/sublattice1
+            sage: N2 = ToricLattice(3)
+            sage: sublattice2 = N2.submodule([(1,1,0), (3,2,1)])
+            sage: Q2 = N2/sublattice2
+            sage: Q1 == Q2
+            True
+            sage: Q1 != Q2
+            False
+        """
+        return not self.__eq__(other)
+
+    # __le__ is a synonym for `is_submodule`: see below
+
+    def __lt__(self, other):
+        """
+        True iff self is a proper submodule of other.
+
+        EXAMPLES::
+
+            sage: V = ZZ^2; W = V.span([[1,2]]); W2 = W.scale(2)
+            sage: A = V/W; B = W/W2
+            sage: B < A
+            False
+            sage: A = V/W2; B = W/W2
+            sage: B < A
+            True
+            sage: A < A
+            False
+        """
+        return self.__le__(other) and not self.__eq__(other)
+
+    def __gt__(self, other):
+        """
+        True iff other is a proper submodule of self.
+
+        EXAMPLES::
+
+            sage: V = ZZ^2; W = V.span([[1,2]]); W2 = W.scale(2)
+            sage: A = V/W; B = W/W2
+            sage: A > B
+            False
+            sage: A = V/W2; B = W/W2
+            sage: A > B
+            True
+            sage: A > A
+            False
+        """
+        return self.__ge__(other) and not self.__eq__(other)
+
+    def __ge__(self, other):
+        """
+        True iff other is a submodule of self.
+
+        EXAMPLES::
+
+            sage: V = ZZ^2; W = V.span([[1,2]]); W2 = W.scale(2)
+            sage: A = V/W; B = W/W2
+            sage: A >= B
+            False
+            sage: A = V/W2; B = W/W2
+            sage: A >= B
+            True
+            sage: A >= A
+            True
+        """
+        return other.is_submodule(self)
+
     def __call__(self, x, check=True):
         """
         INPUT:
@@ -654,6 +750,8 @@ class FGP_Module_class(Module):
             return False
 
         return self.V().is_submodule(A.V()) and self.W() == A.W()
+
+    __le__ = is_submodule
 
     def V(self):
         """

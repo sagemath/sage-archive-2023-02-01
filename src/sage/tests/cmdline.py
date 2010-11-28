@@ -123,22 +123,28 @@ def test_executable(args, input="", timeout=10.0):
         0
 
         sage: (out, err, ret) = test_executable(["sage", "-h"])
-        sage: out.find("list more options") >= 0
+        sage: out.find("Optional arguments:") >= 0
         True
         sage: err
         ''
+        sage: ret
+        0
 
         sage: (out, err, ret) = test_executable(["sage", "--help"])
-        sage: out.find("list more options") >= 0
+        sage: out.find("Optional arguments:") >= 0
         True
         sage: err
         ''
+        sage: ret
+        0
 
         sage: (out, err, ret) = test_executable(["sage", "--advanced"])
         sage: out.find("run with no output prompts") >= 0
         True
         sage: err
         ''
+        sage: ret
+        0
 
         sage: (out, err, ret) = test_executable(["sage", "-v"])
         sage: out.find(version()) >= 0
@@ -268,6 +274,40 @@ def test_executable(args, input="", timeout=10.0):
         ''
         sage: ret
         42
+
+    Some programs of which we check functionality using only ``--version``::
+
+        sage: (out, err, ret) = test_executable(["sage", "--hg", "--version"])
+        sage: out.find("Mercurial Distributed SCM") >= 0
+        True
+        sage: err
+        ''
+        sage: ret
+        0
+
+        sage: (out, err, ret) = test_executable(["sage", "--maxima", "--version"])
+        sage: out.find("Maxima ") >= 0
+        True
+        sage: err
+        ''
+        sage: ret
+        0
+
+        sage: (out, err, ret) = test_executable(["sage", "--R", "--version"])
+        sage: out.find("R version ") >= 0
+        True
+        sage: err
+        ''
+        sage: ret
+        0
+
+        sage: (out, err, ret) = test_executable(["sage", "--scons", "--version"])
+        sage: out.find("SCons") >= 0
+        True
+        sage: err
+        ''
+        sage: ret
+        0
 
     Check some things requiring an internet connection::
 

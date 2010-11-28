@@ -10,25 +10,8 @@ except:
 
 from sage.misc.cachefunc import cached_method
 
-##########################################
-#                Options                 #
-##########################################
-SAGE_DOC = os.environ['SAGE_DOC']
-LANGUAGES = ['en', 'fr']
-SPHINXOPTS  = ""
-PAPER       = ""
-OMIT        = ["introspect"]  # docs/dirs to omit when listing and building 'all'
-
-if PAPER == "a4":
-    PAPEROPTS = "-D latex_paper_size=a4"
-elif PAPER == "letter":
-    PAPEROPTS = "-D latex_paper_size=letter"
-else:
-    PAPEROPTS = ""
-
-#Note that this needs to have the doctrees dir
-ALLSPHINXOPTS   = SPHINXOPTS + " " + PAPEROPTS + " "
-
+# Read options
+execfile(os.path.join(os.getenv('SAGE_ROOT'), 'devel', 'sage', 'doc', 'common' , 'build_options.py'))
 
 ##########################################
 #          Utility Functions             #

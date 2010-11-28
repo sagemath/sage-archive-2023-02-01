@@ -535,42 +535,32 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
         exts = ['html']
         title = 'Documentation'
         base_path = os.path.join('devel', 'sage', 'doc', 'output')
-
-        # check if any documentation is missing.  first read the start
-        # of SAGE_ROOT/devel/sage/doc/common/builder.py to find list
-        # of languages, documents, and documents to omit
         doc_path = os.path.join(ROOT, 'devel', 'sage', 'doc')
-        builder = open(os.path.join(doc_path, 'common', 'builder.py'))
-        s = builder.read()[:1000]
-        builder.close()
-        # list of languages
-        lang = []
-        idx = s.find("LANGUAGES")
-        if idx != -1:
-            start = s[idx:].find('[')
-            end =  s[idx:].find(']')
-            if start != -1 and end != -1:
-                lang = s[idx+start+1:idx+end].translate(None, "'\" ").split(",")
-        # documents in SAGE_ROOT/devel/sage/doc/LANG/ to omit
-        omit = []
-        idx = s.find("OMIT")
-        if idx != -1:
-            start = s[idx:].find('[')
-            end =  s[idx:].find(']')
-            if start != -1 and end != -1:
-                omit = s[idx+start+1:idx+end].translate(None, "'\" ").split(",")
-        # list of documents, minus the omitted ones
+
+        # We need to import stuff from SAGE_ROOT/devel/sage/doc/common
+        # To do this, we temporarily change sys.path
+        oldpath = sys.path
+        sys.path = oldpath + [os.path.join(ROOT, 'devel', 'sage', 'doc', 'common')]
+        import build_options as builder
+        # List of languages
+        lang = builder.LANGUAGES
+        # Documents in SAGE_ROOT/devel/sage/doc/LANG/ to omit
+        omit = builder.OMIT
+        sys.path = oldpath
+
+        # List of documents, minus the omitted ones
         documents = []
         for L in lang:
             documents += [os.path.join(L, dir) for dir
                           in os.listdir(os.path.join(doc_path, L))
                           if dir not in omit]
-        # now check to see if any documents are missing.  this just
+
+        # Check to see if any documents are missing.  This just
         # checks to see if the appropriate output directory exists,
         # not that it contains a complete build of the docs.
-        missing = [os.path.join(ROOT, base_path, 'html', doc)
+        missing = [os.path.join(doc_path, 'output', 'html', doc)
                    for doc in documents if not
-                   os.path.exists(os.path.join(ROOT, base_path, 'html', doc))]
+                   os.path.exists(os.path.join(doc_path, 'output', 'html', doc))]
         num_missing = len(missing)
         if num_missing > 0:
             print """Warning, the following Sage documentation hasn't been built,
@@ -881,9 +871,9 @@ def search_doc(string, extra1='', extra2='', extra3='', extra4='',
     counting the length of ``search_doc('tree',
     interact=False).splitlines()`` gives the number of matches. ::
 
-        sage: len(search_doc('tree', interact=False).splitlines()) > 2500
+        sage: len(search_doc('tree', interact=False).splitlines()) > 2500  # long time
         True
-        sage: len(search_doc('tree', whole_word=True, interact=False).splitlines()) < 500
+        sage: len(search_doc('tree', whole_word=True, interact=False).splitlines()) < 500  # long time
         True
     """
     return _search_src_or_doc('doc', string, extra1=extra1, extra2=extra2,

@@ -35,7 +35,7 @@ cdef class CoinBackend(GenericBackend):
         else:
             self.set_sense(-1)
 
-    cpdef int add_variable(self, lower_bound=0.0, upper_bound=None, binary=False, continuous=False, integer=False) except -1:
+    cpdef int add_variable(self, lower_bound=0.0, upper_bound=None, binary=False, continuous=False, integer=False, obj=0.0, name=None) except -1:
         """
         Add a variable.
 
@@ -54,7 +54,15 @@ cdef class CoinBackend(GenericBackend):
 
         - ``integer`` - ``True`` if the variable is binary (default: ``False``).
 
+        - ``obj`` - (optional) coefficient of this variable in the objective function (default: 0.0)
+
+        - ``name`` - an optional name for the newly added variable (default: ``None``).
+
         OUTPUT: The index of the newly created variable
+
+        .. NOTE::
+
+            The names are ignored by Coin at the moment !!!
 
         EXAMPLE::
 
@@ -74,6 +82,13 @@ cdef class CoinBackend(GenericBackend):
             Traceback (most recent call last):
             ...
             ValueError: ...
+            sage: p.add_variable(name='x',obj=1.0)                  # optional - Coin
+            3
+            sage: p.col_name(3)                                     # optional - Coin
+            ''
+            sage: p.objective_coefficient(3)                        # optional - Coin
+            1.0
+
         """
 
         cdef int vtype = int(bool(binary)) + int(bool(continuous)) + int(bool(integer))
@@ -97,9 +112,14 @@ cdef class CoinBackend(GenericBackend):
         elif integer:
             self.set_variable_type(n,1)
 
+        # THE NAMES ARE IGNORED BY COIN AT THE MOMENT
+
+        if obj:
+            self.si.setObjCoeff(n, obj)
+
         return n
 
-    cpdef int add_variables(self, int number, lower_bound=0.0, upper_bound=None, binary=False, continuous=False, integer=False) except -1:
+    cpdef int add_variables(self, int number, lower_bound=0.0, upper_bound=None, binary=False, continuous=False, integer=False, obj=0.0, names=None) except -1:
         """
         Add ``number`` new variables.
 
@@ -120,7 +140,15 @@ cdef class CoinBackend(GenericBackend):
 
         - ``integer`` - ``True`` if the variable is binary (default: ``False``).
 
+        - ``obj`` - (optional) coefficient of all variables in the objective function (default: 0.0)
+
+        - ``names`` - optional list of names (default: ``None``)
+
         OUTPUT: The index of the variable created last.
+
+        .. NOTE::
+
+            The names are ignored by Coin at the moment !!!
 
         EXAMPLE::
 
@@ -132,7 +160,7 @@ cdef class CoinBackend(GenericBackend):
             4
             sage: p.ncols()                                                # optional - Coin
             5
-            sage: p.add_variables(2, lower_bound=-2.0, integer=True)       # optional - Coin
+            sage: p.add_variables(2, lower_bound=-2.0, integer=True, names=['a','b']) # optional - Coin
             6
         """
         cdef int vtype = int(bool(binary)) + int(bool(continuous)) + int(bool(integer))
@@ -159,6 +187,11 @@ cdef class CoinBackend(GenericBackend):
                 self.set_variable_type(n + i,0)
             elif integer:
                 self.set_variable_type(n + i,1)
+
+            if obj:
+                self.si.setObjCoeff(n + i, obj)
+
+        # THE NAMES ARE IGNORED BY COIN AT THE MOMENT
 
         return n + number -1
 
@@ -221,30 +254,33 @@ cdef class CoinBackend(GenericBackend):
         """
         self.si.setObjSense(-sense)
 
-    cpdef set_objective_coefficient(self, int variable, double coeff):
-        r"""
-        Sets the coefficient of a variable in the objective function
+    cpdef objective_coefficient(self, int variable, coeff=None):
+        """
+        Set or get the coefficient of a variable in the objective function
 
         INPUT:
 
         - ``variable`` (integer) -- the variable's id
 
-        - ``coeff`` (double) -- its coefficient
+        - ``coeff`` (double) -- its coefficient or ``None`` for
+          reading (default: ``None``)
 
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "Coin")  # optional - Coin
-            sage: p.add_variable()                                 # optional - Coin
+            sage: p = get_solver(solver = "Coin")       # optional -- Coin
+            sage: p.add_variable()                      # optional -- Coin
             0
-            sage: p.get_objective_coefficient(0)                         # optional - Coin
+            sage: p.objective_coefficient(0)            # optional -- Coin
             0.0
-            sage: p.set_objective_coefficient(0,2)                       # optional - Coin
-            sage: p.get_objective_coefficient(0)                         # optional - Coin
+            sage: p.objective_coefficient(0,2)          # optional -- Coin
+            sage: p.objective_coefficient(0)            # optional -- Coin
             2.0
         """
-
-        self.si.setObjCoeff(variable, coeff)
+        if coeff is not None:
+            self.si.setObjCoeff(variable, coeff)
+        else:
+            return self.si.getObjCoefficients()[variable]
 
     cpdef set_objective(self, list coeff):
         r"""
@@ -262,7 +298,7 @@ cdef class CoinBackend(GenericBackend):
             sage: p.add_variables(5)                                 # optional - Coin
             4
             sage: p.set_objective([1, 1, 2, 1, 3])                   # optional - Coin
-            sage: map(lambda x :p.get_objective_coefficient(x), range(5))  # optional - Coin
+            sage: map(lambda x :p.objective_coefficient(x), range(5))  # optional - Coin
             [1.0, 1.0, 2.0, 1.0, 3.0]
         """
 
@@ -292,7 +328,7 @@ cdef class CoinBackend(GenericBackend):
         msg = model.messageHandler()
         msg.setLogLevel(level)
 
-    cpdef add_linear_constraints(self, int number, lower_bound, upper_bound):
+    cpdef add_linear_constraints(self, int number, lower_bound, upper_bound, names = None):
         """
         Add ``'number`` linear constraints.
 
@@ -303,6 +339,12 @@ cdef class CoinBackend(GenericBackend):
         - ``lower_bound`` - a lower bound, either a real value or ``None``
 
         - ``upper_bound`` - an upper bound, either a real value or ``None``
+
+        - ``names`` - an optional list of names (default: ``None``)
+
+        .. NOTE::
+
+            The names are ignored by Coin at the moment !!!
 
         EXAMPLE::
 
@@ -315,13 +357,14 @@ cdef class CoinBackend(GenericBackend):
             ([], [])
             sage: p.row_bounds(4)                        # optional - Coin
             (None, 2.0)
+            sage: p.add_linear_constraints(2, None, 2, names=['foo','bar']) # optional - Coin
         """
 
         cdef int i
         for 0<= i<number:
             self.add_linear_constraint([],lower_bound, upper_bound)
 
-    cpdef add_linear_constraint(self, coefficients, lower_bound, upper_bound):
+    cpdef add_linear_constraint(self, coefficients, lower_bound, upper_bound, name = None):
         """
         Add a linear constraint.
 
@@ -335,6 +378,12 @@ cdef class CoinBackend(GenericBackend):
 
         - ``upper_bound`` - an upper bound, either a real value or ``None``
 
+        - ``name`` - an optional name for this row (default: ``None``)
+
+        .. NOTE::
+
+            The names are ignored by Coin at the moment !!!
+
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
@@ -346,6 +395,10 @@ cdef class CoinBackend(GenericBackend):
             ([0, 1, 2, 3, 4], [0.0, 1.0, 2.0, 3.0, 4.0])
             sage: p.row_bounds(0)                                              # optional - Coin
             (2.0, 2.0)
+            sage: p.add_linear_constraint( zip(range(5), range(5)), 1.0, 1.0, name='foo') # optional - Coin
+            sage: p.row_name(1)                                                           # optional - Coin
+            ''
+
         """
         if lower_bound is None and upper_bound is None:
             raise ValueError("At least one of 'upper_bound' or 'lower_bound' must be set.")
@@ -481,33 +534,6 @@ cdef class CoinBackend(GenericBackend):
         return (lb[i] if lb[i] != - self.si.getInfinity() else None,
                 ub[i] if ub[i] != + self.si.getInfinity() else None)
 
-    cpdef double get_objective_coefficient(self, int index):
-        """
-        Returns the value of the objective function.
-
-        .. NOTE::
-
-           Has no meaning unless ``solve`` has been called before.
-
-        EXAMPLE::
-
-            sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "Coin")  # optional - Coin
-            sage: p.add_variables(2)                               # optional - Coin
-            1
-            sage: p.add_linear_constraint([(0, 1), (1, 2)], None, 3)          # optional - Coin
-            sage: p.set_objective([2, 5])                          # optional - Coin
-            sage: p.solve()                                        # optional - Coin
-            0
-            sage: p.get_objective_value()                          # optional - Coin
-            7.5
-            sage: p.get_variable_value(0)                          # optional - Coin
-            0.0
-            sage: p.get_variable_value(1)                          # optional - Coin
-            1.5
-        """
-        return self.si.getObjCoefficients()[index]
-
     cpdef add_col(self, list indices, list coeffs):
         r"""
         Adds a column.
@@ -582,7 +608,7 @@ cdef class CoinBackend(GenericBackend):
             0
             sage: p.add_linear_constraint([(0, 1)], None, 4) # optional - Coin
             sage: p.add_linear_constraint([(0, 1)], 6, None) # optional - Coin
-            sage: p.set_objective_coefficient(0,1)        # optional - Coin
+            sage: p.objective_coefficient(0,1)        # optional - Coin
             sage: p.solve()                         # optional - Coin
             Traceback (most recent call last):
             ...
@@ -897,55 +923,43 @@ cdef class CoinBackend(GenericBackend):
             sage: print p.problem_name()                        # optional - Coin
             <BLANKLINE>
         """
-
         if name == NULL:
             return ""
 
 
-    cpdef row_name(self, int index, char * name = NULL):
+    cpdef row_name(self, int index):
         r"""
-        Returns or defines the ``index`` th row name
+        Returns the ``index`` th row name
 
         INPUT:
 
         - ``index`` (integer) -- the row's id
 
-        - ``name`` (``char *``) -- its name. When set to ``NULL``
-          (default), the method returns the current name.
-
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "Coin")  # optional - Coin
-            sage: p.add_linear_constraints(1, 2, None)                      # optional - Coin
-            sage: p.row_name(0, "Empty constraint 1")          # optional - Coin
-            sage: print p.row_name(0)                          # optional - Coin
+            sage: p = get_solver(solver = "Coin")                                     # optional - Coin
+            sage: p.add_linear_constraints(1, 2, None, names=['Empty constraint 1'])  # optional - Coin
+            sage: print p.row_name(0)                                                 # optional - Coin
             <BLANKLINE>
         """
-        if name == NULL:
-            return ""
+        return ""
 
-    cpdef col_name(self, int index, char * name = NULL):
+    cpdef col_name(self, int index):
         r"""
-        Returns or defines the ``index`` th col name
+        Returns the ``index`` th col name
 
         INPUT:
 
         - ``index`` (integer) -- the col's id
 
-        - ``name`` (``char *``) -- its name. When set to ``NULL``
-          (default), the method returns the current name.
-
         EXAMPLE::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "Coin")  # optional - Coin
-            sage: p.add_variable()                                 # optional - Coin
+            sage: p = get_solver(solver = "Coin")          # optional - Coin
+            sage: p.add_variable(name='I am a variable')   # optional - Coin
             0
-            sage: p.col_name(0, "I am a variable")             # optional - Coin
-            sage: print p.col_name(0)                          # optional - Coin
+            sage: print p.col_name(0)                      # optional - Coin
             <BLANKLINE>
         """
-
-        if name == NULL:
-            return ""
+        return ""

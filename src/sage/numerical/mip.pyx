@@ -367,7 +367,9 @@ cdef class MixedIntegerLinearProgram:
         Displays the ``MixedIntegerLinearProgram`` in a human-readable
         way.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        When constraints have names ::
 
             sage: p = MixedIntegerLinearProgram()
             sage: x = p.new_variable()

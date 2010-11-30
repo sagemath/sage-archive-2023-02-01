@@ -1086,6 +1086,8 @@ class ToricVariety_field(AmbientSpace):
             True
             sage: P1xP1.is_homogeneous(x - t)
             False
+            sage: P1xP1.is_homogeneous(1)
+            True
         """
         if "_relation_matrix" not in self.__dict__:
             m = self.fan().ray_matrix().transpose().kernel().matrix()
@@ -1093,9 +1095,12 @@ class ToricVariety_field(AmbientSpace):
             m = m.augment(matrix(m.nrows(), self._torus_factor_dim))
             self._relation_matrix = m
         relation_matrix = self._relation_matrix
-        if polynomial not in self.coordinate_ring():
+        S = self.coordinate_ring()
+        try:
+            polynomial = S(polynomial)
+        except TypeError:
             # Then it should be in the quotient corresponding to a subscheme
-            polynomial = polynomial.lift()
+            polynomial = S(polynomial.lift())
         monomials = polynomial.monomials()
         if not monomials:
             return True

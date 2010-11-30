@@ -36,6 +36,17 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             sage: cr = CR(None)
             sage: cr['x,y']
             Multivariate Polynomial Ring in x, y over ...
+
+        TESTS::
+
+        Check that containment works correctly (ticket #10355)::
+
+            sage: A1.<a> = PolynomialRing(QQ)
+            sage: A2.<a,b> = PolynomialRing(QQ)
+            sage: 3 in A2
+            True
+            sage: A1(a) in A2
+            True
         """
         order = TermOrder(order,n)
         if not base_ring.is_commutative():
@@ -196,16 +207,6 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         else:
             return cmp((left.base_ring(), left.__ngens, left.variable_names(), left.__term_order),
                        (right.base_ring(), (<MPolynomialRing_generic>right).__ngens, right.variable_names(), (<MPolynomialRing_generic>right).__term_order))
-
-    def __contains__(self, x):
-        """
-        This definition of containment does not involve a natural
-        inclusion from rings with less variables into rings with more.
-        """
-        try:
-            return x.parent() == self
-        except AttributeError:
-            return False
 
     def _repr_(self):
         """

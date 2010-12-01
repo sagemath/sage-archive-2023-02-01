@@ -2396,6 +2396,10 @@ cdef class NumberFieldElement(FieldElement):
         -  ``P`` - a prime ideal of the parent of self
 
 
+        .. note::
+
+           The function ``ord()`` is an alias for ``valuation()``.
+
         EXAMPLES::
 
             sage: R.<x> = QQ[]
@@ -2403,6 +2407,8 @@ cdef class NumberFieldElement(FieldElement):
             sage: P = K.ideal(61).factor()[0][0]
             sage: b = a^2 + 30
             sage: b.valuation(P)
+            1
+            sage: b.ord(P)
             1
             sage: type(b.valuation(P))
             <type 'sage.rings.integer.Integer'>
@@ -2427,6 +2433,8 @@ cdef class NumberFieldElement(FieldElement):
         if self == 0:
             return infinity
         return Integer_sage(self.number_field().pari_nf().elementval(self._pari_(), P.pari_prime()))
+
+    ord = valuation
 
     def local_height(self, P, prec=None, weighted=False):
         r"""

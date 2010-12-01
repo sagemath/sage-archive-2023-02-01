@@ -1,7 +1,14 @@
 r"""
 Enumeration of rational points on affine and projective schemes
 
-Naive algorithms for enumerating rational points over `\QQ` or finite fields over for general schemes. Warning: Incorrect results and infinite loops may occur if using the wrong function.(For instance using an affine function for a projective scheme or finite field function for a scheme defined over an infinite field).
+Naive algorithms for enumerating rational points over `\QQ` or finite fields
+over for general schemes.
+
+.. WARNING::
+
+    Incorrect results and infinite loops may occur if using a wrong function.
+    (For instance using an affine function for a projective scheme or a finite
+    field function for a scheme defined over an infinite field.)
 
 EXAMPLES:
 
@@ -11,9 +18,9 @@ Projective, over `\QQ`::
     sage: P.<X,Y,Z> = ProjectiveSpace(2,QQ)
     sage: C = P.subscheme([X+Y-Z])
     sage: enum_projective_rational_field(C,3)
-    [(-2 : 3 : 1), (-1 : 1 : 0), (-1 : 2 : 1), (-1/2 : 3/2 : 1), (0 : 1 : 1),
-    (1/3 : 2/3 : 1), (1/2 : 1/2 : 1), (2/3 : 1/3 : 1), (1 : 0 : 1),
-    (3/2 : -1/2 : 1), (2 : -1 : 1), (3 : -2 : 1)]
+    [(-2 : 3 : 1), (-1 : 1 : 0), (-1 : 2 : 1), (-1/2 : 3/2 : 1),
+     (0 : 1 : 1), (1/3 : 2/3 : 1), (1/2 : 1/2 : 1), (2/3 : 1/3 : 1),
+     (1 : 0 : 1), (3/2 : -1/2 : 1), (2 : -1 : 1), (3 : -2 : 1)]
 
 Affine, over `\QQ`::
 
@@ -21,57 +28,65 @@ Affine, over `\QQ`::
     sage: A.<x,y,z> = AffineSpace(3,QQ)
     sage: S = A.subscheme([2*x-3*y])
     sage: enum_affine_rational_field(S,2)
-    [(0, 0, -2), (0, 0, -1), (0, 0, -1/2), (0, 0, 0), (0, 0, 1/2), (0, 0, 1),
-    (0, 0, 2)]
+    [(0, 0, -2), (0, 0, -1), (0, 0, -1/2), (0, 0, 0),
+     (0, 0, 1/2), (0, 0, 1), (0, 0, 2)]
 
 Projective over a finite field::
 
     sage: from sage.schemes.generic.rational_point import enum_projective_finite_field
     sage: E = EllipticCurve('72').change_ring(GF(19))
     sage: enum_projective_finite_field(E)
-    [(0 : 1 : 0), (1 : 0 : 1), (3 : 0 : 1), (4 : 9 : 1), (4 : 10 : 1), (6 : 6 : 1),
-    (6 : 13 : 1), (7 : 6 : 1), (7 : 13 : 1), (9 : 4 : 1), (9 : 15 : 1), (12 : 8 : 1),
-    (12 : 11 : 1), (13 : 8 : 1), (13 : 11 : 1), (14 : 3 : 1), (14 : 16 : 1),
-    (15 : 0 : 1), (16 : 9 : 1), (16 : 10 : 1), (17 : 7 : 1), (17 : 12 : 1), (18 : 9 : 1),
-    (18 : 10 : 1)]
+    [(0 : 1 : 0), (1 : 0 : 1), (3 : 0 : 1), (4 : 9 : 1), (4 : 10 : 1),
+     (6 : 6 : 1), (6 : 13 : 1), (7 : 6 : 1), (7 : 13 : 1), (9 : 4 : 1),
+     (9 : 15 : 1), (12 : 8 : 1), (12 : 11 : 1), (13 : 8 : 1), (13 : 11 : 1),
+     (14 : 3 : 1), (14 : 16 : 1), (15 : 0 : 1), (16 : 9 : 1), (16 : 10 : 1),
+     (17 : 7 : 1), (17 : 12 : 1), (18 : 9 : 1), (18 : 10 : 1)]
 
 Affine over a finite field::
 
     sage: from sage.schemes.generic.rational_point import enum_affine_finite_field
     sage: A.<w,x,y,z> = AffineSpace(4,GF(2))
     sage: enum_affine_finite_field(A(GF(2)))
-    [(0, 0, 0, 0), (0, 0, 0, 1), (0, 0, 1, 0), (0, 0, 1, 1), (0, 1, 0, 0), (0, 1, 0, 1),
-    (0, 1, 1, 0), (0, 1, 1, 1), (1, 0, 0, 0), (1, 0, 0, 1), (1, 0, 1, 0), (1, 0, 1, 1),
-    (1, 1, 0, 0), (1, 1, 0, 1), (1, 1, 1, 0), (1, 1, 1, 1)]
+    [(0, 0, 0, 0), (0, 0, 0, 1), (0, 0, 1, 0), (0, 0, 1, 1), (0, 1, 0, 0),
+     (0, 1, 0, 1), (0, 1, 1, 0), (0, 1, 1, 1), (1, 0, 0, 0), (1, 0, 0, 1),
+     (1, 0, 1, 0), (1, 0, 1, 1), (1, 1, 0, 0), (1, 1, 0, 1), (1, 1, 1, 0),
+     (1, 1, 1, 1)]
 
 AUTHORS:
 
-Originally by David R. Kohel <kohel@maths.usyd.edu.au>
+- David R. Kohel <kohel@maths.usyd.edu.au>: original version.
 
-Improvements to clarity and documentation made by John Cremona and Charlie Turner <charlotteturner@gmail.com> (06-2010)
+- John Cremona and Charlie Turner <charlotteturner@gmail.com> (06-2010):
+  improvements to clarity and documentation.
 """
+
+
 #*******************************************************************************
 #  Copyright (C) 2010 William Stein, David Kohel, John Cremona, Charlie Turner
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*******************************************************************************
+
+
 from sage.rings.arith import gcd
 from sage.rings.all import QQ, ZZ
 from sage.misc.all import srange, cartesian_product_iterator
 from sage.schemes.all import is_Scheme
 
 def enum_projective_rational_field(X,B):
-    """
-    Enumerates projective, rational points on scheme X of height up to bound B.
+    r"""
+    Enumerates projective, rational points on scheme ``X`` of height up to
+    bound ``B``.
 
     INPUT:
 
-    - ``X`` -  a scheme or set of abstract rational points of a scheme.
-    - ``B`` -  a positive integer bound
+    - ``X`` -  a scheme or set of abstract rational points of a scheme;
+    - ``B`` -  a positive integer bound.
 
     OUTPUT:
 
-    - a list containing the projective points of X of height up to B, sorted.
+    - a list containing the projective points of ``X`` of height up to ``B``,
+      sorted.
 
     EXAMPLES::
 
@@ -79,14 +94,16 @@ def enum_projective_rational_field(X,B):
         sage: C = P.subscheme([X+Y-Z])
         sage: from sage.schemes.generic.rational_point import enum_projective_rational_field
         sage: enum_projective_rational_field(C(QQ),6)
-        [(-5 : 6 : 1), (-4 : 5 : 1), (-3 : 4 : 1), (-2 : 3 : 1), (-3/2 : 5/2 : 1),
-        (-1 : 1 : 0), (-1 : 2 : 1), (-2/3 : 5/3 : 1), (-1/2 : 3/2 : 1), (-1/3 : 4/3 : 1),
-        (-1/4 : 5/4 : 1), (-1/5 : 6/5 : 1), (0 : 1 : 1), (1/6 : 5/6 : 1), (1/5 : 4/5 : 1),
-        (1/4 : 3/4 : 1), (1/3 : 2/3 : 1), (2/5 : 3/5 : 1), (1/2 : 1/2 : 1), (3/5 : 2/5 : 1),
-        (2/3 : 1/3 : 1), (3/4 : 1/4 : 1), (4/5 : 1/5 : 1), (5/6 : 1/6 : 1), (1 : 0 : 1),
-        (6/5 : -1/5 : 1), (5/4 : -1/4 : 1), (4/3 : -1/3 : 1), (3/2 : -1/2 : 1),
-        (5/3 : -2/3 : 1), (2 : -1 : 1), (5/2 : -3/2 : 1), (3 : -2 : 1), (4 : -3 : 1),
-        (5 : -4 : 1), (6 : -5 : 1)]
+        [(-5 : 6 : 1), (-4 : 5 : 1), (-3 : 4 : 1), (-2 : 3 : 1),
+         (-3/2 : 5/2 : 1), (-1 : 1 : 0), (-1 : 2 : 1), (-2/3 : 5/3 : 1),
+         (-1/2 : 3/2 : 1), (-1/3 : 4/3 : 1), (-1/4 : 5/4 : 1),
+         (-1/5 : 6/5 : 1), (0 : 1 : 1), (1/6 : 5/6 : 1), (1/5 : 4/5 : 1),
+         (1/4 : 3/4 : 1), (1/3 : 2/3 : 1), (2/5 : 3/5 : 1), (1/2 : 1/2 : 1),
+         (3/5 : 2/5 : 1), (2/3 : 1/3 : 1), (3/4 : 1/4 : 1), (4/5 : 1/5 : 1),
+         (5/6 : 1/6 : 1), (1 : 0 : 1), (6/5 : -1/5 : 1), (5/4 : -1/4 : 1),
+         (4/3 : -1/3 : 1), (3/2 : -1/2 : 1), (5/3 : -2/3 : 1), (2 : -1 : 1),
+         (5/2 : -3/2 : 1), (3 : -2 : 1), (4 : -3 : 1), (5 : -4 : 1),
+         (6 : -5 : 1)]
         sage: enum_projective_rational_field(C,6) == enum_projective_rational_field(C(QQ),6)
         True
 
@@ -108,39 +125,40 @@ def enum_projective_rational_field(X,B):
     ALGORITHM:
 
     We just check all possible projective points in correct dimension
-    of projective space to see if they lie on X.
+    of projective space to see if they lie on ``X``.
 
     AUTHORS:
 
-    John Cremona and Charlie Turner (06-2010)
+    - John Cremona and Charlie Turner (06-2010)
     """
     if is_Scheme(X):
         X = X(X.base_ring())
-    n = X.codomain().ambient_space().ngens()-1
-    zero=tuple([0 for _ in range(n+1)])
-#    pts = [X(c) for c in cartesian_product_iterator([srange(-B,B+1) for _ in range(n+1)]) if gcd(c)==1 and c>zero]
-    pts =[]
-    for c in cartesian_product_iterator([srange(-B,B+1) for _ in range(n+1)]):
-        if gcd(c)==1 and c>zero:
+    n = X.codomain().ambient_space().ngens()
+    zero = (0,) * n
+    pts = []
+    for c in cartesian_product_iterator([srange(-B,B+1) for _ in range(n)]):
+        if gcd(c) == 1 and c > zero:
             try:
                 pts.append(X(c))
-            except:
+            except TypeError:
                 pass
     pts.sort()
     return pts
 
 def enum_affine_rational_field(X,B):
     """
-    Enumerates affine rational points on scheme X (defined over `\QQ`) up to bound B.
+    Enumerates affine rational points on scheme ``X`` (defined over `\QQ`) up
+    to bound ``B``.
 
     INPUT:
 
-    - ``X`` -  a scheme or set of abstract rational points of a scheme
-    - ``B`` -  a positive integer bound
+    - ``X`` -  a scheme or set of abstract rational points of a scheme;
+    - ``B`` -  a positive integer bound.
 
     OUTPUT:
 
-    - a list containing the affine points of X of height up to B, sorted.
+    - a list containing the affine points of ``X`` of height up to ``B``,
+      sorted.
 
     EXAMPLES::
 
@@ -152,7 +170,6 @@ def enum_affine_rational_field(X,B):
         (0, 0, -1), (0, 0, 0), (0, 0, 1), (0, 1, -1), (0, 1, 0), (0, 1, 1), (1, -1, -1),
         (1, -1, 0), (1, -1, 1), (1, 0, -1), (1, 0, 0), (1, 0, 1), (1, 1, -1), (1, 1, 0),
         (1, 1, 1)]
-
 
     ::
 
@@ -171,10 +188,11 @@ def enum_affine_rational_field(X,B):
         [(-2, -6), (-1, -2), (0, 0), (1, 0), (2, -2), (3, -6)]
 
 
-    AUTHOR:
+    AUTHORS:
 
-    David R. Kohel <kohel@maths.usyd.edu.au>
-    (small adjustments by Charlie Turner 06-2010)
+    - David R. Kohel <kohel@maths.usyd.edu.au>: original version.
+
+    - Charlie Turner (06-2010): small adjustments.
     """
     if is_Scheme(X):
         X = X(X.base_ring())
@@ -182,49 +200,53 @@ def enum_affine_rational_field(X,B):
     if X.value_ring() is ZZ:
         Q = [ 1 ]
     else: # rational field
-        Q = [ k+1 for k in range(B) ]
-    R = [ 0 ] + [ s*k for k in range(1,B+1) for s in [1,-1] ]
+        Q = range(1, B + 1)
+    R = [ 0 ] + [ s*k for k in range(1, B+1) for s in [1, -1] ]
     pts = []
-    P = [ 0 for _ in range(n) ]
+    P = [0] * n
     m = ZZ(0)
     try:
         pts.append(X(P))
-    except:
+    except TypeError:
         pass
     iters = [ iter(R) for _ in range(n) ]
-    [ iters[j].next() for j in range(n) ]
+    for it in iters:
+        it.next()
     i = 0
     while i < n:
         try:
             a = ZZ(iters[i].next())
-            m = m.gcd(a)
-            P[i] = a
-            for b in Q:
-                if m.gcd(b) == 1:
-                    try:
-                        pts.append(X([ num/b for num in P ]))
-                    except:
-                        pass
-            i = 0
-            m = ZZ(0)
         except StopIteration:
             iters[i] = iter(R) # reset
             P[i] = iters[i].next() # reset P[i] to 0 and increment
             i += 1
+            continue
+        m = m.gcd(a)
+        P[i] = a
+        for b in Q:
+            if m.gcd(b) == 1:
+                try:
+                    pts.append(X([ num/b for num in P ]))
+                except TypeError:
+                    pass
+        i = 0
+        m = ZZ(0)
     pts.sort()
     return pts
 
 def enum_projective_finite_field(X):
     """
-    Enumerates projective points on scheme X defined over a finite field
+    Enumerates projective points on scheme ``X`` defined over a finite field.
 
     INPUT:
 
-    - ``X`` -  a scheme defined over a finite field or set of abstract rational points of such a scheme
+    - ``X`` -  a scheme defined over a finite field or a set of abstract
+      rational points of such a scheme.
 
     OUTPUT:
 
-    - a list containing the projective points of X over the finite field, sorted
+    - a list containing the projective points of ``X`` over the finite field,
+      sorted.
 
     EXAMPLES::
 
@@ -262,11 +284,13 @@ def enum_projective_finite_field(X):
 
     Checks all points in projective space to see if they lie on X.
 
-    NOTE:
+    .. WARNING::
 
-    Warning:if X given as input is defined over an infinite field then this code will not finish!
+        If ``X`` is defined over an infinite field, this code will not finish!
 
-    AUTHORS: John Cremona and Charlie Turner (06-2010)
+    AUTHORS:
+
+    - John Cremona and Charlie Turner (06-2010).
     """
     if is_Scheme(X):
         X = X(X.base_ring())
@@ -277,22 +301,24 @@ def enum_projective_finite_field(X):
         for c in cartesian_product_iterator([F for _ in range(k)]):
             try:
                 pts.append(X(list(c)+[1]+[0]*(n-k)))
-            except:
+            except TypeError:
                 pass
     pts.sort()
     return pts
 
 def enum_affine_finite_field(X):
-    """
-    Enumerates affine points on scheme X defined over a finite field
+    r"""
+    Enumerates affine points on scheme ``X`` defined over a finite field.
 
     INPUT:
 
-    - ``X`` -  a scheme defined over a finite field or set of abstract rational points of such a scheme
+    - ``X`` -  a scheme defined over a finite field or a set of abstract
+      rational points of such a scheme.
 
     OUTPUT:
 
-    - a list containing the affine points of X over the finite field, sorted
+    - a list containing the affine points of ``X`` over the finite field,
+      sorted.
 
     EXAMPLES::
 
@@ -326,14 +352,13 @@ def enum_affine_finite_field(X):
 
     Checks all points in affine space to see if they lie on X.
 
-    NOTE:
+    .. WARNING::
 
-    Warning:if X given as input is defined over an infinite field then this code will not finish!
+        If ``X`` is defined over an infinite field, this code will not finish!
 
     AUTHORS:
 
-    John Cremona and Charlie Turner (06-2010)
-
+    - John Cremona and Charlie Turner (06-2010)
     """
     if is_Scheme(X):
         X = X(X.base_ring())

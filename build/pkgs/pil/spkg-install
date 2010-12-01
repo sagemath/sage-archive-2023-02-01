@@ -1,37 +1,34 @@
 #!/usr/bin/env sh
 
-if [ "$SAGE_LOCAL" = "" ]; then
-   echo "SAGE_LOCAL undefined ... exiting";
-   echo "Maybe run 'sage -sh'?"
-   exit 1
+if [ -z "$SAGE_LOCAL" ]; then
+    echo "SAGE_LOCAL undefined - exiting ..."
+    echo "Maybe run 'sage -sh'?"
+    exit 1
 fi
 
 success() {
     if [ $? -ne 0 ]; then
-        echo "Error building PIL: '$1'"
+        echo $1
         exit 1
     fi
 }
 
-set +e
+patch -p0 < dont-add-system-libs-if-binary-build.patch
+success "Error patching PIL"
 
 echo "Deleting old versions..."
 rm -rf "$SAGE_LOCAL"/lib/python/site-packages/PIL
 rm -f "$SAGE_LOCAL"/lib/python/site-packages/PIL.pth
-success "Error deleting previous version"
+success "Error deleting previous version of PIL"
 
 cd src
-
-patch < ../patches/setup.py.patch
-success "Error patching PIL"
 
 python setup.py install
 
 if [ $? -ne 0 ]; then
+    echo "Warning: Failed to install PIL with TK, retrying without TK support..."
     export SAGE_PIL_NOTK='yes'
     python setup.py install
 fi
 
-success "Error installing PIL"
-
-set -e
+success "Error building / installing PIL"

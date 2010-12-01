@@ -1,6 +1,7 @@
---- setup.py.orig	2009-10-28 17:29:49.000000000 -0700
-+++ setup.py	2010-11-26 01:26:07.000000000 -0800
-@@ -34,11 +34,20 @@ def libinclude(root):
+diff -Nur src/setup.py src-dont-add-system-libs-if-binary-build/setup.py
+--- src/setup.py	2006-12-03 12:37:29.000000000 +0100
++++ src-dont-add-system-libs-if-binary-build/setup.py	2010-12-01 02:47:11.000000000 +0100
+@@ -34,11 +34,20 @@
  #
  # TIFF_ROOT = libinclude("/opt/tiff")
  
@@ -26,20 +27,19 @@
  
  # FIXME: add mechanism to explicitly *disable* the use of a library
  
-@@ -90,8 +99,10 @@ try:
+@@ -90,6 +99,11 @@
  except ImportError:
      _tkinter = None
  
--# Force None, so don't build tk -- this helps on some platforms.
--_tkinter = None
 +if 'SAGE_PIL_NOTK' in os.environ and os.environ['SAGE_PIL_NOTK'] == 'yes':
 +    print("Disabling TK in PIL build.")
 +    # Force None, so don't build tk -- this helps on some platforms.
 +    _tkinter = None
- 
++
  def add_directory(path, dir, where=None):
      if dir and os.path.isdir(dir) and dir not in path:
-@@ -123,62 +134,64 @@ class pil_build_ext(build_ext):
+         if where is None:
+@@ -120,62 +134,64 @@
  
          add_directory(include_dirs, "libImaging")
  
@@ -120,7 +120,7 @@
 +                add_directory(library_dirs, "/opt/local/lib")
 +                add_directory(include_dirs, "/opt/local/include")
 +
-+# Commented out to ensure SAGE_LOCAL/lib comes before /usr/local/lib:
++# Commented out to ensure SAGE_LOCAL/lib comes before /usr/local/lib (#9864):
 +#            add_directory(library_dirs, "/usr/local/lib")
 +            # FIXME: check /opt/stuff directories here?
 +
@@ -160,7 +160,7 @@
              else:
                  TCL_ROOT = None
  
-@@ -196,11 +209,12 @@ class pil_build_ext(build_ext):
+@@ -193,11 +209,12 @@
          #
          # add standard directories
  

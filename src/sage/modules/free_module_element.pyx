@@ -133,9 +133,14 @@ def is_FreeModuleElement(x):
 
 def vector(arg0, arg1=None, arg2=None, sparse=None):
     r"""
-    Return a vector over R with given entries.
+    Return a vector or free module element with specified entries.
 
     CALL FORMATS:
+
+    This constructor can be called in several different ways.
+    In each case, ``sparse=True`` or ``sparse=False`` can be
+    supplied as an option.  ``free_module_element()`` is an
+    alias for ``vector()``.
 
     1. vector(object)
 
@@ -143,23 +148,43 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
 
     3. vector(object, ring)
 
-    4. vector(numpy_array)
+    4. vector(ring, degree, object)
 
-    In each case, give ``sparse=True`` or ``sparse=False`` as an
-    option.
+    5. vector(ring, degree)
+
+    6. vector(numpy_array)
+
 
     INPUT:
 
+    -  ``object`` - a list, dictionary, or other
+       iterable containing the entries of the vector
 
-    -  ``elts`` - entries of a vector (either a list or
-       dict).
+    -  ``ring`` - a base ring (or field) for the vector
+       space or free module, which contains all of the elements
 
-    -  ``R`` - ring
+    -  ``degree`` - an integer specifying the number of
+       entries in the vector or free module element
+
+    -  ``numpy_array`` - a NumPy array with the desired entries
 
     -  ``sparse`` - optional
 
+    In call format 4, an error is raised if the ``degree`` does not match
+    the length of ``object`` so this call can provide some safeguards.
+    Note however that using this format when ``object`` is a dictionary
+    is unlikely to work properly.
 
-    OUTPUT: An element of the free module over R of rank len(elts).
+    OUTPUT: An element of the vector space or free module with the given
+    base ring and implied or specified dimension or rank,
+    containing the specified entries and with correct degree.
+
+    In call format 5, no entries are specified, so the element is
+    populated with all zeros.
+
+    If the ``sparse`` option is not supplied, the output will
+    generally have a dense representation.  The exception is if
+    ``object`` is a dictionary, then the representation will be sparse.
 
     EXAMPLES::
 
@@ -203,31 +228,67 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
         Ambient free module of rank 3 over the principal ideal domain Integer Ring
 
     You can also use ``free_module_element``, which is
-    the same as ``vector``.
-
-    ::
+    the same as ``vector``. ::
 
         sage: free_module_element([1/3, -4/5])
         (1/3, -4/5)
 
-    Make a vector mod 3 out of a vector over `\ZZ`::
+    We make a vector mod 3 out of a vector over `\ZZ`. ::
 
         sage: vector(vector([1,2,3]), GF(3))
         (1, 2, 0)
 
+    The degree of a vector may be specified::
+
+        sage: vector(QQ, 4, [1,1/2,1/3,1/4])
+        (1, 1/2, 1/3, 1/4)
+
+
+    But it is an error if the degree and size of the list of entries
+    are mismatched::
+
+        sage: vector(QQ, 5, [1,1/2,1/3,1/4])
+        Traceback (most recent call last):
+        ...
+        ValueError: incompatible degrees in vector constructor
+
+    Providing no entries populates the vector with zeros, but of course,
+    you must specify the degree since it is not implied.  Here we use a
+    finite field as the base ring. ::
+
+        sage: w = vector(FiniteField(7), 4); w
+        (0, 0, 0, 0)
+        sage: w.parent()
+        Vector space of dimension 4 over Finite Field of size 7
+
     Here we illustrate the creation of sparse vectors by using a
-    dictionary::
+    dictionary. ::
 
         sage: vector({1:1.1, 3:3.14})
         (0.000000000000000, 1.10000000000000, 0.000000000000000, 3.14000000000000)
+
+    It is very unlikely that giving a degree and a dictionary will succeed. ::
+
+        sage: v = vector(QQ, 8, {0:1/2, 4:-6}); v
+        Traceback (most recent call last):
+        ...
+        ValueError: incompatible degrees in vector constructor
+
+    Instead, provide a "terminal" element (likely a zero) to fill out
+    the vector to the desired number of entries.  ::
+
+        sage: v = vector(QQ, {0:1/2, 4:-6, 7:0}); v
+        (1/2, 0, 0, 0, -6, 0, 0, 0)
+        sage: v.degree()
+        8
+        sage: v.is_sparse()
+        True
 
     Any 1 dimensional numpy array of type float or complex may be
     passed to vector. The result will be a vector in the appropriate
     dimensional vector space over the real double field or the complex
     double field. The data in the array must be contiguous so
-    column-wise slices of numpy matrices will raise an exception.
-
-    ::
+    column-wise slices of numpy matrices will raise an exception. ::
 
         sage: import numpy
         sage: x=numpy.random.randn(10)
@@ -237,7 +298,7 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
 
     If any of the arguments to vector have Python type int, long, real,
     or complex, they will first be coerced to the appropriate Sage
-    objects. This fixes trac #3847::
+    objects. This fixes trac #3847. ::
 
         sage: v = vector([int(0)]); v
         (0)
@@ -253,7 +314,7 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
         Complex Double Field
 
     If the argument is a vector, it doesn't change the base ring. This
-    fixes trac #6643::
+    fixes trac #6643. ::
 
         sage: K.<sqrt3> = QuadraticField(3)
         sage: u = vector(K, (1/2, sqrt3/2) )
@@ -263,7 +324,7 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
         sage: vector(v).base_ring()
         Number Field in sqrt3 with defining polynomial x^2 - 3
 
-    Constructing a vector from a numpy array works::
+    Constructing a vector from a numpy array behaves as expected::
 
         sage: import numpy
         sage: a=numpy.array([1,2,3])
@@ -310,7 +371,6 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
                 import vector_complex_double_dense
                 _v=vector_complex_double_dense.Vector_complex_double_dense(V, v)
                 return _v
-
 
     if isinstance(v, dict):
         if sparse is None:

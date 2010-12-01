@@ -41,6 +41,7 @@ Website: http://ecls.sourceforge.net/
  * Delete the contents of the src/msvc directory
  * Delete the contents of the src/contrib/encodings/
  * TODO - Add the ECL test suite, and an spkg-check file to run it.
+ * Note, the way we configure Sage, CXX and CXXFLAGS are unused.
 
 == Changelog ==
 
@@ -83,6 +84,21 @@ Website: http://ecls.sourceforge.net/
     upstream source code.
   * Changed code to set optimisation flag -O0 if SAGE_DEBUG=yes. This
     is more consistent with other packages.
+  * Removed set -e / set +e. When used properly, these are useful, but it
+    is very easy for someoone to fail to set them properly, that it's safter
+    to not use them. :w
+  * Changed method of setting CPPFLAGS and LDFLAGS so they would work with
+    a space in $SAGE_LOCAL.
+  * Made notes in this file and spkg-install that the way ECL is configured
+    in Sage, the values of CXX and CXXFLAGS are ignored.
+  * Added -with-gmp-prefix="$SAGE_LOCAL" --with-system-gmp=yes
+    --enable-boehm=system to the line invoking the configure script. These
+  * Removed an inaccurate comment about what MAKE="$MAKE -j1" does.
+  * Noted that a certain bit of code would be executed on Solaris Express too,
+    rather than just the Solaris and OpenSolaris that were listed before.
+  * Ensured that user defined values for CFLAGS & CXXFLAGS do not get
+    overwritten, as they would have done when SAGE_DEBUG was not "yes"
+
 
 === ecl-10.2.1.p3 (David Kirkby, David Kirkby, 17th September 2010) ===
   * #9917 Add a missing argument on line 678 of dpp.c. The code is fixed

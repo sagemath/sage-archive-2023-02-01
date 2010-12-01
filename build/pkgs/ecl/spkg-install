@@ -14,8 +14,8 @@ if [ "x$CXXFLAG64" = x ] ; then
    CXXFLAG64=-m64
 fi
 
-CPPFLAGS="$CPPFLAGS -I$SAGE_LOCAL/include"
-LDFLAGS="$LDFLAGS -L$SAGE_LOCAL/lib"
+CPPFLAGS="$CPPFLAGS -I${SAGE_LOCAL}/include"
+LDFLAGS="$LDFLAGS -L${SAGE_LOCAL}/lib"
 
 # Compile for 64-bit if SAGE64 is set to 'yes'
 if [ "x$SAGE64" = "xyes" ]  ; then
@@ -29,8 +29,8 @@ if [ "x$SAGE_DEBUG" = xyes ] ; then
    CFLAGS="$CFLAGS -g -O0"
    CXXFLAGS="$CXXFLAGS -g -O0"
 else
-   CFLAGS="$CFLAGS -g -O2"
-   CXXFLAGS="$CXXFLAGS -g -O2"
+   CFLAGS="-g -O2 $CFLAGS"
+   CXXFLAGS="-g -O2 $CXXFLAGS"
 fi
 
 # These are all used by GNU to specify compilers.
@@ -55,13 +55,11 @@ export LDFLAGS
 # End of pretty general spkg-install file.
 # Now do the specific things needed for this package (ECL)
 
-# 'export MAKE='make -j n' where n>1, breaks ECL builds, so unset make
+# 'export MAKE='make -j n' where n>1, breaks ECL builds, so use only one thread
 MAKE="$MAKE -j1"
 
 # We clear MAKEFLAGS to fix building multiple spkgs in parallel on OS X.
 export MAKEFLAGS=
-
-set +e
 
 cd src
 
@@ -69,12 +67,12 @@ if [ "x`uname -sm`" = "xSunOS i86pc" ] && [ "x$SAGE64" = xyes ]  ; then
    # Need to add --with-dffi=no to disable assembly code on OpenSolaris x64.
    # and Solaris 10 on x64.
    # The option is only given if all the following are true
-   # 1) Solaris or OpenSolaris (SunOS)
+   # 1) Solaris, Solaris Express or OpenSolaris (SunOS)
    # 2) Intel or AMD CPU
    # 3) 64-bit build
-   ./configure --prefix="$SAGE_LOCAL" --with-dffi=no
+   ./configure --prefix="$SAGE_LOCAL" --with-gmp-prefix="$SAGE_LOCAL" --with-system-gmp=yes --enable-boehm=system --with-dffi=no
 else
-   ./configure --prefix="$SAGE_LOCAL"
+   ./configure --prefix="$SAGE_LOCAL" --with-gmp-prefix="$SAGE_LOCAL" --with-system-gmp=yes --enable-boehm=system
 fi
 
 if [ $? -ne 0 ]; then

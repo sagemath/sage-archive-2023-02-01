@@ -13,15 +13,18 @@ success() {
     fi
 }
 
-patch -p0 < patches/dont-add-system-libs-if-binary-build.patch
+cd src
+
+# Apply two patches to 'setup.py' in the correct order (the second
+# one is based on the first one!):
+patch -p1 < ../patches/dont-add-system-libs-if-binary-build.patch &&
+patch -p1 < ../patches/search-lib64-dirs-if-appropriate.patch
 success "Error patching PIL"
 
 echo "Deleting old versions..."
 rm -rf "$SAGE_LOCAL"/lib/python/site-packages/PIL
 rm -f "$SAGE_LOCAL"/lib/python/site-packages/PIL.pth
 success "Error deleting previous version of PIL"
-
-cd src
 
 python setup.py install
 

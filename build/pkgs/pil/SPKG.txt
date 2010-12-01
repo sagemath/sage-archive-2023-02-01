@@ -34,14 +34,28 @@ Homepage: http://www.pythonware.com/library/index.htm
 
 == Patches ==
 
- * dont-add-system-libs-if-binary-build.patch (patch to 'setup.py'):
+ * dont-add-system-libs-if-binary-build.patch (patch to 'setup.py';
+   cf. #9864 and previous tickets):
    - Disable Tkinter support if SAGE_PIL_NOTK="yes".
    - Only look for optional libraries in SAGE_LOCAL if SAGE_BINARY_BUILD
      is "yes".
    - Don't add "/usr/local/lib" twice (cf. #9864), especially make sure
      SAGE_LOCAL[/lib] is searched *first*, before the system lib dirs.
 
+ * search-lib64-dirs-if-appropriate.patch (patch to 'setup.py', based
+   on the first one!; cf. #10359):
+   - Check if we're on a 64-bit system, and if so, if the '.../lib64'
+     directories differ from the '.../lib' ones. In that case, add the
+     former, since these contain the proper 64-bit libraries.
+     (On Debian-like 64-bit systems in contrast, e.g. '/usr/lib64' is
+     just a symbolic link to '/usr/lib', so add the latter there.)
+
 == Changelog ==
+
+=== pil-1.1.6.p4 (Leif Leonhardy, December 1st, 2010) ===
+ * #10359: Look for optional (system) libraries in '.../lib64' if appro-
+   priate. (On e.g. 64-bit Fedora, CentOS and openSUSE, the directory
+   '/usr/lib64' is *not* a symbolic link to '/usr/lib'.)
 
 === pil-1.1.6.p3 (Leif Leonhardy, Mitesh Patel, December 1st, 2010) ===
  * #9864: Make SAGE_LOCAL/lib precede /usr/local/lib in the library

@@ -48,6 +48,7 @@ Website: http://ecls.sourceforge.net/
 === ecl-10.4.1 (David Kirkby, 11th November 2010) ===
   * #10187 Update to the latest stable release of ECL, which is needed
     to build on Fedora 14 (see #10185).
+  * Addred the word "Error" in front of all error messages.
   * Added a TODO to add an spkg-check file. Doing this is not
     trivial. The ECL developer has said the test code on the
     ECL site is outdated, and ECL is not really designed to
@@ -85,19 +86,17 @@ Website: http://ecls.sourceforge.net/
   * Changed code to set optimisation flag -O0 if SAGE_DEBUG=yes. This
     is more consistent with other packages.
   * Removed set -e / set +e. When used properly, these are useful, but it
-    is very easy for someoone to fail to set them properly, that it's safter
-    to not use them. :w
+    is very easy for someoone to fail to set them properly, so it's safer
+    to not use them.
   * Changed method of setting CPPFLAGS and LDFLAGS so they would work with
     a space in $SAGE_LOCAL.
   * Made notes in this file and spkg-install that the way ECL is configured
     in Sage, the values of CXX and CXXFLAGS are ignored.
-  * Added -with-gmp-prefix="$SAGE_LOCAL" --with-system-gmp=yes
-    --enable-boehm=system to the line invoking the configure script. These
   * Removed an inaccurate comment about what MAKE="$MAKE -j1" does.
   * Noted that a certain bit of code would be executed on Solaris Express too,
     rather than just the Solaris and OpenSolaris that were listed before.
-  * Ensured that user defined values for CFLAGS & CXXFLAGS do not get
-    overwritten, as they would have done when SAGE_DEBUG was not "yes"
+  * Ensured that user-defined values for CFLAGS & CXXFLAGS do not get
+    overridden, as they would have been when SAGE_DEBUG was not "yes"
 
 
 === ecl-10.2.1.p3 (David Kirkby, David Kirkby, 17th September 2010) ===
@@ -106,7 +105,7 @@ Website: http://ecls.sourceforge.net/
     retrieved on 17th September 2010. Note, the upstream source code has
     many changes - only this, and the next change were put in Sage. We have
     NOT updated the ECL version to the latest unstable upstream version.
-  * Remove an extra argument on line 680 of dpp.c Same comments as above.
+  * Removed an extra argument on line 680 of dpp.c Same comments as above.
 
 === ecl-10.2.1.p2 (David Kirkby, 30th July 2010) ===
   * #9643 Force ECL to disable assembly code on Solaris 10 as
@@ -133,7 +132,7 @@ Website: http://ecls.sourceforge.net/
   * Upgrade to latest stable upstream release.
 
 === ecl-9.10.2-20091105cvs.p1 (William Stein, December 17, 2009) ===
-  * Remove the encodings directory, since it contains potentially
+  * Removed the encodings directory, since it contains potentially
     dangerous binary files.
 
 === ecl-9.10.2-20091105cvs.p0 (Mike Hansen, November 5, 2009) ===
@@ -187,7 +186,7 @@ Website: http://ecls.sourceforge.net/
   * Removed -m64 from LDFLAGS - it is not needed and unportable.
   * Add a check that someone is not mixing the Sun and GNU
     compilers.
-  * Remove all the special build instructions from this file,
+  * Removed all the special build instructions from this file,
     as we are not sure they are needed.
   * Changed dependency note above from gmp to mpir.
   * Added my own name as a maintainer.

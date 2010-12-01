@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 if [ "x$SAGE_LOCAL" = x ] ; then
-   echo "SAGE_LOCAL undefined ... exiting"
+   echo "Error - SAGE_LOCAL undefined ... exiting"
    echo "Maybe run 'sage -sh'?"
    exit 1
 fi
@@ -14,8 +14,10 @@ if [ "x$CXXFLAG64" = x ] ; then
    CXXFLAG64=-m64
 fi
 
-CPPFLAGS="$CPPFLAGS -I${SAGE_LOCAL}/include"
-LDFLAGS="$LDFLAGS -L${SAGE_LOCAL}/lib"
+CPPFLAGS="$CPPFLAGS -I$SAGE_LOCAL/include"
+LDFLAGS="$LDFLAGS -L$SAGE_LOCAL/lib"
+
+
 
 # Compile for 64-bit if SAGE64 is set to 'yes'
 if [ "x$SAGE64" = "xyes" ]  ; then
@@ -70,32 +72,32 @@ if [ "x`uname -sm`" = "xSunOS i86pc" ] && [ "x$SAGE64" = xyes ]  ; then
    # 1) Solaris, Solaris Express or OpenSolaris (SunOS)
    # 2) Intel or AMD CPU
    # 3) 64-bit build
-   ./configure --prefix="$SAGE_LOCAL" --with-gmp-prefix="$SAGE_LOCAL" --with-system-gmp=yes --enable-boehm=system --with-dffi=no
+   ./configure --prefix="$SAGE_LOCAL" --with-dffi=no
 else
-   ./configure --prefix="$SAGE_LOCAL" --with-gmp-prefix="$SAGE_LOCAL" --with-system-gmp=yes --enable-boehm=system
+   ./configure --prefix="$SAGE_LOCAL"
 fi
 
 if [ $? -ne 0 ]; then
-   echo "Failed to configure ECL ... exiting"
+   echo "Error - Failed to configure ECL ... exiting"
    exit 1
 fi
 
 $MAKE
 if [ $? -ne 0 ]; then
-   echo "Failed to build ECL ... exiting"
+   echo "Error - Failed to build ECL ... exiting"
    exit 1
 fi
 
-# Remove old install of ecl, if any.
+# Remove old install of ECL, if any.
 rm -rf "$SAGE_LOCAL/lib/ecl-"*
 if [ $? -ne 0 ]; then
-   echo "Failed to remove old ECL install ... exiting"
+   echo "Error - Failed to remove old ECL install ... exiting"
    exit 1
 fi
 
 $MAKE install
 if [ $? -ne 0 ]; then
-   echo "Failed to install ECL ... exiting"
+   echo "Error - Failed to install ECL ... exiting"
    exit 1
 fi
 
@@ -105,6 +107,6 @@ cd "$SAGE_LOCAL/lib/" && rm -f ecl && ln -s ecl-* ecl
 
 # It is very important that the above line worked.
 if [ $? -ne 0 ]; then
-   echo "Failed to create ecl library symbolic link ... exiting"
+   echo "Error - Failed to create ECL library symbolic link ... exiting"
    exit 1
 fi

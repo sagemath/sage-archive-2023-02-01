@@ -42,13 +42,17 @@ Website: http://ecls.sourceforge.net/
  * Delete the contents of the src/contrib/encodings/
  * TODO - Add the ECL test suite, and an spkg-check file to run it.
  * Note, the way we configure Sage, CXX and CXXFLAGS are unused.
+ * Do NOT quote SAGE_LOCAL when setting CPPFLAGS and/or LDFLAGS,
+   in spkg-install as this caused the build to break. See
+   http://trac.sagemath.org/sage_trac/ticket/10187#comment:117
+
 
 == Changelog ==
 
 === ecl-10.4.1 (David Kirkby, 11th November 2010) ===
   * #10187 Update to the latest stable release of ECL, which is needed
     to build on Fedora 14 (see #10185).
-  * Addred the word "Error" in front of all error messages.
+  * Added the word "Error" in front of all error messages.
   * Added a TODO to add an spkg-check file. Doing this is not
     trivial. The ECL developer has said the test code on the
     ECL site is outdated, and ECL is not really designed to

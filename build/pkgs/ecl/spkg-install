@@ -14,6 +14,9 @@ if [ "x$CXXFLAG64" = x ] ; then
    CXXFLAG64=-m64
 fi
 
+# Do NOT quote SAGE_LOCAL here, as has caused problems.
+# See: http://trac.sagemath.org/sage_trac/ticket/10187#comment:117
+
 CPPFLAGS="$CPPFLAGS -I$SAGE_LOCAL/include"
 LDFLAGS="$LDFLAGS -L$SAGE_LOCAL/lib"
 

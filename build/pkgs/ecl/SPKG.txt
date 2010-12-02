@@ -92,8 +92,6 @@ Website: http://ecls.sourceforge.net/
   * Removed set -e / set +e. When used properly, these are useful, but it
     is very easy for someoone to fail to set them properly, so it's safer
     to not use them.
-  * Changed method of setting CPPFLAGS and LDFLAGS so they would work with
-    a space in $SAGE_LOCAL.
   * Made notes in this file and spkg-install that the way ECL is configured
     in Sage, the values of CXX and CXXFLAGS are ignored.
   * Removed an inaccurate comment about what MAKE="$MAKE -j1" does.

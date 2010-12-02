@@ -1401,7 +1401,7 @@ cdef class Matrix(matrix0.Matrix):
            This function called with no arguments returns the zero
            matrix of the same dimension and sparseness of self.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: A = matrix(ZZ,2,2,[1,2,3,4]); A
             [1 2]

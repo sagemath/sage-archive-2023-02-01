@@ -3147,8 +3147,8 @@ def binomial_coefficients(n):
 def multinomial_coefficients(m, n):
     r"""
     Return a dictionary containing pairs
-    `\{(k_1,k_2,...,k_m) : C_{k,n}\}` where
-    `C_{k,n}` are multinomial coefficients such that
+    `\{(k_1, k_2, ..., k_m) : C_{k, n}\}` where
+    `C_{k, n}` are multinomial coefficients such that
     `n = k_1 + k_2 + ...+ k_m`.
 
     INPUT:
@@ -3160,7 +3160,7 @@ def multinomial_coefficients(m, n):
 
     EXAMPLES::
 
-        sage: sorted(multinomial_coefficients(2,5).items())
+        sage: sorted(multinomial_coefficients(2, 5).items())
         [((0, 5), 1), ((1, 4), 5), ((2, 3), 10), ((3, 2), 10), ((4, 1), 5), ((5, 0), 1)]
 
     Notice that these are the coefficients of `(x+y)^5`::
@@ -3171,7 +3171,7 @@ def multinomial_coefficients(m, n):
 
     ::
 
-        sage: sorted(multinomial_coefficients(3,2).items())
+        sage: sorted(multinomial_coefficients(3, 2).items())
         [((0, 0, 2), 1), ((0, 1, 1), 2), ((0, 2, 0), 1), ((1, 0, 1), 2), ((1, 1, 0), 2), ((2, 0, 0), 1)]
 
     ALGORITHM: The algorithm we implement for computing the multinomial
@@ -3194,6 +3194,14 @@ def multinomial_coefficients(m, n):
         ...       s += multinomial(n, *ki)
         sage: multinomial(n, *k) == (k[0] + 1) / (n - k[0]) * s
         True
+
+    TESTS::
+
+        sage: multinomial_coefficients(0, 0)
+        {(): 1}
+        sage: multinomial_coefficients(0, 3)
+        {}
+
     """
     if not m:
         if n:

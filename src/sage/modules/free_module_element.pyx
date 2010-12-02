@@ -273,7 +273,7 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
         sage: v = vector(QQ, 8, {0:1/2, 4:-6}); v
         Traceback (most recent call last):
         ...
-        ValueError: incompatible degrees in vector constructor
+        TypeError: cannot specify the degree of a vector while entries are given by a dictionary
 
     Instead, provide a "terminal" element (likely a zero) to fill out
     the vector to the desired number of entries.  ::
@@ -284,6 +284,13 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
         8
         sage: v.is_sparse()
         True
+
+    It is an error to specify a negative degree. ::
+
+        sage: vector(RR, -4, [1.0, 2.0, 3.0, 4.0])
+        Traceback (most recent call last):
+        ...
+        ValueError: cannot specify the degree of a vector as a negative integer (-4)
 
     Any 1 dimensional numpy array of type float or complex may be
     passed to vector. The result will be a vector in the appropriate
@@ -341,6 +348,10 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
         return arg1._vector_(arg0)
 
     if sage.rings.integer.is_Integer(arg1) or isinstance(arg1,(int,long)):
+        if arg1 < 0:
+            raise ValueError("cannot specify the degree of a vector as a negative integer (%s)" % arg1)
+        if isinstance(arg2, dict):
+            raise TypeError("cannot specify the degree of a vector while entries are given by a dictionary")
         if arg2 is None:
             arg1 = [0]*arg1
         else:
@@ -438,6 +449,85 @@ def prepare_dict(w, R):
     for key, value in Z:
         X[key] = value
     return prepare(X, R)
+
+def zero_vector(arg0, arg1=None):
+    r"""
+    Returns a vector or free module element with a specified number of zeros.
+
+    CALL FORMATS:
+
+        1. zero_vector(degree)
+
+        2. zero_vector(ring, degree)
+
+    INPUT:
+
+    - ``degree`` - the number of zero entries in the vector or
+      free module element
+
+    - ``ring`` - default ``ZZ`` - the base ring of the vector
+      space or module containing the constructed zero vector
+
+    OUTPUT:
+
+    A vector or free module element with ``degree`` entries,
+    all equal to zero and belonging to the ring if specified.
+    If no ring is given, a free module element over ``ZZ``
+    is returned.
+
+    EXAMPLES:
+
+    A zero vector over the field of rationals. ::
+
+        sage: v = zero_vector(QQ, 5); v
+        (0, 0, 0, 0, 0)
+        sage: v.parent()
+        Vector space of dimension 5 over Rational Field
+
+    A free module zero element. ::
+
+        sage: w = zero_vector(Integers(6), 3); w
+        (0, 0, 0)
+        sage: w.parent()
+        Ambient free module of rank 3 over Ring of integers modulo 6
+
+    If no ring is given, the integers are used. ::
+
+        sage: u = zero_vector(9); u
+        (0, 0, 0, 0, 0, 0, 0, 0, 0)
+        sage: u.parent()
+        Ambient free module of rank 9 over the principal ideal domain Integer Ring
+
+    Non-integer degrees produce an error. ::
+
+        sage: zero_vector(5.6)
+        Traceback (most recent call last):
+        ...
+        ValueError: constructing a zero vector requires the degree as an integer, not 5.60000000000000
+
+    Negative degrees also give an error. ::
+
+        sage: zero_vector(-3)
+        Traceback (most recent call last):
+        ...
+        ValueError: cannot specify the degree of a vector as a negative integer (-3)
+
+    Garbage instead of a ring will be recognized as such. ::
+
+        sage: zero_vector(x^2, 5)
+        Traceback (most recent call last):
+        ...
+        ValueError: elements of a zero vector belong in a ring, not x^2
+    """
+    # default to a zero vector over the integers (ZZ) if no ring given
+    if arg1 is None:
+        arg1 = arg0
+        arg0 = sage.rings.integer_ring.IntegerRing()
+    if not (sage.rings.integer.is_Integer(arg1) or isinstance(arg1,(int,long))):
+        raise ValueError("constructing a zero vector requires the degree as an integer, not %s" % arg1)
+    if not is_Ring(arg0):
+        raise ValueError("elements of a zero vector belong in a ring, not %s" % arg0)
+    return vector(arg0, arg1)
 
 cdef class FreeModuleElement(element_Vector):   # abstract base class
     """

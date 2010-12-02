@@ -1,5 +1,5 @@
---- ../src/src/setup.py	2010-09-16 12:55:00.000000000 +0800
-+++ setup.py	2010-11-14 19:48:09.000000000 +0800
+--- ../src/src/setup.py	2010-09-15 21:55:00.000000000 -0700
++++ setup.py	2010-12-02 10:01:00.848636199 -0800
 @@ -1,18 +1,37 @@
  from distutils.core import setup, Extension
  from glob import glob
@@ -42,13 +42,13 @@
  
  # Set to 1 if you are installing the fftw module.
  BUILD_FFTW = 0
-@@ -24,52 +43,54 @@
+@@ -23,53 +42,53 @@
+ # Directory containing fftw.h (used only when BUILD_FFTW = 1).
  FFTW_INC_DIR = '/usr/include'  
  
- # Set to 1 if you are installing the glpk module.
+-# Set to 1 if you are installing the glpk module.
 -BUILD_GLPK = 0
-+# (can only do this if glpk (optional at this moment)
-+# package in installed 
++# Set to 1 if you are installing the GLPK module.
 +BUILD_GLPK = 1
  
  # Directory containing libglpk (used only when BUILD_GLPK = 1).
@@ -109,7 +109,7 @@
          sources = ['C/dsdp.c'] )
      extmods += [dsdp];
  
-@@ -85,28 +106,28 @@
+@@ -85,28 +104,28 @@
  else:    
      MACROS = []
  
@@ -147,7 +147,7 @@
      sources = [ 'C/umfpack.c',
          'C/SuiteSparse/UMFPACK/Source/umfpack_global.c',
          'C/SuiteSparse/UMFPACK/Source/umfpack_tictoc.c' ] +
-@@ -117,11 +138,11 @@
+@@ -117,11 +136,11 @@
  if sys.maxint > 2**31: MACROS += [('DLONG','')]
  
  cholmod = Extension('cholmod',
@@ -162,7 +162,7 @@
      define_macros = MACROS + [('NPARTITION', '1')],
      sources = [ 'C/cholmod.c' ] + 
          ['C/SuiteSparse/AMD/Source/' + s for s in ['amd_global.c',
-@@ -135,16 +156,21 @@
+@@ -135,16 +154,21 @@
  
  amd = Extension('amd', 
      include_dirs = [ 'C/SuiteSparse/AMD/Include', 
@@ -188,7 +188,7 @@
  
  setup (name = 'cvxopt', 
      description = 'Convex optimization package',
-@@ -166,3 +192,4 @@
+@@ -166,3 +190,4 @@
      ext_modules = extmods,
      package_dir = {"cvxopt": "python"},
      packages = ["cvxopt"])

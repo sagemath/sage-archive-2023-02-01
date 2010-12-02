@@ -42,9 +42,7 @@ FFTW_LIB_DIR = '/usr/lib'
 # Directory containing fftw.h (used only when BUILD_FFTW = 1).
 FFTW_INC_DIR = '/usr/include'
 
-# Set to 1 if you are installing the glpk module.
-# (can only do this if glpk (optional at this moment)
-# package in installed
+# Set to 1 if you are installing the GLPK module.
 BUILD_GLPK = 1
 
 # Directory containing libglpk (used only when BUILD_GLPK = 1).

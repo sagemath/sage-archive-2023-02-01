@@ -1,27 +1,25 @@
 #!/usr/bin/env bash
 
-if [ "$SAGE_LOCAL" = "" ]; then
-   echo "SAGE_LOCAL undefined ... exiting";
-   echo "Maybe run 'sage -sh'?"
-   exit 1
+if [ -z "$SAGE_LOCAL" ]; then
+    echo "Error: SAGE_LOCAL undefined - exiting ..."
+    echo "Maybe run 'sage -sh'?"
+    exit 1
 fi
 
 success() {
     if [ $? -ne 0 ]; then
-        echo "Error building Jinja2: '$1'"
+        echo $1
         exit 1
     fi
 }
 
-set +e
+rm -rf "$SAGE_LOCAL"/lib/python/site-packages/Jinja2-*
+success 'Error deleting previous version(s) of Jinja2'
 
-rm -rf "$SAGE_LOCAL"/lib/python/site-packages/Jinja2-2.1.1*
-success 'Error deleting previous version'
+# Install new version:
 
-#Install new version
 cd src
 
 python setup.py install
 success 'Error installing Jinja2'
 
-set -e

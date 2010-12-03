@@ -1429,55 +1429,182 @@ cdef class Matrix(matrix0.Matrix):
         return self.matrix_space(nrows, ncols, sparse=sparse)(entries=entries,
                                              coerce=coerce, copy=copy)
 
-    def augment(self, Matrix other):
-        """
-        Return the augmented matrix of the form::
+    def augment(self, right, subdivide=False):
+        r"""
+        Returns a new matrix formed by appending the matrix
+        (or vector) ``right`` on the right side of ``self``.
 
-            [self | other].
+        INPUT:
 
-        EXAMPLES::
+        - ``right`` - a matrix, vector or free module element, whose
+          dimensions are compatible with ``self``.
 
-            sage: M = MatrixSpace(QQ,2,2)
-            sage: A = M([1,2, 3,4])
-            sage: A
-            [1 2]
-            [3 4]
-            sage: N = MatrixSpace(QQ,2,1)
-            sage: B = N([9,8])
-            sage: B
-            [9]
-            [8]
+        - ``subdivide`` - default: ``False`` - request the resulting
+          matrix to have a new subdivision, separating ``self`` from ``right``.
+
+        OUTPUT:
+
+        A new matrix formed by appending ``right`` onto the right side of ``self``.
+        If ``right`` is a vector (or free module element) then in this context
+        it is appropriate to consider it as a column vector.  (The code first
+        converts a vector to a 1-column matrix.)
+
+        If ``subdivide`` is ``True`` then any column subdivisions for
+        the two matrices are preserved, and a new subdivision is added
+        between ``self`` and ``right``.  If the row divisions are
+        identical, then they are preserved, otherwise they are discarded.
+        When ``subdivide`` is ``False`` there is no subdivision information
+        in the result.
+
+        .. warning::
+            If ``subdivide`` is ``True`` then unequal row subdivisions
+            will be discarded, since it would be ambiguous how to interpret
+            them.  If the subdivision behavior is not what you need,
+            you can manage subdivisions yourself with methods like
+            :meth:`~sage.matrix.matrix2.Matrix.get_subdivisions`
+            and
+            :meth:`~sage.matrix.matrix2.Matrix.subdivide`.
+            You might also find :func:`~sage.matrix.constructor.block_matrix`
+            or
+            :func:`~sage.matrix.constructor.block_diagonal_matrix`
+            useful and simpler in some instances.
+
+
+        EXAMPLES:
+
+        Augmenting with a matrix. ::
+
+            sage: A = matrix(ZZ, 3, range(12))
+            sage: B = matrix(ZZ, 3, range(9))
             sage: A.augment(B)
-            [1 2 9]
-            [3 4 8]
-            sage: B.augment(A)
-            [9 1 2]
-            [8 3 4]
-            sage: M = MatrixSpace(QQ,3,4)
-            sage: A = M([1,2,3,4, 0,9,8,7, 2/3,3/4,4/5,9/8])
-            sage: A
-            [  1   2   3   4]
-            [  0   9   8   7]
-            [2/3 3/4 4/5 9/8]
-            sage: N = MatrixSpace(QQ,3,2)
-            sage: B = N([1,2, 3,4, 4,5])
-            sage: B
-            [1 2]
-            [3 4]
-            [4 5]
+            [ 0  1  2  3  0  1  2]
+            [ 4  5  6  7  3  4  5]
+            [ 8  9 10 11  6  7  8]
+
+        Augmenting with a vector. ::
+
+            sage: A = matrix(QQ, 2, [0, 2, 4, 6, 8, 10])
+            sage: v = vector(QQ, 2, [100, 200])
+            sage: A.augment(v)
+            [  0   2   4 100]
+            [  6   8  10 200]
+
+        Errors are raised if the sizes are incompatible. ::
+
+            sage: A = matrix(RR, [[1, 2],[3, 4]])
+            sage: B = matrix(RR, [[10, 20], [30, 40], [50, 60]])
             sage: A.augment(B)
-            [  1   2   3   4   1   2]
-            [  0   9   8   7   3   4]
-            [2/3 3/4 4/5 9/8   4   5]
-            sage: B.augment(A)
-            [  1   2   1   2   3   4]
-            [  3   4   0   9   8   7]
-            [  4   5 2/3 3/4 4/5 9/8]
+            Traceback (most recent call last):
+            ...
+            TypeError: number of rows must be the same
+
+            sage: v = vector(RR, [100, 200, 300])
+            sage: A.augment(v)
+            Traceback (most recent call last):
+            ...
+            TypeError: number of rows must be the same
+
+        Setting ``subdivide`` to ``True`` will, in its simplest form,
+        add a subdivision between ``self`` and ``right``. ::
+
+            sage: A = matrix(3, range(12))
+            sage: B = matrix(3, range(15))
+            sage: A.augment(B, subdivide=True)
+            [ 0  1  2  3| 0  1  2  3  4]
+            [ 4  5  6  7| 5  6  7  8  9]
+            [ 8  9 10 11|10 11 12 13 14]
+
+        Column subdivisions are preserved by augmentation, and enriched,
+        if subdivisions are requested.  (So multiple augmentations can
+        be recorded.) ::
+
+            sage: A = matrix(3, range(6))
+            sage: A.subdivide(None,[1])
+            sage: B = matrix(3, range(9))
+            sage: B.subdivide(None,[2])
+            sage: A.augment(B, subdivide=True)
+            [0|1|0 1|2]
+            [2|3|3 4|5]
+            [4|5|6 7|8]
+
+        Row subdivisions can be preserved, but only if they are identical.
+        Otherwise, this information is discarded and must be managed
+        separately. ::
+
+            sage: A = matrix(3, range(6))
+            sage: A.subdivide([1,3],None)
+            sage: B = matrix(3, range(9))
+            sage: B.subdivide([1,3],None)
+            sage: A.augment(B, subdivide=True)
+            [0 1|0 1 2]
+            [---+-----]
+            [2 3|3 4 5]
+            [4 5|6 7 8]
+            [---+-----]
+
+            sage: A.subdivide([1,2],None)
+            sage: A.augment(B, subdivide=True)
+            [0 1|0 1 2]
+            [2 3|3 4 5]
+            [4 5|6 7 8]
+
+        The result retains the base ring of ``self`` by coercing
+        the elements of ``right`` into the base ring of ``self``. ::
+
+            sage: A = matrix(QQ, 2, [1,2])
+            sage: B = matrix(RR, 2, [sin(1.1), sin(2.2)])
+            sage: C = A.augment(B); C
+            [                  1 183017397/205358938]
+            [                  2 106580492/131825561]
+            sage: C.parent()
+            Full MatrixSpace of 2 by 2 dense matrices over Rational Field
+
+            sage: D = B.augment(A); D
+            [0.89120736006...  1.00000000000000]
+            [0.80849640381...  2.00000000000000]
+            sage: D.parent()
+            Full MatrixSpace of 2 by 2 dense matrices over Real Field with 53 bits of precision
+
+        Sometimes it is not possible to coerce into the base ring
+        of ``self``.  A solution is to change the base ring of ``self``
+        to a more expansive ring.  Here we mix the rationals with
+        a ring of polynomials with rational coefficients.  ::
+
+            sage: R = PolynomialRing(QQ, 'y')
+            sage: A = matrix(QQ, 1, [1,2])
+            sage: B = matrix(R, 1, ['y', 'y^2'])
+
+            sage: C = B.augment(A); C
+            [  y y^2   1   2]
+            sage: C.parent()
+            Full MatrixSpace of 1 by 4 dense matrices over Univariate Polynomial Ring in y over Rational Field
+
+            sage: D = A.augment(B)
+            Traceback (most recent call last):
+            ...
+            TypeError: not a constant polynomial
+
+            sage: E = A.change_ring(R)
+            sage: F = E.augment(B); F
+            [  1   2   y y^2]
+            sage: F.parent()
+            Full MatrixSpace of 1 by 4 dense matrices over Univariate Polynomial Ring in y over Rational Field
 
         AUTHORS:
 
         - Naqi Jaffery (2006-01-24): examples
+        - Rob Beezer (2010-12-07): vector argument, docstring, subdivisions
         """
+        from sage.matrix.constructor import matrix
+
+        if hasattr(right, '_vector_'):
+            right = matrix(right.degree(), right.list())
+        if not isinstance(right, sage.matrix.matrix1.Matrix):
+            raise TypeError("a matrix must be augmented with another matrix, or a vector")
+
+        cdef Matrix other
+        other = right
+
         if self._nrows != other._nrows:
             raise TypeError, "number of rows must be the same"
         if not (self._base_ring is other.base_ring()):
@@ -1495,6 +1622,18 @@ cdef class Matrix(matrix0.Matrix):
         for r from 0 <= r < other._nrows:
             for c from 0 <= c < other._ncols:
                 Z.set_unsafe(r, c+nc, other.get_unsafe(r,c))
+
+        if subdivide:
+            self_subs_rows, self_subs_cols = self.get_subdivisions()
+            other_subs_rows, other_subs_cols = other.get_subdivisions()
+            if self_subs_rows == other_subs_rows:
+                z_subs_rows = self_subs_rows
+            else:
+                z_subs_rows = None
+            z_subs_cols = self_subs_cols + [nc]
+            for col in other_subs_cols:
+                z_subs_cols.append(col+nc)
+            Z.subdivide(z_subs_rows, z_subs_cols)
 
         return Z
 

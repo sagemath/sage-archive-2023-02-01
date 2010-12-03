@@ -2083,6 +2083,60 @@ cdef class Matrix(sage.structure.element.Matrix):
         if c1 != c2:
             self.swap_columns_c(c1, c2)
 
+    def with_swapped_columns(self, c1, c2):
+        r"""
+        Swap columns ``c1`` and ``c2`` of ``self`` and return a new matrix.
+
+        INPUT:
+
+        - ``c1``, ``c2`` - integers specifying columns of ``self`` to interchange
+
+        OUTPUT:
+
+        A new matrix, identical to ``self`` except that columns ``c1`` and ``c2``
+        are swapped.
+
+        EXAMPLES:
+
+        Remember that columns are numbered starting from zero. ::
+
+            sage: A = matrix(QQ, 4, range(20))
+            sage: A.with_swapped_columns(1, 2)
+            [ 0  2  1  3  4]
+            [ 5  7  6  8  9]
+            [10 12 11 13 14]
+            [15 17 16 18 19]
+
+        Trying to swap a column with itself will succeed, but still return
+        a new matrix. ::
+
+            sage: A = matrix(QQ, 4, range(20))
+            sage: B = A.with_swapped_columns(2, 2)
+            sage: A == B
+            True
+            sage: A is B
+            False
+
+        The column specifications are checked. ::
+
+            sage: A = matrix(4, range(20))
+            sage: A.with_swapped_columns(-1, 2)
+            Traceback (most recent call last):
+            ...
+            IndexError: matrix column index out of range
+
+            sage: A.with_swapped_columns(2, 5)
+            Traceback (most recent call last):
+            ...
+            IndexError: matrix column index out of range
+        """
+        cdef Matrix temp
+        self.check_column_bounds_and_mutability(c1,c2)
+        temp = self.__copy__()
+        if c1 != c2:
+            temp.swap_columns_c(c1,c2)
+        return temp
+
     cdef swap_columns_c(self, Py_ssize_t c1, Py_ssize_t c2):
         cdef Py_ssize_t r
         for r from 0 <= r < self._nrows:
@@ -2114,6 +2168,60 @@ cdef class Matrix(sage.structure.element.Matrix):
         self.check_row_bounds_and_mutability(r1, r2)
         if r1 != r2:
             self.swap_rows_c(r1, r2)
+
+    def with_swapped_rows(self, r1, r2):
+        r"""
+        Swap rows ``r1`` and ``r2`` of ``self`` and return a new matrix.
+
+        INPUT:
+
+        - ``r1``, ``r2`` - integers specifying rows of ``self`` to interchange
+
+        OUTPUT:
+
+        A new matrix, identical to ``self`` except that rows ``r1`` and ``r2``
+        are swapped.
+
+        EXAMPLES:
+
+        Remember that rows are numbered starting from zero. ::
+
+            sage: A = matrix(QQ, 4, range(20))
+            sage: A.with_swapped_rows(1, 2)
+            [ 0  1  2  3  4]
+            [10 11 12 13 14]
+            [ 5  6  7  8  9]
+            [15 16 17 18 19]
+
+        Trying to swap a row with itself will succeed, but still return
+        a new matrix. ::
+
+            sage: A = matrix(QQ, 4, range(20))
+            sage: B = A.with_swapped_rows(2, 2)
+            sage: A == B
+            True
+            sage: A is B
+            False
+
+        The row specifications are checked. ::
+
+            sage: A = matrix(4, range(20))
+            sage: A.with_swapped_rows(-1, 2)
+            Traceback (most recent call last):
+            ...
+            IndexError: matrix row index out of range
+
+            sage: A.with_swapped_rows(2, 5)
+            Traceback (most recent call last):
+            ...
+            IndexError: matrix row index out of range
+        """
+        cdef Matrix temp
+        self.check_row_bounds_and_mutability(r1,r2)
+        temp = self.__copy__()
+        if r1 != r2:
+            temp.swap_rows_c(r1,r2)
+        return temp
 
     cdef swap_rows_c(self, Py_ssize_t r1, Py_ssize_t r2):
         cdef Py_ssize_t c

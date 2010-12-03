@@ -1299,6 +1299,62 @@ class CGraphBackend(GenericGraphBackend):
             sage: B = SparseGraphBackend(7)
             sage: B.degree(3, False)
             0
+
+        TESTS:
+
+        Ensure that ticket #8395 is fixed. ::
+
+            sage: def my_add_edges(G, m, n):
+            ...       for i in range(m):
+            ...           u = randint(0, n)
+            ...           v = randint(0, n)
+            ...           G.add_edge(u, v)
+            sage: G = Graph({1:[1]}); G
+            Looped graph on 1 vertex
+            sage: G.edges(labels=False)
+            [(1, 1)]
+            sage: G.degree(); G.size()
+            [2]
+            1
+            sage: sum(G.degree()) == 2 * G.size()
+            True
+            sage: G = Graph({1:[1,2], 2:[2,3]}, loops=True); G
+            Looped graph on 3 vertices
+            sage: my_add_edges(G, 100, 50)
+            sage: sum(G.degree()) == 2 * G.size()
+            True
+            sage: G = Graph({1:[2,2], 2:[3]}); G
+            Multi-graph on 3 vertices
+            sage: G.edges(labels=False)
+            [(1, 2), (1, 2), (2, 3)]
+            sage: G.degree(); G.size()
+            [2, 3, 1]
+            3
+            sage: sum(G.degree()) == 2 * G.size()
+            True
+            sage: G.allow_loops(True); G
+            Looped multi-graph on 3 vertices
+            sage: my_add_edges(G, 100, 50)
+            sage: sum(G.degree()) == 2 * G.size()
+            True
+            sage: D = DiGraph({1:[2], 2:[1,3]}); D
+            Digraph on 3 vertices
+            sage: D.edges(labels=False)
+            [(1, 2), (2, 1), (2, 3)]
+            sage: D.degree(); D.size()
+            [2, 3, 1]
+            3
+            sage: sum(D.degree()) == 2 * D.size()
+            True
+            sage: D.allow_loops(True); D
+            Looped digraph on 3 vertices
+            sage: my_add_edges(D, 100, 50)
+            sage: sum(D.degree()) == 2 * D.size()
+            True
+            sage: D.allow_multiple_edges(True)
+            sage: my_add_edges(D, 200, 50)
+            sage: sum(D.degree()) == 2 * D.size()
+            True
         """
         cdef v_int = get_vertex(v,
                                 self.vertex_ints,
@@ -1306,8 +1362,13 @@ class CGraphBackend(GenericGraphBackend):
                                 self._cg)
         if directed:
             return self._cg._in_degree(v_int) + self._cg._out_degree(v_int)
-        else:
-            return self._cg._out_degree(v_int)
+        d = 0
+        if self._loops and self.has_edge(v, v, None):
+            if self._multiple_edges:
+                d += len(self.get_edge_label(v, v))
+            else:
+                d += 1
+        return self._cg._out_degree(v_int) + d
 
     def add_vertex(self, object name):
         """
@@ -1749,6 +1810,67 @@ class CGraphBackend(GenericGraphBackend):
             sage: G = Graph(graphs.PetersenGraph(), implementation="c_graph")
             sage: G._backend.num_edges(False)
             15
+
+        TESTS:
+
+        Ensure that ticket #8395 is fixed. ::
+
+            sage: G = Graph({1:[1]}); G
+            Looped graph on 1 vertex
+            sage: G.edges(labels=False)
+            [(1, 1)]
+            sage: G.size()
+            1
+            sage: G = Graph({1:[2,2]}); G
+            Multi-graph on 2 vertices
+            sage: G.edges(labels=False)
+            [(1, 2), (1, 2)]
+            sage: G.size()
+            2
+            sage: G = Graph({1:[1,1]}); G
+            Looped multi-graph on 1 vertex
+            sage: G.edges(labels=False)
+            [(1, 1), (1, 1)]
+            sage: G.size()
+            2
+            sage: D = DiGraph({1:[1]}); D
+            Looped digraph on 1 vertex
+            sage: D.edges(labels=False)
+            [(1, 1)]
+            sage: D.size()
+            1
+            sage: D = DiGraph({1:[2,2], 2:[1,1]}); D
+            Multi-digraph on 2 vertices
+            sage: D.edges(labels=False)
+            [(1, 2), (1, 2), (2, 1), (2, 1)]
+            sage: D.size()
+            4
+            sage: D = DiGraph({1:[1,1]}); D
+            Looped multi-digraph on 1 vertex
+            sage: D.edges(labels=False)
+            [(1, 1), (1, 1)]
+            sage: D.size()
+            2
+            sage: from sage.graphs.base.sparse_graph import SparseGraphBackend
+            sage: S = SparseGraphBackend(7)
+            sage: S.num_edges(directed=False)
+            0
+            sage: S.loops(True)
+            sage: S.add_edge(1, 1, None, directed=False)
+            sage: S.num_edges(directed=False)
+            1
+            sage: S.multiple_edges(True)
+            sage: S.add_edge(1, 1, None, directed=False)
+            sage: S.num_edges(directed=False)
+            2
+            sage: from sage.graphs.base.dense_graph import DenseGraphBackend
+            sage: D = DenseGraphBackend(7)
+            sage: D.num_edges(directed=False)
+            0
+            sage: D.loops(True)
+            sage: D.add_edge(1, 1, None, directed=False)
+            sage: D.num_edges(directed=False)
+            1
         """
         if directed:
             return self._cg._num_arcs()
@@ -1757,11 +1879,11 @@ class CGraphBackend(GenericGraphBackend):
             k = 0
             if self.loops(None):
                 if self.multiple_edges(None):
-                    for j in xrange(self.num_verts()):
+                    for j in self.iterator_verts():
                         if self.has_edge(j, j, None):
                             k += len(self.get_edge_label(j, j))
                 else:
-                    for j in xrange(self.num_verts()):
+                    for j in self.iterator_verts():
                         if self.has_edge(j, j, None):
                             k += 1
             i = (i - k) / 2

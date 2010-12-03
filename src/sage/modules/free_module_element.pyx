@@ -142,18 +142,17 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
     supplied as an option.  ``free_module_element()`` is an
     alias for ``vector()``.
 
-    1. vector(object)
+        1. vector(object)
 
-    2. vector(ring, object)
+        2. vector(ring, object)
 
-    3. vector(object, ring)
+        3. vector(object, ring)
 
-    4. vector(ring, degree, object)
+        4. vector(ring, degree, object)
 
-    5. vector(ring, degree)
+        5. vector(ring, degree)
 
-    6. vector(numpy_array)
-
+        6. vector(numpy_array)
 
     INPUT:
 
@@ -175,7 +174,9 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
     Note however that using this format when ``object`` is a dictionary
     is unlikely to work properly.
 
-    OUTPUT: An element of the vector space or free module with the given
+    OUTPUT:
+
+    An element of the vector space or free module with the given
     base ring and implied or specified dimension or rank,
     containing the specified entries and with correct degree.
 

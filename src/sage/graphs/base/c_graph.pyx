@@ -1355,6 +1355,48 @@ class CGraphBackend(GenericGraphBackend):
             sage: my_add_edges(D, 200, 50)
             sage: sum(D.degree()) == 2 * D.size()
             True
+            sage: G = Graph({1:[2,2,2]})
+            sage: G.allow_loops(True)
+            sage: G.add_edge(1,1)
+            sage: G.add_edge(1,1)
+            sage: G.edges(labels=False)
+            [(1, 1), (1, 1), (1, 2), (1, 2), (1, 2)]
+            sage: G.degree(1)
+            7
+            sage: G.allow_loops(False)
+            sage: G.edges(labels=False)
+            [(1, 2), (1, 2), (1, 2)]
+            sage: G.degree(1)
+            3
+            sage: G = Graph({1:{2:['a','a','a']}})
+            sage: G.allow_loops(True)
+            sage: G.add_edge(1,1,'b')
+            sage: G.add_edge(1,1,'b')
+            sage: G.add_edge(1,1)
+            sage: G.add_edge(1,1)
+            sage: G.edges()
+            [(1, 1, None), (1, 1, None), (1, 1, 'b'), (1, 1, 'b'), (1, 2, 'a'), (1, 2, 'a'), (1, 2, 'a')]
+            sage: G.degree(1)
+            11
+            sage: G.allow_loops(False)
+            sage: G.edges()
+            [(1, 2, 'a'), (1, 2, 'a'), (1, 2, 'a')]
+            sage: G.degree(1)
+            3
+            sage: G = Graph({1:{2:['a','a','a']}})
+            sage: G.allow_loops(True)
+            sage: G.add_edge(1,1,'b')
+            sage: G.add_edge(1,1,'b')
+            sage: G.edges()
+            [(1, 1, 'b'), (1, 1, 'b'), (1, 2, 'a'), (1, 2, 'a'), (1, 2, 'a')]
+            sage: G.degree(1)
+            7
+            sage: G.allow_loops(False)
+            sage: G.edges()
+            [(1, 2, 'a'), (1, 2, 'a'), (1, 2, 'a')]
+            sage: G.degree(1)
+            3
+
         """
         cdef v_int = get_vertex(v,
                                 self.vertex_ints,

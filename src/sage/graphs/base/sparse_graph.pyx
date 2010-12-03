@@ -1070,27 +1070,29 @@ cdef class SparseGraph(CGraph):
         if l == 0:
             if parent[0].number > 1: parent[0].number -= 1
             elif parent[0].number == 1:
-                if parent[0].labels == NULL: self.del_arc_unsafe(u, v)
+                if parent[0].labels == NULL:
+                    self.del_arc_unsafe(u, v)
+                    return 0
                 else: parent[0].number -= 1
             else: return 1 # indicate an error
-            return 0
-        labels = &(parent[0].labels)
-        while labels[0] != NULL and labels[0].label != l:
-            labels = &(labels[0].next)
-        if labels[0] == NULL:
-            return 1
-        label = labels[0]
-        if label.number > 1:
-            label.number -= 1
         else:
-            labels[0] = labels[0].next
-            sage_free(label)
-            if labels == &(parent[0].labels) and labels[0] == NULL and parent[0].number == 0:
-                # here we need to delete an "empty" binary tree node
-                self.del_arc_unsafe(u, v)
-            self.in_degrees[v] -= 1
-            self.out_degrees[u] -= 1
-            self.num_arcs -= 1
+            labels = &(parent[0].labels)
+            while labels[0] != NULL and labels[0].label != l:
+                labels = &(labels[0].next)
+            if labels[0] == NULL:
+                return 1
+            label = labels[0]
+            if label.number > 1:
+                label.number -= 1
+            else:
+                labels[0] = labels[0].next
+                sage_free(label)
+                if labels == &(parent[0].labels) and labels[0] == NULL and parent[0].number == 0:
+                    # here we need to delete an "empty" binary tree node
+                    self.del_arc_unsafe(u, v)
+        self.in_degrees[v] -= 1
+        self.out_degrees[u] -= 1
+        self.num_arcs -= 1
 
     cpdef del_arc_label(self, int u, int v, int l):
         """

@@ -1346,41 +1346,96 @@ def zero_matrix(ring, nrows, ncols=None, sparse=False):
         ring = rings.ZZ
     return matrix_space.MatrixSpace(ring, nrows, ncols, sparse)(0)
 
-def ones_matrix(ring, nrows, ncols=None, sparse=False):
+def ones_matrix(ring, nrows=None, ncols=None, sparse=False):
     r"""
-    Return the `nrows \times ncols` all-ones matrix over the given
-    ring.
+    Return a matrix with all entries equal to 1.
 
-    The default ring is the integers.
+    CALL FORMATS:
 
-    EXAMPLES::
+    In each case, the optional keyword ``sparse`` can be used.
 
-        sage: M = ones_matrix(QQ, 2); M
-        [1 1]
-        [1 1]
+      1. ones_matrix(ring, nrows, ncols)
+      2. ones_matrix(ring, nrows)
+      3. ones_matrix(nrows, ncols)
+      4. ones_matrix(nrows)
+
+    INPUT:
+
+    - ``ring`` - default: ``ZZ`` - base ring for the matrix.
+    - ``nrows`` - number of rows in the matrix.
+    - ``ncols`` - number of columns in the matrix.
+      If omitted, defaults to the number of rows, producing a square matrix.
+    - ``sparse`` - default: ``False`` - if ``True`` creates a sparse representation.
+
+    OUTPUT:
+
+    A matrix of size ``nrows`` by ``ncols`` over the ``ring`` with every
+    entry equal to 1.  While the result is far from sparse, you may wish
+    to choose a sparse representation when mixing this matrix with
+    other sparse matrices.
+
+    EXAMPLES:
+
+    A call specifying the ring and the size.  ::
+
+        sage: M= ones_matrix(QQ, 2, 5); M
+        [1 1 1 1 1]
+        [1 1 1 1 1]
         sage: M.parent()
-        Full MatrixSpace of 2 by 2 dense matrices over Rational Field
+        Full MatrixSpace of 2 by 5 dense matrices over Rational Field
+
+    Without specifying the number of columns, the result is square. ::
+
+        sage: M = ones_matrix(RR, 2); M
+        [1.00000000000000 1.00000000000000]
+        [1.00000000000000 1.00000000000000]
+        sage: M.parent()
+        Full MatrixSpace of 2 by 2 dense matrices over Real Field with 53 bits of precision
+
+    The ring defaults to the integers if not given. ::
+
         sage: M = ones_matrix(2, 3); M
         [1 1 1]
         [1 1 1]
         sage: M.parent()
         Full MatrixSpace of 2 by 3 dense matrices over Integer Ring
+
+    A lone integer input produces a square matrix over the integers. ::
+
+        sage: M = ones_matrix(3); M
+        [1 1 1]
+        [1 1 1]
+        [1 1 1]
+        sage: M.parent()
+        Full MatrixSpace of 3 by 3 dense matrices over Integer Ring
+
+    The result can have a sparse implementation. ::
+
         sage: M = ones_matrix(3, 1, sparse=True); M
         [1]
         [1]
         [1]
         sage: M.parent()
         Full MatrixSpace of 3 by 1 sparse matrices over Integer Ring
+
+    Giving just a ring will yield an error. ::
+
+        sage: ones_matrix(CC)
+        Traceback (most recent call last):
+        ...
+        ValueError: constructing an all ones matrix requires at least one dimension
     """
     if isinstance(ring, (int, long, rings.Integer)):
         nrows, ncols = (ring, nrows)
         ring = rings.ZZ
+    if nrows is None:
+        raise ValueError("constructing an all ones matrix requires at least one dimension")
     if ncols is None:
         nents = nrows**2
     else:
         nents = nrows*ncols
-    return matrix_space.MatrixSpace(ring, nrows, ncols, sparse).matrix([1]*nents)
-
+    one = ring(1)
+    return matrix_space.MatrixSpace(ring, nrows, ncols, sparse).matrix([one]*nents)
 
 def block_matrix(sub_matrices, nrows=None, ncols=None, subdivide=True):
     """

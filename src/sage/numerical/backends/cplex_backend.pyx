@@ -695,8 +695,8 @@ cdef class CPLEXBackend(GenericBackend):
         status = CPXgetlb(self.env, self.lp, &lb, index, index)
         check(status)
 
-        return (lb if lb != -CPX_INFBOUND else None,
-                ub if ub != +CPX_INFBOUND else None)
+        return (None if lb <= -int(CPX_INFBOUND) else lb,
+                None if ub >= +int(CPX_INFBOUND) else ub)
 
     cpdef add_col(self, list indices, list coeffs):
         r"""
@@ -1138,7 +1138,7 @@ cdef class CPLEXBackend(GenericBackend):
             status = CPXgetub(self.env, self.lp, &ub, index, index)
             check(status)
 
-            return ub if ub != CPX_INFBOUND else None
+            return ub if ub < int(CPX_INFBOUND) else None
 
         else:
 
@@ -1179,7 +1179,7 @@ cdef class CPLEXBackend(GenericBackend):
         if value == False:
             status = CPXgetlb(self.env, self.lp, &lb, index, index)
             check(status)
-            return lb if lb != -CPX_INFBOUND else None
+            return None if lb <= int(-CPX_INFBOUND) else lb
 
         else:
             x = 'L'

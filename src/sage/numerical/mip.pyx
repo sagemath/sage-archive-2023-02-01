@@ -68,8 +68,8 @@ The following example shows all these steps::
       0.0 <= x_0 +x_1 +x_2 -14.0 x_3 <= 0.0
       0.0 <= x_1 +2.0 x_2 -8.0 x_3 <= 0.0
       0.0 <= 2.0 x_2 -3.0 x_3 <= 0.0
-      -1.0 x_0 +x_1 +x_2 <= 0.0
-      -1.0 x_3 <= -1.0
+      -x_0 +x_1 +x_2 <= 0.0
+      -x_3 <= -1.0
     Variables:
       x_0 is an integer variable (min=0.0, max=+oo)
       x_1 is an integer variable (min=-oo, max=+oo)
@@ -87,6 +87,7 @@ The following example shows all these steps::
 
 include "../ext/stdsage.pxi"
 include "../ext/interrupt.pxi"
+include "../ext/cdefs.pxi"
 from copy import deepcopy
 
 cdef class MixedIntegerLinearProgram:
@@ -274,26 +275,7 @@ cdef class MixedIntegerLinearProgram:
 
         self._backend.problem_name(name)
 
-    # def _update_variables_name(self):
-    #     r"""
-    #     Updates the names of the variables.
-
-    #     Only called before writing the Problem to a MPS or LP file.
-
-    #     EXAMPLE::
-
-    #         sage: p=MixedIntegerLinearProgram()
-    #         sage: v=p.new_variable(name="Test")
-    #         sage: v[5]+v[99]
-    #         x_0 +x_1
-    #         sage: p._update_variables_name()
-    #     """
-
-    #     for v in self._mipvariables:
-    #         v._update_variables_name()
-
-
-    def new_variable(self, real=False, binary=False, integer=False, dim=1,name=None):
+    def new_variable(self, real=False, binary=False, integer=False, dim=1,name=""):
         r"""
         Returns an instance of ``MIPVariable`` associated
         to the current instance of ``MixedIntegerLinearProgram``.
@@ -345,9 +327,6 @@ cdef class MixedIntegerLinearProgram:
             ...
             ValueError: Exactly one of the available types has to be True
         """
-        if name==None:
-            name="V"+str(len(self._mipvariables))
-
         if sum([real, binary, integer]) >= 2:
             raise ValueError("Exactly one of the available types has to be True")
 
@@ -369,48 +348,74 @@ cdef class MixedIntegerLinearProgram:
 
         EXAMPLES:
 
-        When constraints have names ::
+        When constraints and variables have names ::
 
             sage: p = MixedIntegerLinearProgram()
-            sage: x = p.new_variable()
+            sage: x = p.new_variable(name="Hey")
             sage: p.set_objective(x[1] + x[2])
             sage: p.add_constraint(-3*x[1] + 2*x[2], max=2, name="Constraint_1")
             sage: p.show()
             Maximization:
-               x_0 +x_1
+              Hey[1] +Hey[2]
             Constraints:
-              Constraint_1: -3.0 x_0 +2.0 x_1 <= 2.0
+              Constraint_1: -3.0 Hey[1] +2.0 Hey[2] <= 2.0
             Variables:
-              x_0 is a real variable (min=0.0, max=+oo)
-              x_1 is a real variable (min=0.0, max=+oo)
+              Hey[1] is a continuous variable (min=0.0, max=+oo)
+              Hey[2] is a continuous variable (min=0.0, max=+oo)
+
+        Without any names ::
+
+            sage: p = MixedIntegerLinearProgram()
+            sage: x = p.new_variable()
+            sage: p.set_objective(x[1] + x[2])
+            sage: p.add_constraint(-3*x[1] + 2*x[2], max=2)
+            sage: p.show()
+            Maximization:
+              x_0 +x_1
+            Constraints:
+              -3.0 x_0 +2.0 x_1 <= 2.0
+            Variables:
+              x_0 is a continuous variable (min=0.0, max=+oo)
+              x_1 is a continuous variable (min=0.0, max=+oo)
         """
 
         cdef int i, j
         cdef double c
         cdef GenericBackend b = self._backend
-        #self._update_variables_name()
 
+        # inv_variables associates a MIPVariable object to an id
         inv_variables = [0]*len(self._variables)
-        for (v,id) in self._variables.iteritems():
+        for (v, id) in self._variables.iteritems():
             inv_variables[id]=v
 
-        value = ( "Maximization:\n"
-                  if b.is_maximization()
-                  else "Minimization:\n" )
-        value+="  "
+
+        # varid_name associates variables id to names
+        varid_name = {}
+
+        for 0<= i < b.ncols():
+            s = b.col_name(i)
+            varid_name[i] = ("x_"+str(i)) if s == "" else s
+
+        ##### Sense and objective function
+
+        print ("Maximization:" if b.is_maximization() else "Minimization:")
+        print " ",
 
         first = True
         for 0<= i< b.ncols():
             c = b.objective_coefficient(i)
-            if c != 0:
+            if c == 0:
+                continue
 
-                value+= ((" +" if (not first and c>0) else " ") +
-                         str(inv_variables[i]*b.objective_coefficient(i))
-                         )
-                first = False
+            print (("+" if (not first and c>0) else "") +
+                   ("" if c == 1 else ("-" if c == -1 else str(c)+" "))+varid_name[i]
+                   ),
+            first = False
 
-        value += "\nConstraints:"
+        print
 
+        ##### Constraints
+        print "Constraints:"
 
         for 0<= i < b.nrows():
 
@@ -418,46 +423,51 @@ cdef class MixedIntegerLinearProgram:
 
             lb, ub = b.row_bounds(i)
 
-            value += ("\n  "+
-                      (b.row_name(i)+": " if b.row_name(i)!="" else "")+
-                      (str(lb)+" <= " if lb!=None else "")
-                      )
+            print " ",
+
+
+            # Constraint's name
+            if b.row_name(i):
+                print b.row_name(i)+":",
+
+            # Lower bound
+            if lb is not None:
+                print str(lb)+" <=",
 
             first = True
 
-            for j,v in sorted(zip(indices, values)):
+            for j,c in sorted(zip(indices, values)):
 
-                value += (("+" if (not first and v>=0) else "") +
-                          str(inv_variables[j]*v) +" ")
+                if c == 0:
+                    continue
 
+                print (("+" if (not first and c>0) else "") +
+                       ("" if c == 1 else ("-" if c == -1 else str(c)+" "))+varid_name[j]
+                       ),
                 first = False
 
-            value += ("<= "+str(ub) if ub!=None else "")
+            # Upper bound
+            print ("<= "+str(ub) if ub!=None else "")
 
-        value += "\nVariables:"
+
+        ##### Variables
+        print "Variables:"
 
         for 0<= i < b.ncols():
-            value += "\n  " + str(inv_variables[i]) + " is"
+            print "  " + varid_name[i] + " is",
 
             if b.is_variable_integer(i):
-                value += " an integer variable"
+                print "an integer variable",
             elif b.is_variable_binary(i):
-                value += " an boolean variable"
+                print "a boolean variable",
             else:
-                value += " a real variable"
+                print "a continuous variable",
 
             lb, ub = b.col_bounds(i)
 
-            value += " (min=" + \
-                ( str(lb)
-                  if lb != None
-                  else "-oo" ) + \
-                ", max=" + \
-                ( str(ub)
-                  if ub != None
-                  else "+oo" ) + \
-                ")"
-        print value
+            print "(min=" + ( str(lb) if lb != None else "-oo" )+",",
+            print "max=" + ( str(ub) if ub != None else "+oo" )+")"
+
 
     def write_mps(self,filename,modern=True):
         r"""
@@ -734,10 +744,10 @@ cdef class MixedIntegerLinearProgram:
             Maximization:
             <BLANKLINE>
             Constraints:
-              -2.0 x_0 -1.0 x_1 <= 9.0
+              -2.0 x_0 -x_1 <= 9.0
             Variables:
-              x_0 is a real variable (min=0.0, max=+oo)
-              x_1 is a real variable (min=0.0, max=+oo)
+              x_0 is a continuous variable (min=0.0, max=+oo)
+              x_1 is a continuous variable (min=0.0, max=+oo)
 
         Empty constraint::
 
@@ -1082,39 +1092,6 @@ cdef class MixedIntegerLinearProgram:
 
         return self._backend.get_objective_value()
 
-
-    def _add_element_to_ring(self, vtype):
-        r"""
-        Creates a new variable in the (Mixed) Integer Linear Program.
-
-        INPUT:
-
-        - ``vtype`` (integer) -- Defines the type of the variables
-          (default is ``REAL``).
-
-        OUTPUT:
-
-        - The newly created variable.
-
-        EXAMPLE::
-
-            sage: p = MixedIntegerLinearProgram()
-            sage: v = p.new_variable()
-            sage: print p
-            Mixed Integer Program  ( maximization, 0 variables, 0 constraints )
-            sage: p._add_element_to_ring(-1)
-            x_0
-            sage: print p
-            Mixed Integer Program  ( maximization, 1 variables, 0 constraints )
-        """
-
-        v = LinearFunction({len(self._variables) : 1})
-
-        self._variables[v] = len(self._variables)
-        self._backend.add_variable()
-        self._backend.set_variable_type(self._backend.ncols()-1,vtype)
-        return v
-
     def set_min(self, v, min):
         r"""
         Sets the minimum value of a variable.
@@ -1136,6 +1113,9 @@ cdef class MixedIntegerLinearProgram:
             sage: p.set_min(v[1],6)
             sage: p.get_min(v[1])
             6.0
+            sage: p.set_min(v[1], None)
+            sage: p.get_min(v[1])
+
         """
         self._backend.variable_lower_bound(self._variables[v], min)
 
@@ -1186,6 +1166,8 @@ cdef class MixedIntegerLinearProgram:
             sage: p.set_min(v[1],6)
             sage: p.get_min(v[1])
             6.0
+            sage: p.set_min(v[1], None)
+            sage: p.get_min(v[1])
         """
 
         return self._backend.variable_lower_bound(self._variables[v])
@@ -1287,7 +1269,7 @@ cdef class MIPVariable:
     ``MixedIntegerLinearProgram``.
     """
 
-    def __init__(self, p, vtype, dim=1, name=""):
+    def __cinit__(self, p, vtype, dim=1, name=""):
         r"""
         Constructor for ``MIPVariable``.
 
@@ -1295,9 +1277,12 @@ cdef class MIPVariable:
 
         - ``p`` -- the instance of ``MixedIntegerLinearProgram`` to which the
           variable is to be linked.
+
         - ``vtype`` (integer) -- Defines the type of the variables
           (default is ``REAL``).
+
         - ``dim`` -- the integer defining the definition of the variable.
+
         - ``name`` -- A name for the ``MIPVariable``.
 
         For more informations, see the method
@@ -1313,9 +1298,17 @@ cdef class MIPVariable:
         self._p = p
         self._vtype = vtype
 
-        #####################################################
-        self._name="x"
+        self._hasname = (len(name) >0)
 
+        # create a temporary char *
+        cdef char *name_c = name
+        # and copy it over
+        self._name = <char*>sage_malloc(len(name)+1)
+        strcpy(self._name, name_c)
+
+    def __dealloc__(self):
+        if self._name:
+            sage_free(self._name)
 
     def __getitem__(self, i):
         r"""
@@ -1332,42 +1325,34 @@ cdef class MIPVariable:
             sage: v[0]
             x_0
         """
+        cdef MIPVariable s = self
+
+        cdef int j
+
         if self._dict.has_key(i):
             return self._dict[i]
         elif self._dim == 1:
-            self._dict[i] = self._p._add_element_to_ring(self._vtype)
-            return self._dict[i]
+
+            j = self._p._backend.add_variable(0.0, None, False, True, False, 0.0,
+                                              (str(self._name) + "[" + str(i) + "]")
+                                               if self._hasname else None)
+
+            v = LinearFunction({j : 1})
+            self._p._variables[v] = j
+            self._p._backend.set_variable_type(j,self._vtype)
+            self._dict[i] = v
+
+            return v
+
         else:
-            self._dict[i] = MIPVariable(self._p, self._vtype, dim=self._dim-1)
+            self._dict[i] = MIPVariable(
+                self._p,
+                self._vtype,
+                dim=self._dim-1,
+                name = ("" if not self._hasname
+                        else (str(self._name) + "[" + str(i) + "]")))
+
             return self._dict[i]
-
-    # def _update_variables_name(self, prefix=None):
-    #     r"""
-    #     Updates the names of the variables in the parent instant of ``MixedIntegerLinearProgram``.
-
-    #     Only called before writing the Problem to a MPS or LP file.
-
-    #     EXAMPLE::
-
-    #         sage: p=MixedIntegerLinearProgram()
-    #         sage: v=p.new_variable(name="Test")
-    #         sage: v[5]+v[99]
-    #         x_0 +x_1
-    #         sage: v._update_variables_name()
-    #     """
-
-    #     if prefix == None:
-    #         prefix = self._name
-
-    #     if self._dim == 1:
-    #         for (k,v) in self._dict.iteritems():
-    #             name = prefix + "[" + str(k) + "]"
-    #             self._p._backend.col_name(self._p._variables[v], name)
-    #             #self._p._variables_name[self._p._variables[v]]=prefix + "[" + str(k) + "]"
-    #     else:
-    #         for v in self._dict.itervalues():
-    #             v._update_variables_name(prefix=prefix + "(" + str(k) + ")")
-
 
     def __repr__(self):
         r"""

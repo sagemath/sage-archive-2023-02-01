@@ -25,3 +25,4 @@ cdef class MIPVariable:
     cdef dict _dict
     cdef int _vtype
     cdef char * _name
+    cdef bint _hasname

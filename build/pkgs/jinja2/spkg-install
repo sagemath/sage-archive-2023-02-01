@@ -13,11 +13,11 @@ success() {
     fi
 }
 
+# Remove old versions of Jinja2
 rm -rf "$SAGE_LOCAL"/lib/python/site-packages/Jinja2-*
 success 'Error deleting previous version(s) of Jinja2'
 
-# Install new version:
-
+# Install new version
 cd src
 
 python setup.py install

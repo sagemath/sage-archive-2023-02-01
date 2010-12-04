@@ -319,38 +319,20 @@ class GenericGraph(GenericGraph_pyx):
             sage: print g._latex_()
             \begin{tikzpicture}
             %
-            \definecolor{col_a0}{rgb}{1.0,1.0,1.0}
-            \definecolor{col_a1}{rgb}{1.0,1.0,1.0}
+            \useasboundingbox (0,0) rectangle (5.0cm,5.0cm);
             %
+            \definecolor{cv0}{rgb}{0.0,0.0,0.0}
+            \definecolor{cfv0}{rgb}{1.0,1.0,1.0}
+            \definecolor{clv0}{rgb}{0.0,0.0,0.0}
+            \definecolor{cv1}{rgb}{0.0,0.0,0.0}
+            \definecolor{cfv1}{rgb}{1.0,1.0,1.0}
+            \definecolor{clv1}{rgb}{0.0,0.0,0.0}
+            \definecolor{cv0v1}{rgb}{0.0,0.0,0.0}
             %
-            \definecolor{col_lab_a0}{rgb}{0.0,0.0,0.0}
-            \definecolor{col_lab_a1}{rgb}{0.0,0.0,0.0}
+            \Vertex[style={minimum size=1.0cm,draw=cv0,fill=cfv0,text=clv0,shape=circle},LabelOut=false,L=\hbox{$0$},x=5.0cm,y=5.0cm]{v0}
+            \Vertex[style={minimum size=1.0cm,draw=cv1,fill=cfv1,text=clv1,shape=circle},LabelOut=false,L=\hbox{$1$},x=0.0cm,y=0.0cm]{v1}
             %
-            %
-            \definecolor{col_a0-a1}{rgb}{0.0,0.0,0.0}
-            %
-            %
-            \GraphInit[vstyle=Normal]
-            %
-            \SetVertexMath
-            %
-            \SetVertexNoLabel
-            %
-            \renewcommand*{\VertexLightFillColor}{col_a0}
-            \Vertex[x=5.0cm,y=5.0cm]{a0}
-            \renewcommand*{\VertexLightFillColor}{col_a1}
-            \Vertex[x=0.0cm,y=0.0cm]{a1}
-            %
-            %
-            \AssignVertexLabel{a}{2}{
-            \color{col_lab_a0}{$0$},
-            \color{col_lab_a1}{$1$}
-            }
-            %
-            %
-            \renewcommand*{\EdgeColor}{col_a0-a1}
-            \Edge(a0)(a1)
-            %
+            \Edge[lw=0.1cm,style={color=cv0v1,},](v0)(v1)
             %
             \end{tikzpicture}
         """
@@ -12068,7 +12050,9 @@ class GenericGraph(GenericGraph_pyx):
         :class:`~sage.graphs.graph_latex.GraphLatex` for the graph.
 
         Changes to this object will affect the `\mbox{\rm\LaTeX}`
-        version of the graph.
+        version of the graph.    For a full explanation of
+        how to use LaTeX to render graphs, see the introduction to the
+        :mod:`~sage.graphs.graph_latex` module.
 
         EXAMPLES::
 
@@ -12099,8 +12083,9 @@ class GenericGraph(GenericGraph_pyx):
           :meth:`sage.graphs.graph_latex.GraphLatex.set_option`.
 
         This method is a convenience for setting the options of a graph
-        directly on an instance of the graph.  For details, or finer control,
-        see the :class:`~sage.graphs.graph_latex.GraphLatex` class.
+        directly on an instance of the graph.  For a full explanation of
+        how to use LaTeX to render graphs, see the introduction to the
+        :mod:`~sage.graphs.graph_latex` module.
 
         EXAMPLES::
 

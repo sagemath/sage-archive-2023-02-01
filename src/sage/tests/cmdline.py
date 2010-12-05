@@ -170,7 +170,7 @@ def test_executable(args, input="", timeout=10.0):
         sage: ret
         0
 
-        sage: (out, err, ret) = test_executable(["sage", "--startuptime"])
+        sage: (out, err, ret) = test_executable(["sage", "--startuptime"], timeout=30)
         sage: out.find("sage.all: ") >= 0
         True
         sage: err

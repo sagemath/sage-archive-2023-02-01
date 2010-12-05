@@ -999,9 +999,9 @@ class FinitePoset(ParentWithBase):
 
             sage: [(v,P.rank(v)) for v in P]
             [(1234, 0),
-             (1243, 1),
+             (1324, 1),
             ...
-             (4312, 5),
+             (4231, 5),
              (4321, 6)]
         """
         if element is None:
@@ -1430,7 +1430,7 @@ class FinitePoset(ParentWithBase):
 
             sage: B = Posets.BooleanLattice(4)
             sage: B.order_filter([3,8])
-            [8, 9, 10, 3, 11, 12, 13, 14, 7, 15]
+            [3, 7, 8, 9, 10, 11, 12, 13, 14, 15]
         """
         vertices = sorted(map(self._element_to_vertex,elements))
         of = self._hasse_diagram.order_filter(vertices)
@@ -1444,7 +1444,7 @@ class FinitePoset(ParentWithBase):
 
             sage: B = Posets.BooleanLattice(4)
             sage: B.principal_order_filter(2)
-            [2, 10, 3, 11, 6, 14, 7, 15]
+            [2, 3, 6, 7, 10, 11, 14, 15]
         """
         return self.order_filter([x])
 
@@ -1459,7 +1459,7 @@ class FinitePoset(ParentWithBase):
 
             sage: B = Posets.BooleanLattice(4)
             sage: B.order_ideal([7,10])
-            [0, 8, 1, 2, 10, 3, 4, 5, 6, 7]
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 10]
         """
         vertices = map(self._element_to_vertex,elements)
         oi = self._hasse_diagram.order_ideal(vertices)

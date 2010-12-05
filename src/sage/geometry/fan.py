@@ -99,13 +99,13 @@ work with lower dimensional cones, you can easily get access to them using
 
     sage: [cone.ambient_ray_indices() for cone in fan1.cones(2)]
     [(0, 1), (0, 2), (1, 2), (1, 3), (2, 3), (0, 4),
-     (2, 4), (3, 4), (3, 5), (4, 5), (0, 5), (1, 5)]
+     (2, 4), (3, 4), (1, 5), (3, 5), (4, 5), (0, 5)]
 
 In fact, you don't have to type ``.cones``::
 
     sage: [cone.ambient_ray_indices() for cone in fan1(2)]
     [(0, 1), (0, 2), (1, 2), (1, 3), (2, 3), (0, 4),
-     (2, 4), (3, 4), (3, 5), (4, 5), (0, 5), (1, 5)]
+     (2, 4), (3, 4), (1, 5), (3, 5), (4, 5), (0, 5)]
 
 You may also need to know the inclusion relations between all of the cones of
 the fan. In this case check out

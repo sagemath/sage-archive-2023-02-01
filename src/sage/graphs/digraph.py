@@ -758,39 +758,78 @@ class DiGraph(GenericGraph):
 
     ### Properties
 
-    def is_directed_acyclic(self):
+    def is_directed_acyclic(self, certificate = False):
         """
         Returns whether the digraph is acyclic or not.
 
-        A directed graph is acyclic if for any vertex v, there is no
-        directed path that starts and ends at v. Every directed acyclic
-        graph (dag) corresponds to a partial ordering of its vertices,
-        however multiple dags may lead to the same partial ordering.
+        A directed graph is acyclic if for any vertex `v`, there is no directed
+        path that starts and ends at `v`. Every directed acyclic graph (DAG)
+        corresponds to a partial ordering of its vertices, however multiple dags
+        may lead to the same partial ordering.
 
-        EXAMPLES::
+        INPUT:
+
+        - ``certificate`` -- whether to return a certificate (``False`` by
+          default).
+
+        OUTPUT:
+
+            * When ``certificate=False``, returns a boolean value.
+
+            * When ``certificate=True`` :
+
+                * If the graph is acyclic, returns a pair ``(True, ordering)``
+                  where ``ordering`` is a list of the vertices such that ``u``
+                  appears before ``v`` in ``ordering`` if ``u, v`` is an edge.
+
+                * Else, returns a pair ``(False, cycle)`` where ``cycle`` is a
+                  list of vertices representing a circuit in the graph.
+
+        EXAMPLES:
+
+        At first, the following graph is acyclic::
 
             sage: D = DiGraph({ 0:[1,2,3], 4:[2,5], 1:[8], 2:[7], 3:[7], 5:[6,7], 7:[8], 6:[9], 8:[10], 9:[10] })
             sage: D.plot(layout='circular').show()
             sage: D.is_directed_acyclic()
             True
 
-        ::
+        Adding an edge from `9` to `7` does not change it::
 
             sage: D.add_edge(9,7)
             sage: D.is_directed_acyclic()
             True
 
-        ::
+        We can obtain as a proof an ordering of the vertices such that `u`
+        appears before `v` if `uv` is an edge of the graph::
+
+            sage: D.is_directed_acyclic(certificate = True)
+            (True, [4, 5, 6, 9, 0, 1, 2, 3, 7, 8, 10])
+
+        Adding an edge from 7 to 4, though, makes a difference::
 
             sage: D.add_edge(7,4)
             sage: D.is_directed_acyclic()
             False
+
+        Indeed, it creates a circuit `7, 4, 5`::
+
+            sage: D.is_directed_acyclic(certificate = True)
+            (False, [7, 4, 5])
+
+        Checking acyclic graphs are indeed acyclic ::
+
+            sage: def random_acyclic(n, p):
+            ...    g = graphs.RandomGNP(n, p)
+            ...    h = DiGraph()
+            ...    h.add_edges([ ((u,v) if u<v else (v,u)) for u,v,_ in g.edges() ])
+            ...    return h
+            ...
+            sage: all( random_acyclic(100, .2).is_directed_acyclic()    # long time
+            ...        for i in range(50))                              # long time
+            True
         """
-        try:
-            S = self.topological_sort()
-            return True
-        except:
-            return False
+        return self._backend.is_directed_acyclic(certificate = certificate)
 
     def to_directed(self):
         """
@@ -2036,15 +2075,27 @@ class DiGraph(GenericGraph):
 
     ### Directed Acyclic Graphs (DAGs)
 
-    def topological_sort(self):
+    def topological_sort(self, implementation = "default"):
         """
-        Returns a topological sort of the digraph if it is acyclic, and
-        raises a TypeError if the digraph contains a directed cycle.
+        Returns a topological sort of the digraph if it is acyclic, and raises a
+        TypeError if the digraph contains a directed cycle.
 
-        A topological sort is an ordering of the vertices of the digraph
-        such that each vertex comes before all of its successors. That is,
-        if u comes before v in the sort, then there may be a directed path
-        from u to v, but there will be no directed path from v to u.
+        A topological sort is an ordering of the vertices of the digraph such
+        that each vertex comes before all of its successors. That is, if `u`
+        comes before `v` in the sort, then there may be a directed path from `u`
+        to `v`, but there will be no directed path from `v` to `u`.
+
+        INPUT:
+
+        - ``implementation`` -- Use the default Cython implementation
+          (``implementation = default``) or the NetworkX library
+          (``implementation = "NetworkX"``)
+
+        .. SEEALSO::
+
+            - :meth:`is_directed_acyclic` -- Tests whether a directed graph is
+              acyclic (can also join a certificate -- a topological sort or a
+              circuit in the graph1).
 
         EXAMPLES::
 
@@ -2057,6 +2108,11 @@ class DiGraph(GenericGraph):
 
             sage: D.add_edge(9,7)
             sage: D.topological_sort()
+            [4, 5, 6, 9, 0, 1, 2, 3, 7, 8, 10]
+
+        Using the NetworkX implementation ::
+
+            sage: D.topological_sort(implementation = "NetworkX")
             [4, 5, 6, 9, 0, 1, 2, 3, 7, 8, 10]
 
         ::
@@ -2079,13 +2135,34 @@ class DiGraph(GenericGraph):
               [4, 5, 6, 9, 0, 1, 2, 3, 7, 8, 10]
               sage: networkx.topological_sort_recursive(N) is None
               True
+
+        TESTS:
+
+        A wrong value for the ``implementation`` keyword::
+
+            sage: D.topological_sort(implementation = "cloud-reading")
+            Traceback (most recent call last):
+            ...
+            ValueError: implementation must be set to one of "default" or "NetworkX"
         """
-        import networkx
-        S = networkx.topological_sort(self.networkx_graph(copy=False))
-        if S is None:
-            raise TypeError('Digraph is not acyclic-- there is no topological sort.')
+
+        if implementation == "default":
+            b, ordering = self._backend.is_directed_acyclic(certificate = True)
+            if b:
+                return ordering
+            else:
+                raise TypeError('Digraph is not acyclic-- there is no topological sort.')
+
+        elif implementation == "NetworkX":
+            import networkx
+            S = networkx.topological_sort(self.networkx_graph(copy=False))
+            if S is None:
+                raise TypeError('Digraph is not acyclic-- there is no topological sort.')
+            else:
+                return S
+
         else:
-            return S
+            raise ValueError("implementation must be set to one of \"default\" or \"NetworkX\"")
 
     def topological_sort_generator(self):
         """

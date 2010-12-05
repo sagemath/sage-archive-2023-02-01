@@ -2663,6 +2663,194 @@ class CGraphBackend(GenericGraphBackend):
         cdef set b = set(self.depth_first_search(v, reverse=True))
         return list(a & b)
 
+    def is_directed_acyclic(self, certificate = False):
+        r"""
+        Returns whether the graph is both directed and acylic (possibly with a
+        certificate)
+
+
+        INPUT:
+
+        - ``certificate`` -- whether to return a certificate (``False`` by
+          default).
+
+        OUTPUT:
+
+        When ``certificate=False``, returns a boolean value. When
+        ``certificate=True`` :
+
+            * If the graph is acyclic, returns a pair ``(True, ordering)`` where
+              ``ordering`` is a list of the vertices such that ``u`` appears
+              before ``v`` in ``ordering`` if ``u, v`` is an edge.
+
+            * Else, returns a pair ``(False, cycle)`` where ``cycle`` is a list
+              of vertices representing a circuit in the graph.
+
+        .. NOTE::
+
+            The graph is assumed to be directed. An exception is raised if it is
+            not.
+
+        EXAMPLES:
+
+        At first, the following graph is acyclic::
+
+            sage: D = DiGraph({ 0:[1,2,3], 4:[2,5], 1:[8], 2:[7], 3:[7], 5:[6,7], 7:[8], 6:[9], 8:[10], 9:[10] })
+            sage: D.plot(layout='circular').show()
+            sage: D.is_directed_acyclic()
+            True
+
+        Adding an edge from `9` to `7` does not change it::
+
+            sage: D.add_edge(9,7)
+            sage: D.is_directed_acyclic()
+            True
+
+        We can obtain as a proof an ordering of the vertices such that `u`
+        appears before `v` if `uv` is an edge of the graph::
+
+            sage: D.is_directed_acyclic(certificate = True)
+            (True, [4, 5, 6, 9, 0, 1, 2, 3, 7, 8, 10])
+
+        Adding an edge from 7 to 4, though, makes a difference::
+
+            sage: D.add_edge(7,4)
+            sage: D.is_directed_acyclic()
+            False
+
+        Indeed, it creates a circuit `7, 4, 5`::
+
+            sage: D.is_directed_acyclic(certificate = True)
+            (False, [7, 4, 5])
+
+        Checking acyclic graphs are indeed acyclic ::
+
+            sage: def random_acyclic(n, p):
+            ...    g = graphs.RandomGNP(n, p)
+            ...    h = DiGraph()
+            ...    h.add_edges([ ((u,v) if u<v else (v,u)) for u,v,_ in g.edges() ])
+            ...    return h
+            ...
+            sage: all( random_acyclic(100, .2).is_directed_acyclic()    # long time
+            ...        for i in range(50))                              # long time
+            True
+        """
+
+        if not self._directed:
+            raise ValueError("The graph should be directed !")
+
+        # Vertices that have already been seen
+        cdef bitset_t seen
+        bitset_init(seen, (<CGraph>self._cg).active_vertices.size)
+        bitset_set_first_n(seen, 0)
+
+        # Activated vertices
+        cdef bitset_t activated
+        bitset_init(activated, (<CGraph>self._cg).active_vertices.size)
+        bitset_set_first_n(activated, (<CGraph>self._cg).active_vertices.size)
+
+        # Vertices whose neighbors have already been added to the stack
+        cdef bitset_t tried
+        bitset_init(tried, (<CGraph>self._cg).active_vertices.size)
+        bitset_set_first_n(tried, 0)
+
+        # Parent of a vertex in the discovery tree
+        cdef dict parent = {}
+
+        # The vertices left to be visited
+        cdef list stack = []
+
+        # Final ordering, if the graph turns out to be acyclic
+        cdef list ordering = []
+
+        # Circuit, if the graph turns out to contain one
+        cdef list cycle
+
+        # We try any vertex as the source of the exploration tree
+        for v in (<CGraph>self._cg).verts():
+
+            # We are not interested in trying de-activated vertices
+            if bitset_not_in(activated, v):
+                continue
+
+            stack = [v]
+            bitset_add(seen, v)
+
+            # For as long as some vertices are to be visited
+            while stack:
+
+                # We take the last one (depth-first search)
+                u = stack.pop(-1)
+
+                # If we never tried it, we put it at the end of the stack again,
+                # but remember we tried it once.
+                if bitset_not_in(tried, u):
+                    bitset_add(tried, u)
+                    bitset_add(seen, u)
+                    stack.append(u)
+
+                # If we tried all the path starting from this vertex already, it
+                # means it leads to no circuit. We can remove it, and go to the
+                # next one
+                else:
+                    ordering.insert(0, vertex_label(u, self.vertex_ints, self.vertex_labels, self._cg))
+                    bitset_discard(seen, u)
+                    bitset_discard(activated, u)
+                    continue
+
+                # For each out-neighbor of the current vertex
+                for uu in self._cg.out_neighbors(u):
+
+                    # If we have found a new vertex, we put it at the end of the
+                    # stack. We ignored de-activated vertices.
+                    if bitset_not_in(seen, uu):
+                        if bitset_in(activated, uu):
+                            parent[uu] = u
+                            stack.append(uu)
+
+                    # If we have already met this vertex, it means we have
+                    # found a circuit !
+                    else:
+
+                        bitset_free(seen)
+                        bitset_free(activated)
+                        bitset_free(tried)
+
+                        if not certificate:
+                            return False
+
+                        # We build it, then return it
+                        # // answer = [u]
+                        cycle = [vertex_label(u, self.vertex_ints, self.vertex_labels, self._cg)]
+
+                        tmp = u
+                        while u != uu:
+                            u = parent.get(u,uu)
+                            cycle.append(vertex_label(u, self.vertex_ints, self.vertex_labels, self._cg))
+
+                        cycle.reverse()
+                        return (False, cycle)
+
+            # Each time we have explored all the descendants of a vertex v and
+            # met no circuit, we de-activate all these vertices, as we know we
+            # do not need them anyway.
+            for v in (<CGraph>self._cg).verts():
+                if bitset_in(seen, v):
+                    bitset_discard(seen, v)
+                    bitset_discard(activated, v)
+                    bitset_add(tried, v)
+
+
+        # No Cycle... Good news ! Let's return it.
+        bitset_free(seen)
+        bitset_free(activated)
+        bitset_free(tried)
+
+        if certificate:
+            return (True, ordering)
+        else:
+            return True
+
 cdef class Search_iterator:
     r"""
     An iterator for traversing a (di)graph.

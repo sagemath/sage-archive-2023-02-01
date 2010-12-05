@@ -427,6 +427,83 @@ class Spherical(_Coordinates):
                 radius * sin(inclination) * sin(azimuth),
                 radius * cos(inclination))
 
+class SphericalElevation(_Coordinates):
+    """
+    A spherical coordinate system for use with ``plot3d(transformation=...)``
+    where the position of a point is specified by three numbers:
+
+     - the *radial distance* (``radius``) from the origin
+
+     - the *azimuth angle* (``azimuth``) from the positive `x`-axis
+
+     - the *elevation angle* (``elevation``) from the `xy`-plane toward the
+       positive `z`-axis
+
+    These three variables must be specified in the constructor.
+
+    EXAMPLES:
+
+    Construct a spherical transformation for the radius
+    in terms of the azimuth and elevation. Then, get a
+    transformation in terms of those variables::
+
+        sage: T = SphericalElevation('radius', ['azimuth', 'elevation'])
+        sage: r, theta, phi = var('r theta phi')
+        sage: T.transform(radius=r, azimuth=theta, elevation=phi)
+        (r*cos(phi)*cos(theta), r*sin(theta)*cos(phi), r*sin(phi))
+
+    We can plot with this transform.  Remember that the dependent
+    variable is the radius, and the independent variables are the
+    azimuth and the elevation (in that order)::
+
+        sage: plot3d(phi * theta, (theta, 0, pi), (phi, 0, 1), transformation=T)
+
+    We next graph the function where the elevation angle is constant. This
+    should be compared to the similar example for the ``Spherical`` coordinate
+    system::
+
+        sage: SE=SphericalElevation('elevation', ['radius', 'azimuth'])
+        sage: r,theta=var('r,theta')
+        sage: plot3d(3, (r,0,3), (theta, 0, 2*pi), transformation=SE)
+
+    Plot a sin curve wrapped around the equator::
+
+        sage: P1=plot3d( (pi/12)*sin(8*theta), (r,0.99,1), (theta, 0, 2*pi), transformation=SE, plot_points=(10,200))
+        sage: P2=sphere(center=(0,0,0), size=1, color='red', opacity=0.3)
+        sage: P1+P2
+
+    Now we graph several constant elevation functions alongside several constant
+    inclination functions. This example illustrates the difference between the
+    ``Spherical`` coordinate system and the ``SphericalElevation`` coordinate
+    system::
+
+        sage: r, phi, theta = var('r phi theta')
+        sage: SE = SphericalElevation('elevation', ['radius', 'azimuth'])
+        sage: angles = [pi/18, pi/12, pi/6]
+        sage: P1 = [plot3d( a, (r,0,3), (theta, 0, 2*pi), transformation=SE, opacity=0.85, color='blue') for a in angles]
+
+        sage: S = Spherical('inclination', ['radius', 'azimuth'])
+        sage: P2 = [plot3d( a, (r,0,3), (theta, 0, 2*pi), transformation=S, opacity=0.85, color='red') for a in angles]
+        sage: show(sum(P1+P2), aspect_ratio=1)
+
+    See also :func:`spherical_plot3d` for more examples of plotting in spherical
+    coordinates.
+    """
+
+    def transform(self, radius=None, azimuth=None, elevation=None):
+        """
+        A spherical coordinates transform.
+
+        EXAMPLE::
+
+            sage: T = SphericalElevation('radius', ['azimuth', 'elevation'])
+            sage: T.transform(radius=var('r'), azimuth=var('theta'), elevation=var('phi'))
+            (r*cos(phi)*cos(theta), r*sin(theta)*cos(phi), r*sin(phi))
+        """
+        return (radius * cos(elevation) * cos(azimuth),
+                radius * cos(elevation) * sin(azimuth),
+                radius * sin(elevation))
+
 class Cylindrical(_Coordinates):
     """
     A cylindrical coordinate system for use with ``plot3d(transformation=...)``

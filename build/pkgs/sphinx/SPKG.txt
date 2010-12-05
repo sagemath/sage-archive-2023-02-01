@@ -24,7 +24,7 @@ Home Page: http://sphinx.pocoo.org
 
 == Dependencies ==
 
-This depends on Jinja >= 2, Pygments >= 1.3.1, docutils >= 0.4.
+This depends on Jinja >= 2.2, Pygments >= 1.3.1, docutils >= 0.4.
 
 == Special Update/Build Instructions ==
 
@@ -59,7 +59,9 @@ Here is a description of patches on top of Sphinx 1.0.4:
 
 == Changelog ==
 
-=== sphinx-1.0.4.p4 (Jeroen Demeyer, 2010-11-28) ===
+=== sphinx-1.0.4.p5 (Jeroen Demeyer, 2010-12-05) ===
+
+ * Ticket #10350: Fix some remaining issues with sphinx-1.0.4.p3.spkg
 
  * Redirect standard input of (pdf)latex from /dev/null, to avoid
    latex hanging with messages like

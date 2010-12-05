@@ -335,7 +335,7 @@ if [ "$1" = '-root'  -o "$1" = '--root' ]; then
 fi
 
 if [ "$1" = '-branch'  -o "$1" = '--branch' ]; then
-    readlink "$SAGE_ROOT/devel/sage" | sed "s/sage-//"
+    cd "$SAGE_ROOT/devel/sage" && pwd -P | sed 's|.*/||; s|^sage-||'
     exit $?
 fi
 

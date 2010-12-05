@@ -397,8 +397,8 @@ class Spherical(_Coordinates):
         sage: T.transform(radius=r, azimuth=theta, inclination=phi)
         (r*sin(phi)*cos(theta), r*sin(phi)*sin(theta), r*cos(phi))
 
-    We can plot with this transform.  Remember that the independent
-    variable is the radius, and the dependent variables are the
+    We can plot with this transform.  Remember that the dependent
+    variable is the radius, and the independent variables are the
     azimuth and the inclination (in that order)::
 
         sage: plot3d(phi * theta, (theta, 0, pi), (phi, 0, 1), transformation=T)
@@ -453,8 +453,8 @@ class Cylindrical(_Coordinates):
         sage: T.transform(radius=r, azimuth=theta, height=z)
         (r*cos(theta), r*sin(theta), z)
 
-    We can plot with this transform.  Remember that the independent
-    variable is the height, and the dependent variables are the
+    We can plot with this transform.  Remember that the dependent
+    variable is the height, and the independent variables are the
     radius and the azimuth (in that order)::
 
         sage: plot3d(9-r^2, (r, 0, 3), (theta, 0, pi), transformation=T)

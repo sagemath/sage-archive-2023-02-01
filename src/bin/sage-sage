@@ -678,7 +678,13 @@ if [ "$1" = '-r' ]; then
          echo >&2 "Use 'sage -clone' to create a new branch."
          exit 1
       fi
-      ln -snf "sage-$1" sage
+      # On Solaris (and perhaps other systems), "ln -snf FILE LINK"
+      # doesn't remove LINK and then relink it, so we need to first
+      # delete LINK -- in this case, SAGE_ROOT/devel/sage -- and then
+      # create a new link.  We use the full path name to make sure we
+      # remove the correct file.
+      rm -f "$SAGE_ROOT/devel/sage"
+      ln -s "sage-$1" sage
       cd "$SAGE_ROOT"
    fi
    sage

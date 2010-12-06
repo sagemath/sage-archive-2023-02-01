@@ -1,8 +1,14 @@
 #!/usr/bin/env bash
 
+if [ -z "$SAGE_LOCAL" ]; then
+    echo
+    echo "SAGE_LOCAL undefined ... exiting"
+    return 1
+fi
+
 build() {
-   if [ -d $SAGE_ROOT/devel/$1/ ]; then
-      cd $SAGE_ROOT/devel/$1/
+   if [ -d "$SAGE_ROOT/devel/$1/" ]; then
+      cd "$SAGE_ROOT/devel/$1/"
       chmod +x ./install
       echo ""
       echo "----------------------------------------------------------"
@@ -32,9 +38,9 @@ build() {
 	  echo ""
 	  exit 1
       fi
-      cd $CUR
+      cd "$CUR"
 
-      ./install $SAGE_ROOT
+      ./install "$SAGE_ROOT"
       if [ $? -ne 0 ]; then
          echo "sage: There was an error installing modified $1 library code."
          echo ""
@@ -44,8 +50,6 @@ build() {
       #echo "The directory $SAGE_ROOT/devel/$1/ does not exist."
    fi
 }
-
-$SAGE_ROOT/local/bin/sage-env 1>/dev/null
 
 if [ "$1" = "-b" ]; then
     DO_BUILD_ALL=1
@@ -64,7 +68,13 @@ if [ "$1" != "" ]; then
 	echo "Use 'sage -clone' to create a new branch."
         exit 1
     fi
-    ln -snf "sage-$1" sage
+    # On Solaris (and perhaps other systems), "ln -snf FILE LINK"
+    # doesn't remove LINK and then relink it, so we need to first
+    # delete LINK -- in this case, SAGE_ROOT/devel/sage -- and then
+    # create a new link.  We use the full path name to make sure we
+    # remove the correct file.
+    rm -f "$SAGE_ROOT/devel/sage"
+    ln -s "sage-$1" sage
 fi
 
 if [ ! -d "$SAGE_ROOT/devel/sage" ]; then

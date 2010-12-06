@@ -404,7 +404,8 @@ def test_bitset(py_a, py_b, long n):
     """
     Test the Cython bitset functions so we can have some relevant doctests.
 
-    TESTS:
+    TESTS::
+
         sage: from sage.misc.misc_c import test_bitset
         sage: test_bitset('00101', '01110', 4)
         a 00101
@@ -446,6 +447,8 @@ def test_bitset(py_a, py_b, long n):
         to size 8          00100000
         to original size    00100
 
+    ::
+
         sage: test_bitset('11101', '11001', 2)
         a 11101
         list a [0, 1, 2, 4]
@@ -486,7 +489,8 @@ def test_bitset(py_a, py_b, long n):
         to size 4          1100
         to original size    11000
 
-    Test a corner-case: a bitset that is a multiple of words
+    Test a corner-case: a bitset that is a multiple of words::
+
         sage: test_bitset('00'*64, '01'*64, 127)
         a 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
         list a []
@@ -537,7 +541,8 @@ def test_bitset(py_a, py_b, long n):
         to size 254          00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
         to original size    00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 
-    Large enough to span multiple limbs.  We don't explicitly check the number of limbs below because it will be different in the 32 bit versus 64 bit cases:
+    Large enough to span multiple limbs.  We don't explicitly check the number of limbs below because it will be different in the 32 bit versus 64 bit cases::
+
         sage: test_bitset('111001'*25, RealField(151)(pi).str(2)[2:], 69)
         a 111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001
         list a [0, 1, 2, 5, 6, 7, 8, 11, 12, 13, 14, 17, 18, 19, 20, 23, 24, 25, 26, 29, 30, 31, 32, 35, 36, 37, 38, 41, 42, 43, 44, 47, 48, 49, 50, 53, 54, 55, 56, 59, 60, 61, 62, 65, 66, 67, 68, 71, 72, 73, 74, 77, 78, 79, 80, 83, 84, 85, 86, 89, 90, 91, 92, 95, 96, 97, 98, 101, 102, 103, 104, 107, 108, 109, 110, 113, 114, 115, 116, 119, 120, 121, 122, 125, 126, 127, 128, 131, 132, 133, 134, 137, 138, 139, 140, 143, 144, 145, 146, 149]
@@ -587,6 +592,7 @@ def test_bitset(py_a, py_b, long n):
         to size 69          111001111001111001111001111001111001111001111001111001111001111001111
         to size 138          111001111001111001111001111001111001111001111001111001111001111001111000000000000000000000000000000000000000000000000000000000000000000000
         to original size    111001111001111001111001111001111001111001111001111001111001111001111000000000000000000000000000000000000000000000000000000000000000000000000000000000
+
     """
     cdef bint bit = True
     cdef bitset_t a, b, r
@@ -727,6 +733,24 @@ def test_bitset(py_a, py_b, long n):
     bitset_free(r)
     bitset_free(s)
 
+def test_bitset_set_first_n(py_a, long n):
+    """
+    Test the bitset function set_first_n.
+
+    TESTS::
+
+        sage: from sage.misc.misc_c import test_bitset_set_first_n
+        sage: test_bitset_set_first_n('00'*64, 128)
+        a.set_first_n(n)    11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
+
+    """
+    cdef bint bit = True
+    cdef bitset_t a
+
+    bitset_from_str(a, py_a)
+    bitset_set_first_n(a, n)
+    print "a.set_first_n(n)   ", bitset_string(a)
+    bitset_free(a)
 
 def test_bitset_remove(py_a, long n):
     """

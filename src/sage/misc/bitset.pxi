@@ -263,7 +263,8 @@ cdef inline void bitset_set_first_n(bitset_t bits, unsigned long n):
     cdef long index = n >> index_shift
     for i from 0 <= i < index:
         bits.bits[i] = ~0
-    bits.bits[index] = ((<unsigned long>1) << (n & offset_mask)) - 1
+    if index < bits.limbs:
+        bits.bits[index] = ((<unsigned long>1) << (n & offset_mask)) - 1
     for i from index < i < bits.limbs:
         bits.bits[i] = 0
 

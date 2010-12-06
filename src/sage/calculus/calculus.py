@@ -344,6 +344,19 @@ Check that the problem with Taylor expansions of the gamma function
     -1/432*((36*(pi*sqrt(3) + 9*log(3))*euler_gamma^2 + 27*pi^2*log(3) + 72*euler_gamma^3 + 243*log(3)^3 + 18*(6*pi*sqrt(3)*log(3) + pi^2 + 27*log(3)^2 + 12*psi(1, 1/3))*euler_gamma + 324*psi(1, 1/3)*log(3) + (pi^3 + 9*(9*log(3)^2 + 4*psi(1, 1/3))*pi)*sqrt(3))*gamma(1/3) - 72*gamma(1/3)*psi(2, 1/3))*x^3 + 1/24*(6*pi*sqrt(3)*log(3) + 4*(pi*sqrt(3) + 9*log(3))*euler_gamma + pi^2 + 12*euler_gamma^2 + 27*log(3)^2 + 12*psi(1, 1/3))*x^2*gamma(1/3) - 1/6*(6*euler_gamma + pi*sqrt(3) + 9*log(3))*x*gamma(1/3) + gamma(1/3)
     sage: map(lambda f:f[0].n(), _.coeffs())  # numerical coefficients to make comparison easier; Maple 12 gives same answer
     [2.6789385347..., -8.3905259853..., 26.662447494..., -80.683148377...]
+
+Ensure that ticket #8582 is fixed::
+
+    sage: k = var("k")
+    sage: sum(1/(1+k^2), k, -oo, oo)
+    1/2*I*psi(-I) - 1/2*I*psi(I) + 1/2*I*psi(-I + 1) - 1/2*I*psi(I + 1)
+
+Ensure that ticket #8624 is fixed::
+
+    sage: integrate(abs(cos(x)) * sin(x), x, pi/2, pi)
+    1/2
+    sage: integrate(sqrt(cos(x)^2 + sin(x)^2), x, 0, 2*pi)
+    2*pi
 """
 
 import re

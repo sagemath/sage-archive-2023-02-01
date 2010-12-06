@@ -236,6 +236,9 @@ def integral(f, *args, **kwds):
 
         sage: integral(abs(x), x, 0, 5)
         25/2
+        sage: a = var("a")
+        sage: integral(abs(x), x, 0, a)
+        1/2*a*abs(a)
         sage: integral(abs(x)*x, x, 0, a)
         Traceback (most recent call last):
         ...

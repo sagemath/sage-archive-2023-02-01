@@ -2052,6 +2052,142 @@ class GenericGraph(GenericGraph_pyx):
                 else:
                     return d
 
+    def min_spanning_tree(self,
+                          weight_function=lambda e: 1,
+                          algorithm="Kruskal",
+                          starting_vertex=None,
+                          check=False):
+        r"""
+        Returns the edges of a minimum spanning tree.
+
+        INPUT:
+
+        - ``weight_function`` -- A function that takes an edge and returns a
+          numeric weight. Defaults to assigning each edge a weight of 1.
+
+        - ``algorithm`` -- The algorithm to use in computing a minimum sapnning
+          tree of ``G``. The default is to use Kruskal's algorithm. The
+          following algorithms are supported:
+
+          - ``"Kruskal"`` -- Kruskal's algorithm.
+
+          - ``"Prim_fringe"`` -- a variant of Prim's algorithm.
+            ``"Prim_fringe"`` ignores the labels on the edges.
+
+          - ``"Prim_edge"`` -- a variant of Prim's algorithm.
+
+          - ``NetworkX`` -- Uses NetworkX's minimum spanning tree
+            implementation.
+
+        - ``starting_vertex`` -- The vertex from which to begin the search
+          for a minimum spanning tree.
+
+        - ``check`` -- Boolean; default: ``False``. Whether to first perform
+          sanity checks on the input graph ``G``. If appropriate, ``check``
+          is passed on to any minimum spanning tree functions that are
+          invoked from the current method. See the documentation of the
+          corresponding functions for details on what sort of sanity checks
+          will be performed.
+
+        OUTPUT:
+
+        The edges of a minimum spanning tree of ``G``, if one exists, otherwise
+        returns the empty list.
+
+        .. seealso::
+
+            - :func:`sage.graphs.spanning_tree.kruskal`
+
+        EXAMPLES:
+
+        Kruskal's algorithm::
+
+            sage: g = graphs.CompleteGraph(5)
+            sage: len(g.min_spanning_tree())
+            4
+            sage: weight = lambda e: 1 / ((e[0] + 1) * (e[1] + 1))
+            sage: g.min_spanning_tree(weight_function=weight)
+            [(3, 4, {}), (2, 4, {}), (1, 4, {}), (0, 4, {})]
+            sage: g = graphs.PetersenGraph()
+            sage: g.allow_multiple_edges(True)
+            sage: g.weighted(True)
+            sage: g.add_edges(g.edges())
+            sage: g.min_spanning_tree()
+            [(0, 1, None), (0, 4, None), (0, 5, None), (1, 2, None), (1, 6, None), (2, 3, None), (2, 7, None), (3, 8, None), (4, 9, None)]
+
+        Prim's algorithm::
+
+            sage: g = graphs.CompleteGraph(5)
+            sage: g.min_spanning_tree(algorithm='Prim_edge', starting_vertex=2, weight_function=weight)
+            [(2, 4, {}), (3, 4, {}), (1, 4, {}), (0, 4, {})]
+            sage: g.min_spanning_tree(algorithm='Prim_fringe', starting_vertex=2, weight_function=weight)
+            [(2, 4), (4, 3), (4, 1), (4, 0)]
+        """
+        if algorithm == "Kruskal":
+            from spanning_tree import kruskal
+            return kruskal(self, wfunction=weight_function, check=check)
+        elif algorithm == "Prim_fringe":
+            if starting_vertex is None:
+                v = self.vertex_iterator().next()
+            else:
+                v = starting_vertex
+            tree = set([v])
+            edges = []
+            # Initialize fringe_list with v's neighbors. Fringe_list
+            # contains fringe_vertex: (vertex_in_tree, weight) for each
+            # fringe vertex.
+            fringe_list = dict([u, (weight_function((v, u)), v)] for u in self[v])
+            cmp_fun = lambda x: fringe_list[x]
+            for i in range(self.order() - 1):
+                # find the smallest-weight fringe vertex
+                u = min(fringe_list, key=cmp_fun)
+                edges.append((fringe_list[u][1], u))
+                tree.add(u)
+                fringe_list.pop(u)
+                # update fringe list
+                for neighbor in [v for v in self[u] if v not in tree]:
+                    w = weight_function((u, neighbor))
+                    if neighbor not in fringe_list or fringe_list[neighbor][0] > w:
+                        fringe_list[neighbor] = (w, u)
+            return edges
+        elif algorithm == "Prim_edge":
+            if starting_vertex is None:
+                v = self.vertex_iterator().next()
+            else:
+                v = starting_vertex
+            sorted_edges = sorted(self.edges(), key=weight_function)
+            tree = set([v])
+            edges = []
+            for _ in range(self.order() - 1):
+                # Find a minimum-weight edge connecting a vertex in the tree
+                # to something outside the tree. Remove the edges between
+                # tree vertices for efficiency.
+                i = 0
+                while True:
+                    e = sorted_edges[i]
+                    v0, v1 = e[0], e[1]
+                    if v0 in tree:
+                        del sorted_edges[i]
+                        if v1 in tree:
+                            continue
+                        edges.append(e)
+                        tree.add(v1)
+                        break
+                    elif v1 in tree:
+                        del sorted_edges[i]
+                        edges.append(e)
+                        tree.add(v0)
+                        break
+                    else:
+                        i += 1
+            return edges
+        elif algorithm == "NetworkX":
+            import networkx
+            G = networkx.Graph([(u, v, dict(weight=weight_function((u, v)))) for u, v, l in self.edge_iterator()])
+            return list(networkx.mst(G))
+        else:
+            raise NotImplementedError("Minimum Spanning Tree algorithm '%s' is not implemented." % algorithm)
+
     def spanning_trees_count(self, root_vertex=None):
         """
         Returns the number of spanning trees in a graph. In the case of a

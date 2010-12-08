@@ -380,6 +380,9 @@ ext_modules = [
                          'sage/graphs/planarity/platformTime.h',
                          'sage/graphs/planarity/stack.h']),
 
+    Extension('sage.graphs.spanning_tree',
+              sources = ['sage/graphs/spanning_tree.pyx']),
+
     Extension('sage.graphs.trees',
               sources = ['sage/graphs/trees.pyx']),
 

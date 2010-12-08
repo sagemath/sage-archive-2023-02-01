@@ -6,6 +6,7 @@ AUTHOR:
     -- William Stein (2005): first version
     -- William Stein (2008): fix trac #2391 and document the code.
     -- Dan Drake (2009): fix trac #5052
+    -- Dan Drake (2010-12-08): fix trac #10440
 """
 
 import os, sys, re
@@ -104,15 +105,17 @@ def do_preparse(f, files_before=[]):
     # Finally open the file
     F = open(f).read()
 
-    #Check to see if a coding is specified in the .sage file.
-    #If it is, then we want to copy it over to the new file
-    #and not include it in the preprocessing
-    if F.startswith('# -*- coding:'):
-        end = F.find('\n')
-        coding = F[:end+1] if end != -1 else F
-        F = F[len(coding):]
-    else:
-        coding = ''
+    # Check to see if a coding is specified in the .sage file. If it is,
+    # then we want to copy it over to the new file and not include it in
+    # the preprocessing. If both the first and second line have an
+    # encoding declaration, the second line's encoding will get used.
+
+    lines = F.splitlines()
+    coding = ''
+    for num, line in enumerate(lines[:2]):
+        if re.search(r"coding[:=]\s*([-\w.]+)", line):
+            coding = line + '\n'
+            F = '\n'.join(lines[:num] + lines[(num+1):])
 
     # Preparse it
     from sage.misc.preparser  import preparse_file

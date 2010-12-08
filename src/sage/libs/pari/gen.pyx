@@ -7261,6 +7261,22 @@ cdef class gen(sage.structure.element.RingElement):
         x = f.variable()
         return x.Mod(f)
 
+    def nfhilbert(self, a, b, p = None):
+        """
+        nfhilbert(nf,a,b,{p}): if p is omitted, global Hilbert symbol (a,b)
+        in nf, that is 1 if X^2-aY^2-bZ^2 has a non-trivial solution (X,Y,Z)
+        in nf, -1 otherwise. Otherwise compute the local symbol modulo the
+        prime ideal p.
+        """
+        t0GEN(a)
+        t1GEN(b)
+        sig_on()
+        if p == None:
+            return nfhilbert(self.g, t0, t1)
+        t2GEN(p)
+        return nfhilbert0(self.g, t0, t1, t2)
+
+
     def nfinit(self, long flag=0, long precision=0):
         """
         nfinit(pol, {flag=0}): ``pol`` being a nonconstant irreducible

@@ -6888,6 +6888,188 @@ class NumberField_absolute(NumberField_generic):
         """
         return self.different()
 
+    def hilbert_symbol(self, a, b, P = None):
+        r"""
+        Returns the Hilbert symbol `(a,b)_P` for a prime P of self
+        and non-zero elements a and b of self.
+        If P is omitted, return the global Hilbert symbol `(a,b)` instead.
+
+        INPUT:
+
+        - ``a, b`` -- elements of self
+        - ``P`` -- prime ideal of self
+
+        OUTPUT:
+
+        If a or b is zero, returns 0.
+
+        If a and b are non-zero and P is specified, returns
+        the Hilbert symbol `(a,b)_P`, which is 1 if the equation
+        `a x^2 + b y^2 = 1` has a solution in the completion of
+        self at P, and is -1 otherwise.
+
+        If a and b are non-zero and P is unspecified, returns 1
+        if the equation has a solution in self and -1 otherwise.
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^2 - 23)
+            sage: O = K.maximal_order()
+            sage: K.hilbert_symbol(a, a+5, 5*O)
+            1
+            sage: K.hilbert_symbol(a+1, 13, (-a-6)*O)
+            -1
+            sage: [emb1, emb2] = K.embeddings(AA)
+            sage: K.hilbert_symbol(a, -1, emb1)
+            -1
+            sage: K.hilbert_symbol(a, -1, emb2)
+            1
+
+        Principal ideals P can be given by generators::
+
+            sage: K.<a> = NumberField(x^5 - 23)
+            sage: pi = 2*a^4 + 3*a^3 + 4*a^2 + 15*a + 11
+            sage: K.hilbert_symbol(a, a+5, pi)
+            1
+            sage: rho = 2*a^4 + 3*a^3 + 4*a^2 + 15*a + 11
+            sage: K.hilbert_symbol(a, a+5, rho)
+            1
+
+        Primes above 2::
+
+            sage: K.<a> = NumberField(x^5 - 23)
+            sage: O = K.maximal_order()
+            sage: p = [p[0] for p in (2*O).factor() if p[0].norm() == 16][0]
+            sage: K.hilbert_symbol(a, a+5, p)
+            1
+            sage: K.hilbert_symbol(a, 2, p)
+            1
+            sage: K.hilbert_symbol(-1, a-2, p)
+            -1
+
+        Various real fields are allowed::
+
+            sage: K.<a> = NumberField(x^3+x+1)
+            sage: K.hilbert_symbol(a/3, 1/2, K.embeddings(RDF)[0])
+            1
+            sage: K.hilbert_symbol(a/5, -1, K.embeddings(RR)[0])
+            -1
+            sage: [K.hilbert_symbol(a, -1, e) for e in K.embeddings(AA)]
+            [-1]
+
+        Real embeddings are not allowed to be disguised as complex embeddings::
+
+            sage: K.<a> = QuadraticField(5)
+            sage: K.hilbert_symbol(-1, -1, K.embeddings(CC)[0])
+            Traceback (most recent call last):
+            ...
+            ValueError: Possibly real place (=Ring morphism:
+              From: Number Field in a with defining polynomial x^2 - 5
+              To:   Complex Field with 53 bits of precision
+              Defn: a |--> -2.23606797749979) given as complex embedding in hilbert_symbol. Is it real or complex?
+            sage: K.hilbert_symbol(-1, -1, K.embeddings(QQbar)[0])
+            Traceback (most recent call last):
+            ...
+            ValueError: Possibly real place (=Ring morphism:
+              From: Number Field in a with defining polynomial x^2 - 5
+              To:   Algebraic Field
+              Defn: a |--> -2.236067977499790?) given as complex embedding in hilbert_symbol. Is it real or complex?
+            sage: K.<b> = QuadraticField(-5)
+            sage: K.hilbert_symbol(-1, -1, K.embeddings(CDF)[0])
+            1
+            sage: K.hilbert_symbol(-1, -1, K.embeddings(QQbar)[0])
+            1
+
+        a and b do not have to be integral or coprime::
+
+            sage: K.<i> = QuadraticField(-1)
+            sage: O = K.maximal_order()
+            sage: K.hilbert_symbol(1/2, 1/6, 3*O)
+            1
+            sage: p = 1+i
+            sage: K.hilbert_symbol(p,p,p*O)
+            -1
+            sage: K.hilbert_symbol(1/3, 1/5, 1+i)
+            1
+            sage: L = QuadraticField(5, 'a')
+            sage: L.hilbert_symbol(-3, -1/2, 2)
+            1
+
+        a non-principal ideal P::
+
+            sage: K.<a> = QuadraticField(-5)
+            sage: P = K.ideal(3).factor()[0][0]
+            sage: P.is_principal()
+            False
+            sage: K.hilbert_symbol(a, a+3, P)
+            1
+
+        Various other examples::
+
+            sage: K.<a> = NumberField(x^3+x+1)
+            sage: K.hilbert_symbol(-6912, 24, -a^2-a-2)
+            1
+            sage: K.<a> = NumberField(x^5-23)
+            sage: P = K.ideal(-1105*a^4 + 1541*a^3 - 795*a^2 - 2993*a + 11853)
+            sage: Q = K.ideal(-7*a^4 + 13*a^3 - 13*a^2 - 2*a + 50)
+            sage: b = -a+5
+            sage: K.hilbert_symbol(a,b,P)
+            -1
+            sage: K.hilbert_symbol(a,b,Q)
+            1
+            sage: K.<a> = NumberField(x^5-23)
+            sage: P = K.ideal(-1105*a^4 + 1541*a^3 - 795*a^2 - 2993*a + 11853)
+            sage: b = a+5
+            sage: K.hilbert_symbol(a, b, P)
+            -1
+            sage: K.hilbert_symbol(a, 2, P)
+            -1
+            sage: K.hilbert_symbol(a+5, 2, P)
+            -1
+
+        AUTHOR:
+
+        - Aly Deines (2010-08-19): part of the doctests
+
+        - Marco Streng (2010-12-06)
+        """
+        if a == 0 or b == 0:
+            return ZZ(0)
+        if P != None:
+            if sage.rings.all.is_RingHomomorphism(P):
+                if not P.domain() == self:
+                    raise ValueError, "Domain of P (=%s) should be self (=%s) in self.hilbert_symbol" % (P, self)
+                codom = P.codomain()
+                one = ZZ(1)
+                from sage.rings.all import (is_ComplexField, AA, CDF, QQbar,
+                                    is_ComplexIntervalField, is_RealField,
+                                    is_RealIntervalField, RDF)
+                if is_ComplexField(codom) or is_ComplexIntervalField(codom) or \
+                                             codom is CDF or codom is QQbar:
+                    if P(self.gen()).imag() == 0:
+                        raise ValueError, "Possibly real place (=%s) given as complex embedding in hilbert_symbol. Is it real or complex?" % P
+                    return one
+                if is_RealField(codom) or codom is RDF or codom is AA:
+                    if P(a) > 0 or P(b) > 0:
+                        return one
+                    return -one
+            if P in self:
+                P = P*self.maximal_order()
+            if not is_NumberFieldIdeal(P):
+                raise ValueError, "P (=%s) should be an ideal or real or complex embedding in hilbert_symbol" % str(P)
+            if not P.number_field() == self:
+                raise ValueError, "P (=%s) should be an ideal of self (=%s) in hilbert_symbol, not of %s" % (P, self, P.number_field())
+            if not P.is_prime():
+                raise ValueError, "Non-prime ideal P (=%s) in hilbert_symbol" % P
+        k = pari(self)
+        if P != None:
+            P = k.idealfactor(pari(P))[0,0]
+        a = pari(self(a))
+        b = pari(self(b))
+        return ZZ(pari(self).nfhilbert(a, b, P))
+
+
+
 
 class NumberField_cyclotomic(NumberField_absolute):
     """

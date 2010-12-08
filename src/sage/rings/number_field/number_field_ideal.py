@@ -2254,25 +2254,36 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             AG._gens = tuple(map(k, g))
         return AG
 
-    def ideallog(self, x):
+    def ideallog(self, x, gens=None, check=True):
         r"""
-        Returns the discrete logarithm of x with respect to the
-        generators given in the ``bid`` structure of the ideal
-        self.
+        Returns the discrete logarithm of x with respect to the generators
+        given in the ``bid`` structure of the ideal self, or with respect to
+        the generators ``gens`` if these are given.
 
         INPUT:
 
         - ``x`` - a non-zero element of the number field of self,
           which must have valuation equal to 0 at all prime ideals in
           the support of the ideal self.
+        - ``gens`` - a list of elements of the number field which generate `(R
+          / I)^*`, where `R` is the ring of integers of the field and `I` is
+          this ideal, or ``None``. If ``None``, use the generators calculated
+          by :meth:`~idealstar`.
+        - ``check`` - if True, do a consistency check on the results. Ignored
+          if ``gens`` is None.
 
         OUTPUT:
 
-        - ``l`` - a list of integers `(x_i)` such that `0 \leq x_i < d_i` and
-          `x = \prod_i g_i^{x_i}` in `(R/I)^*`, where `I` = self, `R` = ring of
-          integers of the field, and `g_i` are the generators of `(R/I)^*`, of
-          orders `d_i` respectively, as given in the ``bid`` structure of
-          the ideal self.
+        - ``l`` - a list of non-negative integers `(x_i)` such that `x =
+          \prod_i g_i^{x_i}` in `(R/I)^*`, where `x_i` are the generators, and
+          the list `(x_i)` is lexicographically minimal with respect to this
+          requirement. If the `x_i` generate independent cyclic factors of
+          order `d_i`, as is the case for the default generators calculated by
+          :meth:`~idealstar`, this just means that `0 \le x_i < d_i`.
+
+        A ``ValueError`` will be raised if the elements specified in ``gens``
+        do not in fact generate the unit group (even if the element `x` is in
+        the subgroup they generate).
 
         EXAMPLES::
 
@@ -2286,16 +2297,83 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             sage: A.small_residue(r) # random
             a^2 - 2
 
-        ALGORITHM: Uses Pari function ``ideallog``
+        Examples with custom generators::
+
+            sage: K.<a> = NumberField(x^2 - 7)
+            sage: I = K.ideal(17)
+            sage: I.ideallog(a + 7, [1+a, 2])
+            [10, 3]
+            sage: I.ideallog(a + 7, [2, 1+a])
+            [0, 118]
+
+            sage: L.<b> = NumberField(x^4 - x^3 - 7*x^2 + 3*x + 2)
+            sage: J = L.ideal(-b^3 - b^2 - 2)
+            sage: u = -14*b^3 + 21*b^2 + b - 1
+            sage: v = 4*b^2 + 2*b - 1
+            sage: J.ideallog(5+2*b, [u, v], check=True)
+            [4, 13]
+
+        A non-example::
+
+            sage: I.ideallog(a + 7, [2])
+            Traceback (most recent call last):
+            ...
+            ValueError: Given elements do not generate unit group -- they generate a subgroup of index 36
+
+        ALGORITHM: Uses Pari function ``ideallog``, and (if ``gens`` is not
+        None) a Hermite normal form calculation to express the result in terms
+        of the generators ``gens``.
         """
+        # sanitise input
+
         k = self.number_field()
         if not all([k(x).valuation(p)==0 for p, e in self.factor()]):
             raise TypeError, "the element must be invertible mod the ideal"
 
+        # calculate ideal log w.r.t. standard gens
+
         #Now it is important to call _pari_bid_() with flag=2 to make sure
         #we fix a basis, since the log would be different for a different
         #choice of basis.
-        return map(ZZ, k.pari_nf().ideallog(x._pari_(), self._pari_bid_(2)))
+        L = map(ZZ, k.pari_nf().ideallog(x._pari_(), self._pari_bid_(2)))
+
+        if gens is None:
+            return L
+
+        # otherwise translate answer in terms of given gens
+        G = self.idealstar(2)
+        invs = G.invariants()
+        g = G.gens()
+        n = G.ngens()
+
+        from sage.matrix.all import matrix, identity_matrix, zero_matrix, diagonal_matrix, block_matrix
+
+        # We use Hermite normal form twice: once to express the standard
+        # generators in terms of the new ones (independently of x) and once to
+        # reduce the resulting logarithm of x so it is lexicographically
+        # minimal.
+
+        mat = matrix(ZZ, map(self.ideallog, gens)).augment(identity_matrix(ZZ, len(gens)))
+        mat = mat.stack( diagonal_matrix(ZZ, invs).augment(zero_matrix(ZZ, len(invs), len(gens))))
+        hmat = mat.hermite_form()
+        A = hmat[0:len(invs), 0:len(invs)]
+        if A != identity_matrix(len(invs)):
+            raise ValueError, "Given elements do not generate unit group -- they generate a subgroup of index %s" % A.det()
+        B = hmat[0:len(invs), len(invs):]
+        C = hmat[len(invs):, len(invs):]
+        #print "Matrix of relations:\n%s" % C
+        M = (matrix(ZZ, L) * B)
+        N = block_matrix([identity_matrix(1), M, zero_matrix(len(gens), 1), C], 2,2,subdivide=False)
+        ans = N.hermite_form()[0, 1:].list()
+
+        if check:
+            from sage.rings.all import Zmod
+            t = 1
+            for i in xrange(len(ans)):
+                t = self.reduce(t * gens[i]**ans[i])
+            assert t == self.reduce(x * x.denominator() * (~Zmod(self.norm())(x.denominator())).lift())
+
+        return ans
 
     def element_1_mod(self, other):
         r"""

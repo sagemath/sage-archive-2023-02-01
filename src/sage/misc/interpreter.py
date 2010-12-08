@@ -100,6 +100,7 @@ __license__ = 'GPL'
 
 import os
 import log
+import re
 
 import remote_file
 
@@ -242,11 +243,13 @@ def load_cython(name):
     return 'from %s import *'%mod
 
 def handle_encoding_declaration(contents, out):
-    """Find a Python encoding declaration in the first line
-    of contents. If found, output it to out and return contents without first line,
-    else output a default UTF-8 declaration and return contents.
+    """Find a PEP 263-style Python encoding declaration in the first or
+    second line of `contents`. If found, output it to `out` and return
+    `contents` without the encoding line; otherwise output a default
+    UTF-8 declaration and return `contents`.
 
-    EXAMPLE:
+    EXAMPLES::
+
         sage: from sage.misc.interpreter import handle_encoding_declaration
         sage: import sys
         sage: c1='# -*- coding: latin-1 -*-\nimport os, sys\n...'
@@ -255,71 +258,98 @@ def handle_encoding_declaration(contents, out):
         sage: c4='import os, sys\n...'
         sage: handle_encoding_declaration(c1, sys.stdout)
         # -*- coding: latin-1 -*-
-        'import os, sys\n..'
+        'import os, sys\n...'
         sage: handle_encoding_declaration(c2, sys.stdout)
         # -*- coding: iso-8859-15 -*-
-        'import os, sys\n..'
+        'import os, sys\n...'
         sage: handle_encoding_declaration(c3, sys.stdout)
         # -*- coding: ascii -*-
-        'import os, sys\n..'
+        'import os, sys\n...'
         sage: handle_encoding_declaration(c4, sys.stdout)
         # -*- coding: utf-8 -*-
         'import os, sys\n...'
 
-    NOTE:
-        Python also looks for encoding hints in the second line as a the first line
-        could contain a shebang.
+    TESTS::
 
-        Better implementation possible after importing re, and then matching
-        the regular expression
-          coding[=:]\s*([-\w.]+)
-        The encoding is in the first group.
-        See http://docs.python.org/ref/encodings.html
+    These are some of the tests listed in PEP 263.
 
-    AUTHOR:
+        sage: contents = '#!/usr/bin/python\n# -*- coding: latin-1 -*-\nimport os, sys'
+        sage: handle_encoding_declaration(contents, sys.stdout)
+        # -*- coding: latin-1 -*-
+        '#!/usr/bin/python\nimport os, sys'
+
+        sage: contents = '# This Python file uses the following encoding: utf-8\nimport os, sys'
+        sage: handle_encoding_declaration(contents, sys.stdout)
+        # This Python file uses the following encoding: utf-8
+        'import os, sys'
+
+        sage: contents = '#!/usr/local/bin/python\n# coding: latin-1\nimport os, sys'
+        sage: handle_encoding_declaration(contents, sys.stdout)
+        # coding: latin-1
+        '#!/usr/local/bin/python\nimport os, sys'
+
+    Two hash marks are okay; this shows up in SageTeX-generated scripts::
+
+        sage: contents = '## -*- coding: utf-8 -*-\nimport os, sys\nprint x'
+        sage: handle_encoding_declaration(contents, sys.stdout)
+        ## -*- coding: utf-8 -*-
+        'import os, sys\nprint x'
+
+    When the encoding declaration doesn't match the specification, we
+    spit out a default UTF-8 encoding.
+
+    Incorrect coding line::
+
+        sage: contents = '#!/usr/local/bin/python\n# latin-1\nimport os, sys'
+        sage: handle_encoding_declaration(contents, sys.stdout)
+        # -*- coding: utf-8 -*-
+        '#!/usr/local/bin/python\n# latin-1\nimport os, sys'
+
+    Encoding declaration not on first or second line::
+
+        sage: contents ='#!/usr/local/bin/python\n#\n# -*- coding: latin-1 -*-\nimport os, sys'
+        sage: handle_encoding_declaration(contents, sys.stdout)
+        # -*- coding: utf-8 -*-
+        '#!/usr/local/bin/python\n#\n# -*- coding: latin-1 -*-\nimport os, sys'
+
+    We don't check for legal encoding names; that's Python's job::
+
+        sage: contents ='#!/usr/local/bin/python\n# -*- coding: utf-42 -*-\nimport os, sys'
+        sage: handle_encoding_declaration(contents, sys.stdout)
+        # -*- coding: utf-42 -*-
+        '#!/usr/local/bin/python\nimport os, sys'
+
+
+    NOTES::
+
+        PEP 263: http://www.python.org/dev/peps/pep-0263/
+
+        PEP 263 says that Python will interpret a UTF-8 byte order mark
+        as a declaration of UTF-8 encoding, but I don't think we do
+        that; this function only sees a Python string so it can't
+        account for a BOM.
+
+        We default to UTF-8 encoding even though PEP 263 says that
+        Python files should default to ASCII.
+
+        Also see http://docs.python.org/ref/encodings.html.
+
+    AUTHORS::
+
         - Lars Fischer
+        - Dan Drake (2010-12-08, rewrite for ticket #10440)
     """
-    # shebangs could also be dealt with
-    #if (contents[0:2] == '#!'):
-    #    pos= contents.find('\n')
-    #    out.write(contents[0:pos]+ '\n')
-    #    contents =  contents[pos+1:-1]
+    lines = contents.splitlines()
+    for num, line in enumerate(lines[:2]):
+        if re.search(r"coding[:=]\s*([-\w.]+)", line):
+            out.write(line + '\n')
+            return '\n'.join(lines[:num] + lines[(num+1):])
 
-    hint="coding"
-
-    pos=contents.find('\n')
-    if pos > -1:
-        first_line = contents[0:pos]
-    else:
-        first_line = contents[0:]
-
-    stripped_line = first_line.lstrip()
-    if stripped_line.startswith('#'):
-        pos=stripped_line.find(hint)
-        if (pos > -1) and (stripped_line[pos+len(hint)] in ['=', ':']) :
-            # we found a comment with an encoding hint
-            # we can place it in front of the file: the line is a comment
-            # so it does not harm
-
-            out.write(first_line+'\n') # use the encoding hint specified by the user
-
-            return contents[len(first_line)+1:-1]
-
-    # use default encoding
+    # If we didn't find any encoding hints, use utf-8. This is not in
+    # conformance with PEP 263, which says that Python files default to
+    # ascii encoding.
     out.write("# -*- coding: utf-8 -*-\n")
-
-    #out.write("# -*- coding: ascii -*-\n")
-    # or ascii? Python used ascii and from 2.3 on you could specify a different
-    # encodings.
-    # but imho utf-8 is the better default
-    # also read the Future compatibility note
-    # in http://docs.python.org/ref/lexical.html
-
-    # we could also write a hint for the user:
-    #out.write("# you can specify a different encoding by a line starting with '# -*- coding:'\n")
-    #
     return contents
-
 
 def preparse_file_named_to_stream(name, out):
     r"""

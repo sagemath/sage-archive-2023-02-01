@@ -21,6 +21,7 @@ import sage.rings.arith as arith
 from sage.misc.cachefunc import cached_method
 from copy import copy # for making copies of lists of cusps
 from sage.modular.modsym.p1list import lift_to_sl2z
+from sage.modular.cusps import Cusp
 
 def is_ArithmeticSubgroup(x):
     r"""
@@ -88,23 +89,6 @@ class ArithmeticSubgroup(group.Group):
             4909638266971150633 # 64-bit
         """
         return hash(str(self))
-
-    def are_equivalent(self, x, y):
-        r"""
-        Determine whether `x` and `y` are equivalent by an element of
-        self, i.e. whether or not there exists an element `g` of self
-        such that `g \cdot x = y`.
-
-        NOTE: This function should be overridden by all subclasses.
-
-        EXAMPLES::
-
-            sage: sage.modular.arithgroup.congroup_generic.CongruenceSubgroup(5).are_equivalent(0, 0)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-        """
-        raise NotImplementedError
 
     def coset_reps(self, G=None):
         r"""
@@ -477,12 +461,12 @@ class ArithmeticSubgroup(group.Group):
         These should be returned in a reduced form where this makes sense.
 
         INPUTS:
-            algorithm -- which algorithm to use to compute the cusps
-                         of self. 'default' finds representatives for
-                         a known complete set of cusps. 'modsym' computes
-                         the boundary map on the space of weight two
-                         modular symbols associated to self, which
-                         finds the cusps for self in the process.
+
+        - ``algorithm`` -- which algorithm to use to compute the cusps of self.
+          ``'default'`` finds representatives for a known complete set of
+          cusps. ``'modsym'`` computes the boundary map on the space of weight
+          two modular symbols associated to self, which finds the cusps for
+          self in the process.
 
         EXAMPLES::
 
@@ -539,14 +523,14 @@ class ArithmeticSubgroup(group.Group):
             ai = i.apply([a.a(), a.b(), a.c(), a.d()])
             new = 1
             for v in L:
-                if self.are_equivalent_cusps(ai, v):
+                if self.are_equivalent(ai, v):
                     new = 0
                     break
             if new == 1:
                 L.append(ai)
         return L
 
-    def are_equivalent_cusps(self, x, y, trans = False):
+    def are_equivalent(self, x, y, trans = False):
         r"""
         Test whether or not cusps x and y are equivalent modulo self.  If self
         has a reduce_cusp() method, use that; otherwise do a slow explicit
@@ -557,13 +541,14 @@ class ArithmeticSubgroup(group.Group):
 
         EXAMPLE::
 
-            sage: Gamma0(7).are_equivalent_cusps(Cusp(1/3), Cusp(0), trans=True)
+            sage: Gamma0(7).are_equivalent(Cusp(1/3), Cusp(0), trans=True)
             [  3  -1]
             [-14   5]
-            sage: Gamma0(7).are_equivalent_cusps(Cusp(1/3), Cusp(1/7))
+            sage: Gamma0(7).are_equivalent(Cusp(1/3), Cusp(1/7))
             False
         """
-
+        x = Cusp(x)
+        y = Cusp(y)
         if not trans:
             try:
                 xr = self.reduce_cusp(x)
@@ -609,6 +594,7 @@ class ArithmeticSubgroup(group.Group):
             sage: Gamma1(4).cusp_data(Cusps(1/2))
             ([ 1 -1] [ 4 -3], 1, -1)
         """
+        c = Cusp(c)
         from all import SL2Z # can't import at top as that would cause a circular import
 
         # first find an element of SL2Z sending infinity to the given cusp
@@ -704,7 +690,7 @@ class ArithmeticSubgroup(group.Group):
         if self.is_even():
             return self.index()
         else:
-            return self.index() / 2
+            return self.index() // 2
 
     def is_congruence(self):
         r"""
@@ -1043,3 +1029,92 @@ class ArithmeticSubgroup(group.Group):
         if not self.is_even(): raise NotImplementedError, "Permutation form only implemented for subgroups containing -1 at present"
         from arithgroup_perm import convert_to_permgroup
         return convert_to_permgroup(self)
+
+    def sturm_bound(self, weight=2):
+        r"""
+        Returns the Sturm bound for modular forms of the given weight and level
+        this subgroup.
+
+        INPUT:
+
+        -  ``weight`` - an integer `\geq 2` (default: 2)
+
+        EXAMPLES::
+            sage: Gamma0(11).sturm_bound(2)
+            2
+            sage: Gamma0(389).sturm_bound(2)
+            65
+            sage: Gamma0(1).sturm_bound(12)
+            1
+            sage: Gamma0(100).sturm_bound(2)
+            30
+            sage: Gamma0(1).sturm_bound(36)
+            3
+            sage: Gamma0(11).sturm_bound()
+            2
+            sage: Gamma0(13).sturm_bound()
+            3
+            sage: Gamma0(16).sturm_bound()
+            4
+            sage: GammaH(16,[13]).sturm_bound()
+            8
+            sage: GammaH(16,[15]).sturm_bound()
+            16
+            sage: Gamma1(16).sturm_bound()
+            32
+            sage: Gamma1(13).sturm_bound()
+            28
+            sage: Gamma1(13).sturm_bound(5)
+            70
+
+        FURTHER DETAILS: This function returns a positive integer
+        `n` such that the Hecke operators
+        `T_1,\ldots, T_n` acting on *cusp forms* generate the
+        Hecke algebra as a `\ZZ`-module when the character
+        is trivial or quadratic. Otherwise, `T_1,\ldots,T_n`
+        generate the Hecke algebra at least as a
+        `\ZZ[\varepsilon]`-module, where
+        `\ZZ[\varepsilon]` is the ring generated by the
+        values of the Dirichlet character `\varepsilon`.
+        Alternatively, this is a bound such that if two cusp forms
+        associated to this space of modular symbols are congruent modulo
+        `(\lambda, q^n)`, then they are congruent modulo
+        `\lambda`.
+
+        REFERENCES:
+
+        - See the Agashe-Stein appendix to Lario and Schoof,
+          *Some computations with Hecke rings and deformation rings*,
+          Experimental Math., 11 (2002), no. 2, 303-311.
+
+        - This result originated in the paper Sturm,
+          *On the congruence of modular forms*,
+          Springer LNM 1240, 275-280, 1987.
+
+        REMARK: Kevin Buzzard pointed out to me (William Stein) in Fall
+        2002 that the above bound is fine for `\Gamma_1(N)` with
+        character, as one sees by taking a power of `f`. More
+        precisely, if `f \cong 0 \pmod{p}` for first
+        `s` coefficients, then `f^r \cong 0 \pmod{p}` for
+        first `sr` coefficients. Since the weight of `f^r`
+        is `r\cdot k(f)`, it follows that if
+        `s \geq b`, where `b` is the Sturm bound for
+        `\Gamma_0(N)` at weight `k(f)`, then `f^r`
+        has valuation large enough to be forced to be `0` at
+        `r*k(f)` by Sturm bound (which is valid if we choose
+        `r` correctly). Thus `f \cong 0 \pmod{p}`.
+        Conclusion: For `\Gamma_1(N)` with fixed character, the
+        Sturm bound is *exactly* the same as for `\Gamma_0(N)`.
+
+        A key point is that we are finding
+        `\ZZ[\varepsilon]` generators for the Hecke algebra
+        here, not `\ZZ`-generators. So if one wants
+        generators for the Hecke algebra over `\ZZ`, this
+        bound must be suitably modified (and I'm not sure what the
+        modification is).
+
+        AUTHORS:
+
+        - William Stein
+        """
+        return ZZ((self.index() * weight / ZZ(12)).ceil())

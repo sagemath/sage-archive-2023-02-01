@@ -663,18 +663,21 @@ class GammaH_class(CongruenceSubgroup):
 
         EXAMPLES::
 
-            sage: GammaH(6,[5]).reduce_cusp(Cusp(5,3))
+            sage: GammaH(6,[5]).reduce_cusp(5/3)
             1/3
             sage: GammaH(12,[5]).reduce_cusp(Cusp(8,9))
             1/3
-            sage: GammaH(12,[5]).reduce_cusp(Cusp(5,12))
+            sage: GammaH(12,[5]).reduce_cusp(5/12)
             Infinity
             sage: GammaH(12,[]).reduce_cusp(Cusp(5,12))
             5/12
             sage: GammaH(21,[5]).reduce_cusp(Cusp(-9/14))
             1/7
+            sage: Gamma1(5).reduce_cusp(oo)
+            Infinity
+            sage: Gamma1(5).reduce_cusp(0)
+            0
         """
-
         return self._reduce_cusp(c)[0]
 
     def _reduce_cusp(self, c):
@@ -709,7 +712,7 @@ class GammaH_class(CongruenceSubgroup):
             sage: GammaH(21,[5])._reduce_cusp(Cusp(-9/14))
             (1/7, 1)
         """
-
+        c = Cusp(c)
         N = int(self.level())
         Cusps = c.parent()
         v = int(c.denominator() % N)

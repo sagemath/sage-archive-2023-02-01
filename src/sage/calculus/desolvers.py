@@ -379,6 +379,12 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
         ...
         NotImplementedError: Unable to use initial condition for this equation (freeofx).
 
+    Trac #8931 fixed::
+
+        sage: x=var('x'); f=function('f',x); k=var('k'); assume(k>0)
+        sage: desolve(diff(f,x,2)/f==k,f,ivar=x)
+        k1*e^(sqrt(k)*x) + k2*e^(-sqrt(k)*x)
+
 
     AUTHORS:
 

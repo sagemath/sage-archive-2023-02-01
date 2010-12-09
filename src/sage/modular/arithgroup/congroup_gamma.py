@@ -130,9 +130,8 @@ class Gamma_class(CongruenceSubgroup):
             TypeError: matrix must have diagonal entries (=1, 7) congruent to 1
             modulo 5, and off-diagonal entries (=1,6) divisible by 5
         """
-        if isinstance(x, ArithmeticSubgroupElement) and x.parent() == self:
-            return x
-        x = ArithmeticSubgroupElement(self, x, check=check)
+        from all import SL2Z
+        x = SL2Z(x, check)
         if not check:
             return x
 

@@ -446,9 +446,8 @@ class Gamma0_class(GammaH_class):
             ...
             TypeError: matrix must have lower left entry (=23) divisible by 12
         """
-        if isinstance(x, ArithmeticSubgroupElement) and x.parent() == self:
-            return x
-        x = ArithmeticSubgroupElement(self, x, check=check)
+        from all import SL2Z
+        x = SL2Z(x, check)
         if not check:
             return x
 

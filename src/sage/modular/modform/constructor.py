@@ -82,7 +82,7 @@ def canonical_parameters(group, level, weight, base_ring):
         (5, Congruence Subgroup Gamma0(5), 7, Integer Ring)
         sage: type(v[0]), type(v[1]), type(v[2]), type(v[3])
         (<type 'sage.rings.integer.Integer'>,
-         <class 'sage.modular.arithgroup.congroup_gamma0.Gamma0_class'>,
+         <class 'sage.modular.arithgroup.congroup_gamma0.Gamma0_class_with_category'>,
          <type 'sage.rings.integer.Integer'>,
          <type 'sage.rings.integer_ring.IntegerRing_class'>)
         sage: canonical_parameters( 5, 7, 7, ZZ )

@@ -1033,7 +1033,7 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
             sage: m4 in P
             False
         """
-        if x.parent() is self or x.parent() == self: return True
+        #if x.parent() is self or x.parent() == self: return True
         if x not in SL2Z: return False
 
         w = sl2z_word_problem(x)
@@ -1123,9 +1123,9 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
             [1 1]
             [0 1]
         """
-        g = SL2Z(g)
+        g = SL2Z(g, check=check)
         if not check or g in self:
-            return ArithmeticSubgroupElement(parent=self,x=g,check=check)
+            return g
         raise TypeError, "The element is not in group"
 
     #

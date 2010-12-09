@@ -871,9 +871,8 @@ class GammaH_class(CongruenceSubgroup):
             ...
             TypeError: matrix must have lower right entry (=3) congruent modulo 10 to some element of H
         """
-        if isinstance(x, ArithmeticSubgroupElement) and x.parent() == self:
-            return x
-        x = ArithmeticSubgroupElement(self, x, check=check)
+        from all import SL2Z
+        x = SL2Z(x, check)
         if not check:
             return x
 

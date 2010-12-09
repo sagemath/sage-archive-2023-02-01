@@ -47,6 +47,18 @@ class ArithmeticSubgroup(group.Group):
     assuming that it has a working element testing routine.
     """
 
+    def __init__(self):
+        r"""
+        Standard init routine.
+
+        EXAMPLE::
+
+            sage: G = Gamma1(7)
+            sage: G.category() # indirect doctest
+            Category of groups
+        """
+        group.Group.__init__(self)
+
     def _repr_(self):
         r"""
         Return the string representation of self.

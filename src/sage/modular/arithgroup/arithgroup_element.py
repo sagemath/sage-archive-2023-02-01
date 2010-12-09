@@ -25,7 +25,8 @@ M2Z = matrix.MatrixSpace(ZZ,2)
 
 class ArithmeticSubgroupElement(MultiplicativeGroupElement):
     r"""
-    An element of an arithmetic subgroup of `{\rm SL}_2(\ZZ)`.
+    An element of the group `{\rm SL}_2(\ZZ)`, i.e. a 2x2 integer matrix of
+    determinant 1.
     """
 
     def __init__(self, parent, x, check=True):
@@ -33,6 +34,7 @@ class ArithmeticSubgroupElement(MultiplicativeGroupElement):
         Create an element of an arithmetic subgroup.
 
         INPUT:
+
         - parent - an arithmetic subgroup
 
         - x - data defining a 2x2 matrix over ZZ
@@ -41,6 +43,10 @@ class ArithmeticSubgroupElement(MultiplicativeGroupElement):
         - check - if True, check that parent
           is an arithmetic subgroup, and that
           x defines a matrix of determinant 1
+
+        We tend not to create elements of arithmetic subgroups that aren't
+        SL2Z, in order to avoid coercion issues (that is, the other arithmetic
+        subgroups are "facade parents").
 
         EXAMPLES::
 
@@ -162,7 +168,14 @@ class ArithmeticSubgroupElement(MultiplicativeGroupElement):
             [ 3  2]
             [28 19]
             sage: x.parent()
-            Congruence Subgroup Gamma0(7)
+            Modular Group SL(2,Z)
+
+        We check that #5048 is fixed::
+
+            sage: a = Gamma0(10).1 * Gamma0(5).2; a # random
+            sage: a.parent()
+            Modular Group SL(2,Z)
+
         """
         return self.parent()(self.__x * right.__x, check=False)
 

@@ -20,6 +20,7 @@ AUTHORS:
 ################################################################################
 
 from congroup_gamma0 import Gamma0_class
+from arithgroup_element import ArithmeticSubgroupElement
 from sage.rings.integer_ring import ZZ
 from sage.modular.cusps import Cusp
 from sage.rings.arith import gcd
@@ -91,6 +92,13 @@ class SL2Z_class(Gamma0_class):
             (<function _SL2Z_ref at ...>, ())
         """
         return _SL2Z_ref, ()
+
+    def __call__(self, x, check=True):
+        r"""
+        Create an element of self from x. If check=True (the default), check
+        that x really defines a 2x2 integer matrix of det 1.
+        """
+        return ArithmeticSubgroupElement(self, x, check=check)
 
     def _repr_(self):
         """

@@ -63,6 +63,7 @@ class CongruenceSubgroup(ArithmeticSubgroup):
         if level <= 0:
             raise ArithmeticError, "Congruence groups only defined for positive levels."
         self.__level = level
+        ArithmeticSubgroup.__init__(self)
 
     def _repr_(self):
         """
@@ -198,20 +199,3 @@ class CongruenceSubgroup(ArithmeticSubgroup):
         else:
             raise NotImplementedError
 
-    def __call__(self, x, check=True):
-        """
-        Coerce x into self.
-
-        NOTE: This function should be overridden by any subclass the
-        user will interact with directly.
-
-        EXAMPLES::
-
-            sage: sage.modular.arithgroup.congroup_generic.CongruenceSubgroup(5).__call__(0)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-        """
-        if isinstance(x, ArithmeticSubgroupElement) and x.parent() == self:
-            return x
-        raise NotImplementedError

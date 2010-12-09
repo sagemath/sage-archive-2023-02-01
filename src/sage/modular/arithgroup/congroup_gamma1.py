@@ -288,9 +288,8 @@ class Gamma1_class(GammaH_class):
             ...
             TypeError: matrix must have diagonal entries (=1, 7) congruent to 1 modulo 5, and lower left entry (=6) divisible by 5
         """
-        if isinstance(x, ArithmeticSubgroupElement) and x.parent() == self:
-            return x
-        x = ArithmeticSubgroupElement(self, x, check=check)
+        from all import SL2Z
+        x = SL2Z(x, check)
         if not check:
             return x
 
@@ -298,8 +297,9 @@ class Gamma1_class(GammaH_class):
         c = x.c()
         d = x.d()
         N = self.level()
-        if (a%N == 1) and (c%N == 0) and (d%N == 1):
+        if (a%N == 1) and (c%N == 0):
             return x
+            # don't need to check d == 1 mod N as this is automatic from det
         else:
             raise TypeError, "matrix must have diagonal entries (=%s, %s) congruent to 1 modulo %s, and lower left entry (=%s) divisible by %s" %(a, d, N, c, N)
 

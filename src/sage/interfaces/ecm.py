@@ -106,9 +106,11 @@ class ECM:
             ou = open(t).read()
             os.unlink(t)
         else:
-            i,o,e = os.popen3(cmd)
-            i.close()
-            ou = e.read() + '\n' + o.read()
+            from subprocess import Popen, PIPE
+            x = Popen(cmd, shell=True,
+            stdin=PIPE, stdout=PIPE, stderr=PIPE, close_fds=True)
+            x.stdin.close()
+            ou = x.stderr.read() + '\n' + x.stdout.read()
         if 'command not found' in ou:
             err = ou + '\n' + 'You must install GMP-ECM.\n'
             err += sage.misc.package.package_mesg('ecm-6.1.3')

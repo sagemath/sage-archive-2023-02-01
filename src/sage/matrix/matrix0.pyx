@@ -2889,6 +2889,72 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         return self.is_square() and self.determinant().is_unit()
 
+    def is_singular(self):
+        r"""
+        Returns ``True`` if ``self`` is singular.
+
+        OUTPUT:
+
+        A square matrix is singular if it has a zero
+        determinant and this method will return ``True``
+        in exactly this case. When the entries of the
+        matrix come from a field, this is equivalent
+        to having a nontrivial kernel, or lacking an
+        inverse, or having linearly dependent rows,
+        or having linearly dependent columns.
+
+        For square matrices over a field the methods
+        :meth:`is_invertible` and :meth:`is_singular`
+        are logical opposites.  However, it is an error
+        to apply :meth:`is_singular` to a matrix that
+        is not square, while :meth:`is_invertible` will
+        always return ``False`` for a matrix that is not
+        square.
+
+        EXAMPLES:
+
+        A singular matrix over the field ``QQ``. ::
+
+            sage: A = matrix(QQ, 4, [-1,2,-3,6,0,-1,-1,0,-1,1,-5,7,-1,6,5,2])
+            sage: A.is_singular()
+            True
+            sage: A.right_kernel().dimension()
+            1
+
+        A matrix that is not singular, i.e. nonsingular, over a field. ::
+
+            sage: B = matrix(QQ, 4, [1,-3,-1,-5,2,-5,-2,-7,-2,5,3,4,-1,4,2,6])
+            sage: B.is_singular()
+            False
+            sage: B.left_kernel().dimension()
+            0
+
+        For "rectangular" matrices, invertibility is always
+        ``False``, but asking about singularity will give an error. ::
+
+            sage: C = matrix(QQ, 5, range(30))
+            sage: C.is_invertible()
+            False
+            sage: C.is_singular()
+            Traceback (most recent call last):
+            ...
+            ValueError: incompatible matrix dimensions
+
+        When the base ring is not a field, then a matrix
+        may be both not invertible and not singular. ::
+
+            sage: D = matrix(ZZ, 4, [2,0,-4,8,2,1,-2,7,2,5,7,0,0,1,4,-6])
+            sage: D.is_invertible()
+            False
+            sage: D.is_singular()
+            False
+            sage: d = D.determinant(); d
+            2
+            sage: d.is_unit()
+            False
+        """
+        return self.determinant() == 0
+
     ###################################################
     # Invariants of a matrix
     ###################################################

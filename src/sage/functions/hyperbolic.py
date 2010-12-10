@@ -586,7 +586,7 @@ class Function_arcsech(HyperbolicFunction):
             sage: arcsech(1/2)
             arcsech(1/2)
             sage: arcsech(1 + I*1.0)
-            -0.530637530952518 + 1.11851787964371*I
+            0.530637530952518 - 1.11851787964371*I
             sage: arcsech(1/2).n(200)
             1.3169578969248167086250463473079684440269819714675164797685
             sage: float(arcsech(1/2))

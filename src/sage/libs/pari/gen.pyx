@@ -3949,7 +3949,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(1/2).acos()
             1.04719755119660
             sage: pari(1.1).acos()
-            -0.443568254385115*I
+            0.443568254385115*I
             sage: C.<i> = ComplexField()
             sage: pari(1.1+i).acos()
             0.849343054245252 - 1.09770986682533*I
@@ -4047,7 +4047,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(pari(0.5).sin()).asin()
             0.500000000000000
             sage: pari(2).asin()
-            1.57079632679490 + 1.31695789692482*I
+            1.57079632679490 - 1.31695789692482*I
         """
         sig_on()
         return P.new_gen(gasin(x.g, pbw(precision)))
@@ -4111,7 +4111,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(0).atanh()
             0.E-19
             sage: pari(2).atanh()
-            0.549306144334055 + 1.57079632679490*I
+            0.549306144334055 - 1.57079632679490*I
         """
         sig_on()
         return P.new_gen(gath(x.g, pbw(precision)))

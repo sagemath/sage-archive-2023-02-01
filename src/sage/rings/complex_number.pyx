@@ -12,13 +12,15 @@ AUTHORS:
 - Vincent Delecroix (2010-01): plot function
 """
 
-#################################################################################
+#*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 
 import math
 import operator
@@ -1212,7 +1214,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         EXAMPLES::
 
             sage: ComplexField(100)(1,1).arcsech()
-            -0.53063753095251782601650945811 + 1.1185178796437059371676632938*I
+            0.53063753095251782601650945811 - 1.1185178796437059371676632938*I
         """
         return (~self).arccosh()
 

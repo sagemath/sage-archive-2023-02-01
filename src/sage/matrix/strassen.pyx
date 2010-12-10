@@ -38,7 +38,7 @@ def strassen_window_multiply(C, A,B, cutoff):
 
         sage: A = MatrixSpace(Integers(2^65), 64, 83).random_element()
         sage: B = MatrixSpace(Integers(2^65), 83, 101).random_element()
-        sage: A._multiply_classical(B) == A._multiply_strassen(B, 3)
+        sage: A._multiply_classical(B) == A._multiply_strassen(B, 3) #indirect doctest
         True
 
     AUTHORS:
@@ -304,7 +304,7 @@ def strassen_echelon(MatrixWindow A, cutoff):
 
         sage: A = matrix(Integers(7), 4, 4, [1,0,5,0,2,0,3,6,5,1,2,6,4,6,1,1])
         sage: B = A.__copy__(); B._echelon_in_place_classical()
-        sage: C = A.__copy__(); C._echelon_strassen(2)
+        sage: C = A.__copy__(); C._echelon_strassen(2)   #indirect doctest
         sage: B == C
         True
 
@@ -486,14 +486,79 @@ cdef strassen_echelon_c(MatrixWindow A, Py_ssize_t cutoff, Py_ssize_t mul_cutoff
 # would need new from_cols
 class int_range:
     r"""
+    Represent a list of integers as a list of integer intervals.
+
+    .. NOTE::
+
+        Repetitions are not considered.
+
     Useful class for dealing with pivots in the strassen echelon, could
     have much more general application
+
+    INPUT:
+
+    It can be one of the following:
+
+    - ``indices`` - integer, start of the unique interval
+    - ``range`` - integer, length of the unique interval
+
+    OR
+
+    - ``indices`` - list of integers, the integers to wrap into intervals
+
+    OR
+
+    - ``indices`` - None (default), shortcut for an empty list
+
+    OUTPUT:
+
+    An instance of ``int_range``, i.e. a list of pairs ``(start, length)``.
+
+    EXAMPLES:
+
+    From a pair of integers::
+
+        sage: from sage.matrix.strassen import int_range
+        sage: int_range(2, 4)
+        [(2, 4)]
+
+    Default::
+
+        sage: int_range()
+        []
+
+    From a list of integers::
+
+        sage: int_range([1,2,3,4])
+        [(1, 4)]
+        sage: int_range([1,2,3,4,6,7,8])
+        [(1, 4), (6, 3)]
+        sage: int_range([1,2,3,4,100,101,102])
+        [(1, 4), (100, 3)]
+        sage: int_range([1,1000,2,101,3,4,100,102])
+        [(1, 4), (100, 3), (1000, 1)]
+
+    Repetitions are not considered::
+
+        sage: int_range([1,2,3])
+        [(1, 3)]
+        sage: int_range([1,1,1,1,2,2,2,3])
+        [(1, 3)]
 
     AUTHORS:
 
     - Robert Bradshaw
     """
     def __init__(self, indices=None, range=None):
+        r"""
+        See ``sage.matrix.strassen.int_range`` for full documentation.
+
+        EXAMPLES::
+
+            sage: from sage.matrix.strassen import int_range
+            sage: int_range(2, 4)
+            [(2, 4)]
+        """
         if indices is None:
             self._intervals = []
             return
@@ -516,12 +581,65 @@ class int_range:
             self._intervals.append((start, last-start+1))
 
     def __repr__(self):
+        r"""
+        String representation.
+
+        EXAMPLES::
+
+            sage: from sage.matrix.strassen import int_range
+            sage: int_range([4,5,6,20,21,22,23])
+            [(4, 3), (20, 4)]
+            sage: int_range([])
+            []
+        """
         return str(self._intervals)
 
     def intervals(self):
+        r"""
+        Return the list of intervals.
+
+        OUTPUT:
+
+        A list of pairs of integers.
+
+        EXAMPLES::
+
+            sage: from sage.matrix.strassen import int_range
+            sage: I = int_range([4,5,6,20,21,22,23])
+            sage: I.intervals()
+            [(4, 3), (20, 4)]
+            sage: type(I.intervals())
+            <type 'list'>
+        """
         return self._intervals
 
     def to_list(self):
+        r"""
+        Return the (sorted) list of integers represented by this object.
+
+        OUTPUT:
+
+        A list of integers.
+
+        EXAMPLES::
+
+            sage: from sage.matrix.strassen import int_range
+            sage: I = int_range([6,20,21,4,5,22,23])
+            sage: I.to_list()
+            [4, 5, 6, 20, 21, 22, 23]
+
+        ::
+
+            sage: I = int_range(34, 9)
+            sage: I.to_list()
+            [34, 35, 36, 37, 38, 39, 40, 41, 42]
+
+        Repetitions are not considered::
+
+            sage: I = int_range([1,1,1,1,2,2,2,3])
+            sage: I.to_list()
+            [1, 2, 3]
+        """
         all = []
         for iv in self._intervals:
             for i in range(iv[0], iv[0]+iv[1]):
@@ -529,23 +647,111 @@ class int_range:
         return all
 
     def __iter__(self):
+        r"""
+        Return an iterator over the intervals.
+
+        OUTPUT:
+
+        iterator
+
+        EXAMPLES::
+
+            sage: from sage.matrix.strassen import int_range
+            sage: I = int_range([6,20,21,4,5,22,23])
+            sage: it = iter(I)
+            sage: it.next()
+            (4, 3)
+            sage: it.next()
+            (20, 4)
+            sage: it.next()
+            Traceback (most recent call last):
+            ...
+            StopIteration
+        """
         return self._intervals.__iter__()
 
     def __len__(self):
+        r"""
+        Return the number of integers represented by this object.
+
+        OUTPUT:
+
+        Python integer
+
+        EXAMPLES::
+
+            sage: from sage.matrix.strassen import int_range
+            sage: I = int_range([6,20,21,4,5,22,23])
+            sage: len(I)
+            7
+
+        ::
+
+            sage: I = int_range([1,1,1,1,2,2,2,3])
+            sage: len(I)
+            3
+        """
         len = 0
         for iv in self._intervals:
             len = len + iv[1]
-        return len
+        return int(len)
 
-    # Yes, these two could be a lot faster...
-    # Basically, this class is for abstracting away what I was trying to do by hand in several places
     def __add__(self, right):
+        r"""
+        Return the union of ``self`` and ``right``.
+
+        INPUT:
+
+        - ``right`` - an instance of ``int_range``
+
+        OUTPUT:
+
+        An instance of ``int_range``
+
+        .. NOTE::
+
+            Yes, this two could be a lot faster...
+            Basically, this class is for abstracting away what I was trying
+            to do by hand in several places
+
+        EXAMPLES::
+
+            sage: from sage.matrix.strassen import int_range
+            sage: I = int_range([1,1,1,1,2,2,2,3])
+            sage: J = int_range([6,20,21,4,5,22,23])
+            sage: I + J
+            [(1, 6), (20, 4)]
+        """
         all = self.to_list()
-        for i in right.to_list():
-            all.append(i)
+        all.extend(right.to_list())
         return int_range(all)
 
     def __sub__(self, right):
+        r"""
+        Return the set difference of ``self`` and ``right``.
+
+        INPUT:
+
+        - ``right`` - an instance of ``int_range``.
+
+        OUTPUT:
+
+        An instance of ``int_range``.
+
+        .. NOTE::
+
+            Yes, this two could be a lot faster...
+            Basically, this class is for abstracting away what I was trying
+            to do by hand in several places
+
+        EXAMPLES::
+
+            sage: from sage.matrix.strassen import int_range
+            sage: I = int_range([1,2,3,4,5])
+            sage: J = int_range([6,20,21,4,5,22,23])
+            sage: J - I
+            [(6, 1), (20, 4)]
+        """
         all = self.to_list()
         for i in right.to_list():
             if i in all:
@@ -553,6 +759,25 @@ class int_range:
         return int_range(all)
 
     def __mul__(self, right):
+        r"""
+        Return the intersection of ``self`` and ``right``.
+
+        INPUT:
+
+        - ``right`` - an instance of ``int_range``.
+
+        OUTPUT:
+
+        An instance of ``int_range``.
+
+        EXAMPLES::
+
+            sage: from sage.matrix.strassen import int_range
+            sage: I = int_range([1,2,3,4,5])
+            sage: J = int_range([6,20,21,4,5,22,23])
+            sage: J * I
+            [(4, 2)]
+        """
         intersection = []
         all = self.to_list()
         for i in right.to_list():
@@ -561,22 +786,32 @@ class int_range:
         return int_range(intersection)
 
 
-
-
-"""
-Useful test code:
-
+# Useful test code:
 def test(n, m, R, c=2):
+    r"""
+    INPUT:
+
+    - ``n`` - integer
+    - ``m`` - integer
+    - ``R`` - ring
+    - ``c`` - integer (optional, default:2)
+
+    EXAMPLES::
+
+        sage: from sage.matrix.strassen import test
+        sage: for n in range(5): print n, test(2*n,n,Frac(QQ['x']),2)
+        0 True
+        1 True
+        2 True
+        3 True
+        4 True
+    """
+    from sage.matrix.all import matrix
     A = matrix(R,n,m,range(n*m))
     B = A.__copy__(); B._echelon_in_place_classical()
     C = A.__copy__(); C._echelon_strassen(c)
     return B == C
 
-E.g.,
-for n in range(5):
-    print n, test(2*n,n,Frac(QQ['x']),2)
-
-"""
 
 # This stuff gets tested extensively elsewhere, and the functions
 # below aren't callable now without using Pyrex.

@@ -18,13 +18,15 @@ TESTS::
     True
 """
 
-################################################################################
+#*****************************************************************************
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-################################################################################
+#*****************************************************************************
+
 
 cdef is_FractionField, is_RealField, is_ComplexField
 cdef coerce_binop, generic_power, parent
@@ -2667,6 +2669,25 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: pol = t^3 + (-4*a^3 + 2*a)*t^2 - 11/3*a^2*t + 2/3*a^3 - 4/3*a
             sage: pol.factor()
             (t - 2*a^3 + a) * (t - 4/3*a^3 + 2/3*a) * (t - 2/3*a^3 + 1/3*a)
+
+        Test that ticket #10369 is fixed::
+
+            sage: x = polygen(QQ)
+            sage: K.<a> = NumberField(x^6 + x^5 + x^4 + x^3 + x^2 + x + 1)
+            sage: R.<t> = PolynomialRing(K)
+
+            sage: pol = (-1/7*a^5 - 1/7*a^4 - 1/7*a^3 - 1/7*a^2 - 2/7*a - 1/7)*t^10 + (4/7*a^5 - 2/7*a^4 - 2/7*a^3 - 2/7*a^2 - 2/7*a - 6/7)*t^9 + (90/49*a^5 + 152/49*a^4 + 18/49*a^3 + 24/49*a^2 + 30/49*a + 36/49)*t^8 + (-10/49*a^5 + 10/7*a^4 + 198/49*a^3 - 102/49*a^2 - 60/49*a - 26/49)*t^7 + (40/49*a^5 + 45/49*a^4 + 60/49*a^3 + 277/49*a^2 - 204/49*a - 78/49)*t^6 + (90/49*a^5 + 110/49*a^4 + 2*a^3 + 80/49*a^2 + 46/7*a - 30/7)*t^5 + (30/7*a^5 + 260/49*a^4 + 250/49*a^3 + 232/49*a^2 + 32/7*a + 8)*t^4 + (-184/49*a^5 - 58/49*a^4 - 52/49*a^3 - 66/49*a^2 - 72/49*a - 72/49)*t^3 + (18/49*a^5 - 32/49*a^4 + 10/49*a^3 + 4/49*a^2)*t^2 + (2/49*a^4 - 4/49*a^3 + 2/49*a^2)*t
+            sage: pol.factor()
+            (-1/7*a^5 - 1/7*a^4 - 1/7*a^3 - 1/7*a^2 - 2/7*a - 1/7) * t * (t - a^5 - a^4 - a^3 - a^2 - a - 1)^4 * (t^5 + (-12/7*a^5 - 10/7*a^4 - 8/7*a^3 - 6/7*a^2 - 4/7*a - 2/7)*t^4 + (12/7*a^5 - 8/7*a^3 + 16/7*a^2 + 2/7*a + 20/7)*t^3 + (-20/7*a^5 - 20/7*a^3 - 20/7*a^2 + 4/7*a - 2)*t^2 + (12/7*a^5 + 12/7*a^3 + 2/7*a + 16/7)*t - 4/7*a^5 - 4/7*a^3 - 4/7*a - 2/7)
+
+            sage: pol = (1/7*a^2 - 1/7*a)*t^10 + (4/7*a - 6/7)*t^9 + (102/49*a^5 + 99/49*a^4 + 96/49*a^3 + 93/49*a^2 + 90/49*a + 150/49)*t^8 + (-160/49*a^5 - 36/49*a^4 - 48/49*a^3 - 8/7*a^2 - 60/49*a - 60/49)*t^7 + (30/49*a^5 - 55/49*a^4 + 20/49*a^3 + 5/49*a^2)*t^6 + (6/49*a^4 - 12/49*a^3 + 6/49*a^2)*t^5
+            sage: pol.factor()
+            (1/7*a^2 - 1/7*a) * t^5 * (t^5 + (-40/7*a^5 - 38/7*a^4 - 36/7*a^3 - 34/7*a^2 - 32/7*a - 30/7)*t^4 + (60/7*a^5 - 30/7*a^4 - 18/7*a^3 - 9/7*a^2 - 3/7*a)*t^3 + (60/7*a^4 - 40/7*a^3 - 16/7*a^2 - 4/7*a)*t^2 + (30/7*a^3 - 25/7*a^2 - 5/7*a)*t + 6/7*a^2 - 6/7*a)
+
+            sage: pol = x^10 + (4/7*a - 6/7)*x^9 + (9/49*a^2 - 3/7*a + 15/49)*x^8 + (8/343*a^3 - 32/343*a^2 + 40/343*a - 20/343)*x^7 + (5/2401*a^4 - 20/2401*a^3 + 40/2401*a^2 - 5/343*a + 15/2401)*x^6 + (-6/16807*a^4 + 12/16807*a^3 - 18/16807*a^2 + 12/16807*a - 6/16807)*x^5
+            sage: pol.factor()
+            x^5 * (x^5 + (4/7*a - 6/7)*x^4 + (9/49*a^2 - 3/7*a + 15/49)*x^3 + (8/343*a^3 - 32/343*a^2 + 40/343*a - 20/343)*x^2 + (5/2401*a^4 - 20/2401*a^3 + 40/2401*a^2 - 5/343*a + 15/2401)*x - 6/16807*a^4 + 12/16807*a^3 - 18/16807*a^2 + 12/16807*a - 6/16807)
+
         """
         # PERFORMANCE NOTE:
         #     In many tests with SMALL degree PARI is substantially
@@ -2682,7 +2703,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         ## NTL uses the Berlekamp-Zassenhaus method with van Hoeij's improvements.
         ## But so does Magma since about Jul 2001.
         ##
-        ## But here's the kicker. Pari also uses this algorithm. Even Maple uses
+        ## But here's the kicker. PARI also uses this algorithm. Even Maple uses
         ## it!
         ##
         ## NTL's LLL algorithms are extremely well developed (van Hoeij uses
@@ -2767,19 +2788,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 return Factorization([(self._parent(p), e) for p, e in factors], R(factors.unit()))
 
             if R.defining_polynomial().denominator() == 1:
-
-                if (self.leading_coefficient() == 1):
-                    unit = None
-                    v = [ x._pari_("a") for x in self.list() ]
-                else:
-                    unit = self.leading_coefficient()
-                    x = self.parent().gen()
-                    f1 = self(x/unit)*(unit**(self.degree()-1))
-                    ff1 = f1.factor()
-                    ff1 = Factorization([(f(unit*x).monic(),e) for f,e in ff1], unit=unit)
-                    return ff1
-#                    temp_f = self * 1/unit
-#                    v = [ x._pari_("a") for x in temp_f.list() ]
+                v = [ x._pari_("a") for x in self.list() ]
                 f = pari(v).Polrev()
                 Rpari = R.pari_nf()
                 if (Rpari.variable() != "a"):
@@ -2787,7 +2796,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
                     Rpari[0] = Rpari[0]("a")
                     Rpari[6] = [ x("a") for x in Rpari[6] ]
                 G = list(Rpari.nffactor(f))
-                return self._factor_pari_helper(G, unit=unit)
+                # PARI's nffactor() ignores the unit, _factor_pari_helper()
+                # adds back the unit of the factorization.
+                return self._factor_pari_helper(G)
 
             else:
 
@@ -2887,7 +2898,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def _factor_pari_helper(self, G, n=None, unit=None):
         """
-        Fix up and normalize a factorization that came from Pari.
+        Fix up and normalize a factorization that came from PARI.
 
         TESTS::
 
@@ -2940,7 +2951,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         else:
             # Otherwise we have to adjust for
-            # the content ignored by Pari.
+            # the content ignored by PARI.
             content_fix = R.base_ring()(1)
             for f, e in F:
                 if not f.is_monic():
@@ -4448,7 +4459,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         If K and L are floating-point (RDF, CDF, RR, or CC), then a
         floating-point root-finder is used. If L is RDF or CDF then we
-        default to using NumPy's roots(); otherwise, we use Pari's
+        default to using NumPy's roots(); otherwise, we use PARI's
         polroots(). This choice can be overridden with
         algorithm='pari' or algorithm='numpy'. If the algorithm is
         unspecified and NumPy's roots() algorithm fails, then we fall
@@ -4473,7 +4484,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         If L is floating-point and K is not, then we attempt to change the
         polynomial ring to L (using .change_ring()) (or, if L is complex
         and K is not, to the corresponding real field). Then we use either
-        Pari or numpy as specified above.
+        PARI or numpy as specified above.
 
         For all other cases where K is different than L, we just use
         .change_ring(L) and proceed as below.
@@ -4569,7 +4580,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             if algorithm != 'numpy' and algorithm != 'either' and algorithm != 'pari':
                 raise ValueError, "Unknown algorithm '%s'" % algorithm
 
-            # We should support GSL, too.  We could also support Pari's
+            # We should support GSL, too.  We could also support PARI's
             # old Newton-iteration algorithm.
 
             input_arbprec = (is_RealField(K) or

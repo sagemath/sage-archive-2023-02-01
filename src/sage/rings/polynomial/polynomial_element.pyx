@@ -2660,6 +2660,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: h = A(x^2-1/3) ; h.factor()
             (T - a) * (T + a)
 
+        Test that ticket #10279 is fixed::
+
+            sage: R.<t> = PolynomialRing(QQ)
+            sage: K.<a> = NumberField(t^4 - t^2 + 1)
+            sage: pol = t^3 + (-4*a^3 + 2*a)*t^2 - 11/3*a^2*t + 2/3*a^3 - 4/3*a
+            sage: pol.factor()
+            (t - 2*a^3 + a) * (t - 4/3*a^3 + 2/3*a) * (t - 2/3*a^3 + 1/3*a)
         """
         # PERFORMANCE NOTE:
         #     In many tests with SMALL degree PARI is substantially

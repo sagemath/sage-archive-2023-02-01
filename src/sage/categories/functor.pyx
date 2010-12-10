@@ -13,6 +13,8 @@ AUTHORS:
   re-implementation of the default call method,
   making functors applicable to morphisms (not only to objects)
 
+- Simon King (2010-12): Pickling of functors without loosing domain and codomain
+
 """
 
 #*****************************************************************************
@@ -32,6 +34,30 @@ AUTHORS:
 #*****************************************************************************
 
 import category
+
+def _Functor_unpickle(Cl, D, domain, codomain):
+    """
+    Generic unpickling function for functors.
+
+    AUTHOR:
+
+    - Simon King (2010-12): Trac ticket #10460
+
+    EXAMPLES::
+
+        sage: R.<x,y> = InfinitePolynomialRing(QQ)
+        sage: F = R.construction()[0]
+        sage: F == loads(dumps(F))
+        True
+        sage: F.domain(), loads(dumps(F)).domain()
+        (Category of rings, Category of rings)
+
+    """
+    F = Functor.__new__(Cl)
+    Functor.__init__(F,domain,codomain)
+    for s,v in D:
+        setattr(F,s,v)
+    return F
 
 cdef class Functor(SageObject):
     """
@@ -154,6 +180,26 @@ cdef class Functor(SageObject):
             raise TypeError, "codomain (=%s) must be a category"%codomain
         self.__domain = domain
         self.__codomain = codomain
+
+    def __reduce__(self):
+        """
+        Generic pickling of functors.
+
+        AUTHOR:
+
+        - Simon King (2010-12):  Trac ticket #10460
+
+        TESTS::
+
+            sage: from sage.categories.pushout import CompositeConstructionFunctor
+            sage: F = CompositeConstructionFunctor(QQ.construction()[0],ZZ['x'].construction()[0],QQ.construction()[0],ZZ['y'].construction()[0])
+            sage: F == loads(dumps(F))
+            True
+            sage: F.codomain()
+            Category of rings
+
+        """
+        return _Functor_unpickle, (self.__class__, self.__dict__.items(), self.__domain, self.__codomain)
 
     def _apply_functor(self, x):
         """

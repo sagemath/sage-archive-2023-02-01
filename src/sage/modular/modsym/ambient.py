@@ -1392,45 +1392,47 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             self.__cuspidal_submodule = S
         return self.__cuspidal_submodule
 
-    def _degeneracy_raising_matrix(self, level, t):
+    def _degeneracy_raising_matrix(self, M, t):
         r"""
-        Return the matrix of the level-raising degeneracy map. This is calculated
-        by composing the level-raising matrix for
-        `t = 1` with a Hecke operator.
+        Return the matrix of the level-raising degeneracy map from self to M,
+        of index t. This is calculated by composing the level-raising matrix
+        for `t = 1` with a Hecke operator.
 
         INPUT:
 
-        - ``level`` (int) -- an integer multiple of the the level
+        - ``M`` (int) -- a space of modular symbols whose level is an integer
+          multiple of the the level of self
 
-        - ``t`` (int) -- a positive integer dividing the quotient.
+        - ``t`` (int) -- a positive integer dividing the quotient of the two
+          levels.
 
         OUTPUT:
 
-        (matrix) The matrix of the degeneracy map from this space of
-        level `N` to the space of level ``level`` (a multiple of `N`).  `t`
-        is a divisor of the quotient.
+        (matrix) The matrix of the degeneracy map of index `t` from this space
+        of level `N` to the space `M` (of level a multiple of `N`). Here `t` is
+        a divisor of the quotient.
 
         EXAMPLES::
 
-            sage: ModularSymbols(11, 2)._degeneracy_raising_matrix(22, 1)
+            sage: A = ModularSymbols(11, 2); B = ModularSymbols(22, 2)
+            sage: A._degeneracy_raising_matrix(B, 1)
             [ 1  0  0  0  0 -1 -1]
             [ 0  1  0 -3  1  1 -1]
             [ 0  1  1 -1 -1  0  0]
-            sage: ModularSymbols(11, 2)._degeneracy_raising_matrix(22, 2)
+            sage: A._degeneracy_raising_matrix(B, 2)
             [ 2  0  0  0  1  0 -1]
             [ 0  0 -1  3 -1 -1  1]
             [ 0 -1 -1  1  0  1 -1]
         """
         if t == 1:
-            return self._degeneracy_raising_matrix_1(level)
+            return self._degeneracy_raising_matrix_1(M)
         else:
             # use Hecke operator and t=1 case.
-            d1 = self.degeneracy_map(level, 1).matrix()
-            M = self.hecke_module_of_level(level)
+            d1 = self.degeneracy_map(M, 1).matrix()
             T = M.hecke_matrix(t)
             return (~self.base_ring()(t)) * d1 * T
 
-    def _degeneracy_raising_matrix_1(self, level):
+    def _degeneracy_raising_matrix_1(self, M):
         r"""
         Return the matrix of the degeneracy map to the given level
         (which must be a multiple of the level of self).
@@ -1442,31 +1444,33 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         EXAMPLES::
 
             sage: M = ModularSymbols(37,4)
-            sage: M._degeneracy_raising_matrix_1(74)
+            sage: M._degeneracy_raising_matrix_1(ModularSymbols(74, 4))
             20 x 58 dense matrix over Rational Field
         """
         raise NotImplementedError
 
-    def _degeneracy_lowering_matrix(self, level, t):
+    def _degeneracy_lowering_matrix(self, M, t):
         r"""
-        Return the matrix of the level-lowering degeneracy map.
+        Return the matrix of the level-lowering degeneracy map from self to M.
 
         INPUT:
 
-        - ``level`` (int) -- an integer dividing the level
+        - ``M`` -- a modular symbols space whose level divides the level of
+          self
 
-        - ``t`` (int) -- a positive integer dividing the quotient.
+        - ``t`` (int) -- a positive integer dividing the quotient of the
+          levels.
 
         OUTPUT:
 
-        (matrix) The matrix of the degeneracy map from this space of
-        level `N` to the space of level ``level`` dividing `N`.  `t`
-        is a divisor of the quotient.
+        (matrix) The matrix of the degeneracy map from this space to the space
+        `M` of index `t`, where `t` is a divisor of the quotient of the levels
+        of self and `M`.
 
         EXAMPLES::
 
             sage: M = ModularSymbols(22,2)
-            sage: M._degeneracy_lowering_matrix(11,2)
+            sage: M._degeneracy_lowering_matrix(ModularSymbols(11, 2), 2)
             [ 1  0  0]
             [ 0  1 -1]
             [ 0  0 -1]
@@ -1478,7 +1482,6 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         # Use Proposition 2.6.15 in Merel's 1585 paper (or Prop 15 in
         # electronic version of that paper).
         H = heilbronn.HeilbronnMerel(t)
-        M = self.hecke_module_of_level(level)
         return self.__heilbronn_operator(M,H,t).matrix()
 
     def rank(self):
@@ -2460,32 +2463,32 @@ class ModularSymbolsAmbient_wtk_g0(ModularSymbolsAmbient):
             raise NotImplementedError
 
 
-    def _degeneracy_raising_matrix_1(self, level):
+    def _degeneracy_raising_matrix_1(self, M):
         r"""
         Return the matrix of the degeneracy map (with t = 1) to level
         `N`, where `N` is a multiple of the level.
 
         INPUT:
 
-        - ``level`` (int) -- An integer multiple of the level of this space.
+        - ``M`` -- A space of Gamma0 modular symbols of the same weight as
+          self, with level an integer multiple of the level of self.
 
         OUTPUT:
 
-        (matrix) The matrix of the degeneracy raising map to level ``level``.
+        (matrix) The matrix of the degeneracy raising map to `M`.
 
         EXAMPLES::
 
             sage: M = ModularSymbols(37,4)
-            sage: M._degeneracy_raising_matrix_1(74)
+            sage: M._degeneracy_raising_matrix_1(ModularSymbols(74, 4))
             20 x 58 dense matrix over Rational Field
             sage: M.dimension()
             20
             sage: ModularSymbols(74,4).dimension()
             58
         """
-        level = int(level)
+        level = int(M.level())
         N = self.level()
-        M = self.hecke_module_of_level(level)
 
         # 1. Find coset representatives H for Gamma_0(M.level()) \ Gamma_0(self.level())
         H = arithgroup.degeneracy_coset_representatives_gamma0(level, N, 1)
@@ -3050,11 +3053,11 @@ class ModularSymbolsAmbient_wtk_g1(ModularSymbolsAmbient):
 
         EXAMPLES::
 
-            sage: M = ModularSymbols(37,4)
+            sage: M = ModularSymbols(Gamma1(11),4)
             sage: M.cuspidal_subspace().dimension()
-            18
+            20
             sage: M._cuspidal_submodule_dimension_formula()
-            18
+            20
         """
         if self.sign() == 0:
             m = 2
@@ -3068,11 +3071,11 @@ class ModularSymbolsAmbient_wtk_g1(ModularSymbolsAmbient):
 
         EXAMPLES:
 
-            sage: M = ModularSymbols(100,2)
+            sage: M = ModularSymbols(Gamma1(22),2)
             sage: M._cuspidal_new_submodule_dimension_formula()
-            2
+            8
             sage: M.cuspidal_subspace().new_subspace().dimension()
-            2
+            8
         """
         if self.sign() == 0:
             m = 2
@@ -3087,23 +3090,20 @@ class ModularSymbolsAmbient_wtk_g1(ModularSymbolsAmbient):
 
         EXAMPLES::
 
-            sage: m = ModularSymbols(37,2)
+            sage: m = ModularSymbols(Gamma1(11),2)
             sage: m._compute_hecke_matrix_prime_power(3,4).charpoly('x')
-            x^5 - 141*x^4 + 2538*x^3 - 14458*x^2 + 21861*x - 9801
+            x^11 - 291*x^10 + 30555*x^9 - 1636145*x^8 + 59637480*x^7 + 1983040928*x^6 - 401988683888*x^5 - 14142158875680*x^4 + 3243232720819520*x^3 - 103658398669404480*x^2 + 197645665452381696*x - 97215957397309696
         """
         return self._compute_hecke_matrix_prime(p**r)
 
-##     def _xxx_degeneracy_raising_matrix(self, M):
-##         R = arithgroup.degeneracy_coset_representatives_gamma1(M.level(), self.level(), 1)
-##         return self._matrix_of_operator_on_modular_symbols(M, R)
-
-    def _degeneracy_raising_matrix_1(self, level):
+    def _degeneracy_raising_matrix_1(self, M):
         r"""
-        Return the matrix of the degeneracy raising map to level ``level``.
+        Return the matrix of the degeneracy raising map to `M`.
 
         INPUT:
 
-        - ``level`` (int) -- an integer (multiple of the level).
+        - ``M`` -- an ambient space of Gamma1 modular symbols, of level a
+          multiple of the level of self
 
         OUTPUT:
 
@@ -3112,18 +3112,18 @@ class ModularSymbolsAmbient_wtk_g1(ModularSymbolsAmbient):
         EXAMPLES::
 
             sage: M = ModularSymbols(Gamma1(7),3)
-            sage: M._degeneracy_raising_matrix_1(21)
+            sage: N = ModularSymbols(Gamma1(21), 3)
+            sage: M._degeneracy_raising_matrix_1(N)
             8 x 64 dense matrix over Rational Field
             sage: M.dimension()
             8
-            sage: ModularSymbols(Gamma1(21),3).dimension()
+            sage: N.dimension()
             64
         """
-        level = int(level)
+        level = int(M.level())
         N = self.level()
-        M = self.hecke_module_of_level(level)
 
-        # 1. Find coset representatives H for Gamma_0(M.level()) \ Gamma_0(self.level())
+        # 1. Find coset representatives H for Gamma_1(M.level()) \ Gamma_1(self.level())
         H = arithgroup.degeneracy_coset_representatives_gamma1(M.level(), N, 1)
         # 2. The map is
         #        [P,pi(g)] |--> sum_{h in H} [P, pi(h*g)]
@@ -3322,7 +3322,7 @@ class ModularSymbolsAmbient_wtk_gamma_h(ModularSymbolsAmbient):
 
         EXAMPLES::
 
-            sage: ModularSymbols(GammaH(15,[4]),2)._degeneracy_raising_matrix_1(30)
+            sage: ModularSymbols(GammaH(15,[4]),2)._degeneracy_raising_matrix_1(ModularSymbols(GammaH(30, [19]), 2))
             Traceback (most recent call last):
             ...
             NotImplementedError
@@ -3378,18 +3378,22 @@ class ModularSymbolsAmbient_wtk_gamma_h(ModularSymbolsAmbient):
             sage: M.modular_symbols_of_level(5)
             Modular Symbols space of dimension 4 for Congruence Subgroup Gamma_H(5) with H generated by [2] of weight 6 with sign 0 and over Rational Field
             sage: M.modular_symbols_of_level(30)
-            Modular Symbols space of dimension 60 for Congruence Subgroup Gamma_H(30) with H generated by [7] of weight 6 with sign 0 and over Rational Field
+            Traceback (most recent call last):
+            ...
+            ValueError: N (=30) should be a factor of the level of this space (=15)
             sage: M.modular_symbols_of_level(73)
             Traceback (most recent call last):
             ...
-            ValueError: N (=73) should be either a multiple or a factor of the level of this space (=15)
+            ValueError: N (=73) should be a factor of the level of this space (=15)
         """
         if self.level() % N == 0:
             return modsym.ModularSymbols(self.group().restrict(N), self.weight(), self.sign(), self.base_ring())
-        elif N % self.level() == 0:
-            return modsym.ModularSymbols(self.group().extend(N), self.weight(), self.sign(), self.base_ring())
+            # We deliberately don't allow N to be a multiple of the level here,
+            # because there are many possibilities for what H could be at the
+            # higher level (and we don't implement the degeneracy raising maps
+            # anyway)
         else:
-            raise ValueError, "N (=%s) should be either a multiple or a factor of the level of this space (=%s)" % (N, self.level())
+            raise ValueError, "N (=%s) should be a factor of the level of this space (=%s)" % (N, self.level())
 
 
 class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
@@ -3557,17 +3561,20 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
         M = matrix_space.MatrixSpace(self.base_ring(), len(rows), codomain.degree(), sparse=False)
         return M(rows)
 
-##     def _xxx_degeneracy_raising_matrix(self, M):
-##         R = arithgroup.degeneracy_coset_representatives_gamma0(M.level(), self.level(), 1)
-##         return self._matrix_of_operator_on_modular_symbols(M, R, character_twist = True)
-
-    def _degeneracy_raising_matrix_1(self, level):
+    def _degeneracy_raising_matrix_1(self, M):
         r"""
-        Return the matrix of the degeneracy raising map to level ``level``.
+        Return the matrix of the degeneracy raising map to ``M``, which should
+        be a space of modular symbols with level a multiple of the level of
+        self and with compatible character.
 
         INPUT:
 
-        - ``level`` (int) -- an integer (multiple of the level).
+        - ``M`` -- a space of modular symbols with character, whose level
+          should be an integer multiple of the level of self, and whose
+          character should be the Dirichlet character at that level obtained by
+          extending the character of self.
+
+        The input is *not* sanity-checked in any way -- use with care!
 
         OUTPUT:
 
@@ -3578,13 +3585,12 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
             sage: eps = DirichletGroup(4).gen(0)
             sage: M = ModularSymbols(eps, 3); M
             Modular Symbols space of dimension 2 and level 4, weight 3, character [-1], sign 0, over Rational Field
-            sage: M._degeneracy_raising_matrix_1(20)
+            sage: M._degeneracy_raising_matrix_1(ModularSymbols(eps.extend(20), 3))
             [ 1  0  0  0 -1 -1  3  1  0  2 -3  0]
             [ 0  5  1 -2 -3  3  0  4 -1  5 -7 -1]
         """
-        level = int(level)
+        level = int(M.level())
         N = self.level()
-        M = self.hecke_module_of_level(level)
 
         # 1. Find coset representatives H for Gamma_0(M.level()) \ Gamma_0(self.level())
         H = arithgroup.degeneracy_coset_representatives_gamma0(M.level(), N, 1)

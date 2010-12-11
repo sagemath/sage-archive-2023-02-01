@@ -237,28 +237,27 @@ class ModularFormsAmbient(space.ModularFormsSpace,
         import constructor
         return constructor.ModularForms(self.group()._new_group_from_level(N), self.weight(), self.base_ring(), prec=self.prec())
 
-    def _degeneracy_raising_matrix(self, N, t):
+    def _degeneracy_raising_matrix(self, M, t):
         r"""
-        Calculate the matrix of the degeneracy map from self to the Hecke
-        module of level N corresponding to `f(q) \mapsto f(q^t)`. Here N should
-        be a multiple of the level of self, and t should divide the quotient.
+        Calculate the matrix of the degeneracy map from self to M corresponding
+        to `f(q) \mapsto f(q^t)`. Here the level of M should be a multiple of
+        the level of self, and t should divide the quotient.
 
         EXAMPLE::
 
-            sage: ModularForms(22, 2)._degeneracy_raising_matrix(44, 1)
+            sage: ModularForms(22, 2)._degeneracy_raising_matrix(ModularForms(44, 2), 1)
             [  1   0  -1  -2   0   0   0   0   0]
             [  0   1   0  -2   0   0   0   0   0]
             [  0   0   0   0   1   0   0   0  24]
             [  0   0   0   0   0   1   0  -2  21]
             [  0   0   0   0   0   0   1   3 -10]
-            sage: ModularForms(22, 2)._degeneracy_raising_matrix(44, 2)
+            sage: ModularForms(22, 2)._degeneracy_raising_matrix(ModularForms(44, 2), 2)
             [0 1 0 0 0 0 0 0 0]
             [0 0 0 1 0 0 0 0 0]
             [0 0 0 0 1 0 0 0 0]
             [0 0 0 0 0 0 1 0 0]
             [0 0 0 0 0 0 0 1 0]
         """
-        M = self.hecke_module_of_level(N)
         from sage.matrix.matrix_space import MatrixSpace
         A = MatrixSpace(self.base_ring(), self.dimension(), M.dimension())
         d = M.sturm_bound() + 1

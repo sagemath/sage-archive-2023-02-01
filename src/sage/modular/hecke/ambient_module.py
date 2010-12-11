@@ -128,10 +128,10 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
         return "Generic ambient Hecke module of rank %s, level %s and weight %s over %s"%(self.rank(), self.level(), self.weight(), self.base_ring())
 
 
-    def _degeneracy_raising_matrix(self, N):
+    def _degeneracy_raising_matrix(self, codomain):
         """
-        Matrix of the degeneracy map (with t = 1) to level N, where N is a
-        multiple of the level.
+        Matrix of the degeneracy map (with t = 1) from self to codomain, whose
+        level should be a multiple of the level of self.
 
         EXAMPLE::
 
@@ -142,10 +142,9 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
         """
         raise NotImplementedError
 
-    def _degeneracy_lowering_matrix(self, N, t):
+    def _degeneracy_lowering_matrix(self, codomain, t):
         """
-        Matrix of the degeneracy map of index t to level N, where N is a
-        divisor of the level.
+        Matrix of the degeneracy map of index t from self to codomain, whose level should be a divisor of the level of self.
 
         EXAMPLE::
 
@@ -271,18 +270,20 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
 
     def degeneracy_map(self, level, t=1):
         """
-        The t-th degeneracy map from self to the corresponding Hecke module
-        of the given level. The level of self must be a divisor or multiple
-        of level, and t must be a divisor of the quotient.
+        The t-th degeneracy map from self to the module ``codomain``.  The
+        level of the codomain must be a divisor or multiple of level, and t
+        must be a divisor of the quotient.
 
         INPUT:
 
 
-        -  ``level`` - int, the level of the codomain of the
-           map (positive int).
+        -  ``level`` - a Hecke module, which should be of the same type as
+           self, or a positive integer (in which case Sage will use
+           :meth:`~hecke_module_of_level` to find the "natural" module of the
+           corresponding level).
 
-        -  ``t`` - int, the parameter of the degeneracy map,
-           i.e., the map is related to `f(q)` - `f(q^t)`.
+        -  ``t`` - int, the parameter of the degeneracy map, i.e., the map is
+           related to `f(q)` - `f(q^t)`.
 
 
         OUTPUT: A morphism from self to corresponding the Hecke module of
@@ -352,8 +353,20 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
             [   0 -3/4 -1/4    1]
             Domain: Modular Symbols subspace of dimension 4 of Modular Symbols space ...
             Codomain: Modular Symbols space of dimension 4 for Gamma_0(5) of weight ...
+
+        We check for a subtle caching bug that came up in work on trac #10453::
+
+            sage: loads(dumps(J0(33).decomposition()[0].modular_symbols()))
+            Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 9 for Gamma_0(33) of weight 2 with sign 0 over Rational Field
         """
-        level = int(level); t = int(t)
+        if is_AmbientHeckeModule(level):
+            M = level
+            level = int(M.level())
+        else:
+            level = int(level)
+            M = None
+
+        t = int(t)
 
         err = False
         if self.level() % level == 0:
@@ -371,7 +384,19 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
                                "level (=%s), and t (=%s) must be a divisor of the quotient.")%\
                                (self.level(), level, t)
 
-        key = (level,t)
+        eps = self.character()
+        if not (eps is None) and level % eps.conductor() != 0:
+            raise ArithmeticError, "The conductor of the character of this space " + \
+                  "(=%s) must be divisible by the level (=%s)."%\
+                  (eps.conductor(), level)
+
+        if M is None:
+            M = self.hecke_module_of_level(level)
+
+        key = (M.group(), t)
+        # bad idea to use (M, t) as the key, because using complicated objects
+        # like modular forms spaces as dictionary keys causes weird behaviour;
+        # on the other hand, (M.level(), t) isn't enough information.
         try:
             self._degeneracy_maps
         except AttributeError:
@@ -380,25 +405,17 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
         if self._degeneracy_maps.has_key(key):
             return self._degeneracy_maps[key]
 
-        eps = self.character()
-        if not (eps is None) and level % eps.conductor() != 0:
-            raise ArithmeticError, "The conductor of the character of this space " + \
-                  "(=%s) must be divisible by the level (=%s)."%\
-                  (eps.conductor(), level)
-
-        M = self.hecke_module_of_level(level)
-
         if M.rank() == 0:
 
             A = matrix_space.MatrixSpace(self.base_ring(), self.rank(),0)(0)
 
         elif self.level() % level == 0:  # lower the level
 
-            A = self._degeneracy_lowering_matrix(level, t)
+            A = self._degeneracy_lowering_matrix(M, t)
 
         elif level % self.level() == 0:  # raise the level
 
-            A = self._degeneracy_raising_matrix(level, t)
+            A = self._degeneracy_raising_matrix(M, t)
 
         d = degenmap.DegeneracyMap(A, self, M, t)
         self._degeneracy_maps[key] = d
@@ -696,7 +713,14 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
         -  ``p`` - (default: None); if not None, return only
            the p-new submodule.
 
-        OUTPUT: the new or p-new submodule of self
+        OUTPUT: the new or p-new submodule of self, i.e. the intersection of
+        the kernel of the degeneracy lowering maps to level `N/p` (for the
+        given prime `p`, or for all prime divisors of `N` if `p` is not given).
+
+        If self is cuspidal this is a Hecke-invariant complement of the
+        corresponding old submodule, but this may break down on Eisenstein
+        subspaces (see the amusing example in William Stein's book of a form
+        which is new and old at the same time).
 
         EXAMPLES::
 
@@ -742,6 +766,10 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
                 raise ValueError, "p must divide the level."
             D = [p]
         for q in D:
+            # Here we are only using degeneracy *lowering* maps, so it is fine
+            # to be careless and pass an integer for the level. One needs to be
+            # a bit more careful with degeneracy *raising* maps for the Gamma1
+            # and GammaH cases.
             if ((N//q) % f) == 0:
                 NN = N//q
                 d1 = self.degeneracy_map(NN,1).matrix()
@@ -779,14 +807,14 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
 
     def old_submodule(self, p=None):
         """
-        Returns the old or p-old submodule of self.
+        Returns the old or p-old submodule of self, i.e. the sum of the images
+        of the degeneracy maps from level `N/p` (for the given prime `p`, or
+        for all primes `p` dividing `N` if `p` is not given).
 
         INPUT:
 
-
-        -  ``p`` - (default: None); if not None, return only
-           the p-old submodule.
-
+        - ``p`` - (default: None); if not None, return only the p-old
+          submodule.
 
         OUTPUT: the old or p-old submodule of self
 
@@ -854,12 +882,18 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
             NN = N//q
             if NN % f == 0:
                 M = self.hecke_module_of_level(NN)
-                d1 = M.degeneracy_map(N, 1).matrix()
+
+                # Here it is vital to pass self as an argument to
+                # degeneracy_map, because M and the level N don't uniquely
+                # determine self (e.g. the degeneracy map from level 1 to level
+                # N could go to Gamma0(N), Gamma1(N) or anything in between)
+                d1 = M.degeneracy_map(self, 1).matrix()
+
                 if d is None:
                     d = d1
                 else:
                     d = d.stack(d1)
-                d = d.stack(M.degeneracy_map(N, q).matrix())
+                d = d.stack(M.degeneracy_map(self, q).matrix())
             #end if
         #end for
         if d is None:
@@ -956,7 +990,7 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
         else:
             D = []
         for t in D:
-            d = M.degeneracy_map(self.level(), t)
+            d = M.degeneracy_map(self, t)
             if d.codomain() != self:
                 raise ArithmeticError, "incompatible spaces of modular symbols"
             S += d.image()

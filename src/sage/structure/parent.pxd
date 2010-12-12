@@ -9,6 +9,7 @@
 #cimport sage.categories.object
 cimport sage.structure.category_object
 
+cdef inline raise_attribute_error(self, name)
 
 cdef class Parent(category_object.CategoryObject):
 

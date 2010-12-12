@@ -80,8 +80,9 @@ cdef class SageObject:
            ``cdef public __custom_name`` attribute.
         """
         if x is None:
-            if hasattr(self, '__custom_name'):
-                self.reset_name()
+            #if hasattr(self, '__custom_name'):
+            # that's tested in reset_name anyway...
+            self.reset_name()
         else:
             try:
                 self.__custom_name = str(x)
@@ -89,18 +90,66 @@ cdef class SageObject:
                 raise NotImplementedError, "object does not support renaming: %s"%self
 
     def reset_name(self):
+        """
+        Remove the custrom name of an object.
+
+        EXAMPLES::
+
+            sage: P.<x> = QQ[]
+            sage: P
+            Univariate Polynomial Ring in x over Rational Field
+            sage: P.rename('A polynomial ring')
+            sage: P
+            A polynomial ring
+            sage: P.reset_name()
+            sage: P
+            Univariate Polynomial Ring in x over Rational Field
+        """
         if hasattr(self, '__custom_name'):
             del self.__custom_name
 
 
     def __repr__(self):
-        if hasattr(self, '__custom_name'):
+        """
+        Default method for string representation.
+
+        NOTE:
+
+        Do not overwrite this method. Instead, implement
+        a ``_repr_`` (single underscore) method.
+
+        EXAMPLES:
+
+        By default, the string representation coincides with
+        the output of the single underscore ``_repr_``::
+
+            sage: P.<x> = QQ[]
+            sage: repr(P) == P._repr_()  #indirect doctest
+            True
+
+        Using :meth:`rename`, the string representation can
+        be customized::
+
+            sage: P.rename('A polynomial ring')
+            sage: repr(P) == P._repr_()
+            False
+
+        The original behaviour is restored with :meth:`reset_name`.
+
+            sage: P.reset_name()
+            sage: repr(P) == P._repr_()
+            True
+        """
+        try:
             name = self.__custom_name
             if name is not None:
                 return name
-        if hasattr(self, '_repr_'):
+        except:
+            pass
+        try:
             return self._repr_()
-        return str(type(self))
+        except AttributeError:
+            return str(type(self))
 
     def __hash__(self):
         return hash(self.__repr__())
@@ -376,9 +425,9 @@ cdef class SageObject:
             except (KeyError, ValueError):
                 pass
         nm = I.name()
-        if hasattr(self, '_%s_init_'%nm):
+        try:
             s = self.__getattribute__('_%s_init_'%nm)()
-        else:
+        except AttributeError:
             try:
               s = self._interface_init_(I)
             except:

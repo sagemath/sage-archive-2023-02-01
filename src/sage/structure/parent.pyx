@@ -87,10 +87,15 @@ cdef object elt_parent = None
 cdef inline parent_c(x):
     if PY_TYPE_CHECK(x, element.Element):
         return (<element.Element>x)._parent
-    elif hasattr(x, 'parent'):
-        return x.parent()
+#    elif hasattr(x, 'parent'):
+#        return x.parent()
+#    else:
+#        return <object>PY_TYPE(x)
     else:
-        return <object>PY_TYPE(x)
+        try:
+            return x.parent()
+        except AttributeError:
+            return <object>PY_TYPE(x)
 
 cdef _record_exception():
     from element import get_coercion_model
@@ -150,17 +155,17 @@ class A(object):
     pass
 methodwrapper = type(A.__call__)
 
-def raise_attribute_error(self, name):
+cdef inline raise_attribute_error(self, name):
     """
     Tries to emulate the standard Python AttributeError exception
 
     EXAMPLES::
 
-        sage: sage.structure.parent.raise_attribute_error(1, "bla")
+        sage: 1.bla  #indirect doctest
         Traceback (most recent call last):
         ...
         AttributeError: 'sage.rings.integer.Integer' object has no attribute 'bla'
-        sage: sage.structure.parent.raise_attribute_error(QQ[x].gen(), "bla")
+        sage: QQ[x].gen().bla
         Traceback (most recent call last):
         ...
         AttributeError: 'sage.rings.polynomial.polynomial_rational_flint.Polynomial_rational_flint' object has no attribute 'bla'
@@ -272,17 +277,19 @@ def getattr_from_other_class(self, cls, name):
         raise_attribute_error(self, name)
     if isinstance(attribute, methodwrapper):
         raise_attribute_error(self, name)
-    if hasattr(attribute, "__get__"):
-        # Conditionally defined lazy_attributes don't work well with fake subclasses
-        # (a TypeError is raised if the lazy attribute is not defined)
-        # For the moment, we ignore that when this occurs
-        # Other descriptors (including __weakref__) also break.
-        try:
-            return attribute.__get__(self, cls)
-        except TypeError:
-            raise_attribute_error(self, name)
-    else:
+    try:
+        getter = attribute.__get__
+    except AttributeError:
         return attribute
+    # Conditionally defined lazy_attributes don't work well with fake subclasses
+    # (a TypeError is raised if the lazy attribute is not defined)
+    # For the moment, we ignore that when this occurs
+    # Other descriptors (including __weakref__) also break.
+    try:
+        return getter(self, cls)
+    except TypeError:
+        pass
+    raise_attribute_error(self, name)
 
 def dir_with_other_class(self, cls):
     """
@@ -500,9 +507,9 @@ cdef class Parent(category_object.CategoryObject):
            self.element_class = dynamic_class("%s.element_class"%self.__class__.__name__, (category.element_class,), self.Element)
          - This should lookup for Element classes in all super classes
         """
-        if hasattr(self, 'Element'):
+        try: #if hasattr(self, 'Element'):
             return self.__make_element_class__(self.Element, "%s.element_class"%self.__class__.__name__)
-        else:
+        except AttributeError: #else:
             return NotImplemented
 
 
@@ -536,10 +543,15 @@ cdef class Parent(category_object.CategoryObject):
             sage: k = GF(5); k._element_constructor # indirect doctest
             <bound method FiniteField_prime_modn_with_category._element_constructor_ of Finite Field of size 5>
         """
-        if hasattr(self, '_element_constructor_'):
-            assert callable(self._element_constructor_)
-            self._element_constructor = self._element_constructor_
-            self._element_init_pass_parent = guess_pass_parent(self, self._element_constructor)
+        try: #if hasattr(self, '_element_constructor_'):
+            _element_constructor_ = self._element_constructor_
+        except (AttributeError, TypeError):
+            # Remark: A TypeError can actually occur;
+            # it is a possible reason for "hasattr" to return False
+            return
+        assert callable(_element_constructor_)
+        self._element_constructor = _element_constructor_
+        self._element_init_pass_parent = guess_pass_parent(self, self._element_constructor)
 
     def category(self):
         """
@@ -664,6 +676,12 @@ cdef class Parent(category_object.CategoryObject):
         ``self`` being an instance of both ``Parent`` and
         ``cat.parent_class``, in that order, for attribute lookup.
 
+        NOTE:
+
+        Attributes beginning with two underscores but not ending with
+        an unnderscore are considered private and are thus exempted
+        from the lookup in ``cat.parent_class``.
+
         EXAMPLES:
 
         We test that ZZ (an extension type) inherits the methods from
@@ -698,7 +716,22 @@ cdef class Parent(category_object.CategoryObject):
             Traceback (most recent call last):
             ...
             AttributeError: 'PrimeNumbers_with_category' object has no attribute 'sadfasdf'
+
+        TESTS::
+
+        We test that "private" attributes are not requested from the element class
+        of the category (trac ticket #10467)::
+
+            sage: P = Parent(QQ, category=CommutativeRings())
+            sage: P.category().parent_class.__foo = 'bar'
+            sage: P.__foo
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'sage.structure.parent.Parent' object has no attribute '__foo'
+
         """
+        if name.startswith('__') and not name.endswith('_'):
+            raise_attribute_error(self, name)
         if self._is_category_initialized():
             return getattr_from_other_class(self, self.category().parent_class, name)
         else:

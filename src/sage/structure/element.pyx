@@ -186,8 +186,8 @@ cdef MethodType
 from types import MethodType
 
 from sage.categories.category   import Category
-from sage.structure.parent      cimport Parent
-from sage.structure.parent      import is_extension_type
+from sage.structure.parent      cimport Parent, raise_attribute_error
+from sage.structure.parent      import is_extension_type, getattr_from_other_class
 from sage.misc.lazy_format      import LazyFormat
 
 # This classes uses element.pxd.  To add data members, you
@@ -272,6 +272,12 @@ cdef class Element(sage_object.SageObject):
         and ``cat.element_class``, in that order, for attribute
         lookup.
 
+        NOTE:
+
+        Attributes beginning with two underscores but not ending with
+        an unnderscore are considered private and are thus exempted
+        from the lookup in ``cat.element_class``.
+
         EXAMPLES:
 
         We test that ``1`` (an instance of the extension type
@@ -301,8 +307,23 @@ cdef class Element(sage_object.SageObject):
             Traceback (most recent call last):
             ...
             AttributeError: 'LeftZeroSemigroup_with_category.element_class' object has no attribute 'blah_blah'
+
+        We test that "private" attributes are not requested from the element class
+        of the category (trac ticket #10467)::
+
+            sage: C = CommutativeRings()
+            sage: P.<x> = QQ[]
+            sage: C.element_class.__foo = 'bar'
+            sage: x.parent().category() is C
+            True
+            sage: x.__foo
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'sage.rings.polynomial.polynomial_rational_flint.Polynomial_rational_flint' object has no attribute '__foo'
+
         """
-        from sage.structure.parent import getattr_from_other_class
+        if name.startswith('__') and not name.endswith('_'):
+            raise_attribute_error(self, name)
         return getattr_from_other_class(self, self.parent().category().element_class, name)
 
     def __dir__(self):

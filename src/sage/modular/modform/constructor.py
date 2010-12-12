@@ -218,7 +218,7 @@ def ModularForms(group  = 1,
         sage: f.factor()
         (x - 2*zeta6 - 1) * (x - zeta6 - 2) * (x + zeta6 + 1)
 
-    We can also create spaces corresponding to the groups `\GammaH(N)` intermediate
+    We can also create spaces corresponding to the groups `\Gamma_H(N)` intermediate
     between `\Gamma_0(N)` and `\Gamma_1(N)`::
 
         sage: G = GammaH(30, [11])

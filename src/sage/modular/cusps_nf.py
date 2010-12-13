@@ -60,8 +60,10 @@ Obtain transformation matrix for equivalent cusps:
 ::
 
     sage: t, M = alpha.is_Gamma0_equivalent(beta, N, Transformation=True)
-    sage: M
-    [-2*a + 4, 3*a + 4, 5*a - 2, -3*a - 13]
+    sage: M[2] in N
+    True
+    sage: M[0]*M[3] - M[1]*M[2] == 1
+    True
     sage: alpha.apply(M) == beta
     True
 
@@ -993,6 +995,8 @@ class NFCusp(Element):
             sage: b, M = alpha1.is_Gamma0_equivalent(alpha2, N, Transformation=True)
             sage: alpha1.apply(M) == alpha2
             True
+            sage: M[2] in N
+            True
         """
         k = self.number_field()
         other = NFCusp(k, other)
@@ -1027,9 +1031,23 @@ class NFCusp(Element):
                 if not Transformation:
                     return True
                 else:
+                    AuxCoeff = [1, 0, 0, 1]
+                    Aux = M2[2]*M1[3] - u*M1[2]*M2[3]
+                    if Aux in A*B*N:
+                        if not u==1:
+                            AuxCoeff[3] = u
+                    else:
+                        A1 = (A*B*N)/ABdelta
+                        A2 = B*k.ideal(M1[2]*M2[2])/(A*ABdelta)
+                        f = A1.element_1_mod(A2)
+                        w = ((1 - f)*Aux)/(M1[2]*M2[2])
+                        AuxCoeff[3] = u
+                        AuxCoeff[1] = w
                     from sage.matrix.all import Matrix
+                    Maux = Matrix(k, 2, AuxCoeff)
                     M1inv = Matrix(k, 2, M1).inverse()
-                    Mtrans = Matrix(k, 2, M2)*M1inv
+                    Mtrans = Matrix(k, 2, M2)*Maux*M1inv
+                    assert Mtrans[1][0] in N
                     return True, Mtrans.list()
         if not Transformation:
             return False

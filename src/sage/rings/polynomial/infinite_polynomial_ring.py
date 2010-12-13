@@ -1071,20 +1071,25 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
             sage: R
             Infinite polynomial ring in a, b over Integer Ring
 
+        The following tests against a bug that was fixed at trac ticket #10468::
+
+            sage: R.<x,y> = InfinitePolynomialRing(QQ)
+            sage: R.tensor_with_ring(QQ) is R
+            True
         """
         if not R.has_coerce_map_from(self._underlying_ring):
             raise TypeError, "We can't tensor with "+repr(R)
         B = self.base_ring()
         if hasattr(B,'tensor_with_ring'):
-            return InfinitePolynomialRing_sparse(B.tensor_with_ring(R), self._names, self._order)
+            return InfinitePolynomialRing(B.tensor_with_ring(R), self._names, self._order, implementation='sparse')
         if hasattr(B,'change_ring'): # e.g., polynomial rings
-            return InfinitePolynomialRing_sparse(B.change_ring(R), self._names, self._order)
+            return InfinitePolynomialRing(B.change_ring(R), self._names, self._order, implementation='sparse')
         # try to find the correct base ring in other ways:
         try:
             o = B.one_element()*R.one_element()
         except:
             raise TypeError, "We can't tensor with "+repr(R)
-        return InfinitePolynomialRing_sparse(o.parent(), self._names, self._order)
+        return InfinitePolynomialRing(o.parent(), self._names, self._order, implementation='sparse')
 
     ## Basic Ring Properties
     # -- some stuff that is useful for quotient rings etc.
@@ -1590,20 +1595,26 @@ class InfinitePolynomialRing_dense(InfinitePolynomialRing_sparse):
             sage: R
             Infinite polynomial ring in a, b over Integer Ring
 
+        The following tests against a bug that was fixed at trac ticket #10468::
+
+            sage: R.<x,y> = InfinitePolynomialRing(QQ, implementation='sparse')
+            sage: R.tensor_with_ring(QQ) is R
+            True
+
         """
         if not R.has_coerce_map_from(self._underlying_ring):
             raise TypeError, "We can't tensor with "+repr(R)
         B = self.base_ring()
         if hasattr(B,'tensor_with_ring'):
-            return InfinitePolynomialRing_dense(B.tensor_with_ring(R), self._names, self._order)
+            return InfinitePolynomialRing(B.tensor_with_ring(R), self._names, self._order, implementation='dense')
         if hasattr(B,'change_ring'): # e.g., polynomial rings
-            return InfinitePolynomialRing_dense(B.change_ring(R), self._names, self._order)
+            return InfinitePolynomialRing(B.change_ring(R), self._names, self._order, implementation='dense')
         # try to find the correct base ring in other ways:
         try:
             o = B.one_element()*R.one_element()
         except:
             raise TypeError, "We can't tensor with "+repr(R)
-        return InfinitePolynomialRing_dense(o.parent(), self._names, self._order)
+        return InfinitePolynomialRing(o.parent(), self._names, self._order, implementation='dense')
 
     def polynomial_ring(self):
         """

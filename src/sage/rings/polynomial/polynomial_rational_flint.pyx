@@ -910,9 +910,9 @@ cdef class Polynomial_rational_flint(Polynomial):
         if do_sig: sig_off()
         return res
 
-    cpdef ModuleElement _lmul_(self, RingElement right):
+    cpdef ModuleElement _rmul_(self, RingElement left):
         r"""
-        Returns right times self, where right is a rational number.
+        Returns left * self, where left is a rational number.
 
         EXAMPLES::
 
@@ -926,11 +926,11 @@ cdef class Polynomial_rational_flint(Polynomial):
 
         if do_sig: sig_on()
         fmpq_poly_scalar_mul_mpq(res.__poly, self.__poly, \
-                                 (<Rational> right).value)
+                                 (<Rational> left).value)
         if do_sig: sig_off()
         return res
 
-    cpdef ModuleElement _rmul_(self, RingElement right):
+    cpdef ModuleElement _lmul_(self, RingElement right):
         r"""
         Returns self * right, where right is a rational number.
 

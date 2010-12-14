@@ -147,9 +147,11 @@ cdef class SageObject:
         except:
             pass
         try:
-            return self._repr_()
+            repr_func = self._repr_
         except AttributeError:
             return str(type(self))
+        else:
+            return repr_func()
 
     def __hash__(self):
         return hash(self.__repr__())
@@ -425,11 +427,12 @@ cdef class SageObject:
             except (KeyError, ValueError):
                 pass
         nm = I.name()
-        try:
-            s = self.__getattribute__('_%s_init_'%nm)()
-        except AttributeError:
+        init_func = getattr(self, '_%s_init_' % nm, None)
+        if init_func is not None:
+            s = init_func()
+        else:
             try:
-              s = self._interface_init_(I)
+                s = self._interface_init_(I)
             except:
                 raise NotImplementedError, "coercion of object %s to %s not implemented:\n%s\n%s"%\
                   (repr(self), I)

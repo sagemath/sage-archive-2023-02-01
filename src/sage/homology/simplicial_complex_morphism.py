@@ -95,7 +95,7 @@ from sage.structure.sage_object import SageObject
 from sage.rings.integer_ring import ZZ
 from sage.homology.chain_complex_morphism import ChainComplexMorphism
 from sage.combinat.permutation import Permutation
-from sage.algebras.steenrod_algebra_element import convert_perm
+from sage.algebras.steenrod.steenrod_algebra_misc import convert_perm
 
 def is_SimplicialComplexMorphism(x):
     """

@@ -91,7 +91,7 @@ class CoalgebrasWithBasis(Category_over_base_ring):
         @lazy_attribute
         def coproduct(self):
             """
-            If :meth:`.coproduct_on_basis` is available, construct the
+            If :meth:`coproduct_on_basis` is available, construct the
             coproduct morphism from ``self`` to ``self`` `\otimes`
             ``self`` by extending it by linearity
 
@@ -115,7 +115,7 @@ class CoalgebrasWithBasis(Category_over_base_ring):
         @lazy_attribute
         def counit(self):
             """
-            If :meth:`.counit_on_basis` is available, construct the
+            If :meth:`counit_on_basis` is available, construct the
             counit morphism from ``self`` to ``self`` `\otimes`
             ``self`` by extending it by linearity
 

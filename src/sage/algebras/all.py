@@ -29,9 +29,7 @@ from algebra_element import AlgebraElement, is_AlgebraElement
 from free_algebra import FreeAlgebra, is_FreeAlgebra
 from free_algebra_quotient import FreeAlgebraQuotient
 
-from steenrod_algebra import SteenrodAlgebra
-from steenrod_algebra_element import Sq
-from steenrod_algebra_bases import steenrod_algebra_basis
+from steenrod.all import *
 
 from group_algebra import GroupAlgebra, GroupAlgebraElement
 

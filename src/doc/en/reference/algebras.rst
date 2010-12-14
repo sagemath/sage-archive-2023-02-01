@@ -12,6 +12,7 @@ Algebras
    sage/algebras/free_algebra_quotient
    sage/algebras/free_algebra_quotient_element
 
-   sage/algebras/steenrod_algebra
-   sage/algebras/steenrod_algebra_element
-   sage/algebras/steenrod_algebra_bases
+   sage/algebras/steenrod/steenrod_algebra
+   sage/algebras/steenrod/steenrod_algebra_bases
+   sage/algebras/steenrod/steenrod_algebra_misc
+   sage/algebras/steenrod/steenrod_algebra_mult

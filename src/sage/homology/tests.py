@@ -9,12 +9,12 @@ TESTS::
     sage: from sage.homology.tests import test_random_chain_complex
     sage: test_random_chain_complex(trials=20)  # optional - CHomP
     sage: test_random_chain_complex(level=2, trials=20)  # optional - CHomP
-    sage: test_random_chain_complex(level=4, trials=20)  # long time # optional - CHomP
+    sage: test_random_chain_complex(level=3, trials=20)  # long time # optional - CHomP
 
     sage: from sage.homology.tests import test_random_simplicial_complex
     sage: test_random_simplicial_complex(level=1, trials=20)  # optional - CHomP
     sage: test_random_simplicial_complex(level=2, trials=20)  # optional - CHomP
-    sage: test_random_simplicial_complex(level=3, trials=10)  # long time # optional - CHomP
+    sage: test_random_simplicial_complex(level=5/2, trials=10)  # long time # optional - CHomP
 """
 from sage.misc.random_testing import random_testing
 

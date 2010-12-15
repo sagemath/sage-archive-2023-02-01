@@ -467,8 +467,8 @@ class GenericCellComplex(SageObject):
         groups::
 
             sage: S2 = simplicial_complexes.Sphere(2)
-            sage: S2.homology(dim=2, generators=True)  # optional - CHomP
-            (Z, [(0, 1, 2) - (0, 1, 3) + (0, 2, 3) - (1, 2, 3)])
+            sage: S2.homology(dim=2, generators=True, base_ring=GF(2))  # optional - CHomP
+            (Vector space of dimension 1 over Finite Field of size 2, [(0, 1, 2) + (0, 1, 3) + (0, 2, 3) + (1, 2, 3)])
 
         When generators are computed, Sage returns a pair for each
         dimension: the group and the list of generators.  For

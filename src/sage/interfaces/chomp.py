@@ -466,8 +466,8 @@ def homsimpl(complex=None, subcomplex=None, **kwds):
     Generators for a simplicial complex whose vertices are not integers::
 
         sage: S1 = simplicial_complexes.Sphere(1)
-        sage: homsimpl(S1.join(S1), generators=True)[3][1]  # optional - CHomP
-        [-('L0', 'L1', 'R0', 'R1') + ('L0', 'L1', 'R0', 'R2') - ('L0', 'L1', 'R1', 'R2') + ('L0', 'L2', 'R0', 'R1') - ('L0', 'L2', 'R0', 'R2') + ('L0', 'L2', 'R1', 'R2') - ('L1', 'L2', 'R0', 'R1') + ('L1', 'L2', 'R0', 'R2') - ('L1', 'L2', 'R1', 'R2')]
+        sage: homsimpl(S1.join(S1), generators=True, base_ring=GF(2))[3][1]  # optional - CHomP
+        [('L0', 'L1', 'R0', 'R1') + ('L0', 'L1', 'R0', 'R2') + ('L0', 'L1', 'R1', 'R2') + ('L0', 'L2', 'R0', 'R1') + ('L0', 'L2', 'R0', 'R2') + ('L0', 'L2', 'R1', 'R2') + ('L1', 'L2', 'R0', 'R1') + ('L1', 'L2', 'R0', 'R2') + ('L1', 'L2', 'R1', 'R2')]
     """
     from sage.homology.all import SimplicialComplex
     help = kwds.get('help', False)
@@ -517,8 +517,8 @@ def homcubes(complex=None, subcomplex=None, **kwds):
     Generators: these are given as a list after the homology group.
     Each generator is specified as a linear combination of cubes::
 
-        sage: print homcubes(cubical_complexes.Sphere(1), generators=True)[1][1]   # optional - CHomP
-        [[[1,1] x [0,1]] - [[0,1] x [1,1]] + [[0,1] x [0,0]] - [[0,0] x [0,1]]]
+        sage: homcubes(cubical_complexes.Sphere(1), generators=True, base_ring=GF(2))[1][1]   # optional - CHomP
+        [[[1,1] x [0,1]] + [[0,1] x [1,1]] + [[0,1] x [0,0]] + [[0,0] x [0,1]]]
     """
     from sage.homology.all import CubicalComplex
     help = kwds.get('help', False)

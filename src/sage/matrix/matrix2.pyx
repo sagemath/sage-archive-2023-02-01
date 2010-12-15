@@ -6689,6 +6689,80 @@ cdef class Matrix(matrix1.Matrix):
         """
         return self.new_matrix(self.nrows(), self.ncols(), [z.conjugate() for z in self.list()])
 
+    def conjugate_transpose(self):
+        r"""
+        Returns the transpose of ``self`` after each entry has been converted to its complex conjugate.
+
+        .. note::
+            This function is sometimes known as the "adjoint" of a matrix,
+            though there is substantial variation and some confusion with
+            the use of that term.
+
+        OUTPUT:
+
+        A matrix formed by taking the complex conjugate of every entry
+        of ``self`` and then transposing the resulting matrix.
+
+        Complex conjugation is implemented for many subfields
+        of the complex numbers.  See the examples below, or more
+        at :meth:`~conjugate`.
+
+        EXAMPLES::
+
+            sage: M = matrix(SR, 2, 2, [[2-I, 3+4*I], [9-6*I, 5*I]])
+            sage: M.base_ring()
+            Symbolic Ring
+            sage: M.conjugate_transpose()
+            [   I + 2  6*I + 9]
+            [-4*I + 3     -5*I]
+
+            sage: P = matrix(CC, 3, 2, [0.95-0.63*I, 0.84+0.13*I, 0.94+0.23*I, 0.23+0.59*I, 0.52-0.41*I, -0.50+0.90*I])
+            sage: P.base_ring()
+            Complex Field with 53 bits of precision
+            sage: P.conjugate_transpose()
+            [ 0.950... + 0.630...*I  0.940... - 0.230...*I  0.520... + 0.410...*I]
+            [ 0.840... - 0.130...*I  0.230... - 0.590...*I -0.500... - 0.900...*I]
+
+        Matrices over base rings that can be embedded in the
+        real numbers will behave as expected. ::
+
+            sage: P = random_matrix(QQ, 3, 4)
+            sage: P.conjugate_transpose() == P.transpose()
+            True
+
+        The conjugate of a matrix is formed by taking conjugates of
+        all the entries.  Some specialized subfields of the complex numbers
+        are implemented in Sage and complex conjugation can be applied.
+        (Matrices over quadratic number fields are another
+        class of examples.) ::
+
+            sage: C = CyclotomicField(5)
+            sage: a = C.gen(); a
+            zeta5
+            sage: CC(a)
+            0.309016994374947 + 0.951056516295154*I
+            sage: M = matrix(C, 1, 2, [a^2, a+a^3])
+            sage: M.conjugate_transpose()
+            [             zeta5^3]
+            [-zeta5^3 - zeta5 - 1]
+
+        Conjugation does not make sense over rings not containing complex numbers. ::
+
+            sage: N = matrix(GF(5), 2, [0,1,2,3])
+            sage: N.conjugate_transpose()
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'sage.rings.finite_rings.integer_mod.IntegerMod_int' object has no attribute 'conjugate'
+
+        AUTHOR:
+
+            Rob Beezer (2010-12-13)
+        """
+        # limited testing on a 1000 x 1000 matrix over CC:
+        #   transpose is fast, conjugate is slow
+        #   so perhaps direct speed improvements to the conjugate() method
+        return self.conjugate().transpose()
+
     def norm(self, p=2):
         r"""
         Return the p-norm of this matrix, where `p` can be 1, 2,

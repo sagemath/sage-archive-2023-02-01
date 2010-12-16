@@ -1163,14 +1163,29 @@ class NumberField_relative(NumberField_generic):
         Return True if for this relative extension `L/K`, `L` is a
         Galois extension of `K`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberField(x^3 - 2)
-            sage: y = polygen(K); L.<b> = K.extension(y^2 - a)
+            sage: y = polygen(K)
+            sage: L.<b> = K.extension(y^2 - a)
             sage: L.is_galois_relative()
             True
+            sage: M.<c> = K.extension(y^3 - a)
+            sage: M.is_galois_relative()
+            False
+
+        The following example previously gave the wrong result; see #9390::
+
+            sage: F.<a, b> = NumberField([x^2 - 2, x^2 - 3])
+            sage: F.is_galois_relative()
+            True
         """
-        return self.Hom(self).order() == self.relative_degree()
+        d = self.relative_degree()
+        if d <= 2:
+            return True
+        else:
+            rel_poly = self.relative_polynomial()
+            return d == len(rel_poly.base_extend(self).factor())
 
     def is_galois_absolute(self):
         r"""
@@ -1968,8 +1983,8 @@ class NumberField_relative(NumberField_generic):
             sage: F.<a, b> = NumberField([X^2 - 2, X^2 - 3])
             sage: PF.<Y> = F[]
             sage: K.<c> = F.extension(Y^2 - (1 + a)*(a + b)*a*b)
-            sage: K.relative_discriminant()
-            Fractional ideal (4*b)
+            sage: K.relative_discriminant() == F.ideal(4*b)
+            True
         """
         nf = self._pari_base_nf()
         base = self.base_field()

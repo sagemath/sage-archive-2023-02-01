@@ -155,6 +155,10 @@ def download_file(file):
     - Downloads ``file`` from ``PKG_SERVER`` to a temporary file, then if the
       download finishes it moves it to the proper spkg name, then
       deletes all old versions of the spkg.
+
+    Note that if ``file`` is a pathname, it should use a slash "/" as
+    directory separator, since it used to construct a URL.  In particular,
+    you should avoid using os.path.join(...) to construct ``file``.
     """
     url = "%s/%s" % (PKG_SERVER, file)
     i = url.rfind('/')
@@ -290,7 +294,7 @@ def do_update():
     - Creates files in and deletes files from ``SAGE_ROOT/spkg/``
     """
     # Download list of all spkg's
-    os.chdir("%s/standard/" % SPKG_ROOT)
+    os.chdir(os.path.join(SPKG_ROOT, "standard"))
     packages = spkg_list('standard')
 
     # Figure out which spkg's haven't been installed locally.  Note
@@ -298,7 +302,7 @@ def do_update():
     # successfully installed.  This is great because it means that
     # partial or corrupted downloads get fixed if they failed to
     # download correctly in the past.
-    installed = set(os.listdir("%s/installed/" % SPKG_ROOT))
+    installed = set(os.listdir(os.path.join(SPKG_ROOT, "installed")))
     to_download = [x for x in packages if not chop(x, '.spkg') in installed]
     if len(to_download) == 0:
          # Nothing to do.
@@ -341,6 +345,8 @@ def do_update():
 
     # Let's do it -- download everything.
     for P in to_download:
+        # Note: don't use os.path.join when constructing arguments for
+        # download_file: see the docstring for download_file.
         download_file("standard/%s" % P)
 
     # Download these since the build system requires them to be
@@ -376,7 +382,7 @@ def do_update():
     os.chdir(SPKG_ROOT)
     download_file("install")
     os.system('chmod +x install')
-    os.chdir("%s/standard/" % SPKG_ROOT)
+    os.chdir(os.path.join(SPKG_ROOT, "standard"))
     download_file("standard/deps")
     download_file("standard/newest_version")
     os.system('chmod +x newest_version')

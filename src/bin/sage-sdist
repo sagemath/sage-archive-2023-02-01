@@ -57,6 +57,9 @@ cp -LRp Makefile *.txt *.sage sage ipythonrc $TMP/
 STD=standard
 mkdir $TMP/$PKGDIR
 mkdir $TMP/$PKGDIR/$STD
+# Put VERSION.txt in a directory available for download during the
+# update process.  (See sage-update.)
+cp -p VERSION.txt $TMP/$PKGDIR/$STD/
 cp -p $PKGDIR/$STD/deps $TMP/$PKGDIR/$STD/
 cp -p $PKGDIR/$STD/libdist_filelist $TMP/$PKGDIR/$STD/
 cp -p $PKGDIR/$STD/newest_version $TMP/$PKGDIR/$STD/

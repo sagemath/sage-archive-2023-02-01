@@ -16,6 +16,7 @@
 ###############################################################################
 
 import os
+import shutil
 import sys
 import urllib
 from textwrap import fill
@@ -351,7 +352,7 @@ def do_update():
         version_file.close()
     else:
         old_version = ""
-    download_file("VERSION.txt")
+    download_file("standard/VERSION.txt")
     version_file = open("VERSION.txt")
     new_version = version_file.read()
     new_version = new_version.strip()  # remove trailing newline
@@ -364,6 +365,13 @@ def do_update():
         version_file = open("VERSION.txt", 'w')
         version_file.write("%s%s" % (new_version, old_version))
         version_file.close()
+    # shutil.copy raises an error if the destination already exists,
+    # so remove SPKG_ROOT/standard/VERSION.txt.
+    try:
+        os.remove(os.path.join(SPKG_ROOT, "standard", "VERSION.txt"))
+    except OSError:
+        pass
+    shutil.copy("VERSION.txt", os.path.join(SPKG_ROOT, "standard"))
 
     os.chdir(SPKG_ROOT)
     download_file("install")

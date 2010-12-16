@@ -2764,9 +2764,14 @@ def crt(a,b,m=None,n=None):
         Traceback (most recent call last):
         ...
         ValueError: No solution to crt problem since gcd(x^2 - 1,x^3 - 1) does not divide 2-x
+
+        sage: crt(int(2), int(3), int(7), int(11))
+        58
     """
     if isinstance(a, list):
         return CRT_list(a, b)
+    if isinstance(a, (int, long)):
+        a = integer.Integer(a) # otherwise we get an error at (b-a).quo_rem(g)
     g, alpha, beta = XGCD(m, n)
     q, r = (b - a).quo_rem(g)
     if r != 0:

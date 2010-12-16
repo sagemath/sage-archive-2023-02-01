@@ -1,5 +1,5 @@
 r"""
-ModularAbelianVarieties
+Modular abelian varieties
 """
 #*****************************************************************************
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>

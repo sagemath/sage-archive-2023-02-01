@@ -1,4 +1,3 @@
-
 r"""
 Conductor and Reduction Types for Genus 2 Curves
 

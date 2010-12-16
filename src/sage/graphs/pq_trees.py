@@ -2,10 +2,6 @@ r"""
 PQ-Trees
 
 This module implements PQ-Trees and methods to help recognise Interval Graphs.
-
-Class and Methods
------------------
-
 """
 
 # Constants, to make the code more readable

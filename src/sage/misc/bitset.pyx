@@ -1,4 +1,6 @@
 """
+Bitsets
+
 A Python interface to the fast bitsets in Sage.  Bitsets are fast
 binary sets that store elements by toggling bits in an array of
 numbers.  A bitset can store values between `0` and ``capacity-1``

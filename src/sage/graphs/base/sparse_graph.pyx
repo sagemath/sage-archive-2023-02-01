@@ -1,5 +1,4 @@
 r"""
-
 Fast sparse graphs
 
 Usage Introduction
@@ -181,10 +180,6 @@ the size of each hash table. Indeed, the expected size of the binary trees is
 `\frac{\text{actual degree}}{\text{expected degree}}`. Ryan Dingman, e.g., is
 working on a general-purpose Cython-based red black tree, which would be optimal
 for both of these uses.
-
-Methods
--------
-
 """
 
 #*******************************************************************************

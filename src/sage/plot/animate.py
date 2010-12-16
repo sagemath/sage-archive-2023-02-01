@@ -1,9 +1,3 @@
-############################################################################
-#  Copyright (C) 2007 William Stein <wstein@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-############################################################################
-
 """
 Animated plots
 
@@ -13,8 +7,13 @@ We plot a circle shooting up to the right::
     sage: a = animate([circle((i,i), 1-1/(i+1), hue=i/10) for i in srange(0,2,0.2)],
     ...               xmin=0,ymin=0,xmax=2,ymax=2,figsize=[2,2])
     sage: a.show() # optional -- requires convert command
-
 """
+
+############################################################################
+#  Copyright (C) 2007 William Stein <wstein@gmail.com>
+#  Distributed under the terms of the GNU General Public License (GPL)
+#                  http://www.gnu.org/licenses/
+############################################################################
 
 import os
 import shutil

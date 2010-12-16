@@ -6,10 +6,6 @@ This module defines functions based on Cliquer, an exact branch-and-bound algori
 AUTHORS:
 
 - Nathann Cohen (2009-08-14): Initial version
-
-Functions
-------------------------------
-
 """
 def max_clique(graph):
     """

@@ -1,5 +1,5 @@
 r"""
-NumberFields
+Number fields
 """
 #*****************************************************************************
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>

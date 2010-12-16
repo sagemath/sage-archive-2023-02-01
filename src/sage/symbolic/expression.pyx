@@ -1,11 +1,3 @@
-###############################################################################
-#   Sage: Open Source Mathematical Software
-#       Copyright (C) 2008 William Stein <wstein@gmail.com>
-#       Copyright (C) 2008 Burcin Erocal <burcin@erocal.org>
-#  Distributed under the terms of the GNU General Public License (GPL),
-#  version 2 or any later version.  The full text of the GPL is available at:
-#                  http://www.gnu.org/licenses/
-###############################################################################
 """
 Symbolic Expressions
 
@@ -120,6 +112,15 @@ Test if comparison bugs from #6256 are fixed::
     sage: t
     e^sqrt(x)
 """
+
+###############################################################################
+#   Sage: Open Source Mathematical Software
+#       Copyright (C) 2008 William Stein <wstein@gmail.com>
+#       Copyright (C) 2008 Burcin Erocal <burcin@erocal.org>
+#  Distributed under the terms of the GNU General Public License (GPL),
+#  version 2 or any later version.  The full text of the GPL is available at:
+#                  http://www.gnu.org/licenses/
+###############################################################################
 
 include "../ext/interrupt.pxi"
 include "../ext/stdsage.pxi"

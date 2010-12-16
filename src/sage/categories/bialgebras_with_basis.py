@@ -1,5 +1,5 @@
 r"""
-BialgebrasWithBasis
+Bialgebras with basis
 """
 #*****************************************************************************
 #  Copyright (C) 2008 Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>

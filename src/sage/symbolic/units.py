@@ -1,12 +1,3 @@
-###############################################################################
-#   Sage: Open Source Mathematical Software
-#       Copyright (C) 2009 David Ackerman <davidnackerman@gmail.com>
-#                          William Stein <wstein@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL),
-#  version 2 or any later version.  The full text of the GPL is available at:
-#                  http://www.gnu.org/licenses/
-###############################################################################
-
 """
 Units of measurement
 
@@ -78,6 +69,15 @@ AUTHORS:
     - David Ackerman
     - William Stein
 """
+
+###############################################################################
+#   Sage: Open Source Mathematical Software
+#       Copyright (C) 2009 David Ackerman <davidnackerman@gmail.com>
+#                          William Stein <wstein@gmail.com>
+#  Distributed under the terms of the GNU General Public License (GPL),
+#  version 2 or any later version.  The full text of the GPL is available at:
+#                  http://www.gnu.org/licenses/
+###############################################################################
 
 # standard Python libraries
 import re

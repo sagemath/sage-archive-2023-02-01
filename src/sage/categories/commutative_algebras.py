@@ -1,5 +1,5 @@
 r"""
-CommutativeAlgebras
+Commutative algebras
 """
 #*****************************************************************************
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>

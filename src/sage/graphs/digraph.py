@@ -3,9 +3,6 @@ Directed graphs
 
 This module implements functions and operations involving directed
 graphs.
-
-Class and methods
------------------
 """
 
 from sage.rings.integer import Integer

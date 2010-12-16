@@ -28,10 +28,6 @@ same length as the bitset.
 
 For more information about active vertices, see the documentation for the
 method :meth:`realloc <sage.graphs.base.c_graph.CGraph.realloc>`.
-
-
-Classes and methods
--------------------
 """
 
 #**************************************************************************

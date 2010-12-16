@@ -1,5 +1,5 @@
 r"""
-AlgebraModules
+Algebra modules
 """
 #*****************************************************************************
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>

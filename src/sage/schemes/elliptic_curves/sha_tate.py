@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# would have been nice to be able to use Ш
 r"""
 Tate-Shafarevich group
 

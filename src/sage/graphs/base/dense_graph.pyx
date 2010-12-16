@@ -1,5 +1,4 @@
 r"""
-
 Fast dense graphs
 
 Usage Introduction
@@ -112,10 +111,6 @@ efficient division by powers of two, and ``num_longs`` stores the length of the
 ``edges`` array. Recall that this length reflects the number of available
 vertices, not the number of "actual" vertices. For more details about this,
 refer to the documentation for ``CGraph``.
-
-Methods
--------
-
 """
 
 #*******************************************************************************

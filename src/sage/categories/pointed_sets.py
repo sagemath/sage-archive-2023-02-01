@@ -1,5 +1,5 @@
 r"""
-PointedSets
+Pointed sets
 """
 #*****************************************************************************
 #  Copyright (C) 2008 David Kohel <kohel@maths.usyd.edu> and

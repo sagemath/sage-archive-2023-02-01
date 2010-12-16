@@ -1,4 +1,3 @@
-
 """
 Miscellaneous arithmetic functions
 """

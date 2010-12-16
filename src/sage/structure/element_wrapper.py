@@ -1,5 +1,5 @@
 """
-ElementWrapper A class for wrapping Sage or Python objects as Sage elements
+Wrapping Sage or Python objects as Sage elements
 
 WARNING: This class has serious issues that can lead to subtle
 segfaults.  Do not use it unless you read trac 8200 first:

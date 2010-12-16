@@ -1,5 +1,5 @@
 r"""
-RingIdeals
+Ring ideals
 """
 #*****************************************************************************
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>

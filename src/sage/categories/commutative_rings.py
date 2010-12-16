@@ -1,5 +1,5 @@
 r"""
-CommutativeRings
+Commutative rings
 """
 #*****************************************************************************
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>

@@ -94,6 +94,26 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
             sage: V = k.vector_space(); v = V((1,2))
             sage: k(v)
             2*a + 1
+
+        We create elements using a list and verify that #10486 has been fixed::
+
+            sage: k = FiniteField_ext_pari(3^11, 't')
+            sage: x = k([1,0,2,1]); x
+            t^3 + 2*t^2 + 1
+            sage: x + x + x
+            0
+            sage: pari(x)
+            Mod(Mod(1, 3)*a^3 + Mod(2, 3)*a^2 + Mod(1, 3), Mod(1, 3)*a^11 + Mod(2, 3)*a^2 + Mod(1, 3))
+
+        If the list is longer than the degree, we just get the result
+        modulo the modulus::
+
+            sage: R.<a> = PolynomialRing(GF(5))
+            sage: k = FiniteField_ext_pari(5^2, 't', modulus=a^2-2)
+            sage: x = k([0,0,0,1]); x
+            2*t
+            sage: pari(x)
+            Mod(Mod(2, 5)*a, Mod(1, 5)*a^2 + Mod(3, 5))
         """
         field_element.FieldElement.__init__(self, parent)
         self.__class__ = dynamic_FiniteField_ext_pariElement
@@ -138,12 +158,11 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
                 for i in range(len(value)):
                     self.__value = self.__value + pari(int(value[i])).Mod(parent._pari_modulus())*pari("a^%s"%i)
             elif isinstance(value, list):
-                if len(value) > parent.degree():
-                    # could do something here...
-                    raise ValueError, "list too long"
-                self.__value = pari(0).Mod(parent._pari_modulus())*parent._pari_one()
-                for i in range(len(value)):
-                    self.__value = self.__value + pari(int(value[i])).Mod(parent._pari_modulus())*pari("a^%s"%i)
+                # Make the list into a polynomial with variable "a",
+                # multiply it with _pari_one (which equals Mod(1,p)) to
+                # fix the characteristic and then mod out by the modulus.
+                # See #10486.
+                self.__value = (pari(value).Polrev("a") * parent._pari_one()).Mod(parent._pari_modulus())
             else:
                 try:
                     self.__value = pari(value).Mod(parent._pari_modulus())*parent._pari_one()

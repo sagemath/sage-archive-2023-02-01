@@ -821,7 +821,9 @@ If this all works, you can then make calls like:
         -  ``timeout`` - None or a number (default: None)
 
 
-        EXAMPLES: We test all of this using the R interface. First we put
+        EXAMPLES:
+
+        We test all of this using the R interface. First we put
         10 + 15 in the input stream::
 
             sage: r._sendstr('abc <- 10 +15;\n')
@@ -861,13 +863,16 @@ If this all works, you can then make calls like:
             sage: r._expect.before
             'abc;\r\n[1] '
 
-        Here is a doc test related with trac ticket #6661::
+        We test interrupting ``_expect_expr`` using the GP interface,
+        see #6661.  Unfortunately, this test doesn't work reliably using
+        Singular, see #9163 and the follow-up #10476.
+        The ``gp.eval('0')`` in this test makes sure that ``gp`` is
+        running, so a timeout of 1 second should be sufficient. ::
 
-            sage: print sage0.eval("alarm(1); singular._expect_expr('1')")
-            Control-C pressed.  Interrupting Singular. Please wait a few seconds...
+            sage: print sage0.eval("dummy=gp.eval('0'); alarm(1); gp._expect_expr('1')")  # long time
+            Control-C pressed.  Interrupting PARI/GP interpreter. Please wait a few seconds...
             ...
             KeyboardInterrupt: computation timed out because alarm was set for 1 seconds
-
         """
         if expr is None:
             expr = self._prompt_wait

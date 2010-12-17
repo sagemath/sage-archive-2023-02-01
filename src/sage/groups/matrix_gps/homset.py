@@ -96,7 +96,7 @@ class MatrixGroupHomset(GroupHomset_generic):
         - ``check`` - bool (optional, default: ``True``), whether to check
           if images define a valid homomorphism
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: F = GF(5)
             sage: gens = [matrix(F,2,[1,2, -1, 1]), matrix(F,2, [1,1, 0,1])]

@@ -1622,23 +1622,23 @@ class GenericGraph(GenericGraph_pyx):
 
     def weighted(self, new=None):
         """
-        Returns whether the (di)graph is to be considered as a weighted
-        (di)graph.
+        Whether the (di)graph is to be considered as a weighted (di)graph.
 
-        Note that edge weightings can still exist for (di)graphs G where
-        G.weighted() is False.
+        Note that edge weightings can still exist for (di)graphs ``G`` where
+        ``G.weighted()`` is ``False``.
 
-        EXAMPLES: Here we have two graphs with different labels, but
-        weighted is False for both, so we just check for the presence of
-        edges::
+        EXAMPLES:
 
-            sage: G = Graph({0:{1:'a'}},sparse=True)
-            sage: H = Graph({0:{1:'b'}},sparse=True)
+        Here we have two graphs with different labels, but ``weighted()`` is
+        ``False`` for both, so we just check for the presence of edges::
+
+            sage: G = Graph({0:{1:'a'}}, sparse=True)
+            sage: H = Graph({0:{1:'b'}}, sparse=True)
             sage: G == H
             True
 
-        Now one is weighted and the other is not, and thus the
-        graphs are not equal::
+        Now one is weighted and the other is not, and thus the graphs are
+        not equal::
 
             sage: G.weighted(True)
             sage: H.weighted()
@@ -1646,16 +1646,39 @@ class GenericGraph(GenericGraph_pyx):
             sage: G == H
             False
 
-        However, if both are weighted, then we finally compare 'a' to 'b'.
-
-        ::
+        However, if both are weighted, then we finally compare 'a' to 'b'::
 
             sage: H.weighted(True)
             sage: G == H
             False
+
+        TESTS:
+
+        Ensure that ticket #10490 is fixed: allows a weighted graph to be
+        set as unweighted. ::
+
+            sage: G = Graph({1:{2:3}})
+            sage: G.weighted()
+            False
+            sage: G.weighted('a')
+            sage: G.weighted(True)
+            sage: G.weighted()
+            True
+            sage: G.weighted('a')
+            sage: G.weighted()
+            True
+            sage: G.weighted(False)
+            sage: G.weighted()
+            False
+            sage: G.weighted('a')
+            sage: G.weighted()
+            False
+            sage: G.weighted(True)
+            sage: G.weighted()
+            True
         """
         if new is not None:
-            if new:
+            if new in [True, False]:
                 self._weighted = new
         else:
             return self._weighted

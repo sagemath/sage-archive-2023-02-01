@@ -61,12 +61,14 @@ Computing inverses::
     ArithmeticError: self must be a square matrix
 
 Transposition::
+
     sage: m = matrix(SR, 2, [sqrt(2), -1, pi, e^2])
     sage: m.transpose()
     [sqrt(2)      pi]
     [     -1     e^2]
 
-``.T`` is a convenient shortcut::
+``.T`` is a convenient shortcut for the transpose::
+
     sage: m.T
     [sqrt(2)      pi]
     [     -1     e^2]

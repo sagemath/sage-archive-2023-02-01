@@ -4636,7 +4636,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [0 1 2]
             [3 4 5]
 
-        ``.T`` is a convenient shortcut::
+        ``.T`` is a convenient shortcut for the transpose::
 
             sage: A.T
             [0 3]

@@ -679,7 +679,8 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             [1 0 0]
             [0 0 0]
 
-        ``.T`` is a convenient shortcut::
+        ``.T`` is a convenient shortcut for the transpose::
+
             sage: A.T
             [0 2 3]
             [1 0 0]

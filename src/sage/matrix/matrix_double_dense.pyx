@@ -1424,7 +1424,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             [1.0 4.0]
             [2.0 5.0]
 
-        ``.T`` is a convenient shortcut::
+        ``.T`` is a convenient shortcut for the transpose::
 
             sage: m.T
             [2.0 3.0]

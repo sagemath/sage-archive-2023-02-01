@@ -381,7 +381,7 @@ cdef class Matrix_sparse(matrix.Matrix):
             [1 2]
             [3 4]
 
-        ``.T`` is a convenient shortcut::
+        ``.T`` is a convenient shortcut for the transpose::
 
            sage: A.T
            [1 3]

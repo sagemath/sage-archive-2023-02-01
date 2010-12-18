@@ -1448,7 +1448,8 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: B.transpose() == A
             True
 
-        ``.T`` is a convenient shortcut::
+        ``.T`` is a convenient shortcut for the transpose::
+
             sage: A.T
             [1 0 1]
             [0 1 1]

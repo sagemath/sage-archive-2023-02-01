@@ -4906,30 +4906,28 @@ class GenericGraph(GenericGraph_pyx):
         else:
             return g
 
-    def traveling_salesman_problem(self, weighted = True, solver = None, verbose = 0):
+
+    def traveling_salesman_problem(self, weighted = True, solver = None, constraint_generation = True, verbose = 0, verbose_constraints = False):
         r"""
         Solves the traveling salesman problem (TSP)
 
-        Given a graph (resp. a digraph) `G` with weighted edges,
-        the traveling salesman problem consists in finding a
-        Hamiltonian cycle (resp. circuit) of the graph of
-        minimum cost.
+        Given a graph (resp. a digraph) `G` with weighted edges, the traveling
+        salesman problem consists in finding a hamiltonian cycle (resp. circuit)
+        of the graph of minimum cost.
 
-        This TSP is one of the most famous NP-Complete problems,
-        this function can thus be expected to take some time
-        before returning its result.
+        This TSP is one of the most famous NP-Complete problems, this function
+        can thus be expected to take some time before returning its result.
 
         INPUT:
 
-        - ``weighted`` (boolean) -- whether to consider the
-          weights of the edges.
+        - ``weighted`` (boolean) -- whether to consider the weights of the
+          edges.
 
-              - If set to ``False`` (default), all edges are
-                assumed to weight `1`
+              - If set to ``False`` (default), all edges are assumed to weight
+                `1`
 
-              - If set to ``True``, the weights are taken into
-                account, and the edges whose weight is ``None``
-                are assumed to be set to `1`
+              - If set to ``True``, the weights are taken into account, and the
+                edges whose weight is ``None`` are assumed to be set to `1`
 
         - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
           solver to be used. If set to ``None``, the default one is used. For
@@ -4939,26 +4937,30 @@ class GenericGraph(GenericGraph_pyx):
           of the class
           :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
+        - ``constraint_generation`` (boolean) -- whether to use constraint
+          generation when solving the Mixed Integer Linear Program (default:
+          ``True``).
+
         - ``verbose`` -- integer (default: ``0``). Sets the level of
           verbosity. Set to 0 by default, which means quiet.
 
+        - ``verbose_constraints`` -- whether to display which constraints are
+          being generated.
 
         OUTPUT:
 
-        A solution to the TSP, as a ``Graph`` object whose vertex
-        set is `V(G)`, and whose edges are only those of the
-        solution.
+        A solution to the TSP, as a ``Graph`` object whose vertex set is `V(G)`,
+        and whose edges are only those of the solution.
 
         ALGORITHM:
 
-        This optimization problem is solved through the use
-        of Linear Programming.
+        This optimization problem is solved through the use of Linear
+        Programming.
 
         NOTE:
 
-        - This function is correctly defined for both graph and digraphs.
-          In the second case, the returned cycle is a circuit of optimal
-          cost.
+        - This function is correctly defined for both graph and digraphs.  In
+          the second case, the returned cycle is a circuit of optimal cost.
 
         EXAMPLES:
 
@@ -4993,13 +4995,12 @@ class GenericGraph(GenericGraph_pyx):
             ...
             ValueError: The given graph is not Hamiltonian
 
-        One easy way to change is is obviously to add to this
-        graph the edges corresponding to a Hamiltonian cycle.
+        One easy way to change is is obviously to add to this graph the edges
+        corresponding to a Hamiltonian cycle.
 
-        If we do this by setting the cost of these new edges
-        to `2`, while the others are set to `1`, we notice
-        that not all the edges we added are used in the
-        optimal solution ::
+        If we do this by setting the cost of these new edges to `2`, while the
+        others are set to `1`, we notice that not all the edges we added are
+        used in the optimal solution ::
 
             sage: for u, v in g.edges(labels = None):
             ...      g.set_edge_label(u,v,1)
@@ -5014,8 +5015,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: sum( tsp.edge_labels() ) < 2*10
             True
 
-        If we pick `1/2` instead of `2` as a cost for these new edges,
-        they clearly become the optimal solution
+        If we pick `1/2` instead of `2` as a cost for these new edges, they
+        clearly become the optimal solution
 
             sage: for u,v in cycle.edges(labels = None):
             ...      g.set_edge_label(u,v,1/2)
@@ -5024,16 +5025,76 @@ class GenericGraph(GenericGraph_pyx):
             sage: sum( tsp.edge_labels() ) == (1/2)*10
             True
 
+        TESTS:
+
+        Comparing the results returned according to the value of
+        ``constraint_generation``. First, for graphs::
+
+            sage: from operator import itemgetter
+            sage: n = 20
+            sage: for i in range(20):
+            ...       g = Graph()
+            ...       g.allow_multiple_edges(False)
+            ...       for u,v in graphs.RandomGNP(n,.2).edges(labels = False):
+            ...            g.add_edge(u,v,round(random(),5))
+            ...       for u,v in graphs.CycleGraph(n).edges(labels = False):
+            ...            if not g.has_edge(u,v):
+            ...                g.add_edge(u,v,round(random(),5))
+            ...       v1 = g.traveling_salesman_problem(constraint_generation = False)
+            ...       v2 = g.traveling_salesman_problem()
+            ...       c1 = sum(map(itemgetter(2), v1.edges()))
+            ...       c2 = sum(map(itemgetter(2), v2.edges()))
+            ...       if c1 != c2:
+            ...           print "Erreur !",c1,c2
+            ...           break
+
+        Then for digraphs::
+
+            sage: from operator import itemgetter
+            sage: n = 20
+            sage: for i in range(20):
+            ...       g = DiGraph()
+            ...       g.allow_multiple_edges(False)
+            ...       for u,v in digraphs.RandomDirectedGNP(n,.2).edges(labels = False):
+            ...            g.add_edge(u,v,round(random(),5))
+            ...       for u,v in digraphs.Circuit(n).edges(labels = False):
+            ...            if not g.has_edge(u,v):
+            ...                g.add_edge(u,v,round(random(),5))
+            ...       v2 = g.traveling_salesman_problem()
+            ...       v1 = g.traveling_salesman_problem(constraint_generation = False)
+            ...       c1 = sum(map(itemgetter(2), v1.edges()))
+            ...       c2 = sum(map(itemgetter(2), v2.edges()))
+            ...       if c1 != c2:
+            ...           print "Erreur !",c1,c2
+            ...           print "Avec generation de contrainte :",c2
+            ...           print "Sans generation de contrainte :",c1
+            ...           break
+
         """
+        ###############################
+        # Quick cheks of connectivity #
+        ###############################
 
-        from sage.numerical.mip import MixedIntegerLinearProgram, Sum
+        # TODO : Improve it by checking vertex-connectivity instead of
+        # edge-connectivity.... But calling the vertex_connectivity (which
+        # builds a LP) is way too slow. These tests only run traversals written
+        # in Cython --> hence FAST
 
-        p = MixedIntegerLinearProgram(maximization = False, solver = solver)
+        if self.is_directed():
+            if not self.is_strongly_connected():
+                raise ValueError("The given graph is not hamiltonian")
 
-        f = p.new_variable()
-        r = p.new_variable()
+        else:
+            # Checks whether the graph is 2-connected
+            if not self.strong_orientation().is_strongly_connected():
+                raise ValueError("The given graph is not hamiltonian")
 
-        # If the graph has multiple edges
+
+
+        ############################
+        # Deal with multiple edges #
+        ############################
+
         if self.has_multiple_edges():
             g = self.copy()
             multi = self.multiple_edges()
@@ -5060,6 +5121,145 @@ class GenericGraph(GenericGraph_pyx):
         else:
             g = self
 
+        from sage.numerical.mip import MixedIntegerLinearProgram, Sum
+        from sage.numerical.mip import MIPSolverException
+
+        weight = lambda l : l if (l is not None and l) else 1
+
+        ####################################################
+        # Constraint-generation formulation of the problem #
+        ####################################################
+
+        if constraint_generation:
+
+            p = MixedIntegerLinearProgram(maximization = False,
+                                          solver = solver,
+                                          constraint_generation = True)
+
+
+            # Directed Case #
+            #################
+            if g.is_directed():
+
+                from sage.graphs.all import DiGraph
+                b = p.new_variable(binary = True, dim = 2)
+
+                # Objective function
+                if weighted:
+                    p.set_objective(Sum([ weight(l)*b[u][v]
+                                          for u,v,l in g.edges()]))
+
+                # All the vertices have in-degree 1 and out-degree 1
+                for v in g:
+                    p.add_constraint(Sum([b[u][v] for u in g.neighbors_in(v)]),
+                                     min = 1,
+                                     max = 1)
+                    p.add_constraint(Sum([b[v][u] for u in g.neighbors_out(v)]),
+                                     min = 1,
+                                     max = 1)
+
+                # Initial Solve
+                try:
+                    p.solve(log = verbose)
+                except MIPSolverException:
+                    raise ValueError("The given graph is not hamiltonian")
+
+
+                while True:
+                    # We build the DiGraph representing the current solution
+                    h = DiGraph()
+                    for u,v,l in g.edges():
+                        if p.get_values(b[u][v]) > .5:
+                            h.add_edge(u,v,l)
+
+                    # If there is only one circuit, we are done !
+                    cc = h.connected_components()
+                    if len(cc) == 1:
+                        break
+
+                    # Adding the corresponding constraint
+                    if verbose_constraints:
+                        print "Adding a constraint on set",cc[0]
+
+
+                    p.add_constraint(Sum(b[u][v] for u,v in
+                                         g.edge_boundary(cc[0], labels = False)),
+                                     min = 1)
+
+                    try:
+                        p.solve(log = verbose)
+                    except MIPSolverException:
+                        raise ValueError("The given graph is not hamiltonian")
+
+            # Undirected Case #
+            ###################
+            else:
+
+                from sage.graphs.all import Graph
+                b = p.new_variable(binary = True)
+                B = lambda u,v : b[(u,v)] if u<v else b[(v,u)]
+
+                # Objective function
+                if weighted:
+                    p.set_objective(Sum([ weight(l)*B(u,v)
+                                          for u,v,l in g.edges()]) )
+
+                # All the vertices have degree 2
+                for v in g:
+                    p.add_constraint(Sum([ B(u,v) for u in g.neighbors(v)]),
+                                     min = 2,
+                                     max = 2)
+
+                # Initial Solve
+                try:
+                    p.solve(log = verbose)
+                except MIPSolverException:
+                    raise ValueError("The given graph is not hamiltonian")
+
+                while True:
+                    # We build the DiGraph representing the current solution
+                    h = Graph()
+                    for u,v,l in g.edges():
+                        if p.get_values(B(u,v)) > .5:
+                            h.add_edge(u,v,l)
+
+                    # If there is only one circuit, we are done !
+                    cc = h.connected_components()
+                    if len(cc) == 1:
+                        break
+
+                    # Adding the corresponding constraint
+                    if verbose_constraints:
+                        print "Adding a constraint on set",cc[0]
+
+                    p.add_constraint(Sum(B(u,v) for u,v in
+                                         g.edge_boundary(cc[0], labels = False)),
+                                     min = 2)
+
+                    try:
+                        p.solve(log = verbose)
+                    except MIPSolverException:
+                        raise ValueError("The given graph is not hamiltonian")
+
+
+
+            # We can now return the TSP !
+            answer = self.subgraph(edges = h.edges())
+            answer.set_pos(self.get_pos())
+            answer.name("TSP from "+g.name())
+            return answer
+
+        #################################################
+        # ILP formulation without constraint generation #
+        #################################################
+
+
+
+        p = MixedIntegerLinearProgram(maximization = False, solver = solver)
+
+        f = p.new_variable()
+        r = p.new_variable()
+
         eps = 1/(2*Integer(g.order()))
         x = g.vertex_iterator().next()
 
@@ -5069,11 +5269,15 @@ class GenericGraph(GenericGraph_pyx):
             # returns the variable corresponding to arc u,v
             E = lambda u,v : f[(u,v)]
 
-            # All the vertices have in-degree 1
-            [p.add_constraint(Sum([ f[(u,v)] for u in g.neighbors_in(v)]), min = 1, max = 1) for v in g]
+            # All the vertices have in-degree 1 and out-degree 1
+            for v in g:
+                p.add_constraint(Sum([ f[(u,v)] for u in g.neighbors_in(v)]),
+                                 min = 1,
+                                 max = 1)
 
-            # All the vertices have out-degree 1
-            [p.add_constraint(Sum([ f[(v,u)] for u in g.neighbors_out(v)]), min = 1, max = 1) for v in g]
+                p.add_constraint(Sum([ f[(v,u)] for u in g.neighbors_out(v)]),
+                                 min = 1,
+                                 max = 1)
 
 
             # r is greater than f
@@ -5101,7 +5305,10 @@ class GenericGraph(GenericGraph_pyx):
             E = lambda u,v : f[R(u,v)]
 
             # All the vertices have degree 2
-            [p.add_constraint(Sum([ f[R(u,v)] for u in g.neighbors(v)]), min = 2, max = 2) for v in g]
+            for v in g:
+                p.add_constraint(Sum([ f[R(u,v)] for u in g.neighbors(v)]),
+                                 min = 2,
+                                 max = 2)
 
             # r is greater than f
             for u,v in g.edges(labels = None):
@@ -5119,16 +5326,16 @@ class GenericGraph(GenericGraph_pyx):
                 p.add_constraint(Sum([ r[(u,v)] for u in g.neighbors(v)]),max = 1-eps)
 
 
-        weight = lambda u,v : g.edge_label(u,v) if (g.edge_label(u,v) is not None and g.edge_label(u,v) != {}) else 1
+
 
         if weighted:
-            p.set_objective(Sum([ weight(u,v)*E(u,v) for u,v in g.edges(labels=None)]) )
+            p.set_objective(Sum([ weight(l)*E(u,v) for u,v,l in g.edges()]) )
         else:
             p.set_objective(None)
 
         p.set_binary(f)
 
-        from sage.numerical.mip import MIPSolverException
+
 
         try:
             obj = p.solve(log = verbose)

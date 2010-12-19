@@ -226,9 +226,12 @@ implementing them on your own as a patch for inclusion!
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
+import sys
 
 from sage.geometry.cone import Cone, is_Cone
 from sage.geometry.fan import Fan
@@ -1026,7 +1029,8 @@ class ToricVariety_field(AmbientSpace):
 
         INPUT:
 
-        - ``scope`` -- namespace (default: global);
+        - ``scope`` -- namespace (default: global, not just the scope from
+          which this function was called);
 
         - ``verbose`` -- if ``True`` (default), names of injected generators
           will be printed.
@@ -1038,19 +1042,32 @@ class ToricVariety_field(AmbientSpace):
         EXAMPLES::
 
             sage: fan = FaceFan(lattice_polytope.octahedron(2))
-            sage: P1xP1 = ToricVariety(fan)
-            sage: P1xP1.inject_coefficients()
-
-        The last command does nothing, since ``P1xP1`` is defined over `\QQ`.
-        Let's construct a toric variety over a more complicated field::
-
             sage: F = QQ["a, b"].fraction_field()
             sage: P1xP1 = ToricVariety(fan, base_field=F)
             sage: P1xP1.inject_coefficients()
             Defining a, b
+
+        We check that we can use names ``a`` and ``b``, Trac #10498 is fixed::
+
+            sage: a + b
+            a + b
+            sage: a + b in P1xP1.coordinate_ring()
+            True
         """
-        if is_FractionField(self.base_ring()):
+        if scope is None:
+            # scope = globals() does not work well, the above doctest fails.
+            # Instead we "borrow" this code from sage.misc.misc.inject_variable
+            depth = 0
+            while True:
+                scope = sys._getframe(depth).f_globals
+                if (scope["__name__"] == "__main__"
+                    and scope["__package__"] is None):
+                    break
+                depth += 1
+        try:
             self.base_ring().inject_variables(scope, verbose)
+        except AttributeError:
+            pass
 
     def is_homogeneous(self, polynomial):
         r"""

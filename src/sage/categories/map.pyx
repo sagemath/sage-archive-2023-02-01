@@ -20,6 +20,16 @@ import homset
 from sage.structure.element import generic_power
 from sage.structure.parent import Set_PythonType
 
+# copied from sage.structure.parent
+cdef inline parent_c(x):
+    if PY_TYPE_CHECK(x, Element):
+        return (<Element>x)._parent
+    else:
+        try:
+            return x.parent()
+        except AttributeError:
+            return <object>PY_TYPE(x)
+
 def unpickle_map(_class, parent, _dict, _slots):
     """
     Auxiliary function for unpickling a map.
@@ -385,14 +395,20 @@ cdef class Map(Element):
 
         - To implement the call method in a subclass of Map, implement
           :meth:`_call_` and possibly also :meth:`_call_with_args` and
-          :meth:`pushout`.
-        - If ``x`` can be coerced into the domain of ``self``, then the
-          method ``_call_`` (single underscore) is called after coercion.
-        - Otherwise, it is tried to call the method ``pushout`` to ``x``
-          (which may be provided in subclasses); in that way, ``self``
-          could be applied to objects like ideals.
-        - If ``self`` is called with additional arguments (or keyword
-          arguments) then :meth:`_call_with_args` is called.
+          :meth:`pushforward`.
+        - If the parent of ``x`` can not be coerced into the domain of
+          ``self``, then the method ``pushforward`` is called with ``x``
+          and the other given arguments, provided it is implemented.
+          In that way, ``self`` could be applied to objects like ideals
+          or sub-modules.
+        - If there is no coercion and if ``pushforward`` is not implemented
+          or fails, ``_call_`` is  called after conversion into the domain
+          (which may be possible even when there is no coercion); if there
+          are additional arguments (or keyword arguments),
+          :meth:`_call_with_args` is called instead. Note that the
+          positional arguments after ``x`` are passed as a tuple to
+          :meth:`_call_with_args` and the named arguments are passed
+          as a dictionary.
 
         INPUT:
 
@@ -416,33 +432,106 @@ cdef class Map(Element):
             sage: phi(I)
             Ideal (y, x) of Multivariate Polynomial Ring in x, y over Rational Field
 
-        TEST::
+        TEST:
+
+        We test that the map can be applied to something that converts
+        (but not coerces) into the domain and can *not* be dealt with
+        by :meth:`pushforward` (see trac ticket #10496)::
+
+            sage: D={(0, 2): -1, (0, 0): -1, (1, 1): 7, (2, 0): 1/3}
+            sage: phi(D)
+            -x^2 + 7*x*y + 1/3*y^2 - 1
+
+        We test what happens if the argument can't be converted into
+        the domain::
 
             sage: from sage.categories.map import Map
             sage: f = Map(Hom(ZZ, QQ, Rings()))
             sage: f(1/2)
             Traceback (most recent call last):
             ...
-            AttributeError: 'sage.categories.map.Map' object has no attribute 'pushforward'
+            TypeError: 1/2 fails to convert into the map's domain Integer Ring, but a `pushforward` method is not properly implemented
+
+        We test that the default call method really works as described
+        above (that was fixed in trac ticket #10496)::
+
+            sage: class FOO(Map):
+            ...     def _call_(self,x):
+            ...         print "_call_", parent(x)
+            ...         return self.codomain()(x)
+            ...     def _call_with_args(self,x,args=(),kwds={}):
+            ...         print "_call_with_args", parent(x)
+            ...         return self.codomain()(x)^kwds.get('exponent',1)
+            ...     def pushforward(self,x,exponent=1):
+            ...         print "pushforward", parent(x)
+            ...         return self.codomain()(1/x)^exponent
+            ...
+            sage: f = FOO(ZZ,QQ)
+            sage: f(1/1)   #indirect doctest
+            pushforward Rational Field
+            1
+
+        ``_call_`` and ``_call_with_args_`` are used *after* coercion::
+
+            sage: f(int(1))
+            _call_ Integer Ring
+            1
+            sage: f(int(2),exponent=2)
+            _call_with_args Integer Ring
+            4
+
+        ``pushforward`` is called without conversion::
+
+            sage: f(1/2)
+            pushforward Rational Field
+            2
+            sage: f(1/2,exponent=2)
+            pushforward Rational Field
+            4
+
+        If the argument does not coerce into the domain, and if
+        ``pushforward`` fails, ``_call_`` is tried after conversion.
+
+            sage: g = FOO(QQ,ZZ)
+            sage: g(SR(3))
+            pushforward Symbolic Ring
+            _call_ Rational Field
+            3
+            sage: g(SR(3),exponent=2)
+            pushforward Symbolic Ring
+            _call_with_args Rational Field
+            9
+
+        If conversion fails as well, an error is raised::
+
+            sage: h = FOO(ZZ,ZZ)
+            sage: h(2/3)
+            Traceback (most recent call last):
+            ...
+            TypeError: 2/3 fails to convert into the map's domain Integer Ring, but a `pushforward` method is not properly implemented
 
         """
-        if len(args) == 0 and len(kwds) == 0:
-            if not PY_TYPE_CHECK(x, Element):
+        P = parent_c(x)
+        if P is self._domain: # we certainly want to call _call_/with_args
+            if not args and not kwds:
                 return self._call_(x)
-            elif (<Element>x)._parent is not self._domain:
-                try:
-                    x = self._domain(x)
-                except TypeError:
-                    try:
-                        return self.pushforward(x)
-                    except (TypeError, NotImplementedError):
-                        raise TypeError, "%s must be coercible into %s"%(x, self._domain)
-            return self._call_(x)
-        else:
-            if PY_TYPE_CHECK(x, Element):
-                if (<Element>x)._parent is not self._domain:
-                    x = self._domain(x)
             return self._call_with_args(x, args, kwds)
+        # Is there coercion?
+        converter = self._domain.coerce_map_from(P)
+        if converter is None:
+            try:
+                return self.pushforward(x,*args,**kwds)
+            except (AttributeError, TypeError, NotImplementedError):
+                pass # raise TypeError, "%s must be coercible into %s"%(x, self._domain)
+            try:
+                x = self._domain(x)
+            except (TypeError, NotImplementedError):
+                raise TypeError, "%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self._domain)
+        else:
+            x = converter(x)
+        if not args and not kwds:
+            return self._call_(x)
+        return self._call_with_args(x, args, kwds)
 
     cpdef Element _call_(self, x):
         """

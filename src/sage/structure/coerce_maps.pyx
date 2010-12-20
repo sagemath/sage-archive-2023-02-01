@@ -248,7 +248,9 @@ cdef class CallableConvertMap(Map):
             Traceback (most recent call last):
             ...
             RuntimeError: BUG in coercion model: <function foo at ...> returned element with wrong parent (expected Rational Field got Integer Ring)
-            sage: f(None)
+            sage: def foo(P, x): return None
+            sage: f = CallableConvertMap(ZZ, QQ, foo)
+            sage: f(0)
             Traceback (most recent call last):
             ...
             RuntimeError: BUG in coercion model: <function foo at ...> returned None

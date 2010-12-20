@@ -17,7 +17,7 @@ EXAMPLE: Natural inclusion
     sage: phi(2/3)
     Traceback (most recent call last):
     ...
-    TypeError: 2/3 must be coercible into Integer Ring
+    TypeError: 2/3 fails to convert into the map's domain Integer Ring, but a `pushforward` method is not properly implemented
 
 There is no homomorphism in the other direction::
 
@@ -1404,7 +1404,7 @@ cdef class RingHomomorphism_cover(RingHomomorphism):
             sage: f(1/2)
             Traceback (most recent call last):
             ...
-            TypeError: 1/2 must be coercible into Integer Ring
+            TypeError: 1/2 fails to convert into the map's domain Integer Ring, but a `pushforward` method is not properly implemented
         """
         return self.codomain()(x)
 

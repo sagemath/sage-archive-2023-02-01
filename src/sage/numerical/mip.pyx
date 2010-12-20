@@ -5,8 +5,8 @@ A linear program (`LP <http://en.wikipedia.org/wiki/Linear_programming>`_)
 is an `optimization problem <http://en.wikipedia.org/wiki/Optimization_%28mathematics%29>`_
 in the following form
 
-.. centered::
-     `\max \{ c^T x \;|\; A x \leq b, x \geq 0 \}`
+.. MATH::
+     \max \{ c^T x \;|\; A x \leq b, x \geq 0 \}
 
 with given `A \in \mathbb{R}^{m,n}`, `b \in \mathbb{R}^m`,
 `c \in \mathbb{R}^n` and unknown `x \in \mathbb{R}^{n}`.
@@ -571,6 +571,11 @@ cdef class MixedIntegerLinearProgram:
           corresponding variable in the instance.
         - Each element of an instance of a ``MIPVariable`` is replaced
           by its corresponding numerical value.
+
+        .. NOTE::
+
+            While a variable may be declared as binary or integer, its value as
+            returned by the solver is of type ``float``.
 
         EXAMPLE::
 

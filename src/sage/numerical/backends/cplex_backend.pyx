@@ -870,12 +870,14 @@ cdef class CPLEXBackend(GenericBackend):
 
         cdef int status
         cdef int zero
+        cdef char ctype
         cdef double value
         status = CPXgetx(self.env, self.lp, &value, variable, variable)
         check(status)
 
-        return value
+        status = CPXgetctype(self.env, self.lp, &ctype, variable, variable)
 
+        return value if (status == 3003 or ctype=='C') else round(value)
 
     cpdef int ncols(self):
         r"""

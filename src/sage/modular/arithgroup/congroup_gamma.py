@@ -17,6 +17,7 @@ Congruence Subgroup `\Gamma(N)`
 from congroup_generic import CongruenceSubgroup
 from arithgroup_element import ArithmeticSubgroupElement
 from sage.misc.misc import prod
+from sage.rings.all import ZZ
 
 _gamma_cache = {}
 def Gamma_constructor(N):
@@ -146,6 +147,26 @@ class Gamma_class(CongruenceSubgroup):
             raise TypeError, "matrix must have diagonal entries (=%s, %s)\
             congruent to 1 modulo %s, and off-diagonal entries (=%s,%s)\
             divisible by %s" %(a, d, N, b, c, N)
+
+    def ncusps(self):
+        r"""
+        Return the number of cusps of this subgroup `\Gamma(N)`.
+
+        EXAMPLES::
+
+            sage: [Gamma(n).ncusps() for n in [1..19]]
+            [1, 3, 4, 6, 12, 12, 24, 24, 36, 36, 60, 48, 84, 72, 96, 96, 144, 108, 180]
+            sage: Gamma(30030).ncusps()
+            278691840
+            sage: Gamma(2^30).ncusps()
+            432345564227567616
+        """
+        n = self.level()
+        if n==1:
+            return ZZ(1)
+        if n==2:
+            return ZZ(3)
+        return prod([p**(2*e) - p**(2*e-2) for (p,e) in n.factor()])//2
 
 
 def is_Gamma(x):

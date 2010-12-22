@@ -149,11 +149,12 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
         ZZ_pEX_mul_ZZ_pE(r.x, self.x, d.x)
         return r
 
-    def __call__(self, a):
+    def __call__(self, *x, **kwds):
         """
         Evaluate polynomial at `a`.
 
         EXAMPLE::
+
             sage: K.<u>=GF(next_prime(2**60)**3)
             sage: R.<x> = PolynomialRing(K,implementation='NTL')
             sage: P = (x-u)*(x+u+1)
@@ -161,12 +162,48 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             0
             sage: P(u+1)
             2*u + 2
+
+        TESTS:
+
+        The following was fixed at trac ticket #10475::
+
+            sage: F.<x> = GF(4)
+            sage: P.<y> = F[]
+            sage: p = y^4 + x*y^3 + y^2 + (x + 1)*y + x + 1
+            sage: SR(p)      #indirect doctest
+            (((y + x)*y + 1)*y + x + 1)*y + x + 1
+            sage: p(2)
+            x + 1
+            sage: p(y=2)
+            x + 1
+            sage: p(3,y=2)
+            Traceback (most recent call last):
+            ...
+            TypeError: <type 'sage.rings.polynomial.polynomial_zz_pex.Polynomial_ZZ_pEX'>__call__() takes exactly 1 argument
+            sage: p(x=2)
+            Traceback (most recent call last):
+            ...
+            TypeError: <type 'sage.rings.polynomial.polynomial_zz_pex.Polynomial_ZZ_pEX'>__call__() accepts no named argument except 'y'
+
         """
         cdef ntl_ZZ_pE _a
         cdef ZZ_pE_c c_b
 
         K = self._parent.base_ring()
 
+        if kwds:
+            if x:
+                raise TypeError, "%s__call__() takes exactly 1 argument"%type(self)
+            try:
+                x = [kwds.pop(self.variable_name())]
+            except KeyError:
+                pass
+        if kwds:
+            raise TypeError, "%s__call__() accepts no named argument except '%s'"%(type(self),self.variable_name())
+        if len(x)!=1:
+            raise TypeError, "%s__call__() takes exactly 1 positional argument"%type(self)
+
+        a = x[0]
         try:
             if a.parent() is not K:
                 a = K.coerce(a)

@@ -2276,6 +2276,82 @@ exponent %s: the length of the word (%s) times the exponent \
             return 0
         return self.length() / self.primitive_length()
 
+    def has_period(self, p):
+        r"""
+        Returns True if self has the period ``p``,
+        False otherwise.
+
+        NOTE:
+
+        By convention, integers greater than the length
+        of self are periods of self.
+
+        INPUT:
+
+        - ``p`` - an integer to check if it is a period
+          of self.
+
+        EXAMPLES::
+
+            sage: w = Word('ababa')
+            sage: w.has_period(2)
+            True
+            sage: w.has_period(3)
+            False
+            sage: w.has_period(4)
+            True
+            sage: w.has_period(-1)
+            False
+            sage: w.has_period(5)
+            True
+            sage: w.has_period(6)
+            True
+        """
+        if p < 0:
+            return False
+        elif p >= len(self):
+            return True
+        else:
+            for i in range(len(self) - p):
+                if self[i] != self[i + p]:
+                    return False
+            return True
+
+    def periods(self, divide_length=False):
+        r"""
+        Returns a list containing the periods of self
+        between `1` and `n - 1`, where `n` is the length
+        of self.
+
+        INPUT:
+
+        - ``divide_length`` - boolean (default: False).
+          When set to True, then only periods that divide
+          the length of self are considered.
+
+        OUTPUT:
+
+        List of positive integers
+
+        EXAMPLES::
+
+            sage: w = Word('ababab')
+            sage: w.periods()
+            [2, 4]
+            sage: w.periods(divide_length=True)
+            [2]
+            sage: w = Word('ababa')
+            sage: w.periods()
+            [2, 4]
+            sage: w.periods(divide_length=True)
+            []
+        """
+        n = len(self)
+        periods = filter(self.has_period, range(1, n))
+        if divide_length:
+            periods = filter(lambda p: n % p == 0, periods)
+        return periods
+
     def is_subword_of(self, other):
         r"""
         Returns True is self is a subword of other, and False otherwise.

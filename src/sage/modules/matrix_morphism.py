@@ -109,10 +109,14 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
         """
         return cmp(self.matrix(), other.matrix())
 
-    def __call__(self, x):
+    def _call_(self, x):
         """
-        Evaluate this matrix morphism at an element that can be coerced
-        into the domain.
+        Evaluate this matrix morphism at an element of the domain.
+
+        REMARK:
+
+        Coercion is done in the generic __call__ method, which calls
+        this method.
 
         EXAMPLES::
 
@@ -130,37 +134,32 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             Codomain: Vector space of dimension 2 over Rational Field
             sage: phi(V.0)
             (0, 1)
-            sage: phi([1,2,3])
+            sage: phi(V([1, 2, 3]))
             (16, 22)
-            sage: phi(5)
-            Traceback (most recent call last):
-            ...
-            TypeError: 5 must be coercible into Vector space of dimension 3 over Rational Field
-            sage: phi([1,1])
-            Traceback (most recent call last):
-            ...
-            TypeError: [1, 1] must be coercible into Vector space of dimension 3 over Rational Field
+
+        Last, we have a situation where coercion occurs::
+
+            sage: U = V.span([[3,2,1]])
+            sage: U.0
+            (1, 2/3, 1/3)
+            sage: phi(2*U.0)
+            (16/3, 28/3)
+
         """
-        try:
-            if not hasattr(x, 'parent') or x.parent() != self.domain():
-                x = self.domain()(x)
-        except TypeError:
-            raise TypeError("%s must be coercible into %s"%(x,self.domain()))
         if self.domain().is_ambient():
             x = x.element()
         else:
             x = self.domain().coordinate_vector(x)
         v = x*self.matrix()
         C = self.codomain()
+        from sage.modules.free_module import FreeModule_ambient_field
         if C.is_ambient():
-            return C(v)
-        return C(C.linear_combination_of_basis(v), check=False)
-
-    def _call_(self, x):
-        """
-        Alternative for compatibility with sage.categories.map.FormalCompositeMap._call_
-        """
-        return self.__call__(x)
+            # The call method of parents uses (coercion) morphisms.
+            # Hence, in order to avoid recursion, we call the element
+            # class directly: After all, we already know the
+            # coordinates.
+            return C.element_class(C, v.list())
+        return C.element_class(C, C.linear_combination_of_basis(v).list())
 
     def __invert__(self):
         """

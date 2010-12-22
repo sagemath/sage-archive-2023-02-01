@@ -136,7 +136,9 @@ AUTHORS:
 
 - Niles Johnson (2010-08): Trac #3893: ``random_element()`` should pass on ``*args`` and ``**kwds``.
 
-- Simon King (2010-12): Trac #8800: Fixing a bug in ``denominator()``.
+- Simon King (2010-12):
+  Trac #8800: Fixing a bug in ``denominator()``.
+  Trac #...: New coercion model and category framework.
 
 """
 
@@ -693,6 +695,8 @@ over a noncommutative ring. Sage does not have a concept
 of left/right and both sided modules, so be careful.
 It's also not guaranteed that all multiplications are
 done from the right side.""")
+
+        self.Element = element_class(base_ring, sparse)
         rank = sage.rings.integer.Integer(rank)
         if rank < 0:
             raise ValueError("rank (=%s) must be nonnegative"%rank)
@@ -711,7 +715,7 @@ done from the right side.""")
         self.__degree = degree
         self.__is_sparse = sparse
         self._gram_matrix = None
-        self.element_class()
+        # initialise the element class
 
     def construction(self):
         """
@@ -870,7 +874,10 @@ done from the right side.""")
         except ValueError:
             return self(0)
 
-    def element_class(self):
+    ######
+    ## Coercion (implemented by Simon King, 2010-12)
+
+    def _element_class(self):
         """
         The class of elements for this free module.
 
@@ -880,24 +887,87 @@ done from the right side.""")
             sage: x = M.random_element()
             sage: type(x)
             <type 'sage.modules.vector_integer_dense.Vector_integer_dense'>
-            sage: M.element_class()
+            sage: M._element_class()
             <type 'sage.modules.vector_integer_dense.Vector_integer_dense'>
+
+        This method is also used to implement the defaul ``element_class`` lazy argument
+        (trac ticket #10513)::
+
+            sage: M.element_class
+            <type 'sage.modules.vector_integer_dense.Vector_integer_dense'>
+
+        ::
+
             sage: N = FreeModule(ZZ,20,sparse=True)
             sage: y = N.random_element()
             sage: type(y)
             <type 'sage.modules.free_module_element.FreeModuleElement_generic_sparse'>
-            sage: N.element_class()
+            sage: N._element_class()
             <type 'sage.modules.free_module_element.FreeModuleElement_generic_sparse'>
         """
-        try:
-            return self._element_class
-        except AttributeError:
-            pass
-        C = element_class(self.base_ring(), self.is_sparse())
-        self._element_class = C
-        return C
+        return element_class(self.base_ring(), self.is_sparse())
 
-    def __call__(self, x, coerce=True, copy=True, check=True):
+    def _coerce_map_from_(self,M):
+        """
+
+        TESTS:
+
+        Make sure ticket #3638 is fixed::
+
+            sage: vector(ZZ,[1,2,11])==vector(Zmod(8),[1,2,3])
+            True
+
+        Make sure ticket #10513 is fixed (an abstract module and
+        an isomorphic quotient module are not related by a coercion)::
+
+            sage: M = QQ^3 / [[1,2,3]]
+            sage: V = QQ^2
+            sage: M.coerce_map_from(V)
+            sage: V.coerce_map_from(M)
+
+
+        """
+        if not is_FreeModule(M):
+            return None
+        # 1. We want to relate two different *ambient* modules,
+        #    if they have the same rank (which is the same as degree)
+        #    and if there is a coercion of the base rings.
+        # 2. Two modules embedded in other modules that have a
+        #    coercion may inherit a coercion if they are in fact
+        #    sub-modules of one another.
+        # 3. Since different embeddings of one abstract module
+        #    are related by non-identic coerce maps (in 2.), we
+        #    must not have forgetfol coercion from a sub-module
+        #    to the corresponding abstract module, for otherwise
+        #    non-commuting coercion triangles emerge.
+        # 4. Quotient modules must not coerce unless
+        #    their modulus W() is the same. There must not be
+        #    forgetful maps.
+        # 5. Coerce embeddings of sub-modules and quotient maps
+        #    of quotient modues are alreay registered.
+
+        if self.is_ambient():
+            if M.is_ambient() and self.base_ring().has_coerce_map_from(M.base_ring()) and self.rank()==M.rank():
+                from sage.modules.quotient_module import FreeModule_ambient_field_quotient
+                if isinstance(self,FreeModule_ambient_field_quotient):
+                    if not (isinstance(M,FreeModule_ambient_field_quotient) and self.W()==M.W()):
+                        # No map between different quotients.
+                        # No map from quotient to abstract module.
+                        return None
+                elif isinstance(M,FreeModule_ambient_field_quotient):
+                    # No forgetful map.
+                    return None
+                return M.hom(self.basis(),self)
+        else:
+            if M.is_ambient():
+                return None
+            if self.ambient_module().has_coerce_map_from(M.ambient_module()):
+                A = self.ambient_vector_space()
+                Abasis = [A(x) for x in M.basis()]
+                if all([x in self for x in Abasis]):
+                    return M.hom([self._element_constructor_(x) for x in Abasis], self)
+
+    def _element_constructor_(self, x, coerce=True, copy=True, check=True):
         r"""
         Create an element of this free module from x.
 
@@ -916,8 +986,10 @@ done from the right side.""")
         EXAMPLE::
 
             sage: M = ZZ^4
-            sage: M([1,-1,0,1])
+            sage: M([1,-1,0,1])  #indirect doctest
             (1, -1, 0, 1)
+            sage: M(0)
+            (0, 0, 0, 0)
 
         ::
 
@@ -949,7 +1021,7 @@ done from the right side.""")
             x = x.list()
         if check and self.base_ring().is_exact():
             if isinstance(self, FreeModule_ambient):
-                return self._element_class(self, x, coerce, copy)
+                return self.element_class(self, x, coerce, copy)
             try:
                 c = self.coordinates(x)
                 R = self.base_ring()
@@ -958,7 +1030,7 @@ done from the right side.""")
                         raise ArithmeticError
             except ArithmeticError:
                 raise TypeError("element (= %s) is not in free module"%(x,))
-        return self._element_class(self, x, coerce, copy)
+        return self.element_class(self, x, coerce, copy)
 
     def is_submodule(self, other):
         """
@@ -1016,71 +1088,6 @@ done from the right side.""")
                 return False
         return True
 
-
-    def _has_coerce_map_from_space(self, V):
-        """
-        Return True if V canonically coerces to self.
-
-        EXAMPLES::
-
-            sage: V = QQ^3
-            sage: V._has_coerce_map_from_space(V)
-            True
-            sage: W = V.span([[1,1,1]])
-            sage: V._has_coerce_map_from_space(W)
-            True
-            sage: W._has_coerce_map_from_space(V)
-            False
-            sage: (Zmod(8)^3)._has_coerce_map_from_space(ZZ^3)
-            True
-
-        TESTS:
-
-        Make sure ticket #3638 is fixed::
-
-            sage: vector(ZZ,[1,2,11])==vector(Zmod(8),[1,2,3])
-            True
-        """
-        try:
-            return self.__has_coerce_map_from_space[V]
-        except AttributeError:
-            self.__has_coerce_map_from_space = {}
-        except KeyError:
-            pass
-        if self.base_ring() is V.base_ring():
-            h = V.is_submodule(self)
-        elif not self.base_ring().has_coerce_map_from(V.base_ring()):
-            self.__has_coerce_map_from_space[V] = False
-            return False
-        else:
-            h = V.base_extend(self.base_ring()).is_submodule(self)
-        self.__has_coerce_map_from_space[V] = h
-        return h
-
-    def _coerce_impl(self, x):
-        """
-        Canonical coercion of x into this free module.
-
-        EXAMPLES::
-
-            sage: V = QQ^5
-            sage: x = V([0,4/3,8/3,4,16/3])
-            sage: V._coerce_impl(x)
-            (0, 4/3, 8/3, 4, 16/3)
-            sage: V._coerce_impl([0,4/3,8/3,4,16/3])
-            Traceback (most recent call last):
-            ...
-            TypeError: Automatic coercion supported only for vectors or 0.
-        """
-        if isinstance(x, (int, long, sage.rings.integer.Integer)) and x==0:
-            return self.zero_vector()
-        if isinstance(x, free_module_element.FreeModuleElement):
-            # determining if the map exists is expensive the first time,
-            # so we cache it.
-            if self._has_coerce_map_from_space(x.parent()):
-                return self(x)
-        raise TypeError("Automatic coercion supported only for vectors or 0.")
-
     def __contains__(self, v):
         r"""
         EXAMPLES:
@@ -1115,7 +1122,12 @@ done from the right side.""")
         if v.parent() is self:
             return True
         try:
-            c = self.coordinates(v)
+            #c = self.coordinates(v,check=False)
+            # We *must* have check=True for submodules! Otherwise,
+            # it would not be tested whether v
+            # really belongs to self (self could be
+            # a sub-module)!
+            c = self.coordinates(v, check=not self.is_ambient())
         except (ArithmeticError, TypeError):
             return False
         # Finally, check that each coordinate lies in the base ring.
@@ -1128,7 +1140,7 @@ done from the right side.""")
                     return False
                 except NotImplementedError:
                     from sage.rings.all import ZZ
-                    print "bad " + str((R, R._element_constructor, R is ZZ, type(R)))
+                    print "bad " + str((R, R.element_constructor, R is ZZ, type(R)))
         return True
 
     def __iter__(self):
@@ -1920,7 +1932,7 @@ done from the right side.""")
         # Do *not* cache this -- it must be computed fresh each time, since
         # it is is used by __call__ to make a new copy of the 0 element.
 
-        return self._element_class(self, 0)
+        return self.element_class(self, 0)
 
     @cached_method
     def zero(self):
@@ -1939,7 +1951,7 @@ done from the right side.""")
             sage: M.zero_submodule().zero().is_mutable()
             False
         """
-        res = self._element_class(self, 0)
+        res = self.element_class(self, 0)
         res.set_immutable()
         return res
 
@@ -4254,7 +4266,9 @@ class FreeModule_ambient(FreeModule_generic):
         Compare the free module self with other.
 
         Modules are ordered by their ambient spaces, then by dimension,
-        then in order by their echelon matrices.
+        then in order by their echelon matrices. However, if
+        other is a sub-module or is a quotient module then its
+        comparison method is used instead of generic comparison.
 
         EXAMPLES:
 
@@ -4284,7 +4298,7 @@ class FreeModule_ambient(FreeModule_generic):
             sage: Q^3 == Q^3
             True
 
-        ::
+        Comparison with a sub-module::
 
             sage: V = span([[1,2,3], [5,6,7], [8,9,10]], QQ)
             sage: V
@@ -4297,12 +4311,27 @@ class FreeModule_ambient(FreeModule_generic):
             True
             sage: A < V
             False
+
+        Comparison with a quotient module (see trac ticket #10513)::
+
+            sage: M = QQ^3 / [[1,2,3]]
+            sage: V = QQ^2
+            sage: V==M
+            False
+            sage: M==V
+            False
+            sage: V<M
+            True
+            sage: M<V
+            False
+
         """
         if self is other:
             return 0
         if not isinstance(other, FreeModule_generic):
             return cmp(type(self), type(other))
-        if isinstance(other, FreeModule_ambient):
+        from sage.modules.quotient_module import FreeModule_ambient_field_quotient
+        if isinstance(other, FreeModule_ambient) and not isinstance(other,FreeModule_ambient_field_quotient):
             c = cmp(self.rank(), other.rank())
             if c: return c
             c = cmp(self.base_ring(), other.base_ring())
@@ -4315,7 +4344,9 @@ class FreeModule_ambient(FreeModule_generic):
             except NotImplementedError:
                 pass
             return c
-        else:  # now other is not ambient; it knows how to do the comparison.
+        else:
+            # now other is not ambient or is a quotient;
+            # it knows how to do the comparison.
             return -other.__cmp__(self)
 
     def _repr_(self):
@@ -4823,7 +4854,17 @@ class FreeModule_ambient_domain(FreeModule_ambient):
             sage: v.parent()
             Vector space of dimension 3 over Rational Field
         """
-        return self.ambient_vector_space()(v)
+        # Calling the element constructor directly, since the
+        # usual call method indirectly relies on coordinate_vector,
+        # hence, an infiniite recursion would result
+        try:
+            out = self.ambient_vector_space()._element_constructor_(v)
+        except TypeError:
+            raise ArithmeticError, "Error transforming the given vector into the ambient vector space"
+        if check:
+            if out not in self:
+                raise ArithmeticError, "The given vector does not belong to this free module"
+        return out
 
     def vector_space(self, base_field=None):
         """
@@ -5020,7 +5061,7 @@ class FreeModule_ambient_field(FreeModule_generic_field, FreeModule_ambient_pid)
         """
         return self.base_ring()
 
-    def __call__(self, e, coerce=True, copy=True, check=True):
+    def _element_constructor_(self, e, coerce=True, copy=True, check=True):
         """
         Create an element of this vector space.
 
@@ -5037,7 +5078,7 @@ class FreeModule_ambient_field(FreeModule_generic_field, FreeModule_ambient_pid)
                 return self(e._vector_())
         except AttributeError:
             pass
-        return FreeModule_generic_field.__call__(self,e)
+        return FreeModule_generic_field._element_constructor_(self,e)
 
 ###############################################################################
 #
@@ -5145,12 +5186,13 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         FreeModule_generic.__init__(self, R,
                                     rank=len(basis), degree=ambient.degree(),
                                     sparse=ambient.is_sparse())
-        C = self.element_class()
+        C = self.element_class
         try:
             w = [C(self, x.list(), coerce=False, copy=True) for x in basis]
         except TypeError:
-            C = element_class(R.fraction_field(), self.is_sparse())
-            self._element_class = C
+            self.Element = element_class(R.fraction_field(), self.is_sparse())
+            self.element_class = self.__class__.element_class.__get__(self,self.__class__)
+            C = self.element_class
             w = [C(self, x.list(), coerce=False, copy=True) for x in basis]
         self.__basis = basis_seq(self, w)
 
@@ -5165,6 +5207,17 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         if check and len(basis) != len(self.__echelonized_basis):
             raise ValueError("The given basis vectors must be linearly "
                              "independent.")
+        # register the embedding as coerce embedding,
+        # provided that we really have a submodule
+        try:
+            # directly call the element constructor, since
+            # otherwise coercion is prematurely invoked.
+            images = [ambient._element_constructor(x) for x in self.gens()]
+        except TypeError:
+            return
+        embedding = self.hom(images,ambient,check=False)
+        #self._unset_coercions_used()
+        self._populate_coercion_lists_(embedding=embedding)
 
     def __hash__(self):
         """
@@ -5515,7 +5568,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         if v.parent() is self:
             return x
         lc = E.linear_combination_of_rows(x)
-        if lc != v and list(lc) != list(v):
+        if list(lc) != list(v):
             raise ArithmeticError("vector is not in free module")
         return x
 
@@ -6536,7 +6589,7 @@ class FreeModule_submodule_field(FreeModule_submodule_with_basis_field):
         # of this function, in the check==False case when the parent
         # of v is not self.
         lc = E.linear_combination_of_rows(w)
-        if lc != v:
+        if lc.list() != v.list():
             raise ArithmeticError("vector is not in free module")
         return w
 

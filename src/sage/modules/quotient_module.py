@@ -82,7 +82,8 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
         """
         Create this quotient space, from the given domain, sub-module, and quotient_matrix.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: A = QQ^5; V = A.span_of_basis([[1,0,-1,1,1], [1,-1,0,2/3,3/4]]); V
             Vector space of degree 5 and dimension 2 over Rational Field
             User basis matrix:
@@ -93,15 +94,19 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
             User basis matrix:
             [1/3 2/3  -1 5/9 1/2]
 
-        This creates a quotient vector space, which calls the init method:
-            sage: Q = V / W
+        This creates a quotient vector space, which calls the init method::
 
-        Behold the type of Q:
+            sage: Q = V / W  #indirect doctest
+
+        Behold the type of Q::
+
             sage: type(Q)
             <class 'sage.modules.quotient_module.FreeModule_ambient_field_quotient_with_category'>
 
         We do some consistency checks on the extra quotient and
         lifting structure of Q.
+        ::
+
             sage: Q(V.0)
             (1)
             sage: Q( V.0 - 2/3*V.1 )
@@ -119,6 +124,7 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
         self.__hash = hash((domain, sub))
         FreeModule_ambient_field.__init__(self, base_field, dimension, sparse)
         self.__quo_map = domain.Hom(self)(quotient_matrix)
+        self.__quo_map.register_as_coercion()
         self.__lift_map = self.Hom(domain)(lift_matrix)
 
     def _repr_(self):
@@ -192,78 +198,74 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
             return cmp(type(self), type(other))
         return cmp((self.V(), self.W()), (other.V(), other.W()))
 
-    def __call__(self, x):
+    def _element_constructor_(self, x):
         """
-        Coerce an element into this quotient space V/W if there is a way to make
-        sense of it.
+        Convert an element into this quotient space V/W if there is
+        a way to make sense of it.
 
-        An element coerces in if it can be coerced into V, or if not at least if
-        if it can be made sense of as a list of length the dimension of self.
+        An element converts into self if it can be converted into V,
+        or if not at least if it can be made sense of as a list of
+        length the dimension of self.
 
         EXAMPLES:
-        We create a 2-dimensional quotient of a 3-dimension ambient vector space.
+
+        We create a 2-dimensional quotient of a 3-dimension ambient
+        vector space.
+        ::
+
             sage: M = QQ^3 / [[1,2,3]]
 
-        A list of length 3 coerces into QQ^3, so it coerces into M.
-            sage: M([1,2,4])
+        A list of length 3 converts into ``QQ^3``, so it converts into M.
+        ::
+
+            sage: M([1,2,4])  #indirect doctest
             (-1/3, -2/3)
             sage: M([1,2,3])
             (0, 0)
 
-        A list of length 2 at least coerces into M, where here it just gives
+        A list of length 2 converts into M, where here it just gives
         the corresponding linear combination of the basis for M.
+        ::
+
             sage: M([1,2])
             (1, 2)
             sage: M.0 + 2*M.1
             (1, 2)
-        """
-        try:
-            if x.parent() is self:
-                return x
-        except AttributeError:
-            pass
-        try:
-            return FreeModule_ambient_field.__call__(self, x)
-        except TypeError:
-            pass
-        return self._coerce_impl(self.__domain(x))
 
-    def _coerce_impl(self, x):
-        """
-        Canonical coercion into this quotient space V/W.
+        Of course, elements of ``QQ^3`` convert into the quotient
+        module as well. Here is a different example::
 
-        Elements canonically coerce into self if they canonically
-        coerce into V.
-
-        EXAMPLES:
             sage: V = QQ^3; W = V.span([[1,0,0]]); Q = V/W
-            sage: Q._coerce_impl(V.0)
+            sage: Q(V.0)
             (0, 0)
-            sage: Q._coerce_impl(0)
-            (0, 0)
-            sage: Q._coerce_impl(V.1)
+            sage: Q(V.1)
             (1, 0)
             sage: Q.0
             (1, 0)
             sage: Q.0 + V.1
             (2, 0)
 
-        Here we coerce in something that is over ZZ, so it canonically coerce into V hence self.
-            sage: Q._coerce_impl((ZZ^3)([1,2,3]))
+        Here we start with something that is over ZZ, so it
+        canonically coerces into ``QQ^3`` hence self.
+        ::
+
+            sage: Q((ZZ^3)([1,2,3]))
             (2, 3)
 
-        Here there is no canonical coercion:
-            sage: Q._coerce_impl((GF(17)^3)([1,2,3]))
-            Traceback (most recent call last):
-            ...
-            TypeError: Automatic coercion supported only for vectors or 0.
         """
         try:
             if x.parent() is self:
                 return x
         except AttributeError:
             pass
-        return self.__quo_map(self.__domain._coerce_impl(x))
+        try:
+            return self.__quo_map._call_(self.__domain(x))
+        except TypeError:
+            pass
+        # The preparing steps in the default __call__ are
+        # done. Hence, we may call the element constructor
+        # directly
+        return FreeModule_ambient_field._element_constructor_(self, x)
 
     def quotient_map(self):
         """

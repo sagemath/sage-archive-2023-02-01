@@ -74,17 +74,6 @@ cdef class Module_old(sage.structure.parent_gens.ParentWithAdditiveAbelianGens):
     """
     Generic module class.
     """
-    def category(self):
-        """
-        Return the category to which this module belongs.
-        """
-        # Defining a category method is deprecated for parents.
-        # Instead, the category should be specified in the constructor.
-        # See: http://sagetrac.org/sage_trac/wiki/CategoriesRoadMap
-        if self._is_category_initialized():
-            return Parent.category(self)
-        from sage.categories.modules import Modules
-        return Modules(self.base_ring())
 
     def endomorphism_ring(self):
         """

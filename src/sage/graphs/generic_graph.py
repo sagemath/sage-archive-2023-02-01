@@ -14590,6 +14590,16 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.is_isomorphic(H, edge_labels=True)
             True
 
+        Edge labeled digraphs::
+
+            sage: G = DiGraph()
+            sage: G.add_edges( [(0,1,'a'),(1,2,'b'),(2,3,'c'),(3,4,'b'),(4,0,'a')] )
+            sage: H = G.relabel([1,2,3,4,0], inplace=False)
+            sage: G.is_isomorphic(H, edge_labels=True)
+            True
+            sage: G.is_isomorphic(H, edge_labels=True, certify=True)
+            {0: 1, 1: 2, 2: 3, 3: 4, 4: 0}
+
         TESTS::
 
             sage: g1 = '~?A[~~{ACbCwV_~__OOcCW_fAA{CF{CCAAAC__bCCCwOOV___~____OOOOcCCCW___fAAAA'+\
@@ -14720,7 +14730,13 @@ class GenericGraph(GenericGraph_pyx):
         else:
             isom_trans = {}
             for v in isom:
-                isom_trans[self_vertices[v]] = G2_to[isom[v]]
+                isom_trans[self_vertices[v]] = other_vertices[isom[v]]
+            if edge_labels:
+                isom_trans_new = {}
+                for t,v in isom_trans:
+                    if t == 'x':
+                        isom_trans_new[v] = isom_trans[(t,v)][1]
+                return isom_trans_new
             return True, isom_trans
 
     def canonical_label(self, partition=None, certify=False, verbosity=0, edge_labels=False):

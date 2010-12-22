@@ -22,6 +22,12 @@ AUTHOR:
 
 from sage.structure.element import ModuleElement
 
+# This adds extra maybe-not-necessary checks in the code, but could
+# slow things down.  It can impact what happens in more than just this
+# file.
+DEBUG=True
+
+
 class FGP_Element(ModuleElement):
     """
     An element of a finitely generated module over a PID.
@@ -31,8 +37,6 @@ class FGP_Element(ModuleElement):
     - ``parent`` -- parent module M
 
     - ``x`` -- element of M.V()
-
-    - ``check`` -- (default: True) if True, verify that x in M.V()
 
     EXAMPLES::
 
@@ -53,7 +57,7 @@ class FGP_Element(ModuleElement):
         sage: loads(dumps(Q.0)) == Q.0
         True
     """
-    def __init__(self, parent, x, check=True):
+    def __init__(self, parent, x, check=DEBUG):
         """
         INPUT:
 
@@ -72,10 +76,7 @@ class FGP_Element(ModuleElement):
 
         For full documentation, see :class:`FGP_Element`.
         """
-        if check:
-            if isinstance(x, FGP_Element): x = x.lift()
-            if x.parent() is not parent.V():
-                x = parent.V()(x)
+        if check: assert x in parent.V(), 'The argument x='+str(x)+' is not in the covering module!'
         ModuleElement.__init__(self, parent)
         self._x = x
 
@@ -130,7 +131,7 @@ class FGP_Element(ModuleElement):
             sage: -A1.0 == A1.0           # order 2
             True
         """
-        return self.parent()._element_class()(self.parent(), self._x.__neg__())
+        return self.parent().Element(self.parent(), self._x.__neg__())
 
 
     def _add_(self, other):
@@ -164,7 +165,8 @@ class FGP_Element(ModuleElement):
             sage: W.0 + Q.0 == Q.0
             True
         """
-        return self.parent()._element_class()(self.parent(), self._x + other._x)
+        return self.parent().Element(self.parent(), self._x + other._x)
+
 
     def _sub_(self, other):
         """
@@ -182,10 +184,22 @@ class FGP_Element(ModuleElement):
             sage: x - x
             (0, 0)
         """
-        return self.parent()._element_class()(self.parent(), self._x - other._x)
+        return self.parent().Element(self.parent(), self._x - other._x)
 
-    def _r_action(self, s):
+
+    def _rmul_(self, c):
         """
+        Multiplication by a scalar from the left (``self`` is on the right).
+
+        INPUT:
+
+        - ``c`` -- an element of ``self.parent().base_ring()``.
+
+        OUTPUT:
+
+        The product ``c * self`` as a new instance of a module
+        element.
+
         EXAMPLES::
 
             sage: V = span([[1/2,1,1],[3/2,2,1],[0,0,1]],ZZ); W = V.span([2*V.0+4*V.1, 9*V.0+12*V.1, 4*V.2])
@@ -193,15 +207,44 @@ class FGP_Element(ModuleElement):
             Finitely generated module V/W over Integer Ring with invariants (4, 12)
             sage: x = Q.0; x
             (1, 0)
-            sage: 2*x                            # indirect doctest
+            sage: 2 * x                            # indirect doctest
             (2, 0)
-            sage: 4*x
+            sage: x._rmul_(4)
             (0, 0)
+            sage: V = V.base_extend(QQ); W = V.span([2*V.0+4*V.1])
+            sage: Q = V/W; Q
+            Vector space quotient V/W of dimension 2 over Rational Field where
+            V: Vector space of degree 3 and dimension 3 over Rational Field
+            Basis matrix:
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            W: Vector space of degree 3 and dimension 1 over Rational Field
+            Basis matrix:
+            [1 2 0]
+            sage: x = Q.0; x
+            (1, 0)
+            sage: (1/2) * x                            # indirect doctest
+            (1/2, 0)
+            sage: x._rmul_(1/4)
+            (1/4, 0)
         """
-        return self.parent()._element_class()(self.parent(), self._x._rmul_(s))
+        # print "_rmul_"
+        return self.parent().Element(self.parent(), self._x._rmul_(c))
 
-    def _l_action(self, s):
+    def _lmul_(self, s):
         """
+        Multiplication by a scalar from the right (``self`` is on the left).
+
+        INPUT:
+
+        - ``c`` -- an element of ``self.parent().base_ring()``.
+
+        OUTPUT:
+
+        The product ``self * c`` as a new instance of a module
+        element.
+
         EXAMPLES::
 
             sage: V = span([[1/2,1,1],[3/2,2,1],[0,0,1]],ZZ); W = V.span([2*V.0+4*V.1, 9*V.0+12*V.1, 4*V.2])
@@ -209,15 +252,35 @@ class FGP_Element(ModuleElement):
             Finitely generated module V/W over Integer Ring with invariants (4, 12)
             sage: x = Q.0; x
             (1, 0)
-            sage: x*2                          # indirect doctest
+            sage: x * 2                          # indirect doctest
             (2, 0)
-            sage: x*4
+            sage: x._lmul_(4)
             (0, 0)
+            sage: V = V.base_extend(QQ); W = V.span([2*V.0+4*V.1])
+            sage: Q = V/W; Q
+            Vector space quotient V/W of dimension 2 over Rational Field where
+            V: Vector space of degree 3 and dimension 3 over Rational Field
+            Basis matrix:
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            W: Vector space of degree 3 and dimension 1 over Rational Field
+            Basis matrix:
+            [1 2 0]
+            sage: x = Q.0; x
+            (1, 0)
+            sage: x * (1/2)                            # indirect doctest
+            (1/2, 0)
+            sage: x._lmul_(1/4)
+            (1/4, 0)
         """
-        return self.parent()._element_class()(self.parent(), self._x._lmul_(s))
+        # print '_lmul_'
+        return self.parent().Element(self.parent(), self._x._lmul_(s))
+
 
     def _repr_(self):
         """
+
         EXAMPLES::
 
             sage: V = span([[1/2,1,1],[3/2,2,1],[0,0,1]],ZZ); W = V.span([2*V.0+4*V.1, 9*V.0+12*V.1, 4*V.2])
@@ -226,6 +289,7 @@ class FGP_Element(ModuleElement):
             '(0, 1)'
         """
         return self.vector().__repr__()
+
 
     def __getitem__(self, *args):
         """

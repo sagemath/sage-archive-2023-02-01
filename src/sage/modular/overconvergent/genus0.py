@@ -182,7 +182,7 @@ from sage.modular.arithgroup.all import (Gamma1, is_Gamma0, is_Gamma1)
 from sage.modular.hecke.all import HeckeModuleElement, HeckeModule_generic
 from sage.modular.modform.element import ModularFormElement
 from sage.modules.all       import vector
-from sage.modules.module    import Module
+from sage.modules.module    import Module_old
 from sage.structure.element import Vector, ModuleElement
 from sage.plot.plot         import plot
 from sage.rings.all         import (O, Infinity, ZZ, QQ, pAdicField, PolynomialRing, PowerSeriesRing, is_pAdicField)
@@ -259,7 +259,7 @@ def OverconvergentModularForms(prime, weight, radius, base_ring=QQ, prec = 20, c
 # Main class definition #
 #########################
 
-class OverconvergentModularFormsSpace(Module):
+class OverconvergentModularFormsSpace(Module_old):
     r"""
     A space of overconvergent modular forms of level `\Gamma_0(p)`,
     where `p` is a prime such that `X_0(p)` has genus 0.
@@ -310,7 +310,7 @@ class OverconvergentModularFormsSpace(Module):
         if not self._wtchar.is_even():
             raise ValueError, "Weight-character must be even"
 
-        Module.__init__(self, base_ring)
+        Module_old.__init__(self, base_ring)
 
         self._prec = prec
 

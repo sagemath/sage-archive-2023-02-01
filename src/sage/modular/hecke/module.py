@@ -51,7 +51,7 @@ def is_HeckeModule(x):
     """
     return isinstance(x, HeckeModule_generic)
 
-class HeckeModule_generic(sage.modules.module.Module):
+class HeckeModule_generic(sage.modules.module.Module_old):
     r"""
     A very general base class for Hecke modules.
 

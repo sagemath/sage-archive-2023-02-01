@@ -139,6 +139,60 @@ def cover_and_relations_from_invariants(invs):
     B = A.span([A.gen(i) * invs[i] for i in xrange(n)])
     return (A, B)
 
+
+
+class AdditiveAbelianGroupElement(FGP_Element):
+    """
+    An element of a :class:`AdditiveAbelianGroup_class`.
+    """
+
+    def _hermite_lift(self):
+        r"""
+        This gives a certain canonical lifting of elements of this group
+        (represented as a quotient `G/H` of free abelian groups) to `G`, using
+        the Hermite normal form of the matrix of relations.
+
+        Mainly used by the ``_repr_`` method.
+
+        EXAMPLES::
+
+            sage: A = AdditiveAbelianGroup([2, 3])
+            sage: v = 3000001 * A.0
+            sage: v.lift()
+            (3000001, 0)
+            sage: v._hermite_lift()
+            (1, 0)
+        """
+        y = self.lift()
+        H = self.parent().W().basis_matrix()
+
+        for i in xrange(H.nrows()):
+            if i in H.pivot_rows():
+                j = H.pivots()[i]
+                N = H[i,j]
+                a = (y[j] - (y[j] % N)) // N
+                y = y - a*H.row(i)
+        return y
+
+    def _repr_(self):
+        r"""
+        String representation. This uses a canonical lifting of elements of
+        this group (represented as a quotient `G/H` of free abelian groups) to
+        `G`, using the Hermite normal form of the matrix of relations.
+
+        EXAMPLE::
+
+            sage: G = AdditiveAbelianGroup([2,3])
+            sage: repr(G.gen(0)) # indirect doctest
+            '(1, 0)'
+            sage: a = 13*G.gen(0); repr(a) # indirect doctest
+            '(1, 0)'
+            sage: a._x
+            (13, 0)
+        """
+        return repr(self._hermite_lift())
+
+
 # Note: It's important that the class inherits from FGP_Module_class first,
 # since we want to inherit things like __hash__ from there rather than the
 # hyper-generic implementation for abstract abelian groups.
@@ -146,7 +200,16 @@ def cover_and_relations_from_invariants(invs):
 class AdditiveAbelianGroup_class(FGP_Module_class, AbelianGroup):
     r"""
     An additive abelian group, implemented using the `\ZZ`-module machinery.
+
+    INPUT:
+
+    - ``cover`` -- the covering group as `\ZZ`-module.
+
+    - ``relations`` -- the relations as submodule of ``cover``.
     """
+
+    # The element class must be overridden in derived classes
+    Element = AdditiveAbelianGroupElement
 
     def __init__(self, cover, relations):
         r"""
@@ -221,27 +284,28 @@ class AdditiveAbelianGroup_class(FGP_Module_class, AbelianGroup):
             else: s += "Z/%s + " % j
         return s[:-3] # drop the final " + "
 
-    def _subquotient_class(self):
+    def _module_constructor(self, cover, relations):
         r"""
-        Return the class of subquotients of this group.
+        Construct quotients of groups.
+
+        INPUT:
+
+        - ``cover`` -- the covering group as `\ZZ`-module.
+
+        - ``relations`` -- the relations as submodule of ``cover``.
 
         EXAMPLE::
 
-            sage: AdditiveAbelianGroup([0])._subquotient_class()
-            <class 'sage.groups.additive_abelian.additive_abelian_group.AdditiveAbelianGroup_class'>
+            sage: G = AdditiveAbelianGroup([0, 4, 2]); G
+            Additive abelian group isomorphic to Z/2 + Z/4 + Z
+            sage: H = G.submodule([G.1]); H
+            Additive abelian group isomorphic to Z/4
+            sage: G/H    # indirect test
+            Additive abelian group isomorphic to Z/2 + Z
+            sage: G._module_constructor(G.cover(),H.cover()+G.relations())
+            Additive abelian group isomorphic to Z/2 + Z
         """
-        return AdditiveAbelianGroup_class
-
-    def _element_class(self):
-        r"""
-        Return the class of elements of this group.
-
-        EXAMPLE::
-
-            sage: AdditiveAbelianGroup([0])._element_class()
-            <class 'sage.groups.additive_abelian.additive_abelian_group.AdditiveAbelianGroupElement'>
-        """
-        return AdditiveAbelianGroupElement
+        return AdditiveAbelianGroup_class(cover, relations)
 
     def order(self):
         r"""
@@ -321,6 +385,7 @@ class AdditiveAbelianGroup_class(FGP_Module_class, AbelianGroup):
         # while zero invariants is characteristic of the trivial group
         return len(self.invariants()) < 2
 
+
 class AdditiveAbelianGroup_fixed_gens(AdditiveAbelianGroup_class):
     r"""
     A variant which fixes a set of generators, which need not be in Smith form
@@ -379,50 +444,3 @@ class AdditiveAbelianGroup_fixed_gens(AdditiveAbelianGroup_class):
         s = 'Image(IsomorphismPermGroup(AbelianGroup(%s)))'%(list(self.invariants()),)
         return PermutationGroup(gap_group=s)
 
-class AdditiveAbelianGroupElement(FGP_Element):
-
-    def _hermite_lift(self):
-        r"""
-        This gives a certain canonical lifting of elements of this group
-        (represented as a quotient `G/H` of free abelian groups) to `G`, using
-        the Hermite normal form of the matrix of relations.
-
-        Mainly used by the ``_repr_`` method.
-
-        EXAMPLES::
-
-            sage: A = AdditiveAbelianGroup([2, 3])
-            sage: v = 3000001 * A.0
-            sage: v.lift()
-            (3000001, 0)
-            sage: v._hermite_lift()
-            (1, 0)
-        """
-        y = self.lift()
-        H = self.parent().W().basis_matrix()
-
-        for i in xrange(H.nrows()):
-            if i in H.pivot_rows():
-                j = H.pivots()[i]
-                N = H[i,j]
-                a = (y[j] - (y[j] % N)) // N
-                y = y - a*H.row(i)
-        return y
-
-    def _repr_(self):
-        r"""
-        String representation. This uses a canonical lifting of elements of
-        this group (represented as a quotient `G/H` of free abelian groups) to
-        `G`, using the Hermite normal form of the matrix of relations.
-
-        EXAMPLE::
-
-            sage: G = AdditiveAbelianGroup([2,3])
-            sage: repr(G.gen(0)) # indirect doctest
-            '(1, 0)'
-            sage: a = 13*G.gen(0); repr(a) # indirect doctest
-            '(1, 0)'
-            sage: a._x
-            (13, 0)
-        """
-        return repr(self._hermite_lift())

@@ -117,7 +117,7 @@ class EllipticCurveTorsionSubgroup(groups.AdditiveAbelianGroupWrapper):
         sage: T = EK.torsion_subgroup(); T
         Torsion Subgroup isomorphic to Z/5 associated to the Elliptic Curve defined by y^2 + y = x^3 + (-1)*x^2 + (-10)*x + (-20) over Number Field in i with defining polynomial x^2 + 1
         sage: type(T)
-        <class 'sage.schemes.elliptic_curves.ell_torsion.EllipticCurveTorsionSubgroup'>
+        <class 'sage.schemes.elliptic_curves.ell_torsion.EllipticCurveTorsionSubgroup_with_category'>
 
 
     AUTHORS:
@@ -155,7 +155,7 @@ class EllipticCurveTorsionSubgroup(groups.AdditiveAbelianGroupWrapper):
             sage: T = EK.torsion_subgroup(); T
             Torsion Subgroup isomorphic to Z/5 associated to the Elliptic Curve defined by y^2 + y = x^3 + (-1)*x^2 + (-10)*x + (-20) over Number Field in i with defining polynomial x^2 + 1
             sage: type(T)
-            <class 'sage.schemes.elliptic_curves.ell_torsion.EllipticCurveTorsionSubgroup'>
+            <class 'sage.schemes.elliptic_curves.ell_torsion.EllipticCurveTorsionSubgroup_with_category'>
 
             sage: T == loads(dumps(T))
             True

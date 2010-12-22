@@ -21,8 +21,8 @@ AUTHOR:
 ####################################################################################
 
 from sage.categories.all import Morphism, is_Morphism
-
 import fgp_module
+
 
 class FGP_Morphism(Morphism):
     """
@@ -318,7 +318,7 @@ class FGP_Morphism(Morphism):
         V = self._phi.inverse_image(self.codomain().W())
         D = self.domain()
         V = D.W() + V
-        return D._subquotient_class()(V, D.W(), check=fgp_module.DEBUG)
+        return D._module_constructor(V, D.W(), check=fgp_module.DEBUG)
 
     def inverse_image(self, A):
         """
@@ -359,7 +359,7 @@ class FGP_Morphism(Morphism):
         V = self._phi.inverse_image(A.V())
         D = self.domain()
         V = D.W() + V
-        return D._subquotient_class()(V, D.W(), check=fgp_module.DEBUG)
+        return D._module_constructor(V, D.W(), check=fgp_module.DEBUG)
 
     def image(self):
         """
@@ -377,7 +377,7 @@ class FGP_Morphism(Morphism):
         """
         V = self._phi.image() + self.codomain().W()
         W = V.intersection(self.codomain().W())
-        return self.codomain()._subquotient_class()(V, W, check=fgp_module.DEBUG)
+        return self.codomain()._module_constructor(V, W, check=fgp_module.DEBUG)
 
     def lift(self, x):
         """

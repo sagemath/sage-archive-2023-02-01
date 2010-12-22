@@ -523,7 +523,7 @@ def is_FreeModule(M):
     """
     return isinstance(M, FreeModule_generic)
 
-class FreeModule_generic(module.Module):
+class FreeModule_generic(module.Module_old):
     """
     Base class for all free modules.
     """

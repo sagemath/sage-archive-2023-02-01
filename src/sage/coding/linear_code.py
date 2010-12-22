@@ -652,7 +652,7 @@ def self_orthogonal_binary_codes(n, k, b=2, parent=None, BC=None, equal=False,
 
 ############################ linear codes python class ########################
 
-class LinearCode(module.Module):
+class LinearCode(module.Module_old):
     r"""
     A class for linear codes over a finite field or finite ring. Each instance
     is a linear code determined by a generator matrix `G` (i.e., a

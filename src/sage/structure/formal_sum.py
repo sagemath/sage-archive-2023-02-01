@@ -68,7 +68,7 @@ import sage.misc.misc
 import operator
 import sage.misc.latex
 
-from sage.modules.module import Module
+from sage.modules.module import Module_old as Module
 from sage.structure.element import ModuleElement
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer

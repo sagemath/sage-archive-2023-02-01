@@ -93,7 +93,7 @@ TESTS::
 #                  http://www.gnu.org/licenses/                           #
 ###########################################################################
 
-from sage.modules.module      import Module
+from sage.modules.module      import Module_old
 from sage.modules.free_module import is_FreeModule
 from sage.structure.element   import ModuleElement
 from sage.structure.sequence  import Sequence
@@ -102,7 +102,7 @@ from sage.misc.misc           import prod
 
 import abvar as abelian_variety
 
-class FiniteSubgroup(Module):
+class FiniteSubgroup(Module_old):
     def __init__(self, abvar, field_of_definition=QQ):
         """
         A finite subgroup of a modular abelian variety.
@@ -134,7 +134,7 @@ class FiniteSubgroup(Module):
             raise TypeError, "field_of_definition must be a field"
         if not abelian_variety.is_ModularAbelianVariety(abvar):
             raise TypeError, "abvar must be a modular abelian variety"
-        Module.__init__(self, ZZ)
+        Module_old.__init__(self, ZZ)
         self.__abvar = abvar
         self.__field_of_definition = field_of_definition
 

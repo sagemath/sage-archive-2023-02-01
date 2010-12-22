@@ -91,7 +91,63 @@ class UnwrappingMorphism(Morphism):
         """
         return self.codomain()(x.element())
 
+
+class AdditiveAbelianGroupWrapperElement(addgp.AdditiveAbelianGroupElement):
+    """
+    An element of an :class:`AdditiveAbelianGroupWrapper`.
+    """
+
+    def __init__(self, parent, vector, element=None, check=False):
+        r"""
+        EXAMPLE:
+
+            sage: from sage.groups.additive_abelian.additive_abelian_wrapper import AdditiveAbelianGroupWrapper
+            sage: G = AdditiveAbelianGroupWrapper(QQbar, [sqrt(QQbar(2)), sqrt(QQbar(3))], [0, 0])
+            sage: G.0 # indirect doctest
+            1.414213562373095?
+        """
+        addgp.AdditiveAbelianGroupElement.__init__(self, parent, vector, check)
+        if element is not None:
+            element = self.parent().universe()(element)
+        self._element = element
+
+    def element(self):
+        r"""
+        Return the underlying object that this element wraps.
+
+        EXAMPLE::
+
+            sage: T = EllipticCurve('65a').torsion_subgroup().gen(0)
+            sage: T; type(T)
+            (0 : 0 : 1)
+            <class 'sage.groups.additive_abelian.additive_abelian_wrapper.AdditiveAbelianGroupWrapperElement'>
+            sage: T.element(); type(T.element())
+            (0 : 0 : 1)
+            <class 'sage.schemes.elliptic_curves.ell_point.EllipticCurvePoint_number_field'>
+        """
+        if self._element is None:
+            self._element = self.parent()._discrete_exp(self._hermite_lift())
+        return self._element
+
+    def _repr_(self):
+        r"""
+        String representation of self.
+
+        EXAMPLE::
+
+            sage: T = EllipticCurve('65a').torsion_subgroup().gen(0)
+            sage: repr(T) # indirect doctest
+            '(0 : 0 : 1)'
+        """
+        return repr(self.element())
+
+
 class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
+    """
+    The parent of :class:`AdditiveAbelianGroupWrapperElement`
+    """
+
+    Element = AdditiveAbelianGroupWrapperElement
 
     def __init__(self, universe, gens, invariants):
         r"""
@@ -102,16 +158,11 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
         """
         self._universe = universe
         self._gen_elements = tuple(universe(x) for x in gens)
+        self._gen_orders = invariants
         cover,rels = addgp.cover_and_relations_from_invariants(invariants)
         addgp.AdditiveAbelianGroup_fixed_gens.__init__(self, cover, rels, cover.gens())
-        self._gen_orders = invariants
-        try:
-            self.register_embedding(UnwrappingMorphism(self))
-        except AssertionError:
-            # coercion already exists -- this can happen, and we can't rely on
-            # has_coerce_map_from at this stage in the game (try it, it doesn't
-            # work!). So we just catch the AssertionError and ignore it.
-            pass
+        self._unset_coercions_used()
+        self.register_embedding(UnwrappingMorphism(self))
 
     def universe(self):
         r"""
@@ -153,16 +204,6 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
             'Additive abelian group isomorphic to Z + Z embedded in Algebraic Field'
         """
         return addgp.AdditiveAbelianGroup_fixed_gens._repr_(self) + " embedded in " + self.universe()._repr_()
-
-    def _element_class(self):
-        r"""
-        EXAMPLE::
-
-            sage: G = AdditiveAbelianGroupWrapper(QQbar, [sqrt(QQbar(2)), sqrt(QQbar(3))], [0, 0])
-            sage: G._element_class()
-            <class 'sage.groups.additive_abelian.additive_abelian_wrapper.AdditiveAbelianGroupWrapperElement'>
-        """
-        return AdditiveAbelianGroupWrapperElement
 
     def _discrete_exp(self, v):
         r"""
@@ -212,7 +253,7 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
         if len(u) > 1: raise NotImplementedError
         return u[0].vector()
 
-    def __call__(self, x, check=False):
+    def _element_constructor_(self, x, check=False):
         r"""
         Create an element from x. This may be either an element of self, an element of the
         ambient group, or an iterable (in which case the result is the corresponding
@@ -229,54 +270,7 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
             (6, 2)
         """
         if hasattr(x,"parent"):
-            if x.parent() is self:
-                return x
-            elif x.parent() is self.universe():
+            if x.parent() is self.universe():
                 return AdditiveAbelianGroupWrapperElement(self, self._discrete_log(x), element = x)
-        return addgp.AdditiveAbelianGroup_fixed_gens.__call__(self, x, check)
+        return addgp.AdditiveAbelianGroup_fixed_gens._element_constructor_(self, x, check)
 
-class AdditiveAbelianGroupWrapperElement(addgp.AdditiveAbelianGroupElement):
-
-    def __init__(self, parent, vector, element=None, check=False):
-        r"""
-        EXAMPLE:
-
-            sage: from sage.groups.additive_abelian.additive_abelian_wrapper import AdditiveAbelianGroupWrapper
-            sage: G = AdditiveAbelianGroupWrapper(QQbar, [sqrt(QQbar(2)), sqrt(QQbar(3))], [0, 0])
-            sage: G.0 # indirect doctest
-            1.414213562373095?
-        """
-        addgp.AdditiveAbelianGroupElement.__init__(self, parent, vector, check)
-        if element is not None:
-            element = self.parent().universe()(element)
-        self._element = element
-
-    def element(self):
-        r"""
-        Return the underlying object that this element wraps.
-
-        EXAMPLE::
-
-            sage: T = EllipticCurve('65a').torsion_subgroup().gen(0)
-            sage: T; type(T)
-            (0 : 0 : 1)
-            <class 'sage.groups.additive_abelian.additive_abelian_wrapper.AdditiveAbelianGroupWrapperElement'>
-            sage: T.element(); type(T.element())
-            (0 : 0 : 1)
-            <class 'sage.schemes.elliptic_curves.ell_point.EllipticCurvePoint_number_field'>
-        """
-        if self._element is None:
-            self._element = self.parent()._discrete_exp(self._hermite_lift())
-        return self._element
-
-    def _repr_(self):
-        r"""
-        String representation of self.
-
-        EXAMPLE::
-
-            sage: T = EllipticCurve('65a').torsion_subgroup().gen(0)
-            sage: repr(T) # indirect doctest
-            '(0 : 0 : 1)'
-        """
-        return repr(self.element())

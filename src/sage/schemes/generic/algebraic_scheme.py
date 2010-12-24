@@ -1,8 +1,101 @@
-"""
+r"""
 Algebraic schemes
 
-An algebraic scheme must be defined by sets of equations in affine
-or projective spaces, perhaps by means of gluing relations.
+An algebraic scheme is defined by sets of polynomial equations in
+suitable affine or projective coordinates. Right now, possible ambient
+spaces are
+
+  * Affine spaces (:class:`AffineSpace
+    <sage.schemes.generic.affine_space.AffineSpace_generic>`),
+
+  * Projective spaces (:class:`ProjectiveSpace
+    <sage.schemes.generic.projective_space.ProjectiveSpace_ring>`), or
+
+  * Toric varieties (:class:`ToricVariety
+    <sage.schemes.generic.toric_variety.ToricVariety_field>`). Note that, while
+    projective spaces are of course toric varieties themselves, they
+    are implemented differently in Sage.
+
+In the future other ambient spaces, perhaps by means of gluing
+relations, may be intoduced.
+
+Generally, polynomial equations `p_0, p_1, \dots, p_n` define an ideal
+`I=\left<p_0,\dots,p_n\right>`. In the projective and toric case, the
+polynomials (and, therefore, the ideal) must be homogeneous. The
+associated subscheme `V(I)` of the ambient space is, roughly speaking,
+where all polynomials vanish simultaneously.
+
+.. NOTE::
+
+    Do not construct algebraic scheme objects directly, but use the
+    ``.subscheme()`` method of the ambient space. See below for
+    examples.
+
+EXAMPLES:
+
+We first construct the ambient space, here the affine space `\QQ^2`::
+
+    sage: A2 = AffineSpace(2, QQ, 'x, y')
+    sage: A2.coordinate_ring().inject_variables()
+    Defining x, y
+
+Now we can write polynomial equations in the variables `x`, `y`. For
+example, one equation cuts out a curve (a one-dimensional subscheme)::
+
+    sage: V = A2.subscheme([x^2+y^2-1]); V
+    Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
+      x^2 + y^2 - 1
+    sage: V.dimension()
+    1
+
+Here is a more complicated example in projective space::
+
+    sage: P3 = ProjectiveSpace(3, QQ, 'x')
+    sage: P3.inject_variables()
+    Defining x0, x1, x2, x3
+    sage: Q = matrix([[x0, x1, x2],[x1, x2, x3]]).minors(2); Q
+    [-x1^2 + x0*x2, -x1*x2 + x0*x3, -x2^2 + x1*x3]
+    sage: twisted_cubic = P3.subscheme(Q)
+    sage: twisted_cubic
+    Closed subscheme of Projective Space of dimension 3 over Rational Field defined by:
+      -x1^2 + x0*x2,
+      -x1*x2 + x0*x3,
+      -x2^2 + x1*x3
+    sage: twisted_cubic.dimension()
+    1
+
+Note that there are 3 equations in the 3-dimensional ambient space,
+yet the subscheme is 1-dimensional. One can show that it is not
+possible to eliminate any of the equations, that is, the twisted cubic
+is **not** a complete intersection of two polynomial equations.
+
+Let us look at one affine patch, for example the one where `x_0=1` ::
+
+    sage: patch = twisted_cubic.affine_patch(0)
+    sage: patch
+    Closed subscheme of Affine Space of dimension 3 over Rational Field defined by:
+      -x0^2 + x1,
+      -x0*x1 + x2,
+      -x1^2 + x0*x2
+    sage: patch.projective_embedding()
+    Scheme morphism:
+      From: Closed subscheme of Affine Space of dimension 3 over Rational Field defined by:
+      -x0^2 + x1,
+      -x0*x1 + x2,
+      -x1^2 + x0*x2
+      To:   Closed subscheme of Projective Space of dimension 3 over Rational Field defined by:
+      -x1^2 + x0*x2,
+      -x1*x2 + x0*x3,
+      -x2^2 + x1*x3
+      Defn: Defined on coordinates by sending (x0, x1, x2) to
+            (1 : x0bar : x1bar : x2bar)
+
+
+AUTHORS:
+
+- David Kohel (2005)
+- William Stein (2005)
+- Andrey Novoseltsev (2010): Toric varieties added
 """
 
 #*******************************************************************************
@@ -15,6 +108,16 @@ or projective spaces, perhaps by means of gluing relations.
 #
 #                  http://www.gnu.org/licenses/
 #*******************************************************************************
+
+#*** A quick overview over the class hierarchy:
+# class AlgebraicScheme(scheme.Scheme):
+#    class AlgebraicScheme_subscheme(AlgebraicScheme):
+#       class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
+#       class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
+#       class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
+#    class AlgebraicScheme_quasi(AlgebraicScheme):
+
+
 
 from sage.rings.all import (
     is_Ideal,
@@ -29,20 +132,41 @@ from sage.structure.all import Sequence
 import ambient_space
 import affine_space
 import projective_space
+import toric_variety
 import morphism
 import scheme
 
 
+
+#*******************************************************************
 def is_AlgebraicScheme(x):
     """
-    Return True if `x` is an algebraic scheme, i.e., a
+    Test whether ``x`` is an algebraic scheme.
+
+    INPUT:
+
+    - ``x`` -- anything.
+
+    OUTPUT:
+
+    Boolean. Whether ``x`` is an an algebraic scheme, that is, a
     subscheme of an ambient space over a ring defined by polynomial
     equations.
 
-    EXAMPLES: Affine space is itself not an algebraic scheme, though
-    the closed subscheme defined by no equations is.
+    EXAMPLES::
 
-    ::
+        sage: A2 = AffineSpace(2, QQ, 'x, y')
+        sage: A2.coordinate_ring().inject_variables()
+        Defining x, y
+        sage: V = A2.subscheme([x^2+y^2]); V
+        Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
+          x^2 + y^2
+        sage: from sage.schemes.generic.algebraic_scheme import is_AlgebraicScheme
+        sage: is_AlgebraicScheme(V)
+        True
+
+    Affine space is itself not an algebraic scheme, though the closed
+    subscheme defined by no equations is::
 
         sage: from sage.schemes.generic.algebraic_scheme import is_AlgebraicScheme
         sage: is_AlgebraicScheme(AffineSpace(10, QQ))
@@ -53,9 +177,7 @@ def is_AlgebraicScheme(x):
         sage: is_AlgebraicScheme(V)
         True
 
-    We create a more complicated closed subscheme.
-
-    ::
+    We create a more complicated closed subscheme::
 
         sage: A, x = AffineSpace(10, QQ).objgens()
         sage: X = A.subscheme([sum(x)]); X
@@ -74,9 +196,16 @@ def is_AlgebraicScheme(x):
     """
     return isinstance(x, AlgebraicScheme)
 
+
+
+#*******************************************************************
 class AlgebraicScheme(scheme.Scheme):
     """
     An algebraic scheme presented as a subscheme in an ambient space.
+
+    This is the base class for all algebraic schemes, that is, schemes
+    defined by equations in affine, projective, or toric ambient
+    space.
     """
     def __init__(self, A):
         """
@@ -208,6 +337,8 @@ class AlgebraicScheme(scheme.Scheme):
         return self.__A._point_class(*args, **kwds)
 
 
+
+#*******************************************************************
 class AlgebraicScheme_quasi(AlgebraicScheme):
     """
     The quasi-affine or quasi-projective scheme `X - Y`, where `X` and `Y`
@@ -358,7 +489,9 @@ class AlgebraicScheme_quasi(AlgebraicScheme):
             sage: U._check_satisfies_equations([1, 1, 0])
             Traceback (most recent call last):
             ...
-            TypeError: Coordinates [1, 1, 0] do not define a point on Quasi-projective subscheme X - Y of Projective Space of dimension 2 over Integer Ring, where X is defined by:
+            TypeError: Coordinates [1, 1, 0] do not define a point on
+            Quasi-projective subscheme X - Y of Projective Space of dimension 2
+            over Integer Ring, where X is defined by:
               (no polynomials)
             and Y is defined by:
               x - y
@@ -378,14 +511,18 @@ class AlgebraicScheme_quasi(AlgebraicScheme):
             sage: U._check_satisfies_equations([1, 1])
             Traceback (most recent call last):
             ...
-            TypeError: Coordinates [1, 1] do not define a point on Quasi-affine subscheme X - Y of Affine Space of dimension 2 over Finite Field of size 7, where X is defined by:
+            TypeError: Coordinates [1, 1] do not define a point on Quasi-affine
+            subscheme X - Y of Affine Space of dimension 2 over Finite
+            Field of size 7, where X is defined by:
               x^2 - y
             and Y is defined by:
               x - y
             sage: U._check_satisfies_equations([1, 0])
             Traceback (most recent call last):
             ...
-            TypeError: Coordinates [1, 0] do not define a point on Quasi-affine subscheme X - Y of Affine Space of dimension 2 over Finite Field of size 7, where X is defined by:
+            TypeError: Coordinates [1, 0] do not define a point on Quasi-affine
+            subscheme X - Y of Affine Space of dimension 2 over Finite
+            Field of size 7, where X is defined by:
               x^2 - y
             and Y is defined by:
               x - y
@@ -442,6 +579,8 @@ class AlgebraicScheme_quasi(AlgebraicScheme):
         return pts
 
 
+
+#*******************************************************************
 class AlgebraicScheme_subscheme(AlgebraicScheme):
     """
     An algebraic scheme presented as a closed subscheme is defined by
@@ -524,12 +663,14 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             sage: S._check_satisfies_equations([1, 0, 1])
             Traceback (most recent call last):
             ...
-            TypeError: Coordinates [1, 0, 1] do not define a point on Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
+            TypeError: Coordinates [1, 0, 1] do not define a point on Closed subscheme
+            of Projective Space of dimension 2 over Rational Field defined by:
               x^2 - y*z
             sage: S._check_satisfies_equations([0, 0, 0])
             Traceback (most recent call last):
             ...
-            TypeError: Coordinates [0, 0, 0] do not define a point on Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
+            TypeError: Coordinates [0, 0, 0] do not define a point on Closed subscheme
+            of Projective Space of dimension 2 over Rational Field defined by:
               x^2 - y*z
         """
         for f in self.defining_polynomials():
@@ -726,7 +867,6 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
               y,
               x
             ]
-
         """
         try:
             return self.__irreducible_components
@@ -982,7 +1122,13 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         except TypeError:
             raise TypeError, "Unable to enumerate points over %s."%F
 
+
+
+#*******************************************************************
+# Affine varieties
+#*******************************************************************
 class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
+
     def _point_morphism_class(self, *args, **kwds):
         return morphism.SchemeMorphism_on_points_affine_space(*args, **kwds)
 
@@ -1086,7 +1232,12 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
         return phi
 
 
+
+#*******************************************************************
+# Projective varieties
+#*******************************************************************
 class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
+
     def _point_morphism_class(self, *args, **kwds):
         return morphism.SchemeMorphism_on_points_projective_space(*args, **kwds)
 
@@ -1135,12 +1286,11 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
 
         INPUT:
 
+        - ``i`` -- integer between 0 and dimension of self, inclusive.
 
-        -  ``i`` - integer between 0 and dimension of self,
-           inclusive.
+        OUTPUT:
 
-
-        OUTPUT: an affine scheme with fixed projective_embedding map.
+        An affine scheme with fixed :meth:`projective_embedding` map.
 
         EXAMPLES::
 
@@ -1181,4 +1331,249 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         self.__affine_patches[i] = U
         return U
 
+
+#*******************************************************************
+# Toric varieties
+#*******************************************************************
+class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
+    r"""
+    Construct an algebraic subscheme of a toric variety.
+
+    .. WARNING::
+
+        You should not create objects of this class directly. The preferred
+        method to construct such subschemes is to use
+        :meth:`~ToricVariety_field.subscheme` method of
+        :class:`toric varieties <ToricVariety_field>`.
+
+    INPUT:
+
+    - ``toric_variety`` -- ambient :class:`toric variety
+      <ToricVariety_field>`;
+
+    - ``polynomials`` -- single polynomial, list, or ideal of defining
+      polynomials in the coordinate ring of ``toric_variety``.
+
+    OUTPUT:
+
+    - :class:`algebraic subscheme of a toric variety
+      <AlgebraicScheme_subscheme_toric>`.
+
+    TESTS::
+
+        sage: fan = FaceFan(lattice_polytope.octahedron(2))
+        sage: P1xP1 = ToricVariety(fan, "x s y t")
+        sage: P1xP1.inject_variables()
+        Defining x, s, y, t
+        sage: import sage.schemes.generic.algebraic_scheme as SCM
+        sage: X = SCM.AlgebraicScheme_subscheme_toric(
+        ...         P1xP1, [x*s + y*t, x^3+y^3])
+        sage: X
+        Closed subscheme of 2-d toric variety
+        covered by 4 affine patches defined by:
+          x*s + y*t,
+          x^3 + y^3
+
+    A better way to construct the same scheme as above::
+
+        sage: P1xP1.subscheme([x*s + y*t, x^3+y^3])
+        Closed subscheme of 2-d toric variety
+        covered by 4 affine patches defined by:
+          x*s + y*t,
+          x^3 + y^3
+    """
+
+    def __init__(self, toric_variety, polynomials):
+        r"""
+        See :class:`AlgebraicScheme_subscheme_toric` for documentation.
+
+        TESTS::
+
+            sage: fan = FaceFan(lattice_polytope.octahedron(2))
+            sage: P1xP1 = ToricVariety(fan, "x s y t")
+            sage: P1xP1.inject_variables()
+            Defining x, s, y, t
+            sage: import sage.schemes.generic.algebraic_scheme as SCM
+            sage: X = SCM.AlgebraicScheme_subscheme_toric(
+            ...         P1xP1, [x*s + y*t, x^3+y^3])
+            sage: X
+            Closed subscheme of 2-d toric variety
+            covered by 4 affine patches defined by:
+              x*s + y*t,
+              x^3 + y^3
+        """
+        # Just to make sure that keyword arguments will be passed correctly
+        super(AlgebraicScheme_subscheme_toric, self).__init__(toric_variety,
+                                                              polynomials)
+
+    def _point_morphism_class(self, *args, **kwds):
+        r"""
+        Construct a morphism determined by action on points of ``self``.
+
+        INPUT:
+
+        - same as for
+          :class:`~sage.schemes.generic.morphism.SchemeMorphism_on_points_toric_variety`.
+
+        OUPUT:
+
+        - :class:`~sage.schemes.generic.morphism.SchemeMorphism_on_points_toric_variety`.
+
+        TESTS::
+
+            sage: fan = FaceFan(lattice_polytope.octahedron(2))
+            sage: P1xP1 = ToricVariety(fan)
+            sage: P1xP1.inject_variables()
+            Defining z0, z1, z2, z3
+            sage: P1 = P1xP1.subscheme(z0-z2)
+            sage: H = P1.Hom(P1xP1)
+            sage: P1._point_morphism_class(H, [z0,z1,z0,z3])
+            Scheme morphism:
+              From: Closed subscheme of 2-d toric variety
+              covered by 4 affine patches defined by:
+              z0 - z2
+              To:   2-d toric variety covered by 4 affine patches
+              Defn: Defined on coordinates by sending [z0 : z1 : z2 : z3] to
+                    [z2bar : z1bar : z2bar : z3bar]
+        """
+        return morphism.SchemeMorphism_on_points_toric_variety(*args, **kwds)
+
+    def affine_patch(self, i):
+        r"""
+        Return the ``i``-th affine patch of ``self``.
+
+        INPUT:
+
+        - ``i`` -- integer, index of a generating cone of the fan of the
+          ambient space of ``self``.
+
+        OUTPUT:
+
+        - subscheme of an affine :class:`toric variety
+          <sage.schemes.generic.toric_variety.ToricVariety_field>`
+          corresponding to the pull-back of ``self`` by the embedding
+          morphism of the ``i``-th :meth:`affine patch of the ambient
+          space
+          <sage.schemes.generic.toric_variety.ToricVariety_field.affine_patch>`
+          of ``self``.
+
+        The result is cached, so the ``i``-th patch is always the same object
+        in memory.
+
+        EXAMPLES::
+
+            sage: fan = FaceFan(lattice_polytope.octahedron(2))
+            sage: P1xP1 = ToricVariety(fan, "x s y t")
+            sage: patch1 = P1xP1.affine_patch(1)
+            sage: patch1.embedding_morphism()
+            Scheme morphism:
+              From: 2-d affine toric variety
+              To:   2-d toric variety covered by 4 affine patches
+              Defn: Defined on coordinates by sending [y : t] to
+                    [1 : 1 : y : t]
+            sage: P1xP1.inject_variables()
+            Defining x, s, y, t
+            sage: P1 = P1xP1.subscheme(x-y)
+            sage: subpatch = P1.affine_patch(1)
+            sage: subpatch
+            Closed subscheme of 2-d affine toric variety defined by:
+              -y + 1
+        """
+        i = int(i)   # implicit type checking
+        try:
+            return self._affine_patches[i]
+        except AttributeError:
+            self._affine_patches = dict()
+        except KeyError:
+            pass
+        ambient_patch = self.ambient_space().affine_patch(i)
+        phi_p = ambient_patch.embedding_morphism().defining_polynomials()
+        patch = ambient_patch.subscheme(
+                            [p(phi_p) for p in self.defining_polynomials()])
+        patch._embedding_morphism = patch.hom(phi_p, self)
+        self._affine_patches[i] = patch
+        return patch
+
+    def dimension(self):
+        """
+        Return the dimension of ``self``.
+
+        .. NOTE::
+
+            Currently the dimension of subschemes of toric varieties can be
+            returned only if it was somehow set before.
+
+        OUTPUT:
+
+        - integer.
+
+        EXAMPLES::
+
+            sage: fan = FaceFan(lattice_polytope.octahedron(2))
+            sage: P1xP1 = ToricVariety(fan)
+            sage: P1xP1.inject_variables()
+            Defining z0, z1, z2, z3
+            sage: P1 = P1xP1.subscheme(z0-z2)
+            sage: P1.dimension()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError:
+            cannot compute dimension of this scheme!
+        """
+        if "_dimension" not in self.__dict__:
+            raise NotImplementedError(
+                                "cannot compute dimension of this scheme!")
+        return self._dimension
+
+    def embedding_morphism(self):
+        r"""
+        Return the default embedding morphism of ``self``.
+
+        Such a morphism is always defined for an affine patch of a subscheme
+        of a toric variety (which is a subscheme of a toric variety itself).
+
+        OUTPUT:
+
+        - :class:`scheme morphism <SchemeMorphism_on_points_toric_variety>`
+          if the default embedding morphism was defined for ``self``,
+          otherwise a ``ValueError`` exception is raised.
+
+        EXAMPLES::
+
+            sage: fan = FaceFan(lattice_polytope.octahedron(2))
+            sage: P1xP1 = ToricVariety(fan, "x s y t")
+            sage: patch1 = P1xP1.affine_patch(1)
+            sage: patch1.embedding_morphism()
+            Scheme morphism:
+              From: 2-d affine toric variety
+              To:   2-d toric variety covered by 4 affine patches
+              Defn: Defined on coordinates by sending [y : t] to
+                    [1 : 1 : y : t]
+            sage: P1xP1.inject_variables()
+            Defining x, s, y, t
+            sage: P1 = P1xP1.subscheme(x-y)
+            sage: P1.embedding_morphism()
+            Traceback (most recent call last):
+            ...
+            ValueError: no default embedding was defined
+            for this subscheme of a toric variety!
+            sage: subpatch = P1.affine_patch(1)
+            sage: subpatch
+            Closed subscheme of 2-d affine toric variety defined by:
+              -y + 1
+            sage: subpatch.embedding_morphism()
+            Scheme morphism:
+              From: Closed subscheme of 2-d affine toric variety defined by:
+              -y + 1
+              To:   Closed subscheme of 2-d toric variety
+              covered by 4 affine patches defined by:
+              x - y
+              Defn: Defined on coordinates by sending [y : t] to
+                    [1 : 1 : 1 : tbar]
+        """
+        try:
+            return self._embedding_morphism
+        except AttributeError:
+            raise ValueError("no default embedding was defined for this "
+                             "subscheme of a toric variety!")
 

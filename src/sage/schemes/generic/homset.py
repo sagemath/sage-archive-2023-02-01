@@ -2,10 +2,6 @@
 Set of homomorphisms between two schemes
 """
 
-import sage.rings.integer_ring
-from sage.rings.arith import gcd
-Z = sage.rings.integer_ring.ZZ
-
 #*****************************************************************************
 #  Copyright (C) 2006 William Stein <wstein@gmail.com>
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -13,15 +9,18 @@ Z = sage.rings.integer_ring.ZZ
 #*****************************************************************************
 
 import sage.structure.parent_old as parent_old
-
 from sage.categories.homset import HomsetWithBase
+from sage.rings.arith import gcd
 from sage.rings.integer_ring import ZZ
 from sage.rings.finite_rings.constructor import is_FiniteField
 from sage.rings.rational_field import is_RationalField
 from sage.rings.morphism import is_RingHomomorphism
 import spec
-
 import morphism
+
+
+
+
 
 def is_SchemeHomset(H):
     return isinstance(H, SchemeHomset_generic)
@@ -143,6 +142,10 @@ class SchemeHomset_coordinates(SchemeHomset_generic):
         else:
             raise TypeError, "Domain of argument must be of the form Spec(S)."
 
+
+#*******************************************************************
+# Affine varieties
+#*******************************************************************
 class SchemeHomset_affine_coordinates(SchemeHomset_coordinates):
     """
     Set of points on X defined over the base ring of X, and given by
@@ -169,6 +172,10 @@ class SchemeHomset_affine_coordinates(SchemeHomset_coordinates):
         else:
             raise TypeError, "Unable to enumerate points over %s."%R
 
+
+#*******************************************************************
+# Projective varieties
+#*******************************************************************
 class SchemeHomset_projective_coordinates_field(SchemeHomset_coordinates):
     """
     Set of points on X defined over the base ring of X, and given by
@@ -221,6 +228,10 @@ class SchemeHomset_projective_coordinates_ring(SchemeHomset_coordinates):
         else:
             raise TypeError, "Unable to enumerate points over %s."%R
 
+
+#*******************************************************************
+# Abelian varieties
+#*******************************************************************
 class SchemeHomsetModule_abelian_variety_coordinates_field(SchemeHomset_projective_coordinates_field):
     def __init__(self, X, S, category=None, check=True):
         r"""
@@ -244,8 +255,7 @@ class SchemeHomsetModule_abelian_variety_coordinates_field(SchemeHomset_projecti
             X = X.base_extend(S)
         Y = spec.Spec(S, R)
         HomsetWithBase.__init__(self, Y, X, category=category,
-                                check = check,
-                                base = sage.rings.integer_ring.ZZ)
+                                check = check, base = ZZ)
 
     def _repr_(self):
         return "Abelian group of points on %s"%self.codomain()
@@ -254,4 +264,68 @@ class SchemeHomsetModule_abelian_variety_coordinates_field(SchemeHomset_projecti
         if R != sage.rings.integer_ring.ZZ:
             raise NotImplementedError, "Abelian variety point sets not implemented as modules over rings other than ZZ."
         return self
+
+
+#*******************************************************************
+# Toric varieties
+#*******************************************************************
+class SchemeHomset_toric_coordinates_field(SchemeHomset_coordinates):
+    """
+    Construct the `Hom`-space of morphisms given on coordinates.
+
+    .. WARNING::
+
+        You should not create objects of this class directly.
+
+
+    INPUT:
+
+    - same as for :class:`SchemeHomset_coordinates`.
+
+    OUPUT:
+
+    - :class:`SchemeHomset_toric_coordinates_field`.
+
+    TESTS::
+
+        sage: fan = FaceFan(lattice_polytope.octahedron(2))
+        sage: P1xP1 = ToricVariety(fan)
+        sage: import sage.schemes.generic.homset as HOM
+        sage: HOM.SchemeHomset_toric_coordinates_field(P1xP1, QQ)
+        Set of Rational Points of 2-d toric variety
+        covered by 4 affine patches
+
+    A better way to construct the same `Hom`-space as above::
+
+        sage: P1xP1(QQ)
+        Set of Rational Points of 2-d toric variety
+        covered by 4 affine patches
+    """
+    # Mimicking SchemeHomset_projective_coordinates_field,
+    # affine spaces implement only "except" case
+    def __call__(self, *arg):
+        r"""
+        Construct a morphism from given parameters.
+
+        INPUT:
+
+        - data determining a morphism.
+
+        TESTS::
+
+            sage: fan = FaceFan(lattice_polytope.octahedron(2))
+            sage: P1xP1 = ToricVariety(fan)
+            sage: import sage.schemes.generic.homset as HOM
+            sage: H = HOM.SchemeHomset_toric_coordinates_field(P1xP1, QQ)
+            sage: H(1,2,3,4)
+            [1 : 2 : 3 : 4]
+        """
+        # This may break for one-dimensional varieties.
+        if len(arg) == 1:
+            arg = arg[0]
+        X = self.codomain()
+        try:
+            return X._point_class(X, arg)
+        except AttributeError:  # should be very rare
+            return morphism.SchemeMorphism_toric_coordinates_field(self, arg)
 

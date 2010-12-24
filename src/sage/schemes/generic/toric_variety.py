@@ -238,13 +238,14 @@ from sage.modules.free_module_element import vector
 from sage.rings.all import PolynomialRing, ZZ, QQ, is_Field, is_FractionField
 from sage.rings.quotient_ring_element import QuotientRingElement
 from sage.rings.quotient_ring import QuotientRing_generic
-from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme
 from sage.schemes.generic.ambient_space import AmbientSpace
-from sage.schemes.generic.homset import SchemeHomset_coordinates
-from sage.schemes.generic.morphism import (SchemeMorphism_coordinates,
+from sage.schemes.generic.homset import (SchemeHomset_coordinates,
+                                         SchemeHomset_toric_coordinates_field)
+from sage.schemes.generic.morphism import (SchemeMorphism_on_points_toric_variety,
+                                           SchemeMorphism_toric_coordinates_field,
+                                           SchemeMorphism_coordinates,
                                            SchemeMorphism_on_points,
                                            is_SchemeMorphism)
-from sage.schemes.generic.scheme import is_Scheme
 from sage.structure.sequence import Sequence
 from sage.functions.all import factorial
 
@@ -607,11 +608,13 @@ class ToricVariety_field(AmbientSpace):
 
         INPUT:
 
-        - same as for :class:`SchemeHomset_toric_coordinates_field`.
+        - same as for
+          :class:`~sage.schemes.generic.homset.SchemeHomset_toric_coordinates_field`.
 
         OUPUT:
 
-        - :class:`SchemeHomset_toric_coordinates_field`.
+        -
+          :class:`~sage.schemes.generic.homset.SchemeHomset_toric_coordinates_field`.
 
         TESTS::
 
@@ -673,11 +676,12 @@ class ToricVariety_field(AmbientSpace):
 
         INPUT:
 
-        - same as for :class:`SchemeMorphism_toric_coordinates_field`.
+        - same as for
+          :class:`~sage.schemes.generic.morphism.SchemeMorphism_toric_coordinates_field`.
 
         OUPUT:
 
-        - :class:`SchemeMorphism_toric_coordinates_field`.
+        :class:`~sage.schemes.generic.morphism.SchemeMorphism_toric_coordinates_field`.
 
         TESTS::
 
@@ -694,11 +698,12 @@ class ToricVariety_field(AmbientSpace):
 
         INPUT:
 
-        - same as for :class:`SchemeMorphism_on_points_toric_variety`.
+        - same as for
+          :class:`~sage.schemes.generic.morphism.SchemeMorphism_on_points_toric_variety`.
 
         OUPUT:
 
-        - :class:`SchemeMorphism_on_points_toric_variety`.
+        :class:`~sage.schemes.generic.morphism.SchemeMorphism_on_points_toric_variety`.
 
         TESTS::
 
@@ -951,7 +956,8 @@ class ToricVariety_field(AmbientSpace):
 
         OUTPUT:
 
-        - :class:`scheme morphism <SchemeMorphism_on_points_toric_variety>`
+        - :class:`scheme morphism
+          <sage.schemes.generic.morphism.SchemeMorphism_on_points_toric_variety>`
           if the default embedding morphism was defined for ``self``,
           otherwise a ``ValueError`` exception is raised.
 
@@ -1522,7 +1528,7 @@ class ToricVariety_field(AmbientSpace):
         OUTPUT:
 
         - :class:`subscheme of a toric variety
-          <AlgebraicScheme_subscheme_toric>`.
+          <sage.schemes.genreric.algebraic_scheme.AlgebraicScheme_subscheme_toric>`.
 
         EXAMPLES:
 
@@ -1561,6 +1567,7 @@ class ToricVariety_field(AmbientSpace):
               To:   Spectrum of Rational Field
               Defn: Structure map
         """
+        from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_toric
         return AlgebraicScheme_subscheme_toric(self, polynomials)
 
     def Stanley_Reisner_ideal(self):
@@ -2091,434 +2098,6 @@ class ToricVariety_field(AmbientSpace):
         from sage.schemes.generic.toric_divisor import ToricDivisorGroup
         return ToricDivisorGroup(self, base_ring);
 
-
-class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
-    r"""
-    Construct an algebraic subscheme of a toric variety.
-
-    .. WARNING::
-
-        You should not create objects of this class directly. The preferred
-        method to construct such subschemes is to use
-        :meth:`~ToricVariety_field.subscheme` method of
-        :class:`toric varieties <ToricVariety_field>`.
-
-    INPUT:
-
-    - ``toric_variety`` -- ambient :class:`toric variety
-      <ToricVariety_field>`;
-
-    - ``polynomials`` -- single polynomial, list, or ideal of defining
-      polynomials in the coordinate ring of ``toric_variety``.
-
-    OUTPUT:
-
-    - :class:`algebraic subscheme of a toric variety
-      <AlgebraicScheme_subscheme_toric>`.
-
-    TESTS::
-
-        sage: fan = FaceFan(lattice_polytope.octahedron(2))
-        sage: P1xP1 = ToricVariety(fan, "x s y t")
-        sage: P1xP1.inject_variables()
-        Defining x, s, y, t
-        sage: import sage.schemes.generic.toric_variety as tv
-        sage: X = tv.AlgebraicScheme_subscheme_toric(
-        ...         P1xP1, [x*s + y*t, x^3+y^3])
-        sage: X
-        Closed subscheme of 2-d toric variety
-        covered by 4 affine patches defined by:
-          x*s + y*t,
-          x^3 + y^3
-
-    A better way to construct the same scheme as above::
-
-        sage: P1xP1.subscheme([x*s + y*t, x^3+y^3])
-        Closed subscheme of 2-d toric variety
-        covered by 4 affine patches defined by:
-          x*s + y*t,
-          x^3 + y^3
-    """
-
-    def __init__(self, toric_variety, polynomials):
-        r"""
-        See :class:`AlgebraicScheme_subscheme_toric` for documentation.
-
-        TESTS::
-
-            sage: fan = FaceFan(lattice_polytope.octahedron(2))
-            sage: P1xP1 = ToricVariety(fan, "x s y t")
-            sage: P1xP1.inject_variables()
-            Defining x, s, y, t
-            sage: import sage.schemes.generic.toric_variety as tv
-            sage: X = tv.AlgebraicScheme_subscheme_toric(
-            ...         P1xP1, [x*s + y*t, x^3+y^3])
-            sage: X
-            Closed subscheme of 2-d toric variety
-            covered by 4 affine patches defined by:
-              x*s + y*t,
-              x^3 + y^3
-        """
-        # Just to make sure that keyword arguments will be passed correctly
-        super(AlgebraicScheme_subscheme_toric, self).__init__(toric_variety,
-                                                              polynomials)
-
-    def _point_morphism_class(self, *args, **kwds):
-        r"""
-        Construct a morphism determined by action on points of ``self``.
-
-        INPUT:
-
-        - same as for :class:`SchemeMorphism_on_points_toric_variety`.
-
-        OUPUT:
-
-        - :class:`SchemeMorphism_on_points_toric_variety`.
-
-        TESTS::
-
-            sage: fan = FaceFan(lattice_polytope.octahedron(2))
-            sage: P1xP1 = ToricVariety(fan)
-            sage: P1xP1.inject_variables()
-            Defining z0, z1, z2, z3
-            sage: P1 = P1xP1.subscheme(z0-z2)
-            sage: H = P1.Hom(P1xP1)
-            sage: P1._point_morphism_class(H, [z0,z1,z0,z3])
-            Scheme morphism:
-              From: Closed subscheme of 2-d toric variety
-              covered by 4 affine patches defined by:
-              z0 - z2
-              To:   2-d toric variety covered by 4 affine patches
-              Defn: Defined on coordinates by sending [z0 : z1 : z2 : z3] to
-                    [z2bar : z1bar : z2bar : z3bar]
-        """
-        return SchemeMorphism_on_points_toric_variety(*args, **kwds)
-
-    def affine_patch(self, i):
-        r"""
-        Return the ``i``-th affine patch of ``self``.
-
-        INPUT:
-
-        - ``i`` -- integer, index of a generating cone of the fan of the
-          ambient space of ``self``.
-
-        OUTPUT:
-
-        - subscheme of an affine :class:`toric variety <ToricVariety_field>`
-          corresponding to the pull-back of ``self`` by the embedding morphism
-          of the ``i``-th :meth:`affine patch of the ambient space
-          <ToricVariety_field.affine_patch>` of ``self``.
-
-        The result is cached, so the ``i``-th patch is always the same object
-        in memory.
-
-        EXAMPLES::
-
-            sage: fan = FaceFan(lattice_polytope.octahedron(2))
-            sage: P1xP1 = ToricVariety(fan, "x s y t")
-            sage: patch1 = P1xP1.affine_patch(1)
-            sage: patch1.embedding_morphism()
-            Scheme morphism:
-              From: 2-d affine toric variety
-              To:   2-d toric variety covered by 4 affine patches
-              Defn: Defined on coordinates by sending [y : t] to
-                    [1 : 1 : y : t]
-            sage: P1xP1.inject_variables()
-            Defining x, s, y, t
-            sage: P1 = P1xP1.subscheme(x-y)
-            sage: subpatch = P1.affine_patch(1)
-            sage: subpatch
-            Closed subscheme of 2-d affine toric variety defined by:
-              -y + 1
-        """
-        i = int(i)   # implicit type checking
-        try:
-            return self._affine_patches[i]
-        except AttributeError:
-            self._affine_patches = dict()
-        except KeyError:
-            pass
-        ambient_patch = self.ambient_space().affine_patch(i)
-        phi_p = ambient_patch.embedding_morphism().defining_polynomials()
-        patch = ambient_patch.subscheme(
-                            [p(phi_p) for p in self.defining_polynomials()])
-        patch._embedding_morphism = patch.hom(phi_p, self)
-        self._affine_patches[i] = patch
-        return patch
-
-    def dimension(self):
-        """
-        Return the dimension of ``self``.
-
-        .. NOTE::
-
-            Currently the dimension of subschemes of toric varieties can be
-            returned only if it was somehow set before.
-
-        OUTPUT:
-
-        - integer.
-
-        EXAMPLES::
-
-            sage: fan = FaceFan(lattice_polytope.octahedron(2))
-            sage: P1xP1 = ToricVariety(fan)
-            sage: P1xP1.inject_variables()
-            Defining z0, z1, z2, z3
-            sage: P1 = P1xP1.subscheme(z0-z2)
-            sage: P1.dimension()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError:
-            cannot compute dimension of this scheme!
-        """
-        if "_dimension" not in self.__dict__:
-            raise NotImplementedError(
-                                "cannot compute dimension of this scheme!")
-        return self._dimension
-
-    def embedding_morphism(self):
-        r"""
-        Return the default embedding morphism of ``self``.
-
-        Such a morphism is always defined for an affine patch of a subscheme
-        of a toric variety (which is a subscheme of a toric variety itself).
-
-        OUTPUT:
-
-        - :class:`scheme morphism <SchemeMorphism_on_points_toric_variety>`
-          if the default embedding morphism was defined for ``self``,
-          otherwise a ``ValueError`` exception is raised.
-
-        EXAMPLES::
-
-            sage: fan = FaceFan(lattice_polytope.octahedron(2))
-            sage: P1xP1 = ToricVariety(fan, "x s y t")
-            sage: patch1 = P1xP1.affine_patch(1)
-            sage: patch1.embedding_morphism()
-            Scheme morphism:
-              From: 2-d affine toric variety
-              To:   2-d toric variety covered by 4 affine patches
-              Defn: Defined on coordinates by sending [y : t] to
-                    [1 : 1 : y : t]
-            sage: P1xP1.inject_variables()
-            Defining x, s, y, t
-            sage: P1 = P1xP1.subscheme(x-y)
-            sage: P1.embedding_morphism()
-            Traceback (most recent call last):
-            ...
-            ValueError: no default embedding was defined
-            for this subscheme of a toric variety!
-            sage: subpatch = P1.affine_patch(1)
-            sage: subpatch
-            Closed subscheme of 2-d affine toric variety defined by:
-              -y + 1
-            sage: subpatch.embedding_morphism()
-            Scheme morphism:
-              From: Closed subscheme of 2-d affine toric variety defined by:
-              -y + 1
-              To:   Closed subscheme of 2-d toric variety
-              covered by 4 affine patches defined by:
-              x - y
-              Defn: Defined on coordinates by sending [y : t] to
-                    [1 : 1 : 1 : tbar]
-        """
-        try:
-            return self._embedding_morphism
-        except AttributeError:
-            raise ValueError("no default embedding was defined for this "
-                             "subscheme of a toric variety!")
-
-
-class SchemeHomset_toric_coordinates_field(SchemeHomset_coordinates):
-    """
-    Construct the `Hom`-space of morphisms given on coordinates.
-
-    .. WARNING::
-
-        You should not create objects of this class directly.
-
-
-    INPUT:
-
-    - same as for :class:`sage.schemes.generic.SchemeHomset_coordinates`.
-
-    OUPUT:
-
-    - :class:`SchemeHomset_toric_coordinates_field`.
-
-    TESTS::
-
-        sage: fan = FaceFan(lattice_polytope.octahedron(2))
-        sage: P1xP1 = ToricVariety(fan)
-        sage: import sage.schemes.generic.toric_variety as tv
-        sage: tv.SchemeHomset_toric_coordinates_field(P1xP1, QQ)
-        Set of Rational Points of 2-d toric variety
-        covered by 4 affine patches
-
-    A better way to construct the same `Hom`-space as above::
-
-        sage: P1xP1(QQ)
-        Set of Rational Points of 2-d toric variety
-        covered by 4 affine patches
-    """
-    # Mimicking SchemeHomset_projective_coordinates_field,
-    # affine spaces implement only "except" case
-    def __call__(self, *arg):
-        r"""
-        Construct a morphism from given parameters.
-
-        INPUT:
-
-        - data determining a morphism.
-
-        TESTS::
-
-            sage: fan = FaceFan(lattice_polytope.octahedron(2))
-            sage: P1xP1 = ToricVariety(fan)
-            sage: import sage.schemes.generic.toric_variety as tv
-            sage: H = tv.SchemeHomset_toric_coordinates_field(P1xP1, QQ)
-            sage: H(1,2,3,4)
-            [1 : 2 : 3 : 4]
-        """
-        # This may break for one-dimensional varieties.
-        if len(arg) == 1:
-            arg = arg[0]
-        X = self.codomain()
-        try:
-            return X._point_class(X, arg)
-        except AttributeError:  # should be very rare
-            return SchemeMorphism_toric_coordinates_field(self, arg)
-
-
-class SchemeMorphism_toric_coordinates_field(SchemeMorphism_coordinates):
-    """
-    Construct a morphism determined by giving coordinates in a field.
-
-    .. WARNING::
-
-        You should not create objects of this class directly.
-
-    INPUT:
-
-    - ``X`` -- subscheme of a toric variety.
-
-    - ``coordinates`` -- list of coordinates in the base field of ``X``.
-
-    - ``check`` -- if ``True`` (default), the input will be checked for
-      correctness.
-
-    OUTPUT:
-
-    - :class:`SchemeMorphism_toric_coordinates_field`.
-
-    TESTS::
-
-        sage: fan = FaceFan(lattice_polytope.octahedron(2))
-        sage: P1xP1 = ToricVariety(fan)
-        sage: P1xP1(1,2,3,4)
-        [1 : 2 : 3 : 4]
-    """
-    # Mimicking affine/projective classes
-    def __init__(self, X, coordinates, check=True):
-        r"""
-        See :class:`SchemeMorphism_toric_coordinates_field` for documentation.
-
-        TESTS::
-
-            sage: fan = FaceFan(lattice_polytope.octahedron(2))
-            sage: P1xP1 = ToricVariety(fan)
-            sage: P1xP1(1,2,3,4)
-            [1 : 2 : 3 : 4]
-        """
-        # Convert scheme to its set of points over the base ring
-        if is_Scheme(X):
-            X = X(X.base_ring())
-        super(SchemeMorphism_toric_coordinates_field, self).__init__(X)
-        if check:
-            # Verify that there are the right number of coords
-            # Why is it not done in the parent?
-            if is_SchemeMorphism(coordinates):
-                coordinates = list(coordinates)
-            if not isinstance(coordinates, (list, tuple)):
-                raise TypeError("coordinates must be a scheme point, list, "
-                                "or tuple. Got %s" % coordinates)
-            d = X.codomain().ambient_space().ngens()
-            if len(coordinates) != d:
-                raise ValueError("there must be %d coordinates! Got only %d: "
-                                 "%s" % (d, len(coordinates), coordinates))
-            # Make sure the coordinates all lie in the appropriate ring
-            coordinates = Sequence(coordinates, X.value_ring())
-            # Verify that the point satisfies the equations of X.
-            X.codomain()._check_satisfies_equations(coordinates)
-        self._coords = coordinates
-
-
-class SchemeMorphism_on_points_toric_variety(SchemeMorphism_on_points):
-    """
-    Construct a morphism determined by action on points.
-
-    .. WARNING::
-
-        You should not create objects of this class directly.
-
-    INPUT:
-
-    - same as for :class:`sage.schemes.generic.SchemeMorphism_on_points`.
-
-    OUPUT:
-
-    - :class:`SchemeMorphism_on_points_toric_variety`.
-
-    TESTS::
-
-        sage: fan = FaceFan(lattice_polytope.octahedron(2))
-        sage: P1xP1 = ToricVariety(fan)
-        sage: P1xP1.inject_variables()
-        Defining z0, z1, z2, z3
-        sage: P1 = P1xP1.subscheme(z0-z2)
-        sage: H = P1xP1.Hom(P1)
-        sage: import sage.schemes.generic.toric_variety as tv
-        sage: tv.SchemeMorphism_on_points_toric_variety(H, [z0,z1,z0,z3])
-        Scheme morphism:
-          From: 2-d toric variety covered by 4 affine patches
-          To:   Closed subscheme of 2-d toric variety
-                covered by 4 affine patches defined by:
-          z0 - z2
-          Defn: Defined on coordinates by sending
-                [z0 : z1 : z2 : z3] to [z0 : z1 : z0 : z3]
-    """
-
-    def __init__(self, parent, polynomials, check=True):
-        r"""
-        See :class:`SchemeMorphism_on_points_toric_variety` for documentation.
-
-        TESTS::
-
-            sage: fan = FaceFan(lattice_polytope.octahedron(2))
-            sage: P1xP1 = ToricVariety(fan)
-            sage: P1xP1.inject_variables()
-            Defining z0, z1, z2, z3
-            sage: P1 = P1xP1.subscheme(z0-z2)
-            sage: H = P1xP1.Hom(P1)
-            sage: import sage.schemes.generic.toric_variety as tv
-            sage: tv.SchemeMorphism_on_points_toric_variety(H, [z0,z1,z0,z3])
-            Scheme morphism:
-              From: 2-d toric variety covered by 4 affine patches
-              To:   Closed subscheme of 2-d toric variety
-                    covered by 4 affine patches defined by:
-              z0 - z2
-              Defn: Defined on coordinates by sending
-                    [z0 : z1 : z2 : z3] to [z0 : z1 : z0 : z3]
-        """
-        SchemeMorphism_on_points.__init__(self, parent, polynomials, check)
-        if check:
-            # Check that defining polynomials are homogeneous (degrees can be
-            # different if the target uses weighted coordinates)
-            for p in self.defining_polynomials():
-                if not self.domain().ambient_space().is_homogeneous(p):
-                    raise ValueError("%s is not homogeneous!" % p)
 
 
 def normalize_names(names=None, ngens=None, prefix=None, indices=None,

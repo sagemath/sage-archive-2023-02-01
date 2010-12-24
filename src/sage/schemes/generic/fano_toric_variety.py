@@ -158,8 +158,8 @@ from sage.misc.all import latex, prod
 from sage.rings.all import (PolynomialRing, QQ,
                             is_FractionField, is_Field,
                             is_MPolynomialRing, is_PolynomialRing)
+from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_toric
 from sage.schemes.generic.toric_variety import (
-                                            AlgebraicScheme_subscheme_toric,
                                             ToricVariety_field,
                                             normalize_names)
 

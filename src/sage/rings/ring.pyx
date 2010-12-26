@@ -765,12 +765,30 @@ cdef class Ring(ParentWithGens):
             NotImplementedError
             sage: S.is_integral_domain(proof = False)
             False
+
+        TESTS:
+
+        Make sure #10481 is fixed::
+
+            sage: var(x)
+            x
+            sage: R.<a>=ZZ[x].quo(x^2)
+            sage: R.fraction_field()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+            sage: R.is_integral_domain()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+
+
         """
         if self.is_zero():
             return False
 
         if proof:
-            return NotImplementedError
+            raise NotImplementedError
         else:
             return False
 

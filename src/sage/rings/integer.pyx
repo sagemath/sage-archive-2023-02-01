@@ -391,14 +391,14 @@ cdef class IntegerWrapper(Integer):
     specifying an alternative parent to ``IntegerRing()``.
     """
 
-    def __init__(self, x=None, unsigned int base=0, parent = None):
+    def __init__(self, x=None, unsigned int base=0, parent=None):
         """
         We illustrate how to create integers with parents different
         from ``IntegerRing()``::
 
             sage: from sage.rings.integer import IntegerWrapper
 
-            sage: n = IntegerWrapper(3, parent = Primes()) # indirect doctest
+            sage: n = IntegerWrapper(3, parent=Primes()) # indirect doctest
             sage: n
             3
             sage: n.parent()
@@ -415,8 +415,8 @@ cdef class IntegerWrapper(Integer):
             sage: TestSuite(n).run()
         """
         if parent is not None:
-            Element.__init__(self, parent = parent)
-        Integer.__init__(self, x, base = base)
+            Element.__init__(self, parent=parent)
+        Integer.__init__(self, x, base=base)
 
 cdef class Integer(sage.structure.element.EuclideanDomainElement):
     r"""
@@ -4348,6 +4348,50 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             else:
                 return False
         return mpz_perfect_power_p(self.value)
+
+    def is_norm(self, K, element=False, proof=True):
+        r"""
+        See ``QQ(self).is_norm()``.
+
+        EXAMPLES::
+
+            sage: K = NumberField(x**2 - 2, 'beta')
+            sage: n = 4
+            sage: n.is_norm(K)
+            True
+            sage: 5.is_norm(K)
+            False
+            sage: 7.is_norm(QQ)
+            True
+            sage: n.is_norm(K, element=True)
+            (True, 4*beta + 6)
+            sage: n.is_norm(K, element=True)[1].norm()
+            4
+            sage: n = 5
+            sage: n.is_norm(K, element=True)
+            (False, None)
+            sage: n = 7
+            sage: n.is_norm(QQ, element=True)
+            (True, 7)
+
+        """
+        from sage.rings.rational_field import QQ
+        return QQ(self).is_norm(K, element=element, proof=proof)
+
+    def bnfisnorm(self, K, certify=True, extra_primes=0):
+        r"""
+        See ``QQ(self).bnfisnorm()``.
+
+        EXAMPLES::
+
+            sage: 3.bnfisnorm(QuadraticField(-1, 'i'))
+            (1, 3)
+            sage: 7.bnfisnorm(CyclotomicField(7))
+            (-zeta7^2 + zeta7, 1)
+        """
+        from sage.rings.rational_field import QQ
+        return QQ(self).bnfisnorm(K, certify=certify, extra_primes=extra_primes)
+
 
     def jacobi(self, b):
         r"""

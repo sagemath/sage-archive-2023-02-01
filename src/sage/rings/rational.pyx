@@ -1174,6 +1174,169 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         return mpq_sgn(self.value) >= 0 and mpz_perfect_square_p(mpq_numref(self.value)) and mpz_perfect_square_p(mpq_denref(self.value))
 
+    def is_norm(self, L, element=False, proof=True):
+        r"""
+        Determine whether self is the norm of an element of L.
+
+        INPUT:
+
+         - L -- a number field
+         - element -- True or False, whether to also output an element
+           of which self is a norm
+         - proof -- If True, then the output is correct unconditionally.
+           If False, then the output assumes GRH.
+
+        OUTPUT:
+
+        If element is False, then the output is a boolean B, which is
+        True if and only if self is the norm of an element of L.
+        If element is False, then the output is a pair (B, x), where
+        B is as above. If B is True, then x an element of L such that
+        self == x.norm(). Otherwise, x is None.
+
+        ALGORITHM:
+
+        Uses Pari's bnfisnorm. See self.bnfisnorm().
+
+        EXAMPLES::
+
+            sage: K = NumberField(x^2 - 2, 'beta')
+            sage: (1/7).is_norm(K)
+            True
+            sage: (1/10).is_norm(K)
+            False
+            sage: 0.is_norm(K)
+            True
+            sage: (1/7).is_norm(K, element=True)
+            (True, -3/7*beta + 5/7)
+            sage: (1/10).is_norm(K, element=True)
+            (False, None)
+            sage: (1/691).is_norm(QQ, element=True)
+            (True, 1/691)
+
+        The number field doesn't have to be defined by an
+        integral polynomial::
+
+            sage: (1/5).is_norm(QuadraticField(5/4, 'a'), element=True)
+            (True, -1/5*a + 1/2)
+
+        A non-Galois number field::
+
+            sage: K.<b> = NumberField(x^3-2)
+            sage: x, y = (3/5).is_norm(K, element=True); x
+            True
+            sage: y.norm()
+            3/5
+
+            sage: 7.is_norm(K)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: is_norm is not implemented unconditionally for norms from non-Galois number fields
+            sage: 7.is_norm(K, proof=False)
+            False
+
+        AUTHORS:
+
+        - Craig Citro (2008-04-05)
+
+        - Marco Streng (2010-12-03)
+        """
+        if not element:
+            return self.is_norm(L, element=True, proof=proof)[0]
+
+        from sage.rings.number_field.all import is_NumberField
+        if not is_NumberField(L):
+            raise ValueError, "L (=%s) must be a NumberField in is_norm" % L
+        if L.degree() == 1 or self.is_zero():
+            return True, L(self)
+        d = L.polynomial().denominator()
+        if not d == 1:
+            M, M_to_L = L.subfield(L.gen()*d)
+            b, x = self.is_norm(M, element=True, proof=proof)
+            if b:
+                x = M_to_L(x)
+            return b, x
+        a, b = self.bnfisnorm(L, certify=proof)
+        if b == 1:
+            assert a.norm() == self
+            return True, a
+        if L.is_galois():
+            return False, None
+        M = L.galois_closure('a')
+        from sage.functions.log import log
+        from sage.functions.other import floor
+        extra_primes = floor(12*log(abs(M.discriminant()))**2)
+        a, b = self.bnfisnorm(L, certify=proof, extra_primes=extra_primes)
+        if b == 1:
+            assert a.norm() == self
+            return True, a
+        if proof:
+            raise NotImplementedError, "is_norm is not implemented unconditionally for norms from non-Galois number fields"
+        return False, None
+
+    def bnfisnorm(self, K, certify=True, extra_primes=0):
+        r"""
+        This gives the output of the Pari function bnfisnorm.
+
+        Tries to tell whether the rational number self is the norm of some
+        element y in K. Returns a pair (a, b) where self = Norm(a)*b. Looks for
+        a solution that is an S-unit, with S a certain set of prime ideals
+        containing (among others) all primes dividing self.
+
+        If K is known to be Galois, set extra_primes = 0 (in this case, self
+        is a norm iff b = 1).
+
+        If extra_primes is non-zero, the program adds to S the following
+        prime ideals, depending on the sign of extra_primes.
+        If extra_primes > 0, the ideals of norm less than extra_primes.
+        And if extra_primes < 0, the ideals dividing extra_primes.
+
+        Assuming GRH, the answer is guaranteed (i.e., self is a norm
+        iff b = 1), if S contains all primes less than 12log(\disc(L))^2,
+        where L is the Galois closure of K.
+
+        INPUT:
+
+         - K -- a number field
+         - certify -- whether to certify the output of bnfinit.
+           If false, then correctness of the output depends on GRH.
+         - extra_primes -- an integer as explained above
+
+        OUTPUT:
+
+        A pair (a, b) with a in K and b in `QQ` such that self == Norm(a)*b
+        as explained above.
+
+        ALGORITHM:
+
+        Uses Pari's bnfisnorm.
+
+        EXAMPLES::
+
+            sage: QQ(2).bnfisnorm(QuadraticField(-1, 'i'))
+            (i + 1, 1)
+            sage: 7.bnfisnorm(NumberField(x^3-2, 'b'))
+            (1, 7)
+
+        AUTHORS:
+
+        - Craig Citro (2008-04-05)
+
+        - Marco Streng (2010-12-03)
+        """
+        from sage.rings.number_field.all import is_NumberField
+        if not is_NumberField(K):
+            raise ValueError, "K must be a NumberField in bnfisnorm"
+        if certify:
+            K.pari_bnf_certify()
+
+        a, b = self._pari_().bnfisnorm(K.pari_bnf(), flag=extra_primes)
+        deg = K.degree()
+        coeffs = [ a.lift().polcoeff(i)._sage_() for i in range(deg) ]
+        from sage.rings.rational_field import QQ
+        return K(coeffs), QQ(b._sage_())
+
+
     def is_perfect_power(self, expected_value=False):
         r"""
         Returns ``True`` if self is a perfect power.
@@ -2692,7 +2855,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         mpz_cdiv_q(n.value, mpq_numref(self.value), mpq_denref(self.value))
         return n
 
-    def round(Rational self, mode = "away"):
+    def round(Rational self, mode="away"):
         """
         Returns the nearest integer to self, rounding away from 0 by
         default, for consistency with the builtin Python round.

@@ -961,6 +961,219 @@ cdef class NumberFieldElement(FieldElement):
         """
         return self.number_field().complex_embeddings(prec)[i](self)
 
+
+    def is_norm(self, L, element=False, proof=True):
+        r"""
+        Determine whether self is the relative norm of an element
+        of L/K, where K is self.parent().
+
+        INPUT:
+
+         - L -- a number field containing K=self.parent()
+         - element -- True or False, whether to also output an element
+           of which self is a norm
+         - proof -- If True, then the output is correct unconditionally.
+           If False, then the output is correct under GRH.
+
+        OUTPUT:
+
+        If element is False, then the output is a boolean B, which is
+        True if and only if self is the relative norm of an element of L
+        to K.
+        If element is False, then the output is a pair (B, x), where
+        B is as above. If B is True, then x is an element of L such that
+        self == x.norm(K). Otherwise, x is None.
+
+        ALGORITHM:
+
+        Uses Pari's rnfisnorm. See self.rnfisnorm().
+
+        EXAMPLES::
+
+            sage: K.<beta> = NumberField(x^3+5)
+            sage: Q.<X> = K[]
+            sage: L = K.extension(X^2+X+beta, 'gamma')
+            sage: (beta/2).is_norm(L)
+            False
+            sage: beta.is_norm(L)
+            True
+
+        With a relative base field::
+
+            sage: K.<a, b> = NumberField([x^2 - 2, x^2 - 3])
+            sage: L.<c> = K.extension(x^2 - 5)
+            sage: (2*a*b).is_norm(L)
+            True
+            sage: _, v = (2*b*a).is_norm(L, element=True)
+            sage: v.norm(K) == 2*a*b
+            True
+
+        Non-Galois number fields::
+
+            sage: K.<a> = NumberField(x^2 + x + 1)
+            sage: Q.<X> = K[]
+            sage: L.<b> = NumberField(X^4 + a + 2)
+            sage: (a/4).is_norm(L)
+            True
+            sage: (a/2).is_norm(L)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: is_norm is not implemented unconditionally for norms from non-Galois number fields
+            sage: (a/2).is_norm(L, proof=False)
+            False
+
+            sage: K.<a> = NumberField(x^3 + x + 1)
+            sage: Q.<X> = K[]
+            sage: L.<b> = NumberField(X^4 + a)
+            sage: t = (-a).is_norm(L, element=True); t
+            (True, b^3 + 1)
+            sage: t[1].norm(K)
+            -a
+
+        AUTHORS:
+
+        - Craig Citro (2008-04-05)
+
+        - Marco Streng (2010-12-03)
+        """
+        if not element:
+            return self.is_norm(L, element=True, proof=proof)[0]
+
+        K = self.parent()
+        from sage.rings.number_field.all import is_AbsoluteNumberField, \
+                                                is_NumberField
+        if not is_NumberField(L):
+            raise ValueError, "L (=%s) must be a NumberField in is_norm" % L
+
+        if is_AbsoluteNumberField(L):
+            Lrel = L.relativize(K.hom(L), ('a', 'b'))
+            b, x = self.is_norm(Lrel, element=True, proof=proof)
+            h = Lrel.structure()[0]
+            return b, h(x)
+
+        if L.relative_degree() == 1 or self.is_zero():
+            return True, L(self)
+
+        a, b = self.rnfisnorm(L, certify=proof)
+        if b == 1:
+            assert a.norm(K) == self
+            return True, a
+
+        if L.is_galois_relative():
+            return False, None
+
+        # The following gives the galois closure of K/QQ, but the galois
+        # closure of K/self.parent() would suffice.
+        M = L.galois_closure('a')
+        from sage.functions.log import log
+        from sage.functions.other import floor
+        extra_primes = floor(12*log(abs(M.discriminant()))**2)
+        a, b = self.rnfisnorm(L, certify=proof, extra_primes=extra_primes)
+        if b == 1:
+            assert a.norm(K) == self
+            return True, a
+
+        if proof:
+            raise NotImplementedError, "is_norm is not implemented unconditionally for norms from non-Galois number fields"
+        return False, None
+
+    def rnfisnorm(self, L, certify=True, extra_primes=0):
+        r"""
+        Gives the output of the Pari function rnfisnorm.
+
+        This tries to decide whether the number field element self is
+        the norm of some x in the extension L/K (with K = self.parent()).
+
+        The output is a pair (x, q), where self = Norm(x)*q. The
+        algorithm looks for a solution x that is an S-integer, with S
+        a list of places of L containing at least the ramified primes,
+        the generators of the class group of L, as well as those primes
+        dividing self.
+
+        If L/K is Galois, then this is enough; otherwise,
+        extra_primes is used to add more primes to S: all the places
+        above the primes p <= extra_primes (resp. p|extra_primes) if
+        extra_primes > 0 (resp. extra_primes < 0).
+
+        The answer is guaranteed (i.e., self is a norm iff q = 1) if the
+        field is Galois, or, under GRH, if S contains all primes less
+        than 12log^2|\disc(M)|, where M is the normal closure of L/K.
+
+        INPUT:
+
+         - L -- a relative number field with base field self.parent()
+         - certify -- whether to certify outputs of Pari init functions.
+           If false, truth of the output depends on GRH.
+         - extra_primes -- an integer as explained above.
+
+        OUTPUT:
+
+        A pair (x, q) with x in L and q in K as explained above
+        such that self == x.norm(K)*q.
+
+        ALGORITHM:
+
+        Uses Pari's rnfisnorm.
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^3 + x^2 - 2*x - 1, 'a')
+            sage: P.<X> = K[]
+            sage: L = NumberField(X^2 + a^2 + 2*a + 1, 'b')
+            sage: K(17).rnfisnorm(L)
+            ((a^2 - 2)*b - 4, 1)
+
+            sage: K.<a> = NumberField(x^3 + x + 1)
+            sage: Q.<X> = K[]
+            sage: L.<b> = NumberField(X^4 + a)
+            sage: t = (-a).rnfisnorm(L); t
+            (b^3 + 1, 1)
+            sage: t[0].norm(K)
+            -a
+            sage: t = K(3).rnfisnorm(L); t
+            ((-a^2 - 1)*b^3 + b^2 + a*b + a^2 + 1, -3*a)
+            sage: t[0].norm(K)*t[1]
+            3
+
+        An example where the base field is a relative field::
+
+            sage: K.<a, b> = NumberField([x^2 - 2, x^2 - 3])
+            sage: L.<c> = K.extension(x^3 + 2)
+            sage: t = (2*a + b).rnfisnorm(L); t[1]
+            (b - 2)*a + 2*b - 3
+            sage: t[0].norm(K)*t[1]
+            2*a + b
+
+        AUTHORS:
+
+        - Craig Citro (2008-04-05)
+
+        - Marco Streng (2010-12-03)
+
+        - Francis Clarke (2010-12-26)
+        """
+        K = self.parent()
+        from sage.rings.number_field.all import is_RelativeNumberField
+        if (not is_RelativeNumberField(L)) or L.base_field() != K:
+            raise ValueError, "L (=%s) must be a relative number field with base field K (=%s) in rnfisnorm" % (L, K)
+
+        if certify:
+            K.pari_bnf_certify()
+
+        rnf_data = K.pari_rnfnorm_data(L)
+        x, q = self._pari_('y').rnfisnorm(rnf_data)
+
+        degL = L.relative_degree()
+        repx = [K(x.lift().polcoeff(i).lift()) for i in range(degL)]
+        x = L(repx)
+
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        degK = K.absolute_degree()
+        coeffsq = [q.lift().polcoeff(i)._sage_() for i in range(degK)]
+        q = PolynomialRing(QQ, 't')(coeffsq)(K.absolute_generator())
+
+        return x, q
+
     def _mpfr_(self, R):
         """
         EXAMPLES::

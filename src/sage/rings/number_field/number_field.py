@@ -1009,7 +1009,7 @@ class NumberField_generic(number_field_base.NumberField):
         else:
             assert category.is_subcategory(default_category), "%s is not a subcategory of %s"%(category, default_category)
 
-        ParentWithGens.__init__(self, QQ, name, category = category)
+        ParentWithGens.__init__(self, QQ, name, category=category)
         if not isinstance(polynomial, polynomial_element.Polynomial):
             raise TypeError, "polynomial (=%s) must be a polynomial"%repr(polynomial)
 
@@ -2682,6 +2682,34 @@ class NumberField_generic(number_field_base.NumberField):
             self.__pari_bnf_certified = True
         return self.__pari_bnf_certified
 
+    def pari_rnfnorm_data(self, L):
+        """
+        Return the pari rnfisnorminit data corresponding to the
+        extension L/self.
+
+        EXAMPLES::
+
+            sage: K = NumberField(x**2-2,'alpha')
+            sage: L = K.extension(x**2+5, 'gamma')
+            sage: ls = K.pari_rnfnorm_data(L) ; len(ls)
+            8
+
+            sage: K.<a> = NumberField(x^2 + x + 1)
+            sage: P.<X> = K[]
+            sage: L.<b> = NumberField(X^3 + a)
+            sage: ls = K.pari_rnfnorm_data(L); len(ls)
+            8
+        """
+        if L.base_field() != self:
+            raise ValueError, "L must be an extension of self"
+
+        relpoly = L.defining_polynomial()
+        Kbnf = self.absolute_polynomial()._pari_with_name('y').bnfinit()
+        coeffs = [ a._pari_('y') for a in relpoly.coeffs() ]
+
+        polrel = sage.libs.pari.gen.pari(coeffs).Polrev()
+        return Kbnf.rnfisnorminit(polrel)
+
     def _gap_init_(self):
         """
         Create a gap object representing self and return its name
@@ -2811,7 +2839,7 @@ class NumberField_generic(number_field_base.NumberField):
         gens = [self.ideal(hnf) for hnf in k.bnf_get_gen()]
 
         G = ClassGroup(cycle_structure, names, self, gens, proof=proof)
-        self.__class_group[proof,names] = G
+        self.__class_group[proof, names] = G
         return G
 
     def class_number(self, proof=None):
@@ -3033,8 +3061,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.selmer_group([K.ideal(2, -a+1), K.ideal(3, a+1)], 3)
             [2, a + 1]
             sage: K.selmer_group([K.ideal(2, -a+1), K.ideal(3, a+1), K.ideal(a)], 3)
-            [2, a + 1, a]    # 32-bit
-            [2, a + 1, -a]   # 64-bit
+            [2, a + 1, a]
             sage: K.<a> = NumberField(polygen(QQ))
             sage: K.selmer_group([],5)
             []
@@ -3641,7 +3668,7 @@ class NumberField_generic(number_field_base.NumberField):
             self.__gen = self._element_class(self, X)
             return self.__gen
 
-    def is_field(self, proof = True):
+    def is_field(self, proof=True):
         """
         Return True since a number field is a field.
 
@@ -3767,9 +3794,9 @@ class NumberField_generic(number_field_base.NumberField):
             return GaloisGroup_v2(self, names)
 
         elif type=="pari":
-            return GaloisGroup_v1(self.absolute_polynomial().galois_group(pari_group = True, algorithm = algorithm), self)
+            return GaloisGroup_v1(self.absolute_polynomial().galois_group(pari_group=True, algorithm=algorithm), self)
         elif type=="gap":
-            return GaloisGroup_v1(self.absolute_polynomial().galois_group(pari_group = False, algorithm = algorithm), self)
+            return GaloisGroup_v1(self.absolute_polynomial().galois_group(pari_group=False, algorithm=algorithm), self)
         else:
             raise ValueError, "Galois group type must be None, 'pari', or 'gap'."
 
@@ -4211,7 +4238,7 @@ class NumberField_generic(number_field_base.NumberField):
                        prec = prec)
         s = 'nf = nfinit(%s);'%self.absolute_polynomial()
         s += 'dzk = dirzetak(nf,cflength());'
-        Z.init_coeffs('dzk[k]',pari_precode = s,
+        Z.init_coeffs('dzk[k]', pari_precode=s,
                       max_imaginary_part=max_imaginary_part,
                       max_asymp_coeffs=max_asymp_coeffs)
         Z.check_functional_equation()
@@ -4409,7 +4436,7 @@ class NumberField_generic(number_field_base.NumberField):
             self.__regulator = RealField(53)(k.bnf_get_reg())
             return self.__regulator
 
-    def residue_field(self, prime, names = None, check = True):
+    def residue_field(self, prime, names=None, check=True):
         """
         Return the residue field of this number field at a given prime, ie
         `O_K / p O_K`.
@@ -4477,7 +4504,7 @@ class NumberField_generic(number_field_base.NumberField):
         if check and not prime.is_prime():
             raise ValueError, "%s is not a prime ideal"%prime
         from sage.rings.residue_field import ResidueField
-        return ResidueField(prime, names = names, check = False)
+        return ResidueField(prime, names=names, check=False)
 
     def signature(self):
         """
@@ -4515,7 +4542,7 @@ class NumberField_generic(number_field_base.NumberField):
                 A[j,i] = t
         return A
 
-    def uniformizer(self, P, others = "positive"):
+    def uniformizer(self, P, others="positive"):
         """
         Returns an element of self with valuation 1 at the prime ideal P.
 
@@ -5558,7 +5585,7 @@ class NumberField_absolute(NumberField_generic):
         except KeyError:
             pass
 
-        B = map(self, self._pari_integral_basis(v = v))
+        B = map(self, self._pari_integral_basis(v=v))
 
         if len(v) == 0 or v is None:
             is_maximal = True
@@ -5568,7 +5595,7 @@ class NumberField_absolute(NumberField_generic):
         import sage.rings.number_field.order as order
         O = order.absolute_order_from_module_generators(B,
                  check_integral=False, check_rank=False,
-                 check_is_ring=False, is_maximal = is_maximal)
+                 check_is_ring=False, is_maximal=is_maximal)
 
         self.__maximal_order[v] = O
         return O
@@ -5869,7 +5896,7 @@ class NumberField_absolute(NumberField_generic):
         embs.sort()
         v = [ self.hom([ e ], check=False) for e in embs ]
         put_natural_embedding_first(v)
-        self.__embeddings[self] = Sequence(v, cr = (v != []), immutable=True,
+        self.__embeddings[self] = Sequence(v, cr=(v != []), immutable=True,
                                         check=False, universe=self.Hom(self))
         return self.__embeddings[self]
 

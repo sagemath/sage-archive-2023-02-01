@@ -601,10 +601,10 @@ class FGP_Module_class(Module):
 
             sage: V = span([[1/2,1,1],[3/2,2,1],[0,0,1]],ZZ); W = V.span([2*V.0+4*V.1, 9*V.0+12*V.1, 4*V.2])
             sage: Q = V/W
-            sage: x = Q(V.0-V.1); x
+            sage: x = Q(V.0-V.1); x  # indirect doctest
             (0, 3)
             sage: type(x)
-            <class 'sage.modules.fg_pid.fgp_element.FGP_Element'>
+            <class 'sage.modules.fg_pid.fgp_element.FGP_Module_class_with_category.element_class'>
             sage: x is Q(x)
             True
             sage: x.parent() is Q
@@ -618,7 +618,7 @@ class FGP_Module_class(Module):
                 raise TypeError, msg
         elif isinstance(x, FGP_Element):
             x = x.lift()
-        return self.Element(self, self._V(x))
+        return self.element_class(self, self._V(x))
 
 
     def linear_combination_of_smith_form_gens(self, x):
@@ -637,7 +637,7 @@ class FGP_Module_class(Module):
             x = self.optimized()[0].V().linear_combination_of_basis(x)
         except ValueError, msg:
             raise TypeError, msg
-        return self.Element(self, self._V(x))
+        return self.element_class(self, self._V(x))
 
     def __contains__(self, x):
         """
@@ -1376,7 +1376,7 @@ class FGP_Module_class(Module):
             Traceback (most recent call last):
             ...
             ValueError: Images do not determine a valid homomorphism
-            sage: A.hom([B.0, B.0], B)
+            sage: A.hom([B.0, B.0], B)   # indirect doctest
             Morphism from module over Integer Ring with invariants (3,) to module with invariants (3,) that sends the generators to [(1), (1)]
 
         """

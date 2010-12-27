@@ -42,10 +42,12 @@ class FGP_Element(ModuleElement):
 
         sage: V = span([[1/2,1,1],[3/2,2,1],[0,0,1]],ZZ); W = V.span([2*V.0+4*V.1, 9*V.0+12*V.1, 4*V.2])
         sage: Q = V/W
-        sage: x = Q(V.0-V.1); x
+        sage: x = Q(V.0-V.1); x #indirect doctest
         (0, 3)
+        sage: isinstance(x, sage.modules.fg_pid.fgp_element.FGP_Element)
+        True
         sage: type(x)
-        <class 'sage.modules.fg_pid.fgp_element.FGP_Element'>
+        <class 'sage.modules.fg_pid.fgp_element.FGP_Module_class_with_category.element_class'>
         sage: x is Q(x)
         True
         sage: x.parent() is Q
@@ -72,7 +74,9 @@ class FGP_Element(ModuleElement):
             sage: V = span([[1/2,1,1],[3/2,2,1],[0,0,1]],ZZ); W = V.span([2*V.0+4*V.1, 9*V.0+12*V.1, 4*V.2])
             sage: Q = V/W
             sage: x = Q(V.0-V.1); type(x)
-            <class 'sage.modules.fg_pid.fgp_element.FGP_Element'>
+            <class 'sage.modules.fg_pid.fgp_element.FGP_Module_class_with_category.element_class'>
+            sage: isinstance(x,sage.modules.fg_pid.fgp_element.FGP_Element)
+            True
 
         For full documentation, see :class:`FGP_Element`.
         """
@@ -131,7 +135,8 @@ class FGP_Element(ModuleElement):
             sage: -A1.0 == A1.0           # order 2
             True
         """
-        return self.parent().Element(self.parent(), self._x.__neg__())
+        P = self.parent()
+        return P.element_class(P, self._x.__neg__())
 
 
     def _add_(self, other):
@@ -165,7 +170,8 @@ class FGP_Element(ModuleElement):
             sage: W.0 + Q.0 == Q.0
             True
         """
-        return self.parent().Element(self.parent(), self._x + other._x)
+        P = self.parent()
+        return P.element_class(P, self._x + other._x)
 
 
     def _sub_(self, other):
@@ -184,7 +190,8 @@ class FGP_Element(ModuleElement):
             sage: x - x
             (0, 0)
         """
-        return self.parent().Element(self.parent(), self._x - other._x)
+        P = self.parent()
+        return P.element_class(P, self._x - other._x)
 
 
     def _rmul_(self, c):
@@ -230,7 +237,8 @@ class FGP_Element(ModuleElement):
             (1/4, 0)
         """
         # print "_rmul_"
-        return self.parent().Element(self.parent(), self._x._rmul_(c))
+        P = self.parent()
+        return P.element_class(P, self._x._rmul_(c))
 
     def _lmul_(self, s):
         """
@@ -275,7 +283,8 @@ class FGP_Element(ModuleElement):
             (1/4, 0)
         """
         # print '_lmul_'
-        return self.parent().Element(self.parent(), self._x._lmul_(s))
+        P = self.parent()
+        return P.element_class(P, self._x._lmul_(s))
 
 
     def _repr_(self):

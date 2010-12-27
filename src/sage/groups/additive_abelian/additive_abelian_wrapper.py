@@ -120,7 +120,7 @@ class AdditiveAbelianGroupWrapperElement(addgp.AdditiveAbelianGroupElement):
             sage: T = EllipticCurve('65a').torsion_subgroup().gen(0)
             sage: T; type(T)
             (0 : 0 : 1)
-            <class 'sage.groups.additive_abelian.additive_abelian_wrapper.AdditiveAbelianGroupWrapperElement'>
+            <class 'sage.groups.additive_abelian.additive_abelian_wrapper.EllipticCurveTorsionSubgroup_with_category.element_class'>
             sage: T.element(); type(T.element())
             (0 : 0 : 1)
             <class 'sage.schemes.elliptic_curves.ell_point.EllipticCurvePoint_number_field'>
@@ -271,6 +271,6 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
         """
         if hasattr(x,"parent"):
             if x.parent() is self.universe():
-                return AdditiveAbelianGroupWrapperElement(self, self._discrete_log(x), element = x)
+                return self.element_class(self, self._discrete_log(x), element = x)
         return addgp.AdditiveAbelianGroup_fixed_gens._element_constructor_(self, x, check)
 

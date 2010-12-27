@@ -83,7 +83,7 @@ cdef class Module_old(sage.structure.parent_gens.ParentWithAdditiveAbelianGens):
 # class MyModule(sage.modules.module.Module):
 #     Element = MyElement
 #     def _element_constructor_(self, x):
-#         return self.Element(x)
+#         return self.element_class(x)
 #
 ### The Element should also implement _rmul_ (or _lmul_)
 #

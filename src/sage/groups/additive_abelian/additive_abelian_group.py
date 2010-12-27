@@ -143,7 +143,7 @@ def cover_and_relations_from_invariants(invs):
 
 class AdditiveAbelianGroupElement(FGP_Element):
     """
-    An element of a :class:`AdditiveAbelianGroup_class`.
+    An element of an :class:`AdditiveAbelianGroup_class`.
     """
 
     def _hermite_lift(self):
@@ -165,10 +165,12 @@ class AdditiveAbelianGroupElement(FGP_Element):
         """
         y = self.lift()
         H = self.parent().W().basis_matrix()
+        pivot_rows = H.pivot_rows()
+        pivots = H.pivots()
 
         for i in xrange(H.nrows()):
-            if i in H.pivot_rows():
-                j = H.pivots()[i]
+            if i in pivot_rows:
+                j = pivots[i]
                 N = H[i,j]
                 a = (y[j] - (y[j] % N)) // N
                 y = y - a*H.row(i)

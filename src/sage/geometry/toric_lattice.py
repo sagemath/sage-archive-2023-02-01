@@ -1247,7 +1247,7 @@ class ToricLattice_quotient(FGP_Module_class):
             sage: x
             N[1, 2, 3]
             sage: type(x)
-            <class 'sage.geometry.toric_lattice.ToricLattice_quotient_element'>
+            <class 'sage.geometry.toric_lattice.ToricLattice_quotient_with_category.element_class'>
             sage: x is Q(x)
             True
             sage: x.parent() is Q
@@ -1268,7 +1268,7 @@ class ToricLattice_quotient(FGP_Module_class):
             x = x.lift()
         except AttributeError:
             pass
-        return self.Element(self, self._V(x), **kwds)
+        return self.element_class(self, self._V(x), **kwds)
 
     def _latex_(self):
         r"""

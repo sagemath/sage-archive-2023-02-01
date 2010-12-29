@@ -1367,22 +1367,32 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
 
         # The non-trivial case P != Q
 
+        # Note (2010-12-29): The following code block should not be
+        # used.  It attempts to reduce the pairing calculation to order
+        # d = gcd(|P|,|Q|) instead of order n, but this approach is
+        # counterproductive, since calculating |P| and |Q| is much
+        # slower than calculating the pairing [BGN05].
+        #
+        # [BGN05] D. Boneh, E. Goh, and K. Nissim, "Evaluating 2-DNF
+        # Formulas on Ciphertexts", TCC 2005, LNCS 3378, pp. 325-341.
+        #
         # Reduction to order d = gcd(|P|,|Q|); value is a d'th root of unity
-        try:
-            nP = P.order()
-        except AttributeError:
-            nP = generic.order_from_multiple(P,n,operation='+')
-        try:
-            nQ = Q.order()
-        except AttributeError:
-            nQ = generic.order_from_multiple(Q,n,operation='+')
-        d = arith.gcd(nP,nQ)
-        if d==1:
-            return one
+        # try:
+        #     nP = P.order()
+        # except AttributeError:
+        #     nP = generic.order_from_multiple(P,n,operation='+')
+        # try:
+        #     nQ = Q.order()
+        # except AttributeError:
+        #     nQ = generic.order_from_multiple(Q,n,operation='+')
+        # d = arith.gcd(nP,nQ)
+        # if d==1:
+        #     return one
+        #
+        # P = (nP//d)*P # order d
+        # Q = (nQ//d)*Q # order d
+        # n = d
 
-        P = (nP//d)*P # order d
-        Q = (nQ//d)*Q # order d
-        n = d
         try:
             return ((-1)**n.test_bit(0))*(P._miller_(Q,n)/Q._miller_(P,n))
         except ZeroDivisionError, detail:

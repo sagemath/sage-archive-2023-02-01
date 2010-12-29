@@ -1471,6 +1471,24 @@ class FiniteWordPath_all(SageObject):
         projected_parent = WordPaths(A, nvvectors)
         return projected_parent(self)
 
+    def is_tangent(self):
+        r"""
+        The is_tangent() method, which is coded for words, has an extended
+        meaning for word paths, which is not coded yet.
+
+        TESTS::
+
+            sage: WordPaths('ab')('abbab').is_tangent()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+
+        AUTHOR:
+
+        -   Thierry Monteil
+        """
+        raise NotImplementedError
+
 class FiniteWordPath_2d(FiniteWordPath_all):
     def plot(self, pathoptions=dict(rgbcolor='red',thickness=3),
          fill=True, filloptions=dict(rgbcolor='red',alpha=0.2),

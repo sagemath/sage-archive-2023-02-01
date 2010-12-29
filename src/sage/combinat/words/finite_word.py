@@ -5169,6 +5169,300 @@ exponent %s: the length of the word (%s) times the exponent \
                     return False
         return True
 
+
+    def sturmian_desubstitute_as_possible(self):
+        r"""
+        Sturmian desubstitutes the word self as much as possible.
+
+        The word self must use at most two-letters. It can be Sturmian
+        desubstituted if one letter appears isolated: the Sturmian
+        desubstitution consist in removing one letter per run of the
+        non-isolated letter. The accelerated Sturmian desubstitution
+        consist in removing a run equal to the length of the shortest
+        inner run from any run of the non-isolated letter (including
+        possible leading and trailing runs even if they have shorter
+        length). The (accelerated) Sturmian desubstitution is done as much
+        as possible. A word is a factor of a Sturmian word if, and only
+        if, the result is the empty word.
+
+        INPUT:
+
+        - ``self`` - finite word defined on a two-letter alphabet.
+
+        OUTPUT:
+
+        - A finite word defined on the same two-letter alphabet.
+
+        EXAMPLES::
+
+            sage: u = Word('10111101101110111',alphabet='01') ; u
+            word: 10111101101110111
+            sage: v = u.sturmian_desubstitute_as_possible() ; v
+            word: 01100101
+            sage: v == v.sturmian_desubstitute_as_possible()
+            True
+
+            sage: Word('azaazaaazaaazaazaaaz', alphabet='az').sturmian_desubstitute_as_possible()
+            word:
+
+
+        TESTS::
+
+            sage: w = Word('azazaza', alphabet='aze')
+            sage: w.sturmian_desubstitute_as_possible()
+            word:
+            sage: Word('aze').sturmian_desubstitute_as_possible()
+            Traceback (most recent call last):
+            ...
+            TypeError: Your word must be defined on a binary alphabet or use at most two different letters.
+            sage: Word('azaaazaazaazaaazaaza', alphabet='az').sturmian_desubstitute_as_possible()
+            word:
+            sage: Word('azaaazaazaazaaazaaaza', alphabet='az').sturmian_desubstitute_as_possible()
+            word: azzaa
+
+        Boundary effects::
+
+            sage: Word('', alphabet='az').sturmian_desubstitute_as_possible()
+            word:
+            sage: Word('azzzzz', alphabet='az').sturmian_desubstitute_as_possible()
+            word:
+            sage: Word('zzzzza', alphabet='az').sturmian_desubstitute_as_possible()
+            word:
+            sage: Word('aaaaazaaaaaaaaa', alphabet='az').sturmian_desubstitute_as_possible()
+            word:
+            sage: Word('aaaaaaaaaaaaaa', alphabet='az').sturmian_desubstitute_as_possible()
+            word:
+
+        Boundary effects without alphabet::
+
+            sage: Word('').sturmian_desubstitute_as_possible()
+            word:
+            sage: Word('azzzzz').sturmian_desubstitute_as_possible()
+            word:
+            sage: Word('zzzzza').sturmian_desubstitute_as_possible()
+            word:
+            sage: Word('aaaaazaaaaaaaaa').sturmian_desubstitute_as_possible()
+            word:
+            sage: Word('aaaaaaaaaaaaaa').sturmian_desubstitute_as_possible()
+            word:
+
+        Idempotence::
+
+            sage: r = words.RandomWord(randint(1,15)).sturmian_desubstitute_as_possible() ; r == r.sturmian_desubstitute_as_possible()
+            True
+
+        AUTHOR:
+
+        -   Thierry Monteil
+        """
+        if self.is_empty():
+            return self
+        W = self.parent()
+        if (W.size_of_alphabet() == 2):
+            alphabet = W.alphabet()
+        else:
+            alphabet_as_set = set(self)
+            if len(alphabet_as_set) > 2:
+                raise TypeError, 'Your word must be defined on a binary alphabet or use at most two different letters.'
+            elif len(alphabet_as_set) < 2:
+                return W()
+            else:
+                alphabet = list(alphabet_as_set)
+        is_prefix = True
+        current_run_length = 0
+        prefix_length = 0
+        prefix_letter = self[0]
+        is_isolated = {alphabet[0]:True,alphabet[1]:True}
+        minimal_run = {alphabet[0]:Infinity,alphabet[1]:Infinity}
+        maximal_run = {alphabet[0]:0,alphabet[1]:0}
+        runs = {alphabet[0]:[],alphabet[1]:[]}
+        for i in self:
+            if is_prefix:
+                if i == prefix_letter:
+                    prefix_length += 1
+                    if prefix_length > 1:
+                        is_isolated[i] = False
+                else:
+                    is_prefix = False
+                    current_run_length = 1
+                    previous_letter = i
+            else:
+                if i == previous_letter:
+                    current_run_length += 1
+                    if current_run_length > 1:
+                        is_isolated[i] = False
+                else:
+                    runs[previous_letter].append(current_run_length)
+                    minimal_run[previous_letter] = min(minimal_run[previous_letter],current_run_length)
+                    maximal_run[previous_letter] = max(maximal_run[previous_letter],current_run_length)
+                    current_run_length = 1
+                    previous_letter = i
+        # at his point, previous_letter is the suffix letter and current_run_length is the suffix length
+        if not (is_isolated[alphabet[0]] or is_isolated[alphabet[1]]):
+            return self
+        elif is_isolated[alphabet[0]] and is_isolated[alphabet[1]]:
+            return W()
+        else:
+            if is_isolated[alphabet[0]]:
+                l_isolated = alphabet[0] #the isolated letter
+                l_running = alphabet[1] #the running letter (non-isolated)
+            else:
+                l_isolated = alphabet[1]
+                l_running = alphabet[0]
+            w_isolated = W(l_isolated,datatype='letter') #the word associated to the isolated letter
+            w_running = W(l_running,datatype='letter') #the word associated to the running letter
+            min_run = minimal_run[l_running]
+            if (prefix_letter == l_isolated) or (prefix_length <= min_run):
+                desubstitued_word = W()
+            else:
+                desubstitued_word = w_running ** (prefix_length - min_run)
+            for i in runs[l_running]:
+                desubstitued_word = desubstitued_word + w_isolated + w_running ** (i - min_run)
+            if (current_run_length > 0):
+                desubstitued_word = desubstitued_word + w_isolated
+                if (previous_letter == l_running) and (current_run_length > min_run):
+                    desubstitued_word = desubstitued_word + w_running ** (current_run_length - min_run)
+            return desubstitued_word.sturmian_desubstitute_as_possible()
+
+
+    def is_sturmian_factor(self):
+        r"""
+        Tells whether self is a factor of a Sturmian word.
+
+        Equivalently, tells whether self is balanced. The advantage over
+        the is_balanced method is that this one runs in linear time
+        whereas is_balanced runs in quadratic time. The word self must be
+        definied on a two-letter alphabet.
+
+        INPUT:
+
+        - ``self`` -- finite word defined on a two-letter alphabet.
+
+        OUTPUT:
+
+        - boolean -- the result.
+
+        EXAMPLES::
+
+            sage: w = Word('0111011011011101101',alphabet='01')
+            sage: w.is_sturmian_factor()
+            True
+
+        ::
+
+            sage: words.LowerMechanicalWord(random(),alphabet='01')[:100].is_sturmian_factor()
+            True
+            sage: words.CharacteristicSturmianWord(random())[:100].is_sturmian_factor()
+            True
+
+        ::
+
+            sage: w = Word('aabb',alphabet='ab')
+            sage: w.is_sturmian_factor()
+            False
+
+        Famous words::
+
+            sage: words.FibonacciWord()[:100].is_sturmian_factor()
+            True
+            sage: words.ThueMorseWord()[:1000].is_sturmian_factor()
+            False
+            sage: words.KolakoskiWord()[:1000].is_sturmian_factor()
+            False
+
+        REFERENCES::
+
+        -   P. Arnoux, Sturmian sequences, in Substitutions in Dynamics,
+            N. Pytheas Fogg (Ed.), Arithmetics, and Combinatorics (Lecture
+            Notes in Mathematics, Vol. 1794), 2002.
+
+        -   C. Series. The geometry of Markoff numbers. The Mathematical
+            Intelligencer, 7(3):20–29, 1985.
+
+        -   J. Smillie and C. Ulcigrai. Symbolic coding for linear
+            trajectories in the regular octagon. Preprint available at
+            http://arxiv.org/abs/0905.0871, 2009.
+
+        AUTHOR:
+
+        -   Thierry Monteil
+        """
+        return self.sturmian_desubstitute_as_possible().is_empty()
+
+
+    def is_tangent(self):
+        r"""
+        Tells whether self is a tangent word.
+
+        A binary word is said to be tangent if it can appear in the
+        cutting sequences of a smooth curve to arbitrary small scale.
+        This class of words strictly contains the class of 1-balanced
+        words, and is strictly contained in the class of 2-balanced words.
+
+        This method runs in linear time.
+
+        INPUT:
+
+        - ``self`` -- finite word defined on a two-letter alphabet.
+
+        OUTPUT:
+
+        - boolean -- the result.
+
+        EXAMPLES::
+
+            sage: w = Word('01110110110111011101',alphabet='01')
+            sage: w.is_tangent()
+            True
+
+        Some tangent words may not be balanced::
+
+            sage: Word('aabb',alphabet='ab').is_balanced()
+            False
+            sage: Word('aabb',alphabet='ab').is_tangent()
+            True
+
+        Some 2-balanced words may not be tangent::
+
+            sage: Word('aaabb',alphabet='ab').is_tangent()
+            False
+            sage: Word('aaabb',alphabet='ab').is_balanced(2)
+            True
+
+        Famous words::
+
+            sage: words.FibonacciWord()[:100].is_tangent()
+            True
+            sage: words.ThueMorseWord()[:1000].is_tangent()
+            True
+            sage: words.KolakoskiWord()[:1000].is_tangent()
+            False
+
+        REFERENCES:
+
+        -   T. Monteil, The asymptotic language of smooth curves, LaCIM2010.
+
+        AUTHOR:
+
+        -   Thierry Monteil
+        """
+        if (self.parent().size_of_alphabet() != 2):
+            raise TypeError, 'Your word must be defined on a binary alphabet '
+        [a,b] = self.parent().alphabet()
+        mini = 0
+        maxi = 0
+        height = 0
+        for i in self.sturmian_desubstitute_as_possible():
+            if i == a:
+                height = height + 1
+                maxi = max(maxi , height)
+            if i == b:
+                height = height - 1
+                mini = min(mini , height)
+        return (maxi - mini <= 2)
+
+
+
     # TODO.
     # 1. Those three swap functions should use the cmp of python.
     # 2. The actual code should then be copied as is in the Word_over_Alphabet

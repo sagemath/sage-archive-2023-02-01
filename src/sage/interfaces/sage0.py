@@ -361,8 +361,8 @@ class Sage(Expect):
             sage: sage0.get('x')
             '2'
             sage: sage0.clear('x')
-            sage: sage0.get('x')
-            "...NameError: name 'x' is not defined"
+            sage: 'NameError' in sage0.get('x')
+            True
         """
         self.eval('del %s'%var)
 

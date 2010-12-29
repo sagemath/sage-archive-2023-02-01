@@ -1,3 +1,14 @@
+r"""
+Common Digraphs
+
+Generators for common digraphs.
+
+AUTHORS:
+
+- Robert L. Miller (2006)
+- Emily A. Kirkman (2006)
+- Michael C. Yurko (2009)
+"""
 
 ################################################################################
 #           Copyright (C) 2006 Robert L. Miller <rlmillster@gmail.com>

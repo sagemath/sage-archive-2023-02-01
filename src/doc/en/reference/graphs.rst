@@ -21,6 +21,7 @@ Constructors and databases
    :maxdepth: 1
 
    sage/graphs/graph_generators
+   sage/graphs/digraph_generators
    sage/graphs/graph_database
 
 

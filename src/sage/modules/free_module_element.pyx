@@ -2175,6 +2175,93 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
                 return (~self[i]) * self
         return self
 
+    def conjugate(self):
+        r"""
+        Returns a vector where every entry has been replaced by its complex conjugate.
+
+        OUTPUT:
+
+        A vector of the same length, over the same ring,
+        but with each entry replaced by the complex conjugate, as
+        implemented by the ``conjugate()`` method for elements of
+        the base ring, which is presently always complex conjugation.
+
+        EXAMPLES::
+
+            sage: v = vector(CDF, [2.3 - 5.4*I, -1.7 + 3.6*I])
+            sage: w = v.conjugate(); w
+            (2.3 + 5.4*I, -1.7 - 3.6*I)
+            sage: w.parent()
+            Vector space of dimension 2 over Complex Double Field
+
+        Even if conjugation seems nonsensical over a certain ring, this
+        method for vectors cooperates silently. ::
+
+            sage: u = vector(ZZ, range(6))
+            sage: u.conjugate()
+            (0, 1, 2, 3, 4, 5)
+
+        Sage implements a few specialized subfields of the complex numbers,
+        such as the cyclotomic fields.  This example uses such a field
+        containing a primitive 7-th root of unity named ``a``. ::
+
+            sage: F.<a> = CyclotomicField(7)
+            sage: v = vector(F, [a^i for i in range(7)])
+            sage: v
+            (1, a, a^2, a^3, a^4, a^5, -a^5 - a^4 - a^3 - a^2 - a - 1)
+            sage: v.conjugate()
+            (1, -a^5 - a^4 - a^3 - a^2 - a - 1, a^5, a^4, a^3, a^2, a)
+
+        Sparse vectors are returned as such. ::
+
+            sage: v = vector(CC, {1: 5 - 6*I, 3: -7*I}); v
+            (0, 5.00... - 6.00...*I, 0, -7.00...*I)
+            sage: v.is_sparse()
+            True
+            sage: vc = v.conjugate(); vc
+            (0, 5.00... + 6.00...*I, 0, 7.00...*I)
+            sage: vc.conjugate()
+            (0, 5.00... - 6.00...*I, 0, -7.00...*I)
+
+        TESTS::
+
+            sage: n = 15
+            sage: x = vector(CDF, [sin(i*pi/n)+cos(i*pi/n)*I for i in range(n)])
+            sage: x + x.conjugate() in RDF^n
+            True
+            sage: I*(x - x.conjugate()) in RDF^n
+            True
+
+        The parent of the conjugate is the same as that of the orginal vector.
+        We test this by building a specialized vector space with a non-standard
+        inner product, and constructing a test vector in this space. ::
+
+            sage: V = VectorSpace(CDF, 2, inner_product_matrix = [[2,1],[1,5]])
+            sage: v = vector(CDF, [2-3*I, 4+5*I])
+            sage: w = V(v)
+            sage: w.parent()
+            Ambient quadratic space of dimension 2 over Complex Double Field
+            Inner product matrix:
+            [2.0 1.0]
+            [1.0 5.0]
+            sage: w.conjugate().parent()
+            Ambient quadratic space of dimension 2 over Complex Double Field
+            Inner product matrix:
+            [2.0 1.0]
+            [1.0 5.0]
+        """
+        V = self.parent()
+        R = self.base_ring()
+        degree = self.degree()
+        if self.is_sparse():
+            # this could be a dictionary comprehension in Python 3
+            entries = {}
+            for index, entry in self.iteritems():
+                entries[index] = entry.conjugate()
+        else:
+            entries = [entry.conjugate() for entry in self]
+        return V(vector(R, degree, entries))
+
     def inner_product(self, right):
         """
         Returns the inner product of self and other, with respect to the

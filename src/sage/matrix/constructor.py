@@ -799,6 +799,90 @@ def ncols_from_dict(d):
 
 Matrix = matrix
 
+def column_matrix(*args, **kwds):
+    r"""
+    Constructs a matrix, and then swaps rows for columns and columns for rows.
+
+    .. note::
+
+        Linear algebra in Sage favors rows over columns.  So, generally,
+        when creating a matrix, input vectors and lists are treated as rows.
+        This function is a convenience that turns around this convention
+        when creating a matrix.  If you are not familiar with the usual
+        :func:`matrix` constructor, you might want to consider it first.
+
+    INPUT:
+
+    Inputs are almost exactly the same as for the :func:`matrix`
+    constructor, which are documented there.  But see examples below
+    for how dimensions are handled.
+
+    OUTPUT:
+
+    Output is exactly the transpose of what the :func:`matrix`
+    constructor would return.  In other words, the ``matrix``
+    constructor builds a matrix and then this function exchanges
+    rows for columns, and columns for rows.
+
+    EXAMPLES:
+
+    The most compelling use of this function is when you have
+    a collection of lists or vectors that you would like to
+    become the columns of a matrix. In almost any other
+    situation, the :func:`matrix` constructor can probably do
+    the job just as easily, or easier. ::
+
+        sage: col_1 = [1,2,3]
+        sage: col_2 = [4,5,6]
+        sage: column_matrix([col_1, col_2])
+        [1 4]
+        [2 5]
+        [3 6]
+
+        sage: v1 = vector(QQ, [10, 20])
+        sage: v2 = vector(QQ, [30, 40])
+        sage: column_matrix(QQ, [v1, v2])
+        [10 30]
+        [20 40]
+
+    If you only specify one dimension along with a flat list of entries,
+    then it will be the number of columns in the result (which is different
+    from the behavior of the ``matrix`` constructor).  ::
+
+        sage: column_matrix(ZZ, 8, range(24))
+        [ 0  3  6  9 12 15 18 21]
+        [ 1  4  7 10 13 16 19 22]
+        [ 2  5  8 11 14 17 20 23]
+
+    And when you specify two dimensions, then they should be number of
+    columns first, then the number of rows, which is the reverse of how
+    they would be specified for the ``matrix`` constructor. ::
+
+        sage: column_matrix(QQ, 5, 3, range(15))
+        [ 0  3  6  9 12]
+        [ 1  4  7 10 13]
+        [ 2  5  8 11 14]
+
+    And a few unproductive, but illustrative, examples. ::
+
+        sage: A = matrix(ZZ, 3, 4, range(12))
+        sage: B = column_matrix(ZZ, 3, 4, range(12))
+        sage: A == B.transpose()
+        True
+
+        sage: A = matrix(QQ, 7, 12, range(84))
+        sage: A == column_matrix(A.columns())
+        True
+
+        sage: A=column_matrix(QQ, matrix(ZZ, 3, 2, range(6)) )
+        sage: A
+        [0 2 4]
+        [1 3 5]
+        sage: A.parent()
+        Full MatrixSpace of 2 by 3 dense matrices over Rational Field
+    """
+    return matrix(*args, **kwds).transpose()
+
 
 def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds):
     r"""

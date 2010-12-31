@@ -355,6 +355,9 @@ class Sage(Expect):
         """
         Clear the variable named var.
 
+        Note that the exact format of the NameError for a cleared variable
+        is slightly platform dependent, see trac #10539.
+
         EXAMPLES::
 
             sage: sage0.set('x', '2')

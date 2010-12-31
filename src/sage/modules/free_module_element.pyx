@@ -268,21 +268,19 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
         sage: vector({1:1.1, 3:3.14})
         (0.000000000000000, 1.10000000000000, 0.000000000000000, 3.14000000000000)
 
-    It is very unlikely that giving a degree and a dictionary will succeed. ::
-
-        sage: v = vector(QQ, 8, {0:1/2, 4:-6}); v
-        Traceback (most recent call last):
-        ...
-        TypeError: cannot specify the degree of a vector while entries are given by a dictionary
-
-    Instead, provide a "terminal" element (likely a zero) to fill out
-    the vector to the desired number of entries.  ::
+    With no degree given, a dictionary of entries implicitly declares a
+    degree by the largest index (key) present.  So you can provide a
+    terminal element (perhaps a zero?) to set the degree.  But it is probably safer
+    to just include a degree in your construction.  ::
 
         sage: v = vector(QQ, {0:1/2, 4:-6, 7:0}); v
         (1/2, 0, 0, 0, -6, 0, 0, 0)
         sage: v.degree()
         8
         sage: v.is_sparse()
+        True
+        sage: w = vector(QQ, 8, {0:1/2, 4:-6})
+        sage: w == v
         True
 
     It is an error to specify a negative degree. ::
@@ -291,6 +289,14 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
         Traceback (most recent call last):
         ...
         ValueError: cannot specify the degree of a vector as a negative integer (-4)
+
+    And it is an error to specify an index in a dictionary
+    that is greater than or equal to a requested degree. ::
+
+        sage: vector(ZZ, 10, {3:4, 7:-2, 10:637})
+        Traceback (most recent call last):
+        ...
+        ValueError: dictionary of entries has a key (index) exceeding the requested degree
 
     Any 1 dimensional numpy array of type float or complex may be
     passed to vector. The result will be a vector in the appropriate
@@ -347,18 +353,28 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
     if hasattr(arg1, '_vector_'):
         return arg1._vector_(arg0)
 
+    # consider a possible degree specified in second argument
+    degree = None
+    maxindex = None
     if sage.rings.integer.is_Integer(arg1) or isinstance(arg1,(int,long)):
         if arg1 < 0:
             raise ValueError("cannot specify the degree of a vector as a negative integer (%s)" % arg1)
         if isinstance(arg2, dict):
-            raise TypeError("cannot specify the degree of a vector while entries are given by a dictionary")
+            maxindex = max([-1]+[index for index in arg2])
+            if not maxindex < arg1:
+                raise ValueError("dictionary of entries has a key (index) exceeding the requested degree")
+        # arg1 is now a legitimate degree
+        # replace it with a zero list or a dictionary, or a size-checked iterable
+        # so then down to just two arguments
+        degree = arg1
         if arg2 is None:
-            arg1 = [0]*arg1
+            arg1 = [0]*degree
         else:
-            if len(arg2) != arg1:
+            if not isinstance(arg2, dict) and len(arg2) != degree:
                 raise ValueError, "incompatible degrees in vector constructor"
             arg1 = arg2
 
+    # Analyze arg0 and arg1 to create a ring (R) and entries (v)
     if is_Ring(arg0):
         R = arg0
         v = arg1
@@ -385,13 +401,16 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
                 return _v
 
     if isinstance(v, dict):
+        if degree is None:
+            degree = max([-1]+[index for index in v])+1
         if sparse is None:
             sparse = True
-        v, R = prepare_dict(v, R)
     else:
+        degree = None
         if sparse is None:
             sparse = False
-        v, R = prepare(v, R)
+
+    v, R = prepare(v, R, degree)
 
     if sparse:
         import free_module  # slow -- can we improve
@@ -401,54 +420,76 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
 
 free_module_element = vector
 
-def prepare(v, R):
-    """
-    Find a common ring (using R as universe) that contains every
-    element of v, and replace v with the sequence of elements in v
-    coerced to this ring.  For more details, see the
-    sage.structure.sequence.Sequence object.
+def prepare(v, R, degree=None):
+    r"""
+    Converts an object describing elements of a vector into a list of entries in a common ring.
 
     INPUT:
 
-        - v -- list or tuple
-        - R -- ring or None
+    - ``v`` - a dictionary with non-negative integers as keys,
+      or a list or other object that can be converted to Sequence
+    - ``R`` - a ring containing all the entries, possibly given as ``None``
+    - ``degree`` -  a requested size for the list when the input is a dictionary,
+      otherwise ignored
+
+    OUTPUT:
+
+    A pair.
+
+    The first item is a list of the values specified in the object ``v``.
+    If the object is a dictionary , entries are placed in the list
+    according to the indices that were their keys in the dictionary,
+    and the remainder of the entries are zero.  The value of
+    ``degree`` is assumed to be larger than any index provided
+    in the dictionary and will be used as the number of entries
+    in the returned list.
+
+    The second item returned is a ring that contains all of
+    the entries in the list. If ``R`` is given, the entries
+    are coerced in.  Otherwise a common ring is found. For
+    more details, see the
+    :class:`~sage.structure.sequence.Sequence` object.
+
 
     EXAMPLES::
 
-        sage: sage.modules.free_module_element.prepare([1,2/3,5],None)
+        sage: from sage.modules.free_module_element import prepare
+        sage: prepare([1,2/3,5],None)
         ([1, 2/3, 5], Rational Field)
-        sage: sage.modules.free_module_element.prepare([1,2/3,5],RR)
+
+        sage: prepare([1,2/3,5],RR)
         ([1.00000000000000, 0.666666666666667, 5.00000000000000], Real Field with 53 bits of precision)
-        sage: sage.modules.free_module_element.prepare([1,2/3,'10',5],None)
+
+        sage: prepare({1:4, 3:-2}, ZZ, 6)
+        ([0, 4, 0, -2, 0, 0], Integer Ring)
+
+        sage: prepare({3:1, 5:3}, QQ, 6)
+        ([0, 0, 0, 1, 0, 3], Rational Field)
+
+        sage: prepare([1,2/3,'10',5],RR)
+        ([1.00000000000000, 0.666666666666667, 10.0000000000000, 5.00000000000000], Real Field with 53 bits of precision)
+
+        sage: prepare({},QQ, 0)
+        ([], Rational Field)
+
+        sage: prepare([1,2/3,'10',5],None)
         Traceback (most recent call last):
         ...
         TypeError: unable to find a common ring for all elements
-        sage: sage.modules.free_module_element.prepare([1,2/3,'10',5],RR)
-        ([1.00000000000000, 0.666666666666667, 10.0000000000000, 5.00000000000000], Real Field with 53 bits of precision)
+
     """
+    if isinstance(v, dict):
+        # convert to a list
+        X = [0]*degree
+        for key, value in v.iteritems():
+            X[key] = value
+        v = X
+    # convert to a Sequence over common ring
     v = Sequence(v, universe=R, use_sage_types=True)
     ring = v.universe()
     if not is_Ring(ring):
         raise TypeError, "unable to find a common ring for all elements"
     return v, ring
-
-def prepare_dict(w, R):
-    """
-    EXAMPLES::
-
-        sage: from sage.modules.free_module_element import prepare_dict
-        sage: prepare_dict({3:1 , 5:3}, QQ)
-        ([0, 0, 0, 1, 0, 3], Rational Field)
-        sage: prepare_dict({},QQ)
-        ([], Rational Field)
-    """
-    Z = w.items()
-    cdef Py_ssize_t n
-    n = max([-1]+[key for key,value in Z])+1
-    X = [0]*n
-    for key, value in Z:
-        X[key] = value
-    return prepare(X, R)
 
 def zero_vector(arg0, arg1=None):
     r"""

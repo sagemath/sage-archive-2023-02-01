@@ -2204,6 +2204,108 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             w = M.coordinate_vector(right)
             return A.linear_combination_of_rows(v).dot_product(w)
 
+    def outer_product(self, right):
+        r"""
+        Returns a matrix, the outer product of two vectors ``self`` and ``right``.
+
+        INPUT:
+
+        - ``right`` - a vector (or free module element) of any size, whose
+          elements are compatible (with regard to multiplication) with the
+          elements of ``self``.
+
+        OUTPUT:
+
+        The outer product of two vectors `x` and `y` (respectively
+        ``self`` and ``right``) can be described several ways.  If we
+        interpret `x` as a `m\times 1` matrix and interpret `y` as a
+        `1\times n` matrix, then the outer product is the `m\times n`
+        matrix from the usual matrix product `xy`.  Notice how this
+        is the "opposite" in some ways from an inner product (which
+        would require `m=n`).
+
+        If we just consider vectors, use each entry of `x` to create
+        a scalar multiples of the vector `y` and use these vectors as
+        the rows of a matrix.  Or use each entry of `y` to create a
+        scalar multiples of `x` and use these vectors as the columns
+        of a matrix.
+
+        EXAMPLES::
+
+            sage: u = vector(QQ, [1/2, 1/3, 1/4, 1/5])
+            sage: v = vector(ZZ, [60, 180, 600])
+            sage: u.outer_product(v)
+            [ 30  90 300]
+            [ 20  60 200]
+            [ 15  45 150]
+            [ 12  36 120]
+            sage: M = v.outer_product(u); M
+            [ 30  20  15  12]
+            [ 90  60  45  36]
+            [300 200 150 120]
+            sage: M.parent()
+            Full MatrixSpace of 3 by 4 dense matrices over Rational Field
+
+        The result is always a dense matrix, no matter if the two
+        vectors are, or are not, dense.  ::
+
+            sage: d = vector(ZZ,[4,5], sparse=False)
+            sage: s = vector(ZZ, [1,2,3], sparse=True)
+            sage: dd = d.outer_product(d)
+            sage: ds = d.outer_product(s)
+            sage: sd = s.outer_product(d)
+            sage: ss = s.outer_product(s)
+            sage: all([dd.is_dense(), ds.is_dense(), sd.is_dense(), dd.is_dense()])
+            True
+
+        Vectors with no entries do the right thing.  ::
+
+            sage: v = vector(ZZ, [])
+            sage: z = v.outer_product(v)
+            sage: z.parent()
+            Full MatrixSpace of 0 by 0 dense matrices over Integer Ring
+
+        There is a fair amount of latitude in the value of the ``right``
+        vector, and the matrix that results can have entries from a new
+        ring large enough to contain the result. If you know better,
+        you can sometimes bring the result down to a less general ring.  ::
+
+            sage: R.<t> = ZZ[]
+            sage: v = vector(R, [12, 24*t])
+            sage: w = vector(QQ, [1/2, 1/3, 1/4])
+            sage: op = v.outer_product(w)
+            sage: op
+            [   6    4    3]
+            [12*t  8*t  6*t]
+            sage: op.base_ring()
+            Univariate Polynomial Ring in t over Rational Field
+            sage: m = op.change_ring(R); m
+            [   6    4    3]
+            [12*t  8*t  6*t]
+            sage: m.base_ring()
+            Univariate Polynomial Ring in t over Integer Ring
+
+        But some inputs are not compatible, even if vectors. ::
+
+            sage: w = vector(QQ, [1/2,1/3])
+            sage: v = vector(GF(7), [1,2,3,4])
+            sage: z = w.outer_product(v)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '*': 'Full MatrixSpace of 2 by 1 dense matrices over Rational Field' and 'Full MatrixSpace of 1 by 4 dense matrices over Finite Field of size 7'
+
+        And some inputs don't make any sense at all. ::
+
+            sage: w=vector(QQ, [5,10])
+            sage: z=w.outer_product(6)
+            Traceback (most recent call last):
+            ...
+            TypeError: right operand in an outer product must be a vector, not an element of Integer Ring
+        """
+        if not PY_TYPE_CHECK(right, FreeModuleElement):
+            raise TypeError('right operand in an outer product must be a vector, not an element of %s' % right.parent())
+        return self.column()*right.row()
+
     def is_dense(self):
         """
         Return True if this is a dense vector, which is just a

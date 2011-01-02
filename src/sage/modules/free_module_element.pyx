@@ -744,10 +744,17 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         r"""
         Return self as a column matrix.
 
+        .. note::
+
+            The ``transpose()`` method has been deprecated as of Sage 4.6.2,
+            in favor of the :meth:`column` method which is functionally identical.
+
         EXAMPLES::
 
             sage: v = vector(ZZ, [2, 12, 22])
             sage: transpose(vector(v))
+            doctest:...: DeprecationWarning: (Since Sage Version 4.6.2) The transpose() method for vectors has been deprecated, use column() instead
+            (or check to see if you have a vector when you really want a matrix)
             [ 2]
             [12]
             [22]
@@ -766,6 +773,8 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             [12]
             [22]
         """
+        from sage.misc.misc import deprecation
+        deprecation('The transpose() method for vectors has been deprecated, use column() instead\n(or check to see if you have a vector when you really want a matrix)', 'Sage Version 4.6.2')
         return self._matrix_().transpose()
 
     def row(self):
@@ -840,7 +849,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
         A matrix over the same ring as the vector (or free module element), with
         a single column.  The entries of the column are identical to those of the
-        vector, and in the same order. ::
+        vector, and in the same order.
 
         EXAMPLES::
 
@@ -862,7 +871,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         There is more than one way to get one-column matrix from a vector.
         The ``column`` method is about equally efficient to making a row and
         then taking a transpose.  Notice that supplying a vector to the
-        matrix constructor demonstrates Sage's preference for rows.
+        matrix constructor demonstrates Sage's preference for rows. ::
 
             sage: x = vector(RDF, [sin(i*pi/20) for i in range(10)])
             sage: x.column() == matrix(x).transpose()

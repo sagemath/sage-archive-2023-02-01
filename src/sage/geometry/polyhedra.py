@@ -4856,7 +4856,7 @@ class Polyhedron(SageObject):
             v_list.append(vector(v_coords))
 
         # Finally, construct the graph
-        Qinv = sum( v.transpose() * matrix(v) for v in v_list ).inverse()
+        Qinv = sum( v.column() * v.row() for v in v_list ).inverse()
         G = Graph(dense=True)
         for i in range(0,len(v_list)):
             for j in range(i+1,len(v_list)):

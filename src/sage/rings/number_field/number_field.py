@@ -5855,7 +5855,7 @@ class NumberField_absolute(NumberField_generic):
             [ 1.00000000000000 0.740078950105127  2.84732210186307]
             [ 1.41421356237...  3.7193258428... -2.01336076644...]
             [0.000000000000000  1.54308184421... 0.40107945302...]
-            sage: F.Minkowski_embedding() * (alpha + 2).vector().transpose()
+            sage: F.Minkowski_embedding() * (alpha + 2).vector().column()
             [0.740078950105127]
             [ 3.7193258428...]
             [ 1.54308184421...]

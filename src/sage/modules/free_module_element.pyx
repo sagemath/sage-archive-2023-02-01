@@ -688,8 +688,9 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         """
         if R is None:
             R = self.base_ring()
+        sparse = self.is_sparse()
         from sage.matrix.constructor import matrix
-        return matrix(R, [list(self)])
+        return matrix(R, [list(self)], sparse=sparse)
 
     def _sage_input_(self, sib, coerce):
         r"""
@@ -766,6 +767,139 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             [22]
         """
         return self._matrix_().transpose()
+
+    def row(self):
+        r"""
+        Return a matrix with a single row and the same entries as the vector ``self``.
+
+        OUTPUT:
+
+        A matrix over the same ring as the vector (or free module element), with
+        a single row.  The entries of the row are identical to those of the vector,
+        and in the same order.
+
+        EXAMPLES::
+
+            sage: v = vector(ZZ, [1,2,3])
+            sage: w = v.row(); w
+            [1 2 3]
+            sage: w.parent()
+            Full MatrixSpace of 1 by 3 dense matrices over Integer Ring
+
+            sage: x = vector(FiniteField(13), [2,4,8,16])
+            sage: x.row()
+            [2 4 8 3]
+
+        There is more than one way to get one-row matrix from a vector,
+        but the ``row`` method is more efficient than making a column and
+        then taking a transpose.  Notice that supplying a vector to the
+        matrix constructor demonstrates Sage's preference for rows. ::
+
+            sage: x = vector(RDF, [sin(i*pi/20) for i in range(10)])
+            sage: x.row() == matrix(x)
+            True
+            sage: x.row() == x.column().transpose()
+            True
+
+        Sparse or dense implementations are preserved. ::
+
+            sage: d = vector(RR, [1.0, 2.0, 3.0])
+            sage: s = vector(CDF, {2:5.0+6.0*I})
+            sage: dm = d.row()
+            sage: sm = s.row()
+            sage: all([d.is_dense(), dm.is_dense(), s.is_sparse(), sm.is_sparse()])
+            True
+
+        TESTS:
+
+        The :meth:`~sage.matrix.matrix1.Matrix.row` method will return
+        a specified row of a matrix as a vector.  So here are a couple
+        of round-trips. ::
+
+            sage: A = matrix(ZZ, [[1,2,3]])
+            sage: A == A.row(0).row()
+            True
+            sage: v = vector(ZZ, [4,5,6])
+            sage: v == v.row().row(0)
+            True
+
+        And a very small corner case. ::
+
+            sage: v = vector(ZZ, [])
+            sage: w = v.row()
+            sage: w.parent()
+            Full MatrixSpace of 1 by 0 dense matrices over Integer Ring
+        """
+        return self._matrix_(R=None)
+
+    def column(self):
+        r"""
+        Return a matrix with a single column and the same entries as the vector ``self``.
+
+        OUTPUT:
+
+        A matrix over the same ring as the vector (or free module element), with
+        a single column.  The entries of the column are identical to those of the
+        vector, and in the same order. ::
+
+        EXAMPLES::
+
+            sage: v = vector(ZZ, [1,2,3])
+            sage: w = v.column(); w
+            [1]
+            [2]
+            [3]
+            sage: w.parent()
+            Full MatrixSpace of 3 by 1 dense matrices over Integer Ring
+
+            sage: x = vector(FiniteField(13), [2,4,8,16])
+            sage: x.column()
+            [2]
+            [4]
+            [8]
+            [3]
+
+        There is more than one way to get one-column matrix from a vector.
+        The ``column`` method is about equally efficient to making a row and
+        then taking a transpose.  Notice that supplying a vector to the
+        matrix constructor demonstrates Sage's preference for rows.
+
+            sage: x = vector(RDF, [sin(i*pi/20) for i in range(10)])
+            sage: x.column() == matrix(x).transpose()
+            True
+            sage: x.column() == x.row().transpose()
+            True
+
+        Sparse or dense implementations are preserved. ::
+
+            sage: d = vector(RR, [1.0, 2.0, 3.0])
+            sage: s = vector(CDF, {2:5.0+6.0*I})
+            sage: dm = d.column()
+            sage: sm = s.column()
+            sage: all([d.is_dense(), dm.is_dense(), s.is_sparse(), sm.is_sparse()])
+            True
+
+        TESTS:
+
+        The :meth:`~sage.matrix.matrix1.Matrix.column` method will return
+        a specified column of a matrix as a vector.  So here are a couple
+        of round-trips. ::
+
+            sage: A = matrix(ZZ, [[1],[2],[3]])
+            sage: A == A.column(0).column()
+            True
+            sage: v = vector(ZZ, [4,5,6])
+            sage: v == v.column().column(0)
+            True
+
+        And a very small corner case. ::
+
+            sage: v = vector(ZZ, [])
+            sage: w = v.row()
+            sage: w.parent()
+            Full MatrixSpace of 1 by 0 dense matrices over Integer Ring
+        """
+        return self._matrix_(R=None).transpose()
 
     def _hash(self):
         """

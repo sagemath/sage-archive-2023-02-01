@@ -2643,7 +2643,7 @@ def random_echelonizable_matrix(parent, rank, upper_bound=None):
     return matrix
 
 def random_subspaces_matrix(parent, rank=None):
-    """
+    r"""
     Create a matrix of the designated size and rank whose right and
     left null spaces, column space, and row space have desirable
     properties that simplify the subspaces.
@@ -2704,6 +2704,7 @@ def random_subspaces_matrix(parent, rank=None):
         [  0   0   0   0   0   0   0   0   1   0  -5   0  -3   2]
         [  0   0   0   0   0   0   0   0   0   1   1   0   1  -3]
         [  0   0   0   0   0   0   0   0   0   0   0   1  -1   1]
+        sage: B_expanded.set_immutable()
         sage: B_expanded.subdivide(B.nrows()-B.nullity(),B.ncols());B_expanded # random
         [  1   3   0   0   1   1   3  -2|  0   0  -3   0  -9  16]
         [  0   0   1   0   3  -2  -1  -3|  0   0   2   0  11 -27]

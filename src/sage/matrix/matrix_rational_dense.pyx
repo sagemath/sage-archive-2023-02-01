@@ -1424,7 +1424,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
     def echelon_form(self, algorithm='default',
                      height_guess=None, proof=None, **kwds):
-        """
+        r"""
         INPUT:
 
         -  ``algorithm``
@@ -1465,6 +1465,20 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             [      0       1       0  -5/157]
             [      0       0       1 238/157]
             [      0       0       0       0]
+
+        The result is an immutable matrix, so a copy is necessary
+        if you want a result you can change somehow.  This exercises a
+        fix for Trac #10543.
+
+            sage: A = matrix(QQ, 2, range(6))
+            sage: E = A.echelon_form()
+            sage: E.is_mutable()
+            False
+            sage: F = copy(E)
+            sage: F[0,0] = 50
+            sage: F
+            [50  0 -1]
+            [ 0  1  2]
         """
         label = 'echelon_form'
         x = self.fetch(label)
@@ -1486,6 +1500,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             E = self._echelon_form_multimodular(height_guess, proof=proof)
         else:
             raise ValueError("no algorithm '%s'"%algorithm)
+        E.set_immutable()
         self.cache(label, E)
         self.cache('pivots', E.pivots())
         return E

@@ -286,13 +286,13 @@ class DiGraphGenerators():
             g.add_edge(n-1,0)
             return g
 
-    def DeBruijn(self,n,k):
+    def DeBruijn(self,k,n):
         r"""
-        Returns the De Bruijn diraph with parameters `n,k`.
+        Returns the De Bruijn diraph with parameters `k,n`.
 
-        The De Bruijn diraph with parameters `n,k` is built
+        The De Bruijn digraph with parameters `k,n` is built
         upon a set of vertices equal to the set of words of
-        length `k` from a dictionary of `n` letters.
+        length `n` from a dictionary of `k` letters.
 
         In this digraph, there is an arc `w_1w_2` if `w_2`
         can be obtained from `w_1` by removing the leftmost
@@ -303,18 +303,18 @@ class DiGraphGenerators():
 
         INPUT:
 
-        - ``n`` -- Two possibilities for this parameter :
+        - ``k`` -- Two possibilities for this parameter :
               - an integer equal to the cardinality of the
                 alphabet to use.
               - An iterable object to be used as the set
                 of letters
-        - ``k`` -- An integer equal to the length of words in
+        - ``n`` -- An integer equal to the length of words in
           the De Bruijn digraph.
 
         EXAMPLES::
 
             sage: db=digraphs.DeBruijn(2,2); db
-            De Bruijn digraph (n=2, k=2): Looped digraph on 4 vertices
+            De Bruijn digraph (k=2, n=2): Looped digraph on 4 vertices
             sage: db.order()
             4
             sage: db.size()
@@ -323,29 +323,30 @@ class DiGraphGenerators():
         TESTS::
 
             sage: digraphs.DeBruijn(5,0)
-            De Bruijn digraph (n=5, k=0): Looped multi-digraph on 1 vertex
+            De Bruijn digraph (k=5, n=0): Looped multi-digraph on 1 vertex
             sage: digraphs.DeBruijn(0,0)
-            De Bruijn digraph (n=0, k=0): Looped multi-digraph on 0 vertices
+            De Bruijn digraph (k=0, n=0): Looped multi-digraph on 0 vertices
 
         """
         from sage.combinat.words.words import Words
+        from sage.rings.integer import Integer
 
-        W = Words(n, k)
-        A = Words(n, 1)
+        W = Words(range(k) if isinstance(k, Integer) else k, n)
+        A = Words(range(k) if isinstance(k, Integer) else k, 1)
         g = DiGraph(loops=True)
 
-        if k == 0 :
+        if n == 0 :
             g.allow_multiple_edges(True)
             v = W[0]
             for a in A:
-                g.add_edge(v, v, a)
+                g.add_edge(v.string_rep(), v.string_rep(), a.string_rep())
         else:
             for w in W:
                 ww = w[1:]
                 for a in A:
-                    g.add_edge(w, ww*a, a)
+                    g.add_edge(w.string_rep(), (ww*a).string_rep(), a.string_rep())
 
-        g.name( "De Bruijn digraph (n=%s, k=%s)"%(n,k) )
+        g.name( "De Bruijn digraph (k=%s, n=%s)"%(k,n) )
         return g
 
 

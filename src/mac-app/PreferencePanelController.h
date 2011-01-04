@@ -9,6 +9,7 @@
 
 @interface PreferencePanelController : NSObject {
     IBOutlet id appController;
+    IBOutlet id prefWindow;
 
     IBOutlet id showInDock;
     IBOutlet id TerminalApplescript;
@@ -19,6 +20,7 @@
 
 - (IBAction)apply:(id)sender;
 - (IBAction)resetTerminalApplescript:(id)sender;
+- (IBAction)addToPATH:(id)sender;
 - (void)windowDidBecomeKey:(NSNotification *)aNotification;
 - (void)comboBoxWillDismiss:(NSNotification *)notification;
 - (void)controlTextDidEndEditing:(NSNotification *)aNotification;

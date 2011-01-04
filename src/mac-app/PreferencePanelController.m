@@ -102,6 +102,44 @@
     }
 }
 
+-(IBAction)addToPATH:(id)sender{
+
+    NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+    [alert addButtonWithTitle:@"~/bin"];
+    [alert addButtonWithTitle:@"/usr/local/bin"];
+    [alert addButtonWithTitle:@"Cancel"];
+    [alert setMessageText:@"Install link to Sage"];
+    [alert setInformativeText:@"You are about to install a link to sage in one of two directories which are often in PATH. Any prior version of sage there will be overwritten. If you add it to /usr/local/bin it will require administrator privileges and will be available for all users of this computer.\nIf you install in ~/bin it will be available only for you, and you should make sure that you add it to PATH yourself.  You can do this by adding to your ~/.profile (creating if it doesn't exists):\nPATH=$PATH:~/bin"];
+    [alert setAlertStyle:NSWarningAlertStyle];
+
+    [alert beginSheetModalForWindow:prefWindow
+                      modalDelegate:self
+                     didEndSelector:@selector(alertDidEnd:returnCode:contextInfo:)
+                        contextInfo:nil];
+}
+
+
+- (void)alertDidEnd:(NSAlert *)alert returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo {
+
+    if (returnCode == NSAlertFirstButtonReturn) {
+        // ~/bin
+        // Yes we could do all of this without a shell script, but all the Obj-C methods require 10.5
+        [appController terminalRun:
+         [NSString stringWithFormat: @"mkdir -p ~/bin; rm -f ~/bin/sage; ln -s '%@' ~/bin/sage",
+          [[NSUserDefaults standardUserDefaults] objectForKey:@"SageBinary"]]];
+
+    } else if (returnCode == NSAlertSecondButtonReturn) {
+
+        // take the easy way out with respect to administrator privileges
+        [appController terminalRun:
+         [NSString stringWithFormat: @"sudo rm -f /usr/local/bin/sage; sudo ln -s '%@' /usr/local/bin/sage",
+          [[NSUserDefaults standardUserDefaults] objectForKey:@"SageBinary"]]];
+
+    } else {
+        // Cancel
+    }
+}
+
 // This actually ensures the data will be correct
 // http://www.cocoabuilder.com/archive/cocoa/221619-detecting-when-nscombobox-text-changed-by-list.html
 - (void)controlTextDidEndEditing:(NSNotification *)aNotification{

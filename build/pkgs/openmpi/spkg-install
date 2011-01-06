@@ -1,0 +1,27 @@
+#!/bin/sh
+
+cd src
+
+./configure --prefix="$SAGE_LOCAL" --with-f90-max-array-dim=0 --disable-mpi-f77 --disable-mpi-f90 --with-mpi-f90-size=trivial
+
+if [ $? -ne 0 ]; then
+    echo "Error configuring"
+    exit 1
+fi
+
+
+$MAKE
+
+
+if [ $? -ne 0 ]; then
+    echo "Error building"
+    exit 1
+fi
+
+$MAKE install
+
+
+if [ $? -ne 0 ]; then
+    echo "Error installing"
+    exit 1
+fi

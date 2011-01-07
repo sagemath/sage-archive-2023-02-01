@@ -1589,7 +1589,7 @@ def load(filename, globals, attach=False):
     if fpath.endswith('.py'):
         execfile(fpath, globals)
     elif fpath.endswith('.sage'):
-        exec(preparse_file(open(fpath).read()), globals)
+        exec(preparse_file(open(fpath).read()) + "\n", globals)
     elif fpath.endswith('.spyx') or fpath.endswith('.pyx'):
         import interpreter
         exec(interpreter.load_cython(fpath), globals)

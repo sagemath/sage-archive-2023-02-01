@@ -1,4 +1,4 @@
-"""
+r"""
 Decorate interface for parallel computation
 """
 
@@ -12,7 +12,7 @@ from use_fork import p_iter_fork
 import multiprocessing_sage
 
 def normalize_input(a):
-    """
+    r"""
     Convert a to a pair (args, kwds) using some rules:
 
         * if already of that form, leave that way.
@@ -21,12 +21,16 @@ def normalize_input(a):
         * otherwise make ((a,),{})
 
     INPUT:
-        a -- object
+
+     - ``a`` -- object
+
     OUTPUT:
-        args -- tuple
-        kwds -- dictionary
+
+    args -- tuple
+    kwds -- dictionary
 
     EXAMPLES:
+
         sage: sage.parallel.decorate.normalize_input( (2, {3:4}) )
         ((2, {3: 4}), {})
         sage: sage.parallel.decorate.normalize_input( (2,3) )
@@ -47,7 +51,7 @@ def normalize_input(a):
 
 
 class Parallel:
-    """
+    r"""
     Create parallel decorated function.
 
     """
@@ -76,19 +80,30 @@ class Parallel:
                 self.p_iter = p_iter
 
     def __call__(self, f):
-        """
+        r"""
         Create a function that wraps f and that when called with a
         list of inputs returns an iterator over pairs
              (x, f(x))
-        in possibly random order.   Here x is replaced by its
+        in possibly random order. Here x is replaced by its
         normalized form (args, kwds) using normalize_inputs.
 
         INPUT:
-            f -- Python callable object or function
+
+         - ``f`` -- Python callable object or function
+
         OUTPUT:
-            decorated version of f
+
+        decorated version of f
 
         EXAMPLES:
+
+            sage: from sage.parallel.decorate import Parallel
+            sage: p = Parallel()
+            sage: f = x^2-1
+            sage: p(f)
+            <function g at ...
+            sage: p(f)(x=5)
+            24
 
         """
         # Construct the wrapper parallel version of the function we're wrapping.
@@ -102,24 +117,23 @@ class Parallel:
         return g
 
 def parallel(p_iter = 'fork', ncpus=None, **kwds):
-    """
+    r"""
     This is a decorator that gives a function a parallel interface,
-    allowing it to be called with a list of inputs, whose valuaes will
+    allowing it to be called with a list of inputs, whose values will
     be computed in parallel.
 
     INPUT:
 
-        - ``p_iter`` -- parallel iterator function or string:
+     - ``p_iter`` -- parallel iterator function or string:
             - 'fork'            -- (default) use a new fork for each input
             - 'multiprocessing' -- use multiprocessing library
             - 'reference'       -- use a fake serial reference implementation
-        - ``ncpus`` -- integer, number of cpus
-        - ``timeout`` -- number of seconds until task is killed (only supported by 'fork')
+     - ``ncpus`` -- integer, number of cpus
+     - ``timeout`` -- number of seconds until task is killed (only supported by 'fork')
 
+    EXAMPLES:
 
-    EXAMPLES::
-
-    We create a simple decoration for a simple function.  The nummber
+    We create a simple decoration for a simple function. The number
     of cpus is automatically detected::
 
         sage: @parallel

@@ -1,4 +1,4 @@
-"""
+r"""
 Hyperelliptic curves over a finite field
 
 EXAMPLES::
@@ -31,6 +31,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         a_1, ..., a_g modulo p^B determine frobenius polynomial uniquely.
 
         TESTS::
+
             sage: R.<t> = PolynomialRing(GF(37))
             sage: HyperellipticCurve(t^3 + t + 1)._frobenius_coefficient_bound()
             1
@@ -78,6 +79,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         over GF(p^1), and must have p > (2g+1)(2N-1).
 
         TESTS::
+
             sage: R.<t> = PolynomialRing(GF(37))
             sage: H = HyperellipticCurve(t^5 + t + 2)
             sage: H._frobenius_matrix()
@@ -120,12 +122,16 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         Charpoly of frobenius, as an element of ZZ[x].
 
         TESTS::
+
             sage: R.<t> = PolynomialRing(GF(37))
             sage: H = HyperellipticCurve(t^5 + t + 2)
             sage: H.frobenius_polynomial()
             x^4 + x^3 - 52*x^2 + 37*x + 1369
 
         A quadratic twist:
+
+        ::
+
             sage: H = HyperellipticCurve(2*t^5 + 2*t + 4)
             sage: H.frobenius_polynomial()
             x^4 - x^3 - 52*x^2 - 37*x + 1369

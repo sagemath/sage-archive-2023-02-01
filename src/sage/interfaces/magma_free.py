@@ -29,21 +29,39 @@ def magma_free_eval(code, strip=True, columns=0):
         sage: magma_free("Factorization(9290348092384)")  # optional - internet
         [ <2, 5>, <290323377887, 1> ]
     """
-    import urllib
-    url = "http://magma.maths.usyd.edu.au/calc/"
+    import urllib, httplib
+    from xml.dom.minidom import parseString
+    from string import join
+
+    server = "magma.maths.usyd.edu.au"
+    processPath = "/xml/calculator.xml"
+    refererPath = "/calc/"
+    refererUrl = "http://%s%s" % ( server, refererPath)
     code = "SetColumns(%s);\n"%columns + code
-    urldata = urllib.urlencode({'commands':code})
-    results = urllib.urlopen(url, urldata).read()
-    if strip:
-        i = results.find('-----\n\n') + 7
-        j = results.rfind('\n\nTotal time')
-    else:
-        i = results.find('Magma V')
-        j = results.rfind('</textarea>')
+    params = urllib.urlencode({'input':code})
+    headers = {"Content-type": "application/x-www-form-urlencoded", "Accept":"Accept: text/html, application/xml, application/xhtml+xml", "Referer": refererUrl}
+    conn = httplib.HTTPConnection(server)
+    conn.request("POST", processPath, params, headers)
+    response = conn.getresponse()
+    results = response.read()
+    conn.close()
+
+    xmlDoc = parseString(results)
+    res = []
+    reslutsNodeList = xmlDoc.getElementsByTagName('results')
+    if len(reslutsNodeList) > 0:
+        reslutsNode = reslutsNodeList[0]
+        lines = reslutsNode.getElementsByTagName('line')
+        if len(reslutsNodeList) > 0:
+            for line in lines:
+                textNode = line.childNodes[0]
+                res.append(textNode.data)
+    res = join(res, "\n")
+
     class MagmaExpr(str):
-       def __repr__(self):
-          return str(self)
-    return MagmaExpr(results[i:j])
+        def __repr__(self):
+            return str(self)
+    return MagmaExpr(res)
 
 class MagmaFree:
     """

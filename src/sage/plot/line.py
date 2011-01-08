@@ -418,7 +418,7 @@ def line2d(points, **options):
 
     A line with no points or one point::
 
-        sage: line([])
+        sage: line([])      #returns an empty plot
         sage: line([(1,1)])
 
     A line with a legend::
@@ -431,6 +431,8 @@ def line2d(points, **options):
         sage: line([(0,1), (3,4)]).show(figsize=[10, 2]) # These are equivalent
     """
     from sage.plot.plot import Graphics, xydata_from_point_list
+    if points == []:
+        return Graphics()
     xdata, ydata = xydata_from_point_list(points)
     g = Graphics()
     g._set_extra_kwds(Graphics._extract_kwds_for_show(options))

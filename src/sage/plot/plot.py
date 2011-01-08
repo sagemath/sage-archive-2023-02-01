@@ -2766,6 +2766,13 @@ def plot(funcs, *args, **kwds):
 
         sage: plot([sin(n*x) for n in [1..4]], (0, pi))
 
+    We can also build a plot step by step from an empty plot::
+
+        sage: a = plot([]); a       # passing an empty list returns an empty plot (Graphics() object)
+        sage: a += plot(x**2); a    # append another plot
+        sage: a += plot(x**3); a    # append yet another plot
+
+
     The function `\sin(1/x)` wiggles wildly near `0`.
     Sage adapts to this and plots extra points near the origin.
 
@@ -3061,6 +3068,8 @@ def _plot(funcs, xrange, parametric=False,
               polar=False, fill=False, label='', randomize=True, **options):
 
     from sage.plot.misc import setup_for_eval_on_grid
+    if funcs == []:
+        return Graphics()
     funcs, ranges = setup_for_eval_on_grid(funcs, [xrange], options['plot_points'])
     xmin, xmax, delta = ranges[0]
     xrange=ranges[0][:2]
@@ -3071,7 +3080,6 @@ def _plot(funcs, xrange, parametric=False,
     #or we have only a single function to be plotted:
     else:
         f = funcs
-
 
     #check to see if funcs is a list of functions that will
     #be all plotted together.
@@ -3453,6 +3461,9 @@ def list_plot(data, plotjoined=False, **kwargs):
     If given a dictionary, ``list_plot`` interprets the keys as
     `x`-values and the values as `y`-values.
 
+    It is possible to pass empty dictionaries, lists, or tuples to list_plot.
+    Doing so will plot nothing (returning an unchanged plot).
+
     EXAMPLES::
 
         sage: list_plot([i^2 for i in range(5)])
@@ -3500,6 +3511,8 @@ def list_plot(data, plotjoined=False, **kwargs):
         100.0
     """
     from sage.plot.all import line, point
+    if data == {} or data == () or data == []:
+        return Graphics()
     if isinstance(data, dict):
         if plotjoined:
             list_data = sorted(list(data.iteritems()))

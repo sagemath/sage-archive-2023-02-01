@@ -326,6 +326,10 @@ def point2d(points, **options):
 
         sage: point((0.5, 0.5), rgbcolor=hue(0.75))
 
+    Passing an empty list returns an empty plot::
+
+        sage: point([])
+
     If you need a 2D point to live in 3-space later,
     this is possible::
 
@@ -364,6 +368,8 @@ def point2d(points, **options):
         sage: point((3,4), pointsize=100)
     """
     from sage.plot.plot import xydata_from_point_list, Graphics
+    if points == []:
+        return Graphics()
     xdata, ydata = xydata_from_point_list(points)
     g = Graphics()
     g._set_extra_kwds(Graphics._extract_kwds_for_show(options))

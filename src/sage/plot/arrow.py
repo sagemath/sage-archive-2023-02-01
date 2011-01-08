@@ -405,6 +405,11 @@ def arrow2d(tailpoint=None, headpoint=None, path=None, **options):
 
         sage: line([(0,0),(1,0)],thickness=10)+line([(0,1),(1,1)], thickness=10)+arrow2d((0.5,0),(0.5,1), arrowshorten=10,rgbcolor=(1,0,0))
 
+    If BOTH headpoint and tailpoint are None, then an empty plot is returned::
+
+        sage: arrow2d(headpoint=None, tailpoint=None)
+
+
     We can also draw an arrow with a legend::
 
         sage: arrow((0,0), (0,2), legend_label='up')
@@ -423,6 +428,8 @@ def arrow2d(tailpoint=None, headpoint=None, path=None, **options):
         g.add_primitive(Arrow(xtail, ytail, xhead, yhead, options=options))
     elif path is not None:
         g.add_primitive(CurveArrow(path, options=options))
+    elif tailpoint is None and headpoint is None:
+        return g
     else:
         raise TypeError('Arrow requires either both headpoint and tailpoint or a path parameter.')
     if options['legend_label']:

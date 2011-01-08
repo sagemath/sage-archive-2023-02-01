@@ -13,6 +13,8 @@ EXAMPLES::
 #*****************************************************************************
 #  Copyright (C) 2006 David Kohel <kohel@maths.usyd.edu>
 #  Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
+#  Copyright (C) 2010  Alyson Deines <aly.deines@gmail.com>, Marina Gresham
+#  <marina.gresham@coloradocollege.edu>, Gagan Sekhon <gagan.d.sekhon@gmail.com>
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
@@ -20,6 +22,10 @@ EXAMPLES::
 from sage.rings.all import ZZ, RR, binomial
 import hyperelliptic_generic
 from sage.schemes.hyperelliptic_curves.hypellfrob import hypellfrob
+from sage.matrix.matrix_space import MatrixSpace
+from sage.misc.cachefunc import cached_method
+from sage.matrix.constructor import identity_matrix, matrix
+from sage.misc.functional import rank
 
 
 class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_generic):
@@ -336,4 +342,505 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
 
         return self.__points
 
+
+    #This where Cartier Matrix is actually computed. This is either called by E.Cartier_matrix, E.a_number, or E.Hasse_Witt
+    @cached_method
+    def _Cartier_matrix_cached(self):
+        r"""
+        INPUT:
+        - 'E' - Hyperelliptic Curve of the form `y^2 = f(x)` over a finite field, `\mathbb{F}_q`
+
+        OUTPUT:
+        - matrix(Fq,M)' The matrix $M = (c_(pi-j)), f(x)^((p-1)/2) = \sum c_i x^i$
+        - 'Coeff' List of Coeffs of F, this is needed for Hasse-Witt function.
+        - 'g' genus of the curve self, this is needed by a-number.
+        - 'Fq' is the base field of self, and it is needed for Hasse-Witt
+        - 'p' is the char(Fq), this is needed for Hasse-Witt.
+        - 'E' The initial elliptic curve to check some caching conditions.
+
+        EXAMPLES::
+
+            sage: K.<x>=GF(9,'x')[]
+            sage: C=HyperellipticCurve(x^7-1,0)
+            sage: C._Cartier_matrix_cached()
+            (
+            [0 0 2]
+            [0 0 0]
+            [0 1 0], [2, 0, 0, 0, 0, 0, 0, 1, 0], 3, Finite Field in x of size 3^2, 3, Hyperelliptic Curve over Finite Field in x of size 3^2 defined by y^2 = x^7 + 2
+            )
+            sage: K.<x>=GF(49,'x')[]
+            sage: C=HyperellipticCurve(x^5+1,0)
+            sage: C._Cartier_matrix_cached()
+            (
+            [0 3]
+            [0 0], [1, 0, 0, 0, 0, 3, 0, 0, 0, 0, 3, 0, 0, 0, 0, 1], 2, Finite Field in x of size 7^2, 7, Hyperelliptic Curve over Finite Field in x of size 7^2 defined by y^2 = x^5 + 1
+            )
+
+
+            sage: P.<x>=GF(9,'a')[]
+            sage: C=HyperellipticCurve(x^29+1,0)
+            sage: C._Cartier_matrix_cached()
+            (
+            [0 0 1 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 1 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 1 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 1 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [1 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 1 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 1 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 1 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 1 0], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 14, Finite Field in a of size 3^2, 3, Hyperelliptic Curve over Finite Field in a of size 3^2 defined by y^2 = x^29 + 1
+            )
+
+        TESTS::
+
+            sage: K.<x>=GF(2,'x')[]
+            sage: C=HyperellipticCurve(x^7-1,0)
+            sage: C._Cartier_matrix_cached()
+            Traceback (most recent call last):
+            ...
+            ValueError: p must be odd
+
+
+            sage: K.<x>=GF(5,'x')[]
+            sage: C=HyperellipticCurve(x^7-1,2)
+            sage: C._Cartier_matrix_cached()
+            Traceback (most recent call last):
+            ...
+            ValueError: E must be of the form y^2 = f(x)
+
+
+            sage: K.<x>=GF(5,'x')[]
+            sage: C=HyperellipticCurve(x^8-1,0)
+            sage: C._Cartier_matrix_cached()
+            Traceback (most recent call last):
+            ...
+            ValueError: In this implementation the degree of f must be odd
+
+
+            sage: K.<x>=GF(5,'x')[]
+            sage: C=HyperellipticCurve(x^5+1,0)
+            sage: C._Cartier_matrix_cached()
+            Traceback (most recent call last):
+            ...
+            ValueError: so curve is not smooth
+
+        """
+
+        #Compute the finite field and prime p.
+        Fq=self.base_ring();
+        p=Fq.characteristic()
+        #checks
+
+        if p == 2:
+            raise ValueError, "p must be odd";
+
+
+        g = self.genus()
+
+        #retrieve the function f(x) ,where y^2=f(x)
+        f,h = self.hyperelliptic_polynomials()
+        #This implementation only deals with h=0
+        if h!=0:
+            raise ValueError, "E must be of the form y^2 = f(x)"
+
+        d = f.degree()
+        #this implementation is for odd degree only, even degree will be handled later.
+        if d%2 == 0:
+            raise ValueError, "In this implementation the degree of f must be odd"
+        #Compute resultant to make sure no repeated roots
+        df=f.derivative()
+        R=df.resultant(f)
+        if R == 0:
+            raise ValueError, "so curve is not smooth"
+
+        #computing F, since the entries of the matrix are c_i where F= \sum c_i x^i
+
+        F = f**((p-1)/2)
+
+        #coefficients returns a_0, ... , a_n where f(x) = a_n x^n + ... + a_0
+
+        Coeff = F.list()
+
+        #inserting zeros when necessary-- that is, when deg(F) < p*g-1, (simplified if p <2g-1)
+        #which is the highest powered coefficient needed for our matrix
+        #So we don't have enough coefficients we add extra zeros to have the same poly,
+        #but enough coeff.
+
+        zeros = [0 for i in range(p*g-len(Coeff))]
+        Coeff = Coeff + zeros
+
+        # compute each row of matrix as list and then M=list of lists(rows)
+
+        M=[];
+        for j in range(1,g+1):
+            H=[Coeff[i] for i in range((p*j-1), (p*j-g-1),-1)]
+            M.append(H);
+        return matrix(Fq,M), Coeff, g, Fq,p, self
+
+
+    #This is what is called from command line
+    def Cartier_matrix(self):
+        r"""
+        INPUT:
+
+        - ``E`` : Hyperelliptic Curve of the form `y^2 = f(x)` over a finite field, `\mathbb{F}_q`
+
+        OUTPUT:
+
+
+        - ``M``: The matrix `M = (c_{pi-j})`, where `c_i` are the coeffients of  `f(x)^{(p-1)/2} = \sum c_i x^i`
+
+        Reference-N. Yui. On the Jacobian varieties of hyperelliptic curves over fields of characteristic `p > 2`.
+
+        EXAMPLES::
+
+            sage: K.<x>=GF(9,'x')[]
+            sage: C=HyperellipticCurve(x^7-1,0)
+            sage: C.Cartier_matrix()
+            [0 0 2]
+            [0 0 0]
+            [0 1 0]
+
+            sage: K.<x>=GF(49,'x')[]
+            sage: C=HyperellipticCurve(x^5+1,0)
+            sage: C.Cartier_matrix()
+            [0 3]
+            [0 0]
+
+            sage: P.<x>=GF(9,'a')[]
+            sage: E=HyperellipticCurve(x^29+1,0)
+            sage: E.Cartier_matrix()
+            [0 0 1 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 1 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 1 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 1 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [1 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 1 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 1 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 1 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 1 0]
+
+        TESTS::
+
+            sage: K.<x>=GF(2,'x')[]
+            sage: C=HyperellipticCurve(x^7-1,0)
+            sage: C.Cartier_matrix()
+            Traceback (most recent call last):
+            ...
+            ValueError: p must be odd
+
+
+            sage: K.<x>=GF(5,'x')[]
+            sage: C=HyperellipticCurve(x^7-1,2)
+            sage: C.Cartier_matrix()
+            Traceback (most recent call last):
+            ...
+            ValueError: E must be of the form y^2 = f(x)
+
+
+            sage: K.<x>=GF(5,'x')[]
+            sage: C=HyperellipticCurve(x^8-1,0)
+            sage: C.Cartier_matrix()
+            Traceback (most recent call last):
+            ...
+            ValueError: In this implementation the degree of f must be odd
+
+
+            sage: K.<x>=GF(5,'x')[]
+            sage: C=HyperellipticCurve(x^5+1,0)
+            sage: C.Cartier_matrix()
+            Traceback (most recent call last):
+            ...
+            ValueError: so curve is not smooth
+
+        """
+        #checking first that Cartier matrix is not already cached. Since it can be called by either Hasse_Witt or a_number
+        #This way it does not matter which function is called first in the code.
+
+        A=self._Cartier_matrix_cached.get_cache()
+        if len(A) !=0:
+            if A.items()[-1][-1][-1]==self:
+                M,Coeffs,g, Fq, p,E = A.items()[-1][1];
+            else:
+                A.clear()
+                M, Coeffs,g, Fq, p, E= self._Cartier_matrix_cached()
+        else:
+            A.clear()
+            M, Coeffs,g, Fq, p, E = self._Cartier_matrix_cached()
+        return M
+
+    #This where Hasse_Witt is actually computed. This is either called by E.Hasse_Witt or p_rank
+    @cached_method
+    def _Hasse_Witt_cached(self):
+        r"""
+        INPUT:
+
+        - ``E`` : Hyperelliptic Curve of the form `y^2 = f(x)` over a finite field, `\mathbb{F}_q`
+
+        OUTPUT:
+
+        - ``N`` : The matrix `N = M M^p \dots M^{p^{g-1}}` where `M = c_{pi-j}, f(x)^{(p-1)/2} = \sum c_i x^i`
+        - ``E`` : The initial curve to check some caching conditions.
+
+        EXAMPLES::
+
+            sage: K.<x>=GF(9,'x')[]
+            sage: C=HyperellipticCurve(x^7-1,0)
+            sage: C._Hasse_Witt_cached()
+            (
+            [0 0 0]
+            [0 0 0]
+            [0 0 0], Hyperelliptic Curve over Finite Field in x of size 3^2 defined by y^2 = x^7 + 2
+            )
+
+            sage: K.<x>=GF(49,'x')[]
+            sage: C=HyperellipticCurve(x^5+1,0)
+            sage: C._Hasse_Witt_cached()
+            (
+            [0 0]
+            [0 0], Hyperelliptic Curve over Finite Field in x of size 7^2 defined by y^2 = x^5 + 1
+            )
+
+            sage: P.<x>=GF(9,'a')[]
+            sage: C=HyperellipticCurve(x^29+1,0)
+            sage: C._Hasse_Witt_cached()
+            (
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0], Hyperelliptic Curve over Finite Field in a of size 3^2 defined by y^2 = x^29 + 1
+            )
+
+        """
+
+
+
+        # If Cartier Matrix is already cached for this curve, use that or evaluate it to get M,
+        #Coeffs, genus, Fq=base field of self, p=char(Fq). This is so we have one less matrix to
+        #compute.
+
+        #We use caching here since Cartier matrix is needed to compute Hasse Witt. So if the Cartier
+        #is already computed it is stored in list A. If it was not cached (i.e. A is empty), we simply
+        #compute it. If it is cached then we need to make sure that we have the correct one. So check
+        #which curve does the matrix correspond to. Since caching stores a lot of stuff, we only check
+        #the last entry in A. If it does not match, clear A and compute Cartier.
+        A=self._Cartier_matrix_cached.get_cache()
+        if len(A) !=0:
+            if A.items()[-1][-1][-1]==self:
+                M,Coeffs,g, Fq, p,E = A.items()[-1][1];
+            else:
+                A.clear()
+                M, Coeffs,g, Fq, p, E= self._Cartier_matrix_cached()
+        else:
+            A.clear()
+            M, Coeffs,g, Fq, p, E = self._Cartier_matrix_cached()
+
+        #This compute the action of p^kth Frobenius  on list of coefficients
+        def frob_mat(Coeffs, k):
+            a = p**k
+            mat = []
+            Coeffs_pow = [c**a for c in Coeffs]
+            for i in range(1,g+1):
+                H=[(Coeffs[j]) for j in range((p*i-1), (p*i - g-1), -1)]
+                mat.append(H);
+            return matrix(Fq,mat)
+
+
+
+        #Computes all the different possible action of frobenius on matrix M and stores in list Mall
+        Mall = [M] + [frob_mat(Coeffs,k) for k in range(1,g)]
+
+        #initial N=I, so we can go through Mall and multiply all matrices with I and
+        #get the Hasse-Witt matrix.
+        N = identity_matrix(Fq,g)
+        for l in Mall:
+            N = N*l;
+        return N, E
+
+    #This is the function which is actually called by command line
+    def Hasse_Witt(self):
+        r"""
+        INPUT:
+
+        - ``E`` : Hyperelliptic Curve of the form `y^2 = f(x)` over a finite field, `\mathbb{F}_q`
+
+        OUTPUT:
+
+        - ``N`` : The matrix `N = M M^p \dots M^{p^{g-1}}` where `M = c_{pi-j}`, and `f(x)^{(p-1)/2} = \sum c_i x^i`
+
+
+
+        Reference-N. Yui. On the Jacobian varieties of hyperelliptic curves over fields of characteristic `p > 2`.
+
+        EXAMPLES::
+
+            sage: K.<x>=GF(9,'x')[]
+            sage: C=HyperellipticCurve(x^7-1,0)
+            sage: C.Hasse_Witt()
+            [0 0 0]
+            [0 0 0]
+            [0 0 0]
+
+            sage: K.<x>=GF(49,'x')[]
+            sage: C=HyperellipticCurve(x^5+1,0)
+            sage: C.Hasse_Witt()
+            [0 0]
+            [0 0]
+
+            sage: P.<x>=GF(9,'a')[]
+            sage: E=HyperellipticCurve(x^29+1,0)
+            sage: E.Hasse_Witt()
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+
+
+        """
+        A=self._Hasse_Witt_cached.get_cache()
+        if len(A) !=0:
+            if A.items()[-1][-1][-1]==self:
+                N, E = A.items()[-1][1];
+            else:
+                A.clear()
+                N, E= self._Hasse_Witt_cached()
+        else:
+            A.clear()
+            N, E= self._Hasse_Witt_cached()
+        return N
+
+    def a_number(self):
+        r"""
+        INPUT:
+
+        - ``E``: Hyperelliptic Curve of the form `y^2 = f(x)` over a finite field, `\mathbb{F}_q`
+
+        OUTPUT:
+
+        - ``a`` : a-number
+
+
+         EXAMPLES::
+
+            sage: K.<x>=GF(49,'x')[]
+            sage: C=HyperellipticCurve(x^5+1,0)
+            sage: C.a_number()
+            1
+
+            sage: K.<x>=GF(9,'x')[]
+            sage: C=HyperellipticCurve(x^7-1,0)
+            sage: C.a_number()
+            1
+
+            sage: P.<x>=GF(9,'a')[]
+            sage: E=HyperellipticCurve(x^29+1,0)
+            sage: E.a_number()
+            5
+
+
+
+        """
+        #We use caching here since Cartier matrix is needed to compute a_number. So if the Cartier
+        #is already computed it is stored in list A. If it was not cached (i.e. A is empty), we simply
+        #compute it. If it is cached then we need to make sure that we have the correct one. So check
+        #which curve does the matrix correspond to. Since caching stores a lot of stuff, we only check
+        #the last entry in A. If it does not match, clear A and compute Cartier.
+
+        A=self._Cartier_matrix_cached.get_cache()
+        if len(A) !=0:
+            if A.items()[-1][-1][-1]==self:
+                M,Coeffs,g, Fq, p,E = A.items()[-1][1];
+            else:
+                A.clear()
+                M,Coeffs,g, Fq, p,E= self._Cartier_matrix_cached()
+        else:
+            A.clear()
+            M,Coeffs,g, Fq, p,E= self._Cartier_matrix_cached()
+
+        a=g-rank(M);
+        return a;
+    def p_rank(self):
+        r"""
+        INPUT:
+
+        - ``E`` : Hyperelliptic Curve of the form `y^2 = f(x)` over a finite field, `\mathbb{F}_q`
+
+        OUTPUT:
+
+        - ``pr`` :p-rank
+
+
+        EXAMPLES::
+
+            sage: K.<x>=GF(49,'x')[]
+            sage: C=HyperellipticCurve(x^5+1,0)
+            sage: C.p_rank()
+            0
+
+            sage: K.<x>=GF(9,'x')[]
+            sage: C=HyperellipticCurve(x^7-1,0)
+            sage: C.p_rank()
+            0
+
+            sage: P.<x>=GF(9,'a')[]
+            sage: E=HyperellipticCurve(x^29+1,0)
+            sage: E.p_rank()
+            0
+
+
+
+
+        """
+        #We use caching here since Hasse Witt is needed to compute p_rank. So if the Hasse Witt
+        #is already computed it is stored in list A. If it was not cached (i.e. A is empty), we simply
+        #compute it. If it is cached then we need to make sure that we have the correct one. So check
+        #which curve does the matrix correspond to. Since caching stores a lot of stuff, we only check
+        #the last entry in A. If it does not match, clear A and compute Hasse Witt.
+
+        A=self._Hasse_Witt_cached.get_cache()
+        if len(A) !=0:
+            if A.items()[-1][-1][-1]==self:
+                N,E = A.items()[-1][1];
+            else:
+                A.clear()
+                N,E= self._Hasse_Witt_cached()
+        else:
+            A.clear()
+            N,E= self._Hasse_Witt_cached()
+
+
+
+        pr=rank(N);
+        return pr
 

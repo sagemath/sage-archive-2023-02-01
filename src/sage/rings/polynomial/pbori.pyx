@@ -640,13 +640,13 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                 try:
                     var_mapping = get_var_mapping(self, other.parent())
                 except NameError, msg:
-                    raise ValueError, "cannot coerce monomial %s to %s: %s"%(other,self,msg)
+                    raise TypeError, "cannot coerce monomial %s to %s: %s"%(other,self,msg)
                 p = self._one_element
                 for i in other.iterindex():
                     p *= var_mapping[i]
                 return p
             else:
-                raise ValueError, "cannot coerce monomial %s to %s: %s"%(other,self,msg)
+                raise TypeError, "cannot coerce monomial %s to %s: %s"%(other,self,msg)
 
         elif PY_TYPE_CHECK(other,BooleanPolynomial) and \
             ((<BooleanPolynomialRing>(<BooleanPolynomial>other)\
@@ -654,7 +654,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                     try:
                         var_mapping = get_var_mapping(self, other.parent())
                     except NameError, msg:
-                        raise ValueError, "cannot coerce polynomial %s to %s: %s"%(other,self,msg)
+                        raise TypeError, "cannot coerce polynomial %s to %s: %s"%(other,self,msg)
                     p = self._zero_element
                     for monom in other:
                         new_monom = self._monom_monoid._one_element
@@ -669,7 +669,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                     try:
                         var_mapping = get_var_mapping(self, other.parent())
                     except NameError, msg:
-                        raise ValueError, "cannot coerce polynomial %s to %s: %s"%(other,self,msg)
+                        raise TypeError, "cannot coerce polynomial %s to %s: %s"%(other,self,msg)
                     p = self._zero_element
                     exponents = other.exponents()
                     coefs = other.coefficients()
@@ -727,7 +727,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             sage: p = R(x+y+x*y+1)
             Traceback (most recent call last):
             ...
-            ValueError: cannot convert polynomial x*y + x + y + 1 to Boolean PolynomialRing in y: name x not defined
+            TypeError: cannot convert polynomial x*y + x + y + 1 to Boolean PolynomialRing in y: name x not defined
 
             sage: P = BooleanPolynomialRing(2,'x,y')
             sage: R.<z,x,y> = ZZ['z,x,y']
@@ -735,7 +735,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             sage: p = P(t)
             Traceback (most recent call last):
             ...
-            ValueError: cannot convert polynomial z*x^2 + 5*y^3 to Boolean PolynomialRing in x, y: name z not defined
+            TypeError: cannot convert polynomial z*x^2 + 5*y^3 to Boolean PolynomialRing in x, y: name z not defined
         """
         cdef int i
 
@@ -751,7 +751,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                 try:
                     var_mapping = get_var_mapping(self, other)
                 except NameError, msg:
-                    raise ValueError, "cannot convert monomial %s to %s: %s"%(other,self,msg)
+                    raise TypeError, "cannot convert monomial %s to %s: %s"%(other,self,msg)
                 p = self._one_element
                 for i in other.iterindex():
                     p *= var_mapping[i]
@@ -762,7 +762,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                     try:
                         var_mapping = get_var_mapping(self, other)
                     except NameError, msg:
-                        raise ValueError, "cannot convert polynomial %s to %s: %s"%(other,self,msg)
+                        raise TypeError, "cannot convert polynomial %s to %s: %s"%(other,self,msg)
                     p = self._zero_element
                     for monom in other:
                         new_monom = self._monom_monoid._one_element
@@ -776,7 +776,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                     try:
                         var_mapping = get_var_mapping(self, other)
                     except NameError, msg:
-                        raise ValueError, "cannot convert polynomial %s to %s: %s"%(other,self,msg)
+                        raise TypeError, "cannot convert polynomial %s to %s: %s"%(other,self,msg)
                     p = self._zero_element
                     exponents = other.exponents()
                     coefs = other.coefficients()
@@ -895,6 +895,16 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
             sage: 7 in GF(2)
             True
+
+        TESTS::
+
+        We test that #10173 is fixed::
+
+            sage: R = BooleanPolynomialRing(256,'x')
+            sage: S = PolynomialRing(GF(2),256,'y')
+            sage: S.gen(8) in R
+            False
+
         """
         try:
             self._coerce_(x)

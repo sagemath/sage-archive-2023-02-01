@@ -1025,6 +1025,8 @@ def hue(h, s=1, v=1):
         RGB color (0.25490196078431371, 0.41176470588235292, 0.88235294117647056)
         sage: hue(*royalblue.hsv())
         (0.25490196078431371, 0.41176470588235292, 0.88235294117647056)
+        sage: hue(.5, .5, .5)
+        (0.25, 0.5, 0.5)
 
     .. note :: The HSV to RGB coordinate transformation itself is
                given in the source code for the Python library's

@@ -1000,12 +1000,17 @@ def point3d(v, size=5, **kwds):
     We check to make sure this works with vectors::
 
         sage: pl = point3d([vector(ZZ,(1, 0, 0)), vector(ZZ,(0, 1, 0)), (-1, -1, 0)])
+        sage: p = point(vector((2,3,4)))
+        sage: print p
+        Graphics3d Object
+
 
     We check to make sure the options work::
 
         sage: point3d((4,3,2),size=20,color='red',opacity=.5)
+
     """
-    if isinstance(v,(list,tuple)) and len(v) == 3 and not (isinstance(v[0],(list,tuple)) or is_Vector(v[0])):
+    if (isinstance(v,(list,tuple)) or is_Vector(v)) and len(v) == 3 and not (isinstance(v[0],(list,tuple)) or is_Vector(v[0])):
         return Point(v, size, **kwds)
     else:
         A = sum([Point(z, size, **kwds) for z in v])

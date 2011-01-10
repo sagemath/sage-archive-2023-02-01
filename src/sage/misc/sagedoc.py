@@ -11,19 +11,12 @@ AUTHORS:
 - Dan Drake (2009-05-21): refactor search_* functions, use system 'find' instead of sage -grep
 - John Palmieri (2009-06-28): don't use 'find' -- use Python (os.walk, re.search) instead.
 """
-
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -888,9 +881,9 @@ def search_doc(string, extra1='', extra2='', extra3='', extra4='',
     counting the length of ``search_doc('tree',
     interact=False).splitlines()`` gives the number of matches. ::
 
-        sage: len(search_doc('tree', interact=False).splitlines()) > 2000
+        sage: len(search_doc('tree', interact=False).splitlines()) > 2500
         True
-        sage: len(search_doc('tree', whole_word=True, interact=False).splitlines()) < 200
+        sage: len(search_doc('tree', whole_word=True, interact=False).splitlines()) < 500
         True
     """
     return _search_src_or_doc('doc', string, extra1=extra1, extra2=extra2,

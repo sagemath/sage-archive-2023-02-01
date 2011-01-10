@@ -3,7 +3,7 @@
 #                  http://www.gnu.org/licenses/
 ######################################################################
 
-import platform, os, sys, time, shutil, glob
+import platform, os, sys, time, shutil, glob, subprocess
 
 
 # this dictionary will hold all configuration information
@@ -45,20 +45,23 @@ if not os.environ.has_key('SAGE_LOCAL'):
 ### Functions
 ######################################################################
 
-def try_run(command):
+def try_run(command, ignore=False):
     """
-    Try to execute `command` and return its output as string. Return
-    `None` if execution fails.
+    Try to execute ``command`` and return its output as string.
+
+    Return ``None`` if command not found. Return ``None`` if execution
+    fails and ``ignore=False`` (default). Otherwise, return output of
+    ``command`` as string. Here, output always means the concatenation
+    of stdout and stderr.
     """
-    try:
-        f = os.popen(command, 'r')
-    except NameError:
+    f = subprocess.Popen(command, shell=True,
+                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    result = f.communicate()
+    rc = f.wait()
+    if (not ignore) and (rc!=0):
         return None
-    result = f.read()
-    if f.close() is None:
-        return result.strip()
-    else:
-        return None
+    # concatenate stdout and stderr
+    return result[0].strip() + result[1].strip()
 
 
 def cp(source_pattern, destination):
@@ -81,11 +84,11 @@ class edit_in_place(object):
         f.close()
 
     def replace(self, find_regex, subs, count=0):
-        self.data = re.sub(find_regex, subs, self.data, count)
+        self.data = glob.re.sub(find_regex, subs, self.data, count)
         return self
 
     def close(self):
-        f = open(filename, 'w')
+        f = open(self.filename, 'w')
         f.write(self.data)
         f.close()
 
@@ -109,7 +112,8 @@ conf['machine'] = platform.machine()
 
 conf['processor'] = platform.processor()
 
-conf['Intel?'] = (platform.processor() in ('i386', 'i586', 'i686', 'ia64', 'x86_64'))
+conf['Intel?'] = (platform.machine() in ('i386', 'i486', 'i586', 'i686', 'x86_64',
+                                         'AMD64', 'i86pc'))
 conf['PPC?']   = (platform.processor() == 'powerpc')
 conf['SPARC?'] = (platform.processor() == 'sparc')
 
@@ -160,7 +164,8 @@ if conf['fortran_g95?']:
 ######################################################################
 
 # Note: Solaris linker does not accept --version
-ld_version = try_run('ld  -V')
+# ignore error code as 'ld -V' likes to error on some Solaris versions
+ld_version = try_run('ld  -V', ignore=True)
 if ld_version is None:
     print 'Cannot execute ld!'
     sys.exit(3)
@@ -182,6 +187,16 @@ if conf['Solaris?'] and conf['linker_GNU?']:
     print "but Sage has been built on Solaris using the GNU linker"
     print "although that was a very old version of Sage, which"
     print "never passes all the Sage test-suite."
+
+
+
+######################################################################
+### paths, files, and environment variables
+######################################################################
+
+conf['SPKG_DIR'] = os.getcwd()
+conf['SAGE_LOCAL'] = os.environ['SAGE_LOCAL']
+
 
 ######################################################################
 ### The end: print configuration

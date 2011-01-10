@@ -5,8 +5,36 @@
 #                  http://www.gnu.org/licenses/
 ######################################################################
 
+######################################################################
+### Import stuff
+######################################################################
+
 import os, sys, shutil
 from configuration import conf, cp, try_run, edit_in_place
+
+
+######################################################################
+### The following variables may need to be updated if you
+### update ATLAS or LAPACK to a newer version
+######################################################################
+
+
+
+
+# temporary directory to build everything in
+BUILD_DIR = os.path.join(conf['SPKG_DIR'], 'ATLAS-build')
+
+# constants from src/CONFIG/include/atlconf.h
+ATLAS_OSTYPE = ('UNKNOWN', 'Linux', 'SunOS', 'SunOS4', 'OSF1',
+                'IRIX', 'AIX', 'Win9x', 'WinNT', 'HPUX', 'FreeBSD', 'OSX')
+
+ATLAS_MACHTYPE = ('UNKNOWN', 'POWER3', 'POWER4', 'POWER5', 'PPCG4', 'PPCG5',
+                  'P5', 'P5MMX', 'PPRO', 'PII', 'PIII', 'PM', 'CoreSolo',
+                  'CoreDuo', 'Core2Solo', 'Core2', 'Corei7', 'P4', 'P4E', 'Efficeon', 'K7',
+                  'HAMMER', 'AMD64K10h', 'UNKNOWNx86', 'IA64Itan', 'IA64Itan2',
+                  'USI', 'USII', 'USIII', 'USIV', 'UnknownUS', 'MIPSR1xK', 'MIPSICE9')
+
+ATLAS_ISAEXT = ('', 'AltiVec', 'SSE3', 'SSE2', 'SSE1', '3DNow')
 
 
 ######################################################################
@@ -16,13 +44,13 @@ from configuration import conf, cp, try_run, edit_in_place
 # On Cygwin we simply require that the system-wide lapack is installed.
 # This includes BLAS and is enough to build the rest of Sage.
 if conf['CYGWIN?']:
-    if not os.path.exists('/usr/lib/libblas.a'):
-        print "*"*75
-        print "On Cygwin you must install the standard LAPACK Cygwin package"
-        print "via the Cygwin setup.exe program in the 'Math' category."
-        print "*"*75
-        sys.exit(1)
-    sys.exit(0)
+    if os.path.exists('/usr/lib/libblas.a'):
+        sys.exit(0)
+    print "*"*75
+    print "On Cygwin you must install the standard LAPACK Cygwin package"
+    print "via the Cygwin setup.exe program in the 'Math' category."
+    print "*"*75
+    sys.exit(1)
 
 
 if conf['Darwin?']:
@@ -39,14 +67,15 @@ if os.environ.has_key('SAGE_ATLAS_LIB'):
         print 'No such directory: '+ATLAS_LIB
         sys.exit(2)
 
+    pathexists = lambda lib: os.path.exists(os.path.join(ATLAS_LIB, lib))
     # Check for 4 static libraries.
-    has_atlas = os.path.exists(ATLAS_LIB+'/libatlas.a')
-    has_lapack = os.path.exists(ATLAS_LIB+'/liblapack.a')
-    has_cblas = os.path.exists(ATLAS_LIB+'/libcblas.a')
-    has_f77blas = os.path.exists(ATLAS_LIB+'/libf77blas.a')
-    has_atlas_headers = os.path.exists(ATLAS_LIB+'/../include/atlas')
+    has_atlas   = pathexists('libatlas.a')
+    has_lapack  = pathexists('liblapack.a')
+    has_cblas   = pathexists('libcblas.a')
+    has_f77blas = pathexists('libf77blas.a')
+    has_atlas_headers = pathexists('../include/atlas')
 
-    symbol_table = try_run('readelf -s ' +ATLAS_LIB+'/libf77blas.so')
+    symbol_table = try_run('readelf -s ' + os.path.join(ATLAS_LIB, 'libf77blas.so'))
     if not symbol_table is None:
         s_gfortran = 'gfortran' in symbol_table
         s_g95 = 'g95' in symbol_table
@@ -64,28 +93,30 @@ if os.environ.has_key('SAGE_ATLAS_LIB'):
             sys.exit(2)
 
     if has_atlas and has_lapack and has_cblas and  has_f77blas and has_atlas_headers:
-        os.system('ln -sf ' + ATLAS_LIB + '/libatlas.a '  + SAGE_LOCAL_LIB+'/libatlas.a')
-        os.system('ln -sf ' + ATLAS_LIB + '/libcblas.a '  + SAGE_LOCAL_LIB+ '/libcblas.a')
-        os.system('ln -sf ' + ATLAS_LIB + '/liblapack.a '  + SAGE_LOCAL_LIB+'/liblapack.a')
-        os.system('ln -sf ' + ATLAS_LIB + '/libf77blas.a '  + SAGE_LOCAL_LIB+'/libf77blas.a')
-        # We might as well include the shared libraries libatlas.so and libcblas.so, as these
-        # build reliably on both Solaris and Linux, and might reduce the size of executable if
-        # we link to them.
-        os.system('ln -sf ' + ATLAS_LIB + '/libatlas.so '  + SAGE_LOCAL_LIB+'/libatlas.so')
-        os.system('ln -sf ' + ATLAS_LIB + '/libcblas.so '  + SAGE_LOCAL_LIB+ '/libcblas.so')
-        # Building of liblapack.so and libf77blas.so is not reliable, but we will link to them
-        # People will have to make sure if they do build them, that they work. But these changes
-        # only impact SAGE_ATLAS_LIB, which currently is broken on Solaris and often broken on Linux.
-        os.system('ln -sf ' + ATLAS_LIB + '/liblapack.so '  + SAGE_LOCAL_LIB+'/liblapack.so')
-        os.system('ln -sf ' + ATLAS_LIB + '/libf77blas.so '  + SAGE_LOCAL_LIB+'/libf77blas.so')
-        # Link to the ATLAS related header files.
-        os.system('ln -sf ' + ATLAS_LIB + '/../include/atlas '  + SAGE_LOCAL_INCLUDE+'/')
-        os.system('ln -sf ' + ATLAS_LIB + '/../include/cblas.h '  + SAGE_LOCAL_INCLUDE+'/cblas.h')
-        os.system('ln -sf ' + ATLAS_LIB + '/../include/clapack.h '  + SAGE_LOCAL_INCLUDE+'/clapack.h')
+        SAGE_LOCAL_LIB = os.path.join(conf['SAGE_LOCAL'], 'lib')
+        symlinkOSlibrary = lambda lib: \
+            os.system('ln -sf ' + \
+                          os.path.join(ATLAS_LIB, lib) + ' '  + \
+                          os.path.join(conf['SAGE_LOCAL'], 'lib', lib) )
+        symlinkOSheader = lambda hdr: \
+            os.system('ln -sf ' + \
+                          os.path.join(ATLAS_LIB, '..', 'include', hdr) + ' '  + \
+                          os.path.join(conf['SAGE_LOCAL'], 'include', hdr) )
+        symlinkOSlibrary('libatlas.a')
+        symlinkOSlibrary('libcblas.a')
+        symlinkOSlibrary('liblapack.a')
+        symlinkOSlibrary('libf77blas.a')
+        symlinkOSlibrary('libatlas.so')
+        symlinkOSlibrary('libcblas.so')
+        symlinkOSlibrary('liblapack.so')
+        symlinkOSlibrary('libf77blas.so')
+        symlinkOSheader('atlas')
+        symlinkOSheader('cblas.h')
+        symlinkOSheader('clapack.h')
 
     else:
         print 'Unable to find one of liblapack.a, libcblas.a, libatlas.a or libf77blas.a'
-        print 'in the directory',ATLAS_LIB
+        print 'in the directory', ATLAS_LIB
         print 'Set SAGE_ATLAS_LIB to the parent directory of the directory containing'
         print 'liblapack.a, libcblas.a, libatlas.a and libf77blas.a if you wish to use'
         print 'existing ATLAS libraries.'
@@ -145,17 +176,23 @@ cp('patches/*tgz',
 ### configure
 ######################################################################
 
-
-# constants from src/CONFIG/include/atlconf.h
-ATLAS_OSTYPE = ('UNKNOWN', 'Linux', 'SunOS', 'SunOS4', 'OSF1',
-                'IRIX', 'AIX', 'Win9x', 'WinNT', 'HPUX', 'FreeBSD', 'OSX')
-ATLAS_MACHTYPE = ('UNKNOWN', 'POWER3', 'POWER4', 'POWER5', 'PPCG4', 'PPCG5',
-                  'P5', 'P5MMX', 'PPRO', 'PII', 'PIII', 'PM', 'CoreSolo',
-                  'CoreDuo', 'Core2Solo', 'Core2', 'Corei7', 'P4', 'P4E', 'Efficeon', 'K7',
-                  'HAMMER', 'AMD64K10h', 'UNKNOWNx86', 'IA64Itan', 'IA64Itan2',
-                  'USI', 'USII', 'USIII', 'USIV', 'UnknownUS', 'MIPSR1xK', 'MIPSICE9')
-ATLAS_ISAEXT = ('', 'AltiVec', 'SSE3', 'SSE2', 'SSE1', '3DNow')
-
+def configure_options_from_environment():
+    # Figure out architecture (see ATLAS_MACHTYPE) and isa extensions (see
+    # ATLAS_ISAEXT) from environment variables:
+    arch = None
+    isa_ext = None
+    if os.environ.get('SAGE_FAT_BINARY', 'no') == 'yes' and conf['Intel?']:
+        print 'Sage "fat" binary mode set: Building SSE2 only Hammer binary'
+        print 'NOTE: This can result in a Sage that is significantly slower at certain numerical'
+        print 'linear algebra since full FAT binary support has not been implemented yet.'
+        arch = 'HAMMER'
+        isa_ext = ('SSE2', 'SSE1')
+    elif os.environ.has_key('SAGE_ATLAS_ARCH'):
+        opts = os.environ['SAGE_ATLAS_ARCH'].split(',')
+        arch = opts[0]
+        if len(opts)>0:
+            isa_ext = opts[1:]
+    return (arch, isa_ext)
 
 
 def configure(arch=None, isa_ext=None):
@@ -168,22 +205,36 @@ def configure(arch=None, isa_ext=None):
 
     - ``isa_ext`` -- ``None`` or a sublist of ``ATLAS_ISAEXT``
     """
-    if os.path.isdir('ATLAS-build'):
-        shutil.rmtree('ATLAS-build')
-    os.mkdir('ATLAS-build')
-    os.chdir('ATLAS-build')
+    if arch is None:
+        arch, isa_ext = configure_options_from_environment()
+    if arch=='fast':
+        return configure_fast()
+    if arch=='base':
+        return configure_base()
 
-    LOCAL = os.environ['SAGE_LOCAL']
+    print 'Running configure with arch =', arch, 'and isa extensions', isa_ext
+    os.chdir(conf['SPKG_DIR'])
+    if os.path.isdir(BUILD_DIR):
+        shutil.rmtree(BUILD_DIR)
+    os.mkdir(BUILD_DIR)
+    os.chdir(BUILD_DIR)
+
     cmd = '../src/configure'
-    cmd += ' --prefix=' + LOCAL
-    cmd += ' --with-netlib-lapack=' + LOCAL + '/lib/liblapack.a'
+    cmd += ' --prefix=' + conf['SAGE_LOCAL']
+    cmd += ' --with-netlib-lapack=' + os.path.join(conf['SAGE_LOCAL'],'lib','liblapack.a')
+
     # -Si cputhrchk 0: Ignore/heed CPU throttle probe
     cmd += ' -Si cputhrchk 0'
+
     # -Fa alg -fPIC: set flags so we can build dynamic libraries
     cmd += ' -Fa alg -fPIC'
+
     ## -t 0: disable threading
     #cmd += ' -t 0'
+
+    # set fortran compiler
     cmd += ' -C if sage_fortran'
+
     # set bit width
     cmd += ' -b ' + conf['bits'][0:2]
 
@@ -208,11 +259,10 @@ def configure(arch=None, isa_ext=None):
 
     print 'Running', cmd
     rc = os.system(cmd)
-    os.chdir('..')
     return rc
 
 
-def configure_opt_fast():
+def configure_fast():
    if conf['Intel?']:
       print 'Fast configuration on Intel compatible CPUs.'
       arch = 'HAMMER'
@@ -227,10 +277,10 @@ def configure_opt_fast():
       isa_ext = ('AltiVec', )
    else:
       raise NotImplementedError, 'I don\'t know a "fast" configuration for your cpu.'
-   return (arch, isa_ext)
+   return configure(arch, isa_ext)
 
 
-def configure_opt_base():
+def configure_base():
    if conf['Intel?']:
       print 'Base configuration on Intel compatible CPUs.'
       arch = 'P4'
@@ -245,61 +295,9 @@ def configure_opt_base():
       isa_ext = ()
    else:
       raise NotImplementedError, 'I don\'t know a "base" configuration for your cpu.'
-   return (arch, isa_ext)
+   return configure(arch, isa_ext)
 
 
-# Figure out architecture (see ATLAS_MACHTYPE) and isa extensions (see
-# ATLAS_ISAEXT) from environment variables:
-arch = None
-isa_ext = None
-if os.environ.get('SAGE_FAT_BINARY', 'no') == 'yes' and conf['Intel?']:
-   print 'Sage "fat" binary mode set: Building SSE2 only Hammer binary'
-   print 'NOTE: This can result in a Sage that is significantly slower at certain numerical'
-   print 'linear algebra since full FAT binary support has not been implemented yet.'
-   arch = 'HAMMER'
-   isa_ext = ('SSE2', 'SSE1')
-elif os.environ.has_key('SAGE_ATLAS_ARCH'):
-   opts = os.environ['SAGE_ATLAS_ARCH'].split(',')
-   arch = opts[0]
-   if len(opts)>0:
-      isa_ext = opts[1:]
-
-if arch == 'fast':
-    arch, isa_ext = configure_opt_fast()
-
-if arch == 'base':
-    arch, isa_ext = configure_opt_base()
-
-if arch is None:
-    print 'First automatic tuning attempt.'
-    rc = configure()
-    if rc!=0:
-        print 'ATLAS failed to build, possibly because of a loaded system.'
-        print 'Waiting 5 minutes...'
-        time.sleep(5*60)
-        print 'Second automatic tuning attempt.'
-        rc = configure()
-    if rc!=0:
-        try:
-            arch, isa_ext = configure_opt_fast()
-            print 'Third attempt: use "fast" options.'
-            rc = configure(arch, isa_ext)
-        except NotImplementedError:
-            pass
-    if rc!=0:
-        try:
-            arch, isa_ext = configure_opt_base()
-            print 'Fourth attempt: use "base" options.'
-            rc = configure(arch, isa_ext)
-        except NotImplementedError:
-            pass
-else:
-    print 'Running configure with arch =', arch, 'and isa extensions', isa_ext
-    rc = configure(arch, isa_ext)
-
-
-assert rc==0, 'Configure failed!'
-print 'Finished configuring ATLAS.'
 
 
 ######################################################################
@@ -307,18 +305,22 @@ print 'Finished configuring ATLAS.'
 ######################################################################
 
 # we need to disable parallel builds
-os.environ.pop('MAKE', '')
+os.environ['MAKE'] += ' -j1'
 
 def make_core():
-    os.chdir('ATLAS-build')
-    rc = os.system('make')
-    os.chdir('..')
+    os.chdir(BUILD_DIR)
+    rc = os.system('$MAKE')
     return rc
 
 def make_atlas_library():
-    os.chdir('ATLAS-build/lib')
+    os.chdir(os.path.join(BUILD_DIR, 'lib'))
 
-    if conf['Solaris?'] and conf['linker_Solaris?']:
+    # don't put the path into the soname or we can't relocate it
+    edit_in_place('Makefile') \
+        .replace('-soname \$\(LIBINSTdir\)/lib', '-soname lib') \
+        .close()
+
+    if conf['linker_Solaris?']:
         print "The Makefile generated in ATLAS for building shared libraries"
         print "assumes the linker is the GNU linker, which it not true in"
         print "your setup. (It is generally considered better to use the"
@@ -334,26 +336,23 @@ def make_atlas_library():
             .replace('--whole-archive', '-z allextract') \
             .replace('--no-whole-archive', '-z defaultextract') \
             .close()
-        if conf['Solaris?'] and conf['Intel?']:
+        if conf['Intel?']:
             print "Change ldflag -melf_x86_64 to -64 as needed for Sun ld"
             print "on 64-bit builds of ATLAS on x64 hardware"
             edit_in_place('Make.inc').replace('-melf_x86_64', '-64').close()
-        if conf['Solaris?'] and conf['Intel?']:
             print "Remove the linker flag -melf_i386 as needed for Sun ld"
             print "on 32-bit builds of ATLAS on x86/x64 hardware"
             edit_in_place('Make.inc').replace('-melf_i386', '').close()
 
     rc = os.system('make shared cshared')
-    os.chdir('../..')
     return rc
 
 
 def make_lapack_library():
-    os.chdir('ATLAS-build/lib')
-    sage_local_lib_dir = ' -L' + os.environ['SAGE_LOCAL'] + '/lib'
+    os.chdir(os.path.join(BUILD_DIR, 'lib'))
+    sage_local_lib_dir = ' -L' + os.path.join(conf['SAGE_LOCAL'],'lib')
 
     libraries = []
-
     if conf['Linux?'] or conf['FreeBSD?']:
         if conf['fortran_g95?']:
             fortran_dir = '-L'+conf['fortran_g95_dir']
@@ -393,12 +392,44 @@ def make_lapack_library():
         except OSError:
             pass
 
-    os.chdir('../..')
     return rc
 
 
+######################################################################
+### build atlas and lapack
+######################################################################
 
-rc = make_core()
+def build(arch=None, isa_ext=None):
+    rc = configure(arch, isa_ext)
+    assert rc==0, 'Configure failed!'
+    print 'Finished configuring ATLAS.'
+    rc = make_core()
+    if rc!=0:
+        print 'ATLAS failed to build, possibly because of a loaded system.'
+    else:
+        print 'Finished building ATLAS core.'
+    return rc
+
+
+print 'First attempt: automatic tuning.'
+rc = build()
+if rc!=0:
+    print 'Waiting 5 minutes...'
+    time.sleep(5*60)
+    print 'Second attempt: Re-running make.'
+    rc = make_core()
+    if rc!=0:
+        print 'Waiting 5 minutes...'
+        time.sleep(5*60)
+        try:
+            print 'Third attempt: use "fast" options.'
+            rc = build(arch='fast')
+            if rc!=0:
+                print 'Fourth attempt: use "base" options.'
+                rc = build(arch='base')
+        except NotImplementedError:
+            pass
+
 assert rc==0, 'Failed to build ATLAS.'
 print 'Finished building ATLAS core.'
 
@@ -416,8 +447,8 @@ print 'Finished building LAPACK+ATLAS library.'
 ######################################################################
 
 def install():
-    os.chdir('ATLAS-build')
-    rc = os.system('make install')
+    os.chdir(BUILD_DIR)
+    rc = os.system('$MAKE install')
     os.chdir('..')
     return rc
 

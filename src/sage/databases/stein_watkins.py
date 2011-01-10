@@ -240,7 +240,12 @@ class SteinWatkinsAllData:
         C = []
         N = 0
         while True:
-            E = iter.next()
+            try:
+                E = iter.next()
+            except StopIteration:
+                if C != []:
+                    yield C
+                raise StopIteration
             if E.conductor != N:
                 if C != []:
                     yield C

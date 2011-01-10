@@ -546,6 +546,13 @@ class MatrixGroup_gap(MatrixGroup_generic):
             Matrix group over Integer Ring with 3 generators:
             [[[-1, 0], [0, 1]], [[1, 0], [0, -1]], [[-1, 0], [0, -1]]]
 
+        An example over a field (see trac 10515)::
+
+            sage: gens = [matrix(QQ,2,[1,0,0,1])]
+            sage: MatrixGroup(gens).list()
+            [[1 0]
+            [0 1]]
+
         ::
 
             sage: GL(2,ZZ).list()
@@ -562,7 +569,8 @@ class MatrixGroup_gap(MatrixGroup_generic):
             raise ValueError, "group must be finite"
 
         MS = self.matrix_space()
-        if not self.base_ring().is_field():
+        R = self.base_ring()
+        if not R.is_field() or not R.is_finite():
             s = self._gap_().Elements().str(use_file=True)
             es = eval(s)
             v = [self.element_class(MS(x), self, check=False) for x in es]

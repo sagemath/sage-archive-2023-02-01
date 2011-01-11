@@ -1,9 +1,18 @@
 = tachyon =
 
+
 == Description ==
 
-Tachyon is a raytracer developed by John E. Stone.  "Tachyon supports the typical ray tracer features, most of the common geometric primitives, shading and texturing modes, etc. It also supports less common features such as HDR image output, ambient occlusion lighting, and support for various triangle mesh and volumetric texture formats beneficial for molecular visualization (e.g. rendering VMD scenes)."  - from the project page at http://jedi.ks.uiuc.edu/~johns/raytracer/.
-Currently not all of Tachyon's functionality is supported.
+Tachyon is a raytracer developed by John E. Stone. Tachyon supports
+the typical ray tracer features, most of the common geometric
+primitives, shading and texturing modes, etc. It also supports less
+common features such as HDR image output, ambient occlusion lighting,
+and support for various triangle mesh and volumetric texture formats
+beneficial for molecular visualization (e.g. rendering VMD scenes).
+
+Currently not all of Tachyon's functionality is exported by the Sage
+interface.
+
 
 == License ==
 
@@ -21,6 +30,7 @@ Currently not all of Tachyon's functionality is supported.
  * 3. The name of the author may not be used to endorse or promote products
  *    derived from this software without specific prior written permission.
 
+
 == SPKG Maintainers ==
 
  * Marshall Hampton
@@ -29,9 +39,12 @@ Currently not all of Tachyon's functionality is supported.
  * Andrzej Giniewicz
  * Michael Abshoff
 
+
 == Upstream Contact ==
 
-Provide information for upstream contact.
+http://jedi.ks.uiuc.edu/~johns/raytracer/
+John Stone <johns@ks.uiuc.edu>
+
 
 == Dependencies ==
 
@@ -39,9 +52,12 @@ This spkg depends on:
 
  * libpng
 
+
 == Special Update/Build Instructions ==
 
-See below. This needs to be cleaned up for the 0.98.9 update (#5281)
+ * Delete the scenes directory, which has lots of cool examples.
+ * Delete the msvc directory
+
 
 == Changelog ==
 
@@ -54,6 +70,11 @@ See below. This needs to be cleaned up for the 0.98.9 update (#5281)
    aix-generic, aix-generic-thr, hpux-generic and hpux-generic-thr
  * Call the targets aix-generic-thr and hpux-generic-thr from
    spkg-install on AIX and HP-UX repectively.
+
+=== tachyon-0.98beta.p12 (Mariah Lenox, 11 Jan 2011) ===
+ * not officially released
+ * #9378: changed Make-arch so that neither CC, AR, nor RANLIB are
+   overridden on GNU compiler targets.
 
 === tachyon-0.98beta.p11 (David Kirkby, May 23rd 2010) ===
  * #9024: tachyon is buiding 32-bit on OpenSolaris x64 even when SAGE64 is set to "yes"
@@ -82,135 +103,4 @@ See below. This needs to be cleaned up for the 0.98.9 update (#5281)
 
 === tachyon-0.98beta.p3 ===
  * Changes lost to history
-
--------- everything below needs to be cleaned up -------------
-
-== Build Instructions ==
-
-Deleted the scenes directory, which has lots of cool examples.
-If you're interested, definitely download the source distribution
-from http://jedi.ks.uiuc.edu/~johns/raytracer/ and check them out!
-
-
-1. Edited unix/Make-config to enable png support
-
-2. Edited unix/Make-arch to disable framework support for osx carbon.
-
-
-===================================================
-
-License issue email with author of Tachyon:
-
-elivered-To: wstein@gmail.com
-Received: by 10.78.20.12 with SMTP id 12cs2771hut;
-        Fri, 1 Jun 2007 20:06:29 -0700 (PDT)
-Received: by 10.35.70.2 with SMTP id x2mr4136443pyk.1180753589318;
-        Fri, 01 Jun 2007 20:06:29 -0700 (PDT)
-Return-Path: <johns@moline.ks.uiuc.edu>
-Received: from halifax.ks.uiuc.edu (halifax.ks.uiuc.edu [130.126.120.36])
-        by mx.google.com with ESMTP id f78si238945pyh.2007.06.01.20.06.26;
-        Fri, 01 Jun 2007 20:06:29 -0700 (PDT)
-Received-SPF: pass (google.com: domain of johns@moline.ks.uiuc.edu designates 130.126.120.36 as permitted sender)
-Received: from moline.ks.uiuc.edu (moline.ks.uiuc.edu [130.126.120.129])
-	  by halifax.ks.uiuc.edu (8.13.7/8.13.7) with ESMTP id l5236Qjs018957
-	  (version=TLSv1/SSLv3 cipher=EDH-RSA-DES-CBC3-SHA bits=168 verify=NOT)
-	  for <wstein@gmail.com>; Fri, 1 Jun 2007 22:06:26 -0500 (CDT)
-Received: (from johns@localhost)
-	  by moline.ks.uiuc.edu (8.13.7+Sun/8.13.7/Submit) id l5236Qev011246
-	  for wstein@gmail.com; Fri, 1 Jun 2007 22:06:26 -0500 (CDT)
-Date: Fri, 1 Jun 2007 22:06:26 -0500
-From: John Stone <johns@ks.uiuc.edu>
-To: William Stein <wstein@gmail.com>
-Subject: Re: Fwd: Tachyon3d License
-Message-ID: <20070602030606.GA11242@moline.ks.uiuc.edu>
-References: <85e81ba30705272220x17a1c458yf02e10f8bb052134@mail.gmail.com> <85e81ba30705291444pacd13dct8a754238a2d9d0bd@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <85e81ba30705291444pacd13dct8a754238a2d9d0bd@mail.gmail.com>
-User-Agent: Mutt/1.4.2.1i
-
-
-William,
-  Yes, I'll update the license for you and post a new version.
-Please give me a couple of days as it's not convenient for me to
-take care of this right now.
-
-Cheers,
-  John Stone
-  johns@ks.uiuc.edu
-
-On Tue, May 29, 2007 at 02:44:23PM -0700, William Stein wrote:
-> Dear John,
->
-> Could you please release a new version of Tachyon3d
-> (http://jedi.ks.uiuc.edu/~johns/raytracer/) that is licensed under
-> the modern BSD license, i.e., remove this point from the Copyright file:
->
-> * 3. All advertising materials mentioning features or use of this software
-> *    must display the following acknowledgement:
-> *      This product includes software developed by John E. Stone
->
-> More Details:
->
-> I'm the lead developer for the SAGE project, which is a mathematical
-> software
-> system that uses Tachyon3d for its 3d rendering:
->   http://www.sagemath.org
-> For example, the 5-dimensional cube graph on the right of the above page
-> was made using Tachyon3d.
->
-> We're probably one of the main projects using Tachyon3d at this point.
-> E.g., if you search for tachyon3d in Google you'll get a bunch of SAGE
-> pages at the top, and a search for "tachyon ray tracer" in Google (no
-> quotes)
-> a SAGE page come up as the third hit.
->
-> Unfortunately, today when auditing the software licenses for all components
-> of
-> SAGE, I found out that Tachyon3d is licensed under the orginal BSD
-> license, which is GPL incompatible.  It is thus a violation of the GPL for
-> me to combine Tachyon3d with a GPL'd program.  So I either have to
-> remove Tachyon3d from SAGE, or you could release a new version of
-> Tachyon3d under the modified BSD license.  Note that even Berkeley
-> changed the copyright of all its code to the new license, since they
-> realized
-> releasing under the old BSD license was a serious mistake:
->   ftp://ftp.cs.berkeley.edu/pub/4bsd/README.Impt.License.Change
->
-> This article discusses many of the issues with GPL-compatibility:
->    http://www.dwheeler.com/essays/gpl-compatible.html
->
-> This page explains why the old BSD license is a poor choice:
->  http://www.gnu.org/philosophy/bsd.html
-> For example, "When people put many such programs together in an
-> operating system, the result is a serious problem. Imagine if a
-> software system required 75 different sentences, each one naming a
-> different author or group of authors. To advertise that, you would
-> need a full-page ad.  This might seem like extrapolation ad absurdum,
-> but it is actual fact. NetBSD comes with a long list of different
-> sentences, required by the various licenses for parts of the system.
-> In a 1997 version of NetBSD, I counted 75 of these sentences. I would
-> not be surprised if the list has grown by now."
->
->
-> --
-> William Stein
-> Associate Professor of Mathematics
-> University of Washington
-> http://www.williamstein.org
->
-> --
-> William Stein
-> Associate Professor of Mathematics
-> University of Washington
-> http://www.williamstein.org
-
---
-NIH Resource for Macromolecular Modeling and Bioinformatics
-Beckman Institute for Advanced Science and Technology
-University of Illinois, 405 N. Mathews Ave, Urbana, IL 61801
-Email: johns@ks.uiuc.edu                 Phone: 217-244-3349
-  WWW: http://www.ks.uiuc.edu/~johns/      Fax: 217-244-6078
-
 

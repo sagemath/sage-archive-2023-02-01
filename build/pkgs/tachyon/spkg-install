@@ -7,14 +7,11 @@ if [ "$SAGE_LOCAL" = "" ]; then
 fi
 
 cd src/
-
 CUR=`pwd`
-
 cd unix
 
 cp ../../patches/Make-arch .
 cp ../../patches/Make-config .
-cp ../Copyright "$SAGE_LOCAL/bin/Tachyon-Copyright"
 
 finished()
 {
@@ -29,7 +26,7 @@ finished()
 }
 
 if [ $UNAME = "CYGWIN" ]; then
-    make win32
+    $MAKE win32
     finished
 fi
 
@@ -38,9 +35,9 @@ if [ $UNAME = "Darwin" ]; then
     # The threaded version of the 0.98 beta doesn't work on OS X.
     if [ "$SAGE64" = "yes" ]; then
         echo "Building 64 bit MaxOSX"
-        make macosx-64
+        $MAKE macosx-64
     else
-        make macosx
+        $MAKE macosx
     fi
     finished
 fi
@@ -49,28 +46,24 @@ if [ $UNAME = "FreeBSD" ]; then
     # Tachyon doesn't have a threaded option for FreeBSD (though it shouldn't
     # be too difficult to add).  There's no need for an explicit 64-bit
     # version since the only difference is a slight performance optimisation.
-    make bsd
+    $MAKE bsd
     finished
 fi
 
 if [ $UNAME = "Linux" ]; then
-    GCCVERSION=`gcc -dumpversion`
-    case $GCCVERSION in
-      4.2.4* | 4.3*)
-        export GCCFIX="-fno-crossjumping -fno-reorder-blocks";;
-      *);;
+    case "`uname -m`" in
+	i?86)
+            $MAKE linux-thr;;
+	ia64)
+            $MAKE linux-ia64-thr;;
+	amd64|x86_64)
+            $MAKE linux-64-thr;;
+	ppc)
+            $MAKE linux-ppc;;
+	*) # e.g. ppc64
+            echo "Sorry, your platform isn't supported by Tachyon and/or Sage. Exiting..."
+            exit 1
     esac
-    make linux-thr
-    if [ $? -ne 0 ]; then
-        echo "Maybe your system is 64-bit; trying again."
-        if [ `uname -m` = "ia64" ]; then
-	  echo "ia64"
-	  make linux-ia64-thr
-        else
-          echo "64-bit arch"
-          make linux-64-thr
-        fi
-    fi
     finished
 fi
 
@@ -78,9 +71,9 @@ if [ $UNAME = "SunOS" ]; then
     if [ "x$SAGE64" = xyes ] ; then
        # There was nothing suitable for 64-bit mode with
        # gcc, so I made a new target. David Kirkby, May 2010.
-       make solaris-pthreads-gcc-64-bit
+       $MAKE solaris-pthreads-gcc-64-bit
     else
-       make solaris-pthreads-gcc
+       $MAKE solaris-pthreads-gcc
     fi
     finished
 fi
@@ -88,17 +81,17 @@ fi
 if [ "x$UNAME" = xAIX ]; then
     CFLAGS="$CFLAGS -g -O2"
     export CFLAGS
-    make aix-generic-thr
+    $MAKE aix-generic-thr
     finished
 fi
 
 if [ "x$UNAME" = xHP-UX ]; then
     CFLAGS="$CFLAGS -g -O2"
     export CFLAGS
-    make hpux-generic-thr
+    $MAKE hpux-generic-thr
     finished
 fi
 
 
-echo "Tachyon build for $UNAME not implemented (for SAGE) - please complain on sage-devel"
+echo "Tachyon build for $UNAME not implemented (for SAGE) - please complain on sage-devel."
 exit 1

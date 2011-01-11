@@ -33,6 +33,7 @@ interface.
 
 == SPKG Maintainers ==
 
+ * Volker Braun
  * Marshall Hampton
  * David Kirkby
  * Mike Hansen
@@ -61,7 +62,7 @@ This spkg depends on:
 
 == Changelog ==
 
-=== tachyon-0.98.9 (Marshall Hampton, David Kirkby, September 25th, 2010)
+=== tachyon-0.98.9 (Marshall Hampton, David Kirkby, Volker Braun, Leif Leonhardy January 11, 2011)
  * #5281: upgrade to 0.98.9 form 0.98.beta.
  * Also cleaned up SPKG.txt and spkg-install.
  * Deleted scenes folder and msvc folders to save space.

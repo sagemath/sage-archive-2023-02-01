@@ -1771,7 +1771,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
     #############################
     # Plotting
     #############################
-    def plot(self, plot_type=None, **kwds):
+    def plot(self, plot_type=None, start=None, **kwds):
         """
         INPUT:
 
@@ -1806,6 +1806,23 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: plot(v, plot_type='step', eps=eps, xmax=5, hue=0)
             sage: v = vector(RDF, (1,2,3,4))
             sage: plot(v) # defaults to a step plot
+
+        An optional start argument may also be specified by a tuple, list, or vector::
+
+            sage: u = vector([1,2]); v = vector([2,5])
+            sage: plot(u, start=v)
+
+        TESTS::
+
+            sage: u = vector([1,1]); v = vector([2,2,2]); z=(3,3,3)
+            sage: plot(u) #test when start=None
+            ...
+            sage: plot(u, start=v) #test when coordinate dimension mismatch exists
+            Traceback (most recent call last):
+            ...
+            ValueError: vector coordinates are not of the same dimension
+            sage: plot(v, start=z) #test when start coordinates are passed as a tuple
+            ...
         """
         # Give sensible defaults based on the vector length
         if plot_type is None:
@@ -1816,13 +1833,22 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
         coords = self.list()
 
+        if start is None:
+            start = [0]*len(coords)
+        elif len(start)!=len(coords):
+            raise ValueError("vector coordinates are not of the same dimension")
+        else:
+            start = list(start)
+
+
+
         if plot_type == 'arrow' or plot_type == 'point':
             dimension = len(coords)
             if dimension == 3:
                 from sage.plot.plot3d.shapes2 import line3d, point3d
 
                 if plot_type == 'arrow':
-                    return line3d([(0,0,0), coords], arrow_head=True, **kwds)
+                    return line3d([start, [(u+v) for u,v in zip(coords, start)]], arrow_head=True, **kwds)
                 else:
                     return point3d(coords, **kwds)
             elif dimension < 3:
@@ -1832,7 +1858,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
                 from sage.plot.all import arrow, point
                 if plot_type == 'arrow':
-                    return arrow((0,0), coords, **kwds)
+                    return arrow(start, [(u+v) for u,v in zip(coords, start)], **kwds)
                 else:
                     return point(coords, **kwds)
             else:

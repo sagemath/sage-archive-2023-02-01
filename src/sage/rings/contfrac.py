@@ -397,7 +397,7 @@ class ContinuedFraction(FieldElement):
         Returns `n`-th term of the continued fraction.
 
         OUTPUT:
-            - an integer
+            - an integer or a a continued fraction
 
         EXAMPLES::
 
@@ -407,27 +407,20 @@ class ContinuedFraction(FieldElement):
             292
             sage: a[-1]
             14
-        """
-        return self._x[n]
-
-    def __getslice__(self, i, j):
-        """
-        OUTPUT:
-
-            - a continued fraction
-
-        EXAMPLES::
-
-            sage: a = continued_fraction(pi); a
-            [3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14]
             sage: a[2:5]
             [15, 1, 292]
             sage: a[:3]
             [3, 7, 15]
             sage: a[4:]
             [292, 1, 1, 1, 2, 1, 3, 1, 14]
+            sage: a[4::2]
+            [292, 1, 2, 3, 14]
         """
-        return ContinuedFraction(self.parent(), self._x[i:j])
+        if isinstance(n, slice):
+            start, stop, step = n.indices(len(self))
+            return ContinuedFraction(self.parent(), self._x[start:stop:step])
+        else:
+            return self._x[n]
 
     def _repr_(self):
         """

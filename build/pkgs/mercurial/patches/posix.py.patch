@@ -1,6 +1,6 @@
---- ../src/mercurial/posix.py	2009-09-08 15:47:01.000000000 -0700
-+++ posix.py	2009-09-08 15:47:31.000000000 -0700
-@@ -39,7 +39,10 @@
+--- ../src/mercurial/posix.py	2011-01-11 16:02:49.306666670 -0600
++++ posix.py	2011-01-11 16:16:15.443333336 -0600
+@@ -40,7 +40,10 @@
      if len(getattr(sys, 'argv', [])) > 0:
          path.extend(rcfiles(os.path.dirname(sys.argv[0]) +
                                '/../etc/mercurial'))

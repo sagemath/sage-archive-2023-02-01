@@ -26,6 +26,9 @@ See http://mercurial.selenic.com/ for more information.
  * Currently none (except one should make sure the patch still applies)
 
 == Changelog ==
+=== mercurial-1.7.3  (Ryan Grout, January 11, 2010) ===
+ * Updated to Mercurial 1.7.3
+ * Updated posix.py (patched against 1.7.3)
 
 === mercurial-1.6.4.p0  (Jeroen Demeyer, Leif Leonhardy, November 2nd, 2010) ===
  * Updated to Mercurial 1.6.4

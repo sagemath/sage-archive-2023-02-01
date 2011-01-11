@@ -346,6 +346,13 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
         (1, 2, 3)
         sage: parent(v)
         Ambient free module of rank 3 over the principal ideal domain Integer Ring
+
+    Am empty list, without a ring given, will default to the integers. ::
+
+        sage: x = vector([]); x
+        ()
+        sage: x.parent()
+        Ambient free module of rank 0 over the principal ideal domain Integer Ring
     """
     if hasattr(arg0, '_vector_'):
         return arg0._vector_(arg1)
@@ -448,7 +455,9 @@ def prepare(v, R, degree=None):
     the entries in the list. If ``R`` is given, the entries
     are coerced in.  Otherwise a common ring is found. For
     more details, see the
-    :class:`~sage.structure.sequence.Sequence` object.
+    :class:`~sage.structure.sequence.Sequence` object.  When ``v``
+    has no elements and ``R`` is ``None``, the ring returned is
+    the integers.
 
 
     EXAMPLES::
@@ -477,6 +486,11 @@ def prepare(v, R, degree=None):
         ...
         TypeError: unable to find a common ring for all elements
 
+    This checks a bug listed at Trac #10595.  Without good evidence for a ring, the default
+    is the integers.
+
+        sage: prepare([], None)
+        ([], Integer Ring)
     """
     if isinstance(v, dict):
         # convert to a list
@@ -485,6 +499,9 @@ def prepare(v, R, degree=None):
             X[key] = value
         v = X
     # convert to a Sequence over common ring
+    # default to ZZ on an empty list
+    if len(v) == 0 and R == None:
+      R = sage.rings.integer_ring.IntegerRing()
     v = Sequence(v, universe=R, use_sage_types=True)
     ring = v.universe()
     if not is_Ring(ring):

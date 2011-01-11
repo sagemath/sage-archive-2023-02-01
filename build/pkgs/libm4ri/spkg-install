@@ -8,6 +8,8 @@ fi
 
 unset RM
 
+ROOT_DIR="`pwd`"
+
 INCLUDES="-I$SAGE_LOCAL/include"
 LIBDIRS="-L$SAGE_LOCAL/lib"
 
@@ -57,11 +59,13 @@ fi
 
 #build M4RI
 
-cd m4ri
+cd $ROOT_DIR/m4ri
 
-$MAKE clean
+$MAKE distclean
 
-./configure --prefix=$SAGE_LOCAL $ENABLE_DEBUG $DISABLE_SSE2 $ENABLE_CACHETUNE
+cd $ROOT_DIR/build/m4ri
+
+$ROOT_DIR/m4ri/configure --prefix=$SAGE_LOCAL $ENABLE_DEBUG $DISABLE_SSE2 $ENABLE_CACHETUNE
 
 if [ $? -ne 0 ]; then
     echo "Error configuring libm4ri"
@@ -86,11 +90,12 @@ cd ..
 
 # build M4RIE
 
-cd m4rie
+cd $ROOT_DIR/m4rie
 
-$MAKE clean
+$MAKE distclean
 
-./configure --prefix=$SAGE_LOCAL $ENABLE_DEBUG $DISABLE_SSE2 $ENABLE_CACHETUNE
+cd $ROOT_DIR/build/m4rie
+$ROOT_DIR/m4rie/configure --prefix=$SAGE_LOCAL $ENABLE_DEBUG $DISABLE_SSE2 $ENABLE_CACHETUNE
 
 if [ $? -ne 0 ]; then
     echo "Error configuring libm4rie"

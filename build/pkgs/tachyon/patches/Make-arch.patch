@@ -1,5 +1,5 @@
 --- ../src/unix/Make-arch	2010-01-18 11:13:41.000000000 -0800
-+++ Make-arch	2011-01-11 01:21:02.725995944 -0800
++++ Make-arch	2011-01-11 02:04:04.143058297 -0800
 @@ -23,7 +23,8 @@
  	@echo "--------------------------------------------------------------"
  	@echo "              Parallel Versions        "
@@ -575,8 +575,9 @@
  	"CFLAGS = -O3 -DLinux $(MISCFLAGS) -DLP64" \
 -	"AR = ar" \
  	"ARFLAGS = r" \
- 	"STRIP = strip" \
+-	"STRIP = strip" \
 -	"RANLIB = ranlib" \
++	"STRIP = echo" \
  	"LIBS = -L. -ltachyon $(MISCLIB) -lm"
  
  # Linux IA-64 using SGI compilers (Merced, Itanium, McKinley, etc)
@@ -588,8 +589,9 @@
  	"CFLAGS = -O3 -DLinux -DTHR -D_REENTRANT $(MISCFLAGS) -DLP64" \
 -	"AR = ar" \
  	"ARFLAGS = r" \
- 	"STRIP = strip" \
+-	"STRIP = strip" \
 -	"RANLIB = ranlib" \
++	"STRIP = echo" \
  	"LIBS = -L. -ltachyon $(MISCLIB) -lm -lpthread"
  
  # Linux IA-64 using SGI compilers and threads (Merced, Itanium, McKinley, etc)

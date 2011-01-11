@@ -1346,7 +1346,7 @@ linux-ia64:
 	"ARCH = linux-ia64" \
 	"CFLAGS = -O3 -DLinux $(MISCFLAGS) -DLP64" \
 	"ARFLAGS = r" \
-	"STRIP = strip" \
+	"STRIP = echo" \
 	"LIBS = -L. -ltachyon $(MISCLIB) -lm"
 
 # Linux IA-64 using SGI compilers (Merced, Itanium, McKinley, etc)
@@ -1367,7 +1367,7 @@ linux-ia64-thr:
 	"ARCH = linux-ia64-thr" \
 	"CFLAGS = -O3 -DLinux -DTHR -D_REENTRANT $(MISCFLAGS) -DLP64" \
 	"ARFLAGS = r" \
-	"STRIP = strip" \
+	"STRIP = echo" \
 	"LIBS = -L. -ltachyon $(MISCLIB) -lm -lpthread"
 
 # Linux IA-64 using SGI compilers and threads (Merced, Itanium, McKinley, etc)

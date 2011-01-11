@@ -1,1 +1,43 @@
+ = OPENMPI =
+
+== Description ==
+
+The Open MPI Project is an open source MPI-2 implementation that is
+developed and maintained by a consortium of academic, research, and
+industry partners. Open MPI is therefore able to combine the
+expertise, technologies, and resources from all across the High
+Performance Computing community in order to build the best MPI library
+available. Open MPI offers advantages for system and software vendors,
+application developers and computer science researchers.
+
+== License ==
+
+ Modified BSD
+
+== SPKG Maintainers ==
+
+  * William Stein
+  * Stefan Reiterer
+
+== Upstream Contact ==
+
+  Home Page: http://www.open-mpi.org/
+
+== Dependencies ==
+
+== Changelog ==
+
+=== 1.4.3 (Stefan Reiterer, January 7, 2011)===
+  * Updated to Version 1.4.3
+  * Made Statements for clean remove. Else
+    one runs into troubles with different
+    compiled versions of mca datatypes.
+  * Added unset RM to spkg install, because of
+    problems with libttools (see Trac #7701)
+  * Removed compile flags for fortran.
+
+=== 1.4 (William Stein, 2009-12-15) ===
+ * Initial version
+
+
 

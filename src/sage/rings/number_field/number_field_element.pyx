@@ -2344,8 +2344,6 @@ cdef class NumberFieldElement(FieldElement):
             sage: F.<z> = CyclotomicField(5) ; t = 3*z**3 + 4*z**2 + 2
             sage: t.matrix(F)
             [3*z^3 + 4*z^2 + 2]
-
-        ::
             sage: x=QQ['x'].gen()
             sage: K.<v>=NumberField(x^4 + 514*x^2 + 64321)
             sage: R.<r>=NumberField(x^2 + 4*v*x + 5*v^2 + 514)

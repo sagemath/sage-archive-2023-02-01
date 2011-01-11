@@ -31,8 +31,7 @@ cd src
 unset RM
 export MAKE="$MAKE -j 1"
 
-./configure --prefix="$SAGE_LOCAL" #--with-f90-max-array-dim=1 --disable-mpi-f77 --disable-mpi-f90 --with-mpi-f90-size=trivial
-
+./configure --prefix="$SAGE_LOCAL"
 if [ $? -ne 0 ]; then
     echo "Error configuring"
     exit 1

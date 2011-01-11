@@ -25,6 +25,9 @@ any Python program to exploit multiple processors.
 
 == Changelog ==
 
+=== 1.2.2 (Stefan Reiterer, 2011-1-11) ===
+  * Updated to version 1.2.2
+
 === 1.1.0 (William Stein, 2009-12-15) ===
  * Initial version
 

@@ -2246,10 +2246,10 @@ class Graphics(SageObject):
             if hgridlinesstyle is not None:
                 hgridstyle.update(hgridlinesstyle)
 
-            if hgridlines=="minor":
-                hgridstyle['which']="minor"
-            if vgridlines=="minor":
-                vgridstyle['which']="minor"
+            if hgridlines=='minor':
+                hgridstyle['which']='both'
+            if vgridlines=='minor':
+                vgridstyle['which']='both'
 
             if hasattr(hgridlines, '__iter__'):
                 hlines=iter(hgridlines)

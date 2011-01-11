@@ -16,6 +16,7 @@
 
 /**************** Miscellaneous functions ****************/
 
+EXTERN long mwrank_get_precision();
 EXTERN void mwrank_set_precision(long n);
 
 EXTERN void mwrank_initprimes(char *pfilename, int verb);

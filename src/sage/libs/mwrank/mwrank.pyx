@@ -34,6 +34,7 @@ cdef extern from "stdlib.h":
 
 cdef extern from "wrap.h":
     ### misc functions ###
+    long mwrank_get_precision()
     void mwrank_set_precision(long n)
     void mwrank_initprimes(char* pfilename, int verb)
 
@@ -105,6 +106,23 @@ class __init:
 _INIT = __init()
 # set the default
 mwrank_set_precision(50)
+
+def get_precision():
+    """
+    Returns the working floating point precision of mwrank.
+
+    OUTPUT:
+
+    (int) The current precision in decimal digits.
+
+    EXAMPLE::
+
+        sage: from sage.libs.mwrank.mwrank import get_precision
+        sage: get_precision()
+	50
+
+    """
+    return mwrank_get_precision()
 
 def set_precision(n):
     """

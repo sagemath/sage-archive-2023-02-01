@@ -5,7 +5,7 @@ Cremona's mwrank C++ library
 __doc_exclude = []  # to include everything
 
 from interface import (mwrank_EllipticCurve, mwrank_MordellWeil,
-                       set_precision)
+                       get_precision, set_precision)
 
 
 def mwrank_initprimes(filename, verb=False):

@@ -23,13 +23,38 @@ from sage.rings.integer_ring import IntegerRing
 SAGE_DOCTEST_ALLOW_TABS
 """
 
+def get_precision():
+    r"""
+    Return the global NTL real number precision.
+
+    See also :meth:`set_precision`.
+
+    .. warning::
+
+       The internal precision is binary.  This function multiplies the
+       binary precision by 0.3 (`=\log_2(10)` approximately) and
+       truncates.
+
+    OUTPUT:
+
+    (int) The current decimal precision.
+
+    EXAMPLES::
+
+        sage: mwrank_get_precision()
+        50
+    """
+    # don't want to load mwrank every time Sage starts up, so we do
+    # the import here.
+    from sage.libs.mwrank.mwrank import get_precision
+    return get_precision()
+
 def set_precision(n):
     r"""
     Set the global NTL real number precision.  This has a massive
     effect on the speed of mwrank calculations.  The default (used if
-    this function is not called) is ``n=15``, but it might have to be
-    increased if a computation fails.  In this case, one must recreate
-    the mwrank curve from scratch after resetting this precision.
+    this function is not called) is ``n=50``, but it might have to be
+    increased if a computation fails.  See also :meth:`get_precision`.
 
     INPUT:
 
@@ -38,8 +63,8 @@ def set_precision(n):
 
     .. warning::
 
-       This change is global and affects *all* of Sage.
-
+       This change is global and affects *all* future calls of eclib
+       functions by Sage.
 
     EXAMPLES::
 

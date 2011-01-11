@@ -2072,6 +2072,22 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             (1/4 : -5/8 : 1)
             sage: E.saturation([Q])
             ([(0 : 0 : 1)], 5, 0.0511114075779915)
+
+        TESTS:
+
+        See #10590.   This example would loop for ever at default precision::
+
+            sage: E = EllipticCurve([1, 0, 1, -977842, -372252745])
+            sage: P = E([-192128125858676194585718821667542660822323528626273/336995568430319276695106602174283479617040716649, 70208213492933395764907328787228427430477177498927549075405076353624188436/195630373799784831667835900062564586429333568841391304129067339731164107, 1])
+            sage: P.height()
+            113.302910926080
+            sage: E.saturation([P])
+            ([(-192128125858676194585718821667542660822323528626273/336995568430319276695106602174283479617040716649 : 70208213492933395764907328787228427430477177498927549075405076353624188436/195630373799784831667835900062564586429333568841391304129067339731164107 : 1)], 1, 113.302909851074)
+            sage: E.saturation([2*P]) ## needs higher precision
+            ...
+            ([(1755450733726721618440965414535034458701302721700399/970334851896750960577261378321772998240802013604 : -59636173615502879504846810677646864329901430096139563516090202443694810309127/955833935771565601591243078845907133814963790187832340692216425242529192 : 1)], 2, 113.302909851074)
+
+
         """
         if not isinstance(points, list):
             raise TypeError, "points (=%s) must be a list."%points
@@ -2093,11 +2109,23 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         if max_prime == 0:
             repeat_until_saturated = True
             max_prime = 97
+        from sage.libs.all import mwrank_get_precision, mwrank_set_precision
+        prec0 = mwrank_get_precision()
+        prec = 100
+        if prec0<prec:
+            mwrank_set_precision(prec)
+        else:
+            prec = prec0
         while True:
             ok, index, unsat = mw.saturate(max_prime=max_prime, odd_primes_only = odd_primes_only)
             reg = mw.regulator()
             if ok or not repeat_until_saturated: break
             max_prime = arith.next_prime(max_prime + 100)
+            prec += 50
+            #print "Increasing precision to ",prec," and max_prime to ",max_prime
+            mwrank_set_precision(prec)
+        if prec!=prec0: mwrank_set_precision(prec0)
+        #print "precision was originally ",prec0," and is now ",mwrank_get_precision()
         sat = mw.points()
         sat = [self(P) for P in sat]
         return sat, index, R(reg)
@@ -4281,12 +4309,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         This function only works if the curve is in the installed
         Cremona database.  Sage includes by default a small databases;
         for the full database you have to install an optional package.
-
-        .. warning::
-
-           The result is *not* provably correct, in the
-           sense that when the numbers are huge isogenies could be
-           missed because of precision issues.
 
         EXAMPLES::
 

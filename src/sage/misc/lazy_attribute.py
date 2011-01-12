@@ -190,6 +190,7 @@ class lazy_attribute(object):
         calculating x from y in B
         1
 
+
     .. rubric:: lazy attributes and introspection
 
     TODO: make the following work nicely::
@@ -324,10 +325,8 @@ class lazy_attribute(object):
         ...       def __get__(self, obj, cls):
         ...           print cls
         ...           return 1
-        ...
         sage: class A(object):
         ...       x = descriptor()
-        ...
         sage: class B(A):
         ...       pass
         ...
@@ -518,3 +517,106 @@ class lazy_attribute(object):
             return getattr(super(cls, a),self.f.__name__)
         setattr(a, self.f.__name__, result)
         return result
+
+
+class lazy_class_attribute(lazy_attribute):
+    """
+    A lazy class attribute for an class is like a usual class attribute,
+    except that, instead of being computed when the class is constructed, it
+    is computed on the fly the first time it is accessed, either through the
+    class itself or trough on of its objects.
+
+    This is very similar to :class:`lazy_attribute` except that the attribute
+    is a class attribute. More precisely, once computed, the lazy class
+    attribute is stored in the class rather than in the object. The lazy class
+    attribute is only computed once for all the objects::
+
+        sage: class Cl(object):
+        ...       @lazy_class_attribute
+        ...       def x(cls):
+        ...            print "computing x"
+        ...            return 1
+        sage: Cl.x
+        computing x
+        1
+        sage: Cl.x
+        1
+
+    As for a any usual class attribute it is also possible to access it from
+    an object::
+
+        sage: b = Cl()
+        sage: b.x
+        1
+
+    First access from an object also porperly triggers the computation::
+
+        sage: class Cl1(object):
+        ...       @lazy_class_attribute
+        ...       def x(cls):
+        ...            print "computing x"
+        ...            return 1
+        sage: Cl1().x
+        computing x
+        1
+        sage: Cl1().x
+        1
+
+    .. warning::
+
+        The behavior of lazy class attributes with respect to inheritance is
+        not specified. It currently depends on the evaluation order::
+
+            sage: class A(object):
+            ...       @lazy_class_attribute
+            ...       def x(cls):
+            ...            print "computing x"
+            ...            return str(cls)
+            ...       @lazy_class_attribute
+            ...       def y(cls):
+            ...            print "computing y"
+            ...            return str(cls)
+            sage: class B(A):
+            ...       pass
+
+            sage: A.x
+            computing x
+            "<class '__main__.A'>"
+            sage: B.x
+            "<class '__main__.A'>"
+
+            sage: B.y
+            computing y
+            "<class '__main__.B'>"
+            sage: A.y
+            computing y
+            "<class '__main__.A'>"
+            sage: B.y
+            "<class '__main__.B'>"
+
+
+    TESTS::
+
+        sage: "x" in b.__dict__
+        False
+    """
+
+    def __get__(self, _, cls):
+        """
+        Implements the attribute access protocol.
+
+        EXAMPLES::
+
+            sage: class A: pass
+            sage: def f(x): return 1
+            ...
+            sage: f = lazy_class_attribute(f)
+            sage: f.__get__(A(), A)
+            1
+        """
+        result = self.f(cls)
+        if result is NotImplemented:
+            return getattr(super(cls, cls),self.f.__name__)
+        setattr(cls, self.f.__name__, result)
+        return result
+

@@ -19,7 +19,7 @@ SageDays 3 talk.
     sage: C = graphs.CubeGraph(4)
 
 Now type
-``C.show(vertex_labels=False, node_size=60, graph_border=True, figsize=[9,8])``
+``C.show(vertex_labels=False, vertex_size=60, graph_border=True, figsize=[9,8])``
 to view this with some of the options.
 
 The digraph below is a :math:`3`-cycle with vertices

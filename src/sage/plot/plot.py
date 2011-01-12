@@ -2344,6 +2344,11 @@ class Graphics(SageObject):
     # ALLOWED_EXTENSIONS is the list of recognized formats.
     # filename argument is written explicitly so that it can be used as a
     # positional one, which is a very likely usage for this function.
+    @suboptions('legend', numpoints=2, borderpad=0.6, markerscale=0.6, shadow=False,
+                labelspacing=0.02, handlelength=0.05, handletextpad=0.5, borderaxespad=None,
+                loc='best', font_size='medium', font_family='sans-serif', font_style='normal',
+                font_weight='medium', font_variant='normal', back_color=(0.9, 0.9, 0.9),
+                title=None, ncol=1, columnspacing=None, fancybox=False)
     def save(self, filename=None, **kwds):
         r"""
         Save the graphics to an image file.
@@ -2406,6 +2411,16 @@ class Graphics(SageObject):
             sage: plot(x^2 - 5, (x, 0, 5), ymin=0)
 
         (This test verifies that Trac #8632 is fixed.)
+
+        TESTS::
+
+        Legend labels should save correctly:
+
+            sage: P = plot(x,(x,0,1),legend_label='$xyz$')
+            sage: P.set_legend_options(back_color=(1,0,0))
+            sage: P.set_legend_options(loc=7)
+            sage: filename=os.path.join(SAGE_TMP, 'test.png')
+            sage: P.save(filename)
         """
         options = dict()
         options.update(self.SHOW_OPTIONS)

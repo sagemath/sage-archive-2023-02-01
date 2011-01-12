@@ -8,8 +8,10 @@ if main_arch == "Darwin":
     if sub_arch == "i386":
         if uname[2][0]=='8':
             ARCH = "mac_ppc" # Intel binary doesn't work on tiger.
+        elif uname[2][0]=='9':
+            ARCH = "mac_10_5_intel64"
         else:
-            ARCH = "mac_intel64"
+            ARCH = "mac_10_6_intel64"
     elif sub_arch == "Power Macintosh":
 	ARCH = "mac_ppc"
     else:

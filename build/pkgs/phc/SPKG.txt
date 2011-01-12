@@ -23,12 +23,15 @@ GPL
 Since PHCpack is written in APL we are shipping binaries. A source spkg could be created if there is demand for it. We are currently shipping binaries for
  * x86 Linux, 32 and 64 bit
  * OSX PPC
- * OSX Intel 64 bit
+ * OSX Intel 64 bit, OS X 10.5 and 10.6
  * SunOS 5.8
 
 AIX binaries are available at http://www.math.uic.edu/~jan/download.html but since Sage does not currently support AIX these are not included.
 
 == Changelog ==
+
+=== phc-2.3.60 (Marshall Hampton, January 12th, 2011) ===
+ * updated binaries to 2.3.60
 
 === phc-2.3.53.p0 (Marshall Hampton, December 4th, 2009) ===
  * updated binaries to 2.3.53

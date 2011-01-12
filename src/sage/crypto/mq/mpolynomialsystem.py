@@ -1279,7 +1279,7 @@ class MPolynomialSystem_gf2(MPolynomialSystem_generic):
     #    format MiniSAT et al. can understand.
     #    """
     #    raise NotImplemented
-    def eliminate_linear_variables(self, maxlength=3, skip=lambda lm,tail: False):
+    def eliminate_linear_variables(self, maxlength=3, skip=lambda lm,tail: False, return_reductors=False):
         """
         Return a new system where "linear variables" are eliminated.
 
@@ -1296,6 +1296,10 @@ class MPolynomialSystem_gf2(MPolynomialSystem_generic):
           ``False``. The two parameters are the leading term and the
           tail of a polynomial (default: ``lambda lm,tail: False``).
 
+        - ``return_reductors`` - if ``True`` the list of polynomials
+          with linear leading terms which were used for reduction is
+          also returned (default: ``False``).
+
         EXAMPLE::
 
             sage: B.<a,b,c,d> = BooleanPolynomialRing()
@@ -1306,6 +1310,16 @@ class MPolynomialSystem_gf2(MPolynomialSystem_generic):
             (b + c + d + 1, b*c + b*d + c, b*c*d + c)
             sage: F.eliminate_linear_variables(skip=lambda lm,tail: str(lm)=='a').gens()
             (a + c + d, a*c + a*d + a + c, c*d + c)
+
+        The list of reductors can be requested by setting 'return_reductors' to ``True``::
+
+            sage: B.<a,b,c,d> = BooleanPolynomialRing()
+            sage: F = mq.MPolynomialSystem([a + b + d, a + b + c])
+            sage: F,R = F.eliminate_linear_variables(return_reductors=True)
+            sage: F.gens()
+            (c + d,)
+            sage: R.gens()
+            (a + b + d,)
 
         .. note::
 
@@ -1334,6 +1348,8 @@ class MPolynomialSystem_gf2(MPolynomialSystem_generic):
 
         F = self
 
+        elim = []
+
         while True:
             linear = []
             higher = []
@@ -1352,12 +1368,17 @@ class MPolynomialSystem_gf2(MPolynomialSystem_generic):
                 else:
                     higher.append(f)
 
-            if linear == []:
+            if not linear:
+                break
+            if not higher:
+                higher = linear
                 break
 
             assert len(set(linear)) == len(linear)
 
             rb = ll_encode(linear)
+
+            elim.extend(linear)
 
             F = []
 
@@ -1374,7 +1395,12 @@ class MPolynomialSystem_gf2(MPolynomialSystem_generic):
                 print ".",
         if get_verbose() > 0:
             print
-        return MPolynomialSystem(R, higher)
+
+        ret = MPolynomialSystem(R, higher)
+        if return_reductors:
+            return ret, MPolynomialSystem(R, elim)
+        else:
+            return ret
 
     def _groebner_strategy(self):
         """

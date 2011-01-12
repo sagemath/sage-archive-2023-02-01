@@ -7,6 +7,8 @@ Miscellaneous
    :maxdepth: 2
 
    sage/misc/abstract_method
+   sage/misc/cachefunc
+   sage/misc/function_mangling
    sage/misc/exceptions
    sage/misc/misc
    sage/misc/bitset

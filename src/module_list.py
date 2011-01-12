@@ -961,6 +961,9 @@ ext_modules = [
     Extension('sage.misc.fpickle',
               sources = ['sage/misc/fpickle.pyx']),
 
+    Extension('sage.misc.function_mangling',
+              sources = ['sage/misc/function_mangling.pyx']),
+
     Extension('sage.misc.misc_c',
               sources = ['sage/misc/misc_c.pyx']),
 

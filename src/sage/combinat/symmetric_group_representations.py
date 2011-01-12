@@ -309,25 +309,37 @@ class SymmetricGroupRepresentation_generic_class(SageObject):
             sage: spc4 = loads(dumps(spc3))
             sage: spc3 == spc4
             True
+
+        TESTS:
+
+        The following tests against some bug that was fixed in trac
+        ticket #8611::
+
+            sage: spc = SymmetricGroupRepresentation([3])
+            sage: spc.important_info = 'Sage rules'
+            sage: spc == SymmetricGroupRepresentation([3])
+            True
+
         """
         if not isinstance(other, type(other)):
             return False
-        # both self and other must have caching enabled
-        if self.__dict__.has_key('representation_matrix'):
-            if not other.__dict__.has_key('representation_matrix'):
-                return False
-            else:
-                for key in self.__dict__:
-                    if key != 'representation_matrix':
-                        if self.__dict__[key] != other.__dict__[key]:
-                            return False
-                else:
-                    return True
-        else:
-            if other.__dict__.has_key('representation_matrix'):
-                return False
-            else:
-                return self.__dict__.__eq__(other.__dict__)
+        return (self._ring,self._partition)==(other._ring,other._partition)
+#        # both self and other must have caching enabled
+#        if self.__dict__.has_key('representation_matrix'):
+#            if not other.__dict__.has_key('representation_matrix'):
+#                return False
+#            else:
+#                for key in self.__dict__:
+#                    if key != 'representation_matrix':
+#                        if self.__dict__[key] != other.__dict__[key]:
+#                            return False
+#                else:
+#                    return True
+#        else:
+#            if other.__dict__.has_key('representation_matrix'):
+#                return False
+#            else:
+#                return self.__dict__.__eq__(other.__dict__)
 
     def __call__(self, permutation):
         r"""

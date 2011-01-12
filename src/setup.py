@@ -1038,6 +1038,8 @@ code = setup(name = 'sage',
                      'sage.tests',
                      'sage.tests.french_book',
 
+                     'sage.sandpiles',
+
                      'sage.sets',
 
                      'sage.stats',

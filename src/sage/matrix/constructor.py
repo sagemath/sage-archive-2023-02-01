@@ -1260,99 +1260,219 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
         raise ValueError('random matrix algorithm "%s" is not recognized' % algorithm)
 
 
-def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=None):
-    """
+def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=True):
+    r"""
+    Return a square matrix with specified diagonal entries, and zeros elsewhere.
+
+    FORMATS:
+
+      1. diagonal_matrix(entries)
+
+      2. diagonal_matrix(nrows, entries)
+
+      3. diagonal_matrix(ring, entries)
+
+      4. diagonal_matrix(ring, nrows, entries)
+
     INPUT:
 
-    Supported formats
+    - ``entries`` - the values to place along the diagonal
+      of the returned matrix.  This may be a flat list, a
+      flat tuple, a vector or free module element, or
+      a one-dimensional NumPy array.
 
-    1. diagonal_matrix(diagonal_entries, [sparse=True]):
-       diagonal matrix with flat list of entries
+    - ``nrows`` - the size of the returned matrix, which
+      will have an equal number of columns
 
-    2. diagonal_matrix(nrows, diagonal_entries, [sparse=True]):
-       diagonal matrix with flat list of entries and the rest zeros
+    - ``ring`` - the ring containing the entries of the
+      diagonal entries.  This may not be specified in
+      combination with a NumPy array.
 
-    3. diagonal_matrix(ring, diagonal_entries, [sparse=True]):
-       diagonal matrix over specified ring with flat list of entries
+    - ``sparse`` - default: ``True`` - whether or not
+      the result has a sparse implementation.
 
-    4. diagonal_matrix(ring, nrows, diagonal_entries, [sparse=True]):
-       diagonal matrix over specified ring with flat
-       list of entries and the rest zeros
+    OUTPUT:
 
-    5. diagonal_matrix(vect, [sparse=True]):
-       diagonal matrix with entries taken from a vector
-
-    The sparse option is optional, must be explicitly named (i.e.,
-    sparse=True), and may be either True or False.
+    A square matrix over the given ``ring`` with a size
+    given by ``nrows``.  If the ring is not given it
+    is inferred from the given entries.  The values on
+    the diagonal of the returned matrix come from ``entries``.
+    If the number of entries is not enough to fill the whole
+    diagonal, it is padded with zeros.
 
     EXAMPLES:
 
-    Input format 1::
+    We first demonstrate each of the input formats with various
+    different ways to specify the entries.
 
-        sage: diagonal_matrix([1,2,3])
+    Format 1: a flat list of entries.  ::
+
+        sage: A = diagonal_matrix([2, 1.3, 5]); A
+        [ 2.00000000000000 0.000000000000000 0.000000000000000]
+        [0.000000000000000  1.30000000000000 0.000000000000000]
+        [0.000000000000000 0.000000000000000  5.00000000000000]
+        sage: A.parent()
+        Full MatrixSpace of 3 by 3 sparse matrices over Real Field with 53 bits of precision
+
+    Format 2: size specified, a tuple with initial entries. Note that a short list of entries
+    is effectively padded with zeros.  ::
+
+        sage: A = diagonal_matrix(3, (4, 5)); A
+        [4 0 0]
+        [0 5 0]
+        [0 0 0]
+        sage: A.parent()
+        Full MatrixSpace of 3 by 3 sparse matrices over Integer Ring
+
+    Format 3: ring specified, a vector of entries. ::
+
+        sage: A = diagonal_matrix(QQ, vector(ZZ, [1,2,3])); A
         [1 0 0]
         [0 2 0]
         [0 0 3]
+        sage: A.parent()
+        Full MatrixSpace of 3 by 3 sparse matrices over Rational Field
 
-    Input format 2::
+    Format 4: ring, size and list of entries. ::
 
-        sage: diagonal_matrix(3, [1,2])
-        [1 0 0]
-        [0 2 0]
-        [0 0 0]
-
-    Input format 3::
-
-        sage: diagonal_matrix(GF(3), [1,2,3])
-        [1 0 0]
-        [0 2 0]
-        [0 0 0]
-
-    Input format 4::
-
-        sage: diagonal_matrix(GF(3), 3, [8,2])
+        sage: A = diagonal_matrix(FiniteField(3), 3, [2, 16]); A
         [2 0 0]
-        [0 2 0]
+        [0 1 0]
         [0 0 0]
+        sage: A.parent()
+        Full MatrixSpace of 3 by 3 sparse matrices over Finite Field of size 3
 
-    Input format 5::
+    NumPy arrays may be used as input. ::
 
-        sage: diagonal_matrix(vector(GF(3),[1,2,3]))
-        [1 0 0]
-        [0 2 0]
-        [0 0 0]
+        sage: import numpy
+        sage: entries = numpy.array([1.2, 5.6]); entries
+        array([ 1.2,  5.6])
+        sage: A = diagonal_matrix(3, entries); A
+        [1.2 0.0 0.0]
+        [0.0 5.6 0.0]
+        [0.0 0.0 0.0]
+        sage: A.parent()
+        Full MatrixSpace of 3 by 3 sparse matrices over Real Double Field
 
+        sage: j = numpy.complex(0,1)
+        sage: entries = numpy.array([2.0+j, 8.1, 3.4+2.6*j]); entries
+        array([ 2.0+1.j ,  8.1+0.j ,  3.4+2.6j])
+        sage: A = diagonal_matrix(entries); A
+        [2.0 + 1.0*I           0           0]
+        [          0         8.1           0]
+        [          0           0 3.4 + 2.6*I]
+        sage: A.parent()
+        Full MatrixSpace of 3 by 3 sparse matrices over Complex Double Field
+
+        sage: entries = numpy.array([4, 5, 6])
+        sage: A = diagonal_matrix(entries); A
+        [4 0 0]
+        [0 5 0]
+        [0 0 6]
+        sage: A.parent()
+        Full MatrixSpace of 3 by 3 sparse matrices over Integer Ring
+
+        sage: entries = numpy.array([4.1, 5.2, 6.3])
+        sage: A = diagonal_matrix(ZZ, entries); A
+        Traceback (most recent call last):
+        ...
+        TypeError: Cannot convert non-integral float to integer
+
+    By default returned matrices have a sparse implementation.  This can be changed
+    when using any of the formats.  ::
+
+        sage: A = diagonal_matrix([1,2,3], sparse=False)
+        sage: A.parent()
+        Full MatrixSpace of 3 by 3 dense matrices over Integer Ring
+
+    An empty list and no ring specified defaults to the integers. ::
+
+        sage: A = diagonal_matrix([])
+        sage: A.parent()
+        Full MatrixSpace of 0 by 0 sparse matrices over Integer Ring
+
+    Giving the entries improperly may first complain about not having a length.  ::
+
+        sage: diagonal_matrix(QQ, 5, 10)
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to determine number of entries for diagonal matrix construction
+
+    Giving too many entries will raise an error. ::
+
+        sage: diagonal_matrix(QQ, 3, [1,2,3,4])
+        Traceback (most recent call last):
+        ...
+        ValueError: number of diagonal matrix entries (4) exceeds the requested matrix size (3)
+
+    A negative size sometimes causes the error that there are too many elements. ::
+
+        sage: diagonal_matrix(-2, [2])
+        Traceback (most recent call last):
+        ...
+        ValueError: number of diagonal matrix entries (1) exceeds the requested matrix size (-2)
+
+    Types for the entries are limited, even though they may have a length.  ::
+
+        sage: diagonal_matrix(x^2)
+        Traceback (most recent call last):
+        ...
+        TypeError: diagonal matrix entries are not a supported type (list, tuple, vector, or NumPy array)
+
+    AUTHOR:
+
+        - Rob Beezer (2011-01-11): total rewrite
     """
+    # Roll arguments leftward
+    #
+    # Leads with a ring?
+    # Formats 3, 4, else remains None
     ring = None
-    if isinstance(arg0, (list, tuple)):
-        # Format 1
-        v = arg0
-        nrows = len(v)
-    elif isinstance(arg0, (int, long, rings.Integer)):
-        # Format 2
-        nrows = arg0
-        v = arg1
-    elif rings.is_Ring(arg0):
+    if rings.is_Ring(arg0):
         ring = arg0
-        if isinstance(arg1, (list, tuple)):
-            # Format 3
-            v = arg1
-            nrows = len(v)
-        else:
-            # Format 4
-            nrows = arg1
-            v = arg2
-    elif is_Vector(arg0):
-        # Format 5
-        v = list(arg0)
-        nrows = len(v)
-    if isinstance(v, list):
-        w = {}
-        for i in range(len(v)):
-            w[(i,i)] = v[i]
-    else:
-        w = v
+        arg0 = arg1
+        arg1 = arg2
+    # Size of matrix specified?
+    # Formats 2, 4
+    nrows = None
+    if isinstance(arg0, (int, long, rings.Integer)):
+        nrows = arg0
+        arg0 = arg1
+    # Object holding entries
+    # Formats 1, 2, 3, 4
+    entries = arg0
 
+    # Reconcile matrix size and number of entries
+    try:
+        nentries = len(entries)
+    except TypeError:
+        raise TypeError('unable to determine number of entries for diagonal matrix construction')
+    # sometimes catches a negative size
+    if not nrows is None and nentries > nrows:
+        raise ValueError('number of diagonal matrix entries (%s) exceeds the requested matrix size (%s)' % (nentries, nrows))
+    if nrows is None:
+        nrows = nentries
+
+    # provide a default ring for an empty list
+    if len(entries) == 0 and ring is None:
+      ring = rings.ZZ
+
+    # Sanity check on entries (partially, e.g. a list of lists will survive this check)
+    from numpy import ndarray
+    if not any([isinstance(entries, (list, tuple)), isinstance(entries, ndarray), is_Vector(entries)]):
+        raise TypeError('diagonal matrix entries are not a supported type (list, tuple, vector, or NumPy array)')
+
+    # Convert entries to a list v over a common ring
+    from sage.modules.free_module_element import prepare
+    v, ring = prepare(entries, ring)
+
+    # Create a "diagonal" dictionary for matrix constructor
+    # If nentries < nrows, diagonal is effectively padded with zeros at end
+    w = {}
+    for i in range(len(v)):
+        w[(i,i)] = v[i]
+
+    # Ship ring, matrix size, dictionary to matrix constructor
     if ring is None:
         return matrix(nrows, nrows, w, sparse=sparse)
     else:

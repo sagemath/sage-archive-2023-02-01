@@ -1023,14 +1023,69 @@ cdef class Parent(category_object.CategoryObject):
             return (<map.Map>mor)._call_(x)
 
     def _list_from_iterator_cached(self):
-        """
-        Return a list of all elements in this object, if possible (the
-        object must define an iterator).
+        r"""
+        Return a list of the elements of ``self``.
+
+        OUTPUT:
+
+        A list of all the elements produced by the iterator
+        defined for the object.  The result is cached. An
+        infinite set may define an iterator, allowing one
+        to search through the elements, but a request by
+        this method for the entire list should fail.
+
+        EXAMPLES::
+
+            sage: R = Integers(11)
+            sage: R.list()    # indirect doctest
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+            sage: ZZ.list()
+            Traceback (most recent call last):
+            ...
+            ValueError: since it is infinite, cannot list Integer Ring
+
+        This is the motivation for Trac ticket #10470. ::
+
+            sage: (QQ^2).list()
+            Traceback (most recent call last):
+            ...
+            ValueError: since it is infinite, cannot list Vector space of dimension 2 over Rational Field
+
+        TESTS:
+
+        The following tests the caching by adjusting the cached version. ::
+
+            sage: R = Integers(3)
+            sage: R.list()
+            [0, 1, 2]
+            sage: R._list[0] = 'junk'
+            sage: R.list()
+            ['junk', 1, 2]
+
+        Some objects do not know if they are finite or not, and so a request
+        for the entire list of an infinite set could run without stopping.
+        Asking for ``F.list()`` below  will not finish without an interruption
+        like pressing Ctrl-C.  Try it. ::
+
+            sage: R.<t> = QQ[]
+            sage: F = FractionField(R)
+            sage: F.is_finite()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
         try:
             if self._list is not None:
                 return self._list
         except AttributeError:
+            pass
+        # if known to be infinite, give up
+        # if unsure, proceed (which will hang for an infinite set)
+        try:
+            if not self.is_finite():
+                raise ValueError('since it is infinite, cannot list %s' % self )
+        except AttributeError, NotImplementedError:
             pass
         the_list = list(self.__iter__())
         try:

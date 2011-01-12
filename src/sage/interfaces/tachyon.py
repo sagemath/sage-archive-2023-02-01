@@ -126,7 +126,7 @@ class TachyonRT:
         cmd = 'tachyon %s %s; rm -f "%s"'%(modelfile,opts, modelfile)
 
         if not block:
-            cmd += ' &'
+            cmd = '( ' + cmd + ' ) &'
 
         if verbose:
             print cmd

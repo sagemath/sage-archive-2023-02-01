@@ -1964,14 +1964,14 @@ class GenericGraph(GenericGraph_pyx):
 
     def eulerian_orientation(self):
         r"""
-        Returns a DiGraph which is an eulerian orientation of the current graph.
+        Returns a DiGraph which is an Eulerian orientation of the current graph.
 
-        An eulerian graph being a graph such that any vertex has an even degree,
-        an eulerian orientation of a graph is an orientation of its edges such
+        An Eulerian graph being a graph such that any vertex has an even degree,
+        an Eulerian orientation of a graph is an orientation of its edges such
         that each vertex `v` verifies `d^+(v)=d^-(v)=d(v)/2`, where `d^+` and
         `d^-` respectively represent the out-degree and the in-degree of a vertex.
 
-        If the graph is not eulerian, the orientation verifies for any vertex `v`
+        If the graph is not Eulerian, the orientation verifies for any vertex `v`
         that `| d^+(v)-d^-(v) | \leq 1`.
 
         ALGORITHM:
@@ -1987,7 +1987,7 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES:
 
         The CubeGraph with parameter 4, which is regular of even degree, has an
-        eulerian orientation such that `d^+=d^-`::
+        Eulerian orientation such that `d^+=d^-`::
 
             sage: g=graphs.CubeGraph(4)
             sage: g.degree()
@@ -4030,10 +4030,10 @@ class GenericGraph(GenericGraph_pyx):
 
     def vertex_cut(self, s, t, value_only=True, vertices=False, solver=None, verbose=0):
         r"""
-        Returns a minimum vertex cut between non adjacent vertices `s` and `t`
+        Returns a minimum vertex cut between non-adjacent vertices `s` and `t`
         represented by a list of vertices.
 
-        A vertex cut between two non adjacent vertices is a set `U`
+        A vertex cut between two non-adjacent vertices is a set `U`
         of vertices of self such that the graph obtained by removing
         `U` from self is disconnected. For more information, see the
         `Wikipedia article on cuts
@@ -4337,7 +4337,7 @@ class GenericGraph(GenericGraph_pyx):
           only the size of a minimum vertex cover is returned. Otherwise,
           a minimum vertex cover is returned as a list of vertices.
 
-        - ``log`` -- non negative integer (default: ``0``). Set the level
+        - ``log`` -- non-negative integer (default: ``0``). Set the level
           of verbosity you want from the linear program solver. Since the
           problem of computing a vertex cover is `NP`-complete, its solving
           may take some time depending on the graph. A value of 0 means
@@ -4912,7 +4912,7 @@ class GenericGraph(GenericGraph_pyx):
 
         Given a graph (resp. a digraph) `G` with weighted edges,
         the traveling salesman problem consists in finding a
-        hamiltonian cycle (resp. circuit) of the graph of
+        Hamiltonian cycle (resp. circuit) of the graph of
         minimum cost.
 
         This TSP is one of the most famous NP-Complete problems,
@@ -4962,7 +4962,7 @@ class GenericGraph(GenericGraph_pyx):
 
         EXAMPLES:
 
-        The Heawood graph is known to be hamiltonian::
+        The Heawood graph is known to be Hamiltonian::
 
             sage: g = graphs.HeawoodGraph()
             sage: tsp = g.traveling_salesman_problem()
@@ -4985,16 +4985,16 @@ class GenericGraph(GenericGraph_pyx):
             True
 
         On the other hand, the Petersen Graph is known not to
-        be hamiltonian::
+        be Hamiltonian::
 
             sage: g = graphs.PetersenGraph()
             sage: tsp = g.traveling_salesman_problem()
             Traceback (most recent call last):
             ...
-            ValueError: The given graph is not hamiltonian
+            ValueError: The given graph is not Hamiltonian
 
         One easy way to change is is obviously to add to this
-        graph the edges corresponding to a hamiltonian cycle.
+        graph the edges corresponding to a Hamiltonian cycle.
 
         If we do this by setting the cost of these new edges
         to `2`, while the others are set to `1`, we notice
@@ -5141,18 +5141,18 @@ class GenericGraph(GenericGraph_pyx):
             return tsp
 
         except MIPSolverException:
-            raise ValueError("The given graph is not hamiltonian")
+            raise ValueError("The given graph is not Hamiltonian")
 
 
     def hamiltonian_cycle(self, algorithm='tsp' ):
         r"""
-        Returns a hamiltonian cycle/circuit of the current graph/digraph
+        Returns a Hamiltonian cycle/circuit of the current graph/digraph
 
-        A graph (resp. digraph) is said to be hamiltonian
+        A graph (resp. digraph) is said to be Hamiltonian
         if it contains as a subgraph a cycle (resp. a circuit)
         going through all the vertices.
 
-        Computing a hamiltonian cycle/circuit being NP-Complete,
+        Computing a Hamiltonian cycle/circuit being NP-Complete,
         this algorithm could run for some time depending on
         the instance.
 
@@ -5168,11 +5168,11 @@ class GenericGraph(GenericGraph_pyx):
 
         OUTPUT:
 
-        If using the 'tsp' algorithm, returns a hamiltonian cycle/circuit if it
+        If using the 'tsp' algorithm, returns a Hamiltonian cycle/circuit if it
         exists; otherwise, raises a ``ValueError`` exception. If using the
         'backtrack' algorithm, returns a pair (B,P). If B is True then P is a
-        hamiltonian cycle and if B is False, P is a longest path found by the
-        algorithm. Observe that if B is False, the graph may still be hamiltonian.
+        Hamiltonian cycle and if B is False, P is a longest path found by the
+        algorithm. Observe that if B is False, the graph may still be Hamiltonian.
         The 'backtrack' algorithm is only implemented for undirected
         graphs.
 
@@ -5183,16 +5183,16 @@ class GenericGraph(GenericGraph_pyx):
 
         NOTE:
 
-        This function, as ``is_hamiltonian``, computes a hamiltonian
+        This function, as ``is_hamiltonian``, computes a Hamiltonian
         cycle if it exists : the user should *NOT* test for
-        hamiltonicity using ``is_hamiltonian`` before calling this
+        Hamiltonicity using ``is_hamiltonian`` before calling this
         function, as it would result in computing it twice.
 
         The backtrack algorithm is only implemented for undirected graphs.
 
         EXAMPLES:
 
-        The Heawood Graph is known to be hamiltonian ::
+        The Heawood Graph is known to be Hamiltonian ::
 
             sage: g = graphs.HeawoodGraph()
             sage: g.hamiltonian_cycle()
@@ -5204,7 +5204,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.hamiltonian_cycle()
             Traceback (most recent call last):
             ...
-            ValueError: The given graph is not hamiltonian
+            ValueError: The given graph is not Hamiltonian
 
         Now, using the backtrack algorithm in the Heawood graph ::
 
@@ -5218,7 +5218,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.hamiltonian_cycle(algorithm='backtrack')
             (False, [6, 8, 5, 0, 1, 2, 7, 9, 4, 3])
 
-        Finally, we test the algorithm in a cube graph, which is hamiltonian ::
+        Finally, we test the algorithm in a cube graph, which is Hamiltonian ::
 
             sage: G=graphs.CubeGraph(3)
             sage: G.hamiltonian_cycle(algorithm='backtrack')
@@ -5231,7 +5231,7 @@ class GenericGraph(GenericGraph_pyx):
             try:
                 return self.traveling_salesman_problem(weighted = False)
             except MIPSolverException:
-                raise ValueError("The given graph is not hamiltonian")
+                raise ValueError("The given graph is not Hamiltonian")
         elif algorithm=='backtrack':
             from sage.graphs.generic_graph_pyx import find_hamiltonian as fh
             return fh( self )
@@ -12532,7 +12532,7 @@ class GenericGraph(GenericGraph_pyx):
     def layout_tree(self, tree_orientation = "down", tree_root = None, dim = 2, **options):
         """
         Computes an ordered tree layout for this graph, which should
-        be a tree (no non oriented cycles).
+        be a tree (no non-oriented cycles).
 
         INPUT:
 
@@ -14586,13 +14586,13 @@ class GenericGraph(GenericGraph_pyx):
 
     def is_hamiltonian(self):
         r"""
-        Tests whether the current graph is hamiltonian
+        Tests whether the current graph is Hamiltonian.
 
-        A graph (resp. digraph) is said to be hamiltonian
+        A graph (resp. digraph) is said to be Hamiltonian
         if it contains as a subgraph a cycle (resp. a circuit)
         going through all the vertices.
 
-        Testing for hamiltonicity being NP-Complete, this
+        Testing for Hamiltonicity being NP-Complete, this
         algorithm could run for some time depending on
         the instance.
 
@@ -14602,21 +14602,21 @@ class GenericGraph(GenericGraph_pyx):
 
         OUTPUT:
 
-        Returns ``True`` if a hamiltonian cycle/circuit exists, and
+        Returns ``True`` if a Hamiltonian cycle/circuit exists, and
         ``False`` otherwise.
 
         NOTE:
 
         This function, as ``hamiltonian_cycle`` and
-        ``traveling_salesman_problem``, computes a hamiltonian
+        ``traveling_salesman_problem``, computes a Hamiltonian
         cycle if it exists : the user should *NOT* test for
-        hamiltonicity using ``is_hamiltonian`` before calling
+        Hamiltonicity using ``is_hamiltonian`` before calling
         ``hamiltonian_cycle`` or ``traveling_salesman_problem``
         as it would result in computing it twice.
 
         EXAMPLES:
 
-        The Heawood Graph is known to be hamiltonian ::
+        The Heawood Graph is known to be Hamiltonian ::
 
             sage: g = graphs.HeawoodGraph()
             sage: g.is_hamiltonian()

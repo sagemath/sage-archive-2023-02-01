@@ -5371,6 +5371,7 @@ class GenericGraph(GenericGraph_pyx):
             4
         """
         from sage.graphs.digraph import DiGraph
+        from sage.functions.other import floor
 
         # Whether we should consider the edges labeled
         if use_edge_labels:

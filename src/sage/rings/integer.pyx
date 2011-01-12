@@ -401,7 +401,7 @@ cdef class IntegerWrapper(Integer):
             sage: n.parent()
             Set of all prime numbers: 2, 3, 5, 7, ...
 
-        Pickling is not yet completely functional::
+        Pickling seems to work now (as of #10314)
 
             sage: nn = loads(dumps(n))
             sage: nn
@@ -410,13 +410,6 @@ cdef class IntegerWrapper(Integer):
             Integer Ring
 
             sage: TestSuite(n).run()
-            Failure in _test_pickling:
-            Traceback (most recent call last):
-            ...
-            AssertionError: 3 != 3
-            ------------------------------------------------------------
-            The following tests failed: _test_pickling
-
         """
         if parent is not None:
             Element.__init__(self, parent = parent)
@@ -780,6 +773,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 3 < 2
             False
 
+            sage: 1000000000000000000000000000000000000000000000000000.0r==1000000000000000000000000000000000000000000000000000
+            False
+            sage: 1000000000000000000000000000000000000000000000000000.1r==1000000000000000000000000000000000000000000000000000
+            False
+
         Canonical coercions are used but non-canonical ones are not.
 
         ::
@@ -788,8 +786,78 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             True
             sage: 4 == '4'
             False
+
+        TESTS::
+
+            sage: 3 < 4r
+            True
+            sage: 3r < 4
+            True
+            sage: 3 >= 4r
+            False
+            sage: 4r <= 3
+            False
+            sage: 12345678901234567890123456789r == 12345678901234567890123456789
+            True
+            sage: 12345678901234567890123456788 < 12345678901234567890123456789r
+            True
+            sage: 2 < 2.7r
+            True
+            sage: 4 < 3.1r
+            False
+            sage: -1r < 1
+            True
+            sage: -1.5r < 3
+            True
+            sage: Ilist = [-2,-1,0,1,2,12345678901234567890123456788]
+            sage: ilist = [-4r,-1r,0r,1r,2r,5r]
+            sage: llist = [-12345678901234567890123456788r, 12345678901234567890123456788r, 12345678901234567890123456900r]
+            sage: flist = [-21.8r, -1.2r, -.000005r, 0.0r, .999999r, 1000000000000.0r]
+            sage: all([(a < b) == (RR(a) < RR(b)) for (a, b) in zip(Ilist, ilist)])
+            True
+            sage: all([(a > b) == (RR(a) > RR(b)) for (a, b) in zip(Ilist, ilist)])
+            True
+            sage: all([(a == b) == (RR(a) == RR(b)) for (a, b) in zip(Ilist, ilist)])
+            True
+            sage: all([(a <= b) == (RR(a) <= RR(b)) for (a, b) in zip(Ilist, ilist)])
+            True
+            sage: all([(a >= b) == (RR(a) >= RR(b)) for (a, b) in zip(Ilist, ilist)])
+            True
+            sage: all([(a != b) == (RR(a) != RR(b)) for (a, b) in zip(Ilist, ilist)])
+            True
+            sage: all([(a < b) == (RR(a) < RR(b)) for (a, b) in zip(Ilist, llist)])
+            True
+            sage: all([(a > b) == (RR(a) > RR(b)) for (a, b) in zip(Ilist, llist)])
+            True
+            sage: all([(a < b) == (RR(a) < RR(b)) for (a, b) in zip(Ilist, flist)])
+            True
+            sage: all([(a > b) == (RR(a) > RR(b)) for (a, b) in zip(Ilist, flist)])
+            True
         """
-        return (<sage.structure.element.Element>left)._richcmp(right, op)
+        cdef int c
+        if PY_TYPE_CHECK(left, Integer):
+            if PY_TYPE_CHECK(right, Integer):
+                c = mpz_cmp((<Integer>left).value, (<Integer>right).value)
+            elif PyInt_CheckExact(right):
+                c = mpz_cmp_si((<Integer>left).value, PyInt_AS_LONG(right))
+            elif PyLong_CheckExact(right):
+                mpz_set_pylong(mpz_tmp, right)
+                c = mpz_cmp((<Integer>left).value, mpz_tmp)
+            elif PyFloat_CheckExact(right):
+                c = mpz_cmp_d((<Integer>left).value, PyFloat_AsDouble(right))
+            else:
+                return (<sage.structure.element.Element>left)._richcmp(right, op)
+        else: # right is an Integer
+            if PyInt_CheckExact(left):
+                c = -mpz_cmp_si((<Integer>right).value, PyInt_AS_LONG(left))
+            elif PyLong_CheckExact(left):
+                mpz_set_pylong(mpz_tmp, left)
+                c = mpz_cmp(mpz_tmp, (<Integer>right).value)
+            elif PyFloat_CheckExact(left):
+                c = -mpz_cmp_d((<Integer>right).value, PyFloat_AsDouble(left))
+            else:
+                return (<sage.structure.element.Element>left)._richcmp(right, op)
+        return (<sage.structure.element.Element>left)._rich_to_bool(op, c)
 
     cdef int _cmp_c_impl(left, sage.structure.element.Element right) except -2:
         cdef int i

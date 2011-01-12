@@ -1387,8 +1387,10 @@ class DiGraph(GenericGraph):
         n=self.order()
 
         # The removed vertices cover all the back arcs ( third condition )
-        [p.add_constraint(d[u]-d[v]+n*(b[u]+b[v]),min=1) for (u,v) in self.edges(labels=None)]
-        [p.add_constraint(d[u],max=n) for u in self]
+        for (u, v) in self.edges(labels=False):
+            p.add_constraint(d[u] - d[v] + n*(b[u] + b[v]), min=1)
+        for u in self:
+            p.add_constraint(d[u], max=n)
 
         p.set_objective(Sum([b[v] for v in self]))
 

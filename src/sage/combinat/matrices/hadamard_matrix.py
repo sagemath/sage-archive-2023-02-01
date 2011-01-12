@@ -114,7 +114,7 @@ def hadamard_matrix_paleyII(n):
     else:
         raise ValueError, "The order %s is not covered by the Paley type II construction."%n
     S = matrix(ZZ,[[H2(i,j,p) for i in range(N)] for j in range(N)])
-    return block_matrix([S+1,S-1,S-1,-S-1])
+    return block_matrix([[S+1,S-1],[S-1,-S-1]])
 
 def hadamard_matrix(n):
     """

@@ -1437,9 +1437,221 @@ def ones_matrix(ring, nrows=None, ncols=None, sparse=False):
     one = ring(1)
     return matrix_space.MatrixSpace(ring, nrows, ncols, sparse).matrix([one]*nents)
 
-def block_matrix(sub_matrices, nrows=None, ncols=None, subdivide=True):
+def _determine_block_matrix_grid(sub_matrices):
     """
-    Returns a larger matrix made by concatenating the sub_matrices
+    For internal use. This tries to determine the dimensions
+    of rows/columns when assembling the matrices in sub_matrices in a
+    rectangular grid. It returns a pair of lists containing
+    respectively the sizes of rows and columns.
+
+    sub_matrices must be a list of lists of matrices. All sublists
+    are expected to be the same size.
+
+    Non-zero scalars are considered to be square matrices of any size,
+    and zeroes are considered to be zero matrices of any size.
+
+    A ValueError is raised if there is insufficient or
+    conflicting information.
+
+    TESTS::
+
+        sage: from sage.matrix.constructor import _determine_block_matrix_grid
+        sage: A = matrix(QQ, 2, 2, [3,9,6,10])
+        sage: _determine_block_matrix_grid([[A, A], [A, A]])
+        ([2, 2], [2, 2])
+
+        sage: B = matrix(QQ, 1, 1, [ 1 ] )
+        sage: C = matrix(QQ, 2, 2, [ 2, 3, 4, 5 ] )
+        sage: _determine_block_matrix_grid([[B, 0], [0, C]])
+        ([1, 2], [1, 2])
+    """
+
+    nrows = len(sub_matrices)
+    if nrows == 0:
+        return ([], [])
+    ncols = len(sub_matrices[0])
+
+    if ncols == 0:
+        return ([0] * nrows, [])
+
+    row_heights = [None] * nrows
+    col_widths = [None] * ncols
+
+    changing = True
+    while changing:
+        changing = False
+        for i in range(nrows):
+            for j in range(ncols):
+                M = sub_matrices[i][j]
+                sub_width = None
+                sub_height = None
+                if is_Matrix(M):
+                    sub_width = M.ncols()
+                    sub_height = M.nrows()
+                elif M: # non-zero scalar is interpreted as a square matrix
+                    if row_heights[i] is None:
+                        sub_width = col_widths[j]
+                    else:
+                        sub_width = row_heights[i]
+                    sub_height = sub_width
+                if sub_width is not None:
+                    if col_widths[j] is None:
+                        changing = True
+                        col_widths[j] = sub_width
+                    elif col_widths[j] != sub_width:
+                        raise ValueError, "Incompatible submatrix widths"
+                if sub_height is not None:
+                    if row_heights[i] is None:
+                        changing = True
+                        row_heights[i] = sub_height
+                    elif row_heights[i] != sub_height:
+                        raise ValueError, "Incompatible submatrix heights"
+
+    if None in row_heights or None in col_widths:
+        if None in row_heights or None in col_widths:
+            raise ValueError, "Insufficient information to determine dimensions."
+
+    return (row_heights, col_widths)
+
+def _determine_block_matrix_rows(sub_matrices):
+    """
+    For internal use. This tests if the matrices in sub_matrices
+    fit in a rectangular matrix when assembled a row at a time.
+
+    sub_matrices must be a list of lists of matrices.
+
+    It returns a pair (row_heights, zero_widths, width) where
+    row_heights is the list of row heights, zero_widths is the
+    total width filled up by zero matrices per row, and width
+    is the total width of the resulting matrix.
+
+    Non-zero scalars are considered to be square matrices of any size,
+    and zeroes are considered to be zero matrices of any size.
+
+    A ValueError is raised if there is insufficient or
+    conflicting information.
+
+    TESTS::
+
+        sage: from sage.matrix.constructor import _determine_block_matrix_rows
+        sage: A = Matrix(ZZ, 1, 4, [1, 2, 3, 4])
+        sage: _determine_block_matrix_rows([ [1, 1], [ A ] ])
+        ([2, 1], [0, 0], 4)
+
+        sage: B = Matrix(ZZ, 2, 2, [1, 2, 3, 4])
+        sage: _determine_block_matrix_rows([ [B, B], [B, 1] ])
+        ([2, 2], [0, 0], 4)
+    """
+
+    total_height = 0
+    total_width = None
+
+    row_heights = [ None ] * len(sub_matrices)
+    zero_widths = [ 0 ] * len(sub_matrices)
+
+    # We first do a pass to see if we can determine the width
+    unknowns = False
+    for i in range(len(sub_matrices)):
+        R = sub_matrices[i]
+        height = None
+        # We first do a pass to see if we can determine the height
+        # of this row
+        found_zeroes = False
+        for M in R:
+            if is_Matrix(M):
+                if height is None:
+                    height = M.nrows()
+                elif height != M.nrows():
+                    raise ValueError, "Incompatible submatrix heights"
+            elif not M:
+                found_zeroes = True
+        if len(R) == 0:
+            height = 0
+
+        # If we have a height, then we know the dimensions of any
+        # non-zero scalars, and can maybe compute the width
+        if height is not None and not found_zeroes:
+            width = 0
+            for M in R:
+                if is_Matrix(M):
+                    width += M.ncols()
+                else:
+                    # non-zero scalar
+                    width += height
+            if total_width is None:
+                total_width = width
+            elif total_width != width:
+                raise ValueError, "Incompatible submatrix widths"
+            row_heights[i] = height
+        else:
+            # We don't set height here even if we know it,
+            # to signal this row hasn't been fit yet.
+            unknowns = True
+
+    if total_width is None:
+        raise ValueError, "Insufficient information to determine submatrix widths"
+
+    if unknowns:
+        # Do a second pass and see if the remaining rows can be
+        # determined now that we know the width of the matrix.
+        for i in range(len(sub_matrices)):
+            if row_heights[i] is not None:
+                continue
+            R = sub_matrices[i]
+            zero_state = 0
+            # 0: no zeroes found
+            # 1: consecutive zeroes found
+            # 2: consecutive zeroes followed by non-zero found
+            # 3: non-consecutive zeroes found
+            scalars = 0
+            width = 0
+            height = None
+            for j in range(len(R)):
+                M = R[j]
+                if is_Matrix(M):
+                    height = M.nrows()
+                    width += M.ncols()
+                    if zero_state == 1:
+                        zero_state = 2
+                elif not M:
+                    if zero_state == 0:
+                        zero_state = 1
+                    elif zero_state == 2:
+                        zero_state = 3
+                else:
+                     scalars += 1
+
+            remaining_width = total_width - width
+            # This remaining width has to be split over the
+            # zeroes and (non-zero) scalars
+
+            if height is not None:
+                remaining_width -= scalars * height
+                if remaining_width < 0:
+                    raise ValueError, "Incompatible submatrix widths"
+                if remaining_width > 0 and zero_state == 3:
+                    raise ValueError, "Insufficient information to determine submatrix widths"
+                if remaining_width > 0 and zero_state == 0:
+                    raise ValueError, "Incompatible submatrix widths"
+                # otherwise, things fit
+                row_heights[i] = height
+                zero_widths[i] = remaining_width
+            elif zero_state != 0:
+                # if we don't know the height, and there are zeroes,
+                # we can't determine the height
+                raise ValueError, "Insufficient information to determine submatrix heights"
+            elif total_width % len(R) != 0:
+                raise ValueError, "Incompatible submatrix widths"
+            else:
+                height = int(total_width / len(R))
+                row_heights[i] = height
+
+    # If we got this far, then everything fits
+    return (row_heights, zero_widths, total_width)
+
+def block_matrix(*args, **kwds): #sub_matrices, nrows=None, ncols=None, subdivide=True):
+    """
+    Returns a larger matrix made by concatenating submatrices
     (rows first, then columns). For example, the matrix
 
     ::
@@ -1449,33 +1661,52 @@ def block_matrix(sub_matrices, nrows=None, ncols=None, subdivide=True):
 
     is made up of submatrices A, B, C, and D.
 
-    INPUT:
+    INPUT: The block_matrix command takes a list of submatrices to add
+    as blocks, optionally preceded by a ring and the number of block rows
+    and block columns, and returns a matrix.
 
+    The submatrices can be specified as a list of matrices (using
+    ``nrows`` and ``ncols`` to determine their layout), or a list
+    of lists of matrices, where each list forms a row.
 
-    -  ``sub_matrices`` - matrices (must be of the correct
-       size, or constants)
+    -  ``ring`` - the base ring
 
-    -  ``nrows`` - (optional) the number of block rows
+    -  ``nrows`` - the number of block rows
 
-    -  ``ncols`` - (optional) the number of block cols
+    -  ``ncols`` - the number of block cols
+
+    -  ``sub_matrices`` - matrices (see below for syntax)
 
     -  ``subdivide`` - boolean, whether or not to add
        subdivision information to the matrix
+
+    -  ``sparse`` - boolean, whether to make the resulting matrix sparse
 
 
     EXAMPLES::
 
         sage: A = matrix(QQ, 2, 2, [3,9,6,10])
-        sage: block_matrix([A, -A, ~A, 100*A])
+        sage: block_matrix([ [A, -A], [~A, 100*A] ])
         [    3     9|   -3    -9]
         [    6    10|   -6   -10]
         [-----------+-----------]
         [-5/12   3/8|  300   900]
         [  1/4  -1/8|  600  1000]
 
+    If the number of submatrices in each row is the same,
+    you can specify the submatrices as a single list too::
+
+        sage: block_matrix(2, 2, [ A, A, A, A ])
+        [ 3  9| 3  9]
+        [ 6 10| 6 10]
+        [-----+-----]
+        [ 3  9| 3  9]
+        [ 6 10| 6 10]
+
+
     One can use constant entries::
 
-        sage: block_matrix([1, A, 0, 1])
+        sage: block_matrix([ [1, A], [0, 1] ])
         [ 1  0| 3  9]
         [ 0  1| 6 10]
         [-----+-----]
@@ -1486,14 +1717,13 @@ def block_matrix(sub_matrices, nrows=None, ncols=None, subdivide=True):
 
         sage: B = matrix(QQ, 1, 1, [ 1 ] )
         sage: C = matrix(QQ, 2, 2, [ 2, 3, 4, 5 ] )
-        sage: block_matrix([B, 0, 0, C])
+        sage: block_matrix([ [B, 0], [0, C] ])
         [1|0 0]
         [-+---]
         [0|2 3]
         [0|4 5]
 
-    One can specify the number of rows or columns (optional for square
-    number of matrices)::
+    One can specify the number of rows or columns as keywords too::
 
         sage: block_matrix([A, -A, ~A, 100*A], ncols=4)
         [    3     9|   -3    -9|-5/12   3/8|  300   900]
@@ -1505,100 +1735,238 @@ def block_matrix(sub_matrices, nrows=None, ncols=None, subdivide=True):
         [    3     9|   -3    -9|-5/12   3/8|  300   900]
         [    6    10|   -6   -10|  1/4  -1/8|  600  1000]
 
-    It handle base rings nicely too::
+    It handles base rings nicely too::
 
         sage: R.<x> = ZZ['x']
-        sage: block_matrix([1/2, A, 0, x-1])
+        sage: block_matrix(2, 2, [1/2, A, 0, x-1])
         [  1/2     0|    3     9]
         [    0   1/2|    6    10]
         [-----------+-----------]
         [    0     0|x - 1     0]
         [    0     0|    0 x - 1]
-        sage: block_matrix([1/2, A, 0, x-1]).parent()
+        sage: block_matrix(2, 2, [1/2, A, 0, x-1]).parent()
         Full MatrixSpace of 4 by 4 dense matrices over Univariate Polynomial Ring in x over Rational Field
 
-    Subdivisions are optional::
+    Subdivisions are optional. If they are disabled, the columns need not line up::
 
         sage: B = matrix(QQ, 2, 3, range(6))
-        sage: block_matrix([~A, B, B, ~A], subdivide=False)
+        sage: block_matrix([ [~A, B], [B, ~A] ], subdivide=False)
         [-5/12   3/8     0     1     2]
         [  1/4  -1/8     3     4     5]
         [    0     1     2 -5/12   3/8]
         [    3     4     5   1/4  -1/8]
+
+    Without subdivisions it also deduces dimensions for scalars if possible::
+
+        sage: C = matrix(ZZ, 1, 2, range(2))
+        sage: block_matrix([ [ C, 0 ], [ 3, 4 ], [ 5, 6, C ] ], subdivide=False )
+        [0 1 0 0]
+        [3 0 4 0]
+        [0 3 0 4]
+        [5 6 0 1]
+
+    If all submatrices are sparse (unless there are none at all), the result
+    will be a sparse matrix. Otherwise it will be dense by default. The
+    ``sparse`` keyword can be used to override this::
+
+        sage: A = Matrix(ZZ, 2, 2, [0, 1, 0, 0], sparse=True)
+        sage: block_matrix([ [ A ], [ A ] ]).parent()
+        Full MatrixSpace of 4 by 2 sparse matrices over Integer Ring
+        sage: block_matrix([ [ A ], [ A ] ], sparse=False).parent()
+        Full MatrixSpace of 4 by 2 dense matrices over Integer Ring
+
     """
-    # determine the block dimensions
-    n = ZZ(len(sub_matrices))
-    if nrows is None:
-        if ncols is None:
-            if n.is_square():
-                nrows = ncols = n.sqrt()
-            else:
-                raise ValueError, "Must specify rows or cols for non-square block matrix."
+    args = list(args)
+    sparse = kwds.get('sparse',None)
+
+    if len(args) == 0:
+        if sparse is not None:
+            return matrix_space.MatrixSpace(rings.ZZ, 0, 0, sparse=sparse)([])
         else:
-            nrows = int(n/ncols)
-    elif ncols is None:
-        ncols = int(n/nrows)
-    if nrows * ncols != n:
-        raise ValueError, "Given number of rows (%s), columns (%s) incompatible with number of submatrices (%s)" % (nrows, ncols, n)
+            return matrix_space.MatrixSpace(rings.ZZ, 0, 0)([])
 
-    # empty matrix
-    if n == 0:
-      ans = Matrix(ZZ,0,0,[])
-      if subdivide:
-        ans.subdivide([0]*(nrows-1),[0]*(ncols-1))
-      return ans
+    if len(args) >= 1 and rings.is_Ring(args[0]):
+        # A ring is specified
+        if kwds.get('ring', args[0]) != args[0]:
+            raise ValueError, "Specified rings are not the same"
+        ring = args[0]
+        args.pop(0)
+    else:
+        ring = kwds.get('ring', None)
 
-    # determine the sub-block dimensions
-    row_heights = [None] * nrows
-    col_widths = [None] * ncols
-    for i in range(nrows):
-        for j in range(0, ncols):
-            M = sub_matrices[i*ncols+j]
-            if is_Matrix(M):
-                if row_heights[i] is None:
-                    row_heights[i] = M.nrows()
-                if col_widths[j] is None:
-                    col_widths[j] = M.ncols()
+    if len(args) >= 1:
+        try:
+            nrows = int(args[0])
+            args.pop(0)
+            if kwds.get('nrows', nrows) != nrows:
+                raise ValueError, "Number of rows specified in two places and they are not the same"
+        except TypeError:
+            nrows = kwds.get('nrows', None)
+    else:
+        nrows = kwds.get('nrows', None)
 
-    if None in row_heights or None in col_widths:
-        for i in range(nrows):
-            for j in range(0, ncols):
-                x = sub_matrices[i*ncols+j]
-                if not is_Matrix(x) and x: # must be square matrix
-                    if row_heights[i] is None:
-                        row_heights[i] = col_widths[j]
-                    if col_widths[j] is None:
-                        col_widths[j] = row_heights[i]
+    if len(args) >= 1:
+        # check to see if additionally, the number of columns is specified
+        try:
+            ncols = int(args[0])
+            args.pop(0)
+            if kwds.get('ncols', ncols) != ncols:
+                raise ValueError, "Number of columns specified in two places and they are not the same"
+        except TypeError:
+            ncols = kwds.get('ncols', None)
+    else:
+        ncols = kwds.get('ncols', None)
 
-        if None in row_heights or None in col_widths:
-            raise ValueError, "Insufficient information to determine dimensions."
+    # Now we've taken care of initial ring, nrows, and ncols arguments.
 
-    # determine the base ring
-    base = ZZ
-    for M in sub_matrices:
-        R = M.base_ring() if is_Matrix(M) else M.parent()
-        if R is not ZZ:
-            base = sage.categories.pushout.pushout(base, R)
+    # Now the rest of the arguments are a list of rows, a flat list of
+    # matrices, or a single value.
 
-    # finally concatenate
-    for i in range(nrows):
-        for j in range(ncols):
-            # coerce
-            M = sub_matrices[i*ncols+j]
-            if is_Matrix(M):
-                if M.base_ring() is not base:
-                    M = M.change_ring(base)
+    if len(args) == 0:
+        args = [[]]
+    if len(args) > 1:
+        print args
+        raise TypeError, "Invalid block_matrix invocation"
+
+    sub_matrices = args[0]
+
+    if is_Matrix(sub_matrices):
+        # a single matrix (check nrows/ncols/ring)
+        if (nrows is not None and nrows != 1) or \
+           (ncols is not None and ncols != 1):
+            raise ValueError, "Invalid nrows/ncols passed to block_matrix"
+        if ring is not None:
+            M = M.change_ring(ring)
+        if sparse is not None and M.is_sparse() != sparse:
+            M = M.sparse_matrix() if sparse else M.dense_matrix()
+        return M
+
+    if not isinstance(sub_matrices, (list, tuple)):
+        raise TypeError, "Invalid block_matrix invocation"
+
+    subdivide = kwds.get('subdivide', True)
+
+    # Will we try to place the matrices in a rectangular grid?
+    try_grid = True
+
+
+    if len(sub_matrices) == 0:
+        if (nrows is not None and nrows != 0) or \
+           (ncols is not None and ncols != 0):
+            raise ValueError, "Invalid nrows/ncols passed to block_matrix"
+    elif isinstance(sub_matrices[0], (list, tuple)):
+        # A list of lists: verify all elements are lists, and if
+        # ncols is set, the lengths match.
+        if nrows is not None and len(sub_matrices) != nrows:
+            raise ValueError, "Invalid nrows passed to block_matrix"
+        first_len = len(sub_matrices[0])
+        if ncols is not None and first_len != ncols:
+            raise ValueError, "Invalid ncols passed to block_matrix"
+        same_length = all(isinstance(v, (list, tuple)) and len(v) == first_len for v in sub_matrices)
+        if subdivide and not same_length:
+            raise ValueError, "List of rows is not valid (rows are wrong types or lengths)"
+        try_grid = same_length
+    else:
+        # A flat list
+        # determine the block dimensions
+        n = ZZ(len(sub_matrices))
+        if nrows is None:
+            if ncols is None:
+                if n.is_square():
+                    import warnings
+                    warnings.warn("This invocation of block_matrix is deprecated. See its documentation for details.", DeprecationWarning, stacklevel=2)
+                    nrows = ncols = n.sqrt()
+                else:
+                    raise ValueError, "Must specify nrows or ncols for non-square block matrix."
             else:
-                M = matrix(base, row_heights[i], col_widths[j], M)
-            # append
-            if j == 0:
+                nrows = int(n/ncols)
+        elif ncols is None:
+            ncols = int(n/nrows)
+        if nrows * ncols != n:
+            raise ValueError, "Given number of rows (%s), columns (%s) incompatible with number of submatrices (%s)" % (nrows, ncols, n)
+        # Now create a list of lists from this
+        sub_matrices = [ sub_matrices[i*ncols : (i+1)*ncols] for i in range(nrows) ]
+
+    # At this point sub_matrices is a list of lists
+
+    # determine the base ring and sparsity
+    if ring is None:
+        ring = ZZ
+        for row in sub_matrices:
+            for M in row:
+                R = M.base_ring() if is_Matrix(M) else M.parent()
+                if R is not ZZ:
+                    ring = sage.categories.pushout.pushout(ring, R)
+
+    if sparse is None:
+        sparse = True
+        for row in sub_matrices:
+            for M in row:
+                if sparse and is_Matrix(M) and not M.is_sparse():
+                    sparse = False
+
+    row_heights = None
+    col_widths = None
+    zero_widths = None
+    total_width = None
+
+    # We first try to place the matrices in a rectangular grid
+    if try_grid:
+        try:
+            (row_heights, col_widths) = _determine_block_matrix_grid(sub_matrices)
+        except ValueError as e:
+            if subdivide:
+                raise ValueError, e
+
+
+    if col_widths is None:
+        # Try placing the matrices in rows instead
+        # (Only if subdivide is False)
+        (row_heights, zero_widths, total_width) = _determine_block_matrix_rows(sub_matrices)
+
+
+    # Success, so assemble the final matrix
+
+    big = None
+    for i in range(len(sub_matrices)):
+        R = sub_matrices[i]
+        row = None
+        for j in range(len(R)):
+            M = R[j]
+
+            if is_Matrix(M):
+                if M.base_ring() is not ring:
+                    M = M.change_ring(ring)
+                if M.is_sparse() != sparse:
+                    M = M.sparse_matrix() if sparse else M.dense_matrix()
+            elif not M and zero_widths is not None:
+                if zero_widths[i] > 0:
+                    M = matrix(ring, row_heights[i], zero_widths[i], 0, sparse=sparse)
+                    zero_widths[i] = 0
+                else:
+                    continue # zero-width matrix
+            else:
+                if zero_widths is not None:
+                    M = matrix(ring, row_heights[i], row_heights[i], M, sparse=sparse)
+                else:
+                    M = matrix(ring, row_heights[i], col_widths[j], M, sparse=sparse)
+
+            # append M to this row
+            if row is None:
                 row = M
             else:
                 row = row.augment(M)
-        if i == 0:
+
+        # append row to final matrix
+        if big is None:
             big = row
         else:
             big = big.stack(row)
+
+    if big is None:
+        if ring is None:
+            ring = ZZ
+        big = Matrix(ring, 0, 0)
 
     if subdivide:
         big.subdivide(running_total(row_heights[:-1]),
@@ -1639,7 +2007,7 @@ def block_diagonal_matrix(*sub_matrices, **kwds):
     entries = [ZZ.zero_element()] * n**2
     for i in range(n):
         entries[n*i+i] = sub_matrices[i]
-    return block_matrix(entries, **kwds)
+    return block_matrix(n, n, entries, **kwds)
 
 def jordan_block(eigenvalue, size, sparse=False):
     r"""

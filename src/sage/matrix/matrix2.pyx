@@ -5208,7 +5208,7 @@ cdef class Matrix(matrix1.Matrix):
         """
         if not isinstance(Y,Matrix):
             raise TypeError, "second argument must be a matrix"
-        return sage.matrix.constructor.block_matrix([x*Y for x in self.list()],self.nrows(),self.ncols())
+        return sage.matrix.constructor.block_matrix(self.nrows(),self.ncols(),[x*Y for x in self.list()])
 
     def randomize(self, density=1, nonzero=False, *args, **kwds):
         """

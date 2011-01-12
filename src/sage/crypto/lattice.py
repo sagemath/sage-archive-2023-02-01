@@ -199,11 +199,11 @@ def gen_lattice(type='modular', n=4, m=8, q=11, seed=None, \
     A_prime = A[n:m].lift().apply_map(minrep)
 
     if not dual:
-        B = block_matrix([ZZ(q), ZZ.zero() , A_prime, ZZ.one() ], 2, 2, \
-                         False)
+        B = block_matrix([[ZZ(q), ZZ.zero()], [A_prime, ZZ.one()] ], \
+                         subdivide=False)
     else:
-        B = block_matrix([ZZ.one(), -A_prime.transpose(), ZZ.zero(), \
-                         ZZ(q)], 2 , 2 , False)
+        B = block_matrix([[ZZ.one(), -A_prime.transpose()], [ZZ.zero(), \
+                         ZZ(q)]], subdivide=False)
         for i in range(m//2): B.swap_rows(i,m-i-1)
 
     if not ntl:

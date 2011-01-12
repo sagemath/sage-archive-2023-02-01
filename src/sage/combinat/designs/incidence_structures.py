@@ -463,7 +463,7 @@ class IncidenceStructure(object):
             sage: BD.incidence_graph()
             Bipartite graph on 14 vertices
             sage: A = BD.incidence_matrix()
-            sage: Graph(block_matrix([A*0,A,A.transpose(),A*0])) == BD.incidence_graph()
+            sage: Graph(block_matrix([[A*0,A],[A.transpose(),A*0]])) == BD.incidence_graph()
             True
 
         REFERENCE:
@@ -473,7 +473,7 @@ class IncidenceStructure(object):
         from sage.graphs.bipartite_graph import BipartiteGraph
         A = self.incidence_matrix()
         return BipartiteGraph(A)
-        #same as return Graph(block_matrix([A*0,A,A.transpose(),A*0]))
+        #same as return Graph(block_matrix([[A*0,A],[A.transpose(),A*0]]))
 
     def is_block_design(self):
         """

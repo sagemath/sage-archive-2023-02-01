@@ -442,7 +442,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [0 1 0]
             [0 1 1]
             [0 0 0]
-            sage: block_matrix([B, 1, 0, B])
+            sage: block_matrix([[B, 1], [0, B]])
             [0 1 0|1 0 0]
             [0 1 1|0 1 0]
             [0 0 0|0 0 1]

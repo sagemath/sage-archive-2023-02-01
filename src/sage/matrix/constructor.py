@@ -1505,7 +1505,7 @@ def _determine_block_matrix_grid(sub_matrices):
                         changing = True
                         row_heights[i] = sub_height
                     elif row_heights[i] != sub_height:
-                        raise ValueError("ncompatible submatrix heights")
+                        raise ValueError("incompatible submatrix heights")
 
     if None in row_heights or None in col_widths:
         if None in row_heights or None in col_widths:
@@ -1632,7 +1632,7 @@ def _determine_block_matrix_rows(sub_matrices):
                 if remaining_width > 0 and zero_state == 3:
                     raise ValueError("insufficient information to determine submatrix widths")
                 if remaining_width > 0 and zero_state == 0:
-                    raise ValueError("ncompatible submatrix widths")
+                    raise ValueError("incompatible submatrix widths")
                 # otherwise, things fit
                 row_heights[i] = height
                 zero_widths[i] = remaining_width

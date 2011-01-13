@@ -1764,6 +1764,49 @@ cdef class Matrix(matrix1.Matrix):
             raise TypeError, "lcm function not defined for elements of the base ring"
         return d
 
+    def diagonal(self):
+      r"""
+      Return the diagonal entries of ``self``.
+
+      OUTPUT:
+
+      A list containing the entries of the matrix that
+      have equal row and column indices, in order of the
+      indices.  Behavior is not limited to square matrices.
+
+      EXAMPLES::
+
+          sage: A = matrix([[2,5],[3,7]]); A
+          [2 5]
+          [3 7]
+          sage: A.diagonal()
+          [2, 7]
+
+      Two rectangular matrices.  ::
+
+          sage: B = matrix(3, 7, range(21)); B
+          [ 0  1  2  3  4  5  6]
+          [ 7  8  9 10 11 12 13]
+          [14 15 16 17 18 19 20]
+          sage: B.diagonal()
+          [0, 8, 16]
+
+          sage: C = matrix(3, 2, range(6)); C
+          [0 1]
+          [2 3]
+          [4 5]
+          sage: C.diagonal()
+          [0, 3]
+
+      Empty matrices behave properly. ::
+
+          sage: E = matrix(0, 5, []); E
+          []
+          sage: E.diagonal()
+          []
+      """
+      n = min(self.nrows(), self.ncols())
+      return [self[i,i] for i in range(n)]
 
     def trace(self):
         """

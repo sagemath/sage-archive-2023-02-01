@@ -1,0 +1,398 @@
+Index: src/basemath/trans1.c
+===================================================================
+--- src/basemath/trans1.c	(revision 12623)
++++ src/basemath/trans1.c	(working copy)
+@@ -2134,7 +2134,7 @@
+       gel(y,2) = mppi(lg(x)); return y;
+ 
+     case t_COMPLEX:
+-      if (gequal0(gel(x,2))) return glog(gel(x,1), prec);
++      if (ismpzero(gel(x,2))) return glog(gel(x,1), prec);
+       if (prec >= LOGAGMCX_LIMIT) return logagmcx(x, prec);
+       y = cgetg(3,t_COMPLEX);
+       gel(y,2) = garg(x,prec);
+Index: src/basemath/trans2.c
+===================================================================
+--- src/basemath/trans2.c	(revision 12623)
++++ src/basemath/trans2.c	(working copy)
+@@ -141,7 +141,8 @@
+     case t_REAL:
+       return mpatan(x);
+ 
+-    case t_COMPLEX:
++    case t_COMPLEX: /* atan(x) = -i atanh(ix) */
++      if (ismpzero(gel(x,2))) return gatan(gel(x,1), prec);
+       av = avma; return gerepilecopy(av, mulcxmI(gath(mulcxI(x),prec)));
+ 
+     case t_INTMOD: case t_PADIC: pari_err(typeer,"gatan");
+@@ -197,10 +198,11 @@
+       y = cgetg(3,t_COMPLEX);
+       gel(y,1) = Pi2n(-1, lg(x));
+       gel(y,2) = mpach(x);
+-      if (sx < 0) { togglesign(gel(y,1)); togglesign(gel(y,2)); }
++      if (sx < 0) togglesign(gel(y,1)); else togglesign(gel(y,2));
+       return y;
+ 
+-    case t_COMPLEX:
++    case t_COMPLEX: /* asin(z) = -i asinh(iz) */
++      if (ismpzero(gel(x,2))) return gasin(gel(x,1), prec);
+       av = avma;
+       return gerepilecopy(av, mulcxmI(gash(mulcxI(x), prec)));
+ 
+@@ -269,12 +271,16 @@
+       if (expo(x) < 0) return mpacos(x);
+ 
+       y = cgetg(3,t_COMPLEX); p1 = mpach(x);
+-      if (sx < 0) gel(y,1) = mppi(lg(x));
+-      else { gel(y,1) = gen_0; togglesign(p1); }
++      if (sx < 0) { gel(y,1) = mppi(lg(x)); togglesign(p1); }
++      else gel(y,1) = gen_0;
+       gel(y,2) = p1; return y;
+ 
+-    case t_COMPLEX: av = avma;
+-      return gerepilecopy(av, mulcxmI(gach(x,prec)));
++    case t_COMPLEX:
++      if (ismpzero(gel(x,2))) return gacos(gel(x,1), prec);
++      av = avma;
++      p1 = gadd(x, mulcxI(gsqrt(gsubsg(1,gsqr(x)), prec)));
++      y = glog(p1,prec); /* log(x + I*sqrt(1-x^2)) */
++      return gerepilecopy(av, mulcxmI(y));
+ 
+     case t_INTMOD: case t_PADIC: pari_err(typeer,"gacos");
+     case t_SER:
+@@ -530,7 +536,7 @@
+ }
+ /********************************************************************/
+ /**                                                                **/
+-/**                     ARG-HYPERBOLIC SINE                        **/
++/**                     AREA HYPERBOLIC SINE                       **/
+ /**                                                                **/
+ /********************************************************************/
+ 
+@@ -552,31 +558,23 @@
+ GEN
+ gash(GEN x, long prec)
+ {
+-  long sx, sy, sz;
+   pari_sp av;
+   GEN a, y, p1;
+ 
+-  if (gequal0(x)) return gcopy(x);
+   switch(typ(x))
+   {
+     case t_REAL:
++      if (!signe(x)) return rcopy(x);
+       return mpash(x);
+ 
+-    case t_COMPLEX: av = avma;
++    case t_COMPLEX:
++      if (ismpzero(gel(x,2))) return gash(gel(x,1), prec);
++      av = avma;
++      if (ismpzero(gel(x,1))) /* avoid cancellation */
++        return gerepilecopy(av, mulcxI(gasin(gel(x,2), prec)));
+       p1 = gadd(x, gsqrt(gaddsg(1,gsqr(x)), prec));
+-      y = glog(p1,prec);
+-      sz = (typ(y)==t_COMPLEX)? gsigne(gel(y,1)): gsigne(y);
+-      if (typ(p1) == t_COMPLEX) {
+-        sx = gsigne(gel(p1,1));
+-        sy = gsigne(gel(p1,2));
+-      } else {
+-        sx = gsigne(p1);
+-        sy = 0;
+-      }
+-      if (sx > 0 || (!sx && sy*sz<=0)) return gerepileupto(av, y);
+-
+-      p1 = mppi(prec); if (sy<0) setsigne(p1,-1);
+-      return gerepileupto(av, gsub(mkcomplex(gen_0,p1), y));
++      y = glog(p1,prec); /* log (x + sqrt(1+x^2)) */
++      return gerepileupto(av, y);
+     case t_INTMOD: case t_PADIC: pari_err(typeer,"gash");
+     default:
+       av = avma; if (!(y = toser_i(x))) break;
+@@ -598,7 +596,7 @@
+ }
+ /********************************************************************/
+ /**                                                                **/
+-/**                     ARG-HYPERBOLIC COSINE                      **/
++/**                     AREA HYPERBOLIC COSINE                     **/
+ /**                                                                **/
+ /********************************************************************/
+ 
+@@ -630,17 +628,18 @@
+       if (s == 0) b = acos0(e);
+       else if (e < 0) b = mpacos(x); /* -1 < x < 1 */
+       else {
+-        if (!absrnz_egal1(x)) { a = mpach(x); togglesign(a); }
++        if (!absrnz_egal1(x)) a = mpach(x);
+         b = mppi(lg(x));
+       }
+       gel(y,1) = a;
+       gel(y,2) = b; return y;
+     }
+     case t_COMPLEX:
++      if (ismpzero(gel(x,2))) return gach(gel(x,1), prec);
+       av = avma;
+-      p1 = gadd(x, gsqrt(gaddsg(-1,gsqr(x)), prec)); /* x + sqrt(x^2-1) */
+-      y = glog(p1,prec);
+-      if (typ(y) == t_COMPLEX && signe(y[2]) < 0) y = gneg(y);
++      p1 = gadd(x, gsqrt(gaddsg(-1,gsqr(x)), prec));
++      y = glog(p1,prec); /* log(x + sqrt(x^2-1)) */
++      if (signe(real_i(y)) < 0) y = gneg(y);
+       return gerepileupto(av, y);
+ 
+     case t_INTMOD: case t_PADIC: pari_err(typeer,"gach");
+@@ -674,7 +673,7 @@
+ }
+ /********************************************************************/
+ /**                                                                **/
+-/**                     ARG-HYPERBOLIC TANGENT                     **/
++/**                     AREA HYPERBOLIC TANGENT                    **/
+ /**                                                                **/
+ /********************************************************************/
+ 
+@@ -694,26 +693,33 @@
+ GEN
+ gath(GEN x, long prec)
+ {
++  long sx;
+   pari_sp av;
+   GEN a, y, z;
+ 
+   switch(typ(x))
+   {
+     case t_REAL:
+-      if (!signe(x)) return real_0_bit(expo(x));
++      sx = signe(x);
++      if (!sx) return real_0_bit(expo(x));
+       if (expo(x) < 0) return mpath(x);
+ 
+       y = cgetg(3,t_COMPLEX);
+       av = avma;
+-      z = invr( subrs(x,1) ); setexpo(z, expo(z)+1); /* 2/(x-1)*/
++      z = subrs(x,1);
++      if (!signe(z)) pari_err(talker,"singular argument in atanh");
++      z = invr(z); setexpo(z, expo(z)+1); /* 2/(x-1)*/
+       z = addrs(z,1);
+       if (!signe(z)) pari_err(talker,"singular argument in atanh");
+       z = logr_abs(z);
+-      setexpo(z, expo(z)-1);
++      setexpo(z, expo(z)-1); /* (1/2)log((1+x)/(x-1)) */
+       gel(y,1) = gerepileuptoleaf(av, z);
+-      gel(y,2) = Pi2n(-1, lg(x)); return y;
++      gel(y,2) = Pi2n(-1, lg(x));
++      if (sx > 0) togglesign(gel(y,2));
++      return y;
+ 
+-    case t_COMPLEX:
++    case t_COMPLEX: /* 2/(1-z) - 1 = (1+z) / (1-z) */
++      if (ismpzero(gel(x,2))) return gath(gel(x,1), prec);
+       av = avma; z = glog( gaddgs(gdivsg(2,gsubsg(1,x)),-1), prec );
+       return gerepileupto(av, gmul2n(z,-1));
+ 
+Index: src/functions/transcendental/atanh
+===================================================================
+--- src/functions/transcendental/atanh	(revision 12623)
++++ src/functions/transcendental/atanh	(working copy)
+@@ -3,6 +3,6 @@
+ C-Name: gath
+ Prototype: Gp
+ Help: atanh(x): inverse hyperbolic tangent of x.
+-Doc: principal branch of $\text{tanh}^{-1}(x)$, i.e.~such
+- that $\text{Im(atanh}(x))\in{} ]-\pi/2,\pi/2]$. If $x\in \R$ and $|x|>1$ then
+- $\text{atanh}(x)$ is complex.
++Doc: principal branch of $\text{tanh}^{-1}(x) = log ((1+x)/(1-x)) / 2$. In
++ particular $\text{Im(atanh}(x))\in{} [-\pi/2,\pi/2]$; if $x\in \R$ and
++ $|x|>1$ then $\text{atanh}(x)$ is complex.
+Index: src/functions/transcendental/acosh
+===================================================================
+--- src/functions/transcendental/acosh	(revision 12623)
++++ src/functions/transcendental/acosh	(working copy)
+@@ -3,6 +3,8 @@
+ C-Name: gach
+ Prototype: Gp
+ Help: acosh(x): inverse hyperbolic cosine of x.
+-Doc: principal branch of $\text{cosh}^{-1}(x)$,
+- i.e.~such that $\text{Im(acosh}(x))\in [0,\pi]$. If
+- $x\in \R$ and $x<1$, then $\text{acosh}(x)$ is complex.
++Doc: principal branch of $\text{cosh}^{-1}(x) = 2
++  \log(\sqrt{(x+1)/2} + \sqrt{(x-1)/2})$. In particular,
++ $\text{Re}(\text{acosh}(x))\geq 0$ and
++ $\text{In}(\text{acosh}(x))\in ]-\pi,\pi]0$; if $x\in \R$ and $x<1$, then
++ $\text{acosh}(x)$ is complex.
+Index: src/functions/transcendental/log
+===================================================================
+--- src/functions/transcendental/log	(revision 12623)
++++ src/functions/transcendental/log	(working copy)
+@@ -6,7 +6,10 @@
+ Description:
+  (gen):gen:prec        glog($1, prec)
+ Doc: principal branch of the natural logarithm of
+- $x$, i.e.~such that $\text{Im(log}(x))\in{} ]-\pi,\pi]$. The result is complex
++ $x \in \C^*$, i.e.~such that $\text{Im(log}(x))\in{} ]-\pi,\pi]$.
++ The branch cut lies
++ along the negative real axis, continuous with quadrant 2, i.e.~such that
++ $\lim_{b\to 0^+} \log (a+bi) = \log a$ for $a \in\R^*$. The result is complex
+  (with imaginary part equal to $\pi$) if $x\in \R$ and $x < 0$. In general,
+  the algorithm uses the formula
+  $$\log(x) \approx {\pi\over 2\text{agm}(1, 4/s)} - m \log 2, $$
+Index: src/functions/transcendental/atan
+===================================================================
+--- src/functions/transcendental/atan	(revision 12623)
++++ src/functions/transcendental/atan	(working copy)
+@@ -2,6 +2,10 @@
+ Section: transcendental
+ C-Name: gatan
+ Prototype: Gp
+-Help: atan(x): inverse tangent of x.
+-Doc: principal branch of $\text{tan}^{-1}(x)$, i.e.~such
+- that $\text{Re(atan}(x))\in{} ]-\pi/2,\pi/2[$.
++Help: atan(x): arc tangent of x.
++Doc: principal branch of $\text{tan}^{-1}(x) = \log ((1+ix)/(1-ix)) /
++ 2i$. In particular $\text{Re(atan}(x))\in{} ]-\pi/2,\pi/2[$.
++ The branch cut is in two pieces:
++ $]-i\infty,-i[$, continuous with quadrant IV, and $]i,+i \infty[$ continuous
++ with quadrant II. The function satisfies $i \text{atan}(x) =
++ -i\text{atanh}(ix)$ for all $x\neq \pm i$.
+Index: src/functions/transcendental/acos
+===================================================================
+--- src/functions/transcendental/acos	(revision 12623)
++++ src/functions/transcendental/acos	(working copy)
+@@ -2,7 +2,10 @@
+ Section: transcendental
+ C-Name: gacos
+ Prototype: Gp
+-Help: acos(x): inverse cosine of x.
+-Doc: principal branch of $\text{cos}^{-1}(x)$, i.e.~such that
+- $\text{Re(acos}(x))\in [0,\pi]$. If $x\in \R$ and $|x|>1$, then
+- $\text{acos}(x)$ is complex.
++Help: acos(x): arc cosine of x.
++Doc: principal branch of $\text{cos}^{-1}(x) = -i \log (x + i\sqrt{1-x^2})$.
++ In particular, $\text{Re(acos}(x))\in [0,\pi]$ and if $x\in \R$ and $|x|>1$,
++ then $\text{acos}(x)$ is complex. The branch cut is in two pieces:
++ $]-\infty,-1]$ , continuous with quadrant II, and $[1,+\infty[$, continuous
++ with quadrant IV. We have $\text{acos}(x) = \pi/2 - \text{asin}(x)$ for all
++ $x$.
+Index: src/functions/transcendental/sqrt
+===================================================================
+--- src/functions/transcendental/sqrt	(revision 12623)
++++ src/functions/transcendental/sqrt	(working copy)
+@@ -6,16 +6,14 @@
+ Description:
+  (real):gen           sqrtr($1)
+  (gen):gen:prec       gsqrt($1, prec)
+-Doc: principal branch of the square root of $x$,
+- i.e.~such that $\text{Arg}(\text{sqrt}(x))\in{} ]-\pi/2, \pi/2]$, or in other
+- words such that $\Re(\text{sqrt}(x))>0$ or $\Re(\text{sqrt}(x))=0$ and
+- $\Im(\text{sqrt}(x))\ge 0$. If $x\in \R$ and $x<0$, then the result is
+- complex with positive imaginary part.
++Doc: principal branch of the square root of $x$, defined as $\sqrt{x} =
++ \exp(\log x / 2)$. In particular, we have
++ $\text{Arg}(\text{sqrt}(x))\in{} ]-\pi/2, \pi/2]$, and if $x\in \R$ and $x<0$,
++ then the result is complex with positive imaginary part.
+ 
+- Intmod a prime and $p$-adics are allowed as arguments. In that case,
++ Intmod a prime $p$ and $p$-adics are allowed as arguments. In that case,
+  the square root (if it exists) which is returned is the one whose
+- first $p$-adic digit (or its unique $p$-adic digit in the case of
+- intmods) is in the interval $[0,p/2]$. When the argument is an
++ first $p$-adic digit is in the interval $[0,p/2]$. When the argument is an
+  intmod a non-prime (or a non-prime-adic), the result is undefined.
+ Variant: For a \typ{PADIC} $x$, the function
+  \fun{GEN}{Qp_sqrt}{GEN x} is also available.
+Index: src/functions/transcendental/asin
+===================================================================
+--- src/functions/transcendental/asin	(revision 12623)
++++ src/functions/transcendental/asin	(working copy)
+@@ -2,7 +2,10 @@
+ Section: transcendental
+ C-Name: gasin
+ Prototype: Gp
+-Help: asin(x): inverse sine of x.
+-Doc: principal branch of $\text{sin}^{-1}(x)$, i.e.~such
+- that $\text{Re(asin}(x))\in [-\pi/2,\pi/2]$. If $x\in \R$ and $|x|>1$ then
+- $\text{asin}(x)$ is complex.
++Help: asin(x): arc sine of x.
++Doc: principal branch of $\text{sin}^{-1}(x) = -i \log(ix + \sqrt{1 - x^2})$.
++ In particular, $\text{Re(asin}(x))\in [-\pi/2,\pi/2]$ and if $x\in \R$ and
++ $|x|>1$ then $\text{asin}(x)$ is complex. The branch cut is in two pieces:
++ $]-\infty,-1]$, continuous with quadrant II, and $[1,+\infty[$ continuous
++ with quadrant IV. The function satisfies $i \text{asin}(x) =
++ \text{asinh}(ix)$.
+Index: src/functions/transcendental/asinh
+===================================================================
+--- src/functions/transcendental/asinh	(revision 12623)
++++ src/functions/transcendental/asinh	(working copy)
+@@ -3,5 +3,8 @@
+ C-Name: gash
+ Prototype: Gp
+ Help: asinh(x): inverse hyperbolic sine of x.
+-Doc: principal branch of $\text{sinh}^{-1}(x)$, i.e.~such
+- that $\text{Im(asinh}(x))\in [-\pi/2,\pi/2]$.
++Doc: principal branch of $\text{sinh}^{-1}(x) = \log(x + \sqrt{1+x^2})$. In
++ particular $\text{Im(asinh}(x))\in [-\pi/2,\pi/2]$.
++ The branch cut is in two pieces: [-i oo ,-i],  continuous with quadrant III
++ and [i,+i oo [ continuous with quadrant I.
++
+Index: src/headers/pariinl.h
+===================================================================
+--- src/headers/pariinl.h	(revision 12623)
++++ src/headers/pariinl.h	(working copy)
+@@ -1352,6 +1352,7 @@
+ /*                         MISCELLANEOUS                           */
+ /*                                                                 */
+ /*******************************************************************/
++INLINE int ismpzero(GEN x) { return is_intreal_t(typ(x)) && !signe(x); }
+ INLINE int isintzero(GEN x) { return typ(x) == t_INT && !signe(x); }
+ INLINE int isint1(GEN x) { return typ(x)==t_INT && equali1(x); }
+ INLINE int isintm1(GEN x){ return typ(x)==t_INT && equalim1(x);}
+Index: src/headers/paridecl.h
+===================================================================
+--- src/headers/paridecl.h	(revision 12623)
++++ src/headers/paridecl.h	(working copy)
+@@ -3027,6 +3027,7 @@
+ INLINE int    isint1(GEN x);
+ INLINE int    isintm1(GEN x);
+ INLINE int    isintzero(GEN x);
++INLINE int    ismpzero(GEN x);
+ INLINE int    isonstack(GEN x);
+ INLINE void   killblock(GEN x);
+ INLINE GEN    leading_term(GEN x);
+Index: doc/usersFUNCS.tex
+===================================================================
+--- doc/usersFUNCS.tex	(revision 12623)
++++ doc/usersFUNCS.tex	(working copy)
+@@ -393,8 +393,9 @@
+ @eprog
+ 
+ Note that even if the argument is real, the result may be complex
+-(e.g.~$\text{acos}(2.0)$ or $\text{acosh}(0.0)$).
+-Note also that the principal branch is always chosen.
++(e.g.~$\text{acos}(2.0)$ or $\text{acosh}(0.0)$). See each individual
++function help for the definition of the branch cuts and choice of principal
++value.
+ 
+ \item If the argument is either an integer, a rational, an exact complex
+ number or a quadratic number, it is first converted to a real
+@@ -420,7 +421,7 @@
+ then the function is evaluated for every possible complex embedding of that
+ algebraic number.  A column vector of results is returned, with one component
+ for each complex embedding.  Therefore, the number of components equals
+-the degree of the polynomial defining the number field.
++the degree of the \typ{POLMOD} modulus.
+ 
+ \item If the argument is an intmod or a $p$-adic, at present only a
+ few functions like \kbd{sqrt} (square root), \kbd{sqr} (square), \kbd{log},
+Index: doc/usersch5.tex
+===================================================================
+--- doc/usersch5.tex	(revision 12623)
++++ doc/usersch5.tex	(working copy)
+@@ -6258,6 +6258,9 @@
+ otherwise. Contrary to \kbd{isintzero}, this includes recursive objects, for
+ instance vectors, whose components are $0$.
+ 
++\fun{int}{ismpzero}{GEN x} returns 1 (true) if \kbd{x} is a \typ{INT} or
++a \typ{REAL} equal to~0.
++
+ \fun{int}{isintzero}{GEN x} returns 1 (true) if \kbd{x} is a \typ{INT}
+ equal to~0.
+ 

@@ -1,0 +1,222 @@
+Index: src/test/32/nffactor
+===================================================================
+--- src/test/32/nffactor	(revision 12730)
++++ src/test/32/nffactor	(working copy)
+@@ -691,4 +691,5 @@
+ 
+ [x + Mod(y^7 + 1, y^12 - y^11 + y^9 - y^8 + y^6 - y^4 + y^3 - y + 1) 1]
+ 
+-Total time spent: 21869
++[x + (-2*y^3 + y), x + (-4/3*y^3 + 2/3*y), x + (-2/3*y^3 + 1/3*y)]~
++Total time spent: 32849
+Index: src/test/in/nffactor
+===================================================================
+--- src/test/in/nffactor	(revision 12730)
++++ src/test/in/nffactor	(working copy)
+@@ -70,3 +70,6 @@
+ 
+ \\ Bug #1075
+ nffactor(polcyclo(21,y), x^2-y^7)
++
++\\ Bug #1132
++do(y^4-y^2+1, 3*x^3+(-12*y^3+6*y)*x^2-11*y^2*x+(2*y^3-4*y))
+Index: src/modules/nffactor.c
+===================================================================
+--- src/modules/nffactor.c	(revision 12730)
++++ src/modules/nffactor.c	(working copy)
+@@ -375,36 +375,34 @@
+   return u;
+ }
+ 
+-/* Warning: return L->topowden * (best lift) */
++/* Warning: return L->topowden * (best lift). */
+ static GEN
+-nf_bestlift_to_pol(GEN elt, GEN *cu, GEN bound, nflift_t *L)
++nf_bestlift_to_pol(GEN elt, GEN bound, nflift_t *L)
+ {
+   pari_sp av = avma;
+   GEN u,v = nf_bestlift(elt,bound,L);
+   if (!v) return NULL;
+-  v = gclone(v); avma = av;
+   if (ZV_isscalar(v))
+   {
+-    if (L->topowden) {
++    if (L->topowden)
+       u = mulii(L->topowden, gel(v,1));
+-      if (cu) *cu = icopy(gel(v,1));
+-    } else {
++    else
+       u = icopy(gel(v,1));
+-      if (cu) *cu = u;
+-    }
++    u = gerepileuptoint(av, u);
+   }
+   else
+   {
++    v = gclone(v); avma = av;
+     u = RgV_dotproduct(L->topow, v);
+-    if (cu) *cu = typ(u) == t_POL ? ZV_content(v): u;
++    gunclone(v);
+   }
+-  gunclone(v); return u;
++  return u;
+ }
+ 
+ /* return the T->powden * (lift of pol with coefficients of T2-norm <= C)
+- * if it exists */
++ * if it exists. */
+ static GEN
+-nf_pol_lift(GEN pol, GEN *c, GEN bound, nfcmbf_t *T)
++nf_pol_lift(GEN pol, GEN bound, nfcmbf_t *T)
+ {
+   long i, l = lg(pol);
+   GEN t, x = cgetg(l,t_POL);
+@@ -412,13 +410,10 @@
+   x[1] = pol[1];
+   t = gel(pol,l-1);
+   gel(x,l-1) = mul_content(T->L->topowden, t);
+-  if (c) *c = t;
+   for (i=l-2; i>1; i--)
+   {
+-    GEN ct;
+-    t = nf_bestlift_to_pol(gel(pol,i), c ? &ct: NULL, bound, T->L);
++    t = nf_bestlift_to_pol(gel(pol,i), bound, T->L);
+     if (!t) return NULL;
+-    if (c) *c = gcdii(*c, ct);
+     gel(x,i) = t;
+   }
+   return x;
+@@ -851,54 +846,29 @@
+ }
+ 
+ typedef struct {
+-  GEN lt, C, C2, C2lt, C2ltpol;
++  GEN lt, C, C2lt, C2ltpol;
+ } div_data;
+ 
+ static void
+ init_div_data(div_data *D, GEN pol, GEN C)
+ {
+-  GEN C2, C2lt, lc = leading_term(pol), lt = is_pm1(lc)? NULL: absi(lc);
++  GEN C2lt, lc = leading_term(pol), lt = is_pm1(lc)? NULL: absi(lc);
+   if (C)
+   {
+-    C2 = sqri(C);
++    GEN C2 = sqri(C);
+     C2lt = lt ? mulii(C2, lt): C2;
+   }
+   else
+-  {
+-    C2 = NULL;
+     C2lt = lt;
+-  }
+   D->lt = lt;
+   D->C = C;
+-  D->C2 = C2;
+   D->C2lt = C2lt;
+   D->C2ltpol = C2lt? RgX_Rg_mul(pol, C2lt): pol;
+ }
+ static void
+-update_target(div_data *D, GEN cy, GEN pol)
++update_target(div_data *D, GEN pol)
+ {
+-  GEN C2ltpol, C2lt;
+-  if (D->lt) {
+-    GEN Clt;
+-    D->lt = diviiexact(D->lt, cy); /* correct leading coeff for cofactor of y */
+-    if (D->C)
+-    {
+-      Clt = mulii(D->C, D->lt);
+-      C2lt = mulii(D->C, Clt);
+-    }
+-    else
+-      C2lt = Clt = D->lt;
+-    /* cofactor of y has leading coeff C old_lt : must be multiplied by
+-     * new_lt / C old_lt = 1/(C*cy) to obtain the new 'pol'
+-     * C2ltpol obtained by multiplying further by
+-     * C^2 new_lt : pol * C new_lt / cy */
+-    C2ltpol = RgX_Rg_mul(RgX_Rg_div(pol,cy), Clt);
+-  } else {
+-    C2ltpol = D->C? RgX_Rg_mul(pol, D->C): pol;
+-    C2lt = D->C2;
+-  }
+-  D->C2ltpol = C2ltpol;
+-  D->C2lt    = C2lt;
++  D->C2ltpol = D->C? RgX_Rg_mul(pol, D->C): pol;
+ }
+ 
+ /* nb = number of modular factors; return a "good" K such that naive
+@@ -993,7 +963,7 @@
+     }
+     if (curdeg <= klim) /* trial divide */
+     {
+-      GEN t, cy, y, q;
++      GEN t, y, q;
+       pari_sp av;
+ 
+       av = avma;
+@@ -1026,7 +996,7 @@
+         y = FqX_centermod(q, Tpk, pk, pks2);
+       }
+       /* y = C*lt*\prod_{i in ind} famod[i] */
+-      y = nf_pol_lift(y, D.lt ? &cy : NULL, bound, T);
++      y = nf_pol_lift(y, bound, T);
+       if (!y)
+       {
+         if (DEBUGLEVEL>3) fprintferr("@");
+@@ -1043,9 +1013,7 @@
+       /* pol in O_K[X] with leading coeff lt in Z,
+        * y = C*lt \prod famod[i] is in O_K[X] with leading coeff in Z
+        * q = C^2 * lt * pol / y = C * (lt * pol) / (lt*\prod famod[i]), a
+-       * K-rational factor, in fact in Z[Y]/nf.pol)[X] as above.
+-       * cy is the Z-content of (y/C), i.e. the largest integer such that
+-       * (y/C*cy) is in O_K[X]; it divides lt */
++       * K-rational factor, in fact in Z[Y]/nf.pol)[X] as above. */
+ 
+       /* found a factor */
+       if (D.C2lt) y = RgX_int_normalize(y); /* monic */
+@@ -1068,7 +1036,7 @@
+       if (lfamod < 2*K) goto END;
+       i = 1; curdeg = deg[ind[1]];
+ 
+-      update_target(&D, cy, pol);
++      update_target(&D, pol);
+       if (DEBUGLEVEL > 2)
+       {
+         fprintferr("\n"); msgTIMER(&ti, "to find factor %Ps",y);
+@@ -1133,15 +1101,11 @@
+   for (i = 1;;)
+   {
+     pari_sp av = avma;
+-    GEN cy;
+     if (DEBUGLEVEL) fprintferr("nf_LLL_cmbf: checking factor %ld\n", i);
+     y = chk_factors_get(D.lt, famod, gel(piv,i), Tpk, pk);
+ 
+-    if (! (y = nf_pol_lift(y, D.lt ? &cy : NULL, bound, T)) ) return NULL;
+-    if (D.lt)
+-      gerepileall(av, 2, &y, &cy);
+-    else
+-      y = gerepilecopy(av, y);
++    if (! (y = nf_pol_lift(y, bound, T)) ) return NULL;
++    y = gerepilecopy(av, y);
+     /* y is the candidate factor */
+     pol = RgXQX_divrem(D.C2ltpol, y, nfT, ONLY_DIVIDES);
+     if (!pol) return NULL;
+@@ -1150,7 +1114,7 @@
+     gel(list,i) = y;
+     if (++i >= r) break;
+ 
+-    update_target(&D, cy, pol);
++    update_target(&D, pol);
+   }
+   gel(list,i) = RgX_int_normalize(pol); return list;
+ }
+@@ -1527,7 +1491,7 @@
+   {
+     GEN q, r = gel(z,i);
+ 
+-    r = nf_bestlift_to_pol(ltdn? gmul(ltdn,r): r, NULL, NULL, L);
++    r = nf_bestlift_to_pol(ltdn? gmul(ltdn,r): r, NULL, L);
+     gel(Cltdnx_r,2) = gneg(r); /* check P(r) == 0 */
+     q = RgXQX_divrem(C2ltdnpol, Cltdnx_r, nfpol, ONLY_DIVIDES); /* integral */
+     if (q) {

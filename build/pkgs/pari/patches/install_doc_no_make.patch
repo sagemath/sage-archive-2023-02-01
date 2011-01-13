@@ -1,0 +1,20 @@
+Index: config/Makefile.SH
+===================================================================
+--- config/Makefile.SH	(revision 12623)
++++ config/Makefile.SH	(working copy)
+@@ -398,7 +398,6 @@
+ 
+ install-doc::
+ 	-mkdir -p \$(BINDIR) \$(DOCDIR)
+-	-cd $doc; \$(MAKE) all
+ 	-\$(INSTALL_PROGRAM) $doc/gphelp    \$(BINDIR)
+ 	-\$(INSTALL_DATA) $doc/Makefile     \$(DOCDIR)
+ 	-\$(INSTALL_DATA) $doc/translations \$(DOCDIR)
+@@ -424,7 +423,6 @@
+ 
+ install-docpdf::
+ 	-mkdir -p \$(BINDIR) \$(DOCDIR)
+-	-cd $doc; \$(MAKE) docpdf
+ 	-\$(INSTALL_DATA) $doc/libpari.pdf  \$(DOCDIR)
+ 	-\$(INSTALL_DATA) $doc/users.pdf    \$(DOCDIR)
+ 	-\$(INSTALL_DATA) $doc/tutorial.pdf \$(DOCDIR)

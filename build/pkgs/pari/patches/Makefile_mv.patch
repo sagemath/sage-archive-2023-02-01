@@ -1,0 +1,40 @@
+Index: config/Makefile.SH
+===================================================================
+--- config/Makefile.SH	(revision 12623)
++++ config/Makefile.SH	(working copy)
+@@ -561,28 +561,28 @@
+ desc:: $src/language/init.h $src/gp/gp_init.h $src/gp/highlvl.h $src/gp/whatnow.h
+ 
+ $src/funclist::
+-	@-cd $desc && find ../functions -name CVS -prune -o -name .\\* -prune -o -type f -print | env LANG= LC_COLLATE= LC_ALL= sort | xargs cksum > funclist\$(TMPSUF)
+-	@-sh $cfg/mv-if-diff $desc/funclist\$(TMPSUF) $src/funclist
++	cd $desc && find ../functions -name CVS -prune -o -name .\\* -prune -o -type f -print | env LANG= LC_COLLATE= LC_ALL= sort | xargs cksum > funclist\$(TMPSUF)
++	-\$(MV) $desc/funclist\$(TMPSUF) \$@
+ 
+ $desc/\$(DESC): $src/funclist $desc/merge_822 $desc/PARI/822.pm
+ 	cd $desc && \$(PERL) merge_822 ../funclist > def\$(TMPSUF)
+-	mv $desc/def\$(TMPSUF) \$@
++	-\$(MV) $desc/def\$(TMPSUF) \$@
+ 
+ $src/language/init.h: $desc/\$(DESC) \$(DESC_HELP_GEN)
+ 	cd $desc && \$(PERL) gen_proto basic \$(DESC) > init\$(TMPSUF)
+-	mv $desc/init\$(TMPSUF) \$@
++	-\$(MV) $desc/init\$(TMPSUF) \$@
+ 
+ $src/gp/gp_init.h: $desc/\$(DESC) \$(DESC_HELP_GEN)
+ 	cd $desc && \$(PERL) gen_proto gp \$(DESC) > gp_init\$(TMPSUF)
+-	mv $desc/gp_init\$(TMPSUF) \$@
++	-\$(MV) $desc/gp_init\$(TMPSUF) \$@
+ 
+ $src/gp/highlvl.h: $desc/\$(DESC) \$(DESC_HELP_GEN)
+ 	cd $desc && \$(PERL) gen_proto highlevel \$(DESC) > highlvl\$(TMPSUF)
+-	mv $desc/highlvl\$(TMPSUF) \$@
++	-\$(MV) $desc/highlvl\$(TMPSUF) \$@
+ 
+ $src/gp/whatnow.h: $desc/whatnow $src/whatnow
+ 	cd $desc && \$(PERL) whatnow > whatnow\$(TMPSUF)
+-	mv $desc/whatnow\$(TMPSUF) \$@
++	-\$(MV) $desc/whatnow\$(TMPSUF) \$@
+ 
+ L0MODS=$kern0/asm0.h $knone/addll.h $knone/mulll.h $knone/bfffo.h $knone/divll.h
+ EOT

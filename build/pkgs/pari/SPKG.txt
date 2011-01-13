@@ -48,11 +48,8 @@ of doubt, have a look at the file spkg-make.
   1) ./spkg-make
      This will download the SVN sources to the directory parisvn/
      and will also download galdata.tgz and ellsea-small.tgz.
-     Then, a src/ directory will be created and the patches in
-     patches/*.patch will be applied (with the patched files stored
-     in patches/files).
-     WARNING: This script will remove any existing src/ and
-     patches/files/ directories.
+     Then, a src/ directory will be created.
+     WARNING: This script will remove any existing src/ directory.
      NOTES: The script ./spkg-make will actually compile PARI/GP, but
      the compiled files are not used for the spkg.  We only need a few
      files, in particular those created by bison.
@@ -82,6 +79,24 @@ all the same. But it is not right. I have not looked at PARI to see
 exactly where it says native, but I would expect a grep to find it.
 
 == Changelog ==
+
+=== pari-2.4.3.alpha.p4 (Jeroen Demeyer, January 11th, 2010) ===
+ * Ticket #10430 (fixing also #9620, #10279, #10369, #10559)
+ * Use `patch` to apply patches (at -p0 level because this is how svn
+   gives the diffs).
+ * Apply patches for PARI bugs 1084, 1132, 1141, 1143, 1144.
+ * Move all comments about the patches to patches/README.txt
+ * Simplify the "install" part of spkg-install by doing "make install"
+   instead of copying everything by hand.  This requires a small patch
+   to config/Makefile.SH (install_doc_no_make.patch) to ensure that
+   "make install-doc" does not build the documentation.
+ * Add patch Makefile_mv.patch to fix race condition in parallel make
+   install, see
+   http://pari.math.u-bordeaux.fr/cgi-bin/bugreport.cgi?bug=1148
+ * Add patch perl_path.patch to change first line of all perl scripts
+   to "#!/usr/bin/env perl" (#10559).
+ * Add src/desc/pari.desc after config/get_MANIFEST in spkg-make to
+   remove build-time dependency on perl
 
 === pari-2.4.3.alpha.p0 (Jeroen Demeyer, November 4th, 2010) ===
  * Update to PARI 2.4.3 (by using SVN revision 12623).  Note that the

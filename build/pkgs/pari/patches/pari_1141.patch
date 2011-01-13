@@ -1,0 +1,43 @@
+Index: src/test/32/nffactor
+===================================================================
+--- src/test/32/nffactor	(revision 12763)
++++ src/test/32/nffactor	(working copy)
+@@ -692,4 +692,5 @@
+ [x + Mod(y^7 + 1, y^12 - y^11 + y^9 - y^8 + y^6 - y^4 + y^3 - y + 1) 1]
+ 
+ [x + (-2*y^3 + y), x + (-4/3*y^3 + 2/3*y), x + (-2/3*y^3 + 1/3*y)]~
+-Total time spent: 32849
++[x + (-1/3*y - 1/3), x + (2/3*y + 2/3)]~
++Total time spent: 8712
+Index: src/test/in/nffactor
+===================================================================
+--- src/test/in/nffactor	(revision 12763)
++++ src/test/in/nffactor	(working copy)
+@@ -73,3 +73,7 @@
+ 
+ \\ Bug #1132
+ do(y^4-y^2+1, 3*x^3+(-12*y^3+6*y)*x^2-11*y^2*x+(2*y^3-4*y))
++
++\\ Bug #1141
++do(y^2-y+1, (x-(1+y)/3)^2*(x+2*(1+y)/3))
++
+Index: src/modules/nffactor.c
+===================================================================
+--- src/modules/nffactor.c	(revision 12763)
++++ src/modules/nffactor.c	(working copy)
+@@ -450,13 +450,13 @@
+     { /* compute valuations mod a prime of degree 1 (avoid coeff explosion) */
+       pari_sp av1 = avma;
+       long j;
+-      GEN quo, p, r, Bp, E = cgetalloc(t_VECSMALL,n+1);
++      GEN quo, p, r, Bp, lb = leading_term(B), E = cgetalloc(t_VECSMALL,n+1);
+       byteptr pt = diffptr;
+       ulong pp = 0;
+       for (;; avma = av1)
+       {
+         NEXT_PRIME_VIADIFF_CHECK(pp, pt);
+-        if (! umodiu(bad,pp)) continue;
++        if (! umodiu(bad,pp) || !umodiu(lb, pp)) continue;
+         p = utoipos(pp);
+         r = FpX_oneroot(T, p);
+         if (!r) continue;

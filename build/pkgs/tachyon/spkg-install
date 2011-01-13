@@ -7,6 +7,9 @@ if [ "$SAGE_LOCAL" = "" ]; then
 fi
 
 cd src/
+
+cp ../patches/main.c demosrc
+
 CUR=`pwd`
 cd unix
 

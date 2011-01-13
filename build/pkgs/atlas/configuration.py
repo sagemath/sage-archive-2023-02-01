@@ -163,9 +163,13 @@ if conf['fortran_g95?']:
 ### linker
 ######################################################################
 
-# Note: Solaris linker does not accept --version
-# ignore error code as 'ld -V' likes to error on some Solaris versions
-ld_version = try_run('ld  -V', ignore=True)
+if conf['Solaris?']:
+    # Note: Solaris linker does not accept --version
+    # ignore error code as 'ld -V' likes to error on some Solaris versions
+    ld_version = try_run('ld  -V', ignore=True)
+else:
+    ld_version = try_run('ld  -v')
+
 if ld_version is None:
     print 'Cannot execute ld!'
     sys.exit(3)

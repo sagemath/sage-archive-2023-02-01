@@ -461,3 +461,71 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
         SEE ALSO: smith_form
         """
         return self.dense_matrix().elementary_divisors(algorithm=algorithm)
+
+    def smith_form(self):
+        r"""
+        Returns matrices S, U, and V such that S = U\*self\*V, and S is in
+        Smith normal form. Thus S is diagonal with diagonal entries the
+        ordered elementary divisors of S.
+
+        This version is for sparse matrices and simply makes the matrix
+        dense and calls the version for dense integer matrices.
+
+        .. warning::
+
+           The elementary_divisors function, which returns the
+           diagonal entries of S, is VASTLY faster than this function.
+
+        The elementary divisors are the invariants of the finite abelian
+        group that is the cokernel of this matrix. They are ordered in
+        reverse by divisibility.
+
+        EXAMPLES::
+
+            sage: A = MatrixSpace(IntegerRing(), 3, sparse=True)(range(9))
+            sage: D, U, V = A.smith_form()
+            sage: D
+            [1 0 0]
+            [0 3 0]
+            [0 0 0]
+            sage: U
+            [ 0  1  0]
+            [ 0 -1  1]
+            [-1  2 -1]
+            sage: V
+            [-1  4  1]
+            [ 1 -3 -2]
+            [ 0  0  1]
+            sage: U*A*V
+            [1 0 0]
+            [0 3 0]
+            [0 0 0]
+
+        It also makes sense for nonsquare matrices::
+
+            sage: A = Matrix(ZZ,3,2,range(6), sparse=True)
+            sage: D, U, V = A.smith_form()
+            sage: D
+            [1 0]
+            [0 2]
+            [0 0]
+            sage: U
+            [ 0  1  0]
+            [ 0 -1  1]
+            [-1  2 -1]
+            sage: V
+            [-1  3]
+            [ 1 -2]
+            sage: U * A * V
+            [1 0]
+            [0 2]
+            [0 0]
+
+        The examples above show that Trac ticket #10626 has been implemented.
+
+
+        .. seealso::
+
+           :meth:`elementary_divisors`
+        """
+        return self.dense_matrix().smith_form()

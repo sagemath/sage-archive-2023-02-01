@@ -37,6 +37,7 @@ AUTHORS:
 from __future__ import with_statement
 
 import os
+import sys
 import weakref
 import time
 import gc
@@ -66,6 +67,9 @@ import os
 
 from sage.misc.misc import SAGE_ROOT, verbose, SAGE_TMP_INTERFACE, LOCAL_IDENTIFIER
 from sage.structure.element import RingElement
+
+from sage.misc.object_multiplexer import Multiplex
+
 BAD_SESSION = -2
 
 failed_to_start = []
@@ -2005,6 +2009,72 @@ class ExpectElement(RingElement):
             n = P(n)
         return self._operation("^", n)
 
+
+class StdOutContext:
+    """
+    A context in which all communation between Sage and a subprocess
+    interfaced via pexpect is printed to stdout.
+    """
+    def __init__(self, interface, silent=False, stdout=None):
+        """
+        Construct a new context in which all communation between Sage
+        and a subprocess interfaced via pexpect is printed to stdout.
+
+        INPUT:
+
+        - ``interface`` - the interface whose communcation shall be dumped.
+
+        - ``silent`` - if ``True`` this context does nothing
+
+        - ``stdout`` - optional parameter for alternative stdout device (default: ``None``)
+
+        EXAMPLE::
+
+            sage: from sage.interfaces.expect import StdOutContext
+            sage: with StdOutContext(gp):
+            ...       gp('1+1')
+            ...
+            sage[...
+        """
+        self.interface = interface
+        self.silent = silent
+        self.stdout = stdout if stdout else sys.stdout
+
+    def __enter__(self):
+        """
+        EXAMPLE::
+
+            sage: from sage.interfaces.expect import StdOutContext
+            sage: with StdOutContext(singular):
+            ...       singular('1+1')
+            ...
+            1+...
+        """
+        if self.silent:
+            return
+        if self.interface._expect is None:
+            self.interface._start()
+        self._logfile_backup = self.interface._expect.logfile
+        if self.interface._expect.logfile:
+            self.interface._expect.logfile = Multiplex(self.interface._expect.logfile, self.stdout)
+        else:
+            self.interface._expect.logfile = Multiplex(self.stdout)
+
+    def __exit__(self, typ, value, tb):
+        """
+        EXAMPLE::
+
+            sage: from sage.interfaces.expect import StdOutContext
+            sage: with StdOutContext(gap):
+            ...       gap('1+1')
+            ...
+            $sage...
+        """
+        if self.silent:
+            return
+        self.interface._expect.logfile.flush()
+        self.stdout.write("\n")
+        self.interface._expect.logfile = self._logfile_backup
 
 def reduce_load(parent, x):
     return parent(x)

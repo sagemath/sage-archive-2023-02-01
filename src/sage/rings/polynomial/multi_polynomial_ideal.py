@@ -230,12 +230,14 @@ from sage.interfaces.all import (singular as singular_default,
                                  macaulay2 as macaulay2_default,
                                  magma as magma_default)
 
+from sage.interfaces.expect import StdOutContext
+
 from sage.rings.ideal import Ideal_generic
 from sage.rings.integer import Integer
 from sage.structure.sequence import Sequence
 
 from sage.misc.cachefunc import cached_method
-from sage.misc.misc import prod, verbose
+from sage.misc.misc import prod, verbose, get_verbose
 from sage.misc.sage_eval import sage_eval
 from sage.misc.method_decorator import MethodDecorator
 
@@ -243,6 +245,8 @@ from sage.rings.integer_ring import ZZ
 import sage.rings.polynomial.toy_buchberger as toy_buchberger
 import sage.rings.polynomial.toy_variety as toy_variety
 import sage.rings.polynomial.toy_d_basis as toy_d_basis
+
+from warnings import warn
 
 class LibSingularDefaultContext:
     def __init__(self, singular=singular_default):
@@ -471,6 +475,74 @@ def libsingular_standard_options(func):
     wrapper.__doc__ = func.__doc__
     return wrapper
 
+class MagmaDefaultContext:
+    """
+    Context to force preservation of verbosity options for Magma's
+    Groebner basis computation.
+    """
+    def __init__(self, magma=magma_default):
+        """
+        INPUT:
+
+        - ``magma`` - (default: ``magma_default``)
+
+        EXAMPLE::
+
+            sage: from sage.rings.polynomial.multi_polynomial_ideal import MagmaDefaultContext
+            sage: magma.SetVerbose('Groebner',1) # optional - magma
+            sage: with MagmaDefaultContext(): magma.GetVerbose('Groebner')  # optional - magma
+            0
+        """
+        self.magma = magma
+    def __enter__(self):
+        """
+        EXAMPLE::
+
+            sage: from sage.rings.polynomial.multi_polynomial_ideal import MagmaDefaultContext
+            sage: magma.SetVerbose('Groebner',1) # optional - magma
+            sage: with MagmaDefaultContext(): magma.GetVerbose('Groebner')  # optional - magma
+            0
+        """
+        self.groebner_basis_verbose = self.magma.GetVerbose('Groebner')
+        self.magma.SetVerbose('Groebner',0)
+    def __exit__(self, typ, value, tb):
+        """
+        EXAMPLE::
+
+            sage: from sage.rings.polynomial.multi_polynomial_ideal import MagmaDefaultContext
+            sage: magma.SetVerbose('Groebner',1) # optional - magma
+            sage: with MagmaDefaultContext(): magma.GetVerbose('Groebner')  # optional - magma
+            0
+            sage: magma.GetVerbose('Groebner') # optional - magma
+            1
+        """
+        self.magma.SetVerbose('Groebner',self.groebner_basis_verbose)
+
+def magma_standard_options(func):
+    """
+    Decorator to force default options for Magma.
+
+    EXAMPLE::
+        sage: P.<a,b,c,d,e> = PolynomialRing(GF(127))
+        sage: J = sage.rings.ideal.Cyclic(P).homogenize()
+        sage: from sage.misc.sageinspect import sage_getsource
+        sage: "mself" in sage_getsource(J._groebner_basis_magma)
+        True
+
+    """
+    def wrapper(*args, **kwds):
+        """
+        Execute function in ``MagmaDefaultContext``.
+        """
+        with MagmaDefaultContext():
+            return func(*args, **kwds)
+
+    from sage.misc.sageinspect import sage_getsource
+    wrapper._sage_src_ = lambda: sage_getsource(func)
+    wrapper.__name__ = func.__name__
+    wrapper.__doc__ = func.__doc__
+    return wrapper
+
 class RequireField(MethodDecorator):
     """
     Decorator which throws an exception if a computation over a
@@ -565,12 +637,20 @@ class MPolynomialIdeal_magma_repr:
         G = magma(self.gens())
         return 'ideal<%s|%s>'%(P.name(), G._ref())
 
-    def _groebner_basis_magma(self, magma=magma_default):
+    @magma_standard_options
+    def _groebner_basis_magma(self, deg_bound=None, prot=False, magma=magma_default):
         """
         Computes a Groebner Basis for this ideal using Magma if
         available.
 
         INPUT:
+
+        - ``deg_bound`` - only compute to degree ``deg_bound``, that
+          is, ignore all S-polynomials of higher degree. (default:
+          ``None``)
+
+        - ``prot`` - if ``True`` Magma's protocol is printed to
+          stdout.
 
         -  ``magma`` - Magma instance or None (default instance) (default: None)
 
@@ -583,7 +663,35 @@ class MPolynomialIdeal_magma_repr:
             45
         """
         R   = self.ring()
-        mgb = magma(self).GroebnerBasis()
+        if not deg_bound:
+            mself = magma(self)
+        else:
+            mself = magma(self.gens())
+
+        if get_verbose() >= 2:
+            prot = True
+
+        from sage.interfaces.magma import MagmaGBLogPrettyPrinter
+
+        if prot:
+            log_parser = MagmaGBLogPrettyPrinter(verbosity=get_verbose()+ 1, style="sage" if prot=="sage" else "magma")
+        else:
+            log_parser = None
+
+        ctx = StdOutContext(magma, silent=False if prot else True, stdout=log_parser)
+        if prot:
+            magma.SetVerbose('Groebner',1)
+        with ctx:
+            if deg_bound:
+                mgb = mself.GroebnerBasis(deg_bound)
+            else:
+                mgb = mself.GroebnerBasis()
+
+
+        if prot == "sage":
+            print
+            print "Highest degree reached during computation: %2d."%log_parser.max_deg
+
         # TODO: rewrite this to be much more sophisticated in multi-level nested cases.
         mgb = [str(mgb[i+1]) for i in range(len(mgb))]
         if R.base_ring().degree() > 1:
@@ -1249,6 +1357,16 @@ class MPolynomialIdeal_singular_repr:
         r"""
         Return a Groebner basis in Singular format.
 
+        INPUT:
+
+        - ``algorithm`` - Singular function to call (default: ``groebner``)
+
+        - ``singular`` - Singular instance to use (default: ``singular_default``)
+
+        - ``args`` - ignored
+
+        - ``kwds`` - Singular options
+
         EXAMPLE::
 
             sage: R.<a,b,c,d> = PolynomialRing(QQ, 4, order='lex')
@@ -1267,6 +1385,10 @@ class MPolynomialIdeal_singular_repr:
         from sage.libs.singular.option import _options_py_to_singular
         S = self._singular_()   # for degBound, we need to ensure
                                 # that a ring is defined
+
+        if get_verbose() >= 2:
+            kwds['prot'] = True
+
         for o,v in kwds.iteritems():
             o = _options_py_to_singular.get(o,o)
             if v:
@@ -1280,19 +1402,37 @@ class MPolynomialIdeal_singular_repr:
                 else:
                     singular.option("no"+o)
 
-        if algorithm=="groebner":
-            S = self._singular_().groebner()
-        elif algorithm=="std":
-            S = self._singular_().std()
-        elif algorithm=="slimgb":
-            S = self._singular_().slimgb()
-        elif algorithm=="stdhilb":
-            S = self._singular_().stdhilb()
-        elif algorithm=="stdfglm":
-            S = self._singular_().stdfglm()
+        obj = self._singular_()
+
+        prot = kwds.get('prot',False)
+
+        if prot == "sage":
+            if algorithm == 'slimgb':
+                warn("'slimgb' does not print sufficient information for prot='sage' to work reliably, the highest degree reached might be too low.")
+            from sage.interfaces.singular import SingularGBLogPrettyPrinter
+            log_parser = SingularGBLogPrettyPrinter(verbosity=get_verbose()+1)
         else:
-            raise TypeError, "algorithm '%s' unknown"%algorithm
+            log_parser = None
+
+        ctx = StdOutContext(singular, silent=False if prot else True, stdout=log_parser)
+
+        with ctx:
+            if algorithm=="groebner":
+                S = obj.groebner()
+            elif algorithm=="std":
+                S = obj.std()
+            elif algorithm=="slimgb":
+                S = obj.slimgb()
+            elif algorithm=="stdhilb":
+                S = obj.stdhilb()
+            elif algorithm=="stdfglm":
+                S = obj.stdfglm()
+            else:
+                raise TypeError, "algorithm '%s' unknown"%algorithm
         self.__gb_singular = S
+        if prot == "sage":
+            print
+            print "Highest degree reached during computation: %2d."%log_parser.max_deg
         return S
 
     @libsingular_standard_options
@@ -1352,7 +1492,6 @@ class MPolynomialIdeal_singular_repr:
 
         import sage.libs.singular
         groebner = sage.libs.singular.ff.groebner
-        from sage.all import get_verbose
 
         if get_verbose()>=2:
             opt['prot'] = True
@@ -2575,31 +2714,48 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
                                         symmetry=symmetry, verbose=verbose)
 
     @cached_method
-    def groebner_basis(self, algorithm='', deg_bound=None, mult_bound=None, *args, **kwds):
+    def groebner_basis(self, algorithm='', deg_bound=None, mult_bound=None, prot=False, *args, **kwds):
         """
         Return the reduced Groebner basis of this ideal.
 
         A Groebner basis `g_1,...,g_n` for an ideal `I` is a
-        generating set such that `<LM(g_i)> = LM(I)`, i.e.,
-        the leading monomial ideal of `I` is spanned by the
-        leading terms of `g_1,...,g_n`. Groebner bases are
-        the key concept in computational ideal theory in
-        multivariate polynomial rings which allows a variety
-        of problems to be solved.
+        generating set such that `<LM(g_i)> = LM(I)`, i.e., the
+        leading monomial ideal of `I` is spanned by the leading terms
+        of `g_1,...,g_n`. Groebner bases are the key concept in
+        computational ideal theory in multivariate polynomial rings
+        which allows a variety of problems to be solved.
 
         Additionally, a *reduced* Groebner basis `G` is a unique
-        representation for the ideal `<G>` with respect to the
-        chosen monomial ordering.
+        representation for the ideal `<G>` with respect to the chosen
+        monomial ordering.
 
         INPUT:
 
-        -  ``algorithm`` - determines the algorithm to use, see
-           below for available algorithms.
-        -  ``*args`` - additional parameters passed to the
-           respective implementations
-        -  ``**kwds`` - additional keyword parameters passed
-           to the respective implementations
+        - ``algorithm`` - determines the algorithm to use, see below
+           for available algorithms.
 
+        - ``deg_bound`` - only compute to degree ``deg_bound``, that
+          is, ignore all S-polynomials of higher degree. (default:
+          ``None``)
+
+        - ``mult_bound`` - the computation is stopped if the ideal is
+          zero-dimensional in a ring with local ordering and its
+          multiplicity is lower than ``mult_bound``. Singular
+          only. (default: ``None``)
+
+        - ``prot`` - if set to ``True`` the computation protocol of
+          the underlying implementation is printed. If an algorithm
+          from the ``singular:`` or ``magma:`` family is used,
+          ``prot`` may also be ``sage`` in which case the output is
+          parsed and printed in a common format where the amount of
+          information printed can be controlled via calls to
+          :func:`set_verbose`.
+
+        - ``*args`` - additional parameters passed to the respective
+           implementations
+
+        - ``**kwds`` - additional keyword parameters passed to the
+           respective implementations
 
         ALGORITHMS:
 
@@ -2658,8 +2814,10 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
            The Singular and libSingular versions of the respective
            algorithms are identical, but the former calls an external
-           Singular process while the later calls a C function, i.e. the
-           calling overhead is smaller.
+           Singular process while the later calls a C function,
+           i.e. the calling overhead is smaller. However, the
+           libSingular interface does not support pretty printing of
+           computation protocols.
 
         EXAMPLES:
 
@@ -2705,9 +2863,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             [a - 60*c^3 + 158/7*c^2 + 8/7*c - 1, b + 30*c^3 - 79/7*c^2 + 3/7*c, c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c]
 
         Note that ``toy:buchberger`` does not return the reduced Groebner
-        basis,
-
-        ::
+        basis, ::
 
             sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
             sage: I.groebner_basis('toy:buchberger')
@@ -2719,9 +2875,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
              c^6 - 79/210*c^5 - 229/2100*c^4 + 121/2520*c^3 + 1/3150*c^2 - 11/12600*c,
              c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c]
 
-        but that ``toy:buchberger2`` does.
-
-        ::
+        but that ``toy:buchberger2`` does.::
 
             sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
             sage: I.groebner_basis('toy:buchberger2')
@@ -2740,7 +2894,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             [a - 60*c^3 + 158/7*c^2 + 8/7*c - 1, b + 30*c^3 - 79/7*c^2 + 3/7*c, c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c]
 
         Singular and libSingular can compute Groebner basis with degree
-        restrictions::
+        restrictions.::
 
             sage: R.<x,y> = QQ[]
             sage: I = R*[x^3+y^2,x^2*y+1]
@@ -2753,12 +2907,10 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: I.groebner_basis(deg_bound=2)
             [x^3 + y^2, x^2*y + 1]
 
-        In the case of libSingular, a protocol is printed, if the
-        verbosity level is at least 2, or if the argument ``prot``
-        is provided. For some reason, the protocol does not appear
-        during doctests, so, we skip the examples with protocol
-        output.
-        ::
+        A protocol is printed, if the verbosity level is at least 2,
+        or if the argument ``prot`` is provided. For some reason, the
+        protocol does not appear during doctests, so, we skip the
+        examples with protocol output.  ::
 
             sage: set_verbose(2)
             sage: I = R*[x^3+y^2,x^2*y+1]
@@ -2781,7 +2933,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         The list of available options is provided at
         :class:`~sage.libs.singular.option.LibSingularOptions`.
 
-        Groebner bases over `\ZZ` can be computed. ::
+        Note that Groebner bases over `\ZZ` can also be computed.::
 
             sage: P.<a,b,c> = PolynomialRing(ZZ,3)
             sage: I = P * (a + 2*b + 2*c - 1, a^2 - a + 2*b^2 + 2*c^2, 2*a*b + 2*b*c - b)
@@ -2856,6 +3008,8 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             algorithm = "magma:GroebnerBasis"
         elif algorithm.lower() == "singular":
             algorithm = "singular:groebner"
+        elif algorithm.lower() == "libsingular":
+            algorithm = "libsingular:groebner"
         elif algorithm.lower() == "macaulay2":
             algorithm = "macaulay2:gb"
         elif algorithm.lower() == "toy":
@@ -2887,13 +3041,15 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
                             raise TypeError, "Local/unknown orderings not supported by 'toy_buchberger' implementation."
 
         elif algorithm.startswith('singular:'):
-            gb = self._groebner_basis_singular(algorithm[9:], deg_bound=deg_bound, mult_bound=mult_bound, *args, **kwds)
+            gb = self._groebner_basis_singular(algorithm[9:], deg_bound=deg_bound, mult_bound=mult_bound, prot=prot, *args, **kwds)
         elif algorithm.startswith('libsingular:'):
-            gb = self._groebner_basis_libsingular(algorithm[len('libsingular:'):], deg_bound=deg_bound, mult_bound=mult_bound, *args, **kwds)
+            if prot == "sage":
+                warn("The libsingular interface does not support prot='sage', reverting to 'prot=True'.")
+            gb = self._groebner_basis_libsingular(algorithm[len('libsingular:'):], deg_bound=deg_bound, mult_bound=mult_bound, prot=prot, *args, **kwds)
         elif algorithm == 'macaulay2:gb':
-            gb = self._groebner_basis_macaulay2(*args, **kwds)
+            gb = self._groebner_basis_macaulay2(prot=prot, *args, **kwds)
         elif algorithm == 'magma:GroebnerBasis':
-            gb = self._groebner_basis_magma(*args, **kwds)
+            gb = self._groebner_basis_magma(prot=prot, deg_bound=deg_bound, *args, **kwds)
         elif algorithm == 'toy:buchberger':
             gb = toy_buchberger.buchberger(self, *args, **kwds)
         elif algorithm == 'toy:buchberger2':

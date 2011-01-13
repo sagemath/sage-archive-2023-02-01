@@ -1934,3 +1934,174 @@ def singular_version():
 
 
 
+class SingularGBLogPrettyPrinter:
+    """
+    A device which prints Singular Groebner basis computation logs
+    more verbatim.
+    """
+    rng_chng = re.compile("\[\d+:\d+\]")# [m:n] internal ring change to
+                                        # poly representation with
+                                        # exponent bound m and n words in
+                                        # exponent vector
+    new_elem = re.compile("s")          # found a new element of the standard basis
+    red_zero = re.compile("-")          # reduced a pair/S-polynomial to 0
+    red_post = re.compile("\.")         # postponed a reduction of a pair/S-polynomial
+    cri_hilb = re.compile("h")          # used Hilbert series criterion
+    hig_corn = re.compile("H\(\d+\)")   # found a 'highest corner' of degree d, no need to consider higher degrees
+    num_crit = re.compile("\(\d+\)")    # n critical pairs are still to be reduced
+    red_num =  re.compile("\(S:\d+\)")  # doing complete reduction of n elements
+    deg_lead = re.compile("\d+")        # the degree of the leading terms is currently d
+
+    # SlimGB
+    red_para = re.compile("M\[(\d+),(\d+)\]") # parallel reduction of n elements with m non-zero output elements
+    red_betr = re.compile("b")                # exchange of a reductor by a 'better' one
+    non_mini = re.compile("e")                # a new reductor with non-minimal leading term
+
+    crt_lne1 = re.compile("product criterion:(\d+) chain criterion:(\d+)")
+    crt_lne2 = re.compile("NF:(\d+) product criterion:(\d+), ext_product criterion:(\d+)")
+
+    pat_sync = re.compile("1\+(\d+);")
+
+    global_pattern = re.compile("(\[\d+:\d+\]|s|-|\.|h|H\(\d+\)|\(\d+\)|\(S:\d+\)|\d+|M\[\d+,[b,e]*\d+\]|b|e).*")
+
+    def __init__(self, verbosity=1):
+        """
+        Construct a new Singular Groebner Basis log pretty printer.
+
+        INPUT:
+
+        - ``verbosity`` - how much information should be printed
+          (between 0 and 3)
+
+        EXAMPLE::
+
+            sage: from sage.interfaces.singular import SingularGBLogPrettyPrinter
+            sage: s0 = SingularGBLogPrettyPrinter(verbosity=0)
+            sage: s1 = SingularGBLogPrettyPrinter(verbosity=1)
+            sage: s0.write("[1:2]12")
+
+            sage: s1.write("[1:2]12")
+            Leading term degree: 12.
+        """
+        self.verbosity = verbosity
+
+        self.curr_deg = 0 # current degree
+        self.max_deg = 0  # maximal degree in total
+
+        self.nf = 0 # number of normal forms computed (SlimGB only)
+        self.prod = 0 # number of S-polynomials discarded using product criterion
+        self.ext_prod = 0 # number of S-polynomials discarded using extended product criterion
+        self.chain = 0 # number of S-polynomials discarded using chain criterion
+
+        self.storage = "" # stores incomplete strings
+        self.sync = None # should we expect a sync integer?
+
+    def write(self, s):
+        """
+        EXAMPLE::
+
+            sage: from sage.interfaces.singular import SingularGBLogPrettyPrinter
+            sage: s3 = SingularGBLogPrettyPrinter(verbosity=3)
+            sage: s3.write("(S:1337)")
+            Performing complete reduction of 1337 elements.
+            sage: s3.write("M[389,12]")
+            Parallel reduction of 389 elements with 12 non-zero output elements.
+        """
+        verbosity = self.verbosity
+
+        if self.storage:
+            s = self.storage + s
+            self.storage = ""
+
+        for line in s.splitlines():
+            # deal with the Sage <-> Singular syncing code
+            match = re.match(SingularGBLogPrettyPrinter.pat_sync,line)
+            if match:
+                self.sync = int(match.groups()[0])
+                continue
+
+            if self.sync and line == "%d"%(self.sync+1):
+                self.sync = None
+                continue
+
+            if line.endswith(";"):
+                continue
+            if line.startswith(">"):
+                continue
+
+            if line.startswith("std") or line.startswith("slimgb"):
+                continue
+
+            # collect stats returned about avoided reductions to zero
+            match = re.match(SingularGBLogPrettyPrinter.crt_lne1,line)
+            if match:
+                self.prod,self.chain = map(int,re.match(SingularGBLogPrettyPrinter.crt_lne1,line).groups())
+                self.storage = ""
+                continue
+            match = re.match(SingularGBLogPrettyPrinter.crt_lne2,line)
+            if match:
+                self.nf,self.prod,self.ext_prod = map(int,re.match(SingularGBLogPrettyPrinter.crt_lne2,line).groups())
+                self.storage = ""
+                continue
+
+            while line:
+                match = re.match(SingularGBLogPrettyPrinter.global_pattern, line)
+                if not match:
+                    self.storage = line
+                    line = None
+                    continue
+
+                token, = match.groups()
+                line = line[len(token):]
+
+                if re.match(SingularGBLogPrettyPrinter.rng_chng,token):
+                    continue
+
+                elif re.match(SingularGBLogPrettyPrinter.new_elem,token) and verbosity >= 3:
+                    print "New element found."
+
+                elif re.match(SingularGBLogPrettyPrinter.red_zero,token) and verbosity >= 2:
+                    print "Reduction to zero."
+
+                elif re.match(SingularGBLogPrettyPrinter.red_post, token) and verbosity >= 2:
+                    print "Reduction postponed."
+
+                elif re.match(SingularGBLogPrettyPrinter.cri_hilb, token) and verbosity >= 2:
+                    print "Hilber series criterion applied."
+
+                elif re.match(SingularGBLogPrettyPrinter.hig_corn, token) and verbosity >= 1:
+                    print "Maximal degree found: %s"%token
+
+                elif re.match(SingularGBLogPrettyPrinter.num_crit, token) and verbosity >= 1:
+                    print "Leading term degree: %2d. Critical pairs: %s."%(self.curr_deg,token[1:-1])
+
+                elif re.match(SingularGBLogPrettyPrinter.red_num, token) and verbosity >= 3:
+                    print "Performing complete reduction of %s elements."%token[3:-1]
+
+                elif re.match(SingularGBLogPrettyPrinter.deg_lead, token):
+                    if verbosity >= 1:
+                        print "Leading term degree: %2d."%int(token)
+                    self.curr_deg = int(token)
+                    if self.max_deg < self.curr_deg:
+                        self.max_deg = self.curr_deg
+
+                elif re.match(SingularGBLogPrettyPrinter.red_para, token) and verbosity >= 3:
+                    m,n = re.match(SingularGBLogPrettyPrinter.red_para,token).groups()
+                    print "Parallel reduction of %s elements with %s non-zero output elements."%(m,n)
+
+                elif re.match(SingularGBLogPrettyPrinter.red_betr, token) and verbosity >= 3:
+                    print "Replaced reductor by 'better' one."
+
+                elif re.match(SingularGBLogPrettyPrinter.non_mini, token) and verbosity >= 2:
+                    print "New reductor with non-minimal leading term found."
+
+    def flush(self):
+        """
+        EXAMPLE::
+
+            sage: from sage.interfaces.singular import SingularGBLogPrettyPrinter
+            sage: s3 = SingularGBLogPrettyPrinter(verbosity=3)
+            sage: s3.flush()
+        """
+        import sys
+        sys.stdout.flush()

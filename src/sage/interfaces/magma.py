@@ -2651,3 +2651,178 @@ def magma_version():
     """
     t = tuple([int(n) for n in magma.eval('GetVersion()').split()])
     return t, 'V%s.%s-%s'%t
+
+class MagmaGBLogPrettyPrinter:
+    """
+    A device which filters Magma Groebner basis computation logs.
+    """
+    cmd_inpt = re.compile("^>>>$")
+    app_inpt = re.compile("^Append\(~_sage_, 0\);$")
+
+    deg_curr = re.compile("^Basis length\: (\d+), queue length\: (\d+), step degree\: (\d+), num pairs\: (\d+)$")
+    pol_curr = re.compile("^Number of pair polynomials\: (\d+), at (\d+) column\(s\), .*")
+
+    def __init__(self, verbosity=1, style='magma'):
+        """
+        Construct a new Magma Groebner Basis log pretty printer.
+
+        INPUT:
+
+        - ``verbosity`` - how much information should be printed
+          (between 0 and 1)
+
+        - ``style`` - if "magma" the full Magma log is printed; if
+          'sage' only the current degree and the number of pairs in
+          the queue is printed (default: "magma").
+
+        EXAMPLE::
+
+            sage: P.<x,y,z> = GF(32003)[]
+            sage: I = sage.rings.ideal.Cyclic(P)
+            sage: _ = I.groebner_basis('magma',prot='sage') # indirect doctest, optional - magma, not tested
+
+            Leading term degree:  2. Critical pairs: 2.
+            Leading term degree:  3. Critical pairs: 1.
+
+            Highest degree reached during computation:  3.
+
+            sage: P.<x,y,z> = GF(32003)[]
+            sage: I = sage.rings.ideal.Cyclic(P)
+            sage: _ = I.groebner_basis('magma',prot=True) # indirect doctest, optional - magma, not tested
+
+            Homogeneous weights search
+            Number of variables: 3, nullity: 1
+            Exact search time: 0.000
+            ********************
+            FAUGERE F4 ALGORITHM
+            ********************
+            Coefficient ring: GF(32003)
+            Rank: 3
+            Order: Graded Reverse Lexicographical
+            NEW hash table
+            Matrix kind: Modular FP
+            Datum size: 4
+            No queue sort
+            Initial length: 3
+            Inhomogeneous
+
+            Initial queue setup time: 0.000
+            Initial queue length: 2
+
+            *******
+            STEP 1
+            Basis length: 3, queue length: 2, step degree: 2, num pairs: 1
+            Basis total mons: 8, average length: 2.667
+            Number of pair polynomials: 1, at 4 column(s), 0.000
+            ...
+            Total Faugere F4 time: 0.000, real time: 0.000
+
+            sage: set_random_seed(1)
+            sage: sr = mq.SR(1,1,2,4)
+            sage: F,s = sr.polynomial_system()
+            sage: I = F.ideal()
+            sage: _ = I.groebner_basis('magma',prot='sage') # indirect doctest, optional - magma, not tested
+            Leading term degree:  1. Critical pairs: 40.
+            Leading term degree:  2. Critical pairs: 40.
+            Leading term degree:  3. Critical pairs: 38.
+            Leading term degree:  2. Critical pairs: 327.
+            Leading term degree:  2. Critical pairs: 450.
+            Leading term degree:  2. Critical pairs: 416.
+            Leading term degree:  3. Critical pairs: 415.
+            Leading term degree:  4. Critical pairs: 98 (all pairs of current degree eliminated by criteria).
+            Leading term degree:  5. Critical pairs: 3 (all pairs of current degree eliminated by criteria).
+
+            Highest degree reached during computation:  3.
+        """
+        self.verbosity = verbosity
+        self.style = style
+
+        self.curr_deg = 0 # current degree
+        self.curr_npairs = 0 # current number of pairs to be considered
+        self.max_deg = 0  # maximal degree in total
+
+        self.storage = "" # stores incomplete strings
+        self.sync = None # should we expect a sync integer?
+
+    def write(self, s):
+        """
+        EXAMPLE::
+
+            sage: P.<x,y,z> = GF(32003)[]
+            sage: I = sage.rings.ideal.Katsura(P)
+            sage: _ = I.groebner_basis('magma',prot=True) # indirect doctest, optional - magma
+
+            Homogeneous weights search
+            Number of variables: 3, nullity: 0
+            Exact search time: 0.000
+            Found best approx weight vector: [1 1 1]
+            Norm: 3, count: 1
+            Approx search time: 0.000
+            ********************
+            FAUGERE F4 ALGORITHM
+            ********************
+            ...
+            Total Faugere F4 time: 0.000, real time: 0.001
+        """
+        verbosity,style = self.verbosity,self.style
+
+        if self.storage:
+            s = self.storage + s
+            self.storage = ""
+
+        for line in s.splitlines():
+            #print "l: '%s'"%line
+            # deal with the Sage <-> Magma syncing code
+            match = re.match(MagmaGBLogPrettyPrinter.cmd_inpt,line)
+            if match:
+                self.sync = 1
+                continue
+
+            if self.sync:
+                if self.sync == 1:
+                    self.sync = line
+                    continue
+                else:
+                    if line == '':
+                        continue
+                    self.sync = None
+                    continue
+
+            if re.match(MagmaGBLogPrettyPrinter.app_inpt,line):
+                continue
+
+            if re.match(MagmaGBLogPrettyPrinter.deg_curr,line):
+                match = re.match(MagmaGBLogPrettyPrinter.deg_curr,line)
+
+                nbasis,npairs,deg,npairs_deg = map(int,match.groups())
+
+                self.curr_deg = deg
+                self.curr_npairs = npairs
+
+            if re.match(MagmaGBLogPrettyPrinter.pol_curr,line):
+                match = re.match(MagmaGBLogPrettyPrinter.pol_curr,line)
+                pol_curr,col_curr = map(int,match.groups())
+
+                if pol_curr != 0:
+                    if self.max_deg < self.curr_deg:
+                        self.max_deg = self.curr_deg
+
+                    if style == "sage" and verbosity >= 1:
+                        print "Leading term degree: %2d. Critical pairs: %d."%(self.curr_deg,self.curr_npairs)
+                else:
+                    if style == "sage" and verbosity >= 1:
+                        print "Leading term degree: %2d. Critical pairs: %d (all pairs of current degree eliminated by criteria)."%(self.curr_deg,self.curr_npairs)
+
+            if style == "magma" and verbosity >= 1:
+                print line
+
+    def flush(self):
+        """
+        EXAMPLE::
+
+            sage: from sage.interfaces.magma import MagmaGBLogPrettyPrinter
+            sage: logs = MagmaGBLogPrettyPrinter()
+            sage: logs.flush()
+        """
+        import sys
+        sys.stdout.flush()

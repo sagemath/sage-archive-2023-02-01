@@ -25,16 +25,17 @@ from configuration import conf, cp, try_run, edit_in_place
 BUILD_DIR = os.path.join(conf['SPKG_DIR'], 'ATLAS-build')
 
 # constants from src/CONFIG/include/atlconf.h
-ATLAS_OSTYPE = ('UNKNOWN', 'Linux', 'SunOS', 'SunOS4', 'OSF1',
-                'IRIX', 'AIX', 'Win9x', 'WinNT', 'HPUX', 'FreeBSD', 'OSX')
+# Note: must be lists, not tuples, for Python-2.4 support
+ATLAS_OSTYPE = ['UNKNOWN', 'Linux', 'SunOS', 'SunOS4', 'OSF1',
+                'IRIX', 'AIX', 'Win9x', 'WinNT', 'HPUX', 'FreeBSD', 'OSX']
 
-ATLAS_MACHTYPE = ('UNKNOWN', 'POWER3', 'POWER4', 'POWER5', 'PPCG4', 'PPCG5',
+ATLAS_MACHTYPE = ['UNKNOWN', 'POWER3', 'POWER4', 'POWER5', 'PPCG4', 'PPCG5',
                   'P5', 'P5MMX', 'PPRO', 'PII', 'PIII', 'PM', 'CoreSolo',
                   'CoreDuo', 'Core2Solo', 'Core2', 'Corei7', 'P4', 'P4E', 'Efficeon', 'K7',
                   'HAMMER', 'AMD64K10h', 'UNKNOWNx86', 'IA64Itan', 'IA64Itan2',
-                  'USI', 'USII', 'USIII', 'USIV', 'UnknownUS', 'MIPSR1xK', 'MIPSICE9')
+                  'USI', 'USII', 'USIII', 'USIV', 'UnknownUS', 'MIPSR1xK', 'MIPSICE9']
 
-ATLAS_ISAEXT = ('', 'AltiVec', 'SSE3', 'SSE2', 'SSE1', '3DNow')
+ATLAS_ISAEXT = ['', 'AltiVec', 'SSE3', 'SSE2', 'SSE1', '3DNow']
 
 
 ######################################################################

@@ -96,6 +96,9 @@ class ProjectiveConic_rational_field(ProjectiveConic_number_field):
          - ``'qfsolve'`` -- Use Denis Simon's pari script Qfsolve
            (see ``sage.quadratic_forms.qfsolve.qfsolve``)
 
+         - ``'rnfisnorm'`` -- Use PARI's function rnfisnorm
+           (cannot be combined with ``obstruction = True``)
+
          - ``'local'`` -- Check if a local solution exists for all primes
            and infinite places of `\QQ` and apply the Hasse principle
            (cannot be combined with ``point = True``)
@@ -116,7 +119,8 @@ class ProjectiveConic_rational_field(ProjectiveConic_number_field):
             sage: E.has_rational_point(obstruction = True)
             (False, -1)
 
-        A very big example ::
+        The following would not terminate quickly with
+        ``algorithm = 'rnfisnorm'`` ::
 
             sage: C = Conic(QQ, [1, 113922743, -310146482690273725409])
             sage: C.has_rational_point(point = True)
@@ -132,9 +136,9 @@ class ProjectiveConic_rational_field(ProjectiveConic_number_field):
             sage: l = Sequence(cartesian_product_iterator([[-1, 0, 1] for i in range(6)]))
             sage: c = [Conic(QQ, a) for a in l if a != [0,0,0] and a != (0,0,0,0,0,0)]
             sage: d = []
-            sage: d = [[C]+[C.has_rational_point(algorithm = algorithm, read_cache = False, obstruction = True, point = (algorithm != 'local')) for algorithm in ['local', 'qfsolve']] for C in c[::10]] # long time: 7 seconds
-            sage: assert all([e[1][0] == e[2][0] for e in d])
-            sage: assert all([e[0].defining_polynomial()(Sequence(e[2][1])) == 0 for e in d if e[1][0]])
+            sage: d = [[C]+[C.has_rational_point(algorithm = algorithm, read_cache = False, obstruction = (algorithm != 'rnfisnorm'), point = (algorithm != 'local')) for algorithm in ['local', 'qfsolve', 'rnfisnorm']] for C in c[::10]] # long time: 7 seconds
+            sage: assert all([e[1][0] == e[2][0] and e[1][0] == e[3][0] for e in d])
+            sage: assert all([e[0].defining_polynomial()(Sequence(e[i][1])) == 0 for e in d for i in [2,3] if e[1][0]])
         """
         if read_cache:
             if self._rational_point is not None:
@@ -172,25 +176,15 @@ class ProjectiveConic_rational_field(ProjectiveConic_number_field):
             if point or obstruction:
                 return True, pt
             return True
-        if algorithm == 'local':
-            if point:
-                raise ValueError, "Algorithm 'local' cannot be combined with " \
-                                  "point = True in has_rational_point"
-            obs = self.local_obstructions(infinite = True, finite = False,
-                                          read_cache = read_cache)
-            if obs != []:
-                if obstruction:
-                    return False, obs[0]
-                return False
-            obs = self.local_obstructions(read_cache = read_cache)
-            if obs == []:
-                if obstruction:
-                    return True, None
-                return True
-            if obstruction:
-                return False, obs[0]
-            return False
-        raise ValueError, "Unknown algorithm `%s' in has_rational_point" % algorithm
+        ret = ProjectiveConic_number_field.has_rational_point( \
+                                           self, point = point, \
+                                           obstruction = obstruction, \
+                                           algorithm = algorithm, \
+                                           read_cache = read_cache)
+        if point or obstruction:
+            if is_RingHomomorphism(ret[1]):
+                ret[1] = -1
+        return ret
 
 
     def is_locally_solvable(self, p):

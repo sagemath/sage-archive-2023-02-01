@@ -104,10 +104,8 @@ class ProjectiveConic_field(ProjectiveCurve_generic):
             False
             sage: d = c.base_extend(QuadraticField(-1, 'i')); d
             Projective Conic Curve over Number Field in i with defining polynomial x^2 + 1 defined by x^2 + y^2 + z^2
-            sage: d.rational_point()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: has_rational_point not implemented for conics over base field Number Field in i with defining polynomial x^2 + 1
+            sage: d.rational_point(algorithm = 'rnfisnorm')
+            (i : 1 : 0)
         """
         if is_Field(S):
             B = self.base_ring()
@@ -859,10 +857,18 @@ class ProjectiveConic_field(ProjectiveCurve_generic):
             ValueError: Conic Projective Conic Curve over Rational Field defined by x^2 + 2*y^2 + z^2 has no rational points over Rational Field!
 
             sage: C = Conic(x^2 + y^2 + 7*z^2)
-            sage: C.rational_point()
+            sage: C.rational_point(algorithm = 'rnfisnorm')
             Traceback (most recent call last):
             ...
             ValueError: Conic Projective Conic Curve over Rational Field defined by x^2 + y^2 + 7*z^2 has no rational points over Rational Field!
+
+        Examples over number fields ::
+
+            sage: P.<x> = QQ[]
+            sage: L.<b> = NumberField(x^3-5)
+            sage: C = Conic(L, [3, 2, -5])
+            sage: C.rational_point(algorithm = 'rnfisnorm')  # long time (1/2 second), output is random
+            (37632*b^2 + 88168*b - 260801 : -99528*b^2 + 153348*b + 28799 : 1)
 
         Examples over finite fields ::
 

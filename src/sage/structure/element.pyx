@@ -335,14 +335,14 @@ cdef class Element(sage_object.SageObject):
         EXAMPLES::
 
             sage: dir(1/2)
-            ['__abs__', ..., 'is_idempotent', 'is_integral', ...]
+            ['N', ..., 'is_idempotent', 'is_integral', ...]
 
         Caveat: dir on Integer's and some other extension types seem to ignore __dir__::
 
             sage: 1.__dir__()
-            ['__abs__', ..., 'is_idempotent', 'is_integral', ...]
+            ['N', ..., 'is_idempotent', 'is_integral', ...]
             sage: dir(1)         # todo: not implemented
-            ['__abs__', ..., 'is_idempotent', 'is_integral', ...]
+            ['N', ..., 'is_idempotent', 'is_integral', ...]
         """
         from sage.structure.parent import dir_with_other_class
         return dir_with_other_class(self, self.parent().category().element_class)
@@ -599,7 +599,7 @@ cdef class Element(sage_object.SageObject):
                 variables.append(gen)
         return self(*variables)
 
-    def n(self, prec=None, digits=None):
+    def numerical_approx (self, prec=None, digits=None):
         """
         Return a numerical approximation of x with at least prec bits of
         precision.
@@ -608,7 +608,6 @@ cdef class Element(sage_object.SageObject):
 
             sage: (2/3).n()
             0.666666666666667
-            sage: a = 2/3
             sage: pi.n(digits=10)
             3.141592654
             sage: pi.n(prec=20)   # 20 bits
@@ -616,6 +615,8 @@ cdef class Element(sage_object.SageObject):
         """
         import sage.misc.functional
         return sage.misc.functional.numerical_approx(self, prec=prec, digits=digits)
+    n=numerical_approx
+    N=n
 
     def _mpmath_(self, prec=53, rounding=None):
         """

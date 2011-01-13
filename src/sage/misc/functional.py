@@ -1179,6 +1179,7 @@ def numerator(x):
         return x
     return x.numerator()
 
+#this is the function which is called as the top level function.
 def numerical_approx(x, prec=None, digits=None):
     """
     Returns a numerical approximation of x with at least prec bits of
@@ -1225,6 +1226,9 @@ def numerical_approx(x, prec=None, digits=None):
         True
         sage: type(a) == type(b)
         True
+        sage: numerical_approx(9)
+        9.00000000000000
+
 
     You can also usually use method notation::
 
@@ -1249,7 +1253,7 @@ def numerical_approx(x, prec=None, digits=None):
         else:
             prec = int((digits+1) * 3.32192) + 1
     try:
-        return x.numerical_approx(prec)
+        return x._numerical_approx(prec)
     except AttributeError:
         from sage.rings.complex_double import is_ComplexDoubleElement
         from sage.rings.complex_number import is_ComplexNumber

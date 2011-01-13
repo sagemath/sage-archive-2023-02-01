@@ -3146,6 +3146,8 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
 
             sage: E = EllipticCurve('389a'); P = E.heegner_point(-7, 5); P
             Heegner point of discriminant -7 and conductor 5 on elliptic curve of conductor 389
+            sage: numerical_approx(P)
+            (0.675507556926806 + 0.344749649302635*I : -0.377142931401887 + 0.843366227137146*I : 1.00000000000000)
             sage: P.numerical_approx()
             (0.6755075569268... + 0.3447496493026...*I : -0.3771429314018... + 0.8433662271371...*I : 1.00000000000000)
             sage: E.heegner_point(-7, 11).numerical_approx()
@@ -3166,6 +3168,10 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
         tau = ComplexField(prec)(self.tau())
         E = self.curve()
         return E.modular_parametrization()(tau)
+
+    #This line is added to resolve ticket 9032, because both top-level function
+    #and method call _numerical_approx instead of numerical_approx
+    _numerical_approx=numerical_approx
 
     def tau(self):
         r"""

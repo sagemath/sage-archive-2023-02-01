@@ -818,7 +818,7 @@ cdef class Expression(CommutativeRingElement):
 
     def _mpfr_(self, R):
         """
-        Return a numerical approximation to this expression in the RealField R.
+        Return a numerical approximation of this symbolic expression in the RealField R.
 
         The precision of the approximation is determined by the precision of
         the input R.
@@ -3803,7 +3803,7 @@ cdef class Expression(CommutativeRingElement):
 ##             bind = n_ops + bind
 ##         return new_Expression_from_GEx(self._parent, self._gobj.op(bind))
 
-    def n(self, prec=None, digits=None):
+    def _numerical_approx(self, prec=None, digits=None):
         """
         Return a numerical approximation this symbolic expression as
         either a real or complex number with at least the requested
@@ -3821,6 +3821,8 @@ cdef class Expression(CommutativeRingElement):
             1.6449340668482264364724151666460251892189499012068
 
             sage: cos(3).numerical_approx(200)
+            -0.98999249660044545727157279473126130239367909661558832881409
+            sage: numerical_approx(cos(3),200)
             -0.98999249660044545727157279473126130239367909661558832881409
             sage: numerical_approx(cos(3), digits=10)
             -0.9899924966
@@ -3888,7 +3890,10 @@ cdef class Expression(CommutativeRingElement):
             return res.n(prec=prec,digits=digits)
         return res
 
-    numerical_approx = n
+    #added this line to make doctests visible to users
+    numerical_approx =_numerical_approx
+    n=_numerical_approx
+    N=_numerical_approx
 
     def round(self):
         """

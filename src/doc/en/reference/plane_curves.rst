@@ -11,6 +11,13 @@ Elliptic and Plane Curves
    sage/schemes/plane_curves/affine_curve
    sage/schemes/plane_curves/projective_curve
 
+   sage/schemes/plane_conics/constructor
+   sage/schemes/plane_conics/con_field
+   sage/schemes/plane_conics/con_number_field
+   sage/schemes/plane_conics/con_rational_field
+   sage/schemes/plane_conics/con_finite_field
+   sage/schemes/plane_conics/con_prime_finite_field
+
    sage/schemes/elliptic_curves/constructor
    sage/schemes/elliptic_curves/ell_generic
    sage/schemes/elliptic_curves/ell_field

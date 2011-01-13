@@ -1,12 +1,12 @@
-"""nodoctest
-all.py -- export of schemes to Sage
+"""
+Plane conics
 """
 
 #*****************************************************************************
 #
-#   Sage: System for Algebra and Geometry Experimentation
+#   SAGE: System for Algebra and Geometry Experimentation
 #
-#       Copyright (C) 2005 William Stein <wstein@gmail.com>
+#       Copyright (C) 2005 William Stein <was@math.harvard.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -20,20 +20,6 @@ all.py -- export of schemes to Sage
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from jacobians.all import *
-
-from hyperelliptic_curves.all import *
-
-from plane_curves.all import *
-
-from plane_conics.all import *
-
-from elliptic_curves.all import *
-
-from plane_quartics.all import *
-
-from generic.all import *
-
-
+from constructor import Conic
 
 

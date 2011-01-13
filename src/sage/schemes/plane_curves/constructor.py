@@ -42,6 +42,8 @@ from affine_curve import (AffineCurve_generic,
                           AffineCurve_finite_field,
                           AffineCurve_prime_finite_field)
 
+from sage.schemes.plane_conics.constructor import Conic
+
 def Curve(F):
     """
     Return the plane or space curve defined by `F`, where
@@ -101,7 +103,7 @@ def Curve(F):
 
         sage: x,y,z = QQ['x,y,z'].gens()
         sage: Curve((x-y)*(x+y))
-        Projective Curve over Rational Field defined by x^2 - y^2
+        Projective Conic Curve over Rational Field defined by x^2 - y^2
         sage: Curve((x-y)^2*(x+y)^2)
         Projective Curve over Rational Field defined by x^4 - 2*x^2*y^2 + y^4
 
@@ -144,7 +146,7 @@ def Curve(F):
 
         sage: x,y,z = QQ['x,y,z'].gens()
         sage: Curve(x^2+y^2)
-        Projective Curve over Rational Field defined by x^2 + y^2
+        Projective Conic Curve over Rational Field defined by x^2 + y^2
         sage: Curve(x^2+y^2+z)
         Traceback (most recent call last):
         ...
@@ -203,6 +205,10 @@ def Curve(F):
             raise ValueError, "defining polynomial of curve must be nonzero"
         P2 = ProjectiveSpace(2, P.base_ring())
         P2._coordinate_ring = P
+
+        if F.total_degree() == 2 and k.is_field():
+            return Conic(F)
+
         if is_FiniteField(k):
             if k.is_prime_field():
                 return ProjectiveCurve_prime_finite_field(P2, F)

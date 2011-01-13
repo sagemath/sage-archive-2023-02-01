@@ -1438,7 +1438,7 @@ def ones_matrix(ring, nrows=None, ncols=None, sparse=False):
     return matrix_space.MatrixSpace(ring, nrows, ncols, sparse).matrix([one]*nents)
 
 def _determine_block_matrix_grid(sub_matrices):
-    """
+    r"""
     For internal use. This tries to determine the dimensions
     of rows/columns when assembling the matrices in sub_matrices in a
     rectangular grid. It returns a pair of lists containing
@@ -1499,17 +1499,17 @@ def _determine_block_matrix_grid(sub_matrices):
                         changing = True
                         col_widths[j] = sub_width
                     elif col_widths[j] != sub_width:
-                        raise ValueError, "Incompatible submatrix widths"
+                        raise ValueError("incompatible submatrix widths")
                 if sub_height is not None:
                     if row_heights[i] is None:
                         changing = True
                         row_heights[i] = sub_height
                     elif row_heights[i] != sub_height:
-                        raise ValueError, "Incompatible submatrix heights"
+                        raise ValueError("ncompatible submatrix heights")
 
     if None in row_heights or None in col_widths:
         if None in row_heights or None in col_widths:
-            raise ValueError, "Insufficient information to determine dimensions."
+            raise ValueError("insufficient information to determine dimensions.")
 
     return (row_heights, col_widths)
 
@@ -1562,7 +1562,7 @@ def _determine_block_matrix_rows(sub_matrices):
                 if height is None:
                     height = M.nrows()
                 elif height != M.nrows():
-                    raise ValueError, "Incompatible submatrix heights"
+                    raise ValueError("incompatible submatrix heights")
             elif not M:
                 found_zeroes = True
         if len(R) == 0:
@@ -1581,7 +1581,7 @@ def _determine_block_matrix_rows(sub_matrices):
             if total_width is None:
                 total_width = width
             elif total_width != width:
-                raise ValueError, "Incompatible submatrix widths"
+                raise ValueError("incompatible submatrix widths")
             row_heights[i] = height
         else:
             # We don't set height here even if we know it,
@@ -1589,7 +1589,7 @@ def _determine_block_matrix_rows(sub_matrices):
             unknowns = True
 
     if total_width is None:
-        raise ValueError, "Insufficient information to determine submatrix widths"
+        raise ValueError("insufficient information to determine submatrix widths")
 
     if unknowns:
         # Do a second pass and see if the remaining rows can be
@@ -1628,20 +1628,20 @@ def _determine_block_matrix_rows(sub_matrices):
             if height is not None:
                 remaining_width -= scalars * height
                 if remaining_width < 0:
-                    raise ValueError, "Incompatible submatrix widths"
+                    raise ValueError("incompatible submatrix widths")
                 if remaining_width > 0 and zero_state == 3:
-                    raise ValueError, "Insufficient information to determine submatrix widths"
+                    raise ValueError("insufficient information to determine submatrix widths")
                 if remaining_width > 0 and zero_state == 0:
-                    raise ValueError, "Incompatible submatrix widths"
+                    raise ValueError("ncompatible submatrix widths")
                 # otherwise, things fit
                 row_heights[i] = height
                 zero_widths[i] = remaining_width
             elif zero_state != 0:
                 # if we don't know the height, and there are zeroes,
                 # we can't determine the height
-                raise ValueError, "Insufficient information to determine submatrix heights"
+                raise ValueError("insufficient information to determine submatrix heights")
             elif total_width % len(R) != 0:
-                raise ValueError, "Incompatible submatrix widths"
+                raise ValueError("incompatible submatrix widths")
             else:
                 height = int(total_width / len(R))
                 row_heights[i] = height
@@ -1649,8 +1649,8 @@ def _determine_block_matrix_rows(sub_matrices):
     # If we got this far, then everything fits
     return (row_heights, zero_widths, total_width)
 
-def block_matrix(*args, **kwds): #sub_matrices, nrows=None, ncols=None, subdivide=True):
-    """
+def block_matrix(*args, **kwds):
+    r"""
     Returns a larger matrix made by concatenating submatrices
     (rows first, then columns). For example, the matrix
 
@@ -1661,7 +1661,9 @@ def block_matrix(*args, **kwds): #sub_matrices, nrows=None, ncols=None, subdivid
 
     is made up of submatrices A, B, C, and D.
 
-    INPUT: The block_matrix command takes a list of submatrices to add
+    INPUT:
+
+    The block_matrix command takes a list of submatrices to add
     as blocks, optionally preceded by a ring and the number of block rows
     and block columns, and returns a matrix.
 
@@ -1729,8 +1731,6 @@ def block_matrix(*args, **kwds): #sub_matrices, nrows=None, ncols=None, subdivid
         [    3     9|   -3    -9|-5/12   3/8|  300   900]
         [    6    10|   -6   -10|  1/4  -1/8|  600  1000]
 
-    ::
-
         sage: block_matrix([A, -A, ~A, 100*A], nrows=1)
         [    3     9|   -3    -9|-5/12   3/8|  300   900]
         [    6    10|   -6   -10|  1/4  -1/8|  600  1000]
@@ -1744,6 +1744,7 @@ def block_matrix(*args, **kwds): #sub_matrices, nrows=None, ncols=None, subdivid
         [-----------+-----------]
         [    0     0|x - 1     0]
         [    0     0|    0 x - 1]
+
         sage: block_matrix(2, 2, [1/2, A, 0, x-1]).parent()
         Full MatrixSpace of 4 by 4 dense matrices over Univariate Polynomial Ring in x over Rational Field
 
@@ -1775,6 +1776,51 @@ def block_matrix(*args, **kwds): #sub_matrices, nrows=None, ncols=None, subdivid
         sage: block_matrix([ [ A ], [ A ] ], sparse=False).parent()
         Full MatrixSpace of 4 by 2 dense matrices over Integer Ring
 
+    Consecutive zero submatrices are consolidated.  ::
+
+        sage: B = matrix(2, range(4))
+        sage: C = matrix(2, 8, range(16))
+        sage: block_matrix(2, [[B,0,0,B],[C]], subdivide=False)
+        [ 0  1  0  0  0  0  0  1]
+        [ 2  3  0  0  0  0  2  3]
+        [ 0  1  2  3  4  5  6  7]
+        [ 8  9 10 11 12 13 14 15]
+
+    Ambiguity is not tolerated.  ::
+
+        sage: B = matrix(2, range(4))
+        sage: C = matrix(2, 8, range(16))
+        sage: block_matrix(2, [[B,0,B,0],[C]], subdivide=False)
+        Traceback (most recent call last):
+        ...
+        ValueError: insufficient information to determine submatrix widths
+
+    Historically, giving only a flat list of submatrices, whose number
+    was a perfect square, would create a new matrix by laying out the submatrices
+    in a square grid.  This behavior is now deprecated.  ::
+
+        sage: A = matrix(2, 3, range(6))
+        sage: B = matrix(3, 3, range(9))
+        sage: block_matrix([A, A, B, B])
+        doctest:...: DeprecationWarning: invocation of block_matrix with just a list whose length is a perfect square is deprecated. See the documentation for details.
+        [0 1 2|0 1 2]
+        [3 4 5|3 4 5]
+        [-----+-----]
+        [0 1 2|0 1 2]
+        [3 4 5|3 4 5]
+        [6 7 8|6 7 8]
+
+    Historically, a flat list of matrices whose number is not a perfect square,
+    with no specification of the number of rows or columns, would raise an error.
+    This behavior continues, but could be removed when the deprecation above is
+    completed.  ::
+
+        sage: A = matrix(2, 3, range(6))
+        sage: B = matrix(3, 3, range(9))
+        sage: block_matrix([A, A, A, B, B, B])
+        Traceback (most recent call last):
+        ...
+        ValueError: must specify nrows or ncols for non-square block matrix.
     """
     args = list(args)
     sparse = kwds.get('sparse',None)
@@ -1788,7 +1834,7 @@ def block_matrix(*args, **kwds): #sub_matrices, nrows=None, ncols=None, subdivid
     if len(args) >= 1 and rings.is_Ring(args[0]):
         # A ring is specified
         if kwds.get('ring', args[0]) != args[0]:
-            raise ValueError, "Specified rings are not the same"
+            raise ValueError("base ring specified twice and they are different")
         ring = args[0]
         args.pop(0)
     else:
@@ -1799,7 +1845,7 @@ def block_matrix(*args, **kwds): #sub_matrices, nrows=None, ncols=None, subdivid
             nrows = int(args[0])
             args.pop(0)
             if kwds.get('nrows', nrows) != nrows:
-                raise ValueError, "Number of rows specified in two places and they are not the same"
+                raise ValueError("number of rows specified twice and they are different")
         except TypeError:
             nrows = kwds.get('nrows', None)
     else:
@@ -1811,7 +1857,7 @@ def block_matrix(*args, **kwds): #sub_matrices, nrows=None, ncols=None, subdivid
             ncols = int(args[0])
             args.pop(0)
             if kwds.get('ncols', ncols) != ncols:
-                raise ValueError, "Number of columns specified in two places and they are not the same"
+                raise ValueError("number of columns specified twice and they are different")
         except TypeError:
             ncols = kwds.get('ncols', None)
     else:
@@ -1826,7 +1872,7 @@ def block_matrix(*args, **kwds): #sub_matrices, nrows=None, ncols=None, subdivid
         args = [[]]
     if len(args) > 1:
         print args
-        raise TypeError, "Invalid block_matrix invocation"
+        raise TypeError("invalid block_matrix invocation")
 
     sub_matrices = args[0]
 
@@ -1834,7 +1880,7 @@ def block_matrix(*args, **kwds): #sub_matrices, nrows=None, ncols=None, subdivid
         # a single matrix (check nrows/ncols/ring)
         if (nrows is not None and nrows != 1) or \
            (ncols is not None and ncols != 1):
-            raise ValueError, "Invalid nrows/ncols passed to block_matrix"
+            raise ValueError("invalid nrows/ncols passed to block_matrix")
         if ring is not None:
             M = M.change_ring(ring)
         if sparse is not None and M.is_sparse() != sparse:
@@ -1842,7 +1888,7 @@ def block_matrix(*args, **kwds): #sub_matrices, nrows=None, ncols=None, subdivid
         return M
 
     if not isinstance(sub_matrices, (list, tuple)):
-        raise TypeError, "Invalid block_matrix invocation"
+        raise TypeError("invalid block_matrix invocation")
 
     subdivide = kwds.get('subdivide', True)
 
@@ -1853,18 +1899,18 @@ def block_matrix(*args, **kwds): #sub_matrices, nrows=None, ncols=None, subdivid
     if len(sub_matrices) == 0:
         if (nrows is not None and nrows != 0) or \
            (ncols is not None and ncols != 0):
-            raise ValueError, "Invalid nrows/ncols passed to block_matrix"
+            raise ValueError("invalid nrows/ncols passed to block_matrix")
     elif isinstance(sub_matrices[0], (list, tuple)):
         # A list of lists: verify all elements are lists, and if
         # ncols is set, the lengths match.
         if nrows is not None and len(sub_matrices) != nrows:
-            raise ValueError, "Invalid nrows passed to block_matrix"
+            raise ValueError("invalid nrows passed to block_matrix")
         first_len = len(sub_matrices[0])
         if ncols is not None and first_len != ncols:
-            raise ValueError, "Invalid ncols passed to block_matrix"
+            raise ValueError("invalid ncols passed to block_matrix")
         same_length = all(isinstance(v, (list, tuple)) and len(v) == first_len for v in sub_matrices)
         if subdivide and not same_length:
-            raise ValueError, "List of rows is not valid (rows are wrong types or lengths)"
+            raise ValueError("list of rows is not valid (rows are wrong types or lengths)")
         try_grid = same_length
     else:
         # A flat list
@@ -1874,16 +1920,17 @@ def block_matrix(*args, **kwds): #sub_matrices, nrows=None, ncols=None, subdivid
             if ncols is None:
                 if n.is_square():
                     import warnings
-                    warnings.warn("This invocation of block_matrix is deprecated. See its documentation for details.", DeprecationWarning, stacklevel=2)
+                    warnings.warn("invocation of block_matrix with just a list whose length is a perfect square is deprecated. See the documentation for details.", DeprecationWarning, stacklevel=2)
                     nrows = ncols = n.sqrt()
                 else:
-                    raise ValueError, "Must specify nrows or ncols for non-square block matrix."
+                    # this form (ie just a flat list) could be allowed once deprecated invocation (above) goes away
+                    raise ValueError("must specify nrows or ncols for non-square block matrix.")
             else:
                 nrows = int(n/ncols)
         elif ncols is None:
             ncols = int(n/nrows)
         if nrows * ncols != n:
-            raise ValueError, "Given number of rows (%s), columns (%s) incompatible with number of submatrices (%s)" % (nrows, ncols, n)
+            raise ValueError("given number of rows (%s), columns (%s) incompatible with number of submatrices (%s)" % (nrows, ncols, n))
         # Now create a list of lists from this
         sub_matrices = [ sub_matrices[i*ncols : (i+1)*ncols] for i in range(nrows) ]
 
@@ -1916,7 +1963,7 @@ def block_matrix(*args, **kwds): #sub_matrices, nrows=None, ncols=None, subdivid
             (row_heights, col_widths) = _determine_block_matrix_grid(sub_matrices)
         except ValueError as e:
             if subdivide:
-                raise ValueError, e
+                raise ValueError(e)
 
 
     if col_widths is None:
@@ -1979,7 +2026,7 @@ def block_diagonal_matrix(*sub_matrices, **kwds):
     Create a block matrix whose diagonal block entries are given by
     sub_matrices, with zero elsewhere.
 
-    See also ``block_matrix``.
+    See also :meth:`block_matrix`.
 
     EXAMPLES::
 

@@ -1236,6 +1236,9 @@ ext_modules = [
               sources = ['sage/rings/integer_ring.pyx'],
               libraries=['ntl', 'gmp']),
 
+    Extension('sage.rings.factorint',
+              sources = ['sage/rings/factorint.pyx']),
+
     Extension('sage.rings.fast_arith',
               sources = ['sage/rings/fast_arith.pyx'],
               libraries=['pari','gmp','csage']),

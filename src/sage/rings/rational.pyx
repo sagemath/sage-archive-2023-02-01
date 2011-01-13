@@ -281,7 +281,8 @@ cpdef rational_power_parts(a, b, factor_limit=10**5):
     if a < factor_limit*factor_limit:
         f = a.factor()
     else:
-        f = a._factor_trial_division(factor_limit)
+        from sage.rings.factorint import factor_trial_division
+        f = factor_trial_division(a,factor_limit)
     c = 1
     d = 1
     for p, e in f:

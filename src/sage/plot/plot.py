@@ -2394,6 +2394,18 @@ class Graphics(SageObject):
 
         By default, the figure grows to include all of the graphics and text,
         so the final image may not be exactly the figure size you specified.
+
+        You can also pass extra options to the plot command instead of this
+        method, e.g. ::
+
+            sage: plot(x^2 - 5, (x, 0, 5), ymin=0).save(
+            ...       sage.misc.misc.tmp_filename() + '.png')
+
+        will save the same plot as the one shown by
+
+            sage: plot(x^2 - 5, (x, 0, 5), ymin=0)
+
+        (This test verifies that Trac #8632 is fixed.)
         """
         options = dict()
         options.update(self.SHOW_OPTIONS)

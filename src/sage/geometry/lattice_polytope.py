@@ -67,20 +67,21 @@ stored, in addition to polytope vertices and its polar).
 
 AUTHORS:
 
-- Andrey Novoseltsev (2007-01-11): initial version of this
-  module
+- Andrey Novoseltsev (2007-01-11): initial version
 
 - Andrey Novoseltsev (2007-01-15): ``all_*`` functions
 
 - Andrey Novoseltsev (2008-04-01): second version, including:
 
-    - dual NEF-partitions and necessary convex_hull and minkowski_sum
+    - dual nef-partitions and necessary convex_hull and minkowski_sum
 
     - built-in sequences of 2- and 3-dimensional reflexive polytopes
 
     - plot3d, skeleton_show
 
 - Andrey Novoseltsev (2009-08-26): dropped maximal dimension requirement
+
+- Andrey Novoseltsev (2010-12-15): new version of nef-partitions
 
 - Maximilian Kreuzer and Harald Skarke: authors of PALP (which was
   also used to obtain the list of 3-dimensional reflexive polytopes)
@@ -90,10 +91,12 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#       Copyright (C) 2007-2009 William Stein <wstein@gmail.com>
-#                     2007-2009 Andrey Novoseltsev <novoselt@gmail.com>
+#       Copyright (C) 2007-2010 Andrey Novoseltsev <novoselt@gmail.com>
+#       Copyright (C) 2007-2010 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -102,6 +105,7 @@ from sage.graphs.all import Graph
 from sage.interfaces.all import maxima
 from sage.matrix.all import matrix, is_Matrix
 from sage.misc.all import tmp_filename
+from sage.misc.misc import deprecation
 from sage.modules.all import vector
 from sage.plot.plot import hue
 from sage.plot.plot3d.index_face_set import IndexFaceSet
@@ -113,6 +117,7 @@ from sage.sets.set import Set_generic
 from sage.structure.all import Sequence
 from sage.structure.sage_object import SageObject, load, loads
 
+import collections
 import copy_reg
 import os
 import subprocess
@@ -397,7 +402,34 @@ def ReflexivePolytopes(dim):
     return _rp[dim]
 
 
-class LatticePolytopeClass(SageObject):
+def is_LatticePolytope(x):
+    r"""
+    Check if ``x`` is a lattice polytope.
+
+    INPUT:
+
+    - ``x`` -- anything.
+
+    OUTPUT:
+
+    - ``True`` if ``x`` is a :class:`lattice polytope <LatticePolytopeClass>`,
+      ``False`` otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.geometry.lattice_polytope import is_LatticePolytope
+        sage: is_LatticePolytope(1)
+        False
+        sage: p = LatticePolytope([(1,0), (0,1), (-1,-1)])
+        sage: p
+        A lattice polytope: 2-dimensional, 3 vertices.
+        sage: is_LatticePolytope(p)
+        True
+    """
+    return isinstance(x, LatticePolytopeClass)
+
+
+class LatticePolytopeClass(SageObject, collections.Hashable):
     r"""
     Class of lattice/reflexive polytopes.
 
@@ -447,6 +479,99 @@ class LatticePolytopeClass(SageObject):
             raise TypeError, \
                 "Cannot make a polytope from given data!\nData:\n%s" % data
 
+    def __eq__(self, other):
+        r"""
+        Compare ``self`` with ``other``.
+
+        INPUT:
+
+        - ``other`` -- anything.
+
+        OUTPUT:
+
+        - ``True`` if ``other`` is a :class:`lattice polytope
+          <LatticePolytopeClass>` equal to ``self``, ``False`` otherwise.
+
+        .. NOTE::
+
+            Two lattice polytopes are if they have the same vertices listed in
+            the same order.
+
+        TESTS::
+
+            sage: p1 = LatticePolytope([(1,0), (0,1), (-1,-1)])
+            sage: p2 = LatticePolytope([(1,0), (0,1), (-1,-1)])
+            sage: p3 = LatticePolytope([(0,1), (1,0), (-1,-1)])
+            sage: p1 == p1
+            True
+            sage: p1 == p2
+            True
+            sage: p1 is p2
+            False
+            sage: p1 == p3
+            False
+            sage: p1 == 0
+            False
+        """
+        return (is_LatticePolytope(other)
+                and self._vertices == other._vertices)
+
+    def __hash__(self):
+        r"""
+        Return the hash of ``self``.
+
+        OUTPUT:
+
+        - an integer.
+
+        TESTS::
+
+            sage: o = lattice_polytope.octahedron(3)
+            sage: hash(o) == hash(o)
+            True
+        """
+        try:
+            return self._hash
+        except AttributeError:
+            self._hash = hash(self._vertices)
+            return self._hash
+
+    def __ne__(self, other):
+        r"""
+        Compare ``self`` with ``other``.
+
+        INPUT:
+
+        - ``other`` -- anything.
+
+        OUTPUT:
+
+        - ``False`` if ``other`` is a :class:`lattice polytope
+          <LatticePolytopeClass>` equal to ``self``, ``True`` otherwise.
+
+        .. NOTE::
+
+            Two lattice polytopes are if they have the same vertices listed in
+            the same order.
+
+        TESTS::
+
+            sage: p1 = LatticePolytope([(1,0), (0,1), (-1,-1)])
+            sage: p2 = LatticePolytope([(1,0), (0,1), (-1,-1)])
+            sage: p3 = LatticePolytope([(0,1), (1,0), (-1,-1)])
+            sage: p1 != p1
+            False
+            sage: p1 != p2
+            False
+            sage: p1 is p2
+            False
+            sage: p1 != p3
+            True
+            sage: p1 != 0
+            True
+        """
+        return not (self == other)
+
     def __reduce__(self):
         r"""
         Reduction function. Does not store data that can be relatively fast
@@ -482,9 +607,6 @@ class LatticePolytopeClass(SageObject):
             for d_faces in self._faces:
                 for face in d_faces:
                     face._polytope = self
-        if state.has_key('_nef_partitions'): # NEF-partitions do not remember polytopes
-            for partition in self._nef_partitions:
-                partition._polytope = self
 
     def _compute_dim(self, compute_vertices):
         r"""
@@ -1108,7 +1230,15 @@ class LatticePolytopeClass(SageObject):
 
     def _read_nef_partitions(self, data):
         r"""
-        Read NEF-partitions from string or file.
+        Read nef-partitions of ``self`` from ``data``.
+
+        INPUT:
+
+        - ``data`` -- a string or a file.
+
+        OUTPUT:
+
+        - none.
 
         TESTS::
 
@@ -1128,15 +1258,19 @@ class LatticePolytopeClass(SageObject):
              P:2 V:3 4 5   (1 1) (1 1) (1 1)     0sec  0cpu
              P:3 V:4 5   (0 2) (1 1) (1 1)     0sec  0cpu
             np=3 d:1 p:1    0sec     0cpu
-            sage: v = o.__dict__.pop("_nef_partitions", None)
-            sage: o.__dict__.has_key("_nef_partitions")
+
+        We make a copy of the octahedron since direct use of this function may
+        destroy cache integrity and lead so strange effects in other doctests::
+
+            sage: o_copy = LatticePolytope(o.vertices())
+            sage: o_copy.__dict__.has_key("_nef_partitions")
             False
-            sage: o._read_nef_partitions(s)
-            sage: o._nef_partitions
+            sage: o_copy._read_nef_partitions(s)
+            sage: o_copy._nef_partitions
             [
-            [1, 1, 0, 1, 0, 0],
-            [1, 1, 1, 0, 0, 0],
-            [1, 1, 1, 1, 0, 0]
+            Nef-partition {0, 1, 3} U {2, 4, 5},
+            Nef-partition {0, 1, 2} U {3, 4, 5},
+            Nef-partition {0, 1, 2, 3} U {4, 5}
             ]
         """
         if isinstance(data, str):
@@ -1165,10 +1299,10 @@ class LatticePolytopeClass(SageObject):
             start = line.find("V:") + 2
             end = line.find("  ", start)  # Find DOUBLE space
             pvertices = Sequence(line[start:end].split(),int)
-            partition = [1] * nvertices
+            partition = [0] * nvertices
             for v in pvertices:
-                partition[v] = 0
-            partition = NEFPartition(partition, self)
+                partition[v] = 1
+            partition = NefPartition(partition, self)
             partition._is_product = line.find(" D ") != -1
             partition._is_projection = line.find(" DP ") != -1
             # Set the stuff
@@ -1176,9 +1310,8 @@ class LatticePolytopeClass(SageObject):
             if start != -1:
                 start += 2
                 end = line.find("[", start)
-                partition._hodge_numbers = Sequence(line[start:end].split(),
-                        int, cr=False)
-                partition._hodge_numbers.set_immutable()
+                partition._hodge_numbers = tuple(int(h)
+                                            for h in line[start:end].split())
             partitions.append(partition)
             line = data.readline()
         start = line.find("np=")
@@ -1798,7 +1931,7 @@ class LatticePolytopeClass(SageObject):
 
     def mif(self, partition):
         r"""
-        Return all vectors `m_{i,f}`, grouped into matrices.
+        Return all vectors `m_{i,f}`, grouped into matrices. Deprecated.
 
         INPUT:
 
@@ -1815,8 +1948,8 @@ class LatticePolytopeClass(SageObject):
         nef-partitions of the 3-dimensional octahedron::
 
             sage: o = lattice_polytope.octahedron(3)
-            sage: nefp = o.nef_partitions()[0]
-            sage: o.mif(nefp)
+            sage: nefp = lattice_polytope.NEFPartition([1,1,0,1,0,0]) # random (warning)
+            sage: o.mif(nefp) # random (warning)
             [
             [ 0  0  1]  [ 0  0  1]  [ 0  1  1]  [0 1 1]  [ 0  0 -1]  [ 0  0 -1]
             [-1 -1  0], [ 1 -1  0], [-1  0  0], [1 0 0], [-1 -1  0], [ 1 -1  0],
@@ -1825,6 +1958,8 @@ class LatticePolytopeClass(SageObject):
             [-1  0  0], [ 1  0  0]
             ]
         """
+        deprecation("The method mif of lattice polytopes is deprecated.",
+                    "Sage Version 4.6.2")
         if not isinstance(partition, NEFPartition):
             raise TypeError, "Expect a NEF-partition, got %s!" % type(partition)
         result = Sequence([], cr=True)
@@ -1846,112 +1981,117 @@ class LatticePolytopeClass(SageObject):
     def nef_partitions(self, keep_symmetric=False, keep_products=True,
         keep_projections=True, hodge_numbers=False):
         r"""
-        Return the sequence of NEF-partitions for this polytope.
+        Return 2-part nef-partitions of ``self``.
 
         INPUT:
 
+        - ``keep_symmetric`` -- (default: ``False``) if ``True``, "-s" option
+          will be passed to ``nef.x`` in order to keep symmetric partitions,
+          i.e. partitions related by lattice automorphisms preserving ``self``;
 
-        -  ``keep_symmetric`` - (default: False) if True, "-s"
-           option will be passed to nef.x in order to keep symmetric
-           partitions;
+        - ``keep_products`` -- (default: ``True``) if ``True``, "-D" option
+          will be passed to ``nef.x`` in order to keep product partitions,
+          with corresponding complete intersections being direct products;
 
-        -  ``keep_products`` - (default: True) if True, "-D"
-           option will be passed to nef.x in order to keep product
-           partitions;
+        - ``keep_projections`` -- (default: ``True``) if ``True``, "-P" option
+          will be passed to ``nef.x`` in order to keep projection partitions,
+          i.e. partitions with one of the parts consisting of a single vertex;
 
-        -  ``keep_projections`` - (default: True) if True,
-           "-P" option will be passed to nef.x in order to keep projection
-           partitions;
+        - ``hodge_numbers`` -- (default: ``False``) if ``False``, "-p" option
+          will be passed to ``nef.x`` in order to skip Hodge numbers
+          computation, which takes a lot of time.
 
-        -  ``hodge_numbers`` - (default: False) if False, "-p"
-           option will be passed to nef.x in order to skip Hodge numbers
-           computation, which takes a lot of time.
+        OUTPUT:
 
+        - a sequence of :class:`nef-partitions <NefPartition>`.
 
-        EXAMPLES: NEF-partitions of the 4-dimensional octahedron::
+        Type ``NefPartition?`` for definitions and notation.
+
+        EXAMPLES:
+
+        Nef-partitions of the 4-dimensional octahedron::
 
             sage: o = lattice_polytope.octahedron(4)
             sage: o.nef_partitions()
             [
-            [1, 1, 0, 0, 1, 1, 0, 0] (direct product),
-            [1, 1, 1, 0, 1, 0, 0, 0],
-            [1, 1, 1, 0, 1, 1, 0, 0],
-            [1, 1, 1, 0, 1, 1, 1, 0] (direct product),
-            [1, 1, 1, 1, 0, 0, 0, 0],
-            [1, 1, 1, 1, 1, 0, 0, 0],
-            [1, 1, 1, 1, 1, 1, 0, 0],
-            [1, 1, 1, 1, 1, 1, 1, 0] (projection)
+            Nef-partition {0, 1, 4, 5} U {2, 3, 6, 7} (direct product),
+            Nef-partition {0, 1, 2, 4} U {3, 5, 6, 7},
+            Nef-partition {0, 1, 2, 4, 5} U {3, 6, 7},
+            Nef-partition {0, 1, 2, 4, 5, 6} U {3, 7} (direct product),
+            Nef-partition {0, 1, 2, 3} U {4, 5, 6, 7},
+            Nef-partition {0, 1, 2, 3, 4} U {5, 6, 7},
+            Nef-partition {0, 1, 2, 3, 4, 5} U {6, 7},
+            Nef-partition {0, 1, 2, 3, 4, 5, 6} U {7} (projection)
             ]
 
         Now we omit projections::
 
             sage: o.nef_partitions(keep_projections=False)
             [
-            [1, 1, 0, 0, 1, 1, 0, 0] (direct product),
-            [1, 1, 1, 0, 1, 0, 0, 0],
-            [1, 1, 1, 0, 1, 1, 0, 0],
-            [1, 1, 1, 0, 1, 1, 1, 0] (direct product),
-            [1, 1, 1, 1, 0, 0, 0, 0],
-            [1, 1, 1, 1, 1, 0, 0, 0],
-            [1, 1, 1, 1, 1, 1, 0, 0]
+            Nef-partition {0, 1, 4, 5} U {2, 3, 6, 7} (direct product),
+            Nef-partition {0, 1, 2, 4} U {3, 5, 6, 7},
+            Nef-partition {0, 1, 2, 4, 5} U {3, 6, 7},
+            Nef-partition {0, 1, 2, 4, 5, 6} U {3, 7} (direct product),
+            Nef-partition {0, 1, 2, 3} U {4, 5, 6, 7},
+            Nef-partition {0, 1, 2, 3, 4} U {5, 6, 7},
+            Nef-partition {0, 1, 2, 3, 4, 5} U {6, 7}
             ]
 
-        At present, Hodge numbers cannot be computed for a given
-        NEF-partition::
+        Currently Hodge numbers cannot be computed for a given nef-partition::
 
             sage: o.nef_partitions()[1].hodge_numbers()
             Traceback (most recent call last):
             ...
             NotImplementedError: use nef_partitions(hodge_numbers=True)!
 
-        But they can be obtained from nef.x for all partitions at once.
+        But they can be obtained from ``nef.x`` for all nef-partitions at once.
         Partitions will be exactly the same::
 
             sage: o.nef_partitions(hodge_numbers=True)
             [
-            [1, 1, 0, 0, 1, 1, 0, 0] (direct product),
-            [1, 1, 1, 0, 1, 0, 0, 0],
-            [1, 1, 1, 0, 1, 1, 0, 0],
-            [1, 1, 1, 0, 1, 1, 1, 0] (direct product),
-            [1, 1, 1, 1, 0, 0, 0, 0],
-            [1, 1, 1, 1, 1, 0, 0, 0],
-            [1, 1, 1, 1, 1, 1, 0, 0],
-            [1, 1, 1, 1, 1, 1, 1, 0] (projection)
+            Nef-partition {0, 1, 4, 5} U {2, 3, 6, 7} (direct product),
+            Nef-partition {0, 1, 2, 4} U {3, 5, 6, 7},
+            Nef-partition {0, 1, 2, 4, 5} U {3, 6, 7},
+            Nef-partition {0, 1, 2, 4, 5, 6} U {3, 7} (direct product),
+            Nef-partition {0, 1, 2, 3} U {4, 5, 6, 7},
+            Nef-partition {0, 1, 2, 3, 4} U {5, 6, 7},
+            Nef-partition {0, 1, 2, 3, 4, 5} U {6, 7},
+            Nef-partition {0, 1, 2, 3, 4, 5, 6} U {7} (projection)
             ]
 
         Now it is possible to get Hodge numbers::
 
             sage: o.nef_partitions(hodge_numbers=True)[1].hodge_numbers()
-            [20]
+            (20,)
 
-        Since NEF-partitions are cached, Hodge numbers are accessible after
-        the first request, even if you do not specify hodge_numbers
-        anymore::
+        Since nef-partitions are cached, their Hodge numbers are accessible
+        after the first request, even if you do not specify
+        ``hodge_numbers=True`` anymore::
 
             sage: o.nef_partitions()[1].hodge_numbers()
-            [20]
+            (20,)
 
         We illustrate removal of symmetric partitions on a diamond::
 
             sage: o = lattice_polytope.octahedron(2)
             sage: o.nef_partitions()
             [
-            [1, 0, 1, 0] (direct product),
-            [1, 1, 0, 0],
-            [1, 1, 1, 0] (projection)
+            Nef-partition {0, 2} U {1, 3} (direct product),
+            Nef-partition {0, 1} U {2, 3},
+            Nef-partition {0, 1, 2} U {3} (projection)
             ]
             sage: o.nef_partitions(keep_symmetric=True)
             [
-            [1, 1, 0, 1] (projection),
-            [1, 0, 1, 1] (projection),
-            [1, 0, 0, 1],
-            [0, 1, 1, 1] (projection),
-            [0, 1, 0, 1] (direct product),
-            [0, 0, 1, 1],
-            [1, 1, 1, 0] (projection)
+            Nef-partition {0, 1, 3} U {2} (projection),
+            Nef-partition {0, 2, 3} U {1} (projection),
+            Nef-partition {0, 3} U {1, 2},
+            Nef-partition {1, 2, 3} U {0} (projection),
+            Nef-partition {1, 3} U {0, 2} (direct product),
+            Nef-partition {2, 3} U {0, 1},
+            Nef-partition {0, 1, 2} U {3} (projection)
             ]
 
-        NEF-partitions can be computed only for reflexive polytopes::
+        Nef-partitions can be computed only for reflexive polytopes::
 
             sage: m = matrix(ZZ, [[1, 0, 0, -1,  0,  0],
             ...                   [0, 1, 0,  0, -1,  0],
@@ -1986,9 +2126,10 @@ class LatticePolytopeClass(SageObject):
                 or keep_projections and oldkeys.find("-P") == -1
                 or keep_products and oldkeys.find("-D") == -1):
                 # Select only necessary partitions
-                return Sequence([p for p in self._nef_partitions if
-                    (keep_projections or not p._is_projection)
-                    and (keep_products or not p._is_product)], cr=True)
+                return Sequence([p for p in self._nef_partitions
+                                 if (keep_projections or not p._is_projection)
+                                     and (keep_products or not p._is_product)],
+                                cr=True, check=False)
         self._read_nef_partitions(self.nef_x(keys))
         self._npkeys = keys
         return self._nef_partitions
@@ -2008,7 +2149,7 @@ class LatticePolytopeClass(SageObject):
         OUTPUT: the output of nef.x as a string.
 
         EXAMPLES: This call is used internally for computing
-        NEF-partitions::
+        nef-partitions::
 
             sage: o = lattice_polytope.octahedron(3)
             sage: s = o.nef_x("-N -V -p")
@@ -2747,10 +2888,12 @@ class LatticePolytopeClass(SageObject):
 
 class NEFPartition(Sequence):
     r"""
-    Construct a NEF-partition from the given list. If the second
-    argument is given, it must be the polytope of the NEF-partition.
+    Construct a nef-partition from the given list. If the second
+    argument is given, it must be the polytope of the nef-partition.
 
-    A NEF-partition with `k` parts,
+    This class is deprecated, use :class:`NefPartition` instead.
+
+    A nef-partition with `k` parts,
     `V = V_0 \cap V_1 \cap \dots \cap V_{k-1}`, is
     represented by a single list of length `n = \#V`, in which
     the `i`-th entry is the part number of the `i`-th
@@ -2763,7 +2906,7 @@ class NEFPartition(Sequence):
     EXAMPLES: All elements of the list will be coerced to integers, so
     it is OK to use either a list of numbers or a list of strings::
 
-        sage: lattice_polytope.NEFPartition([1, 1, 0, 0, 0, 1])
+        sage: lattice_polytope.NEFPartition([1, 1, 0, 0, 0, 1]) # random (warning)
         [1, 1, 0, 0, 0, 1]
         sage: lattice_polytope.NEFPartition(['1', '1', '0', '0', '0', '1'])
         [1, 1, 0, 0, 0, 1]
@@ -2771,13 +2914,15 @@ class NEFPartition(Sequence):
 
     def __init__(self, data, polytope=None):
         r"""
-        Construct a NEF-partition.
+        Construct a nef-partition.
 
         TESTS::
 
-            sage: lattice_polytope.NEFPartition([1,0,1,0])
+            sage: lattice_polytope.NEFPartition([1,0,1,0]) # random (warning)
             [1, 0, 1, 0]
         """
+        deprecation("NEFpartition is deprecated, use NefPartition instead.",
+                    "Sage Version 4.6.2")
         Sequence.__init__(self, data, int, cr=False)
         self._n = max(self) + 1
         self._polytope = polytope
@@ -2791,7 +2936,7 @@ class NEFPartition(Sequence):
         TESTS::
 
             sage: o = lattice_polytope.octahedron(3)
-            sage: np = o.nef_partitions()[0]
+            sage: np = lattice_polytope.NEFPartition([1,1,0,0]) # random (warning)
             sage: np == loads(np.dumps())
             True
         """
@@ -2803,11 +2948,11 @@ class NEFPartition(Sequence):
 
     def _repr_(self):
         r"""
-        Return a string representation of this NEF-partition.
+        Return a string representation of this nef-partition.
 
         TESTS::
 
-            sage: np = lattice_polytope.NEFPartition([1,1,0,0])
+            sage: np = lattice_polytope.NEFPartition([1,1,0,0]) # random (warning)
             sage: np._repr_()
             '[1, 1, 0, 0]'
         """
@@ -2836,14 +2981,10 @@ class NEFPartition(Sequence):
             sage: o = lattice_polytope.octahedron(3)
             sage: np = o.nef_partitions()[0]
             sage: np
-            [1, 1, 0, 1, 0, 0]
+            Nef-partition {0, 1, 3} U {2, 4, 5}
             sage: npd = np.dual()
             sage: npd
-            [1, 0, 1, 0, 0, 1, 0, 1]
-            sage: npd.polytope().vertices()
-            [ 1  0  1  0  0 -1  0 -1]
-            [-1  1  0  0  0 -1  1  0]
-            [ 0  1  0  1 -1  0 -1  0]
+            Nef-partition {0, 2, 5, 7} U {1, 3, 4, 6}
         """
         Nabla_p = self._polytope
         r = self.nparts()
@@ -2890,7 +3031,7 @@ class NEFPartition(Sequence):
             NotImplementedError: use nef_partitions(hodge_numbers=True)!
             sage: np = o.nef_partitions(hodge_numbers=True)[0]
             sage: np.hodge_numbers()
-            [4]
+            (4,)
         """
         try:
             return self._hodge_numbers
@@ -2904,7 +3045,7 @@ class NEFPartition(Sequence):
 
         EXAMPLES::
 
-            sage: nefp = lattice_polytope.NEFPartition([1, 1, 0, 0, 0, 1])
+            sage: nefp = lattice_polytope.NEFPartition([1, 1, 0, 0, 0, 1]) # random (warning)
             sage: nefp.nparts()
             2
         """
@@ -2918,7 +3059,7 @@ class NEFPartition(Sequence):
 
         EXAMPLES::
 
-            sage: nefp = lattice_polytope.NEFPartition([1, 1, 0, 0, 0, 1])
+            sage: nefp = lattice_polytope.NEFPartition([1, 1, 0, 0, 0, 1]) # random (warning)
             sage: nefp.part(0)
             [2, 3, 4]
             sage: nefp.part(1)
@@ -2936,7 +3077,7 @@ class NEFPartition(Sequence):
 
         ::
 
-            sage: nefp = lattice_polytope.NEFPartition([1, 1, 0, 0, 0, 1])
+            sage: nefp = lattice_polytope.NEFPartition([1, 1, 0, 0, 0, 1]) # random (warning)
             sage: nefp.part_of_vertex(3)
             0
             sage: nefp.part_of_vertex(5)
@@ -2946,7 +3087,7 @@ class NEFPartition(Sequence):
             sage: nefp[5]
             1
 
-        You cannot change a NEF-partition once it is constructed::
+        You cannot change a nef-partition once it is constructed::
 
             sage: nefp[3] = 1
             Traceback (most recent call last):
@@ -2957,16 +3098,733 @@ class NEFPartition(Sequence):
 
     def polytope(self):
         r"""
-        Return the polytope of this NEF-partition.
+        Return the polytope of this nef-partition.
+
+        EXAMPLE::
+
+            sage: o = lattice_polytope.octahedron(3)
+            sage: np = lattice_polytope.NEFPartition([1, 1, 0, 0, 0, 1], o) # random (warning)
+            sage: np.polytope() == o
+            True
+        """
+        return self._polytope
+
+
+def is_NefPartition(x):
+    r"""
+    Check if ``x`` is a nef-partition.
+
+    INPUT:
+
+    - ``x`` -- anything.
+
+    OUTPUT:
+
+    - ``True`` if ``x`` is a :class:`nef-partition <NefPartition>` and
+      ``False`` otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.geometry.lattice_polytope import is_NefPartition
+        sage: is_NefPartition(1)
+        False
+        sage: o = lattice_polytope.octahedron(3)
+        sage: np = o.nef_partitions()[0]
+        sage: np
+        Nef-partition {0, 1, 3} U {2, 4, 5}
+        sage: is_NefPartition(np)
+        True
+    """
+    return isinstance(x, NefPartition)
+
+
+class NefPartition(SageObject,
+                   collections.Hashable):
+    r"""
+    Create a nef-partition.
+
+    INPUT:
+
+    - ``data`` -- a list of integers, the $i$-th element of this list must be
+      the part of the $i$-th vertex of ``Delta_polar`` in this nef-partition;
+
+    - ``Delta_polar`` -- a :class:`lattice polytope
+      <sage.geometry.lattice_polytope.LatticePolytopeClass>`;
+
+    - ``check`` -- by default the input will be checked for correctness, i.e.
+      that ``data`` indeed specify a nef-partition. If you are sure that the
+      input is correct, you can speed up construction via ``check=False``
+      option.
+
+    OUTPUT:
+
+    - a nef-partition of ``Delta_polar``.
+
+    Let $M$ and $N$ be dual lattices. Let $\Delta \subset M_\RR$ be a reflexive
+    polytope with polar $\Delta^\circ \subset N_\RR$. Let $X_\Delta$ be the
+    toric variety associated to the normal fan of $\Delta$. A **nef-partition**
+    is a decomposition of the vertex set $V$ of $\Delta^\circ$ into a disjoint
+    union $V = V_0 \sqcup V_1 \sqcup \dots \sqcup V_{k-1}$ such that divisors
+    $E_i = \sum_{v\in V_i} D_v$ are Cartier (here $D_v$ are prime
+    torus-invariant Weil divisors corresponding to vertices of $\Delta^\circ$).
+    Equivalently, let $\nabla_i \subset N_\RR$ be the convex hull of vertices
+    from $V_i$ and the origin. These polytopes form a nef-partition if their
+    Minkowski sum $\nabla \subset N_\RR$ is a reflexive polytope.
+
+    The **dual nef-partition** is formed by polytopes $\Delta_i \subset M_\RR$
+    of $E_i$, which give a decomposition of the vertex set of $\nabla^\circ
+    \subset M_\RR$ and their Minkowski sum of is $\Delta$, i.e. polar duality
+    of reflexive polytopes switches convex hull and Minkowski sum for dual
+    nef-partitions:
+
+    .. MATH::
+
+        \Delta^\circ
+        &=
+        \mathrm{Conv} \left(\nabla_0, \nabla_1, \dots, \nabla_{k-1}\right), \\
+        \nabla^{\phantom{\circ}}
+        &=
+        \nabla_0 + \nabla_1 + \dots + \nabla_{k-1}, \\
+        &
+        \\
+        \Delta^{\phantom{\circ}}
+        &=
+        \Delta_0 + \Delta_1 + \dots + \Delta_{k-1}, \\
+        \nabla^\circ
+        &=
+        \mathrm{Conv} \left(\Delta_0, \Delta_1, \dots, \Delta_{k-1}\right).
+
+    See Section 4.3.1 in [CK99]_ and references therein for further details, or
+    [BN08]_ for a purely combinatorial approach.
+
+    REFERENCES:
+
+    ..  [BN08]
+        Victor V. Batyrev and Benjamin Nill.
+        Combinatorial aspects of mirror symmetry.
+        In *Integer points in polyhedra --- geometry, number theory,
+        representation theory, algebra, optimization, statistics*,
+        volume 452 of *Contemp. Math.*, pages 35--66.
+        Amer. Math. Soc., Providence, RI, 2008.
+        arXiv:math/0703456v2 [math.CO].
+
+    ..  [CK99]
+        David A. Cox and Sheldon Katz.
+        *Mirror symmetry and algebraic geometry*,
+        volume 68 of *Mathematical Surveys and Monographs*.
+        American Mathematical Society, Providence, RI, 1999.
+
+    EXAMPLES:
+
+    It is very easy to create a nef-partition for the octahedron, since for
+    this polytope any decomposition of vertices is a nef-partition. We create a
+    3-part nef-partition with the 0-th and 1-st vertices belonging to the 0-th
+    part (recall that numeration in Sage starts with 0), the 2-nd and 5-th
+    vertices belonging to the 1-st part, and 3-rd and 4-th vertices belonging
+    to the 2-nd part::
+
+        sage: o = lattice_polytope.octahedron(3)
+        sage: np = NefPartition([0,0,1,2,2,1], o)
+        sage: np
+        Nef-partition {0, 1} U {2, 5} U {3, 4}
+
+    The octahedron plays the role of `\Delta^\circ` in the above description::
+
+        sage: np.Delta_polar() is o
+        True
+
+    The dual nef-partition (corresponding to the "mirror complete
+    intersection") gives decomposition of the vertex set of `\nabla^\circ`::
+
+        sage: np.dual()
+        Nef-partition {4, 5, 6} U {1, 3} U {0, 2, 7}
+        sage: np.nabla_polar().vertices()
+        [ 1  0  0  0 -1  0 -1  1]
+        [ 1  0  1  0 -1 -1  0  0]
+        [ 0  1  0 -1  0  0  0  0]
+
+    Of course, `\nabla^\circ` is `\Delta^\circ` from the point of view of the
+    dual nef-partition::
+
+        sage: np.dual().Delta_polar() is np.nabla_polar()
+        True
+        sage: np.Delta(1).vertices()
+        [ 0  0]
+        [ 0  0]
+        [ 1 -1]
+        sage: np.dual().nabla(1).vertices()
+        [ 0  0]
+        [ 0  0]
+        [ 1 -1]
+
+    Instead of constructing nef-partitions directly, you can request all 2-part
+    nef-partitions of a given reflexive polytope (they will be computed using
+    ``nef.x`` program from PALP)::
+
+        sage: o.nef_partitions()
+        [
+        Nef-partition {0, 1, 3} U {2, 4, 5},
+        Nef-partition {0, 1, 3, 4} U {2, 5} (direct product),
+        Nef-partition {0, 1, 2} U {3, 4, 5},
+        Nef-partition {0, 1, 2, 3} U {4, 5},
+        Nef-partition {0, 1, 2, 3, 4} U {5} (projection)
+        ]
+    """
+
+    def __init__(self, data, Delta_polar, check=True):
+        r"""
+        See :class:`NefPartition` for documentation.
+
+        TESTS::
+
+            sage: o = lattice_polytope.octahedron(3)
+            sage: np = o.nef_partitions()[0]
+            sage: TestSuite(np).run()
+        """
+        if check and not Delta_polar.is_reflexive():
+            raise ValueError("nef-partitions can be constructed for reflexive "
+                             "polytopes ony!")
+        self._vertex_to_part = tuple(int(el) for el in data)
+        self._nparts = max(self._vertex_to_part) + 1
+        self._Delta_polar = Delta_polar
+        if check and not self.nabla().is_reflexive():
+            raise ValueError("%s do not form a nef-partition!" % str(data))
+
+    def __eq__(self, other):
+        r"""
+        Compare ``self`` with ``other``.
+
+        INPUT:
+
+        - ``other`` -- anything.
+
+        OUTPUT:
+
+        - ``True`` if ``other`` is a :class:`nef-partition <NefPartition>`
+          equal to ``self``, ``False`` otherwise.
+
+        .. NOTE::
+
+            Two nef-partitions are equal if they correspond to equal polytopes
+            and their parts are the same, including their order.
+
+        TESTS::
+
+            sage: o = lattice_polytope.octahedron(3)
+            sage: np = o.nef_partitions()[0]
+            sage: np == np
+            True
+            sage: np == o.nef_partitions()[1]
+            False
+            sage: np2 = NefPartition(np._vertex_to_part, o)
+            sage: np2 is np
+            False
+            sage: np2 == np
+            True
+            sage: np == 0
+            False
+        """
+        return (is_NefPartition(other)
+                and self._Delta_polar == other._Delta_polar
+                and self._vertex_to_part == other._vertex_to_part)
+
+    def __hash__(self):
+        r"""
+        Return the hash of ``self``.
+
+        OUTPUT:
+
+        - an integer.
+
+        TESTS::
+
+            sage: o = lattice_polytope.octahedron(3)
+            sage: np = o.nef_partitions()[0]
+            sage: hash(np) == hash(np)
+            True
+        """
+        try:
+            return self._hash
+        except AttributeError:
+            self._hash = hash(self._vertex_to_part) + hash(self._Delta_polar)
+            return self._hash
+
+    def __ne__(self, other):
+        r"""
+        Compare ``self`` with ``other``.
+
+        INPUT:
+
+        - ``other`` -- anything.
+
+        OUTPUT:
+
+        - ``False`` if ``other`` is a :class:`nef-partition <NefPartition>`
+          equal to ``self``, ``True`` otherwise.
+
+        .. NOTE::
+
+            Two nef-partitions are equal if they correspond to equal polytopes
+            and their parts are the same, including their order.
+
+        TESTS::
+
+            sage: o = lattice_polytope.octahedron(3)
+            sage: np = o.nef_partitions()[0]
+            sage: np != np
+            False
+            sage: np != o.nef_partitions()[1]
+            True
+            sage: np2 = NefPartition(np._vertex_to_part, o)
+            sage: np2 is np
+            False
+            sage: np2 != np
+            False
+            sage: np != 0
+            True
+        """
+        return not (self == other)
+
+    def _latex_(self):
+        r"""
+        Return a LaTeX representation of ``self``.
+
+        OUTPUT:
+
+        - a string.
+
+        TESTS::
+
+            sage: o = lattice_polytope.octahedron(3)
+            sage: np = o.nef_partitions()[0]
+            sage: latex(np) # indirect doctest
+            \text{Nef-partition } \{0, 1, 3\} \sqcup \{2, 4, 5\}
+        """
+        result = r"\text{Nef-partition } "
+        for i, part in enumerate(self.parts()):
+            if i != 0:
+                result += " \sqcup "
+            result += r"\{" + ", ".join("%d" % v for v in part) + r"\}"
+        try:
+            # We may or may not know the type of the partition
+            if self._is_product:
+                result += r" \text{ (direct product)}"
+            if self._is_projection:
+                result += r" \text{ (projection)}"
+        except AttributeError:
+            pass
+        return result
+
+    def _repr_(self):
+        r"""
+        Return a string representation of ``self``.
+
+        OUTPUT:
+
+        - a string.
+
+        TESTS::
+
+            sage: o = lattice_polytope.octahedron(3)
+            sage: np = o.nef_partitions()[0]
+            sage: repr(np)  # indirect doctest
+            'Nef-partition {0, 1, 3} U {2, 4, 5}'
+        """
+        result = "Nef-partition "
+        for i, part in enumerate(self.parts()):
+            if i != 0:
+                result += " U "
+            result += "{" + ", ".join("%d" % v for v in part) + "}"
+        try:
+            # We may or may not know the type of the partition
+            if self._is_product:
+                result += " (direct product)"
+            if self._is_projection:
+                result += " (projection)"
+        except AttributeError:
+            pass
+        return result
+
+    def Delta(self, i=None):
+        r"""
+        Return the polytope $\Delta$ or $\Delta_i$ corresponding to ``self``.
+
+        INPUT:
+
+        - ``i`` -- an integer. If not given, $\Delta$ will be returned.
+
+        OUTPUT:
+
+        - a :class:`lattice polytope <LatticePolytopeClass>`.
+
+        See :class:`nef-partition <NefPartition>` class documentation for
+        definitions and notation.
+
+        EXAMPLES::
+
+            sage: o = lattice_polytope.octahedron(3)
+            sage: np = o.nef_partitions()[0]
+            sage: np
+            Nef-partition {0, 1, 3} U {2, 4, 5}
+            sage: np.Delta().polar() is o
+            True
+            sage: np.Delta().vertices()
+            [-1  1 -1  1 -1  1 -1  1]
+            [-1 -1  1  1 -1 -1  1  1]
+            [ 1  1  1  1 -1 -1 -1 -1]
+            sage: np.Delta(0).vertices()
+            [ 1  1 -1 -1]
+            [-1  0 -1  0]
+            [ 0  0  0  0]
+        """
+        if i is None:
+            return self._Delta_polar.polar()
+        else:
+            return self.dual().nabla(i)
+
+    def Delta_polar(self):
+        r"""
+        Return the polytope $\Delta^\circ$ corresponding to ``self``.
+
+        OUTPUT:
+
+        - a :class:`lattice polytope <LatticePolytopeClass>`.
+
+        See :class:`nef-partition <NefPartition>` class documentation for
+        definitions and notation.
 
         EXAMPLE::
 
             sage: o = lattice_polytope.octahedron(3)
             sage: np = o.nef_partitions()[0]
-            sage: np.polytope() == o
+            sage: np
+            Nef-partition {0, 1, 3} U {2, 4, 5}
+            sage: np.Delta_polar() is o
             True
         """
-        return self._polytope
+        return self._Delta_polar
+
+    def Deltas(self):
+        r"""
+        Return the polytopes $\Delta_i$ corresponding to ``self``.
+
+        OUTPUT:
+
+        - a tuple of :class:`lattice polytopes <LatticePolytopeClass>`.
+
+        See :class:`nef-partition <NefPartition>` class documentation for
+        definitions and notation.
+
+        EXAMPLES::
+
+            sage: o = lattice_polytope.octahedron(3)
+            sage: np = o.nef_partitions()[0]
+            sage: np
+            Nef-partition {0, 1, 3} U {2, 4, 5}
+            sage: np.Delta().vertices()
+            [-1  1 -1  1 -1  1 -1  1]
+            [-1 -1  1  1 -1 -1  1  1]
+            [ 1  1  1  1 -1 -1 -1 -1]
+            sage: [Delta_i.vertices() for Delta_i in np.Deltas()]
+            [
+            [ 1  1 -1 -1]  [ 0  0  0  0]
+            [-1  0 -1  0]  [ 1  0  0  1]
+            [ 0  0  0  0], [ 1  1 -1 -1]
+            ]
+            sage: np.nabla_polar().vertices()
+            [ 1  0  1  0  0 -1  0 -1]
+            [-1  1  0  0  0 -1  1  0]
+            [ 0  1  0  1 -1  0 -1  0]
+        """
+        return self.dual().nablas()
+
+    def dual(self):
+        r"""
+        Return the dual nef-partition.
+
+        OUTPUT:
+
+        - a :class:`nef-partition <NefPartition>`.
+
+        See the class documentation for the definition.
+
+        ALGORITHM:
+
+        See Proposition 3.19 in [BN08]_.
+
+        EXAMPLES::
+
+            sage: o = lattice_polytope.octahedron(3)
+            sage: np = o.nef_partitions()[0]
+            sage: np
+            Nef-partition {0, 1, 3} U {2, 4, 5}
+            sage: np.dual()
+            Nef-partition {0, 2, 5, 7} U {1, 3, 4, 6}
+            sage: np.dual().Delta() is np.nabla()
+            True
+            sage: np.dual().nabla(0) is np.Delta(0)
+            True
+        """
+        try:
+            return self._dual
+        except AttributeError:
+            # Delta and nabla are interchanged compared to [BN08]_.
+            nabla_polar = self.nabla_polar()
+            n = nabla_polar.nvertices()
+            vertex_to_part = [-1] * n
+            for i in range(self._nparts):
+                A = nabla_polar.vertices().transpose()*self.nabla(i).vertices()
+                for j in range(n):
+                    if min(A[j]) == -1:
+                        vertex_to_part[j] = i
+            self._dual = NefPartition(vertex_to_part, nabla_polar)
+            self._dual._dual = self
+            self._dual._nabla = self.Delta() # For vertex order consistency
+            return self._dual
+
+    def hodge_numbers(self):
+        r"""
+        Return Hodge numbers corresponding to ``self``.
+
+        OUTPUT:
+
+        - a tuple of integers (produced by ``nef.x`` program from PALP).
+
+        EXAMPLES:
+
+        Currently, you need to request Hodge numbers when you compute
+        nef-partitions::
+
+            sage: o = lattice_polytope.octahedron(5)
+            sage: np = o.nef_partitions()[0]
+            sage: np.hodge_numbers()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: use nef_partitions(hodge_numbers=True)!
+            sage: np = o.nef_partitions(hodge_numbers=True)[0]
+            sage: np.hodge_numbers()
+            (19, 19)
+        """
+        try:
+            return self._hodge_numbers
+        except AttributeError:
+            self._Delta_polar._compute_hodge_numbers()
+            return self._hodge_numbers
+
+    def nabla(self, i=None):
+        r"""
+        Return the polytope $\nabla$ or $\nabla_i$ corresponding to ``self``.
+
+        INPUT:
+
+        - ``i`` -- an integer. If not given, $\nabla$ will be returned.
+
+        OUTPUT:
+
+        - a :class:`lattice polytope <LatticePolytopeClass>`.
+
+        See :class:`nef-partition <NefPartition>` class documentation for
+        definitions and notation.
+
+        EXAMPLES::
+
+            sage: o = lattice_polytope.octahedron(3)
+            sage: np = o.nef_partitions()[0]
+            sage: np
+            Nef-partition {0, 1, 3} U {2, 4, 5}
+            sage: np.Delta_polar().vertices()
+            [ 1  0  0 -1  0  0]
+            [ 0  1  0  0 -1  0]
+            [ 0  0  1  0  0 -1]
+            sage: np.nabla(0).vertices()
+            [ 1  0 -1]
+            [ 0  1  0]
+            [ 0  0  0]
+            sage: np.nabla().vertices()
+            [ 1  1  1  0  0 -1 -1 -1]
+            [ 0 -1  0  1  1  0 -1  0]
+            [ 1  0 -1  1 -1  1  0 -1]
+        """
+        if i is None:
+            try:
+                return self._nabla
+            except AttributeError:
+                self._nabla = LatticePolytope(reduce(minkowski_sum,
+                    (nabla.vertices().columns() for nabla in self.nablas())))
+                return self._nabla
+        else:
+            return self.nablas()[i]
+
+    def nabla_polar(self):
+        r"""
+        Return the polytope $\nabla^\circ$ corresponding to ``self``.
+
+        OUTPUT:
+
+        - a :class:`lattice polytope <LatticePolytopeClass>`.
+
+        See :class:`nef-partition <NefPartition>` class documentation for
+        definitions and notation.
+
+        EXAMPLES::
+
+            sage: o = lattice_polytope.octahedron(3)
+            sage: np = o.nef_partitions()[0]
+            sage: np
+            Nef-partition {0, 1, 3} U {2, 4, 5}
+            sage: np.nabla_polar().vertices()
+            [ 1  0  1  0  0 -1  0 -1]
+            [-1  1  0  0  0 -1  1  0]
+            [ 0  1  0  1 -1  0 -1  0]
+            sage: np.nabla_polar() is np.dual().Delta_polar()
+            True
+        """
+        return self.nabla().polar()
+
+    def nablas(self):
+        r"""
+        Return the polytopes $\nabla_i$ corresponding to ``self``.
+
+        OUTPUT:
+
+        - a tuple of :class:`lattice polytopes <LatticePolytopeClass>`.
+
+        See :class:`nef-partition <NefPartition>` class documentation for
+        definitions and notation.
+
+        EXAMPLES::
+
+            sage: o = lattice_polytope.octahedron(3)
+            sage: np = o.nef_partitions()[0]
+            sage: np
+            Nef-partition {0, 1, 3} U {2, 4, 5}
+            sage: np.Delta_polar().vertices()
+            [ 1  0  0 -1  0  0]
+            [ 0  1  0  0 -1  0]
+            [ 0  0  1  0  0 -1]
+            sage: [nabla_i.vertices() for nabla_i in np.nablas()]
+            [
+            [ 1  0 -1]  [ 0  0  0]
+            [ 0  1  0]  [ 0 -1  0]
+            [ 0  0  0], [ 1  0 -1]
+            ]
+        """
+        try:
+            return self._nablas
+        except AttributeError:
+            Delta_polar = self._Delta_polar
+            origin = [[0] * Delta_polar.dim()]
+            self._nablas = tuple(LatticePolytope(
+                                [Delta_polar.vertex(j) for j in part] + origin)
+                                for part in self.parts())
+            return self._nablas
+
+    def nparts(self):
+        r"""
+        Return the number of parts in ``self``.
+
+        OUTPUT:
+
+        - an integer.
+
+        EXAMPLES::
+
+            sage: o = lattice_polytope.octahedron(3)
+            sage: np = o.nef_partitions()[0]
+            sage: np
+            Nef-partition {0, 1, 3} U {2, 4, 5}
+            sage: np.nparts()
+            2
+        """
+        return self._nparts
+
+    def part(self, i):
+        r"""
+        Return the ``i``-th part of ``self``.
+
+        INPUT:
+
+        - ``i`` -- an integer.
+
+        OUTPUT:
+
+        - a tuple of integers, indices of vertices of $\Delta^\circ$ belonging
+          to $V_i$.
+
+        See :class:`nef-partition <NefPartition>` class documentation for
+        definitions and notation.
+
+        EXAMPLES::
+
+            sage: o = lattice_polytope.octahedron(3)
+            sage: np = o.nef_partitions()[0]
+            sage: np
+            Nef-partition {0, 1, 3} U {2, 4, 5}
+            sage: np.part(0)
+            (0, 1, 3)
+        """
+        return self.parts()[i]
+
+    def parts(self):
+        r"""
+        Return all parts of ``self``.
+
+        OUTPUT:
+
+        - a tuple of tuples of integers. The $i$-th tuple contains indices of
+          vertices of $\Delta^\circ$ belonging to $V_i$.
+
+        See :class:`nef-partition <NefPartition>` class documentation for
+        definitions and notation.
+
+        EXAMPLES::
+
+            sage: o = lattice_polytope.octahedron(3)
+            sage: np = o.nef_partitions()[0]
+            sage: np
+            Nef-partition {0, 1, 3} U {2, 4, 5}
+            sage: np.parts()
+            ((0, 1, 3), (2, 4, 5))
+        """
+        try:
+            return self._parts
+        except AttributeError:
+            parts = []
+            for part in range(self._nparts):
+                parts.append([])
+            for vertex, part in enumerate(self._vertex_to_part):
+                parts[part].append(vertex)
+            self._parts = tuple(tuple(part) for part in parts)
+            return self._parts
+
+    def part_of(self, i):
+        r"""
+        Return the index of the part containing the ``i``-th vertex.
+
+        INPUT:
+
+        - ``i`` - an integer.
+
+        OUTPUT:
+
+        - an integer $j$ such that the ``i``-th vertex of $\Delta^\circ$
+          belongs to $V_j$.
+
+        See :class:`nef-partition <NefPartition>` class documentation for
+        definitions and notation.
+
+        EXAMPLES::
+
+            sage: o = lattice_polytope.octahedron(3)
+            sage: np = o.nef_partitions()[0]
+            sage: np
+            Nef-partition {0, 1, 3} U {2, 4, 5}
+            sage: np.part_of(3)
+            0
+            sage: np.part_of(2)
+            1
+        """
+        return self._vertex_to_part[i]
 
 
 class _PolytopeFace(SageObject):
@@ -3398,10 +4256,10 @@ def _read_nef_x_partitions(data):
 
     ``data`` should be an output of nef.x.
 
-    Returns the sequence of NEF-partitions. Each NEF-partition is given
+    Returns the sequence of nef-partitions. Each nef-partition is given
     as a sequence of integers.
 
-    If there are no NEF-partitions, returns the empty sequence. If the
+    If there are no nef-partitions, returns the empty sequence. If the
     string is empty or EOF is reached, raises ValueError.
 
     TESTS::
@@ -3583,7 +4441,7 @@ def all_faces(polytopes):
 
 def all_nef_partitions(polytopes, keep_symmetric=False):
     r"""
-    Compute NEF-partitions for all given ``polytopes``.
+    Compute nef-partitions for all given ``polytopes``.
 
     This functions does it MUCH faster than member functions of
     ``LatticePolytope`` during the first run. So it is recommended to
@@ -3604,9 +4462,11 @@ def all_nef_partitions(polytopes, keep_symmetric=False):
         sage: lattice_polytope.all_nef_partitions([o])
         sage: o.nef_partitions()
         [
-        [1, 1, 0, 1, 0, 0],
-        [1, 1, 1, 0, 0, 0],
-        [1, 1, 1, 1, 0, 0]
+        Nef-partition {0, 1, 3} U {2, 4, 5},
+        Nef-partition {0, 1, 3, 4} U {2, 5} (direct product),
+        Nef-partition {0, 1, 2} U {3, 4, 5},
+        Nef-partition {0, 1, 2, 3} U {4, 5},
+        Nef-partition {0, 1, 2, 3, 4} U {5} (projection)
         ]
 
     You cannot use this function for non-reflexive polytopes::
@@ -3622,7 +4482,7 @@ def all_nef_partitions(polytopes, keep_symmetric=False):
         ValueError: The given polytope is not reflexive!
         Polytope: A lattice polytope: 3-dimensional, 6 vertices.
     """
-    keys = "-N -V -p"
+    keys = "-N -V -D -P -p"
     if keep_symmetric:
         keys += " -s"
     result_name = _palp("nef.x -f " + keys, polytopes)

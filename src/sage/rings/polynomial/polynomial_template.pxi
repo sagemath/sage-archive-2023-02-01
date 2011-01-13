@@ -14,9 +14,12 @@ include "../../ext/stdsage.pxi"
 
 from sage.rings.polynomial.polynomial_element cimport Polynomial
 from sage.structure.element cimport ModuleElement, Element, RingElement
+from sage.structure.element import coerce_binop, bin_op
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.integer cimport Integer
 from sage.libs.all import pari_gen
+
+import operator
 
 from sage.interfaces.all import singular as singular_default
 
@@ -316,6 +319,7 @@ cdef class Polynomial_template(Polynomial):
         #assert(r._parent(pari(self) * pari(right)) == r)
         return r
 
+    @coerce_binop
     def gcd(self, Polynomial_template other):
         """
         Return the greatest common divisor of self and other.
@@ -341,6 +345,7 @@ cdef class Polynomial_template(Polynomial):
         #assert(r._parent(pari(self).gcd(pari(other))) == r)
         return r
 
+    @coerce_binop
     def xgcd(self, Polynomial_template other):
         """
         Computes extended gcd of self and other.
@@ -388,12 +393,13 @@ cdef class Polynomial_template(Polynomial):
             sage: (x + 1)//x
             1
         """
-        cdef Polynomial_template _right
+        # We can't use @coerce_binop for operators in cython classes,
+        # so we use sage.structure.element.bin_op to handle coercion.
+        if type(self) is not type(right) or \
+                (<Polynomial_template>self)._parent is not (<Polynomial_template>right)._parent:
+            return bin_op(self, right, operator.mod)
+        cdef Polynomial_template _right = <Polynomial_template>right
         parent = (<Polynomial_template>self)._parent
-        if parent is not (<Polynomial_template>right)._parent and parent != (<Polynomial_template>right)._parent:
-            _right = parent._coerce_(right)
-        else:
-            _right = right
 
         if celement_is_zero(&_right.x, get_cparent(parent)):
             raise ZeroDivisionError
@@ -411,13 +417,25 @@ cdef class Polynomial_template(Polynomial):
             sage: P.<x> = GF(2)[]
             sage: (x^2 + 1) % x^2
             1
+
+
+        TESTS::
+
+        We test that #10578 is fixed::
+
+            sage: P.<x> = GF(2)[]
+            sage: x % 1r
+            0
+
         """
-        cdef Polynomial_template _other
+        # We can't use @coerce_binop for operators in cython classes,
+        # so we use sage.structure.element.bin_op to handle coercion.
+        if type(self) is not type(other) or \
+                (<Polynomial_template>self)._parent is not (<Polynomial_template>other)._parent:
+            return bin_op(self, other, operator.mod)
+        cdef Polynomial_template _other = <Polynomial_template>other
+
         parent = (<Polynomial_template>self)._parent
-        if parent is not (<Polynomial_template>other)._parent and parent != (<Polynomial_template>other)._parent:
-            _other = parent._coerce_(other)
-        else:
-            _other = other
         if celement_is_zero(&_other.x, get_cparent(parent)):
             raise ZeroDivisionError
 
@@ -428,7 +446,8 @@ cdef class Polynomial_template(Polynomial):
         #assert(r._parent(pari(self) % pari(other)) == r)
         return r
 
-    def quo_rem(self, right):
+    @coerce_binop
+    def quo_rem(self, Polynomial_template right):
         """
         EXAMPLE::
 
@@ -437,14 +456,9 @@ cdef class Polynomial_template(Polynomial):
             sage: f.quo_rem(x + 1)
             (x, 1)
         """
-        cdef Polynomial_template _right
         parent = (<Polynomial_template>self)._parent
-        if parent is not (<Polynomial_template>right)._parent and parent != (<Polynomial_template>right)._parent:
-            _right = parent._coerce_(right)
-        else:
-            _right = right
 
-        if celement_is_zero(&_right.x, get_cparent(parent)):
+        if celement_is_zero(&right.x, get_cparent(parent)):
             raise ZeroDivisionError
 
         cdef Polynomial_template q = <Polynomial_template>PY_NEW(self.__class__)
@@ -455,7 +469,7 @@ cdef class Polynomial_template(Polynomial):
         celement_construct(&r.x, get_cparent(parent))
         r._parent = parent
 
-        celement_quorem(&q.x, &r.x, &(<Polynomial_template>self).x, &_right.x, get_cparent(parent))
+        celement_quorem(&q.x, &r.x, &(<Polynomial_template>self).x, &right.x, get_cparent(parent))
         return q,r
 
     def __long__(self):

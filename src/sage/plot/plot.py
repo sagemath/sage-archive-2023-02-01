@@ -2401,7 +2401,7 @@ class Graphics(SageObject):
             sage: plot(x^2 - 5, (x, 0, 5), ymin=0).save(
             ...       sage.misc.misc.tmp_filename() + '.png')
 
-        will save the same plot as the one shown by
+        will save the same plot as the one shown by this command::
 
             sage: plot(x^2 - 5, (x, 0, 5), ymin=0)
 

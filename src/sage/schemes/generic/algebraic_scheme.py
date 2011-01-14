@@ -1,9 +1,8 @@
 r"""
 Algebraic schemes
 
-An algebraic scheme is defined by sets of polynomial equations in
-suitable affine or projective coordinates. Right now, possible ambient
-spaces are
+An algebraic scheme is defined by a set of polynomials in some
+suitable affine or projective coordinates. Possible ambient spaces are
 
   * Affine spaces (:class:`AffineSpace
     <sage.schemes.generic.affine_space.AffineSpace_generic>`),
@@ -12,24 +11,25 @@ spaces are
     <sage.schemes.generic.projective_space.ProjectiveSpace_ring>`), or
 
   * Toric varieties (:class:`ToricVariety
-    <sage.schemes.generic.toric_variety.ToricVariety_field>`). Note that, while
-    projective spaces are of course toric varieties themselves, they
-    are implemented differently in Sage.
+    <sage.schemes.generic.toric_variety.ToricVariety_field>`).
+
+Note that while projective spaces are of course toric varieties themselves,
+they are implemented differently in Sage due to efficiency considerations.
+You still can create a projective space as a toric variety if you wish.
 
 In the future other ambient spaces, perhaps by means of gluing
 relations, may be intoduced.
 
-Generally, polynomial equations `p_0, p_1, \dots, p_n` define an ideal
-`I=\left<p_0,\dots,p_n\right>`. In the projective and toric case, the
+Generally, polynomials `p_0, p_1, \dots, p_n` define an ideal
+`I=\left<p_0, p_1, \dots, p_n\right>`. In the projective and toric case, the
 polynomials (and, therefore, the ideal) must be homogeneous. The
 associated subscheme `V(I)` of the ambient space is, roughly speaking,
-where all polynomials vanish simultaneously.
+the subset of the ambient space on which all polynomials vanish simultaneously.
 
 .. NOTE::
 
-    Do not construct algebraic scheme objects directly, but use the
-    ``.subscheme()`` method of the ambient space. See below for
-    examples.
+    You should not construct algebraic scheme objects directly. Instead, use
+    ``.subscheme()`` methods of ambient spaces. See below for examples.
 
 EXAMPLES:
 
@@ -39,25 +39,27 @@ We first construct the ambient space, here the affine space `\QQ^2`::
     sage: A2.coordinate_ring().inject_variables()
     Defining x, y
 
-Now we can write polynomial equations in the variables `x`, `y`. For
+Now we can write polynomial equations in the variables `x` and `y`. For
 example, one equation cuts out a curve (a one-dimensional subscheme)::
 
     sage: V = A2.subscheme([x^2+y^2-1]); V
-    Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
+    Closed subscheme of Affine Space of dimension 2
+    over Rational Field defined by:
       x^2 + y^2 - 1
     sage: V.dimension()
     1
 
-Here is a more complicated example in projective space::
+Here is a more complicated example in a projective space::
 
     sage: P3 = ProjectiveSpace(3, QQ, 'x')
     sage: P3.inject_variables()
     Defining x0, x1, x2, x3
-    sage: Q = matrix([[x0, x1, x2],[x1, x2, x3]]).minors(2); Q
+    sage: Q = matrix([[x0, x1, x2], [x1, x2, x3]]).minors(2); Q
     [-x1^2 + x0*x2, -x1*x2 + x0*x3, -x2^2 + x1*x3]
     sage: twisted_cubic = P3.subscheme(Q)
     sage: twisted_cubic
-    Closed subscheme of Projective Space of dimension 3 over Rational Field defined by:
+    Closed subscheme of Projective Space of dimension 3
+    over Rational Field defined by:
       -x1^2 + x0*x2,
       -x1*x2 + x0*x3,
       -x2^2 + x1*x3
@@ -73,17 +75,20 @@ Let us look at one affine patch, for example the one where `x_0=1` ::
 
     sage: patch = twisted_cubic.affine_patch(0)
     sage: patch
-    Closed subscheme of Affine Space of dimension 3 over Rational Field defined by:
+    Closed subscheme of Affine Space of dimension 3
+    over Rational Field defined by:
       -x0^2 + x1,
       -x0*x1 + x2,
       -x1^2 + x0*x2
     sage: patch.projective_embedding()
     Scheme morphism:
-      From: Closed subscheme of Affine Space of dimension 3 over Rational Field defined by:
+      From: Closed subscheme of Affine Space of dimension 3
+      over Rational Field defined by:
       -x0^2 + x1,
       -x0*x1 + x2,
       -x1^2 + x0*x2
-      To:   Closed subscheme of Projective Space of dimension 3 over Rational Field defined by:
+      To:   Closed subscheme of Projective Space of dimension 3
+      over Rational Field defined by:
       -x1^2 + x0*x2,
       -x1*x2 + x0*x3,
       -x2^2 + x1*x3
@@ -93,21 +98,24 @@ Let us look at one affine patch, for example the one where `x_0=1` ::
 
 AUTHORS:
 
-- David Kohel (2005)
-- William Stein (2005)
-- Andrey Novoseltsev (2010): Toric varieties added
+- David Kohel (2005): initial version.
+- William Stein (2005): initial version.
+- Andrey Novoseltsev (2010-05-17): subschemes of toric varieties.
+- Volker Braun (2010-12-24): documentation of schemes and refactoring.
 """
 
-#*******************************************************************************
-#  Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu.au>
-#  Copyright (C) 2005 William Stein
+#*****************************************************************************
+#       Copyright (C) 2010 Volker Braun <vbraun.name@gmail.com>
+#       Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu.au>
+#       Copyright (C) 2010 Andrey Novoseltsev <novoselt@gmail.com>
+#       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
-#  The full text of the GPL is available at:
-#
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#*******************************************************************************
+#*****************************************************************************
+
 
 #*** A quick overview over the class hierarchy:
 # class AlgebraicScheme(scheme.Scheme):
@@ -205,7 +213,7 @@ class AlgebraicScheme(scheme.Scheme):
 
     This is the base class for all algebraic schemes, that is, schemes
     defined by equations in affine, projective, or toric ambient
-    space.
+    spaces.
     """
     def __init__(self, A):
         """

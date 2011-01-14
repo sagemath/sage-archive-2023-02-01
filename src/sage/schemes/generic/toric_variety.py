@@ -221,6 +221,7 @@ implementing them on your own as a patch for inclusion!
 
 
 #*****************************************************************************
+#       Copyright (C) 2010 Volker Braun <vbraun.name@gmail.com>
 #       Copyright (C) 2010 Andrey Novoseltsev <novoselt@gmail.com>
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>
 #

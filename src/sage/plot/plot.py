@@ -563,7 +563,7 @@ class Graphics(SageObject):
 
         - ``columnspacing`` - (default: None) the spacing between columns
 
-        - ``borderaxespad`` - (default: 1) float, length between the axes and the legend
+        - ``borderaxespad`` - (default: None) float, length between the axes and the legend
 
         - ``back_color`` - (default: (0.9, 0.9, 0.9)) This parameter can be a string
           denoting a color or an RGB tuple. The string can be a color name
@@ -572,11 +572,11 @@ class Graphics(SageObject):
           tuple form is just a floating point RGB tuple with all values ranging
           from 0 to 1.
 
-        - ``handlelen`` - (default: 2) float, the length of the legend handles
+        - ``handlelength`` - (default: 0.05) float, the length of the legend handles
 
-        - ``handletextpad`` - (default: 0.6) float, the pad between the legend handle and text
+        - ``handletextpad`` - (default: 0.5) float, the pad between the legend handle and text
 
-        - ``labelspacing`` - (default: 0) float, vertical space between legend entries
+        - ``labelspacing`` - (default: 0.02) float, vertical space between legend entries
 
         - ``loc`` - (default: 'best') May be a string, an integer or a tuple. String or
               integer inputs must be one of the following:
@@ -608,9 +608,9 @@ class Graphics(SageObject):
 
         - ``markerscale`` - (default: 0.6) float, how much to scale the markers in the legend.
 
-        - ``numpoints`` - (default: 4) integer, the number of points in the legend for line
+        - ``numpoints`` - (default: 2) integer, the number of points in the legend for line
 
-        - ``borderpad`` - (default: 0) float, the fractional whitespace inside the legend border
+        - ``borderpad`` - (default: 0.6) float, the fractional whitespace inside the legend border
           (between 0 and 1)
 
         - ``font_family`` - (default: 'sans-serif') string, one of 'serif', 'sans-serif',
@@ -2412,9 +2412,9 @@ class Graphics(SageObject):
 
         (This test verifies that Trac #8632 is fixed.)
 
-        TESTS::
+        TESTS:
 
-        Legend labels should save correctly:
+        Legend labels should save correctly::
 
             sage: P = plot(x,(x,0,1),legend_label='$xyz$')
             sage: P.set_legend_options(back_color=(1,0,0))

@@ -5375,7 +5375,7 @@ class GenericGraph(GenericGraph_pyx):
 
         # Whether we should consider the edges labeled
         if use_edge_labels:
-            l_capacity=lambda x: 1 if (x is None or x == {}) else (x//1 if integer else x)
+            l_capacity=lambda x: 1 if (x is None or x == {}) else (floor(x) if integer else x)
         else:
             l_capacity=lambda x: 1
 

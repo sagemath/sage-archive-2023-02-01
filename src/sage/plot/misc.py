@@ -15,14 +15,6 @@ from functools import wraps
 
 from sage.ext.fast_eval import fast_float, fast_float_constant, is_fast_float
 
-
-def ensure_subs(f):
-    if not hasattr(f, 'subs'):
-        from sage.calculus.all import SR
-        return SR(f)
-    return f
-
-
 from sage.structure.element import is_Vector
 
 def setup_for_eval_on_grid(funcs, ranges, plot_points=None, return_vars=False):

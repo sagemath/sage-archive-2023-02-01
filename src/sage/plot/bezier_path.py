@@ -25,6 +25,19 @@ from sage.plot.colors import to_mpl_color
 class BezierPath(GraphicPrimitive_xydata):
     """
     Path of Bezier Curves graphics primitive.
+
+    The input to this constructor is a list of curves, each a list of points,
+    along which to create the curves, along with a dict of any options passed.
+
+    EXAMPLES::
+
+        sage: from sage.plot.bezier_path import BezierPath
+        sage: BezierPath([[(0,0),(.5,.5),(1,0)],[(.5,1),(0,0)]],{'linestyle':'dashed'})
+        Bezier path from (0, 0) to (0, 0)
+
+    We use :func:`bezier_path` to actually plot Bezier curves:
+
+        sage: bezier_path([[(0,0),(.5,.5),(1,0)],[(.5,1),(0,0)]],linestyle="dashed")
     """
     def __init__(self, path, options):
         """
@@ -49,7 +62,7 @@ class BezierPath(GraphicPrimitive_xydata):
 
     def _allowed_options(self):
         """
-        Returns a dict of allowed options for bezier_path.
+        Returns a dict of allowed options for ``bezier_path``.
 
         EXAMPLES::
 
@@ -72,7 +85,7 @@ class BezierPath(GraphicPrimitive_xydata):
 
     def _plot3d_options(self, options=None):
         """
-        Updates BezierPath options to those allowed by 3d implementation.
+        Updates ``BezierPath`` options to those allowed by 3D implementation.
 
         EXAMPLES::
 
@@ -103,17 +116,24 @@ class BezierPath(GraphicPrimitive_xydata):
         options_3d.update(GraphicPrimitive_xydata._plot3d_options(self, options))
         return options_3d
 
-    def plot3d(self, **kwds):
+    def plot3d(self, z=0, **kwds):
         """
-        Returns a 3d plot (Jmol) of the bezier path.  Since a BezierPath primitive contains
-        only x,y coordinates, the path will be drawn in the z=0 plane.  To create a bezier path
-        with nonzero z coordinates in the path and control points, use the constructor bezier3d
-        instead of bezier_path.
+        Returns a 3D plot (Jmol) of the Bezier path.  Since a ``BezierPath``
+        primitive contains only `x,y` coordinates, the path will be drawn in
+        some plane (default is `z=0`).  To create a Bezier path with nonzero
+        (and nonidentical) `z` coordinates in the path and control points, use
+        the function :func:`~sage.plot.plot3d.shapes2.bezier3d` instead of
+        :func:`bezier_path`.
 
         EXAMPLES::
 
             sage: b = bezier_path([[(0,0),(0,1),(1,0)]])
-            sage: b.plot3d()
+            sage: A = b.plot3d()
+            sage: B = b.plot3d(z=2)
+            sage: A+B
+
+        ::
+
             sage: bezier3d([[(0,0,0),(1,0,0),(0,1,0),(0,1,1)]])
         """
         from sage.plot.plot3d.shapes2 import bezier3d
@@ -122,13 +142,31 @@ class BezierPath(GraphicPrimitive_xydata):
         return bezier3d([[(x,y,0) for x,y in self.path[i]] for i in range(len(self.path))], **options)
 
     def _repr_(self):
+        """
+        Return text representation of this Bezier path graphics primitive.
+
+        EXAMPLES::
+
+            sage: from sage.plot.bezier_path import BezierPath
+            sage: B = BezierPath([[(0,0),(.5,.5),(1,0)],[(.5,1),(0,0)]],{'linestyle':'dashed'})
+            sage: B._repr_()
+            'Bezier path from (0, 0) to (0, 0)'
+        """
         return "Bezier path from %s to %s"%(self.path[0][0],self.path[-1][-1])
 
     def _render_on_subplot(self, subplot):
         """
-        Render this bezier path in a subplot.  This is the key function that
-        defines how this bezier path graphics primitive is rendered in matplotlib's
+        Render this Bezier path in a subplot.  This is the key function that
+        defines how this Bezier path graphics primitive is rendered in matplotlib's
         library.
+
+        TESTS::
+
+            sage: bezier_path([[(0,1),(.5,0),(1,1)]])
+
+        ::
+
+            sage: bezier_path([[(0,1),(.5,0),(1,1),(-3,5)]])
         """
         from matplotlib.patches import PathPatch
         from matplotlib.path import Path
@@ -179,7 +217,7 @@ def bezier_path(path, **options):
     """
     Returns a Graphics object of a Bezier path corresponding to the
     path parameter.  The path is a list of curves, and each curve is
-    a list of points.  Each point is a tuple (x,y).
+    a list of points.  Each point is a tuple ``(x,y)``.
 
     The first curve contains the endpoints as the first and last point
     in the list.  All other curves assume a starting point given by the
@@ -211,7 +249,7 @@ def bezier_path(path, **options):
     - ``path`` -- a list of lists of tuples (see above)
     - ``alpha`` -- default: 1
     - ``fill`` -- default: False
-    - thickness -- default: 1
+    - ``thickness`` -- default: 1
     - ``linestyle`` -- default: 'solid'
     - ``rbgcolor`` -- default: (0,0,0)
     - ``zorder`` -- the layer in which to draw
@@ -228,7 +266,7 @@ def bezier_path(path, **options):
         sage: curve = bezier_path(path, linestyle='dashed', rgbcolor='green')
         sage: curve
 
-    Extra options will get passed on to show(), as long as they are valid::
+    Extra options will get passed on to :meth:`~sage.plot.plot.show`, as long as they are valid::
 
         sage: bezier_path([[(0,1),(.5,0),(1,1)]], fontsize=50)
         sage: bezier_path([[(0,1),(.5,0),(1,1)]]).show(fontsize=50) # These are equivalent

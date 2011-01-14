@@ -50,6 +50,18 @@ class BarChart(GraphicPrimitive):
         GraphicPrimitive.__init__(self, options)
 
     def get_minmax_data(self):
+        """
+        Returns a dictionary with the bounding box data.
+
+        EXAMPLES::
+
+            sage: b = bar_chart([-2.3,5,-6,12])
+            sage: d = b.get_minmax_data()
+            sage: d['xmin']
+            0
+            sage: d['xmax']
+            4
+        """
         return minmax_data([0, len(self.datalist)], self.datalist, dict=True)
 
     def _allowed_options(self):

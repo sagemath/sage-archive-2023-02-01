@@ -5,7 +5,6 @@ Parametric Plots
 from parametric_surface import ParametricSurface
 from shapes2 import line3d
 from texture import Texture
-from sage.plot.misc import ensure_subs
 from sage.misc.misc import xsrange, srange
 from sage.structure.element import is_Vector
 

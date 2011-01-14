@@ -164,6 +164,19 @@ class Ellipse(GraphicPrimitive):
         return "Ellipse centered at (%s, %s) with radii (%s, %s) and angle %s"%(self.x, self.y, self.r1, self.r2, self.angle)
 
     def _render_on_subplot(self, subplot):
+        """
+        Render this ellipse in a subplot.  This is the key function that
+        defines how this ellipse graphics primitive is rendered in matplotlib's
+        library.
+
+        TESTS::
+
+            sage: ellipse((0,0),3,1,pi/6,fill=True,alpha=0.3)
+
+        ::
+
+            sage: ellipse((3,2),1,2)
+        """
         import matplotlib.patches as patches
         options = self.options()
         p = patches.Ellipse(
@@ -241,6 +254,9 @@ def ellipse(center, r1, r2, angle=0, **options):
     More complicated examples with tilted axes and drawing options::
 
         sage: ellipse((0,0),3,1,pi/6,fill=True,alpha=0.3)
+
+    ::
+
         sage: ellipse((0,0),3,1,pi/6,fill=True,edgecolor='blue',facecolor='red')
 
     One cannot yet plot ellipses in 3D::

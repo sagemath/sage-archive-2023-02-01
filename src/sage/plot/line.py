@@ -86,29 +86,53 @@ class Line(GraphicPrimitive_xydata):
                 }
 
     def _plot3d_options(self, options=None):
+        """
+        Translate 2D plot options into 3D plot options.
+
+        EXAMPLES::
+
+            sage: L = line([(1,1), (1,2), (2,2), (2,1)], alpha=.5, thickness=10, zorder=2)
+            sage: l=L[0]; l
+            Line defined by 4 points
+            sage: m=l.plot3d(z=2)
+            sage: m.texture.opacity
+            0.500000000000000
+            sage: m.thickness
+            10
+            sage: L = line([(1,1), (1,2), (2,2), (2,1)], linestyle=":")
+            sage: L.plot3d()
+            Traceback (most recent call last):
+            NotImplementedError: Invalid 3d line style: ':'
+        """
         if options == None:
             options = dict(self.options())
         options_3d = {}
         if 'thickness' in options:
             options_3d['thickness'] = options['thickness']
             del options['thickness']
+        if 'zorder' in options:
+            del options['zorder']
         if 'linestyle' in options:
             if options['linestyle'] != '--':
-                raise NotImplementedError, "Invalid 3d line style: %s" % options['linestyle']
+                raise NotImplementedError, "Invalid 3d line style: '%s'" % options['linestyle']
             del options['linestyle']
         options_3d.update(GraphicPrimitive_xydata._plot3d_options(self, options))
         return options_3d
 
-    def plot3d(self, **kwds):
+    def plot3d(self, z=0, **kwds):
         """
+        Plots a 2D line in 3D, with default height zero.
+
         EXAMPLES::
 
-            sage: EllipticCurve('37a').plot(thickness=5).plot3d()
+            sage: E = EllipticCurve('37a').plot(thickness=5).plot3d()
+            sage: F = EllipticCurve('37a').plot(thickness=5).plot3d(z=2)
+            sage: E + F
         """
         from sage.plot.plot3d.shapes2 import line3d
         options = self._plot3d_options()
         options.update(kwds)
-        return line3d([(x, y, 0) for x, y in zip(self.xdata, self.ydata)], **options)
+        return line3d([(x, y, z) for x, y in zip(self.xdata, self.ydata)], **options)
 
     def _repr_(self):
         """

@@ -25,6 +25,17 @@ from sage.misc.decorators import options
 class ScatterPlot(GraphicPrimitive):
     """
     Scatter plot graphics primitive.
+
+    Input consists of two lists/arrays of the same length, whose
+    values give the horizontal and vertical coordinates of each
+    point in the scatter plot.  Options may be passed in
+    dictionary format.
+
+    EXAMPLES::
+
+        sage: from sage.plot.scatter_plot import ScatterPlot
+        sage: ScatterPlot([0,1,2], [3.5,2,5.1], {'facecolor':'white', 'marker':'s'})
+        Scatter plot graphics primitive on 3 data points
     """
     def __init__(self, xdata, ydata, options):
         """
@@ -104,6 +115,14 @@ class ScatterPlot(GraphicPrimitive):
         Render this scatter plot in a subplot.  This is the key function that
         defines how this scatter plot graphics primitive is rendered in
         matplotlib's library.
+
+        EXAMPLES::
+
+            sage: scatter_plot([[0,1],[2,2],[4.3,1.1]], marker='s')
+
+        ::
+
+            sage: scatter_plot([[n,n] for n in range(5)])
         """
         from matplotlib.pyplot import scatter
         options = self.options()
@@ -113,7 +132,7 @@ class ScatterPlot(GraphicPrimitive):
 def scatter_plot(datalist, **options):
     """
     Returns a Graphics object of a scatter plot containing all points in
-    the datalist.  Type \code{scatter_plot.options} to see all available
+    the datalist.  Type `scatter_plot.options` to see all available
     plotting options.
 
     INPUT:
@@ -136,7 +155,7 @@ def scatter_plot(datalist, **options):
 
         sage: scatter_plot([[0,1],[2,2],[4.3,1.1]], marker='s')
 
-    Extra options will get passed on to show(), as long as they are valid::
+    Extra options will get passed on to :meth:`~sage.plot.plot.Graphics.show`, as long as they are valid::
 
         sage: scatter_plot([(0, 0), (1, 1)], markersize=100, facecolor='green', ymax=100)
         sage: scatter_plot([(0, 0), (1, 1)], markersize=100, facecolor='green').show(ymax=100) # These are equivalent

@@ -139,7 +139,7 @@ import sage.stats.all as stats
 
 import sage.finance.all  as finance
 
-import sage.interacts as interacts
+import sage.interacts.all as interacts
 
 from sage.parallel.all   import *
 

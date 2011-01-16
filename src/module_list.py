@@ -510,6 +510,16 @@ ext_modules = [
 
     ################################
     ##
+    ## sage.interacts
+    ##
+    ################################
+
+    Extension('sage.interacts.library_cython',
+              sources = ['sage/interacts/library_cython.pyx'],
+              libraries = []),
+
+    ################################
+    ##
     ## sage.libs
     ##
     ################################

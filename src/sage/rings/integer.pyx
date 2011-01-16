@@ -39,6 +39,8 @@ AUTHORS:
 
 - Robert Bradshaw (2008-10-02): bounded squarefree part
 
+- David Loeffler (2011-01-15): fixed bug #10625 (inverse_mod should accept an ideal as argument)
+
 EXAMPLES:
 
 Add 2 integers::
@@ -5313,11 +5315,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         -  ``self`` - Integer
 
-        -  ``n`` - Integer
+        -  ``n`` - Integer, or ideal of integer ring
 
 
         OUTPUT:
-
 
         -  ``x`` - Integer such that x\*self = 1 (mod m), or
            raises ZeroDivisionError.
@@ -5343,8 +5344,15 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             Traceback (most recent call last):
             ...
             ZeroDivisionError: Inverse does not exist.
+
+        We check that #10625 is fixed::
+
+            sage: ZZ(2).inverse_mod(ZZ.ideal(3))
+            2
         """
         cdef int r
+        if isinstance(n, sage.rings.ideal.Ideal_pid) and n.ring() == the_integer_ring:
+            n = n.gen()
         cdef Integer m = as_Integer(n)
         cdef Integer ans = <Integer>PY_NEW(Integer)
         if mpz_cmp_ui(m.value, 1) == 0:

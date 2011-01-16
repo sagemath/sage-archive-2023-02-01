@@ -16,6 +16,8 @@ Power series arithmetic, tracking precision::
     1 + s + 3*s^2
     sage: g = t^2*s + 3*t^2*s^2 + R.O(5); g
     s*t^2 + 3*s^2*t^2 + O(s, t)^5
+    sage: g = t^2*s + 3*t^2*s^2 + O(s, t)^5; g
+    s*t^2 + 3*s^2*t^2 + O(s, t)^5
     sage: f = f.O(7); f
     1 + s + 3*s^2 + O(s, t)^7
     sage: f += s; f
@@ -1525,5 +1527,37 @@ class MPowerSeries(PowerSeries):
         raise NotImplementedError("laurent_series not defined for multivariate power series.")
 
 
+class MO(object):
+    """
+    Object representing a zero element with given precision.
+
+    EXAMPLES::
+
+        sage: R.<u,v> = QQ[[]]
+        sage: m = O(u, v)
+        sage: m^4
+        0 + O(u, v)^4
+        sage: m^1
+        0 + O(u, v)^1
+
+        sage: T.<a,b,c> = PowerSeriesRing(ZZ,3)
+        sage: z = O(a, b, c)
+        sage: z^1
+        0 + O(a, b, c)^1
+        sage: 1 + a + z^1
+        1 + O(a, b, c)^1
+
+        sage: w = 1 + a + O(a, b, c)^2; w
+        1 + a + O(a, b, c)^2
+        sage: w^2
+        1 + 2*a + O(a, b, c)^2
+    """
+    def __init__(self,x):
+        self._vars = x
+    def __pow__(self, prec):
+        parent = self._vars[0].parent()
+        if self._vars != parent.gens():
+            raise NotImplementedError
+        return self._vars[0].parent()(0,prec)
 
 

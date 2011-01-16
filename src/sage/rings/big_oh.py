@@ -10,8 +10,9 @@ import power_series_ring_element
 import integer
 import rational
 from sage.rings.polynomial.polynomial_element import Polynomial
+import multi_power_series_ring_element
 
-def O(x):
+def O(*x):
     """
     Big O constructor for various types.
 
@@ -21,12 +22,15 @@ def O(x):
         sage: (1+t)^10 + O(t^5)
         1 + 10*t + 45*t^2 + 120*t^3 + 210*t^4 + O(t^5)
 
-    A power series ring is create implicitly if a polynomial element is passed in.
+    A power series ring is created implicitly if a polynomial element is passed in.
         sage: R.<x> = QQ['x']
         sage: O(x^100)
         O(x^100)
         sage: 1/(1+x+O(x^5))
         1 - x + x^2 - x^3 + x^4 + O(x^5)
+        sage: R.<u,v> = QQ[[]]
+        sage: 1 + u + v^2 + O(u, v)^5
+        1 + u + v^2 + O(u, v)^5
 
     This is also useful to create p-adic numbers.
         sage: O(7^6)
@@ -56,6 +60,11 @@ def O(x):
         11^-12 + O(11^15)
 
     """
+    if len(x) > 1:
+        if isinstance(x[0], multi_power_series_ring_element.MPowerSeries):
+            return multi_power_series_ring_element.MO(x)
+    x = x[0]
+
     if isinstance(x, power_series_ring_element.PowerSeries):
         return x.parent()(0, x.degree())
 

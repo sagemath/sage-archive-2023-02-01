@@ -2421,6 +2421,15 @@ class Graphics(SageObject):
             sage: P.set_legend_options(loc=7)
             sage: filename=os.path.join(SAGE_TMP, 'test.png')
             sage: P.save(filename)
+
+        This plot should save with the frame shown, showing Trac #7524
+        is fixed (same issue as #7981 and #8632)::
+
+            sage: var('x,y')
+            (x, y)
+            sage: a = plot_vector_field((x,-y),(x,-1,1),(y,-1,1))
+            sage: filename=os.path.join(SAGE_TMP, 'test2.png')
+            sage: a.save(filename)
         """
         options = dict()
         options.update(self.SHOW_OPTIONS)

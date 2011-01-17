@@ -283,7 +283,7 @@ def circle(center, radius, **options):
 
     And a circle with a legend::
 
-        sage: circle((4,5), 1, rgbcolor='yellow', fill=True, legend_label='the sun').show(xmin=0, ymin=0, aspect_ratio=1)
+        sage: circle((4,5), 1, rgbcolor='yellow', fill=True, legend_label='the sun').show(xmin=0, ymin=0)
 
     Extra options will get passed on to show(), as long as they are valid::
 

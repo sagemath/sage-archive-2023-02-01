@@ -345,7 +345,7 @@ def contour_plot(f, xrange, yrange, **options):
 
     ::
 
-        sage: contour_plot(f, (-2, 2), (-2, 2), contours=(1.0,), fill=False, aspect_ratio=1)
+        sage: contour_plot(f, (-2, 2), (-2, 2), contours=(1.0,), fill=False)
 
     ::
 
@@ -441,7 +441,7 @@ def contour_plot(f, xrange, yrange, **options):
     This should plot concentric circles centered at the origin::
 
         sage: x,y = var('x,y')
-        sage: contour_plot(x^2+y^2-2,(x,-1,1), (y,-1,1)).show(aspect_ratio=1)
+        sage: contour_plot(x^2+y^2-2,(x,-1,1), (y,-1,1))
 
     Extra options will get passed on to show(), as long as they are valid::
 
@@ -526,32 +526,32 @@ def implicit_plot(f, xrange, yrange, **options):
 
         sage: var("x y")
         (x, y)
-        sage: implicit_plot(x^2+y^2-2, (x,-3,3), (y,-3,3)).show(aspect_ratio=1)
+        sage: implicit_plot(x^2+y^2-2, (x,-3,3), (y,-3,3))
 
     I can do the same thing, but using a callable function so I don't need
     to explicitly define the variables in the ranges, and filling the inside::
 
         sage: x,y = var('x,y')
         sage: f(x,y) = x^2 + y^2 - 2
-        sage: implicit_plot(f, (-3, 3), (-3, 3),fill=True).show(aspect_ratio=1)
+        sage: implicit_plot(f, (-3, 3), (-3, 3),fill=True)
 
     The same circle but with a different line width::
 
-        sage: implicit_plot(f, (-3,3), (-3,3), linewidth=6).show(aspect_ratio=1)
+        sage: implicit_plot(f, (-3,3), (-3,3), linewidth=6)
 
     And again the same circle but this time with a dashdot border::
 
-        sage: implicit_plot(f, (-3,3), (-3,3), linestyle='dashdot').show(aspect_ratio=1)
+        sage: implicit_plot(f, (-3,3), (-3,3), linestyle='dashdot')
 
     You can also plot an equation::
 
         sage: var("x y")
         (x, y)
-        sage: implicit_plot(x^2+y^2 == 2, (x,-3,3), (y,-3,3)).show(aspect_ratio=1)
+        sage: implicit_plot(x^2+y^2 == 2, (x,-3,3), (y,-3,3))
 
     You can even change the color of the plot::
 
-        sage: implicit_plot(x^2+y^2 == 2, (x,-3,3), (y,-3,3), color="red").show(aspect_ratio=1)
+        sage: implicit_plot(x^2+y^2 == 2, (x,-3,3), (y,-3,3), color="red")
 
     Here is a beautiful (and long) example which also tests that all
     colors work with this::
@@ -561,7 +561,7 @@ def implicit_plot(f, xrange, yrange, **options):
         sage: for col in colors.keys(): # long time
         ...       G += implicit_plot(x^2+y^2==1+counter*.1, (x,-4,4),(y,-4,4),color=col)
         ...       counter += 1
-        sage: G.show(aspect_ratio=1,frame=False)
+        sage: G.show(frame=False)
 
     We can define a level-`n` approximation of the boundary of the
     Mandelbrot set::
@@ -578,11 +578,11 @@ def implicit_plot(f, xrange, yrange, **options):
 
     The first-level approximation is just a circle::
 
-        sage: implicit_plot(mandel(1), (-3, 3), (-3, 3)).show(aspect_ratio=1)
+        sage: implicit_plot(mandel(1), (-3, 3), (-3, 3))
 
     A third-level approximation starts to get interesting::
 
-        sage: implicit_plot(mandel(3), (-2, 1), (-1.5, 1.5)).show(aspect_ratio=1)
+        sage: implicit_plot(mandel(3), (-2, 1), (-1.5, 1.5))
 
     The seventh-level approximation is a degree 64 polynomial, and
     ``implicit_plot`` does a pretty good job on this part of the curve.
@@ -590,7 +590,7 @@ def implicit_plot(f, xrange, yrange, **options):
 
     ::
 
-        sage: implicit_plot(mandel(7), (-0.3, 0.05), (-1.15, -0.9),plot_points=50).show(aspect_ratio=1)
+        sage: implicit_plot(mandel(7), (-0.3, 0.05), (-1.15, -0.9),plot_points=50)
     """
     from sage.symbolic.expression import is_SymbolicEquation
     if is_SymbolicEquation(f):
@@ -663,23 +663,23 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, border
 
     A disk centered at the origin::
 
-        sage: region_plot(x^2+y^2<1, (x,-1,1), (y,-1,1), aspect_ratio=1)
+        sage: region_plot(x^2+y^2<1, (x,-1,1), (y,-1,1))
 
     A plot with more than one condition (all conditions must be true for the statement to be true)::
 
-        sage: region_plot([x^2+y^2<1, x<y], (x,-2,2), (y,-2,2), aspect_ratio=1)
+        sage: region_plot([x^2+y^2<1, x<y], (x,-2,2), (y,-2,2))
 
     Since it doesn't look very good, let's increase plot_points::
 
-        sage: region_plot([x^2+y^2<1, x<y], (x,-2,2), (y,-2,2), plot_points=400, aspect_ratio=1)
+        sage: region_plot([x^2+y^2<1, x<y], (x,-2,2), (y,-2,2), plot_points=400)
 
     To get plots where only one condition needs to be true, use a function::
 
-        sage: region_plot(lambda x,y: x^2+y^2<1 or x<y, (x,-2,2), (y,-2,2), aspect_ratio=1)
+        sage: region_plot(lambda x,y: x^2+y^2<1 or x<y, (x,-2,2), (y,-2,2))
 
     The first quadrant of the unit circle::
 
-        sage: region_plot([y>0, x>0, x^2+y^2<1], (x,-1.1, 1.1), (y,-1.1, 1.1), plot_points = 400, aspect_ratio=1)
+        sage: region_plot([y>0, x>0, x^2+y^2<1], (x,-1.1, 1.1), (y,-1.1, 1.1), plot_points = 400)
 
     Here is another plot, with a huge border::
 
@@ -691,7 +691,7 @@ def region_plot(f, xrange, yrange, plot_points, incol, outcol, bordercol, border
 
     Here we have a cut circle::
 
-        sage: region_plot([x^2+y^2<4, x>-1], (x, -2, 2), (y, -2, 2), incol='lightblue', bordercol='gray', plot_points=200, aspect_ratio=1)
+        sage: region_plot([x^2+y^2<4, x>-1], (x, -2, 2), (y, -2, 2), incol='lightblue', bordercol='gray', plot_points=200)
 
     The first variable range corresponds to the horizontal axis and
     the second variable range corresponds to the vertical axis::

@@ -239,16 +239,13 @@ def disk(point, radius, angle, **options):
         sage: tl = disk((0.0,0.0), 1, (pi/2, pi), color='black')
         sage: br = disk((0.0,0.0), 1, (3*pi/2, 2*pi), color='black')
         sage: P  = tl+tr+bl+br
-        sage: P.show(aspect_ratio=1,xmin=-2,xmax=2,ymin=-2,ymax=2)
+        sage: P.show(xmin=-2,xmax=2,ymin=-2,ymax=2)
 
-    To correct the aspect ratio of certain graphics, it is necessary
-    to show with a ``aspect_ratio`` of one::
+    ::
 
-        sage: bl = disk((0.0,0.0), 1, (pi, 3*pi/2), color='yellow')
-        sage: bl.show(aspect_ratio=1)
+        sage: disk((0.0,0.0), 1, (pi, 3*pi/2), color='yellow')
 
-    You can also achieve the same aspect ratio by specifying a ``figsize``
-    with square dimensions::
+    ::
 
         sage: bl = disk((0.0,0.0), 1, (pi, 3*pi/2), rgbcolor=(1,1,0))
         sage: bl.show(figsize=[5,5])

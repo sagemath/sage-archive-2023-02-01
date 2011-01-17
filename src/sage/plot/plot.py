@@ -75,11 +75,7 @@ The following miscellaneous Graphics functions are included:
 
 Type ``?`` after each primitive in Sage for help and examples.
 
-EXAMPLES: We construct a plot involving several graphics objects::
-
-    sage: G = plot(cos, -5, 5, thickness=5, color='green')
-    sage: P = polygon([[1,2], [5,6], [5,0]], color='red')
-    sage: G + P  # show it
+EXAMPLES:
 
 We draw a circle and a curve::
 
@@ -92,16 +88,17 @@ this::
 
     sage: show(circle((1,1), 1) + plot(x^2, (x,0,5)), aspect_ratio=1)
 
-With an aspect ratio of 2 the circle is squashed half way down (it
-looks twice as wide as it does tall)::
+The aspect ratio describes the apparently height/width ratio of a unit square.  If you want the vertical units to be twice as big as the horizontal units, specify an aspect ratio of 2::
 
     sage: show(circle((1,1), 1) + plot(x^2, (x,0,5)), aspect_ratio=2)
 
-Use figsize to set the actual aspect ratio of the rendered image
-(i.e., of the frame). For example, this image is twice as many
-pixels wide as it is tall::
+The ``figsize`` option adjusts the figure size.  The default figsize is 4.  To make a figure that is roughly twice as big, use ``figsize=8``::
 
-    sage: show(circle((1,1), 1) + plot(x^2, (x,0,5)), figsize=[8,4])
+    sage: show(circle((1,1), 1) + plot(x^2, (x,0,5)), figsize=8)
+
+You can also give separate horizontal and vertical dimensions::
+
+    sage: show(circle((1,1), 1) + plot(x^2, (x,0,5)), figsize=[4,8])
 
 Note that the axes will not cross if the data is not on both sides of
 both axes, even if it is quite close::
@@ -112,12 +109,21 @@ When the labels have quite different orders of magnitude or are very
 large, scientific notation (the `e` notation for powers of ten) is used::
 
     sage: plot(x^2,(x,480,500))  # no scientific notation
+
+::
+
     sage: plot(x^2,(x,300,500))  # scientific notation on y-axis
 
-But you can fix your own labels, if you know what to expect and
+But you can fix your own tick labels, if you know what to expect and
 have a preference::
 
     sage: plot(x^2,(x,300,500),ticks=[None,50000])
+
+We construct a plot involving several graphics objects::
+
+    sage: G = plot(cos(x), (x, -5, 5), thickness=5, color='green')
+    sage: P = polygon([[1,2], [5,6], [5,0]], color='red')
+    sage: G + P
 
 Next we construct the reflection of the above polygon about the
 `y`-axis by iterating over the list of first-coordinates of
@@ -298,6 +304,8 @@ AUTHORS:
 - Jason Grout (2009-09-05): shifted axes and grid functionality over
   to matplotlib; fixed a number of smaller issues.
 
+- Jason Grout (2010-10): rewrote aspect ratio portions of the code
+
 """
 
 ############################################################################
@@ -316,7 +324,7 @@ from sage.structure.sage_object import SageObject
 ## going to be used.
 
 ALLOWED_EXTENSIONS = ['.eps', '.pdf', '.png', '.ps', '.sobj', '.svg']
-DEFAULT_FIGSIZE=(6, 3.70820393249937)
+#DEFAULT_FIGSIZE=(6, 3.70820393249937)
 DEFAULT_DPI = 100
 EMBEDDED_MODE = False
 DOCTEST_MODE = False
@@ -415,7 +423,7 @@ class Graphics(SageObject):
 
         sage: G = Graphics(); print G
         Graphics object consisting of 0 graphics primitives
-        sage: c = circle((1,1), 1,aspect_ratio=1)
+        sage: c = circle((1,1), 1)
         sage: G+=c; print G
         Graphics object consisting of 1 graphics primitive
 
@@ -446,7 +454,7 @@ class Graphics(SageObject):
 
             sage: G = Graphics()
         """
-        self.__aspect_ratio = None
+        self.__aspect_ratio = 1.0
         self.__fontsize = 10
         self.__show_axes = True
         self.__show_legend = False
@@ -460,12 +468,14 @@ class Graphics(SageObject):
 
     def set_aspect_ratio(self, ratio):
         """
-        Set the aspect ratio.
+        Set the aspect ratio, which is the ratio of height and width
+        of a unit square (i.e., height/width of a unit square), or
+        'auto' (expand to fill the figure).
 
         INPUT:
 
 
-        -  ``ratio`` - a positive real number
+        -  ``ratio`` - a positive real number or 'auto'
 
 
         EXAMPLES: We create a plot of a circle, and it doesn't look quite
@@ -485,32 +495,37 @@ class Graphics(SageObject):
             sage: P + circle((0,0), 0.5)           # still square
 
         In the following example, both plots produce a circle that looks
-        twice as wide as tall::
+        twice as tall as wide::
 
             sage: Q = circle((0,0), 0.5); Q.set_aspect_ratio(2)
             sage: P + Q
             sage: Q + P
         """
-        ratio = float(ratio)
-        if ratio <= 0:
-            raise ValueError, "the aspect ratio must be positive"
+        if ratio != 'auto':
+            ratio = float(ratio)
+            if ratio <= 0:
+                raise ValueError, "the aspect ratio must be positive or 'auto'"
         self.__aspect_ratio = ratio
 
     def aspect_ratio(self):
         """
-        Get the current aspect ratio.
+        Get the current aspect ratio, which is the ratio of height to
+        width of a unit square, or 'auto'.
 
-        OUTPUT: either None if the aspect ratio hasn't been set or a
-        positive float
+        OUTPUT: a positive float (height/width of a unit square), or 'auto'
+        (expand to fill the figure).
 
         EXAMPLES::
 
             sage: P = circle((1,1), 1)
-            sage: P.aspect_ratio() is None
-            True
+            sage: P.aspect_ratio()
+            1.0
             sage: P.set_aspect_ratio(2)
             sage: P.aspect_ratio()
             2.0
+            sage: P.set_aspect_ratio('auto')
+            sage: P.aspect_ratio()
+            'auto'
         """
         return self.__aspect_ratio
 
@@ -1236,7 +1251,8 @@ class Graphics(SageObject):
         The xmin, xmax, ymin, and ymax properties of the graphics objects
         are expanded to include all objects in both scenes. If the aspect
         ratio property of either or both objects are set, then the larger
-        aspect ratio is chosen.
+        aspect ratio is chosen, with 'auto' being overridden by a
+        numeric aspect ratio.
 
         If one of the graphics object is set to show a legend, then the
         resulting object will also be set to show a legend.  None of the
@@ -1248,10 +1264,12 @@ class Graphics(SageObject):
             sage: g2 = plot(-abs(sqrt(x^3-1)), (x,1,5), color='red')
             sage: g1 + g2  # displays the plot
 
-        TESTS::
+        TESTS:
 
-            sage: (g1 + g2)._extra_kwds # extra keywords to show are propagated
-            {'frame': True}
+        Extra keywords to show are propagated::
+
+            sage: (g1 + g2)._extra_kwds=={'aspect_ratio': 'auto', 'frame': True}
+            True
         """
         if isinstance(other, int) and other == 0:
             return self
@@ -1262,7 +1280,12 @@ class Graphics(SageObject):
             raise TypeError, "other (=%s) must be a Graphics objects"%other
         g = Graphics()
         g.__objects = self.__objects + other.__objects
-        g.__aspect_ratio = max(self.__aspect_ratio, other.__aspect_ratio)
+        if self.__aspect_ratio=='auto':
+            g.__aspect_ratio=other.__aspect_ratio
+        elif other.__aspect_ratio=='auto':
+            g.__aspect_ratio=self.__aspect_ratio
+        else:
+            g.__aspect_ratio = max(self.__aspect_ratio, other.__aspect_ratio)
         g.__show_legend = self.__show_legend or other.__show_legend
         g._extra_kwds.update(self._extra_kwds)
         g._extra_kwds.update(other._extra_kwds)
@@ -1358,9 +1381,11 @@ class Graphics(SageObject):
     # this dictionary to contain the default value for that parameter.
 
     SHOW_OPTIONS = dict(xmin=None, xmax=None, ymin=None, ymax=None,
-                        figsize=DEFAULT_FIGSIZE, filename=None,
+                        figsize=None, fig_tight=True,
+                        filename=None,
                         dpi=DEFAULT_DPI, axes=None, axes_labels=None,frame=False,
-                        fontsize=None, aspect_ratio=None,
+                        fontsize=None,
+                        aspect_ratio=None,
                         gridlines=None, gridlinesstyle=None,
                         vgridlinesstyle=None, hgridlinesstyle=None,transparent=False,
                         show_legend=None, legend_options={},
@@ -1384,12 +1409,19 @@ class Graphics(SageObject):
 
         - ``figsize`` - [width, height]
 
-        - ``aspect_ratio`` - the perceived width divided by the
-          perceived height.  If the aspect ratio is set to 1, circles
-          will look round.  If it is set to 2 they will look twice as
-          wide as they are tall.  This is the aspect_ratio of the
-          image, not of the frame that contains it.  If you want to set
-          the aspect ratio of the frame, use figsize.
+        - ``fig_tight`` - (default: True) whether to clip the drawing
+          tightly around drawn objects.  If True, then the resulting
+          image will usually not have dimensions corresponding to
+          ``figsize``.  If False, the resulting image will have
+          dimensions corresponding to ``figsize``.
+
+        - ``aspect_ratio`` - the perceived height divided by the
+          perceived width. If the aspect ratio is set to ``1``, circles
+          will look round and a unit square will appear to have sides
+          of equal length. If the aspect ratio is set ``2``, vertical units will be
+          twice as long as horizontal units, so a unit square will be twice as
+          high as it is wide.  If set to ``'auto'``, the aspect ratio
+          is determined by ``figsize`` and the picture fills the figure.
 
         - ``axes`` - (default: True)
 
@@ -1511,19 +1543,9 @@ class Graphics(SageObject):
             sage: c = circle((1,1), 1, color='red')
             sage: c.show(xmin=-1, xmax=3, ymin=-1, ymax=3)
 
-        To correct the aspect ratio of certain graphics, you can
-        set the ``aspect_ratio`` to 1
+        You could also just make the picture larger by changing ``figsize``::
 
-        ::
-
-            sage: c.show(aspect_ratio=1, xmin=-1, xmax=3, ymin=-1, ymax=3)
-
-        You could also just make the dimensions of the picture square
-        using ``figsize``
-
-        ::
-
-            sage: c.show(figsize=[5,5], xmin=-1, xmax=3, ymin=-1, ymax=3)
+            sage: c.show(figsize=8, xmin=-1, xmax=3, ymin=-1, ymax=3)
 
         You can turn off the drawing of the axes::
 
@@ -1856,7 +1878,8 @@ class Graphics(SageObject):
                    xmin=None, xmax=None, ymin=None, ymax=None,
                    figsize=None, figure=None, sub=None,
                    axes=None, axes_labels=None, fontsize=None,
-                   frame=False, verify=True, aspect_ratio = None,
+                   frame=False, verify=True,
+                   aspect_ratio = None,
                    gridlines=None, gridlinesstyle=None,
                    vgridlinesstyle=None, hgridlinesstyle=None,
                    show_legend=None, legend_options={},
@@ -1869,7 +1892,7 @@ class Graphics(SageObject):
 
             sage: c = circle((1,1),1)
             sage: print c.matplotlib()
-            Figure(480x296.656)
+            Figure(640x480)
 
         To obtain the first matplotlib axes object inside of the
         figure, you can do something like the following.
@@ -1927,33 +1950,25 @@ class Graphics(SageObject):
         if axes is None:
             axes = self.__show_axes
 
-        from matplotlib.figure import Figure, figaspect
+        from matplotlib.figure import Figure
+        from matplotlib import rcParams
         self.fontsize(fontsize)
         self.axes_labels(l=axes_labels)
 
-        # adjust the figsize in case the user also specifies an aspect ratio
-        if aspect_ratio is None:
-            aspect_ratio = self.aspect_ratio()
-
-        # We try to accommodate both a demand for aspect ratio and
-        # for a figure size by adjusting the figure size to have
-        # the right aspect ratio.
-        if figsize is None:
-            figsize=DEFAULT_FIGSIZE
-        figsize=adjust_figsize_for_aspect_ratio(figsize, aspect_ratio,
-                                                xmin=xmin, xmax=xmax,
-                                                ymin=ymin, ymax=ymax)
+        if figsize is not None and not isinstance(figsize, (list, tuple)):
+            default_width, default_height=rcParams['figure.figsize']
+            figsize=(figsize, default_height*figsize/default_width)
 
         if figure is None:
-            figure=Figure(figsize)
+            figure=Figure(figsize=figsize)
 
         #the incoming subplot instance
         subplot = sub
         if not subplot:
             subplot = figure.add_subplot(111)
-            if aspect_ratio is not None:
-                subplot.set_aspect('auto')
-
+        if aspect_ratio is None:
+            aspect_ratio=self.aspect_ratio()
+        subplot.set_aspect(aspect_ratio, adjustable='box')
         #add all the primitives to the subplot
         for g in self.__objects:
             g._render_on_subplot(subplot)
@@ -2283,8 +2298,6 @@ class Graphics(SageObject):
                 if vgridlines not in (None, False):
                     subplot.xaxis.grid(True, **vgridstyle)
 
-        if aspect_ratio is not None:
-            subplot.set_aspect(aspect_ratio)
 
 
         if self.__axes_labels is not None:
@@ -2338,6 +2351,9 @@ class Graphics(SageObject):
                 labeltrans=offset_copy(trans, figure, x=0, y=yaxis_labeloffset, units='points')
                 subplot.yaxis.set_label_coords(x=yaxis_labelx,y=yaxis_labely,transform=labeltrans)
 
+        # This option makes the xlim and ylim limits not take effect
+        # todo: figure out which limits were specified, and let the
+        # free limits autoscale
         #subplot.autoscale_view(tight=True)
         return figure
 
@@ -2385,20 +2401,17 @@ class Graphics(SageObject):
             sage: filename = os.path.join(SAGE_TMP, 'test.png')
             sage: c.save(filename, xmin=-1, xmax=3, ymin=-1, ymax=3)
 
-        To correct the aspect ratio of certain graphics, you can set the
-        ``aspect_ratio`` to 1::
+        To make a figure bigger or smaller, use ``figsize``::
 
-            sage: c.save(filename, aspect_ratio=1,
-            ...          xmin=-1, xmax=3, ymin=-1, ymax=3)
-
-        You could also just make the dimensions of the picture square using
-        ``figsize``::
-
-            sage: c.save(filename, figsize=[5, 5],
-            ...          xmin=-1, xmax=3, ymin=-1, ymax=3)
+            sage: c.save(filename, figsize=5, xmin=-1, xmax=3, ymin=-1, ymax=3)
 
         By default, the figure grows to include all of the graphics and text,
         so the final image may not be exactly the figure size you specified.
+        If you want a figure to be exactly a certain size, specify the keyword
+        ``fig_tight=False``::
+
+            sage: c.save(filename, figsize=[8,4], fig_tight=False,
+            ...       xmin=-1, xmax=3, ymin=-1, ymax=3)
 
         You can also pass extra options to the plot command instead of this
         method, e.g. ::
@@ -2437,6 +2450,7 @@ class Graphics(SageObject):
         options.update(kwds)
         dpi = options.pop('dpi')
         transparent = options.pop('transparent')
+        fig_tight = options.pop('fig_tight')
 
         if filename is None:
             filename = options.pop('filename')
@@ -2458,9 +2472,80 @@ class Graphics(SageObject):
             # if the file extension is not '.png', then matplotlib will handle it.
             from matplotlib.backends.backend_agg import FigureCanvasAgg
             figure.set_canvas(FigureCanvasAgg(figure))
-            figure.savefig(filename, dpi=dpi, bbox_inches='tight',
+            # this messes up the aspect ratio!
+            #figure.canvas.mpl_connect('draw_event', pad_for_tick_labels)
+            if fig_tight is True:
+                figure.savefig(filename, dpi=dpi, bbox_inches='tight',
+                           transparent=transparent)
+            else:
+                figure.savefig(filename, dpi=dpi,
                            transparent=transparent)
 
+#Currently not used - see comment immediately above about
+#figure.canvas.mpl_connect('draw_event', pad_for_tick_labels)
+# TODO - figure out how to use this, add documentation
+#def pad_for_tick_labels(event):
+#    import matplotlib.transforms as mtransforms
+#    figure=event.canvas.figure
+#    bboxes = []
+#    for ax in figure.axes:
+#        bbox = ax.xaxis.get_label().get_window_extent()
+#        # the figure transform goes from relative coords->pixels and we
+#        # want the inverse of that
+#        bboxi = bbox.inverse_transformed(figure.transFigure)
+#        bboxes.append(bboxi)
+#
+#        bbox = ax.yaxis.get_label().get_window_extent()
+#        bboxi = bbox.inverse_transformed(figure.transFigure)
+#        bboxes.append(bboxi)
+#        for label in (ax.get_xticklabels()+ax.get_yticklabels() \
+#                          + ax.get_xticklabels(minor=True) \
+#                          +ax.get_yticklabels(minor=True)):
+#            bbox = label.get_window_extent()
+#            bboxi = bbox.inverse_transformed(figure.transFigure)
+#            bboxes.append(bboxi)
+#
+#    # this is the bbox that bounds all the bboxes, again in relative
+#    # figure coords
+#    bbox = mtransforms.Bbox.union(bboxes)
+#    adjusted=adjust_figure_to_contain_bbox(figure,bbox)
+#
+#    if adjusted:
+#        figure.canvas.draw()
+#    return False
+#
+#Currently not used - see comment above about
+#figure.canvas.mpl_connect('draw_event', pad_for_tick_labels)
+# TODO - figure out how to use this, add documentation
+#def adjust_figure_to_contain_bbox(fig, bbox,pad=1.1):
+#    """
+#    For each amount we are over (in axes coordinates), we adjust by over*pad
+#    to give ourselves a bit of padding.
+#    """
+#    left=fig.subplotpars.left
+#    bottom=fig.subplotpars.bottom
+#    right=fig.subplotpars.right
+#    top=fig.subplotpars.top
+#
+#    adjusted=False
+#    if bbox.xmin<0:
+#        left-=bbox.xmin*pad
+#        adjusted=True
+#    if bbox.ymin<0:
+#        bottom-=bbox.ymin*pad
+#        adjusted=True
+#    if bbox.xmax>1:
+#        right-=(bbox.xmax-1)*pad
+#        adjusted=True
+#    if bbox.ymax>1:
+#        top-=(bbox.ymax-1)*pad
+#        adjusted=True
+#
+#    if left<right and bottom<top:
+#        fig.subplots_adjust(left=left, bottom=bottom, right=right, top=top)
+#        return adjusted
+#    else:
+#        return False
 
 _SelectiveFormatterClass = None
 
@@ -2606,7 +2691,7 @@ def xydata_from_point_list(points):
 @rename_keyword(color='rgbcolor')
 @options(alpha=1, thickness=1, fill=False, fillcolor='automatic', fillalpha=0.5, rgbcolor=(0,0,1), plot_points=200,
          adaptive_tolerance=0.01, adaptive_recursion=5, detect_poles = False, exclude = None, legend_label=None,
-         __original_opts=True)
+         __original_opts=True, aspect_ratio='auto')
 def plot(funcs, *args, **kwds):
     r"""
     Use plot by writing
@@ -3311,7 +3396,7 @@ def _plot(funcs, xrange, parametric=False,
 
 ########## misc functions ###################
 
-@options(aspect_ratio=1)
+@options(aspect_ratio=1.0)
 def parametric_plot(funcs, *args, **kwargs):
     r"""
     Plot a parametric curve or surface in 2d or 3d.
@@ -3422,7 +3507,7 @@ def parametric_plot(funcs, *args, **kwargs):
     else:
         raise ValueError, "the number of functions and the number of variable ranges is not a supported combination for a 2d or 3d parametric plots"
 
-@options(aspect_ratio=1)
+@options(aspect_ratio=1.0)
 def polar_plot(funcs, *args, **kwds):
     r"""
     ``polar_plot`` takes a single function or a list or
@@ -3462,7 +3547,7 @@ def polar_plot(funcs, *args, **kwds):
 
     Fill the area between two functions::
 
-        sage: polar_plot(cos(4*x) + 1.5, 0, 2*pi, fill=0.5 * cos(4*x) + 2.5, fillcolor='orange').show(aspect_ratio=1)
+        sage: polar_plot(cos(4*x) + 1.5, 0, 2*pi, fill=0.5 * cos(4*x) + 2.5, fillcolor='orange')
 
     Fill the area between several spirals::
 
@@ -3470,12 +3555,13 @@ def polar_plot(funcs, *args, **kwds):
 
     Exclude points at discontinuities::
 
-        sage: polar_plot(log(floor(x)), (x, 1, 4*pi), aspect_ratio = 1, exclude = [1..12])
+        sage: polar_plot(log(floor(x)), (x, 1, 4*pi), exclude = [1..12])
 
     """
     kwds['polar']=True
     return plot(funcs, *args, **kwds)
 
+@options(aspect_ratio='auto')
 def list_plot(data, plotjoined=False, **kwargs):
     r"""
     ``list_plot`` takes either a single list of data, a list of tuples,
@@ -3601,7 +3687,7 @@ class GraphicsArray(SageObject):
                 if not isinstance(g, Graphics):
                     raise TypeError, "every element of array must be a Graphics object"
                 self._glist.append(g)
-        self._figsize = DEFAULT_FIGSIZE
+        self._figsize = None
 
     def _repr_(self):
         if SHOW_DEFAULT:
@@ -3638,7 +3724,7 @@ class GraphicsArray(SageObject):
     def append(self, g):
         self._glist.append(g)
 
-    def _render(self, filename, dpi=None, figsize=DEFAULT_FIGSIZE, axes=None, **args):
+    def _render(self, filename, dpi=None, figsize=None, axes=None, **args):
         r"""
         ``render`` loops over all graphics objects in the array
         and adds them to the subplot.
@@ -3660,16 +3746,16 @@ class GraphicsArray(SageObject):
         g.save(filename, dpi=dpi, figure=figure, sub=subplot,
                verify=do_verify, axes = axes, **args)
 
-    def save(self, filename=None, dpi=DEFAULT_DPI, figsize=DEFAULT_FIGSIZE,
+    def save(self, filename=None, dpi=DEFAULT_DPI, figsize=None,
              axes = None, **args):
         """
         save the ``graphics_array`` to (for now) a png called
         'filename'.
         """
-        if (figsize != DEFAULT_FIGSIZE): self.__set_figsize__(figsize)
+        if (figsize is not None): self.__set_figsize__(figsize)
         self._render(filename, dpi=dpi, figsize=self._figsize, axes = axes, **args)
 
-    def show(self, filename=None, dpi=DEFAULT_DPI, figsize=DEFAULT_FIGSIZE,
+    def show(self, filename=None, dpi=DEFAULT_DPI, figsize=None,
              axes = None, **args):
         r"""
         Show this graphics array using the default viewer.
@@ -3681,8 +3767,7 @@ class GraphicsArray(SageObject):
 
         -  ``dpi`` - dots per inch
 
-        -  ``figsize`` - [width, height] (same for square
-           aspect)
+        -  ``figsize`` - width or [width, height]
 
         -  ``axes`` - (default: True)
 
@@ -3700,7 +3785,7 @@ class GraphicsArray(SageObject):
             sage: G = graphics_array([[plot(sin), plot(cos)], [plot(tan), plot(sec)]])
             sage: G.show(axes=False)
         """
-        if (figsize != DEFAULT_FIGSIZE): self.__set_figsize__(figsize)
+        if (figsize is not None): self.__set_figsize__(figsize)
         if DOCTEST_MODE:
             self.save(DOCTEST_MODE_FILE,
                       dpi=dpi, figsize=self._figsize, axes = axes, **args)
@@ -3847,73 +3932,6 @@ def var_and_list_of_values(v, plot_points):
         step = (b-a)/float(plot_points-1)
         values = [a + step*i for i in xrange(plot_points)]
         return var, values
-
-
-def adjust_figsize_for_aspect_ratio(figsize, aspect_ratio, xmin, xmax, ymin, ymax):
-    """
-    Adjust the figsize in case the user also specifies an aspect
-    ratio.
-
-    INPUTS: figsize - a sequence of two positive real numbers
-    aspect_ratio - a positive real number xmin, xmax, ymin, ymax -
-    real numbers
-
-    EXAMPLES: This function is used mainly internally by plotting code
-    so we explicitly import it::
-
-        sage: from sage.plot.plot import adjust_figsize_for_aspect_ratio
-
-    This returns (5,5), since the requested aspect ratio is 1 and the x
-    and y ranges are the same, so that's the right size rendered image
-    to produce a 1:1 ratio internally. 5 is used instead of 3 since the
-    image size is always adjusted to the larger of the figsize
-    dimensions.
-
-    ::
-
-        sage: adjust_figsize_for_aspect_ratio([3,5], 1, 0, 2, 0, 2)
-        (5, 5)
-
-    Here we give a scalar figsize, which is automatically converted to
-    the figsize ``(figsize, figsize/golden_ratio)``.
-
-    ::
-
-        sage: adjust_figsize_for_aspect_ratio(3, 1, 0, 2, 0, 2)
-        (3, 3)
-
-    Here we omit the aspect ratio so the figsize is just returned.
-
-    ::
-
-        sage: adjust_figsize_for_aspect_ratio([5,6], None, 0, 2, 0, 2)
-        [5, 6]
-
-    Here we have an aspect ratio of 2, and since the x and y ranges are
-    the same the returned figsize is twice as wide as tall::
-
-        sage: adjust_figsize_for_aspect_ratio([3,5], 2, 0, 2, 0, 2)
-        (5, 5/2)
-
-    Here the x range is rather large, so to get an aspect ratio where
-    circles look twice as wide as they are tall, we have to shrink the
-    y size of the image.
-
-    ::
-
-        sage: adjust_figsize_for_aspect_ratio([3,5], 2, 0, 10, 0, 2)
-        (5, 1/2)
-    """
-    if not isinstance(figsize, (list, tuple)):
-        figsize = [figsize, figsize * 0.618033988749895]   # 1/golden_ratio
-    if aspect_ratio is None:
-        return figsize
-    # We find a number r such that (ymax-ymin)*r / (xmax-xmin) = aspect_ratio:
-    r = max(aspect_ratio * (xmax - xmin)/(ymax-ymin), 0.001)
-    mx = max(figsize)
-    f = (figsize[0]*r, figsize[0])
-    s = min((mx/f[0], mx/f[1]))
-    return f[0]*s, f[1]*s
 
 
 

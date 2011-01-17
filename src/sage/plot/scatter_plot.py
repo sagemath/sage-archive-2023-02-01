@@ -128,7 +128,7 @@ class ScatterPlot(GraphicPrimitive):
         options = self.options()
         subplot.scatter(self.xdata, self.ydata, alpha=options['alpha'], zorder=options['zorder'], marker=options['marker'],s=options['markersize'],facecolors=options['facecolor'], edgecolors=options['edgecolor'])
 
-@options(alpha=1, markersize=50, marker='o', zorder=5, facecolor='#fec7b8', edgecolor='black')
+@options(alpha=1, markersize=50, marker='o', zorder=5, facecolor='#fec7b8', edgecolor='black', aspect_ratio='auto')
 def scatter_plot(datalist, **options):
     """
     Returns a Graphics object of a scatter plot containing all points in

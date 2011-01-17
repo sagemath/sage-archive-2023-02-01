@@ -397,7 +397,7 @@ def arrow2d(tailpoint=None, headpoint=None, path=None, **options):
 
     A pretty circle of arrows::
 
-        sage: sum([arrow2d((0,0), (cos(x),sin(x)), hue=x/(2*pi)) for x in [0..2*pi,step=0.1]]).show(aspect_ratio=1)
+        sage: sum([arrow2d((0,0), (cos(x),sin(x)), hue=x/(2*pi)) for x in [0..2*pi,step=0.1]])
 
     If we want to draw the arrow between objects, for example, the
     boundaries of two lines, we can use the arrowshorten option

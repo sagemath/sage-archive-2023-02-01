@@ -159,7 +159,7 @@ def plot_vector_field((f, g), xrange, yrange, **options):
         sage: x,y = var('x,y')
         sage: a=plot_vector_field((x,y), (x,-3,3),(y,-3,3),color='blue')
         sage: b=plot_vector_field((y,-x),(x,-3,3),(y,-3,3),color='red')
-        sage: show(a+b,aspect_ratio=1)
+        sage: show(a+b)
 
     We ignore function values that are infinite or NaN::
 
@@ -213,12 +213,12 @@ def plot_slope_field(f, xrange, yrange, **kwds):
         sage: x,y = var('x y')
         sage: capacity = 3 # thousand
         sage: growth_rate = 0.7 # population increases by 70% per unit of time
-        sage: plot_slope_field(growth_rate*(1-y/capacity)*y, (x,0,5), (y,0,capacity*2)).show(aspect_ratio=1)
+        sage: plot_slope_field(growth_rate*(1-y/capacity)*y, (x,0,5), (y,0,capacity*2))
 
     Plot a slope field involving sin and cos::
 
         sage: x,y = var('x y')
-        sage: plot_slope_field(sin(x+y)+cos(x+y), (x,-3,3), (y,-3,3)).show(aspect_ratio=1)
+        sage: plot_slope_field(sin(x+y)+cos(x+y), (x,-3,3), (y,-3,3))
     """
     slope_options = {'headaxislength': 0, 'headlength': 0, 'pivot': 'middle'}
     slope_options.update(kwds)

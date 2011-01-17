@@ -163,6 +163,7 @@ cdef extern from "math.h":
     cdef double ceil_c "ceil" (double)
 
 from sage.libs.pari.gen cimport gen as pari_gen, PariInstance
+from sage.libs.flint.long_extras cimport *
 
 import sage.rings.infinity
 import sage.libs.pari.all
@@ -3018,13 +3019,15 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def trial_division(self, long bound=LONG_MAX):
         """
-        Return smallest prime divisor of self up to limit, or
-        abs(self) if no such divisor is found.
+        Return smallest prime divisor of self up to bound,
+        or abs(self) if no such divisor is found.
 
         INPUT:
-            - ``bound`` -- positive integer
+
+            - ``bound`` -- a positive integer that fits in a C signed long
 
         OUTPUT:
+
             - a positive integer
 
         EXAMPLES::
@@ -3123,18 +3126,14 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             mpz_abs(x.value, self.value)
             return x
 
-    def _factor_trial_division(self, limit):
+    def _factor_trial_division(self, long limit=LONG_MAX):
         """
         Return partial factorization of self obtained using trial division
-        for all primes up to limit, where limit must fit in a signed int.
+        for all primes up to limit, where limit must fit in a C signed long.
 
         INPUT:
 
-
-        -  ``limit`` - integer that fits in a signed int
-
-
-        ALGORITHM: Uses Pari.
+         - ``limit`` - integer (default: LONG_MAX) that fits in a C signed long
 
         EXAMPLES::
 
@@ -3144,26 +3143,94 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: n._factor_trial_division(2000)
             2 * 11 * 1531 * 27325696005058797691594630609938486205809701
         """
-        import sage.structure.factorization as factorization
-        F = self._pari_().factor(limit)
-        B, e = F
-        return factorization.Factorization([(the_integer_ring(B[i]), the_integer_ring(e[i])) for i in range(len(B))])
+        from sage.structure.factorization_integer import IntegerFactorization
+        cdef Integer n = PY_NEW(Integer), p, unit
+        cdef unsigned long e
 
-    def factor(self, algorithm='pari', proof=True, limit=None):
+        if mpz_sgn(self.value) > 0:
+            mpz_set(n.value, self.value)
+            unit = ONE
+        else:
+            mpz_neg(n.value,self.value)
+            unit = PY_NEW(Integer)
+            mpz_set_si(unit.value, -1)
+
+        F = []
+        while mpz_cmpabs_ui(n.value, 1):
+            p = n.trial_division(bound=limit)
+            e = mpz_remove(n.value, n.value, p.value)
+            F.append((p,e))
+
+        return IntegerFactorization(F, unit=unit, unsafe=True,
+                                       sort=False, simplify=False)
+
+    def __factor_using_pari(n, int_=False, debug_level=0, proof=None):
         """
-        Return the prime factorization of the integer as a list of pairs
-        `(p,e)`, where `p` is prime and `e` is a
-        positive integer.
+        Factors this (positive) integer using PARI.
+
+        This method returns a list of pairs, not a ``Factorization``
+        object.  The first element of each pair is the factor, of type
+        ``Integer`` if ``int_`` is ``False`` or ``int`` otherwise,
+        the second element is the positive exponent, of type ``int``.
 
         INPUT:
 
+            - ``int_`` -- (default: ``False``), whether the factors are
+              of type ``int`` instead of ``Integer``
+
+            - ``debug_level`` -- (default: 0), debug level of the call
+              to PARI
+
+            - ``proof`` -- (default: ``None``), whether the factors are
+              required to be proven prime;  if ``None``, the global default
+              is used
+
+        OUTPUT:
+
+            -  a list of pairs
+
+        EXAMPLES::
+
+            sage: factor(2**72 - 3, algorithm='pari')  # indirect doctest
+            83 * 131 * 294971519 * 1472414939
+        """
+        from sage.libs.pari.gen import pari
+
+        if proof is None:
+            from sage.structure.proof.proof import get_flag
+            proof = get_flag(proof, "arithmetic")
+
+        prev = pari.get_debug_level()
+
+        if prev != debug_level:
+            pari.set_debug_level(debug_level)
+
+        F = pari(n).factor(proof=proof)
+        B, e = F
+        if int_:
+            v = [(int(B[i]), int(e[i])) for i in xrange(len(B))]
+        else:
+            v = [(Integer(B[i]), int(e[i])) for i in xrange(len(B))]
+
+        if prev != debug_level:
+            pari.set_debug_level(prev)
+
+        return v
+
+    def factor(self, algorithm='pari', proof=None, limit=None, int_=False,
+                     verbose=0):
+        """
+        Return the prime factorization of this integer as a list of pairs
+        `(p, e)`, where `p` is prime and `e` is a positive integer.
+
+        INPUT:
 
         -  ``algorithm`` - string
 
-           - ``'pari'`` - (default) use the PARI c library
+           - ``'pari'`` - (default) use the PARI library
 
-           - ``'kash'`` - use KASH computer algebra system (requires
-             the optional kash package be installed)
+           - ``'kash'`` - use the KASH computer algebra system (requires
+             the optional kash package)
 
         -  ``proof`` - bool (default: True) whether or not to
            prove primality of each factor (only applicable for PARI).
@@ -3171,7 +3238,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         -  ``limit`` - int or None (default: None) if limit is
            given it must fit in a signed int, and the factorization is done
            using trial division and primes up to limit.
-
 
         EXAMPLES::
 
@@ -3199,10 +3265,66 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             ...
             ValueError: Algorithm is not known
         """
+        from sage.structure.factorization import Factorization
+        from sage.structure.factorization_integer import IntegerFactorization
+
+        cdef Integer n, p, unit
+        cdef int i
+        cdef factor_t f
+
+        if mpz_sgn(self.value) == 0:
+            raise ArithmeticError, "Prime factorization of 0 not defined."
+
+        if mpz_sgn(self.value) > 0:
+            n    = self
+            unit = ONE
+        else:
+            n    = PY_NEW(Integer)
+            unit = PY_NEW(Integer)
+            mpz_neg(n.value, self.value)
+            mpz_set_si(unit.value, -1)
+
+        if mpz_cmpabs_ui(n.value, 1) == 0:
+            return IntegerFactorization([], unit=unit, unsafe=True,
+                                            sort=False, simplify=False)
+
         if limit is not None:
             return self._factor_trial_division(limit)
-        import sage.rings.integer_ring
-        return sage.rings.integer_ring.factor(self, algorithm=algorithm, proof=proof)
+
+        if proof is None:
+            from sage.structure.proof.proof import get_flag
+            proof = get_flag(proof, "arithmetic")
+
+        if mpz_fits_slong_p(n.value):
+            z_factor(&f, mpz_get_ui(n.value), proof)
+            F = [(Integer(f.p[i]), int(f.exp[i])) for i from 0 <= i < f.num]
+            F.sort()
+            return IntegerFactorization(F, unit=unit, unsafe=True,
+                                           sort=False, simplify=False)
+
+        if mpz_sizeinbase(n.value, 2) < 40:
+            return self._factor_trial_division()
+
+        if algorithm == 'pari':
+            F = n.__factor_using_pari(int_=int_, debug_level=verbose, proof=proof)
+            F.sort()
+            return IntegerFactorization(F, unit=unit, unsafe=True,
+                                           sort=False, simplify=False)
+        elif algorithm in ['kash', 'magma']:
+            if algorithm == 'kash':
+                from sage.interfaces.all import kash as I
+            else:
+                from sage.interfaces.all import magma as I
+            F = I.eval('Factorization(%s)'%n)
+            i = F.rfind(']') + 1
+            F = F[:i]
+            F = F.replace("<","(").replace(">",")")
+            F = eval(F)
+            if not int_:
+                F = [(Integer(a), int(b)) for a,b in F]
+            return Factorization(F, unit)
+        else:
+            raise ValueError, "Algorithm is not known"
 
     def _factor_cunningham(self, proof=True):
         """

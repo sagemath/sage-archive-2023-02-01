@@ -18,7 +18,7 @@ integer `-45`::
 This returns an object of type :class:`Factorization`::
 
     sage: type(F)
-    <class 'sage.structure.factorization.Factorization'>
+    <class 'sage.structure.factorization_integer.IntegerFactorization'>
 
 It prints in a nice factored form::
 

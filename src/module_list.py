@@ -1187,8 +1187,9 @@ ext_modules = [
 
     Extension('sage.rings.integer',
               sources = ['sage/rings/integer.pyx'],
-              libraries=['ntl', 'gmp', 'pari'],
-              depends = numpy_depends),
+              libraries=['ntl', 'gmp', 'pari', 'flint'],
+              include_dirs = [SAGE_INC + 'FLINT/'],
+              depends = numpy_depends + flint_depends),
 
     Extension('sage.rings.integer_ring',
               sources = ['sage/rings/integer_ring.pyx'],

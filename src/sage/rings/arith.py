@@ -20,7 +20,6 @@ import sage.rings.rational
 import sage.rings.complex_field
 import sage.rings.complex_number
 import sage.rings.real_mpfr
-import sage.structure.factorization as factorization
 from sage.structure.element import RingElement, canonical_coercion, bin_op, parent
 from sage.interfaces.all import gp
 from sage.misc.misc import prod, union
@@ -2075,97 +2074,20 @@ def trial_division(n, bound=None):
     else:
         return ZZ(n).trial_division(bound)
 
-def __factor_using_trial_division(n):
-    """
-    Returns the factorization of the integer n as a sorted list of
-    tuples (p,e).
-
-    INPUT:
-
-
-    -  ``n`` - an integer
-
-
-    OUTPUT:
-
-
-    -  ``list`` - factorization of n
-
-    EXAMPLES::
-
-        sage: from sage.rings.arith import __factor_using_trial_division
-        sage: __factor_using_trial_division(100)
-        [(2, 2), (5, 2)]
-    """
-    if n in [-1, 0, 1]: return []
-    if n < 0: n = -n
-    F = []
-    while n != 1:
-        p = trial_division(n)
-        e = 1
-        n /= p
-        while n%p == 0:
-            e += 1; n /= p
-        F.append((p,e))
-    F.sort()
-    return F
-
-def __factor_using_pari(n, int_=False, debug_level=0, proof=None):
-    """
-    Factors an integer using pari.
-
-    INPUT:
-
-    -  ``n`` - an integer
-
-    EXAMPLES::
-
-        sage: from sage.rings.arith import __factor_using_pari
-        sage: __factor_using_pari(100)
-        [(2, 2), (5, 2)]
-        sage: __factor_using_pari(720)
-        [(2, 4), (3, 2), (5, 1)]
-    """
-    if proof is None:
-        from sage.structure.proof.proof import get_flag
-        proof = get_flag(proof, "arithmetic")
-    if int_:
-        Z = int
-    else:
-        Z = ZZ
-    prev = pari.get_debug_level()
-
-    if prev != debug_level:
-        pari.set_debug_level(debug_level)
-
-    F = pari(n).factor(proof=proof)
-    B = F[0]
-    e = F[1]
-    v = [(Z(B[i]),Z(e[i])) for i in xrange(len(B))]
-
-    if prev != debug_level:
-        pari.set_debug_level(prev)
-
-    return v
-
-
-#todo: add a limit option to factor, so it will only split off
-# primes at most a given limit.
-
 def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
     """
-    Returns the factorization of n. The result depends on the type of
-    n.
+    Returns the factorization of ``n``.  The result depends on the
+    type of ``n``.
 
-    If n is an integer, factor returns the factorization of the
-    integer n as an object of type Factorization.
+    If ``n`` is an integer, returns the factorization as an object
+    of type ``Factorization``.
 
     If n is not an integer, ``n.factor(proof=proof, **kwds)`` gets called.
     See ``n.factor??`` for more documentation in this case.
 
     .. warning::
 
-       This means that applying factor to an integer result of
+       This means that applying ``factor`` to an integer result of
        a symbolic computation will not factor the integer, because it is
        considered as an element of a larger symbolic ring.
 
@@ -2199,8 +2121,9 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
        variable is set to this; e.g., set to 4 or 8 to see lots of output
        during factorization.
 
+    OUTPUT:
 
-    OUTPUT: factorization of n
+    -  factorization of n
 
     The qsieve and ecm commands give access to highly optimized
     implementations of algorithms for doing certain integer
@@ -2260,10 +2183,10 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
         sage: factor(2^(2^7)+1)
         59649589127497217 * 5704689200685129054721
 
-    Sage calls PARI's factor, which has proof False by default. Sage
-    has a global proof flag, set to True by default (see
-    :mod:`sage.structure.proof.proof`, or proof.[tab]). To override the default,
-    call this function with proof=False.
+    Sage calls PARI's factor, which has proof False by default.
+    Sage has a global proof flag, set to True by default (see
+    :mod:`sage.structure.proof.proof`, or proof.[tab]). To override
+    the default, call this function with proof=False.
 
     ::
 
@@ -2272,7 +2195,7 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
 
     ::
 
-        sage: factor(2^197 + 1)       # takes a long time (e.g., 3 seconds!)
+        sage: factor(2^197 + 1)  # long time
         3 * 197002597249 * 1348959352853811313 * 251951573867253012259144010843
 
     Any object which has a factor method can be factored like this::
@@ -2295,51 +2218,24 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
         [4, 3, 5, 7]
 
     """
-    if not isinstance(n, (int,long, integer.Integer)):
-        # this happens for example if n = x**2 + y**2 + 2*x*y
+    if isinstance(n, (int, long)):
+        n = ZZ(n)
+
+    if isinstance(n, integer.Integer):
+        return n.factor(proof=proof, algorithm=algorithm,
+                        int_ = int_, verbose=verbose)
+    else:
+        # e.g. n = x**2 + y**2 + 2*x*y
         try:
             return n.factor(proof=proof, **kwds)
         except AttributeError:
             raise TypeError, "unable to factor n"
-        except TypeError:  # just in case factor method doesn't have a proof option.
+        except TypeError:
+            # Just in case factor method doesn't have a proof option.
             try:
                 return n.factor(**kwds)
             except AttributeError:
                 raise TypeError, "unable to factor n"
-    #n = abs(n)
-    n = ZZ(n)
-    if n < 0:
-        unit = ZZ(-1)
-        n = -n
-    else:
-        unit = ZZ(1)
-
-    if n == 0:
-        raise ArithmeticError, "Prime factorization of 0 not defined."
-    if n == 1:
-        return factorization.Factorization([], unit)
-
-    if n < 10000000000000:
-        return factorization.Factorization(__factor_using_trial_division(n), unit)
-
-    if algorithm == 'pari':
-        return factorization.Factorization(__factor_using_pari(n,
-                                   int_=int_, debug_level=verbose, proof=proof), unit)
-    elif algorithm in ['kash', 'magma']:
-        if algorithm == 'kash':
-            from sage.interfaces.all import kash as I
-        else:
-            from sage.interfaces.all import magma as I
-        F = I.eval('Factorization(%s)'%n)
-        i = F.rfind(']') + 1
-        F = F[:i]
-        F = F.replace("<","(").replace(">",")")
-        F = eval(F)
-        if not int_:
-            F = [(ZZ(a), ZZ(b)) for a,b in F]
-        return factorization.Factorization(F, unit)
-    else:
-        raise ValueError, "Algorithm is not known"
 
 def radical(n, *args, **kwds):
     """

@@ -80,6 +80,13 @@ cimport rational
 
 import ring
 
+arith = None
+cdef void late_import():
+    global arith
+    if arith is None:
+        import sage.rings.arith
+        arith = sage.rings.arith
+
 cdef int number_of_integer_rings = 0
 
 def is_IntegerRing(x):
@@ -1054,21 +1061,24 @@ def IntegerRing():
     """
     return ZZ
 
-def factor(n, algorithm='pari', proof=True):
+def factor(*args, **kwds):
     """
-    Return the factorization of the positive integer `n` as a
-    sorted list of tuples `(p_i,e_i)` such that
-    `n=\prod p_i^{e_i}`.
-
-    For further documentation see sage.rings.arith.factor()
+    This function is deprecated.  To factor an Integer `n`, call `n.factor()`.
+    For other objects, use the factor method from sage.rings.arith.
 
     EXAMPLE::
 
-        sage: sage.rings.integer_ring.factor(420)
-        2^2 * 3 * 5 * 7
+        sage: sage.rings.integer_ring.factor(1)
+        doctest:...: DeprecationWarning: This function is deprecated...
+        1
     """
-    import sage.rings.arith
-    return sage.rings.arith.factor(n, algorithm=algorithm, proof=proof)
+    from sage.misc.misc import deprecation
+    deprecation("This function is deprecated.  Call the factor method of an Integer,"
+                +"or sage.arith.factor instead.")
+    #deprecated 4.6.2
+
+    late_import()
+    return arith.factor(*args, **kwds)
 
 import sage.misc.misc
 def crt_basis(X, xgcd=None):

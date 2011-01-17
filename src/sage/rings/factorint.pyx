@@ -21,10 +21,181 @@ include "../ext/gmp.pxi"
 include "../ext/stdsage.pxi"
 
 from sage.rings.integer cimport Integer
+from sage.rings.fast_arith import prime_range
 from sage.structure.factorization_integer import IntegerFactorization
+from math import floor
 
 cdef extern from "limits.h":
     long LONG_MAX
+
+cpdef aurifeuillian(n, m, F=None):
+    r"""
+    Return Aurifeuillian factors `F_n^\pm(m^2n)`
+
+    INPUT:
+
+    - ``n`` - integer
+    - ``m`` - integer
+    - ``F`` - integer (default: None)
+
+    OUTPUT:
+
+        List of factors
+
+    EXAMPLES:
+
+        sage: from sage.rings.factorint import aurifeuillian
+        sage: aurifeuillian(2,2)
+        [5, 13]
+        sage: aurifeuillian(2,2^5)
+        [1985, 2113]
+        sage: aurifeuillian(5,3)
+        [1471, 2851]
+        sage: aurifeuillian(15,1)
+        [19231, 142111]
+        sage: aurifeuillian(12,3)
+        Traceback (most recent call last):
+        ...
+        ValueError: n has to be square-free
+        sage: aurifeuillian(1,2)
+        Traceback (most recent call last):
+        ...
+        ValueError: n has to be greater than 1
+        sage: aurifeuillian(2,0)
+        Traceback (most recent call last):
+        ...
+        ValueError: m has to be positive
+
+    .. NOTE::
+
+    There is no need to set `F`. It's only for increasing speed
+    of factor_aurifeuillian().
+
+    REFERENCES:
+
+    .. Brent, On computing factors of cyclotomic polynomials, Theorem 3
+        arXiv:1004.5466v1 [math.NT]
+
+    """
+    from sage.rings.arith import euler_phi, kronecker_symbol
+    from sage.functions.log import exp
+    from sage.rings.real_mpfr import RealField
+    if not n.is_squarefree():
+        raise ValueError, "n has to be square-free"
+    if n < 2:
+        raise ValueError, "n has to be greater than 1"
+    if m < 1:
+        raise ValueError, "m has to be positive"
+    x = m**2*n
+    y = euler_phi(2*n)//2
+    if F == None:
+        from sage.misc.functional import cyclotomic_polynomial
+        if n%2:
+            if n%4 == 3:
+                s = -1
+            else:
+                s = 1
+            F = cyclotomic_polynomial(n)(s*x)
+        else:
+            F = (-1)**euler_phi(n//2)*cyclotomic_polynomial(n//2)(-x**2)
+    tmp = sum([kronecker_symbol(n,2*j+1)/((2*j+1)*x**j) for j in range(y)])
+    R = RealField(300)
+    Fm = R(F.sqrt()*R(-1/m*tmp).exp()).round()
+    return [Fm, Integer(round(F//Fm))]
+
+cpdef base_exponent(n):
+    r"""
+    Returns base and prime exponent of `n` if `n` is power.
+    Otherwise return `n, 1`.
+
+    INPUT:
+
+    - ``n`` - integer
+
+    OUTPUT:
+
+    - ``base, exp`` - where ``n = base^exp`` and ``exp`` is prime or 1
+
+    EXAMPLES:
+        sage: from sage.rings.factorint import base_exponent
+        sage: base_exponent(101**29)
+        (101, 29)
+        sage: base_exponent(0)
+        (0, 1)
+        sage: base_exponent(-4)
+        (-4, 1)
+        sage: base_exponent(-27)
+        (-3, 3)
+    """
+    if n != 0:
+        for p in prime_range(2 if n > 0 else 3,int(abs(n).log(2)+1)):
+            tmp = n.nth_root(p,truncate_mode=1)
+            if tmp[1]:
+                return tmp[0], p
+    return n,1
+
+cpdef factor_aurifeuillian(n):
+    r"""
+    Return Aurifeuillian factors of `n` if `n = x^{(2k-1)x} \pw 1`
+    (where the sign is '-' if x = 1 mod 4, and '+' otherwise) else `n`
+
+    INPUT:
+
+    - ``n`` - integer
+
+    OUTPUT:
+
+        List of factors of `n` found by Aurifeuillian factorization.
+
+    EXAMPLES:
+
+        sage: from sage.rings.factorint import factor_aurifeuillian as fa
+        sage: fa(2^6+1)
+        [5, 13]
+        sage: fa(2^58+1)
+        [536838145, 536903681]
+        sage: fa(3^3+1)
+        [4, 1, 7]
+        sage: fa(5^5-1)
+        [4, 11, 71]
+        sage: prod(_) == 5^5-1
+        True
+        sage: fa(2^4+1)
+        [17]
+
+    REFERENCES:
+
+    .. http://mathworld.wolfram.com/AurifeuilleanFactorization.html
+
+    """
+    if n in [-2, -1, 0, 1, 2]:
+        return [n]
+    cdef int exp = 1
+    for x in [-1, 1]:
+        b = n + x
+        while b.is_power():
+            tmp = base_exponent(b)
+            b = tmp[0]
+            exp *= tmp[1]
+        if exp > 1:
+            if not b.is_prime():
+                continue
+            m = b**((exp+b)/(2*b)-1)
+            if m != floor(m):
+                continue
+            if b == 2:
+                if x == -1:
+                    return aurifeuillian(b, m, n)
+                else:
+                    return [2**(exp/2)-1, 2**(exp/2)+1]
+            F = b**(exp/b)-x
+            result = [F] + aurifeuillian(b, m, n/F)
+            prod = 1
+            for a in result:
+                prod *= a
+            if prod == n:
+                return result
+    return [n]
 
 def factor_cunningham(m, proof=None):
     r"""

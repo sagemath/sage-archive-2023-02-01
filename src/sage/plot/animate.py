@@ -82,8 +82,9 @@ class Animation(SageObject):
 
     We check that Trac #7981 is fixed::
 
-        sage: animate([plot(sin(x + float(k), (0, 2*pi), ymin=-5, ymax=5))
-        ...            for k in srange(0,2*pi,0.3)]).show() # optional
+        sage: a = animate([plot(sin(x + float(k)), (0, 2*pi), ymin=-5, ymax=5)
+        ...            for k in srange(0,2*pi,0.3)])
+        sage: a.show() # optional
     """
     def __init__(self, v, **kwds):
         r"""

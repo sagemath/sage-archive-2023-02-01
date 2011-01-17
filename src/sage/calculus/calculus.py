@@ -506,6 +506,13 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima'):
         sage: symbolic_sum(binomial(n,k)*x^k, k, 0, n, algorithm = 'maple')      # optional  -- requires maple
         (x + 1)^n
 
+    TESTS:
+
+    Trac #10564 is fixed::
+
+        sage: sum (n^3 * x^n, n, 0, infinity)
+        (x^3 + 4*x^2 + x)/(x^4 - 4*x^3 + 6*x^2 - 4*x + 1)
+
     .. note::
 
        #. Sage can currently only understand a subset of the output of Maxima, Maple and

@@ -90,7 +90,7 @@ def abstract_method(f = None, optional = False):
     #    ...
     #    x.my_method not available. Let's use some other trick.
 
-    ..topic: Discussion
+    .. rubric:: Discussion
 
     The policy details are not yet fixed. The purpose of this first
     implementation is to let developers experiment with it and give
@@ -116,7 +116,7 @@ def abstract_method(f = None, optional = False):
 
     TODO: look for similar decorators on the web, and merge
 
-    ..topic: Implementation details
+    .. rubric:: Implementation details
 
     Technically, an abstract_method is a non-data descriptor (see
     Invoking Descriptors in the Python reference manual).

@@ -47,7 +47,7 @@ def CartesianProduct(*iters):
         sage: CartesianProduct(IterableFunctionCall(a, 3), IterableFunctionCall(b)).list()
         [[3, 'a'], [3, 'b'], [6, 'a'], [6, 'b']]
 
-      See the documentation for IterableFunctionCall for more information.
+    See the documentation for IterableFunctionCall for more information.
     """
     return CartesianProduct_iters(*iters)
 

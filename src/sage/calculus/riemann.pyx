@@ -950,7 +950,7 @@ cdef complex_to_rgb(np.ndarray z_values):
 class ColorPlot(GraphicPrimitive):
     """
     The GraphicsPrimitive to display complex functions in using the domain
-        coloring method
+    coloring method
 
     INPUT:
 
@@ -960,8 +960,8 @@ class ColorPlot(GraphicPrimitive):
 
         - ``y_range`` -- A minimum and maximum y value for the plot.
 
-    EXAMPLES:
-        ::
+    EXAMPLES::
+
         sage: p = complex_plot(lambda z: z^2-1, (-2, 2), (-2, 2))
     """
     def __init__(self, z_values, x_range, y_range):

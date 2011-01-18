@@ -294,13 +294,13 @@ The  __hash__ special method
 Here is the definition of ``__hash__`` from the Python reference
 manual.
 
-    Called for the key object for dictionary operations, and by the
-    built-in function ``hash()``. Should return a 32-bit integer
-    usable as a hash value for dictionary operations. The only required
-    property is that objects which compare equal have the same hash
-    value; it is advised to somehow mix together (e.g., using exclusive
-    or) the hash values for the components of the object that also play
-    a part in comparison of objects. If a class does not define a
+    Called by built-in function ``hash()`` and for operations on members of
+    hashed collections including set, frozenset, and dict. ``__hash__()``
+    should return an integer. The only required property is that objects which
+    compare equal have the same hash value; it is advised to somehow mix
+    together (e.g. using exclusive or) the hash values for the components of
+    the object that also play a part in comparison of objects. If a class does
+    not define a
     ``__cmp__()`` method it should not define a
     ``__hash__()`` operation either; if it defines
     ``__cmp__()`` or ``__eq__()`` but not

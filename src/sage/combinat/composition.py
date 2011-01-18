@@ -290,7 +290,7 @@ class Composition_class(CombinatorialObject):
         """
         Returns the set of compositions which are fatter than self.
 
-        Complexity for generation: O(size(c)) memory, O(size(result)) time
+        Complexity for generation: `O(size(c))` memory, `O(size(result))` time
 
         EXAMPLES::
 

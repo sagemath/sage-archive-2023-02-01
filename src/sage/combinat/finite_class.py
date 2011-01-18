@@ -119,7 +119,8 @@ class FiniteCombinatorialClass(CombinatorialClass):
 
     def keys(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: F = FiniteCombinatorialClass([1,2,3])
             sage: F.keys()
             [0, 1, 2]

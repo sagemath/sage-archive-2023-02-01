@@ -3113,11 +3113,13 @@ class GraphGenerators():
             50
 
         Note that you get a different layout each time you create the graph.
+        ::
 
             sage: HS.layout()[1]
             (-0.844..., 0.535...)
             sage: graphs.HoffmanSingletonGraph().layout()[1]
             (-0.904..., 0.425...)
+
         """
         H = graph.Graph({ \
         'q00':['q01'], 'q01':['q02'], 'q02':['q03'], 'q03':['q04'], 'q04':['q00'], \
@@ -4289,11 +4291,14 @@ class GraphGenerators():
 
         - ``n`` - the recursion depth of the Fibonacci Tree
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: g = graphs.FibonacciTree(3)
             sage: g.is_tree()
             True
+
+        ::
+
             sage: l1 = [ len(graphs.FibonacciTree(_)) + 1 for _ in range(6) ]
             sage: l2 = list(fibonacci_sequence(2,8))
             sage: l1 == l2

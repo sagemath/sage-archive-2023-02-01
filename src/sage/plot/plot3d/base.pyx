@@ -1,5 +1,5 @@
 r"""
-Base classes for 3D Graphics objects and plotting.
+Base classes for 3D Graphics objects and plotting
 
 AUTHORS:
 

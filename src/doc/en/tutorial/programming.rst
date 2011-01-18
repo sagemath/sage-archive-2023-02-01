@@ -353,7 +353,7 @@ This is useful when using list comprehensions to construct lists:
     sage: L[12]
     13
     sage: type(L[12])
-    <class 'sage.structure.factorization.Factorization'>
+    <class 'sage.structure.factorization_integer.IntegerFactorization'>
     sage: [factor(n) for n in range(1, 15) if is_odd(n)]
     [1, 3, 5, 7, 3^2, 11, 13]
 

@@ -93,7 +93,7 @@ Let us look at one affine patch, for example the one where `x_0=1` ::
       -x1*x2 + x0*x3,
       -x2^2 + x1*x3
       Defn: Defined on coordinates by sending (x0, x1, x2) to
-            (1 : x0bar : x1bar : x2bar)
+            (1 : x0 : x1 : x2)
 
 
 AUTHORS:
@@ -1207,7 +1207,7 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
               To:   Closed subscheme of Projective Space of dimension 3 over Integer Ring defined by:
               x0*x1 - x2*x3
               Defn: Defined on coordinates by sending (x, y, z) to
-                    (xbar : ybar : zbar : 1)
+                    (x : y : z : 1)
         """
         AA = self.ambient_space()
         n = AA.dimension_relative()
@@ -1318,7 +1318,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
               To:   Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
               X^3*Y + Y^3*Z + X*Z^3
               Defn: Defined on coordinates by sending (x0, x1) to
-                    (1 : x0bar : x1bar)
+                    (1 : x0 : x1)
         """
         i = int(i)   # implicit type checking
         PP = self.ambient_space()
@@ -1444,7 +1444,7 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
               z0 - z2
               To:   2-d toric variety covered by 4 affine patches
               Defn: Defined on coordinates by sending [z0 : z1 : z2 : z3] to
-                    [z2bar : z1bar : z2bar : z3bar]
+                    [z2 : z1 : z2 : z3]
         """
         return morphism.SchemeMorphism_on_points_toric_variety(*args, **kwds)
 
@@ -1579,7 +1579,7 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
               covered by 4 affine patches defined by:
               x - y
               Defn: Defined on coordinates by sending [y : t] to
-                    [1 : 1 : 1 : tbar]
+                    [1 : 1 : 1 : t]
         """
         try:
             return self._embedding_morphism

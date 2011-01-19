@@ -313,26 +313,29 @@ class SchemeMorphism_on_points(SchemeMorphism):
                 polys = [source_ring(poly) for poly in polys]
             except TypeError:
                 raise TypeError, "polys (=%s) must be elements of %s"%(polys,source_ring)
+            from sage.rings.quotient_ring import QuotientRing_generic
+            if isinstance(source_ring, QuotientRing_generic):
+                lift_polys = [f.lift() for f in polys]
+            else:
+                lift_polys = polys
             from sage.schemes.generic.projective_space import is_ProjectiveSpace
             if is_ProjectiveSpace(target):
                 # if the codomain is a subscheme of projective space,
                 # then we need to make sure that polys have no common
                 # zeros
-                from sage.rings.quotient_ring import QuotientRing_generic
                 if isinstance(source_ring, QuotientRing_generic):
                     # if the coordinate ring of the domain is a
                     # quotient by an ideal, we need to check that the
                     # gcd of polys and the generators of the ideal is 1
-                    lift_polys = [f.lift() for f in polys]
-                    lift_polys = lift_polys + list(source_ring.defining_ideal().gens())
+                    gcd_polys = lift_polys + list(source_ring.defining_ideal().gens())
                 else:
                     # if the domain is affine space, we just need to
                     # check the gcd of polys
-                    lift_polys = polys
+                    gcd_polys = polys
                 from sage.rings.arith import gcd
-                if gcd(lift_polys) != 1:
+                if gcd(gcd_polys) != 1:
                     raise ValueError, "polys (=%s) must not have common factors"%polys
-            polys = Sequence(polys)
+            polys = Sequence(lift_polys)
             polys.set_immutable()
             # Todo: check that map is well defined (how?)
         self.__polys = polys
@@ -448,7 +451,7 @@ class SchemeMorphism_on_points_projective_space(SchemeMorphism_on_points):
           From: Projective Curve over Rational Field defined by x^3 + y^3 + 60*z^3
           To:   Projective Curve over Rational Field defined by -x^3 + y^2*z + 6400/3*z^3
           Defn: Defined on coordinates by sending (x : y : z) to
-                (zbar : xbar - ybar : -1/80*xbar - 1/80*ybar)
+                (z : x - y : -1/80*x - 1/80*y)
 
     We illustrate some error checking::
 

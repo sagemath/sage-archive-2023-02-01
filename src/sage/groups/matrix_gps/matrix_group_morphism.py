@@ -6,6 +6,8 @@ AUTHORS:
 - David Joyner and William Stein (2006-03): initial version
 
 - David Joyner (2006-05): examples
+
+- Simon King (2011-01): cleaning and improving code
 """
 
 #*****************************************************************************
@@ -39,11 +41,7 @@ class MatrixGroupMorphism_im_gens(MatrixGroupMorphism):
     """
     Some python code for wrapping GAP's GroupHomomorphismByImages
     function but only for matrix groups. Can be expensive if G is
-    large. Returns "fail" if gens does not generate self or if the map
-    does not extend to a group homomorphism, self - other.
-
-    TODO: what does it mean to return fail? It's a constructor for a
-    class.
+    large.
 
     EXAMPLES::
 
@@ -75,60 +73,9 @@ class MatrixGroupMorphism_im_gens(MatrixGroupMorphism):
         imgss = '[%s]'%(','.join(str(v) for v in gaplist_imgs))
         args = '%s, %s, %s, %s'%(G._gap_init_(), H._gap_init_(), genss, imgss)
         self._gap_str = 'GroupHomomorphismByImages(%s)'%args
-        self._gap_hom_string = 'phi := %s'%self._gap_str
-        phi0 = gap.eval(self._gap_hom_string)
-        if phi0=="fail":
+        phi0 = gap(self)
+        if gap.eval("IsGroupHomomorphism(%s)"%phi0.name())!="true":
             raise ValueError,"The map "+str(gensG)+"-->"+str(imgsH)+" isn't a homomorphism."
-        self.hom = gap.eval("phi")
-
-    def _gap_init_(self):
-        return self._gap_str
-
-    def kernel(self):
-        """
-        EXAMPLES::
-
-            sage: F = GF(7); MS = MatrixSpace(F,2,2)
-            sage: F.multiplicative_generator()
-            3
-            sage: G = MatrixGroup([MS([3,0,0,1])])
-            sage: a = G.gens()[0]^2
-            sage: phi = G.hom([a])
-            sage: phi.kernel()
-            'Group([ [ [ Z(7)^3, 0*Z(7) ], [ 0*Z(7), Z(7)^0 ] ] ])'
-            sage: phi.image(G.gens()[0])
-            '[ [ Z(7)^2, 0*Z(7) ], [ 0*Z(7), Z(7)^0 ] ]'
-        """
-        cmd = self._gap_hom_string
-        gap.eval(cmd)
-        gap_ker = gap.eval("Kernel(phi)")
-        return gap_ker
-
-    def image(self, J):
-        """
-        J must be a subgroup of G. Computes the subgroup of H which is the
-        image of J.
-
-        EXAMPLES::
-
-            sage: F = GF(7); MS = MatrixSpace(F,2,2)
-            sage: F.multiplicative_generator()
-            3
-            sage: G = MatrixGroup([MS([3,0,0,1])])
-            sage: a = G.gens()[0]^2
-            sage: phi = G.hom([a])
-            sage: phi.image(G.gens()[0])
-            '[ [ Z(7)^2, 0*Z(7) ], [ 0*Z(7), Z(7)^0 ] ]'
-            sage: H = MatrixGroup([MS(a.list())])
-            sage: H
-            Matrix group over Finite Field of size 7 with 1 generators:
-            [[[2, 0], [0, 1]]]
-            sage: phi.image(H)
-            'Group([ [ [ Z(7)^4, 0*Z(7) ], [ 0*Z(7), Z(7)^0 ] ] ])'
-        """
-        cmd = self._gap_hom_string
-        gap.eval(cmd)
-        return gap.eval("Image( phi, "+str(J._gap_init_())+")")
 
     def _repr_(self):
         """
@@ -166,7 +113,82 @@ class MatrixGroupMorphism_im_gens(MatrixGroupMorphism):
         """
         return "%s \\rightarrow{} %s"%(latex(self.domain()), latex(self.codomain()))
 
-    def __call__( self, g ):
+    def _gap_init_(self):
+        return self._gap_str
+
+    def kernel(self):
+        """
+        Return the kernel of ``self``, i.e., a matrix group.
+
+        EXAMPLES::
+
+            sage: F = GF(7); MS = MatrixSpace(F,2,2)
+            sage: F.multiplicative_generator()
+            3
+            sage: G = MatrixGroup([MS([3,0,0,1])])
+            sage: a = G.gens()[0]^2
+            sage: phi = G.hom([a])
+            sage: phi.kernel()
+            Matrix group over Finite Field of size 7 with 1 generators:
+             [[[6, 0], [0, 1]]]
+
+        """
+        gap_ker = gap(self).Kernel()
+        from sage.all import MatrixGroup
+        F = self.domain().base_ring()
+        return MatrixGroup([x._matrix_(F) for x in gap_ker.GeneratorsOfGroup()])
+
+    def pushforward(self, J, *args,**kwds):
+        """
+        The image of an element or a subgroup.
+
+        INPUT:
+
+        ``J`` -- a subgroup or an element of the domain of ``self``.
+
+        OUTPUT:
+
+        The image of ``J`` under ``self``
+
+        NOTE:
+
+        ``pushforward`` is the method that is used when a map is called on
+        anything that is not an element of its domain. For historical reasons,
+        we keep the alias ``image()`` for this method.
+
+        EXAMPLES::
+
+            sage: F = GF(7); MS = MatrixSpace(F,2,2)
+            sage: F.multiplicative_generator()
+            3
+            sage: G = MatrixGroup([MS([3,0,0,1])])
+            sage: a = G.gens()[0]^2
+            sage: phi = G.hom([a])
+            sage: phi.image(G.gens()[0]) # indirect doctest
+            [2 0]
+            [0 1]
+            sage: H = MatrixGroup([MS(a.list())])
+            sage: H
+            Matrix group over Finite Field of size 7 with 1 generators:
+             [[[2, 0], [0, 1]]]
+
+        The following tests against trac ticket #10659::
+
+            sage: phi(H)   # indirect doctestest
+            Matrix group over Finite Field of size 7 with 1 generators:
+             [[[4, 0], [0, 1]]]
+        """
+        phi = gap(self)
+        F = self.codomain().base_ring()
+        from sage.all import MatrixGroup
+        gapJ = gap(J)
+        if gap.eval("IsGroup(%s)"%gapJ.name()) == "true":
+            return MatrixGroup([x._matrix_(F) for x in phi.Image(gapJ).GeneratorsOfGroup()])
+        return phi.Image(gapJ)._matrix_(F)
+
+    image = pushforward
+
+    def _call_( self, g ):
         """
         Some python code for wrapping GAP's Images function for a matrix
         group G. Returns an error if g is not in G.
@@ -196,13 +218,39 @@ class MatrixGroupMorphism_im_gens(MatrixGroupMorphism):
             sage: phi(G.1)
             [1 1]
             [0 1]
+
+        TEST:
+
+        The following tests that the call method was successfully
+        improved in trac ticket #10659::
+
+            sage: O = WeylGroup(['D',6])
+            sage: r = prod(O.gens())
+            sage: r_ = r^-1
+            sage: f = O.hom([r*x*r_ for x in O.gens()])
+            sage: [f(x) for x in O.gens()]
+            [
+            [1 0 0 0 0 0]  [1 0 0 0 0 0]  [1 0 0 0 0 0]  [ 0  0  0  0 -1  0]
+            [0 0 1 0 0 0]  [0 1 0 0 0 0]  [0 1 0 0 0 0]  [ 0  1  0  0  0  0]
+            [0 1 0 0 0 0]  [0 0 0 1 0 0]  [0 0 1 0 0 0]  [ 0  0  1  0  0  0]
+            [0 0 0 1 0 0]  [0 0 1 0 0 0]  [0 0 0 0 1 0]  [ 0  0  0  1  0  0]
+            [0 0 0 0 1 0]  [0 0 0 0 1 0]  [0 0 0 1 0 0]  [-1  0  0  0  0  0]
+            [0 0 0 0 0 1], [0 0 0 0 0 1], [0 0 0 0 0 1], [ 0  0  0  0  0  1],
+            <BLANKLINE>
+            [0 0 0 0 0 1]  [ 0  0  0  0  0 -1]
+            [0 1 0 0 0 0]  [ 0  1  0  0  0  0]
+            [0 0 1 0 0 0]  [ 0  0  1  0  0  0]
+            [0 0 0 1 0 0]  [ 0  0  0  1  0  0]
+            [0 0 0 0 1 0]  [ 0  0  0  0  1  0]
+            [1 0 0 0 0 0], [-1  0  0  0  0  0]
+            ]
+            sage: f(O)
+            Matrix group over Rational Field with 6 generators:
+             [[[1, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0], [0, 1, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 1]], [[1, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0], [0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 1]], [[1, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 1, 0], [0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 1]], [[0, 0, 0, 0, -1, 0], [0, 1, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0], [0, 0, 0, 1, 0, 0], [-1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1]], [[0, 0, 0, 0, 0, 1], [0, 1, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0], [0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 1, 0], [1, 0, 0, 0, 0, 0]], [[0, 0, 0, 0, 0, -1], [0, 1, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0], [0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 1, 0], [-1, 0, 0, 0, 0, 0]]]
+
         """
-        cmd = self._gap_hom_string
-        gap.eval(cmd)
+        phi = gap(self)
         G = self.domain()
         F = G.base_ring()
         h = gap(g)
-        return gap('Image(phi, %s)'%h.name())._matrix_(F)
-
-
-
+        return phi.Image(h)._matrix_(F)

@@ -639,10 +639,10 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
            arguments ``*args`` and ``**kwds``
 
 
-        IMPLEMENTATION::
+        ALGORITHM:
 
-        Call the ``random_element`` method on the underlying
-        polynomial ring.
+        Call the ``random_element`` method on the underlying polynomial
+        ring.
 
         EXAMPLES::
 

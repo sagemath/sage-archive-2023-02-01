@@ -30,5 +30,7 @@ from etaproducts import *
 
 from overconvergent.all import *
 
+from local_comp.all import *
+
 from cusps_nf import NFCusp, NFCusps, NFCusps_clear_cache, Gamma0_NFCusps
 

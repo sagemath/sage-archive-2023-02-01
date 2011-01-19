@@ -11,6 +11,11 @@ Miscellaneous Modular-Form-Related Modules
    sage/modular/dims
    sage/modular/buzzard
 
+   sage/modular/local_comp/local_comp
+   sage/modular/local_comp/smoothchar
+   sage/modular/local_comp/type_space
+   sage/modular/local_comp/liftings
+
    sage/modular/etaproducts
    sage/modular/overconvergent/weightspace
    sage/modular/overconvergent/genus0

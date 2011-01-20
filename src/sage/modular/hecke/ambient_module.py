@@ -808,6 +808,12 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
             Modular Symbols space of dimension 4 and level 16, weight 3, character [-1, 1], sign 1, over Rational Field
             sage: M.old_submodule()
             Modular Symbols subspace of dimension 3 of Modular Symbols space of dimension 4 and level 16, weight 3, character [-1, 1], sign 1, over Rational Field
+
+        Illustrate that trac 10664 is fixed::
+
+            sage: ModularSymbols(DirichletGroup(42)[7], 6, sign=1).old_subspace(3)
+            Modular Symbols subspace of dimension 0 of Modular Symbols space of dimension 40 and level 42, weight 6, character [-1, -1], sign 1, over Rational Field
+
         """
         try:
             if self.__is_old[p]:
@@ -856,7 +862,11 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
                 d = d.stack(M.degeneracy_map(N, q).matrix())
             #end if
         #end for
-        os = self.submodule(d.image(), check=False)
+        if d is None:
+            os = self.zero_submodule()
+        else:
+            os = self.submodule(d.image(), check=False)
+
         self.__is_old[p] = (os == self)
 
         os.__is_old = {p:True}

@@ -2309,9 +2309,15 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             [1 2]
             sage: print p.origin()
             None
+
+        Now we make sure that the origin of non-full-dimensional polytopes can
+        be identified correctly (Trac #10661)::
+
+            sage: LatticePolytope([(1,0,0), (-1,0,0)]).origin()
+            2
         """
         if "_origin" not in self.__dict__:
-            origin = vector([0]*self.dim())
+            origin = vector(ZZ, self.ambient_dim())
             points = self.points().columns(copy=False)
             self._origin = points.index(origin) if origin in points else None
         return self._origin

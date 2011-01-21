@@ -155,28 +155,51 @@ from sage.rings.all import Integer, Infinity, ZZ
 class FiniteWord_class(Word_nfactor_enumerable):
     def __str__(self):
         r"""
-        Returns the full string representation of the word.
+        Returns the full (not truncated) string representation of the word
+        without identifier.
 
         TESTS::
 
             sage: Word('abc').__str__()
-            'word: abc'
+            'abc'
             sage: Word([0, 1, 0, 0, 1] * 10).__str__()
-            'word: 01001010010100101001010010100101001010010100101001'
+            '01001010010100101001010010100101001010010100101001'
             sage: Word([0,1,10,101]).__str__()
-            'word: 0,1,10,101'
+            '0,1,10,101'
+
+        Insertion in a str::
+
+            sage: w = Word(range(5))
+            sage: "Let's insert the word w = %s in this string." % w
+            "Let's insert the word w = 01234 in this string."
+
+        Using LatexExpr::
+
+            sage: from sage.misc.latex import LatexExpr
+            sage: LatexExpr(w)
+            01234
+
+        With the print statement::
+
+            sage: print w
+            01234
+
+        No truncation is done for finite words::
+
+            sage: w = Word([i % 5 for i in range(60)])
+            sage: print w
+            012340123401234012340123401234012340123401234012340123401234
         """
         global word_options
-        letters = list(self)
         if word_options['display'] == 'string':
             ls = word_options['letter_separator']
-            letters = map(str, letters)
+            letters = map(str, self)
             if all(len(a)==1 for a in letters):
-                return word_options['identifier'] + ''.join(letters)
+                return ''.join(letters)
             else:
-                return word_options['identifier'] + ls.join(letters)
+                return ls.join(letters)
         elif word_options['display'] == 'list':
-            return word_options['identifier'] + str(list(letters))
+            return str(list(self))
 
     def _repr_(self):
         r"""
@@ -1463,7 +1486,7 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: pal = v[:0]
             sage: for i in range(1, v.length()+1):
             ...     pal = v[:i].lps(l=pal.length())
-            ...     print pal
+            ...     pal
             ...
             word: a
             word: b
@@ -1478,7 +1501,7 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: pal = v[:0]
             sage: for i in range(1, v.length()+1):
             ...     pal = v[:i].lps(f=f, l=pal.length())
-            ...     print pal
+            ...     pal
             ...
             word:
             word: ab

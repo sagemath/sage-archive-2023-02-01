@@ -184,7 +184,7 @@ class SuffixTrie(SageObject):
             sage: SuffixTrie(Word("abcba"))._repr_()
             'Suffix Trie of the word: abcba'
         """
-        return 'Suffix Trie of the %s' % self.word()
+        return 'Suffix Trie of the %s' % repr(self.word())
 
     def node_to_word(self, state=0):
         r"""
@@ -793,7 +793,7 @@ class ImplicitSuffixTree(SageObject):
             sage: ImplicitSuffixTree(Word("abcba"))._repr_()
             'Implicit Suffix Tree of the word: abcba'
         """
-        return 'Implicit Suffix Tree of the %s' % self.word()
+        return 'Implicit Suffix Tree of the %s' % repr(self.word())
 
     def word(self):
         r"""

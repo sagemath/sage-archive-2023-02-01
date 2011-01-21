@@ -45,7 +45,7 @@ class ShuffleProduct_w1w2(CombinatorialClass):
             sage: repr(ShuffleProduct_w1w2(W("ab"),W("cd")))
             'Shuffle product of word: ab and word: cd'
         """
-        return "Shuffle product of %s and %s"%(self._w1, self._w2)
+        return "Shuffle product of %s and %s"% (repr(self._w1), repr(self._w2))
 
     def __contains__(self, x):
         """
@@ -166,7 +166,7 @@ class ShuffleProduct_shifted(ShuffleProduct_w1w2):
             sage: ShuffleProduct_shifted(w,u).__repr__()
             'Shuffle product of word: 01 and word: 45'
         """
-        return "Shuffle product of %s and %s"%(self._w1, self._w2)
+        return "Shuffle product of %s and %s"% (repr(self._w1), repr(self._w2))
 
 class ShuffleProduct_overlapping_r(CombinatorialClass):
     def __init__(self, w1, w2, r):
@@ -192,7 +192,7 @@ class ShuffleProduct_overlapping_r(CombinatorialClass):
             sage: ShuffleProduct_overlapping_r(w,u,1).__repr__()
             'Overlapping shuffle product of word: ab and word: cd with 1 overlaps'
         """
-        return "Overlapping shuffle product of %s and %s with %s overlaps"%(self._w1, self._w2, self.r)
+        return "Overlapping shuffle product of %s and %s with %s overlaps"%(repr(self._w1), repr(self._w2), self.r)
 
     def __iter__(self):
         """
@@ -268,7 +268,7 @@ class ShuffleProduct_overlapping(CombinatorialClass):
             sage: ShuffleProduct_overlapping(w,u).__repr__()
             'Overlapping shuffle product of word: ab and word: cd'
         """
-        return "Overlapping shuffle product of %s and %s"%(self._w1, self._w2)
+        return "Overlapping shuffle product of %s and %s"%(repr(self._w1), repr(self._w2))
 
     def __iter__(self):
         """

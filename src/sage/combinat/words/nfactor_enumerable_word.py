@@ -612,22 +612,23 @@ class Word_nfactor_enumerable(Word_class):
             sage: for i in range(10):
             ...     for u in sorted(w.bispecial_factors_iterator(i)):
             ...         print i,u
-            0 word:
-            1 word: 0
-            1 word: 1
-            2 word: 01
-            2 word: 10
-            3 word: 010
-            3 word: 101
-            4 word: 0110
-            4 word: 1001
-            6 word: 011001
-            6 word: 100110
-            8 word: 10010110
+            0
+            1 0
+            1 1
+            2 01
+            2 10
+            3 010
+            3 101
+            4 0110
+            4 1001
+            6 011001
+            6 100110
+            8 10010110
 
         ::
 
-            sage: for u in sorted(w.bispecial_factors_iterator(), key=lambda u:(len(u),u)): print u
+            sage: key = lambda u : (len(u), u)
+            sage: for u in sorted(w.bispecial_factors_iterator(), key=key): u
             word:
             word: 0
             word: 1

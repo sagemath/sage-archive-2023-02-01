@@ -1109,7 +1109,7 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
             ...     if len(w)>3:
             ...         break
             ...     else:
-            ...         print w
+            ...         w
             ...
             word:
             word: 4
@@ -1131,7 +1131,7 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
             ...     if len(w)>3:
             ...         break
             ...     else:
-            ...         print w
+            ...         w
             ...
             word:
             word: 5

@@ -239,12 +239,12 @@ class LowerChristoffelWord(FiniteWord_list):
         EXAMPLES::
 
             sage: w = words.LowerChristoffelWord(5,9)
-            sage: print w
+            sage: w
             word: 00100100100101
             sage: w1, w2 = w.standard_factorization()
-            sage: print w1
+            sage: w1
             word: 001
-            sage: print w2
+            sage: w2
             word: 00100100101
 
         ::

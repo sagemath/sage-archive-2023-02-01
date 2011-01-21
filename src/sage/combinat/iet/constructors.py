@@ -746,10 +746,10 @@ def RauzyDiagram(*args, **kargs):
         ...    w1.append(T.in_which_interval(x))
         ...    x = T(x)
         sage: w1 = Word(w1)
-        sage: print w1
+        sage: w1
         word: acbbcacbcacbbcbbcacb
         sage: w2 = s.fixed_point('a')
-        sage: print w2[:20]
+        sage: w2[:20]
         word: acbbcacbcacbbcbbcacb
         sage: w2[:20] == w1
         True

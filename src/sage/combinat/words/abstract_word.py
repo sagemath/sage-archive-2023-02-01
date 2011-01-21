@@ -74,7 +74,7 @@ class Word_class(SageObject):
 
     def string_rep(self):
         r"""
-        Returns the raw sequence of letters as a string.
+        Returns the (truncated) raw sequence of letters as a string.
 
         EXAMPLES::
 
@@ -88,6 +88,31 @@ class Word_class(SageObject):
             sage: Word([0,1,10,101]).string_rep()
             '0-1-10-101'
             sage: WordOptions(letter_separator=',')
+
+        TESTS:
+
+        Insertion in a str::
+
+            sage: from itertools import count
+            sage: w = Word((i % 5 for i in count()), length='unknown')
+            sage: "w = %s in this string." % w
+            'w = 0123401234012340123401234012340123401234... in this string.'
+
+        Using LatexExpr::
+
+            sage: from sage.misc.latex import LatexExpr
+            sage: LatexExpr(w)
+            0123401234012340123401234012340123401234...
+
+        With the print statement::
+
+            sage: print w
+            0123401234012340123401234012340123401234...
+
+        Truncation is done for possibily infinite words::
+
+            sage: print w
+            0123401234012340123401234012340123401234...
         """
         global word_options
         l = word_options['truncate_length']
@@ -111,6 +136,8 @@ class Word_class(SageObject):
                 return "[%s, %s]" % (str(list(letters))[1:-1], suffix)
             else:
                 return str(list(letters))
+
+    __str__ = string_rep
 
     def __iter__(self):
         r"""
@@ -1137,7 +1164,7 @@ class Word_class(SageObject):
         EXAMPLES::
 
             sage: w = Word('abaaba')
-            sage: for p in w.prefixes_iterator(): print p
+            sage: for p in w.prefixes_iterator(): p
             word:
             word: a
             word: ab
@@ -1145,7 +1172,7 @@ class Word_class(SageObject):
             word: abaa
             word: abaab
             word: abaaba
-            sage: for p in w.prefixes_iterator(max_length=3): print p
+            sage: for p in w.prefixes_iterator(max_length=3): p
             word:
             word: a
             word: ab
@@ -1154,7 +1181,7 @@ class Word_class(SageObject):
         You can iterate over the prefixes of an infinite word::
 
             sage: f = words.FibonacciWord()
-            sage: for p in f.prefixes_iterator(max_length=8): print p
+            sage: for p in f.prefixes_iterator(max_length=8): p
             word:
             word: 0
             word: 01
@@ -1191,12 +1218,12 @@ class Word_class(SageObject):
         EXAMPLES::
 
             sage: w = Word('abaaba')
-            sage: for pp in w.palindrome_prefixes_iterator(): print pp
+            sage: for pp in w.palindrome_prefixes_iterator(): pp
             word:
             word: a
             word: aba
             word: abaaba
-            sage: for pp in w.palindrome_prefixes_iterator(max_length=4): print pp
+            sage: for pp in w.palindrome_prefixes_iterator(max_length=4): pp
             word:
             word: a
             word: aba
@@ -1204,7 +1231,7 @@ class Word_class(SageObject):
         You can iterate over the palindrome prefixes of an infinite word::
 
             sage: f = words.FibonacciWord()
-            sage: for pp in f.palindrome_prefixes_iterator(max_length=20): print pp
+            sage: for pp in f.palindrome_prefixes_iterator(max_length=20): pp
             word:
             word: 0
             word: 010

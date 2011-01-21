@@ -45,6 +45,7 @@ cdef extern from "stdsage.h":
     void* sage_malloc(size_t)
     void  init_csage()
     void  init_csage_module()
+    void  init_memory_functions()
 
 
 # Do this for every single module that links in stdsage.

@@ -163,7 +163,7 @@ cdef class ntl_ZZ_pX:
         self.c.restore_c()
         #cdef char* s = ZZ_pX_repr(&self.x)
         #t = str(s)
-        #free(s)
+        #sage_free(s)
         return ZZ_pX_to_PyString(&self.x)
         #return t
 
@@ -896,8 +896,8 @@ cdef class ntl_ZZ_pX:
             #F.append((make_ZZ_pX(v[i], self.c), e[i]))
         for i from 0 <= i < n:
             ZZ_pX_delete(v[i])
-        free(v)
-        free(e)
+        sage_free(v)
+        sage_free(e)
         return F
 
     def linear_roots(self):
@@ -941,7 +941,7 @@ cdef class ntl_ZZ_pX:
             #F.append(make_ZZ_p(v[i], self.c))
         for i from 0 <= i < n:
             ZZ_p_delete(v[i])
-        free(v)
+        sage_free(v)
         return F
 
     def reverse(self, hi=None):

@@ -326,7 +326,7 @@ def binary(n, length=None):
     mpz_set_ui(i,n)
     cdef char* s=mpz_get_str(NULL, 2, i)
     t=str(s)
-    free(s)
+    sage_free(s)
     mpz_clear(i)
     return t
 

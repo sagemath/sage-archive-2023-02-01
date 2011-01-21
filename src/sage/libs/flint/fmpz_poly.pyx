@@ -116,7 +116,7 @@ cdef class Fmpz_poly(SageObject):
         """
         cdef char* ss = fmpz_poly_to_string(self.poly)
         cdef object s = ss
-        free(ss)
+        sage_free(ss)
         return s
 
     def degree(self):

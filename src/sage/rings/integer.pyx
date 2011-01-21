@@ -3783,7 +3783,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         # we need (at most) log_2(#factors) concurrent sub-products
         cdef int prod_count = <int>ceil_c(log_c(n/k+1)/log_c(2))
-        cdef mpz_t* sub_prods = <mpz_t*>malloc(prod_count * sizeof(mpz_t))
+        cdef mpz_t* sub_prods = <mpz_t*>sage_malloc(prod_count * sizeof(mpz_t))
         if sub_prods == NULL:
             raise MemoryError
         for i from 0 <= i < prod_count:
@@ -3814,7 +3814,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         for i from 0 <= i < prod_count:
             mpz_clear(sub_prods[i])
-        free(sub_prods)
+        sage_free(sub_prods)
 
         return z
 

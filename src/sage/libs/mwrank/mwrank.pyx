@@ -23,14 +23,12 @@ import os
 import sys
 
 include '../../ext/interrupt.pxi'
+include '../../ext/stdsage.pxi'
 
 # Need to permit tabs in order to doctest verbose output.
 """
 SAGE_DOCTEST_ALLOW_TABS
 """
-
-cdef extern from "stdlib.h":
-    void free(void *ptr)
 
 cdef extern from "wrap.h":
     ### misc functions ###
@@ -97,7 +95,7 @@ cdef object string_sigoff(char* s):
     sig_off()
     # Makes a python string and deletes what is pointed to by s.
     t = str(s)
-    free(s)
+    sage_free(s)
     return t
 
 class __init:

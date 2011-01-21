@@ -3510,7 +3510,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         for i from 0 <= i < dim*self._ncols:
             mpz_init_set(M._entries[i], mp_N[i])
             mpz_clear(mp_N[i])
-        free(mp_N)
+        sage_free(mp_N)
 
         verbose("finished computing null space", time)
         M._initialized = True

@@ -1114,8 +1114,8 @@ cdef class ntl_ZZX:
         F = []
         for i from 0 <= i < n:
             F.append((make_ZZX(v[i]), e[i]))
-        free(v)
-        free(e)
+        sage_free(v)
+        sage_free(e)
         return F
 
 

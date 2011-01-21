@@ -634,7 +634,6 @@ cdef inline int overflow_check(long e) except -1:
 
 # Our attempt at avoiding exponent overflows.
 cdef unsigned int max_exponent_size
-import sage.rings.memory
 
 cdef init_libsingular():
     """
@@ -667,9 +666,6 @@ cdef init_libsingular():
 
     # load SINGULAR
     siInit(lib)
-
-    # steal memory manager back or weird things may happen
-    sage.rings.memory.pmem_malloc()
 
     dlclose(handle)
 

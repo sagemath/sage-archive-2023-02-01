@@ -181,14 +181,14 @@ cdef class Polynomial_rational_flint(Polynomial):
             L1 = [e if isinstance(e, Rational) else Rational(e) for e in x]
             n  = <unsigned long> len(x)
             sig_on()
-            L2 = <mpq_t *> malloc(n * sizeof(mpq_t))
+            L2 = <mpq_t *> sage_malloc(n * sizeof(mpq_t))
             for deg from 0 <= deg < n:
                 mpq_init(L2[deg])
                 mpq_set(L2[deg], (<Rational> L1[deg]).value)
             _fmpq_poly_from_list(self.__poly, L2, n)
             for deg from 0 <= deg < n:
                 mpq_clear(L2[deg])
-            free(L2)
+            sage_free(L2)
             sig_off()
 
 #           deg = 0

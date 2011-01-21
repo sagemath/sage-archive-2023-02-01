@@ -28,7 +28,7 @@ cpdef eisenstein_series_poly(int k, int prec = 10) :
         sage: eisenstein_series_poly(12, prec=5)
         5  691 65520 134250480 11606736960 274945048560
     """
-    cdef mpz_t *val = <mpz_t *>malloc(prec * sizeof(mpz_t))
+    cdef mpz_t *val = <mpz_t *>sage_malloc(prec * sizeof(mpz_t))
     cdef mpz_t one, mult, term, last, term_m1, last_m1
     cdef unsigned long int expt
     cdef long ind, ppow, int_p
@@ -41,6 +41,8 @@ cpdef eisenstein_series_poly(int k, int prec = 10) :
         raise ValueError, "prec (=%s) must be an even nonnegative integer"%prec
     if (prec == 0):
         return PY_NEW(Fmpz_poly)
+
+    sig_on()
 
     mpz_init(one)
     mpz_init(term)
@@ -92,5 +94,9 @@ cpdef eisenstein_series_poly(int k, int prec = 10) :
 
     fmpz_poly_scalar_mul_mpz(res.poly, res.poly, (<Integer>(a0.denominator())).value)
     fmpz_poly_set_coeff_mpz(res.poly, 0, (<Integer>(a0.numerator())).value)
+
+    sage_free(val)
+
+    sig_off()
 
     return res

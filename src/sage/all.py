@@ -51,13 +51,10 @@ sage.server.notebook.gnutls_socket_ssl.require_SSL()
 
 ###################################################################
 
-from time                import sleep
-
-from sage.rings.memory import pmem_malloc
-pmem_malloc()
-
 from sage.ext.c_lib import _init_csage, sig_on_count
 _init_csage()
+
+from time                import sleep
 
 from sage.misc.all       import *         # takes a while
 
@@ -70,8 +67,6 @@ from sage.matrix.all     import *
 
 # This must come before Calculus -- it initializes the Pynac library.
 import sage.symbolic.pynac
-
-pmem_malloc()
 
 from sage.modules.all    import *
 from sage.monoids.all    import *

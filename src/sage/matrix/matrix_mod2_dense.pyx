@@ -433,8 +433,28 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             return self._zero
 
 
-    def str(self):
+    def str(self, rep_mapping=None, zero=None, plus_one=None, minus_one=None):
         """
+        Return a nice string representation of the matrix.
+
+        INPUT:
+
+        - ``rep_mapping`` - a dictionary or callable used to override
+          the usual representation of elements.  For a dictionary,
+          keys should be elements of the base ring and values the
+          desired string representation.
+
+        - ``zero`` - string (default: ``None``); if not ``None`` use
+          the value of ``zero`` as the representation of the zero
+          element.
+
+        - ``plus_one`` - string (default: ``None``); if not ``None``
+          use the value of ``plus_one`` as the representation of the
+          one element.
+
+        - ``minus_one`` - Ignored.  Only for compatibility with
+          generic matrices.
+
         EXAMPLE::
 
             sage: B = random_matrix(GF(2),3,3)
@@ -450,6 +470,8 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [0 0 0|0 1 0]
             [0 0 0|0 1 1]
             [0 0 0|0 0 0]
+            sage: B.str(zero='.')
+            '[. 1 .]\n[. 1 1]\n[. . .]'
         """
         if self._nrows ==0 or self._ncols == 0:
             return "[]"
@@ -460,6 +482,12 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef char *row_s
         cdef char *div_s
 
+        # Set the mapping based on keyword arguments
+        # We ignore minus_one (it's only there for compatibility with Matrix)
+        if rep_mapping is not None or zero is not None or plus_one is not None:
+        # Shunt mappings off to the generic code since they might not be single characters
+            return matrix_dense.Matrix_dense.str(self, rep_mapping=rep_mapping, zero=zero, plus_one=plus_one)
+
         cdef list row_div, col_div
         if self.subdivisions is not None:
             row_s = empty_row
@@ -469,7 +497,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             for i in col_div:
                 if i == last_i or i == self._ncols:
                     # Adjacent column divisions messy, use generic code
-                    return matrix_dense.Matrix_dense.str(self)
+                    return matrix_dense.Matrix_dense.str(self, rep_mapping)
                 row_s[2*i-1] = '|'
                 div_s[2*i] = '+'
                 last_i = i

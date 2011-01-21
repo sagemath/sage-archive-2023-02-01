@@ -1607,14 +1607,63 @@ cdef class Matrix(sage.structure.element.Matrix):
             name = "obj"
         return rep + " (type 'print %s.str()' to see all of the entries)" % name
 
-    def str(self):
+    def str(self, rep_mapping=None, zero=None, plus_one=None, minus_one=None):
         r"""
+        Return a nice string representation of the matrix.
+
+        INPUT:
+
+        - ``rep_mapping`` - a dictionary or callable used to override
+          the usual representation of elements.
+
+          If ``rep_mapping`` is a dictionary then keys should be
+          elements of the base ring and values the desired string
+          representation.  Values sent in via the other keyword
+          arguments will override values in the dictionary.
+
+          If ``rep_mapping`` is callable then it will be called with
+          elements of the matrix and must return a string.  Simply
+          call :func:`repr` on elements which should have the default
+          representation.
+
+        - ``zero`` - string (default: ``None``); if not ``None`` use
+          the value of ``zero`` as the representation of the zero
+          element.
+
+        - ``plus_one`` - string (default: ``None``); if not ``None``
+          use the value of ``plus_one`` as the representation of the
+          one element.
+
+        - ``minus_one`` - string (default: ``None``); if not ``None``
+          use the value of ``minus_one`` as the representation of the
+          negative of the one element.
+
         EXAMPLES::
 
             sage: R = PolynomialRing(QQ,6,'z')
             sage: a = matrix(2,3, R.gens())
             sage: a.__repr__()
             '[z0 z1 z2]\n[z3 z4 z5]'
+
+            sage: M = matrix([[1,0],[2,-1]])
+            sage: M.str()
+            '[ 1  0]\n[ 2 -1]'
+            sage: M.str(plus_one='+',minus_one='-',zero='.')
+            '[+ .]\n[2 -]'
+            sage: M.str({1:"not this one",2:"II"},minus_one="*",plus_one="I")
+            '[ I  0]\n[II  *]'
+
+            sage: def print_entry(x):
+            ...     if x>0:
+            ...         return '+'
+            ...     elif x<0:
+            ...         return '-'
+            ...     else: return '.'
+            ...
+            sage: M.str(print_entry)
+            '[+ .]\n[+ -]'
+            sage: M.str(repr)
+            '[ 1  0]\n[ 2 -1]'
         """
         #x = self.fetch('repr')  # too confusing!!
         #if not x is None: return x
@@ -1627,10 +1676,28 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         row_divs, col_divs = self.get_subdivisions()
 
+        # Set the mapping based on keyword arguments
+        if rep_mapping is None:
+            rep_mapping = {}
+        if isinstance(rep_mapping, dict):
+            if zero is not None:
+                rep_mapping[self.base_ring().zero()] = zero
+            if plus_one is not None:
+                rep_mapping[self.base_ring().one()] = plus_one
+            if minus_one is not None:
+                rep_mapping[-self.base_ring().one()] = minus_one
+
         # compute column widths
         S = []
         for x in self.list():
-            S.append(repr(x))
+            # Override the usual representations with those specified
+            if callable(rep_mapping):
+                rep = rep_mapping(x)
+            elif rep_mapping.has_key(x):
+                rep = rep_mapping.get(x)
+            else:
+                rep = repr(x)
+            S.append(rep)
 
         tmp = []
         for x in S:

@@ -30,7 +30,7 @@ included standard with Sage.
 
 PALP is described in the paper math.SC/0204356. Its distribution
 also contains the application nef.x, which was created by Erwin
-Riegler and computes nef partitions and Hodge data for toric
+Riegler and computes nef-partitions and Hodge data for toric
 complete intersections.
 
 ACKNOWLEDGMENT: polytope.py module written by William Stein was
@@ -3180,7 +3180,7 @@ class NefPartition(SageObject,
 
     The **dual nef-partition** is formed by polytopes $\Delta_i \subset M_\RR$
     of $E_i$, which give a decomposition of the vertex set of $\nabla^\circ
-    \subset M_\RR$ and their Minkowski sum of is $\Delta$, i.e. polar duality
+    \subset M_\RR$ and their Minkowski sum is $\Delta$, i.e. the polar duality
     of reflexive polytopes switches convex hull and Minkowski sum for dual
     nef-partitions:
 
@@ -3810,7 +3810,7 @@ class NefPartition(SageObject,
 
         INPUT:
 
-        - ``i`` - an integer.
+        - ``i`` -- an integer.
 
         OUTPUT:
 
@@ -3832,6 +3832,83 @@ class NefPartition(SageObject,
             1
         """
         return self._vertex_to_part[i]
+
+    def part_of_point(self, i):
+        r"""
+        Return the index of the part containing the ``i``-th point.
+
+        INPUT:
+
+        - ``i`` -- an integer.
+
+        OUTPUT:
+
+        - an integer `j` such that the ``i``-th point of `\Delta^\circ`
+          belongs to `\nabla_j`.
+
+        .. NOTE::
+
+            Since a nef-partition induces a partition on the set of boundary
+            lattice points of `\Delta^\circ`, the value of `j` is well-defined
+            for all `i` but the one that corresponds to the origin, in which
+            case this method will raise a ``ValueError`` exception. (The origin
+            always belongs to all `\nabla_j`.)
+
+        See :class:`nef-partition <NefPartition>` class documentation for
+        definitions and notation.
+
+        EXAMPLES:
+
+        We consider a relatively complicated reflexive polytope #2252 (easily
+        accessible in Sage as ``ReflexivePolytope(3, 2252)``, we create it here
+        explicitly to avoid loading the whole database)::
+
+            sage: p = LatticePolytope([(1,0,0), (0,1,0), (0,0,1), (0,1,-1),
+            ...           (0,-1,1), (-1,1,0), (0,-1,-1), (-1,-1,0), (-1,-1,2)])
+            sage: np = p.nef_partitions()[0]
+            sage: np
+            Nef-partition {1, 2, 5, 7, 8} U {0, 3, 4, 6}
+            sage: p.nvertices()
+            9
+            sage: p.npoints()
+            15
+
+        We see that the polytope has 6 more points in addition to vertices. One
+        of them is the origin::
+
+            sage: p.origin()
+            14
+            sage: np.part_of_point(14)
+            Traceback (most recent call last):
+            ...
+            ValueError: the origin belongs to all parts!
+
+        But the remaining 5 are partitioned by ``np``::
+
+            sage: [n for n in range(p.npoints())
+            ...      if p.origin() != n and np.part_of_point(n) == 0]
+            [1, 2, 5, 7, 8, 9, 11, 13]
+            sage: [n for n in range(p.npoints())
+            ...      if p.origin() != n and np.part_of_point(n) == 1]
+            [0, 3, 4, 6, 10, 12]
+        """
+        try:
+            ptp = self._point_to_part
+        except AttributeError:
+            ptp = [-1] * self._Delta_polar.npoints()
+            for v, part in enumerate(self._vertex_to_part):
+                ptp[v] = part
+            self._point_to_part = ptp
+        if ptp[i] > 0:
+            return ptp[i]
+        if i == self._Delta_polar.origin():
+            raise ValueError("the origin belongs to all parts!")
+        point = self._Delta_polar.point(i)
+        for part, nabla in enumerate(self.nablas()):
+            if min(nabla.distances(point)) >= 0:
+                ptp[i] = part
+                break
+        return ptp[i]
 
 
 class _PolytopeFace(SageObject):

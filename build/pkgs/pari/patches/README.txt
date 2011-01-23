@@ -29,8 +29,6 @@ Patches to configuration files:
   because that requires tex.  On the other hand, to have ? and ?? work
   within gp, we must install the .tex files (but not .dvi files).  So
   simply not doing install-doc doesn't work.
-* Makefile_mv.patch: Fix race condition in parallel "make install",
-  see http://pari.math.u-bordeaux.fr/cgi-bin/bugreport.cgi?bug=1148
 * perl_path.patch: change first line of all perl scripts
   to "#!/usr/bin/env perl" (#10559).
 
@@ -102,4 +100,6 @@ Files previously patched:
 * src/headers/paripriv.h: *After* building, on {OS X, SunOS, CYGWIN},
   rename "ECHO".  Upstream changed ECHO to gpd_ECHO, so the patch is
   not needed anymore.
-
+* Makefile_mv.patch: Fix race condition in parallel "make install",
+  see http://pari.math.u-bordeaux.fr/cgi-bin/bugreport.cgi?bug=1148
+  Removed because race conditions still remain, instead make -j1 install.

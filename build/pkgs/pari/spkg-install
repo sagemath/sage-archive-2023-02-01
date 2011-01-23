@@ -192,7 +192,8 @@ install()
 {
     echo "Installing PARI/GP..."
 
-    $MAKE install install-lib-sta
+    # install non-parallel (-j1) because of race conditions
+    $MAKE -j1 install install-lib-sta
     if [ $? -ne 0 ]; then
         echo >&2 "Error installing PARI"
         exit 1

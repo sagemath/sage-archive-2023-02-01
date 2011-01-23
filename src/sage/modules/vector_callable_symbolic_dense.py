@@ -88,12 +88,12 @@ class Vector_callable_symbolic_dense(free_module_element.FreeModuleElement_gener
             sage: f
             (u, v, w) |--> (2*u + v, u - w, w^2 + u)
             sage: latex(f)
-            \left( u, v, w \right) \ {\mapsto} \ \left(2 \, u + v,u - w,w^{2} + u\right)
+            \left( u, v, w \right) \ {\mapsto} \ \left(2 \, u + v,\,u - w,\,w^{2} + u\right)
             sage: r(t) = (cos(t), sin(t))
             sage: r
             t |--> (cos(t), sin(t))
             sage: latex(r)
-            t \ {\mapsto}\ \left(\cos\left(t\right),\sin\left(t\right)\right)
+            t \ {\mapsto}\ \left(\cos\left(t\right),\,\sin\left(t\right)\right)
         """
         from sage.misc.latex import latex
         ring=self.base_ring()

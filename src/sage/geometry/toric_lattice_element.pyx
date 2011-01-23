@@ -351,7 +351,7 @@ cdef class ToricLatticeElement(Vector_integer_dense):
             sage: Ld = ToricLattice(3, "L").dual()
             sage: e = Ld(1,2,3)
             sage: e._latex_()
-            '\\left(1,2,3\\right)_{L^*}'
+            '\\left(1,\\,2,\\,3\\right)_{L^*}'
         """
         return "%s_{%s}" % (super(ToricLatticeElement, self)._latex_(),
                             self.parent().ambient_module()._latex_name)

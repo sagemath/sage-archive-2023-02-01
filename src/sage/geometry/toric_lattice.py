@@ -914,9 +914,9 @@ class ToricLattice_sublattice_with_basis(ToricLattice_generic,
 
             sage: L = ToricLattice(3, "L")
             sage: L.submodule_with_basis([(3,2,1),(1,2,3)])._latex_()
-            '\\left\\langle\\left(3,2,1\\right)_{L}, \\left(1,2,3\\right)_{L}\\right\\rangle'
+            '\\left\\langle\\left(3,\\,2,\\,1\\right)_{L}, \\left(1,\\,2,\\,3\\right)_{L}\\right\\rangle'
             sage: L.submodule([(3,2,1),(1,2,3)])._latex_()
-            '\\left\\langle\\left(1,2,3\\right)_{L}, \\left(0,4,8\\right)_{L}\\right\\rangle'
+            '\\left\\langle\\left(1,\\,2,\\,3\\right)_{L}, \\left(0,\\,4,\\,8\\right)_{L}\\right\\rangle'
         """
         s  = '\\left\\langle'
         s += ', '.join([ b._latex_() for b in self.basis() ])
@@ -1221,12 +1221,11 @@ class ToricLattice_quotient(FGP_Module_class):
             sage: Ns = N.submodule([N(2,4,0), N(9,12,0)])
             sage: Q = N/Ns
             sage: print Q._latex_()
-            N / \left\langle\left(1,8,0\right)_{N},
-            \left(0,12,0\right)_{N}\right\rangle
+            N / \left\langle\left(1,\,8,\,0\right)_{N}, \left(0,\,12,\,0\right)_{N}\right\rangle
             sage: Ns = N.submodule([N(1,4,0)])
             sage: Q = N/Ns
             sage: print Q._latex_()
-            N / \left\langle\left(1,4,0\right)_{N}\right\rangle
+            N / \left\langle\left(1,\,4,\,0\right)_{N}\right\rangle
         """
         return "%s / %s" % (latex(self.V()), latex(self.W()))
 
@@ -1441,7 +1440,7 @@ class ToricLattice_quotient_element(FGP_Element):
             sage: Ns = N.submodule([N(2,4,0), N(9,12,0)])
             sage: Q = N/Ns
             sage: print Q.gen(0)._latex_()
-            \left[0,1,0\right]_{N}
+            \left[0,\,1,\,0\right]_{N}
         """
         return latex(self.lift()).replace("(", "[", 1).replace(")", "]", 1)
 

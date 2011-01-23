@@ -993,13 +993,13 @@ class Latex:
 
             sage: a = vector(QQ, [1,2,3])
             sage: latex(a)
-            \left(1,2,3\right)
+            \left(1,\,2,\,3\right)
             sage: latex.vector_delimiters("[", "]")
             sage: latex(a)
-            \left[1,2,3\right]
+            \left[1,\,2,\,3\right]
             sage: latex.vector_delimiters(right="\\}")
             sage: latex(a)
-            \left[1,2,3\right\}
+            \left[1,\,2,\,3\right\}
             sage: latex.vector_delimiters()
             ['[', '\\}']
 

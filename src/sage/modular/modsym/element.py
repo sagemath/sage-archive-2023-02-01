@@ -181,7 +181,7 @@ class ModularSymbolsElement(hecke.HeckeModuleElement):
             sage: set_modsym_print_mode('modular'); latex(x) # indirect doctest
             \left\{\frac{-1}{9}, 0\right\} + \left\{\infty, 0\right\}
             sage: set_modsym_print_mode('vector'); latex(x) # indirect doctest
-            \left(1,0,1\right)
+            \left(1,\,0,\,1\right)
             sage: set_modsym_print_mode()
         """
 

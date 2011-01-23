@@ -1999,18 +1999,33 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         return self.nonzero_positions()
 
     def _latex_(self):
-        """
-        Return a latex representation of self. For example, if self is
-        the free module element (1,2,3,4), then following latex is
-        generated: "(1,2,3,4)" (without the quotes).  The vector is
-        enclosed in parentheses by default, but the delimiters can be
-        changed using the command ``latex.vector_delimiters(...)``.
+        r"""
+        Return a latex representation of the vector ``self``.
+
+        OUTPUT:
+
+        If self is the free module element (1,2,3,4),
+        then a string with the following latex is returned:
+        "\left(1,\,2,\,3,\,4\right)" (without the quotes).
+        The vector is enclosed in parentheses by default,
+        but the delimiters can be changed using the command
+        ``latex.vector_delimiters(...)`` as in the example below.
 
         EXAMPLES::
 
             sage: v = vector(QQ, [1,2,3])
             sage: latex(v)
-            \left(1,2,3\right)
+            \left(1,\,2,\,3\right)
+
+        This is an example of how to change the delimiters.
+        You have the power to mix and match, though it is
+        probably not advisable.  For more detail see
+        :meth:`~sage.misc.latex.Latex.vector_delimiters`.
+
+            sage: latex.vector_delimiters('[', '\\rangle')
+            sage: w = vector(CDF, [1,2,3])
+            sage: latex(w)
+            \left[1.0,\,2.0,\,3.0\right\rangle
         """
         latex = sage.misc.latex.latex
         vector_delimiters = latex.vector_delimiters()

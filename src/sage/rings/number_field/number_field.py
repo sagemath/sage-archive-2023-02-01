@@ -2682,15 +2682,16 @@ class NumberField_generic(number_field_base.NumberField):
             self.__pari_bnf_certified = True
         return self.__pari_bnf_certified
 
-    def pari_rnfnorm_data(self, L):
+    def pari_rnfnorm_data(self, L, certify=True):
         """
-        Return the pari rnfisnorminit data corresponding to the
+        Return the PARI rnfisnorminit() data corresponding to the
         extension L/self.
 
         EXAMPLES::
 
-            sage: K = NumberField(x**2-2,'alpha')
-            sage: L = K.extension(x**2+5, 'gamma')
+            sage: x = polygen(QQ)
+            sage: K = NumberField(x^2 - 2, 'alpha')
+            sage: L = K.extension(x^2 + 5, 'gamma')
             sage: ls = K.pari_rnfnorm_data(L) ; len(ls)
             8
 
@@ -2704,10 +2705,12 @@ class NumberField_generic(number_field_base.NumberField):
             raise ValueError, "L must be an extension of self"
 
         relpoly = L.defining_polynomial()
-        Kbnf = self.absolute_polynomial()._pari_with_name('y').bnfinit()
-        coeffs = [ a._pari_('y') for a in relpoly.coeffs() ]
-
-        polrel = sage.libs.pari.gen.pari(coeffs).Polrev()
+        # Substitute the variable y in the defining polynomial of the
+        # bnf structure.  The syntax "'y" refers to the *variable* y
+        # as opposed to whatever value happens to be assigned to y.
+        Kbnf = self.pari_bnf(certify=certify).nf_subst("'y")
+        coeffs = [ a._pari_("y") for a in relpoly.coeffs() ]
+        polrel = pari(coeffs).Polrev()
         return Kbnf.rnfisnorminit(polrel)
 
     def _gap_init_(self):
@@ -3061,7 +3064,8 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.selmer_group([K.ideal(2, -a+1), K.ideal(3, a+1)], 3)
             [2, a + 1]
             sage: K.selmer_group([K.ideal(2, -a+1), K.ideal(3, a+1), K.ideal(a)], 3)
-            [2, a + 1, a]
+            [2, a + 1, -a]  # 32-bit
+            [2, a + 1, a]   # 64-bit
             sage: K.<a> = NumberField(polygen(QQ))
             sage: K.selmer_group([],5)
             []

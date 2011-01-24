@@ -34,8 +34,10 @@ TESTS::
 #       Copyright (C) 2004, 2006 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-###########################################################################
+#*****************************************************************************
 
 include "../ext/interrupt.pxi"  # ctrl-c interrupt block support
 include "../ext/gmp.pxi"
@@ -1196,7 +1198,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         ALGORITHM:
 
-        Uses Pari's bnfisnorm. See self.bnfisnorm().
+        Uses PARI's bnfisnorm. See self._bnfisnorm().
 
         EXAMPLES::
 
@@ -1256,7 +1258,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             if b:
                 x = M_to_L(x)
             return b, x
-        a, b = self.bnfisnorm(L, certify=proof)
+        a, b = self._bnfisnorm(L, certify=proof)
         if b == 1:
             assert a.norm() == self
             return True, a
@@ -1266,7 +1268,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         from sage.functions.log import log
         from sage.functions.other import floor
         extra_primes = floor(12*log(abs(M.discriminant()))**2)
-        a, b = self.bnfisnorm(L, certify=proof, extra_primes=extra_primes)
+        a, b = self._bnfisnorm(L, certify=proof, extra_primes=extra_primes)
         if b == 1:
             assert a.norm() == self
             return True, a
@@ -1274,9 +1276,9 @@ cdef class Rational(sage.structure.element.FieldElement):
             raise NotImplementedError, "is_norm is not implemented unconditionally for norms from non-Galois number fields"
         return False, None
 
-    def bnfisnorm(self, K, certify=True, extra_primes=0):
+    def _bnfisnorm(self, K, certify=True, extra_primes=0):
         r"""
-        This gives the output of the Pari function bnfisnorm.
+        This gives the output of the PARI function bnfisnorm.
 
         Tries to tell whether the rational number self is the norm of some
         element y in K. Returns a pair (a, b) where self = Norm(a)*b. Looks for
@@ -1309,13 +1311,13 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         ALGORITHM:
 
-        Uses Pari's bnfisnorm.
+        Uses PARI's bnfisnorm.
 
         EXAMPLES::
 
-            sage: QQ(2).bnfisnorm(QuadraticField(-1, 'i'))
+            sage: QQ(2)._bnfisnorm(QuadraticField(-1, 'i'))
             (i + 1, 1)
-            sage: 7.bnfisnorm(NumberField(x^3-2, 'b'))
+            sage: 7._bnfisnorm(NumberField(x^3-2, 'b'))
             (1, 7)
 
         AUTHORS:
@@ -1327,14 +1329,9 @@ cdef class Rational(sage.structure.element.FieldElement):
         from sage.rings.number_field.all import is_NumberField
         if not is_NumberField(K):
             raise ValueError, "K must be a NumberField in bnfisnorm"
-        if certify:
-            K.pari_bnf_certify()
 
-        a, b = self._pari_().bnfisnorm(K.pari_bnf(), flag=extra_primes)
-        deg = K.degree()
-        coeffs = [ a.lift().polcoeff(i)._sage_() for i in range(deg) ]
-        from sage.rings.rational_field import QQ
-        return K(coeffs), QQ(b._sage_())
+        a, b = K.pari_bnf(certify=certify).bnfisnorm(self, flag=extra_primes)
+        return K(a), Rational(b)
 
 
     def is_perfect_power(self, expected_value=False):

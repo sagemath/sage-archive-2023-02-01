@@ -6674,7 +6674,7 @@ cdef class gen(sage.structure.element.RingElement):
     def bnfisnorm(self, x, long flag=0):
         t0GEN(x)
         sig_on()
-        return self.new_gen(bnfisnorm(t0, self.g, flag))
+        return self.new_gen(bnfisnorm(self.g, t0, flag))
 
     def bnfisprincipal(self, x, long flag=1):
         t0GEN(x)

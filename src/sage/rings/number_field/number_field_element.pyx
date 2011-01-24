@@ -986,7 +986,7 @@ cdef class NumberFieldElement(FieldElement):
 
         ALGORITHM:
 
-        Uses Pari's rnfisnorm. See self.rnfisnorm().
+        Uses PARI's rnfisnorm. See self._rnfisnorm().
 
         EXAMPLES::
 
@@ -1054,7 +1054,7 @@ cdef class NumberFieldElement(FieldElement):
         if L.relative_degree() == 1 or self.is_zero():
             return True, L(self)
 
-        a, b = self.rnfisnorm(L, certify=proof)
+        a, b = self._rnfisnorm(L, certify=proof)
         if b == 1:
             assert a.norm(K) == self
             return True, a
@@ -1068,7 +1068,7 @@ cdef class NumberFieldElement(FieldElement):
         from sage.functions.log import log
         from sage.functions.other import floor
         extra_primes = floor(12*log(abs(M.discriminant()))**2)
-        a, b = self.rnfisnorm(L, certify=proof, extra_primes=extra_primes)
+        a, b = self._rnfisnorm(L, certify=proof, extra_primes=extra_primes)
         if b == 1:
             assert a.norm(K) == self
             return True, a
@@ -1077,9 +1077,9 @@ cdef class NumberFieldElement(FieldElement):
             raise NotImplementedError, "is_norm is not implemented unconditionally for norms from non-Galois number fields"
         return False, None
 
-    def rnfisnorm(self, L, certify=True, extra_primes=0):
+    def _rnfisnorm(self, L, certify=True, extra_primes=0):
         r"""
-        Gives the output of the Pari function rnfisnorm.
+        Gives the output of the PARI function rnfisnorm.
 
         This tries to decide whether the number field element self is
         the norm of some x in the extension L/K (with K = self.parent()).
@@ -1102,7 +1102,7 @@ cdef class NumberFieldElement(FieldElement):
         INPUT:
 
          - L -- a relative number field with base field self.parent()
-         - certify -- whether to certify outputs of Pari init functions.
+         - certify -- whether to certify outputs of PARI init functions.
            If false, truth of the output depends on GRH.
          - extra_primes -- an integer as explained above.
 
@@ -1113,24 +1113,24 @@ cdef class NumberFieldElement(FieldElement):
 
         ALGORITHM:
 
-        Uses Pari's rnfisnorm.
+        Uses PARI's rnfisnorm.
 
         EXAMPLES::
 
             sage: K.<a> = NumberField(x^3 + x^2 - 2*x - 1, 'a')
             sage: P.<X> = K[]
             sage: L = NumberField(X^2 + a^2 + 2*a + 1, 'b')
-            sage: K(17).rnfisnorm(L)
+            sage: K(17)._rnfisnorm(L)
             ((a^2 - 2)*b - 4, 1)
 
             sage: K.<a> = NumberField(x^3 + x + 1)
             sage: Q.<X> = K[]
             sage: L.<b> = NumberField(X^4 + a)
-            sage: t = (-a).rnfisnorm(L); t
+            sage: t = (-a)._rnfisnorm(L); t
             (b^3 + 1, 1)
             sage: t[0].norm(K)
             -a
-            sage: t = K(3).rnfisnorm(L); t
+            sage: t = K(3)._rnfisnorm(L); t
             ((-a^2 - 1)*b^3 + b^2 + a*b + a^2 + 1, -3*a)
             sage: t[0].norm(K)*t[1]
             3
@@ -1139,7 +1139,7 @@ cdef class NumberFieldElement(FieldElement):
 
             sage: K.<a, b> = NumberField([x^2 - 2, x^2 - 3])
             sage: L.<c> = K.extension(x^3 + 2)
-            sage: t = (2*a + b).rnfisnorm(L); t[1]
+            sage: t = (2*a + b)._rnfisnorm(L); t[1]
             (b - 2)*a + 2*b - 3
             sage: t[0].norm(K)*t[1]
             2*a + b
@@ -1157,22 +1157,9 @@ cdef class NumberFieldElement(FieldElement):
         if (not is_RelativeNumberField(L)) or L.base_field() != K:
             raise ValueError, "L (=%s) must be a relative number field with base field K (=%s) in rnfisnorm" % (L, K)
 
-        if certify:
-            K.pari_bnf_certify()
-
-        rnf_data = K.pari_rnfnorm_data(L)
+        rnf_data = K.pari_rnfnorm_data(L, certify=certify)
         x, q = self._pari_('y').rnfisnorm(rnf_data)
-
-        degL = L.relative_degree()
-        repx = [K(x.lift().polcoeff(i).lift()) for i in range(degL)]
-        x = L(repx)
-
-        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        degK = K.absolute_degree()
-        coeffsq = [q.lift().polcoeff(i)._sage_() for i in range(degK)]
-        q = PolynomialRing(QQ, 't')(coeffsq)(K.absolute_generator())
-
-        return x, q
+        return L(x), K(q)
 
     def _mpfr_(self, R):
         """

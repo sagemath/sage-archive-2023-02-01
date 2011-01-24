@@ -2431,6 +2431,98 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
     # tensor product is an alias in the special case of two vectors
     tensor_product = outer_product
 
+    def hermitian_inner_product(self, right):
+        r"""
+        Returns the dot product, but with the entries of the first vector
+        conjugated beforehand.
+
+        INPUT:
+
+        - ``right`` - a vector of the same degree as ``self``
+
+        OUTPUT:
+
+        If ``self`` and ``right`` are the vectors `\vec{x}` and
+        `\vec{y}` of degree `n` then this routine computes
+
+        .. math::
+
+            \sum_{i=1}^{n}\overline{x}_i{y}_i
+
+        where the bar indicates complex conjugation.
+
+        ..note::
+
+            If your vectors do not contain complex entries, then
+            :meth:`dot_product` will return the same result without
+            the overhead of conjugating elements of ``self``.
+
+            If you are not computing a weighted inner product, and
+            your vectors do not have complex entries, then the
+            :meth:`dot_product` should return the same result.
+
+        EXAMPLES::
+
+            sage: v = vector(CDF, [2+3*I, 5-4*I])
+            sage: w = vector(CDF, [6-4*I, 2+3*I])
+            sage: v.hermitian_inner_product(w)
+            -2.0 - 3.0*I
+
+        Sage implements a few specialized fields over the complex numbers,
+        such as cyclotomic fields and quadratic number fields.  So long as
+        the base rings have a conjugate method, then the Hermitian inner
+        product will be available. ::
+
+            sage: Q.<a> = QuadraticField(-7)
+            sage: a^2
+            -7
+            sage: v = vector(Q, [3+a, 5-2*a])
+            sage: w = vector(Q, [6, 4+3*a])
+            sage: v.hermitian_inner_product(w)
+            17*a - 4
+
+        The Hermitian inner product should be additive in
+        each argument (we only need to test one), linear
+        in each argument (with conjugation on the first scalar),
+        and anti-commutative. ::
+
+            sage: alpha = CDF(5.0 + 3.0*I)
+            sage: u = vector(CDF, [2+4*I, -3+5*I, 2-7*I])
+            sage: v = vector(CDF, [-1+3*I, 5+4*I, 9-2*I])
+            sage: w = vector(CDF, [8+3*I, -4+7*I, 3-6*I])
+            sage: (u+v).hermitian_inner_product(w) == u.hermitian_inner_product(w) + v.hermitian_inner_product(w)
+            True
+            sage: (alpha*u).hermitian_inner_product(w) == alpha.conjugate()*u.hermitian_inner_product(w)
+            True
+            sage: u.hermitian_inner_product(alpha*w) == alpha*u.hermitian_inner_product(w)
+            True
+            sage: u.hermitian_inner_product(v) == v.hermitian_inner_product(u).conjugate()
+            True
+
+        For vectors with complex entries, the Hermitian inner product
+        has a more natural relationship with the 2-norm (which is the
+        default for the :meth:`norm` method). The norm squared equals
+        the Hermitian inner product of the vector with itself.  ::
+
+            sage: v = vector(CDF, [-0.66+0.47*I, -0.60+0.91*I, -0.62-0.87*I, 0.53+0.32*I])
+            sage: abs(v.norm()^2 - v.hermitian_inner_product(v)) < 1.0e-10
+            True
+
+        TESTS:
+
+        This method is built on the :meth:`dot_product` method,
+        which allows for a wide variety of inputs.  Any error
+        handling happens there. ::
+
+            sage: v = vector(CDF, [2+3*I])
+            sage: w = vector(CDF, [5+2*I, 3+9*I])
+            sage: v.hermitian_inner_product(w)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: degrees (1 and 2) must be the same
+        """
+        return (self.conjugate()).dot_product(right)
+
     def is_dense(self):
         """
         Return True if this is a dense vector, which is just a

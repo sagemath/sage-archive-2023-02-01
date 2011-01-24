@@ -31,28 +31,37 @@ __installed_packages = None
 
 
 def install_all_optional_packages(force=True, dry_run=False):
-    """
+    r"""
     Install all available optional spkg's in the official Sage spkg
     repository.  Returns a list of all spkg's that *fail* to install.
 
     INPUT:
-        force -- bool (default: True); whether to force reinstall of
-                 spkg's that are already installed.
-        dry_run -- bool (default: False); if True, just list the
-                   packages that would be installed in order, but
-                   don't actually install them.
+
+    - ``force`` -- bool (default: ``True``); whether to force
+      reinstall of spkg's that are already installed.
+
+    - ``dry_run`` -- bool (default: ``False``); if ``True``, just list
+      the packages that would be installed in order, but don't
+      actually install them.
+
     OUTPUT:
+
         list of strings
 
-    NOTE: This is designed mainly for testing purposes.  This also
-    doesn't do anything with respect to dependencies -- the packages
-    are installed in alphabetical order.  Dependency issues will be
-    dealt with in a future version.
+    .. NOTE::
+
+        This is designed mainly for testing purposes.  This also
+        doesn't do anything with respect to dependencies -- the
+        packages are installed in alphabetical order.  Dependency
+        issues will be dealt with in a future version.
+
 
     AUTHOR:
+
         -- William Stein (2008-12)
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: sage.misc.package.install_all_optional_packages(dry_run=True)  # optional - internet
         Installing ...
         []

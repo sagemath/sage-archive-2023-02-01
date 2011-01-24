@@ -1265,15 +1265,21 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         return sum([x**2 for x in self.list()]).sqrt()
 
     def norm(self, p=sage.rings.integer.Integer(2)):
-        """
-        Return the p-norm of this vector, where p can be a real number
-        `\geq 1`, Infinity, or a symbolic expression. If `p=2` (default),
-        this is the usual Euclidean norm; if p=Infinity, this is the
-        maximum norm; if `p=1`, this is the taxicab (Manhattan) norm.
+        r"""
+        Return the `p`-norm of ``self``.
 
-        .. SEEALSO::
+        INPUT:
 
-            - :func:`sage.misc.functional.norm`
+        - ``p`` - defalt: 2 - ``p`` can be a real number greater than 1,
+          infinity (``oo`` or ``Infinity``), or a symbolic expression.
+
+            - `p=1`: the taxicab (Manhattan) norm
+            - `p=2`: the usual Euclidean norm (the default)
+            - `p=\infty`: the maximum entry (in absolute value)
+
+        .. note::
+
+            See also :func:`sage.misc.functional.norm`
 
         EXAMPLES::
 
@@ -1281,19 +1287,22 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: v.norm(5)
             276^(1/5)
 
-        The default is the usual Euclidean norm::
+        The default is the usual Euclidean norm.  ::
 
             sage: v.norm()
             sqrt(14)
             sage: v.norm(2)
             sqrt(14)
 
-        The infinity norm is the maximum size of any entry::
+        The infinity norm is the maximum size (in absolute value)
+        of the entries.  ::
 
             sage: v.norm(Infinity)
             3
+            sage: v.norm(oo)
+            3
 
-        Any real or symbolic value works::
+        Real or symbolic values may be used for ``p``.  ::
 
             sage: v=vector(RDF,[1,2,3])
             sage: v.norm(5)
@@ -1303,6 +1312,37 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: _=var('a b c d p'); v=vector([a, b, c, d])
             sage: v.norm(p)
             (abs(a)^p + abs(b)^p + abs(c)^p + abs(d)^p)^(1/p)
+
+        Notice that the result may be a symbolic expression, owing to
+        the necessity of taking a square root (in the default case).
+        These results can be converted to numerical values if needed. ::
+
+            sage: v = vector(ZZ, [3,4])
+            sage: nrm = v.norm(); nrm
+            5
+            sage: nrm.parent()
+            Rational Field
+
+            sage: v = vector(QQ, [3, 5])
+            sage: nrm = v.norm(); nrm
+            sqrt(34)
+            sage: nrm.parent()
+            Symbolic Ring
+            sage: numeric = N(nrm); numeric
+            5.83095189484...
+            sage: numeric.parent()
+            Real Field with 53 bits of precision
+
+        TESTS:
+
+        The value of ``p`` must be greater than, or
+        equal to, one. ::
+
+            sage: v = vector(QQ, [1,2])
+            sage: v.norm(0.99)
+            Traceback (most recent call last):
+            ...
+            ValueError: 0.990000 is not greater than or equal to 1
         """
         abs_self = [abs(x) for x in self]
         if p == Infinity:
@@ -1855,17 +1895,31 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             return points(v, **kwds)
 
     def dot_product(self, right):
-        """
-        Return the dot product of self and right, which is the sum of the
+        r"""
+        Return the dot product of ``self`` and ``right``, which is the sum of the
         product of the corresponding entries.
 
         INPUT:
 
+        - ``right`` - a vector of the same degree as ``self``.
+          It does not need to belong to the same parent as ``self``,
+          so long as the necessary products and sums are defined.
 
-        -  ``right`` - vector of the same degree as self. It
-           need not be in the same vector space as self, as long as the
-           coefficients can be multiplied.
+        OUTPUT:
 
+        If ``self`` and ``right`` are the vectors `\vec{x}` and `\vec{y}`,
+        of degree `n`, then this method returns
+
+        .. math::
+
+            \sum_{i=1}^{n}x_iy_i
+
+        .. note::
+
+            The :meth:`inner_product` is a more general version of
+            this method, and the :meth:`hermitian_inner_product`
+            method may be more appropriate if your vectors
+            have complex entries.
 
         EXAMPLES::
 
@@ -1875,22 +1929,48 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: v.dot_product(w)
             32
 
-        ::
+        The vectors may be from different vector spaces,
+        provided the necessary operations make sense.
+        Notice that coercion will generate a result of
+        the same type, even if the order of the
+        arguments is reversed.::
 
-            sage: W = VectorSpace(GF(3),3)
-            sage: w = W([0,1,2])
-            sage: w.dot_product(v)
+            sage: v = vector(ZZ, [1,2,3])
+            sage: w = vector(FiniteField(3), [0,1,2])
+            sage: ip = w.dot_product(v); ip
             2
-            sage: w.dot_product(v).parent()
+            sage: ip.parent()
             Finite Field of size 3
 
-        Implicit coercion is well defined (regardless of order), so we
-        get 2 even if we do the dot product in the other order.
-
-        ::
-
-            sage: v.dot_product(w)
+            sage: ip = v.dot_product(w); ip
             2
+            sage: ip.parent()
+            Finite Field of size 3
+
+        The dot product of a vector with itself is the 2-norm, squared. ::
+
+            sage: v = vector(QQ, [3, 4, 7])
+            sage: v.dot_product(v) - v.norm()^2
+            0
+
+        TESTS:
+
+        The second argument must be a free module element. ::
+
+            sage: v = vector(QQ, [1,2])
+            sage: v.dot_product('junk')
+            Traceback (most recent call last):
+            ...
+            TypeError: right must be a free module element
+
+        The degrees of the arguments must match. ::
+
+            sage: v = vector(QQ, [1,2])
+            sage: w = vector(QQ, [1,2,3])
+            sage: v.dot_product(w)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: degrees (2 and 3) must be the same
         """
         if not PY_TYPE_CHECK(right, FreeModuleElement):
             raise TypeError, "right must be a free module element"
@@ -2287,19 +2367,95 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         return V(vector(R, degree, entries))
 
     def inner_product(self, right):
-        """
-        Returns the inner product of self and other, with respect to the
-        inner product defined on the parent of self.
+        r"""
+        Returns the inner product of ``self`` and ``right``,
+        possibly using an inner product matrix from the parent of ``self``.
+
+        INPUT:
+
+        - ``right`` - a vector of the same degree as ``self``
+
+        OUTPUT:
+
+        If the parent vector space does not have an inner product
+        matrix defined, then this is the usual dot product
+        (:meth:`dot_product`).  If ``self`` and ``right`` are
+        considered as single column matrices, `\vec{x}` and `\vec{y}`,
+        and `A` is the inner product matrix, then this method computes
+
+        .. math::
+
+            \left(\vec{x}\right)^tA\vec{y}
+
+        where `t` indicates the transpose.
+
+        .. note::
+
+            If your vectors have complex entries, the
+            :meth:`hermitian_inner_product` may be more
+            appropriate for your purposes.
 
         EXAMPLES::
 
-            sage: I = matrix(ZZ,3,[2,0,-1,0,2,0,-1,0,6])
-            sage: M = FreeModule(ZZ, 3, inner_product_matrix = I)
-            sage: (M.0).inner_product(M.0)
+            sage: v = vector(QQ, [1,2,3])
+            sage: w = vector(QQ, [-1,2,-3])
+            sage: v.inner_product(w)
+            -6
+            sage: v.inner_product(w) == v.dot_product(w)
+            True
+
+        The vector space or free module that is the parent to
+        ``self`` can have an inner product matrix defined, which
+        will be used by this method.  This matrix will be passed
+        through to subspaces. ::
+
+            sage: ipm = matrix(ZZ,[[2,0,-1], [0,2,0], [-1,0,6]])
+            sage: M = FreeModule(ZZ, 3, inner_product_matrix = ipm)
+            sage: v = M([1,0,0])
+            sage: v.inner_product(v)
             2
             sage: K = M.span_of_basis([[0/2,-1/2,-1/2], [0,1/2,-1/2],[2,0,0]])
             sage: (K.0).inner_product(K.0)
             2
+            sage: w = M([1,3,-1])
+            sage: v = M([2,-4,5])
+            sage: w.row()*ipm*v.column() == w.inner_product(v)
+            True
+
+        Note that the inner product matrix comes from the parent of ``self``.
+        So if a vector is not an element of the correct parent, the result
+        could be a source of confusion.  ::
+
+            sage: V = VectorSpace(QQ, 2, inner_product_matrix=[[1,2],[2,1]])
+            sage: v = V([12, -10])
+            sage: w = vector(QQ, [10,12])
+            sage: v.inner_product(w)
+            88
+            sage: w.inner_product(v)
+            0
+            sage: w = V(w)
+            sage: w.inner_product(v)
+            88
+
+        .. note::
+
+            The use of an inner product matrix makes no restrictions on
+            the nature of the matrix.  In particular, in this context it
+            need not be Hermitian and positive-definite (as it is in the
+            example above).
+
+        TESTS:
+
+        Most error handling occurs in the :meth:`dot_product` method.
+        But with an inner product defined, this method will check
+        that the input is a vector or free module element. ::
+
+            sage: W = VectorSpace(RDF, 2, inner_product_matrix = matrix(RDF, 2, [1.0,2.0,3.0,4.0]))
+            sage: v = W([2.0, 4.0])
+            sage: v.inner_product(5)
+            Traceback (most recent call last):
+            ...
+            TypeError: right must be a free module element
         """
         if self.parent().is_ambient() and self.parent()._inner_product_is_dot_product():
             return self.dot_product(right)
@@ -2451,7 +2607,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
         where the bar indicates complex conjugation.
 
-        ..note::
+        .. note::
 
             If your vectors do not contain complex entries, then
             :meth:`dot_product` will return the same result without
@@ -2459,7 +2615,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
             If you are not computing a weighted inner product, and
             your vectors do not have complex entries, then the
-            :meth:`dot_product` should return the same result.
+            :meth:`dot_product` will return the same result.
 
         EXAMPLES::
 

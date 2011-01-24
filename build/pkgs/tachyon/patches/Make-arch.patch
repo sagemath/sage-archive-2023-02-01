@@ -1,5 +1,5 @@
---- ../src/unix/Make-arch	2010-01-18 11:13:41.000000000 -0800
-+++ Make-arch	2011-01-11 02:04:04.143058297 -0800
+--- ../src/unix/Make-arch	2010-01-18 14:13:41.000000000 -0500
++++ Make-arch	2011-01-24 10:08:02.447028539 -0500
 @@ -23,7 +23,8 @@
  	@echo "--------------------------------------------------------------"
  	@echo "              Parallel Versions        "
@@ -190,7 +190,7 @@
  hpux-thr:
  	$(MAKE) all \
  	"ARCH = hpux-thr" \
-@@ -867,12 +922,9 @@
+@@ -867,67 +922,57 @@
  next:
  	$(MAKE) all \
  	"ARCH = next" \
@@ -203,9 +203,9 @@
  	"LIBS = -L. -ltachyon $(MISCLIB) -lm"
  
  macosx:
-@@ -880,54 +932,48 @@
+ 	$(MAKE) all \
  	"ARCH = macosx" \
- 	"CC = cc" \
+-	"CC = cc" \
  	"CFLAGS = -Os -ffast-math -DBsd $(MISCFLAGS)" \
 -	"AR = ar" \
  	"ARFLAGS = r" \
@@ -266,7 +266,7 @@
  	"LIBS = -L. -ltachyon $(MISCLIB) -lpthread -L/usr/X11R6/lib -lGLU -lGL -lX11 -framework Carbon"
  
  
-@@ -938,12 +984,9 @@
+@@ -938,12 +983,9 @@
  beos:
  	$(MAKE) all \
  	"ARCH = beos" \
@@ -279,7 +279,7 @@
  	"LIBS = -L. -ltachyon $(MISCLIB)"
  
  ##
-@@ -954,23 +997,17 @@
+@@ -954,23 +996,17 @@
  bsd:
  	$(MAKE) all \
  	"ARCH = bsd" \
@@ -303,7 +303,7 @@
  	"LIBS = -L. -ltachyon $(MISCLIB) -lm"
  
  ##
-@@ -980,23 +1017,17 @@
+@@ -980,23 +1016,17 @@
  win32:
  	$(MAKE) all \
  	"ARCH = win32" \
@@ -327,7 +327,7 @@
  	"LIBS = -L. -L'/Program files/MPIPro/LIB' -ltachyon -lmpi $(MISCLIB) -lm"
  
  ##
-@@ -1007,60 +1038,45 @@
+@@ -1007,60 +1037,45 @@
  linux:
  	$(MAKE) all \
  	"ARCH = linux" \
@@ -388,7 +388,7 @@
  	"LIBS = -L. -ltachyon $(MISCLIB) -lm"
  
  
-@@ -1068,12 +1084,9 @@
+@@ -1068,12 +1083,9 @@
  linux-64-thr:
  	$(MAKE) all \
  	"ARCH = linux-64-thr" \
@@ -401,7 +401,7 @@
  	"LIBS = -L. -ltachyon $(MISCLIB) -lm -lpthread"
  
  
-@@ -1081,12 +1094,9 @@
+@@ -1081,12 +1093,9 @@
  linux-p4:
  	$(MAKE) all \
  	"ARCH = linux-p4" \
@@ -414,7 +414,7 @@
  	"LIBS = -L. -ltachyon $(MISCLIB) -lm"
  
  # Linux x86, on Intel P4 using Intel C 8.0
-@@ -1119,23 +1129,17 @@
+@@ -1119,23 +1128,17 @@
  linux-athlon:
  	$(MAKE) all \
  	"ARCH = linux-athlon" \
@@ -438,7 +438,7 @@
  	"LIBS = -L. -ltachyon $(MISCLIB) -lm -lpthread"
  
  
-@@ -1167,21 +1171,16 @@
+@@ -1167,21 +1170,16 @@
  linux-thr:
  	$(MAKE) all \
  	"ARCH = linux-thr" \
@@ -460,7 +460,7 @@
  	"ARFLAGS = r" \
  	"STRIP = touch" \
  	"LIBS = -L. -ltachyon $(MISCLIB) $(LINUX_GLX_LIBS) $(MISCLIB) -lm -lpthread"
-@@ -1190,24 +1189,18 @@
+@@ -1190,24 +1188,18 @@
  linux-beowulf-mpi-ogl:
  	$(MAKE) all \
  	"ARCH = linux-beowulf-mpi" \
@@ -485,7 +485,7 @@
  	"LIBS = -L. -ltachyon -lmpi $(MISCLIB) -lm"
  
  # Linux x86 using LAM MPI
-@@ -1239,10 +1232,8 @@
+@@ -1239,10 +1231,8 @@
  	"ARCH = linux-mpi" \
  	"CC = mpicc" \
  	"CFLAGS = -DLinux -DMPI $(MISCFLAGS)" \
@@ -496,7 +496,7 @@
  	"LIBS = -L. -ltachyon  $(MISCLIB) -lm"
  
  linux-mpi-thr:
-@@ -1250,10 +1241,8 @@
+@@ -1250,10 +1240,8 @@
  	"ARCH = linux-mpi-thr" \
  	"CC = mpicc" \
  	"CFLAGS = -DLinux -DMPI -DTHR $(MISCFLAGS)" \
@@ -507,7 +507,7 @@
  	"LIBS = -L. -ltachyon  $(MISCLIB) -lm -lpthread"
  
  linux-mpi-64:
-@@ -1261,10 +1250,8 @@
+@@ -1261,10 +1249,8 @@
  	"ARCH = linux-mpi-64" \
  	"CC = mpicc" \
  	"CFLAGS = -Wall -O3 -fomit-frame-pointer -ffast-math -I$(LAMHOME)/h -DLinux -DMPI -DLP64 $(MISCFLAGS)" \
@@ -518,7 +518,7 @@
  	"LIBS = -L. -L$(LAMHOME)/lib -ltachyon $(MISCLIB) -lm"
  
  
-@@ -1297,48 +1284,36 @@
+@@ -1297,48 +1283,36 @@
  linux-ipaq:
  	$(MAKE) all \
  	"ARCH = linux-ipaq" \
@@ -567,7 +567,7 @@
  	"LIBS = -L. -ltachyon $(MISCLIB) -lm"
  
  # Linux Alpha using Compaq's compilers
-@@ -1369,12 +1344,9 @@
+@@ -1369,12 +1343,9 @@
  linux-ia64:
  	$(MAKE) all \
  	"ARCH = linux-ia64" \
@@ -581,7 +581,7 @@
  	"LIBS = -L. -ltachyon $(MISCLIB) -lm"
  
  # Linux IA-64 using SGI compilers (Merced, Itanium, McKinley, etc)
-@@ -1393,12 +1365,9 @@
+@@ -1393,12 +1364,9 @@
  linux-ia64-thr:
  	$(MAKE) all \
  	"ARCH = linux-ia64-thr" \
@@ -595,7 +595,7 @@
  	"LIBS = -L. -ltachyon $(MISCLIB) -lm -lpthread"
  
  # Linux IA-64 using SGI compilers and threads (Merced, Itanium, McKinley, etc)
-@@ -1421,9 +1390,7 @@
+@@ -1421,9 +1389,7 @@
  sgi-altix-mpi:
  	$(MAKE) all \
  	"ARCH = sgi-altix-mpi" \

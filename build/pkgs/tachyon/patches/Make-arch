@@ -930,7 +930,6 @@ next:
 macosx:
 	$(MAKE) all \
 	"ARCH = macosx" \
-	"CC = cc" \
 	"CFLAGS = -Os -ffast-math -DBsd $(MISCFLAGS)" \
 	"ARFLAGS = r" \
 	"STRIP = strip" \

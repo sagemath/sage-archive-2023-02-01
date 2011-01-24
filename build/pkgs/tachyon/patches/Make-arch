@@ -7,7 +7,7 @@
 
 # Some machines don't have/need ranlib, in their case, use 'touch'
 # this should be overridden by arch specific configuration lines below
-RANLIB= touch
+RANLIB=ranlib
 
 # MPI path setup, probably shouldn't need to be changed.
 MPIINC=$(MPIDIR)/include

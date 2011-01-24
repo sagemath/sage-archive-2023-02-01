@@ -12,7 +12,8 @@ cdef class gen(sage.structure.element.RingElement):
     cdef gen new_gen_noclear(self, GEN x)
     cdef gen pari(self, object x)
     cdef GEN _deepcopy_to_python_heap(self, GEN x, pari_sp* address)
-    cdef int get_var(self, v)
+    cdef long get_var(self, v)
+    cdef GEN get_nf(self) except NULL
 
 cimport sage.structure.parent_base
 
@@ -34,7 +35,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
     cdef GEN deepcopy_to_python_heap(self, GEN x, pari_sp* address)
     cdef gen new_ref(self, GEN g, gen parent)
     cdef gen _empty_vector(self, long n)
-    cdef int get_var(self, v)
+    cdef long get_var(self, v)
     cdef GEN toGEN(self, x, int i) except NULL
     cdef GEN integer_matrix_GEN(self, mpz_t** B, Py_ssize_t nr, Py_ssize_t nc) except <GEN>0
     cdef GEN integer_matrix_permuted_for_hnf_GEN(self, mpz_t** B, Py_ssize_t nr, Py_ssize_t nc) except <GEN>0

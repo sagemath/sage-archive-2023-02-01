@@ -16,19 +16,12 @@ AUTHORS:
   logarithmic heights.
 
 """
-
 #*****************************************************************************
 #       Copyright (C) 2004, 2007 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -301,10 +294,22 @@ cdef class NumberFieldElement(FieldElement):
         else:
             ppr = parent.polynomial_ring()
 
+        cdef long i
         if isinstance(f, pari_gen):
             if f.type() in ["t_INT", "t_FRAC", "t_POL"]:
                 pass
             elif f.type() == "t_POLMOD":
+                # Check whether we are dealing with a *relative*
+                # number field element
+                if parent.is_relative():
+                    # If the modulus is a polynomial with polynomial
+                    # coefficients, then the element is relative.
+                    fmod = f.mod()
+                    for i from 0 <= i <= fmod.poldegree():
+                        if fmod.polcoeff(i).type() in ["t_POL", "t_POLMOD"]:
+                            # Convert relative element to absolute
+                            f = parent.pari_rnf().rnfeltreltoabs(f)
+                            break
                 f = f.lift()
             else:
                 f = self.number_field().pari_nf().nfbasistoalg_lift(f)
@@ -321,7 +326,6 @@ cdef class NumberFieldElement(FieldElement):
         (<Integer>ZZ(den))._to_ZZ(&self.__denominator)
 
         num = f * den
-        cdef long i
         for i from 0 <= i <= num.degree():
             (<Integer>ZZ(num[i]))._to_ZZ(&coeff)
             ZZX_SetCoeff( self.__numerator, i, coeff )
@@ -516,7 +520,7 @@ cdef class NumberFieldElement(FieldElement):
 
     def _pari_(self, var='x'):
         r"""
-        Convert self to a Pari element.
+        Convert self to a PARI element.
 
         EXAMPLE::
 
@@ -1189,8 +1193,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: (a^4 + a^2 - 3*a + 2).sqrt()
             a^3 - a^2
 
-        ALGORITHM: Use Pari to factor `x^2` - ``self``
-        in K.
+        ALGORITHM: Use PARI to factor `x^2` - ``self`` in `K`.
         """
         # For now, use pari's factoring abilities
         R = self.number_field()['t']
@@ -1220,8 +1223,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: K((a-3)^5).nth_root(5)
             a - 3
 
-        ALGORITHM: Use Pari to factor `x^n` - ``self``
-        in K.
+        ALGORITHM: Use PARI to factor `x^n` - ``self`` in `K`.
         """
         R = self.number_field()['t']
         if not self:
@@ -3117,7 +3119,7 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
         this is an element of an absolute extension.
 
         The optional argument algorithm controls how the
-        characteristic polynomial is computed: 'pari' uses Pari,
+        characteristic polynomial is computed: 'pari' uses PARI,
         'sage' uses charpoly for Sage matrices.  The default value
         None means that 'pari' is used for small degrees (up to the
         value of the constant TUNE_CHARPOLY_NF, currently at 25),
@@ -3298,6 +3300,27 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
             sage: L.<a, b> = NumberField([x^2 + 1, x^2 + 2])
             sage: type(a) # indirect doctest
             <type 'sage.rings.number_field.number_field_element.NumberFieldElement_relative'>
+
+        We can create relative number field elements from PARI::
+
+            sage: y = polygen(QQ)
+            sage: K.<a> = NumberField(y^2 + y + 1)
+            sage: x = polygen(K)
+            sage: L.<b> = NumberField(x^4 + a*x + 2)
+            sage: e = pari(a*b); e
+            Mod(-x^4 - 2, x^8 - x^5 + 4*x^4 + x^2 - 2*x + 4)
+            sage: L(e)  # Conversion from PARI absolute number field element
+            a*b
+            sage: e = L.pari_rnf().rnfeltabstorel(e); e
+            Mod(y*x, x^4 + y*x + 2)
+            sage: L(e)  # Conversion from PARI relative number field element
+            a*b
+
+        We test a relative number field element created "by hand"::
+
+            sage: e = pari("Mod(Mod(y, y^2 + y + 1)*x^2 + Mod(1, y^2 + y + 1), x^4 + y*x + 2)")
+            sage: L(e)
+            a*b^2 + 1
         """
         NumberFieldElement.__init__(self, parent, f)
 
@@ -3522,7 +3545,7 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
         polynomial over `\QQ`.
 
         The optional argument algorithm controls how the
-        characteristic polynomial is computed: 'pari' uses Pari,
+        characteristic polynomial is computed: 'pari' uses PARI,
         'sage' uses charpoly for Sage matrices.  The default value
         None means that 'pari' is used for small degrees (up to the
         value of the constant TUNE_CHARPOLY_NF, currently at 25),

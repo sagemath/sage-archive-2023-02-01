@@ -76,19 +76,12 @@ TESTS::
     sage: beta^10
     27*beta0
 """
-
 #*****************************************************************************
 #       Copyright (C) 2004, 2005, 2006, 2007 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -3605,7 +3598,7 @@ class NumberField_generic(number_field_base.NumberField):
         -  ``type`` - ``none``, ``gap``, or ``pari``. If None (the default),
            return an explicit group of automorphisms of self as a
            ``GaloisGroup_v2`` object.  Otherwise, return a ``GaloisGroup_v1``
-           wrapper object based on a Pari or Gap transitive group object, which
+           wrapper object based on a PARI or Gap transitive group object, which
            is quicker to compute, but rather less useful (in particular, it
            can't be made to act on self).  If type = 'gap', the database_gap
            package should be installed.
@@ -3884,9 +3877,9 @@ class NumberField_generic(number_field_base.NumberField):
         .. note::
 
            In the non-totally-real case, the LLL routine we call is
-           currently Pari's qflll(), which works with floating point
+           currently PARI's qflll(), which works with floating point
            approximations, and so the result is only as good as the
-           precision promised by Pari. The matrix returned will always
+           precision promised by PARI. The matrix returned will always
            be integral; however, it may only be only "almost" LLL-reduced
            when the precision is not sufficiently high.
 
@@ -3963,9 +3956,9 @@ class NumberField_generic(number_field_base.NumberField):
         .. note::
 
            In the non-totally-real case, the LLL routine we call is
-           currently Pari's qflll(), which works with floating point
+           currently PARI's qflll(), which works with floating point
            approximations, and so the result is only as good as the
-           precision promised by Pari. In particular, in this case,
+           precision promised by PARI. In particular, in this case,
            the returned matrix will *not* be integral, and may not
            have enough precision to recover the correct gram matrix
            (which is known to be integral for theoretical
@@ -4554,7 +4547,7 @@ class NumberField_generic(number_field_base.NumberField):
             except AttributeError:
                 pass
 
-        # get Pari to compute the units
+        # get PARI to compute the units
         B = self.pari_bnf(proof).bnfunit()
         if proof:
             # cache the provable results and return them

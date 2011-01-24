@@ -415,9 +415,9 @@ cdef extern from 'pari/pari.h':
     void    checkrnf(GEN rnf)
     GEN     galoisapply(GEN nf, GEN aut, GEN x)
     GEN     polgalois(GEN x, long prec)
-    GEN     get_bnf(GEN x,int *t)
+    GEN     get_bnf(GEN x, long *t)
     GEN     get_bnfpol(GEN x, GEN *bnf, GEN *nf)
-    GEN     get_nf(GEN x,int *t)
+    GEN     get_nf(GEN x, long *t)
     GEN     get_nfpol(GEN x, GEN *nf)
     GEN     glambdak(GEN nfz, GEN s, long prec)
     GEN     gsmith(GEN x)
@@ -695,8 +695,9 @@ cdef extern from 'pari/pari.h':
 
     # buch4.c
 
-    GEN     bnfisnorm(GEN bnf,GEN x,long flag,long PREC)
+    GEN     bnfisnorm(GEN bnf, GEN x, long flag)
     GEN     rnfisnorm(GEN S, GEN x, long flag)
+    GEN     rnfisnorminit(GEN T, GEN relpol, int galois)
     GEN     bnfissunit(GEN bnf,GEN suni,GEN x)
     GEN     bnfsunit(GEN bnf,GEN s,long PREC)
     long    nfhilbert(GEN bnf,GEN a,GEN b)

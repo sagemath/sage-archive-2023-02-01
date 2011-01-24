@@ -2147,20 +2147,32 @@ class NumberField_relative(NumberField_generic):
             sage: L.<b> = K.extension(y^2 - a)
             sage: L.lift_to_base(b^4)
             a^2
+            sage: L.lift_to_base(b^6)
+            2
+            sage: L.lift_to_base(355/113)
+            355/113
             sage: L.lift_to_base(b)
             Traceback (most recent call last):
             ...
             ValueError: The element b is not in the base field
         """
-        poly_xy = self.pari_rnf().rnfeltabstorel( self(element)._pari_() )
-        str_poly = str(poly_xy)
-        if str_poly.find('x') >= 0:
+        polmodmod_xy = self.pari_rnf().rnfeltabstorel( self(element)._pari_() )
+        # polmodmod_xy is a POLMOD with POLMOD coefficients in general.
+        # These POLMOD coefficients represent elements of the base field K.
+        # We do two lifts so we get a polynomial. We need the simplify() to
+        # make PARI check which variables really appear in the resulting
+        # polynomial (otherwise we always have a polynomial in two variables
+        # even though not all variables actually occur).
+        r = polmodmod_xy.lift().lift().simplify()
+
+        # Special case: check whether the result is simply an integer or rational
+        if r.type() in ["t_INT", "t_FRAC"]:
+            return self.base_field()(r)
+        # Now we should have a polynomial in the variable y.
+        # Otherwise we're not in the base field.
+        if r.type() != "t_POL" or str(r.variable()) != 'y':
             raise ValueError, "The element %s is not in the base field"%element
-        # We convert to a string to avoid some serious nastiness with
-        # PARI polynomials secretely thinkining they are in more variables
-        # than they are.
-        f = QQ['y'](str_poly)
-        return self.base_field()(f.list())
+        return self.base_field()(r)
 
     def relativize(self, alpha, names):
         r"""

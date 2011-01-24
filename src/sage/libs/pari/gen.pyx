@@ -597,13 +597,14 @@ cdef class gen(sage.structure.element.RingElement):
         sig_on()
         return P.new_gen(gaddsg(1, self.g))
 
-    def _mod(gen self, gen other):
-        sig_on()
-        return P.new_gen(gmod(self.g, other.g))
-
     def __mod__(self, other):
-        if isinstance(self, gen) and isinstance(other, gen):
-            return self._mod(other)
+        cdef gen selfgen
+        cdef gen othergen
+        if isinstance(other, gen) and isinstance(self, gen):
+            selfgen = self
+            othergen = other
+            sig_on()
+            return P.new_gen(gmod(selfgen.g, othergen.g))
         return sage.structure.element.bin_op(self, other, operator.mod)
 
     def __pow__(self, n, m):
@@ -644,9 +645,114 @@ cdef class gen(sage.structure.element.RingElement):
         sig_on()
         return self.new_gen(t0)
 
+    def mod(self):
+        """
+        Given an INTMOD or POLMOD ``Mod(a,m)``, return the modulus `m`.
+
+        EXAMPLES::
+
+            sage: pari(4).Mod(5).mod()
+            5
+            sage: pari("Mod(x, x*y)").mod()
+            y*x
+            sage: pari("[Mod(4,5)]").mod()
+            Traceback (most recent call last):
+            ...
+            TypeError: Not an INTMOD or POLMOD in mod()
+        """
+        if typ(self.g) != t_INTMOD and typ(self.g) != t_POLMOD:
+            raise TypeError("Not an INTMOD or POLMOD in mod()")
+        sig_on()
+        # The hardcoded 1 below refers to the position in the internal
+        # representation of a INTMOD or POLDMOD where the modulus is
+        # stored.
+        return self.new_gen(gel(self.g, 1))
+
+    cdef GEN get_nf(self) except NULL:
+        """
+        Given a PARI object `self`, convert it to a proper PARI number
+        field (nf) structure.
+
+        INPUT:
+
+        - ``self`` -- A PARI number field being the output of ``nfinit()``,
+                      ``bnfinit()`` or ``bnrinit()``.
+
+        TESTS:
+
+        We test this indirectly through `nf_get_pol()`::
+
+            sage: x = polygen(QQ)
+            sage: K.<a> = NumberField(x^4 - 4*x^2 + 1)
+            sage: K.pari_nf().nf_get_pol()
+            x^4 - 4*x^2 + 1
+            sage: K.pari_bnf().nf_get_pol()
+            x^4 - 4*x^2 + 1
+            sage: bnr = pari("K = bnfinit(x^4 - 4*x^2 + 1); bnrinit(K, 2*x)")
+            sage: bnr.nf_get_pol()
+            x^4 - 4*x^2 + 1
+
+        It does not work with ``rnfinit()`` or garbage input::
+
+            sage: K.extension(x^2 - 5, 'b').pari_rnf().nf_get_pol()
+            Traceback (most recent call last):
+            ...
+            TypeError: Not a PARI number field
+            sage: pari("[0]").nf_get_pol()
+            Traceback (most recent call last):
+            ...
+            TypeError: Not a PARI number field
+        """
+        cdef GEN nf
+        cdef long nftyp
+        sig_on()
+        nf = get_nf(self.g, &nftyp)
+        sig_off()
+        if not nf:
+            raise TypeError("Not a PARI number field")
+        return nf
+
+    def nf_get_pol(self):
+        """
+        Returns the defining polynomial of this number field.
+
+        INPUT:
+
+        - ``self`` -- A PARI number field being the output of ``nfinit()``,
+                      ``bnfinit()`` or ``bnrinit()``.
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^4 - 4*x^2 + 1)
+            sage: pari(K).nf_get_pol()
+            x^4 - 4*x^2 + 1
+            sage: bnr = pari("K = bnfinit(x^4 - 4*x^2 + 1); bnrinit(K, 2*x)")
+            sage: bnr.nf_get_pol()
+            x^4 - 4*x^2 + 1
+
+        For relative extensions, we can only get the absolute polynomial,
+        not the relative one::
+
+            sage: L.<b> = K.extension(x^2 - 5)
+            sage: pari(L).nf_get_pol()   # Absolute polynomial
+            x^8 - 28*x^6 + 208*x^4 - 408*x^2 + 36
+            sage: L.pari_rnf().nf_get_pol()
+            Traceback (most recent call last):
+            ...
+            TypeError: Not a PARI number field
+        """
+        cdef GEN nf = self.get_nf()
+        sig_on()
+        return self.new_gen(nf_get_pol(nf))
+
     def nf_get_diff(self):
         """
         Returns the different of this number field as a PARI ideal.
+
+        INPUT:
+
+        - ``self`` -- A PARI number field being the output of ``nfinit()``,
+                      ``bnfinit()`` or ``bnrinit()``.
 
         EXAMPLES::
 
@@ -654,15 +760,21 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(K).nf_get_diff()
             [12, 0, 0, 0; 0, 12, 8, 0; 0, 0, 4, 0; 0, 0, 0, 4]
         """
+        cdef GEN nf = self.get_nf()
         sig_on()
         # Very bad code, but there doesn't seem to be a better way
-        return self.new_gen(gel(gel(self.g, 5), 5))
+        return self.new_gen(gel(gel(nf, 5), 5))
 
     def nf_get_sign(self):
         """
         Returns a Python list ``[r1, r2]``, where ``r1`` and ``r2`` are
         Python ints representing the number of real embeddings and pairs
         of complex embeddings of this number field, respectively.
+
+        INPUT:
+
+        - ``self`` -- A PARI number field being the output of ``nfinit()``,
+                      ``bnfinit()`` or ``bnrinit()``.
 
         EXAMPLES::
 
@@ -677,9 +789,8 @@ cdef class gen(sage.structure.element.RingElement):
         """
         cdef long r1
         cdef long r2
-        sig_on()
-        nf_get_sign(self.g, &r1, &r2)
-        sig_off()
+        cdef GEN nf = self.get_nf()
+        nf_get_sign(nf, &r1, &r2)
         return [r1, r2]
 
     def nf_get_zk(self):
@@ -687,14 +798,20 @@ cdef class gen(sage.structure.element.RingElement):
         Returns a vector with a `\ZZ`-basis for the ring of integers of
         this number field. The first element is always `1`.
 
+        INPUT:
+
+        - ``self`` -- A PARI number field being the output of ``nfinit()``,
+                      ``bnfinit()`` or ``bnrinit()``.
+
         EXAMPLES::
 
             sage: K.<a> = NumberField(x^4 - 4*x^2 + 1)
             sage: pari(K).nf_get_zk()
             [1, x, x^3 - 4*x, x^2 - 2]
         """
+        cdef GEN nf = self.get_nf()
         sig_on()
-        return self.new_gen(nf_get_zk(self.g))
+        return self.new_gen(nf_get_zk(nf))
 
     def bnf_get_cyc(self):
         """
@@ -6554,6 +6671,11 @@ cdef class gen(sage.structure.element.RingElement):
         sig_on()
         return self.new_gen(bnfisintnorm(self.g, t0))
 
+    def bnfisnorm(self, x, long flag=0):
+        t0GEN(x)
+        sig_on()
+        return self.new_gen(bnfisnorm(t0, self.g, flag))
+
     def bnfisprincipal(self, x, long flag=1):
         t0GEN(x)
         sig_on()
@@ -7206,8 +7328,7 @@ cdef class gen(sage.structure.element.RingElement):
     def rnfeltabstorel(self, x):
         t0GEN(x)
         sig_on()
-        polymodmod = self.new_gen(rnfelementabstorel(self.g, t0))
-        return polymodmod.centerlift().centerlift()
+        return self.new_gen(rnfelementabstorel(self.g, t0))
 
     def rnfeltreltoabs(self, x):
         t0GEN(x)
@@ -7626,8 +7747,15 @@ cdef class gen(sage.structure.element.RingElement):
         return self.new_gen(thueinit(self.g, flag, prec))
 
 
+    def rnfisnorminit(self, polrel, long flag=2):
+        t0GEN(polrel)
+        sig_on()
+        return self.new_gen(rnfisnorminit(self.g, t0, flag))
 
-
+    def rnfisnorm(self, T, long flag=0):
+        t0GEN(T)
+        sig_on()
+        return self.new_gen(rnfisnorm(t0, self.g, flag))
 
     ###########################################
     # 8: Vectors, matrices, LINEAR ALGEBRA and sets
@@ -8162,24 +8290,30 @@ cdef class gen(sage.structure.element.RingElement):
 
     def nextprime(gen self, bint add_one=0):
         """
-        nextprime(x): smallest pseudoprime = x
+        nextprime(x): smallest pseudoprime greater than or equal to `x`.
+        If ``add_one`` is non-zero, return the smallest pseudoprime
+        strictly greater than `x`.
 
         EXAMPLES::
 
             sage: pari(1).nextprime()
             2
+            sage: pari(2).nextprime()
+            2
+            sage: pari(2).nextprime(add_one = 1)
+            3
             sage: pari(2^100).nextprime()
             1267650600228229401496703205653
         """
-        if add_one:
-            sig_on()
-            return P.new_gen(gnextprime(gaddsg(1,self.g)))
-        #NOTE: This is much faster than MAGMA's NextPrime with Proof := False.
         sig_on()
+        if add_one:
+            return P.new_gen(gnextprime(gaddsg(1,self.g)))
         return P.new_gen(gnextprime(self.g))
 
-    def subst(self, var, y):
+    def subst(self, var, z):
         """
+        In ``self``, replace the variable ``var`` by the expression `z`.
+
         EXAMPLES::
 
             sage: x = pari("x"); y = pari("y")
@@ -8199,7 +8333,7 @@ cdef class gen(sage.structure.element.RingElement):
         """
         cdef long n
         n = P.get_var(var)
-        t0GEN(y)
+        t0GEN(z)
         sig_on()
         return P.new_gen(gsubst(self.g, n, t0))
 
@@ -8208,6 +8342,48 @@ cdef class gen(sage.structure.element.RingElement):
         t1GEN(z)
         sig_on()
         return self.new_gen(gsubstpol(self.g, t0, t1))
+
+    def nf_subst(self, z):
+        """
+        Given a PARI number field ``self``, return the same PARI
+        number field but in the variable ``z``.
+
+        INPUT:
+
+        - ``self`` -- A PARI number field being the output of ``nfinit()``,
+                      ``bnfinit()`` or ``bnrinit()``.
+
+        EXAMPLES::
+
+            sage: x = polygen(QQ)
+            sage: K = NumberField(x^2 + 5, 'a')
+
+        We can substitute in a PARI ``nf`` structure::
+
+            sage: Kpari = K.pari_nf()
+            sage: Kpari.nf_get_pol()
+            x^2 + 5
+            sage: Lpari = Kpari.nf_subst('a')
+            sage: Lpari.nf_get_pol()
+            a^2 + 5
+
+        We can also substitute in a PARI ``bnf`` structure::
+
+            sage: Kpari = K.pari_bnf()
+            sage: Kpari.nf_get_pol()
+            x^2 + 5
+            sage: Kpari.bnf_get_cyc()  # Structure of class group
+            [2]
+            sage: Lpari = Kpari.nf_subst('a')
+            sage: Lpari.nf_get_pol()
+            a^2 + 5
+            sage: Lpari.bnf_get_cyc()  # We still have a bnf after substituting
+            [2]
+        """
+        cdef GEN nf = self.get_nf()
+        t0GEN(z)
+        sig_on()
+        return P.new_gen(gsubst(self.g, nf_get_varn(nf), t0))
 
     def taylor(self, v=-1):
         sig_on()
@@ -8519,7 +8695,7 @@ cdef class gen(sage.structure.element.RingElement):
 
     def debug(gen self, long depth = -1):
         r"""
-        Show the internal structure of self (like \x in gp).
+        Show the internal structure of self (like the ``\x`` command in gp).
 
         EXAMPLE::
 
@@ -8554,7 +8730,7 @@ cdef class gen(sage.structure.element.RingElement):
     cdef GEN _deepcopy_to_python_heap(self, GEN x, pari_sp* address):
         return P.deepcopy_to_python_heap(x, address)
 
-    cdef int get_var(self, v):
+    cdef long get_var(self, v):
         return P.get_var(v)
 
 
@@ -9198,7 +9374,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
 
 
-    cdef int get_var(self, v):
+    cdef long get_var(self, v):
         """
         Converts a Python string into a PARI variable reference number. Or
         if v = -1, returns -1.

@@ -87,6 +87,22 @@ class GenericSpeciesStructure(CombinatorialObject, SpeciesStructure):
         """
         return repr(self.labels())
 
+    def __eq__(self, other):
+        """
+        EXAMPLES::
+
+            sage: T = species.BinaryTreeSpecies()
+            sage: t = T.structures([1,2,3])[0]; t
+            1*(2*3)
+            sage: t[0], t[1][0]
+            (1, 2)
+            sage: t[0] == t[1][0]
+            False
+        """
+        if type(self) != type(other):
+            return False
+        return self._list == other._list and self.labels() == other.labels()
+
     def labels(self):
         """
         EXAMPLES::
@@ -143,8 +159,12 @@ class GenericSpeciesStructure(CombinatorialObject, SpeciesStructure):
             return False
         if self.parent() != x.parent():
             return False
-        if self.canonical_label() == x.canonical_label():
+
+        #We don't care about the labels for isomorphism testing
+        if self.canonical_label()._list == x.canonical_label()._list:
             return True
+        else:
+            return False
 
 class SpeciesStructureWrapper(GenericSpeciesStructure):
     def __init__(self, parent, s, **options):

@@ -2817,7 +2817,8 @@ cdef class Expression(CommutativeRingElement):
         variables supplied in args.
 
         Multiple variables and iteration counts may be supplied; see
-        documentation for the global derivative() function for more
+        documentation for the global
+        :meth:`~sage.calculus.functional.derivative` function for more
         details.
 
         .. seealso::
@@ -2837,6 +2838,16 @@ cdef class Expression(CommutativeRingElement):
             4
             sage: t.derivative(y)
             2*x^2 + 2*y
+
+        If the function depends on only one variable, you may omit the
+        variable. Giving just a number (for the order of the derivative)
+        also works::
+
+            sage: f(x) = x^3 + sin(x)
+            sage: f.derivative()
+            x |--> 3*x^2 + cos(x)
+            sage: f.derivative(2)
+            x |--> 6*x - sin(x)
 
         ::
 

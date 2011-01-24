@@ -27,7 +27,7 @@ TESTS::
 ###########################################################################
 
 from sage.categories.all        import ModularAbelianVarieties
-from sage.structure.sequence    import Sequence
+from sage.structure.sequence    import Sequence, Sequence_generic
 from sage.structure.parent_base import ParentWithBase
 from morphism                   import HeckeOperator, Morphism, DegeneracyMap
 from torsion_subgroup           import RationalTorsionSubgroup, QQbarTorsionSubgroup
@@ -3032,7 +3032,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
         ################
 
-        if isinstance(D, Sequence):
+        if isinstance(D, Sequence_generic):
             S = D
         else:
             D.sort()

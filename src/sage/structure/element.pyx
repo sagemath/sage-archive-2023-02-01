@@ -379,10 +379,10 @@ cdef class Element(sage_object.SageObject):
             sage: R.<x,y> = QQ[]
             sage: i = ideal(x); i
             Ideal (x) of Multivariate Polynomial Ring in x, y over Rational Field
-            sage: S.<y,z> = ZZ[]
-            sage: i.__setstate__((R,{'_Ideal_generic__ring':S,'_Ideal_generic__gens': (x^2 - y^2 + 1,)}))
+            sage: S.<x,y,z> = ZZ[]
+            sage: i.__setstate__((R,{'_Ideal_generic__ring':S,'_Ideal_generic__gens': (S(x^2 - y^2 + 1),)}))
             sage: i
-            Ideal (x^2 - y^2 + 1) of Multivariate Polynomial Ring in y, z over Integer Ring
+            Ideal (x^2 - y^2 + 1) of Multivariate Polynomial Ring in x, y, z over Integer Ring
         """
         self._set_parent(state[0])
         self.__dict__ = state[1]

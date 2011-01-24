@@ -106,8 +106,8 @@ from sage.interfaces.singular import get_docstring
 
 from sage.misc.misc import get_verbose
 
-from sage.structure.sequence import Sequence
-
+from sage.structure.sequence import Sequence, Sequence_generic
+from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
 
 
 cdef poly* sage_vector_to_poly(v, ring *r) except <poly*> -1:
@@ -342,10 +342,12 @@ cdef class Converter(SageObject):
             # sequences of polynomials should get converted to ideals
             # this means, that Singular lists should not be converted to Sequences,
             # as we do not want ambiguities
-            elif PY_TYPE_CHECK(a, Sequence)\
+            elif PY_TYPE_CHECK(a, Sequence_generic)\
                 and all_polynomials(a):
                 v = self.append_ideal(ring.ideal(a))
-            elif PY_TYPE_CHECK(a, Sequence)\
+            elif PY_TYPE_CHECK(a, PolynomialSequence):
+                v = self.append_ideal(ring.ideal(a))
+            elif PY_TYPE_CHECK(a, Sequence_generic)\
                 and all_vectors(a):
                 v = self.append_module(a)
             elif PY_TYPE_CHECK(a, list):
@@ -1112,7 +1114,7 @@ The Singular documentation for '%s' is given below.
             elif PY_TYPE_CHECK(a, Matrix_mpolynomial_dense):
                 ring2 = a.base_ring()
             elif PY_TYPE_CHECK(a, list) or PY_TYPE_CHECK(a, tuple)\
-                or PY_TYPE_CHECK(a, Sequence):
+                or PY_TYPE_CHECK(a, Sequence_generic):
                 #TODO: catch exception, if recursion finds no ring
                 ring2 = self.common_ring(tuple(a), ring)
             elif PY_TYPE_CHECK(a, Resolution):
@@ -1361,7 +1363,7 @@ def singular_function(name):
         sage: ringlist=singular_function("ringlist")
         sage: l = ringlist(P)
         sage: l[3].__class__
-        <class 'sage.structure.sequence.Sequence'>
+        <class 'sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence_generic'>
         sage: l
         [0, ['x', 'y', 'z'], [['dp', (1, 1, 1)], ['C', (0,)]], [0]]
         sage: ring=singular_function("ring")

@@ -405,7 +405,7 @@ a common parent, called the sequences universe.
     sage: v
     [1, 2, 3, 4/5]
     sage: type(v)
-    <class 'sage.structure.sequence.Sequence'>
+    <class 'sage.structure.sequence.Sequence_generic'>
     sage: type(v[1])
     <type 'sage.rings.rational.Rational'>
     sage: v.universe()
@@ -443,7 +443,7 @@ sequences, since it's important that you don't change them.
     (0, 0, 1)
     ]
     sage: type(B)
-    <class 'sage.structure.sequence.Sequence'>
+    <class 'sage.structure.sequence.Sequence_generic'>
     sage: B[0] = B[1]
     Traceback (most recent call last):
     ...

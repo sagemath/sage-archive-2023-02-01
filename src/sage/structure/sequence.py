@@ -80,9 +80,226 @@ TESTS::
 
 from sage.misc.latex import list_function as list_latex_function
 import sage.structure.sage_object
+
 #from mutability import Mutability #we cannot inherit from Mutability and list at the same time
 
-class Sequence(sage.structure.sage_object.SageObject, list):
+def Sequence(x, universe=None, check=True, immutable=False, cr=False, cr_str=None, use_sage_types=False):
+    """
+    A mutable list of elements with a common guaranteed universe,
+    which can be set immutable.
+
+    A universe is either an object that supports coercion (e.g., a
+    parent), or a category.
+
+    INPUT:
+
+    - ``x`` - a list or tuple instance
+
+    - ``universe`` - (default: None) the universe of elements; if None
+      determined using canonical coercions and the entire list of
+      elements.  If list is empty, is category Objects() of all
+      objects.
+
+    - ``check`` -- (default: True) whether to coerce the elements of x
+      into the universe
+
+    - ``immutable`` - (default: True) whether or not this sequence is
+      immutable
+
+    - ``cr`` - (default: False) if True, then print a carriage return
+      after each comma when printing this sequence.
+
+    - ``cr_str`` - (default: False) if True, then print a carriage return
+      after each comma when calling ``str()`` on this sequence.
+
+    - ``use_sage_types`` -- (default: False) if True, coerce the
+       built-in Python numerical types int, long, float, complex to the
+       corresponding Sage types (this makes functions like vector()
+       more flexible)
+
+    OUTPUT:
+
+    - a sequence
+
+    EXAMPLES::
+
+        sage: v = Sequence(range(10))
+        sage: v.universe()
+        <type 'int'>
+        sage: v
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+    We can request that the built-in Python numerical types be coerced
+    to Sage objects::
+
+        sage: v = Sequence(range(10), use_sage_types=True)
+        sage: v.universe()
+        Integer Ring
+        sage: v
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+    You can also use seq for "Sequence", which is identical to using
+    Sequence::
+
+        sage: v = seq([1,2,1/1]); v
+        [1, 2, 1]
+        sage: v.universe()
+        Rational Field
+        sage: v.parent()
+        Category of sequences in Rational Field
+        sage: v.parent()([3,4/3])
+        [3, 4/3]
+
+
+    Note that assignment coerces if possible,::
+
+        sage: v = Sequence(range(10), ZZ)
+        sage: a = QQ(5)
+        sage: v[3] = a
+        sage: parent(v[3])
+        Integer Ring
+        sage: parent(a)
+        Rational Field
+        sage: v[3] = 2/3
+        Traceback (most recent call last):
+        ...
+        TypeError: no conversion of this rational to integer
+
+    Sequences can be used absolutely anywhere lists or tuples can be used::
+
+        sage: isinstance(v, list)
+        True
+
+    Sequence can be immutable, so entries can't be changed::
+
+        sage: v = Sequence([1,2,3], immutable=True)
+        sage: v.is_immutable()
+        True
+        sage: v[0] = 5
+        Traceback (most recent call last):
+        ...
+        ValueError: object is immutable; please change a copy instead.
+
+    Only immutable sequences are hashable (unlike Python lists),
+    though the hashing is potentially slow, since it first involves
+    conversion of the sequence to a tuple, and returning the hash of
+    that.::
+
+        sage: v = Sequence(range(10), ZZ, immutable=True)
+        sage: hash(v)
+        1591723448             # 32-bit
+        -4181190870548101704   # 64-bit
+
+
+    If you really know what you are doing, you can circumvent the type
+    checking (for an efficiency gain)::
+
+        sage: list.__setitem__(v, int(1), 2/3)        # bad circumvention
+        sage: v
+        [0, 2/3, 2, 3, 4, 5, 6, 7, 8, 9]
+        sage: list.__setitem__(v, int(1), int(2))     # not so bad circumvention
+
+    You can make a sequence with a new universe from an old sequence.::
+
+        sage: w = Sequence(v, QQ)
+        sage: w
+        [0, 2, 2, 3, 4, 5, 6, 7, 8, 9]
+        sage: w.universe()
+        Rational Field
+        sage: w[1] = 2/3
+        sage: w
+        [0, 2/3, 2, 3, 4, 5, 6, 7, 8, 9]
+
+    Sequences themselves live in a category, the category of all sequences
+    in the given universe.::
+
+        sage: w.category()
+        Category of sequences in Rational Field
+
+    This is also the parent of any sequence::
+
+        sage: w.parent()
+        Category of sequences in Rational Field
+
+    The default universe for any sequence, if no compatible parent structure
+    can be found, is the universe of all Sage objects.
+
+    This example illustrates how every element of a list is taken into account
+    when constructing a sequence.::
+
+        sage: v = Sequence([1,7,6,GF(5)(3)]); v
+        [1, 2, 1, 3]
+        sage: v.universe()
+        Finite Field of size 5
+        sage: v.parent()
+        Category of sequences in Finite Field of size 5
+        sage: v.parent()([7,8,9])
+        [2, 3, 4]
+    """
+    from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
+
+
+    if isinstance(x, Sequence_generic) and universe is None:
+        universe = x.universe()
+        x = list(x)
+
+    if isinstance(x, MPolynomialIdeal) and universe is None:
+        universe = x.ring()
+        x = x.gens()
+
+    if universe is None:
+        if not isinstance(x, (list, tuple)):
+            x = list(x)
+            #raise TypeError, "x must be a list or tuple"
+
+        if len(x) == 0:
+            import sage.categories.all
+            universe = sage.categories.all.Objects()
+        else:
+            import sage.structure.element as coerce
+            y = x
+            x = list(x)   # make a copy, or we'd change the type of the elements of x, which would be bad.
+            if use_sage_types:
+                # convert any Python built-in numerical types to Sage objects
+                from sage.rings.integer_ring import ZZ
+                from sage.rings.real_double import RDF
+                from sage.rings.complex_double import CDF
+                for i in range(len(x)):
+                    if isinstance(x[i], int) or isinstance(x[i], long):
+                        x[i] = ZZ(x[i])
+                    elif isinstance(x[i], float):
+                        x[i] = RDF(x[i])
+                    elif isinstance(x[i], complex):
+                        x[i] = CDF(x[i])
+            # start the pairwise coercion
+            for i in range(len(x)-1):
+                try:
+                    x[i], x[i+1] = coerce.canonical_coercion(x[i],x[i+1])
+                except TypeError:
+                    import sage.categories.all
+                    universe = sage.categories.all.Objects()
+                    x = list(y)
+                    check = False  # no point
+                    break
+            if universe is None:   # no type errors raised.
+                universe = coerce.parent(x[len(x)-1])
+
+    from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
+    from sage.rings.quotient_ring import is_QuotientRing
+    from sage.rings.polynomial.pbori import BooleanMonomialMonoid
+
+    if is_MPolynomialRing(universe) or \
+            (is_QuotientRing(universe) and is_MPolynomialRing(universe.cover_ring())) or \
+            isinstance(universe, BooleanMonomialMonoid):
+        from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
+        try:
+            return PolynomialSequence(x, universe, immutable=immutable, cr=cr, cr_str=cr_str)
+        except (TypeError,AttributeError):
+            return Sequence_generic(x, universe, check, immutable, cr, cr_str, use_sage_types)
+    else:
+        return Sequence_generic(x, universe, check, immutable, cr, cr_str, use_sage_types)
+
+class Sequence_generic(sage.structure.sage_object.SageObject, list):
     """
     A mutable list of elements with a common guaranteed universe,
     which can be set immutable.
@@ -262,16 +479,12 @@ class Sequence(sage.structure.sage_object.SageObject, list):
             sage: a = Sequence([1..5], universe=QQ, check=False, immutable=True, cr_str=True, use_sage_types=True)
             sage: a
             [1, 2, 3, 4, 5]
-            sage: a._Sequence__cr_str
+            sage: a._Sequence_generic__cr_str
             True
             sage: a.__str__()
             '[\n1,\n2,\n3,\n4,\n5\n]'
         """
-        if not isinstance(x, (list, tuple)):
-            x = list(x)
-            #raise TypeError, "x must be a list or tuple"
         self.__hash = None
-
 
         self.__cr = cr
         if cr_str is None:
@@ -279,45 +492,13 @@ class Sequence(sage.structure.sage_object.SageObject, list):
         else:
             self.__cr_str = cr_str
 
-        if isinstance(x, Sequence):
+        if isinstance(x, Sequence_generic):
             if universe is None or universe == x.__universe:
                 list.__init__(self, x)
                 self.__universe = x.__universe
                 self._is_immutable = immutable
                 return
-        if universe is None:
-            if len(x) == 0:
-                import sage.categories.all
-                universe = sage.categories.all.Objects()
-            else:
-                import sage.structure.element as coerce
-                y = x
-                x = list(x)   # make a copy, or we'd change the type of the elements of x, which would be bad.
-                if use_sage_types:
-                    # convert any Python built-in numerical types to Sage objects
-                    from sage.rings.integer_ring import ZZ
-                    from sage.rings.real_double import RDF
-                    from sage.rings.complex_double import CDF
-                    for i in range(len(x)):
-                        if isinstance(x[i], int) or isinstance(x[i], long):
-                            x[i] = ZZ(x[i])
-                        elif isinstance(x[i], float):
-                            x[i] = RDF(x[i])
-                        elif isinstance(x[i], complex):
-                            x[i] = CDF(x[i])
-                # start the pairwise coercion
-                for i in range(len(x)-1):
-                    try:
-                        x[i], x[i+1] = coerce.canonical_coercion(x[i],x[i+1])
-                    except TypeError:
-                        import sage.categories.all
-                        universe = sage.categories.all.Objects()
-                        x = list(y)
-                        check = False  # no point
-                        break
-                if universe is None:   # no type errors raised.
-                    universe = coerce.parent(x[len(x)-1])
-                #universe = sage.structure.coerce.parent(x[0])
+
         self.__universe = universe
         if check:
             x = [universe(t) for t in x]
@@ -388,7 +569,7 @@ class Sequence(sage.structure.sage_object.SageObject, list):
             sage: w
             [3, 4]
             sage: type(w)
-            <class 'sage.structure.sequence.Sequence'>
+            <class 'sage.structure.sequence.Sequence_generic'>
             sage: w[0] = 5; w
             [5, 4]
             sage: v
@@ -707,5 +888,41 @@ class Sequence(sage.structure.sage_object.SageObject, list):
                         immutable = self._is_immutable,
                         cr = self.__cr_str)
 
+    def __getattr__(self, name):
+        """
+        Strictly for unpickling old 'Sequences'
+
+        INPUT:
+
+        - ``name`` - some string
+
+        TESTS::
+
+            sage: S = Sequence([])
+            sage: del S._Sequence_generic__universe
+            sage: S.universe()
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'Sequence_generic' object has no attribute '_Sequence_generic__universe'
+            sage: S._Sequence__universe = 'foobar'
+            sage: S.universe()
+            'foobar'
+        """
+        if name == "_Sequence_generic__cr" and hasattr(self,"_Sequence__cr"):
+            self.__cr = self._Sequence__cr
+            return self.__cr
+        elif name == "_Sequence_generic__cr_str" and hasattr(self,"_Sequence__cr_str"):
+            self.__cr_str = self._Sequence__cr_str
+            return self.__cr_str
+        elif name == "_Sequence_generic__immutable" and hasattr(self,"_Sequence__immutable"):
+            self.__immutable = self._Sequence__immutable
+            return self.__immutable
+        elif name == "_Sequence_generic__universe" and hasattr(self,"_Sequence__universe"):
+            self.__universe = self._Sequence__universe
+            return self.__universe
+        else:
+            raise AttributeError("'Sequence_generic' object has no attribute '%s'"%name)
 seq = Sequence
 
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override('sage.structure.sequence', 'Sequence', Sequence_generic)

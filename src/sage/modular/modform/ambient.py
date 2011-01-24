@@ -728,7 +728,7 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             sage: v = m.eisenstein_params(); v
             [(Dirichlet character modulo 22 of conductor 1 mapping 13 |--> 1, Dirichlet character modulo 22 of conductor 1 mapping 13 |--> 1, 2), (Dirichlet character modulo 22 of conductor 1 mapping 13 |--> 1, Dirichlet character modulo 22 of conductor 1 mapping 13 |--> 1, 11), (Dirichlet character modulo 22 of conductor 1 mapping 13 |--> 1, Dirichlet character modulo 22 of conductor 1 mapping 13 |--> 1, 22)]
             sage: type(v)
-            <class 'sage.structure.sequence.Sequence'>
+            <class 'sage.structure.sequence.Sequence_generic'>
         """
         try:
             return self.__eisenstein_params

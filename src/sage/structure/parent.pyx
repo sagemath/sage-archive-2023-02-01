@@ -1274,11 +1274,11 @@ cdef class Parent(category_object.CategoryObject):
        """
        if isinstance(im_gens, Parent):
            return self.Hom(im_gens).natural_map()
-       from sage.structure.all import Sequence
+       from sage.structure.sequence import Sequence_generic, Sequence
        if codomain is None:
            im_gens = Sequence(im_gens)
            codomain = im_gens.universe()
-       if isinstance(im_gens, (Sequence, Generators)):
+       if isinstance(im_gens, (Sequence_generic, Generators)):
             im_gens = list(im_gens)
        if check is None:
            return self.Hom(codomain)(im_gens)

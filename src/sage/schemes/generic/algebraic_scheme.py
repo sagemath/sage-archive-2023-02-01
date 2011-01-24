@@ -635,6 +635,8 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
               x^2 - y*z
         """
+        from sage.rings.polynomial.multi_polynomial_sequence import is_PolynomialSequence
+
         AlgebraicScheme.__init__(self, A)
         self._base_ring = A.base_ring()
         R = A.coordinate_ring()
@@ -643,7 +645,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             polynomials = I.gens()
             if I.ring() is R: # Otherwise we will recompute I later after
                 self.__I = I  # converting generators to the correct ring
-        if isinstance(polynomials, tuple) or is_iterator(polynomials):
+        if isinstance(polynomials, tuple) or is_PolynomialSequence(polynomials) or is_iterator(polynomials):
             polynomials = list(polynomials)
         elif not isinstance(polynomials, list):
             # Looks like we got a single polynomial

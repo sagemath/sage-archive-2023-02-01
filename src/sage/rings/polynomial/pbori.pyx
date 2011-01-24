@@ -4376,16 +4376,7 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
             sage: F,s = sr.polynomial_system()
             sage: I = F.ideal()
             sage: I.groebner_basis()
-            [k200 + k003, k201 + 1, k202, k203 + k003 + 1,
-             x200 + k003, x201 + k003 + 1, x202 + 1, x203,
-             w200 + k003, w201 + 1, w202 + k003 + 1, w203 + k003 + 1,
-             s100 + k003, s101 + k003 + 1, s102 + 1, s103 + 1,
-             k100, k101 + 1, k102 + k003 + 1, k103 + k003,
-             x100 + k003, x101 + 1, x102 + k003, x103 + k003,
-             w100 + 1, w101 + k003 + 1, w102, w103 + k003 + 1,
-             s000 + k003, s001 + 1, s002 + 1, s003 + k003 + 1,
-             k000, k001 + k003 + 1, k002 + 1]
-
+            Polynomial Sequence with 35 Polynomials in 36 Variables
 
         TESTS:
 
@@ -4505,7 +4496,7 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
             sage: J = Ideal(I.interreduced_basis())
             sage: I == J
             True
-            sage: J = Ideal(I.gens()[1:] + (I.gens()[0] + 1,))
+            sage: J = Ideal(I.gens()[1:] + [I.gens()[0] + 1])
             sage: I == J
             False
         """
@@ -7117,7 +7108,7 @@ def gauss_on_polys(inp):
         sage: B.<a,b,c,d,e,f> = BooleanPolynomialRing()
         sage: from polybori import *
         sage: l = [B.random_element() for _ in range(B.ngens())]
-        sage: A,v = mq.MPolynomialSystem(B,l).coefficient_matrix()
+        sage: A,v = Sequence(l,B).coefficient_matrix()
         sage: A
         [1 0 1 0 1 0 0 0 0 1 0 1 0 0]
         [0 0 0 1 1 0 0 1 1 0 0 0 0 1]
@@ -7127,7 +7118,7 @@ def gauss_on_polys(inp):
         [0 1 1 0 0 0 0 0 0 0 0 1 1 1]
 
         sage: e = gauss_on_polys(l)
-        sage: E,v = mq.MPolynomialSystem(B,e).coefficient_matrix()
+        sage: E,v = Sequence(e,B).coefficient_matrix()
         sage: E
         [1 0 1 0 1 0 0 0 0 1 0 1 0 0]
         [0 1 1 0 0 0 0 0 0 0 0 1 1 1]

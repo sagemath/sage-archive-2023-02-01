@@ -358,7 +358,7 @@ class QuotientRingElement(ring_element.RingElement):
         # makes the implicit Groebner basis computation of [R]+B
         # that is done in the lift command below faster.
         B  = I.groebner_basis()
-        XY = L.lift([R] + B)
+        XY = L.lift((R,) + tuple(B))
         if XY == [0]*len(XY):
             raise NotImplementedError
         return P(XY[0])

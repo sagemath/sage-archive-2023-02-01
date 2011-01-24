@@ -115,6 +115,7 @@ from sage.plot.plot3d.tachyon import Tachyon
 from sage.rings.all import Integer, ZZ, QQ, gcd, lcm
 from sage.sets.set import Set_generic
 from sage.structure.all import Sequence
+from sage.structure.sequence import Sequence_generic
 from sage.structure.sage_object import SageObject, load, loads
 
 import collections
@@ -2892,7 +2893,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         return self._vertices
 
 
-class NEFPartition(Sequence):
+class NEFPartition(Sequence_generic):
     r"""
     Construct a nef-partition from the given list. If the second
     argument is given, it must be the polytope of the nef-partition.
@@ -2929,7 +2930,7 @@ class NEFPartition(Sequence):
         """
         deprecation("NEFpartition is deprecated, use NefPartition instead.",
                     "Sage Version 4.6.2")
-        Sequence.__init__(self, data, int, cr=False)
+        Sequence_generic.__init__(self, data, int, cr=False)
         self._n = max(self) + 1
         self._polytope = polytope
         self.set_immutable()
@@ -2962,7 +2963,7 @@ class NEFPartition(Sequence):
             sage: np._repr_()
             '[1, 1, 0, 0]'
         """
-        s = Sequence._repr_(self)
+        s = Sequence_generic._repr_(self)
         try:
             # We may or may not know the type of the partition
             if self._is_projection:

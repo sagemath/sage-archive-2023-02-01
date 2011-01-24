@@ -464,7 +464,7 @@ class Ideal_generic(MonoidElement):
             sage: I = Ideal([x,y+1]); I
             Ideal (x, y + 1) of Multivariate Polynomial Ring in x, y over Rational Field
             sage: I.gens()
-            (x, y + 1)
+            [x, y + 1]
 
         ::
 

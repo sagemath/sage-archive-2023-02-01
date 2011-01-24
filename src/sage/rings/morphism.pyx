@@ -944,7 +944,7 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
             TypeError: images do not define a valid homomorphism
         """
         RingHomomorphism.__init__(self, parent)
-        if not isinstance(im_gens, sage.structure.all.Sequence):
+        if not isinstance(im_gens, sage.structure.sequence.Sequence_generic):
             if not isinstance(im_gens, (tuple, list)):
                 im_gens = [im_gens]
             im_gens = sage.structure.all.Sequence(im_gens, parent.codomain())

@@ -31,6 +31,8 @@ are implemented using the PolyBoRi library (cf. :mod:`sage.rings.polynomial.pbor
    sage/rings/polynomial/multi_polynomial_element
    sage/rings/polynomial/multi_polynomial_ideal
 
+   sage/rings/polynomial/multi_polynomial_sequence
+
    sage/rings/polynomial/multi_polynomial_libsingular
    sage/rings/polynomial/multi_polynomial_ideal_libsingular
 

@@ -331,7 +331,7 @@ def elim_pol(B, n=-1):
       z^2 - z
   """
   # type checking in a probably vain attempt to avoid stupid errors
-  if isinstance(B, list):
+  if isinstance(B, (list,tuple)):
     G = B
   else:
     try:

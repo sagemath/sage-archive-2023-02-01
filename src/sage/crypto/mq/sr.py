@@ -318,7 +318,7 @@ from sage.misc.flatten import flatten
 
 from sage.modules.vector_modn_dense import Vector_modn_dense
 
-from mpolynomialsystem import MPolynomialSystem, MPolynomialRoundSystem
+from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
 from mpolynomialsystemgenerator import MPolynomialSystemGenerator
 
 from sage.rings.polynomial.term_order import TermOrder
@@ -1800,7 +1800,7 @@ class SR_generic(MPolynomialSystemGenerator):
            last round)
 
 
-        OUTPUT: MPolynomialRoundSystem
+        OUTPUT: tuple
 
         EXAMPLE::
 
@@ -1825,7 +1825,7 @@ class SR_generic(MPolynomialSystemGenerator):
             k0 = Matrix(R, r*c*e, 1, _vars("k", 0, r*c, e))
             if isinstance(plaintext, (tuple, list)) and len(plaintext) == r*c:
                 plaintext = Matrix(R, r*c*e, 1, self.phi(plaintext))
-            return MPolynomialRoundSystem(R, w1 + k0 + plaintext)
+            return tuple((w1 + k0 + plaintext).list())
 
         elif i>0 and i<=n:
             xj = Matrix(R, r*c*e, 1, _vars("x", i, r*c, e))
@@ -1848,7 +1848,7 @@ class SR_generic(MPolynomialSystemGenerator):
             sbox += self.inversion_polynomials(xi, wi, r*c*e)
             sbox += self.field_polynomials("x", i)
             sbox += self.field_polynomials("w", i)
-            return MPolynomialRoundSystem(R, lin + sbox)
+            return tuple(lin + sbox)
 
     def key_schedule_polynomials(self, i):
         """
@@ -1907,7 +1907,7 @@ class SR_generic(MPolynomialSystemGenerator):
             raise TypeError, "i must by >= 0"
 
         if i == 0:
-            return MPolynomialRoundSystem(R, self.field_polynomials("k", i, r*c))
+            return tuple(self.field_polynomials("k", i, r*c))
         else:
             L = self.lin_matrix(r)
             ki = Matrix(R, r*c*e, 1, self.vars("k", i  , r*c, e))
@@ -1950,7 +1950,7 @@ class SR_generic(MPolynomialSystemGenerator):
 
             else:
                 lin += (ki + si).list()
-            return MPolynomialRoundSystem(R, lin + sbox )
+            return tuple(lin + sbox)
 
     def polynomial_system(self, P=None, K=None, C=None):
         """
@@ -1977,7 +1977,7 @@ class SR_generic(MPolynomialSystemGenerator):
         This returns a polynomial system::
 
             sage: F
-            Polynomial System with 36 Polynomials in 20 Variables
+            Polynomial Sequence with 36 Polynomials in 20 Variables
 
         and a solution::
 
@@ -2003,7 +2003,7 @@ class SR_generic(MPolynomialSystemGenerator):
            sage: C = sr(P,K)
            sage: F,s = sr.polynomial_system(P=P, C=C)
            sage: F
-           Polynomial System with 36 Polynomials in 20 Variables
+           Polynomial Sequence with 36 Polynomials in 20 Variables
 
         Alternatively, we can use symbols for the ``P`` and
         ``C``. First, we have to create a polynomial ring::
@@ -2024,10 +2024,10 @@ class SR_generic(MPolynomialSystemGenerator):
             sage: [(k,v) for k,v in sorted(s.iteritems())] # this can be ignored
             [(k003, 1), (k002, 1), (k001, 0), (k000, 0)]
             sage: F
-            Polynomial System with 36 Polynomials in 28 Variables
-            sage: F.round(0)
+            Polynomial Sequence with 36 Polynomials in 28 Variables
+            sage: F.part(0)
             (P000 + w100 + k000, P001 + w101 + k001, P002 + w102 + k002, P003 + w103 + k003)
-            sage: F.round(-2)
+            sage: F.part(-2)
             (k100 + x100 + x102 + x103 + C000, k101 + x100 + x101 + x103 + C001 + 1, ...)
 
         """
@@ -2088,7 +2088,7 @@ class SR_generic(MPolynomialSystemGenerator):
             K = dict(zip(self.vars("k", 0), key.list()))
         else:
             K = None
-        return MPolynomialSystem(self.R, system), K
+        return PolynomialSequence(self.R, system), K
 
 
 class SR_gf2n(SR_generic):

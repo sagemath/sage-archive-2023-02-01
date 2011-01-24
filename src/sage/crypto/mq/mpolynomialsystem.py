@@ -8,7 +8,7 @@ be called ``Ideal`` but an ideal is a very distinct object from its
 generators and thus this is not an ideal in Sage.
 
 The idea of polynomial systems is specialized to systems which consist
-of several "rounds" in Sage. These kind of polynomial systems arise
+of several "parts" in Sage. These kind of polynomial systems arise
 naturally in algebraic cryptanalysis of symmetric cryptographic
 primitives. The most prominent examples of these systems are: the
 small scale variants of the AES [CMR05]_ (cf. ``mq.SR``) and
@@ -32,9 +32,9 @@ pair and study it::
 
    sage: F,s = sr.polynomial_system()
    sage: F
-   Polynomial System with 112 Polynomials in 64 Variables
+   Polynomial Sequence with 112 Polynomials in 64 Variables
 
-   sage: r2 = F.round(2); r2
+   sage: r2 = F.part(2); r2
    (w200 + k100 + x100 + x102 + x103,
     w201 + k101 + x100 + x101 + x103 + 1,
     w202 + k102 + x100 + x101 + x102 + 1,
@@ -69,41 +69,17 @@ pair and study it::
     w110*x112 + w111*x111 + w112*x110 + w113*x113 + 1)
 
     sage: type(r2)
-    <class 'sage.crypto.mq.mpolynomialsystem.MPolynomialRoundSystem_generic'>
+    <type 'tuple'>
 
 As an example, we separate the system in independent subsystems or compute the coefficient matrix::
 
     sage: C = mq.MPolynomialSystem(r2).connected_components(); C
+    doctest:...: DeprecationWarning: (Since 4.6.2) This function is replaced by sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence.
     [Polynomial System with 16 Polynomials in 16 Variables,
      Polynomial System with 16 Polynomials in 16 Variables]
 
     sage: C[0].groebner_basis()
-    [x111*x110 + w113*x110 + w113*x112 + w113*x113 + w113*w111 + w113*w112 + x111 + x113 + w110 + w111 + w112,
-     x112*x110 + w113*x112 + w113*x113 + w113*w110 + w113*w112 + x110 + x112 + 1,
-     x112*x111 + w113*w110 + x110 + x111 + x113 + w111 + w113,
-     x113*x110 + w113*x110 + w113*x112 + w113*w110 + w113*w111 + w113*w112 + x110 + x111 + x113 + w110 + w111 + 1,
-     x113*x111 + w113*x110 + w113*x112 + w113*x113 + w113*w112 + x111 + x112 + x113 + w111 + w112,
-     x113*x112 + w113*x112 + w113*x113 + w113*w110 + x111 + w110 + w112 + 1,
-     w110*x110 + w113*x110 + w113*w110 + w113*w111 + x110 + x113 + w111 + w112 + 1,
-     w110*x111 + w113*x112 + w113*w110 + w113*w111 + x110 + x112 + x113 + w113,
-     w110*x112 + w113*x110 + w113*x112 + w113*x113 + x112 + x113 + w110 + w111 + w112,
-     w110*x113 + w113*x110 + w113*x113 + x111 + x113 + w111 + w113 + 1,
-     w111*x110 + w113*x110 + w113*x112 + x110 + x111 + w110 + w113 + 1,
-     w111*x111 + w113*x110 + w113*x113 + w113*w110 + w113*w111 + x110 + x111 + x112 + x113,
-     w111*x112 + w113*x110 + w113*x112 + w113*w110 + w113*w111 + x110 + x111 + x112 + w110 + w112,
-     w111*x113 + w113*x113 + w113*w110 + w113*w111 + x111 + x112 + w110 + w111 + w112 + 1,
-     w111*w110 + w113*x110 + w113*x112 + w113*x113 + w113*w111 + w113*w112 + x110 + x111 + x112 + x113 + w111,
-     w112*x110 + w113*x112 + w113*x113 + w113*w110 + w113*w111 + x110 + x111 + w110 + w111 + w112 + 1,
-     w112*x111 + w113*x112 + w113*x113 + x112 + w110 + w113,
-     w112*x112 + w113*x113 + x110 + x111 + w110 + w111 + 1,
-     w112*x113 + w113*x110 + w113*x112 + w113*x113 + w113*w110 + w113*w111 + x111 + x112 + x113 + w110,
-     w112*w110 + w113*x112 + w113*x113 + w113*w110 + w113*w112 + x110 + x111 + x112 + w111 + 1,
-     w112*w111 + w113*x110 + w113*x112 + w113*w110 + w113*w111 + w113*w112 + x110 + w113 + 1,
-     w113*x111 + w113*w110 + w113*w111 + x111 + w110 + w111,
-     w210 + k110 + x110 + x112 + x113,
-     w211 + k111 + x110 + x111 + x113 + 1,
-     w212 + k112 + x110 + x111 + x112 + 1,
-     w213 + k113 + x111 + x112 + x113]
+    Polynomial Sequence with 26 Polynomials in 16 Variables
 
     sage: A,v = mq.MPolynomialSystem(r2).coefficient_matrix()
     sage: A.rank()
@@ -175,6 +151,7 @@ def is_MPolynomialSystem(F):
         sage: P.<x,y> = PolynomialRing(QQ)
         sage: I = [[x^2 + y^2], [x^2 - y^2]]
         sage: F = mq.MPolynomialSystem(P,I); F
+        doctest:...: DeprecationWarning: (Since 4.6.2) This function is replaced by sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence.
         Polynomial System with 2 Polynomials in 2 Variables
         sage: mq.is_MPolynomialSystem(F)
         True
@@ -194,6 +171,7 @@ def is_MPolynomialRoundSystem(F):
         sage: P.<x,y> = PolynomialRing(QQ)
         sage: I = [[x^2 + y^2], [x^2 - y^2]]
         sage: F = mq.MPolynomialSystem(P,I); F
+        doctest:...: DeprecationWarning: (Since 4.6.2) This function is replaced by sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence.
         Polynomial System with 2 Polynomials in 2 Variables
         sage: mq.is_MPolynomialRoundSystem(F.round(0))
         True
@@ -203,8 +181,8 @@ def is_MPolynomialRoundSystem(F):
 
 def MPolynomialRoundSystem(R, gens):
     """
-    Construct an object representing the equations of a single round
-    e.g. of a block cipher or however a "round" is defined.
+    Construct an object representing the equations of a single part
+    e.g. of a block cipher or however a "part" is defined.
 
     INPUT:
 
@@ -226,7 +204,7 @@ def MPolynomialSystem(arg1, arg2=None):
     INPUT:
 
     - ``arg1`` - a multivariate polynomial ring or an ideal
-    - ``arg2`` - an iterable object of rounds, preferable ``MPolynomialRoundSystem``,
+    - ``arg2`` - an iterable object of parts, preferable ``MPolynomialRoundSystem``,
       or polynomials (default:``None``)
 
     EXAMPLES::
@@ -235,9 +213,10 @@ def MPolynomialSystem(arg1, arg2=None):
         sage: I = sage.rings.ideal.Katsura(P)
 
     If a list of MPolynomialRoundSystems is provided, those form the
-    rounds::
+    parts::
 
         sage: mq.MPolynomialSystem(I.ring(), [mq.MPolynomialRoundSystem(I.ring(),I.gens())])
+        doctest:1: DeprecationWarning: (Since 4.6.2) This function is replaced by sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence.
         Polynomial System with 4 Polynomials in 4 Variables
 
     If an ideal is provided, the generators are used::
@@ -246,27 +225,30 @@ def MPolynomialSystem(arg1, arg2=None):
         Polynomial System with 4 Polynomials in 4 Variables
 
     If a list of polynomials is provided, the system has only one
-    round::
+    part::
 
         sage: mq.MPolynomialSystem(I.ring(), I.gens())
         Polynomial System with 4 Polynomials in 4 Variables
     """
+    from sage.misc.misc import deprecation
+    deprecation("This function is replaced by sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence.","4.6.2")
+
     if is_MPolynomialRing(arg1):
         R = arg1
-        rounds = arg2
+        parts = arg2
     elif isinstance(arg1, MPolynomialRoundSystem_generic) and arg2 is None:
         R = arg1.ring()
-        rounds = [list(arg1)]
+        parts = [list(arg1)]
     elif is_Matrix(arg1):
         R = arg1.base_ring()
-        rounds = arg1.list()
+        parts = arg1.list()
     elif isinstance(arg1,MPolynomialIdeal) and arg2 is None:
         R = arg1.ring()
-        rounds = arg1.gens()
+        parts = arg1.gens()
     elif isinstance(arg1, (list,tuple)):
-        rounds = arg1
-        R = iter(rounds).next().parent()
-        for f in rounds:
+        parts = arg1
+        R = iter(parts).next().parent()
+        for f in parts:
             if f.parent() is not R:
                 raise TypeError("Generators must have same parent.")
     else:
@@ -275,11 +257,11 @@ def MPolynomialSystem(arg1, arg2=None):
     k = R.base_ring()
 
     if k.characteristic() != 2:
-        return MPolynomialSystem_generic(R,rounds)
+        return MPolynomialSystem_generic(R,parts)
     elif k.degree() == 1:
-        return MPolynomialSystem_gf2(R,rounds)
+        return MPolynomialSystem_gf2(R,parts)
     elif k.degree() > 1:
-        return MPolynomialSystem_gf2e(R,rounds)
+        return MPolynomialSystem_gf2e(R,parts)
 
 class MPolynomialRoundSystem_generic(SageObject):
     def __init__(self, R, gens):
@@ -309,13 +291,13 @@ class MPolynomialRoundSystem_generic(SageObject):
 
     def __copy__(self):
         """
-        Return a copy of this round.
+        Return a copy of this part.
 
         EXAMPLE::
 
             sage: sr = mq.SR(allow_zero_inversions=True)
             sage: F,s = sr.polynomial_system()
-            sage: r = F.round(0)
+            sage: r = F.part(0)
             sage: copy(r)
             (w100 + k000 + (a^3 + a + 1), w101 + k001 + (a^3 + 1),
             w102 + k002 + (a^3 + a^2 + 1), w103 + k003 + (a^3 + a^2 +
@@ -350,6 +332,8 @@ class MPolynomialRoundSystem_generic(SageObject):
 
             sage: sr = mq.SR(allow_zero_inversions=True,gf2=True,order='block')
             sage: F,s = sr.polynomial_system()
+            sage: F = mq.MPolynomialSystem(F.ring(),tuple(F.parts()))
+            doctest... DeprecationWarning: (Since 4.6.2) This function is replaced by sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence.
             sage: R0 = F.round(0)
             sage: print R0.ring().repr_long()
             Polynomial Ring
@@ -370,6 +354,8 @@ class MPolynomialRoundSystem_generic(SageObject):
 
             sage: sr = mq.SR(allow_zero_inversions=True,gf2=True,order='block')
             sage: F,s = sr.polynomial_system()
+            sage: F = mq.MPolynomialSystem(F.ring(),tuple(F.parts()))
+            doctest... DeprecationWarning: (Since 4.6.2) This function is replaced by sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence.
             sage: R0 = F.round(0)
             sage: R0.ngens()
             4
@@ -384,8 +370,7 @@ class MPolynomialRoundSystem_generic(SageObject):
 
             sage: sr = mq.SR(allow_zero_inversions=True,gf2=True,order='block')
             sage: F,s = sr.polynomial_system()
-            sage: R1 = F.round(1)
-            sage: l = R1.gens()
+            sage: l = F.part(1)
             sage: l[0]
             k000^2 + k000
         """
@@ -400,7 +385,7 @@ class MPolynomialRoundSystem_generic(SageObject):
 
             sage: sr = mq.SR(allow_zero_inversions=True,gf2=True,order='block')
             sage: F,s = sr.polynomial_system()
-            sage: R1 = F.round(1)
+            sage: R1 = mq.MPolynomialRoundSystem(F.ring(),F.part(1))
             sage: R1.variables()
             (k000, k001, k002, k003)
             sage: sorted(R1.variables())
@@ -421,7 +406,7 @@ class MPolynomialRoundSystem_generic(SageObject):
 
             sage: sr = mq.SR(allow_zero_inversions=True,gf2=True,order='block')
             sage: F,s = sr.polynomial_system()
-            sage: R1 = F.round(1)
+            sage: R1 = mq.MPolynomialRoundSystem(F.ring(),F.part(1))
             sage: sorted(R1.monomials())
             [k003, k002, k001, k000, k003^2, k002^2, k001^2, k000^2]
         """
@@ -446,7 +431,7 @@ class MPolynomialRoundSystem_generic(SageObject):
 
             sage: sr = mq.SR(allow_zero_inversions=True,gf2=True,order='block')
             sage: F,s = sr.polynomial_system()
-            sage: R1 = F.round(1)
+            sage: R1 = mq.MPolynomialRoundSystem(F.ring(),F.part(1))
             sage: R1 = R1.subs(s) # the solution
             sage: R1
             (0, 0, 0, 0)
@@ -491,10 +476,10 @@ class MPolynomialRoundSystem_generic(SageObject):
 
             sage: sr = mq.SR(allow_zero_inversions=True,gf2=True,order='block')
             sage: F,s = sr.polynomial_system()
-            sage: R1 = F.round(1)
-            sage: len(R1 + F.round(2)) # indirect doctest
+            sage: R1 = mq.MPolynomialRoundSystem(F.ring(),F.part(1))
+            sage: len(R1 + F.part(2)) # indirect doctest
             28
-            sage: len(R1 + list(F.round(2)))
+            sage: len(R1 + list(F.part(2)))
             28
         """
         if is_MPolynomialRoundSystem(right) and self.ring() == right.ring():
@@ -512,7 +497,7 @@ class MPolynomialRoundSystem_generic(SageObject):
 
             sage: sr = mq.SR(allow_zero_inversions=True,gf2=True,order='block')
             sage: F,s = sr.polynomial_system()
-            sage: R1 = F.round(1)
+            sage: R1 = F.part(1)
             sage: P = F.ring()
             sage: f = P('k000^2 + k000')
             sage: f in R1
@@ -558,7 +543,7 @@ class MPolynomialRoundSystem_generic(SageObject):
 
             sage: sr = mq.SR(allow_zero_inversions=True,gf2=True,order='block')
             sage: F,s = sr.polynomial_system()
-            sage: R1 = F.round(1)
+            sage: R1 = mq.MPolynomialRoundSystem(F.ring(),F.part(1))
             sage: R1._singular_()
             k000^2+k000,
             k001^2+k001,
@@ -575,7 +560,7 @@ class MPolynomialRoundSystem_generic(SageObject):
 
             sage: sr = mq.SR(allow_zero_inversions=True,gf2=True)
             sage: F,s = sr.polynomial_system()
-            sage: R1 = F.round(1)
+            sage: R1 = F.part(1)
             sage: magma(R1)                               # implicit doctest; optional - magma
             Ideal of Polynomial ring of rank 20 over GF(2)
             Graded Reverse Lexicographical Order
@@ -593,7 +578,7 @@ class MPolynomialRoundSystem_generic(SageObject):
         return 'ideal<%s|%s>'%(P, ','.join(v))
 
 class MPolynomialSystem_generic(SageObject):
-    def __init__(self, R, rounds):
+    def __init__(self, R, parts):
         """
         Construct a new system of multivariate polynomials. That is, a set
         of multivariate polynomials with at least one common root.
@@ -604,7 +589,7 @@ class MPolynomialSystem_generic(SageObject):
         -  ``arg1`` - a multivariate polynomial ring or an
            ideal
 
-        -  ``arg2`` - an iterable object of rounds, preferably
+        -  ``arg2`` - an iterable object of parts, preferably
            MPolynomialRoundSystem, or polynomials (default:None)
 
 
@@ -614,11 +599,12 @@ class MPolynomialSystem_generic(SageObject):
             sage: I = sage.rings.ideal.Katsura(P)
 
         If a list of MPolynomialRoundSystems is provided, those form the
-        rounds.
+        parts.
 
         ::
 
             sage: mq.MPolynomialSystem(I.ring(), [mq.MPolynomialRoundSystem(I.ring(),I.gens())])
+            doctest:...: DeprecationWarning: (Since 4.6.2) This function is replaced by sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence.
             Polynomial System with 4 Polynomials in 4 Variables
 
         If an ideal is provided, the generators are used.
@@ -629,7 +615,7 @@ class MPolynomialSystem_generic(SageObject):
             Polynomial System with 4 Polynomials in 4 Variables
 
         If a list of polynomials is provided, the system has only one
-        round.
+        part.
 
         ::
 
@@ -638,26 +624,26 @@ class MPolynomialSystem_generic(SageObject):
         """
 
         self._ring = R
-        self._rounds = []
+        self._parts = []
 
         # check for list of polynomials
         try:
-            e = iter(rounds).next()
+            e = iter(parts).next()
         except StopIteration:
-            self._rounds = list()
+            self._parts = list()
             return
 
         if is_MPolynomial(e):
-            rounds = [rounds]
+            parts = [parts]
 
-        for b in rounds:
+        for b in parts:
             if not is_MPolynomialRoundSystem(b):
                 if isinstance(b, (tuple,list)):
-                    self._rounds.append(MPolynomialRoundSystem(R, b))
+                    self._parts.append(MPolynomialRoundSystem(R, b))
                 else:
-                    self._rounds.append(MPolynomialRoundSystem(R, list(b)))
+                    self._parts.append(MPolynomialRoundSystem(R, list(b)))
             elif b.ring() is R or b.ring() == R:
-                self._rounds.append(b)
+                self._parts.append(b)
             else:
                 raise TypeError, "parameter not supported"
 
@@ -673,15 +659,15 @@ class MPolynomialSystem_generic(SageObject):
             sage: sr = mq.SR(allow_zero_inversions=True)
             sage: F,s = sr.polynomial_system()
             sage: copy(F) # indirect doctest
-            Polynomial System with 40 Polynomials in 20 Variables
+            Polynomial Sequence with 40 Polynomials in 20 Variables
             sage: type(F) == type(copy(F))
             True
         """
-        return self.__class__(self._ring, [r.__copy__() for r in self._rounds])
+        return self.__class__(self._ring, [r.__copy__() for r in self._parts])
 
     def __cmp__(self, other):
         """
-        Compare the ring and rounds of this system and ``other``.
+        Compare the ring and parts of this system and ``other``.
 
         EXAMPLE::
 
@@ -690,7 +676,7 @@ class MPolynomialSystem_generic(SageObject):
             sage: F == copy(F) # indirect doctest
             True
         """
-        return cmp((self._ring, self._rounds),(other._ring, other._rounds))
+        return cmp((self._ring, self._parts),(other._ring, other._parts))
 
     def ring(self):
         """
@@ -719,10 +705,12 @@ class MPolynomialSystem_generic(SageObject):
 
             sage: sr = mq.SR(allow_zero_inversions=True,gf2=True,order='block')
             sage: F,s = sr.polynomial_system()
+            sage: F = mq.MPolynomialSystem(F.ring(),tuple(F))
+            doctest:...: DeprecationWarning: (Since 4.6.2) This function is replaced by sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence.
             sage: F.ngens()
             56
         """
-        return sum([e.ngens() for e in self._rounds])
+        return sum([e.ngens() for e in self._parts])
 
     def gens(self):
         """
@@ -732,6 +720,8 @@ class MPolynomialSystem_generic(SageObject):
 
             sage: sr = mq.SR(allow_zero_inversions=True)
             sage: F,s = sr.polynomial_system()
+            sage: F = mq.MPolynomialSystem(F.ring(),tuple(F))
+            doctest:...: DeprecationWarning: (Since 4.6.2) This function is replaced by sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence.
             sage: l = F.gens()
             sage: len(l), type(l)
             (40, <type 'tuple'>)
@@ -751,6 +741,7 @@ class MPolynomialSystem_generic(SageObject):
 
             sage: P.<a,b,c,d> = PolynomialRing(GF(127),4)
             sage: F = mq.MPolynomialSystem(sage.rings.ideal.Katsura(P))
+            doctest:1: DeprecationWarning: (Since 4.6.2) This function is replaced by sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence.
 
         ``ij``-th polynomial overall::
 
@@ -762,7 +753,7 @@ class MPolynomialSystem_generic(SageObject):
             sage: F[0:2]
             (a + 2*b + 2*c + 2*d - 1, a^2 + 2*b^2 + 2*c^2 + 2*d^2 - a)
 
-        ``i``-th round, ``j``-th polynomial::
+        ``i``-th part, ``j``-th polynomial::
 
             sage: F[0,1]
             a^2 + 2*b^2 + 2*c^2 + 2*d^2 - a
@@ -771,30 +762,32 @@ class MPolynomialSystem_generic(SageObject):
 
     def nrounds(self):
         """
-        Return number of rounds of this system.
+        Return number of parts of this system.
 
         EXAMPLE::
 
             sage: sr = mq.SR(allow_zero_inversions=True)
             sage: F,s = sr.polynomial_system()
-            sage: F.nrounds()
+            sage: F.nparts()
             4
         """
-        return len(self._rounds)
+        return len(self._parts)
 
     def rounds(self):
         """
-        Return a tuple of rounds of this system.
+        Return a tuple of parts of this system.
 
         EXAMPLE::
 
             sage: sr = mq.SR(allow_zero_inversions=True)
             sage: F,s = sr.polynomial_system()
+            sage: F = mq.MPolynomialSystem(F.ring(),tuple(F.parts()))
+            doctest:1: DeprecationWarning: (Since 4.6.2) This function is replaced by sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence.
             sage: l = F.rounds()
             sage: len(l)
             4
         """
-        return tuple(self._rounds)
+        return tuple(self._parts)
 
     def round(self, i):
         """
@@ -804,11 +797,13 @@ class MPolynomialSystem_generic(SageObject):
 
             sage: sr = mq.SR(allow_zero_inversions=True)
             sage: F,s = sr.polynomial_system()
+            sage: F = mq.MPolynomialSystem(F.ring(),tuple(F.parts()))
+            doctest:1: DeprecationWarning: (Since 4.6.2) This function is replaced by sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence.
             sage: R0 = F.round(1)
             sage: R0
             (k000^2 + k001, k001^2 + k002, k002^2 + k003, k003^2 + k000)
         """
-        return self._rounds[i]
+        return self._parts[i]
 
     def __iter__(self):
         """
@@ -818,10 +813,12 @@ class MPolynomialSystem_generic(SageObject):
 
             sage: sr = mq.SR(allow_zero_inversions=True)
             sage: F,s = sr.polynomial_system()
+            sage: F = mq.MPolynomialSystem(F.ring(),tuple(F.parts()))
+            doctest:1: DeprecationWarning: (Since 4.6.2) This function is replaced by sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence.
             sage: type(iter(F))
             <type 'generator'>
         """
-        for b in self._rounds:
+        for b in self._parts:
             for e in b:
                 yield e
 
@@ -886,7 +883,7 @@ class MPolynomialSystem_generic(SageObject):
             49
         """
         M = set()
-        for r in self._rounds:
+        for r in self._parts:
             for f in r._gens:
                 for m in f.monomials():
                     M.add(m)
@@ -918,7 +915,7 @@ class MPolynomialSystem_generic(SageObject):
             (k003, k002, k001, k000, s003, s002, s001, s000, w103, w102)
         """
         V = set()
-        for r in self._rounds:
+        for r in self._parts:
             for f in r._gens:
                 for v in f.variables():
                     V.add(v)
@@ -958,10 +955,11 @@ class MPolynomialSystem_generic(SageObject):
             sage: P.<a,b,c,d> = PolynomialRing(GF(127),4)
             sage: I = sage.rings.ideal.Katsura(P)
             sage: I.gens()
-            (a + 2*b + 2*c + 2*d - 1, a^2 + 2*b^2 + 2*c^2 + 2*d^2 - a, 2*a*b + 2*b*c
-            + 2*c*d - b, b^2 + 2*a*c + 2*b*d - c)
+            [a + 2*b + 2*c + 2*d - 1, a^2 + 2*b^2 + 2*c^2 + 2*d^2 - a, 2*a*b + 2*b*c
+            + 2*c*d - b, b^2 + 2*a*c + 2*b*d - c]
 
             sage: F = mq.MPolynomialSystem(I)
+            doctest:1: DeprecationWarning: (Since 4.6.2) This function is replaced by sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence.
             sage: A,v = F.coefficient_matrix()
             sage: A
             [  0   0   0   0   0   0   0   0   0   1   2   2   2 126]
@@ -1025,12 +1023,12 @@ class MPolynomialSystem_generic(SageObject):
 
             sage: sr = mq.SR(allow_zero_inversions=True)
             sage: F,s = sr.polynomial_system(); F
-            Polynomial System with 40 Polynomials in 20 Variables
+            Polynomial Sequence with 40 Polynomials in 20 Variables
             sage: F = F.subs(s); F
-            Polynomial System with 40 Polynomials in 16 Variables
+            Polynomial Sequence with 40 Polynomials in 16 Variables
 
         """
-        return MPolynomialSystem(self._ring, [r.subs(*args,**kwargs) for r in self._rounds])
+        return MPolynomialSystem(self._ring, [r.subs(*args,**kwargs) for r in self._parts])
 
     def _singular_(self):
         """
@@ -1041,6 +1039,7 @@ class MPolynomialSystem_generic(SageObject):
             sage: P.<a,b,c,d> = PolynomialRing(GF(127))
             sage: I = sage.rings.ideal.Katsura(P)
             sage: F = mq.MPolynomialSystem(I); F
+            doctest:1: DeprecationWarning: (Since 4.6.2) This function is replaced by sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence.
             Polynomial System with 4 Polynomials in 4 Variables
             sage: F._singular_()
             a+2*b+2*c+2*d-1,
@@ -1081,6 +1080,7 @@ class MPolynomialSystem_generic(SageObject):
             sage: P.<a,b,c,d> = PolynomialRing(GF(127))
             sage: I = sage.rings.ideal.Katsura(P)
             sage: F = mq.MPolynomialSystem(I); F # indirect doctest
+            doctest:1: DeprecationWarning: (Since 4.6.2) This function is replaced by sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence.
             Polynomial System with 4 Polynomials in 4 Variables
         """
         return "Polynomial System with %d Polynomials in %d Variables"%(self.ngens(),self.nvariables())
@@ -1095,13 +1095,16 @@ class MPolynomialSystem_generic(SageObject):
             sage: P.<a,b,c,d> = PolynomialRing(GF(127))
             sage: I = sage.rings.ideal.Katsura(P)
             sage: F = mq.MPolynomialSystem(I)
+            doctest:1: DeprecationWarning: (Since 4.6.2) This function is replaced by sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence.
             sage: F + [a^127 + a]
+            doctest:...: DeprecationWarning: (Since 4.6.2) This function is replaced by sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence.
             Polynomial System with 5 Polynomials in 4 Variables
 
             sage: F + P.ideal([a^127 + a])
-            Polynomial System with 5 Polynomials in 4 Variables
+            doctest:...: DeprecationWarning: (Since 4.6.2) This function is replaced by sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence.            Polynomial System with 5 Polynomials in 4 Variables
 
             sage: F + mq.MPolynomialSystem(P,[a^127 + a])
+            doctest:...: DeprecationWarning: (Since 4.6.2) This function is replaced by sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence.
             Polynomial System with 5 Polynomials in 4 Variables
         """
         if is_MPolynomialSystem(right) and right.ring() == self.ring():
@@ -1122,7 +1125,8 @@ class MPolynomialSystem_generic(SageObject):
         EXAMPLE::
 
             sage: P.<a,b,c,d> = PolynomialRing(GF(127),4)
-                   sage: F = mq.MPolynomialSystem(sage.rings.ideal.Katsura(P))
+            sage: F = mq.MPolynomialSystem(sage.rings.ideal.Katsura(P))
+            doctest... DeprecationWarning: (Since 4.6.2) This function is replaced by sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence.
 
         `ij`-th polynomial overall::
 
@@ -1141,12 +1145,12 @@ class MPolynomialSystem_generic(SageObject):
         """
         if isinstance(ij, tuple):
             i,j = ij
-            return self._rounds[i][j]
+            return self._parts[i][j]
         elif isinstance(ij, slice):
-            return sum(self._rounds,MPolynomialRoundSystem(self.ring(),[]))[ij]
+            return sum(self._parts,MPolynomialRoundSystem(self.ring(),[]))[ij]
         else:
             ij = int(ij)
-            for r in self._rounds:
+            for r in self._parts:
                 if ij >= len(r):
                     ij = ij - len(r)
                 else:
@@ -1165,6 +1169,7 @@ class MPolynomialSystem_generic(SageObject):
             sage: P.<x0,x1,x2,x3> = PolynomialRing(GF(37))
             sage: I = sage.rings.ideal.Katsura(P)
             sage: F = mq.MPolynomialSystem(I)
+            doctest:1: DeprecationWarning: (Since 4.6.2) This function is replaced by sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence.
             sage: f = x0 + 2*x1 + 2*x2 + 2*x3 -1
             sage: f in F
             True
@@ -1173,7 +1178,7 @@ class MPolynomialSystem_generic(SageObject):
             sage: x0*f in F.ideal()
             True
         """
-        for r in self._rounds:
+        for r in self._parts:
             if element in r:
                 return True
         return False
@@ -1188,6 +1193,7 @@ class MPolynomialSystem_generic(SageObject):
             sage: P.<x0,x1,x2,x3> = PolynomialRing(GF(37))
             sage: I = sage.rings.ideal.Katsura(P)
             sage: F = mq.MPolynomialSystem(P,I.gens())
+            doctest:1: DeprecationWarning: (Since 4.6.2) This function is replaced by sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence.
             sage: list(F)
             [x0 + 2*x1 + 2*x2 + 2*x3 - 1,
             x0^2 + 2*x1^2 + 2*x2^2 + 2*x3^2 - x0,
@@ -1195,7 +1201,7 @@ class MPolynomialSystem_generic(SageObject):
             x1^2 + 2*x0*x2 + 2*x1*x3 - x2]
         """
         L = []
-        for r in self._rounds:
+        for r in self._parts:
             for f in r:
                 yield f
 
@@ -1209,6 +1215,7 @@ class MPolynomialSystem_generic(SageObject):
 
             sage: B.<x,y,z> = BooleanPolynomialRing()
             sage: F = mq.MPolynomialSystem([x*y + y + 1, z + 1])
+            doctest:1: DeprecationWarning: (Since 4.6.2) This function is replaced by sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence.
             sage: F.connection_graph()
             Graph on 3 vertices
         """
@@ -1235,6 +1242,8 @@ class MPolynomialSystem_generic(SageObject):
 
             sage: sr = mq.SR(2,4,4,8,gf2=True,polybori=True)
             sage: F,s = sr.polynomial_system()
+            sage: F = mq.MPolynomialSystem(F.ring(),tuple(F.parts()))
+            doctest:1: DeprecationWarning: (Since 4.6.2) This function is replaced by sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence.
             sage: Fz = mq.MPolynomialSystem(F.round(2))
             sage: Fz.connected_components()
             [Polynomial System with 128 Polynomials in 128 Variables,
@@ -1262,6 +1271,7 @@ class MPolynomialSystem_generic(SageObject):
 
             sage: P.<x,y,z> = PolynomialRing(GF(127))
             sage: F = mq.MPolynomialSystem([x*y + z, y + z + 1])
+            doctest:1: DeprecationWarning: (Since 4.6.2) This function is replaced by sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence.
             sage: F._groebner_strategy()
             Groebner Strategy for ideal generated by 2 elements over
             Multivariate Polynomial Ring in x, y, z over Finite Field of size 127
@@ -1305,7 +1315,9 @@ class MPolynomialSystem_gf2(MPolynomialSystem_generic):
 
             sage: B.<a,b,c,d> = BooleanPolynomialRing()
             sage: F = mq.MPolynomialSystem([c + d + b + 1, a + c + d, a*b + c, b*c*d + c])
+            doctest:1: DeprecationWarning: (Since 4.6.2) This function is replaced by sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence.
             sage: F.eliminate_linear_variables().gens() # everything vanishes
+            doctest... DeprecationWarning: (Since 4.6.2) This function is replaced by sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence.
             ()
             sage: F.eliminate_linear_variables(maxlength=2).gens()
             (b + c + d + 1, b*c + b*d + c, b*c*d + c)
@@ -1317,6 +1329,8 @@ class MPolynomialSystem_gf2(MPolynomialSystem_generic):
             sage: B.<a,b,c,d> = BooleanPolynomialRing()
             sage: F = mq.MPolynomialSystem([a + b + d, a + b + c])
             sage: F,R = F.eliminate_linear_variables(return_reductors=True)
+            doctest:...: DeprecationWarning: (Since 4.6.2) This function is replaced by sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence.
+
             sage: F.gens()
             (c + d,)
             sage: R.gens()
@@ -1411,6 +1425,7 @@ class MPolynomialSystem_gf2(MPolynomialSystem_generic):
 
             sage: P.<x,y,z> = PolynomialRing(GF(2))
             sage: F = mq.MPolynomialSystem([x*y + z, y + z + 1])
+            doctest:1: DeprecationWarning: (Since 4.6.2) This function is replaced by sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence.
             sage: F._groebner_strategy()
             Groebner Strategy for ideal generated by 2 elements over
             Multivariate Polynomial Ring in x, y, z over Finite Field of size 2
@@ -1455,10 +1470,12 @@ class MPolynomialSystem_gf2e(MPolynomialSystem_generic):
             sage: P.<x,y> = PolynomialRing(k,2)
             sage: a = P.base_ring().gen()
             sage: F = mq.MPolynomialSystem(P,[x*y + 1, a*x + 1])
+            doctest:1: DeprecationWarning: (Since 4.6.2) This function is replaced by sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence.
             sage: F
             Polynomial System with 2 Polynomials in 2 Variables
             sage: F2 = F.change_ring(GF(2)); F2
-            doctest... DeprecationWarning: The use of this function is deprecated please use the weil_restriction() function instead.
+            doctest:1: DeprecationWarning: The use of this function is deprecated please use the weil_restriction() function instead.
+            doctest... DeprecationWarning: (Since 4.6.2) This function is replaced by sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence.
             Polynomial System with 8 Polynomials in 4 Variables
             sage: F2.gens()
             (x1*y0 + x0*y1 + x1*y1,
@@ -1492,6 +1509,7 @@ class MPolynomialSystem_gf2e(MPolynomialSystem_generic):
             sage: P.<x,y> = PolynomialRing(k,2)
             sage: a = P.base_ring().gen()
             sage: F = mq.MPolynomialSystem(P,[x*y + 1, a*x + 1])
+            doctest... DeprecationWarning: (Since 4.6.2) This function is replaced by sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence.
             sage: F
             Polynomial System with 2 Polynomials in 2 Variables
             sage: F2 = F.weil_restriction(); F2
@@ -1510,9 +1528,10 @@ class MPolynomialSystem_gf2e(MPolynomialSystem_generic):
 
            sage: sr = mq.SR(1,1,1,4,gf2=False)
            sage: F,s = sr.polynomial_system(); F
-           Polynomial System with 40 Polynomials in 20 Variables
+           Polynomial Sequence with 40 Polynomials in 20 Variables
+
            sage: F2 = F.weil_restriction(); F2
-           Polynomial System with 240 Polynomials in 80 Variables
+           Polynomial Sequence with 240 Polynomials in 80 Variables
         """
         from sage.rings.ideal import FieldIdeal
         J = self.ideal().weil_restriction()

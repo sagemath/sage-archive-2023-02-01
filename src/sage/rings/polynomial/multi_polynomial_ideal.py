@@ -25,14 +25,14 @@ AUTHORS:
 EXAMPLES:
 
 We compute a Groebner basis for some given ideal. The type returned by
-the ``groebner_basis`` method is ``Sequence``, i.e. it is not a
+the ``groebner_basis`` method is ``PolynomialSequence``, i.e. it is not a
 :class:`MPolynomialIdeal`::
 
     sage: x,y,z = QQ['x,y,z'].gens()
     sage: I = ideal(x^5 + y^4 + z^3 - 1,  x^3 + y^3 + z^2 - 1)
     sage: B = I.groebner_basis()
     sage: type(B)
-    <class 'sage.structure.sequence.Sequence'>
+    <class 'sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence_generic'>
 
 Groebner bases can be used to solve the ideal membership problem::
 
@@ -140,7 +140,7 @@ Two examples from the Mathematica documentation (done in Sage):
 
         sage: R.<x,y> = PolynomialRing(QQ, order='lex')
         sage: ideal(x^2 - 2*y^2, x*y - 3).groebner_basis()
-         [x - 2/3*y^3, y^4 - 9/2]
+        [x - 2/3*y^3, y^4 - 9/2]
 
     We show that three polynomials have no common root::
 
@@ -204,6 +204,14 @@ TESTS::
     sage: I = ideal(x^5 + y^4 + z^3 - 1,  x^3 + y^3 + z^2 - 1)
     sage: I == loads(dumps(I))
     True
+
+.. note::
+
+    Sage distinguishes between lists or sequences of polynomials and
+    ideals. Thus an ideal is not identified with a particular set of
+    generators. For sequences of multivariate polynomials see
+    :class:`sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence_generic`.
+
 """
 
 #*****************************************************************************
@@ -697,7 +705,10 @@ class MPolynomialIdeal_magma_repr:
         if R.base_ring().degree() > 1:
             a = str(R.base_ring().gen())
             mgb = [e.replace("$.1",a) for e in mgb]
-        B = Sequence([R(e) for e in mgb], R, check=False, immutable=True)
+
+        from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
+
+        B = PolynomialSequence([R(e) for e in mgb], R, immutable=True)
         return B
 
 class MPolynomialIdeal_singular_repr:
@@ -1336,8 +1347,8 @@ class MPolynomialIdeal_singular_repr:
 
             sage: I._groebner_basis_singular()
             [c^2*d^6 - c^2*d^2 - d^4 + 1, c^3*d^2 + c^2*d^3 - c - d,
-            b*d^4 - b + d^5 - d, b*c - b*d + c^2*d^4 + c*d - 2*d^2,
-            b^2 + 2*b*d + d^2, a + b + c + d]
+             b*d^4 - b + d^5 - d, b*c - b*d + c^2*d^4 + c*d - 2*d^2,
+             b^2 + 2*b*d + d^2, a + b + c + d]
 
         ALGORITHM: Uses Singular.
 
@@ -1346,10 +1357,11 @@ class MPolynomialIdeal_singular_repr:
            This method is called by the :meth:`.groebner_basis` method
            and the user usually doesn't need to bother with this one.
         """
+        from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
 
         R = self.ring()
         S = self._groebner_basis_singular_raw(algorithm=algorithm, *args, **kwds)
-        S =  Sequence([R(S[i+1]) for i in range(len(S))], R, check=False, immutable=True)
+        S =  PolynomialSequence([R(S[i+1]) for i in range(len(S))], R, immutable=True)
         return S
 
     @cached_method
@@ -1373,8 +1385,8 @@ class MPolynomialIdeal_singular_repr:
             sage: I = sage.rings.ideal.Cyclic(R,4)
             sage: I._groebner_basis_singular() # indirect doctest
             [c^2*d^6 - c^2*d^2 - d^4 + 1, c^3*d^2 + c^2*d^3 - c - d,
-            b*d^4 - b + d^5 - d, b*c - b*d + c^2*d^4 + c*d - 2*d^2,
-            b^2 + 2*b*d + d^2, a + b + c + d]
+             b*d^4 - b + d^5 - d, b*c - b*d + c^2*d^4 + c*d - 2*d^2,
+             b^2 + 2*b*d + d^2, a + b + c + d]
         """
         #try:
         #    return self.__gb_singular
@@ -1695,10 +1707,12 @@ class MPolynomialIdeal_singular_repr:
 
         ALGORITHM: Use libSingular
         """
+        from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
+
         R = self.ring()
         import sage.libs.singular
         normalI = sage.libs.singular.ff.reesclos__lib.normalI
-        ret = Sequence(normalI(self, p, int(r))[0], R, check=False, immutable=True)
+        ret = PolynomialSequence(normalI(self, p, int(r))[0], R, immutable=True)
         return ret
 
     @require_field
@@ -1819,6 +1833,7 @@ class MPolynomialIdeal_singular_repr:
         """
         from sage.rings.polynomial.multi_polynomial_ideal_libsingular import interred_libsingular
         from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
+        from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
 
         R = self.ring()
 
@@ -1838,7 +1853,7 @@ class MPolynomialIdeal_singular_repr:
                 ret = toy_buchberger.inter_reduction(self.gens())
 
         ret = sorted(ret, reverse=True)
-        ret = Sequence( ret, R, check=False, immutable=True)
+        ret = PolynomialSequence(R, ret, immutable=True)
         return ret
 
     @cached_method
@@ -1936,7 +1951,7 @@ class MPolynomialIdeal_singular_repr:
             return True
         except TypeError:
             R._singular_().set_ring()
-            F = singular( self.gens(), "module" )
+            F = singular( tuple(self.gens()), "module" )
             LTF = singular( [f.lt() for f in self.gens()] , "module" )
 
             M = (F * LTF.syz()).reduce(self._singular_())
@@ -2012,6 +2027,7 @@ class MPolynomialIdeal_singular_repr:
 
         ALGORITHM: Uses Singular
         """
+        from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
         R = self.ring()
 
         if self.basis_is_groebner():
@@ -2024,7 +2040,7 @@ class MPolynomialIdeal_singular_repr:
             from sage.libs.singular.function import singular_function
             lib("grwalk.lib")
             gb = singular_function(algorithm)(I)
-            return sorted(gb,reverse=True)
+            return PolynomialSequence(R, sorted(gb,reverse=True), immutable=True)
         elif algorithm == "fglm":
             # new ring
             if other_ring is None:
@@ -2037,7 +2053,7 @@ class MPolynomialIdeal_singular_repr:
             singular(nR).set_ring()
             nIs = singular.fglm(Rs,Is)
 
-            return sorted([nR(f) for f in nIs],reverse=True)
+            return PolynomialSequence(nR, sorted([nR(f) for f in nIs],reverse=True), immutable=True)
 
         else:
             raise TypeError, "Cannot convert basis with given algorithm"
@@ -2464,9 +2480,10 @@ class MPolynomialIdeal_singular_repr:
             [z^2, y*z, x*z, z, x*y, y, x, 1]
         """
         from sage.rings.polynomial.multi_polynomial_ideal_libsingular import kbase_libsingular
+        from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
         gb = self._groebner_basis_libsingular()
 
-        return kbase_libsingular(self.ring().ideal(gb))
+        return PolynomialSequence(self.ring(), kbase_libsingular(self.ring().ideal(gb)), immutable=True)
 
     @require_field
     def normal_basis(self, algorithm='libsingular', singular=singular_default):
@@ -2488,12 +2505,15 @@ class MPolynomialIdeal_singular_repr:
             sage: I.normal_basis(algorithm='singular')
             [y*z^2, z^2, y*z, z, x*y, y, x, 1]
         """
+        from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
 
         if algorithm == 'libsingular':
             return self._normal_basis_libsingular()
         else:
             gb = self.groebner_basis()
-            return list(singular.kbase(self.ring().ideal(gb)))
+            R = self.ring()
+            return PolynomialSequence(R, [R(f) for f in singular.kbase(R.ideal(gb))], immutable=True)
+
 
 class MPolynomialIdeal_macaulay2_repr:
     """
@@ -2562,6 +2582,8 @@ class MPolynomialIdeal_macaulay2_repr:
             sage: I.groebner_basis('macaulay2')               # optional - macaulay2
             [x^3, y^2, 361]
         """
+        from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
+
         I = self._macaulay2_()
         G = str(I.gb().generators().external_string()).replace('\n','')
         i = G.rfind('{{')
@@ -2569,8 +2591,7 @@ class MPolynomialIdeal_macaulay2_repr:
         G = G[i+2:j].split(',')
         R = self.ring()
         B = [R(f) for f in G]
-        B = Sequence(B, self.ring(), check=False)
-        B.set_immutable()
+        B = PolynomialSequence(self.ring(), B, immutable=True)
         return B
 
     def _reduce_using_macaulay2(self, f):
@@ -2615,6 +2636,23 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             Ideal (x0^2, x1^3) of Multivariate Polynomial Ring in x0, x1 over Finite Field of size 3
         """
         Ideal_generic.__init__(self, ring, gens, coerce=coerce)
+
+    @cached_method
+    def gens(self):
+        """
+        Return a set of generators / a basis of self. This is usually the
+        set of generators provided during object creation.
+
+        EXAMPLE:
+
+           sage: P.<x,y> = PolynomialRing(QQ,2)
+           sage: I = Ideal([x,y+1]); I
+           Ideal (x, y + 1) of Multivariate Polynomial Ring in x, y over Rational Field
+           sage: I.gens()
+           [x, y + 1]
+         """
+        from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
+        return PolynomialSequence(self.ring(), Ideal_generic.gens(self), immutable=True)
 
     def __cmp__(self, other):
         """
@@ -3003,6 +3041,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         available), or a toy implementation.
         """
         from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
+        from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
 
         if algorithm.lower() == "magma":
             algorithm = "magma:GroebnerBasis"
@@ -3068,7 +3107,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
                 else:
                     _gb.append(f)
             gb = _gb
-        gb = Sequence(gb, immutable=True, check=False)
+        gb = PolynomialSequence(self.ring(), gb, immutable=True)
         return gb
 
     def change_ring(self, P):

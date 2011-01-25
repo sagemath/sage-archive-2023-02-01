@@ -2760,6 +2760,11 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             sage: R(1/b)
             2*abar
 
+        We verify that #8721 is fixed::
+
+            sage: L.<a, b> = NumberField([x^2 - 3, x^2 - 5])
+            sage: L.ideal(a).residue_field()
+            Residue field in abar of Fractional ideal (a)
         """
         if not self.is_prime():
             raise ValueError, "The ideal must be prime"
@@ -2887,6 +2892,7 @@ class LiftMap:
         self.__OK = OK
         self.__Q = Q
         self.__M_OK_map = M_OK_map
+        self.__Kgen = OK.number_field().absolute_generator()
 
     def __call__(self, x):
         """
@@ -2899,14 +2905,22 @@ class LiftMap:
             sage: f = R.lift_map()
             sage: f(R(a/17))
             1
+
+        A relative example, which used to fail but is fixed by #8721::
+
+            sage: L.<a, b> = NumberField([x^2 + 1, x^2 - 5])
+            sage: p = L.ideal(2*a + 3)
+            sage: V, to_V, from_V = p._p_quotient(13)
+            sage: from_V(V.0)
+            (-1/2*b + 7/2)*a - 1/2*b + 3/2
         """
         # This lifts to OK tensor F_p
         v = self.__Q.lift(x)
         # This lifts to ZZ^n (= OK)
         w = v.lift()
         # Write back in terms of K
-        z = w * self.__M_OK_map
-        return self.__OK(z.list())
+        z = (w * self.__M_OK_map).list()
+        return self.__OK(sum([z[i] * self.__Kgen**i for i in xrange(len(z))]))
 
     def __repr__(self):
         """

@@ -422,9 +422,6 @@ export SYMMETRICA
 TERMCAP=`$newest termcap`
 export TERMCAP
 
-WEAVE=`$newest weave`
-export WEAVE
-
 ZLIB=`$newest zlib`
 export ZLIB
 

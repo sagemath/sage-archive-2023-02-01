@@ -121,7 +121,6 @@ all: $(BASE) \
      $(INST)/$(TACHYON) \
      $(INST)/$(TERMCAP) \
      $(INST)/$(TWISTED) \
-     $(INST)/$(WEAVE) \
      $(INST)/$(ZLIB) \
      $(INST)/$(ZNPOLY) \
      $(INST)/$(ZODB)
@@ -323,9 +322,6 @@ $(INST)/$(SINGULAR): $(BASE) $(INST)/$(MPIR) $(INST)/$(NTL) \
 
 $(INST)/$(PYCRYPTO): $(BASE) $(INST)/$(PYTHON) $(INST)/$(PATCH)
 	$(INSTALL) "$(SAGE_SPKG) $(PYCRYPTO) 2>&1" "tee -a $(SAGE_LOGS)/$(PYCRYPTO).log"
-
-$(INST)/$(WEAVE): $(BASE) $(INST)/$(NUMPY) $(INST)/$(PATCH)
-	$(INSTALL) "$(SAGE_SPKG) $(WEAVE) 2>&1" "tee -a $(SAGE_LOGS)/$(WEAVE).log"
 
 $(INST)/$(NETWORKX): $(BASE) $(INST)/$(PYTHON) $(INST)/$(PATCH)
 	$(INSTALL) "$(SAGE_SPKG) $(NETWORKX) 2>&1" "tee -a $(SAGE_LOGS)/$(NETWORKX).log"

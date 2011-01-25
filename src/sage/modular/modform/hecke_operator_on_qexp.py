@@ -55,6 +55,17 @@ def hecke_operator_on_qexp(f, n, k, eps = None,
         8
         sage: hecke_operator_on_qexp(delta_qexp(25), 3, 12).prec()
         9
+
+    An example of computing `T_{p,k}` in characteristic `p`::
+
+        sage: p = 199
+        sage: fp = delta_qexp(prec=p^2+1, K=GF(p))
+        sage: tfp = hecke_operator_on_qexp(fp, p, 12)
+        sage: tfp == fp[p] * fp
+        True
+        sage: tf = hecke_operator_on_qexp(delta_qexp(prec=p^2+1), p, 12).change_ring(GF(p))
+        sage: tfp == tf
+        True
     """
     if eps is None:
         # Need to have base_ring=ZZ to work over finite fields, since
@@ -83,11 +94,17 @@ def hecke_operator_on_qexp(f, n, k, eps = None,
     if f.prec() < prec:
         f._compute_q_expansion(prec)
 
-    l = k-1
-    for m in range(prec):
-        am = sum([eps(d) * d**l * f[m*n//(d*d)] for \
-                  d in divisors(gcd(n, m)) if (m*n) % (d*d) == 0])
-        v.append(am)
+    p = Integer(f.base_ring().characteristic())
+    if k != 1 and p.is_prime() and n.is_power_of(p):
+        # if computing T_{p^a} in characteristic p, use the simpler (and faster)
+        # formula
+        v = [f[m*n] for m in range(prec)]
+    else:
+        l = k-1
+        for m in range(prec):
+            am = sum([eps(d) * d**l * f[m*n//(d*d)] for \
+                      d in divisors(gcd(n, m)) if (m*n) % (d*d) == 0])
+            v.append(am)
     if _return_list:
         return v
     if is_ModularFormElement(f):

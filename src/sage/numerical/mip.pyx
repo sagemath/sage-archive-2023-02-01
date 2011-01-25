@@ -733,7 +733,7 @@ cdef class MixedIntegerLinearProgram:
             sage: round(p.solve(), 5)
             6.66667
 
-        TESTS::
+        TESTS:
 
         Complex constraints::
 

@@ -69,6 +69,8 @@ import submodule
 import sage.modular.modform.constructor
 
 from math import ceil
+from sage.matrix.constructor import zero_matrix
+from sage.rings.arith import gcd
 
 WARN=False
 
@@ -1288,7 +1290,6 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             # Double the precision.
             return self._compute_hecke_matrix_prime(p, prec = 2*prec+1)
 
-
     def _compute_hecke_matrix(self, n):
         """
         Compute the matrix of the Hecke operator T_n acting on self.
@@ -1308,11 +1309,42 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             Traceback (most recent call last):
             ...
             ArithmeticError: vector is not in free module
+
+        We check that #10450 is fixed::
+
+            sage: M = CuspForms(Gamma1(22), 2).new_submodule()
+            sage: M.hecke_matrix(3)
+            [ 0 -2  3  0]
+            [ 0 -3  5 -1]
+            [ 1 -1  0 -1]
+            [ 0 -2  3 -1]
+            sage: M.hecke_matrix(9)
+            [ 3  3 -4 -4]
+            [ 2  6 -9 -4]
+            [ 0  3 -2 -1]
+            [ 3  2 -7  0]
         """
-        if hasattr(self, '_compute_q_expansion_basis'):
+        # For spaces with character, we calculate a basis of q-expansions and
+        # use that. For Gamma1 and GammaH spaces, we would need to compute
+        # diamond operators, which is quite slow; so we just compute on the
+        # whole space and restrict.
+
+        # TODO: If we know the subspace of the modular *symbols* space to which
+        # this modular forms space corresponds, then that might give a quicker
+        # way of doing this step.
+
+        if hasattr(self, '_compute_q_expansion_basis') and self.character() is not None:
             return hecke.HeckeModule_generic._compute_hecke_matrix(self, n)
+
         else:
-            return hecke.HeckeSubmodule._compute_hecke_matrix(self, n)
+            # Try to avoid doing unnecessary computations where possible.
+            if self.is_cuspidal():
+                M = self.ambient().cuspidal_submodule().hecke_matrix(n).block_sum(zero_matrix(self.base_ring(), self.ambient().eisenstein_submodule().rank()))
+            elif self.is_eisenstein():
+                M = zero_matrix(self.base_ring(), self.ambient().cuspidal_submodule().rank()).block_sum(self.ambient().eisenstein_submodule().hecke_matrix(n))
+            else:
+                M = self.ambient().hecke_matrix(n)
+            return M.restrict(self.free_module(), check=(gcd(n, self.level()) > 1))
 
     def basis(self):
         """
@@ -1524,6 +1556,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             assert S.dimension() == self.dimension()
             self.__is_cuspidal = True
         S.__is_eisenstein = (S.dimension()==0)
+        return S
 
     def cuspidal_subspace(self):
         """
@@ -1547,6 +1580,34 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             1
         """
         return self.cuspidal_submodule()
+
+    def is_cuspidal(self):
+        r"""
+        Return True if this space is cuspidal.
+
+        EXAMPLE::
+
+            sage: M = ModularForms(Gamma0(11), 2).new_submodule()
+            sage: M.is_cuspidal()
+            False
+            sage: M.cuspidal_submodule().is_cuspidal()
+            True
+        """
+        return (self.cuspidal_submodule() == self)
+
+    def is_eisenstein(self):
+        r"""
+        Return True if this space is Eisenstein.
+
+        EXAMPLE::
+
+            sage: M = ModularForms(Gamma0(11), 2).new_submodule()
+            sage: M.is_eisenstein()
+            False
+            sage: M.eisenstein_submodule().is_eisenstein()
+            True
+        """
+        return (self.eisenstein_submodule() == self)
 
     def new_submodule(self, p=None):
         """
@@ -1691,6 +1752,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             assert E.dimension() == self.dimension()
             self.__is_eisenstein = True
         E.__is_cuspidal = (E.dimension()==0)
+        return E
 
     def eisenstein_subspace(self):
         """

@@ -1709,6 +1709,62 @@ class PermutationGroup_generic(group.Group):
             cl.name(),  cl.name()))
         return [PermutationGroup(gap_group=L[i])for i in range(1,n+1)]
 
+    def subgroups(self):
+        r"""
+        Returns a list of all the subgroups of ``self``.
+
+        OUTPUT:
+
+        Each possible subgroup of ``self`` is contained once
+        in the returned list.  The list is in order, according
+        to the size of the subgroups, from the trivial subgroup
+        with one element on through up to the whole group.
+        Conjugacy classes of subgroups are contiguous in the list.
+
+        .. warning::
+
+            For even relatively small groups this method can
+            take a very long time to execute, or create vast
+            amounts of output.  Likely both.  Its purpose is
+            instructional, as it can be useful for studying
+            small groups.  The 156 subgroups of the full
+            symmetric group on 5 symbols of order 120, `S_5`,
+            can be computed in about a minute on commodity hardware
+            in 2011. The 64 subgroups of the cyclic group of order
+            `30030 = 2\cdot 3\cdot 5\cdot 7\cdot 11\cdot 13` takes
+            about twice as long.
+
+            For faster results, which still exhibit the structure of the possible subgroups, use :meth:`conjugacy_classes_subgroups`.
+
+        EXAMPLES::
+
+            sage: G = SymmetricGroup(3)
+            sage: G.subgroups()
+            [Permutation Group with generators [()],
+             Permutation Group with generators [(2,3)],
+             Permutation Group with generators [(1,2)],
+             Permutation Group with generators [(1,3)],
+             Permutation Group with generators [(1,2,3)],
+             Permutation Group with generators [(1,3,2), (1,2)]]
+
+            sage: G = CyclicPermutationGroup(14)
+            sage: G.subgroups()
+            [Permutation Group with generators [()],
+             Permutation Group with generators [(1,8)(2,9)(3,10)(4,11)(5,12)(6,13)(7,14)],
+             Permutation Group with generators [(1,3,5,7,9,11,13)(2,4,6,8,10,12,14)],
+             Permutation Group with generators [(1,2,3,4,5,6,7,8,9,10,11,12,13,14)]]
+
+        AUTHOR:
+
+        - Rob Beezer (2011-01-24)
+        """
+        all_sg = []
+        ccs = self._gap_().ConjugacyClassesSubgroups()
+        for cc in ccs:
+            for h in cc.Elements():
+                all_sg.append(PermutationGroup(gap_group=h))
+        return all_sg
+
     def normalizer(self, g):
         """
         Returns the normalizer of ``g`` in ``self``.

@@ -1528,6 +1528,13 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
 
             sage: N.cuspidal_submodule().dimension()
             1
+
+        We check that a bug noticed on trac #10450 is fixed::
+
+            sage: M = ModularForms(6, 10)
+            sage: W = M.span_of_basis(M.basis()[0:2])
+            sage: W.cuspidal_submodule()
+            Modular Forms subspace of dimension 2 of Modular Forms space of dimension 11 for Congruence Subgroup Gamma0(6) of weight 10 over Rational Field
         """
         try:
             if self.__is_cuspidal == True:
@@ -1707,7 +1714,6 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         return [ element.Newform(self, factors[i], names=(names+str(i)) )
                  for i in range(len(factors)) ]
 
-
     def eisenstein_submodule(self):
         """
         Return the Eisenstein submodule for this space of modular forms.
@@ -1717,6 +1723,13 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             sage: M = ModularForms(11,2)
             sage: M.eisenstein_submodule()
             Eisenstein subspace of dimension 1 of Modular Forms space of dimension 2 for Congruence Subgroup Gamma0(11) of weight 2 over Rational Field
+
+        We check that a bug noticed on trac #10450 is fixed::
+
+            sage: M = ModularForms(6, 10)
+            sage: W = M.span_of_basis(M.basis()[0:2])
+            sage: W.eisenstein_submodule()
+            Modular Forms subspace of dimension 0 of Modular Forms space of dimension 11 for Congruence Subgroup Gamma0(6) of weight 10 over Rational Field
         """
         try:
             if self.__is_eisenstein == True:

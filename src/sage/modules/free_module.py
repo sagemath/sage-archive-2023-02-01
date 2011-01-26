@@ -1064,8 +1064,9 @@ class FreeModule_generic(module.Module):
         r"""
         Return the cardinality of the free module.
 
-        N.B. using len(QQ3) is now deprecated
-        N.B. Currently len(QQ) gives a TypeError, hence so does QQ3.cardinality()
+        OUTPUT:
+
+        Either an integer or ``+Infinity``.
 
         EXAMPLES::
 
@@ -1080,10 +1081,10 @@ class FreeModule_generic(module.Module):
             sage: M = FreeModule(R,2)
             sage: M.cardinality()
             144
+            sage: (QQ^3).cardinality()
+            +Infinity
         """
-        # todo: use self.base_ring().cardinality() when it will be supported by all fields
-        # this will fix the NB above
-        return len(self.base_ring())**self.rank()
+        return (self.base_ring().cardinality())**self.rank()
 
     __len__ = cardinality # for backward compatibility
 

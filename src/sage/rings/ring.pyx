@@ -721,6 +721,26 @@ cdef class Ring(ParentWithGens):
             return True
         raise NotImplementedError
 
+    def cardinality(self):
+        """
+        Return the cardinality of the underlying set.
+
+        OUTPUT:
+
+        Either an integer or ``+Infinity``.
+
+        EXAMPLES::
+
+            sage: Integers(7).cardinality()
+            7
+            sage: QQ.cardinality()
+            +Infinity
+        """
+        if not self.is_finite():
+            from infinity import Infinity
+            return Infinity
+        raise NotImplementedError
+
     def is_integral_domain(self, proof = True):
         """
         Return True if this ring is an integral domain.

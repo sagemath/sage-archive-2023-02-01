@@ -1417,7 +1417,6 @@ class FGP_Module_class(Module):
             sage: Q.random_element()
             (1, 10)
         """
-
         return self(self._V.random_element(*args, **kwds))
 
     def cardinality(self):
@@ -1434,17 +1433,24 @@ class FGP_Module_class(Module):
             Finitely generated module V/W over Integer Ring with invariants (0)
             sage: A.cardinality()
             +Infinity
+            sage: V = QQ^2; W = V.span([[1,2]]); A = V/W; A
+            Vector space quotient V/W of dimension 1 over Rational Field where
+            V: Vector space of dimension 2 over Rational Field
+            W: Vector space of degree 2 and dimension 1 over Rational Field
+            Basis matrix:
+            [1 2]
+            sage: A.cardinality()
+            +Infinity
         """
-        try: return self.__cardinality
-        except AttributeError: pass
+        try:
+            return self.__cardinality
+        except AttributeError:
+            pass
         from sage.rings.all import infinity
-        if self.base_ring() != ZZ:
-            raise NotImplementedError, "only implemented over ZZ"
-        v = self.invariants()
         from sage.misc.all import prod
-        c = infinity if 0 in v else prod(v)
-        self.__cardinality = c
-        return c
+        v = self.invariants()
+        self.__cardinality = infinity if 0 in v else prod(v)
+        return self.__cardinality
 
     def __iter__(self):
         """

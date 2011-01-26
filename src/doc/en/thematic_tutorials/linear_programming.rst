@@ -204,10 +204,10 @@ Knapsack
 
 The *Knapsack* problem is the following: given a collection of items
 having both a weight and a *usefulness*, we would like to fill a bag
-whose capacity is constrained through maximizing the usefulness of the
-items it contains (we will here consider their sum). For the purpose
-of this tutorial, we set the restriction that the bag can only carry a
-certain total weight.
+whose capacity is constrained while maximizing the usefulness of the
+items contained in the bag (we will consider the sum of the items'
+usefulness). For the purpose of this tutorial, we set the restriction
+that the bag can only carry a certain total weight.
 
 To achieve this, we have to associate to each object `o` of our
 collection `C` a binary variable ``taken[o]``, set to 1 when the
@@ -379,7 +379,7 @@ having a maximal capacity.
     :align: center
 
 The definition of this problem is almost its LP formulation. We are
-looking for real values associted to each edge, which would
+looking for real values associated to each edge, which would
 represent the intensity of flow going through them, under two types of
 constraints:
 

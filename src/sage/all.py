@@ -111,6 +111,7 @@ from sage.combinat.all   import *
 from sage.lfunctions.all import *
 
 from sage.geometry.all   import *
+from sage.geometry.triangulation.all   import *
 
 from sage.homology.all   import *
 

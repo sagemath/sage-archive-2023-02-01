@@ -923,6 +923,7 @@ code = setup(name = 'sage',
                      'sage.functions',
 
                      'sage.geometry',
+                     'sage.geometry.triangulation',
 
                      'sage.games',
 

@@ -301,6 +301,13 @@ ext_modules = [
      Extension('sage.geometry.toric_lattice_element',
                sources = ['sage/geometry/toric_lattice_element.pyx']),
 
+     Extension('sage.geometry.triangulation.base',
+               sources = ['sage/geometry/triangulation/functions.cc',
+                          'sage/geometry/triangulation/data.cc',
+                          'sage/geometry/triangulation/base.pyx',
+                          'sage/geometry/triangulation/triangulations.cc'],
+               language="c++"),
+
     ################################
     ##
     ## sage.graphs

@@ -19,3 +19,5 @@ polytopes and polyhedra (with rational or numerical coordinates).
    sage/geometry/lattice_polytope
    sage/geometry/polyhedra
 
+   sage/geometry/triangulation/point_configuration
+   sage/geometry/triangulation/base

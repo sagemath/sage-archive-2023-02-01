@@ -2363,7 +2363,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
         C = hmat[len(invs):, len(invs):]
         #print "Matrix of relations:\n%s" % C
         M = (matrix(ZZ, L) * B)
-        N = block_matrix([identity_matrix(1), M, zero_matrix(len(gens), 1), C], 2,2,subdivide=False)
+        N = block_matrix(2, 2, [[identity_matrix(1), M], [zero_matrix(len(gens), 1), C]], subdivide=False)
         ans = N.hermite_form()[0, 1:].list()
 
         if check:

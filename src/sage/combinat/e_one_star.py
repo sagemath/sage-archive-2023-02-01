@@ -932,7 +932,9 @@ class Patch(SageObject):
         P = sum(face_list)
         return P
 
-    def plot_tikz(self, projmat=None, print_macros=True, print_tikz_env=True, edgecolor='black', scale=0.25, drawzero=False):
+    def plot_tikz(self, projmat=None, print_macros=True,
+            print_tikz_env=True, edgecolor='black', scale=0.25,
+            drawzero=False, extra_code_before='', extra_code_after=''):
         r"""
         Returns a string containing some TikZ code to be included into
         a LaTeX document.
@@ -957,6 +959,10 @@ class Patch(SageObject):
           constant for the whole figure
         - ``drawzero`` - bool (optional, default: ``False``) if ``True``,
           mark the origin by a black dot
+        - ``extra_code_before`` - string (optional, default: ``''``) extra code to
+          include in the tikz picture
+        - ``extra_code_after`` - string (optional, default: ``''``) extra code to
+          include in the tikz picture
 
         EXAMPLES::
 
@@ -1012,6 +1018,37 @@ class Patch(SageObject):
             sage: M = matrix(2, 3, map(float, [1,0,-0.7071,0,1,-0.7071]))
             sage: P.apply_substitution(E, 3)
             sage: s = P.plot_tikz(projmat=M, edgecolor='facecolor', scale=0.6, drawzero=True)
+
+        Adding X, Y, Z axes using the extra code feature::
+
+            sage: length = 1.5
+            sage: space = 0.3
+            sage: axes = ''
+            sage: axes += "\\draw[->, thick, black] (0,0,0) -- (%s, 0, 0);\n" % length
+            sage: axes += "\\draw[->, thick, black] (0,0,0) -- (0, %s, 0);\n" % length
+            sage: axes += "\\node at (%s,0,0) {$x$};\n" % (length + space)
+            sage: axes += "\\node at (0,%s,0) {$y$};\n" % (length + space)
+            sage: axes += "\\node at (0,0,%s) {$z$};\n" % (length + space)
+            sage: axes += "\\draw[->, thick, black] (0,0,0) -- (0, 0, %s);\n" % length
+            sage: cube = Patch([Face((0,0,0),1), Face((0,0,0),2), Face((0,0,0),3)])
+            sage: options = dict(print_macros=False,scale=0.5,drawzero=True,extra_code_before=axes)
+            sage: r = cube.plot_tikz(**options)
+            sage: len(r)
+            611
+            sage: print r
+            \begin{tikzpicture}[x={(-0.433013cm,-0.250000cm)}, y={(0.433013cm,-0.250000cm)}, z={(0.000000cm,0.500000cm)}]
+            \draw[->, thick, black] (0,0,0) -- (1.50000000000000, 0, 0);
+            \draw[->, thick, black] (0,0,0) -- (0, 1.50000000000000, 0);
+            \node at (1.80000000000000,0,0) {$x$};
+            \node at (0,1.80000000000000,0) {$y$};
+            \node at (0,0,1.80000000000000) {$z$};
+            \draw[->, thick, black] (0,0,0) -- (0, 0, 1.50000000000000);
+            \loza{0}{0}{0}{1.00}{0.00}{0.00}
+            \lozb{0}{0}{0}{0.00}{1.00}{0.00}
+            \lozc{0}{0}{0}{0.00}{0.00}{1.00}
+            \node[circle,fill=black,draw=black,minimum size=1.5mm,inner sep=0pt] at (0,0,0) {};
+            \end{tikzpicture}
+            <BLANKLINE>
         """
         if len(self[0].vector()) != 3:
             raise NotImplementedError, "Plotting only works for three-dimensional Patches and faces."
@@ -1038,11 +1075,15 @@ class Patch(SageObject):
                 s += ' -- '.join(map(str, self._face_contour[type])) + ' -- cycle;\n'
                 s += '}\n'
 
+        s += extra_code_before
+
         for face in self:
             t = chr(int(face.type()) + 96)
             x, y, z = face.vector()
             r, g, b = face.color()
             s += '\\loz%s{%d}{%d}{%d}{%.2f}{%.2f}{%.2f}\n' %(t, x, y, z, r, g, b)
+
+        s += extra_code_after
 
         if drawzero:
             s += '\\node[circle,fill=black,draw=black,minimum size=1.5mm,inner sep=0pt] at (0,0,0) {};\n'

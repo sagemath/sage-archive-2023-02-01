@@ -122,7 +122,7 @@ class pAdicLseries(SageObject):
         sage: L.series(2)
         O(5^4) + O(5)*T + (4 + O(5))*T^2 + (2 + O(5))*T^3 + (3 + O(5))*T^4 + O(T^5)
         sage: L.series(3, prec=10)
-        O(5^5) + O(5^2)*T + (4 + 4*5 + O(5^2))*T^2 + (2 + 4*5 + O(5^2))*T^3 + (3 + O(5^2))*T^4 + (1 + O(5))*T^5 + (3*5 + O(5^2))*T^6 + (4 + 5 + O(5^2))*T^7 + (2 + 5 + O(5^2))*T^8 + O(5^2)*T^9 + O(T^10)
+        O(5^5) + O(5^2)*T + (4 + 4*5 + O(5^2))*T^2 + (2 + 4*5 + O(5^2))*T^3 + (3 + O(5^2))*T^4 + (1 + O(5))*T^5 + O(5)*T^6 + (4 + O(5))*T^7 + (2 + O(5))*T^8 + O(5)*T^9 + O(T^10)
         sage: L.series(2,quadratic_twist=-3)
         2 + 4*5 + 4*5^2 + O(5^4) + O(5)*T + (1 + O(5))*T^2 + (4 + O(5))*T^3 + O(5)*T^4 + O(T^5)
 
@@ -644,22 +644,24 @@ class pAdicLseries(SageObject):
             sage: E = EllipticCurve('11a1')
             sage: Lp = E.padic_lseries(2)
             sage: Lp._e_bounds(1,10)
-            [+Infinity, 1, 0]
+            [+Infinity, 1, 0, 0, 0, 0, 0, 0, 0, 0]
             sage: Lp._e_bounds(2,10)
-            [+Infinity, 2, 1, 2, 0]
+            [+Infinity, 2, 1, 1, 0, 0, 0, 0, 0, 0]
             sage: Lp._e_bounds(3,10)
-            [+Infinity, 3, 2, 3, 1, 3, 2, 3, 0]
+            [+Infinity, 3, 2, 2, 1, 1, 1, 1, 0, 0]
             sage: Lp._e_bounds(4,10)
-            [+Infinity, 4, 3, 4, 2, 4, 3, 4, 1, 4]
-
-
+            [+Infinity, 4, 3, 3, 2, 2, 2, 2, 1, 1]
         """
-        p = self._p
-        prec = max(2,prec)
-        R = PowerSeriesRing(ZZ,'T',prec+1)
-        T = R(R.gen(),prec +1)
-        w = (1+T)**(p**n) - 1
-        return [infinity] + [valuation(w[j],p) for j in range(1,min(w.degree()+1,prec))]
+        # trac 10280: replace with new corrected code, note that the sequence has to be decreasing.
+        pn = self._p**n
+        enj = infinity
+        res = [enj]
+        for j in range(1,prec):
+            bino = valuation(binomial(pn,j),self._p)
+            if bino < enj:
+                enj = bino
+            res.append(enj)
+        return res
 
     def _get_series_from_cache(self, n, prec, D, eta):
         r"""
@@ -805,8 +807,7 @@ class pAdicLseriesOrdinary(pAdicLseries):
             True
             sage: L = E.padic_lseries(p)
             sage: L.series(3)
-            2 + 3 + 3^2 + 2*3^3 + O(3^5) + (1 + 3 + O(3^2))*T + (1 + 2*3 + O(3^2))*T^2 + O(3)*T^3 + (2*3 + O(3^2))*T^4 + O(T^5)
-
+            2 + 3 + 3^2 + 2*3^3 + O(3^5) + (1 + 3 + O(3^2))*T + (1 + 2*3 + O(3^2))*T^2 + O(3)*T^3 + O(3)*T^4 + O(T^5)
 
         Another example at a prime of bad reduction, where the
         `p`-adic L-function has an extra 0 (compared to the non
@@ -832,14 +833,14 @@ class pAdicLseriesOrdinary(pAdicLseries):
             sage: L.series(2)
             O(3^4) + O(3)*T + (2 + O(3))*T^2 + O(T^3)
             sage: L.series(3)
-            O(3^5) + O(3^2)*T + (2 + 2*3 + O(3^2))*T^2 + (2 + O(3))*T^3 + (1 + 3 + O(3^2))*T^4 + O(T^5)
+            O(3^5) + O(3^2)*T + (2 + 2*3 + O(3^2))*T^2 + (2 + O(3))*T^3 + (1 + O(3))*T^4 + O(T^5)
 
         Checks if the precision can be changed (trac 5846)::
 
             sage: L.series(3,prec=4)
             O(3^5) + O(3^2)*T + (2 + 2*3 + O(3^2))*T^2 + (2 + O(3))*T^3 + O(T^4)
             sage: L.series(3,prec=6)
-            O(3^5) + O(3^2)*T + (2 + 2*3 + O(3^2))*T^2 + (2 + O(3))*T^3 + (1 + 3 + O(3^2))*T^4 + (1 + O(3^2))*T^5 + O(T^6)
+            O(3^5) + O(3^2)*T + (2 + 2*3 + O(3^2))*T^2 + (2 + O(3))*T^3 + (1 + O(3))*T^4 + (1 + O(3))*T^5 + O(T^6)
 
         Rather than computing the `p`-adic L-function for the curve '15523a1', one can
         compute it as a quadratic_twist::
@@ -1020,13 +1021,17 @@ class pAdicLseriesOrdinary(pAdicLseries):
             sage: E = EllipticCurve('11a1')
             sage: Lp = E.padic_lseries(5)
             sage: Lp._prec_bounds(3,10)
-            [+Infinity, 1, 1, 1, 1, 0, 1, 1, 1, 1]
+            [+Infinity, 1, 1, 1, 1, 0, 0, 0, 0, 0]
             sage: Lp._prec_bounds(3,12)
-            [+Infinity, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1]
+            [+Infinity, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0]
             sage: Lp._prec_bounds(4,5)
             [+Infinity, 2, 2, 2, 2]
-            sage: Lp._prec_bounds(15,5)
-            [+Infinity, 13, 13, 13, 13]
+            sage: Lp._prec_bounds(15,10)
+            [+Infinity, 13, 13, 13, 13, 12, 12, 12, 12, 12]
+
+            sage: Lp = E.padic_lseries(3)
+            sage: Lp._prec_bounds(15,10)
+            [+Infinity, 14, 14, 13, 13, 13, 13, 13, 13, 12]
 
         """
         p = self._p
@@ -1073,7 +1078,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
             sage: L.series(2)
             O(T^3)
             sage: L.series(4)         # takes a long time (several seconds)
-            (O(3))*alpha + (O(3^2)) + ((O(3^-1))*alpha + (2*3^-1 + O(3^0)))*T + ((O(3^-1))*alpha + (2*3^-1 + O(3^0)))*T^2 + ((O(3^-2))*alpha + (O(3^-1)))*T^3 + ((O(3^-1))*alpha + (3^-1 + O(3^0)))*T^4 + O(T^5)
+            (O(3))*alpha + (O(3^2)) + ((O(3^-1))*alpha + (2*3^-1 + O(3^0)))*T + ((O(3^-1))*alpha + (2*3^-1 + O(3^0)))*T^2 + O(T^5)
             sage: L.alpha(2).parent()
             Univariate Quotient Polynomial Ring in alpha over 3-adic Field with capped
             relative precision 2 with modulus (1 + O(3^2))*x^2 + (3 + O(3^3))*x + (3 + O(3^3))

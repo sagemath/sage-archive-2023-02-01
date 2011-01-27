@@ -10,8 +10,8 @@ sums the contents of a numpy array
 
 ::
 
-    import weave
-    from weave import converters
+    sage: from scipy import weave
+    sage: from scipy.weave import converters
 
 ::
 
@@ -21,8 +21,9 @@ sums the contents of a numpy array
         int i;
         long int counter;
         counter =0;
-        for(i=0;i<n;i++){
-	    counter=counter+a(i);
+        for(i=0;i<n;i++)
+        {
+            counter=counter+a(i);
         }
         return_val=counter;
         """
@@ -30,12 +31,10 @@ sums the contents of a numpy array
         err=weave.inline(code,['a','n'],type_converters=converters.blitz,compiler='gcc')
         return err
 
-To call this function try
-
-::
+To call this function do ::
 
     import numpy
-    a=numpy.array(range(60000))
+    a = numpy.array(range(60000))
     time my_sum(a)
     time sum(range(60000))
 
@@ -63,53 +62,53 @@ system ax=b.
     def weave_solve(a,b):
         n = len(a[0])
         x = numpy.array([0]*n,dtype=float)
+
         support_code="""
         #include <stdio.h>
         extern "C" {
         void dgesv_(int *size, int *flag,double* data,int*size,
                     int*perm,double*vec,int*size,int*ok);
         }
-	"""
+        """
 
-       code="""
-       int i,j;
-       double* a_c;
-       double* b_c;
-       int size;
-       int flag;
-       int* p;
-       int ok;
-       size=n;
-       flag=1;
-       a_c= (double *)malloc(sizeof(double)*n*n);
-       b_c= (double *)malloc(sizeof(double)*n);
-       p = (int*)malloc(sizeof(int)*n);
-       for(i=0;i<n;i++)
-          {
-          b_c[i]=b(i);
-          for(j=0;j<n;j++)
-            a_c[i*n+j]=a(i,j);
-          }
-       dgesv_(&size,&flag,a_c,&size,p,b_c,&size,&ok);
-       for(i=0;i<n;i++)
-          x(i)=b_c[i];
-       free(a_c);
-       free(b_c);
-       free(p);
-       """
-       libs=['lapack','blas','g2c']
-       dirs=['/media/sdb1/sage-2.6.linux32bit-i686-Linux']
-       vars = ['a','b','x','n']
-       weave.inline(code,vars,support_code=support_code,libraries=libs,library_dirs=dirs,  \
-       type_converters=converters.blitz,compiler='gcc')
-       return x
+        code="""
+            int i,j;
+            double* a_c;
+            double* b_c;
+            int size;
+            int flag;
+            int* p;
+            int ok;
+            size=n;
+            flag=1;
+            a_c= (double *)malloc(sizeof(double)*n*n);
+            b_c= (double *)malloc(sizeof(double)*n);
+            p = (int*)malloc(sizeof(int)*n);
+            for(i=0;i<n;i++)
+               {
+               b_c[i]=b(i);
+               for(j=0;j<n;j++)
+                 a_c[i*n+j]=a(i,j);
+               }
+            dgesv_(&size,&flag,a_c,&size,p,b_c,&size,&ok);
+            for(i=0;i<n;i++)
+               x(i)=b_c[i];
+            free(a_c);
+            free(b_c);
+            free(p);
+        """
+
+        libs=['lapack','blas','g2c']
+        dirs=['/media/sdb1/sage-2.6.linux32bit-i686-Linux']
+        vars = ['a','b','x','n']
+        weave.inline(code,vars,support_code=support_code,libraries=libs,library_dirs=dirs,  \
+        type_converters=converters.blitz,compiler='gcc')
+        return x
 
 
 Note that we have used the support_code argument which is additional C code you can
 use to include headers and declare functions. Note that inline also can take all distutils
 compiler options which we used here to link in lapack.
-
-.. skip
 
 ::
 
@@ -146,6 +145,5 @@ Using our previous driver you should find that this version takes about the
 same amount of time as the f2py version around .2 seconds to do 2750
 iterations.
 
-
-For more about weave see the weave tutorial at
-http://projects.scipy.org/scipy/scipy/browser/trunk/Lib/weave/doc/tutorial.html?format=raw
+For more about weave see
+http://www.scipy.org/Weave

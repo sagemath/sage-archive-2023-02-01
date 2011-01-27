@@ -279,24 +279,24 @@ class ProjectiveConic_field(ProjectiveCurve_generic):
         B = self.base_ring()
         basis = [vector(B,{2:0,i:1}) for i in range(3)]
         for i in range(3):
-            zerovalue = (basis[i]*A*basis[i].transpose()== 0)
+            zerovalue = (basis[i]*A*basis[i].column()== 0)
             if zerovalue:
                 for j in range(i+1,3):
-                    if basis[j]*A*basis[j].transpose() != 0:
+                    if basis[j]*A*basis[j].column() != 0:
                         b = basis[i]
                         basis[i] = basis[j]
                         basis[j] = b
                         zerovalue = False
             if zerovalue:
                 for j in range(i+1,3):
-                    if basis[i]*A*basis[j].transpose() != 0:
+                    if basis[i]*A*basis[j].column() != 0:
                         basis[i] = basis[i]+basis[j]
                         zerovalue = False
             if not zerovalue:
-                l = (basis[i]*A*basis[i].transpose())
+                l = (basis[i]*A*basis[i].column())
                 for j in range(i+1,3):
                     basis[j] = basis[j] - \
-                               (basis[i]*A*basis[j].transpose())/l * basis[i]
+                               (basis[i]*A*basis[j].column())/l * basis[i]
         T = Matrix(basis).transpose()
         return T.transpose()*A*T, T
 

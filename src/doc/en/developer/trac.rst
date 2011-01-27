@@ -148,6 +148,11 @@ your patch. Some relevant information include:
   requires that the patches on another ticket be applied first. Be
   sure to include such information if relevant.
 
+* It is best to supply information about ticket dependencies and patch
+  order in a way that the Patch Buildbot can understand. This bot
+  automatically applies patches from trac and tests them.
+  See its wiki: http://wiki.sagemath.org/buildbot
+
 If there is no trac ticket associated to this issue, create one (as
 explained in the previous sections) describing the issue and your
 solution, and attach your patch.

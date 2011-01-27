@@ -719,6 +719,12 @@ def bessel_I(nu,z,algorithm = "pari",prec=53):
         1.2660658777520...
         sage: bessel_I(1,1,"scipy")
         0.565159103992...
+
+    Check whether the return value is real whenever the argument is real (#10251)::
+
+        sage: bessel_I(5, 1.5, algorithm='scipy') in RR
+        True
+
     """
     if algorithm=="pari":
         from sage.libs.pari.all import pari
@@ -741,7 +747,8 @@ def bessel_I(nu,z,algorithm = "pari",prec=53):
         ans = ans.replace("(","")
         ans = ans.replace(")","")
         ans = ans.replace("j","*I")
-        return sage_eval(ans)
+        ans = sage_eval(ans)
+        return real(ans) if z in RR else ans # Return real value when arg is real
     elif algorithm == "maxima":
         if prec != 53:
             raise ValueError, "for the maxima algorithm the precision must be 53"
@@ -804,6 +811,10 @@ def bessel_J(nu,z,algorithm="pari",prec=53):
         0.0583793793051868
         sage: bessel_J(3,10,"scipy")
         0.0583793793052...
+
+    Check whether the return value is real whenever the argument is real (#10251)::
+        sage: bessel_J(5, 1.5, algorithm='scipy') in RR
+        True
     """
 
     if algorithm=="pari":
@@ -829,7 +840,8 @@ def bessel_J(nu,z,algorithm="pari",prec=53):
         ans = ans.replace("(","")
         ans = ans.replace(")","")
         ans = ans.replace("j","*I")
-        return sage_eval(ans)
+        ans = sage_eval(ans)
+        return real(ans) if z in RR else ans
     elif algorithm == "maxima":
         if prec != 53:
             raise ValueError, "for the maxima algorithm the precision must be 53"
@@ -871,6 +883,12 @@ def bessel_K(nu,z,algorithm="pari",prec=53):
         Traceback (most recent call last):
         ...
         NotImplementedError: The K-Bessel function is only implemented for the pari and scipy algorithms
+
+        Check whether the return value is real whenever the argument is real (#10251)::
+
+        sage: bessel_K(5, 1.5, algorithm='scipy') in RR
+        True
+
     """
     if algorithm=="scipy":
         if prec != 53:
@@ -880,7 +898,8 @@ def bessel_K(nu,z,algorithm="pari",prec=53):
         ans = ans.replace("(","")
         ans = ans.replace(")","")
         ans = ans.replace("j","*I")
-        return sage_eval(ans)
+        ans = sage_eval(ans)
+        return real(ans) if z in RR else ans
     elif algorithm == 'pari':
         from sage.libs.pari.all import pari
         try:
@@ -945,7 +964,8 @@ def bessel_Y(nu,z,algorithm="maxima", prec=53):
         ans = ans.replace("(","")
         ans = ans.replace(")","")
         ans = ans.replace("j","*I")
-        return sage_eval(ans)
+        ans = sage_eval(ans)
+        return real(ans) if z in RR else ans
     elif algorithm == "maxima":
         if prec != 53:
             raise ValueError, "for the maxima algorithm the precision must be 53"

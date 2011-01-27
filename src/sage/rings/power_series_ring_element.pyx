@@ -112,7 +112,7 @@ import sage.misc.latex
 import rational_field, integer_ring
 from integer import Integer
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
-import sage.libs.pari.all
+from sage.libs.pari.all import pari
 from sage.libs.all import PariError
 from sage.misc.functional import sqrt, log
 from sage.rings.arith import integer_ceil as ceil
@@ -1737,12 +1737,22 @@ cdef class PowerSeries(AlgebraElement):
             sage: R.<x> = Zmod(6)[[]]
             sage: pari(1 + x + 8*x^3 + O(x^8)) # indirect doctest
             Mod(1, 6) + Mod(1, 6)*x + Mod(2, 6)*x^3 + O(x^8)
+
+        TESTS::
+
+            sage: pari(1 + O(x^1))
+            Mod(1, 6) + O(x)
+            sage: pari(O(x^1))
+            O(x)
+            sage: pari(O(x^0))
+            O(1)
         """
         n = self.prec()
         if n is infinity:
             raise ValueError, "series precision must be finite for conversion to pari object."
-        s = '+'.join([str(self.truncate()._pari_()), 'O(%s^%s)' % (self.variable(), n)])
-        return sage.libs.pari.all.pari(s)
+        s = self.truncate()._pari_()  # PARI polynomial
+        s += pari('O(%s^%d)' % (s.variable(), n))  # PARI series
+        return s
 
 def _solve_linear_de(R, N, L, a, b, f0):
     r"""

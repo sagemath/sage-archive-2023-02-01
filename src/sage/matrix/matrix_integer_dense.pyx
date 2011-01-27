@@ -4418,12 +4418,31 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [ 0  1  2]
             [ 3  4  5]
             [10 11 12]
+
+        TESTS:
+
+        Stacking a dense matrix atop a sparse one should work::
+
+            sage: M = Matrix(ZZ, 2, 3, range(6))
+            sage: M.is_sparse()
+            False
+            sage: N = diagonal_matrix([10,11,12], sparse=True)
+            sage: N.is_sparse()
+            True
+            sage: P = M.stack(N); P
+            [ 0  1  2]
+            [ 3  4  5]
+            [10  0  0]
+            [ 0 11  0]
+            [ 0  0 12]
+            sage: P.is_sparse()
+            False
         """
         if self._ncols != other.ncols():
             raise TypeError, "number of columns must be the same"
         if not (self._base_ring is other.base_ring()):
             other = other.change_ring(self._base_ring)
-        cdef Matrix_integer_dense A = other
+        cdef Matrix_integer_dense A = other.dense_matrix()
         cdef Matrix_integer_dense M
         M = self.new_matrix(nrows = self._nrows + A._nrows, ncols = self.ncols())
         cdef Py_ssize_t i, k

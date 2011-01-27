@@ -375,7 +375,7 @@ consists, given a directed graph and two vertices `s, t`, in sending a
 maximum *flow* from `s` to `t` using the edges of `G`, each of them
 having a maximal capacity.
 
-.. image:: static/lp_flot1.png
+.. image:: media/lp_flot1.png
     :align: center
 
 The definition of this problem is almost its LP formulation. We are
@@ -442,7 +442,7 @@ graph, in which all the edges have a capacity of 1::
     sage: p.solve()
     2.0
 
-.. image:: static/lp_flot2.png
+.. image:: media/lp_flot2.png
     :align: center
 
 

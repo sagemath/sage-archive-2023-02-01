@@ -904,9 +904,9 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         And a very small corner case. ::
 
             sage: v = vector(ZZ, [])
-            sage: w = v.row()
+            sage: w = v.column()
             sage: w.parent()
-            Full MatrixSpace of 1 by 0 dense matrices over Integer Ring
+            Full MatrixSpace of 0 by 1 dense matrices over Integer Ring
         """
         return self._matrix_(R=None).transpose()
 

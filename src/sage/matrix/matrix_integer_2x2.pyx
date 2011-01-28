@@ -156,7 +156,7 @@ cdef class Matrix_integer_2x2(matrix_dense.Matrix_dense):
                         entries = list(entries)
                         is_list = 1
                     except TypeError:
-                        raise TypeError, "entries must be coercible to a list or the base ring"
+                        raise TypeError("entries must be coercible to a list or the base ring")
 
         else:
             is_list = 1
@@ -164,7 +164,7 @@ cdef class Matrix_integer_2x2(matrix_dense.Matrix_dense):
         if is_list:
 
             if len(entries) != self._nrows * self._ncols:
-                raise TypeError, "entries has the wrong length"
+                raise TypeError("entries has the wrong length")
 
             if coerce:
                 mpz_set(self.a, (<Integer>ZZ(entries[0])).value)
@@ -223,7 +223,7 @@ cdef class Matrix_integer_2x2(matrix_dense.Matrix_dense):
             mpz_set(self.c, (<Integer>ZZ(data[2])).value)
             mpz_set(self.d, (<Integer>ZZ(data[3])).value)
         else:
-            raise RuntimeError, "unknown matrix version"
+            raise RuntimeError("unknown matrix version")
 
     def __richcmp__(matrix.Matrix self, right, int op):
         """
@@ -433,7 +433,7 @@ cdef class Matrix_integer_2x2(matrix_dense.Matrix_dense):
             return A
 
         else:
-            raise ZeroDivisionError, "Not a unit!"
+            raise ZeroDivisionError("Not a unit!")
     _invert_unit = __invert__unit
 
     def _multiply_classical(left, matrix.Matrix _right):

@@ -178,7 +178,7 @@ def MatrixSpace(base_ring, nrows, ncols=None, sparse=False):
         True
     """
     if not base_ring in Rings():
-        raise TypeError, "base_ring (=%s) must be a ring"%base_ring
+        raise TypeError("base_ring (=%s) must be a ring"%base_ring)
 
     if ncols is None: ncols = nrows
     nrows = int(nrows); ncols = int(ncols); sparse=bool(sparse)
@@ -234,18 +234,18 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         sage.structure.category_object.CategoryObject._init_category_(self, category)
 
         if not base_ring in Rings():
-            raise TypeError, "base_ring must be a ring"
+            raise TypeError("base_ring must be a ring")
         nrows = int(nrows)
         ncols = int(ncols)
         if nrows < 0:
-            raise ArithmeticError, "nrows must be nonnegative"
+            raise ArithmeticError("nrows must be nonnegative")
         if ncols < 0:
-            raise ArithmeticError, "ncols must be nonnegative"
+            raise ArithmeticError("ncols must be nonnegative")
 
         if nrows >= 2**63 or ncols >= 2**63:
-            raise ValueError, "number of rows and columns must be less than 2^63"
+            raise ValueError("number of rows and columns must be less than 2^63")
         elif (nrows >= 2**31 or ncols >= 2**31) and not sage.misc.misc.is_64_bit:
-            raise ValueError, "number of rows and columns must be less than 2^31 (on a 32-bit computer -- use a 64-bit computer for matrices with up to 2^63-1 rows and columns)"
+            raise ValueError("number of rows and columns must be less than 2^31 (on a 32-bit computer -- use a 64-bit computer for matrices with up to 2^63-1 rows and columns)")
 
         self.__nrows = nrows
         self.__is_sparse = sparse
@@ -371,7 +371,7 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
                 elif len(entries[0]) == self.__nrows:
                     rows = False
                 else:
-                    raise ValueError, "incorrect dimensions"
+                    raise ValueError("incorrect dimensions")
 
             if self.__is_sparse:
                 e = {}
@@ -437,9 +437,7 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
 
         INPUT:
 
-
         -  ``R`` - ring
-
 
         OUTPUT: a matrix space
 
@@ -454,7 +452,7 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         """
         if R.has_coerce_map_from(self.base_ring()):
             return self.change_ring(R)
-        raise TypeError, "no base extension defined"
+        raise TypeError("no base extension defined")
 
     def construction(self):
         """
@@ -514,11 +512,11 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         """
         if isinstance(x, matrix.Matrix):
             if self.is_sparse() and x.is_dense():
-                raise TypeError, "cannot coerce dense matrix into sparse space for arithmetic"
+                raise TypeError("cannot coerce dense matrix into sparse space for arithmetic")
             if x.nrows() == self.nrows() and x.ncols() == self.ncols():
                 if self.base_ring().has_coerce_map_from(x.base_ring()):
                     return self(x)
-                raise TypeError, "no canonical coercion"
+                raise TypeError("no canonical coercion")
         return self._coerce_try(x, self.base_ring())
 
     def __cmp__(self, other):
@@ -962,7 +960,7 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             ValueError: matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).
         """
         if self.__nrows != self.__ncols:
-            raise TypeError, "self must be a space of square matrices"
+            raise TypeError("self must be a space of square matrices")
         A = self.zero_matrix().__copy__()
         for i in xrange(self.__nrows):
             A[i,i] = 1

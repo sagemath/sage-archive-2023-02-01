@@ -58,7 +58,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
 
         self._matrix = <mpz_vector*> sage_malloc(parent.nrows()*sizeof(mpz_vector))
         if self._matrix == NULL:
-            raise MemoryError, "error allocating sparse matrix"
+            raise MemoryError("error allocating sparse matrix")
 
         # initialize the rows
         for i from 0 <= i < parent.nrows():
@@ -99,14 +99,14 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
                 if z != 0:
                     i, j = ij  # nothing better to do since this is user input, which may be bogus.
                     if i < 0 or j < 0 or i >= self._nrows or j >= self._ncols:
-                        raise IndexError, "invalid entries list"
+                        raise IndexError("invalid entries list")
                     mpz_vector_set_entry(&self._matrix[i], j, z.value)
 
         elif isinstance(entries, list):
 
             # Dense input format -- fill in entries
             if len(entries) != self._nrows * self._ncols:
-                raise TypeError, "list of entries must be a dictionary of (i,j):x or a dense list of n * m elements"
+                raise TypeError("list of entries must be a dictionary of (i,j):x or a dense list of n * m elements")
             seq = PySequence_Fast(entries,"expected a list")
             X = PySequence_Fast_ITEMS(seq)
             k = 0
@@ -126,7 +126,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
             if z == 0:
                 return
             if self._nrows != self._ncols:
-                raise TypeError, "matrix must be square to initialize with a scalar."
+                raise TypeError("matrix must be square to initialize with a scalar.")
             for i from 0 <= i < self._nrows:
                 mpz_vector_set_entry(&self._matrix[i], i, z.value)
 

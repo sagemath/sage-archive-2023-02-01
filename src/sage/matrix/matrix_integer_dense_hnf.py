@@ -195,7 +195,7 @@ def det_padic(A, proof=True, stabilize=2):
         -3669
     """
     if not A.is_square():
-        raise ValueError, "A must be a square matrix"
+        raise ValueError("A must be a square matrix")
     r = A.rank()
     if r < A.nrows():
         return ZZ(0)
@@ -512,14 +512,14 @@ def hnf_square(A, proof):
     n = A.nrows()
     m = A.ncols()
     if n != m:
-        raise ValueError, "A must be square."
+        raise ValueError("A must be square.")
 
     # Small cases -- don't use this algorithm
     if n <= 3:
         return A.echelon_form(algorithm="pari")
 
     if A.rank() < A.nrows():
-        raise ValueError, "matrix must have full rank"
+        raise ValueError("matrix must have full rank")
 
 
 
@@ -566,7 +566,7 @@ def hnf_square(A, proof):
             # weird cases where the det is large.
             # E.g., matrix all of whose rows but 1 are multiplied by some
             # fixed scalar n.
-            raise NotImplementedError, "fallback to PARI!"
+            raise NotImplementedError("fallback to PARI!")
             #H = W.hermite_form(algorithm='pari')
     else:
         H = W._hnf_mod(2*g)

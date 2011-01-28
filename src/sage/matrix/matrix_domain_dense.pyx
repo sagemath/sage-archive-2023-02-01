@@ -106,8 +106,8 @@ cdef class Matrix_domain_dense(matrix.Matrix):
             x0*x1^2 - x0^2*x1
         """
         if self.nrows() != self.ncols():
-            raise ArithmeticError, "Matrix must be square, but is %sx%s"%(
-                self.nrows(), self.ncols())
+            raise ArithmeticError("Matrix must be square, but is %sx%s"%(
+                self.nrows(), self.ncols()))
         # Use stupid slow but completely general method.
         d = (-1)**self.nrows() * self.charpoly('x')[0]
         return self.base_ring()(d)
@@ -206,7 +206,7 @@ cdef class Matrix_domain_dense(matrix.Matrix):
         try:
             self.base_ring()._singular_(singular)
         except (NotImplementedError, AttributeError):
-            raise TypeError, "Cannot coerce to Singular"
+            raise TypeError("Cannot coerce to Singular")
 
         return singular.matrix(self.nrows(),self.ncols(),singular(self.list()))
 

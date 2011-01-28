@@ -249,7 +249,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         # all entries are given as a long list
         if len(entries) != self._nrows * self._ncols:
-            raise IndexError, "The vector of entries has the wrong length."
+            raise IndexError("The vector of entries has the wrong length.")
 
         k = 0
 
@@ -333,7 +333,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         """
         if not self._mutability._is_immutable:
-            raise TypeError, "mutable matrices are unhashable"
+            raise TypeError("mutable matrices are unhashable")
 
         x = self.fetch('hash')
         if not x is None:
@@ -753,7 +753,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
                      2006.
         """
         if self._ncols != right._nrows:
-            raise ArithmeticError, "left ncols must match right nrows"
+            raise ArithmeticError("left ncols must match right nrows")
 
         if get_verbose() >= 2:
             verbose('m4rm multiply of %s x %s matrix by %s x %s matrix'%(
@@ -895,7 +895,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
                    multiplication algorithm. arXiv:0707.2347v1, 2008.
         """
         if self._ncols != right._nrows:
-            raise ArithmeticError, "left ncols must match right nrows"
+            raise ArithmeticError("left ncols must match right nrows")
 
         cdef Matrix_mod2_dense ans
         ans = self.new_matrix(nrows = self.nrows(), ncols = right.ncols())
@@ -950,7 +950,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef Matrix_mod2_dense A
 
         if self._nrows != self._ncols:
-            raise ArithmeticError, "self must be a square matrix"
+            raise ArithmeticError("self must be a square matrix")
 
         if self._ncols == 0:
             return self.__copy__()
@@ -965,7 +965,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         mzd_free(I)
 
         if A._entries==NULL:
-            raise ZeroDivisionError, "self is not invertible"
+            raise ZeroDivisionError("input matrix must be nonsingular")
         else:
             return A
 
@@ -1120,7 +1120,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 k = int(kwds['k'])
 
                 if k<1 or k>16:
-                    raise RuntimeError,"k must be between 1 and 16"
+                    raise RuntimeError("k must be between 1 and 16")
                 k = round(k)
             else:
                 k = 0
@@ -1157,7 +1157,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             # for debugging purposes only, it is slow
             self._echelon_in_place_classical()
         else:
-            raise ValueError, "no algorithm '%s'"%algorithm
+            raise ValueError("no algorithm '%s'"%algorithm)
 
     def _pivots(self):
         """
@@ -1178,7 +1178,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [1, 2, 3, 4]
         """
         if not self.fetch('in_echelon_form'):
-            raise RuntimeError, "self must be in reduced row echelon form first."
+            raise RuntimeError("self must be in reduced row echelon form first.")
         pivots = []
         cdef Py_ssize_t i, j, nc
         nc = self._ncols
@@ -1417,7 +1417,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             0
         """
         if not self.is_square():
-            raise ValueError, "self must be a square matrix"
+            raise ValueError("self must be a square matrix")
         return self.base_ring()(1 if self.rank() == self.nrows() else 0)
 
     def transpose(self):
@@ -1513,7 +1513,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef Matrix_mod2_dense A
 
         if self._nrows != right._nrows:
-            raise TypeError, "Both numbers of rows must match."
+            raise TypeError("Both numbers of rows must match.")
 
         if self._ncols == 0:
             return right.__copy__()
@@ -1570,7 +1570,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             []
         """
         if self._ncols != other._ncols:
-            raise TypeError, "Both numbers of columns must match."
+            raise TypeError("Both numbers of columns must match.")
 
         if self._nrows == 0:
             return other.__copy__()
@@ -1620,19 +1620,19 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         highc = lowc + ncols
 
         if nrows <= 0 or ncols <= 0:
-            raise TypeError, "Expected nrows, ncols to be > 0, but got %d,%d instead."%(nrows, ncols)
+            raise TypeError("Expected nrows, ncols to be > 0, but got %d,%d instead."%(nrows, ncols))
 
         if highc > self._entries.ncols:
-            raise TypeError, "Expected highc <= self.ncols(), but got %d > %d instead."%(highc, self._entries.ncols)
+            raise TypeError("Expected highc <= self.ncols(), but got %d > %d instead."%(highc, self._entries.ncols))
 
         if highr > self._entries.nrows:
-            raise TypeError, "Expected highr <= self.nrows(), but got %d > %d instead."%(highr, self._entries.nrows)
+            raise TypeError("Expected highr <= self.nrows(), but got %d > %d instead."%(highr, self._entries.nrows))
 
         if lowr < 0:
-            raise TypeError, "Expected lowr >= 0, but got %d instead."%lowr
+            raise TypeError("Expected lowr >= 0, but got %d instead."%lowr)
 
         if lowc < 0:
-            raise TypeError, "Expected lowc >= 0, but got %d instead."%lowc
+            raise TypeError("Expected lowc >= 0, but got %d instead."%lowc)
 
         A = self.new_matrix(nrows = nrows, ncols = ncols)
         if self._ncols == 0 or self._nrows == 0:
@@ -1957,7 +1957,7 @@ def unpickle_matrix_mod2_dense_v1(r, c, data, size):
     sage_free(buf)
 
     if gdImageSX(im) != c or gdImageSY(im) != r:
-        raise TypeError, "Pickled data dimension doesn't match."
+        raise TypeError("Pickled data dimension doesn't match.")
 
 
     for i from 0 <= i < r:
@@ -2032,7 +2032,7 @@ def to_png(Matrix_mod2_dense A, filename):
     cdef int i,j, r,c
     r, c = A.nrows(), A.ncols()
     if r == 0 or c == 0:
-        raise TypeError, "Cannot write image with dimensions %d x %d"%(c,r)
+        raise TypeError("Cannot write image with dimensions %d x %d"%(c,r))
     fn = open(filename,"w") # check filename
     fn.close()
     cdef gdImagePtr im = gdImageCreate(c, r)

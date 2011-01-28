@@ -389,7 +389,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         raised.
         """
         if i<0 or i >= self._nrows or j<0 or j >= self._ncols:
-            raise IndexError, "matrix index out of range"
+            raise IndexError("matrix index out of range")
 
     cdef check_mutability(self):
         """
@@ -401,7 +401,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         If self is mutable, the cache of results about self is deleted.
         """
         if self._mutability._is_immutable:
-            raise ValueError, "matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M)."
+            raise ValueError("matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).")
         else:
             self._cache = {}
 
@@ -417,13 +417,12 @@ cdef class Matrix(sage.structure.element.Matrix):
         If self is mutable, the cache of results about self is deleted.
         """
         if self._mutability._is_immutable:
-            raise ValueError, "matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M)."
+            raise ValueError("matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).")
         else:
             self._cache = {}
 
         if i<0 or i >= self._nrows or j<0 or j >= self._ncols:
-            raise IndexError, "matrix index out of range"
-
+            raise IndexError("matrix index out of range")
 
     def set_immutable(self):
         r"""
@@ -527,7 +526,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         This is fast since it is a cdef function and there is no bounds
         checking.
         """
-        raise NotImplementedError, "this must be defined in the derived class (type=%s)"%type(self)
+        raise NotImplementedError("this must be defined in the derived class (type=%s)"%type(self))
 
     cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
         """
@@ -536,7 +535,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         This is fast since it is a cdef function and there is no bounds
         checking.
         """
-        raise NotImplementedError, "this must be defined in the derived type."
+        raise NotImplementedError("this must be defined in the derived type.")
 
 ##     def _get_very_unsafe(self, i, j):
 ##         r"""
@@ -821,7 +820,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             key_tuple = <tuple>key
             #if PyTuple_Size(key_tuple) != 2:
             if len(key_tuple) != 2:
-                raise IndexError, "index must be an integer or pair of integers"
+                raise IndexError("index must be an integer or pair of integers")
 
             row_index = <object>PyTuple_GET_ITEM(key_tuple, 0)
             col_index = <object>PyTuple_GET_ITEM(key_tuple, 1)
@@ -839,17 +838,17 @@ cdef class Matrix(sage.structure.element.Matrix):
                         row_list[i] = ind
 
                     if ind < 0 or ind >= nrows:
-                        raise IndexError, "matrix index out of range"
+                        raise IndexError("matrix index out of range")
             elif PySlice_Check(<PyObject *>row_index):
                 row_list = range(*row_index.indices(nrows))
             else:
                 if not PyIndex_Check(row_index):
-                    raise TypeError, "index must be an integer"
+                    raise TypeError("index must be an integer")
                 row = row_index
                 if row < 0:
                     row += nrows
                 if row < 0 or row >= nrows:
-                    raise IndexError, "matrix index out of range"
+                    raise IndexError("matrix index out of range")
                 single_row = 1
 
             if PyList_CheckExact(col_index) or PyTuple_CheckExact(col_index):
@@ -865,17 +864,17 @@ cdef class Matrix(sage.structure.element.Matrix):
                         col_list[i] = ind
 
                     if ind < 0 or ind >= ncols:
-                        raise IndexError, "matrix index out of range"
+                        raise IndexError("matrix index out of range")
             elif PySlice_Check(<PyObject *>col_index):
                 col_list =  range(*col_index.indices(ncols))
             else:
                 if not PyIndex_Check(col_index):
-                    raise TypeError, "index must be an integer"
+                    raise TypeError("index must be an integer")
                 col = col_index
                 if col < 0:
                     col += ncols
                 if col < 0 or col >= ncols:
-                    raise IndexError, "matrix index out of range"
+                    raise IndexError("matrix index out of range")
                 single_col = 1
 
             # if we had a single row entry and a single column entry,
@@ -910,19 +909,19 @@ cdef class Matrix(sage.structure.element.Matrix):
                     row_list[i] = ind
 
                 if ind < 0 or ind >= nrows:
-                    raise IndexError, "matrix index out of range"
+                    raise IndexError("matrix index out of range")
             r = self.matrix_from_rows(row_list)
         elif PySlice_Check(<PyObject *>row_index):
             row_list = range(*row_index.indices(nrows))
             r = self.matrix_from_rows(row_list)
         else:
             if not PyIndex_Check(row_index):
-                raise TypeError, "index must be an integer"
+                raise TypeError("index must be an integer")
             row = row_index
             if row < 0:
                 row += nrows
             if row < 0 or row >= nrows:
-                raise IndexError, "matrix index out of range"
+                raise IndexError("matrix index out of range")
             r = self.row(row)
 
         r.set_immutable()
@@ -1285,7 +1284,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             key_tuple = <tuple>key
             #if PyTuple_Size(key_tuple) != 2:
             if len(key_tuple) != 2:
-                raise IndexError, "index can't have more than two components"
+                raise IndexError("index can't have more than two components")
 
             row_index = <object>PyTuple_GET_ITEM(key_tuple, 0)
             col_index = <object>PyTuple_GET_ITEM(key_tuple, 1)
@@ -1296,7 +1295,7 @@ cdef class Matrix(sage.structure.element.Matrix):
                 if col < 0:
                     col += ncols
                 if col < 0 or col >= ncols:
-                    raise IndexError, "index out of range"
+                    raise IndexError("index out of range")
                 single_col = 1
                 col_list_len = 1
             else:
@@ -1318,7 +1317,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             if row < 0:
                 row += nrows
             if row < 0 or row >= nrows:
-                raise IndexError, "index out of range"
+                raise IndexError("index out of range")
             single_row = 1
             row_list_len = 1
         else:
@@ -1350,7 +1349,7 @@ cdef class Matrix(sage.structure.element.Matrix):
                 value_list_one_dimensional = 1
                 value_list = list(value)
             else:
-                raise IndexError, "value does not have the right dimensions"
+                raise IndexError("value does not have the right dimensions")
         else:
             # If value is not a list, tuple, matrix, or vector, try
             # broadcasting the element to all positions.
@@ -1379,15 +1378,15 @@ cdef class Matrix(sage.structure.element.Matrix):
         if value_list_one_dimensional:
             # This will break when assigning a vector to a column
             if single_row and col_list_len != len(value_list):
-                raise IndexError, "value does not have the right number of columns"
+                raise IndexError("value does not have the right number of columns")
             elif single_col and row_list_len != len(value_list):
-                raise IndexError, "value does not have the right number of rows"
+                raise IndexError("value does not have the right number of rows")
         else:
             if row_list_len != len(value_list):
-                raise IndexError, "value does not have the right number of rows"
+                raise IndexError("value does not have the right number of rows")
             for value_row in value_list:
                 if col_list_len != len(value_row):
-                    raise IndexError, "value does not have the right number of columns"
+                    raise IndexError("value does not have the right number of columns")
 
 
         if single_row:
@@ -1507,7 +1506,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             [2 4]
         """
         if not is_Ring(ring):
-            raise TypeError, "ring must be a ring"
+            raise TypeError("ring must be a ring")
 
         if ring is self._base_ring:
             if self._mutability._is_immutable:
@@ -1976,7 +1975,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         cdef Py_ssize_t i, j, n
 
         if self._nrows != self._ncols:
-            raise ArithmeticError, "self must be a square matrix"
+            raise ArithmeticError("self must be a square matrix")
 
         F = f.base_ring()
         vars = f.parent().gens()
@@ -2045,19 +2044,19 @@ cdef class Matrix(sage.structure.element.Matrix):
     ###################################################
     cdef check_row_bounds_and_mutability(self, Py_ssize_t r1, Py_ssize_t r2):
         if self._mutability._is_immutable:
-            raise ValueError, "matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M)."
+            raise ValueError("matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).")
         else:
             self._cache = {}
         if r1<0 or r1 >= self._nrows or r2<0 or r2 >= self._nrows:
-            raise IndexError, "matrix row index out of range"
+            raise IndexError("matrix row index out of range")
 
     cdef check_column_bounds_and_mutability(self, Py_ssize_t c1, Py_ssize_t c2):
         if self._mutability._is_immutable:
-            raise ValueError, "matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M)."
+            raise ValueError("matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).")
         else:
             self._cache = {}
         if c1<0 or c1 >= self._ncols or c2<0 or c2 >= self._ncols:
-            raise IndexError, "matrix column index out of range"
+            raise IndexError("matrix column index out of range")
 
     def swap_columns(self, Py_ssize_t c1, Py_ssize_t c2):
         """
@@ -2158,7 +2157,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             s = self._coerce_element(s)
             self.add_multiple_of_row_c(i, j, s, start_col)
         except TypeError:
-            raise TypeError, 'Multiplying row by %s element cannot be done over %s, use change_ring or with_added_multiple_of_row instead.' % (s.parent(), self.base_ring())
+            raise TypeError('Multiplying row by %s element cannot be done over %s, use change_ring or with_added_multiple_of_row instead.' % (s.parent(), self.base_ring()))
 
     cdef add_multiple_of_row_c(self, Py_ssize_t i, Py_ssize_t j,    s,   Py_ssize_t start_col):
         cdef Py_ssize_t c
@@ -2242,7 +2241,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             s = self._coerce_element(s)
             self.add_multiple_of_column_c(i, j, s, start_row)
         except TypeError:
-            raise TypeError, 'Multiplying column by %s element cannot be done over %s, use change_ring or with_added_multiple_of_column instead.' % (s.parent(), self.base_ring())
+            raise TypeError('Multiplying column by %s element cannot be done over %s, use change_ring or with_added_multiple_of_column instead.' % (s.parent(), self.base_ring()))
 
     cdef add_multiple_of_column_c(self, Py_ssize_t i, Py_ssize_t j, s, Py_ssize_t start_row):
         cdef Py_ssize_t r
@@ -2356,7 +2355,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             s = self._coerce_element(s)
             self.rescale_row_c(i, s, start_col)
         except TypeError:
-            raise TypeError, 'Rescaling row by %s element cannot be done over %s, use change_ring or with_rescaled_row instead.' % (s.parent(), self.base_ring())
+            raise TypeError('Rescaling row by %s element cannot be done over %s, use change_ring or with_rescaled_row instead.' % (s.parent(), self.base_ring()))
 
     cdef rescale_row_c(self, Py_ssize_t i, s, Py_ssize_t start_col):
         cdef Py_ssize_t j
@@ -2470,7 +2469,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             s = self._coerce_element(s)
             self.rescale_col_c(i, s, start_row)
         except TypeError:
-            raise TypeError, 'Rescaling column by %s element cannot be done over %s, use change_ring or with_rescaled_col instead.' % (s.parent(), self.base_ring())
+            raise TypeError('Rescaling column by %s element cannot be done over %s, use change_ring or with_rescaled_col instead.' % (s.parent(), self.base_ring()))
 
     cdef rescale_col_c(self, Py_ssize_t i, s, Py_ssize_t start_row):
         cdef Py_ssize_t j
@@ -2549,7 +2548,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             for n from 0 <= n < self._ncols:
                 self.set_unsafe(i, n, s * self.get_unsafe(j, n))  # self[i] = s*self[j]
         except TypeError:
-            raise TypeError, 'Multiplying row by %s element cannot be done over %s, use change_ring or with_row_set_to_multiple_of_row instead.' % (s.parent(), self.base_ring())
+            raise TypeError('Multiplying row by %s element cannot be done over %s, use change_ring or with_row_set_to_multiple_of_row instead.' % (s.parent(), self.base_ring()))
 
     def with_row_set_to_multiple_of_row(self, Py_ssize_t i, Py_ssize_t j, s):
         """
@@ -2629,7 +2628,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         # If scaling factor cannot be coerced, change the base ring to
         # one acceptable to both the original base ring and the scaling factor.
         except TypeError:
-            raise TypeError, 'Multiplying column by %s element cannot be done over %s, use change_ring or with_col_set_to_multiple_of_col instead.' % (s.parent(), self.base_ring())
+            raise TypeError('Multiplying column by %s element cannot be done over %s, use change_ring or with_col_set_to_multiple_of_col instead.' % (s.parent(), self.base_ring()))
 
     def with_col_set_to_multiple_of_col(self, Py_ssize_t i, Py_ssize_t j, s):
         """
@@ -2712,7 +2711,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         self.check_row_bounds_and_mutability(i,i)
         if r < 0 or r >= A.nrows():
-            raise IndexError, "invalid row"
+            raise IndexError("invalid row")
         # this function exists just because it is useful for modular symbols presentations.
         cdef Py_ssize_t l
         l = 0
@@ -2793,7 +2792,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             ValueError: length of v must be at most the number of rows of self
         """
         if len(v) > self._nrows:
-            raise ValueError, "length of v must be at most the number of rows of self"
+            raise ValueError("length of v must be at most the number of rows of self")
         if self._nrows == 0:
             return self.parent().row_space().zero_vector()
         from constructor import matrix
@@ -2870,7 +2869,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             ValueError: length of v must be at most the number of columns of self
         """
         if len(v) > self._ncols:
-            raise ValueError, "length of v must be at most the number of columns of self"
+            raise ValueError("length of v must be at most the number of columns of self")
         if self._ncols == 0:
             return self.parent().column_space().zero_vector()
         from constructor import matrix
@@ -3112,7 +3111,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             print self
             print self.nrows()
             print self.dict()
-            raise RuntimeError, "BUG: matrix pivots should have been set but weren't, matrix parent = '%s'"%self.parent()
+            raise RuntimeError("BUG: matrix pivots should have been set but weren't, matrix parent = '%s'"%self.parent())
         return x
 
     def rank(self):
@@ -3297,7 +3296,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         tmp = []
 
         if i<0 or i >= self._ncols:
-            raise IndexError, "matrix column index out of range"
+            raise IndexError("matrix column index out of range")
         for j from 0 <= j < self._nrows:
             if self.get_unsafe(j,i) != z:
                 tmp.append(j)
@@ -3332,7 +3331,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         cdef Py_ssize_t j
 
         if i<0 or i >= self._nrows:
-            raise IndexError, "matrix row index out of range"
+            raise IndexError("matrix row index out of range")
 
         z = self._base_ring(0)
         tmp = []
@@ -3389,10 +3388,10 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         """
         if not self.is_invertible():
-            raise ArithmeticError,"self must be invertible to have a multiplicative order"
+            raise ArithmeticError("self must be invertible to have a multiplicative order")
         K = self.base_ring()
         if not (K.is_field() and K.is_finite()):
-            raise NotImplementedError,"multiplicative order is only implemented for matrices over finite fields"
+            raise NotImplementedError("multiplicative order is only implemented for matrices over finite fields")
         from sage.rings.integer import Integer
         from sage.groups.generic import order_from_multiple
         P = self.minimal_polynomial()
@@ -3456,7 +3455,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         M = sage.modules.free_module.FreeModule(self._base_ring, self.ncols(), sparse=self.is_sparse())
         if self.nrows() != v.degree():
-            raise ArithmeticError, "number of rows of matrix must equal degree of vector"
+            raise ArithmeticError("number of rows of matrix must equal degree of vector")
         s = M(0)
         zero = self.base_ring()(0)
         cdef Py_ssize_t i
@@ -3484,7 +3483,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         if not PY_TYPE_CHECK(v, sage.modules.free_module_element.FreeModuleElement):
             v = M(v)
         if self.ncols() != v.degree():
-            raise ArithmeticError, "number of columns of matrix must equal degree of vector"
+            raise ArithmeticError("number of columns of matrix must equal degree of vector")
         s = M(0)
         for i in xrange(self.ncols()):
             if v[i] != 0:
@@ -3501,8 +3500,6 @@ cdef class Matrix(sage.structure.element.Matrix):
 
                        v, v A, v A^2, \ldots, v A^{n-1}.
 
-
-
         If rows is False, return a matrix whose columns are the entries of
         the following vectors:
 
@@ -3510,15 +3507,11 @@ cdef class Matrix(sage.structure.element.Matrix):
 
                        v, Av, A^2 v, \ldots, A^{n-1} v.
 
-
-
         INPUT:
 
+        - ``v`` - free module element
 
-        -  ``v`` - free module element
-
-        -  ``n`` - nonnegative integer
-
+        - ``n`` - nonnegative integer
 
         EXAMPLES::
 
@@ -3554,7 +3547,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         n = int(n)
         if n >= 2 and self.nrows() != self.ncols():
-            raise ArithmeticError, "matrix must be square if n >= 2."
+            raise ArithmeticError("matrix must be square if n >= 2.")
         if n == 0:
             return self.matrix_space(n, self.ncols())(0)
         m = self.nrows()
@@ -4019,7 +4012,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: ~m
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: self is not invertible
+            ZeroDivisionError: input matrix must be nonsingular
 
         Check to make sure that trac #2256 is still fixed::
 
@@ -4041,11 +4034,11 @@ cdef class Matrix(sage.structure.element.Matrix):
                     try:
                         return (~self.lift()).change_ring(self.base_ring())
                     except (TypeError, ZeroDivisionError):
-                        raise ZeroDivisionError, "self is not invertible"
+                        raise ZeroDivisionError("input matrix must be nonsingular")
                 raise
 
         if not self.is_square():
-            raise ArithmeticError, "self must be a square matrix"
+            raise ArithmeticError("self must be a square matrix")
         if self.nrows()==0:
             return self
 
@@ -4073,10 +4066,10 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         if self.base_ring().is_exact():
             if B[self._nrows-1, self._ncols-1] != 1:
-                raise ZeroDivisionError, "self is not invertible"
+                raise ZeroDivisionError("input matrix must be nonsingular")
         else:
             if not B[self._nrows-1, self._ncols-1]:
-                raise ZeroDivisionError, "self is not invertible"
+                raise ZeroDivisionError("input matrix must be nonsingular")
 
         return B.matrix_from_columns(range(self._ncols, 2*self._ncols))
 
@@ -4114,7 +4107,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             [    -13/121   1436/1331 -8015/14641]
         """
         if not self.is_square():
-            raise ArithmeticError, "self must be a square matrix"
+            raise ArithmeticError("self must be a square matrix")
 
         return RingElement.__pow__(self, n, ignored)
 

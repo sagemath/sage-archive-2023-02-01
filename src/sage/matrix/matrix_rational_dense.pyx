@@ -146,13 +146,13 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         self._entries = <mpq_t *> sage_malloc(sizeof(mpq_t)*(self._nrows * self._ncols))
         sig_off()
         if self._entries == NULL:
-            raise MemoryError, "out of memory allocating a matrix"
+            raise MemoryError("out of memory allocating a matrix")
 
         self._matrix =  <mpq_t **> sage_malloc(sizeof(mpq_t*) * self._nrows)
         if self._matrix == NULL:
             sage_free(self._entries)
             self._entries = NULL
-            raise MemoryError, "out of memory allocating a matrix"
+            raise MemoryError("out of memory allocating a matrix")
 
         # store pointers to the starts of the rows
         sig_on()
@@ -181,7 +181,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
         if isinstance(entries, (list, tuple)):
             if len(entries) != self._nrows * self._ncols:
-                raise TypeError, "entries has the wrong length"
+                raise TypeError("entries has the wrong length")
 
             sig_on()
             if coerce:
@@ -202,11 +202,11 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                 z = Rational(entries)
                 is_list = False
             except TypeError:
-                raise TypeError, "entries must be coercible to a list or integer"
+                raise TypeError("entries must be coercible to a list or integer")
 
             if not z.is_zero():
                 if self._nrows != self._ncols:
-                    raise TypeError, "nonzero scalar matrix must be square"
+                    raise TypeError("nonzero scalar matrix must be square")
                 for i from 0 <= i < self._nrows:
                     mpq_set(self._entries[i*self._ncols+i], z.value)
 
@@ -242,7 +242,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         if version == 0:
             self._unpickle_version0(data)
         else:
-            raise RuntimeError, "unknown matrix version (=%s)"%version
+            raise RuntimeError("unknown matrix version (=%s)"%version)
 
     cdef _pickle_version0(self):
         return self._export_as_string(32)
@@ -305,11 +305,11 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         data = data.split()
         n = self._nrows * self._ncols
         if len(data) != n:
-            raise RuntimeError, "invalid pickle data."
+            raise RuntimeError("invalid pickle data.")
         for i from 0 <= i < n:
             s = data[i]
             if mpq_set_str(self._entries[i], s, 32):
-                raise RuntimeError, "invalid pickle data"
+                raise RuntimeError("invalid pickle data")
 
     def __richcmp__(Matrix self, right, int op):
         return self._richcmp(right, op)
@@ -545,7 +545,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             [   6 37/5 44/5]
         """
         if self._ncols != right._nrows:
-            raise IndexError, "Number of columns of self must equal number of rows of right."
+            raise IndexError("Number of columns of self must equal number of rows of right.")
 
         cdef Py_ssize_t i, j, k, l, nr, nc, snc
         cdef mpq_t *v
@@ -709,14 +709,14 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef int i
 
         if self._nrows != self._ncols:
-            raise ArithmeticError, "self must be a square matrix"
+            raise ArithmeticError("self must be a square matrix")
         if self._nrows == 0:
             return self
         if self._nrows <= 2:
             A = Matrix_rational_dense.__new__(Matrix_rational_dense, self._parent, None, None, None)
             if self._nrows == 1:
                 if mpq_cmp_si(self._entries[0], 0, 1) == 0:
-                    raise ZeroDivisionError
+                    raise ZeroDivisionError("input matrix must be nonsingular" )
                 sig_on()
                 mpq_inv(A._entries[0], self._entries[0])
                 sig_off()
@@ -731,7 +731,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                 sig_off()
                 if i == 0:
                     mpq_clear(det); mpq_clear(t1)
-                    raise ZeroDivisionError
+                    raise ZeroDivisionError("input matrix must be nonsingular" )
                 sig_on()
                 # d/det
                 mpq_div(A._entries[0], self._entries[3], det)
@@ -760,7 +760,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             B, d = AZ._invert_iml(check_invertible=check_invertible)
             return (denom/d)*B
         else:
-            raise ValueError, "unknown algorithm '%s'"%algorithm
+            raise ValueError("unknown algorithm '%s'"%algorithm)
 
     def determinant(self, algorithm="default", proof=None):
         """
@@ -816,7 +816,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             if denom != 1:
                 det = det / (denom**self.nrows())
         else:
-            raise ValueError, "unknown algorithm '%s'"%algorithm
+            raise ValueError("unknown algorithm '%s'"%algorithm)
 
         self.cache('det', det)
         return det
@@ -939,7 +939,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         elif algorithm == 'generic':
             g = matrix_dense.Matrix_dense.charpoly(self, var)
         else:
-            raise ValueError, "no algorithm '%s'"%algorithm
+            raise ValueError("no algorithm '%s'"%algorithm)
 
         self.cache(key, g)
         return g
@@ -998,7 +998,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         elif algorithm == 'generic':
             g = matrix_dense.Matrix_dense.minpoly(self, var)
         else:
-            raise ValueError, "no algorithm '%s'"%algorithm
+            raise ValueError("no algorithm '%s'"%algorithm)
 
         self.cache(key, g)
         return g
@@ -1075,7 +1075,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         elif algorithm == 'multimodular':
             AB = A._multiply_multi_modular(B)
         else:
-            raise ValueError, "unknown algorithm '%s'"%algorithm
+            raise ValueError("unknown algorithm '%s'"%algorithm)
         D = A_denom * B_denom
         if self._nrows == right._nrows:
             # self acts on the space of right
@@ -1196,7 +1196,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             mpq_set_si(s, 0, 1)
             for c in cols:
                 if c<0 or c >= self._ncols:
-                    raise IndexError, "matrix column index out of range"
+                    raise IndexError("matrix column index out of range")
                 mpq_add(s, s, self._matrix[row][c])
             mpq_mul(pr, pr, s)
         cdef Rational _pr
@@ -1308,7 +1308,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             [0|1 2]
         """
         if not is_Ring(R):
-            raise TypeError, "R must be a ring"
+            raise TypeError("R must be a ring")
         from matrix_modn_dense import MAX_MODULUS
         if R == self._base_ring:
             if self._mutability._is_immutable:
@@ -1317,14 +1317,14 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         elif is_IntegerRing(R):
             A, d = self._clear_denom()
             if d != 1:
-                raise TypeError, "matrix has denominators so can't change to ZZ."
+                raise TypeError("matrix has denominators so can't change to ZZ.")
             A.subdivide(self.get_subdivisions())
             return A
         elif is_IntegerModRing(R) and R.order() < MAX_MODULUS:
             b = R.order()
             A, d = self._clear_denom()
             if gcd(b,d) != 1:
-                raise TypeError, "matrix denominator not coprime to modulus"
+                raise TypeError("matrix denominator not coprime to modulus")
             B = A._mod_int(b)
             C = (1/(B.base_ring()(d))) * B
             C.subdivide(self.get_subdivisions())
@@ -1414,10 +1414,11 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         elif algorithm == 'multimodular':
             pivots = self._echelonize_multimodular(height_guess, proof, **kwds)
         else:
-            raise ValueError, "no algorithm '%s'"%algorithm
+            raise ValueError("no algorithm '%s'"%algorithm)
         self.cache('in_echelon_form', True)
 
-        if pivots is None: raise RuntimeError, "BUG: pivots must get set"
+        if pivots is None:
+            raise RuntimeError("BUG: pivots must get set")
         self.cache('pivots', pivots)
 
 
@@ -1484,7 +1485,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         elif algorithm == 'multimodular':
             E = self._echelon_form_multimodular(height_guess, proof=proof)
         else:
-            raise ValueError, "no algorithm '%s'"%algorithm
+            raise ValueError("no algorithm '%s'"%algorithm)
         self.cache(label, E)
         self.cache('pivots', E.pivots())
         return E
@@ -1838,7 +1839,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef Py_ssize_t k
 
         if not self.is_square():
-            raise ArithmeticError, "self must be a square matrix"
+            raise ArithmeticError("self must be a square matrix")
 
         if self.nrows() == 0:
             return decomp_seq([])
@@ -1921,7 +1922,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                         W.rank(), m*g.degree()), level=2, caller_name='rational decomp')
                     tries += 1
                     if tries > 5*m:
-                        raise RuntimeError, "likely bug in decomposition"
+                        raise RuntimeError("likely bug in decomposition")
                 # end if
             #end while
         #end for
@@ -2457,7 +2458,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef Matrix_rational_dense _A
         self.check_row_bounds_and_mutability(i,i)
         if r < 0 or r >= A.nrows():
-            raise IndexError, "invalid row"
+            raise IndexError("invalid row")
         # this function exists just because it is useful for modular symbols presentations.
         cdef Py_ssize_t l
         l = 0
@@ -2488,7 +2489,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         Does not check mutability.
         """
         if A._nrows != self._nrows:
-            raise TypeError, "nrows of self and A must be the same"
+            raise TypeError("nrows of self and A must be the same")
         cdef Py_ssize_t r
         for r from 0 <= r < self._nrows:
             mpq_add(self._matrix[r][i], self._matrix[r][i], A._matrix[r][j])
@@ -2507,7 +2508,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             3
         """
         if self._nrows != self._ncols:
-            raise ValueError, "incompatible matrix dimensions"
+            raise ValueError("incompatible matrix dimensions")
         cdef PariInstance P = sage.libs.pari.gen.pari
         sig_on()
         cdef GEN d = det0(pari_GEN(self), flag)
@@ -2553,7 +2554,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             []
         """
         if self._ncols != right._nrows:
-            raise ArithmeticError, "self must be a square matrix"
+            raise ArithmeticError("self must be a square matrix")
         if not self._ncols*self._nrows or not right._ncols*right._nrows:
             # pari doesn't work in case of 0 rows or columns
             # This case is easy, since the answer must be the 0 matrix.
@@ -2577,7 +2578,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             [ 3/2 -1/2]
         """
         if self._nrows != self._ncols:
-            raise ValueError, "self must be a square matrix"
+            raise ValueError("self must be a square matrix")
         cdef PariInstance P = sage.libs.pari.gen.pari
         cdef GEN M, d
 
@@ -2591,7 +2592,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         # time... (!) :-(
         if rank(M) < self._nrows:
             P.clear_stack()
-            raise ZeroDivisionError, "input matrix must be nonsingular"
+            raise ZeroDivisionError("input matrix must be nonsingular")
         sig_on()
         d = ginv(M)
         sig_off()
@@ -2630,9 +2631,9 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             (1/5, -2/3)
         """
         if self._nrows == 0:
-            raise IndexError, "matrix has no rows"
+            raise IndexError("matrix has no rows")
         if i >= self._nrows or i < -self._nrows:
-            raise IndexError, "row index out of range"
+            raise IndexError("row index out of range")
         i = i % self._nrows
         if i < 0:
             i = i + self._nrows
@@ -2664,9 +2665,9 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             (1/5, 3/4)
         """
         if self._ncols == 0:
-            raise IndexError, "matrix has no columns"
+            raise IndexError("matrix has no columns")
         if i >= self._ncols or i < -self._ncols:
-            raise IndexError, "row index out of range"
+            raise IndexError("row index out of range")
         i %= self._ncols
         if i < 0: i += self._ncols
         cdef Py_ssize_t j

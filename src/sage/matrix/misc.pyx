@@ -379,7 +379,7 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
         verbose("finished comparing pivots", level=2, t=t, caller_name="multimod echelon")
         try:
             if len(Y) == 0:
-                raise ValueError, "not enough primes"
+                raise ValueError("not enough primes")
             t = verbose("start crt linear combination", level=2, caller_name="multimod echelon")
             a = CRT_basis([w[1] for w in Y])
             t = verbose('got crt basis', level=2, t=t, caller_name="multimod echelon")
@@ -497,7 +497,7 @@ def hadamard_row_bound_mpfr(Matrix A):
         OverflowError: cannot convert float infinity to integer
     """
     if not is_RealField(A.base_ring()):
-        raise TypeError, "A must have base field an mpfr real field."
+        raise TypeError("A must have base field an mpfr real field.")
 
     cdef RealNumber a, b
     cdef mpfr_t s, d, pr

@@ -470,7 +470,7 @@ class WordMorphism(SageObject):
             <class 'sage.combinat.words.word.FiniteWord_iter_with_caching'>
             sage: w == loads(dumps(w))
             True
-            sage: save(w,'test')
+            sage: save(w, filename=SAGE_TMP + 'test.sobj')
 
         One may impose the datatype of the resulting word::
 

@@ -5349,13 +5349,18 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
             sage: ZZ(2).inverse_mod(ZZ.ideal(3))
             2
+
+        We check that #9955 is fixed::
+
+            sage: Rational(3)%Rational(-1)
+            0
         """
         cdef int r
         if isinstance(n, sage.rings.ideal.Ideal_pid) and n.ring() == the_integer_ring:
             n = n.gen()
         cdef Integer m = as_Integer(n)
         cdef Integer ans = <Integer>PY_NEW(Integer)
-        if mpz_cmp_ui(m.value, 1) == 0:
+        if mpz_cmpabs_ui(m.value, 1) == 0:
             return zero
         sig_on()
         r = mpz_invert(ans.value, self.value, m.value)

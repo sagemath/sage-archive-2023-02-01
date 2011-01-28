@@ -162,6 +162,7 @@ from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_tori
 from sage.schemes.generic.toric_variety import (
                                             ToricVariety_field,
                                             normalize_names)
+from sage.symbolic.all import SR
 
 
 # Default coefficient for anticanonical hypersurfaces
@@ -703,7 +704,7 @@ class CPRFanoToricVariety_field(ToricVariety_field):
 
     def anticanonical_hypersurface(self, **kwds):
         r"""
-        Return the anticanonical hypersurface of ``self``.
+        Return an anticanonical hypersurface of ``self``.
 
         .. NOTE::
 
@@ -718,7 +719,7 @@ class CPRFanoToricVariety_field(ToricVariety_field):
 
         INPUT:
 
-        - ``monomial points`` -- list of integers or string. A list will be
+        - ``monomial points`` -- a list of integers or a string. A list will be
           interpreted as indices of points of `\Delta` which should be used
           for monomials of this hypersurface. A string must be one of the
           following descriptions of points of `\Delta`:
@@ -736,13 +737,20 @@ class CPRFanoToricVariety_field(ToricVariety_field):
           for acceptable formats. If not given, indexed coefficient names will
           be created automatically;
 
-        - ``coefficient_name_indices`` -- list of integers, indices for
+        - ``coefficient_name_indices`` -- a list of integers, indices for
           indexed coefficients. If not given, the index of each coefficient
-          will coincide with the index of the corresponding point of `\Delta`.
+          will coincide with the index of the corresponding point of `\Delta`;
+
+        - ``coefficients`` -- as an alternative to specifying coefficient
+          names and/or indices, you can give the coefficients themselves as a
+          list of rational functions. If you do it, then the base field of
+          ``self`` will be extended to include all necessary names. Each of
+          these rational functions can be given by any expression that can be
+          converted to a symbolic ring, e.g. strings.
 
         OUTPUT:
 
-        - :class:`anticanonical hypersurface <AnticanonicalHypersurface>` of
+        - an :class:`anticanonical hypersurface <AnticanonicalHypersurface>` of
           ``self`` (with the extended base field, if necessary).
 
         EXAMPLES:
@@ -801,9 +809,51 @@ class CPRFanoToricVariety_field(ToricVariety_field):
             covered by 3 affine patches defined by:
               a0*z0^3 + a1*z1^3 + a3*z0*z1*z2 + a2*z2^3
 
-        This looks very similar to our second version of the anticanonical
+        This looks very similar to our second anticanonical
         hypersurface of the projective plane, as expected, since all
         one-dimensional Calabi-Yau manifolds are elliptic curves!
+
+        All anticanonical hypersurfaces constructed above were generic with
+        automatically generated coefficients. If you want, you can specify your
+        own names ::
+
+            sage: FTV.anticanonical_hypersurface(
+            ...         coefficient_names="a b c d")
+            Closed subscheme of 2-d CPR-Fano toric variety
+            covered by 3 affine patches defined by:
+              a*z0^3 + b*z1^3 + d*z0*z1*z2 + c*z2^3
+
+        or give concrete coefficients ::
+
+            sage: FTV.anticanonical_hypersurface(
+            ...         coefficients=[1, 2, 3, 4])
+            Closed subscheme of 2-d CPR-Fano toric variety
+            covered by 3 affine patches defined by:
+              z0^3 + 2*z1^3 + 4*z0*z1*z2 + 3*z2^3
+
+        or even mix numerical coefficients with some expressions ::
+
+            sage: var("t")
+            t
+            sage: H = FTV.anticanonical_hypersurface(
+            ...     coefficients=[0, t, 1/t, "psi/(psi^2 + phi)"])
+            sage: H
+            Closed subscheme of 2-d CPR-Fano toric variety
+            covered by 3 affine patches defined by:
+              t*z1^3 + (psi/(psi^2 + phi))*z0*z1*z2 + 1/t*z2^3
+            sage: R = H.ambient_space().base_ring()
+            sage: R
+            Fraction Field of
+            Multivariate Polynomial Ring in t, phi, psi
+            over Rational Field
+
+        Note that ``t`` in the base ring of the last example is **not** the
+        same as the symbolic variable ``t`` used for specifying coefficients::
+
+            sage: R.gen(0)
+            t
+            sage: R.gen(0) is t
+            False
         """
         # The example above is also copied to the tutorial section in the
         # main documentation of the module.
@@ -1095,7 +1145,7 @@ class AnticanonicalHypersurface(AlgebraicScheme_subscheme_toric):
     more elaborate example.
     """
     def __init__(self, P_Delta, monomial_points=None, coefficient_names=None,
-                 coefficient_name_indices=None):
+                 coefficient_name_indices=None, coefficients=None):
         r"""
         See :meth:`CPRFanoToricVariety_field.anticanonical_hypersurface` for
         documentation.
@@ -1136,28 +1186,85 @@ class AnticanonicalHypersurface(AlgebraicScheme_subscheme_toric):
         # Make the necessary ambient space
         if coefficient_name_indices is None:
             coefficient_name_indices = monomial_points
-        coefficient_names = normalize_names(
+        if coefficients is None:
+            coefficient_names = normalize_names(
                                 coefficient_names, len(monomial_points),
                                 DEFAULT_COEFFICIENT, coefficient_name_indices)
-        self._coefficient_names = coefficient_names
-        F = P_Delta.base_ring()
-        if is_FractionField(F):
-            # Q(a) ---> Q(a, b) rather than Q(a)(b)
-            R = F.ring()
-            if is_PolynomialRing(R) or is_MPolynomialRing(R):
-                parameter_names = R.variable_names()
-                new_names = [name for name in coefficient_names
-                                  if name not in parameter_names]
-                if new_names:
-                    parameter_names.extend(new_names)
-                    R = PolynomialRing(R.base_ring(), parameter_names)
-                    F = R.fraction_field()
+            # We probably don't want it: the analog in else-branch is unclear.
+            # self._coefficient_names = coefficient_names
+            F = add_variables(P_Delta.base_ring(), coefficient_names)
+            coefficients = (F(coef) for coef in coefficient_names)
         else:
-            F = PolynomialRing(F, coefficient_names).fraction_field()
+            variables = []
+            for c in coefficients:
+                variables.extend(map(str, SR(c).variables()))
+            F = add_variables(P_Delta.base_ring(), variables)
+            # Direct conversion "a/b" to F does not work in Sage-4.6.alpha3,
+            # so we go through SR, even though it is quite slow.
+            coefficients = (F(SR(coef)) for coef in coefficients)
         P_Delta = P_Delta.base_extend(F)
         # Defining polynomial
-        h = sum(F(coef) * prod(P_Delta.coordinate_point_to_coordinate(n)
-                                ** (Delta.point(m) * Delta_polar.point(n) + 1)
-                          for n in P_Delta.coordinate_points())
-            for m, coef in zip(monomial_points, coefficient_names))
+        h = sum(coef * prod(P_Delta.coordinate_point_to_coordinate(n)
+                            ** (Delta.point(m) * Delta_polar.point(n) + 1)
+                       for n in P_Delta.coordinate_points())
+            for m, coef in zip(monomial_points, coefficients))
         super(AnticanonicalHypersurface, self).__init__(P_Delta, h)
+
+
+def add_variables(field, variables):
+    r"""
+    Extend ``field`` to include all ``variables``.
+
+    INPUT:
+
+    - ``field`` - a field;
+
+    - ``variables`` - a list of strings.
+
+    OUTPUT:
+
+    - a fraction field extending the original ``field``, which has all
+      ``variables`` among its generators.
+
+    EXAMPLES:
+
+    We start with the rational field and slowly add more variables::
+
+        sage: from sage.schemes.generic.fano_toric_variety import *
+        sage: F = add_variables(QQ, []); F      # No extension
+        Rational Field
+        sage: F = add_variables(QQ, ["a"]); F
+        Fraction Field of Univariate Polynomial Ring
+        in a over Rational Field
+        sage: F = add_variables(F, ["a"]); F
+        Fraction Field of Univariate Polynomial Ring
+        in a over Rational Field
+        sage: F = add_variables(F, ["b", "c"]); F
+        Fraction Field of Multivariate Polynomial Ring
+        in a, b, c over Rational Field
+        sage: F = add_variables(F, ["c", "d", "b", "c", "d"]); F
+        Fraction Field of Multivariate Polynomial Ring
+        in a, b, c, d over Rational Field
+    """
+    if not variables:
+        return field
+    if is_FractionField(field):
+        # Q(a) ---> Q(a, b) rather than Q(a)(b)
+        R = field.ring()
+        if is_PolynomialRing(R) or is_MPolynomialRing(R):
+            new_variables = list(R.variable_names())
+            for v in variables:
+                if v not in new_variables:
+                    new_variables.append(v)
+            if len(new_variables) > R.ngens():
+                return PolynomialRing(R.base_ring(),
+                                      new_variables).fraction_field()
+            else:
+                return field
+    # "Intelligent extension" didn't work, use the "usual one."
+    new_variables = []
+    for v in variables:
+        if v not in new_variables:
+            new_variables.append(v)
+    return PolynomialRing(field, new_variables).fraction_field()
+

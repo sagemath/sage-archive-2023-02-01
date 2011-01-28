@@ -226,21 +226,21 @@ class AmbientSpace(scheme.Scheme, Parent):
 
     def base_extend(self, R):
         """
-        Return the base change of self to the ring `R`, via the natural map
-        from the base ring of self to `R`.
+        Return the natural extension of ``self`` over ``R``.
 
         INPUT:
 
-        - ``R`` -- commutative ring
+        - ``R`` -- a commutative ring, such that there is a natural map from
+          the base ring of self to ``R``.
 
         OUTPUT:
 
-        - ambient space over ``R``
+        - an ambient space over ``R`` of the same structure as ``self``.
 
         .. NOTE::
 
-            A ValueError is raised if there is no such natural map. If you do
-            not want to do this check, use ``self.change_ring(R)`` instead.
+            A ``ValueError`` is raised if there is no such natural map. If
+            you need to drop this condition, use ``self.change_ring(R)``.
 
         EXAMPLES::
 
@@ -250,7 +250,8 @@ class AmbientSpace(scheme.Scheme, Parent):
             sage: PQ.base_extend(GF(5))
             Traceback (most recent call last):
             ...
-            ValueError: no natural map from the base ring (=Rational Field) to R (=Finite Field of size 5)!
+            ValueError: no natural map from the base ring (=Rational Field)
+            to R (=Finite Field of size 5)!
         """
         if is_CommutativeRing(R):
             if self.base_ring() == R:
@@ -261,7 +262,9 @@ class AmbientSpace(scheme.Scheme, Parent):
                     % (self.base_ring(), R))
             return self.change_ring(R)
         else:
-            raise NotImplementedError
+            raise NotImplementedError(
+                        "extension of spaces over %s to %s is not implemented!"
+                        % (self.base_ring(), R))
 
     def ambient_space(self):
         """

@@ -185,7 +185,8 @@ cdef class Module(sage.structure.parent.Parent):
             sage: from sage.modules.module import Module
             sage: M = Module(ZZ)
             sage: M.__hash__()
-            6190647798068218210
+            1969817954           # 32-bit
+            6190647798068218210  # 64-bit
         """
         return hash(self.__repr__())
 

@@ -576,9 +576,10 @@ class ManinSymbolList_group(ManinSymbolList):
         else:
             s = -1
         z = []
-        for j in range(k-2-i +1):
+        a = rings.ZZ(k-2-i)
+        for j in range(k-2-i+1):
             m = self.index((j, u, v))
-            z.append((m,s*arith.binomial(k-2-i,j)))
+            z.append((m, s * a.binomial(j)))
             s *= -1
         return z
 
@@ -618,9 +619,10 @@ class ManinSymbolList_group(ManinSymbolList):
         else:
             s = -1
         z = []
+        a = rings.ZZ(i)
         for j in range(i+1):
             m = self.index((k-2-i+j, u, v))
-            z.append((m,s*arith.binomial(i,j)))
+            z.append((m, s * a.binomial(j)))
             s *= -1
         return z
 
@@ -1024,7 +1026,7 @@ class ManinSymbolList_character(ManinSymbolList):
         OUTPUT:
 
         ``(k, s)`` where `k` is the index of the symbol obtained by acting
-        on the `j`'th symbol with `S`, and `s` is the parity of of the
+        on the `j`'th symbol with `S`, and `s` is the parity of the
         `j`'th symbol.
 
         EXAMPLE::
@@ -1112,9 +1114,10 @@ class ManinSymbolList_character(ManinSymbolList):
         else:
             s = -r
         z = []
-        for j in range(k-2-i +1):
+        a = rings.ZZ(k-2-i)
+        for j in range(k-2-i+1):
             m, r = self.index((j, u, v))
-            z.append((m,s*r*arith.binomial(k-2-i,j)))
+            z.append((m, s * r * a.binomial(j)))
             s *= -1
         return z
 
@@ -1153,9 +1156,10 @@ class ManinSymbolList_character(ManinSymbolList):
         else:
             s = -r
         z = []
+        a = rings.ZZ(i)
         for j in range(i+1):
             m, r = self.index((k-2-i+j, u, v))
-            z.append((m,s*r*arith.binomial(i,j)))
+            z.append((m, s * r * a.binomial(j)))
             s *= -1
         return z
 

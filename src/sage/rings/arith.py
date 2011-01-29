@@ -2858,7 +2858,7 @@ def CRT_vectors(X, moduli):
     modulus = misc.prod(moduli)
     return [sum([a[i]*X[i][j] for i in range(n)]) % modulus for j in range(len(X[0]))]
 
-def binomial(x,m):
+def binomial(x, m, **kwds):
     r"""
     Return the binomial coefficient
 
@@ -2898,6 +2898,8 @@ def binomial(x,m):
         184756
         sage: binomial(-2, 5)
         -6
+        sage: binomial(-5, -2)
+        0
         sage: binomial(RealField()('2.5'), 2)
         1.87500000000000
         sage: n=var('n'); binomial(n,2)
@@ -2912,6 +2914,15 @@ def binomial(x,m):
         sage: k, i = var('k,i')
         sage: binomial(k,i)
         binomial(k, i)
+
+    If `x \in \ZZ`, there is an optional 'algorithm' parameter, which
+    can be 'mpir' (faster for small values) or 'pari' (faster for
+    large values)::
+
+        sage: a = binomial(100, 45, algorithm='mpir')
+        sage: b = binomial(100, 45, algorithm='pari')
+        sage: a == b
+        True
 
     TESTS:
 
@@ -2988,15 +2999,19 @@ def binomial(x,m):
         except TypeError:
             pass
     if isinstance(x,integer.Integer):
-        if x >= 0 and (m < 0 or m > x):
-            return ZZ(0)
+        if m < 0 or (x >= 0 and m > x):
+            return ZZ.zero()
 
-        if m > sys.maxint:
+        s = sys.maxint
+        if m > s:
             m = x - m
-            if m > sys.maxint:
-                raise ValueError, "binomial not implemented for m >= 2^32.\nThis is probably OK, since the answer would have billions of digits."
+            if m > s:
+                raise ValueError("binomial not implemented for "
+                        "m > " + str(s) + ".\nThis is probably OK, "
+                        "since the answer would have "
+                        "billions of digits.")
 
-        return ZZ(pari(x).binomial(m))
+        return x.binomial(m, **kwds)
     try:
         P = x.parent()
     except AttributeError:

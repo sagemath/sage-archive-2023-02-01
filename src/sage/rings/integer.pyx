@@ -5523,6 +5523,46 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return self
 
+    def binomial(self, m, algorithm='mpir'):
+        """
+        Return the binomial coefficient "self choose m".
+
+        INPUT:
+
+            - m -- an integer
+
+            - algorithm -- 'mpir' (default) or 'pari'; 'mpir' is
+              faster for small m, and 'pari' tends to be faster for
+              large m
+
+        OUTPUT:
+
+            - integer
+
+        EXAMPLES::
+
+            sage: 10.binomial(2)
+            45
+            sage: 10.binomial(2, algorithm='pari')
+            45
+            sage: 10.binomial(-2)
+            0
+        """
+        cdef Integer x
+        if m < 0:
+            return the_integer_ring.zero()
+        if algorithm == 'mpir':
+            x = PY_NEW(Integer)
+            sig_on()
+            mpz_bin_ui(x.value, self.value, m)
+            sig_off()
+            return x
+        elif algorithm == 'pari':
+            return the_integer_ring(self._pari_().binomial(m))
+        else:
+            raise ValueError("algorithm must be one of: 'pari', 'mpir'")
+
+
 ONE = Integer(1)
 Py_INCREF(ONE)
 

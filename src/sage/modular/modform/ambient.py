@@ -397,10 +397,19 @@ class ModularFormsAmbient(space.ModularFormsSpace,
         self.__module = free_module.VectorSpace(self.base_ring(), d)
         return self.__module
 
-    def free_module(self): return self.module()
-    # stupid thing: there are functions in classes ModularFormsSpace and
-    # HeckeModule that both do much the same thing, and one has to override
-    # both of them!
+    # free_module -- stupid thing: there are functions in classes
+    # ModularFormsSpace and HeckeModule that both do much the same
+    # thing, and one has to override both of them!
+    def free_module(self):
+        """
+        Return the free module underlying this space of modular forms.
+
+        EXAMPLES::
+
+            sage: ModularForms(37).free_module()
+            Vector space of dimension 3 over Rational Field
+        """
+        return self.module()
 
     def prec(self, new_prec=None):
         """

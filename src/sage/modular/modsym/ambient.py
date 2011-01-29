@@ -92,7 +92,6 @@ import sage.rings.arith as arith
 import sage.structure.formal_sum as formal_sum
 import sage.categories.all as cat
 from sage.modular.cusps import Cusp
-from sage.rings.arith import binomial
 import sage.structure.all
 
 import boundary

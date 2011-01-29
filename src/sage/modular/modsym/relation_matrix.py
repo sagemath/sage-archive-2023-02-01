@@ -510,16 +510,13 @@ def sparse_2term_quotient(rels, n, F):
         sage: sparse_2term_quotient(rels, n, QQ)
         [(3, -1/3), (3, -1), (3, -1), (3, 1), (5, 1), (5, 1)]
     """
-
     if not isinstance(rels, set):
         raise TypeError, "rels must be a set"
     n = int(n)
-    #if not isinstance(n, int):
-    #    raise TypeError, "n must be an int"
     if not isinstance(F, rings.Ring):
         raise TypeError, "F must be a ring."
 
-    tm = misc.verbose()
+    tm = misc.verbose("Starting sparse 2-term quotient...")
     free = range(n)
     ONE = F(1)
     ZERO = F(0)
@@ -528,18 +525,21 @@ def sparse_2term_quotient(rels, n, F):
     for v0, v1 in rels:
         c0 = coef[v0[0]] * F(v0[1])
         c1 = coef[v1[0]] * F(v1[1])
-        # Mod out by the relation
-        #    c1*x_free[t[0]] + c2*x_free[t[1]] = 0.
+
+        # Mod out by the following relation:
+        #
+        #    c0*free[v0[0]] + c1*free[v1[0]] = 0.
+        #
         die = None
         if c0 == ZERO and c1 == ZERO:
             pass
-        elif c0 == ZERO and c1 != ZERO:  # free[t[1]] --> 0
+        elif c0 == ZERO and c1 != ZERO:  # free[v1[0]] --> 0
             die = free[v1[0]]
         elif c1 == ZERO and c0 != ZERO:
             die = free[v0[0]]
         elif free[v0[0]] == free[v1[0]]:
-            if c0+c1 != 0:
-                # all xi equal to free[t[0]] must now equal to zero.
+            if c0 + c1 != 0:
+                # all xi equal to free[v0[0]] must now equal to zero.
                 die = free[v0[0]]
         else:  # x1 = -c1/c0 * x2.
             x = free[v0[0]]
@@ -550,7 +550,7 @@ def sparse_2term_quotient(rels, n, F):
                 coef[i] *= coef[x]
                 related_to_me[free[v1[0]]].append(i)
             related_to_me[free[v1[0]]].append(x)
-        if die != None:
+        if die is not None:
             for i in related_to_me[die]:
                 free[i] = 0
                 coef[i] = ZERO

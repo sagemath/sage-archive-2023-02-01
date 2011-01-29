@@ -23,6 +23,13 @@ from sage.rings.integer cimport Integer
 
 cdef class Apply:
     def __cinit__(self):
+        """
+        EXAMPLES::
+
+            sage: import sage.modular.modsym.apply
+            sage: sage.modular.modsym.apply.Apply()
+            <sage.modular.modsym.apply.Apply object at ...>
+        """
         fmpz_poly_init(self.f)
         fmpz_poly_init(self.g)
         fmpz_poly_init(self.ff)
@@ -57,14 +64,16 @@ cdef class Apply:
 cdef Apply A = Apply()
 
 def apply_to_monomial(int i, int j, int a, int b, int c, int d):
-    """
+    r"""
     Returns a list of the coefficients of
-    $$
-             (aX + bY)^i (cX + dY)^{j-i},
-    $$
-    where $0 \leq i \leq j$, and $a,b,c,d$ are integers.
 
-    One should think of $j$ as being $k-2$ for the application to
+    .. math::
+
+        (aX + bY)^i (cX + dY)^{j-i},
+
+    where `0 \leq i \leq j`, and `a`, `b`, `c`, `d` are integers.
+
+    One should think of `j` as being `k-2` for the application to
     modular symbols.
 
     INPUT:
@@ -72,10 +81,12 @@ def apply_to_monomial(int i, int j, int a, int b, int c, int d):
 
     OUTPUT:
         list of ints, which are the coefficients
-        of $Y^j$, $Y^{j-1}*X$, \ldots, $X^j$, respectively.
+        of `Y^j, Y^{j-1}X, \ldots, X^j`, respectively.
 
     EXAMPLE:
-    We compute that $(X+Y)^2(X-Y) = X^3 + X^2Y - XY^2 - Y^3$.
+
+    We compute that `(X+Y)^2(X-Y) = X^3 + X^2Y - XY^2 - Y^3`::
+
         sage: from sage.modular.modsym.manin_symbols import apply_to_monomial
         sage: apply_to_monomial(2, 3, 1,1,1,-1)
         [-1, -1, 1, 1]

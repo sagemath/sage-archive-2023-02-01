@@ -781,8 +781,8 @@ cdef class Matrix(matrix0.Matrix):
             return C
 
     def sparse_rows(self, copy=True):
-        """
-        Return list of the sparse rows of self.
+        r"""
+        Return list of the rows of ``self`` as vectors (or free module elements).
 
         INPUT:
 
@@ -804,37 +804,47 @@ cdef class Matrix(matrix0.Matrix):
             sage: m[0,0] = 10
             sage: m.sparse_rows()
             [(10, 1, 2), (3, 4, 5), (6, 7, 8)]
+
+        TESTS:
+
+        Rows of sparse matrices having no rows were fixed on Trac #10714.  ::
+
+            sage: m = matrix(0, 10, sparse=True)
+            sage: m.nrows()
+            0
+            sage: m.rows()
+            []
         """
         x = self.fetch('sparse_rows')
         if not x is None:
             if copy: return list(x)
             return x
 
-        F = sage.modules.free_module.FreeModule(self._base_ring, self._ncols, sparse=True)
-
-        R = []
-        k = 0
-        entries = {}
         cdef Py_ssize_t i, j
+        R = []
+        if self._nrows > 0:
+            F = sage.modules.free_module.FreeModule(self._base_ring, self._ncols, sparse=True)
 
-        for i, j in self.nonzero_positions(copy=False):
-            if i > k:
-                # new row -- emit vector
-                while len(R) < k:
-                    R.append(F(0))
-                R.append(F(entries, coerce=False, copy=False, check=False))
-                entries = {}
-                k = i
-            entries[j] = self.get_unsafe(i, j)
+            k = 0
+            entries = {}
+            for i, j in self.nonzero_positions(copy=False):
+                if i > k:
+                    # new row -- emit vector
+                    while len(R) < k:
+                        R.append(F(0))
+                    R.append(F(entries, coerce=False, copy=False, check=False))
+                    entries = {}
+                    k = i
+                entries[j] = self.get_unsafe(i, j)
 
-        # finish up
-        while len(R) < k:
-            R.append(F(0))
-        R.append(F(entries, coerce=False, copy=False, check=False))
-        while len(R) < self._nrows:
-            R.append(F(0))
+            # finish up
+            while len(R) < k:
+                R.append(F(0))
+            R.append(F(entries, coerce=False, copy=False, check=False))
+            while len(R) < self._nrows:
+                R.append(F(0))
 
-        # cache result
+        # cache and return result
         self.cache('sparse_rows', R)
         if copy:
             return list(R)

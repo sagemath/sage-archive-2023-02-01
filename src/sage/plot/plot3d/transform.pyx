@@ -1,3 +1,12 @@
+#*****************************************************************************
+#       Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
+#
+#  Distributed under the terms of the GNU General Public License version 2 (GPLv2)
+#
+#  The full text of the GPLv2 is available at:
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 cdef extern from *:
     double sin(double)
     double cos(double)
@@ -129,10 +138,16 @@ def rotate_arbitrary(v, double theta):
     Return a matrix that rotates the coordinate space about
     the axis v by the angle theta.
 
-    EXAMPLES:
+    INPUT:
+
+    - ``theta`` - real number, the angle
+
+    EXAMPLES::
+
         sage: from sage.plot.plot3d.transform import rotate_arbitrary
 
-    Try rotating about the axes:
+    Try rotating about the axes::
+
         sage: rotate_arbitrary((1,0,0), 1)
         [            1.0             0.0             0.0]
         [            0.0  0.540302305868  0.841470984808]
@@ -146,7 +161,8 @@ def rotate_arbitrary(v, double theta):
         [-0.841470984808  0.540302305868             0.0]
         [            0.0             0.0             1.0]
 
-    These next two should be the same (up to machine epsilon)
+    These next two should be the same (up to machine epsilon)::
+
         sage: rotate_arbitrary((1,1,1), 1)
         [ 0.693534870579  0.639056064305 -0.332590934883]
         [-0.332590934883  0.693534870579  0.639056064305]
@@ -156,7 +172,8 @@ def rotate_arbitrary(v, double theta):
         [-0.332590934883  0.693534870579  0.639056064305]
         [ 0.639056064305 -0.332590934883  0.693534870579]
 
-    Make sure it does the right thing...
+    Make sure it does the right thing...::
+
         sage: rotate_arbitrary((1,2,3), -1).det()
         1.0
         sage: rotate_arbitrary((1,1,1), 2*pi/3) * vector(RDF, (1,2,3))
@@ -168,50 +185,57 @@ def rotate_arbitrary(v, double theta):
         [ 0.666666666667 -0.333333333333  0.666666666667]
         [ 0.666666666667  0.666666666667 -0.333333333333]
 
-
     AUTHORS:
-       -- Robert Bradshaw
 
+       - Robert Bradshaw
 
     ALGORITHM:
+
         There is a formula. Where did it come from? Lets take
         a quick jaunt into Sage's calculus package...
 
-        Setup some variables
+        Setup some variables::
+
             sage: vx,vy,vz,theta = var('x y z theta')
 
-        Symbolic rotation matrices about X and Y axis:
-            sage: def rotX(theta): return matrix(SR, 3, 3, [1, 0, 0,  0, cos(theta), -sin(theta), 0, sin(theta), cos(theta)])
+        Symbolic rotation matrices about X and Y axis::
 
+            sage: def rotX(theta): return matrix(SR, 3, 3, [1, 0, 0,  0, cos(theta), -sin(theta), 0, sin(theta), cos(theta)])
             sage: def rotZ(theta): return matrix(SR, 3, 3, [cos(theta), -sin(theta), 0,  sin(theta), cos(theta), 0, 0, 0, 1])
 
         Normalizing $y$ so that $|v|=1$. Perhaps there is a better
         way to tell Maxima that $x^2+y^2+z^2=1$ which would make for
-        a much cleaner calculation.
+        a much cleaner calculation::
+
             sage: vy = sqrt(1-vx^2-vz^2)
 
-        Now we rotate about the $x$-axis so $v$ is in the $xy$-plane.
+        Now we rotate about the $x$-axis so $v$ is in the $xy$-plane::
+
             sage: t = arctan(vy/vz)+pi/2
             sage: m = rotX(t)
             sage: new_y = vy*cos(t) - vz*sin(t)
 
-        And rotate about the $z$ axis so $v$ lies on the $x$ axis.
+        And rotate about the $z$ axis so $v$ lies on the $x$ axis::
+
             sage: s = arctan(vx/new_y) + pi/2
             sage: m = rotZ(s) * m
 
         Rotating about $v$ in our old system is the same as rotating
-        about the $x$-axis in the new.
+        about the $x$-axis in the new::
+
             sage: m = rotX(theta) * m
 
-        Do some simplifying here to avoid blow-up.
+        Do some simplifying here to avoid blow-up::
+
             sage: m = m.simplify_rational()
 
-        Now go back to the original coordinate system.
+        Now go back to the original coordinate system::
+
             sage: m = rotZ(-s) * m
             sage: m = rotX(-t) * m
 
         And simplify every single entry (which is more effective that simplify
-        the whole matrix like above):
+        the whole matrix like above)::
 
             sage: m = m.parent()([x.simplify_full() for x in m._list()])
             sage: m      # random output - remove this in trac #9880
@@ -245,3 +269,4 @@ def rotate_arbitrary(v, double theta):
         (1 - cos_t)*z*z + cos_t        ]
 
     return matrix(RDF, 3, 3, entries)
+

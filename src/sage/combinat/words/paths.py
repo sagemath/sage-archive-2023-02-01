@@ -174,6 +174,7 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from itertools import izip
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
@@ -196,6 +197,7 @@ from word_infinite_datatypes import (
                             WordDatatype_iter,
                             WordDatatype_callable_with_caching,
                             WordDatatype_callable)
+from sage.matrix.constructor import vector_on_axis_rotation_matrix
 
 #######################################################################
 #                                                                     #
@@ -1150,6 +1152,30 @@ class FiniteWordPath_all(SageObject):
             last = pt
         return last
 
+    def directive_vector(self):
+        r"""
+        Returns the directive vector of self.
+
+        The directive vector is the vector starting at the start point
+        and ending at the end point of the path self.
+
+        EXAMPLES::
+
+            sage: WordPaths('abcdef')('abababab').directive_vector()
+            (6, 2*sqrt3)
+            sage: WordPaths('abAB')('abababab').directive_vector()
+            (4, 4)
+            sage: P = WordPaths('abcABC', steps='cube_grid')
+            sage: P('ababababCC').directive_vector()
+            (4, 4, -2)
+            sage: WordPaths('abcdef')('abcdef').directive_vector()
+            (0, 0)
+            sage: P = WordPaths('abc', steps=[(1,3,7,9),(-4,1,0,0),(0,32,1,8)])
+            sage: P('abcabababacaacccbbcac').directive_vector()
+            (-16, 254, 63, 128)
+        """
+        return self.end_point() - self.start_point()
+
     def is_closed(self):
         r"""
         Returns True if the path is closed, i.e. if the origin and the end of
@@ -1222,6 +1248,225 @@ class FiniteWordPath_all(SageObject):
         f = lambda x: n(x,digits=3)
         l = [str(tuple(map(f, pt))) for pt in self.points()]
         return ' -- '.join(l)
+
+    def projected_point_iterator(self, v=None, ring=None):
+        r"""
+        Return an iterator of the projection of the orbit points of the
+        path into the space orthogonal to the given vector.
+
+        INPUT:
+
+        - ``v`` - vector (optional, default: None) If None, the directive
+          vector (i.e. the end point minus starting point) of the path is
+          considered.
+
+        - ``ring`` - ring (optional, default: None) where to do the
+          computations. If None, RealField(53) is used.
+
+        OUTPUT:
+
+        iterator of points
+
+        EXAMPLES:
+
+        Projected points of the Rauzy fractal::
+
+            sage: s = WordMorphism('1->12,2->13,3->1')
+            sage: D = s.fixed_point('1')
+            sage: v = s.pisot_eigenvector_right()
+            sage: P = WordPaths('123',[(1,0,0),(0,1,0),(0,0,1)])
+            sage: w = P(D[:200])
+            sage: it = w.projected_point_iterator(v)
+            sage: for i in range(6): it.next()
+            (0.000000000000000, 0.000000000000000)
+            (-0.526233343362516, 0.000000000000000)
+            (0.220830337618112, -0.477656250512816)
+            (-0.305403005744404, -0.477656250512816)
+            (0.100767309386062, 0.400890564600664)
+            (-0.425466033976454, 0.400890564600664)
+
+        Projected points of a 2d path::
+
+            sage: P = WordPaths('ab','ne')
+            sage: p = P('aabbabbab')
+            sage: it = p.projected_point_iterator(ring=RealField(20))
+            sage: for i in range(8): it.next()
+            (0.00000)
+            (0.78087)
+            (1.5617)
+            (0.93704)
+            (0.31235)
+            (1.0932)
+            (0.46852)
+            (-0.15617)
+        """
+        if v is None:
+            v = self.directive_vector()
+        if ring is None:
+            ring = RR
+        R = vector_on_axis_rotation_matrix(v, 0, ring=ring)[1:]
+        for q in self.points():
+            yield R * q
+
+    def plot_projection(self, v=None, letters=None, color=None, ring=None,
+            kind='right'):
+        r"""
+        Return an image of the projection of the successive points of the
+        path into the space orthogonal to the given vector.
+
+        INPUT:
+
+        - ``self`` - a word path in a 3 or 4 dimension vector space
+
+        - ``v`` - vector (optional, default: None) If None, the directive
+          vector (i.e. the end point minus starting point) of the path is
+          considered.
+
+        - ``letters`` - iterable (optional, default: None) of the letters
+          to be projected. If None, then all the letters are considered.
+
+        - ``color`` - dictionary (optional, default: None) of the letters
+          mapped to colors. If None, automatic colors are chosen.
+
+        - ``ring`` - ring (optional, default: None) where to do the
+          computations. If None, RealField(53) is used.
+
+        - ``kind`` - string (optional, default ``'right'``) either
+          ``'right'`` or ``'left'``. The color of a letter is given to the
+          projected prefix to the right or the left of the letter.
+
+        OUTPUT:
+
+        2d or 3d Graphic object.
+
+        EXAMPLES:
+
+        The Rauzy fractal::
+
+            sage: s = WordMorphism('1->12,2->13,3->1')
+            sage: D = s.fixed_point('1')
+            sage: v = s.pisot_eigenvector_right()
+            sage: P = WordPaths('123',[(1,0,0),(0,1,0),(0,0,1)])
+            sage: w = P(D[:200])
+            sage: w.plot_projection(v) # optional long time (2 s)
+
+        In this case, the abelianized vector doesn't give a good
+        projection::
+
+            sage: w.plot_projection()     # optional long time (2 s)
+
+        You can project only the letters you want::
+
+            sage: w.plot_projection(v, letters='12') # optional long time (2 s)
+
+        You can increase or decrease the precision of the computations by
+        changing the ring of the projection matrix::
+
+            sage: w.plot_projection(v, ring=RealField(20)) # optional long time (2 s)
+
+        You can assign the color of a letter to the projected prefix to the
+        right or the left of the letter::
+
+            sage: w.plot_projection(v, kind='left') # optional long time (2 s)
+
+        To remove the axis, do like this::
+
+            sage: r = w.plot_projection(v)
+            sage: r.axes(False)
+            sage: r               # optional long time (2 s)
+
+        You can assign different colors to each letter::
+
+            sage: color = {'1':'purple', '2':(.2,.3,.4), '3': 'magenta'}
+            sage: w.plot_projection(v, color=color)   # optional long time (2 s)
+
+        The 3d-Rauzy fractal::
+
+            sage: s = WordMorphism('1->12,2->13,3->14,4->1')
+            sage: D = s.fixed_point('1')
+            sage: v = s.pisot_eigenvector_right()
+            sage: P = WordPaths('1234',[(1,0,0,0), (0,1,0,0), (0,0,1,0), (0,0,0,1)])
+            sage: w = P(D[:200])
+            sage: w.plot_projection(v)      # optional long time (1 s)
+
+        The dimension of vector space of the parent must be 3 or 4::
+
+            sage: P = WordPaths('ab', [(1, 0), (0, 1)])
+            sage: p = P('aabbabbab')
+            sage: p.plot_projection()
+            Traceback (most recent call last):
+            ...
+            TypeError: The dimension of the vector space (=2) must be 3 or 4
+        """
+        dimension = self.parent().vector_space().dimension()
+        if not dimension in (3, 4):
+            msg = "The dimension of the vector space (=%s) must be 3 or 4"%dimension
+            raise TypeError, msg
+        if letters is None:
+            letters = self.parent().alphabet()
+        if color is None:
+            from sage.plot.all import hue
+            A = self.parent().alphabet()
+            color = dict( (a, hue(A.rank(a)/float(A.cardinality()))) for a in A )
+        it = self.projected_point_iterator(v, ring=ring)
+        if kind is 'right':
+            start = it.next()
+        elif kind is not 'left':
+            raise ValueError, 'unknown value for kind (=%s)'%kind
+        tout = [point([c], color=color[a]) for a, c in izip(self, it) if a in letters]
+        return sum(tout)
+
+    def projected_path(self, v=None, ring=None):
+        r"""
+        Return the path projected into the space orthogonal to the given
+        vector.
+
+        INPUT:
+
+        - ``v`` - vector (optional, default: None) If None, the directive
+          vector (i.e. the end point minus starting point) of the path is
+          considered.
+
+        - ``ring`` - ring (optional, default: None) where to do the
+          computations. If None, RealField(53) is used.
+
+        OUTPUT:
+
+            word path
+
+        EXAMPLES:
+
+        The projected path of the tribonacci word::
+
+            sage: s = WordMorphism('1->12,2->13,3->1')
+            sage: D = s.fixed_point('1')
+            sage: v = s.pisot_eigenvector_right()
+            sage: P = WordPaths('123',[(1,0,0),(0,1,0),(0,0,1)])
+            sage: w = P(D[:1000])
+            sage: p = w.projected_path(v)
+            sage: p
+            Path: 1213121121312121312112131213121121312121...
+            sage: p[:20].plot()
+
+        The ``ring`` argument allows to change the precision of the
+        projected steps::
+
+            sage: p = w.projected_path(v, RealField(10))
+            sage: p
+            Path: 1213121121312121312112131213121121312121...
+            sage: p.parent().letters_to_steps()
+            {'1': (-0.53, 0.00), '3': (0.41, 0.88), '2': (0.75, -0.48)}
+        """
+        if v is None:
+            v = self.directive_vector()
+        if ring is None:
+            ring = RR
+        R = vector_on_axis_rotation_matrix(v, 0, ring=ring)[1:]
+        d = self.parent().letters_to_steps()
+        A = self.parent().alphabet()
+        nvvectors = [R*d[a] for a in A]
+        projected_parent = WordPaths(A, nvvectors)
+        return projected_parent(self)
 
 class FiniteWordPath_2d(FiniteWordPath_all):
     def plot(self, pathoptions=dict(rgbcolor='red',thickness=3),
@@ -1420,7 +1665,7 @@ class FiniteWordPath_2d(FiniteWordPath_all):
 
         return animate(images, **kwds)
 
-    def directive_vector(self, options=dict(rgbcolor='blue')):
+    def plot_directive_vector(self, options=dict(rgbcolor='blue')):
         r"""
         Returns an arrow 2d graphics that goes from the start of the path
         to the end.
@@ -1436,14 +1681,14 @@ class FiniteWordPath_2d(FiniteWordPath_all):
             Word Paths on the square grid
             sage: p = P('aaaccaccacacacaccccccbbdd'); p
             Path: aaaccaccacacacaccccccbbdd
-            sage: R = p.plot() + p.directive_vector()
+            sage: R = p.plot() + p.plot_directive_vector()
             sage: show(R, axes=False, aspect_ratio=1)
 
         TESTS:
 
         A closed path::
 
-            sage: P('acbd').directive_vector()
+            sage: P('acbd').plot_directive_vector()
         """
         start = self.start_point()
         end = self.end_point()

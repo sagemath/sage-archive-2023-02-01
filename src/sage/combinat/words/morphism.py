@@ -1147,6 +1147,66 @@ class WordMorphism(SageObject):
 
         return (self*self).is_identity()
 
+    def pisot_eigenvector_right(self):
+        r"""
+        Returns the right eigenvector of the incidence matrix associated
+        to the largest eigenvalue (in absolute value).
+
+        Unicity of the result is guaranteed when the multiplicity of the
+        largest eigenvalue is one, for example when self is a Pisot
+        irreductible substitution.
+
+        A substitution is Pisot irreducible if the characteristic
+        polynomial of its incidence matrix is irreducible over `\QQ` and
+        has all roots, except one, of modulus strictly smaller than 1.
+
+        INPUT:
+
+        - ``self`` - a Pisot irreducible substitution.
+
+        EXAMPLES::
+
+            sage: m = WordMorphism('a->aaaabbc,b->aaabbc,c->aabc')
+            sage: matrix(m)
+            [4 3 2]
+            [2 2 1]
+            [1 1 1]
+            sage: m.pisot_eigenvector_right()
+            (1, 0.5436890126920763?, 0.2955977425220848?)
+        """
+        eig = self.incidence_matrix().eigenvectors_right()
+        return max(eig, key=lambda x:abs(x[0]))[1][0]
+
+    def pisot_eigenvector_left(self):
+        r"""
+        Returns the left eigenvector of the incidence matrix associated
+        to the largest eigenvalue (in absolute value).
+
+        Unicity of the result is guaranteed when the multiplicity of the
+        largest eigenvalue is one, for example when self is a Pisot
+        irreductible substitution.
+
+        A substitution is Pisot irreducible if the characteristic
+        polynomial of its incidence matrix is irreducible over `\QQ` and
+        has all roots, except one, of modulus strictly smaller than 1.
+
+        INPUT:
+
+        - ``self`` - a Pisot irreducible substitution.
+
+        EXAMPLES::
+
+            sage: m = WordMorphism('a->aaaabbc,b->aaabbc,c->aabc')
+            sage: matrix(m)
+            [4 3 2]
+            [2 2 1]
+            [1 1 1]
+            sage: m.pisot_eigenvector_left()
+            (1, 0.8392867552141611?, 0.5436890126920763?)
+        """
+        eig = self.incidence_matrix().eigenvectors_left()
+        return max(eig, key=lambda x:abs(x[0]))[1][0]
+
     def _check_primitive(self):
         r"""
         Returns ``True`` if all the letters of the domain appear in all the

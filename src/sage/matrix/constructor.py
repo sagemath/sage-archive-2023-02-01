@@ -2,7 +2,6 @@
 Matrix Constructor.
 """
 
-
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -20,6 +19,7 @@ Matrix Constructor.
 import types
 import sage.rings.all as rings
 import sage.matrix.matrix_space as matrix_space
+from sage.modules.free_module_element import vector
 from sage.structure.element import is_Vector
 from sage.structure.sequence import Sequence
 from sage.rings.real_double import RDF
@@ -3167,3 +3167,190 @@ def random_diagonalizable_matrix(parent,eigenvalues=None,dimensions=None):
             # range of multiplier determined experimentally so that entries stay manageable for small matrices
             eigenvector_matrix.add_multiple_of_row(upper_row,row,randint(-4,4))
     return eigenvector_matrix*diagonal_matrix*(eigenvector_matrix.inverse())
+
+def vector_on_axis_rotation_matrix(v, i, ring=None):
+    r"""
+    Return a rotation matrix `M` such that `det(M)=1` sending the vector
+    `v` on the i-th axis so that all other coordinates of `Mv` are zero.
+
+    .. NOTE::
+
+        Such a matrix is not uniquely determined. This function returns one
+        such matrix.
+
+    INPUT:
+
+    - ``v``` - vector
+    - ``i`` - integer
+    - ``ring`` - ring (optional, default: None) of the resulting matrix
+
+    OUTPUT:
+
+    A matrix
+
+    EXAMPLES::
+
+        sage: from sage.matrix.constructor import vector_on_axis_rotation_matrix
+        sage: v = vector((1,2,3))
+        sage: vector_on_axis_rotation_matrix(v, 2) * v
+        (0, 0, sqrt(14))
+        sage: vector_on_axis_rotation_matrix(v, 1) * v
+        (0, sqrt(14), 0)
+        sage: vector_on_axis_rotation_matrix(v, 0) * v
+        (sqrt(14), 0, 0)
+
+    ::
+
+        sage: x,y = var('x,y')
+        sage: v = vector((x,y))
+        sage: vector_on_axis_rotation_matrix(v, 1)
+        [ y/sqrt(x^2 + y^2) -x/sqrt(x^2 + y^2)]
+        [ x/sqrt(x^2 + y^2)  y/sqrt(x^2 + y^2)]
+        sage: vector_on_axis_rotation_matrix(v, 0)
+        [ x/sqrt(x^2 + y^2)  y/sqrt(x^2 + y^2)]
+        [-y/sqrt(x^2 + y^2)  x/sqrt(x^2 + y^2)]
+        sage: vector_on_axis_rotation_matrix(v, 0) * v
+        (x^2/sqrt(x^2 + y^2) + y^2/sqrt(x^2 + y^2), 0)
+        sage: vector_on_axis_rotation_matrix(v, 1) * v
+        (0, x^2/sqrt(x^2 + y^2) + y^2/sqrt(x^2 + y^2))
+
+    ::
+
+        sage: v = vector((1,2,3,4))
+        sage: vector_on_axis_rotation_matrix(v, 0) * v
+        (sqrt(30), 0, 0, 0)
+        sage: vector_on_axis_rotation_matrix(v, 0, ring=RealField(10))
+        [ 0.18  0.37  0.55  0.73]
+        [-0.98 0.068  0.10  0.14]
+        [ 0.00 -0.93  0.22  0.30]
+        [ 0.00  0.00 -0.80  0.60]
+        sage: vector_on_axis_rotation_matrix(v, 0, ring=RealField(10)) * v
+        (5.5, 0.00098, 0.00098, 0.00)
+
+    AUTHORS:
+
+        Sebastien Labbe (April 2010)
+    """
+    dim = len(v)
+    v = vector(v)
+    m = identity_matrix(dim, sparse=True)
+    L = range(i-1, -1, -1) + range(dim-1,i,-1)
+    for i in L:
+        rot = ith_to_zero_rotation_matrix(v, i, ring=ring)
+        v = rot * v
+        m = rot * m
+    return m
+
+def ith_to_zero_rotation_matrix(v, i, ring=None):
+    r"""
+    Return a rotation matrix that sends the i-th coordinates of the
+    vector v to zero by doing a rotation with the (i-1)-th coordinate.
+
+    INPUT:
+
+    - ``v``` - vector
+    - ``i`` - integer
+    - ``ring`` - ring (optional, default: None) of the resulting matrix
+
+    OUTPUT:
+
+    A matrix
+
+    EXAMPLES::
+
+        sage: from sage.matrix.constructor import ith_to_zero_rotation_matrix
+        sage: v = vector((1,2,3))
+        sage: ith_to_zero_rotation_matrix(v, 2)
+        [             1              0              0]
+        [             0  2/13*sqrt(13)  3/13*sqrt(13)]
+        [             0 -3/13*sqrt(13)  2/13*sqrt(13)]
+        sage: ith_to_zero_rotation_matrix(v, 2) * v
+        (1, sqrt(13), 0)
+
+    ::
+
+        sage: ith_to_zero_rotation_matrix(v, 0)
+        [ 3/10*sqrt(10)              0 -1/10*sqrt(10)]
+        [             0              1              0]
+        [ 1/10*sqrt(10)              0  3/10*sqrt(10)]
+        sage: ith_to_zero_rotation_matrix(v, 1)
+        [ 1/5*sqrt(5)  2/5*sqrt(5)            0]
+        [-2/5*sqrt(5)  1/5*sqrt(5)            0]
+        [           0            0            1]
+        sage: ith_to_zero_rotation_matrix(v, 2)
+        [             1              0              0]
+        [             0  2/13*sqrt(13)  3/13*sqrt(13)]
+        [             0 -3/13*sqrt(13)  2/13*sqrt(13)]
+
+    ::
+
+        sage: ith_to_zero_rotation_matrix(v, 0) * v
+        (0, 2, sqrt(10))
+        sage: ith_to_zero_rotation_matrix(v, 1) * v
+        (sqrt(5), 0, 3)
+        sage: ith_to_zero_rotation_matrix(v, 2) * v
+        (1, sqrt(13), 0)
+
+    Other ring::
+
+        sage: ith_to_zero_rotation_matrix(v, 2, ring=RR)
+        [  1.00000000000000  0.000000000000000  0.000000000000000]
+        [ 0.000000000000000  0.554700196225229  0.832050294337844]
+        [ 0.000000000000000 -0.832050294337844  0.554700196225229]
+        sage: ith_to_zero_rotation_matrix(v, 2, ring=RDF)
+        [            1.0             0.0             0.0]
+        [            0.0  0.554700196225  0.832050294338]
+        [            0.0 -0.832050294338  0.554700196225]
+
+    On the symbolic ring::
+
+        sage: x,y,z = var('x,y,z')
+        sage: v = vector((x,y,z))
+        sage: ith_to_zero_rotation_matrix(v, 2)
+        [                 1                  0                  0]
+        [                 0  y/sqrt(y^2 + z^2)  z/sqrt(y^2 + z^2)]
+        [                 0 -z/sqrt(y^2 + z^2)  y/sqrt(y^2 + z^2)]
+        sage: ith_to_zero_rotation_matrix(v, 2) * v
+        (x, y^2/sqrt(y^2 + z^2) + z^2/sqrt(y^2 + z^2), 0)
+
+    TESTS::
+
+        sage: ith_to_zero_rotation_matrix((1,0,0), 0)
+        [ 0  0 -1]
+        [ 0  1  0]
+        [ 1  0  0]
+        sage: ith_to_zero_rotation_matrix((1,0,0), 1)
+        [1 0 0]
+        [0 1 0]
+        [0 0 1]
+        sage: ith_to_zero_rotation_matrix((1,0,0), 2)
+        [1 0 0]
+        [0 1 0]
+        [0 0 1]
+
+    AUTHORS:
+
+        Sebastien Labbe (April 2010)
+    """
+    if not ring is None:
+        # coerce the vector so that computations
+        # are done in that ring
+        v = vector(ring, v)
+    dim = len(v)
+    i = i % dim
+    j = (i-1) % dim
+    a, b = v[j], v[i]
+    if b == 0:
+        return identity_matrix(dim, sparse=True)
+    from sage.functions.all import sqrt
+    norm = sqrt(a*a + b*b)
+    aa = a / norm
+    bb = b / norm
+    entries = {}
+    for k in range(dim):
+        entries[(k, k)] = 1
+    entries.update({(j,j):aa, (j,i):bb, (i,j):-bb, (i,i):aa})
+    return matrix(entries, nrows=dim, ring=ring)
+
+
+

@@ -149,7 +149,6 @@ Let us look at a nice big patch in 3D::
 
 Plotting with TikZ pictures is possible::
 
-    sage: sigma = WordMorphism({1:[1,2], 2:[3], 3:[1]})
     sage: P = Patch([Face((0,0,0),t) for t in [1,2,3]])
     sage: s = P.plot_tikz()
     sage: print s
@@ -797,10 +796,11 @@ class Patch(SageObject):
         x = other[0].vector()
         t = other[0].type()
         L = self.faces_of_type(t)
+        set_self = set(self)
         positions = []
         for f in L:
             y = f.vector()
-            if set(other.translate(y-x)) <= set(self):
+            if set(other.translate(y-x)) <= set_self:
                 positions.append(y-x)
         return positions
 
@@ -1018,7 +1018,6 @@ class Patch(SageObject):
         if len(self[0].vector()) != 3:
             raise NotImplementedError, "3D plotting is implemented only for patches in three dimensions."
 
-        from sage.all import pi
         face_list = [face._plot3d(self._face_contour) for face in self]
         P = sum(face_list)
         return P
@@ -1113,13 +1112,19 @@ class Patch(SageObject):
             sage: axes += "\\node at (0,0,%s) {$z$};\n" % (length + space)
             sage: axes += "\\draw[->, thick, black] (0,0,0) -- (0, 0, %s);\n" % length
             sage: cube = Patch([Face((0,0,0),1), Face((0,0,0),2), Face((0,0,0),3)])
-            sage: options = dict(scale=0.5,drawzero=True,extra_code_after=axes)
+            sage: options = dict(scale=0.5,drawzero=True,extra_code_before=axes)
             sage: r = cube.plot_tikz(**options)
             sage: len(r)
             1013
             sage: print r
             \begin{tikzpicture}
             [x={(-0.433013cm,-0.250000cm)}, y={(0.433013cm,-0.250000cm)}, z={(0.000000cm,0.500000cm)}]
+            \draw[->, thick, black] (0,0,0) -- (1.50000000000000, 0, 0);
+            \draw[->, thick, black] (0,0,0) -- (0, 1.50000000000000, 0);
+            \node at (1.80000000000000,0,0) {$x$};
+            \node at (0,1.80000000000000,0) {$y$};
+            \node at (0,0,1.80000000000000) {$z$};
+            \draw[->, thick, black] (0,0,0) -- (0, 0, 1.50000000000000);
             \definecolor{facecolor}{rgb}{1.000000,0.000000,0.000000}
             \fill[fill=facecolor, draw=black, shift={(0,0,0)}]
             (0, 0, 0) -- (0, 1, 0) -- (0, 1, 1) -- (0, 0, 1) -- cycle;
@@ -1129,12 +1134,6 @@ class Patch(SageObject):
             \definecolor{facecolor}{rgb}{0.000000,0.000000,1.000000}
             \fill[fill=facecolor, draw=black, shift={(0,0,0)}]
             (0, 0, 0) -- (1, 0, 0) -- (1, 1, 0) -- (0, 1, 0) -- cycle;
-            \draw[->, thick, black] (0,0,0) -- (1.50000000000000, 0, 0);
-            \draw[->, thick, black] (0,0,0) -- (0, 1.50000000000000, 0);
-            \node at (1.80000000000000,0,0) {$x$};
-            \node at (0,1.80000000000000,0) {$y$};
-            \node at (0,0,1.80000000000000) {$z$};
-            \draw[->, thick, black] (0,0,0) -- (0, 0, 1.50000000000000);
             \node[circle,fill=black,draw=black,minimum size=1.5mm,inner sep=0pt] at (0,0,0) {};
             \end{tikzpicture}
         """

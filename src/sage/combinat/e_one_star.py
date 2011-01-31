@@ -150,41 +150,32 @@ Let us look at a nice big patch in 3D::
 Plotting with TikZ pictures is possible::
 
     sage: sigma = WordMorphism({1:[1,2], 2:[3], 3:[1]})
-    sage: E = E1Star(sigma)
-    sage: x = [Face((0,0,0),t) for t in [1,2,3]]
-    sage: P = Patch(x)
-    sage: P.apply_substitution(E, 3)
+    sage: P = Patch([Face((0,0,0),t) for t in [1,2,3]])
     sage: s = P.plot_tikz()
     sage: print s
-    \begin{tikzpicture}[x={(-0.216506cm,-0.125000cm)}, y={(0.216506cm,-0.125000cm)}, z={(0.000000cm,0.250000cm)}]
-    \def\loza#1#2#3#4#5#6{
-      \definecolor{facecolor}{rgb}{#4,#5,#6}
-      \fill[fill=facecolor, draw=black, shift={(#1, #2, #3)}]
-      (0, 0, 0) -- (0, 1, 0) -- (0, 1, 1) -- (0, 0, 1) -- cycle;
-    }
-    \def\lozb#1#2#3#4#5#6{
-      \definecolor{facecolor}{rgb}{#4,#5,#6}
-      \fill[fill=facecolor, draw=black, shift={(#1, #2, #3)}]
-      (0, 0, 0) -- (0, 0, 1) -- (1, 0, 1) -- (1, 0, 0) -- cycle;
-    }
-    \def\lozc#1#2#3#4#5#6{
-      \definecolor{facecolor}{rgb}{#4,#5,#6}
-      \fill[fill=facecolor, draw=black, shift={(#1, #2, #3)}]
-      (0, 0, 0) -- (1, 0, 0) -- (1, 1, 0) -- (0, 1, 0) -- cycle;
-    }
-    \loza{0}{0}{1}{1.00}{0.00}{0.00}
-    \lozc{-1}{0}{2}{1.00}{0.00}{0.00}
-    \lozb{-1}{1}{1}{1.00}{0.00}{0.00}
-    \loza{0}{0}{0}{1.00}{0.00}{0.00}
-    \loza{1}{-1}{0}{0.00}{1.00}{0.00}
-    \lozc{0}{-1}{1}{0.00}{1.00}{0.00}
-    \lozb{0}{0}{0}{0.00}{1.00}{0.00}
-    \loza{1}{0}{-1}{0.00}{0.00}{1.00}
-    \lozc{0}{0}{0}{0.00}{0.00}{1.00}
+    \begin{tikzpicture}
+    [x={(-0.216506cm,-0.125000cm)}, y={(0.216506cm,-0.125000cm)}, z={(0.000000cm,0.250000cm)}]
+    \definecolor{facecolor}{rgb}{1.000000,0.000000,0.000000}
+    \fill[fill=facecolor, draw=black, shift={(0,0,0)}]
+    (0, 0, 0) -- (0, 1, 0) -- (0, 1, 1) -- (0, 0, 1) -- cycle;
+    \definecolor{facecolor}{rgb}{0.000000,1.000000,0.000000}
+    \fill[fill=facecolor, draw=black, shift={(0,0,0)}]
+    (0, 0, 0) -- (0, 0, 1) -- (1, 0, 1) -- (1, 0, 0) -- cycle;
+    \definecolor{facecolor}{rgb}{0.000000,0.000000,1.000000}
+    \fill[fill=facecolor, draw=black, shift={(0,0,0)}]
+    (0, 0, 0) -- (1, 0, 0) -- (1, 1, 0) -- (0, 1, 0) -- cycle;
     \end{tikzpicture}
 
-Note that everything can be done in any dimension, but that the plotting
-features only work in dimension three (that is, with three-letter alphabets)::
+Plotting patches made of unit segments instead of unit faces::
+
+    sage: P = Patch([Face([0,0], 1), Face([0,0], 2)])
+    sage: E = E1Star(WordMorphism({1:[1,2],2:[1]}))
+    sage: F = E1Star(WordMorphism({1:[1,1,2],2:[2,1]}))
+    sage: E(P,5).plot()
+    sage: F(P,3).plot()
+
+Everything works in any dimension (except for the plotting features
+which only work in dimension two or three)::
 
     sage: x = [Face((0,0,0,0),1), Face((0,0,0,0),4)]
     sage: P = Patch(x)
@@ -227,7 +218,6 @@ features only work in dimension three (that is, with three-letter alphabets)::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.rings.integer import Integer
 from sage.misc.functional import det
 from sage.structure.sage_object import SageObject
 from sage.combinat.words.morphism import WordMorphism
@@ -237,6 +227,7 @@ from sage.plot.plot import Graphics
 from sage.plot.plot import rainbow
 from sage.plot.colors import Color
 from sage.plot.polygon import polygon
+from sage.plot.line import line
 from sage.rings.integer_ring import ZZ
 from sage.misc.latex import LatexExpr
 from sage.misc.lazy_attribute import lazy_attribute
@@ -291,11 +282,17 @@ class Face(SageObject):
             (0, 2, 0)
             sage: f.type()
             3
+
+        TEST:
+
+        We test that types can be given by an int (see #10699)::
+
+            sage: f = Face((0,2,0), int(1))
         """
         self._vector = (ZZ**len(v))(v)
         self._vector.set_immutable()
 
-        if not(isinstance(t, Integer) and 1 <= t <= len(v)):
+        if not((t in ZZ) and 1 <= t <= len(v)):
             raise ValueError, 'The type must be an integer between 1 and len(v)'
         self._type = t
 
@@ -424,9 +421,10 @@ class Face(SageObject):
 
         INPUT:
 
-        - ``projmat`` - 2*3 projection matrix
+        - ``projmat`` - 2*3 projection matrix (used only for faces in three dimensions)
         - ``face_contour`` - dict, maps the face type to vectors describing
-          the contour of unit faces
+          the contour of unit faces (used only for faces in three dimensions)
+        - ``opacity`` - the alpha value for the color of the face
 
         OUTPUT:
 
@@ -439,11 +437,29 @@ class Face(SageObject):
             sage: projmat = matrix(2, [-1.7320508075688772*0.5, 1.7320508075688772*0.5, 0, -0.5, -0.5, 1])
             sage: face_contour = {1: map(vector, [(0,0,0),(0,1,0),(0,1,1),(0,0,1)]), 2: map(vector, [(0,0,0),(0,0,1),(1,0,1),(1,0,0)]), 3: map(vector, [(0,0,0),(1,0,0),(1,1,0),(0,1,0)])}
             sage: G = f._plot(projmat, face_contour, 0.75)
+
+        ::
+
+            sage: f = Face((0,0), 2)
+            sage: f._plot(None, None, 1)
         """
         v = self.vector()
         t = self.type()
-        G = polygon([projmat*(u+v) for u in face_contour[t]], alpha=opacity,
-               thickness=1, rgbcolor=self.color())
+        G = Graphics()
+
+        if len(v) == 2:
+            if t == 1:
+                G += line([v, v + vector([0,1])], rgbcolor=self.color(), thickness=1.5, alpha=opacity)
+            elif t == 2:
+                G += line([v, v + vector([1,0])], rgbcolor=self.color(), thickness=1.5, alpha=opacity)
+
+        elif len(v) == 3:
+            G += polygon([projmat*(u+v) for u in face_contour[t]], alpha=opacity,
+                   thickness=1, rgbcolor=self.color())
+
+        else:
+            raise NotImplementedError, "Plotting is implemented only for patches in two or three dimensions."
+
         return G
 
     def _plot3d(self, face_contour):
@@ -578,33 +594,6 @@ class Patch(SageObject):
         """
         return len(self._faces)
 
-    def __repr__(self):
-        r"""
-        String representation of a patch.
-
-        Displays all the faces if there less than 20,
-        otherwise displays the number of faces.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.e_one_star import E1Star, Face, Patch
-            sage: x = [Face((0,0,0),t) for t in [1,2,3]]
-            sage: P = Patch(x)
-            sage: P
-            Patch: [[(0, 0, 0), 1]*, [(0, 0, 0), 2]*, [(0, 0, 0), 3]*]
-
-        ::
-
-            sage: x = [Face((0,0,a),1) for a in range(25)]
-            sage: P = Patch(x)
-            sage: P
-            Patch of 25 faces
-        """
-        if len(self) <= 20:
-            return "Patch: %s"%self._faces
-        else:
-            return "Patch of %s faces"%len(self)
-
     def __iter__(self):
         r"""
         Return an iterator over the faces of the patch.
@@ -646,17 +635,44 @@ class Patch(SageObject):
 
         INPUT:
 
-        - ``other`` - an object
+        - ``other`` - a Patch
 
         EXAMPLES::
 
             sage: from sage.combinat.e_one_star import Face, Patch, E1Star
-            sage: U = Patch([Face([0,0,0], 1), Face([0,0,0], 2), Face([0,0,0], 3)])
-            sage: V = U.translate([1,-1,0])
-            sage: U + V
+            sage: P = Patch([Face([0,0,0], 1), Face([0,0,0], 2), Face([0,0,0], 3)])
+            sage: Q = P.translate([1,-1,0])
+            sage: P + Q
             Patch: [[(0, 0, 0), 1]*, [(0, 0, 0), 2]*, [(0, 0, 0), 3]*, [(1, -1, 0), 1]*, [(1, -1, 0), 2]*, [(1, -1, 0), 3]*]
         """
         return Patch(self._faces + other._faces)
+
+    def __repr__(self):
+        r"""
+        String representation of a patch.
+
+        Displays all the faces if there less than 20,
+        otherwise displays the number of faces.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.e_one_star import E1Star, Face, Patch
+            sage: x = [Face((0,0,0),t) for t in [1,2,3]]
+            sage: P = Patch(x)
+            sage: P
+            Patch: [[(0, 0, 0), 1]*, [(0, 0, 0), 2]*, [(0, 0, 0), 3]*]
+
+        ::
+
+            sage: x = [Face((0,0,a),1) for a in range(25)]
+            sage: P = Patch(x)
+            sage: P
+            Patch of 25 faces
+        """
+        if len(self) <= 20:
+            return "Patch: %s"%self._faces
+        else:
+            return "Patch of %s faces"%len(self)
 
     def add(self, faces):
         r"""
@@ -687,6 +703,23 @@ class Patch(SageObject):
         else:
             self._faces.extend(faces)
 
+    def faces_of_vector(self, v):
+        r"""
+        Returns a list of the faces whose vector is ``v``.
+
+        INPUT:
+
+        - ``v`` - a vector
+
+        EXAMPLES::
+
+            sage: from sage.combinat.e_one_star import E1Star, Face, Patch
+            sage: P = Patch([Face((0,0,0),1), Face((1,2,0),3), Face((1,2,0),1)])
+            sage: P.faces_of_vector([1,2,0])
+            [[(1, 2, 0), 3]*, [(1, 2, 0), 1]*]
+        """
+        return [face for face in self if face.vector() == vector(v)]
+
     def faces_of_type(self, t):
         r"""
         Returns a list of the faces that have type ``t``.
@@ -716,7 +749,7 @@ class Patch(SageObject):
 
         OUTPUT:
 
-            a patch
+            a Patch
 
         EXAMPLES::
 
@@ -728,7 +761,89 @@ class Patch(SageObject):
         v = vector(v)
         return Patch(Face(f.vector()+v, f.type(), f.color()) for f in self)
 
-    def repaint(self, cmap='prism'):
+    def occurrences_of(self, other):
+        r"""
+        Returns all positions at which other appears in self, that is,
+        all vectors v such that ``set(other.translate(v)) <= set(self)``.
+
+        INPUT:
+
+        - ``other`` - a Patch
+
+        OUTPUT:
+
+            a list of vectors
+
+        EXAMPLES::
+
+            sage: from sage.combinat.e_one_star import Face, Patch, E1Star
+            sage: P = Patch([Face([0,0,0], 1), Face([0,0,0], 2), Face([0,0,0], 3)])
+            sage: Q = Patch([Face([0,0,0], 1), Face([0,0,0], 2)])
+            sage: P.occurrences_of(Q)
+            [(0, 0, 0)]
+            sage: Q = Q.translate([1,2,3])
+            sage: P.occurrences_of(Q)
+            [(-1, -2, -3)]
+
+        ::
+
+            sage: E = E1Star(WordMorphism({1:[1,2], 2:[1,3], 3:[1]}))
+            sage: P = Patch([Face([0,0,0], 1), Face([0,0,0], 2), Face([0,0,0], 3)])
+            sage: P = E(P,4)
+            sage: Q = Patch([Face([0,0,0], 1), Face([0,0,0], 2)])
+            sage: P.occurrences_of(Q)
+            [(1, 1, -2), (1, 1, -3), (1, 0, -1), (0, 1, -1), (0, 0, 1), (0, 0, 0)]
+        """
+        x = other[0].vector()
+        t = other[0].type()
+        L = self.faces_of_type(t)
+        positions = []
+        for f in L:
+            y = f.vector()
+            if set(other.translate(y-x)) <= set(self):
+                positions.append(y-x)
+        return positions
+
+    def apply_substitution(self, E, iterations=1):
+        r"""
+        Applies the substitution ``E`` on the patch.
+
+        The color of every new face in the image is given the same color as its preimage.
+
+        This changes self.
+
+        INPUT:
+
+        - ``E`` - an instance of the ``E1Star`` class. Its domain alphabet must
+          be of the same size as the dimension of the ambient space of the
+          faces.
+        - ``iterations`` - integer (optional, default: 1)
+          number of times the substitution E is applied
+
+        EXAMPLES::
+
+            sage: from sage.combinat.e_one_star import E1Star, Face, Patch
+            sage: sigma = WordMorphism({1:[1,2], 2:[1,3], 3:[1]})
+            sage: E = E1Star(sigma)
+            sage: p = Patch([Face((0,0,0),t) for t in [1,2,3]])
+            sage: p.apply_substitution(E)
+            sage: p.plot()                   #not tested
+
+        ::
+
+            sage: x = (0,0,0)
+            sage: p = Patch([Face(x, 1, 'red'), Face(x, 2, 'yellow'), Face(x, 3, 'green')])
+            sage: p.apply_substitution(E, 4)
+            sage: p
+            Patch of 31 faces
+            sage: p.plot()                   #not tested
+        """
+        if not isinstance(E, E1Star):
+            raise TypeError, "E must be an instance of E1Star"
+
+        self._faces = E(self, iterations=iterations)._faces
+
+    def repaint(self, cmap='Set1'):
         r"""
         Repaints all the faces of self from the given color map.
 
@@ -736,7 +851,7 @@ class Patch(SageObject):
 
         INPUT:
 
-        -  ``cmap`` - color map (default: ``'prism'``). It can be one of the
+        -  ``cmap`` - color map (default: ``'Set1'``). It can be one of the
            following :
 
            - string - A coloring map. For available coloring map names type:
@@ -761,7 +876,7 @@ class Patch(SageObject):
             RGB color (0.0, 0.0, 0.0)
             sage: p.repaint()
             sage: p[1].color()
-            RGB color (0.198..., 0.912..., 0.0)
+            RGB color (0.498..., 0.432..., 0.522...)
 
         Using a list of colors::
 
@@ -808,45 +923,6 @@ class Patch(SageObject):
         else:
             raise TypeError, "Type of cmap (=%s) must be dict, list or str" %cmap
 
-    def apply_substitution(self, E, iterations=1):
-        r"""
-        Applies the substitution ``E`` on the patch.
-
-        The color of every new face in the image is given the same color as its preimage.
-
-        This changes self.
-
-        INPUT:
-
-        - ``E`` - an instance of the ``E1Star`` class. Its domain alphabet must
-          be of the same size as the dimension of the ambient space of the
-          faces.
-        - ``iterations`` - integer (optional, default: 1)
-          number of times the substitution E is applied
-
-        EXAMPLES::
-
-            sage: from sage.combinat.e_one_star import E1Star, Face, Patch
-            sage: sigma = WordMorphism({1:[1,2], 2:[1,3], 3:[1]})
-            sage: E = E1Star(sigma)
-            sage: p = Patch([Face((0,0,0),t) for t in [1,2,3]])
-            sage: p.apply_substitution(E)
-            sage: p.plot()                   #not tested
-
-        ::
-
-            sage: x = (0,0,0)
-            sage: p = Patch([Face(x, 1, 'red'), Face(x, 2, 'yellow'), Face(x, 3, 'green')])
-            sage: p.apply_substitution(E, 4)
-            sage: p
-            Patch of 31 faces
-            sage: p.plot()                   #not tested
-        """
-        if not isinstance(E, E1Star):
-            raise TypeError, "E must be an instance of E1Star"
-
-        self._faces = E(self, iterations=iterations)._faces
-
     def plot(self, projmat=None, opacity=0.75):
         r"""
         Returns a 2D graphic object depicting the patch.
@@ -859,11 +935,11 @@ class Patch(SageObject):
           ``None``, the isometric projection is used by default.
 
         - ``opacity`` - float between ``0`` and ``1`` (optional, default: ``0.75``)
-          opacity of the the face (edges cannot be seen with opacity equal to ``1``)
+          opacity of the the face
 
         .. WARNING::
 
-            Only three-dimensional Faces and Patches can be plotted.
+            Plotting is implemented only for patches in two or three dimensions.
 
         EXAMPLES::
 
@@ -887,19 +963,34 @@ class Patch(SageObject):
             sage: M = matrix(2, 3, [1,0,-1,0.3,1,-3])
             sage: P.apply_substitution(E, 3)
             sage: P.plot(projmat=M)
+
+        Plot patches made of unit segments::
+
+            sage: P = Patch([Face([0,0], 1), Face([0,0], 2)])
+            sage: E = E1Star(WordMorphism({1:[1,2],2:[1]}))
+            sage: F = E1Star(WordMorphism({1:[1,1,2],2:[2,1]}))
+            sage: E(P,5).plot()
+            sage: F(P,3).plot()
         """
-        if len(self[0].vector()) != 3:
-            raise NotImplementedError, "Plotting only works for three-dimensional Patches and faces."
+        if len(self[0].vector()) == 2:
+            G = Graphics()
+            for face in self:
+                G += face._plot(None, None, 1)
+            G.set_aspect_ratio(1)
+            return G
 
-        #projmat = matrix(2, 3, [1,0,-1/sqrt(2),0,1,-1/sqrt(2)])
-        if projmat == None:
-            projmat = matrix(2, [-1.7320508075688772*0.5, 1.7320508075688772*0.5, 0, -0.5, -0.5, 1])
+        if len(self[0].vector()) == 3:
+            if projmat == None:
+                projmat = matrix(2, [-1.7320508075688772*0.5, 1.7320508075688772*0.5, 0, -0.5, -0.5, 1])
 
-        G = Graphics()
-        for face in self:
-            G += face._plot(projmat, self._face_contour, opacity)
-        G.set_aspect_ratio(1)
-        return G
+            G = Graphics()
+            for face in self:
+                G += face._plot(projmat, self._face_contour, opacity)
+            G.set_aspect_ratio(1)
+            return G
+
+        else:
+            raise NotImplementedError, "Plotting is implemented only for patches in two or three dimensions."
 
     def plot3d(self):
         r"""
@@ -907,7 +998,7 @@ class Patch(SageObject):
 
         .. WARNING::
 
-            Only three-dimensional Faces and Patches can be plotted.
+            3D plotting is implemented only for patches in three dimensions.
 
         EXAMPLES::
 
@@ -925,23 +1016,22 @@ class Patch(SageObject):
             sage: P.plot3d()                #not tested
         """
         if len(self[0].vector()) != 3:
-            raise NotImplementedError, "Plotting only works for three-dimensional Patches and faces."
+            raise NotImplementedError, "3D plotting is implemented only for patches in three dimensions."
 
         from sage.all import pi
         face_list = [face._plot3d(self._face_contour) for face in self]
         P = sum(face_list)
         return P
 
-    def plot_tikz(self, projmat=None, print_macros=True,
-            print_tikz_env=True, edgecolor='black', scale=0.25,
-            drawzero=False, extra_code_before='', extra_code_after=''):
+    def plot_tikz(self, projmat=None, print_tikz_env=True, edgecolor='black',
+            scale=0.25, drawzero=False, extra_code_before='', extra_code_after=''):
         r"""
         Returns a string containing some TikZ code to be included into
-        a LaTeX document.
+        a LaTeX document, depicting the patch.
 
         .. WARNING::
 
-            Only three-dimensional Faces and Patches can be plotted.
+            Tikz Plotting is implemented only for patches in three dimensions.
 
         INPUT:
 
@@ -949,8 +1039,6 @@ class Patch(SageObject):
           matrix. Its number of lines must be two. Its number of columns
           must equal the dimension of the ambient space of the faces. If
           ``None``, the isometric projection is used by default.
-        - ``print_macros`` - bool (optional, default: ``True``) if ``True``,
-          the three lozenge macros are printed
         - ``print_tikz_env`` - bool (optional, default: ``True``) if ``True``,
           the tikzpicture environment are printed
         - ``edgecolor`` - string (optional, default: ``'black'``) either
@@ -970,25 +1058,17 @@ class Patch(SageObject):
             sage: P = Patch([Face((0,0,0),t) for t in [1,2,3]])
             sage: s = P.plot_tikz()
             sage: print s
-            \begin{tikzpicture}[x={(-0.216506cm,-0.125000cm)}, y={(0.216506cm,-0.125000cm)}, z={(0.000000cm,0.250000cm)}]
-            \def\loza#1#2#3#4#5#6{
-              \definecolor{facecolor}{rgb}{#4,#5,#6}
-              \fill[fill=facecolor, draw=black, shift={(#1, #2, #3)}]
-              (0, 0, 0) -- (0, 1, 0) -- (0, 1, 1) -- (0, 0, 1) -- cycle;
-            }
-            \def\lozb#1#2#3#4#5#6{
-              \definecolor{facecolor}{rgb}{#4,#5,#6}
-              \fill[fill=facecolor, draw=black, shift={(#1, #2, #3)}]
-              (0, 0, 0) -- (0, 0, 1) -- (1, 0, 1) -- (1, 0, 0) -- cycle;
-            }
-            \def\lozc#1#2#3#4#5#6{
-              \definecolor{facecolor}{rgb}{#4,#5,#6}
-              \fill[fill=facecolor, draw=black, shift={(#1, #2, #3)}]
-              (0, 0, 0) -- (1, 0, 0) -- (1, 1, 0) -- (0, 1, 0) -- cycle;
-            }
-            \loza{0}{0}{0}{1.00}{0.00}{0.00}
-            \lozb{0}{0}{0}{0.00}{1.00}{0.00}
-            \lozc{0}{0}{0}{0.00}{0.00}{1.00}
+            \begin{tikzpicture}
+            [x={(-0.216506cm,-0.125000cm)}, y={(0.216506cm,-0.125000cm)}, z={(0.000000cm,0.250000cm)}]
+            \definecolor{facecolor}{rgb}{1.000000,0.000000,0.000000}
+            \fill[fill=facecolor, draw=black, shift={(0,0,0)}]
+            (0, 0, 0) -- (0, 1, 0) -- (0, 1, 1) -- (0, 0, 1) -- cycle;
+            \definecolor{facecolor}{rgb}{0.000000,1.000000,0.000000}
+            \fill[fill=facecolor, draw=black, shift={(0,0,0)}]
+            (0, 0, 0) -- (0, 0, 1) -- (1, 0, 1) -- (1, 0, 0) -- cycle;
+            \definecolor{facecolor}{rgb}{0.000000,0.000000,1.000000}
+            \fill[fill=facecolor, draw=black, shift={(0,0,0)}]
+            (0, 0, 0) -- (1, 0, 0) -- (1, 1, 0) -- (0, 1, 0) -- cycle;
             \end{tikzpicture}
 
         ::
@@ -996,8 +1076,10 @@ class Patch(SageObject):
             sage: sigma = WordMorphism({1:[1,2], 2:[1,3], 3:[1]})
             sage: E = E1Star(sigma)
             sage: P = Patch([Face((0,0,0),t) for t in [1,2,3]])
-            sage: P.apply_substitution(E, 2)
-            sage: s = P.plot_tikz()
+            sage: P.apply_substitution(E, 4)
+            sage: from sage.misc.latex import latex             #not tested
+            sage: latex.add_to_preamble('\\usepackage{tikz}')   #not tested
+            sage: view(P, tightpage=true)                       #not tested
 
         Plot using shades of gray (useful for article figures)::
 
@@ -1031,27 +1113,33 @@ class Patch(SageObject):
             sage: axes += "\\node at (0,0,%s) {$z$};\n" % (length + space)
             sage: axes += "\\draw[->, thick, black] (0,0,0) -- (0, 0, %s);\n" % length
             sage: cube = Patch([Face((0,0,0),1), Face((0,0,0),2), Face((0,0,0),3)])
-            sage: options = dict(print_macros=False,scale=0.5,drawzero=True,extra_code_before=axes)
+            sage: options = dict(scale=0.5,drawzero=True,extra_code_after=axes)
             sage: r = cube.plot_tikz(**options)
             sage: len(r)
-            611
+            1013
             sage: print r
-            \begin{tikzpicture}[x={(-0.433013cm,-0.250000cm)}, y={(0.433013cm,-0.250000cm)}, z={(0.000000cm,0.500000cm)}]
+            \begin{tikzpicture}
+            [x={(-0.433013cm,-0.250000cm)}, y={(0.433013cm,-0.250000cm)}, z={(0.000000cm,0.500000cm)}]
+            \definecolor{facecolor}{rgb}{1.000000,0.000000,0.000000}
+            \fill[fill=facecolor, draw=black, shift={(0,0,0)}]
+            (0, 0, 0) -- (0, 1, 0) -- (0, 1, 1) -- (0, 0, 1) -- cycle;
+            \definecolor{facecolor}{rgb}{0.000000,1.000000,0.000000}
+            \fill[fill=facecolor, draw=black, shift={(0,0,0)}]
+            (0, 0, 0) -- (0, 0, 1) -- (1, 0, 1) -- (1, 0, 0) -- cycle;
+            \definecolor{facecolor}{rgb}{0.000000,0.000000,1.000000}
+            \fill[fill=facecolor, draw=black, shift={(0,0,0)}]
+            (0, 0, 0) -- (1, 0, 0) -- (1, 1, 0) -- (0, 1, 0) -- cycle;
             \draw[->, thick, black] (0,0,0) -- (1.50000000000000, 0, 0);
             \draw[->, thick, black] (0,0,0) -- (0, 1.50000000000000, 0);
             \node at (1.80000000000000,0,0) {$x$};
             \node at (0,1.80000000000000,0) {$y$};
             \node at (0,0,1.80000000000000) {$z$};
             \draw[->, thick, black] (0,0,0) -- (0, 0, 1.50000000000000);
-            \loza{0}{0}{0}{1.00}{0.00}{0.00}
-            \lozb{0}{0}{0}{0.00}{1.00}{0.00}
-            \lozc{0}{0}{0}{0.00}{0.00}{1.00}
             \node[circle,fill=black,draw=black,minimum size=1.5mm,inner sep=0pt] at (0,0,0) {};
             \end{tikzpicture}
-            <BLANKLINE>
         """
         if len(self[0].vector()) != 3:
-            raise NotImplementedError, "Plotting only works for three-dimensional Patches and faces."
+            raise NotImplementedError, "Tikz Plotting is implemented only for patches in three dimensions."
 
         if projmat == None:
             projmat = matrix(2, [-1.7320508075688772*0.5, 1.7320508075688772*0.5, 0, -0.5, -0.5, 1])*scale
@@ -1059,29 +1147,24 @@ class Patch(SageObject):
         e1 = projmat*vector([1,0,0])
         e2 = projmat*vector([0,1,0])
         e3 = projmat*vector([0,0,1])
+        face_contour = self._face_contour
 
         # string s contains the TiKZ code of the patch
         s = ''
 
         if print_tikz_env:
-            s += '\\begin{tikzpicture}[x={(%fcm,%fcm)}, y={(%fcm,%fcm)}, z={(%fcm,%fcm)}]\n'%(e1[0], e1[1], e2[0], e2[1], e3[0], e3[1])
-
-        if print_macros:
-            for type in self._face_contour:
-                # chr(97) is 'a'
-                s += '\\def\\loz%s#1#2#3#4#5#6{\n' % chr(int(type) + 96)
-                s += '  \\definecolor{facecolor}{rgb}{#4,#5,#6}\n'
-                s += '  \\fill[fill=facecolor, draw=%s, shift={(#1, #2, #3)}]\n'%edgecolor
-                s += ' -- '.join(map(str, self._face_contour[type])) + ' -- cycle;\n'
-                s += '}\n'
+            s += '\\begin{tikzpicture}\n'
+            s += '[x={(%fcm,%fcm)}, y={(%fcm,%fcm)}, z={(%fcm,%fcm)}]\n'%(e1[0], e1[1], e2[0], e2[1], e3[0], e3[1])
 
         s += extra_code_before
 
-        for face in self:
-            t = chr(int(face.type()) + 96)
-            x, y, z = face.vector()
-            r, g, b = face.color()
-            s += '\\loz%s{%d}{%d}{%d}{%.2f}{%.2f}{%.2f}\n' %(t, x, y, z, r, g, b)
+        for f in self:
+            t = f.type()
+            x, y, z = f.vector()
+            r, g, b = f.color()
+            s += '\\definecolor{facecolor}{rgb}{%f,%f,%f}\n'%(r, g, b)
+            s += '\\fill[fill=facecolor, draw=%s, shift={(%d,%d,%d)}]\n'%(edgecolor, x, y, z)
+            s += ' -- '.join(map(str, face_contour[t])) + ' -- cycle;\n'
 
         s += extra_code_after
 
@@ -1089,7 +1172,7 @@ class Patch(SageObject):
             s += '\\node[circle,fill=black,draw=black,minimum size=1.5mm,inner sep=0pt] at (0,0,0) {};\n'
 
         if print_tikz_env:
-            s += '\\end{tikzpicture}\n'
+            s += '\\end{tikzpicture}'
 
         return LatexExpr(s)
 
@@ -1152,46 +1235,120 @@ class E1Star(SageObject):
             raise ValueError, "The substitution (%s) must be unimodular."%sigma
 
         first_letter = sigma.codomain().alphabet()[0]
-        if not isinstance(first_letter, Integer) or (first_letter < 1):
+        if not (first_letter in ZZ) or (first_letter < 1):
             raise ValueError, "The substitution (%s) must be defined on positive integers."%sigma
 
         self._sigma = WordMorphism(sigma)
         self._d = self._sigma.domain().size_of_alphabet()
 
-    @cached_method
-    def matrix(self):
+    def __eq__(self, other):
         r"""
-        Returns the matrix associated with self.
+        Equality test for E1Star morphisms.
+
+        INPUT:
+
+        - ``other`` - an object
+
+        EXAMPLES::
+
+            sage: from sage.combinat.e_one_star import E1Star, Face, Patch
+            sage: s = WordMorphism({1:[1,3], 2:[1,2,3], 3:[3]})
+            sage: t = WordMorphism({1:[1,2,3], 2:[2,3], 3:[3]})
+            sage: S = E1Star(s)
+            sage: T = E1Star(t)
+            sage: S == T
+            False
+        """
+        return (isinstance(other, E1Star) and self.sigma() == other.sigma())
+
+    def __call__(self, patch, iterations=1):
+        r"""
+        Applies a generalized substitution to a Patch; this returns a new object.
+
+        The color of every new face in the image is given the same color as its preimage.
+
+        INPUT:
+
+        - ``patch`` - a patch
+        - ``iterations`` - integer (optional, default: 1) number of iterations
+
+        OUTPUT:
+
+            a patch
+
+        EXAMPLES::
+
+            sage: from sage.combinat.e_one_star import E1Star, Face, Patch
+            sage: P = Patch([Face((0,0,0),t) for t in [1,2,3]])
+            sage: sigma = WordMorphism({1:[1,2], 2:[1,3], 3:[1]})
+            sage: E = E1Star(sigma)
+            sage: E(P)
+            Patch: [[(1, 0, -1), 1]*, [(0, 1, -1), 2]*, [(0, 0, 0), 3]*, [(0, 0, 0), 1]*, [(0, 0, 0), 2]*]
+            sage: E(P, iterations=4)
+            Patch of 31 faces
+
+        TEST:
+
+        We test that iterations=0 works (see #10699)::
+
+            sage: P = Patch([Face((0,0,0),t) for t in [1,2,3]])
+            sage: sigma = WordMorphism({1:[1,2], 2:[1,3], 3:[1]})
+            sage: E = E1Star(sigma)
+            sage: E(P, iterations=0)
+            Patch: [[(0, 0, 0), 1]*, [(0, 0, 0), 2]*, [(0, 0, 0), 3]*]
+        """
+        old_faces = patch
+        new_faces = patch # this is useful if iterations=0, to behave as identity
+        for i in xrange(iterations):
+            new_faces = []
+            for f in old_faces:
+                new_faces.extend(self._call_on_face(f, color=f.color()))
+            old_faces = new_faces
+
+        return Patch(new_faces)
+
+    def __mul__(self, other):
+        r"""
+        Return the product of self and other.
+
+        The product satisfies the following rule :
+        `E_1^*(\sigma\circ\sigma') = E_1^*(\sigma')` \circ  E_1^*(\sigma)`
+
+        INPUT:
+
+        - ``other`` - an instance of E1Star
+
+        OUTPUT:
+
+            an instance of E1Star
+
+        EXAMPLES::
+
+            sage: from sage.combinat.e_one_star import E1Star, Face, Patch
+            sage: s = WordMorphism({1:[2],2:[3],3:[1,2]})
+            sage: t = WordMorphism({1:[1,3,1],2:[1],3:[1,1,3,2]})
+            sage: E1Star(s) * E1Star(t)
+            E_1^*(WordMorphism: 1->1, 2->1132, 3->1311)
+            sage: E1Star(t * s)
+            E_1^*(WordMorphism: 1->1, 2->1132, 3->1311)
+        """
+        if not isinstance(other, E1Star):
+            raise TypeError, "other (=%s) must be an instance of E1Star" % other
+        return E1Star(other.sigma() * self.sigma())
+
+    def __repr__(self):
+        r"""
+        String representation of a patch.
 
         EXAMPLES::
 
             sage: from sage.combinat.e_one_star import E1Star, Face, Patch
             sage: sigma = WordMorphism({1:[1,2], 2:[1,3], 3:[1]})
             sage: E = E1Star(sigma)
-            sage: E.matrix()
-            [1 1 1]
-            [1 0 0]
-            [0 1 0]
+            sage: E
+            E_1^*(WordMorphism: 1->12, 2->13, 3->1)
         """
-        return self._sigma.incidence_matrix()
-
-    @cached_method
-    def inverse_matrix(self):
-        r"""
-        Returns the inverse of the matrix associated with self.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.e_one_star import E1Star, Face, Patch
-            sage: sigma = WordMorphism({1:[1,2], 2:[1,3], 3:[1]})
-            sage: E = E1Star(sigma)
-            sage: E.inverse_matrix()
-            [ 0  1  0]
-            [ 0  0  1]
-            [ 1 -1 -1]
-
-        """
-        return self.matrix().inverse()
+        return "E_1^*(%s)" % str(self._sigma)
 
     @lazy_attribute
     def _base_iter(self):
@@ -1294,78 +1451,6 @@ class E1Star(SageObject):
                 X[letter].append((v, k))
         return X
 
-    def __call__(self, patch, iterations=1):
-        r"""
-        Apply a generalized substitution to a Patch; this returns a new
-        object.
-
-        The color of every new face in the image is given the same color as its preimage.
-
-        INPUT:
-
-        - ``patch`` - a patch
-        - ``iterations`` - integer (optional, default: 1) number of iterations
-
-        OUTPUT:
-
-            a patch
-
-        EXAMPLES::
-
-            sage: from sage.combinat.e_one_star import E1Star, Face, Patch
-            sage: P = Patch([Face((0,0,0),t) for t in [1,2,3]])
-            sage: sigma = WordMorphism({1:[1,2], 2:[1,3], 3:[1]})
-            sage: E = E1Star(sigma)
-            sage: R = E(P)
-            sage: len(R)
-            5
-
-        ::
-
-            sage: x = (0,0,0)
-            sage: p = Patch([Face(x, 1, 'red'), Face(x, 2, 'yellow'), Face(x, 3, 'green')])
-            sage: p = E(p, iterations=4)
-            sage: p
-            Patch of 31 faces
-        """
-        old_faces = patch
-        for i in xrange(iterations):
-            new_faces = []
-            for f in old_faces:
-                new_faces.extend(self._call_on_face(f, color=f.color()))
-            old_faces = new_faces
-
-        return Patch(new_faces)
-
-    def __mul__(self, other):
-        r"""
-        Return the product of self and other.
-
-        The product satisfies the following rule :
-        `E_1^*(\sigma\circ\sigma') = E_1^*(\sigma')` \circ  E_1^*(\sigma)`
-
-        INPUT:
-
-        - ``other`` - an instance of E1Star
-
-        OUTPUT:
-
-            an instance of E1Star
-
-        EXAMPLES::
-
-            sage: from sage.combinat.e_one_star import E1Star, Face, Patch
-            sage: s = WordMorphism({1:[2],2:[3],3:[1,2]})
-            sage: t = WordMorphism({1:[1,3,1],2:[1],3:[1,1,3,2]})
-            sage: E1Star(s) * E1Star(t)
-            E_1^*(WordMorphism: 1->1, 2->1132, 3->1311)
-            sage: E1Star(t * s)
-            E_1^*(WordMorphism: 1->1, 2->1132, 3->1311)
-        """
-        if not isinstance(other, E1Star):
-            raise TypeError, "other (=%s) must be an instance of E1Star" % other
-        return E1Star(other.sigma() * self.sigma())
-
     def _call_on_face(self, face, color=None):
         r"""
         Returns an iterator of faces obtained by applying self on the face.
@@ -1395,19 +1480,40 @@ class E1Star(SageObject):
         t = face.type()
         return (Face(x_new + v, k, color=color) for v, k in self._base_iter[t])
 
-    def __repr__(self):
+    @cached_method
+    def matrix(self):
         r"""
-        String representation of a patch.
+        Returns the matrix associated with self.
 
         EXAMPLES::
 
             sage: from sage.combinat.e_one_star import E1Star, Face, Patch
             sage: sigma = WordMorphism({1:[1,2], 2:[1,3], 3:[1]})
             sage: E = E1Star(sigma)
-            sage: E
-            E_1^*(WordMorphism: 1->12, 2->13, 3->1)
+            sage: E.matrix()
+            [1 1 1]
+            [1 0 0]
+            [0 1 0]
         """
-        return "E_1^*(%s)" % str(self._sigma)
+        return self._sigma.incidence_matrix()
+
+    @cached_method
+    def inverse_matrix(self):
+        r"""
+        Returns the inverse of the matrix associated with self.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.e_one_star import E1Star, Face, Patch
+            sage: sigma = WordMorphism({1:[1,2], 2:[1,3], 3:[1]})
+            sage: E = E1Star(sigma)
+            sage: E.inverse_matrix()
+            [ 0  1  0]
+            [ 0  0  1]
+            [ 1 -1 -1]
+
+        """
+        return self.matrix().inverse()
 
     def sigma(self):
         r"""

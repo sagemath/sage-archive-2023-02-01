@@ -207,7 +207,7 @@ class ClasscallMetaclass(NestedClassMetaclass):
             <__main__.Bar2 object at ...>
 
 
-        ..rubric: Discussion
+        ..rubric:: Discussion
 
         Typical applications include the implementation of factories or of
         unique representation (see :class:`UniqueRepresentation`). Such

@@ -416,7 +416,7 @@ class UniqueRepresentation:
     example above) cannot be handled by :meth:`__new__`, since the
     unprocessed arguments will be passed down to :meth:`__init__`.
 
-    .. rubric: Mixing super types and super classes
+    .. rubric:: Mixing super types and super classes
 
     TESTS:
 

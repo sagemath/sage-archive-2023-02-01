@@ -39,6 +39,10 @@ Against common policy the patches in the patches directory have been applied to 
 
 == Changelog ==
 
+=== symmetrica-2.0.p6 (Volker Braun, 31st January 2011) ===
+ * Change -lm option order in Makefile.
+ * removed dist/ directory.
+
 === symmetrica-2.0.p5 (David Kirkby, 6th January 2009) ===
  * Allow SAGE64 to work on any platform, not just OS X.
  * Update the makefile to use '$(CC)' rather than use 'gcc'

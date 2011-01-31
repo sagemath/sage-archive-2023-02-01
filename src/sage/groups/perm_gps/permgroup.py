@@ -1765,6 +1765,177 @@ class PermutationGroup_generic(group.Group):
                 all_sg.append(PermutationGroup(gap_group=h))
         return all_sg
 
+    def cosets(self, S, side='right'):
+        r"""
+        Returns a list of the cosets of ``S`` in ``self``.
+
+        INPUT:
+
+        - ``S`` - a subgroup of ``self``.  An error is raised
+          if ``S`` is not a subgroup.
+
+        - ``side`` - default: 'right' - determines if right cosets or
+          left cosets are returned.  ``side`` refers to where the
+          representative is placed in the products forming the cosets
+          and thus allowable values are only 'right' and 'left'.
+
+        OUTPUT:
+
+        A list of lists.  Each inner list is a coset of the subgroup
+        in the group.  The first element of each coset is the smallest
+        element (based on the ordering of the elements of ``self``)
+        of all the group elements that have not yet appeared in a
+        previous coset. The elements of each coset are in the same
+        order as the subgroup elements used to build the coset's
+        elements.
+
+        As a consequence, the subgroup itself is the first coset,
+        and its first element is the identity element.  For each coset,
+        the first element listed is the element used as a representative
+        to build the coset.  These representatives form an increasing
+        sequence across the list of cosets, and within a coset the
+        representative is the smallest element of its coset (both
+        orderings are based on of the ordering of elements of ``self``).
+
+        In the case of a normal subgroup, left and right cosets should
+        appear in the same order as part of the outer list.  However,
+        the list of the elements of a particular coset may be in a
+        different order for the right coset versus the order in the
+        left coset. So, if you check to see if a subgroup is normal,
+        it is necessary to sort each individual coset first (but not
+        the list of cosets, due to the ordering of the representatives).
+        See below for examples of this.
+
+        .. note::
+
+            This is a naive implementation intended for instructional
+            purposes, and hence is slow for larger groups.  Sage and GAP
+            provide more sophisticated functions for working quickly with
+            cosets of larger groups.
+
+        EXAMPLES:
+
+        The default is to build right cosets. This example works with
+        the symmetry group of an 8-gon and a normal subgroup.
+        Notice that a straight check on the equality of the output
+        is not sufficient to check normality, while sorting the
+        individual cosets is sufficient to then simply test equality of
+        the list of lists.  Study the second coset in each list to understand the
+        need for sorting the elements of the cosets.  ::
+
+            sage: G = DihedralGroup(8)
+            sage: quarter_turn = G.list()[5]; quarter_turn
+            (1,3,5,7)(2,4,6,8)
+            sage: S = G.subgroup([quarter_turn])
+            sage: rc = G.cosets(S); rc
+            [[(), (1,3,5,7)(2,4,6,8), (1,5)(2,6)(3,7)(4,8), (1,7,5,3)(2,8,6,4)],
+             [(2,8)(3,7)(4,6), (1,7)(2,6)(3,5), (1,5)(2,4)(6,8), (1,3)(4,8)(5,7)],
+             [(1,2)(3,8)(4,7)(5,6), (1,8)(2,7)(3,6)(4,5), (1,6)(2,5)(3,4)(7,8), (1,4)(2,3)(5,8)(6,7)],
+             [(1,2,3,4,5,6,7,8), (1,4,7,2,5,8,3,6), (1,6,3,8,5,2,7,4), (1,8,7,6,5,4,3,2)]]
+            sage: lc = G.cosets(S, side='left'); lc
+            [[(), (1,3,5,7)(2,4,6,8), (1,5)(2,6)(3,7)(4,8), (1,7,5,3)(2,8,6,4)],
+             [(2,8)(3,7)(4,6), (1,3)(4,8)(5,7), (1,5)(2,4)(6,8), (1,7)(2,6)(3,5)],
+             [(1,2)(3,8)(4,7)(5,6), (1,4)(2,3)(5,8)(6,7), (1,6)(2,5)(3,4)(7,8), (1,8)(2,7)(3,6)(4,5)],
+             [(1,2,3,4,5,6,7,8), (1,4,7,2,5,8,3,6), (1,6,3,8,5,2,7,4), (1,8,7,6,5,4,3,2)]]
+
+            sage: S.is_normal(G)
+            True
+            sage: rc == lc
+            False
+            sage: rc_sorted = [sorted(c) for c in rc]
+            sage: lc_sorted = [sorted(c) for c in lc]
+            sage: rc_sorted == lc_sorted
+            True
+
+        An example with the symmetry group of a regular
+        tetrahedron and a subgroup that is not normal.
+        Thus, the right and left cosets are different
+        (and so are the representatives). With each
+        individual coset sorted, a naive test of normality
+        is possible.  ::
+
+            sage: A = AlternatingGroup(4)
+            sage: face_turn = A.list()[4]; face_turn
+            (1,2,3)
+            sage: stabilizer = A.subgroup([face_turn])
+            sage: rc = A.cosets(stabilizer, side='right'); rc
+            [[(), (1,2,3), (1,3,2)],
+             [(2,3,4), (1,3)(2,4), (1,4,2)],
+             [(2,4,3), (1,4,3), (1,2)(3,4)],
+             [(1,2,4), (1,4)(2,3), (1,3,4)]]
+            sage: lc = A.cosets(stabilizer, side='left'); lc
+            [[(), (1,2,3), (1,3,2)],
+             [(2,3,4), (1,2)(3,4), (1,3,4)],
+             [(2,4,3), (1,2,4), (1,3)(2,4)],
+             [(1,4,2), (1,4,3), (1,4)(2,3)]]
+
+            sage: stabilizer.is_normal(A)
+            False
+            sage: rc_sorted = [sorted(c) for c in rc]
+            sage: lc_sorted = [sorted(c) for c in lc]
+            sage: rc_sorted == lc_sorted
+            False
+
+        TESTS:
+
+        The keyword ``side`` is checked for the two possible values. ::
+
+            sage: G = SymmetricGroup(3)
+            sage: S = G.subgroup([G("(1,2)")])
+            sage: G.cosets(S, side='junk')
+            Traceback (most recent call last):
+            ...
+            ValueError: side should be 'right' or 'left', not junk
+
+        The subgroup argument is checked to see if it is a permutation group.
+        Even a legitimate GAP object can be rejected. ::
+
+            sage: G=SymmetricGroup(3)
+            sage: G.cosets(gap(3))
+            Traceback (most recent call last):
+            ...
+            TypeError: 3 is not a permutation group
+
+        The subgroup is verified as a subgroup of ``self``. ::
+
+            sage: A = AlternatingGroup(3)
+            sage: G = SymmetricGroup(3)
+            sage: S = G.subgroup([G("(1,2)")])
+            sage: A.cosets(S)
+            Traceback (most recent call last):
+            ...
+            ValueError: Subgroup of SymmetricGroup(3) generated by [(1,2)] is not a subgroup of AlternatingGroup(3)
+
+        AUTHOR:
+
+        - Rob Beezer (2011-01-31)
+        """
+        from copy import copy
+        from sage.categories.finite_permutation_groups import FinitePermutationGroups
+
+        if not side in ['right','left']:
+            raise ValueError("side should be 'right' or 'left', not %s" % side)
+        if not S in FinitePermutationGroups():
+            raise TypeError("%s is not a permutation group" % S)
+        if not S.is_subgroup(self):
+            raise ValueError("%s is not a subgroup of %s" % (S, self))
+
+        group = copy(self.list())
+        group.sort()
+        subgroup = [self(s) for s in S.list()]
+        subgroup.sort()
+        decomposition = []
+        while group:
+            rep = group[0]
+            if side == 'right':
+                coset = [e*rep for e in subgroup]
+            if side == 'left':
+                coset = [rep*e for e in subgroup]
+            for e in coset:
+                group.remove(e)
+            decomposition.append(coset)
+        return decomposition
+
     def normalizer(self, g):
         """
         Returns the normalizer of ``g`` in ``self``.

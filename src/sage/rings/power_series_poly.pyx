@@ -751,6 +751,16 @@ cdef class PowerSeries_poly(PowerSeries):
             sage: g(f)
             t + O(t^4)
 
+            sage: A.<t> = PowerSeriesRing(ZZ)
+            sage: B.<s> = A[[]]
+            sage: f = (1 - 3*t + 4*t^3 + O(t^4))*s + (2 + t + t^2 + O(t^3))*s^2 + O(s^3)
+            sage: set_verbose(1)
+            sage: g = f.reversion(); g
+            verbose 1 (<module>) passing to pari failed; trying Lagrange inversion
+            (1 + 3*t + 9*t^2 + 23*t^3 + O(t^4))*s + (-2 - 19*t - 118*t^2 + O(t^3))*s^2 + O(s^3)
+            sage: set_verbose(0)
+            sage: f(g) == g(f) == s
+            True
 
         If the leading coefficient is not a unit, we pass to its fraction
         field if possible::
@@ -846,7 +856,7 @@ cdef class PowerSeries_poly(PowerSeries):
             f2 = f._pari_()
             g = f2.serreverse()
             return PowerSeries_poly(f.parent(),g.Vecrev(),out_prec)
-        except (TypeError,ValueError,AttributeError):
+        except (TypeError,ValueError,AttributeError,PariError):
             # if pari fails, continue with Lagrange inversion
             from sage.misc.all import verbose
             verbose("passing to pari failed; trying Lagrange inversion")
@@ -864,13 +874,14 @@ cdef class PowerSeries_poly(PowerSeries):
             return rev_lift.change_ring(f.base_ring())
 
         t = f.parent().gen()
+        R = f.parent().base_ring()
 
         h = t/f
         k = 1
         g = 0
         for i in range(1, out_prec):
             k *= h
-            g += k.padded_list(i)[i - 1]/i*t**i
+            g += R(k.padded_list(i)[i - 1]/i)*t**i
         g = g.add_bigoh(out_prec)
         return PowerSeries_poly(out_parent, g, out_prec, check=False)
 

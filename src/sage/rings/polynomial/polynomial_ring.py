@@ -307,6 +307,8 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
                 raise TypeError, "denominator must be a unit"
 
         elif isinstance(x, pari_gen):
+            if x.type() == 't_RFRAC':
+                raise TypeError, "denominator must be a unit"
             if x.type() != 't_POL':
                 x = x.Polrev()
 

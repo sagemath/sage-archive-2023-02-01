@@ -118,6 +118,12 @@ cdef class FractionFieldElement(FieldElement):
             (x + 1)/(x^2 + x + 1)
             sage: K(355/113)
             355/113
+
+        The next example failed before #4376::
+
+            sage: K(pari((x + 1)/(x^2 + x + 1)))
+            (x + 1)/(x^2 + x + 1)
+
         """
         FieldElement.__init__(self, parent)
         if coerce:

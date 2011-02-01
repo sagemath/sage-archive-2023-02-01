@@ -3713,7 +3713,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
     ##########################################################
     # Isogeny class
     ##########################################################
-    def isogeny_class(self, algorithm="sage", verbose=False, fill_matrix=True):
+    def isogeny_class(self, algorithm="sage", verbose=False, fill_matrix=True, return_maps=False):
         r"""
         Returns all curves over `\QQ` isogenous to this elliptic curve.
 
@@ -3734,10 +3734,16 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         - ``fill_matrix`` -- bool (default: True): See below.
 
+        - ``return_maps`` -- bool (default: False): Ignored unless
+          ``algorithm`` == "sage"; then if True, also returns a list of
+          lists indexed by pairs of curves in the class such that the
+          `(i,j)` entry is the isogeny from curve `i` to curve `j` if
+          that isogeny has prime degree, else 0.
 
         OUTPUT:
 
-        Tuple (list of curves, matrix of integers). The sorted list of
+        Tuple (list of curves, matrix of integers) or (list of curves,
+        matrix of integers, matrix of isogenies). The sorted list of
         all curves isogenous to self is returned. If ``algorithm`` is
         not "database", the isogeny matrix is also returned, otherwise
         None is returned as the second return value.  When fill_matrix
@@ -3763,6 +3769,13 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             huge isogenies could be missed because of precision
             issues.  Using ``algorithm`` "sage" avoids this problem,
             though is slower.
+
+        .. note::
+
+           TO DO: when composition of isogenies is implemented, the
+           optional returned matrix of isogenies should be completed
+           to include all the isogenies, not just those of prime
+           degree.
 
         EXAMPLES::
 
@@ -3847,6 +3860,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             [ 6  3  2 18  1  9]
             [ 6  3 18  2  9  1])
 
+            sage: E = EllipticCurve('11a1')
+            sage: E.isogeny_class(algorithm="sage", return_maps=True)
+            ([Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field, Elliptic Curve defined by y^2 + y = x^3 - x^2 over Rational Field, Elliptic Curve defined by y^2 + y = x^3 - x^2 - 7820*x - 263580 over Rational Field], [ 1  5  5]
+            [ 5  1 25]
+            [ 5 25  1], [[0, Isogeny of degree 5 from Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field to Elliptic Curve defined by y^2 + y = x^3 - x^2 over Rational Field, Isogeny of degree 5 from Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field to Elliptic Curve defined by y^2 + y = x^3 - x^2 - 7820*x - 263580 over Rational Field], [Isogeny of degree 5 from Elliptic Curve defined by y^2 + y = x^3 - x^2 over Rational Field to Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field, 0, 0], [Isogeny of degree 5 from Elliptic Curve defined by y^2 + y = x^3 - x^2 - 7820*x - 263580 over Rational Field to Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field, 0, 0]])
+
         """
         from sage.schemes.elliptic_curves.ell_curve_isogeny import fill_isogeny_matrix, unfill_isogeny_matrix
         from sage.matrix.all import MatrixSpace
@@ -3905,14 +3924,17 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                     except ValueError:
                         j = len(curves)
                         curves.append(Edash)
-                    ijl_triples.append((i,j,l))
+                    ijl_triples.append((i,j,l,phi))
                 if l_list is None:
                     l_list = [l for l in Set([ZZ(f.degree()) for f in isogs])]
                 i = i+1
 
-            M = MatrixSpace(IntegerRing(),len(curves))(0)
-            for i,j,l in ijl_triples:
+            ncurves = len(curves)
+            M = MatrixSpace(IntegerRing(),ncurves)(0)
+            maps = [[0]*ncurves for i in range(ncurves)]
+            for i,j,l,phi in ijl_triples:
                 M[i,j] = l
+                maps[i][j]=phi
 
         else:
             raise ValueError, "unknown algorithm '%s'"%algorithm
@@ -3923,8 +3945,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         if not algorithm=="database":
             self.__isogeny_class = (curves, M)
+        if return_maps:
+            return curves, M, maps
         return curves, M
-
 
     def isogenies_prime_degree(self, l=None):
         r"""

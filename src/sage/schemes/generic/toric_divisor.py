@@ -1085,6 +1085,37 @@ class ToricDivisor_generic(Divisor_generic):
             self._divisor_class = self.parent().scheme().rational_class_group()(self)
         return self._divisor_class
 
+    def Chow_cycle(self, ring=ZZ):
+        r"""
+        Returns the Chow homology class of the divisor.
+
+        INPUT:
+
+        - ``ring`` -- Either ``ZZ`` (default) or ``QQ``. The base ring
+          of the Chow group.
+
+        OUTPUT:
+
+        The :class:`~sage.schemes.generic.toric_chow_group.ChowCycle`
+        represented by the divisor.
+
+        EXAMPLES:
+
+            sage: dP6 = toric_varieties.dP6()
+            sage: cone = dP6.fan(1)[0]
+            sage: D = dP6.divisor(cone); D
+            V(x)
+            sage: D.Chow_cycle()
+            ( 0 | -1, 0, 1, 1 | 0 )
+            sage: dP6.Chow_group()(cone)
+            ( 0 | -1, 0, 1, 1 | 0 )
+        """
+        toric_variety = self.parent().scheme()
+        fan = toric_variety.fan()
+        A = toric_variety.Chow_group(ring)
+        return sum( self.coefficient(i) * A(cone_1d)
+                    for i, cone_1d in enumerate(fan(dim=1)) )
+
     def is_ample(self):
         """
         Return whether a `\QQ`-Cartier divisor is ample.

@@ -59,6 +59,10 @@ Here is a description of patches on top of Sphinx 1.0.4:
 
 == Changelog ==
 
+=== sphinx-1.0.4.p6 (Jeroen Demeyer, 2011-01-31) ===
+
+ * Ticket #10721: Double LaTeX POOL_SIZE to 40000000
+
 === sphinx-1.0.4.p5 (Jeroen Demeyer, 2010-12-05) ===
 
  * Ticket #10350: Fix some remaining issues with sphinx-1.0.4.p3.spkg

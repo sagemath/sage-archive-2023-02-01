@@ -6,26 +6,32 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-if [ "$SAGE64" = "yes" ]; then
-    CFLAGS="-O1 -m64 -fPIC -g -DFAST -DALLTRUE" && export CFLAGS
-else
-    CFLAGS="-O1 -fPIC -g -DFAST -DALLTRUE"; export CFLAGS
+if [ -z $CFLAG64 ] ; then
+   CFLAG64=-m64
 fi
 
-cd src
-$MAKE -f makefile
+if [ "x$SAGE64" = xyes ]; then
+   CFLAGS="$CFLAGS $CFLAG64"
+   export CFLAGS
+fi
 
+CFLAGS="$CFLAGS -O2 -fPIC -g -DFAST -DALLTRUE"
+export CFLAGS
+
+cd src
+patch < ../patches/de.patch
+patch < ../patches/macro.h.patch
+patch < ../patches/sort_sum_rename.patch
+cp -f ../patches/makefile makefile
+
+$MAKE -f makefile
 if [ $? -ne 0 ]; then
     echo "Error building symmetrica."
     exit 1
 fi
 
-ar crs libsymmetrica.a *.o
-cp libsymmetrica.a $SAGE_ROOT/local/lib/
-if [[ ! -d $SAGE_ROOT/local/include/symmetrica ]]
-	then
-	mkdir $SAGE_ROOT/local/include/symmetrica
-fi
-cp def.h macro.h $SAGE_ROOT/local/include/symmetrica
+cp libsymmetrica.a $SAGE_LOCAL/lib/
+mkdir -p $SAGE_LOCAL/include/symmetrica
+cp def.h macro.h $SAGE_LOCAL/include/symmetrica
 
 

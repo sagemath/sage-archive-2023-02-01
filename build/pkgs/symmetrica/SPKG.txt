@@ -1,7 +1,9 @@
 = symmetrica =
 
 == Description ==
-Symmetrica is a program developed by Lehrstuhl Mathematik II of the University of Bayreuth. It has routines to handle the following topics
+
+Symmetrica is a program developed by Lehrstuhl Mathematik II of the
+University of Bayreuth. It has routines to handle the following topics
 
  * ordinary representation theory of the symmetric group and related groups (2/11/04)
  * ordinary representation theory of the classical groups
@@ -13,35 +15,45 @@ Symmetrica is a program developed by Lehrstuhl Mathematik II of the University o
  * operations of finite groups.
  * ordinary representation theory of Hecke algebras of type A_n
 
-For more details check http://www.mathe2.uni-bayreuth.de/axel/symneu_engl.html
+For more details check
+http://www.mathe2.uni-bayreuth.de/axel/symneu_engl.html
+
 
 == License ==
-We include index.html, which is the above web site, which officially states that Symmetrica is PUBLIC DOMAIN.
+
+We include index.html, which is the above web site, which officially
+states that Symmetrica is PUBLIC DOMAIN.
+
 
 == SPKG Maintainers ==
  * Mike Hansen
  * Michael Abshoff
 
+
 == Upstream Contact ==
  * Axel Kohnert - see http://www.mathe2.uni-bayreuth.de/axel/
+
 
 == Dependencies ==
  * None
 
+
 == Special Update/Build Instructions ==
 
-Against common policy the patches in the patches directory have been applied to the src directory:
+The following patches are applied in spkg-install:
 
  * de.patch (Turn off banner)
  * macro.h.patch (Change some return types, this can be avoided)
  * makefile.patch (Fix compiler, inject CFLAGS)
  * sort_sum_rename.patch (rename sort tp sym_sort, sum to sym_sum)
 
+
 == Changelog ==
 
 === symmetrica-2.0.p6 (Volker Braun, 31st January 2011) ===
  * Change -lm option order in Makefile.
  * removed dist/ directory.
+ * src is now the pristine upstream source, patches are applied in spkg-install
 
 === symmetrica-2.0.p5 (David Kirkby, 6th January 2009) ===
  * Allow SAGE64 to work on any platform, not just OS X.

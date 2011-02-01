@@ -1526,7 +1526,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             return self._restricted_automorphism_group
 
         v_list = [ vector(p.projective()) for p in self ]
-        Qinv = sum( v.transpose() * matrix(v) for v in v_list ).inverse()
+        Qinv = sum( v.column() * v.row() for v in v_list ).inverse()
 
         # construct the graph
         from sage.graphs.graph import Graph

@@ -2704,7 +2704,15 @@ def random_subspaces_matrix(parent, rank=None):
         [  0   0   0   0   0   0   0   0   1   0  -5   0  -3   2]
         [  0   0   0   0   0   0   0   0   0   1   1   0   1  -3]
         [  0   0   0   0   0   0   0   0   0   0   0   1  -1   1]
-        sage: B_expanded.set_immutable()
+
+    Check that we fixed Trac #10543 (echelon forms should be immutable)::
+
+        sage: B_expanded.is_immutable()
+        True
+
+    We want to modify B_expanded, so replace it with a copy::
+
+        sage: B_expanded = copy(B_expanded)
         sage: B_expanded.subdivide(B.nrows()-B.nullity(),B.ncols());B_expanded # random
         [  1   3   0   0   1   1   3  -2|  0   0  -3   0  -9  16]
         [  0   0   1   0   3  -2  -1  -3|  0   0   2   0  11 -27]

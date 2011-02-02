@@ -1532,6 +1532,18 @@ class ToricDivisor_generic(Divisor_generic):
             (1, 0, 0)
             sage: D._sheaf_cohomology( SimplicialComplex([1,2,3],[[1,2],[2,3],[3,1]]) )
             (0, 0, 1)
+
+        A more complicated example to test that trac #10731 is fixed::
+
+            sage: cell24 = Polyhedron(vertices=[
+            ...    (1,0,0,0),(0,1,0,0),(0,0,1,0),(0,0,0,1),(1,-1,-1,1),(0,0,-1,1),
+            ...    (0,-1,0,1),(-1,0,0,1),(1,0,0,-1),(0,1,0,-1),(0,0,1,-1),(-1,1,1,-1),
+            ...    (1,-1,-1,0),(0,0,-1,0),(0,-1,0,0),(-1,0,0,0),(1,-1,0,0),(1,0,-1,0),
+            ...    (0,1,1,-1),(-1,1,1,0),(-1,1,0,0),(-1,0,1,0),(0,-1,-1,1),(0,0,0,-1)])
+            sage: X = ToricVariety(FaceFan(cell24.lattice_polytope()))  # long time
+            sage: D = -X.divisor(0)       # long time
+            sage: D.cohomology(dim=True)  # long time
+            (0, 0, 0, 0, 0)
         """
         d = self.parent().scheme().dimension()
         if cplx.dimension()==-1:
@@ -1540,10 +1552,12 @@ class ToricDivisor_generic(Divisor_generic):
         HH = cplx.homology(base_ring=QQ, cohomology=True)
         HH_list = [0]*(d+1)
         for h in HH.iteritems():
-            if h[0]==d:
-                assert(h[1].dimension()==0)
+            degree = h[0]+1
+            cohomology_dim = h[1].dimension()
+            if degree>d or degree<0:
+                assert(cohomology_dim==0)
                 continue
-            HH_list[ h[0]+1 ] = h[1].dimension()
+            HH_list[ degree ] = cohomology_dim
 
         return vector(ZZ, HH_list)
 

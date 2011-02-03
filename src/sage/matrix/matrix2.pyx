@@ -4679,6 +4679,202 @@ cdef class Matrix(matrix1.Matrix):
         self.cache('echelon_form', self)
         verbose('done with gauss echelon form', tm)
 
+    def extended_echelon_form(self, subdivide=False, **kwds):
+        r"""
+        Returns the echelon form of ``self`` augmented with an identity matrix.
+
+        INPUT:
+
+        - ``subdivide`` - default: ``False`` - determines if the
+          returned matrix is subdivided.  See the description of the
+          (output) below for details.
+        - ``kwds`` - additional keywords that can be passed to
+          the method that computes the echelon form.
+
+        OUTPUT:
+
+        If `A` is an `m\times n` matrix, add the `m` columns of an
+        `m\times m` identity matrix to the right of ``self``.  Then
+        row-reduce this `m\times(n+m)` matrix.  This matrix is returned
+        as an immutable matrix.
+
+        If ``subdivide`` is ``True`` then the returned matrix has a single
+        division among the columns and a single division among the rows.
+        The column subdivision has `n` columns to the left and `m`
+        columns to the right.  The row division separates the non-zero rows
+        from the zero rows, when restricted to the first `n` columns.
+
+        For a nonsingular matrix the final `m` columns of the extended
+        echelon form are the inverse of ``self``.  For a matrix of
+        any size, the final `m` columns provide a matrix that transforms
+        ``self`` to echelon form when it multiplies ``self`` from the left.
+        When the base ring is a field, the uniqueness of reduced row-echelon
+        form implies that this transformation matrix can be taken as a
+        canonical set of linear combinations of the rows of ``self`` that
+        yield reduced row-echelon form.
+
+        When subdivided as described above, and again over a field, the
+        parts of the subdivision in the upper-left corner and lower-right
+        corner satisfy several interesting relationships with the row space,
+        column space, left kernel and right kernel of ``self``.  See the
+        examples below.
+
+        .. note::
+
+            This method returns an echelon form.  If the base ring
+            is not a field, no atttempt is made to move to the fraction field.
+            See an example below where the base ring is changed manually.
+
+        EXAMPLES:
+
+        The four relationships at the end of this example hold in general. ::
+
+            sage: A = matrix(QQ, [[2, -1, 7, -1, 0, -3],
+            ...                   [-1, 1, -5, 3, 4, 4],
+            ...                   [2, -1, 7, 0, 2, -2],
+            ...                   [2, 0, 4, 3, 6, 1],
+            ...                   [2, -1, 7, 0, 2, -2]])
+            sage: E = A.extended_echelon_form(subdivide=True); E
+            [   1    0    2    0    0   -1|   0   -1    0    1   -1]
+            [   0    1   -3    0   -2    0|   0   -2    0    2   -3]
+            [   0    0    0    1    2    1|   0  2/3    0 -1/3  2/3]
+            [-----------------------------+------------------------]
+            [   0    0    0    0    0    0|   1  2/3    0 -1/3 -1/3]
+            [   0    0    0    0    0    0|   0    0    1    0   -1]
+            sage: J = E.matrix_from_columns(range(6,11)); J
+            [   0   -1    0    1   -1]
+            [   0   -2    0    2   -3]
+            [   0  2/3    0 -1/3  2/3]
+            [   1  2/3    0 -1/3 -1/3]
+            [   0    0    1    0   -1]
+            sage: J*A == A.rref()
+            True
+            sage: C = E.subdivision(0,0); C
+            [ 1  0  2  0  0 -1]
+            [ 0  1 -3  0 -2  0]
+            [ 0  0  0  1  2  1]
+            sage: L = E.subdivision(1,1); L
+            [   1  2/3    0 -1/3 -1/3]
+            [   0    0    1    0   -1]
+            sage: A.right_kernel() == C.right_kernel()
+            True
+            sage: A.row_space() == C.row_space()
+            True
+            sage: A.column_space() == L.right_kernel()
+            True
+            sage: A.left_kernel() == L.row_space()
+            True
+
+        For a nonsingular matrix, the right half of the extended
+        echelon form is the inverse matrix. ::
+
+            sage: B = matrix(QQ, [[1,3,4], [1,4,4], [0,-2,-1]])
+            sage: E = B.extended_echelon_form()
+            sage: J = E.matrix_from_columns(range(3,6)); J
+            [-4  5  4]
+            [-1  1  0]
+            [ 2 -2 -1]
+            sage: J == B.inverse()
+            True
+
+        The result is in echelon form, so if the base ring is
+        not a field, the leading entry of each row may not be 1.
+        But you can easily change to the fraction field if necessary.  ::
+
+            sage: A = matrix(ZZ, [[16, 20, 4, 5, -4, 13, 5],
+            ...                   [10, 13, 3, -3, 7, 11, 6],
+            ...                   [-12, -15, -3, -3, 2, -10, -4],
+            ...                   [10, 13, 3, 3, -1, 9, 4],
+            ...                   [4, 5, 1, 8, -10, 1, -1]])
+            sage: E = A.extended_echelon_form(subdivide=True); E
+            [ 2  0 -2  2 -9 -3 -4| 0  4 -3 -9  4]
+            [ 0  1  1  2  0  1  1| 0  1  2  1  1]
+            [ 0  0  0  3 -4 -1 -1| 0  3  1 -3  3]
+            [--------------------+--------------]
+            [ 0  0  0  0  0  0  0| 1  6  3 -6  5]
+            [ 0  0  0  0  0  0  0| 0  7  2 -7  6]
+            sage: J = E.matrix_from_columns(range(7,12)); J
+            [ 0  4 -3 -9  4]
+            [ 0  1  2  1  1]
+            [ 0  3  1 -3  3]
+            [ 1  6  3 -6  5]
+            [ 0  7  2 -7  6]
+            sage: J*A == A.echelon_form()
+            True
+            sage: B = A.change_ring(QQ)
+            sage: B.extended_echelon_form(subdivide=True)
+            [     1      0     -1      0  -19/6   -7/6   -5/3|     0      0 -89/42   -5/2    1/7]
+            [     0      1      1      0    8/3    5/3    5/3|     0      0  34/21      2   -1/7]
+            [     0      0      0      1   -4/3   -1/3   -1/3|     0      0   1/21      0    1/7]
+            [------------------------------------------------+----------------------------------]
+            [     0      0      0      0      0      0      0|     1      0    9/7      0   -1/7]
+            [     0      0      0      0      0      0      0|     0      1    2/7     -1    6/7]
+
+        Subdivided, or not, the result is immutable, so make a
+        copy if you want to make changes.  ::
+
+            sage: A = matrix(FiniteField(7), [[2,0,3], [5,5,3], [5,6,5]])
+            sage: E = A.extended_echelon_form()
+            sage: E.is_mutable()
+            False
+            sage: F = A.extended_echelon_form(subdivide=True)
+            sage: F
+            [1 0 0|0 4 6]
+            [0 1 0|4 2 2]
+            [0 0 1|5 2 3]
+            [-----+-----]
+            sage: F.is_mutable()
+            False
+            sage: G = copy(F)
+            sage: G.subdivide([],[]); G
+            [1 0 0 0 4 6]
+            [0 1 0 4 2 2]
+            [0 0 1 5 2 3]
+
+        If you want to determine exactly which algorithm is
+        used to compute the echelon form, you can add additional
+        keywords to pass on to the ``echelon_form()`` routine
+        employed on the augmented matrix.  Sending the flag
+        ``include_zero_rows`` is a bit silly, since the
+        extended echelon form will never have any zero rows. ::
+
+            sage: A = matrix(ZZ, [[1,2], [5,0], [5,9]])
+            sage: E = A.extended_echelon_form(algorithm='padic', include_zero_rows=False)
+            sage: E
+            [  1   0  36   1  -8]
+            [  0   1   5   0  -1]
+            [  0   0  45   1 -10]
+
+        TESTS:
+
+        The ``subdivide`` keyword is checked. ::
+
+            sage: A = matrix(QQ, 2, range(4))
+            sage: A.extended_echelon_form(subdivide='junk')
+            Traceback (most recent call last):
+            ...
+            TypeError: subdivide must be True or False, not junk
+
+        AUTHOR:
+
+        - Rob Beezer (2011-02-02)
+        """
+        if not subdivide in [True, False]:
+            raise TypeError("subdivide must be True or False, not %s" % subdivide)
+        R = self.base_ring()
+        import constructor
+        ident = constructor.identity_matrix(R, self.nrows())
+        E = self.augment(ident)
+        extended = E.echelon_form(**kwds)
+        if subdivide:
+            from copy import copy
+            extended = copy(extended)
+            # pivots of E are cached from echelon form computation
+            rank = len([c for c in E.pivots() if c < self.ncols()])
+            extended.subdivide(rank, self.ncols())
+            extended.set_immutable()
+        return extended
+
     def weak_popov_form(self, ascend=True):
         """
         This function computes a weak Popov form of a matrix over a rational

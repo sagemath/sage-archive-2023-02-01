@@ -726,8 +726,8 @@ cdef class Matrix(matrix0.Matrix):
 
 
     def sparse_columns(self, copy=True):
-        """
-        Return list of the sparse columns of self.
+        r"""
+        Return a list of the columns of ``self`` as sparse vectors (or free module elements).
 
         INPUT:
 
@@ -743,37 +743,47 @@ cdef class Matrix(matrix0.Matrix):
             [(0, 3), (1, 4), (2, 5)]
             sage: v[1].is_sparse()
             True
+
+        TESTS:
+
+        Columns of sparse matrices having no columns were fixed on Trac #10714.  ::
+
+            sage: m = matrix(10, 0, sparse=True)
+            sage: m.ncols()
+            0
+            sage: m.columns()
+            []
         """
         x = self.fetch('sparse_columns')
         if not x is None:
             if copy: return list(x)
             return x
 
-        F = sage.modules.free_module.FreeModule(self._base_ring, self._nrows, sparse=True)
-
-        C = []
-        k = 0
-        entries = {}
         cdef Py_ssize_t i, j
+        C = []
+        if self._ncols > 0:
+            F = sage.modules.free_module.FreeModule(self._base_ring, self._nrows, sparse=True)
 
-        for i, j in self.nonzero_positions(copy=False, column_order=True):
-            if j > k:
-                # new column -- emit vector
-                while len(C) < k:
-                    C.append(F(0))
-                C.append(F(entries, coerce=False, copy=False, check=False))
-                entries = {}
-                k = j
-            entries[i] = self.get_unsafe(i, j)
+            k = 0
+            entries = {}
+            for i, j in self.nonzero_positions(copy=False, column_order=True):
+                if j > k:
+                    # new column -- emit vector
+                    while len(C) < k:
+                        C.append(F(0))
+                    C.append(F(entries, coerce=False, copy=False, check=False))
+                    entries = {}
+                    k = j
+                entries[i] = self.get_unsafe(i, j)
 
-        # finish up
-        while len(C) < k:
-            C.append(F(0))
-        C.append(F(entries, coerce=False, copy=False, check=False))
-        while len(C) < self._ncols:
-            C.append(F(0))
+            # finish up
+            while len(C) < k:
+                C.append(F(0))
+            C.append(F(entries, coerce=False, copy=False, check=False))
+            while len(C) < self._ncols:
+                C.append(F(0))
 
-        # cache result
+        # cache and return result
         self.cache('sparse_columns', C)
         if copy:
             return list(C)
@@ -782,7 +792,7 @@ cdef class Matrix(matrix0.Matrix):
 
     def sparse_rows(self, copy=True):
         r"""
-        Return list of the rows of ``self`` as vectors (or free module elements).
+        Return a list of the rows of ``self`` as sparse vectors (or free module elements).
 
         INPUT:
 

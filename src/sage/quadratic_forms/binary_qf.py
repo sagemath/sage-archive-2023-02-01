@@ -608,9 +608,9 @@ class BinaryQF(SageObject):
             2*x^2 + x*y + 3*y^2
             sage: M = matrix(ZZ, [[1, 2], [3, 5]])
             sage: Q.matrix_action_left(M)
-            32*x^2 + 109*x*y + 93*y^2
+            16*x^2 + 83*x*y + 108*y^2
         """
-        v, w = M.columns()
+        v, w = M.rows()
         a1 = self(v)
         c1 = self(w)
         b1 = self(v + w) - a1 - c1
@@ -631,9 +631,9 @@ class BinaryQF(SageObject):
             2*x^2 + x*y + 3*y^2
             sage: M = matrix(ZZ, [[1, 2], [3, 5]])
             sage: Q.matrix_action_right(M)
-            16*x^2 + 83*x*y + 108*y^2
+            32*x^2 + 109*x*y + 93*y^2
         """
-        v, w = M.rows()
+        v, w = M.columns()
         a1 = self(v)
         c1 = self(w)
         b1 = self(v + w) - a1 - c1

@@ -401,8 +401,19 @@ cdef class EclObject:
         <ECL: 1>
         sage: EclObject(10**40)
         <ECL: 10000000000000000000000000000000000000000>
-        sage: EclObject(float(10**40))
+
+    Floats in Python are IEEE double, which LISP has as well. However,
+    the printing of floating point types in LISP depends on settings::
+
+        sage: a = EclObject(float(10**40))
+        sage: ecl_eval("(setf *read-default-float-format* 'single-float)")
+        <ECL: SINGLE-FLOAT>
+        sage: a
         <ECL: 9.999999999999999d39>
+        sage: ecl_eval("(setf *read-default-float-format* 'double-float)")
+        <ECL: DOUBLE-FLOAT>
+        sage: a
+        <ECL: 9.999999999999999e39>
 
     Tuples are translated to dotted lists::
 
@@ -655,6 +666,44 @@ cdef class EclObject:
         #    pass
         #else:
         #    raise ValueError,"richcmp received operation code %d"%op
+
+    def __iter__(self):
+        r"""
+        Implements the iterator protocol for EclObject.
+
+        EclObject implements the iterator protocol for lists. This means
+        one can use an EclObject in the context where an iterator is
+        expected (for instance, in a list comprehension or in a for loop).
+        The iterator produces EclObjects wrapping the members of the list that
+        the original EclObject wraps.
+
+        The wrappers returned are all newly constructed but refer to the
+        original members of the list iterated over. This is usually what is
+        intended but, just as in Python, can cause surprises if the original
+        object is changed between calls to the iterator.
+
+        Since EclObject translates Python Lists into LISP lists and Python
+        tuples into LISP "dotted" lists (lists for which the final CDR is not
+        necessarily NIL), and both these python structures are iterable, the
+        corresponding EclObjects are iterable as well.
+
+        EclObjects that are not lists are not iterable.
+
+        EXAMPLES::
+            sage: from sage.libs.ecl import *
+            sage: [i for i in EclObject("(1 2 3)")]
+            [<ECL: 1>, <ECL: 2>, <ECL: 3>]
+            sage: [i for i in EclObject("(1 2 . 3)")]
+            [<ECL: 1>, <ECL: 2>, <ECL: 3>]
+            sage: [i for i in EclObject("NIL")]
+            []
+            sage: [i for i in EclObject("T")]
+            Traceback (most recent call last):
+            ...
+            TypeError: ECL object is not iterable
+
+        """
+        return EclListIterator(self)
 
     def eval(self):
         r"""
@@ -983,6 +1032,96 @@ cdef class EclObject:
 
         """
         return bint_symbolp(self.obj)
+
+cdef class EclListIterator:
+    r"""
+    Iterator object for an ECL list
+
+    This class is used to implement the iterator protocol for EclObject.
+    Do not instantiate this class directly but use the iterator method
+    on an EclObject instead. It is an error if the EclObject is not a list.
+
+    EXAMPLES::
+
+        sage: from sage.libs.ecl import *
+        sage: I=EclListIterator(EclObject("(1 2 3)"))
+        sage: type(I)
+        <type 'sage.libs.ecl.EclListIterator'>
+        sage: [i for i in I]
+        [<ECL: 1>, <ECL: 2>, <ECL: 3>]
+        sage: [i for i in EclObject("(1 2 3)")]
+        [<ECL: 1>, <ECL: 2>, <ECL: 3>]
+        sage: EclListIterator(EclObject("1"))
+        Traceback (most recent call last):
+        ...
+        TypeError: ECL object is not iterable
+
+    """
+    cdef EclObject current
+
+    def __init__(EclListIterator self, EclObject o):
+        r"""
+        Initialize EclListIterator
+
+        EXAMPLES::
+
+            sage: from sage.libs.ecl import *
+            sage: I=EclListIterator(EclObject("(1 2 3)"))
+            sage: type(I)
+            <type 'sage.libs.ecl.EclListIterator'>
+
+        """
+        if not o.listp():
+            raise TypeError,"ECL object is not iterable"
+        self.current = ecl_wrap(o.obj)
+
+    def __iter__(EclListIterator self):
+        r"""
+        Return self
+
+        It seems standard that iterators return themselves if asked to produce
+        an iterator.
+
+        EXAMPLES::
+
+            sage: from sage.libs.ecl import *
+            sage: I=EclListIterator(EclObject("(1 2 3)"))
+            sage: id(I) == id(I.__iter__())
+            True
+
+        """
+        return self
+
+    def __next__(EclListIterator self):
+        r"""
+        Get next element from iterator
+
+        EXAMPLES::
+
+            sage: from sage.libs.ecl import *
+            sage: I=EclListIterator(EclObject("(1 2 3)"))
+            sage: I.next()
+            <ECL: 1>
+            sage: I.next()
+            <ECL: 2>
+            sage: I.next()
+            <ECL: 3>
+            sage: I.next()
+            Traceback (most recent call last):
+            ...
+            StopIteration
+
+        """
+
+        if self.current.nullp():
+            raise StopIteration
+        elif self.current.consp():
+            r = self.current.car()
+            self.current = self.current.cdr()
+        else:
+            r = self.current
+            self.current = ecl_wrap(Cnil)
+        return r
 
 #input: a cl-object. Output: EclObject wrapping that.
 cdef EclObject ecl_wrap(cl_object o):

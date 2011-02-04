@@ -121,6 +121,9 @@ patch()
     cp patches/kernel-Makefile.in src/kernel/Makefile.in
     cp patches/libfac-Makefile.in src/libfac/Makefile.in
     cp patches/Makefile.in src/Makefile.in
+
+    # OSX with 64bit kernel, see http://trac.sagemath.org/sage_trac/ticket/10739
+    cp patches/singuname.sh src/singuname.sh
 }
 
 distclean()

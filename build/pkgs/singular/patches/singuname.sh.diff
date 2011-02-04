@@ -1,0 +1,13 @@
+--- ../src/singuname.sh	2009-11-02 10:12:22.000000000 +0000
++++ singuname.sh	2011-02-04 16:54:11.433544999 +0000
+@@ -100,6 +100,10 @@
+     then
+         echo ${prefix}-Linux
+         exit 0
++    elif (echo $uname_a | $egrep "Darwin" >$devnull)
++    then
++        echo ix86Mac-darwin
++        exit 0
+     else
+         echo ${prefix}-Unknown
+         exit 1

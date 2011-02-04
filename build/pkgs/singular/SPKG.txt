@@ -42,6 +42,10 @@ MPIR, NTL, Termcap, Readline and MPFR
 
 == ChangeLog ==
 
+=== singular-3-1-1-4.p4 (Volker Braun, 4th February 2011) ===
+*  compile fix for OSX on 64-bit kernels.
+*  removed dist/ directory.
+
 === singular-3-1-1-4.p3 (Francois Bissey, Alexander Dreyer, 21th September 2010) ===
 *  Patch by Francois Bissey: #9946: Added another dependency
 

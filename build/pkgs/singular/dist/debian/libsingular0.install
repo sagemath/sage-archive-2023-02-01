@@ -1,3 +1,0 @@
-debian/tmp/usr/lib/singular/*.*o usr/lib/
-debian/tmp/usr/share/singular/* usr/lib/singular/
-

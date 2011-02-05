@@ -55,6 +55,18 @@ def rational_diagonal_form(self, return_matrix=False):
 
     EXAMPLES::
 
+        sage: Q = QuadraticForm(ZZ, 2, [0,1,-1])
+        sage: Q
+        Quadratic form in 2 variables over Integer Ring with coefficients:
+        [ 0 1 ]
+        [ * -1 ]
+        sage: Q.rational_diagonal_form()
+        Quadratic form in 2 variables over Rational Field with coefficients:
+        [ -2 0 ]
+        [ * 1/8 ]
+
+    ::
+
         sage: Q = DiagonalQuadraticForm(ZZ, [1,3,5,7])
         sage: Q.rational_diagonal_form(return_matrix=True)
         (Quadratic form in 4 variables over Rational Field with coefficients:
@@ -106,7 +118,10 @@ def rational_diagonal_form(self, return_matrix=False):
             for j in range(i+1, n):
                 if Q[i,j] != 0:
                     temp = MS(1)
-                    temp[j, i] = 1
+                    if Q[i,j] + Q[j,j] == 0:
+                        temp[j, i] = -1
+                    else:
+                        temp[j, i] = 1
 
                     ## Apply the transformation
                     Q = Q(temp)

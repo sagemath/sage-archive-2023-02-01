@@ -4,13 +4,21 @@ TESTS:
 We test various degenerate cases of kernel computation:
 
     sage: matrix(ZZ,1,0).kernel()
-    Ambient free module of rank 1 over the principal ideal domain Integer Ring
+    Free module of degree 1 and rank 1 over Integer Ring
+    Echelon basis matrix:
+    [1]
     sage: matrix(QQ,1,0).kernel()
-    Vector space of dimension 1 over Rational Field
+    Vector space of degree 1 and dimension 1 over Rational Field
+    Basis matrix:
+    [1]
     sage: matrix(GF(7),1,0).kernel()
-    Vector space of dimension 1 over Finite Field of size 7
+    Vector space of degree 1 and dimension 1 over Finite Field of size 7
+    Basis matrix:
+    [1]
     sage: matrix(Frac(QQ['x']),1,0).kernel()
-    Vector space of dimension 1 over Fraction Field of Univariate Polynomial Ring in x over Rational Field
+    Vector space of degree 1 and dimension 1 over Fraction Field of Univariate Polynomial Ring in x over Rational Field
+    Basis matrix:
+    [1]
 
     sage: matrix(ZZ,0,1).kernel()
     Free module of degree 0 and rank 0 over Integer Ring

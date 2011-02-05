@@ -3,11 +3,11 @@
 Base class for matrices, part 2
 
 AUTHORS:
+
     - William Stein: initial version
-
     - Miguel Marco (2010-06-19): modified eigenvalues and eigenvectors functions to
-        allow the option extend=False
-
+      allow the option extend=False
+    - Rob Beezer (2011-02-05): refactored all of the matrix kernel routines
 
 TESTS::
 
@@ -38,7 +38,7 @@ from sage.misc.misc import verbose, get_verbose, graphics_filename
 from sage.rings.number_field.all import is_NumberField
 from sage.rings.integer_ring import ZZ, is_IntegerRing
 from sage.rings.integer import Integer
-from sage.rings.rational_field import QQ
+from sage.rings.rational_field import QQ, is_RationalField
 from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
@@ -2140,524 +2140,1319 @@ cdef class Matrix(matrix1.Matrix):
     # Kernel Helper Functions
     ######################################
 
-    def _right_kernel_trivial(self):
+    def _right_kernel_matrix_over_number_field(self):
         r"""
-        Computes the right kernel of matrices with zero rows or zero columns (or both).
+        Returns a pair that includes a matrix of basis vectors
+        for the right kernel of ``self``.
 
         OUTPUT:
-        For a matrix with zero columns, the returned kernel
-        has degree zero and thus dimension zero.  For a matrix with
-        zero rows the degree is the number of columns and the
-        dimension is full (the number of columns).
 
-        If the base ring is a field the result is a
-        :class:`sage.modules.free_module.VectorSpace`,
-        otherwise the result is a
-        :class:`sage.modules.free_module.FreeModule`.
+        Returns a pair.  First item is the string 'pivot-pari-numberfield'
+        that identifies the nature of the basis vectors.
+
+        Second item is a matrix whose rows are a basis for the right kernel,
+        over the number field, as computed by PARI.
+
+        EXAMPLES::
+
+            sage: Q = QuadraticField(-7)
+            sage: a = Q.gen(0)
+            sage: A = matrix(Q, [[  2, 5-a, 15-a],
+            ...                  [2+a,   a, -7 + 5*a]])
+            sage: result = A._right_kernel_matrix_over_number_field()
+            sage: result[0]
+            'pivot-pari-numberfield'
+            sage: P = result[1]; P
+            [-a -3  1]
+            sage: A*P.transpose() == zero_matrix(Q, 2, 1)
+            True
 
         TESTS:
 
-        Three rows, zero columns, over a field. ::
+        We test some trivial cases. ::
 
-            sage: m = matrix(QQ, [[],[],[]])
-            sage: m._right_kernel_trivial()
-            Vector space of degree 0 and dimension 0 over Rational Field
-            Basis matrix:
-            []
-
-        Zero rows, three columns, over a field. ::
-
-            sage: m = matrix(QQ, [[],[],[]]).transpose()
-            sage: m._right_kernel_trivial()
-            Vector space of dimension 3 over Rational Field
-
-        Three rows, zero columns, over a principal ideal domain. ::
-
-            sage: m = matrix(ZZ, [[],[],[]])
-            sage: m._right_kernel_trivial()
-            Free module of degree 0 and rank 0 over Integer Ring
-            Echelon basis matrix:
-            []
-
-        Zero rows, three columns, over a  principal ideal domain. ::
-
-            sage: m = matrix(ZZ, [[],[],[]]).transpose()
-            sage: m._right_kernel_trivial()
-            Ambient free module of rank 3 over the principal ideal domain Integer Ring
-
-        Three rows, zero columns, over an integral domain.
-        If modules over integral domains ever allow creation of
-        zero submodules, this test will fail to raise an error.
-        This is a response to Trac #8071. ::
-
-            sage: m = matrix(ZZ['x'], [[],[],[]])
-            sage: m._right_kernel_trivial()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Cannot create kernel over Univariate Polynomial Ring in x over Integer Ring
-
-        Zero rows, three columns, over an integral domain.
-        Creating a full free module as a return value is
-        not problematic. ::
-
-            sage: m = matrix(ZZ['x'], [[],[],[]]).transpose()
-            sage: m._right_kernel_trivial()
-            Ambient free module of rank 3 over the integral domain Univariate Polynomial Ring in x over Integer Ring
-
-        Three rows, zero columns, over a generic ring.
-        If modules over generic rings ever allow creation of
-        zero submodules, this test will fail to raise an error.
-        This is a response to Trac #8071. ::
-
-            sage: m = matrix(Integers(6), [[],[],[]])
-            sage: m._right_kernel_trivial()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Cannot create kernel over Ring of integers modulo 6
-
-        Zero rows, three columns, over a generic ring.
-        Creating a full free module as a return value is
-        not problematic. ::
-
-            sage: m = matrix(Integers(6), [[],[],[]]).transpose()
-            sage: m._right_kernel_trivial()
-            Ambient free module of rank 3 over Ring of integers modulo 6
+            sage: Q = QuadraticField(-7)
+            sage: A = matrix(Q, 0, 2)
+            sage: A._right_kernel_matrix_over_number_field()[1]
+            [1 0]
+            [0 1]
+            sage: A = matrix(Q, 2, 0)
+            sage: A._right_kernel_matrix_over_number_field()[1].parent()
+            Full MatrixSpace of 0 by 0 dense matrices over Number Field in a with defining polynomial x^2 + 7
+            sage: A = zero_matrix(Q, 4, 3)
+            sage: A._right_kernel_matrix_over_number_field()[1]
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
         """
-        if self._ncols != 0 and self._nrows != 0:
-            raise ValueError('The right kernel is not automatically trivial for %s' % self )
-        R = self._base_ring
-        if self._ncols == 0:    # from a degree-0 space
-            V = sage.modules.free_module.FreeModule(R, self._ncols)
-            try:
-                Z = V.zero_submodule()
-            except AttributeError:
-                raise NotImplementedError('Cannot create kernel over %s' % R)
-            self.cache('right_kernel', Z)
-            return Z
-        elif self._nrows == 0:  # to a degree-0 space
-            Z = sage.modules.free_module.FreeModule(R, self._ncols)
-            self.cache('right_kernel', Z)
-            return Z
+        tm = verbose("computing right kernel matrix over a number field for %sx%s matrix" % (self.nrows(), self.ncols()),level=1)
+        basis = self._pari_().matker()
+        # Coerce PARI representations into the number field
+        R = self.base_ring()
+        basis = [[R(x) for x in row] for row in basis]
+        verbose("done computing right kernel matrix over a number field for %sx%s matrix" % (self.nrows(), self.ncols()),level=1,t=tm)
+        return 'pivot-pari-numberfield', matrix_space.MatrixSpace(R, len(basis), ncols=self._ncols)(basis)
 
-    def kernel(self, *args, **kwds):
+    def _right_kernel_matrix_over_field(self, *args, **kwds):
         r"""
-        Return the (left) kernel of this matrix, as a vector space. This is
-        the space of vectors x such that x\*self=0. Use
-        self.right_kernel() for the right kernel, while
-        self.left_kernel() is equivalent to self.kernel().
+        Returns a pair that includes a matrix of basis vectors
+        for the right kernel of ``self``.
 
-        INPUT: all additional arguments to the kernel function are passed
-        directly onto the echelon call.
+        OUTPUT:
 
-        By convention if self has 0 rows, the kernel is of dimension 0,
-        whereas the kernel is whole domain if self has 0 columns.
+        Returns a pair.  First item is the string 'pivot-generic'
+        that identifies the nature of the basis vectors.
 
-        .. note::
+        Second item is a matrix whose rows are a basis for the right kernel,
+        over the field, as computed by general Python code.
 
-           For information on algorithms used, see the documentation of :meth:`right_kernel`
-           in this class, or versions of right and left kernels in derived classes which
-           override the ones here.
+        EXAMPLES::
+
+            sage: C = CyclotomicField(14)
+            sage: a = C.gen(0)
+            sage: A = matrix(C, 3, 4, [[  1,    a,    1+a,  a^3+a^5],
+            ...                        [  a,  a^4,  a+a^4,  a^4+a^8],
+            ...                        [a^2, a^6, a^2+a^6, a^5+a^10]])
+            sage: result = A._right_kernel_matrix_over_field()
+            sage: result[0]
+            'pivot-generic'
+            sage: P = result[1]; P
+            [       -1        -1         1         0]
+            [-zeta14^3 -zeta14^4         0         1]
+            sage: A*P.transpose() == zero_matrix(C, 3, 2)
+            True
+
+        TESTS:
+
+        We test some trivial cases. ::
+
+            sage: C = CyclotomicField(14)
+            sage: A = matrix(C, 0, 2)
+            sage: A._right_kernel_matrix_over_field()[1]
+            [1 0]
+            [0 1]
+            sage: A = matrix(C, 2, 0)
+            sage: A._right_kernel_matrix_over_field()[1].parent()
+            Full MatrixSpace of 0 by 0 dense matrices over Cyclotomic Field of order 14 and degree 6
+            sage: A = zero_matrix(C, 4, 3)
+            sage: A._right_kernel_matrix_over_field()[1]
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+        """
+        tm = verbose("computing right kernel matrix over an arbitrary field for %sx%s matrix" % (self.nrows(), self.ncols()),level=1)
+        E = self.echelon_form(*args, **kwds)
+        pivots = E.pivots()
+        pivots_set = set(pivots)
+        R = self.base_ring()
+        zero = R(0)
+        one = R(1)
+        basis = []
+        for i in xrange(self._ncols):
+            if not (i in pivots_set):
+                v = [zero]*self._ncols
+                v[i] = one
+                for r in range(len(pivots)):
+                    v[pivots[r]] = -E[r,i]
+                basis.append(v)
+        tm = verbose("done computing right kernel matrix over an arbitrary field for %sx%s matrix" % (self.nrows(), self.ncols()),level=1,t=tm)
+        return 'pivot-generic', matrix_space.MatrixSpace(R, len(basis), self._ncols)(basis)
+
+    def _right_kernel_matrix_over_domain(self):
+        r"""
+        Returns a pair that includes a matrix of basis vectors
+        for the right kernel of ``self``.
+
+        OUTPUT:
+
+        Returns a pair.  First item is the string 'computed-smith-form'
+        that identifies the nature of the basis vectors.
+
+        Second item is a matrix whose rows are a basis for the right kernel,
+        over the field, as computed by general Python code.
+
+        .. warning::
+
+            This routine uses Smith normal form, which can fail
+            if the domain is not a principal ideal domain.  Since we do
+            not have a good test for PIDs, this is just a risk we take.
+            See an example failure in the documentation for
+            :meth:`right_kernel_matrix`.
 
         EXAMPLES:
 
-        A kernel of dimension one over `\QQ`::
+        Univariate polynomials over a field form a PID.  ::
 
-            sage: A = MatrixSpace(QQ, 3)(range(9))
-            sage: A.kernel()
-            Vector space of degree 3 and dimension 1 over Rational Field
-            Basis matrix:
-            [ 1 -2  1]
+            sage: R.<y> = QQ[]
+            sage: A = matrix(R, [[  1,   y, 1+y^2],
+            ...                  [y^3, y^2, 2*y^3]])
+            sage: result = A._right_kernel_matrix_over_domain()
+            sage: result[0]
+            'computed-smith-form'
+            sage: P = result[1]; P
+            [-1 -y  1]
+            sage: A*P.transpose() == zero_matrix(R, 2, 1)
+            True
 
-        A trivial kernel::
+        TESTS:
 
-            sage: A = MatrixSpace(QQ, 2)([1,2,3,4])
-            sage: A.kernel()
-            Vector space of degree 2 and dimension 0 over Rational Field
-            Basis matrix:
-            []
+        We test some trivial cases. ::
 
-        Kernel of a zero matrix::
-
-            sage: A = MatrixSpace(QQ, 2)(0)
-            sage: A.kernel()
-            Vector space of degree 2 and dimension 2 over Rational Field
-            Basis matrix:
+            sage: R.<y> = QQ[]
+            sage: A = matrix(R, 0, 2)
+            sage: A._right_kernel_matrix_over_domain()[1]
             [1 0]
             [0 1]
-
-        Kernel of a non-square matrix::
-
-            sage: A = MatrixSpace(QQ,3,2)(range(6))
-            sage: A.kernel()
-            Vector space of degree 3 and dimension 1 over Rational Field
-            Basis matrix:
-            [ 1 -2  1]
-
-        The 2-dimensional kernel of a matrix over a cyclotomic field::
-
-            sage: K = CyclotomicField(12); a=K.0
-            sage: M = MatrixSpace(K,4,2)([1,-1, 0,-2, 0,-a**2-1, 0,a**2-1])
-            sage: M
-            [             1             -1]
-            [             0             -2]
-            [             0 -zeta12^2 - 1]
-            [             0  zeta12^2 - 1]
-            sage: M.kernel()
-            Vector space of degree 4 and dimension 2 over Cyclotomic Field of order 12 and degree 4
-            Basis matrix:
-            [               0                1                0     -2*zeta12^2]
-            [               0                0                1 -2*zeta12^2 + 1]
-
-        A nontrivial kernel over a complicated base field.
-
-        ::
-
-            sage: K = FractionField(PolynomialRing(QQ, 2, 'x'))
-            sage: M = MatrixSpace(K, 2)([[K.1, K.0], [K.1, K.0]])
-            sage: M
-            [x1 x0]
-            [x1 x0]
-            sage: M.kernel()
-            Vector space of degree 2 and dimension 1 over Fraction Field of Multivariate Polynomial Ring in x0, x1 over Rational Field
-            Basis matrix:
-            [ 1 -1]
-
-        We test a trivial left kernel over ZZ::
-
-            sage: id = matrix(ZZ, 2, 2, [[1, 0], [0, 1]])
-            sage: id.left_kernel()
-            Free module of degree 2 and rank 0 over Integer Ring
-            Echelon basis matrix:
-            []
-
-        Another matrix over ZZ.
-
-        ::
-
-            sage: a = matrix(ZZ,3,1,[1,2,3])
-            sage: a.left_kernel()
-            Free module of degree 3 and rank 2 over Integer Ring
-            Echelon basis matrix:
-            [ 1  1 -1]
-            [ 0  3 -2]
-
-        Kernel of a large dense rational matrix, which will invoke the fast IML routines
-        in matrix_integer_dense class.  Timing on a 64-bit 3 GHz dual-core machine is about
-        3 seconds to setup and about 1 second for the kernel() call.  Timings that are one
-        or two orders of magnitude larger indicate problems with reaching specialized
-        derived classes.
-
-        ::
-
-            sage: entries = [[1/(i+j+1) for i in srange(500)] for j in srange(500)]
-            sage: a = matrix(QQ, entries)
-            sage: a.kernel()
-            Vector space of degree 500 and dimension 0 over Rational Field
-            Basis matrix:
-            0 x 500 dense matrix over Rational Field
+            sage: A = matrix(R, 2, 0)
+            sage: A._right_kernel_matrix_over_domain()[1].parent()
+            Full MatrixSpace of 0 by 0 dense matrices over Univariate Polynomial Ring in y over Rational Field
+            sage: A = zero_matrix(R, 4, 3)
+            sage: A._right_kernel_matrix_over_domain()[1]
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
         """
-        return self.left_kernel(*args, **kwds)
+        tm = verbose("computing right kernel matrix over a domain for %sx%s matrix" % (self.nrows(), self.ncols()),level=1)
+        d, u, v = self.smith_form()
+        basis = []
+        for i in xrange(self.ncols()):
+            if (i >= self.nrows()) or d[i][i] == 0:
+                basis.append( v.column(i).list() )
+        verbose("done computing right kernel matrix over a domain for %sx%s matrix" % (self.nrows(), self.ncols()),level=1,t=tm)
+        return 'computed-smith-form', self.new_matrix(nrows=len(basis), ncols=self._ncols, entries=basis)
 
-
-    def right_kernel(self, *args, **kwds):
+    def right_kernel_matrix(self, *args, **kwds):
         r"""
-        Return the right kernel of this matrix, as a vector space. This is
-        the space of vectors x such that self\*x=0.  A left kernel can be found
-        with self.left_kernel() or just self.kernel().
-
-        INPUT: all additional arguments to the kernel function are passed
-        directly onto the echelon call.
-
-        By convention if self has 0 columns, the kernel is of dimension 0,
-        whereas the kernel is whole domain if self has 0 rows.
-
-        ALGORITHM:
-
-        Elementary row operations do not change the right kernel, since they
-        are left multiplication by an invertible matrix, so we
-        instead compute the kernel of the row echelon form. When the base ring
-        is a field, then there is a basis vector of the kernel that corresponds
-        to each non-pivot column. That vector has a 1 at the non-pivot column,
-        0's at all other non-pivot columns, and for each pivot column, the
-        negative of the entry at the non-pivot column in the row with that
-        pivot element.
-
-        Over a non-field base ring, we still have a version of echelon form --
-        Hermite normal form -- but the above does not work, since the pivot
-        entries might not be 1. Hence if the base ring is a PID, we use the
-        Smith normal form of the matrix.
-
-        .. note::
-
-           Preference is given to left kernels in that the generic method
-           name :meth:`kernel` returns a left kernel.  However most computations
-           of kernels are implemented as right kernels.
-
-        EXAMPLES:
-
-        A right kernel of dimension one over `\mathbb{Q}`::
-
-            sage: A = MatrixSpace(QQ, 3)(range(9))
-            sage: A.right_kernel()
-            Vector space of degree 3 and dimension 1 over Rational Field
-            Basis matrix:
-            [ 1 -2  1]
-
-        A trivial right kernel::
-
-            sage: A = MatrixSpace(QQ, 2)([1,2,3,4])
-            sage: A.right_kernel()
-            Vector space of degree 2 and dimension 0 over Rational Field
-            Basis matrix:
-            []
-
-        Right kernel of a zero matrix::
-
-            sage: A = MatrixSpace(QQ, 2)(0)
-            sage: A.right_kernel()
-            Vector space of degree 2 and dimension 2 over Rational Field
-            Basis matrix:
-            [1 0]
-            [0 1]
-
-        Right kernel of a non-square matrix::
-
-            sage: A = MatrixSpace(QQ,2,3)(range(6))
-            sage: A.right_kernel()
-            Vector space of degree 3 and dimension 1 over Rational Field
-            Basis matrix:
-            [ 1 -2  1]
-
-        The 2-dimensional right kernel of a matrix over a cyclotomic field::
-
-            sage: K = CyclotomicField(12); a=K.0
-            sage: M = MatrixSpace(K,2,4)([1,-1, 0,-2, 0,-a**2-1, 0,a**2-1])
-            sage: M
-            [            1            -1             0            -2]
-            [            0 -zeta12^2 - 1             0  zeta12^2 - 1]
-            sage: M.right_kernel()
-            Vector space of degree 4 and dimension 2 over Cyclotomic Field of order 12 and degree 4
-            Basis matrix:
-            [      1  4/13*zeta12^2 - 1/13      0 -2/13*zeta12^2 + 7/13]
-            [      0                     0      1                     0]
-
-        A nontrivial right kernel over a complicated base field. ::
-
-            sage: K = FractionField(PolynomialRing(QQ, 2, 'x'))
-            sage: M = MatrixSpace(K, 2)([[K.1, K.0], [K.1, K.0]])
-            sage: M
-            [x1 x0]
-            [x1 x0]
-            sage: M.right_kernel()
-            Vector space of degree 2 and dimension 1 over Fraction Field of Multivariate Polynomial Ring in x0, x1 over Rational Field
-            Basis matrix:
-            [ 1 x1/(-x0)]
-
-        Right kernel of a large dense rational matrix, which will invoke the fast IML routines
-        in matrix_integer_dense class.  Timing on a 64-bit 3 GHz dual-core machine is about
-        3 seconds to setup and about 1 second for the kernel() call.  Timings that are one
-        or two orders of magnitude larger indicate problems with reaching specialized
-        derived classes. ::
-
-            sage: entries = [[1/(i+j+1) for i in srange(500)] for j in srange(500)]
-            sage: a = matrix(QQ, entries)
-            sage: a.right_kernel()
-            Vector space of degree 500 and dimension 0 over Rational Field
-            Basis matrix:
-            0 x 500 dense matrix over Rational Field
-
-        Right kernel of a matrix defined over a principal ideal domain which is
-        not ZZ or a field. This invokes the general Smith normal form routine,
-        rather than echelon form which is less suitable in this case. ::
-
-            sage: L.<w> = NumberField(x^2 - x + 2)
-            sage: OL = L.ring_of_integers()
-            sage: m = matrix(OL, [2, w])
-            sage: m.right_kernel()
-            Free module of degree 2 and rank 1 over Maximal Order in Number Field in w with defining polynomial x^2 - x + 2
-            Echelon basis matrix:
-            [    -1 -w + 1]
-
-        With zero columns the right kernel has dimension 0. ::
-
-            sage: M = matrix(QQ, [[],[],[]])
-            sage: M.right_kernel()
-            Vector space of degree 0 and dimension 0 over Rational Field
-            Basis matrix:
-            []
-
-        With zero rows, the whole domain is the kernel, so the
-        dimension is the number of columns. ::
-
-            sage: M = matrix(QQ, [[],[],[]]).transpose()
-            sage: M.right_kernel()
-            Vector space of dimension 3 over Rational Field
-        """
-        K = self.fetch('right_kernel')
-        if not K is None:
-            return K
-
-        # First: obvious and easy kernels, for matrices over any ring
-        if self._ncols == 0 or self._nrows == 0:
-            return self._right_kernel_trivial()
-
-        R = self._base_ring
-
-        if is_IntegerRing(R):
-            Z = self.right_kernel(*args, **kwds)
-            self.cache('right_kernel', Z)
-            return Z
-
-        if is_NumberField(R):
-            A = self._pari_()
-            B = A.matker()
-            n = self._ncols
-            V = sage.modules.free_module.VectorSpace(R, n)
-            basis = [V([R(x) for x in b]) for b in B]
-            Z = V.subspace(basis)
-            self.cache('right_kernel', Z)
-            return Z
-
-        if R.is_field():
-            E = self.echelon_form(*args, **kwds)
-            pivots = E.pivots()
-            pivots_set = set(pivots)
-            basis = []
-            V = R ** self.ncols()
-            ONE = R(1)
-            for i in xrange(self._ncols):
-                if not (i in pivots_set):
-                    v = V(0)
-                    v[i] = ONE
-                    for r in range(len(pivots)):
-                        v[pivots[r]] = -E[r,i]
-                    basis.append(v)
-            W = V.submodule(basis)
-            if W.dimension() != len(basis):
-                raise RuntimeError, "bug in right_kernel function in matrix2.pyx -- basis from echelon form is not a basis."
-            self.cache('right_kernel', W)
-            return W
-
-        if R.is_integral_domain():
-            d, u, v = self.smith_form()
-            ker = []
-            for i in xrange(self.ncols()):
-                if (i >= self.nrows()) or d[i][i] == 0:
-                    ker.append( v.column(i) )
-            W = (R**self.ncols()).submodule(ker)
-            self.cache('right_kernel', W)
-            return W
-
-        else:
-            raise NotImplementedError, "Don't know how to compute kernels over %s" % R
-
-    def left_kernel(self, *args, **kwds):
-        r"""
-        Return the left kernel of this matrix, as a vector space.
-        This is the space of vectors x such that x*self=0.  This is
-        identical to self.kernel().  For a right kernel, use self.right_kernel().
+        Returns a matrix whose rows form a basis
+        for the right kernel of ``self``.
 
         INPUT:
 
-        - all additional arguments to the kernel function
-          are passed directly onto the echelon call.
+        - ``algorithm`` - default: 'default' - a keyword that selects the
+          algorithm employed.  Allowable values are:
 
-        By convention if self has 0 columns, the kernel is of dimension
-        0, whereas the kernel is whole domain if self has 0 rows.
+          - 'default' - allows the algorithm to be chosen automatically
+          - 'generic' - naive algorithm usable for matrices over any field
+          - 'pari' - PARI library code for matrices over number fields
+            or the integers
+          - 'padic' - padic algorithm from IML library for matrices
+            over the rationals and integers
+          - 'pluq' - PLUQ matrix factorization for matrices mod 2
+
+        - ``basis`` - default: 'echelon' - a keyword that describes
+          the format of the basis returned.  Allowable values are:
+
+          - 'echelon': the basis matrix is in echelon form
+          - 'pivot' : each basis vector is computed from the reduced
+            row-echelon form of ``self`` by placing a single one in a
+            non-pivot column and zeros in the remaining non-pivot columns.
+            Only available for matrices over fields.
+          - 'LLL': an LLL-reduced basis.  Only available for matrices
+            over the integers.
+          - 'computed': no work is done to transform the basis, it is
+            returned exactly as provided by whichever routine actually
+            computed the basis.  Request this for the least possible
+            computation possible, but with no guarantees about the format
+            of the basis.
+
+        OUTPUT:
+
+        A matrix ``X``  whose rows are an independent set spanning the
+        right kernel of ``self``.  So ``self*X.transpose()`` is a zero matrix.
+
+        The output varies depending on the choice of ``algorithm`` and the
+        format chosen by ``basis``.
+
+        The results of this routine are not cached, so you can call it again
+        with different options to get possibly different output (like the basis
+        format).  Conversely, repeated calls on the same matrix will always
+        start from scratch.
 
         .. note::
 
-           For information on algorithms used, see the documentation of right_kernel()
-           in this class, or versions of right and left kernels in derived classes which
-           override the ones here.
+            If you want to get the most basic description of a kernel, with a
+            minimum of overhead, then ask for the right kernel matrix with
+            the basis format requested as 'computed'.  You are then free to
+            work with the output for whatever purpose.  For a left kernel,
+            call this method on the transpose of your matrix.
+
+            For greater convenience, plus cached results, request an actual
+            vector space or free module with :meth:`right_kernel`
+            or :meth:`left_kernel`.
 
         EXAMPLES:
 
-        A left kernel of dimension one over `\QQ`::
+        Over the Rational Numbers:
 
-            sage: A = MatrixSpace(QQ, 3)(range(9))
-            sage: A.left_kernel()
-            Vector space of degree 3 and dimension 1 over Rational Field
+        Kernels are computed by the IML library in
+        :meth:`~sage.matrix.matrix_rational_dense.Matrix_rational_dense._right_kernel_matrix`.
+        Setting the `algorithm` keyword to 'default', 'padic' or unspecified
+        will yield the same result, as there is no optional behavior.
+        The 'computed' format of the basis vectors are exactly the negatives
+        of the vectors in the 'pivot' format. ::
+
+            sage: A = matrix(QQ, [[1, 0, 1, -3, 1],
+            ...                   [-5, 1, 0, 7, -3],
+            ...                   [0, -1, -4, 6, -2],
+            ...                   [4, -1, 0, -6, 2]])
+            sage: C = A.right_kernel_matrix(algorithm='default', basis='computed'); C
+            [-1  2 -2 -1  0]
+            [ 1  2  0  0 -1]
+            sage: A*C.transpose() == zero_matrix(QQ, 4, 2)
+            True
+            sage: P = A.right_kernel_matrix(algorithm='padic', basis='pivot'); P
+            [ 1 -2  2  1  0]
+            [-1 -2  0  0  1]
+            sage: A*P.transpose() == zero_matrix(QQ, 4, 2)
+            True
+            sage: C == -P
+            True
+            sage: E = A.right_kernel_matrix(algorithm='default', basis='echelon'); E
+            [   1    0    1  1/2 -1/2]
+            [   0    1 -1/2 -1/4 -1/4]
+            sage: A*E.transpose() == zero_matrix(QQ, 4, 2)
+            True
+
+        Since the rationals are a field, we can call the general code
+        available for any field by using the 'generic' keyword. ::
+
+            sage: A = matrix(QQ, [[1, 0, 1, -3, 1],
+            ...                   [-5, 1, 0, 7, -3],
+            ...                   [0, -1, -4, 6, -2],
+            ...                   [4, -1, 0, -6, 2]])
+            sage: G = A.right_kernel_matrix(algorithm='generic', basis='echelon'); G
+            [   1    0    1  1/2 -1/2]
+            [   0    1 -1/2 -1/4 -1/4]
+            sage: A*G.transpose() == zero_matrix(QQ, 4, 2)
+            True
+
+        We verify that the rational matrix code is called for both
+        dense and sparse rational matrices, with equal result. ::
+
+            sage: A = matrix(QQ, [[1, 0, 1, -3, 1],
+            ...                   [-5, 1, 0, 7, -3],
+            ...                   [0, -1, -4, 6, -2],
+            ...                   [4, -1, 0, -6, 2]],
+            ...              sparse=False)
+            sage: B = copy(A).sparse_matrix()
+            sage: set_verbose(1)
+            sage: D = A.right_kernel(); D
+            verbose ...
+            verbose 1 (<module>) computing right kernel matrix over the rationals for 4x5 matrix
+            ...
+            verbose 1 (<module>) done computing right kernel matrix over the rationals for 4x5 matrix
+            ...
+            Vector space of degree 5 and dimension 2 over Rational Field
             Basis matrix:
-            [ 1 -2  1]
+            [   1    0    1  1/2 -1/2]
+            [   0    1 -1/2 -1/4 -1/4]
+            sage: S = B.right_kernel(); S
+            verbose ...
+            verbose 1 (<module>) computing right kernel matrix over the rationals for 4x5 matrix
+            ...
+            verbose 1 (<module>) done computing right kernel matrix over the rationals for 4x5 matrix
+            ...
+            Vector space of degree 5 and dimension 2 over Rational Field
+            Basis matrix:
+            [   1    0    1  1/2 -1/2]
+            [   0    1 -1/2 -1/4 -1/4]
+            sage: set_verbose(0)
+            sage: D == S
+            True
 
-        A trivial left kernel::
+        Over Number Fields:
 
-            sage: A = MatrixSpace(QQ, 2)([1,2,3,4])
-            sage: A.left_kernel()
-            Vector space of degree 2 and dimension 0 over Rational Field
+        Kernels are by default computed by PARI, (except for exceptions like
+        the rationals themselves).  The raw results from PARI are a pivot
+        basis, so the `basis` keywords 'computed' and 'pivot' will return
+        the same results. ::
+
+            sage: Q = QuadraticField(-7)
+            sage: a = Q.gen(0)
+            sage: A = matrix(Q, [[2, 5-a, 15-a, 16+4*a],
+            ...                  [2+a, a, -7 + 5*a, -3+3*a]])
+            sage: C = A.right_kernel_matrix(algorithm='default', basis='computed'); C
+            [    -a     -3      1      0]
+            [    -2 -a - 1      0      1]
+            sage: A*C.transpose() == zero_matrix(Q, 2, 2)
+            True
+            sage: P = A.right_kernel_matrix(algorithm='pari', basis='pivot'); P
+            [    -a     -3      1      0]
+            [    -2 -a - 1      0      1]
+            sage: A*P.transpose() == zero_matrix(Q, 2, 2)
+            True
+            sage: E = A.right_kernel_matrix(algorithm='default', basis='echelon'); E
+            [                1                 0     7/88*a + 3/88 -3/176*a - 39/176]
+            [                0                 1   -1/88*a - 13/88  13/176*a - 7/176]
+            sage: A*E.transpose() == zero_matrix(Q, 2, 2)
+            True
+
+        We can bypass using PARI for number fields and use Sage's general
+        code for matrices over any field.  The basis vectors as computed
+        are in pivot format. ::
+
+            sage: Q = QuadraticField(-7)
+            sage: a = Q.gen(0)
+            sage: A = matrix(Q, [[2, 5-a, 15-a, 16+4*a],[2+a, a, -7 + 5*a, -3+3*a]])
+            sage: G = A.right_kernel_matrix(algorithm='generic', basis='computed'); G
+            [    -a     -3      1      0]
+            [    -2 -a - 1      0      1]
+            sage: A*G.transpose() == zero_matrix(Q, 2, 2)
+            True
+
+        We check that number fields are handled by the right routine as part of
+        typical right kernel computation. ::
+
+            sage: Q = QuadraticField(-7)
+            sage: a = Q.gen(0)
+            sage: A = matrix(Q, [[2, 5-a, 15-a, 16+4*a],[2+a, a, -7 + 5*a, -3+3*a]])
+            sage: set_verbose(1)
+            sage: A.right_kernel(algorithm='default')
+            verbose ...
+            verbose 1 (<module>) computing right kernel matrix over a number field for 2x4 matrix
+            verbose 1 (<module>) done computing right kernel matrix over a number field for 2x4 matrix
+            ...
+            Vector space of degree 4 and dimension 2 over Number Field in a with defining polynomial x^2 + 7
+            Basis matrix:
+            [                1                 0     7/88*a + 3/88 -3/176*a - 39/176]
+            [                0                 1   -1/88*a - 13/88  13/176*a - 7/176]
+            sage: set_verbose(0)
+
+        Over the Finite Field of Order 2:
+
+        Kernels are computed by the M4RI library using PLUQ matrix
+        decomposition in the
+        :meth:`~sage.matrix.matrix_mod2_dense.Matrix_mod2_dense._right_kernel_matrix`
+        method. There are no options for the algorithm used.  ::
+
+            sage: A = matrix(GF(2),[[0, 1, 1, 0, 0, 0],
+            ...                     [1, 0, 0, 0, 1, 1,],
+            ...                     [1, 0, 0, 0, 1, 1]])
+            sage: E = A.right_kernel_matrix(algorithm='default', format='echelon'); E
+            [1 0 0 0 0 1]
+            [0 1 1 0 0 0]
+            [0 0 0 1 0 0]
+            [0 0 0 0 1 1]
+            sage: A*E.transpose() == zero_matrix(GF(2), 3, 4)
+            True
+
+        Since GF(2) is a field we can route this computation to the generic
+        code and obtain the 'pivot' form of the basis.  The ``algorithm``
+        keywords, 'pluq', 'default' and unspecified, all have the
+        same effect as there is no optional behavior. ::
+
+            sage: A = matrix(GF(2),[[0, 1, 1, 0, 0, 0],
+            ...                     [1, 0, 0, 0, 1, 1,],
+            ...                     [1, 0, 0, 0, 1, 1]])
+            sage: P = A.right_kernel_matrix(algorithm='generic', basis='pivot'); P
+            [0 1 1 0 0 0]
+            [0 0 0 1 0 0]
+            [1 0 0 0 1 0]
+            [1 0 0 0 0 1]
+            sage: A*P.transpose() == zero_matrix(GF(2), 3, 4)
+            True
+            sage: DP = A.right_kernel_matrix(algorithm='default', basis='pivot'); DP
+            [0 1 1 0 0 0]
+            [0 0 0 1 0 0]
+            [1 0 0 0 1 0]
+            [1 0 0 0 0 1]
+            sage: A*DP.transpose() == zero_matrix(GF(2), 3, 4)
+            True
+            sage: A.right_kernel_matrix(algorithm='pluq', basis='echelon')
+            [1 0 0 0 0 1]
+            [0 1 1 0 0 0]
+            [0 0 0 1 0 0]
+            [0 0 0 0 1 1]
+
+        We test that the mod 2 code is called for matrices over GF(2). ::
+
+            sage: A = matrix(GF(2),[[0, 1, 1, 0, 0, 0],
+            ...                     [1, 0, 0, 0, 1, 1,],
+            ...                     [1, 0, 0, 0, 1, 1]])
+            sage: set_verbose(1)
+            sage: A.right_kernel(algorithm='default')
+            verbose ...
+            verbose 1 (<module>) computing right kernel matrix over integers mod 2 for 3x6 matrix
+            verbose 1 (<module>) done computing right kernel matrix over integers mod 2 for 3x6 matrix
+            ...
+            Vector space of degree 6 and dimension 4 over Finite Field of size 2
+            Basis matrix:
+            [1 0 0 0 0 1]
+            [0 1 1 0 0 0]
+            [0 0 0 1 0 0]
+            [0 0 0 0 1 1]
+            sage: set_verbose(0)
+
+        Over Arbitrary Fields:
+
+        For kernels over fields not listed above, totally general code
+        will compute a set of basis vectors in the pivot format.
+        These could be returned as a basis in echelon form.  ::
+
+            sage: F.<a> = FiniteField(5^2)
+            sage: A = matrix(F, 3, 4, [[  1,   a,     1+a,  a^3+a^5],
+            ...                        [  a, a^4,   a+a^4,  a^4+a^8],
+            ...                        [a^2, a^6, a^2+a^6, a^5+a^10]])
+            sage: P = A.right_kernel_matrix(algorithm='default', basis='pivot'); P
+            [      4       4       1       0]
+            [  a + 2 3*a + 3       0       1]
+            sage: A*P.transpose() == zero_matrix(F, 3, 2)
+            True
+            sage: E = A.right_kernel_matrix(algorithm='default', basis='echelon'); E
+            [      1       0 3*a + 4 2*a + 2]
+            [      0       1     2*a 3*a + 3]
+            sage: A*E.transpose() == zero_matrix(F, 3, 2)
+            True
+
+        This general code can be requested for matrices over any field
+        with the ``algorithm`` keyword 'generic'.  Normally, matrices
+        over the rationals would be handled by specific routines from
+        the IML library. The default format is an echelon basis, but a
+        pivot basis may be requested, which is identical to the computed
+        basis. ::
+
+            sage: A = matrix(QQ, 3, 4, [[1,3,-2,4],
+            ...                         [2,0,2,2],
+            ...                         [-1,1,-2,0]])
+            sage: G = A.right_kernel_matrix(algorithm='generic'); G
+            [   1    0 -1/2 -1/2]
+            [   0    1  1/2 -1/2]
+            sage: A*G.transpose() == zero_matrix(QQ, 3, 2)
+            True
+            sage: C = A.right_kernel_matrix(algorithm='generic', basis='computed'); C
+            [-1  1  1  0]
+            [-1 -1  0  1]
+            sage: A*C.transpose() == zero_matrix(QQ, 3, 2)
+            True
+
+        We test that the generic code is called for matrices over fields,
+        lacking any more specific routine. ::
+
+            sage: F.<a> = FiniteField(5^2)
+            sage: A = matrix(F, 3, 4, [[  1,   a,     1+a,  a^3+a^5],
+            ...                        [  a, a^4,   a+a^4,  a^4+a^8],
+            ...                        [a^2, a^6, a^2+a^6, a^5+a^10]])
+            sage: set_verbose(1)
+            sage: A.right_kernel(algorithm='default')
+            verbose ...
+            verbose 1 (<module>) computing right kernel matrix over an arbitrary field for 3x4 matrix
+            ...
+            verbose 1 (<module>) done computing right kernel matrix over an arbitrary field for 3x4 matrix
+            ...
+            Vector space of degree 4 and dimension 2 over Finite Field in a of size 5^2
+            Basis matrix:
+            [      1       0 3*a + 4 2*a + 2]
+            [      0       1     2*a 3*a + 3]
+            sage: set_verbose(0)
+
+        Over the Integers:
+
+        Either the IML or PARI libraries are used to provide a set of basis
+        vectors.  The ``algorithm`` keyword can be used to select either,
+        or when set to 'default' a heuristic will choose between the two.
+        Results can be returned in the 'compute' format, straight out of
+        the libraries.  Unique to the integers, the basis vectors can be
+        returned as an LLL basis.  Note the similarities and differences
+        in the results. The 'pivot' format is not available, since the
+        integers are not a field.  ::
+
+            sage: A = matrix(ZZ, [[8, 0, 7, 1, 3, 4, 6],
+            ...                   [4, 0, 3, 4, 2, 7, 7],
+            ...                   [1, 4, 6, 1, 2, 8, 5],
+            ...                   [0, 3, 1, 2, 3, 6, 2]])
+
+            sage: X = A.right_kernel_matrix(algorithm='default', basis='echelon'); X
+            [  1  12   3  14  -3 -10   1]
+            [  0  35   0  25  -1 -31  17]
+            [  0   0   7  12  -3  -1  -8]
+            sage: A*X.transpose() == zero_matrix(ZZ, 4, 3)
+            True
+
+            sage: X = A.right_kernel_matrix(algorithm='padic', basis='LLL'); X
+            [ -3  -1   5   7   2  -3  -2]
+            [  3   1   2   5  -5   2  -6]
+            [ -4 -13   2  -7   5   7  -3]
+            sage: A*X.transpose() == zero_matrix(ZZ, 4, 3)
+            True
+
+            sage: X = A.right_kernel_matrix(algorithm='pari', basis='computed'); X
+            [ 3  1 -5 -7 -2  3  2]
+            [ 3  1  2  5 -5  2 -6]
+            [ 4 13 -2  7 -5 -7  3]
+            sage: A*X.transpose() == zero_matrix(ZZ, 4, 3)
+            True
+
+            sage: X = A.right_kernel_matrix(algorithm='padic', basis='computed'); X
+            [ 265  345 -178   17 -297    0    0]
+            [-242 -314  163  -14  271   -1    0]
+            [ -36  -47   25   -1   40    0   -1]
+            sage: A*X.transpose() == zero_matrix(ZZ, 4, 3)
+            True
+
+        We test that the code for integer matrices is called for matrices
+        defined over the integers, both dense and sparse, with equal result. ::
+
+            sage: A = matrix(ZZ, [[8, 0, 7, 1, 3, 4, 6],
+            ...                   [4, 0, 3, 4, 2, 7, 7],
+            ...                   [1, 4, 6, 1, 2, 8, 5],
+            ...                   [0, 3, 1, 2, 3, 6, 2]],
+            ...              sparse=False)
+            sage: B = copy(A).sparse_matrix()
+            sage: set_verbose(1)
+            sage: D = A.right_kernel(); D
+            verbose ...
+            verbose 1 (<module>) computing right kernel matrix over the integers for 4x7 matrix
+            verbose 1 (<module>) done computing right kernel matrix over the integers for 4x7 matrix
+            ...
+            Free module of degree 7 and rank 3 over Integer Ring
+            Echelon basis matrix:
+            [  1  12   3  14  -3 -10   1]
+            [  0  35   0  25  -1 -31  17]
+            [  0   0   7  12  -3  -1  -8]
+            sage: S = B.right_kernel(); S
+            verbose ...
+            verbose 1 (<module>) computing right kernel matrix over the integers for 4x7 matrix
+            verbose 1 (<module>) done computing right kernel matrix over the integers for 4x7 matrix
+            ...
+            Free module of degree 7 and rank 3 over Integer Ring
+            Echelon basis matrix:
+            [  1  12   3  14  -3 -10   1]
+            [  0  35   0  25  -1 -31  17]
+            [  0   0   7  12  -3  -1  -8]
+            sage: set_verbose(0)
+            sage: D == S
+            True
+
+        Over Principal Ideal Domains:
+
+        Kernels can be computed using Smith normal form.  Only the default
+        algorithm is available, and the 'pivot' basis format is
+        not available. ::
+
+            sage: R.<y> = QQ[]
+            sage: A = matrix(R, [[  1,   y, 1+y^2],
+            ...                  [y^3, y^2, 2*y^3]])
+            sage: E = A.right_kernel_matrix(algorithm='default', basis='echelon'); E
+            [-1 -y  1]
+            sage: A*E.transpose() == zero_matrix(ZZ, 2, 1)
+            True
+
+        It can be computationally expensive to determine if an integral
+        domain is a principal ideal domain.  The Smith normal form routine
+        can fail for non-PIDs, as in this example. ::
+
+            sage: D.<x> = ZZ[]
+            sage: A = matrix(D, 2, 2, [[x^2 - x, -x + 5],
+            ...                        [x^2 - 8, -x + 2]])
+            sage: A.right_kernel_matrix()
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: Ideal Ideal (x^2 - x, x^2 - 8) of Univariate Polynomial Ring in x over Integer Ring not principal
+
+        We test that the domain code is called for domains that lack any
+        extra structure. ::
+
+            sage: R.<y> = QQ[]
+            sage: A = matrix(R, [[  1,   y, 1+y^2],
+            ...                  [y^3, y^2, 2*y^3]])
+            sage: set_verbose(1)
+            sage: A.right_kernel(algorithm='default', basis='echelon')
+            verbose ...
+            verbose 1 (<module>) computing right kernel matrix over a domain for 2x3 matrix
+            verbose 1 (<module>) done computing right kernel matrix over a domain for 2x3 matrix
+            ...
+            Free module of degree 3 and rank 1 over Univariate Polynomial Ring in y over Rational Field
+            Echelon basis matrix:
+            [-1 -y  1]
+            sage: set_verbose(0)
+
+        Trivial Cases:
+
+        We test two trivial cases.  Any possible values for the
+        keywords (``algorithm``, ``basis``) will return identical results. ::
+
+            sage: A = matrix(ZZ, 0, 2)
+            sage: A.right_kernel_matrix()
+            [1 0]
+            [0 1]
+            sage: A = matrix(FiniteField(7), 2, 0)
+            sage: A.right_kernel_matrix().parent()
+            Full MatrixSpace of 0 by 0 dense matrices over Finite Field of size 7
+
+        TESTS:
+
+        The "usual" quaternions are a non-commutative ring and computations
+        of kernels over these rings are not implemented. ::
+
+            sage: Q.<i,j,k> = QuaternionAlgebra(-1,-1)
+            sage: A = matrix(Q, 2, [i,j,-1,k])
+            sage: A.right_kernel_matrix()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Cannot compute a matrix kernel over Quaternion Algebra (-1, -1) with base ring Rational Field
+
+        We test error messages for improper choices of the 'algorithm'
+        keyword. ::
+
+            sage: matrix(ZZ, 2, 2).right_kernel_matrix(algorithm='junk')
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix kernel algorithm 'junk' not recognized
+            sage: matrix(GF(2), 2, 2).right_kernel_matrix(algorithm='padic')
+            Traceback (most recent call last):
+            ...
+            ValueError: 'padic' matrix kernel algorithm only available over the rationals and the integers, not over Finite Field of size 2
+            sage: matrix(QQ, 2, 2).right_kernel_matrix(algorithm='pari')
+            Traceback (most recent call last):
+            ...
+            ValueError: 'pari' matrix kernel algorithm only available over non-trivial number fields and the integers, not over Rational Field
+            sage: matrix(Integers(6), 2, 2).right_kernel_matrix(algorithm='generic')
+            Traceback (most recent call last):
+            ...
+            ValueError: 'generic' matrix kernel algorithm only available over a field, not over Ring of integers modulo 6
+            sage: matrix(QQ, 2, 2).right_kernel_matrix(algorithm='pluq')
+            Traceback (most recent call last):
+            ...
+            ValueError: 'pluq' matrix kernel algorithm only available over integers mod 2, not over Rational Field
+
+        We test error messages for improper basis format requests. ::
+
+            sage: matrix(ZZ, 2, 2).right_kernel_matrix(basis='junk')
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix kernel basis format 'junk' not recognized
+            sage: matrix(ZZ, 2, 2).right_kernel_matrix(basis='pivot')
+            Traceback (most recent call last):
+            ...
+            ValueError: pivot basis only available over a field, not over Integer Ring
+            sage: matrix(QQ, 2, 2).right_kernel_matrix(basis='LLL')
+            Traceback (most recent call last):
+            ...
+            ValueError: LLL-reduced basis only available over the integers, not over Rational Field
+
+        Finally, error messages for the 'proof' keyword.  ::
+
+            sage: matrix(ZZ, 2, 2).right_kernel_matrix(proof='junk')
+            Traceback (most recent call last):
+            ...
+            ValueError: 'proof' must be one of True, False or None, not junk
+            sage: matrix(QQ, 2, 2).right_kernel_matrix(proof=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: 'proof' flag only valid for matrices over the integers
+
+        AUTHOR:
+
+        - Rob Beezer (2011-02-05)
+        """
+        R = self.base_ring()
+
+        # First: massage keywords
+        # Determine algorithm to use for computation of kernel matrix
+        algorithm = kwds.pop('algorithm', None)
+        if algorithm is None:
+            algorithm = 'default'
+        elif not algorithm in ['default', 'generic', 'pari', 'padic', 'pluq']:
+            raise ValueError("matrix kernel algorithm '%s' not recognized" % algorithm )
+        elif algorithm == 'padic' and not (is_IntegerRing(R) or is_RationalField(R)):
+            raise ValueError("'padic' matrix kernel algorithm only available over the rationals and the integers, not over %s" % R)
+        elif algorithm == 'pari' and not (is_IntegerRing(R) or (is_NumberField(R) and not is_RationalField(R))):
+            raise ValueError("'pari' matrix kernel algorithm only available over non-trivial number fields and the integers, not over %s" % R)
+        elif algorithm == 'generic' and not R.is_field():
+            raise ValueError("'generic' matrix kernel algorithm only available over a field, not over %s" % R)
+        elif algorithm == 'pluq' and not isinstance(self, sage.matrix.matrix_mod2_dense.Matrix_mod2_dense):
+            raise ValueError("'pluq' matrix kernel algorithm only available over integers mod 2, not over %s" % R)
+
+        # Determine the basis format of independent spanning set to return
+        basis = kwds.pop('basis', None)
+        if basis is None:
+            basis = 'echelon'
+        elif not basis in ['computed', 'echelon', 'pivot', 'LLL']:
+            raise ValueError("matrix kernel basis format '%s' not recognized" % basis )
+        elif basis == 'pivot' and not R.is_field():
+            raise ValueError('pivot basis only available over a field, not over %s' % R)
+        elif basis == 'LLL' and not is_IntegerRing(R):
+            raise ValueError('LLL-reduced basis only available over the integers, not over %s' % R)
+
+        # Determine proof keyword for integer matrices
+        proof = kwds.pop('proof', None)
+        if not (proof in [None, True, False]):
+            raise ValueError("'proof' must be one of True, False or None, not %s" % proof)
+        if not (proof is None or is_IntegerRing(R)):
+            raise ValueError("'proof' flag only valid for matrices over the integers")
+
+        # We could sanitize/process remaining (un-popped) keywords here and
+        # send them to the echelon form routine in the 'generic' algorithm case
+        # Would need to handle 'algorithm' keyword properly
+
+        # Second: Trivial cases over any integral domain
+        # With zero columns the domain has dimension 0,
+        #   so only an empty basis is possible
+        # With zero rows the codomain is just the zero vector,
+        #   thus the kernel is the whole domain, so return an identity matrix
+        #   identity_matrix constructor will fail if ring does not have a one
+        # For all keywords the results are identical
+        if self._ncols == 0 and R.is_integral_domain():
+            return self.new_matrix(nrows = 0, ncols = self._ncols)
+        if self._nrows == 0 and R.is_integral_domain():
+            import constructor
+            return constructor.identity_matrix(R, self._ncols)
+
+        # Third: generic first, if requested explicitly
+        #   then try specialized class methods, and finally
+        #   delegate to ad-hoc methods in greater generality
+        M = None; format = ''
+
+        if algorithm == 'generic':
+            format, M = self._right_kernel_matrix_over_field()
+
+        if M is None:
+            try:
+                format, M = self._right_kernel_matrix(algorithm=algorithm, proof=proof)
+            except AttributeError:
+                pass
+
+        if M is None and is_NumberField(R):
+            format, M = self._right_kernel_matrix_over_number_field()
+
+        if M is None and R.is_field():
+            format, M = self._right_kernel_matrix_over_field()
+
+        if M is None and R.is_integral_domain():
+            format, M = self._right_kernel_matrix_over_domain()
+
+        if M is None:
+            raise NotImplementedError("Cannot compute a matrix kernel over %s" % R)
+
+        # Trivial kernels give empty matrices, which sometimes mistakenly have
+        #   zero columns as well. (eg PARI?)  This could be fixed at the source
+        #   with a careful study of the phenomenon.  Start by commenting out
+        #   the following and running doctests in sage/matrix
+        if M.nrows()==0 and M.ncols()!=self.ncols():
+            M = M.new_matrix(nrows=0, ncols=self.ncols())
+
+        # Convert basis to requested type and return the matrix
+        #   format string leads with 'echelon', 'pivot' or 'LLL' if known
+        #   to be of that format otherwise format string leads with
+        #   'computed' if it needs work (ie raw results)
+        if basis == 'computed':
+            return M
+        elif basis == 'echelon':
+            if not format[:7] == 'echelon':
+                return M.echelon_form()
+            else:
+                return M
+        elif basis == 'pivot':
+            # cannot get here unless over a field
+            if not format[:5] == 'pivot':
+                # convert non-pivot columns to identity matrix
+                # this is the basis immediately obvious from echelon form
+                # so C is always invertible (when working over a field)
+                C = M.matrix_from_columns(self.nonpivots())
+                return C.inverse()*M
+            else:
+                return M
+        elif basis == 'LLL':
+            # cannot get here unless over integers
+            if not format[:3] == 'LLL':
+                return M.LLL()
+            else:
+                return M
+
+    def right_kernel(self, *args, **kwds):
+        r"""
+        Returns the right kernel of this matrix, as a vector space or
+        free module. This is the set of vectors ``x`` such that ``self*x = 0``.
+
+        .. note::
+
+            For the left kernel, use :meth:`left_kernel`.  The method
+            :meth:`kernel` is exactly equal to :meth:`left_kernel`.
+
+        INPUT:
+
+        - ``algorithm`` - default: 'default' - a keyword that selects the
+          algorithm employed.  Allowable values are:
+
+          - 'default' - allows the algorithm to be chosen automatically
+          - 'generic' - naive algorithm usable for matrices over any field
+          - 'pari' - PARI library code for matrices over number fields
+            or the integers
+          - 'padic' - padic algorithm from IML library for matrices
+            over the rationals and integers
+          - 'pluq' - PLUQ matrix factorization for matrices mod 2
+
+        - ``basis`` - default: 'echelon' - a keyword that describes the
+          format of the basis used to construct the left kernel.
+          Allowable values are:
+
+          - 'echelon': the basis matrix is in echelon form
+          - 'pivot' : each basis vector is computed from the reduced
+            row-echelon form of ``self`` by placing a single one in a
+            non-pivot column and zeros in the remaining non-pivot columns.
+            Only available for matrices over fields.
+          - 'LLL': an LLL-reduced basis.  Only available for matrices
+            over the integers.
+
+        OUTPUT:
+
+        A vector space or free module whose degree equals the number
+        of columns in ``self`` and contains all the vectors ``x`` such
+        that ``self*x = 0``.
+
+        If ``self`` has 0 columns, the kernel has dimension 0, while if
+        ``self`` has 0 rows the kernel is the entire ambient vector space.
+
+        The result is cached.  Requesting the right kernel a second time,
+        but with a different basis format, will return the cached result
+        with the format from the first computation.
+
+        .. note::
+
+           For more detailed documentation on the selection of algorithms
+           used and a more flexible method for computing a basis matrix
+           for a right kernel (rather than computing a vector space), see
+           :meth:`right_kernel_matrix`, which powers the computations for
+           this method.
+
+        EXAMPLES::
+
+            sage: A = matrix(QQ, [[0, 0, 1, 2, 2, -5, 3],
+            ...                   [-1, 5, 2, 2, 1, -7, 5],
+            ...                   [0, 0, -2, -3, -3, 8, -5],
+            ...                   [-1, 5, 0, -1, -2, 1, 0]])
+            sage: K = A.right_kernel(); K
+            Vector space of degree 7 and dimension 4 over Rational Field
+            Basis matrix:
+            [ 1  0  0  0 -1 -1 -1]
+            [ 0  1  0  0  5  5  5]
+            [ 0  0  1  0 -1 -2 -3]
+            [ 0  0  0  1  0  1  1]
+            sage: A*K.basis_matrix().transpose() == zero_matrix(QQ, 4, 4)
+            True
+
+        The default is basis vectors that form a matrix in echelon form.
+        A "pivot basis" instead has a basis matrix where the columns of
+        an identity matrix are in the locations of the non-pivot columns
+        of the original matrix. This alternate format is available whenever
+        the base ring is a field. ::
+
+            sage: A = matrix(QQ, [[0, 0, 1, 2, 2, -5, 3],
+            ...                   [-1, 5, 2, 2, 1, -7, 5],
+            ...                   [0, 0, -2, -3, -3, 8, -5],
+            ...                   [-1, 5, 0, -1, -2, 1, 0]])
+            sage: A.rref()
+            [ 1 -5  0  0  1  1 -1]
+            [ 0  0  1  0  0 -1  1]
+            [ 0  0  0  1  1 -2  1]
+            [ 0  0  0  0  0  0  0]
+            sage: A.nonpivots()
+            (1, 4, 5, 6)
+            sage: K = A.right_kernel(basis='pivot'); K
+            Vector space of degree 7 and dimension 4 over Rational Field
+            User basis matrix:
+            [ 5  1  0  0  0  0  0]
+            [-1  0  0 -1  1  0  0]
+            [-1  0  1  2  0  1  0]
+            [ 1  0 -1 -1  0  0  1]
+            sage: A*K.basis_matrix().transpose() == zero_matrix(QQ, 4, 4)
+            True
+
+        Matrices may have any field as a base ring.  Number fields are
+        computed by PARI library code, matrices over `GF(2)` are computed
+        by the M4RI library, and matrices over the rationals are computed by
+        the IML library.  For any of these specialized cases, general-purpose
+        code can be called instead with the keyword setting
+        ``algorithm='generic'``.
+
+        Over an arbitrary field, with two basis formats.  Same vector space,
+        different bases.  ::
+
+            sage: F.<a> = FiniteField(5^2)
+            sage: A = matrix(F, 3, 4, [[  1,   a,     1+a,  a^3+a^5],
+            ...                        [  a, a^4,   a+a^4,  a^4+a^8],
+            ...                        [a^2, a^6, a^2+a^6, a^5+a^10]])
+            sage: K = A.right_kernel(); K
+            Vector space of degree 4 and dimension 2 over Finite Field in a of size 5^2
+            Basis matrix:
+            [      1       0 3*a + 4 2*a + 2]
+            [      0       1     2*a 3*a + 3]
+            sage: A*K.basis_matrix().transpose() == zero_matrix(F, 3, 2)
+            True
+            sage: B = copy(A)
+            sage: P = B.right_kernel(basis = 'pivot'); P
+            Vector space of degree 4 and dimension 2 over Finite Field in a of size 5^2
+            User basis matrix:
+            [      4       4       1       0]
+            [  a + 2 3*a + 3       0       1]
+            sage: B*P.basis_matrix().transpose() == zero_matrix(F, 3, 2)
+            True
+            sage: K == P
+            True
+
+        Over number fields, PARI is used by default, but general-purpose code
+        can be requested.  Same vector space, same bases, different code.::
+
+            sage: Q = QuadraticField(-7)
+            sage: a = Q.gen(0)
+            sage: A = matrix(Q, [[  2, 5-a,     15-a, 16+4*a],
+            ...                  [2+a,   a, -7 + 5*a, -3+3*a]])
+            sage: K = A.right_kernel(algorithm='default'); K
+            Vector space of degree 4 and dimension 2 over Number Field in a with defining polynomial x^2 + 7
+            Basis matrix:
+            [                1                 0     7/88*a + 3/88 -3/176*a - 39/176]
+            [                0                 1   -1/88*a - 13/88  13/176*a - 7/176]
+            sage: A*K.basis_matrix().transpose() == zero_matrix(Q, 2, 2)
+            True
+            sage: B = copy(A)
+            sage: G = A.right_kernel(algorithm='generic'); G
+            Vector space of degree 4 and dimension 2 over Number Field in a with defining polynomial x^2 + 7
+            Basis matrix:
+            [                1                 0     7/88*a + 3/88 -3/176*a - 39/176]
+            [                0                 1   -1/88*a - 13/88  13/176*a - 7/176]
+            sage: B*G.basis_matrix().transpose() == zero_matrix(Q, 2, 2)
+            True
+            sage: K == G
+            True
+
+        For matrices over the integers, several options are possible.
+        The basis can be an LLL-reduced basis or an echelon basis.
+        The pivot basis isnot available.  A heuristic will decide whether
+        to use a p-adic algorithm from the IML library or an algorithm
+        from the PARI library.  Note how specifying the algorithm can
+        mildly influence the LLL basis. ::
+
+            sage: A = matrix(ZZ, [[0, -1, -1, 2, 9, 4, -4],
+            ...                   [-1, 1, 0, -2, -7, -1, 6],
+            ...                   [2, 0, 1, 0, 1, -5, -2],
+            ...                   [-1, -1, -1, 3, 10, 10, -9],
+            ...                   [-1, 2, 0, -3, -7, 1, 6]])
+            sage: A.right_kernel(basis='echelon')
+            Free module of degree 7 and rank 2 over Integer Ring
+            Echelon basis matrix:
+            [  1   5  -8   3  -1  -1  -1]
+            [  0  11 -19   5  -2  -3  -3]
+            sage: B = copy(A)
+            sage: B.right_kernel(basis='LLL')
+            Free module of degree 7 and rank 2 over Integer Ring
+            User basis matrix:
+            [ 2 -1  3  1  0  1  1]
+            [-5 -3  2 -5  1 -1 -1]
+            sage: C = copy(A)
+            sage: C.right_kernel(basis='pivot')
+            Traceback (most recent call last):
+            ...
+            ValueError: pivot basis only available over a field, not over Integer Ring
+            sage: D = copy(A)
+            sage: D.right_kernel(algorithm='pari')
+            Free module of degree 7 and rank 2 over Integer Ring
+            Echelon basis matrix:
+            [  1   5  -8   3  -1  -1  -1]
+            [  0  11 -19   5  -2  -3  -3]
+            sage: E = copy(A)
+            sage: E.right_kernel(algorithm='padic', basis='LLL')
+            Free module of degree 7 and rank 2 over Integer Ring
+            User basis matrix:
+            [-2  1 -3 -1  0 -1 -1]
+            [ 5  3 -2  5 -1  1  1]
+
+        Besides the integers, rings may be as general as principal ideal
+        domains.  Results are then free modules.  ::
+
+            sage: R.<y> = QQ[]
+            sage: A = matrix(R, [[  1,   y, 1+y^2],
+            ...                  [y^3, y^2, 2*y^3]])
+            sage: K = A.right_kernel(algorithm='default', basis='echelon'); K
+            Free module of degree 3 and rank 1 over Univariate Polynomial Ring in y over Rational Field
+            Echelon basis matrix:
+            [-1 -y  1]
+            sage: A*K.basis_matrix().transpose() == zero_matrix(ZZ, 2, 1)
+            True
+
+        It is possible to compute a kernel for a matrix over an integral
+        domain which is not a PID, but usually this will fail.  ::
+
+            sage: D.<x> = ZZ[]
+            sage: A = matrix(D, 2, 2, [[x^2 - x, -x + 5],
+            ...                        [x^2 - 8, -x + 2]])
+            sage: A.right_kernel()
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: Ideal Ideal (x^2 - x, x^2 - 8) of Univariate Polynomial Ring in x over Integer Ring not principal
+
+        Matrices over non-commutative rings are not a good idea either.
+        These are the "usual" quaternions.  ::
+
+            sage: Q.<i,j,k> = QuaternionAlgebra(-1,-1)
+            sage: A = matrix(Q, 2, [i,j,-1,k])
+            sage: A.right_kernel()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Cannot compute a matrix kernel over Quaternion Algebra (-1, -1) with base ring Rational Field
+
+        Sparse matrices, over the rationals and the integers,
+        use the same routines as the dense versions. ::
+
+            sage: A = matrix(ZZ, [[0, -1, 1, 1, 2],
+            ...                   [1, -2, 0, 1, 3],
+            ...                   [-1, 2, 0, -1, -3]],
+            ...              sparse=True)
+            sage: A.right_kernel()
+            Free module of degree 5 and rank 3 over Integer Ring
+            Echelon basis matrix:
+            [ 1  0  0  2 -1]
+            [ 0  1  0 -1  1]
+            [ 0  0  1 -3  1]
+            sage: B = A.change_ring(QQ)
+            sage: B.is_sparse()
+            True
+            sage: B.right_kernel()
+            Vector space of degree 5 and dimension 3 over Rational Field
+            Basis matrix:
+            [ 1  0  0  2 -1]
+            [ 0  1  0 -1  1]
+            [ 0  0  1 -3  1]
+
+        With no columns, the kernel can only have dimension zero.
+        With no rows, every possible vector is in the kernel.  ::
+
+            sage: A = matrix(QQ, 2, 0)
+            sage: A.right_kernel()
+            Vector space of degree 0 and dimension 0 over Rational Field
             Basis matrix:
             []
-
-        Left kernel of a zero matrix::
-
-            sage: A = MatrixSpace(QQ, 2)(0)
-            sage: A.left_kernel()
+            sage: A = matrix(QQ, 0, 2)
+            sage: A.right_kernel()
             Vector space of degree 2 and dimension 2 over Rational Field
             Basis matrix:
             [1 0]
             [0 1]
 
-        Left kernel of a non-square matrix::
+        Every vector is in the kernel of a zero matrix, the
+        dimension is the number of columns. ::
 
-            sage: A = MatrixSpace(QQ,3,2)(range(6))
-            sage: A.left_kernel()
+            sage: A = zero_matrix(QQ, 10, 20)
+            sage: A.right_kernel()
+            Vector space of degree 20 and dimension 20 over Rational Field
+            Basis matrix:
+            20 x 20 dense matrix over Rational Field
+
+        Results are cached as the right kernel of the matrix.
+        Subsequent requests for the right kernel will return
+        the cached result, without regard for new values of the
+        algorithm or format keyword.  Work with a copy if you
+        need a new right kernel, or perhaps investigate the
+        :meth:`right_kernel_matrix` method, which does not
+        cache its results and is more flexible. ::
+
+            sage: A = matrix(QQ, 3, range(9))
+            sage: K1 = A.right_kernel(basis='echelon')
+            sage: K1
             Vector space of degree 3 and dimension 1 over Rational Field
             Basis matrix:
             [ 1 -2  1]
-
-        The 2-dimensional left kernel of a matrix over a cyclotomic field::
-
-            sage: K = CyclotomicField(12); a=K.0
-            sage: M = MatrixSpace(K,4,2)([1,-1, 0,-2, 0,-a**2-1, 0,a**2-1])
-            sage: M
-            [             1             -1]
-            [             0             -2]
-            [             0 -zeta12^2 - 1]
-            [             0  zeta12^2 - 1]
-            sage: M.left_kernel()
-            Vector space of degree 4 and dimension 2 over Cyclotomic Field of order 12 and degree 4
+            sage: K2 = A.right_kernel(basis='pivot')
+            sage: K2
+            Vector space of degree 3 and dimension 1 over Rational Field
             Basis matrix:
-            [               0                1                0     -2*zeta12^2]
-            [               0                0                1 -2*zeta12^2 + 1]
+            [ 1 -2  1]
+            sage: K1 is K2
+            True
+            sage: B = copy(A)
+            sage: K3 = B.kernel(basis='pivot')
+            sage: K3
+            Vector space of degree 3 and dimension 1 over Rational Field
+            User basis matrix:
+            [ 1 -2  1]
+            sage: K3 is K1
+            False
+            sage: K3 == K1
+            True
+        """
+        K = self.fetch('right_kernel')
+        if not K is None:
+            verbose("retrieving cached right kernel for %sx%s matrix" % (self.nrows(), self.ncols()),level=1)
+            return K
 
-        A nontrivial left kernel over a complicated base field.
+        R = self.base_ring()
+        tm = verbose("computing a right kernel for %sx%s matrix over %s" % (self.nrows(), self.ncols(), R),level=1)
 
-        ::
+        # Sanitize basis format
+        #   'computed' is OK in right_kernel_matrix(), but not here
+        #   'echelon' is default here (and elsewhere)
+        #   everything else gets checked in right_kernel_matrix()
+        basis = kwds.pop('basis', None)
+        if basis == 'computed':
+            raise ValueError("kernel basis format 'computed' not supported for kernels (just right kernel matrices)")
+        if basis is None:
+            basis = 'echelon'
+        kwds['basis'] = basis
 
-            sage: K = FractionField(PolynomialRing(QQ, 2, 'x'))
-            sage: M = MatrixSpace(K, 2)([[K.1, K.0], [K.1, K.0]])
-            sage: M
-            [x1 x0]
-            [x1 x0]
-            sage: M.left_kernel()
-            Vector space of degree 2 and dimension 1 over Fraction Field of Multivariate Polynomial Ring in x0, x1 over Rational Field
+        # Go get the kernel matrix, this is where it all happens
+        M = self.right_kernel_matrix(*args, **kwds)
+
+        ambient = R**self.ncols()
+        if basis == 'echelon':
+            K = ambient.submodule(M.rows(), already_echelonized=True, check=False)
+        else:
+            K = ambient.submodule_with_basis(M.rows(), already_echelonized=False, check=False)
+
+        verbose("done computing a right kernel for %sx%s matrix over %s" % (self.nrows(), self.ncols(), R),level=1, t=tm)
+        self.cache('right_kernel', K)
+        return K
+
+    def left_kernel(self, *args, **kwds):
+        r"""
+        Returns the left kernel of this matrix, as a vector space or free module.
+        This is the set of vectors ``x`` such that ``x*self = 0``.
+
+        .. note::
+
+            For the right kernel, use :meth:`right_kernel`.  The method
+            :meth:`kernel` is exactly equal to :meth:`left_kernel`.
+
+        INPUT:
+
+        - ``algorithm`` - default: 'default' - a keyword that selects the
+          algorithm employed.  Allowable values are:
+
+          - 'default' - allows the algorithm to be chosen automatically
+          - 'generic' - naive algorithm usable for matrices over any field
+          - 'pari' - PARI library code for matrices over number fields
+            or the integers
+          - 'padic' - padic algorithm from IML library for matrices
+            over the rationals and integers
+          - 'pluq' - PLUQ matrix factorization for matrices mod 2
+
+        - ``basis`` - default: 'echelon' - a keyword that describes
+          the format of the basis used to construct the left kernel.
+          Allowable values are:
+
+          - 'echelon': the basis matrix is in echelon form
+          - 'pivot' : each basis vector is computed from the reduced
+            row-echelon form of ``self`` by placing a single one in a
+            non-pivot column and zeros in the remaining non-pivot columns.
+            Only available for matrices over fields.
+          - 'LLL': an LLL-reduced basis.  Only available for matrices
+            over the integers.
+
+        OUTPUT:
+
+        A vector space or free module whose degree equals the number
+        of rows in ``self`` and contains all the vectors ``x`` such
+        that ``x*self = 0``.
+
+        If ``self`` has 0 rows, the kernel has dimension 0, while if ``self``
+        has 0 columns the kernel is the entire ambient vector space.
+
+        The result is cached.  Requesting the left kernel a second time,
+        but with a different basis format will return the cached result
+        with the format from the first computation.
+
+        .. note::
+
+           For much more detailed documentation of the various options see
+           :meth:`right_kernel`, since this method just computes
+           the right kernel of the transpose of ``self``.
+
+        EXAMPLES:
+
+        Over the rationals with a basis matrix in echelon form. ::
+
+            sage: A = matrix(QQ, [[1, 2, 4, -7, 4],
+            ...                   [1, 1, 0, 2, -1],
+            ...                   [1, 0, 3, -3, 1],
+            ...                   [0, -1, -1, 3, -2],
+            ...                   [0, 0, -1, 2, -1]])
+            sage: A.left_kernel()
+            Vector space of degree 5 and dimension 2 over Rational Field
             Basis matrix:
-            [ 1 -1]
+            [ 1  0 -1  2 -1]
+            [ 0  1 -1  1 -4]
 
-        Left kernel of a large dense rational matrix, which will invoke the fast IML routines
-        in matrix_integer_dense class.  Timing on a 64-bit 3 GHz dual-core machine is about
-        3 seconds to setup and about 1 second for the kernel() call.  Timings that are one
-        or two orders of magnitude larger indicate problems with reaching specialized
-        derived classes.
+        Over a finite field, with a basis matrix in "pivot" format. ::
 
-        ::
+            sage: A = matrix(FiniteField(7), [[5, 0, 5, 2, 4],
+            ...                               [1, 3, 2, 3, 6],
+            ...                               [1, 1, 6, 5, 3],
+            ...                               [2, 5, 6, 0, 0]])
+            sage: A.kernel(basis='pivot')
+            Vector space of degree 4 and dimension 2 over Finite Field of size 7
+            User basis matrix:
+            [5 2 1 0]
+            [6 3 0 1]
 
-            sage: entries = [[1/(i+j+1) for i in srange(500)] for j in srange(500)]
-            sage: a = matrix(QQ, entries)
-            sage: a.left_kernel()
-            Vector space of degree 500 and dimension 0 over Rational Field
+        The left kernel of a zero matrix is the entire ambient vector
+        space whose degree equals the number of rows of ``self``
+        (i.e. everything).  ::
+
+            sage: A = MatrixSpace(QQ, 3, 4)(0)
+            sage: A.kernel()
+            Vector space of degree 3 and dimension 3 over Rational Field
             Basis matrix:
-            0 x 500 dense matrix over Rational Field
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+
+        We test matrices with no rows or columns. ::
+
+            sage: A = matrix(QQ, 2, 0)
+            sage: A.left_kernel()
+            Vector space of degree 2 and dimension 2 over Rational Field
+            Basis matrix:
+            [1 0]
+            [0 1]
+            sage: A = matrix(QQ, 0, 2)
+            sage: A.left_kernel()
+            Vector space of degree 0 and dimension 0 over Rational Field
+            Basis matrix:
+            []
+
+        The results are cached. Note that requesting a new format
+        for the basis is ignored and the cached copy is returned.
+        Work with a copy if you need a new left kernel, or perhaps
+        investigate the :meth:`right_kernel_matrix` method on the
+        transpose, which does not cache its results and is more
+        flexible.  ::
+
+            sage: A = matrix(QQ, [[1,1],[2,2]])
+            sage: K1 = A.left_kernel()
+            sage: K1
+            Vector space of degree 2 and dimension 1 over Rational Field
+            Basis matrix:
+            [   1 -1/2]
+            sage: K2 = A.left_kernel()
+            sage: K1 is K2
+            True
+            sage: K3 = A.left_kernel(basis='pivot')
+            sage: K3
+            Vector space of degree 2 and dimension 1 over Rational Field
+            Basis matrix:
+            [   1 -1/2]
+            sage: B = copy(A)
+            sage: K3 = B.left_kernel(basis='pivot')
+            sage: K3
+            Vector space of degree 2 and dimension 1 over Rational Field
+            User basis matrix:
+            [-2  1]
+            sage: K3 is K1
+            False
+            sage: K3 == K1
+            True
         """
         K = self.fetch('left_kernel')
         if not K is None:
+            verbose("retrieving cached left kernel for %sx%s matrix" % (self.nrows(), self.ncols()),level=1)
             return K
 
+        tm = verbose("computing left kernel for %sx%s matrix" % (self.nrows(), self.ncols()),level=1)
         K = self.transpose().right_kernel(*args, **kwds)
         self.cache('left_kernel', K)
+        verbose("done computing left kernel for %sx%s matrix" % (self.nrows(), self.ncols()),level=1,t=tm)
         return K
 
+    # .kernel() is a an alias for .left_kernel()
+    kernel = left_kernel
 
     def kernel_on(self, V, poly=None, check=True):
         """

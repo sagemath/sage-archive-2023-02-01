@@ -43,6 +43,8 @@ import sage.matrix.matrix_space
 from matrix_integer_sparse cimport Matrix_integer_sparse
 from matrix_rational_dense cimport Matrix_rational_dense
 
+from sage.misc.misc import verbose
+
 cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
 
     ########################################################################
@@ -699,6 +701,70 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
             v.positions[l] = cols_index[w.positions[pos[l]]]
             mpq_mul(v.entries[l], w.entries[pos[l]], minus_one)
 
+    def _right_kernel_matrix(self, **kwds):
+        r"""
+        Returns a pair that includes a matrix of basis vectors
+        for the right kernel of ``self``.
+
+        INPUT:
+
+        - ``kwds`` - these are provided for consistency with other versions
+          of this method.  Here they are ignored as there is no optional
+          behavior available.
+
+        OUTPUT:
+
+        Returns a pair.  First item is the string 'computed-iml-rational'
+        that identifies the nature of the basis vectors.
+
+        Second item is a matrix whose rows are a basis for the right kernel,
+        over the rationals, as computed by the IML library.  Notice that the
+        IML library returns a matrix that is in the 'pivot' format, once the
+        whole matrix is multiplied by -1.  So the 'computed' format is very
+        close to the 'pivot' format.
+
+        EXAMPLES::
+
+            sage: A = matrix(QQ, [
+            ...                   [1, 0, 1, -3, 1],
+            ...                   [-5, 1, 0, 7, -3],
+            ...                   [0, -1, -4, 6, -2],
+            ...                   [4, -1, 0, -6, 2]],
+            ...               sparse=True)
+            sage: result = A._right_kernel_matrix()
+            sage: result[0]
+            'computed-iml-rational'
+            sage: result[1]
+            [-1  2 -2 -1  0]
+            [ 1  2  0  0 -1]
+            sage: X = result[1].transpose()
+            sage: A*X == zero_matrix(QQ, 4, 2)
+            True
+
+        Computed result is the negative of the pivot basis, which
+        is just slighltly more efficient to compute. ::
+
+            sage: A.right_kernel_matrix(basis='pivot') == -A.right_kernel_matrix(basis='computed')
+            True
+
+        TESTS:
+
+        We test three trivial cases. ::
+
+            sage: A = matrix(QQ, 0, 2, sparse=True)
+            sage: A._right_kernel_matrix()[1]
+            [1 0]
+            [0 1]
+            sage: A = matrix(QQ, 2, 0, sparse=True)
+            sage: A._right_kernel_matrix()[1].parent()
+            Full MatrixSpace of 0 by 0 dense matrices over Rational Field
+            sage: A = zero_matrix(QQ, 4, 3,  sparse=True)
+            sage: A._right_kernel_matrix()[1]
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+        """
+        return self.dense_matrix()._right_kernel_matrix()
 
 
 #########################

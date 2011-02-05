@@ -2358,7 +2358,7 @@ def intersection_of_row_modules_over_ZZ(v):
         a, b = v
         s,_ = a.stack(b)._clear_denom()
         s = s.transpose()
-        K = s._right_kernel_matrix(algorithm='pari')
+        K = s.right_kernel_matrix(algorithm='pari', basis='computed')
         n = a.nrows()
         return K.matrix_from_columns(range(n)) * a
     else:

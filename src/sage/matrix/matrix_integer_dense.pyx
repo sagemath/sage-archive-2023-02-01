@@ -2193,155 +2193,113 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             B = matrix_space.MatrixSpace(QQ, self.nrows())(v[1].python())
             return F, B
 
-    def kernel_matrix(self, algorithm='default', LLL=False, proof=None):
-        """
-        The options are exactly like self.kernel(...), but returns a matrix
-        A whose rows form a basis for the left kernel, i.e., so that
-        A\*self = 0.
-
-        This is mainly useful to avoid all overhead associated with
-        creating a free module.
+    def _right_kernel_matrix(self, **kwds):
+        r"""
+        Returns a pair that includes a matrix of basis vectors
+        for the right kernel of ``self``.
 
         INPUT:
 
-            - ``algorithm`` -- 'default', 'pari', or 'padic';
+        - ``algorithm`` - determines which algorithm to use, options are:
 
-                  - ``default`` -- choose from one of the below based
-                                   on heuristic
+          - 'pari' - use the ``matkerint()`` function from the PARI library
+          - 'padic' - use the p-adic algorithm from the IML library
+          - 'default' - use a heuristic to decide which of the two above
+            routines is fastest.  This is the default value.
 
-                  - ``'pari'`` -- uses pari's matkerint function; good
-                                  for small matrices
+        - ``proof`` - this is passed to the p-adic IML algorithm.
+          If not specified, the global flag for linear algebra will be used.
 
-                  - ``'padic'`` -- uses an asymptotically fast p-adic
-                                   algorithm; horrible for small
-                                   matrices, but great for large mxn
-                                   matrices with m+3 <= n.
+        OUTPUT:
 
-            - ``LLL`` -- whether to LLL reduce result (default: False)
+        Returns a pair.  First item is the string is either
+        'computed-pari-int' or 'computed-iml-int', which identifies
+        the nature of the basis vectors.
 
-            - ``proof`` -- whether result is provably correct (only
-                    relevant for padic algorithm)
-
-        EXAMPLES::
-
-            sage: A = matrix(ZZ, 3, 3, [1..9])
-            sage: A.kernel_matrix()
-            [ 1 -2  1]
-
-        Note that the basis matrix returned above is not in Hermite/echelon form.
-
-        ::
-
-            sage: A.kernel()
-            Free module of degree 3 and rank 1 over Integer Ring
-            Echelon basis matrix:
-            [ 1 -2  1]
-
-        We compute another kernel::
-
-            sage: A = matrix(ZZ, 4, 2, [2, -1, 1, 1, -18, -1, -1, -5])
-            sage: K = A.kernel_matrix(); K
-            [ -7  -3  -1   1]
-            [  4 -11   0  -3]
-
-        K is a basis for the left kernel::
-
-            sage: K*A
-            [0 0]
-            [0 0]
-
-        We illustrate the LLL flag::
-
-            sage: L = A.kernel_matrix(LLL=True); L
-            [ -7  -3  -1   1]
-            [  4 -11   0  -3]
-            sage: K.hermite_form()
-            [ 1 64  3 12]
-            [ 0 89  4 17]
-            sage: L.hermite_form()
-            [ 1 64  3 12]
-            [ 0 89  4 17]
-
-        Two kernel matrices via PARI, one of full rank::
-
-            sage: B = matrix(ZZ, [[2,-1,1],[1,-1,0],[-5,4,-1],[-8,6,-2]])
-            sage: B.kernel_matrix(algorithm='pari')
-            [ 1  1 -1  1]
-            [ 0  2  2 -1]
-            sage: C = matrix(ZZ, [[1,1,2],[1,1,4]])
-            sage: D = C.kernel_matrix(algorithm='pari'); D
-            []
-            sage: D.ncols()
-            2
-        """
-        return self.transpose()._right_kernel_matrix(algorithm=algorithm, LLL=LLL, proof=proof)
-
-
-    def _right_kernel_matrix(self, algorithm='default', LLL=False, proof=None):
-        """
-        The options are exactly like self.right_kernel(...), but returns a matrix
-        A whose rows form a basis for the right kernel, i.e., so that
-        self\*transpose(A) = 0.
-
-        This is mainly useful internally to avoid all overhead associated with
-        creating a free module.
+        Second item is a matrix whose rows are a basis for the right kernel,
+        over the integers, as computed by either the IML or PARI libraries.
 
         EXAMPLES::
 
-            sage: A = matrix(ZZ, 3, 3, [1..9])
-            sage: A._right_kernel_matrix()
-            [ 1 -2  1]
+            sage: A = matrix(ZZ, [[4, 7, 9, 7, 5, 0],
+            ...                   [1, 0, 5, 8, 9, 1],
+            ...                   [0, 1, 0, 1, 9, 7],
+            ...                   [4, 7, 6, 5, 1, 4]])
 
-        Note that the basis matrix returned above is not in Hermite/echelon form.
+            sage: result = A._right_kernel_matrix(algorithm='pari')
+            sage: result[0]
+            'computed-pari-int'
+            sage: X = result[1]; X
+            [-26  31 -30  21   2 -10]
+            [-47 -13  48 -14 -11  18]
+            sage: A*X.transpose() == zero_matrix(ZZ, 4, 2)
+            True
 
-        ::
+            sage: result = A._right_kernel_matrix(algorithm='padic')
+            sage: result[0]
+            'computed-iml-int'
+            sage: X = result[1]; X
+            [-469  214  -30  119  -37    0]
+            [ 370 -165   18  -91   30   -2]
+            sage: A*X.transpose() == zero_matrix(ZZ, 4, 2)
+            True
 
-            sage: A.right_kernel()
-            Free module of degree 3 and rank 1 over Integer Ring
-            Echelon basis matrix:
-            [ 1 -2  1]
+            sage: result = A._right_kernel_matrix(algorithm='default')
+            sage: result[0]
+            'computed-pari-int'
+            sage: result[1]
+            [-26  31 -30  21   2 -10]
+            [-47 -13  48 -14 -11  18]
 
-        We compute another kernel::
+            sage: result = A._right_kernel_matrix()
+            sage: result[0]
+            'computed-pari-int'
+            sage: result[1]
+            [-26  31 -30  21   2 -10]
+            [-47 -13  48 -14 -11  18]
 
-            sage: A = matrix(ZZ, 2, 4, [2, 1, -18, -1, -1, 1, -1, -5])
-            sage: K = A._right_kernel_matrix(); K
-            [ -7  -3  -1   1]
-            [  4 -11   0  -3]
+        With the 'default' given as the algorithm, several heuristics are
+        used to determine if PARI or IML ('padic') is used.  The code has
+        exact details, but roughly speaking, relevant factors are: the
+        absolute size of the matrix, or the relative dimensions, or the
+        magnitude of the entries. ::
 
-        K is a basis for the right kernel::
+            sage: A = random_matrix(ZZ, 18, 11)
+            sage: A._right_kernel_matrix(algorithm='default')[0]
+            'computed-pari-int'
+            sage: A = random_matrix(ZZ, 18, 11, x = 10^200)
+            sage: A._right_kernel_matrix(algorithm='default')[0]
+            'computed-iml-int'
+            sage: A = random_matrix(ZZ, 60, 60)
+            sage: A._right_kernel_matrix(algorithm='default')[0]
+            'computed-iml-int'
+            sage: A = random_matrix(ZZ, 60, 55)
+            sage: A._right_kernel_matrix(algorithm='default')[0]
+            'computed-pari-int'
 
-            sage: A*K.transpose()
-            [0 0]
-            [0 0]
+        TESTS:
 
-        We illustrate the LLL flag::
+        We test three trivial cases. PARI is used for small matrices,
+        but we let the heuristic decide that.  ::
 
-            sage: L = A._right_kernel_matrix(LLL=True); L
-            [ -7  -3  -1   1]
-            [  4 -11   0  -3]
-            sage: K.hermite_form()
-            [ 1 64  3 12]
-            [ 0 89  4 17]
-            sage: L.hermite_form()
-            [ 1 64  3 12]
-            [ 0 89  4 17]
-
-        We verify that if the algorithm flag is nonsense, then a
-        proper error message is displayed::
-
-            sage: matrix(ZZ,3,[1..9])._right_kernel_matrix(algorithm='nonsense')
-            Traceback (most recent call last):
-            ...
-            ValueError: unknown algorithm 'nonsense'
+            sage: A = matrix(ZZ, 0, 2)
+            sage: A._right_kernel_matrix()[1]
+            [1 0]
+            [0 1]
+            sage: A = matrix(ZZ, 2, 0)
+            sage: A._right_kernel_matrix()[1].parent()
+            Full MatrixSpace of 0 by 0 dense matrices over Integer Ring
+            sage: A = zero_matrix(ZZ, 4, 3)
+            sage: A._right_kernel_matrix()[1]
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
         """
-        if self._ncols == 0:    # from a 0 space
-            return self.new_matrix(0, self.ncols())
-        elif self._nrows == 0:  # to a 0 space
-            # return identity matrix of size n = self.ncols()
-            import constructor
-            return constructor.identity_matrix(self.ncols())
+        tm = verbose("computing right kernel matrix over the integers for %sx%s matrix" % (self.nrows(), self.ncols()),level=1)
 
-        proof = get_proof_flag(proof, "linear_algebra")
+        algorithm = kwds.pop('algorithm', None)
+        if algorithm == None:
+          algorithm = 'default'
 
         if algorithm == 'default':
             # The heuristic here could be auto-tuned, stored for
@@ -2369,124 +2327,15 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 algorithm = 'pari'
 
         if algorithm == 'pari':
-            return self._kernel_matrix_using_pari()
-        elif algorithm == 'padic':
-            A = self._kernel_matrix_using_padic_algorithm(proof)
-            if LLL:
-                return A.LLL()
-            else:
-                return A
-        else:
-            raise ValueError("unknown algorithm '%s'"%algorithm)
-
-    def right_kernel(self, algorithm='default', LLL=False, proof=None, echelonize=True):
-        r"""
-        Return the right kernel of a matrix over the integers.
-
-        INPUT:
-
-        -  ``algorithm`` - see the docs for ``self.kernel_matrix``
-
-        -  ``LLL`` - bool (default: False); if True the basis
-           is an LLL reduced basis; otherwise, it is an echelon basis.
-
-        -  ``proof`` - None (default: proof.linear_algebra());
-           if False, impacts how determinants are computed.
-
-        OUTPUT:
-        A module over the integers is returned. This is the
-        saturated ZZ-module spanned by all the column
-        vectors ``v`` such that ``self*v = 0``.
-
-        EXAMPLES::
-
-            sage: M = MatrixSpace(ZZ,2,4)(range(8))
-            sage: M.right_kernel()
-            Free module of degree 4 and rank 2 over Integer Ring
-            Echelon basis matrix:
-            [ 1  0 -3  2]
-            [ 0  1 -2  1]
-
-        With zero columns the right kernel has dimension 0. ::
-
-            sage: M = matrix(ZZ, [[],[],[]])
-            sage: M.right_kernel()
-            Free module of degree 0 and rank 0 over Integer Ring
-            Echelon basis matrix:
-            []
-
-        With zero rows, the whole domain is the kernel, so the
-        dimension is the number of columns. ::
-
-            sage: M = matrix(ZZ, [[],[],[]]).transpose()
-            sage: M.right_kernel()
-            Ambient free module of rank 3 over the principal ideal domain Integer Ring
-        """
-        if self._ncols == 0 or self._nrows == 0:
-            return self._right_kernel_trivial()
-
-        X = self._right_kernel_matrix(algorithm=algorithm, LLL=LLL, proof=proof)
-        if not LLL and echelonize:
-            X = X.hermite_form(proof=proof)
-        X = X.rows()
-
-        M = sage.modules.free_module.FreeModule(ZZ, self.ncols())
-        if LLL:
-            return M.span_of_basis(X, check=False)
-        else:
-            return M.span(X, check=False)
-
-    def _kernel_matrix_using_padic_algorithm(self, proof):
-        """
-        Compute a list of independent generators that span the right kernel
-        of self.
-
-        ALGORITHM: Use IML to compute the right kernel over QQ, clear
-        denominators, then saturate.
-        """
-        return self._rational_kernel_iml().transpose().saturation(proof=proof)
-
-
-    def _kernel_matrix_using_pari(self):
-        r"""
-        Compute an LLL reduced list of independent generators that span the
-        right kernel of self.
-
-        EXAMPLES:
-
-        A matrix of generators for a simple matrix of rank 2::
-
-            sage: M = MatrixSpace(ZZ,2,4)(range(8))
-            sage: M
-            [0 1 2 3]
-            [4 5 6 7]
-            sage: M._kernel_matrix_using_pari()
-            [ 1 -1 -1  1]
-            [ 1 -2  1  0]
-
-        Testing matrices with no rows or no columns::
-
-            sage: N = MatrixSpace(ZZ,0,4)()
-            sage: N
-            []
-            sage: N._kernel_matrix_using_pari()
-            [1 0 0 0]
-            [0 1 0 0]
-            [0 0 1 0]
-            [0 0 0 1]
-            sage: P=MatrixSpace(ZZ,4,0)()
-            sage: P
-            []
-            sage: P._kernel_matrix_using_pari()
-            []
-
-        ALGORITHM: Call pari's matkerint function.
-        """
-        A = self._pari_().matkerint().mattranspose().python()
-        if A.nrows() == 0:
-            return A.new_matrix(nrows = 0, ncols = self._ncols)
-        else:
-            return A
+            K = self._pari_().matkerint().mattranspose().python()
+            format = 'computed-pari-int'
+        if algorithm == 'padic':
+            proof = kwds.pop('proof', None)
+            proof = get_proof_flag(proof, "linear_algebra")
+            K = self._rational_kernel_iml().transpose().saturation(proof=proof)
+            format = 'computed-iml-int'
+        tm = verbose("done computing right kernel matrix over the integers for %sx%s matrix" % (self.nrows(), self.ncols()),level=1, t=tm)
+        return (format, K)
 
     def _adjoint(self):
         """

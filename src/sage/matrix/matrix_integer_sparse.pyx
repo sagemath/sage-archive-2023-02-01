@@ -387,45 +387,111 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
         v.append('0 0 0\n')
         return '\n'.join(v)
 
-    def right_kernel(self, algorithm='padic', LLL=False, proof=None, echelonize=True):
+    def _right_kernel_matrix(self, **kwds):
         r"""
-        Return the right kernel of this matrix, as a module over the
-        integers.  This is the saturated ZZ-module spanned by all the
-        column vectors v such that self*\v = 0.
+        Returns a pair that includes a matrix of basis vectors
+        for the right kernel of ``self``.
 
         INPUT:
-            algorithm -- 'padic': a new p-adic based algorithm
-                         'pari': use PARI
-            LLL -- bool (default: False); if True the basis is an LLL
-                   reduced basis; otherwise, it is an echelon basis.
-            proof -- None (default: proof.linear_algebra()); if False,
-                   impacts how determinants are computed.
+
+        - ``algorithm`` - determines which algorithm to use, options are:
+
+          - 'pari' - use the ``matkerint()`` function from the PARI library
+          - 'padic' - use the p-adic algorithm from the IML library
+          - 'default' - use a heuristic to decide which of the two above
+            routines is fastest.  This is the default value.
+
+        - ``proof`` - this is passed to the p-adic IML algorithm.
+          If not specified, the global flag for linear algebra will be used.
+
+        OUTPUT:
+
+        Returns a pair.  First item is the string is either
+        'computed-pari-int' or 'computed-iml-int', which identifies
+        the nature of the basis vectors.
+
+        Second item is a matrix whose rows are a basis for the right kernel,
+        over the integers, as computed by either the IML or PARI libraries.
 
         EXAMPLES::
 
-            sage: M = MatrixSpace(ZZ,2,4,sparse=True)(range(8))
-            sage: M.right_kernel()
-            Free module of degree 4 and rank 2 over Integer Ring
-            Echelon basis matrix:
-            [ 1  0 -3  2]
-            [ 0  1 -2  1]
+            sage: A = matrix(ZZ, [[4, 7, 9, 7, 5, 0],
+            ...                   [1, 0, 5, 8, 9, 1],
+            ...                   [0, 1, 0, 1, 9, 7],
+            ...                   [4, 7, 6, 5, 1, 4]],
+            ...              sparse = True)
 
-        With zero columns the right kernel has dimension 0. ::
+            sage: result = A._right_kernel_matrix(algorithm='pari')
+            sage: result[0]
+            'computed-pari-int'
+            sage: X = result[1]; X
+            [-26  31 -30  21   2 -10]
+            [-47 -13  48 -14 -11  18]
+            sage: A*X.transpose() == zero_matrix(ZZ, 4, 2)
+            True
 
-            sage: M = matrix(ZZ, [[],[],[]],sparse=True)
-            sage: M.right_kernel()
-            Free module of degree 0 and rank 0 over Integer Ring
-            Echelon basis matrix:
-            []
+            sage: result = A._right_kernel_matrix(algorithm='padic')
+            sage: result[0]
+            'computed-iml-int'
+            sage: X = result[1]; X
+            [-469  214  -30  119  -37    0]
+            [ 370 -165   18  -91   30   -2]
+            sage: A*X.transpose() == zero_matrix(ZZ, 4, 2)
+            True
 
-        With zero rows, the whole domain is the kernel, so the
-        dimension is the number of columns. ::
+            sage: result = A._right_kernel_matrix(algorithm='default')
+            sage: result[0]
+            'computed-pari-int'
+            sage: result[1]
+            [-26  31 -30  21   2 -10]
+            [-47 -13  48 -14 -11  18]
 
-            sage: M = matrix(ZZ, [[],[],[]],sparse=True).transpose()
-            sage: M.right_kernel()
-            Ambient free module of rank 3 over the principal ideal domain Integer Ring
+            sage: result = A._right_kernel_matrix()
+            sage: result[0]
+            'computed-pari-int'
+            sage: result[1]
+            [-26  31 -30  21   2 -10]
+            [-47 -13  48 -14 -11  18]
+
+        With the 'default' given as the algorithm, several heuristics are
+        used to determine if PARI or IML ('padic') is used.  The code has
+        exact details, but roughly speaking, relevant factors are: the
+        absolute size of the matrix, or the relative dimensions, or the
+        magnitude of the entries. ::
+
+            sage: A = random_matrix(ZZ, 18, 11, sparse=True)
+            sage: A._right_kernel_matrix(algorithm='default')[0]
+            'computed-pari-int'
+            sage: A = random_matrix(ZZ, 18, 11, x = 10^200, sparse=True)
+            sage: A._right_kernel_matrix(algorithm='default')[0]
+            'computed-iml-int'
+            sage: A = random_matrix(ZZ, 60, 60, sparse=True)
+            sage: A._right_kernel_matrix(algorithm='default')[0]
+            'computed-iml-int'
+            sage: A = random_matrix(ZZ, 60, 55, sparse=True)
+            sage: A._right_kernel_matrix(algorithm='default')[0]
+            'computed-pari-int'
+
+        TESTS:
+
+        We test three trivial cases. PARI is used for small matrices,
+        but we let the heuristic decide that.  ::
+
+            sage: A = matrix(ZZ, 0, 2, sparse=True)
+            sage: A._right_kernel_matrix()[1]
+            [1 0]
+            [0 1]
+            sage: A = matrix(ZZ, 2, 0, sparse=True)
+            sage: A._right_kernel_matrix()[1].parent()
+            Full MatrixSpace of 0 by 0 dense matrices over Integer Ring
+            sage: A = zero_matrix(ZZ, 4, 3, sparse=True)
+            sage: A._right_kernel_matrix()[1]
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
         """
-        return self.dense_matrix().right_kernel(algorithm, LLL, proof, echelonize)
+        return self.dense_matrix()._right_kernel_matrix(**kwds)
+
 
     def elementary_divisors(self, algorithm='pari'):
         """

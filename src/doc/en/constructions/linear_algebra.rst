@@ -106,7 +106,10 @@ A trivial kernel:
     []
     sage: M = MatrixSpace(RationalField(),2,0)(0)
     sage: M.kernel()
-    Vector space of dimension 2 over Rational Field
+    Vector space of degree 2 and dimension 2 over Rational Field
+    Basis matrix:
+    [1 0]
+    [0 1]
 
 Kernel of a zero matrix:
 

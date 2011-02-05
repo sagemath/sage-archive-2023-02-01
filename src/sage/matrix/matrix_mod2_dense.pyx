@@ -1846,105 +1846,93 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         self.cache('rank', r)
         return r
 
-    def right_kernel(self, algorithm='pluq'):
-        """
-        Return the right kernel of this matrix, as a vector
-        space. This is the space of vectors x such that ``self*x=0``.
-        A left kernel can be found with :meth:`left_kernel()` or just
-        :meth:`kernel`.
+    def _right_kernel_matrix(self, **kwds):
+        r"""
+        Returns a pair that includes a matrix of basis vectors
+        for the right kernel of ``self``.
 
         INPUT:
 
-        - ``algorithm`` - either "pluq" or "generic"
+        - ``kwds`` - these are provided for consistency with other versions
+          of this method.  Here they are ignored as there is no optional
+          behavior available.
 
-        .. note::
+        OUTPUT:
 
-           Preference is given to left kernels in that the generic method
-           name :meth:`kernel` returns a left kernel.  However most computations
-           of kernels are implemented as right kernels.
+        Returns a pair.  First item is the string 'computed-pluq'
+        that identifies the nature of the basis vectors.
 
-        EXAMPLES:
+        Second item is a matrix whose rows are a basis for the right kernel,
+        over the integers mod 2, as computed by the M4RI library
+        using PLUQ matrix decomposition.
 
-        A trivial right kernel::
+        EXAMPLES::
 
-            sage: A = MatrixSpace(GF(2), 2)([1,0,0,1])
-            sage: A.right_kernel()
-            Vector space of degree 2 and dimension 0 over Finite Field of size 2
-            Basis matrix:
-            []
+            sage: A = matrix(GF(2), [
+            ...                      [0, 1, 0, 0, 1, 0, 1, 1],
+            ...                      [1, 0, 1, 0, 0, 1, 1, 0],
+            ...                      [0, 0, 1, 0, 0, 1, 0, 1],
+            ...                      [1, 0, 1, 1, 0, 1, 1, 0],
+            ...                      [0, 0, 1, 0, 0, 1, 0, 1],
+            ...                      [1, 1, 0, 1, 1, 0, 0, 0]])
+            sage: A
+            [0 1 0 0 1 0 1 1]
+            [1 0 1 0 0 1 1 0]
+            [0 0 1 0 0 1 0 1]
+            [1 0 1 1 0 1 1 0]
+            [0 0 1 0 0 1 0 1]
+            [1 1 0 1 1 0 0 0]
+            sage: result = A._right_kernel_matrix()
+            sage: result[0]
+            'computed-pluq'
+            sage: result[1]
+            [0 1 0 0 1 0 0 0]
+            [0 0 1 0 0 1 0 0]
+            [1 1 0 0 0 0 1 0]
+            [1 1 1 0 0 0 0 1]
+            sage: X = result[1].transpose()
+            sage: A*X == zero_matrix(GF(2), 6, 4)
+            True
 
-        Right kernel of a zero matrix::
+        TESTS:
 
-            sage: A = MatrixSpace(GF(2), 2)(0)
-            sage: A.right_kernel()
-            Vector space of degree 2 and dimension 2 over Finite Field of size 2
-            Basis matrix:
-            [1 0]
-            [0 1]
+        We test the three trivial cases.  Matrices with no rows or columns will
+        cause segfaults in the M4RI code, so we protect against that instance.
+        Computing a kernel or a right kernel matrix should never pass these
+        problem matrices here. ::
 
-        Right kernel of a non-square matrix::
-
-            sage: A = MatrixSpace(GF(2),2,3)(range(6))
-            sage: A.right_kernel()
-            Vector space of degree 3 and dimension 1 over Finite Field of size 2
-            Basis matrix:
-            [1 0 1]
-
-        A non-trivial kernel computation::
-
-            sage: A = random_matrix(GF(2),1000,1010)
-            sage: A.right_kernel()
-            Vector space of degree 1010 and dimension 10 over Finite Field of size 2
-            Basis matrix:
-            10 x 1010 dense matrix over Finite Field of size 2
-
-        With zero columns the right kernel has dimension 0. ::
-
-            sage: M = matrix(GF(2), [[],[],[]],sparse=True)
-            sage: M.right_kernel()
-            Vector space of degree 0 and dimension 0 over Finite Field of size 2
-            Basis matrix:
-            []
-
-        With zero rows, the whole domain is the kernel, so the
-        dimension is the number of columns. ::
-
-            sage: M = matrix(GF(2), [[],[],[]],sparse=True).transpose()
-            sage: M.right_kernel()
-            Vector space of dimension 3 over Finite Field of size 2
+            sage: A = matrix(GF(2), 0, 2)
+            sage: A._right_kernel_matrix()
+            Traceback (most recent call last):
+            ...
+            ValueError: kernels of matrices mod 2 with zero rows or zero columns cannot be computed
+            sage: A = matrix(GF(2), 2, 0)
+            sage: A._right_kernel_matrix()
+            Traceback (most recent call last):
+            ...
+            ValueError: kernels of matrices mod 2 with zero rows or zero columns cannot be computed
+            sage: A = zero_matrix(GF(2), 4, 3)
+            sage: A._right_kernel_matrix()[1]
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
         """
-        if algorithm == 'generic':
-            return matrix_dense.Matrix_dense.right_kernel(self)
-        if algorithm != 'pluq':
-            raise ValueError("Algorithm '%s' is unknown."%algorithm)
-
-        K = self.fetch('right_kernel')
-        if not K is None:
-            return K
-
-        if self._ncols == 0 or self._nrows == 0:
-            return self._right_kernel_trivial()
-
+        tm = verbose("computing right kernel matrix over integers mod 2 for %sx%s matrix" % (self.nrows(), self.ncols()),level=1)
+        if self.nrows()==0 or self.ncols()==0:
+            raise ValueError("kernels of matrices mod 2 with zero rows or zero columns cannot be computed")
         cdef Matrix_mod2_dense M
         cdef mzd_t *A = mzd_copy(NULL, self._entries)
-        cdef mzd_t *k = mzd_kernel_left_pluq(A, 0) # well, we don't
-                                                   # agree on the name
-                                                   # of this thing
+        # Despite the name, this next call returns X such that M*X = 0
+        cdef mzd_t *k = mzd_kernel_left_pluq(A, 0)
         mzd_free(A)
         if k != NULL:
             M = self.new_matrix(nrows = k.ncols, ncols = k.nrows)
             mzd_transpose(M._entries, k)
             mzd_free(k)
-            M = M.echelon_form()
-            basis = M.rows()
         else:
-            basis = []
-
-        R = self._base_ring
-        V = R**self._ncols
-        W = V.submodule(basis, check=False, already_echelonized=True)
-        self.cache('right_kernel', W)
-        return W
+            M = self.new_matrix(nrows = 0, ncols = self._ncols)
+        verbose("done computing right kernel matrix over integers mod 2 for %sx%s matrix" % (self.nrows(), self.ncols()),level=1, t=tm)
+        return 'computed-pluq', M
 
 # Used for hashing
 cdef int i, k

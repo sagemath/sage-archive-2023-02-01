@@ -1208,61 +1208,78 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         mpq_clear(pr)
         return _pr
 
-    def right_kernel(self, algorithm='padic', **kwds):
+    def _right_kernel_matrix(self, **kwds):
         r"""
-        Return the right kernel of this matrix, as a vector space over QQ.
-        For a left kernel use self.left_kernel() or just self.kernel().
+        Returns a pair that includes a matrix of basis vectors
+        for the right kernel of ``self``.
 
         INPUT:
 
-        -  ``algorithm`` - 'padic' (or 'default'): use IML's
-           p-adic nullspace algorithm
+        - ``kwds`` - these are provided for consistency with other versions
+          of this method.  Here they are ignored as there is no optional
+          behavior available.
 
-        -  ``anything else`` - passed on to the generic
-           echelon-form based algorithm.
+        OUTPUT:
 
-        -  ``**kwds`` - passed onto to echelon form algorithm
-           in the echelon case.
+        Returns a pair.  First item is the string 'computed-iml-rational'
+        that identifies the nature of the basis vectors.
+
+        Second item is a matrix whose rows are a basis for the right kernel,
+        over the rationals, as computed by the IML library.  Notice that the
+        IML library returns a matrix that is in the 'pivot' format, once the
+        whole matrix is multiplied by -1.  So the 'computed' format is very
+        close to the 'pivot' format.
 
         EXAMPLES::
 
-            A non-trivial right kernel over the rationals::
+            sage: A = matrix(QQ, [
+            ...                   [1, 0, 1, -3, 1],
+            ...                   [-5, 1, 0, 7, -3],
+            ...                   [0, -1, -4, 6, -2],
+            ...                   [4, -1, 0, -6, 2]])
+            sage: result = A._right_kernel_matrix()
+            sage: result[0]
+            'computed-iml-rational'
+            sage: result[1]
+            [-1  2 -2 -1  0]
+            [ 1  2  0  0 -1]
+            sage: X = result[1].transpose()
+            sage: A*X == zero_matrix(QQ, 4, 2)
+            True
 
-                sage: A = matrix(QQ, [[2,1,-5,-8],[-1,-1,4,6],[1,0,-1,-2]])
-                sage: A.right_kernel()
-                Vector space of degree 4 and dimension 2 over Rational Field
-                Basis matrix:
-                [   1    0   -2  3/2]
-                [   0    1    1 -1/2]
+        Computed result is the negative of the pivot basis, which
+        is just slighltly more efficient to compute. ::
 
-            A trivial right kernel, plus left kernel (via superclass)::
+            sage: A.right_kernel_matrix(basis='pivot') == -A.right_kernel_matrix(basis='computed')
+            True
 
-                sage: M=Matrix(QQ,[[1/2,3],[0,1],[1,1]])
-                sage: M.right_kernel()
-                Vector space of degree 2 and dimension 0 over Rational Field
-                Basis matrix:
-                []
-                sage: M.left_kernel()
-                Vector space of degree 3 and dimension 1 over Rational Field
-                Basis matrix:
-                [   1 -5/2 -1/2]
-        """
-        K = self.fetch('right_kernel')
-        if not K is None:
-            return K
+        TESTS:
 
-        if self._nrows > 0 and self._ncols > 0 and  \
-            (algorithm == 'padic' or algorithm == 'default'):
-            A, _ = self._clear_denom()
-            K = A._rational_kernel_iml().change_ring(QQ)
-            V = K.column_space()
-            self.cache('right_kernel', V)
-            return V
-        elif self._nrows == 0 or self._ncols == 0:
-            return self._right_kernel_trivial()
+        We test three trivial cases. ::
+
+            sage: A = matrix(QQ, 0, 2)
+            sage: A._right_kernel_matrix()[1]
+            [1 0]
+            [0 1]
+            sage: A = matrix(QQ, 2, 0)
+            sage: A._right_kernel_matrix()[1].parent()
+            Full MatrixSpace of 0 by 0 dense matrices over Rational Field
+            sage: A = zero_matrix(QQ, 4, 3)
+            sage: A._right_kernel_matrix()[1]
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+       """
+        tm = verbose("computing right kernel matrix over the rationals for %sx%s matrix" % (self.nrows(), self.ncols()),level=1)
+        # _rational_kernel_iml() gets the zero-row case wrong, fix it there
+        if self.nrows()==0:
+            import constructor
+            K = constructor.identity_matrix(QQ, self.ncols())
         else:
-            return matrix_dense.Matrix_dense.right_kernel(self, algorithm, **kwds)
-
+            A, _ = self._clear_denom()
+            K = A._rational_kernel_iml().transpose().change_ring(QQ)
+        verbose("done computing right kernel matrix over the rationals for %sx%s matrix" % (self.nrows(), self.ncols()),level=1, t=tm)
+        return 'computed-iml-rational', K
 
     ################################################
     # Change ring

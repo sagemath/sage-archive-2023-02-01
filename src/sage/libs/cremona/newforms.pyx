@@ -5,16 +5,9 @@ from sage.schemes import elliptic_curves
 #*****************************************************************************
 #       Copyright (C) 2008 Tom Boothby <boothby@u.washington.edu>
 #
-#  Distributed under the terms of the GNU General Public License, version 2
-#  or later (GPL).
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -69,12 +62,13 @@ cdef class ECModularSymbol:
         cdef CurveRed *CR
         cdef int n, t
 
-        sig_on()
         a1 = new_bigint(int(E.a1()))
         a2 = new_bigint(int(E.a2()))
         a3 = new_bigint(int(E.a3()))
         a4 = new_bigint(int(E.a4()))
         a6 = new_bigint(int(E.a6()))
+
+        sig_on()
         C = new_Curve(a1,a2,a3,a4,a6)
         CD = new_Curvedata(C[0],0)
         CR = new_CurveRed(CD[0])
@@ -139,9 +133,3 @@ cdef class ECModularSymbol:
         r = Rational((rational_num(_s), rational_den(_s)))
         sig_off()
         return r
-
-
-#cdef Integer integer_from_ZZ(ZZ_c a):
-#    cdef Integer r = Integer(None)
-#    ZZ_to_mpz(&r.value, &a)
-#    return r

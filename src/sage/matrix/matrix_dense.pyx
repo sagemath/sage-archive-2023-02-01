@@ -85,35 +85,6 @@ cdef class Matrix_dense(matrix.Matrix):
     cdef set_unsafe_int(self, Py_ssize_t i, Py_ssize_t j, int value):
         self[i][j] = value
 
-    def _multiply_classical(left, Matrix_dense right):
-        """
-        Multiply the matrices left and right using the classical
-        `O(n^3)` algorithm.
-
-        This method assumes that left and right have the same parent and
-        compatible dimensions.
-        """
-        cdef Py_ssize_t i, j, k, l
-        if left._ncols != right._nrows:
-            raise IndexError, "Number of columns of left must equal number of rows of other."
-
-
-        v = PyList_New(left._nrows * right._ncols)     # this is really sort of v = []..."
-        zero = left.base_ring()(0)
-        l = 0
-        for i from 0 <= i < left._nrows:
-            for j from 0 <= j < right._ncols:
-                s = zero
-                for k from 0 <= k < left._ncols:
-                    s = s + left.get_unsafe(i,k) * right.get_unsafe(k,j)
-                # This is really v.append(s)
-                Py_INCREF(s); PyList_SET_ITEM(v, l, s)
-                l = l + 1
-        return left.new_matrix(left._nrows, right._ncols, entries = v, coerce=False, copy=False)
-
-
-
-
     def _pickle(self):
         version = -1
         data = self._list()  # linear list of all elements

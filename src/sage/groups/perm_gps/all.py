@@ -11,6 +11,10 @@ from permgroup import  PermutationGroup, PermutationGroup_generic, PermutationGr
 
 from permgroup_element import PermutationGroupElement,is_PermutationGroupElement
 
-from permgroup_morphism import is_PermutationGroupMorphism,PermutationGroupMap,PermutationGroupMorphism,PermutationGroupMorphism_im_gens,PermutationGroupMorphism_id
+from permgroup_morphism import (is_PermutationGroupMorphism,
+                                PermutationGroupMorphism as PermutationGroupMap,
+                                PermutationGroupMorphism_im_gens,
+                                PermutationGroupMorphism_id)
+PermutationGroupMorphism = PermutationGroupMorphism_im_gens
 
 from cubegroup import CubeGroup, RubiksCube

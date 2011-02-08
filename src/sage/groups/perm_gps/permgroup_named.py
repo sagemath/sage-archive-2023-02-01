@@ -396,19 +396,19 @@ class AlternatingGroup(PermutationGroup_symalt):
             Category of finite permutation groups
             sage: TestSuite(G).run()
         """
-        self._set = _set
-        self._deg = max(self._set)
-        n = len(self._set)
-
+        n = len(_set)
         #Create the generators for the symmetric group
         if n == 1:
             gens = [ [] ]
         else:
-            gens = [ tuple(self._set) ]
+            gens = [ tuple(_set) ]
             if n > 2:
-                gens.append( tuple(self._set[:2]) )
+                gens.append( tuple(_set[:2]) )
 
         PermutationGroup_symalt.__init__(self, gap_group='%s(%s)'%(self._gap_name,n))
+
+        self._set = _set
+        self._deg = max(_set)
 
     def _repr_(self):
         """
@@ -962,6 +962,7 @@ class TransitiveGroup(PermutationGroup_unique):
 
         self._d = d
         self._n = n
+        self._set = range(1, d+1)
 
     def _repr_(self):
         """

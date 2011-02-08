@@ -5,7 +5,7 @@ Rubik's cube group functions
 
 .. note::
 
-  "Rubik's cube" is trademarked. We shall omit the trademark
+  "Rubiks cube" is trademarked. We shall omit the trademark
   symbol below for simplicity.
 
 NOTATION: B denotes a clockwise quarter turn of the back face D

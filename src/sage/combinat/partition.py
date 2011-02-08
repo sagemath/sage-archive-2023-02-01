@@ -2428,19 +2428,28 @@ class PartitionsGreatestLE(IntegerListsLex):
         True
         sage: PartitionsGreatestLE(10,2).first().parent()
         Partitions...
-
-    TESTS::
-
-        sage: p = PartitionsGreatestLE(10,2)
-        sage: p == loads(dumps(p))
-        True
     """
 
     def __init__(self, n, k):
+        """
+        TESTS::
+
+            sage: p = PartitionsGreatestLE(10,2)
+            sage: p == loads(dumps(p))
+            True
+            sage: p.n, p.k
+            (10, 2)
+        """
         IntegerListsLex.__init__(self, n, max_slope = 0, min_part=1, max_part = k)
         self.k = k
 
     def _repr_(self):
+        """
+        TESTS::
+
+            sage: PartitionsGreatestLE(10, 2).__repr__()
+            'Partitions of 10 having parts less than or equal to 2'
+        """
         return "Partitions of %s having parts less than or equal to %s"%(self.n, self.k)
 
     _element_constructor_ = Partition_class
@@ -2488,20 +2497,28 @@ class PartitionsGreatestEQ(IntegerListsLex):
         sage: PartitionsGreatestEQ(10,2).first().parent()
         Partitions...
 
-    TESTS::
-
-        sage: p = PartitionsGreatestEQ(10,2)
-        sage: p == loads(dumps(p))
-        True
-
-
     """
 
     def __init__(self, n, k):
+        """
+        TESTS::
+
+            sage: p = PartitionsGreatestEQ(10,2)
+            sage: p == loads(dumps(p))
+            True
+            sage: p.n, p.k
+            (10, 2)
+        """
         IntegerListsLex.__init__(self, n, max_slope = 0, max_part=k, floor = [k])
         self.k = k
 
     def _repr_(self):
+        """
+        TESTS::
+
+            sage: PartitionsGreatestEQ(10,2).__repr__()
+            'Partitions of 10 having greatest part equal to 2'
+        """
         return "Partitions of %s having greatest part equal to %s"%(self.n, self.k)
 
     _element_constructor_ = Partition_class
@@ -3590,6 +3607,17 @@ class Partitions_parts_in(CombinatorialClass):
             return None
 
     def _findfirst(self, n, parts):
+        """
+        TESTS::
+
+            sage: p = Partitions(9, parts_in=[3,4])
+            sage: p._findfirst(p.n, p.parts[:])
+            [3, 3, 3]
+            sage: p._findfirst(0, p.parts[:])
+            []
+            sage: p._findfirst(p.n, [10])
+
+        """
         if n == 0:
             return []
         else:

@@ -19,7 +19,16 @@ def max_clique(graph):
           sage: C=graphs.PetersenGraph()
           sage: max_clique(C)
           [7, 9]
+
+    TEST::
+
+        sage: g = Graph()
+        sage: g.clique_maximum()
+        []
     """
+    if graph.order() == 0:
+        return graph.vertices()
+
     graph,d = graph.relabel(inplace=False, return_map=True)
     d_inv = {}
     for v in d:

@@ -1507,6 +1507,10 @@ def load(filename, globals, attach=False):
         sage: sage.misc.preparser.load('http://wstein.org/loadtest.py', globals())  # optional - internet
         hi from the net
 
+    We can load files using secure http (https)::
+
+        sage: sage.misc.preparser.load('https://github.com/jasongrout/minimum_rank/raw/minimum_rank_1_0_0/minrank.py', globals())  # optional - internet
+
     We attach a file::
 
         sage: t=tmp_filename()+'.py'; open(t,'w').write("print 'hello world'")
@@ -1559,7 +1563,7 @@ def load(filename, globals, attach=False):
 
     filename = filename.strip()
 
-    if filename.lower().startswith('http://'):
+    if filename.lower().startswith(('http://', 'https://')):
         if attach:
             # But see http://en.wikipedia.org/wiki/HTTP_ETag for how
             # we will do this.

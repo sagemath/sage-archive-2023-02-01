@@ -499,13 +499,6 @@ appropriate directories:
 
     ln -s /path/to/include/cplex.h .
 
-Once this is done, and as CPLEX is used in Sage through the Osi
-library, which is part of the CBC package, you can type::
+Once this is done, Sage is to be asked to notice the changes by calling::
 
-    sage: install_package("cbc")  # not tested
-
-or, if you had already installed CBC::
-
-    sage: install_package("cbc", force=True)  # not tested
-
-to reinstall it.
+    sage -b

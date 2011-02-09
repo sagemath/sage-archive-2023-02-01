@@ -803,7 +803,7 @@ def compile_command0(p):
             cplus = ''
 
         # call cython, abort if it failed
-        cmd = "python `which cython` %s --embed-positions --directive cdivision=True,autotestdict=False -I%s -o %s %s"%(cplus, os.getcwd(), outfile, f)
+        cmd = "python `which cython` %s --disable-function-redefinition --embed-positions --directive cdivision=True,autotestdict=False,fast_getattr=True -I%s -o %s %s"%(cplus, os.getcwd(), outfile, f)
         r = run_command(cmd)
         if r:
             return r

@@ -4583,7 +4583,7 @@ cdef class Expression(CommutativeRingElement):
             sage: (x^3 - sage.symbolic.constants.pi).gcd(x-sage.symbolic.constants.pi)
             Traceback (most recent call last):
             ...
-            RuntimeError: gcd: arguments must be polynomials over the rationals
+            ValueError: gcd: arguments must be polynomials over the rationals
             sage: gcd(x^3 - y^3, x-y)
             -x + y
             sage: gcd(x^100-y^100, x^10-y^10)

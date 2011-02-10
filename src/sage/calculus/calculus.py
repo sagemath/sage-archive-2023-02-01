@@ -675,7 +675,7 @@ def nintegral(ex, x, a, b,
     Now numerically integrating, we see why the answer is wrong::
 
         sage: f.nintegrate(x,0,1)
-        (-480.00000000000011, 5.3290705182007538e-12, 21, 0)
+        (-480.00000000000006, 5.3290705182007538e-12, 21, 0)
 
     It is just because every floating point evaluation of return -480.0
     in floating point.

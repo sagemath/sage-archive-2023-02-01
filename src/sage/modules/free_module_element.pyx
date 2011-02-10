@@ -2485,15 +2485,11 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: type(vec)
             <type 'sage.modules.vector_real_double_dense.Vector_real_double_dense'>
             sage: answers
-            [(0.5, 5.5511151231257843e-15, 21, 0),
-            (0.33333333333333343, 3.7007434154171903e-15, 21, 0),
-            (0.45969769413186018, 5.1036696439228408e-15, 21, 0)]
+            [(0.5, 5.5511151231257843e-15, 21, 0), (0.3333333333333..., 3.7007434154171903e-15, 21, 0), (0.45969769413186..., 5.1036696439228408e-15, 21, 0)]
 
             sage: r=vector([t,0,1], sparse=True)
             sage: r.nintegral(t,0,1)
-            ((0.5, 0.0, 1.0),
-            {0: (0.5, 5.5511151231257843e-15, 21, 0),
-            2: (1.0, 1.110223024625157e-14, 21, 0)})
+            ((0.5, 0.0, 1.0), {0: (0.5, 5.5511151231257843e-15, 21, 0), 2: (1.0, 1.11022302462515...e-14, 21, 0)})
 
         """
         # If Cython supported lambda functions, we would just do

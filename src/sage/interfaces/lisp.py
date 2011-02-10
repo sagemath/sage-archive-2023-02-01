@@ -376,9 +376,9 @@ class Lisp(Expect):
 
         EXAMPLES:
             sage: lisp.function_call('sin', ['2'])
-            0.90929741
+            0.9092974
             sage: lisp.sin(2)
-            0.90929741
+            0.9092974
         """
         args, kwds = self._convert_args_kwds(args, kwds)
         self._check_valid_function_name(function)

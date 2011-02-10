@@ -5533,7 +5533,7 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(1.0).cosh()
             1.54308063481524
             sage: maxima('cosh(1.0)')
-            1.543080634815244
+            1.54308063481524...
             sage: SR(1.00000000000000000000000000).cosh()
             1.5430806348152437784779056
             sage: SR(RIF(1)).cosh()
@@ -5642,7 +5642,7 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(1.0).arcsinh()
             0.881373587019543
             sage: maxima('asinh(2.0)')
-            1.44363547517881
+            1.4436354751788...
 
         Sage automatically applies certain identities::
 
@@ -5696,7 +5696,7 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(CDF(1/2)).arccosh()
             1.0471975512*I
             sage: maxima('acosh(0.5)')
-            1.047197551196598*%i
+            1.04719755119659...*%i
 
         To prevent automatic evaluation use the ``hold`` argument::
 

@@ -908,9 +908,12 @@ class Maxima(Expect):
             p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE,
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             res = p.stdout.read()
-            # we are now getting five lines of commented verbosity
+            # ecl-10.2 : 3 lines
+            # ecl-10.4 : 5 lines
+            # ecl-11.1 : 4 lines fancy a tango?
+            # We now get 4 lines of commented verbosity
             # every time Maxima starts, so we need to get rid of them
-            for _ in range(5):
+            for _ in range(4):
                 res = res[res.find('\n')+1:]
             return AsciiArtString(res)
         else:
@@ -1126,7 +1129,7 @@ class Maxima(Expect):
 
             sage: f = maxima.function('x', 'sin(x)')
             sage: f(3.2)
-            -.05837414342758009
+            -.058374143427580...
             sage: f = maxima.function('x,y', 'sin(x)+cos(y)')
             sage: f(2,3.5)
             sin(2)-.9364566872907963
@@ -1923,7 +1926,7 @@ class MaximaElement(ExpectElement):
         EXAMPLES::
 
             sage: a = maxima('sqrt(2)').numer(); a
-            1.414213562373095
+            1.41421356237309...
             sage: type(a)
             <class 'sage.interfaces.maxima.MaximaElement'>
         """
@@ -2075,7 +2078,7 @@ class MaximaElement(ExpectElement):
         EXAMPLES::
 
             sage: maxima('exp(-sqrt(x))').nintegral('x',0,1)
-            (.5284822353142306, 4.163314137883845e-11, 231, 0)
+            (.5284822353142306, 4.16331413788384...e-11, 231, 0)
 
         Note that GP also does numerical integration, and can do so to very
         high precision very quickly::
@@ -2129,7 +2132,7 @@ class MaximaElement(ExpectElement):
             sage: f = maxima('exp(x^2)').integral('x',0,1); f
             -sqrt(%pi)*%i*erf(%i)/2
             sage: f.numer()
-            1.462651745907182
+            1.46265174590718...
         """
         I = ExpectElement.__getattr__(self, 'integrate')
         if min is None:
@@ -2249,7 +2252,7 @@ class MaximaElement(ExpectElement):
         EXAMPLES::
 
             sage: maxima('sqrt(2) + I').comma('numer')
-            I+1.414213562373095
+            I+1.41421356237309...
             sage: maxima('sqrt(2) + I*a').comma('a=5')
             5*I+sqrt(2)
         """

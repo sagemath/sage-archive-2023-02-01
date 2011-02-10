@@ -1406,13 +1406,22 @@ cdef class Matrix(matrix0.Matrix):
             sage: m.matrix_space(1, 2, True)
             Full MatrixSpace of 1 by 2 sparse matrices over Integer Ring
         """
+        from sage.matrix.matrix_space import MatrixSpace
         if nrows is None:
             nrows = self._nrows
         if ncols is None:
             ncols = self._ncols
         if sparse is None:
             sparse = self.is_sparse()
-        return self.parent().matrix_space(nrows, ncols, sparse=sparse)
+        base_ring = self._base_ring
+        try:
+            from sage.matrix.matrix_space import _cache
+            MS = _cache[base_ring, nrows, ncols, sparse]()
+        except KeyError:
+            return MatrixSpace(base_ring, nrows, ncols, sparse)
+        if MS is not None:
+            return MS
+        return MatrixSpace(base_ring, nrows, ncols, sparse)
 
     def new_matrix(self, nrows=None, ncols=None, entries=0,
                    coerce=True, copy=True, sparse=None):

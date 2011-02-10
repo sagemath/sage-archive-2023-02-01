@@ -4872,7 +4872,12 @@ cdef class Matrix(matrix1.Matrix):
         if cutoff <= 0:
             raise ValueError, "cutoff must be at least 1"
 
-        output = self.new_matrix(self._nrows, right._ncols)
+        #output = self.new_matrix(self._nrows, right._ncols)
+        # the following is a little faster:
+        if self.is_sparse():
+            output = self.matrix_space(self._nrows, right._ncols, sparse = True)(0)
+        else:
+            output = self.matrix_space(self._nrows, right._ncols, sparse = False).zero_matrix().__copy__()
 
         self_window   = self.matrix_window()
         right_window  = right.matrix_window()

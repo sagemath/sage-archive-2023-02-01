@@ -137,6 +137,24 @@ class pAdicLseries(SageObject):
         sage: L.series(3)
         5 + 4*5^2 + 4*5^3 + O(5^4) + O(5)*T + O(5)*T^2 + O(5)*T^3 + O(5)*T^4 + O(T^5)
 
+    An example showing the calculation of nontrivial Teichmueller twists::
+
+        sage: E=EllipticCurve('11a1')
+        sage: lp=E.padic_lseries(7)
+        sage: lp.series(4,eta=1)
+        6 + 2*7^3 + 5*7^4 + O(7^6) + (4*7 + 2*7^2 + O(7^3))*T + (2 + 3*7^2 + O(7^3))*T^2 + (1 + 2*7 + 2*7^2 + O(7^3))*T^3 + (1 + 3*7^2 + O(7^3))*T^4 + O(T^5)
+        sage: lp.series(4,eta=2)
+        5 + 6*7 + 4*7^2 + 2*7^3 + 3*7^4 + 2*7^5 + O(7^6) + (6 + 4*7 + 7^2 + O(7^3))*T + (3 + 2*7^2 + O(7^3))*T^2 + (1 + 4*7 + 7^2 + O(7^3))*T^3 + (6 + 6*7 + 6*7^2 + O(7^3))*T^4 + O(T^5)
+        sage: lp.series(4,eta=3)
+        O(7^6) + (3 + 2*7 + 5*7^2 + O(7^3))*T + (5 + 4*7 + 5*7^2 + O(7^3))*T^2 + (3*7 + 7^2 + O(7^3))*T^3 + (2*7 + 7^2 + O(7^3))*T^4 + O(T^5)
+
+    (Note that the last series vanishes at `T = 0`, which is consistent with ::
+
+        sage: E.quadratic_twist(-7).rank()
+        1
+
+    This proves that `E` has rank 1 over `\QQ(\zeta_7)`.)
+
     the load-dumps test::
 
         sage: lp = EllipticCurve('11a').padic_lseries(5)

@@ -539,7 +539,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
         sage: integrate( ((F(x)-G(x))^2).expand(), x, -infinity, infinity).n()
         -6.26376265908397e-17
         sage: integrate( (F(x)-G(x))^2, x, -infinity, infinity).n()
-        0
+        -6.26376265908397e-17
 
     This was broken before Maxima 5.20::
 

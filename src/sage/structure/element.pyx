@@ -2888,15 +2888,7 @@ cdef generic_power_c(a, nn, one):
         except TypeError:
             raise NotImplementedError, "non-integral exponents not supported"
 
-    # It's better to test first the equality to zero of the exponent. Indeed,
-    # the following tests tree allows us be sure that "non a" is never called
-    # if n is not 0, so that we can deals with this particular case before
-    # calling generic_power. It is needed to handle the case of semi-groups
-    # (without unit) where "not a" does not makes sense and there is no one to
-    # return when n is 0.
     if not n:
-        if not a:
-            raise ArithmeticError, "0^0 is undefined."
         if one is None:
             if PY_TYPE_CHECK(a, Element):
                 return (<Element>a)._parent(1)

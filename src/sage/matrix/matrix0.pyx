@@ -4105,6 +4105,20 @@ cdef class Matrix(sage.structure.element.Matrix):
             [      -3/11     -13/121   1436/1331]
             [    127/121   -337/1331 -4445/14641]
             [    -13/121   1436/1331 -8015/14641]
+
+        Sage follows Python's convention 0^0 = 1, as each of the following
+        examples show::
+
+            sage: a = Matrix([[1,0],[0,0]]); a
+            [1 0]
+            [0 0]
+            sage: a^0 # lower right entry is 0^0
+            [1 0]
+            [0 1]
+            sage: Matrix([[0]])^0
+            [1]
+            sage: 0^0
+            1
         """
         if not self.is_square():
             raise ArithmeticError("self must be a square matrix")

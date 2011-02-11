@@ -722,9 +722,7 @@ cdef class PolyDict:
             sage: f**0
             PolyDict with representation {(0, 0): 1}
             sage: (f-f)**0
-            Traceback (most recent call last):
-            ...
-            ArithmeticError: 0^0 is undefined.
+            PolyDict with representation {0: 1}
         """
         return generic_power(self, n, self.__one())
 

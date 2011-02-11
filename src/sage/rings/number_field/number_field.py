@@ -6338,6 +6338,19 @@ class NumberField_absolute(NumberField_generic):
             sage: L.base_field().base_field()
             Rational Field
 
+            sage: L = K.relativize(K(0), 'a'); L
+            Number Field in a0 with defining polynomial x^4 + 2*x^2 + 2 over its base field
+            sage: L.base_field()
+            Number Field in a1 with defining polynomial x
+            sage: L.base_field().base_field()
+            Rational Field
+
+        We can relativize over morphisms returned by self.subfields()::
+
+            sage: L = NumberField(x^4 + 1, 'a')
+            sage: [L.relativize(h, 'c') for (f,h,i) in L.subfields()]
+            [Number Field in c0 with defining polynomial x^4 + 1 over its base field, Number Field in c0 with defining polynomial x^2 - 1/2*a1 over its base field, Number Field in c0 with defining polynomial x^2 - a2*x - 1 over its base field, Number Field in c0 with defining polynomial x^2 - a3*x + 1 over its base field, Number Field in c0 with defining polynomial x - a4 over its base field]
+
         We can relativize over a relative field::
 
             sage: K.<z> = CyclotomicField(16)

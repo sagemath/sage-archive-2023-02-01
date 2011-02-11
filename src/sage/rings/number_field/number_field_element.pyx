@@ -1473,6 +1473,13 @@ cdef class NumberFieldElement(FieldElement):
             sage: sqrt2^sqrt2
             2^(1/2*sqrt(2))
 
+        Sage follows Python's convention 0^0 = 1::
+
+            sage: a = K(0)^0; a
+            1
+            sage: a.parent()
+            Number Field in sqrt2 with defining polynomial x^2 - 2
+
         TESTS::
 
             sage: 2^I

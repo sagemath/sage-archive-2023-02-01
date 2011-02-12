@@ -32,6 +32,9 @@ COPYING.
 
 == Changelog ==
 
+=== maxima-5.23.2 (David Kirkby, 10th Feb 2011) ===
+ * #10773 Update Maxima to the latest upstream release.
+
 === maxima-5.22.1 (Nils Bruin, Volker Braun, 28 October 2010) ===
  * Update to the latest upstream version.
  * Rewrote section to build maxima.fas (ecl library) for new ASDF

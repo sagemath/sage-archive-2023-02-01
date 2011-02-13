@@ -6,6 +6,15 @@ if [ "x$SAGE_LOCAL" = x ] ; then
    exit 1
 fi
 
+###############################################################
+# apply patch for the problem acknowledged upstream in
+# http://www.mail-archive.com/ecls-list@lists.sourceforge.net/msg00671.html
+# The patch itself comes from the following commit:
+# http://ecls.git.sourceforge.net/git/gitweb.cgi?p=ecls/ecl;a=commit;h=ce19c67a1b9f63cd232e7c0a621b6ca87aaa7214
+###############################################################
+cd src
+patch -p0 < ../patches/ecls-11.1.1-cmploc.lisp.patch
+
 if [ "x$CFLAG64" = x ] ; then
    CFLAG64=-m64
 fi
@@ -65,8 +74,6 @@ MAKE="$MAKE -j1"
 
 # We clear MAKEFLAGS to fix building multiple spkgs in parallel on OS X.
 export MAKEFLAGS=
-
-cd src
 
 if [ "x`uname -sm`" = "xSunOS i86pc" ] && [ "x$SAGE64" = xyes ]  ; then
    # Need to add --with-dffi=no to disable assembly code on OpenSolaris x64.

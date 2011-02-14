@@ -648,6 +648,33 @@ changes.  Certainly, if you have patches you reviewed positively,
 those exact changes may already be present (so at least ``hg
 qdelete`` those patches before pushing everything back on).
 
+It is also possible to use the Mercurial extension "rebase" to
+manage patches through an upgrade process. First you must enable
+the extension by editing your ``.hgrc`` file to include the
+following::
+
+    [extensions]
+    rebase=
+
+Now, instead of using ``hg qpush`` to forcibly reapply the old
+patches to the new Sage version, you can do the following.
+
+1. Do ``hg update -C -r old.version.number``, where
+   ``old.version.number`` is the old Sage version number you upgraded
+   from, in order to get your working directory back to the good state
+   of the old Sage version;
+2. ``hg qpush -a`` to reapply all your patches to the old Sage files;
+3. ``hg heads`` to find out the exact revision number you want to
+   rebase your patch on;
+4. ``hg rebase -d other.head.rev.number``, where ``other.head.rev.number``
+   is the number you just looked up.
+
+Now your patches should be properly rebased on the new version of
+Sage. It will sometimes happen that the "rebase" extension can't
+quite figure out how to rebase some changes. In that case,
+Mercurial will automatically open a 3-way merge editor to enlist
+your help in resolving the problem. You can configure which
+program this will be by editing your ``.hgrc`` file.
 
 The Big Picture for Mercurial queues
 ------------------------------------

@@ -1068,7 +1068,7 @@ class MatrixGroup_gens(MatrixGroup_gap):
             sage: F = GF(5); MS = MatrixSpace(F,2,2)
             sage: gens = [MS([[1,2],[-1,1]]),MS([[1,1],[-1,1]])]
             sage: G = MatrixGroup(gens)
-            sage: G.invariant_generators()  ## takes a long time (several mins)
+            sage: G.invariant_generators()  # long time (68s on sage.math, 2011)
             [x1^20 + x1^16*x2^4 + x1^12*x2^8 + x1^8*x2^12 + x1^4*x2^16 + x2^20, x1^20*x2^4 + x1^16*x2^8 + x1^12*x2^12 + x1^8*x2^16 + x1^4*x2^20]
             sage: F=CyclotomicField(8)
             sage: z=F.gen()
@@ -1079,7 +1079,7 @@ class MatrixGroup_gens(MatrixGroup_gap):
             sage: g2=MS([[1,0],[0,b]])
             sage: g3=MS([[b,0],[0,1]])
             sage: G=MatrixGroup([g1,g2,g3])
-            sage: G.invariant_generators()
+            sage: G.invariant_generators()  # long time (12s on sage.math, 2011)
             [x1^8 + 14*x1^4*x2^4 + x2^8,
              x1^24 + 10626/1025*x1^20*x2^4 + 735471/1025*x1^16*x2^8 + 2704156/1025*x1^12*x2^12 + 735471/1025*x1^8*x2^16 + 10626/1025*x1^4*x2^20 + x2^24]
 

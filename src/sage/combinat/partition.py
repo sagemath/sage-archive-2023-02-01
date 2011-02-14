@@ -4164,10 +4164,7 @@ def number_of_partitions(n,k=None, algorithm='default'):
         sage: number_of_partitions( n - (n % 385) + 369) % 385 == 0
         True
         sage: n = 100000000 + randint(0,100000000)
-        sage: number_of_partitions( n - (n % 385) + 369) % 385 == 0
-        True
-        sage: n = 1000000000 + randint(0,1000000000)
-        sage: number_of_partitions( n - (n % 385) + 369) % 385 == 0      # takes a long time
+        sage: number_of_partitions( n - (n % 385) + 369) % 385 == 0  # long time (4s on sage.math, 2011)
         True
 
     Another consistency test for n up to 500::

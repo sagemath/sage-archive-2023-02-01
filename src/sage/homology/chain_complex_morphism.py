@@ -63,7 +63,7 @@ def is_ChainComplexMorphism(x):
         sage: from sage.homology.chain_complex_morphism import is_ChainComplexMorphism
         sage: S = simplicial_complexes.Sphere(14)
         sage: H = Hom(S,S)
-        sage: i = H.identity()
+        sage: i = H.identity()  # long time (8s on sage.math, 2011)
         sage: S = simplicial_complexes.Sphere(6)
         sage: H = Hom(S,S)
         sage: i = H.identity()

@@ -525,7 +525,7 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation, MatrixGroup_gens)
             sage: types = [ ['A',5],['B',3],['C',3],['D',4],['G',2],['F',4],['E',6] ]
             sage: [WeylGroup(t).long_element().length() for t in types]
             [15, 9, 9, 12, 6, 24, 36]
-            sage: all( WeylGroup(t).long_element() == WeylGroup(t).long_element_hardcoded() for t in types )
+            sage: all( WeylGroup(t).long_element() == WeylGroup(t).long_element_hardcoded() for t in types )  # long time (17s on sage.math, 2011)
             True
         """
         type = self.cartan_type()

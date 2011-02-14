@@ -745,7 +745,7 @@ def all_labeled_graphs(n):
         sage: st = sage.groups.perm_gps.partn_ref.refinement_graphs.search_tree
         sage: Glist = {}
         sage: Giso  = {}
-        sage: for n in [1..5]:
+        sage: for n in [1..5]:  # long time (4s on sage.math, 2011)
         ...    Glist[n] = all_labeled_graphs(n)
         ...    Giso[n] = []
         ...    for g in Glist[n]:
@@ -756,7 +756,7 @@ def all_labeled_graphs(n):
         ...                inn = True
         ...        if not inn:
         ...            Giso[n].append(b)
-        sage: for n in Giso:
+        sage: for n in Giso:  # long time
         ...    print n, len(Giso[n])
         1 1
         2 2
@@ -783,7 +783,7 @@ def all_labeled_graphs(n):
     return Glist
 
 
-def random_tests(num=20, n_max=60, perms_per_graph=10):
+def random_tests(num=20, n_max=50, perms_per_graph=8):
     """
     Tests to make sure that C(gamma(G)) == C(G) for random permutations gamma
     and random graphs G, and that isomorphic returns an isomorphism.
@@ -803,13 +803,12 @@ def random_tests(num=20, n_max=60, perms_per_graph=10):
     under the generated permutation are equal, and that the isomorphic function
     returns an isomorphism.
 
-    TESTS:
-        sage: import sage.groups.perm_gps.partn_ref.refinement_graphs
-        sage: sage.groups.perm_gps.partn_ref.refinement_graphs.random_tests()
-        All passed: ... random tests on ... graphs.
+    TESTS::
 
+        sage: import sage.groups.perm_gps.partn_ref.refinement_graphs
+        sage: sage.groups.perm_gps.partn_ref.refinement_graphs.random_tests()  # long time (up to 25s on sage.math, 2011)
+        All passed: 640 random tests on 40 graphs.
     """
-    from sage.misc.misc import walltime
     from sage.misc.prandom import random, randint
     from sage.graphs.graph_generators import GraphGenerators
     from sage.graphs.digraph_generators import DiGraphGenerators

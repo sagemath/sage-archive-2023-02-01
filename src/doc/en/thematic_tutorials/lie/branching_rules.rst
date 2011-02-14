@@ -425,7 +425,7 @@ by other methods::
     14
     sage: ad.frobenius_schur_indicator()
     1
-    sage: for r in D7.fundamental_weights():
+    sage: for r in D7.fundamental_weights():  # long time (35s on sage.math, 2011)
     ...      print D7(r).branch(G2, rule=branching_rule_from_plethysm(ad, "D7"))
     ...
     G2(0,1)

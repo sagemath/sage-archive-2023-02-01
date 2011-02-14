@@ -286,7 +286,7 @@ sage: set_random_seed(0)
 sage: p = next_prime(randrange(2^96))
 sage: q = next_prime(randrange(2^97))
 sage: n = p * q
-sage: qsieve(n)
+sage: qsieve(n)  # long time (8s on sage.math, 2011)
 ([6340271405786663791648052309,
   46102313108592180286398757159], '')
 sage: legendre_symbol(2,3)

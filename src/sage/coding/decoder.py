@@ -106,11 +106,8 @@ def decode(C, v, algorithm="syndrome"):
         Linear code of length 13, dimension 10 over Finite Field of size 3
         sage: V = VectorSpace(GF(3), 13)
         sage: v = V([2]+[0]*12)
-        sage: decode(C, v)
+        sage: decode(C, v)  # long time (9s on sage.math, 2011)
         (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-        sage: decode(C, v, algorithm="nearest neighbor")
-        (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-
     """
     V = C.ambient_space()
     if not(type(v)==list):

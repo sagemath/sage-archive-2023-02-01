@@ -5581,12 +5581,12 @@ class NumberField_absolute(NumberField_generic):
             sage: K.<a> = NumberField(x^6 + 4*x^2 + 2, 'a')
             sage: K.galois_group(type='pari').order()
             48
-            sage: L, phi = K._galois_closure_and_embedding('c')
-            sage: phi.domain() is K, phi.codomain() is L
+            sage: L, phi = K._galois_closure_and_embedding('c')  # long time (25s on sage.math, 2011)
+            sage: phi.domain() is K, phi.codomain() is L  # long time
             (True, True)
-            sage: L
+            sage: L  # long time
             Number Field in c with defining polynomial x^48 + 672*x^44 - 29904*x^42 + 5573568*x^40 - 71988672*x^38 + 5657686832*x^36 + 24204531456*x^34 + 12891821550720*x^32 - 696282917339072*x^30 + 12802184716989696*x^28 + 987385486040115456*x^26 + 39174898963577334624*x^24 + 8992357198620665856*x^22 + 8323003980399007710720*x^20 - 250984831575663605326592*x^18 + 23158113523989042998289408*x^16 + 449057170502643207256722432*x^14 + 28571480781210190985371945728*x^12 - 14430449019771278412479533056*x^10 + 11623371608161089275002854217728*x^8 - 101534009256831666166090628596736*x^6 + 2206697807875188993828211869560832*x^4 - 4684747774733973147488568884219904*x^2 + 2708520329592370027664581735403776
-            sage: K.defining_polynomial() ( phi(K.gen()) )
+            sage: K.defining_polynomial()( phi(K.gen()) )  # long time
             0
         """
         try:

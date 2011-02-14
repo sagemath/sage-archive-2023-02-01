@@ -853,16 +853,18 @@ def discrete_log_lambda(a, base, bounds, operation='*', hash_function=hash):
         sage: P=E.lift_x(a); P
         (a : 9*a^4 + 22*a^3 + 23*a^2 + 30 : 1)
 
-        This will return a multiple of the order of P:
+    This will return a multiple of the order of P::
+
         sage: discrete_log_lambda(P.parent()(0), P, Hasse_bounds(F.order()), operation='+')
         69327408
 
         sage: K.<a> = GF(89**5)
         sage: hs = lambda x: hash(x) + 15
-        sage: discrete_log_lambda(a**(89**3 - 3), a, (89**2, 89**4), operation = '*', hash_function = hs)
+        sage: discrete_log_lambda(a**(89**3 - 3), a, (89**2, 89**4), operation = '*', hash_function = hs)  # long time (10s on sage.math, 2011)
         704966
 
     AUTHOR:
+
         -- Yann Laigle-Chapuy (2009-01-25)
 
     """

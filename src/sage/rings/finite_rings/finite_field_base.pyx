@@ -49,11 +49,23 @@ cdef class FiniteFieldIterator:
     def __iter__(self):
         """
 
-        EXAMPLE::
+        EXAMPLES::
 
-            sage: K = GF(7^6,'a')
-            sage: K.list()[:10]
-            [0, 1, 2, 3, 4, 5, 6, a, a + 1, a + 2]
+            sage: K.<a> = GF(7^4)
+            sage: K.list()[:7]
+            [0, 6*a, a^2, 6*a^3, 2*a^2 + 3*a + 4, 5*a^3 + 4*a^2 + 3*a, 3*a^3 + a^2 + 6*a + 1]
+            sage: K.<a> = GF(5^9)
+            sage: for x in K:
+            ...       if x == a+3: break
+            ...       print x
+            0
+            1
+            2
+            3
+            4
+            a
+            a + 1
+            a + 2
         """
         return self
 

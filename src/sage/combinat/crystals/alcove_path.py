@@ -391,12 +391,12 @@ class ClassicalCrystalOfAlcovePathsElement(Letter):
 
         EXAMPLES::
 
-            sage: C = ClassicalCrystalOfAlcovePaths(['E',6],[1,0,0,0,0,0])
-            sage: C.module_generators
+            sage: C = ClassicalCrystalOfAlcovePaths(['E',6],[1,0,0,0,0,0])  # long time (20s on sage.math, 2011)
+            sage: C.module_generators  # long time
             [[]]
-            sage: C([]).f(1)
+            sage: C([]).f(1)  # long time
             [0]
-            sage: C([]).f(1).e(1)
+            sage: C([]).f(1).e(1)  # long time
             []
         """
         assert i in self.index_set()
@@ -480,18 +480,18 @@ class ClassicalCrystalOfAlcovePathsElement(Letter):
 
         EXAMPLES::
 
-            sage: C = ClassicalCrystalOfAlcovePaths(['E',6],[1,0,0,0,0,0])
-            sage: C.module_generators
+            sage: C = ClassicalCrystalOfAlcovePaths(['E',6],[1,0,0,0,0,0])  # long time (21s on sage.math, 2011)
+            sage: C.module_generators  # long time
             [[]]
-            sage: C([]).f(1)
+            sage: C([]).f(1)  # long time
             [0]
-            sage: C([]).f(1).f(3)
+            sage: C([]).f(1).f(3)  # long time
             [0, 1]
-            sage: C([]).f(1).f(3).f(4)
+            sage: C([]).f(1).f(3).f(4)  # long time
             [0, 1, 2]
-            sage: C([]).f(1).f(3).f(4).f(5)
+            sage: C([]).f(1).f(3).f(4).f(5)  # long time
             [0, 1, 2, 4]
-            sage: C([]).f(1).f(3).f(4).f(2)
+            sage: C([]).f(1).f(3).f(4).f(2)  # long time
             [0, 1, 2, 3]
         """
         assert i in self.index_set()
@@ -651,7 +651,7 @@ def test_some_specific_examples():
 
     EXAMPLES::
 
-        sage: sage.combinat.crystals.alcove_path.test_some_specific_examples()
+        sage: sage.combinat.crystals.alcove_path.test_some_specific_examples()  # long time (12s on sage.math, 2011)
         G2 example passed.
         C3 example passed.
         B3 example 1 passed.

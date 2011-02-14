@@ -30,7 +30,7 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
 
             sage: h = SFAElementary(QQ)
             sage: f = h.dual_basis(prefix = "m")
-            sage: TestSuite(f).run()
+            sage: TestSuite(f).run()  # long time (11s on sage.math, 2011)
 
         This class defines canonical coercions between self and
         self^*, as follow:

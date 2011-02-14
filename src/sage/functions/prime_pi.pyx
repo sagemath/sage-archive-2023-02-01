@@ -155,8 +155,7 @@ cdef class PrimePi:
 
         Make sure we actually compute correct results::
 
-            sage: for n in (30..40):
-            ...       prime_pi(2**n)
+            sage: for n in (30..40): print prime_pi(2**n)  # long time (22s on sage.math, 2011)
             54400028
             105097565
             203280221
@@ -175,7 +174,7 @@ cdef class PrimePi:
             sage: prime_pi(2^40+1)
             Traceback (most recent call last):
             ...
-            NotImplementedError: computation of prime_pi() greater 2**40 not implemented
+            NotImplementedError: computation of prime_pi() greater than 2^40 not implemented
 
         """
         if mem_mult < 1:
@@ -183,7 +182,7 @@ cdef class PrimePi:
         if x < 2:
             return 0
         if x > 1099511627776L:
-            raise NotImplementedError, "computation of prime_pi() greater 2**40 not implemented"
+            raise NotImplementedError, "computation of prime_pi() greater than 2^40 not implemented"
         x += x & 1
         # m_max is the current sieving value, for prime counting - this value is sqrt(x)
         cdef long m_max = sqrt_longlong(x) + 1

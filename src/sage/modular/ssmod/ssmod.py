@@ -34,10 +34,10 @@ EXAMPLES::
 
 We compute a Hecke operator on a space of huge dimension!::
 
-    sage: X = SupersingularModule(next_prime(100000))
-    sage: t = X.T(2).matrix()            # long time (but still less than a minute!)
+    sage: X = SupersingularModule(next_prime(10000))
+    sage: t = X.T(2).matrix()            # long time (21s on sage.math, 2011)
     sage: t.nrows()                      # long time
-    8334
+    835
 
 TESTS::
 

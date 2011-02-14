@@ -61,9 +61,9 @@ listing the label of each:
 Secondly we try the same with `S={11}`; note that warning messages are
 printed without proof=False (unless the optional database is
 installed: two of the auxiliary curves whose Mordell-Weil bases are
-required have conductors 13068 and 52272 so are in the database):
+required have conductors 13068 and 52272 so are in the database)::
 
-    sage: [e.label() for e in EllipticCurves_with_good_reduction_outside_S([11], proof=False)]
+    sage: [e.label() for e in EllipticCurves_with_good_reduction_outside_S([11], proof=False)]  # long time (13s on sage.math, 2011)
     ['11a1', '11a2', '11a3', '121a1', '121a2', '121b1', '121b2', '121c1', '121c2', '121d1', '121d2', '121d3']
 
 

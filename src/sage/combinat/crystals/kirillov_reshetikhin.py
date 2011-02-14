@@ -609,7 +609,7 @@ class KR_type_E6(KirillovReshetikhinCrystalFromPromotion):
 
         sage: K = KirillovReshetikhinCrystal(['E',6,1], 2,1)
         sage: La = K.weight_lattice_realization().fundamental_weights()
-        sage: all(b.weight() == sum( (K.affine_weight(b.lift())[i] * La[i] for i in K.index_set()), 0*La[0]) for b in K)
+        sage: all(b.weight() == sum( (K.affine_weight(b.lift())[i] * La[i] for i in K.index_set()), 0*La[0]) for b in K)  # long time (26s on sage.math, 2011)
         True
     """
 

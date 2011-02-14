@@ -462,10 +462,10 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             (3*11^3 + 7*11^4 + 4*11^5 + 7*11^6 + 5*11^7 + O(11^8), 3*11 + 10*11^2 + 8*11^3 + 9*11^4 + 7*11^5 + O(11^6), 4*11^-1 + 2 + 6*11 + 6*11^2 + 7*11^3 + O(11^4), 11^-3 + 6*11^-2 + 2*11^-1 + 2 + O(11^2))
 
             sage: R = C(0,1/4)
-            sage: a = C.coleman_integrals_on_basis(P,R)
-            sage: b = C.coleman_integrals_on_basis(R,Q)
-            sage: c = C.coleman_integrals_on_basis(P,Q)
-            sage: a+b == c
+            sage: a = C.coleman_integrals_on_basis(P,R)  # long time (7s on sage.math, 2011)
+            sage: b = C.coleman_integrals_on_basis(R,Q)  # long time (9s on sage.math, 2011)
+            sage: c = C.coleman_integrals_on_basis(P,Q)  # long time
+            sage: a+b == c  # long time
             True
 
             sage: R.<x> = QQ['x']

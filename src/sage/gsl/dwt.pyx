@@ -54,12 +54,14 @@ def WaveletTransform(n, wavelet_type, wavelet_k):
     The wavelet transform uses J=log_2(n) levels.
 
     OUTPUT:
+
         An array of the form
          (s_{-1,0},d_{0,0},d_{1,0},d_{1,1}, d_{2,0}...,d_{J-1,2^{J-1}-1})
         for d_{j,k} the detail coefficients of level j.
         The centered forms align the coefficients of the sub-bands on edges.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: a = WaveletTransform(128,'daubechies',4)
         sage: for i in range(1, 11):
         ...    a[i] = 1
@@ -76,14 +78,15 @@ def WaveletTransform(n, wavelet_type, wavelet_k):
         sage: a.forward_transform()
         sage: a.plot().show(ymin=0)
 
-    This example gives a simple example of wavelet compression.
+    This example gives a simple example of wavelet compression::
+
         sage: a = DWT(2048,'daubechies',6)
         sage: for i in range(2048): a[i]=float(sin((i*5/2048)**2))
-        sage: a.plot().show()
+        sage: a.plot().show()  # long time (7s on sage.math, 2011)
         sage: a.forward_transform()
         sage: for i in range(1800): a[2048-i-1] = 0
         sage: a.backward_transform()
-        sage: a.plot().show()
+        sage: a.plot().show()  # long time (7s on sage.math, 2011)
     """
     cdef size_t _n, _k
     _n = int(n)

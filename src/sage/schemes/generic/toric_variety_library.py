@@ -574,7 +574,7 @@ class ToricVarietyFactory(SageObject):
 
         EXAMPLES::
 
-            sage: dP6xdP6 = toric_varieties.dP6xdP6()   # long time
+            sage: dP6xdP6 = toric_varieties.dP6xdP6()   # long time (20s on sage.math, 2011)
             sage: dP6xdP6                               # long time
             4-d CPR-Fano toric variety covered by 36 affine patches
             sage: dP6xdP6.fan().ray_matrix()            # long time
@@ -750,7 +750,7 @@ class ToricVarietyFactory(SageObject):
 
         EXAMPLES::
 
-            sage: X = toric_varieties.BCdlOG()      # long time
+            sage: X = toric_varieties.BCdlOG()      # long time (56s on sage.math, 2011)
             sage: X                                 # long time
             5-d CPR-Fano toric variety covered by 54 affine patches
             sage: X.fan().ray_matrix()              # long time
@@ -885,7 +885,7 @@ class ToricVarietyFactory(SageObject):
 
         EXAMPLES::
 
-            sage: P4_11169_resolved = toric_varieties.P4_11169_resolved()  # long time
+            sage: P4_11169_resolved = toric_varieties.P4_11169_resolved()  # long time (2s on sage.math, 2011)
             sage: P4_11169_resolved                      # long time
             4-d CPR-Fano toric variety covered by 9 affine patches
             sage: P4_11169_resolved.fan().ray_matrix()   # long time

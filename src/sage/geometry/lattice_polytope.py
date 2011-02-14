@@ -2047,7 +2047,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         But they can be obtained from ``nef.x`` for all nef-partitions at once.
         Partitions will be exactly the same::
 
-            sage: o.nef_partitions(hodge_numbers=True)
+            sage: o.nef_partitions(hodge_numbers=True)  # long time (2s on sage.math, 2011)
             [
             Nef-partition {0, 1, 4, 5} U {2, 3, 6, 7} (direct product),
             Nef-partition {0, 1, 2, 4} U {3, 5, 6, 7},
@@ -3602,13 +3602,13 @@ class NefPartition(SageObject,
         nef-partitions::
 
             sage: o = lattice_polytope.octahedron(5)
-            sage: np = o.nef_partitions()[0]
-            sage: np.hodge_numbers()
+            sage: np = o.nef_partitions()[0]  # long time (4s on sage.math, 2011)
+            sage: np.hodge_numbers()  # long time
             Traceback (most recent call last):
             ...
             NotImplementedError: use nef_partitions(hodge_numbers=True)!
-            sage: np = o.nef_partitions(hodge_numbers=True)[0]
-            sage: np.hodge_numbers()
+            sage: np = o.nef_partitions(hodge_numbers=True)[0]  # long time (13s on sage.math, 2011)
+            sage: np.hodge_numbers()  # long time
             (19, 19)
         """
         try:

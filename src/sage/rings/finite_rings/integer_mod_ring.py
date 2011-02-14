@@ -259,7 +259,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         Saving and loading::
 
             sage: R = Integers(100000)
-            sage: TestSuite(R).run()
+            sage: TestSuite(R).run()  # long time (17s on sage.math, 2011)
         """
         ZZ = integer_ring.IntegerRing()
         order = ZZ(order)

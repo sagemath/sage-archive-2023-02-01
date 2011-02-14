@@ -251,10 +251,10 @@ class ModularSymbol(SageObject):
             sage: m._scaling
             1
 
-        TESTS ::
+        TESTS::
 
             sage: rk0 = ['11a1', '11a2', '15a1', '27a1', '37b1']
-            sage: for la in rk0:
+            sage: for la in rk0:  # long time (3s on sage.math, 2011)
             ...          E = EllipticCurve(la)
             ...          me = E.modular_symbol(use_eclib = True)
             ...          ms = E.modular_symbol(use_eclib = False)
@@ -266,9 +266,9 @@ class ModularSymbol(SageObject):
             2/3 2/3 2/3
 
             sage: rk1 = ['37a1','43a1','53a1', '91b1','91b2','91b3']
-            sage: [EllipticCurve(la).modular_symbol(use_eclib=True)(0) for la in rk1]
+            sage: [EllipticCurve(la).modular_symbol(use_eclib=True)(0) for la in rk1]  # long time (1s on sage.math, 2011)
             [0, 0, 0, 0, 0, 0]
-            sage: for la in rk1:
+            sage: for la in rk1:  # long time (8s on sage.math, 2011)
             ...       E = EllipticCurve(la)
             ...       m = E.modular_symbol(use_eclib = True)
             ...       lp = E.padic_lseries(5)
@@ -276,8 +276,7 @@ class ModularSymbol(SageObject):
             ...           ED = E.quadratic_twist(D)
             ...           md = sum([kronecker(D,u)*m(ZZ(u)/D) for u in range(D)])
             ...           etaa = lp._quotient_of_periods_to_twist(D)
-            ...           if ED.lseries().L_ratio()*ED.real_components()*etaa != md:
-            ...               print 'oyoyoy a bug !!!'
+            ...           assert ED.lseries().L_ratio()*ED.real_components()*etaa == md
 
         """
         E = self._E

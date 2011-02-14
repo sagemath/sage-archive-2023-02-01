@@ -314,13 +314,12 @@ def random_tests(n=15, nrows_max=50, ncols_max=50, nsymbols_max=20, perms_per_ma
     isomorphism.
 
     INPUT:
-    n -- run tests on this many matrices
-    nrows_max -- test matrices with at most this many rows
-    ncols_max -- test matrices with at most this many columns
-    perms_per_matrix -- test each matrix with this many random permutations
-    nsymbols_max -- maximum number of distinct symbols in the matrix
 
-    DISCUSSION:
+    - n -- run tests on this many matrices
+    - nrows_max -- test matrices with at most this many rows
+    - ncols_max -- test matrices with at most this many columns
+    - perms_per_matrix -- test each matrix with this many random permutations
+    - nsymbols_max -- maximum number of distinct symbols in the matrix
 
     This code generates n random matrices M on at most ncols_max columns and at
     most nrows_max rows. The density of entries in the basis is chosen randomly
@@ -331,9 +330,10 @@ def random_tests(n=15, nrows_max=50, ncols_max=50, nsymbols_max=20, perms_per_ma
     under the generated permutation are equal, and that the isomorphism is
     discovered by the double coset function.
 
-    DOCTEST:
+    TESTS::
+
         sage: import sage.groups.perm_gps.partn_ref.refinement_matrices
-        sage: sage.groups.perm_gps.partn_ref.refinement_matrices.random_tests()
+        sage: sage.groups.perm_gps.partn_ref.refinement_matrices.random_tests()  # long time (up to 30s on sage.math, 2011)
         All passed: ... random tests on ... matrices.
 
     """

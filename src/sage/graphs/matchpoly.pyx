@@ -91,13 +91,13 @@ def matching_polynomial(G, complement=True, name=None):
         tom^10 - 15*tom^8 + 75*tom^6 - 145*tom^4 + 90*tom^2 - 6
         sage: g = Graph()
         sage: L = [graphs.RandomGNP(8, .3) for i in [1..5]]
-        sage: prod([h.matching_polynomial() for h in L]) == sum(L, g).matching_polynomial()
+        sage: prod([h.matching_polynomial() for h in L]) == sum(L, g).matching_polynomial()  # long time (up to 10s on sage.math, 2011)
         True
 
     ::
 
         sage: from sage.graphs.matchpoly import matching_polynomial
-        sage: for i in [1..12]:
+        sage: for i in [1..12]:  # long time (10s on sage.math, 2011)
         ...    for t in graphs.trees(i):
         ...        c = t.complement()
         ...        assert matching_polynomial(t) == t.characteristic_polynomial()

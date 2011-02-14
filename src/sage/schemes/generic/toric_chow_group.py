@@ -929,7 +929,7 @@ class ChowGroup_class(FGP_Module_class):
             sage: cones = [[0,1,2,3],[4,5,6,7],[0,1,7,6],
             ...            [4,5,3,2],[0,2,5,7],[4,6,1,3]]
             sage: X = ToricVariety(Fan(cones, rays))
-            sage: X.Chow_group().degree(2)
+            sage: X.Chow_group().degree(2)  # long time (2s on sage.math, 2011)
             C2 x Z^5
 
         Finally, Example 1.3 of [FS]_::
@@ -942,13 +942,13 @@ class ChowGroup_class(FGP_Module_class):
             sage: cones = [[0,1,2,3],[4,5,6,7],[0,1,7,6],
             ...            [4,5,3,2],[0,2,5,7],[4,6,1,3]]
             sage: X_Delta = lambda k: ToricVariety(Fan(cones=cones, rays=rays(k)))
-            sage: X_Delta(0).Chow_group().degree()
+            sage: X_Delta(0).Chow_group().degree()  # long time (3s on sage.math, 2011)
             (Z, Z, Z^5, Z)
-            sage: X_Delta(1).Chow_group().degree()
+            sage: X_Delta(1).Chow_group().degree()  # long time (3s on sage.math, 2011)
             (Z, 0, Z^5, Z)
-            sage: X_Delta(2).Chow_group().degree()
+            sage: X_Delta(2).Chow_group().degree()  # long time (3s on sage.math, 2011)
             (Z, C2, Z^5, Z)
-            sage: X_Delta(2).Chow_group(base_ring=QQ).degree()
+            sage: X_Delta(2).Chow_group(base_ring=QQ).degree()  # long time (4s on sage.math, 2011)
             (Q, 0, Q^5, Q)
         """
         if k!=None:

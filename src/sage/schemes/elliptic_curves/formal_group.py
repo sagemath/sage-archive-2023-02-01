@@ -640,7 +640,7 @@ class EllipticCurveFormalGroup(SageObject):
         TESTS::
 
             sage: F = EllipticCurve(GF(17), [1, 1]).formal_group()
-            sage: F.mult_by_n(10, 50)
+            sage: F.mult_by_n(10, 50)  # long time (13s on sage.math, 2011)
             10*t + 5*t^5 + 7*t^7 + 13*t^9 + t^11 + 16*t^13 + 13*t^15 + 9*t^17 + 16*t^19 + 15*t^23 + 15*t^25 + 2*t^27 + 10*t^29 + 8*t^31 + 15*t^33 + 6*t^35 + 7*t^37 + 9*t^39 + 10*t^41 + 5*t^43 + 4*t^45 + 6*t^47 + 13*t^49 + O(t^50)
 
             sage: F = EllipticCurve(GF(101), [1, 1]).formal_group()

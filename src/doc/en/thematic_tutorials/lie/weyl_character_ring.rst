@@ -440,7 +440,7 @@ So far we have been working with `n=3`. For general `n`::
    ...      tr = R(R.fundamental_weights()[1])
    ...      return sum(x[1]^2 for x in (tr^k).hlist())
    ...
-   sage: [f(n,5) for n in [2..7]]
+   sage: [f(n,5) for n in [2..7]]  # long time (37s on sage.math, 2011)
    [42, 103, 119, 120, 120, 120]
 
 We see that the 10-th moment of `tr(g)` is just `5!` when `n` is sufficiently

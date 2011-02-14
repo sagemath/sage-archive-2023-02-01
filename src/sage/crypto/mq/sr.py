@@ -3323,17 +3323,19 @@ def test_consistency(max_n=2, **kwargs):
 
     INPUT:
 
-    - ``max_n`` - maximal number of rounds to consider (default: 2)
-    - ``kwargs`` - are passed to the SR constructor
+    - ``max_n`` -- maximal number of rounds to consider (default: 2)
+    - ``kwargs`` -- are passed to the SR constructor
 
-    TESTS::
+    TESTS:
+
+    The following test called with ``max_n`` = 2 requires a LOT of RAM
+    (much more than 2GB).  Since this might cause the doctest to fail
+    on machines with "only" 2GB of RAM, we test ``max_n`` = 1, which
+    has a more reasonable memory usage. ::
 
         sage: from sage.crypto.mq.sr import test_consistency
-        sage: test_consistency(1) # long time -- calling w/ max_n = 2 requires a LOT of RAM (>> 2GB, evidently).  Calling w/ max_n = 1 is far more manageable.
+        sage: test_consistency(1)  # long time (80s on sage.math, 2011)
         True
-
-    The above doctest used to fail on a machine with "only" 2GB RAM.
-    Using ``max_n = 1`` appears to be a more reasonable memory usage.
     """
     consistent = True
     for r in (1, 2, 4):

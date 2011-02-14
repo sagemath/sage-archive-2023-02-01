@@ -230,7 +230,7 @@ def _division_field(E,p):
 
     EXAMPLES::
 
-        sage: from sage.schemes.elliptic_curves.gal_reps import  _division_field
+        sage: from sage.schemes.elliptic_curves.gal_reps import _division_field
         sage: E = EllipticCurve('14a1')
         sage: _division_field(E,2)
         Number Field in b with defining polynomial X^2 + 5*X + 92
@@ -251,19 +251,13 @@ def _division_field(E,p):
 
         # even  _division_field(E,7) works within a few minutes
 
+    There is something to be done here, sometimes we can't take the absolute field::
 
-    there is something to be done here, sometimes we can't take the absolute field ::
-
-        sage: L = _division_field(E,5); L   # long
+        sage: E = EllipticCurve('27a1')
+        sage: L = _division_field(E,5); L   # long time (4s on sage.math, 2011)
         Number Field in a with defining polynomial Y^2 + Y - 7544/9663480699587560272216796875*b^18 - 922862/10473721227685546875*b^12 - 2459197/170278453125*b^6 - 859421/1661 over its base field
-        sage: L.absolute_degree()           # long
+        sage: L.absolute_degree()           # long time
         48
-
-        sage: E = EllipticCurve('11a1')  # long time
-        sage: L = _division_field(E,3)   # long time
-        sage: L.absolute_degree()        # long time
-        48
-
     """
     from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 

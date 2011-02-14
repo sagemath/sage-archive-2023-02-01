@@ -1050,7 +1050,7 @@ def unpickle_all(dir = None, debug=False, run_test_suite=False):
     We unpickle the standard pickle jar. This doctest tests that
     all "standard pickles" unpickle::
 
-        sage: print "x"; sage.structure.sage_object.unpickle_all()
+        sage: print "x"; sage.structure.sage_object.unpickle_all()  # long time (4s on sage.math, 2011)
         x...
         Successfully unpickled ... objects.
         Failed to unpickle 0 objects.

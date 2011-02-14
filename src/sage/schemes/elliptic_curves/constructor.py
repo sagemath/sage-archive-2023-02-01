@@ -604,15 +604,15 @@ def EllipticCurves_with_good_reduction_outside_S(S=[], proof=None, verbose=False
         sage: ', '.join([e.label() for e in elist])
         '32a1, 32a2, 32a3, 32a4, 64a1, 64a2, 64a3, 64a4, 128a1, 128a2, 128b1, 128b2, 128c1, 128c2, 128d1, 128d2, 256a1, 256a2, 256b1, 256b2, 256c1, 256c2, 256d1, 256d2'
 
-    Without the "Proof=False", this example gives two warnings::
+    Without ``Proof=False``, this example gives two warnings::
 
-        sage: elist = EllipticCurves_with_good_reduction_outside_S([11],proof=False)
-        sage: len(elist)
+        sage: elist = EllipticCurves_with_good_reduction_outside_S([11],proof=False)  # long time (14s on sage.math, 2011)
+        sage: len(elist)  # long time
         12
-        sage: ', '.join([e.label() for e in elist])
+        sage: ', '.join([e.label() for e in elist])  # long time
         '11a1, 11a2, 11a3, 121a1, 121a2, 121b1, 121b2, 121c1, 121c2, 121d1, 121d2, 121d3'
 
-        sage: elist = EllipticCurves_with_good_reduction_outside_S([2,3]) # long time (~35s)
+        sage: elist = EllipticCurves_with_good_reduction_outside_S([2,3]) # long time (26s on sage.math, 2011)
         sage: len(elist) # long time
         752
         sage: max([e.conductor() for e in elist]) # long time

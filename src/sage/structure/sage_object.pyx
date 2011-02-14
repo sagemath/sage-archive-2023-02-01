@@ -520,6 +520,13 @@ cdef class SageObject:
         I = sage.interfaces.maxima.maxima
         return self._interface_init_(I)
 
+    def _maxima_lib_(self, G=None):
+        from sage.interfaces.maxima_lib import maxima_lib
+        return self._interface_(maxima_lib)
+
+    def _maxima_lib_init_(self):
+        return self._maxima_init_()
+
     def _magma_init_(self, magma):
         """
         Given a Magma interpreter M, return a string that evaluates in

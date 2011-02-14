@@ -364,7 +364,6 @@ from sage.rings.all import RR, Integer, CC, QQ, RealDoubleElement, algdep
 from sage.rings.real_mpfr import create_RealNumber
 
 from sage.misc.latex import latex, latex_variable_name
-from sage.interfaces.maxima import Maxima
 from sage.misc.parser import Parser
 
 from sage.symbolic.ring import var, SR, is_SymbolicVariable
@@ -374,20 +373,22 @@ from sage.symbolic.function_factory import function_factory, function
 from sage.symbolic.integration.integral import indefinite_integral, \
         definite_integral
 import sage.symbolic.pynac
-import sage.interfaces.maxima_lib
 
 """
 Check if maxima has redundant variables defined after initialization #9538::
 
-    sage: maxima = sage.interfaces.maxima_lib.maxima
+    sage: maxima = sage.interfaces.maxima.maxima
     sage: maxima('f1')
     f1
     sage: sage.calculus.calculus.maxima('f1')
     f1
 """
-maxima = sage.interfaces.maxima_lib.maxima
-#maxima = Maxima(init_code = ['display2d:false', 'domain: complex',
-#                             'keepfloat: true', 'load(to_poly_solver)', 'load(simplify_sum)'],
+import sage.interfaces.maxima_lib
+maxima = sage.interfaces.maxima_lib.maxima_lib
+# This is not the same instance of Maxima as the general purpose one
+#from sage.interfaces.maxima import Maxima
+#maxima = Maxima(init_code = ['display2d : false', 'domain : complex',
+#                             'keepfloat : true', 'load(to_poly_solver)', 'load(simplify_sum)'],
 #                script_subdirectory=None)
 
 ########################################################

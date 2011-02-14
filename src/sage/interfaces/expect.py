@@ -1,5 +1,5 @@
 """
-Common Interface Functionality
+Common Interface Functionality through Pexpect
 
 See the examples in the other sections for how to use specific
 interfaces. The interface classes all derive from the generic
@@ -17,6 +17,8 @@ AUTHORS:
 - Simon King (2010-09-25): Expect._local_tmpfile() depends on
   Expect.pid() and is cached; Expect.quit() clears that cache,
   which is important for forking.
+
+- Jean-Pierre Flori (2010,2011): Split non Pexpect stuff into a parent class.
 """
 
 #*****************************************************************************
@@ -42,6 +44,8 @@ import weakref
 import time
 import gc
 import operator
+import quit
+import cleaner
 from random import randrange
 
 ########################################################
@@ -51,23 +55,14 @@ from random import randrange
 ########################################################
 import pexpect
 from pexpect import ExceptionPexpect
-
+from sage.interfaces.interface import Interface, InterfaceElement, InterfaceFunction, InterfaceFunctionElement, AsciiArtString
 
 from sage.structure.sage_object import SageObject
 from sage.structure.parent_base import ParentWithBase
-import  sage.structure.element
-
-import sage.misc.sage_eval
-
-import quit
-
-import cleaner
-
-import os
-
-from sage.misc.misc import SAGE_ROOT, verbose, SAGE_TMP_INTERFACE, LOCAL_IDENTIFIER
 from sage.structure.element import RingElement
 
+import sage.misc.sage_eval
+from sage.misc.misc import SAGE_ROOT, verbose, SAGE_TMP_INTERFACE, LOCAL_IDENTIFIER
 from sage.misc.object_multiplexer import Multiplex
 
 BAD_SESSION = -2
@@ -142,15 +137,7 @@ class gc_disabled(object):
             gc.enable()
         return False
 
-class AsciiArtString(str):
-    def __repr__(self):
-        return str(self)
-
-class PropTypeError(Exception):
-    pass
-
-
-class Expect(ParentWithBase):
+class Expect(Interface):
     """
     Expect interface object.
     """
@@ -161,6 +148,7 @@ class Expect(ParentWithBase):
                  logfile = None, eval_using_file_cutoff=0,
                  do_cleaner = True, remote_cleaner = False, path=None):
 
+        Interface.__init__(self, name)
         self.__is_remote = False
         self.__remote_cleaner = remote_cleaner
         if command == None:
@@ -188,8 +176,6 @@ class Expect(ParentWithBase):
         self.__maxread = maxread
         self._eval_using_file_cutoff = eval_using_file_cutoff
         self.__script_subdirectory = script_subdirectory
-        self.__name = name
-        self.__coerce_name = '_' + name.lower() + '_'
         self.__command = command
         self._prompt = prompt
         self._restart_on_ctrlc = restart_on_ctrlc
@@ -199,7 +185,7 @@ class Expect(ParentWithBase):
         elif script_subdirectory is None:
             self.__path = '.'
         else:
-            self.__path = '%s/data/extcode/%s/%s'%(SAGE_ROOT,self.__name,
+            self.__path = '%s/data/extcode/%s/%s'%(SAGE_ROOT,name,
                                                    self.__script_subdirectory)
         self.__initialized = False
         self.__seq = -1
@@ -213,10 +199,8 @@ class Expect(ParentWithBase):
             logfile = open(logfile,'w')
         self.__logfile = logfile
 
-
         quit.expect_objects.append(weakref.ref(self))
         self._available_vars = []
-        ParentWithBase.__init__(self, self)
 
     def _get(self, wait=0.1, alternate_prompt=None):
         if self._expect is None:
@@ -286,9 +270,6 @@ class Expect(ParentWithBase):
     def user_dir(self):
         return self.__path
 
-    def _repr_(self):
-        return self.__name.capitalize()
-
     def _change_prompt(self, prompt):
         self._prompt = prompt
 
@@ -298,9 +279,6 @@ class Expect(ParentWithBase):
 #        if not os.path.exists(T):
 #            os.makedirs(T)
 #        return T + str(x)
-
-    def name(self, new_name=None):
-        return self.__name
 
     def path(self):
         return self.__path
@@ -461,9 +439,9 @@ If this all works, you can then make calls like:
         except (ExceptionPexpect, pexpect.EOF, IndexError):
             self._expect = None
             self._session_number = BAD_SESSION
-            failed_to_start.append(self.__name)
+            failed_to_start.append(self.name())
             raise RuntimeError, "Unable to start %s because the command '%s' failed.\n%s"%(
-                self.__name, cmd, self._install_hints())
+                self.name(), cmd, self._install_hints())
 
         os.chdir(current_path)
         self._expect.timeout = self.__max_startup_time
@@ -476,8 +454,8 @@ If this all works, you can then make calls like:
         except (pexpect.TIMEOUT, pexpect.EOF), msg:
             self._expect = None
             self._session_number = BAD_SESSION
-            failed_to_start.append(self.__name)
-            raise RuntimeError, "Unable to start %s"%self.__name
+            failed_to_start.append(self.name())
+            raise RuntimeError, "Unable to start %s"%self.name()
         self._expect.timeout = None
         with gc_disabled():
             if block_during_init:
@@ -512,12 +490,6 @@ If this all works, you can then make calls like:
                 pass
         except Exception, msg:
             pass
-
-    def cputime(self):
-        """
-        CPU time since this process started running.
-        """
-        raise NotImplementedError
 
     def quit(self, verbose=False, timeout=0.25):
         """
@@ -1062,237 +1034,12 @@ If this all works, you can then make calls like:
         except TypeError, s:
             raise TypeError, 'error evaluating "%s":\n%s'%(code,s)
 
-    def execute(self, *args, **kwds):
-        return self.eval(*args, **kwds)
-
-    def __call__(self, x, name=None):
-
-        r"""
-        Create a new object in self from x.
-
-        The object X returned can be used like any Sage object, and
-        wraps an object in self.  The standard arithmetic operators
-        work.  Moreover if foo is a function then
-                      X.foo(y,z,...)
-        calls foo(X, y, z, ...) and returns the corresponding object.
-
-        EXAMPLES::
-
-            sage: gp(2)
-            2
-            sage: gp('2')
-            2
-            sage: a = gp(2); gp(a) is a
-            True
-
-        """
-        cls = self._object_class()
-
-        #Handle the case when x is an object
-        #in some interface.
-        if isinstance(x, ExpectElement):
-            if x.parent() is self:
-                return x
-
-            #We convert x into an object in this
-            #interface by first going through Sage.
-            try:
-                return self(x._sage_())
-            except (NotImplementedError, TypeError):
-                pass
-
-        if isinstance(x, basestring):
-            return cls(self, x, name=name)
-        try:
-            return self._coerce_from_special_method(x)
-        except TypeError:
-            raise
-        except AttributeError, msg:
-            pass
-        try:
-            return self._coerce_impl(x, use_special=False)
-        except TypeError, msg:
-            try:
-                return cls(self, str(x), name=name)
-            except TypeError, msg2:
-                raise TypeError, msg
-
-    def _coerce_from_special_method(self, x):
-        """
-        Tries to coerce to self by calling a special underscore method.
-
-        If no such method is defined, raises an AttributeError instead of a
-        TypeError.
-        """
-        s = '_%s_'%self.name()
-        if s == '_pari_':
-            s = '_gp_'
-        try:
-            return (x.__getattribute__(s))(self)
-        except AttributeError:
-            return self(x._interface_init_())
-
-    def _coerce_impl(self, x, use_special=True):
-        if isinstance(x, (int, long)):
-            import sage.rings.all
-            return self(sage.rings.all.Integer(x))
-        elif isinstance(x, float):
-            import sage.rings.all
-            return self(sage.rings.all.RDF(x))
-        if use_special:
-            try:
-                return self._coerce_from_special_method(x)
-            except AttributeError, msg:
-                pass
-
-        if isinstance(x, (list, tuple)):
-            A = []
-            z = []
-            cls = self._object_class()
-            for v in x:
-                if isinstance(v, cls):
-                    A.append(v.name())
-                    z.append(v)
-                else:
-                    w = self(v)
-                    A.append(w.name())
-                    z.append(w)
-            X = ','.join(A)
-            r = self.new('%s%s%s'%(self._left_list_delim(), X, self._right_list_delim()))
-            r.__sage_list = z   # do this to avoid having the entries of the list be garbage collected
-            return r
-
-
-        raise TypeError, "unable to coerce element into %s"%self.name()
-
-    def new(self, code):
-        return self(code)
-
-    ###################################################################
-    # these should all be appropriately overloaded by the derived class
-    ###################################################################
-
-    def _left_list_delim(self):
-        return "["
-
-    def _right_list_delim(self):
-        return "]"
-
-    def _left_func_delim(self):
-        return "("
-
-    def _right_func_delim(self):
-        return ")"
-
-    def _assign_symbol(self):
-        return "="
-
-    def _equality_symbol(self):
-        raise NotImplementedError
-
-    # For efficiency purposes, you should definitely override these
-    # in your derived class.
-    def _true_symbol(self):
-        try:
-            return self.__true_symbol
-        except AttributeError:
-            self.__true_symbol = self.eval('1 %s 1'%self._equality_symbol())
-
-    def _false_symbol(self):
-        try:
-            return self.__false_symbol
-        except AttributeError:
-            self.__false_symbol = self.eval('1 %s 2'%self._equality_symbol())
-
-    def _lessthan_symbol(self):
-        return '<'
-
-    def _greaterthan_symbol(self):
-        return '>'
-
-    def _inequality_symbol(self):
-        return '!='
-
-    def _relation_symbols(self):
-        """
-        Returns a dictionary with operators as the keys and their
-        string representation as the values.
-
-        EXAMPLES::
-
-            sage: import operator
-            sage: symbols = mathematica._relation_symbols()
-            sage: symbols[operator.eq]
-            '=='
-        """
-        return dict([(operator.eq, self._equality_symbol()), (operator.ne, self._inequality_symbol()),
-                     (operator.lt, self._lessthan_symbol()), (operator.le, "<="),
-                     (operator.gt, self._greaterthan_symbol()), (operator.ge, ">=")])
-
-    def _exponent_symbol(self):
-        """
-        Return the symbol used to denote *10^ in floats, e.g 'e' in 1.5e6
-
-        EXAMPLES::
-
-            sage: from sage.interfaces.expect import Expect
-            sage: Expect('nonexistent_interface', 'fake')._exponent_symbol()
-            'e'
-        """
-        return 'e'
-
     ############################################################
     #         Functions for working with variables.
     #  The first three must be overloaded by derived classes,
     #  and the definition depends a lot on the class.  But
     #  the functionality one gets from this is very nice.
     ############################################################
-
-    def set(self, var, value):
-        """
-        Set the variable var to the given value.
-        """
-        cmd = '%s%s%s;'%(var,self._assign_symbol(), value)
-        self.eval(cmd)
-
-    def get(self, var):
-        """
-        Get the value of the variable var.
-        """
-        return self.eval(var)
-
-    def get_using_file(self, var):
-        r"""
-        Return the string representation of the variable var in self,
-        possibly using a file. Use this if var has a huge string
-        representation, since it may be way faster.
-
-        .. warning::
-
-           In fact unless a special derived class implements this, it
-           will *not* be any faster. This is the case for this class
-           if you're reading it through introspection and seeing this.
-        """
-        return self.get(var)
-
-    def clear(self, var):
-        """
-        Clear the variable named var.
-        """
-        self._available_vars.append(var)
-
-    def _next_var_name(self):
-        if len(self._available_vars) != 0:
-            v = self._available_vars[0]
-            del self._available_vars[0]
-            return v
-        self.__seq += 1
-        return "sage%s"%self.__seq
-
-    def _create(self, value, name=None):
-        name = self._next_var_name() if name is None else name
-        self.set(name, value)
-        return name
 
     def _object_class(self):
         """
@@ -1324,196 +1071,25 @@ If this all works, you can then make calls like:
         """
         return FunctionElement
 
-    def _convert_args_kwds(self, args=None, kwds=None):
-        """
-        Converts all of the args and kwds to be elements of this
-        interface.
 
-        EXAMPLES::
-
-            sage: args = [5]
-            sage: kwds = {'x': 6}
-            sage: args, kwds = gap._convert_args_kwds(args, kwds)
-            sage: args
-            [5]
-            sage: map(type, args)
-            [<class 'sage.interfaces.gap.GapElement'>]
-            sage: type(kwds['x'])
-            <class 'sage.interfaces.gap.GapElement'>
-        """
-        args = [] if args is None else args
-        kwds = {} if kwds is None else kwds
-        if not isinstance(args, list):
-            args = [args]
-        for i, arg in enumerate(args):
-            if not isinstance(arg, ExpectElement) or arg.parent() is not self:
-                args[i] = self(arg)
-        for key, value in kwds.iteritems():
-            if not isinstance(value, ExpectElement) or value.parent() is not self:
-                kwds[key] = self(value)
-
-        return args, kwds
-
-    def _check_valid_function_name(self, function):
-        """
-        Checks to see if function is a valid function name in this
-        interface. If it is not, an exception is raised. Otherwise, nothing
-        is done.
-
-        EXAMPLES::
-
-            sage: gap._check_valid_function_name('SymmetricGroup')
-            sage: gap._check_valid_function_name('')
-            Traceback (most recent call last):
-            ...
-            ValueError: function name must be nonempty
-            sage: gap._check_valid_function_name('__foo')
-            Traceback (most recent call last):
-            ...
-            AttributeError
-        """
-        if function == '':
-            raise ValueError, "function name must be nonempty"
-        if function[:2] == "__":
-            raise AttributeError
-
-    def function_call(self, function, args=None, kwds=None):
-        """
-        EXAMPLES::
-
-            sage: maxima.quad_qags(x, x, 0, 1, epsrel=1e-4)
-            [0.5,5.5511151231257...e-15,21,0]
-            sage: maxima.function_call('quad_qags', [x, x, 0, 1], {'epsrel':'1e-4'})
-            [0.5,5.5511151231257...e-15,21,0]
-        """
-        args, kwds = self._convert_args_kwds(args, kwds)
-        self._check_valid_function_name(function)
-        s = self._function_call_string(function,
-                                       [s.name() for s in args],
-                                       ['%s=%s'%(key,value.name()) for key, value in kwds.items()])
-        return self.new(s)
-
-    def _function_call_string(self, function, args, kwds):
-        """
-        Returns the string used to make function calls.
-
-        EXAMPLES::
-
-            sage: maxima._function_call_string('diff', ['f(x)', 'x'], [])
-            'diff(f(x),x)'
-        """
-        return "%s(%s)"%(function, ",".join(list(args) + list(kwds)))
-
-    def call(self, function_name, *args, **kwds):
-        return self.function_call(function_name, args, kwds)
-
-    def _contains(self, v1, v2):
-        raise NotImplementedError
-
-    def __getattr__(self, attrname):
-        """
-        TESTS::
-
-            sage: ParentWithBase.__getattribute__(singular, '_coerce_map_from_')
-            <built-in method _coerce_map_from_ of Singular object at ...>
-        """
-        try:
-            return ParentWithBase.__getattribute__(self, attrname)
-        except AttributeError:
-            if attrname[:1] == "_":
-                raise AttributeError
-            return self._function_class()(self, attrname)
-
-    def __cmp__(self, other):
-        """
-        Compare two pseudo-tty interfaces. Two interfaces compare
-        equal if and only if they are identical objects (this is a
-        critical constraint so that caching of representations of
-        objects in interfaces works correctly). Otherwise they are
-        never equal.
-
-        EXAMPLES::
-
-            sage: Maxima() == maxima
-            False
-            sage: maxima == maxima
-            True
-        """
-        if self is other:
-            return 0
-        c = cmp(type(self), type(other))
-        if c:
-            return c
-        return -1  # sucky, but I can't think of anything better; it is important that different interfaces to the same system still compare differently; unfortunately there is nothing to distinguish them.
-
-    def console(self):
-        raise NotImplementedError
-
-    def help(self, s):
-        return AsciiArtString('No help on %s available'%s)
-
-
-class ExpectFunction(SageObject):
+class ExpectFunction(InterfaceFunction):
     """
     Expect function.
     """
-    def __init__(self, parent, name):
-        self._parent = parent
-        self._name = name
-
-    def __repr__(self):
-        return "%s"%self._name
-
-    def __call__(self, *args, **kwds):
-        return self._parent.function_call(self._name, list(args), kwds)
-
-    def _sage_doc_(self):
-        """
-        EXAMPLES::
-
-            sage: gp.gcd._sage_doc_()
-            'gcd(x,{y}): greatest common divisor of x and y.'
-        """
-        M = self._parent
-        return M.help(self._name)
+    pass
 
 
-
-
-class FunctionElement(SageObject):
+class FunctionElement(InterfaceFunctionElement):
     """
     Expect function element.
     """
-    def __init__(self, obj, name):
-        self._obj = obj
-        self._name = name
-
-    def __repr__(self):
-        return "%s"%self._name
-
-    def __call__(self, *args, **kwds):
-        return self._obj.parent().function_call(self._name, [self._obj] + list(args), kwds)
-
-    def help(self):
-        print self._sage_doc_()
-
-    def _sage_doc_(self):
-        """
-        EXAMPLES::
-
-            sage: gp(2).gcd._sage_doc_()
-            'gcd(x,{y}): greatest common divisor of x and y.'
-        """
-        M = self._obj.parent()
-        return M.help(self._name)
+    pass
 
 
 def is_ExpectElement(x):
     return isinstance(x, ExpectElement)
 
-
-
-class ExpectElement(RingElement):
+class ExpectElement(InterfaceElement):
     """
     Expect element.
     """
@@ -1538,69 +1114,6 @@ class ExpectElement(RingElement):
                 raise TypeError, x
         self._session_number = parent._session_number
 
-    def _latex_(self):
-#        return "\\begin{verbatim}%s\\end{verbatim}"%self
-        string = str(self)
-        if not '|' in string:
-            delim = '|'
-        elif not '#' in string:
-            delim = '#'
-        elif not '@' in string:
-            delim = '@'
-        elif not '~' in string:
-            delim = '~'
-        return "\\verb%s%s%s"%(delim, string, delim)
-
-    def __iter__(self):
-        for i in range(1, len(self)+1):
-            yield self[i]
-
-    def __len__(self):
-        """
-        Call self.sage() and return the length of that sage object.
-
-        This approach is inefficient - each interface should override
-        this method with one that calls the external program's length
-        function.
-
-        EXAMPLES::
-
-            sage: len(gp([1,2,3]))
-            3
-
-        AUTHORS:
-
-        - Felix Lawrence (2009-08-21)
-        """
-        return len(self.sage())
-
-    def __reduce__(self):
-        return reduce_load, (self.parent(), self._reduce())
-
-    def _reduce(self):
-        return repr(self)
-
-    def __call__(self, *args):
-        self._check_valid()
-        P = self.parent()
-        return getattr(P, self.name())(*args)
-
-    def __contains__(self, x):
-        P = self._check_valid()
-        if not isinstance(x, ExpectElement) or x.parent() is not self.parent():
-            x = P.new(x)
-        return P._contains(x.name(), self.name())
-
-
-    def _sage_doc_(self):
-        """
-        EXAMPLES::
-
-            sage: gp(2)._sage_doc_()
-            '2'
-        """
-        return str(self)
-
     def __hash__(self):
         """
         Returns the hash of self. This is a default implementation of hash
@@ -1608,64 +1121,6 @@ class ExpectElement(RingElement):
         """
         return hash('%s%s'%(self, self._session_number))
 
-    def __cmp__(self, other):
-        """
-        Comparison is done by GAP.
-
-        GAP may raise an error when comparing objects. We catch these
-        errors. Moreover, GAP does not recognise certain objects as
-        equal even if there definitions are identical.
-
-        TESTS:
-
-        Here are examples in which GAP succeeds with a comparison::
-
-            sage: gap('SymmetricGroup(8)')==gap('SymmetricGroup(8)')
-            True
-            sage: gap('SymmetricGroup(8)')>gap('AlternatingGroup(8)')
-            False
-            sage: gap('SymmetricGroup(8)')<gap('AlternatingGroup(8)')
-            True
-
-        Here, GAP fails to compare, and so ``False`` is returned.
-        In previous Sage versions, this example actually resulted
-        in an error; compare #5962.
-        ::
-
-            sage: gap('DihedralGroup(8)')==gap('DihedralGroup(8)')
-            False
-
-        """
-        P = self.parent()
-        try:
-            if P.eval("%s %s %s"%(self.name(), P._equality_symbol(),
-                                     other.name())) == P._true_symbol():
-                return 0
-        except RuntimeError:
-            pass
-        try:
-            if P.eval("%s %s %s"%(self.name(), P._lessthan_symbol(), other.name())) == P._true_symbol():
-                return -1
-        except RuntimeError:
-            pass
-        try:
-            if P.eval("%s %s %s"%(self.name(), P._greaterthan_symbol(), other.name())) == P._true_symbol():
-                return 1
-        except:
-            pass
-
-        # everything is supposed to be comparable in Python, so we define
-        # the comparison thus when no comparison is available in interfaced system.
-        if (hash(self) < hash(other)):
-            return -1
-        else:
-            return 1
-
-    def _matrix_(self, R):
-        raise NotImplementedError
-
-    def _vector_(self, R):
-        raise NotImplementedError
 
     def _check_valid(self):
         """
@@ -1698,370 +1153,8 @@ class ExpectElement(RingElement):
             #print msg
             pass
 
-    def _sage_repr(self):
-        """
-        Return a sage-friendly string representation of the object.
-
-        Some programs use different notation to Sage, e.g. Mathematica
-        writes lists with {} instead of [].  This method calls repr(self)
-        then converts the foreign notation into Sage's notation.
-
-        OUTPUT:
-
-        A string representation of the object that is ready for
-        sage_eval().
-
-        EXAMPLES::
-
-            sage: repr(mathematica([1,2,3]))    # optional - mathematica
-            '{1, 2, 3}'
-            sage: mathematica([1,2,3])._sage_repr() # optional - mathematica
-            '[1, 2, 3]'
-
-        ::
-
-            sage: gp(10.^80)._sage_repr()
-            '1.0000000000000000000000000000000000000e80'    # 64-bit
-            '1.000000000000000000000000000e80'              # 32-bit
-            sage: mathematica('10.^80')._sage_repr()  # optional - mathematica
-            '1.e80'
-
-        AUTHORS:
-
-        - Felix Lawrence (2009-08-21)
-        """
-        #TO DO: this could use file transfers when self.is_remote()
-
-        string = repr(self).replace('\n',' ').replace('\r', '')
-        # Translate the external program's function notation to Sage's
-        lfd = self.parent()._left_func_delim()
-        if '(' != lfd:  string = string.replace(lfd, '(')
-        rfd = self.parent()._right_func_delim()
-        if ')' != rfd:  string = string.replace(rfd, ')')
-        # Translate the external program's list formatting to Sage's
-        lld = self.parent()._left_list_delim()
-        if '[' != lld:      string = string.replace(lld, '[')
-        rld = self.parent()._right_list_delim()
-        if ']' != rld:      string = string.replace(rld, ']')
-        # Translate the external program's exponent formatting
-        expl = self.parent()._exponent_symbol()
-        if 'e' != expl: string = string.replace(expl, 'e')
-        return string
-
-    def _sage_(self):
-        """
-        Attempt to return a Sage version of this object.
-        This is a generic routine that just tries to evaluate
-        the repr(self).
-
-        EXAMPLES::
-
-            sage: gp(1/2)._sage_()
-            1/2
-            sage: _.parent()
-            Rational Field
-
-        AUTHORS:
-
-        - William Stein
-
-        - Felix Lawrence (2009-08-21)
-        """
-        string = self._sage_repr()
-        try:
-            return sage.misc.sage_eval.sage_eval(string)
-        except:
-            raise NotImplementedError, "Unable to parse output: %s" % string
-
-
-    def sage(self):
-        """
-        Attempt to return a Sage version of this object.
-
-        EXAMPLES::
-
-            sage: gp(1/2).sage()
-            1/2
-            sage: _.parent()
-            Rational Field
-        """
-        return self._sage_()
-
-    def __repr__(self):
-        self._check_valid()
-        try:
-            if self._get_using_file:
-                s = self.parent().get_using_file(self._name)
-        except AttributeError:
-            s = self.parent().get(self._name)
-        if s.__contains__(self._name):
-            if hasattr(self, '__custom_name'):
-                s =  s.replace(self._name, self.__dict__['__custom_name'])
-        return s
-
-    def __getattr__(self, attrname):
-        P = self._check_valid()
-        if attrname[:1] == "_":
-            raise AttributeError
-        return P._function_element_class()(self, attrname)
-
-    def get_using_file(self):
-        """
-        Return this element's string representation using a file. Use this
-        if self has a huge string representation. It'll be way faster.
-
-        EXAMPLES::
-
-            sage: a = maxima(str(2^1000))
-            sage: a.get_using_file()
-            '10715086071862673209484250490600018105614048117055336074437503883703510511249361224931983788156958581275946729175531468251871452856923140435984577574698574803934567774824230985421074605062371141877954182153046474983581941267398767559165543946077062914571196477686542167660429831652624386837205668069376'
-        """
-        try:
-            self._check_valid()
-        except ValueError:
-            return '(invalid object -- defined in terms of closed session)'
-        return self.parent().get_using_file(self._name)
-
-    def hasattr(self, attrname):
-        """
-        Returns whether the given attribute is already defined by this
-        object, and in particular is not dynamically generated.
-
-        EXAMPLES::
-
-            sage: m = maxima('2')
-            sage: m.hasattr('integral')
-            True
-            sage: m.hasattr('gcd')
-            False
-        """
-        return not isinstance(getattr(self, attrname), FunctionElement)
-
-    def attribute(self, attrname):
-        """
-        If this wraps the object x in the system, this returns the object
-        x.attrname. This is useful for some systems that have object
-        oriented attribute access notation.
-
-        EXAMPLES::
-
-            sage: g = gap('SO(1,4,7)')
-            sage: k = g.InvariantQuadraticForm()
-            sage: k.attribute('matrix')
-            [ [ 0*Z(7), Z(7)^0, 0*Z(7), 0*Z(7) ], [ 0*Z(7), 0*Z(7), 0*Z(7), 0*Z(7) ],
-              [ 0*Z(7), 0*Z(7), Z(7), 0*Z(7) ], [ 0*Z(7), 0*Z(7), 0*Z(7), Z(7)^0 ] ]
-
-        ::
-
-            sage: e = gp('ellinit([0,-1,1,-10,-20])')
-            sage: e.attribute('j')
-            -122023936/161051
-        """
-        P = self._check_valid()
-        return P('%s.%s'%(self.name(), attrname))
-
-    def __getitem__(self, n):
-        P = self._check_valid()
-        if not isinstance(n, tuple):
-            return P.new('%s[%s]'%(self._name, n))
-        else:
-            return P.new('%s[%s]'%(self._name, str(n)[1:-1]))
-
-    def __int__(self):
-        """
-        EXAMPLES::
-
-            sage: int(maxima('1'))
-            1
-            sage: type(_)
-            <type 'int'>
-        """
-        return int(repr(self))
-
-    def bool(self):
-        P = self.parent()
-        t = P._true_symbol()
-        cmd = '%s %s %s'%(self._name, P._equality_symbol(), t)
-        return P.eval(cmd) == t
-
-    def __nonzero__(self):
-        """
-        EXAMPLES::
-
-            sage: bool(maxima(0))
-            False
-            sage: bool(maxima(1))
-            True
-        """
-        return self.bool()
-
-    def __long__(self):
-        """
-        EXAMPLES::
-
-            sage: m = maxima('1')
-            sage: long(m)
-            1L
-        """
-        return long(repr(self))
-
-    def __float__(self):
-        """
-        EXAMPLES::
-
-            sage: m = maxima('1/2')
-            sage: m.__float__()
-            0.5
-            sage: float(m)
-            0.5
-        """
-        return float(repr(self))
-
-    def _integer_(self, ZZ=None):
-        """
-        EXAMPLES::
-
-            sage: m = maxima('1')
-            sage: m._integer_()
-            1
-            sage: _.parent()
-            Integer Ring
-            sage: QQ(m)
-            1
-        """
-        import sage.rings.all
-        return sage.rings.all.Integer(repr(self))
-
-    def _rational_(self):
-        """
-        EXAMPLES::
-
-            sage: m = maxima('1/2')
-            sage: m._rational_()
-            1/2
-            sage: _.parent()
-            Rational Field
-            sage: QQ(m)
-            1/2
-        """
-        import sage.rings.all
-        return sage.rings.all.Rational(repr(self))
-
-    def name(self, new_name=None):
-        """
-        Returns the name of self. If new_name is passed in, then this
-        function returns a new object identical to self whose name is
-        new_name.
-
-        Note that this can overwrite existing variables in the system.
-
-        EXAMPLES::
-
-            sage: x = r([1,2,3]); x
-            [1] 1 2 3
-            sage: x.name()
-            'sage3'
-            sage: x = r([1,2,3]).name('x'); x
-            [1] 1 2 3
-            sage: x.name()
-            'x'
-
-        ::
-
-            sage: s5 = gap.SymmetricGroup(5).name('s5')
-            sage: s5
-            SymmetricGroup( [ 1 .. 5 ] )
-            sage: s5.name()
-            's5'
-        """
-        if new_name is not None:
-            if not isinstance(new_name, str):
-                raise TypeError, "new_name must be a string"
-            p = self.parent()
-            p.set(new_name, self._name)
-            return p._object_class()(p, new_name, is_name=True)
-
-        return self._name
-
-    def gen(self, n):
-        P = self._check_valid()
-        return P.new('%s.%s'%(self._name, int(n)))
-
-    def _operation(self, operation, right):
-        P = self._check_valid()
-        try:
-            return P.new('%s %s %s'%(self._name, operation, right._name))
-        except Exception, msg:
-            raise TypeError, msg
-
-    def _add_(self, right):
-        """
-        EXAMPLES::
-
-            sage: f = maxima.cos(x)
-            sage: g = maxima.sin(x)
-            sage: f + g
-            sin(x)+cos(x)
-            sage: f + 2
-            cos(x)+2
-            sage: 2 + f
-            cos(x)+2
-        """
-        return self._operation("+", right)
-
-    def _sub_(self, right):
-        """
-        EXAMPLES::
-
-            sage: f = maxima.cos(x)
-            sage: g = maxima.sin(x)
-            sage: f - g
-            cos(x)-sin(x)
-            sage: f - 2
-            cos(x)-2
-            sage: 2 - f
-            2-cos(x)
-        """
-        return self._operation('-', right)
-
-    def _mul_(self, right):
-        """
-        EXAMPLES::
-
-            sage: f = maxima.cos(x)
-            sage: g = maxima.sin(x)
-            sage: f*g
-            cos(x)*sin(x)
-            sage: 2*f
-            2*cos(x)
-        """
-        return self._operation('*', right)
-
-    def _div_(self, right):
-        """
-        EXAMPLES::
-
-            sage: f = maxima.cos(x)
-            sage: g = maxima.sin(x)
-            sage: f/g
-            cos(x)/sin(x)
-            sage: f/2
-            cos(x)/2
-        """
-        return self._operation("/", right)
-
-    def __pow__(self, n):
-        """
-        EXAMPLES::
-
-            sage: a = maxima('2')
-            sage: a^(3/4)
-            2^(3/4)
-        """
-        P = self._check_valid()
-        if not hasattr(n, 'parent') or P is not n.parent():
-            n = P(n)
-        return self._operation("^", n)
+#    def _sage_repr(self):
+#TO DO: this could use file transfers when self.is_remote()
 
 
 class StdOutContext:
@@ -2088,7 +1181,7 @@ class StdOutContext:
             sage: with StdOutContext(gp):
             ...       gp('1+1')
             ...
-            sage[...
+            sage=...
         """
         self.interface = interface
         self.silent = silent
@@ -2129,9 +1222,6 @@ class StdOutContext:
         self.interface._expect.logfile.flush()
         self.stdout.write("\n")
         self.interface._expect.logfile = self._logfile_backup
-
-def reduce_load(parent, x):
-    return parent(x)
 
 import os
 def console(cmd):

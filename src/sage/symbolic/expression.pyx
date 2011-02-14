@@ -444,6 +444,8 @@ cdef class Expression(CommutativeRingElement):
             True
         """
         if session is None:
+            # This chooses the Maxima interface used by calculus
+            # Maybe not such a great idea because the "default" interface is another one
             from sage.calculus.calculus import maxima
             return super(Expression, self)._interface_(maxima)
         else:

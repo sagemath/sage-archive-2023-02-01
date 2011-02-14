@@ -17,7 +17,10 @@ from magma import magma, magma_console, magma_version, Magma, is_MagmaElement
 from magma_free import magma_free
 from macaulay2 import macaulay2, macaulay2_console, Macaulay2
 from maple import maple, maple_console, Maple
-from maxima import maxima, maxima_console, is_MaximaElement, Maxima
+from maxima_abstract import maxima_console
+from maxima import maxima, is_MaximaElement, Maxima
+# import problems
+#from maxima_lib import maxima_lib
 from mathematica import mathematica, mathematica_console, Mathematica
 from matlab import matlab, matlab_console, matlab_version, Matlab
 from mupad import mupad, mupad_console, Mupad  # NOT functional yet

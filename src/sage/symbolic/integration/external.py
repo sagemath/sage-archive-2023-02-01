@@ -26,7 +26,7 @@ def maxima_integrator(expression, v, a=None, b=None):
                 raise ValueError, "Integral is divergent."
             else:
                 raise
-    return result
+    return result._sage_()
 
 def sympy_integrator(expression, v, a=None, b=None):
     """

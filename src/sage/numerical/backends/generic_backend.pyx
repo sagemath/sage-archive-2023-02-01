@@ -772,6 +772,33 @@ cdef class GenericBackend:
         """
         raise NotImplementedError()
 
+    cpdef solver_parameter(self, name, value = None):
+        """
+        Return or define a solver parameter
+
+        INPUT:
+
+        - ``name`` (string) -- the parameter
+
+        - ``value`` -- the parameter's value if it is to be defined,
+          or ``None`` (default) to obtain its current value.
+
+        .. NOTE::
+
+           The list of available parameters is available at
+           :meth:`sage.numerical.mip.MixedIntegerlinearProgram.solver_parameter`
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver = "Nonexistent_LP_solver")  # optional - Nonexistent_LP_solver
+            sage: p.solver_parameter("timelimit")                   # optional - Nonexistent_LP_solver
+            sage: p.solver_parameter("timelimit", 60)               # optional - Nonexistent_LP_solver
+            sage: p.solver_parameter("timelimit")                   # optional - Nonexistent_LP_solver
+        """
+        raise NotImplementedError()
+
+
 default_solver = None
 
 def default_mip_solver(solver = None):

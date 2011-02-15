@@ -1350,6 +1350,69 @@ cdef class MixedIntegerLinearProgram:
 
         return self._backend.variable_upper_bound(self._variables[v])
 
+    def solver_parameter(self, name, value = None):
+        """
+        Return or define a solver parameter
+
+        The solver parameters are by essence solver-specific, which
+        means their meaning heavily depends on the solver used.
+
+        (If you do not know which solver you are using, then you are using GLPK)
+
+        Aliases:
+
+        Very common parameters have aliases making them
+        solver-independent. For example, the following::
+
+            sage: p = MixedIntegerLinearProgram()
+            sage: p.solver_parameter("timelimit", 60)
+
+        Sets the solver to stop its computations after 60 seconds, and
+        works both with GLPK and CPLEX.
+
+            - ``"timelimit"`` -- defines the maximum time spent on a
+              computation. Measured in seconds.
+
+        Solver-specific parameters:
+
+            - GLPK : only "timelimit" is available at the moment.
+
+              .. NOTE::
+
+                  In the case of GLPK, It is very easy to expose more
+                  solver-specific parameters through this method, so if you need
+                  to set a parameter that is not already here complain and/or
+                  write the patch !
+
+            - CPLEX's parameters are identified by a string. Their
+              list is available `on ILOG's website
+              <http://publib.boulder.ibm.com/infocenter/odmeinfo/v3r4/index.jsp?topic=/ilog.odms.ide.odme.help/Content/Optimization/Documentation/ODME/_pubskel/ODME_pubskels/startall_ODME34_Eclipse1590.html>`_.
+
+              The command ::
+
+                  sage: p.solver_parameter("CPX_PARAM_TILIM", 60) # optional - CPLEX
+
+              works as intended.
+
+        INPUT:
+
+        - ``name`` (string) -- the parameter
+
+        - ``value`` -- the parameter's value if it is to be defined,
+          or ``None`` (default) to obtain its current value.
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram()
+            sage: p.solver_parameter("timelimit", 60)
+            sage: p.solver_parameter("timelimit")
+            60.0
+        """
+        if value is None:
+            return self._backend.solver_parameter(name)
+        else:
+            self._backend.solver_parameter(name, value)
+
 class MIPSolverException(Exception):
     r"""
     Exception raised when the solver fails.

@@ -25,6 +25,7 @@ cdef extern from "../../../local/include/glpk.h":
          int gmi_cuts
          int fp_heur
          int mir_cuts
+         int tm_lim
      c_glp_iocp * new_c_glp_iocp "new glp_iocp" ()
      #void del_c_glp_iocp "del glp_iocp" ()
      void glp_init_iocp(c_glp_iocp *)

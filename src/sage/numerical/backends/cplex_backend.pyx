@@ -1268,6 +1268,68 @@ cdef class CPLEXBackend(GenericBackend):
 
         return p
 
+    cpdef solver_parameter(self, name, value = None):
+        """
+        Return or define a solver parameter
+
+        INPUT:
+
+        - ``name`` (string) -- the parameter
+
+        - ``value`` -- the parameter's value if it is to be defined,
+          or ``None`` (default) to obtain its current value.
+
+        .. NOTE::
+
+           The list of available parameters is available at
+           :meth:`sage.numerical.mip.MixedIntegerlinearProgram.solver_parameter`
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver = "CPLEX")         # optional - CPLEX
+            sage: p.solver_parameter("timelimit", 60)      # optional - CPLEX
+            sage: p.solver_parameter("timelimit")          # optional - CPLEX
+            60.0
+        """
+        cdef int intv
+        cdef double doublev
+        cdef char * strv
+
+        # If the name has to be translated to a CPLEX parameter ID
+        if name == "timelimit":
+            name = "CPX_PARAM_TILIM"
+
+        cdef int paramid = parameters.get(name,-1)
+
+        if paramid == -1:
+            raise ValueError("This parameter is not available.")
+
+        # Type of the parameter. Can be INT (1), Double(2) or String(3)
+        cdef int paramtype
+        CPXgetparamtype(self.env, paramid, &paramtype)
+
+        if value is None:
+            if paramtype == 1:
+                CPXgetintparam(self.env, paramid, &intv)
+                return intv
+            elif paramtype == 2:
+                CPXgetdblparam(self.env, paramid, &doublev)
+                return doublev
+            else:
+                strv = <char *>sage_malloc(500*sizeof(char))
+                CPXgetstrparam(self.env, paramid, strv)
+                s = str(strv)
+                sage_free(strv)
+                return s
+        else:
+            if paramtype == 1:
+                CPXsetintparam(self.env, paramid, value)
+            elif paramtype == 2:
+                CPXsetdblparam(self.env, paramid, value)
+            else:
+                CPXsetstrparam(self.env, paramid, value)
+
     def __dealloc__(self):
         r"""
         Destructor for the class
@@ -1295,6 +1357,8 @@ cdef check(number):
 #
 # Todo : when common error codes are returned, rewrite the message to
 # be more meaningful
+
+cdef dict errors
 
 errors = {
     1001 : "CPXERR_NO_MEMORY",
@@ -1544,3 +1608,169 @@ errors = {
     6002 : "CPXERR_QCP_SENSE"
     }
 
+cdef dict parameters
+parameters = {
+    "CPX_PARAMTYPE_NONE" : 0,
+    "CPX_PARAMTYPE_INT" : 1,
+    "CPX_PARAMTYPE_DOUBLE" : 2,
+    "CPX_PARAMTYPE_STRING" : 3,
+    "CPX_PARAM_ADVIND" : 1001,
+    "CPX_PARAM_AGGFILL" : 1002,
+    "CPX_PARAM_AGGIND" : 1003,
+    "CPX_PARAM_BASINTERVAL" : 1004,
+    "CPX_PARAM_CFILEMUL" : 1005,
+    "CPX_PARAM_CLOCKTYPE" : 1006,
+    "CPX_PARAM_CRAIND" : 1007,
+    "CPX_PARAM_DEPIND" : 1008,
+    "CPX_PARAM_DPRIIND" : 1009,
+    "CPX_PARAM_PRICELIM" : 1010,
+    "CPX_PARAM_EPMRK" : 1013,
+    "CPX_PARAM_EPOPT" : 1014,
+    "CPX_PARAM_EPPER" : 1015,
+    "CPX_PARAM_EPRHS" : 1016,
+    "CPX_PARAM_FASTMIP" : 1017,
+    "CPX_PARAM_SIMDISPLAY" : 1019,
+    "CPX_PARAM_ITLIM" : 1020,
+    "CPX_PARAM_ROWREADLIM" : 1021,
+    "CPX_PARAM_NETFIND" : 1022,
+    "CPX_PARAM_COLREADLIM" : 1023,
+    "CPX_PARAM_NZREADLIM" : 1024,
+    "CPX_PARAM_OBJLLIM" : 1025,
+    "CPX_PARAM_OBJULIM" : 1026,
+    "CPX_PARAM_PERIND" : 1027,
+    "CPX_PARAM_PERLIM" : 1028,
+    "CPX_PARAM_PPRIIND" : 1029,
+    "CPX_PARAM_PREIND" : 1030,
+    "CPX_PARAM_REINV" : 1031,
+    "CPX_PARAM_REVERSEIND" : 1032,
+    "CPX_PARAM_RFILEMUL" : 1033,
+    "CPX_PARAM_SCAIND" : 1034,
+    "CPX_PARAM_SCRIND" : 1035,
+    "CPX_PARAM_SINGLIM" : 1037,
+    "CPX_PARAM_SINGTOL" : 1038,
+    "CPX_PARAM_TILIM" : 1039,
+    "CPX_PARAM_XXXIND" : 1041,
+    "CPX_PARAM_PREDUAL" : 1044,
+    "CPX_PARAM_EPOPT_H" : 1049,
+    "CPX_PARAM_EPRHS_H" : 1050,
+    "CPX_PARAM_PREPASS" : 1052,
+    "CPX_PARAM_DATACHECK" : 1056,
+    "CPX_PARAM_REDUCE" : 1057,
+    "CPX_PARAM_PRELINEAR" : 1058,
+    "CPX_PARAM_LPMETHOD" : 1062,
+    "CPX_PARAM_QPMETHOD" : 1063,
+    "CPX_PARAM_WORKDIR" : 1064,
+    "CPX_PARAM_WORKMEM" : 1065,
+    "CPX_PARAM_THREADS" : 1067,
+    "CPX_PARAM_CONFLICTDISPLAY" : 1074,
+    "CPX_PARAM_SIFTDISPLAY" : 1076,
+    "CPX_PARAM_SIFTALG" : 1077,
+    "CPX_PARAM_SIFTITLIM" : 1078,
+    "CPX_PARAM_MPSLONGNUM" : 1081,
+    "CPX_PARAM_MEMORYEMPHASIS" : 1082,
+    "CPX_PARAM_NUMERICALEMPHASIS" : 1083,
+    "CPX_PARAM_FEASOPTMODE" : 1084,
+    "CPX_PARAM_PARALLELMODE" : 1109,
+    "CPX_PARAM_TUNINGMEASURE" : 1110,
+    "CPX_PARAM_TUNINGREPEAT" : 1111,
+    "CPX_PARAM_TUNINGTILIM" : 1112,
+    "CPX_PARAM_TUNINGDISPLAY" : 1113,
+    "CPX_PARAM_WRITELEVEL" : 1114,
+    "CPX_PARAM_ALL_MIN" : 1000,
+    "CPX_PARAM_ALL_MAX" : 6000,
+    "CPX_PARAM_BARDSTART" : 3001,
+    "CPX_PARAM_BAREPCOMP" : 3002,
+    "CPX_PARAM_BARGROWTH" : 3003,
+    "CPX_PARAM_BAROBJRNG" : 3004,
+    "CPX_PARAM_BARPSTART" : 3005,
+    "CPX_PARAM_BARALG" : 3007,
+    "CPX_PARAM_BARCOLNZ" : 3009,
+    "CPX_PARAM_BARDISPLAY" : 3010,
+    "CPX_PARAM_BARITLIM" : 3012,
+    "CPX_PARAM_BARMAXCOR" : 3013,
+    "CPX_PARAM_BARORDER" : 3014,
+    "CPX_PARAM_BARSTARTALG" : 3017,
+    "CPX_PARAM_BARCROSSALG" : 3018,
+    "CPX_PARAM_BARQCPEPCOMP" : 3020,
+    "CPX_PARAM_BRDIR" : 2001,
+    "CPX_PARAM_BTTOL" : 2002,
+    "CPX_PARAM_CLIQUES" : 2003,
+    "CPX_PARAM_COEREDIND" : 2004,
+    "CPX_PARAM_COVERS" : 2005,
+    "CPX_PARAM_CUTLO" : 2006,
+    "CPX_PARAM_CUTUP" : 2007,
+    "CPX_PARAM_EPAGAP" : 2008,
+    "CPX_PARAM_EPGAP" : 2009,
+    "CPX_PARAM_EPINT" : 2010,
+    "CPX_PARAM_MIPDISPLAY" : 2012,
+    "CPX_PARAM_MIPINTERVAL" : 2013,
+    "CPX_PARAM_INTSOLLIM" : 2015,
+    "CPX_PARAM_NODEFILEIND" : 2016,
+    "CPX_PARAM_NODELIM" : 2017,
+    "CPX_PARAM_NODESEL" : 2018,
+    "CPX_PARAM_OBJDIF" : 2019,
+    "CPX_PARAM_MIPORDIND" : 2020,
+    "CPX_PARAM_RELOBJDIF" : 2022,
+    "CPX_PARAM_STARTALG" : 2025,
+    "CPX_PARAM_SUBALG" : 2026,
+    "CPX_PARAM_TRELIM" : 2027,
+    "CPX_PARAM_VARSEL" : 2028,
+    "CPX_PARAM_BNDSTRENIND" : 2029,
+    "CPX_PARAM_HEURFREQ" : 2031,
+    "CPX_PARAM_MIPORDTYPE" : 2032,
+    "CPX_PARAM_CUTSFACTOR" : 2033,
+    "CPX_PARAM_RELAXPREIND" : 2034,
+    "CPX_PARAM_PRESLVND" : 2037,
+    "CPX_PARAM_BBINTERVAL" : 2039,
+    "CPX_PARAM_FLOWCOVERS" : 2040,
+    "CPX_PARAM_IMPLBD" : 2041,
+    "CPX_PARAM_PROBE" : 2042,
+    "CPX_PARAM_GUBCOVERS" : 2044,
+    "CPX_PARAM_STRONGCANDLIM" : 2045,
+    "CPX_PARAM_STRONGITLIM" : 2046,
+    "CPX_PARAM_FRACCAND" : 2048,
+    "CPX_PARAM_FRACCUTS" : 2049,
+    "CPX_PARAM_FRACPASS" : 2050,
+    "CPX_PARAM_FLOWPATHS" : 2051,
+    "CPX_PARAM_MIRCUTS" : 2052,
+    "CPX_PARAM_DISJCUTS" : 2053,
+    "CPX_PARAM_AGGCUTLIM" : 2054,
+    "CPX_PARAM_MIPCBREDLP" : 2055    ,
+    "CPX_PARAM_CUTPASS" : 2056,
+    "CPX_PARAM_MIPEMPHASIS" : 2058,
+    "CPX_PARAM_SYMMETRY" : 2059,
+    "CPX_PARAM_DIVETYPE" : 2060,
+    "CPX_PARAM_RINSHEUR" : 2061,
+    "CPX_PARAM_SUBMIPNODELIM" : 2062,
+    "CPX_PARAM_LBHEUR" : 2063,
+    "CPX_PARAM_REPEATPRESOLVE" : 2064,
+    "CPX_PARAM_PROBETIME" : 2065,
+    "CPX_PARAM_POLISHTIME" : 2066,
+    "CPX_PARAM_REPAIRTRIES" : 2067,
+    "CPX_PARAM_EPLIN" : 2068,
+    "CPX_PARAM_EPRELAX" : 2073,
+    "CPX_PARAM_FPHEUR" : 2098,
+    "CPX_PARAM_EACHCUTLIM" : 2102,
+    "CPX_PARAM_SOLNPOOLCAPACITY" : 2103 ,
+    "CPX_PARAM_SOLNPOOLREPLACE" : 2104 ,
+    "CPX_PARAM_SOLNPOOLGAP" : 2105 ,
+    "CPX_PARAM_SOLNPOOLAGAP" : 2106 ,
+    "CPX_PARAM_SOLNPOOLINTENSITY" : 2107,
+    "CPX_PARAM_POPULATELIM" : 2108,
+    "CPX_PARAM_MIPSEARCH" : 2109,
+    "CPX_PARAM_MIQCPSTRAT" : 2110,
+    "CPX_PARAM_ZEROHALFCUTS" : 2111,
+    "CPX_PARAM_POLISHAFTEREPAGAP" : 2126,
+    "CPX_PARAM_POLISHAFTEREPGAP" : 2127,
+    "CPX_PARAM_POLISHAFTERNODE" : 2128,
+    "CPX_PARAM_POLISHAFTERINTSOL" : 2129,
+    "CPX_PARAM_POLISHAFTERTIME" : 2130,
+    "CPX_PARAM_MCFCUTS" : 2134,
+    "CPX_PARAM_NETITLIM" : 5001,
+    "CPX_PARAM_NETEPOPT" : 5002,
+    "CPX_PARAM_NETEPRHS" : 5003,
+    "CPX_PARAM_NETPPRIIND" : 5004,
+    "CPX_PARAM_NETDISPLAY" : 5005,
+    "CPX_PARAM_QPNZREADLIM" : 4001,
+    "CPX_PARAM_QPMAKEPSDIND" : 4010,
+    }

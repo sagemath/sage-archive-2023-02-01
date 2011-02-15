@@ -170,6 +170,27 @@ cdef extern from "../../local/include/cplex.h":
      # Copy a LP
      c_cpxlp * CPXcloneprob(c_cpxlp * env, c_cpxlp * lp, int * status_p)
 
+     # Gets the type of a CPLEX parameter
+     int CPXgetparamtype(c_cpxlp * env, int paramid, int * paramtype)
+
+     # returns the value of an integer prameter
+     int CPXgetintparam(c_cpxlp * env, int paramid, int * intv)
+
+     # returns the value of a double prameter
+     int CPXgetdblparam(c_cpxlp * env, int paramid, double * doublev)
+
+     # returns the value of a string prameter
+     int CPXgetstrparam(c_cpxlp * env, int paramid, char * strv)
+
+     # sets the value of an integer parameter
+     int CPXsetintparam(c_cpxlp * env, int paramid, int value)
+
+     # sets the value of a double parameter
+     int CPXsetdblparam(c_cpxlp * env, int paramid, double value)
+
+     # sets the value of a string parameter
+     int CPXsetstrparam(c_cpxlp * env, int paramid, char * value)
+
      # CONSTANTS
      int CPX_ON = 1
      int CPX_PARAM_SCRIND = 1035

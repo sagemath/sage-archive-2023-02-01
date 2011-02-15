@@ -1067,6 +1067,39 @@ cdef class GLPKBackend(GenericBackend):
         return p
 
 
+    cpdef solver_parameter(self, name, value = None):
+        """
+        Return or define a solver parameter
+
+        INPUT:
+
+        - ``name`` (string) -- the parameter
+
+        - ``value`` -- the parameter's value if it is to be defined,
+          or ``None`` (default) to obtain its current value.
+
+        .. NOTE::
+
+           The list of available parameters is available at
+           :meth:`sage.numerical.mip.MixedIntegerlinearProgram.solver_parameter`
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver = "GLPK")
+            sage: p.solver_parameter("timelimit", 60)
+            sage: p.solver_parameter("timelimit")
+            60.0
+        """
+        if name == "timelimit":
+            if value == None:
+                return self.iocp.tm_lim/1000.0
+            else:
+                self.iocp.tm_lim = 1000 * value
+
+        else:
+            raise ValueError("This parameter is not available.")
+
     def __dealloc__(self):
         """
         Destructor

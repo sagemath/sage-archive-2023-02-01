@@ -386,6 +386,9 @@ Check if maxima has redundant variables defined after initialization #9538::
     f1
 """
 maxima = sage.interfaces.maxima_lib.maxima
+#maxima = Maxima(init_code = ['display2d:false', 'domain: complex',
+#                             'keepfloat: true', 'load(to_poly_solver)', 'load(simplify_sum)'],
+#                script_subdirectory=None)
 
 ########################################################
 def symbolic_sum(expression, v, a, b, algorithm='maxima'):
@@ -529,11 +532,8 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima'):
         raise ValueError, "summation limits must not depend on the summation variable"
 
     if algorithm == 'maxima':
-        sum  = "'sum(%s, %s, %s, %s)" % tuple([repr(expr._maxima_()) for expr in (expression, v, a, b)])
         try:
-            result = maxima.simplify_sum(sum)
-            result = result.ratsimp()
-            return expression.parent()(result)
+            return maxima.sr_sum(expression,v,a,b)
         except TypeError, error:
             s = str(error)
             if "divergent" in s or 'Pole encountered' in s:
@@ -1101,24 +1101,24 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
 
     if algorithm == 'maxima':
         if dir is None:
-            l = ex._maxima_().limit(v, a)
+            l = maxima.sr_limit(ex, v, a)
         elif dir in ['plus', '+', 'right', 'above']:
             if dir == 'above':
                 from sage.misc.misc import deprecation
                 deprecation("the keyword 'above' is deprecated. Please use 'right' or '+' instead.", 'Sage version 4.6')
-            l = ex._maxima_().limit(v, a, 'plus')
+            l = maxima.sr_limit(ex, v, a, 'plus')
         elif dir in ['minus', '-', 'left', 'below']:
             if dir == 'below':
                 from sage.misc.misc import deprecation
                 deprecation("the keyword 'below' is deprecated. Please use 'left' or '-' instead.", 'Sage version 4.6')
-            l = ex._maxima_().limit(v, a, 'minus')
+            l = maxima.sr_limit(ex, v, a, 'minus')
     elif algorithm == 'maxima_taylor':
         if dir is None:
-            l = ex._maxima_().tlimit(v, a)
+            l = maxima.sr_tlimit(ex, v, a)
         elif dir == 'plus' or dir == 'above' or dir == 'from_right':
-            l = ex._maxima_().tlimit(v, a, 'plus')
+            l = maxima.sr_tlimit(ex, v, a, 'plus')
         elif dir == 'minus' or dir == 'below' or dir == 'from_left':
-            l = ex._maxima_().tlimit(v, a, 'minus')
+            l = maxima.sr_tlimit(ex, v, a, 'minus')
     elif algorithm == 'sympy':
         if dir is None:
             import sympy
@@ -1126,7 +1126,7 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         else:
             raise NotImplementedError, "sympy does not support one-sided limits"
 
-    return l.sage()
+    #return l.sage()
     return ex.parent()(l)
 
 # lim is alias for limit

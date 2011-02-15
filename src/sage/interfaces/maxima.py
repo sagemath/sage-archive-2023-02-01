@@ -1011,6 +1011,24 @@ class Maxima(maxima_abstract.Maxima):
         """
         return maxima_version()
 
+##some helper functions to wrap tha calculus use of the maxima interface.
+##these routines expect arguments living in the symbolic ring and return something
+##that is hopefully coercible into the symbolic ring again.
+
+    def sr_integral(self,*args):
+        return args[0]._maxima_().integrate(*args[1:])
+
+    def sr_sum(self,expression,v,a,b):
+        sum  = "'sum(%s, %s, %s, %s)" % tuple([repr(expr._maxima_()) for expr in (expression, v, a, b)])
+        result = self.simplify_sum(sum)
+        result = result.ratsimp()
+        return expression.parent()(result)
+
+    def sr_limit(self,ex,*args):
+        return ex._maxima_().limit(*args)
+
+    def sr_tlimit(self,ex,*args):
+        return ex._maxima_().tlimit(*args)
 
 ##     def display2d(self, flag=True):
 ##         """
@@ -1077,5 +1095,3 @@ def maxima_version():
 def __doctest_cleanup():
     import sage.interfaces.quit
     sage.interfaces.quit.expect_quitall()
-
-

@@ -12,20 +12,21 @@ def maxima_integrator(expression, v, a=None, b=None):
         sage: maxima_integrator(f(x), x)
         integrate(f(x), x)
     """
+    from sage.calculus.calculus import maxima
     if not isinstance(expression, Expression):
         expression = SR(expression)
     if a is None:
-        result = expression._maxima_().integrate(v)
+        result = maxima.sr_integral(expression,v)
     else:
         try:
-            result = expression._maxima_().integrate(v, a, b)
+            result = maxima.sr_integral(expression, v, a, b)
         except TypeError, error:
             s = str(error)
             if "divergent" in s or 'Principal Value' in s:
                 raise ValueError, "Integral is divergent."
             else:
                 raise
-    return result.sage()
+    return result
 
 def sympy_integrator(expression, v, a=None, b=None):
     """

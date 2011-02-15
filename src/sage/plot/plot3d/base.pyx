@@ -947,6 +947,9 @@ end_scene""" % (render_params.antialiasing,
             opts['aspect_ratio'] = (1, 1, 1)
         if not isinstance(opts['aspect_ratio'], (str, list, tuple)):
             raise TypeError, 'aspect ratio must be a string, list, tuple, or 1'
+        # deal with any aspect_ratio instances passed from the default options to plot
+        if opts['aspect_ratio'] == 'auto':
+            opts['aspect_ratio'] = 'automatic'
 
         if opts['frame_aspect_ratio'] == 'automatic':
             if opts['aspect_ratio'] != 'automatic':
@@ -1029,7 +1032,7 @@ end_scene""" % (render_params.antialiasing,
 
             sage: sphere((0,0,0))
 
-        EXAMPLES: We illustrate use of the aspect_ratio option::
+        EXAMPLES: We illustrate use of the ``aspect_ratio`` option::
 
             sage: x, y = var('x,y')
             sage: p = plot3d(2*sin(x*y), (x, -pi, pi), (y, -pi, pi))
@@ -1042,6 +1045,11 @@ end_scene""" % (render_params.antialiasing,
         This looks flattened, but the plot is square and smaller::
 
             sage: p.show(aspect_ratio=[1,1,1], frame_aspect_ratio=[1,1,1/8])
+
+        This example shows indirectly that the defaults
+        from :func:`~sage.plot.plot.plot` are dealt with properly::
+
+            sage: plot(vector([1,2,3]))
 
         We use the 'canvas3d' backend from inside the notebook to get a view of
         the plot rendered inline using HTML canvas::

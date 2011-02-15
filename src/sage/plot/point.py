@@ -312,7 +312,7 @@ def point(points, **kwds):
         return point3d(points, **kwds)
 
 @rename_keyword(color='rgbcolor', pointsize='size')
-@options(alpha=1, size=10, faceted=False, rgbcolor=(0,0,1), legend_label=None)
+@options(alpha=1, size=10, faceted=False, rgbcolor=(0,0,1), legend_label=None, aspect_ratio='automatic')
 def point2d(points, **options):
     r"""
     A point of size ``size`` defined by point = `(x,y)`.

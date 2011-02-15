@@ -119,7 +119,7 @@ class BarChart(GraphicPrimitive):
         subplot.bar(ind, datalist, color=color, width=width, label=options['legend_label'])
 
 @rename_keyword(color='rgbcolor')
-@options(width=0.5, rgbcolor=(0,0,1), legend_label=None, aspect_ratio='auto')
+@options(width=0.5, rgbcolor=(0,0,1), legend_label=None, aspect_ratio='automatic')
 def bar_chart(datalist, **options):
     """
     A bar chart of (currently) one list of numerical data.

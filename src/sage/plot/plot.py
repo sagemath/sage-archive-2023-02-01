@@ -470,12 +470,12 @@ class Graphics(SageObject):
         """
         Set the aspect ratio, which is the ratio of height and width
         of a unit square (i.e., height/width of a unit square), or
-        'auto' (expand to fill the figure).
+        'automatic' (expand to fill the figure).
 
         INPUT:
 
 
-        -  ``ratio`` - a positive real number or 'auto'
+        -  ``ratio`` - a positive real number or 'automatic'
 
 
         EXAMPLES: We create a plot of a circle, and it doesn't look quite
@@ -501,18 +501,20 @@ class Graphics(SageObject):
             sage: P + Q
             sage: Q + P
         """
-        if ratio != 'auto':
+        if ratio != 'auto' and ratio != 'automatic':
             ratio = float(ratio)
             if ratio <= 0:
-                raise ValueError, "the aspect ratio must be positive or 'auto'"
+                raise ValueError, "the aspect ratio must be positive or 'automatic'"
+        else:
+            ratio = 'automatic'
         self.__aspect_ratio = ratio
 
     def aspect_ratio(self):
         """
         Get the current aspect ratio, which is the ratio of height to
-        width of a unit square, or 'auto'.
+        width of a unit square, or 'automatic'.
 
-        OUTPUT: a positive float (height/width of a unit square), or 'auto'
+        OUTPUT: a positive float (height/width of a unit square), or 'automatic'
         (expand to fill the figure).
 
         EXAMPLES::
@@ -523,9 +525,9 @@ class Graphics(SageObject):
             sage: P.set_aspect_ratio(2)
             sage: P.aspect_ratio()
             2.0
-            sage: P.set_aspect_ratio('auto')
+            sage: P.set_aspect_ratio('automatic')
             sage: P.aspect_ratio()
-            'auto'
+            'automatic'
         """
         return self.__aspect_ratio
 
@@ -1251,7 +1253,7 @@ class Graphics(SageObject):
         The xmin, xmax, ymin, and ymax properties of the graphics objects
         are expanded to include all objects in both scenes. If the aspect
         ratio property of either or both objects are set, then the larger
-        aspect ratio is chosen, with 'auto' being overridden by a
+        aspect ratio is chosen, with 'automatic' being overridden by a
         numeric aspect ratio.
 
         If one of the graphics object is set to show a legend, then the
@@ -1268,7 +1270,7 @@ class Graphics(SageObject):
 
         Extra keywords to show are propagated::
 
-            sage: (g1 + g2)._extra_kwds=={'aspect_ratio': 'auto', 'frame': True}
+            sage: (g1 + g2)._extra_kwds=={'aspect_ratio': 'automatic', 'frame': True}
             True
         """
         if isinstance(other, int) and other == 0:
@@ -1280,9 +1282,9 @@ class Graphics(SageObject):
             raise TypeError, "other (=%s) must be a Graphics objects"%other
         g = Graphics()
         g.__objects = self.__objects + other.__objects
-        if self.__aspect_ratio=='auto':
+        if self.__aspect_ratio=='automatic':
             g.__aspect_ratio=other.__aspect_ratio
-        elif other.__aspect_ratio=='auto':
+        elif other.__aspect_ratio=='automatic':
             g.__aspect_ratio=self.__aspect_ratio
         else:
             g.__aspect_ratio = max(self.__aspect_ratio, other.__aspect_ratio)
@@ -1420,7 +1422,7 @@ class Graphics(SageObject):
           will look round and a unit square will appear to have sides
           of equal length. If the aspect ratio is set ``2``, vertical units will be
           twice as long as horizontal units, so a unit square will be twice as
-          high as it is wide.  If set to ``'auto'``, the aspect ratio
+          high as it is wide.  If set to ``'automatic'``, the aspect ratio
           is determined by ``figsize`` and the picture fills the figure.
 
         - ``axes`` - (default: True)
@@ -1968,7 +1970,10 @@ class Graphics(SageObject):
             subplot = figure.add_subplot(111)
         if aspect_ratio is None:
             aspect_ratio=self.aspect_ratio()
-        subplot.set_aspect(aspect_ratio, adjustable='box')
+        if aspect_ratio == 'automatic':
+            subplot.set_aspect('auto', adjustable='box')
+        else:
+            subplot.set_aspect(aspect_ratio, adjustable='box')
         #add all the primitives to the subplot
         for g in self.__objects:
             g._render_on_subplot(subplot)
@@ -2691,7 +2696,7 @@ def xydata_from_point_list(points):
 @rename_keyword(color='rgbcolor')
 @options(alpha=1, thickness=1, fill=False, fillcolor='automatic', fillalpha=0.5, rgbcolor=(0,0,1), plot_points=200,
          adaptive_tolerance=0.01, adaptive_recursion=5, detect_poles = False, exclude = None, legend_label=None,
-         __original_opts=True, aspect_ratio='auto')
+         __original_opts=True, aspect_ratio='automatic')
 def plot(funcs, *args, **kwds):
     r"""
     Use plot by writing
@@ -3561,7 +3566,7 @@ def polar_plot(funcs, *args, **kwds):
     kwds['polar']=True
     return plot(funcs, *args, **kwds)
 
-@options(aspect_ratio='auto')
+@options(aspect_ratio='automatic')
 def list_plot(data, plotjoined=False, **kwargs):
     r"""
     ``list_plot`` takes either a single list of data, a list of tuples,

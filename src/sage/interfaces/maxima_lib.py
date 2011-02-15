@@ -488,7 +488,39 @@ ecl_eval("(defvar *MAXIMA-LANG-SUBDIR* NIL)")
 ecl_eval("(set-locale-subdir)")
 ecl_eval("(set-pathnames)")
 ecl_eval("(defun add-lineinfo (x) x)")
-ecl_eval("""(defun retrieve (msg flag &aux (print? nil))(error (concatenate 'string "Maxima asks:" (meval (list '($string) msg)))))""")
+#the following is a direct adaption of the definition of "retrieve" in the Maxima file
+#macsys.lisp. This routine is normally responsible for displaying a question and
+#returning the answer. We change it to throw an error in which the text of the question
+#is included. We do this by running exactly the same code as in the original definition
+#of "retrieve", but with *standard-output* redirected to a string.
+ecl_eval(r"""
+(defun retrieve (msg flag &aux (print? nil))
+  (declare (special msg flag print?))
+  (or (eq flag 'noprint) (setq print? t))
+  (error (concatenate 'string "Maxima asks:" (with-output-to-string (*standard-output*)
+      (terpri)
+      (cond ((not print?)
+	     (setq print? t)
+	     (princ *prompt-prefix*)
+	     (princ *prompt-suffix*))
+	    ((null msg)
+	     (princ *prompt-prefix*)
+	     (princ *prompt-suffix*))
+	    ((atom msg)
+	     (format t "~a~a~a" *prompt-prefix* msg *prompt-suffix*)
+	     (mterpri))
+	    ((eq flag t)
+	     (princ *prompt-prefix*)
+	     (mapc #'princ (cdr msg))
+	     (princ *prompt-suffix*)
+	     (mterpri))
+	    (t
+	     (princ *prompt-prefix*)
+	     (displa msg)
+	     (princ *prompt-suffix*)
+	     (mterpri)))))))
+""")
+
 ecl_eval('(defparameter *dev-null* (make-two-way-stream (make-concatenated-stream) (make-broadcast-stream)))')
 ecl_eval('(defun principal nil (error "Divergent Integral"))')
 

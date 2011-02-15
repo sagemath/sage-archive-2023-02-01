@@ -374,19 +374,18 @@ from sage.symbolic.function_factory import function_factory, function
 from sage.symbolic.integration.integral import indefinite_integral, \
         definite_integral
 import sage.symbolic.pynac
+import sage.interfaces.maxima_lib
 
 """
 Check if maxima has redundant variables defined after initialization #9538::
 
-    sage: maxima = Maxima(init_code = ['load(simplify_sum)'])
+    sage: maxima = sage.interfaces.maxima_lib.maxima
     sage: maxima('f1')
     f1
     sage: sage.calculus.calculus.maxima('f1')
     f1
 """
-maxima = Maxima(init_code = ['display2d:false', 'domain: complex',
-                             'keepfloat: true', 'load(to_poly_solver)', 'load(simplify_sum)'],
-                script_subdirectory=None)
+maxima = sage.interfaces.maxima_lib.maxima
 
 ########################################################
 def symbolic_sum(expression, v, a, b, algorithm='maxima'):

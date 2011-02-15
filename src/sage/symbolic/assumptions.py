@@ -475,13 +475,7 @@ def _forget_all():
     global _assumptions
     if len(_assumptions) == 0:
         return
-    try:
-        maxima._eval_line('forget(facts());')
-    except TypeError:
-        pass
     #maxima._eval_line('forget([%s]);'%(','.join([x._maxima_init_() for x in _assumptions])))
     for x in _assumptions[:]: # need to do this because x.forget() removes x from _assumptions
-        if isinstance(x, GenericDeclaration):
-            # these don't show up in facts()
-            x.forget()
+        x.forget()
     _assumptions = []

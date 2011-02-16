@@ -338,6 +338,35 @@ class SymmetricGroup(PermutationGroup_symalt):
         """
         return self([(i, self._set[self._set.index(i)+1])], check=False)
 
+    def major_index(self, parameter=None):
+        r"""
+        Returns the *major index generating polynomial* of ``self``,
+        which is a gadget counting the elements of ``self`` by major
+        index.
+
+        INPUT:
+
+        - ``parameter`` - an element of a ring. The result is
+          more explicit with a formal variable.  (default:
+          element q of Univariate Polynomial Ring in q over
+          Integer Ring)
+
+        .. math::
+
+            P(q) = \sum_{g\in S_n} q^{ \operatorname{major\ index}(g) }
+
+        EXAMPLES::
+
+            sage: S4 = SymmetricGroup(4)
+            sage: S4.major_index()
+            q^6 + 3*q^5 + 5*q^4 + 6*q^3 + 5*q^2 + 3*q + 1
+            sage: K.<t> = QQ[]
+            sage: S4.major_index(t)
+            t^6 + 3*t^5 + 5*t^4 + 6*t^3 + 5*t^2 + 3*t + 1
+        """
+        from sage.combinat.q_analogues import q_factorial
+        return q_factorial(self.degree(), parameter)
+
 class AlternatingGroup(PermutationGroup_symalt):
     def __init__(self, _set):
         """

@@ -856,19 +856,40 @@ def eratosthenes(n):
 ##         X = [a for a in X if a%p != 0]
 ##     return P + X
 
-def primes(start, stop=None):
-    r"""
-    Returns an iterator over all primes between start and stop-1,
-    inclusive. This is much slower than ``prime_range``,
-    but potentially uses less memory.
+def primes(start, stop=None, proof=None):
+    r""" Returns an iterator over all primes between start and stop-1,
+    inclusive. This is much slower than ``prime_range``, but
+    potentially uses less memory.  As with ``next_prime``, the optional
+    argument proof controls whether the numbers returned are
+    guaranteed to be prime or not.
 
     This command is like the xrange command, except it only iterates
     over primes. In some cases it is better to use primes than
-    prime_range, because primes does not build a list of all primes in
-    the range in memory all at once. However it is potentially much
-    slower since it simply calls the ``next_prime``
-    function repeatedly, and ``next_prime`` is slow,
-    partly because it proves correctness.
+    ``prime_range``, because primes does not build a list of all primes in
+    the range in memory all at once. However, it is potentially much
+    slower since it simply calls the ``next_prime`` function
+    repeatedly, and ``next_prime`` is slow.
+
+   INPUT:
+
+
+    -  ``start`` - an integer
+    lower bound for the primes
+
+    -  ``stop`` - an integer (or infinity)
+    upper (open) bound for the primes
+
+    -  ``proof`` - bool or None (default: None)  If True, the function
+       yields only proven primes.  If False, the function uses a
+       pseudo-primality test, which is much faster for really big
+       numbers but does not provide a proof of primality. If None,
+       uses the global default (see :mod:`sage.structure.proof.proof`)
+
+
+   OUTPUT:
+
+   -  an iterator over primes from start to stop-1, inclusive
+
 
     EXAMPLES::
 
@@ -877,21 +898,45 @@ def primes(start, stop=None):
         ...
         5
         7
-        sage: list(primes(11))
-        [2, 3, 5, 7]
+        sage: list(primes(13))
+        [2, 3, 5, 7, 11]
         sage: list(primes(10000000000, 10000000100))
         [10000000019, 10000000033, 10000000061, 10000000069, 10000000097]
+        sage: max(primes(10^100, 10^100+10^4, proof=False))
+        10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000009631
+        sage: next(p for p in primes(10^20, infinity) if is_prime(2*p+1))
+        100000000000000001243
+
+
+    TESTS::
+
+        sage: for a in range(-10, 50):
+        ...    for b in range(-10, 50):
+        ...        assert list(primes(a,b)) == list(filter(is_prime, xrange(a,b)))
+        ...
+        sage: sum(primes(-10, 9973, proof=False)) == sum(filter(is_prime, range(-10, 9973)))
+        True
+        sage: for p in primes(10, infinity):
+        ...    if p > 20: break
+        ...    print p
+        ...
+        11
+        13
+        17
+        19
+
     """
+    from sage.rings.infinity import infinity
 
     start = ZZ(start)
     if stop == None:
         stop = start
         start = ZZ(2)
-    else:
+    elif stop != infinity:
         stop = ZZ(stop)
     n = start - 1
     while True:
-        n = next_prime(n)
+        n = next_prime(n, proof)
         if n < stop:
             yield n
         else:

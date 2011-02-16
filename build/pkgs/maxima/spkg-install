@@ -28,6 +28,15 @@ check_error() {
 ./configure --prefix="$SAGE_LOCAL" --enable-ecl
 check_error "Failed to configure Maxima."
 
+# Touching html and info file to avoid to regenerate them.
+# This must be done after configuration since the timestamp need
+# to be later than include-maxima.texi which is generated at
+# configuration time
+for i in doc/info/*.html ; do
+   touch "${i}"
+done
+touch doc/info/maxima.info*
+
 if [ `uname` = "Darwin" ]; then
    echo "Now building maxima; this takes a few minutes"
    echo "Since we're using OS X and there is a very weird"

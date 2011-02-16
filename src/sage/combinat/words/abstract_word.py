@@ -147,6 +147,34 @@ class Word_class(SageObject):
         """
         return self._len
 
+    def is_finite(self):
+        r"""
+        Returns whether this word is known to be finite.
+
+        .. WARNING::
+
+            A word defined by an iterator such that its end has
+            never been reached will returns False.
+
+        EXAMPLES::
+
+            sage: Word([]).is_finite()
+            True
+            sage: Word('a').is_finite()
+            True
+            sage: TM = words.ThueMorseWord()
+            sage: TM.is_finite()
+            False
+
+        ::
+
+            sage: w = Word(iter('a'*100))
+            sage: w.is_finite()
+            False
+
+        """
+        return False
+
     def __len__(self):
         r"""
         Returns the length of self (as a python integer).
@@ -1553,4 +1581,131 @@ class Word_class(SageObject):
             length = "unknown"
 
         return Word(it, alphabet=alphabet, length=length, datatype='iter')
+
+    def factor_occurrences_iterator(self, fact):
+        r"""
+        Returns an iterator over all occurrences (including overlapping ones)
+        of fact in self in their order of appearance.
+
+        INPUT:
+
+        - ``fact`` - a non empty finite word
+
+        OUTPUT:
+
+        iterator
+
+        EXAMPLES::
+
+            sage: TM = words.ThueMorseWord()
+            sage: fact = Word([0,1,1,0,1])
+            sage: it = TM.factor_occurrences_iterator(fact)
+            sage: it.next()
+            0
+            sage: it.next()
+            12
+            sage: it.next()
+            24
+        """
+        if fact.is_empty():
+            raise NotImplementedError, "The factor must be non empty"
+        if not fact.is_finite():
+            raise ValueError, "The factor must be finite"
+        p = fact._pos_in(self, 0)
+        while p is not None:
+            yield p
+            p = fact._pos_in(self, p+1)
+
+    def return_words_iterator(self, fact):
+        r"""
+        Returns an iterator over all the return words of fact in self
+        (without unicity).
+
+        INPUT:
+
+        - ``fact`` - a non empty finite word
+
+        OUTPUT:
+
+        iterator
+
+        EXAMPLES::
+
+            sage: w = Word('baccabccbacbca')
+            sage: b = Word('b')
+            sage: list(w.return_words_iterator(b))
+            [word: bacca, word: bcc, word: bac]
+
+        ::
+
+            sage: TM = words.ThueMorseWord()
+            sage: fact = Word([0,1,1,0,1])
+            sage: it = TM.return_words_iterator(fact)
+            sage: it.next()
+            word: 011010011001
+            sage: it.next()
+            word: 011010010110
+            sage: it.next()
+            word: 0110100110010110
+            sage: it.next()
+            word: 01101001
+            sage: it.next()
+            word: 011010011001
+            sage: it.next()
+            word: 011010010110
+        """
+        it = self.factor_occurrences_iterator(fact)
+        i = it.next()
+        while True:
+            j = it.next()
+            yield self[i:j]
+            i = j
+
+    def complete_return_words_iterator(self, fact):
+        r"""
+        Returns an iterator over all the complete return words of fact in
+        self (without unicity).
+
+        A complete return words `u` of a factor `v`  is a factor starting
+        by the given factor `v` and ending just after the next occurrence
+        of this factor `v`. See for instance [1].
+
+        INPUT:
+
+        - ``fact`` - a non empty finite word
+
+        OUTPUT:
+
+        iterator
+
+        EXAMPLES::
+
+            sage: TM = words.ThueMorseWord()
+            sage: fact = Word([0,1,1,0,1])
+            sage: it = TM.complete_return_words_iterator(fact)
+            sage: it.next()
+            word: 01101001100101101
+            sage: it.next()
+            word: 01101001011001101
+            sage: it.next()
+            word: 011010011001011001101
+            sage: it.next()
+            word: 0110100101101
+            sage: it.next()
+            word: 01101001100101101
+            sage: it.next()
+            word: 01101001011001101
+
+        REFERENCES:
+
+        -   [1] J. Justin, L. Vuillon, Return words in Sturmian and
+            episturmian words, Theor. Inform. Appl. 34 (2000) 343--356.
+        """
+        it = self.factor_occurrences_iterator(fact)
+        L = fact.length()
+        i = it.next()
+        while True:
+            j = it.next()
+            yield self[i:j+L]
+            i = j
 

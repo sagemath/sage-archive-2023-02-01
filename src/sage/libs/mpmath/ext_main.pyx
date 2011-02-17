@@ -314,38 +314,13 @@ cdef binop(int op, x, y, MPopts opts):
 
     elif op == OP_POW:
         if typx == 1 and typy == 1:
-            if yre.special == S_NORMAL and mpz_sgn(yre.exp) >= 0:
-                # check if size is reasonable
-                mpz_add_ui(tmp1.man, yre.exp, mpz_sizeinbase(yre.man,2))
-                mpz_abs(tmp1.man, tmp1.man)
-                if mpz_cmp_ui(tmp1.man, 10000) < 0:
-                    # man * 2^exp
-                    mpz_mul_2exp(tmp1.man, yre.man, mpz_get_ui(yre.exp))
-                    rr = PY_NEW(mpf)
-                    MPF_pow_int(&rr.value, &xre, tmp1.man, opts)
-                    return rr
-
-        # TODO: optimize me
-        xret = MPF_to_tuple(&xre)
-        yret = MPF_to_tuple(&yre)
-        if typx == 1 and typy == 1:
-            try:
-                v = libmp.mpf_pow(xret, yret, opts.prec, rndmode_to_python(opts.rounding))
-                rr = PY_NEW(mpf)
-                MPF_set_tuple(&rr.value, v)
+            rr = PY_NEW(mpf)
+            if not MPF_pow(&rr.value, &xre, &yre, opts):
                 return rr
-            except libmp.ComplexResult:
-                xim = MPF_C_0
-                yim = MPF_C_0
-        else:
-            if typx == 1: xim = MPF_C_0
-            if typy == 1: yim = MPF_C_0
-        ximt = MPF_to_tuple(&xim)
-        yimt = MPF_to_tuple(&yim)
-        vr, vi = libmp.mpc_pow((xret,ximt), (yret,yimt), opts.prec, rndmode_to_python(opts.rounding))
+        if typx == 1: xim = MPF_C_0
+        if typy == 1: yim = MPF_C_0
         rc = PY_NEW(mpc)
-        MPF_set_tuple(&rc.re, vr)
-        MPF_set_tuple(&rc.im, vi)
+        MPF_complex_pow(&rc.re, &rc.im, &xre, &xim, &yre, &yim, opts)
         return rc
 
     elif op == OP_MOD:
@@ -1031,6 +1006,222 @@ cdef class Context:
         f_wrapped.__doc__ = doc
         setattr(cls, name, f_wrapped)
 
+    cdef MPopts _fun_get_opts(ctx, kwargs):
+        """
+        Helper function that extracts precision and rounding information
+        from kwargs, or returns the global working precision and rounding
+        if no options are specified.
+        """
+        cdef MPopts opts
+        opts.prec = global_opts.prec
+        opts.rounding = global_opts.rounding
+        if kwargs:
+            if 'prec' in kwargs:
+                opts.prec = int(kwargs['prec'])
+            if 'dps'  in kwargs:
+                opts.prec = libmp.dps_to_prec(int(kwargs['dps']))
+            if 'rounding' in kwargs:
+                opts.rounding = rndmode_from_python(kwargs['rounding'])
+        return opts
+
+    def _sage_sqrt(ctx, x, **kwargs):
+        """
+        Square root of an mpmath number x, using the Sage mpmath backend.
+
+        EXAMPLES::
+
+            sage: from mpmath import mp
+            sage: mp.dps = 15
+            sage: print mp.sqrt(2)   # indirect doctest
+            1.4142135623731
+            sage: print mp.sqrt(-2)
+            (0.0 + 1.4142135623731j)
+            sage: print mp.sqrt(2+2j)
+            (1.55377397403004 + 0.643594252905583j)
+
+        """
+        cdef MPopts opts
+        cdef int typx
+        cdef mpf rr
+        cdef mpc rc
+        cdef tuple rev, imv
+        opts = ctx._fun_get_opts(kwargs)
+        typx = MPF_set_any(&tmp_opx_re, &tmp_opx_im, x, opts, 1)
+        if typx == 1:
+            rr = PY_NEW(mpf)
+            if MPF_sqrt(&rr.value, &tmp_opx_re, opts):
+                rc = PY_NEW(mpc)
+                MPF_complex_sqrt(&rc.re, &rc.im, &tmp_opx_re, &MPF_C_0, opts)
+                return rc
+            return rr
+        elif typx == 2:
+            rc = PY_NEW(mpc)
+            MPF_complex_sqrt(&rc.re, &rc.im, &tmp_opx_re, &tmp_opx_im, opts)
+            return rc
+        else:
+            raise NotImplementedError("unknown argument")
+
+    def _sage_exp(ctx, x, **kwargs):
+        """
+        Exponential function of an mpmath number x, using the Sage
+        mpmath backend.
+
+        EXAMPLES::
+
+            sage: from mpmath import mp
+            sage: mp.dps = 15
+            sage: print mp.exp(2)   # indirect doctest
+            7.38905609893065
+            sage: print mp.exp(2+2j)
+            (-3.07493232063936 + 6.71884969742825j)
+
+        """
+        cdef MPopts opts
+        cdef int typx
+        cdef mpf rr
+        cdef mpc rc
+        cdef tuple rev, imv
+        opts = ctx._fun_get_opts(kwargs)
+        typx = MPF_set_any(&tmp_opx_re, &tmp_opx_im, x, opts, 1)
+        if typx == 1:
+            rr = PY_NEW(mpf)
+            MPF_exp(&rr.value, &tmp_opx_re, opts)
+            return rr
+        elif typx == 2:
+            rc = PY_NEW(mpc)
+            MPF_complex_exp(&rc.re, &rc.im, &tmp_opx_re, &tmp_opx_im, opts)
+            return rc
+        else:
+            raise NotImplementedError("unknown argument")
+
+    def _sage_cos(ctx, x, **kwargs):
+        """
+        Cosine of an mpmath number x, using the Sage mpmath backend.
+
+        EXAMPLES::
+
+            sage: from mpmath import mp
+            sage: mp.dps = 15
+            sage: print mp.cos(2)   # indirect doctest
+            -0.416146836547142
+            sage: print mp.cos(2+2j)
+            (-1.56562583531574 - 3.29789483631124j)
+
+        """
+        cdef MPopts opts
+        cdef int typx
+        cdef mpf rr
+        cdef mpc rc
+        cdef tuple rev, imv
+        opts = ctx._fun_get_opts(kwargs)
+        typx = MPF_set_any(&tmp_opx_re, &tmp_opx_im, x, global_opts, 1)
+        if typx == 1:
+            rr = PY_NEW(mpf)
+            MPF_cos(&rr.value, &tmp_opx_re, opts)
+            return rr
+        elif typx == 2:
+            rev = MPF_to_tuple(&tmp_opx_re)
+            imv = MPF_to_tuple(&tmp_opx_im)
+            cxu = libmp.mpc_cos((rev, imv), opts.prec,
+                rndmode_to_python(opts.rounding))
+            rc = PY_NEW(mpc)
+            MPF_set_tuple(&rc.re, cxu[0])
+            MPF_set_tuple(&rc.im, cxu[1])
+            return rc
+        else:
+            raise NotImplementedError("unknown argument")
+
+    def _sage_sin(ctx, x, **kwargs):
+        """
+        Sine of an mpmath number x, using the Sage mpmath backend.
+
+        EXAMPLES::
+
+            sage: from mpmath import mp
+            sage: mp.dps = 15
+            sage: print mp.sin(2)   # indirect doctest
+            0.909297426825682
+            sage: print mp.sin(2+2j)
+            (3.42095486111701 - 1.50930648532362j)
+
+        """
+        cdef MPopts opts
+        cdef int typx
+        cdef mpf rr
+        cdef mpc rc
+        cdef tuple rev, imv
+        opts = ctx._fun_get_opts(kwargs)
+        typx = MPF_set_any(&tmp_opx_re, &tmp_opx_im, x, global_opts, 1)
+        if typx == 1:
+            rr = PY_NEW(mpf)
+            MPF_sin(&rr.value, &tmp_opx_re, opts)
+            return rr
+        elif typx == 2:
+            rev = MPF_to_tuple(&tmp_opx_re)
+            imv = MPF_to_tuple(&tmp_opx_im)
+            cxu = libmp.mpc_sin((rev, imv), opts.prec,
+                rndmode_to_python(opts.rounding))
+            rc = PY_NEW(mpc)
+            MPF_set_tuple(&rc.re, cxu[0])
+            MPF_set_tuple(&rc.im, cxu[1])
+            return rc
+        else:
+            raise NotImplementedError("unknown argument")
+
+    def _sage_ln(ctx, x, **kwargs):
+        """
+        Natural logarithm of an mpmath number x, using the Sage mpmath backend.
+
+        EXAMPLES::
+
+            sage: from mpmath import mp
+            sage: print mp.ln(2)   # indirect doctest
+            0.693147180559945
+            sage: print mp.ln(-2)
+            (0.693147180559945 + 3.14159265358979j)
+            sage: print mp.ln(2+2j)
+            (1.03972077083992 + 0.785398163397448j)
+
+        """
+        cdef MPopts opts
+        cdef int typx
+        cdef mpf rr
+        cdef mpc rc
+        cdef tuple rev, imv
+        typx = MPF_set_any(&tmp_opx_re, &tmp_opx_im, x, global_opts, 1)
+        prec = global_opts.prec
+        rounding = rndmode_to_python(global_opts.rounding)
+        opts.prec = global_opts.prec
+        opts.rounding = global_opts.rounding
+        if kwargs:
+            if 'prec' in kwargs: opts.prec = int(kwargs['prec'])
+            if 'dps'  in kwargs: opts.prec = libmp.dps_to_prec(int(kwargs['dps']))
+            if 'rounding' in kwargs: opts.rounding = rndmode_from_python(kwargs['rounding'])
+        if typx == 1:
+            if MPF_sgn(&tmp_opx_re) < 0:
+                rc = PY_NEW(mpc)
+                MPF_log(&rc.re, &tmp_opx_re, opts)
+                MPF_set_pi(&rc.im, opts)
+                return rc
+            else:
+                rr = PY_NEW(mpf)
+                MPF_log(&rr.value, &tmp_opx_re, opts)
+                return rr
+        elif typx == 2:
+            rev = MPF_to_tuple(&tmp_opx_re)
+            imv = MPF_to_tuple(&tmp_opx_im)
+            cxu = libmp.mpc_log((rev, imv), opts.prec, rndmode_to_python(opts.rounding))
+            rc = PY_NEW(mpc)
+            MPF_set_tuple(&rc.re, cxu[0])
+            MPF_set_tuple(&rc.im, cxu[1])
+            return rc
+
+            #rc = PY_NEW(mpc)
+            #MPF_complex_log(&rc.re, &rc.im, &tmp_opx_re, &tmp_opx_im, opts)
+            #return rc
+        else:
+            raise NotImplementedError("unknown argument")
+
 
 cdef class wrapped_libmp_function:
 
@@ -1451,3 +1642,32 @@ cdef class mpc(mpnumber):
     def __richcmp__(self, other, int op):
         return binop(OP_RICHCMP+op, self, other, global_opts)
 
+
+def hypsum_internal(int p, int q, param_types, str ztype, coeffs, z,
+    long prec, long wp, long epsshift, dict magnitude_check, kwargs):
+    """
+    Internal summation routine for hypergeometric series (wraps
+    extension function MPF_hypsum to handle mpf/mpc types).
+
+    EXAMPLES::
+
+        sage: from mpmath import mp  # indirect doctest
+        sage: mp.dps = 15
+        sage: print mp.hyp1f1(1,2,3)
+        6.36184564106256
+
+    TODO: convert mpf/mpc parameters to fixed-point numbers here
+    instead of converting to tuples within MPF_hypsum.
+    """
+    cdef mpf f
+    cdef mpc c
+    c = PY_NEW(mpc)
+    have_complex, magn = MPF_hypsum(&c.re, &c.im, p, q, param_types, \
+        ztype, coeffs, z, prec, wp, epsshift, magnitude_check, kwargs)
+    if have_complex:
+        v = c
+    else:
+        f = PY_NEW(mpf)
+        MPF_set(&f.value, &c.re)
+        v = f
+    return v, have_complex, magn

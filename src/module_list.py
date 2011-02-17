@@ -643,7 +643,7 @@ ext_modules = [
 
     Extension('sage.libs.mpmath.ext_impl',
               sources = ["sage/libs/mpmath/ext_impl.pyx"],
-              libraries = ['gmp']),
+              libraries = ['mpfr', 'gmp']),
 
     Extension('sage.libs.mpmath.ext_main',
               sources = ["sage/libs/mpmath/ext_main.pyx"],

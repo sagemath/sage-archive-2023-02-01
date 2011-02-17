@@ -17,6 +17,26 @@ from sage.rings.complex_field import ComplexField
 from sage.rings.real_mpfr import RealField
 
 cpdef int bitcount(n):
+    """
+    Bitcount of a Sage Integer or Python int/long.
+
+    EXAMPLES::
+
+        sage: from mpmath.libmp import bitcount
+        sage: bitcount(0)
+        0
+        sage: bitcount(1)
+        1
+        sage: bitcount(100)
+        7
+        sage: bitcount(-100)
+        7
+        sage: bitcount(2r)
+        2
+        sage: bitcount(2L)
+        2
+
+    """
     cdef Integer m
     if PY_TYPE_CHECK(n, Integer):
         m = <Integer>n
@@ -25,6 +45,37 @@ cpdef int bitcount(n):
     if mpz_sgn(m.value) == 0:
         return 0
     return mpz_sizeinbase(m.value, 2)
+
+cpdef isqrt(n):
+    """
+    Square root (rounded to floor) of a Sage Integer or Python int/long.
+    The result is a Sage Integer.
+
+    EXAMPLES::
+
+        sage: from mpmath.libmp import isqrt
+        sage: isqrt(0)
+        0
+        sage: isqrt(100)
+        10
+        sage: isqrt(10)
+        3
+        sage: isqrt(10r)
+        3
+        sage: isqrt(10L)
+        3
+
+    """
+    cdef Integer m, y
+    if PY_TYPE_CHECK(n, Integer):
+        m = <Integer>n
+    else:
+        m = Integer(n)
+    if mpz_sgn(m.value) < 0:
+        raise ValueError, "square root of negative integer not defined."
+    y = PY_NEW(Integer)
+    mpz_sqrt(y.value, m.value)
+    return y
 
 cpdef from_man_exp(man, exp, long prec = 0, str rnd = 'd'):
     """

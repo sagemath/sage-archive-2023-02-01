@@ -6274,6 +6274,306 @@ cdef class Matrix(matrix1.Matrix):
 
         return A
 
+    def QR(self, full=True):
+        r"""
+        Returns a factorization of ``self`` as a unitary matrix
+        and an upper-triangular matrix.
+
+        INPUT:
+
+        - ``full`` - default: ``True`` - if ``True`` then the
+          returned matrices have dimensions as described below.
+          If ``False`` the ``R`` matrix has no zero rows and the
+          columns of ``Q`` are a basis for the column space of
+          ``self``.
+
+        OUTPUT:
+
+        If ``self`` is an `m\times n` matrix and ``full=True`` then this
+        method returns a pair of matrices: `Q` is an `m\times m` unitary
+        matrix (meaning its inverse is its conjugate-transpose) and `R`
+        is an `m\times n` upper-triangular matrix with non-negative entries
+        on the diagonal.  For a matrix of full rank this factorization is
+        unique (due to the restriction to positive entries on the diagonal).
+
+        If ``full=False`` then `Q` has `m` rows and the columns form an
+        orthonormal basis for the column space of ``self``.  So, in particular,
+        the conjugate-transpose of `Q` times `Q` will be an identity matrix.
+        The matrix `R` will still be upper-triangular but will also have full
+        rank, in particular it will lack the zero rows present in a full
+        factorization of a rank-deficient matrix.
+
+        The results obtained when ``full=True`` are cached,
+        hence `Q` and `R` are immutable matrices in this case.
+
+        .. note::
+
+            This is an exact computation, so limited to exact rings.
+            Also the base ring needs to have a fraction field implemented
+            in Sage and this field must contain square roots.  One example
+            is the field of algebraic numbers, ``QQbar``, as used in the
+            examples below.  If you need numerical results, convert the
+            base ring to the field of complex double numbers, ``CDF``,
+            which will use a faster routine that is careful about
+            numerical subtleties.
+
+        ALGORITHM:
+
+        "Modified Gram-Schmidt," Algorithm 8.1 of [TREFETHEN-BAU]_.
+
+        EXAMPLES:
+
+        For a nonsingular matrix, the QR decomposition is unique. ::
+
+            sage: A = matrix(QQbar, [[-2, 0, -4, -1, -1],
+            ...                      [-2, 1, -6, -3, -1],
+            ...                      [1, 1, 7, 4, 5],
+            ...                      [3, 0, 8, 3, 3],
+            ...                      [-1, 1, -6, -6, 5]])
+            sage: Q, R = A.QR()
+            sage: Q
+            [ -0.4588314677411235?  -0.1260506983326509?   0.3812120831224489?  -0.3945737113384181?  -0.6874400625963308?]
+            [ -0.4588314677411235?   0.4726901187474409? -0.05198346588033394?   0.7172941251646595?  -0.2209628772631064?]
+            [  0.2294157338705618?   0.6617661662464172?   0.6619227988762521?  -0.1808720937375480?   0.1964114464560946?]
+            [  0.6882472016116853?   0.1890760474989764?  -0.2044682991293135?   0.0966302966543065?  -0.6628886317893191?]
+            [ -0.2294157338705618?   0.5357154679137663?  -0.6099393329959182?  -0.5364220314271115?  0.02455143080701182?]
+            sage: R
+            [  4.358898943540674? -0.4588314677411235?   13.07669683062202?   6.194224814505168?   2.982404540317303?]
+            [                   0   1.670171752907625?  0.5987408170800917?  -1.292019657909672?   6.207996892883057?]
+            [                   0                    0   5.444401659866974?   5.468660610611130? -0.6827161852283857?]
+            [                   0                    0                    0   1.027626039419836?  -3.619300149686620?]
+            [                   0                    0                    0                    0 0.02455143080701182?]
+            sage: Q.conjugate_transpose()*Q
+            [1.000000000000000?            0.?e-37            0.?e-36            0.?e-34            0.?e-31]
+            [           0.?e-37 1.000000000000000?            0.?e-36            0.?e-34            0.?e-31]
+            [           0.?e-36            0.?e-36 1.000000000000000?            0.?e-34            0.?e-31]
+            [           0.?e-34            0.?e-34            0.?e-34 1.000000000000000?            0.?e-31]
+            [           0.?e-31            0.?e-31            0.?e-31            0.?e-31 1.000000000000000?]
+            sage: Q*R == A
+            True
+
+
+        An example with complex numbers in ``QQbar``, the field of algebraic
+        numbers. ::
+
+            sage: A = matrix(QQbar, [[-8, 4*I + 1, -I + 2, 2*I + 1],
+            ...                      [1, -2*I - 1, -I + 3, -I + 1],
+            ...                      [I + 7, 2*I + 1, -2*I + 7, -I + 1],
+            ...                      [I + 2, 0, I + 12, -1]])
+            sage: Q, R = A.QR()
+            sage: Q
+            [                          -0.7302967433402215?    0.2070566455055649? + 0.5383472783144687?*I    0.2463049809998642? - 0.0764456358723292?*I   0.2381617683194332? - 0.10365960327796942?*I]
+            [                           0.0912870929175277?   -0.2070566455055649? - 0.3778783780476559?*I    0.3786559533863033? - 0.1952221495524667?*I    0.7012444502144683? - 0.3643711650986595?*I]
+            [   0.6390096504226938? + 0.0912870929175277?*I    0.1708217325420910? + 0.6677576817554466?*I -0.03411475806452072? + 0.04090198741767143?*I    0.3140171085506764? - 0.0825191718705412?*I]
+            [   0.1825741858350554? + 0.0912870929175277?*I  -0.03623491296347385? + 0.0724698259269477?*I   0.8632284069415110? + 0.06322839976356195?*I  -0.4499694867611521? - 0.01161191812089175?*I]
+            sage: R
+            [                          10.95445115010333?               0.?e-37 - 1.917028951268082?*I    5.385938482134133? - 2.190890230020665?*I  -0.2738612787525831? - 2.190890230020665?*I]
+            [                                           0                           4.829596256417300?   -0.869637911123373? - 5.864879483945125?*I   0.993871898426712? - 0.3054085521207082?*I]
+            [                                           0                                            0                           12.00160760935814? -0.2709533402297274? + 0.4420629644486323?*I]
+            [                                           0                                            0                                            0               1.942963944258992? + 0.?e-33*I]
+            sage: Q.conjugate_transpose()*Q
+            [1.000000000000000? + 0.?e-37*I            0.?e-36 + 0.?e-36*I            0.?e-33 + 0.?e-33*I            0.?e-33 + 0.?e-33*I]
+            [           0.?e-36 + 0.?e-36*I 1.000000000000000? + 0.?e-36*I            0.?e-33 + 0.?e-33*I            0.?e-33 + 0.?e-33*I]
+            [           0.?e-33 + 0.?e-33*I            0.?e-33 + 0.?e-33*I 1.000000000000000? + 0.?e-34*I            0.?e-33 + 0.?e-33*I]
+            [           0.?e-33 + 0.?e-33*I            0.?e-33 + 0.?e-33*I            0.?e-33 + 0.?e-33*I 1.000000000000000? + 0.?e-33*I]
+            sage: Q*R - A
+            [                  0 0.?e-36 + 0.?e-36*I 0.?e-32 + 0.?e-32*I 0.?e-33 + 0.?e-33*I]
+            [                  0 0.?e-36 + 0.?e-36*I 0.?e-35 + 0.?e-35*I 0.?e-33 + 0.?e-33*I]
+            [0.?e-36 + 0.?e-36*I 0.?e-36 + 0.?e-36*I 0.?e-35 + 0.?e-35*I 0.?e-33 + 0.?e-33*I]
+            [0.?e-37 + 0.?e-37*I 0.?e-37 + 0.?e-37*I 0.?e-36 + 0.?e-36*I 0.?e-33 + 0.?e-33*I]
+
+        A rank-deficient rectangular matrix, with both values of the ``full`` keyword.  ::
+
+            sage: A = matrix(QQbar, [[2, -3, 3],
+            ...                      [-1, 1, -1],
+            ...                      [-1, 3, -3],
+            ...                      [-5, 1, -1]])
+            sage: Q, R = A.QR()
+            sage: Q
+            [  0.3592106040535498?  -0.5693261797050169?   0.7239227659930268?   0.1509015305256380?]
+            [ -0.1796053020267749?   0.1445907757980996?                     0   0.9730546968377341?]
+            [ -0.1796053020267749?   0.7048800320157352?    0.672213996993525?  -0.1378927778941174?]
+            [ -0.8980265101338745?  -0.3976246334447737?   0.1551263069985058? -0.10667177157846818?]
+            sage: R
+            [ 5.567764362830022? -2.694079530401624?  2.694079530401624?]
+            [                  0  3.569584777515583? -3.569584777515583?]
+            [                  0                   0                   0]
+            [                  0                   0                   0]
+            sage: Q.conjugate_transpose()*Q
+            [                 1            0.?e-37            0.?e-37            0.?e-38]
+            [           0.?e-37                  1            0.?e-37            0.?e-38]
+            [           0.?e-37            0.?e-37                  1            0.?e-38]
+            [           0.?e-38            0.?e-37            0.?e-38 1.000000000000000?]
+
+            sage: Q, R = A.QR(full=False)
+            sage: Q
+            [ 0.3592106040535498? -0.5693261797050169?]
+            [-0.1796053020267749?  0.1445907757980996?]
+            [-0.1796053020267749?  0.7048800320157352?]
+            [-0.8980265101338745? -0.3976246334447737?]
+            sage: R
+            [ 5.567764362830022? -2.694079530401624?  2.694079530401624?]
+            [                  0  3.569584777515583? -3.569584777515583?]
+            sage: Q.conjugate_transpose()*Q
+            [      1 0.?e-37]
+            [0.?e-37       1]
+
+        Another rank-deficient rectangular matrix, with complex entries,
+        as a reduced decomposition. ::
+
+            sage: A = matrix(QQbar, [[-3*I - 3, I - 3, -12*I + 1, -2],
+            ...                      [-I - 1, -2, 5*I - 1, -I - 2],
+            ...                      [-4*I - 4, I - 5, -7*I, -I - 4]])
+            sage: Q, R = A.QR(full=False)
+            sage: Q
+            [ -0.4160251471689219? - 0.4160251471689219?*I   0.5370861555295747? + 0.1790287185098583?*I]
+            [ -0.1386750490563073? - 0.1386750490563073?*I  -0.7519206177414046? - 0.2506402059138015?*I]
+            [ -0.5547001962252291? - 0.5547001962252291?*I -0.2148344622118299? - 0.07161148740394329?*I]
+            sage: R
+            [                        7.211102550927979?  3.328201177351375? - 5.269651864139676?*I   7.904477796209515? + 8.45917799243475?*I  4.021576422632911? - 2.634825932069838?*I]
+            [                                         0                         1.074172311059150?  -1.611258466588724? - 9.13046464400277?*I 1.611258466588724? + 0.5370861555295747?*I]
+            sage: Q.conjugate_transpose()*Q
+            [1.000000000000000? + 0.?e-37*I            0.?e-36 + 0.?e-36*I]
+            [           0.?e-36 + 0.?e-36*I 1.000000000000000? + 0.?e-36*I]
+            sage: Q*R-A
+            [0.?e-37 + 0.?e-37*I 0.?e-36 + 0.?e-36*I 0.?e-35 + 0.?e-35*I 0.?e-35 + 0.?e-35*I]
+            [0.?e-37 + 0.?e-37*I 0.?e-36 + 0.?e-36*I 0.?e-35 + 0.?e-34*I 0.?e-35 + 0.?e-35*I]
+            [0.?e-37 + 0.?e-37*I 0.?e-36 + 0.?e-36*I 0.?e-35 + 0.?e-35*I 0.?e-35 + 0.?e-36*I]
+
+        Results of full decompositions are cached and thus returned
+        immutable.  ::
+
+            sage: A = random_matrix(QQbar, 2, 2)
+            sage: Q, R = A.QR()
+            sage: Q.is_mutable()
+            False
+            sage: R.is_mutable()
+            False
+
+        Trivial cases return trivial results of the correct size,
+        and we check `Q` itself in one case.  ::
+
+            sage: A = zero_matrix(QQbar, 0, 10)
+            sage: Q, R = A.QR()
+            sage: Q.nrows(), Q.ncols()
+            (0, 0)
+            sage: R.nrows(), R.ncols()
+            (0, 10)
+            sage: A = zero_matrix(QQbar, 3, 0)
+            sage: Q, R = A.QR()
+            sage: Q.nrows(), Q.ncols()
+            (3, 3)
+            sage: R.nrows(), R.ncols()
+            (3, 0)
+            sage: Q
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+
+        TESTS:
+
+        Inexact rings are caught and ``CDF`` suggested.  ::
+
+            sage: A = matrix(RealField(100), 2, range(4))
+            sage: A.QR()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: QR decomposition is implemented over exact rings, try CDF for numerical results, not Real Field with 100 bits of precision
+
+        Without a fraction field, we cannot hope to run the algorithm. ::
+
+            sage: A = matrix(Integers(6), 2, range(4))
+            sage: A.QR()
+            Traceback (most recent call last):
+            ...
+            ValueError: QR decomposition needs a fraction field of Ring of integers modulo 6
+
+        The biggest obstacle is making unit vectors, thus requiring square
+        roots, though some small cases pass through.  ::
+
+            sage: A = matrix(ZZ, 3, range(9))
+            sage: A.QR()
+            Traceback (most recent call last):
+            ...
+            TypeError: QR decomposition unable to compute square roots in Rational Field
+
+            sage: A = matrix(ZZ, 2, range(4))
+            sage: Q, R = A.QR()
+            sage: Q
+            [0 1]
+            [1 0]
+            sage: R
+            [2 3]
+            [0 1]
+
+        REFERENCES:
+
+        .. [TREFETHEN-BAU] Trefethen, Lloyd N., Bau, David, III
+           "Numerical Linear Algebra"
+           SIAM, Philadelphia, 1997.
+
+        AUTHOR:
+
+        - Rob Beezer (2011-02-17)
+        """
+        from sage.modules.free_module_element import zero_vector
+        from sage.matrix.constructor import zero_matrix, matrix
+        from sage.functions.other import sqrt
+
+        if full:
+            QR = self.fetch('QR_factors')
+            if QR is not None:
+                return QR
+        R = self.base_ring()
+        if not R.is_exact():
+            raise NotImplementedError('QR decomposition is implemented over exact rings, try CDF for numerical results, not %s' % R)
+        try:
+            F = R.fraction_field()
+        except:
+            raise ValueError("QR decomposition needs a fraction field of %s" % R)
+        m = self.nrows()
+        n = self.ncols()
+
+        R = zero_matrix(F, m, n)
+        V = self.columns(copy=True)
+        Q = []
+        row = 0  # row of R being filled
+        for i in range(n):
+            v = V[i]
+            hip = v.hermitian_inner_product(v)
+            if hip != 0:
+                try:
+                    scale = sqrt(hip)
+                    q = (1/scale)*v
+                    Q.append(q)
+                    R[row,i] = scale
+                    for j in range(i+1, n):
+                        R[row,j] = q.hermitian_inner_product(V[j])
+                        V[j] = V[j] - R[row,j]*q
+                    row = row + 1
+                except TypeError:
+                    raise TypeError('QR decomposition unable to compute square roots in %s' % F)
+        # complete to full orthonormal basis, or reduce to truncated R
+        if full:
+            Qt = matrix(Q) # as rows here
+            if Qt.nrows() == 0:
+                Qt = zero_matrix(F, 0, m)
+            orthogonal = Qt.right_kernel().basis_matrix().transpose()
+            Qperp, _ = orthogonal.QR(full=False)
+            Q = Q + Qperp.columns()
+        else:
+            R = R[0:len(Q), 0:n]
+        Q = matrix(Q).transpose()
+        # Adjust rows of Q if empty
+        if Q.ncols() == 0:
+            Q = zero_matrix(F, m, 0)
+        QR = (Q, R)
+        if full:
+            Q.set_immutable()
+            R.set_immutable()
+            self.cache('QR_factors', QR)
+        return QR
+
     def gram_schmidt(self):
         r"""
         Return the matrix G whose rows are obtained from the rows of self

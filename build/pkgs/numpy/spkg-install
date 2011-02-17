@@ -48,21 +48,6 @@ export NUMPY_FCONFIG="config_fc --noopt --noarch"
 
 ################################################
 
-#This patch should eliminate the segfault errors in
-#the real_roots.pyx file of sage.rings.polynomial
-cp ../patches/buffer.c numpy/core/src/multiarray/buffer.c
-
-# Patches to fix problems reported at #9808.  When numpy 1.5.1 is
-# released, check to see if these patches are still necessary.
-cp ../patches/setup.py numpy/core/setup.py
-cp ../patches/config.py numpy/distutils/command/config.py
-if [ `uname` = "Darwin" ]; then
-    VER=`uname -r | sed 's/\([0-9]*\)\..*/\1/'`
-    if [ $VER -ge 10 ]; then
-        cp ../patches/gnu-changes.py numpy/distutils/fcompiler/gnu.py
-    fi
-fi
-
 rm -rf "$SAGE_LOCAL"/lib/python/site-packages/numpy
 
 # Program around a bug in SciPY's distutils.

@@ -25,6 +25,12 @@ Special Update/Build Instructions:
 
 == Changelog ==
 
+=== numpy-1.5.1 (Francois Bissey, 18 Feb 2011) ==
+ * Update to numpy-1.5.1
+ * Upstream tickets #1399, #1605 and #1625 have been fixed in this version,
+   so the related patches are no longer needed.
+ * remove unneeded patches and useless bin folder.
+
 === numpy-1.5.0 (Karl-Dieter Crisman, 13 October 2010) ==
  * Fix a bug in architecture detection on Mac OS X where too many
    architectures were detected on 10.6 for fat binaries.  See

@@ -1421,14 +1421,19 @@ def gcd(a, b=None, **kwargs):
     Additional keyword arguments are passed to the respectively called
     methods.
 
+    OUTPUT:
+
+    The given elements are first coerced into a common parent. Then,
+    their greatest common divisor *in that common parent* is returned.
+
     EXAMPLES::
 
         sage: GCD(97,100)
         1
         sage: GCD(97*10^15, 19^20*97^2)
         97
-        sage: GCD(2/3, 4/3)
-        1
+        sage: GCD(2/3, 4/5)
+        2/15
         sage: GCD([2,4,6,8])
         2
         sage: GCD(srange(0,10000,10))  # fast  !!
@@ -1459,16 +1464,36 @@ def gcd(a, b=None, **kwargs):
         0
         sage: type(gcd([]))
         <type 'sage.rings.integer.Integer'>
+
+    TESTS:
+
+    The following shows that indeed coercion takes place before computing
+    the gcd. This behaviour was introduced in trac ticket #10771::
+
+        sage: R.<x>=QQ[]
+        sage: S.<x>=ZZ[]
+        sage: p = S.random_element()
+        sage: q = R.random_element()
+        sage: parent(gcd(1/p,q))
+        Fraction Field of Univariate Polynomial Ring in x over Rational Field
+        sage: parent(gcd([1/p,q]))
+        Fraction Field of Univariate Polynomial Ring in x over Rational Field
+
+
     """
     # Most common use case first:
     if b is not None:
-        if hasattr(a, "gcd"):
-            return a.gcd(b, **kwargs)
-        else:
+        from sage.structure.element import get_coercion_model
+        cm = get_coercion_model()
+        a,b = cm.canonical_coercion(a,b)
+        try:
+            GCD = a.gcd
+        except AttributeError:
             try:
                 return ZZ(a).gcd(ZZ(b))
             except TypeError:
                 raise TypeError, "unable to find gcd of %s and %s"%(a,b)
+        return GCD(b, **kwargs)
 
     from sage.structure.sequence import Sequence
     seq = Sequence(a)
@@ -1537,6 +1562,10 @@ def lcm(a, b=None):
     -  ``a`` - a list or tuple of elements of a ring with
        lcm
 
+    OUTPUT:
+
+    First, the given elements are coerced into a common parent. Then,
+    their least common multiple *in that parent* is returned.
 
     EXAMPLES::
 
@@ -1553,16 +1582,39 @@ def lcm(a, b=None):
         sage: v = LCM(range(1,10000))   # *very* fast!
         sage: len(str(v))
         4349
+
+    TESTS:
+
+    The following tests against a bug that was fixed in trac
+    ticket #10771::
+
+        sage: lcm(4/1,2)
+        4
+
+    The following shows that indeed coercion takes place before
+    computing the least common multiple::
+
+        sage: R.<x>=QQ[]
+        sage: S.<x>=ZZ[]
+        sage: p = S.random_element()
+        sage: q = R.random_element()
+        sage: parent(lcm([1/p,q]))
+        Fraction Field of Univariate Polynomial Ring in x over Rational Field
+
     """
     # Most common use case first:
     if b is not None:
-        if hasattr(a, "lcm"):
-            return a.lcm(b)
-        else:
+        from sage.structure.element import get_coercion_model
+        cm = get_coercion_model()
+        a,b = cm.canonical_coercion(a,b)
+        try:
+            LCM = a.lcm
+        except AttributeError:
             try:
                 return ZZ(a).lcm(ZZ(b))
             except TypeError:
-                raise TypeError, "unable to find gcd of %s and %s"%(a,b)
+                raise TypeError, "unable to find lcm of %s and %s"%(a,b)
+        return LCM(b)
 
     from sage.structure.sequence import Sequence
     seq = Sequence(a)

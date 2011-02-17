@@ -1641,13 +1641,19 @@ cdef class PrincipalIdealDomain(IntegralDomain):
             2^3 * 11
 
         In a field, any nonzero element is a GCD of any nonempty set
-        of elements.  For concreteness, Sage returns 1 in these cases::
+        of nonzero elements. In previous versions, Sage used to return
+        1 in the case of the rational field. However, since trac
+        ticket #10771, the rational field is considered as the
+        *fraction field* of the integer ring. For the fraction field
+        of an integral domain that provides both GCD and LCM, it is
+        possible to pick a GCD that is compatible with the GCD of the
+        base ring::
 
             sage: QQ.gcd(ZZ(42), ZZ(48)); type(QQ.gcd(ZZ(42), ZZ(48)))
-            1
+            6
             <type 'sage.rings.rational.Rational'>
             sage: QQ.gcd(1/2, 1/3)
-            1
+            1/6
 
         Polynomial rings over fields are GCD domains as well. Here is a simple
         example over the ring of polynomials over the rationals as well as

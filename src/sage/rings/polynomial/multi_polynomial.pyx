@@ -918,18 +918,21 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: f.content().parent()
             Integer Ring
 
-        TESTS::
+        TESTS:
+
+        Since trac ticket #10771, the gcd in QQ restricts to the
+        gcd in ZZ.
 
             sage: R.<x,y> = QQ[]
             sage: f = 4*x+6*y
-            sage: f.content()
-            1
+            sage: f.content(); f.content().parent()
+            2
+            Rational Field
 
         """
         from sage.rings.arith import gcd
         from sage.rings.all import ZZ
-
-        return gcd(self.coefficients(),integer=self.parent() is ZZ)
+        return gcd(self.coefficients())
 
     def is_generator(self):
         r"""

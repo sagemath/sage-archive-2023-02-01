@@ -137,4 +137,115 @@ class Fields(Category):
             return True
 
     class ElementMethods:
-        pass
+        # Fields are unique factorization domains, so, there is gcd and lcm
+        # Of course, in general gcd and lcm in a field are not very interesting.
+        # However, they should be implemented!
+        def gcd(self,other):
+            """
+            Greatest common divisor.
+
+            NOTE:
+
+            Since we are in a field and the greatest common divisor is
+            only determined up to a unit, it is correct to either return
+            zero or one. Note that fraction fields of unique factorization
+            domains provide a more sophisticated gcd.
+
+            EXAMPLES::
+
+                sage: GF(5)(1).gcd(GF(5)(1))
+                1
+                sage: GF(5)(1).gcd(GF(5)(0))
+                1
+                sage: GF(5)(0).gcd(GF(5)(0))
+                0
+
+            For fields of characteristic zero (i.e., containing the
+            integers as a sub-ring), evaluation in the integer ring is
+            attempted. This is for backwards compatibility::
+
+                sage: gcd(6.0,8); gcd(6.0,8).parent()
+                2
+                Integer Ring
+
+            If this fails, we resort to the default we see above::
+
+                sage: gcd(6.0*CC.0,8*CC.0); gcd(6.0*CC.0,8*CC.0).parent()
+                1.00000000000000
+                Complex Field with 53 bits of precision
+
+            AUTHOR:
+
+            - Simon King (2011-02): Trac ticket #10771
+
+            """
+            P = self.parent()
+            try:
+                other = P(other)
+            except (TypeError, ValueError):
+                raise ArithmeticError, "The second argument can not be interpreted in the parent of the first argument. Can't compute the gcd"
+            from sage.rings.integer_ring import ZZ
+            if ZZ.is_subring(P):
+                try:
+                    return ZZ(self).gcd(ZZ(other))
+                except TypeError:
+                    pass
+            # there is no custom gcd, so, we resort to something that always exists
+            # (that's new behaviour)
+            if self==0 and other==0:
+                return P.zero()
+            return P.one()
+
+        def lcm(self,other):
+            """
+            Least common multiple.
+
+            NOTE:
+
+            Since we are in a field and the least common multiple is
+            only determined up to a unit, it is correct to either return
+            zero or one. Note that fraction fields of unique factorization
+            domains provide a more sophisticated lcm.
+
+            EXAMPLES::
+
+                sage: GF(2)(1).lcm(GF(2)(0))
+                0
+                sage: GF(2)(1).lcm(GF(2)(1))
+                1
+
+            If the field contains the integer ring, it is first
+            attempted to compute the gcd there::
+
+                sage: lcm(15.0,12.0); lcm(15.0,12.0).parent()
+                60
+                Integer Ring
+
+            If this fails, we resort to the default we see above::
+
+                sage: lcm(6.0*CC.0,8*CC.0); lcm(6.0*CC.0,8*CC.0).parent()
+                1.00000000000000
+                Complex Field with 53 bits of precision
+                sage: lcm(15.2,12.0)
+                1.00000000000000
+
+            AUTHOR:
+
+            - Simon King (2011-02): Trac ticket #10771
+
+            """
+            P = self.parent()
+            try:
+                other = P(other)
+            except (TypeError, ValueError):
+                raise ArithmeticError, "The second argument can not be interpreted in the parent of the first argument. Can't compute the lcm"
+            from sage.rings.integer_ring import ZZ
+            if ZZ.is_subring(P):
+                try:
+                    return ZZ(self).lcm(ZZ(other))
+                except TypeError:
+                    pass
+            # there is no custom lcm, so, we resort to something that always exists
+            if self==0 or other==0:
+                return P.zero()
+            return P.one()

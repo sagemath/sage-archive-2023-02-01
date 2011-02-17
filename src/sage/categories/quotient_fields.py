@@ -52,6 +52,164 @@ class QuotientFields(Category):
         def denominator(self):
             pass
 
+        def gcd(self,other):
+            """
+            Greatest common divisor
+
+            NOTE:
+
+            In a field, the greatest common divisor is not very
+            informative, as it is only determined up to a unit. But in
+            the fraction field of an integral domain that provides
+            both gcd and lcm, it is possible to be a bit more specific
+            and define the gcd uniquely up to a unit of the base ring
+            (rather than in the fraction field).
+
+            AUTHOR:
+
+            - Simon King (2011-02): See trac ticket #10771
+
+            EXAMPLES::
+
+                sage: R.<x>=QQ[]
+                sage: p = (1+x)^3*(1+2*x^2)/(1-x^5)
+                sage: q = (1+x)^2*(1+3*x^2)/(1-x^4)
+                sage: factor(p)
+                (-2) * (x - 1)^-1 * (x + 1)^3 * (x^2 + 1/2) * (x^4 + x^3 + x^2 + x + 1)^-1
+                sage: factor(q)
+                (-3) * (x - 1)^-1 * (x + 1) * (x^2 + 1)^-1 * (x^2 + 1/3)
+                sage: gcd(p,q)
+                (x + 1)/(x^7 + x^5 - x^2 - 1)
+                sage: factor(gcd(p,q))
+                (x - 1)^-1 * (x + 1) * (x^2 + 1)^-1 * (x^4 + x^3 + x^2 + x + 1)^-1
+                sage: factor(gcd(p,1+x))
+                (x - 1)^-1 * (x + 1) * (x^4 + x^3 + x^2 + x + 1)^-1
+                sage: factor(gcd(1+x,q))
+                (x - 1)^-1 * (x + 1) * (x^2 + 1)^-1
+
+            TESTS:
+
+            The following tests that the fraction field returns a correct gcd
+            even if the base ring does not provide lcm and gcd::
+
+                sage: R = ZZ.extension(x^2+5,names='q'); R
+                Order in Number Field in q with defining polynomial x^2 + 5
+                sage: R.1
+                q
+                sage: gcd(R.1,R.1)
+                Traceback (most recent call last):
+                ...
+                TypeError: unable to find gcd of q and q
+                sage: (R.1/1).parent()
+                Number Field in q with defining polynomial x^2 + 5
+                sage: gcd(R.1/1,R.1)
+                1
+                sage: gcd(R.1/1,0)
+                1
+                sage: gcd(R.zero(),0)
+                0
+
+            """
+            try:
+                other = self.parent()(other)
+            except (TypeError, ValueError):
+                raise ArithmeticError, "The second argument can not be interpreted in the parent of the first argument. Can't compute the gcd"
+            try:
+                selfN = self.numerator()
+                selfD = self.denominator()
+                selfGCD = selfN.gcd(selfD)
+                otherN = other.numerator()
+                otherD = other.denominator()
+                otherGCD = otherN.gcd(otherD)
+                selfN = selfN // selfGCD
+                selfD = selfD // selfGCD
+                otherN = otherN // otherGCD
+                otherD = otherD // otherGCD
+                return selfN.gcd(otherN)/selfD.lcm(otherD)
+            except (AttributeError, NotImplementedError, TypeError, ValueError):
+                if self==0 and other==0:
+                    return self.parent().zero()
+                return self.parent().one()
+
+        def lcm(self,other):
+            """
+            Least common multiple
+
+            NOTE:
+
+            In a field, the least common multiple is not very
+            informative, as it is only determined up to a unit. But in
+            the fraction field of an integral domain that provides
+            both gcd and lcm, it is reasonable to be a bit more
+            specific and to define the least common multiple so that
+            it restricts to the usual least common multiple in the
+            base ring and is unique up to a unit of the base ring
+            (rather than up to a unit of the fraction field).
+
+            AUTHOR:
+
+            - Simon King (2011-02): See trac ticket #10771
+
+            EXAMPLES::
+
+                sage: R.<x>=QQ[]
+                sage: p = (1+x)^3*(1+2*x^2)/(1-x^5)
+                sage: q = (1+x)^2*(1+3*x^2)/(1-x^4)
+                sage: factor(p)
+                (-2) * (x - 1)^-1 * (x + 1)^3 * (x^2 + 1/2) * (x^4 + x^3 + x^2 + x + 1)^-1
+                sage: factor(q)
+                (-3) * (x - 1)^-1 * (x + 1) * (x^2 + 1)^-1 * (x^2 + 1/3)
+                sage: factor(lcm(p,q))
+                (x - 1)^-1 * (x + 1)^3 * (x^2 + 1/3) * (x^2 + 1/2)
+                sage: factor(lcm(p,1+x))
+                (x + 1)^3 * (x^2 + 1/2)
+                sage: factor(lcm(1+x,q))
+                (x + 1) * (x^2 + 1/3)
+
+            TESTS:
+
+            The following tests that the fraction field returns a correct lcm
+            even if the base ring does not provide lcm and gcd::
+
+                sage: R = ZZ.extension(x^2+5,names='q'); R
+                Order in Number Field in q with defining polynomial x^2 + 5
+                sage: R.1
+                q
+                sage: lcm(R.1,R.1)
+                Traceback (most recent call last):
+                ...
+                TypeError: unable to find lcm of q and q
+                sage: (R.1/1).parent()
+                Number Field in q with defining polynomial x^2 + 5
+                sage: lcm(R.1/1,R.1)
+                1
+                sage: lcm(R.1/1,0)
+                0
+                sage: lcm(R.zero(),0)
+                0
+
+            """
+            try:
+                other = self.parent()(other)
+            except (TypeError, ValueError):
+                raise ArithmeticError, "The second argument can not be interpreted in the parent of the first argument. Can't compute the lcm"
+            try:
+                selfN = self.numerator()
+                selfD = self.denominator()
+                selfGCD = selfN.gcd(selfD)
+                otherN = other.numerator()
+                otherD = other.denominator()
+                otherGCD = otherN.gcd(otherD)
+                selfN = selfN // selfGCD
+                selfD = selfD // selfGCD
+                otherN = otherN // otherGCD
+                otherD = otherD // otherGCD
+                return selfN.lcm(otherN)/selfD.gcd(otherD)
+            except (AttributeError, NotImplementedError, TypeError, ValueError):
+                if self==0 or other==0:
+                    return self.parent().zero()
+                return self.parent().one()
+
         def factor(self, *args, **kwds):
             """
             Return the factorization of ``self`` over the base ring.
@@ -214,7 +372,7 @@ class QuotientFields(Category):
             Returns the derivative of this rational function with respect to the
             variable ``var``.
 
-            Over an ring with a working GCD implementation, the derivative of a
+            Over an ring with a working gcd implementation, the derivative of a
             fraction `f/g`, supposed to be given in lowest terms, is computed as
             `(f'(g/d) - f(g'/d))/(g(g'/d))`, where `d` is a greatest common
             divisor of `f` and `g`.

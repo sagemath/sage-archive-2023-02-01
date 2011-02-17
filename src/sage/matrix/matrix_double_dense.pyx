@@ -2427,54 +2427,172 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         return USV
 
     def QR(self):
-        """
-        Return the Q,R factorization of a real matrix A.
-
-        The computed decomposition is cached and returned on subsequent calls.
+        r"""
+        Returns a factorization into a unitary matrix and an
+        upper-triangular matrix.
 
         INPUT:
 
-        - self -- a real matrix A
+        Any matrix over ``RDF`` or ``CDF``.
 
         OUTPUT:
 
-        - Q, R -- immutable matrices such that A = Q*R such that the columns of Q are
-          orthogonal (i.e., $Q^t Q = I$), and R is upper triangular.
+        `Q`, `R` -- a pair of matrices such that `A = QR` such that
+        the columns of Q are orthogonal (i.e., `Q^\ast Q = I`),
+        and R is upper triangular, where `Q^\ast` is the
+        conjugate-transpose in the complex case and the transpose
+        in the real case. If `A` is an `m\times n` matrix and
+        ``full=True`` then this method returns a pair of matrices:
+        `Q` is an `m\times m` unitary matrix (meaning its inverse
+        is its conjugate-transpose) and `R` is an `m\times n`
+        upper-triangular matrix.  For a matrix of full rank this
+        factorization is unique up to the sign of the diagonal entries.
 
-        EXAMPLES::
+        The resulting decomposition is cached.
 
-            sage: m = matrix(RDF,3,range(0, 12)); m
-            [ 0.0  1.0  2.0  3.0]
-            [ 4.0  5.0  6.0  7.0]
-            [ 8.0  9.0 10.0 11.0]
-            sage: Q,R = m.QR()
-            sage: Q*R
-            [ 0.0  1.0  2.0  3.0]
-            [ 4.0  5.0  6.0  7.0]
-            [ 8.0  9.0 10.0 11.0]
+        ALGORITHM:
 
-        Note that Q is an orthogonal matrix::
+        Calls "linalg.qr" from SciPy, which is in turn an
+        interface to LAPACK routines.
 
-            sage: (Q*Q.transpose()).zero_at(1e-10)
+        EXAMPLES:
+
+        Over the reals, the inverse of `Q` is its transpose,
+        since including a conjugate has no effect.  In the real
+        case, we say `Q` is orthogonal. ::
+
+            sage: A = matrix(RDF, [[-2, 0, -4, -1, -1],
+            ...                    [-2, 1, -6, -3, -1],
+            ...                    [1, 1, 7, 4, 5],
+            ...                    [3, 0, 8, 3, 3],
+            ...                    [-1, 1, -6, -6, 5]])
+            sage: Q, R = A.QR()
+            sage: Q.round(6).zero_at(10^-6)
+            [-0.458831  0.126051 -0.381212 -0.394574  -0.68744]
+            [-0.458831  -0.47269  0.051983  0.717294 -0.220963]
+            [ 0.229416 -0.661766 -0.661923 -0.180872  0.196411]
+            [ 0.688247 -0.189076  0.204468   0.09663 -0.662889]
+            [-0.229416 -0.535715  0.609939 -0.536422  0.024551]
+            sage: R.round(6).zero_at(10^-6)
+            [ 4.358899 -0.458831 13.076697  6.194225  2.982405]
+            [      0.0 -1.670172 -0.598741   1.29202 -6.207997]
+            [      0.0       0.0 -5.444402 -5.468661  0.682716]
+            [      0.0       0.0       0.0  1.027626   -3.6193]
+            [      0.0       0.0       0.0       0.0  0.024551]
+            sage: (Q*Q.transpose()).zero_at(10^-14)
+            [1.0 0.0 0.0 0.0 0.0]
+            [0.0 1.0 0.0 0.0 0.0]
+            [0.0 0.0 1.0 0.0 0.0]
+            [0.0 0.0 0.0 1.0 0.0]
+            [0.0 0.0 0.0 0.0 1.0]
+            sage: (Q*R - A).zero_at(10^-14)
+            [0.0 0.0 0.0 0.0 0.0]
+            [0.0 0.0 0.0 0.0 0.0]
+            [0.0 0.0 0.0 0.0 0.0]
+            [0.0 0.0 0.0 0.0 0.0]
+            [0.0 0.0 0.0 0.0 0.0]
+
+        Now over the complex numbers, demonstrating that the SciPy libraries
+        are (properly) using the Hermitian inner product, so that `Q` is
+        a unitary matrix (its inverse is the conjugate-transpose).  ::
+
+            sage: A = matrix(CDF, [[-8, 4*I + 1, -I + 2, 2*I + 1],
+            ...                    [1, -2*I - 1, -I + 3, -I + 1],
+            ...                    [I + 7, 2*I + 1, -2*I + 7, -I + 1],
+            ...                    [I + 2, 0, I + 12, -1]])
+            sage: Q, R = A.QR()
+            sage: Q.round(6).zero_at(10^-6)
+            [             -0.730297  0.207057 + 0.538347*I -0.246305 + 0.076446*I   0.238162 - 0.10366*I]
+            [              0.091287 -0.207057 - 0.377878*I -0.378656 + 0.195222*I  0.701244 - 0.364371*I]
+            [  0.63901 + 0.091287*I  0.170822 + 0.667758*I  0.034115 - 0.040902*I  0.314017 - 0.082519*I]
+            [ 0.182574 + 0.091287*I  -0.036235 + 0.07247*I -0.863228 - 0.063228*I -0.449969 - 0.011612*I]
+            sage: R.round(6).zero_at(10^-6)
+            [             10.954451            -1.917029*I   5.385938 - 2.19089*I  -0.273861 - 2.19089*I]
+            [                   0.0               4.829596 -0.869638 - 5.864879*I  0.993872 - 0.305409*I]
+            [                   0.0                    0.0             -12.001608  0.270953 - 0.442063*I]
+            [                   0.0                    0.0                    0.0               1.942964]
+            sage: (Q.conjugate().transpose()*Q).zero_at(10^-15)
+            [1.0 0.0 0.0 0.0]
+            [0.0 1.0 0.0 0.0]
+            [0.0 0.0 1.0 0.0]
+            [0.0 0.0 0.0 1.0]
+            sage: (Q*R - A).zero_at(10^-14)
+            [0.0 0.0 0.0 0.0]
+            [0.0 0.0 0.0 0.0]
+            [0.0 0.0 0.0 0.0]
+            [0.0 0.0 0.0 0.0]
+
+        An example of a rectangular matrix that is also rank-deficient.
+        If you run this example yourself, you may see a very small, nonzero
+        entries in the third row, in the third column, even though the exact
+        version of the matrix has rank 2.  The final two columns of ``Q`` span the left kernel of ``A`` and different platforms will compute different
+        bases so we do not exhibit the actual matrix.  ::
+
+            sage: Arat = matrix(QQ, [[2, -3, 3],
+            ...                      [-1, 1, -1],
+            ...                      [-1, 3, -3],
+            ...                      [-5, 1, -1]])
+            sage: Arat.rank()
+            2
+            sage: A = Arat.change_ring(CDF)
+            sage: Q, R = A.QR()
+            sage: R.round(6).zero_at(10^-6)
+            [-5.567764   2.69408  -2.69408]
+            [      0.0 -3.569585  3.569585]
+            [      0.0       0.0       0.0]
+            [      0.0       0.0       0.0]
+            sage: (Q.conjugate_transpose()*Q).zero_at(10^-14)
+            [1.0 0.0 0.0 0.0]
+            [0.0 1.0 0.0 0.0]
+            [0.0 0.0 1.0 0.0]
+            [0.0 0.0 0.0 1.0]
+
+        Results are cached, meaning they are immutable matrices.
+        Make a copy if you need to manipulate a result. ::
+
+            sage: A = random_matrix(CDF, 2, 2)
+            sage: Q, R = A.QR()
+            sage: Q.is_mutable()
+            False
+            sage: R.is_mutable()
+            False
+            sage: Q[0,0] = 0
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).
+            sage: Qcopy = copy(Q)
+            sage: Qcopy[0,0] = 679
+            sage: Qcopy[0,0]
+            679.0
+
+        TESTS:
+
+        Trivial cases return trivial results of the correct size,
+        and we check `Q` itself in one case, verifying a fix for
+        :trac:`10795`.  ::
+
+            sage: A = zero_matrix(RDF, 0, 10)
+            sage: Q, R = A.QR()
+            sage: Q.nrows(), Q.ncols()
+            (0, 0)
+            sage: R.nrows(), R.ncols()
+            (0, 10)
+            sage: A = zero_matrix(RDF, 3, 0)
+            sage: Q, R = A.QR()
+            sage: Q.nrows(), Q.ncols()
+            (3, 3)
+            sage: R.nrows(), R.ncols()
+            (3, 0)
+            sage: Q
             [1.0 0.0 0.0]
             [0.0 1.0 0.0]
             [0.0 0.0 1.0]
-
-        The result is immutable::
-
-            sage: Q[0,0] = 0
-            Traceback (most recent call last):
-                ...
-            ValueError: matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).
-            sage: R.is_immutable()
-            True
-
         """
         global scipy
         cdef Matrix_double_dense Q,R
 
         if self._nrows == 0 or self._ncols == 0:
-            return self.new_matrix(self._nrows, self._nrows), self.new_matrix()
+            return self.new_matrix(self._nrows, self._nrows, entries=1), self.new_matrix()
 
         QR = self.fetch('QR_factors')
         if QR is None:

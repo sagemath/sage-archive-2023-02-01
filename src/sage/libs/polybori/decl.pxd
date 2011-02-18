@@ -33,29 +33,35 @@ cdef extern from "pb_wrap.h":
             (void* mem, PBNavigator N)
     void PBNavigator_destruct "Destruct<CCuddNavigator>"(PBNavigator *mem)
 
-    ctypedef struct PBDD "struct CDDInterface<CTypes::dd_base>":
+    ctypedef struct PBRing "BoolePolyRing"
+
+    ctypedef struct PBDD "BooleSet":
         bint (* emptiness)()
         PBNavigator (* navigation)()
         PBDD (* subset0)(int idx)
         PBDD (* subset1)(int idx)
         PBDD (* unite)(PBDD rhs)
+        PBRing (* ring)()
 
     # non-allocating versions
     void PBDD_destruct "Destruct<CDDInterface<CTypes::dd_base> >"(PBDD *mem)
 
-    ctypedef struct PBBlockIter "CDynamicOrderBase::block_iterator":
+    ctypedef struct PBBlockIter "COrderingBase::block_iterator":
         int (* value "operator*")()
         PBBlockIter (* next "operator++")()
         int (* hash)()
 
     bint PBBlockIter_equals "operator=="(PBBlockIter lhs, PBBlockIter rhs)
 
-    ctypedef struct PBOrdering "CDynamicOrderBase":
+    ctypedef struct PBOrdering "COrderingBase":
         int (*getOrderCode)()
         int (*getBaseOrderCode)()
         PBBlockIter (*blockBegin)()
         PBBlockIter (*blockEnd)()
+        int (*lastBlockStart)()
 
+    ctypedef struct PBSet "BooleSet"
+    ctypedef struct PBPoly "BoolePolynomial"
 
     ctypedef struct PBRing "BoolePolyRing":
         int (* nVariables)()
@@ -63,9 +69,10 @@ cdef extern from "pb_wrap.h":
         void (*activate)()
         PBOrdering (*ordering)()
         int (*hash)()
-        void (*setVariableName) (int idx, std_string varname)
-        std_string (*getVariableName)(int idx)
+        void (*setVariableName) (int idx, char *varname)
+        char* (*getVariableName)(int idx)
         PBRing (*clone)()
+        PBPoly (*coerce)(PBPoly rhs)
 
     void pbenv_changeOrdering "BooleEnv::changeOrdering"(int c)
     int  pbenv_getOrderCode "BooleEnv::getOrderCode"()
@@ -89,6 +96,9 @@ cdef extern from "pb_wrap.h":
     PBVar* PBVar_construct_int "Construct_p<BooleVariable, int>" \
         (void *mem, int ind)
 
+    PBVar* PBVar_construct_int_ring "Construct_pp<BooleVariable, int, BoolePolyRing>" \
+        (void *mem, int ind, PBRing ring)
+
     PBVar* PBVar_construct_pbvar "Construct_p<BooleVariable, BooleVariable>" \
         (void *mem, PBVar v)
 
@@ -100,7 +110,6 @@ cdef extern from "pb_wrap.h":
     void PBMonomVarIter_destruct "Destruct<BooleMonomial::variable_iterator>" \
             (PBMonomVarIter *mem)
 
-    ctypedef struct PBSet "BooleSet"
     ctypedef struct PBMonom "BooleMonomial":
         bint (* reducibleBy)(PBMonom rhs)
         int (* deg)()
@@ -119,6 +128,7 @@ cdef extern from "pb_wrap.h":
         void (* idiv "operator/=")(PBMonom right)
         PBNavigator (* navigation)()
         PBMonom (* GCD)(PBMonom rhs)
+        PBRing (* ring)()
 
     object PBMonom_to_str "_to_PyString<BooleMonomial>"(PBMonom *p)
 
@@ -128,8 +138,7 @@ cdef extern from "pb_wrap.h":
             "Construct_p<BooleMonomial, BooleMonomial>" (void *mem, PBMonom m)
     PBMonom* PBMonom_construct_pbvar \
             "Construct_p<BooleMonomial, BooleVariable>" (void *mem, PBVar m)
-    PBMonom* PBMonom_construct_dd \
-            "Construct_p<BoolePolynomial, BooleMonomial::dd_type>" (void *mem, PBDD m)
+
     void PBMonom_destruct "Destruct<BooleMonomial>"(PBMonom *mem)
 
     ctypedef struct PBSetIter "BooleSet::const_iterator":
@@ -142,11 +151,10 @@ cdef extern from "pb_wrap.h":
     void PBSetIter_destruct "Destruct<BooleSet::const_iterator>"(PBSetIter *mem)
 
     ctypedef struct PBSet "BooleSet":
-        bint (* emptiness)()
         bint (* owns)(PBMonom val)
         int (* nNodes)()
         int (* nSupport)()
-        int (* length)()
+        int (* size)()
         int (* hash)()
         int (* stableHash)()
         PBNavigator (* navigation)()
@@ -174,10 +182,10 @@ cdef extern from "pb_wrap.h":
     PBSet* PBSet_construct_pbset \
             "Construct_p<BooleSet, BooleSet>" (void* mem, PBSet d)
     PBSet* PBSet_construct_pbnav \
-            "Construct_pp<BooleSet, CCuddNavigator, BooleRing>" \
+            "Construct_pp<BooleSet, CCuddNavigator, BoolePolyRing>" \
             (void* mem, PBNavigator d, PBRing r)
     PBSet* PBSet_construct_indsetset \
-            "Construct_pppp<BooleSet, int, CCuddNavigator, CCuddNavigator, BooleRing>" \
+            "Construct_pppp<BooleSet, int, CCuddNavigator, CCuddNavigator, BoolePolyRing>" \
             (void* mem, int ind, PBNavigator a, PBNavigator b, PBRing r)
     void PBSet_destruct "Destruct<BooleSet>"(PBSet *mem)
 
@@ -205,7 +213,7 @@ cdef extern from "pb_wrap.h":
         bint (* isConstant)()
         bint (* isSingleton)()
         bint (* hasConstantPart)()
-        bint (* reducibleBy)(PBPoly rhs)
+        bint (* firstReducibleBy)(PBPoly rhs)
         PBMonom (* lead)()
         PBMonom (* lexLead)()
         PBMonom (* firstTerm)()
@@ -363,6 +371,8 @@ cdef extern from "pb_wrap.h":
     PBPolyVector (* small_next_degree_spolys)(PBGBStrategy strat, double f, int n)
     void (* implications)(PBGBStrategy strat, int i)
 
+    PBPoly (* cheap_reductions)(PBRedStrategy strat, PBPoly p)
+
     PBPoly GB_get_ith_gen "get_ith_gen" (PBGBStrategy strat, int i)
 
     # non-allocating versions
@@ -433,7 +443,7 @@ cdef extern from "pb_wrap.h":
 
     PBPolyVector pb_easy_linear_factors "easy_linear_factors"(PBPoly p)
 
-    PBPoly pb_substitute_variables "substitute_variables<std::vector<BoolePolynomial>, BoolePolynomial>" (PBPolyVector vec, PBPoly poly)
+    PBPoly pb_substitute_variables "substitute_variables<BoolePolyRing, std::vector<BoolePolynomial>, BoolePolynomial>" (PBRing ring, PBPolyVector vec, PBPoly poly)
 
     void pb_append_block "BooleEnv::appendBlock" (int ind)
 

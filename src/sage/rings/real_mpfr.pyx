@@ -123,6 +123,8 @@ import  sage.rings.ring
 cimport sage.structure.element
 from sage.structure.element cimport RingElement, Element, ModuleElement
 import  sage.structure.element
+cdef bin_op
+from sage.structure.element import bin_op
 
 import sage.misc.misc as misc
 
@@ -3498,20 +3500,46 @@ cdef class RealNumber(sage.structure.element.RingElement):
             1.50000000000000^x
             sage: -2.3^(x+y^3+sin(x))
             -2.30000000000000^(y^3 + x + sin(x))
+
+        We see that trac ticket #10736 is fixed::
+
+            sage: 16^0.5
+            4.00000000000000
+            sage: int(16)^0.5
+            4.00000000000000
+            sage: (1/2)^2.0
+            0.250000000000000
+            sage: [n^(1.5) for n in range(10)]
+            [0.000000000000000, 1.00000000000000, 2.82842712474619, 5.19615242270663, 8.00000000000000, 11.1803398874989, 14.6969384566991, 18.5202591774521, 22.6274169979695, 27.0000000000000]
+            sage: int(-2)^(0.333333)
+            0.629961522017056 + 1.09112272417509*I
+            sage: int(0)^(1.0)
+            0.000000000000000
+            sage: int(0)^(0.0)
+            1.00000000000000
         """
-        cdef RealNumber x
-        if not PY_TYPE_CHECK(self, RealNumber):
-            return self.__pow__(float(exponent))
-        if not PY_TYPE_CHECK(exponent, RealNumber):
-            try:
-                x = self
-                exponent = x._parent(exponent)
-            except TypeError:
-                try:
-                    return exponent.parent()(self)**exponent
-                except AttributeError:
-                    raise TypeError
-        return self.__pow(exponent)
+        cdef RealNumber base, x
+        cdef mpfr_rnd_t rounding_mode
+        if PY_TYPE_CHECK(self, RealNumber):
+            base = <RealNumber>self
+            rounding_mode = (<RealField_class>base._parent).rnd
+            x = base._new()
+            _sig_on
+            if PY_TYPE_CHECK(exponent, int):
+                mpfr_pow_si(x.value, base.value, exponent, rounding_mode)
+            elif PY_TYPE_CHECK(exponent, Integer):
+                mpfr_pow_z(x.value, base.value, (<Integer>exponent).value, rounding_mode)
+            elif PY_TYPE_CHECK(exponent, RealNumber):
+                mpfr_pow(x.value, base.value, (<RealNumber>exponent).value, rounding_mode)
+            else:
+                _sig_off
+                return bin_op(self, exponent, operator.pow)
+            _sig_off
+            if mpfr_nan_p(x.value):
+                return base._complex_number_() ** exponent
+            return x
+        else:
+            return bin_op(self, exponent, operator.pow)
 
     def log(self, base='e'):
         """

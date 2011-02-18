@@ -9,6 +9,8 @@ AUTHORS:
 
 -  Robert Bradshaw: Move Polynomial_generic_dense to Cython
 
+-  Miguel Marco: Implemented resultant in the case where PARI fails
+
 
 TESTS::
 
@@ -4077,19 +4079,26 @@ cdef class Polynomial(CommutativeAlgebraElement):
             True
 
         Unfortunately Sage does not handle PARI's variable ordering
-        requirements gracefully, so the following fails::
+        requirements gracefully, so the following has to be done
+        through Singular::
 
             sage: R.<x, y> = QQ[]
             sage: S.<a> = R[]
             sage: f = x^2 + a; g = y^3 + a
-            sage: f.resultant(g)
-            Traceback (most recent call last):
-            ...
-            PariError: (5)
+            sage: h = f.resultant(g); h
+            y^3 - x^2
+            sage: h.parent() is R
+            True
+
         """
-        variable = self.parent().gen()._pari_()
+        variable = self.parent().gen()
+        if str(variable)<>'x' and self.parent()._mpoly_base_ring()<>self.parent().base_ring():
+          bigring = sage.rings.polynomial.multi_polynomial.PolynomialRing(self.parent()._mpoly_base_ring(),list(self.parent().variable_names_recursive()))
+          newself = bigring(self)
+          newother = bigring(other)
+          return self.parent().base_ring()(newself.resultant(newother,bigring(variable)))
         # The 0 flag tells PARI to use exact arithmetic
-        res = self._pari_().polresultant(other._pari_(), variable, 0)
+        res = self._pari_().polresultant(other._pari_(), variable._pari_(), 0)
         return self.parent().base_ring()(res)
 
     def discriminant(self):
@@ -4162,15 +4171,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
             True
 
         Unfortunately Sage does not handle PARI's variable ordering
-        requirements gracefully, so the following fails::
+        requirements gracefully, so the following has to be done
+        through Singular::
 
             sage: R.<x, y> = QQ[]
             sage: S.<a> = R[]
             sage: f = x^2 + a
             sage: f.discriminant()
-            Traceback (most recent call last):
-            ...
-            PariError: (5)
+            1
         """
         n = self.degree()
         d = self.derivative()

@@ -223,6 +223,14 @@ class WordDatatype_callable(WordDatatype):
             Traceback (most recent call last):
             ...
             ValueError: for infinite words, start and stop values cannot be negative
+
+        Out of range index (#8673)::
+
+            sage: w = Word(lambda n:n^2, length=23)
+            sage: w[100]
+            Traceback (most recent call last):
+            ...
+            IndexError: word index out of range
         """
         if isinstance(key, slice):
             # Infinite words
@@ -264,6 +272,8 @@ class WordDatatype_callable(WordDatatype):
                     raise IndexError, "cannot use a negative index with an infinite word"
                 else:
                     key = self._len + key
+            elif key >= self._len:
+                raise IndexError, "word index out of range"
             return self._func(key)
 
     def __reduce__(self):

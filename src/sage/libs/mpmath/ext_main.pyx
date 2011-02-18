@@ -1306,6 +1306,7 @@ cdef class mpnumber:
     def __sub__(self, other): return binop(OP_SUB, self, other, global_opts)
     def __mul__(self, other): return binop(OP_MUL, self, other, global_opts)
     def __div__(self, other): return binop(OP_DIV, self, other, global_opts)
+    def __truediv__(self, other): return binop(OP_DIV, self, other, global_opts)
     def __mod__(self, other): return binop(OP_MOD, self, other, global_opts)
     def __pow__(self, other, mod):
         if mod is not None:

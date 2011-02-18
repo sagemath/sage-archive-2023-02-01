@@ -1,6 +1,6 @@
---- ../src/polybori/pyroot/polybori/PyPolyBoRi.py	2009-10-28 10:47:25.156004052 +0000
-+++ PyPolyBoRi.py	2009-08-20 13:44:41.000000000 +0100
-@@ -1,130 +1,22 @@
+--- src/polybori-0.7/pyroot/polybori/PyPolyBoRi.py	2011-02-15 23:01:45.000000000 +0000
++++ patches/PyPolyBoRi.py	2011-02-18 10:27:15.224324004 +0000
+@@ -1,146 +1,22 @@
 -from sys import modules
 -from itertools import chain
 -import re
@@ -27,6 +27,13 @@
 -
 -monomial_old_init=Monomial.__init__
 -def monomial_new_init(self,arg=None):
+-    """
+-    Constructor of the class Monomial
+-    Constructs a Monomial from
+-      - Monomial
+-      - Variable
+-      - sequence of variables
+-    """
 -    if arg==None:
 -        monomial_old_init(self)
 -    else:
@@ -39,8 +46,14 @@
 -                prototype*=x
 -            monomial_old_init(self,prototype)
 -Monomial.__init__=monomial_new_init
+-
 -booleset_old_init=BooleSet.__init__
 -def booleset_new_init(self,arg=None, second=None):
+-    """
+-    Constructor of the class BooleSet (constructs a BooleSet from a CCuddNavigator
+-       arg    : of type polybori.dynamic.PyPolyBoRi.CCuddNavigator
+-       second : of type polybori.dynamic.PyPolyBoRi.BooleRing 
+-    """
 -    if arg==None:
 -        booleset_old_init(self)
 -    elif second != None:
@@ -52,7 +65,7 @@
 -            s=set()
 -            v=BoolePolynomialVector()
 -            for i in list(arg):
--                s.add(Monomial(i))
+-		s.add(Monomial(i))
 -            for i in s:
 -                v.append(i)
 -            p=add_up_polynomials(v)
@@ -125,13 +138,15 @@
 -
 -_add_up_polynomials=add_up_polynomials
 -def add_up_polynomials(polys):
+-    """
+-    Adds up the polynomials in polys (which should be a BoolePolynomialVector or a sequence of ???
+-    """
 -    if not isinstance(polys, BoolePolynomialVector):
 -        vec = BoolePolynomialVector
 -        for p in polys:
 -            vec.append(p)
 -        polys=vec
 -    return _add_up_polynomials(polys)
-\ No newline at end of file
 +from sage import all
 +from sage.rings.polynomial.pbori import *
 +

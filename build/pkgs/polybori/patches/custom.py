@@ -9,7 +9,9 @@ CXXFLAGS=CCFLAGS+["-ftemplate-depth-100"]
 # FIXME: Should we include LDFLAGS here? (see above)
 if not globals().has_key("LINKFLAGS"): LINKFLAGS=[] # s.t. we can *append* below
 
-if sys.platform=='sunos':
+print "Platform: ", sys.platform
+
+if 'sunos' in sys.platform:
   try:
     SHLINKFLAGS = os.environ['SAGESOFLAGS']
   except:

@@ -37,6 +37,9 @@ reference implementation for Gröbner basis computation.
 
 == Releases ==
 
+=== polybori-0.7 (Martin Albrecht, February 18th, 2011) ===
+ * New upstream release.
+
 === polybori-0.6.4.p5 (Alexander Dreyer, August 20th, 2010) ===
  * Backporting a fix from upcoming PolyBoRi 0.7 which allows linking
    PolyBoRi as dynmaic library (#9768).

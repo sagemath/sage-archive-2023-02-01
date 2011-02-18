@@ -6,19 +6,9 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-PBDIR=polybori-0.6.4
+PBDIR=polybori-0.7
 WORKDIR=${PWD}/src
 SCONS=scons
-
-# For some strange reason the installed boost in $SAGE_LOCAL causes
-# make install failures, so copy it over.
-#mkdir src/boost_1_34_1.cropped
-#cp -r $SAGE_LOCAL/include/boost src/boost_1_34_1.cropped
-
-#BOOSTDIR=boost_1_34_1.cropped	# obsolete, only used by spkg-install
-#BOOSTINCDIR=${WORKDIR}/${BOOSTDIR}
-#BOOSTINCDIR=${SAGE_LOCAL}/include/boost # we now only use that; Boost is a standard spkg
-#export BOOSTINCDIR # used by scons - that's also obsolete
 
 patch()
 {
@@ -30,11 +20,7 @@ patch()
 
     cp patches/SConstruct            src/${PBDIR}/SConstruct
     cp patches/PyPolyBoRi.py         src/${PBDIR}/pyroot/polybori
-    cp patches/pbori_routines_misc.h src/${PBDIR}/polybori/include/
-    cp patches/ll.py                 src/${PBDIR}/pyroot/polybori
-    cp patches/nf.cc                 src/${PBDIR}/groebner/src/
-    cp patches/BooleEnv.h            src/${PBDIR}/polybori/include/
-    cp patches/BooleEnv.cc           src/${PBDIR}/polybori/src/
+
 }
 
 

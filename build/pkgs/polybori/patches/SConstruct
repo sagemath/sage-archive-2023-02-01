@@ -9,8 +9,8 @@ opts = Variables('custom.py')
 
 # Some hard-coded settings
 pboriname = 'PolyBoRi'
-pboriversion = "0.6"
-pborirelease = "4"
+pboriversion = "0.7"
+pborirelease = "0"
 
 libraryversion = "0.0.0"
 debname = "polybori-" + pboriversion
@@ -64,9 +64,11 @@ def shell_output(*args):
 
 pyroot="pyroot/"
 ipbroot = 'ipbori'
+guiroot = 'gui'
 cudd_name = 'pboriCudd'
 
-[PyRootPath, IPBPath] = [PathJoiner(fdir) for fdir in [pyroot, ipbroot] ]
+[PyRootPath, IPBPath, GUIPath] = [PathJoiner(fdir) for fdir in [pyroot, ipbroot,
+                                                                guiroot] ]
 
 
 try:
@@ -104,6 +106,7 @@ defaultenv = Environment()
 if defaultenv['PLATFORM'] == "darwin":
     defaultenv['SHCCFLAGS'] += ["-fvisibility=hidden"]
 
+
 # See also: http://trac.sagemath.org/sage_trac/ticket/9872 and #6437
 def detect_linker(env):
     import re
@@ -120,7 +123,6 @@ def sonameprefix(env):
         return "-Wl,-dylib_install_name -Wl,"
 
     elif (env['PLATFORM'] == "sunos") and (linker == 'sunos'):
-        print "Sun linker detected!"
         return '-Wl,-h'
 
     else:
@@ -173,7 +175,7 @@ if os.environ['SAGE64'] == "yes":
          opts.Add('LINKFLAGS', "Linker flags", ['-m64'], converter = Split)
 #End modifications
 
-#opts.Add('LINKFLAGS', "Linker flags", ['-s'], converter = Split)
+opts.Add('LINKFLAGS', "Linker flags", defaultenv['LINKFLAGS'])# + ['-s'])
 opts.Add('LIBS', 'custom libraries needed for build', [], converter = Split)
 
 opts.Add('PREFIX', 'installation prefix directory', '/usr/local')
@@ -197,8 +199,6 @@ opts.Add(BoolVariable('HAVE_DOXYGEN',
                     'Generate doxygen-based documentation, if available', True))
 opts.Add(BoolVariable('HAVE_PYTHON_EXTENSION',
                     'Build python extension, if possible', True))
-opts.Add(BoolVariable('BOOST_WORKS',
-                    'Skip check for Boost libraries', False))
 
 opts.Add('BOOST_LIBRARY',
          'Name of Boost library to link with', 'boost_python')
@@ -233,6 +233,8 @@ opts.Add('SHLIBVERSIONSUFFIX',
 opts.Add(BoolVariable('FORCE_HASH_MAP', "Force the use of gcc's deprecated " +
 "hash_map extension, even if unordered_map is available (avoiding of buggy " +
 "unordered_map)", False))
+
+opts.Add('RPATH', "rpath setting", [], converter = Split)
 
 pbori_cache_macros=["PBORI_UNIQUE_SLOTS","PBORI_CACHE_SLOTS","PBORI_MAX_MEMORY"]
 for m in pbori_cache_macros:
@@ -272,7 +274,6 @@ if 'dump' in COMMAND_LINE_TARGETS:
 # Extract some option values
 HAVE_DOXYGEN = env['HAVE_DOXYGEN'] and ("doxygen" in tools)
 HAVE_PYTHON_EXTENSION = env['HAVE_PYTHON_EXTENSION']
-BOOST_WORKS = env['BOOST_WORKS']
 
 SINGULAR_HOME = env['SINGULAR_HOME']
 USERLIBS = env['LIBS']
@@ -357,7 +358,7 @@ external_m4ri = False
 if not env.GetOption('clean'):
     conf = Configure(env)
     if conf.CheckCHeader("gd.h") and conf.CheckLib("gd"):
-        env.Append(LIBS=["gd", "png12", "z"])
+        env.Append(LIBS=["gd","png12","z"])
         env.Append(CPPDEFINES=["HAVE_GD"])
 
     if env['FORCE_HASH_MAP']:
@@ -389,10 +390,21 @@ if not env.GetOption('clean'):
 
 
     if HAVE_PYTHON_EXTENSION:
-        if not (BOOST_WORKS or
-                conf.CheckCXXHeader(path.join('boost', 'python.hpp')) ):
+        if not (conf.CheckLib(pyconf.libname)):
+            print "Python library not available (needed for python extension)!"
+            Exit(1)
+
+        if not (conf.CheckCXXHeader(path.join('boost', 'python.hpp'))):
+            print "Developer's version of boost/python not available ",
+            print "(needed for python extension)!"
+            Exit(1)
+
+        if not ( conf.CheckLibWithHeader([env['BOOST_LIBRARY']],
+                 path.join('boost', 'python.hpp'), 'c++') ):
             HAVE_PYTHON_EXTENSION = False
-            print 'Warning Boost/python must be installed for python support'
+            print "Warning Boost/Python library (", env['BOOST_LIBRARY'],
+            print ") not available (needed for python extension)!"
+            Exit(1)
 
     have_l2h = env['HAVE_L2H'] and env.Detect('latex2html')
 
@@ -410,7 +422,7 @@ if not env.GetOption('clean'):
                 print "Tutorial will not be installed"
     external_m4ri = conf.CheckLib('m4ri')
     if conf.CheckCHeader("gd.h") and conf.CheckLib("gd"):
-        env.Append(LIBS=["gd", "png12", "z"])
+        env.Append(LIBS=["gd","png12","z"])
         env.Append(CPPDEFINES=["HAVE_GD"])
     if external_m4ri:
        env['LIBS'] += ['m4ri']
@@ -545,7 +557,6 @@ if env['SHLIBVERSIONING']:
 if env['PLATFORM']=="darwin":
     slib=env.LoadableModule
 
-
 libCuddShared = slib(CuddPath(cudd_name), list(shared_resources))
 
 
@@ -554,9 +565,9 @@ libCuddShared = slib(CuddPath(cudd_name), list(shared_resources))
 ######################################################################
 
 pb_src=Split("""BoolePolyRing.cc BooleEnv.cc BoolePolynomial.cc BooleVariable.cc
-    CErrorInfo.cc PBoRiError.cc CCuddFirstIter.cc CCuddNavigator.cc
-    BooleMonomial.cc BooleSet.cc LexOrder.cc CCuddLastIter.cc
-    CCuddGetNode.cc BooleExponent.cc DegLexOrder.cc DegRevLexAscOrder.cc
+    CCheckedIdx.cc CErrorInfo.cc PBoRiError.cc CCuddFirstIter.cc
+    CCuddNavigator.cc BooleMonomial.cc BooleSet.cc LexOrder.cc CCuddLastIter.cc
+    BooleExponent.cc DegLexOrder.cc DegRevLexAscOrder.cc
     pbori_routines.cc BlockDegLexOrder.cc BlockDegRevLexAscOrder.cc""")
 pb_src=[PBPath('src', source) for source in pb_src]
 libpb=env.StaticLibrary(PBPath('polybori'), pb_src)
@@ -599,11 +610,13 @@ libgbShared = slib(GBPath('groebner'), list(shared_resources))
 
 tests_pb=["errorcodes","testring", "boolevars", "boolepoly", "cuddinterface",
   "leadterm", "spoly", "zddnavi", "idxtypes", "monomial", "stringlit",
-  "booleset", "blocknavi", "termaccu" ]
-tests_gb=["strategy_initialization"]
+  "booleset", "blocknavi", "termaccu"]
+tests_gb=["strategy_initialization", "minimalCPP"]
 CPPPATH=env['CPPPATH']+[GBPath('src')]
 #print env['CCFLAGS']
 #print env['CXXFLAGS']
+
+
 for t in tests_pb:
     env.Program(TestsPath(t),
         [TestsPath('src', t + ".cc"),  libpb] + libCudd,
@@ -614,6 +627,32 @@ for t in tests_gb:
         [TestsPath('src', t + ".cc"), libpb, gb]+ libCudd,
         CPPPATH=CPPPATH)
 
+for t in ['booleenv_test']:
+    env.Program(TestsPath(t),
+                [TestsPath('src', t + ".cc"), TestsPath('src', t + "_static.cc"), libpb]+ libCudd,
+                CPPPATH=CPPPATH)
+
+testclasses = Split("""BooleEnv BooleSet BooleConstant BoolePolyRing
+  BooleExponent BooleVariable BooleMonomial BoolePolynomial PBoRiError CCuddDDFacade""")
+testfiles = [TestsPath('src', file + "Test.cc") for file in
+             testclasses] + [TestsPath('src', "unittests.cc")]
+
+env.Program(TestsPath("unittests"),
+            testfiles + [libpb, gb] + libCudd,
+            CPPPATH=CPPPATH, LIBS = env['LIBS'] + ["boost_unit_test_framework"],
+            CPPDEFINES = env['CPPDEFINES'] +
+            ["BOOST_TEST_DYN_LINK"] )
+
+testclassesorderings = Split("""DegRevLexAscOrder DegLexOrder
+BlockDegRevLexAscOrder BlockDegLexOrder  LexOrder""")
+testfilesorderings = [TestsPath('src', file + "Test.cc") for file in
+             testclassesorderings] + [TestsPath('src', "unittests_orderings.cc")]
+
+env.Program(TestsPath("unittests_orderings"),
+            testfilesorderings + [libpb, gb] + libCudd,
+            CPPPATH=CPPPATH, LIBS = env['LIBS'] + ["boost_unit_test_framework"],
+            CPPDEFINES = env['CPPDEFINES'] +
+            ["BOOST_TEST_DYN_LINK"] )
 
 LIBS = env['LIBS']+[env['BOOST_LIBRARY']]+USERLIBS
 
@@ -750,6 +789,12 @@ if HAVE_SINGULAR_EXTENSION:
     SING_ARCH=SING_ARCH.replace("\n","")
     SING_INCLUDES=[SINGULAR_HOME+"/"+SING_ARCH+"/include",SINGULAR_HOME+"/kernel",SINGULAR_HOME+"/Singular"]
 
+    sing_pb_if = env.SharedLibrary('Singular/polybori_interface',
+                                   ["Singular/pb_if.cc"],
+                                   SHLIBPREFIX="", LDMODULESUFFIX=".so",
+                                   LIBS=SINGULAR_LIBS, CPPPATH = SING_INCLUDES + CPPPATH)
+    DefaultBuild(sing_pb_if)
+
     wrapper_files=["Singular/" + f  for f in ["pb.cc"]]
     if env['PLATFORM']=="darwin":
         singpb=env.LoadableModule('Singular/polybori_module', wrapper_files,
@@ -777,7 +822,7 @@ env.Append(DISTTAR_EXCLUDEEXTS = Split(""".o .os .so .a .dll .cache .pyc
 if distribute or rpm_generation or deb_generation:
     allsrcs = Split("SConstruct README LICENSE ChangeLog disttar.py doxygen.py")
     for dirname in Split("""groebner ipbori M4RI polybori
-    PyPolyBoRi pyroot Singular pkgs"""):
+    PyPolyBoRi pyroot Singular pkgs gui"""):
         allsrcs.append(env.Dir(dirname))
 
     # Cudd is not distributed completely (unused and unfree things removed)
@@ -800,9 +845,11 @@ if distribute or rpm_generation or deb_generation:
 
     # doc is not distributed completely
     allsrcs += [ DocPath(dsrc) for dsrc in Split("""doxygen.conf index.html.in
-    tutorial/tutorial.tex tutorial/tutorial_content.tex python/genpythondoc.py
+    tutorial/tutorial.tex tutorial/tutorial_content.tex tutorial/PolyGui.png
+    tutorial/PolyGui-Options.png python/genpythondoc.py
     man/ipbori.1 """) ]
     allsrcs.append(env.Dir(DocPath('images')))
+
 
 if distribute:
     presrcdistri = env.DistTar(debname, allsrcs)
@@ -1199,9 +1246,20 @@ if 'install' in COMMAND_LINE_TARGETS:
         installedfile = InstPyPath(relpath(pyroot, instfile.path))
         pyfiles += FinalizeExecs(env.InstallAs(installedfile, instfile))
 
+    env['GUIPYPREFIX'] = relpath(expand_repeated(InstPath(GUIPath()), env),
+                                 env['PYINSTALLPREFIX'])
 
     for instfile in [ IPBPath('ipbori') ]:
         FinalizeExecs(env.InstallAs(InstPath(instfile), instfile))
+
+    for instfile in [ GUIPath('PolyGUI') ]:
+        FinalizeExecs(env.SubstInstallAs(InstPath(instfile), instfile))
+
+    for instfile in [GUIPath('cnf2ideal.py')]:
+        pyfiles += FinalizeNonExecs(env.InstallAs(InstPath(instfile), instfile))
+
+    for instfile in [ GUIPath('polybori.png') ]:
+        FinalizeNonExecs(env.InstallAs(InstPath(instfile), instfile))
 
     # Copy c++ documentation
     if HAVE_DOXYGEN:
@@ -1257,8 +1315,14 @@ if 'install' in COMMAND_LINE_TARGETS:
     # Symlink from executable into bin directory
     ipboribin = env.SymLink(InstExecPath('ipbori'),
                             InstPath(IPBPath('ipbori')))
+
+    guibin = env.SymLink(InstExecPath('PolyGUI'),
+                         InstPath(GUIPath('PolyGUI')))
+
     env.AlwaysBuild(ipboribin)
     env.Alias('install', ipboribin)
+    env.AlwaysBuild(guibin)
+    env.Alias('install', guibin)
 
     # we dump the flags for reuse by Sage
     if not path.exists(InstPath()):

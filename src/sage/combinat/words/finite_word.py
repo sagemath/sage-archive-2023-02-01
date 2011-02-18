@@ -2281,7 +2281,7 @@ exponent %s: the length of the word (%s) times the exponent \
         Returns True if self has the period ``p``,
         False otherwise.
 
-        NOTE:
+        .. NOTE::
 
         By convention, integers greater than the length
         of self are periods of self.
@@ -2347,10 +2347,11 @@ exponent %s: the length of the word (%s) times the exponent \
             []
         """
         n = len(self)
-        periods = filter(self.has_period, range(1, n))
         if divide_length:
-            periods = filter(lambda p: n % p == 0, periods)
-        return periods
+            possible = (i for i in xrange(1,n) if n % i == 0)
+        else:
+            possible = xrange(1, n)
+        return filter(self.has_period, possible)
 
     def is_subword_of(self, other):
         r"""

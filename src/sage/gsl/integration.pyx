@@ -174,6 +174,23 @@ def numerical_integral(func, a, b=None,
        -- Josh Kantor
        -- William Stein
        -- Robert Bradshaw
+
+   TESTS::
+
+   Make sure that constant Expressions, not merely uncallable arguments,
+   can be integrated (trac #10088), at least if we can coerce them
+   to float::
+
+       sage: f, g = x, x-1
+       sage: numerical_integral(f-g, -2, 2)
+       (4.0, 0.0)
+       sage: numerical_integral(SR(2.5), 5, 20)
+       (37.5, 0.0)
+       sage: numerical_integral(SR(1+3j), 2, 3)
+       Traceback (most recent call last):
+       ...
+       TypeError: unable to simplify to float approximation
+
    """
 
    import inspect
@@ -202,6 +219,9 @@ def numerical_integral(func, a, b=None,
                 vars = func.arguments()
             else:
                 vars = func.variables()
+            if len(vars) == 0:
+               # handle the constant case
+               return (((<double>b - <double>a) * <double>func), 0.0)
             if len(vars) != 1:
                 if len(params) + 1 != len(vars):
                     raise ValueError, "Integrand has wrong number of parameters"

@@ -878,6 +878,218 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
                 raise ValueError("matrix norm integer values of 'p' must be -2, -1, 1 or 2, not %s" % p)
         return sage.rings.real_double.RDF(numpy.linalg.norm(self._matrix_numpy, ord=p))
 
+    def singular_values(self, eps=None):
+        r"""
+        Returns a sorted list of the singular values of the matrix.
+
+        INPUT:
+
+        - ``eps`` - default: ``None`` - the largest number which
+          will be considered to be zero.  May also be set to the
+          string 'auto'.  See the discussion below.
+
+        OUTPUT:
+
+        A sorted list of the singular values of the matrix, which are the
+        diagonal entries of the "S" matrix in the SVD decomposition.  As such,
+        the values are real and are returned as elements of ``RDF``.  The
+        list is sorted with larger values first, and since theory predicts
+        these values are always positive, for a rank-deficient matrix the
+        list should end in zeros (but in practice may not).  The length of
+        the list is the minimum of the row count and column count for the
+        matrix.
+
+        The number of non-zero singular values will be the rank of the
+        matrix.  However, as a numerical matrix, it is impossible to
+        control the difference between zero entries and very small
+        non-zero entries.  As an informed consumer it is up to you
+        to use the output responsibly.  We will do our best, and give
+        you the tools to work with the output, but we cannot
+        give you a guarantee.
+
+        With ``eps`` set to ``None`` you will get the raw singular
+        values and can manage them as you see fit.  You may also set
+        ``eps`` to any positive floating point value you wish.  If you
+        set ``eps`` to 'auto' this routine will compute a reasonable
+        cutoff value, based on the size of the matrix, the largest
+        singular value and the smallest nonzero value representable
+        by the 53-bit precision values used.  See the discussion
+        at page 268 of [WATKINS]_.
+
+        See the examples for a way to use the "verbose" facility
+        to easily watch the zero cutoffs in action.
+
+        ALGORITHM:
+
+        The singular values come from the SVD decomposition
+        computed by SciPy/NumPy.
+
+        EXAMPLES:
+
+        Singular values close to zero have trailing digits that may vary
+        on different hardware.  For exact matrices, the number of non-zero
+        singular values will equal the rank of the matrix.  So for some of
+        the doctests we round the small singular values that ideally would
+        be zero, to control the variability across hardware.
+
+        This matrix has a determinant of one.  A chain of two or
+        three theorems implies the product of the singular values
+        must also be one.  ::
+
+            sage: A = matrix(QQ, [[ 1,  0,  0,  0,  0,  1,  3],
+            ...                   [-2,  1,  1, -2,  0, -4,  0],
+            ...                   [ 1,  0,  1, -4, -6, -3,  7],
+            ...                   [-2,  2,  1,  1,  7,  1, -1],
+            ...                   [-1,  0, -1,  5,  8,  4, -6],
+            ...                   [ 4, -2, -2,  1, -3,  0,  8],
+            ...                   [-2,  1,  0,  2,  7,  3, -4]])
+            sage: A.determinant()
+            1
+            sage: B = A.change_ring(RDF)
+            sage: sv = B.singular_values(); sv
+            [20.5239806589, 8.48683702854, 5.86168134845, 2.44291658993,
+              0.583197014472, 0.269332872866, 0.00255244880761]
+            sage: prod(sv)
+            1.0
+
+        An exact matrix that is obviously not of full rank, and then
+        a computation of the singular values after conversion
+        to an approximate matrix. ::
+
+            sage: A = matrix(QQ, [[1/3, 2/3, 11/3],
+            ...                   [2/3, 1/3,  7/3],
+            ...                   [2/3, 5/3, 27/3]])
+            sage: A.rank()
+            2
+            sage: B = A.change_ring(CDF)
+            sage: sv = B.singular_values()
+            sage: sv[0:2]
+            [10.1973039839, 0.487045871772]
+            sage: sv[2:3]
+            [2.92724029018e-16]
+
+        A matrix of rank 3 over the complex numbers.  ::
+
+            sage: A = matrix(CDF, [[46*I - 28, -47*I - 50, 21*I + 51, -62*I - 782, 13*I + 22],
+            ...                    [35*I - 20, -32*I - 46, 18*I + 43, -57*I - 670, 7*I + 3],
+            ...                    [22*I - 13, -23*I - 23, 9*I + 24, -26*I - 347, 7*I + 13],
+            ...                    [-44*I + 23, 41*I + 57, -19*I - 54, 60*I + 757, -11*I - 9],
+            ...                    [30*I - 18, -30*I - 34, 14*I + 34, -42*I - 522, 8*I + 12]])
+            sage: sv = A.singular_values()
+            sage: sv[0:3]
+            [1440.733666, 18.4044034134, 6.83970779714]
+            sage: (10^-15 < sv[3]) and (sv[3] < 10^-13)
+            True
+            sage: (10^-16 < sv[4]) and (sv[4] < 10^-14)
+            True
+
+        A full-rank matrix that is ill-conditioned.  We use this to
+        illustrate ways of using the various possibilities for ``eps``,
+        including one that is ill-advised. Notice that the automatically
+        computed cutoff gets this (difficult) example slightly wrong.
+        This illustrates the impossibility of any automated process always
+        getting this right.  Use with caution and judgement.  ::
+
+            sage: entries = [1/(i+j+1) for i in range(12) for j in range(12)]
+            sage: B = matrix(QQ, 12, 12, entries)
+            sage: B.rank()
+            12
+            sage: A = B.change_ring(RDF)
+            sage: round(A.condition(), 12)
+            1.72371181602e+16
+
+            sage: sv = A.singular_values(eps=None)
+            sage: [round(sv[i],15) for i in range(12)]
+            [1.79537205956, 0.380275245955, 0.0447385487522, 0.00372231223789,
+             0.000233089089022, 1.1163357483e-05, 4.08237611e-07,
+             1.1228611e-08, 2.25196e-10, 3.111e-12, 2.6e-14, 0.0]
+            sage: (10^-17 < sv[11]) and (sv[11] < 10^-15)
+            True
+
+            sage: sv = A.singular_values(eps='auto')
+            sage: [round(sv[i],15) for i in range(12)]
+            [1.79537205956, 0.380275245955, 0.0447385487522, 0.00372231223789,
+             0.000233089089022, 1.1163357483e-05, 4.08237611e-07,
+             1.1228611e-08, 2.25196e-10, 3.111e-12, 2.6e-14, 0.0]
+            sage: sv[11] == 0.0
+            True
+
+            sage: sv = A.singular_values(eps=1e-4)
+            sage: [round(sv[i],15) for i in range(12)]
+            [1.79537205956, 0.380275245955, 0.0447385487522, 0.00372231223789,
+             0.000233089089022, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+            sage: all([sv[i] == 0.0 for i in range(5, 12)])
+            True
+
+        With Sage's "verbose" facility, you can compactly see the cutoff
+        at work.  In any application of this routine, or those that build upon
+        it, it would be a good idea to conduct this exercise on samples.
+        We also test here that all the  values are returned in `RDF` since
+        singular values are always real. ::
+
+            sage: A = matrix(CDF, 4, range(16))
+            sage: set_verbose(1)
+            sage: sv = A.singular_values(eps='auto'); sv
+            verbose 1 (<module>) singular values, smallest-non-zero:cutoff:largest-zero, 2.2766...:6.2421...e-14:1.4160...e-15
+            [35.139963659, 2.27661020871, 0.0, 0.0]
+            sage: set_verbose(0)
+
+            sage: all([s in RDF for s in sv])
+            True
+
+        TESTS:
+
+        Bogus values of the ``eps`` keyword will be caught.  ::
+
+            sage: A.singular_values(eps='junk')
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid literal for float(): junk
+
+        REFERENCES:
+
+        .. [WATKINS] Watkins, David S. Fundamentals of Matrix Computations,
+           Third Edition.  Wiley, Hoboken, New Jersey, 2010.
+
+        AUTHOR:
+
+        - Rob Beezer - (2011-02-18)
+        """
+        from sage.misc.misc import verbose
+        from sage.rings.real_double import RDF
+        global scipy
+        # get SVD decomposition, which is a cached quantity
+        _, S, _ = self.SVD()
+        diag = min(self._nrows, self._ncols)
+        sv = [RDF(S[i,i]) for i in range(diag)]
+        # no cutoff, send raw data back
+        if eps == None:
+            verbose("singular values, no zero cutoff specified", level=1)
+            return sv
+        # set cutoff as RDF element
+        if eps == 'auto':
+            if scipy is None: import scipy
+            eps = 2*max(self._nrows, self._ncols)*scipy.finfo(float).eps*sv[0]
+        eps = RDF(eps)
+        # locate non-zero entries
+        rank = 0
+        while rank < diag and sv[rank] > eps:
+            rank = rank + 1
+        # capture info for watching zero cutoff behavior at verbose level 1
+        if rank == 0:
+            small_nonzero = None
+        else:
+            small_nonzero = sv[rank-1]
+        if rank < diag:
+            large_zero = sv[rank]
+        else:
+            large_zero = None
+        # convert small values to zero, then done
+        for i in range(rank, diag):
+            sv[i] = RDF(0)
+        verbose("singular values, smallest-non-zero:cutoff:largest-zero, %s:%s:%s" % (small_nonzero, eps, large_zero), level=1)
+        return sv
+
     def LU(self):
         r"""
         Returns a decomposition of the (row-permuted) matrix as a product of
@@ -1801,6 +2013,11 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
         Note that if self is m-by-n, then the dimensions of the
         matrices that this returns are (m,m), (m,n), and (n, n).
+
+        .. note::
+
+            If all you need is the singular values of the matrix, see
+            the more convenient :meth:`singular_values`.
 
         EXAMPLES::
 

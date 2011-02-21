@@ -18,7 +18,7 @@ if [ "x$SAGE64" = xyes ]; then
 fi
 
 # Dependencies check
-MPIR_VERSION=`cd $SAGE_ROOT/spkg/standard/; ./newest_version mpir`
+MPIR_VERSION=`cd $SAGE_ROOT/spkg/; ./standard/newest_version mpir`
 if [ $? -ne 0 ]; then
     echo "Failed to find mpir.  Please install the mpir spkg"
     exit 1

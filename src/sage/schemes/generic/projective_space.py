@@ -75,7 +75,6 @@ from sage.misc.all import latex
 import homset
 import morphism
 
-import algebraic_scheme
 import ambient_space
 import affine_space
 
@@ -498,7 +497,8 @@ class ProjectiveSpace_ring(ambient_space.AmbientSpace):
               To:   Spectrum of Rational Field
               Defn: Structure map
         """
-        return algebraic_scheme.AlgebraicScheme_subscheme_projective(self, X)
+        from algebraic_scheme import AlgebraicScheme_subscheme_projective
+        return AlgebraicScheme_subscheme_projective(self, X)
 
     def affine_patch(self, i):
         r"""

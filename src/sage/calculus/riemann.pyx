@@ -228,11 +228,15 @@ cdef class Riemann_Map:
         h = 1 / (TWOPI * I) * ((dp / adp) / (self.a - cp))
         hconj = np.array(map(np.complex.conjugate, h), dtype=np.complex128)
         g = -sadp * hconj
+        normalized_dp=dp/adp
+        C = I / N * sadp # equivalent to -TWOPI / N * 1 / (TWOPI * I) * sadp
+        olderr = np.geterr()['invalid'] # checks the current error handling
+        np.seterr(invalid='ignore')
         K = np.array(
-            [-TWOPI / N * sadp * sadp[t] * 1 / (TWOPI * I) *
-              ((dp / adp) / (cp - cp[t]) -
-               ((dp[t] / adp[t]) / (cp - cp[t])).conjugate())
+            [C * sadp[t] *
+             (normalized_dp/(cp-cp[t]) - (normalized_dp[t]/(cp-cp[t])).conjugate())
               for t in np.arange(NB)], dtype=np.complex128)
+        np.seterr(invalid=olderr) # resets the error handling
         for i in xrange(NB):
             K[i, i] = 1
         phi = np.linalg.solve(K, g) / NB * TWOPI  # Nystrom

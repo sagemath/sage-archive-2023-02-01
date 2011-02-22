@@ -289,14 +289,22 @@ def number_of_threads():
     OUTPUT:
         int
     """
-    if hasattr(os, "sysconf") and os.sysconf_names.has_key("SC_NPROCESSORS_ONLN"): # Linux and Unix
-        n = os.sysconf("SC_NPROCESSORS_ONLN")
-        if isinstance(n, int) and n > 0:
-            return n
     try:
-        return int(os.popen2("sysctl -n hw.ncpu")[1].read().strip())
-    except:
-        return 0
+        from multiprocessing import cpu_count
+        n = cpu_count()
+        if n>0:
+            return n
+    except NotImplementedError: # unsupported OS
+        pass
+
+    try:  # solaris fix
+        n = int(os.popen2("sysctl -n hw.ncpu")[1].read().strip())
+        if n>0:
+            return n
+    except ValueError:
+        pass
+
+    return 1
 
 def execute_list_of_commands(command_list):
     """
@@ -309,36 +317,40 @@ def execute_list_of_commands(command_list):
         are run in parallel.
     """
     t = time.time()
-    if not os.environ.has_key('MAKE'):
-        nthreads = 1
-    else:
+    cpu_count = number_of_threads()  # try hard to determine the actual cpu count
+    assert(cpu_count>=1)
+    nthreads = 0  # number of threads to use; zero means don't know
+
+    if os.environ.has_key('MAKE'):  # user-supplied number of threads takes precedence
         MAKE = os.environ['MAKE']
-        z = [w[2:] for w in MAKE.split() if w.startswith('-j')]
-        if len(z) == 0:  # no command line option
-            nthreads = 1
-        else:
-            # Determine number of threads from command line argument.
-            # Also, use the OS to cap the number of threads, in case
-            # user annoyingly makes a typo and asks to use 10000
-            # threads at once.
+        # from the manpage: If there is more than one -j option, the last one is effective.
+        pos = MAKE.rfind(' -j')
+        if pos>=0:
             try:
-                nthreads = int(z[0])
-                n = 2*number_of_threads()
-                if n:  # prevent dumb typos.
-                    nthreads = min(nthreads, n)
-            except ValueError:
-                nthreads = 1
+                if MAKE[pos+3] == '=':   # make -j=N is the same as make -jN
+                    pos += 1
+                nthreads = int(MAKE[pos+3:].split()[0])
+            except IndexError, ValueError:
+                # make -j without number means unlimited threads
+                nthreads = 2*cpu_count
+
+    if nthreads==0:
+        nthreads = cpu_count
+
+    if nthreads > 2*cpu_count:  # sanity check
+        print "Warning: The number of threads ("+str(nthreads)+") seems impossibly large."
+        nthreads = min(nthreads, cpu_count)
+        print "I reduced it to "+str(nthreads)+"."
 
     # normalize the command_list to handle strings correctly
     command_list = [ [run_command, x] if isinstance(x, str) else x for x in command_list ]
 
     if nthreads > 1:
-        # parallel version
         execute_list_of_commands_in_parallel(command_list, nthreads)
     else:
-        # non-parallel version
         execute_list_of_commands_in_serial(command_list)
     print "Time to execute %s commands: %s seconds"%(len(command_list), time.time() - t)
+
 
 ########################################################################
 ##
@@ -633,7 +645,10 @@ class DependencyTree:
         OUTPUT:
             list of dependency files
         """
-        is_cython_file = lambda f:fnmatch.fnmatch(f,'*.{pyx,pxd,pxi}')
+        is_cython_file = lambda f:\
+            fnmatch.fnmatch(f,'*.pyx') or \
+            fnmatch.fnmatch(f,'*.pxd') or \
+            fnmatch.fnmatch(f,'*.pxi')
 
         # only parse cython files
         if not is_cython_file(filename):

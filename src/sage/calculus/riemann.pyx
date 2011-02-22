@@ -454,11 +454,7 @@ cdef class Riemann_Map:
                 p_vector[k, N] = (I / (3*N) * dps[k, 0] *
                                   exp(I * theta_array[k, 0]))
         self.p_vector = p_vector.flatten()
-        temp = np.zeros([self.B, 1])
-        for k in xrange(self.B):
-            temp[k, 0] = self.cps[k, 0]
-        cdef np.ndarray[double complex, ndim=1] pq = np.concatenate(
-            [self.cps, temp], axis=1).flatten()
+        cdef np.ndarray[double complex, ndim=1] pq = self.cps[:,list(range(N))+[0]].flatten()
         self.pre_q_vector = pq
 
     cpdef riemann_map(self, pt):

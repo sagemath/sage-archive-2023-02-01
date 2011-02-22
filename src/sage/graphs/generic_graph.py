@@ -14804,6 +14804,14 @@ class GenericGraph(GenericGraph_pyx):
             sage: G1.is_isomorphic(G2)
             True
 
+        Ensure that isomorphic looped graphs with non-range vertex labels report
+        correctly (trac #10814, fixed by #8395)::
+
+            sage: G1 = Graph([(0,1), (1,1)])
+            sage: G2 = Graph([(0,2), (2,2)])
+            sage: G1.is_isomorphic(G2)
+            True
+
         """
         possible = True
         if self._directed != other._directed:

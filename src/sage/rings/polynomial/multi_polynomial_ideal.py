@@ -2234,6 +2234,8 @@ class MPolynomialIdeal_singular_repr:
 
             sage: [f.subs(v) for f in I.gens() for v in V] # check that all polynomials vanish
             [0, 0, 0, 0, 0, 0]
+            sage: [I.subs(v).is_zero() for v in V] # same test, but nicer syntax
+            [True, True, True]
 
         However, we only account for solutions in the ground field and not
         in the algebraic closure::
@@ -3199,6 +3201,72 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         """
         return P.ideal([P(f) for f in self.gens()])
 
+    def subs(self, in_dict=None, **kwds):
+        """
+        Substitute variables.
+
+        This method substitutes some variables in the polynomials that
+        generate the ideal with given values. Variables that are not
+        specified in the input remain unchanged.
+
+        INPUT:
+
+        - ``in_dict`` -- (optional) dictionary of inputs
+
+        - ``**kwds`` -- named parameters
+
+        OUTPUT:
+
+        A new ideal with modified generators. If possible, in the same
+        polynomial ring. Raises a ``TypeError`` if no common
+        polynomial ring of the substituted generators can be found.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = PolynomialRing(ZZ,2,'xy')
+            sage: I = R.ideal(x^5+y^5, x^2 + y + x^2*y^2 + 5); I
+            Ideal (x^5 + y^5, x^2*y^2 + x^2 + y + 5) of Multivariate Polynomial Ring in x, y over Integer Ring
+            sage: I.subs(x=y)
+            Ideal (2*y^5, y^4 + y^2 + y + 5) of Multivariate Polynomial Ring in x, y over Integer Ring
+            sage: I.subs({x:y})    # same substitution but with dictionary
+            Ideal (2*y^5, y^4 + y^2 + y + 5) of Multivariate Polynomial Ring in x, y over Integer Ring
+
+        The new ideal can be in a different ring::
+
+            sage: R.<a,b> = PolynomialRing(QQ,2)
+            sage: S.<x,y> = PolynomialRing(QQ,2)
+            sage: I = R.ideal(a^2+b^2+a-b+2); I
+            Ideal (a^2 + b^2 + a - b + 2) of Multivariate Polynomial Ring in a, b over Rational Field
+            sage: I.subs(a=x, b=y)
+            Ideal (x^2 + y^2 + x - y + 2) of Multivariate Polynomial Ring in x, y over Rational Field
+
+        The resulting ring need not be a mulitvariate polynomial ring::
+
+            sage: T.<t> = PolynomialRing(QQ)
+            sage: I.subs(a=t, b=t)
+            Principal ideal (t^2 + 1) of Univariate Polynomial Ring in t over Rational Field
+            sage: var("z")
+            z
+            sage: I.subs(a=z, b=z)
+            Principal ideal (2*z^2 + 2) of Symbolic Ring
+
+        Variables that are not substituted remain unchanged::
+
+            sage: R.<x,y> = PolynomialRing(QQ,2)
+            sage: I = R.ideal(x^2+y^2+x-y+2); I
+            Ideal (x^2 + y^2 + x - y + 2) of Multivariate Polynomial Ring in x, y over Rational Field
+            sage: I.subs(x=1)
+            Ideal (y^2 - y + 4) of Multivariate Polynomial Ring in x, y over Rational Field
+        """
+        ring = self.ring()
+        generators = [f.subs(in_dict, **kwds) for f in self.gens()]
+        if not all(gen in ring for gen in generators):
+            ring = Sequence(generators).universe()
+        try:
+            return ring.ideal(generators)
+        except AttributeError:
+            raise TypeError('Cannot construct an ideal from the substituted generators!')
+
     def reduce(self, f):
         """
         Reduce an element modulo the reduced Groebner basis for this ideal.
@@ -3666,8 +3734,9 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
         Of course, the point ``p`` is a root of all generators of ``I``::
 
-            sage: [f.subs(x=1,y=2,z=1) for f in I.gens()]
-            [0]
+            sage: I.subs(x=1,y=2,z=1)
+            Ideal (0) of Multivariate Polynomial Ring in x, y, z over
+            Number Field in a with defining polynomial x^2 - 1/3
 
         ``I`` is also radical::
 
@@ -3686,8 +3755,8 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
         We can check that the point ``p`` is still a root of all generators of ``J``::
 
-            sage: [f.subs(x0=1,y0=2,z0=1,x1=0,y1=0,z1=0) for f in J.gens()]
-            [0, 0]
+            sage: J.subs(x0=1,y0=2,z0=1,x1=0,y1=0,z1=0)
+            Ideal (0, 0) of Multivariate Polynomial Ring in x0, x1, y0, y1, z0, z1 over Rational Field
 
         .. note::
 

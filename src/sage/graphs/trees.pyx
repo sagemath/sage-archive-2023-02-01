@@ -1,16 +1,16 @@
 r"""
 This is an implementation of the algorithm for generating trees with n vertices
-(up to isomorphism) in constant time per tree described in [1]
+(up to isomorphism) in constant time per tree described in [WRIGHT-ETAL]_.
 
 AUTHORS:
 
 - Ryan Dingman (2009-04-16): initial version
 
-REFERENCE:
+REFERENCES:
 
-- [1] Wright, Robert Alan; Richmond, Bruce; Odlyzko, Andrew; McKay, Brendan D.
-  Constant time generation of free trees. SIAM J. Comput. 15 (1986), no. 2,
-  540--548.
+    .. [WRIGHT-ETAL] Wright, Robert Alan; Richmond, Bruce; Odlyzko, Andrew; McKay, Brendan D.
+       Constant time generation of free trees. SIAM J. Comput. 15 (1986), no. 2,
+       540--548.
 """
 
 cdef extern from "limits.h":
@@ -27,7 +27,8 @@ cdef class TreeIterator:
     r"""
     This class iterates over all trees with n vertices (up to isomorphism).
 
-    EXAMPLES
+    EXAMPLES:
+
         sage: from sage.graphs.trees import TreeIterator
         sage: def check_trees(n):
         ...       trees = []
@@ -43,7 +44,6 @@ cdef class TreeIterator:
         ...                   return False
         ...           trees.append(t)
         ...       return True
-        ...
         sage: print check_trees(10)
         True
 
@@ -51,7 +51,6 @@ cdef class TreeIterator:
         sage: count = 0
         sage: for t in TreeIterator(15):
         ...       count += 1
-        ...
         sage: print count
         7741
     """
@@ -60,7 +59,8 @@ cdef class TreeIterator:
         r"""
         Initializes an iterator over all trees with n vertices.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.graphs.trees import TreeIterator
             sage: t = TreeIterator(100) # indirect doctest
             sage: print t

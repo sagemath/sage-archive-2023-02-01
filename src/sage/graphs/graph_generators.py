@@ -6472,30 +6472,49 @@ class GraphGenerators():
         return graphs
 
     def trees(self, vertices):
-        """
-        Accesses the generator of trees (graphs without cycles). Iterates
-        over distinct, exhaustive representatives.
+        r"""
+        Returns a generator of the distinct trees on a fixed number of vertices.
 
         INPUT:
 
-        -  ``vertices`` - natural number
+        -  ``vertices`` - the size of the trees created.
 
-        EXAMPLES: Sloane A000055::
+        OUTPUT:
 
-            sage: for i in range(0, 7):
-            ...    print len(list(graphs.trees(i)))
-            1
-            1
-            1
-            1
-            2
-            3
-            6
-            sage: for i in range(7, 10):            # long time
-            ...    print len(list(graphs.trees(i))) # long time
-            11
-            23
-            47
+        A generator which creates an exhaustive, duplicate-free listing
+        of the connected free (unlabeled) trees with ``vertices`` number
+        of vertices.  A tree is a graph with no cycles.
+
+        ALGORITHM:
+
+        Uses an algorithm that generates each new tree
+        in constant time.  See the documentation for, and implementation
+        of, the :mod:`sage.graphs.trees` module, including a citation.
+
+        EXAMPLES:
+
+        We create an iterator, then loop over its elements. ::
+
+            sage: tree_iterator = graphs.trees(7)
+            sage: for T in tree_iterator:
+            ...     print T.degree_sequence()
+            [2, 2, 2, 2, 2, 1, 1]
+            [3, 2, 2, 2, 1, 1, 1]
+            [3, 2, 2, 2, 1, 1, 1]
+            [4, 2, 2, 1, 1, 1, 1]
+            [3, 3, 2, 1, 1, 1, 1]
+            [3, 3, 2, 1, 1, 1, 1]
+            [4, 3, 1, 1, 1, 1, 1]
+            [3, 2, 2, 2, 1, 1, 1]
+            [4, 2, 2, 1, 1, 1, 1]
+            [5, 2, 1, 1, 1, 1, 1]
+            [6, 1, 1, 1, 1, 1, 1]
+
+        The number of trees on the first few vertex counts.
+        This is sequence A000055 in Sloane's OEIS. ::
+
+            sage: [len(list(graphs.trees(i))) for i in range(0, 15)]
+            [1, 1, 1, 1, 2, 3, 6, 11, 23, 47, 106, 235, 551, 1301, 3159]
         """
         from trees import TreeIterator
         return iter(TreeIterator(vertices))

@@ -933,6 +933,7 @@ cdef class ETuple:
         if data is None:
             return
         cdef size_t ind
+        cdef int v
         if PY_TYPE_CHECK(data,ETuple):
             self._length = (<ETuple>data)._length
             self._nonzero = (<ETuple>data)._nonzero
@@ -950,18 +951,18 @@ cdef class ETuple:
                 ind += 1
         elif PY_TYPE_CHECK(data,list) or PY_TYPE_CHECK(data,tuple):
             self._length = len(data)
-            tpl = zip(range(len(data)),data)
             self._nonzero = 0
-            for (i,v) in tpl:
+            for v in data:
                 if v != 0:
                     self._nonzero += 1
             ind = 0
             self._data = <int*>sage_malloc(sizeof(int)*self._nonzero*2)
-            for (i,v) in tpl:
+            for i from 0 <= i < self._length:
+                v = data[i]
                 if v != 0:
-                    self._data[2*ind] = i
-                    self._data[2*ind+1] = v
-                    ind += 1
+                    self._data[ind] = i
+                    self._data[ind+1] = v
+                    ind += 2
         else:
             raise TypeError
 

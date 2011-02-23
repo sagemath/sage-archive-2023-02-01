@@ -16,30 +16,7 @@ argv = [X for X in argv if X[0] != '-']
 
 t0 = time.time()
 
-def abspath(x):
-    return strip_automount_prefix(os.path.abspath(x))
-
-def strip_automount_prefix(filename):
-    """
-    Strip prefixes added on automounted filesystems in some cases,
-    which make the absolute path appear hidden.
-
-    AUTHOR:
-        -- Kate Minola
-    """
-    sep = os.path.sep
-    str = filename.split(sep,2)
-    if len(str) < 2:
-        new = sep
-    else:
-        new = sep + str[1]
-    if os.path.exists(new):
-        inode1 = os.stat(filename)[1]
-        inode2 = os.stat(new)[1]
-        if inode1 == inode2:
-            filename = new
-    return filename
-
+from os.path import abspath
 
 SAGE_ROOT = os.environ['SAGE_ROOT']
 SAGE_SITE = os.path.realpath(os.path.join(os.environ['SAGE_LOCAL'],
@@ -60,7 +37,7 @@ if not os.path.exists(TMP):
 def sage_test_command(f):
     g = abspath(f)
     if SAGE_ROOT in g:
-        f = g[len(SAGE_ROOT)+1:]
+        f = g[g.find(SAGE_ROOT)+len(SAGE_ROOT)+1:]
     return 'sage -t %s "%s"'%(opts, f)
 
 def skip(F):

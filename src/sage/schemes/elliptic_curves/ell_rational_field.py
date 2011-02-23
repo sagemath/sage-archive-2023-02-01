@@ -1472,6 +1472,16 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: set_random_seed(0)
             sage: r, s, G = E.simon_two_descent(); r,s
             (8, 8)
+
+        Example from trac 10832::
+            sage: E = EllipticCurve([1,0,0,-6664,86543])
+            sage: E.simon_two_descent()
+            (2, 3, [(173 : 1943 : 1), (-73 : -394 : 1), (323/4 : 1891/8 : 1)])
+            sage: E.rank()
+            2
+            sage: E.gens()
+            [(-73 : -394 : 1), (323/4 : 1891/8 : 1)]
+
         """
         t = simon_two_descent(self, verbose=verbose, lim1=lim1, lim3=lim3, limtriv=limtriv,
                               maxprob=maxprob, limbigprime=limbigprime)
@@ -1479,7 +1489,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         two_selmer_rank = rings.Integer(t[1])
         gens_mod_two = [self(P) for P in t[2]]
         if rank_low_bd == two_selmer_rank - self.two_torsion_rank():
-            gens = [P for P in gens_mod_two if P.additive_order() != 2]
+            gens = [P for P in gens_mod_two if P.has_infinite_order()]
+            gens = self.saturation(gens)[0]
             self.__gens[True] = gens
             self.__gens[True].sort()
             self.__rank[True] = len(self.__gens[True])

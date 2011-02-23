@@ -184,8 +184,8 @@ place after doing any build that is necessary.  Here is a template::
 
        #!/usr/bin/env bash
 
-       if [ "$SAGE_LOCAL" = "" ]; then
-          echo "SAGE_LOCAL undefined ... exiting";
+       if [ "x$SAGE_LOCAL" = x ]; then
+          echo "SAGE_LOCAL undefined ... exiting"
           echo "Maybe run 'sage -sh'?"
           exit 1
        fi
@@ -198,17 +198,49 @@ place after doing any build that is necessary.  Here is a template::
           exit 1
        fi
 
-       make
+       $MAKE
        if [ $? -ne 0 ]; then
           echo "Error building PACKAGE_NAME."
           exit 1
        fi
 
-       make install
+       $MAKE install
        if [ $? -ne 0 ]; then
           echo "Error installing PACKAGE_NAME."
           exit 1
        fi
+
+       if [ "x$SAGE_SPKG_INSTALL_DOCS" = xyes ] ; then
+          # Before trying to build the documentation, check if any
+	  # needed programs are present. In the example below, we
+	  # check for 'latex', but this will depend on the package.
+	  # Some packages may need no extra tools installed, others
+	  # may require some.  We use 'command -v' for testing this,
+	  # and not 'which' since 'which' is not portable, whereas
+	  # 'command -v' is defined by POSIX.
+
+	  # if [ `command -v latex` ] ; then
+	  #    echo "Good, latex was found, so building the documentation"
+	  # else
+	  #    echo "Sorry, can't build the documentation for PACKAGE_NAME as latex is not installed"
+	  #    exit 1
+	  # fi
+
+
+          # make the documentation in a package-specific way
+          # for example, we might have
+          # cd doc
+          # $MAKE html
+
+          if [ $? -ne 0 ]; then
+             echo "Error building PACKAGE_NAME docs."
+             exit 1
+          fi
+          mkdir -p $SAGE_ROOT/local/share/doc/PACKAGE_NAME
+          # assuming the docs are in doc/*
+          cp -r doc/* $SAGE_ROOT/local/share/doc/PACKAGE_NAME/
+       fi
+
 
 Note that the first line is ``/usr/bin/env bash``; this is important
 for portability.  Next, the script checks that ``SAGE_LOCAL`` is

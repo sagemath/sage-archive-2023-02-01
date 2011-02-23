@@ -541,6 +541,13 @@ process:
   (and ``sage -upgrade``) as well as the manual installation of
   individual spkgs with e.g. ``sage -i``.
 
+- :envvar:`SAGE_SPKG_INSTALL_DOCS` - Set this to "yes" to install
+  package-specific documentation to
+  :file:`$SAGE_ROOT/local/share/doc/PACKAGE_NAME/` when an spkg is
+  installed.  This option may not be supported by all spkgs.  Some
+  spkgs might also assume that certain programs are available on the
+  system (for example, ``latex`` or ``pdflatex``).
+
 - :envvar:`SAGE_FAT_BINARY` - to prepare a binary distribution that
   will run on the widest range of target machines, set this variable
   to "yes" before building Sage::

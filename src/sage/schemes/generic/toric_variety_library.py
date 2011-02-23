@@ -14,6 +14,17 @@ EXAMPLES::
 
     sage: toric_varieties.dP6()
     2-d CPR-Fano toric variety covered by 6 affine patches
+
+You can assign the homogeneous coordinates to Sage variables either
+with
+:meth:`~sage.schemes.generic.toric_variety.ToricVariety_field.inject_variables`
+or immediately during assignment like this::
+
+    sage: P2.<x,y,z> = toric_varieties.P2()
+    sage: x^2 + y^2 + z^2
+    x^2 + y^2 + z^2
+    sage: P2.coordinate_ring()
+    Multivariate Polynomial Ring in x, y, z over Rational Field
 """
 
 #*****************************************************************************
@@ -186,9 +197,15 @@ class ToricVarietyFactory(SageObject):
             sage: toric_varieties.A1()           # indirect doctest
             1-d affine toric variety
         """
-        dict_key = '_'+name
+        rays, cones = toric_varieties_rays_cones[name]
+        if coordinate_names is None:
+            dict_key = '_cached_'+name
+        else:
+            import toric_variety
+            coordinate_names = toric_variety.\
+                normalize_names(coordinate_names, len(rays), toric_variety.DEFAULT_PREFIX)
+            dict_key = '_cached_'+name+'_'+'_'.join(coordinate_names)
         if dict_key not in self.__dict__:
-            rays, cones = toric_varieties_rays_cones[name]
             fan = Fan(cones, rays, check=self._check)
             self.__dict__[dict_key] = \
                 ToricVariety(fan,
@@ -218,9 +235,15 @@ class ToricVarietyFactory(SageObject):
             sage: toric_varieties.P2()           # indirect doctest
             2-d CPR-Fano toric variety covered by 3 affine patches
         """
-        dict_key = '_'+name
+        rays, cones = toric_varieties_rays_cones[name]
+        if coordinate_names is None:
+            dict_key = '_cached_'+name
+        else:
+            import toric_variety
+            coordinate_names = toric_variety.\
+                normalize_names(coordinate_names, len(rays), toric_variety.DEFAULT_PREFIX)
+            dict_key = '_cached_'+name+'_'+'_'.join(coordinate_names)
         if dict_key not in self.__dict__:
-            rays, cones = toric_varieties_rays_cones[name]
             polytope = LatticePolytope( matrix(rays).transpose() )
             points = map(tuple, polytope.points().columns())
             ray2point = [points.index(r) for r in rays]
@@ -233,10 +256,17 @@ class ToricVarietyFactory(SageObject):
                                     check=self._check)
         return self.__dict__[dict_key]
 
-    def dP6(self):
+    def dP6(self, names='x u y v z w'):
         r"""
         Construct the del Pezzo surface of degree 6 (`\mathbb{P}^2`
         blown up at 3 points) as a toric variety.
+
+        INPUT:
+
+        - ``names`` -- string. Names for the homogeneous
+          coordinates. See
+          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          for acceptable formats.
 
         OUTPUT:
 
@@ -254,12 +284,19 @@ class ToricVarietyFactory(SageObject):
             sage: dP6.gens()
             (x, u, y, v, z, w)
         """
-        return self._make_CPRFanoToricVariety('dP6', 'x u y v z w')
+        return self._make_CPRFanoToricVariety('dP6', names)
 
-    def dP7(self):
+    def dP7(self, names='x u y v z'):
         r"""
         Construct the del Pezzo surface of degree 7 (`\mathbb{P}^2`
         blown up at 2 points) as a toric variety.
+
+        INPUT:
+
+        - ``names`` -- string. Names for the homogeneous
+          coordinates. See
+          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          for acceptable formats.
 
         OUTPUT:
 
@@ -277,12 +314,19 @@ class ToricVarietyFactory(SageObject):
             sage: dP7.gens()
             (x, u, y, v, z)
         """
-        return self._make_CPRFanoToricVariety('dP7', 'x u y v z')
+        return self._make_CPRFanoToricVariety('dP7', names)
 
-    def dP8(self):
+    def dP8(self, names='t x y z'):
         r"""
         Construct the del Pezzo surface of degree 8 (`\mathbb{P}^2`
         blown up at 1 point) as a toric variety.
+
+        INPUT:
+
+        - ``names`` -- string. Names for the homogeneous
+          coordinates. See
+          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          for acceptable formats.
 
         OUTPUT:
 
@@ -300,12 +344,19 @@ class ToricVarietyFactory(SageObject):
             sage: dP8.gens()
             (t, x, y, z)
         """
-        return self._make_CPRFanoToricVariety('dP8', 't x y z')
+        return self._make_CPRFanoToricVariety('dP8', names)
 
-    def P1xP1(self):
+    def P1xP1(self, names='s t x y'):
         r"""
         Construct the del Pezzo surface `\mathbb{P}^1 \times
         \mathbb{P}^1` as a toric variety.
+
+        INPUT:
+
+        - ``names`` -- string. Names for the homogeneous
+          coordinates. See
+          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          for acceptable formats.
 
         OUTPUT:
 
@@ -323,12 +374,19 @@ class ToricVarietyFactory(SageObject):
             sage: P1xP1.gens()
             (s, t, x, y)
         """
-        return self._make_CPRFanoToricVariety('P1xP1', 's t x y')
+        return self._make_CPRFanoToricVariety('P1xP1', names)
 
-    def P1(self):
+    def P1(self, names='s t'):
         r"""
         Construct the projective line `\mathbb{P}^1` as a toric
         variety.
+
+        INPUT:
+
+        - ``names`` -- string. Names for the homogeneous
+          coordinates. See
+          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          for acceptable formats.
 
         OUTPUT:
 
@@ -345,12 +403,19 @@ class ToricVarietyFactory(SageObject):
             sage: P1.gens()
             (s, t)
         """
-        return self._make_CPRFanoToricVariety('P1', 's t')
+        return self._make_CPRFanoToricVariety('P1', names)
 
-    def P2(self):
+    def P2(self, names='x y z'):
         r"""
         Construct the projective plane `\mathbb{P}^2` as a toric
         variety.
+
+        INPUT:
+
+        - ``names`` -- string. Names for the homogeneous
+          coordinates. See
+          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          for acceptable formats.
 
         OUTPUT:
 
@@ -368,15 +433,20 @@ class ToricVarietyFactory(SageObject):
             sage: P2.gens()
             (x, y, z)
         """
-        return self._make_CPRFanoToricVariety('P2', 'x y z')
+        return self._make_CPRFanoToricVariety('P2', names)
 
-    def P(self, n):
+    def P(self, n, names='z+'):
         r"""
         Construct the ``n``-dimensional projective space `\mathbb{P}^n`.
 
         INPUT:
 
         - ``n`` -- positive integer. The dimension of the projective space.
+
+        - ``names`` -- string. Names for the homogeneous
+          coordinates. See
+          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          for acceptable formats.
 
         OUTPUT:
 
@@ -408,11 +478,19 @@ class ToricVarietyFactory(SageObject):
         m = identity_matrix(n).augment(matrix(n, 1, [-1]*n))
         charts = [ range(0,i)+range(i+1,n+1) for i in range(0,n+1) ]
         return CPRFanoToricVariety(Delta_polar=LatticePolytope(m),
-                                   charts=charts, check=self._check)
+                                   charts=charts, check=self._check,
+                                   coordinate_names=names)
 
-    def A1(self):
+    def A1(self, names='z'):
         r"""
         Construct the affine line `\mathbb{A}^1` as a toric variety.
+
+        INPUT:
+
+        - ``names`` -- string. Names for the homogeneous
+          coordinates. See
+          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          for acceptable formats.
 
         OUTPUT:
 
@@ -429,11 +507,18 @@ class ToricVarietyFactory(SageObject):
             sage: A1.gens()
             (z,)
         """
-        return self._make_ToricVariety('A1', 'z')
+        return self._make_ToricVariety('A1', names)
 
-    def A2(self):
+    def A2(self, names='x y'):
         r"""
         Construct the affine plane `\mathbb{A}^2` as a toric variety.
+
+        INPUT:
+
+        - ``names`` -- string. Names for the homogeneous
+          coordinates. See
+          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          for acceptable formats.
 
         OUTPUT:
 
@@ -451,15 +536,20 @@ class ToricVarietyFactory(SageObject):
             sage: A2.gens()
             (x, y)
         """
-        return self._make_ToricVariety('A2', 'x y')
+        return self._make_ToricVariety('A2', names)
 
-    def A(self, n):
+    def A(self, n, names='z+'):
         r"""
         Construct the ``n``-dimensional affine space.
 
         INPUT:
 
         - ``n`` -- positive integer. The dimension of the affine space.
+
+        - ``names`` -- string. Names for the homogeneous
+          coordinates. See
+          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          for acceptable formats.
 
         OUTPUT:
 
@@ -491,12 +581,19 @@ class ToricVarietyFactory(SageObject):
         rays = identity_matrix(n).columns()
         cones = [ range(0,n) ]
         fan = Fan(cones, rays, check=self._check)
-        return ToricVariety(fan)
+        return ToricVariety(fan, coordinate_names=names)
 
-    def A2_Z2(self):
+    def A2_Z2(self, names='x y'):
         r"""
         Construct the orbifold `\mathbb{A}^2 / \ZZ_2` as a toric
         variety.
+
+        INPUT:
+
+        - ``names`` -- string. Names for the homogeneous
+          coordinates. See
+          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          for acceptable formats.
 
         OUTPUT:
 
@@ -514,12 +611,19 @@ class ToricVarietyFactory(SageObject):
             sage: A2_Z2.gens()
             (x, y)
         """
-        return self._make_ToricVariety('A2_Z2', 'x y')
+        return self._make_ToricVariety('A2_Z2', names)
 
-    def P1xA1(self):
+    def P1xA1(self, names='s t z'):
         r"""
         Construct the cartesian product `\mathbb{P}^1 \times \mathbb{A}^1` as
         a toric variety.
+
+        INPUT:
+
+        - ``names`` -- string. Names for the homogeneous
+          coordinates. See
+          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          for acceptable formats.
 
         OUTPUT:
 
@@ -537,11 +641,18 @@ class ToricVarietyFactory(SageObject):
             sage: P1xA1.gens()
             (s, t, z)
         """
-        return self._make_ToricVariety('P1xA1', 's t z')
+        return self._make_ToricVariety('P1xA1', names)
 
-    def Conifold(self):
+    def Conifold(self, names='u x y v'):
         r"""
         Construct the conifold as a toric variety.
+
+        INPUT:
+
+        - ``names`` -- string. Names for the homogeneous
+          coordinates. See
+          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          for acceptable formats.
 
         OUTPUT:
 
@@ -560,12 +671,19 @@ class ToricVarietyFactory(SageObject):
             sage: Conifold.gens()
             (u, x, y, v)
         """
-        return self._make_ToricVariety('Conifold', 'u x y v')
+        return self._make_ToricVariety('Conifold', names)
 
-    def dP6xdP6(self):
+    def dP6xdP6(self, names='x0 x1 x2 x3 x4 x5 y0 y1 y2 y3 y4 y5'):
         r"""
         Construct the product of two del Pezzo surfaces of degree 6
         (`\mathbb{P}^2` blown up at 3 points) as a toric variety.
+
+        INPUT:
+
+        - ``names`` -- string. Names for the homogeneous
+          coordinates. See
+          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          for acceptable formats.
 
         OUTPUT:
 
@@ -585,15 +703,22 @@ class ToricVarietyFactory(SageObject):
             sage: dP6xdP6.gens()                        # long time
             (x0, x1, x2, x3, x4, x5, y0, y1, y2, y3, y4, y5)
         """
-        return self._make_CPRFanoToricVariety('dP6xdP6', 'x0 x1 x2 x3 x4 x5 y0 y1 y2 y3 y4 y5')
+        return self._make_CPRFanoToricVariety('dP6xdP6', names)
 
-    def Cube_face_fan(self):
+    def Cube_face_fan(self, names='z+'):
         r"""
         Construct the toric variety given by the face fan of the
         3-dimensional unit lattice cube.
 
         This variety has 6 conifold singularities but the fan is still
         polyhedral.
+
+        INPUT:
+
+        - ``names`` -- string. Names for the homogeneous
+          coordinates. See
+          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          for acceptable formats.
 
         OUTPUT:
 
@@ -612,9 +737,9 @@ class ToricVarietyFactory(SageObject):
             sage: Cube_face_fan.gens()
             (z0, z1, z2, z3, z4, z5, z6, z7)
         """
-        return self._make_CPRFanoToricVariety('Cube_face_fan', None)
+        return self._make_CPRFanoToricVariety('Cube_face_fan', names)
 
-    def Cube_sublattice(self):
+    def Cube_sublattice(self, names='z+'):
         r"""
         Construct the toric variety defined by a face fan over a
         3-dimensional cube, but not the unit cube in the
@@ -622,6 +747,13 @@ class ToricVarietyFactory(SageObject):
 
         Its Chow group is `A_2(X)=\mathbb{Z}^5`, which distinguishes
         it from the face fan of the unit cube.
+
+        INPUT:
+
+        - ``names`` -- string. Names for the homogeneous
+          coordinates. See
+          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          for acceptable formats.
 
         OUTPUT:
 
@@ -647,9 +779,9 @@ class ToricVarietyFactory(SageObject):
             "Introduction to Toric Varieties", Princeton University
             Press
         """
-        return self._make_CPRFanoToricVariety('Cube_sublattice', None)
+        return self._make_CPRFanoToricVariety('Cube_sublattice', names)
 
-    def Cube_nonpolyhedral(self):
+    def Cube_nonpolyhedral(self, names='z+'):
         r"""
         Construct the toric variety defined by a fan that is not the
         face fan of a polyhedron.
@@ -657,6 +789,13 @@ class ToricVarietyFactory(SageObject):
         This toric variety is defined by a fan that is topologically
         like the face fan of a 3-dimensional cube, but with a
         different N-lattice structure.
+
+        INPUT:
+
+        - ``names`` -- string. Names for the homogeneous
+          coordinates. See
+          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          for acceptable formats.
 
         OUTPUT:
 
@@ -681,9 +820,9 @@ class ToricVarietyFactory(SageObject):
             sage: Cube_nonpolyhedral.gens()
             (z0, z1, z2, z3, z4, z5, z6, z7)
         """
-        return self._make_ToricVariety('Cube_nonpolyhedral', None)
+        return self._make_ToricVariety('Cube_nonpolyhedral', names)
 
-    def Cube_deformation(self,k):
+    def Cube_deformation(self,k, names=None):
         r"""
         Construct, for each `k\in\ZZ_{\geq 0}`, a toric variety with
         `\ZZ_k`-torsion in the Chow group.
@@ -697,6 +836,11 @@ class ToricVarietyFactory(SageObject):
 
         - ``k`` -- integer. The case ``k=0`` is the same as
           :meth:`Cube_face_fan`.
+
+        - ``names`` -- string. Names for the homogeneous
+          coordinates. See
+          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          for acceptable formats.
 
         OUTPUT:
 
@@ -736,12 +880,19 @@ class ToricVarietyFactory(SageObject):
                                        [-1,-1,-1],[-1, 1,-1],[ 1,-1,-1],[ 1, 1,-1]])
         cones = [[0,1,2,3],[4,5,6,7],[0,1,7,6],[4,5,3,2],[0,2,5,7],[4,6,1,3]]
         fan = Fan(cones, rays(k))
-        return ToricVariety(fan)
+        return ToricVariety(fan, coordinate_names=names)
 
-    def BCdlOG(self):
+    def BCdlOG(self, names='v1 v2 c1 c2 v4 v5 b e1 e2 e3 f g v6'):
         r"""
         Construct the 5-dimensional toric variety studied in
         [BCdlOG]_, [HLY]_
+
+        INPUT:
+
+        - ``names`` -- string. Names for the homogeneous
+          coordinates. See
+          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          for acceptable formats.
 
         OUTPUT:
 
@@ -774,13 +925,20 @@ class ToricVarietyFactory(SageObject):
             Yi Hu, Chien-Hao Liu, Shing-Tung Yau, "Toric morphisms and
             fibrations of toric Calabi-Yau hypersurfaces",
             http://arxiv.org/abs/math/0010082
-            """
-        return self._make_CPRFanoToricVariety('BCdlOG', 'v1 v2 c1 c2 v4 v5 b e1 e2 e3 f g v6')
+        """
+        return self._make_CPRFanoToricVariety('BCdlOG', names)
 
-    def BCdlOG_base(self):
+    def BCdlOG_base(self, names='d4 d3 r2 r1 d2 u d1'):
         r"""
         Construct the base of the `\mathbb{P}^2(1,2,3)` fibration
         :meth:`BCdlOG`.
+
+        INPUT:
+
+        - ``names`` -- string. Names for the homogeneous
+          coordinates. See
+          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          for acceptable formats.
 
         OUTPUT:
 
@@ -799,12 +957,19 @@ class ToricVarietyFactory(SageObject):
             sage: base.gens()
             (d4, d3, r2, r1, d2, u, d1)
         """
-        return self._make_ToricVariety('BCdlOG_base', 'd4 d3 r2 r1 d2 u d1')
+        return self._make_ToricVariety('BCdlOG_base', names)
 
-    def P2_112(self):
+    def P2_112(self, names='z+'):
         r"""
         Construct the weighted projective space
         `\mathbb{P}^2(1,1,2)`.
+
+        INPUT:
+
+        - ``names`` -- string. Names for the homogeneous
+          coordinates. See
+          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          for acceptable formats.
 
         OUTPUT:
 
@@ -822,12 +987,19 @@ class ToricVarietyFactory(SageObject):
             sage: P2_112.gens()
             (z0, z1, z2)
         """
-        return self._make_CPRFanoToricVariety('P2_112', None)
+        return self._make_CPRFanoToricVariety('P2_112', names)
 
-    def P2_123(self):
+    def P2_123(self, names='z+'):
         r"""
         Construct the weighted projective space
         `\mathbb{P}^2(1,2,3)`.
+
+        INPUT:
+
+        - ``names`` -- string. Names for the homogeneous
+          coordinates. See
+          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          for acceptable formats.
 
         OUTPUT:
 
@@ -845,12 +1017,19 @@ class ToricVarietyFactory(SageObject):
             sage: P2_123.gens()
             (z0, z1, z2)
         """
-        return self._make_CPRFanoToricVariety('P2_123', None)
+        return self._make_CPRFanoToricVariety('P2_123', names)
 
-    def P4_11169(self):
+    def P4_11169(self, names='z+'):
         r"""
         Construct the weighted projective space
         `\mathbb{P}^4(1,1,1,6,9)`.
+
+        INPUT:
+
+        - ``names`` -- string. Names for the homogeneous
+          coordinates. See
+          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          for acceptable formats.
 
         OUTPUT:
 
@@ -870,13 +1049,20 @@ class ToricVarietyFactory(SageObject):
             sage: P4_11169.gens()
             (z0, z1, z2, z3, z4)
         """
-        return self._make_CPRFanoToricVariety('P4_11169', None)
+        return self._make_CPRFanoToricVariety('P4_11169', names)
 
-    def P4_11169_resolved(self):
+    def P4_11169_resolved(self, names='z+'):
         r"""
         Construct the blow-up of the weighted projective space
         `\mathbb{P}^4(1,1,1,6,9)` at its curve of `\ZZ_3` orbifold
         fixed points.
+
+        INPUT:
+
+        - ``names`` -- string. Names for the homogeneous
+          coordinates. See
+          :func:`~sage.schemes.generic.toric_variety.normalize_names`
+          for acceptable formats.
 
         OUTPUT:
 
@@ -896,7 +1082,7 @@ class ToricVarietyFactory(SageObject):
             sage: P4_11169_resolved.gens()               # long time
             (z0, z1, z2, z3, z4, z5)
         """
-        return self._make_CPRFanoToricVariety('P4_11169_resolved', None)
+        return self._make_CPRFanoToricVariety('P4_11169_resolved', names)
 
 
 toric_varieties = ToricVarietyFactory()

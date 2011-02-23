@@ -213,6 +213,7 @@ def CPRFanoToricVariety(Delta=None,
                         coordinate_points=None,
                         charts=None,
                         coordinate_names=None,
+                        names=None,
                         coordinate_name_indices=None,
                         make_simplicial=False,
                         base_field=None,
@@ -268,6 +269,10 @@ def CPRFanoToricVariety(Delta=None,
       :func:`~sage.schemes.generic.toric_variety.normalize_names`
       for acceptable formats. If not given, indexed variable names will be
       created automatically;
+
+    - ``names`` -- an alias of ``coordinate_names`` for internal
+      use. You may specify either ``names`` or ``coordinate_names``,
+      but not both;
 
     - ``coordinate_name_indices`` -- list of integers, indices for indexed
       variables. If not given, the index of each variable will coincide with
@@ -494,7 +499,18 @@ def CPRFanoToricVariety(Delta=None,
         ValueError: the origin (point #6)
         cannot be used for a coordinate!
         Got: [0, 1, 2, 3, 6]
+
+    Here is a shorthand for defining the toric variety and homogeneous
+    coordinates in one go::
+
+        sage: P1xP1.<a,b,c,d> = CPRFanoToricVariety(Delta_polar=diamond)
+        sage: (a^2+b^2) * (c+d)
+        a^2*c + b^2*c + a^2*d + b^2*d
     """
+    if not names is None:
+        assert coordinate_names is None, \
+            'You must not specify both coordinate_names and names!'
+        coordinate_names = names
     # Check/normalize Delta_polar
     if Delta is None and Delta_polar is None:
         raise ValueError("either Delta or Delta_polar must be given!")

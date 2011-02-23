@@ -296,6 +296,7 @@ def is_ToricVariety(x):
 
 def ToricVariety(fan,
                  coordinate_names=None,
+                 names=None,
                  coordinate_indices=None,
                  base_field=QQ):
     r"""
@@ -309,6 +310,10 @@ def ToricVariety(fan,
     - ``coordinate_names`` -- names of variables for the coordinate ring, see
       :func:`normalize_names` for acceptable formats. If not given, indexed
       variable names will be created automatically;
+
+    - ``names`` -- an alias of ``coordinate_names`` for internal
+      use. You may specify either ``names`` or ``coordinate_names``,
+      but not both;
 
     - ``coordinate_indices`` -- list of integers, indices for indexed
       variables. If not given, the index of each variable will coincide with
@@ -361,7 +366,18 @@ def ToricVariety(fan,
         Closed subscheme of 2-d toric variety
         covered by 4 affine patches defined by:
           x*s - y*t
+
+    Here is a shorthand for defining the toric variety and homogeneous
+    coordinates in one go::
+
+        sage: P1xP1.<a,b,c,d> = ToricVariety(fan)
+        sage: (a^2+b^2) * (c+d)
+        a^2*c + b^2*c + a^2*d + b^2*d
     """
+    if names is not None:
+        if coordinate_names is not None:
+            raise ValueError('You must not specify both coordinate_names and names!')
+        coordinate_names = names
     if not is_Field(base_field):
         raise TypeError("need a field to construct a toric variety!\n Got %s"
                         % base_field)

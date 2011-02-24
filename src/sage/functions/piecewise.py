@@ -786,6 +786,22 @@ class PiecewisePolynomial:
             sage: f.integral()
             Piecewise defined function with 1 parts, [[(0, 5), x |--> sin(x)]]
 
+
+        TESTS:
+
+        Verify that piecewise integrals of zero work (trac #10841)::
+
+            sage: f0(x) = 0
+            sage: f = Piecewise([[(0,1),f0]])
+            sage: f.integral(x,0,1)
+            0
+            sage: f = Piecewise([[(0,1), 0]])
+            sage: f.integral(x,0,1)
+            0
+            sage: f = Piecewise([[(0,1), SR(0)]])
+            sage: f.integral(x,0,1)
+            0
+
         """
         if a != None and b != None:
             F = self.integral(x)
@@ -830,7 +846,7 @@ class PiecewisePolynomial:
                 forget(start < x)
                 if definite or end != infinity:
                     area += fun.integral(x, start, end)
-            new_pieces.append([(start, end), fun_integrated.function(x)])
+            new_pieces.append([(start, end), SR(fun_integrated).function(x)])
 
         if definite:
             return SR(area)

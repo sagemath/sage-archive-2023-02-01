@@ -2071,7 +2071,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: Q=5*P; Q
             (1/4 : -5/8 : 1)
             sage: E.saturation([Q])
-            ([(0 : 0 : 1)], 5, 0.0511114075779915)
+            ([(0 : 0 : 1)], 5, 0.0511114082399688)
 
         TESTS:
 
@@ -2082,10 +2082,22 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: P.height()
             113.302910926080
             sage: E.saturation([P])
-            ([(-192128125858676194585718821667542660822323528626273/336995568430319276695106602174283479617040716649 : 70208213492933395764907328787228427430477177498927549075405076353624188436/195630373799784831667835900062564586429333568841391304129067339731164107 : 1)], 1, 113.302909851074)
+            ([(-192128125858676194585718821667542660822323528626273/336995568430319276695106602174283479617040716649 : 70208213492933395764907328787228427430477177498927549075405076353624188436/195630373799784831667835900062564586429333568841391304129067339731164107 : 1)], 1, 113.302910926080)
             sage: E.saturation([2*P]) ## needs higher precision
             ...
-            ([(1755450733726721618440965414535034458701302721700399/970334851896750960577261378321772998240802013604 : -59636173615502879504846810677646864329901430096139563516090202443694810309127/955833935771565601591243078845907133814963790187832340692216425242529192 : 1)], 2, 113.302909851074)
+            ([(1755450733726721618440965414535034458701302721700399/970334851896750960577261378321772998240802013604 : -59636173615502879504846810677646864329901430096139563516090202443694810309127/955833935771565601591243078845907133814963790187832340692216425242529192 : 1)], 2, 113.302910926080)
+
+
+        See #10840.  This cause eclib to crash since the curve is
+        non-minimal at 2::
+
+            sage: E = EllipticCurve([0,0,0,-13711473216,0])
+            sage: P = E([-19992,16313472])
+            sage: Q = E([-24108,-17791704])
+            sage: R = E([-97104,-20391840])
+            sage: S = E([-113288,-9969344])
+            sage: E.saturation([P,Q,R,S])
+            ([(-19992 : 16313472 : 1), (-24108 : -17791704 : 1), (-97104 : -20391840 : 1), (-113288 : -9969344 : 1)], 1, 172.792031341679)
 
 
         """
@@ -2100,10 +2112,22 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 P = self(P)
             elif P.curve() != self:
                 raise ArithmeticError, "point (=%s) must be %s."%(P,self)
+
+        minimal = True
+        if not self.is_minimal():
+            minimal = False
+            Emin = self.minimal_model()
+            phi = self.isomorphism_to(Emin)
+            points = [phi(P) for P in points]
+        else:
+            Emin = self
+
+        for P in points:
             x, y = P.xy()
             d = x.denominator().lcm(y.denominator())
             v.append((x*d, y*d, d))
-        c = self.mwrank_curve()
+
+        c = Emin.mwrank_curve()
         mw = mwrank.mwrank_MordellWeil(c, verbose)
         mw.process(v)
         if max_prime == 0:
@@ -2127,7 +2151,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         if prec!=prec0: mwrank_set_precision(prec0)
         #print "precision was originally ",prec0," and is now ",mwrank_get_precision()
         sat = mw.points()
-        sat = [self(P) for P in sat]
+        sat = [Emin(P) for P in sat]
+        if not minimal:
+            phi_inv = ~phi
+            sat = [phi_inv(P) for P in sat]
+        reg = self.regulator_of_points(sat)
         return sat, index, R(reg)
 
 
@@ -2289,7 +2317,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         ::
 
             sage: E.saturation(_)
-            ([(-1 : 1 : 1), (-3/4 : 7/8 : 1)], 1, 0.152460172772408)
+            ([(-1 : 1 : 1), (-3/4 : 7/8 : 1)], 1, 0.152460177943144)
 
         What this shows is that if the rank is 2 then the points listed do
         generate the Mordell-Weil group (mod torsion). Finally,

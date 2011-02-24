@@ -19,7 +19,7 @@ Matrix Plots
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.plot.primitive import GraphicPrimitive
-from sage.misc.decorators import options, rename_keyword
+from sage.misc.decorators import options, suboptions, rename_keyword
 from sage.plot.colors import to_mpl_color, get_cmap
 
 class MatrixPlot(GraphicPrimitive):
@@ -135,7 +135,9 @@ class MatrixPlot(GraphicPrimitive):
                 'norm': "The normalization function",
                 'vmin': "The minimum value",
                 'vmax': "The maximum value",
-                'origin': "If 'lower', draw the matrix with the first row on the bottom of the graph"}
+                'origin': "If 'lower', draw the matrix with the first row on the bottom of the graph",
+                'subdivisions': "If True, draw subdivisions of the matrix",
+                'subdivision_options': "Options (boundaries and style) of the subdivisions"}
 
     def _repr_(self):
         """
@@ -165,6 +167,34 @@ class MatrixPlot(GraphicPrimitive):
             import matplotlib
             norm=matplotlib.colors.NoNorm()
 
+        if options['subdivisions']:
+            subdiv_options=options['subdivision_options']
+            if isinstance(subdiv_options['boundaries'], (list, tuple)):
+                rowsub,colsub=subdiv_options['boundaries']
+            else:
+                rowsub=subdiv_options['boundaries']
+                colsub=subdiv_options['boundaries']
+            if isinstance(subdiv_options['style'], (list, tuple)):
+                rowstyle,colstyle=subdiv_options['style']
+            else:
+                rowstyle=subdiv_options['style']
+                colstyle=subdiv_options['style']
+            if rowstyle is None:
+                rowstyle=dict()
+            if colstyle is None:
+                colstyle=dict()
+
+            # Make line objects for subdivisions
+            from line import line2d
+            lim=self.get_minmax_data()
+            # First draw horizontal lines representing row subdivisions
+            for y in rowsub:
+                l=line2d([(lim['xmin'],y-0.5), (lim['xmax'],y-0.5)], **rowstyle)[0]
+                l._render_on_subplot(subplot)
+            for x in colsub:
+                l=line2d([(x-0.5, lim['ymin']), (x-0.5, lim['ymax'])], **colstyle)[0]
+                l._render_on_subplot(subplot)
+
         if hasattr(self.xy_data_array, 'tocoo'):
             # Sparse matrix -- use spy
             opts=options.copy()
@@ -184,8 +214,10 @@ class MatrixPlot(GraphicPrimitive):
         elif origin=='lower':
             subplot.xaxis.tick_bottom()
 
+@suboptions('subdivision',boundaries=None, style=None)
 @options(cmap='gray',marker='.',frame=True, axes=False, norm=None,
-         vmin=None, vmax=None, origin='upper',ticks_integer=True)
+         vmin=None, vmax=None, origin='upper',ticks_integer=True,
+         subdivisions=False)
 def matrix_plot(mat, **options):
     r"""
     A plot of a given matrix or 2D array.
@@ -226,6 +258,12 @@ def matrix_plot(mat, **options):
       is on the top of the graph.  If 'lower', the first row is on the
       bottom of the graph.
 
+    - ``subdivisions`` - If True, plot the subdivisions of the matrix as lines.
+
+    - ``subdivision_boundaries`` - a list of lists in the form ``[row_subdivisions, column_subdivisions]``, which specifies the row and column subdivisions to use.  If not specified, defaults to the matrix subdivisions
+
+    - ``subdivision_style`` - a dictionary of properties passed on to the :func:`~sage.plot.line.line2d` command for plotting subdivisions.  If this is a two-element list or tuple, then it specifies the styles of row and column divisions, respectively.
+
     EXAMPLES:
 
     A matrix over `\ZZ` colored with different grey levels::
@@ -257,6 +295,17 @@ def matrix_plot(mat, **options):
     there is no scaling performed::
 
         sage: matrix_plot(random_matrix(ZZ,10)*.05, norm='value')
+
+    Matrix subdivisions can be plotted as well::
+
+        sage: m=random_matrix(RR,10)
+        sage: m.subdivide([2,4],[6,8])
+        sage: matrix_plot(m, subdivisions=True, subdivision_style=dict(color='red',thickness=3))
+
+    You can also specify your own subdivisions and separate styles for row or column subdivisions::
+
+        sage: m=random_matrix(RR,10)
+        sage: matrix_plot(m, subdivisions=True, subdivision_boundaries=[[2,4],[6,8]], subdivision_style=[dict(color='red',thickness=3),dict(linestyle='--',thickness=6)])
 
     Generally matrices are plotted with the (0,0) entry in the upper
     left.  However, sometimes if we are plotting an image, we'd like
@@ -341,6 +390,7 @@ def matrix_plot(mat, **options):
     from sage.plot.plot import Graphics
     from sage.matrix.all import is_Matrix
     from sage.rings.all import RDF
+    orig_mat=mat
     if is_Matrix(mat):
         sparse = mat.is_sparse()
         if sparse:
@@ -375,6 +425,9 @@ def matrix_plot(mat, **options):
 
     xrange = (0, xy_data_array.shape[1])
     yrange = (0, xy_data_array.shape[0])
+
+    if options['subdivisions'] and options['subdivision_options']['boundaries'] is None:
+        options['subdivision_options']['boundaries']=orig_mat.subdivisions
 
     g = Graphics()
     g._set_extra_kwds(Graphics._extract_kwds_for_show(options))

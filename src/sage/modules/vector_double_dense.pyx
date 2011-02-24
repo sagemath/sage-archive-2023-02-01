@@ -39,6 +39,8 @@ import  free_module_element
 
 from sage.structure.element cimport Element, ModuleElement, RingElement, Vector
 
+from sage.rings.real_double import RDF
+
 from sage.rings.complex_double import CDF
 from sage.rings.complex_double cimport ComplexDoubleElement, new_ComplexDoubleElement
 
@@ -622,6 +624,127 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
             out[numpy.abs(out) <= eps] = 0
         v = self._new(out)
         return v
+
+
+    def norm(self, p=2):
+        r"""
+        Returns the norm (or related computations) of the vector.
+
+        INPUT:
+
+        - ``p`` - default: 2 - controls which norm is computed,
+          allowable values are any real number and positive and
+          negative infinity.  See output discussion for specifics.
+
+        OUTPUT:
+
+        Returned values is a double precision floating point value
+        in ``RDF`` (or an integer when ``p=0``.  The default value
+        of ``p = 2`` is the "usual" Euclidean norm.  For other values:
+
+        - ``p = Infinity`` or ``p = oo``: the maximum of the
+          absolute values of the entries, where the absolute value
+          of the complex number `a+bi` is `\sqrt{a^2+b^2}`.
+        - ``p = -Infinity`` or ``p = -oo``: the minimum of the
+          absolute values of the entries.
+        - ``p = 0`` : the number of nonzero entries in the vector.
+        - ``p`` is any other real number: for a vector `\vec{x}`
+          this method computes
+
+          .. math::
+
+                \left(\sum_i x_i^p\right)^{1/p}
+
+          For ``p < 0`` this function is not a norm, but the above
+          computation may be useful for other purposes.
+
+        ALGORITHM:
+
+        Computation is performed by the ``norm()`` function of
+        the SciPy/NumPy library.
+
+        EXAMPLES:
+
+        First over the reals.  ::
+
+            sage: v = vector(RDF, range(9))
+            sage: v.norm()
+            14.28285685...
+            sage: v.norm(p=2)
+            14.28285685...
+            sage: v.norm(p=6)
+            8.744039097...
+            sage: v.norm(p=Infinity)
+            8.0
+            sage: v.norm(p=-oo)
+            0.0
+            sage: v.norm(p=0)
+            8
+            sage: v.norm(p=0.3)
+            4099.153615...
+
+        And over the complex numbers.  ::
+
+            sage: w = vector(CDF, [3-4*I, 0, 5+12*I])
+            sage: w.norm()
+            13.9283882...
+            sage: w.norm(p=2)
+            13.9283882...
+            sage: w.norm(p=0)
+            2
+            sage: w.norm(p=4.2)
+            13.0555695...
+            sage: w.norm(p=oo)
+            13.0
+
+        Negative values of ``p`` are allowed and will
+        provide the same computation as for positive values.
+        A zero entry in the vector will raise a warning and return
+        zero. ::
+
+            sage: v = vector(CDF, range(1,10))
+            sage: v.norm(p=-3.2)
+            0.953760808...
+            sage: w = vector(CDF, [-1,0,1])
+            sage: w.norm(p=-1.6)
+            0.0
+
+        Return values are in ``RDF``, or an integer when ``p = 0``.  ::
+
+            sage: v = vector(RDF, [1,2,4,8])
+            sage: v.norm() in RDF
+            True
+            sage: v.norm(p=0) in ZZ
+            True
+
+        Improper values of ``p`` are caught.  ::
+
+            sage: w = vector(CDF, [-1,0,1])
+            sage: w.norm(p='junk')
+            Traceback (most recent call last):
+            ...
+            ValueError: vector norm 'p' must be +/- infinity or a real number, not junk
+        """
+        global numpy
+        if numpy is None:
+            import numpy
+        import sage.rings.infinity
+        import sage.rings.integer
+        if p == sage.rings.infinity.Infinity:
+            p = numpy.inf
+        elif p == -sage.rings.infinity.Infinity:
+            p = -numpy.inf
+        else:
+            try:
+                p = RDF(p)
+            except:
+                raise ValueError("vector norm 'p' must be +/- infinity or a real number, not %s" % p)
+        n = numpy.linalg.norm(self._vector_numpy, ord=p)
+        # p = 0 returns integer *count* of non-zero entries
+        if n.dtype == numpy.int64:
+            return sage.rings.integer.Integer(n)
+        else:
+            return RDF(n)
 
 
     #############################

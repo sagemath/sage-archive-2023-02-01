@@ -45,6 +45,7 @@ import math
 
 import sage.rings.real_double
 import sage.rings.complex_double
+
 from matrix cimport Matrix
 from sage.structure.element cimport ModuleElement,Vector
 from constructor import matrix
@@ -546,6 +547,315 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
     #    compute_LU(self)
     #
     ########################################################################
+
+
+    def condition(self, p='frob'):
+        r"""
+        Returns the condition number of a square nonsingular matrix.
+
+        Roughly speaking, this is a measure of how sensitive
+        the matrix is to round-off errors in numerical computations.
+        The minimum possible value is 1.0, and larger numbers indicate
+        greater sensitivity.
+
+        INPUT:
+
+        - ``p`` - default: 'frob' - controls which norm is used
+        to compute the condition number, allowable values are
+        'frob' (for the Frobenius norm), integers -2, -1, 1, 2,
+        positive and negative infinity. See output discussion
+        for specifics.
+
+        OUTPUT:
+
+        The condition number of a matrix is the product of a norm
+        of the matrix times the norm of the inverse of the matrix.
+        This requires that the matrix be square and invertible
+        (nonsingular, full rank).
+
+        Returned value is a double precision floating point value
+        in ``RDF``, or ``Infinity``.  Row and column sums described below are
+        sums of the absolute values of the entries, where the
+        absolute value of the complex number `a+bi` is `\sqrt{a^2+b^2}`.
+        Singular values are the "diagonal" entries of the "S" matrix in
+        the singular value decomposition.
+
+        - ``p = 'frob'``: the default norm employed in computing
+          the condition number, the Frobenius norm, which for a
+          matrix `A=(a_{ij})` computes
+
+          .. math::
+
+                \left(\sum_{i,j}\left\lvert{a_{i,j}}\right\rvert^2\right)^{1/2}
+
+        - ``p = Infinity`` or ``p = oo``: the maximum row sum.
+        - ``p = -Infinity`` or ``p = -oo``: the minimum colum sum.
+        - ``p = 1``: the maximum column sum.
+        - ``p = -1``: the minimum column sum.
+        - ``p = 2``: the 2-norm, equal to the maximum singular value.
+        - ``p = -2``: the minimum singular value.
+
+        ALGORITHM:
+
+        Computation is performed by the ``cond()`` function of
+        the SciPy/NumPy library.
+
+        EXAMPLES:
+
+        First over the reals.  ::
+
+            sage: A = matrix(RDF, 4, [(1/4)*x^3 for x in range(16)]); A
+            [   0.0   0.25    2.0   6.75]
+            [  16.0  31.25   54.0  85.75]
+            [ 128.0 182.25  250.0 332.75]
+            [ 432.0 549.25  686.0 843.75]
+            sage: A.condition()
+            9923.88955...
+            sage: A.condition(p='frob')
+            9923.88955...
+            sage: A.condition(p=Infinity)
+            22738.5
+            sage: A.condition(p=-Infinity)
+            17.5
+            sage: A.condition(p=1)
+            12139.21...
+            sage: A.condition(p=-1)
+            550.0
+            sage: A.condition(p=2)
+            9897.8088...
+            sage: A.condition(p=-2)
+            0.000101032462...
+
+        And over the complex numbers.  ::
+
+            sage: B = matrix(CDF, 3, [x + x^2*I for x in range(9)]); B
+            [           0  1.0 + 1.0*I  2.0 + 4.0*I]
+            [ 3.0 + 9.0*I 4.0 + 16.0*I 5.0 + 25.0*I]
+            [6.0 + 36.0*I 7.0 + 49.0*I 8.0 + 64.0*I]
+            sage: B.condition()
+            203.851798...
+            sage: B.condition(p='frob')
+            203.851798...
+            sage: B.condition(p=Infinity)
+            369.55630...
+            sage: B.condition(p=-Infinity)
+            5.46112969...
+            sage: B.condition(p=1)
+            289.251481...
+            sage: B.condition(p=-1)
+            20.4566639...
+            sage: B.condition(p=2)
+            202.653543...
+            sage: B.condition(p=-2)
+            0.00493453005...
+
+        Hilbert matrices are famously ill-conditioned, while
+        an identity matrix can hit the minimum with the right norm.  ::
+
+            sage: A = matrix(RDF, 10, [1/(i+j+1) for i in range(10) for j in range(10)])
+            sage: A.condition()
+            1.63346888329e+13
+            sage: id = identity_matrix(CDF, 10)
+            sage: id.condition(p=1)
+            1.0
+
+        Return values are in `RDF`.  ::
+
+            sage: A = matrix(CDF, 2, range(1,5))
+            sage: A.condition() in RDF
+            True
+
+        Rectangular and singular matrices raise errors.  ::
+
+            sage: A = matrix(RDF, 2, 3, range(6))
+            sage: A.condition()
+            Traceback (most recent call last):
+            ...
+            TypeError: matrix must be square, not 2 x 3
+
+            sage: A = matrix(QQ, 5, range(25))
+            sage: A.is_singular()
+            True
+            sage: B = A.change_ring(CDF)
+            sage: B.condition()
+            Traceback (most recent call last):
+            ...
+            LinAlgError: Singular matrix
+
+        Improper values of ``p`` are caught.  ::
+
+            sage: A = matrix(CDF, 2, range(1,5))
+            sage: A.condition(p='bogus')
+            Traceback (most recent call last):
+            ...
+            ValueError: condition number 'p' must be +/- infinity, 'frob' or an integer, not bogus
+            sage: A.condition(p=632)
+            Traceback (most recent call last):
+            ...
+            ValueError: condition number integer values of 'p' must be -2, -1, 1 or 2, not 632
+        """
+        if not self.is_square():
+            raise TypeError("matrix must be square, not %s x %s" % (self.nrows(), self.ncols()))
+        global numpy
+        if numpy is None:
+            import numpy
+        import sage.rings.infinity
+        import sage.rings.integer
+        import sage.rings.real_double
+        if p == sage.rings.infinity.Infinity:
+            p = numpy.inf
+        elif p == -sage.rings.infinity.Infinity:
+            p = -numpy.inf
+        elif p == 'frob':
+            p = 'fro'
+        else:
+            try:
+                p = sage.rings.integer.Integer(p)
+            except:
+                raise ValueError("condition number 'p' must be +/- infinity, 'frob' or an integer, not %s" % p)
+            if not p in [-2,-1,1,2]:
+                raise ValueError("condition number integer values of 'p' must be -2, -1, 1 or 2, not %s" % p)
+        # may raise a LinAlgError if matrix is singular
+        c = numpy.linalg.cond(self._matrix_numpy, p=p)
+        if c == numpy.inf:
+            return sage.rings.infinity.Infinity
+        else:
+            return sage.rings.real_double.RDF(c)
+
+    def norm(self, p='frob'):
+        r"""
+        Returns the norm of the matrix.
+
+        INPUT:
+
+        - ``p`` - default: 'frob' - controls which norm is computed,
+          allowable values are 'frob' (for the Frobenius norm),
+          integers -2, -1, 1, 2, positive and negative infinity.
+          See output discussion for specifics.
+
+        OUTPUT:
+
+        Returned value is a double precision floating point value
+        in ``RDF``.  Row and column sums described below are
+        sums of the absolute values of the entries, where the
+        absolute value of the complex number `a+bi` is `\sqrt{a^2+b^2}`.
+        Singular values are the "diagonal" entries of the "S" matrix in
+        the singular value decomposition.
+
+        - ``p = 'frob'``: the default, the Frobenius norm, which for
+          a matrix `A=(a_{ij})` computes
+
+          .. math::
+
+                \left(\sum_{i,j}\left\lvert{a_{i,j}}\right\rvert^2\right)^{1/2}
+
+        - ``p = Infinity`` or ``p = oo``: the maximum row sum.
+        - ``p = -Infinity`` or ``p = -oo``: the minimum colum sum.
+        - ``p = 1``: the maximum column sum.
+        - ``p = -1``: the minimum column sum.
+        - ``p = 2``: the 2-norm, equal to the maximum singular value.
+        - ``p = -2``: the minimum singular value.
+
+        ALGORITHM:
+
+        Computation is performed by the ``norm()`` function of
+        the SciPy/NumPy library.
+
+        EXAMPLES:
+
+        First over the reals.  ::
+
+            sage: A = matrix(RDF, 3, range(-3, 6)); A
+            [-3.0 -2.0 -1.0]
+            [ 0.0  1.0  2.0]
+            [ 3.0  4.0  5.0]
+            sage: A.norm()
+            8.30662386...
+            sage: A.norm(p='frob')
+            8.30662386...
+            sage: A.norm(p=Infinity)
+            12.0
+            sage: A.norm(p=-Infinity)
+            3.0
+            sage: A.norm(p=1)
+            8.0
+            sage: A.norm(p=-1)
+            6.0
+            sage: A.norm(p=2)
+            7.99575670...
+            sage: A.norm(p=-2)
+            3.84592537...e-16
+
+        And over the complex numbers.  ::
+
+            sage: B = matrix(CDF, 2, [[1+I, 2+3*I],[3+4*I,3*I]]); B
+            [1.0 + 1.0*I 2.0 + 3.0*I]
+            [3.0 + 4.0*I       3.0*I]
+            sage: B.norm()
+            7.0
+            sage: B.norm(p='frob')
+            7.0
+            sage: B.norm(p=Infinity)
+            8.0
+            sage: B.norm(p=-Infinity)
+            5.01976483...
+            sage: B.norm(p=1)
+            6.60555127...
+            sage: B.norm(p=-1)
+            6.41421356...
+            sage: B.norm(p=2)
+            6.66189877...
+            sage: B.norm(p=-2)
+            2.14921023...
+
+        Since it is invariant under unitary multiplication, the
+        Frobenius norm is equal to the square root of the sum of
+        squares of the singular values.  ::
+
+            sage: A = matrix(RDF, 5, range(1,26))
+            sage: f = A.norm(p='frob')
+            sage: U, S, V = A.SVD()
+            sage: s = sqrt(sum([S[i,i]^2 for i in range(5)]))
+            sage: abs(f-s) < 1.0e-12
+            True
+
+        Return values are in `RDF`.
+
+            sage: A = matrix(CDF, 2, range(4))
+            sage: A.norm() in RDF
+            True
+
+        Improper values of ``p`` are caught.  ::
+
+            sage: A.norm(p='bogus')
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix norm 'p' must be +/- infinity, 'frob' or an integer, not bogus
+            sage: A.norm(p=632)
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix norm integer values of 'p' must be -2, -1, 1 or 2, not 632
+        """
+        global numpy
+        if numpy is None:
+            import numpy
+        import sage.rings.infinity
+        import sage.rings.integer
+        import sage.rings.real_double
+        if p == sage.rings.infinity.Infinity:
+            p = numpy.inf
+        elif p == -sage.rings.infinity.Infinity:
+            p = -numpy.inf
+        elif p == 'frob':
+            p = 'fro'
+        else:
+            try:
+                p = sage.rings.integer.Integer(p)
+            except:
+                raise ValueError("matrix norm 'p' must be +/- infinity, 'frob' or an integer, not %s" % p)
+            if not p in [-2,-1,1,2]:
+                raise ValueError("matrix norm integer values of 'p' must be -2, -1, 1 or 2, not %s" % p)
+        return sage.rings.real_double.RDF(numpy.linalg.norm(self._matrix_numpy, ord=p))
 
     def LU(self):
         r"""

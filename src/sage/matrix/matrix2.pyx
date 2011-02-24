@@ -9642,7 +9642,7 @@ cdef class Matrix(matrix1.Matrix):
         Faster routines for double precision entries from `RDF` or `CDF` are provided by
         the :class:`~sage.matrix.matrix_double_dense.Matrix_double_dense` class.  ::
 
-            sage: A = matrix(RR, 2, 3, [3*I,4,1-I,1,2,0])
+            sage: A = matrix(CC, 2, 3, [3*I,4,1-I,1,2,0])
             sage: A.norm('frob')
             5.65685424949
             sage: A.norm(2)

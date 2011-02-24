@@ -638,8 +638,8 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
 
         OUTPUT:
 
-        Returned values is a double precision floating point value
-        in ``RDF`` (or an integer when ``p=0``.  The default value
+        Returned value is a double precision floating point value
+        in ``RDF`` (or an integer when ``p=0``).  The default value
         of ``p = 2`` is the "usual" Euclidean norm.  For other values:
 
         - ``p = Infinity`` or ``p = oo``: the maximum of the

@@ -4944,8 +4944,8 @@ class ProjectionFuncStereographic():
         sage: cube = polytopes.n_cube(3).vertices()
         sage: proj = ProjectionFuncStereographic([1.1,1.1,1.1])
         sage: ppoints = [proj(vector(x)) for x in cube]
-        sage: ppoints[0]
-        (0.0, 0.0)
+        sage: ppoints[1]
+        (-0.3182829598..., 1.18784817...)
     """
     def __init__(self, projection_point):
         """

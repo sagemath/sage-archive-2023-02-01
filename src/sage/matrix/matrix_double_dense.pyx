@@ -589,7 +589,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
                 \left(\sum_{i,j}\left\lvert{a_{i,j}}\right\rvert^2\right)^{1/2}
 
         - ``p = Infinity`` or ``p = oo``: the maximum row sum.
-        - ``p = -Infinity`` or ``p = -oo``: the minimum colum sum.
+        - ``p = -Infinity`` or ``p = -oo``: the minimum column sum.
         - ``p = 1``: the maximum column sum.
         - ``p = -1``: the minimum column sum.
         - ``p = 2``: the 2-norm, equal to the maximum singular value.
@@ -693,6 +693,21 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             Traceback (most recent call last):
             ...
             ValueError: condition number integer values of 'p' must be -2, -1, 1 or 2, not 632
+
+        TESTS:
+
+        Some condition numbers, first by the definition which also exercises
+        :meth:`norm`, then by this method.  ::
+
+            sage: A = matrix(CDF, [[1,2,4],[5,3,9],[7,8,6]])
+            sage: c = A.norm(2)*A.inverse().norm(2)
+            sage: d = A.condition(2)
+            sage: abs(c-d) < 1.0e-14
+            True
+            sage: c = A.norm(1)*A.inverse().norm(1)
+            sage: d = A.condition(1)
+            sage: abs(c-d) < 1.0e-14
+            True
         """
         if not self.is_square():
             raise TypeError("matrix must be square, not %s x %s" % (self.nrows(), self.ncols()))
@@ -713,7 +728,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
                 p = sage.rings.integer.Integer(p)
             except:
                 raise ValueError("condition number 'p' must be +/- infinity, 'frob' or an integer, not %s" % p)
-            if not p in [-2,-1,1,2]:
+            if p not in [-2,-1,1,2]:
                 raise ValueError("condition number integer values of 'p' must be -2, -1, 1 or 2, not %s" % p)
         # may raise a LinAlgError if matrix is singular
         c = numpy.linalg.cond(self._matrix_numpy, p=p)
@@ -750,7 +765,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
                 \left(\sum_{i,j}\left\lvert{a_{i,j}}\right\rvert^2\right)^{1/2}
 
         - ``p = Infinity`` or ``p = oo``: the maximum row sum.
-        - ``p = -Infinity`` or ``p = -oo``: the minimum colum sum.
+        - ``p = -Infinity`` or ``p = -oo``: the minimum column sum.
         - ``p = 1``: the maximum column sum.
         - ``p = -1``: the minimum column sum.
         - ``p = 2``: the 2-norm, equal to the maximum singular value.
@@ -819,7 +834,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: abs(f-s) < 1.0e-12
             True
 
-        Return values are in `RDF`.
+        Return values are in `RDF`. ::
 
             sage: A = matrix(CDF, 2, range(4))
             sage: A.norm() in RDF

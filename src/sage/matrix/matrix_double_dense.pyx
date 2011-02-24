@@ -1537,6 +1537,210 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         self.cache(key, unitary)
         return unitary
 
+    def _is_lower_triangular(self, tol):
+        r"""
+        Returns ``True`` if the entries above the diagonal are all zero.
+
+        INPUT:
+
+        - ``tol`` -  the largest value of the absolute value of the
+          difference between two matrix entries for which they will
+          still be considered equal.
+
+        OUTPUT:
+
+        Returns ``True`` if each entry above the diagonal (entries
+        with a row index less than the column index) is zero.
+
+        EXAMPLES::
+
+            sage: A = matrix(RDF, [[ 2.0, 0.0,  0.0],
+            ...                    [ 1.0, 3.0,  0.0],
+            ...                    [-4.0, 2.0, -1.0]])
+            sage: A._is_lower_triangular(1.0e-17)
+            True
+            sage: A[1,2] = 10^-13
+            sage: A._is_lower_triangular(1.0e-14)
+            False
+        """
+        global numpy
+        if numpy is None:
+            import numpy
+        cdef Py_ssize_t i, j
+        for i in range(self._nrows):
+            for j in range(i+1, self._ncols):
+                if numpy.absolute(self.get_unsafe(i,j)) > tol:
+                    return False
+        return True
+
+    def is_hermitian(self, tol = 1e-12, algorithm='orthonormal'):
+        r"""
+        Returns ``True`` if the matrix is equal to its conjugate-transpose.
+
+        INPUT:
+
+        - ``tol`` - default: ``1e-12`` - the largest value of the
+          absolute value of the difference between two matrix entries
+          for which they will still be considered equal.
+
+        - ``algorithm`` - default: 'orthonormal' - set to 'orthonormal'
+          for a stable procedure and set to 'naive' for a fast
+          procedure.
+
+        OUTPUT:
+
+        ``True`` if the matrix is square and equal to the transpose
+        with every entry conjugated, and ``False`` otherwise.
+
+        Note that if conjugation has no effect on elements of the base
+        ring (such as for integers), then the :meth:`is_symmetric`
+        method is equivalent and faster.
+
+        The tolerance parameter is used to allow for numerical values
+        to be equal if there is a slight difference due to round-off
+        and other imprecisions.
+
+        The result is cached, on a per-tolerance and per-algorithm basis.
+
+        ALGORITHMS::
+
+        The naive algorithm simply compares corresponing entries on either
+        side of the diagonal (and on the diagonal itself) to see if they are
+        conjugates, with equality controlled by the tolerance parameter.
+
+        The orthonormal algorithm first computes a Schur decomposition
+        (via the :meth:`schur` method) and checks that the result is a
+        diagonal matrix with real entries.
+
+        So the naive algorithm can finish quickly for a matrix that is not
+        Hermitian, while the orthonormal algorithm will always compute a
+        Schur decomposition before going through a similar check of the matrix
+        entry-by-entry.
+
+        EXAMPLES::
+
+            sage: A = matrix(CDF, [[ 1 + I,  1 - 6*I, -1 - I],
+            ...                    [-3 - I,     -4*I,     -2],
+            ...                    [-1 + I, -2 - 8*I,  2 + I]])
+            sage: A.is_hermitian(algorithm='orthonormal')
+            False
+            sage: A.is_hermitian(algorithm='naive')
+            False
+            sage: B = A*A.conjugate_transpose()
+            sage: B.is_hermitian(algorithm='orthonormal')
+            True
+            sage: B.is_hermitian(algorithm='naive')
+            True
+
+        A matrix that is nearly Hermitian, but for one non-real
+        diagonal entry. ::
+
+            sage: A = matrix(CDF, [[    2,   2-I, 1+4*I],
+            ...                    [  2+I,   3+I, 2-6*I],
+            ...                    [1-4*I, 2+6*I,     5]])
+            sage: A.is_hermitian(algorithm='orthonormal')
+            False
+            sage: A[1,1] = 132
+            sage: A.is_hermitian(algorithm='orthonormal')
+            True
+
+        We get a unitary matrix from the SVD routine and use this
+        numerical matrix to create a matrix that should be Hermitian
+        (indeed it should be the identity matrix), but with some
+        imprecision.  We use this to illustrate that if the tolerance
+        is set too small, then we can be too strict about the equality
+        of entries and achieve the wrong result.  ::
+
+            sage: A = matrix(CDF, [[ 1 + I,  1 - 6*I, -1 - I],
+            ...                    [-3 - I,     -4*I,     -2],
+            ...                    [-1 + I, -2 - 8*I,  2 + I]])
+            sage: U, _, _ = A.SVD()
+            sage: B=U*U.conjugate_transpose()
+            sage: B.is_hermitian(algorithm='naive')
+            True
+            sage: B.is_hermitian(algorithm='naive', tol=1.0e-17)
+            False
+            sage: B.is_hermitian(algorithm='naive', tol=1.0e-15)
+            True
+
+        A square, empty matrix is trivially Hermitian.  ::
+
+            sage: A = matrix(RDF, 0, 0)
+            sage: A.is_hermitian()
+            True
+
+        Rectangular matrices are never Hermitian, no matter which
+        algorithm is requested.  ::
+
+            sage: A = matrix(CDF, 3, 4)
+            sage: A.is_hermitian()
+            False
+
+        TESTS:
+
+        The tolerance must be strictly positive.  ::
+
+            sage: A = matrix(RDF, 2, range(4))
+            sage: A.is_hermitian(tol = -3.1)
+            Traceback (most recent call last):
+            ...
+            ValueError: tolerance must be positive, not -3.1
+
+        The ``algorithm`` keyword gets checked.  ::
+
+            sage: A = matrix(RDF, 2, range(4))
+            sage: A.is_hermitian(algorithm='junk')
+            Traceback (most recent call last):
+            ...
+            ValueError: algorithm must be 'naive' or 'orthonormal', not junk
+
+        AUTHOR:
+
+         - Rob Beezer (2011-03-30)
+        """
+        import sage.rings.complex_double
+        global numpy
+        tol = float(tol)
+        if tol <= 0:
+            raise ValueError('tolerance must be positive, not {0}'.format(tol))
+        if not algorithm in ['naive', 'orthonormal']:
+            raise ValueError("algorithm must be 'naive' or 'orthonormal', not {0}".format(algorithm))
+
+        key = 'hermitian_{0}_{1}'.format(algorithm, tol)
+        h = self.fetch(key)
+        if not h is None:
+            return h
+        if not self.is_square():
+            self.cache(key, False)
+            return False
+        if self._nrows == 0:
+            self.cache(key, True)
+            return True
+        if numpy is None:
+            import numpy
+        cdef Py_ssize_t i, j
+        cdef Matrix_double_dense T
+        if algorithm == 'orthonormal':
+            # Schur decomposition over CDF will be diagonal and real iff Hermitian
+            _, T = self.schur(base_ring=sage.rings.complex_double.CDF)
+            hermitian = T._is_lower_triangular(tol)
+            if hermitian:
+                for i in range(T._nrows):
+                    if numpy.absolute(numpy.imag(T.get_unsafe(i,i))) > tol:
+                        hermitian = False
+                        break
+        elif algorithm == 'naive':
+            hermitian = True
+            for i in range(self._nrows):
+                for j in range(i+1):
+                    if numpy.absolute(self.get_unsafe(i,j) - self.get_unsafe(j,i).conjugate()) > tol:
+                        hermitian = False
+                        break
+                if not hermitian:
+                    break
+        self.cache(key, hermitian)
+        return hermitian
+
     def schur(self, base_ring=None):
         r"""
         Returns the Schur decomposition of the matrix.

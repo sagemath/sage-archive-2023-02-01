@@ -3255,9 +3255,18 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         return R.fraction_field()[self.parent().variable_name()].quotient(self, names)
 
-    def sylvester_matrix(self, right):
+    def sylvester_matrix(self, right, variable = None):
         """
         Returns the Sylvester matrix of self and right.
+
+        Note that the Sylvester matrix is not defined if one of the polynomials
+        is zero.
+
+        INPUT:
+
+        - right: a polynomial in the same ring as self.
+        - variable: optional, included for compatibility with the multivariate
+          case only. The variable of the polynomials.
 
         EXAMPLES::
 
@@ -3265,7 +3274,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = (6*x + 47)*(7*x^2 - 2*x + 38)
             sage: g = (6*x + 47)*(3*x^3 + 2*x + 1)
             sage: M = f.sylvester_matrix(g)
-            sage: print M
+            sage: M
             [  42  317  134 1786    0    0    0]
             [   0   42  317  134 1786    0    0]
             [   0    0   42  317  134 1786    0]
@@ -3280,28 +3289,116 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: M.determinant()
             0
 
-            sage: f.sylvester_matrix(1 + g).determinant()
-            8493154736256
+        If self and right are polynomials of positive degree, the determinant
+        of the Sylvester matrix is the resultant of the polynomials.::
+
+            sage: h1 = R.random_element()
+            sage: h2 = R.random_element()
+            sage: M1 = h1.sylvester_matrix(h2)
+            sage: M1.determinant() == h1.resultant(h2)
+            True
 
         The rank of the Sylvester matrix is related to the degree of the
         gcd of self and right::
 
             sage: f.gcd(g).degree() == f.degree() + g.degree() - M.rank()
             True
+            sage: h1.gcd(h2).degree() == h1.degree() + h2.degree() - M1.rank()
+            True
+
+        TESTS:
+
+        The variable is optional, but must be the same in both rings::
+
+            sage: K.<x> = QQ['x']
+            sage: f = x+1
+            sage: g = QQ['y']([1, 0, 1])
+            sage: f.sylvester_matrix(f, x)
+            [1 1]
+            [1 1]
+            sage: f.sylvester_matrix(g, x)
+            Traceback (most recent call last):
+            ...
+            TypeError: no common canonical parent for objects with parents: 'Univariate Polynomial Ring in x over Rational Field' and 'Univariate Polynomial Ring in y over Rational Field'
+
+        Polynomials must be defined over compatible base rings::
+
+            sage: f = QQ['x']([1, 0, 1])
+            sage: g = ZZ['x']([1, 0, 1])
+            sage: h = GF(25, 'a')['x']([1, 0, 1])
+            sage: f.sylvester_matrix(g)
+            [1 0 1 0]
+            [0 1 0 1]
+            [1 0 1 0]
+            [0 1 0 1]
+            sage: g.sylvester_matrix(h)
+            [1 0 1 0]
+            [0 1 0 1]
+            [1 0 1 0]
+            [0 1 0 1]
+            sage: f.sylvester_matrix(h)
+            Traceback (most recent call last):
+            ...
+            TypeError: no common canonical parent for objects with parents: 'Univariate Polynomial Ring in x over Rational Field' and 'Univariate Polynomial Ring in x over Finite Field in a of size 5^2'
+
+        We can compute the sylvester matrix of a univariate and multivariate
+        polynomial::
+
+            sage: K.<x,y> = QQ['x,y']
+            sage: g = K.random_element()
+            sage: f.sylvester_matrix(g) == K(f).sylvester_matrix(g,x)
+            True
+
+        Corner cases::
+
+            sage: K.<x>=QQ[]
+            sage: f = x^2+1
+            sage: g = K(0)
+            sage: f.sylvester_matrix(g)
+            Traceback (most recent call last):
+            ...
+            ValueError: The Sylvester matrix is not defined for zero polynomials
+            sage: g.sylvester_matrix(f)
+            Traceback (most recent call last):
+            ...
+            ValueError: The Sylvester matrix is not defined for zero polynomials
+            sage: g.sylvester_matrix(g)
+            Traceback (most recent call last):
+            ...
+            ValueError: The Sylvester matrix is not defined for zero polynomials
+            sage: K(3).sylvester_matrix(x^2)
+            [3 0]
+            [0 3]
+            sage: K(3).sylvester_matrix(K(4))
+            []
         """
 
         # This code is almost exactly the same as that of
         # sylvester_matrix() in multi_polynomial.pyx.
 
-        if self.base_ring() != right.base_ring():
-            raise ValueError, "Both polynomials must be defined over the same base ring."
+        if self.parent() != right.parent():
+            coercion_model = sage.structure.element.get_coercion_model()
+            a, b = coercion_model.canonical_coercion(self,right)
+            variable = a.parent()(self.variables()[0])
+            #We add the variable to cover the case that right is a multivariate
+            #polynomial
+            return a.sylvester_matrix(b, variable)
+
+        if variable:
+            if variable.parent() != self.parent():
+                variable = self.parent()(variable)
 
         from sage.matrix.constructor import matrix
+
+        # The dimension of the sage matrix is self.degree() + right.degree()
+
+        if self.is_zero() or right.is_zero():
+            raise ValueError("The Sylvester matrix is not defined for zero polynomials")
 
         m = self.degree()
         n = right.degree()
 
-        M = matrix(self.base_ring(), m + n, m + n)
+        M = matrix(self.base_ring(), n + m, n + m)
 
         r = 0
         offset = 0

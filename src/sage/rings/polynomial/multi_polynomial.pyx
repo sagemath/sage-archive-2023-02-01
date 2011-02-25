@@ -999,10 +999,24 @@ cdef class MPolynomial(CommutativeRingElement):
         from sage.misc.misc_c import prod
         return prod(v).change_ring(k.prime_subfield())
 
-    def sylvester_matrix(self, right, variable):
+    def sylvester_matrix(self, right, variable = None):
         """
-        Returns the Sylvester matrix of self and right with respect to
-        the specified variable.
+        Given two nonzero polynomials self and right, returns the Sylvester
+        matrix of the polynomials with respect to a given variable.
+
+        Note that the Sylvester matrix is not defined if one of the polynomials
+        is zero.
+
+        INPUT:
+
+        - self , right: multivariate polynomials
+        - variable: optional, compute the Sylvester matrix with respect to this
+          variable. If variable is not provided, the first variable of the
+          polynomial ring is used.
+
+        OUTPUT:
+
+        - The Sylvester matrix of self and right.
 
         EXAMPLES::
 
@@ -1024,12 +1038,99 @@ cdef class MPolynomial(CommutativeRingElement):
 
             sage: f.sylvester_matrix(1 + g, x).determinant()
             y^2 - y + 7
+
+        If both polynomials are of positive degree with respect to variable, the
+        determinant of the Sylvester matrix is the resultant::
+
+            sage: f = R.random_element(4)
+            sage: g = R.random_element(4)
+            sage: f.sylvester_matrix(g, x).determinant() == f.resultant(g, x)
+            True
+
+        TEST:
+
+        The variable is optional::
+
+            sage: f = x + y
+            sage: g = x + y
+            sage: f.sylvester_matrix(g)
+            [1 y]
+            [1 y]
+
+        Polynomials must be defined over compatible base rings::
+
+            sage: K.<x, y> = QQ[]
+            sage: f = x + y
+            sage: L.<x, y> = ZZ[]
+            sage: g = x + y
+            sage: R.<x, y> = GF(25, 'a')[]
+            sage: h = x + y
+            sage: f.sylvester_matrix(g, 'x')
+            [1 y]
+            [1 y]
+            sage: g.sylvester_matrix(h, 'x')
+            [1 y]
+            [1 y]
+            sage: f.sylvester_matrix(h, 'x')
+            Traceback (most recent call last):
+            ...
+            TypeError: no common canonical parent for objects with parents: 'Multivariate Polynomial Ring in x, y over Rational Field' and 'Multivariate Polynomial Ring in x, y over Finite Field in a of size 5^2'
+            sage: K.<x, y, z> = QQ[]
+            sage: f = x + y
+            sage: L.<x, z> = QQ[]
+            sage: g = x + z
+            sage: f.sylvester_matrix(g)
+            [1 y]
+            [1 z]
+
+        Corner cases::
+
+            sage: K.<x ,y>=QQ[]
+            sage: f = x^2+1
+            sage: g = K(0)
+            sage: f.sylvester_matrix(g)
+            Traceback (most recent call last):
+            ...
+            ValueError: The Sylvester matrix is not defined for zero polynomials
+            sage: g.sylvester_matrix(f)
+            Traceback (most recent call last):
+            ...
+            ValueError: The Sylvester matrix is not defined for zero polynomials
+            sage: g.sylvester_matrix(g)
+            Traceback (most recent call last):
+            ...
+            ValueError: The Sylvester matrix is not defined for zero polynomials
+            sage: K(3).sylvester_matrix(x^2)
+            [3 0]
+            [0 3]
+            sage: K(3).sylvester_matrix(K(4))
+            []
+
         """
 
         # This code is almost exactly the same as that of
         # sylvester_matrix() in polynomial_element.pyx.
 
         from sage.matrix.constructor import matrix
+
+        if self.parent() != right.parent():
+            from sage.structure.element import get_coercion_model
+            coercion_model = get_coercion_model()
+            a, b = coercion_model.canonical_coercion(self,right)
+            if variable:
+                variable = a.parent()(variable)
+            #We add the variable in case right is a multivariate polynomial
+            return a.sylvester_matrix(b, variable)
+
+        if not variable:
+            variable = self.parent().gen()
+
+        #coerce the variable to a polynomial
+        if variable.parent() != self.parent():
+            variable = self.parent()(variable)
+
+        if self.is_zero() or right.is_zero():
+            raise ValueError("The Sylvester matrix is not defined for zero polynomials")
 
         m = self.degree(variable)
         n = right.degree(variable)

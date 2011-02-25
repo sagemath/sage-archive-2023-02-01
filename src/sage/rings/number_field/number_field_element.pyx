@@ -495,6 +495,13 @@ cdef class NumberFieldElement(FieldElement):
         EXAMPLES::
 
             sage: F=CyclotomicField(8)
+            sage: F.gen()
+            zeta8
+            sage: F._gap_init_()
+            'CyclotomicField(8)'
+            sage: f = gap(F)
+            sage: f.GeneratorsOfDivisionRing()
+            [ E(8) ]
             sage: p=F.gen()^2+2*F.gen()-3
             sage: p
             zeta8^2 + 2*zeta8 - 3

@@ -11,6 +11,11 @@ fi
 rm -rf "$SAGE_LOCAL"/lib/python2.*/site-packages/Cython*
 rm -rf "$SAGE_LOCAL"/lib/python/site-packages/Cython*
 
+# Fix broken tmp assignments.
+# Many of the array _t types are declared to be void*, so are considered
+# assignable to temps even if they're not.
+patch -p1 < patches/ExprNodes.py.diff
+
 cd src/
 
 python setup.py install

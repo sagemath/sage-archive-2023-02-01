@@ -73,26 +73,34 @@ def weak_popov_form(M,ascend=True):
     """
 
     # determine whether M has polynomial or rational function coefficients
-    R = M.base_ring()
+    R0 = M.base_ring()
+
     from sage.rings.ring import is_Field
-    if is_Field(R):
-        R = R.base()
+
+    #Compute the base polynomial ring
+
+    if is_Field(R0):
+        R = R0.base()
+    else:
+        R = R0
     from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
     if not is_PolynomialRing(R):
         raise TypeError("the coefficients of M must lie in a univariate polynomial ring")
 
     t = R.gen()
 
-    # calculate least-common denominator of matrix entries.  we coerce it
-    # to lie in R in the event that the entries of M lie in R (hence
-    # have no denominator)
+    # calculate least-common denominator of matrix entries and clear
+    # denominators. The result lies in R
     from sage.rings.arith import lcm
-    den = R(lcm([a.denominator() for a in M.list()]))
-
-    # clear denominators
     from sage.matrix.constructor import matrix
     from sage.misc.functional import numerator
-    num = matrix([(lambda x : map(numerator,  x))(v) for v in map(list,(M*den).rows())])
+    if is_Field(R0):
+        den = lcm([a.denominator() for a in M.list()])
+        num = matrix([(lambda x : map(numerator,  x))(v) for v in map(list,(M*den).rows())])
+    else:
+        # No need to clear denominators
+        den = R.one_element()
+        num = M
 
     r = [list(v) for v in num.rows()]
 

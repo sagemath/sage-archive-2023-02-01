@@ -4650,12 +4650,11 @@ cdef class Matrix(matrix1.Matrix):
 
         OUTPUT:
 
-        A 3-tuple `(W,N,d)` consisting of two matrices over `k(x)` and a list
-        of integers:
+        A 3-tuple `(W,N,d)` consisting of:
 
-        1. `W` - matrix giving a weak the Popov form of self
-        2. `N` - matrix representing row operations used to transform
-           `self` to `W`
+        1. `W` - a matrix over `k(x)` giving a weak the Popov form of self
+        2. `N` - a matrix over `k[x]` representing row operations used to
+            transform `self` to `W`
         3. `d` - degree of respective columns of W; the degree of a column is
            the maximum of the degree of its elements
 
@@ -4685,13 +4684,33 @@ cdef class Matrix(matrix1.Matrix):
 
         ::
 
-            sage: M = matrix([[t*(t-1)*(t+1)],[t*(t-2)*(t+2)],[t]])
-            sage: M.weak_popov_form()
+            sage: M1 = matrix([[t*(t-1)*(t+1)],[t*(t-2)*(t+2)],[t]])
+            sage: output1 = M1.weak_popov_form()
+            sage: output1
             (
             [0]  [        1         0 2*t^2 + 1]
             [0]  [        0         1 2*t^2 + 1]
             [t], [        0         0         1], [-Infinity, -Infinity, 1]
             )
+
+        We check that the output is the same for a matrix `M` if its entries are
+        rational functions intead of polynomials. We also check that the type of
+        the output follows the documentation. See #9063
+
+        ::
+
+            sage: M2 = M1.change_ring(K)
+            sage: output2 = M2.weak_popov_form()
+            sage: output1 == output2
+            True
+            sage: output1[0].base_ring() is K
+            True
+            sage: output2[0].base_ring() is K
+            True
+            sage: output1[1].base_ring() is R
+            True
+            sage: output2[1].base_ring() is R
+            True
 
         The following is the first half of example 5 in [H] *except* that we
         have transposed `self`; [H] uses column operations and we use row.

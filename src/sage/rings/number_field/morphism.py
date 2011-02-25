@@ -582,6 +582,19 @@ class RelativeNumberFieldHomomorphism_from_abs(RingHomomorphism):
         self.__im_gens = v
         return v
 
+    def __cmp__(self, other):
+        """
+        Compare
+        EXAMPLES:
+            sage: K.<a, b> = NumberField([x^2 - 2, x^2 - 3])
+            sage: e, u, v, w = End(K)
+            sage: all([u^2 == e, u*v == w, u != e])
+            True
+        """
+        if not isinstance(other, RelativeNumberFieldHomomorphism_from_abs):
+            return cmp(type(self), type(other))
+        return cmp(self.abs_hom(), other.abs_hom())
+
     def _repr_defn(self):
         r"""
         Return a string describing the images of the generators under this map.

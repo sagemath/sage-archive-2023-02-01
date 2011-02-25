@@ -657,7 +657,10 @@ cdef class RingHomomorphism(RingMap):
         """
         If ``homset`` is a homset of rings and ``right`` is a
         ring homomorphism given by the images of generators,
-        the composition with ``self`` will be of the same type.
+        (indirectly in the case of homomorphisms from relative
+        number fields), the composition with ``self`` will be
+        of the appropriate type.
+
         Otherwise, a formal composite map is returned.
 
         EXAMPLES::
@@ -672,6 +675,27 @@ cdef class RingHomomorphism(RingMap):
               To:   Fraction Field of Multivariate Polynomial Ring in a, b over Rational Field
               Defn: x |--> a + b
                     y |--> a - b
+
+        When ``right`` is defined by the images of generators, the
+        result has the type of a homomorphism between its domain and
+        codomain::
+
+            sage: C = CyclotomicField(24)
+            sage: f = End(C)[1]
+            sage: type(f*f) == type(f)
+            True
+
+        An example where the domain of ``right`` is a relative number field::
+            sage: PQ.<X> = QQ[]
+            sage: K.<a, b> = NumberField([X^2 - 2, X^2 - 3])
+            sage: e, u, v, w = End(K)
+            sage: u*v
+            Relative number field endomorphism of Number Field in a with defining polynomial X^2 - 2 over its base field
+              Defn: a |--> -a
+                    b |--> b
+
+        An example where ``right`` is not a ring homomorphism::
+
             sage: from sage.categories.morphism import SetMorphism
             sage: h = SetMorphism(Hom(R,S,Rings()), lambda p: p[0])
             sage: g*h
@@ -686,17 +710,25 @@ cdef class RingHomomorphism(RingMap):
                       From: Multivariate Polynomial Ring in a, b over Rational Field
                       To:   Fraction Field of Multivariate Polynomial Ring in a, b over Rational Field
 
-        AUTHOR:
+        AUTHORS:
 
         -- Simon King (2010-05)
+        -- Francis Clarke (2011-02)
 
         """
         from sage.all import Rings
-        if isinstance(right, RingHomomorphism_im_gens) and homset.homset_category().is_subcategory(Rings()):
-            try:
-                return RingHomomorphism_im_gens(homset, [self(g) for g in right.im_gens()])
-            except ValueError:
-                pass
+        if homset.homset_category().is_subcategory(Rings()):
+            if isinstance(right, RingHomomorphism_im_gens):
+                try:
+                    return homset([self(g) for g in right.im_gens()])
+                except ValueError:
+                    pass
+            from sage.rings.number_field.morphism import RelativeNumberFieldHomomorphism_from_abs
+            if isinstance(right, RelativeNumberFieldHomomorphism_from_abs):
+                try:
+                    return homset(self*right.abs_hom())
+                except ValueError:
+                    pass
         return sage.categories.map.Map._composition_(self, right, homset)
 
     def is_injective(self):

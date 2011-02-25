@@ -700,6 +700,18 @@ def lazy_import(module, names, _as=None, namespace=None, bint overwrite=True):
     like performing a lazy "from module import name" where the import
     is delayed until the object actually is used or inspected.
 
+    INPUT:
+
+    - module: a string representing the module to import.
+    - names: a string or list of strings representing the names to import from
+      module.
+    - _as: (optional) a string or list of strings representing the aliases of the names
+      imported.
+    - namespace: The namespace where importing the names. By default, import
+      the names to current namespace.
+    - overwrite: (default: True) If set to True and a name is already in the
+      namespace, overwrite it with the lazy_import-ed name.
+
     EXAMPLES::
 
         sage: from sage.misc.lazy_import import lazy_import
@@ -768,7 +780,7 @@ def save_cache_file():
 
 def get_star_imports(module_name):
     """
-    Lookup the list of names in a module that would be imported with "import *"
+    Lookup the list of names in a module that would be imported with "import \\*"
     either via a cache or actually importing.
 
     EXAMPLES::

@@ -212,7 +212,7 @@ This example illustrates switching between the built-in styles when using the tk
     ...
     \end{tikzpicture}
 
-This example illustrates using the optional dot2tex module.  ::
+This example illustrates using the optional dot2tex module::
 
     sage: g = graphs.PetersenGraph()
     sage: g.set_latex_options(format='dot2tex',prog='neato') # optional - requires dot2tex
@@ -222,6 +222,18 @@ This example illustrates using the optional dot2tex module.  ::
     \begin{tikzpicture}[>=latex,line join=bevel,]
     ...
     \end{tikzpicture}
+
+Among other things, this supports the flexible ``edge_options`` option
+(see :meth:`sage.graphs.generic_graph.GenericGraph.graphviz_string`);
+here we color in red all edges touching the vertex ``0``::
+
+   sage: G = graphs.PetersenGraph()
+   sage: G.set_latex_options(format="dot2tex", edge_options = lambda (u,v,label): { "color": "red" if u==0 else 1})
+    sage: latex(g) # optional - requires dot2tex
+    \begin{tikzpicture}[>=latex,line join=bevel,]
+    ...
+    \end{tikzpicture}
+
 
 TEST:
 
@@ -504,6 +516,7 @@ class GraphLatex(SageObject):
             'vertex_label_colors': {},
             'vertex_label_placement': 'center',
             'vertex_label_placements': {},
+            'edge_options': (),
             'edge_color': 'black',
             'edge_colors': {},
             'edge_fills': False,
@@ -521,6 +534,7 @@ class GraphLatex(SageObject):
             'edge_label_placements': {},
             'loop_placement': (3.0, 'NO'),
             'loop_placements': {},
+            'color_by_label' : False,
             }
 
     def __init__(self, graph, **options):
@@ -843,14 +857,14 @@ class GraphLatex(SageObject):
           string corresponding to one of the software of the graphviz
           suite: 'dot', 'neato', 'twopi', 'circo' or 'fdp'.
 
-        - ``edge_label`` -- a boolean (default: False). Whether to
+        - ``edge_labels`` -- a boolean (default: False). Whether to
           display the labels on edges.
 
         - ``edge_colors`` -- a color. Can be used to set a global
           color to the edge of the graph.
 
-        - color_by_label - a boolean (default: False). Colors the
-          edges according to their labels (only for dot2tex format)
+        - ``color_by_label`` - a boolean (default: False). Colors the
+          edges according to their labels
 
         OUTPUTS:
 
@@ -1317,14 +1331,14 @@ class GraphLatex(SageObject):
             sage: print g.latex_options().dot2tex_picture()  # optional - requires dot2tex and graphviz
             \begin{tikzpicture}[>=latex,line join=bevel,]
             %%
-              \node ('0'+1) at (60bp,9bp) [draw,draw=none] {$\left(\text{0}, 1\right)$};
-              \node ('0'+0) at (14bp,63bp) [draw,draw=none] {$\left(\text{0}, 0\right)$};
-              \node ('1'+0) at (60bp,63bp) [draw,draw=none] {$\left(\text{1}, 0\right)$};
-              \node ('1'+1) at (14bp,9bp) [draw,draw=none] {$\left(\text{1}, 1\right)$};
-              \draw [->] ('1'+0) ..controls (60bp,47bp) and (60bp,37bp)  .. ('0'+1);
-              \draw [->] ('0'+0) ..controls (29bp,46bp) and (38bp,35bp)  .. ('0'+1);
-              \draw [->] ('0'+0) ..controls (14bp,47bp) and (14bp,37bp)  .. ('1'+1);
-              \draw [->] ('1'+0) ..controls (45bp,46bp) and (36bp,35bp)  .. ('1'+1);
+              \node (0+1) at (...bp,...bp) [draw,draw=none] {$\left(\text{0}, 1\right)$};
+              \node (0+0) at (...bp,...bp) [draw,draw=none] {$\left(\text{0}, 0\right)$};
+              \node (1+0) at (...bp,...bp) [draw,draw=none] {$\left(\text{1}, 0\right)$};
+              \node (1+1) at (...bp,...bp) [draw,draw=none] {$\left(\text{1}, 1\right)$};
+              \draw [->] (1+0) ..controls (...bp,...bp) and (...bp,...bp)  .. (0+1);
+              \draw [->] (0+0) ..controls (...bp,...bp) and (...bp,...bp)  .. (0+1);
+              \draw [->] (0+0) ..controls (...bp,...bp) and (...bp,...bp)  .. (1+1);
+              \draw [->] (1+0) ..controls (...bp,...bp) and (...bp,...bp)  .. (1+1);
             %
             \end{tikzpicture}
 

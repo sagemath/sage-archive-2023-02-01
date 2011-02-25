@@ -12167,39 +12167,116 @@ class GenericGraph(GenericGraph_pyx):
 
     ### Visualization
 
-    def _color_by_label(self, format='hex'):
+    def _color_by_label(self, format='hex', as_function=False, default_color = "black"):
         """
-        Logic for coloring by label (factored out from plot() for use in 3d
-        plots, etc)
+        Coloring of the edges according to their label for plotting
 
-        EXAMPLES::
+        INPUT:
+
+         - ``format`` -- "rgbtuple", "hex", ``True`` (same as "hex"),
+           or a function or dictionary assigning colors to labels
+           (default: "hex")
+         - ``default_color`` -- a color (as a string) or None (default: "black")
+         - ``as_function`` -- boolean (default: ``False``)
+
+        OUTPUT: A coloring of the edges of this graph.
+
+        If ``as_function`` is ``True``, then the coloring is returned
+        as a function assigning a color to each label. Otherwise (the
+        default, for backward compatibility), the coloring is returned
+        as a dictionary assigning to each color the list of the edges
+        of the graph of that color.
+
+        This is factored out from plot() for use in 3d plots, etc.
+
+        If ``format`` is a function, then it is used directly as
+        coloring. Otherwise, for each label a default color is chosen
+        along a rainbow (see :func:`sage.plot.colors.rainbow`). If
+        ``format`` is a dictionary, then the colors specified there
+        override the default choices.
+
+        EXAMPLES:
+
+        We consider the Cayley graph of the symmetric group, whose
+        edges are labelled by the numbers 1,2, and 3::
 
             sage: G = SymmetricGroup(4).cayley_graph()
-            sage: G.num_edges()
-            72
+            sage: set(G.edge_labels())
+            set([1, 2, 3])
+
+        We first request the coloring as a function::
+
+            sage: f = G._color_by_label(as_function=True)
+            sage: [f(1), f(2), f(3)]
+            ['#00ff00', '#ff0000', '#0000ff']
+            sage: f = G._color_by_label({1: "blue", 2: "red", 3: "green"}, as_function=True)
+            sage: [f(1), f(2), f(3)]
+            ['blue', 'red', 'green']
+            sage: f = G._color_by_label({1: "red"}, as_function=True)
+            sage: [f(1), f(2), f(3)]
+            ['red', 'black', 'black']
+            sage: f = G._color_by_label({1: "red"}, as_function=True, default_color = 'blue')
+            sage: [f(1), f(2), f(3)]
+            ['red', 'blue', 'blue']
+
+        The default output is a dictionary assigning edges to colors::
+
             sage: G._color_by_label()
             {'#00ff00': [((1,4,3,2), (1,4,3), 1), ... ((1,2)(3,4), (3,4),     1)],
              '#ff0000': [((1,4,3,2), (1,4,2), 2), ... ((1,2)(3,4), (1,3,4,2), 2)],
              '#0000ff': [((1,4,3,2), (1,3,2), 3), ... ((1,2)(3,4), (1,2),     3)]}
+
+            sage: G._color_by_label({1: "blue", 2: "red", 3: "green"})
+            {'blue':    [((1,4,3,2), (1,4,3), 1), ... ((1,2)(3,4), (3,4),     1)],
+             'green':   [((1,4,3,2), (1,3,2), 3), ... ((1,2)(3,4), (1,2),     3)],
+             'red':     [((1,4,3,2), (1,4,2), 2), ... ((1,2)(3,4), (1,3,4,2), 2)]}
+
+        TESTS:
+
+        We check what happens when several labels have the same color::
+
+            sage: result = G._color_by_label({1: "blue", 2: "blue", 3: "green"})
+            sage: result.keys()
+            ['blue', 'green']
+            sage: len(result['blue'])
+            48
+            sage: len(result['green'])
+            24
         """
-        from sage.plot.colors import rainbow
-        edge_labels = []
-        for e in self.edge_iterator():
-            i = 0
-            while i < len(edge_labels):
-                if not edge_labels[i][0][2] == e[2]:
-                    i += 1
-                else:
-                    edge_labels[i].append(e)
-                    break
-            if i == len(edge_labels):
-                edge_labels.append([e])
-        num_labels = len(edge_labels)
-        r = rainbow(num_labels, format=format)
-        edge_colors = {}
-        for i in range(num_labels):
-            edge_colors[r[i]] = edge_labels[i]
-        return edge_colors
+        if format is True:
+            format = "hex"
+        if isinstance(format, str):
+            # Find all labels; this is slower and huglier than:
+            #    labels = set(edge[2] for edge in self.edge_iterator())
+            # but works with non hashable edge labels, and keeps backward
+            # compatibility for the label ordering.
+            labels = []
+            for edge in self.edge_iterator():
+                label = edge[2]
+                if label not in labels:
+                    labels.append(label)
+
+            from sage.plot.colors import rainbow
+            colors = rainbow(len(labels), format=format)
+            color_of_label = dict(zip(labels, colors))
+            color_of_label = color_of_label.__getitem__
+        elif isinstance(format, dict):
+            color_of_label = lambda label: format.get(label, default_color)
+        else:
+            # This assumes that ``format`` is already a function
+            color_of_label = format
+
+        if as_function:
+            return color_of_label
+
+        edges_by_color = {}
+        for edge in self.edge_iterator():
+            color = color_of_label(edge[2])
+            if color in edges_by_color:
+                edges_by_color[color].append(edge)
+            else:
+                edges_by_color[color] = [edge]
+        return edges_by_color
 
     def latex_options(self):
         r"""
@@ -12601,18 +12678,18 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g = digraphs.ButterflyGraph(2)
             sage: g.layout_graphviz() # optional - dot2tex, graphviz
-            {('00', 0): [...,...],
-             ('00', 1): [...,...],
-             ('00', 2): [...,...],
-             ('01', 0): [...,...],
-             ('01', 1): [...,...],
-             ('01', 2): [...,...],
-             ('10', 0): [...,...],
-             ('10', 1): [...,...],
-             ('10', 2): [...,...],
-             ('11', 0): [...,...],
-             ('11', 1): [...,...],
-             ('11', 2): [...,...]}
+            {('...', ...): [...,...],
+             ('...', ...): [...,...],
+             ('...', ...): [...,...],
+             ('...', ...): [...,...],
+             ('...', ...): [...,...],
+             ('...', ...): [...,...],
+             ('...', ...): [...,...],
+             ('...', ...): [...,...],
+             ('...', ...): [...,...],
+             ('...', ...): [...,...],
+             ('...', ...): [...,...],
+             ('...', ...): [...,...]}
             sage: g.plot(layout = "graphviz") # optional - dot2tex, graphviz
 
         Note: the actual coordinates are not deterministic
@@ -12650,7 +12727,7 @@ class GenericGraph(GenericGraph_pyx):
         key_to_vertex = dict( (key(v), v) for v in self )
 
         import dot2tex
-        positions = dot2tex.dot2tex(self.graphviz_string(), format = "positions", prog = prog)
+        positions = dot2tex.dot2tex(self.graphviz_string(**options), format = "positions", prog = prog)
 
         return dict( (key_to_vertex[key], pos) for (key, pos) in positions.iteritems() )
 
@@ -12697,7 +12774,7 @@ class GenericGraph(GenericGraph_pyx):
 
 
     @options(vertex_size=200, vertex_labels=True, layout=None,
-            edge_style='solid', edge_colors='black', edge_labels=False,
+            edge_style='solid', edge_color='black',edge_colors=None, edge_labels=False,
             iterations=50, tree_orientation='down', heights=None, graph_border=False,
             talk=False, color_by_label=False, partition=None,
             dist = .075, max_dist=1.5, loop_size=.075)
@@ -12728,7 +12805,7 @@ class GenericGraph(GenericGraph_pyx):
         return GraphPlot(graph=self, options=options)
 
     @options(vertex_size=200, vertex_labels=True, layout=None,
-            edge_style='solid', edge_colors='black', edge_labels=False,
+            edge_style='solid', edge_color = 'black', edge_colors=None, edge_labels=False,
             iterations=50, tree_orientation='down', heights=None, graph_border=False,
             talk=False, color_by_label=False, partition=None,
             dist = .075, max_dist=1.5, loop_size=.075)
@@ -13312,7 +13389,7 @@ class GenericGraph(GenericGraph_pyx):
             <function key at ...
         """
         from sage.graphs.dot2tex_utils import key, key_with_hash
-        if len(set(key(v) for v in self)) < len(self.vertices()):
+        if len(set(key(v) for v in self)) < self.num_verts():
             # There was a collision in the keys; we include a hash to be safe.
             return key_with_hash
         else:
@@ -13323,6 +13400,7 @@ class GenericGraph(GenericGraph_pyx):
     @options(labels="string",
             vertex_labels=True,edge_labels=False,
             edge_color=None,edge_colors=None,
+            edge_options = (),
             color_by_label=False)
     def graphviz_string(self, **options):
         r"""
@@ -13347,7 +13425,7 @@ class GenericGraph(GenericGraph_pyx):
         - ``edge_color`` - (default: None) specify a default color for the
           edges.
 
-        - ``edge_colors`` - (default: None) a dictionary which keys
+        - ``edge_colors`` - (default: None) a dictionary whose keys
           are colors and values are list of edges. The list of edges need not to
           be complete in which case the default color is used.
 
@@ -13355,6 +13433,8 @@ class GenericGraph(GenericGraph_pyx):
           color each edge with a different color according to its
           label. This overwrites the options ``edge_color`` and ``edge_colors``.
 
+        - ``edge_options`` - a function (or tuple thereof) mapping
+          edges to a dictionary of options for this edge.
 
         EXAMPLES::
 
@@ -13437,6 +13517,125 @@ class GenericGraph(GenericGraph_pyx):
               "2" -> "1/3" [label=" ", texlbl="$x \ {\mapsto}\ \frac{1}{x + 1}$"];
             }
 
+            sage: print G.graphviz_string(labels="latex",color_by_label=True)
+            digraph {
+              node [shape="plaintext"];
+              "2/3" [label=" ", texlbl="$\frac{2}{3}$"];
+              "1/3" [label=" ", texlbl="$\frac{1}{3}$"];
+              "1/2" [label=" ", texlbl="$\frac{1}{2}$"];
+              "1" [label=" ", texlbl="$1$"];
+              "1/4" [label=" ", texlbl="$\frac{1}{4}$"];
+              "4/5" [label=" ", texlbl="$\frac{4}{5}$"];
+              "-4" [label=" ", texlbl="$-4$"];
+              "2" [label=" ", texlbl="$2$"];
+              "-2" [label=" ", texlbl="$-2$"];
+              "-1/2" [label=" ", texlbl="$-\frac{1}{2}$"];
+              "-1" [label=" ", texlbl="$-1$"];
+            <BLANKLINE>
+              "1/2" -> "-2" [color = "#ff0000"];
+              "1/2" -> "2/3" [color = "#00ffff"];
+              "1" -> "-1" [color = "#ff0000"];
+              "1" -> "1/2" [color = "#00ffff"];
+              "1/4" -> "-4" [color = "#ff0000"];
+              "1/4" -> "4/5" [color = "#00ffff"];
+              "2" -> "-1/2" [color = "#ff0000"];
+              "2" -> "1/3" [color = "#00ffff"];
+            }
+
+            sage: print G.graphviz_string(labels="latex",color_by_label={ f: "red", g: "blue" })
+            digraph {
+              node [shape="plaintext"];
+              "2/3" [label=" ", texlbl="$\frac{2}{3}$"];
+              "1/3" [label=" ", texlbl="$\frac{1}{3}$"];
+              "1/2" [label=" ", texlbl="$\frac{1}{2}$"];
+              "1" [label=" ", texlbl="$1$"];
+              "1/4" [label=" ", texlbl="$\frac{1}{4}$"];
+              "4/5" [label=" ", texlbl="$\frac{4}{5}$"];
+              "-4" [label=" ", texlbl="$-4$"];
+              "2" [label=" ", texlbl="$2$"];
+              "-2" [label=" ", texlbl="$-2$"];
+              "-1/2" [label=" ", texlbl="$-\frac{1}{2}$"];
+              "-1" [label=" ", texlbl="$-1$"];
+            <BLANKLINE>
+              "1/2" -> "-2" [color = "red"];
+              "1/2" -> "2/3" [color = "blue"];
+              "1" -> "-1" [color = "red"];
+              "1" -> "1/2" [color = "blue"];
+              "1/4" -> "-4" [color = "red"];
+              "1/4" -> "4/5" [color = "blue"];
+              "2" -> "-1/2" [color = "red"];
+              "2" -> "1/3" [color = "blue"];
+            }
+
+        Edge-specific options can also be specified by providing a
+        function (or tuple thereof) which maps each edge to a
+        dictionary of options. Valid options are "color", "backward"
+        (a boolean), "dot" (a string containing a sequence of options
+        in dot format), "label" (a string), "label_style" ("string" or
+        "latex"), "edge_string" ("--" or "->"). Here we state that the
+        graph should be laid out so that edges starting from ``1`` are
+        going backward (e.g. going up instead of down)::
+
+            sage: def edge_options((u,v,label)):
+            ...       return { "backward": u == 1 }
+            sage: print G.graphviz_string(edge_options = edge_options)
+            digraph {
+              "2/3" [label="2/3"];
+              "1/3" [label="1/3"];
+              "1/2" [label="1/2"];
+              "1" [label="1"];
+              "1/4" [label="1/4"];
+              "4/5" [label="4/5"];
+              "-4" [label="-4"];
+              "2" [label="2"];
+              "-2" [label="-2"];
+              "-1/2" [label="-1/2"];
+              "-1" [label="-1"];
+            <BLANKLINE>
+              "1/2" -> "-2";
+              "1/2" -> "2/3";
+              "-1" -> "1" [dir=back];
+              "1/2" -> "1" [dir=back];
+              "1/4" -> "-4";
+              "1/4" -> "4/5";
+              "2" -> "-1/2";
+              "2" -> "1/3";
+            }
+
+        We now test all options::
+
+            sage: def edge_options((u,v,label)):
+            ...       options = { "color": { f: "red", g: "blue" }[label] }
+            ...       if (u,v) == (1/2, -2): options["label"]       = "coucou"; options["label_style"] = "string"
+            ...       if (u,v) == (1/2,2/3): options["dot"]         = "x=1,y=2"
+            ...       if (u,v) == (1,   -1): options["label_style"] = "latex"
+            ...       if (u,v) == (1,  1/2): options["edge_string"] = "<-"
+            ...       if (u,v) == (1/2,  1): options["backward"]    = True
+            ...       return options
+            sage: print G.graphviz_string(edge_options = edge_options)
+            digraph {
+              "2/3" [label="2/3"];
+              "1/3" [label="1/3"];
+              "1/2" [label="1/2"];
+              "1" [label="1"];
+              "1/4" [label="1/4"];
+              "4/5" [label="4/5"];
+              "-4" [label="-4"];
+              "2" [label="2"];
+              "-2" [label="-2"];
+              "-1/2" [label="-1/2"];
+              "-1" [label="-1"];
+            <BLANKLINE>
+              "1/2" -> "-2" [label="coucou", color = "red"];
+              "1/2" -> "2/3" [x=1,y=2, color = "blue"];
+              "1" -> "-1" [label=" ", texlbl="$x \ {\mapsto}\ -\frac{1}{x}$", color = "red"];
+              "1" <- "1/2" [color = "blue"];
+              "1/4" -> "-4" [color = "red"];
+              "1/4" -> "4/5" [color = "blue"];
+              "2" -> "-1/2" [color = "red"];
+              "2" -> "1/3" [color = "blue"];
+            }
+
         TESTS:
 
         The following digraph has tuples as vertices::
@@ -13484,53 +13683,58 @@ class GenericGraph(GenericGraph_pyx):
 
         if self.is_directed():
             graph_string = "digraph"
-            edge_string = "->"
+            default_edge_string = "->"
         else:
             graph_string = "graph"
-            edge_string = "--"
+            default_edge_string = "--"
 
-        if options['color_by_label']:
-            edges_by_color = self._color_by_label('hex')
-            not_colored_edges = []
-        elif options['edge_colors'] is not None:
-            if not isinstance(options['edge_colors'],dict):
-                raise ValueError, "incorrect format for edge_colors"
-            not_colored_edges = set(self.edges(labels=True))
-            edges_by_color = {}
-            for color,l in options['edge_colors'].iteritems():
-                edges_by_color[color] = []
-                for t in l:
-                    if len(t) == 2:
-                        if self.has_multiple_edges():
-                            for label in self.edge_label(t[0],t[1]):
-                                not_colored_edges.remove((t[0],t[1],label))
-                                edges_by_color[color].append((t[0],t[1],label))
-                        else:
-                            label = self.edge_label(t[0],t[1])
-                            not_colored_edges.remove((t[0],t[1],label))
-                            edges_by_color[color].append((t[0],t[1],label))
-                    elif len(t) == 3:
-                        t = tuple(t)
-                        if t not in not_colored_edges:
-                            raise ValueError, "%s is not an edge" %str(t)
-                        not_colored_edges.remove(t)
-                        edges_by_color[color].append(t)
-                    else:
-                        raise ValueError, "%s is not a valid format for edge" %str(t)
+        edge_option_functions = options['edge_options']
+        if not isinstance(edge_option_functions, (tuple,list)):
+            edge_option_functions = [edge_option_functions]
         else:
-            edges_by_color = []
-            not_colored_edges = self.edge_iterator(labels=True)
+            edge_option_functions = list(edge_option_functions)
 
         if options['edge_color'] is not None:
             default_color = options['edge_color']
         else:
             default_color = None
 
+        if options['color_by_label'] is not False:
+            color_by_label = self._color_by_label(format = options['color_by_label'], as_function = True, default_color=default_color)
+            edge_option_functions.append(lambda (u,v,label): {"color": color_by_label(label)})
+        elif options['edge_colors'] is not None:
+            if not isinstance(options['edge_colors'],dict):
+                raise ValueError, "incorrect format for edge_colors"
+            color_by_edge = {}
+            for color in options['edge_colors'].keys():
+                for edge in options['edge_colors'][color]:
+                    assert isinstance(edge, tuple) and len(edge) >= 2 and len(edge) <= 3,\
+                        "%s is not a valid format for edge"%(edge)
+                    u = edge[0]
+                    v = edge[1]
+                    assert self.has_edge(*edge), "%s is not an edge"%(edge)
+                    if len(edge) == 2:
+                        if self.has_multiple_edges():
+                            for label in self.edge_label(u,v):
+                                color_by_edge[(u,v,label)] = color
+                        else:
+                            label = self.edge_label(u,v)
+                            color_by_edge[(u,v,label)] = color
+                    elif len(edge) == 3:
+                        color_by_edge[edge] = color
+
+            edge_option_functions.append(lambda edge: {"color": color_by_edge[edge]} if edge in color_by_edge else {})
+
+        else:
+            edges_by_color = []
+            not_colored_edges = self.edge_iterator(labels=True)
+
         key = self._keys_for_vertices()
 
         s = '%s {\n' % graph_string
         if (options['vertex_labels'] and
             options['labels'] == "latex"): # not a perfect option name
+            # TODO: why do we set this only for latex labels?
             s += '  node [shape="plaintext"];\n'
         for v in self.vertex_iterator():
             if not options['vertex_labels']:
@@ -13543,27 +13747,45 @@ class GenericGraph(GenericGraph_pyx):
             s += '  "%s"%s;\n'%(key(v),node_options)
 
         s += "\n"
+        if default_color is not None:
+            s += 'edge [color="%s"];\n'%default_color
 
-        if not_colored_edges and default_color is not None:
-            s += '  edge [color="%s"];\n' %default_color
-        for u,v,label in not_colored_edges:
-            if options['edge_labels'] is False or label is None:
-                s += '  "%s" %s "%s";\n' % (key(u), edge_string, key(v))
-            elif options['labels'] == "latex":
-                s += '  "%s" %s "%s" [label=" ", texlbl="$%s$"];\n' % (key(u), edge_string, key(v), quoted_latex(label))
-            else:
-                s += '  "%s" %s "%s" [label="%s"];\n' % (key(u), edge_string, key(v), label)
+        for (u,v,label) in self.edge_iterator():
+            edge_options = {
+                'backward': False,
+                'dot': None,
+                'edge_string': default_edge_string,
+                'color'   : default_color,
+                'label'   : label,
+                'label_style': options['labels'] if options['edge_labels'] else None
+                }
+            for f in edge_option_functions:
+                edge_options.update(f((u,v,label)))
 
-        for color in edges_by_color:
-            s += '  edge [color="%s"];\n' %color
-            for u,v,label in edges_by_color[color]:
-                if options['edge_labels'] is False or label is None:
-                    s += '  "%s" %s "%s";\n' % (key(u), edge_string, key(v))
-                elif options['labels'] == "latex":
-                    s += '  "%s" %s "%s" [label=" ", texlbl="$%s$"];\n' % (key(u), edge_string, key(v), quoted_latex(label))
+            dot_options = []
+
+            if edge_options['dot'] is not None:
+                assert isinstance(edge_options['dot'], str)
+                dot_options.append(edge_options['dot'])
+
+            label = edge_options['label']
+            if label is not None and edge_options['label_style'] is not None:
+                if edge_options['label_style'] == 'latex':
+                    dot_options.append('label=" ", texlbl="$%s$"'%quoted_latex(label))
                 else:
-                    s += '  "%s" %s "%s" [label="%s"];\n' % (key(u), edge_string, key(v), label)
+                    dot_options.append('label="%s"'% label)
 
+            if edge_options['color'] != default_color:
+                dot_options.append('color = "%s"'%edge_options['color'])
+
+            if edge_options['backward']:
+                v,u = u,v
+                dot_options.append('dir=back')
+
+            s+= '  "%s" %s "%s"' % (key(u), edge_options['edge_string'], key(v))
+            if len(dot_options) > 0:
+                s += " [" + ", ".join(dot_options)+"]"
+            s+= ";\n"
         s += "}"
 
         return s

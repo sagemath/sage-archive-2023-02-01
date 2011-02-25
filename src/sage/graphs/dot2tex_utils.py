@@ -75,8 +75,9 @@ def quoted_latex(x):
 
 def quoted_str(x):
     """
-    Strips the latex representation of ``x`` to make it suitable for a
-    ``dot2tex`` string.
+    Strips the string representation of ``x`` to make it suitable for
+    a ``dot2tex`` string, and especially a node label (``dot2tex``
+    gets confused by newlines, and braces)
 
     EXAMPLES::
 
@@ -87,19 +88,21 @@ def quoted_str(x):
         [0 1]\n\
         [0 0]
     """
-    return re.sub("\n",r"\\n\\"+"\n", re.sub("\"|\r","", str(x)))
+    return re.sub("\n",r"\\n\\"+"\n", re.sub("\"|\r|}|{","", str(x)))
 
 def key(x):
-    """
-    Strips the string representation of ``x`` from quotes and newlines
+    r"""
+    Strips the string representation of ``x`` of quotes and newlines
     to get a key suitable for naming vertices in a dot2tex string.
 
     EXAMPLES::
 
         sage: sage.graphs.dot2tex_utils.key(matrix([[1,1],[0,1],[0,0]]))
         '110100'
+        sage: sage.graphs.dot2tex_utils.key("blah{bleh}\nblih{")
+        'blahblehblih'
     """
-    return re.sub("[\\\'\"\[\]() \t\r\n]","", str(x))
+    return re.sub("[\\\'\"\[\]() \t\r\n{}]","", str(x))
 
 def key_with_hash(x):
     """

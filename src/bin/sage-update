@@ -20,6 +20,7 @@ import shutil
 import sys
 import urllib
 from textwrap import fill
+import subprocess
 
 
 # Figure out what the package server is, where we will download our
@@ -343,6 +344,23 @@ def do_update():
         print "Abort."
         sys.exit(2)
 
+    # check sage root repo.  if present, check status; if there are
+    # any unchecked in changes, abort.
+    os.chdir(SAGE_ROOT)
+    err = subprocess.call('./sage -hg verify', shell=True,
+                          stdout=subprocess.PIPE,
+                          stderr=subprocess.PIPE)
+    root_repo_intact = (err == 0)
+    if root_repo_intact:
+        P = subprocess.Popen('./sage -hg status', shell=True,
+                             stdout=subprocess.PIPE)
+        output = P.communicate()[0]
+        if len(output) > 0: # uncommitted changes
+            print ("There are uncommitted changes in the "
+                   + "Sage root repository. Aborting.")
+            sys.exit(2)
+
+    os.chdir(os.path.join(SPKG_ROOT, "standard"))
     # Let's do it -- download everything.
     for P in to_download:
         # Note: don't use os.path.join when constructing arguments for
@@ -386,7 +404,16 @@ def do_update():
     download_file("standard/deps")
     download_file("standard/newest_version")
     os.system('chmod +x newest_version')
-
+    # commit any changes into sage root repo.
+    os.chdir(SAGE_ROOT)
+    if root_repo_intact:
+        for file in ['spkg/install',
+                     'spkg/standard/deps',
+                     'spkg/standard/newest_version']:
+            subprocess.call('./sage -hg commit %s -m ' % file +
+                            '"committing %s while running sage-update" ' % file +
+                            '-u "Sage (during sage -upgrade)"',
+                            shell=True)
 
 if __name__ == '__main__':
     # Make sure the SAGE_ROOT variable is set.  This should always be

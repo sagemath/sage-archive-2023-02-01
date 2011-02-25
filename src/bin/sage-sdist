@@ -40,7 +40,7 @@ fi
 
 LD_LIBRARY_PATH="$SAGE_ROOT/local/lib:$LD_LIBRARY_PATH" && export LD_LIBRARY_PATH
 export SAGE_ROOT SAGE_VERSION
-TARGET="sage-"$1
+TARGET="sage-$1"
 
 CUR=`pwd`
 
@@ -51,76 +51,77 @@ echo "Sage version $SAGE_VERSION, released $SAGE_RELEASE_DATE" > "$SAGE_ROOT"/VE
 
 # Update Sage version file in devel/sage/sage: this is done here so
 # the banner produced below this if block is correct.
-if [ -d $SAGE_ROOT/devel/sage/sage ]; then
-   cd $SAGE_ROOT/devel/sage/sage
+if [ -d "$SAGE_ROOT"/devel/sage/sage ]; then
+   cd "$SAGE_ROOT"/devel/sage/sage
    echo '"""nodoctests"""' > version.py
    echo "version='"$SAGE_VERSION"'; date='"$SAGE_RELEASE_DATE"'" >> version.py
-   cd $SAGE_ROOT/devel/sage
+   cd "$SAGE_ROOT"/devel/sage
    python setup.py install
 fi
 
-cd $SAGE_ROOT/local/bin/
+cd "$SAGE_ROOT"/local/bin/
 echo "import sage.misc.banner; sage.misc.banner.banner()" | ./python > sage-banner
 
 cd "$CUR"
 
-cp $SAGE_ROOT/local/bin/sage-spkg $PKGDIR/base/
-cp $SAGE_ROOT/local/bin/sage-env  $PKGDIR/base/
-cp $SAGE_ROOT/local/bin/sage-make_relative $PKGDIR/base/
+cp "$SAGE_ROOT"/local/bin/sage-spkg "$PKGDIR"/base/
+cp "$SAGE_ROOT"/local/bin/sage-env "$PKGDIR"/base/
+cp "$SAGE_ROOT"/local/bin/sage-make_relative "$PKGDIR"/base/
 
 TMP="/tmp/$TARGET"
 
-if [ -d $TMP ]; then
-   rm -rf "$TMP"
+rm -rf "$TMP"
+mkdir "$TMP"
+
+# copy sage root repo over.  Cloning needs to be done in an empty
+# directory, so we do this now.  The other sage repositories are dealt
+# with later.
+cd "$SAGE_ROOT"
+
+hg diff
+hg status
+hg tag "$SAGE_VERSION"
+hg commit -m "$SAGE_VERSION"
+
+echo "Copying root repository..."
+"$SAGE_ROOT"/sage --hg clone --pull . "$TMP"
+
+if [ $? -ne 0 ]; then
+    echo "Error copying Sage root repository."
+    exit 1
 fi
 
-mkdir $TMP
+rm "$TMP"/.hg/hgrc
+echo "Done copying root repository."
 
-cd $SAGE_ROOT
-cp -LRp Makefile *.txt *.sage sage ipythonrc $TMP/
 STD=standard
-mkdir $TMP/$PKGDIR
-mkdir $TMP/$PKGDIR/$STD
 # Put VERSION.txt in a directory available for download during the
 # update process.  (See sage-update.)
 cp -p VERSION.txt $TMP/$PKGDIR/$STD/
-cp -p $PKGDIR/$STD/deps $TMP/$PKGDIR/$STD/
-cp -p $PKGDIR/$STD/libdist_filelist $TMP/$PKGDIR/$STD/
-cp -p $PKGDIR/$STD/newest_version $TMP/$PKGDIR/$STD/
-cp -pr $PKGDIR/base $TMP/$PKGDIR/
-cp -p $PKGDIR/install $TMP/$PKGDIR/
-cp -p $PKGDIR/pipestatus $TMP/$PKGDIR/
-cp -p $PKGDIR/update $TMP/$PKGDIR/
-cp -p $PKGDIR/gen_html $TMP/$PKGDIR/
-cp -p $PKGDIR/README.txt $TMP/$PKGDIR/
+cp -pr "$PKGDIR"/base "$TMP/$PKGDIR/"
 
-$SAGE_ROOT/local/bin/sage-make_devel_packages $SAGE_VERSION $SAGE_ROOT $TMP/devel
+"$SAGE_ROOT"/local/bin/sage-make_devel_packages "$SAGE_VERSION" "$SAGE_ROOT" "$TMP"/devel
 
 if [ $? -ne 0 ]; then
     echo "Error building the Sage packages."
     exit 1
 fi
 
-cp $TMP/devel/*.spkg $SAGE_ROOT/$PKGDIR/$STD/
+cp "$TMP"/devel/*.spkg "$SAGE_ROOT/$PKGDIR/$STD/"
 
-cp -p $PKGDIR/$STD/*.spkg $TMP/$PKGDIR/$STD/
-cp -p $PKGDIR/$STD/*.txt $TMP/$PKGDIR/$STD/
+cp -p "$PKGDIR/$STD"/*.spkg "$TMP/$PKGDIR/$STD/"
 
-cd $TMP/$PKGDIR/$STD
+cd "$TMP/$PKGDIR/$STD"
 rm -rf doc-* sage-* extcode-* sage_scripts-* examples-*
-mv $TMP/devel/*.spkg .
-rmdir $TMP/devel
+mv "$TMP"/devel/*.spkg .
+rmdir "$TMP"/devel
 
 cd /tmp
-tar cf $TARGET.tar $TARGET
+tar cf "$TARGET".tar "$TARGET"
 
-if [ ! -d $SAGE_ROOT/dist ]; then
-    mkdir $SAGE_ROOT/dist
-fi
+mkdir -p "$SAGE_ROOT"/dist
 
-if [ -d $SAGE_ROOT/dist/$TARGET ]; then
-    rm -rf "$SAGE_ROOT/dist/$TARGET"
-fi
+rm -rf "$SAGE_ROOT/dist/$TARGET"
 
-mv $TARGET $SAGE_ROOT/dist/
-mv $TARGET.tar $SAGE_ROOT/dist/
+mv "$TARGET" "$SAGE_ROOT"/dist/
+mv "$TARGET".tar "$SAGE_ROOT"/dist/

@@ -2,7 +2,7 @@
 
 CUR=`pwd`
 
-TARGET="$SAGE_ROOT"/local/bin/
+TARGET="$SAGE_ROOT/local/bin/"
 
 if [ -d "$TARGET"/.hg ]; then
 
@@ -25,30 +25,9 @@ fi
 # Finally, make sure some symbolic links exist.
 cd "$CUR"
 
-# These are not part of the scripts repo and are
-# not under revision control, so they get wacked (at least
-# we do save the last versions in tmp, just in case).
-TMP="$SAGE_ROOT"/tmp/
-if [ ! -d "$TMP" ]; then
-    mkdir "$TMP"
-fi
-cp "$SAGE_ROOT"/sage-python "$TMP"/
-cp sage-python "$SAGE_ROOT"/
-
-cp "$SAGE_ROOT"/spkg/install "$TMP"/
-cp install "$SAGE_ROOT"/spkg/
-
-cp "$SAGE_ROOT"/*.txt "$TMP"/
-cp *.txt "$SAGE_ROOT"/
-
-rm -rf "$TMP"/ipython
-cp -r "$SAGE_ROOT"/ipython "$TMP"/
-cp -r ipython "$SAGE_ROOT/"
-
 # I think these below should moved to the relevant spkg's.
 # -- William Stein (2007-10-04)
 cd "$TARGET"
 ln -sf python sage.bin
 ln -sf Singular sage_singular
 ln -sf gp sage_pari
-

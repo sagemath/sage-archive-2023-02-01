@@ -4390,7 +4390,8 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         INPUT:
 
-          - ``variable`` - The variable with respect we compute the discriminant
+          - ``variable`` - The variable with respect to which we compute
+              the discriminant
 
         OUTPUT:
 
@@ -4423,7 +4424,8 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         AUTHOR:
             Miguel Marco
         """
-
+        if self.is_zero():
+            return self.parent().zero_element()
         n = self.degree(variable)
         d = self.derivative(variable)
         k = d.degree(variable)

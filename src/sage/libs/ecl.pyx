@@ -1,17 +1,20 @@
 r"""
 Library interface to Embeddable Common Lisp (ECL)
 """
-###############################################################################
-#   Sage: Open Source Mathematical Software
+#*****************************************************************************
 #       Copyright (C) 2009 Nils Bruin <nbruin@sfu.ca>
-#  Distributed under the terms of the GNU General Public License (GPL),
-#  version 2 or any later version.  The full text of the GPL is available at:
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-###############################################################################
+#*****************************************************************************
 
 #This version of the library interface prefers to convert ECL integers and
 #rationals to SAGE types Integer and Rational. These parts could easily be
 #adapted to work with pure Python types.
+
+include '../ext/interrupt.pxi'
 
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
@@ -32,12 +35,17 @@ cdef bint bint_integerp(cl_object obj):
 cdef bint bint_rationalp(cl_object obj):
     return not(cl_rationalp(obj) == Cnil)
 
+cdef extern from "stdlib.h":
+    void abort()
+
 cdef extern from "signal.h":
+    int signal_raise "raise"(int sig)
     #rename of struct is necessary because cython folds the "struct" namespace
     #into the normal namespace
     struct Sigaction "sigaction":
         pass
-    int sigaction (int sig, Sigaction * act, Sigaction * oact)
+    int sigaction(int sig, Sigaction * act, Sigaction * oact)
+    int SIGINT, SIGBUS, SIGSEGV
 
 cdef cl_object string_to_object(char * s):
     return ecl_read_from_cstring(s)
@@ -88,6 +96,39 @@ cdef cl_object read_from_string_clobj  #our own error catching reader
 
 cdef bint ecl_has_booted = 0
 
+# ECL signal handling
+cdef extern from "eclsig.c":
+    int ecl_sig_on() except 0
+    void ecl_sig_off()
+    cdef Sigaction ecl_sigint_handler
+    cdef Sigaction ecl_sigbus_handler
+    cdef Sigaction ecl_sigsegv_handler
+
+def test_sigint_before_ecl_sig_on():
+    """
+    TESTS:
+
+    If an interrupt arrives *before* ecl_sig_on(), we should get an
+    ordinary KeyboardInterrupt::
+
+        sage: from sage.libs.ecl import test_sigint_before_ecl_sig_on
+        sage: try:
+        ...     test_sigint_before_ecl_sig_on()
+        ... except KeyboardInterrupt:
+        ...     print "Success!"
+        ...
+        Success!
+    """
+    # Raise a SIGINT *now*.  Since we are outside of sig_on() at this
+    # point, this SIGINT will not be seen yet.
+    signal_raise(SIGINT)
+    # An ordinary KeyboardInterrupt should be raised by ecl_sig_on()
+    # since ecl_sig_on() calls sig_on() before anything else.  This
+    # will catch the pending SIGINT.
+    ecl_sig_on()
+    # We should never get here.
+    abort()
+
 def init_ecl():
     r"""
     Internal function to initialize ecl. Do not call.
@@ -116,7 +157,7 @@ def init_ecl():
     global read_from_string_clobj
     global ecl_has_booted
     cdef char *argv[1]
-    cdef Sigaction act[33]
+    cdef Sigaction sage_action[32]
     cdef int i
 
     if ecl_has_booted:
@@ -126,18 +167,24 @@ def init_ecl():
     ecl_set_option(ECL_OPT_SET_GMP_MEMORY_FUNCTIONS,0);
 
     #we need a dummy argv for cl_boot (we just don't give any parameters)
-    argv[0]=""
+    argv[0]="sage"
 
-    #get all the signal handlers (does any system have signal numbers above 32?)
-    for i in range(1,33):
-        sigaction(i,NULL,&(act[i]))
+    #get all the signal handlers before initializing Sage so we can
+    #put them back afterwards.
+    for i in range(1,32):
+        sigaction(i, NULL, &sage_action[i])
 
     #initialize ECL
-    cl_boot(0, argv)
+    cl_boot(1, argv)
 
-    #and put the signal handlers back
-    for i in range(1,33):
-        sigaction(i,&(act[i]),NULL)
+    #save signal handler from ECL
+    sigaction(SIGINT, NULL, &ecl_sigint_handler)
+    sigaction(SIGBUS, NULL, &ecl_sigbus_handler)
+    sigaction(SIGSEGV, NULL, &ecl_sigsegv_handler)
+
+    #and put the Sage signal handlers back
+    for i in range(1,32):
+        sigaction(i, &sage_action[i], NULL)
 
     #initialise list of objects and bind to global variable
     # *SAGE-LIST-OF-OBJECTS* to make it rooted in the reachable tree for the GC
@@ -181,7 +228,26 @@ def init_ecl():
     ecl_has_booted = 1
 
 cdef cl_object ecl_safe_eval(cl_object form) except NULL:
+    """
+    TESTS:
+
+    Test interrupts::
+
+        sage: from sage.libs.ecl import *
+        sage: from sage.tests.interrupt import *
+        sage: ecl_eval("(setf i 0)")
+        <ECL: 0>
+        sage: inf_loop=ecl_eval("(defun infinite() (loop (incf i)))")
+        sage: interrupt_after_delay(1000)
+        sage: inf_loop()
+        Traceback (most recent call last):
+        ...
+        RuntimeError: ECL says: Console interrupt
+    """
+    ecl_sig_on()
     cl_funcall(2,safe_eval_clobj,form)
+    ecl_sig_off()
+
     if ecl_nvalues > 1:
         raise RuntimeError, "ECL says: "+ecl_base_string_pointer_safe(ecl_values(1))
     else:
@@ -190,14 +256,21 @@ cdef cl_object ecl_safe_eval(cl_object form) except NULL:
 cdef cl_object ecl_safe_funcall(cl_object func, cl_object arg) except NULL:
     cdef cl_object l
     l = cl_cons(func,cl_cons(arg,Cnil));
+
+    ecl_sig_on()
     cl_apply(2,safe_funcall_clobj,cl_cons(func,cl_cons(arg,Cnil)))
+    ecl_sig_off()
+
     if ecl_nvalues > 1:
         raise RuntimeError, "ECL says: "+ecl_base_string_pointer_safe(ecl_values(1))
     else:
         return ecl_values(0)
 
 cdef cl_object ecl_safe_apply(cl_object func, cl_object args) except NULL:
+    ecl_sig_on()
     cl_funcall(3,safe_apply_clobj,func,args)
+    ecl_sig_off()
+
     if ecl_nvalues > 1:
         raise RuntimeError, "ECL says: "+ecl_base_string_pointer_safe(ecl_values(1))
     else:

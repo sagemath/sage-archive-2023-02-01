@@ -6,8 +6,8 @@ EXCLUDE = set(['sage_mode', '__DIR__', 'DIR', 'DATA', 'base64'])
 
 def reset(vars=None):
     """
-    Delete all user defined variables, reset all globals variables
-    back to their default state, and reset all interfaces to other
+    Delete all user-defined variables, reset all global variables
+    back to their default states, and reset all interfaces to other
     computer algebra systems.
 
     If vars is specified, just restore the value of vars and leave
@@ -25,7 +25,24 @@ def reset(vars=None):
         sage: reset()
         sage: x
         x
+
+    TESTS:
+
+    Confirm that assumptions don't survive a reset (trac #10855)::
+
+        sage: assume(x > 3)
+        sage: assumptions()
+        [x > 3]
+        sage: bool(x > 3)
+        True
+        sage: reset()
+        sage: assumptions()
+        []
+        sage: bool(x > 3)
+        False
+
     """
+    from sage.symbolic.assumptions import forget
     if not vars is None:
         restore(vars)
         return
@@ -38,6 +55,7 @@ def reset(vars=None):
             except KeyError:
                 pass
     restore()
+    forget()
     reset_interfaces()
     reset_attached()
 

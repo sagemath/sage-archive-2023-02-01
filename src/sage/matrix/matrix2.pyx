@@ -7774,23 +7774,431 @@ cdef class Matrix(matrix1.Matrix):
             self.cache('QR_factors', QR)
         return QR
 
-    def gram_schmidt(self):
+    def _gram_schmidt_noscale(self):
         r"""
-        Return the matrix G whose rows are obtained from the rows of self
-        (=A) by applying the Gram-Schmidt orthogonalization process. Also
-        return the coefficients mu ij, i.e., a matrix mu such that
-        ``(mu + 1)*G == A``.
+        Performs Gram-Schmidt orthogonalization, with no scaling to unit vectors.
+
+        INPUT:
+
+        - ``self`` - is a matrix whose columns are to be orthogonalized.
+          The base ring of the matrix needs to have its fraction field
+          implemented.
 
         OUTPUT:
 
+        Two matrices, ``Q`` and ``R`` such that if ``A`` represents ``self``:
 
-        - ``G`` - a matrix whose rows are orthogonal
+        - ``A = Q*R``
+        - The columns of ``Q`` are an orthogonal set which spans the
+          column space of ``A``.
+        - The conjugate-transpose of ``Q`` times ``Q`` is a diagonal matrix.
+        - ``R`` is a full-rank matrix, that has all entries below the
+          main diagonal equal to zero.
 
-        - ``mu`` - a matrix that gives the transformation, via
-          the relation ``(mu + 1)*G == self``
+        This is basically a "reduced" QR decomposition of ``self`` with
+        the distinction that the orthogonal column vectors of ``Q`` have
+        not been scaled to unit vectors, avoiding the need to take square
+        roots.
 
+        EXAMPLES:
 
-        EXAMPLES::
+        A rectangular matrix whose columns have full-rank.  Notice that the
+        routine computes in the fraction field, requiring the column space
+        check to step up to ``QQ``.  ::
+
+            sage: A = matrix(ZZ, [[-1, -3,  0, -1],
+            ...                   [ 1,  2, -1,  2],
+            ...                   [-3, -6,  4, -7]])
+            sage: Q,R = A._gram_schmidt_noscale()
+            sage: Q
+            [    -1 -10/11      0]
+            [     1  -1/11   3/10]
+            [    -3   3/11   1/10]
+            sage: R
+            [     1  23/11 -13/11  24/11]
+            [     0      1  13/10 -13/10]
+            [     0      0      1     -1]
+            sage: Q*R == A
+            True
+            sage: Q.transpose()*Q
+            [   11     0     0]
+            [    0 10/11     0]
+            [    0     0  1/10]
+            sage: A.change_ring(QQ).column_space() == Q.column_space()
+            True
+
+        A matrix over a subfield of the complex numbers, with four
+        columns but rank 3, so the orthogonal set has just 3 vectors
+        as well.  Orthogonality comes from the Hermitian inner product
+        so we need to check with the conjugate-transpose.  This
+        example verifies that the bug on #10791 is fixed.  ::
+
+            sage: F.<a> = QuadraticField(-5)
+            sage: A = matrix(F, [[    1,   a - 3,   a - 2, a + 1],
+            ...                  [    a, 2*a + 1, 3*a + 1,     1],
+            ...                  [a + 1,   a - 6, 2*a - 5,     1],
+            ...                  [  2*a,       a,     3*a,    -3],
+            ...                  [    1,   a - 1,       a, a - 1]])
+            sage: A.rank()
+            3
+            sage: Q, R = A._gram_schmidt_noscale()
+            sage: Q
+            [                      1         25/33*a - 38/11   641/1163*a + 453/1163]
+            [                      a         17/11*a + 73/33  322/1163*a + 1566/1163]
+            [                  a + 1        10/33*a - 173/33 -784/1163*a + 1614/1163]
+            [                    2*a          1/11*a + 80/33  196/1163*a - 1234/1163]
+            [                      1         25/33*a - 16/11  855/1163*a - 1717/1163]
+            sage: R
+            [                    1         8/33*a + 5/11        8/33*a + 16/11         2/11*a + 1/33]
+            [                    0                     1                     1 -107/1163*a - 78/1163]
+            [                    0                     0                     0                     1]
+            sage: Q*R == A
+            True
+            sage: Q.transpose().conjugate()*Q
+            [        33          0          0]
+            [         0    2326/33          0]
+            [         0          0 16532/1163]
+            sage: Q.column_space() == A.column_space()
+            True
+
+        Some trivial cases.  ::
+
+            sage: A = matrix(ZZ, 3, 0)
+            sage: Q, R = A._gram_schmidt_noscale()
+            sage: Q.parent()
+            Full MatrixSpace of 3 by 0 dense matrices over Rational Field
+            sage: R.parent()
+            Full MatrixSpace of 0 by 0 dense matrices over Rational Field
+            sage: Q*R == A
+            True
+
+            sage: A = matrix(ZZ, 0, 3)
+            sage: Q, R = A._gram_schmidt_noscale()
+            sage: Q.parent()
+            Full MatrixSpace of 0 by 0 dense matrices over Rational Field
+            sage: R.parent()
+            Full MatrixSpace of 0 by 3 dense matrices over Rational Field
+            sage: Q*R == A
+            True
+
+        TESTS:
+
+        Without a fraction field, we cannot hope to proceed. ::
+
+            sage: A = matrix(Integers(6), 2, range(4))
+            sage: A._gram_schmidt_noscale()
+            Traceback (most recent call last):
+            ...
+            TypeError: Gram-Schmidt orthogonalization requires a base ring with a fraction field, not Ring of integers modulo 6
+
+        AUTHORS:
+
+        - William Stein (2007-11-18)
+        - Rob Beezer (2011-02-25)
+        """
+        import sage.matrix.constructor
+        R = self.base_ring()
+        try:
+            F = R.fraction_field()
+        except TypeError:
+            raise TypeError("Gram-Schmidt orthogonalization requires a base ring with a fraction field, not %s" % R)
+        n = self.ncols()
+        B = self.columns()
+        zero = F(0)
+        Bstar = []
+        R = sage.matrix.constructor.zero_matrix(F, n)
+        nnz = 0 # number non-zero rows in R, or number of nonzero vectors in Bstar
+        for i in range(n):
+            ortho = B[i]
+            for j in range(nnz):
+                R[j,i] = Bstar[j].hermitian_inner_product(B[i])/Bstar[j].hermitian_inner_product(Bstar[j])
+                ortho = ortho - R[j,i]*Bstar[j]
+            if ortho.hermitian_inner_product(ortho) != zero:
+                Bstar.append(ortho)
+                R[nnz, i] = 1
+                nnz = nnz + 1
+        R = R[0:nnz]
+        if Bstar == []:
+            Q = sage.matrix.constructor.matrix(F, 0, self.nrows()).transpose()
+        else:
+            Q = sage.matrix.constructor.matrix(F, Bstar).transpose()
+        return Q, R
+
+    def gram_schmidt(self, orthonormal=False):
+        r"""
+        Performs Gram-Schmidt orthogonalization on the rows of the matrix,
+        returning a new matrix and a matrix accomplishing the transformation.
+
+        INPUT:
+
+        - ``self`` - a matrix whose rows are to be orthogonalized.
+        - ``orthonormal`` - default: ``False`` - if ``True`` the
+          returned orthogonal vectors are unit vectors.  This keyword
+          is ignored if the matrix is over ``RDF`` or ``CDF`` and the
+          results are always orthonormal.
+
+        OUTPUT:
+
+        A pair of matrices, ``G`` and ``M`` such that if ``A``
+        represents ``self``, where the parenthetical properties occur
+        when ``orthonormal = True``:
+
+        - ``A = M*G``
+        - The rows of ``G`` are an orthogonal (resp. orthonormal)
+          set of vectors.
+        - ``G`` times the conjugate-transpose of ``G`` is a diagonal
+          (resp. identity) matrix.
+        - The row space of ``G`` equals the row space of ``A``.
+        - ``M`` is a full-rank matrix with zeros above the diagonal.
+
+        For exact rings, any zero vectors produced (when the original
+        vectors are linearly dependent) are not output, thus the
+        orthonormal set is linearly independent, and thus a basis for the
+        row space of the original matrix.
+
+        Any notion of a Gram-Schmidt procedure requires that the base
+        ring of the matrix has a fraction field implemented.  In order
+        to arrive at an orthonormal set, it must be possible to construct
+        square roots of the elements of the base field.  In Sage, your
+        best option is the field of algebraic numbers, ``QQbar``, which
+        properly contains the rationals and number fields.
+
+        If you have an approximate numerical matrix, then this routine
+        requires that your base field be the real and complex
+        double-precision floating point numbers, ``RDF`` and ``CDF``.
+        In this case, the matrix is treated as having full rank, as no
+        attempt is made to recognize linear dependence with approximate
+        calculations.
+
+        EXAMPLES:
+
+        Inexact Rings, Numerical Matrices:
+
+        First, the inexact rings, ``CDF`` and ``RDF``.  ::
+
+            sage: A = matrix(CDF, [[ 0.6454 + 0.7491*I, -0.8662 + 0.1489*I,  0.7656 - 0.00344*I],
+            ...                    [-0.2913 + 0.8057*I,  0.8321 + 0.8170*I, -0.6744 + 0.9248*I],
+            ...                    [ 0.2554 + 0.3517*I, -0.4454 - 0.1715*I,  0.8325 - 0.6282*I]])
+            sage: G, M = A.gram_schmidt()
+            sage: G.round(6)
+            [-0.422243 - 0.490087*I  0.566698 - 0.097416*I -0.500882 + 0.002251*I]
+            [-0.057002 - 0.495035*I  -0.35059 - 0.625323*I  0.255514 - 0.415284*I]
+            [ 0.394105 - 0.421778*I -0.392266 - 0.039345*I  -0.352905 + 0.62195*I]
+            sage: M.round(6)
+            [             -1.528503                      0                      0]
+            [  0.459974 - 0.40061*I              -1.741233                      0]
+            [-0.934304 + 0.148868*I   0.54833 + 0.073202*I              -0.550725]
+            sage: (A - M*G).zero_at(10^-12)
+            [0 0 0]
+            [0 0 0]
+            [0 0 0]
+            sage: (G*G.conjugate().transpose()).zero_at(10^-12)
+            [1.0   0   0]
+            [  0 1.0   0]
+            [  0   0 1.0]
+
+        A rectangular matrix.  Note that the ``orthonormal`` keyword
+        is ignored in these cases.  ::
+
+            sage: A = matrix(RDF, [[-0.978325, -0.751994, 0.925305, -0.200512, 0.420458],
+            ...                    [-0.474877, -0.983403, 0.089836,  0.132218, 0.672965]])
+            sage: G, M = A.gram_schmidt(orthonormal=False)
+            sage: G.round(6)
+            [-0.607223 -0.466745  0.574315 -0.124453  0.260968]
+            [ 0.123203 -0.617909 -0.530578  0.289773  0.487368]
+            sage: M.round(6)
+            [1.611147      0.0]
+            [0.958116 0.867778]
+            sage: (A-M*G).zero_at(10^-12)
+            [0.0 0.0 0.0 0.0 0.0]
+            [0.0 0.0 0.0 0.0 0.0]
+            sage: (G*G.transpose()).zero_at(10^-12)
+            [1.0 0.0]
+            [0.0 1.0]
+
+        Even though a set of vectors may be linearly dependent, no effort
+        is made to decide when a zero vector is really the result of a
+        relation of linear dependence.  So in this regard, input matrices
+        are treated as being of full rank.  Try one of the base rings that
+        provide exact results if you need exact results.  ::
+
+            sage: entries = [[1,1,2], [2,1,3], [3,1,4]]
+            sage: A = matrix(QQ, entries)
+            sage: A.rank()
+            2
+            sage: B = matrix(RDF, entries)
+            sage: G, M = B.gram_schmidt()
+            sage: G.round(6)
+            [-0.408248 -0.408248 -0.816497]
+            [ 0.707107 -0.707107      -0.0]
+            [ -0.57735  -0.57735   0.57735]
+            sage: M.round(10)
+            [-2.4494897428           0.0           0.0]
+            [-3.6742346142  0.7071067812           0.0]
+            [-4.8989794856  1.4142135624           0.0]
+
+        Exact Rings, Orthonormalization:
+
+        To scale a vector to unit length requires taking
+        a square root, which often takes us outside the base ring.
+        For the integers and the rationals, the field of algebraic numbers
+        (``QQbar``) is big enough to contain what we need, but the price
+        is that the computations are very slow, hence mostly of value
+        for small cases or instruction. Now we need to use the
+        ``orthonormal`` keyword.  ::
+
+            sage: A = matrix(QQbar, [[6, -8,  1],
+            ...                      [4,  1,  3],
+            ...                      [6,  3,  3],
+            ...                      [7,  1, -5],
+            ...                      [7, -3,  5]])
+            sage: G, M = A.gram_schmidt(orthonormal=True)
+            sage: G
+            [ 0.5970223141259934? -0.7960297521679913? 0.09950371902099891?]
+            [ 0.6063218341690895?  0.5289635311888953?  0.5937772444966257?]
+            [ 0.5252981913594170?  0.2941669871612735?  -0.798453250866314?]
+            sage: M
+            [ 10.04987562112089?                   0                   0]
+            [ 1.890570661398980?  4.735582601355131?                   0]
+            [ 1.492555785314984?  7.006153332071100?  1.638930357041381?]
+            [ 2.885607851608969?  1.804330147889395?  7.963520581008761?]
+            [ 7.064764050490923?  5.626248468100069? -1.197679876299471?]
+            sage: M*G-A
+            [0 0 0]
+            [0 0 0]
+            [0 0 0]
+            [0 0 0]
+            [0 0 0]
+            sage: G*G.transpose()
+            [      1 0.?e-37 0.?e-35]
+            [0.?e-37       1 0.?e-35]
+            [0.?e-35 0.?e-35       1]
+            sage: G.row_space() == A.row_space()
+            True
+
+        Starting with complex numbers with rational real and imaginary parts.
+        Note the use of the conjugate-transpose when checking the
+        orthonormality. ::
+
+            sage: A = matrix(QQbar, [[  -2,    -I - 1, 4*I + 2,       -1],
+            ...                      [-4*I, -2*I + 17,       0,  9*I + 1],
+            ...                      [   1,  -2*I - 6, -I + 11, -5*I + 1]])
+            sage: G, M = A.gram_schmidt(orthonormal=True)
+            sage: G
+            [                         -0.3849001794597505?  -0.1924500897298753? - 0.1924500897298753?*I   0.3849001794597505? + 0.7698003589195010?*I                          -0.1924500897298753?]
+            [-0.06165497274852388? - 0.1387236886841787?*I  0.8188551068163327? - 0.10018933071635130?*I  0.2003786614327026? + 0.05394810115495839?*I  0.02119389688230508? + 0.5028733714801478?*I]
+            [  0.3842387256410419? - 0.5694103019142261?*I  0.1416892863096208? - 0.06139779741542298?*I  0.4633778333528464? - 0.01285039016180503?*I  0.02658516588219101? - 0.5373044261814995?*I]
+            sage: M
+            [                        5.196152422706632?                                          0                                          0]
+            [-3.079201435678004? + 3.464101615137755?*I             19.22286447225071? + 0.?e-37*I                                          0]
+            [  4.426352063787131? - 8.66025403784439?*I -5.117362738127481? - 3.502773139275513?*I             7.480012456446966? + 0.?e-35*I]
+            sage: M*G-A
+            [            0.?e-37 0.?e-37 + 0.?e-37*I 0.?e-37 + 0.?e-37*I             0.?e-37]
+            [0.?e-36 + 0.?e-36*I 0.?e-35 + 0.?e-36*I 0.?e-36 + 0.?e-36*I 0.?e-36 + 0.?e-36*I]
+            [0.?e-35 + 0.?e-35*I 0.?e-35 + 0.?e-35*I 0.?e-35 + 0.?e-35*I 0.?e-35 + 0.?e-35*I]
+            sage: G*G.conjugate().transpose()
+            [1.000000000000000? + 0.?e-37*I            0.?e-37 + 0.?e-37*I            0.?e-36 + 0.?e-36*I]
+            [           0.?e-37 + 0.?e-37*I 1.000000000000000? + 0.?e-37*I            0.?e-36 + 0.?e-36*I]
+            [           0.?e-36 + 0.?e-36*I            0.?e-36 + 0.?e-36*I 1.000000000000000? + 0.?e-35*I]
+            sage: G.row_space() == A.row_space()
+            True
+
+        A square matrix with small rank.  The zero vectors produced as a
+        result of linear dependence get eliminated, so the rows of ``G``
+        are a basis for the row space of ``A``.  ::
+
+            sage: A = matrix(QQbar, [[2, -6, 3, 8],
+            ...                      [1, -3, 2, 5],
+            ...                      [0,  0, 2, 4],
+            ...                      [2, -6, 3, 8]])
+            sage: A.change_ring(QQ).rank()
+            2
+            sage: G, M = A.gram_schmidt(orthonormal=True)
+            sage: G
+            [ 0.1881441736767195? -0.5644325210301583?  0.2822162605150792?  0.7525766947068779?]
+            [-0.2502818123591464?   0.750845437077439?  0.3688363550555841?  0.4873908977520218?]
+            sage: M
+            [10.630145812734649?                   0]
+            [ 6.208757731331742? 0.6718090752798139?]
+            [ 3.574739299857670?  2.687236301119256?]
+            [10.630145812734649?                   0]
+            sage: M*G-A
+            [0 0 0 0]
+            [0 0 0 0]
+            [0 0 0 0]
+            [0 0 0 0]
+            sage: G*G.transpose()
+            [      1 0.?e-35]
+            [0.?e-35       1]
+            sage: G.row_space() == A.row_space()
+            True
+
+        Exact Rings, Orthogonalization:
+
+        If we forego scaling orthogonal vectors to unit vectors, we
+        can apply Gram-Schmidt to a much greater variety of rings.
+        Use the ``orthonormal=False`` keyword (or assume it as the default).
+        Note that now the orthogonality check creates a diagonal matrix
+        whose diagonal entries are the squares of the lengths of the
+        vectors.
+
+        First, in the rationals, without involving ``QQbar``.  ::
+
+            sage: A = matrix(QQ, [[-1,  3,  2,  2],
+            ...                   [-1,  0, -1,  0],
+            ...                   [-1, -2, -3, -1],
+            ...                   [ 1,  1,  2,  0]])
+            sage: A.rank()
+            3
+            sage: G, M = A.gram_schmidt()
+            sage: G
+            [    -1      3      2      2]
+            [-19/18    1/6   -8/9    1/9]
+            [  2/35  -4/35  -2/35   9/35]
+            sage: M
+            [     1      0      0]
+            [ -1/18      1      0]
+            [-13/18  59/35      1]
+            [   1/3 -48/35     -2]
+            sage: M*G-A
+            [0 0 0 0]
+            [0 0 0 0]
+            [0 0 0 0]
+            [0 0 0 0]
+            sage: G*G.transpose()
+            [   18     0     0]
+            [    0 35/18     0]
+            [    0     0  3/35]
+            sage: G.row_space() == A.row_space()
+            True
+
+        A complex subfield of the complex numbers.  ::
+
+            sage: C.<z> = CyclotomicField(5)
+            sage: A = matrix(C, [[              -z^3 - 2*z,             -z^3 - 1, 2*z^3 - 2*z^2 + 2*z,             1],
+            ...                  [         z^3 - 2*z^2 + 1, -z^3 + 2*z^2 - z - 1,                  -1,       z^2 + z],
+            ...                  [-1/2*z^3 - 2*z^2 + z + 1,         -z^3 + z - 2,    -2*z^3 + 1/2*z^2, 2*z^2 - z + 2]])
+            sage: G, M = A.gram_schmidt(orthonormal=False)
+            sage: G
+            [                                                      -z^3 - 2*z                                                         -z^3 - 1                                              2*z^3 - 2*z^2 + 2*z                                                                1]
+            [                   155/139*z^3 - 161/139*z^2 + 31/139*z + 13/139                 -175/139*z^3 + 180/139*z^2 - 125/139*z - 142/139                     230/139*z^3 + 124/139*z^2 + 6/139*z + 19/139                      -14/139*z^3 + 92/139*z^2 - 6/139*z - 95/139]
+            [-10359/19841*z^3 - 36739/39682*z^2 + 24961/39682*z - 11879/39682  -28209/39682*z^3 - 3671/19841*z^2 + 51549/39682*z - 38613/39682    -42769/39682*z^3 - 615/39682*z^2 - 1252/19841*z - 14392/19841   4895/19841*z^3 + 57885/39682*z^2 - 46094/19841*z + 65747/39682]
+            sage: M
+            [                                                           1                                                            0                                                            0]
+            [                14/139*z^3 + 47/139*z^2 + 145/139*z + 95/139                                                            1                                                            0]
+            [              -7/278*z^3 + 199/278*z^2 + 183/139*z + 175/278 -3785/39682*z^3 + 3346/19841*z^2 - 3990/19841*z + 2039/19841                                                            1]
+            sage: M*G - A
+            [0 0 0 0]
+            [0 0 0 0]
+            [0 0 0 0]
+            sage: G*G.conjugate().transpose()
+            [                               15*z^3 + 15*z^2 + 28                                                   0                                                   0]
+            [                                                  0                463/139*z^3 + 463/139*z^2 + 1971/139                                                   0]
+            [                                                  0                                                   0 230983/19841*z^3 + 230983/19841*z^2 + 1003433/39682]
+            sage: G.row_space() == A.row_space()
+            True
+
+        A slightly edited legacy example.  ::
 
             sage: A = matrix(ZZ, 3, [-1, 2, 5, -11, 1, 1, 1, -1, -3]); A
             [ -1   2   5]
@@ -7802,9 +8210,9 @@ cdef class Matrix(matrix1.Matrix):
             [  -52/5    -1/5      -2]
             [  2/187  36/187 -14/187]
             sage: mu
-            [     0      0      0]
-            [   3/5      0      0]
-            [  -3/5 -7/187      0]
+            [     1      0      0]
+            [   3/5      1      0]
+            [  -3/5 -7/187      1]
             sage: G.row(0) * G.row(1)
             0
             sage: G.row(0) * G.row(2)
@@ -7812,15 +8220,28 @@ cdef class Matrix(matrix1.Matrix):
             sage: G.row(1) * G.row(2)
             0
 
-        The relation between mu and A is as follows::
+        The relation between mu and A is as follows.  ::
 
-            sage: (mu + 1)*G == A
+            sage: mu*G == A
             True
         """
-        from sage.modules.misc import gram_schmidt
-        from constructor import matrix
-        Bstar, mu = gram_schmidt(self.rows())
-        return matrix(Bstar), mu
+        import sage.rings.real_double
+        import sage.rings.complex_double
+        R = self.base_ring()
+        if R in [sage.rings.real_double.RDF, sage.rings.complex_double.CDF]:
+            Q, R = self.transpose().QR()
+            m = R.nrows(); n = R.ncols()
+            if m > n:
+                Q = Q[0:m, 0:n]
+                R = R[0:n, 0:n]
+        elif R.is_exact():
+            if orthonormal:
+                Q, R = self.transpose().QR(full=False)
+            else:
+                Q, R = self.transpose()._gram_schmidt_noscale()
+        else:
+            raise NotImplementedError("Gram-Scmidt orthogonalization not implemented for matrices over inexact rings, except for RDF and CDF")
+        return Q.transpose(), R.transpose()
 
     def jordan_form(self, base_ring=None, sparse=False, subdivide=True, transformation=False):
         r"""

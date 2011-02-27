@@ -2901,15 +2901,15 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             raise TypeError("eta must be >= 0.5")
 
         # this is pretty slow
-        G, mu = self.gram_schmidt()
-
+        import sage.modules.misc
+        G, mu = sage.modules.misc.gram_schmidt(self.rows())
         #For any $i>j$, we have $|mu_{i, j}| <= \eta$
         for e in mu.list():
             if e.abs() > eta:
                 return False
 
         #For any $i<d$, we have $\delta |b_i^*|^2 <= |b_{i+1}^* + mu_{i+1, i} b_i^* |^2$
-        norms = [G[i].norm()**2 for i in range(G.nrows())]
+        norms = [G[i].norm()**2 for i in range(len(G))]
         for i in xrange(1,self.nrows()):
             if norms[i] < (delta - mu[i,i-1]**2) * norms[i-1]:
                 return False

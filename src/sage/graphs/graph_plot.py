@@ -61,6 +61,7 @@ class GraphPlot(SageObject):
         assumes default options are set.  Defaults are shown in the example below.
 
         EXAMPLE::
+
             sage: from sage.graphs.graph_plot import GraphPlot
             sage: options = {
             ...     'vertex_size':200,
@@ -107,7 +108,9 @@ class GraphPlot(SageObject):
         Returns a string representation of a GraphPlot object.
 
         EXAMPLE:
-            This function is called implicitly by the code below:
+
+        This function is called implicitly by the code below::
+
             sage: g = Graph({0:[1,2], 2:[3], 4:[0,1]})
             sage: g.graphplot()
             GraphPlot object for Graph on 5 vertices
@@ -119,13 +122,17 @@ class GraphPlot(SageObject):
         Sets the position plotting parameters for this GraphPlot.
 
         EXAMPLES:
-            This function is called implicitly by the code below:
+
+        This function is called implicitly by the code below::
+
             sage: g = Graph({0:[1,2], 2:[3], 4:[0,1]})
             sage: g.graphplot(save_pos=True, layout='circular')
             GraphPlot object for Graph on 5 vertices
 
-            The following illustrates the format of a position dictionary,
-            but due to numerical noise we do not check the values themselves.
+        The following illustrates the format of a position dictionary,
+        but due to numerical noise we do not check the values themselves.
+
+        ::
 
             sage: g.get_pos()
             {0: [...e-17, 1.0],
@@ -137,8 +144,27 @@ class GraphPlot(SageObject):
             sage: T = list(graphs.trees(7))
             sage: t = T[3]
             sage: t.plot(heights={0:[0], 1:[4,5,1], 2:[2], 3:[3,6]})
+
+        TESTS:
+
+        Make sure that vertex locations are floats.  Not being floats
+        isn't a bug in itself but makes it too easy to accidentally
+        introduce a bug elsewhere, such as in set_edges (trac #10124),
+        via silent truncating division of integers::
+
+            sage: g = graphs.FruchtGraph()
+            sage: gp = g.graphplot()
+            sage: set(map(type, flatten(gp._pos.values())))
+            set([<type 'float'>])
+            sage: g = graphs.BullGraph()
+            sage: gp = g.graphplot(save_pos=True)
+            sage: set(map(type, flatten(gp._pos.values())))
+            set([<type 'float'>])
+
         """
         self._pos = self._graph.layout(**self._options)
+        # make sure the positions are floats (trac #10124)
+        self._pos = dict((k,(float(v[0]), float(v[1]))) for k,v in self._pos.iteritems())
 
     def set_vertices(self, **vertex_options):
         """
@@ -147,7 +173,8 @@ class GraphPlot(SageObject):
         the vertex options of an existing GraphPlot object.  Note that the
         changes are cumulative.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: g = Graph({}, loops=True, multiedges=True, sparse=True)
             sage: g.add_edges([(0,0,'a'),(0,0,'b'),(0,1,'c'),(0,1,'d'),
             ...     (0,1,'e'),(0,1,'f'),(0,1,'f'),(2,1,'g'),(2,2,'h')])
@@ -251,7 +278,8 @@ class GraphPlot(SageObject):
         the vertex options of an existing GraphPlot object.  Note that the changes are
         cumulative.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: g = Graph({}, loops=True, multiedges=True, sparse=True)
             sage: g.add_edges([(0,0,'a'),(0,0,'b'),(0,1,'c'),(0,1,'d'),
             ...     (0,1,'e'),(0,1,'f'),(0,1,'f'),(2,1,'g'),(2,2,'h')])
@@ -274,6 +302,26 @@ class GraphPlot(SageObject):
 
             sage: G = Graph("Fooba")
             sage: G.show(edge_colors={'red':[(3,6),(2,5)]})
+
+        Verify that default edge labels are pretty close to being between the vertices
+        in some cases where they weren't due to truncating division (trac #10124)::
+
+            sage: test_graphs = graphs.FruchtGraph(), graphs.BullGraph()
+            sage: tol = 0.001
+            sage: for G in test_graphs:
+            ...       E=G.edges()
+            ...       for e0, e1, elab in E:
+            ...           G.set_edge_label(e0, e1, '%d %d' % (e0, e1))
+            ...       gp = G.graphplot(save_pos=True,edge_labels=True)
+            ...       vx = gp._plot_components['vertices'][0].xdata
+            ...       vy = gp._plot_components['vertices'][0].ydata
+            ...       for elab in gp._plot_components['edge_labels']:
+            ...           textobj = elab[0]
+            ...           x, y, s = textobj.x, textobj.y, textobj.string
+            ...           v0, v1 = map(int, s.split())
+            ...           vn = vector(((x-(vx[v0]+vx[v1])/2.),y-(vy[v0]+vy[v1])/2.)).norm()
+            ...           assert vn < tol
+
 
         """
         for arg in edge_options:
@@ -352,7 +400,7 @@ class GraphPlot(SageObject):
         # Check for multi-edges or loops
         if self._arcs or self._loops:
             tmp = edges_to_draw.copy()
-            dist = self._options['dist']*2
+            dist = self._options['dist']*2.
             loop_size = self._options['loop_size']
             max_dist = self._options['max_dist']
             from sage.functions.all import sqrt
@@ -362,7 +410,7 @@ class GraphPlot(SageObject):
                     distance = dist
                     local_labels = edges_to_draw.pop((a,b))
                     if len(local_labels)*dist > max_dist:
-                        distance = max_dist/len(local_labels)
+                        distance = float(max_dist)/len(local_labels)
                     curr_loop_size = loop_size
                     for i in range(len(local_labels)):
                         self._plot_components['edges'].append(circle((self._pos[a][0],self._pos[a][1]-curr_loop_size), curr_loop_size, rgbcolor=local_labels[i][1], **eoptions))
@@ -376,15 +424,15 @@ class GraphPlot(SageObject):
                     # Compute perpendicular bisector
                     p1 = self._pos[a]
                     p2 = self._pos[b]
-                    M = ((p1[0]+p2[0])/2, (p1[1]+p2[1])/2) # midpoint
+                    M = ((p1[0]+p2[0])/2., (p1[1]+p2[1])/2.) # midpoint
                     if not p1[1] == p2[1]:
-                        S = (p1[0]-p2[0])/(p2[1]-p1[1]) # perp slope
+                        S = float(p1[0]-p2[0])/(p2[1]-p1[1]) # perp slope
                         y = lambda x : S*x-S*M[0]+M[1] # perp bisector line
 
                         # f,g are functions of distance d to determine x values
                         # on line y at d from point M
-                        f = lambda d : sqrt(d**2/(1+S**2)) + M[0]
-                        g = lambda d : -sqrt(d**2/(1+S**2)) + M[0]
+                        f = lambda d : sqrt(d**2/(1.+S**2)) + M[0]
+                        g = lambda d : -sqrt(d**2/(1.+S**2)) + M[0]
 
                         odd_x = f
                         even_x = g
@@ -406,7 +454,7 @@ class GraphPlot(SageObject):
                     # (This is because we're using the perp bisectors).
                     distance = dist
                     if len(local_labels)*dist > max_dist:
-                        distance = max_dist/len(local_labels)
+                        distance = float(max_dist)/len(local_labels)
                     for i in range(len(local_labels)/2):
                         k = (i+1.0)*distance
                         if self._arcdigraph:
@@ -432,29 +480,41 @@ class GraphPlot(SageObject):
                 C,D = self._polar_hack_for_multidigraph(self._pos[a], self._pos[b], self._vertex_radius)
                 self._plot_components['edges'].append(arrow(C,D, rgbcolor=edges_to_draw[(a,b)][0][1], head=edges_to_draw[(a,b)][0][2], **eoptions))
                 if labels:
-                    self._plot_components['edge_labels'].append(text(str(edges_to_draw[(a,b)][0][0]),[(C[0]+D[0])/2, (C[1]+D[1])/2]))
+                    self._plot_components['edge_labels'].append(text(str(edges_to_draw[(a,b)][0][0]),[(C[0]+D[0])/2., (C[1]+D[1])/2.]))
             elif dir:
                 self._plot_components['edges'].append(arrow(self._pos[a],self._pos[b], rgbcolor=edges_to_draw[(a,b)][0][1], arrowshorten=self._arrowshorten, head=edges_to_draw[(a,b)][0][2], **eoptions))
             else:
                 self._plot_components['edges'].append(line([self._pos[a],self._pos[b]], rgbcolor=edges_to_draw[(a,b)][0][1], **eoptions))
             if labels and not self._arcdigraph:
-                self._plot_components['edge_labels'].append(text(str(edges_to_draw[(a,b)][0][0]),[(self._pos[a][0]+self._pos[b][0])/2, (self._pos[a][1]+self._pos[b][1])/2]))
+                self._plot_components['edge_labels'].append(text(str(edges_to_draw[(a,b)][0][0]),[(self._pos[a][0]+self._pos[b][0])/2., (self._pos[a][1]+self._pos[b][1])/2.]))
 
     def _polar_hack_for_multidigraph(self, A, B, VR):
         """
         Helper function to quickly compute the two points of intersection of a line
-        segment from A to B (xy tuples) and circles centered at A anb B, both with
+        segment from A to B (xy tuples) and circles centered at A and B, both with
         radius VR.  Returns a tuple of xy tuples representing the two points.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: d = DiGraph({}, loops=True, multiedges=True, sparse=True)
             sage: d.add_edges([(0,0,'a'),(0,0,'b'),(0,1,'c'),(0,1,'d'),
             ...     (0,1,'e'),(0,1,'f'),(0,1,'f'),(2,1,'g'),(2,2,'h')])
             sage: GP = d.graphplot(vertex_size=100, edge_labels=True, color_by_label=True, edge_style='dashed')
             sage: GP._polar_hack_for_multidigraph((0,1),(1,1),.1)
             ([0.10..., 1.00...], [0.90..., 1.00...])
+
+        TESTS:
+
+        Make sure that Python ints are acceptable arguments (trac #10124)::
+
+            sage: GP = DiGraph().graphplot()
+            sage: GP._polar_hack_for_multidigraph((0, 1), (2, 2), .1)
+            ([0.08..., 1.04...], [1.91..., 1.95...])
+            sage: GP._polar_hack_for_multidigraph((int(0),int(1)),(int(2),int(2)),.1)
+            ([0.08..., 1.04...], [1.91..., 1.95...])
+
         """
-        D = [B[i]-A[i] for i in range(2)]
+        D = [float(B[i]-A[i]) for i in range(2)]
         R = sqrt(D[0]**2+D[1]**2)
         theta = 3*pi/2
         if D[0] > 0:
@@ -474,7 +534,8 @@ class GraphPlot(SageObject):
         For syntax and lengthy documentation, see GP.plot?. Any options not used by
         plot will be passed on to the Graphics.show method.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: C = graphs.CubeGraph(8)
             sage: P = C.graphplot(vertex_labels=False, vertex_size=0, graph_border=True)
             sage: P.show()
@@ -778,7 +839,7 @@ class GraphPlot(SageObject):
                     x = obstruction[y]
                     pos[p] = x,y
                 else:
-                    x = sum([pos[c][0] for c in cp])/len(cp)
+                    x = sum([pos[c][0] for c in cp])/(float(len(cp)))
                     pos[p] = x,y
                     ox = obstruction[y]
                     if x < ox:

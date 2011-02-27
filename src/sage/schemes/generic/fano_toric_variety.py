@@ -153,7 +153,7 @@ implementing them on your own as a patch for inclusion!
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.geometry.all import Cone, FaceFan, Fan
+from sage.geometry.all import Cone, FaceFan, Fan, LatticePolytope
 from sage.misc.all import latex, prod
 from sage.rings.all import (PolynomialRing, QQ,
                             is_FractionField, is_Field,
@@ -163,6 +163,7 @@ from sage.schemes.generic.toric_variety import (
                                             ToricVariety_field,
                                             normalize_names)
 from sage.symbolic.all import SR
+from sage.matrix.all import matrix
 
 
 # Default coefficient for anticanonical hypersurfaces
@@ -1136,6 +1137,47 @@ class CPRFanoToricVariety_field(ToricVariety_field):
               + b1*z1*z3^2*z4*z11*z12 + b4*z0*z1*z5*z6*z13
         """
         return NefCompleteIntersection(self, nef_partition, **kwds)
+
+    def cartesian_product(self, other):
+        r"""
+        Return the cartesian product with ``other``.
+
+        INPUT:
+
+        - ``other`` -- a :class:`toric variety <CPRFanoToricVariety_field>`.
+
+        OUTPUT:
+
+        The cartesian product of ``self`` and ``other`` as a new toric
+        variety.
+
+        EXAMPLES::
+
+            sage: P1 = toric_varieties.P1()
+            sage: P2 = toric_varieties.P2()
+            sage: P1xP2 = P1.cartesian_product(P2); P1xP2
+            3-d CPR-Fano toric variety covered by 6 affine patches
+            sage: P1xP2.fan().rays()
+            (N+N(1, 0, 0), N+N(-1, 0, 0), N+N(0, 1, 0), N+N(0, 0, 1), N+N(0, -1, -1))
+            sage: P1xP2.Delta_polar()
+            A lattice polytope: 3-dimensional, 5 vertices.
+        """
+        fan = self.fan().cartesian_product(other.fan())
+        Delta_polar = LatticePolytope(matrix(fan.rays()).transpose())
+        base_field = self.base_ring()
+
+        points = Delta_polar.points().columns()
+        point_to_ray = dict()
+        coordinate_points = []
+        for ray_index, ray in enumerate(fan.rays()):
+            point = points.index(ray)
+            coordinate_points.append(point)
+            point_to_ray[point] = ray_index
+
+        return CPRFanoToricVariety_field(Delta_polar, fan,
+                                         coordinate_points, point_to_ray,
+                                         None, None,
+                                         base_field)
 
     def resolve(self, **kwds):
         r"""

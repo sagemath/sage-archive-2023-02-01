@@ -1409,6 +1409,30 @@ class ToricVariety_field(AmbientSpace):
         from sage.schemes.generic.toric_chow_group import ChowGroup
         return ChowGroup(self,base_ring)
 
+    def cartesian_product(self, other):
+        r"""
+        Return the cartesian product with ``other``.
+
+        INPUT:
+
+        - ``other`` -- a :class:`toric variety <ToricVariety_field>`.
+
+        OUTPUT:
+
+        The cartesian product of ``self`` and ``other`` as a new toric
+        variety.
+
+        EXAMPLES::
+
+            sage: P1 = ToricVariety(Fan([Cone([(1,)]), Cone([(-1,)])]))
+            sage: P1xP1 = P1.cartesian_product(P1); P1xP1
+            2-d toric variety covered by 4 affine patches
+            sage: P1xP1.fan().rays()
+            (N+N(0, 1), N+N(0, -1), N+N(1, 0), N+N(-1, 0))
+        """
+        return ToricVariety(self.fan().cartesian_product(other.fan()),
+                            base_field=self.base_ring())
+
     def resolve(self, **kwds):
         r"""
         Construct a toric variety whose fan subdivides the fan of ``self``.

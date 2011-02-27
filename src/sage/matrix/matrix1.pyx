@@ -1418,10 +1418,11 @@ cdef class Matrix(matrix0.Matrix):
             from sage.matrix.matrix_space import _cache
             MS = _cache[base_ring, nrows, ncols, sparse]()
         except KeyError:
+            MS = None
+        if MS is None:
             return MatrixSpace(base_ring, nrows, ncols, sparse)
-        if MS is not None:
+        else:
             return MS
-        return MatrixSpace(base_ring, nrows, ncols, sparse)
 
     def new_matrix(self, nrows=None, ncols=None, entries=0,
                    coerce=True, copy=True, sparse=None):

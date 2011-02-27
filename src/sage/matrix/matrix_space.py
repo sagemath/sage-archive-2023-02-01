@@ -1157,10 +1157,11 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         try:
             MS = _cache[base,nrows,ncols,sparse]()
         except KeyError:
+            MS = None
+        if MS is None:
             return MatrixSpace(base, nrows, ncols, sparse=sparse)
-        if MS is not None:
+        else:
             return MS
-        return MatrixSpace(base, nrows, ncols, sparse=sparse)
 
     def ncols(self):
         """

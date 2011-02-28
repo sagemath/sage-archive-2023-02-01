@@ -147,6 +147,7 @@ from sage.rings.rational import Rational  # Used for sqrt.
 from sage.misc.derivative import multi_derivative
 from sage.rings.infinity import AnInfinity
 from sage.misc.decorators import rename_keyword
+from sage.misc.misc import deprecated_function_alias
 
 """
 SAGE_DOCTEST_ALLOW_TABS
@@ -1335,117 +1336,126 @@ cdef class Expression(CommutativeRingElement):
                         return self.operator().name()
         return self._maxima_init_()
 
-    def _is_real(self):
+
+    _is_real     = deprecated_function_alias(is_real,     'Sage 4.7.1')
+    _is_positive = deprecated_function_alias(is_positive, 'Sage 4.7.1')
+    _is_negative = deprecated_function_alias(is_negative, 'Sage 4.7.1')
+    _is_integer  = deprecated_function_alias(is_integer,  'Sage 4.7.1')
+    _is_symbol   = deprecated_function_alias(is_symbol,   'Sage 4.7.1')
+    _is_constant = deprecated_function_alias(is_constant, 'Sage 4.7.1')
+    _is_numeric  = deprecated_function_alias(is_numeric,  'Sage 4.7.1')
+
+    def is_real(self):
         """
         Returns True if this expression is known to be a real number.
 
         EXAMPLES::
 
             sage: t0 = SR.symbol("t0", domain='real')
-            sage: t0._is_real()
+            sage: t0.is_real()
             True
-            sage: t0._is_positive()
+            sage: t0.is_positive()
             False
             sage: t1 = SR.symbol("t1", domain='positive')
-            sage: (t0+t1)._is_real()
+            sage: (t0+t1).is_real()
             True
-            sage: (t0+x)._is_real()
+            sage: (t0+x).is_real()
             False
-            sage: (t0*t1)._is_real()
+            sage: (t0*t1).is_real()
             True
-            sage: (t0*x)._is_real()
+            sage: (t0*x).is_real()
             False
 
         The following is real, but we can't deduce that.::
 
-            sage: (x*x.conjugate())._is_real()
+            sage: (x*x.conjugate()).is_real()
             False
         """
         return self._gobj.info(info_real)
 
-    def _is_positive(self):
+    def is_positive(self):
         """
         Returns True if this expression is known to be positive.
 
         EXAMPLES::
 
             sage: t0 = SR.symbol("t0", domain='positive')
-            sage: t0._is_positive()
+            sage: t0.is_positive()
             True
-            sage: t0._is_negative()
+            sage: t0.is_negative()
             False
-            sage: t0._is_real()
+            sage: t0.is_real()
             True
             sage: t1 = SR.symbol("t1", domain='positive')
-            sage: (t0*t1)._is_positive()
+            sage: (t0*t1).is_positive()
             True
-            sage: (t0 + t1)._is_positive()
+            sage: (t0 + t1).is_positive()
             True
-            sage: (t0*x)._is_positive()
+            sage: (t0*x).is_positive()
             False
         """
         return self._gobj.info(info_positive)
 
-    def _is_negative(self):
+    def is_negative(self):
         """
         Return True if this expression is known to be negative.
 
         EXAMPLES::
 
-            sage: SR(-5)._is_negative()
+            sage: SR(-5).is_negative()
             True
 
         Check if we can correctly deduce negativity of mul objects::
 
             sage: t0 = SR.symbol("t0", domain='positive')
-            sage: t0._is_negative()
+            sage: t0.is_negative()
             False
-            sage: (-t0)._is_negative()
+            sage: (-t0).is_negative()
             True
-            sage: (-pi)._is_negative()
+            sage: (-pi).is_negative()
             True
         """
         return self._gobj.info(info_negative)
 
-    def _is_integer(self):
+    def is_integer(self):
         """
         Return True if this expression is known to be an integer.
 
         EXAMPLES::
 
-            sage: SR(5)._is_integer()
+            sage: SR(5).is_integer()
             True
         """
         return self._gobj.info(info_integer)
 
-    def _is_symbol(self):
+    def is_symbol(self):
         """
         Return True if this symbolic expression consists of only a symbol, i.e.,
         a symbolic variable.
 
         EXAMPLES::
 
-            sage: x._is_symbol()
+            sage: x.is_symbol()
             True
             sage: var('y')
             y
-            sage: y._is_symbol()
+            sage: y.is_symbol()
             True
-            sage: (x*y)._is_symbol()
+            sage: (x*y).is_symbol()
             False
-            sage: pi._is_symbol()
+            sage: pi.is_symbol()
             False
 
         ::
 
-            sage: ((x*y)/y)._is_symbol()
+            sage: ((x*y)/y).is_symbol()
             True
-            sage: (x^y)._is_symbol()
+            sage: (x^y).is_symbol()
             False
         """
         return is_a_symbol(self._gobj)
 
-    def _is_constant(self):
+    def is_constant(self):
         """
         Return True if this symbolic expression is a constant.
 
@@ -1456,33 +1466,33 @@ cdef class Expression(CommutativeRingElement):
 
         EXAMPLES:
 
-            sage: pi._is_constant()
+            sage: pi.is_constant()
             True
-            sage: x._is_constant()
+            sage: x.is_constant()
             False
-            sage: SR(1)._is_constant()
+            sage: SR(1).is_constant()
             False
 
         Note that the complex I is not a constant::
 
-            sage: I._is_constant()
+            sage: I.is_constant()
             False
-            sage: I._is_numeric()
+            sage: I.is_numeric()
             True
         """
         return is_a_constant(self._gobj)
 
-    def _is_numeric(self):
+    def is_numeric(self):
         """
         Return True if this expression only consists of a numeric object.
 
         EXAMPLES::
 
-            sage: SR(1)._is_numeric()
+            sage: SR(1).is_numeric()
             True
-            sage: x._is_numeric()
+            sage: x.is_numeric()
             False
-            sage: pi._is_numeric()
+            sage: pi.is_numeric()
             False
         """
         return is_a_numeric(self._gobj)
@@ -7704,7 +7714,7 @@ cdef class Expression(CommutativeRingElement):
         to_check = assumptions()
         if to_check:
             for ix, soln in reversed(list(enumerate(X))):
-                if soln.lhs()._is_symbol():
+                if soln.lhs().is_symbol():
                     if any([a.contradicts(soln) for a in to_check]):
                         del X[ix]
                         if multiplicities:

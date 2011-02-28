@@ -1134,7 +1134,7 @@ class FastFloatConverter(Converter):
         if name in svars:
             return self.ff.fast_float_arg(svars.index(name))
 
-        if ex._is_symbol(): # case of callable function which is the variable, like f(x)=x
+        if ex.is_symbol(): # case of callable function which is the variable, like f(x)=x
             name = repr(SR(ex)) # this gets back just the 'output' of the function
             if name in svars:
                 return self.ff.fast_float_arg(svars.index(name))

@@ -383,8 +383,8 @@ Check if maxima has redundant variables defined after initialization #9538::
     sage: sage.calculus.calculus.maxima('f1')
     f1
 """
-import sage.interfaces.maxima_lib
-maxima = sage.interfaces.maxima_lib.maxima_lib
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.interfaces.maxima_lib','maxima')
 # This is not the same instance of Maxima as the general purpose one
 #from sage.interfaces.maxima import Maxima
 #maxima = Maxima(init_code = ['display2d : false', 'domain : complex',

@@ -91,7 +91,7 @@ cdef extern from "ginac_wrap.h":
         GEx rhs()                     except +
         GEx lhs()                     except +
         int nops()                    except +
-        GEx op(int i)                 except +
+        GEx op "sorted_op" (int i)    except +
         GEx eval(int level)           except +
         GEx evalf(int level, object parent) except +
         GEx conjugate()               except +
@@ -528,3 +528,13 @@ cdef extern from "ginac_wrap.h":
         object (*py_rational_power_parts)(object basis, object exp)
 
     py_funcs_struct py_funcs "GiNaC::py_funcs"
+
+cdef extern from "pynac/order.h":
+    bint print_order_compare "GiNaC::print_order().compare" \
+            (GEx left, GEx right) except +
+    bint print_order_compare_mul "GiNaC::print_order_mul().compare" \
+            (GEx left, GEx right) except +
+    bint print_order "GiNaC::print_order()" \
+            (GEx left, GEx right) except +
+    bint print_order_mul "GiNaC::print_order_mul()" \
+            (GEx left, GEx right) except +

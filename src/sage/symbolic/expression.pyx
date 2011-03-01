@@ -2812,7 +2812,81 @@ cdef class Expression(CommutativeRingElement):
         return (<Element>left)._cmp(right)
 
     cdef int _cmp_c_impl(left, Element right) except -2:
-        return left._gobj.compare((<Expression>right)._gobj)
+        """
+        Compare ``left`` and ``right``.
+
+        INPUT:
+
+        - ``right`` -- A :class:`Expression` instance.
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: a = sqrt(3)
+            sage: b = x^2+1
+            sage: a.__cmp__(b)   # indirect doctest
+            -1
+        """
+        return print_order_compare(left._gobj, (<Expression>right)._gobj)
+
+    cpdef int _cmp_add(Expression left, Expression right) except -2:
+        """
+        Compare ``left`` and ``right`` in the print order.
+
+        INPUT:
+
+        - ``right`` -- A :class:`Expression` instance.
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: a = sqrt(3)
+            sage: b = x^2+1
+            sage: a._cmp_add(b)
+            -1
+            sage: b._cmp_add(a)
+            1
+            sage: b._cmp_add(1)
+            Traceback (most recent call last):
+            ...
+            TypeError: Argument 'right' has incorrect type (expected
+            sage.symbolic.expression.Expression, got sage.rings.integer.Integer)
+        """
+        return print_order_compare(left._gobj, right._gobj)
+
+    cpdef int _cmp_mul(Expression left, Expression right) except -2:
+        """
+        Compare ``left`` and ``right`` in the print order for products.
+
+        INPUT:
+
+        - ``right`` -- A :class:`Expression` instance.
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: a = sqrt(3)
+            sage: b = x^2+1
+            sage: a._cmp_mul(b)
+            -1
+            sage: b._cmp_mul(a)
+            1
+            sage: b._cmp_mul(1)
+            Traceback (most recent call last):
+            ...
+            TypeError: Argument 'right' has incorrect type (expected
+            sage.symbolic.expression.Expression, got sage.rings.integer.Integer)
+        """
+        return print_order_compare_mul(left._gobj, right._gobj)
 
     def __pow__(self, exp, ignored):
         """
@@ -4031,6 +4105,7 @@ cdef class Expression(CommutativeRingElement):
         while itr.is_not_equal(sym_set.end()):
             res.append(new_Expression_from_GEx(SR, itr.obj()))
             itr.inc()
+        res.sort(cmp=lambda x,y: -cmp(x,y))
         return tuple(res)
 
     def arguments(self):

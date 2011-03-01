@@ -105,6 +105,16 @@ build()
         echo "Error copying customized gap startup script."
         exit 1
     fi
+
+    # Build and install docs if requested
+    if [ "x$SAGE_SPKG_INSTALL_DOCS" = xyes ] ; then
+	if [ $? -ne 0 ]; then
+	    echo "Error building gap docs."
+	    exit 1
+	fi
+	mkdir -p $SAGE_ROOT/local/share/doc/gap
+	cp -r src/doc/htm $SAGE_ROOT/local/share/doc/gap/html
+    fi
 }
 
 build

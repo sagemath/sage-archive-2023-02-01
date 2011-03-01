@@ -23,6 +23,9 @@ GAP does not depend on any spkg's to build.
 
 == Change log ==
 
+=== gap-4.4.12.p5 (Jason Grout, 22 Feb 2011) ===
+ * #10825: Add SAGE_SPKG_INSTALL_DOCS support to build and install docs in $SAGE_ROOT/local/share/doc/
+
 === gap-4.4.12.p4 (David Kirkby, 14th June 2010) ===
  * #9098 "gap buillds 32-bit on OpenSolaris when SAGE64=yes"
    Change spkg-install to allow gap to build 64-bit on Solaris.

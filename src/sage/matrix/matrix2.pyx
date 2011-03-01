@@ -5726,6 +5726,63 @@ cdef class Matrix(matrix1.Matrix):
                         return False
         return True
 
+
+    def is_unitary(self):
+        r"""
+        Returns ``True`` if the columns of the matrix are an orthonormal basis.
+
+        For a matrix with real entries this determines if a matrix is
+        "orthogonal" and for a matrix with complex entries this determines
+        if the matrix is "unitary."
+
+        OUTPUT:
+
+        ``True`` if the matrix is square and its conjugate-transpose is
+        its inverse, and ``False`` otherwise.  In other words, a matrix
+        is orthogonal or unitary if the product of its conjugate-transpose
+        times the matrix is the identity matrix.
+
+        For numerical matrices a specialized routine available
+        over ``RDF`` and ``CDF`` is a good choice.
+
+        EXAMPLES::
+
+            sage: A = matrix(QQbar, [[(1/sqrt(5))*(1+i), (1/sqrt(55))*(3+2*I), (1/sqrt(22))*(2+2*I)],
+            ...                      [(1/sqrt(5))*(1-i), (1/sqrt(55))*(2+2*I),  (1/sqrt(22))*(-3+I)],
+            ...                      [    (1/sqrt(5))*I, (1/sqrt(55))*(3-5*I),    (1/sqrt(22))*(-2)]])
+            sage: A.is_unitary()
+            True
+
+        A permutation matrix is always orthogonal. ::
+
+            sage: sigma = Permutation([1,3,4,5,2])
+            sage: P = sigma.to_matrix(); P
+            [1 0 0 0 0]
+            [0 0 0 0 1]
+            [0 1 0 0 0]
+            [0 0 1 0 0]
+            [0 0 0 1 0]
+            sage: P.is_unitary()
+            True
+
+        A square matrix far from unitary. ::
+
+            sage: A = matrix(QQ, 4, range(16))
+            sage: A.is_unitary()
+            False
+
+        Rectangular matrices are never unitary.  ::
+
+            sage: A = matrix(QQbar, 3, 4)
+            sage: A.is_unitary()
+            False
+        """
+        import sage.matrix.constructor
+        if not self.is_square():
+            return False
+        P = self.conjugate().transpose()*self
+        return P.is_scalar(1)
+
     def is_bistochastic(self, normalized = True):
         r"""
         Returns ``True`` if this matrix is bistochastic.

@@ -1334,6 +1334,109 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         self.cache(key, b)
         return b
 
+    def is_unitary(self, tol=1e-12):
+        r"""
+        Returns ``True`` if the columns of the matrix are an orthonormal basis.
+
+        For a matrix with real entries this determines if a matrix is
+        "orthogonal" and for a matrix with complex entries this determines
+        if the matrix is "unitary."
+
+        INPUT:
+
+        - ``tol`` - default: ``1e-12`` - the largest value of the
+          absolute value of the difference between two matrix entries
+          for which they will still be considered equal.
+
+        OUTPUT:
+
+        ``True`` if the matrix is square and its conjugate-transpose is
+        its inverse, and ``False`` otherwise.  In other words, a matrix
+        is orthogonal or unitary if the product of its conjugate-transpose
+        times the matrix is the identity matrix.
+
+        The tolerance parameter is used to allow for numerical values
+        to be equal if there is a slight difference due to round-off
+        and other imprecisions.
+
+        The result is cached, on a per-tolerance basis.
+
+        EXAMPLES:
+
+        A matrix that is far from unitary. ::
+
+            sage: A = matrix(RDF, 4, range(16))
+            sage: A.conjugate().transpose()*A
+            [224.0 248.0 272.0 296.0]
+            [248.0 276.0 304.0 332.0]
+            [272.0 304.0 336.0 368.0]
+            [296.0 332.0 368.0 404.0]
+            sage: A.is_unitary()
+            False
+
+        The QR decoposition will produce a unitary matrix as Q and the
+        SVD decomposition will create two unitary matrices, U and V. ::
+
+            sage: A = matrix(CDF, [[   1 - I,   -3*I,  -2 + I,        1, -2 + 3*I],
+            ...                    [   1 - I, -2 + I, 1 + 4*I,        0,    2 + I],
+            ...                    [      -1, -5 + I,  -2 + I,    1 + I, -5 - 4*I],
+            ...                    [-2 + 4*I,  2 - I, 8 - 4*I,  1 - 8*I,  3 - 2*I]])
+            sage: Q, R = A.QR()
+            sage: Q.is_unitary()
+            True
+            sage: U, S, V = A.SVD()
+            sage: U.is_unitary()
+            True
+            sage: V.is_unitary()
+            True
+
+        If we make the tolerance too strict we can get misleading results.  ::
+
+            sage: A = matrix(RDF, 10, 10, [1/(i+j+1) for i in range(10) for j in range(10)])
+            sage: Q, R = A.QR()
+            sage: Q.is_unitary(tol=1e-16)
+            False
+
+        Rectangular matrices are not unitary/orthogonal, even if their
+        columns form an orthonormal set.  ::
+
+            sage: A = matrix(CDF, [[1,0], [0,0], [0,1]])
+            sage: A.is_unitary()
+            False
+
+        A trivial case.  ::
+
+            sage: P = matrix(CDF,0,0)
+            sage: P.is_unitary()
+            True
+        """
+        global numpy
+        tol = float(tol)
+        key = 'unitary_%s'%tol
+        b = self.fetch(key)
+        if not b is None:
+            return b
+        if not self.is_square():
+            self.cache(key, False)
+            return False
+        if numpy is None:
+            import numpy
+        cdef Matrix_double_dense P
+        P = self.conjugate().transpose()*self
+        cdef Py_ssize_t i, j
+        unitary = True
+        for i from 0 < i < self._nrows:
+            # off-diagonal
+            for j from 0 <= j < i:
+                if numpy.absolute(P.get_unsafe(i,j)) > tol:
+                    unitary = False
+                    break
+            # at diagonal
+            if numpy.absolute(P.get_unsafe(i,i)-1) > tol:
+                unitary = False
+                break
+        self.cache(key, unitary)
+        return unitary
 
     def cholesky(self):
         r"""

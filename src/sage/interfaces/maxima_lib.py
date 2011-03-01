@@ -730,6 +730,8 @@ def sr_to_max(expr):
             return maxima(expr).ecl()
 
 # This goes from EclObject to SR
+import sage.rings.real_double
+
 def max_to_sr(expr):
     if expr.consp():
         op_max=caar(expr)
@@ -751,5 +753,8 @@ def max_to_sr(expr):
             max_sym_dict[expr]=sage_symbol
         return max_sym_dict[expr]
     else:
-        return expr.python()
+        e=expr.python()
+        if isinstance(e,float):
+            return sage.rings.real_double.RealDoubleElement(e)
+        return e
 

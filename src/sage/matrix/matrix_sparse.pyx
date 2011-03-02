@@ -4,8 +4,9 @@ Base class for sparse matrices
 
 cimport matrix
 cimport matrix0
-from sage.structure.element cimport Element, Vector
+from sage.structure.element cimport Element, RingElement, ModuleElement, Vector
 from sage.rings.ring import is_Ring
+from sage.misc.misc import verbose
 
 include '../ext/cdefs.pxi'
 include '../ext/stdsage.pxi'
@@ -286,6 +287,58 @@ cdef class Matrix_sparse(matrix.Matrix):
         sig_off()
 
         return left.new_matrix(left._nrows, right._ncols, entries=e, coerce=False, copy=False)
+
+    cpdef ModuleElement _lmul_(self, RingElement right):
+        """
+        Left scalar multiplication. Internal usage only.
+
+        INPUT:
+
+            - `right` -- a ring element which must already be in the basering of self (no coercion done here).
+
+        OUTPUT:
+
+            - the matrix self*right
+
+        EXAMPLES::
+
+            sage: M=Matrix(QQ,3,6,xrange(18),sparse=true); M
+            [ 0  1  2  3  4  5]
+            [ 6  7  8  9 10 11]
+            [12 13 14 15 16 17]
+            sage: (2/3)*M
+            [   0  2/3  4/3    2  8/3 10/3]
+            [   4 14/3 16/3    6 20/3 22/3]
+            [   8 26/3 28/3   10 32/3 34/3]
+            sage: 7*M
+            [  0   7  14  21  28  35]
+            [ 42  49  56  63  70  77]
+            [ 84  91  98 105 112 119]
+            sage: (1/4)*M
+            [   0  1/4  1/2  3/4    1  5/4]
+            [ 3/2  7/4    2  9/4  5/2 11/4]
+            [   3 13/4  7/2 15/4    4 17/4]
+
+        Really Large Example you wouldn't want to do with normal matrices::
+
+            sage: M=MatrixSpace(QQ,100000,1000000,sparse=true)
+            sage: m=M.random_element(density=1/100000000)
+            sage: m==(97/42)*(42/97*m)
+            True
+
+        """
+        cdef Py_ssize_t k, r, c
+        cdef Matrix_sparse M
+        nc, nr = self.ncols(), self.nrows()
+        M = self.new_matrix(nr, nc, copy=False, coerce=False)
+        nz = self.nonzero_positions(copy=False)
+        for k from 0 <= k < len(nz):
+            r = get_ij(nz, k, 0)
+            c = get_ij(nz, k, 1)
+            entry = self.get_unsafe(r,c)*right
+            M.set_unsafe(r,c,entry)
+        return M
+
 
     cdef bint _will_use_strassen(self, matrix0.Matrix right) except -2:
         # never use Strassen for sparse matrix multiply

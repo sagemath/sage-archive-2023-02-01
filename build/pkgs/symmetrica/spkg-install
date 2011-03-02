@@ -31,6 +31,9 @@ if [ $? -ne 0 ]; then
 fi
 
 cp libsymmetrica.a $SAGE_LOCAL/lib/
+
+# upstream tarball has funky permissions
+chmod 644 def.h macro.h
 mkdir -p $SAGE_LOCAL/include/symmetrica
 cp def.h macro.h $SAGE_LOCAL/include/symmetrica
 

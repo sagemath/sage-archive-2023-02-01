@@ -99,33 +99,33 @@ class Huffman(SageObject):
 
     INPUT:
 
-    - ``string`` -- (default: ``None``) a string from which the Huffman
-      encoding should be created.
+    - ``source`` -- can be either
 
-    - ``table`` -- (default: ``None``) a dictionary that associates to each
-      symbol of an alphabet a numeric value. If we consider the frequency of
-      each alphabetic symbol, then ``table`` is considered as the frequency
-      table of the alphabet with each numeric (non-negative integer) value
-      being the number of occurrences of a symbol. The numeric values can also
-      represent weights of the symbols. In that case, the numeric values are
-      not necessarily integers, but can be real numbers. In general, we refer
-      to ``table`` as a weight table.
+        - A string from which the Huffman encoding should be created.
 
-    Exactly one of ``string`` and ``table`` cannot be ``None``. In order to
-    construct a Huffman code for an alphabet, we use exactly one of the
-    following methods:
+        - A dictionary that associates to each symbol of an alphabet a numeric
+          value. If we consider the frequency of each alphabetic symbol, then
+          ``table`` is considered as the frequency table of the alphabet with
+          each numeric (non-negative integer) value being the number of
+          occurrences of a symbol. The numeric values can also represent weights
+          of the symbols. In that case, the numeric values are not necessarily
+          integers, but can be real numbers. In general, we refer to ``table``
+          as a weight table.
 
-    #. Let ``string`` be a string of symbols over an alphabet and feed
-       ``string`` to the constructor of this class. Based on the input string,
-       a frequency table is constructed that contains the frequency of each
-       unique symbol in ``string``. The alphabet in question is then all the
-       unique symbols in ``string``. A significant implication of this is that
-       any subsequent string that we want to encode must contain only symbols
-       that can be found in ``string``.
+    In order to construct a Huffman code for an alphabet, we use exactly one of
+    the following methods:
 
-    #. Let ``table`` be the frequency table of an alphabet. We can feed this
-       table to the constructor of this class. The table ``table`` can be a
-       table of frequency or a table of weights.
+    #. Let ``source`` be a string of symbols over an alphabet and feed
+       ``source`` to the constructor of this class. Based on the input string, a
+       frequency table is constructed that contains the frequency of each unique
+       symbol in ``source``. The alphabet in question is then all the unique
+       symbols in ``source``. A significant implication of this is that any
+       subsequent string that we want to encode must contain only symbols that
+       can be found in ``source``.
+
+    #. Let ``source`` be the frequency table of an alphabet. We can feed this
+       table to the constructor of this class. The table ``source`` can be a
+       table of frequencies or a table of weights.
 
     Examples::
 
@@ -152,7 +152,7 @@ class Huffman(SageObject):
 
         sage: ft = frequency_table("There once was a french fry"); ft
         {'a': 2, ' ': 5, 'c': 2, 'e': 4, 'f': 2, 'h': 2, 'o': 1, 'n': 2, 's': 1, 'r': 3, 'T': 1, 'w': 1, 'y': 1}
-        sage: h2 = Huffman(table=ft)
+        sage: h2 = Huffman(ft)
 
     Once ``h1`` has been trained, and hence possesses an encoding table,
     it is possible to obtain the Huffman encoding of any string
@@ -181,7 +181,7 @@ class Huffman(SageObject):
 
         sage: from sage.coding.source_coding.huffman import Huffman
         sage: T = {"a":45, "b":13, "c":12, "d":16, "e":9, "f":5}
-        sage: H = Huffman(table=T)
+        sage: H = Huffman(T)
         sage: L = ["deaf", "bead", "fab", "bee"]
         sage: E = []
         sage: for e in L:
@@ -205,7 +205,7 @@ class Huffman(SageObject):
         True
     """
 
-    def __init__(self, string=None, table=None):
+    def __init__(self, source):
         r"""
         Constructor for Huffman.
 
@@ -219,16 +219,13 @@ class Huffman(SageObject):
 
         TESTS:
 
-        If both arguments are supplied, an exception is raised::
+        Feeding anything else than a string or a dictionary::
 
-            sage: Huffman(string=str, table={'a':8})
+            sage: Huffman(Graph())
             Traceback (most recent call last):
             ...
-            ValueError: Exactly one of 'string' and 'table' cannot be None.
+            ValueError: Input must be either a string or a dictionary.
         """
-        if (string is not None) and (table is not None):
-            raise ValueError(
-                "Exactly one of 'string' and 'table' cannot be None.")
 
         # alphabetic symbol to Huffman encoding translation table
         self._character_to_code = []
@@ -236,10 +233,13 @@ class Huffman(SageObject):
         self._tree = None
         # index of each alphabetic symbol
         self._index = None
-        if string is not None:
-            self._build_code(frequency_table(string))
-        elif table is not None:
-            self._build_code(table)
+
+        if isinstance(source,basestring):
+            self._build_code(frequency_table(source))
+        elif isinstance(source, dict):
+            self._build_code(source)
+        else:
+            raise ValueError("Input must be either a string or a dictionary.")
 
     def _build_code_from_tree(self, tree, d, prefix):
         r"""

@@ -136,7 +136,7 @@
 	<key>LSUIElement</key>
 	<true/>
 	<key>NSHumanReadableCopyright</key>
-	<string>Sage SAGE_VERSION Copyright 2005-2010 The Sage Development Team</string>
+	<string>Sage SAGE_VERSION Copyright 2005-2011 The Sage Development Team</string>
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>

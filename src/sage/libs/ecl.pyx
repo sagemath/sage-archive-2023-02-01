@@ -357,6 +357,9 @@ cdef cl_object python_to_ecl(pyobj) except NULL:
             return string_to_object(s)
     elif isinstance(pyobj,float):
         return ecl_make_doublefloat(pyobj)
+    elif isinstance(pyobj,unicode):
+        s=<bytes>(str(pyobj))
+        return ecl_safe_read_string(s)
     elif isinstance(pyobj,bytes):
         s=<bytes>pyobj
         return ecl_safe_read_string(s)

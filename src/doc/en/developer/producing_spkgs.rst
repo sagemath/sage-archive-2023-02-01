@@ -257,6 +257,15 @@ if there is an error, before installing (e.g. with ``python setup.py
 install``). In this way, you would not overwrite a working older
 version with a non-working newer version of the spkg.
 
+When copying documentation to
+``$SAGE_ROOT/local/share/doc/PACKAGE_NAME``, it may be necessary to
+check that only the actual documentation files intended for the
+user are copied.  For example, if the documentation is built from
+``.tex`` files, you may just need to copy the resulting pdf files,
+rather than copying the entire doc directory.  When generating
+documentation using Sphinx, copying the ``build/html`` directory
+generally will copy just the actual output intended for the user.
+
 
 The file SPKG.txt
 -----------------

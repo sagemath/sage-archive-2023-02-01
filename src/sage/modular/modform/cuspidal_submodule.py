@@ -306,41 +306,26 @@ class CuspidalSubmodule_gH_Q(CuspidalSubmodule_modsym_qexp):
             [  6   0   2 -20]
             [  6  12 -24 -20]
         """
-        # compute the associated modular symbols space
         symbs = self.modular_symbols(sign=1)
-        T = symbs.hecke_matrix(n)
-        d = symbs.rank()
+        return _convert_matrix_from_modsyms(symbs, symbs.hecke_matrix(n))[0]
 
-        # create a vector space of appropriate dimension to
-        # contain our q-expansions
-        A = self.base_ring()
-        r = self.sturm_bound()
-        X = A**r
-        Y = X.zero_submodule()
-        basis = []
-        basis_images = []
+    def _compute_diamond_matrix(self, d):
+        r"""
+        EXAMPLE::
 
-        # we repeatedly use these matrices below, so we store them
-        # once as lists to save time.
-        hecke_matrix_ls = [ symbs.hecke_matrix(m).list() for m in range(1,r+1) ]
-        hecke_image_ls = [ (T*symbs.hecke_matrix(m)).list() for m in range(1,r+1) ]
+            sage: CuspForms(Gamma1(5), 6).diamond_bracket_matrix(3) # indirect doctest
+            [ -1   0   0]
+            [  3   5 -12]
+            [  1   2  -5]
+            sage: CuspForms(GammaH(15, [4]), 3)._compute_diamond_matrix(7)
+            [ 2  3 -9 -3]
+            [ 0  2 -3  0]
+            [ 0  1 -2  0]
+            [ 1  1 -3 -2]
+        """
+        symbs = self.modular_symbols(sign=1)
+        return _convert_matrix_from_modsyms(symbs, symbs.diamond_bracket_matrix(d))[0]
 
-        # compute the q-expansions of some cusp forms and their
-        # images under T_n
-        for i in xrange(d**2):
-            v = X([ hecke_matrix_ls[m][i] for m in xrange(r) ])
-            Ynew = Y.span(Y.basis() + [v])
-            if Ynew.rank() > Y.rank():
-                basis.append(v)
-                basis_images.append(X([ hecke_image_ls[m][i] for m in xrange(r) ]))
-                Y = Ynew
-                if len(basis) == d: break
-
-        # now we can compute the matrix of T_n
-        bigmat = Matrix(basis).augment(Matrix(basis_images))
-        bigmat.echelonize()
-        pivs = bigmat.pivots()
-        return bigmat.matrix_from_rows_and_columns(range(d), [ r+x for x in pivs ])
 
 class CuspidalSubmodule_g1_Q(CuspidalSubmodule_gH_Q):
     r"""
@@ -378,3 +363,59 @@ class CuspidalSubmodule_eps(CuspidalSubmodule_modsym_qexp):
     #    return "Cuspidal subspace of dimension %s of Modular Forms space with character %s and weight %s over %s"%(self.dimension(), self.character(), self.weight(), self.base_ring())
 
 
+
+def _convert_matrix_from_modsyms(symbs, T):
+    r"""
+    Given a space of modular symbols and a matrix T acting on it, calculate the
+    matrix of the corresponding operator on the echelon-form basis of the
+    corresponding space of modular forms.
+
+    The matrix T *must* commute with the Hecke operators! We use this when T is
+    either a Hecke operator, or a diamond operator. This will *not work* for
+    the Atkin-Lehner operators, for instance, when there are oldforms present.
+
+    OUTPUT:
+        A pair `(T_e, ps)` with `T_e` the converted matrix and `ps` a list
+        of pivot elements of the echelon basis.
+
+    EXAMPLE::
+
+        sage: CuspForms(Gamma1(5), 6).diamond_bracket_matrix(3) # indirect doctest
+        [ -1   0   0]
+        [  3   5 -12]
+        [  1   2  -5]
+    """
+    d = symbs.rank()
+
+    # create a vector space of appropriate dimension to
+    # contain our q-expansions
+    A = symbs.base_ring()
+    r = symbs.sturm_bound()
+    X = A**r
+    Y = X.zero_submodule()
+    basis = []
+    basis_images = []
+
+    # we repeatedly use these matrices below, so we store them
+    # once as lists to save time.
+    hecke_matrix_ls = [ symbs.hecke_matrix(m).list() for m in range(1,r+1) ]
+    hecke_image_ls = [ (T*symbs.hecke_matrix(m)).list() for m in range(1,r+1) ]
+
+    # compute the q-expansions of some cusp forms and their
+    # images under T_n
+    for i in xrange(d**2):
+        v = X([ hecke_matrix_ls[m][i] for m in xrange(r) ])
+        Ynew = Y.span(Y.basis() + [v])
+        if Ynew.rank() > Y.rank():
+            basis.append(v)
+            basis_images.append(X([ hecke_image_ls[m][i] for m in xrange(r) ]))
+            Y = Ynew
+            if len(basis) == d: break
+
+    # now we can compute the matrix acting on the echelonized space of mod forms
+    # need to pass A as base ring since otherwise there are problems when the
+    # space has dimension 0
+    bigmat = Matrix(A, basis).augment(Matrix(A, basis_images))
+    bigmat.echelonize()
+    pivs = bigmat.pivots()
+    return bigmat.matrix_from_rows_and_columns(range(d), [ r+x for x in pivs ]), pivs

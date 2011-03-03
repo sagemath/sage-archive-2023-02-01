@@ -134,6 +134,24 @@ class ModularFormsAmbient_gH_Q(ambient.ModularFormsAmbient):
             self.__eisenstein_submodule = eisenstein_submodule.EisensteinSubmodule_gH_Q(self)
         return self.__eisenstein_submodule
 
+    def _compute_diamond_matrix(self, d):
+        r"""
+        Compute the matrix of the diamond operator <d> on this space.
+
+        EXAMPLE::
+
+            sage: ModularForms(GammaH(9, [4]), 7)._compute_diamond_matrix(2)
+            [-1  0  0  0  0  0  0  0]
+            [ 0 -1  0  0  0  0  0  0]
+            [ 0  0 -1  0  0  0  0  0]
+            [ 0  0  0 -1  0  0  0  0]
+            [ 0  0  0  0 -1  0  0  0]
+            [ 0  0  0  0  0 -1  0  0]
+            [ 0  0  0  0  0  0 -1  0]
+            [ 0  0  0  0  0  0  0 -1]
+        """
+        return self.cuspidal_submodule().diamond_bracket_matrix(d).block_sum(self.eisenstein_submodule().diamond_bracket_matrix(d))
+
     def _compute_hecke_matrix(self, n):
         r"""
         Compute the matrix of the Hecke operator T_n acting on this space.

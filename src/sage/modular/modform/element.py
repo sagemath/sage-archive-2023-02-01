@@ -19,6 +19,7 @@ from sage.modular.modsym.modsym import ModularSymbols
 from sage.modules.module_element import ModuleElement
 from sage.modules.free_module_element import vector
 from sage.misc.misc import verbose
+from sage.modular.dirichlet import DirichletGroup
 
 def is_ModularFormElement(x):
     """
@@ -397,20 +398,41 @@ class ModularForm_abstract(ModuleElement):
         """
         return self.parent().base_ring()
 
-    def character(self):
+    def character(self, compute=True):
         """
-        Return the character of self.
+        Return the character of self. If ``compute=False``, then this will
+        return None unless the form was explicitly created as an element of a
+        space of forms with character, skipping the (potentially expensive)
+        computation of the matrices of the diamond operators.
 
         EXAMPLES::
 
             sage: ModularForms(DirichletGroup(17).0^2,2).2.character()
             Dirichlet character modulo 17 of conductor 17 mapping 3 |--> zeta8
+
+            sage: CuspForms(Gamma1(7), 3).gen(0).character()
+            Dirichlet character modulo 7 of conductor 7 mapping 3 |--> -1
+            sage: CuspForms(Gamma1(7), 3).gen(0).character(compute = False) is None
+            True
+            sage: M = CuspForms(Gamma1(7), 5).gen(0).character()
+            Traceback (most recent call last):
+            ...
+            ValueError: Form is not an eigenvector for <3>
         """
         chi = self.parent().character()
-        if chi is None:
-            raise NotImplementedError, "Determination of character in this " + \
-                  "case not implemented yet."
-        return chi
+        if (chi is not None) or (not compute):
+            return chi
+        else: # do the expensive computation
+            G = DirichletGroup(self.parent().level(), base_ring = self.parent().base_ring())
+            gens = G.unit_gens()
+            i = self.valuation()
+            vals = []
+            for g in gens:
+                df = self.parent().diamond_bracket_operator(g)(self)
+                if df != (df[i] / self[i]) * self:
+                    raise ValueError, "Form is not an eigenvector for <%s>" % g
+                vals.append(df[i] / self[i])
+            return G(vals)
 
     def __nonzero__(self):
         """
@@ -865,6 +887,21 @@ class Newform(ModularForm_abstract):
         """
         return True
 
+    def character(self):
+        r"""
+        The nebentypus character of this newform (as a Dirichlet character with
+        values in the field of Hecke eigenvalues of the form).
+
+        EXAMPLES::
+
+            sage: Newforms(Gamma1(7), 4,names='a')[1].character()
+            Dirichlet character modulo 7 of conductor 7 mapping 3 |--> 1/2*a1
+            sage: chi = DirichletGroup(3).0; Newforms(chi, 7)[0].character() == chi
+            True
+        """
+        return self._defining_modular_symbols().q_eigenform_character(self._name())
+
+
     def atkin_lehner_eigenvalue(self, d=None):
         r"""
         Return the eigenvalue of the Atkin-Lehner operator W_d acting on this newform
@@ -950,6 +987,12 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
         r"""
         Calculate the product self * other.
 
+        This tries to determine the
+        characters of self and other, in order to avoid having to compute a
+        (potentially very large) Gamma1 space. Note that this might lead to
+        a modular form that is defined with respect to a larger subgroup than
+        the factors are.
+
         An example with character::
 
             sage: f = ModularForms(DirichletGroup(3).0, 3).0
@@ -960,13 +1003,21 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
             sage: (f*f*f).parent()
             Modular Forms space of dimension 4, character [-1] and weight 9 over Rational Field
 
-        An example without::
+        An example where the character is computed on-the-fly::
 
             sage: f = ModularForms(Gamma1(3), 5).0
             sage: f*f
             1 - 180*q^2 - 480*q^3 + 8100*q^4 + 35712*q^5 + O(q^6)
             sage: (f*f).parent()
-            Modular Forms space of dimension 4 for Congruence Subgroup Gamma1(3) of weight 10 over Rational Field
+            Modular Forms space of dimension 4 for Congruence Subgroup Gamma0(3) of weight 10 over Rational Field
+
+        An example with no character::
+
+            sage: f = ModularForms(Gamma1(3), 7).0
+            sage: f*f
+            q^2 - 54*q^4 + 128*q^5 + O(q^6)
+            sage: (f*f).parent()
+            Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(3) of weight 14 over Rational Field
 
         TESTS:
 

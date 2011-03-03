@@ -415,6 +415,34 @@ class EisensteinSubmodule_gH_Q(EisensteinSubmodule_params):
         """
         return self.group()
 
+    def _convert_matrix_from_modsyms_eis(self, A):
+        r"""
+        Given a matrix acting on the space of modular symbols corresponding to
+        this space, calculate the matrix of the operator it induces on this
+        space itself. Used for Hecke and diamond operators.
+
+        This is a minor modification of the code used for cusp forms, which is
+        required because modular symbols "don't see the constant term": the
+        modular symbol method calculates the matrix of the operator with
+        respect to the unique basis of the modular forms space for which the
+        *non-constant* coefficients are in echelon form, and we need to modify
+        this to get a matrix with respect to the basis we're actually using.
+
+        EXAMPLES::
+
+            sage: EisensteinForms(Gamma1(6), 3).hecke_matrix(3) # indirect doctest
+            [ 1  0 72  0]
+            [ 0  0 36 -9]
+            [ 0  0  9  0]
+            [ 0  1 -4 10]
+        """
+        from cuspidal_submodule import _convert_matrix_from_modsyms
+        symbs = self.modular_symbols(sign=0)
+        d = self.rank()
+        wrong_mat, pivs = _convert_matrix_from_modsyms(symbs, A)
+        c = Matrix(self.base_ring(), d, [self.basis()[i][j+1] for i in xrange(d) for j in pivs])
+        return c * wrong_mat * ~c
+
     def _compute_hecke_matrix(self, n, bound=None):
         r"""
         Calculate the matrix of the Hecke operator `T_n` acting on this
@@ -453,54 +481,29 @@ class EisensteinSubmodule_gH_Q(EisensteinSubmodule_params):
             [ 0  0  9  0]
             [ 0  1 -4 10]
         """
-        # crucial to take sign 0 here
         symbs = self.modular_symbols(sign=0)
         T = symbs.hecke_matrix(n)
-        d = symbs.rank()
+        return self._convert_matrix_from_modsyms_eis(T)
 
-        if bound is None:
-            bound = self.dimension()
-        r = bound + 1
-        A = self.base_ring()
-        X = A**r
-        Y = X.zero_submodule()
-        basis = []
-        basis_images = []
+    def _compute_diamond_matrix(self, d):
+        r"""
+        Calculate the matrix of the diamond bracket operator <d> on this space,
+        using modular symbols.
 
-        # we repeatedly use these matrices below, so we store them
-        # once as lists to save time.
-        hecke_matrix_ls = [ symbs.hecke_matrix(m).list() for m in range(1,r+1) ]
-        hecke_image_ls = [ (T*symbs.hecke_matrix(m)).list() for m in range(1,r+1) ]
+        EXAMPLE::
 
-        # compute the q-expansions of some cusp forms and their
-        # images under T_n
-        for i in xrange(d**2):
-            v = X([ hecke_matrix_ls[m][i] for m in xrange(r) ])
-            Ynew = Y.span(Y.basis() + [v])
-            if Ynew.rank() > Y.rank():
-                basis.append(v)
-                basis_images.append(X([ hecke_image_ls[m][i] for m in xrange(r) ]))
-                Y = Ynew
-                if len(basis) == d:
-                    break
-        else:
-            # if we didn't find a sufficient number of modular forms
-            # this way, we simply increase the bound and try again.
-            return self._compute_hecke_matrix(n, bound + 5)
-
-        # now we compute the matrix for T_n
-        bigmat = Matrix(basis).augment(Matrix(basis_images))
-        bigmat.echelonize()
-        pivs = bigmat.pivots()
-        wrong_mat = bigmat.matrix_from_rows_and_columns(range(d), [ r+x for x in pivs ])
-
-        # this is the matrix in a basis such that projections onto
-        # q-expansion coefficients 1...r are echelon, but we want
-        # coeffs 0..r echelon (modular symbols don't see the constant
-        # term)
-        change_mat = Matrix(A, d, [self.basis()[i][j+1] for i in xrange(d) for j in pivs])
-        return change_mat * wrong_mat * ~change_mat
-
+            sage: E = EisensteinForms(Gamma1(7), 3)
+            sage: E._compute_diamond_matrix(3)
+            [  27  126  294  770 2142 3528]
+            [56/3   85  200  530 1445 2408]
+            [11/3   14   22   66  233  392]
+            [  -1   -3   -3  -11  -51  -87]
+            [  -1   -4   -7  -20  -67 -112]
+            [-1/3   -2   -6  -15  -34  -56]
+        """
+        symbs = self.modular_symbols(sign=0)
+        T = symbs.diamond_bracket_matrix(d)
+        return self._convert_matrix_from_modsyms_eis(T)
 
 class EisensteinSubmodule_g1_Q(EisensteinSubmodule_gH_Q):
     r"""

@@ -1962,8 +1962,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         self.__star_involution = S
         return self.__star_involution
 
-    @cached_method
-    def diamond_bracket_operator(self, d):
+    def _compute_diamond_matrix(self, d):
         r"""
         Return the diamond bracket d operator on this modular symbols space.
 
@@ -1980,14 +1979,13 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
 
             sage: e = kronecker_character(7)
             sage: M = ModularSymbols(e,2,sign=1)
-            sage: M.diamond_bracket_operator(5)
-            Hecke module morphism Diamond bracket operator <5> on Modular Symbols space of dimension 4 and level 28, weight 2, character [-1, -1], sign 1, over Rational Field defined by the matrix
+            sage: D = M.diamond_bracket_operator(5); D
+            Diamond bracket operator <5> on Modular Symbols space ...
+            sage: D.matrix() # indirect doctest
             [-1  0  0  0]
             [ 0 -1  0  0]
             [ 0  0 -1  0]
             [ 0  0  0 -1]
-            Domain: Modular Symbols space of dimension 4 and level 28, weight 2, ...
-            Codomain: Modular Symbols space of dimension 4 and level 28, weight 2, ...
             sage: [M.diamond_bracket_operator(d).matrix()[0,0] for d in [0..6]]
             [0, 1, 0, 1, 0, -1, 0]
             sage: [e(d) for d in [0..6]]
@@ -1996,18 +1994,18 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         We test that the sign issue at #8620 is fixed::
 
             sage: M = Newforms(Gamma1(13),names = 'a')[0].modular_symbols(sign=0)
-            sage: M.diamond_bracket_operator(4)
-            Hecke module morphism defined by the matrix
+            sage: M.diamond_bracket_operator(4).matrix()
             [ 0  0  1 -1]
             [-1 -1  0  1]
             [-1 -1  0  0]
             [ 0 -1  1 -1]
-            Domain: Modular Symbols subspace of dimension 4 of Modular Symbols space ...
-            Codomain: Modular Symbols subspace of dimension 4 of Modular Symbols space ...
+
+        We check that the result is correctly normalised for weight > 2::
+
+            sage: ModularSymbols(Gamma1(13), 5).diamond_bracket_operator(6).charpoly().factor()
+            (x^2 + 1)^8 * (x^4 - x^2 + 1)^10
         """
-        S = self.__heilbronn_operator(self, [[d,0, 0,d]], 1)
-        S.name("Diamond bracket operator <%s> on %s"%(d,self))
-        return S
+        return self.__heilbronn_operator(self, [[d,0, 0,d]], 1).matrix() * d**(2 - self.weight())
 
     def submodule(self, M, dual_free_module=None, check=True):
         r"""

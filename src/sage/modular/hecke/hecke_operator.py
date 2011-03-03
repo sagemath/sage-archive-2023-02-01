@@ -533,6 +533,58 @@ class HeckeAlgebraElement_matrix(HeckeAlgebraElement):
         return self.parent()(other.matrix() * self.matrix(), check=False)
 
 
+class DiamondBracketOperator(HeckeAlgebraElement_matrix):
+    r"""
+    The diamond bracket operator `\langle d \rangle` for some `d \in \ZZ /
+    N\ZZ` (which need not be a unit, although if it is not, the operator will
+    be zero).
+    """
+    def __init__(self, parent, d):
+        r"""
+        Standard init function.
+
+        EXAMPLE::
+
+            sage: M = ModularSymbols(Gamma1(5),6)
+            sage: d = M.diamond_bracket_operator(2); d # indirect doctest
+            Diamond bracket operator <2> on Modular Symbols space of dimension 10 for Gamma_1(5) of weight 6 with sign 0 and over Rational Field
+            sage: type(d)
+            <class 'sage.modular.hecke.hecke_operator.DiamondBracketOperator'>
+            sage: d.matrix()
+            [     0      1      0      0      0      0      0      0      0      0]
+            [     1      0      0      0      0      0      0      0      0      0]
+            [     0      0      0      0      0      0      0      1      0      0]
+            [     0      0  -8/17     -1  14/17  11/17      0  -8/17  14/17  11/17]
+            [     0      0      0      0      0      0      0      0      1      0]
+            [     0      0      0      0      0      0      0      0      0      1]
+            [     0      0  16/17      0 -11/17  12/17     -1  16/17 -11/17  12/17]
+            [     0      0      1      0      0      0      0      0      0      0]
+            [     0      0      0      0      1      0      0      0      0      0]
+            [     0      0      0      0      0      1      0      0      0      0]
+            sage: d**4 == 1
+            True
+        """
+        self.__d = d
+        A = parent.diamond_bracket_matrix(d)
+        HeckeAlgebraElement_matrix.__init__(self, parent, A)
+
+    def _repr_(self):
+        r"""
+        EXAMPLE::
+
+            sage: ModularSymbols(Gamma1(5), 6).diamond_bracket_operator(2)._repr_()
+            'Diamond bracket operator <2> on Modular Symbols space of dimension 10 for Gamma_1(5) of weight 6 with sign 0 and over Rational Field'
+        """
+        return "Diamond bracket operator <%s> on %s" % (self.__d, self.domain())
+
+    def _latex_(self):
+        r"""
+        EXAMPLE::
+
+            sage: latex(ModularSymbols(Gamma1(5), 12).diamond_bracket_operator(2)) # indirect doctest
+            \langle 2 \rangle
+        """
+        return r"\langle %s \rangle" % self.__d
 
 class HeckeOperator(HeckeAlgebraElement):
     r"""

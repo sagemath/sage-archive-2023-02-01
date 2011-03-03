@@ -94,6 +94,7 @@ class HeckeModule_generic(sage.modules.module.Module_old):
             raise ValueError, "level (=%s) must be positive"%level
         self.__level = level
         self._hecke_matrices = {}
+        self._diamond_matrices = {}
 
     def __hash__(self):
         r"""
@@ -238,6 +239,22 @@ class HeckeModule_generic(sage.modules.module.Module_old):
         """
         raise NotImplementedError, "All subclasses must implement _compute_hecke_matrix_prime"
 
+    def _compute_diamond_matrix(self, d):
+        r"""
+        Compute the matrix of the diamond bracket operator `\langle d \rangle` on this space,
+        in cases where this isn't self-evident (i.e. when this is not a space
+        with fixed character).
+
+        EXAMPLE::
+
+            sage: M = EisensteinForms(Gamma1(5), 3)
+            sage: sage.modular.hecke.module.HeckeModule_generic._compute_diamond_matrix(M, 2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: All subclasses without fixed character must implement _compute_diamond_matrix
+        """
+        raise NotImplementedError, "All subclasses without fixed character must implement _compute_diamond_matrix"
+
     def _hecke_operator_class(self):
         """
         Return the class to be used for instantiating Hecke operators
@@ -251,6 +268,20 @@ class HeckeModule_generic(sage.modules.module.Module_old):
             <class 'sage.modular.modsym.hecke_operator.HeckeOperator'>
         """
         return hecke_operator.HeckeOperator
+
+    def _diamond_operator_class(self):
+        r"""
+        Return the class to be used for instantiating diamond bracket operators
+        acting on self.
+
+        EXAMPLES::
+
+            sage: sage.modular.hecke.module.HeckeModule_generic(QQ,1)._diamond_operator_class()
+            <class 'sage.modular.hecke.hecke_operator.DiamondBracketOperator'>
+            sage: ModularSymbols(1,12)._diamond_operator_class()
+            <class 'sage.modular.hecke.hecke_operator.DiamondBracketOperator'>
+        """
+        return hecke_operator.DiamondBracketOperator
 
     def anemic_hecke_algebra(self):
         """
@@ -1326,6 +1357,44 @@ class HeckeModule_free_module(HeckeModule_generic):
             -(1,8)
         """
         return self.hecke_algebra().hecke_operator(n)
+
+    def diamond_bracket_matrix(self, d):
+        r"""
+        Return the matrix of the diamond bracket operator `\langle d \rangle` on self.
+
+        EXAMPLES::
+
+            sage: M = ModularSymbols(DirichletGroup(5).0, 3)
+            sage: M.diamond_bracket_matrix(3)
+            [-zeta4      0]
+            [     0 -zeta4]
+            sage: ModularSymbols(Gamma1(5), 3).diamond_bracket_matrix(3)
+            [ 0 -1  0  0]
+            [ 1  0  0  0]
+            [ 0  0  0  1]
+            [ 0  0 -1  0]
+        """
+        d = int(d) % self.level()
+        if not self._diamond_matrices.has_key(d):
+            if self.character() is not None:
+                D = matrix_space.MatrixSpace(self.base_ring(),self.rank())(self.character()(d))
+            else:
+                D = self._compute_diamond_matrix(d)
+            D.set_immutable()
+            self._diamond_matrices[d] = D
+        return self._diamond_matrices[d]
+
+    def diamond_bracket_operator(self, d):
+        r"""
+        Return the diamond bracket operator `\langle d \rangle` on self.
+
+        EXAMPLES::
+
+            sage: M = ModularSymbols(DirichletGroup(5).0, 3)
+            sage: M.diamond_bracket_operator(3)
+            Diamond bracket operator <3> on Modular Symbols space of dimension 2 and level 5, weight 3, character [zeta4], sign 0, over Cyclotomic Field of order 4 and degree 2
+        """
+        return self.hecke_algebra().diamond_bracket_operator(d)
 
     def T(self, n):
         r"""

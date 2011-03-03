@@ -591,6 +591,50 @@ class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
         """
         return self.__M.hecke_matrix(n, *args, **kwds)
 
+    def diamond_bracket_matrix(self, d):
+        r"""
+        Return the matrix of the diamond bracket operator `\langle d \rangle`.
+
+        EXAMPLE::
+
+            sage: T = ModularSymbols(Gamma1(7), 4).hecke_algebra()
+            sage: T.diamond_bracket_matrix(3)
+            [    0     0     1     0     0     0     0     0     0     0     0     0]
+            [    1     0     0     0     0     0     0     0     0     0     0     0]
+            [    0     1     0     0     0     0     0     0     0     0     0     0]
+            [    0     0     0 -11/9  -4/9     1   2/3   7/9   2/9   7/9  -5/9  -2/9]
+            [    0     0     0  58/9  17/9    -5 -10/3   4/9   5/9 -50/9  37/9  13/9]
+            [    0     0     0 -22/9  -8/9     2   4/3   5/9   4/9  14/9 -10/9  -4/9]
+            [    0     0     0  44/9  16/9    -4  -8/3   8/9   1/9 -28/9  20/9   8/9]
+            [    0     0     0     0     0     0     0     0     0     0     1     0]
+            [    0     0     0     0     0     0     0     0     0     0     0     1]
+            [    0     0     0     1     0     0     0     0     0     0     0     0]
+            [    0     0     0     2     0    -1     0     0     0     0     0     0]
+            [    0     0     0    -4     0     4     1     0     0     0     0     0]
+
+        """
+        return self.__M.diamond_bracket_matrix(d)
+
+    def diamond_bracket_operator(self, d):
+        r"""
+        Return the diamond bracket operator `\langle d \rangle`.
+
+        EXAMPLE::
+
+            sage: T = ModularSymbols(Gamma1(7), 4).hecke_algebra()
+            sage: T.diamond_bracket_operator(3)
+            Diamond bracket operator <3> on Modular Symbols space of dimension 12 for Gamma_1(7) of weight 4 with sign 0 and over Rational Field
+        """
+        d = int(d) % self.__M.level()
+        try:
+            return self.__diamond_operator[d]
+        except AttributeError:
+            self.__diamond_operator = {}
+        except KeyError:
+            pass
+        D = self.__M._diamond_operator_class()(self, d)
+        self.__diamond_operator[d] = D
+        return D
 
 class HeckeAlgebra_full(HeckeAlgebra_base):
     r"""

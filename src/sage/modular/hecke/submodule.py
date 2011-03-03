@@ -240,6 +240,20 @@ class HeckeSubmodule(module.HeckeModule_free_module):
         check = arith.gcd(self.level(), n) != 1
         return A.restrict(self.free_module(), check=check)
 
+    def _compute_diamond_matrix(self, d):
+        r"""
+        EXAMPLE:
+
+            sage: f = ModularSymbols(Gamma1(13),2,sign=1).cuspidal_subspace().decomposition()[0]
+            sage: a = f.diamond_bracket_operator(2).matrix() # indirect doctest
+            sage: a.charpoly()
+            x^2 - x + 1
+            sage: a^12
+            [1 0]
+            [0 1]
+        """
+        return self.ambient_hecke_module().diamond_bracket_matrix(d).restrict(self.free_module())
+
     def _compute_atkin_lehner_matrix(self, d):
         """
         Compute the Atkin-Lehner matrix corresponding to the

@@ -1139,7 +1139,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             sage: ModularSymbols(Gamma1(17),2,sign=1).cuspidal_submodule().q_eigenform_character('a')
             Traceback (most recent call last):
             ...
-            ArithmeticError: self must be simple.
+            ArithmeticError: self must be simple
 
         If the character is specified when making the modular symbols
         space, then names need not be given and the returned character
@@ -1153,12 +1153,11 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             sage: f.q_eigenform_character() is f.character()
             True
 
-        The input space must be cuspidal::
+        The input space need not be cuspidal::
 
-            sage: ModularSymbols(Gamma1(13),2,sign=1).q_eigenform_character('a')
-            Traceback (most recent call last):
-            ...
-            ArithmeticError: self must be cuspidal.
+            sage: M = ModularSymbols(Gamma1(13),2,sign=1).eisenstein_submodule()[0]
+            sage: M.q_eigenform_character('a')
+            Dirichlet character modulo 13 of conductor 13 mapping 2 |--> -1
 
         The modular symbols space does not have to come from a decomposition::
 
@@ -1170,16 +1169,14 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             # easy case
             return eps
 
-        f = self.q_eigenform(1,names)
         v = self.dual_eigenvector(names=names)
         i = v.nonzero_positions()[0]
         K = v.base_ring()
         from sage.modular.dirichlet import DirichletGroup
         G = DirichletGroup(self.level(), K)
-        G.unit_gens()
         M = self.ambient_module()
         # act on right since v is a in the dual
-        b = [(M.diamond_bracket_operator(u).matrix()*v)[i] / v[i] for u in G.unit_gens()]
+        b = [(M.diamond_bracket_matrix(u)*v)[i] / v[i] for u in G.unit_gens()]
         return G(b)
 
     def q_eigenform(self, prec, names=None):

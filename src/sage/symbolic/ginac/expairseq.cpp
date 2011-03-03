@@ -1193,7 +1193,7 @@ epvector* expairseq::get_sorted_seq() const
 		seq_sorted = new epvector(seq.size());
 		partial_sort_copy(seq.begin(), seq.end(),
 				seq_sorted->begin(), seq_sorted->end(),
-				expair_rest_is_greater_degrevlex());
+				  expair_is_greater_degrevlex::in_type(tinfo()));
 	}
 	return seq_sorted;
 }

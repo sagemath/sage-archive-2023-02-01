@@ -1,3 +1,4 @@
+
 /** @file expairseq.h
  *
  *  Interface to sequences of expression pairs. */
@@ -38,7 +39,7 @@ namespace GiNaC {
  *  combining n terms into one large sum (or n terms into one large product)
  *  from O(n*log(n)) to about O(n).  There are, however, several drawbacks.
  *  The constant in front of O(n) is quite large, when copying such an object
- *  one also has to copy the has table, comparison is quite expensive because
+ *  one also has to copy the hash table, comparison is quite expensive because
  *  there is no ordering any more, it doesn't help at all when combining two
  *  expairseqs because due to the presorted nature the behaviour would be
  *  O(n) anyways, the code is quite messy, etc, etc.  The code is here as
@@ -132,6 +133,7 @@ protected:
 	void make_flat(const epvector & v, bool do_index_renaming = false);
 	void canonicalize();
 	void combine_same_terms_sorted_seq();
+	epvector* get_sorted_seq() const;
 #if EXPAIRSEQ_USE_HASHTAB
 	void combine_same_terms();
 	unsigned calc_hashtabsize(unsigned sz) const;
@@ -158,7 +160,6 @@ protected:
 	std::auto_ptr<epvector> evalchildren(int level) const;
 	std::auto_ptr<epvector> subschildren(const exmap & m, unsigned options = 0) const;
 	
-	epvector* get_sorted_seq() const;
 // member variables
 	
 protected:

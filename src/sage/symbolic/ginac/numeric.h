@@ -208,7 +208,7 @@ namespace GiNaC {
   class numeric : public basic
   {
     GINAC_DECLARE_REGISTERED_CLASS(numeric, basic)
-	
+    //friend struct expair_is_greater_degrevlex;
     // member functions
 	
     // other constructors

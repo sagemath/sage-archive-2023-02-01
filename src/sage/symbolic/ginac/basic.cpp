@@ -829,7 +829,7 @@ ex basic::expand(unsigned options) const
  *  1 greater. */
 int basic::compare(const basic & other) const
 {
- #ifdef GINAC_COMPARE_STATISTICS
+#ifdef GINAC_COMPARE_STATISTICS
         compare_statistics.total_basic_compares++;
 #endif
         const unsigned hash_this = gethash();

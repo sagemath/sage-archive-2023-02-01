@@ -109,7 +109,7 @@ class basic : public refcounted
 	
 	friend class ex;
 	friend struct ex_is_greater_degrevlex;
-	
+	friend struct expair_is_greater_degrevlex;
 	// default constructor, destructor, copy constructor and assignment operator
 protected:
 	basic() : tinfo_key(&tinfo_static), flags(0) {}

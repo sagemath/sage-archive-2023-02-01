@@ -34,6 +34,7 @@
 #include "infinity.h"
 #include "function.h"
 #include "inifcns.h"
+#include "order.h"
 
 #include <iostream>
 #include <vector>
@@ -1129,6 +1130,8 @@ ex mul::derivative(const symbol & s) const
 	return (new add(addseq))->setflag(status_flags::dynallocated);
 }
 
+/** Total degree of a mul object.
+ Beware that symbolic exponents are wrapped inside pow objects with 1 as coeff. */
 double mul::total_degree() const
 {
 	if (flags & status_flags::tdegree_calculated) {

@@ -40,6 +40,7 @@ class fderivative : public function
 {
 	GINAC_DECLARE_REGISTERED_CLASS(fderivative, function)
 
+	friend struct ex_is_greater_degrevlex;
 	// other constructors
 public:
 	/** Construct derivative with respect to one parameter.

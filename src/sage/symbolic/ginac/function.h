@@ -310,6 +310,7 @@ class function : public exprseq
 {
 	GINAC_DECLARE_REGISTERED_CLASS(function, exprseq)
 
+	friend struct ex_is_greater_degrevlex;
 	// CINT has a linking problem
 #ifndef __MAKECINT__
 	friend void ginsh_get_ginac_functions();

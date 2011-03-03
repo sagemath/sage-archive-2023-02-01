@@ -84,6 +84,7 @@ class ex {
 	template<class T> friend inline bool is_exactly_a(const ex &);
 	
 	friend struct ex_is_greater_degrevlex;
+	friend struct expair_is_greater_degrevlex;
 	// default constructor, copy constructor and assignment operator
 public:
 	ex() throw();

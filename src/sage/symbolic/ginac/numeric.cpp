@@ -236,6 +236,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
         return x.v._pyobject;
 
       default:
+	std::cout << x.t <<std::endl;
 	stub("Number_T_to_pyobject -- not able to do conversion to pyobject; everything else will be nonsense");
 	return 0;
       }

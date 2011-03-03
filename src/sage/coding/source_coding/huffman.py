@@ -105,12 +105,11 @@ class Huffman(SageObject):
 
         - A dictionary that associates to each symbol of an alphabet a numeric
           value. If we consider the frequency of each alphabetic symbol, then
-          ``table`` is considered as the frequency table of the alphabet with
+          ``source`` is considered as the frequency table of the alphabet with
           each numeric (non-negative integer) value being the number of
           occurrences of a symbol. The numeric values can also represent weights
           of the symbols. In that case, the numeric values are not necessarily
-          integers, but can be real numbers. In general, we refer to ``table``
-          as a weight table.
+          integers, but can be real numbers.
 
     In order to construct a Huffman code for an alphabet, we use exactly one of
     the following methods:

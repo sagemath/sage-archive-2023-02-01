@@ -1168,6 +1168,60 @@ class PermutationGroup_generic(group.Group):
         C = self._gap_().Center()
         return PermutationGroup(gap_group=C)
 
+    def intersection(self, other):
+        r"""
+        Returns the permutation group that is the intersection of
+        ``self`` and ``other``.
+
+        INPUT:
+
+        - ``other`` - a permutation group.
+
+        OUTPUT:
+
+        A permutation group that is the set-theoretic intersection of ``self``
+        with ``other``.  The groups are viewed as subgroups of a symmetric
+        group big enough to contain both group's symbol sets.  So there is
+        no strict notion of the two groups being subgroups of a common parent.
+
+        EXAMPLES::
+
+            sage: H = DihedralGroup(4)
+
+            sage: K = CyclicPermutationGroup(4)
+            sage: H.intersection(K)
+            Permutation Group with generators [(1,2,3,4)]
+
+            sage: L = DihedralGroup(5)
+            sage: H.intersection(L)
+            Permutation Group with generators [(1,4)(2,3)]
+
+            sage: M = PermutationGroup(["()"])
+            sage: H.intersection(M)
+            Permutation Group with generators [()]
+
+        Some basic properties. ::
+
+            sage: H = DihedralGroup(4)
+            sage: L = DihedralGroup(5)
+            sage: H.intersection(L) == L.intersection(H)
+            True
+            sage: H.intersection(H) == H
+            True
+
+        The group ``other`` is verified as such.  ::
+
+            sage: H = DihedralGroup(4)
+            sage: H.intersection('junk')
+            Traceback (most recent call last):
+            ...
+            TypeError: junk is not a permutation group
+        """
+        from sage.categories.finite_permutation_groups import FinitePermutationGroups
+        if other not in FinitePermutationGroups():
+            raise TypeError("{0} is not a permutation group".format(other))
+        return PermutationGroup(gap_group=gap.Intersection(self, other))
+
     def direct_product(self,other,maps=True):
         """
         Wraps GAP's ``DirectProduct``, ``Embedding``, and ``Projection``.

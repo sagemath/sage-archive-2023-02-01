@@ -1641,6 +1641,398 @@ def ones_matrix(ring, nrows=None, ncols=None, sparse=False):
     one = ring(1)
     return matrix_space.MatrixSpace(ring, nrows, ncols, sparse).matrix([one]*nents)
 
+def elementary_matrix(arg0, arg1=None, **kwds):
+    r"""
+    Creates a square matrix that corresponds to a row operation or a column operation.
+
+    FORMATS:
+
+    In each case, ``R`` is the base ring, and is optional. ``n`` is the size
+    of the square matrix created.  Any call may include the ``sparse`` keyword
+    to determine the representation used.  The default is ``False`` which
+    leads to a dense representation.  We describe the matrices by their
+    associated row operation, see the output description for more.
+
+    - ``elementary_matrix(R, n, row1=i, row2=j)``
+
+      The matrix which swaps rows ``i`` and ``j``.
+
+    - ``elementary_matrix(R, n, row1=i, scale=s)``
+
+      The matrix which multiplies row ``i`` by ``s``.
+
+    - ``elementary_matrix(R, n, row1=i, row2=j, scale=s)``
+
+      The matrix which multiplies row ``j`` by ``s``
+      and adds it to row ``i``.
+
+    Elementary matrices representing column operations are created
+    in an entirely analogous way, replacing ``row1`` by ``col1`` and
+    replacing ``row2`` by ``col2``.
+
+    Specifying the ring for entries of the matrix is optional.  If it
+    is not given, and a scale parameter is provided, then a ring containing
+    the value of ``scale`` will be used.  Otherwise, the ring defaults
+    to the integers.
+
+    OUTPUT:
+
+    An elementary matrix is a square matrix that is very close to being
+    an identity matrix.  If ``E`` is an elementary matrix and ``A`` is any
+    matrix with the same number of rows, then ``E*A`` is the result of
+    applying a row operation to ``A``.  This is how the three types
+    created by this function are described.  Similarly, an elementary matrix
+    can be associated with a column operation, so if ``E`` has the same number
+    of columns as ``A`` then ``A*E`` is the result of performing a column
+    operation on ``A``.
+
+    An elementary matrix representing a row operation is created if ``row1``
+    is specified, while an elementary matrix representing a column operation
+    is created if ``col1`` is specified.
+
+    EXAMPLES:
+
+    Over the integers, creating row operations. Recall that row
+    and column numbering begins at zero.  ::
+
+        sage: A = matrix(ZZ, 4, 10, range(40)); A
+        [ 0  1  2  3  4  5  6  7  8  9]
+        [10 11 12 13 14 15 16 17 18 19]
+        [20 21 22 23 24 25 26 27 28 29]
+        [30 31 32 33 34 35 36 37 38 39]
+
+        sage: E = elementary_matrix(4, row1=1, row2=3); E
+        [1 0 0 0]
+        [0 0 0 1]
+        [0 0 1 0]
+        [0 1 0 0]
+        sage: E*A
+        [ 0  1  2  3  4  5  6  7  8  9]
+        [30 31 32 33 34 35 36 37 38 39]
+        [20 21 22 23 24 25 26 27 28 29]
+        [10 11 12 13 14 15 16 17 18 19]
+
+        sage: E = elementary_matrix(4, row1=2, scale=10); E
+        [ 1  0  0  0]
+        [ 0  1  0  0]
+        [ 0  0 10  0]
+        [ 0  0  0  1]
+        sage: E*A
+        [  0   1   2   3   4   5   6   7   8   9]
+        [ 10  11  12  13  14  15  16  17  18  19]
+        [200 210 220 230 240 250 260 270 280 290]
+        [ 30  31  32  33  34  35  36  37  38  39]
+
+        sage: E = elementary_matrix(4, row1=2, row2=1, scale=10); E
+        [ 1  0  0  0]
+        [ 0  1  0  0]
+        [ 0 10  1  0]
+        [ 0  0  0  1]
+        sage: E*A
+        [  0   1   2   3   4   5   6   7   8   9]
+        [ 10  11  12  13  14  15  16  17  18  19]
+        [120 131 142 153 164 175 186 197 208 219]
+        [ 30  31  32  33  34  35  36  37  38  39]
+
+    Over the rationals, now as column operations. Recall that row
+    and column numbering begins at zero.  Checks now have the
+    elementary matrix on the right.  ::
+
+        sage: A = matrix(QQ, 5, 4, range(20)); A
+        [ 0  1  2  3]
+        [ 4  5  6  7]
+        [ 8  9 10 11]
+        [12 13 14 15]
+        [16 17 18 19]
+
+        sage: E = elementary_matrix(QQ, 4, col1=1, col2=3); E
+        [1 0 0 0]
+        [0 0 0 1]
+        [0 0 1 0]
+        [0 1 0 0]
+        sage: A*E
+        [ 0  3  2  1]
+        [ 4  7  6  5]
+        [ 8 11 10  9]
+        [12 15 14 13]
+        [16 19 18 17]
+
+        sage: E = elementary_matrix(QQ, 4, col1=2, scale=1/2); E
+        [  1   0   0   0]
+        [  0   1   0   0]
+        [  0   0 1/2   0]
+        [  0   0   0   1]
+        sage: A*E
+        [ 0  1  1  3]
+        [ 4  5  3  7]
+        [ 8  9  5 11]
+        [12 13  7 15]
+        [16 17  9 19]
+
+        sage: E = elementary_matrix(QQ, 4, col1=2, col2=1, scale=10); E
+        [ 1  0  0  0]
+        [ 0  1 10  0]
+        [ 0  0  1  0]
+        [ 0  0  0  1]
+        sage: A*E
+        [  0   1  12   3]
+        [  4   5  56   7]
+        [  8   9 100  11]
+        [ 12  13 144  15]
+        [ 16  17 188  19]
+
+    An elementary matrix is always nonsingular.  Then repeated row
+    operations can be represented by products of elementary matrices,
+    and this product is again nonsingular.  If row operations are to
+    preserve fundamental properties of a matrix (like rank), we do not
+    allow scaling a row by zero.  Similarly, the corresponding elementary
+    matrix is not constructed.  Also, we do not allow adding a multiple
+    of a row to itself, since this could also lead to a new zero row.  ::
+
+        sage: A = matrix(QQ, 4, 10, range(40)); A
+        [ 0  1  2  3  4  5  6  7  8  9]
+        [10 11 12 13 14 15 16 17 18 19]
+        [20 21 22 23 24 25 26 27 28 29]
+        [30 31 32 33 34 35 36 37 38 39]
+
+        sage: E1 = elementary_matrix(QQ, 4, row1=0, row2=1)
+        sage: E2 = elementary_matrix(QQ, 4, row1=3, row2=0, scale=100)
+        sage: E = E2*E1
+        sage: E.is_singular()
+        False
+        sage: E*A
+        [  10   11   12   13   14   15   16   17   18   19]
+        [   0    1    2    3    4    5    6    7    8    9]
+        [  20   21   22   23   24   25   26   27   28   29]
+        [1030 1131 1232 1333 1434 1535 1636 1737 1838 1939]
+
+        sage: E3 = elementary_matrix(QQ, 4, row1=3, scale=0)
+        Traceback (most recent call last):
+        ...
+        ValueError: scale parameter of row of elementary matrix must be non-zero
+
+        sage: E4 = elementary_matrix(QQ, 4, row1=3, row2=3, scale=12)
+        Traceback (most recent call last):
+        ...
+        ValueError: cannot add a multiple of a row to itself
+
+    If the ring is not specified, and a scale parameter is given, the
+    base ring for the matrix is chosen to contain the scale parameter.
+    Otherwise, if no ring is given, the default is the integers. ::
+
+        sage: E = elementary_matrix(4, row1=1, row2=3)
+        sage: E.parent()
+        Full MatrixSpace of 4 by 4 dense matrices over Integer Ring
+
+        sage: E = elementary_matrix(4, row1=1, scale=4/3)
+        sage: E.parent()
+        Full MatrixSpace of 4 by 4 dense matrices over Rational Field
+
+        sage: E = elementary_matrix(4, row1=1, scale=I)
+        sage: E.parent()
+        Full MatrixSpace of 4 by 4 dense matrices over Symbolic Ring
+
+        sage: E = elementary_matrix(4, row1=1, scale=CDF(I))
+        sage: E.parent()
+        Full MatrixSpace of 4 by 4 dense matrices over Complex Double Field
+
+        sage: E = elementary_matrix(4, row1=1, scale=QQbar(I))
+        sage: E.parent()
+        Full MatrixSpace of 4 by 4 dense matrices over Algebraic Field
+
+    Returned matrices have a dense implementation by default,
+    but a sparse implementation may be requested.  ::
+
+        sage: E = elementary_matrix(4, row1=0, row2=1)
+        sage: E.is_dense()
+        True
+
+        sage: E = elementary_matrix(4, row1=0, row2=1, sparse=True)
+        sage: E.is_sparse()
+        True
+
+    And the ridiculously small cases.  The zero-row matrix cannot be built
+    since then there are no rows to manipulate. ::
+
+        sage: elementary_matrix(QQ, 1, row1=0, row2=0)
+        [1]
+        sage: elementary_matrix(QQ, 0, row1=0, row2=0)
+        Traceback (most recent call last):
+        ...
+        ValueError: size of elementary matrix must be 1 or greater, not 0
+
+    TESTS::
+
+        sage: E = elementary_matrix('junk', 5, row1=3, row2=1, scale=12)
+        Traceback (most recent call last):
+        ...
+        TypeError: optional first parameter must be a ring, not junk
+
+        sage: E = elementary_matrix(5, row1=3, scale='junk')
+        Traceback (most recent call last):
+        ...
+        TypeError: scale must be an element of some ring, not junk
+
+        sage: E = elementary_matrix(ZZ, 5, row1=3, col2=3, scale=12)
+        Traceback (most recent call last):
+        ...
+        ValueError: received an unexpected keyword: col2=3
+
+        sage: E = elementary_matrix(QQ, row1=3, scale=12)
+        Traceback (most recent call last):
+        ...
+        ValueError: size of elementary matrix must be given
+
+        sage: E = elementary_matrix(ZZ, 4/3, row1=3, row2=1, scale=12)
+        Traceback (most recent call last):
+        ...
+        TypeError: size of elementary matrix must be an integer, not 4/3
+
+        sage: E = elementary_matrix(ZZ, -3, row1=3, row2=1, scale=12)
+        Traceback (most recent call last):
+        ...
+        ValueError: size of elementary matrix must be 1 or greater, not -3
+
+        sage: E = elementary_matrix(ZZ, 5, row2=1, scale=12)
+        Traceback (most recent call last):
+        ...
+        ValueError: row1 or col1 must be specified
+
+        sage: E = elementary_matrix(ZZ, 5, row1=3, col1=3, scale=12)
+        Traceback (most recent call last):
+        ...
+        ValueError: cannot specify both row1 and col1
+
+        sage: E = elementary_matrix(ZZ, 5, row1=4/3, row2=1, scale=12)
+        Traceback (most recent call last):
+        ...
+        TypeError: row of elementary matrix must be an integer, not 4/3
+
+        sage: E = elementary_matrix(ZZ, 5, col1=5, col2=1, scale=12)
+        Traceback (most recent call last):
+        ...
+        ValueError: column of elementary matrix must be positive and smaller than 5, not 5
+
+        sage: E = elementary_matrix(ZZ, 5, col1=3, col2=4/3, scale=12)
+        Traceback (most recent call last):
+        ...
+        TypeError: column of elementary matrix must be an integer, not 4/3
+
+        sage: E = elementary_matrix(ZZ, 5, row1=3, row2=-1, scale=12)
+        Traceback (most recent call last):
+        ...
+        ValueError: row of elementary matrix must be positive and smaller than 5, not -1
+
+        sage: E = elementary_matrix(ZZ, 5, row1=3, row2=1, scale=4/3)
+        Traceback (most recent call last):
+        ...
+        TypeError: scale parameter of elementary matrix must an element of Integer Ring, not 4/3
+
+        sage: E = elementary_matrix(ZZ, 5, row1=3)
+        Traceback (most recent call last):
+        ...
+        ValueError: insufficient parameters provided to construct elementary matrix
+
+        sage: E = elementary_matrix(ZZ, 5, row1=3, row2=3, scale=12)
+        Traceback (most recent call last):
+        ...
+        ValueError: cannot add a multiple of a row to itself
+
+        sage: E = elementary_matrix(ZZ, 5, col1=3, scale=0)
+        Traceback (most recent call last):
+        ...
+        ValueError: scale parameter of column of elementary matrix must be non-zero
+
+    AUTHOR:
+
+    - Rob Beezer (2011-03-04)
+    """
+    import sage.structure.element
+    # determine ring and matrix size
+    if not arg1 is None and not rings.is_Ring(arg0):
+        raise TypeError('optional first parameter must be a ring, not {0}'.format(arg0))
+    scale = kwds.pop('scale', None)
+    if rings.is_Ring(arg0):
+        R = arg0
+        arg0 = arg1
+    elif scale is not None:
+        if not sage.structure.element.is_RingElement(scale):
+            raise TypeError('scale must be an element of some ring, not {0}'.format(scale))
+        R = scale.parent()
+    else:
+        R = rings.ZZ
+    if arg0 is None:
+        raise ValueError('size of elementary matrix must be given')
+    try:
+        n = rings.Integer(arg0)
+    except:
+        raise TypeError('size of elementary matrix must be an integer, not {0}'.format(arg0))
+    if n <= 0:
+        raise ValueError('size of elementary matrix must be 1 or greater, not {0}'.format(n))
+    # row operations or column operations?
+    # column operation matrix will be transpose of a row operation matrix
+    row1 = kwds.pop('row1', None)
+    col1 = kwds.pop('col1', None)
+    if row1 is None and col1 is None:
+        raise ValueError('row1 or col1 must be specified')
+    if not row1 is None and not col1 is None:
+        raise ValueError('cannot specify both row1 and col1')
+    rowop = not row1 is None
+    if rowop:
+        opstring = "row"
+        row2 = kwds.pop('row2', None)
+    else:
+        opstring = "column"
+        row1 = col1
+        row2 = kwds.pop('col2', None)
+    sparse = kwds.pop('sparse', False)
+    if kwds:
+        extra = kwds.popitem()
+        raise ValueError('received an unexpected keyword: {0}={1}'.format(extra[0], extra[1]))
+
+    # analyze parameters to determine matrix type
+    try:
+        row1 = rings.Integer(row1)
+    except:
+        raise TypeError('{0} of elementary matrix must be an integer, not {1}'.format(opstring, row1))
+    if row1 < 0 or row1 >= n :
+        raise ValueError('{0} of elementary matrix must be positive and smaller than {1}, not {2}'.format(opstring, n, row1))
+    if not row2 is None:
+        try:
+            row2 = rings.Integer(row2)
+        except:
+            raise TypeError('{0} of elementary matrix must be an integer, not {1}'.format(opstring, row2))
+        if row2 < 0 or row2 >= n :
+            raise ValueError('{0} of elementary matrix must be positive and smaller than {1}, not {2}'.format(opstring, n, row2))
+    if not scale is None:
+        try:
+            scale = R(scale)
+        except:
+            raise TypeError('scale parameter of elementary matrix must an element of {0}, not {1}'.format(R, scale))
+
+    # determine type of matrix and adjust an identity matrix
+    # return row operation matrix or the transpose as a column operation matrix
+    elem = identity_matrix(R, n, sparse=sparse)
+    if row2 is None and scale is None:
+        raise ValueError('insufficient parameters provided to construct elementary matrix')
+    elif not row2 is None and not scale is None:
+        if row1 == row2:
+            raise ValueError('cannot add a multiple of a {0} to itself'.format(opstring))
+        elem[row1, row2] = scale
+    elif not row2 is None and scale is None:
+        elem[row1, row1] = 0
+        elem[row2, row2] = 0
+        elem[row1, row2] = 1
+        elem[row2, row1] = 1
+    elif row2 is None and not scale is None:
+        if scale == 0:
+            raise ValueError('scale parameter of {0} of elementary matrix must be non-zero'.format(opstring))
+        elem[row1, row1] = scale
+    if rowop:
+        return elem
+    else:
+        return elem.transpose()
+
 def _determine_block_matrix_grid(sub_matrices):
     r"""
     For internal use. This tries to determine the dimensions

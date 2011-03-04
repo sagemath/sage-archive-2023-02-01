@@ -1219,15 +1219,18 @@ cdef class Rational(sage.structure.element.FieldElement):
         The number field doesn't have to be defined by an
         integral polynomial::
 
-            sage: (1/5).is_norm(QuadraticField(5/4, 'a'), element=True)
-            (True, -1/5*a + 1/2)
+            sage: B, e = (1/5).is_norm(QuadraticField(5/4, 'a'), element=True)
+            sage: B
+            True
+            sage: e.norm()
+            1/5
 
         A non-Galois number field::
 
-            sage: K.<b> = NumberField(x^3-2)
-            sage: x, y = (3/5).is_norm(K, element=True); x
+            sage: K.<a> = NumberField(x^3-2)
+            sage: B, e = (3/5).is_norm(K, element=True); B
             True
-            sage: y.norm()
+            sage: e.norm()
             3/5
 
             sage: 7.is_norm(K)

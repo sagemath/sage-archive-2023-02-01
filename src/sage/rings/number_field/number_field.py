@@ -3063,13 +3063,18 @@ class NumberField_generic(number_field_base.NumberField):
             [2]
             sage: K.selmer_group([K.ideal(2, -a+1), K.ideal(3, a+1)], 3)
             [2, a + 1]
-            sage: K.selmer_group([K.ideal(2, -a+1), K.ideal(3, a+1), K.ideal(a)], 3)
-            [2, a + 1, -a]  # 32-bit
-            [2, a + 1, a]   # 64-bit
+            sage: K.selmer_group([K.ideal(2, -a+1), K.ideal(3, a+1), K.ideal(a)], 3)  # random signs
+            [2, a + 1, a]
             sage: K.<a> = NumberField(polygen(QQ))
             sage: K.selmer_group([],5)
             []
 
+        TESTS::
+
+            sage: K.<a> = QuadraticField(-5)
+            sage: S = K.selmer_group([K.ideal(2, -a+1), K.ideal(3, a+1), K.ideal(a)], 3)
+            sage: S == [2, a + 1, a] or S == [2, a + 1, -a]
+            True
         """
         units, clgp_gens = self._S_class_group_and_units(tuple(S), proof=proof)
         gens = []

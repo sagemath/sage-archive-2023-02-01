@@ -1,0 +1,95 @@
+#!/usr/bin/env bash
+
+# spkg-install file for sage root repo.
+
+CUR=`pwd`
+
+TARGET="$SAGE_ROOT"
+
+cd "$TARGET"
+# see if there is a valid Mercurial repository in $SAGE_ROOT
+hg verify 1>/dev/null 2>/dev/null
+if [ $? -eq 0 ]; then  # valid repo
+
+    # Merge the repository, rather than overwrite changes that the
+    # user may have made.
+    hg incoming "$CUR" 1> /dev/null
+    if [ $? -eq 1 ]; then
+        # No changes to pull
+        exit 0
+    fi
+    if [ $? -ne 0 ]; then
+        echo "Error with Sage root repository: 'hg incoming' failed."
+        exit 1
+    fi
+    # $? = 0: There are changes to pull.
+    # First check in any changes.
+
+    hg commit -u "Sage (during sage -upgrade)"
+    status=$?
+    if [ $status -ne 0 -a $status -ne 1 ]; then
+        echo "Committing changes failed"
+        exit 1
+    fi
+    hg pull "$CUR" || { echo "Pulling from repo failed"; exit 1; }
+    hg merge tip
+    hg commit -m "Check-in during upgrade of Sage" -u "Sage"
+    status=$?
+    if [ $status -ne 0 -a $status -ne 1 ]; then
+        echo "Checking in new repo failed"
+        exit 1
+    fi
+    hg update || { echo "'hg update' failed"; exit 1; }
+
+else
+
+    # Initial install.  First get rid of "makefile" (since it's been
+    # renamed to "Makefile" in the repo, and if both "makefile" and
+    # "Makefile" are present, the former gets used).
+    if [ -f "$TARGET"/makefile ]; then
+        mv "$TARGET"/makefile "$TARGET"/Makefile.old
+    fi
+    if [ $? -ne 0 ]; then
+        echo "Root repo: Error backing up old makefile"
+        exit 1
+    fi
+
+    # Now just copy all the files over.
+    cd "$CUR"
+    cp -rp .hg* COPYING.txt README.txt sage ipython "$TARGET"
+    if [ $? -ne 0 ]; then
+        echo "Root repo: Error copying files from Sage root repo to $TARGET"
+        exit 1
+    fi
+
+    if [ -f makefile ]; then
+        cp makefile "$TARGET"/Makefile
+    else
+        cp Makefile "$TARGET"
+    fi
+    if [ $? -ne 0 ]; then
+        echo "Root repo: Error copying Makefile"
+        exit 1
+    fi
+
+    mkdir -p "$TARGET/spkg/standard"
+    if [ $? -ne 0 ]; then
+        echo "Root repo: Error creating directory $TARGET/spkg/standard"
+        exit 1
+    fi
+
+    cd spkg
+    cp README.txt gen_html install pipestatus root-spkg-install "$TARGET/spkg"
+    if [ $? -ne 0 ]; then
+        echo "Root repo: Error copying files to $TARGET/spkg"
+        exit 1
+    fi
+
+    cd standard
+    cp README.txt deps libdist_filelist newest_version "$TARGET/spkg/standard"
+    if [ $? -ne 0 ]; then
+        echo "Root repo: Error copying files to $TARGET/spkg/standard"
+        exit 1
+    fi
+
+fi

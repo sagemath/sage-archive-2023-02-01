@@ -1,0 +1,62 @@
+#!/bin/sh
+
+if [ $# -ne 1 -a $# -ne 2 ]; then
+   echo "Usage: $0 [-base] <pkgname>"
+   echo "Exact name of newest version of package."
+   echo "Must be run from \$SAGE_ROOT/spkg directory."
+   echo "If optional -base option is given, gets newest version"
+   echo "of package in the spkg/base directory."
+   exit 1
+fi
+
+if [ "$1" = '-base' ]; then
+    # newest version of package in the base directory.
+    shift
+    PKG=$1
+    ANS=""
+    cd base > /dev/null 2>/dev/null
+    for FILE in `/bin/ls -1rt $PKG-*-install`
+    do
+       ANS=`echo "$FILE" | sed -e 's/-install//'`
+       if [ $? -ne 0 ]; then
+           echo "Error running sed to extract base package name."
+           exit 1
+       fi
+    done
+    echo $ANS
+    exit 0
+fi
+
+
+# newest version of package in the standard directory
+
+PKG=$1
+
+ANS=""
+cd standard > /dev/null 2>/dev/null
+for FILE in `/bin/ls -1rt $PKG-*.spkg`
+do
+   ANS=`echo "$FILE" | sed -e 's/\.spkg//'`
+   if [ $? -ne 0 ]; then
+       echo "Error running sed to extract package name."
+       exit 1
+   fi
+done
+
+echo $ANS
+
+
+
+#From John Jones
+#Hi William,
+
+#The problem was in the script newest_version.  It has a command
+#"cd standard" and cd, at least in this version of bash, outputs the
+#new directory path to the standard output.  The directory was then
+#passed as part of the output of newest_version, and so it was being
+#captured as part of the environment variable values in spkg/install,
+#which in turn caused problems for the makefile deps.
+
+#To fix it, I changed the line to be "cd standard >& /dev/null", and
+#now it is building.
+

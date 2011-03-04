@@ -70,6 +70,9 @@ cdef extern from "math.h":
     double log(double)
     int ceil(double)
 
+cdef extern from "mpz_pylong.h":
+    cdef mpz_get_pyintlong(mpz_t src)
+
 import operator
 
 
@@ -1849,22 +1852,20 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
             Traceback (most recent call last):
             ...
             ArithmeticError: 0^0 is undefined.
+            sage: mod(3, 10^100)^-2
+            8888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888889
+            sage: mod(2, 10^100)^-2
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Inverse does not exist.
         """
-        cdef IntegerMod_gmp x
-        if not (exp or mpz_sgn(self.value)):
-            raise ArithmeticError, "0^0 is undefined."
-        x = self._new_c()
-        if PyInt_CheckExact(exp) and PyInt_AS_LONG(exp) >= 0:
+        cdef IntegerMod_gmp x = self._new_c()
+        try:
             sig_on()
-            mpz_powm_ui(x.value, self.value, PyInt_AS_LONG(exp), self.__modulus.sageInteger.value)
+            mpz_pow_helper(x.value, self.value, exp, self.__modulus.sageInteger.value)
+            return x
+        finally:
             sig_off()
-        else:
-            if not PY_TYPE_CHECK_EXACT(exp, Integer):
-                exp = Integer(exp)
-            sig_on()
-            mpz_powm(x.value, self.value, (<Integer>exp).value, self.__modulus.sageInteger.value)
-            sig_off()
-        return x
 
     def __invert__(IntegerMod_gmp self):
         """
@@ -1886,7 +1887,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
 
         cdef IntegerMod_gmp x
         x = self._new_c()
-        if (mpz_invert(x.value, self.value, self.__modulus.sageInteger.value)):
+        if mpz_invert(x.value, self.value, self.__modulus.sageInteger.value):
             return x
         else:
             raise ZeroDivisionError, "Inverse does not exist."
@@ -2330,7 +2331,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         else:
             return self._new_c(self.ivalue >> (-k))
 
-    def __pow__(IntegerMod_int self, right, m): # NOTE: m ignored, always use modulus of parent ring
+    def __pow__(IntegerMod_int self, exp, m): # NOTE: m ignored, always use modulus of parent ring
         """
         EXAMPLES:
             sage: R = Integers(10)
@@ -2343,25 +2344,50 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             Traceback (most recent call last):
             ...
             ArithmeticError: 0^0 is undefined.
-        """
-        cdef sage.rings.integer.Integer exp, base
-        exp = sage.rings.integer_ring.Z(right)
-        cdef int_fast32_t x
-        cdef mpz_t x_mpz
-        if not (self.ivalue or mpz_sgn(exp.value)):
-            raise ArithmeticError, "0^0 is undefined."
-        if mpz_sgn(exp.value) >= 0 and mpz_cmp_si(exp.value, 100000) < 0:  # TODO: test to find a good threshold
-            x = mod_pow_int(self.ivalue, mpz_get_si(exp.value), self.__modulus.int32)
-        else:
-            mpz_init(x_mpz)
-            sig_on()
-            base = self.lift()
-            mpz_powm(x_mpz, base.value, exp.value, self.__modulus.sageInteger.value)
-            sig_off()
-            x = mpz_get_si(x_mpz)
-            mpz_clear(x_mpz)
-        return self._new_c(x)
 
+            sage: mod(3, 100)^-1
+            67
+            sage: mod(3, 100)^-100000000
+            1
+
+            sage: mod(2, 100)^-1
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Inverse does not exist.
+            sage: mod(2, 100)^-100000000
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Inverse does not exist.
+        """
+        cdef long long_exp
+        cdef int_fast32_t res
+        cdef mpz_t res_mpz
+        if PyInt_CheckExact(exp) and -100000 < PyInt_AS_LONG(exp) < 100000:
+            long_exp = PyInt_AS_LONG(exp)
+        elif PY_TYPE_CHECK_EXACT(exp, Integer) and mpz_cmpabs_ui((<Integer>exp).value, 100000) == -1:
+            long_exp = mpz_get_si((<Integer>exp).value)
+        else:
+            try:
+                sig_on()
+                mpz_init(res_mpz)
+                base = self.lift()
+                mpz_pow_helper(res_mpz, (<Integer>base).value, exp, self.__modulus.sageInteger.value)
+                return self._new_c(mpz_get_ui(res_mpz))
+            finally:
+                mpz_clear(res_mpz)
+                sig_off()
+
+        if long_exp == 0 and self.ivalue == 0:
+            raise ArithmeticError, "0^0 is undefined."
+        cdef bint invert = False
+        if long_exp < 0:
+            invert = True
+            long_exp = -long_exp
+        res = mod_pow_int(self.ivalue, long_exp, self.__modulus.int32)
+        if invert:
+            return ~self._new_c(res)
+        else:
+            return self._new_c(res)
 
     def __invert__(IntegerMod_int self):
         """
@@ -3128,7 +3154,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         else:
             return self._new_c(self.ivalue >> (-k))
 
-    def __pow__(IntegerMod_int64 self, right, m): # NOTE: m ignored, always use modulus of parent ring
+    def __pow__(IntegerMod_int64 self, exp, m): # NOTE: m ignored, always use modulus of parent ring
         """
         EXAMPLES:
             sage: R = Integers(10)
@@ -3145,24 +3171,58 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
             sage: R = Integers(17^5)
             sage: R(17)^5
             0
+
+            sage: R(2)^-1 * 2
+            1
+            sage: R(2)^-1000000 * 2^1000000
+            1
+            sage: R(17)^-1
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Inverse does not exist.
+            sage: R(17)^-100000000
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Inverse does not exist.
+
+        TESTS::
+
+            sage: type(R(0))
+            <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int64'>
         """
-        cdef sage.rings.integer.Integer exp, base
-        exp = sage.rings.integer_ring.Z(right)
-        cdef int_fast64_t x
-        cdef mpz_t x_mpz
-        if not (self.ivalue or mpz_sgn(exp.value)):
-            raise ArithmeticError, "0^0 is undefined."
-        if mpz_sgn(exp.value) >= 0 and mpz_cmp_si(exp.value, 100000) < 0:  # TODO: test to find a good threshold
-            x = mod_pow_int64(self.ivalue, mpz_get_si(exp.value), self.__modulus.int64)
+        cdef long long_exp
+        cdef int_fast64_t res
+        cdef mpz_t res_mpz
+        if PyInt_CheckExact(exp) and -100000 < PyInt_AS_LONG(exp) < 100000:
+            long_exp = PyInt_AS_LONG(exp)
+        elif PY_TYPE_CHECK_EXACT(exp, Integer) and mpz_cmpabs_ui((<Integer>exp).value, 100000) == -1:
+            long_exp = mpz_get_si((<Integer>exp).value)
         else:
-            mpz_init(x_mpz)
-            sig_on()
-            base = self.lift()
-            mpz_powm(x_mpz, base.value, exp.value, self.__modulus.sageInteger.value)
-            sig_off()
-            x = mpz_get_si(x_mpz)
-            mpz_clear(x_mpz)
-        return self._new_c(x)
+            try:
+                sig_on()
+                mpz_init(res_mpz)
+                base = self.lift()
+                mpz_pow_helper(res_mpz, (<Integer>base).value, exp, self.__modulus.sageInteger.value)
+                if mpz_fits_ulong_p(res_mpz):
+                    res = mpz_get_ui(res_mpz)
+                else:
+                    res = mpz_get_pyintlong(res_mpz)
+                return self._new_c(res)
+            finally:
+                mpz_clear(res_mpz)
+                sig_off()
+
+        if long_exp == 0 and self.ivalue == 0:
+            raise ArithmeticError, "0^0 is undefined."
+        cdef bint invert = False
+        if long_exp < 0:
+            invert = True
+            long_exp = -long_exp
+        res = mod_pow_int64(self.ivalue, long_exp, self.__modulus.int64)
+        if invert:
+            return self._new_c(mod_inverse_int64(res, self.__modulus.int64))
+        else:
+            return self._new_c(res)
 
     def __invert__(IntegerMod_int64 self):
         """
@@ -3233,8 +3293,29 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
             return self
 
 
-### End of class
+### Helper functions
 
+cdef mpz_pow_helper(mpz_t res, mpz_t base, object exp, mpz_t modulus):
+    cdef bint invert = False
+    cdef long long_exp
+    if mpz_sgn(base) == 0 and not exp:
+        raise ArithmeticError, "0^0 is undefined."
+    if PyInt_CheckExact(exp):
+        long_exp = PyInt_AS_LONG(exp)
+        if long_exp < 0:
+            long_exp = -long_exp
+            invert = True
+        mpz_powm_ui(res, base, long_exp, modulus)
+    else:
+        if not PY_TYPE_CHECK_EXACT(exp, Integer):
+            exp = Integer(exp)
+        if mpz_sgn((<Integer>exp).value) < 0:
+            exp = -exp
+            invert = True
+        mpz_powm(res, base, (<Integer>exp).value, modulus)
+    if invert:
+        if not mpz_invert(res, res, modulus):
+            raise ZeroDivisionError, "Inverse does not exist."
 
 cdef int_fast64_t gcd_int64(int_fast64_t a, int_fast64_t b):
     """

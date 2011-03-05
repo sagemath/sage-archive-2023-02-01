@@ -1409,18 +1409,26 @@ class ToricVariety_field(AmbientSpace):
         from sage.schemes.generic.toric_chow_group import ChowGroup
         return ChowGroup(self,base_ring)
 
-    def cartesian_product(self, other):
+    def cartesian_product(self, other,
+                          coordinate_names=None, coordinate_indices=None):
         r"""
-        Return the cartesian product with ``other``.
+        Return the Cartesian product of ``self`` with ``other``.
 
         INPUT:
 
-        - ``other`` -- a :class:`toric variety <ToricVariety_field>`.
+        - ``other`` -- a :class:`toric variety <ToricVariety_field>`;
+
+        - ``coordinate_names`` -- names of variables for the coordinate ring,
+          see :func:`normalize_names` for acceptable formats. If not given,
+          indexed variable names will be created automatically;
+
+        - ``coordinate_indices`` -- list of integers, indices for indexed
+          variables. If not given, the index of each variable will coincide
+          with the index of the corresponding ray of the fan.
 
         OUTPUT:
 
-        The cartesian product of ``self`` and ``other`` as a new toric
-        variety.
+        -- a :class:`toric variety <ToricVariety_field>`.
 
         EXAMPLES::
 
@@ -1428,9 +1436,10 @@ class ToricVariety_field(AmbientSpace):
             sage: P1xP1 = P1.cartesian_product(P1); P1xP1
             2-d toric variety covered by 4 affine patches
             sage: P1xP1.fan().rays()
-            (N+N(0, 1), N+N(0, -1), N+N(1, 0), N+N(-1, 0))
+            (N+N(-1, 0), N+N(1, 0), N+N(0, -1), N+N(0, 1))
         """
         return ToricVariety(self.fan().cartesian_product(other.fan()),
+                            coordinate_names, coordinate_indices,
                             base_field=self.base_ring())
 
     def resolve(self, **kwds):

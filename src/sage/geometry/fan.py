@@ -1202,33 +1202,49 @@ class RationalPolyhedralFan(IntegralRayCollection,
             return True
         return any(point in cone for cone in self)
 
-    def cartesian_product(self, other):
+    def cartesian_product(self, other, lattice=None):
         r"""
-        Return the product fan with ``other``.
+        Return the Cartesian product of ``self`` with ``other``.
 
         INPUT:
 
         - ``other`` -- a :class:`rational polyhedral fan
-          <sage.geometry.fan.RationalPolyhedralFan>`.
+          <sage.geometry.fan.RationalPolyhedralFan>`;
+
+        - ``lattice`` -- (optional) the ambient lattice for the
+          Cartesian product fan. By default, the direct sum of the
+          ambient lattices of ``self`` and ``other`` is constructed.
 
         OUTPUT:
 
-        The cartesian product fan. Its set of cones are all pairwise
-        cartesian products of the cones of ``self`` and ``other``.
+        - a :class:`fan <RationalPolyhedralFan>` whose cones are all pairwise
+          Cartesian products of the cones of ``self`` and ``other``.
 
         EXAMPLES::
 
-            sage: fan1 = Fan([[0],[1]],[(1,),(-1,)], lattice=ToricLattice(1,'K'))
-            sage: fan2 = Fan([[0,1],[1,2],[2,0]], [(1,0),(0,1),(-1,-1)], lattice=ToricLattice(2,'L'))
+            sage: K = ToricLattice(1, 'K')
+            sage: fan1 = Fan([[0],[1]],[(1,),(-1,)], lattice=K)
+            sage: L = ToricLattice(2, 'L')
+            sage: fan2 = Fan(rays=[(1,0),(0,1),(-1,-1)],
+            ...          cones=[[0,1],[1,2],[2,0]], lattice=L)
             sage: fan1.cartesian_product(fan2)
             Rational polyhedral fan in 3-d lattice K+L
+            sage: _.ngenerating_cones()
+            6
         """
-        lattice = self.lattice().direct_sum(other.lattice())
-        cones = []
-        for c1 in self.generating_cones():
-            for c2 in other.generating_cones():
-                cones.append(Cone(c1).cartesian_product(Cone(c2),lattice))
-        return Fan(cones)
+        assert is_Fan(other)
+        rc = super(RationalPolyhedralFan, self).cartesian_product(
+                                                                other, lattice)
+        self_cones = [cone.ambient_ray_indices() for cone in self]
+        n = self.nrays()
+        other_cones = [tuple(n + i for i in cone.ambient_ray_indices())
+                       for cone in other]
+        new_cones = [c1 + c2 for c1 in self_cones for c2 in other_cones]
+        try:    # Is completeness of the result obvious?
+            return RationalPolyhedralFan(new_cones, rc.rays(), rc.lattice(),
+                                    self._is_complete and other._is_complete)
+        except AttributeError: # The result is either incomplete or unknown.
+            return RationalPolyhedralFan(new_cones, rc.rays(), rc.lattice())
 
     def _latex_(self):
         r"""

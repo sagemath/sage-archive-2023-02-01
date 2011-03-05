@@ -1138,18 +1138,30 @@ class CPRFanoToricVariety_field(ToricVariety_field):
         """
         return NefCompleteIntersection(self, nef_partition, **kwds)
 
-    def cartesian_product(self, other):
+    def cartesian_product(self, other,
+                          coordinate_names=None, coordinate_indices=None):
         r"""
-        Return the cartesian product with ``other``.
+        Return the Cartesian product of ``self`` with ``other``.
 
         INPUT:
 
-        - ``other`` -- a :class:`toric variety <CPRFanoToricVariety_field>`.
+        - ``other`` -- a (possibly
+          :class:`CPR-Fano <CPRFanoToricVariety_field>`) :class:`toric variety
+          <sage.schemes.generic.toric_variety.ToricVariety_field>`;
+
+        - ``coordinate_names`` -- names of variables for the coordinate ring,
+          see :func:`normalize_names` for acceptable formats. If not given,
+          indexed variable names will be created automatically;
+
+        - ``coordinate_indices`` -- list of integers, indices for indexed
+          variables. If not given, the index of each variable will coincide
+          with the index of the corresponding ray of the fan.
 
         OUTPUT:
 
-        The cartesian product of ``self`` and ``other`` as a new toric
-        variety.
+        - a :class:`toric variety
+          <sage.schemes.generic.toric_variety.ToricVariety_field>`, which is
+          :class:`CPR-Fano <CPRFanoToricVariety_field>` if ``other`` was.
 
         EXAMPLES::
 
@@ -1158,26 +1170,28 @@ class CPRFanoToricVariety_field(ToricVariety_field):
             sage: P1xP2 = P1.cartesian_product(P2); P1xP2
             3-d CPR-Fano toric variety covered by 6 affine patches
             sage: P1xP2.fan().rays()
-            (N+N(1, 0, 0), N+N(-1, 0, 0), N+N(0, 1, 0), N+N(0, 0, 1), N+N(0, -1, -1))
+            (N+N(1, 0, 0), N+N(-1, 0, 0),
+             N+N(0, 1, 0), N+N(0, 0, 1), N+N(0, -1, -1))
             sage: P1xP2.Delta_polar()
             A lattice polytope: 3-dimensional, 5 vertices.
         """
-        fan = self.fan().cartesian_product(other.fan())
-        Delta_polar = LatticePolytope(matrix(fan.rays()).transpose())
-        base_field = self.base_ring()
+        if is_CPRFanoToricVariety(other):
+            fan = self.fan().cartesian_product(other.fan())
+            Delta_polar = LatticePolytope(fan.rays())
 
-        points = Delta_polar.points().columns()
-        point_to_ray = dict()
-        coordinate_points = []
-        for ray_index, ray in enumerate(fan.rays()):
-            point = points.index(ray)
-            coordinate_points.append(point)
-            point_to_ray[point] = ray_index
+            points = Delta_polar.points().columns()
+            point_to_ray = dict()
+            coordinate_points = []
+            for ray_index, ray in enumerate(fan.rays()):
+                point = points.index(ray)
+                coordinate_points.append(point)
+                point_to_ray[point] = ray_index
 
-        return CPRFanoToricVariety_field(Delta_polar, fan,
-                                         coordinate_points, point_to_ray,
-                                         None, None,
-                                         base_field)
+            return CPRFanoToricVariety_field(Delta_polar, fan,
+                                        coordinate_points, point_to_ray,
+                                        coordinate_names, coordinate_indices,
+                                        self.base_ring())
+        return super(CPRFanoToricVariety_field, self).cartesian_product(other)
 
     def resolve(self, **kwds):
         r"""

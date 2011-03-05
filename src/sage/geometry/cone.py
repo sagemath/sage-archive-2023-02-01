@@ -641,6 +641,47 @@ class IntegralRayCollection(SageObject,
         raise TypeError("%s does not represent a valid point in the ambient "
                         "space of %s!" % (data, self))
 
+    def cartesian_product(self, other, lattice=None):
+        r"""
+        Return the Cartesian product of ``self`` with ``other``.
+
+        INPUT:
+
+        - ``other`` -- an :class:`IntegralRayCollection`;
+
+        - ``lattice`` -- (optional) the ambient lattice for the result. By
+          default, the direct sum of the ambient lattices of ``self`` and
+          ``other`` is constructed.
+
+        OUTPUT:
+
+        - an :class:`IntegralRayCollection`.
+
+        By the Cartesian product of ray collections `(r_0, \dots, r_{n-1})` and
+        `(s_0, \dots, s_{m-1})` we understand the ray collection of the form
+        `((r_0, 0), \dots, (r_{n-1}, 0), (0, s_0), \dots, (0, s_{m-1}))`, which
+        is suitable for Cartesian products of cones and fans. The ray order is
+        guaranteed to be as described.
+
+        EXAMPLES::
+
+            sage: c = Cone([(1,)])
+            sage: c.cartesian_product(c)    # indirect doctest
+            2-d cone in 2-d lattice N+N
+            sage: _.rays()
+            (N+N(1, 0), N+N(0, 1))
+        """
+        assert isinstance(other, IntegralRayCollection)
+        if lattice is None:
+            lattice = self.lattice().direct_sum(other.lattice())
+        suffix = [0] * other.lattice_dim()
+        rays = [lattice(list(r1) + suffix) for r1 in self.rays()]
+        prefix = [0] * self.lattice_dim()
+        rays.extend(lattice(prefix + list(r2)) for r2 in other.rays())
+        for r in rays:
+            r.set_immutable()
+        return IntegralRayCollection(rays, lattice)
+
     def dim(self):
         r"""
         Return the dimension of the subspace spanned by rays of ``self``.
@@ -688,7 +729,7 @@ class IntegralRayCollection(SageObject,
 
         - lattice. If possible (that is, if :meth:`lattice` has a
           ``dual()`` method), the dual lattice is returned. Otherwise,
-          ``self.lattice()`` is returned.
+          `\ZZ^n` is returned, where `n` is the dimension of ``self``.
 
         EXAMPLES::
 
@@ -703,7 +744,7 @@ class IntegralRayCollection(SageObject,
             try:
                 self._dual_lattice = self.lattice().dual()
             except AttributeError:
-                self._dual_lattice = self.lattice()
+                self._dual_lattice = ZZ**self.lattice_dim()
         return self._dual_lattice
 
     def lattice_dim(self):
@@ -1203,11 +1244,15 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         INPUT:
 
-        - ``other`` -- a cone.
+        - ``other`` -- a :class:`cone <ConvexRationalPolyhedralCone>`;
 
         - ``lattice`` -- (optional) the ambient lattice for the
-          cartesian product cone. By default, the direct sum of the
-          two ambient lattices is constructed.
+          Cartesian product cone. By default, the direct sum of the
+          ambient lattices of ``self`` and ``other`` is constructed.
+
+        OUTPUT:
+
+        - a :class:`cone <ConvexRationalPolyhedralCone>`.
 
         EXAMPLES::
 
@@ -1217,17 +1262,10 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: _.rays()
             (N+N(1, 0), N+N(0, 1))
         """
-        if lattice is None:
-            lattice = self.lattice().direct_sum(other.lattice())
-
-        d1 = self.lattice_dim()
-        d2 = other.lattice_dim()
-        rays = \
-            [ lattice(list(r1) + [0]*d2) for r1 in self.rays() ] + \
-            [ lattice([0]*d1 + list(r2)) for r2 in other.rays() ]
-        for r in rays:
-            r.set_immutable()
-        return ConvexRationalPolyhedralCone(rays, lattice)
+        assert is_Cone(other)
+        rc = super(ConvexRationalPolyhedralCone, self).cartesian_product(
+                                                                other, lattice)
+        return ConvexRationalPolyhedralCone(rc.rays(), rc.lattice())
 
     def __cmp__(self, right):
         r"""
@@ -2024,8 +2062,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         <sage.geometry.toric_lattice.ToricLatticeFactory>`, the facet nomals
         will be elements of the dual lattice. If it is a general lattice (like
         ``ZZ^n``) that does not have a ``dual()`` method, the facet normals
-        will be returned as points of the same lattice with respect to the
-        standard inner product.
+        will be returned as integral vectors.
 
         EXAMPLES::
 

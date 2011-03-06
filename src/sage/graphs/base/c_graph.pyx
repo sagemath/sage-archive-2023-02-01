@@ -2851,6 +2851,165 @@ class CGraphBackend(GenericGraphBackend):
         else:
             return True
 
+def floyd_warshall(gg, paths = True, distances = False):
+    r"""
+    Computes the shortest path/distances between all pairs of vertices.
+
+    For more information on the Floyd-Warshall algorithm, see the `Wikipedia
+    article on Floyd-Warshall
+    <http://en.wikipedia.org/wiki/Floyd%E2%80%93Warshall_algorithm>`_.
+
+    INPUT:
+
+        - ``gg`` -- the graph on which to work.
+
+        - ``paths`` (boolean) -- whether to return the dictionary of shortest
+          paths. Set to ``True`` by default.
+
+        - ``distances`` (boolean) -- whether to return the dictionary of
+          distances. Set to ``False`` by default.
+
+    OUTPUT:
+
+        Depending on the input, this function return the dictionary of paths,
+        the dictionary of distances, or a pair of dictionaries
+        ``(distances,paths)`` where ``distance[u][v]`` denotes the distance of a
+        shortest path from `u` to `v` and ``paths[u][v]`` denotes an inneighbor
+        `w` of `v` such that `dist(u,v)= 1 + dist(u,w)`.
+
+    .. WARNING::
+
+        Because this function works on matrices whose size is quadratic compared
+        to the number of vertices, it uses short variables instead of long ones
+        to divide by 2 the size in memory. This means that the current
+        implementation does not run on a graph of more than 65536 nodes (this
+        can be easily changed if necessary, but would require much more
+        memory. It may be worth writing two versions). For information, the
+        current version of the algorithm on a graph with `65536=2^{16}` nodes
+        creates in memory `2` tables on `2^{32}` short elements (2bytes each),
+        for a total of `2^{34}` bytes or `16` gigabytes. Let us also remember
+        that if the memory size is quadratic, the algorithm runs in cubic time.
+
+    EXAMPLES:
+
+    Shortest paths in a small grid ::
+
+        sage: g = graphs.Grid2dGraph(2,2)
+        sage: from sage.graphs.base.c_graph import floyd_warshall
+        sage: print floyd_warshall(g)
+        {(0, 1): {(0, 1): None, (1, 0): (0, 0), (0, 0): (0, 1), (1, 1): (0, 1)},
+        (1, 0): {(0, 1): (0, 0), (1, 0): None, (0, 0): (1, 0), (1, 1): (1, 0)},
+        (0, 0): {(0, 1): (0, 0), (1, 0): (0, 0), (0, 0): None, (1, 1): (0, 1)},
+        (1, 1): {(0, 1): (1, 1), (1, 0): (1, 1), (0, 0): (0, 1), (1, 1): None}}
+
+    Checking the distances are correct ::
+
+        sage: g = graphs.Grid2dGraph(5,5)
+        sage: dist,path = floyd_warshall(g, distances = True)
+        sage: all( dist[u][v] == g.distance(u,v) for u in g for v in g )
+        True
+
+    Checking a random path is valid ::
+
+        sage: u,v = g.random_vertex(), g.random_vertex()
+        sage: p = [v]
+        sage: while p[0] != None:
+        ...     p.insert(0,path[u][p[0]])
+        sage: len(p) == dist[u][v] + 2
+        True
+    """
+    from sage.rings.infinity import Infinity
+    cdef CGraph g = <CGraph> gg._backend._cg
+    cdef int n = max(g.verts())+1
+
+    if n > <unsigned short> -1:
+        raise ValueError("The graph backend contains more than "+(<unsigned short> -1)+" nodes")
+
+    # Dictionaries of distance, precedent element, and integers
+    cdef dict d_prec = dict()
+    cdef dict d_dist = dict()
+    cdef dict tmp
+
+    cdef int v_int
+    cdef int u_int
+    cdef int w_int
+    cdef int i
+
+    # All this just creates two tables prec[n][n] and dist[n][n]
+    cdef unsigned short * t_prec = <unsigned short *> sage_malloc(n*n*sizeof(short))
+    cdef unsigned short * t_dist = <unsigned short *> sage_malloc(n*n*sizeof(short))
+    cdef unsigned short ** prec = <unsigned short **> sage_malloc(n*sizeof(short *))
+    cdef unsigned short ** dist = <unsigned short **> sage_malloc(n*sizeof(short *))
+    prec[0] = t_prec
+    dist[0] = t_dist
+
+    for 1 <= i< n:
+        prec[i] = prec[i-1] + n
+        dist[i] = dist[i-1] + n
+
+    # Initializing prec and dist
+    memset(t_prec, 0, n*n*sizeof(short))
+    memset(t_dist, -1, n*n*sizeof(short))
+
+    # Copying the adjacency matrix (vertices at distance 1)
+    for v_int in g.verts():
+        prec[v_int][v_int] = v_int
+        dist[v_int][v_int] =  0
+        for u_int in g.out_neighbors(v_int):
+            dist[v_int][u_int] = 1
+            prec[v_int][u_int] = v_int
+
+    # The algorithm itself.
+
+    for w_int in g.verts():
+        for v_int in g.verts():
+            for u_int in g.verts():
+
+                # If it is shorter to go from u to v through w, do it
+                if dist[v_int][u_int] > dist[v_int][w_int] + dist[w_int][u_int]:
+                    dist[v_int][u_int] = dist[v_int][w_int] + dist[w_int][u_int]
+                    prec[v_int][u_int] = prec[w_int][u_int]
+
+    # If the paths are to be returned
+    if paths:
+        for v_int in g.verts():
+            tmp = dict()
+            v = vertex_label(v_int, gg._backend.vertex_ints, gg._backend.vertex_labels, gg._backend._cg)
+
+            for u_int in g.verts():
+                u = vertex_label(u_int, gg._backend.vertex_ints, gg._backend.vertex_labels, gg._backend._cg)
+                w = (None if v == u
+                     else vertex_label(prec[v_int][u_int], gg._backend.vertex_ints, gg._backend.vertex_labels, gg._backend._cg))
+                tmp[u] = w
+
+            d_prec[v] = tmp
+
+    sage_free(t_prec)
+    sage_free(prec)
+
+    # If the distances are to be returned
+    if distances:
+        for v_int in g.verts():
+            tmp = dict()
+            v = vertex_label(v_int, gg._backend.vertex_ints, gg._backend.vertex_labels, gg._backend._cg)
+
+            for u_int in g.verts():
+                u = vertex_label(u_int, gg._backend.vertex_ints, gg._backend.vertex_labels, gg._backend._cg)
+
+                tmp[u] = dist[v_int][u_int] if (dist[v_int][u_int] != <unsigned short> -1) else Infinity
+
+            d_dist[v] = tmp
+
+    sage_free(t_dist)
+    sage_free(dist)
+
+    if distances and paths:
+        return d_dist, d_prec
+    elif paths:
+        return d_prec
+    else:
+        return d_dist
+
 cdef class Search_iterator:
     r"""
     An iterator for traversing a (di)graph.

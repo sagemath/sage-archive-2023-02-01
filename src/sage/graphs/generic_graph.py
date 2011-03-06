@@ -10092,9 +10092,21 @@ class GenericGraph(GenericGraph_pyx):
         """
         return self.shortest_path_length(u, v)
 
-    def distance_all_pairs(self):
+    def distance_all_pairs(self, algorithm = "BFS"):
         r"""
         Returns the distances between all pairs of vertices.
+
+        INPUT:
+
+            - ``"algorithm"`` (string) -- two algorithms are available
+
+                * ``algorithm = "BFS"`` in which case the distances are computed
+                  through `n-1` different breadth-first-search.
+
+                * ``algorithm = "Floyd-Warshall"``, in which case the
+                  Floyd-Warshall algorithm is used.
+
+                The default is ``algorithm = "BFS"``.
 
         OUTPUT:
 
@@ -10115,20 +10127,27 @@ class GenericGraph(GenericGraph_pyx):
             sage: all([g.distance(0,v) == distances[0][v] for v in g])
             True
         """
+        if algorithm == "BFS":
+            from sage.rings.infinity import Infinity
+            distances = dict([(v, self.shortest_path_lengths(v)) for v in self])
 
-        from sage.rings.infinity import Infinity
-        distances = dict([(v, self.shortest_path_lengths(v)) for v in self])
+            # setting the necessary +Infinity
+            cc = self.connected_components()
+            for cc1 in cc:
+                for cc2 in cc:
+                    if cc1 != cc2:
+                        for u in cc1:
+                            for v in cc2:
+                                distances[u][v] = Infinity
 
-        # setting the necessary +Infinity
-        cc = self.connected_components()
-        for cc1 in cc:
-            for cc2 in cc:
-                if cc1 != cc2:
-                    for u in cc1:
-                        for v in cc2:
-                            distances[u][v] = Infinity
+            return distances
 
-        return distances
+        elif algorithm == "Floyd-Warshall":
+            from sage.graphs.base.c_graph import floyd_warshall
+            return floyd_warshall(self,paths = False, distances = True)
+
+        else:
+            raise ValueError("The algorithm keyword can be equal to either \"BFS\" or \"Floyd-Warshall\"")
 
     def eccentricity(self, v=None, dist_dict=None, with_labels=False):
         """
@@ -10916,34 +10935,49 @@ class GenericGraph(GenericGraph_pyx):
                 lengths[v] = len(paths[v]) - 1
             return lengths
 
-    def shortest_path_all_pairs(self, by_weight=True, default_weight=1):
+    def shortest_path_all_pairs(self, by_weight=False, default_weight=1):
         """
         Uses the Floyd-Warshall algorithm to find a shortest weighted path
         for each pair of vertices.
 
-        The weights (labels) on the vertices can be anything that can be
-        compared and can be summed.
-
         INPUT:
 
 
-        -  ``by_weight`` - If False, figure distances by the
-           numbers of edges.
+        - ``by_weight`` - Whether to use the labels defined over the edges as
+           weights. If ``False`` (default), the distance between `u` and `v` is
+           the minimum number of edges of a path from `u` to `v`.
 
-        -  ``default_weight`` - (defaults to 1) The default
-           weight to assign edges that don't have a weight (i.e., a label).
+        - ``default_weight`` - (defaults to 1) The default weight to assign
+           edges that don't have a weight (i.e., a label).
 
+           Implies ``by_weight == True``.
 
-        OUTPUT: A tuple (dist, pred). They are both dicts of dicts. The
-        first indicates the length dist[u][v] of the shortest weighted path
-        from u to v. The second is more complicated- it indicates the
-        predecessor pred[u][v] of v in the shortest path from u to v.
+        OUTPUT:
+
+            A tuple ``(dist, pred)``. They are both dicts of dicts. The first
+            indicates the length ``dist[u][v]`` of the shortest weighted path
+            from `u` to `v`. The second is a compact representation of all the
+            paths- it indicates the predecessor ``pred[u][v]`` of `v` in the
+            shortest path from `u` to `v`.
+
+        .. NOTE::
+
+            Two version of the Floyd-Warshall algorithm are implemented. One is
+            pure Python, the other one is Cython. The first is used whenever
+            ``by_weight = True``, and can perform its computations using the
+            labels on the edges for as long as they can be added together. The
+            second one, used when ``by_weight = False``, is much faster but only
+            deals with the topological distance (each edge is of weight 1, or
+            equivalently the length of a path is its number of edges). Besides,
+            the current version of this second implementation does not deal with
+            graphs larger than 65536 vertices (which already represents 16GB of
+            ram when running the Floyd-Warshall algorithm).
 
         EXAMPLES::
 
             sage: G = Graph( { 0: {1: 1}, 1: {2: 1}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} }, sparse=True )
             sage: G.plot(edge_labels=True).show() # long time
-            sage: dist, pred = G.shortest_path_all_pairs()
+            sage: dist, pred = G.shortest_path_all_pairs(by_weight = True)
             sage: dist
             {0: {0: 0, 1: 1, 2: 2, 3: 3, 4: 2}, 1: {0: 1, 1: 0, 2: 1, 3: 2, 4: 3}, 2: {0: 2, 1: 1, 2: 0, 3: 1, 4: 3}, 3: {0: 3, 1: 2, 2: 1, 3: 0, 4: 2}, 4: {0: 2, 1: 3, 2: 3, 3: 2, 4: 0}}
             sage: pred
@@ -10951,15 +10985,15 @@ class GenericGraph(GenericGraph_pyx):
             sage: pred[0]
             {0: None, 1: 0, 2: 1, 3: 2, 4: 0}
 
-        So for example the shortest weighted path from 0 to 3 is obtained
-        as follows. The predecessor of 3 is pred[0][3] == 2, the
-        predecessor of 2 is pred[0][2] == 1, and the predecessor of 1 is
-        pred[0][1] == 0.
+        So for example the shortest weighted path from `0` to `3` is obtained as
+        follows. The predecessor of `3` is ``pred[0][3] == 2``, the predecessor
+        of `2` is ``pred[0][2] == 1``, and the predecessor of `1` is
+        ``pred[0][1] == 0``.
 
         ::
 
             sage: G = Graph( { 0: {1:None}, 1: {2:None}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} }, sparse=True )
-            sage: G.shortest_path_all_pairs(by_weight=False)
+            sage: G.shortest_path_all_pairs()
             ({0: {0: 0, 1: 1, 2: 2, 3: 2, 4: 1},
             1: {0: 1, 1: 0, 2: 1, 3: 2, 4: 2},
             2: {0: 2, 1: 1, 2: 0, 3: 1, 4: 2},
@@ -10970,7 +11004,7 @@ class GenericGraph(GenericGraph_pyx):
             2: {0: 1, 1: 2, 2: None, 3: 2, 4: 3},
             3: {0: 4, 1: 2, 2: 3, 3: None, 4: 3},
             4: {0: 4, 1: 0, 2: 3, 3: 4, 4: None}})
-            sage: G.shortest_path_all_pairs()
+            sage: G.shortest_path_all_pairs(by_weight = True)
             ({0: {0: 0, 1: 1, 2: 2, 3: 3, 4: 2},
             1: {0: 1, 1: 0, 2: 1, 3: 2, 4: 3},
             2: {0: 2, 1: 1, 2: 0, 3: 1, 4: 3},
@@ -10993,6 +11027,13 @@ class GenericGraph(GenericGraph_pyx):
             3: {0: 4, 1: 2, 2: 3, 3: None, 4: 3},
             4: {0: 4, 1: 0, 2: 3, 3: 4, 4: None}})
         """
+        if default_weight != 1:
+            by_weight = True
+
+        if by_weight is False:
+            from sage.graphs.base.c_graph import floyd_warshall
+            return floyd_warshall(self, distances = True)
+
         from sage.rings.infinity import Infinity
         dist = {}
         pred = {}

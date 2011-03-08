@@ -1228,7 +1228,7 @@ class Graphics(SageObject):
                         # Figure options
                         aspect_ratio=None, dpi=DEFAULT_DPI, fig_tight=True,
                         figsize=None, fontsize=None, frame=False,
-                        transparent=False,
+                        title=None, transparent=False,
                         # Grid options
                         gridlines=None, gridlinesstyle=None,
                         hgridlinesstyle=None, vgridlinesstyle=None,
@@ -1387,6 +1387,8 @@ class Graphics(SageObject):
             intended to be used when the tick locator for at least one of
             the axes is a list including some symbolic elements.  See examples.
 
+        - ``title`` - (default: None) The title for the plot
+
         - ``show_legend`` - (default: None) If True, show the legend
 
         - ``legend_*`` - all the options valid for :meth:`set_legend_options` prefixed with ``legend_``
@@ -1439,6 +1441,10 @@ class Graphics(SageObject):
         signs formats it as a mathematical expression::
 
             sage: show(plot(sin,-4,4), axes_labels=('$x$','$y$'))
+
+        You can add a title to a plot::
+
+            sage: show(plot(sin,-4,4), title='A plot of $\sin(x)$')
 
         You can turn on the drawing of a frame around the plots::
 
@@ -1993,7 +1999,7 @@ class Graphics(SageObject):
                    vgridlinesstyle=None, hgridlinesstyle=None,
                    show_legend=None, legend_options={},
                    axes_pad=0.02, ticks_integer=None,
-                   tick_formatter=None, ticks=None,
+                   tick_formatter=None, ticks=None, title=None,
                    base=None, scale=None):
         r"""
         Return a matplotlib figure object representing the graphic
@@ -2433,6 +2439,12 @@ class Graphics(SageObject):
         # todo: figure out which limits were specified, and let the
         # free limits autoscale
         #subplot.autoscale_view(tight=True)
+        if title is not None:
+            if (frame) or (axes_labels is None):
+                subplot.set_title(title, fontsize=fontsize)
+            else: # frame is false axes is not None, and neither is axes_labels
+                subplot.set_title(title, fontsize=fontsize, position=(0.5,1.05))
+
         return figure
 
     # ALLOWED_EXTENSIONS is the list of recognized formats.

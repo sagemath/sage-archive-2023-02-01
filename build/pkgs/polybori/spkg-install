@@ -20,6 +20,7 @@ patch()
 
     cp patches/SConstruct            src/${PBDIR}/SConstruct
     cp patches/PyPolyBoRi.py         src/${PBDIR}/pyroot/polybori
+    cp patches/pbori_routines_misc.h src/${PBDIR}/polybori/include
 
 }
 

@@ -26,6 +26,10 @@ version 1.23, which I removed. (David Kirkby, 27th May 2010).
 
 Michael Rubinstein <mrubinst@uwaterloo.ca>
 
+=== lcalc-1.23.p6 (Volker Braun, March 8, 2011) ===
+ * upstream commented out lcalc_to_double(long double), but this is
+   now required with gcc-4.6. Comment back in!
+
 === lcalc-1.23.p5 (Jeroen Demeyer, September 19, 2010) ===
  * Remove dist directory
  * Put back SAGE_LOCAL sanity check in spkg-install

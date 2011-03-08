@@ -40,6 +40,7 @@ cdef inline OrbitPartition *OP_new(int n):
     if OP is NULL:
         return OP
     OP.degree = n
+    OP.num_cells = n
     OP.parent = <int *> sage_malloc( n * sizeof(int) )
     OP.rank = <int *> sage_malloc( n * sizeof(int) )
     OP.mcr = <int *> sage_malloc( n * sizeof(int) )
@@ -95,6 +96,8 @@ cdef inline int OP_join(OrbitPartition *OP, int m, int n):
         OP.mcr[m_root] = min(OP.mcr[m_root], OP.mcr[n_root])
         OP.size[m_root] += OP.size[n_root]
         OP.rank[m_root] += 1
+    if m_root != n_root:
+        OP.num_cells -= 1
 
 cdef inline int OP_merge_list_perm(OrbitPartition *OP, int *gamma):
     """

@@ -15,6 +15,7 @@ cdef struct OrbitPartition:
     # so far found. Also keeps track of the minimum elements of the cells and
     # their sizes.
     int degree
+    int num_cells
     int *parent
     int *rank
     int *mcr # minimum cell representatives - only valid at the root of a cell

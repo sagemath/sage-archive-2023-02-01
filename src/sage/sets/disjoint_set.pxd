@@ -12,10 +12,10 @@ include '../groups/perm_gps/partn_ref/data_structures_pxd.pxi'
 from sage.structure.sage_object cimport SageObject
 
 cdef class DisjointSet_class(SageObject):
-    pass
+    cdef OrbitPartition *_nodes
 
 cdef class DisjointSet_of_integers(DisjointSet_class):
-    cdef OrbitPartition *_nodes
+    pass
 
 cdef class DisjointSet_of_hashables(DisjointSet_class):
     cdef list _int_to_el

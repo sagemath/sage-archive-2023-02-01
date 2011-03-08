@@ -159,7 +159,6 @@ cdef class DisjointSet_class(SageObject):
             res.append('{%s}'% ', '.join(itertools.imap(repr, l)))
         res.sort()
         return '{%s}'% ', '.join(res)
-        #return 'DisjointSet: {%s}'% ', '.join(res)
 
     def __cmp__(self, other):
         r"""
@@ -210,6 +209,48 @@ cdef class DisjointSet_class(SageObject):
         s = Set(map(Set, self.root_to_elements_dict().values()))
         t = Set(map(Set, other.root_to_elements_dict().values()))
         return cmp(s,t)
+
+    def cardinality(self):
+        r"""
+        Returns the number of elements in the disjoint set.
+
+        EXAMPLES::
+
+            sage: d = DisjointSet(5)
+            sage: d.cardinality()
+            5
+            sage: d.union(2, 4)
+            sage: d.cardinality()
+            5
+            sage: d = DisjointSet(range(5))
+            sage: d.cardinality()
+            5
+            sage: d.union(2, 4)
+            sage: d.cardinality()
+            5
+        """
+        return self._nodes.degree
+
+    def number_of_subsets(self):
+        r"""
+        Returns the number of subsets in the disjoint set.
+
+        EXAMPLES::
+
+            sage: d = DisjointSet(5)
+            sage: d.number_of_subsets()
+            5
+            sage: d.union(2, 4)
+            sage: d.number_of_subsets()
+            4
+            sage: d = DisjointSet(range(5))
+            sage: d.number_of_subsets()
+            5
+            sage: d.union(2, 4)
+            sage: d.number_of_subsets()
+            4
+        """
+        return self._nodes.num_cells
 
 cdef class DisjointSet_of_integers(DisjointSet_class):
     r"""
@@ -443,21 +484,6 @@ cdef class DisjointSet_of_integers(DisjointSet_class):
             raise ValueError, 'j(=%s) must be between 0 and %s'%(j, card-1)
         OP_join(self._nodes, i, j)
 
-    def cardinality(self):
-        r"""
-        Returns the number of elements in the disjoint set.
-
-        EXAMPLES::
-
-            sage: d = DisjointSet(5)
-            sage: d.cardinality()
-            5
-            sage: d.union(2, 4)
-            sage: d.cardinality()
-            5
-        """
-        return self._nodes.degree
-
     def root_to_elements_dict(self):
         r"""
         Returns the dictionary where the keys are the roots of self and the
@@ -596,6 +622,7 @@ cdef class DisjointSet_of_hashables(DisjointSet_class):
             self._int_to_el.append(e)
             self._el_to_int[e] = i
         self._d = DisjointSet_of_integers(len(self._int_to_el))
+        self._nodes = self._d._nodes
 
     def __reduce__(self):
         r"""
@@ -752,21 +779,6 @@ cdef class DisjointSet_of_hashables(DisjointSet_class):
         j = self._el_to_int[f]
         self._d.union(i, j)
 
-    def cardinality(self):
-        r"""
-        Returns the number of elements in the disjoint set.
-
-        EXAMPLES::
-
-            sage: d = DisjointSet(range(5))
-            sage: d.cardinality()
-            5
-            sage: d.union(2, 4)
-            sage: d.cardinality()
-            5
-        """
-        return self._d.cardinality()
-
     def root_to_elements_dict(self):
         r"""
         Returns the dictionary where the keys are the roots of self and the
@@ -808,3 +820,40 @@ cdef class DisjointSet_of_hashables(DisjointSet_class):
             d[a] = self.find(a)
         return d
 
+    def to_digraph(self):
+        r"""
+        Returns the current digraph of self where (a,b) is an oriented
+        edge if b is the parent of a.
+
+        EXAMPLES::
+
+            sage: d = DisjointSet(range(5))
+            sage: d.union(2,3)
+            sage: d.union(4,1)
+            sage: d.union(3,4)
+            sage: d
+            {{0}, {1, 2, 3, 4}}
+            sage: g = d.to_digraph(); g
+            Looped digraph on 5 vertices
+            sage: g.edges()
+            [(0, 0, None), (1, 2, None), (2, 2, None), (3, 2, None), (4, 2, None)]
+
+        The result depends on the ordering of the union::
+
+            sage: d = DisjointSet(range(5))
+            sage: d.union(1,2)
+            sage: d.union(1,3)
+            sage: d.union(1,4)
+            sage: d
+            {{0}, {1, 2, 3, 4}}
+            sage: d.to_digraph().edges()
+            [(0, 0, None), (1, 1, None), (2, 1, None), (3, 1, None), (4, 1, None)]
+
+        """
+        d = {}
+        for i from 0 <= i < self.cardinality():
+            e = self._int_to_el[i]
+            p = self._int_to_el[self._nodes.parent[i]]
+            d[e] = [p]
+        from sage.graphs.graph import DiGraph
+        return DiGraph(d)

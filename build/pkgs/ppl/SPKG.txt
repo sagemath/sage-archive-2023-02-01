@@ -44,7 +44,13 @@ Enea Zaffanella (University of Parma)
 
 == Changelog ==
 
-=== ppl-0.11.1 (Volker Braun, Feb 20, 2010) ===
+=== ppl-0.11.2 (Volker Braun, Mar 8, 2011) ===
+* Update to newest version
+* The SIGILL issue was fixed upstream
+* configure --disable-fpmath works now (since we don't use the
+  floating point math stuff).
+
+=== ppl-0.11.1 (Volker Braun, Feb 20, 2011) ===
 * Update to newest version
 * Patch to avoid SIGILL issue, see #9678
 

@@ -250,7 +250,7 @@ def Sequence(x, universe=None, check=True, immutable=False, cr=False, cr_str=Non
     if universe is None:
         if not isinstance(x, (list, tuple)):
             x = list(x)
-            #raise TypeError, "x must be a list or tuple"
+            #raise TypeError("x must be a list or tuple")
 
         if len(x) == 0:
             import sage.categories.all
@@ -686,7 +686,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             sage: a.__hash__()
             Traceback (most recent call last):
             ...
-            ValueError: immutable sequences are unhashable
+            ValueError: mutable sequences are unhashable
             sage: a[0] = 10
             sage: a.set_immutable()
             sage: a.__hash__()
@@ -697,7 +697,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             -5823618793256324351  # 64-bit
         """
         if not self._is_immutable:
-            raise ValueError, "immutable sequences are unhashable"
+            raise ValueError("mutable sequences are unhashable")
         if self.__hash is None:
             self.__hash = hash(tuple(self))
         return self.__hash
@@ -797,7 +797,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             ValueError: object is immutable; please change a copy instead.
         """
         if self._is_immutable:
-            raise ValueError, "object is immutable; please change a copy instead."%self
+            raise ValueError("object is immutable; please change a copy instead.")
 
     def set_immutable(self):
         """

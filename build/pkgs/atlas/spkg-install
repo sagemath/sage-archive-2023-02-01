@@ -455,6 +455,6 @@ def install():
 
 rc = install()
 assert rc==0, 'Make install for ATLAS failed.'
-print 'Finished installing ATLAS.'
+# will automatically print "Finished installing atlas-<version>.spkg"
 
 

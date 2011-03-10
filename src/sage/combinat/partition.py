@@ -3885,11 +3885,16 @@ class PartitionsInBox_hw(CombinatorialClass):
 
             sage: PartitionsInBox(2,2).list()
             [[], [1], [1, 1], [2], [2, 1], [2, 2]]
+
+         TESTS::
+
+            sage: type(PartitionsInBox(0,0)[0]) # check for 10890
+            <class 'sage.combinat.partition.Partition_class'>
         """
         h = self.h
         w = self.w
         if h == 0:
-            return [[]]
+            return [Partition([])]
         else:
             l = [[i] for i in range(0, w+1)]
             add = lambda x: [ x+[i] for i in range(0, x[-1]+1)]

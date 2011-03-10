@@ -3122,6 +3122,10 @@ cpdef all_pairs_shortest_path_BFS(gg):
     cdef unsigned short * v_distances = <unsigned short *> sage_malloc(n*sizeof(short))
     cdef unsigned short * v_prec      = <unsigned short *> sage_malloc(n*sizeof(short))
 
+    cdef dict ggbvi = gg._backend.vertex_ints
+    cdef dict ggbvl = gg._backend.vertex_labels
+
+    cdef list outneighbors
     for source in vertices:
         bitset_set_first_n(seen, 0)
         bitset_add(seen, source)
@@ -3134,8 +3138,8 @@ cpdef all_pairs_shortest_path_BFS(gg):
 
         while waiting_beginning <= waiting_end:
             v = waiting_list[waiting_beginning]
-
-            for u in cg.out_neighbors(v):
+            outneighbors = cg.out_neighbors(v)
+            for u in outneighbors:
                 if not bitset_in(seen, u):
                     v_distances[u] = v_distances[v]+1
                     v_prec[u] = v
@@ -3148,16 +3152,16 @@ cpdef all_pairs_shortest_path_BFS(gg):
         tmp_distances = dict()
         tmp_prec = dict()
         for v in vertices:
-            vv = vertex_label(v, gg._backend.vertex_ints, gg._backend.vertex_labels, gg._backend._cg)
+            vv = vertex_label(v, ggbvi, ggbvl, cg)
 
             if bitset_in(seen, v):
-                tmp_prec[vv] = vertex_label(v_prec[v], gg._backend.vertex_ints, gg._backend.vertex_labels, gg._backend._cg)
+                tmp_prec[vv] = vertex_label(v_prec[v], ggbvi, ggbvl, cg)
                 tmp_distances[vv] = v_distances[v]
             else:
                 tmp_prec[vv] = None
                 tmp_distances[vv] = Infinity
 
-        vv = vertex_label(source, gg._backend.vertex_ints, gg._backend.vertex_labels, gg._backend._cg)
+        vv = vertex_label(source, ggbvi, ggbvl, cg)
         tmp_prec[vv] = None
         d_prec[vv] = tmp_prec
         d_distances[vv] = tmp_distances

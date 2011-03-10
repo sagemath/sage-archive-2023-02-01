@@ -18,9 +18,6 @@ from configuration import conf, cp, try_run, edit_in_place
 ### update ATLAS or LAPACK to a newer version
 ######################################################################
 
-
-
-
 # temporary directory to build everything in
 BUILD_DIR = os.path.join(conf['SPKG_DIR'], 'ATLAS-build')
 
@@ -36,6 +33,9 @@ ATLAS_MACHTYPE = ['UNKNOWN', 'POWER3', 'POWER4', 'POWER5', 'PPCG4', 'PPCG5',
                   'USI', 'USII', 'USIII', 'USIV', 'UnknownUS', 'MIPSR1xK', 'MIPSICE9']
 
 ATLAS_ISAEXT = ['', 'AltiVec', 'SSE3', 'SSE2', 'SSE1', '3DNow']
+
+# we need to disable parallel builds
+os.environ['MAKE'] += ' -j1'
 
 
 ######################################################################
@@ -55,6 +55,7 @@ if conf['CYGWIN?']:
 
 
 if conf['Darwin?']:
+    print 'Skipping build of ATLAS on OSX'
     sys.exit(0)
 
 
@@ -63,69 +64,80 @@ if conf['Darwin?']:
 ######################################################################
 
 if os.environ.has_key('SAGE_ATLAS_LIB'):
-    ATLAS_LIB=os.environ['SAGE_ATLAS_LIB']
-    if not os.path.isdir(ATLAS_LIB):
-        print 'No such directory: '+ATLAS_LIB
-        sys.exit(2)
+    ATLAS_LIB = os.environ['SAGE_ATLAS_LIB']
+    library_extensions = ['.a', '.so', '.dylib']
 
-    pathexists = lambda lib: os.path.exists(os.path.join(ATLAS_LIB, lib))
-    # Check for 4 static libraries.
-    has_atlas   = pathexists('libatlas.a')
-    has_lapack  = pathexists('liblapack.a')
-    has_cblas   = pathexists('libcblas.a')
-    has_f77blas = pathexists('libf77blas.a')
-    has_atlas_headers = pathexists('../include/atlas')
+    def is_atlas_lib_path(path):
+        if path is None:
+            return False
+        if not os.path.isdir(path):
+            return False
+        def library_exists(lib):
+            library_base = os.path.join(path, lib)
+            return any(os.path.exists(library_base+ext) for ext in library_extensions)
+        # Check for 4 libraries.
+        has_atlas   = library_exists('libatlas')
+        has_lapack  = library_exists('liblapack')
+        has_cblas   = library_exists('libcblas')
+        has_f77blas = library_exists('libf77blas')
+        return has_atlas and has_lapack and has_cblas and has_f77blas
+
+    paths = [ os.path.join(ATLAS_LIB, 'lib'),
+              ATLAS_LIB,
+              None ]   # None indicates error
+    for path in paths:
+        if is_atlas_lib_path(path):
+            ATLAS_LIB = path
+            break
+
+    if path is None:
+        print 'Unable to find one of liblapack, libcblas, libatlas or libf77blas'
+        print 'in the directory', ATLAS_LIB
+        print 'Set SAGE_ATLAS_LIB to the directory containing liblapack, libcblas,'
+        print 'libatlas and libf77blas (either .a or .so extensions) if you wish to'
+        print 'use existing ATLAS libraries. For more details, see'
+        print 'http://sagemath.org/doc/installation/source.html#environment-variables'
+        print 'Unset SAGE_ATLAS_LIB to build ATLAS from source.'
+        print 'Then type make.'
+        sys.exit(2)
 
     symbol_table = try_run('readelf -s ' + os.path.join(ATLAS_LIB, 'libf77blas.so'))
     if not symbol_table is None:
-        s_gfortran = 'gfortran' in symbol_table
-        s_g95 = 'g95' in symbol_table
-        if s_gfortran and not config['fortran'] != 'gfortran':
+        sym_gfortran = 'gfortran' in symbol_table
+        sym_g95 = 'g95' in symbol_table
+        if sym_gfortran and conf['fortran'] != 'gfortran':
             print "Symbols in lib77blas indicate it was build with gfortran \n"
             print "However SAGE is using a different fortran compiler \n"
             print "If you wish to use this blas library, make sure SAGE_FORTRAN points \n"
             print "to a fortran compiler compatible with this library. \n"
             sys.exit(2)
-        if s_g95 and config['fortran'] != 'g95':
+        if sym_g95 and conf['fortran'] != 'g95':
             print "Symbols in lib77blas indicate it was build with g95 \n"
             print "However SAGE is using a different fortran compiler \n"
             print "If you wish to use this blas library, make sure SAGE_FORTRAN points \n"
             print "to a fortran compiler compatible with this library. \n"
             sys.exit(2)
 
-    if has_atlas and has_lapack and has_cblas and  has_f77blas and has_atlas_headers:
-        SAGE_LOCAL_LIB = os.path.join(conf['SAGE_LOCAL'], 'lib')
-        symlinkOSlibrary = lambda lib: \
-            os.system('ln -sf ' + \
-                          os.path.join(ATLAS_LIB, lib) + ' '  + \
-                          os.path.join(conf['SAGE_LOCAL'], 'lib', lib) )
-        symlinkOSheader = lambda hdr: \
-            os.system('ln -sf ' + \
-                          os.path.join(ATLAS_LIB, '..', 'include', hdr) + ' '  + \
-                          os.path.join(conf['SAGE_LOCAL'], 'include', hdr) )
-        symlinkOSlibrary('libatlas.a')
-        symlinkOSlibrary('libcblas.a')
-        symlinkOSlibrary('liblapack.a')
-        symlinkOSlibrary('libf77blas.a')
-        symlinkOSlibrary('libatlas.so')
-        symlinkOSlibrary('libcblas.so')
-        symlinkOSlibrary('liblapack.so')
-        symlinkOSlibrary('libf77blas.so')
-        symlinkOSheader('atlas')
-        symlinkOSheader('cblas.h')
-        symlinkOSheader('clapack.h')
-
-    else:
-        print 'Unable to find one of liblapack.a, libcblas.a, libatlas.a or libf77blas.a'
-        print 'in the directory', ATLAS_LIB
-        print 'Set SAGE_ATLAS_LIB to the parent directory of the directory containing'
-        print 'liblapack.a, libcblas.a, libatlas.a and libf77blas.a if you wish to use'
-        print 'existing ATLAS libraries.'
-        print 'So if for example those four libraries are in /usr/local/atlas/lib64'
-        print 'then set SAGE_ATLAS_LIB to be /usr/local/atlas/lib64'
-        print 'Unset SAGE_ATLAS_LIB to build ATLAS from source.'
-        print 'Then type make.'
-        sys.exit(2)
+    SAGE_LOCAL_LIB = os.path.join(conf['SAGE_LOCAL'], 'lib')
+    def symlinkOSlibrary(library_basename):
+        for ext in library_extensions:
+            lib = library_basename + ext
+            source = os.path.join(ATLAS_LIB, lib)
+            destination = os.path.join(SAGE_LOCAL_LIB, lib)
+            # ln -sf source destination
+            try:
+                os.remove(destination)
+            except OSError:
+                pass
+            try:
+                os.symlink(source, destination)
+            except OSError:
+                pass
+    symlinkOSlibrary('libatlas')
+    symlinkOSlibrary('libcblas')
+    symlinkOSlibrary('liblapack')
+    symlinkOSlibrary('libf77blas')
+    sys.exit(0)
 
 
 ######################################################################
@@ -304,9 +316,6 @@ def configure_base():
 ######################################################################
 ### make
 ######################################################################
-
-# we need to disable parallel builds
-os.environ['MAKE'] += ' -j1'
 
 def make_core():
     os.chdir(BUILD_DIR)

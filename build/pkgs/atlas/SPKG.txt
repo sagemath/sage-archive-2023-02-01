@@ -21,8 +21,8 @@ also work on OSX and Solaris.
 
 == Dependencies ==
 
- * Fortran
  * Python
+ * Fortran
  * Lapack
 
 == Build Instructions/Notes ==
@@ -45,8 +45,11 @@ also work on OSX and Solaris.
 The package can be configured via two environment variables:
 
  * SAGE_ATLAS_LIB=path
-   If this environment variable is set, path/libatlas.so is used
-   and ATLAS is not compiled.
+   If this environment variable is set, the libraries libatlas,
+   libcblas, liblapack, and libf77blas from the direcory "path" are
+   used and ATLAS is not compiled from source. The libraries can be
+   either static (endin in .a) or shared libraries (ending in .so or
+   .dylib).
 
  * SAGE_ATLAS_ARCH=arch[,isaext1][,isaext2]...[,isaextN]
    The given architectural default and instruction set extensions are

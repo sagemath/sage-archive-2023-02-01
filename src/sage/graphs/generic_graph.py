@@ -13302,7 +13302,14 @@ class GenericGraph(GenericGraph_pyx):
 
     def _keys_for_vertices(self):
         """
-        Returns a function mapping each vertex to a unique and hopefully readable string
+        Returns a function mapping each vertex to a unique and hopefully
+        readable string
+
+        EXAMPLE::
+
+            sage: g = graphs.Grid2dGraph(5,5)
+            sage: g._keys_for_vertices()
+            <function key at ...
         """
         from sage.graphs.dot2tex_utils import key, key_with_hash
         if len(set(key(v) for v in self)) < len(self.vertices()):

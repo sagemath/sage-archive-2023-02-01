@@ -2885,6 +2885,12 @@ cdef class Search_iterator:
     - ``test_in`` -- boolean; whether we want to consider the in-neighbors of
       the graph to be traversed. For undirected graphs, we consider both
       the in- and out-neighbors.
+
+    EXAMPLE::
+
+        sage: g = graphs.PetersenGraph()
+        sage: list(g.breadth_first_search(0))
+        [0, 1, 4, 5, 2, 6, 3, 9, 7, 8]
     """
 
     cdef graph
@@ -2925,6 +2931,12 @@ cdef class Search_iterator:
         - ``ignore_direction`` -- boolean (default: ``False``). This is only
           relevant to digraphs. If ``graph`` is a digraph, ignore all
           orientations and consider the graph as undirected.
+
+        EXAMPLE::
+
+            sage: g = graphs.PetersenGraph()
+            sage: list(g.breadth_first_search(0))
+            [0, 1, 4, 5, 2, 6, 3, 9, 7, 8]
         """
         self.graph = graph
         self.direction = direction
@@ -2946,12 +2958,26 @@ cdef class Search_iterator:
     def __iter__(self):
         r"""
         Return an iterator object over a traversal of a graph.
+
+        EXAMPLE::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g.breadth_first_search(0)
+            <generator object breadth_first_search at ...
         """
         return self
 
     def __next__(self):
         r"""
         Return the next vertex in a traversal of a graph.
+
+        EXAMPLE::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g.breadth_first_search(0)
+            <generator object breadth_first_search at ...
+            sage: g.breadth_first_search(0).next()
+            0
         """
         cdef int v_int
         cdef int w_int

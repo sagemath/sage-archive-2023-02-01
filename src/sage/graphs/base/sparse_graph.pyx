@@ -286,7 +286,12 @@ cdef class SparseGraph(CGraph):
 
         O(  (nverts + extra_vertices)*expected_degree + num_arcs  ).
 
-        """
+        EXAMPLE::
+
+            sage: from sage.graphs.base.sparse_graph import SparseGraph
+            sage: S = SparseGraph(nverts = 10, expected_degree = 3, extra_vertices = 10)
+
+         """
         cdef int i = 1
         if nverts == 0 and extra_vertices == 0:
             raise RuntimeError('Sparse graphs must allocate space for vertices!')

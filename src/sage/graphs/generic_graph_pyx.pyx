@@ -483,6 +483,12 @@ cdef class SubgraphSearch:
 
         This constructor only checks there is no inconsistency in the
         input : `G` and `H` are both graphs or both digraphs.
+
+        EXAMPLE::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g.subgraph_search(graphs.CycleGraph(5))
+            Subgraph of (Petersen graph): Graph on 5 vertices
         """
         if sum([G.is_directed(), H.is_directed()]) == 1:
             raise ValueError("One graph can not be directed while the other is not.")
@@ -596,6 +602,12 @@ cdef class SubgraphSearch:
         Cython constructor
 
         This method initializes all the C values.
+
+        EXAMPLE::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g.subgraph_search(graphs.CycleGraph(5))
+            Subgraph of (Petersen graph): Graph on 5 vertices
         """
 
         # Storing the number of vertices

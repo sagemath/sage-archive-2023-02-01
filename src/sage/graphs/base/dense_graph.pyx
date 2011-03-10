@@ -157,6 +157,10 @@ cdef class DenseGraph(CGraph):
 
         O(  (nverts + extra_vertices)^2  ).
 
+        EXAMPLE::
+
+            sage: from sage.graphs.base.dense_graph import DenseGraph
+            sage: D = DenseGraph(nverts = 10, extra_vertices = 10)
         """
         if nverts == 0 and extra_vertices == 0:
             raise RuntimeError('Dense graphs must allocate space for vertices!')

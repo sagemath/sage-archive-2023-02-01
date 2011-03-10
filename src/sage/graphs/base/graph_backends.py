@@ -480,6 +480,13 @@ class NetworkXGraphDeprecated(SageObject):
     def __init__(self):
         """
         Issue deprecation warnings for the old networkx XGraph formats
+
+        EXAMPLE::
+
+            sage: from sage.graphs.base.graph_backends import NetworkXGraphDeprecated
+            sage: NetworkXGraphDeprecated()
+            doctest:...
+            <class 'sage.graphs.base.graph_backends.NetworkXGraphDeprecated'>
         """
         import warnings
         from sage.misc.misc import deprecation
@@ -532,6 +539,13 @@ class NetworkXDiGraphDeprecated(SageObject):
     def __init__(self):
         """
         Issue deprecation warnings for the old networkx XDiGraph formats
+
+        EXAMPLE::
+
+            sage: from sage.graphs.base.graph_backends import NetworkXDiGraphDeprecated
+            sage: NetworkXDiGraphDeprecated()
+            doctest:...
+            <class 'sage.graphs.base.graph_backends.NetworkXDiGraphDeprecated'>
         """
         import warnings
         from sage.misc.misc import deprecation
@@ -913,6 +927,12 @@ class NetworkXGraphBackend(GenericGraphBackend):
         """
         Iterate over the incoming edges incident to a sequence of vertices.
         Special case, only for internal use.
+
+        EXAMPLE::
+
+            sage: g = DiGraph(graphs.PetersenGraph(), implementation="networkx")._backend
+            sage: sorted(list(g.iterator_in_edges([0,1], True)))
+            [(0, 1, None), (1, 0, None), (2, 1, None), (4, 0, None), (5, 0, None), (6, 1, None)]
         """
         try:
             assert(not isinstance(self._nxg, (NetworkXGraphDeprecated, NetworkXDiGraphDeprecated)))
@@ -955,6 +975,12 @@ class NetworkXGraphBackend(GenericGraphBackend):
         """
         Iterate over the outbound edges incident to a sequence of vertices.
         Special case, only for internal use.
+
+        EXAMPLE::
+
+            sage: g = DiGraph(graphs.PetersenGraph(), implementation="networkx")._backend
+            sage: sorted(list(g.iterator_out_edges([0,1], True)))
+            [(0, 1, None), (0, 4, None), (0, 5, None), (1, 0, None), (1, 2, None), (1, 6, None)]
         """
         try:
             assert(not isinstance(self._nxg, (NetworkXGraphDeprecated, NetworkXDiGraphDeprecated)))

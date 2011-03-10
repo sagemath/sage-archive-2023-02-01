@@ -2873,7 +2873,7 @@ def floyd_warshall(gg, paths = True, distances = False):
 
         Depending on the input, this function return the dictionary of paths,
         the dictionary of distances, or a pair of dictionaries
-        ``(distances,paths)`` where ``distance[u][v]`` denotes the distance of a
+        ``(distances, paths)`` where ``distance[u][v]`` denotes the distance of a
         shortest path from `u` to `v` and ``paths[u][v]`` denotes an inneighbor
         `w` of `v` such that `dist(u,v)= 1 + dist(u,w)`.
 
@@ -2920,94 +2920,108 @@ def floyd_warshall(gg, paths = True, distances = False):
     """
     from sage.rings.infinity import Infinity
     cdef CGraph g = <CGraph> gg._backend._cg
-    cdef int n = max(g.verts())+1
+
+    cdef list gverts = g.verts()
+
+    cdef int n = max(gverts) + 1
 
     if n > <unsigned short> -1:
         raise ValueError("The graph backend contains more than "+(<unsigned short> -1)+" nodes")
 
-    # Dictionaries of distance, precedent element, and integers
-    cdef dict d_prec = dict()
-    cdef dict d_dist = dict()
-    cdef dict tmp
+    # All this just creates two tables prec[n][n] and dist[n][n]
+    cdef unsigned short * t_prec
+    cdef unsigned short * t_dist
+    cdef unsigned short ** prec
+    cdef unsigned short ** dist
 
+    cdef int i
     cdef int v_int
     cdef int u_int
     cdef int w_int
-    cdef int i
 
-    # All this just creates two tables prec[n][n] and dist[n][n]
-    cdef unsigned short * t_prec = <unsigned short *> sage_malloc(n*n*sizeof(short))
-    cdef unsigned short * t_dist = <unsigned short *> sage_malloc(n*n*sizeof(short))
-    cdef unsigned short ** prec = <unsigned short **> sage_malloc(n*sizeof(short *))
-    cdef unsigned short ** dist = <unsigned short **> sage_malloc(n*sizeof(short *))
-    prec[0] = t_prec
+    # init dist
+    t_dist = <unsigned short *> sage_malloc(n*n*sizeof(short))
+    dist = <unsigned short **> sage_malloc(n*sizeof(short *))
     dist[0] = t_dist
-
     for 1 <= i< n:
-        prec[i] = prec[i-1] + n
         dist[i] = dist[i-1] + n
-
-    # Initializing prec and dist
-    memset(t_prec, 0, n*n*sizeof(short))
     memset(t_dist, -1, n*n*sizeof(short))
-
     # Copying the adjacency matrix (vertices at distance 1)
-    for v_int in g.verts():
-        prec[v_int][v_int] = v_int
+    for v_int in gverts:
         dist[v_int][v_int] =  0
         for u_int in g.out_neighbors(v_int):
             dist[v_int][u_int] = 1
-            prec[v_int][u_int] = v_int
+
+    if paths:
+        # init prec
+        t_prec = <unsigned short *> sage_malloc(n*n*sizeof(short))
+        prec = <unsigned short **> sage_malloc(n*sizeof(short *))
+        prec[0] = t_prec
+        for 1 <= i< n:
+            prec[i] = prec[i-1] + n
+        memset(t_prec, 0, n*n*sizeof(short))
+        # Copying the adjacency matrix (vertices at distance 1)
+        for v_int in gverts:
+            prec[v_int][v_int] = v_int
+            for u_int in g.out_neighbors(v_int):
+                prec[v_int][u_int] = v_int
 
     # The algorithm itself.
+    cdef unsigned short *dv, *dw
+    cdef int dvw
+    cdef int val
 
-    for w_int in g.verts():
-        for v_int in g.verts():
-            for u_int in g.verts():
-
+    for w_int in gverts:
+        dw = dist[w_int]
+        for v_int in gverts:
+            dv = dist[v_int]
+            dvw = dv[w_int]
+            for u_int in gverts:
+                val = dvw + dw[u_int]
                 # If it is shorter to go from u to v through w, do it
-                if dist[v_int][u_int] > dist[v_int][w_int] + dist[w_int][u_int]:
-                    dist[v_int][u_int] = dist[v_int][w_int] + dist[w_int][u_int]
-                    prec[v_int][u_int] = prec[w_int][u_int]
+                if dv[u_int] > val:
+                    dv[u_int] = val
+                    if paths:
+                        prec[v_int][u_int] = prec[w_int][u_int]
 
-    # If the paths are to be returned
+    # Dictionaries of distance, precedent element, and integers
+    cdef dict d_prec
+    cdef dict d_dist
+    cdef dict tmp_prec
+    cdef dict tmp_dist
+
+    cdef dict ggbvi = gg._backend.vertex_ints
+    cdef dict ggbvl = gg._backend.vertex_labels
+
+    if paths: d_prec = {}
+    if distances: d_dist = {}
+    for v_int in gverts:
+        if paths: tmp_prec = {}
+        if distances: tmp_dist = {}
+        v = vertex_label(v_int, ggbvi, ggbvl, g)
+        for u_int in gverts:
+            u = vertex_label(u_int, ggbvi, ggbvl, g)
+            if paths:
+                tmp_prec[u] = (None if v == u
+                               else vertex_label(prec[v_int][u_int], ggbvi, ggbvl, g))
+            if distances:
+                tmp_dist[u] = (dv[u_int] if (dv[u_int] != <unsigned short> -1)
+                               else Infinity)
+        if paths: d_prec[v] = tmp_prec
+        if distances: d_dist[v] = tmp_dist
+
     if paths:
-        for v_int in g.verts():
-            tmp = dict()
-            v = vertex_label(v_int, gg._backend.vertex_ints, gg._backend.vertex_labels, gg._backend._cg)
-
-            for u_int in g.verts():
-                u = vertex_label(u_int, gg._backend.vertex_ints, gg._backend.vertex_labels, gg._backend._cg)
-                w = (None if v == u
-                     else vertex_label(prec[v_int][u_int], gg._backend.vertex_ints, gg._backend.vertex_labels, gg._backend._cg))
-                tmp[u] = w
-
-            d_prec[v] = tmp
-
-    sage_free(t_prec)
-    sage_free(prec)
-
-    # If the distances are to be returned
-    if distances:
-        for v_int in g.verts():
-            tmp = dict()
-            v = vertex_label(v_int, gg._backend.vertex_ints, gg._backend.vertex_labels, gg._backend._cg)
-
-            for u_int in g.verts():
-                u = vertex_label(u_int, gg._backend.vertex_ints, gg._backend.vertex_labels, gg._backend._cg)
-
-                tmp[u] = dist[v_int][u_int] if (dist[v_int][u_int] != <unsigned short> -1) else Infinity
-
-            d_dist[v] = tmp
+        sage_free(t_prec)
+        sage_free(prec)
 
     sage_free(t_dist)
     sage_free(dist)
 
     if distances and paths:
         return d_dist, d_prec
-    elif paths:
+    if paths:
         return d_prec
-    else:
+    if distances:
         return d_dist
 
 cdef class Search_iterator:

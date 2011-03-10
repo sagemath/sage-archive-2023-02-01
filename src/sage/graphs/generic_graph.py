@@ -11039,27 +11039,33 @@ class GenericGraph(GenericGraph_pyx):
         pred = {}
         verts = self.vertices()
         for u in verts:
-            dist[u] = {}
-            pred[u] = {}
+            du = {}
+            pu = {}
             for v in verts:
                 if self.has_edge(u, v):
                     if by_weight is False:
-                        dist[u][v] = 1
-                    elif self.edge_label(u, v) is None or self.edge_label(u, v) == {}:
-                        dist[u][v] = default_weight
+                        du[v] = 1
                     else:
-                        dist[u][v] = self.edge_label(u, v)
-                    pred[u][v] = u
+                        edge_label = self.edge_label(u, v)
+                        if edge_label is None or edge_label == {}:
+                            du[v] = default_weight
+                        else:
+                            du[v] = edge_label
+                    pu[v] = u
                 else:
-                    dist[u][v] = Infinity
-                    pred[u][v] = None
-            dist[u][u] = 0
+                    du[v] = Infinity
+                    pu[v] = None
+            du[u] = 0
+            dist[u] = du
+            pred[u] = pu
 
         for w in verts:
+            dw = dist[w]
             for u in verts:
+                du = dist[u]
                 for v in verts:
-                    if dist[u][v] > dist[u][w] + dist[w][v]:
-                        dist[u][v] = dist[u][w] + dist[w][v]
+                    if du[v] > du[w] + dw[v]:
+                        du[v] = du[w] + dw[v]
                         pred[u][v] = pred[w][v]
 
         return dist, pred

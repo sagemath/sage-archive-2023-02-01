@@ -3053,6 +3053,123 @@ def floyd_warshall(gg, paths = True, distances = False):
     if distances:
         return d_dist
 
+cpdef all_pairs_shortest_path_BFS(gg):
+    """
+    Computes the shortest path and the distances between each pair of vertices
+    through successive breadth-first-searches
+
+    OUTPUT:
+
+        This function return a pair of dictionaries ``(distances,paths)`` where
+        ``distance[u][v]`` denotes the distance of a shortest path from `u` to
+        `v` and ``paths[u][v]`` denotes an inneighbor `w` of `v` such that
+        `dist(u,v)= 1 + dist(u,w)`.
+
+    .. WARNING::
+
+        Because this function works on matrices whose size is quadratic compared
+        to the number of vertices, it uses short variables instead of long ones
+        to divide by 2 the size in memory. This means that the current
+        implementation does not run on a graph of more than 65536 nodes (this
+        can be easily changed if necessary, but would require much more
+        memory. It may be worth writing two versions). For information, the
+        current version of the algorithm on a graph with `65536=2^{16}` nodes
+        creates in memory `2` tables on `2^{32}` short elements (2bytes each),
+        for a total of `2^{34}` bytes or `16` gigabytes.
+
+    EXAMPLE:
+
+    On a grid::
+
+        sage: g = graphs.Grid2dGraph(10,10)
+        sage: from sage.graphs.base.c_graph import all_pairs_shortest_path_BFS
+        sage: dist, path = all_pairs_shortest_path_BFS(g)
+        sage: all( dist[u][v] == g.distance(u,v) for u in g for v in g )
+        True
+    """
+    from sage.rings.infinity import Infinity
+
+    cdef CGraph cg = <CGraph> gg._backend._cg
+
+    cdef list vertices = cg.verts()
+    cdef int n = max(vertices)+1
+
+    if n > <unsigned short> -1:
+        raise ValueError("The graph backend contains more than "+(<unsigned short> -1)+" nodes")
+
+    # The vertices which have already been visited
+    cdef bitset_t seen
+    bitset_init(seen, cg.active_vertices.size)
+
+    # The list of waiting vertices, the beginning and the end of the list
+
+    cdef unsigned short * waiting_list = <unsigned short *> sage_malloc(n*sizeof(short))
+    cdef unsigned short waiting_beginning = 0
+    cdef unsigned short waiting_end = 0
+
+    cdef unsigned short source
+    cdef unsigned short v, u
+
+    # Dictionaries of dictionaries of distances/predecessors
+    cdef dict d_distances = dict()
+    cdef dict d_prec      = dict()
+
+    # Temporary dictionaries of distances/predecessors
+    cdef dict tmp_distances
+    cdef dict tmp_prec
+
+    # Temporary vectors of distances/predecessors
+    cdef unsigned short * v_distances = <unsigned short *> sage_malloc(n*sizeof(short))
+    cdef unsigned short * v_prec      = <unsigned short *> sage_malloc(n*sizeof(short))
+
+    for source in vertices:
+        bitset_set_first_n(seen, 0)
+        bitset_add(seen, source)
+
+        v_distances[source] = 0
+        v_prec[source] = source
+        waiting_list[0] = source
+        waiting_beginning = 0
+        waiting_end = 0
+
+        while waiting_beginning <= waiting_end:
+            v = waiting_list[waiting_beginning]
+
+            for u in cg.out_neighbors(v):
+                if not bitset_in(seen, u):
+                    v_distances[u] = v_distances[v]+1
+                    v_prec[u] = v
+                    bitset_add(seen, u)
+                    waiting_end += 1
+                    waiting_list[waiting_end] = u
+
+            waiting_beginning += 1
+
+        tmp_distances = dict()
+        tmp_prec = dict()
+        for v in vertices:
+            vv = vertex_label(v, gg._backend.vertex_ints, gg._backend.vertex_labels, gg._backend._cg)
+
+            if bitset_in(seen, v):
+                tmp_prec[vv] = vertex_label(v_prec[v], gg._backend.vertex_ints, gg._backend.vertex_labels, gg._backend._cg)
+                tmp_distances[vv] = v_distances[v]
+            else:
+                tmp_prec[vv] = None
+                tmp_distances[vv] = Infinity
+
+        vv = vertex_label(source, gg._backend.vertex_ints, gg._backend.vertex_labels, gg._backend._cg)
+        tmp_prec[vv] = None
+        d_prec[vv] = tmp_prec
+        d_distances[vv] = tmp_distances
+
+    bitset_free(seen)
+    sage_free(waiting_list)
+    sage_free(v_distances)
+    sage_free(v_prec)
+
+    return d_distances, d_prec
+
+
 cdef class Search_iterator:
     r"""
     An iterator for traversing a (di)graph.

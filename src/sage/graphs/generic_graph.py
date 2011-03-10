@@ -10092,7 +10092,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         return self.shortest_path_length(u, v)
 
-    def distance_all_pairs(self, algorithm = "BFS"):
+    def distance_all_pairs(self, algorithm = "auto"):
         r"""
         Returns the distances between all pairs of vertices.
 
@@ -10101,10 +10101,14 @@ class GenericGraph(GenericGraph_pyx):
             - ``"algorithm"`` (string) -- two algorithms are available
 
                 * ``algorithm = "BFS"`` in which case the distances are computed
-                  through `n-1` different breadth-first-search.
+                  through `n` different breadth-first-search.
 
                 * ``algorithm = "Floyd-Warshall"``, in which case the
                   Floyd-Warshall algorithm is used.
+
+                * ``algorithm = "auto"``, in which case the Floyd-Warshall
+                  algorithm is used for graphs on less than 20 vertices, and BFS
+                  otherwise.
 
                 The default is ``algorithm = "BFS"``.
 
@@ -10127,27 +10131,22 @@ class GenericGraph(GenericGraph_pyx):
             sage: all([g.distance(0,v) == distances[0][v] for v in g])
             True
         """
+        if algorithm == "auto":
+            if self.order() <= 20:
+                algorithm = "Floyd-Warshall"
+            else:
+                algorithm = "BFS"
+
         if algorithm == "BFS":
-            from sage.rings.infinity import Infinity
-            distances = dict([(v, self.shortest_path_lengths(v)) for v in self])
-
-            # setting the necessary +Infinity
-            cc = self.connected_components()
-            for cc1 in cc:
-                for cc2 in cc:
-                    if cc1 != cc2:
-                        for u in cc1:
-                            for v in cc2:
-                                distances[u][v] = Infinity
-
-            return distances
+            from sage.graphs.base.c_graph import all_pairs_shortest_path_BFS
+            return all_pairs_shortest_path_BFS(self)[0]
 
         elif algorithm == "Floyd-Warshall":
             from sage.graphs.base.c_graph import floyd_warshall
             return floyd_warshall(self,paths = False, distances = True)
 
         else:
-            raise ValueError("The algorithm keyword can be equal to either \"BFS\" or \"Floyd-Warshall\"")
+            raise ValueError("The algorithm keyword can be equal to either \"BFS\" or \"Floyd-Warshall\" or \"auto\"")
 
     def eccentricity(self, v=None, dist_dict=None, with_labels=False):
         """
@@ -10935,10 +10934,9 @@ class GenericGraph(GenericGraph_pyx):
                 lengths[v] = len(paths[v]) - 1
             return lengths
 
-    def shortest_path_all_pairs(self, by_weight=False, default_weight=1):
+    def shortest_path_all_pairs(self, by_weight=False, default_weight=1, algorithm = "auto"):
         """
-        Uses the Floyd-Warshall algorithm to find a shortest weighted path
-        for each pair of vertices.
+        Computes a shortest path between each pair of vertices.
 
         INPUT:
 
@@ -10952,6 +10950,23 @@ class GenericGraph(GenericGraph_pyx):
 
            Implies ``by_weight == True``.
 
+        - ``algorithm`` -- four options :
+
+           * ``"BFS"`` -- the computation is done through a BFS
+             centered on each vertex successively. Only implemented
+             when ``default_weight = 1`` and ``by_weight = False``.
+
+           * ``"Floyd-Warshall-Cython"`` -- through the Cython implementation of
+             the Floyd-Warshall algorithm.
+
+           * ``"Floyd-Warshall-Python"`` -- through the Python implementation of
+             the Floyd-Warshall algorithm.
+
+           * ``"auto"`` -- use the fastest algorithm depending on the input
+             (``"BFS"`` if possible, and ``"Floyd-Warshall-Python"`` otherwise)
+
+             This is the default value.
+
         OUTPUT:
 
             A tuple ``(dist, pred)``. They are both dicts of dicts. The first
@@ -10962,16 +10977,19 @@ class GenericGraph(GenericGraph_pyx):
 
         .. NOTE::
 
-            Two version of the Floyd-Warshall algorithm are implemented. One is
-            pure Python, the other one is Cython. The first is used whenever
-            ``by_weight = True``, and can perform its computations using the
-            labels on the edges for as long as they can be added together. The
-            second one, used when ``by_weight = False``, is much faster but only
-            deals with the topological distance (each edge is of weight 1, or
-            equivalently the length of a path is its number of edges). Besides,
-            the current version of this second implementation does not deal with
-            graphs larger than 65536 vertices (which already represents 16GB of
-            ram when running the Floyd-Warshall algorithm).
+            Three different implementations are actually available through this method :
+
+                * BFS (Cython)
+                * Floyd-Warshall (Cython)
+                * Floyd-Warshall (Python)
+
+            The BFS algorithm is the fastest of the three, then comes the Cython
+            implementation of Floyd-Warshall, and last the Python
+            implementation. The first two implementations, however, only compute
+            distances based on the topological distance (each edge is of weight
+            1, or equivalently the length of a path is its number of
+            edges). Besides, they do not deal with graphs larger than 65536
+            vertices (which already represents 16GB of ram).
 
         EXAMPLES::
 
@@ -11026,13 +11044,49 @@ class GenericGraph(GenericGraph_pyx):
             2: {0: 4, 1: 2, 2: None, 3: 2, 4: 3},
             3: {0: 4, 1: 2, 2: 3, 3: None, 4: 3},
             4: {0: 4, 1: 0, 2: 3, 3: 4, 4: None}})
+
+        Checking the distances are equal regardless of the algorithm used::
+
+            sage: g = graphs.Grid2dGraph(5,5)
+            sage: d1, _ = g.shortest_path_all_pairs(algorithm="BFS")
+            sage: d2, _ = g.shortest_path_all_pairs(algorithm="Floyd-Warshall-Cython")
+            sage: d3, _ = g.shortest_path_all_pairs(algorithm="Floyd-Warshall-Python")
+            sage: d1 == d2 == d3
+            True
+
+        Checking a random path is valid ::
+
+            sage: dist, path = g.shortest_path_all_pairs(algorithm="BFS")
+            sage: u,v = g.random_vertex(), g.random_vertex()
+            sage: p = [v]
+            sage: while p[0] != None:
+            ...     p.insert(0,path[u][p[0]])
+            sage: len(p) == dist[u][v] + 2
+            True
         """
         if default_weight != 1:
             by_weight = True
 
-        if by_weight is False:
+        if algorithm == "auto":
+            if by_weight is False:
+                algorithm = "BFS"
+            else:
+                algorithm = "Floyd-Warshall-Python"
+
+        if algorithm == "BFS":
+            from sage.graphs.base.c_graph import all_pairs_shortest_path_BFS
+            return all_pairs_shortest_path_BFS(self)
+
+        elif algorithm == "Floyd-Warshall-Cython":
             from sage.graphs.base.c_graph import floyd_warshall
             return floyd_warshall(self, distances = True)
+
+        elif algorithm != "Floyd-Warshall-Python":
+            raise ValueError("The algorithm keyword can only be set to "+
+                             "\"auto\","+
+                             " \"BFS\", "+
+                             "\"Floyd-Warshall-Cython\" or "+
+                             "\"Floyd-Warshall-Cython\"")
 
         from sage.rings.infinity import Infinity
         dist = {}

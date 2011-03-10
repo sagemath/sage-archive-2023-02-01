@@ -277,19 +277,19 @@ class GraphGenerators():
 
     - ``vertices`` -- natural number.
 
-    - ``property`` -- (default: ``lambda x: True``) any property to be tested
-      on graphs before generation. (Ignored if ``deg_seq`` is specified.)
+    - ``property`` -- (default: ``lambda x: True``) any property to be
+      tested on graphs before generation, but note that in general the
+      graphs produced are not the same as those produced by using the
+      property function to filter a list of graphs produced by using
+      the ``lambda x: True`` default. The generation process assumes
+      the property has certain characteristics set by the ``augment``
+      argument, and only in the case of inherited properties such that
+      all subgraphs of the relevant kind (for ``augment='edges'`` or
+      ``augment='vertices'``) of a graph with the property also
+      possess the property will there be no missing graphs.  (The
+      ``property`` argument is ignored if ``deg_seq`` is specified.)
 
     - ``augment`` -- (default: ``'edges'``) possible values:
-
-      - ``'vertices'`` -- augments by adding a vertex and
-        edges incident to that vertex. In this case, all graphs up to
-        ``n=vertices`` are generated. If for any graph G satisfying the
-        property, every subgraph, obtained from G by deleting one vertex
-        and only edges incident to that vertex, satisfies the property,
-        then this will generate all graphs with that property. If this does
-        not hold, then all the graphs generated will satisfy the property,
-        but there will be some missing.
 
       - ``'edges'`` -- augments a fixed number of vertices by
         adding one edge. In this case, all graphs on exactly ``n=vertices`` are
@@ -299,6 +299,15 @@ class GraphGenerators():
         generate all graphs with that property. If this does not hold, then
         all the graphs generated will satisfy the property, but there will
         be some missing.
+
+      - ``'vertices'`` -- augments by adding a vertex and
+        edges incident to that vertex. In this case, all graphs up to
+        ``n=vertices`` are generated. If for any graph G satisfying the
+        property, every subgraph, obtained from G by deleting one vertex
+        and only edges incident to that vertex, satisfies the property,
+        then this will generate all graphs with that property. If this does
+        not hold, then all the graphs generated will satisfy the property,
+        but there will be some missing.
 
     - ``size`` -- (default: ``None``) the size of the graph to be generated.
 
@@ -410,6 +419,20 @@ class GraphGenerators():
         sage: L = list( graphs(8, lambda G: G.is_bipartite()) ) # long time
         sage: len(L)                                            # long time
         303
+
+    Remember that the property argument does not behave as a filter,
+    except for appropriately inheritable properties::
+
+        sage: property = lambda G: G.is_vertex_transitive()
+        sage: len(list(graphs(4, property)))
+        1
+        sage: len(filter(property, graphs(4)))
+        4
+        sage: property = lambda G: G.is_bipartite()
+        sage: len(list(graphs(4, property)))
+        7
+        sage: len(filter(property, graphs(4)))
+        7
 
     Generate graphs on the fly: (see http://oeis.org/classic/A000088)
 

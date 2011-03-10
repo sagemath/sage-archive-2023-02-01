@@ -3125,7 +3125,9 @@ cpdef all_pairs_shortest_path_BFS(gg):
     cdef dict ggbvi = gg._backend.vertex_ints
     cdef dict ggbvl = gg._backend.vertex_labels
 
-    cdef list outneighbors
+    cdef int *outneighbors
+    cdef int o_n_size
+    cdef int i
     for source in vertices:
         bitset_set_first_n(seen, 0)
         bitset_add(seen, source)
@@ -3138,15 +3140,18 @@ cpdef all_pairs_shortest_path_BFS(gg):
 
         while waiting_beginning <= waiting_end:
             v = waiting_list[waiting_beginning]
-            outneighbors = cg.out_neighbors(v)
-            for u in outneighbors:
+            o_n_size = cg.out_degrees[v]
+            outneighbors = <int *>sage_malloc(o_n_size * sizeof(int))
+            o_n_size = cg.out_neighbors_unsafe(v, outneighbors, o_n_size)
+            for 0 <= i < o_n_size:
+                u = outneighbors[i]
                 if not bitset_in(seen, u):
                     v_distances[u] = v_distances[v]+1
                     v_prec[u] = v
                     bitset_add(seen, u)
                     waiting_end += 1
                     waiting_list[waiting_end] = u
-
+            sage_free(outneighbors)
             waiting_beginning += 1
 
         tmp_distances = dict()

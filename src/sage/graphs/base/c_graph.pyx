@@ -2999,6 +2999,7 @@ def floyd_warshall(gg, paths = True, distances = False):
         if paths: tmp_prec = {}
         if distances: tmp_dist = {}
         v = vertex_label(v_int, ggbvi, ggbvl, g)
+        dv = dist[v_int]
         for u_int in gverts:
             u = vertex_label(u_int, ggbvi, ggbvl, g)
             if paths:

@@ -242,9 +242,7 @@ def integral(f, *args, **kwds):
         sage: integral(abs(x)*x, x, 0, a)
         Traceback (most recent call last):
         ...
-        TypeError: Computation failed since Maxima requested additional
-        constraints (try the command 'assume(a>0)' before integral or limit
-        evaluation, for example):
+        ValueError: Computation failed since Maxima requested additional constraints; using the 'assume' command before integral evaluation *may* help (example of legal syntax is 'assume(a>0)', see `assume?` for more details)
         Is  a  positive, negative, or zero?
         sage: assume(a>0)
         sage: integral(abs(x)*x, x, 0, a)

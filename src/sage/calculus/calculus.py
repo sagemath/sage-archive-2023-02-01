@@ -483,7 +483,8 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima'):
         sage: symbolic_sum(a*q^k, k, 0, n)
         (a*q^(n + 1) - a)/(q - 1)
 
-    The geometric series::
+    For the geometric series, we will have to assume
+    the right values for the sum to converge::
 
         sage: assume(abs(q) < 1)
         sage: symbolic_sum(a*q^k, k, 0, oo)
@@ -498,6 +499,9 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima'):
         Traceback (most recent call last):
         ...
         ValueError: Sum is divergent.
+        sage: forget()
+        sage: assumptions() # check the assumptions were really forgotten
+        []
 
     This summation only Mathematica can perform::
 
@@ -533,14 +537,7 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima'):
         raise ValueError, "summation limits must not depend on the summation variable"
 
     if algorithm == 'maxima':
-        try:
-            return maxima.sr_sum(expression,v,a,b)
-        except TypeError, error:
-            s = str(error)
-            if "divergent" in s or 'Pole encountered' in s:
-                raise ValueError, "Sum is divergent."
-            else:
-                raise
+        return maxima.sr_sum(expression,v,a,b)
 
     elif algorithm == 'mathematica':
         try:
@@ -989,6 +986,35 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         2.06287223508 + 0.74500706218*I
         sage: CDF(f.limit(x = I))
         2.06287223508 + 0.74500706218*I
+
+    Notice that Maxima may ask for more information::
+
+        sage: var('a')
+        a
+        sage: limit(x^a,x=0)
+        Traceback (most recent call last):
+        ...
+        ValueError: Computation failed since Maxima requested additional constraints; using the 'assume' command before limit evaluation *may* help (see `assume?` for more details)
+        Is  a  positive, negative, or zero?
+
+    With this example, Maxima is looking for a LOT of information::
+
+        sage: assume(a>0)
+        sage: limit(x^a,x=0)
+        Traceback (most recent call last):
+        ...
+        ValueError: Computation failed since Maxima requested additional constraints; using the 'assume' command before limit evaluation *may* help (see `assume?` for more details)
+        Is a an integer?
+        sage: assume(a,'integer')
+        sage: limit(x^a,x=0)
+        Traceback (most recent call last):
+        ...
+        ValueError: Computation failed since Maxima requested additional constraints; using the 'assume' command before limit evaluation *may* help (see `assume?` for more details)
+        Is a an even number?
+        sage: assume(a,'even')
+        sage: limit(x^a,x=0)
+        0
+        sage: forget()
 
     More examples::
 

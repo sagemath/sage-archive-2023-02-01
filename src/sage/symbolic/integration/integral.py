@@ -332,7 +332,10 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
         sage: integral(x^n,x)
         Traceback (most recent call last):
         ...
-        TypeError: Computation failed since Maxima requested additional constraints (try the command 'assume(n+1>0)' before integral or limit evaluation, for example):
+        ValueError: Computation failed since Maxima requested additional
+        constraints; using the 'assume' command before integral evaluation
+        *may* help (example of legal syntax is 'assume(n+1>0)', see `assume?`
+        for more details)
         Is  n+1  zero or nonzero?
         sage: assume(n > 0)
         sage: integral(x^n,x)
@@ -348,8 +351,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
     Note that an exception is raised when a definite integral is
     divergent::
 
-        sage: forget()
-
+        sage: forget() # always remember to forget assumptions you no longer need
         sage: integrate(1/x^3,(x,0,1))
         Traceback (most recent call last):
         ...
@@ -439,13 +441,18 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
 
     ALIASES: integral() and integrate() are the same.
 
-    EXAMPLES: Here is example where we have to use assume::
+    EXAMPLES:
+
+    Here is an example where we have to use assume::
 
         sage: a,b = var('a,b')
         sage: integrate(1/(x^3 *(a+b*x)^(1/3)), x)
         Traceback (most recent call last):
         ...
-        TypeError: Computation failed since Maxima requested additional constraints (try the command 'assume(a>0)' before integral or limit evaluation, for example):
+        ValueError: Computation failed since Maxima requested additional
+        constraints; using the 'assume' command before integral evaluation
+        *may* help (example of legal syntax is 'assume(a>0)', see `assume?`
+        for more details)
         Is  a  positive or negative?
 
     So we just assume that `a>0` and the integral works::
@@ -483,9 +490,10 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
         sage: res = integral(f,x,0.0001414, 1.); res
         Traceback (most recent call last):
         ...
-        TypeError: Computation failed since Maxima requested additional
-        constraints (try the command 'assume((y-1)*(y+1)>0)' before integral
-        or limit evaluation, for example):
+        ValueError: Computation failed since Maxima requested additional
+        constraints; using the 'assume' command before integral evaluation
+        *may* help (example of legal syntax is 'assume((y-1)*(y+1)>0)',
+        see `assume?` for more details)
         Is  (y-1)*(y+1)  positive, negative, or zero?
         sage: assume(y>1)
         sage: res = integral(f,x,0.0001414, 1.); res

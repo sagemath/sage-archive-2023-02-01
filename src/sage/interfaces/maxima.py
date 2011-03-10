@@ -580,27 +580,49 @@ class Maxima(MaximaAbstract, Expect):
 
     def _expect_expr(self, expr=None, timeout=None):
         """
-        EXAMPLES:
-            sage: a,b=var('a,b')
-            sage: integrate(1/(x^3 *(a+b*x)^(1/3)),x)
+        Wait for a given expression expr (which could be a regular
+        expression or list of regular expressions) to appear in the output
+        for at most timeout seconds.
+
+        See `sage.interfaces.expect.Expect._expect_expr` for full details
+        on its use and functionality.
+
+        TESTS:
+
+        These tests indirectly show that the interface is working
+        and catching certain errors::
+
+            sage: maxima('2+2')
+            4
+            sage: maxima('integrate(1/(x^3*(a+b*x)^(1/3)),x)')
             Traceback (most recent call last):
             ...
-            TypeError: Computation failed since Maxima requested additional constraints (try the command 'assume(a>0)' before integral or limit evaluation, for example):
+            TypeError: Computation failed since Maxima requested additional constraints (try the command "maxima.assume('a>0')" before integral or limit evaluation, for example):
             Is  a  positive or negative?
-            sage: assume(a>0)
-            sage: integrate(1/(x^3 *(a+b*x)^(1/3)),x)
-            2/9*sqrt(3)*b^2*arctan(1/3*(2*(b*x + a)^(1/3) + a^(1/3))*sqrt(3)/a^(1/3))/a^(7/3) + 2/9*b^2*log((b*x + a)^(1/3) - a^(1/3))/a^(7/3) - 1/9*b^2*log((b*x + a)^(2/3) + (b*x + a)^(1/3)*a^(1/3) + a^(2/3))/a^(7/3) + 1/6*(4*(b*x + a)^(5/3)*b^2 - 7*(b*x + a)^(2/3)*a*b^2)/((b*x + a)^2*a^2 - 2*(b*x + a)*a^3 + a^4)
-            sage: var('x, n')
-            (x, n)
-            sage: integral(x^n,x)
+            sage: maxima.assume('a>0')
+            [a>0]
+            sage: maxima('integrate(1/(x^3*(a+b*x)^(1/3)),x)')
+            -b^2*log((b*x+a)^(2/3)+a^(1/3)*(b*x+a)^(1/3)+a^(2/3))/(9*a^(7/3))+2*b^2*atan((2*(b*x+a)^(1/3)+a^(1/3))/(sqrt(3)*a^(1/3)))/(3^(3/2)*a^(7/3))+2*b^2*log((b*x+a)^(1/3)-a^(1/3))/(9*a^(7/3))+(4*b^2*(b*x+a)^(5/3)-7*a*b^2*(b*x+a)^(2/3))/(6*a^2*(b*x+a)^2-12*a^3*(b*x+a)+6*a^4)
+            sage: maxima('integrate(x^n,x)')
             Traceback (most recent call last):
             ...
-            TypeError: Computation failed since Maxima requested additional constraints (try the command 'assume(n+1>0)' before integral or limit evaluation, for example):
+            TypeError: Computation failed since Maxima requested additional constraints (try the command "maxima.assume('n+1>0')" before integral or limit evaluation, for example):
             Is  n+1  zero or nonzero?
-            sage: assume(n+1>0)
-            sage: integral(x^n,x)
-            x^(n + 1)/(n + 1)
-            sage: forget()
+            sage: maxima.assume('n+1>0')
+            [n>-1]
+            sage: maxima('integrate(x^n,x)')
+            x^(n+1)/(n+1)
+            sage: maxima.forget([fact for fact in maxima.facts()])
+            [[a>0,n>-1]]
+            sage: maxima.facts()
+            []
+            sage: var('a')
+            a
+            sage: maxima('limit(x^a,x,0)')
+            Traceback (most recent call last):
+            ...
+            TypeError: Computation failed since Maxima requested additional constraints (try the command "maxima.assume('a>0')" before integral or limit evaluation, for example):
+            Is  a  positive, negative, or zero?
         """
         if expr is None:
             expr = self._prompt_wait
@@ -623,7 +645,7 @@ class Maxima(MaximaAbstract, Expect):
                 j = v.find('Is ')
                 v = v[j:]
                 k = v.find(' ',4)
-                msg = "Computation failed since Maxima requested additional constraints (try the command 'assume(" + v[4:k] +">0)' before integral or limit evaluation, for example):\n" + v + self._ask[i-1]
+                msg = """Computation failed since Maxima requested additional constraints (try the command "maxima.assume('""" + v[4:k] +""">0')" before integral or limit evaluation, for example):\n""" + v + self._ask[i-1]
                 self._sendline(";")
                 self._expect_expr()
                 raise ValueError, msg
@@ -949,25 +971,25 @@ class Maxima(MaximaAbstract, Expect):
         """
         return MaximaElementFunction
 
-    ##some helper functions to wrap tha calculus use of the maxima interface.
+    ##some old helper functions to wrap the calculus use of the maxima interface.
     ##these routines expect arguments living in the symbolic ring and return something
     ##that is hopefully coercible into the symbolic ring again.
-
-    def sr_integral(self,*args):
-        return args[0]._maxima_().integrate(*args[1:])
-
-    def sr_sum(self,expression,v,a,b):
-        sum  = "'sum(%s, %s, %s, %s)" % tuple([repr(expr._maxima_()) for expr in (expression, v, a, b)])
-        result = self.simplify_sum(sum)
-        result = result.ratsimp()
-        return expression.parent()(result)
-
-    def sr_limit(self,ex,*args):
-        return ex._maxima_().limit(*args)
-
-    def sr_tlimit(self,ex,*args):
-        return ex._maxima_().tlimit(*args)
-
+##
+##    def sr_integral(self,*args):
+##        return args[0]._maxima_().integrate(*args[1:])
+##
+##    def sr_sum(self,expression,v,a,b):
+##        sum  = "'sum(%s, %s, %s, %s)" % tuple([repr(expr._maxima_()) for expr in (expression, v, a, b)])
+##        result = self.simplify_sum(sum)
+##        result = result.ratsimp()
+##        return expression.parent()(result)
+##
+##    def sr_limit(self,ex,*args):
+##        return ex._maxima_().limit(*args)
+##
+##    def sr_tlimit(self,ex,*args):
+##        return ex._maxima_().tlimit(*args)
+##
 
 def is_MaximaElement(x):
     """

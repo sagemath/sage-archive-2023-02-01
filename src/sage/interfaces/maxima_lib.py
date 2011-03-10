@@ -405,34 +405,154 @@ class MaximaLib(MaximaAbstract):
     ##that is hopefully coercible into the symbolic ring again.
 
     def sr_integral(self,*args):
+        """
+        Helper function to wrap calculus use of Maxima's integration.
+
+        TESTS::
+
+            sage: a,b=var('a,b')
+            sage: integrate(1/(x^3 *(a+b*x)^(1/3)),x)
+            Traceback (most recent call last):
+            ...
+            ValueError: Computation failed since Maxima requested additional constraints; using the 'assume' command before integral evaluation *may* help (example of legal syntax is 'assume(a>0)', see `assume?` for more details)
+            Is  a  positive or negative?
+            sage: assume(a>0)
+            sage: integrate(1/(x^3 *(a+b*x)^(1/3)),x)
+            2/9*sqrt(3)*b^2*arctan(1/3*(2*(b*x + a)^(1/3) + a^(1/3))*sqrt(3)/a^(1/3))/a^(7/3) + 2/9*b^2*log((b*x + a)^(1/3) - a^(1/3))/a^(7/3) - 1/9*b^2*log((b*x + a)^(2/3) + (b*x + a)^(1/3)*a^(1/3) + a^(2/3))/a^(7/3) + 1/6*(4*(b*x + a)^(5/3)*b^2 - 7*(b*x + a)^(2/3)*a*b^2)/((b*x + a)^2*a^2 - 2*(b*x + a)*a^3 + a^4)
+            sage: var('x, n')
+            (x, n)
+            sage: integral(x^n,x)
+            Traceback (most recent call last):
+            ...
+            ValueError: Computation failed since Maxima requested additional constraints; using the 'assume' command before integral evaluation *may* help (example of legal syntax is 'assume(n+1>0)', see `assume?` for more details)
+            Is  n+1  zero or nonzero?
+            sage: assume(n+1>0)
+            sage: integral(x^n,x)
+            x^(n + 1)/(n + 1)
+            sage: forget()
+            sage: assumptions()  # Check the assumptions really were forgotten
+            []
+        """
         try:
             return max_to_sr(maxima_eval(([max_integrate],[sr_to_max(SR(a)) for a in args])))
         except RuntimeError, error:
             s = str(error)
             if "Divergent" in s or "divergent" in s:
+# in pexpect interface, one looks for this - e.g. integrate(1/x^3,x,-1,3) gives a principal value
+#            if "divergent" in s or 'Principal Value' in s:
                 raise ValueError, "Integral is divergent."
+            elif "Is" in s: # Maxima asked for a condition
+                j = s.find('Is ')
+                s = s[j:]
+                k = s.find(' ',4)
+                raise ValueError, "Computation failed since Maxima requested additional constraints; using the 'assume' command before integral evaluation *may* help (example of legal syntax is 'assume(" + s[4:k] +">0)', see `assume?` for more details)\n" + s
             else:
                 raise error
 
     def sr_sum(self,*args):
+        """
+        Helper function to wrap calculus use of Maxima's summation.
+
+        TESTS::
+
+            sage: x, y, k, n = var('x, y, k, n')
+            sage: sum(binomial(n,k) * x^k * y^(n-k), k, 0, n)
+            (x + y)^n
+            sage: q, a = var('q, a')
+            sage: sum(a*q^k, k, 0, oo)
+            Traceback (most recent call last):
+            ...
+            ValueError: Computation failed since Maxima requested additional constraints; using the 'assume' command before summation *may* help (example of legal syntax is 'assume(abs(q)-1>0)', see `assume?` for more details)
+            Is  abs(q)-1  positive, negative, or zero?
+            sage: assume(q > 1)
+            sage: sum(a*q^k, k, 0, oo)
+            Traceback (most recent call last):
+            ...
+            ValueError: Sum is divergent.
+            sage: forget()
+            sage: assume(abs(q) < 1)
+            sage: sum(a*q^k, k, 0, oo)
+            -a/(q - 1)
+            sage: forget()
+            sage: assumptions() # check the assumptions were really forgotten
+            []
+        """
         try:
             return max_to_sr(maxima_eval([[max_ratsimp],[[max_simplify_sum],([max_sum],[sr_to_max(SR(a)) for a in args])]]));
         except RuntimeError, error:
             s = str(error)
             if "divergent" in s:
+# in pexpect interface, one looks for this - could not find an example where 'Pole encountered' occurred, though
+#            if "divergent" in s or 'Pole encountered' in s:
                 raise ValueError, "Sum is divergent."
+            elif "Is" in s: # Maxima asked for a condition
+                j = s.find('Is ')
+                s = s[j:]
+                k = s.find(' ',4)
+                raise ValueError, "Computation failed since Maxima requested additional constraints; using the 'assume' command before summation *may* help (example of legal syntax is 'assume(" + s[4:k] +">0)', see `assume?` for more details)\n" + s
             else:
                 raise error
 
     def sr_limit(self,expr,v,a,dir=None):
-        L=[sr_to_max(SR(a)) for a in [expr,v,a]]
-        if dir == "plus":
-            L.append(max_plus)
-        elif dir == "minus":
-            L.append(max_minus)
-        return max_to_sr(maxima_eval(([max_limit],L)))
+        """
+        Helper function to wrap calculus use of Maxima's limits.
+
+        TESTS::
+
+            sage: f = (1+1/x)^x
+            sage: limit(f,x = oo)
+            e
+            sage: limit(f,x = 5)
+            7776/3125
+            sage: limit(f,x = 1.2)
+            2.06961575467...
+            sage: var('a')
+            a
+            sage: limit(x^a,x=0)
+            Traceback (most recent call last):
+            ...
+            ValueError: Computation failed since Maxima requested additional constraints; using the 'assume' command before limit evaluation *may* help (see `assume?` for more details)
+            Is  a  positive, negative, or zero?
+            sage: assume(a>0)
+            sage: limit(x^a,x=0)
+            Traceback (most recent call last):
+            ...
+            ValueError: Computation failed since Maxima requested additional constraints; using the 'assume' command before limit evaluation *may* help (see `assume?` for more details)
+            Is a an integer?
+            sage: assume(a,'integer')
+            sage: assume(a,'even')  # Yes, Maxima will ask this too
+            sage: limit(x^a,x=0)
+            0
+            sage: forget()
+            sage: assumptions() # check the assumptions were really forgotten
+            []
+        """
+        try:
+            L=[sr_to_max(SR(a)) for a in [expr,v,a]]
+            if dir == "plus":
+                L.append(max_plus)
+            elif dir == "minus":
+                L.append(max_minus)
+            return max_to_sr(maxima_eval(([max_limit],L)))
+        except RuntimeError, error:
+            s = str(error)
+            if "Is" in s: # Maxima asked for a condition
+                j = s.find('Is ')
+                s = s[j:]
+                raise ValueError, "Computation failed since Maxima requested additional constraints; using the 'assume' command before limit evaluation *may* help (see `assume?` for more details)\n" + s
+            else:
+                raise error
 
     def sr_tlimit(self,expr,v,a,dir=None):
+        """
+        Helper function to wrap calculus use of Maxima's Taylor series limits.
+
+        TESTS::
+
+            sage: f = (1+1/x)^x
+            sage: limit(f, x = I, taylor=True)
+            (-I + 1)^I
+        """
         L=[sr_to_max(SR(a)) for a in [expr,v,a]]
         if dir == "plus":
             L.append(max_plus)

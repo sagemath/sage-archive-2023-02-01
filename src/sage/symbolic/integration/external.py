@@ -18,14 +18,7 @@ def maxima_integrator(expression, v, a=None, b=None):
     if a is None:
         result = maxima.sr_integral(expression,v)
     else:
-        try:
-            result = maxima.sr_integral(expression, v, a, b)
-        except TypeError, error:
-            s = str(error)
-            if "divergent" in s or 'Principal Value' in s:
-                raise ValueError, "Integral is divergent."
-            else:
-                raise
+        result = maxima.sr_integral(expression, v, a, b)
     return result._sage_()
 
 def sympy_integrator(expression, v, a=None, b=None):

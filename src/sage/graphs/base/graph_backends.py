@@ -473,8 +473,12 @@ class NetworkXGraphDeprecated(SageObject):
     """
     Class for unpickling old networkx.XGraph formats
 
-    DOCTEST:
-        sage: import sage.graphs.base.graph_backends
+    DOCTEST::
+
+        sage: from sage.graphs.base.graph_backends import NetworkXGraphDeprecated as NXGD
+        sage: X = NXGD()
+        doctest:...
+
     """
 
     def __init__(self):
@@ -490,13 +494,13 @@ class NetworkXGraphDeprecated(SageObject):
         """
         import warnings
         from sage.misc.misc import deprecation
-        warnings.warn("Your graph object is saved in an old format since networkx\
-                    was updated to 1.0.1. You can re-save your graph by typing\
-                    graph.save(filename) to make this warning go away.",
-                    DeprecationWarning, stacklevel=2)
-        deprecation("Your graph object is saved in an old format since networkx\
-                    was updated to 1.0.1. You can re-save your graph by typing\
-                    graph.save(filename) to make this warning go away.")
+        warnings.warn("Your graph object is saved in an old format since networkx "+
+                      "was updated to 1.0.1. You can re-save your graph by typing "+
+                      "graph.save(filename) to make this warning go away.",
+                      DeprecationWarning, stacklevel=2)
+        deprecation("Your graph object is saved in an old format since networkx "+
+                    "was updated to 1.0.1. You can re-save your graph by typing "+
+                    "graph.save(filename) to make this warning go away.")
 
     def mutate(self):
         """
@@ -506,6 +510,20 @@ class NetworkXGraphDeprecated(SageObject):
 
         - The networkx.Graph or networkx.MultiGraph corresponding to the
           unpickled data.
+
+        EXAMPLES::
+
+            sage: from sage.graphs.base.graph_backends import NetworkXGraphDeprecated as NXGD
+            sage: X = NXGD()
+            doctest:...
+            sage: X.adj = {1:{2:7}, 2:{1:7}, 3:{2:[4,5,6,7]}, 2:{3:[4,5,6,7]}}
+            sage: X.multiedges = True
+            sage: G = X.mutate()
+            sage: G.edges()
+            [(1, 2), (2, 3)]
+            sage: G.edges(data=True)
+            [(1, 2, {'weight': 7}), (2, 3, {4: {}, 5: {}, 6: {}, 7: {}})]
+
         """
         import networkx
         new_adj = {}
@@ -519,7 +537,7 @@ class NetworkXGraphDeprecated(SageObject):
                         for weight in weights:
                             new_adj[node1][node2][weight] = {}
                     except TypeError:
-                        new_adj[node1][node2]['weight'] = weight
+                        new_adj[node1][node2]['weight'] = weights
 
         if self.multiedges:
             G = networkx.MultiGraph(new_adj)
@@ -549,13 +567,13 @@ class NetworkXDiGraphDeprecated(SageObject):
         """
         import warnings
         from sage.misc.misc import deprecation
-        warnings.warn("Your digraph object is saved in an old format since networkx\
-                    was updated to 1.0.1. You can re-save your digraph by typing\
-                    digraph.save(filename) to make this warning go away.",
-                    DeprecationWarning, stacklevel=2)
-        deprecation("Your digraph object is saved in an old format since networkx\
-                    was updated to 1.0.1. You can re-save your digraph by typing\
-                    digraph.save(filename) to make this warning go away.")
+        warnings.warn("Your digraph object is saved in an old format since networkx "+
+                      "was updated to 1.0.1. You can re-save your digraph by typing "+
+                      "digraph.save(filename) to make this warning go away.",
+                      DeprecationWarning, stacklevel=2)
+        deprecation("Your digraph object is saved in an old format since networkx "+
+                    "was updated to 1.0.1. You can re-save your digraph by typing "+
+                    "digraph.save(filename) to make this warning go away.")
 
     def mutate(self):
         """
@@ -565,6 +583,20 @@ class NetworkXDiGraphDeprecated(SageObject):
 
         - The networkx.DiGraph or networkx.MultiDiGraph corresponding to the
           unpickled data.
+
+        EXAMPLES::
+
+            sage: from sage.graphs.base.graph_backends import NetworkXDiGraphDeprecated as NXDGD
+            sage: X = NXDGD()
+            doctest:...
+            sage: X.adj = {1:{2:7}, 2:{1:[7,8], 3:[4,5,6,7]}}
+            sage: X.multiedges = True
+            sage: G = X.mutate()
+            sage: G.edges()
+            [(1, 2), (2, 1), (2, 3)]
+            sage: G.edges(data=True)
+            [(1, 2, {'weight': 7}), (2, 1, {8: {}, 7: {}}), (2, 3, {4: {}, 5: {}, 6: {}, 7: {}})]
+
         """
         import networkx
         new_adj = {}
@@ -578,7 +610,7 @@ class NetworkXDiGraphDeprecated(SageObject):
                         for weight in weights:
                             new_adj[node1][node2][weight] = {}
                     except TypeError:
-                        new_adj[node1][node2]['weight'] = weight
+                        new_adj[node1][node2]['weight'] = weights
 
         if self.multiedges:
             G = networkx.MultiDiGraph(new_adj)

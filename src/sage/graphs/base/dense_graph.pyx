@@ -213,6 +213,25 @@ cdef class DenseGraph(CGraph):
         bitset_free(self.active_vertices)
 
     def __reduce__(self):
+        """
+        Return a tuple used for pickling this graph.
+
+        TESTS::
+
+            sage: from sage.graphs.base.dense_graph import DenseGraph
+            sage: D = DenseGraph(nverts = 10, extra_vertices = 10)
+            sage: D.add_arc(0,1)
+            sage: D.has_arc(0,1)
+            1
+            sage: D.has_arc(1,2)
+            0
+            sage: LD = loads(dumps(D))
+            sage: LD.has_arc(0,1)
+            1
+            sage: LD.has_arc(1,2)
+            0
+
+        """
         from sage.graphs.all import DiGraph
         D = DiGraph(implementation='c_graph', sparse=False)
         D._backend._cg = self

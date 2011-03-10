@@ -355,6 +355,25 @@ cdef class SparseGraph(CGraph):
         bitset_free(self.active_vertices)
 
     def __reduce__(self):
+        """
+        Return a tuple used for pickling this graph.
+
+        TESTS::
+
+            sage: from sage.graphs.base.sparse_graph import SparseGraph
+            sage: S = SparseGraph(nverts = 10, expected_degree = 3, extra_vertices = 10)
+            sage: S.add_arc(0,1)
+            sage: S.all_arcs(0,1)
+            [0]
+            sage: S.all_arcs(1,2)
+            []
+            sage: LS = loads(dumps(S))
+            sage: LS.all_arcs(0,1)
+            [0]
+            sage: LS.all_arcs(1,2)
+            []
+
+        """
         from sage.graphs.all import DiGraph
         D = DiGraph(implementation='c_graph', sparse=True)
         D._backend._cg = self

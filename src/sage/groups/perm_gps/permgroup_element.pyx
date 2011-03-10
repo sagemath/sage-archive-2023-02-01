@@ -745,6 +745,38 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         sage_free(seen)
         return int(order_c) if order is None else order
 
+    def inverse(self):
+        r"""
+        Returns the inverse permutation.
+
+        OUTPUT:
+
+        For an element of a permutation group, this method returns the inverse
+        element, which is both the inverse function and the inverse as an
+        element of a group.
+
+        EXAMPLES::
+
+            sage: s = PermutationGroupElement("(1,2,3)(4,5)")
+            sage: s.inverse()
+            (1,3,2)(4,5)
+
+            sage: A = AlternatingGroup(4)
+            sage: t = A("(1,2,3)")
+            sage: t.inverse()
+            (1,3,2)
+
+        There are several ways (syntactically) to get an inverse
+        of a permutation group element.  ::
+
+            sage: s = PermutationGroupElement("(1,2,3,4)(6,7,8)")
+            sage: s.inverse() == s^-1
+            True
+            sage: s.inverse() == ~s
+            True
+        """
+        return ~self
+
     def sign(self):
         """
         Returns the sign of self, which is `(-1)^{s}`, where

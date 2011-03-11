@@ -17,6 +17,8 @@ AUTHORS:
 - Simon King (2010-09-25): Expect._local_tmpfile() depends on
   Expect.pid() and is cached; Expect.quit() clears that cache,
   which is important for forking.
+
+- Jean-Pierre Flori (2010,2011): Split non Pexpect stuff into a parent class.
 """
 
 #*****************************************************************************

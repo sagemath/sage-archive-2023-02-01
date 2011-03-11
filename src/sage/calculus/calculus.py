@@ -111,7 +111,8 @@ Here we calculate the Jacobian for the polar coordinate transformation::
     sage: T.diff().det() # Jacobian
     (r, theta) |--> r*sin(theta)^2 + r*cos(theta)^2
 
-When the order of variables is ambiguous, Sage will raise an exception when differentiating::
+When the order of variables is ambiguous, Sage will raise an
+exception when differentiating::
 
     sage: f = sin(x+y); f.derivative()
     Traceback (most recent call last):
@@ -146,7 +147,10 @@ but the behavior is deprecated::
 
     sage: f = sin(x)
     sage: f(y)
-    doctest:...: DeprecationWarning: Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)
+    doctest:...: DeprecationWarning: Substitution using function-call
+    syntax and unnamed arguments is deprecated and will be removed
+    from a future release of Sage; you can use named arguments instead,
+    like EXPR(x=..., y=...)
     sin(y)
     sage: f(pi)
     0
@@ -388,7 +392,8 @@ lazy_import('sage.interfaces.maxima_lib','maxima')
 # This is not the same instance of Maxima as the general purpose one
 #from sage.interfaces.maxima import Maxima
 #maxima = Maxima(init_code = ['display2d : false', 'domain : complex',
-#                             'keepfloat : true', 'load(to_poly_solver)', 'load(simplify_sum)'],
+#                             'keepfloat : true', 'load(to_poly_solver)',
+#                             'load(simplify_sum)'],
 #                script_subdirectory=None)
 
 ########################################################
@@ -522,10 +527,13 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima'):
 
     .. note::
 
-       #. Sage can currently only understand a subset of the output of Maxima, Maple and
-          Mathematica, so even if the chosen backend can perform the summation the
-          result might not be convertable into a Sage expression.
+       #. Sage can currently only understand a subset of the output of Maxima,
 
+          Maple and Mathematica, so even if the chosen backend can perform
+
+          the summation the result might not be convertable into a Sage
+
+          expression.
     """
     if not is_SymbolicVariable(v):
         if isinstance(v, str):
@@ -573,47 +581,43 @@ def nintegral(ex, x, a, b,
 
     INPUT:
 
+    - ``x`` - variable to integrate with respect to
 
-    -  ``x`` - variable to integrate with respect to
+    - ``a`` - lower endpoint of integration
 
-    -  ``a`` - lower endpoint of integration
+    - ``b`` - upper endpoint of integration
 
-    -  ``b`` - upper endpoint of integration
+    - ``desired_relative_error`` - (default: '1e-8') the
+      desired relative error
 
-    -  ``desired_relative_error`` - (default: '1e-8') the
-       desired relative error
-
-    -  ``maximum_num_subintervals`` - (default: 200)
-       maxima number of subintervals
-
+    - ``maximum_num_subintervals`` - (default: 200)
+      maxima number of subintervals
 
     OUTPUT:
 
+    - float: approximation to the integral
 
-    -  float: approximation to the integral
+    - float: estimated absolute error of the
+      approximation
 
-    -  float: estimated absolute error of the
-       approximation
+    - the number of integrand evaluations
 
-    -  the number of integrand evaluations
+    - an error code:
 
-    -  an error code:
+      - ``0`` - no problems were encountered
 
-       -  ``0`` - no problems were encountered
+      - ``1`` - too many subintervals were done
 
-       -  ``1`` - too many subintervals were done
+      - ``2`` - excessive roundoff error
 
-       -  ``2`` - excessive roundoff error
+      - ``3`` - extremely bad integrand behavior
 
-       -  ``3`` - extremely bad integrand behavior
+      - ``4`` - failed to converge
 
-       -  ``4`` - failed to converge
+      - ``5`` - integral is probably divergent or slowly
+        convergent
 
-       -  ``5`` - integral is probably divergent or slowly
-          convergent
-
-       -  ``6`` - the input is invalid
-
+      - ``6`` - the input is invalid
 
     ALIAS: nintegrate is the same as nintegral
 
@@ -631,7 +635,8 @@ def nintegral(ex, x, a, b,
         sage: f = f.nintegral(x,0,1,1e-14)
         Traceback (most recent call last):
         ...
-        ValueError: Maxima (via quadpack) cannot compute the integral to that precision
+        ValueError: Maxima (via quadpack) cannot compute the integral
+        to that precision
 
     EXAMPLES::
 
@@ -716,24 +721,24 @@ def minpoly(ex, var='x', algorithm=None, bits=None, degree=None, epsilon=0):
 
     INPUT:
 
-    -  ``var`` - polynomial variable name (default 'x')
+    - ``var`` - polynomial variable name (default 'x')
 
-    -  ``algorithm`` - 'algebraic' or 'numerical' (default
-       both, but with numerical first)
+    - ``algorithm`` - 'algebraic' or 'numerical' (default
+      both, but with numerical first)
 
-    -  ``bits`` - the number of bits to use in numerical
-       approx
+    - ``bits`` - the number of bits to use in numerical
+      approx
 
-    -  ``degree`` - the expected algebraic degree
+    - ``degree`` - the expected algebraic degree
 
-    -  ``epsilon`` - return without error as long as
-       f(self) epsilon, in the case that the result cannot be proven.
+    - ``epsilon`` - return without error as long as
+      f(self) epsilon, in the case that the result cannot be proven.
 
-       All of the above parameters are optional, with epsilon=0, bits and
-       degree tested up to 1000 and 24 by default respectively. The
-       numerical algorithm will be faster if bits and/or degree are given
-       explicitly. The algebraic algorithm ignores the last three
-       parameters.
+      All of the above parameters are optional, with epsilon=0, bits and
+      degree tested up to 1000 and 24 by default respectively. The
+      numerical algorithm will be faster if bits and/or degree are given
+      explicitly. The algebraic algorithm ignores the last three
+      parameters.
 
 
     OUTPUT: The minimal polynomial of self. If the numerical algorithm
@@ -906,7 +911,8 @@ def minpoly(ex, var='x', algorithm=None, bits=None, degree=None, epsilon=0):
                 expected_error = abs(f.derivative()(CC(aa))) * dx
 
                 if error < expected_error:
-                    # Degree might have been an over-estimate, factor because we want (irreducible) minpoly.
+                    # Degree might have been an over-estimate,
+                    # factor because we want (irreducible) minpoly.
                     ff = f.factor()
                     for g, e in ff:
                         lead = g.leading_coefficient()
@@ -949,16 +955,16 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
 
     INPUT:
 
-    -  ``dir`` - (default: None); dir may have the value
-       'plus' (or '+' or 'right') for a limit from above,
-       'minus' (or '-' or 'left') for a limit from below, or may be omitted
-       (implying a two-sided limit is to be computed).
+    - ``dir`` - (default: None); dir may have the value
+      'plus' (or '+' or 'right') for a limit from above,
+      'minus' (or '-' or 'left') for a limit from below, or may be omitted
+      (implying a two-sided limit is to be computed).
 
-    -  ``taylor`` - (default: False); if True, use Taylor
-       series, which allows more limits to be computed (but may also
-       crash in some obscure cases due to bugs in Maxima).
+    - ``taylor`` - (default: False); if True, use Taylor
+      series, which allows more limits to be computed (but may also
+      crash in some obscure cases due to bugs in Maxima).
 
-    -  ``**argv`` - 1 named parameter
+    - ``**argv`` - 1 named parameter
 
     .. note::
 
@@ -994,7 +1000,9 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         sage: limit(x^a,x=0)
         Traceback (most recent call last):
         ...
-        ValueError: Computation failed since Maxima requested additional constraints; using the 'assume' command before limit evaluation *may* help (see `assume?` for more details)
+        ValueError: Computation failed since Maxima requested additional
+        constraints; using the 'assume' command before limit evaluation
+        *may* help (see `assume?` for more details)
         Is  a  positive, negative, or zero?
 
     With this example, Maxima is looking for a LOT of information::
@@ -1003,13 +1011,17 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         sage: limit(x^a,x=0)
         Traceback (most recent call last):
         ...
-        ValueError: Computation failed since Maxima requested additional constraints; using the 'assume' command before limit evaluation *may* help (see `assume?` for more details)
+        ValueError: Computation failed since Maxima requested additional
+        constraints; using the 'assume' command before limit evaluation
+        *may* help (see `assume?` for more details)
         Is a an integer?
         sage: assume(a,'integer')
         sage: limit(x^a,x=0)
         Traceback (most recent call last):
         ...
-        ValueError: Computation failed since Maxima requested additional constraints; using the 'assume' command before limit evaluation *may* help (see `assume?` for more details)
+        ValueError: Computation failed since Maxima requested additional
+        constraints; using the 'assume' command before limit evaluation
+        *may* help (see `assume?` for more details)
         Is a an even number?
         sage: assume(a,'even')
         sage: limit(x^a,x=0)
@@ -1060,7 +1072,8 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         sage: lim(x^2, x=2, dir='nugget')
         Traceback (most recent call last):
         ...
-        ValueError: dir must be one of None, 'plus', '+', 'right', 'minus', '-', 'left'
+        ValueError: dir must be one of None, 'plus', '+', 'right',
+        'minus', '-', 'left'
 
     We check that Trac ticket 3718 is fixed, so that
     Maxima gives correct limits for the floor function::
@@ -1103,10 +1116,12 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
     Check that we give deprecation warnings for 'above' and 'below' #9200::
 
         sage: limit(1/x, x=0, dir='above')
-        doctest:...: DeprecationWarning: (Since Sage version 4.6) the keyword 'above' is deprecated. Please use 'right' or '+' instead.
+        doctest:...: DeprecationWarning: (Since Sage version 4.6) the keyword
+        'above' is deprecated. Please use 'right' or '+' instead.
         +Infinity
         sage: limit(1/x, x=0, dir='below')
-        doctest:...: DeprecationWarning: (Since Sage version 4.6) the keyword 'below' is deprecated. Please use 'left' or '-' instead.
+        doctest:...: DeprecationWarning: (Since Sage version 4.6) the keyword
+        'below' is deprecated. Please use 'left' or '-' instead.
         -Infinity
     """
     if not isinstance(ex, Expression):
@@ -1172,7 +1187,9 @@ def laplace(ex, t, s):
     The function that is returned may be be viewed as a function of
     `s`.
 
-    DEFINITION: The Laplace transform of a function `f(t)`,
+    DEFINITION:
+
+    The Laplace transform of a function `f(t)`,
     defined for all real numbers `t \geq 0`, is the function
     `F(s)` defined by
 
@@ -1180,9 +1197,9 @@ def laplace(ex, t, s):
 
                       F(s) = \int_{0}^{\infty} e^{-st} f(t) dt.
 
+    EXAMPLES:
 
-
-    EXAMPLES: We compute a few Laplace transforms::
+    We compute a few Laplace transforms::
 
         sage: var('x, s, z, t, t0')
         (x, s, z, t, t0)
@@ -1201,13 +1218,14 @@ def laplace(ex, t, s):
         sage: g.laplace(x, s)
         s*laplace(f(x), x, s) - f(0)
 
-    EXAMPLE: A BATTLE BETWEEN the X-women and the Y-men (by David
+    EXAMPLES:
+
+    A BATTLE BETWEEN the X-women and the Y-men (by David
     Joyner): Solve
 
     .. math::
 
                    x' = -16y, x(0)=270,  y' = -x + 1, y(0) = 90.
-
 
     This models a fight between two sides, the "X-women" and the
     "Y-men", where the X-women have 270 initially and the Y-men have
@@ -1258,7 +1276,6 @@ def laplace(ex, t, s):
 
         sage: laplace(1/s, s, t)
         laplace(1/s, s, t)
-
     """
     if not isinstance(ex, (Expression, Function)):
         ex = SR(ex)
@@ -1280,7 +1297,6 @@ def inverse_laplace(ex, t, s):
     .. math::
 
                       F(s) = \frac{1}{2\pi i} \int_{\gamma-i\infty}^{\gamma + i\infty} e^{st} F(s) dt,
-
 
     where `\gamma` is chosen so that the contour path of
     integration is in the region of convergence of `F(s)`.
@@ -1308,7 +1324,6 @@ def inverse_laplace(ex, t, s):
 
         sage: inverse_laplace(cos(s), s, t)
         ilt(cos(s), s, t)
-
     """
     if not isinstance(ex, Expression):
         ex = SR(ex)
@@ -1370,7 +1385,7 @@ def var_cmp(x,y):
 
     INPUT:
 
-    -  ``x, y`` - symbolic variables
+    - ``x, y`` - symbolic variables
 
     OUTPUT: Python integer; either -1, 0, or 1.
 
@@ -1437,7 +1452,6 @@ def dummy_integrate(*args):
         sage: a,b = var('a,b')
         sage: dummy_integrate(f(x), x, a, b)
         integrate(f(x), x, a, b)
-
     """
     if len(args) == 4:
         return definite_integral(*args, hold=True)
@@ -1518,7 +1532,8 @@ def _laplace_latex_(self, *args):
 
 def _inverse_laplace_latex_(self, *args):
     r"""
-    Return LaTeX expression for inverse Laplace transform of a symbolic function.
+    Return LaTeX expression for inverse Laplace transform
+    of a symbolic function.
 
     EXAMPLES::
 
@@ -1530,7 +1545,6 @@ def _inverse_laplace_latex_(self, *args):
         '\\mathcal{L}^{-1}\\left(F\\left(s\\right), s, t\\right)'
         sage: latex(inverse_laplace(F,s,t))
         \mathcal{L}^{-1}\left(F\left(s\right), s, t\right)
-
     """
     return "\\mathcal{L}^{-1}\\left(%s\\right)"%(', '.join([latex(x) for x in args]))
 
@@ -1571,14 +1585,13 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
 
     INPUT:
 
-    -  ``x`` - a string
+    - ``x`` - a string
 
-    -  ``equals_sub`` - (default: False) if True, replace
-       '=' by '==' in self
+    - ``equals_sub`` - (default: False) if True, replace
+      '=' by '==' in self
 
-    -  ``maxima`` - (default: the calculus package's
-       Maxima) the Maxima interpreter to use.
-
+    - ``maxima`` - (default: the calculus package's
+      Maxima) the Maxima interpreter to use.
 
     EXAMPLES::
 
@@ -1599,7 +1612,6 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
 
         sage: maxima('3*li[2](u)+8*li[33](exp(u))').sage()
         3*polylog(2, u) + 8*polylog(33, e^u)
-
     """
     syms = sage.symbolic.pynac.symbol_table.get('maxima', {}).copy()
 
@@ -1690,7 +1702,7 @@ def mapped_opts(v):
 
     INPUT:
 
-    -  ``v`` - an object
+    - ``v`` - an object
 
     OUTPUT: a string.
 
@@ -1823,14 +1835,14 @@ def symbolic_expression_from_string(s, syms=None, accept_sequence=False):
 
     INPUT:
 
-    -  ``s`` - a string
+    - ``s`` - a string
 
-    -  ``syms`` - (default: None) dictionary of
-       strings to be regarded as symbols or functions
+    - ``syms`` - (default: None) dictionary of
+      strings to be regarded as symbols or functions
 
-    -  ``accept_sequence`` - (default: False) controls whether
-       to allow a (possibly nested) set of lists and tuples
-       as input
+    - ``accept_sequence`` - (default: False) controls whether
+      to allow a (possibly nested) set of lists and tuples
+      as input
 
     EXAMPLES::
 

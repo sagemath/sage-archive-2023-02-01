@@ -39,6 +39,8 @@ class RootSpace(ClearCacheOnPickle, CombinatorialFreeModule, RootLatticeRealizat
         sage: r = RootSystem(['A',4]).root_lattice()
         sage: r.simple_root(1)
         alpha[1]
+        sage: latex(r.simple_root(1))
+        \alpha_{1}
 
     """
 
@@ -52,10 +54,12 @@ class RootSpace(ClearCacheOnPickle, CombinatorialFreeModule, RootLatticeRealizat
         """
         self.root_system = root_system
         basis_name = "alphacheck" if root_system.dual_side else "alpha"
+        basis_name_latex  = "\\alpha^\\vee" if root_system.dual_side else "\\alpha"
         CombinatorialFreeModule.__init__(self, base_ring,
                                          root_system.index_set(),
                                          element_class = RootSpaceElement,
-                                         prefix=basis_name)
+                                         prefix=basis_name,
+                                         latex_prefix=basis_name_latex)
 
     def _repr_(self):
         """

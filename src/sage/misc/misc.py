@@ -670,26 +670,30 @@ def coeff_repr(c, is_latex=False):
             return "(%s)"%s
     return s
 
-def repr_lincomb(symbols, coeffs, is_latex=False):
+def repr_lincomb(symbols, coeffs, is_latex=False, scalar_mult='*', latex_scalar_mult=None):
     """
     Compute a string representation of a linear combination of some
     formal symbols.
 
     INPUT:
 
+    - ``symbols`` -- list of symbols
+    - ``coeffs`` -- list of coefficients of the symbols
+    - ``scalar_mult`` -- (default:'*') string representing the multiplication
+    - ``latex_scalar_mult`` -- (default:None) None or a string representing
+      the multiplication in latex
 
-    -  ``symbols`` - list of symbols
-
-    -  ``coeffs`` - list of coefficients of the symbols
-
+        - if None and ``scalar_mult`` is '*', the empty string '' is used
+        - if None and ``scalar_mult`` is not '*', ``scalar_mult`` is used
+        - otherwise: ``latex_scalar_mult`` is used
 
     OUTPUT:
 
-
     -  ``str`` - a string
 
+    EXAMPLES:
 
-    EXAMPLES::
+    - examples without scalar_mult or latex_scalar_mult::
 
         sage: repr_lincomb(['a','b','c'], [1,2,3])
         'a + 2*b + 3*c'
@@ -704,10 +708,49 @@ def repr_lincomb(symbols, coeffs, is_latex=False):
         sage: t = PolynomialRing(RationalField(),'t').gen()
         sage: repr_lincomb(['a', 's', ''], [-t,t-2,t**2+2])
         '-t*a + (t-2)*s + (t^2+2)'
+
+    - example for scalar_mult::
+
+        sage: repr_lincomb(['a','b','c'], [1,2,3], scalar_mult='**')
+        'a + 2**b + 3**c'
+
+        sage: repr_lincomb(['a','b','c'], [1,2,3], scalar_mult='**')
+        'a + 2**b + 3**c'
+
+    - examples for latex_scalar_mult::
+
+        sage: repr_lincomb(['a','b','c'], [1,2,3], is_latex=True)
+        'a + 2b + 3c'
+
+        sage: repr_lincomb(['a','b','c'], [1,2,3], is_latex=True, scalar_mult='**')
+        'a + 2**b + 3**c'
+
+        sage: repr_lincomb(['a','b','c'], [1,2,3], is_latex=True, latex_scalar_mult='*')
+        'a + 2*b + 3*c'
+
+    - examples for scalar_mult and latex_scalar_mult::
+
+        sage: repr_lincomb(['a','b','c'], [1,2,3], latex_scalar_mult='*')
+        'a + 2*b + 3*c'
+        sage: repr_lincomb(['a','b','c'], [1,2,3], is_latex=True, latex_scalar_mult='*')
+        'a + 2*b + 3*c'
+
+        sage: repr_lincomb(['a','b','c'], [1,2,3], scalar_mult='**', latex_scalar_mult='*')
+        'a + 2**b + 3**c'
+        sage: repr_lincomb(['a','b','c'], [1,2,3], is_latex=True, scalar_mult='**', latex_scalar_mult='*')
+        'a + 2*b + 3*c'
     """
     s = ""
     first = True
     i = 0
+
+    if is_latex:
+        if latex_scalar_mult is None:
+            if scalar_mult == '*':
+                scalar_mult = ''
+        else:
+            scalar_mult = latex_scalar_mult
+    l = len(scalar_mult)
 
     all_atomic = True
     for c in coeffs:
@@ -717,32 +760,33 @@ def repr_lincomb(symbols, coeffs, is_latex=False):
             b = str(symbols[i])
         if c != 0:
             coeff = coeff_repr(c, is_latex)
-            if coeff == "1":
-                coeff = ""
-            elif coeff == "-1":
-                coeff = "-"
-            elif not is_latex and len(b) > 0:
-                b = "*" + b
-            elif len(coeff) > 0 and b == "1":
-                b = ""
-            if not first:
-                coeff = " + %s"%coeff
-            else:
-                coeff = "%s"%coeff
+            if coeff != "0":
+                if coeff == "1":
+                    coeff = ""
+                elif coeff == "-1":
+                    coeff = "-"
+                elif len(b) > 0:
+                    b = scalar_mult + b
+                elif len(coeff) > 0 and b == "1":
+                    b = ""
+                if not first:
+                    if len(coeff) > 0 and coeff[0] == "-":
+                        coeff = " - %s"%coeff[1:]
+                    else:
+                        coeff = " + %s"%coeff
+                else:
+                    coeff = "%s"%coeff
             s += "%s%s"%(coeff, b)
             first = False
         i += 1
     if first:
-        s = "0"
-    s = s.replace("+ -","- ")
-    if s[:2] == "1*":
-        s = s[2:]
-    elif s[:3] == "-1*":
-        s = "-" + s[3:]
-    s = s.replace(" 1*", " ")
-    if s == "":
+        return "0"
+    elif s == "":
         return "1"
-    return s
+    else:
+        return s
+
+
 
 def strunc(s, n = 60):
     """

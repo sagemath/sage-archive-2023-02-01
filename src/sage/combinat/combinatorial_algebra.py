@@ -19,8 +19,7 @@ symmetric functions.
     ...         self._one = Partition([])
     ...         self._name = 'Power-sum symmetric functions'
     ...         CombinatorialAlgebra.__init__(self, R, Partitions())
-    ...
-    ...     _prefix = 'p'
+    ...         self.print_options(prefix='p')
     ...
     ...     def _multiply_basis(self, a, b):
     ...         l = list(a)+list(b)
@@ -42,9 +41,9 @@ symmetric functions.
 The important things to define are ._basis_keys which
 specifies the combinatorial class that indexes the basis elements,
 ._one which specifies the identity element in the algebra, ._name
-which specifies the name of the algebra, ._prefix which is the
-string put in front of each basis element, and finally a _multiply
-or _multiply basis method that defines the multiplication in the
+which specifies the name of the algebra, .print_options is used to set
+the print options for the elements, and finally a _multiply
+or _multiply_basis method that defines the multiplication in the
 algebra.
 """
 #*****************************************************************************

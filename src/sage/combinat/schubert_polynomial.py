@@ -184,10 +184,10 @@ class SchubertPolynomialRing_xbasis(CombinatorialAlgebra):
             True
         """
         self._name = "Schubert polynomial ring with X basis"
-        self._prefix = "X"
         self._repr_option_bracket = False
         self._one = permutation.Permutation([1])
         CombinatorialAlgebra.__init__(self, R, cc = permutation.Permutations(), category = GradedAlgebrasWithBasis(R))
+        self.print_options(prefix='X')
 
     def _element_constructor_(self, x):
         """

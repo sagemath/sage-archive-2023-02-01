@@ -101,14 +101,13 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         """
         self.n = n
         self._name = "Symmetric group algebra of order %s"%self.n
-        CombinatorialFreeModule.__init__(self, R, permutation.Permutations(n), category = FiniteDimensionalAlgebrasWithBasis(R))
+        CombinatorialFreeModule.__init__(self, R, permutation.Permutations(n), prefix='', latex_prefix='', category = FiniteDimensionalAlgebrasWithBasis(R))
         # This is questionable, and won't be inherited properly
         if n > 0:
             S = SymmetricGroupAlgebra(R, n-1)
             self.register_coercion(S.canonical_embedding(self))
 
     # _repr_ customization: output the basis element indexed by [1,2,3] as [1,2,3]
-    _prefix = ""
     _repr_option_bracket = False
 
     @cached_method
@@ -735,9 +734,9 @@ class HeckeAlgebraSymmetricGroup_generic(CombinatorialAlgebra):
         self._q = q
 
         CombinatorialAlgebra.__init__(self, R)
+        # _repr_ customization: output the basis element indexed by [1,2,3] as [1,2,3]
+        self.print_options(prefix="")
 
-    # _repr_ customization: output the basis element indexed by [1,2,3] as [1,2,3]
-    _prefix = ""
     _repr_option_bracket = False
 
     def q(self):
@@ -779,9 +778,9 @@ class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
             sage: H3 == loads(dumps(H3))
             True
         """
-        self._prefix = "T"
         HeckeAlgebraSymmetricGroup_generic.__init__(self, R, n, q)
         self._name += " on the T basis"
+        self.print_options(prefix="T")
 
     def t_action_on_basis(self, perm, i):
         """

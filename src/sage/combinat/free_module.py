@@ -132,20 +132,31 @@ class CombinatorialFreeModuleElement(Element):
             sage: e = F.basis()
             sage: e['a'] + 2*e['b'] # indirect doctest
             F['a'] + 2*F['b']
+            sage: F = CombinatorialFreeModule(QQ, ['a', 'b', 'c'], prefix='')
+            sage: e = F.basis()
+            sage: e['a'] + 2*e['b'] # indirect doctest
+            ['a'] + 2*['b']
+            sage: F = CombinatorialFreeModule(QQ, ['a', 'b', 'c'], prefix='', scalar_mult=' ', bracket=False)
+            sage: e = F.basis()
+            sage: e['a'] + 2*e['b'] # indirect doctest
+            'a' + 2 'b'
         """
         v = self._monomial_coefficients.items()
         try:
-            v = sorted(v)
+            v.sort()
         except StandardError: # Sorting the output is a plus, but if we can't, no big deal
             pass
         repr_term = self.parent()._repr_term
-        mons = [ repr_term(m) for (m, _) in v ]
-        cffs = [ x for (_, x) in v ]
-        x = repr_lincomb(mons, cffs).replace("*1 "," ")
-        if x[len(x)-2:] == "*1":
-            return x[:len(x)-2]
+        v = [ (repr_term(m),x) for (m, x) in v ]
+        if v:
+            mons, cffs = zip(*v)
         else:
-            return x
+            mons = cffs = []
+        ast = self.parent()._print_options.get('scalar_mult', "*")
+        x = repr_lincomb(mons, cffs,scalar_mult=ast).replace("%s1 "%ast," ")
+        if x[len(x)-2:] == "%s1"%ast:
+            x = x[:len(x)-2]
+        return x
 
     def _latex_(self):
         """
@@ -162,19 +173,40 @@ class CombinatorialFreeModuleElement(Element):
             sage: QS3 = SymmetricGroupAlgebra(QQ,3)
             sage: a = 2 + QS3([2,1,3])
             sage: latex(a) #indirect doctest
-            2[1,2,3] + [2,1,3]
+            2[1, 2, 3] + [2, 1, 3]
+
+       ::
+
+            sage: F = CombinatorialFreeModule(QQ, ['a','b'], prefix='beta', latex_prefix='\\beta')
+            sage: x = F.an_element()
+            sage: x
+            2*beta['a'] + 2*beta['b']
+            sage: latex(x)
+            2\beta_{a} + 2\beta_{b}
         """
         v = self._monomial_coefficients.items()
-        v.sort()
-        prefix = self.parent().prefix()
-        if prefix == "":
-            mons = [ prefix + '[' + ",".join(map(str, m)) + ']' for (m, _) in v ]
+        try:
+            v.sort()
+        except StandardError: # Sorting the output is a plus, but if we can't, no big deal
+            pass
+
+        alg = self.parent()
+        latex_term = alg._latex_term
+        v = [ (latex_term(m), x) for (m, x) in v ]
+        if v:
+            mons, cffs = zip(*v)
         else:
-            mons = [ prefix + '_{' + ",".join(map(str, m)) + '}' for (m, _) in v ]
-        cffs = [ x for (_, x) in v ]
-        x = repr_lincomb(mons, cffs, is_latex=True).replace("*1 "," ")
-        if x[len(x)-2:] == "*1":
-            return x[:len(x)-2]
+            mons = cffs = []
+        ast = alg._print_options.get('latex_scalar_mult')
+        if ast is None:
+            ast = alg._print_options.get('scalar_mult')
+            if ast == '*':
+                ast = ''
+        ast_replace = ast if ast else ''
+        ln = len(ast_replace)
+        x = repr_lincomb(mons, cffs, is_latex=True, latex_scalar_mult=ast)
+        if ln>0 and x[len(x)-ln-1:] == ast_replace+"1":
+            return x[:len(x)-ln-1]
         else:
             return x
 
@@ -697,6 +729,83 @@ def _divide_if_possible(x, y):
 
 class CombinatorialFreeModule(UniqueRepresentation, Module):
     r"""
+    Class for free modules with a named basis
+
+    INPUT:
+
+    - ``R`` - base ring
+
+    - ``basis_keys`` - list, tuple, family, set, etc. defining the
+      indexing set for the basis of this module
+
+    - ``element_class`` - the class of which elements of this module
+      should be instances (optional, default None, in which case the
+      elements are instances of
+      :class:`CombinatorialFreeModuleElement`)
+
+    - ``category`` - the category in which this module lies (optional,
+      default None, in which case use the "category of modules with
+      basis" over the base ring ``R``)
+
+    Options controlling the printing of elements:
+
+    - ``prefix`` - string, prefix used for printing elements of this
+      module (optional, default 'B').  With the default, a monomial
+      indexed by 'a' would be printed as ``B['a']``.
+
+    - ``latex_prefix`` - string or None, prefix used in the LaTeX
+      representation of elements (optional, default None). If this is
+      anything except the empty string, it prints the index as a
+      subscript.  If this is None, it uses the setting for ``prefix``,
+      so if ``prefix`` is set to "B", then a monomial indexed by 'a'
+      would be printed as ``B_{a}``.  If this is the empty string, then
+      don't print monomials as subscripts: the monomial indexed by 'a'
+      would be printed as ``a``, or as ``[a]`` if ``latex_bracket`` is
+      True.
+
+    - ``bracket`` - None, bool, string, or list or tuple of
+      strings (optional, default None): if None, use the value of the
+      attribute ``self._repr_option_bracket``, which has default value
+      True.  (``self._repr_option_bracket`` is available for backwards
+      compatibility.  Users should set ``bracket`` instead.  If
+      ``bracket`` is set to anything except None, it overrides
+      the value of ``self._repr_option_bracket``.)  If False, do not
+      include brackets when printing elements: a monomial indexed by
+      'a' would be printed as ``B'a'``, and a monomial indexed by
+      (1,2,3) would be printed as ``B(1,2,3)``.  If True, use "[" and
+      "]" as brackets.  If it is one of "[", "(", or "{", use it and
+      its partner as brackets.  If it is any other string, use it as
+      both brackets.  If it is a list or tuple of strings, use the
+      first entry as the left bracket and the second entry as the
+      right bracket.
+
+    - ``latex_bracket`` - bool, string, or list or tuple of strings
+      (optional, default False): if False, do not include brackets in
+      the LaTeX representation of elements.  This option is only
+      relevant if ``latex_prefix`` is the empty string; otherwise,
+      brackets are not used regardless.  If True, use "\\left[" and
+      "\\right]" as brackets.  If this is one of "[", "(", "\\{", "|",
+      or "||", use it and its partner, prepended with "\\left" and
+      "\\right", as brackets.  If this is any other string, use it as
+      both brackets.  If this is a list or tuple of strings, use the
+      first entry as the left bracket and the second entry as the
+      right bracket.
+
+    - ``scalar_mult`` - string to use for scalar multiplication in
+      the print representation (optional, default "*")
+
+    - ``latex_scalar_mult`` - string or None (optional, default None),
+      string to use for scalar multiplication in the latex
+      representation.  If None, use the empty string if ``scalar_mult``
+      is set to "*", otherwise use the value of ``scalar_mult``.
+
+    - ``tensor_symbol`` - string or None (optional, default None),
+      string to use for tensor product in the print representation. If
+      None, use the ``sage.categories.tensor.symbol``.
+
+    These print options may also be accessed and modified using the
+    :meth:`print_options` method, after the module has been defined.
+
     EXAMPLES:
 
     We construct a free module whose basis is indexed by the letters a, b, c::
@@ -739,7 +848,14 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
         sage: F.sum(F.monomial(i) for i in [1,2,3])
         B[1] + B[2] + B[3]
 
-    Note that the constructed free module depends on the order of the basis::
+    Note that free modules with a given basis and parameters are unique::
+
+        sage: F1 = CombinatorialFreeModule(QQ, (1,2,3,4))
+        sage: F1 is F
+        True
+
+    The constructed free module depends on the order of the basis and
+    on the other parameters, like the prefix::
 
         sage: F1 = CombinatorialFreeModule(QQ, (1,2,3,4))
         sage: F1 is F
@@ -747,6 +863,69 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
         sage: F1 = CombinatorialFreeModule(QQ, [4,3,2,1])
         sage: F1 == F
         False
+        sage: F2 = CombinatorialFreeModule(QQ, [1,2,3,4], prefix='F')
+        sage: F2 == F
+        False
+
+    Because of this, if you create a free module with certain
+    parameters and then modify its prefix or other print options, this
+    affects all modules which were defined using the same parameters::
+
+        sage: F2.print_options(prefix='x')
+        sage: F2.prefix()
+        'x'
+        sage: F3 = CombinatorialFreeModule(QQ, [1,2,3,4], prefix='F')
+        sage: F3 is F2   # F3 was defined just like F2
+        True
+        sage: F3.prefix()
+        'x'
+        sage: F4 = CombinatorialFreeModule(QQ, [1,2,3,4], prefix='F', bracket=True)
+        sage: F4 == F2   # F4 was NOT defined just like F2
+        False
+        sage: F4.prefix()
+        'F'
+
+    The default category is the category of modules with basis over
+    the base ring::
+
+        sage: CombinatorialFreeModule(GF(3), ((1,2), (3,4))).category()
+        Category of modules with basis over Finite Field of size 3
+
+    See :mod:`sage.categories.examples.algebras_with_basis` and
+    :mod:`sage.categories.examples.hopf_algebras_with_basis` for
+    illustrations of the use of the ``category`` keyword, and see
+    :class:`sage.combinat.root_system.weight_space.WeightSpace` for an
+    example of the use of ``element_class``.
+
+    Customizing print and LaTeX representations of elements::
+
+        sage: F = CombinatorialFreeModule(QQ, ['a','b'], prefix='x')
+        sage: e = F.basis()
+        sage: e['a'] - 3 * e['b']
+        x['a'] - 3*x['b']
+
+        sage: F.print_options(prefix='x', scalar_mult=' ', bracket='{')
+        sage: e['a'] - 3 * e['b']
+        x{'a'} - 3 x{'b'}
+        sage: latex(e['a'] - 3 * e['b'])
+        x_{a} + \left(-3\right) x_{b}
+
+        sage: F.print_options(latex_prefix='y')
+        sage: latex(e['a'] - 3 * e['b'])
+        y_{a} + \left(-3\right) y_{b}
+
+        sage: F = CombinatorialFreeModule(QQ, [(1,2), (3,4)])
+        sage: e = F.basis()
+        sage: e[(1,2)] - 3 * e[(3,4)]
+        B[(1, 2)] - 3*B[(3, 4)]
+
+        sage: F.print_options(bracket=['_{', '}'])
+        sage: e[(1,2)] - 3 * e[(3,4)]
+        B_{(1, 2)} - 3*B_{(3, 4)}
+
+        sage: F.print_options(prefix='', bracket=False)
+        sage: e[(1,2)] - 3 * e[(3,4)]
+        (1, 2) - 3*(3, 4)
     """
 
     @staticmethod
@@ -758,6 +937,10 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
             sage: G = CombinatorialFreeModule(QQ, ('a','b','c'))
             sage: F is G
             True
+
+            sage: F = CombinatorialFreeModule(QQ, ['a','b','c'], latex_bracket=['LEFT', 'RIGHT'])
+            sage: F.print_options()['latex_bracket']
+            ('LEFT', 'RIGHT')
         """
         # Convert the argument args[1] into a FiniteEumeratedSet
         # if it is a list or a tuple in order it to have a cardinality() method.
@@ -765,11 +948,19 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
         # to __init__ to let it handle proper exception raising.
         if len(args) >= 2 and isinstance(args[1], (list, tuple)):
             args = (args[0], FiniteEnumeratedSet(args[1])) + args[2:]
+        # bracket or latex_bracket might be lists, so convert
+        # them to tuples so that they're hashable.
+        bracket = keywords.get('bracket', None)
+        if isinstance(bracket, list):
+            keywords['bracket'] = tuple(bracket)
+        latex_bracket = keywords.get('latex_bracket', None)
+        if isinstance(latex_bracket, list):
+            keywords['latex_bracket'] = tuple(latex_bracket)
         return super(CombinatorialFreeModule, cls).__classcall__(cls, *args, **keywords)
 
     Element = CombinatorialFreeModuleElement
 
-    def __init__(self, R, basis_keys, element_class = None, prefix="B", category = None):
+    def __init__(self, R, basis_keys, element_class = None, prefix="B", category = None, **kwds):
         r"""
         TESTS::
 
@@ -840,8 +1031,25 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
 
         self._order = None
 
-        if not hasattr(self, "_prefix"):
-            self._prefix = prefix
+        # printing options for elements (set when initializing self).
+        # This includes self._repr_option_bracket (kept for backwards
+        # compatibility, declared to be True by default, needs to be
+        # overridden explicitly).
+        self._print_options = {}
+        self._print_options['prefix'] = prefix
+        # 'bracket': its default value here is None, meaning that
+        # the value of self._repr_option_bracket is used; the default
+        # value of that attribute is True -- see immediately before
+        # the method _repr_term.  If 'bracket' is any value
+        # except None, then it overrides the value of
+        # self._repr_option_bracket.  Future users might consider
+        # using 'bracket' instead of _repr_option_bracket.
+        self._print_options['bracket'] = kwds.get('bracket', None)
+        self._print_options['latex_bracket'] = kwds.get('latex_bracket', False)
+        self._print_options['latex_prefix'] = kwds.get('latex_prefix', None)
+        self._print_options['scalar_mult'] = kwds.get('scalar_mult', "*")
+        self._print_options['latex_scalar_mult'] = kwds.get('latex_scalar_mult', None)
+        self._print_options['tensor_symbol'] = kwds.get('tensor_symbol', None)
 
     # mostly for backward compatibility
     @lazy_attribute
@@ -1182,7 +1390,6 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
         cc = self.get_order()
         return self._from_dict(dict( (cc[index], coeff) for (index,coeff) in vector.iteritems()))
 
-
     def prefix(self):
         """
         Returns the prefix used when displaying elements of self.
@@ -1199,18 +1406,78 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
             sage: X.prefix()
             'X'
         """
-        return self._prefix
+        return self._print_options['prefix']
+
+    def print_options(self, **kwds):
+        """
+        Return the current print options, or set an option.
+
+        INPUT: all of the input is optional; if present, it should be
+        in the form of keyword pairs, such as
+        ``latex_bracket='('``.  The allowable keywords are:
+
+        - ``prefix``
+        - ``latex_prefix``
+        - ``bracket``
+        - ``latex_bracket``
+        - ``scalar_mult``
+        - ``latex_scalar_mult``
+        - ``tensor_symbol``
+
+        See the documentation for :class:`CombinatorialFreeModule` for
+        descriptions of the effects of setting each of these options.
+
+        OUTPUT: if the user provides any input, set the appropriate
+        option(s) and return nothing.  Otherwise, return the
+        dictionary of settings for print and LaTeX representations.
+
+        EXAMPLES::
+
+            sage: F = CombinatorialFreeModule(ZZ, [1,2,3], prefix='x')
+            sage: F.print_options()
+            {'latex_prefix': None, 'scalar_mult': '*', 'prefix': 'x', 'bracket': None, 'latex_bracket': False, 'latex_scalar_mult': None, 'tensor_symbol': None}
+            sage: F.print_options(bracket='(')
+            sage: F.print_options()
+            {'latex_prefix': None, 'scalar_mult': '*', 'prefix': 'x', 'bracket': '(', 'latex_bracket': False, 'latex_scalar_mult': None, 'tensor_symbol': None}
+        """
+        # don't just use kwds.get(...) because I want to distinguish
+        # between an argument like "option=None" and the option not
+        # being there altogether.
+        args = False
+
+        for option in kwds:
+            if option in ['prefix', 'latex_prefix', 'bracket', 'latex_bracket',
+                          'scalar_mult', 'latex_scalar_mult', 'tensor_symbol']:
+                args = True
+                self._print_options[option] = kwds[option]
+            else:
+                raise ValueError, '%s is not a valid print option.' % option
+        if not args:
+            return self._print_options
+        return
 
     _repr_option_bracket = True
 
     def _repr_term(self, m):
         """
-        Returns a string representing the basis elements indexed by m.
+        Returns a string representing the basis element indexed by m.
 
-        The output can be customized by mean of:
-         - self.prefix()
-         - self._repr_option_bracket # TODO: find a good name
-           (suggestions: _repr_with_bracket or _repr_add_bracket)
+        The output can be customized by setting any of the following
+        options when initializing the module:
+
+        - prefix
+        - bracket
+        - scalar_mult
+
+        Alternatively, one can use the :meth:`print_options` method
+        to achieve the same effect.  To modify the bracket setting,
+        one can also set ``self._repr_option_bracket`` as long as one
+        has *not* set the ``bracket`` option: if the
+        ``bracket`` option is anything but ``None``, it overrides
+        the value of ``self._repr_option_bracket``.
+
+        See the documentation for :class:`CombinatorialFreeModule` for
+        details on the initialization options.
 
         EXAMPLES::
 
@@ -1219,23 +1486,27 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
             sage: e['a'] + 2*e['b']    # indirect doctest
             B['a'] + 2*B['b']
 
-            sage: F = CombinatorialFreeModule(QQ, ['a', 'b', 'c'], prefix="C")
+            sage: F = CombinatorialFreeModule(QQ, ['a', 'b', 'c'], prefix="F")
             sage: e = F.basis()
             sage: e['a'] + 2*e['b']    # indirect doctest
-            C['a'] + 2*C['b']
+            F['a'] + 2*F['b']
 
             sage: QS3 = CombinatorialFreeModule(QQ, Permutations(3), prefix="")
             sage: a = 2*QS3([1,2,3])+4*QS3([3,2,1])
             sage: a                      # indirect doctest
             2*[[1, 2, 3]] + 4*[[3, 2, 1]]
 
-            sage: QS3._repr_option_bracket = False
+            sage: QS3.print_options(bracket = False)
             sage: a              # indirect doctest
             2*[1, 2, 3] + 4*[3, 2, 1]
 
-            sage: QS3._repr_option_bracket = True
+            sage: QS3.print_options(prefix='')
             sage: a              # indirect doctest
-            2*[[1, 2, 3]] + 4*[[3, 2, 1]]
+            2*[1, 2, 3] + 4*[3, 2, 1]
+
+            sage: QS3.print_options(bracket="|", scalar_mult=" *@* ")
+            sage: a              # indirect doctest
+            2 *@* |[1, 2, 3]| + 4 *@* |[3, 2, 1]|
 
         TESTS::
 
@@ -1244,11 +1515,118 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
             sage: e[('a','b')] + 2*e[('c','d')]    # indirect doctest
             B[('a', 'b')] + 2*B[('c', 'd')]
         """
-        if self._repr_option_bracket:
-            return self.prefix()+"["+repr(m)+"]" # mind the (m), to accept a tuple for m
+        bracket = self._print_options.get('bracket', None)
+        bracket_d = {"{": "}", "[": "]", "(": ")"}
+        if bracket is None:
+            bracket = self._repr_option_bracket
+        if bracket is True:
+            left = "["
+            right = "]"
+        elif bracket is False:
+            left = ""
+            right = ""
+        elif isinstance(bracket, (tuple, list)):
+            left = bracket[0]
+            right = bracket[1]
+        elif bracket in bracket_d:
+            left = bracket
+            right = bracket_d[bracket]
         else:
-            return self.prefix()+repr(m)
+            left = bracket
+            right = bracket
+        return self.prefix() + left + repr(m) + right # mind the (m), to accept a tuple for m
 
+    def _latex_term(self, m):
+        """
+        Returns a string for the LaTeX code for the basis element
+        indexed by m.
+
+        The output can be customized by setting any of the following
+        options when initializing the module:
+
+        - prefix
+        - latex_prefix
+        - latex_bracket
+
+        (Alternatively, one can use the :meth:`print_options` method
+        to achieve the same effect.)
+
+        See the documentation for :class:`CombinatorialFreeModule` for
+        details on the initialization options.
+
+        EXAMPLES::
+
+            sage: F = CombinatorialFreeModule(QQ, ['a', 'b', 'c'])
+            sage: e = F.basis()
+            sage: latex(e['a'] + 2*e['b'])    # indirect doctest
+            B_{a} + 2B_{b}
+
+            sage: F = CombinatorialFreeModule(QQ, ['a', 'b', 'c'], prefix="C")
+            sage: e = F.basis()
+            sage: latex(e['a'] + 2*e['b'])    # indirect doctest
+            C_{a} + 2C_{b}
+
+            sage: QS3 = CombinatorialFreeModule(QQ, Permutations(3), prefix="", scalar_mult="*")
+            sage: a = 2*QS3([1,2,3])+4*QS3([3,2,1])
+            sage: latex(a)                     # indirect doctest
+            2[1, 2, 3] + 4[3, 2, 1]
+            sage: QS3.print_options(latex_bracket=True)
+            sage: latex(a)                     # indirect doctest
+            2\left[[1, 2, 3]\right] + 4\left[[3, 2, 1]\right]
+            sage: QS3.print_options(latex_bracket="(")
+            sage: latex(a)                     # indirect doctest
+            2\left([1, 2, 3]\right) + 4\left([3, 2, 1]\right)
+            sage: QS3.print_options(latex_bracket=('\\myleftbracket', '\\myrightbracket'))
+            sage: latex(a)                     # indirect doctest
+            2\myleftbracket[1, 2, 3]\myrightbracket + 4\myleftbracket[3, 2, 1]\myrightbracket
+
+        TESTS::
+
+            sage: F = CombinatorialFreeModule(QQ, [('a', 'b'), (0,1,2)])
+            sage: e = F.basis()
+            sage: latex(e[('a','b')])    # indirect doctest
+            B_{\left(a, b\right)}
+            sage: latex(2*e[(0,1,2)])    # indirect doctest
+            2B_{\left(0, 1, 2\right)}
+            sage: F = CombinatorialFreeModule(QQ, [('a', 'b'), (0,1,2)], prefix="")
+            sage: e = F.basis()
+            sage: latex(2*e[(0,1,2)])    # indirect doctest
+            2\left(0, 1, 2\right)
+        """
+        from sage.misc.latex import latex
+        import re
+        s = latex(m)
+        s = re.sub("\\\\texttt{([^}]*)}", "\\1", s)
+        # dictionary with left-right pairs of "brackets".  put pairs
+        # in here accept \\left and \\right as prefixes.
+        bracket_d = {"{": "\\}", "[": "]", "(": ")", "\\{": "\\}",
+                     "|": "|", "||": "||"}
+        bracket = self._print_options.get('latex_bracket', False)
+        if bracket is True:
+            left = "\\left["
+            right = "\\right]"
+        elif bracket is False:
+            left = ""
+            right = ""
+        elif isinstance(bracket, (tuple, list)):
+            left = bracket[0]
+            right = bracket[1]
+        elif bracket in bracket_d:
+            left = bracket
+            right = bracket_d[bracket]
+            if left == "{":
+                left = "\\{"
+            left = "\\left" + left
+            right = "\\right" + right
+        else:
+            left = bracket
+            right = bracket
+        prefix = self._print_options.get('latex_prefix')
+        if prefix is None:
+            prefix = self._print_options.get('prefix')
+        if prefix == "":
+            return left + s + right
+        return "%s_{%s}" % (prefix, s)
 
     def __cmp__(self, other):
         """
@@ -1682,37 +2060,92 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                 sage: F = CombinatorialFreeModule(ZZ, [1,2]); F
                 F
             """
+            from sage.categories.tensor import tensor
             self._sets = modules
             CombinatorialFreeModule.__init__(self, modules[0].base_ring(), CartesianProduct(*[module.basis().keys() for module in modules]).map(tuple), **options)
+            # the following is not the best option, but it's better than nothing.
+            self._print_options['tensor_symbol'] = options.get('tensor_symbol', tensor.symbol)
 
         def _repr_(self):
+            """
+            This is customizable by setting
+            ``self.print_options('tensor_symbol'=...)``.
+
+            TESTS::
+
+                sage: F = CombinatorialFreeModule(ZZ, [1,2,3])
+                sage: G = CombinatorialFreeModule(ZZ, [1,2,3,8])
+                sage: F.rename("F")
+                sage: G.rename("G")
+                sage: T = tensor([F, G])
+                sage: T # indirect doctest
+                F # G
+                sage: T.print_options(tensor_symbol= ' @ ')  # note the spaces
+                sage: T # indirect doctest
+                F @ G
+            """
+            from sage.categories.tensor import tensor
+            if hasattr(self, "_print_options"):
+                symb = self._print_options['tensor_symbol']
+                if symb is None:
+                    symb = tensor.symbol
+            else:
+                symb = tensor.symbol
+            return symb.join(["%s"%module for module in self._sets])
+            # TODO: make this overridable by setting _name
+
+        def _latex_(self):
             """
             TESTS::
 
                 sage: F = CombinatorialFreeModule(ZZ, [1,2,3])
                 sage: G = CombinatorialFreeModule(ZZ, [1,2,3,8])
-                sage: tensor([F, G]) # indirect doctest
-                Free module generated by {1, 2, 3} over Integer Ring # Free module generated by {1, 2, 3, 8} over Integer Ring
+                sage: F.rename("F")
+                sage: G.rename("G")
+                sage: latex(tensor([F, F, G])) # indirect doctest
+                \texttt{F} \otimes \texttt{F} \otimes \texttt{G}
+                sage: F._latex_ = lambda : "F"
+                sage: G._latex_ = lambda : "G"
+                sage: latex(tensor([F, F, G])) # indirect doctest
+                F \otimes F \otimes G
             """
-            from sage.categories.tensor import tensor
-            return tensor.symbol.join(["%s"%module for module in self._sets])
-            # TODO: make this overridable by setting _name
+            from sage.misc.latex import latex
+            symb = " \\otimes "
+            return symb.join(["%s"%latex(module) for module in self._sets])
 
         def _repr_term(self, term):
             """
             TESTS::
 
-                sage: F = CombinatorialFreeModule(ZZ, [1,2,3])
-                sage: G = CombinatorialFreeModule(ZZ, [1,2,3,4])
+                sage: F = CombinatorialFreeModule(ZZ, [1,2,3], prefix="F")
+                sage: G = CombinatorialFreeModule(ZZ, [1,2,3,4], prefix="G")
                 sage: f =   F.monomial(1) + 2 * F.monomial(2)
                 sage: g = 2*G.monomial(3) +     G.monomial(4)
                 sage: tensor([f, g]) # indirect doctest
-                2*B[1] # B[3] + B[1] # B[4] + 4*B[2] # B[3] + 2*B[2] # B[4]
+                2*F[1] # G[3] + F[1] # G[4] + 4*F[2] # G[3] + 2*F[2] # G[4]
             """
             from sage.categories.tensor import tensor
-            return tensor.symbol.join(module._repr_term(t) for (module, t) in zip(self._sets, term))
+            if hasattr(self, "_print_options"):
+                symb = self._print_options['tensor_symbol']
+                if symb is None:
+                    symb = tensor.symbol
+            else:
+                symb = tensor.symbol
+            return symb.join(module._repr_term(t) for (module, t) in zip(self._sets, term))
 
-        # TODO: latex
+        def _latex_term(self, term):
+            """
+            TESTS::
+
+                sage: F = CombinatorialFreeModule(ZZ, [1,2,3], prefix='x')
+                sage: G = CombinatorialFreeModule(ZZ, [1,2,3,4], prefix='y')
+                sage: f =   F.monomial(1) + 2 * F.monomial(2)
+                sage: g = 2*G.monomial(3) +     G.monomial(4)
+                sage: latex(tensor([f, g])) # indirect doctest
+                2x_{1} \otimes y_{3} + x_{1} \otimes y_{4} + 4x_{2} \otimes y_{3} + 2x_{2} \otimes y_{4}
+            """
+            symb = " \\otimes "
+            return symb.join(module._latex_term(t) for (module, t) in zip(self._sets, term))
 
         @cached_method
         def tensor_constructor(self, modules):

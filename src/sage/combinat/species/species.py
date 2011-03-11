@@ -663,14 +663,18 @@ class GenericCombinatorialSpecies(SageObject):
 
         ::
 
-            sage: g, labels = g.canonical_label(certify=True)
-            sage: list(sorted(labels.items()))
-            [(Combinatorial species, 0),
-             (Product of (Combinatorial species) and (Combinatorial species), 2),
-             (Singleton species, 1),
-             (Sum of (Singleton species) and (Product of (Combinatorial species) and (Combinatorial species)), 3)]
-            sage: g.edges()
-            [(0, 3, None), (2, 0, None), (2, 0, None), (3, 1, None), (3, 2, None)]
+            sage: g_c, labels = g.canonical_label(certify=True)
+            sage: g.relabel()
+            sage: g_r = g.canonical_label()
+            sage: g_c == g_r
+            True
+            sage: list(sorted(labels.keys()))
+            [Combinatorial species,
+             Product of (Combinatorial species) and (Combinatorial species),
+             Singleton species,
+             Sum of (Singleton species) and (Product of (Combinatorial species) and (Combinatorial species))]
+            sage: list(sorted(labels.values()))
+            [0, 1, 2, 3]
         """
         from sage.graphs.all import DiGraph
         d = DiGraph(multiedges=True)

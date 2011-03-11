@@ -14798,8 +14798,8 @@ class GenericGraph(GenericGraph_pyx):
         dig = (self._directed or self.has_loops())
         if partition is None:
             partition = [self.vertices()]
-        if edge_labels:
-            G, partition = graph_isom_equivalent_non_edge_labeled_graph(self, partition)
+        if edge_labels or self.has_multiple_edges():
+            G, partition, relabeling = graph_isom_equivalent_non_edge_labeled_graph(self, partition, return_relabeling=True, ignore_edge_labels=(not edge_labels))
             G_vertices = sum(partition, [])
             G_to = {}
             for i in xrange(len(G_vertices)):
@@ -14827,60 +14827,12 @@ class GenericGraph(GenericGraph_pyx):
             translation_d = {}
             m = G.order()
             for v in self:
-                if b[('o',v)] == m:
+                if b[relabeling[v]] == m:
                     translation_d[v] = self.order()
                     acting_vertices[v] = 0
                 else:
-                    translation_d[v] = b[('o',v)]
-                    acting_vertices[v] = b[('o',v)]
-            real_aut_gp = []
-            n = self.order()
-            for gen in a:
-                gen_restr = [0]*n
-                for v in self.vertex_iterator():
-                    gen_restr[acting_vertices[v]] = gen[acting_vertices[v]]
-                if gen_restr not in real_aut_gp:
-                    real_aut_gp.append(gen_restr)
-            id = range(n)
-            if id in real_aut_gp:
-                real_aut_gp.remove(id)
-            a = real_aut_gp
-            b = translation_d
-        elif self.has_multiple_edges():
-            G, partition = graph_isom_equivalent_non_multi_graph(self, partition)
-            G_vertices = sum(partition, [])
-            G_to = {}
-            for i in xrange(len(G_vertices)):
-                G_to[G_vertices[i]] = i
-            from sage.graphs.all import Graph, DiGraph
-            DoDG = DiGraph if self._directed else Graph
-            H = DoDG(len(G_vertices), implementation='c_graph', loops=G.allows_loops())
-            HB = H._backend
-            for u,v in G.edge_iterator(labels=False):
-                u = G_to[u]; v = G_to[v]
-                HB.add_edge(u,v,None,G._directed)
-            GC = HB._cg
-            partition = [[G_to[v] for v in cell] for cell in partition]
-            A = search_tree(GC, partition, lab=False, dict_rep=True, dig=dig, verbosity=verbosity, order=order)
-            if order:
-                a,b,c = A
-            else:
-                a,b = A
-            b_new = {}
-            for v in G_to:
-                b_new[v] = b[G_to[v]]
-            b = b_new
-            # b is a translation of the labellings
-            acting_vertices = {}
-            translation_d = {}
-            m = G.order()
-            for v in self:
-                if b[('o',v)] == m:
-                    translation_d[v] = self.order()
-                    acting_vertices[v] = 0
-                else:
-                    translation_d[v] = b[('o',v)]
-                    acting_vertices[v] = b[('o',v)]
+                    translation_d[v] = b[relabeling[v]]
+                    acting_vertices[v] = b[relabeling[v]]
             real_aut_gp = []
             n = self.order()
             for gen in a:
@@ -15133,7 +15085,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.is_isomorphic(H, edge_labels=True)
             True
             sage: G.is_isomorphic(H, edge_labels=True, certify=True)
-            {0: 1, 1: 2, 2: 3, 3: 4, 4: 0}
+            (True, {0: 1, 1: 2, 2: 3, 3: 4, 4: 0})
 
         TESTS::
 
@@ -15203,6 +15155,17 @@ class GenericGraph(GenericGraph_pyx):
             sage: G2 = Graph([(0,2), (2,2)])
             sage: G1.is_isomorphic(G2)
             True
+            sage: G = Graph(multiedges = True, loops = True)
+            sage: H = Graph(multiedges = True, loops = True)
+            sage: G.add_edges([(0,1,0),(1,0,1),(1,1,2),(0,0,3)])
+            sage: H.add_edges([(0,1,3),(1,0,2),(1,1,1),(0,0,0)])
+            sage: G.is_isomorphic(H, certify=True)
+            (True, {0: 0, 1: 1})
+            sage: D = digraphs.RandomDirectedGNP(6, .2)
+            sage: D.is_isomorphic(D, certify = True)
+            (True, {0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5})
+            sage: D.is_isomorphic(D,edge_labels=True, certify = True)
+            (True, {0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5})
 
         """
         possible = True
@@ -15218,27 +15181,18 @@ class GenericGraph(GenericGraph_pyx):
             return False
         self_vertices = self.vertices()
         other_vertices = other.vertices()
-        if edge_labels:
-            if sorted(self.edge_labels()) != sorted(other.edge_labels()):
+        if edge_labels or self.has_multiple_edges():
+            if edge_labels and sorted(self.edge_labels()) != sorted(other.edge_labels()):
                 return False, None if certify else False
             else:
-                G, partition = graph_isom_equivalent_non_edge_labeled_graph(self, [self_vertices])
+                G, partition, relabeling = graph_isom_equivalent_non_edge_labeled_graph(self, return_relabeling=True, ignore_edge_labels=(not edge_labels))
                 self_vertices = sum(partition,[])
-                G2, partition2 = graph_isom_equivalent_non_edge_labeled_graph(other, [other_vertices])
+                G2, partition2, relabeling2 = graph_isom_equivalent_non_edge_labeled_graph(other, return_relabeling=True, ignore_edge_labels=(not edge_labels))
                 partition2 = sum(partition2,[])
                 other_vertices = partition2
-        elif self.has_multiple_edges():
-            G, partition = graph_isom_equivalent_non_multi_graph(self, [self_vertices])
-            self_vertices = sum(partition,[])
-            G2, partition2 = graph_isom_equivalent_non_multi_graph(other, [other_vertices])
-            partition2 = sum(partition2,[])
-            other_vertices = partition2
         else:
             G = self; partition = [self_vertices]
             G2 = other; partition2 = other_vertices
-
-
-
         G_to = {}
         for i in xrange(len(self_vertices)):
             G_to[self_vertices[i]] = i
@@ -15264,6 +15218,7 @@ class GenericGraph(GenericGraph_pyx):
         partition2 = [G2_to[v] for v in partition2]
         GC2 = G2
         isom = isomorphic(GC, GC2, partition, partition2, (self._directed or self.has_loops()), 1)
+
         if not isom and certify:
             return False, None
         elif not isom:
@@ -15272,14 +15227,15 @@ class GenericGraph(GenericGraph_pyx):
             return True
         else:
             isom_trans = {}
-            for v in isom:
-                isom_trans[self_vertices[v]] = other_vertices[isom[v]]
             if edge_labels:
-                isom_trans_new = {}
-                for t,v in isom_trans:
-                    if t == 'x':
-                        isom_trans_new[v] = isom_trans[(t,v)][1]
-                return isom_trans_new
+                relabeling2_inv = {}
+                for x in relabeling2:
+                    relabeling2_inv[relabeling2[x]] = x
+                for v in self.vertices():
+                    isom_trans[v] = relabeling2_inv[other_vertices[isom[G_to[relabeling[v]]]]]
+            else:
+                for v in self.vertices():
+                    isom_trans[v] = other_vertices[isom[G_to[v]]]
             return True, isom_trans
 
     def canonical_label(self, partition=None, certify=False, verbosity=0, edge_labels=False):
@@ -15369,8 +15325,8 @@ class GenericGraph(GenericGraph_pyx):
         dig = (self.has_loops() or self._directed)
         if partition is None:
             partition = [self.vertices()]
-        if edge_labels:
-            G, partition = graph_isom_equivalent_non_edge_labeled_graph(self, partition)
+        if edge_labels or self.has_multiple_edges():
+            G, partition, relabeling = graph_isom_equivalent_non_edge_labeled_graph(self, partition, return_relabeling=True)
             G_vertices = sum(partition, [])
             G_to = {}
             for i in xrange(len(G_vertices)):
@@ -15389,33 +15345,7 @@ class GenericGraph(GenericGraph_pyx):
             H = copy(self)
             c_new = {}
             for v in self.vertices():
-                c_new[v] = c[G_to[('o',v)]]
-            H.relabel(c_new)
-            if certify:
-                return H, c_new
-            else:
-                return H
-        if self.has_multiple_edges():
-            G, partition = graph_isom_equivalent_non_multi_graph(self, partition)
-            G_vertices = sum(partition, [])
-            G_to = {}
-            for i in xrange(len(G_vertices)):
-                G_to[G_vertices[i]] = i
-            from sage.graphs.all import Graph, DiGraph
-            DoDG = DiGraph if self._directed else Graph
-            H = DoDG(len(G_vertices), implementation='c_graph', loops=G.allows_loops())
-            HB = H._backend
-            for u,v in G.edge_iterator(labels=False):
-                u = G_to[u]; v = G_to[v]
-                HB.add_edge(u,v,None,G._directed)
-            GC = HB._cg
-            partition = [[G_to[v] for v in cell] for cell in partition]
-            a,b,c = search_tree(GC, partition, certify=True, dig=dig, verbosity=verbosity)
-            # c is a permutation to the canonical label of G, which depends only on isomorphism class of self.
-            H = copy(self)
-            c_new = {}
-            for v in self.vertices():
-                c_new[v] = c[G_to[('o',v)]]
+                c_new[v] = c[G_to[relabeling[v]]]
             H.relabel(c_new)
             if certify:
                 return H, c_new
@@ -15444,11 +15374,6 @@ class GenericGraph(GenericGraph_pyx):
             return H, c_new
         else:
             return H
-
-
-
-
-
 
 def tachyon_vertex_plot(g, bgcolor=(1,1,1),
                         vertex_colors=None,
@@ -15523,71 +15448,12 @@ def tachyon_vertex_plot(g, bgcolor=(1,1,1),
 
     return TT, pos3d
 
-
-def graph_isom_equivalent_non_multi_graph(g, partition):
-    r"""
-    Helper function for canonical labeling of multi-(di)graphs.
-
-    The idea for this function is that the main algorithm for computing
-    isomorphism of graphs does not allow multiple edges. Instead of
-    making some very difficult changes to that, we can simply modify
-    the multigraph into a non-multi graph that carries essentially the
-    same information. For each pair of vertices `\{u,v\}`, if
-    there is at most one edge between `u` and `v`, we
-    do nothing, but if there are more than one, we split each edge into
-    two, introducing a new vertex. These vertices really represent
-    edges, so we keep them in their own part of a partition - to
-    distinguish them from genuine vertices. Then the canonical label
-    and automorphism group is computed, and in the end, we strip off
-    the parts of the generators that describe how these new vertices
-    move, and we have the automorphism group of the original
-    multi-graph. Similarly, by putting the additional vertices in their
-    own cell of the partition, we guarantee that the relabeling leading
-    to a canonical label moves genuine vertices amongst themselves, and
-    hence the canonical label is still well-defined, when we forget
-    about the additional vertices.
-
-    EXAMPLES::
-
-        sage: from sage.graphs.generic_graph import graph_isom_equivalent_non_multi_graph
-        sage: G = Graph(multiedges=True,sparse=True)
-        sage: G.add_edge((0,1,1))
-        sage: G.add_edge((0,1,2))
-        sage: G.add_edge((0,1,3))
-        sage: graph_isom_equivalent_non_multi_graph(G, [[0,1]])
-        (Graph on 5 vertices, [[('o', 0), ('o', 1)], [('x', 0), ('x', 1), ('x', 2)]])
-    """
-    from sage.graphs.all import Graph, DiGraph
-    if g._directed:
-        G = DiGraph(loops=g.allows_loops())
-    else:
-        G = Graph(loops=g.allows_loops())
-    G.add_vertices([('o', v) for v in g.vertices()]) # 'o' for original
-    if g._directed:
-        edges_with_multiplicity = [[u,v] for u,v,_ in g.edge_iterator()]
-    else:
-        edges_with_multiplicity = [sorted([u,v]) for u,v,_ in g.edge_iterator()]
-    index = 0
-    while len(edges_with_multiplicity) > 0:
-        [u,v] = edges_with_multiplicity.pop(0)
-        m = edges_with_multiplicity.count([u,v]) + 1
-        if m == 1:
-            G.add_edge((('o',u),('o',v)))
-        else:
-            for _ in xrange(m):
-                G.add_edges([(('o',u), ('x', index)), (('x', index), ('o',v))]) # 'x' for extra
-                index += 1
-            edges_with_multiplicity = [e for e in edges_with_multiplicity if e != [u,v]]
-    new_partition = [[('o',v) for v in cell] for cell in partition] + [[('x',i) for i in xrange(index)]]
-    return G, new_partition
-
-
-def graph_isom_equivalent_non_edge_labeled_graph(g, partition):
+def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_label=None, return_relabeling=False, return_edge_labels=False, inplace=False, ignore_edge_labels=False):
     """
     Helper function for canonical labeling of edge labeled (di)graphs.
 
     Translates to a bipartite incidence-structure type graph
-    appropriate for computing canonical labels of edge labeled graphs.
+    appropriate for computing canonical labels of edge labeled and/or multi-edge graphs.
     Note that this is actually computationally equivalent to
     implementing a change on an inner loop of the main algorithm-
     namely making the refinement procedure sort for each label.
@@ -15603,59 +15469,134 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition):
     edges to like-labeled edges are allowed, and this additional
     partition information enforces this on the bipartite graph.
 
+    INPUT:
+
+    - ``g`` -- Graph or DiGraph
+    - ``partition`` -- (default:None) if given, the partition of the vertices is as well relabeled
+    - ``standard_label`` -- (default:None) the standard label is not considered to be changed
+    - ``return_relabeling`` -- (defaut:False) if True, a dictionary containing the relabeling is returned
+    - ``return_edge_labels`` -- (defaut:False) if True, the different edge_labels are returned (useful if inplace is True)
+    - ``inplace`` -- (default:False) if True, g is modified, otherwise the result is returned. Note that attributes of g are *not* copied for speed issues, only edges and vertices.
+
+    OUTPUT:
+
+    - if not inplace: the unlabeled graph without multiple edges
+    - the partition of the vertices
+    - if return_relabeling: a dictionary containing the relabeling
+    - if return_edge_labels: the list of (former) edge labels is returned
+
     EXAMPLES::
 
-        sage: G = Graph(multiedges=True,sparse=True)
-        sage: G.add_edges([(0,1,i) for i in range(10)])
-        sage: G.add_edge(1,2,'string')
-        sage: G.add_edge(2,3)
         sage: from sage.graphs.generic_graph import graph_isom_equivalent_non_edge_labeled_graph
-        sage: graph_isom_equivalent_non_edge_labeled_graph(G, [G.vertices()])
-        (Graph on 7 vertices, [[('o', 0), ('o', 1), ('o', 2), ('o', 3)], [('x', 2)], [('x', 0)], [('x', 1)]])
+
+        sage: G = Graph(multiedges=True,sparse=True)
+        sage: G.add_edges( (0,1,i) for i in range(10) )
+        sage: G.add_edge(1,2,'string')
+        sage: G.add_edge(2,123)
+        sage: g = graph_isom_equivalent_non_edge_labeled_graph(G, partition=[[0,123],[1,2]]); g
+        [Graph on 6 vertices, [[0, 3], [1, 2], [4], [5]]]
+
+        sage: g = graph_isom_equivalent_non_edge_labeled_graph(G); g
+        [Graph on 6 vertices, [[0, 1, 2, 3], [4], [5]]]
+        sage: g[0].edges()
+        [(0, 4, None), (1, 4, None), (1, 5, None), (2, 3, None), (2, 5, None)]
+
+        sage: g = graph_isom_equivalent_non_edge_labeled_graph(G,standard_label='string',return_edge_labels=True); g
+        [Graph on 6 vertices, [[0, 1, 2, 3], [5], [4]], [[[None, 1]], [[9, 1], [8, 1], [7, 1], [6, 1], [5, 1], [4, 1], [3, 1], [2, 1], [1, 1], [0, 1]], [['string', 1]]]]
+        sage: g[0].edges()
+        [(0, 4, None), (1, 2, None), (1, 4, None), (2, 5, None), (3, 5, None)]
+
+        sage: graph_isom_equivalent_non_edge_labeled_graph(G,inplace=True)
+        [[[0, 1, 2, 3], [4], [5]]]
+        sage: G.edges()
+        [(0, 4, None), (1, 4, None), (1, 5, None), (2, 3, None), (2, 5, None)]
     """
-    from sage.misc.misc import uniq
+    from copy import copy
     from sage.graphs.all import Graph, DiGraph
-    if g.has_multiple_edges():
+
+    g_has_multiple_edges = g.has_multiple_edges()
+
+    if g_has_multiple_edges:
         if g._directed:
             G = DiGraph(loops=g.allows_loops(),sparse=True)
+            edge_iter = g._backend.iterator_in_edges(g,True)
         else:
             G = Graph(loops=g.allows_loops(),sparse=True)
-        G.add_vertices(g.vertices())
-        for u,v,l in g.edge_iterator():
+            edge_iter = g._backend.iterator_edges(g,True)
+        for u,v,l in edge_iter:
             if not G.has_edge(u,v):
                 G.add_edge(u,v,[[l,1]])
             else:
-                label_list = G.edge_label(u,v)
+                label_list = copy( G.edge_label(u,v) )
                 seen_label = False
-                for i in range(len(label_list)):
+                for i in xrange(len(label_list)):
                     if label_list[i][0] == l:
                         label_list[i][1] += 1
+                        G.set_edge_label(u,v,label_list)
                         seen_label = True
                         break
                 if not seen_label:
                     label_list.append([l,1])
-        g = G
-    if g._directed:
-        G = DiGraph(loops=g.allows_loops())
+                    G.set_edge_label(u,v,label_list)
+        if G.order() < g.order():
+            G.add_vertices(g)
+        if inplace:
+            g._backend = G._backend
+    elif not inplace:
+        G = copy( g )
     else:
-        G = Graph(loops=g.allows_loops())
-    G.add_vertices([('o', v) for v in g.vertices()]) # 'o' for original
-    index = 0
-    edge_labels = sorted(g.edge_labels())
+        G = g
+
+    G_order = G.order()
+    V = range(G_order)
+    if G.vertices() != V:
+        relabel_dict = G.relabel(return_map=True)
+    else:
+        relabel_dict = dict( (i,i) for i in xrange(G_order) )
+    if partition is None:
+        partition = [V]
+    else:
+        partition = [ [ relabel_dict[i] for i in part ] for part in partition ]
+
+    if G._directed:
+        edge_iter = G._backend.iterator_in_edges(G,True)
+    else:
+        edge_iter = G._backend.iterator_edges(G,True)
+
+    edges = [ edge for edge in edge_iter ]
+    edge_labels = sorted([ label for v1,v2,label in edges if not label == standard_label])
     i = 1
     while i < len(edge_labels):
         if edge_labels[i] == edge_labels[i-1]:
             edge_labels.pop(i)
         else:
             i += 1
+    i = G_order
     edge_partition = [[] for _ in xrange(len(edge_labels))]
-    i = 0
-    for u,v,l in g.edge_iterator():
-        index = edge_labels.index(l)
-        edge_partition[index].append(i)
-        G.add_edges([(('o',u), ('x', i)), (('x', i), ('o',v))]) # 'x' for extra
-        i += 1
-    new_partition = [[('o',v) for v in cell] for cell in partition] + [[('x',v) for v in a] for a in edge_partition]
-    return G, new_partition
 
+    if g_has_multiple_edges: standard_label = [[standard_label,1]]
 
+    for u,v,l in edges:
+        if not l == standard_label:
+            index = edge_labels.index(l)
+            edge_partition[index].append(i)
+            G._backend.add_edge(u,i,None,True)
+            G._backend.add_edge(i,v,None,True)
+            G.delete_edge(u,v)
+            i += 1
+        elif standard_label is not None:
+            G._backend.set_edge_label(u,v,None,True)
+
+    if ignore_edge_labels:
+        edge_partition = [sum(edge_partition,[])]
+    new_partition = [ part for part in partition + edge_partition if not part == [] ]
+
+    return_data = []
+    if not inplace:
+        return_data.append( G )
+    return_data.append( new_partition )
+    if return_relabeling:
+        return_data.append( relabel_dict )
+    if return_edge_labels:
+        return_data.append( edge_labels )
+    return return_data

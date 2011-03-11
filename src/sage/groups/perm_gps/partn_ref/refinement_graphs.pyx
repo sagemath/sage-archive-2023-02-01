@@ -73,8 +73,8 @@ def isomorphic(G1, G2, partn, ordering2, dig, use_indicator_function, sparse=Fal
                 n = G_in.num_verts()
             elif n != G_in.num_verts():
                 return False
-            G_in = copy(G_in)
             if G_in.vertices() != range(n):
+                G_in = copy(G_in)
                 to = G_in.relabel(return_map=True)
                 frm = {}
                 for v in to.iterkeys():
@@ -343,16 +343,6 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
         sage: st(G, [range(G.num_verts())])[1] == st(H, [range(H.num_verts())])[1]
         True
 
-        sage: from sage.graphs.generic_graph import graph_isom_equivalent_non_multi_graph
-        sage: G = Graph(multiedges=True, sparse=True)
-        sage: G.add_edge(('a', 'b'))
-        sage: G.add_edge(('a', 'b'))
-        sage: G.add_edge(('a', 'b'))
-        sage: G, Pi = graph_isom_equivalent_non_multi_graph(G, [['a','b']])
-        sage: s,b = st(G, Pi, lab=False, dict_rep=True)
-        sage: sorted(b.items())
-        [(('o', 'a'), 5), (('o', 'b'), 1), (('x', 0), 2), (('x', 1), 3), (('x', 2), 4)]
-
         sage: st(Graph(':Dkw'), [range(5)], lab=False, dig=True)
         [[4, 1, 2, 3, 0], [0, 2, 1, 3, 4]]
 
@@ -367,8 +357,8 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
     from copy import copy
     if isinstance(G_in, GenericGraph):
         n = G_in.num_verts()
-        G_in = copy(G_in)
         if G_in.vertices() != range(n):
+            G_in = copy(G_in)
             to = G_in.relabel(return_map=True)
             frm = {}
             for v in to.iterkeys():
@@ -423,7 +413,8 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
         sage_free(part)
         raise MemoryError
 
-    output = get_aut_gp_and_can_lab(GS, part, G.num_verts, &all_children_are_equivalent, &refine_by_degree, &compare_graphs, lab, base, order)
+    lab_new = lab or certify
+    output = get_aut_gp_and_can_lab(GS, part, G.num_verts, &all_children_are_equivalent, &refine_by_degree, &compare_graphs, lab_new, base, order)
     sage_free( GS.scratch )
     # prepare output
     list_of_gens = []
@@ -466,7 +457,7 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
     sage_free(output.generators)
     if base:
         sage_free(output.base)
-    if lab:
+    if lab_new:
         sage_free(output.relabeling)
     sage_free(output)
     if len(return_tuple) == 1:
@@ -731,7 +722,6 @@ cdef inline int sort_by_function(PartitionStack *PS, int start, int *degrees):
         PS_move_min_to_front(PS, start + counts[j-1], start + counts[j] - 1)
         j += 1
     return max_location
-
 
 def all_labeled_graphs(n):
     """
@@ -1026,7 +1016,6 @@ def coarsest_equitable_refinement(CGraph G, list partition, bint directed):
 
     return eq_part
 
-
 def get_orbits(list gens, int n):
     """
     Compute orbits given a list of generators of a permutation group, in list
@@ -1068,10 +1057,3 @@ def get_orbits(list gens, int n):
     sage_free(perm_ints)
 
     return orbit_dict.values()
-
-
-
-
-
-
-

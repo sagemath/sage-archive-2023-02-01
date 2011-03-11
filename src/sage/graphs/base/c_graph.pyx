@@ -2890,6 +2890,14 @@ def floyd_warshall(gg, paths = True, distances = False):
         for a total of `2^{34}` bytes or `16` gigabytes. Let us also remember
         that if the memory size is quadratic, the algorithm runs in cubic time.
 
+    .. NOTE::
+
+        When ``paths = False`` the algorithm saves roughly half of the memory as
+        it does not have to maintain the matrix of predecessors. However,
+        setting ``distances=False`` produces no such effect as the algorithm can
+        not run without computing them. They will not be returned, but they will
+        be stored while the method is running.
+
     EXAMPLES:
 
     Shortest paths in a small grid ::
@@ -2917,7 +2925,27 @@ def floyd_warshall(gg, paths = True, distances = False):
         ...     p.insert(0,path[u][p[0]])
         sage: len(p) == dist[u][v] + 2
         True
+
+    Distances for all pairs of vertices in a diamond::
+
+        sage: g = graphs.DiamondGraph()
+        sage: floyd_warshall(g, paths = False, distances = True)
+        {0: {0: 0, 1: 1, 2: 1, 3: 2},
+         1: {0: 1, 1: 0, 2: 1, 3: 1},
+         2: {0: 1, 1: 1, 2: 0, 3: 1},
+         3: {0: 2, 1: 1, 2: 1, 3: 0}}
+
+    TESTS:
+
+    Too large graphs::
+
+        sage: from sage.graphs.base.c_graph import floyd_warshall
+        sage: floyd_warshall(Graph(65536))
+        Traceback (most recent call last):
+        ...
+        ValueError: The graph backend contains more than 65535 nodes
     """
+
     from sage.rings.infinity import Infinity
     cdef CGraph g = <CGraph> gg._backend._cg
 
@@ -2925,8 +2953,8 @@ def floyd_warshall(gg, paths = True, distances = False):
 
     cdef int n = max(gverts) + 1
 
-    if n > <unsigned short> -1:
-        raise ValueError("The graph backend contains more than "+(<unsigned short> -1)+" nodes")
+    if n >= <unsigned short> -1:
+        raise ValueError("The graph backend contains more than "+str(<unsigned short> -1)+" nodes")
 
     # All this just creates two tables prec[n][n] and dist[n][n]
     cdef unsigned short * t_prec

@@ -935,6 +935,29 @@ class Factorization(SageObject):
             other = other.value()
         return self.value() - other
 
+    def __radd__(self, left):
+        """
+        Return the (unfactored) sum of self and left.
+
+        EXAMPLES::
+
+            sage: 16 + factor(-10)
+            6
+        """
+        return self.value() + left
+
+
+    def __rsub__(self, left):
+        """
+        Return the (unfactored) difference of left and self.
+
+        EXAMPLES::
+
+            sage: 16 - factor(10)
+            6
+        """
+        return left - self.value()
+
     def __neg__(self):
         """
         Return negative of this factorization.

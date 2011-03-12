@@ -55,6 +55,35 @@ from shapes2 import frame3d
 from index_face_set import IndexFaceSet
 
 def index_face_set(face_list, point_list, enclosed, **kwds):
+    """
+    Helper function that creates ``IndexFaceSet`` object for the
+    tetrahedron, dodecahedron, and icosahedron.
+
+    INPUT:
+
+    -  ``face_list`` - list of faces, given explicitly from the
+       solid invocation
+
+    -  ``point_list`` - list of points, given explicitly from the
+       solid invocation
+
+    -  ``enclosed`` - boolean (default passed is always True
+       for these solids)
+
+    TESTS:
+
+    Verify that these are working and passing on keywords::
+
+        sage: tetrahedron(center=(2,0,0),size=2,color='red')
+
+    ::
+
+        sage: dodecahedron(center=(2,0,0),size=2,color='red')
+
+    ::
+
+        sage: icosahedron(center=(2,0,0),size=2,color='red')
+    """
     if kwds.has_key('center'):
         center = kwds['center']
         del kwds['center']
@@ -69,10 +98,32 @@ def index_face_set(face_list, point_list, enclosed, **kwds):
     return prep(I, center, size, kwds)
 
 def prep(G, center, size, kwds):
-    if center != (0,0,0):
-        G = G.translate(center)
+    """
+    Helper function that scales and translates the platonic
+    solid, and passes extra keywords on.
+
+    INPUT:
+
+    -  ``center`` - 3-tuple indicating the center (default passed
+       from :func:`index_face_set` is the origin `(0,0,0)`)
+
+    -  ``size`` - number indicating amount to scale by (default
+       passed from :func:`index_face_set` is 1)
+
+    -  ``kwds`` - a dictionary of keywords, passed from solid
+       invocation by :func:`index_face_set`
+
+    TESTS:
+
+    Verify that scaling and moving the center work together properly,
+    and that keywords are passed (see Trac #10796)::
+
+        sage: octahedron(center=(2,0,0),size=2,color='red')
+    """
     if size != 1:
         G = G.scale(size)
+    if center != (0,0,0):
+        G = G.translate(center)
     G._set_extra_kwds(kwds)
     return G
 

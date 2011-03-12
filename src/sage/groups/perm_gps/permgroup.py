@@ -1222,6 +1222,92 @@ class PermutationGroup_generic(group.Group):
             raise TypeError("{0} is not a permutation group".format(other))
         return PermutationGroup(gap_group=gap.Intersection(self, other))
 
+    def conjugate(self, g):
+        r"""
+        Returns the group formed by conjugating ``self`` with ``g``.
+
+        INPUT:
+
+        - ``g`` - a permutation group element, or an object that converts
+          to a permutation group element, such as a list of integers or
+          a string of cycles.
+
+        OUTPUT:
+
+        If ``self`` is the group denoted by `H`, then this method computes
+        the group
+
+        .. math::
+
+            g^{-1}Hg = \{g^{-1}hg\vert h\in H\}
+
+        which is the group `H` conjugated by `g`.
+
+        There are no restrictions on ``self`` and ``g`` belonging to
+        a common permutation group, and correspondingly, there is no
+        relationship (such as a common parent) between ``self`` and the
+        output group.
+
+        EXAMPLES::
+
+            sage: G = DihedralGroup(6)
+            sage: a = PermutationGroupElement("(1,2,3,4)")
+            sage: G.conjugate(a)
+            Permutation Group with generators [(1,5,6,2,3,4), (1,4)(2,6)(3,5)]
+
+        The element performing the conjugation can be specified in
+        several ways.  ::
+
+            sage: G = DihedralGroup(6)
+            sage: strng = "(1,2,3,4)"
+            sage: G.conjugate(strng)
+            Permutation Group with generators [(1,5,6,2,3,4), (1,4)(2,6)(3,5)]
+            sage: G = DihedralGroup(6)
+            sage: lst = [2,3,4,1]
+            sage: G.conjugate(lst)
+            Permutation Group with generators [(1,5,6,2,3,4), (1,4)(2,6)(3,5)]
+            sage: G = DihedralGroup(6)
+            sage: cycles = [(1,2,3,4)]
+            sage: G.conjugate(cycles)
+            Permutation Group with generators [(1,5,6,2,3,4), (1,4)(2,6)(3,5)]
+
+        Conjugation is a group automorphism, so conjugate groups
+        will be isomorphic. ::
+
+            sage: G = DiCyclicGroup(6)
+            sage: G.degree()
+            11
+            sage: cycle = [i+1 for i in range(1,11)] + [1]
+            sage: C = G.conjugate(cycle)
+            sage: G.is_isomorphic(C)
+            True
+
+        The conjugating element may be from a symmetric group with
+        larger degree than the group being conjugated.  ::
+
+            sage: G = AlternatingGroup(5)
+            sage: G.degree()
+            5
+            sage: g = "(1,3)(5,6,7)"
+            sage: H = G.conjugate(g); H
+            Permutation Group with generators [(1,4,6,3,2), (1,4,6)]
+            sage: H.degree()
+            6
+
+        The conjugating element is checked. ::
+
+            sage: G = SymmetricGroup(3)
+            sage: G.conjugate("junk")
+            Traceback (most recent call last):
+            ...
+            TypeError: junk does not convert to a permutation group element
+        """
+        try:
+            g = PermutationGroupElement(g)
+        except:
+            raise TypeError("{0} does not convert to a permutation group element".format(g))
+        return PermutationGroup(gap_group=gap.ConjugateGroup(self, g))
+
     def direct_product(self,other,maps=True):
         """
         Wraps GAP's ``DirectProduct``, ``Embedding``, and ``Projection``.

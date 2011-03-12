@@ -5206,6 +5206,30 @@ class NumberField_absolute(NumberField_generic):
                     # coercions, as was pointed out at ticket #8800
                     return None
 
+    @cached_method
+    def _magma_polynomial_(self, magma):
+        """
+        Return Magma version of the defining polynomial of this number field.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: K.<a> = NumberField(x^3+2)
+            sage: K._magma_polynomial_(magma)
+            x^3 + 2
+            sage: magma2=Magma()
+            sage: K._magma_polynomial_(magma2)
+            x^3 + 2
+            sage: K._magma_polynomial_(magma) is K._magma_polynomial_(magma)
+            True
+            sage: K._magma_polynomial_(magma) is K._magma_polynomial_(magma2)
+            False
+        """
+        # NB f must not be garbage-collected, otherwise the
+        # return value of this function is invalid
+        return magma(self.defining_polynomial())
+
+
     def _magma_init_(self, magma):
         """
         Return Magma version of this number field.
@@ -5225,7 +5249,7 @@ class NumberField_absolute(NumberField_generic):
             -1
         """
         # Get magma version of defining polynomial of this number field
-        f = magma(self.defining_polynomial())
+        f = self._magma_polynomial_(magma)
         s = 'NumberField(%s)'%f.name()
         return magma._with_names(s, self.variable_names())
 

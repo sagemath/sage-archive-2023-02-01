@@ -216,13 +216,14 @@ class HyperellipticCurve_g2_generic(hyperelliptic_generic.HyperellipticCurve_gen
         TESTS::
 
             sage: magma(HyperellipticCurve(f)).IgusaClebschInvariants() # optional - magma
-            [ 0, -2048/375, -4096/25, -4881645568/84375 ]
+            [ -640, -20480, 1310720, 52160364544 ]
             sage: magma(HyperellipticCurve(f(2*x))).IgusaClebschInvariants() # optional - magma
-            [ 0, -8388608/375, -1073741824/25, -5241627016305836032/84375 ]
+            [ -40960, -83886080, 343597383680, 56006764965979488256 ]
+
             sage: magma(HyperellipticCurve(f, x)).IgusaClebschInvariants() # optional - magma
-            [ -8/15, 17504/5625, -23162896/140625, -420832861216768/7119140625 ]
+            [ -640, 17920, -1966656, 52409511936 ]
             sage: magma(HyperellipticCurve(f(2*x), 2*x)).IgusaClebschInvariants() # optional - magma
-            [ -512/15, 71696384/5625, -6072014209024/140625, -451865844002031331704832/7119140625 ]
+            [ -40960, 73400320, -515547070464, 56274284941110411264 ]
         """
         f, h = self.hyperelliptic_polynomials()
         return invariants.igusa_clebsch_invariants(4*f + h**2)

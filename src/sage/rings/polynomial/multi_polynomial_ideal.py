@@ -631,7 +631,7 @@ class MPolynomialIdeal_magma_repr:
             sage: I = sage.rings.ideal.Cyclic(R,4)
             sage: magma(I)                                          # optional - magma
             Ideal of Polynomial ring of rank 10 over GF(127)
-            Graded Reverse Lexicographical Order
+            Order: Graded Reverse Lexicographical
             Variables: a, b, c, d, e, f, g, h, i, j
             Basis:
             [

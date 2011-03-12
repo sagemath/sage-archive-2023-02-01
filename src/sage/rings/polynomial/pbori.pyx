@@ -1286,9 +1286,8 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
             sage: B.<x,y,z> = BooleanPolynomialRing(3)
             sage: magma(B)                               # indirect doctest; optional - magma
-
             Boolean polynomial ring of rank 3 over GF(2)
-            Lexicographical (bit vector word) Order
+            Order: Lexicographical (bit vector word)
             Variables: x, y, z
         """
         #R = magma(self.cover_ring())

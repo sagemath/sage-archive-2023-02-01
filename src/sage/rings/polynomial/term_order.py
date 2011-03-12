@@ -1133,7 +1133,7 @@ class TermOrder(SageObject):
             sage: P = PolynomialRing(GF(127), 10,names='x',order='degrevlex')
             sage: magma(P)                                                        # optional - magma
             Polynomial ring of rank 10 over GF(127)
-            Graded Reverse Lexicographical Order
+            Order: Graded Reverse Lexicographical
             Variables: x0, x1, x2, x3, x4, x5, x6, x7, x8, x9
 
         ::

@@ -185,12 +185,7 @@ coercion system compared to Sage's::
     sage: y * 5                                                           # optional - magma
     5*x
     sage: y * 1.0                                                         # optional - magma
-    Traceback (most recent call last):
-    ...
-    TypeError: Error evaluating Magma code.
-    ...
-    Runtime error in '*': Bad argument types
-    Argument types given: RngUPolElt[RngInt], FldReElt
+    $.1
     sage: y * (2/3)                                                       # optional - magma
     Traceback (most recent call last):
     ...
@@ -618,11 +613,10 @@ class Magma(Expect):
         INPUT:
 
 
-        -  ``value`` - something coercible to an element of
-           this Magma interface
+        - ``value`` - something coercible to an element of this Magma
+           interface
 
-        -  ``gens`` - string; command separated list of
-           variable names
+        - ``gens`` - string; comma separated list of variable names
 
 
         OUTPUT: new Magma element that is equal to value with given gens
@@ -848,7 +842,7 @@ class Magma(Expect):
             sage: magma('_sage_[1]')   # optional - magma
             0
         """
-        self.__available_var.append(var)
+        self.__available_var.insert(0,var)  # adds var to front of list
         self.eval("%s:=0"%var)
 
     def cputime(self, t=None):
@@ -1024,11 +1018,9 @@ class Magma(Expect):
                 # this exception could happen if the Magma process
                 # was interrupted during startup / initialization.
                 self.eval('_sage_ := [* 0 : i in [1..%s] *];'%self.__seq)
-        if len(self.__available_var) > 0:
-            n = self.__available_var[0]
-            del self.__available_var[0]
-            return n
-        else:
+        try:
+            return self.__available_var.pop()
+        except IndexError:
             self.__seq += 1
             return '_sage_[%s]'%self.__seq
 
@@ -1878,7 +1870,7 @@ class MagmaElement(ExpectElement):
             sage: a._sage_()                      # optional - magma
             {1, -5/9, 2/3}
             sage: type(a.sage())                  # optional - magma
-            <class 'sage.sets.set.Set_object_enumerated'>
+            <class 'sage.sets.set.Set_object_enumerated_with_category'>
             sage: a = magma('{1,2/3,-5/9}'); a    # optional - magma
             { -5/9, 2/3, 1 }
             sage: a.Type()                        # optional - magma
@@ -1886,7 +1878,7 @@ class MagmaElement(ExpectElement):
             sage: b = a.sage(); b             # optional - magma
             {1, -5/9, 2/3}
             sage: type(b)                         # optional - magma
-            <class 'sage.sets.set.Set_object_enumerated'>
+            <class 'sage.sets.set.Set_object_enumerated_with_category'>
             sage: c = magma(b); c                 # optional - magma
             { -5/9, 2/3, 1 }
             sage: c.Type()                        # optional - magma
@@ -2352,7 +2344,7 @@ class MagmaElement(ExpectElement):
 
             sage: V = magma("VectorSpace(RationalField(),2)")        # optional - magma
             sage: V.list_attributes()                                # optional - magma
-            ['Coroots', 'Roots', 'decomp', 'ssbasis', 'M', 'StrLocalData', 'eisen', 'weights', 'RootDatum', 'T', 'p']
+            ['Coroots', 'Qform', 'StrLocalData', 'eisen', 'p', 'Involution', 'RootDatum', 'T', 'exthom', 'ssbasis', 'M', 'Roots', 'decomp', 'hSplit', 'weights']
         """
         return magma.eval('ListAttributes(Type(%s))'%\
                           self.name()).split()
@@ -2378,9 +2370,10 @@ class MagmaElement(ExpectElement):
 
         EXAMPLES::
 
-            sage: v = magma('2/3').trait_names()       # optional - magma
-            sage: type(v[0])                           # optional - magma
-            <type 'str'>
+            sage: R.<x> = ZZ[]                        # optional - magma
+            sage: v = magma(R).trait_names()          # optional - magma
+            sage: v                                   # optional - magma
+            ["'*'", "'+'", "'.'", "'/'", "'eq'", "'in'", "'meet'", "'subset'", ...]
         """
         M = self.methods()
         N = []
@@ -2751,18 +2744,12 @@ class MagmaGBLogPrettyPrinter:
             sage: P.<x,y,z> = GF(32003)[]
             sage: I = sage.rings.ideal.Katsura(P)
             sage: _ = I.groebner_basis('magma',prot=True) # indirect doctest, optional - magma
-
+            <BLANKLINE>
             Homogeneous weights search
             Number of variables: 3, nullity: 0
             Exact search time: 0.000
-            Found best approx weight vector: [1 1 1]
-            Norm: 3, count: 1
-            Approx search time: 0.000
-            ********************
-            FAUGERE F4 ALGORITHM
-            ********************
             ...
-            Total Faugere F4 time: 0.000, real time: 0.001
+            Total Faugere F4 time: 0.0..., real time: 0.00...
         """
         verbosity,style = self.verbosity,self.style
 

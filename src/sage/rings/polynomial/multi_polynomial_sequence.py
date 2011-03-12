@@ -667,9 +667,10 @@ class PolynomialSequence_generic(Sequence_generic):
 
             sage: sr = mq.SR(allow_zero_inversions=True,gf2=True)
             sage: F,s = sr.polynomial_system()
+            sage: F.set_immutable()
             sage: magma(F)  # indirect doctest; optional - magma
             Ideal of Polynomial ring of rank 20 over GF(2)
-            Graded Reverse Lexicographical Order
+            Order: Graded Reverse Lexicographical
             Variables: k100, k101, k102, k103, x100, x101, x102, x103, w100, w101, w102, w103, s000, s001, s002, s003, k000, k001, k002, k003
             Basis:
             [

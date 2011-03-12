@@ -1387,6 +1387,42 @@ class WordMorphism(SageObject):
         image = self.image(letter)
         return not image.is_empty() and letter == image[0]
 
+    def is_uniform(self, k=None):
+        r"""
+        Returns True if self is a `k`-uniform morphism.
+
+        Let `k` be a positive integer. A morphism `\phi` is called `k`-uniform
+        if for every letter `\alpha`, we have `|\phi(\alpha)| = k`. In other
+        words, all images have length `k`. A morphism is called uniform if it
+        is `k`-uniform for some positive integer `k`.
+
+        INPUT:
+
+        - ``k`` - a positive integer or None. If set to a positive integer,
+          then the function return True if self is `k`-uniform. If set to
+          None, then the function return True if self is uniform.
+
+        EXAMPLES::
+
+            sage: phi = WordMorphism('a->ab,b->a')
+            sage: phi.is_uniform()
+            False
+            sage: phi.is_uniform(k=1)
+            False
+            sage: tau = WordMorphism('a->ab,b->ba')
+            sage: tau.is_uniform()
+            True
+            sage: tau.is_uniform(k=1)
+            False
+            sage: tau.is_uniform(k=2)
+            True
+        """
+        lengths = map(lambda w : w.length(), self.images())
+        if k is None:
+            return len(set(lengths)) == 1
+        else:
+            return all(map(lambda n : n == k, lengths))
+
     def _fixed_point_iterator(self, letter):
         r"""
         Returns an iterator of the letters of the fixed point of ``self``

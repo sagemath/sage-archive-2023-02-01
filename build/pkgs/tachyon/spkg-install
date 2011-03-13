@@ -63,6 +63,9 @@ if [ $UNAME = "Linux" ]; then
             $MAKE linux-64-thr;;
 	ppc)
             $MAKE linux-ppc;;
+        armv7l)
+            sed "s/-m32//g" ../../patches/Make-arch > Make-arch
+            $MAKE linux-thr;;
 	*) # e.g. ppc64
             echo "Sorry, your platform isn't supported by Tachyon and/or Sage. Exiting..."
             exit 1

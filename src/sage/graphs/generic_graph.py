@@ -11063,6 +11063,15 @@ class GenericGraph(GenericGraph_pyx):
             ...     p.insert(0,path[u][p[0]])
             sage: len(p) == dist[u][v] + 2
             True
+
+        TESTS:
+
+        Wrong name for ``algorithm``::
+
+            sage: g.shortest_path_all_pairs(algorithm="Bob")
+            Traceback (most recent call last):
+            ...
+            ValueError: The algorithm keyword can only be set to "auto", "BFS", "Floyd-Warshall-Python" or "Floyd-Warshall-Cython"
         """
         if default_weight != 1:
             by_weight = True
@@ -11085,7 +11094,7 @@ class GenericGraph(GenericGraph_pyx):
             raise ValueError("The algorithm keyword can only be set to "+
                              "\"auto\","+
                              " \"BFS\", "+
-                             "\"Floyd-Warshall-Cython\" or "+
+                             "\"Floyd-Warshall-Python\" or "+
                              "\"Floyd-Warshall-Cython\"")
 
         from sage.rings.infinity import Infinity

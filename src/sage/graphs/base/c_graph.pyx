@@ -3086,6 +3086,16 @@ cpdef all_pairs_shortest_path_BFS(gg):
         sage: dist, path = all_pairs_shortest_path_BFS(g)
         sage: all( dist[u][v] == g.distance(u,v) for u in g for v in g )
         True
+
+    TESTS:
+
+    Too large graphs::
+
+        sage: all_pairs_shortest_path_BFS(Graph(65536))
+        Traceback (most recent call last):
+        ...
+        ValueError: The graph backend contains more than 65535 nodes
+
     """
     from sage.rings.infinity import Infinity
 
@@ -3095,7 +3105,7 @@ cpdef all_pairs_shortest_path_BFS(gg):
     cdef int n = max(vertices)+1
 
     if n > <unsigned short> -1:
-        raise ValueError("The graph backend contains more than "+(<unsigned short> -1)+" nodes")
+        raise ValueError("The graph backend contains more than "+str(<unsigned short> -1)+" nodes")
 
     # The vertices which have already been visited
     cdef bitset_t seen

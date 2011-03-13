@@ -1789,23 +1789,61 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
           Both 'arrow' and 'point' raise exceptions if the vector has
           more than 3 dimensions.
 
-        EXAMPLES::
+        - ``start`` - (default: origin in correct dimension) may be a tuple,
+          list, or vector.
+
+        EXAMPLES:
+
+        The following both plot the given vector::
 
             sage: v = vector(RDF, (1,2))
+            sage: A = plot(v)
+            sage: B = v.plot()
+            sage: A+B # should just show one vector
+
+        Examples of the plot types::
+
+            sage: A = plot(v, plot_type='arrow')
+            sage: B = plot(v, plot_type='point', color='green', size=20)
+            sage: C = plot(v, plot_type='step') # calls v.plot_step()
+            sage: A+B+C
+
+        You can use the optional arguments for :meth:`plot_step`::
+
             sage: eps = 0.1
-            sage: plot(v, plot_type='arrow')
-            sage: plot(v, plot_type='point')
-            sage: plot(v, plot_type='step') # calls v.plot_step()
             sage: plot(v, plot_type='step', eps=eps, xmax=5, hue=0)
+
+        Three-dimensional examples::
+
             sage: v = vector(RDF, (1,2,1))
             sage: plot(v) # defaults to an arrow plot
+
+        ::
+
             sage: plot(v, plot_type='arrow')
+
+        ::
+
             sage: from sage.plot.plot3d.shapes2 import frame3d
             sage: plot(v, plot_type='point')+frame3d((0,0,0), v.list())
+
+        ::
+
             sage: plot(v, plot_type='step') # calls v.plot_step()
+
+        ::
+
             sage: plot(v, plot_type='step', eps=eps, xmax=5, hue=0)
+
+        With greater than three coordinates, it defaults to a step plot::
+
             sage: v = vector(RDF, (1,2,3,4))
-            sage: plot(v) # defaults to a step plot
+            sage: plot(v)
+
+        One dimensional vectors are plotted along the horizontal axis of
+        the coordinate plane::
+
+            sage: plot(vector([1]))
 
         An optional start argument may also be specified by a tuple, list, or vector::
 
@@ -1816,13 +1854,15 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
             sage: u = vector([1,1]); v = vector([2,2,2]); z=(3,3,3)
             sage: plot(u) #test when start=None
-            ...
+
+        ::
+
             sage: plot(u, start=v) #test when coordinate dimension mismatch exists
             Traceback (most recent call last):
             ...
             ValueError: vector coordinates are not of the same dimension
-            sage: plot(v, start=z) #test when start coordinates are passed as a tuple
-            ...
+            sage: P = plot(v, start=z) #test when start coordinates are passed as a tuple
+            sage: P = plot(v, start=list(z)) #test when start coordinates are passed as a list
         """
         # Give sensible defaults based on the vector length
         if plot_type is None:
@@ -1855,6 +1895,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
                 if dimension < 2:
                     # pad to make 2-dimensional
                     coords.extend([0]*(2-dimension))
+                    start.extend([0]*(2-dimension))
 
                 from sage.plot.all import arrow, point
                 if plot_type == 'arrow':

@@ -857,9 +857,10 @@ def eratosthenes(n):
 ##     return P + X
 
 def primes(start, stop=None, proof=None):
-    r""" Returns an iterator over all primes between start and stop-1,
+    r"""
+    Returns an iterator over all primes between start and stop-1,
     inclusive. This is much slower than ``prime_range``, but
-    potentially uses less memory.  As with ``next_prime``, the optional
+    potentially uses less memory.  As with :func:`next_prime`, the optional
     argument proof controls whether the numbers returned are
     guaranteed to be prime or not.
 
@@ -867,28 +868,25 @@ def primes(start, stop=None, proof=None):
     over primes. In some cases it is better to use primes than
     ``prime_range``, because primes does not build a list of all primes in
     the range in memory all at once. However, it is potentially much
-    slower since it simply calls the ``next_prime`` function
-    repeatedly, and ``next_prime`` is slow.
+    slower since it simply calls the :func:`next_prime` function
+    repeatedly, and :func:`next_prime` is slow.
 
-   INPUT:
+    INPUT:
 
+    - ``start`` - an integer - lower bound for the primes
 
-    -  ``start`` - an integer
-    lower bound for the primes
+    - ``stop`` - an integer (or infinity) optional argument -
+      giving upper (open) bound for the primes
 
-    -  ``stop`` - an integer (or infinity)
-    upper (open) bound for the primes
+    - ``proof`` - bool or None (default: None)  If True, the function
+      yields only proven primes.  If False, the function uses a
+      pseudo-primality test, which is much faster for really big
+      numbers but does not provide a proof of primality. If None,
+      uses the global default (see :mod:`sage.structure.proof.proof`)
 
-    -  ``proof`` - bool or None (default: None)  If True, the function
-       yields only proven primes.  If False, the function uses a
-       pseudo-primality test, which is much faster for really big
-       numbers but does not provide a proof of primality. If None,
-       uses the global default (see :mod:`sage.structure.proof.proof`)
+    OUTPUT:
 
-
-   OUTPUT:
-
-   -  an iterator over primes from start to stop-1, inclusive
+    -  an iterator over primes from start to stop-1, inclusive
 
 
     EXAMPLES::
@@ -924,7 +922,8 @@ def primes(start, stop=None, proof=None):
         13
         17
         19
-
+        sage: next(p for p in primes(10,oo)) # checks alternate infinity notation
+        11
     """
     from sage.rings.infinity import infinity
 

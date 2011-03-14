@@ -260,6 +260,18 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
             sage: R = Integers(100000)
             sage: TestSuite(R).run()  # long time (17s on sage.math, 2011)
+
+        Testing ideals and quotients::
+
+            sage: Z10 = Integers(10)
+            sage: I = Z10.principal_ideal(0)
+            sage: Z10.quotient(I) == Z10
+            True
+            sage: I = Z10.principal_ideal(2)
+            sage: Z10.quotient(I) == Z10
+            False
+            sage: I.is_prime()
+            True
         """
         ZZ = integer_ring.IntegerRing()
         order = ZZ(order)
@@ -270,7 +282,11 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         self.__unit_group_exponent = None
         self.__factored_order = None
         self.__factored_unit_order = None
-        quotient_ring.QuotientRing_generic.__init__(self, ZZ, ZZ.ideal(order), names=None)
+        # Give the generator a 'name' to make quotients work.  The
+        # name 'x' is used because it's also used for the ring of
+        # integers: see the __init__ method for IntegerRing_class in
+        # sage/rings/integer_ring.pyx.
+        quotient_ring.QuotientRing_generic.__init__(self, ZZ, ZZ.ideal(order), names=('x',))
         if category is None:
             from sage.categories.commutative_rings import CommutativeRings
             from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets

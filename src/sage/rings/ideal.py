@@ -527,7 +527,7 @@ class Ideal_generic(MonoidElement):
         Returns True if the ideal is maximal in the ring containing the
         ideal.
 
-        TODO: Make self.is_maximal() work! Write this code!
+        TODO: This is not implemented for many rings.  Implement it!
 
         EXAMPLES::
 
@@ -537,14 +537,26 @@ class Ideal_generic(MonoidElement):
             True
             sage: R.ideal(16).is_maximal()
             False
+            sage: S = Integers(8)
+            sage: S.ideal(0).is_maximal()
+            False
+            sage: S.ideal(2).is_maximal()
+            True
+            sage: S.ideal(4).is_maximal()
+            False
         """
-        kd = self.ring().krull_dimension()
-        if kd == 0: # every non-trivial ideal is maximal
-            for g in self.gens():
-                if g.is_unit():
-                    return False
-            return True
-        elif kd == 1 and self.ring().is_integral_domain(): # every nontrivial ideal is maximal
+        from sage.rings.all import ZZ
+        R = self.ring()
+        if hasattr(R, 'cover_ring') and R.cover_ring() is ZZ:
+            # The following test only works for quotients of Z/nZ: for
+            # many other rings in Sage, testing whether R/I is a field
+            # is done by testing whether I is maximal, so this would
+            # result in a loop.
+            return R.quotient(self).is_field()
+        kd = R.krull_dimension()
+        if kd == 0 or (kd == 1 and R.is_integral_domain()):
+            # For rings of Krull dimension 0, or for integral domains of
+            # Krull dimension 1, every nontrivial prime ideal is maximal.
             return self.is_prime()
         else:
             raise NotImplementedError
@@ -643,6 +655,14 @@ class Ideal_generic(MonoidElement):
             sage: I.is_prime()        # a non-prime non-primary ideal
             False
 
+            sage: S = Integers(8)
+            sage: S.ideal(0).is_prime()
+            False
+            sage: S.ideal(2).is_prime()
+            True
+            sage: S.ideal(4).is_prime()
+            False
+
         Note that this method is not implemented for all rings where it
         could be::
 
@@ -653,8 +673,13 @@ class Ideal_generic(MonoidElement):
             ...
             NotImplementedError
 
-        NOTES: Uses the list of associated primes.
+        NOTES: For general rings, uses the list of associated primes.
         """
+        from sage.rings.all import ZZ
+        R = self.ring()
+        if hasattr(R, 'cover_ring') and R.cover_ring() is ZZ and R.is_finite():
+            # For quotient rings of ZZ, prime is the same as maximal.
+            return self.is_maximal()
         try:
             ass = self.associated_primes()
         except (NotImplementedError, ValueError):

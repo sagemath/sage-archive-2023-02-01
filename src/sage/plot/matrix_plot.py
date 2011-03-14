@@ -198,7 +198,7 @@ class MatrixPlot(GraphicPrimitive):
         if hasattr(self.xy_data_array, 'tocoo'):
             # Sparse matrix -- use spy
             opts=options.copy()
-            for opt in ['vmin', 'vmax', 'norm', 'origin']:
+            for opt in ['vmin', 'vmax', 'norm', 'origin','subdivisions','subdivision_options']:
                 del opts[opt]
             if origin=='lower':
                 subplot.spy(self.xy_data_array.tocsr()[::-1], **opts)
@@ -384,6 +384,10 @@ def matrix_plot(mat, **options):
         Traceback (most recent call last):
         ...
         ValueError: can not convert entries to floating point numbers
+
+    Test that sparse matrices also work with subdivisions::
+
+        sage: matrix_plot(sparse, subdivisions=True, subdivision_boundaries=[[2,4],[6,8]])
     """
     import numpy as np
     import scipy.sparse as scipysparse

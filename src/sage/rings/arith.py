@@ -3329,10 +3329,23 @@ def legendre_symbol(x,p):
         raise ValueError, "p must be odd"
     return x.kronecker(p)
 
-def primitive_root(n):
+def primitive_root(n, check=True):
     """
-    Return a generator for the multiplicative group of integers modulo
-    `n`, if one exists.
+    Return a positive integer that generates the multiplicative group
+    of integers modulo `n`, if one exists; otherwise, raise a
+    ValueError.
+
+    A primitive root exists if `n=4` or `n=p^k` or `n=2p^k`, where `p`
+    is an odd prime and `k` is a nonnegative number.
+
+    INPUT:
+        - `n` -- positive integer
+        - ``check`` -- bool (default: True); if False, then n is
+          assumed to be a positive integer, and behavior is undefined
+          otherwise.
+
+    OUTPUT:
+         - Integer
 
     EXAMPLES::
 
@@ -3340,11 +3353,53 @@ def primitive_root(n):
         5
         sage: print [primitive_root(p) for p in primes(100)]
         [1, 2, 2, 3, 2, 2, 3, 2, 5, 2, 3, 2, 6, 3, 5, 2, 2, 2, 2, 7, 5, 3, 2, 3, 5]
+
+    .. note:: It takes extra work to check if n has a primitive root; to
+      avoid this, use check=False, which may slightly speed things up
+      (but could also result in undefined behavior).  For example, the
+      second call below is an order of magnitude faster than the first::
+
+        sage: n = 10^50 + 151   # a prime
+        sage: primitive_root(n)
+        11
+        sage: primitive_root(n, check=False)
+        11
+
+    TESTS:
+
+    We test that various numbers without primitive roots give
+    an error - see Trac 10836::
+
+        sage: primitive_root(15)
+        Traceback (most recent call last):
+        ...
+        ValueError: no primitive root
+        sage: primitive_root(16)
+        Traceback (most recent call last):
+        ...
+        ValueError: no primitive root
+        sage: primitive_root(1729)
+        Traceback (most recent call last):
+        ...
+        ValueError: no primitive root
+        sage: primitive_root(4*7^8)
+        Traceback (most recent call last):
+        ...
+        ValueError: no primitive root
     """
-    try:
-        return ZZ(pari(ZZ(n)).znprimroot())
-    except RuntimeError:
-        raise ArithmeticError, "There is no primitive root modulo n"
+    if not check:
+        return ZZ(pari(n).znprimroot())
+    n = ZZ(n)
+    if n == 4:
+        return ZZ(3)
+    if n%2: # n odd
+        if n.is_prime_power():
+            return ZZ(pari(n).znprimroot())
+    else:   # n even
+        m = n // 2
+        if m%2 and m.is_prime_power():
+            return ZZ(pari(n).znprimroot())
+    raise ValueError, "no primitive root"
 
 def nth_prime(n):
     """

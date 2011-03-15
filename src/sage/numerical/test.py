@@ -9,7 +9,7 @@ sage: from scipy import integrate
 sage: from scipy.sparse.linalg import dsolve
 sage: from scipy import interpolate
 sage: from scipy import sparse
-sage: import arpack
+sage: from scipy.sparse.linalg.eigen.arpack import arpack
 
 #Test arpack
 #This matrix is the finite difference approximation to
@@ -24,8 +24,8 @@ sage: n[1,:]=2
 sage: n[2,:]=-1
 sage: A=sparse.spdiags(n,[-1,0,1],int(500),int(500))
 sage: A=aslinearoperator(A)
-sage: e,v=arpack.speigs.ARPACK_eigs(A.matvec,500,6,which='SM')
+sage: e,v=arpack.eigs(A,k=6,which='SM')
 sage: e[0]*float(501/pi)**2
-0.999............
+(0.999...+0j)
 """
 

@@ -108,7 +108,6 @@ all: $(BASE) \
      $(INST)/$(SAGENB) \
      $(INST)/$(SAGETEX) \
      $(INST)/$(SCIPY) \
-     $(INST)/$(SCIPY_SANDBOX) \
      $(INST)/$(SCONS) \
      $(INST)/$(SETUPTOOLS) \
      $(INST)/$(SINGULAR) \
@@ -532,9 +531,6 @@ $(INST)/$(NUMPY): $(BASE) $(INST)/$(PYTHON) $(INST)/$(FORTRAN) $(INST)/$(F2C) \
 $(INST)/$(SCIPY): $(BASE) $(INST)/$(FORTRAN) $(INST)/$(F2C) \
 		  $(INST)/$(LAPACK) $(INST)/$(BLAS) $(INST)/$(NUMPY) $(INST)/$(PATCH)
 	$(INSTALL) "$(SAGE_SPKG) $(SCIPY) 2>&1" "tee -a $(SAGE_LOGS)/$(SCIPY).log"
-
-$(INST)/$(SCIPY_SANDBOX): $(BASE) $(INST)/$(SCIPY) $(INST)/$(PATCH)
-	$(INSTALL) "$(SAGE_SPKG) $(SCIPY_SANDBOX) 2>&1" "tee -a $(SAGE_LOGS)/$(SCIPY_SANDBOX).log"
 
 $(INST)/$(CVXOPT): $(BASE) $(INST)/$(FORTRAN) $(INST)/$(F2C) \
 		   $(INST)/$(LAPACK) $(INST)/$(BLAS) $(INST)/$(NUMPY) \

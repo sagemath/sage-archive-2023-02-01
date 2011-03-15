@@ -392,9 +392,6 @@ export SAGE_SCRIPTS
 SCIPY=`$newest scipy`
 export SCIPY
 
-SCIPY_SANDBOX=`$newest scipy_sandbox`
-export SCIPY_SANDBOX
-
 TACHYON=`$newest tachyon`
 export TACHYON
 

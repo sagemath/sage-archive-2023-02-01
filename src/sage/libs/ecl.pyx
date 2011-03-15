@@ -690,6 +690,7 @@ cdef class EclObject:
         EclObjects that are not lists are not iterable.
 
         EXAMPLES::
+
             sage: from sage.libs.ecl import *
             sage: [i for i in EclObject("(1 2 3)")]
             [<ECL: 1>, <ECL: 2>, <ECL: 3>]
@@ -697,6 +698,20 @@ cdef class EclObject:
             [<ECL: 1>, <ECL: 2>, <ECL: 3>]
             sage: [i for i in EclObject("NIL")]
             []
+
+        TESTS:
+
+        These show that Python lists and tuples behave as
+        described above::
+
+            sage: [i for i in EclObject([1,2,3])]
+            [<ECL: 1>, <ECL: 2>, <ECL: 3>]
+            sage: [i for i in EclObject((1,2,3))]
+            [<ECL: 1>, <ECL: 2>, <ECL: 3>]
+
+        This tests that we cannot iterate EclObjects we shouldn't,
+        as described above::
+
             sage: [i for i in EclObject("T")]
             Traceback (most recent call last):
             ...

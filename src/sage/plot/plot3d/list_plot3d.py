@@ -207,7 +207,7 @@ def list_plot3d_array_of_arrays(v, interpolation_type,texture, **kwds):
     return G
 
 def list_plot3d_tuples(v,interpolation_type, texture, **kwds):
-    import delaunay
+    from matplotlib import delaunay
     import numpy
     import scipy
     from random import random

@@ -12,6 +12,8 @@ AUTHORS:
   differences; fixed operators
 
 - Florent Hivert (2010-06-17) - Adapted to categories
+
+- Nicolas M. Thiery (2011-03-15) - Added subset and superset methods
 """
 
 #*****************************************************************************
@@ -764,6 +766,62 @@ class Set_object_enumerated(Set_object):
             return -1
         else:
             return Set_object.__cmp__(self, other)
+
+    def issubset(self, other):
+        r"""
+        Inclusion test
+
+         - ``other`` -- a finite Set
+
+        Returns whether ``self`` is a subset of ``other``
+
+        EXAMPLES::
+
+            sage: X = Set([1,3,5])
+            sage: Y = Set([0,1,2,3,5,7])
+            sage: X.issubset(Y)
+            True
+            sage: Y.issubset(X)
+            False
+            sage: X.issubset(X)
+            True
+
+        TESTS::
+
+            sage: len([Z for Z in Y.subsets() if Z.issubset(X)])
+            8
+        """
+        if not isinstance(other, Set_object_enumerated):
+            raise NotImplementedError
+        return self.set().issubset(other.set())
+
+    def issuperset(self, other):
+        r"""
+        Reverse inclusion test
+
+         - ``other`` -- a finite Set
+
+        Returns whether ``self`` is a superset of ``other``
+
+        EXAMPLES::
+
+            sage: X = Set([1,3,5])
+            sage: Y = Set([0,1,2,3,5])
+            sage: X.issuperset(Y)
+            False
+            sage: Y.issuperset(X)
+            True
+            sage: X.issuperset(X)
+            True
+
+        TESTS::
+
+            sage: len([Z for Z in Y.subsets() if Z.issuperset(X)])
+            4
+        """
+        if not isinstance(other, Set_object_enumerated):
+            raise NotImplementedError
+        return self.set().issuperset(other.set())
 
     def union(self, other):
         """

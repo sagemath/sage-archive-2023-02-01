@@ -7990,6 +7990,277 @@ cdef class Matrix(matrix1.Matrix):
                 return False
         return True
 
+    def is_similar(self, other, transformation=False):
+        r"""
+        Returns true if ``self`` and ``other`` are similar,
+        i.e. related by a change-of-basis matrix.
+
+        INPUT:
+
+        - ``other`` - a matrix, which should be square, and of the same size
+          as ``self``, where the entries of the matrix have a fraction field
+          equal to that of ``self``.  Inexact rings are not supported.
+
+        - ``transformation`` - default: ``False`` - if ``True``, the output
+          will include the change-of-basis matrix.  See below for an exact
+          description.
+
+        OUTPUT:
+
+        Two matrices, $A$ and $B$ are similar if there is an invertible
+        matrix $S$ such that $A=S^{-1}BS$.  $S$ can be interpreted as a
+        change-of-basis matrix if $A$ and $B$ are viewed as matrix
+        representations of the same linear transformation.
+
+        When ``transformation=False`` this method will return ``True`` if
+        such a matrix $S$ exists, otherwise it will return ``False``.  When
+        ``transformation=True`` the method returns a pair.  The first part
+        of the pair is ``True`` or ``False`` depending on if the matrices
+        are similar and the second part is the change-of-basis matrix, or
+        ``None`` should it not exist.
+
+        When the transformation matrix is requested, it will satisfy
+        ``self = S.inverse()*other*S``.
+
+        If the base rings for any of the matrices is the integers, the
+        rationals, or the field of algebraic numbers (``QQbar``), then the
+        matrices are converted to have ``QQbar`` as their base ring prior
+        to checking the equality of the base rings.
+
+        It is possible for this routine to fail over most fields, even when
+        the matrices are similar.  However, since the field of algebraic
+        numbers is algebraically closed, the routine will always produce
+        a result for matrices with rational entries.
+
+        EXAMPLES:
+
+        The two matrices in this example were constructed to be similar.
+        The computations happen in the field of algebraic numbers, but we
+        are able to convert the change-of-basis matrix back to the rationals
+        (which may not always be possible). ::
+
+            sage: A = matrix(ZZ, [[-5, 2, -11],
+            ...                   [-6, 7, -42],
+            ...                   [0, 1, -6]])
+            sage: B = matrix(ZZ, [[ 1, 12,  3],
+            ...                   [-1, -6, -1],
+            ...                   [ 0,  6,  1]])
+            sage: A.is_similar(B)
+            True
+            sage: _, T = A.is_similar(B, transformation=True)
+            sage: T
+            [  1.000000000000000? + 0.?e-32*I              0.?e-33 + 0.?e-33*I              0.?e-32 + 0.?e-32*I]
+            [-0.6666666666666667? + 0.?e-33*I  0.1666666666666667? + 0.?e-33*I -0.8333333333333333? + 0.?e-32*I]
+            [ 0.6666666666666667? + 0.?e-32*I              0.?e-33 + 0.?e-33*I -0.3333333333333334? + 0.?e-32*I]
+            sage: T.change_ring(QQ)
+            [   1    0    0]
+            [-2/3  1/6 -5/6]
+            [ 2/3    0 -1/3]
+            sage: A == T.inverse()*B*T
+            True
+
+        Other exact fields are supported.  ::
+
+            sage: F.<a> = FiniteField(7^2)
+            sage: A = matrix(F,[[2*a + 5, 6*a + 6,   a + 3],
+            ...                 [  a + 3, 2*a + 2, 4*a + 2],
+            ...                 [2*a + 6, 5*a + 5,     3*a]])
+            sage: B = matrix(F,[[5*a + 5, 6*a + 4,   a + 1],
+            ...                 [  a + 5, 4*a + 3, 3*a + 3],
+            ...                 [3*a + 5,   a + 4, 5*a + 6]])
+            sage: A.is_similar(B)
+            True
+            sage: B.is_similar(A)
+            True
+            sage: _, T = A.is_similar(B, transformation=True)
+            sage: T
+            [      1       0       0]
+            [6*a + 1 4*a + 3 4*a + 2]
+            [6*a + 3 3*a + 5 3*a + 6]
+            sage: A == T.inverse()*B*T
+            True
+
+        Two matrices with different sets of eigenvalues, so they
+        cannot possibly be similar. ::
+
+            sage: A = matrix(QQ, [[ 2,  3, -3, -6],
+            ...                   [ 0,  1, -2, -8],
+            ...                   [-3, -3,  4,  3],
+            ...                   [-1, -2,  2,  6]])
+            sage: B = matrix(QQ, [[ 1,  1,  2,  4],
+            ...                   [-1,  2, -3, -7],
+            ...                   [-2,  3, -4, -7],
+            ...                   [ 0, -1,  0,  0]])
+            sage: A.eigenvalues() == B.eigenvalues()
+            False
+            sage: A.is_similar(B, transformation=True)
+            (False, None)
+
+        Similarity is an equivalence relation, so this routine computes
+        a representative of the equivalence class for each matrix, the
+        Jordan form, as provided by :meth:`jordan_form`.  The matrices
+        below have identical eigenvalues (as evidenced by equal
+        characteristic polynomials), but slightly different Jordan forms,
+        and hence are not similar.
+
+            sage: A = matrix(QQ, [[ 19, -7, -29],
+            ...                   [-16, 11,  30],
+            ...                   [ 15, -7, -25]])
+            sage: B = matrix(QQ, [[-38, -63,  42],
+            ...                   [ 14,  25, -14],
+            ...                   [-14, -21,  18]])
+            sage: A.charpoly() == B.charpoly()
+            True
+            sage: A.jordan_form()
+            [-3| 0  0]
+            [--+-----]
+            [ 0| 4  1]
+            [ 0| 0  4]
+            sage: B.jordan_form()
+            [-3| 0| 0]
+            [--+--+--]
+            [ 0| 4| 0]
+            [--+--+--]
+            [ 0| 0| 4]
+            sage: A.is_similar(B)
+            False
+
+        Obtaining the Jordan form requires computing the eigenvalues of
+        the matrix, which may not lie in the field used for entries of
+        the matrix.  So the routine first checks the characteristic
+        polynomials - if they are unequal, then the matrices cannot be
+        similar. However, when the characteristic polynomials are equal,
+        we must examine the Jordan form. In this case, the method may fail,
+        EVEN when the matrices are similar.  This is not the case for
+        matrices over the integers, rationals or algebraic numbers,
+        since the computations are done in the algebraically closed
+        field of algebraic numbers.
+
+        Here is an example where the similarity is obvious, but the
+        routine fails to compute a result.  ::
+
+            sage: F.<a> = FiniteField(7^2)
+            sage: C = matrix(F,[[  a + 2, 5*a + 4],
+            ...                 [6*a + 6, 6*a + 4]])
+            sage: S = matrix(ZZ, [[0, 1],
+            ...                   [1, 0]])
+            sage: D = S.inverse()*C*S
+            sage: C.is_similar(D)
+            Traceback (most recent call last):
+            ...
+            ValueError: unable to compute Jordan canonical form for a matrix
+            sage: C.jordan_form()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Some eigenvalue does not exist in Finite Field in a of size 7^2.
+
+        Inexact rings and fields are also not supported.  ::
+
+            sage: A = matrix(CDF, 2, 2, range(4))
+            sage: B = copy(A)
+            sage: A.is_similar(B)
+            Traceback (most recent call last):
+            ...
+            ValueError: unable to compute Jordan canonical form for a matrix
+
+        Rectangular matrices and mismatched sizes return quickly.  ::
+
+            sage: A = matrix(3, 2, range(6))
+            sage: B = copy(A)
+            sage: A.is_similar(B)
+            False
+            sage: A = matrix(2, 2, range(4))
+            sage: B = matrix(3, 3, range(9))
+            sage: A.is_similar(B, transformation=True)
+            (False, None)
+
+        If the fraction fields of the entries are unequal, it is an error,
+        except in the case when the rationals gets promoted to the
+        algebraic numbers.  ::
+
+            sage: A = matrix(ZZ, 2, 2, range(4))
+            sage: B = matrix(GF(2), 2, 2, range(4))
+            sage: A.is_similar(B, transformation=True)
+            Traceback (most recent call last):
+            ...
+            TypeError: matrices need to have entries with identical fraction fields, not Algebraic Field and Finite Field of size 2
+            sage: A = matrix(ZZ, 2, 2, range(4))
+            sage: B = matrix(QQbar, 2, 2, range(4))
+            sage: A.is_similar(B)
+            True
+
+        Inputs are checked.  ::
+
+            sage: A = matrix(ZZ, 2, 2, range(4))
+            sage: A.is_similar('garbage')
+            Traceback (most recent call last):
+            ...
+            TypeError: similarity requires a matrix as an argument, not garbage
+            sage: B = copy(A)
+            sage: A.is_similar(B, transformation='junk')
+            Traceback (most recent call last):
+            ...
+            ValueError: transformation keyword must be True or False, not junk
+        """
+        import sage.matrix.matrix
+        import sage.rings.qqbar
+        if not sage.matrix.matrix.is_Matrix(other):
+            raise TypeError('similarity requires a matrix as an argument, not {0}'.format(other))
+        if transformation not in [True, False]:
+            raise ValueError('transformation keyword must be True or False, not {0}'.format(transformation))
+        # easy false situations
+        if not self.is_square() or not other.is_square:
+            if transformation:
+                return (False, None)
+            else:
+                return False
+        if self.nrows() != self.nrows():
+            if transformation:
+                return (False, None)
+            else:
+                return False
+        # convert to fraction fields for base rings
+        A = self.matrix_over_field()
+        B = other.matrix_over_field()
+        # move rationals to algebraically closed algebraic numbers
+        if A.base_ring() == QQ:
+            A = A.change_ring(sage.rings.qqbar.QQbar)
+        if B.base_ring() == QQ:
+            B = B.change_ring(sage.rings.qqbar.QQbar)
+        # require identical base fields
+        if A.base_ring() != B.base_ring():
+            raise TypeError('matrices need to have entries with identical fraction fields, not {0} and {1}'.format(A.base_ring(), B.base_ring()))
+        # unequal characteristic polynomials implies not similar
+        # and avoids any problems with eigenvalues not in the base field
+        if A.charpoly() != B.charpoly():
+            if transformation:
+                return (False, None)
+            else:
+                return False
+        # now more precisely compare Jordan form, and optionally get transformations
+        try:
+            if transformation:
+                JA, SA = A.jordan_form(transformation=True)
+            else:
+                JA = A.jordan_form(transformation=False)
+        except:
+            raise ValueError('unable to compute Jordan canonical form for a matrix')
+        try:
+            if transformation:
+                JB, SB = B.jordan_form(transformation=True)
+            else:
+                JB = B.jordan_form(transformation=False)
+        except:
+            raise ValueError('unable to compute Jordan canonical form for a matrix')
+        similar = (JA == JB)
+        transform = None
+        if similar and transformation:
+            transform = SB*SA.inverse()
+        if transformation:
+            return (similar, transform)
+        else:
+            return similar
+
     def symplectic_form(self):
         r"""
         Find a symplectic form for self if self is an anti-symmetric,

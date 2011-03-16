@@ -1398,7 +1398,7 @@ class WordMorphism(SageObject):
 
         INPUT:
 
-        - ``k`` - a positive integer or None. If set to a positive integer,
+        - ``k`` - a positive integer or None. If set to a positive integer,
           then the function return True if self is `k`-uniform. If set to
           None, then the function return True if self is uniform.
 
@@ -1417,11 +1417,10 @@ class WordMorphism(SageObject):
             sage: tau.is_uniform(k=2)
             True
         """
-        lengths = map(lambda w : w.length(), self.images())
         if k is None:
-            return len(set(lengths)) == 1
+            return len(set(w.length() for w in self.images())) == 1
         else:
-            return all(map(lambda n : n == k, lengths))
+            return all(w.length() == k for w in self.images())
 
     def _fixed_point_iterator(self, letter):
         r"""

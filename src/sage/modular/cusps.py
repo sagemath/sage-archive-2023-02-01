@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 The set `\mathbb{P}^1(\QQ)` of cusps
 
@@ -611,7 +612,7 @@ class Cusp(Element):
         """
         return Cusp(-self.__a, self.__b)
 
-    def is_gamma0_equiv(self, other, N, transformation = False):
+    def is_gamma0_equiv(self, other, N, transformation = None):
         r"""
         Return whether self and other are equivalent modulo the action of
         `\Gamma_0(N)` via linear fractional transformations.
@@ -624,18 +625,16 @@ class Cusp(Element):
         -  ``N`` - an integer (specifies the group
            Gamma_0(N))
 
-        -  ``transformation`` - bool (default: False), if True,
-           also return upper left entry of a matrix in Gamma_0(N) that sends
-           self to other.
+        -  ``transformation`` - None (default) or either the string 'matrix' or 'corner'. If 'matrix',
+           it also returns a matrix in Gamma_0(N) that sends self to other. The matrix is chosen such that the lower left entry is as small as possible in absolute value. If 'corner' (or True for backwards compatibility), it returns only the upper left entry of such a matrix.
 
 
         OUTPUT:
 
 
-        -  ``bool`` - True if self and other are equivalent
+        -  a boolean - True if self and other are equivalent
 
-        -  ``integer`` - returned only if transformation is
-           True
+        -  a matrix or an integer- returned only if transformation is 'matrix' or 'corner', respectively.
 
 
         EXAMPLES::
@@ -644,21 +643,29 @@ class Cusp(Element):
             sage: y = Cusp(4,5)
             sage: x.is_gamma0_equiv(y, 2)
             True
-            sage: x.is_gamma0_equiv(y, 2, True)
-            (True, 1)
+            sage: _, ga = x.is_gamma0_equiv(y, 2, 'matrix'); ga
+            [-1  2]
+            [-2  3]
             sage: x.is_gamma0_equiv(y, 3)
             False
-            sage: x.is_gamma0_equiv(y, 3, True)
+            sage: x.is_gamma0_equiv(y, 3, 'matrix')
             (False, None)
+            sage: Cusp(1/2).is_gamma0_equiv(1/3,11,'corner')
+            (True, 19)
+
             sage: Cusp(1,0)
             Infinity
             sage: z = Cusp(1,0)
-            sage: x.is_gamma0_equiv(z, 3, True)
-            (True, 2)
+            sage: x.is_gamma0_equiv(z, 3, 'matrix')
+            (True, [-1  1]
+            [-3  2])
 
-        ALGORITHM: See Proposition 2.2.3 of Cremona's book "Algorithms for
-        Modular Elliptic Curves", or Prop 2.27 of Stein's Ph.D. thesis.
+        ALGORITHM: See Proposition 2.2.3 of Cremona's book 'Algorithms for
+        Modular Elliptic Curves', or Prop 2.27 of Stein's Ph.D. thesis.
         """
+        if transformation not in [False,True,"matrix",None,"corner"]:
+            raise ValueError, "Value %s of the optional argument transformation is not valid."
+
         if not isinstance(other, Cusp):
             other = Cusp(other)
         N = ZZ(N)
@@ -666,33 +673,80 @@ class Cusp(Element):
         v1 = self.__b
         u2 = other.__a
         v2 = other.__b
-        if (u1,v1) != (ZZ(0),ZZ(1)):
-            if v1 in [ZZ(0),ZZ(1)]:
-                s1 = ZZ(1)
+
+        zero = ZZ.zero_element()
+        one = ZZ.one_element()
+
+        if transformation == "matrix":
+            from sage.matrix.constructor import matrix
+
+        #if transformation :
+        #    transformation = "corner"
+
+        if v1 == v2 and u1 == u2:
+            if not transformation:
+                return True
+            elif transformation == "matrix":
+                return True, matrix(ZZ,[[1,0],[0,1]])
+            else:
+                return True, one
+
+        # a necessary, but not sufficient condition unless N is square-free
+        if v1.gcd(N) != v2.gcd(N):
+            if not transformation:
+                return False
+            else:
+                return False, None
+
+        if (u1,v1) != (zero,one):
+            if v1 in [zero, one]:
+                s1 = one
             else:
                 s1 = u1.inverse_mod(v1)
         else:
             s1 = 0
-        if (u2,v2) != (ZZ(0),ZZ(1)):
-            if v2 in [ZZ(0),ZZ(1)]:
-                s2 = 1
+        if (u2,v2) != (zero, one):
+            if v2 in [zero,one]:
+                s2 = one
             else:
                 s2 = u2.inverse_mod(v2)
         else:
-            s2 = 0
+            s2 = zero
         g = (v1*v2).gcd(N)
         a = s1*v2 - s2*v1
-        if a%g != ZZ(0):
-            if transformation:
-                return False, None
-            else:
+        if a%g != 0:
+            if not transformation:
                 return False
+            else:
+                return False, None
 
         if not transformation:
             return True
 
         # Now we know the cusps are equivalent.  Use the proof of Prop 2.2.3
         # of Cremona to find a matrix in Gamma_0(N) relating them.
+        if v1 == 0: # the first is oo
+            if v2 == 0: # both are oo
+                if transformation == "matrix":
+                    return (True, matrix(ZZ,[[1,0],[0,1]]))
+                else:
+                    return (True, one)
+            else:
+                dum, s2, r2 = u2.xgcd(-v2)
+                assert dum.is_one()
+                if transformation ==  "matrix":
+                    return (True, matrix(ZZ, [[u2,r2],[v2,s2]]) )
+                else:
+                    return (True, u2)
+
+        elif v2 == 0: # the second is oo
+            dum, s1, r1 = u1.xgcd(-v1)
+            assert dum.is_one()
+            if transformation == "matrix":
+                return (True, matrix(ZZ, [[s1,-r1],[-v1,u1]]) )
+            else:
+                return (True, s1)
+
         dum, s2, r2 = u2.xgcd(-v2)
         assert dum.is_one()
         dum, s1, r1 = u1.xgcd(-v1)
@@ -702,10 +756,42 @@ class Cusp(Element):
         # solve x*v1*v2 + a = 0 (mod N).
         d,x0,y0 = (v1*v2).xgcd(N)          # x0*v1*v2 + y0*N = d = g.
         # so x0*v1*v2 - g = 0 (mod N)
-        x = -x0 * (a/g)
+        x = -x0 * ZZ(a/g)
         # now  x*v1*v2 + a = 0 (mod N)
+
+        # the rest is all added in trac 10926
         s1p = s1+x*v1
-        return (True, (u2*s1p-r2*v1)%N)
+        M = N//g
+
+        if transformation == "matrix":
+            C = s1p*v2 - s2*v1
+            if C % (M*v1*v2) == 0 :
+                k = - C//(M*v1*v2)
+            else:
+                k = - (C/(M*v1*v2)).round()
+
+            s1pp = s1p + k *M* v1
+            # C += k*M*v1*v2  # is now the smallest in absolute value
+            C = s1pp*v2 - s2*v1
+            A = u2*s1pp - r2*v1
+
+            r1pp = r1 + (x+k*M)*u1
+            B = r2 * u1 - r1pp * u2
+            D = s2 * u1 - r1pp * v2
+
+            ga = matrix(ZZ, [[A,B],[C,D]])
+            assert ga.det() == 1
+            assert C % N == 0
+            assert (A*u1 + B*v1)/(C*u1+D*v1) == u2/v2
+            return (True, ga)
+
+        else:
+            # mainly for backwards compatibility and
+            # for how it is used in modular symbols
+            A = (u2*s1p - r2*v1)
+            if u2 != 0 and v1 != 0:
+                A = A % (u2*v1*M)
+            return (True, A)
 
     def is_gamma1_equiv(self, other, N):
         """

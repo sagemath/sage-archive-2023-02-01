@@ -3011,6 +3011,12 @@ def plot(funcs, *args, **kwds):
         Traceback (most recent call last):
         ...
         RuntimeError: Error in line(): option 'foo' not valid.
+
+    We test that we can plot `f(x)=x` (see Trac 10246)::
+
+        sage: f(x)=x; f
+        x |--> x
+        sage: plot(f,(x,-1,1))
     """
     G_kwds = Graphics._extract_kwds_for_show(kwds, ignore=['xmin', 'xmax'])
 

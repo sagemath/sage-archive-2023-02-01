@@ -1052,6 +1052,14 @@ class FastFloatConverter(Converter):
             sage: f(1.2)
             1.2
 
+        Using _fast_float_ on a function which is the identity is
+        now supported (see Trac 10246)::
+
+            sage: f = symbolic_expression(x).function(x)
+            sage: f._fast_float_(x)
+            <sage.ext.fast_eval.FastDoubleFunc object at ...>
+            sage: f(22)
+            22
         """
         self.ex = ex
 
@@ -1125,6 +1133,11 @@ class FastFloatConverter(Converter):
         svars = [repr(x) for x in vars]
         if name in svars:
             return self.ff.fast_float_arg(svars.index(name))
+
+        if ex._is_symbol(): # case of callable function which is the variable, like f(x)=x
+            name = repr(SR(ex)) # this gets back just the 'output' of the function
+            if name in svars:
+                return self.ff.fast_float_arg(svars.index(name))
 
         try:
             return self.ff.fast_float_constant(float(ex))

@@ -49,12 +49,12 @@ Once you have a cone, you can perform numerous operations on it. The most
 important ones are, probably, ray accessing methods::
 
     sage: halfspace.rays()
-    (N(0, 0, 1), N(1, 0, 0), N(-1, 0, 0), N(0, 1, 0), N(0, -1, 0))
-    sage: halfspace.ray(2)
-    N(-1, 0, 0)
+    (N(0, 0, 1), N(0, 1, 0), N(0, -1, 0), N(1, 0, 0), N(-1, 0, 0))
+    sage: halfspace.ray(3)
+    N(1, 0, 0)
     sage: halfspace.ray_matrix()
-    [ 0  1 -1  0  0]
     [ 0  0  0  1 -1]
+    [ 0  1 -1  0  0]
     [ 1  0  0  0  0]
     sage: halfspace.ray_set()
     frozenset([N(1, 0, 0), N(-1, 0, 0), N(0, 1, 0), N(0, 0, 1), N(0, -1, 0)])
@@ -68,9 +68,9 @@ If you want to do something with each ray of a cone, you can write ::
 You can also get an iterator over only some selected rays::
 
     sage: for ray in halfspace.ray_iterator([1,2,1]): print ray
-    N(1, 0, 0)
-    N(-1, 0, 0)
-    N(1, 0, 0)
+    N(0, 1, 0)
+    N(0, -1, 0)
+    N(0, 1, 0)
 
 There are two dimensions associated to each cone - the dimension of the
 subspace spanned by the cone and the dimension of the space where it lives::
@@ -183,6 +183,9 @@ from sage.modules.all import span, vector
 from sage.rings.all import QQ, RR, ZZ, gcd
 from sage.structure.all import SageObject
 from sage.structure.coerce import parent
+from sage.libs.ppl import C_Polyhedron, Generator_System, Constraint_System, \
+    Linear_Expression, ray as PPL_ray, point as PPL_point, \
+    Poly_Con_Relation
 
 
 def is_Cone(x):
@@ -211,39 +214,38 @@ def is_Cone(x):
     return isinstance(x, ConvexRationalPolyhedralCone)
 
 
-def Cone(data, lattice=None, check=True, normalize=True):
+def Cone(rays, lattice=None, check=True, normalize=True):
     r"""
     Construct a (not necessarily strictly) convex rational polyhedral cone.
 
     INPUT:
 
-    - ``data`` -- one of the following:
-        * :class:`~sage.geometry.polyhedra.Polyhedron` object representing
-          a valid cone;
-        * list of rays. Each ray should be given as a list or a vector
-          convertible to the rational extension of the given ``lattice``;
+    - ``rays`` -- list of rays. Each ray should be given as a list or
+      a vector convertible to the rational extension of the given
+      ``lattice``. May also be specified by a
+      :class:`~sage.geometry.polyhedra.Polyhedron` object.
 
     - ``lattice`` -- :class:`ToricLattice
       <sage.geometry.toric_lattice.ToricLatticeFactory>`, `\ZZ^n`, or any
       other object that behaves like these. If not specified, an attempt will
       be made to determine an appropriate toric lattice automatically;
 
-    - ``check`` -- by default the input data will be checked for correctness
-      (e.g. that all rays have the same number of components) and generating
-      rays will be constructed from ``data``. If you know that the input is
-      a minimal set of generators of a valid cone, you may significantly
-      (up to 100 times on simple input) decrease construction time using
-      ``check=False`` option;
+    - ``check`` -- by default the input data will be checked for
+      correctness (e.g. that all rays have the same number of
+      components) and generating rays will be constructed from
+      ``rays``. If you know that the input is a minimal set of
+      generators of a valid cone, you may significantly decrease
+      construction time using ``check=False`` option;
 
     - ``normalize`` -- you can further speed up construction using
-      ``normalize=False`` option. In this case ``data`` must be a list of
+      ``normalize=False`` option. In this case ``rays`` must be a list of
       immutable primitive rays in ``lattice``. In general, you should not use
       this option, it is designed for code optimization and does not give as
       drastic improvement in speed as the previous one.
 
     OUTPUT:
 
-    - convex rational polyhedral cone determined by ``data``.
+    - convex rational polyhedral cone determined by ``rays``.
 
     EXAMPLES:
 
@@ -268,7 +270,7 @@ def Cone(data, lattice=None, check=True, normalize=True):
     If you give more rays than necessary, the extra ones will be discarded::
 
         sage: Cone([(1,0), (0,1), (1,1), (0,1)]).rays()
-        (N(1, 0), N(0, 1))
+        (N(0, 1), N(1, 0))
 
     However, this work is not done with ``check=False`` option, so use it
     carefully! ::
@@ -340,12 +342,30 @@ def Cone(data, lattice=None, check=True, normalize=True):
 
         sage: plane = Cone([(1,0), (0,1), (-1,-1)])
         sage: plane.ray_matrix()
-        [ 1 -1  0  0]
         [ 0  0  1 -1]
+        [ 1 -1  0  0]
+
+    The cone can also be specified by a
+    :class:`~sage.geometry.polyhedra.Polyhedron`::
+
+        sage: p = plane.polyhedron()
+        sage: Cone(p)
+        2-d cone in 2-d lattice N
+        sage: Cone(p) == plane
+        True
+
+    TESTS::
+
+        sage: N = ToricLattice(2)
+        sage: Nsub = N.span([ N(1,2) ])
+        sage: Cone(Nsub.basis())
+        1-d cone in 2-d lattice N
+        sage: Cone([N(0)])
+        0-d cone in 2-d lattice N
     """
     # Cone from Polyhedron
-    if isinstance(data, Polyhedron):
-        polyhedron = data
+    if isinstance(rays, Polyhedron):
+        polyhedron = rays
         if lattice is None:
             lattice = ToricLattice(polyhedron.ambient_dim())
         if polyhedron.n_vertices() > 1:
@@ -368,12 +388,7 @@ def Cone(data, lattice=None, check=True, normalize=True):
         cone._lines = lines
         return cone
     # Cone from rays
-    rays = data
     if check or normalize:
-        # In principle, if check is True, this normalization is redundant,
-        # since we will need to renormalize the output from Polyhedra, but
-        # doing it now gives more consistent error messages (and it seems to
-        # be fast anyway, compared to Polyhedron creation).
         rays = normalize_rays(rays, lattice)
     if lattice is None:
         if rays:
@@ -381,10 +396,58 @@ def Cone(data, lattice=None, check=True, normalize=True):
         else:
             raise ValueError(
                 "lattice must be given explicitly if there are no rays!")
-    if check and rays:
-        # Any set of rays forms a cone, but we want to keep only generators
-        return Cone(Polyhedron(rays=rays), lattice)
-    return ConvexRationalPolyhedralCone(rays, lattice)
+    if not check or not rays:
+        return ConvexRationalPolyhedralCone(rays, lattice)
+    # Any set of rays forms a cone, but we want to keep only generators
+    gs = Generator_System( PPL_point(Linear_Expression(lattice(0),0)) )
+    for r in rays:
+        try:
+            gs.insert( PPL_ray(Linear_Expression(r,0)) )
+        except ValueError:  # r == 0
+            pass
+    cone = C_Polyhedron(gs)
+    return _Cone_from_PPL(cone, lattice)
+
+
+def _Cone_from_PPL(cone, lattice):
+    """
+    Construct a cone from a :class:`~sage.libs.ppl.Polyhedron`.
+
+    This is a private function and not intended to be exposed to the
+    end user. It is used internally by :func:`Cone` and in
+    :meth:`ConvexRationalPolyhedralCone.intersection`.
+
+    INPUT:
+
+    - ``cone`` -- a :class:`~sage.libs.ppl.Polyhedron` having the
+      origin as its single point.
+
+    - ``lattice`` -- :class:`ToricLattice
+      <sage.geometry.toric_lattice.ToricLatticeFactory>`, `\ZZ^n`, or any
+      other object that behaves like these.
+
+    OUTPUT:
+
+    A :class:`ConvexRationalPolyhedralCone`.
+
+    TESTS::
+
+        sage: Cone([(1,0), (0,1), (1,1), (0,1)]).rays()   # indirect doctest
+        (N(0, 1), N(1, 0))
+    """
+    rays = []
+    lines = []
+    for g in cone.minimized_generators():
+        ray = lattice(g.coefficients())
+        ray.set_immutable()
+        if g.is_ray():
+            rays.append(ray)
+        if g.is_line():
+            lines.append(ray)
+            negative_ray = -ray
+            negative_ray.set_immutable()
+            lines.append(negative_ray)
+    return ConvexRationalPolyhedralCone(rays+lines, lattice, PPL=cone)
 
 
 def normalize_rays(rays, lattice):
@@ -1001,6 +1064,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
     INPUT:
 
+    The input can be either:
+
     - ``rays`` -- list of immutable primitive vectors in ``lattice``;
 
     - ``lattice`` -- :class:`ToricLattice
@@ -1010,7 +1075,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
       there are no rays, so in this case you must give an appropriate
       ``lattice`` directly.
 
-    OR (these parameters must be given as keywords):
+    or (these parameters must be given as keywords):
 
     - ``ambient`` -- ambient structure of this cone, a bigger :class:`cone
       <ConvexRationalPolyhedralCone>` or a :class:`fan
@@ -1019,6 +1084,13 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
     - ``ambient_ray_indices`` -- increasing list or tuple of integers, indices
       of rays of ``ambient`` generating this cone.
+
+    In both cases, the following keyword parameter may be specified in addition:
+
+    - ``PPL`` -- either ``None`` (default) or a
+      :class:`~sage.libs.ppl.C_Polyhedron` representing the cone. This
+      serves only to cache the polyhedral data if you know it
+      already. The polyhedron will be set immutable.
 
     OUTPUT:
 
@@ -1031,7 +1103,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
     """
 
     def __init__(self, rays=None, lattice=None,
-                 ambient=None, ambient_ray_indices=None):
+                 ambient=None, ambient_ray_indices=None, PPL=None):
         r"""
         See :class:`ConvexRationalPolyhedralCone` for documentation.
 
@@ -1071,6 +1143,39 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             self._ambient_ray_indices = tuple(ambient_ray_indices)
             superinit(ambient.rays(self._ambient_ray_indices),
                       ambient.lattice())
+        if not PPL is None:
+            self._PPL_C_Polyhedron = PPL
+            self._PPL_C_Polyhedron.set_immutable()
+
+    def _PPL_cone(self):
+        r"""
+        Returns the Parma Polyhedra Library (PPL) representation of the cone.
+
+        OUTPUT:
+
+        A :class:`~sage.libs.ppl.C_Polyhedron` representing the
+        cone. Note that such objects are always mutable. It is your
+        responsibility to not modify it, or the
+        :class:`RationalPolyhedralCone` will be internally
+        inconsistent.
+
+        EXAMPLES::
+
+            sage: c = Cone([(1,0), (1,1), (0,1)])
+            sage: c._PPL_cone()
+            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 point, 2 rays.
+            sage: c._PPL_cone().minimized_generators()
+            Generator_System {point(0/1, 0/1), ray(0, 1), ray(1, 0)}
+            sage: c._PPL_cone().minimized_constraints()
+            Constraint_System {x1>=0, x0>=0}
+        """
+        if "_PPL_C_Polyhedron" not in self.__dict__:
+            gs = Generator_System( PPL_point() )
+            for r in self.rays():
+                gs.insert( PPL_ray(Linear_Expression(r,0)) )
+            self._PPL_C_Polyhedron = C_Polyhedron(gs)
+            self._PPL_C_Polyhedron.set_immutable()
+        return self._PPL_C_Polyhedron
 
     def __contains__(self, point):
         r"""
@@ -1107,6 +1212,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         state = copy.copy(self.__dict__)
         state.pop("_polyhedron", None) # Polyhedron is not picklable.
         state.pop("_lattice_polytope", None) # Just to save time and space.
+        state.pop("_PPL_C_Polyhedron", None) # PPL is not picklable.
         return state
 
     def _contains(self, point, region='whole cone'):
@@ -1136,6 +1242,9 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         - ``True`` if ``point`` is contained in the specified ``region`` of
           ``self``, ``False`` otherwise.
 
+        Raises a ``ValueError`` if ``region`` is not one of the
+        three allowed values.
+
         TESTS::
 
             sage: c = Cone([(1,0), (0,1)])
@@ -1150,8 +1259,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
                               "from an incompatible lattice, this is False!",
                               stacklevel=3)
             return False
-        # return all(n * point >= 0 for n in self.facet_normals())
-        # The above line does not work for non-full dimensional cones!
+
         if region == 'whole cone':
             return self.polyhedron().contains(point)
         elif region == 'interior':
@@ -2089,7 +2197,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         A lattice that does not have a ``dual()`` method::
 
             sage: Cone([(1,1),(0,1)], lattice=ZZ^2).facet_normals()
-            ((-1, 1), (1, 0))
+            ((1, 0), (-1, 1))
 
         We correctly handle the degenerate cases::
 
@@ -2108,26 +2216,19 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             ()
         """
         if "_facet_normals" not in self.__dict__:
-            M = self.dual_lattice()
-            P = self.lattice_polytope()
-            rotate_lifts = not self.is_strictly_convex()
-            if rotate_lifts:
-                # B will be used to compute "lift-corrections" so that
-                # lifts are orthogonal to the linear subspace of self
-                A = self.linear_subspace().basis_matrix()
-                B = A.stack(identity_matrix(A.ncols()))
-                B = B.matrix_from_rows(B.pivot_rows())
-                tail = [0] * (A.ncols() - A.nrows())
-                Q = M / self.orthogonal_sublattice()
+            cone = self._PPL_cone()
             normals = []
-            for i in range(P.nfacets()):
-                if P.facet_constant(i) == 0:
-                    normal = P.facet_normal(i)
-                    if rotate_lifts:
-                        normal = Q(normal).lift()
-                        normal -= B.solve_right(vector(list(A*normal) + tail))
-                    normals.append(normal)
-            self._facet_normals = tuple(normalize_rays(normals, M))
+            for c in cone.minimized_constraints():
+                assert c.inhomogeneous_term() == 0
+                if c.is_inequality():
+                    normals.append(c.coefficients())
+            M = self.dual_lattice()
+            if M is self.lattice():
+                M = ZZ ** self.lattice_dim()
+            normals = tuple(map(M,normals))
+            for n in normals:
+                n.set_immutable()
+            self._facet_normals = normals
         return self._facet_normals
 
     def facet_of(self):
@@ -2203,12 +2304,15 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         - :class:`cone <ConvexRationalPolyhedralCone>`.
 
+        Raises ``ValueError`` if the ambient space dimensions are not
+        compatible.
+
         EXAMPLES::
 
             sage: cone1 = Cone([(1,0), (-1, 3)])
             sage: cone2 = Cone([(-1,0), (2, 5)])
             sage: cone1.intersection(cone2).rays()
-            (N(2, 5), N(-1, 3))
+            (N(-1, 3), N(2, 5))
         """
         if self._ambient is other._ambient:
             # Cones of the same ambient cone or fan intersect nicely/quickly.
@@ -2220,9 +2324,13 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             # although it forces all of them to accept such input
             return type(self)(ambient=self._ambient,
                               ambient_ray_indices=ambient_ray_indices)
+
+        if self.lattice_dim() != other.lattice_dim():
+            raise ValueError('The cones must be in same-dimensional lattices.')
         # Generic (slow) intersection, returning a generic cone.
-        return Cone(self.polyhedron().intersection(other.polyhedron()),
-                    self.lattice())
+        p = C_Polyhedron(self._PPL_cone())
+        p.add_constraints(other._PPL_cone().constraints())
+        return _Cone_from_PPL(p, self.lattice())
 
     def is_equivalent(self, other):
         r"""
@@ -2268,13 +2376,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             return self.ambient_ray_indices() == other.ambient_ray_indices()
         if self.lattice() != other.lattice():
             return False
-        if self.ray_set() == other.ray_set():
-            return True
-        if self.is_strictly_convex() or other.is_strictly_convex():
-            return False # For strictly convex cones ray sets must coincide
-        if self.linear_subspace() != other.linear_subspace():
-            return False
-        return self.strict_quotient().is_equivalent(other.strict_quotient())
+        return self._PPL_cone() == other._PPL_cone()
 
     def is_face_of(self, cone):
         r"""
@@ -2299,6 +2401,14 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             True
             sage: cone2.is_face_of(quadrant)
             False
+
+        Being a face means more than just saturating a facet
+        inequality::
+
+            sage: octant = Cone([(1,0,0), (0,1,0), (0,0,1)])
+            sage: cone = Cone([(2,1,0),(1,2,0)])
+            sage: cone.is_face_of(octant)
+            False
         """
         if self.lattice() != cone.lattice():
             return False
@@ -2307,29 +2417,27 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             return self.ray_set().issubset(cone.ray_set())
         if self.is_equivalent(cone):
             return True
-        # Obviously False cases
-        if (self.dim() >= cone.dim() # if == and face, we return True above
-            or self.is_strictly_convex() != cone.is_strictly_convex()
-            or self.linear_subspace() != cone.linear_subspace()):
+        # Obviously False case
+        if self.dim() >= cone.dim(): # if == and face, we return True above
             return False
-        # Now we need to worry only about strict quotients
-        if not self.strict_quotient().ray_set().issubset(
-                                            cone.strict_quotient().ray_set()):
+
+        # It remains to test whether self is a proper face of cone:
+        # 1) self must saturate at least one facet inequality
+        saturates = Poly_Con_Relation.saturates()
+        supporting_hyperplanes = Constraint_System()
+        for c in cone._PPL_cone().minimized_constraints():
+            rel = self._PPL_cone().relation_with(c)
+            if c.is_equality() and not rel.implies(saturates):
+                return False
+            if c.is_inequality() and rel.implies(saturates):
+                c_eq = (Linear_Expression(c.coefficients(), c.inhomogeneous_term()) == 0)
+                supporting_hyperplanes.insert(c_eq)
+        if supporting_hyperplanes.empty():
             return False
-        # Maybe this part can be written in a more efficient way
-        ph_self = self.strict_quotient().polyhedron()
-        ph_cone = cone.strict_quotient().polyhedron()
-        containing = []
-        for n, H in enumerate(ph_cone.Hrepresentation()):
-            containing.append(n)
-            for V in ph_self.Vrepresentation():
-                if H.eval(V) != 0:
-                    containing.pop()
-                    break
-        m = ph_cone.incidence_matrix().matrix_from_columns(containing)
-        # The intersection of all containing hyperplanes should contain only
-        # rays of the potential face and the origin
-        return map(sum, m.rows()).count(m.ncols()) == ph_self.n_rays() + 1
+        # 2) self must be a whole face, and not just part of one
+        cone_face = C_Polyhedron(cone._PPL_cone())
+        cone_face.add_constraints(supporting_hyperplanes)
+        return cone_face == self._PPL_cone()
 
     def is_isomorphic(self, other):
         r"""
@@ -2443,7 +2551,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         EXAMPLES::
 
-            sage: c0 = Cone([(0)], lattice=ToricLattice(3))
+            sage: c0 = Cone([], lattice=ToricLattice(3))
             sage: c0.is_trivial()
             True
             sage: c0.nrays()
@@ -2471,7 +2579,12 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             False
         """
         if "_is_strictly_convex" not in self.__dict__:
-            self._is_strictly_convex = self.polyhedron().n_lines() == 0
+            convex = True
+            for gs in self._PPL_cone().minimized_generators():
+                if gs.is_line():
+                    convex = False
+                    break
+            self._is_strictly_convex = convex
         return self._is_strictly_convex
 
     def lattice_polytope(self):
@@ -2582,14 +2695,18 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             (N(1, 0),)
             sage: fullplane = Cone([(1,0), (0,1), (-1,-1)])
             sage: fullplane.lines()
-            (N(1, 0), N(0, 1))
+            (N(0, 1), N(1, 0))
         """
         if "_lines" not in self.__dict__:
-            if self.is_strictly_convex():
-                self._lines = ()
-            else:
-                self._lines = tuple(normalize_rays(self.polyhedron().lines(),
-                                                   self.lattice()))
+            lines = []
+            for g in self._PPL_cone().minimized_generators():
+                if g.is_line():
+                    lines.append(g.coefficients())
+            N = self.lattice()
+            lines = tuple(map(N,lines))
+            for l in lines:
+                l.set_immutable()
+            self._lines = lines
         return self._lines
 
     def plot(self, **options):
@@ -3159,7 +3276,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: rho = Cone([(1,1,1,3),(1,-1,1,3),(-1,-1,1,3),(-1,1,1,3)])
             sage: rho.orthogonal_sublattice()
             Sublattice <M(0, 0, 3, -1)>
-            sage: sigma = rho.facets()[0]
+            sage: sigma = rho.facets()[1]
             sage: sigma.orthogonal_sublattice()
             Sublattice <M(0, 1, 1, 0), M(0, 3, 0, 1)>
             sage: sigma.is_face_of(rho)

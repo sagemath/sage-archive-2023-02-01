@@ -105,13 +105,13 @@ The (rational) divisor class group is where the Kaehler cone lives::
     sage: Kc = dP6.Kaehler_cone(); Kc
     4-d cone in 4-d lattice
     sage: Kc.rays()
-    (Divisor class [1, 1, 0, 0],
-     Divisor class [1, 1, 1, 0],
-     Divisor class [0, 1, 1, 1],
+    (Divisor class [0, 1, 1, 0],
      Divisor class [0, 0, 1, 1],
-     Divisor class [0, 1, 1, 0])
+     Divisor class [1, 1, 0, 0],
+     Divisor class [1, 1, 1, 0],
+     Divisor class [0, 1, 1, 1])
     sage: Kc.ray(1).lift()
-    V(x) + V(u) + V(y)
+    V(y) + V(v)
 
 Given a divisor `D`, we have an associated line bundle (or a reflexive
 sheaf, if `D` is not Cartier) `\mathcal{O}(D)`. Its sections are::

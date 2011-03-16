@@ -1304,7 +1304,7 @@ class ToricVariety_field(AmbientSpace):
             sage: P4_11169.Mori_cone()
             2-d cone in 7-d lattice
             sage: P4_11169.Mori_cone().rays()
-            ((3, 2, 0, 0, 0, 1, -6), (0, 0, 1, 1, 1, -3, 0))
+            ((0, 0, 1, 1, 1, -3, 0), (3, 2, 0, 0, 0, 1, -6))
         """
         if "_Mori_cone" not in self.__dict__:
             # Ideally, self.Kaehler_cone().dual() should be it, but

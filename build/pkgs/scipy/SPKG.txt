@@ -32,6 +32,9 @@ BSD terms. See http://www.scipy.org/License_Compatibility
 
 == Changelog ==
 
+== scipy-0.9 (F. Bissey; 16 March 2011) ===
+ * updated the source to 0.9.0. No patches needed.
+
 == scipy-0.8 (S. Reiterer, F. Bissey, D. Kirkby, J. H. Palmieri; 14 October 2010) ===
  * #9808 Upgrade to scipy 0.8.
  * Deleted outdated patches

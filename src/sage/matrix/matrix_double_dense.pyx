@@ -1525,7 +1525,6 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             [51.9689561987  74.736564567]
             [112.104846851 164.073803049]
             sage: A.exp(algorithm='eig')
-            doctest:94: ComplexWarning: Casting complex values to real discards the imaginary part
             [51.9689561987  74.736564567]
             [112.104846851 164.073803049]
             sage: A.exp(order=2)

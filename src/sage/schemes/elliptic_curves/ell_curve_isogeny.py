@@ -963,6 +963,19 @@ class EllipticCurveIsogeny(Morphism):
             sage: tau(Q)
             (0 : 1 : 0)
 
+        TESTS (trac 10888)::
+
+            sage: K.<th> = NumberField(x^2+3)
+            sage: E = EllipticCurve(K,[7,0])
+            sage: phi = E.isogeny(E(0,0))
+            sage: P = E(-3,4*th)
+            sage: phi(P)
+            (-16/3 : 8/9*th : 1)
+            sage: Q = phi(P)
+            sage: phihat = phi.dual()
+            sage: phihat(Q)
+            (-1/48 : 127/576*th : 1)
+
         """
         E1 = self.__E1
         E_P = P.curve()
@@ -987,8 +1000,8 @@ class EllipticCurveIsogeny(Morphism):
 
         # if there is a pre isomorphism, apply it
         if (self.__pre_isomorphism is not None):
-            temp_xP = self.__prei_x_coord_ratl_map(x=xP, y=yP)
-            temp_yP = self.__prei_y_coord_ratl_map(x=xP, y=yP)
+            temp_xP = self.__prei_x_coord_ratl_map(xP, yP)
+            temp_yP = self.__prei_y_coord_ratl_map(xP, yP)
             (xP, yP) = (temp_xP, temp_yP)
 
         if ("velu" == self.__algorithm):
@@ -1003,8 +1016,8 @@ class EllipticCurveIsogeny(Morphism):
 
         # if there is a post isomorphism, apply it
         if (self.__post_isomorphism is not None):
-            tempX = self.__posti_x_coord_ratl_map(x=outP[0], y=outP[1])
-            tempY = self.__posti_y_coord_ratl_map(x=outP[0], y=outP[1])
+            tempX = self.__posti_x_coord_ratl_map(outP[0], outP[1])
+            tempY = self.__posti_y_coord_ratl_map(outP[0], outP[1])
             outP = [tempX, tempY]
 
         if change_output_ring:
@@ -2489,9 +2502,9 @@ class EllipticCurveIsogeny(Morphism):
         x = self.__x_var
         y = self.__y_var
 
-        psi_out = self.__psi(x=xP,y=yP)
-        phi_out = self.__phi(x=xP,y=yP)
-        omega_out =self.__omega(x=xP, y=yP)
+        psi_out = self.__psi(xP,yP)
+        phi_out = self.__phi(xP,yP)
+        omega_out =self.__omega(xP, yP)
 
         psi_inv_out = 1/psi_out
 

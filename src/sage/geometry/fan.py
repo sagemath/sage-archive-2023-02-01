@@ -1202,6 +1202,34 @@ class RationalPolyhedralFan(IntegralRayCollection,
             return True
         return any(point in cone for cone in self)
 
+    def cartesian_product(self, other):
+        r"""
+        Return the product fan with ``other``.
+
+        INPUT:
+
+        - ``other`` -- a :class:`rational polyhedral fan
+          <sage.geometry.fan.RationalPolyhedralFan>`.
+
+        OUTPUT:
+
+        The cartesian product fan. Its set of cones are all pairwise
+        cartesian products of the cones of ``self`` and ``other``.
+
+        EXAMPLES::
+
+            sage: fan1 = Fan([[0],[1]],[(1,),(-1,)], lattice=ToricLattice(1,'K'))
+            sage: fan2 = Fan([[0,1],[1,2],[2,0]], [(1,0),(0,1),(-1,-1)], lattice=ToricLattice(2,'L'))
+            sage: fan1.cartesian_product(fan2)
+            Rational polyhedral fan in 3-d lattice K+L
+        """
+        lattice = self.lattice().direct_sum(other.lattice())
+        cones = []
+        for c1 in self.generating_cones():
+            for c2 in other.generating_cones():
+                cones.append(Cone(c1).cartesian_product(Cone(c2),lattice))
+        return Fan(cones)
+
     def _latex_(self):
         r"""
         Return a LaTeX representation of ``self``.

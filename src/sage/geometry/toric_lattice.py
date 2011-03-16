@@ -494,6 +494,63 @@ class ToricLattice_generic(FreeModule_generic_pid):
         """
         return None
 
+    def direct_sum(self, other):
+        r"""
+        Return the direct sum with ``other``.
+
+        INPUT:
+
+        - ``other`` -- a toric lattice or more general module.
+
+        OUTPUT:
+
+        The direct sum of ``self`` and ``other`` as `\ZZ`-modules. If
+        ``other`` is a :class:`ToricLattice <ToricLatticeFactory>`,
+        another toric lattice will be returned.
+
+        EXAMPLES::
+
+            sage: K = ToricLattice(3, 'K')
+            sage: L = ToricLattice(3, 'L')
+            sage: N = K.direct_sum(L); N
+            6-d lattice K+L
+            sage: N, N.dual(), latex(N), latex(N.dual())
+            (6-d lattice K+L, 6-d lattice K*+L*, K \oplus L, K^* \oplus L^*)
+
+        With default names::
+
+            sage: N = ToricLattice(3).direct_sum(ToricLattice(2))
+            sage: N, N.dual(), latex(N), latex(N.dual())
+            (5-d lattice N+N, 5-d lattice M+M, N \oplus N, M \oplus M)
+
+        If ``other`` is not a :class:`ToricLattice
+        <ToricLatticeFactory>`, fall back to sum of modules::
+
+            sage: ToricLattice(3).direct_sum(ZZ^2)
+            Free module of degree 5 and rank 5 over Integer Ring
+            Echelon basis matrix:
+            [1 0 0 0 0]
+            [0 1 0 0 0]
+            [0 0 1 0 0]
+            [0 0 0 1 0]
+            [0 0 0 0 1]
+        """
+        if not isinstance(other, ToricLattice_generic):
+            return super(ToricLattice_generic, self).direct_sum(other)
+
+        def make_name(N1, N2, use_latex=False):
+            if use_latex:
+                return latex(N1)+ ' \oplus ' +latex(N2)
+            else:
+                return N1._name+ '+' +N2._name
+
+        rank = self.rank() + other.rank()
+        name = make_name(self, other, False)
+        dual_name = make_name(self.dual(), other.dual(), False)
+        latex_name = make_name(self, other, True)
+        latex_dual_name = make_name(self.dual(), other.dual(), True)
+        return ToricLattice(rank, name, dual_name, latex_name, latex_dual_name)
+
     def quotient(self, sub, check=True, positive_point=None, positive_dual_point=None):
         """
         Return the quotient of ``self`` by the given sublattice ``sub``.

@@ -1197,6 +1197,38 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
            point = point[0]
         return self._contains(point, 'relative interior')
 
+    def cartesian_product(self, other, lattice=None):
+        r"""
+        Return the Cartesian product of ``self`` with ``other``.
+
+        INPUT:
+
+        - ``other`` -- a cone.
+
+        - ``lattice`` -- (optional) the ambient lattice for the
+          cartesian product cone. By default, the direct sum of the
+          two ambient lattices is constructed.
+
+        EXAMPLES::
+
+            sage: c = Cone([(1,)])
+            sage: c.cartesian_product(c)
+            2-d cone in 2-d lattice N+N
+            sage: _.rays()
+            (N+N(1, 0), N+N(0, 1))
+        """
+        if lattice is None:
+            lattice = self.lattice().direct_sum(other.lattice())
+
+        d1 = self.lattice_dim()
+        d2 = other.lattice_dim()
+        rays = \
+            [ lattice(list(r1) + [0]*d2) for r1 in self.rays() ] + \
+            [ lattice([0]*d1 + list(r2)) for r2 in other.rays() ]
+        for r in rays:
+            r.set_immutable()
+        return ConvexRationalPolyhedralCone(rays, lattice)
+
     def __cmp__(self, right):
         r"""
         Compare ``self`` and ``right``.

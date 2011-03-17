@@ -895,12 +895,21 @@ class FinitePoset(ParentWithBase):
             sage: Q = Poset({0:[1],1:[]})
             sage: Q.top()
             1
+
+        TESTS::
+
+            sage: R = Poset([[0],[]])
+            sage: R.list()
+            [0]
+            sage: R.top() #Trac #10776
+            0
+
         """
         hasse_top = self._hasse_diagram.top()
-        if hasse_top:
-            return self._vertex_to_element(hasse_top)
-        else:
+        if hasse_top is None:
             return None
+        else:
+            return self._vertex_to_element(hasse_top)
 
     def has_top(self):
         """

@@ -10289,10 +10289,16 @@ class GenericGraph(GenericGraph_pyx):
 
     ### Distance
 
-    def distance(self, u, v):
+    def distance(self, u, v, by_weight=False):
         """
         Returns the (directed) distance from u to v in the (di)graph, i.e.
         the length of the shortest path from u to v.
+
+        INPUT:
+
+        -  ``by_weight`` - if False, uses a breadth first
+           search. If True, takes edge weightings into account, using
+           Dijkstra's algorithm.
 
         EXAMPLES::
 
@@ -10306,8 +10312,15 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = Graph( {0:[], 1:[]} )
             sage: G.distance(0,1)
             +Infinity
+            sage: G = Graph( { 0: {1: 1}, 1: {2: 1}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} }, sparse = True)
+            sage: G.plot(edge_labels=True).show() # long time
+            sage: G.distance(0, 3)
+            2
+            sage: G.distance(0, 3, by_weight=True)
+            3
+
         """
-        return self.shortest_path_length(u, v)
+        return self.shortest_path_length(u, v, by_weight = by_weight)
 
     def distance_all_pairs(self, algorithm = "auto"):
         r"""

@@ -7674,6 +7674,9 @@ cdef class Matrix(matrix1.Matrix):
 
         - David Loeffler (2009-06-01)
 
+        - Moritz Minzlaff (2011-03-17): corrected code for matrices of one row;
+          this fixed trac 9053
+
         EXAMPLES::
 
             sage: L.<a> = NumberField(x^3 - 2)
@@ -7681,22 +7684,26 @@ cdef class Matrix(matrix1.Matrix):
 
         We check some degenerate cases::
 
-            sage: m = matrix(OL, 0, 0, []); r,s,p = m._echelon_form_PID(); (r,s,p)
+            sage: m = matrix(OL, 0, 0, []); r,s,p = m._echelon_form_PID();
+            sage: (r,s,p)
             ([], [], [])
             sage: r * m == s and r.det() == 1
             True
-            sage: m = matrix(OL, 0, 1, []); r,s,p = m._echelon_form_PID(); (r,s,p)
+            sage: m = matrix(OL, 0, 1, []); r,s,p = m._echelon_form_PID();
+            sage: (r,s,p)
             ([], [], [])
             sage: r * m == s and r.det() == 1
             True
-            sage: m = matrix(OL, 1, 0, []); r,s,p = m._echelon_form_PID(); (r,s,p)
+            sage: m = matrix(OL, 1, 0, []); r,s,p = m._echelon_form_PID();
+            sage: (r,s,p)
             ([1], [], [])
             sage: r * m == s and r.det() == 1
             True
 
         A 2x2 matrix::
 
-            sage: m = matrix(OL, 2, 2, [1,0, a, 2]); r,s,p = m._echelon_form_PID(); (r,s,p)
+            sage: m = matrix(OL, 2, 2, [1,0, a, 2]);
+            sage: r,s,p = m._echelon_form_PID(); (r,s,p)
             (
             [ 1  0]  [1 0]
             [-a  1], [0 2], [0, 1]
@@ -7706,11 +7713,23 @@ cdef class Matrix(matrix1.Matrix):
 
         A larger example::
 
-            sage: m = matrix(OL, 3, 5, [a^2 - 3*a - 1, a^2 - 3*a + 1, a^2 + 1, -a^2 + 2, -3*a^2 - a - 1, -6*a - 1, a^2 - 3*a - 1, 2*a^2 + a + 5, -2*a^2 + 5*a + 1, -a^2 + 13*a - 3, -2*a^2 + 4*a - 2, -2*a^2 + 1, 2*a, a^2 - 6, 3*a^2 - a])
+            sage: m = matrix(OL, 3, 5, [a^2 - 3*a - 1, a^2 - 3*a + 1, a^2 + 1,
+            ...     -a^2 + 2, -3*a^2 - a - 1, -6*a - 1, a^2 - 3*a - 1,
+            ...     2*a^2 + a + 5, -2*a^2 + 5*a + 1, -a^2 + 13*a - 3,
+            ...     -2*a^2 + 4*a - 2, -2*a^2 + 1, 2*a, a^2 - 6, 3*a^2 - a ])
             sage: r,s,p = m._echelon_form_PID()
             sage: s[2]
             (0, 0, 3*a^2 + 18*a - 34, 68*a^2 - 134*a + 53, 111*a^2 - 275*a + 90)
             sage: r * m == s and r.det() == 1
+            True
+
+        We verify that trac 9053 is resolved::
+
+            sage: R.<x> = GF(7)[]
+            sage: A = R^3
+            sage: L = A.span([x*A.0 + (x^3 + 1)*A.1, x*A.2])
+            sage: M = A.span([x*L.0])
+            sage: M.0 in L
             True
 
         """
@@ -7724,15 +7743,18 @@ cdef class Matrix(matrix1.Matrix):
             if self.is_zero():
                 return self.new_matrix(self.nrows(), self.nrows(), 1), self, []
             else:
-                return self.new_matrix(self.nrows(), self.nrows(), 1), self, [0]
+                return self.new_matrix(self.nrows(), self.nrows(), 1), self, [
+                    self.nonzero_positions_in_row(0)[0] ]
 
         R = self.base_ring()
 
         # data type checks on R
         if not R.is_integral_domain():
-            raise TypeError, "Generic echelon form only defined over integral domains"
+            raise TypeError, ( "Generic echelon form only defined over "
+                "integral domains" )
         if not R.is_exact():
-            raise NotImplementedError, "Echelon form over generic non-exact rings not implemented at present"
+            raise NotImplementedError, ( "Echelon form over generic non-exact "
+                "rings not implemented at present" )
 
         left_mat, a = _generic_clear_column(self)
         assert left_mat * self == a

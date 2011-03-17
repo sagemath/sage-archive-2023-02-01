@@ -5213,16 +5213,16 @@ class NumberField_absolute(NumberField_generic):
 
         EXAMPLES::
 
-            sage: R.<x> = QQ[]
-            sage: K.<a> = NumberField(x^3+2)
-            sage: K._magma_polynomial_(magma)
+            sage: R.<x> = QQ[]                                                   # optional - magma
+            sage: K.<a> = NumberField(x^3+2)                                     # optional - magma
+            sage: K._magma_polynomial_(magma)                                    # optional - magma
             x^3 + 2
-            sage: magma2=Magma()
-            sage: K._magma_polynomial_(magma2)
+            sage: magma2=Magma()                                                 # optional - magma
+            sage: K._magma_polynomial_(magma2)                                   # optional - magma
             x^3 + 2
-            sage: K._magma_polynomial_(magma) is K._magma_polynomial_(magma)
+            sage: K._magma_polynomial_(magma) is K._magma_polynomial_(magma)     # optional - magma
             True
-            sage: K._magma_polynomial_(magma) is K._magma_polynomial_(magma2)
+            sage: K._magma_polynomial_(magma) is K._magma_polynomial_(magma2)    # optional - magma
             False
         """
         # NB f must not be garbage-collected, otherwise the

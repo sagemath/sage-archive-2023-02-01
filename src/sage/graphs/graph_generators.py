@@ -114,6 +114,7 @@ Named Graphs
 - :meth:`MoserSpindle <GraphGenerators.MoserSpindle>`
 - :meth:`PappusGraph <GraphGenerators.PappusGraph>`
 - :meth:`PetersenGraph <GraphGenerators.PetersenGraph>`
+- :meth:`ShrikhandeGraph <GraphGenerators.ShrikhandeGraph>`
 - :meth:`ThomsenGraph <GraphGenerators.ThomsenGraph>`
 
 
@@ -218,6 +219,11 @@ AUTHORS:
 - Edward Scheinerman (2010-08-11): RandomTree
 
 - Ed Scheinerman (2010-08-21): added Grotzsch graph and Mycielski graphs
+
+- Minh Van Nguyen (2010-11-26): added more named graphs
+
+- Keshav Kini (2011-02-16): added Shrikhande graph
+
 """
 
 ###########################################################################
@@ -3475,6 +3481,93 @@ class GraphGenerators():
         P=graphs.GeneralizedPetersenGraph(5,2)
         P.name("Petersen graph")
         return P
+
+    def ShrikhandeGraph(self):
+        """
+        Returns the Shrikhande graph.
+
+        For more information, see the `MathWorld article on the Shrikhande graph
+        <http://mathworld.wolfram.com/ShrikhandeGraph.html>`_ or the `Wikipedia
+        article on the Shrikhande graph
+        <http://en.wikipedia.org/wiki/Shrikhande_graph>`_.
+
+        EXAMPLES:
+
+        The Shrikhande graph was defined by S. S. Shrikhande in 1959. It has
+        `16` vertices and `48` edges, and is strongly regular of degree `6` with
+        parameters `(2,2)`::
+
+            sage: G = graphs.ShrikhandeGraph(); G
+            Shrikhande graph: Graph on 16 vertices
+            sage: G.order()
+            16
+            sage: G.size()
+            48
+            sage: G.is_regular(6)
+            True
+            sage: set([ len([x for x in G.neighbors(i) if x in G.neighbors(j)])
+            ...     for i in range(G.order())
+            ...     for j in range(i) ])
+            set([2])
+
+        It is non-planar, and both Hamiltonian and Eulerian::
+
+            sage: G.is_planar()
+            False
+            sage: G.is_hamiltonian()
+            True
+            sage: G.is_eulerian()
+            True
+
+        It has radius `2`, diameter `2`, and girth `3`::
+
+            sage: G.radius()
+            2
+            sage: G.diameter()
+            2
+            sage: G.girth()
+            3
+
+        Its chromatic number is `4` and its automorphism group is of order
+        `192`::
+
+            sage: G.chromatic_number()
+            4
+            sage: G.automorphism_group().cardinality()
+            192
+
+        It is an integral graph since it has only integral eigenvalues::
+
+            sage: G.characteristic_polynomial().factor()
+            (x - 6) * (x - 2)^6 * (x + 2)^9
+        """
+        pos_dict = {}
+        for i in range(8):
+            pos_dict[i] = [float(cos((2*i) * pi/8)),
+                           float(sin((2*i) * pi/8))]
+            pos_dict[8 + i] = [0.5 * pos_dict[i][0],
+                               0.5 * pos_dict[i][1]]
+        edge_dict = {
+            0O00: [0O06, 0O07, 0O01, 0O02,   0O11, 0O17],
+            0O01: [0O07, 0O00, 0O02, 0O03,   0O12, 0O10],
+            0O02: [0O00, 0O01, 0O03, 0O04,   0O13, 0O11],
+            0O03: [0O01, 0O02, 0O04, 0O05,   0O14, 0O12],
+            0O04: [0O02, 0O03, 0O05, 0O06,   0O15, 0O13],
+            0O05: [0O03, 0O04, 0O06, 0O07,   0O16, 0O14],
+            0O06: [0O04, 0O05, 0O07, 0O00,   0O17, 0O15],
+            0O07: [0O05, 0O06, 0O00, 0O01,   0O10, 0O16],
+
+            0O10: [0O12, 0O13, 0O15, 0O16,   0O07, 0O01],
+            0O11: [0O13, 0O14, 0O16, 0O17,   0O00, 0O02],
+            0O12: [0O14, 0O15, 0O17, 0O10,   0O01, 0O03],
+            0O13: [0O15, 0O16, 0O10, 0O11,   0O02, 0O04],
+            0O14: [0O16, 0O17, 0O11, 0O12,   0O03, 0O05],
+            0O15: [0O17, 0O10, 0O12, 0O13,   0O04, 0O06],
+            0O16: [0O10, 0O11, 0O13, 0O14,   0O05, 0O07],
+            0O17: [0O11, 0O12, 0O14, 0O15,   0O06, 0O00]
+        }
+
+        return graph.Graph(edge_dict, pos=pos_dict, name="Shrikhande graph")
 
     def ThomsenGraph(self):
         """

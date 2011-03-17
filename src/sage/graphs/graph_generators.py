@@ -100,6 +100,7 @@ Named Graphs
 - :meth:`ChvatalGraph <GraphGenerators.ChvatalGraph>`
 - :meth:`DesarguesGraph <GraphGenerators.DesarguesGraph>`
 - :meth:`DurerGraph <GraphGenerators.DurerGraph>`
+- :meth:`DyckGraph <GraphGenerators.DyckGraph>`
 - :meth:`ErreraGraph <GraphGenerators.ErreraGraph>`
 - :meth:`FlowerSnark <GraphGenerators.FlowerSnark>`
 - :meth:`FranklinGraph <GraphGenerators.FranklinGraph>`
@@ -222,7 +223,7 @@ AUTHORS:
 
 - Minh Van Nguyen (2010-11-26): added more named graphs
 
-- Keshav Kini (2011-02-16): added Shrikhande graph
+- Keshav Kini (2011-02-16): added Shrikhande and Dyck graphs
 
 """
 
@@ -2430,6 +2431,99 @@ class GraphGenerators():
             11: [0.5, -0.866025403784439]}
         return graph.Graph(edge_dict, pos=pos_dict, name="Durer graph")
 
+    def DyckGraph(self):
+        """
+        Returns the Dyck graph.
+
+        For more information, see the `MathWorld article on the Dyck graph
+        <http://mathworld.wolfram.com/DyckGraph.html>`_ or the `Wikipedia
+        article on the Dyck graph <http://en.wikipedia.org/wiki/Dyck_graph>`_.
+
+        EXAMPLES:
+
+        The Dyck graph was defined by Walther von Dyck in 1881. It has `32`
+        vertices and `48` edges, and is a cubic graph (regular of degree `3`)::
+
+            sage: G = graphs.DyckGraph(); G
+            Dyck graph: Graph on 32 vertices
+            sage: G.order()
+            32
+            sage: G.size()
+            48
+            sage: G.is_regular()
+            True
+            sage: G.is_regular(3)
+            True
+
+        It is non-planar and Hamiltonian, as well as bipartite (making it a
+        bicubic graph)::
+
+            sage: G.is_planar()
+            False
+            sage: G.is_hamiltonian()
+            True
+            sage: G.is_bipartite()
+            True
+
+        It has radius `5`, diameter `5`, and girth `6`::
+
+            sage: G.radius()
+            5
+            sage: G.diameter()
+            5
+            sage: G.girth()
+            6
+
+        Its chromatic number is `2` and its automorphism group is of order
+        `192`::
+
+            sage: G.chromatic_number()
+            2
+            sage: G.automorphism_group().cardinality()
+            192
+
+        It is a non-integral graph as it has irrational eigenvalues::
+
+            sage: G.characteristic_polynomial().factor()
+            (x - 3) * (x + 3) * (x - 1)^9 * (x + 1)^9 * (x^2 - 5)^6
+
+        It is a toroidal graph, and its embedding on a torus is dual to an
+        embedding of the Shrikhande graph (:meth:`ShrikhandeGraph
+        <GraphGenerators.ShrikhandeGraph>`).
+        """
+        pos_dict = {}
+        for i in range(8):
+            pos_dict[i] = [float(cos((2*i) * pi/8)),
+                           float(sin((2*i) * pi/8))]
+            pos_dict[8 + i]  = [0.75 * pos_dict[i][0],
+                                0.75 * pos_dict[i][1]]
+            pos_dict[16 + i] = [0.50 * pos_dict[i][0],
+                                0.50 * pos_dict[i][1]]
+            pos_dict[24 + i] = [0.25 * pos_dict[i][0],
+                                0.25 * pos_dict[i][1]]
+
+        edge_dict = {
+            0O00: [0O07, 0O01,   0O10], 0O10: [0O00,   0O27, 0O21],
+            0O01: [0O00, 0O02,   0O11], 0O11: [0O01,   0O20, 0O22],
+            0O02: [0O01, 0O03,   0O12], 0O12: [0O02,   0O21, 0O23],
+            0O03: [0O02, 0O04,   0O13], 0O13: [0O03,   0O22, 0O24],
+            0O04: [0O03, 0O05,   0O14], 0O14: [0O04,   0O23, 0O25],
+            0O05: [0O04, 0O06,   0O15], 0O15: [0O05,   0O24, 0O26],
+            0O06: [0O05, 0O07,   0O16], 0O16: [0O06,   0O25, 0O27],
+            0O07: [0O06, 0O00,   0O17], 0O17: [0O07,   0O26, 0O20],
+
+            0O20: [0O17, 0O11,   0O30], 0O30: [0O20,   0O35, 0O33],
+            0O21: [0O10, 0O12,   0O31], 0O31: [0O21,   0O36, 0O34],
+            0O22: [0O11, 0O13,   0O32], 0O32: [0O22,   0O37, 0O35],
+            0O23: [0O12, 0O14,   0O33], 0O33: [0O23,   0O30, 0O36],
+            0O24: [0O13, 0O15,   0O34], 0O34: [0O24,   0O31, 0O37],
+            0O25: [0O14, 0O16,   0O35], 0O35: [0O25,   0O32, 0O30],
+            0O26: [0O15, 0O17,   0O36], 0O36: [0O26,   0O33, 0O31],
+            0O27: [0O16, 0O10,   0O37], 0O37: [0O27,   0O34, 0O32],
+        }
+
+        return graph.Graph(edge_dict, pos=pos_dict, name="Dyck graph")
+
     def ErreraGraph(self):
         r"""
         Returns the Errera graph.
@@ -3540,6 +3634,9 @@ class GraphGenerators():
 
             sage: G.characteristic_polynomial().factor()
             (x - 6) * (x - 2)^6 * (x + 2)^9
+
+        It is a toroidal graph, and its embedding on a torus is dual to an
+        embedding of the Dyck graph (:meth:`DyckGraph <GraphGenerators.DyckGraph>`).
         """
         pos_dict = {}
         for i in range(8):

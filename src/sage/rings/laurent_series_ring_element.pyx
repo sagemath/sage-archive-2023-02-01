@@ -726,11 +726,38 @@ cdef class LaurentSeries(AlgebraElement):
         r"""
         Returns the laurent series of degree ` < n` which is
         equivalent to self modulo `x^n`.
+
+        EXAMPLES::
+
+            sage: A.<x> = LaurentSeriesRing(ZZ)
+            sage: f = 1/(1-x)
+            sage: f
+            1 + x + x^2 + x^3 + x^4 + x^5 + x^6 + x^7 + x^8 + x^9 + x^10 + x^11 + x^12 + x^13 + x^14 + x^15 + x^16 + x^17 + x^18 + x^19 + O(x^20)
+            sage: f.truncate(10)
+            1 + x + x^2 + x^3 + x^4 + x^5 + x^6 + x^7 + x^8 + x^9
         """
         if n <= self.__n:
             return LaurentSeries(self._parent, 0)
         else:
-            return LaurentSeries(self._parent, self.__u.truncate_powerseries(n - self.__n), self.__n)
+            return LaurentSeries(self._parent, self.__u.truncate(n - self.__n), self.__n)
+
+    def truncate_laurentseries(self, long n):
+        r"""
+        Replaces any terms of degree >= n by big oh
+
+        EXAMPLES::
+
+            sage: A.<x> = LaurentSeriesRing(ZZ)
+            sage: f = 1/(1-x)
+            sage: f
+            1 + x + x^2 + x^3 + x^4 + x^5 + x^6 + x^7 + x^8 + x^9 + x^10 + x^11 + x^12 + x^13 + x^14 + x^15 + x^16 + x^17 + x^18 + x^19 + O(x^20)
+            sage: f.truncate_laurentseries(10)
+            1 + x + x^2 + x^3 + x^4 + x^5 + x^6 + x^7 + x^8 + x^9 + O(x^10)
+
+        """
+        if n <= self.__n:
+            return LaurentSeries(self._parent, 0)
+        else:            return LaurentSeries(self._parent, self.__u.truncate_powerseries(n - self.__n), self.__n)
 
     def truncate_neg(self, long n):
         r"""

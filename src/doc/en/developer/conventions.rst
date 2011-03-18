@@ -741,6 +741,22 @@ mind:
        sage: E.regulator()              # long time (1 second)
        0.0511114082399688
 
+-  If a line contains ``tol`` or ``tolerance, numerical results are only
+   verified to the given tolerance. This may be prefixed by ``abs[olute``
+   or ``rel[ative]`` to specify whether to measure absolute or relative
+   error; defaults to relative error except when the expected value is
+   exactly zero:
+
+   ::
+
+           sage: RDF(pi)                               # abs tol 1e-5
+           3.14159
+           sage: [10^n for n in [0.0 .. 4]]            # rel tol 2e-4
+           [0.9999, 10.001, 100.01, 999.9, 10001]
+
+   This can be useful when the exact output is subject to rounding error
+   and/or processor floating point arithmetic variation.
+
 -  If a line contains ``todo: not implemented``, it is never
    tested. It is good to include lines like this to make clear what we
    want Sage to eventually implement:

@@ -208,6 +208,18 @@ class BipartiteGraph(Graph):
         sage: G = graphs.OctahedralGraph()
         sage: N = networkx.make_clique_bipartite(G.networkx_graph())
         sage: B = BipartiteGraph(N)
+
+    TESTS:
+
+    Make sure we can create a ``BipartiteGraph`` with keywords but no
+    positional arguments (trac #10958).
+
+    ::
+
+        sage: B = BipartiteGraph(multiedges=True)
+        sage: B.allows_multiple_edges()
+        True
+
     """
 
     def __init__(self, *args, **kwds):
@@ -222,7 +234,7 @@ class BipartiteGraph(Graph):
             sage: B = BipartiteGraph(P, partition, check=False)
         """
         if len(args) == 0:
-            Graph.__init__(self)
+            Graph.__init__(self, **kwds)
             self.left = set()
             self.right = set()
             return

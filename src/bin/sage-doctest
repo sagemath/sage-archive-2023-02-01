@@ -216,7 +216,8 @@ if __name__ ==  '__main__':
     sys.exit(runner.failures)
 """ % dict
 
-NONE=0; LONG_TIME=1; RANDOM=2; OPTIONAL=3; NOT_IMPLEMENTED=4; NOT_TESTED=5
+NONE=0; LONG_TIME=1; RANDOM=2; OPTIONAL=3; NOT_IMPLEMENTED=4; NOT_TESTED=5; TOLERANCE=6
+tolerance_pattern = re.compile(r'\b((?:abs(?:olute)?)|(?:rel(?:ative)?))? *?tol(?:erance)?\b( +[0-9.e+-]+)?')
 
 def comment_modifier(s):
     sind = s.find('#')
@@ -235,7 +236,22 @@ def comment_modifier(s):
         v.append(NOT_TESTED)
     if 'random' in L:
         v.append(RANDOM)
+    m = tolerance_pattern.search(L)
+    if m:
+        v.append(TOLERANCE)
+        rel_or_abs, epsilon = m.groups()
+        if rel_or_abs is not None:
+            rel_or_abs = rel_or_abs[:3]
+        if epsilon is None:
+            epsilon = 1e-15
+        else:
+            epsilon = float(epsilon.strip())
+        v.append((rel_or_abs, epsilon))
     return v, L
+
+def close_tolerance(comment_tags):
+    rel_or_abs, epsilon = comment_tags[comment_tags.index(TOLERANCE) + 1]
+    return "... ''', res, %r%s)" % (epsilon, '' if rel_or_abs is None else ", '%s'" % rel_or_abs)
 
 def preparse_line_with_prompt(L):
     i = L.find(':')
@@ -255,14 +271,22 @@ def doc_preparse(s):
     # t: Deal with code whose output should be ignored.
     t = []
 
-    # following two: used only for parsing only_optional; list of comments
+    # used for adapting the output based on comments
+    has_tolerance = False
     comment_modifiers = []
     last_prompt_comment = ''
 
     for L in s.splitlines():
+        if not L.strip():
+            if has_tolerance:
+                t.append(close_tolerance(c))
+                has_tolerance = False
+
         begin = L.lstrip()[:5]
         comment = ''
         if begin == 'sage:':
+            if has_tolerance:
+                t.append(close_tolerance(c))
             c, comment = comment_modifier(L)
             last_prompt_comment = comment
             line = ''
@@ -276,6 +300,12 @@ def doc_preparse(s):
                 L = '\n'   # not tested
             if OPTIONAL in c and not (only_optional or optional):
                 L = '\n'
+            if TOLERANCE in c:
+                t.append(">>> res = Exception")
+                L = "sage: res = %s" % L.lstrip()[5:]
+                has_tolerance = True
+            else:
+                has_tolerance = False
             line = preparse_line_with_prompt(L)
             if RANDOM in c:
                 # count spaces at the beginning of line to fix alignment later
@@ -285,6 +315,8 @@ def doc_preparse(s):
                 # append a line saying 'ignore' followed by ellipsis (...)
                 # and an empty line, to ignore the output given in the test
                 line += '\n' + ' '*i + 'ignore ...\n'
+            if has_tolerance:
+                line += "\n>>> check_with_tolerance('''"
             t.append(line)
 
         elif begin.startswith('...'):
@@ -294,9 +326,14 @@ def doc_preparse(s):
 
         else:
             comment = last_prompt_comment
+            if has_tolerance:
+                L = "... " + L
             t.append(L)
 
         comment_modifiers.append(comment)
+
+    if has_tolerance:
+        t.append(close_tolerance(c))
 
     # The very last line -- which is typically """ -- must never be marked as optional,
     # or it might not get included, which would be a syntax error.
@@ -423,7 +460,7 @@ def extract_doc(file_name, library_code=False):
 """  % os.path.join(os.getcwd(), file_name)
     s += "from sage.all_cmdline import *; \n"
     s += "import sage.plot.plot; sage.plot.plot.DOCTEST_MODE=True\n"  # turn off image popup
-    s += """
+    s += r"""
 def warning_function(f):
     import warnings
 
@@ -437,6 +474,26 @@ def warning_function(f):
 def change_warning_output(file):
     import warnings
     warnings.showwarning = warning_function(file)
+
+import re
+float_pattern = re.compile('[+-]?((\d*\.?\d+)|(\d+\.?))([eE][+-]?\d+)?')
+
+def check_with_tolerance(expected, actual, epsilon, rel_or_abs=None):
+    if actual is Exception:
+        return # error computing actual
+    else:
+        actual = str(actual)
+    expected = re.sub('\n +', '\n', expected)
+    actual = re.sub('\n +', '\n', actual)
+    assert float_pattern.sub('#', expected.strip()) == float_pattern.sub('#', actual.strip()), \
+        "Expected '" + expected + "' got '" + actual + "'"
+    for expected_value, actual_value in zip(float_pattern.finditer(expected), float_pattern.finditer(actual)):
+        expected_value = float(expected_value.group())
+        actual_value = float(actual_value.group())
+        if rel_or_abs == 'abs' or expected_value == 0:
+            assert abs(expected_value - actual_value) < epsilon, "Out of tolerance %s vs %s" % (expected_value, actual_value)
+        else:
+            assert abs((expected_value - actual_value) / expected_value) < epsilon, "Out of tolerance %s vs %s" % (expected_value, actual_value)
 """
 
     if not library_code:

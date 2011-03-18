@@ -252,7 +252,7 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             [1 0]
             [0 1]
         """
-        return self.ambient_hecke_module().diamond_bracket_matrix(d).restrict(self.free_module())
+        return self.ambient_hecke_module().diamond_bracket_matrix(d).restrict(self.free_module(), check=False)
 
     def _compute_atkin_lehner_matrix(self, d):
         """

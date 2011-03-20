@@ -307,6 +307,32 @@ class Dokchitser(SageObject):
             sage: L = Dokchitser(conductor=1, gammaV=[0,1], weight=12, eps=1)
             sage: pari_precode = 'tau(n)=(5*sigma(n,3)+7*sigma(n,5))*n/12 - 35*sum(k=1,n-1,(6*k-4*(n-k))*sigma(k,3)*sigma(n-k,5))'
             sage: L.init_coeffs('tau(k)', pari_precode=pari_precode)
+
+        Evaluate the resulting L-function at a point, and compare with the answer that
+        one gets "by definition" (of L-function attached to a modular form)::
+
+            sage: L(14)
+            0.998583063162746
+            sage: a = delta_qexp(1000)
+            sage: sum(a[n]/float(n)^14 for n in range(1,1000))
+            0.99858306316274592
+
+        Illustrate that one can give a list of complex numbers for v (see trac 10937)::
+
+            sage: L2 = Dokchitser(conductor=1, gammaV=[0,1], weight=12, eps=1)
+            sage: L2.init_coeffs(list(delta_qexp(1000))[1:])
+            sage: L2(14)
+            0.998583063162746
+
+        TESTS::
+
+        Verify that setting the w parameter doesn't raise an error
+        (see trac 10937).  Note that the meaning of w does not seem to
+        be documented anywhere in Dokchitser's package yet, so there is
+        no claim that the example below is meaningful!
+
+            sage: L2 = Dokchitser(conductor=1, gammaV=[0,1], weight=12, eps=1)
+            sage: L2.init_coeffs(list(delta_qexp(1000))[1:], w=[1..1000])
         """
         if isinstance(v, tuple) and w is None:
             v, cutoff, w, pari_precode, max_imaginary_part, max_asymp_coeffs = v
@@ -326,14 +352,14 @@ class Dokchitser(SageObject):
         if not isinstance(v, (list, tuple)):
             raise TypeError, "v (=%s) must be a list, tuple, or string"%v
         CC = self.__CC
-        v = [CC(a)._pari_init_() for a in v]
-        self._gp_eval('Avec = %s'%v)
+        v = ','.join([CC(a)._pari_init_() for a in v])
+        self._gp_eval('Avec = [%s]'%v)
         if w is None:
             self._gp_eval('initLdata("Avec[k]", %s)'%cutoff)
             return
-        w = [CC(a)._pari_init_() for a in w]
-        self._gp_eval('Bvec = %s'%w)
-        self._gp_eval('initLdata("Avec[k]"),%s,"Bvec[k]"'%cutoff)
+        w = ','.join([CC(a)._pari_init_() for a in w])
+        self._gp_eval('Bvec = [%s]'%w)
+        self._gp_eval('initLdata("Avec[k]",%s,"Bvec[k]")'%cutoff)
 
     def __to_CC(self, s):
         s = s.replace('.E','.0E').replace(' ','')

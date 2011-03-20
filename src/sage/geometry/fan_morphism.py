@@ -218,9 +218,11 @@ class FanMorphism(FreeModuleMorphism):
 
         sage: fm = FanMorphism(phi, F1, F2, subdivide=True,
         ...                    check=False, verbose=True)
-        Placing ray images...
-        Computing chambers...
-        Subdividing cone 1 of 1...
+        Placing ray images (... ms)
+        Computing chambers (... ms)
+        Number of domain cones: 1.
+        Number of chambers: 2.
+        Cone 0 sits in chambers 0 1 (... ms)
         sage: fm.domain_fan().is_equivalent(F2)
         True
     """
@@ -528,49 +530,83 @@ class FanMorphism(FreeModuleMorphism):
             Rational polyhedral fan in 2-d lattice N
             into the support of
             Rational polyhedral fan in 2-d lattice N!
+
+        We check that Trac #10943 is fixed::
+
+            sage: Sigma = Fan(rays=[(1,1,0), (1,-1,0)], cones=[(0,1)])
+            sage: Sigma_prime = FaceFan(lattice_polytope.octahedron(3))
+            sage: fm = FanMorphism(identity_matrix(3),
+            ...                    Sigma, Sigma_prime, subdivide=True)
+            sage: fm.domain_fan().ray_matrix()
+            [ 1  1  1]
+            [ 1 -1  0]
+            [ 0  0  0]
+            sage: [cone.ambient_ray_indices() for cone in fm.domain_fan()]
+            [(0, 2), (1, 2)]
+
+            sage: sigma = Cone([(0,1), (3,1)])
+            sage: Sigma = Fan([sigma])
+            sage: Sigma_prime = Sigma.subdivide([(1,1), (2,1)])
+            sage: FanMorphism(identity_matrix(2),
+            ...               Sigma, Sigma_prime, subdivide=True)
+            Fan morphism defined by the matrix
+            [1 0]
+            [0 1]
+            Domain fan: Rational polyhedral fan in 2-d lattice N
+            Codomain fan: Rational polyhedral fan in 2-d lattice N
         """
         domain_fan = self._domain_fan
         codomain_fan = self._codomain_fan
+        lattice_dim = self.domain().dimension()
         if verbose:
             start = walltime()
-            print "Placing ray images...",
+            print "Placing ray images",
         # Figure out where 1-dimensional cones (i.e. rays) are mapped.
         RISGIS = self._RISGIS()
         if verbose:
-            print "%.3f ms" % walltime(start)
+            print "(%.3f ms)" % walltime(start)
         # Subdivide cones that require it.
         chambers = None # preimages of codomain cones, computed if necessary
         new_cones = []
         for cone_index, domain_cone in enumerate(domain_fan):
             if reduce(operator.and_, (RISGIS[i]
                                 for i in domain_cone.ambient_ray_indices())):
+                # There is a codomain cone containing all rays of this domain
+                # cone, no need to subdivide it.
                 new_cones.append(domain_cone)
                 continue
             dim = domain_cone.dim()
             if chambers is None:
                 if verbose:
                     start = walltime()
-                    print "Computing chambers...",
+                    print "Computing chambers",
                 chambers, cone_to_chamber = self._chambers()
                 if verbose:
-                    print "%.3f ms" % walltime(start)
+                    print "(%.3f ms)" % walltime(start)
+                    print ("Number of domain cones: %d.\n"
+                           "Number of chambers: %d." %
+                           (domain_fan.ngenerating_cones(), len(chambers)))
             # Subdivide domain_cone.
             if verbose:
                 start = walltime()
-                print ("Subdividing cone %d of %d..."
-                       % (cone_index + 1, domain_fan.ngenerating_cones())),
-            # Only these chambers intersect domain_cone.
-            containing_chambers = (cone_to_chamber[j]
-                for j in reduce(operator.or_, (RISGIS[i]
-                                for i in domain_cone.ambient_ray_indices())))
-            # We don't care about chambers of small dimension.
-            containing_chambers = (chambers[i]
-                                   for i in set(containing_chambers)
-                                   if chambers[i].dim() >= dim)
-            parts = (domain_cone.intersection(chamber)
-                     for chamber in containing_chambers)
-            # We cannot leave parts as a generator since we use them twice.
-            parts = [part for part in parts if part.dim() == dim]
+                print "Cone %d sits in chambers" % cone_index,
+            # It seems that there is no quick way to determine which chambers
+            # do NOT intersect this domain cone, so we go over all of them.
+            parts = []
+            for chamber_index, chamber in enumerate(chambers):
+                # If chamber is small, intersection will be small.
+                if chamber.dim() < dim:
+                    continue
+                new_part = domain_cone.intersection(chamber)
+                # If intersection is small, it is not a generating cone.
+                if new_part.dim() < dim:
+                    continue
+                # Small cones may have repetitive intersections with chambers.
+                if (dim == lattice_dim or
+                    not any(part.is_equivalent(new_part) for part in parts)):
+                    parts.append(new_part)
+                    if verbose:
+                        print chamber_index,
             if check:
                 # Check if the subdivision is complete, i.e. there are no
                 # missing pieces of domain_cone. To do this, we construct a
@@ -579,9 +615,9 @@ class FanMorphism(FreeModuleMorphism):
                 # original cone. In any case we know that we are constructing
                 # a valid fan, so passing check=False to Fan(...) is OK.
                 if verbose:
-                    print "%.3f ms" % walltime(start)
+                    print "(%.3f ms)" % walltime(start)
                     start = walltime()
-                    print "Checking for missing pieces... ",
+                    print "Checking for missing pieces",
                 cone_subdivision = Fan(parts, check=False)
                 for cone in cone_subdivision(dim - 1):
                     if len(cone.star_generators()) == 1:
@@ -590,7 +626,7 @@ class FanMorphism(FreeModuleMorphism):
                             self._support_error()
             new_cones.extend(parts)
             if verbose:
-                print "%.3f ms" % walltime(start)
+                print "(%.3f ms)" % walltime(start)
         if len(new_cones) > domain_fan.ngenerating_cones():
             # Construct a new fan keeping old rays in the same order
             new_rays = list(domain_fan.rays())

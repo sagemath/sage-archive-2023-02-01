@@ -42,16 +42,16 @@ class CartanType(CartanType_standard_affine):
 
             sage: dual = ct.dual()
             sage: dual.dynkin_diagram()
-            O=<=O---O---O=<=O
-            4   3   2   1   0
-            BC4~ relabelled by {0: 4, 1: 3, 2: 2, 3: 1, 4: 0}
+            O=>=O---O---O=>=O
+            0   1   2   3   4
+            BC4~*
 
             sage: dual.special_node()
-            4
+            0
             sage: dual.classical().dynkin_diagram()
-            O---O---O=<=O
-            3   2   1   0
-            C4 relabelled by {1: 3, 2: 2, 3: 1, 4: 0}
+            O---O---O=>=O
+            1   2   3   4
+            B4
 
             sage: CartanType(['BC',1,2]).dynkin_diagram()
               4
@@ -156,14 +156,3 @@ class CartanType(CartanType_standard_affine):
         import cartan_type
         return cartan_type.CartanType(["C", self.n])
 
-    def dual(self):
-        """
-        Implements :meth:`sage.combinat.root_system.cartan_type.CartanType_abstract.dual`.
-
-        EXAMPLES::
-
-            sage: CartanType(["BC", 3, 2]).dual()
-            ['BC', 3, 2] relabelled by {0: 3, 1: 2, 2: 1, 3: 0}
-
-        """
-        return self.relabel(lambda x: self.n-x)

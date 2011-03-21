@@ -1,5 +1,11 @@
 """
 Tensor Products of Crystals
+
+Main entry points:
+
+ - :func:`TensorProductOfCrystals`
+ - :class:`CrystalOfTableaux`
+
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Anne Schilling <anne at math.ucdavis.edu>
@@ -31,8 +37,30 @@ from sage.combinat.partition import Partition
 from sage.combinat.tableau import Tableau
 from sage.combinat.tableau import Tableau_class
 from letters import CrystalOfLetters
+from spins import CrystalOfSpins, CrystalOfSpinsMinus, CrystalOfSpinsPlus
 from sage.misc.flatten import flatten
 from sage.rings.integer import Integer
+
+##############################################################################
+# Until trunc gets implemented in sage.function.other
+
+from sage.functions.other import floor, ceil
+def trunc(i):
+    """
+    Truncates to the integer closer to zero
+
+    EXAMPLES::
+
+        sage: from sage.combinat.crystals.tensor_product import trunc
+        sage: trunc(-3/2), trunc(-1), trunc(-1/2), trunc(0), trunc(1/2), trunc(1), trunc(3/2)
+        (-1, -1, 0, 0, 0, 1, 1)
+        sage: isinstance(trunc(3/2), Integer)
+        True
+    """
+    if i>= 0:
+        return floor(i)
+    else:
+        return ceil(i)
 
 ##############################################################################
 # Support classes
@@ -363,6 +391,7 @@ class FullTensorProductOfCrystals(CrystalOfWords):
         self.cartesian_product = CartesianProduct(*self.crystals)
         self.module_generators = self
 
+    # TODO: __iter__ and cardinality should be inherited from EnumeratedSets().CartesianProducts()
     def __iter__(self):
         """
         EXAMPLES::
@@ -414,7 +443,7 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent):
         for i in range(len(self)):
             if (self[i] < other[i]) == True:
                 return True
-            if (self[i] > other[i]) == True:
+            if (other[i] < self[i]) == True:
                 return False
         return False
 
@@ -591,58 +620,61 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent):
 
 CrystalOfWords.Element = TensorProductOfCrystalsElement
 
+
 class CrystalOfTableaux(CrystalOfWords):
     r"""
-    Crystals of tableaux. Input: a Cartan Type type and "shape", a
-    partition of length <= type[1]. Produces a classical crystal with
-    the given Cartan Type and highest weight corresponding to the given
-    shape.
+    A class for crystals of tableaux with integer valued shapes
 
-    If the type is ['D',r] then the shape is permitted to have a
-    negative value in the r-th position. Thus if
-    shape=`[s_1,s_2,...,s_r]` then s_r may be negative but
-    in any case `s1 \ge s2 \ge ... s_{r-1} \ge |s_r|`. This
-    crystal is related to `[s_1,\cdots,|s_r|]` by the outer
-    automorphism of SO(2r).
+    INPUT:
 
-    Note that crystals of tableaux are constructed using an embedding
-    into tensor products following Kashiwara and Nakashima [Kashiwara,
-    Masaki; Nakashima, Toshiki,
-    *Crystal graphs for representations of the q-analogue of classical Lie algebras*,
-    J. Algebra 165 (1994), no. 2, 295-345.]. Sage's tensor product rule
-    for crystals differs from that of Kashiwara and Nakashima by
-    reversing the order of the tensor factors. Sage produces the same
-    crystals of tableaux as Kashiwara and Nakashima. With Sage's
-    convention, the tensor product of crystals is the same as the
-    monoid operation on tableaux and hence the plactic monoid.
+     - ``cartan_type`` -- a Cartan type
+     - ``shape`` -- a partition of length at most ``cartan_type.rank()``
+     - ``shapes`` -- a list of such partitions
+
+    This constructs a classical crystal with the given Cartan type and
+    highest weight(s) corresponding to the given shape(s).
+
+    If the type is `D_r`, the shape is permitted to have a negative
+    value in the `r`-th position. Thus if shape=`[s_1,\dots,s_r]` then
+    `s_r` may be negative but in any case `s_1 \ge \cdots \ge s_{r-1}
+    \ge |s_r|`. This crystal is related to that of shape
+    `[s_1,\dots,|s_r|]` by the outer automorphism of `SO(2r)`.
+
+    If the type is `D_r` or `B_r`, the shape is permitted to be of
+    length `r` with all parts of half integer value. This corresponds
+    to having one spin column at the beginning of the tableau. If
+    several shapes are provided, they currently should all or none
+    have this property.
+
+    Crystals of tableaux are constructed using an embedding into
+    tensor products following Kashiwara and Nakashima [Kashiwara,
+    Masaki; Nakashima, Toshiki, *Crystal graphs for representations of
+    the q-analogue of classical Lie algebras*, J. Algebra 165 (1994),
+    no. 2, 295-345.]. Sage's tensor product rule for crystals differs
+    from that of Kashiwara and Nakashima by reversing the order of the
+    tensor factors. Sage produces the same crystals of tableaux as
+    Kashiwara and Nakashima. With Sage's convention, the tensor
+    product of crystals is the same as the monoid operation on
+    tableaux and hence the plactic monoid.
+
+    .. seealso:: :mod:`sage.combinat.crystals.crystals` for general help on
+        crystals, and in particular plotting and LaTeX output.
 
     EXAMPLES:
 
     We create the crystal of tableaux for type `A_2`, with
     highest weight given by the partition [2,1,1]::
 
-        sage: Tab = CrystalOfTableaux(['A',3], shape = [2,1,1])
+        sage: T = CrystalOfTableaux(['A',3], shape = [2,1,1])
 
     Here is the list of its elements::
 
-        sage: Tab.list()
+        sage: T.list()
         [[[1, 1], [2], [3]], [[1, 2], [2], [3]], [[1, 3], [2], [3]],
          [[1, 4], [2], [3]], [[1, 4], [2], [4]], [[1, 4], [3], [4]],
          [[2, 4], [3], [4]], [[1, 1], [2], [4]], [[1, 2], [2], [4]],
          [[1, 3], [2], [4]], [[1, 3], [3], [4]], [[2, 3], [3], [4]],
          [[1, 1], [3], [4]], [[1, 2], [3], [4]], [[2, 2], [3], [4]]]
-
-    One can get (currently) crude plotting via::
-
-        #        sage: Tab.plot()  # random
-
-    One can get instead get a LaTeX drawing ready to be copy-pasted
-    into a LaTeX file::
-
-        #        sage: Tab.latex() # random
-
-    See sage.combinat.crystals.crystals? for general help on using
-    crystals
 
     Internally, a tableau of a given Cartan type is represented as a
     tensor product of letters of the same type. The order in which the
@@ -663,10 +695,38 @@ class CrystalOfTableaux(CrystalOfWords):
         sage: Tab(columns=[[3,1],[4,2]])
         [[1, 2], [3, 4]]
 
-    FIXME: do we want to specify the columns increasingly or
-    decreasingly That is, should this be Tab(columns = [[1,3],[2,4]])
+    FIXME:
 
-    TODO: make this fully consistent with Tableau!
+     - do we want to specify the columns increasingly or
+       decreasingly. That is, should this be Tab(columns = [[1,3],[2,4]])
+     - make this fully consistent with :func:`~sage.combinat.tableau.Tableau`!
+
+    We illustrate the use of a shape with a negative last entry in
+    type `D`::
+
+        sage: T = CrystalOfTableaux(['D',4],shape=[1,1,1,-1])
+        sage: T.cardinality()
+        35
+        sage: TestSuite(T).run()
+
+    We illustrate the construction of crystals of spin tableaux when
+    the partitions have half integer values in type `B` and `D`::
+
+        sage: T = CrystalOfTableaux(['B',3],shape=[3/2,1/2,1/2]); T
+        The crystal of tableaux of type ['B', 3] and shape(s) [[3/2, 1/2, 1/2]]
+        sage: T.cardinality()
+        48
+        sage: T.module_generators
+        [[+++, [[1]]]]
+        sage: TestSuite(T).run()
+
+        sage: T = CrystalOfTableaux(['D',3],shape=[3/2,1/2,-1/2]); T
+        The crystal of tableaux of type ['D', 3] and shape(s) [[3/2, 1/2, -1/2]]
+        sage: T.cardinality()
+        20
+        sage: T.module_generators
+        [[++-, [[1]]]]
+        sage: TestSuite(T).run()
 
     TESTS:
 
@@ -675,60 +735,57 @@ class CrystalOfTableaux(CrystalOfWords):
         sage: T = CrystalOfTableaux(['A',2], shape = [])
         sage: T.list()
         [[]]
-        sage: T = CrystalOfTableaux(['C',2], shape = [1])
         sage: TestSuite(T).run()
+
+        sage: T = CrystalOfTableaux(['C',2], shape = [1])
         sage: T.list()
         [[[1]], [[2]], [[-2]], [[-1]]]
+        sage: TestSuite(T).run()
+
         sage: T = CrystalOfTableaux(['A',2], shapes = [[],[1],[2]])
         sage: T.list()
         [[], [[1]], [[2]], [[3]], [[1, 1]], [[1, 2]], [[2, 2]], [[1, 3]], [[2, 3]], [[3, 3]]]
         sage: T.module_generators
         ([], [[1]], [[1, 1]])
-        sage: T = CrystalOfTableaux(['B',2],shape=[3])
+
+        sage: T = CrystalOfTableaux(['B',2], shape=[3])
         sage: T(rows=[[1,1,0]])
         [[1, 1, 0]]
 
-
     Input tests::
 
-        sage: Tab = CrystalOfTableaux(['A',3], shape = [2,2])
-        sage: C = Tab.letters
+        sage: T = CrystalOfTableaux(['A',3], shape = [2,2])
+        sage: C = T.letters
         sage: Tab(rows    = [[1,2],[3,4]])._list == [C(3),C(1),C(4),C(2)]
         True
         sage: Tab(columns = [[3,1],[4,2]])._list == [C(3),C(1),C(4),C(2)]
         True
 
-    And for compatibility with TensorProductOfCrystal we should also
-    allow as input the internal list / sequence of elements::
+    For compatibility with :func:`TensorProductOfCrystals` we need to
+    accept as input the internal list or sequence of elements::
 
         sage: Tab(list    = [3,1,4,2])._list     == [C(3),C(1),C(4),C(2)]
         True
         sage: Tab(3,1,4,2)._list                 == [C(3),C(1),C(4),C(2)]
         True
 
-    Type D, illustrating that the last parameter in the shape can be
-    negative::
-
-        sage: C = CrystalOfTableaux(['D',4],shape=[1,1,1,-1])
-        sage: C.cardinality()
-        35
-        sage: TestSuite(C).run()
-
-    The next example checks whether a given tableau is in fact a valid type C tableau or not:
+    The next example checks whether a given tableau is in fact a valid
+    type `C` tableau or not::
 
         sage: T = CrystalOfTableaux(['C',3], shape = [2,2,2])
-        sage: t = T(rows=[[1,3],[2,-3],[3,-1]])
-        sage: t in T.list()
+        sage: Tab = T(rows=[[1,3],[2,-3],[3,-1]])
+        sage: Tab in T.list()
         True
-        sage: t = T(rows=[[2,3],[3,-3],[-3,-2]])
-        sage: t in T.list()
+        sage: Tab = T(rows=[[2,3],[3,-3],[-3,-2]])
+        sage: Tab in T.list()
         False
     """
 
     @staticmethod
-    def __classcall__(cls, cartan_type, shapes = None, shape = None):
+    def __classcall_private__(cls, cartan_type, shapes = None, shape = None):
         """
-        Normalizes the input arguments to ensure unique representation
+        Normalizes the input arguments to ensure unique representation,
+        and to delegate the construction of spin tableaux.
 
         EXAMPLES::
 
@@ -739,12 +796,43 @@ class CrystalOfTableaux(CrystalOfWords):
             (True, True)
         """
         cartan_type = CartanType(cartan_type)
+        n = cartan_type.rank()
         # standardize shape/shapes input into a tuple of tuples
         assert operator.xor(shape is not None, shapes is not None)
         if shape is not None:
             shapes = (shape,)
-        shapes = tuple( tuple(shape) for shape in shapes )
-        return super(CrystalOfTableaux, cls).__classcall__(cls, cartan_type, shapes)
+        spin_shapes = tuple( tuple(shape) for shape in shapes )
+        try:
+            shapes = tuple( tuple(trunc(i) for i in shape) for shape in spin_shapes )
+        except:
+            raise ValueError("shapes should all be partitions or half-integer partitions")
+        if spin_shapes == shapes:
+            return super(CrystalOfTableaux, cls).__classcall__(cls, cartan_type, shapes)
+
+        # Handle the construction of a crystals of spin tableaux
+        # Caveat: this currently only supports all shapes being half
+        # integer partitions of length the rank for type B and D. In
+        # particular, for type D, the spins all have to be plus or all
+        # minus spins
+        assert all(len(sh) == n for sh in shapes), \
+            "the length of all half-integer partition shapes should be the rank"
+        assert all(2*i % 2 == 1 for shape in spin_shapes for i in shape), \
+            "shapes should be either all partitions or all half-integer partitions"
+        if cartan_type.type() == 'D':
+            if all( i >= 0 for shape in spin_shapes for i in shape):
+                S = CrystalOfSpinsPlus(cartan_type)
+            elif all(shape[-1]<0 for shape in spin_shapes):
+                S = CrystalOfSpinsMinus(cartan_type)
+            else:
+                raise ValueError, "In type D spins should all be positive or negative"
+        else:
+            assert all( i >= 0 for shape in spin_shapes for i in shape), \
+                "shapes should all be partitions"
+            S = CrystalOfSpins(cartan_type)
+        B = CrystalOfTableaux(cartan_type, shapes = shapes)
+        T = TensorProductOfCrystals(S,B, generators=[[S.module_generators[0],x] for x in B.module_generators])
+        T.rename("The crystal of tableaux of type %s and shape(s) %s"%(cartan_type, list(list(shape) for shape in spin_shapes)))
+        return T
 
 
     def __init__(self, cartan_type, shapes):
@@ -774,6 +862,7 @@ class CrystalOfTableaux(CrystalOfWords):
         Returns the Cartan type of the associated crystal
 
         EXAMPLES::
+
             sage: T = CrystalOfTableaux(['A',3], shape = [2,2])
             sage: T.cartan_type()
             ['A', 3]
@@ -786,7 +875,8 @@ class CrystalOfTableaux(CrystalOfWords):
         crystal of given shape. The module generator is the unique tableau with equal
         shape and content.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: T = CrystalOfTableaux(['D',3], shape = [1,1])
             sage: T.module_generator([1,1])
             [[1], [2]]

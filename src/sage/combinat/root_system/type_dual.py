@@ -109,8 +109,8 @@ class CartanType(UniqueRepresentation, SageObject, CartanType_crystalographic):
             0   1   2   3   4
 
             sage: print CartanType(["BC", 4, 2]).dual().ascii_art()
-            O=<=O---O---O=<=O
-            4   3   2   1   0
+            O=>=O---O---O=>=O
+            0   1   2   3   4
         """
         res = self.dual().ascii_art(label)
         # swap, like a computer science freshman!
@@ -225,7 +225,7 @@ class CartanType_affine(sage.combinat.root_system.cartan_type.CartanType_affine)
             sage: CartanType(['F',4,1]).dual().classical()
             ['F', 4]^*
             sage: CartanType(['BC',4,2]).dual().classical()
-            ['C', 4] relabelled by {1: 3, 2: 2, 3: 1, 4: 0}
+            ['B', 4]
         """
         return self.dual().classical().dual()
 
@@ -245,7 +245,7 @@ class CartanType_affine(sage.combinat.root_system.cartan_type.CartanType_affine)
             sage: CartanType(['F',4,1]).dual().special_node()
             0
             sage: CartanType(['BC',4,2]).dual().special_node()
-            4
+            0
         """
         return self.dual().special_node()
 

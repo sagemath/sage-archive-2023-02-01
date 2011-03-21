@@ -36,13 +36,12 @@ internal_repn and signature of the crystal element.
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 
-## TODO: proper latex'ing of spins
-
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.categories.classical_crystals import ClassicalCrystals
 from sage.combinat.crystals.letters import Letter
 from sage.combinat.root_system.cartan_type import CartanType
+from sage.combinat.tableau import Tableau
 
 
 #########################
@@ -68,16 +67,9 @@ def CrystalOfSpins(ct):
 
         sage: C = CrystalOfSpins(['B',3])
         sage: C.list()
-        [[1, 1, 1],
-         [1, 1, -1],
-         [1, -1, 1],
-         [-1, 1, 1],
-         [1, -1, -1],
-         [-1, 1, -1],
-         [-1, -1, 1],
-         [-1, -1, -1]]
-         sage: C.cartan_type()
-         ['B', 3]
+        [+++, ++-, +-+, -++, +--, -+-, --+, ---]
+        sage: C.cartan_type()
+        ['B', 3]
 
     ::
 
@@ -116,14 +108,7 @@ def CrystalOfSpinsPlus(ct):
 
         sage: D = CrystalOfSpinsPlus(['D',4])
         sage: D.list()
-        [[1, 1, 1, 1],
-         [1, 1, -1, -1],
-         [1, -1, 1, -1],
-         [-1, 1, 1, -1],
-         [1, -1, -1, 1],
-         [-1, 1, -1, 1],
-         [-1, -1, 1, 1],
-         [-1, -1, -1, -1]]
+        [++++, ++--, +-+-, -++-, +--+, -+-+, --++, ----]
 
     ::
 
@@ -157,14 +142,7 @@ def CrystalOfSpinsMinus(ct):
 
         sage: E = CrystalOfSpinsMinus(['D',4])
         sage: E.list()
-         [[1, 1, 1, -1],
-          [1, 1, -1, 1],
-          [1, -1, 1, 1],
-          [-1, 1, 1, 1],
-          [1, -1, -1, -1],
-          [-1, 1, -1, -1],
-          [-1, -1, 1, -1],
-          [-1, -1, -1, 1]]
+        [+++-, ++-+, +-++, -+++, +---, -+--, --+-, ---+]
         sage: [x.signature() for x in E]
         ['+++-', '++-+', '+-++', '-+++', '+---', '-+--', '--+-', '---+']
 
@@ -219,7 +197,7 @@ class GenericCrystalOfSpins(UniqueRepresentation, Parent):
 
             sage: C = CrystalOfSpins(['B',3])
             sage: C([1,1,1])
-            [1, 1, 1]
+            +++
         """
         if value.__class__ == self.element_class and value.parent() == self:
             return value
@@ -233,14 +211,7 @@ class GenericCrystalOfSpins(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: CrystalOfSpins(['B',3]).list()
-            [[1, 1, 1],
-             [1, 1, -1],
-             [1, -1, 1],
-             [-1, 1, 1],
-             [1, -1, -1],
-             [-1, 1, -1],
-             [-1, -1, 1],
-             [-1, -1, -1]]
+            [+++, ++-, +-+, -++, +--, -+-, --+, ---]
         """
         return self._list
 
@@ -294,7 +265,7 @@ class Spin(Letter):
 
         sage: c = C([1,1,1])
         sage: c._repr_()
-        '[1, 1, 1]'
+        '+++'
 
         sage: D = CrystalOfSpins(['B',4])
         sage: a = C([1,1,1])
@@ -337,6 +308,35 @@ class Spin(Letter):
             sword += "+" if self.value[x] == 1 else "-"
         return sword
 
+    def _repr_(self):
+        """
+        Represents the spin elements in terms of its signature.
+
+        EXAMPLES::
+
+            sage: C = CrystalOfSpins(['B',3])
+            sage: b = C([1,1,-1])
+            sage: b
+            ++-
+            sage: b._repr_()
+            '++-'
+        """
+        return self.signature()
+
+    def _latex_(self):
+        """
+        Gives the latex output of a spin column.
+
+        EXAMPLES::
+
+            sage: C = CrystalOfSpins(['B',3])
+            sage: b = C([1,1,-1])
+            sage: b._latex_()
+            '{\\def\\lr#1{\\multicolumn{1}{|@{\\hspace{.6ex}}c@{\\hspace{.6ex}}|}{\\raisebox{-.3ex}{$#1$}}}\n\\raisebox{-.6ex}{$\\begin{array}[b]{c}\n\\cline{1-1}\n\\lr{-}\\\\\n\\cline{1-1}\n\\lr{+}\\\\\n\\cline{1-1}\n\\lr{+}\\\\\n\\cline{1-1}\n\\end{array}$}\n}'
+        """
+        return Tableau([[i] for i in reversed(self.signature())])._latex_()
+
+
 class Spin_crystal_type_B_element(Spin):
     r"""
     Type B spin representation crystal element
@@ -349,14 +349,8 @@ class Spin_crystal_type_B_element(Spin):
 
             sage: C = CrystalOfSpins(['B',3])
             sage: [[C[m].e(i) for i in range(1,4)] for m in range(8)]
-            [[None, None, None],
-             [None, None, [1, 1, 1]],
-             [None, [1, 1, -1], None],
-             [[1, -1, 1], None, None],
-             [None, None, [1, -1, 1]],
-             [[1, -1, -1], None, [-1, 1, 1]],
-             [None, [-1, 1, -1], None],
-             [None, None, [-1, -1, 1]]]
+            [[None, None, None], [None, None, +++], [None, ++-, None], [+-+, None, None],
+            [None, None, +-+], [+--, None, -++], [None, -+-, None], [None, None, --+]]
         """
         assert i in self.index_set()
         rank = self.parent().cartan_type().n
@@ -382,14 +376,8 @@ class Spin_crystal_type_B_element(Spin):
 
             sage: C = CrystalOfSpins(['B',3])
             sage: [[C[m].f(i) for i in range(1,4)] for m in range(8)]
-            [[None, None, [1, 1, -1]],
-             [None, [1, -1, 1], None],
-             [[-1, 1, 1], None, [1, -1, -1]],
-             [None, None, [-1, 1, -1]],
-             [[-1, 1, -1], None, None],
-             [None, [-1, -1, 1], None],
-             [None, None, [-1, -1, -1]],
-             [None, None, None]]
+            [[None, None, ++-], [None, +-+, None], [-++, None, +--], [None, None, -+-],
+            [-+-, None, None], [None, --+, None], [None, None, ---], [None, None, None]]
         """
         assert i in self.index_set()
         rank = self.parent().cartan_type().n
@@ -419,27 +407,15 @@ class Spin_crystal_type_D_element(Spin):
 
             sage: D = CrystalOfSpinsPlus(['D',4])
             sage: [[D.list()[m].e(i) for i in range(1,4)] for m in range(8)]
-            [[None, None, None],
-             [None, None, None],
-             [None, [1, 1, -1, -1], None],
-             [[1, -1, 1, -1], None, None],
-             [None, None, [1, -1, 1, -1]],
-             [[1, -1, -1, 1], None, [-1, 1, 1, -1]],
-             [None, [-1, 1, -1, 1], None],
-             [None, None, None]]
+            [[None, None, None], [None, None, None], [None, ++--, None], [+-+-, None, None],
+            [None, None, +-+-], [+--+, None, -++-], [None, -+-+, None], [None, None, None]]
 
         ::
 
             sage: E = CrystalOfSpinsMinus(['D',4])
             sage: [[E[m].e(i) for i in range(1,4)] for m in range(8)]
-            [[None, None, None],
-             [None, None, [1, 1, 1, -1]],
-             [None, [1, 1, -1, 1], None],
-             [[1, -1, 1, 1], None, None],
-             [None, None, None],
-             [[1, -1, -1, -1], None, None],
-             [None, [-1, 1, -1, -1], None],
-             [None, None, [-1, -1, 1, -1]]]
+            [[None, None, None], [None, None, +++-], [None, ++-+, None], [+-++, None, None],
+            [None, None, None], [+---, None, None], [None, -+--, None], [None, None, --+-]]
         """
         assert i in self.index_set()
         rank = self.parent().cartan_type().n
@@ -466,27 +442,15 @@ class Spin_crystal_type_D_element(Spin):
 
             sage: D = CrystalOfSpinsPlus(['D',4])
             sage: [[D.list()[m].f(i) for i in range(1,4)] for m in range(8)]
-            [[None, None, None],
-             [None, [1, -1, 1, -1], None],
-             [[-1, 1, 1, -1], None, [1, -1, -1, 1]],
-             [None, None, [-1, 1, -1, 1]],
-             [[-1, 1, -1, 1], None, None],
-             [None, [-1, -1, 1, 1], None],
-             [None, None, None],
-             [None, None, None]]
+            [[None, None, None], [None, +-+-, None], [-++-, None, +--+], [None, None, -+-+],
+            [-+-+, None, None], [None, --++, None], [None, None, None], [None, None, None]]
 
         ::
 
             sage: E = CrystalOfSpinsMinus(['D',4])
             sage: [[E[m].f(i) for i in range(1,4)] for m in range(8)]
-            [[None, None, [1, 1, -1, 1]],
-             [None, [1, -1, 1, 1], None],
-             [[-1, 1, 1, 1], None, None],
-             [None, None, None],
-             [[-1, 1, -1, -1], None, None],
-             [None, [-1, -1, 1, -1], None],
-             [None, None, [-1, -1, -1, 1]],
-             [None, None, None]]
+            [[None, None, ++-+], [None, +-++, None], [-+++, None, None], [None, None, None],
+            [-+--, None, None], [None, --+-, None], [None, None, ---+], [None, None, None]]
         """
         assert i in self.index_set()
         rank = self.parent().cartan_type().n

@@ -77,6 +77,18 @@ One can get (currently) crude plotting via::
 
     sage: Tab.plot()
 
+If dot2tex is installed, one can obtain nice latex pictures via::
+
+    sage: K = KirillovReshetikhinCrystal(['A',3,1], 1,1)
+    sage: view(K, pdflatex=True, tightpage=True) #optional - dot2tex graphviz
+
+or with colored edges::
+
+    sage: K = KirillovReshetikhinCrystal(['A',3,1], 1,1)
+    sage: G = K.digraph()
+    sage: G.set_latex_options(color_by_label = {0:"black", 1:"red", 2:"blue", 3:"green"}) #optional - dot2tex graphviz
+    sage: view(G, pdflatex=True, tightpage=True) #optional - dot2tex graphviz
+
 For rank two crystals, there is an alternative method of getting
 metapost pictures. For more information see C.metapost?
 
@@ -92,8 +104,6 @@ TODO:
 
 -  Vocabulary and conventions:
 
-   -  elements or vectors of a crystal?
-
    -  For a classical crystal: connected / highest weight /
       irreducible
 
@@ -102,8 +112,6 @@ TODO:
 -  More introductory doc explaining the mathematical background
 
 -  Layout instructions for plot() for rank 2 types
-
--  Streamlining the latex output
 
 -  Littelmann paths and/or alcove paths (this would give us the
    exceptional types)

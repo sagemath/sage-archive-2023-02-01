@@ -263,14 +263,13 @@ class CartanType(UniqueRepresentation, SageObject, CartanType_abstract):
             sage: T = CartanType(["BC",3, 2])
             sage: cycle = {1:2, 2:3, 3:0, 0:1}
             sage: T.relabel(cycle).dual().dynkin_diagram()
-            O=<=O---O=<=O
-            0   3   2   1
-            BC3~ relabelled by {0: 0, 1: 3, 2: 2, 3: 1}
+            O=>=O---O=>=O
+            1   2   3   0
+            BC3~* relabelled by {0: 1, 1: 2, 2: 3, 3: 0}
             sage: T.dual().relabel(cycle).dynkin_diagram()
-            O=<=O---O=<=O
-            0   3   2   1
-            BC3~ relabelled by {0: 0, 1: 3, 2: 2, 3: 1}
-
+            O=>=O---O=>=O
+            1   2   3   0
+            BC3~* relabelled by {0: 1, 1: 2, 2: 3, 3: 0}
         """
         return self._type.dual().relabel(self._relabelling)
 

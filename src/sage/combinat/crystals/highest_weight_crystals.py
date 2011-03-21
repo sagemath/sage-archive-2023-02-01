@@ -161,16 +161,16 @@ class FiniteDimensionalHighestWeightCrystal_TypeE6(FiniteDimensionalHighestWeigh
         sage: La=C.root_system().weight_lattice().fundamental_weights()
         sage: T = HighestWeightCrystal(La[2]); T
         Finite dimensional highest weight crystal of type ['E', 6] and highest weight Lambda[2]
-        sage: B2 = T.column_crystal[2]
-        sage: B2
-        The tensor product of the crystals (The crystal of letters for type ['E', 6] (dual), The crystal of letters for type ['E', 6])
-        sage: t = T(B2([]))
-        sage: t
-        [[[]]]
-        sage: TestSuite(t).run()
-        sage: t = T(B2([[-1],[-1,3]]))
-        sage: t
-        [[[[-1], [-1, 3]]]]
+        sage: B1 = T.column_crystal[1]; B1
+        The crystal of letters for type ['E', 6]
+        sage: B6 = T.column_crystal[6]; B6
+        The crystal of letters for type ['E', 6] (dual)
+        sage: t = T(B6([-1]),B1([-1,3])); t
+        [[-1], [-1, 3]]
+        sage: [t.epsilon(i) for i in T.index_set()]
+        [2, 0, 0, 0, 0, 0]
+        sage: [t.phi(i) for i in T.index_set()]
+        [0, 0, 1, 0, 0, 0]
         sage: TestSuite(t).run()
     """
 
@@ -214,12 +214,14 @@ class FiniteDimensionalHighestWeightCrystal_TypeE7(FiniteDimensionalHighestWeigh
         sage: T = HighestWeightCrystal(La[1])
         sage: T.cardinality()
         133
-        sage: B2 = T.column_crystal[2]
-        sage: B2
-        The tensor product of the crystals (The crystal of letters for type ['E', 7], The crystal of letters for type ['E', 7], The crystal of letters for type ['E', 7])
-        sage: t = T(B2([]))
-        sage: t
-        [[[]]]
+        sage: B7 = T.column_crystal[7]; B7
+        The crystal of letters for type ['E', 7]
+        sage: t = T(B7([-5, 6]), B7([-2, 3])); t
+        [[-5, 6], [-2, 3]]
+        sage: [t.epsilon(i) for i in T.index_set()]
+        [0, 1, 0, 0, 1, 0, 0]
+        sage: [t.phi(i) for i in T.index_set()]
+        [0, 0, 1, 0, 0, 1, 0]
         sage: TestSuite(t).run()
     """
 

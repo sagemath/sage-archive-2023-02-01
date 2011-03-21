@@ -536,6 +536,10 @@ class CartanTypeFactory(SageObject):
 
         Todo: add some reducible Cartan types (suggestions?)
 
+        TESTS::
+
+            sage: for ct in CartanType.samples(): TestSuite(ct).run()
+
         """
         result = self._samples()
         if crystalographic is not None:
@@ -652,6 +656,10 @@ class CartanType_abstract(object):
             sage: CartanType(['F', 4, 1]).index_set()
             [0, 1, 2, 3, 4]
         """
+
+    # This coloring scheme is used for crystal graphs and will eventually
+    # be used for Coxeter groups etc. (experimental feature)
+    _index_set_coloring = {1:"blue", 2:"red", 3:"green"}
 
     @abstract_method(optional = True)
     def coxeter_diagram(self):
@@ -1454,6 +1462,21 @@ class CartanType_affine(CartanType_simple, CartanType_crystalographic):
 
         else:
             return self.c()
+
+    def _test_dual_classical(self, **options):
+        r"""
+        Tests whether the special node of the dual is still the same and whether
+        the methods dual and classical commute.
+
+        TESTS::
+
+            sage: C = CartanType(['A',2,2])
+            sage: C._test_dual_classical()
+        """
+        tester = self._tester(**options)
+        tester.assertTrue( self.classical().dual() == self.dual().classical() )
+        tester.assertTrue( self.special_node() == self.dual().special_node() )
+
 
 ##############################################################################
 # Concrete base classes

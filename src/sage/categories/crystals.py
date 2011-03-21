@@ -15,6 +15,7 @@ from sage.categories.category import Category
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.misc.latex import latex
 from sage.combinat import ranker
+from sage.graphs.dot2tex_utils import have_dot2tex
 
 class Crystals(Category):
     """
@@ -311,6 +312,27 @@ class Crystals(Category):
                 sage: C.digraph()
                 Digraph on 6 vertices
 
+            The edges of the crystal graph are by default colored using blue for edge 1, red for edge 2,
+            and green for edge 3::
+
+                sage: C = Crystals().example(3)
+                sage: G = C.digraph()
+                sage: view(G, pdflatex=True, tightpage=True)  #optional - dot2tex graphviz
+
+            One may also overwrite the colors::
+
+                sage: C = Crystals().example(3)
+                sage: G = C.digraph()
+                sage: G.set_latex_options(color_by_label = {1:"red", 2:"purple", 3:"blue"})
+                sage: view(G, pdflatex=True, tightpage=True)  #optional - dot2tex graphviz
+
+            Or one may add colors to yet unspecified edges::
+
+                sage: C = Crystals().example(4)
+                sage: G = C.digraph()
+                sage: C.cartan_type()._index_set_coloring[4]="purple"
+                sage: view(G, pdflatex=True, tightpage=True)  #optional - dot2tex graphviz
+
             TODO: add more tests
             """
             from sage.graphs.all import DiGraph
@@ -322,7 +344,11 @@ class Crystals(Category):
                     if child is None:
                         continue
                     d[x][child]=i
-            return DiGraph(d)
+            G = DiGraph(d)
+            if have_dot2tex():
+                G.set_latex_options(format="dot2tex", edge_labels = True, color_by_label = self.cartan_type()._index_set_coloring,
+                                    edge_options = lambda (u,v,label): ({"backward":label ==0}))
+            return G
 
         def latex_file(self, filename):
             r"""
@@ -333,7 +359,7 @@ class Crystals(Category):
             EXAMPLES::
 
                 sage: C = CrystalOfLetters(['A', 5])
-                sage: C.latex_file('/tmp/test.tex') #optional requires dot2tex
+                sage: C.latex_file('/tmp/test.tex') #optional - dot2tex
             """
             header = r"""\documentclass{article}
             \usepackage[x11names, rgb]{xcolor}
@@ -355,35 +381,33 @@ class Crystals(Category):
             f.write(header + self.latex() + footer)
             f.close()
 
-        def latex(self):
+        def _latex_(self, **options):
             r"""
             Returns the crystal graph as a latex string. This can be exported
             to a file with self.latex_file('filename').
 
-            See :meth:`Graph.layout_graphviz` for further documentation on which
-            packages are required.
-
             EXAMPLES::
 
-                sage: C = CrystalOfLetters(['A', 5])
-                sage: C.latex()         #optional requires dot2tex
+                sage: T = CrystalOfTableaux(['A',2],shape=[1])
+                sage: T._latex_()   #optional - dot2tex
                 ...
-                sage: view(C, pdflatex = True, tightpage = True) # optional
+                sage: view(T, pdflatex = True, tightpage = True) #optional - dot2tex graphviz
+
+            One can for example also color the edges using the following options::
+
+                sage: T = CrystalOfTableaux(['A',2],shape=[1])
+                sage: T._latex_(color_by_label = {0:"black", 1:"red", 2:"blue"})   #optional - dot2tex graphviz
+                ...
             """
-            try:
-                from dot2tex.dot2tex import Dot2TikZConv
-            except ImportError:
+            if not have_dot2tex():
                 print "dot2tex not available.  Install after running \'sage -sh\'"
                 return
+            G=self.digraph()
+            G.set_latex_options(format="dot2tex", edge_labels = True,
+                                edge_options = lambda (u,v,label): ({"backward":label ==0}), **options)
+            return G._latex_()
 
-            # In MuPAD, 'autosize' is an option, but this doesn't seem to work here.
-            options = {'format':'tikz', 'crop':True, 'usepdflatex':True, 'figonly':True}
-
-            content = (Dot2TikZConv(options)).convert(self.dot_tex())
-
-            return content
-
-        _latex_ = latex
+        latex = _latex_
 
         def metapost(self, filename, thicklines=False, labels=True, scaling_factor=1.0, tallness=1.0):
             r"""
@@ -576,6 +600,20 @@ class Crystals(Category):
                 Graphics object consisting of 17 graphics primitives
             """
             return self.digraph().plot(edge_labels=True,vertex_size=0,**options)
+
+        def plot3d(self, **options):
+            """
+            Returns the 3-dimensional plot of self as a directed graph.
+
+            EXAMPLES::
+
+                sage: C = KirillovReshetikhinCrystal(['A',3,1],2,1)
+                sage: C.plot3d()
+                Graphics3d Object
+            """
+            G = self.digraph(**options)
+            return G.plot3d()
+
 
     class ElementMethods:
 
@@ -860,3 +898,81 @@ class Crystals(Category):
             if index_set is None:
                 index_set = self.index_set()
             return all(self.e(i) is None for i in index_set)
+
+        def to_highest_weight(self, list = [], index_set = None):
+            r"""
+            Yields the highest weight element `u` and a list `[i_1,...,i_k]`
+            such that `self = f_{i_1} ... f_{i_k} u`, where `i_1,...,i_k` are
+            elements in `index_set`. By default the index set is assumed to be
+            the full index set of self.
+
+            EXAMPLES::
+
+                sage: T = CrystalOfTableaux(['A',3], shape = [1])
+                sage: t = T(rows = [[3]])
+                sage: t.to_highest_weight()
+                [[[1]], [2, 1]]
+                sage: T = CrystalOfTableaux(['A',3], shape = [2,1])
+                sage: t = T(rows = [[1,2],[4]])
+                sage: t.to_highest_weight()
+                [[[1, 1], [2]], [1, 3, 2]]
+                sage: t.to_highest_weight(index_set = [3])
+                [[[1, 2], [3]], [3]]
+                sage: K = KirillovReshetikhinCrystal(['A',3,1],2,1)
+                sage: t = K(rows=[[2],[3]]); t.to_highest_weight(index_set=[1])
+                [[[1], [3]], [1]]
+                sage: t.to_highest_weight()
+                Traceback (most recent call last):
+                ...
+                ValueError: This is not a highest weight crystals!
+            """
+            from sage.categories.highest_weight_crystals import HighestWeightCrystals
+            if index_set is None:
+                if HighestWeightCrystals() not in self.parent().categories():
+                    raise ValueError, "This is not a highest weight crystals!"
+                index_set = self.index_set()
+            for i in index_set:
+                if self.epsilon(i) <> 0:
+                    self = self.e(i)
+                    return self.to_highest_weight(list = list + [i], index_set = index_set)
+            return [self, list]
+
+        def to_lowest_weight(self, list = [], index_set = None):
+            r"""
+            Yields the lowest weight element `u` and a list `[i_1,...,i_k]`
+            such that `self = e_{i_1} ... e_{i_k} u`, where `i_1,...,i_k` are
+            elements in `index_set`. By default the index set is assumed to be
+            the full index set of self.
+
+            EXAMPLES::
+
+                sage: T = CrystalOfTableaux(['A',3], shape = [1])
+                sage: t = T(rows = [[3]])
+                sage: t.to_lowest_weight()
+                [[[4]], [3]]
+                sage: T = CrystalOfTableaux(['A',3], shape = [2,1])
+                sage: t = T(rows = [[1,2],[4]])
+                sage: t.to_lowest_weight()
+                [[[3, 4], [4]], [1, 2, 2, 3]]
+                sage: t.to_lowest_weight(index_set = [3])
+                [[[1, 2], [4]], []]
+                sage: K = KirillovReshetikhinCrystal(['A',3,1],2,1)
+                sage: t = K.module_generator(); t
+                [[1], [2]]
+                sage: t.to_lowest_weight(index_set=[1,2,3])
+                [[[3], [4]], [2, 1, 3, 2]]
+                sage: t.to_lowest_weight()
+                Traceback (most recent call last):
+                ...
+                ValueError: This is not a highest weight crystals!
+            """
+            from sage.categories.highest_weight_crystals import HighestWeightCrystals
+            if index_set is None:
+                if HighestWeightCrystals() not in self.parent().categories():
+                    raise ValueError, "This is not a highest weight crystals!"
+                index_set = self.index_set()
+            for i in index_set:
+                if self.phi(i) <> 0:
+                    self = self.f(i)
+                    return self.to_lowest_weight(list = list + [i], index_set = index_set)
+            return [self, list]

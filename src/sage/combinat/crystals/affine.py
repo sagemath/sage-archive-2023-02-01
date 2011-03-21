@@ -428,6 +428,28 @@ class AffineCrystalFromClassicalElement(ElementWrapper):
         else:
             return self.lift().phi(i)
 
+    def __lt__(self, other):
+        """
+        Non elements of the crystal are incomparable with elements of the crystal
+        (or should it return NotImplemented?). Elements of this crystal are compared
+        using the comparison in the underlying classical crystal.
+
+        EXAMPLES::
+
+            sage: K = KirillovReshetikhinCrystal(['A',2,1],1,1)
+            sage: b = K(rows=[[1]])
+            sage: c = K(rows=[[2]])
+            sage: c<b
+            False
+            sage: b<b
+            False
+            sage: b<c
+            True
+        """
+        if self.parent() is not other.parent():
+            return False
+        return self.lift() < other.lift()
+
 AffineCrystalFromClassical.Element = AffineCrystalFromClassicalElement
 
 

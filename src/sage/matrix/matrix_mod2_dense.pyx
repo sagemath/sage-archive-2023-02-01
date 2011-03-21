@@ -1462,8 +1462,8 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         return mzd_cmp(self._entries, (<Matrix_mod2_dense>right)._entries)
 
 
-    def augment(self, Matrix_mod2_dense right):
-        """
+    def augment(self, right, subdivide=False):
+        r"""
         Augments ``self`` with ``right``.
 
         EXAMPLE::
@@ -1490,6 +1490,27 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: C*A == MS(1)
             True
 
+        A vector may be augmented to a matrix. ::
+
+            sage: A = matrix(GF(2), 3, 4, range(12))
+            sage: v = vector(GF(2), 3, range(3))
+            sage: A.augment(v)
+            [0 1 0 1 0]
+            [0 1 0 1 1]
+            [0 1 0 1 0]
+
+        The ``subdivide`` option will add a natural subdivision between
+        ``self`` and ``right``.  For more details about how subdivisions
+        are managed when augmenting, see
+        :meth:`sage.matrix.matrix1.Matrix.augment`.  ::
+
+            sage: A = matrix(GF(2), 3, 5, range(15))
+            sage: B = matrix(GF(2), 3, 3, range(9))
+            sage: A.augment(B, subdivide=True)
+            [0 1 0 1 0|0 1 0]
+            [1 0 1 0 1|1 0 1]
+            [0 1 0 1 0|0 1 0]
+
         TESTS::
 
             sage: A = random_matrix(GF(2),2,3)
@@ -1512,25 +1533,31 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: M.augment(N)
             []
         """
-        cdef Matrix_mod2_dense A
+        if hasattr(right, '_vector_'):
+            right = right.column()
 
-        if self._nrows != right._nrows:
+        cdef Matrix_mod2_dense other = right
+
+        if self._nrows != other._nrows:
             raise TypeError("Both numbers of rows must match.")
 
         if self._ncols == 0:
-            return right.__copy__()
-        if right._ncols == 0:
+            return other.__copy__()
+        if other._ncols == 0:
             return self.__copy__()
 
-        A = self.new_matrix(ncols = self._ncols + right._ncols)
+        cdef Matrix_mod2_dense Z
+        Z = self.new_matrix(ncols = self._ncols + other._ncols)
         if self._nrows == 0:
-            return A
-        A._entries = mzd_concat(A._entries, self._entries, right._entries)
-        return A
+            return Z
+        Z._entries = mzd_concat(Z._entries, self._entries, other._entries)
+        if subdivide:
+            Z._subdivide_on_augment(self, other)
+        return Z
 
-    def stack(self, Matrix_mod2_dense other):
-        """
-        Stack ``self`` on top of ``other``.
+    def stack(self, bottom, subdivide=False):
+        r"""
+        Stack ``self`` on top of ``bottom``.
 
         EXAMPLE::
 
@@ -1546,6 +1573,29 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [1 0]
             [1 0]
             [0 1]
+
+        A vector may be stacked below a matrix. ::
+
+            sage: A = matrix(GF(2), 2, 5, range(10))
+            sage: v = vector(GF(2), 5, range(5))
+            sage: A.stack(v)
+            [0 1 0 1 0]
+            [1 0 1 0 1]
+            [0 1 0 1 0]
+
+        The ``subdivide`` option will add a natural subdivision between
+        ``self`` and ``bottom``.  For more details about how subdivisions
+        are managed when stacking, see
+        :meth:`sage.matrix.matrix1.Matrix.stack`.  ::
+
+            sage: A = matrix(GF(2), 3, 5, range(15))
+            sage: B = matrix(GF(2), 1, 5, range(5))
+            sage: A.stack(B, subdivide=True)
+            [0 1 0 1 0]
+            [1 0 1 0 1]
+            [0 1 0 1 0]
+            [---------]
+            [0 1 0 1 0]
 
         TESTS::
 
@@ -1571,6 +1621,10 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: M.stack(N)
             []
         """
+        if hasattr(bottom, '_vector_'):
+            bottom = bottom.row()
+        cdef Matrix_mod2_dense other = bottom
+
         if self._ncols != other._ncols:
             raise TypeError("Both numbers of columns must match.")
 
@@ -1579,12 +1633,14 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if other._nrows == 0:
             return self.__copy__()
 
-        cdef Matrix_mod2_dense A
-        A = self.new_matrix(nrows = self._nrows + other._nrows)
+        cdef Matrix_mod2_dense Z
+        Z = self.new_matrix(nrows = self._nrows + other._nrows)
         if self._ncols == 0:
-            return A
-        A._entries = mzd_stack(A._entries, self._entries, other._entries)
-        return A
+            return Z
+        Z._entries = mzd_stack(Z._entries, self._entries, other._entries)
+        if subdivide:
+            Z._subdivide_on_stack(self, other)
+        return Z
 
     def submatrix(self, lowr, lowc, nrows , ncols):
         """

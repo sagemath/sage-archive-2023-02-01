@@ -4406,9 +4406,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     #####################################################################################
     # operations with matrices
     #####################################################################################
-    def stack(self, other):
-        """
-        Return the matrix self on top of other: [ self ] [ other ]
+    def stack(self, bottom, subdivide=False):
+        r"""
+        Return the matrix self on top of bottom: [ self ] [ bottom ]
 
         EXAMPLES::
 
@@ -4418,6 +4418,30 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [ 0  1  2]
             [ 3  4  5]
             [10 11 12]
+
+        A vector may be stacked below a matrix. ::
+
+            sage: A = matrix(ZZ, 2, 4, range(8))
+            sage: v = vector(ZZ, 4, range(4))
+            sage: A.stack(v)
+            [0 1 2 3]
+            [4 5 6 7]
+            [0 1 2 3]
+
+        The ``subdivide`` option will add a natural subdivision between
+        ``self`` and ``bottom``.  For more details about how subdivisions
+        are managed when stacking, see
+        :meth:`sage.matrix.matrix1.Matrix.stack`.  ::
+
+            sage: A = matrix(ZZ, 3, 4, range(12))
+            sage: B = matrix(ZZ, 2, 4, range(8))
+            sage: A.stack(B, subdivide=True)
+            [ 0  1  2  3]
+            [ 4  5  6  7]
+            [ 8  9 10 11]
+            [-----------]
+            [ 0  1  2  3]
+            [ 4  5  6  7]
 
         TESTS:
 
@@ -4438,20 +4462,113 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: P.is_sparse()
             False
         """
-        if self._ncols != other.ncols():
+        if hasattr(bottom, '_vector_'):
+            bottom = bottom.row()
+        if self._ncols != bottom.ncols():
             raise TypeError("number of columns must be the same")
-        if not (self._base_ring is other.base_ring()):
-            other = other.change_ring(self._base_ring)
-        cdef Matrix_integer_dense A = other.dense_matrix()
+        if not (self._base_ring is bottom.base_ring()):
+            bottom = bottom.change_ring(self._base_ring)
+        cdef Matrix_integer_dense other = bottom.dense_matrix()
         cdef Matrix_integer_dense M
-        M = self.new_matrix(nrows = self._nrows + A._nrows, ncols = self.ncols())
+        M = self.new_matrix(nrows = self._nrows + other._nrows, ncols = self.ncols())
         cdef Py_ssize_t i, k
         k = self._nrows * self._ncols
         for i from 0 <= i < k:
             mpz_set(M._entries[i], self._entries[i])
-        for i from 0 <= i < A._nrows * A._ncols:
-            mpz_set(M._entries[k + i], A._entries[i])
+        for i from 0 <= i < other._nrows * other._ncols:
+            mpz_set(M._entries[k + i], other._entries[i])
+        if subdivide:
+            M._subdivide_on_stack(self, other)
         return M
+
+    def augment(self, right, subdivide=False):
+        r"""
+        Returns a new matrix formed by appending the matrix
+        (or vector) ``right`` on the right side of ``self``.
+
+        INPUT:
+
+        - ``right`` - a matrix, vector or free module element, whose
+          dimensions are compatible with ``self``.
+
+        - ``subdivide`` - default: ``False`` - request the resulting
+          matrix to have a new subdivision, separating ``self`` from ``right``.
+
+        OUTPUT:
+
+        A new matrix formed by appending ``right`` onto the right side of ``self``.
+        If ``right`` is a vector (or free module element) then in this context
+        it is appropriate to consider it as a column vector.  (The code first
+        converts a vector to a 1-column matrix.)
+
+        EXAMPLES::
+
+            sage: A = matrix(ZZ, 4, 5, range(20))
+            sage: B = matrix(ZZ, 4, 3, range(12))
+            sage: A.augment(B)
+            [ 0  1  2  3  4  0  1  2]
+            [ 5  6  7  8  9  3  4  5]
+            [10 11 12 13 14  6  7  8]
+            [15 16 17 18 19  9 10 11]
+
+        A vector may be augmented to a matrix. ::
+
+            sage: A = matrix(ZZ, 3, 5, range(15))
+            sage: v = vector(ZZ, 3, range(3))
+            sage: A.augment(v)
+            [ 0  1  2  3  4  0]
+            [ 5  6  7  8  9  1]
+            [10 11 12 13 14  2]
+
+        The ``subdivide`` option will add a natural subdivision between
+        ``self`` and ``right``.  For more details about how subdivisions
+        are managed when augmenting, see
+        :meth:`sage.matrix.matrix1.Matrix.augment`.  ::
+
+            sage: A = matrix(ZZ, 3, 5, range(15))
+            sage: B = matrix(ZZ, 3, 3, range(9))
+            sage: A.augment(B, subdivide=True)
+            [ 0  1  2  3  4| 0  1  2]
+            [ 5  6  7  8  9| 3  4  5]
+            [10 11 12 13 14| 6  7  8]
+
+        Errors are raised if the sizes are incompatible. ::
+
+            sage: A = matrix(ZZ, [[1, 2],[3, 4]])
+            sage: B = matrix(ZZ, [[10, 20], [30, 40], [50, 60]])
+            sage: A.augment(B)
+            Traceback (most recent call last):
+            ...
+            TypeError: number of rows must be the same, not 2 != 3
+        """
+        if hasattr(right, '_vector_'):
+            right = right.column()
+        if self._nrows != right.nrows():
+            raise TypeError('number of rows must be the same, not {0} != {1}'.format(self._nrows, right.nrows()))
+        if not (self._base_ring is right.base_ring()):
+            right = right.change_ring(self._base_ring)
+
+        cdef Matrix_integer_dense other = right.dense_matrix()
+        m = self._nrows
+        ns, na = self._ncols, other._ncols
+        n = ns + na
+
+        cdef Matrix_integer_dense Z
+        Z = self.new_matrix(nrows = m, ncols = n)
+        cdef Py_ssize_t i, j, p, qs, qa
+        p, qs, qa = 0, 0, 0
+        for i from 0 <= i < m:
+          for j from 0 <= j < ns:
+            mpz_set(Z._entries[p], self._entries[qs])
+            p = p + 1
+            qs = qs + 1
+          for j from 0 <= j < na:
+            mpz_set(Z._entries[p], other._entries[qa])
+            p = p + 1
+            qa = qa + 1
+        if subdivide:
+          Z._subdivide_on_augment(self, other)
+        return Z
 
     def insert_row(self, Py_ssize_t index, row):
         """
@@ -4649,24 +4766,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             return change_ring.integer_to_real_double_dense(self)
         else:
             raise NotImplementedError
-
-##     def augment(self, other):
-##         """
-##         """
-##         if self._nrows != other.nrows():
-##             raise TypeError, "number of rows must be the same"
-##         if not (self._base_ring is other.base_ring()):
-##             other = other.change_ring(self._base_ring)
-##         cdef Matrix_integer_dense A = other
-##         cdef Matrix_integer_dense M
-##         M = self.new_matrix(nrows = self._nrows, ncols = self._ncols + A._ncols)
-##         cdef Py_ssize_t i, k
-##         k = self._nrows * self._ncols
-##         for i from 0 <= i < k:
-##             mpz_set(M._entries[i], self._entries[i])
-##         for i from 0 <= i < A._nrows * A._ncols:
-##             mpz_set(M._entries[k + i], A._entries[i])
-##         return M
 
     def _singular_(self, singular=None):
         r"""

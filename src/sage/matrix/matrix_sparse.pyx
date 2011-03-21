@@ -800,12 +800,12 @@ cdef class Matrix_sparse(matrix.Matrix):
                         A.set_unsafe(new_row, new_col, entry)
         return A
 
-    def stack(self, other):
-        """
-        Return the augmented matrix self on top of other:
+    def stack(self, bottom, subdivide=False):
+        r"""
+        Stack ``self`` on top of ``bottom``.
 
             [ self  ]
-            [ other ]
+            [ bottom ]
 
         EXAMPLES::
 
@@ -815,11 +815,39 @@ cdef class Matrix_sparse(matrix.Matrix):
             [ 0  1  2]
             [ 3  4  5]
             [10 11 12]
+
+        A vector may be stacked below a matrix. ::
+
+            sage: A = matrix(QQ, 2, 5, range(10), sparse=True)
+            sage: v = vector(QQ, 5, range(5), sparse=True)
+            sage: A.stack(v)
+            [0 1 2 3 4]
+            [5 6 7 8 9]
+            [0 1 2 3 4]
+
+        The ``subdivide`` option will add a natural subdivision between
+        ``self`` and ``other``.  For more details about how subdivisions
+        are managed when stacking, see
+        :meth:`sage.matrix.matrix1.Matrix.stack`.  ::
+
+            sage: A = matrix(ZZ, 3, 4, range(12), sparse=True)
+            sage: B = matrix(ZZ, 2, 4, range(8), sparse=True)
+            sage: A.stack(B, subdivide=True)
+            [ 0  1  2  3]
+            [ 4  5  6  7]
+            [ 8  9 10 11]
+            [-----------]
+            [ 0  1  2  3]
+            [ 4  5  6  7]
         """
-        if not isinstance(other, matrix.Matrix):
+        if hasattr(bottom, '_vector_'):
+            bottom = bottom.row()
+        if not isinstance(bottom, matrix.Matrix):
             raise TypeError, "other must be a matrix"
 
-        if self._ncols != other.ncols():
+        cdef Matrix_sparse other = bottom.sparse_matrix()
+
+        if self._ncols != other._ncols:
             raise TypeError, "number of columns must be the same"
 
         if not (self._base_ring is other.base_ring()):
@@ -831,14 +859,16 @@ cdef class Matrix_sparse(matrix.Matrix):
         for i, j in self.nonzero_positions(copy=False):
             Z.set_unsafe(i, j, self.get_unsafe(i,j))
         for i, j in other.nonzero_positions(copy=False):
-            Z.set_unsafe(i + self._nrows, j, (<matrix.Matrix>other).get_unsafe(i,j))
+            Z.set_unsafe(i + self._nrows, j, other.get_unsafe(i,j))
+        if subdivide:
+            Z._subdivide_on_stack(self, other)
         return Z
 
-    def augment(self, other):
-        """
+    def augment(self, right, subdivide=False):
+        r"""
         Return the augmented matrix of the form::
 
-            [self | other].
+            [self | right].
 
         EXAMPLES::
 
@@ -858,23 +888,49 @@ cdef class Matrix_sparse(matrix.Matrix):
             sage: B.augment(A)
             [9 1 2]
             [8 3 4]
-        """
-        if not isinstance(other, matrix.Matrix):
-            raise TypeError, "other must be a matrix"
 
-        if self._nrows != other.nrows():
+        A vector may be augmented to a matrix. ::
+
+            sage: A = matrix(QQ, 3, 4, range(12), sparse=True)
+            sage: v = vector(QQ, 3, range(3), sparse=True)
+            sage: A.augment(v)
+            [ 0  1  2  3  0]
+            [ 4  5  6  7  1]
+            [ 8  9 10 11  2]
+
+        The ``subdivide`` option will add a natural subdivision between
+        ``self`` and ``right``.  For more details about how subdivisions
+        are managed when augmenting, see
+        :meth:`sage.matrix.matrix1.Matrix.augment`.  ::
+
+            sage: A = matrix(QQ, 3, 5, range(15), sparse=True)
+            sage: B = matrix(QQ, 3, 3, range(9), sparse=True)
+            sage: A.augment(B, subdivide=True)
+            [ 0  1  2  3  4| 0  1  2]
+            [ 5  6  7  8  9| 3  4  5]
+            [10 11 12 13 14| 6  7  8]
+        """
+        if hasattr(right, '_vector_'):
+            right = right.column()
+        if not isinstance(right, matrix.Matrix):
+            raise TypeError, "right must be a matrix"
+
+        cdef Matrix_sparse other = right.sparse_matrix()
+
+        if self._nrows != other._nrows:
             raise TypeError, "number of rows must be the same"
 
-        if not (self._base_ring is other.base_ring()):
-            other = other.change_ring(self._base_ring)
+        if not (self._base_ring is right.base_ring()):
+            right = right.change_ring(self._base_ring)
 
         cdef Matrix_sparse Z
-        Z = self.new_matrix(ncols = self._ncols + other.ncols())
-
+        Z = self.new_matrix(ncols = self._ncols + other._ncols)
         for i, j in self.nonzero_positions(copy=False):
             Z.set_unsafe(i, j, self.get_unsafe(i,j))
-        for i, j in other.nonzero_positions(copy=False):
-            Z.set_unsafe(i, j + self._ncols, (<matrix.Matrix>other).get_unsafe(i,j))
+        for i, j in right.nonzero_positions(copy=False):
+            Z.set_unsafe(i, j + self._ncols, other.get_unsafe(i,j))
+        if subdivide:
+            Z._subdivide_on_augment(self, other)
         return Z
 
     cdef Vector _vector_times_matrix_(self, Vector v):

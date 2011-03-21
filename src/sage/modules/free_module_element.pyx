@@ -157,7 +157,8 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
     INPUT:
 
     -  ``object`` - a list, dictionary, or other
-       iterable containing the entries of the vector
+       iterable containing the entries of the vector, including
+       any object that is palatable to the ``Sequence`` constructor
 
     -  ``ring`` - a base ring (or field) for the vector
        space or free module, which contains all of the elements
@@ -243,7 +244,6 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
 
         sage: vector(QQ, 4, [1,1/2,1/3,1/4])
         (1, 1/2, 1/3, 1/4)
-
 
     But it is an error if the degree and size of the list of entries
     are mismatched::
@@ -347,7 +347,23 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
         sage: parent(v)
         Ambient free module of rank 3 over the principal ideal domain Integer Ring
 
-    Am empty list, without a ring given, will default to the integers. ::
+    Complex numbers can be converted naturally to a sequence of length 2.  And
+    then to a vector.  ::
+
+        sage: c = CDF(2 + 3*I)
+        sage: v = vector(c); v
+        (2.0, 3.0)
+
+    A generator, or other iterable, may also be supplied as input.  Anything
+    that can be converted to a :class:`~sage.structure.sequence.Sequence` is
+    a possible input.  ::
+
+        sage: type(i^2 for i in range(3))
+        <type 'generator'>
+        sage: v = vector(i^2 for i in range(3)); v
+        (0, 1, 4)
+
+    An empty list, without a ring given, will default to the integers. ::
 
         sage: x = vector([]); x
         ()
@@ -434,7 +450,8 @@ def prepare(v, R, degree=None):
     INPUT:
 
     - ``v`` - a dictionary with non-negative integers as keys,
-      or a list or other object that can be converted to Sequence
+      or a list or other object that can be converted by the ``Sequence``
+      constructor
     - ``R`` - a ring containing all the entries, possibly given as ``None``
     - ``degree`` -  a requested size for the list when the input is a dictionary,
       otherwise ignored
@@ -486,8 +503,15 @@ def prepare(v, R, degree=None):
         ...
         TypeError: unable to find a common ring for all elements
 
+    Some objects can be converted to sequences even if they are not always
+    thought of as sequences.  ::
+
+        sage: c = CDF(2+3*I)
+        sage: prepare(c, None)
+        ([2.0, 3.0], Real Double Field)
+
     This checks a bug listed at Trac #10595.  Without good evidence for a ring, the default
-    is the integers.
+    is the integers. ::
 
         sage: prepare([], None)
         ([], Integer Ring)

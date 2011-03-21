@@ -116,6 +116,8 @@ typedef _ntl_ulong *_ntl_ulong_ptr;
 
 NTL_OPEN_NNS
 
+extern void (*ErrorCallback)();
+
 struct INIT_SIZE_STRUCT { };
 const INIT_SIZE_STRUCT INIT_SIZE = INIT_SIZE_STRUCT();
 typedef const INIT_SIZE_STRUCT& INIT_SIZE_TYPE;
@@ -245,6 +247,7 @@ inline double to_double(double a) { return a; }
 
 long SkipWhiteSpace(NTL_SNS istream& s);
 long IsWhiteSpace(long c);
+long IsEOFChar(long c);
 
 long CharToIntVal(long c);
 char IntValToChar(long a);

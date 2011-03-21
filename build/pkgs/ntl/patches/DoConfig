@@ -6,6 +6,7 @@
 %MakeFlag = (
 
 'WIZARD'  => 'on',
+'SHARED'  => 'off',
 
 );
 
@@ -18,19 +19,28 @@
 'AR'	      => 'ar',
 'ARFLAGS'     => 'ruv',
 'RANLIB'      => 'ranlib',
+'LIBTOOL'     => 'libtool',
+
 'LDFLAGS'     => '',
 'LDFLAGS_CXX' => '$(LDFLAGS)',
 'LDLIBS'      => '-lm',
 'LDLIBS_CXX'  => '$(LDLIBS)',
 'CPPFLAGS'    => '',
-'PREFIX'      => '/usr/local',
+
+'DEF_PREFIX'  => '/usr/local',
+
+'PREFIX'      => '$(DEF_PREFIX)',
 'LIBDIR'      => '$(PREFIX)/lib',
 'INCLUDEDIR'  => '$(PREFIX)/include',
-'DOCDIR'      => '$(PREFIX)/doc',
+'DOCDIR'      => '$(PREFIX)/share/doc',
 
-'GMP_PREFIX'  => undef,
-'GMP_INCDIR'  => undef,
-'GMP_LIBDIR'  => undef,
+'GMP_PREFIX'  => '$(DEF_PREFIX)',
+'GMP_INCDIR'  => '$(GMP_PREFIX)/include',
+'GMP_LIBDIR'  => '$(GMP_PREFIX)/lib',
+
+'GF2X_PREFIX'  => '$(DEF_PREFIX)',
+'GF2X_INCDIR'  => '$(GF2X_PREFIX)/include',
+'GF2X_LIBDIR'  => '$(GF2X_PREFIX)/lib',
 
 );
 
@@ -45,6 +55,7 @@
 'NTL_PSTD_NTN'          => 'off',
 'NTL_GMP_LIP'           => 'off',
 'NTL_GMP_HACK'          => 'off',
+'NTL_GF2X_LIB'          => 'off',
 'NTL_CXX_ONLY'          => 'off',
 'NTL_X86_FIX'           => 'off',
 'NTL_NO_X86_FIX'        => 'off',
@@ -74,6 +85,9 @@
 );
 
 
+%Variable = ();
+
+
 foreach $arg (@ARGV) {
 
 # Disable the help dialog since building NTL with gmp in a directory containing "-h" will trigger it
@@ -83,6 +97,8 @@ foreach $arg (@ARGV) {
 #   }
 
    if (($name, $val) = ($arg =~ /(.*?)=(.*)/)) {
+
+      $Variable{$name} = 0;
 
       if (exists($MakeFlag{$name}) && ($val =~ 'on|off')) {
          $MakeFlag{$name} = $val;
@@ -106,42 +122,69 @@ foreach $arg (@ARGV) {
 
 }
 
+# some special MakeVal values that are determined by SHARED
 
+if ($MakeFlag{'SHARED'} eq 'off') {
 
-# some special logic to set GMP_INCDIR, GMP_LIBDIR, and GMP_LIB.
-# note that GMP_PREFIX is not really a variable in the makefile template
+   $MakeVal{'LSTAT'} = '';
+   $MakeVal{'LSHAR'} = '# ';
+
+} else {
+
+   # sanity check for libtool
+
+   print("***** checking for libtool *****\n");
+   if (system("$MakeVal{'LIBTOOL'} --version")) {
+      die "Error: bad libtool ($MakeVal{'LIBTOOL'}) -- try glibtool?";
+   }
+   print("***** libtool OK *****\n\n");
+
+   $MakeVal{'LSTAT'} = '# ';
+   $MakeVal{'LSHAR'} = '';
+
+}
+
+# special GMP variables
+
+$MakeVal{'GMPI'} = '# ';
+$MakeVal{'GMPL'} = '# ';
+$MakeVal{'GMP'} =  '# ';
 
 if ($ConfigFlag{'NTL_GMP_LIP'} eq 'on' || $ConfigFlag{'NTL_GMP_HACK'} eq 'on') {
-
-   if (defined($MakeVal{'GMP_PREFIX'})) {
-      if (!defined($MakeVal{'GMP_INCDIR'})) {
-         $MakeVal{'GMP_INCDIR'} = "-I$MakeVal{'GMP_PREFIX'}/include";
-      }
-
-      if (!defined($MakeVal{'GMP_LIBDIR'})) {
-         $MakeVal{'GMP_LIBDIR'} = "-L$MakeVal{'GMP_PREFIX'}/lib";
-      }
+   $MakeVal{'GMP'} = '';
+   if (exists($Variable{'DEF_PREFIX'}) ||
+       exists($Variable{'GMP_PREFIX'}) ||
+       exists($Variable{'GMP_INCDIR'})) {
+      $MakeVal{'GMPI'} = '';
    }
-   else {
-      if (!defined($MakeVal{'GMP_INCDIR'})) {
-         $MakeVal{'GMP_INCDIR'} = '';
-      }
-
-      if (!defined($MakeVal{'GMP_LIBDIR'})) {
-         $MakeVal{'GMP_LIBDIR'} = '';
-      }
+   if (exists($Variable{'DEF_PREFIX'}) ||
+       exists($Variable{'GMP_PREFIX'}) ||
+       exists($Variable{'GMP_LIBDIR'})) {
+      $MakeVal{'GMPL'} = '';
    }
-
-   $MakeVal{'GMP_LIB'} = '-lgmp';
-}
-else {
-
-   $MakeVal{'GMP_INCDIR'} = '';
-   $MakeVal{'GMP_LIBDIR'} = '';
-   $MakeVal{'GMP_LIB'} = '';
-
 }
 
+# special GF2X variables
+
+
+$MakeVal{'GF2XI'} = '# ';
+$MakeVal{'GF2XL'} = '# ';
+$MakeVal{'GF2X'} =  '# ';
+
+
+if ($ConfigFlag{'NTL_GF2X_LIB'} eq 'on') {
+   $MakeVal{'GF2X'} = '';
+   if (exists($Variable{'DEF_PREFIX'}) ||
+       exists($Variable{'GF2X_PREFIX'}) ||
+       exists($Variable{'GF2X_INCDIR'})) {
+      $MakeVal{'GF2XI'} = '';
+   }
+   if (exists($Variable{'DEF_PREFIX'}) ||
+       exists($Variable{'GF2X_PREFIX'}) ||
+       exists($Variable{'GF2X_LIBDIR'})) {
+      $MakeVal{'GF2XL'} = '';
+   }
+}
 
 
 # copy %MakeVal and %MakeFlag as is into %MakeSub

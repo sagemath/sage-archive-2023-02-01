@@ -23,6 +23,7 @@ CFLAGS=@{CFLAGS}
 # Flags for the C compiler
 # Some useful flags:
 #   -O2   --  recommended level of optimization
+#   -m64  --  needed to get 64-bit longs on some platforms
 #   -g    --  debugging
 #   -mcpu=v8  --  needed with gcc/g++ to get the full instruction set
 #                 of a SparcStation
@@ -50,19 +51,24 @@ RANLIB=@{RANLIB}
 # set to echo if you want to disable it completely
 
 LDFLAGS=@{LDFLAGS}
-# arguments for linker for C++ programs
+# arguments for linker for C programs
 
 LDFLAGS_CXX=@{LDFLAGS_CXX}
-# libraries for linking C programs
+# libraries for linking C++ programs
 
 LDLIBS=@{LDLIBS}
-# libraries for linking C++ programs
+# libraries for linking C programs
 
 LDLIBS_CXX=@{LDLIBS_CXX}
 # libraries for linking C++ programs
 
 CPPFLAGS=@{CPPFLAGS}
 # arguments for the C preprocessor
+
+LIBTOOL=@{LIBTOOL}
+# libtool command
+
+DEF_PREFIX=@{DEF_PREFIX}
 
 PREFIX=@{PREFIX}
 LIBDIR=@{LIBDIR}
@@ -73,8 +79,7 @@ DOCDIR=@{DOCDIR}
 ###############################################################
 #
 #  Second, if you want to use GMP (the GNU Multi-Precision library),
-#  define the variables GMP_INCDIR, GMP_LIBDIR, GMP_LIB below.
-#  Otherwise, leave these defined as empty.
+#  define the variables GMP_OPT_INCDIR, GMP_OPT_LIBDIR, GMP_OPT_LIB below.
 #  You also will have to set either NTL_GMP_LIP or NTL_GMP_HACK
 #  in the config.h file.
 #
@@ -87,20 +92,47 @@ DOCDIR=@{DOCDIR}
 ###############################################################
 
 
+GMP_PREFIX=@{GMP_PREFIX}
+
 GMP_INCDIR=@{GMP_INCDIR}
-# Set to -I<directory containing gmp.h> if using GMP and GMP
-# is not installed in a standard system directory, empty otherwise
+# directory containing gmp.h if using GMP
 
 GMP_LIBDIR=@{GMP_LIBDIR}
-# Set to -L<directory containing libgmp.a> if using GMP and GMP
-# is not installed in a standard system directory, empty otherwise
+# directory containing libgmp.a if using GMP
 
-GMP_LIB=@{GMP_LIB}
-# Set to -lgmp if using GMP, empty otherwise
+GMP_OPT_INCDIR=@{GMPI}-I$(GMP_INCDIR) # GMPI
+GMP_OPT_LIBDIR=@{GMPL}-L$(GMP_LIBDIR) # GMPL
+GMP_OPT_LIB=@{GMP}-lgmp # GMP
+# uncomment these if using GMP
+
 
 ###############################################################
 #
-# Third, if you do not want to run the wizard that automagically
+#  Third, if you want to use gf2x (a library for fast
+#  multiplication over GF(2)[X]), you need to
+#  define the variables GF2X_OPT_INCDIR, GF2X_OPT_LIBDIR, GF2X_OPT_LIB below.
+#  You also will have to set NTL_GF2X_LIB
+#  in the config.h file.
+#
+###############################################################
+
+GF2X_PREFIX=@{GF2X_PREFIX}
+
+GF2X_INCDIR=@{GF2X_INCDIR}
+# directory containing gf2x.h if using gf2x
+
+GF2X_LIBDIR=@{GF2X_LIBDIR}
+# directory containing libgf2x.a
+
+GF2X_OPT_INCDIR=@{GF2XI}-I$(GF2X_INCDIR) # GF2X
+GF2X_OPT_LIBDIR=@{GF2XL}-L$(GF2X_LIBDIR) # GF2X
+GF2X_OPT_LIB=@{GF2X}-lgf2x # GF2X
+# uncomment these if using gf2x
+
+
+###############################################################
+#
+# Fourth, if you do not want to run the wizard that automagically
 # sets some performace related flags in config.h, set the flag below.
 #
 ###############################################################
@@ -213,7 +245,7 @@ TD = $(TD4)
 
 TS1=QuickTest.c BerlekampTest.c CanZassTest.c ZZXFacTest.c MoreFacTest.c LLLTest.c
 TS2=$(TS1) subset.c MatrixTest.c CharPolyTest.c RRTest.c QuadTest.c
-TS3=$(TS2) GF2EXTest.c BitMatTest.c ZZ_pEXTest.c lzz_pEXTest.c
+TS3=$(TS2) GF2XTest.c GF2EXTest.c BitMatTest.c ZZ_pEXTest.c lzz_pEXTest.c
 
 TS = $(TS3)
 
@@ -251,7 +283,7 @@ D14=$(D13) tour-modules.html tour-stdcxx.html tour-unix.html tour-examples.html
 D15=$(D14) tour-roadmap.html tour-win.html tour-impl.html tour-struct.html
 D16=$(D15) tour.html tour-ex1.html tour-ex2.html tour-ex3.html tour-ex4.html
 D17=$(D16) tour-ex5.html tour-ex6.html arrow1.gif arrow2.gif arrow3.gif
-D18=$(D17) tour-gmp.html config.txt version.txt
+D18=$(D17) tour-gmp.html tour-gf2x.html tour-tips.html config.txt version.txt
 
 DOC = $(D18)
 
@@ -261,7 +293,7 @@ DOC = $(D18)
 
 PROG1=QuickTest BerlekampTest CanZassTest ZZXFacTest MoreFacTest LLLTest  BitMatTest
 PROG2=$(PROG1) MatrixTest CharPolyTest RRTest QuadTest
-PROG3=$(PROG2) GF2EXTest subset ZZ_pEXTest lzz_pEXTest
+PROG3=$(PROG2) GF2XTest GF2EXTest subset ZZ_pEXTest lzz_pEXTest
 PROGS = $(PROG3)
 
 # things to save to a tar file
@@ -290,12 +322,18 @@ LINK_CXX = $(CXX) $(NTL_INCLUDE) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS_CXX)
 
 
 
+# 'make all' does a complete make, including all setup.
+# It also creates the file 'all', which means you should
+# run 'make clobber' before running 'make' or 'make all'
+# again.
+
 all:
 	make setup1
 	make setup2
 	make setup3
 	make setup4
 	make ntl.a
+	touch all
 
 
 # setup1 generates the file ../incluse/NTL/mach_desc.h
@@ -318,9 +356,9 @@ setup2:
 # When these flags are not set, empty files are produced.
 
 setup3:
-	$(LINK) $(GMP_FLAG) $(GMP_INCDIR) -o gen_lip_gmp_aux gen_lip_gmp_aux.c $(GMP_LIBDIR) $(GMP_LIB) $(LDLIBS)
+	$(LINK) $(GMP_OPT_INCDIR) -o gen_lip_gmp_aux gen_lip_gmp_aux.c $(GMP_OPT_LIBDIR) $(GMP_OPT_LIB) $(LDLIBS)
 	./gen_lip_gmp_aux > lip_gmp_aux_impl.h
-	$(LINK) $(GMP_FLAG) $(GMP_INCDIR) -o gen_gmp_aux gen_gmp_aux.c $(GMP_LIBDIR) $(GMP_LIB) $(LDLIBS)
+	$(LINK) $(GMP_OPT_INCDIR) -o gen_gmp_aux gen_gmp_aux.c $(GMP_OPT_LIBDIR) $(GMP_OPT_LIB) $(LDLIBS)
 	./gen_gmp_aux > ../include/NTL/gmp_aux.h
 
 # setup4 runs the wizard
@@ -330,25 +368,31 @@ setup4:
 
 
 ntl.a:	$(OBJ)
-	$(AR) $(ARFLAGS) ntl.a $(OBJ)
-	- $(RANLIB) ntl.a
+@{LSTAT}	$(AR) $(ARFLAGS) ntl.a $(OBJ) #LSTAT
+@{LSTAT}	- $(RANLIB) ntl.a #LSTAT
+@{LSHAR}	$(LIBTOOL) --mode=link $(LINK_CXX) -o libntl.la $(OBJ:.o=.lo) $(GMP_OPT_LIBDIR) $(GMP_OPT_LIB) $(GF2X_OPT_LIBDIR) $(GF2X_OPT_LIB) $(LDLIBS_CXX) -rpath $(LIBDIR) -version-info `cat VERSION_INFO` #LSHAR
+
+@{LSTAT}LCOMP= #LSTAT
+@{LSHAR}LCOMP=$(LIBTOOL) --mode=compile #LSHAR
 
 lip.o:	lip.c g_lip_impl.h c_lip_impl.h lip_gmp_aux_impl.h
-	$(COMPILE) $(GMP_INCDIR) lip.c
+	$(LCOMP) $(COMPILE) $(GMP_OPT_INCDIR) lip.c
 
 ctools.o:	ctools.c
-	$(COMPILE) ctools.c
+	$(LCOMP) $(COMPILE) ctools.c
 
 
 GetTime.o: GetTime.c
-	$(COMPILE) GetTime.c
+	$(LCOMP) $(COMPILE) GetTime.c
+
 
 
 .c.o:
-	$(COMPILE_CXX) $<
+	$(LCOMP) $(COMPILE_CXX) $(GF2X_OPT_INCDIR) $<
 
 .c:
-	$(LINK_CXX) -o $@ $< ntl.a  $(GMP_LIBDIR) $(GMP_LIB) $(LDLIBS_CXX)
+@{LSTAT}	$(LINK_CXX) -o $@ $< ntl.a $(GMP_OPT_LIBDIR) $(GMP_OPT_LIB) $(GF2X_OPT_LIBDIR) $(GF2X_OPT_LIB) $(LDLIBS_CXX) #LSTAT
+@{LSHAR}	$(LIBTOOL) --mode=link $(LINK_CXX) -o $@ $< libntl.la #LSHAR
 
 #################################################################
 #
@@ -358,9 +402,10 @@ GetTime.o: GetTime.c
 #################################################################
 
 check:
+	sh RemoveProg $(PROGS)
 	make QuickTest
 	./QuickTest
-	- sh RemoveProg QuickTest
+	sh RemoveProg QuickTest
 	sh TestScript
 
 #################################################################
@@ -380,27 +425,29 @@ check:
 
 
 install:
-	mkdir -p -m 755 $(LIBDIR)
-	cp -p ntl.a $(LIBDIR)/libntl.a
-	- chmod a+r $(LIBDIR)/libntl.a
 	mkdir -p -m 755 $(INCLUDEDIR)
-	- rm -r $(INCLUDEDIR)/NTL
+	rm -rf $(INCLUDEDIR)/NTL
 	mkdir -m 755 $(INCLUDEDIR)/NTL
 	cp -p ../include/NTL/*.h $(INCLUDEDIR)/NTL
 	- chmod -R a+r $(INCLUDEDIR)/NTL
 	mkdir -p -m 755 $(DOCDIR)
-	- rm -r $(DOCDIR)/NTL
+	rm -rf $(DOCDIR)/NTL
 	mkdir -m 755 $(DOCDIR)/NTL
 	cp -p ../doc/*.txt $(DOCDIR)/NTL
 	cp -p ../doc/*.html $(DOCDIR)/NTL
 	cp -p ../doc/*.gif $(DOCDIR)/NTL
 	- chmod -R a+r $(DOCDIR)/NTL
+	mkdir -p -m 755 $(LIBDIR)
+@{LSTAT}	cp -p ntl.a $(LIBDIR)/libntl.a #LSTAT
+@{LSTAT}	- chmod a+r $(LIBDIR)/libntl.a #LSTAT
+@{LSHAR}	$(LIBTOOL) --mode=install cp -p libntl.la $(LIBDIR) #LSHAR
 
 
 uninstall:
-	- rm $(LIBDIR)/libntl.a
-	- rm -r $(INCLUDEDIR)/NTL
-	- rm -r $(DOCDIR)/NTL
+@{LSTAT}	rm -f $(LIBDIR)/libntl.a #LSTAT
+@{LSHAR}	$(LIBTOOL) --mode=uninstall rm -f $(LIBDIR)/libntl.la #LSHAR
+	rm -rf $(INCLUDEDIR)/NTL
+	rm -rf $(DOCDIR)/NTL
 
 #################################################################
 #
@@ -414,15 +461,19 @@ uninstall:
 #################################################################
 
 clobber: clean
-	- rm ntl.a mach_desc.h ../include/NTL/mach_desc.h  GetTime.c
-	- rm lip_gmp_aux_impl.h ../include/NTL/gmp_aux.h
-	- sh RemoveProg $(PROGS)
-	- rm libntl*.so*
+	rm -f ntl.a mach_desc.h ../include/NTL/mach_desc.h  GetTime.c
+	rm -f lip_gmp_aux_impl.h ../include/NTL/gmp_aux.h
+	sh RemoveProg $(PROGS)
+	rm libntl*.so*
+	rm -f cfileout mfileout
+	rm -rf .libs *.lo libntl.la
+	rm -f all
 
 clean:
-	- rm *.o
-	- sh RemoveProg MakeDesc TestGetTime gen_lip_gmp_aux gen_gmp_aux
-	- rm -r small
+	sh RemoveProg MakeDesc TestGetTime gen_lip_gmp_aux gen_gmp_aux
+	rm -f *.o
+	rm -rf small
+@{LSHAR}	- $(LIBTOOL) --mode=clean rm -f libntl.la *.lo #LSHAR
 
 #################################################################
 #
@@ -436,20 +487,20 @@ clean:
 
 
 package:
-	sh unixify "$(SFILES) DIRNAME WINDIR" "$(INCL)" "$(DOC)"
-	-rm -rf `cat DIRNAME`
-	- rm -f `cat DIRNAME`.tar
-	- rm -f `cat DIRNAME`.tar.gz
+	sh unixify "$(SFILES) DIRNAME WINDIR VERSION_INFO NOTES" "$(INCL)" "$(DOC)"
+	rm -rf `cat DIRNAME`
+	rm -f `cat DIRNAME`.tar
+	rm -f `cat DIRNAME`.tar.gz
 	mv unix `cat DIRNAME`
 	chmod -R a+rX `cat DIRNAME`
 	tar -cvf `cat DIRNAME`.tar `cat DIRNAME`
 	gzip `cat DIRNAME`.tar
-	- rm -rf `cat DIRNAME`
+	rm -rf `cat DIRNAME`
 
 winpack:
 	sh dosify "$(SRC)" "$(INCL)" "$(DOC)" "$(TS)" "$(TD)" "$(SINC)"
-	- rm -rf `cat WINDIR`
-	- rm -f `cat WINDIR`.zip
+	rm -rf `cat WINDIR`
+	rm -f `cat WINDIR`.zip
 	mv dos `cat WINDIR`
 	chmod -R a+rX `cat WINDIR`
 	find ./`cat WINDIR` '!' -name '*.gif' -print | zip -l `cat WINDIR` -@
@@ -469,25 +520,23 @@ WO3 = $(WO2) GF2.o WordVector.o vec_GF2.o GF2X.o GF2X1.o
 
 WOBJ = $(WO3)
 
-
+@{LSHAR}wntl.a: LCOMP= #LSHAR
 wntl.a:	$(WOBJ)
 	$(AR) $(ARFLAGS) wntl.a $(WOBJ)
 	- $(RANLIB) wntl.a
 
-
-
 MulTimeTest:
-	$(LINK_CXX) -o MulTimeTest MulTimeTest.c wntl.a  $(GMP_LIBDIR) $(GMP_LIB)  $(LDLIBS_CXX)
+	$(LINK_CXX) -o MulTimeTest MulTimeTest.c wntl.a  $(GMP_OPT_LIBDIR) $(GMP_OPT_LIB)  $(LDLIBS_CXX)
 
 PolyTimeTest:
-	$(LINK_CXX) -o PolyTimeTest PolyTimeTest.c wntl.a  $(GMP_LIBDIR) $(GMP_LIB) $(LDLIBS_CXX)
+	$(LINK_CXX) -o PolyTimeTest PolyTimeTest.c wntl.a  $(GMP_OPT_LIBDIR) $(GMP_OPT_LIB) $(LDLIBS_CXX)
 
 Poly1TimeTest:
-	$(LINK_CXX) -o Poly1TimeTest Poly1TimeTest.c wntl.a  $(GMP_LIBDIR) $(GMP_LIB) $(LDLIBS_CXX)
+	$(LINK_CXX) -o Poly1TimeTest Poly1TimeTest.c wntl.a  $(GMP_OPT_LIBDIR) $(GMP_OPT_LIB) $(LDLIBS_CXX)
 
 
 GF2XTimeTest:
-	$(LINK_CXX) -o GF2XTimeTest GF2XTimeTest.c wntl.a  $(GMP_LIBDIR) $(GMP_LIB) $(LDLIBS_CXX)
+	$(LINK_CXX) -o GF2XTimeTest GF2XTimeTest.c wntl.a  $(GMP_OPT_LIBDIR) $(GMP_OPT_LIB) $(LDLIBS_CXX)
 
 InitSettings:
 	$(LINK_CXX) -o InitSettings InitSettings.c  $(LDLIBS_CXX)
@@ -498,45 +547,26 @@ DispSettings:
 
 
 
-################################################################
-#
-# Notes on making a new distribution
-#
-#  - change version numbers in ../include/NTL/version.h, DIRNAME, and WINDIR
-#
-#  - if changes were made to makefile or ../include/NTL/config.h,
-#    make sure these changes are implemented in the template files
-#    mfile and cfile, and then run:
-#      ./configure
-#      cp makefile def_makefile
-#      cp ../include/NTL/config.h ../include/NTL/def_config.h
-#
-#  - run:
-#      make package
-#      make winpack
-#
-################################################################
-
 
 shobj: $(OBJ)
 
 libntl.dylib:
 	- rm -f $(OBJ) # clean, preserving tuning parameters
 	make shobj
-	$(LINK_CXX) -fPIC -dynamiclib -undefined dynamic_lookup -o libntl.dylib $(OBJ) $(GMP_LIBDIR) $(GMP_LIB)
+	$(LINK_CXX) -fPIC -dynamiclib -undefined dynamic_lookup -o libntl.dylib $(OBJ) $(GMP_OPT_LIBDIR) $(GMP_OPT_LIB)
 
 libntl.dylib64:
 	- rm -f $(OBJ) # clean, preserving tuning parameters
 	make shobj
-	$(LINK_CXX) -fPIC -m64 -dynamiclib -undefined dynamic_lookup -o libntl.dylib $(OBJ) $(GMP_LIBDIR) $(GMP_LIB)
+	$(LINK_CXX) -fPIC -m64 -dynamiclib -undefined dynamic_lookup -o libntl.dylib $(OBJ) $(GMP_OPT_LIBDIR) $(GMP_OPT_LIB)
 
 libntl.dll:
 	- rm -f $(OBJ) # clean, preserving tuning parameters
 	make shobj
-	$(LINK_CXX) -fPIC -shared -o libntl.dll $(OBJ) $(GMP_LIBDIR) $(GMP_LIB)
+	$(LINK_CXX) -fPIC -shared -o libntl.dll $(OBJ) $(GMP_OPT_LIBDIR) $(GMP_OPT_LIB)
 
 libntl.so: DIRNAME
 	- rm -f $(OBJ) # clean, preserving tuning parameters
 	make FPICFLAG=-fPIC shobj
-	$(LINK_CXX) -fPIC -shared -o lib`cat DIRNAME`.so $(OBJ) $(GMP_LIBDIR) $(GMP_LIB)
+	$(LINK_CXX) -fPIC -shared -o lib`cat DIRNAME`.so $(OBJ) $(GMP_OPT_LIBDIR) $(GMP_OPT_LIB)
 	ln -s lib`cat DIRNAME`.so libntl.so

@@ -53,9 +53,9 @@ build()
      fi
 
      cd src
-     cp ../../patches/new.h ../include/NTL/new.h
-     cp ../../patches/tools.c ../src/tools.c
      cp ../../patches/tools.h ../include/NTL/tools.h
+     cp ../../patches/tools.c ../src/tools.c
+     cp ../../patches/new.h ../include/NTL/new.h
      cp ../../patches/mfile ../src/mfile
      cp ../../patches/DoConfig DoConfig
 
@@ -69,6 +69,8 @@ build()
          CXXFLAGS=" -m64 $CXXFLAGS"
      fi
 
+     echo "starting configuration"
+
      ./configure PREFIX="$SAGE_LOCAL" CC="$CC" CFLAGS="$CFLAGS $SHAREDFLAGS" CXX="$CXX" \
                  CXXFLAGS="$CXXFLAGS $SHAREDFLAGS" LDFLAGS="$LDFLAGS" \
                  GMP_PREFIX="$SAGE_LOCAL" NTL_GMP_LIP=on NTL_STD_CXX=on
@@ -80,6 +82,11 @@ build()
 
 
     echo "Building and install NTL"
+
+    echo "GMP include"
+    echo $GMP_INCDIR
+    echo $GMP_PREFIX
+    echo $SAGE_LOCAL
 
     # Do performance tuning steps.
     do_tune
@@ -131,7 +138,7 @@ build()
             echo "Error creating ntl shared library."
             exit 1
         fi
-        cp libntl-5.4.2.so "$SAGE_LOCAL/lib/"
+        cp libntl-5.5.2.so "$SAGE_LOCAL/lib/"
         rm "$SAGE_LOCAL/lib/libntl.so"
 	CUR2=`pwd`
         cd $SAGE_LOCAL/lib; ln -s libntl-5.5.2.so libntl.so

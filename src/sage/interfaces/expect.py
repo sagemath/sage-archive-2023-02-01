@@ -1010,7 +1010,7 @@ If this all works, you can then make calls like:
     # END Synchronization code.
     ###########################################################################
 
-    def eval(self, code, strip=True, synchronize=False, locals=None, **kwds):
+    def eval(self, code, strip=True, synchronize=False, locals=None, split_lines=True, **kwds):
         """
         INPUT:
 
@@ -1022,6 +1022,10 @@ If this all works, you can then make calls like:
 
         - ``locals`` - None (ignored); this is used for compatibility with the
           Sage notebook's generic system interface.
+
+        - ``split_lines`` -- bool (default: True); if True then each
+          line is evaluated separately.  If False, then the whole
+          block of code is evaluated all at once.
 
         -  ``**kwds`` - All other arguments are passed onto
            the _eval_line method. An often useful example is
@@ -1047,7 +1051,10 @@ If this all works, you can then make calls like:
 
         try:
             with gc_disabled():
-                return '\n'.join([self._eval_line(L, **kwds) for L in code.split('\n') if L != ''])
+                if split_lines:
+                    return '\n'.join([self._eval_line(L, **kwds) for L in code.split('\n') if L != ''])
+                else:
+                    return self._eval_line(code, **kwds)
         except KeyboardInterrupt:
             # DO NOT CATCH KeyboardInterrupt, as it is being caught
             # by _eval_line

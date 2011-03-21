@@ -508,12 +508,17 @@ class Magma(Expect):
 
             sage: magma.eval("a := %s;"%(10^10000))    # optional - magma
             ''
+
+        Verify that trac 9705 is fixed::
+
+            sage: magma.eval("_<x>:=PolynomialRing(Rationals());\nrepeat\ng:=3*b*x^4+18*c*x^3-6*b^2*x^2-6*b*c*x-b^3-9*c^2 where b:=Random([-10..10]) where c:=Random([-10..10]);\nuntil g ne 0 and Roots(g) ne []; print \"success\";")      # optional - magma
+            'success'
         """
         x = self._preparse(x)
         x = str(x).rstrip()
         if len(x) == 0 or x[len(x) - 1] != ';':
             x += ';'
-        ans = Expect.eval(self, x, **kwds).replace('\\\n','')
+        ans = Expect.eval(self, x, split_lines=False, **kwds).replace('\\\n','')
         if 'Runtime error' in ans or 'User error' in ans:
             raise RuntimeError, "Error evaluating Magma code.\nIN:%s\nOUT:%s"%(x, ans)
         return ans

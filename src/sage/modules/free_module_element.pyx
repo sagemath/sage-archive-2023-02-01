@@ -500,8 +500,12 @@ def prepare(v, R, degree=None):
         v = X
     # convert to a Sequence over common ring
     # default to ZZ on an empty list
-    if len(v) == 0 and R == None:
-      R = sage.rings.integer_ring.IntegerRing()
+    if R is None:
+        try:
+            if len(v) == 0:
+                R = sage.rings.integer_ring.IntegerRing()
+        except TypeError:
+            pass
     v = Sequence(v, universe=R, use_sage_types=True)
     ring = v.universe()
     if not is_Ring(ring):

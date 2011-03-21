@@ -93,6 +93,7 @@ all: $(BASE) \
      $(INST)/$(PIL) \
      $(INST)/$(POLYBORI) \
      $(INST)/$(POLYTOPES_DB) \
+     $(INST)/$(PPL) \
      $(INST)/$(PYCRYPTO) \
      $(INST)/$(PYGMENTS) \
      $(INST)/$(PYNAC) \
@@ -217,6 +218,9 @@ $(INST)/$(POLYBORI): $(BASE) $(INST)/$(PYTHON) $(INST)/$(SCONS) \
 
 $(INST)/$(POLYTOPES_DB): $(BASE) $(INST)/$(PATCH)
 	$(INSTALL) "$(SAGE_SPKG) $(POLYTOPES_DB) 2>&1" "tee -a $(SAGE_LOGS)/$(POLYTOPES_DB).log"
+
+$(INST)/$(PPL): $(BASE) $(INST)/$(MPIR)
+	$(INSTALL) "$(SAGE_SPKG) $(PPL) 2>&1" "tee -a $(SAGE_LOGS)/$(PPL).log"
 
 $(INST)/$(MPFR): $(BASE) $(INST)/$(MPIR) $(INST)/$(PATCH)
 	$(INSTALL) "$(SAGE_SPKG) $(MPFR) 2>&1" "tee -a $(SAGE_LOGS)/$(MPFR).log"
@@ -485,6 +489,7 @@ $(INST)/$(SAGE): $(BASE) \
 		 $(INST)/$(PARI) \
 		 $(INST)/$(PEXPECT) \
 		 $(INST)/$(POLYBORI) \
+		 $(INST)/$(PPL) \
 		 $(INST)/$(PYCRYPTO) \
 		 $(INST)/$(PYNAC) \
 		 $(INST)/$(PYTHON) \

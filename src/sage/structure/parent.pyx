@@ -72,7 +72,7 @@ cimport sage.categories.morphism as morphism
 cimport sage.categories.map as map
 from sage.structure.sage_object import SageObject
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.categories.sets_cat import Sets
+from sage.categories.sets_cat import Sets, EmptySetError
 from copy import copy
 from sage.misc.sage_itertools import unique_merge
 from sage.misc.lazy_format import LazyFormat
@@ -2169,12 +2169,18 @@ cdef class Parent(category_object.CategoryObject):
         """
         return None
 
-# Should be taken care of by the category Sets().
+    # TODO: remove once all parents in Sage will inherit properly from
+    # Sets().ParentMethods.an_element
     cpdef an_element(self):
         r"""
-        Implementation of a function that returns an element (often non-trivial)
-        of a parent object.  This is cached. Parent structures that are should
-        override :meth:`_an_element_` instead.
+        Returns a (preferably typical) element of this parent.
+
+        This is used both for illustration and testing purposes. If
+        the set ``self`` is empty, :meth:`an_element` raises the
+        exception :class:`EmptySetError`.
+
+        This calls :meth:`_an_element_` (which see), and caches the
+        result. Parent are thus encouraged to override :meth:`_an_element_`.
 
         EXAMPLES::
 
@@ -2182,6 +2188,13 @@ cdef class Parent(category_object.CategoryObject):
             1.0*I
             sage: ZZ[['t']].an_element()
             t
+
+        In case the set is empty, an :class:`EmptySetError` is raised::
+
+            sage: Set([]).an_element()
+            Traceback (most recent call last):
+            ...
+            EmptySetError
         """
         if self.__an_element is None:
             self.__an_element = self._an_element_()
@@ -2199,9 +2212,34 @@ cdef class Parent(category_object.CategoryObject):
             1/2
             sage: ZZ['x,y,z']._an_element_()
             x
+
+        TESTS:
+
+        Since ``Parent`` comes before the parent classes provided by
+        categories in the hierarchy of classes, we make sure that this
+        default implementation of :meth:`_an_element_` does not
+        override some provided by the categories.  Eventually, this
+        default implementation should be moved into the categories to
+        avoid this workaround::
+
+            sage: S = FiniteEnumeratedSet([1,2,3])
+            sage: S.category()
+            Category of finite enumerated sets
+            sage: super(Parent, S)._an_element_
+            Cached version of <function _an_element_from_iterator at ...>
+            sage: S._an_element_()
+            1
+            sage: S = FiniteEnumeratedSet([])
+            sage: S._an_element_()
+            Traceback (most recent call last):
+            ...
+            EmptySetError
+
         """
         try:
             return super(Parent, self)._an_element_()
+        except EmptySetError:
+            raise
         except:
             _record_exception()
             pass

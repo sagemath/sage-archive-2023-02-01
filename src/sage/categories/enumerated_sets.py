@@ -11,6 +11,7 @@ Enumerated Sets
 from sage.misc.cachefunc import cached_method
 from category_types import Category
 from sage.categories.sets_cat import Sets
+from sage.categories.sets_cat import EmptySetError
 
 class EnumeratedSets(Category):
     """
@@ -448,28 +449,44 @@ class EnumeratedSets(Category):
                 else:
                     yield u
 
-        # This @cached_method also allows for the temporary assignments
-        # _an_element_ = EnumeratedSets.ParentMethods._an_element_
-        # in parents in this category (see e.g. examples/FiniteEnumeratedSets)
-        # until Parent won't override anymore the _an_element_ defined in categories
+        # This @cached_method is not really needed, since the method
+        # an_element itself is cached. We leave it for the moment, so
+        # that Parents that do not yet inherit properly from categories
+        # (e.g. Set([1,2,3]) can use the following trick:
+        #    _an_element_ = EnumeratedSets.ParentMethods._an_element_
         @cached_method
         def _an_element_from_iterator(self):
             """
-            An element in ``self``.
+            Returns the first element of ``self`` returned by :meth:`__iter__`
 
-            ``self.an_element()`` returns a particular element of the set
-            ``self``. This is a generic implementation from the category
-            ``EnumeratedSets()`` which can be used when the method ``__iter__``
-            is provided.
+            If ``self`` is empty, the exception
+            :class:`~sage.categories.sets_cat.EmptySetError` is raised instead.
+
+            This provides a generic implementation of the method
+            :meth:`_an_element_` for all parents in :class:`EnumeratedSets`.
 
             EXAMPLES::
 
-                sage: C = FiniteEnumeratedSets().example()
+                sage: C = FiniteEnumeratedSets().example(); C
+                An example of a finite enumerated set: {1,2,3}
                 sage: C.an_element() # indirect doctest
                 1
+                sage: S = Set([])
+                sage: S.an_element()
+                Traceback (most recent call last):
+                ...
+                EmptySetError
+
+            TESTS::
+
+                sage: super(Parent, C)._an_element_
+                Cached version of <function _an_element_from_iterator at ...>
             """
             it = self.__iter__()
-            return it.next()
+            try:
+                return it.next()
+            except StopIteration:
+                raise EmptySetError
 
         # Should this be implemented from first instead?
         _an_element_ = _an_element_from_iterator

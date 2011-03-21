@@ -104,10 +104,6 @@ class Example(UniqueRepresentation, Parent):
         """
         return iter(self._set)
 
-    # temporarily needed because parent overloads it.
-    an_element = EnumeratedSets.ParentMethods._an_element_
-
-
 class IsomorphicObjectOfFiniteEnumeratedSet(UniqueRepresentation, Parent):
 
     def __init__(self, ambient = Example()):

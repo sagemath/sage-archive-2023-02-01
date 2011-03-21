@@ -581,10 +581,16 @@ class Sets(Category):
                 47
                 sage: S.some_elements()
                 [47]
+                sage: S = Set([])
+                sage: S.some_elements()
+                []
 
             This method should return an iterable, *not* an iterator.
             """
-            return [ self.an_element() ]
+            try:
+                return [ self.an_element() ]
+            except EmptySetError:
+                return []
 
         def _test_some_elements(self, **options):
             """

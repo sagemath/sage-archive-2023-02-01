@@ -105,6 +105,8 @@ def Set(X):
         {1, 2, 3}
         sage: type(_)
         <class 'sage.sets.set.Set_object_enumerated_with_category'>
+        sage: S = Set([])
+        sage: TestSuite(S).run()
     """
     if is_Set(X):
         return X

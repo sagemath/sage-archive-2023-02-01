@@ -14175,31 +14175,43 @@ class GenericGraph(GenericGraph_pyx):
 
     def relabel(self, perm=None, inplace=True, return_map=False):
         r"""
-        Uses a dictionary, list, or permutation to relabel the (di)graph.
-        If perm is a dictionary d, each old vertex v is a key in the
-        dictionary, and its new label is d[v].
-
-        If perm is a list, we think of it as a map
-        `i \mapsto perm[i]` with the assumption that the vertices
-        are `\{0,1,...,n-1\}`.
-
-        If perm is a permutation, the permutation is simply applied to the
-        graph, under the assumption that the vertices are
-        `\{0,1,...,n-1\}`. The permutation acts on the set
-        `\{1,2,...,n\}`, where we think of `n = 0`.
-
-        If no arguments are provided, the graph is relabeled to be on the
-        vertices `\{0,1,...,n-1\}`.
+        Relabels the vertices of ``self``
 
         INPUT:
 
+         - ``perm`` -- a function, dictionary, list, permutation, or
+           ``None`` (default: ``None``)
 
-        -  ``inplace`` - default is True. If True, modifies the
-           graph and returns nothing. If False, returns a relabeled copy of
-           the graph.
+         - ``inplace`` -- a boolean (default: ``True``)
 
-        -  ``return_map`` - default is False. If True, returns
-           the dictionary representing the map.
+         - ``return_map`` -- a boolean (default: ``False``)
+
+        If ``perm`` is a function ``f``, then each vertex ``v`` is
+        relabeled to ``f(v)``.
+
+        If ``perm`` is a dictionary ``d``, then each vertex ``v``
+        (which should be a key of ``d``) is relabeled to ``d[v]``.
+        Similarly, if ``perm`` is a list or tuple ``l`` of length
+        ``n``, then each vertex (which should be in `\{0,1,...,n-1\}`)
+        is relabeled to ``l[v]``.
+
+        If ``perm`` is a permutation, then each vertex ``v`` is
+        relabeled to ``perm(v)``. Caveat: this assumes that the
+        vertices are labelled `\{0,1,...,n-1\}`; since permutations
+        act by default on the set `\{1,2,...,n\}`, this is achieved by
+        identifying `n` and `0`.
+
+        If ``perm`` is ``None``, the graph is relabeled to be on the
+        vertices `\{0,1,...,n-1\}`.
+
+        .. note:: at this point, only injective relabeling are supported.
+
+        If ``inplace`` is ``True``, the graph is modified in place and
+        ``None`` is returned. Otherwise a relabeled copy of the graph
+        is returned.
+
+        If ``return_map`` is ``True`` a dictionary representing the
+        relabelling map is returned (incompatible with ``inplace==False``).
 
 
         EXAMPLES::
@@ -14224,6 +14236,13 @@ class GenericGraph(GenericGraph_pyx):
             [0 0 1]
             [1 1 0]
 
+        Relabeling using a tuple::
+
+            sage: G.relabel((0,2,1), inplace=False).am()
+            [0 0 1]
+            [0 0 1]
+            [1 1 0]
+
         Relabeling using a Sage permutation::
 
             sage: from sage.groups.perm_gps.permgroup_named import SymmetricGroup
@@ -14234,6 +14253,25 @@ class GenericGraph(GenericGraph_pyx):
             [0 0 1]
             [1 1 0]
 
+        Relabeling using an injective function::
+
+            sage: G.edges()
+            [(0, 1, {}), (1, 2, {})]
+            sage: H = G.relabel(lambda i: i+10, inplace=False)
+            sage: H.vertices()
+            [10, 11, 12]
+            sage: H.edges()
+            [(10, 11, {}), (11, 12, {})]
+
+        Relabeling using a non injective function is not yet supported::
+
+            sage: G.edges()
+            [(0, 1, {}), (1, 2, {})]
+            sage: G.relabel(lambda i: 0, inplace=False)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Non injective relabeling
+
         Relabeling to simpler labels::
 
             sage: G = graphs.CubeGraph(3)
@@ -14243,12 +14281,18 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.vertices()
             [0, 1, 2, 3, 4, 5, 6, 7]
 
-        ::
+        Recovering the relabeling with ``return_map``::
 
             sage: G = graphs.CubeGraph(3)
             sage: expecting = {'000': 0, '001': 1, '010': 2, '011': 3, '100': 4, '101': 5, '110': 6, '111': 7}
             sage: G.relabel(return_map=True) == expecting
             True
+
+        ::
+
+            sage: G = graphs.PathGraph(3)
+            sage: G.relabel(lambda i: i+10, return_map=True)
+            {0: 10, 1: 11, 2: 12}
 
         TESTS::
 
@@ -14281,17 +14325,10 @@ class GenericGraph(GenericGraph_pyx):
             for v in verts:
                 perm[v] = i
                 i += 1
-        if not inplace:
-            from copy import copy
-            G = copy(self)
-            G.relabel(perm)
-            if return_map:
-                return G, perm
-            return G
-        if type(perm) is list:
+        if isinstance(perm, (list, tuple)):
             perm = dict( [ [i,perm[i]] for i in xrange(len(perm)) ] )
         from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
-        if type(perm) is PermutationGroupElement:
+        if isinstance(perm, PermutationGroupElement):
             n = self.order()
             ddict = {}
             llist = perm.list()
@@ -14300,10 +14337,23 @@ class GenericGraph(GenericGraph_pyx):
             if n > 0:
                 ddict[0] = llist[n-1]%n
             perm = ddict
-        if type(perm) is not dict:
+        if callable(perm):
+            perm = dict( [ i, perm(i) ] for i in self.vertices() )
+        if not isinstance(perm, dict):
             raise TypeError("Type of perm is not supported for relabeling.")
+
+        if not inplace:
+            from copy import copy
+            G = copy(self)
+            G.relabel(perm)
+            if return_map:
+                return G, perm
+            return G
+
         keys = perm.keys()
         verts = self.vertices()
+        if len(set(perm.values())) < len(keys):
+            raise NotImplementedError, "Non injective relabeling"
         for v in verts:
             if v not in keys:
                 perm[v] = v

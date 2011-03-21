@@ -82,7 +82,7 @@ where the sum is over all semi-standard Young tableaux of shape
 Frobenius-Schur Duality
 -----------------------
 
-Frobenius-Schur duality which is a relationship between the representation
+Frobenius-Schur duality is a relationship between the representation
 theories of the symmetric group and general linear group. We will relate this
 to tableaux in the next section.
 
@@ -327,16 +327,10 @@ Before giving examples of crystals, we digress to help you install
 dot2tex, which you will need in order to make latex images of
 crystals.
 
-You may download the following file:
+dot2tex is an optional package of sage and the latest version can be installed via::
 
-http://sage.math.washington.edu/home/nthiery/dot2tex-2.8.7-2.spkg
+    sage -i dot2tex
 
-or use internet sleuthing powers to find the current version of the dot2tex
-spkg. Then run::
-
-    sage -i dot2tex-2.8.7-2.spkg
-
-to install the package.
 
 Crystals of tableaux in Sage
 ----------------------------
@@ -350,17 +344,29 @@ will consider how to draw pictures of these crystals.
 Once you have dot2tex installed, you may make images pictures of crystals
 with a command such as this::
 
-    CrystalOfTableaux("A2", shape=[2,1]).latex_file("/tmp/a2rho.tex")
+    sage: CrystalOfTableaux("A2", shape=[2,1]).latex_file("/tmp/a2rho.tex") # optional - dot2tex graphviz
 
 Here `\lambda = (2,1)=(2,1,0)`. The crystal ``C`` is
 `\mathcal{B}_{\lambda}`. The character `\chi_\lambda` will therefore
 be the eight-dimensional irreducible character with this highest
-weight. Then you may run pdflatex on the file ``a2rho.tex``. This
-produces the crystal graph:
+weight. Then you may run pdflatex on the file ``a2rho.tex``.
+This can also be achieved without the detour of saving the latex file via::
 
-.. image:: ../media/a2rho.png
-   :scale: 120
+    sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
+    sage: view(B, pdflatex=True, tightpage=True) # optional - dot2tex graphviz
+
+This produces the crystal graph:
+
+.. image:: ../media/a2rho_color.png
+   :scale: 60
    :align: center
+
+You may also wish to color the edges in different colors by specifying further latex options::
+
+    sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
+    sage: G = B.digraph()
+    sage: G.set_latex_options(color_by_label = {1:"red", 2:"yellow"})
+    sage: view(G, pdflatex=True, tightpage=True) # optional - dot2tex graphviz
 
 As you can see, the elements of this crystal are exactly the eight
 tableaux of shape `\lambda` with entries in `\{1,2,3\}`. The
@@ -469,7 +475,7 @@ There is, additionally, a spin crystal for `B_r`, corresponding to
 the `2^r`-dimensional spin representation. We will not draw it, but
 we will describe it. Its elements are vectors
 `\epsilon_1\otimes\cdots\otimes\epsilon_r`, where each ``spin``
-`epsilon_i=\pm 1`.
+`\epsilon_i=\pm 1`.
 
 If `i<r`, then the effect of the operator
 `f_i` is to annihilate `v=\epsilon_1\otimes\cdots\otimes\epsilon_r`
@@ -479,12 +485,12 @@ so, then `f_i(v)` is obtained from `v` by replacing
 `f_r` annihilates `v` unless `\epsilon_r=+`, in which case it
 replaces `\epsilon_r` by `-`.
 
-Create the Crystal of Spins as follows::
+Create the Crystal of Spins as follows. The crystal elements are represented
+in the signature representation listing the `\epsilon_i`::
 
        sage: C=CrystalOfSpins("B3")
        sage: C.list()
-       [[1, 1, 1], [1, 1, -1], [1, -1, 1], [-1, 1, 1], [1, -1, -1],
-       [-1, 1, -1], [-1, -1, 1], [-1, -1, -1]]
+       [+++, ++-, +-+, -++, +--, -+-, --+, ---]
 
 Here is the standard crystal of type `C_r`.
 
@@ -507,8 +513,9 @@ and play around with them to guess the rule::
     sage: Cplus = CrystalOfSpinsPlus("D4")
     sage: Cminus = CrystalOfSpinsMinus("D4")
 
-It is also possible to assign a standard crystal (corresponding
-to the representation of degree 7) to `G_2`. Here it is:
+It is also possible to construct the standard crystal for type
+`G_2`, `E_6`, and `E_7`. Here is the one for type `G_2` (corresponding
+to the representation of degree 7):
 
 .. image:: ../media/stand-g.png
    :scale: 75
@@ -526,7 +533,18 @@ weight vector of the standard representation. Thus compare::
 
 These two crystals are different in implementation, but they are
 isomorphic, and in fact the second crystal is constructed from the
-first. Crystals of letters have a special role in the theory since
+first. We can test isomorphisms between crystals as follows::
+
+    sage: Cletter = CrystalOfLetters(['A',3])
+    sage: Ctableaux = CrystalOfTableaux(['A',3], shape = [1])
+    sage: Cletter.digraph().is_isomorphic(Ctableaux.digraph())
+    True
+    sage: Cletter.digraph().is_isomorphic(Ctableaux.digraph(), certify = True)
+    (True, {1: [[1]], 2: [[2]], 3: [[3]], 4: [[4]]})
+
+where in the last step the explicit map between the vertices of the crystals is given.
+
+Crystals of letters have a special role in the theory since
 they are particularly simple, yet as Kashiwara and Nakashima showed,
 the crystals of tableaux can be created from them.  We will review how
 this works.
@@ -729,11 +747,11 @@ Crystals of tableaux as tensor products of crystals
 Sage implements the ``CrystalOfTableaux`` as a subcrystal of a tensor
 product of the CrystalOfLetters. You can see how its done as follows::
 
-    sage: T = CrystalOfTableaux("A3", shape=[3,1])
-    sage: v = T.highest_weight_vector().f(1).f(2).f(3).f(1).f(2); v
-    [[1, 3, 4], [2]]
+    sage: T = CrystalOfTableaux("A4",shape=[3,2])
+    sage: v = T.highest_weight_vector().f(1).f(2).f(3).f(2).f(1).f(4).f(2).f(3); v
+    [[1, 2, 5], [3, 4]]
     sage: v._list
-    [2, 1, 3, 4]
+    [3, 1, 4, 2, 5]
 
 We've looked at the internal representation of `v`, where it is
 represented as an element of the fourth tensor power of the
@@ -766,21 +784,36 @@ For the Cartan types `A_r`, `C_r` or `G_2`, ``CrystalOfTableaux`` are
 capable of making any finite crystal. (For type `A_r` it is necessary
 that the highest weight `\lambda` be a partition.)
 
-For Cartan types `B_r` and `D_r`, ``CrystalOfTableaux`` fail to make
-`\mathcal{B}_\lambda` if `\lambda` is half-integral. For type `B_2`
-you can do this::
+For Cartan types `B_r` and `D_r`, there also exist spin representations.
+The corresponding crystals are implemented as *spin crystals*.
+For these types, ``CrystalOfTableaux`` also allows the input shape
+`\lambda` to be half-integral if it is of height `r`. For example::
+
+    sage: C = CrystalOfTableaux(['B',2], shape = [3/2, 1/2])
+    sage: C.list()
+    [[++, [[1]]], [++, [[2]]], [++, [[0]]], [++, [[-2]]], [++, [[-1]]], [+-, [[-2]]],
+    [+-, [[-1]]], [-+, [[-1]]], [+-, [[1]]], [+-, [[2]]], [-+, [[2]]], [+-, [[0]]],
+    [-+, [[0]]], [-+, [[-2]]], [--, [[-2]]], [--, [[-1]]]]
+
+Here the first list of `+` and `-` gives a spin column that is discussed in more detail
+in the next section and the second entry is a crystal of tableau element for
+`\lambda = (\lfloor \lambda_1 \rfloor, \lfloor \lambda_2 \rfloor, \ldots )`.
+For type `D_r`, we have the additional feature that there are two types of spin
+crystals. Hence in ``CrystalOfTableaux`` the `r`-th entry of `\lambda` in this case
+can also take negative values::
+
+    sage: C = CrystalOfTableaux(['D',3], shape = [1/2, 1/2,-1/2])
+    sage: C.list()
+    [[++-, []], [+-+, []], [-++, []], [---, []]]
+
+For rank two Cartan types, we also have ``FastCrystals`` which gives a different fast
+implementation of these crystals::
 
     sage: B = FastCrystal(['B',2], shape=[3/2,1/2]); B
     The fast crystal for B2 with shape [3/2,1/2]
     sage: v = B.highest_weight_vector(); v.weight()
     (3/2, 1/2)
 
-However FastCrystals are only available for rank two Cartan types. We
-therefore have to do something else to create crystals of
-half-integral weight.
-
-For types `B_r` and `D_r` the solution to this problem involves the
-use of *spin crystals*.
 
 Type B spin crystal
 ^^^^^^^^^^^^^^^^^^^
@@ -794,10 +827,10 @@ hand-coded in Sage::
     sage: Cspin.cardinality()
     8
 
-We can make use of this to construct an arbitrary crystal with highest
-weight `\lambda`, where `\lambda` is a half-integral weight. For
-example, suppose that `\lambda = (3/2, 3/2, 1/2)`. The corresponding
-irreducible character will have degree 112::
+The crystals with highest weight `\lambda`, where `\lambda` is a half-integral weight,
+are constructed as a tensor product of a spin column and the highest weight crystal
+of the integer part of `\lambda`. For example, suppose that `\lambda = (3/2, 3/2, 1/2)`.
+The corresponding irreducible character will have degree 112::
 
     sage: B3 = WeylCharacterRing("B3")
     sage: B3(3/2,3/2,1/2).degree()
@@ -822,6 +855,12 @@ extract the one we want. We do that as follows::
     sage: C.cardinality()
     112
 
+Alternatively, we can get this directly from ``CrystalOfTableaux``::
+
+    sage: C = CrystalOfTableaux(['B',3], shape = [3/2,3/2,1/2])
+    sage: C.cardinality()
+    112
+
 This is the desired crystal.
 
 
@@ -839,8 +878,8 @@ spin crystals, both of degree `2^{r-1}`. These are hand-coded in sage::
     sage: [C.cardinality() for C in [SpinPlus,SpinMinus]]
     [8, 8]
 
-You can use them similarly to the type B crystal of spins in order to
-construct any crystal of half-integral weight.
+Similarly to type B crystal, we obtain crystal with spin weight by allowing for partitions
+with half-integer values, and the last entry can be negative depending on the type of the spin.
 
 
 Levi branching rules for crystals
@@ -855,10 +894,3 @@ corresponding crystal for `H` by a similar process. For example if the
 Dynkin diagram for `H` is obtained from the Dynkin diagram for `G` by
 erasing the `i`-th node, then if we erase all the edges in the crystal
 `\mathcal{C}` that are labeled with `i`, we obtain a crystal for `H`.
-
-
-Affine crystals
----------------
-
-Sage contains support for affine crystals. These lie outside the scope
-of this document.

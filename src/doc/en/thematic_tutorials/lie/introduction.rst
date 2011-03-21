@@ -97,5 +97,3 @@ groups and representation theory. These include:
   algebras of `W` and the affine Weyl group.
 
 - Kazhdan-Lusztig polynomials.
-
-Preparation of this document was supported in part by NSF grant DMS-0652817.

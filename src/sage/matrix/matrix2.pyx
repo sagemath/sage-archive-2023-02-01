@@ -5207,6 +5207,101 @@ cdef class Matrix(matrix1.Matrix):
             raise IndexError, "Submatrix %s,%s has no entry %s,%s"%(i,j, x, y)
         return self[self.subdivisions[0][i] + x , self.subdivisions[1][j] + y]
 
+    def _subdivide_on_augment(self, left, right):
+        r"""
+        Helper method to manage subdivisions when augmenting a matrix.
+
+        INPUT:
+
+        - ``left``, ``right`` - two matrices, such that if ``left`` is
+          augmented by placing ``right`` on the right side of ``left``,
+          then the result is ``self``.  It is the responsibility of the
+          calling routine to ensure this condition holds.
+
+        OUTPUT:
+
+        ``None``.  A new subdivision is created between ``left`` and
+        ``right`` for ``self``.  If possible, row subdivisions are
+        preserved in ``self``, but if the two sets of row subdivisions
+        are incompatible, they are removed.
+
+        EXAMPLE::
+
+            sage: A = matrix(QQ, 3, 4, range(12))
+            sage: B = matrix(QQ, 3, 6, range(18))
+            sage: C = A.augment(B)
+            sage: C._subdivide_on_augment(A, B)
+            sage: C
+            [ 0  1  2  3| 0  1  2  3  4  5]
+            [ 4  5  6  7| 6  7  8  9 10 11]
+            [ 8  9 10 11|12 13 14 15 16 17]
+
+        More descriptive, but indirect, doctests are at
+        :meth:`sage.matrix.matrix1.Matrix.augment`.
+        """
+        left_rows, left_cols = left.get_subdivisions()
+        right_rows, right_cols = right.get_subdivisions()
+        if left_rows == right_rows:
+            self_rows = left_rows
+        else:
+            self_rows = None
+        nc = left.ncols()
+        self_cols = left_cols + [nc]
+        for col in right_cols:
+            self_cols.append(col+nc)
+        self.subdivide(self_rows, self_cols)
+        return None
+
+    def _subdivide_on_stack(self, top, bottom):
+        r"""
+        Helper method to manage subdivisions when stacking a matrix.
+
+        INPUT:
+
+        - ``top``, ``bottom`` - two matrices, such that if ``top`` is
+        stacked by placing ``top`` above ``bottom``, then the result
+        is ``self``.  It is the responsibility of the calling routine
+        to ensure this condition holds.
+
+        OUTPUT:
+
+        ``None``.  A new subdivision is created between ``top`` and
+        ``bottom`` for ``self``.  If possible, column subdivisions are
+        preserved in ``self``, but if the two sets of solumn subdivisions
+        are incompatible, they are removed.
+
+        EXAMPLE::
+
+            sage: A = matrix(QQ, 3, 2, range(6))
+            sage: B = matrix(QQ, 4, 2, range(8))
+            sage: C = A.stack(B)
+            sage: C._subdivide_on_stack(A, B)
+            sage: C
+            [0 1]
+            [2 3]
+            [4 5]
+            [---]
+            [0 1]
+            [2 3]
+            [4 5]
+            [6 7]
+
+        More descriptive, but indirect, doctests are at
+        :meth:`sage.matrix.matrix1.Matrix.augment`.
+        """
+        top_rows, top_cols = top.get_subdivisions()
+        bottom_rows, bottom_cols = bottom.get_subdivisions()
+        if top_cols == bottom_cols:
+            self_cols = top_cols
+        else:
+            self_cols = None
+        nr = top.nrows()
+        self_rows = top_rows + [nr]
+        for row in bottom_rows:
+            self_rows.append(row+nr)
+        self.subdivide(self_rows, self_cols)
+        return None
+
     def get_subdivisions(self):
         """
         Returns the current subdivision of self.

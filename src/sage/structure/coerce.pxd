@@ -23,7 +23,9 @@ cdef class CoercionModel_cache_maps(CoercionModel):
     cpdef get_action(self, xp, yp, op)
     cpdef discover_action(self, R, S, op)
 
-    cdef readonly _exception_stack
+    cdef bint _record_exceptions
+    cpdef _record_exception(self)
+    cdef readonly list _exception_stack
     cdef bint _exceptions_cleared
 
     cdef TripleDict _division_parents

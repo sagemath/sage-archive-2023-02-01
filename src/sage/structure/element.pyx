@@ -2851,8 +2851,13 @@ def coercion_traceback(dump=True):
     that failure is cached, so some errors may be omitted the second time
     around (as it remembers not to retry failed paths for speed reasons.
 
+    For performance and caching reasons, exception recording must be
+    explicitly enabled before using this function.
+
     EXAMPLES::
 
+        sage: cm = sage.structure.element.get_coercion_model()
+        sage: cm.record_exceptions()
         sage: 1 + 1/5
         6/5
         sage: coercion_traceback()  # Should be empty, as all went well.

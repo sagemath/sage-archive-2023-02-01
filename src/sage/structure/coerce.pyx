@@ -278,7 +278,28 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         """
         return self._coercion_maps.stats(), self._action_maps.stats()
 
-    def _record_exception(self):
+    def record_exceptions(self, bint value=True):
+        r"""
+        Enables (or disables) recording of the exceptions suppressed during
+        arithmetic.
+
+        TESTS::
+
+            sage: cm = sage.structure.element.get_coercion_model()
+            sage: cm.record_exceptions()
+            sage: cm._test_exception_stack()
+            sage: cm.exception_stack()
+            ['Traceback (most recent call last):\n  File "coerce.pyx", line ...TypeError: just a test']
+            sage: cm.record_exceptions(False)
+            sage: cm._test_exception_stack()
+            sage: cm.exception_stack()
+            []
+        """
+        self._record_exceptions = value
+        self._exceptions_cleared = True
+        self._exception_stack = []
+
+    cpdef _record_exception(self):
         r"""
         Pushes the last exception that occurred onto the stack for later reference,
         for internal use.
@@ -289,6 +310,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         TEST::
 
             sage: cm = sage.structure.element.get_coercion_model()
+            sage: cm.record_exceptions()
             sage: 1+1/2+2 # make sure there aren't any errors hanging around
             7/2
             sage: cm.exception_stack()
@@ -304,6 +326,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             except:
                 cm._record_exception()
         """
+        if not self._record_exceptions:
+            return
         if not self._exceptions_cleared:
             self._exception_stack = []
             self._exceptions_cleared = True
@@ -316,6 +340,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         EXAMPLES::
 
             sage: cm = sage.structure.element.get_coercion_model()
+            sage: cm.record_exceptions()
             sage: 1 + 1/11 # make sure there aren't any errors hanging around
             12/11
             sage: cm.exception_stack()
@@ -343,6 +368,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         EXAMPLES::
 
             sage: cm = sage.structure.element.get_coercion_model()
+            sage: cm.record_exceptions()
             sage: 1/2 + 2
             5/2
             sage: cm.exception_stack()

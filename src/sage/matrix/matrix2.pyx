@@ -3194,7 +3194,7 @@ cdef class Matrix(matrix1.Matrix):
             return E, Edual
         return E
 
-    def decomposition_of_subspace(self, M, **kwds):
+    def decomposition_of_subspace(self, M, check_restrict = True, **kwds):
         """
         Suppose the right action of self on M leaves M invariant. Return
         the decomposition of M as a list of pairs (W, is_irred) where
@@ -3203,6 +3203,11 @@ cdef class Matrix(matrix1.Matrix):
 
         Additional inputs besides M are passed onto the decomposition
         command.
+
+        INPUT:
+
+            - ``check_restrict`` -- A boolean (default: ``True``); Call restrict
+                                    with or withour check.
 
         EXAMPLES::
 
@@ -3247,6 +3252,12 @@ cdef class Matrix(matrix1.Matrix):
             [ 0  0  0  1  0  0]
             [ 0  0  0  0  0  1], False)
             ]
+
+        TESTS::
+
+            sage: t = matrix(QQ, 3, [3, 0, -2, 0, -2, 0, 0, 0, 0]);
+            sage: t.decomposition_of_subspace(v, check_restrict = False) == t.decomposition_of_subspace(v)
+            True
         """
         if not sage.modules.free_module.is_FreeModule(M):
             raise TypeError, "M must be a free module."
@@ -3262,7 +3273,7 @@ cdef class Matrix(matrix1.Matrix):
         time = verbose(t=0)
 
         # 1. Restrict
-        B = self.restrict(M)
+        B = self.restrict(M, check = check_restrict)
         time0 = verbose("decompose restriction -- ", time)
 
         # 2. Decompose restriction

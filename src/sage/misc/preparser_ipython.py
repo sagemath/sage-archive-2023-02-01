@@ -56,6 +56,17 @@ def switch_interface(name, verbose=True):
     sage.misc.interpreter.set_sage_prompt('%s'%interface_name)
 
 def preparse_ipython(line, reset=True):
+    """
+    TESTS:
+
+        Make sure #10933 is fixed
+
+    ::
+
+        sage: sage.misc.preparser_ipython.preparse_ipython("def foo(str):\n   time gp(str)\n\nprint gp('1')")
+        'def foo(str):\n   __time__=misc.cputime(); __wall__=misc.walltime(); gp(str); print "Time: CPU %.2f s, Wall: %.2f s"%(misc.cputime(__time__), misc.walltime(__wall__))\n\nprint gp(\'1\')'
+
+    """
     global num_lines
     global q_lines
 
@@ -74,7 +85,8 @@ def preparse_ipython(line, reset=True):
 
 
     if interface is None:
-        return preparser.preparse(line, reset=reset)
+    #We could remove do_time=True if #10933 get's fixed upstream
+        return preparser.preparse(line, reset=reset, do_time=True)
 
     if L.startswith('?') or L.endswith('?'):
         L = L.strip('?')

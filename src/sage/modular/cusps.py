@@ -893,12 +893,17 @@ class Cusp(Element):
 
     def galois_action(self, t, N):
         r"""
-        Suppose this cusp is `\alpha`, `G` is a congruence subgroup of
-        level `N`, and `\sigma` is the automorphism in the Galois
-        group of `\QQ(\zeta_N)/\QQ` that sends `\zeta_N` to
+        Suppose this cusp is `\alpha`, `G` is the congruence subgroup
+        `\Gamma_0(N)` of level `N`, and `\sigma` is the automorphism in
+        the Galois group of `\QQ(\zeta_N)/\QQ` that sends `\zeta_N` to
         `\zeta_N^t`.  Then this function computes a cusp `\beta` such
         that `\sigma([\alpha]) = [\beta]`, where `[\alpha]` is the
         equivalence class of `\alpha` modulo `G`.
+
+        BIG WARNING: Despite its general name, this function only
+        computes something that defines an action on `\Gamma_0(N)`
+        equivalence classes; it does not compute the action on
+        `\Gamma_1(N)` classes (see trac 8998).
 
         INPUT:
 

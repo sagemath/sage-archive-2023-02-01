@@ -1091,7 +1091,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if self._nrows == 0 or self._ncols == 0:
             self.cache('in_echelon_form',True)
             self.cache('rank', 0)
-            self.cache('pivots', [])
+            self.cache('pivots', ())
             return self
         cdef int k, n, full
 
@@ -1111,7 +1111,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
             self.cache('in_echelon_form',True)
             self.cache('rank', r)
-            self.cache('pivots', self._pivots())
+            self.cache('pivots', tuple(self._pivots()))
 
         elif algorithm == 'm4ri':
 
@@ -1133,7 +1133,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
             self.cache('in_echelon_form',True)
             self.cache('rank', r)
-            self.cache('pivots', self._pivots())
+            self.cache('pivots', tuple(self._pivots()))
 
 
         elif algorithm == 'pluq':
@@ -1147,7 +1147,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
             self.cache('in_echelon_form',True)
             self.cache('rank', r)
-            self.cache('pivots', self._pivots())
+            self.cache('pivots', tuple(self._pivots()))
 
         elif algorithm == 'linbox':
 

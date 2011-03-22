@@ -1500,7 +1500,7 @@ class LinearCode(module.Module_old):
             [1 2 0]
             [0 0 1]
             sage: code.information_set()
-            [0, 2]
+            (0, 2)
         """
         return self.__gen_mat.transpose().pivot_rows()
 

@@ -1518,7 +1518,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         if self._nrows == 0:
             E = self.__copy__()
             self.cache(key, E)
-            self.cache('pivots', [])
+            self.cache('pivots', ())
             return E
 
         if algorithm == 'multimodular':
@@ -1559,7 +1559,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             sage: A._echelon_form_multimodular(10)
             []
             sage: A.pivots()
-            []
+            ()
 
             sage: A = matrix(CyclotomicField(13), 2, 3, [5, 1, 2, 46307, 46307*4, 46307])
             sage: A._echelon_form_multimodular()
@@ -1608,7 +1608,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
                     # if we have the identity, just return it, and
                     # we're done.
                     if is_square and len(piv_ls) == self._nrows:
-                        self.cache('pivots', range(self._nrows))
+                        self.cache('pivots', tuple(range(self._nrows)))
                         return self.parent().identity_matrix()
                     if piv_ls > max_pivots:
                         mod_p_ech_ls = [mod_p_ech]
@@ -1674,7 +1674,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
                 continue
 
             verbose("found echelon form with %s primes, whose product is %s"%(num_primes, prod), level=echelon_verbose_level)
-            self.cache('pivots', max_pivots)
+            self.cache('pivots', tuple(max_pivots))
             return res
 
     def _echelon_form_one_prime(self, p):
@@ -1692,8 +1692,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         OUTPUT:
             matrix -- Lift via CRT of the echelon forms of self modulo
                       each of the primes over p.
-            list -- the list of pivots for the echelon form of self mod the
-                    primes dividing p
+            tuple -- the tuple of pivots for the echelon form of self mod the
+                     primes dividing p
 
         EXAMPLES:
             sage: W.<z> = CyclotomicField(3)
@@ -1703,7 +1703,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             sage: A._echelon_form_one_prime(7)
             (
             [1 0 4 0 1 2]
-            [0 0 3 0 0 4], [0, 1]
+            [0 0 3 0 0 4], (0, 1)
             )
             sage: Matrix(W,2,3,[2*z+3,0,1,0,1,0])._echelon_form_one_prime(7)
             Traceback (most recent call last):

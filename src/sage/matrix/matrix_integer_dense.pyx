@@ -1581,12 +1581,12 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: a.hermite_form()
             [0 1]
             sage: a.pivots()
-            [1]
+            (1,)
             sage: a = matrix(ZZ, 1,2,[0,0])
             sage: a.hermite_form()
             [0 0]
             sage: a.pivots()
-            []
+            ()
             sage: a = matrix(ZZ,1,3); a
             [0 0 0]
             sage: a.echelon_form(include_zero_rows=False)
@@ -1629,7 +1629,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [0 0 3]
         """
         if self._nrows == 0 or self._ncols == 0:
-            self.cache('pivots', [])
+            self.cache('pivots', ())
             self.cache('rank', 0)
             if transformation:
                 return self, self
@@ -1671,7 +1671,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             else:
                 H_m, pivots = matrix_integer_dense_hnf.hnf(self,
                                    include_zero_rows=include_zero_rows, proof=proof)
-            self.cache('pivots', pivots)
+            self.cache('pivots', tuple(pivots))
             self.cache('rank', len(pivots))
 
 
@@ -1737,8 +1737,10 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         H_m.set_immutable()
         if pivots is None:
             from matrix_integer_dense_hnf import pivots_of_hnf_matrix
-            pivots = pivots_of_hnf_matrix(H_m)
+            pivots = tuple(pivots_of_hnf_matrix(H_m))
             rank = len(pivots)
+        else:
+            pivots = tuple(pivots)
 
         H_m.cache('pivots', pivots)
         self.cache('pivots', pivots)
@@ -1882,17 +1884,10 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     def pivots(self):
         """
-        Return the pivot column positions of this matrix as a list of
-        Python integers.
+        Return the pivot column positions of this matrix.
 
-        This returns a list, of the position of the first nonzero entry in
-        each row of the echelon form.
-
-        OUTPUT:
-
-
-        -  ``list`` - a list of Python ints
-
+        OUTPUT: a tuple of Python integers: the position of the
+        first nonzero entry in each row of the echelon form.
 
         EXAMPLES::
 
@@ -1901,14 +1896,14 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [3 4 5]
             [6 7 8]
             sage: A.pivots()
-            [0, 1]
+            (0, 1)
             sage: A.echelon_form()
             [ 3  0 -3]
             [ 0  1  2]
             [ 0  0  0]
         """
         p = self.fetch('pivots')
-        if not p is None: return p
+        if not p is None: return tuple(p)
 
         cdef Matrix_integer_dense E
         E = self.echelon_form()
@@ -1926,6 +1921,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                     p.append(j)
                     k = j+1  # so start at next position next time
                     break
+        p = tuple(p)
         self.cache('pivots', p)
         return p
 

@@ -1421,7 +1421,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
         if pivots is None:
             raise RuntimeError("BUG: pivots must get set")
-        self.cache('pivots', pivots)
+        self.cache('pivots', tuple(pivots))
 
 
     def echelon_form(self, algorithm='default',
@@ -1547,7 +1547,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
         t = verbose('Reconstructed solution over QQ, thus completing the echelonize', t)
         E.cache('in_echelon_form', True)
-        E.cache('pivots', pivots)
+        E.cache('pivots', tuple(pivots))
         return E
 
     def _echelonize_padic(self):
@@ -1680,7 +1680,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                     break
         mpq_clear(tmp); mpq_clear(tmp2)
 
-        self.cache('pivots', pivots)
+        self.cache('pivots', tuple(pivots))
         self.cache('in_echelon_form', True)
         verbose('done with gauss echelon form', tm)
 

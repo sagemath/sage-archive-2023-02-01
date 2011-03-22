@@ -1062,7 +1062,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             [ 0  1  2  3]
             [ 0  0  0  0]
             sage: a.pivots()
-            [0, 1]
+            (0, 1)
         """
         x = self.fetch('in_echelon_form')
         if not x is None: return  # already known to be in echelon form
@@ -1106,7 +1106,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         verbose('done with linbox echelonize',t)
         self.cache('in_echelon_form',True)
         self.cache('rank', r)
-        self.cache('pivots', self._pivots())
+        self.cache('pivots', tuple(self._pivots()))
 
     def _pivots(self):
         if not self.fetch('in_echelon_form'):
@@ -1164,7 +1164,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
                                 self._add_multiple_of_row_c(i, start_row, p-b, c)
                     start_row = start_row + 1
                     break
-        self.cache('pivots',pivots)
+        self.cache('pivots', tuple(pivots))
         self.cache('in_echelon_form',True)
 
     cdef xgcd_eliminate (self, mod_int * row1, mod_int* row2, Py_ssize_t start_col):

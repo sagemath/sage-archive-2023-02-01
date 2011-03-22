@@ -617,7 +617,7 @@ def probable_pivot_rows(A):
     INPUT:
         A -- a matrix
     OUTPUT:
-        a list of integers
+        a tuple of integers
 
     EXAMPLES:
         sage: import sage.matrix.matrix_integer_dense_hnf as matrix_integer_dense_hnf
@@ -627,7 +627,7 @@ def probable_pivot_rows(A):
         [  0 -20   1]
         [  0   1   2]
         sage: matrix_integer_dense_hnf.probable_pivot_rows(a)
-        [0, 1]
+        (0, 1)
     """
     return probable_pivot_columns(A.transpose())
 
@@ -636,7 +636,7 @@ def probable_pivot_columns(A):
     INPUT:
         A -- a matrix
     OUTPUT:
-        a list of integers
+        a tuple of integers
 
     EXAMPLES:
         sage: import sage.matrix.matrix_integer_dense_hnf as matrix_integer_dense_hnf
@@ -646,7 +646,7 @@ def probable_pivot_columns(A):
         [  0 -20   1]
         [  0   1   2]
         sage: matrix_integer_dense_hnf.probable_pivot_columns(a)
-        [1, 2]
+        (1, 2)
     """
     p = ZZ.random_element(10007, 46000).next_prime()
     pivots = A._reduce(p).pivots()
@@ -827,9 +827,9 @@ def probable_hnf(A, include_zero_rows, proof):
         )
     """
     # Find left-most full rank submatrix by working modulo a prime
-    rows = probable_pivot_rows(A)
+    rows = list(probable_pivot_rows(A))
     B    = A.matrix_from_rows(rows)
-    cols = probable_pivot_columns(B)
+    cols = list(probable_pivot_columns(B))
     C   = B.matrix_from_columns(cols)
     # Now C is a submatrix of A that has full rank and is square.
 

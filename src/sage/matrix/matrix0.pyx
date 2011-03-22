@@ -3197,22 +3197,21 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def pivots(self):
         """
-        Return the pivot column positions of this matrix as a list of
-        Python integers.
+        Return the pivot column positions of this matrix.
 
-        This returns a list, of the position of the first nonzero entry in
-        each row of the echelon form.
+        OUTPUT: a tuple of Python integers: the position of the
+        first nonzero entry in each row of the echelon form.
 
-        OUTPUT:
-
-
-        -  ``list`` - a list of Python ints
-
+        This returns a tuple so it is immutable; see #10752.
 
         EXAMPLES:
+
+            sage: A = matrix(QQ, 2, 2, range(4))
+            sage: A.pivots()
+            (0, 1)
         """
         x = self.fetch('pivots')
-        if not x is None: return x
+        if not x is None: return tuple(x)
         self.echelon_form()
         x = self.fetch('pivots')
         if x is None:
@@ -3220,7 +3219,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             print self.nrows()
             print self.dict()
             raise RuntimeError("BUG: matrix pivots should have been set but weren't, matrix parent = '%s'"%self.parent())
-        return x
+        return tuple(x)
 
     def rank(self):
         x = self.fetch('rank')
@@ -3239,11 +3238,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         Return the list of i such that the i-th column of self is NOT a
         pivot column of the reduced row echelon form of self.
 
-        OUTPUT:
-
-
-        -  ``list`` - sorted list of (Python) integers
-
+        OUTPUT: sorted tuple of (Python) integers
 
         EXAMPLES::
 
@@ -3256,16 +3251,17 @@ cdef class Matrix(sage.structure.element.Matrix):
             [ 0  1  2]
             [ 0  0  0]
             sage: a.nonpivots()
-            [2]
+            (2,)
         """
         x = self.fetch('nonpivots')
-        if not x is None: return x
+        if not x is None: return tuple(x)
 
         X = set(self.pivots())
         np = []
         for j in xrange(self.ncols()):
             if not (j in X):
                 np.append(j)
+        np = tuple(np)
         self.cache('nonpivots',np)
         return np
 

@@ -316,7 +316,7 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
 
             self.cache('in_echelon_form_bareiss',True)
             self.cache('rank', E.nrows())
-            self.cache('pivots', range(E.nrows()))
+            self.cache('pivots', tuple(range(E.nrows())))
             self.cache('swapped_columns', l)
 
         else:

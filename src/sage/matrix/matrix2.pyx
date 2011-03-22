@@ -353,11 +353,7 @@ cdef class Matrix(matrix1.Matrix):
         subset of the rows that span the row space and are linearly
         independent.
 
-        OUTPUT:
-
-
-        -  ``list`` - a list of integers
-
+        OUTPUT: a tuple of integers
 
         EXAMPLES::
 
@@ -366,11 +362,13 @@ cdef class Matrix(matrix1.Matrix):
             [1 2 3]
             [2 4 6]
             sage: A.pivot_rows()
-            [1]
+            (1,)
+            sage: A.pivot_rows() # testing cached value
+            (1,)
         """
         v = self.fetch('pivot_rows')
         if v is not None:
-            return list(v)
+            return tuple(v)
         v = self.transpose().pivots()
         self.cache('pivot_rows', v)
         return v
@@ -4433,7 +4431,7 @@ cdef class Matrix(matrix1.Matrix):
                for r from 0 <= r < self.nrows():
                     self.set_unsafe(r, c, d.get_unsafe(r,c))
             self.clear_cache()
-            self.cache('pivots', p)
+            self.cache('pivots', tuple(p))
             self.cache('in_echelon_form', True)
             if kwds.has_key('transformation') and kwds['transformation']:
                 return a
@@ -4674,7 +4672,7 @@ cdef class Matrix(matrix1.Matrix):
                                 A.add_multiple_of_row(i, start_row, minus_b, c)
                     start_row = start_row + 1
                     break
-        self.cache('pivots', pivots)
+        self.cache('pivots', tuple(pivots))
         self.cache('in_echelon_form', True)
         self.cache('echelon_form', self)
         verbose('done with gauss echelon form', tm)

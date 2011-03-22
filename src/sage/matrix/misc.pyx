@@ -308,7 +308,7 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
     if self._nrows == 0 or self._ncols == 0:
         self.cache('in_echelon_form', True)
         self.cache('echelon_form', self)
-        self.cache('pivots', [])
+        self.cache('pivots', ())
         return self
 
     B, _ = self._clear_denom()
@@ -351,14 +351,14 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
             if self._nrows == self._ncols and len(A.pivots()) == self._nrows:
                 verbose("done: the echelon form mod p is the identity matrix", caller_name="multimod echelon")
                 E = self.parent().identity_matrix()
-                E.cache('pivots', range(self._nrows))
+                E.cache('pivots', tuple(range(self._nrows)))
                 E.cache('in_echelon_form', True)
                 self.cache('in_echelon_form', True)
                 self.cache('echelon_form', E)
-                self.cache('pivots', range(self._nrows))
+                self.cache('pivots', tuple(range(self._nrows)))
                 return E
 
-            c = cmp_pivots(best_pivots, A.pivots())
+            c = cmp_pivots(best_pivots, list(A.pivots()))
             if c <= 0:
                 best_pivots = A.pivots()
                 X.append(A)
@@ -374,7 +374,7 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
         prod = 1
         t = verbose("now comparing pivots and dropping any bad ones", level=2, t=t, caller_name="multimod echelon")
         for i in range(len(X)):
-            if cmp_pivots(best_pivots, X[i].pivots()) <= 0:
+            if cmp_pivots(best_pivots, list(X[i].pivots())) <= 0:
                 p = X[i].base_ring().order()
                 if not lifts.has_key(p):
                     t0 = verbose("Lifting a good matrix", level=2, caller_name = "multimod echelon")
@@ -420,6 +420,7 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
         M = prod * p*p*p
     #end while
     verbose("total time",tm, level=2, caller_name="multimod echelon")
+    best_pivots = tuple(best_pivots)
     self.cache('pivots', best_pivots)
     E.cache('pivots', best_pivots)
     return E

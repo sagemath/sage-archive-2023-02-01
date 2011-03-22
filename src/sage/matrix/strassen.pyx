@@ -332,7 +332,7 @@ cdef strassen_echelon_c(MatrixWindow A, Py_ssize_t cutoff, Py_ssize_t mul_cutoff
     ncols = A.ncols()
 
     if (nrows <= cutoff or ncols <= cutoff):
-        return A.echelon_in_place()
+        return list(A.echelon_in_place())
 
     cdef Py_ssize_t top_h, bottom_cut, bottom_h, bottom_start, top_cut
     cdef Py_ssize_t prev_pivot_count

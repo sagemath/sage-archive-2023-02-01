@@ -38,7 +38,7 @@ Pickling test::
 from sage.rings.arith import (GCD, fundamental_discriminant, hilbert_symbol,
                               hilbert_conductor_inverse, hilbert_conductor,
                               factor, gcd, lcm)
-from sage.rings.integer import Integer
+from sage.rings.all import RR, Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational import Rational
 from sage.rings.finite_rings.constructor import GF
@@ -51,7 +51,7 @@ from sage.structure.parent_gens import ParentWithGens, normalize_names
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import diagonal_matrix, matrix
 from sage.structure.sequence import Sequence
-from sage.structure.element import is_Element
+from sage.structure.element import is_RingElement
 from sage.modules.free_module import VectorSpace, FreeModule
 from sage.modules.free_module_element import vector
 
@@ -98,6 +98,17 @@ def QuaternionAlgebra(arg0, arg1=None, arg2=None, names='i,j,k'):
         Quaternion Algebra (-1, -5) with base ring Number Field in sqrt2 with defining polynomial x^2 - 2
         sage: QuaternionAlgebra(sqrt(-1), sqrt(-3))
         Quaternion Algebra (I, sqrt(-3)) with base ring Symbolic Ring
+        sage: QuaternionAlgebra(1r,1)
+        Quaternion Algebra (1, 1) with base ring Rational Field
+
+    Python ints, longs and floats may be passed to the ``QuaternionAlgebra(a, b)`` constructor, as may
+    all pairs of nonzero elements of a ring not of characteristic 2. The following tests address
+    the issues raised in trac ticket 10601::
+
+        sage: QuaternionAlgebra(1r,1)
+        Quaternion Algebra (1, 1) with base ring Rational Field
+        sage: QuaternionAlgebra(1,1.0r)
+        Quaternion Algebra (1.00000000000000, 1.00000000000000) with base ring Real Field with 53 bits of precision
         sage: QuaternionAlgebra(0,0)
         Traceback (most recent call last):
         ...
@@ -105,7 +116,12 @@ def QuaternionAlgebra(arg0, arg1=None, arg2=None, names='i,j,k'):
         sage: QuaternionAlgebra(GF(2)(1),1)
         Traceback (most recent call last):
         ...
-        ValueError: a and b must be elements of a field with characteristic not 2
+        ValueError: a and b must be elements of a ring with characteristic not 2
+        sage: a = PermutationGroupElement([1,2,3])
+        sage: QuaternionAlgebra(a, a)
+        Traceback (most recent call last):
+        ...
+        ValueError: a and b must be elements of a ring with characteristic not 2
 
     ``QuaternionAlgebra(K, a, b)`` - return quaternion algebra over the
     field ``K`` with generators ``i``, ``j``, ``k`` with `i^2=a`, `j^2=b`
@@ -167,14 +183,24 @@ def QuaternionAlgebra(arg0, arg1=None, arg2=None, names='i,j,k'):
         a = Rational(a); b = Rational(b)
 
     elif arg2 is None:
-        if is_Element(arg0):
-            # QuaternionAlgebra(a, b)
-            v = Sequence([arg0, arg1])
-            K = v.universe().fraction_field()
-            a = v[0]
-            b = v[1]
-        else:
-            raise ValueError, "unknown input"
+        # If arg0 or arg1 are Python data types, coerce them
+        # to the relevant Sage types. This is a bit inelegant.
+        L = []
+        for a in [arg0,arg1]:
+            if is_RingElement(a):
+                L.append(a)
+            elif type(a) == int or type(a) == long:
+                L.append(Integer(a))
+            elif type(a) == float:
+                L.append(RR(a))
+            else:
+                raise ValueError, "a and b must be elements of a ring with characteristic not 2"
+
+        # QuaternionAlgebra(a, b)
+        v = Sequence(L)
+        K = v.universe().fraction_field()
+        a = v[0]
+        b = v[1]
 
     # QuaternionAlgebra(K, a, b)
     else:
@@ -186,7 +212,7 @@ def QuaternionAlgebra(arg0, arg1=None, arg2=None, names='i,j,k'):
 
     if K.characteristic() == 2:
         # Lameness!
-        raise ValueError, "a and b must be elements of a field with characteristic not 2"
+        raise ValueError, "a and b must be elements of a ring with characteristic not 2"
     if a == 0 or b == 0:
         raise ValueError, "a and b must be nonzero"
 

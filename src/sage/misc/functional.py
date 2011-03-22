@@ -1358,30 +1358,39 @@ def round(x, ndigits=0):
     round(number[, ndigits]) - double-precision real number
 
     Round a number to a given precision in decimal digits (default 0
-    digits). This always returns a real double field element.
+    digits). If no precision is specified this just calls the element's
+    .round() method.
 
     EXAMPLES::
 
         sage: round(sqrt(2),2)
         1.41
-        sage: round(sqrt(2),5)
+        sage: q = round(sqrt(2),5); q
         1.41421
+        sage: type(q)
+        <type 'sage.rings.real_double.RealDoubleElement'>
+        sage: q = round(sqrt(2)); q
+        1
+        sage: type(q)
+        <type 'sage.rings.integer.Integer'>
         sage: round(pi)
-        3.0
+        3
         sage: b = 5.4999999999999999
         sage: round(b)
-        5.0
+        5
+
 
     Since we use floating-point with a limited range, some roundings can't
     be performed::
 
-        sage: round(sqrt(Integer('1'*1000)))
+        sage: round(sqrt(Integer('1'*1000)),2)
         +infinity
 
     IMPLEMENTATION: If ndigits is specified, it calls Python's builtin
     round function, and converts the result to a real double field
-    element. Otherwise, it tries the argument's .round() method, and if
-    that fails, it falls back to the builtin round function.
+    element. Otherwise, it tries the argument's .round() method; if
+    that fails, it reverts to the builtin round function, converted to
+    a real double field element.
 
     .. note::
 
@@ -1395,7 +1404,7 @@ def round(x, ndigits=0):
             return RealDoubleElement(__builtin__.round(x, ndigits))
         else:
             try:
-                return RealDoubleElement(x.round())
+                return x.round()
             except AttributeError:
                 return RealDoubleElement(__builtin__.round(x, 0))
     except ArithmeticError:

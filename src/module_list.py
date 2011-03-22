@@ -1038,6 +1038,9 @@ ext_modules = [
               extra_compile_args=["-std=c99",  "-D_XPG6"],
               depends = flint_depends),
 
+    Extension('sage.modular.modsym.relation_matrix_pyx',
+              sources = ['sage/modular/modsym/relation_matrix_pyx.pyx']),
+
     Extension('sage.modular.modsym.heilbronn',
               sources = ['sage/modular/modsym/heilbronn.pyx'],
               libraries = ["csage", "flint", "gmp", "gmpxx", "m", "stdc++"],

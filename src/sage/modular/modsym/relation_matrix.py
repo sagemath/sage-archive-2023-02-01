@@ -459,7 +459,13 @@ def relation_matrix_wtk_g0(syms, sign, field, sparse):
     if sign != 0:
         # Let rels = rels union I relations.
         rels.update(modI_relations(syms,sign))
-    mod = sparse_2term_quotient(rels, len(syms), field)
+
+    if syms._apply_S_only_0pm1() and rings.is_RationalField(field):
+        import relation_matrix_pyx
+        mod = relation_matrix_pyx.sparse_2term_quotient_only_pm1(rels, len(syms))
+    else:
+        mod = sparse_2term_quotient(rels, len(syms), field)
+
     R = T_relation_matrix_wtk_g0(syms, mod, field, sparse)
     return R, mod
 

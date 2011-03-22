@@ -152,3 +152,5 @@ def all(t = None):
         return _proof_prefs._require_proof.copy()
     for s in _proof_prefs._require_proof.iterkeys():
         _proof_prefs._require_proof[s] = bool(t)
+
+from proof import WithProof

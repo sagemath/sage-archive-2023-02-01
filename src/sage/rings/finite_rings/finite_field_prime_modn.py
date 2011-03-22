@@ -39,15 +39,19 @@ import sage.rings.arith as arith
 
 
 class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRing_generic):
-    def __init__(self, p, name=None):
+    def __init__(self, p, name=None, check=True):
         """
         Return a new finite field of order $p$ where $p$ is prime.
 
         INPUT:
-            p -- an integer >= 2
-            name -- ignored
 
-        EXAMPLES:
+            - p -- an integer >= 2
+            - ``name`` -- ignored
+            - ``check`` -- bool (default: True); if False, do not
+              check p for primality
+
+        EXAMPLES::
+
             sage: FiniteField(3)
             Finite Field of size 3
 
@@ -55,7 +59,7 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
             Finite Field of size 1009
         """
         p = integer.Integer(p)
-        if not arith.is_prime(p):
+        if check and not arith.is_prime(p):
             raise ArithmeticError, "p must be prime"
         from sage.categories.finite_fields import FiniteFields
         self.__char = p

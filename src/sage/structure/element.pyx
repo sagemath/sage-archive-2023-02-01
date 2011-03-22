@@ -2684,8 +2684,8 @@ def coercion_traceback(dump=True):
         TypeError: no common canonical parent for objects with parents: 'Rational Field' and 'Finite Field of size 5'
     """
     if dump:
-        for exc_info in coercion_model.exception_stack():
-            print ''.join(traceback.format_exception(*exc_info))
+        for traceback in coercion_model.exception_stack():
+            print traceback
     else:
         return coercion_model.exception_stack()
 

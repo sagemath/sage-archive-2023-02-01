@@ -88,7 +88,7 @@ from sage.categories.action import InverseAction, PrecomposedAction
 from parent import Set_PythonType
 from coerce_exceptions import CoercionException
 
-import sys
+import sys, traceback
 
 from coerce_actions import LeftModuleAction, RightModuleAction, IntegerMulAction
 
@@ -295,9 +295,10 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             []
             sage: cm._test_exception_stack()
             sage: cm.exception_stack()
-            [(<type 'exceptions.TypeError'>,  TypeError('just a test',),  <traceback object at ...>)]
+            ['Traceback (most recent call last):\n  File "coerce.pyx", line ...TypeError: just a test']
 
-            The function _test_exception_stack is executing the following code:
+        The function _test_exception_stack is executing the following code::
+
             try:
                 raise TypeError, "just a test"
             except:
@@ -306,10 +307,10 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         if not self._exceptions_cleared:
             self._exception_stack = []
             self._exceptions_cleared = True
-        self._exception_stack.append(sys.exc_info())
+        self._exception_stack.append(traceback.format_exc().strip())
 
     def _test_exception_stack(self):
-        """
+        r"""
         A function to test the exception stack.
 
         EXAMPLES::
@@ -321,7 +322,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             []
             sage: cm._test_exception_stack()
             sage: cm.exception_stack()
-            [(<type 'exceptions.TypeError'>,  TypeError('just a test',),  <traceback object at ...>)]
+            ['Traceback (most recent call last):\n  File "coerce.pyx", line ...TypeError: just a test']
         """
         try:
             raise TypeError, "just a test"
@@ -355,8 +356,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
             sage: import traceback
             sage: cm.exception_stack()
-            [(<type 'exceptions.TypeError'>, TypeError('No coercion from Rational Field to pushout Ring of integers modulo 1',), <traceback object at ...>), (<type 'exceptions.TypeError'>, TypeError("no common canonical parent for objects with parents: 'Rational Field' and 'Finite Field of size 3'",), <traceback object at ...>)]
-            sage: print ''.join(sum([traceback.format_exception(*info) for info in cm.exception_stack()], []))
+            ['Traceback (most recent call last):...', 'Traceback (most recent call last):...']
+            sage: print cm.exception_stack()[-1]
             Traceback (most recent call last):
             ...
             TypeError: no common canonical parent for objects with parents: 'Rational Field' and 'Finite Field of size 3'

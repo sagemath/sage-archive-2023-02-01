@@ -49,6 +49,12 @@ Website: http://ecls.sourceforge.net/
 
 == Changelog ==
 
+=== ecl-11.1.1.p0 (Francois Bissey, 23rd March 2011) ===
+  * #10986 on some configuration (debian and gentoo are case in point)
+    etags can be linked to exuberant-ctags. ecl building system automatically
+    detects etags and if etags is actually ctags the build will break.
+    We circumvent the building of TAGS so this doesn't happen.
+
 === ecl-11.1.1 (François Bissey, 13th February 2011) ===
   * #10766 Update to the latest stable release of ECL which will
     solve some long standing problems on 64-bit solaris.

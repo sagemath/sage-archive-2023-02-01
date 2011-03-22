@@ -92,6 +92,9 @@ if [ $? -ne 0 ]; then
    exit 1
 fi
 
+# Before running make we touch build/TAGS so its building process is never triggered
+touch build/TAGS
+
 $MAKE
 if [ $? -ne 0 ]; then
    echo "Error - Failed to build ECL ... exiting"

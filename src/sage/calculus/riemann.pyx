@@ -32,6 +32,10 @@ from sage.plot.primitive import GraphicPrimitive
 from sage.misc.decorators import options
 from sage.plot.plot import list_plot, Graphics, setup_for_eval_on_grid
 
+from sage.ext.fast_eval import fast_callable
+
+from sage.rings.all import CDF
+
 from sage.misc.misc import srange
 
 from sage.gsl.interpolation import spline
@@ -103,17 +107,17 @@ cdef class Riemann_Map:
 
     The unit circle with a small hole::
 
-        sage: f(t) = e^(I*t)  # long time
-        sage: fprime(t) = I*e^(I*t)  # long time
-        sage: hf(t) = 0.5*e^(-I*t)  # long time
-        sage: hfprime(t) = 0.5*-I*e^(-I*t)  # long time
-        sage: m = Riemann_Map([f, hf], [hf, hfprime], 0.5 + 0.5*I)  # long time (8 sec)
+        sage: f(t) = e^(I*t)
+        sage: fprime(t) = I*e^(I*t)
+        sage: hf(t) = 0.5*e^(-I*t)
+        sage: hfprime(t) = 0.5*-I*e^(-I*t)
+        sage: m = Riemann_Map([f, hf], [hf, hfprime], 0.5 + 0.5*I)
 
     A square::
 
         sage: ps = polygon_spline([(-1, -1), (1, -1), (1, 1), (-1, 1)])  # long time
-        sage: f = lambda t: ps.value(t)  # long time
-        sage: fprime = lambda t: ps.derivative(t)  # long time
+        sage: f = lambda t: ps.value(real(t))  # long time
+        sage: fprime = lambda t: ps.derivative(real(t))  # long time
         sage: m = Riemann_Map([f], [fprime], 0.25, ncorners=4)  # long time
         sage: m.plot_colored() + m.plot_spiderweb()  # long time
 
@@ -149,12 +153,19 @@ cdef class Riemann_Map:
 
         TESTS::
 
-            sage: m = Riemann_Map([lambda t: e^(I*t) - 0.5*e^(-I*t)], [lambda t: I*e^(I*t) + 0.5*I*e^(-I*t)], 0)  # long time (4 sec)
+            sage: f(t) = e^(I*t) - 0.5*e^(-I*t)
+            sage: fprime(t) = I*e^(I*t) + 0.5*I*e^(-I*t)
+            sage: m = Riemann_Map([f], [fprime], 0)
         """
         a = np.complex128(a)
         if N <= 2:
             raise ValueError(
                 "The number of collocation points must be > 2.")
+        try:
+            fs = [fast_callable(f, domain=CDF) for f in fs]
+            fprimes = [fast_callable(f, domain=CDF) for f in fprimes]
+        except AttributeError:
+            pass
         self.f = fs[0]
         self.a = a
         self.ncorners = ncorners
@@ -193,7 +204,9 @@ cdef class Riemann_Map:
 
         TESTS::
 
-            sage: isinstance(Riemann_Map([lambda t: e^(I*t) - 0.5*e^(-I*t)], [lambda t: I*e^(I*t) + 0.5*I*e^(-I*t)], 0)._repr_(), str)  # long time
+            sage: f(t) = e^(I*t) - 0.5*e^(-I*t)
+            sage: fprime(t) = I*e^(I*t) + 0.5*I*e^(-I*t)
+            sage: isinstance(Riemann_Map([f], [fprime], 0)._repr_(), str)  # long time
             True
         """
         return "A Riemann mapping of a figure to the unit circle."
@@ -205,7 +218,9 @@ cdef class Riemann_Map:
 
         TESTS::
 
-            sage: m = Riemann_Map([lambda t: e^(I*t) - 0.5*e^(-I*t)], [lambda t: I*e^(I*t) + 0.5*I*e^(-I*t)], 0)  # long time (4 sec)
+            sage: f(t) = e^(I*t) - 0.5*e^(-I*t)
+            sage: fprime(t) = I*e^(I*t) + 0.5*I*e^(-I*t)
+            sage: m = Riemann_Map([f], [fprime], 0)
         """
         cp = self.cps.flatten()
         dp = self.dps.flatten()
@@ -309,29 +324,31 @@ cdef class Riemann_Map:
 
         Generic use::
 
-            sage: m = Riemann_Map([lambda t: e^(I*t) - 0.5*e^(-I*t)], [lambda t: I*e^(I*t) + 0.5*I*e^(-I*t)], 0)  # long time (4 sec)
-            sage: sz = m.get_szego(boundary=0)  # long time
-            sage: points = m.get_szego(absolute_value=True)  # long time
-            sage: list_plot(points)  # long time
+            sage: f(t) = e^(I*t) - 0.5*e^(-I*t)
+            sage: fprime(t) = I*e^(I*t) + 0.5*I*e^(-I*t)
+            sage: m = Riemann_Map([f], [fprime], 0)
+            sage: sz = m.get_szego(boundary=0)
+            sage: points = m.get_szego(absolute_value=True)
+            sage: list_plot(points)
 
         Extending the points by a spline::
 
-            sage: s = spline(points)  # long time
-            sage: s(3*pi / 4)  # long time
+            sage: s = spline(points)
+            sage: s(3*pi / 4)
             0.00121587378429...
 
         The unit circle with a small hole::
 
-            sage: f(t) = e^(I*t)  # long time
-            sage: fprime(t) = I*e^(I*t)  # long time
-            sage: hf(t) = 0.5*e^(-I*t)  # long time
-            sage: hfprime(t) = 0.5*-I*e^(-I*t)  # long time
-            sage: m = Riemann_Map([f, hf], [hf, hfprime], 0.5 + 0.5*I)  # long time (8 sec)
+            sage: f(t) = e^(I*t)
+            sage: fprime(t) = I*e^(I*t)
+            sage: hf(t) = 0.5*e^(-I*t)
+            sage: hfprime(t) = 0.5*-I*e^(-I*t)
+            sage: m = Riemann_Map([f, hf], [hf, hfprime], 0.5 + 0.5*I)
 
         Getting the szego for a specifc boundary::
 
-            sage: sz0 = m.get_szego(boundary=0)  # long time
-            sage: sz1 = m.get_szego(boundary=1)  # long time
+            sage: sz0 = m.get_szego(boundary=0)
+            sage: sz1 = m.get_szego(boundary=1)
         """
         cdef int k, B
         if boundary < 0:
@@ -377,28 +394,30 @@ cdef class Riemann_Map:
         Getting the list of points, extending it via a spline, getting the
         points for only the outside of a multiply connected domain::
 
-            sage: m = Riemann_Map([lambda t: e^(I*t) - 0.5*e^(-I*t)], [lambda t: I*e^(I*t) + 0.5*I*e^(-I*t)], 0)  # long time (4 sec)
-            sage: points = m.get_theta_points()  # long time
-            sage: list_plot(points)  # long time
+            sage: f(t) = e^(I*t) - 0.5*e^(-I*t)
+            sage: fprime(t) = I*e^(I*t) + 0.5*I*e^(-I*t)
+            sage: m = Riemann_Map([f], [fprime], 0)
+            sage: points = m.get_theta_points()
+            sage: list_plot(points)
 
         Extending the points by a spline::
 
-            sage: s = spline(points)  # long time
-            sage: s(3*pi / 4)  # long time
+            sage: s = spline(points)
+            sage: s(3*pi / 4)
             1.62766037996...
 
         The unit circle with a small hole::
 
-            sage: f(t) = e^(I*t)  # long time
-            sage: fprime(t) = I*e^(I*t)  # long time
-            sage: hf(t) = 0.5*e^(-I*t)  # long time
-            sage: hfprime(t) = 0.5*-I*e^(-I*t)  # long time
-            sage: m = Riemann_Map([f, hf], [hf, hfprime], 0.5 + 0.5*I)  # long time (8 sec)
+            sage: f(t) = e^(I*t)
+            sage: fprime(t) = I*e^(I*t)
+            sage: hf(t) = 0.5*e^(-I*t)
+            sage: hfprime(t) = 0.5*-I*e^(-I*t)
+            sage: m = Riemann_Map([f, hf], [hf, hfprime], 0.5 + 0.5*I)
 
         Getting the szego for a specifc boundary::
 
-            sage: tp0 = m.get_theta_points(boundary=0)  # long time
-            sage: tp1 = m.get_theta_points(boundary=1)  # long time
+            sage: tp0 = m.get_theta_points(boundary=0)
+            sage: tp1 = m.get_theta_points(boundary=1)
         """
         if boundary < 0:
             temptk = self.tk2
@@ -418,7 +437,9 @@ cdef class Riemann_Map:
 
         TESTS::
 
-            sage: m = Riemann_Map([lambda t: e^(I*t) - 0.5*e^(-I*t)], [lambda t: I*e^(I*t) + 0.5*I*e^(-I*t)], 0)  # long time (4 sec)
+            sage: f(t) = e^(I*t) - 0.5*e^(-I*t)
+            sage: fprime(t) = I*e^(I*t) + 0.5*I*e^(-I*t)
+            sage: m = Riemann_Map([f], [fprime], 0)
         """
         cdef int N = self.N
         cdef double complex coeff = 3*I / (8*N)
@@ -484,16 +505,18 @@ cdef class Riemann_Map:
 
         Can work for different types of complex numbers::
 
-            sage: m = Riemann_Map([lambda t: e^(I*t) - 0.5*e^(-I*t)], [lambda t: I*e^(I*t) + 0.5*I*e^(-I*t)], 0)  # long time (4 sec)
-            sage: m.riemann_map(0.25 + sqrt(-0.5))  # long time
+            sage: f(t) = e^(I*t) - 0.5*e^(-I*t)
+            sage: fprime(t) = I*e^(I*t) + 0.5*I*e^(-I*t)
+            sage: m = Riemann_Map([f], [fprime], 0)
+            sage: m.riemann_map(0.25 + sqrt(-0.5))
             (0.137514...+0.87669602...j)
-            sage: m.riemann_map(1.3*I)  # long time
+            sage: m.riemann_map(1.3*I)
             (-1.56...e-05+0.989694...j)
-            sage: I = CDF.gen()  # long time
-            sage: m.riemann_map(0.4)  # long time
+            sage: I = CDF.gen()
+            sage: m.riemann_map(0.4)
             (0.733242677...+3.2...e-06j)
-            sage: import numpy as np  # long time
-            sage: m.riemann_map(np.complex(-3, 0.0001))  # long time
+            sage: import numpy as np
+            sage: m.riemann_map(np.complex(-3, 0.0001))
             (1.405757...e-05+8.06...e-10j)
         """
         pt1 = np.complex(pt)
@@ -510,7 +533,9 @@ cdef class Riemann_Map:
 
         TESTS::
 
-            sage: m = Riemann_Map([lambda t: e^(I*t) - 0.5*e^(-I*t)], [lambda t: I*e^(I*t) + 0.5*I*e^(-I*t)], 0)  # long time (4 sec)
+            sage: f(t) = e^(I*t) - 0.5*e^(-I*t)
+            sage: fprime(t) = I*e^(I*t) + 0.5*I*e^(-I*t)
+            sage: m = Riemann_Map([f], [fprime], 0)
         """
         cdef int N = self.N
         cdef int B = self.B
@@ -560,15 +585,17 @@ cdef class Riemann_Map:
 
         Can work for different types of complex numbers::
 
-            sage: m = Riemann_Map([lambda t: e^(I*t) - 0.5*e^(-I*t)], [lambda t: I*e^(I*t) + 0.5*I*e^(-I*t)], 0)  # long time (4 sec)
-            sage: m.inverse_riemann_map(0.5 + sqrt(-0.5))  # long time
+            sage: f(t) = e^(I*t) - 0.5*e^(-I*t)
+            sage: fprime(t) = I*e^(I*t) + 0.5*I*e^(-I*t)
+            sage: m = Riemann_Map([f], [fprime], 0)
+            sage: m.inverse_riemann_map(0.5 + sqrt(-0.5))
             (0.406880548363...+0.361470279816...j)
-            sage: m.inverse_riemann_map(0.95)  # long time
+            sage: m.inverse_riemann_map(0.95)
             (0.486319431795...-4.90019052...j)
-            sage: m.inverse_riemann_map(0.25 - 0.3*I)  # long time
+            sage: m.inverse_riemann_map(0.25 - 0.3*I)
             (0.165324498558...-0.180936785500...j)
-            sage: import numpy as np  # long time
-            sage: m.inverse_riemann_map(np.complex(-0.2, 0.5))  # long time
+            sage: import numpy as np
+            sage: m.inverse_riemann_map(np.complex(-0.2, 0.5))
             (-0.156280570579...+0.321819151891...j)
         """
         pt = np.complex128(pt)
@@ -610,15 +637,17 @@ cdef class Riemann_Map:
 
         General usage::
 
-            sage: m = Riemann_Map([lambda t: e^(I*t) - 0.5*e^(-I*t)], [lambda t: I*e^(I*t) + 0.5*I*e^(-I*t)], 0)  # long time (4 sec)
+            sage: f(t) = e^(I*t) - 0.5*e^(-I*t)
+            sage: fprime(t) = I*e^(I*t) + 0.5*I*e^(-I*t)
+            sage: m = Riemann_Map([f], [fprime], 0)
 
         Default plot::
 
-            sage: m.plot_boundaries()  # long time
+            sage: m.plot_boundaries()
 
         Big blue collocation points::
 
-            sage: m.plot_boundaries(plotjoined=False, rgbcolor=[0,0,1], thickness=6)  # long time
+            sage: m.plot_boundaries(plotjoined=False, rgbcolor=[0,0,1], thickness=6)
         """
         plots = range(self.B)
         for k in xrange(self.B):
@@ -673,25 +702,29 @@ cdef class Riemann_Map:
 
         General usage::
 
-            sage: m = Riemann_Map([lambda t: e^(I*t) - 0.5*e^(-I*t)], [lambda t: I*e^(I*t) + 0.5*I*e^(-I*t)], 0)  # long time (4 sec)
+            sage: f(t) = e^(I*t) - 0.5*e^(-I*t)
+            sage: fprime(t) = I*e^(I*t) + 0.5*I*e^(-I*t)
+            sage: m = Riemann_Map([f], [fprime], 0)
 
         Default plot::
 
-            sage: m.plot_spiderweb()  # long time
+            sage: m.plot_spiderweb()
 
         Simplified plot with many discrete points::
 
-            sage: m.plot_spiderweb(spokes=4, circles=1, pts=400, linescale=0.95, plotjoined=False)  # long time
+            sage: m.plot_spiderweb(spokes=4, circles=1, pts=400, linescale=0.95, plotjoined=False)
 
         Plot with thick, red lines::
 
-            sage: m.plot_spiderweb(rgbcolor=[1,0,0], thickness=3)  # long time
+            sage: m.plot_spiderweb(rgbcolor=[1,0,0], thickness=3)
 
         To generate the unit circle map, it's helpful to see what the
         original spiderweb looks like::
 
-            sage: m = Riemann_Map([lambda t: e^(I*t)], [lambda t: I*e^(I*t)], 0, 1000)  # long time (8 sec)
-            sage: m.plot_spiderweb()  # long time
+            sage: f(t) = e^(I*t)
+            sage: fprime(t) = I*e^(I*t)
+            sage: m = Riemann_Map([f], [fprime], 0, 1000)
+            sage: m.plot_spiderweb()
         """
         edge = self.plot_boundaries(plotjoined=plotjoined, rgbcolor=rgbcolor,
                                     thickness=thickness)
@@ -757,22 +790,26 @@ cdef class Riemann_Map:
 
         Given a Riemann map m, general usage::
 
-            sage: m = Riemann_Map([lambda t: e^(I*t) - 0.5*e^(-I*t)], [lambda t: I*e^(I*t) + 0.5*I*e^(-I*t)], 0)  # long time (4 sec)
-            sage: m.plot_colored() #long time
+            sage: f(t) = e^(I*t) - 0.5*e^(-I*t)
+            sage: fprime(t) = I*e^(I*t) + 0.5*I*e^(-I*t)
+            sage: m = Riemann_Map([f], [fprime], 0)
+            sage: m.plot_colored()
 
         Plot zoomed in on a specific spot::
 
-            sage: m.plot_colored(plot_range=[-1,1,2,3])  # long time
+            sage: m.plot_colored(plot_range=[-1,1,2,3])
 
         High resolution plot::
 
-            sage: m.plot_colored(plot_points=1000)  # long time (40 sec)
+            sage: m.plot_colored(plot_points=1000) # long time
 
         To generate the unit circle map, it's helpful to see what the
         colors correspond to::
 
-            sage: m = Riemann_Map([lambda t: e^(I*t)], [lambda t: I*e^(I*t)], 0, 1000)  # long time (10 sec)
-            sage: m.plot_colored()  # long time
+            sage: f(t) = e^(I*t)
+            sage: fprime(t) = I*e^(I*t)
+            sage: m = Riemann_Map([f], [fprime], 0, 1000)
+            sage: m.plot_colored()
         """
         cdef int i, j
         cdef double xmin
@@ -819,8 +856,10 @@ cdef comp_pt(clist, loop=True):
 
     This tests it implicitly::
 
-        sage: m = Riemann_Map([lambda t: e^(I*t) - 0.5*e^(-I*t)], [lambda t: I*e^(I*t) + 0.5*I*e^(-I*t)], 0)  # long time (4 sec)
-        sage: m.plot_spiderweb()  # long time
+        sage: f(t) = e^(I*t) - 0.5*e^(-I*t)
+        sage: fprime(t) = I*e^(I*t) + 0.5*I*e^(-I*t)
+        sage: m = Riemann_Map([f], [fprime], 0)
+        sage: m.plot_spiderweb()
     """
     list2 = range(len(clist) + 1) if loop else range(len(clist))
     for i in xrange(len(clist)):

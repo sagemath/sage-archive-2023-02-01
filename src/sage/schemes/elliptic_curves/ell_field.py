@@ -167,6 +167,44 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         else:
             raise ValueError, "Quadratic twist not implemented in char 2 when j=0"
 
+    def two_torsion_rank(self):
+        r"""
+        Return the dimension of the 2-torsion subgroup of
+        `E(K)`.
+
+        This will be 0, 1 or 2.
+
+        EXAMPLES::
+
+            sage: E=EllipticCurve('11a1')
+            sage: E.two_torsion_rank()
+            0
+            sage: K.<alpha>=QQ.extension(E.division_polynomial(2).monic())
+            sage: E.base_extend(K).two_torsion_rank()
+            1
+            sage: E.reduction(53).two_torsion_rank()
+            2
+
+        ::
+
+            sage: E = EllipticCurve('14a1')
+            sage: E.two_torsion_rank()
+            1
+            sage: K.<alpha>=QQ.extension(E.division_polynomial(2).monic().factor()[1][0])
+            sage: E.base_extend(K).two_torsion_rank()
+            2
+
+        ::
+
+            sage: EllipticCurve('15a1').two_torsion_rank()
+            2
+
+        """
+        f=self.division_polynomial(rings.Integer(2))
+        n=len(f.roots())+1
+        return rings.Integer(n).ord(rings.Integer(2))
+
+
     def quartic_twist(self, D):
         r"""
         Return the quartic twist of this curve by `D`.

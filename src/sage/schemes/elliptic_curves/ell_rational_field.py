@@ -2361,38 +2361,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             points = self.saturation(points, verbose=verbose)[0]
         return points
 
-    def two_torsion_rank(self):
-        r"""
-        Return the dimension of the 2-torsion subgroup of
-        `E(\QQ)`.
-
-        This will be 0, 1 or 2.
-
-        .. note::
-
-           As a side-effect of calling this function, the full torsion
-           subgroup of the curve is computed (if not already
-           cached). A simpler implementation of this function would be
-           possible (by counting the roots of the 2-division
-           polynomial), but the full torsion subgroup computation is
-           not expensive.
-
-        EXAMPLES::
-
-            sage: EllipticCurve('11a1').two_torsion_rank()
-            0
-            sage: EllipticCurve('14a1').two_torsion_rank()
-            1
-            sage: EllipticCurve('15a1').two_torsion_rank()
-            2
-        """
-        A = self.torsion_subgroup().invariants()
-        if len(A) == 2:
-            return rings.Integer(2)
-        elif len(A) == 1 and A[0] % 2 == 0:
-            return rings.Integer(1)
-        else:
-            return rings.Integer(0)
 
     def selmer_rank(self):
         """

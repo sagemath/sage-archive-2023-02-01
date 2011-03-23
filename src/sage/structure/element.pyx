@@ -312,7 +312,7 @@ cdef class Element(sage_object.SageObject):
         We test that "private" attributes are not requested from the element class
         of the category (trac ticket #10467)::
 
-            sage: C = CommutativeRings()
+            sage: C = EuclideanDomains()
             sage: P.<x> = QQ[]
             sage: C.element_class.__foo = 'bar'
             sage: x.parent().category() is C

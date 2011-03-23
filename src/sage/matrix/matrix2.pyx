@@ -3206,8 +3206,10 @@ cdef class Matrix(matrix1.Matrix):
 
         INPUT:
 
+            - `M`                -- A subspace of the free module ``self`` acts on.
             - ``check_restrict`` -- A boolean (default: ``True``); Call restrict
-                                    with or withour check.
+                                    with or without check.
+            - ``kwds``           -- Keywords that will be forwarded to :meth:`~.decomposition`.
 
         EXAMPLES::
 

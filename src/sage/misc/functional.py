@@ -1246,6 +1246,16 @@ def numerical_approx(x, prec=None, digits=None):
 
         sage: type(numerical_approx(CC(1/2)))
         <type 'sage.rings.complex_number.ComplexNumber'>
+
+    The following tests Trac 10761, in which n() would break when
+    called on complex-valued AlgebraicNumbers::
+
+        sage: E = matrix(3, [3,1,6,5,2,9,7,3,13]).eigenvalues(); E
+        [18.16815365088822?, -0.08407682544410650? - 0.2190261484802906?*I, -0.08407682544410650? + 0.2190261484802906?*I]
+        sage: E[1].parent()
+        Algebraic Field
+        sage: [a.n() for a in E]
+        [18.1681536508882, -0.0840768254441065 - 0.219026148480291*I, -0.0840768254441065 + 0.219026148480291*I]
     """
     if prec is None:
         if digits is None:
@@ -1260,7 +1270,8 @@ def numerical_approx(x, prec=None, digits=None):
         if not (is_ComplexNumber(x) or is_ComplexDoubleElement(x)):
             try:
                 return sage.rings.real_mpfr.RealField(prec)(x)
-            except TypeError:
+            # Trac 10761: now catches ValueErrors as well as TypeErrors
+            except (TypeError, ValueError):
                 pass
         return sage.rings.complex_field.ComplexField(prec)(x)
 

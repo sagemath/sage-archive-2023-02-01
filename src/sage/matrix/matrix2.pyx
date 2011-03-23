@@ -4709,7 +4709,8 @@ cdef class Matrix(matrix1.Matrix):
         any size, the final `m` columns provide a matrix that transforms
         ``self`` to echelon form when it multiplies ``self`` from the left.
         When the base ring is a field, the uniqueness of reduced row-echelon
-        form implies that this transformation matrix can be taken as a
+        form implies that this transformation matrix can be taken as the
+        coefficients giving a
         canonical set of linear combinations of the rows of ``self`` that
         yield reduced row-echelon form.
 

@@ -431,7 +431,7 @@ def matrix_plot(mat, **options):
     yrange = (0, xy_data_array.shape[0])
 
     if options['subdivisions'] and options['subdivision_options']['boundaries'] is None:
-        options['subdivision_options']['boundaries']=orig_mat.subdivisions
+        options['subdivision_options']['boundaries']=orig_mat.get_subdivisions()
 
     g = Graphics()
     g._set_extra_kwds(Graphics._extract_kwds_for_show(options))

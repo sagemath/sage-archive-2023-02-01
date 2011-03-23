@@ -2246,6 +2246,17 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: M.parent()
             Full MatrixSpace of 3 by 4 dense matrices over Rational Field
 
+        The more general :meth:`sage.matrix.matrix2.tensor_product` is an
+        operation on a pair of matrices.  If we construe a pair of vectors
+        as a column vector and a row vector, then an outer product and a
+        tensor product are identical.  Thus `tensor_product` is a synonym
+        for this method.  ::
+
+            sage: u = vector(QQ, [1/2, 1/3, 1/4, 1/5])
+            sage: v = vector(ZZ, [60, 180, 600])
+            sage: u.tensor_product(v) == (u.column()).tensor_product(v.row())
+            True
+
         The result is always a dense matrix, no matter if the two
         vectors are, or are not, dense.  ::
 
@@ -2287,12 +2298,12 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
         But some inputs are not compatible, even if vectors. ::
 
-            sage: w = vector(QQ, [1/2,1/3])
+            sage: w = vector(GF(5), [1,2])
             sage: v = vector(GF(7), [1,2,3,4])
             sage: z = w.outer_product(v)
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '*': 'Full MatrixSpace of 2 by 1 dense matrices over Rational Field' and 'Full MatrixSpace of 1 by 4 dense matrices over Finite Field of size 7'
+            TypeError: unsupported operand parent(s) for '*': 'Full MatrixSpace of 2 by 1 dense matrices over Finite Field of size 5' and 'Full MatrixSpace of 1 by 4 dense matrices over Finite Field of size 7'
 
         And some inputs don't make any sense at all. ::
 
@@ -2305,6 +2316,9 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         if not PY_TYPE_CHECK(right, FreeModuleElement):
             raise TypeError('right operand in an outer product must be a vector, not an element of %s' % right.parent())
         return self.column()*right.row()
+
+    # tensor product is an alias in the special case of two vectors
+    tensor_product = outer_product
 
     def is_dense(self):
         """

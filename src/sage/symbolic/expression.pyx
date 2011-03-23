@@ -3737,7 +3737,7 @@ cdef class Expression(CommutativeRingElement):
 
     def iterator(self):
         """
-        Return an iterator over the arguments of this expression.
+        Return an iterator over the operands of this expression.
 
         EXAMPLES::
 
@@ -3748,7 +3748,26 @@ cdef class Expression(CommutativeRingElement):
             [x, y, z]
             sage: list((x^y*z*(x+y)).iterator())
             [x + y, x^y, z]
+
+        Note that symbols, constants and numeric objects don't have operands,
+        so the iterator function raises an error in these cases::
+
+            sage: x.iterator()
+            Traceback (most recent call last):
+            ...
+            ValueError: expressions containing only a numeric coefficient, constant or symbol have no operands
+            sage: pi.iterator()
+            Traceback (most recent call last):
+            ...
+            ValueError: expressions containing only a numeric coefficient, constant or symbol have no operands
+            sage: SR(5).iterator()
+            Traceback (most recent call last):
+            ...
+            ValueError: expressions containing only a numeric coefficient, constant or symbol have no operands
         """
+        if is_a_symbol(self._gobj) or is_a_constant(self._gobj) or \
+                is_a_numeric(self._gobj):
+                    raise ValueError, "expressions containing only a numeric coefficient, constant or symbol have no operands"
         return new_ExpIter_from_Expression(self)
 
 ##     def __getitem__(self, ind):

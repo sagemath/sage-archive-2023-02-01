@@ -311,7 +311,7 @@ class Gap_generic(Expect):
         if x == 'fail':
             raise RuntimeError, 'Error loading Gap package %s'%pkg
 
-    def eval(self, x, newlines=False, strip=True, **kwds):
+    def eval(self, x, newlines=False, strip=True, split_lines=True, **kwds):
         r"""
         Send the code in the string s to the GAP interpreter and return the
         output as a string.
@@ -327,6 +327,9 @@ class Gap_generic(Expect):
 
         -  ``strip`` - ignored
 
+        -  ``split_lines`` -- bool (default: True); if True then each
+           line is evaluated separately.  If False, then the whole
+           block of code is evaluated all at once.
 
         EXAMPLES::
 
@@ -338,19 +341,37 @@ class Gap_generic(Expect):
             '#6'
             sage: gap.eval('4; \n 6;')
             '4\n6'
+            sage: gap.eval('if 3>2 then\nPrint("hi");\nfi;')
+            'hi'
+            sage: gap.eval('## this is a test\nPrint("OK")')
+            'OK'
+            sage: gap.eval('Print("This is a test. Oh no, a #");# but this is a comment\nPrint("OK")')
+            'This is a test. Oh no, a #OK'
+            sage: gap.eval('if 4>3 then')
+            ''
+            sage: gap.eval('Print("Hi how are you?")')
+            'Hi how are you?'
+            sage: gap.eval('fi')
+            ''
         """
+        # '"
         #We remove all of the comments:  On each line, we try
         #to find a pound sign.  If we find it, we check to see if
         #it is occurring in a string.  If it is not in a string, we
         #strip off the comment.
-        input_line = ""
-        for line in  str(x).rstrip().split('\n'):
-            pound_position = line.rfind('#')
-            if pound_position != -1 and not is_in_string(line, pound_position):
-                line = line[:pound_position]
-            input_line += line
-        if not input_line.endswith(';'):
-            input_line += ';'
+        if not split_lines:
+            input_line=str(x)
+        else:
+            input_line = ""
+            for line in str(x).rstrip().split('\n'):
+                pound_position = line.find('#')
+                while pound_position != -1:
+                    if not is_in_string(line, pound_position):
+                        line = line[:pound_position]
+                    pound_position = line.find('#',pound_position+1)
+                input_line += " "+line
+            if not input_line.endswith(';'):
+                input_line += ';'
         result = Expect.eval(self, input_line, **kwds)
         if not newlines:
             result = result.replace("\\\n","")
@@ -470,10 +491,14 @@ class Gap_generic(Expect):
                 if len(normal) == 0:
                     return ''
 
-                if isinstance(wait_for_prompt, str):
+                if isinstance(wait_for_prompt, str) and normal.ends_with(wait_for_prompt):
                     n = len(wait_for_prompt)
-                else:
+                elif normal.endswith(self._prompt):
                     n = len(self._prompt)
+                elif normal.endswith(self._continuation_prompt()):
+                    n = len(self._continuation_prompt())
+                else:
+                    n = 0
                 out = normal[:-n]
                 if len(out) > 0 and out[-1] == "\n":
                     out = out[:-1]

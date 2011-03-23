@@ -1074,6 +1074,11 @@ cdef class Parent(category_object.CategoryObject):
             Traceback (most recent call last):
             ...
             NotImplementedError
+
+        Note that if an object ``X`` is infinite, then running
+        ``X.list()`` will raise an appropriate error, while running
+        ``list(X)`` will run indefinitely.  For many Sage objects
+        ``X``, using ``X.list()`` is preferable to using ``list(X)``.
         """
         try:
             if self._list is not None:

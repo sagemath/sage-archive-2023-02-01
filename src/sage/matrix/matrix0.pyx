@@ -1518,7 +1518,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         except (AttributeError, NotImplementedError):
             M = sage.matrix.matrix_space.MatrixSpace(ring, self._nrows, self._ncols, sparse=self.is_sparse())
             mat = M(self.list(), coerce=True, copy=False)
-            mat.subdivide(self.get_subdivisions())
+            mat.subdivide(self.subdivisions())
             return mat
 
     def _test_change_ring(self, **options):
@@ -1673,7 +1673,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         if nr == 0 or nc == 0:
             return "[]"
 
-        row_divs, col_divs = self.get_subdivisions()
+        row_divs, col_divs = self.subdivisions()
 
         # Set the mapping based on keyword arguments
         if rep_mapping is None:
@@ -1833,7 +1833,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         S = self.list()
         rows = []
 
-        row_divs, col_divs = self.get_subdivisions()
+        row_divs, col_divs = self.subdivisions()
 
         from sage.server.support import EMBEDDED_MODE
 

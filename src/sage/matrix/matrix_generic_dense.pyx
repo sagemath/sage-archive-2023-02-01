@@ -225,8 +225,8 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
             [3|4 5]
         """
         A = self.__class__(self._parent, self._entries, copy = True, coerce=False)
-        if self.subdivisions is not None:
-            A.subdivide(*self.get_subdivisions())
+        if self._subdivisions is not None:
+            A.subdivide(*self.subdivisions())
         return A
 
     def _multiply_classical(left, matrix.Matrix _right):

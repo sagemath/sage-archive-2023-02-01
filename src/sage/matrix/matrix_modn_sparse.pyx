@@ -688,8 +688,8 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             row = self.rows[i]
             for j from 0 <= j < row.num_nonzero:
                 set_entry(&B.rows[row.positions[j]], i, row.entries[j])
-        if self.subdivisions is not None:
-            row_divs, col_divs = self.get_subdivisions()
+        if self._subdivisions is not None:
+            row_divs, col_divs = self.subdivisions()
             B.subdivide(col_divs, row_divs)
         return B
 
@@ -1011,6 +1011,6 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             for j from 0 <= j < A_row.num_nonzero:
                 L_row.positions[j] = A_row.positions[j]
                 mpz_init_set_si(L_row.entries[j], A_row.entries[j])
-        L.subdivide(self.get_subdivisions())
+        L.subdivide(self.subdivisions())
         return L
 

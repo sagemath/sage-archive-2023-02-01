@@ -265,8 +265,8 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
 
     def __copy__(self):
         A = self.__class__(self._parent, self._entries, copy = True, coerce=False)
-        if self.subdivisions is not None:
-            A.subdivide(*self.get_subdivisions())
+        if self._subdivisions is not None:
+            A.subdivide(*self.subdivisions())
         return A
 
 

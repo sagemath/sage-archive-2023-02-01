@@ -524,8 +524,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         for i from 0 <= i < self._nrows*self._ncols:
             mpq_set(M._entries[i],self._entries[i])
         sig_off()
-        if self.subdivisions is not None:
-            M.subdivide(*self.get_subdivisions())
+        if self._subdivisions is not None:
+            M.subdivide(*self.subdivisions())
         return M
 
 
@@ -1320,7 +1320,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             A, d = self._clear_denom()
             if d != 1:
                 raise TypeError("matrix has denominators so can't change to ZZ.")
-            A.subdivide(self.get_subdivisions())
+            A.subdivide(self.subdivisions())
             return A
         elif is_IntegerModRing(R) and R.order() < MAX_MODULUS:
             b = R.order()
@@ -1329,11 +1329,11 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                 raise TypeError("matrix denominator not coprime to modulus")
             B = A._mod_int(b)
             C = (1/(B.base_ring()(d))) * B
-            C.subdivide(self.get_subdivisions())
+            C.subdivide(self.subdivisions())
             return C
         else:
             D = matrix_dense.Matrix_dense.change_ring(self, R)
-            D.subdivide(self.get_subdivisions())
+            D.subdivide(self.subdivisions())
             return D
 
 
@@ -2358,8 +2358,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                 mpq_set(A._matrix[j][i], self._matrix[i][j])
         sig_off()
 
-        if self.subdivisions is not None:
-            row_divs, col_divs = self.get_subdivisions()
+        if self._subdivisions is not None:
+            row_divs, col_divs = self.subdivisions()
             A.subdivide(col_divs, row_divs)
         return A
 
@@ -2409,8 +2409,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                 mpq_set(A._matrix[rj][ri], self._matrix[i][j])
         sig_off()
 
-        if self.subdivisions is not None:
-            row_divs, col_divs = self.get_subdivisions()
+        if self._subdivisions is not None:
+            row_divs, col_divs = self.subdivisions()
             A.subdivide([nc - t for t in reversed(col_divs)],
                         [nr - t for t in reversed(row_divs)])
         return A

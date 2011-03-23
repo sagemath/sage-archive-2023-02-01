@@ -311,8 +311,8 @@ cdef class Matrix_integer_2x2(matrix_dense.Matrix_dense):
         mpz_set(x.c ,self.c)
         mpz_set(x.d, self.d)
         x._mutability = Mutability(False)
-        if self.subdivisions is not None:
-            x.subdivide(*self.get_subdivisions())
+        if self._subdivisions is not None:
+            x.subdivide(*self.subdivisions())
         return x
 
     cpdef ModuleElement _add_(left, ModuleElement right):

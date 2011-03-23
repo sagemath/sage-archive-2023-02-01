@@ -603,7 +603,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
 
             sage: a.subdivide([1,1], [2])
             sage: b = a.dense_matrix().sparse_matrix().dense_matrix()
-            sage: b.get_subdivisions() == a.get_subdivisions()
+            sage: b.subdivisions() == a.subdivisions()
             True
         """
         cdef Matrix_rational_dense B
@@ -614,7 +614,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
             v = &(self._matrix[i])
             for j from 0 <= j < v.num_nonzero:
                 mpq_set(B._matrix[i][v.positions[j]], v.entries[j])
-        B.subdivide(self.get_subdivisions())
+        B.subdivide(self.subdivisions())
         return B
 
 ##     def _set_row_to_negative_of_row_of_A_using_subset_of_columns(self, Py_ssize_t i, Matrix A,

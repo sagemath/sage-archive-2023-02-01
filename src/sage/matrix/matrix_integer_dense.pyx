@@ -266,8 +266,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             mpz_init_set(A._entries[i], self._entries[i])
         sig_off()
         A._initialized = True
-        if self.subdivisions is not None:
-            A.subdivide(*self.get_subdivisions())
+        if self._subdivisions is not None:
+            A.subdivide(*self.subdivisions())
         return A
 
     def __hash__(self):
@@ -4842,8 +4842,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 mpz_init_set(A._matrix[j][i], self._matrix[i][j])
         sig_off()
         A._initialized = True
-        if self.subdivisions is not None:
-            row_divs, col_divs = self.get_subdivisions()
+        if self._subdivisions is not None:
+            row_divs, col_divs = self.subdivisions()
             A.subdivide(col_divs, row_divs)
         return A
 
@@ -4894,8 +4894,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         sig_off()
         A._initialized = True
 
-        if self.subdivisions is not None:
-            row_divs, col_divs = self.get_subdivisions()
+        if self._subdivisions is not None:
+            row_divs, col_divs = self.subdivisions()
             A.subdivide([nc - t for t in reversed(col_divs)],
                         [nr - t for t in reversed(row_divs)])
         return A

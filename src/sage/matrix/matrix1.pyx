@@ -1016,7 +1016,7 @@ cdef class Matrix(matrix0.Matrix):
             will be discarded, since it would be ambiguous how to interpret
             them.  If the subdivision behavior is not what you need,
             you can manage subdivisions yourself with methods like
-            :meth:`~sage.matrix.matrix2.Matrix.get_subdivisions`
+            :meth:`~sage.matrix.matrix2.Matrix.subdivisions`
             and
             :meth:`~sage.matrix.matrix2.Matrix.subdivide`.
             You might also find :func:`~sage.matrix.constructor.block_matrix`
@@ -1724,10 +1724,10 @@ cdef class Matrix(matrix0.Matrix):
 
             sage: a = matrix(ZZ, 3, range(9))
             sage: a.subdivide([1,2],2)
-            sage: a.get_subdivisions()
+            sage: a.subdivisions()
             ([1, 2], [2])
             sage: b = a.sparse_matrix().dense_matrix()
-            sage: b.get_subdivisions()
+            sage: b.subdivisions()
             ([1, 2], [2])
         """
         if self.is_dense():
@@ -1737,7 +1737,7 @@ cdef class Matrix(matrix0.Matrix):
                                copy = False, sparse=False)
         for i,j in self.nonzero_positions():
             A.set_unsafe(i,j,self.get_unsafe(i,j))
-        A.subdivide(self.get_subdivisions())
+        A.subdivide(self.subdivisions())
         return A
 
     def sparse_matrix(self):
@@ -1782,7 +1782,7 @@ cdef class Matrix(matrix0.Matrix):
             return self
         A = self.new_matrix(self._nrows, self._ncols, entries = self.dict(), coerce=False,
                                copy = False, sparse=True)
-        A.subdivide(self.get_subdivisions())
+        A.subdivide(self.subdivisions())
         return A
 
     def matrix_space(self, nrows=None, ncols=None, sparse=None):

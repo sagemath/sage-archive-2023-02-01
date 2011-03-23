@@ -489,10 +489,10 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             return matrix_dense.Matrix_dense.str(self, rep_mapping=rep_mapping, zero=zero, plus_one=plus_one)
 
         cdef list row_div, col_div
-        if self.subdivisions is not None:
+        if self._subdivisions is not None:
             row_s = empty_row
             div_s = row_divider = b"[%s]" % ("-" * (self._ncols*2-1))
-            row_div, col_div = self.get_subdivisions()
+            row_div, col_div = self.subdivisions()
             last_i = 0
             for i in col_div:
                 if i == last_i or i == self._ncols:
@@ -508,7 +508,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 row_s[1+2*j] = c'0' + mzd_read_bit(self._entries,i,j)
             s.append(row)
 
-        if self.subdivisions is not None:
+        if self._subdivisions is not None:
             for i in reversed(row_div):
                 s.insert(i, row_divider)
 
@@ -1001,8 +1001,8 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if self._nrows and self._ncols:
             mzd_copy(A._entries, self._entries)
 
-        if self.subdivisions is not None:
-            A.subdivide(*self.get_subdivisions())
+        if self._subdivisions is not None:
+            A.subdivide(*self.subdivisions())
 
         return A
 
@@ -1452,8 +1452,8 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             return A
 
         A._entries = mzd_transpose(A._entries, self._entries)
-        if self.subdivisions is not None:
-            A.subdivide(*self.get_subdivisions())
+        if self._subdivisions is not None:
+            A.subdivide(*self.subdivisions())
         return A
 
     cdef int _cmp_c_impl(self, Element right) except -2:

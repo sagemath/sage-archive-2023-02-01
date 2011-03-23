@@ -66,7 +66,7 @@ cdef class Matrix_sparse(matrix.Matrix):
 
         M = sage.matrix.matrix_space.MatrixSpace(ring, self._nrows, self._ncols, sparse=self.is_sparse_c())
         mat = M(self.dict(), coerce=True, copy=False)
-        mat.subdivide(self.get_subdivisions())
+        mat.subdivide(self.subdivisions())
         return mat
 
     def __copy__(self):
@@ -92,8 +92,8 @@ cdef class Matrix_sparse(matrix.Matrix):
             [ 2 -2]
         """
         A = self.new_matrix(entries=self.dict(), coerce=False, copy=False)
-        if self.subdivisions is not None:
-            A.subdivide(*self.get_subdivisions())
+        if self._subdivisions is not None:
+            A.subdivide(*self.subdivisions())
         return A
 
     def __hash__(self):
@@ -390,8 +390,8 @@ cdef class Matrix_sparse(matrix.Matrix):
             i = get_ij(nz, k, 0)
             j = get_ij(nz, k, 1)
             A.set_unsafe(j,i,self.get_unsafe(i,j))
-        if self.subdivisions is not None:
-            row_divs, col_divs = self.get_subdivisions()
+        if self._subdivisions is not None:
+            row_divs, col_divs = self.subdivisions()
             A.subdivide(col_divs, row_divs)
         return A
 
@@ -405,8 +405,8 @@ cdef class Matrix_sparse(matrix.Matrix):
             i = get_ij(nz, k, 0)
             j = get_ij(nz, k, 1)
             A.set_unsafe(self._ncols-j-1, self._nrows-i-1,self.get_unsafe(i,j))
-        if self.subdivisions is not None:
-            row_divs, col_divs = self.get_subdivisions()
+        if self._subdivisions is not None:
+            row_divs, col_divs = self.subdivisions()
             A.subdivide(list(reversed([self._ncols - t for t in col_divs])),
                             list(reversed([self._nrows - t for t in row_divs])))
         return A
@@ -645,15 +645,15 @@ cdef class Matrix_sparse(matrix.Matrix):
             m = M([zero_res] * (self._nrows * self._ncols))
             for i,n in v.items():
                 m[i] = n
-            if self.subdivisions is not None:
-                m.subdivide(*self.get_subdivisions())
+            if self._subdivisions is not None:
+                m.subdivide(*self.subdivisions())
             return m
 
         M = sage.matrix.matrix_space.MatrixSpace(R, self._nrows,
                    self._ncols, sparse=sparse)
         m = M(v)
-        if self.subdivisions is not None:
-            m.subdivide(*self.get_subdivisions())
+        if self._subdivisions is not None:
+            m.subdivide(*self.subdivisions())
         return m
 
     def _derivative(self, var=None):

@@ -16,7 +16,7 @@ cimport sage.structure.mutability
 cdef class Matrix(sage.structure.element.Matrix):
     # Properties of any matrix  (plus _parent, inherited from base class)
     cdef public object _cache
-    cdef public object subdivisions
+    cdef public object _subdivisions
     cdef public object _base_ring
     cdef sage.structure.mutability.Mutability _mutability
 

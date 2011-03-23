@@ -517,8 +517,8 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         cdef Matrix_double_dense A
         A = self._new(self._nrows, self._ncols)
         A._matrix_numpy = self._matrix_numpy.copy()
-        if self.subdivisions is not None:
-            A.subdivide(*self.get_subdivisions())
+        if self._subdivisions is not None:
+            A.subdivide(*self.subdivisions())
         return A
 
 
@@ -1090,8 +1090,8 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         cdef Matrix_double_dense trans
         trans = self._new(self._ncols, self._nrows)
         trans._matrix_numpy = self._matrix_numpy.transpose().copy()
-        if self.subdivisions is not None:
-            row_divs, col_divs = self.get_subdivisions()
+        if self._subdivisions is not None:
+            row_divs, col_divs = self.subdivisions()
             trans.subdivide(col_divs, row_divs)
         return trans
 

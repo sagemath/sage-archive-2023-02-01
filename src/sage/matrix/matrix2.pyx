@@ -5042,7 +5042,7 @@ cdef class Matrix(matrix1.Matrix):
             [73 79 83]
             sage: M.subdivision_entry(1,0,0,0)
             31
-            sage: M.get_subdivisions()
+            sage: M.subdivisions()
             ([2], [3])
             sage: M.subdivide(None, [1,3]); M
             [ 2| 3  5| 7 11]
@@ -5101,13 +5101,13 @@ cdef class Matrix(matrix1.Matrix):
             col_lines = [col_lines]
         row_lines = [0] + [int(ZZ(x)) for x in row_lines] + [self._nrows]
         col_lines = [0] + [int(ZZ(x)) for x in col_lines] + [self._ncols]
-        if self.subdivisions is not None:
+        if self._subdivisions is not None:
             self.clear_cache()
-        self.subdivisions = (row_lines, col_lines)
+        self._subdivisions = (row_lines, col_lines)
 
     def subdivision(self, i, j):
         """
-        Returns in immutable copy of the (i,j)th submatrix of self,
+        Returns an immutable copy of the (i,j)th submatrix of self,
         according to a previously set subdivision.
 
         Before a subdivision is set, the only valid arguments are (0,0)
@@ -5152,12 +5152,13 @@ cdef class Matrix(matrix1.Matrix):
             sage: M.subdivision(0,1)
             []
         """
-        if self.subdivisions is None:
-            self.subdivisions = ([0, self._nrows], [0, self._ncols])
+        if self._subdivisions is None:
+            self._subdivisions = ([0, self._nrows], [0, self._ncols])
         key = "subdivision %s %s"%(i,j)
         sd = self.fetch(key)
         if sd is None:
-            sd = self[self.subdivisions[0][i]:self.subdivisions[0][i+1], self.subdivisions[1][j]:self.subdivisions[1][j+1]]
+            sd = self[self._subdivisions[0][i]:self._subdivisions[0][i+1],
+                      self._subdivisions[1][j]:self._subdivisions[1][j+1]]
             sd.set_immutable()
             self.cache(key, sd)
         return sd
@@ -5197,15 +5198,15 @@ cdef class Matrix(matrix1.Matrix):
             ...
             IndexError: Submatrix 0,0 has no entry 4,0
         """
-        if self.subdivisions is None:
+        if self._subdivisions is None:
             if not i and not j:
                 return self[x,y]
             else:
                 raise IndexError, "No such submatrix %s, %s"%(i,j)
-        if x >= self.subdivisions[0][i+1]-self.subdivisions[0][i] or \
-           y >= self.subdivisions[1][j+1]-self.subdivisions[1][j]:
+        if x >= self._subdivisions[0][i+1]-self._subdivisions[0][i] or \
+           y >= self._subdivisions[1][j+1]-self._subdivisions[1][j]:
             raise IndexError, "Submatrix %s,%s has no entry %s,%s"%(i,j, x, y)
-        return self[self.subdivisions[0][i] + x , self.subdivisions[1][j] + y]
+        return self[self._subdivisions[0][i] + x , self._subdivisions[1][j] + y]
 
     def _subdivide_on_augment(self, left, right):
         r"""
@@ -5239,8 +5240,8 @@ cdef class Matrix(matrix1.Matrix):
         More descriptive, but indirect, doctests are at
         :meth:`sage.matrix.matrix1.Matrix.augment`.
         """
-        left_rows, left_cols = left.get_subdivisions()
-        right_rows, right_cols = right.get_subdivisions()
+        left_rows, left_cols = left.subdivisions()
+        right_rows, right_cols = right.subdivisions()
         if left_rows == right_rows:
             self_rows = left_rows
         else:
@@ -5289,8 +5290,8 @@ cdef class Matrix(matrix1.Matrix):
         More descriptive, but indirect, doctests are at
         :meth:`sage.matrix.matrix1.Matrix.augment`.
         """
-        top_rows, top_cols = top.get_subdivisions()
-        bottom_rows, bottom_cols = bottom.get_subdivisions()
+        top_rows, top_cols = top.subdivisions()
+        bottom_rows, bottom_cols = bottom.subdivisions()
         if top_cols == bottom_cols:
             self_cols = top_cols
         else:
@@ -5302,20 +5303,20 @@ cdef class Matrix(matrix1.Matrix):
         self.subdivide(self_rows, self_cols)
         return None
 
-    def get_subdivisions(self):
+    def subdivisions(self):
         """
         Returns the current subdivision of self.
 
         EXAMPLES::
 
             sage: M = matrix(5, 5, range(25))
-            sage: M.get_subdivisions()
+            sage: M.subdivisions()
             ([], [])
             sage: M.subdivide(2,3)
-            sage: M.get_subdivisions()
+            sage: M.subdivisions()
             ([2], [3])
             sage: N = M.parent()(1)
-            sage: N.subdivide(M.get_subdivisions()); N
+            sage: N.subdivide(M.subdivisions()); N
             [1 0 0|0 0]
             [0 1 0|0 0]
             [-----+---]
@@ -5323,10 +5324,13 @@ cdef class Matrix(matrix1.Matrix):
             [0 0 0|1 0]
             [0 0 0|0 1]
         """
-        if self.subdivisions is None:
+        if self._subdivisions is None:
             return ([], [])
         else:
-            return (self.subdivisions[0][1:-1], self.subdivisions[1][1:-1])
+            return (self._subdivisions[0][1:-1], self._subdivisions[1][1:-1])
+
+    # 'get_subdivisions' is kept for backwards compatibility: see #4983.
+    get_subdivisions = subdivisions
 
     def tensor_product(self,Y):
         """

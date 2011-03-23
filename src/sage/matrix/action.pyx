@@ -145,9 +145,9 @@ cdef class MatrixMatrixAction(MatrixMulAction):
             else:
                 A = A.dense_matrix()
         prod = A._matrix_times_matrix_(B)
-        if A.subdivisions is not None or B.subdivisions is not None:
-            Asubs = A.get_subdivisions()
-            Bsubs = B.get_subdivisions()
+        if A._subdivisions is not None or B._subdivisions is not None:
+            Asubs = A.subdivisions()
+            Bsubs = B.subdivisions()
             if Asubs[1] == Bsubs[0]:
                 prod.subdivide(Asubs[0], Bsubs[1])
         return prod

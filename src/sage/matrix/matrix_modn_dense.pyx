@@ -668,8 +668,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         memcpy(A._entries, self._entries, sizeof(mod_int)*self._nrows*self._ncols)
         A.p = self.p
         A.gather = self.gather
-        if self.subdivisions is not None:
-            A.subdivide(*self.get_subdivisions())
+        if self._subdivisions is not None:
+            A.subdivide(*self.subdivisions())
         return A
 
 
@@ -1854,7 +1854,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             for j from 0 <= j < self._ncols:
                 mpz_init_set_si(L_row[j], A_row[j])
         L._initialized = 1
-        L.subdivide(self.get_subdivisions())
+        L.subdivide(self.subdivisions())
         return L
 
 

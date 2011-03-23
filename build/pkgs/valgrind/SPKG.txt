@@ -2,7 +2,7 @@
 
 == Description ==
 
-This is an optional spkg. It is Linux x86, x86-64, ppc and ppc64 only.
+This is an optional spkg. It supports Linux on x86, x86-64, ppc, ppc64 and ARM as well as Darwin (Mac OS X 10.5 and 10.6) on x86 and x86-64.
 
 Website: http://www.valgrind.org/
 
@@ -27,6 +27,11 @@ Valgrind is Open Source / Free Software, and is freely available under the GNU G
  * None
 
 == Changelog ==
+
+=== valgrind_3.6.1 (Ivan Andrus, March 23rd, 2011)  ===
+ * update to 3.6.1
+ * Add support for OS X 10.5 and 10.6
+ * No longer need to patch configure.in since support was added upstream
 
 === valgrind-3.5.0.p0 (Tim Dumol, December 23rd, 2009) ===
  * Update to 3.5.0 release

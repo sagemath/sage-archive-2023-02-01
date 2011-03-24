@@ -225,6 +225,7 @@ usage_advanced() {
 if [ $? -ne 0 ]; then
    echo >&2 "Error setting environment variables by running \"$SAGE_ROOT/local/bin/sage-env\";"
    echo >&2 "possibly contact sage-devel (see http://groups.google.com/group/sage-devel)."
+   exit 1
 fi
 
 # Sage startup script passes some funny options, which are

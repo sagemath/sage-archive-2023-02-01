@@ -46,9 +46,13 @@ no_version()
 # The following sets environment variables for building
 # packages.  (Using dot suggested by W. Cheung.)
 
-. "$SAGE_ROOT/local/bin/sage-env"
+. "$SAGE_ROOT/local/bin/sage-env" # *returns* non-zero value on errors rather than exiting
 
-cd "$SAGE_PACKAGES"
+if [ $? -ne 0 ]; then
+    echo "Error setting environment variables by running \"$SAGE_ROOT/local/bin/sage-env\";"
+    echo "possibly contact sage-devel (see http://groups.google.com/group/sage-devel)."
+    exit 1
+fi
 
 if [ $# -eq 0 ]; then
     echo "Currently installed packages:"
@@ -368,7 +372,7 @@ if [ $? -eq 0 ]; then
     echo "Successfully installed $PKG_NAME"
 
     cd $BASEDIR
-    if [ "$SAGE_CHECK" != "" -a -f spkg-check ]; then
+    if [ "x$SAGE_CHECK" = "xyes" -a -f spkg-check ]; then
         echo "Running the test suite."
         chmod +x spkg-check
         ./spkg-check

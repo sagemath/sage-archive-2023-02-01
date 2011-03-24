@@ -5527,9 +5527,24 @@ cdef class Matrix(matrix1.Matrix):
     # 'get_subdivisions' is kept for backwards compatibility: see #4983.
     get_subdivisions = subdivisions
 
-    def tensor_product(self,Y):
-        """
+    def tensor_product(self, A, subdivide=True):
+        r"""
         Returns the tensor product of two matrices.
+
+        INPUT:
+
+        - ``A`` - a matrix
+        - ``subdivide`` - default: True - whether or not to return
+          natural subdivisions with the matrix
+
+        OUTPUT:
+
+        Replace each element of ``self`` by a copy of ``A``, but first
+        create a scalar multiple of ``A`` by the element it replaces.
+        So if ``self`` is an `m\times n` matrix and ``A`` is a
+        `p\times q` matrix, then the tensor product is an `mp\times nq`
+        matrix.  By default, the matrix will be subdivided into
+        submatrices of size `p\times q`.
 
         EXAMPLES::
 
@@ -5547,10 +5562,39 @@ cdef class Matrix(matrix1.Matrix):
             [---------+---------+---------]
             [   2    0|  -4    0|  -8    0]
             [   1    2|  -2   -4|  -4   -8]
+
+        Subdivisions can be optionally suppressed.  ::
+
+            sage: M1.tensor_product(M2, subdivide=False)
+            [  -1    1   -2    0    0    0]
+            [   2   -4   -8    0    0    0]
+            [-1/2  1/2   -1   -1    1   -2]
+            [   1   -2   -4    2   -4   -8]
+
+        Different base rings are handled sensibly.  ::
+
+            sage: A = matrix(ZZ, 2, 3, range(6))
+            sage: B = matrix(FiniteField(23), 3, 4, range(12))
+            sage: C = matrix(FiniteField(29), 4, 5, range(20))
+            sage: D = A.tensor_product(B)
+            sage: D.parent()
+            Full MatrixSpace of 6 by 12 dense matrices over Finite Field of size 23
+            sage: E = C.tensor_product(B)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '*': 'Finite Field of size 29' and 'Full MatrixSpace of 3 by 4 dense matrices over Finite Field of size 23'
+
+        The input is checked to be sure it is a matrix.  ::
+
+            sage: A = matrix(QQ, 2, range(4))
+            sage: A.tensor_product('junk')
+            Traceback (most recent call last):
+            ...
+            TypeError: tensor product requires a second matrix, not junk
         """
-        if not isinstance(Y,Matrix):
-            raise TypeError, "second argument must be a matrix"
-        return sage.matrix.constructor.block_matrix(self.nrows(),self.ncols(),[x*Y for x in self.list()])
+        if not isinstance(A, Matrix):
+            raise TypeError('tensor product requires a second matrix, not {0}'.format(A))
+        return sage.matrix.constructor.block_matrix(self.nrows(),self.ncols(),[x*A for x in self.list()], subdivide=subdivide)
 
     def randomize(self, density=1, nonzero=False, *args, **kwds):
         """

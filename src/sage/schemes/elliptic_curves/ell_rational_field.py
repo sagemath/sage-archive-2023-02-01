@@ -183,6 +183,16 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
           sage: EllipticCurve('389a1')
           Elliptic Curve defined by y^2 + y = x^3 + x^2 - 2*x over Rational Field
 
+        TESTS:
+
+        When constructing a curve from the large database using a
+        label, we must be careful that the copied generators have the
+        right curve (see #10999: the following used not to work when
+        the large database was installed)::
+
+            sage: E=EllipticCurve('389a1')
+            sage: [P.curve() is E for P in E.gens()]
+            [True, True]
 
         """
         if extra != None:   # possibility of two arguments (the first would be the field)
@@ -191,11 +201,21 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             label = ainvs
             X = sage.databases.cremona.CremonaDatabase()[label]
             EllipticCurve_number_field.__init__(self, Q, list(X.a_invariants()))
+            self.__np = {}
+            self.__gens = {}
+            self.__rank = {}
+            self.__regulator = {}
             for attr in ['rank', 'torsion_order', 'cremona_label', 'conductor',
                          'modular_degree', 'gens', 'regulator']:
                 s = "_EllipticCurve_rational_field__"+attr
                 if hasattr(X,s):
-                    setattr(self, s, getattr(X, s))
+                    if attr == 'gens': # see #10999
+                        gens_dict = getattr(X, s)
+                        for boo in gens_dict.keys():
+                            gens_dict[boo] = [self(P) for P in gens_dict[boo]]
+                            setattr(self, s, gens_dict)
+                    else:
+                        setattr(self, s, getattr(X, s))
             return
         EllipticCurve_number_field.__init__(self, Q, ainvs)
         self.__np = {}
@@ -1795,9 +1815,15 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         # If the gens are already cached, return them:
         try:
             return list(self.__gens[proof])  # return copy so not changed
+        except AttributeError:
+            pass
         except KeyError:
             if proof is False and self.__gens.has_key(True):
                 return self.__gens[True]
+
+        # At this point, either self.__gens does not exist, or
+        # self.__gens[False] exists but not self.__gens[True], and
+        # proof is True
 
         # If the optional extended database is installed and an
         # isomorphic curve is in the database then its gens will be
@@ -1811,7 +1837,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 try:
                     self.__gens[True] = [iso(P) for P in E.__gens[True]]
                     return self.__gens[True]
-                except KeyError: # database curve does not have the gens
+                except (KeyError,AttributeError): # database curve does not have the gens
                     pass
             except (RuntimeError, KeyError):  # curve or gens not in database
                 pass

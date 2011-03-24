@@ -3737,16 +3737,20 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: (x+y+y*z).lex_lead()
             x
 
-        ::
-
             sage: P.<x,y,z> = BooleanPolynomialRing(3, order='deglex')
             sage: (x+y+y*z).lex_lead()
             x
+
+            sage: P(0).lex_lead()
+            0
 
         .. note::
 
            This function is part of the upstream PolyBoRi interface.
         """
+        if self._pbpoly.isZero():
+            return self._parent._zero_element
+
         return new_BM_from_PBMonom(self._parent._monom_monoid, self._parent,
                                                 self._pbpoly.lexLead())
     def lex_lead_deg(self):

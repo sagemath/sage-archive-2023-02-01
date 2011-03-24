@@ -394,7 +394,7 @@ if [ $? -eq 0 ]; then
             echo "subshell."
             exit 1
         else
-            echo "TEST SUITE: passed" >> "$PKG_NAME"
+            echo "TEST SUITE: passed" >> "$INSTALLED/$PKG_NAME"
         fi
     fi
 

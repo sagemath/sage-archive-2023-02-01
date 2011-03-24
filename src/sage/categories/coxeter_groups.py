@@ -14,6 +14,7 @@ from sage.misc.abstract_method import abstract_method
 from sage.misc.constant_function import ConstantFunction
 from sage.categories.category import Category
 from sage.categories.groups import Groups
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.combinat.backtrack import SearchForest
 from sage.combinat.finite_class import FiniteCombinatorialClass
 from sage.misc.flatten import flatten
@@ -837,18 +838,33 @@ class CoxeterGroups(Category):
             factorizations `self = uv` such `p(u)` holds.
 
             EXAMPLES:
+
+            We construct the set of all factorizations of the maximal
+            element of the group::
+
                 sage: W = WeylGroup(['A',3])
                 sage: s = W.simple_reflections()
                 sage: w0 = W.from_reduced_word([1,2,3,1,2,1])
                 sage: w0.binary_factorizations().cardinality()
                 24
+
+            The same number of factorizations, by bounded length::
+
                 sage: [w0.binary_factorizations(lambda u: u.length() <= l).cardinality() for l in [-1,0,1,2,3,4,5,6]]
                 [0, 1, 4, 9, 15, 20, 23, 24]
+
+            The number of factorizations of the elements just below
+            the maximal element::
+
                 sage: [(s[i]*w0).binary_factorizations().cardinality() for i in [1,2,3]]
                 [12, 12, 12]
                 sage: w0.binary_factorizations(lambda u: False).cardinality()
                 0
 
+            TESTS::
+
+                sage: w0.binary_factorizations().category()
+                Category of finite enumerated sets
             """
             W = self.parent()
             if not predicate(W.one()):
@@ -859,7 +875,7 @@ class CoxeterGroups(Category):
                     u1 = u * s[i]
                     if i == u1.first_descent() and predicate(u1):
                         yield (u1, s[i]*v)
-            return SearchForest(((W.one(), self),), succ)
+            return SearchForest(((W.one(), self),), succ, category = FiniteEnumeratedSets())
 
         # TODO: standardize / cleanup
         def apply_simple_reflections(self, word, side = 'right'):

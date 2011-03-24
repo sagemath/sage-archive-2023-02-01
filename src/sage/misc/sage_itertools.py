@@ -1,6 +1,8 @@
 """
 Miscellaneous functions which should eventually be moved upstream into
 Python's standard itertools module.
+
+TODO: Cython this file as soon as Cython supports ``yield``.
 """
 #*****************************************************************************
 #  Copyright (C) 2010     Nicolas M. Thiery <nthiery at users.sf.net>
@@ -137,3 +139,23 @@ def max_cmp(L, cmp=None):
         if cmp(item, m) > 0:
             m = item
     return m
+
+def imap_and_filter_none(function, iterable):
+    r"""
+    Returns an iterator over the elements ``function(x)``, where ``x``
+    iterates through ``iterable``, such that ``function(x)`` is not ``None``.
+
+    EXAMPLES::
+
+        sage: from sage.misc.sage_itertools import imap_and_filter_none
+        sage: p = imap_and_filter_none(lambda x: x if is_prime(x) else None, range(15))
+        sage: [p.next(), p.next(), p.next(), p.next(), p.next(), p.next()]
+        [2, 3, 5, 7, 11, 13]
+        sage: p = imap_and_filter_none(lambda x: x+x, ['a','b','c','d','e'])
+        sage: [p.next(), p.next(), p.next(), p.next(), p.next()]
+        ['aa', 'bb', 'cc', 'dd', 'ee']
+    """
+    for x in iterable:
+        x = function(x)
+        if x is not None:
+            yield x

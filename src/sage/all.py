@@ -1,6 +1,22 @@
 """
 all.py -- much of sage is imported into this module, so you don't
           have to import everything individually.
+
+TESTS:
+
+    This is to test #10570. If the number of stackframes at startup
+    changes due to a patch you made, please check that this was an
+    intended effect of your patch.
+
+    ::
+
+        sage: import gc
+        sage: import inspect
+        sage: from sage import *
+        sage: frames=[x for x in gc.get_objects() if inspect.isframe(x)]
+        sage: len(frames)
+        11
+
 """
 
 from __future__ import with_statement

@@ -1317,6 +1317,9 @@ ext_modules = [
     Extension('sage.rings.morphism',
               sources = ['sage/rings/morphism.pyx']),
 
+    Extension('sage.rings.noncommutative_ideals',
+              sources = ['sage/rings/noncommutative_ideals.pyx']),
+
     Extension('sage.rings.power_series_mpoly',
               sources = ['sage/rings/power_series_mpoly.pyx']),
 

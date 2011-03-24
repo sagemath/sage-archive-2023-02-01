@@ -1061,6 +1061,96 @@ cdef class Parent(category_object.CategoryObject):
 
         raise TypeError, "No conversion defined from %s to %s"%(R, self)
 
+    def __mul__(self,x):
+        """
+        This is a multiplication method that more or less directly
+        calls another attribute ``_mul_`` (single underscore). This
+        is because ``__mul__`` can not be implemented via inheritance
+        from the parent methods of the category, but ``_mul_`` can
+        be inherited. This is, e.g., used when creating twosided
+        ideals of matrix algebras. See trac ticket #11068.
+
+        EXAMPLE::
+
+            sage: MS = MatrixSpace(QQ,2,2)
+
+        This matrix space is in fact an algebra, and in particular
+        it is a ring, from the point of view of categories::
+
+            sage: MS.category()
+            Category of algebras over Rational Field
+            sage: MS in Rings()
+            True
+
+        However, its class does not inherit from the base class
+        ``Ring``::
+
+            sage: isinstance(MS,Ring)
+            False
+
+        Its ``_mul_`` method is inherited from the category, and
+        can be used to create a left or right ideal::
+
+            sage: MS._mul_.__module__
+            'sage.categories.rings'
+            sage: MS*MS.1      # indirect doctest
+            Left Ideal
+            (
+              [0 1]
+              [0 0]
+            )
+             of Full MatrixSpace of 2 by 2 dense matrices over Rational Field
+            sage: MS*[MS.1,2]
+            Left Ideal
+            (
+              [0 1]
+              [0 0],
+            <BLANKLINE>
+              [2 0]
+              [0 2]
+            )
+             of Full MatrixSpace of 2 by 2 dense matrices over Rational Field
+            sage: MS.1*MS
+            Right Ideal
+            (
+              [0 1]
+              [0 0]
+            )
+             of Full MatrixSpace of 2 by 2 dense matrices over Rational Field
+            sage: [MS.1,2]*MS
+            Right Ideal
+            (
+              [0 1]
+              [0 0],
+            <BLANKLINE>
+              [2 0]
+              [0 2]
+            )
+             of Full MatrixSpace of 2 by 2 dense matrices over Rational Field
+
+        """
+        # generic multiplication method. It defers to
+        # _mul_, which may be defined via categories.
+        _mul_ = None
+        switch = False
+        try:
+            if isinstance(self,Parent):
+                _mul_ = self._mul_
+        except AttributeError:
+            pass
+        if _mul_ is None:
+            try:
+                if isinstance(x,Parent):
+                    _mul_ = x._mul_
+                    switch = True
+            except AttributeError:
+                pass
+        if _mul_ is None:
+            raise TypeError,"For implementing multiplication, provide the method '_mul_' for %s resp. %s"%(self,x)
+        if switch:
+            return _mul_(self,switch_sides=True)
+        return _mul_(x)
+
     #############################################################################
     # Containment testing
     #############################################################################

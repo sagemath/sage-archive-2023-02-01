@@ -829,7 +829,7 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
         """
         return QuaternionOrder(self, basis, check=check)
 
-    def ideal(self, gens, left_order=None, right_order=None, check=True):
+    def ideal(self, gens, left_order=None, right_order=None, check=True, **kwds):
         r"""
         Return the quaternion ideal with given gens over `\ZZ`.
         Neither a left or right order structure need be specified.

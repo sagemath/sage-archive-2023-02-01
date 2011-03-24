@@ -80,12 +80,25 @@ class FreeAlgebraElement(AlgebraElement):
             sage: A.<x,y,z>=FreeAlgebra(ZZ,3)
             sage: repr(-x+3*y*z)
             '-x + 3*y*z'
+
+        Trac ticket #11068 enables the use of local variable names::
+
+            sage: from sage.structure.parent_gens import localvars
+            sage: with localvars(A, ['a','b','c']):
+            ...    print -x+3*y*z
+            ...
+            -a + 3*b*c
+
         """
         v = self.__monomial_coefficients.items()
         v.sort()
         mons = [ m for (m, _) in v ]
         cffs = [ x for (_, x) in v ]
-        x = repr_lincomb(mons, cffs).replace("*1 "," ")
+        P = self.parent()
+        M = P.monoid()
+        from sage.structure.parent_gens import localvars
+        with localvars(M, P.variable_names(), normalize=False):
+            x = repr_lincomb(mons, cffs).replace("*1 "," ")
         if x[len(x)-2:] == "*1":
             return x[:len(x)-2]
         else:

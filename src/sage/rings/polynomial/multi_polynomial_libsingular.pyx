@@ -1439,7 +1439,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             True
         """
         return sage.rings.polynomial.multi_polynomial_libsingular.unpickle_MPolynomialRing_libsingular, \
-            (self.base_ring(), map(str, self.gens()), self.term_order())
+            (self.base_ring(), self.variable_names(), self.term_order())
 
     def __temporarily_change_names(self, names, latex_names):
         """

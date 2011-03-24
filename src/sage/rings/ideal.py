@@ -1,10 +1,14 @@
 r"""
-Ideals
+Ideals of commutative rings.
 
-Sage provides functionality for computing with ideals. One can
-create an ideal in any commutative ring `R` by giving a
-list of generators, using the notation
-``R.ideal([a,b,...])``.
+Sage provides functionality for computing with ideals. One can create
+an ideal in any commutative or non-commutative ring `R` by giving a
+list of generators, using the notation ``R.ideal([a,b,...])``. The case
+of non-commutative rings is implemented in :mod:`~sage.rings.noncommutative_ideals`.
+
+A more convenient notation may be ``R*[a,b,...]`` or ``[a,b,...]*R``.
+If `R` is non-commutative, the former creates a left and the latter
+a right ideal, and ``R*[a,b,...]*R`` creates a two-sided ideal.
 """
 
 #*****************************************************************************
@@ -241,7 +245,46 @@ class Ideal_generic(MonoidElement):
         MonoidElement.__init__(self, ring.ideal_monoid())
 
     def _repr_short(self):
-        return '(%s)'%(', '.join([str(x) for x in self.gens()]))
+        """
+        Represent the list of generators.
+
+        EXAMPLE::
+
+            sage: P.<a,b,c> = QQ[]
+            sage: P*[a^2,a*b+c,c^3]
+            Ideal (a^2, a*b + c, c^3) of Multivariate Polynomial Ring in a, b, c over Rational Field
+            sage: (P*[a^2,a*b+c,c^3])._repr_short()
+            '(a^2, a*b + c, c^3)'
+
+        If the string representation of a generator contains a line break,
+        the generators are not represented from left to right but from
+        top to bottom. This is the case, e.g., for matrices::
+
+            sage: MS = MatrixSpace(QQ,2,2)
+            sage: MS*[MS.1,2]
+            Left Ideal
+            (
+              [0 1]
+              [0 0],
+            <BLANKLINE>
+              [2 0]
+              [0 2]
+            )
+             of Full MatrixSpace of 2 by 2 dense matrices over Rational Field
+
+
+        """
+        L = []
+        has_return = False
+        for x in self.gens():
+            s = repr(x)
+            if '\n' in s:
+                has_return = True
+                s = s.replace('\n','\n  ')
+            L.append(s)
+        if has_return:
+            return '\n(\n  %s\n)\n'%(',\n\n  '.join(L))
+        return '(%s)'%(', '.join(L))
 
     def __repr__(self):
         return "Ideal %s of %s"%(self._repr_short(), self.ring())
@@ -849,14 +892,42 @@ class Ideal_generic(MonoidElement):
         return self.ring().ideal(self.gens() + other.gens())
 
     def __mul__(self, other):
+        """
+        EXAMPLE::
+
+            sage: P.<x,y,z> = QQ[]
+            sage: I = [x*y+y*z,x^2+x*y-y*x-y^2]*P
+            sage: I*2    # indirect doctest
+            Ideal (2*x*y + 2*y*z, 2*x^2 - 2*y^2) of Multivariate Polynomial Ring in x, y, z over Rational Field
+
+        """
         if not isinstance(other, Ideal_generic):
+            try:
+                if self.ring().has_coerce_map_from(other):
+                    return self
+            except (TypeError,ArithmeticError,ValueError):
+                pass
             other = self.ring().ideal(other)
-        return self.ring().ideal([x*y for x in self.gens() for y in other.gens()])
+        return self.ring().ideal([z for z in [x*y for x in self.gens() for y in other.gens()] if z])
 
     def __rmul__(self, other):
+        """
+        EXAMPLE::
+
+            sage: P.<x,y,z> = QQ[]
+            sage: I = [x*y+y*z,x^2+x*y-y*x-y^2]*P
+            sage: [2]*I    # indirect doctest
+            Ideal (2*x*y + 2*y*z, 2*x^2 - 2*y^2) of Multivariate Polynomial Ring in x, y, z over Rational Field
+
+        """
         if not isinstance(other, Ideal_generic):
+            try:
+                if self.ring().has_coerce_map_from(other):
+                    return self
+            except (TypeError,ArithmeticError,ValueError):
+                pass
             other = self.ring().ideal(other)
-        return self.ring().ideal([y*x for x in self.gens() for y in other.gens()])
+        return self.ring().ideal([z for z in [y*x for x in self.gens() for y in other.gens()] if z])
 
     def norm(self):
         """

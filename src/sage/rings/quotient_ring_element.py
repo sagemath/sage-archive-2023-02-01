@@ -530,6 +530,9 @@ class QuotientRingElement(ring_element.RingElement):
         #return cmp(self.__rep, other.__rep)
         # Since we have to compute normal forms anyway, it makes sense
         # to use it for comparison in the case of an inequality as well.
+        if self.__rep == other.__rep: # Use a shortpath, so that we
+                                      # avoid expensive reductions
+             return 0
         I = self.parent().defining_ideal()
         return cmp(I.reduce(self.__rep), I.reduce(other.__rep))
 

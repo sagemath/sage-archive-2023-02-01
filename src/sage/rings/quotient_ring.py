@@ -6,6 +6,8 @@ AUTHORS:
 - William Stein
 - Simon King (2011-04): Put it into the category framework, use the
   new coercion model.
+- Simon King (2011-04): Quotients of non-commutative rings by
+  twosided ideals.
 
 TESTS::
 
@@ -13,6 +15,65 @@ TESTS::
     sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
     sage: S = R.quotient_ring(I);
     sage: TestSuite(S).run()
+
+In trac ticket #11068, non-commutative quotient rings `R/I` were
+implemented.  The only requirement is that the two-sided ideal `I`
+provides a ``reduce`` method so that ``I.reduce(x)`` is the normal
+form of an element `x` with respect to `I` (i.e., we have
+``I.reduce(x)==I.reduce(y)`` if `x-y\\in I`, and
+``x-I.reduce(x) in I``). It is planned (trac ticket #7797) to
+provide this for the case of homogeneous twosided ideals in free
+algebras. By now, we only have the following toy example::
+
+    sage: from sage.rings.noncommutative_ideals import Ideal_nc
+    sage: class PowerIdeal(Ideal_nc):
+    ...    def __init__(self, R, n):
+    ...        self._power = n
+    ...        self._power = n
+    ...        Ideal_nc.__init__(self,R,[R.prod(m) for m in CartesianProduct(*[R.gens()]*n)])
+    ...    def reduce(self,x):
+    ...        R = self.ring()
+    ...        return add([c*R(m) for c,m in x if len(m)<self._power],R(0))
+    ...
+    sage: F.<x,y,z> = FreeAlgebra(QQ, 3)
+    sage: I3 = PowerIdeal(F,3); I3
+    Twosided Ideal (x^3, x^2*y, x^2*z, x*y*x, x*y^2, x*y*z, x*z*x, x*z*y,
+    x*z^2, y*x^2, y*x*y, y*x*z, y^2*x, y^3, y^2*z, y*z*x, y*z*y, y*z^2,
+    z*x^2, z*x*y, z*x*z, z*y*x, z*y^2, z*y*z, z^2*x, z^2*y, z^3) of
+    Free Algebra on 3 generators (x, y, z) over Rational Field
+
+Free algebras have a custom quotient method that seves at creating
+finite dimensional quotients defined by multiplication matrices. We
+are bypassing it, so that we obtain the default quotient::
+
+    sage: Q3.<a,b,c> = super(sage.rings.ring.Ring,F).quotient(I3)
+    sage: Q3
+    Quotient of Free Algebra on 3 generators (x, y, z) over Rational Field by
+    the ideal (x^3, x^2*y, x^2*z, x*y*x, x*y^2, x*y*z, x*z*x, x*z*y, x*z^2,
+    y*x^2, y*x*y, y*x*z, y^2*x, y^3, y^2*z, y*z*x, y*z*y, y*z^2, z*x^2, z*x*y,
+    z*x*z, z*y*x, z*y^2, z*y*z, z^2*x, z^2*y, z^3)
+    sage: (a+b+2)^4
+    16 + 32*a + 32*b + 24*a^2 + 24*a*b + 24*b*a + 24*b^2
+    sage: Q3.is_commutative()
+    False
+
+Even though `Q_3` is not commutative, there is commutativity for
+products of degree three::
+
+    sage: a*(b*c)-(b*c)*a==F.zero()
+    True
+
+If we quotient out all terms of degree two then of course the resulting
+quotient ring is commutative::
+
+    sage: I2 = PowerIdeal(F,2); I2
+    Twosided Ideal (x^2, x*y, x*z, y*x, y^2, y*z, z*x, z*y, z^2) of Free Algebra
+    on 3 generators (x, y, z) over Rational Field
+    sage: Q2.<a,b,c> = super(sage.rings.ring.Ring,F).quotient(I2)
+    sage: Q2.is_commutative()
+    True
+    sage: (a+b+2)^4
+    16 + 32*a + 32*b
 
 """
 
@@ -29,32 +90,40 @@ TESTS::
 
 import quotient_ring_element
 import sage.misc.latex as latex
-import commutative_ring
+import commutative_ring, ring
 import ideal
 import sage.rings.polynomial.multi_polynomial_ideal
 import sage.structure.parent_gens
 from sage.interfaces.all import singular as singular_default, is_SingularElement
 from sage.misc.cachefunc import cached_method
 from sage.categories.rings import Rings
+from sage.categories.commutative_rings import CommutativeRings
 
 def QuotientRing(R, I, names=None):
     r"""
-    Creates a quotient ring of the ring `R` by the ideal `I`. Variables are
-    labeled by ``names`` (if the quotient ring is a quotient of a
-    polynomial ring).  If ``names`` isn't given, 'bar' will be appended to
-    the variable names in `R`.
+    Creates a quotient ring of the ring `R` by the twosided ideal `I`.
+
+    Variables are labeled by ``names`` (if the quotient ring is a quotient
+    of a polynomial ring).  If ``names`` isn't given, 'bar' will be appended
+    to the variable names in `R`.
 
     INPUTS:
 
-    - ``R`` - a commutative ring
+    - ``R`` - a ring.
 
-    - ``I`` - an ideal of R
+    - ``I`` - a twosided ideal of `R`.
 
-    - ``names`` - a list of
-      strings to be used as names for the variables in the quotient ring
-      `R/I`
+    - ``names`` (optional) - a list of strings to be used as names for
+      the variables in the quotient ring `R/I`.
 
     OUTPUTS: `R/I` - the quotient ring `R` mod the ideal `I`
+
+    ASSUMPTION:
+
+    ``I`` has a method ``I.reduce(x)`` returning the normal form
+    of elements `x\in R`. In other words, it is required that
+    ``I.reduce(x)==I.reduce(y)`` `\iff x-y \in I`, and
+    ``x-I.reduce(x) in I``, for all `x,y\in R`.
 
     EXAMPLES:
 
@@ -129,9 +198,29 @@ def QuotientRing(R, I, names=None):
         d
         -1
         -d
+
+    TESTS:
+
+    By trac ticket #11068, the following does not return a generic
+    quotient ring but a usual quotient of the integer ring::
+
+        sage: R = Integers(8)
+        sage: I = R.ideal(2)
+        sage: R.quotient(I)
+        Ring of integers modulo 2
+
     """
-    if not isinstance(R, commutative_ring.CommutativeRing):
-        raise TypeError, "R must be a commutative ring."
+    # 1. Not all rings inherit from the base class of rings.
+    # 2. We want to support quotients of free algebras by homogeneous two-sided ideals.
+    #if not isinstance(R, commutative_ring.CommutativeRing):
+    #    raise TypeError, "R must be a commutative ring."
+    from sage.all import Integers, ZZ
+    if not R in Rings():
+        raise TypeError, "R must be a ring."
+    try:
+        is_commutative = R.is_commutative()
+    except (AttributeError, NotImplementedError):
+        is_commutative = False
     if names is None:
         names = tuple([x + 'bar' for x in R.variable_names()])
     else:
@@ -143,18 +232,28 @@ def QuotientRing(R, I, names=None):
             return R.quotient_by_principal_ideal(I.gen(), names)
     except (AttributeError, NotImplementedError):
         pass
-    if isinstance(R, QuotientRing_generic):
+    if not is_commutative:
+        try:
+            if I.side() != 'twosided':
+                raise AttributeError
+        except AttributeError:
+            raise TypeError, "A twosided ideal is required."
+    if isinstance(R, QuotientRing_nc):
         pi = R.cover()
         S = pi.domain()
         G = [pi.lift(x) for x in I.gens()]
         I_lift = S.ideal(G)
         J = R.defining_ideal()
-        return QuotientRing_generic(S, I_lift + J, names)
-    return QuotientRing_generic(R, I, names)
+        if S == ZZ:
+            return Integers((I_lift+J).gen())
+        return R.__class__(S, I_lift + J, names=names)
+    if isinstance(R, sage.rings.commutative_ring.CommutativeRing):
+        return QuotientRing_generic(R, I, names)
+    return QuotientRing_nc(R, I, names)
 
 def is_QuotientRing(x):
     """
-    Tests whether or not ``x`` inherits from :class:`QuotientRing_generic`.
+    Tests whether or not ``x`` inherits from :class:`QuotientRing_nc`.
 
     EXAMPLES::
 
@@ -166,8 +265,9 @@ def is_QuotientRing(x):
         True
         sage: is_QuotientRing(R)
         False
+
     """
-    return isinstance(x, QuotientRing_generic)
+    return isinstance(x, QuotientRing_nc)
 
 from sage.categories.rings import Rings
 _Rings = Rings()
@@ -176,9 +276,15 @@ from sage.categories.commutative_rings import CommutativeRings
 _CommutativeRingsQuotients = CommutativeRings().Quotients()
 from sage.structure.category_object import check_default_category
 
-class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.parent_gens.ParentWithGens):
+class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
     """
-    The quotient ring of `R` by the ideal `I`.
+    The quotient ring of `R` by a twosided ideal `I`.
+
+    This base class is for rings that do not inherit from :class:`~sage.rings.ring.CommutativeRing`.
+    Real life examples will be available with trac ticket #7797.
+
+    For rings that *do* inherit from :class:`~sage.rings.ring.CommutativeRing`, we provide
+    a subclass :class:`QuotientRing_generic`, for backwards compatibility.
 
     EXAMPLES::
 
@@ -196,8 +302,6 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         sage: S(0) == a^2 + b^2
         True
 
-    EXAMPLE: Quotient of quotient
-
     A quotient of a quotient is just the quotient of the original top
     ring by the sum of two ideals.
 
@@ -214,21 +318,14 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
     Element = quotient_ring_element.QuotientRingElement
     def __init__(self, R, I, names, category=None):
         """
-        Create the quotient ring of `R` by the ideal `I`.
+        Create the quotient ring of `R` by the twosided ideal `I`.
 
         INPUT:
 
+        -  ``R`` - a ring.
+        -  ``I`` - a twosided ideal of `R`.
+        - ``names`` - a list of generator names.
 
-        -  ``R`` - a commutative ring
-
-        -  ``I`` - an ideal
-
-
-        EXAMPLES::
-
-            sage: R.<x,y> = PolynomialRing(QQ)
-            sage: R.quotient_ring(x^2 + y^2)
-            Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
         """
         if R not in _Rings:
             raise TypeError, "The first argument must be a ring, but %s is not"%R
@@ -237,16 +334,6 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         self.__R = R
         self.__I = I
         #sage.structure.parent_gens.ParentWithGens.__init__(self, R.base_ring(), names)
-        # In future versions, we'd like to consider non-commutative quotients as
-        # well:
-#        try:
-#            commutative = R.is_commutative()
-#        except AttributeError:
-#            commutative = False
-#        if commutative:
-#            category = check_default_category(_CommutativeRingsQuotients,category, False)
-#        else:
-#            category = check_default_category(_RingsQuotients,category, False)
         ##
         # Unfortunately, computing the join of categories, which is done in
         # check_default_category, is very expensive.
@@ -255,8 +342,16 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         # previously, in which case the quotient ring stuff is just
         # a vaste of time. This is the case for FiniteField_prime_modn.
         if not self._is_category_initialized():
-            category = check_default_category(_CommutativeRingsQuotients,category)
-            commutative_ring.CommutativeRing.__init__(self, R.base_ring(), names=names, category=category)
+            if category is None:
+                try:
+                    commutative = R.is_commutative()
+                except (AttributeError, NotImplementedError):
+                    commutative = False
+                if commutative:
+                    category = check_default_category(_CommutativeRingsQuotients,category)
+                else:
+                    category = check_default_category(_RingsQuotients,category)
+            ring.Ring.__init__(self, R.base_ring(), names=names, category=category)
         # self._populate_coercion_lists_([R]) # we don't want to do this, since subclasses will often implement improved coercion maps.
 
     def construction(self):
@@ -310,6 +405,49 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             '\\Bold{Z}[x]/\\left(x^{2} + 3x + 4, x^{2} + 1\\right)\\Bold{Z}[x]'
         """
         return "%s/%s"%(latex.latex(self.cover_ring()), latex.latex(self.defining_ideal()))
+
+    def is_commutative(self):
+        """
+        Tell whether this quotient ring is commutative.
+
+        NOTE:
+
+        This is certainly the case if the cover ring is commutative.
+        Otherwise, if this ring has a finite number of generators, it
+        is tested whether they commute. If the number of generators is
+        infinite, a ``NotImplementedError`` is raised.
+
+        AUTHOR:
+
+        - Simon King (2011-03-23): See trac ticket #11068.
+
+        EXAMPLES:
+
+        Any quotient of a commutative ring is commutative::
+
+            sage: P.<a,b,c> = QQ[]
+            sage: P.quo(P.random_element()).is_commutative()
+            True
+
+        The non-commutative case is more interesting, but it
+        will only be available once trac ticket #7797 is merged.
+
+        """
+        try:
+            if self.__R.is_commutative():
+                return True
+        except (AttributeError, NotImplementedError):
+            pass
+        from sage.all import Infinity
+        if self.ngens() == Infinity:
+            raise NotImplementedError, "This quotient ring has an infinite number of generators."
+        for i in xrange(self.ngens()):
+            gi = self.gen(i)
+            for j in xrange(i+1,self.ngens()):
+                gj = self.gen(j)
+                if gi*gj!=gj*gi:
+                    return False
+        return True
 
     @cached_method
     def cover(self):
@@ -730,7 +868,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             sage: R.quotient_ring(x^2 + y^2) == R.quotient_ring(-x^2 - y^2)
             False
         """
-        if not isinstance(other, QuotientRing_generic):
+        if not isinstance(other, QuotientRing_nc):
             return cmp(type(self), type(other))
         return cmp((self.cover_ring(), self.defining_ideal().gens()),
                    (other.cover_ring(), other.defining_ideal().gens()))
@@ -904,3 +1042,35 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             Degree reverse lexicographic term order
         """
         return self.__R.term_order()
+
+class QuotientRing_generic(QuotientRing_nc, sage.rings.commutative_ring.CommutativeRing):
+    r"""
+    Creates a quotient ring of a *commutative* ring `R` by the ideal `I`.
+
+    EXAMPLE::
+
+        sage: R.<x> = PolynomialRing(ZZ)
+        sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
+        sage: S = R.quotient_ring(I); S
+        Quotient of Univariate Polynomial Ring in x over Integer Ring by the ideal (x^2 + 3*x + 4, x^2 + 1)
+
+    """
+    def __init__(self, R, I, names, category=None):
+        """
+        INPUT:
+
+        -  ``R`` - a ring that is of type <sage.rings.ring.CommutativeRing>.
+        -  ``I`` - an ideal of `R`.
+        - ``names`` - a list of generator names.
+
+        TEST::
+
+            sage: isinstance(ZZ.quo(2), sage.rings.ring.CommutativeRing)  # indirect doctest
+            True
+
+        """
+        if not isinstance(R, sage.rings.commutative_ring.CommutativeRing):
+            raise TypeError, "This class is for quotients of commutative rings only.\n    For non-commutative rings, use <sage.rings.quotient_ring.QuotientRing_nc>"
+        if not self._is_category_initialized():
+            category = check_default_category(_CommutativeRingsQuotients,category)
+        QuotientRing_nc.__init__(self, R, I, names, category=category)

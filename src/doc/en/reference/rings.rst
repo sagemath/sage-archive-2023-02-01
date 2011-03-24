@@ -9,6 +9,7 @@ General Rings, Ideals, and Morphisms
    sage/rings/ring
    sage/rings/ideal
    sage/rings/ideal_monoid
+   sage/rings/noncommutative_ideals
    sage/rings/morphism
    sage/rings/homset
    sage/rings/infinity

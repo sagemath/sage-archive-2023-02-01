@@ -122,5 +122,7 @@ end tell</string>
 	<false/>
 	<key>useSystemBrowser</key>
 	<true/>
+	<key>autoStartServer</key>
+	<true/>
 </dict>
 </plist>

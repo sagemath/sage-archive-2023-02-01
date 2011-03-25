@@ -65,7 +65,7 @@
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
-	// Register that we can open URLs
+    // Register that we can open URLs
     NSAppleEventManager *em = [NSAppleEventManager sharedAppleEventManager];
     [em setEventHandler:self
             andSelector:@selector(getUrl:withReplyEvent:)
@@ -89,14 +89,16 @@
         // Run sage and python files in your terminal
         [appController sageTerminalRun:nil withArguments:[NSArray arrayWithObject:filename]];
 
-    } else if ( [extension isEqual:@"sws"] ) {
+    } else if ( [extension isEqual:@"sws"]
+                || [extension isEqual:@"txt"]
+                || [extension isEqual:@"zip"] )
+    {
 
-        [[NSAlert alertWithMessageText:@"Worksheet upload unimplemented"
-                         defaultButton:nil
-                       alternateButton:nil
-                           otherButton:nil
-             informativeTextWithFormat:@"I don't know how to open sws files yet.  Please fix trac 8473 and get back to me."]
-         runModal];
+        // Browse to a url which will upload the file.
+        // Perhaps we should have an option to delete the file when done...
+        NSString* theURL = [NSString stringWithFormat:@"upload_worksheet?url=%@",
+                           [[NSURL fileURLWithPath: filename] relativeString]];
+        [appController browseLocalSageURL:theURL];
 
     } else if ( [extension isEqual:@"spkg"] ) {
         // Install the spkg
@@ -139,10 +141,24 @@
     // Activate us
     [[NSApplication sharedApplication] activateIgnoringOtherApps:TRUE];
 
-    // TODO: maybe sws links can be special too (once they work at all)
     if ( [[urlStr pathExtension] isEqual:@"spkg"] ) {
         // We can install spkg's from URLs
         [appController sageTerminalRun:@"i" withArguments:[NSArray arrayWithObject:urlStr]];
+
+    } else if ( (  [[urlStr pathExtension] isEqual:@"sws"]
+                || [[urlStr pathExtension] isEqual:@"txt"]
+                || [[urlStr pathExtension] isEqual:@"zip"] )
+               &&
+               ! ( [[urlStr substringToIndex:16] isEqual:@"http://localhost"]
+                || [[urlStr substringToIndex:17] isEqual:@"https://localhost"] ) )
+    {
+
+        // Browse to a url which will upload the file.
+        // Perhaps we should have an option to delete the file when done...
+        NSString* theURL = [NSString stringWithFormat:@"upload_worksheet?url=%@",
+                            [[NSURL URLWithString: urlStr] relativeString]];
+        [appController browseLocalSageURL:theURL];
+
     } else {
 
         // Open the url in a new window
@@ -157,19 +173,55 @@
              loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:urlStr]]];
         }
 
-    }
-
-    // Check if the server has started
-    // TODO: This detection will only work if we are SAGE_BROWSER (i.e. we are in the dock)
-    NSArray *components = [urlStr componentsSeparatedByString:@"/?startup_token="];
-    if ( [components count] > 1 ) {
-        urlStr = [components objectAtIndex:0];
-        components = [urlStr componentsSeparatedByString:@"localhost:"];
+        // Check if the server has started
+        // TODO: This detection will only work if we are SAGE_BROWSER (i.e. we are in the dock)
+        NSArray *components = [urlStr componentsSeparatedByString:@"/?startup_token="];
         if ( [components count] > 1 ) {
-            const int port = (int)[[components objectAtIndex:1] floatValue];
-            [appController serverStartedWithPort:port];
+            urlStr = [components objectAtIndex:0];
+            components = [urlStr componentsSeparatedByString:@"localhost:"];
+            if ( [components count] > 1 ) {
+                const int port = (int)[[components objectAtIndex:1] floatValue];
+                // We need to give it some time to load before we start loading queued things
+                // which happens from serverStartedWithPort
+                if ([[myDocument webView] respondsToSelector: @selector(isLoading)]) {
+                    // block while the webview loads
+                    while ([[myDocument webView] isLoading]) {
+                        [[NSRunLoop currentRunLoop]
+                         runMode:NSDefaultRunLoopMode
+                         beforeDate:[NSDate distantFuture]];
+                    }
+                } else {
+                    // Eyeball it...  This should only happen before 10.4.11
+                    sleep(1);
+                }
+                [appController serverStartedWithPort:port];
+            }
         }
     }
 }
+
+-(IBAction)openDocumentWithDialogBox:(id)sender{
+    NSLog(@"openDocument:%@",sender);
+
+    // Create the File Open Dialog class.
+    NSOpenPanel* openDlg = [NSOpenPanel openPanel];
+    [openDlg setCanChooseFiles:YES];
+    [openDlg setCanChooseDirectories:NO];
+
+    // Display the dialog.  If the OK button was pressed,
+    // process the files.
+    if ( [openDlg runModalForDirectory:nil file:nil] == NSOKButton )
+    {
+        // Get an array containing the full filenames of all
+        // files and directories selected.
+        NSArray* files = [openDlg filenames];
+        for( int i = 0; i < [files count]; i++ )
+        {
+            NSString* fileName = [files objectAtIndex:i];
+            [self application:nil openFile:fileName];
+        }
+    }
+}
+
 
 @end

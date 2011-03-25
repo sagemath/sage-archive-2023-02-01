@@ -13,12 +13,20 @@ if [ "x$1" = "x--wait" ]; then
 fi
 
 # Set the pid file
-PID_FILE=${1-~/.sage/sage_notebook.sagenb/twistd.pid}
+PID_FILE=${1-~/.sage/sage_notebook.sagenb/sagenb.pid}
 
+# Check the old pid file in case they are running an older version of Sage
+if [ ! -e "$PID_FILE" ] && [ -e ~/.sage/sage_notebook.sagenb/twistd.pid ]; then
+    PID_FILE=${1-~/.sage/sage_notebook.sagenb/twistd.pid}
+fi
 
 # Wait for a server to start (or at least for a pid file)
 while [ "$WAIT" = 1 ] && [ ! -e "$PID_FILE" ]; do
     sleep 1
+    # Check the old pid file in case they are running an older version of Sage
+    if [ ! -e "$PID_FILE" ] && [ -e ~/.sage/sage_notebook.sagenb/twistd.pid ]; then
+        PID_FILE=${1-~/.sage/sage_notebook.sagenb/twistd.pid}
+    fi
 done
 
 # If the server is running, get the port for it (I hope this is right)

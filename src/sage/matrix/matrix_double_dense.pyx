@@ -1447,6 +1447,296 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         self.cache(key, unitary)
         return unitary
 
+    def schur(self, base_ring=None):
+        r"""
+        Returns the Schur decomposition of the matrix.
+
+        INPUT:
+
+        - ``base_ring`` - optional, defaults to the base ring of ``self``.
+          Use this to request the base ring of the returned matrices, which
+          will affect the format of the results.
+
+        OUTPUT:
+
+        A pair of immutable matrices.  The first is a unitary matrix `Q`.
+        The second, `T`, is upper-triangular when returned over the complex
+        numbers, while it is almost upper-triangular over the reals.  In the
+        latter case, there can be some `2\times 2` blocks on the diagonal
+        which represent a pair of conjugate complex eigenvalues of ``self``.
+
+        If ``self`` is the matrix `A`, then
+
+        .. math::
+
+            A = QT({\overline Q})^t
+
+        where the latter matrix is the conjugate-transpose of ``Q``, which
+        is also the inverse of ``Q``, since ``Q`` is unitary.
+
+        Note that in the case of a normal matrix (Hermitian, symmetric, and
+        others), the upper-triangular matrix is  a diagonal matrix with
+        eigenvalues of ``self`` on the diagonal, and the unitary matrix
+        has columns that form an orthonormal basis composed of eigenvectors
+        of ``self``.  This is known as "orthonormal diagonalization".
+
+        .. warning::
+
+            The Schur decomposition is not unique, as there may be numerous
+            choices for the vectors of the orthonormal basis, and consequently
+            different possibilities for the upper-triangular matrix.  However,
+            the diagonal of the upper-triangular matrix will always contain the
+            eigenvalues of the matrix (in the complex version), or `2\times 2`
+            block matrices in the real version representing pairs of conjugate
+            complex eigenvalues.
+
+            In particular, results may vary across systems and processors.
+
+        EXAMPLES:
+
+        First over the complexes.  The similar matrix is always
+        upper-triangular in this case.  ::
+
+            sage: A = matrix(CDF, 4, 4, range(16)) + matrix(CDF, 4, 4, [x^3*I for x in range(0, 16)])
+            sage: Q, T = A.schur()
+            sage: (Q*Q.conjugate().transpose()).zero_at(1.0e-12)
+            [1.0   0   0   0]
+            [  0 1.0   0   0]
+            [  0   0 1.0   0]
+            [  0   0   0 1.0]
+            sage: all([T.zero_at(1.0e-12)[i,j] == 0 for i in range(4) for j in range(i)])
+            True
+            sage: (Q*T*Q.conjugate().transpose()-A).zero_at(1.0e-11)
+            [0 0 0 0]
+            [0 0 0 0]
+            [0 0 0 0]
+            [0 0 0 0]
+            sage: eigenvalues = [T[i,i] for i in range(4)]; eigenvalues
+            [30.733... + 4648.541...*I, -0.184... - 159.057...*I, -0.523... + 11.158...*I, -0.025... - 0.642...*I]
+            sage: A.eigenvalues()
+            [30.733... + 4648.541...*I, -0.184... - 159.057...*I, -0.523... + 11.158...*I, -0.025... - 0.642...*I]
+            sage: abs(A.norm()-T.norm()) < 1e-10
+            True
+
+        We begin with a real matrix but ask for a decomposition over the
+        complexes.  The result will yield an upper-triangular matrix over
+        the complex numbers for ``T``. ::
+
+            sage: A = matrix(RDF, 4, 4, [x^3 for x in range(16)])
+            sage: Q, T = A.schur(base_ring=CDF)
+            sage: (Q*Q.conjugate().transpose()).zero_at(1.0e-12)
+            [1.0   0   0   0]
+            [  0 1.0   0   0]
+            [  0   0 1.0   0]
+            [  0   0   0 1.0]
+            sage: T.parent()
+            Full MatrixSpace of 4 by 4 dense matrices over Complex Double Field
+            sage: all([T.zero_at(1.0e-12)[i,j] == 0 for i in range(4) for j in range(i)])
+            True
+            sage: (Q*T*Q.conjugate().transpose()-A).zero_at(1.0e-11)
+            [0 0 0 0]
+            [0 0 0 0]
+            [0 0 0 0]
+            [0 0 0 0]
+
+        Now totally over the reals.  But with complex eigenvalues, the
+        similar matrix may not be upper-triangular. But "at worst" there
+        may be some `2\times 2` blocks on the diagonal which represent
+        a pair of conjugate complex eigenvalues. These blocks will then
+        just interrupt the zeros below the main diagonal.  This example
+        has a pair of these of the blocks. ::
+
+            sage: A = matrix(RDF, 4, 4, [[1, 0, -3, -1],
+            ...                          [4, -16, -7, 0],
+            ...                          [1, 21, 1, -2],
+            ...                          [26, -1, -2, 1]])
+            sage: Q, T = A.schur()
+            sage: (Q*Q.conjugate().transpose()).zero_at(1.0e-12)
+            [1.0 0.0 0.0 0.0]
+            [0.0 1.0 0.0 0.0]
+            [0.0 0.0 1.0 0.0]
+            [0.0 0.0 0.0 1.0]
+            sage: all([T.zero_at(1.0e-12)[i,j] == 0 for i in range(4) for j in range(i)])
+            False
+            sage: all([T.zero_at(1.0e-12)[i,j] == 0 for i in range(4) for j in range(i-1)])
+            True
+            sage: (Q*T*Q.conjugate().transpose()-A).zero_at(1.0e-11)
+            [0.0 0.0 0.0 0.0]
+            [0.0 0.0 0.0 0.0]
+            [0.0 0.0 0.0 0.0]
+            [0.0 0.0 0.0 0.0]
+            sage: eigenvalues = sorted(T[0:2,0:2].eigenvalues() + T[2:4,2:4].eigenvalues())
+            sage: eigenvalues.reverse(); eigenvalues
+            [-0.789... + 2.336...*I, -0.789... - 2.336...*I, -5.710... + 8.382...*I, -5.710... - 8.382...*I]
+            sage: A.eigenvalues()
+            [-0.789... + 2.336...*I, -0.789... - 2.336...*I, -5.710... + 8.382...*I, -5.710... - 8.382...*I]
+            sage: abs(A.norm()-T.norm()) < 1e-12
+            True
+
+        Starting with complex numbers and requesting a result over the reals
+        will never happen.  ::
+
+            sage: A = matrix(CDF, 2, 2, [[2+I, -1+3*I], [5-4*I, 2-7*I]])
+            sage: A.schur(base_ring=RDF)
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert input matrix over CDF to a matrix over RDF
+
+        If theory predicts your matrix is real, but it contains some
+        very small imaginary parts, you can specify the cutoff for "small"
+        imaginary parts, then request the output as real matrices, and let
+        the routine do the rest. ::
+
+            sage: A = matrix(RDF, 2, 2, [1, 1, -1, 0]) + matrix(CDF, 2, 2, [1.0e-14*I]*4)
+            sage: B = A.zero_at(1.0e-12)
+            sage: B.parent()
+            Full MatrixSpace of 2 by 2 dense matrices over Complex Double Field
+            sage: Q, T = B.schur(RDF)
+            sage: Q.parent()
+            Full MatrixSpace of 2 by 2 dense matrices over Real Double Field
+            sage: T.parent()
+            Full MatrixSpace of 2 by 2 dense matrices over Real Double Field
+            sage: Q.round(6)
+            [ 0.707107  0.707107]
+            [-0.707107  0.707107]
+            sage: T.round(6)
+            [ 0.5  1.5]
+            [-0.5  0.5]
+            sage: (Q*T*Q.conjugate().transpose()-B).zero_at(1.0e-11)
+            [0 0]
+            [0 0]
+
+        A Hermitian matrix has real eigenvalues, so the similar matrix
+        will be upper-triangular.  Furthermore, a Hermitian matrix is
+        diagonalizable with respect to an orthonormal basis, composed
+        of eigenvectors of the matrix.  Here that basis is the set of
+        columns of the unitary matrix.  ::
+
+            sage: A = matrix(CDF, [[        52,   -9*I - 8,    6*I - 187,  -188*I + 2],
+            ...                    [   9*I - 8,         12,   -58*I + 59,   30*I + 42],
+            ...                    [-6*I - 187,  58*I + 59,         2677, 2264*I + 65],
+            ...                    [ 188*I + 2, -30*I + 42, -2264*I + 65,       2080]])
+            sage: Q, T = A.schur()
+            sage: T = T.zero_at(1.0e-12).change_ring(RDF)
+            sage: T.round(6)
+            [4680.13301        0.0        0.0        0.0]
+            [       0.0 102.715967        0.0        0.0]
+            [       0.0        0.0  35.039344        0.0]
+            [       0.0        0.0        0.0    3.11168]
+            sage: (Q*Q.conjugate().transpose()).zero_at(1.0e-12)
+            [1.0   0   0   0]
+            [  0 1.0   0   0]
+            [  0   0 1.0   0]
+            [  0   0   0 1.0]
+            sage: (Q*T*Q.conjugate().transpose()-A).zero_at(1.0e-11)
+            [0 0 0 0]
+            [0 0 0 0]
+            [0 0 0 0]
+            [0 0 0 0]
+
+        Similarly, a real symmetric matrix has only real eigenvalues,
+        and there is an orthonormal basis composed of eigenvectors of
+        the matrix.  ::
+
+            sage: A = matrix(RDF, [[ 1, -2, 5, -3],
+            ...                    [-2,  9, 1,  5],
+            ...                    [ 5,  1, 3 , 7],
+            ...                    [-3,  5, 7, -8]])
+            sage: Q, T = A.schur()
+            sage: Q.round(4)
+            [-0.3027  -0.751   0.576 -0.1121]
+            [  0.139 -0.3892 -0.2648  0.8713]
+            [ 0.4361   0.359  0.7599  0.3217]
+            [ -0.836  0.3945  0.1438  0.3533]
+            sage: T.round(4)
+            [-13.5698      0.0      0.0      0.0]
+            [     0.0  -0.8508     -0.0     -0.0]
+            [     0.0      0.0   7.7664      0.0]
+            [     0.0      0.0      0.0  11.6542]
+            sage: (Q*Q.transpose()).zero_at(1.0e-12)
+            [1.0 0.0 0.0 0.0]
+            [0.0 1.0 0.0 0.0]
+            [0.0 0.0 1.0 0.0]
+            [0.0 0.0 0.0 1.0]
+            sage: (Q*T*Q.transpose()-A).zero_at(1.0e-11)
+            [0.0 0.0 0.0 0.0]
+            [0.0 0.0 0.0 0.0]
+            [0.0 0.0 0.0 0.0]
+            [0.0 0.0 0.0 0.0]
+
+        The results are cached, both as a real factorization and also as a
+        complex factorization.  This means the returned matrices are
+        immutable.  ::
+
+            sage: A = matrix(RDF, 2, 2, [[0, -1], [1, 0]])
+            sage: Qr, Tr = A.schur(base_ring=RDF)
+            sage: Qc, Tc = A.schur(base_ring=CDF)
+            sage: all([M.is_immutable() for M in [Qr, Tr, Qc, Tc]])
+            True
+            sage: Tr.round(6) != Tc.round(6)
+            True
+
+        TESTS:
+
+        The Schur factorization is only defined for square matrices.  ::
+
+            sage: A = matrix(RDF, 4, 5, range(20))
+            sage: A.schur()
+            Traceback (most recent call last):
+            ...
+            ValueError: Schur decomposition requires a square matrix, not a 4 x 5 matrix
+
+        A base ring request is checked. ::
+
+            sage: A = matrix(RDF, 3, range(9))
+            sage: A.schur(base_ring=QQ)
+            Traceback (most recent call last):
+            ...
+            ValueError: base ring of Schur decomposition matrices must be RDF or CDF, not Rational Field
+
+        AUTHOR:
+
+            - Rob Beezer (2011-03-31)
+        """
+        global scipy
+        from sage.rings.real_double import RDF
+        from sage.rings.complex_double import CDF
+
+        cdef Matrix_double_dense Q, T
+
+        if not self.is_square():
+            raise ValueError('Schur decomposition requires a square matrix, not a {0} x {1} matrix'.format(self.nrows(), self.ncols()))
+        if base_ring == None:
+            base_ring = self.base_ring()
+        if not base_ring in [RDF, CDF]:
+            raise ValueError('base ring of Schur decomposition matrices must be RDF or CDF, not {0}'.format(base_ring))
+
+        if self.base_ring() != base_ring:
+            try:
+                self = self.change_ring(base_ring)
+            except TypeError:
+                raise TypeError('unable to convert input matrix over CDF to a matrix over RDF')
+        if base_ring == CDF:
+            format = 'complex'
+        else:
+            format = 'real'
+
+        schur = self.fetch('schur_factors_' + format)
+        if not schur is None:
+            return schur
+        if scipy is None:
+            import scipy
+        import scipy.linalg
+        Q = self._new(self._nrows, self._nrows)
+        T = self._new(self._nrows, self._nrows)
+        T._matrix_numpy, Q._matrix_numpy = scipy.linalg.schur(self._matrix_numpy, output=format)
+        Q.set_immutable()
+        T.set_immutable()
+        # Our return order is the reverse of NumPy's
+        schur = (Q, T)
+        self.cache('schur_factors_' + format, schur)
+        return schur
+
     def cholesky(self):
         r"""
         Return the cholesky factorization of this matrix.  The input

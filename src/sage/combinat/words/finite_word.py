@@ -2283,8 +2283,8 @@ exponent %s: the length of the word (%s) times the exponent \
 
         .. NOTE::
 
-        By convention, integers greater than the length
-        of self are periods of self.
+            By convention, integers greater than the length
+            of self are periods of self.
 
         INPUT:
 

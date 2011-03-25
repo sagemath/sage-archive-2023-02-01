@@ -49,9 +49,9 @@ This file contains
    is_subcode, is_permutation_automorphism, is_permutation_equivalent (which
    interfaces with Robert Miller's partition refinement code),
 
-#. permutation methods: automorphism_group_binary_code,
-   is_permutation_automorphism, (permutation_automorphism_group is
-   deprecated), permuted_code, standard_form, module_composition_factors,
+#. permutation methods: is_permutation_automorphism,
+   permutation_automorphism_group, permuted_code, standard_form,
+   module_composition_factors,
 
 #. design-theoretic methods: assmus_mattson_designs (implementing
    Assmus-Mattson Theorem),
@@ -714,6 +714,8 @@ class LinearCode(module.Module_old):
 
     def automorphism_group_binary_code(self):
         r"""
+        This function is deprecated. Use permutation_automorphism_group instead.
+
         This only applies to linear binary codes and returns its (permutation)
         automorphism group. In other words, if the code `C` has length `n`
         then it returns the subgroup of the symmetric group `S_n`:
@@ -728,25 +730,20 @@ class LinearCode(module.Module_old):
 
             sage: C = HammingCode(3,GF(2))
             sage: G = C.automorphism_group_binary_code(); G
-             Permutation Group with generators [(4,5)(6,7), (4,6)(5,7), (2,3)(6,7), (2,4)(3,5), (1,2)(5,6)]
+            doctest:...: DeprecationWarning: This function is deprecated...
+            Permutation Group with generators [(4,5)(6,7), (4,6)(5,7), (2,3)(6,7), (2,4)(3,5), (1,2)(5,6)]
             sage: G.order()
             168
         """
+        from sage.misc.misc import deprecation
+        deprecation("This function is deprecated.  Call the method"
+                    +" permutation_automorphism_group instead.")
+        #deprecated 4.7
         C = self
         F = C.base_ring()
         if F!=GF(2):
             raise NotImplementedError, "Only implemented for binary codes."
-        from sage.coding.binary_code import BinaryCode, BinaryCodeClassifier
-        genmat = C.gen_mat()
-        B = BinaryCode(genmat)
-        BC = BinaryCodeClassifier()
-        autgp = BC._aut_gp_and_can_label(B)
-        if autgp[0] == []:
-            return PermutationGroup([()])
-        Sn = SymmetricGroup(C.length())
-        L = [[j+1 for j in autgp[0][i]] for i in range(len(autgp[0]))]
-        G = PermutationGroup([Sn(x) for x in L])
-        return G
+        return self.permutation_automorphism_group()
 
     def __iter__(self):
         """
@@ -1794,7 +1791,7 @@ class LinearCode(module.Module_old):
             sage: MS = MatrixSpace(GF(2),4,8)
             sage: G  = MS([[1,0,0,0,1,1,1,0],[0,1,1,1,0,0,0,0],[0,0,0,0,0,0,0,1],[0,0,0,0,0,1,0,0]])
             sage: C  = LinearCode(G)
-            sage: gp = C.automorphism_group_binary_code()
+            sage: gp = C.permutation_automorphism_group()
 
         Now type "C.module_composition_factors(gp)" to get the record printed.
         """
@@ -1822,6 +1819,9 @@ class LinearCode(module.Module_old):
         subgroup `Aut(C) \subset S_n` of all permutation automorphisms of `C`.
         The binary case always uses the (default) partition refinement
         algorithm of Robert Miller.
+
+        Note that if the base ring of `C` is `GF(2)` then this is the full
+        automorphism group.
 
         INPUT:
 
@@ -1861,15 +1861,16 @@ class LinearCode(module.Module_old):
             sage: G.is_isomorphic(M11)                    # this should take < 5 seconds
             True
 
-        In the binary case, uses sage.coding.binary_code::
+        Other examples::
 
             sage: C = ExtendedBinaryGolayCode()
             sage: G = C.permutation_automorphism_group()
             sage: G.order()
             244823040
-
-        In the non-binary case::
-
+            sage: C = HammingCode(5, GF(2))
+            sage: G = C.permutation_automorphism_group()
+            sage: G.order()
+            9999360
             sage: C = HammingCode(2,GF(3)); C
             Linear code of length 4, dimension 2 over Finite Field of size 3
             sage: C.permutation_automorphism_group(algorithm="partition")
@@ -1896,17 +1897,13 @@ class LinearCode(module.Module_old):
         """
         F = self.base_ring()
         q = F.order()
-        if q == 2 and self.length() <= 64:
-            from sage.coding.binary_code import WORD_SIZE
-            if self.length() <= WORD_SIZE:
-                return self.automorphism_group_binary_code()
-        G = self.gen_mat()
+        G = self.gen_mat() if 2*self.dimension() <= self.length() else self.dual_code().gen_mat()
         n = len(G.columns())
         k = len(G.rows())
-        wts = self.spectrum()                                            # bottleneck 1
-        nonzerowts = [i for i in range(len(wts)) if wts[i]!=0]
-        Sn = SymmetricGroup(n)
         if "gap" in algorithm:
+            wts = self.spectrum()                                            # bottleneck 1
+            nonzerowts = [i for i in range(len(wts)) if wts[i]!=0]
+            Sn = SymmetricGroup(n)
             Gp = gap("SymmetricGroup(%s)"%n)               # initializing G in gap
             Gstr = str(gap(G))
             gap.eval("C:=GeneratorMatCode("+Gstr+",GF("+str(q)+"))")
@@ -1939,22 +1936,37 @@ class LinearCode(module.Module_old):
             G = PermutationGroup(gens)
             return G
         if algorithm=="partition":
-            from sage.groups.perm_gps.partn_ref.refinement_matrices import MatrixStruct
-            stop = 0                                          # only stop if all gens are autos
-            for i in range(1,len(nonzerowts)):
-                if stop == 1:
-                    break
-                wt = nonzerowts[i]
-                Cwt = [c for c in self if hamming_weight(c)==wt] # ridiculously slow!!
-                MS = MatrixSpace(F,len(Cwt),n)
-                Cwords_wt = MS(Cwt)
-                M = MatrixStruct(Cwords_wt)
-                autgp = M.automorphism_group()
-                if autgp[0] == []:
-                    return PermutationGroup([()])
-                L = [[j+1 for j in autgp[0][i]] for i in range(len(autgp[0]))]
-                G = PermutationGroup([Sn(x) for x in L])
-                return G
+            if q == 2:
+                from sage.groups.perm_gps.partn_ref.refinement_binary import LinearBinaryCodeStruct
+                B = LinearBinaryCodeStruct(G)
+                autgp = B.automorphism_group()
+                L = [[j+1 for j in gen] for gen in autgp[0]]
+                AutGp = PermutationGroup(L)
+            else:
+                from sage.groups.perm_gps.partn_ref.refinement_matrices import MatrixStruct
+                from sage.matrix.constructor import matrix
+                weights = {}
+                for c in self:
+                    wt = hamming_weight(c)
+                    if wt not in weights:
+                        weights[wt] = [c]
+                    else:
+                        weights[wt].append(c)
+                weights.pop(0)
+                AutGps = []
+                for wt, words in weights.iteritems():
+                    M = MatrixStruct(matrix(words))
+                    autgp = M.automorphism_group()
+                    L = [[j+1 for j in gen] for gen in autgp[0]]
+                    G = PermutationGroup(L)
+                    AutGps.append(G)
+                if len(AutGps) > 0:
+                    AutGp = AutGps[0]
+                    for G in AutGps[1:]:
+                        AutGp = AutGp.intersection(G)
+                else:
+                    return PermutationGroup([])
+            return AutGp
         raise NotImplementedError("The only algorithms implemented currently are 'gap', 'gap+verbose', and 'partition'.")
 
     def permuted_code(self, p):
@@ -1965,7 +1977,7 @@ class LinearCode(module.Module_old):
         EXAMPLES::
 
             sage: C = HammingCode(3,GF(2))
-            sage: G = C.automorphism_group_binary_code(); G
+            sage: G = C.permutation_automorphism_group(); G
             Permutation Group with generators [(4,5)(6,7), (4,6)(5,7), (2,3)(6,7), (2,4)(3,5), (1,2)(5,6)]
             sage: g = G("(2,3)(6,7)")
             sage: Cg = C.permuted_code(g)

@@ -38,7 +38,8 @@ cdef class MatrixStruct:
         self.matrix = matrix
 
         self.symbols = uniq(self.matrix.list())
-        self.symbols.remove(0)
+        if 0 in self.symbols:
+            self.symbols.remove(0)
         self.nsymbols = len(self.symbols)
 
         self.symbol_structs = []

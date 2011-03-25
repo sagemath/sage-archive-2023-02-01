@@ -164,7 +164,23 @@ def complex_to_rgb(z_values):
     return rgb
 
 class ComplexPlot(GraphicPrimitive):
-    def __init__(self, z_values, xrange, yrange, options):
+    """
+    The GraphicsPrimitive to display complex functions in using the domain
+    coloring method
+
+    INPUT:
+
+        - ``rgb_data`` -- An array of colored points to be plotted.
+
+        - ``xrange`` -- A minimum and maximum x value for the plot.
+
+        - ``yrange`` -- A minimum and maximum y value for the plot.
+
+    TESTS::
+
+        sage: p = complex_plot(lambda z: z^2-1, (-2, 2), (-2, 2))
+    """
+    def __init__(self, rgb_data, xrange, yrange, options):
         """
         TESTS::
 
@@ -172,10 +188,10 @@ class ComplexPlot(GraphicPrimitive):
         """
         self.xrange = xrange
         self.yrange = yrange
-        self.z_values = z_values
-        self.x_count = len(z_values)
-        self.y_count = len(z_values[0])
-        self.rgb_data = complex_to_rgb(z_values)
+        #self.z_values = z_values
+        self.x_count = len(rgb_data)
+        self.y_count = len(rgb_data[0])
+        self.rgb_data = rgb_data
         GraphicPrimitive.__init__(self, options)
 
     def get_minmax_data(self):
@@ -333,5 +349,5 @@ def complex_plot(f, xrange, yrange, **options):
     sig_off()
     g = Graphics()
     g._set_extra_kwds(Graphics._extract_kwds_for_show(options, ignore=['xmin', 'xmax']))
-    g.add_primitive(ComplexPlot(z_values, xrange, yrange, options))
+    g.add_primitive(ComplexPlot(complex_to_rgb(z_values), xrange, yrange, options))
     return g

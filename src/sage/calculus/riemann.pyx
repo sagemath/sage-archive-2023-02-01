@@ -41,6 +41,8 @@ from sage.misc.misc import srange
 
 from sage.gsl.interpolation import spline
 
+from sage.plot.complex_plot import ComplexPlot
+
 import numpy as np
 cimport numpy as np
 
@@ -103,8 +105,9 @@ cdef class Riemann_Map:
     EXAMPLES:
 
     The unit circle identity map::
-
-        sage: m = Riemann_Map([lambda t: e^(I*t)], [lambda t: I*e^(I*t)], 0)  # long time (4 sec)
+        sage: f(t) = e^(I*t)
+        sage: fprime(t) = I*e^(I*t)
+        sage: m = Riemann_Map([f], [fprime], 0)  # long time (4 sec)
 
     The unit circle with a small hole::
 
@@ -112,7 +115,7 @@ cdef class Riemann_Map:
         sage: fprime(t) = I*e^(I*t)
         sage: hf(t) = 0.5*e^(-I*t)
         sage: hfprime(t) = 0.5*-I*e^(-I*t)
-        sage: m = Riemann_Map([f, hf], [hf, hfprime], 0.5 + 0.5*I)
+        sage: m = Riemann_Map([f, hf], [fprime, hfprime], 0.5 + 0.5*I)
 
     A square::
 
@@ -344,7 +347,7 @@ cdef class Riemann_Map:
             sage: fprime(t) = I*e^(I*t)
             sage: hf(t) = 0.5*e^(-I*t)
             sage: hfprime(t) = 0.5*-I*e^(-I*t)
-            sage: m = Riemann_Map([f, hf], [hf, hfprime], 0.5 + 0.5*I)
+            sage: m = Riemann_Map([f, hf], [fprime, hfprime], 0.5 + 0.5*I)
 
         Getting the szego for a specifc boundary::
 
@@ -769,7 +772,8 @@ cdef class Riemann_Map:
                     comp_pt(temp, 0), rgbcolor=rgbcolor, pointsize=thickness)
         return edge + sum(circle_list) + sum(line_list)
 
-    def plot_colored(self, plot_range=[], int plot_points=100):
+    @options(interpolation='catrom')
+    def plot_colored(self, plot_range=[], int plot_points=100, **options):
         """
         Draws a colored plot of the Riemann map. A red point on the
         colored plot corresponds to a red point on the unit disc. Note that
@@ -837,7 +841,7 @@ cdef class Riemann_Map:
                     np.complex(xmin + 0.5*xstep + i*xstep,
                                ymin + 0.5*ystep + j*ystep))
         g = Graphics()
-        g.add_primitive(ColorPlot(z_values, (xmin, xmax), (ymin, ymax)))
+        g.add_primitive(ComplexPlot(complex_to_rgb(z_values), (xmin, xmax), (ymin, ymax),options))
         return g
 
 cdef comp_pt(clist, loop=True):
@@ -885,16 +889,17 @@ cdef inline double mag_to_lightness(double r):
 
     This tests it implicitly::
 
-        sage: from sage.plot.complex_plot import complex_to_rgb
-        sage: complex_to_rgb([[0, 1, 10]])
-        array([[[ 0.        ,  0.        ,  0.        ],
-                [ 0.77172568,  0.        ,  0.        ],
-                [ 1.        ,  0.22134776,  0.22134776]]])
+        sage: from sage.calculus.riemann import complex_to_rgb
+        sage: import numpy
+        sage: complex_to_rgb(numpy.array([[0, 1, 1000]],dtype = numpy.complex128))
+        array([[[   1.,    1.,    1.],
+                [   1.,    0.,    0.],
+                [-998.,    0.,    0.]]])
     """
     return 1 - r
 
-cdef complex_to_rgb(np.ndarray z_values):
-    r"""
+cpdef complex_to_rgb(np.ndarray z_values):
+    """
     Convert from an array of complex numbers to its corresponding matrix of
     RGB values.
 
@@ -909,15 +914,16 @@ cdef complex_to_rgb(np.ndarray z_values):
 
     EXAMPLES::
 
-        sage: from sage.plot.complex_plot import complex_to_rgb
-        sage: complex_to_rgb([[0, 1, 1000]])
-        array([[[ 0.        ,  0.        ,  0.        ],
-                [ 0.77172568,  0.        ,  0.        ],
-                [ 1.        ,  0.64421177,  0.64421177]]])
-        sage: complex_to_rgb([[0, 1j, 1000j]])
-        array([[[ 0.        ,  0.        ,  0.        ],
-                [ 0.38586284,  0.77172568,  0.        ],
-                [ 0.82210588,  1.        ,  0.64421177]]])
+        sage: from sage.calculus.riemann import complex_to_rgb
+        sage: import numpy
+        sage: complex_to_rgb(numpy.array([[0, 1, 1000]],dtype = numpy.complex128))
+        array([[[   1.,    1.,    1.],
+                [   1.,    0.,    0.],
+                [-998.,    0.,    0.]]])
+        sage: complex_to_rgb(numpy.array([[0, 1j, 1000j]],dtype = numpy.complex128))
+        array([[[  1.00000000e+00,   1.00000000e+00,   1.00000000e+00],
+                [  5.00000000e-01,   1.00000000e+00,   0.00000000e+00],
+                [ -4.99000000e+02,  -9.98000000e+02,   0.00000000e+00]]])
     """
     cdef unsigned int i, j, imax, jmax
     cdef double x, y, mag, arg
@@ -987,86 +993,3 @@ cdef complex_to_rgb(np.ndarray z_values):
     sig_off()
     return rgb
 
-class ColorPlot(GraphicPrimitive):
-    """
-    The GraphicsPrimitive to display complex functions in using the domain
-    coloring method
-
-    INPUT:
-
-        - ``z_values`` -- An array of complex values to be plotted.
-
-        - ``x_range`` -- A minimum and maximum x value for the plot.
-
-        - ``y_range`` -- A minimum and maximum y value for the plot.
-
-    EXAMPLES::
-
-        sage: p = complex_plot(lambda z: z^2-1, (-2, 2), (-2, 2))
-    """
-    def __init__(self, z_values, x_range, y_range):
-        """
-        Setup a ``ColorPlot`` object.
-
-        TESTS::
-
-            sage: p = complex_plot(lambda z: z^2-1, (-2, 2), (-2, 2))
-        """
-        self.x_range = x_range
-        self.y_range = y_range
-        self.z_values = z_values
-        self.x_count = len(z_values)
-        self.y_count = len(z_values[0])
-        self.rgb_data = complex_to_rgb(z_values)
-        GraphicPrimitive.__init__(self, [])
-
-    def get_minmax_data(self):
-        """
-        Returns a dictionary with the bounding box data.
-
-        EXAMPLES::
-
-            sage: p = complex_plot(lambda z: z, (-1, 2), (-3, 4))
-            sage: sorted(p.get_minmax_data().items())
-            [('xmax', 2.0), ('xmin', -1.0), ('ymax', 4.0), ('ymin', -3.0)]
-        """
-        from sage.plot.plot import minmax_data
-        return minmax_data(self.x_range, self.y_range, dict=True)
-
-    def _allowed_options(self):
-        """
-        Return a dictionary of valid options for this ``ColorPlot`` object.
-
-        TESTS::
-
-            sage: isinstance(complex_plot(lambda z: z, (-1,1), (-1,1))[0]._allowed_options(), dict)
-            True
-        """
-        return {'plot_points': 'How many points to use for plotting precision',
-                'interpolation': 'What interpolation method to use'}
-
-    def _repr_(self):
-        """
-        Return a string representation of this ``ColorPlot`` object.
-
-        TESTS::
-
-            sage: isinstance(complex_plot(lambda z: z, (-1,1), (-1,1))[0]._repr_(), str)
-            True
-        """
-        return "ColorPlot defined by a %s x %s data grid" % (
-            self.x_count, self.y_count)
-
-    def _render_on_subplot(self, subplot):
-        """
-        Render the graphics object on a subplot.
-
-        TESTS::
-
-            sage: complex_plot(lambda x: x^2, (-5, 5), (-5, 5))
-        """
-        options = self.options()
-        x0, x1 = float(self.x_range[0]), float(self.x_range[1])
-        y0, y1 = float(self.y_range[0]), float(self.y_range[1])
-        subplot.imshow(self.rgb_data, origin='lower',
-                       extent=(x0,x1,y0,y1), interpolation='catrom')

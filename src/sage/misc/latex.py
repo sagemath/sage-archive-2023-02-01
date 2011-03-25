@@ -33,9 +33,10 @@ SLIDE_HEADER='\\documentclass[a0,8pt]{beamer}' + COMMON_HEADER + '\\textwidth=1.
 
 #SLIDE_HEADER='\\documentclass[landscape]{slides}\\usepackage{fullpage}\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\\usepackage{graphicx}\usepackage{pstricks}\pagestyle{empty}\n'
 
-import os, shutil, re
+import shutil, re
 import os.path
 import random
+import subprocess
 
 from misc import tmp_dir, graphics_filename
 import sage_eval
@@ -475,8 +476,8 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
     -  ``png`` - bool (optional, default False): whether to produce a
        png file.
 
-    -  ``do_in_background`` - bool (optional, default False): whether
-       to run in the background.
+    -  ``do_in_background`` - bool (optional, default False).  Unused,
+       kept for backwards compatibility.
 
     OUTPUT: string, which could be a string starting with 'Error' (if
     there was a problem), or it could be 'pdf' or 'dvi'.  If
@@ -560,21 +561,21 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
     if len(filename.split()) > 1:
         raise ValueError, "filename must contain no spaces"
     if not debug:
-        redirect=' 2>/dev/null 1>/dev/null '
+        redirect = subprocess.PIPE
     else:
-        redirect=''
-    if do_in_background:
-        background = ' &'
-    else:
-        background = ''
+        redirect = None
+    # if do_in_background:
+    #     background = ' &'
+    # else:
+    #     background = ''
 
     if not engine or engine == "latex":
         command = "latex"
+        # 'suffix' is used in the 'convert' command list
         suffix = "ps"
         return_suffix = "dvi"
     elif engine == "pdflatex":
         command = "pdflatex"
-        # 'suffix' is used in the string 'convert' ...
         suffix = "pdf"
         return_suffix = "pdf"
     elif engine == "xelatex":
@@ -585,36 +586,47 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
         raise ValueError, "Unsupported LaTeX engine."
 
     # Define the commands to be used:
-    lt = 'cd "%s"&& sage-native-execute %s \\\\nonstopmode \\\\input{%s.tex} %s'%(base, command, filename, redirect)
+    lt = ['sage-native-execute', command, r'\nonstopmode', r'\input{' + filename + '.tex}']
     # dvipng is run with the 'picky' option: this means that if
     # there are warnings, no png file is created.
-    dvipng = 'cd "%s"&& sage-native-execute dvipng --picky -q -T tight -D %s %s.dvi -o %s.png'%(base, density, filename, filename)
-    dvips = 'sage-native-execute dvips %s.dvi %s'%(filename, redirect)
-    ps2pdf = 'sage-native-execute ps2pdf %s.ps %s'%(filename, redirect)
+    dvipng = ['sage-native-execute', 'dvipng', '--picky', '-q', '-T', 'tight',
+              '-D', str(density), filename + '.dvi', '-o', filename + '.png']
+
+    dvips = ['sage-native-execute', 'dvips', filename + '.dvi']
+
+    ps2pdf = ['sage-native-execute', 'ps2pdf', filename + '.ps']
+
     # We seem to need a larger size when using convert compared to
     # when using dvipng:
     density = int(1.4 * density / 1.3)
-    convert = 'sage-native-execute convert -density %sx%s -trim %s.%s %s.png %s '%\
-        (density,density, filename, suffix, filename, redirect)
+    convert = ['sage-native-execute', 'convert', '-density',
+               '{0}x{0}'.format(density), '-trim', filename + '.' + suffix,
+               filename + '.png']
 
-    e = 1 # it is possible to get through the following commands
-          # without running a program, so in that case we force error
+    e = False # it is possible to get through the following commands
+              # without running a program, so in that case we force error
+
+    # our standard way of calling programs here; change this if we want
+    # finer-grained analysis of the return code. Think of the output as
+    # a boolean: "the command exited normally"
+    subpcall = lambda x: not subprocess.call(x, stdout=redirect,
+                                             stderr=redirect, cwd=base)
     if engine == "pdflatex" or engine == "xelatex":
-        if png:
-            cmd = ' && '.join([lt, convert])
-        else:
-            cmd = lt
         if debug:
-            print cmd
-        e = os.system(cmd + ' ' + redirect + background)
+            print lt
+            if png:
+                print convert
+        e = subpcall(lt)
+        if png:
+            e = e and subpcall(convert)
     else:  # latex
         if (png or check_validity):
             if have_dvipng():
-                cmd = ' && '.join([lt, dvipng])
                 if debug:
-                    print cmd
-                e = os.system(cmd + ' ' + redirect)
-                dvipng_error = not os.path.exists(base + '/' + filename + '.png')
+                    print lt
+                    print dvipng
+                e = subpcall(lt) and subpcall(dvipng)
+                dvipng_error = not os.path.exists(os.path.join(base, filename + '.png'))
                 # If there is no png file, then either the latex
                 # process failed or dvipng failed.  Assume that dvipng
                 # failed, and try running dvips and convert.  (If the
@@ -623,34 +635,35 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
                 if dvipng_error:
                     if png:
                         if have_convert():
-                            cmd = ' && '.join(['cd "%s"'%(base,), dvips, convert])
                             if debug:
                                 print "'dvipng' failed; trying 'convert' instead..."
-                                print cmd
-                            e = os.system(cmd + ' ' + redirect + background)
+                                print dvips
+                                print convert
+                            e = subpcall(dvips) and subpcall(convert)
                         else:
                             print "Error: 'dvipng' failed and 'convert' is not installed."
                             return "Error: dvipng failed."
                     else:  # not png, i.e., check_validity
                         return_suffix = "pdf"
-                        cmd = ' && '.join(['cd "%s"'%(base,), dvips, ps2pdf])
                         if debug:
                             print "bad dvi file; running dvips and ps2pdf instead..."
-                            print cmd
-                        e = os.system(cmd)
-                        if e:  # error running dvips and/or ps2pdf
-                            command = "pdflatex"
-                            lt = 'cd "%s"&& sage-native-execute %s \\\\nonstopmode \\\\input{%s.tex} %s'%(base, command, filename, redirect)
+                            print dvips
+                            print ps2pdf
+                        e = subpcall(dvips) and subpcall(ps2pdf)
+                        if not e:  # error running dvips and/or ps2pdf
+                            pdflt = lt[:]
+                            pdflt[1] = 'pdflatex'
                             if debug:
                                 print "error running dvips and ps2pdf; trying pdflatex instead..."
-                                print cmd
-                            e = os.system(cmd + background)
+                                print pdflt
+                            e = subpcall(pdflt)
             else:  # don't have dvipng, so must have convert.  run latex, dvips, convert.
-                cmd = ' && '.join([lt, dvips, convert])
                 if debug:
-                    print cmd
-                e = os.system(cmd + ' ' + redirect + background)
-    if e:
+                    print lt
+                    print dvips
+                    print convert
+                e = subpcall(lt) and subpcall(dvips) and subpcall(convert)
+    if not e:
         print "An error occurred."
         try:
             print open(base + '/' + filename + '.log').read()
@@ -834,10 +847,6 @@ class Latex:
             O.write('\n\n\\end{document}\n')
 
         O.close()
-        if not debug:
-            redirect=' 2>/dev/null 1>/dev/null '
-        else:
-            redirect=''
         if engine is None:
             if self.__engine is None:
                 engine = _Latex_prefs._option["engine"]
@@ -1842,7 +1851,7 @@ def view(objects, title='SAGE', debug=False, sep='', tiny=False, pdflatex=None, 
             png_file = graphics_filename(ext='png')
             png_link = "cell://" + png_file
             png(objects, os.path.join(base_dir, png_file),
-                debug=debug, do_in_background=False, engine=engine)
+                debug=debug, engine=engine)
             print '<html><img src="%s"></html>'%png_link  # put comma at end of line?
         return
     # command line or notebook with viewer
@@ -1866,7 +1875,14 @@ def view(objects, title='SAGE', debug=False, sep='', tiny=False, pdflatex=None, 
         print "Latex error"
         return
     output_file = os.path.join(tmp, "sage." + suffix)
-    os.system('sage-native-execute %s %s'%(viewer, output_file))
+    # this should get changed if we switch the stuff in misc.viewer to
+    # producing lists
+    if viewer.startswith('sage-native-execute '):
+        viewer = viewer.split()[1]
+    if debug:
+        print 'viewer: "{0}"'.format(viewer)
+    subprocess.call(['sage-native-execute', viewer, output_file],
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     return
 
 def png(x, filename, density=150, debug=False,
@@ -1886,8 +1902,8 @@ def png(x, filename, density=150, debug=False,
     -  ``debug`` - bool (default: False): print verbose
        output
 
-    -  ``do_in_background`` - bool (default: False): create the
-       file in the background.
+    -  ``do_in_background`` - bool (default: False): Unused,
+       kept for backwards compatibility
 
     -  ``tiny`` - bool (default: False): use 'tiny' font
 
@@ -1899,7 +1915,7 @@ def png(x, filename, density=150, debug=False,
     EXAMPLES::
 
         sage: from sage.misc.latex import png
-        sage: png(ZZ[x], SAGE_TMP + "zz.png", do_in_background=False) # random - error if no latex
+        sage: png(ZZ[x], SAGE_TMP + "zz.png") # random - error if no latex
     """
     if not pdflatex:
         engine = "latex"
@@ -1921,8 +1937,7 @@ def png(x, filename, density=150, debug=False,
     open(tex_file,'w').write(s)
     # run latex on the file, producing png output to png_file
     e = _run_latex_(tex_file, density=density, debug=debug,
-                    png=True, do_in_background=do_in_background,
-                    engine=engine)
+                    png=True, engine=engine)
     if e.find("Error") == -1:
         # if no errors, copy png_file to the appropriate place
         shutil.copy(png_file, abs_path_to_png)

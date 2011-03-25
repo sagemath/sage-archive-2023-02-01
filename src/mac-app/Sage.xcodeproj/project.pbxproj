@@ -29,6 +29,7 @@
 		198C6B7612425E8E002A1494 /* sage-is-running-on-port.sh in Resources */ = {isa = PBXBuildFile; fileRef = 198C6B7512425E8D002A1494 /* sage-is-running-on-port.sh */; };
 		19BDCA2411D6C3EA0041A693 /* open-location.sh in Resources */ = {isa = PBXBuildFile; fileRef = 19BDCA2311D6C3EA0041A693 /* open-location.sh */; };
 		19D397B212365C2600CE35F5 /* InputPanelController.m in Sources */ = {isa = PBXBuildFile; fileRef = 19D397B012365C2600CE35F5 /* InputPanelController.m */; };
+		19E3984612E249B300D062D1 /* sage-document-cython.icns in Resources */ = {isa = PBXBuildFile; fileRef = 19E3984512E249B300D062D1 /* sage-document-cython.icns */; };
 		8D15AC2C0486D014006FF6A4 /* Credits.html in Resources */ = {isa = PBXBuildFile; fileRef = 2A37F4B9FDCFA73011CA2CEA /* Credits.html */; };
 		8D15AC2F0486D014006FF6A4 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165FFE840EACC02AAC07 /* InfoPlist.strings */; };
 		8D15AC310486D014006FF6A4 /* MyDocument.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A37F4ACFDCFA73011CA2CEA /* MyDocument.m */; settings = {ATTRIBUTES = (); }; };
@@ -66,6 +67,7 @@
 		19BDCA2311D6C3EA0041A693 /* open-location.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = "open-location.sh"; sourceTree = "<group>"; };
 		19D397B012365C2600CE35F5 /* InputPanelController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = InputPanelController.m; sourceTree = "<group>"; };
 		19D397B112365C2600CE35F5 /* InputPanelController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InputPanelController.h; sourceTree = "<group>"; };
+		19E3984512E249B300D062D1 /* sage-document-cython.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = "sage-document-cython.icns"; sourceTree = "<group>"; };
 		2564AD2C0F5327BB00F57823 /* Sage_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Sage_Prefix.pch; sourceTree = "<group>"; };
 		2A37F4ACFDCFA73011CA2CEA /* MyDocument.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MyDocument.m; sourceTree = "<group>"; };
 		2A37F4AEFDCFA73011CA2CEA /* MyDocument.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MyDocument.h; sourceTree = "<group>"; };
@@ -134,16 +136,16 @@
 		2A37F4ABFDCFA73011CA2CEA /* Classes */ = {
 			isa = PBXGroup;
 			children = (
-				1967A9A211D67FBE00ABC39D /* AppDelegate.h */,
-				1967A9A111D67FBE00ABC39D /* AppDelegate.m */,
 				1967A6B311D6544C00ABC39D /* AppController.h */,
 				1967A6B411D6544C00ABC39D /* AppController.m */,
+				1967A9A211D67FBE00ABC39D /* AppDelegate.h */,
+				1967A9A111D67FBE00ABC39D /* AppDelegate.m */,
 				19D397B112365C2600CE35F5 /* InputPanelController.h */,
 				19D397B012365C2600CE35F5 /* InputPanelController.m */,
-				1967A85611D6630300ABC39D /* PreferencePanelController.h */,
-				1967A85711D6630300ABC39D /* PreferencePanelController.m */,
 				2A37F4AEFDCFA73011CA2CEA /* MyDocument.h */,
 				2A37F4ACFDCFA73011CA2CEA /* MyDocument.m */,
+				1967A85611D6630300ABC39D /* PreferencePanelController.h */,
+				1967A85711D6630300ABC39D /* PreferencePanelController.m */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
@@ -163,6 +165,7 @@
 				1967A69D11D6543A00ABC39D /* appl.icns */,
 				1967A69F11D6543A00ABC39D /* sage-document-py.icns */,
 				1967A6A011D6543A00ABC39D /* sage-document-sage.icns */,
+				19E3984512E249B300D062D1 /* sage-document-cython.icns */,
 				1967A6A111D6543A00ABC39D /* sage-document-spkg.icns */,
 				1967A6A211D6543A00ABC39D /* sage-document-sws.icns */,
 				1967A6A311D6543A00ABC39D /* sage-small-blue.png */,
@@ -264,6 +267,7 @@
 				1943B14412411601007C0641 /* MainMenu.nib in Resources */,
 				1943B14712411613007C0641 /* MyDocument.nib in Resources */,
 				198C6B7612425E8E002A1494 /* sage-is-running-on-port.sh in Resources */,
+				19E3984612E249B300D062D1 /* sage-document-cython.icns in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -40,14 +40,14 @@ cd /tmp/sage-mac-app || exit 1
 # sage-env.  In order to support older versions 4.x of Sage, we try both
 # spkg/bin/sage-env and local/bin/sage-env.
 echo Setting environment variables >> "$SAGE_LOG"
-{ . spkg/bin/sage-env || . local/bin/sage-env; } >> "$SAGE_LOG" 2>> "$SAGE_LOG"
+{ . spkg/bin/sage-env || . local/bin/sage-env; } >> "$SAGE_LOG" 2>> "$SAGE_LOG" || exit 1
 export SAGE_ROOT
 
 # Mac OS X app bundles are *intended* to be moved around, and/or given away
 # So always run first the respective script handling this
 # (This should also catch Intel vs. PPC or 32Bit vs. 64Bit conflicts - untested)
 echo Checking install location >> "$SAGE_LOG"
-./local/bin/sage-location >> "$SAGE_LOG" 2>> "$SAGE_LOG"
+./local/bin/sage-location >> "$SAGE_LOG" 2>> "$SAGE_LOG" || exit 1
 
 echo Checking existence of notebook directory >> "$SAGE_LOG"
 if [ -d $DOT_SAGE/sage_notebook.sagenb ]; then

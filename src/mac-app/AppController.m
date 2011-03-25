@@ -57,9 +57,10 @@
         [statusItem setEnabled:NO];
     }
 
-    // Our best guess for the port (so that it's always set)
-    port = 8000;
+    // indicate that we haven't started the server yet
+    port = 0;
     neverOpenedFileBrowser = YES;
+    URLQueue = [[NSMutableArray arrayWithCapacity:3] retain];
 
     // Start the sage server, or check if it's running
     if ( [defaults boolForKey:@"startServerOnLaunch"] ) {
@@ -86,6 +87,7 @@
     [logPath release];
     [theTask release];
     [taskPipe release];
+    [URLQueue release];
     [super dealloc];
 }
 
@@ -133,6 +135,14 @@
 -(void)serverStartedWithPort:(int)p{
     if (haveStatusItem)  [statusItem setImage:statusImageBlue];
     port = p;
+    if ( [URLQueue count] > 0 ) {
+        NSEnumerator *e = [URLQueue objectEnumerator];
+        id url;
+        while (url = [e nextObject]) {
+            [self browseLocalSageURL:url];
+        }
+        [URLQueue removeAllObjects];
+    }
 }
 
 - (void)taskTerminated:(NSNotification *)aNotification {
@@ -169,12 +179,21 @@
                                               encoding:NSUTF8StringEncoding
                                                  error:NULL];
 
+    if (pid == nil) {
+        // Get the pid of the Sage server
+        pidFile = [@"~/.sage/sage_notebook.sagenb/sagenb.pid" stringByStandardizingPath];
+        pid = [NSString stringWithContentsOfFile:pidFile
+                                        encoding:NSUTF8StringEncoding
+                                           error:NULL];
+    }
+
     NSLog(@"Stopping server with pid: %@", pid );
     if (pid != nil) {
         kill([pid intValue], SIGTERM);
     }
 
     if (haveStatusItem)  [statusItem setImage:statusImageGrey];
+    port = 0;
 }
 
 // To create an alternate menu, in IB create another menu item, give it a key equivalent of opt/alt and check the alternate box (left most tab of inspector)
@@ -302,7 +321,7 @@ You can change it later in Preferences."];
 }
 
 -(IBAction)showPreferences:(id)sender{
-	[NSApp activateIgnoringOtherApps:YES];
+    [NSApp activateIgnoringOtherApps:YES];
     [prefWindow makeKeyAndOrderFront:self];
 }
 
@@ -313,7 +332,16 @@ You can change it later in Preferences."];
     } else {
         sageURL = [[defaults arrayForKey:@"sageURLs"] objectAtIndex:[sender tag]];
     }
-    [self sageBrowse:[NSString stringWithFormat:@"http://localhost:%d/%@", port, sageURL]];
+    // The server is not running
+    if ( port == 0 && [defaults boolForKey:@"autoStartServer"] ) {
+        // Queue the URL up for opening and start the server
+        // Do I need to retain it??
+        [URLQueue addObject:sageURL];
+        [self startServer:self];
+    } else {
+        // Browse to the url right away
+        [self sageBrowse:[NSString stringWithFormat:@"http://localhost:%d/%@", port, sageURL]];
+    }
 }
 
 -(IBAction)browseRemoteURL:(id)sender{
@@ -529,7 +557,7 @@ You can change it later in Preferences."];
     return NO;
 }
 
-// TODO: make installing packages easy
+// TODO: make installing packages easy -- stringByLaunchingPath:withArguments:error:
 // TODO: maybe this should be written in py-objc so that we can call into sage directly (but then we would have to worry about environment etc.)
 // TODO: make some services (search for NSSendTypes) -- pack/unpack spkg, extract sws from pdf, crap/fixdoctests/preparse/Test/coverage/pkg/pkg_nc/etc.
 

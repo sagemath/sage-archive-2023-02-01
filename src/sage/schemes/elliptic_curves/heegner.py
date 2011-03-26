@@ -243,8 +243,6 @@ class RingClassField(SageObject):
         """
         if check:
             D = ZZ(D); c = ZZ(c)
-            if D.gcd(c) != 1:
-                raise ValueError, "conductor and discriminant must be coprime"
         self.__D = D
         self.__c = c
 
@@ -361,8 +359,6 @@ class RingClassField(SageObject):
             24
         """
         D, c = self.__D, self.__c
-        if c.gcd(D) != 1:
-            raise NotImplementedError, "degree in ramified case not implemented"
 
         K = self.quadratic_field()
 
@@ -383,51 +379,79 @@ class RingClassField(SageObject):
             3
             sage: QuadraticField(-59,'a').class_number()
             3
+
+        Some examples in which prime dividing c is inert::
+
+            sage: heegner_point(37,-7,3).ring_class_field().degree_over_H()
+            4
+            sage: heegner_point(37,-7,3^2).ring_class_field().degree_over_H()
+            12
+            sage: heegner_point(37,-7,3^3).ring_class_field().degree_over_H()
+            36
+
+        The prime dividing c is split.  For example, in the first case
+        `O_K/cO_K` is isomorphic to a direct sum of two copies of
+        ``GF(2)``, so the units are trivial::
+
+            sage: heegner_point(37,-7,2).ring_class_field().degree_over_H()
+            1
+            sage: heegner_point(37,-7,4).ring_class_field().degree_over_H()
+            2
+            sage: heegner_point(37,-7,8).ring_class_field().degree_over_H()
+            4
+
+        Now c is ramified::
+
+            sage: heegner_point(37,-7,7).ring_class_field().degree_over_H()
+            7
+            sage: heegner_point(37,-7,7^2).ring_class_field().degree_over_H()
+            49
         """
         c = self.__c
         if c == 1:
             return ZZ(1)
 
-        # When c is unramified, we have by class field theory that
-        #           Gal(K[c]/H) = (O_K/c*O_K)^* / (Z/cZ)^*.
-
+        # Let K_c be the ring class field.  We have by class field theory that
+        #           Gal(K_c / H) = (O_K/c*O_K)^* / (Z/cZ)^*.
         #
-        # To compute this we can immediately reduce to the case that
-        # c = p^n is a prime power (since the expression is
-        # multiplicative in c).  In all cases, we have
-        #             #(Z/cZ)^* = phi(c)
+        # To compute the cardinality of the above Galois group, we
+        # first reduce to the case that c = p^e is a prime power
+        # (since the expression is multiplicative in c).
+        # Of course, note also that #(Z/cZ)^* = phi(c)
+        #
         # Case 1: p splits in O_K.  Then
-        #         #(O_K/c*O_K)^* = (#(Z/cZ)^*)^2 = phi(c)^2.
-        # Case 2: p is inert in O_K.  Then
-        #         #(O_K/c*O_K)^* = #(O_K/p^n O_K)^* =  ? don't know in general,
-        #         but when n = 1, it's p^2 - 1.
-        # Case 3: p ramified in O_K. Don't know -- can't use the above.
-        #         I numerically tried one example with c=7, in which [K[c]:K]=7.
+        #         #(O_K/p^e*O_K)^* = (#(Z/p^eZ)^*)^2 = phi(p^e)^2, so
+        #           #(O_K/p^e*O_K)^*/(Z/p^eZ)^* = phi(p^e) = p^e - p^(e-1)
         #
-        # Some case(s) might be on page 7 of Vatsal's "Uniform distribution of Heegner points"
+        # Case 2: p is inert in O_K.  Then
+        #         #(O_K/p^e O_K)^* = p^(2*e)-p^(2*(e-1))
+        #         so #(O_K/p^e*O_K)^*/(Z/p^eZ)^*
+        #              = (p^(2*e)-p^(2*(e-1)))/(p^e-p^(e-1)) = p^e + p^(e-1).
+        #
+        # Case 3: p ramified in O_K. Then
+        #         #(O_K/p^e O_K)^* = p^(2*e) - p^(2*e-1),
+        #         so #(O_K/p^e O_K)^*/#(Z/p^eZ)^* = p^e.
         #
         # Section 4.2 of Cohen's "Advanced Computational Algebraic
-        # Number Theory" GTM seems to answer the above very nicely in
-        # great generality.  However, note that there Cohen is working
+        # Number Theory" GTM is also relevant, though Cohen is working
         # with *ray* class fields and here we want the cardinality
         # of the *ring* class field, which is a subfield.
 
         K = self.quadratic_field()
-        # the following probably assumes D_K <= -5, so
-
-        if K.discriminant() > -5:
-            raise NotImplementedError
 
         n = ZZ(1)
         for p, e in c.factor():
-            if e > 1:
-                raise NotImplementedError, "degree only implemented when c squarefree"
-            if len(K.factor(p)) == 1:
-                # inert case
-                n *= p+1
-            else:
+            F = K.factor(p)
+            if len(F) == 2:
                 # split case
-                n *= p-1
+                n *= p**e - p**(e-1)
+            else:
+                if F[0][1] > 1:
+                    # ramified case
+                    n *= p**e
+                else:
+                    # inert case
+                    n *= p**e + p**(e-1)
         return n
 
     @cached_method
@@ -1837,13 +1861,9 @@ class HeegnerPoint(SageObject):
             sage: E.heegner_point(-7, 5*23).ring_class_field().degree_over_K()
             132
             sage: E.heegner_point(-7, 5^2).ring_class_field().degree_over_K()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: degree only implemented when c squarefree
+            30
             sage: E.heegner_point(-7, 7).ring_class_field().degree_over_K()
-            Traceback (most recent call last):
-            ...
-            ValueError: conductor and discriminant must be coprime
+            7
         """
         return RingClassField(self.discriminant(), self.conductor())
 
@@ -2477,6 +2497,7 @@ class HeegnerPoints_level_disc_cond(HeegnerPoints_level, HeegnerPoints_level_dis
                     if g not in U:
                         U.append(g)
                         R.append(HeegnerPointOnX0N(N,D,c,f))
+                        if len(U) >= h: break
             a += 1
         return tuple(sorted(R))
 
@@ -3204,7 +3225,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
 
             - ``prec`` -- integer (default: 53)
 
-            - ``algorithm`` -- 'conjugates' (default) or 'lll'; if
+            - ``algorithm`` -- 'conjugates' or 'lll' (default); if
                    'conjugates', compute numerically all the
                    conjugates ``y[i]`` of the Heegner point and construct
                    the characteristic polynomial as the product
@@ -3336,7 +3357,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
             - ``prec`` -- integer (default: 53)
 
             - ``algorithm`` -- see the description of the algorithm
-              parameter for the ``exact_x_poly`` method.
+              parameter for the ``x_poly_exact`` method.
 
             - ``var`` -- string (default: 'a')
 

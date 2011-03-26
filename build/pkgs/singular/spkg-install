@@ -184,7 +184,7 @@ build_singular()
     if [ -d LIB -a ! -h LIB ]; then
         echo "skipping since filenames not case sensitive."
     else
-        $RM -f LIB
+        rm -f LIB
         if [ "$UNAME" != "Darwin" ]; then
             $LN -sf lib LIB
         fi
@@ -211,10 +211,10 @@ create_singular_script()
     # The Singular build annoyingly puts an absolute link to the Singular
     # script in $SAGE_LOCAL/bin/.  So we delete it and make it relative.
     cd $SAGE_LOCAL/bin
-    $RM -f Singular singular
+    rm -f Singular singular
 
     if [ -f Singular-1-0-2 ]; then
-        $RM -f Singular-1-0-2   # remove previous version of Singular.
+        rm -f Singular-1-0-2   # remove previous version of Singular.
     fi
 
     # The singular executable is called somewhat randomly depending

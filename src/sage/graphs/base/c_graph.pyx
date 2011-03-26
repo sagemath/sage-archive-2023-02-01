@@ -3138,32 +3138,73 @@ cpdef all_pairs_shortest_path_BFS(gg):
     cdef int *outneighbors
     cdef int o_n_size
     cdef int i
+
+    # Copying the whole graph to obtain the list of neighbors quicker than by
+    # calling out_neighbors
+
+    # The edges are stored in the vector p_edges. This vector contains, from
+    # left to right The list of the first vertex's outneighbors, then the
+    # second's, then the third's, ...
+    #
+    # The outneighbors of vertex i are enumerated from
+    #
+    # p_vertices[i] to p_vertices[i+1] - 1
+    # (if p_vertices[i] is equal to p_vertices[i+1], then i has no outneighbours)
+
+    cdef short ** p_vertices = <short **> sage_malloc(n*sizeof(short *))
+    cdef short * p_edges = <short *> sage_malloc(cg.num_arcs*sizeof(short))
+    cdef short * p_next = p_edges
+
+    for v in vertices:
+        outneighbors = <int *>sage_malloc(cg.out_degrees[v] * sizeof(int))
+        cg.out_neighbors_unsafe(v, outneighbors, cg.out_degrees[v])
+        p_vertices[v] = p_next
+
+        for 0<= i < cg.out_degrees[v]:
+            p_next[0] = <short> outneighbors[i]
+            p_next = p_next + 1
+
+        sage_free(outneighbors)
+
+    # We run n different BFS taking each vertex as a source
     for source in vertices:
+
+        # The source is seen
         bitset_set_first_n(seen, 0)
         bitset_add(seen, source)
 
+        # Its parameters can already be set
         v_distances[source] = 0
         v_prec[source] = source
+
+        # and added to the queue
         waiting_list[0] = source
         waiting_beginning = 0
         waiting_end = 0
 
+        # For as long as there are vertices left to explore
         while waiting_beginning <= waiting_end:
+
+            # We pick the first one
             v = waiting_list[waiting_beginning]
-            o_n_size = cg.out_degrees[v]
-            outneighbors = <int *>sage_malloc(o_n_size * sizeof(int))
-            o_n_size = cg.out_neighbors_unsafe(v, outneighbors, o_n_size)
-            for 0 <= i < o_n_size:
-                u = outneighbors[i]
+
+            # Iterating over all the outneighbors u of v
+            for 0 <= i < cg.out_degrees[v]:
+                u = p_vertices[v][i]
+
+                # If we notice one of these neighbors is not seen yet, we set
+                # its parameters and add it to the queue to be explored later.
                 if not bitset_in(seen, u):
                     v_distances[u] = v_distances[v]+1
                     v_prec[u] = v
                     bitset_add(seen, u)
                     waiting_end += 1
                     waiting_list[waiting_end] = u
-            sage_free(outneighbors)
+
             waiting_beginning += 1
 
+        # Copying the information to dictionaries (very costly, comparatively)
+        # to be returned later
         tmp_distances = dict()
         tmp_prec = dict()
         for v in vertices:
@@ -3185,6 +3226,8 @@ cpdef all_pairs_shortest_path_BFS(gg):
     sage_free(waiting_list)
     sage_free(v_distances)
     sage_free(v_prec)
+    sage_free(p_vertices)
+    sage_free(p_edges)
 
     return d_distances, d_prec
 

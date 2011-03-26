@@ -1,13 +1,15 @@
 """
 Miscellaneous arithmetic functions
 """
-
-###########################################################################
+#*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-###########################################################################
+#*****************************************************************************
+
 
 import math
 import sys
@@ -3333,31 +3335,47 @@ def primitive_root(n, check=True):
     """
     Return a positive integer that generates the multiplicative group
     of integers modulo `n`, if one exists; otherwise, raise a
-    ValueError.
+    ``ValueError``.
 
     A primitive root exists if `n=4` or `n=p^k` or `n=2p^k`, where `p`
     is an odd prime and `k` is a nonnegative number.
 
     INPUT:
-        - `n` -- positive integer
-        - ``check`` -- bool (default: True); if False, then n is
-          assumed to be a positive integer, and behavior is undefined
-          otherwise.
+
+    - ``n`` -- a non-zero integer
+    - ``check`` -- bool (default: True); if False, then `n` is assumed
+      to be a positive integer possessing a primitive root, and behavior
+      is undefined otherwise.
 
     OUTPUT:
-         - Integer
+
+    A primitive root of `n`. If `n` is prime, this is the smallest
+    primitive root.
 
     EXAMPLES::
 
         sage: primitive_root(23)
         5
+        sage: primitive_root(-46)
+        5
+        sage: primitive_root(25)
+        2
         sage: print [primitive_root(p) for p in primes(100)]
         [1, 2, 2, 3, 2, 2, 3, 2, 5, 2, 3, 2, 6, 3, 5, 2, 2, 2, 2, 7, 5, 3, 2, 3, 5]
+        sage: primitive_root(8)
+        Traceback (most recent call last):
+        ...
+        ValueError: no primitive root
 
-    .. note:: It takes extra work to check if n has a primitive root; to
-      avoid this, use check=False, which may slightly speed things up
-      (but could also result in undefined behavior).  For example, the
-      second call below is an order of magnitude faster than the first::
+    .. NOTE::
+
+        It takes extra work to check if `n` has a primitive root; to
+        avoid this, use ``check=False``, which may slightly speed things
+        up (but could also result in undefined behavior).  For example,
+        the second call below is an order of magnitude faster than the
+        first:
+
+    ::
 
         sage: n = 10^50 + 151   # a prime
         sage: primitive_root(n)
@@ -3366,6 +3384,21 @@ def primitive_root(n, check=True):
         11
 
     TESTS:
+
+    Various special cases::
+
+        sage: primitive_root(-1)
+        0
+        sage: primitive_root(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: no primitive root
+        sage: primitive_root(1)
+        0
+        sage: primitive_root(2)
+        1
+        sage: primitive_root(4)
+        3
 
     We test that various numbers without primitive roots give
     an error - see Trac 10836::
@@ -3389,7 +3422,7 @@ def primitive_root(n, check=True):
     """
     if not check:
         return ZZ(pari(n).znprimroot())
-    n = ZZ(n)
+    n = ZZ(n).abs()
     if n == 4:
         return ZZ(3)
     if n%2: # n odd
@@ -3753,7 +3786,7 @@ def continued_fraction_list(x, partial_convergents=False, bits=None, nterms=None
         if bits is not None and nterms is None:
             x = RealIntervalField(bits)(x)
         else:
-            # Pari is faster than the pure Python below, but doesn't give us the convergents.
+            # PARI is faster than the pure Python below, but doesn't give us the convergents.
             v = pari(x).contfrac().python()
             if nterms is not None:
                 v = v[:nterms]

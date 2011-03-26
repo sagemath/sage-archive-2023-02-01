@@ -2601,9 +2601,13 @@ class DiGraph(GenericGraph):
         return map(self.subgraph, self.strongly_connected_components())
 
 
-    def strongly_connected_components_digraph(self):
+    def strongly_connected_components_digraph(self, keep_labels = False):
         r"""
         Returns the digraph of the strongly connected components
+
+        INPUT:
+
+         - ``keep_labels`` -- boolean (default: False)
 
         The digraph of the strongly connected components of a graph `G` has
         a vertex per strongly connected component included in `G`. There
@@ -2632,12 +2636,30 @@ class DiGraph(GenericGraph):
         The following digraph has three strongly connected components,
         and the digraph of those is a chain::
 
-            sage: g = DiGraph({0:[1,2,3],1:[2],2:[1,3]})
+            sage: g = DiGraph({0:{1:"01", 2: "02", 3: 03}, 1: {2: "12"}, 2:{1: "21", 3: "23"}})
             sage: scc_digraph = g.strongly_connected_components_digraph()
             sage: scc_digraph.vertices()
             [{0}, {3}, {1, 2}]
             sage: scc_digraph.edges()
             [({0}, {3}, None), ({0}, {1, 2}, None), ({1, 2}, {3}, None)]
+
+        By default, the labels are discarded, and the result has no
+        loops nor multiple edges. If ``keep_labels`` is ``True``, then
+        the labels are kept, and the result is a multi digraph,
+        possibly with multiple edges and loops. However, edges in the
+        result with same source, target, and label are not duplicated
+        (see the edges from 0 to the strongly connected component
+        `\{1,2\}` below)::
+
+            sage: g = DiGraph({0:{1:"0-12", 2: "0-12", 3: "0-3"}, 1: {2: "1-2", 3: "1-3"}, 2:{1: "2-1", 3: "2-3"}})
+            sage: scc_digraph = g.strongly_connected_components_digraph(keep_labels = True)
+            sage: scc_digraph.vertices()
+            [{0}, {3}, {1, 2}]
+            sage: scc_digraph.edges()
+            [({0}, {3}, '0-3'), ({0}, {1, 2}, '0-12'),
+             ({1, 2}, {3}, '1-3'), ({1, 2}, {3}, '2-3'),
+             ({1, 2}, {1, 2}, '1-2'), ({1, 2}, {1, 2}, '2-1')]
+
         """
 
         from sage.sets.set import Set
@@ -2650,13 +2672,16 @@ class DiGraph(GenericGraph):
             for v in c:
                 d[v] = i
 
-        g = DiGraph()
-        g.add_vertices(scc_set)
-        g.allow_multiple_edges(False)
+        if keep_labels:
+            g = DiGraph(multiedges=True, loops=True)
+            g.add_vertices(scc_set)
+            g.add_edges( set((scc_set[d[u]], scc_set[d[v]], label) for (u,v,label) in self.edges() ) )
+        else:
+            g = DiGraph(multiple_edges=False, loops=False)
+            g.add_vertices(scc_set)
+            g.add_edges( (scc_set[d[u]], scc_set[d[v]]) for u,v in self.edges(labels=False) )
 
-        g.add_edges( (scc_set[d[u]], scc_set[d[v]]) for u,v in self.edges(labels=False) )
         return g
-
 
     def is_strongly_connected(self):
         r"""

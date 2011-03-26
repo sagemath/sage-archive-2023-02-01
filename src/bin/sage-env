@@ -1,9 +1,9 @@
-#!/usr/bin/env bash
+# -*- shell-script -*-
 
 ###########################################################################
 #
 #  Set environment variables for building and/or running Sage.
-#  You must source this; see below!
+#  You must *source* this instead of executing; see below!
 #
 #  AUTHORS:   William Stein                            2005-12
 #             David Kirkby <david.kirkby@onetel.net>   2005-12-17
@@ -45,7 +45,7 @@ if [ "$SAGE_ROOT" = "" ]; then
         exit 1
     else
         SAGE_ROOT="$GUESSED_SAGE_ROOT"
-        export SAGE_ROOT
+        EXPORT_SAGE_ROOT="yes"
     fi
 else
     if [ -f "$SAGE_ROOT"/sage -a -d "$SAGE_ROOT"/spkg ]; then
@@ -62,6 +62,19 @@ else
     fi
 fi
 
+# Don't execute the commands more than once.  Check this after
+# checking the validity of SAGE_ROOT, but before modifying its value.
+if [ "x$SAGE_ENV_SOURCED" = "x" ]; then
+    SAGE_ENV_SOURCED=1
+    export SAGE_ENV_SOURCED
+else
+    # Already sourced, nothing to do.
+    return 0
+fi
+
+if [ "$EXPORT_SAGE_ROOT" = "yes" ]; then
+    export SAGE_ROOT
+fi
 
 # Call with: contains_spaces X${VAR}X
 # i.e., WITHOUT quotes but some character(s) around the environment variable to test.

@@ -31,14 +31,6 @@ unset LD
 # found in build process
 unset TMPDIR
 
-## Singular supports parallel builds, but we disable them, for now,
-## since they sometimes fail.
-#MAKE="make"
-#export MAKE
-## We clear MAKEFLAGS to fix building multiple spkgs in parallel on OS X.
-#MAKEFLAGS=
-#export MAKEFLAGS
-
 # disable the dynamic kernel, except on Linux
 if [ "$UNAME" = "Linux" ]; then
      DYNAMIC_KERNEL=""
@@ -129,7 +121,7 @@ patch()
 distclean()
 {
      cd $SRC
-     make distclean
+     $MAKE distclean
      rm $SAGE_LOCAL/bin/Singular*
      find . -name *.dl_o -exec rm \{\} \;
      find . -name *.o -exec rm \{\} \;
@@ -176,7 +168,7 @@ build_singular()
 {
     cd $SRC
 
-    make # Singular + rest
+    $MAKE # Singular + rest
 
     if [ $? -ne 0 ]; then
         echo "Unable to build Singular."
@@ -204,7 +196,7 @@ build_singular()
         exit 1
     fi
 
-    make slibdir="$SAGE_LOCAL/share/singular" install-nolns
+    $MAKE slibdir="$SAGE_LOCAL/share/singular" install-nolns
 
     if [ $? -ne 0 ]; then
         echo "Unable to install Singular."
@@ -255,14 +247,14 @@ build_libsingular()
         exit 1
     fi
 
-    make libsingular
+    $MAKE libsingular
 
     if [ $? -ne 0 ]; then
         echo "Unable to build Singular."
         exit 1
     fi
 
-    make install-libsingular
+    $MAKE install-libsingular
 
     #cp kernel/kInline.cc $SAGE_LOCAL/include/singular/
 
@@ -276,7 +268,7 @@ build_factory()
 {
     cd $SRC/factory
 
-    make distclean
+    $MAKE distclean
 
     ./configure --prefix="$SAGE_LOCAL" \
                 --exec-prefix="$SAGE_LOCAL" \
@@ -301,7 +293,7 @@ build_factory()
         exit 1
     fi
 
-    make install
+    $MAKE install
     if [ $? -ne 0 ]; then
         echo "Error installing the standalone factory."
         exit 1
@@ -321,7 +313,7 @@ build_libfac()
         exit 1
     fi
 
-    make distclean
+    $MAKE distclean
 
     ./configure --prefix="$SAGE_LOCAL" \
                 --exec-prefix="$SAGE_LOCAL" \
@@ -350,7 +342,7 @@ build_libfac()
         exit 1
     fi
 
-    make install
+    $MAKE install
 
     if [ $? -ne 0 ]; then
         echo "Error installing libfac."

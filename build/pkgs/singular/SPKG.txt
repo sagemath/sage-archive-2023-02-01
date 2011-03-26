@@ -42,6 +42,9 @@ MPIR, NTL, Termcap, Readline and MPFR
 
 == ChangeLog ==
 
+=== singular-3-1-1-4.p5 (Martin Albrecht, 26th March 2011) ===
+*  enable parallel make
+
 === singular-3-1-1-4.p4 (Volker Braun, 4th February 2011) ===
 *  compile fix for OSX on 64-bit kernels.
 *  removed dist/ directory.

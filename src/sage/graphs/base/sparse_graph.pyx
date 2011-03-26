@@ -302,20 +302,31 @@ cdef class SparseGraph(CGraph):
             i = i << 1
         self.hash_length = i
         self.hash_mask = i - 1
+
+        # Allocating memory
         self.vertices = <SparseGraphBTNode **> \
           sage_malloc(nverts * self.hash_length * sizeof(SparseGraphBTNode *))
         self.in_degrees = <int *> sage_malloc(nverts * sizeof(int))
         self.out_degrees = <int *> sage_malloc(nverts * sizeof(int))
+
+        # Checking the memory was actually allocated
         if not self.vertices or not self.in_degrees or not self.out_degrees:
             if self.vertices: sage_free(self.vertices)
             if self.in_degrees: sage_free(self.in_degrees)
             if self.out_degrees: sage_free(self.out_degrees)
             raise RuntimeError("Failure allocating memory.")
-        for i from 0 <= i < nverts * self.hash_length:
-            self.vertices[i] = NULL
-        for i from 0 <= i < nverts:
-            self.in_degrees[i] = 0
-            self.out_degrees[i] = 0
+
+        # Initializing variables:
+        #
+        # self.vertices[i] = 0
+        memset(self.vertices, <int> NULL, nverts * self.hash_length * sizeof(SparseGraphBTNode *))
+
+        # self.in_degrees[i] = 0
+        memset(self.in_degrees, 0, nverts * sizeof(int))
+
+        # self.out_degrees[i] = 0
+        memset(self.out_degrees, 0, nverts * sizeof(int))
+
         bitset_init(self.active_vertices, self.num_verts + extra_vertices)
         bitset_set_first_n(self.active_vertices, self.num_verts)
 
@@ -333,8 +344,14 @@ cdef class SparseGraph(CGraph):
         cdef SparseGraphBTNode **temp
         cdef SparseGraphLLNode *label_temp
         cdef int i
+
+        # Freeing the list of arcs attached to each vertex
         for i from 0 <= i < self.active_vertices.size * self.hash_length:
             temp = &(self.vertices[i])
+
+            # While temp[0]=self.vertices[i] is not NULL, find a leaf in the
+            # tree rooted at temp[0] and free it. Then go back to temp[0] and do
+            # it again. When self.vertices[i] is NULL, go for self.vertices[i+1]
             while temp[0] != NULL:
                 if temp[0].left != NULL:
                     temp = &(temp[0].left)
@@ -349,6 +366,7 @@ cdef class SparseGraph(CGraph):
                     sage_free(temp[0])
                     temp[0] = NULL
                     temp = &(self.vertices[i])
+
         sage_free(self.vertices)
         sage_free(self.in_degrees)
         sage_free(self.out_degrees)
@@ -440,16 +458,28 @@ cdef class SparseGraph(CGraph):
                 bitset_free(bits)
                 return -1
             bitset_free(bits)
+
         self.vertices = <SparseGraphBTNode **> sage_realloc(self.vertices, total * self.hash_length * sizeof(SparseGraphBTNode *))
         self.in_degrees = <int *> sage_realloc(self.in_degrees, total * sizeof(int))
         self.out_degrees = <int *> sage_realloc(self.out_degrees, total * sizeof(int))
-        cdef int i
-        for i from self.active_vertices.size*self.hash_length <= i < total*self.hash_length:
-            # empty unless there are new vertices
-            self.vertices[i] = NULL
-        for i from self.active_vertices.size <= i < total:
-            self.in_degrees[i] = 0
-            self.out_degrees[i] = 0
+
+        cdef int new_vertices = total - self.active_vertices.size
+
+        # Initializing the entries corresponding to new vertices if any
+        if new_vertices>0:
+
+            # self.vertices
+            memset(self.vertices+self.active_vertices.size *  self.hash_length,
+                   <int> NULL,
+                   new_vertices * self.hash_length * sizeof(SparseGraphBTNode *))
+
+            # self.int_degrees
+            memset(self.in_degrees+self.active_vertices.size, 0, new_vertices * sizeof(int))
+
+            # self.out_degrees
+            memset(self.out_degrees+self.active_vertices.size, 0, new_vertices * sizeof(int))
+
+        # self.active_vertices
         bitset_realloc(self.active_vertices, total)
 
     ###################################
@@ -579,6 +609,8 @@ cdef class SparseGraph(CGraph):
         cdef SparseGraphBTNode *temp, **left_child, **right_child
         cdef SparseGraphBTNode **parent = &self.vertices[i]
         cdef SparseGraphLLNode *labels
+
+        # Assigning to parent the SparseGraphBTNode corresponding to arc (u,v)
         while parent[0] != NULL:
             compared = compare(parent[0].vertex, v)
             if compared > 0:
@@ -587,14 +619,19 @@ cdef class SparseGraph(CGraph):
                 parent = &(parent[0].right)
             else:# if parent[0].vertex == v:
                 break
+
+        # If not found, there is no arc to delete !
         if parent[0] == NULL:
-            return 1 # indicate there is no arc to delete
+            return 1
+
         # now parent[0] points to the BT node corresponding to (u,v)
         labels = parent[0].labels
         i = parent[0].number
         self.in_degrees[v] -= i
         self.out_degrees[u] -= i
         self.num_arcs -= i
+
+        # Freeing the labels
         while labels != NULL:
             i = labels.number
             parent[0].labels = parent[0].labels.next
@@ -603,27 +640,46 @@ cdef class SparseGraph(CGraph):
             self.in_degrees[v] -= i
             self.out_degrees[u] -= i
             self.num_arcs -= i
+
+        # Now, if the SparseGraphBTNode element is to be removed, it has to be
+        # replaced in the binary tree by one of its children.
+
+        # If there is no left child
         if parent[0].left == NULL:
             temp = parent[0]
             parent[0] = parent[0].right
             sage_free(temp)
             return 0
+
+        # If there is no right child
         elif parent[0].right == NULL:
             temp = parent[0]
             parent[0] = parent[0].left
             sage_free(temp)
             return 0
+
+        # Both children
         else:
             left_len = 0
             right_len = 0
             left_child = &(parent[0].left)
+            right_child = &(parent[0].right)
+
+            # left_len is equal to the maximum length of a path LR...R. The
+            # last element of this path is the value of left_child
+
             while left_child[0].right != NULL:
                 left_len += 1
                 left_child = &(left_child[0].right)
-            right_child = &(parent[0].right)
+            # right_len is equal to the maximum length of a path RL...L. The
+            # last element of this path is the value of right_child
+
             while right_child[0].left != NULL:
                 right_len += 1
                 right_child = &(right_child[0].left)
+
+            # According to the respective lengths, replace parent by the left or
+            # right child and place the other child at its expected place.
             if left_len > right_len:
                 left_child[0].right = parent[0].right
                 temp = parent[0]
@@ -703,6 +759,10 @@ cdef class SparseGraph(CGraph):
             pointers[num_nbrs] = self.vertices[i]
             neighbors[num_nbrs] = self.vertices[i].vertex
             num_nbrs += 1
+
+            # While all the neighbors have not been added to the list, explore
+            # element pointers[current_nbr] and append its children to the end
+            # of pointers if necessary, the increment current_nbr.
             while current_nbr < num_nbrs:
                 if pointers[current_nbr].left != NULL:
                     if num_nbrs == size:
@@ -769,6 +829,9 @@ cdef class SparseGraph(CGraph):
             -1 -- indicates that the array has been filled with neighbors, but
         there were more
 
+        NOTE: Due to the implementation of SparseGraph, this method is much more
+        expensive than out_neighbors_unsafe.
+
         """
         cdef int i, num_nbrs = 0
         if self.in_degrees[v] == 0:
@@ -801,6 +864,8 @@ cdef class SparseGraph(CGraph):
             sage: G.in_neighbors(3)
             [1]
 
+        NOTE: Due to the implementation of SparseGraph, this method is much more
+        expensive than neighbors_unsafe.
         """
         cdef int i, num_nbrs
         self.check_vertex(v)

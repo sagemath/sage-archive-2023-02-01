@@ -13,12 +13,13 @@ if [ $? -eq 0 ]; then  # valid repo
 
     # Merge the repository, rather than overwrite changes that the
     # user may have made.
-    hg incoming "$CUR" 1> /dev/null
-    if [ $? -eq 1 ]; then
+    hg incoming "$CUR" >/dev/null
+    status=$?
+    if [ $status -eq 1 ]; then
         # No changes to pull
         exit 0
     fi
-    if [ $? -ne 0 ]; then
+    if [ $status -ne 0 ]; then
         echo "Error with Sage root repository: 'hg incoming' failed."
         exit 1
     fi

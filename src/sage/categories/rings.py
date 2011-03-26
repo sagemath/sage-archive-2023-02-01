@@ -53,7 +53,32 @@ class Rings(Category):
         return [Rngs(), Semirings()]
 
     class ParentMethods:
-        pass
+
+        def bracket(self, x, y):
+            """
+            Returns the Lie bracket `[x, y] = x y - y x` of `x` and `y`.
+
+            INPUT:
+
+             - ``x``, ``y`` -- elements of ``self``
+
+            EXAMPLES::
+
+                sage: F = AlgebrasWithBasis(QQ).example()
+                sage: F
+                An example of an algebra with basis: the free algebra on the generators ('a', 'b', 'c') over Rational Field
+                sage: a,b,c = F.algebra_generators()
+                sage: F.bracket(a,b)
+                B[word: ab] - B[word: ba]
+
+            This measures the default of commutation between `x` and `y`.
+            `F` endowed with the bracket operation is a Lie algebra;
+            in particular, it satisfies Jacobi's identity::
+
+                sage: F.bracket( F.bracket(a,b), c) + F.bracket(F.bracket(b,c),a) + F.bracket(F.bracket(c,a),b)
+                0
+            """
+            return x*y - y*x
 
     class ElementMethods:
         pass

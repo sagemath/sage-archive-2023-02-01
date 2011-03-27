@@ -324,12 +324,12 @@ class Dokchitser(SageObject):
             sage: L2(14)
             0.998583063162746
 
-        TESTS::
+        TESTS:
 
-        Verify that setting the w parameter doesn't raise an error
-        (see trac 10937).  Note that the meaning of w does not seem to
+        Verify that setting the `w` parameter does not raise an error
+        (see trac 10937).  Note that the meaning of `w` does not seem to
         be documented anywhere in Dokchitser's package yet, so there is
-        no claim that the example below is meaningful!
+        no claim that the example below is meaningful! ::
 
             sage: L2 = Dokchitser(conductor=1, gammaV=[0,1], weight=12, eps=1)
             sage: L2.init_coeffs(list(delta_qexp(1000))[1:], w=[1..1000])

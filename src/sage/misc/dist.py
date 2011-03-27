@@ -63,12 +63,12 @@ def install_scripts(bin_directory=None):
               'mwrank', 'ipython', 'hg', 'R']:
         print "Checking that Sage has the command '%s' installed"%c
         p = Popen(['which', c], stdout=PIPE, stderr=PIPE)
-        path = p.communicate()[0].rstrip("\n")
+        path = os.path.realpath(p.communicate()[0].rstrip("\n"))
         error = p.wait()
         if error:
             # the 'which' command came up empty:
             print "The command '%s' is not available; not adding shortcut"%c
-        elif not path.startswith(os.environ['SAGE_ROOT']):
+        elif not path.startswith(os.path.realpath(os.environ['SAGE_ROOT'])):
             # 'which' returned a path outside of the Sage directory:
             # then the command is already installed, and we shouldn't
             # install the Sage version:

@@ -658,6 +658,13 @@ class EllipticCurveLocalData(SageObject):
             sage: E.conductor() # indirect doctest
             Fractional ideal (18, 6*a)
 
+        The following example shows that the bug at #9417 is fixed::
+
+            sage: K.<a> = NumberField(x^2+18*x+1)
+            sage: E = EllipticCurve(K, [0, -36, 0, 320, 0])
+            sage: E.tamagawa_number(K.ideal(2))
+            4
+
         """
         E = self._curve
         P = self._prime
@@ -727,7 +734,8 @@ class EllipticCurveLocalData(SageObject):
             Local function returning the number of roots of `x^3 +
             b*x^2 + c*x + d` modulo `P`, counting multiplicities
             """
-            return sum([rr[1] for rr in PolynomialRing(F, 'x')([d, c, b, 1]).roots()],0)
+
+            return sum([rr[1] for rr in PolynomialRing(F, 'x')([F(d), F(c), F(b), F(1)]).roots()],0)
 
         if p == 2:
             halfmodp = OK(Integer(0))
@@ -789,8 +797,8 @@ class EllipticCurveLocalData(SageObject):
                 t = -halfmodp * (a1 * r + a3)
             r = preduce(r)
             t = preduce(t)
-            # print "Before first tranform C = %s"%C
-            # print "[a1,a2,a3,a4,a6] = %s"%([a1, a2, a3, a4, a6])
+            verbose("Before first transform C = %s"%C)
+            verbose("[a1,a2,a3,a4,a6] = %s"%([a1, a2, a3, a4, a6]))
             C = C.rst_transform(r, 0, t)
             (a1, a2, a3, a4, a6) = C.a_invariants()
             (b2, b4, b6, b8) = C.b_invariants()

@@ -994,23 +994,39 @@ def picklejar(obj, dir=None):
 
     INPUTS:
 
-    - ``obj`` - a pickleable object
+    - ``obj`` -- a pickleable object
 
-    - ``dir`` - a string or None; if None defaults to
-      ``SAGE_ROOT/tmp/pickle_jar-version``
+    - ``dir`` -- a string or None; if None defaults to
+      ``SAGE_ROOT/tmp/pickle_jar``
 
     EXAMPLES::
 
         sage: dir = tmp_dir()
-        sage: sage.structure.sage_object.picklejar(1,dir)
-        sage: len(os.listdir(dir))
-        2
+        sage: sage.structure.sage_object.picklejar(1, dir)
+        sage: sage.structure.sage_object.picklejar('test', dir)
+        sage: len(os.listdir(dir))   # Two entries (sobj and txt) for each object
+        4
+
+    TESTS:
+
+    Test an unaccessible directory::
+
+        sage: import os
+        sage: os.chmod(dir, 0)
+        sage: sage.structure.sage_object.picklejar(1, dir + '/noaccess')
+        Traceback (most recent call last):
+        ...
+        OSError: ...
     """
     if dir is None:
-        from sage.version import version
-        dir = os.environ['SAGE_ROOT'] + '/tmp/pickle_jar-%s/'%version
-    if not os.path.exists(dir):
+        dir = os.environ['SAGE_ROOT'] + '/tmp/pickle_jar/'
+    try:
         os.makedirs(dir)
+    except OSError as err:
+        # It is not an error if the directory exists
+        import errno
+        if not err.errno == errno.EEXIST:
+            raise
 
     s = comp.compress(cPickle.dumps(obj,protocol=2))
 

@@ -156,7 +156,12 @@ class AmbientSpace(ClearCacheOnPickle, CombinatorialFreeModule, WeightLatticeRea
             sage: e = RootSystem(['A',2]).ambient_lattice()
             sage: e[1]
             (1, 0, 0)
+            sage: e[0]
+            Traceback (most recent call last):
+            ...
+            AssertionError: Value out of range
         """
+        assert (i > 0 and i <= self.dimension()), "Value out of range"
         return self.monomial(i-1)
 
     def coroot_lattice(self):

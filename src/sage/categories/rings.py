@@ -108,7 +108,7 @@ class Rings(Category_singleton):
             rings also inherits from the base class of
             rings. Therefore, we implemented a ``__mul__``
             method for parents, that calls a ``_mul_``
-            method implemented here. See trac ticket #11068.
+            method implemented here. See :trac:`7797`.
 
             INPUT:
 
@@ -190,7 +190,7 @@ class Rings(Category_singleton):
             The code is copied from the base class of rings.
             This is since there are rings that do not inherit
             from that class, such as matrix algebras.  See
-            trac ticket #11068.
+            :trac:`7797`.
 
             EXAMPLE::
 
@@ -267,7 +267,7 @@ class Rings(Category_singleton):
             :class:`~sage.rings.ring.Ring`. This is
             because there are rings that do not inherit
             from that class, such as matrix algebras.
-            See trac ticket #11068.
+            See :trac:`7797`.
 
             INPUT:
 
@@ -439,18 +439,36 @@ class Rings(Category_singleton):
             - ``names``: a list of strings to be used as names
               for the variables in the quotient ring.
 
-            EXAMPLES::
+            EXAMPLES:
 
-                sage: F.<x,y,z> = FreeAlgebra(QQ, 3)
-                sage: I = F*[x*y+y*z,x^2+x*y-y*x-y^2]*F
+            Usually, a ring inherits a method :meth:`sage.rings.ring.Ring.quotient`.
+            So, we need a bit of effort to make the following example work with the
+            category framework::
+
+                sage: F.<x,y,z> = FreeAlgebra(QQ)
+                sage: from sage.rings.noncommutative_ideals import Ideal_nc
+                sage: class PowerIdeal(Ideal_nc):
+                ...    def __init__(self, R, n):
+                ...        self._power = n
+                ...        self._power = n
+                ...        Ideal_nc.__init__(self,R,[R.prod(m) for m in CartesianProduct(*[R.gens()]*n)])
+                ...    def reduce(self,x):
+                ...        R = self.ring()
+                ...        return add([c*R(m) for c,m in x if len(m)<self._power],R(0))
+                ...
+                sage: I = PowerIdeal(F,3)
                 sage: Q = Rings().parent_class.quotient(F,I); Q
-                Quotient of Free Algebra on 3 generators (x, y, z) over Rational Field by the ideal (x*y + y*z, x^2 + x*y - y*x - y^2)
+                Quotient of Free Algebra on 3 generators (x, y, z) over Rational Field by the ideal (x^3, x^2*y, x^2*z, x*y*x, x*y^2, x*y*z, x*z*x, x*z*y, x*z^2, y*x^2, y*x*y, y*x*z, y^2*x, y^3, y^2*z, y*z*x, y*z*y, y*z^2, z*x^2, z*x*y, z*x*z, z*y*x, z*y^2, z*y*z, z^2*x, z^2*y, z^3)
                 sage: Q.0
                 xbar
                 sage: Q.1
                 ybar
                 sage: Q.2
                 zbar
+                sage: Q.0*Q.1
+                xbar*ybar
+                sage: Q.0*Q.1*Q.0
+                0
 
             """
             from sage.rings.quotient_ring import QuotientRing

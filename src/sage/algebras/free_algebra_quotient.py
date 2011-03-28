@@ -1,5 +1,17 @@
 """
-Free algebra quotients
+Finite dimensional free algebra quotients
+
+REMARK:
+
+This implementation only works for finite dimensional quotients, since
+a list of basis monomials and the multiplication matrices need to be
+explicitly provided.
+
+The homogeneous part of a quotient of a free algebra over a field by a
+finitely generated homogeneous twosided ideal is available in a
+different implementation. See
+:mod:`~sage.algebras.letterplace.free_algebra_letterplace` and
+:mod:`~sage.rings.quotient_ring`.
 
 TESTS::
 

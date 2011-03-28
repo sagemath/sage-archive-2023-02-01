@@ -121,6 +121,24 @@ ext_modules = [
                include_dirs = [SAGE_INC + 'FLINT/'],
                depends = flint_depends),
 
+    Extension('sage.algebras.letterplace.free_algebra_letterplace',
+              sources = ['sage/algebras/letterplace/free_algebra_letterplace.pyx'],
+              language="c++",
+              include_dirs = [SAGE_INC +'singular/'],
+              depends = singular_depends),
+
+    Extension('sage.algebras.letterplace.free_algebra_element_letterplace',
+              sources = ['sage/algebras/letterplace/free_algebra_element_letterplace.pyx'],
+              language="c++",
+              include_dirs = [SAGE_INC +'singular/'],
+              depends = singular_depends),
+
+    Extension('sage.algebras.letterplace.letterplace_ideal',
+              sources = ['sage/algebras/letterplace/letterplace_ideal.pyx'],
+              language="c++",
+              include_dirs = [SAGE_INC +'singular/'],
+              depends = singular_depends),
+
     Extension('sage.algebras.quatalg.quaternion_algebra_cython',
                sources = ['sage/algebras/quatalg/quaternion_algebra_cython.pyx'],
                language='c++',

@@ -12,7 +12,7 @@ Generic implementation of one- and twosided ideals of non-commutative rings.
 
 AUTHOR:
 
-- Simon King (2011-03-28), <simon.king@uni-jena.de>: Trac ticket #11068.
+- Simon King (2011-03-21), <simon.king@uni-jena.de>, :trac:`7797`.
 
 EXAMPLES::
 
@@ -38,6 +38,10 @@ EXAMPLES::
       [-2  3]
     )
      of Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
+
+See :mod:`~sage.algebras.letterplace.letterplace_ideal` for a more
+elaborate implementation in the special case of ideals in free
+algebras.
 
 TEST::
 
@@ -137,7 +141,8 @@ class Ideal_nc(Ideal_generic):
     Generic non-commutative ideal.
 
     All fancy stuff such as the computation of Groebner bases must be
-    implemented in sub-classes.
+    implemented in sub-classes. See :class:`~sage.algebras.letterplace.letterplace_ideal.LetterplaceIdeal`
+    for an example.
 
     EXAMPLE::
 

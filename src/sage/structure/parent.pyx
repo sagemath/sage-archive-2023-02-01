@@ -814,10 +814,11 @@ cdef class Parent(category_object.CategoryObject):
         is because ``__mul__`` can not be implemented via inheritance
         from the parent methods of the category, but ``_mul_`` can
         be inherited. This is, e.g., used when creating twosided
-        ideals of matrix algebras. See trac ticket #11068.
+        ideals of matrix algebras. See :trac:`7797`.
 
         EXAMPLE::
 
+            sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: MS = MatrixSpace(QQ,2,2)
 
         This matrix space is in fact an algebra, and in particular

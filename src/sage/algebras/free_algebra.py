@@ -9,6 +9,10 @@ AUTHORS:
   things.
 
 - Simon King (2011-04): Put free algebras into the category framework.
+  Reimplement free algebra constructor, using a
+  :class:`~sage.structure.factory.UniqueFactory` for handling
+  different implementations of free algebras. Allow degree weights
+  for free algebras in letterplace implementation.
 
 EXAMPLES::
 
@@ -20,30 +24,98 @@ EXAMPLES::
     sage: G.base_ring()
     Free Algebra on 3 generators (x, y, z) over Integer Ring
 
+The above free algebra is based on a generic implementation. By
+:trac:`7797`, there is a different implementation
+:class:`~sage.algebras.letterplace.free_algebra_letterplace.FreeAlgebra_letterplace`
+based on Singular's letterplace rings. It is currently restricted to
+weighted homogeneous elements and is therefore not the default. But the
+arithmetic is much faster than in the generic implementation.
+Moreover, we can compute Groebner bases with degree bound for its
+two-sided ideals, and thus provide ideal containment tests::
+
+    sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
+    sage: F
+    Free Associative Unital Algebra on 3 generators (x, y, z) over Rational Field
+    sage: I = F*[x*y+y*z,x^2+x*y-y*x-y^2]*F
+    sage: I.groebner_basis(degbound=4)
+    Twosided Ideal (y*z*y*y - y*z*y*z + y*z*z*y - y*z*z*z, y*z*y*x + y*z*y*z + y*z*z*x + y*z*z*z, y*y*z*y - y*y*z*z + y*z*z*y - y*z*z*z, y*y*z*x + y*y*z*z + y*z*z*x + y*z*z*z, y*y*y - y*y*z + y*z*y - y*z*z, y*y*x + y*y*z + y*z*x + y*z*z, x*y + y*z, x*x - y*x - y*y - y*z) of Free Associative Unital Algebra on 3 generators (x, y, z) over Rational Field
+    sage: y*z*y*y*z*z + 2*y*z*y*z*z*x + y*z*y*z*z*z - y*z*z*y*z*x + y*z*z*z*z*x in I
+    True
+
+Positive integral degree weights for the letterplace implementation
+was introduced in trac ticket #...::
+
+    sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace', degrees=[2,1,3])
+    sage: x.degree()
+    2
+    sage: y.degree()
+    1
+    sage: z.degree()
+    3
+    sage: I = F*[x*y-y*x, x^2+2*y*z, (x*y)^2-z^2]*F
+    sage: Q.<a,b,c> = F.quo(I)
+    sage: TestSuite(Q).run()
+    sage: a^2*b^2
+    c*c
+
 TESTS::
 
     sage: F = FreeAlgebra(GF(5),3,'x')
     sage: TestSuite(F).run()
+    sage: F is loads(dumps(F))
+    True
+    sage: F = FreeAlgebra(GF(5),3,'x', implementation='letterplace')
+    sage: TestSuite(F).run()
+    sage: F is loads(dumps(F))
+    True
 
 ::
 
     sage: F.<x,y,z> = FreeAlgebra(GF(5),3)
     sage: TestSuite(F).run()
+    sage: F is loads(dumps(F))
+    True
+    sage: F.<x,y,z> = FreeAlgebra(GF(5),3, implementation='letterplace')
+    sage: TestSuite(F).run()
+    sage: F is loads(dumps(F))
+    True
 
 ::
 
     sage: F = FreeAlgebra(GF(5),3, ['xx', 'zba', 'Y'])
     sage: TestSuite(F).run()
+    sage: F is loads(dumps(F))
+    True
+    sage: F = FreeAlgebra(GF(5),3, ['xx', 'zba', 'Y'], implementation='letterplace')
+    sage: TestSuite(F).run()
+    sage: F is loads(dumps(F))
+    True
 
 ::
 
     sage: F = FreeAlgebra(GF(5),3, 'abc')
     sage: TestSuite(F).run()
+    sage: F is loads(dumps(F))
+    True
+    sage: F = FreeAlgebra(GF(5),3, 'abc', implementation='letterplace')
+    sage: TestSuite(F).run()
+    sage: F is loads(dumps(F))
+    True
 
 ::
 
-    sage: F = FreeAlgebra(FreeAlgebra(ZZ,1,'a'), 2, 'x')
+    sage: F = FreeAlgebra(FreeAlgebra(ZZ,2,'ab'), 2, 'x')
     sage: TestSuite(F).run()
+    sage: F is loads(dumps(F))
+    True
+
+Note that the letterplace implementation can only be used if the corresponding
+(multivariate) polynomial ring has an implementation in Singular::
+
+    sage: FreeAlgebra(FreeAlgebra(ZZ,2,'ab'), 2, 'x', implementation='letterplace')
+    Traceback (most recent call last):
+    ...
+    NotImplementedError: The letterplace implementation is not available for the free algebra you requested
 
 """
 
@@ -66,20 +138,15 @@ from sage.algebras.free_algebra_element import FreeAlgebraElement
 
 import sage.structure.parent_gens
 
-def FreeAlgebra(R, n, names):
+from sage.structure.factory import UniqueFactory
+from sage.all import PolynomialRing
+from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
+
+class FreeAlgebraFactory(UniqueFactory):
     """
-    Return the free algebra over the ring `R` on `n`
-    generators with given names.
+    A constructor of free algebras.
 
-    INPUT:
-
-    -  ``R`` - ring
-    -  ``n`` - integer
-    -  ``names`` - string or list/tuple of n strings
-
-    OUTPUT:
-
-    A free algebra.
+    See :mod:`~sage.algebras.free_algebra` for examples and corner cases.
 
     EXAMPLES::
 
@@ -105,6 +172,41 @@ def FreeAlgebra(R, n, names):
         sage: G = FreeAlgebra(ZZ,3,'x,y,z')
         sage: F is G
         True
+        sage: F.<x,y,z> = FreeAlgebra(GF(5),3)  # indirect doctest
+        sage: F is loads(dumps(F))
+        True
+        sage: F is FreeAlgebra(GF(5),['x','y','z'])
+        True
+        sage: copy(F) is F is loads(dumps(F))
+        True
+        sage: TestSuite(F).run()
+
+    By :trac:`7797`, we provide a different implementation of free
+    algebras, based on Singular's "letterplace rings". Our letterplace
+    wrapper allows for chosing positive integral degree weights for the
+    generators of the free algebra. However, only (weighted) homogenous
+    elements are supported. Of course, isomorphic algebras in different
+    implementations are not identical::
+
+        sage: G = FreeAlgebra(GF(5),['x','y','z'], implementation='letterplace')
+        sage: F == G
+        False
+        sage: G is FreeAlgebra(GF(5),['x','y','z'], implementation='letterplace')
+        True
+        sage: copy(G) is G is loads(dumps(G))
+        True
+        sage: TestSuite(G).run()
+
+    ::
+
+        sage: H = FreeAlgebra(GF(5),['x','y','z'], implementation='letterplace', degrees=[1,2,3])
+        sage: F != H != G
+        True
+        sage: H is FreeAlgebra(GF(5),['x','y','z'], implementation='letterplace', degrees=[1,2,3])
+        True
+        sage: copy(H) is H is loads(dumps(H))
+        True
+        sage: TestSuite(H).run()
 
     Free algebras commute with their base ring.
     ::
@@ -122,8 +224,106 @@ def FreeAlgebra(R, n, names):
         sage: c^3 * a * b^2
         a*b^2*c^3
     """
-    names = sage.structure.parent_gens.normalize_names(n, names)
-    return cache(R, n, names)
+    def create_key(self,base_ring, arg1=None, arg2=None,
+                                      sparse=False, order='degrevlex',
+                                      names=None, name=None,
+                                      implementation=None, degrees=None):
+        """
+        Create the key under which a free algebra is stored.
+
+        TESTS::
+
+            sage: FreeAlgebra.create_key(GF(5),['x','y','z'])
+            (Finite Field of size 5, ('x', 'y', 'z'))
+            sage: FreeAlgebra.create_key(GF(5),['x','y','z'],3)
+            (Finite Field of size 5, ('x', 'y', 'z'))
+            sage: FreeAlgebra.create_key(GF(5),3,'xyz')
+            (Finite Field of size 5, ('x', 'y', 'z'))
+            sage: FreeAlgebra.create_key(GF(5),['x','y','z'], implementation='letterplace')
+            (Multivariate Polynomial Ring in x, y, z over Finite Field of size 5,)
+            sage: FreeAlgebra.create_key(GF(5),['x','y','z'],3, implementation='letterplace')
+            (Multivariate Polynomial Ring in x, y, z over Finite Field of size 5,)
+            sage: FreeAlgebra.create_key(GF(5),3,'xyz', implementation='letterplace')
+            (Multivariate Polynomial Ring in x, y, z over Finite Field of size 5,)
+            sage: FreeAlgebra.create_key(GF(5),3,'xyz', implementation='letterplace', degrees=[1,2,3])
+            ((1, 2, 3), Multivariate Polynomial Ring in x, y, z, x_ over Finite Field of size 5)
+
+        """
+        if arg1 is None and arg2 is None and names is None:
+            # this is used for pickling
+            if degrees is None:
+                return (base_ring,)
+            return tuple(degrees),base_ring
+        PolRing = None
+        # test if we can use libSingular/letterplace
+        if implementation is not None and implementation != 'generic':
+            try:
+                PolRing = PolynomialRing(base_ring, arg1, arg2,
+                                   sparse=sparse, order=order,
+                                   names=names, name=name,
+                                   implementation=implementation if implementation!='letterplace' else None)
+                if not isinstance(PolRing,MPolynomialRing_libsingular):
+                    if PolRing.ngens() == 1:
+                        PolRing = PolynomialRing(base_ring,1,PolRing.variable_names())
+                        if not isinstance(PolRing,MPolynomialRing_libsingular):
+                            raise TypeError
+                    else:
+                        raise TypeError
+            except (TypeError, NotImplementedError),msg:
+                raise NotImplementedError, "The letterplace implementation is not available for the free algebra you requested"
+        if PolRing is not None:
+            if degrees is None:
+                return (PolRing,)
+            from sage.all import TermOrder
+            T = PolRing.term_order()+TermOrder('lex',1)
+            varnames = list(PolRing.variable_names())
+            newname = 'x'
+            while newname in varnames:
+                newname += '_'
+            varnames.append(newname)
+            return tuple(degrees),PolynomialRing(PolRing.base(), varnames,
+                    sparse=sparse, order=T,
+                    implementation=implementation if implementation!='letterplace'  else None)
+        # normalise the generator names
+        from sage.all import Integer
+        if isinstance(arg1, (int, long, Integer)):
+            arg1, arg2 = arg2, arg1
+        if not names is None:
+            arg1 = names
+        elif not name is None:
+            arg1 = name
+        if arg2 is None:
+            arg2 = len(arg1)
+        names = sage.structure.parent_gens.normalize_names(arg2,arg1)
+        return base_ring, names
+
+    def create_object(self, version, key):
+        """
+        Construct the free algebra that belongs to a unique key.
+
+        NOTE:
+
+        Of course, that method should not be called directly,
+        since it does not use the cache of free algebras.
+
+        TESTS::
+
+            sage: FreeAlgebra.create_object('4.7.1', (QQ['x','y'],))
+            Free Associative Unital Algebra on 2 generators (x, y) over Rational Field
+            sage: FreeAlgebra.create_object('4.7.1', (QQ['x','y'],)) is FreeAlgebra(QQ,['x','y'])
+            False
+
+        """
+        if len(key)==1:
+            from sage.algebras.letterplace.free_algebra_letterplace import FreeAlgebra_letterplace
+            return FreeAlgebra_letterplace(key[0])
+        if isinstance(key[0],tuple):
+            from sage.algebras.letterplace.free_algebra_letterplace import FreeAlgebra_letterplace
+            return FreeAlgebra_letterplace(key[1],degrees=key[0])
+        return FreeAlgebra_generic(key[0],len(key[1]),key[1])
+
+FreeAlgebra = FreeAlgebraFactory('FreeAlgebra')
+
 
 def is_FreeAlgebra(x):
     """
@@ -138,8 +338,14 @@ def is_FreeAlgebra(x):
         False
         sage: is_FreeAlgebra(FreeAlgebra(ZZ,100,'x'))
         True
+        sage: is_FreeAlgebra(FreeAlgebra(ZZ,10,'x',implementation='letterplace'))
+        True
+        sage: is_FreeAlgebra(FreeAlgebra(ZZ,10,'x',implementation='letterplace', degrees=range(1,11)))
+        True
+
     """
-    return isinstance(x, FreeAlgebra_generic)
+    from sage.algebras.letterplace.free_algebra_letterplace import FreeAlgebra_letterplace
+    return isinstance(x, (FreeAlgebra_generic,FreeAlgebra_letterplace))
 
 
 class FreeAlgebra_generic(Algebra):
@@ -158,6 +364,25 @@ class FreeAlgebra_generic(Algebra):
         x*y*x*y*x*y*x*y*x*y*x*y + x*y*z*x*y*z*x*y*z*x*y*z
         sage: (2 + x*z + x^2)^2 + (x - y)^2
         4 + 5*x^2 - x*y + 4*x*z - y*x + y^2 + x^4 + x^3*z + x*z*x^2 + x*z*x*z
+
+    TESTS:
+
+    Free algebras commute with their base ring.
+    ::
+
+        sage: K.<a,b> = FreeAlgebra(QQ)
+        sage: K.is_commutative()
+        False
+        sage: L.<c,d> = FreeAlgebra(K)
+        sage: L.is_commutative()
+        False
+        sage: s = a*b^2 * c^3; s
+        a*b^2*c^3
+        sage: parent(s)
+        Free Algebra on 2 generators (c, d) over Free Algebra on 2 generators (a, b) over Rational Field
+        sage: c^3 * a * b^2
+        a*b^2*c^3
+
     """
     Element = FreeAlgebraElement
     def __init__(self, R, n, names):
@@ -174,6 +399,17 @@ class FreeAlgebra_generic(Algebra):
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, 3); F # indirect doctet
             Free Algebra on 3 generators (x, y, z) over Rational Field
+
+        TEST:
+
+        Note that the following is *not* the recommended way to create
+        a free algebra.
+        ::
+
+            sage: from sage.algebras.free_algebra import FreeAlgebra_generic
+            sage: FreeAlgebra_generic(ZZ,3,'abc')
+            Free Algebra on 3 generators (a, b, c) over Integer Ring
+
         """
         if not isinstance(R, Ring):
             raise TypeError("Argument R must be a ring.")
@@ -218,7 +454,8 @@ class FreeAlgebra_generic(Algebra):
     def __cmp__(self, other):
         """
         Two free algebras are considered the same if they have the same
-        base ring, number of generators and variable names.
+        base ring, number of generators and variable names, and the same
+        implementation.
 
         EXAMPLES::
 
@@ -233,12 +470,19 @@ class FreeAlgebra_generic(Algebra):
             False
             sage: F == FreeAlgebra(QQ,3,'y')
             False
+
+        Note that since :trac:`7797` there is a different
+        implementation of free algebras. Two corresponding free
+        algebras in different implementations are not equal, but there
+        is a coercion::
+
+
         """
         if not isinstance(other, FreeAlgebra_generic):
             return -1
         c = cmp(self.base_ring(), other.base_ring())
         if c: return c
-        c = cmp(self.__ngens, other.__ngens)
+        c = cmp(self.__ngens, other.ngens())
         if c: return c
         c = cmp(self.variable_names(), other.variable_names())
         if c: return c
@@ -251,10 +495,10 @@ class FreeAlgebra_generic(Algebra):
         EXAMPLES::
 
             sage: F = FreeAlgebra(QQ,3,'x')
-            sage: print F  # indirect doctest
+            sage: F  # indirect doctest
             Free Algebra on 3 generators (x0, x1, x2) over Rational Field
             sage: F.rename('QQ<<x0,x1,x2>>')
-            sage: print F #indirect doctest
+            sage: F #indirect doctest
             QQ<<x0,x1,x2>>
             sage: FreeAlgebra(ZZ,1,['a'])
             Free Algebra on 1 generators (a,) over Integer Ring
@@ -264,13 +508,33 @@ class FreeAlgebra_generic(Algebra):
 
     def _element_constructor_(self, x):
         """
-       Coerce x into self.
+       Convert x into self.
 
        EXAMPLES::
 
            sage: R.<x,y> = FreeAlgebra(QQ,2)
            sage: R(3) # indirect doctest
            3
+
+       TESTS::
+
+           sage: F.<x,y,z> = FreeAlgebra(GF(5),3)
+           sage: L.<x,y,z> = FreeAlgebra(ZZ,3,implementation='letterplace')
+           sage: F(x)     # indirect doctest
+           x
+           sage: F.1*L.2
+           y*z
+           sage: (F.1*L.2).parent() is F
+           True
+
+       ::
+
+           sage: K.<z> = GF(25)
+           sage: F.<a,b,c> = FreeAlgebra(K,3)
+           sage: L.<a,b,c> = FreeAlgebra(K,3, implementation='letterplace')
+           sage: F.1+(z+1)*L.2
+           b + (z+1)*c
+
        """
         if isinstance(x, FreeAlgebraElement):
             P = x.parent()
@@ -278,7 +542,22 @@ class FreeAlgebra_generic(Algebra):
                 return x
             if not (P is self.base_ring()):
                 return self.element_class(self, x)
+        elif hasattr(x,'letterplace_polynomial'):
+            P = x.parent()
+            if self.has_coerce_map_from(P): # letterplace versus generic
+                ngens = P.ngens()
+                M = self.__monoid
+                def exp_to_monomial(T):
+                    out = []
+                    for i in xrange(len(T)):
+                        if T[i]:
+                            out.append((i%ngens,T[i]))
+                    return M(out)
+                return self.element_class(self, dict([(exp_to_monomial(T),c) for T,c in x.letterplace_polynomial().dict().iteritems()]))
         # ok, not a free algebra element (or should not be viewed as one).
+        if isinstance(x, basestring):
+            from sage.all import sage_eval
+            return sage_eval(x,locals=self.gens_dict())
         F = self.__monoid
         R = self.base_ring()
         # coercion from free monoid
@@ -298,6 +577,10 @@ class FreeAlgebra_generic(Algebra):
         Here's what canonically coerces to self:
 
         - this free algebra
+
+        - a free algebra in letterplace implementation that has
+          the same generator names and whose base ring coerces
+          into self's base ring
 
         - the underlying monoid
 
@@ -366,6 +649,16 @@ class FreeAlgebra_generic(Algebra):
             TypeError: no canonical coercion from Free Algebra on 3 generators
             (x, y, z) over Finite Field of size 7 to Free Algebra on 3
             generators (x, y, z) over Integer Ring
+
+        TESTS::
+
+           sage: F.<x,y,z> = FreeAlgebra(GF(5),3)
+           sage: L.<x,y,z> = FreeAlgebra(GF(5),3,implementation='letterplace')
+           sage: F(x)
+           x
+           sage: F.1*L.2     # indirect doctest
+           y*z
+
         """
         try:
             R = x.parent()
@@ -419,6 +712,12 @@ class FreeAlgebra_generic(Algebra):
             True
             sage: F.has_coerce_map_from(PolynomialRing(ZZ, 3, 'x,y,z'))
             False
+            sage: K.<z> = GF(25)
+            sage: F.<a,b,c> = FreeAlgebra(K,3)
+            sage: L.<a,b,c> = FreeAlgebra(K,3, implementation='letterplace')
+            sage: F.1+(z+1)*L.2      # indirect doctest
+            b + (z+1)*c
+
         """
         if self.__monoid.has_coerce_map_from(R):
             return True

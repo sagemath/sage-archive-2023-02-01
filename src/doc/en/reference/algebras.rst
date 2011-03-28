@@ -9,6 +9,10 @@ Algebras
    sage/algebras/free_algebra
    sage/algebras/free_algebra_element
 
+   sage/algebras/letterplace/free_algebra_letterplace
+   sage/algebras/letterplace/free_algebra_element_letterplace
+   sage/algebras/letterplace/letterplace_ideal
+
    sage/algebras/free_algebra_quotient
    sage/algebras/free_algebra_quotient_element
 

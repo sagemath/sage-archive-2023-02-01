@@ -546,6 +546,15 @@ class QuotientRingElement(ring_element.RingElement):
             0
             sage: a.__cmp__(b)
             1
+
+        See :trac:`7797`:
+
+            sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
+            sage: I = F*[x*y+y*z,x^2+x*y-y*x-y^2]*F
+            sage: Q = F.quo(I)
+            sage: Q.0^4    # indirect doctest
+            ybar*zbar*zbar*xbar + ybar*zbar*zbar*ybar + ybar*zbar*zbar*zbar
+
         """
         #if self.__rep == other.__rep or ((self.__rep - other.__rep) in self.parent().defining_ideal()):
         #    return 0

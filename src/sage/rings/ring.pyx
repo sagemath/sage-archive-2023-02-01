@@ -409,6 +409,11 @@ cdef class Ring(ParentWithGens):
             sage: Q = sage.rings.ring.Ring.quotient(F,I)
             sage: Q.ideal_monoid()
             Monoid of ideals of Quotient of Free Algebra on 3 generators (x, y, z) over Integer Ring by the ideal (x*y + y*z, x^2 + x*y - y*x - y^2)
+            sage: F.<x,y,z> = FreeAlgebra(ZZ, implementation='letterplace')
+            sage: I = F*[x*y+y*z,x^2+x*y-y*x-y^2]*F
+            sage: Q = F.quo(I)
+            sage: Q.ideal_monoid()
+            Monoid of ideals of Quotient of Free Associative Unital Algebra on 3 generators (x, y, z) over Integer Ring by the ideal (x*y + y*z, x*x + x*y - y*x - y*y)
 
         """
         if self.__ideal_monoid is not None:
@@ -536,7 +541,7 @@ cdef class Ring(ParentWithGens):
             sage: (x+y,z+y^3)*R
             Ideal (x + y, y^3 + z) of Multivariate Polynomial Ring in x, y, z over Finite Field of size 7
 
-        The following was implemented in trac ticket #11068::
+        The following was implemented in :trac:`7797`::
 
             sage: A = SteenrodAlgebra(2)
             sage: A*[A.1+A.2,A.1^2]
@@ -609,7 +614,7 @@ cdef class Ring(ParentWithGens):
             sage: RR._ideal_class_()
             <class 'sage.rings.ideal.Ideal_pid'>
 
-        Since #11068, non-commutative rings have ideals as well::
+        Since :trac:`7797`, non-commutative rings have ideals as well::
 
             sage: A = SteenrodAlgebra(2)
             sage: A._ideal_class_()

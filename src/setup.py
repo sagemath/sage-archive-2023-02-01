@@ -855,6 +855,7 @@ code = setup(name = 'sage',
       packages    = ['sage',
 
                      'sage.algebras',
+                     'sage.algebras.letterplace',
                      'sage.algebras.quatalg',
                      'sage.algebras.steenrod',
 

@@ -78,7 +78,7 @@ class FreeAlgebraElement(AlgebraElement):
         EXAMPLES::
 
             sage: A.<x,y,z>=FreeAlgebra(ZZ,3)
-            sage: repr(-x+3*y*z)
+            sage: repr(-x+3*y*z)    # indirect doctest
             '-x + 3*y*z'
 
         Trac ticket #11068 enables the use of local variable names::
@@ -105,7 +105,7 @@ class FreeAlgebraElement(AlgebraElement):
         EXAMPLES::
 
             sage: A.<x,y,z>=FreeAlgebra(ZZ,3)
-            sage: latex(-x+3*y^20*z)
+            sage: latex(-x+3*y^20*z)   # indirect doctest
             \left(-1\right)x + 3y^{20}z
             sage: alpha,beta,gamma=FreeAlgebra(ZZ,3,'alpha,beta,gamma').gens()
             sage: latex(alpha-beta)
@@ -197,7 +197,7 @@ class FreeAlgebraElement(AlgebraElement):
         EXAMPLES::
 
             sage: R.<x,y> = FreeAlgebra(QQ,2)
-            sage: x + y
+            sage: x + y    # indirect doctest
             x + y
         """
         A = self.parent()
@@ -234,7 +234,7 @@ class FreeAlgebraElement(AlgebraElement):
         EXAMPLES::
 
             sage: R.<x,y> = FreeAlgebra(QQ,2)
-            sage: -(x+y)
+            sage: -(x+y)    # indirect doctest
             -x - y
         """
         y = self.parent()(0)
@@ -252,7 +252,7 @@ class FreeAlgebraElement(AlgebraElement):
         EXAMPLES::
 
             sage: R.<x,y> = FreeAlgebra(QQ,2)
-            sage: x - y
+            sage: x - y    # indirect doctest
             x - y
         """
         A = self.parent()
@@ -290,7 +290,7 @@ class FreeAlgebraElement(AlgebraElement):
         EXAMPLES::
 
             sage: A.<x,y,z>=FreeAlgebra(ZZ,3)
-            sage: (x+y+x*y)*(x+y+1)
+            sage: (x+y+x*y)*(x+y+1)    # indirect doctest
             x + y + x^2 + 2*x*y + y*x + y^2 + x*y*x + x*y^2
         """
         A = self.parent()

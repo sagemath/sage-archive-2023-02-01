@@ -5467,7 +5467,8 @@ cdef class Matrix(matrix1.Matrix):
             sage: C.echelon_form()
             Traceback (most recent call last):
             ...
-            NotImplementedError: Echelon form not implemented over 'Univariate Polynomial Ring in x over Integer Ring'.
+            NotImplementedError: Ideal Ideal (2, x + 1) of Univariate Polynomial Ring in x over Integer Ring not principal
+            Echelon form not implemented over 'Univariate Polynomial Ring in x over Integer Ring'.
             sage: C = matrix(3,[2,x,x^2,x+1,3-x,-1,3,2,1/2])
             sage: C.echelon_form()
             [                               2                                x                              x^2]
@@ -5561,8 +5562,8 @@ cdef class Matrix(matrix1.Matrix):
         else:
             try:
                 a, d, p = self._echelon_form_PID()
-            except TypeError:
-                raise NotImplementedError, "echelon form over %s not yet implemented"%self.base_ring()
+            except TypeError, msg:
+                raise NotImplementedError, "%s\nechelon form over %s not yet implemented"%(msg, self.base_ring())
 
             for c from 0 <= c < self.ncols():
                for r from 0 <= r < self.nrows():
@@ -5714,7 +5715,7 @@ cdef class Matrix(matrix1.Matrix):
                     kwds['algorithm'] = algorithm
                 return self._echelonize_ring(**kwds)
         except ArithmeticError, msg:
-            raise NotImplementedError, "Echelon form not implemented over '%s'."%self.base_ring()
+            raise NotImplementedError, "%s\nEchelon form not implemented over '%s'."%(msg,self.base_ring())
 
     def echelon_form(self, algorithm="default", cutoff=0, **kwds):
         """
@@ -10518,6 +10519,66 @@ cdef class Matrix(matrix1.Matrix):
         dp, up, vp = _smith_diag(d)
         return dp,up*u,v*vp
 
+    def hermite_form(self, include_zero_rows=True, transformation=False):
+        """
+        Return the Hermite form of self, if it is defined.
+
+        INPUT:
+
+            - ``include_zero_rows`` -- bool (default: True); if False
+              the zero rows in the output matrix are deleted.
+
+            - ``transformation`` -- bool (default: False) a matrix U such that U*self == H.
+
+        OUTPUT:
+
+            - matrix H
+            - (optional) transformation matrix U such that U*self == H, possibly with zero
+              rows deleted...
+
+
+        EXAMPLES::
+
+            sage: M = FunctionField(GF(7),'x').maximal_order()
+            sage: K.<x> = FunctionField(GF(7)); M = K.maximal_order()
+            sage: A = matrix(M, 2, 3, [x, 1, 2*x, x, 1+x, 2])
+            sage: A.hermite_form()
+            [      x       1     2*x]
+            [      0       x 5*x + 2]
+            sage: A.hermite_form(transformation=True)
+            (
+            [      x       1     2*x]  [1 0]
+            [      0       x 5*x + 2], [6 1]
+            )
+            sage: A = matrix(M, 2, 3, [x, 1, 2*x, 2*x, 2, 4*x])
+            sage: A.hermite_form(transformation=True, include_zero_rows=False)
+            ([  x   1 2*x], [1 0])
+            sage: H, U = A.hermite_form(transformation=True, include_zero_rows=True); H, U
+            (
+            [  x   1 2*x]  [1 0]
+            [  0   0   0], [5 1]
+            )
+            sage: U*A == H
+            True
+            sage: H, U = A.hermite_form(transformation=True, include_zero_rows=False)
+            sage: U*A
+            [  x   1 2*x]
+            sage: U*A == H
+            True
+        """
+        left, H, pivots = self._echelon_form_PID()
+        if not include_zero_rows:
+            i = H.nrows() - 1
+            while H.row(i) == 0:
+                i -= 1
+            H = H[:i+1]
+            if transformation:
+                left = left[:i+1]
+        if transformation:
+            return H, left
+        else:
+            return H
+
     def _echelon_form_PID(self):
         r"""
         Return a triple (left, a, pivots) where left*self == a and a is row
@@ -11831,8 +11892,8 @@ def _generic_clear_column(m):
         if a[k,0] not in I:
             try:
                 v = R.ideal(a[0,0], a[k,0]).gens_reduced()
-            except:
-                raise ArithmeticError, "Can't create ideal on %s and %s" % (a[0,0], a[k,0])
+            except Exception, msg:
+                raise ArithmeticError, "%s\nCan't create ideal on %s and %s" % (msg, a[0,0], a[k,0])
             if len(v) > 1:
                 raise ArithmeticError, "Ideal %s not principal" %  R.ideal(a[0,0], a[k,0])
             B = v[0]

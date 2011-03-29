@@ -1033,7 +1033,7 @@ done from the right side.""")
             for a in c:
                 try:
                     b = R(a)
-                except (TypeError):
+                except (TypeError, ValueError):
                     return False
                 except NotImplementedError:
                     from sage.rings.all import ZZ

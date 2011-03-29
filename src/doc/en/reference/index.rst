@@ -71,6 +71,7 @@ Enjoy Sage!
    rings_standard
    rings_numerical
    number_fields
+   function_fields
    padics
    polynomial_rings
    power_series

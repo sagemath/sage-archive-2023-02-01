@@ -67,6 +67,9 @@ from finite_rings.all import *
 # Number field
 from number_field.all import *
 
+# Function field
+from function_field.all import *
+
 # p-adic field
 from padics.all import *
 from padics.padic_printing import _printer_defaults as padic_printing

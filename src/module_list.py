@@ -1396,6 +1396,15 @@ ext_modules = [
 
         ################################
         ##
+        ## sage.rings.function_field
+        ##
+        ################################
+
+    Extension('sage.rings.function_field.function_field_element',
+              sources = ['sage/rings/function_field/function_field_element.pyx']),
+
+        ################################
+        ##
         ## sage.rings.number_field
         ##
         ################################

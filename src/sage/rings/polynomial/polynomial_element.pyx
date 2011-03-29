@@ -2424,7 +2424,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 X[i] = c
         return X
 
-    def factor(self):
+    def factor(self, proof=True):
         r"""
         Return the factorization of self over the base ring of this
         polynomial. Factoring polynomials over
@@ -2489,12 +2489,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
         that this method is called instead to factor univariate
         polynomials over this ring.  This facility can be used to
         easily extend polynomial factorization to work over new rings
-        you introduce::
+        you introduce. ::
 
              sage: R.<x> = QQ[]
              sage: (x^2 + 1).factor()
              x^2 + 1
-             sage: QQ._factor_univariate_polynomial = lambda f: f.change_ring(CDF).factor()
+             sage: QQ._factor_univariate_polynomial = lambda f, proof: f.change_ring(CDF).factor()
              sage: fz = (x^2 + 1).factor(); fz # random order of factors, with noise
              (x - ... + I) * (x - I)
              sage: # Change noisy zero term which affects the order of factors:
@@ -2822,6 +2822,17 @@ cdef class Polynomial(CommutativeAlgebraElement):
         ## if there are many factors.
         ##
 
+        ## HUGE TODO, refactor the code below here such that this method will
+        ## have as only the following code
+        ##
+        ## R = self.parent().base_ring()
+        ## return R._factor_univariate_polynomial(self)
+        ##
+        ## in this way we can move the specific logic of factoring to the
+        ## self.parent().base_ring() and get rid of all the ugly
+        ## is_SomeType(R) checks and get way nicer structured code
+        ## 200 lines of spagetti code is just way to much!
+
         if self.degree() < 0:
             raise ValueError, "factorization of 0 not defined"
         if self.degree() == 0:
@@ -2829,7 +2840,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         R = self.parent().base_ring()
         if hasattr(R, '_factor_univariate_polynomial'):
-            return R._factor_univariate_polynomial(self)
+            return R._factor_univariate_polynomial(self,proof=proof)
 
         G = None
         ch = R.characteristic()

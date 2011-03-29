@@ -41,6 +41,7 @@ from finite_permutation_groups import FinitePermutationGroups
 
 # fields
 from number_fields import NumberFields
+from function_fields import FunctionFields
 
 # modules
 from left_modules import LeftModules

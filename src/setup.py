@@ -969,6 +969,7 @@ code = setup(name = 'sage',
 
                      'sage.rings',
                      'sage.rings.finite_rings',
+                     'sage.rings.function_field',
                      'sage.rings.number_field',
                      'sage.rings.padics',
                      'sage.rings.polynomial',

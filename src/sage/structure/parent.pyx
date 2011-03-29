@@ -483,7 +483,7 @@ cdef class Parent(category_object.CategoryObject):
 
         - element_constructor -- A class or function that creates
           elements of this Parent given appropriate input (can also be
-          filled in later with ``_populate_coercion_lists_``
+          filled in later with ``_populate_coercion_lists_``)
 
         - gens -- Generators for this object (can also be filled in
           later with ``_populate_generators_``)
@@ -1621,7 +1621,7 @@ cdef class Parent(category_object.CategoryObject):
            return self.Hom(codomain)(im_gens, check=check)
 
     #################################################################################
-    # New New Coercion support functionality
+    # New Coercion support functionality
     #################################################################################
 
     def _populate_coercion_lists_(self,

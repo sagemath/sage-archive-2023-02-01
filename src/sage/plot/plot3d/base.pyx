@@ -596,6 +596,7 @@ end_scene""" % (render_params.antialiasing,
             select atomno = 1
             color atom  [102,102,255]
             label "hi"
+            isosurface fullylit; pmesh o* fullylit; set antialiasdisplay on;
 
             sage: print z.read(z.namelist()[0])
             24
@@ -656,6 +657,8 @@ end_scene""" % (render_params.antialiasing,
 
         # Put the rest of the object in
         f.write("\n".join(all))
+        # Make sure the lighting is correct
+        f.write("isosurface fullylit; pmesh o* fullylit; set antialiasdisplay on;\n")
 
         render_params.output_archive.writestr('SCRIPT', f.getvalue())
         render_params.output_archive.close()

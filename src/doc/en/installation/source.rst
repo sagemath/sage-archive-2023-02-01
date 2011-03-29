@@ -1,90 +1,112 @@
+.. comment:
+   ****************************
+   If you alter this document, please change the last line ("This page
+   was last updated in ...")
+   ****************************
 
 Install from Source Code
 ========================
 
 More familiarity with computers may be required to build Sage from
-source. If you do have all the pre-requisite tools, the process should
-be completely painless. It would take your computer a while to
-compiled Sage from source, though you don't have to watch. Compiling
-Sage from source has the major advantage that you have the latest
+the `source code <http://en.wikipedia.org/wiki/Source_code>`_. If you do have all the
+pre-requisite tools, the process should
+be completely painless. It will take your computer a while to
+compile Sage from the source code, although you don't have to watch. Compiling
+Sage from the source code has the major advantage that you have the latest
 version of Sage with which you can change absolutely any part
 or the programs on which Sage depends. You can also recompile Sage.
+Also, some parts of Sage will be optimised for your particular computer,
+so will run faster than a binary that you have downloaded.
 
-As of this writing, Sage is known to work on Linux (32-bit x86, 64-bit
-x86-64, IA64, or 32-bit PPC) and OS X (10.4, 10.5, 10.6, PPC or
-x86, 32-bit only). (See http://wiki.sagemath.org/SupportedPlatforms
-for the latest information.)
+Sage is supported on a number of
+`Linux <http://en.wikipedia.org/wiki/Linux>`_
+, Mac `OS X <http://www.apple.com/macosx/>`_ , Sun/Oracle `Solaris <http://www.oracle.com/solaris>`_ and
+`OpenSolaris <http://en.wikipedia.org/wiki/OpenSolaris>`_
+releases, but Sage is not supported on all versions of Linux, OS X,
+Solaris or OpenSolaris. Depending on the `operating system <http://en.wikipedia.org/wiki/Operating_system>`_, Sage works
+with `x86 <http://en.wikipedia.org/wiki/X86>`_, `x64 <http://en.wikipedia.org/wiki/X86-64>`_, `PowerPC <http://en.wikipedia.org/wiki/PowerPC>`_ or `SPARC <http://en.wikipedia.org/wiki/SPARC>`_ processors. There is no native version of Sage which
+installs on `Microsoft Windows <http://en.wikipedia.org/wiki/Microsoft_Windows>`_, although Sage can be used on Windows
+with the aid of a  `virtual machine <http://en.wikipedia.org/wiki/Virtual_machine>`_ .
+Go to http://www.sagemath.org/download-windows.html
+to download a version of Sage for Windows. See http://wiki.sagemath.org/SupportedPlatforms
+for the list of platforms on which Sage is supported and the level of support
+for these systems. You will also find details about `ports <http://en.wikipedia.org/wiki/Computer_port_%28software%29>`_
+to other operating systems or processors which may be taking place.
 
-    **Solaris? FreeBSD? OS X 10.5 in 64 bit mode?**: Complete compilation
-    of Sage is currently not supported on Solaris or \*BSD. It is
-    possible to compile most of Sage on Solaris machines and to fill in
-    the extra parts using standard packages; please email sage-devel if
-    you desperately need to run Sage on Solaris. We do plan to fully
-    support Solaris - it's a very important platform. Work is ongoing.
-
-    **Sage on FreeBSD**: The binaries can be run with the help of Linux
-    emulation. We are working on a fully native port and the number of
-    issues that need to be fixed are relatively small compared to the
-    other ports.
-
-    We hope to support OS X 10.5 in 64-bit mode in our next
-    release. You can find some instructions to build Sage on OS X 10.5
-    in 64-bit mode at
-    http://mvngu.wordpress.com/2009/09/02/compile-sage-4-1-in-64-bit-mode-on-os-x-10-5-8/
-
-
-Assumptions: You have a computer with about 2 GB of free
-disk space running Linux (32-bit or 64-bit), Mac OS X 10.4, 10.5, or
-10.6 with XCode. In particular, under Linux the following standard
-command-line development tools must be installed on your computer
-(under OS X they all come with XCode):
+Assumptions: You have a computer with about 2.5 GB of free
+disk space running one of the supported version of an
+operating system listed at
+http://wiki.sagemath.org/SupportedPlatforms
+The following standard
+command-line development tools must be installed on your computer.
+(Under OS X they all come with `Xcode <http://developer.apple.com/xcode/>`_, with the exception of the
+`Fortran <http://en.wikipedia.org/wiki/Fortran>`_ compiler ``gfortran``.
+However, Sage includes an `executable <http://en.wikipedia.org/wiki/Executable>`_
+Fortran compiler for OS X, so there is no need to install
+a Fortran compiler on OS X):
 
 ::
 
-       gcc
-       g++
-       gfortran
-       make
+       gcc        (Version 4.0.1 or later)
+       g++        (Version 4.0.1 or later)
+       gfortran   (Version 4.0.1 or later)
+       make       (GNU make, version 3.80 or later)
        m4
-       perl
+       perl       (Version 5.8.0 or later)
        ranlib
-       tar
-       readline and its development headers
-       ssh-keygen -- needed to run the notebook in secure mode.
-       latex -- highly recommended, though not strictly required
+       tar        (GNU tar, version 1.17 or later)
+       ssh-keygen (Needed to run the notebook in secure mode)
+       latex      (Highly recommended, though not strictly required)
 
-To check if you have ``m4`` installed, for example, type ``which m4``
-at a command line. If it gives an error (or returns nothing), then
-it is not installed. It is highly recommended that you have LaTeX
-installed, but not required. If you don't have ``ssh-keygen`` on your
-local system, then you cannot run the notebook in secure mode. To
-run it in insecure mode, run the command ``notebook(secure=False)``
-instead of ``notebook()``.
+The programs ``gcc``, ``g++`` and ``gfortran`` are all part of the `GNU Compiler Collection (GCC) <http://gcc.gnu.org/>`_.
+You are generally advised to use a recent version of GCC, though
+some obscure bugs have stopped specific versions of GCC
+compiling Sage on particular platforms.
 
-In OS X, make sure you have XCode version at least 2.4, i.e., ``gcc -v``
-should output build at least 5363. If you don't, go to
-http://developer.apple.com/ sign up, and download the free Xcode
-package. Only OS X :math:`$\geq 10.4$` is supported. This will give
-you all of the above commands.
+To check if you have ``m4`` installed, for example, type
 
-On a Debian-based system (e.g., Ubuntu), ranlib is in the binutils
-package. On a newly installed Ubuntu system (this was tested on
-Ubuntu 9.04), you can install the above commands as follows:
+::
+
+       command -v m4
+
+
+on the command line. If it gives an error (or returns nothing), then
+either ``m4`` is not installed, or it is installed but not in your
+`PATH <http://en.wikipedia.org/wiki/PATH_%28variable%29>`_
+(On Solaris 10, ``m4`` resides in ``/usr/ccs/bin``).
+It is highly recommended that you have `Latex <http://en.wikipedia.org/wiki/LaTeX>`_
+installed, but it is not required. If you don't have ``ssh-keygen`` on your
+local system, then you cannot run the notebook in secure mode, which the uses
+encrypted `HTTPS <http://en.wikipedia.org/wiki/HTTP_Secure>`_ protocol. To run the notebook in secure mode, type the command
+``notebook(secure=True)`` instead of ``notebook()``. Unless ``notebook(secure=True)``
+is used, the notebook uses the less secure `HTTP <http://en.wikipedia.org/wiki/HTTP>`_ protocol
+
+In OS X, make sure you have a recent version of `Xcode <http://developer.apple.com/xcode/>`_.
+See http://wiki.sagemath.org/SupportedPlatforms to find out what
+version(s) of Xcode are supported. You can get the latest Xcode
+from http://developer.apple.com/xcode/, but may have to pay a small
+fee in order to download this.
+
+On Linux systems (e.g., Ubuntu, Redhat etc), ``ranlib`` is in the
+`Binutils <http://www.gnu.org/software/binutils/>`_ package.
+Assuming you have sufficient privileges,
+you can install the ``binutils`` and other necessary components. If you
+do not have the privileges to do this, ask your system
+administrator to do this, or build the components from source
+code. The method of installing additional software varies from
+distribution to distribution
+but on a `Debian <http://www.debian.org/>`_ based system (e.g. `Ubuntu <http://www.ubuntu.com/>`_ or `Mint <http://www.linuxmint.com/>`_), you would use:
 
 ::
 
      sudo apt-get install build-essential m4 gfortran
 
-It is recommended that you install the readline package and its
-corresponding development headers. These packages make it easier to
-work with the Sage command line interface by providing text editing
-features at the command line level. On a Debian or Ubuntu system, use
-the following commands to install the readline library and its
-development headers:
+(this was tested on Ubuntu 9.04).
 
-::
-
-    sudo apt-get install readline-common libreadline-dev
+On other Linux systems you might use `rpm <http://en.wikipedia.org/wiki/RPM_Package_Manager>`_,
+`yum <http://en.wikipedia.org/wiki/Yellowdog_Updater,_Modified>`_ or other package manager. On
+Solaris you would use ``pkgadd`` and on OpenSolaris use ``ipf``. Check
+the documentation for your particular operating system.
 
 The LaTeX package and a PDF previewer are optional but they can be
 installed using
@@ -93,33 +115,45 @@ installed using
 
     sudo apt-get install texlive xpdf evince xdvi
 
-(You must have the GNU version of ``make`` installed.
-For example, Sage won't build on a FreeBSD install that doesn't
-have the optional GNU version of ``make`` installed as well
-(and named ``make``).)
+On other systems it might be necessary to install TeX Live from source code,
+which is quite easy, though a rather time-consuming process.
 
-Although some of Sage is written in Python, you do not need Python
+(You must have the GNU version of ``make`` installed and it must be the first
+``make`` in your PATH. On Solaris 10, a version of GNU ``make`` may be found
+at ``/usr/sfw/bin/gmake`` but you will need to copy it somewhere else
+and rename it to ``make``. The same is true for GNU ``tar`` - there is a version
+called ``gtar`` in ``/usr/sfw/bin`` but it will need to be copied somewhere
+else and renamed to ``tar``).
+
+For Solaris, it is recommended you create a directory ``$HOME/bins-for-sage`` and
+put the GNU versions of ``tar`` and ``make`` in that directory. Then ensure that
+``$HOME/bins-for-sage`` is first in your PATH. That's because Sage also needs
+``/usr/ccs/bin`` in your PATH to execute programs like ``ar`` and ``ranlib`,
+but ``/usr/ccs/bin`` has the Sun/Oracle versions of ``make`` and ``tar``
+which are unsuitable for building Sage. For more information on
+building Sage on Solaris, see http://wiki.sagemath.org/solaris
+
+Although some of Sage is written in `Python <http://www.python.org/>`_, you do not need Python
 pre-installed on your computer, since the Sage installation
-includes everything you need. When the installation program is run,
+includes virtually everything you need. When the Sage installation program is run,
 it will check that you have each of the above-listed prerequisites,
-and inform you of any that are missing.
+and inform you of any that are missing, or have unsuitable verisons.
 
--  If you want to use Tcl/Tk libraries in Sage,
-   do the following preferably before compilation.
+-  If you want to use `Tcl/Tk <http://www.tcl.tk/>`_ libraries in Sage,
+   do the following before compiling Sage.
    Sage's Python will automatically recognize your system's
    install of Tcl/Tk if it exists. You need to install the
    Tcl/Tk development libraries though, not just the Tck/Tk base.
 
-   On Ubuntu, this is the command::
+   On `Ubuntu <http://www.ubuntu.com/>`_, this is the command::
 
        sudo apt-get install tk8.5-dev    # or the latest version available
 
-   Now you can install Sage and Sage's Python will automatically
-   recognize your system's install of Tcl/Tk. If you forgot
+   Now you can install Sage, If you forgot
    and installed Sage first anyway, all is not lost.
    Just issue the command::
 
-       sage -f python-2.5.2.p8    # or the latest version available
+       sage -f  python-2.6.4.p9    # or the latest version available
 
    after installing the Tcl/Tk development libraries as above.
    If
@@ -133,18 +167,18 @@ and inform you of any that are missing.
 
    does not raise an ``ImportError`` then it worked.
 
--  Sage is currently being developed using GCC version 4.3.x, and
-   is likely to compile fine with other GCC versions in the 4.x
-   series. It does not work with older GCC releases. If you are
-   interested in working on support for Intel or Sun's CC compiler,
+-  Sage developers tend to use fairly recent versions of gcc, but
+   Sage should compile with almost any gcc of at least version 4.0.1
+
+   If you are interested in working on support for commerical compilers
+   from `HP <http://docs.hp.com/en/5966-9844/ch01s03.html>`_,
+   `IBM <http://www-01.ibm.com/software/awdtools/xlcpp/>`_,
+   `Intel <http://software.intel.com/en-us/articles/intel-compilers/>`_,
+   `Sun/Oracle <http://www.oracle.com/technetwork/server-storage/solarisstudio/overview/index.html>`_ etc,
+   or the open-source `Clang <http://clang.llvm.org/>`_,
    please email the sage-devel mailing list, otherwise known as the
    sage-devel Google group at
    http://groups.google.com/group/sage-devel
-
--  One reason ``perl`` is required is that both the NTL and PARI
-   configuration scripts are written in Perl.
-
-
 
 After extracting the Sage tarball, the subdirectory ``spkg`` contains
 the source distributions for everything on which Sage depends. We
@@ -152,26 +186,15 @@ emphasize that all of this software is included with Sage, so you
 do not have to worry about trying to download and install any one
 of these packages (such as GAP, for example) yourself.
 
-On tests using various Linux computer systems, the known problems
-are:
-
-
--  Does not build with gcc 4.3.0 yet, but work is ongoing to fix
-   that.
-
--  Moving the build after compiling breaks the PARI Galois fields
-   database, which appears to be hardcoded into the PARI binary.
-   (Somebody help fix this!)
-
-
 Fortran
 -------
 
-On Linux and Solaris systems, a working Fortran compiler is required
+On Linux, Solaris and OpenSolaris systems, a working Fortran compiler is required
 for building Sage from source. If you are using Fortran on a platform
-for which Sage does not include g95 binaries, you must use a
-system-wide gFortran. For example, Solaris 10 does not ship with any
-Fortran binaries. You need to explicitly tell the Sage build process
+for which Sage does not include g95 binaries, you must use
+``gfortran``, which may be installed system wide (e.g in /usr or
+/usr/local) or your own private copy.  You need to explicitly
+tell the Sage build process
 about the Fortran compiler and library location. Do this by typing ::
 
     export SAGE_FORTRAN=/exact/path/to/gfortran
@@ -193,15 +216,16 @@ system. The Sage source distribution is shipped with a Fortran
 compiler for Mac OS X. This Fortran compiler is used, unless you
 specify another Fortran compiler via the variable :envvar:`SAGE_FORTRAN`.
 
-On platforms such as AIX, HP-UX, and Solaris, where both 32- and
+On operating systems such as `AIX <http://en.wikipedia.org/wiki/IBM_AIX>`_,
+`HP-UX <http://en.wikipedia.org/wiki/HP-UX>`_, Solaris and OpenSolaris, where both 32-bit and
 64-bit builds are supported, the library path variable
 :envvar:`SAGE_FORTRAN_LIB` must point to the 32-bit library if you are
 building Sage in 32-bit. Also, :envvar:`SAGE_FORTRAN_LIB` must point to a
 64-bit library if you are building Sage in 64-bit. For example, on
-Solaris both of the variables :envvar:`SAGE_FORTRAN` and
-:envvar:`SAGE_FORTRAN_LIB` could be set as follows::
+Solaris & OpenSolaris, the variables :envvar:`SAGE_FORTRAN`,
+:envvar:`SAGE_FORTRAN_LIB` and :envvar:`SAGE64` could be set as follows::
 
-    # SPARC and x86
+    # SPARC, x86 and x64.
     SAGE_FORTRAN=/path/to/gcc/install/directory/bin/gfortran
 
     # 32-bit SPARC
@@ -209,13 +233,18 @@ Solaris both of the variables :envvar:`SAGE_FORTRAN` and
 
     # 64-bit SPARC
     SAGE_FORTRAN_LIB=/path/to/gcc/install/directory/lib/sparcv9/libgfortran.so
+    SAGE64=yes
 
     # 32-bit x86
     SAGE_FORTRAN_LIB=/path/to/gcc/install/directory/lib/libgfortran.so
 
     # 64-bit x64
     SAGE_FORTRAN_LIB=/path/to/gcc/install/directory/lib/amd64/libgfortran.so
+    SAGE64=yes
 
+(It should be noted that Sage is not supported on AIX or HP-UX, although some
+efforts have been made to `port Sage to AIX <http://wiki.sagemath.org/AIX>`_ and
+to `port Sage to HP-UX <http://wiki.sagemath.org/HP-UX>`_.)
 
 Steps to Install from Source
 ----------------------------
@@ -258,6 +287,23 @@ spaces in its name will also fail.
 #. Optional (but highly recommended): Read the ``README.txt`` file
    there.
 
+#. On OSX 10.4, OS 10.5, Solaris 10 and OpenSolaris, if you wish to
+   build a 64-bit version of Sage, then assuming your computer and
+   operating system are 64-bit, type
+
+   ::
+
+           SAGE64=yes
+           export SAGE64
+
+   It should be noted that at the time of writing (April 2011), 64-bit
+   builds of Sage on both Solaris 10 and OpenSolaris are not very stable,
+   so you are advised not to set ``SAGE64`` to ``yes``. This will then
+   create stable 32-bit versions of Sage.
+   See http://wiki.sagemath.org/SupportedPlatforms  and
+   http://wiki.sagemath.org/solaris for the latest information, as
+   work is ongoing to resolve the 64-bit Solaris & OpenSolaris problems.
+
 #. Type
 
    ::
@@ -268,25 +314,35 @@ spaces in its name will also fail.
    to be logged in as root, since no files are changed outside of the
    ``sage-x.y.z`` directory (with one exception -- the ``.ipythonrc``
    directory is created in your ``HOME`` directory if it doesn't exist).
-   This command does the usual steps for each of the packages, but puts
-   all the results in the local build tree. This can take close to an hour
-   on some machines. Depending on the architecture of your system (e.g.,
-   Celeron, Pentium Mobile, Pentium 4, etc.), it can take over three hours
-   to build Sage from source. If the build is successful, you will not see
+   In fact, **it is inadvisable to build Sage as root**, as the root account
+   should only be used when absolutely necessary, as mis-typed commands
+   can have serious consequences if you are logged in as root.  There has been a bug
+   `reported <http://trac.sagemath.org/sage_trac/ticket/9551/>`_ in Sage
+   which would have overwritten a system file had the user been logged in
+   as root.
+
+   Typing ``make`` does the usual steps for each of the packages, but puts
+   all the results in the local build tree. Depending on the architecture of your system (e.g.,
+   Celeron, Pentium Mobile, Pentium 4, SPARC, etc.), it can take over three hours
+   to build Sage from source. On slower older hardware it can take over
+   a day to build Sage. If the build is successful, you will not see
    the word ERROR in the last 3-4 lines of output.
 
-       The directory where you built Sage is NOT hardcoded. You should
-       be able to safely move or rename that directory. (It's a bug if
-       this is not the case --- unfortunately there is one
-       bug which hasn't yet been fixed along these lines, namely the PARI
-       install hard-codes the location of the "galois data" files. Fixes
-       welcome!)
+   If the build of Sage fails, then type the following from the directory
+   where you typed ``make``.
 
+   ::
 
-   After you build Sage, you may optionally copy or move the entire
-   build tree to ``/usr/local``. You might also copy the ``sage-*/sage``
-   script to ``/usr/local/bin/`` and edit ``ROOT="....."`` at the top of
-   that file.
+            grep "An error occurred" spkg/logs/*
+
+   then paste the contents of the log file(s) with errors to the Sage
+   support newsgroup http://groups.google.com/group/sage-support
+   If the log files are very large (and many are), then don't paste
+   the whole file, but make sure to include any error messages.
+
+   The directory where you built Sage is NOT hardcoded. You should
+   be able to safely move or rename that directory. (It's a bug if
+   this is not the case)
 
 #. To start Sage, change into the Sage home directory and type:
 
@@ -295,13 +351,16 @@ spaces in its name will also fail.
              ./sage
 
    You should see the Sage prompt, which will look something like this
-   (starting the first time can take a few seconds):
+   (starting the first time should take well under a minute, but can
+   take several minutes if the file system is slow or busy. Since Sage
+   opens a lot of files, it is preferable to install Sage on a fast file
+   system if this is possible.):
 
    ::
 
        $ sage
        ----------------------------------------------------------------------
-       | SAGE Version 3.1, Release Date: 2008-08-16                         |
+       | Sage Version 4.6, Release Date: 2010-10-30                         |
        | Type notebook() for the GUI, and license() for information.        |
        ----------------------------------------------------------------------
        sage:
@@ -309,10 +368,11 @@ spaces in its name will also fail.
    Just starting successfully tests that many of the components built
    correctly. If the above is not displayed (e.g., if you get a
    massive traceback), please report the problem, e.g., to
-   http://groups.google.com/group/sage-support . Please include in
-   your email the file ``install.log``. It would also be helpful to
-   include the type of operating system you have and the version
-   number (and date) of the copy of Sage you are using. (There are no
+   http://groups.google.com/group/sage-support .
+   It would also be helpful to
+   include the type of operating system (Linux, OS X, Solaris or OpenSolaris),
+   the version and date of that operating system and the version
+   number of the copy of Sage you are using. (There are no
    formal requirements for bug reports - just send them; we appreciate
    everything.)
 
@@ -359,7 +419,7 @@ spaces in its name will also fail.
    ::
 
        sage: gap_console()
-       GAP4, Version: 4.4.6 of 02-Sep-2005, x86_64-unknown-linux-gnu-gcc
+       GAP4, Version: 4.4.12 of 17-Dec-2008, i386-pc-solaris2.11-gcc
        gap> 2+2;
        4
        [ctrl-d]
@@ -378,19 +438,19 @@ spaces in its name will also fail.
 
        sage: singular_console()
                             SINGULAR                             /  Development
-        A Computer Algebra System for Polynomial Computations   /   version 3-0-1
+        A Computer Algebra System for Polynomial Computations   /   version 3-1-1
                                                               0<
-            by: G.-M. Greuel, G. Pfister, H. Schoenemann        \   October 2005
+            by: G.-M. Greuel, G. Pfister, H. Schoenemann        \   Feb 2010
        FB Mathematik der Universitaet, D-67653 Kaiserslautern    \
-       // ** executing /usr/local/sage/sage-0.8.2/bin/LIB/.singularrc
        [ctrl-d]
        > Auf Wiedersehen.
        sage:
 
 #. Optional: Check the interfaces to any other software that
    you have available. Note that each interface calls its
-   corresponding program by a particular name: Mathematica is invoked
-   by calling ``math``, Maple by calling ``maple``, et cetera. The
+   corresponding program by a particular name:
+   `Mathematica <http://www.wolfram.com/mathematica/>`_ is invoked
+   by calling ``math``, `Maple <http://www.maplesoft.com/>`_ by calling ``maple``, etc. The
    easiest way to change this name or perform other customizations is
    to create a redirection script in ``$SAGE_ROOT/local/bin``. Sage
    inserts this directory at the front of your PATH, so your script
@@ -451,7 +511,7 @@ spaces in its name will also fail.
      Now typing ``sage`` within your terminal emulator should start
      Sage.
 
-#. Optional: Test the install by typing ``./sage -testall``. This
+#. Optional, but highly recommended: Test the install by typing ``./sage -testall``. This
    runs most examples in the source code and makes sure that they run
    exactly as claimed. To test all examples, use
    ``./sage -testall -optional -long``; this will run examples that take
@@ -460,13 +520,8 @@ spaces in its name will also fail.
    likely fail because they assume that a database is installed.
    Alternatively, from within ``$SAGE_ROOT``, you can type
    ``make test`` to run all the standard test code.  This can take
-   from 30 minutes to an hour or longer.
-
-#. Optional: The directory ``spkg/build`` contains intermediate code
-   that is used to build sage. Type ``make clean`` to delete it and a
-   few other directories (e.g., ``spkg/archive`` and ``devel/old``). This
-   is safe and will save you about 500 MB of disk space. You may wish to
-   type this periodically.
+   from 25 minutes to several hours, depending on your hardware. On
+   very old hardware building and testing Sage can take several days!
 
 #. Optional: Install optional Sage packages and databases. Type
    ``sage -optional`` to see a list or visit
@@ -503,13 +558,11 @@ process:
 
 - :envvar:`SAGE_PARALLEL_SPKG_BUILD` - set this to "yes" to build
   multiple packages in parallel.  This only has an effect if
-  :envvar:`MAKE` is also set to run several jobs in parallel.  As of
-  this writing (June 2010), this is still in the experimental stages,
-  but turning this on can greatly speed up the build process.
+  :envvar:`MAKE` is also set to run several jobs in parallel.
 
-- :envvar:`SAGE64` - Set this to "yes" to build a 64-bit binary.  This
-  is required if you want a 64-bit binary but the default for your
-  platform is to build 32-bit binaries.  It adds the compiler flag
+- :envvar:`SAGE64` - Set this to "yes" to build a 64-bit binary on platforms
+  which default to 32-bit, even though they can build 64-bit binaries.
+  It adds the compiler flag
   -m64 when compiling programs.  The SAGE64 variable is mainly of use
   is on OS X (pre 10.6), Solaris and OpenSolaris, though it will add
   the -m64 on any operating system. If you are running version 10.6 of
@@ -560,7 +613,7 @@ Variables to set if you're trying to build Sage with an unusual setup,
 e.g., an unsupported machine or an unusual compiler:
 
 - :envvar:`SAGE_PORT` - if you try to build Sage on a platform which
-  is recognized as being unsupported (e.g., x86 Solaris, AIX, or
+  is recognized as being unsupported (e.g. AIX, or
   HP-UX), or with a compiler which is unsupported (anything except
   gcc), you will see a message saying something like ::
 
@@ -578,14 +631,11 @@ e.g., an unsupported machine or an unusual compiler:
   :envvar:`SAGE_PORT` to something non-empty (and expect to run into
   problems).
 
-- :envvar:`SAGE_USE_OLD_GCC` - the Sage build process requires version
-  4.0.1 of gcc.  If the most recent version of gcc is 3.4.x and you
+ :envvar:`SAGE_USE_OLD_GCC` - the Sage build process requires
+  gcc with a version number of at least 4.0.1.
+  If the most recent version of gcc on your system is the older 3.4.x series and you
   want to try building anyway, then set :envvar:`SAGE_USE_OLD_GCC` to
-  something nonempty. Expect the build to fail in this case: Sage is
-  only guaranteed to build using gcc 4.0.1 or later, so if you insist
-  on working with gcc 3.4.x, you will have to modify some source code
-  to get things to work.
-
+  something non-empty. Expect the build to fail in this case.
 
 Environment variables dealing with specific Sage packages:
 
@@ -598,7 +648,7 @@ Environment variables dealing with specific Sage packages:
   :file:`libf77blas.so`, and it should have a subdirectory
   :file:`include/atlas/` containing header files.
 
-- :envvar:`SAGE_MATPLOTLIB_GUI` - set this to anything nonempty except
+- :envvar:`SAGE_MATPLOTLIB_GUI` - set this to anything non-empty except
   "no", and Sage will attempt to build the graphical backend when it
   builds the matplotlib package.
 
@@ -680,7 +730,7 @@ Sage uses the following environment variables when it runs:
   your machine, set this variable to the appropriate command.
 
 - :envvar:`SAGE_ORIG_LD_LIBRARY_PATH_SET` - set this to something
-  nonempty to force Sage to set the :envvar:`LD_LIBRARY_PATH` before
+  non-empty to force Sage to set the :envvar:`LD_LIBRARY_PATH` before
   executing system commands.
 
 - :envvar:`SAGE_ORIG_DYLD_LIBRARY_PATH_SET` - similar, but only used
@@ -709,7 +759,7 @@ Variables dealing with doctesting:
   seconds (30 minutes).
 
 - :envvar:`SAGE_PICKLE_JAR` - if you want to update the the standard
-  pickle jar, set this to something nonempty and run the doctest
+  pickle jar, set this to something non-empty and run the doctest
   suite.  See the documentation for the functions :func:`picklejar`
   and :func:`unpickle_all` in
   :file:`SAGE_ROOT/devel/sage/sage/structure/sage_object.pyx`, online
@@ -746,35 +796,11 @@ network.
 System-wide install
 ~~~~~~~~~~~~~~~~~~~
 
-This is a compilation of posts to the Sage support list (in
-particular those of Luis Finotti).
+#. After you build Sage, you may optionally copy or move the entire
+   build tree to ``/usr/local``.
 
-
-#. Unpack the current Sage tarball (we shall assume it is
-   ``sage-2.5.2.tar``) at, e.g., ``/usr/local/`` and compile it as root.
-   Assuming you are in a root shell and the tarball is in your current
-   directory, type:
-
-   ::
-
-       cp sage-2.5.2.tar /usr/local
-       cd /usr/local
-       tar xvf sage-2.5.2.tar
-       cd sage-2.5.2/
-       make
-
-    (Comment: It's better to build in place.  It's a bug if anything goes
-    wrong when relocating the entire tarball -- unfortunately there
-    is one bug I haven't fixed along these lines, namely the
-    PARI install hard-codes the location of the "galois data" files.
-    (Fixes welcome!))
-
-#. Make sure to modify the line with the ``.....``"'s at the top of the
-   ``sage`` script. In other words, edit ``SAGE_ROOT="....."`` to say
-   ``SAGE_ROOT="/usr/local/sage-2.5.2"``.
-
-#. There are some initial files that have to be created during the
-   first run of Sage. Try starting up Sage once as root (or, to be
+#. There are some initial files that have to be created the first time
+   Sage is run. Try starting up Sage once as root (or, to be
    more thorough, try ``make test`` as root to run all the standard test
    code). You can stop the tests by pressing ``ctrl-z`` followed by
    typing ``kill %1`` (assuming you had no other jobs in the
@@ -784,18 +810,14 @@ particular those of Luis Finotti).
 
    ::
 
-       cp /usr/local/sage-2.5.2/sage /usr/local/bin/
+       cp /usr/local/sage-4.6.2/sage /usr/local/bin/
 
-   You make a copy instead of a symlink, since upgrading with
-   ``sage -upgrade`` overwrites ``/usr/local/sage-2.5.2/sage``, hence
-   deleting the ``ROOT=...`` part of that file.
-
-   Make sure that all files in ``/usr/local/sage-2.5.2`` are readable by
+   Make sure that all files in ``/usr/local/sage-4.6.2`` are readable by
    all:
 
    ::
 
-       chmod a+rX -R /usr/local/sage-2.5.2
+       chmod a+rX -R /usr/local/sage-4.6.2
 
 
 Special Notes
@@ -803,7 +825,7 @@ Special Notes
 
 
 -  (Found by Dorian Raymer) Sage will not build if you have only
-   bison++. You should uninstall bison++ and install bison.
+   bison++. You should uninstall bison++ and install `bison <http://www.gnu.org/software/bison/>`_.
 
 -  (Found by Peter Jipsen) If you get an error like
 
@@ -813,7 +835,7 @@ Special Notes
             cannot restore segment prot after reloc:
        Permission denied
 
-   then your SELinux configuration is preventing Sage from launching. To
+   then your `SELinux <http://fedoraproject.org/wiki/SELinux>`_ configuration is preventing Sage from launching. To
    rectify this issue, you can either change the default security
    context for Sage (??) or disable SELinux altogether by setting the
    line ``SELINUX=disabled`` in your ``/etc/sysconfig/selinux`` file.
@@ -821,3 +843,5 @@ Special Notes
 - To make SageTeX available to your users, see the instructions for
   :ref:`installation in a multiuser environment
   <sagetex_installation_multiuser>`.
+
+  **This page was last updated in April 2011**

@@ -1015,21 +1015,20 @@ If this all works, you can then make calls like:
         INPUT:
 
 
-        -  ``code`` - text to evaluate
+        -  ``code``       -- text to evaluate
 
-        -  ``strip`` - bool; whether to strip output prompts,
-           etc. (ignored in the base class).
+        -  ``strip``      -- bool; whether to strip output prompts,
+                             etc. (ignored in the base class).
 
-        - ``locals`` - None (ignored); this is used for compatibility with the
-          Sage notebook's generic system interface.
+        - ``locals``      -- None (ignored); this is used for compatibility
+                             with the Sage notebook's generic system interface.
 
-        - ``split_lines`` -- bool (default: True); if True then each
-          line is evaluated separately.  If False, then the whole
-          block of code is evaluated all at once.
+        - ``split_lines`` -- bool (default: True); if True then each line is
+                             evaluated separately.  If False, then the whole
+                             block of code is evaluated all at once.
 
-        -  ``**kwds`` - All other arguments are passed onto
-           the _eval_line method. An often useful example is
-           reformat=False.
+        -  ``**kwds``     -- All other arguments are passed onto the _eval_line
+                             method. An often useful example is reformat=False.
         """
         if synchronize:
             try:

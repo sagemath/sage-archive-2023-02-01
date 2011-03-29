@@ -56,7 +56,10 @@ cdef void infinite_malloc_loop():
         s *= 2
         if (s > 1000000): s = 1
 
-cdef void segmentation_fault():
+# Dereference a NULL pointer on purpose. This signals a SIGSEGV on most
+# systems, but on older Mac OS X and possibly other systems, this
+# signals a SIGBUS instead. In any case, this should give some signal.
+cdef void dereference_null_pointer():
     cdef long* ptr = <long*>(0)
     ptr[0] += 1
 
@@ -443,31 +446,35 @@ def test_signal_bus(long delay = DEFAULT_DELAY):
 ########################################################################
 # Test with "true" errors (not signals raised by hand)                 #
 ########################################################################
-def test_segmentation_fault():
-    """
-    TESTS::
-
-        sage: from sage.tests.interrupt import *
-        sage: test_segmentation_fault()
-        Traceback (most recent call last):
-        ...
-        RuntimeError: Segmentation fault
-    """
-    sig_on()
-    segmentation_fault()
-
-def unguarded_segmentation_fault():
+def test_dereference_null_pointer():
     """
     TESTS:
 
-    We run Sage in a subprocess and make it experience a true segmentation fault::
+    This test should result in either a Segmentation Fault or a Bus
+    Error. ::
+
+        sage: from sage.tests.interrupt import *
+        sage: test_dereference_null_pointer()
+        Traceback (most recent call last):
+        ...
+        RuntimeError: ...
+    """
+    sig_on()
+    dereference_null_pointer()
+
+def unguarded_dereference_null_pointer():
+    """
+    TESTS:
+
+    We run Sage in a subprocess and dereference a NULL pointer without
+    using ``sig_on()``. This will crash Sage::
 
         sage: from subprocess import *
-        sage: cmd = 'from sage.tests.interrupt import *; unguarded_segmentation_fault()'
+        sage: cmd = 'from sage.tests.interrupt import *; unguarded_dereference_null_pointer()'
         sage: print '---'; print Popen(['sage', '-c', cmd], stdout=PIPE, stderr=PIPE).communicate()[1]  # long time
         -...
         ------------------------------------------------------------------------
-        Unhandled SIGSEGV: A segmentation fault occurred in Sage.
+        Unhandled SIG...
         This probably occurred because a *compiled* component of Sage has a bug
         in it and is not properly wrapped with sig_on(), sig_off(). You might
         want to run Sage under gdb with 'sage -gdb' to debug this.
@@ -475,7 +482,7 @@ def unguarded_segmentation_fault():
         ------------------------------------------------------------------------
         ...
     """
-    segmentation_fault()
+    dereference_null_pointer()
 
 def test_abort():
     """

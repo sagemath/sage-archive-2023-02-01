@@ -1,4 +1,4 @@
-recursive-include * *.c *.h *.pyx *.pxd *.pxi *.cc *.txt *.tex *.i *.d 00*
+recursive-include * *.c *.cc *.h *.hh *.pyx *.pxd *.pxi *.txt *.tex *.i *.d 00*
 recursive-include doc *.rst *.py
 include c_lib c_lib/* c_lib/src/*
 include MANIFEST.in README.txt

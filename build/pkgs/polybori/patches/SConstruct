@@ -154,20 +154,6 @@ opts.Add('CFLAGS', "C compiler flags", "-std=c99",
 opts.Add('CXXFLAGS', "C++ compiler flags", "-std=c++98 -ftemplate-depth-100",
          converter = Split)
 
-for var in Split("""CCCOM CXXCOM SHCCCOM SHCXXCOM SHLINKCOM LINKCOM LINK SHLINK
-SHLIBPREFIX LIBPREFIX SHLIBSUFFIX LIBSUFFIX"""):
-    if defaultenv.has_key(var):
-        opts.Add(var, "inherited from SCons", defaultenv[var])
-    else:
-        print "Variable", var, "not in default environment!"
-
-for flag in Split("""SHCCFLAGS SHCFLAGS SHCXXFLAGS"""):
-    if defaultenv.has_key(flag):
-        opts.Add(flag, "flags inherited from SCons",
-             defaultenv[flag], converter = Split)
-    else:
-        print "Flags", flag, "not in default environment!"
-
 #The following linker flags causes the build to fail on OSX 10.4, but works on 10.5
 # opts.Add('LINKFLAGS', "Linker flags", ['-s'], converter = Split)
 # Instead we add "-m64" in case we build on multiarch in  64 bit mode (OSX now, Solaris later)
@@ -253,6 +239,22 @@ if defaultenv['PLATFORM'] == "sunos":  # forcing gcc, keeping linker
             if arg in tools:
                 tools.remove(arg)
                 tools +=  [ 'gcc', 'g++', 'ar']
+        defaultenv = Environment(tools=tools)
+
+for var in Split("""CCCOM CXXCOM SHCCCOM SHCXXCOM SHLINKCOM LINKCOM LINK SHLINK
+SHLIBPREFIX LIBPREFIX SHLIBSUFFIX LIBSUFFIX"""):
+    if defaultenv.has_key(var):
+        opts.Add(var, "inherited from SCons", defaultenv[var])
+    else:
+        print "Variable", var, "not in default environment!"
+
+for flag in Split("""SHCCFLAGS SHCFLAGS SHCXXFLAGS"""):
+    if defaultenv.has_key(flag):
+        opts.Add(flag, "flags inherited from SCons",
+             defaultenv[flag], converter = Split)
+    else:
+        print "Flags", flag, "not in default environment!"
+
 
 if not GetOption('clean'):
     tools +=  ["disttar", "doxygen"]
@@ -491,8 +493,7 @@ if not env['PLATFORM'] in ["darwin", "cygwin"] :
 
 env.Append(LIBPATH=[CuddPath()])
 
-cudd_resources = [CuddPath('obj/cuddObj.cc')]
-cudd_resources += glob(CuddPath('util/*.c'))
+cudd_resources = glob(CuddPath('util/*.c'))
 
 cudd_headers = [ CuddPath(fname) for fname in ['obj/cuddObj.hh', 'util/util.h',
                                                'cudd/cuddInt.h'] ]

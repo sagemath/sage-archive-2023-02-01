@@ -1,10 +1,22 @@
---- src/polybori-0.7/SConstruct	2011-02-15 23:01:45.000000000 +0000
-+++ patches/SConstruct	2011-02-18 10:51:47.892324003 +0000
-@@ -167,6 +167,13 @@
-              defaultenv[flag], converter = Split)
-     else:
-         print "Flags", flag, "not in default environment!"        
-+
+--- src/polybori-0.7/SConstruct	Mi. Feb 23 14:59:49 2011
++++ patches/SConstruct	Mi. Mär 30 23:35:59 2011
+@@ -154,19 +154,12 @@
+ opts.Add('CXXFLAGS', "C++ compiler flags", "-std=c++98 -ftemplate-depth-100",
+          converter = Split)
+ 
+-for var in Split("""CCCOM CXXCOM SHCCCOM SHCXXCOM SHLINKCOM LINKCOM LINK SHLINK
+-SHLIBPREFIX LIBPREFIX SHLIBSUFFIX LIBSUFFIX"""):
+-    if defaultenv.has_key(var):
+-        opts.Add(var, "inherited from SCons", defaultenv[var])
+-    else:
+-        print "Variable", var, "not in default environment!"
+-
+-for flag in Split("""SHCCFLAGS SHCFLAGS SHCXXFLAGS"""):
+-    if defaultenv.has_key(flag):
+-        opts.Add(flag, "flags inherited from SCons",
+-             defaultenv[flag], converter = Split)
+-    else:
+-        print "Flags", flag, "not in default environment!"        
 +#The following linker flags causes the build to fail on OSX 10.4, but works on 10.5
 +# opts.Add('LINKFLAGS', "Linker flags", ['-s'], converter = Split)
 +# Instead we add "-m64" in case we build on multiarch in  64 bit mode (OSX now, Solaris later)
@@ -14,7 +26,31 @@
      
  opts.Add('LINKFLAGS', "Linker flags", defaultenv['LINKFLAGS'])# + ['-s'])
  opts.Add('LIBS', 'custom libraries needed for build', [], converter = Split)
-@@ -351,7 +358,7 @@
+@@ -246,7 +239,23 @@
+             if arg in tools:
+                 tools.remove(arg)
+                 tools +=  [ 'gcc', 'g++', 'ar']
++        defaultenv = Environment(tools=tools)
+ 
++for var in Split("""CCCOM CXXCOM SHCCCOM SHCXXCOM SHLINKCOM LINKCOM LINK SHLINK
++SHLIBPREFIX LIBPREFIX SHLIBSUFFIX LIBSUFFIX"""):
++    if defaultenv.has_key(var):
++        opts.Add(var, "inherited from SCons", defaultenv[var])
++    else:
++        print "Variable", var, "not in default environment!"
++
++for flag in Split("""SHCCFLAGS SHCFLAGS SHCXXFLAGS"""):
++    if defaultenv.has_key(flag):
++        opts.Add(flag, "flags inherited from SCons",
++             defaultenv[flag], converter = Split)
++    else:
++        print "Flags", flag, "not in default environment!"
++
++
+ if not GetOption('clean'):
+     tools +=  ["disttar", "doxygen"]
+ 
+@@ -351,7 +360,7 @@
  if not env.GetOption('clean'):
      conf = Configure(env)
      if conf.CheckCHeader("gd.h") and conf.CheckLib("gd"):
@@ -23,7 +59,7 @@
          env.Append(CPPDEFINES=["HAVE_GD"])
  
      if env['FORCE_HASH_MAP']:
-@@ -415,7 +422,7 @@
+@@ -415,7 +424,7 @@
                  print "Tutorial will not be installed"
      external_m4ri = conf.CheckLib('m4ri')
      if conf.CheckCHeader("gd.h") and conf.CheckLib("gd"):
@@ -32,7 +68,7 @@
          env.Append(CPPDEFINES=["HAVE_GD"])
      if external_m4ri:
         env['LIBS'] += ['m4ri']
-@@ -423,7 +430,7 @@
+@@ -423,7 +432,7 @@
         env['CPPPATH'] += ['M4RI']
  
         # generate M4RI/m4ri, to allow canonical #include <m4ri/m4ri.h>
@@ -41,22 +77,33 @@
             print "Symlinking to", m4ri_inc, "..."
             os.symlink('.', m4ri_inc)
  
-@@ -544,9 +551,11 @@
+@@ -484,8 +493,7 @@
+ 
+ env.Append(LIBPATH=[CuddPath()])
+ 
+-cudd_resources = [CuddPath('obj/cuddObj.cc')]
+-cudd_resources += glob(CuddPath('util/*.c'))
++cudd_resources = glob(CuddPath('util/*.c'))
+ 
+ cudd_headers = [ CuddPath(fname) for fname in ['obj/cuddObj.hh', 'util/util.h',
+                                                'cudd/cuddInt.h'] ] 
+@@ -544,10 +552,12 @@
  slib = env.SharedLibrary
  if env['SHLIBVERSIONING']:
      slib = VersionatedSharedLibrary
 -#if env['PLATFORM']=="darwin":
 -#    slib=env.LoadableModule
--
 +# since "slib = VersionatedSharedLibrary" is broken on OSX 10.4 we use the 
 +# following. We are currently not using shared libraries anyway due to
 +# bugs in the deallocation of the various PolyBoRi libraries
 +if env['PLATFORM']=="darwin":
 +    slib=env.LoadableModule
  
+-
  libCuddShared = slib(CuddPath(cudd_name), list(shared_resources))
  
-@@ -1314,6 +1323,11 @@
+ 
+@@ -1314,6 +1324,11 @@
      env.Alias('install', ipboribin)
      env.AlwaysBuild(guibin)   
      env.Alias('install', guibin)

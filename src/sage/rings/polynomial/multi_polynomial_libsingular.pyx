@@ -33,6 +33,9 @@ The libSINGULAR interface was implemented by
 - Martin Albrecht (2009-06): refactored the code to allow better
   re-use
 
+- Simon King (2011-03): Use a faster way of conversion from the base
+  ring.
+
 TODO:
 
 - implement Real, Complex coefficient rings via libSINGULAR
@@ -293,6 +296,18 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: P.<x,y,z> = PolynomialRing(Integers(2^32),order='lex')
             sage: P(2^32-1)
             4294967295
+
+        TEST:
+
+        Make sure that a faster conversion map from the base ring is used;
+        see trac ticket #9944::
+
+            sage: R.<x,y> = PolynomialRing(ZZ)
+            sage: R.convert_map_from(R.base_ring())
+            Polynomial base injection morphism:
+              From: Integer Ring
+              To:   Multivariate Polynomial Ring in x, y over Integer Ring
+
         """
         MPolynomialRing_generic.__init__(self, base_ring, n, names, order)
         self._has_singular = True
@@ -301,6 +316,15 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         self._ring = singular_ring_new(base_ring, n, self._names, order)
         self._one_element = <MPolynomial_libsingular>new_MP(self,p_ISet(1, self._ring))
         self._zero_element = <MPolynomial_libsingular>new_MP(self,NULL)
+        # This polynomial ring should belong to Algebras(base_ring).
+        # Algebras(...).parent_class, which was called from MPolynomialRing_generic.__init__,
+        # tries to provide a conversion from the base ring, if it does not exist.
+        # This is for algebras that only do the generic stuff in their initialisation.
+        # But here, we want to use PolynomialBaseringInjection. Hence, we need to
+        # wipe the memory and construct the conversion from scratch.
+        from sage.rings.polynomial.polynomial_element import PolynomialBaseringInjection
+        base_inject = PolynomialBaseringInjection(base_ring, self)
+        self.register_conversion(base_inject)
 
     def __dealloc__(self):
         r"""

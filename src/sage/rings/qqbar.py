@@ -375,22 +375,20 @@ Just for fun, let's try ``sage_input`` on a very complicated expression::
     R.<x> = QQbar[]
     v1 = AA(2)
     v2 = QQbar(sqrt(v1))
-    v3 = QQbar(3)
-    v4 = sqrt(v3)
-    v5 = v2*v4
-    v6 = (1 - v2)*(1 - v4) - 1 - v5
-    v7 = QQbar(sqrt(v1))
-    v8 = sqrt(v3)
-    si1 = v7*v8
-    cp = AA.common_polynomial(x^2 + ((1 - v7)*(1 + v8) - 1 + si1)*x - si1)
-    v9 = QQbar.polynomial_root(cp, RIF(-RR(1.7320508075688774), -RR(1.7320508075688772)))
-    v10 = 1 - v9
-    v11 = v6 + (v10 - 1)
-    v12 = -1 - v4 - QQbar.polynomial_root(cp, RIF(-RR(1.7320508075688774), -RR(1.7320508075688772)))
-    v13 = 1 + v12
-    v14 = v10*(v6 + v5) - (v6 - v5*v9)
-    si2 = v5*v9
-    AA.polynomial_root(AA.common_polynomial(x^4 + (v11 + (v13 - 1))*x^3 + (v14 + (v13*v11 - v11))*x^2 + (v13*(v14 - si2) - (v14 - si2*v12))*x - si2*v12), RIF(RR(0.99999999999999989), RR(1.0000000000000002)))
+    v3 = sqrt(QQbar(3))
+    v4 = v2*v3
+    v5 = (1 - v2)*(1 - v3) - 1 - v4
+    v6 = QQbar(sqrt(v1))
+    si1 = v6*v3
+    cp = AA.common_polynomial(x^2 + ((1 - v6)*(1 + v3) - 1 + si1)*x - si1)
+    v7 = QQbar.polynomial_root(cp, RIF(-RR(1.7320508075688774), -RR(1.7320508075688772)))
+    v8 = 1 - v7
+    v9 = v5 + (v8 - 1)
+    v10 = -1 - v3 - QQbar.polynomial_root(cp, RIF(-RR(1.7320508075688774), -RR(1.7320508075688772)))
+    v11 = 1 + v10
+    v12 = v8*(v5 + v4) - (v5 - v4*v7)
+    si2 = v4*v7
+    AA.polynomial_root(AA.common_polynomial(x^4 + (v9 + (v11 - 1))*x^3 + (v12 + (v11*v9 - v9))*x^2 + (v11*(v12 - si2) - (v12 - si2*v10))*x - si2*v10), RIF(RR(0.99999999999999989), RR(1.0000000000000002)))
     sage: one
     1
 

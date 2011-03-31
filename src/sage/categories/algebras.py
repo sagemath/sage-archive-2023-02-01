@@ -98,7 +98,8 @@ class Algebras(Category_over_base_ring):
 
         def __init_extra__(self):
             """
-            Declares the canonical coercion from ``self.base_ring()`` to ``self``.
+            Declares the canonical coercion from ``self.base_ring()`` to ``self``,
+            if there has been none before.
 
             EXAMPLES::
 
@@ -112,9 +113,12 @@ class Algebras(Category_over_base_ring):
                 sage: A(1)          # indirect doctest
                 B[word: ]
             """
-            # TODO: find and implement a good syntax!
-            self.register_coercion(SetMorphism(function = self.from_base_ring, parent = Hom(self.base_ring(), self, Rings())))
             # Should be a morphism of Algebras(self.base_ring()), but e.g. QQ is not in Algebras(QQ)
+            mor = SetMorphism(function = self.from_base_ring, parent = Hom(self.base_ring(), self, Rings()))
+            try:
+                self.register_coercion(mor)
+            except AssertionError:
+                pass
 
     class ElementMethods:
         # TODO: move the content of AlgebraElement here

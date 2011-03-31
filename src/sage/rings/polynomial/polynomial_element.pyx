@@ -3,13 +3,15 @@ Univariate Polynomial Base Class
 
 AUTHORS:
 
--  William Stein: first version
+-  William Stein: first version.
 
 -  Martin Albrecht: Added singular coercion.
 
--  Robert Bradshaw: Move Polynomial_generic_dense to Cython
+-  Robert Bradshaw: Move Polynomial_generic_dense to Cython.
 
--  Miguel Marco: Implemented resultant in the case where PARI fails
+-  Miguel Marco: Implemented resultant in the case where PARI fails.
+
+-  Simon King: Use a faster way of conversion from the base ring.
 
 
 TESTS::
@@ -6030,17 +6032,65 @@ cdef class PolynomialBaseringInjection(Morphism):
     This class is used for conversion from a ring to a polynomial
     over that ring.
 
-    It calls the _new_constant_poly method on the generator,
-    which should be optimized for a particular polynomial type.
+    If the polynomial ring has a One and if the elements provide an
+    ``_rmul_`` method, and ``_rmul_`` does *not* return None (which is
+    the case for `p`-adics) then conversion is obtained by multiplying
+    the base ring element with the One by means of `_rmul_`.
+
+    Otherwise It calls the _new_constant_poly method on the generator,
+    which should be optimized for a particular polynomial type, but
+    often isn't.
+
     Technically, it should be a method of the polynomial ring, but
     few polynomial rings are cython classes.
+
+    NOTE:
+
+    We use `_rmul_` and not `_lmul_` since for many polynomial rings
+    `_lmul_` simply calls `_rmul_`.
+
+    EXAMPLES:
+
+    We demonstrate that different polynomial ring classes use
+    polynomial base injection maps::
+
+        sage: R.<x> = Qp(3)[]
+        sage: R.convert_map_from(R.base_ring())
+        Polynomial base injection morphism:
+          From: 3-adic Field with capped relative precision 20
+          To:   Univariate Polynomial Ring in x over 3-adic Field with capped relative precision 20
+        sage: R.<x,y> = Qp(3)[]
+        sage: R.convert_map_from(R.base_ring())
+        Polynomial base injection morphism:
+          From: 3-adic Field with capped relative precision 20
+          To:   Multivariate Polynomial Ring in x, y over 3-adic Field with capped relative precision 20
+        sage: R.<x,y> = QQ[]
+        sage: R.convert_map_from(R.base_ring())
+        Polynomial base injection morphism:
+          From: Rational Field
+          To:   Multivariate Polynomial Ring in x, y over Rational Field
+        sage: R.<x> = QQ[]
+        sage: R.convert_map_from(R.base_ring())
+        Polynomial base injection morphism:
+          From: Rational Field
+          To:   Univariate Polynomial Ring in x over Rational Field
+
+    By trac ticket #9944, there are now only very few exceptions::
+
+        sage: PolynomialRing(QQ,names=[]).convert_map_from(QQ)
+        Call morphism:
+          From: Rational Field
+          To:   Multivariate Polynomial Ring in no variables over Rational Field
+
     """
 
-    cdef Polynomial _an_element
+    cdef RingElement _an_element
+    cdef object _one_rmul_
 
     def __init__(self, domain, codomain):
         """
-        TESTS:
+        TESTS::
+
             sage: from sage.rings.polynomial.polynomial_element import PolynomialBaseringInjection
             sage: PolynomialBaseringInjection(QQ, QQ['x'])
             Polynomial base injection morphism:
@@ -6050,11 +6100,44 @@ cdef class PolynomialBaseringInjection(Morphism):
             Traceback (most recent call last):
             ...
             AssertionError: domain must be basering
+
+        ::
+
+            sage: R.<t> = Qp(2)[]
+            sage: f = R.convert_map_from(R.base_ring())    # indirect doctest
+            sage: f(Qp(2).one()*3)
+            (1 + 2 + O(2^20))
+            sage: (Qp(2).one()*3)*t
+            (1 + 2 + O(2^20))*t
+
         """
         assert domain is codomain.base_ring(), "domain must be basering"
         Morphism.__init__(self, domain, codomain)
         self._an_element = codomain.gen()
         self._repr_type_str = "Polynomial base injection"
+        if domain is codomain: # some rings are base rings of themselves!
+            return
+        try:
+            one = codomain._element_constructor_(domain.one_element())
+        except (AttributeError, NotImplementedError, TypeError):
+            # perhaps it uses the old model?
+            try:
+                one = codomain._coerce_c(domain.one_element())
+            except (AttributeError, NotImplementedError, TypeError):
+                return
+        try:
+            one_rmul_ = one._rmul_
+        except AttributeError:
+            return
+        # For the p-adic fields, _lmul_ and _rmul_ return None!!!
+        # To work around, we need to test its sanity before we try
+        # to use it.
+        try:
+            if one_rmul_(domain.one_element()) is None:
+                return
+            self._one_rmul_ = one_rmul_
+        except TypeError:
+            pass
 
     cpdef Element _call_(self, x):
         """
@@ -6064,11 +6147,13 @@ cdef class PolynomialBaseringInjection(Morphism):
             Polynomial base injection morphism:
               From: Integer Ring
               To:   Univariate Polynomial Ring in x over Integer Ring
-            sage: m(2) # implicit doctest
+            sage: m(2) # indirect doctest
             2
             sage: parent(m(2))
             Univariate Polynomial Ring in x over Integer Ring
         """
+        if self._one_rmul_ is not None:
+            return self._one_rmul_(x)
         return self._an_element._new_constant_poly(<Element>x)
 
     cpdef Element _call_with_args(self, x, args=(), kwds={}):
@@ -6076,7 +6161,7 @@ cdef class PolynomialBaseringInjection(Morphism):
         TESTS:
             sage: from sage.rings.polynomial.polynomial_element import PolynomialBaseringInjection
             sage: m = PolynomialBaseringInjection(Qp(5), Qp(5)['x'])
-            sage: m(1 + O(5^11), absprec = 5)
+            sage: m(1 + O(5^11), absprec = 5)   # indirect doctest
             (1 + O(5^11))
         """
         return self._codomain._element_constructor(x, *args, **kwds)

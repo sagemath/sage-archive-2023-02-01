@@ -199,7 +199,6 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             category = categories.IntegralDomains()
         else:
             category = categories.CommutativeRings()
-        sage.algebras.algebra.Algebra.__init__(self, base_ring, names=name, normalize=True, category=category)
         self.__is_sparse = sparse
         if element_class:
             self._polynomial_class = element_class
@@ -209,12 +208,20 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             else:
                 from sage.rings.polynomial import polynomial_element
                 self._polynomial_class = polynomial_element.Polynomial_generic_dense
-        self.__generator = self._polynomial_class(self, [0,1], is_gen=True)
         self.__cyclopoly_cache = {}
         self._has_singular = False
+        # Algebra.__init__ also calls __init_extra__ of Algebras(...).parent_class, which
+        # tries to provide a conversion from the base ring, if it does not exist.
+        # This is for algebras that only do the generic stuff in their initialisation.
+        # But here, we want to use PolynomialBaseringInjection. Hence, we need to
+        # wipe the memory and construct the conversion from scratch.
+        sage.algebras.algebra.Algebra.__init__(self, base_ring, names=name, normalize=True, category=category)
+        self.__generator = self._polynomial_class(self, [0,1], is_gen=True)
+        base_inject = PolynomialBaseringInjection(base_ring, self)
+        self._unset_coercions_used()
         self._populate_coercion_lists_(
-                coerce_list = [PolynomialBaseringInjection(base_ring, self)],
-                convert_list = [list],
+                coerce_list = [base_inject],
+                convert_list = [list, base_inject],
                 convert_method_name = '_polynomial_')
 
 

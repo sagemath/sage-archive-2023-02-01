@@ -460,6 +460,52 @@ class Polynomial_generic_sparse(Polynomial):
         output.__normalize()
         return output
 
+    def _rmul_(self, left):
+        r"""
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(ZZ, sparse=True)
+            sage: (x^100000 - x^50000) * (x^100000 + x^50000)
+            x^200000 - x^100000
+            sage: 7 * (x^100000 - x^50000)   # indirect doctest
+            7*x^100000 - 7*x^50000
+
+        AUTHOR:
+
+        - Simon King (2011-03-31)
+        """
+        output = {}
+
+        for (index, coeff) in self.__coeffs.iteritems():
+            output[index] = left * coeff
+
+        output = self.parent()(output, check=False)
+        output.__normalize()
+        return output
+
+    def _lmul_(self, right):
+        r"""
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(ZZ, sparse=True)
+            sage: (x^100000 - x^50000) * (x^100000 + x^50000)
+            x^200000 - x^100000
+            sage: (x^100000 - x^50000) * 7   # indirect doctest
+            7*x^100000 - 7*x^50000
+
+        AUTHOR:
+
+        - Simon King (2011-03-31)
+        """
+        output = {}
+
+        for (index, coeff) in self.__coeffs.iteritems():
+            output[index] = coeff * right
+
+        output = self.parent()(output, check=False)
+        output.__normalize()
+        return output
+
     def shift(self, n):
         r"""
         Returns this polynomial multiplied by the power `x^n`. If `n` is negative,

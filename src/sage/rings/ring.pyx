@@ -68,6 +68,14 @@ cdef class Ring(ParentWithGens):
     """
     Generic ring class.
     """
+    # Unfortunately, ParentWithGens inherits from sage.structure.parent_old.Parent.
+    # Its __init__ method does *not* call Parent.__init__, since this would somehow
+    # yield an infinite recursion. But when we call it from here, it works.
+    # This is done in order to ensure that __init_extra__ is called.
+    def __init__(self, base, names=None, normalize=True, category = None):
+        ParentWithGens.__init__(self, base, names=names, normalize=normalize)
+        Parent.__init__(self, category=category)
+
     def __iter__(self):
         r"""
         Return an iterator through the elements of self. Not implemented in general.

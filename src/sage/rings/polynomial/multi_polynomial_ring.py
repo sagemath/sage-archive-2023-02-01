@@ -150,6 +150,16 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
         self._gens = tuple(self._gens)
         self._zero_tuple = tuple(v)
         self._has_singular = can_convert_to_singular(self)
+        # This polynomial ring should belong to Algebras(base_ring).
+        # Algebras(...).parent_class, which was called from MPolynomialRing_generic.__init__,
+        # tries to provide a conversion from the base ring, if it does not exist.
+        # This is for algebras that only do the generic stuff in their initialisation.
+        # But here, we want to use PolynomialBaseringInjection. Hence, we need to
+        # wipe the memory and construct the conversion from scratch.
+        if n:
+            from sage.rings.polynomial.polynomial_element import PolynomialBaseringInjection
+            base_inject = PolynomialBaseringInjection(base_ring, self)
+            self.register_conversion(base_inject)
 
     def _monomial_order_function(self):
         return self.__monomial_order_function

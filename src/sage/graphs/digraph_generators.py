@@ -41,6 +41,8 @@ class DiGraphGenerators():
                 Random Directed Graphs:
                     - RandomDirectedGN
                     - RandomDirectedGNC
+                    - RandomDirectedGNP
+                    - RandomDirectedGNM
                     - RandomDirectedGNR
 
                 Families of Graphs:
@@ -457,6 +459,135 @@ class DiGraphGenerators():
             for j in xrange(i+1,n):
                 if random() < p:
                     D.add_edge(i,j)
+        return D
+
+    def RandomDirectedGNM(self, n, m, loops = False):
+        r"""
+        Returns a random labelled digraph on `n` nodes and `m` arcs.
+
+        INPUT:
+
+        - ``n`` (integer) -- number of vertices.
+
+        - ``m`` (integer) -- number of edges.
+
+        - ``loops`` (boolean) -- whether to allow loops (set to ``False`` by
+          default).
+
+        PLOTTING: When plotting, this graph will use the default spring-layout
+        algorithm, unless a position dictionary is specified.
+
+        EXAMPLE::
+
+            sage: D = digraphs.RandomDirectedGNM(10, 5)
+            sage: D.num_verts()
+            10
+            sage: D.edges(labels=False)
+            [(0, 3), (1, 5), (5, 1), (7, 0), (8, 5)]
+
+        With loops::
+
+            sage: D = digraphs.RandomDirectedGNM(10, 100, loops = True)
+            sage: D.num_verts()
+            10
+            sage: D.loops()
+            [(0, 0, None), (1, 1, None), (2, 2, None), (3, 3, None), (4, 4, None), (5, 5, None), (6, 6, None), (7, 7, None), (8, 8, None), (9, 9, None)]
+
+        TESTS::
+
+            sage: digraphs.RandomDirectedGNM(10,-3)
+            Traceback (most recent call last):
+            ...
+            ValueError: The number of edges must satisfy 0<= m <= n(n-1) when no loops are allowed, and 0<= m <= n^2 otherwise.
+
+            sage: digraphs.RandomDirectedGNM(10,100)
+            Traceback (most recent call last):
+            ...
+            ValueError: The number of edges must satisfy 0<= m <= n(n-1) when no loops are allowed, and 0<= m <= n^2 otherwise.
+        """
+        n, m = int(n), int(m)
+
+        # The random graph is built by drawing randomly and uniformly two
+        # integers u,v, and adding the corresponding edge if it does not exist,
+        # as many times as necessary.
+
+        # When the graph is dense, we actually compute its complement. This will
+        # prevent us from drawing the same pair u,v too many times.
+
+        from sage.misc.prandom import _pyrand
+        rand = _pyrand()
+        D = DiGraph(n, loops = loops)
+
+        # Ensuring the parameters n,m make sense.
+        #
+        # If the graph is dense, we actually want to build its complement. We
+        # update m accordingly.
+
+        good_input = True
+        is_dense = False
+
+        if m < 0:
+            good_input = False
+
+        if loops:
+            if m > n*n:
+                good_input = False
+            elif m > n*n/2:
+                is_dense = True
+                m = n*n - m
+
+        else:
+            if m > n*(n-1):
+                good_input = False
+            elif m > n*(n-1)/2:
+                is_dense = True
+                m = n*(n-1) - m
+
+        if not good_input:
+            raise ValueError("The number of edges must satisfy 0<= m <= n(n-1) when no loops are allowed, and 0<= m <= n^2 otherwise.")
+
+        # When the given number of edges defines a density larger than 1/2, it
+        # should be faster to compute the complement of the graph (less edges to
+        # generate), then to return its complement. This being said, the
+        # .complement() method for sparse graphs is very slow at the moment.
+
+        # Similarly, it is faster to test whether a pair belongs to a dictionary
+        # than to test the adjacency of two vertices in a graph. For these
+        # reasons, the following code mainly works on dictionaries.
+
+        adj = dict( (i, dict()) for i in range(n) )
+
+        # We fill the dictionary structure, but add the corresponding edge in
+        # the graph only if is_dense is False. If it is true, we will add the
+        # edges in a second phase.
+
+
+        while m > 0:
+
+            # It is better to obtain random numbers this way than by calling the
+            # randint or randrange method. This, because they are very expensive
+            # when trying to compute MANY random integers, and because the
+            # following lines is precisely what they do anyway, after checking
+            # their parameters are correct.
+
+            u=int(rand.random()*n)
+            v=int(rand.random()*n)
+
+            if (u != v or loops) and (not v in adj[u]):
+                adj[u][v] = 1
+                m -= 1
+                if not is_dense:
+                    D.add_edge(u,v)
+
+        # If is_dense is True, it means the graph has not been built. We fill D
+        # with the complement of the edges stored in the adj dictionary
+
+        if is_dense:
+            for u in range(n):
+                for v in range(n):
+                    if ((u != v) or loops) and (not (v in adj[u])):
+                        D.add_edge(u,v)
+
         return D
 
     def RandomDirectedGNR(self, n, p, seed=None):

@@ -474,6 +474,18 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         """
         return 1
 
+    def algebraic_closure(self):
+        r"""
+        Returns the algebraic closure of self, i.e., the complex double
+        field.
+
+        EXAMPLES::
+
+            sage: CDF.algebraic_closure()
+            Complex Double Field
+        """
+        return self
+
     def real_double_field(self):
         """
         The real double field, which you may view as a subfield of this

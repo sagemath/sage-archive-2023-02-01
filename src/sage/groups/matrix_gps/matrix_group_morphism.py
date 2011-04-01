@@ -14,7 +14,8 @@ AUTHORS:
 #       Copyright (C) 2006 David Joyner and William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -227,8 +228,8 @@ class MatrixGroupMorphism_im_gens(MatrixGroupMorphism):
             sage: O = WeylGroup(['D',6])
             sage: r = prod(O.gens())
             sage: r_ = r^-1
-            sage: f = O.hom([r*x*r_ for x in O.gens()])
-            sage: [f(x) for x in O.gens()]
+            sage: f = O.hom([r*x*r_ for x in O.gens()])  # long time (19s on sage.math, 2011)
+            sage: [f(x) for x in O.gens()]  # long time
             [
             [1 0 0 0 0 0]  [1 0 0 0 0 0]  [1 0 0 0 0 0]  [ 0  0  0  0 -1  0]
             [0 0 1 0 0 0]  [0 1 0 0 0 0]  [0 1 0 0 0 0]  [ 0  1  0  0  0  0]
@@ -244,7 +245,7 @@ class MatrixGroupMorphism_im_gens(MatrixGroupMorphism):
             [0 0 0 0 1 0]  [ 0  0  0  0  1  0]
             [1 0 0 0 0 0], [-1  0  0  0  0  0]
             ]
-            sage: f(O)
+            sage: f(O)  # long time
             Matrix group over Rational Field with 6 generators:
              [[[1, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0], [0, 1, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 1]], [[1, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0], [0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 1]], [[1, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 1, 0], [0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 1]], [[0, 0, 0, 0, -1, 0], [0, 1, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0], [0, 0, 0, 1, 0, 0], [-1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1]], [[0, 0, 0, 0, 0, 1], [0, 1, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0], [0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 1, 0], [1, 0, 0, 0, 0, 0]], [[0, 0, 0, 0, 0, -1], [0, 1, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0], [0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 1, 0], [-1, 0, 0, 0, 0, 0]]]
 

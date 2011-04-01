@@ -61,8 +61,8 @@ def chromatic_polynomial(G, return_tree_basis = False):
         (x - 2) * (x - 1) * x * (x^2 - 5*x + 7)
         sage: graphs.WheelGraph(6).chromatic_polynomial().factor()
         (x - 3) * (x - 2) * (x - 1) * x * (x^2 - 4*x + 5)
-        sage: C(x)=graphs.LCFGraph(24, [12,7,-7], 8).chromatic_polynomial()
-        sage: C(2)
+        sage: C(x)=graphs.LCFGraph(24, [12,7,-7], 8).chromatic_polynomial()  # long time (6s on sage.math, 2011)
+        sage: C(2)  # long time
         0
 
     """

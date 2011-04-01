@@ -5075,8 +5075,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             983886013344700707678587482584/141566320009,\
             1124614335716851053281176544216033/152487126016]
             sage: points = [E.lift_x(x) for x in xi]
-            sage: newpoints, U = E.lll_reduce(points) # long time (2m)
-            sage: [P[0] for P in newpoints]           # long time
+            sage: newpoints, U = E.lll_reduce(points)  # long time (35s on sage.math, 2011)
+            sage: [P[0] for P in newpoints]            # long time
             [6823803569166584943, 5949539878899294213, 2005024558054813068, 5864879778877955778, 23955263915878682727/4, 5922188321411938518, 5286988283823825378, 175620639884534615751/25, -11451575907286171572, 3502708072571012181, 1500143935183238709184/225, 27180522378120223419/4, -5811874164190604461581/625, 26807786527159569093, 7404442636649562303, 475656155255883588, 265757454726766017891/49, 7272142121019825303, 50628679173833693415/4, 6951643522366348968, 6842515151518070703, 111593750389650846885/16, 2607467890531740394315/9, -1829928525835506297]
         """
         r = len(points)
@@ -5250,16 +5250,16 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: EllipticCurve('900d1').integral_points()
             [(-11 : 27 : 1), (-4 : 34 : 1), (4 : 18 : 1), (16 : 54 : 1)]
 
-        Another example with rank 5 and no torsion points
-
-        ::
+        Another example with rank 5 and no torsion points::
 
             sage: E=EllipticCurve([-879984,319138704])
             sage: P1=E.point((540,1188)); P2=E.point((576,1836))
             sage: P3=E.point((468,3132)); P4=E.point((612,3132))
             sage: P5=E.point((432,4428))
-            sage: a=E.integral_points([P1,P2,P3,P4,P5]); len(a)  # long time (400s!)
+            sage: a=E.integral_points([P1,P2,P3,P4,P5]); len(a)  # long time (34s on sage.math, 2011)
             54
+
+        TESTS:
 
         The bug reported on trac #4525 is now fixed::
 
@@ -5268,7 +5268,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         ::
 
-            sage: [len(e.integral_points(both_signs=False)) for e in cremona_curves([11..100])] # long time
+            sage: [len(e.integral_points(both_signs=False)) for e in cremona_curves([11..100])]  # long time (15s on sage.math, 2011)
             [2, 0, 2, 3, 2, 1, 3, 0, 2, 4, 2, 4, 3, 0, 0, 1, 2, 1, 2, 0, 2, 1, 0, 1, 3, 3, 1, 1, 4, 2, 3, 2, 0, 0, 5, 3, 2, 2, 1, 1, 1, 0, 1, 3, 0, 1, 0, 1, 1, 3, 6, 1, 2, 2, 2, 0, 0, 2, 3, 1, 2, 2, 1, 1, 0, 3, 2, 1, 0, 1, 0, 1, 3, 3, 1, 1, 5, 1, 0, 1, 1, 0, 1, 2, 0, 2, 0, 1, 1, 3, 1, 2, 2, 4, 4, 2, 1, 0, 0, 5, 1, 0, 1, 2, 0, 2, 2, 0, 0, 0, 1, 0, 3, 1, 5, 1, 2, 4, 1, 0, 1, 0, 1, 0, 1, 0, 2, 2, 0, 0, 1, 0, 1, 1, 4, 1, 0, 1, 1, 0, 4, 2, 0, 1, 1, 2, 3, 1, 1, 1, 1, 6, 2, 1, 1, 0, 2, 0, 6, 2, 0, 4, 2, 2, 0, 0, 1, 2, 0, 2, 1, 0, 3, 1, 2, 1, 4, 6, 3, 2, 1, 0, 2, 2, 0, 0, 5, 4, 1, 0, 0, 1, 0, 2, 2, 0, 0, 2, 3, 1, 3, 1, 1, 0, 1, 0, 0, 1, 2, 2, 0, 2, 0, 0, 1, 2, 0, 0, 4, 1, 0, 1, 1, 0, 1, 2, 0, 1, 4, 3, 1, 2, 2, 1, 1, 1, 1, 6, 3, 3, 3, 3, 1, 1, 1, 1, 1, 0, 7, 3, 0, 1, 3, 2, 1, 0, 3, 2, 1, 0, 2, 2, 6, 0, 0, 6, 2, 2, 3, 3, 5, 5, 1, 0, 6, 1, 0, 3, 1, 1, 2, 3, 1, 2, 1, 1, 0, 1, 0, 1, 0, 5, 5, 2, 2, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1]
 
         The bug reported at #4897 is now fixed::

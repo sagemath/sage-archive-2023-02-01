@@ -629,7 +629,7 @@ class ZonalPolynomials(JackPolynomials_p):
         TESTS::
 
             sage: TestSuite(Z).run(elements = [Z[1], Z[1,1]])
-            sage: TestSuite(Z).run(skip = ["_test_associativity", "_test_prod"])
+            sage: TestSuite(Z).run(skip = ["_test_associativity", "_test_prod"])  # long time (7s on sage.math, 2011)
 
         Note: ``Z.an_element()`` is of degree 4; so we skip the
         ``_test_associativity`` and ``_test_prod`` which involve

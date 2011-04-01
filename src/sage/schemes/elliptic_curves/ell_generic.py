@@ -2627,30 +2627,32 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
         EXAMPLES::
 
-            sage: E=EllipticCurve('11a1')
+            sage: E = EllipticCurve('11a1')
             sage: E._p_primary_torsion_basis(5)
             [[(5 : -6 : 1), 1]]
-            sage: K.<t>=NumberField(x^4 + x^3 + 11*x^2 + 41*x + 101)
-            sage: EK=E.base_extend(K)
-            sage: EK._p_primary_torsion_basis(5)
+            sage: K.<t> = NumberField(x^4 + x^3 + 11*x^2 + 41*x + 101)
+            sage: EK = E.base_extend(K)
+            sage: EK._p_primary_torsion_basis(5)  # long time (2s on sage.math, 2011)
             [[(16 : 60 : 1), 1], [(t : 1/11*t^3 + 6/11*t^2 + 19/11*t + 48/11 : 1), 1]]
-            sage: EF=E.change_ring(GF(101))
+            sage: EF = E.change_ring(GF(101))
             sage: EF._p_primary_torsion_basis(5)
             [[(0 : 13 : 1), 1], [(5 : 5 : 1), 1]]
 
-            This shows that the bug at trac \#4937 is fixed::
+            sage: F.<z> = CyclotomicField(21)
+            sage: E = EllipticCurve([2,-z^7,-z^7,0,0])
+            sage: E._p_primary_torsion_basis(7,2)  # long time (8s on sage.math, 2011)
+            [[(0 : z^7 : 1), 1],
+            [(z^7 - z^6 + z^4 - z^3 + z^2 - 1 : z^8 - 2*z^7 + z^6 + 2*z^5 - 3*z^4 + 2*z^3 - 2*z + 2 : 1), 1]]
+
+        TESTS:
+
+        This shows that the bug at trac #4937 is fixed::
 
             sage: a=804515977734860566494239770982282063895480484302363715494873
             sage: b=584772221603632866665682322899297141793188252000674256662071
-            sage: [t[1] for t in EllipticCurve(GF(10^60+3201),[0,a,0,b,0])._p_primary_torsion_basis(2)]
+            sage: E = EllipticCurve(GF(10^60+3201),[0,a,0,b,0])
+            sage: [t[1] for t in E._p_primary_torsion_basis(2)]  # long time (3s on sage.math, 2011)
             [16, 1]
-
-            sage: F.<z> = CyclotomicField(21)
-            sage: E = EllipticCurve([2,-z^7,-z^7,0,0])
-            sage: E._p_primary_torsion_basis(7,2)
-            [[(0 : z^7 : 1), 1],
-            [(z^7 - z^6 + z^4 - z^3 + z^2 - 1 : z^8 - 2*z^7 + z^6 + 2*z^5 - 3*z^4 + 2*z^3 - 2*z + 2 : 1),
-            1]]
         """
         p = rings.Integer(p)
         if not p.is_prime():

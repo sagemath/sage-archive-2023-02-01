@@ -203,14 +203,15 @@ parallelizes well. He gives these timings for computing
     some tricks to optimise the crap out of the computation of
     :math:`B_k \text{mod} p`."
 
-
 So now Sage is the fastest in the world for large Bernoulli
-numbers. The timings below are on a 16-core 1.8Ghz Opteron box.
+numbers. The timings below are on a 24-core 2.66Ghz Xeon box.
 
 ::
 
-    sage: w = bernoulli(100000, num_threads=16)     # 1.87 seconds
-    sage: w = bernoulli(100000, algorithm='pari')   # 28 seconds
+    sage: w1 = bernoulli(100000, num_threads=16)     # 0.9 seconds wall time
+    sage: w2 = bernoulli(100000, algorithm='pari')   # long time (6s on sage.math, 2011)
+    sage: w1 == w2  # long time
+    True
 
 
 Polynomial Arithmetic

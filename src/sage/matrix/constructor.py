@@ -445,7 +445,7 @@ def matrix(*args, **kwds):
         ValueError: List of rows is not valid (rows are wrong types or lengths)
         sage: matrix(vector(RR,[1,2,3])).parent()
         Full MatrixSpace of 1 by 3 dense matrices over Real Field with 53 bits of precision
-        sage: matrix(ZZ, [[0] for i in range(10^6)]).is_zero() # see #10158
+        sage: matrix(ZZ, [[0] for i in range(10^5)]).is_zero() # see #10158
         True
 
     AUTHORS:

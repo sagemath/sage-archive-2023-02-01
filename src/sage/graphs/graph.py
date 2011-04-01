@@ -2906,7 +2906,7 @@ class Graph(GenericGraph):
             tom^10 - 15*tom^8 + 75*tom^6 - 145*tom^4 + 90*tom^2 - 6
             sage: g = Graph()
             sage: L = [graphs.RandomGNP(8, .3) for i in [1..5]]
-            sage: prod([h.matching_polynomial() for h in L]) == sum(L, g).matching_polynomial()
+            sage: prod([h.matching_polynomial() for h in L]) == sum(L, g).matching_polynomial()  # long time (7s on sage.math, 2011)
             True
         """
         from matchpoly import matching_polynomial

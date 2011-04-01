@@ -13,26 +13,28 @@ completes, when they print as normal.
 \sage exits.  I would very much like to fix this but don't know how.}
 
 EXAMPLES:
+
 We illustrate how to factor 3 integers in parallel.
-First start up 3 parallel \sage interfaces:
+First start up 3 parallel Sage interfaces::
 
     sage: v = [PSage() for _ in range(3)]
 
-Next, request factorization of one random integer in each copy.
+Next, request factorization of one random integer in each copy. ::
 
-    sage: w = [x('factor(2^%s-1)'% randint(250,310)) for x in v]
+    sage: w = [x('factor(2^%s-1)'% randint(250,310)) for x in v]  # long time (5s on sage.math, 2011)
 
-Print the status:
-    sage: w       # random output (depends on timing)
+Print the status::
+
+    sage: w       # long time, random output (depends on timing)
     [3 * 11 * 31^2 * 311 * 11161 * 11471 * 73471 * 715827883 * 2147483647 * 4649919401 * 18158209813151 * 5947603221397891 * 29126056043168521,
      <<currently executing code>>,
      9623 * 68492481833 * 23579543011798993222850893929565870383844167873851502677311057483194673]
 
 Note that at the point when we printed two of the factorizations had
 finished but a third one hadn't.   A few seconds later all three have
-finished:
+finished::
 
-    sage: w       # random output
+    sage: w       # long time, random output
     [3 * 11 * 31^2 * 311 * 11161 * 11471 * 73471 * 715827883 * 2147483647 * 4649919401 * 18158209813151 * 5947603221397891 * 29126056043168521,
      23^2 * 47 * 89 * 178481 * 4103188409 * 199957736328435366769577 * 44667711762797798403039426178361,
      9623 * 68492481833 * 23579543011798993222850893929565870383844167873851502677311057483194673]

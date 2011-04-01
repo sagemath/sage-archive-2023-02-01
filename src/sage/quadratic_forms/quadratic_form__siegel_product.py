@@ -1,6 +1,13 @@
 """
 Siegel Products
 """
+#*****************************************************************************
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 from sage.rings.arith import fundamental_discriminant
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
@@ -52,23 +59,24 @@ def siegel_product(self, u):
         sage: Q.siegel_product(9)
         104
 
-        sage: Q.local_density(2,1)    ## This is ok
+        sage: Q.local_density(2,1)
         1
-        sage: M = 8; len([v  for v in mrange([M,M,M,M])  if Q(v) % M == 1]) / M^3
+        sage: M = 4; len([v  for v in mrange([M,M,M,M])  if Q(v) % M == 1]) / M^3
         1
-        sage: M = 16; len([v  for v in mrange([M,M,M,M])  if Q(v) % M == 1]) / M^3     ## long time
+        sage: M = 16; len([v  for v in mrange([M,M,M,M])  if Q(v) % M == 1]) / M^3  # long time (41s on sage.math, 2011)
         1
 
-        sage: Q.local_density(2,2)    ## This is ok now. =)
+        sage: Q.local_density(2,2)
         3/2
-        sage: M = 8; len([v  for v in mrange([M,M,M,M])  if Q(v) % M == 2]) / M^3
+        sage: M = 4; len([v  for v in mrange([M,M,M,M])  if Q(v) % M == 2]) / M^3
         3/2
-        sage: M = 16; len([v  for v in mrange([M,M,M,M])  if Q(v) % M == 2]) / M^3     ## long time
+        sage: M = 16; len([v  for v in mrange([M,M,M,M])  if Q(v) % M == 2]) / M^3  # long time (41s on sage.math, 2011)
         3/2
+
+    TESTS::
 
         sage: [1] + [Q.siegel_product(ZZ(a))  for a in range(1,11)] == Q.theta_series(11).list()
         True
-
     """
     ## Protect u (since it fails often if it's an just an int!)
     u = ZZ(u)

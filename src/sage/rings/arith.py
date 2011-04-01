@@ -290,13 +290,13 @@ def bernoulli(n, algorithm='default', num_threads=1):
 
         sage: algs = ['gap','gp','pari','bernmm']
         sage: test_list = [ZZ.random_element(2, 2255) for _ in range(500)]
-        sage: vals = [[bernoulli(i,algorithm = j) for j in algs] for i in test_list] #long time (19s)
-        sage: union([len(union(x))==1 for x in vals]) #long time (depends on previous line)
+        sage: vals = [[bernoulli(i,algorithm = j) for j in algs] for i in test_list]  # long time (up to 21s on sage.math, 2011)
+        sage: union([len(union(x))==1 for x in vals])  # long time (depends on previous line)
         [True]
         sage: algs = ['gp','pari','bernmm']
         sage: test_list = [ZZ.random_element(2256, 5000) for _ in range(500)]
-        sage: vals = [[bernoulli(i,algorithm = j) for j in algs] for i in test_list] #long time (21s)
-        sage: union([len(union(x))==1 for x in vals]) #long time (depends on previous line)
+        sage: vals = [[bernoulli(i,algorithm = j) for j in algs] for i in test_list]  # long time (up to 30s on sage.math, 2011)
+        sage: union([len(union(x))==1 for x in vals])  # long time (depends on previous line)
         [True]
 
     AUTHOR:

@@ -4456,8 +4456,7 @@ class GraphGenerators():
 
             sage: m=4; q=2; k=2
             sage: g_list=[graphs.FuzzyBallGraph(p,q) for p in Partitions(m, length=k)]
-            sage: charpolys=set([g.laplacian_matrix(normalized=True).charpoly() for g in g_list])
-            sage: charpolys
+            sage: set([g.laplacian_matrix(normalized=True).charpoly() for g in g_list])  # long time (7s on sage.math, 2011)
             set([x^8 - 8*x^7 + 4079/150*x^6 - 68689/1350*x^5 + 610783/10800*x^4 - 120877/3240*x^3 + 1351/100*x^2 - 931/450*x])
         """
         if len(partition)<1:

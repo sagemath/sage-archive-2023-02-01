@@ -36,6 +36,10 @@ This spkg provides dependencies for
 
 == Changelog ==
 
+=== libpng-1.2.35.p3 (David Kirkby 1st April 2011) ===
+ * Remove the erronous file '.#spkg-install' in the root
+   directory of the package.
+
 === libpng-1.2.35.p2 (Mike Hansen, June 4th, 2010) ===
  * #9146: cygwin: gd doesn't correctly link in libpng with sage-4.4.3.
 

@@ -168,6 +168,7 @@ cdef class CategoryObject(sage_object.SageObject):
             sage: ZZ.categories()
             [Category of euclidean domains,
              Category of principal ideal domains,
+             Category of unique factorization domains,
              Category of gcd domains,
              Category of integral domains,
              Category of commutative rings,

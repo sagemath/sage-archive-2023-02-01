@@ -7013,6 +7013,187 @@ cdef class Matrix(matrix1.Matrix):
         else:
             return J
 
+    def is_diagonalizable(self, base_field=None):
+        r"""
+        Determines if the matrix is similar to a diagonal matrix.
+
+        INPUT:
+
+        - ``base_field`` - a new field to use for entries
+          of the matrix.
+
+        OUTPUT:
+
+        If ``self`` is the matrix `A`, then it is diagonalizable
+        if there is an invertible matrix `S` and a diagonal matrix
+        `D` such that
+
+        .. math::
+
+            S^{-1}AS = D
+
+        This routine returns ``True`` if ``self`` is diagonalizable.
+        The diagonal entries of the matrix `D` are the eigenvalues
+        of `A`.  It may be necessary to "increase" the base field to
+        contain all of the eigenvalues.  Over the rationals, the field
+        of algebraic integers, :mod:`sage.rings.qqbar` is a good choice.
+
+        To obtain the matrices `S` and `D` use the :meth:`jordan_form`
+        method with the ``transformation=True`` keyword.
+
+        ALGORITHM:
+
+        For each eigenvalue, this routine checks that the algebraic
+        multiplicity (number of occurences as a root of the characteristic
+        polynomial) is equal to the geometric multiplicity (dimension
+        of the eigenspace), which is sufficient to ensure a basis of
+        eigenvectors for the columns of `S`.
+
+        EXAMPLES:
+
+        A matrix that is diagonalizable over the rationals, as evidenced
+        by its Jordan form.  ::
+
+            sage: A = matrix(QQ, [[-7, 16, 12,  0,    6],
+            ...                   [-9, 15,  0,  12, -27],
+            ...                   [ 9, -8, 11, -12,  51],
+            ...                   [ 3, -4,  0,  -1,   9],
+            ...                   [-1,  0, -4,   4, -12]])
+            sage: A.jordan_form(subdivide=False)
+            [ 2  0  0  0  0]
+            [ 0  3  0  0  0]
+            [ 0  0  3  0  0]
+            [ 0  0  0 -1  0]
+            [ 0  0  0  0 -1]
+            sage: A.is_diagonalizable()
+            True
+
+        A matrix that is not diagonalizable over the rationals, as evidenced
+        by its Jordan form.  ::
+
+            sage: A = matrix(QQ, [[-3, -14, 2, -1, 15],
+            ...                   [4, 6, -2, 3, -8],
+            ...                   [-2, -14, 0, 0, 10],
+            ...                   [3, 13, -2, 0, -11],
+            ...                   [-1, 6, 1, -3, 1]])
+            sage: A.jordan_form(subdivide=False)
+            [-1  1  0  0  0]
+            [ 0 -1  0  0  0]
+            [ 0  0  2  1  0]
+            [ 0  0  0  2  1]
+            [ 0  0  0  0  2]
+            sage: A.is_diagonalizable()
+            False
+
+        If any eigenvalue of a matrix is outside the base ring, then
+        this routine raises an error.  However, the ring can be
+        "expanded" to contain the eigenvalues.  ::
+
+            sage: A = matrix(QQ, [[1,  0,  1,  1, -1],
+            ...                   [0,  1,  0,  4,  8],
+            ...                   [2,  1,  3,  5,  1],
+            ...                   [2, -1,  1,  0, -2],
+            ...                   [0, -1, -1, -5, -8]])
+
+            sage: [e in QQ for e in A.eigenvalues()]
+            [False, False, False, False, False]
+            sage: A.is_diagonalizable()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: an eigenvalue of the matrix is not contained in Rational Field
+
+            sage: [e in QQbar for e in A.eigenvalues()]
+            [True, True, True, True, True]
+            sage: A.is_diagonalizable(base_field=QQbar)
+            True
+
+        Other exact fields may be employed, though it will not always
+        be possible to expand their base fields to contain all
+        the eigenvalues.  ::
+
+            sage: F.<b> = FiniteField(5^2)
+            sage: A = matrix(F, [[      4, 3*b + 2, 3*b + 1, 3*b + 4],
+            ...                  [2*b + 1,     4*b,       0,       2],
+            ...                  [    4*b,   b + 2, 2*b + 3,       3],
+            ...                  [    2*b,     3*b, 4*b + 4, 3*b + 3]])
+            sage: A.jordan_form()
+            [      4       1|      0       0]
+            [      0       4|      0       0]
+            [---------------+---------------]
+            [      0       0|2*b + 1       1]
+            [      0       0|      0 2*b + 1]
+            sage: A.is_diagonalizable()
+            False
+
+            sage: F.<c> = QuadraticField(-7)
+            sage: A = matrix(F, [[   c + 3,   2*c - 2,   -2*c + 2,     c - 1],
+            ...                  [2*c + 10, 13*c + 15, -13*c - 17, 11*c + 31],
+            ...                  [2*c + 10, 14*c + 10, -14*c - 12, 12*c + 30],
+            ...                  [       0,   2*c - 2,   -2*c + 2,   2*c + 2]])
+            sage: A.jordan_form(subdivide=False)
+            [    4     0     0     0]
+            [    0    -2     0     0]
+            [    0     0 c + 3     0]
+            [    0     0     0 c + 3]
+            sage: A.is_diagonalizable()
+            True
+
+        A trivial matrix is diagonalizable, trivially.  ::
+
+            sage: A = matrix(QQ, 0, 0)
+            sage: A.is_diagonalizable()
+            True
+
+        A matrix must be square to be diagonalizable. ::
+
+            sage: A = matrix(QQ, 3, 4)
+            sage: A.is_diagonalizable()
+            False
+
+        The matrix must have entries from a field,
+        and it must be an exact field.  ::
+
+            sage: A = matrix(ZZ, 4, range(16))
+            sage: A.is_diagonalizable()
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix entries must be from a field, not Integer Ring
+
+            sage: A = matrix(RDF, 4, range(16))
+            sage: A.is_diagonalizable()
+            Traceback (most recent call last):
+            ...
+            ValueError: base field must be exact, not Real Double Field
+
+        AUTHOR:
+
+        - Rob Beezer (2011-04-01)
+        """
+        if not self.is_square():
+            return False
+        if not base_field is None:
+            self = self.change_ring(base_field)
+        if not self.base_ring().is_exact():
+            raise ValueError('base field must be exact, not {0}'.format(self.base_ring()))
+        if not self.base_ring().is_field():
+            raise ValueError('matrix entries must be from a field, not {0}'.format(self.base_ring()))
+
+        evals = self.charpoly().roots()
+        if sum([mult for (_,mult) in evals]) < self._nrows:
+            raise RuntimeError('an eigenvalue of the matrix is not contained in {0}'.format(self.base_ring()))
+
+        # Obtaining a generic minimal polynomial requires much more
+        # computation with kernels and their dimensions than the following.
+        # However, if a derived class has a fast minimal polynomial routine
+        # then overriding this by checking for repeated factors might be faster.
+
+        # check equality of algebraic multiplicity and geometric multiplicity
+        for e, am in evals:
+            gm = (self - e).right_kernel().dimension()
+            if am != gm:
+                return False
+        return True
+
     def symplectic_form(self):
         r"""
         Find a symplectic form for self if self is an anti-symmetric,

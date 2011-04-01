@@ -7084,6 +7084,134 @@ cdef class Matrix(matrix1.Matrix):
                 row_sums == len(row_sums) * [col_sums[0]] and\
                 ((not normalized) or col_sums[0] == self.base_ring()(1))
 
+    def is_normal(self):
+        r"""
+        Returns ``True`` if the matrix commutes with its conjugate-transpose.
+
+        OUTPUT:
+
+        ``True`` if the matrix is square and commutes with its
+        conjugate-transpose, and ``False`` otherwise.
+
+        Normal matrices are precisely those that can be diagonalized
+        by a unitary matrix.
+
+        This routine is for matrices over exact rings and so may not
+        work properly for matrices over ``RR`` or ``CC``.  For matrices with
+        approximate entries, the rings of double-precision floating-point
+        numbers, ``RDF`` and ``CDF``, are a better choice since the
+        :meth:`sage.matrix.matrix_double_dense.Matrix_double_dense.is_normal`
+        method has a tolerance parameter.  This provides control over
+        allowing for minor discrepancies between entries when checking
+        equality.
+
+        The result is cached.
+
+        EXAMPLES:
+
+        Hermitian matrices are normal.  ::
+
+            sage: A = matrix(QQ, 5, range(25)) + I*matrix(QQ, 5, range(0, 50, 2))
+            sage: B = A*A.conjugate_transpose()
+            sage: B.is_hermitian()
+            True
+            sage: B.is_normal()
+            True
+
+        Circulant matrices are normal.  ::
+
+            sage: G = graphs.CirculantGraph(20, [3, 7])
+            sage: D = digraphs.Circuit(20)
+            sage: A = 3*D.adjacency_matrix() - 5*G.adjacency_matrix()
+            sage: A.is_normal()
+            True
+
+        Skew-symmetric matrices are normal.  ::
+
+            sage: A = matrix(QQ, 5, range(25))
+            sage: B = A - A.transpose()
+            sage: B.is_skew_symmetric()
+            True
+            sage: B.is_normal()
+            True
+
+        A small matrix that does not fit into any of the usual categories
+        of normal matrices.  ::
+
+            sage: A = matrix(ZZ, [[1, -1],
+            ...                   [1,  1]])
+            sage: A.is_normal()
+            True
+            sage: not A.is_hermitian() and not A.is_skew_symmetric()
+            True
+
+        Sage has several fields besides the entire complex numbers
+        where conjugation is non-trivial. ::
+
+            sage: F.<b> = QuadraticField(-7)
+            sage: C = matrix(F, [[-2*b - 3,  7*b - 6, -b + 3],
+            ...                  [-2*b - 3, -3*b + 2,   -2*b],
+            ...                  [   b + 1,        0,     -2]])
+            sage: C = C*C.conjugate_transpose()
+            sage: C.is_normal()
+            True
+
+        A matrix that is nearly normal, but for a non-real
+        diagonal entry. ::
+
+            sage: A = matrix(QQbar, [[    2,   2-I, 1+4*I],
+            ...                      [  2+I,   3+I, 2-6*I],
+            ...                      [1-4*I, 2+6*I,     5]])
+            sage: A.is_normal()
+            False
+            sage: A[1,1] = 132
+            sage: A.is_normal()
+            True
+
+        Rectangular matrices are never normal.  ::
+
+            sage: A = matrix(QQbar, 3, 4)
+            sage: A.is_normal()
+            False
+
+        A square, empty matrix is trivially normal.  ::
+
+            sage: A = matrix(QQ, 0, 0)
+            sage: A.is_normal()
+            True
+
+        AUTHOR:
+
+        - Rob Beezer (2011-03-31)
+        """
+        key = 'normal'
+        n = self.fetch(key)
+        if not n is None:
+            return n
+        if not self.is_square():
+            self.cache(key, False)
+            return False
+        if self._nrows == 0:
+            self.cache(key, True)
+            return True
+
+        CT = self.conjugate_transpose()
+        cdef Matrix left = self*CT
+        cdef Matrix right = CT*self
+
+        cdef Py_ssize_t i,j
+        normal = True
+        # two products are Hermitian, need only check lower triangle
+        for i from 0 <= i < self._nrows:
+            for j from 0 <= j <= i:
+                if left.get_unsafe(i,j) != right.get_unsafe(i,j):
+                    normal = False
+                    break
+            if not normal:
+                break
+        self.cache(key, normal)
+        return normal
+
     def as_sum_of_permutations(self):
         r"""
         Returns the current matrix as a sum of permutation matrices

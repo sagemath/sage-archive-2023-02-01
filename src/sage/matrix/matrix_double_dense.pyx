@@ -2628,6 +2628,217 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         self.cache(key, hermitian)
         return hermitian
 
+    def is_normal(self, tol=1e-12, algorithm='orthonormal'):
+        r"""
+        Returns ``True`` if the matrix commutes with its conjugate-transpose.
+
+        INPUT:
+
+        - ``tol`` - default: ``1e-12`` - the largest value of the
+          absolute value of the difference between two matrix entries
+          for which they will still be considered equal.
+
+        - ``algorithm`` - default: 'orthonormal' - set to 'orthonormal'
+          for a stable procedure and set to 'naive' for a fast
+          procedure.
+
+        OUTPUT:
+
+        ``True`` if the matrix is square and commutes with its
+        conjugate-transpose, and ``False`` otherwise.
+
+        Normal matrices are precisely those that can be diagonalized
+        by a unitary matrix.
+
+        The tolerance parameter is used to allow for numerical values
+        to be equal if there is a slight difference due to round-off
+        and other imprecisions.
+
+        The result is cached, on a per-tolerance and per-algorithm basis.
+
+        ALGORITHMS::
+
+        The naive algorithm simply compares entries of the two possible
+        products of the matrix with its conjugate-transpose, with equality
+        controlled by the tolerance parameter.
+
+        The orthonormal algorithm first computes a Schur decomposition
+        (via the :meth:`schur` method) and checks that the result is a
+        diagonal matrix.  An orthonormal diagonalization
+        is equivalent to being normal.
+
+        So the naive algorithm can finish fairly quickly for a matrix
+        that is not normal, once the products have been computed.
+        However, the orthonormal algorithm will compute a Schur
+        decomposition before going through a similar check of a
+        matrix entry-by-entry.
+
+        EXAMPLES::
+
+        First over the complexes.  ``B`` is Hermitian, hence normal.  ::
+
+            sage: A = matrix(CDF, [[ 1 + I,  1 - 6*I, -1 - I],
+            ...                    [-3 - I,     -4*I,     -2],
+            ...                    [-1 + I, -2 - 8*I,  2 + I]])
+            sage: B = A*A.conjugate_transpose()
+            sage: B.is_hermitian()
+            True
+            sage: B.is_normal(algorithm='orthonormal')
+            True
+            sage: B.is_normal(algorithm='naive')
+            True
+            sage: B[0,0] = I
+            sage: B.is_normal(algorithm='orthonormal')
+            False
+            sage: B.is_normal(algorithm='naive')
+            False
+
+        Now over the reals.  Circulant matrices are normal.  ::
+
+            sage: G = graphs.CirculantGraph(20, [3, 7])
+            sage: D = digraphs.Circuit(20)
+            sage: A = 3*D.adjacency_matrix() - 5*G.adjacency_matrix()
+            sage: A = A.change_ring(RDF)
+            sage: A.is_normal()
+            True
+            sage: A.is_normal(algorithm = 'naive')
+            True
+            sage: A[19,0] = 4.0
+            sage: A.is_normal()
+            False
+            sage: A.is_normal(algorithm = 'naive')
+            False
+
+        Skew-Hermitian matrices are normal.  ::
+
+            sage: A = matrix(CDF, [[ 1 + I,  1 - 6*I, -1 - I],
+            ...                    [-3 - I,     -4*I,     -2],
+            ...                    [-1 + I, -2 - 8*I,  2 + I]])
+            sage: B = A - A.conjugate_transpose()
+            sage: B.is_hermitian()
+            False
+            sage: B.is_normal()
+            True
+            sage: B.is_normal(algorithm='naive')
+            True
+
+        A small matrix that does not fit into any of the usual categories
+        of normal matrices.  ::
+
+            sage: A = matrix(RDF, [[1, -1],
+            ...                    [1,  1]])
+            sage: A.is_normal()
+            True
+            sage: not A.is_hermitian() and not A.is_skew_symmetric()
+            True
+
+        Sage has several fields besides the entire complex numbers
+        where conjugation is non-trivial. ::
+
+            sage: F.<b> = QuadraticField(-7)
+            sage: C = matrix(F, [[-2*b - 3,  7*b - 6, -b + 3],
+            ...                  [-2*b - 3, -3*b + 2,   -2*b],
+            ...                  [   b + 1,        0,     -2]])
+            sage: C = C*C.conjugate_transpose()
+            sage: C.is_normal()
+            True
+
+        We get a unitary matrix from the SVD routine and use this
+        numerical matrix to create a matrix that should be normal
+        (indeed it should be the identity matrix), but with some
+        imprecision.  We use this to illustrate that if the tolerance
+        is set too small, then we can be too strict about the equality
+        of entries and achieve the wrong result.  ::
+
+            sage: A = matrix(CDF, [[ 1 + I,  1 - 6*I, -1 - I],
+            ...                    [-3 - I,     -4*I,     -2],
+            ...                    [-1 + I, -2 - 8*I,  2 + I]])
+            sage: U, _, _ = A.SVD()
+            sage: B=U*U.conjugate_transpose()
+            sage: B.is_normal(algorithm='naive')
+            True
+            sage: B.is_normal(algorithm='naive', tol=1.0e-34)
+            False
+            sage: B.is_normal(algorithm='naive', tol=1.0e-31)
+            True
+
+        A square, empty matrix is trivially normal.  ::
+
+            sage: A = matrix(CDF, 0, 0)
+            sage: A.is_normal()
+            True
+
+        Rectangular matrices are never normal, no matter which
+        algorithm is requested.  ::
+
+            sage: A = matrix(CDF, 3, 4)
+            sage: A.is_normal()
+            False
+
+        TESTS:
+
+        The tolerance must be strictly positive.  ::
+
+            sage: A = matrix(RDF, 2, range(4))
+            sage: A.is_normal(tol = -3.1)
+            Traceback (most recent call last):
+            ...
+            ValueError: tolerance must be positive, not -3.1
+
+        The ``algorithm`` keyword gets checked.  ::
+
+            sage: A = matrix(RDF, 2, range(4))
+            sage: A.is_normal(algorithm='junk')
+            Traceback (most recent call last):
+            ...
+            ValueError: algorithm must be 'naive' or 'orthonormal', not junk
+
+        AUTHOR:
+
+         - Rob Beezer (2011-03-31)
+        """
+        import sage.rings.complex_double
+        global numpy
+        tol = float(tol)
+        if tol <= 0:
+            raise ValueError('tolerance must be positive, not {0}'.format(tol))
+        if not algorithm in ['naive', 'orthonormal']:
+            raise ValueError("algorithm must be 'naive' or 'orthonormal', not {0}".format(algorithm))
+
+        key = 'normal_{0}_{1}'.format(algorithm, tol)
+        b = self.fetch(key)
+        if not b is None:
+            return b
+        if not self.is_square():
+            self.cache(key, False)
+            return False
+        if self._nrows == 0:
+            self.cache(key, True)
+            return True
+        cdef Py_ssize_t i, j
+        cdef Matrix_double_dense T, left, right
+        if algorithm == 'orthonormal':
+            # Schur decomposition over CDF will be diagonal iff normal
+            _, T = self.schur(base_ring=sage.rings.complex_double.CDF)
+            normal = T._is_lower_triangular(tol)
+        elif algorithm == 'naive':
+            if numpy is None:
+                import numpy
+            CT = self.conjugate_transpose()
+            left = self*CT
+            right = CT*self
+            normal = True
+            # two products are Hermitian, need only check lower triangle
+            for i in range(self._nrows):
+                for j in range(i+1):
+                    if numpy.absolute(left.get_unsafe(i,j) - right.get_unsafe(i,j)) > tol:
+                        normal = False
+                        break
+                if not normal:
+                    break
+        self.cache(key, normal)
+        return normal
+
     def schur(self, base_ring=None):
         r"""
         Returns the Schur decomposition of the matrix.

@@ -1304,23 +1304,25 @@ cdef class Polyhedron(_mutable_or_immutable):
 
         OUTPUT:
 
-        A dictionary with the following keyword:value pairs:
+        A dictionary with the following keyword:value pair:
 
         * ``'bounded'``: Boolean. Whether the linear expression
           ``expr`` is bounded from above on ``self``.
 
+        If ``expr`` is bounded from above, the following additional
+        keyword:value pairs are set to provide information about the
+        supremum:
+
         * ``'sup_n'``: Integer. The numerator of the supremum value.
 
-        * ``'sup_d'``: Integer. The denominator of the supremum
-          value. Can be zero if the linear expression is not bounded.
+        * ``'sup_d'``: Non-zero integer. The denominator of the supremum
+          value.
 
         * ``'maximum'``: Boolean. ``True`` if and only if the supremum
           is also the maximum value.
 
-        * ``'generator'``: a :class:`Generator`. When maximization
-          succeeds, will be assigned a point or closure point where
-          expr reaches its supremum value.  If ``expr`` is unbounded,
-          ``None``.
+        * ``'generator'``: a :class:`Generator`. A point or closure
+          point where expr reaches its supremum value.
 
         EXAMPLES::
 
@@ -1340,7 +1342,7 @@ cdef class Polyhedron(_mutable_or_immutable):
             sage: cs.insert( x>0 )
             sage: p = NNC_Polyhedron(cs)
             sage: p.maximize( +x )
-            {'sup_d': 0, 'sup_n': 0, 'bounded': False, 'maximum': False, 'generator': None}
+            {'bounded': False}
             sage: p.maximize( -x )
             {'sup_d': 1, 'sup_n': 0, 'bounded': True, 'maximum': False, 'generator': closure_point(0/1)}
         """
@@ -1358,9 +1360,9 @@ cdef class Polyhedron(_mutable_or_immutable):
         mpz_set(Int_sup_d.value, sup_d.get_mpz_t())
 
         if rc:
-            return { 'bounded':rc, 'sup_n':Int_sup_n, 'sup_d':Int_sup_d, 'maximum':maximum, 'generator':g }
+            return { 'bounded':True, 'sup_n':Int_sup_n, 'sup_d':Int_sup_d, 'maximum':maximum, 'generator':g }
         else:
-            return { 'bounded':rc, 'sup_n':Int_sup_n, 'sup_d':Int_sup_d, 'maximum':maximum, 'generator':None }
+            return { 'bounded':False }
 
 
     def minimize(self, Linear_Expression expr):
@@ -1373,23 +1375,25 @@ cdef class Polyhedron(_mutable_or_immutable):
 
         OUTPUT:
 
-        A dictionary with the following keyword:value pairs:
+        A dictionary with the following keyword:value pair:
 
         * ``'bounded'``: Boolean. Whether the linear expression
           ``expr`` is bounded from below on ``self``.
 
-        * ``'inf_n'``: Integer. The numerator of the supremum value.
+        If ``expr`` is bounded from below, the following additional
+        keyword:value pairs are set to provide information about the
+        infimum:
 
-        * ``'inf_d'``: Integer. The denominator of the supremum
-          value. Can be zero if the linear expression is not bounded.
+        * ``'inf_n'``: Integer. The numerator of the infimum value.
+
+        * ``'inf_d'``: Non-zero integer. The denominator of the infimum
+          value.
 
         * ``'minimum'``: Boolean. ``True`` if and only if the infimum
           is also the minimum value.
 
-        * ``'generator'``: a :class:`Generator` or ``None``. When
-          maximization succeeds, will be assigned a point or closure
-          point where expr reaches its supremum value. If ``expr`` is
-          unbounded, ``None``.
+        * ``'generator'``: a :class:`Generator`. A point or closure
+          point where expr reaches its infimum value.
 
         EXAMPLES::
 
@@ -1411,7 +1415,7 @@ cdef class Polyhedron(_mutable_or_immutable):
             sage: p.minimize( +x )
             {'minimum': False, 'bounded': True, 'inf_d': 1, 'generator': closure_point(0/1), 'inf_n': 0}
             sage: p.minimize( -x )
-            {'minimum': False, 'bounded': False, 'inf_d': 0, 'generator': None, 'inf_n': 0}
+            {'bounded': False}
         """
         cdef PPL_Coefficient inf_n
         cdef PPL_Coefficient inf_d
@@ -1427,9 +1431,9 @@ cdef class Polyhedron(_mutable_or_immutable):
         mpz_set(Int_inf_d.value, inf_d.get_mpz_t())
 
         if rc:
-            return { 'bounded':rc, 'inf_n':Int_inf_n, 'inf_d':Int_inf_d, 'minimum':minimum, 'generator':g }
+            return { 'bounded':True, 'inf_n':Int_inf_n, 'inf_d':Int_inf_d, 'minimum':minimum, 'generator':g }
         else:
-            return { 'bounded':rc, 'inf_n':Int_inf_n, 'inf_d':Int_inf_d, 'minimum':minimum, 'generator':None }
+            return { 'bounded':False }
 
 
     def contains(self, Polyhedron y):

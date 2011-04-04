@@ -8,6 +8,7 @@ Miscellaneous
 
    sage/misc/abstract_method
    sage/misc/cachefunc
+   sage/misc/classgraph
    sage/misc/function_mangling
    sage/misc/exceptions
    sage/misc/misc

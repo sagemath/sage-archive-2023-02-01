@@ -1186,7 +1186,7 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: Word().conjugate_position(Word('123')) is None
             True
 
-        TESTS::
+        TESTS:
 
         We check that trac #11128 is fixed::
 

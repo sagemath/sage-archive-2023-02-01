@@ -1125,25 +1125,52 @@ exponent %s: the length of the word (%s) times the exponent \
             S.append(self.conjugate(i))
         return S
 
+    def conjugates_iterator(self):
+        r"""
+        Returns an iterator over the conjugates of self.
+
+        EXAMPLES::
+
+            sage: it = Word(range(4)).conjugates_iterator()
+            sage: for w in it: w
+            word: 0123
+            word: 1230
+            word: 2301
+            word: 3012
+        """
+        yield self
+        for i in range(1, self.primitive_length()):
+            yield self.conjugate(i)
+
     def conjugates(self):
         r"""
-        Returns the set of conjugates of self.
+        Returns the list of unique conjugates of self.
+
+        EXAMPLES::
+
+            sage: Word(range(6)).conjugates()
+            [word: 012345,
+             word: 123450,
+             word: 234501,
+             word: 345012,
+             word: 450123,
+             word: 501234]
+            sage: Word('cbbca').conjugates()
+            [word: cbbca, word: bbcac, word: bcacb, word: cacbb, word: acbbc]
+
+        The result contains each conjugate only once::
+
+            sage: Word('abcabc').conjugates()
+            [word: abcabc, word: bcabca, word: cabcab]
 
         TESTS::
 
-            sage: Word('cbbca').conjugates() == set([Word('cacbb'),Word('bbcac'),Word('acbbc'),Word('cbbca'),Word('bcacb')])
-            True
-            sage: Word('abcabc').conjugates() == set([Word('abcabc'),Word('bcabca'),Word('cabcab')])
-            True
-            sage: Word().conjugates() == set([Word()])
-            True
-            sage: Word('a').conjugates() == set([Word('a')])
-            True
+            sage: Word().conjugates()
+            [word: ]
+            sage: Word('a').conjugates()
+            [word: a]
         """
-        S = set([self])
-        for i in range(1,self.primitive_length()):
-            S.add(self.conjugate(i))
-        return S
+        return list(self.conjugates_iterator())
 
     def conjugate_position(self, other):
         r"""
@@ -1158,22 +1185,64 @@ exponent %s: the length of the word (%s) times the exponent \
             True
             sage: Word().conjugate_position(Word('123')) is None
             True
+
+        TESTS::
+
+        We check that trac #11128 is fixed::
+
+            sage: w = Word([0,0,1,0,2,1])
+            sage: [w.conjugate(i).conjugate_position(w) for i in range(w.length())]
+            [0, 1, 2, 3, 4, 5]
         """
         if self.length() != other.length():
             return None
-        if self == other:
-            return 0
-        for l in xrange(1, other.length() - 1):
-            other = other.conjugate(1)
-            if self == other:
-                return l
-        return None
+        other_square = other * other
+        pos = other_square.find(self)
+        return pos if pos != -1 else None
 
     def is_conjugate_with(self, other):
         r"""
         Returns True if self is a conjugate of other, and False otherwise.
 
+        INPUT:
+
+        - ``other`` - a finite word
+
+        OUPUT
+
+        bool
+
         EXAMPLES::
+
+            sage: w = Word([0..20])
+            sage: z = Word([7..20] + [0..6])
+            sage: w
+            word: 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20
+            sage: z
+            word: 7,8,9,10,11,12,13,14,15,16,17,18,19,20,0,1,2,3,4,5,6
+            sage: w.is_conjugate_with(z)
+            True
+            sage: z.is_conjugate_with(w)
+            True
+            sage: u = Word([4]*21)
+            sage: u.is_conjugate_with(w)
+            False
+            sage: u.is_conjugate_with(z)
+            False
+
+        Both words must be finite::
+
+            sage: w = Word(iter([2]*100),length='unknown')
+            sage: z = Word([2]*100)
+            sage: z.is_conjugate_with(w) #TODO: Not implemented for word of unknown length
+            True
+            sage: wf = Word(iter([2]*100),length='finite')
+            sage: z.is_conjugate_with(wf)
+            True
+            sage: wf.is_conjugate_with(z)
+            True
+
+        TESTS::
 
             sage: Word('11213').is_conjugate_with(Word('31121'))
             True
@@ -1183,8 +1252,15 @@ exponent %s: the length of the word (%s) times the exponent \
             False
             sage: Word('12131').is_conjugate_with(Word('11213'))
             True
+
+        We make sure that trac #11128 is fixed::
+
+            sage: Word('abaa').is_conjugate_with(Word('aaba'))
+            True
+            sage: Word('aaba').is_conjugate_with(Word('abaa'))
+            True
         """
-        return self.conjugate_position(other) is not None
+        return self.length() == other.length() and self.is_factor(other * other)
 
     def is_cadence(self, seq):
         r"""

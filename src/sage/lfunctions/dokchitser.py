@@ -17,25 +17,23 @@ TODO:
   curves are done).
 """
 
-############################################################################
+#*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-############################################################################
+#*****************************************************************************
 
 import copy
-
+import os
 from sage.structure.sage_object import SageObject
-
 from sage.rings.all import ComplexField, RealField, Integer
-
 from sage.misc.all import verbose, sage_eval
-
 from sage.schemes.all import is_EllipticCurve
-
 import sage.interfaces.gp
+from sage.misc.all import DOT_SAGE, SAGE_ROOT
 
 class Dokchitser(SageObject):
     r"""
@@ -221,8 +219,10 @@ class Dokchitser(SageObject):
         try:
             return self.__gp
         except AttributeError:
-            g = sage.interfaces.gp.Gp(script_subdirectory='dokchitser',
-                                      logfile=None)
+            logfile = None
+            # For debugging
+            #logfile = os.path.join(DOT_SAGE, 'dokchitser.log')
+            g = sage.interfaces.gp.Gp(script_subdirectory='dokchitser', logfile=logfile)
             g.read('computel.gp')
             self.__gp = g
             self._gp_eval('default(realprecision, %s)'%(self.prec//3 + 2))

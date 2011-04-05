@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# This is the spkg-install script which will be emplaced within the SPKG for
+# the scripts repository whenever it is packaged.
 
 CUR=`pwd`
 
@@ -21,6 +23,12 @@ else
     cp -r sage-*  *doctest.py SbuildHack.pm .hg* ipy_profile_sage.py "$TARGET"
 
 fi
+
+# Create an appropriate hgrc file for the target
+cat > "$TARGET/.hg/hgrc" <<"HEREDOC"
+[diff]
+git = true
+HEREDOC
 
 # Finally, make sure some symbolic links exist.
 cd "$CUR"

@@ -1,13 +1,8 @@
-# coding=utf-8
-r"""
-
-====================================================
-An history of the Words Library
+﻿====================================================
+A history of the Words Library
 ====================================================
 
 [English history to be done. To be translated from below.]
-
-
 
 
 ====================================================
@@ -70,11 +65,13 @@ porté le résultat dans l'environnement Sage, aidé en cela par Sébastien
 Labbé et Franco Saliola qui en est le maître d'oeuvre. D'autres
 contributions furent ajoutées par Amy Glen, postdoctorante au LaCIM.
 
+Depuis 2008, plusieurs améliorations ont été apportées par Franco Saliola,
+Sébastien Labbé, Alexandre Blondin Massé, Vincent Delecroix et Thierry
+Monteil.
+
 
 REFERENCES:
 
 - Laboratoire de Combinatoire Informatique Mathématiques (LaCIM) de
   l'Université du Québec à Montréal (UQAM), http://lacim.uqam.ca.
-
-"""
 

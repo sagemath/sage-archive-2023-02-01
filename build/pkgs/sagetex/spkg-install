@@ -16,7 +16,7 @@ if [ $? -ne 0 ]; then
 fi
 
 docbuilderrmsg() {
-    echo mkdir -p $SAGE_ROOT/local/share/doc/sagetex
+    mkdir -p $SAGE_ROOT/local/share/doc/sagetex
     cat > $SAGE_ROOT/local/share/doc/sagetex/building_documentation_failed.txt <<EOF
 
 If you're reading this, then someone tried to build the SageTeX
@@ -56,7 +56,7 @@ if [ "x$SAGE_SPKG_INSTALL_DOCS" = xyes ] ; then
       docbuilderrmsg
       exit 1
    fi
-   echo mkdir -p $SAGE_ROOT/local/share/doc/sagetex
-   echo cp -r example.pdf sagetex.pdf $SAGE_ROOT/local/share/doc/sagetex/
+   mkdir -p $SAGE_ROOT/local/share/doc/sagetex
+   cp -r example.pdf sagetex.pdf $SAGE_ROOT/local/share/doc/sagetex/
 fi
 

@@ -20,11 +20,11 @@ docbuilderrmsg() {
     cat > $SAGE_ROOT/local/share/doc/sagetex/building_documentation_failed.txt <<EOF
 
 If you're reading this, then someone tried to build the SageTeX
-documentation by setting $SAGE_SPKG_INSTALL_DOCS, but there was some
+documentation by setting \$SAGE_SPKG_INSTALL_DOCS, but there was some
 error.
 
-If you just want the documentation, you can get `example.pdf` and
-'sagetex.pdf' from http://bitbucket.org/ddrake/sagetex/downloads .
+If you just want the documentation, you can get \`example.pdf' and
+\`sagetex.pdf' from http://bitbucket.org/ddrake/sagetex/downloads .
 
 If you want to figure out what went wrong, try reinstalling the SageTeX
 spkg and request that the documentation be built:
@@ -48,7 +48,7 @@ if [ "x$SAGE_SPKG_INSTALL_DOCS" = xyes ] ; then
       exit 1
    fi
 
-   make TEXOPTS=-interaction=nonstopmode sagetex.pdf
+   make TEXOPTS=-interaction=nonstopmode sagetex.pdf &&\
    make TEXOPTS=-interaction=nonstopmode example.pdf
 
    if [ $? -ne 0 ]; then

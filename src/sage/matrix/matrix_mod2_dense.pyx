@@ -176,10 +176,15 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [1 0 0]
             [0 1 0]
             [0 0 1]
+
+        See trac #10858:
+
+            sage: matrix(GF(2),0,[]) * vector(GF(2),0,[])
+            ()
         """
         matrix_dense.Matrix_dense.__init__(self, parent)
 
-        if alloc and self._nrows and self._ncols:
+        if alloc:
             self._entries = mzd_init(self._nrows, self._ncols)
 
         # cache elements

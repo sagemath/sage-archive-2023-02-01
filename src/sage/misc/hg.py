@@ -4,28 +4,61 @@ Sage Interface to the HG/Mercurial Revision Control System
 These functions make setup and use of source control with Sage
 easier, using the distributed Mercurial HG source control system.
 To learn about Mercurial, see
-http://www.selenic.com/mercurial/wiki/ , in particular
-UnderstandingMercurial .
+http://www.selenic.com/mercurial/wiki/, in particular
+http://mercurial.selenic.com/wiki/UnderstandingMercurial.
+See also the `Sage Developer's Guide
+<http://www.sagemath.org/doc/developer/>`_ and
+http://wiki.sagemath.org/MercurialQueues for information about using
+Mercurial with Sage.
 
-This system should all be fully usable from the Sage notebook
-(except for merging, currently). This system should all be mostly
-usable from the Sage notebook.
+Some useful commands:
 
+-  Use ``hg_sage.diff()`` to view any changes made to the repository.
 
--  Use ``hg_sage.record()`` to record all of your
-   changes.
+-  Use ``hg_sage.log()`` to see the change log for the repository.
 
--  Use ``hg_sage.bundle('filename')`` to bundle them
-   up to send them.
+-  Use ``hg_sage.serve()`` to start a web server for examining the
+   repository.
 
--  Use ``hg_sage.inspect('filename.hg')`` to inspect a
-   bundle.
+-  Use ``hg_sage.commit()`` or ``hg_sage.record()`` to record any
+   changes you've made to the repository.
 
--  Use ``hg_sage.unbundle('filename.hg')`` to import a
-   bundle into your repository.
+-  Use ``hg_sage.export('tip')`` to produce a patch file for posting
+   to the Sage trac server.
+
+-  Use ``hg_sage.import_patch('file.patch')`` to import the Mercurial
+   patch file ``file.patch``.
+
+-  Use ``hg_sage.revert('file', rev=1234)`` reverts ``file`` to the
+   contents it had in revision 1234.
+
+-  Use ``hg_sage.rollback()`` to remove recorded patches without
+   changing the working copy.
 
 -  Use ``hg_sage.pull()`` to synchronize with the
    latest official stable Sage changesets.
+
+If you want to use Mercurial queues, then type ``hg_sage.q[TAB]`` to
+see the list of available methods.  Indeed, many Mercurial commands
+are provided by methods here -- type ``hg_sage.[TAB]`` to get a full
+list -- and you can execute any Mercurial command using
+``hg_sage(COMMAND)``.  Finally, as listed, the above commands deal with
+the Mercurial repository for the Sage library.  If you want to work
+with other repositories distributed with Sage, this file provides the
+following -- replace "hg_sage" with each of the following commands to
+work with the given repository:
+
+- ``hg_scripts`` -- the scripts repository (files in
+  :file:`SAGE_ROOT/local/bin`)
+
+- ``hg_sagenb`` -- the Sage notebook repository (files in
+  :file:`SAGE_ROOT/devel/sagenb`)
+
+- ``hg_root`` -- the Sage root repository (including files in
+  :file:`SAGE_ROOT` and :file:`SAGE_ROOT/spkg`)
+
+- ``hg_extcode`` -- the extcode repository (files in
+  :file:`SAGE_ROOT/data/extcode`)
 """
 
 ########################################################################
@@ -62,23 +95,63 @@ def get_remote_file(f, **kwds):
     return g
 
 def pager():
-    """
-    Return a page program, which is either cat or less at present.
+    r"""
+    Return a pager program, either 'cat' or 'less':
+    'cat' if embedded in the notebook, 'less' otherwise.
 
-    Return cat if embedded in the notebook, and less otherwise.
+    It is returned as a string suitable for a config option for the
+    'hg' command.
+
+    EXAMPLES::
+
+        sage: sage.server.support.EMBEDDED_MODE=False
+        sage: sage.misc.hg.pager()
+        '--config pager.pager="LESS=\'R\' less"'
+        sage: sage.server.support.EMBEDDED_MODE=True
+        sage: sage.misc.hg.pager()
+        '--config pager.pager=cat'
+        sage: sage.server.support.EMBEDDED_MODE=False
     """
     if embedded():
-        return 'cat'
+        return '--config pager.pager=cat'
     else:
-        return 'less'
+        return '--config pager.pager="LESS=\'R\' less"'
 
+def color():
+    """
+    Color option for Mercurial.
+
+    This is empty when called from the command-line, and it disables
+    the "color" extension when called from the notebook.  According
+    to the Mercurial docs, "color" is only used by the Mercurial
+    commands diff, status, and qseries; however, it also seems to be
+    used by a few other commands (like log, and qapplied, among
+    others).  This function is used in :meth:`HG.diff`,
+    :meth:`HG.log`, :meth:`HG.status`, :meth:`HG.qdiff`,
+    :meth:`HG.qseries`, :meth:`HG.qapplied`, and
+    :meth:`HG.qunapplied`.
+
+    EXAMPLES::
+
+        sage: sage.server.support.EMBEDDED_MODE=False
+        sage: sage.misc.hg.color()
+        ''
+        sage: sage.server.support.EMBEDDED_MODE=True
+        sage: sage.misc.hg.color()
+        '--config color.mode=off'
+        sage: sage.server.support.EMBEDDED_MODE=False
+    """
+    if embedded():
+        return '--config color.mode=off'
+    else:
+        return ''
 
 hg_docstring = r"""
 This is an HG (Mercurial) repository.
 
 To learn about Mercurial, see http://www.selenic.com/mercurial/wiki/.
 
-This system should all be fully usable from the Sage notebook.
+This system is fully usable from both the command line and the Sage notebook.
 
 Most commands are directly provided as member functions.  However,
 you can use the full functionality of hg, i.e.,
@@ -132,12 +205,33 @@ class HG:
                                      'dir':self.__dir}
 
     def __repr__(self):
+        """
+        EXAMPLES::
+
+            sage: hg_sage
+            Hg repository 'Sage Library Source Code' in directory ...
+        """
         return "Hg repository '%s' in directory %s"%(self.__name, self.__dir)
 
 
     def current_branch(self, print_flag=True):
         """
-        Lists the current branch.
+        Prints the current branch in the main Sage library.
+
+        If ``print_flag`` is True, the default, then print the message
+        "The current branch is NAME".  If False, return the string NAME.
+
+        .. warning::
+
+            This prints the current branch for the main Sage library
+            repository, even if you call a command like
+            "hg_scripts.current_branch()" which refers to a different
+            repository.
+
+        EXAMPLES::
+
+            sage: hg_sage.current_branch()
+            The current branch is: ...
         """
         branch_name = branch_current_hg()
         if print_flag:
@@ -148,6 +242,25 @@ class HG:
     def list_branches(self, print_flag=True):
         """
         Print all branches in the current Sage installation.
+
+        If ``print_flag`` is True, the default, then print the message
+        "Branches found:", followed by a list of the branches.  If
+        False, return the list of the names of the branches.
+
+        .. warning::
+
+            This lists the branches for the main Sage library
+            repository, even if you call a command like
+            "hg_scripts.list_branches()" which refers to a different
+            repository.
+
+        EXAMPLES::
+
+            sage: hg_sage.list_branches()
+            Branches found:
+            ...
+            sage: 'main' in hg_sage.list_branches(print_flag=False)
+            True
         """
         try:
             tmp_branch_list = [s[5:]  for s in os.listdir(SAGE_ROOT + "/devel")  if s.startswith("sage-")]
@@ -162,9 +275,25 @@ class HG:
             return tmp_branch_list
 
 
-    def status(self):
+    def status(self, debug=True):
+        """
+        Print the output of the command "hg status" for the repository.
+
+        If ``debug`` is True, also print the full system command being
+        executed.
+
+        EXAMPLES::
+
+            sage: hg_sage.status()
+            Getting status of modified or unknown files:
+            cd ... && hg status
+            ...
+            sage: hg_sage.status(debug=False)
+            Getting status of modified or unknown files:
+            ...
+        """
         print("Getting status of modified or unknown files:")
-        self('status')
+        self('status %s' % (color(),), debug=debug)
         print "\n---\n"
         if self.__name == "Sage Library Source Code":
             b = branch_current_hg()
@@ -173,10 +302,14 @@ class HG:
                 b = b[:-1]
             print("Branch: %s"%b)
 
-
-
     def _changed_files(self):
-        out, err = self('status', interactive=False)
+        """
+        EXAMPLES::
+
+            sage: hg_sage._changed_files() # random
+            False
+        """
+        out, err = self('status', interactive=False, debug=False)
         v = [x for x in out.split('\n') if (x.strip()[:1] != '?' and x.strip()[:1] != '!') and len(x) != 0]
         return len(v) > 0
 
@@ -185,6 +318,10 @@ class HG:
         Ensure that the repository is in a safe state to have changes
         applied to it, i.e., that all changes to controlled files in the
         working directory are recorded.
+
+        EXAMPLES:
+
+            sage: hg_sage._ensure_safe()  # not tested
         """
         if self._changed_files():
             self.ci()
@@ -192,7 +329,15 @@ class HG:
             raise RuntimeError, "Refusing to do operation since you still have unrecorded changes. You must check in all changes in your working repository first."
 
     def _warning(self):
-        if not os.path.exists(os.environ['HOME'] + '/.hgrc'):
+        """
+        Print a warning if the user has no .hgrc file.
+
+        EXAMPLES::
+
+            sage: hg_sage._warning() # random
+        """
+        from sage.plot.plot import DOCTEST_MODE
+        if not os.path.exists(os.path.join(os.environ['HOME'], '.hgrc')) and not DOCTEST_MODE:
             print "\nWARNING:"
             print "Make sure to create a ~/.hgrc file:"
             print "-"*70
@@ -201,13 +346,12 @@ class HG:
             print "-"*70
             print "\n"
 
-    def __call__(self, cmd=None, interactive=True):
+    def __call__(self, cmd=None, interactive=True, debug=True):
         """
         Run 'hg cmd' where cmd is an arbitrary string in the hg
         repository.
 
         INPUT:
-
 
         -  ``cmd`` - string, the hg command line (everything
            after 'hg')
@@ -217,6 +361,8 @@ class HG:
            you record changes because the editor pops up. If False, Popen is
            used to launch hg as a subprocess.
 
+        - ``debug`` - if True, print the full system command being
+          executed.
 
         OUTPUT:
 
@@ -228,12 +374,21 @@ class HG:
 
         - If cmd is not supplied, returns the output of the
           'status' command
+
+        EXAMPLES::
+
+            sage: hg_sage('hello') # not tested
+            hg: unknown command 'hello'
+            ...
+            sage: hg_sage('status')  # not tested
+            ...
         """
         self._warning()
         if cmd is None:
             cmd = 'status'
         s = 'cd "%s" && hg %s'%(self.__dir, cmd)
-        print s
+        if debug:
+            print s
         if interactive:
             e = os.system(s)
             return e
@@ -247,16 +402,14 @@ class HG:
             return out, err
 
     def serve(self, port=8200, address='localhost',
-              open_viewer=True, options=''):
+              open_viewer=True, options='', debug=True):
         """
         Start a web server for this repository.
 
-        This server is very nice - you can browse all files in the
-        repository, see their changelogs, see who wrote any given line,
-        etc. Very nice.
+        This server allows you to browse all files in the repository,
+        see their changelogs, see who wrote any given line, etc.
 
         INPUT:
-
 
         -  ``port`` - port that the server will listen on
 
@@ -268,6 +421,13 @@ class HG:
 
         -  ``options`` - a string passed directly to hg's serve
            command.
+
+        -  ``debug`` - boolean (default True); if True, print the full
+           system command being executed.
+
+        EXAMPLES::
+
+            sage: hg_sage.serve()  # not tested
         """
         if open_viewer:
             cmd = 'sleep 1; %s http://%s:%s 1>&2 >/dev/null'%(browser(),
@@ -278,12 +438,13 @@ class HG:
             os.system('chmod +x %s; %s &'%(P, P))
 
         print_open_msg(address, port)
-        self('serve --address %s --port %s  %s'%(address, port, options))
+        self('serve --address %s --port %s  %s'%(address, port, options),
+             debug=debug)
         print_open_msg(address, port)
 
     browse = serve
 
-    def unbundle(self, bundle, update=True, options=''):
+    def unbundle(self, bundle, update=True, options='', debug=True):
         """
         Apply patches from a hg patch to the repository.
 
@@ -293,12 +454,18 @@ class HG:
 
         INPUT:
 
-
         -  ``bundle`` - an hg bundle (created with the bundle
            command)
 
         -  ``update`` - if True (the default), update the
            working directory after unbundling.
+
+        -  ``debug`` - boolean (default True); if True, print the full
+           system command being executed.
+
+        EXAMPLES::
+
+            sage: hg_sage.unbundle('myhg.bundle')  # not tested
         """
         if bundle.startswith("http://") or bundle.startswith("https://"):
             if sage_trac_re.match(bundle):
@@ -321,11 +488,11 @@ class HG:
         print "this usually means either you need to do:"
         print "       hg_%s.pull()"%self.__obj_name
         print "or you're applying this patch to the wrong repository."
-        self('unbundle %s "%s"'%(options, bundle))
+        self('unbundle %s "%s"'%(options, bundle), debug=debug)
 
     apply = unbundle
 
-    def export(self, revs, filename=None, text=False, options=''):
+    def export(self, revs, filename=None, text=False, options='', debug=True):
         r"""
         Export patches with the changeset header and diffs for one or more
         revisions.
@@ -347,7 +514,6 @@ class HG:
 
         INPUT:
 
-
         -  ``revs`` - integer or list of integers (revision
            numbers); use the log() method to see these numbers.
 
@@ -362,10 +528,14 @@ class HG:
                %b   basename of the exporting repository
                %h   short-form changeset hash (12 bytes of hexadecimal)
                %n   zero-padded sequence number, starting at 1
+               %r   zero-padded changeset revision number
+
+        -  ``text`` - boolean (default False).  Setting this to be True
+           has the same effect as passing the "-a" option below.
 
         -  ``options`` - string (default: '')
 
-           - ``'-a --text'`` - treat all files as text
+           - ``'-a'`` or ``'--text'`` - treat all files as text
 
            - ``'--switch-parent'`` -  diff against the second parent
 
@@ -377,6 +547,15 @@ class HG:
            With the ``--switch-parent`` option, the diff will be
            against the second parent. It can be useful to review a
            merge.
+
+        -  ``debug`` - boolean (default True); if True, print the full
+           system command being executed.
+
+        EXAMPLES::
+
+            sage: hg_sage.export('tip')  # not tested
+            sage: hg_sage.export('tip', 'new.patch')  # not tested
+            sage: hg_sage.export('tip', 'new.patch', options='--a')  # not tested
         """
         if filename is None:
             filename = '%R.patch'
@@ -389,22 +568,25 @@ class HG:
             raise TypeError, 'filename must be a string'
         if filename[-6:] != '.patch':
             filename += '.patch'
-        options += ' -o "%s"'%(os.path.abspath(filename))
+        full_path = os.path.abspath(filename)
+        cwd = os.path.dirname(full_path)
+        options += ' -o "%s"'%full_path
         if filename == '%R.patch':
-            print "Output will be written to revision numbered file."%revs
+            print "Output will be written to revision numbered file in the directory %s."%cwd
         else:
-            print "Output will be written to '%s'"%filename
+            print "Output will be written to '%s'"%full_path
         if text:
             options += ' -a'
-        self('export %s %s'%(options, ' '.join([str(x) for x in revs])))
+        self('export %s %s'%(options, ' '.join([str(x) for x in revs])),
+             debug=debug)
 
-    def import_patch(self, filename, options=''):
+    def import_patch(self, filename, options='', debug=True):
         """
         Import an ordered set of patches from patch file, i.e., a plain
         text file created using the export command.
 
-        If there are outstanding changes in the working directory, import
-        will abort unless given the -f flag.
+        If there are outstanding changes in the working directory,
+        import_patch will abort unless given the -f flag.
 
         If imported patch was generated by the export command, user and
         description from patch override values from message headers and
@@ -412,27 +594,47 @@ class HG:
 
         INPUT:
 
-
         -  ``filename`` - string
 
         -  ``options`` - string (default: '')::
 
-               options: [-p NUM] [-b BASE] [-m MESSage] [-f] PATCH...
-                 -p --strip         directory strip option for patch. This has the same meaning as the corresponding patch option (default: 1)
-                 -m --message       use text as commit message
-                 -b --base          base path
-                 -f --force         skip check for outstanding uncommitted changes
+            options: [-p NUM] [-b BASE] [-m MESSage] [-f] PATCH...
+
+               -p --strip NUM      directory strip option for patch. This has
+                                   the same meaning as the corresponding patch
+                                   option (default: 1)
+               -b --base PATH      base path
+               -f --force          skip check for outstanding uncommitted changes
+                  --no-commit      don't commit, just update the working directory
+                  --exact          apply patch to the nodes from which it was
+                                   generated
+                  --import-branch  use any branch information in patch (implied
+                                   by --exact)
+               -m --message TEXT   use text as commit message
+               -l --logfile FILE   read commit message from file
+               -d --date DATE      record the specified date as commit date
+               -u --user USER      record the specified user as committer
+               -s --similarity SIMILARITY   guess renamed files by similarity (0<=s<=100)
+                  --mq             operate on patch repository
+
+        -  ``debug`` - boolean (default True); if True, print the full
+           system command being executed.
 
         ALIASES: patch
+
+        EXAMPLES::
+
+            sage: hg_sage.import_patch('trac_2001.patch')  # not tested
         """
         if filename.startswith("http://") or filename.startswith("https://"):
             filename = get_remote_file(filename, verbose=True)
         self._ensure_safe()
-        self('import  %s "%s"'%(options, os.path.abspath(filename)))
+        self('import  %s "%s"'%(options, os.path.abspath(filename)),
+             debug=debug)
 
     patch = import_patch
 
-    def incoming(self, source, options='-p'):
+    def incoming(self, source, options='-p', debug=True):
         """
         Show new changesets found in the given source and display the
         corresponding diffs. This even works if the source is a bundle file
@@ -452,22 +654,32 @@ class HG:
 
         INPUT:
 
-
-        -  ``filename`` - string
+        -  ``filename`` - string, may be a URL
 
         -  ``options`` - (default: '-p')::
 
-               string '[-p] [-n] [-M] [-r REV] ...'
-                 -M --no-merges       do not show merges
-                 -f --force           run even when remote repository is unrelated
-                 --style              display using template map file
-                 -n --newest-first    show newest record first
-                 --bundle             file to store the bundles into
-                 -p --patch           show patch
-                 -r --rev             a specific revision you would like to pull
-                 --template           display with template
-                 -e --ssh             specify ssh command to use
-                 --remotecmd          specify hg command to run on the remote side
+            string '[-p] [-n] [-M] [-r REV] ...'
+              -M --no-merges       do not show merges
+              -f --force           run even when remote repository is unrelated
+              --style              display using template map file
+              -n --newest-first    show newest record first
+              --bundle             file to store the bundles into
+              -p --patch           show patch
+              -r --rev             a specific revision you would like to pull
+              --template           display with template
+              -e --ssh             specify ssh command to use
+              --remotecmd          specify hg command to run on the remote side
+
+        -  ``debug`` - boolean (default True); if True, print the full
+           system command being executed.
+
+        EXAMPLES::
+
+            sage: hg_sage.incoming("http://hg.sagemath.org/sage-main") # not tested
+            cd ... && hg incoming "http://hg.sagemath.org/sage-main"  --config pager.pager="LESS='R' less"
+            comparing with http://hg.sagemath.org/sage-main
+            searching for changes
+            no changes found
         """
         if source.startswith("http://") or source.startswith("https://"):
             source = get_remote_file(source, verbose=True)
@@ -475,12 +687,12 @@ class HG:
             source = os.path.abspath(source)
         if os.path.splitext(source)[1] in ['.hg', '.bundle']:
             source = 'bundle://%s'%source
-        self('incoming %s "%s" | %s'%(options, source, pager()))
+        self('incoming %s "%s" %s'%(options, source, pager()), debug=debug)
 
     inspect = incoming
 
 
-    def add(self, files, options=''):
+    def add(self, files, options='', debug=True):
         """
         Add the given list of files (or file) or directories to your HG
         repository. They must exist already.
@@ -496,11 +708,19 @@ class HG:
 
         INPUT:
 
-
         -  ``files`` - list or string; name of file or
            directory.
 
-        -  ``options`` - string (e.g., '-dry-run')
+        -  ``options`` - string (e.g., '--dry-run')
+
+        -  ``debug`` - boolean (default True); if True, print the full
+           system command being executed.
+
+        EXAMPLES::
+
+            sage: hg_sage.add('module_list.pyc', options='--dry-run')
+            Adding file module_list.pyc
+            cd ... && hg add --dry-run "module_list.pyc"
         """
         if isinstance(files, str):
             if ' ' in files:
@@ -509,36 +729,43 @@ class HG:
                 files = [files]
         for file in files:
             print "Adding file %s"%file
-            self('add %s "%s"'%(options, file))
+            self('add %s "%s"'%(options, file), debug=debug)
 
-    def remove(self, files, options=''):
+    def remove(self, files, options='', debug=True):
         """
         Remove the given list of files (or file) or directories from your
         HG repository.
 
         INPUT:
 
-
         -  ``files`` - list or string; name of file or
            directory.
 
         -  ``options`` - string (e.g., '-f')
+
+        -  ``debug`` - boolean (default True); if True, print the full
+           system command being executed.
+
+        EXAMPLES::
+
+            sage: hg_sage.remove('sage/misc/remove_me.py') # not tested
+            Removing file sage/misc/remove_me.py
+            cd ... && hg rm "sage/misc/remove_me.py"
         """
         if isinstance(files, str):
             files = [files]
         for file in files:
             print "Removing file %s"%file
-            self('rm %s "%s"'%(options, file))
+            self('rm %s "%s"'%(options, file), debug=debug)
 
     rm = remove
 
-    def rename(self, src, dest, options=''):
+    def rename(self, src, dest, options='', debug=True):
         """
         Move (rename) the given file, from src to dest. This command takes
         effect in the next commit.
 
         INPUT:
-
 
         -  ``src, dest`` - strings that define a file, relative
            to self.dir()
@@ -549,10 +776,17 @@ class HG:
                -f --force    forcibly copy over an existing managed file
                -n --dry-run  do not perform actions, just print output
 
+        -  ``debug`` - boolean (default True); if True, print the full
+           system command being executed.
+
+        EXAMPLES::
+
+            sage: hg_sage.rename('sage/misc/hg.py', 'sage/misc/hgnew.py', options='--dry-run')
+            Moving sage/misc/hg.py --> sage/misc/hgnew.py
+            cd ... && hg mv --dry-run "sage/misc/hg.py" "sage/misc/hgnew.py"
         """
         print "Moving %s --> %s"%(src,dest)
-        self('mv %s "%s" "%s"'%(options, src,dest))
-
+        self('mv %s "%s" "%s"'%(options, src,dest), debug=debug)
 
     move = rename
     mv = rename
@@ -560,7 +794,7 @@ class HG:
     def log(self, branches=None, keyword=None, limit=None,
                   rev=None, merges=True, only_merges=False,
                   patch=None, template=False, include=None,
-                  exclude=None, verbose=False):
+                  exclude=None, verbose=False, debug=True):
         """
         Display the change log for this repository. This is a list of
         changesets ordered by revision number.
@@ -570,7 +804,6 @@ class HG:
         commit.
 
         INPUT:
-
 
         -  ``branches`` - (string, default: None) show given
            branches
@@ -603,6 +836,15 @@ class HG:
 
         -  ``verbose`` - (bool, default: False) If true, the
            list of changed files and full commit message is shown.
+
+        -  ``debug`` - boolean (default True); if True, print the
+           full system command being executed.
+
+        EXAMPLES::
+
+            sage: hg_sage.log() # not tested
+            cd ... && hg log   --config pager.pager="LESS='R' less"
+            ...
         """
         if embedded() and limit is None:
             limit = 20
@@ -630,12 +872,12 @@ class HG:
         if verbose:
             options = '-v ' + options
 
-        self('log %s | %s'%(options, pager()))
+        self('log %s %s %s'%(options, color(), pager()), debug=debug)
 
     changes = log
     history = log
 
-    def diff(self, files='', rev=None):
+    def diff(self, files='', rev=None, options='', debug=True):
         """
         Show differences between revisions for the specified files as a
         unified diff.
@@ -645,12 +887,21 @@ class HG:
 
         INPUT:
 
-
         -  ``files`` - space separated list of files (relative
            to self.dir())
 
         -  ``rev`` - None or a list of integers.
 
+        - ``options`` -- string (default '').  Some possibilities::
+
+            -a --text                 treat all files as text
+            -g --git                  use git extended diff format
+            -p --show-function        show which function each change is in
+            -I --include PATTERN [+]  include names matching the given patterns
+            -X --exclude PATTERN [+]  exclude names matching the given patterns
+
+        -  ``debug`` - boolean (default True); if True, print the
+           full system command being executed.
 
         Differences between files are shown using the unified diff format.
 
@@ -659,33 +910,54 @@ class HG:
         that revision is compared to the working directory, and, when no
         revisions are specified, the working directory files are compared
         to its parent.
+
+        EXAMPLES::
+
+            sage: hg_sage.diff()
+            cd ... && hg diff    --config pager.pager="LESS='R' less"
+
+        To see the changes in this file since revision 10000:
+
+            sage: hg_sage.diff('sage/misc/hg.py', rev=10000) # not tested
+            cd ... && hg diff  -r 10000  sage/misc/hg.py  --config pager.pager="LESS='R' less"
+            ...
         """
         if not rev is None:
             if not isinstance(rev, (list, tuple)):
                 rev = [rev]
-            options = ' '.join(['-r %s'%r for r in rev]) + '  ' + files
+            extra_options = ' '.join(['-r %s'%r for r in rev]) + '  ' + files
         else:
-            options = files
-        self('diff %s | %s'%(options, pager()))
+            extra_options = files
+        self('diff %s %s %s %s'%(options, extra_options, color(), pager()),
+             debug=debug)
 
     what = diff
 
-    def revert(self, files='', options='', rev=None):
+    def revert(self, files='', options='', rev=None, debug=True):
         """
         Revert files or dirs to their states as of some revision
 
-        With no revision specified, revert the named files or directories
-        to the contents they had in the parent of the working directory.
-        This restores the contents of the affected files to an unmodified
-        state. If the working directory has two parents, you must
-        explicitly specify the revision to revert to.
+        .. note::
 
-        Modified files are saved with a .orig suffix before reverting. To
-        disable these backups, use -no-backup.
+            This command is most likely not what you are looking
+            for. ``revert`` will partially overwrite content in the
+            working directory without changing the working directory
+            parents.  Use the method ``update(options='-r REV')`` to
+            check out earlier revisions, or ``update(options='--clean
+            .')`` to undo a merge which has added another parent.
 
-        Using the -r option, revert the given files or directories to their
-        contents as of a specific revision. This can be helpful to 'roll
-        back' some or all of a change that should not have been committed.
+        With no revision specified, revert the named files or
+        directories to the contents they had in the parent of the
+        working directory. This restores the contents of the affected
+        files to an unmodified state and unschedules adds, removes,
+        copies, and renames. If the working directory has two parents,
+        you must explicitly specify a revision.
+
+        Using the ``rev`` argument, revert the given files or
+        directories to their contents as of a specific revision. This
+        can be helpful to "roll back" some or all of an earlier change.
+        Run ``hg_sage('help dates')`` for a list of formats valid for
+        the ``-d/--date`` option.
 
         Revert modifies the working directory. It does not commit any
         changes, or change the parent of the working directory. If you
@@ -693,57 +965,106 @@ class HG:
         directory, the reverted files will thus appear modified
         afterwards.
 
-        If a file has been deleted, it is recreated. If the executable mode
-        of a file was changed, it is reset.
+        If a file has been deleted, it is restored. If the executable
+        mode of a file was changed, it is reset.
 
-        If names are given, all files matching the names are reverted.
+        If names are given, all files matching the names are
+        reverted. If no arguments are given, no files are reverted.
+        To revert all files in the repository, pass the argument
+        ``options='--all'``.
 
-        If no arguments are given, all files in the repository are
-        reverted.
+        Modified files are saved with a .orig suffix before
+        reverting. To disable these backups, use
+        ``options='--no-backup'``.
+
+        If ``debug`` is True, also print the full system command being
+        executed.
 
         OPTIONS::
 
-            --no-backup  do not save backup copies of files
-         -I --include    include names matching given patterns
-         -X --exclude    exclude names matching given patterns
-         -n --dry-run    do not perform actions, just print output
+          -a --all                  revert all changes when no arguments given
+          -d --date DATE            tipmost revision matching date
+             --no-backup            do not save backup copies of files
+          -I --include PATTERN [+]  include names matching the given patterns
+          -X --exclude PATTERN [+]  exclude names matching the given patterns
+          -n --dry-run              do not perform actions, just print output
+             --mq                   operate on patch repository
+
+        EXAMPLES::
+
+            sage: hg_sage.revert('sage/misc/hg.py', rev=12000, options='--dry-run')
+            cd ... && hg revert --dry-run -r 12000 sage/misc/hg.py
         """
         if not rev is None:
             options = options +' -r %s %s'%(rev, files)
         else:
             options = options + files
-        self('revert %s'%options)
+        self('revert %s'%options, debug=debug)
 
     def dir(self):
         """
         Return the directory where this repository is located.
+
+        EXAMPLES::
+
+            sage: os.path.realpath(hg_sage.dir()).startswith(os.path.realpath(os.environ['SAGE_ROOT']))
+            True
         """
         return self.__dir
 
     def pull_url(self):
         """
         Return the default 'master url' for this repository.
+
+        EXAMPLES::
+
+            sage: hg_sage.pull_url()
+            'http://hg.sagemath.org/sage-main/'
         """
         return self.__pull_url
 
     def push_url(self):
         """
         Return the default url for uploading this repository.
+
+        EXAMPLES::
+
+            sage: hg_sage.push_url()
+            'http://hg.sagemath.org/sage-main/'
         """
         return self.__push_url
 
 
-    def help(self, cmd=''):
+    def help(self, cmd='', debug=True):
         r"""
-        Return help about the given command, or if cmd is omitted a list of
-        commands.
+        Print a help message about ``cmd``, or if ``cmd`` is omitted,
+        print a general Mercurial help message.
+
+        If ``debug`` is True, also print the full system command being
+        executed.
 
         If this hg object is called hg_sage, then you call a command using
-        ``hg_sage('usual hg command line notation')``
-        """
-        self('%s --help | %s'%(cmd, pager()))
+        ``hg_sage('usual hg command line notation')``.  Type "hg_sage?" for
+        more information.
 
-    def outgoing(self, url=None, opts=''):
+        EXAMPLES::
+
+            sage: hg_sage.help()  # not tested
+            Mercurial Distributed SCM
+
+            list of commands:
+            ...
+            sage: hg_sage.help('status')   # not tested
+            hg status [OPTION]... [FILE]...
+
+            aliases: st
+
+            show changed files in the working directory
+            ...
+        """
+        self('%s --help %s'%(cmd, pager()), debug=debug)
+
+    def outgoing(self, url=None, opts='', debug=True):
         """
         Use this to find changsets that are in your branch, but not in the
         specified destination repository. If no destination is specified,
@@ -785,6 +1106,16 @@ class HG:
               -e --ssh           specify ssh command to use
               --remotecmd        specify hg command to run on the remote side
 
+        - ``debug`` - if True, print the full system command being
+          executed.
+
+        EXAMPLES::
+
+            sage: hg_sage.outgoing() # not tested
+            cd ... && hg outgoing  http://hg.sagemath.org/sage-main/ --config pager.pager="LESS='R' less"
+            comparing with http://hg.sagemath.org/sage-main/
+            searching for changes
+            ...
         """
         if url is None:
             url = self.__push_url
@@ -792,16 +1123,16 @@ class HG:
         if not '/' in url:
             url = '%s/devel/sage-%s'%(SAGE_ROOT, url)
 
-        self('outgoing %s %s | %s' % (opts, url, pager()))
+        self('outgoing %s %s %s' % (opts, url, pager()), debug=debug)
 
-    def pull(self, url=None, options='-u'):
+    def pull(self, url=None, options='-u', debug=True):
         """
         Pull all new patches from the repository at the given url, or use
         the default 'official' repository if no url is specified.
 
         INPUT:
 
-        -  ``url`` - (Default: self.push_url())  the official
+        -  ``url`` - (Default: self.pull_url())  the official
            repository
 
            - ``http://[user@]host[:port]/[path]``
@@ -822,6 +1153,8 @@ class HG:
               -r --rev        a specific revision you would like to pull
               --remotecmd     specify hg command to run on the remote side
 
+        - ``debug`` - if True, print the full system command being
+          executed.
 
         Some notes about using SSH with Mercurial:
 
@@ -844,6 +1177,12 @@ class HG:
 
           Alternatively specify 'ssh -C' as your ssh command in your
           hgrc or with the -ssh command line option.
+
+        EXAMPLES::
+
+            sage: hg_sage.pull() # not tested
+            cd ... && hg pull http://hg.sagemath.org/sage-main/
+            ...
         """
         self._ensure_safe()
 
@@ -852,7 +1191,7 @@ class HG:
         if not '/' in url:
             url = '%s/devel/sage-%s'%(SAGE_ROOT, url)
 
-        self('pull %s %s'%(options, url))
+        self('pull %s %s'%(options, url), debug=debug)
         if self.__target == 'sage':
             print ""
             print "Now building the new Sage libraries"
@@ -862,7 +1201,7 @@ class HG:
         print "If it says use 'hg merge' above, then you should"
         print "type hg_%s.merge()."%self.__obj_name
 
-    def push(self, url=None, options=''):
+    def push(self, url=None, options='', debug=True):
         """
         Push all new patches from the repository to the given destination.
 
@@ -881,13 +1220,15 @@ class HG:
 
            - name of a branch (for hg_sage); no /'s
 
-        - ``options`` - (Default: '-u')::
+        - ``options`` - (Default: '')::
 
               -e --ssh        specify ssh command to use
               -f --force      run even when remote repository is unrelated
               -r --rev        a specific revision you would like to pull
               --remotecmd     specify hg command to run on the remote side
 
+        - ``debug`` - if True, print the full system command being
+          executed.
 
         Some notes about using SSH with Mercurial:
 
@@ -911,6 +1252,11 @@ class HG:
           Alternatively specify 'ssh -C' as your ssh command in your
           hgrc or with the -ssh command line option.
 
+        EXAMPLES::
+
+            sage: hg_sage.push() # not tested
+            cd ... && hg push http://hg.sagemath.org/sage-main/
+            ...
         """
         self._ensure_safe()
 
@@ -919,10 +1265,10 @@ class HG:
         if not '/' in url:
             url = '%s/devel/sage-%s'%(SAGE_ROOT, url)
 
-        self('push %s %s'%(options, url))
+        self('push %s %s'%(options, url), debug=debug)
 
 
-    def merge(self, options=''):
+    def merge(self, options='', debug=True):
         """
         Merge working directory with another revision
 
@@ -938,10 +1284,17 @@ class HG:
              -f --force  force a merge with outstanding changes
              -r --rev    revision to merge
 
-        """
-        self('merge %s'%options)
+        - ``debug`` - if True, print the full system command being
+          executed.
 
-    def update(self, options=''):
+        EXAMPLES::
+
+            sage: hg_sage.merge() # not tested
+            cd ... && hg merge
+        """
+        self('merge %s'%options, debug=debug)
+
+    def update(self, options='', debug=True):
         """
         update or merge working directory
 
@@ -961,20 +1314,27 @@ class HG:
 
         INPUT:
 
-
         -  ``options`` - string (default: '')::
 
             -C --clean  overwrite locally modified files
             -d --date   tipmost revision matching date
             -r --rev    revision
+
+        - ``debug`` - if True, print the full system command being
+          executed.
+
+        EXAMPLES::
+
+            sage: hg_sage.update() # not tested
+            cd ... && hg update
         """
-        self('update %s'%options)
+        self('update %s'%options, debug=debug)
 
     up = update
     checkout = update
     co = update
 
-    def head(self, options=''):
+    def head(self, options='', debug=True):
         """
         show current repository heads
 
@@ -986,15 +1346,26 @@ class HG:
 
         INPUT:
 
-
         -  ``options`` - string (default: '')::
 
              -r --rev       show only heads which are descendants of rev
                 --style     display using template map file
                 --template  display with template
 
+        - ``debug`` - if True, print the full system command being
+          executed.
+
+        EXAMPLES::
+
+            sage: hg_sage.head() # random
+            cd ... && hg head
+            changeset:   15825:6ca08864b80c
+            tag:         tip
+            user:        Jeroen Demeyer <jdemeyer@cage.ugent.be>
+            date:        Tue Jun 07 12:31:57 2011 +0000
+            summary:     4.7.1.alpha2
         """
-        self('head %s'%options)
+        self('head %s'%options, debug=debug)
 
     heads = head
 
@@ -1007,12 +1378,21 @@ class HG:
 
         INPUT:
 
-
         -  ``name`` - name of a Sage branch (default: None)
-
 
         If the name is not given, this function returns a list of all
         branches.
+
+        EXAMPLES::
+
+            sage: hg_sage.switch() # random
+            ['main']
+            sage: hg_sage.switch('new') # not tested
+            <BLANKLINE>
+            ----------------------------------------------------------
+            Building and installing modified Sage library files.
+            <BLANKLINE>
+            ...
         """
         if name is None:
             s = os.popen('ls -l %s/devel/ |grep sage-'%os.environ['SAGE_ROOT']).read()
@@ -1038,7 +1418,6 @@ class HG:
         different branch. You must restart Sage after switching.
 
         INPUT:
-
 
         -  ``name`` - string
 
@@ -1078,7 +1457,8 @@ class HG:
         else:
             os.system('sage -clone %s -r %s'%(name, int(rev)))
 
-    def commit(self, files='', comment=None, options='', diff=True):
+    def commit(self, files='', comment=None, options='', diff=True,
+               debug=True):
         r"""
         Commit your changes to the repository.
 
@@ -1107,10 +1487,18 @@ class HG:
         - ``diff`` - (default: True) if True show diffs between your repository
           and your working repository before recording changes.
 
+        - ``debug`` - if True, print the full system command being
+          executed.
+
         .. note::
 
            If you create new files you should first add them with the
            add method.
+
+        EXAMPLES::
+
+            sage: hg_sage.commit('hg.py', comment='miscellaneous fixes') # not tested
+            cd ... && hg commit -m "miscellaneous fixes" hg.py
         """
         if embedded() and comment is None:
             raise RuntimeError, "You're using the Sage notebook, so you *must* explicitly specify the comment in the commit command."
@@ -1121,20 +1509,29 @@ class HG:
             files = ' '.join([str(x) for x in files])
 
         if comment:
-            self('commit %s -m "%s" %s '%(options, comment, files))
+            self('commit %s -m "%s" %s '%(options, comment, files), debug=debug)
         else:
-            self('commit %s %s'%(options, files))
+            self('commit %s %s'%(options, files), debug=debug)
 
     record = commit
     ci = commit
 
-    def rollback(self):
+    def rollback(self, debug=True):
         """
         Remove recorded patches without changing the working copy.
-        """
-        self('rollback')
 
-    def bundle(self, filename, options='', url=None, base=None, to=None):
+        If ``debug`` is True, also print the full system command being
+        executed.
+
+        EXAMPLES::
+
+            sage: hg_sage.rollback() # not tested
+            cd ... && hg rollback
+        """
+        self('rollback', debug=debug)
+
+    def bundle(self, filename, options='', url=None, base=None, to=None,
+               debug=True):
         r"""
         Create an hg changeset bundle with the given filename against the
         repository at the given url (which is by default the 'official'
@@ -1154,7 +1551,6 @@ class HG:
 
         INPUT:
 
-
         -  ``filename`` - output file in which to put bundle
 
         -  ``options`` - pass to hg
@@ -1164,6 +1560,18 @@ class HG:
 
         -  ``base`` - a base changeset revision number to
            bundle against (doesn't require internet access)
+
+        -  ``debug`` - if True, print the full system command being
+           executed.
+
+        EXAMPLES::
+
+            sage: hg_sage.bundle('new-bundle') # not tested
+            Writing to /.../new-bundle.hg
+            cd ... && hg bundle tmphg http://hg.sagemath.org/sage-main/
+            searching for changes
+            133 changesets found
+            Successfully created hg patch bundle /.../new-bundle.hg
         """
         if not base is None:
             url = ''
@@ -1185,7 +1593,7 @@ class HG:
         tmpfile = '%s/tmphg'%self.__dir
         if os.path.exists(tmpfile):
             os.unlink(tmpfile)
-        self('bundle %s tmphg %s'%(options, url))
+        self('bundle %s tmphg %s'%(options, url), debug=debug)
         if os.path.exists(tmpfile):
             shutil.move(tmpfile, filename)
             print 'Successfully created hg patch bundle %s'%filename
@@ -1196,6 +1604,263 @@ class HG:
 
     send = bundle
     save = send
+
+    # Mercurial queues
+
+    def qseries(self, verbose=False, debug=True):
+        """
+        Mercurial queues: print the series file.
+
+        If optional argument ``verbose`` is True, then also print the
+        first line of each patch's header.
+
+        If ``debug`` is True, also print the full system command being
+        executed.
+
+        EXAMPLES::
+
+            sage: hg_sage.qseries()
+            cd ... && hg qseries
+        """
+        options = "--summary" if verbose else ""
+        self('qseries %s %s' % (options, color(),), debug=debug)
+
+    def qapplied(self, verbose=False, debug=True):
+        """
+        Mercurial queues: print the patches in the queue which have
+        been applied.
+
+        If optional argument ``verbose`` is True, then also print the
+        first line of each patch's header.
+
+        If ``debug`` is True, also print the full system command being
+        executed.
+
+        EXAMPLES::
+
+            sage: hg_sage.qapplied()
+            cd ... && hg qapplied
+        """
+        options = "--summary" if verbose else ""
+        self('qapplied %s %s' % (options, color(),), debug=debug)
+
+    def qunapplied(self, verbose=False, debug=True):
+        """
+        Mercurial queues: print the patches in the queue which have
+        not yet been applied.
+
+        If optional argument ``verbose`` is True, then also print the
+        first line of each patch's header.
+
+        If ``debug`` is True, also print the full system command being
+        executed.
+
+        EXAMPLES::
+
+            sage: hg_sage.qunapplied()
+            cd ... && hg qunapplied
+        """
+        options = "--summary" if verbose else ""
+        self('qunapplied %s %s' % (options, color(),), debug=debug)
+
+    def qimport(self, filename, options='', debug=True):
+        """
+        Mercurial queues: insert the patch from ``filename`` in the queue.
+
+        INPUT:
+
+        - ``filename`` -- string
+        - ``options`` -- string (default '')::
+
+          -e --existing     import file in patch directory
+          -n --name NAME    name of patch file
+          -f --force        overwrite existing files
+          -r --rev REV [+]  place existing revisions under mq control
+          -g --git          use git extended diff format
+          -P --push         qpush after importing
+
+        - ``debug`` -- (default True): if True, print the full system
+          command being executed.
+
+        EXAMPLES::
+
+            sage: hg_sage.qimport('old.patch') # not tested
+            cd ... && hg qimport old.patch ...
+        """
+        if filename.startswith("http://") or filename.startswith("https://"):
+            filename = get_remote_file(filename, verbose=True)
+        self._ensure_safe()
+        self('qimport %s %s' % (options, os.path.abspath(filename)),
+             debug=debug)
+
+    def qdelete(self, patches, keep_patch=False, debug=True):
+        """
+        Mercurial queues: delete the named patch from the queue.
+
+        INPUT:
+
+        - ``patches`` -- string, a patch or list of patches separated by
+          white space
+
+        - ``keep_patch`` -- (default False): if True, keep the patch
+          files in the patch directory.
+
+        - ``debug`` -- (default True): if True, print the full system
+          command being executed.
+
+        EXAMPLES::
+
+            sage: hg_sage.qdelete('old.patch new.patch') # not tested
+            cd ... && hg qdelete old.patch new.patch ...
+        """
+        options = "--keep" if keep_patch else ""
+        self('qdelete %s %s' % (options, patches),
+             debug=debug)
+
+    qremove = qdelete
+
+    def qpush(self, force=False, all=False, options='', debug=True):
+        """
+        Mercurial queues: push the next patch onto the stack.
+
+        INPUT:
+
+        - ``force`` -- boolean (default False): if True, apply even if the
+          patch has rejects.
+
+        - ``all`` -- boolean (default False): if True, apply all unapplied
+          patches.
+
+        - ``options`` -- string (default ''): extra options to pass to the command.
+
+        - ``debug`` -- (default True): if True, print the full system
+          command being executed.
+
+        EXAMPLES::
+
+            sage: hg_sage.qpush() # not tested
+            cd ... && hg  qpush
+        """
+        extra_options = ''
+        if force:
+            extra_options += ' --force'
+        if all:
+            extra_options += ' --all'
+        self('qpush %s %s' % (extra_options, options),
+             debug=debug)
+
+    def qpop(self, patch='', force=False, all=False, debug=True):
+        """
+        Mercurial queues: pop the top of the patch stack, or if given
+        a patch, pop patches off of the stack until it is at the top.
+
+        INPUT:
+
+        - ``patch`` -- string (default ''): if nonempty, this should
+          name an applied patch, and then the command will pop patches
+          off the stack until ``patch`` is at the top.
+
+        - ``force`` -- boolean (default False): if True, forget any
+          changes to patched files.
+
+        - ``all`` -- boolean (default False): if True, pop all
+          patches.
+
+        - ``debug`` -- (default True): if True, print the full system
+          command being executed.
+
+        EXAMPLES::
+
+            sage: hg_sage.qpop() # not tested
+            cd ... && hg qpop
+        """
+        extra_options = ''
+        if force:
+            extra_options += ' --force'
+        if all:
+            extra_options += ' --all'
+        if patch:
+            extra_options += ' %s' % patch
+        self('qpop %s' % extra_options, debug=debug)
+
+    def qrefresh(self, options='', debug=True):
+        """
+        Mercurial queues: update the current patch.
+
+        INPUT:
+
+        - ``options`` -- string (default '').  Some possibilities::
+
+           -e --edit                 edit commit message
+           -g --git                  use git extended diff format
+           -I --include PATTERN [+]  include names matching the given patterns
+           -X --exclude PATTERN [+]  exclude names matching the given patterns
+           -m --message TEXT         use text as commit message
+
+        - ``debug`` -- (default True): if True, print the full system
+          command being executed.
+
+        EXAMPLES::
+
+            sage: hg_sage.qrefresh() # not tested
+            cd ... && hg qrefresh
+        """
+        self('qrefresh %s' % options, debug=debug)
+
+    def qdiff(self, options='', debug=True):
+        """
+        Mercurial queues: show a diff including the current patch and
+        any more recent changes, thus showing what the current patch
+        would become after :meth:`qrefresh`.
+
+        Use :meth:`diff` if you only want to see the changes made
+        since the last :meth:`qrefresh`.
+
+        INPUT:
+
+        - ``options`` -- string (default '').  Some possibilities::
+
+           -a --text                 treat all files as text
+           -g --git                  use git extended diff format
+           -p --show-function        show which function each change is in
+           -I --include PATTERN [+]  include names matching the given patterns
+           -X --exclude PATTERN [+]  exclude names matching the given patterns
+
+        - ``debug`` -- (default True): if True, print the full system
+          command being executed.
+
+        EXAMPLES::
+
+            sage: hg_sage.qdiff()
+            cd ... && hg qdiff ...
+        """
+        self('qdiff %s %s %s' % (options, color(), pager()), debug=debug)
+
+    def qnew(self, patch, options='', debug=True):
+        """
+        Mercurial queues: create a new patch.
+
+        INPUT:
+
+        - ``patch`` -- string, the name of the patch.
+
+        - ``options`` -- string (default '').  Some possibilities::
+
+           -e --edit                 edit commit message
+           -g --git                  use git extended diff format
+           -I --include PATTERN [+]  include names matching the given patterns
+           -X --exclude PATTERN [+]  exclude names matching the given patterns
+           -m --message TEXT         use text as commit message
+
+        - ``debug`` -- (default True): if True, print the full system
+          command being executed.
+
+        EXAMPLES::
+
+            sage: hg_sage.qnew('my_new.patch') # not tested
+            cd ... && hg qnew my_new.patch
+        """
+        self('qnew %s %s' % (patch, options), debug=debug)
 
 
 ##############################################################################

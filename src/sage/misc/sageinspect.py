@@ -9,6 +9,7 @@ AUTHORS:
 - William Stein (extensive modifications)
 - Nick Alexander (extensions)
 - Nick Alexander (testing)
+- Simon King (some extension for Cython, generalisation of SageArgSpecVisitor)
 
 EXAMPLES::
 
@@ -110,10 +111,21 @@ Unfortunately, there is no argspec extractable from builtins::
 
     sage: sage_getdef(str.find, 'find')
     'find( [noargspec] )'
+
+By trac ticket #9976, introspection also works for interactively
+defined Cython code, and with rather tricky argument lines::
+
+    sage: cython('def foo(x, a=\')"\', b={not (2+1==3):\'bar\'}): return')
+    sage: print sage_getsource(foo)
+    def foo(x, a=')"', b={not (2+1==3):'bar'}): return
+    sage: sage_getargspec(foo)
+    ArgSpec(args=['x', 'a', 'b'], varargs=None, keywords=None, defaults=(')"', {False: 'bar'}))
+
 """
 
 import ast
 import inspect
+import functools
 import os
 import tokenize
 EMBEDDED_MODE = False
@@ -459,6 +471,255 @@ class SageArgSpecVisitor(ast.NodeVisitor):
             d[self.visit(k)] = self.visit(v)
         return d
 
+    def visit_BoolOp(self, node):
+        """
+        Visit a Python AST :class:`ast.BoolOp` node.
+
+        INPUT:
+
+        - ``node`` - the node instance to visit
+
+        OUTPUT:
+
+        - The result that ``node`` represents
+
+        AUTHOR:
+
+        - Simon King
+
+        EXAMPLES::
+
+            sage: import ast, sage.misc.sageinspect as sms
+            sage: visitor = sms.SageArgSpecVisitor()
+            sage: vis = lambda x: visitor.visit(ast.parse(x).body[0].value)
+            sage: [vis(d) for d in ['True and 1', 'False or 3 or None', '3 and 4']] #indirect doctest
+            [1, 3, 4]
+
+        """
+        op = node.op.__class__.__name__
+        L = list(node.values)
+        out = self.visit(L.pop(0))
+        if op == 'And':
+            while L:
+                next = self.visit(L.pop(0))
+                out = out and next
+            return out
+        if op == 'Or':
+            while L:
+                next = self.visit(L.pop(0))
+                out = out or next
+            return out
+
+    def visit_Compare(self, node):
+        """
+        Visit a Python AST :class:`ast.Compare` node.
+
+        INPUT:
+
+        - ``node`` - the node instance to visit
+
+        OUTPUT:
+
+        - The result that ``node`` represents
+
+        AUTHOR:
+
+        - Simon King
+
+        EXAMPLES::
+
+            sage: import ast, sage.misc.sageinspect as sms
+            sage: visitor = sms.SageArgSpecVisitor()
+            sage: vis = lambda x: visitor.visit_Compare(ast.parse(x).body[0].value)
+            sage: [vis(d) for d in ['1<2==2!=3', '1==1>2', '1<2>1', '1<3<2<4']]
+            [True, False, True, False]
+
+        """
+        left = self.visit(node.left)
+        ops = list(node.ops)
+        comparators = list(node.comparators) # the things to be compared with.
+        while ops:
+            op = ops.pop(0).__class__.__name__
+            right = self.visit(comparators.pop(0))
+            if op=='Lt':
+                if not left<right:
+                    return False
+            elif op=='LtE':
+                if not left<=right:
+                    return False
+            elif op=='Gt':
+                if not left>right:
+                    return False
+            elif op=='GtE':
+                if not left>=right:
+                    return False
+            elif op=='Eq':
+                if not left==right:
+                    return False
+            elif op=='NotEq':
+                if not left!=right:
+                    return False
+            left = right
+        return True
+
+    def visit_BinOp(self, node):
+        """
+        Visit a Python AST :class:`ast.BinOp` node.
+
+        INPUT:
+
+        - ``node`` - the node instance to visit
+
+        OUTPUT:
+
+        - The result that ``node`` represents
+
+        AUTHOR:
+
+        - Simon King
+
+        EXAMPLES::
+
+            sage: import ast, sage.misc.sageinspect as sms
+            sage: visitor = sms.SageArgSpecVisitor()
+            sage: vis = lambda x: visitor.visit(ast.parse(x).body[0].value)
+            sage: [vis(d) for d in ['(3+(2*4))', '7|8', '5^3', '7/3', '7//3', '3<<4']] #indirect doctest
+            [11, 15, 6, 2, 2, 48]
+        """
+        op = node.op.__class__.__name__
+        if op == 'Add':
+            return self.visit(node.left)+self.visit(node.right)
+        if op == 'Mult':
+            return self.visit(node.left)*self.visit(node.right)
+        if op == 'BitAnd':
+            return self.visit(node.left)&self.visit(node.right)
+        if op == 'BitOr':
+            return self.visit(node.left) | self.visit(node.right)
+        if op == 'BitXor':
+            return self.visit(node.left) ^ self.visit(node.right)
+        if op == 'Div':
+            return self.visit(node.left) / self.visit(node.right)
+        if op == 'Eq':
+            return self.visit(node.left) == self.visit(node.right)
+        if op == 'FloorDiv':
+            return self.visit(node.left) // self.visit(node.right)
+        if op == 'NotEq':
+            return self.visit(node.left) != self.visit(node.right)
+        if op == 'NotIn':
+            return self.visit(node.left) not in self.visit(node.right)
+        if op == 'Pow':
+            return self.visit(node.left) ** self.visit(node.right)
+        if op == 'RShift':
+            return self.visit(node.left) >> self.visit(node.right)
+        if op == 'LShift':
+            return self.visit(node.left) << self.visit(node.right)
+        if op == 'Sub':
+            return self.visit(node.left) - self.visit(node.right)
+        if op == 'Gt':
+            return self.visit(node.left) > self.visit(node.right)
+        if op == 'GtE':
+            return self.visit(node.left) >= self.visit(node.right)
+        if op == 'In':
+            return self.visit(node.left) in self.visit(node.right)
+        if op == 'Is':
+            return self.visit(node.left) is self.visit(node.right)
+        if op == 'IsNot':
+            return self.visit(node.left) is not self.visit(node.right)
+        if op == 'Lt':
+            return self.visit(node.left) < self.visit(node.right)
+        if op == 'LtE':
+            return self.visit(node.left) <= self.visit(node.right)
+        if op == 'Mod':
+            return self.visit(node.left) % self.visit(node.right)
+
+    def visit_UnaryOp(self, node):
+        """
+        Visit a Python AST :class:`ast.BinOp` node.
+
+        INPUT:
+
+        - ``node`` - the node instance to visit
+
+        OUTPUT:
+
+        - The result that ``node`` represents
+
+        AUTHOR:
+
+        - Simon King
+
+        EXAMPLES::
+
+            sage: import ast, sage.misc.sageinspect as sms
+            sage: visitor = sms.SageArgSpecVisitor()
+            sage: vis = lambda x: visitor.visit_UnaryOp(ast.parse(x).body[0].value)
+            sage: [vis(d) for d in ['+(3*2)', '-(3*2)']]
+            [6, -6]
+
+        """
+        op = node.op.__class__.__name__
+        if op == 'Not':
+            return not self.visit(node.operand)
+        if op == 'UAdd':
+            return self.visit(node.operand)
+        if op == 'USub':
+            return -self.visit(node.operand)
+
+def _grep_first_pair_of_parentheses(s):
+    """
+    Return the first matching pair of parentheses in a code string.
+
+    INPUT:
+
+    A string
+
+    OUTPUT:
+
+    A substring of the input, namely the part between the first
+    (outmost) matching pair of parentheses (including the
+    parentheses).
+
+    Parentheses between single or double quotation marks do not
+    count. If no matching pair of parentheses can be found, a
+    ``SyntaxError`` is raised.
+
+    EXAMPLE::
+
+        sage: from sage.misc.sageinspect import _grep_first_pair_of_parentheses
+        sage: code = 'def foo(a="\'):", b=4):\n    return'
+        sage: _grep_first_pair_of_parentheses(code)
+        '(a="\'):", b=4)'
+        sage: code = 'def foo(a="%s):", \'b=4):\n    return'%("'")
+        sage: _grep_first_pair_of_parentheses(code)
+        Traceback (most recent call last):
+        ...
+        SyntaxError: The given string does not contain balanced parentheses
+
+    """
+    out = []
+    single_quote = False
+    double_quote = False
+    escaped = False
+    level = 0
+    for c in s:
+        if level>0:
+            out.append(c)
+        if c=='(' and not single_quote and not double_quote and not escaped:
+            level += 1
+        elif c=='"' and not single_quote and not escaped:
+            double_quote = not double_quote
+        elif c=="'" and not double_quote and not escaped:
+            single_quote = not single_quote
+        elif c==')' and not single_quote and not double_quote and not escaped:
+            if level == 1:
+                return '('+''.join(out)
+            level -= 1
+        elif c=="\\" and (single_quote or double_quote):
+            escaped = not escaped
+        else:
+            escaped = False
+    raise SyntaxError, "The given string does not contain balanced parentheses"
+
 def _sage_getargspec_from_ast(source):
     r"""
     Return an argspec for a Python function or method by compiling its
@@ -505,11 +766,15 @@ def _sage_getargspec_cython(source):
     inspect.getargspec from source code.  That is, get the names and
     default values of a function's arguments.
 
-    INPUT: ``source`` - a string of Cython code
+    INPUT:
 
-    OUTPUT: a tuple (``args``, None, None, ``argdefs``), where
-    ``args`` is the list of arguments and ``argdefs`` is their default
-    values (as strings, so 2 is represented as '2', etc.).
+    ``source`` - a string of Cython code
+
+    OUTPUT:
+
+    A tuple (``args``, None, None, ``argdefs``), where ``args`` is the
+    list of arguments and ``argdefs`` is their default values (as
+    strings, so 2 is represented as '2', etc.).
 
     EXAMPLES::
 
@@ -521,11 +786,11 @@ def _sage_getargspec_cython(source):
         sage: sgc('def o(p, *q, r={}, **s) except? -1:')
         (['p', '*q', 'r', '**s'], None, None, ({},))
         sage: sgc('cpdef how(r=(None, "u:doing?")):')
-        ArgSpec(args=['r'], varargs=None, keywords=None, defaults=((None, 'u:doing?'),))
+        (['r'], None, None, ((None, 'u:doing?'),))
         sage: sgc('def _(x="):"):')
-        ArgSpec(args=['x'], varargs=None, keywords=None, defaults=('):',))
+        (['x'], None, None, ('):',))
         sage: sgc('def f(z = {(1,2,3): True}):\n    return z')
-        ArgSpec(args=['z'], varargs=None, keywords=None, defaults=({(1, 2, 3): True},))
+        (['z'], None, None, ({(1, 2, 3): True},))
         sage: sgc('def f(double x, z = {(1,2,3): True}):\n    return z')
         Traceback (most recent call last):
         ...
@@ -590,15 +855,13 @@ def _sage_getargspec_cython(source):
             # argspec.
             beg = re.search(r'def([ ]+\w+)+[ ]*\(', source).end() - 1
             proxy = 'def dummy' + source[beg:] + '\n    return'
-            return _sage_getargspec_from_ast(proxy)
+            return tuple(_sage_getargspec_from_ast(proxy))
 
         except Exception:
             try:
                 # Try to parse just the arguments as a Python argspec.
-                beg = re.search(r'def([ ]+\w+)+[ ]*\(', source).end() - 1
-                end = re.search(r'\)[ ]*:', source).end()
-                proxy = 'def dummy' + source[beg:end] + '\n    return'
-                return _sage_getargspec_from_ast(proxy)
+                proxy = 'def dummy' + _grep_first_pair_of_parentheses(source) + ':\n    return'
+                return tuple(_sage_getargspec_from_ast(proxy))
 
             except Exception:
                 raise ValueError, "Could not parse cython argspec"
@@ -617,7 +880,15 @@ def sage_getfile(obj):
         sage: sage_getfile(Sq)[-41:]
         'sage/algebras/steenrod_algebra_element.py'
 
+    The following tests against some bugs fixed in trac ticket #9976::
+
+        sage: obj = sage.combinat.partition_algebra.SetPartitionsAk
+        sage: obj = sage.combinat.partition_algebra.SetPartitionsAk
+        sage: sage_getfile(obj)
+        '...sage/combinat/partition_algebra.py'
+
     AUTHOR:
+
     - Nick Alexander
     """
     # We try to extract from docstrings, because Python's inspect
@@ -630,6 +901,8 @@ def sage_getfile(obj):
 
     # The instance case
     if isclassinstance(obj):
+        if isinstance(obj, functools.partial):
+            return sage_getfile(obj.func)
         return inspect.getabsfile(obj.__class__)
     # No go? fall back to inspect.
     return inspect.getabsfile(obj)
@@ -638,47 +911,146 @@ def sage_getargspec(obj):
     r"""
     Return the names and default values of a function's arguments.
 
-    INPUT: ``obj``, a function
+    INPUT:
 
-    OUTPUT: A tuple of four things is returned: ``(args, varargs, varkw,
-    defaults)``.  ``args`` is a list of the argument names (it may contain
-    nested lists).  ``varargs`` and ``varkw`` are the names of the * and
-    ** arguments or None.  ``defaults`` is an n-tuple of the default
-    values of the last n arguments.
+    ``obj``, any callable object
+
+    OUTPUT:
+
+    An ``ArgSpec`` is returned. This is a named tuple
+    ``(args, varargs, keywords, defaults)``.
+
+    - ``args`` is a list of the argument names (it may contain nested lists).
+
+    - ``varargs`` and ``keywords`` are the names of the ``*`` and ``**``
+      arguments or ``None``.
+
+    - ``defaults`` is an `n`-tuple of the default values of the last `n` arguments.
+
+    NOTE:
+
+    If the object has a method ``_sage_argspec_`` then the output of
+    that method is transformed into a named tuple and then returned.
+
+    If a class instance has a method ``_sage_src_`` then its output
+    is  studied to determine the argspec. This is because currently
+    the :class:`~sage.misc.cachefunc.CachedMethod` decorator has
+    no ``_sage_argspec_`` method.
 
     EXAMPLES::
 
         sage: from sage.misc.sageinspect import sage_getargspec
         sage: sage_getargspec(identity_matrix)
-        (['ring', 'n', 'sparse'], None, None, (0, False))
+        ArgSpec(args=['ring', 'n', 'sparse'], varargs=None, keywords=None, defaults=(0, False))
         sage: sage_getargspec(Poset)
-        (['data', 'element_labels', 'cover_relations'], None, None, (None, None, False))
+        ArgSpec(args=['data', 'element_labels', 'cover_relations'], varargs=None, keywords=None, defaults=(None, None, False))
         sage: sage_getargspec(factor)
-        (['n', 'proof', 'int_', 'algorithm', 'verbose'],
-         None,
-         'kwds',
-         (None, False, 'pari', 0))
+        ArgSpec(args=['n', 'proof', 'int_', 'algorithm', 'verbose'], varargs=None, keywords='kwds', defaults=(None, False, 'pari', 0))
+
+    In the case of a class or a class instance, the ``ArgSpec`` of the ``__new__`` or ``__init__``
+    methods are returned::
+
+        sage: P.<x,y> = QQ[]
+        sage: sage_getargspec(P)
+        ArgSpec(args=['self', 'element'], varargs=None, keywords=None, defaults=None)
+        sage: sage_getargspec(P.__class__)
+        ArgSpec(args=['self', 'element'], varargs=None, keywords=None, defaults=None)
+
+    The following tests against various bugs that were fixed in
+    trac ticket #9976::
+
+        sage: from sage.rings.polynomial.real_roots import bernstein_polynomial_factory_ratlist
+        sage: sage_getargspec(bernstein_polynomial_factory_ratlist.coeffs_bitsize)
+        ArgSpec(args=['self'], varargs=None, keywords=None, defaults=None)
+        sage: from sage.rings.polynomial.pbori import BooleanMonomialMonoid
+        sage: sage_getargspec(BooleanMonomialMonoid.gen)
+        ArgSpec(args=['self', 'i'], varargs=None, keywords=None, defaults=(0,))
+        sage: I = P*[x,y]
+        sage: sage_getargspec(I.groebner_basis)
+        ArgSpec(args=['self', 'algorithm', 'deg_bound', 'mult_bound', 'prot'],
+        varargs='args', keywords='kwds', defaults=('', None, None, False))
+        sage: cython("cpdef int foo(x,y) except -1: return 1")
+        sage: sage_getargspec(foo)
+        ArgSpec(args=['x', 'y'], varargs=None, keywords=None, defaults=None)
+
+    If a ``functools.partial`` instance is involved, we see no other meaningful solution
+    than to return the argspec of the underlying function::
+
+        sage: def f(a,b,c,d=1): return a+b+c+d
+        ...
+        sage: import functools
+        sage: f1 = functools.partial(f, 1,c=2)
+        sage: sage_getargspec(f1)
+        ArgSpec(args=['a', 'b', 'c', 'd'], varargs=None, keywords=None, defaults=(1,))
+
+    TESTS:
+
+    By trac ticket #9976, rather complicated cases work. In the
+    following example, we dynamically create an extension class
+    that returns some source code, and the example shows that
+    the source code is taken for granted, i.e., the argspec of
+    an instance of that class does not coincide with the argspec
+    of its call method. That behaviour is intended, since a
+    decorated method appears to have the generic signature
+    `*args,**kwds`, but in fact it is only supposed to be called
+    with the arguments requested by the underlying undecorated
+    method. We saw an easy example above, namely `I.groebner_basis`.
+    Here is a more difficult::
+
+        sage: cython_code = [
+        ... 'cdef class MyClass:',
+        ... '    def _sage_src_(self):',
+        ... '        return "def foo(x, a=\\\')\\\"\\\', b={(2+1):\\\'bar\\\', not 1:3, 3<<4:5}): return\\n"',
+        ... '    def __call__(self, m,n): return "something"']
+        sage: cython('\n'.join(cython_code))
+        sage: O = MyClass()
+        sage: print sage.misc.sageinspect.sage_getsource(O)
+        def foo(x, a=')"', b={(2+1):'bar', not 1:3, 3<<4:5}): return
+        sage: sage.misc.sageinspect.sage_getargspec(O)
+        ArgSpec(args=['x', 'a', 'b'], varargs=None, keywords=None, defaults=(')"', {False: 3, 48: 5, 3: 'bar'}))
+        sage: sage.misc.sageinspect.sage_getargspec(O.__call__)
+        ArgSpec(args=['self', 'm', 'n'], varargs=None, keywords=None, defaults=None)
+
+    ::
+
+        sage: cython('def foo(x, a=\'\\\')"\', b={not (2+1==3):\'bar\'}): return')
+        sage: print sage.misc.sageinspect.sage_getsource(foo)
+        def foo(x, a='\')"', b={not (2+1==3):'bar'}): return
+        <BLANKLINE>
+        sage: sage.misc.sageinspect.sage_getargspec(foo)
+        ArgSpec(args=['x', 'a', 'b'], varargs=None, keywords=None, defaults=('\')"', {False: 'bar'}))
 
     AUTHORS:
 
     - William Stein: a modified version of inspect.getargspec from the
       Python Standard Library, which was taken from IPython for use in Sage.
     - Extensions by Nick Alexander
+    - Simon King: Return an ``ArgSpec``, fix some bugs.
     """
     from sage.misc.lazy_attribute import lazy_attribute
     from sage.misc.abstract_method import AbstractMethod
     if isinstance(obj, (lazy_attribute, AbstractMethod)):
         source = sage_getsource(obj)
-        return _sage_getargspec_cython(source)
+        return inspect.ArgSpec(*_sage_getargspec_cython(source))
     if not callable(obj):
         raise TypeError, "obj is not a code object"
-    if hasattr(obj, '_sage_argspec_'):
-        return obj._sage_argspec_()
+    try:
+        return inspect.ArgSpec(*obj._sage_argspec_())
+    except (AttributeError, TypeError):
+        pass
     if inspect.isfunction(obj):
         func_obj = obj
     elif inspect.ismethod(obj):
         func_obj = obj.im_func
     elif isclassinstance(obj):
+        if hasattr(obj,'_sage_src_'): #it may be a decorator!
+            source = sage_getsource(obj)
+            # we try to find the definition and parse it by _sage_getargspec_ast
+            proxy = 'def dummy' + _grep_first_pair_of_parentheses(source) + ':\n    return'
+            return _sage_getargspec_from_ast(proxy)
+        elif isinstance(obj,functools.partial):
+            base_spec = sage_getargspec(obj.func)
+            return base_spec
         return sage_getargspec(obj.__class__.__call__)
     elif inspect.isclass(obj):
         return sage_getargspec(obj.__call__)
@@ -691,7 +1063,7 @@ def sage_getargspec(obj):
         # Perhaps it is binary and defined in a Cython file
         source = sage_getsource(obj, is_binary=True)
         if source:
-            return _sage_getargspec_cython(source)
+            return inspect.ArgSpec(*_sage_getargspec_cython(source))
         else:
             func_obj = obj
 
@@ -699,12 +1071,17 @@ def sage_getargspec(obj):
     try:
         args, varargs, varkw = inspect.getargs(func_obj.func_code)
     except AttributeError:
-        args, varargs, varkw = inspect.getargs(func_obj)
+        try:
+            args, varargs, varkw = inspect.getargs(func_obj)
+        except TypeError: # arg is not a code object
+        # The above "hopefully" was wishful thinking:
+            return inspect.ArgSpec(*_sage_getargspec_cython(sage_getsource(obj)))
+            #return _sage_getargspec_from_ast(sage_getsource(obj))
     try:
         defaults = func_obj.func_defaults
     except AttributeError:
         defaults = tuple([])
-    return args, varargs, varkw, defaults
+    return inspect.ArgSpec(args, varargs, varkw, defaults)
 
 def sage_getdef(obj, obj_name=''):
     r"""
@@ -810,7 +1187,7 @@ def _sage_getdoc_unformatted(obj):
     r = None
     try:
         r = obj._sage_doc_()
-    except AttributeError:
+    except (AttributeError, TypeError): # the TypeError occurs if obj is a class
         r = obj.__doc__
 
     #Check to see if there is an __init__ method, and if there
@@ -849,6 +1226,16 @@ def sage_getdoc(obj, obj_name='', embedded_override=False):
         sage: from sage.misc.sageinspect import sage_getdoc
         sage: sage_getdoc(identity_matrix)[3:39]
         'Return the n x n identity matrix ove'
+        sage: def f(a,b,c,d=1): return a+b+c+d
+        ...
+        sage: import functools
+        sage: f1 = functools.partial(f, 1,c=2)
+        sage: f.__doc__ = "original documentation"
+        sage: f1.__doc__ = "specialised documentation"
+        sage: sage_getdoc(f)
+        'original documentation\n'
+        sage: sage_getdoc(f1)
+        'specialised documentation\n'
 
     AUTHORS:
 
@@ -939,10 +1326,26 @@ def sage_getsourcelines(obj, is_binary=False):
         sage: sage_getsourcelines(matrix, False)[0][0][4:]
         'matrix(*args, **kwds):\n'
 
+    TESTS::
+
+        sage: cython('''cpdef test_funct(x,y): return''')
+        sage: sage_getsourcelines(test_funct)
+        (['cpdef test_funct(x,y): return\n'], 6)
+
+    The following tests that an instance of ``functools.partial`` is correctly
+    dealt with (see trac ticket #9976)::
+
+        sage: obj = sage.combinat.partition_algebra.SetPartitionsAk
+        sage: sage_getsourcelines(obj)
+        (['def create_set_partition_function(letter, k):\n',
+        ...
+        '    raise ValueError, "k must be an integer or an integer + 1/2"\n'], 31)
+
     AUTHORS:
 
     - William Stein
     - Extensions by Nick Alexander
+    - Extension to interactive Cython code by Simon King
     """
 
     try:
@@ -952,7 +1355,10 @@ def sage_getsourcelines(obj, is_binary=False):
 
     # Check if we deal with instance
     if isclassinstance(obj):
-        obj=obj.__class__
+        if isinstance(obj,functools.partial):
+            obj = obj.func
+        else:
+            obj=obj.__class__
 
     # If we can handle it, we do.  This is because Python's inspect will
     # happily dump binary for cython extension source code.
@@ -965,7 +1371,13 @@ def sage_getsourcelines(obj, is_binary=False):
     try:
         source_lines = open(filename).readlines()
     except IOError:
-        return None
+        try:
+            from sage.all import SAGE_TMP
+            raw_name = filename.split('/')[-1]
+            newname = SAGE_TMP+'/spyx/'+'_'.join(raw_name.split('_')[:-1])+'/'+raw_name
+            source_lines = open(newname).readlines()
+        except IOError:
+            return None
 
     return _extract_source(source_lines, lineno), lineno
 

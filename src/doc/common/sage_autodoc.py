@@ -34,6 +34,7 @@ from sphinx.util.compat import Directive
 from sphinx.util.inspect import isdescriptor, safe_getmembers, safe_getattr
 from sphinx.util.docstrings import prepare_docstring
 
+from sage.misc.sageinspect import _sage_getdoc_unformatted, sage_getargspec, isclassinstance
 
 try:
     base_exception = BaseException
@@ -199,7 +200,6 @@ def between(marker, what=None, keepempty=False):
         if lines and lines[-1]:
             lines.append('')
     return process
-
 
 class Documenter(object):
     """
@@ -403,7 +403,7 @@ class Documenter(object):
 
     def get_doc(self, encoding=None):
         """Decode and return lines of the docstring(s) for the object."""
-        docstring = self.get_attr(self.object, '__doc__', None)
+        docstring = _sage_getdoc_unformatted(self.object) #self.get_attr(self.object, '__doc__', None)
         if docstring:
             # make sure we have Unicode docstrings, then sanitize and split
             # into lines
@@ -522,7 +522,7 @@ class Documenter(object):
             else:
                 # ignore undocumented members if :undoc-members:
                 # is not given
-                doc = self.get_attr(member, '__doc__', None)
+                doc = _sage_getdoc_unformatted(member) #self.get_attr(member, '__doc__', None)
                 skip = not self.options.undoc_members and not doc
 
             # give the user a chance to decide whether this member
@@ -800,7 +800,14 @@ class FunctionDocumenter(ModuleLevelDocumenter):
 
     @classmethod
     def can_document_member(cls, member, membername, isattr, parent):
-        return isinstance(member, (FunctionType, BuiltinFunctionType))
+        # It can be documented if it is a genuine function.
+        # Often, a class instance has the same documentation as its class,
+        # and then we typically want to document the class and not the instance.
+        # However, there is an exception: CachedFunction(f) returns a class instance,
+        # whose doc string coincides with that of f and is thus different from
+        # that of the class CachedFunction. In that situation, we want that f is documented.
+        # This is part of SAGE TRAC 9976
+        return isinstance(member, (FunctionType, BuiltinFunctionType)) or (isclassinstance(member) and _sage_getdoc_unformatted(member)!=_sage_getdoc_unformatted(member.__class__))
 
     #SAGE TRAC 9976: This function has been rewritten to support the
     #_sage_argspec_ attribute which makes it possible to get argument
@@ -819,19 +826,14 @@ class FunctionDocumenter(ModuleLevelDocumenter):
                     return argspec
                 else:
                     return None
-            try:
-                return inspect.getargspec(obj)
-            except TypeError:
-                # if a class should be documented as function (yay duck
-                # typing) we try to use the constructor signature as function
+            argspec = sage_getargspec(obj) #inspect.getargspec(obj)
+            if isclassinstance(obj) or inspect.isclass(obj):
+                # if a class should be documented as function, we try
+                # to use the constructor signature as function
                 # signature without the first argument.
-                try:
-                    return inspect.getargspec(obj.__new__)
-                except TypeError:
-                    argspec = inspect.getargspec(obj.__init__)
-                    if argspec[0]:
-                        del argspec[0][0]
-                    return argspec
+                if argspec is not None and argspec[0]:
+                    del argspec[0][0]
+            return argspec
         argspec = args_on_obj(self.object)
         return inspect.formatargspec(*argspec) if argspec is not None else None
 
@@ -919,12 +921,7 @@ class ClassDocumenter(ModuleLevelDocumenter):
         if initmeth is None or initmeth is object.__init__ or not \
                (inspect.ismethod(initmeth) or inspect.isfunction(initmeth)):
             return None
-        try:
-            argspec = inspect.getargspec(initmeth)
-        except TypeError:
-            # still not possible: happens e.g. for old-style classes
-            # with __init__ in C
-            return None
+        argspec = sage_getargspec(initmeth) #inspect.getargspec(initmeth)
         if argspec[0] and argspec[0][0] in ('cls', 'self'):
             del argspec[0][0]
         return inspect.formatargspec(*argspec)
@@ -954,15 +951,15 @@ class ClassDocumenter(ModuleLevelDocumenter):
         content = self.env.config.autoclass_content
 
         docstrings = []
-        docstring = self.get_attr(self.object, '__doc__', None)
+        docstring = _sage_getdoc_unformatted(self.object) #self.get_attr(self.object, '__doc__', None)
         if docstring:
             docstrings.append(docstring)
 
         # for classes, what the "docstring" is can be controlled via a
         # config value; the default is only the class docstring
         if content in ('both', 'init'):
-            initdocstring = self.get_attr(
-                self.get_attr(self.object, '__init__', None), '__doc__')
+            initdocstring = _sage_getdoc_unformatted( #self.get_attr(
+                self.get_attr(self.object, '__init__', None))#, '__doc__')
             # for new-style classes, no __init__ means default __init__
             if initdocstring == object.__init__.__doc__:
                 initdocstring = None
@@ -1059,6 +1056,8 @@ class MethodDocumenter(ClassLevelDocumenter):
     #_sage_argspec_ attribute which makes it possible to get argument
     #specification of decorated callables in documentation correct. See e.g.
     #sage.misc.decorators.sage_wraps
+    #Note, however, that sage.misc.sageinspect.sage_getargspec already
+    #uses a method _sage_argspec_, that only works on objects, not on classes, though.
     def format_args(self):
         def args_on_obj(obj):
             if hasattr(obj, "_sage_argspec_"):
@@ -1073,15 +1072,9 @@ class MethodDocumenter(ClassLevelDocumenter):
             else:
                 # The check above misses ordinary Python methods in Cython
                 # files.
-                try:
-                    argspec = inspect.getargspec(obj)
-                except TypeError:
-                    if (inspect.ismethod(obj) and
-                        self.env.config.autodoc_builtin_argspec):
-                        argspec = self.env.config.autodoc_builtin_argspec(obj.im_func)
-                    else:
-                        return None
-            if argspec[0] and argspec[0][0] in ('cls', 'self'):
+                argspec = sage_getargspec(obj) #inspect.getargspec(obj)
+            #if isclassinstance(obj) or inspect.isclass(obj):
+            if argspec is not None and argspec[0] and argspec[0][0] in ('cls', 'self'):
                 del argspec[0][0]
             return argspec
         argspec = args_on_obj(self.object)

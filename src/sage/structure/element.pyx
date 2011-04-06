@@ -2991,7 +2991,7 @@ cdef class NamedBinopMethod:
             sage: from sage.structure.element import NamedBinopMethod
             sage: g = NamedBinopMethod(gcd)
             sage: g._sage_argspec_()
-            (['a', 'b'], None, 'kwargs', (None,))
+            ArgSpec(args=['a', 'b'], varargs=None, keywords='kwargs', defaults=(None,))
         """
         return sageinspect.sage_getargspec(self._func)
 

@@ -958,8 +958,15 @@ class ColorsDict(dict):
             RGB color (0.0, 0.0, 1.0)
             sage: blue
             RGB color (0.0, 0.0, 1.0)
+            sage: cols.punk
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'ColorsDict' has no attribute or colormap punk
         """
-        return self.__getitem__(name)
+        try:
+            return self.__getitem__(name)
+        except KeyError:
+            raise AttributeError, "'%s' has no attribute or colormap %s"%(type(self).__name__,name)
 
     def __dir__(self):
         """
@@ -1378,11 +1385,18 @@ class Colormaps(collections.MutableMapping):
             sage: maps.punk
             Traceback (most recent call last):
             ...
+            AttributeError: 'Colormaps' has no attribute or colormap punk
+            sage: maps['punk']
+            Traceback (most recent call last):
+            ...
             KeyError: "no colormap with name 'punk'"
             sage: maps['bone'] == maps.bone
             True
         """
-        return self.__getitem__(name)
+        try:
+            return self.__getitem__(name)
+        except KeyError:
+            raise AttributeError, "'%s' has no attribute or colormap %s"%(type(self).__name__,name)
 
     def __repr__(self):
         """

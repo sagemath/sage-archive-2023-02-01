@@ -21,6 +21,12 @@ this license, visit [[http://creativecommons.org/licenses/by-sa/3.0/]]
 or send a letter to Creative Commons, 171 Second Street, Suite 300, San
 Francisco, California, 94105, USA.
 
+The included files `tkz-berge.sty` and `tkz-graph.sty` are from
+[[http://altermundus.com/pages/tkz/]] and are licensed under the "LaTeX
+Project Public License Distributed from CTAN archives in directory
+macros/latex/base/lppl.txt"; see
+[[http://mirror.ctan.org/macros/latex/base/lppl.txt]].
+
 == SPKG Maintainers ==
 
 Dan Drake (ddrake at member ams org)
@@ -33,9 +39,14 @@ Author: Dan Drake. Web: [[http://www.bitbucket.org/ddrake/sagetex]] and
 == Dependencies ==
 
 To install, nothing more than a standard Sage install. The
-{{{spkg-check}}} script will exit without actually testing anything if
-it cannot find "latex" in your path, or if it cannot find tkz-berge.sty,
-a TikZ add-on required for typesetting some graphs.
+`spkg-check` script will exit without actually testing anything if
+it cannot find "latex" in your path.
+
+If the documentation is not in SAGE_ROOT/local/share/doc/sagetex, then
+you can either build it by reinstalling this spkg with
+the environment variable SAGE_SPKG_INSTALL_DOCS set to "yes" or download
+it from http://bitbucket.org/ddrake/sagetex/downloads. There should be
+two files: example.pdf and sagetex.pdf.
 
 == Notes ==
 
@@ -44,7 +55,7 @@ standard with Sage, so you only need to make sure LaTeX can find what it
 needs. Full details are in the Sage installation guide at
 http://sagemath.org/doc/installation/ .
 
-The directory {{{$SAGE_ROOT/local/share/texmf/tex/generic/sagetex}}}
+The directory `$SAGE_ROOT/local/share/texmf/tex/generic/sagetex`
 contains documentation and an example file. If you have problems or
 suggestions see [[http://groups.google.com/group/sage-support|the
 sage-support group]].
@@ -54,9 +65,9 @@ Mercurial repository (see the "Upstream Contact" above) and send me
 patches based on that.
 
 Finally, note that you can actually use SageTeX without Sage! The
-{{{remote-sagetex.py}}} script uses any remote Sage server to do the
+`remote-sagetex.py` script uses any remote Sage server to do the
 computations for you. If you can't or don't want to install Sage on your
-computer, you can use the {{{remote-sagetex}}} script to use SageTeX,
+computer, you can use the `remote-sagetex` script to use SageTeX,
 although if you are in such a situation, you probably want to get
 SageTeX [[http://tug.ctan.org/pkg/sagetex|from CTAN]] instead of
 downloading this spkg.

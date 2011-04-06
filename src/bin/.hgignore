@@ -321,5 +321,7 @@ zope-testrunner
 homsimpl
 homchain
 homcubes
+PolyGUI
+cygdb
 ppl-config
 ppl_pips

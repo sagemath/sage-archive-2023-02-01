@@ -6,6 +6,10 @@ serverless, zero-configuration, transactional SQL database engine.
 == Upstream contact ==
  * URL: http://www.sqlite.org
 
+=== sqlite-3.7.5 (David Kirkby, 6th April 2011) ===
+ * Updated to the latest upstream release.
+   http://www.sqlite.org/sqlite-autoconf-3070500.tar.gz
+
 === sqlite-3.6.22  (David Kirkby, March 1st 2010) ===
  * #8408  Updated to 3.6.22, which is the latest release
    http://www.sqlite.org/sqlite-amalgamation-3.6.22.tar.gz

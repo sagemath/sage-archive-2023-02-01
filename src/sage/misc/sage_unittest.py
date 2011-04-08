@@ -375,6 +375,7 @@ class InstanceTester(unittest.TestCase):
             sage: QQ._tester()
             Testing utilities for Rational Field
         """
+        unittest.TestCase.__init__(self)
         self._instance = instance
         self._verbose = verbose
         self._elements = elements

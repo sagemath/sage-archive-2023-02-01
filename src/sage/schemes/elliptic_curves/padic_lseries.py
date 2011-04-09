@@ -531,13 +531,7 @@ class pAdicLseries(SageObject):
         Return the order of vanishing of this `p`-adic L-series.
 
         The output of this function is provably correct, due to a
-        theorem of Kato [Ka].  This function will terminate if and only if
-        the Mazur-Tate-Teitelbaum analogue [MTT] of the BSD conjecture about
-        the rank of the curve is true and the subgroup of elements of
-        `p`-power order in the Tate-Shafarevich group of this curve is
-        finite.  I.e. if this function terminates (with no errors!),
-        then you may conclude that the `p`-adic BSD rank conjecture is
-        true and that the `p`-part of Sha is finite.
+        theorem of Kato [Ka].
 
         NOTE: currently `p` must be a prime of good ordinary reduction.
 
@@ -568,16 +562,15 @@ class pAdicLseries(SageObject):
             sage: L = EllipticCurve('37b').padic_lseries(3)
             sage: L.order_of_vanishing()
             0
-
-        We verify that Sha(E)(p) is finite for p=3,5,7 for the
-        first curve of rank 2::
-
-            sage: e = EllipticCurve('389a')
-            sage: for p in primes(3,10):
-            ...    print p, e.padic_lseries(p).order_of_vanishing()
-            3 2
-            5 2
-            7 2
+            sage: L = EllipticCurve('389a').padic_lseries(3)
+            sage: L.order_of_vanishing()
+            2
+            sage: L = EllipticCurve('389a').padic_lseries(5)
+            sage: L.order_of_vanishing()
+            2
+            sage: L = EllipticCurve('5077a').padic_lseries(5, use_eclib=True)
+            sage: L.order_of_vanishing()
+            3
         """
         try:
             return self.__ord

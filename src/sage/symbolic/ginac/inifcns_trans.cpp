@@ -1249,11 +1249,18 @@ static ex sinh_imag_part(const ex & x)
 	return cosh(GiNaC::real_part(x))*sin(GiNaC::imag_part(x));
 }
 
+static ex sinh_conjugate(const ex & x)
+{
+	// conjugate(sinh(x))==sinh(conjugate(x))
+	return sinh(x.conjugate());
+}
+
 REGISTER_FUNCTION(sinh, eval_func(sinh_eval).
                         evalf_func(sinh_evalf).
                         derivative_func(sinh_deriv).
                         real_part_func(sinh_real_part).
                         imag_part_func(sinh_imag_part).
+			conjugate_func(sinh_conjugate).
 		        latex_name("\\sinh"));
 
 //////////
@@ -1335,11 +1342,18 @@ static ex cosh_imag_part(const ex & x)
 	return sinh(GiNaC::real_part(x))*sin(GiNaC::imag_part(x));
 }
 
+static ex cosh_conjugate(const ex & x)
+{
+	// conjugate(cosh(x))==cosh(conjugate(x))
+	return cosh(x.conjugate());
+}
+
 REGISTER_FUNCTION(cosh, eval_func(cosh_eval).
                         evalf_func(cosh_evalf).
                         derivative_func(cosh_deriv).
                         real_part_func(cosh_real_part).
                         imag_part_func(cosh_imag_part).
+                        conjugate_func(cosh_conjugate).
                         latex_name("\\cosh"));
 
 //////////
@@ -1444,12 +1458,19 @@ static ex tanh_imag_part(const ex & x)
 	return tan(b)/(1+power(tanh(a),2)*power(tan(b),2));
 }
 
+static ex tanh_conjugate(const ex & x)
+{
+	// conjugate(tan(x))==tan(conjugate(x))
+	return tanh(x.conjugate());
+}
+
 REGISTER_FUNCTION(tanh, eval_func(tanh_eval).
                         evalf_func(tanh_evalf).
                         derivative_func(tanh_deriv).
                         series_func(tanh_series).
                         real_part_func(tanh_real_part).
                         imag_part_func(tanh_imag_part).
+                        conjugate_func(tanh_conjugate).
                         latex_name("\\tanh"));
 
 //////////

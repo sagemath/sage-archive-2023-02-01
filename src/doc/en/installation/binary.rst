@@ -17,7 +17,9 @@ disk space and the operating system is Linux (32-bit or 64-bit) or
 OS X (10.5.x).
 
 Highly Recommended: It is highly recommended that you have LaTeX
-installed.
+installed.  If you want to view animations, you should install either
+ImageMagick or ffmpeg.  ImageMagick or dvipng is also used for
+displaying some LaTeX output in the Sage notebook.
 
 Download the latest binary tarball from
 http://www.sagemath.org/download.html . For example, it might be

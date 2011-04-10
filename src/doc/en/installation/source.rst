@@ -56,6 +56,9 @@ a Fortran compiler on OS X):
        tar        (For Solaris or OpenSolaris, GNU tar, version 1.17 or later)
        ssh-keygen (Needed to run the notebook in secure mode)
        latex      (Highly recommended, though not strictly required)
+       ImageMagick -- recommended
+       ffmpeg -- recommended
+       dvipng -- recommended
 
 The programs ``gcc``, ``g++`` and ``gfortran`` are all part of the `GNU Compiler Collection (GCC) <http://gcc.gnu.org/>`_.
 You are generally advised to use a recent version of GCC, though
@@ -79,6 +82,12 @@ local system, then you cannot run the notebook in secure mode, which the uses
 encrypted `HTTPS <http://en.wikipedia.org/wiki/HTTP_Secure>`_ protocol. To run the notebook in secure mode, type the command
 ``notebook(secure=True)`` instead of ``notebook()``. Unless ``notebook(secure=True)``
 is used, the notebook uses the less secure `HTTP <http://en.wikipedia.org/wiki/HTTP>`_ protocol
+
+If you don't have either ImageMagick or ffmpeg, you won't be able to
+view animations.  ffmpeg can produce animations in more different
+formats than ImageMagick, and seems to be faster than ImageMagick when
+creating animated GIFs.  Either ImageMagick or dvipng is used for
+displaying some LaTeX output in the Sage notebook.
 
 In OS X, make sure you have a recent version of `Xcode <http://developer.apple.com/xcode/>`_.
 See http://wiki.sagemath.org/SupportedPlatforms to find out what

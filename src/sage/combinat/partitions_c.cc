@@ -97,6 +97,7 @@ extern "C" long double sinhl (long double);
 
 #include <stdio.h>
 #include <cfloat>
+#include <time.h>
 
 #include <cmath>
 #include <cstdlib>

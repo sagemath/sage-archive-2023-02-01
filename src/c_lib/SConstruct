@@ -132,7 +132,7 @@ cppFiles = Split( "ZZ_pylong.cpp  ntl_wrap.cpp" )
 srcFiles = cFiles + cppFiles
 
 lib = env.SharedLibrary( "csage", [ "src/" + x for x in srcFiles ],
-                         LIBS=['ntl', 'gmp', 'pari', 'python2.6'],
+                         LIBS=['ntl', 'pari', 'gmp', 'python2.6'],
                          LIBPATH=['$SAGE_LOCAL/lib','$SAGE_LOCAL/lib/python/config/'],
                          CPPPATH=includes )
 env.Install("$SAGE_LOCAL/lib", lib)

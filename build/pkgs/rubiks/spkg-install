@@ -14,6 +14,9 @@ set -e
 
 # Add a sensible default optimisation flag. Change if necessary.
 OPTIMIZATION_FLAGS="-O2"
+if [ "x$UNAME" = xSunOS ] ; then
+  OPTIMIZATION_FLAGS="-O1"
+fi
 
 # Most packages do not need all these set
 # But it is better to do them all each time, rather than ommit

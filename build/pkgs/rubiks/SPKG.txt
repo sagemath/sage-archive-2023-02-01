@@ -25,8 +25,15 @@ Eric Dietz (GPL) http://www.wrongway.org/?rubiksource
 
 == Changelog ==
 
+=== rubiks-20070912.p13 (David Kirkby, 10th April 2011) ===
+ * Drop optimisation level on Solaris to -O1 as this
+   mis-compiles on OpenSolaris with gcc 4.6.0. It is not
+   worth making the test too specific, so the optimisation
+   level is dropped to -O1 on any sort of Solaris machine.
+ * Correct a few typos in SPKG.txt
+
 === rubiks-20070912.p12 (David Kirkby, 30th June 2010) ===
- * #9388 Corrected my unportable use of 'mktemp' which I erronously
+ * #9388 Corrected my unportable use of 'mktemp' which I erroneously
    believed was portable, but it is not defined as a command (only
    a system call) by POSIX. The revised version avoids this.
 
@@ -43,9 +50,9 @@ Eric Dietz (GPL) http://www.wrongway.org/?rubiksource
  * Make too many changes to the Makefiles to list really!
  * Remove hard coding of CC, which was set to g++ in some places
    There was a total mix-up of variable names for compilers.
- * Remove the hard-coding of gcc, which was supposidly done
+ * Remove the hard-coding of gcc, which was supposedly done
    by Micheal to allow it to build on Solaris (see
-   rubiks-20070912.p1 below). With the intension later to
+   rubiks-20070912.p1 below). With the intention later to
    build Sage on Solaris with the Sun compiler, why the hell
    he hard-coded g++ I do not know.
  * Added -Wall to build if using g++

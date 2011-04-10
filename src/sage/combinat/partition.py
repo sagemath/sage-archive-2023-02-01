@@ -189,13 +189,13 @@ the partition back up from them::
     sage: Partition([6,3,2,2]).core(3)
     [2, 1, 1]
     sage: Partition([7,7,5,3,3,3,1]).quotient(3)
-    [[2], [1], [2, 2, 2]]
+    ([2], [1], [2, 2, 2])
     sage: p = Partition([11,5,5,3,2,2,2])
     sage: p.core(3)
     []
     sage: p.quotient(3)
-    [[2, 1], [4], [1, 1, 1]]
-    sage: Partition(core=[],quotient=[[2, 1], [4], [1, 1, 1]])
+    ([2, 1], [4], [1, 1, 1])
+    sage: Partition(core=[],quotient=([2, 1], [4], [1, 1, 1]))
     [11, 5, 5, 3, 2, 2, 2]
 """
 #*****************************************************************************
@@ -1615,7 +1615,8 @@ class Partition_class(CombinatorialObject):
         #Remove the canonical vector
         part = [part[i-1]-len(part)+i for i in range(1, len(part)+1)]
         #Select the r-core
-        return filter(lambda x: x != 0, part)
+        return Partition_class(filter(lambda x: x != 0, part))
+
     r_core = deprecated_function_alias(core,
         'Sage Version 4.3')
 
@@ -1633,26 +1634,31 @@ class Partition_class(CombinatorialObject):
         EXAMPLES::
 
             sage: Partition([7,7,5,3,3,3,1]).quotient(3)
-            [[2], [1], [2, 2, 2]]
+            ([2], [1], [2, 2, 2])
 
         TESTS::
 
             sage: Partition([8,7,7,4,1,1,1,1,1]).quotient(3)
-            [[2, 1], [2, 2], [2]]
+            ([2, 1], [2, 2], [2])
             sage: Partition([10,8,7,7]).quotient(4)
-            [[2], [3], [2], [1]]
+            ([2], [3], [2], [1])
             sage: Partition([6,3,3]).quotient(3)
-            [[1], [1], [2]]
+            ([1], [1], [2])
             sage: Partition([3,3,3,2,1]).quotient(3)
-            [[1], [1, 1], [1]]
+            ([1], [1, 1], [1])
             sage: Partition([6,6,6,3,3,3]).quotient(3)
-            [[2, 1], [2, 1], [2, 1]]
+            ([2, 1], [2, 1], [2, 1])
             sage: Partition([21,15,15,9,6,6,6,3,3]).quotient(3)
-            [[5, 2, 1], [5, 2, 1], [7, 3, 2]]
+            ([5, 2, 1], [5, 2, 1], [7, 3, 2])
             sage: Partition([21,15,15,9,6,6,3,3]).quotient(3)
-            [[5, 2], [5, 2, 1], [7, 3, 1]]
+            ([5, 2], [5, 2, 1], [7, 3, 1])
             sage: Partition([14,12,11,10,10,10,10,9,6,4,3,3,2,1]).quotient(5)
-            [[3, 3], [2, 2, 1], [], [3, 3, 3], [1]]
+            ([3, 3], [2, 2, 1], [], [3, 3, 3], [1])
+
+            sage: all(p == Partition(core=p.core(k), quotient=p.quotient(k))
+            ...       for i in range(10) for p in Partitions(i)
+            ...       for k in range(1,6))
+            True
         """
         p = self
         #Normalize the length
@@ -1677,7 +1683,7 @@ class Partition_class(CombinatorialObject):
             a.reverse()
             result[e] = a
 
-        return result
+        return tuple(map(Partition_class, result))
 
     r_quotient = deprecated_function_alias(quotient,
         'Sage Version 4.3')

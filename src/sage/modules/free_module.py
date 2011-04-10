@@ -2894,7 +2894,7 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         """
         if not isinstance(base_field, field.Field):
             raise TypeError, "The base_field (=%s) must be a field"%base_field
-        FreeModule_generic_pid.__init__(self, base_ring, dimension, degree, sparse=sparse)
+        FreeModule_generic_pid.__init__(self, base_field, dimension, degree, sparse=sparse)
 
     def scale(self, other):
         """

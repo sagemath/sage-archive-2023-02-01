@@ -490,6 +490,12 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
             [      0       1       0  -5/157]
             [      0       0       1 238/157]
             [      0       0       0       0]
+
+        Trac #10319 has been fixed:
+
+            sage: m = Matrix(QQ, [1], sparse=True); m.echelonize()
+            sage: m = Matrix(QQ, [1], sparse=True); m.echelonize(); m
+            [1]
         """
 
         x = self.fetch('in_echelon_form')
@@ -539,17 +545,24 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
 
     # Multimodular echelonization algorithms
     def _echelonize_multimodular(self, height_guess=None, proof=True, **kwds):
+        cdef Py_ssize_t i, j
         cdef Matrix_rational_sparse E
+        cdef mpq_vector* v
+        cdef mpq_vector* w
         E = self._echelon_form_multimodular(height_guess, proof=proof, **kwds)
         # Get rid of self's data
         self._dealloc()
-
-        # Change self's data to point to E's.
-        self._matrix = E._matrix
-
-        # Make sure that E's destructor doesn't delete self's data.
-        E._matrix = NULL
-        E._initialized = False
+        # Copy E's data to self's data.
+        self._matrix = <mpq_vector*> sage_malloc(E._nrows * sizeof(mpq_vector))
+        if self._matrix == NULL:
+            raise MemoryError, "error allocating sparse matrix"
+        for i from 0 <= i < E._nrows:
+            v = &self._matrix[i]
+            w = &E._matrix[i]
+            mpq_vector_init(v, E._ncols, w.num_nonzero)
+            for j from 0 <= j < w.num_nonzero:
+                mpq_set(v.entries[j], w.entries[j])
+                v.positions[j] = w.positions[j]
         return E.pivots()
 
 

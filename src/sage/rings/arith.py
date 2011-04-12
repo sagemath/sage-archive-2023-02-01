@@ -2944,12 +2944,14 @@ def binomial(x, m, **kwds):
         sage: binomial(3/2,SR(1/1))
         3/2
 
-    Some floating point cases -- see trac 7562::
+    Some floating point cases -- see trac 7562 and trac 9633::
 
         sage: binomial(1.,3)
         0.000000000000000
         sage: binomial(-2.,3)
         -4.00000000000000
+        sage: binomial(0.5r, 5)
+        0.02734375
     """
     if isinstance(m,sage.symbolic.expression.Expression):
         try:
@@ -2977,7 +2979,7 @@ def binomial(x, m, **kwds):
     # this for us.
     if isinstance(x, (float, sage.rings.real_mpfr.RealNumber,
                       sage.rings.real_mpfr.RealLiteral)):
-        P = x.parent()
+        P = parent(x)
         if m < 0:
             return P(0)
         from sage.functions.all import gamma

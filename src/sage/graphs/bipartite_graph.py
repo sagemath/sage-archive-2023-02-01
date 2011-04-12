@@ -603,12 +603,12 @@ class BipartiteGraph(Graph):
             sage: B.left
             set([2])
             sage: B.edges()
-            [(1, 2, {}), (2, 3, {})]
+            [(1, 2, None), (2, 3, None)]
             sage: B.delete_vertex(3)
             sage: B.right
             set([1])
             sage: B.edges()
-            [(1, 2, {})]
+            [(1, 2, None)]
             sage: B.delete_vertex(0)
             Traceback (most recent call last):
             ...
@@ -671,7 +671,7 @@ class BipartiteGraph(Graph):
             sage: B.right
             set([1])
             sage: B.edges()
-            [(1, 2, {})]
+            [(1, 2, None)]
             sage: B.delete_vertices([0])
             Traceback (most recent call last):
             ...
@@ -976,6 +976,7 @@ class BipartiteGraph(Graph):
             ...               if b != b2:
             ...                   print "Load/save failed for code with edges:"
             ...                   print b.edges()
+            ...                   print b2.edges()
             ...           except:
             ...               print "Exception encountered for graph of order "+ str(order)
             ...               print "with edges: "

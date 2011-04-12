@@ -75,33 +75,6 @@ AUTHORS:
 Graph Format
 ------------
 
-The Sage Graph Class: NetworkX plus
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Sage graphs are actually NetworkX graphs, wrapped in a Sage class.
-In fact, any graph can produce its underlying NetworkX graph. For
-example,
-
-::
-
-    sage: import networkx
-    sage: G = graphs.PetersenGraph()
-    sage: N = G.networkx_graph()
-    sage: isinstance(N, networkx.graph.Graph)
-    True
-
-The NetworkX graph is essentially a dictionary of dictionaries of dictionaries::
-
-    sage: N.adj
-    {0: {1: {}, 4: {}, 5: {}}, 1: {0: {}, 2: {}, 6: {}}, 2: {1: {}, 3: {}, 7: {}}, 3: {8: {}, 2: {}, 4: {}}, 4: {0: {}, 9: {}, 3: {}}, 5: {0: {}, 8: {}, 7: {}}, 6: {8: {}, 1: {}, 9: {}}, 7: {9: {}, 2: {}, 5: {}}, 8: {3: {}, 5: {}, 6: {}}, 9: {4: {}, 6: {}, 7: {}}}
-
-Each dictionary key is a vertex label, and each key in the
-following dictionary is a neighbor of that vertex. In undirected
-graphs, there is redundancy: for example, the dictionary containing
-the entry ``1: {2: {}}`` implies it must contain
-``{2: {1: {}}``. The innermost entry of ``{}`` is
-related to edge labeling (see section :ref:`Graph:labels`).
-
 Supported formats
 ~~~~~~~~~~~~~~~~~
 
@@ -123,6 +96,7 @@ examples are covered here.
 
    ::
 
+       sage: import networkx
        sage: K = networkx.complete_bipartite_graph(12,7)
        sage: G = Graph(K)
        sage: G.degree()
@@ -460,7 +434,7 @@ class Graph(GenericGraph):
 
     INPUT:
 
-    -  ``data`` -- can be any of the following:
+    -  ``data`` -- can be any of the following (see the ``format`` argument):
 
       #.  A dictionary of dictionaries
 
@@ -470,11 +444,11 @@ class Graph(GenericGraph):
 
       #.  A Sage adjacency matrix or incidence matrix
 
-      #.  A pygraphviz agraph
+      #.  A pygraphviz graph
 
       #.  A SciPy sparse matrix
 
-      #.  A NetworkX digraph
+      #.  A NetworkX graph
 
     -  ``pos`` -  a positioning dictionary: for example, the
        spring layout from NetworkX for the 5-cycle is::
@@ -523,6 +497,17 @@ class Graph(GenericGraph):
           iterable container of elliptic curves, and the graph produced has
           each curve as a vertex (it's Cremona label) and an edge E-F
           labelled p if and only if E is congruent to F mod p
+
+       -  ``NX`` - data must be a NetworkX Graph.
+
+           .. NOTE::
+
+               As Sage's default edge labels is ``None`` while NetworkX uses
+               ``{}``, the ``{}`` labels of a NetworkX graph are automatically
+               set to ``None`` when it is converted to a Sage graph. This
+               behaviour can be overruled by setting the keyword
+               ``convert_empty_dict_labels_to_None`` to ``False`` (it is
+               ``True`` by default).
 
     -  ``boundary`` - a list of boundary vertices, if
        empty, graph is considered as a 'graph without boundary'
@@ -961,6 +946,9 @@ class Graph(GenericGraph):
 
         # At this point, format has been set.
 
+        # adjust for empty dicts instead of None in NetworkX default edge labels
+        kwds.setdefault('convert_empty_dict_labels_to_None', (format == 'NX'))
+
         verts = None
 
         if format == 'graph6':
@@ -1263,13 +1251,22 @@ class Graph(GenericGraph):
                         self.add_edge(uu,vv)
 
         elif format == 'dict_of_dicts':
-            for u in data:
-                for v in data[u]:
-                    if hash(u) <= hash(v) or v not in data or u not in data[v]:
-                        if multiedges:
-                            self.add_edges([(u,v,l) for l in data[u][v]])
-                        else:
-                            self.add_edge((u,v,data[u][v]))
+            if kwds.get('convert_empty_dict_labels_to_None', False):
+                for u in data:
+                    for v in data[u]:
+                        if hash(u) <= hash(v) or v not in data or u not in data[v]:
+                            if multiedges:
+                                self.add_edges([(u,v,l) for l in data[u][v]])
+                            else:
+                                self.add_edge((u,v,data[u][v] if data[u][v] != {} else None))
+            else:
+                for u in data:
+                    for v in data[u]:
+                        if hash(u) <= hash(v) or v not in data or u not in data[v]:
+                            if multiedges:
+                                self.add_edges([(u,v,l) for l in data[u][v]])
+                            else:
+                                self.add_edge((u,v,data[u][v]))
 
         elif format == 'dict_of_lists':
             for u in data:
@@ -1636,7 +1633,7 @@ class Graph(GenericGraph):
 
             sage: g=graphs.CycleGraph(5);
             sage: g.eulerian_circuit()
-            [(0, 1, {}), (1, 2, {}), (2, 3, {}), (3, 4, {}), (4, 0, {})]
+            [(0, 1, None), (1, 2, None), (2, 3, None), (3, 4, None), (4, 0, None)]
             sage: g.eulerian_circuit(labels=False)
             [(0, 1), (1, 2), (2, 3), (3, 4), (4, 0)]
             sage: g = graphs.CompleteGraph(7)

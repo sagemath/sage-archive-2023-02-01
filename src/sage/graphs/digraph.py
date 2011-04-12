@@ -83,7 +83,7 @@ class DiGraph(GenericGraph):
 
     INPUT:
 
-    -  ``data`` -  can be any of the following:
+    -  ``data`` -  can be any of the following (see the ``format`` keyword):
 
        #.  A dictionary of dictionaries
 
@@ -93,7 +93,7 @@ class DiGraph(GenericGraph):
 
        #.  A Sage adjacency matrix or incidence matrix
 
-       #.  A pygraphviz agraph
+       #.  A pygraphviz graph
 
        #.  A SciPy sparse matrix
 
@@ -133,6 +133,17 @@ class DiGraph(GenericGraph):
        -  ``'weighted_adjacency_matrix'`` - a square Sage
           matrix M, with M[i,j] equal to the weight of the single edge {i,j}.
           Given this format, weighted is ignored (assumed True).
+
+       -  ``NX`` - data must be a NetworkX DiGraph.
+
+           .. NOTE::
+
+               As Sage's default edge labels is ``None`` while NetworkX uses
+               ``{}``, the ``{}`` labels of a NetworkX digraph are automatically
+               set to ``None`` when it is converted to a Sage graph. This
+               behaviour can be overruled by setting the keyword
+               ``convert_empty_dict_labels_to_None`` to ``False`` (it is
+               ``True`` by default).
 
     -  ``boundary`` - a list of boundary vertices, if none,
        digraph is considered as a 'digraph without boundary'
@@ -461,6 +472,10 @@ class DiGraph(GenericGraph):
             format = 'NX'
 
         # At this point, format has been set.
+
+        # adjust for empty dicts instead of None in NetworkX default edge labels
+        kwds.setdefault('convert_empty_dict_labels_to_None', (format == 'NX'))
+
         verts = None
 
         if format == 'dig6':
@@ -706,12 +721,20 @@ class DiGraph(GenericGraph):
                     if f(uu,vv):
                         self.add_edge(uu,vv)
         elif format == 'dict_of_dicts':
-            for u in data:
-                for v in data[u]:
-                    if multiedges:
-                        self.add_edges([(u,v,l) for l in data[u][v]])
-                    else:
-                        self.add_edge((u,v,data[u][v]))
+            if kwds.get('convert_empty_dict_labels_to_None', False):
+                for u in data:
+                    for v in data[u]:
+                        if multiedges:
+                            self.add_edges([(u,v,l) for l in data[u][v]])
+                        else:
+                            self.add_edge((u,v,data[u][v] if data[u][v] != {} else None))
+            else:
+                for u in data:
+                    for v in data[u]:
+                        if multiedges:
+                            self.add_edges([(u,v,l) for l in data[u][v]])
+                        else:
+                            self.add_edge((u,v,data[u][v]))
         elif format == 'dict_of_lists':
             for u in data:
                 for v in data[u]:

@@ -2107,7 +2107,7 @@ class GenericGraph(GenericGraph_pyx):
             4
             sage: weight = lambda e: 1 / ((e[0] + 1) * (e[1] + 1))
             sage: g.min_spanning_tree(weight_function=weight)
-            [(3, 4, {}), (2, 4, {}), (1, 4, {}), (0, 4, {})]
+            [(3, 4, None), (2, 4, None), (1, 4, None), (0, 4, None)]
             sage: g = graphs.PetersenGraph()
             sage: g.allow_multiple_edges(True)
             sage: g.weighted(True)
@@ -2119,7 +2119,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g = graphs.CompleteGraph(5)
             sage: g.min_spanning_tree(algorithm='Prim_edge', starting_vertex=2, weight_function=weight)
-            [(2, 4, {}), (3, 4, {}), (1, 4, {}), (0, 4, {})]
+            [(2, 4, None), (3, 4, None), (1, 4, None), (0, 4, None)]
             sage: g.min_spanning_tree(algorithm='Prim_fringe', starting_vertex=2, weight_function=weight)
             [(2, 4), (4, 3), (4, 1), (4, 0)]
         """
@@ -7253,13 +7253,13 @@ class GenericGraph(GenericGraph_pyx):
             sage: g=graphs.CycleGraph(3)
             sage: g.merge_vertices([0,1])
             sage: g.edges()
-            [(0, 2, {})]
+            [(0, 2, None)]
             sage: # With a Multigraph :
             sage: g=graphs.CycleGraph(3)
             sage: g.allow_multiple_edges(True)
             sage: g.merge_vertices([0,1])
-            sage: g.edges()
-            [(0, 2, {}), (0, 2, {})]
+            sage: g.edges(labels=False)
+            [(0, 2), (0, 2)]
             sage: P=graphs.PetersenGraph()
             sage: P.merge_vertices([5,7])
             sage: P.vertices()
@@ -7840,7 +7840,7 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: graphs.DodecahedralGraph().edges()
-            [(0, 1, {}), (0, 10, {}), (0, 19, {}), (1, 2, {}), (1, 8, {}), (2, 3, {}), (2, 6, {}), (3, 4, {}), (3, 19, {}), (4, 5, {}), (4, 17, {}), (5, 6, {}), (5, 15, {}), (6, 7, {}), (7, 8, {}), (7, 14, {}), (8, 9, {}), (9, 10, {}), (9, 13, {}), (10, 11, {}), (11, 12, {}), (11, 18, {}), (12, 13, {}), (12, 16, {}), (13, 14, {}), (14, 15, {}), (15, 16, {}), (16, 17, {}), (17, 18, {}), (18, 19, {})]
+            [(0, 1, None), (0, 10, None), (0, 19, None), (1, 2, None), (1, 8, None), (2, 3, None), (2, 6, None), (3, 4, None), (3, 19, None), (4, 5, None), (4, 17, None), (5, 6, None), (5, 15, None), (6, 7, None), (7, 8, None), (7, 14, None), (8, 9, None), (9, 10, None), (9, 13, None), (10, 11, None), (11, 12, None), (11, 18, None), (12, 13, None), (12, 16, None), (13, 14, None), (14, 15, None), (15, 16, None), (16, 17, None), (17, 18, None), (18, 19, None)]
 
         ::
 
@@ -7851,7 +7851,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: D = graphs.DodecahedralGraph().to_directed()
             sage: D.edges()
-            [(0, 1, {}), (0, 10, {}), (0, 19, {}), (1, 0, {}), (1, 2, {}), (1, 8, {}), (2, 1, {}), (2, 3, {}), (2, 6, {}), (3, 2, {}), (3, 4, {}), (3, 19, {}), (4, 3, {}), (4, 5, {}), (4, 17, {}), (5, 4, {}), (5, 6, {}), (5, 15, {}), (6, 2, {}), (6, 5, {}), (6, 7, {}), (7, 6, {}), (7, 8, {}), (7, 14, {}), (8, 1, {}), (8, 7, {}), (8, 9, {}), (9, 8, {}), (9, 10, {}), (9, 13, {}), (10, 0, {}), (10, 9, {}), (10, 11, {}), (11, 10, {}), (11, 12, {}), (11, 18, {}), (12, 11, {}), (12, 13, {}), (12, 16, {}), (13, 9, {}), (13, 12, {}), (13, 14, {}), (14, 7, {}), (14, 13, {}), (14, 15, {}), (15, 5, {}), (15, 14, {}), (15, 16, {}), (16, 12, {}), (16, 15, {}), (16, 17, {}), (17, 4, {}), (17, 16, {}), (17, 18, {}), (18, 11, {}), (18, 17, {}), (18, 19, {}), (19, 0, {}), (19, 3, {}), (19, 18, {})]
+            [(0, 1, None), (0, 10, None), (0, 19, None), (1, 0, None), (1, 2, None), (1, 8, None), (2, 1, None), (2, 3, None), (2, 6, None), (3, 2, None), (3, 4, None), (3, 19, None), (4, 3, None), (4, 5, None), (4, 17, None), (5, 4, None), (5, 6, None), (5, 15, None), (6, 2, None), (6, 5, None), (6, 7, None), (7, 6, None), (7, 8, None), (7, 14, None), (8, 1, None), (8, 7, None), (8, 9, None), (9, 8, None), (9, 10, None), (9, 13, None), (10, 0, None), (10, 9, None), (10, 11, None), (11, 10, None), (11, 12, None), (11, 18, None), (12, 11, None), (12, 13, None), (12, 16, None), (13, 9, None), (13, 12, None), (13, 14, None), (14, 7, None), (14, 13, None), (14, 15, None), (15, 5, None), (15, 14, None), (15, 16, None), (16, 12, None), (16, 15, None), (16, 17, None), (17, 4, None), (17, 16, None), (17, 18, None), (18, 11, None), (18, 17, None), (18, 19, None), (19, 0, None), (19, 3, None), (19, 18, None)]
             sage: D.edges(labels = False)
             [(0, 1), (0, 10), (0, 19), (1, 0), (1, 2), (1, 8), (2, 1), (2, 3), (2, 6), (3, 2), (3, 4), (3, 19), (4, 3), (4, 5), (4, 17), (5, 4), (5, 6), (5, 15), (6, 2), (6, 5), (6, 7), (7, 6), (7, 8), (7, 14), (8, 1), (8, 7), (8, 9), (9, 8), (9, 10), (9, 13), (10, 0), (10, 9), (10, 11), (11, 10), (11, 12), (11, 18), (12, 11), (12, 13), (12, 16), (13, 9), (13, 12), (13, 14), (14, 7), (14, 13), (14, 15), (15, 5), (15, 14), (15, 16), (16, 12), (16, 15), (16, 17), (17, 4), (17, 16), (17, 18), (18, 11), (18, 17), (18, 19), (19, 0), (19, 3), (19, 18)]
 
@@ -7861,7 +7861,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G=graphs.CycleGraph(5)
             sage: G.edges(key = lambda x: (x[1],-x[0]))
-            [(0, 1, {}), (1, 2, {}), (2, 3, {}), (3, 4, {}), (0, 4, {})]
+            [(0, 1, None), (1, 2, None), (2, 3, None), (3, 4, None), (0, 4, None)]
 
         We set the labels to characters and then perform a default sort
         followed by a sort according to the labels. ::
@@ -7935,11 +7935,11 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G = graphs.DiamondGraph()
             sage: G.edge_boundary([0,1])
-            [(0, 2, {}), (1, 2, {}), (1, 3, {})]
+            [(0, 2, None), (1, 2, None), (1, 3, None)]
             sage: G.edge_boundary([0], [0])
             []
             sage: G.edge_boundary([2], [0])
-            [(0, 2, {})]
+            [(0, 2, None)]
         """
         vertices1 = set([v for v in vertices1 if v in self])
         if self._directed:
@@ -14319,17 +14319,17 @@ class GenericGraph(GenericGraph_pyx):
         Relabeling using an injective function::
 
             sage: G.edges()
-            [(0, 1, {}), (1, 2, {})]
+            [(0, 1, None), (1, 2, None)]
             sage: H = G.relabel(lambda i: i+10, inplace=False)
             sage: H.vertices()
             [10, 11, 12]
             sage: H.edges()
-            [(10, 11, {}), (11, 12, {})]
+            [(10, 11, None), (11, 12, None)]
 
         Relabeling using a non injective function is not yet supported::
 
             sage: G.edges()
-            [(0, 1, {}), (1, 2, {})]
+            [(0, 1, None), (1, 2, None)]
             sage: G.relabel(lambda i: 0, inplace=False)
             Traceback (most recent call last):
             ...

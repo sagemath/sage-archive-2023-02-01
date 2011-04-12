@@ -976,7 +976,7 @@ class BipartiteGraph(Graph):
             ...               if b != b2:
             ...                   print "Load/save failed for code with edges:"
             ...                   print b.edges()
-            ...                   print b2.edges()
+            ...                   break
             ...           except:
             ...               print "Exception encountered for graph of order "+ str(order)
             ...               print "with edges: "

@@ -1449,18 +1449,18 @@ def _test_adjacency_sequence_out():
 from c_graph import CGraphBackend
 from c_graph cimport get_vertex, check_vertex, vertex_label
 
-cdef int check_edge_label(object l, dict edge_labels):
+cdef int new_edge_label(object l, dict edge_labels):
     """
-    Returns an int representing the arbitrary label l.
+    Finds a new int representing the arbitrary label l.
     """
+    if l is None:
+        return 0
     cdef int l_int, max = 0
     for l_int in edge_labels:
-        if edge_labels[l_int] == l:
-            return l_int
         if max < l_int:
             max = l_int
-    l_int = max+1
-    return l_int
+    edge_labels[max+1] = l
+    return max+1
 
 class SparseGraphBackend(CGraphBackend):
     """
@@ -1516,7 +1516,7 @@ class SparseGraphBackend(CGraphBackend):
         self._directed = directed
         self.vertex_labels = {}
         self.vertex_ints = {}
-        self.edge_labels = {0:None}
+        self.edge_labels = {}
 
     def add_edge(self, object u, object v, object l, bint directed):
         """
@@ -1535,30 +1535,45 @@ class SparseGraphBackend(CGraphBackend):
             sage: list(D.iterator_edges(range(9), True))
             [(0, 1, None)]
 
+        TESTS::
+
+            sage: D = DiGraph(implementation='c_graph', sparse=True)
+            sage: D.add_edge(0,1,2)
+            sage: D.add_edge(0,1,3)
+            sage: D.edges()
+            [(0, 1, 3)]
+
         """
         cdef int u_int = check_vertex(u, self.vertex_ints, self.vertex_labels,
                       self._cg, self._cg_rev, self._directed)
-        if not self._cg.has_vertex(u_int):
-            self._cg.add_vertex(u_int)
         cdef int v_int = check_vertex(v, self.vertex_ints, self.vertex_labels,
                       self._cg, self._cg_rev, self._directed)
+        if not self._cg.has_vertex(u_int):
+            self._cg.add_vertex(u_int)
         if not self._cg.has_vertex(v_int):
             self._cg.add_vertex(v_int)
 
-        cdef int l_int = check_edge_label(l, self.edge_labels)
-        if l_int not in self.edge_labels:
-            self.edge_labels[l_int] = l
+        cdef int l_int
+        if l is None:
+            l_int = 0
+        else:
+            l_int = new_edge_label(l, self.edge_labels)
 
-        if (self.multiple_edges(None) or not self._cg.has_arc_label(u_int, v_int, l_int)) and \
-            (self.loops(None) or u_int != v_int):
-            if directed:
-                self._cg.add_arc_label(u_int, v_int, l_int)
-                self._cg_rev.add_arc_label(v_int, u_int, l_int)
-            elif u_int == v_int:
-                self._cg.add_arc_label(u_int, v_int, l_int)
+        if (not self.loops(None)) and u_int == v_int:
+            return
+        if not self.multiple_edges(None):
+            if self._cg.has_arc_label(u_int, v_int, l_int):
+                return
             else:
-                self._cg.add_arc_label(u_int, v_int, l_int)
-                self._cg.add_arc_label(v_int, u_int, l_int)
+                self._cg.del_all_arcs(u_int, v_int)
+        if directed:
+            self._cg.add_arc_label(u_int, v_int, l_int)
+            self._cg_rev.add_arc_label(v_int, u_int, l_int)
+        elif u_int == v_int:
+            self._cg.add_arc_label(u_int, v_int, l_int)
+        else:
+            self._cg.add_arc_label(u_int, v_int, l_int)
+            self._cg.add_arc_label(v_int, u_int, l_int)
 
     def add_edges(self, object edges, bint directed):
         """
@@ -1619,6 +1634,21 @@ class SparseGraphBackend(CGraphBackend):
              (5, 6, None),
              (6, 5, None)]
 
+        TESTS::
+
+            sage: G = Graph(implementation='c_graph', sparse=True)
+            sage: G.add_edge(0,1,2)
+            sage: G.delete_edge(0,1)
+            sage: G.edges()
+            []
+
+            sage: G = Graph(multiedges=True, implementation='c_graph', sparse=True)
+            sage: G.add_edge(0,1,2)
+            sage: G.add_edge(0,1,None)
+            sage: G.delete_edge(0,1)
+            sage: G.edges()
+            [(0, 1, 2)]
+
         """
         if not ( self.has_vertex(u) and self.has_vertex(v) ):
             return
@@ -1626,11 +1656,15 @@ class SparseGraphBackend(CGraphBackend):
                       self._cg, self._cg_rev, self._directed)
         cdef int v_int = check_vertex(v, self.vertex_ints, self.vertex_labels,
                       self._cg, self._cg_rev, self._directed)
-        cdef int l_int = check_edge_label(l, self.edge_labels)
-        if l_int not in self.edge_labels:
-            return
-        if l_int == 0:
-            l_int = self._cg.arc_label(u_int, v_int)
+        for l_int in self.edge_labels:
+            if self.edge_labels[l_int] == l and self._cg.has_arc_label(u_int, v_int, l_int):
+                break
+        else:
+            if l is None:
+                if self._cg.has_arc_label(u_int, v_int, 0):
+                    l_int = 0
+                else: l_int = self._cg.arc_label(u_int, v_int)
+            else: return
         if directed:
             self._cg.del_arc_label(u_int, v_int, l_int)
             self._cg_rev.del_arc_label(v_int, u_int, l_int)
@@ -1652,9 +1686,6 @@ class SparseGraphBackend(CGraphBackend):
             sage: D.add_edges([(0,1,1), (2,3,2), (4,5,3), (5,6,2)], False)
             sage: list(D.iterator_edges(range(9), True))
             [(0, 1, 1), (2, 3, 2), (4, 5, 3), (5, 6, 2)]
-            sage: D.del_edge(0,1,None,True) # "None" is equivalent to not providing a label
-            sage: list(D.iterator_edges(range(9), True))
-            [(2, 3, 2), (4, 5, 3), (5, 6, 2)]
             sage: D.get_edge_label(3,2)
             2
 
@@ -1671,9 +1702,10 @@ class SparseGraphBackend(CGraphBackend):
         if not (<SparseGraph>self._cg).has_arc_unsafe(u_int, v_int):
             raise RuntimeError("%s, %s not an edge of the graph."%(u,v))
         if self.multiple_edges(None):
-            return [self.edge_labels[l_int] for l_int in self._cg.all_arcs(u_int, v_int)]
+            return [self.edge_labels[l_int] if l_int != 0 else None
+                     for l_int in self._cg.all_arcs(u_int, v_int)]
         l_int = self._cg.arc_label(u_int, v_int)
-        return self.edge_labels[l_int]
+        return self.edge_labels[l_int] if l_int else None
 
     def has_edge(self, object u, object v, object l):
         """
@@ -1700,12 +1732,12 @@ class SparseGraphBackend(CGraphBackend):
                       self._cg)
         cdef int v_int = get_vertex(v, self.vertex_ints, self.vertex_labels,
                       self._cg)
-        cdef int l_int = check_edge_label(l, self.edge_labels)
-        if l_int not in self.edge_labels:
-            return False
-        if l_int == 0:
+        if l is None:
             return self._cg.has_arc(u_int, v_int)
-        return self._cg.has_arc_label(u_int, v_int, l_int)
+        for l_int in self.edge_labels:
+            if self.edge_labels[l_int] == l and self._cg.has_arc_label(u_int, v_int, l_int):
+                return True
+        return False
 
     def iterator_edges(self, object vertices, bint labels):
         """
@@ -1726,19 +1758,25 @@ class SparseGraphBackend(CGraphBackend):
             [(1, 2, 3)]
 
         """
-        cdef object v, l
+        cdef object v, l, L
         vertices = [get_vertex(v, self.vertex_ints, self.vertex_labels,
                     self._cg) for v in vertices if self.has_vertex(v)]
         cdef int u_int, v_int, l_int
         if labels:
-            return iter([tuple(sorted(
+            L = []
+            for v_int in vertices:
+                for u_int in self._cg.out_neighbors(v_int):
+                    if u_int >= v_int or u_int not in vertices:
+                        for l_int in self._cg.all_arcs(v_int, u_int):
+                            if l_int == 0:
+                                l = None
+                            else:
+                                l = self.edge_labels[l_int]
+                            L.append(tuple(sorted(
             (vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg),
              vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg)
-            )))+(self.edge_labels[l_int],)
-                for v_int in vertices
-                    for u_int in self._cg.out_neighbors(v_int)
-                        if u_int >= v_int or u_int not in vertices
-                            for l_int in self._cg.all_arcs(v_int, u_int)])
+            )))+(l,))
+            return iter(L)
         else:
             return iter([tuple(sorted(
             (vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg),
@@ -1769,19 +1807,25 @@ class SparseGraphBackend(CGraphBackend):
             [(1, 2, 3)]
 
         """
-        cdef object v
+        cdef object v, L, l
         vertices = [get_vertex(v, self.vertex_ints, self.vertex_labels,
                     self._cg) for v in vertices if self.has_vertex(v)]
         cdef int u_int, v_int, l_int
         if self.multiple_edges(None):
             if labels:
-                return iter([
+                L = []
+                for v_int in vertices:
+                    for u_int in self._cg_rev.out_neighbors(v_int):
+                        for l_int in self._cg.all_arcs(u_int, v_int):
+                            if l_int == 0:
+                                l = None
+                            else:
+                                l = self.edge_labels[l_int]
+                            L.append(
                 (vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg),
                  vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg),
-                 self.edge_labels[l_int])
-                    for v_int in vertices
-                        for u_int in self._cg_rev.out_neighbors(v_int)
-                            for l_int in self._cg.all_arcs(u_int, v_int)])
+                 l))
+                return iter(L)
             else:
                 return iter([
                 (vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg),
@@ -1791,12 +1835,19 @@ class SparseGraphBackend(CGraphBackend):
                             for l_int in self._cg.all_arcs(u_int, v_int)])
         else:
             if labels:
-                return iter([
+                L = []
+                for v_int in vertices:
+                    for u_int in self._cg_rev.out_neighbors(v_int):
+                        l_int = self._cg.arc_label(u_int, v_int)
+                        if l_int == 0:
+                            l = None
+                        else:
+                            l = self.edge_labels[l_int]
+                        L.append(
                 (vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg),
                  vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg),
-                 self.edge_labels[self._cg.arc_label(u_int, v_int)])
-                    for v_int in vertices
-                        for u_int in self._cg_rev.out_neighbors(v_int)])
+                 l))
+                return iter(L)
             else:
                 return iter([
                 (vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg),
@@ -1824,19 +1875,25 @@ class SparseGraphBackend(CGraphBackend):
             [(1, 2, 3)]
 
         """
-        cdef object u, v
+        cdef object u, v, L, l
         vertices = [get_vertex(v, self.vertex_ints, self.vertex_labels,
                     self._cg) for v in vertices if self.has_vertex(v)]
         cdef int u_int, v_int, l_int
         if self.multiple_edges(None):
             if labels:
-                return iter([
+                L = []
+                for v_int in vertices:
+                    for u_int in self._cg.out_neighbors(v_int):
+                        for l_int in self._cg.all_arcs(v_int, u_int):
+                            if l_int == 0:
+                                l = None
+                            else:
+                                l = self.edge_labels[l_int]
+                            L.append(
                 (vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg),
                  vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg),
-                 self.edge_labels[l_int])
-                    for v_int in vertices
-                        for u_int in self._cg.out_neighbors(v_int)
-                            for l_int in self._cg.all_arcs(v_int, u_int)])
+                 l))
+                return iter(L)
             else:
                 return iter([
                 (vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg),
@@ -1846,12 +1903,19 @@ class SparseGraphBackend(CGraphBackend):
                             for l_int in self._cg.all_arcs(v_int, u_int)])
         else:
             if labels:
-                return iter([
+                L = []
+                for v_int in vertices:
+                    for u_int in self._cg.out_neighbors(v_int):
+                        l_int = self._cg.arc_label(v_int, u_int)
+                        if l_int == 0:
+                            l = None
+                        else:
+                            l = self.edge_labels[l_int]
+                        L.append(
                 (vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg),
                  vertex_label(u_int, self.vertex_ints, self.vertex_labels, self._cg),
-                 self.edge_labels[self._cg.arc_label(v_int, u_int)])
-                    for v_int in vertices
-                        for u_int in self._cg.out_neighbors(v_int)])
+                 l))
+                return iter(L)
             else:
                 return iter([
                 (vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg),
@@ -1899,7 +1963,7 @@ class SparseGraphBackend(CGraphBackend):
         EXAMPLE::
 
             sage: G = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
-            sage: G.add_edge(1,2,0,None)
+            sage: G.add_edge(1,2,None,True)
             sage: G.set_edge_label(1,2,'a',True)
             sage: list(G.iterator_edges(range(9), True))
             [(1, 2, 'a')]
@@ -1917,14 +1981,20 @@ class SparseGraphBackend(CGraphBackend):
             if len(self.get_edge_label(u, v)) > 1:
                 raise RuntimeError("Cannot set edge label, since there are multiple edges from %s to %s."%(u,v))
         # now we know there is exactly one edge from u to v
-        cdef int l_int = check_edge_label(l, self.edge_labels), ll_int
-        if l_int not in self.edge_labels:
-            self.edge_labels[l_int] = l
+        cdef int l_int, ll_int
+        if l is None:
+            l_int = 0
+        else:
+            l_int = new_edge_label(l, self.edge_labels)
         cdef int u_int = get_vertex(u, self.vertex_ints, self.vertex_labels,
                       self._cg)
         cdef int v_int = get_vertex(v, self.vertex_ints, self.vertex_labels,
                       self._cg)
+        if not (<SparseGraph>self._cg).has_arc_unsafe(u_int, v_int):
+            return
         ll_int = (<SparseGraph>self._cg).arc_label_unsafe(u_int, v_int)
+        if ll_int:
+            self.edge_labels.pop(ll_int)
         if directed:
             self._cg.del_arc_label(u_int, v_int, ll_int)
             self._cg_rev.del_arc_label(v_int, u_int, ll_int)

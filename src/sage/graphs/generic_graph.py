@@ -8095,6 +8095,16 @@ class GenericGraph(GenericGraph_pyx):
             [None, None, None, None, None]
             sage: sorted(G.edge_label(0,1))
             [1, 2, 3, 4, 5]
+
+        TESTS::
+
+            sage: G = Graph()
+            sage: G.add_edge(0,1,[7])
+            sage: G.add_edge(0,2,[7])
+            sage: G.edge_label(0,1)[0] += 1
+            sage: G.edges()
+            [(0, 1, [8]), (0, 2, [7])]
+
         """
         return self._backend.get_edge_label(u,v)
 

@@ -36,4 +36,4 @@ cdef class SparseGraph(CGraph):
     cdef int has_arc_label_unsafe(self, int, int, int)
     cpdef bint has_arc_label(self, int u, int v, int l)
 
-cdef int check_edge_label(object l, dict edge_labels)
+cdef int new_edge_label(object l, dict edge_labels)

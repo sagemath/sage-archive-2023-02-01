@@ -14,16 +14,24 @@ HTML and Sage code which creates the mathlet::
     sage: interacts.calculus.taylor_polynomial()
     <html>...</html>
 
+AUTHORS:
+
+- William Stein
+
+- Harald Schilly, Robert Marik (2011-01-16): added many examples (#9623) partially based on work by Lauri Ruotsalainen
+
 """
 
-
 #*****************************************************************************
-#        Copyright (C) 2009 William Stein <wstein@gmail.com>
-#     Copyright (C) 2010 Harald Schilly <harald.schilly@gmail.com>
+#       Copyright (C) 2009 William Stein <wstein@gmail.com>
+#       Copyright (C) 2011 Harald Schilly <harald.schilly@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 
 from sage.all import *
 # this is not imported in sage.all, so we have to import it

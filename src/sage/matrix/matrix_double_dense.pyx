@@ -1565,11 +1565,10 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             [0.0 0.0 0.0 0.0]
             [0.0 0.0 0.0 0.0]
             [0.0 0.0 0.0 0.0]
-            sage: eigenvalues = sorted(T[0:2,0:2].eigenvalues() + T[2:4,2:4].eigenvalues())
-            sage: eigenvalues.reverse(); eigenvalues
-            [-0.789... + 2.336...*I, -0.789... - 2.336...*I, -5.710... + 8.382...*I, -5.710... - 8.382...*I]
-            sage: A.eigenvalues()
-            [-0.789... + 2.336...*I, -0.789... - 2.336...*I, -5.710... + 8.382...*I, -5.710... - 8.382...*I]
+            sage: sorted(T[0:2,0:2].eigenvalues() + T[2:4,2:4].eigenvalues())
+            [-5.710... - 8.382...*I, -5.710... + 8.382...*I, -0.789... - 2.336...*I, -0.789... + 2.336...*I]
+            sage: sorted(A.eigenvalues())
+            [-5.710... - 8.382...*I, -5.710... + 8.382...*I, -0.789... - 2.336...*I, -0.789... + 2.336...*I]
             sage: abs(A.norm()-T.norm()) < 1e-12
             True
 
@@ -1648,9 +1647,10 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             [  0.139 -0.3892 -0.2648  0.8713]
             [ 0.4361   0.359  0.7599  0.3217]
             [ -0.836  0.3945  0.1438  0.3533]
+            sage: T = T.zero_at(1.0e-12).change_ring(RDF)
             sage: T.round(4)
             [-13.5698      0.0      0.0      0.0]
-            [     0.0  -0.8508     -0.0     -0.0]
+            [     0.0  -0.8508      0.0      0.0]
             [     0.0      0.0   7.7664      0.0]
             [     0.0      0.0      0.0  11.6542]
             sage: (Q*Q.transpose()).zero_at(1.0e-12)

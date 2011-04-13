@@ -370,7 +370,7 @@ cdef object singular_polynomial_str(poly *p, ring *r):
 
 
 cdef object singular_polynomial_latex(poly *p, ring *r, object base, object latex_gens):
-    """
+    r"""
     Return the LaTeX string representation of ``p``.
 
     INPUT:
@@ -385,12 +385,20 @@ cdef object singular_polynomial_latex(poly *p, ring *r, object base, object late
         x
         sage: latex(10*x^2 + 1/2*y)
         10 x^{2} + \frac{1}{2} y
+
+      Demonstrate that coefficients over non-atomic representated rings are
+      properly parenthesized (Trac 11186)
+        sage: x = var('x')
+        sage: K.<z> = QQ.extension(x^2 + x + 1)
+        sage: P.<v,w> = K[]
+        sage: latex((z+1)*v*w - z*w^2 + z*v + z^2*w + z + 1)
+        \left(z + 1\right) v w - z w^{2} + z v + \left(-z - 1\right) w + z + 1
     """
     poly = ""
     cdef long e,j
     cdef int n = r.N
+    cdef int atomic_repr = base.is_atomic_repr()
     while p:
-        sign_switch = False
 
         # First determine the multinomial:
         multi = ""
@@ -408,19 +416,18 @@ cdef object singular_polynomial_latex(poly *p, ring *r, object base, object late
             multi = latex(c)
         elif c != 1:
             if  c == -1:
-                if len(poly) > 0:
-                    sign_switch = True
-                else:
-                    multi = "- %s"%(multi)
+                multi = "- %s"%(multi)
             else:
-                multi = "%s %s"%(latex(c),multi)
+                sc = latex(c)
+                # Add parenthesis if the coefficient consists of terms divided by +, -
+                # (starting with - is not enough) and is not the constant term
+                if not atomic_repr and multi and (sc.find("+") != -1 or sc[1:].find("-") != -1):
+                    sc = "\\left(%s\\right)"%sc
+                multi = "%s %s"%(sc,multi)
 
         # Now add on coefficiented multinomials
         if len(poly) > 0:
-            if sign_switch:
-                poly = poly + " - "
-            else:
-                poly = poly + " + "
+            poly = poly + " + "
         poly = poly + multi
 
         p = pNext(p)

@@ -386,7 +386,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
                                         atomic_coefficients=self.parent().base_ring().is_atomic_repr(),cmpfn=cmpfn )
 
     def _latex_(self):
-        """
+        r"""
         EXAMPLES::
 
             sage: R.<x,y>=QQbar[]
@@ -395,7 +395,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: K.<I>=QuadraticField(-1)
             sage: R.<x,y>=K[]
             sage: latex(-I*y+I*x^2)
-            \sqrt{-1} x^{2} - \sqrt{-1} y
+            \left(\sqrt{-1}\right) x^{2} + \left(-\sqrt{-1}\right) y
         """
         try:
             cmpfn = self.parent().term_order().compare_tuples

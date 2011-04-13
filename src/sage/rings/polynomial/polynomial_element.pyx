@@ -1534,6 +1534,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             sage: latex(ZZ['alpha']['b']([0, ZZ['alpha'].0]))
             \alpha b
+
+        The following illustrates a (non-intentional) superfluity of parentheses
+
+            sage: K.<I>=QuadraticField(-1)
+            sage: R.<x>=K[]
+            sage: latex(I*x^2-I*x)
+            \left(\sqrt{-1}\right) x^{2} + \left(-\sqrt{-1}\right) x
         """
         s = " "
         coeffs = self.list()

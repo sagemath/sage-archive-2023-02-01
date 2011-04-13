@@ -86,8 +86,10 @@ class HighestWeightCrystals(Category):
             Returns the highest weight vectors of ``self``
 
             This default implementation selects among the module
-            generators those that are highest weight, and cache the
-            result.
+            generators those that are highest weight, and caches the result.
+            A crystal element `b` is highest weight if `e_i(b)=0` for all `i` in the
+            index set.
+
 
             EXAMPLES::
 
@@ -109,7 +111,7 @@ class HighestWeightCrystals(Category):
             Returns the highest weight vector if there is a single one;
             otherwise, raises an error.
 
-            Caveat: this assumes that :meth:`.highest_weight_vector`
+            Caveat: this assumes that :meth:`.highest_weight_vectors`
             returns a list or tuple.
 
             EXAMPLES::
@@ -124,6 +126,30 @@ class HighestWeightCrystals(Category):
             else:
                 raise RuntimeError("The crystal does not have exactly one highest weight vector")
 
+        @cached_method
+        def lowest_weight_vectors(self):
+            r"""
+            Returns the lowest weight vectors of ``self``
+
+            This default implementation selects among all elements of the crystal
+            those that are lowest weight, and cache the result.
+            A crystal element `b` is lowest weight if `f_i(b)=0` for all `i` in the
+            index set.
+
+            EXAMPLES::
+
+                sage: C = CrystalOfLetters(['A',5])
+                sage: C.lowest_weight_vectors()
+                [6]
+
+            ::
+
+                sage: C = CrystalOfLetters(['A',2])
+                sage: T = TensorProductOfCrystals(C,C,C,generators=[[C(2),C(1),C(1)],[C(1),C(2),C(1)]])
+                sage: T.lowest_weight_vectors()
+                [[3, 2, 3], [3, 3, 2]]
+            """
+            return [g for g in self if g.is_lowest_weight()]
 
     class ElementMethods:
 

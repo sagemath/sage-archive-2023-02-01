@@ -450,6 +450,69 @@ exponent %s: the length of the word (%s) times the exponent \
             self._len = Integer(sum(1 for _ in self))
         return self._len
 
+    def schuetzenberger_involution(self, n = None):
+        """
+        Returns the Schuetzenberger involution of the word self, which is obtained
+        by reverting the word and then complementing all letters within the
+        underlying ordered alphabet. If `n` is specified, the underlying
+        alphabet is assumed to be `[1,2,\ldots,n]`. If no alphabet is specified,
+        `n` is the maximal letter appearing in self.
+
+        INPUT:
+
+        - ``self`` -- a word
+        - ``n``    -- an integer specifying the maximal letter in the alphabet (optional)
+
+        OUTPUT:
+
+        - a word, the Schuetzenberger involution of self
+
+        EXAMPLES::
+
+            sage: w = Word([9,7,4,1,6,2,3])
+            sage: v = w.schuetzenberger_involution(); v
+            word: 7849631
+            sage: v.parent()
+            Words
+
+            sage: w = Word([1,2,3],alphabet=[1,2,3,4,5])
+            sage: v = w.schuetzenberger_involution();v
+            word: 345
+            sage: v.parent()
+            Words over Ordered Alphabet [1, 2, 3, 4, 5]
+
+            sage: w = Word([1,2,3])
+            sage: v = w.schuetzenberger_involution(n=5);v
+            word: 345
+            sage: v.parent()
+            Words
+
+            sage: w = Word([11,32,69,2,53,1,2,3,18,41])
+            sage: w.schuetzenberger_involution()
+            word: 29,52,67,68,69,17,68,1,38,59
+
+            sage: w = Word([],alphabet=[1,2,3,4,5])
+            sage: w.schuetzenberger_involution()
+            word:
+
+            sage: w = Word([])
+            sage: w.schuetzenberger_involution()
+            word:
+        """
+        if self.length() == 0:
+            return self
+        r = self.reversal()
+        w = list(r)
+        if n is None:
+            alphsize = self.parent().size_of_alphabet()
+            if not alphsize == +Infinity:
+                n = max(self.parent().alphabet())
+            elif r.length()>0:
+                n = max(w)
+        for k in range(r.length()):
+            w[k] = n+1 - w[k]
+        return self.parent()(w)
+
     def is_empty(self):
         r"""
         Returns True if the length of self is zero, and False otherwise.

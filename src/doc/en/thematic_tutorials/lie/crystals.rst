@@ -126,8 +126,8 @@ Now let us consider the implications of Frobenius-Schur duality.
 The dimension of `\otimes^k V` is `n^k`. Therefore `n^k` is equal
 to the number of pairs `(T1,T2)` of tableaux of the same shape
 `\lambda\vdash k`, where the first tableaux is standard (in the
-alphabet `1,2,\cdots,k`), and the second the second semistandard (in the
-alphabet `1,2,\cdots,n`).
+alphabet `1,2,\ldots,k`), and the second the second semistandard (in the
+alphabet `1,2,\ldots,n`).
 
 The Robinson-Schensted-Knuth correspondence
 -------------------------------------------
@@ -880,6 +880,46 @@ spin crystals, both of degree `2^{r-1}`. These are hand-coded in sage::
 
 Similarly to type B crystal, we obtain crystal with spin weight by allowing for partitions
 with half-integer values, and the last entry can be negative depending on the type of the spin.
+
+
+Lusztig involution
+------------------
+
+The Lusztig involution on a finite-dimensional highest weight crystal `B(\lambda)` of highest weight `\lambda`
+maps the highest weight vector to the lowest weight vector and the Kashiwara operator `f_i` to
+`e_{i^*}`, where `i^*` is defined as `\alpha_{i^*} = -w_0(\alpha_i)`. Here `w_0` is the longest element
+of the Weyl group acting on the `i`-th simple root `\alpha_i`. For example, for type `A_n` we have `i^*=n+1-i`,
+whereas for type `C_n` we have `i^*=i`. For type `D_n` and `n` even also have `i^*=i`, but for `n` odd this
+map interchanges nodes `n-1` and `n`. Here is how to achieve this in Sage::
+
+    sage: B = CrystalOfTableaux(['A',3],shape=[2,1])
+    sage: b = B(rows=[[1,2],[3]])
+    sage: b.lusztig_involution()
+    [[2, 4], [3]]
+
+For type `A_n`, the Lusztig involution is the same as the Schuetzenberger involution (which in Sage is
+defined on tableaux)::
+
+    sage: t = Tableau([[1,2],[3]])
+    sage: t.schuetzenberger_involution(n=4)
+    [[2, 4], [3]]
+
+For all tableaux in a given crystal, this can be tested via::
+
+    sage: B = CrystalOfTableaux(['A',3],shape=[2])
+    sage: all(b.lusztig_involution().to_tableau() == b.to_tableau().schuetzenberger_involution(n=4) for b in B)
+    True
+
+The Lusztig involution is also defined for finite-dimensional highest weight crystals of exceptional
+type::
+
+    sage: C=CartanType(['E',6])
+    sage: La=C.root_system().weight_lattice().fundamental_weights()
+    sage: T = HighestWeightCrystal(La[1])
+    sage: t = T[4]; t
+    [[-2, 5]]
+    sage: t.lusztig_involution()
+    [[-3, 2]]
 
 
 Levi branching rules for crystals

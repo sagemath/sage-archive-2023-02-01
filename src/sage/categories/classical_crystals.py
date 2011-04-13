@@ -75,7 +75,44 @@ class ClassicalCrystals(Category):
         from sage.categories.crystals import Crystals
         return Crystals().example(n)
 
+
     class ParentMethods:
+
+        @cached_method
+        def opposition_automorphism(self):
+            r"""
+            Returns the opposition automorphism
+
+            The *opposition automorphism* is the automorphism
+            `i \mapsto i^*` of the vertices Dynkin diagram such that,
+            for `w_0` the longest element of the Weyl group, and any
+            simple root `\alpha_i`, one has `\alpha_{i^*} = -w_0(\alpha_i)`.
+
+            The automorphism is returned as a dictionary.
+
+            EXAMPLES::
+
+                sage: T = CrystalOfTableaux(['A',5],shape=[1])
+                sage: T.opposition_automorphism()
+                {1: 5, 2: 4, 3: 3, 4: 2, 5: 1}
+
+                sage: T = CrystalOfTableaux(['D',4],shape=[1])
+                sage: T.opposition_automorphism()
+                {1: 1, 2: 2, 3: 3, 4: 4}
+
+                sage: T = CrystalOfTableaux(['D',5],shape=[1])
+                sage: T.opposition_automorphism()
+                {1: 1, 2: 2, 3: 3, 4: 5, 5: 4}
+
+                sage: T = CrystalOfTableaux(['C',4],shape=[1])
+                sage: T.opposition_automorphism()
+                {1: 1, 2: 2, 3: 3, 4: 4}
+            """
+            L = self.cartan_type().root_system().root_lattice()
+            W = L.weyl_group()
+            w0 = W.long_element()
+            alpha = L.simple_roots()
+            return dict( (i, (w0.action(alpha[i])).leading_support()) for i in self.index_set() )
 
         def demazure_character(self, weight, reduced_word = False):
             r"""
@@ -343,3 +380,50 @@ class ClassicalCrystals(Category):
             """
             return sum(self.weight_lattice_realization().weyl_dimension(x.weight())
                        for x in self.highest_weight_vectors())
+
+    class ElementMethods:
+
+        def lusztig_involution(self):
+            r"""
+            Returns the Lusztig involution on the classical highest weight crystal self.
+            It is assumed that self has only one highest weight vector.
+
+            The Lusztig involution on a finite-dimensional highest weight crystal `B(\lambda)` of highest weight `\lambda`
+            maps the highest weight vector to the lowest weight vector and the Kashiwara operator `f_i` to
+            `e_{i^*}`, where `i^*` is defined as `\alpha_{i^*} = -w_0(\alpha_i)`. Here `w_0` is the longest element
+            of the Weyl group acting on the `i`-th simple root `\alpha_i`.
+
+            EXAMPLES::
+
+                sage: B = CrystalOfTableaux(['A',3],shape=[2,1])
+                sage: b = B(rows=[[1,2],[4]])
+                sage: b.lusztig_involution()
+                [[1, 4], [3]]
+                sage: b.to_tableau().schuetzenberger_involution(n=4)
+                [[1, 4], [3]]
+
+                sage: all(b.lusztig_involution().to_tableau() == b.to_tableau().schuetzenberger_involution(n=4) for b in B)
+                True
+
+                sage: B = CrystalOfTableaux(['D',4],shape=[1])
+                sage: [[b,b.lusztig_involution()] for b in B]
+                [[[[1]], [[-1]]], [[[2]], [[-2]]], [[[3]], [[-3]]], [[[4]], [[-4]]], [[[-4]],
+                [[4]]], [[[-3]], [[3]]], [[[-2]], [[2]]], [[[-1]], [[1]]]]
+
+                sage: B = CrystalOfTableaux(['D',3],shape=[1])
+                sage: [[b,b.lusztig_involution()] for b in B]
+                [[[[1]], [[-1]]], [[[2]], [[-2]]], [[[3]], [[3]]], [[[-3]], [[-3]]],
+                [[[-2]], [[2]]], [[[-1]], [[1]]]]
+
+                sage: C=CartanType(['E',6])
+                sage: La=C.root_system().weight_lattice().fundamental_weights()
+                sage: T = HighestWeightCrystal(La[1])
+                sage: t = T[3]; t
+                [[-4, 2, 5]]
+                sage: t.lusztig_involution()
+                [[-2, -3, 4]]
+            """
+            hw = self.to_highest_weight()[1]
+            hw.reverse()
+            hw = [self.parent().opposition_automorphism()[i] for i in hw]
+            return self.parent().lowest_weight_vectors()[0].e_string(hw)

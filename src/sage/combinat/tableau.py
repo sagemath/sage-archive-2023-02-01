@@ -397,6 +397,50 @@ class Tableau_class(CombinatorialObject):
         p = self.shape()
         return len(self.inversions()) - sum([ p.arm_length(*cell) for cell in self.descents() ])
 
+    def schuetzenberger_involution(self, n = None):
+        """
+        Returns the Schuetzenberger involution of the tableau self.
+        This method relies on the analogous method on words, which reverts the word
+        and then complements all letters within the underlying ordered alphabet.
+        If `n` is specified, the underlying alphabet is assumed to be `[1,2,\ldots,n]`.
+        If no alphabet is specified, `n` is the maximal letter appearing in self.
+
+        INPUT:
+
+        - ``self`` -- a tableau
+        - ``n``    -- an integer specifying the maximal letter in the alphabet (optional)
+
+        OUTPUT:
+
+        - a tableau, the Schuetzenberger involution of self
+
+        EXAMPLES::
+
+           sage: t = Tableau([[1,1,1],[2,2]])
+           sage: t.schuetzenberger_involution(3)
+           [[2, 2, 3], [3, 3]]
+
+            sage: t = Tableau([[1,2,3],[4,5]])
+            sage: t.schuetzenberger_involution()
+            [[1, 2, 5], [3, 4]]
+
+            sage: t = Tableau([[1,3,5,7],[2,4,6],[8,9]])
+            sage: t.schuetzenberger_involution()
+            [[1, 2, 6, 8], [3, 4, 9], [5, 7]]
+
+            sage: t = Tableau([])
+            sage: t.schuetzenberger_involution()
+            []
+        """
+        w = self.to_word()
+        if w.length() == 0:
+            return self
+        wi = w.schuetzenberger_involution(n=n)
+        t = Tableau([[wi[0]]])
+        for k in range(1, w.length()):
+            t = t.bump(wi[k])
+        return t
+
     def entries(self):
         """
         Returns a list of all entries of self, in the order obtained
@@ -544,6 +588,33 @@ class Tableau_class(CombinatorialObject):
         for i in range(len(self)):
             s += [ (i,j) for j in range(len(self[i])) ]
         return s
+
+    def cells_containing(self, i):
+        r"""
+        Returns the list of cells in which the letter `i` appears in the tableau `self`.
+        The list is ordered with cells appearing from left to right.
+
+        EXAMPLES::
+
+            sage: t = Tableau([[1,1,3],[2,3,5],[4,5]])
+            sage: t.cells_containing(5)
+            [(2, 1), (1, 2)]
+            sage: t.cells_containing(4)
+            [(2, 0)]
+            sage: t.cells_containing(6)
+            []
+
+            sage: t = Tableau([[1,1,2,4],[2,4,4],[4]])
+            sage: t.cells_containing(4)
+            [(2, 0), (1, 1), (1, 2), (0, 3)]
+        """
+        list = []
+        for r in range(len(self)):
+            for c in range(self.shape()[r]-1,-1,-1):
+                if self[r][c] == i:
+                    list += [(r,c)]
+        list.reverse()
+        return list
 
     def k_weight(self, k):
         """
@@ -959,6 +1030,56 @@ class Tableau_class(CombinatorialObject):
 
         return sage.combinat.skew_tableau.SkewTableau(st).rectify()
 
+    def _slide_up(self, c):
+        r"""
+        Auxiliary method used for promotion, which removes cell `c` from self,
+        slides the letters of self up using jeu de taquin slides, and then fills the empty
+        cell at `(0,0)` with the value 0.
+
+        TESTS::
+
+            sage: t = Tableau([[1,1,2],[2,3,5],[4,5]])
+            sage: t._slide_up((2,1))
+            [[0, 1, 2], [1, 3, 5], [2, 4]]
+
+            sage: t._slide_up((1,2))
+            [[0, 1, 2], [1, 2, 3], [4, 5]]
+
+            sage: t = Tableau([[1,1,3],[2,3,5],[4,5]])
+            sage: t._slide_up((1,2))
+            [[0, 1, 1], [2, 3, 3], [4, 5]]
+        """
+        new_st = [x[:] for x in self]
+        spotl, spotc = c
+        while [spotl, spotc] != [0,0]:
+            #once moving box is in first column, just move letters up
+            if spotc == 0:
+                new_st[spotl][spotc] = new_st[spotl-1][spotc]
+                spotl -= 1
+                continue
+            #once moving box is in first row, just move letters up
+            elif spotl == 0:
+                new_st[spotl][spotc] = new_st[spotl][spotc-1]
+                spotc -= 1
+                continue
+            else:
+                #If we get to this stage, we need to compare
+                below = new_st[spotl-1][spotc]
+                left = new_st[spotl][spotc-1]
+                if below >= left:
+                    #Swap with the cell below
+                    new_st[spotl][spotc] = new_st[spotl-1][spotc]
+                    spotl -= 1
+                    continue
+                else:
+                    #Swap with the cell to the left
+                    new_st[spotl][spotc] = new_st[spotl][spotc-1]
+                    spotc -= 1
+                    continue
+        #set box in position (0,0) to 0
+        new_st[0][0] = 0
+        return Tableau(new_st)
+
     def promotion_inverse(self, n):
         """
         Inverse promotion operator defined on rectangular tableaux using
@@ -990,32 +1111,44 @@ class Tableau_class(CombinatorialObject):
         return Tableau(t)
 
     def promotion(self, n):
-        """
-        Promotion operator defined on rectangular tableaux using jeu de
-        taquin
+        r"""
+        Returns the promotion operator acting on `self` by removing all letters `n+1`
+        from tableau `t` (one by one from left to right), applying jeu de taquin to move
+        boxes into the empty box, filling 0 into the empty boxes in the first row, and
+        finally adding one to each letter.
 
         EXAMPLES::
 
             sage: t = Tableau([[1,2],[3,3]])
             sage: t.promotion(2)
             [[1, 1], [2, 3]]
+
             sage: t = Tableau([[1,1,1],[2,2,3],[3,4,4]])
             sage: t.promotion(3)
             [[1, 1, 2], [2, 2, 3], [3, 4, 4]]
+
             sage: t = Tableau([[1,2],[2]])
             sage: t.promotion(3)
-            Traceback (most recent call last):
-            ...
-            ValueError: Tableau is not rectangular
-        """
-        if not self.is_rectangular():
-            raise ValueError, "Tableau is not rectangular"
-        t = self.rotate_180()
-        t = [[n+2-i for i in row] for row in t.to_list()]
-        t = Tableau(t).promotion_inverse(n)
-        t = [[n+2-i for i in row] for row in t.to_list()]
-        return Tableau(t).rotate_180()
+            [[2, 3], [3]]
 
+            sage: t = Tableau([[1,1,3],[2,2]])
+            sage: t.promotion(2)
+            [[1, 2, 2], [3, 3]]
+
+            sage: t = Tableau([[1,1,3],[2,3]])
+            sage: t.promotion(2)
+            [[1, 1, 2], [2, 3]]
+        """
+        if self.is_rectangular():
+            t = self.rotate_180()
+            t = [[n+2-i for i in row] for row in t.to_list()]
+            t = Tableau(t).promotion_inverse(n)
+            t = [[n+2-i for i in row] for row in t.to_list()]
+            return Tableau(t).rotate_180()
+        p = self
+        for c in self.cells_containing(n+1):
+            p = p._slide_up(c)
+        return Tableau([[i+1 for i in row] for row in p])
 
     def row_stabilizer(self):
         """

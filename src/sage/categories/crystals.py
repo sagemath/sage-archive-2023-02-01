@@ -899,6 +899,27 @@ class Crystals(Category):
                 index_set = self.index_set()
             return all(self.e(i) is None for i in index_set)
 
+        def is_lowest_weight(self, index_set = None):
+            r"""
+            Returns ``True`` if ``self`` is a lowest weight.
+            Specifying the option ``index_set`` to be a subset `I` of the
+            index set of the underlying crystal, finds all lowest
+            weight vectors for arrows in `I`.
+
+            EXAMPLES::
+
+                sage: C = CrystalOfLetters(['A',5])
+                sage: C(1).is_lowest_weight()
+                False
+                sage: C(6).is_lowest_weight()
+                True
+                sage: C(4).is_lowest_weight(index_set = [1,3])
+                True
+            """
+            if index_set is None:
+                index_set = self.index_set()
+            return all(self.f(i) is None for i in index_set)
+
         def to_highest_weight(self, list = [], index_set = None):
             r"""
             Yields the highest weight element `u` and a list `[i_1,...,i_k]`

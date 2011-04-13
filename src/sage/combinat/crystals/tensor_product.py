@@ -910,6 +910,8 @@ class CrystalOfTableaux(CrystalOfWords):
         """
         return self.element_class(self, *args, **options)
 
+
+
 class CrystalOfTableauxElement(TensorProductOfCrystalsElement):
     def __init__(self, parent, *args, **options):
         """

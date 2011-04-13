@@ -16,7 +16,7 @@ below on how to build Sage and work around common issues.
        "Creating a Viable Open Source Alternative to
           Magma, Maple, Mathematica, and Matlab"
 
-    Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010
+    Copyright (C) 2005-2011
     William Stein and the Sage Development Team
 
     Distributed under the terms of the GNU General Public License (GPL)

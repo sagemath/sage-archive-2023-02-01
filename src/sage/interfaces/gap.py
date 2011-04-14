@@ -444,14 +444,16 @@ class Gap_generic(Expect):
         """
         TESTS:
 
-        We check to make sure that the gap interface behaves correctly
-        after a keyboard interrupt.
+        We check that the gap interface behaves correctly after an
+        interrupt::
 
             sage: gap(2)
             2
+            sage: import sage.tests.interrupt
             sage: try:
-            ...     gap._keyboard_interrupt()
-            ... except:
+            ...     sage.tests.interrupt.interrupt_after_delay()
+            ...     while True: SymmetricGroup(8).conjugacy_classes_subgroups()
+            ... except KeyboardInterrupt:
             ...     pass
             Interrupting Gap...
             sage: gap(2)

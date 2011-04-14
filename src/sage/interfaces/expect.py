@@ -755,7 +755,7 @@ If this all works, you can then make calls like:
 
     def _before(self):
         r"""
-        Return the previous string that was send through the interface.
+        Return the previous string that was sent through the interface.
 
         EXAMPLES::
 

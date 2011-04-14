@@ -649,6 +649,45 @@ e.g., an unsupported machine or an unusual compiler:
 
 Environment variables dealing with specific Sage packages:
 
+- :envvar:`SAGE_ATLAS_ARCH` - if you are compiling ATLAS (in
+  particular, if :envvar:`SAGE_ATLAS_LIB` is not set), you can use
+  this environment variable to set a particular architecture and
+  instruction set architecture. The syntax is
+  ``SAGE_ATLAS_ARCH=arch[,isaext1][,isaext2]...[,isaextN]``. While
+  ATLAS comes with precomputed timings for a variety of CPUs, it only
+  uses them if it finds an exact match. Otherwise, ATLAS runs through
+  a lengthy automated tuning process in order to optimize performance
+  for your particular system. You drastically reduce the total Sage
+  compile time if you manually select a suitable architecture. It is
+  recommended to specify a suitable architecture on laptops or other
+  systems with CPU throttling or if you want to distribute the
+  binaries. Available architectures are
+
+    ``POWER3``, ``POWER4``, ``POWER5``, ``PPCG4``, ``PPCG5``, ``P5``,
+    ``P5MMX``, ``PPRO``, ``PII``, ``PIII``, ``PM``, ``CoreSolo``,
+    ``CoreDuo``, ``Core2Solo``, ``Core2``, ``Corei7``, ``P4``,
+    ``P4E``, ``Efficeon``, ``K7``, ``HAMMER``, ``AMD64K10h``,
+    ``IA64Itan``, ``IA64Itan2``, ``USI``, ``USII``, ``USIII``,
+    ``USIV``, ``UnknownUS``, ``MIPSR1xK``, ``MIPSICE9``
+
+  and instruction set extensions are
+
+    ``AltiVec``, ``SSE3``, ``SSE2``, ``SSE1``, ``3DNow``.
+
+  In addition, you can also set
+
+  - ``SAGE_ATLAS_ARCH=fast`` picks defaults for a modern (2-3 year old)
+    CPU of your processor line, and
+
+  - ``SAGE_ATLAS_ARCH=base`` picks defaults that should work for a ~10
+    year old CPU.
+
+  For example,
+
+    ``SAGE_ATLAS_ARCH=Corei7,SSE3,SSE2,SSE1``
+
+  would be appropriate for a Core i7 CPU.
+
 - :envvar:`SAGE_ATLAS_LIB` - if you have an installation of ATLAS on
   your system and you want Sage to use it instead of building and
   installing its own version of ATLAS, set this variable to be the

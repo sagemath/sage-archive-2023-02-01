@@ -3333,6 +3333,51 @@ def legendre_symbol(x,p):
         raise ValueError, "p must be odd"
     return x.kronecker(p)
 
+def jacobi_symbol(a,b):
+    r"""
+    The Jacobi symbol of integers a and b, where b is odd.
+
+    .. note::
+
+       The :func:`kronecker_symbol` command extends the Jacobi
+       symbol to all integers b.
+
+    If
+
+    `b = p_1^{e_1} * ... * p_r^{e_r}`
+
+    then
+
+    `(a|b) = (a|p_1)^{e_1} ... (a|p_r)^{e_r}`
+
+    where `(a|p_j)` are Legendre Symbols.
+
+
+
+    INPUT:
+
+    -  ``a`` - an integer
+
+    -  ``b`` - an odd integer
+
+    EXAMPLES::
+
+        sage: jacobi_symbol(10,777)
+        -1
+        sage: jacobi_symbol(10,5)
+        0
+        sage: jacobi_symbol(10,2)
+        Traceback (most recent call last):
+        ...
+        ValueError: second input must be odd, 2 is not odd
+    """
+
+    if b%2==0:
+        raise ValueError, "second input must be odd, %s is not odd"%b
+
+    return kronecker_symbol(a,b)
+
+
 def primitive_root(n, check=True):
     """
     Return a positive integer that generates the multiplicative group

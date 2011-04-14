@@ -691,11 +691,11 @@ Environment variables dealing with specific Sage packages:
 - :envvar:`SAGE_ATLAS_LIB` - if you have an installation of ATLAS on
   your system and you want Sage to use it instead of building and
   installing its own version of ATLAS, set this variable to be the
-  parent directory of your ATLAS installation: it should have a
-  subdirectory :file:`lib` containing the files :file:`libatlas.so`,
-  :file:`liblapack.so`, :file:`libcblas.so`, and
-  :file:`libf77blas.so`, and it should have a subdirectory
-  :file:`include/atlas/` containing header files.
+  directory containing your ATLAS installation. It should contain the
+  files :file:`libatlas`, :file:`liblapack`, :file:`libcblas`, and
+  :file:`libf77blas` with extensions ``.a``, ``.so``, or
+  ``.dylib``. For backward compatibility, the libraries may also be in
+  the subdirectory ``SAGE_ATLAS_LIB/lib/``.
 
 - :envvar:`SAGE_MATPLOTLIB_GUI` - set this to anything non-empty except
   "no", and Sage will attempt to build the graphical backend when it

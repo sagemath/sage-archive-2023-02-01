@@ -284,7 +284,7 @@ sech = Function_sech()
 
 class Function_csch(HyperbolicFunction):
     def __init__(self):
-        """
+        r"""
         The hyperbolic cosecant function.
 
         EXAMPLES::

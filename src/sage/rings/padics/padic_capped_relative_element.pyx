@@ -77,16 +77,19 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         Constructs new element with given parent and value.
 
         INPUT:
-            x -- value to coerce into a capped relative ring or field
-            absprec -- maximum number of digits of absolute precision
-            relprec -- maximum number of digits of relative precision
-            construct -- boolean, default False. True is for internal use,
-                in which case x is a triple to be assigned directly.
 
-        EXAMPLES:
+        - x -- value to coerce into a capped relative ring or field
+        - absprec -- maximum number of digits of absolute precision
+        - relprec -- maximum number of digits of relative precision
+        - construct -- boolean, default False. True is for internal use,
+          in which case x is a triple to be assigned directly.
+
+        EXAMPLES::
+
             sage: R = Zp(5, 10, 'capped-rel')
 
-        Construct from integers:
+        Construct from integers::
+
             sage: R(3)
             3 + O(5^10)
             sage: R(75)
@@ -100,7 +103,8 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             sage: R(-7*25)
             3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + 4*5^10 + 4*5^11 + O(5^12)
 
-        Construct from rationals:
+        Construct from rationals::
+
             sage: R(1/2)
             3 + 2*5 + 2*5^2 + 2*5^3 + 2*5^4 + 2*5^5 + 2*5^6 + 2*5^7 + 2*5^8 + 2*5^9 + O(5^10)
             sage: R(-7875/874)
@@ -110,7 +114,8 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             ...
             ValueError: p divides the denominator
 
-        Construct from IntegerMod:
+        Construct from IntegerMod::
+
             sage: R(Integers(125)(3))
             3 + O(5^3)
             sage: R(Integers(5)(3))
@@ -125,6 +130,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             TypeError: cannot coerce from the given integer mod ring (not a power of the same prime)
 
         # todo: should the above TypeError be another type of error?
+        ::
 
             sage: R(Integers(48)(3))
             Traceback (most recent call last):
@@ -133,11 +139,13 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
 
         # todo: the error message for the above TypeError is not quite accurate
 
-        Some other conversions:
+        Some other conversions::
+
             sage: R(R(5))
             5 + O(5^11)
 
-        Construct from Pari objects:
+        Construct from Pari objects::
+
             sage: R = Zp(5)
             sage: x = pari(123123) ; R(x)
             3 + 4*5 + 4*5^2 + 4*5^3 + 5^4 + 4*5^5 + 2*5^6 + 5^7 + O(5^20)
@@ -768,7 +776,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             sage: a = ZpCR(5)(-3)
             sage: type(a)
             <type 'sage.rings.padics.padic_capped_relative_element.pAdicCappedRelativeElement'>
-            sage: loads(dumps(a)) == a
+            sage: loads(dumps(a)) == a  # indirect doctest
             True
         """
         # Necessary for pickling.  See integer.pyx for more info.
@@ -788,7 +796,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             sage: b = R(21)
             sage: a == b
             False
-            sage: a < b
+            sage: a < b   # indirect doctest
             True
         """
         return (<Element>left)._richcmp(right, op)
@@ -797,7 +805,8 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         """
         Negation.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = Zp(5, 20, 'capped-rel', 'val-unit')
             sage: -R(1) # indirect doctest
             95367431640624 + O(5^20)
@@ -819,38 +828,52 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
 
     def __pow__(pAdicCappedRelativeElement self, _right, dummy):
         r"""
-        Returns self^right.
+        Returns self to the power of right.
 
-        Note: when right is divisible by p then one can get more precision than expected.
+        NOTE:
+
+        When right is divisible by `p` then one can get more
+        precision than expected.
+
         Lemma 2.1 (Constructing Class Fields over Local Fields, Sebastian Pauli):
         [modified from original for Qp.  See padic_ZZ_pX_CR_element for original]
         Let $\alpha$ be in $\ZZ_p$. The $p$-th power of $1 + \alpha p^{\lambda}$ satisfies
+
             (1 + \alpha p^{\lambda})^p \equiv 1 + \alpha p^{\lambda + 1} mod p^{\lambda + 2}
 
-            unless $\lambda = 1$ and $p = 2$, in which case
+        unless $\lambda = 1$ and $p = 2$, in which case
+
             (1 + 2 \alpha)^2 \equiv 1 + 4(\alpha^2 + \alpha) mod 8
 
-        So for $p \ne 2$, if right is divisible by $p^k$ then we add $k$ to the relative precision
-        of the answer.
+        So for $p \ne 2$, if right is divisible by $p^k$ then we add $k$
+        to the relative precision of the answer.
 
         For $p = 2$, if we start with something of relative precision 1 (ie $2^m + O(2^{m+1})$),
         $\alpha^2 + \alpha \equiv 0 \mod 2$, so the precision of the result is $k + 2$:
         $(2^m + O(2^{m+1}))^{2^k} = 2^{m 2^k} + O(2^{m 2^k + k + 2})
 
-        There is also the issue of $p$-adic exponents, and determining how the precision of the exponent affects the precision of the result.
-        In computing $(a + O(p^k))^{b + O(p^m)}$, we can factor out the Teichmuller part and use the above lemma to find the first spot where
-        $(1 + \alpha p^{\lambda})^(p^m)$ differs from 1.  This a relative precision of $\lambda + m$ except in the case $p = 2$ and $\lambda = 1$,
-        where it gives $m + 2$.  We compare this with the precision bound given by computing $(a + O(p^k))^b$ (ie $k + b.valuation(p)$
-        or $2 + b.valuation(2)$ if $p = 2$ and $k = 1$) and take the lesser of the two.
+        There is also the issue of $p$-adic exponents, and determining
+        how the precision of the exponent affects the precision of the
+        result.  In computing $(a + O(p^k))^{b + O(p^m)}$, we can
+        factor out the Teichmuller part and use the above lemma to
+        find the first spot where $(1 + \alpha p^{\lambda})^(p^m)$
+        differs from 1.  This a relative precision of $\lambda + m$
+        except in the case $p = 2$ and $\lambda = 1$, where it gives
+        $m + 2$.  We compare this with the precision bound given by
+        computing $(a + O(p^k))^b$ (ie $k + b.valuation(p)$ or $2 +
+        b.valuation(2)$ if $p = 2$ and $k = 1$) and take the lesser of
+        the two.
 
-        In order to do this we need to compute the valuation of (self / self.parent().teichmuller(self)) - 1.  This takes a reasonable amount of time: we cache the result
-        as __pow_level.
+        In order to do this we need to compute the valuation of (self
+        / self.parent().teichmuller(self)) - 1.  This takes a
+        reasonable amount of time: we cache the result as __pow_level.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = Zp(19, 5, 'capped-rel','series')
             sage: a = R(-1); a
             18 + 18*19 + 18*19^2 + 18*19^3 + 18*19^4 + O(19^5)
-            sage: a^2
+            sage: a^2    # indirect doctest
             1 + O(19^5)
             sage: a^3
             18 + 18*19 + 18*19^2 + 18*19^3 + 18*19^4 + O(19^5)
@@ -987,7 +1010,8 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         """
         Adds self and right.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = Zp(19, 5, 'capped-rel','series')
             sage: a = R(-1); a
             18 + 18*19 + 18*19^2 + 18*19^3 + 18*19^4 + O(19^5)
@@ -1044,10 +1068,11 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         r"""
         Returns the multiplicative inverse of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = Qp(7,4,'capped-rel','series'); a = R(3); a
             3 + O(7^4)
-            sage: ~a
+            sage: ~a   # indirect doctest
             5 + 4*7 + 4*7^2 + 4*7^3 + O(7^4)
         """
         self._normalize()
@@ -1070,13 +1095,15 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
     def __floordiv__(pAdicCappedRelativeElement self, right):
         """
         If a,b are p-adic integers, then floordiv (//) satisfies the following equation:
-        a%b + b*(a//b) == a
 
-        EXAMPLES:
+        ``a%b + b*(a//b) == a``
+
+        EXAMPLES::
+
             sage: r = Zp(19)
             sage: a = r(1+19+17*19^3+5*19^4); b = r(19^3); a/b
             19^-3 + 19^-2 + 17 + 5*19 + O(19^17)
-            sage: a//b
+            sage: a//b     # indirect doctest
             17 + 5*19 + O(19^17)
 
             sage: R = Zp(19, 5, 'capped-rel','series')
@@ -1379,15 +1406,14 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         Returns a new element with absolute precision decreased to
         absprec.
 
-        INPUT::
+        INPUT:
 
-            self -- a p-adic element
-            absprec -- an integer
+        - self -- a p-adic element
+        - absprec -- an integer
 
-        OUTPUT::
+        OUTPUT:
 
-            element -- self with precision set to the minimum of
-                       self's precision and absprec
+        element -- self with precision set to the minimum of self's precision and absprec
 
         EXAMPLE::
 
@@ -1509,14 +1535,14 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
 
         If absprec is None, returns True if this element is indistinguishable from zero.
 
-        INPUT::
+        INPUT:
 
-            - self -- a p-adic element
-            - absprec -- an integer or None
+        - self -- a p-adic element
+        - absprec -- an integer or None
 
-        OUTPUT::
+        OUTPUT:
 
-            - boolean -- whether self is zero
+        - boolean -- whether self is zero
 
         EXAMPLES::
 
@@ -1742,13 +1768,13 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         precision.  If a rational is returned, its denominator will
         eqaul p^ordp(self).
 
-        INPUT::
+        INPUT:
 
-            - self -- a p-adic element
+        - self -- a p-adic element
 
-        OUTPUT::
+        OUTPUT:
 
-            - integer -- a integer congruent to self mod $p^{\mbox{prec}}$
+        - integer -- a integer congruent to self mod $p^{\mbox{prec}}$
 
         EXAMPLES::
 
@@ -1799,9 +1825,13 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
 
     def lift_to_precision(self, absprec):
         """
-        Returns another element of the same parent, with absolute precision at least absprec, congruent to self modulo self's precision.
+        Returns another element of the same parent, with absolute
+        precision at least absprec, congruent to self modulo self's
+        precision.
 
-        If such lifting would yield an element with precision greater than allowed by the precision cap of self's parent, an error is raised.
+        If such lifting would yield an element with precision greater
+        than allowed by the precision cap of self's parent, an error
+        is raised.
 
         EXAMPLES::
 
@@ -1829,7 +1859,9 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
 
     cdef pAdicCappedRelativeElement lift_to_precision_c(pAdicCappedRelativeElement self, long absprec):
         """
-        Returns another element of the same parent, with absolute precision at least absprec, congruent to self modulo self's precision.
+        Returns another element of the same parent, with absolute
+        precision at least absprec, congruent to self modulo self's
+        precision.
 
         EXAMPLES::
 
@@ -1898,16 +1930,20 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
 
     def list(self, lift_mode = 'simple'):
         """
-        Returns a list of coefficients in a power series expansion of self in terms of p.  If self is a field element, they start at p^valuation, if a ring element at p^0.
+        Returns a list of coefficients in a power series expansion of
+        self in terms of p.  If self is a field element, they start at
+        p^valuation, if a ring element at p^0.
 
-        INPUT::
+        INPUT:
 
-            - self -- a p-adic element
-            - lift_mode - 'simple', 'smallest' or 'teichmuller'
+        - self -- a p-adic element
+        - lift_mode - 'simple', 'smallest' or 'teichmuller'
 
-        OUTPUT::
+        OUTPUT:
 
-            - list -- the list of coefficients of self.  These will be integers if lift_mode is 'simple' or 'smallest', and elements of self.parent() if lift_mode is 'teichmuller'
+        - list -- the list of coefficients of self.  These will be integers if lift_mode
+          is 'simple' or 'smallest', and elements of self.parent() if lift_mode is
+          'teichmuller'.
 
         EXAMPLES::
 
@@ -1941,9 +1977,9 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             3 + 4*7 + O(7^2),
             3 + O(7)]
 
-        NOTE::
+        NOTE:
 
-            use slice operators to get a particular range
+        Use slice operators to get a particular range.
 
         """
         cdef Integer ordp, zeron
@@ -1973,6 +2009,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
     cdef teichmuller_list(pAdicCappedRelativeElement self):
         r"""
         Returns a list [$a_0$, $a_1$,..., $a_n$] such that
+
             - $a_i^p = a_i$
             - self.unit_part() = $\sum_{i = 0}^n a_i p^i$
             - if $a_i \ne 0$, the absolute precision of $a_i$ is self.precision_relative() - i
@@ -2026,15 +2063,15 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         $p^n$ exclusive (padded with zeros if needed).  If a field
         element, starts at p^val instead.
 
-        INPUT::
+        INPUT:
 
-            self -- a p-adic element
-            n - an integer
-            lift_mode - 'simple', 'smallest' or 'teichmuller'
+        - self -- a p-adic element
+        - n - an integer
+        - lift_mode - 'simple', 'smallest' or 'teichmuller'
 
-        OUTPUT::
+        OUTPUT:
 
-            list -- the list of coefficients of self
+        list -- the list of coefficients of self
 
         EXAMPLES::
 
@@ -2045,9 +2082,9 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             sage: a.padded_list(3)
             [2, 1]
 
-        NOTE::
+        NOTE:
 
-            the slice operators throw an error if asked for a slice above the precision
+        The slice operators throw an error if asked for a slice above the precision.
         """
         if lift_mode == 'simple' or lift_mode == 'smallest':
             zero = Integer(0)
@@ -2068,13 +2105,13 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
 
         This is the power of the maximal ideal modulo which this element is defined.
 
-        INPUT::
+        INPUT:
 
-            self -- a p-adic element
+        self -- a p-adic element
 
-        OUTPUT::
+        OUTPUT:
 
-            integer -- the absolute precision of self
+        integer -- the absolute precision of self
 
         EXAMPLES::
 
@@ -2099,10 +2136,15 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         This is the power of the maximal ideal modulo which the unit part of self is defined.
 
         INPUT:
-            self -- a p-adic element
+
+        self -- a p-adic element
+
         OUTPUT:
-            integer -- the relative precision of self
-        EXAMPLES:
+
+        integer -- the relative precision of self
+
+        EXAMPLES::
+
             sage: R = Zp(7,3,'capped-rel'); a = R(7); a.precision_relative()
             3
             sage: R = Qp(7,3); a = R(7); a.precision_relative()
@@ -2125,14 +2167,14 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         """
         Reduces this element modulo $p^{\mbox{absprec}}$.
 
-        INPUT::
+        INPUT:
 
-            - self -- a p-adic element
-            - absprec - an integer (defaults to 1)
+        - self -- a p-adic element
+        - absprec - an integer (defaults to 1)
 
-        OUTPUT::
+        OUTPUT:
 
-            - element of $Z/(p^{absprec} Z)$ -- self reduced mod p^absprec
+        Element of $Z/(p^{absprec} Z)$ -- self reduced mod p^absprec
 
         EXAMPLES::
 
@@ -2182,13 +2224,13 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         r"""
         Returns the unit part of self.
 
-        INPUT::
+        INPUT:
 
-            - self -- a p-adic element
+        - self -- a p-adic element
 
-        OUTPUT::
+        OUTPUT:
 
-            - p-adic element -- the unit part of self
+        - p-adic element -- the unit part of self
 
         EXAMPLES::
 
@@ -2303,7 +2345,10 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         """
         Sets self to be the Teichmuller representative with the same residue as self.
 
-        WARNING: This function modifies self, which is not safe.  Elements are supposed to be immutable.
+        WARNING:
+
+        This function modifies self, which is not safe.  Elements are
+        supposed to be immutable.
 
         EXAMPLES::
 

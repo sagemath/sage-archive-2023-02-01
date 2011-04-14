@@ -125,15 +125,15 @@ You can get at the underlying ntl representation::
     sage: y._ntl_rep_abs()
     ([5 95367431640505 25 95367431640560 5], 0)
 
-NOTES::
+NOTES:
 
-    If you get an error 'internal error: can't grow this
-    _ntl_gbigint,' it indicates that moduli are being mixed
-    inappropriately somewhere.
+If you get an error 'internal error: can't grow this
+_ntl_gbigint,' it indicates that moduli are being mixed
+inappropriately somewhere.
 
-    For example, when calling a function with a ZZ_pX_c as an
-    argument, it copies.  If the modulus is not set to the modulus of
-    the ZZ_pX_c, you can get errors.
+For example, when calling a function with a ZZ_pX_c as an
+argument, it copies.  If the modulus is not set to the modulus of
+the ZZ_pX_c, you can get errors.
 
 AUTHORS:
 
@@ -181,7 +181,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         """
         Creates an element of a capped absolute precision, unramified or eisenstein extension of Zp or Qp.
 
-        INPUT::
+        INPUT:
 
         - ``parent`` -- either an ``EisensteinRingCappedAbsolute`` or
           ``UnramifiedRingCappedAbsolute``

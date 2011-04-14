@@ -54,7 +54,8 @@ SetPartitionsAk = functools.partial(create_set_partition_function,"A")
 SetPartitionsAk.__doc__ = """
 Returns the combinatorial class of set partitions of type A_k.
 
-EXAMPLES:
+EXAMPLES::
+
     sage: A3 = SetPartitionsAk(3); A3
     Set partitions of {1, ..., 3, -1, ..., -3}
 
@@ -199,7 +200,8 @@ Returns the combinatorial class of set partitions of type S_k.  There
 is a bijection between these set partitions and the permutations
 of 1, ..., k.
 
-EXAMPLES:
+EXAMPLES::
+
     sage: S3 = SetPartitionsSk(3); S3
     Set partitions of {1, ..., 3, -1, ..., -3} with propagating number 3
     sage: S3.cardinality()
@@ -388,7 +390,8 @@ are set partitions with a propagating number of less than k.  Note
 that the identity set partition {{1, -1}, ..., {k, -k}} is not
 in I_k.
 
-EXAMPLES:
+EXAMPLES::
+
     sage: I3 = SetPartitionsIk(3); I3
     Set partitions of {1, ..., 3, -1, ..., -3} with propagating number < 3
     sage: I3.cardinality()
@@ -539,7 +542,8 @@ SetPartitionsBk.__doc__ = """
 Returns the combinatorial class of set partitions of type B_k.
 These are the set partitions where every block has size 2.
 
-EXAMPLES:
+EXAMPLES::
+
     sage: B3 = SetPartitionsBk(3); B3
     Set partitions of {1, ..., 3, -1, ..., -3} with block size 2
 
@@ -740,31 +744,31 @@ SetPartitionsPk.__doc__ = """
 Returns the combinatorial class of set partitions of type P_k.
 These are the planar set partitions.
 
+EXAMPLES::
 
-sage: P3 = SetPartitionsPk(3); P3
-Set partitions of {1, ..., 3, -1, ..., -3} that are planar
-sage: P3.cardinality()
-132
+    sage: P3 = SetPartitionsPk(3); P3
+    Set partitions of {1, ..., 3, -1, ..., -3} that are planar
+    sage: P3.cardinality()
+    132
 
-sage: P3.first() #random
-{{1, 2, 3, -1, -3, -2}}
-sage: P3.last() #random
-{{-1}, {-2}, {3}, {1}, {-3}, {2}}
-sage: P3.random_element() #random
-{{1, 2, -1}, {-3}, {3, -2}}
+    sage: P3.first() #random
+    {{1, 2, 3, -1, -3, -2}}
+    sage: P3.last() #random
+    {{-1}, {-2}, {3}, {1}, {-3}, {2}}
+    sage: P3.random_element() #random
+    {{1, 2, -1}, {-3}, {3, -2}}
 
-sage: P2p5 = SetPartitionsPk(2.5); P2p5
-Set partitions of {1, ..., 3, -1, ..., -3} with 3 and -3 in the same block and that are planar
-sage: P2p5.cardinality()
-42
+    sage: P2p5 = SetPartitionsPk(2.5); P2p5
+    Set partitions of {1, ..., 3, -1, ..., -3} with 3 and -3 in the same block and that are planar
+    sage: P2p5.cardinality()
+    42
 
-sage: P2p5.first() #random
-{{1, 2, 3, -1, -3, -2}}
-sage: P2p5.last() #random
-{{-1}, {-2}, {2}, {3, -3}, {1}}
-sage: P2p5.random_element() #random
-{{1, 2, 3, -3}, {-1, -2}}
-
+    sage: P2p5.first() #random
+    {{1, 2, 3, -1, -3, -2}}
+    sage: P2p5.last() #random
+    {{-1}, {-2}, {2}, {3, -3}, {1}}
+    sage: P2p5.random_element() #random
+    {{1, 2, 3, -3}, {-1, -2}}
 
 """
 class SetPartitionsPk_k(SetPartitionsAk_k):
@@ -900,27 +904,29 @@ SetPartitionsTk.__doc__ = """
 Returns the combinatorial class of set partitions of type T_k.
 These are planar set partitions where every block is of size 2.
 
-sage: T3 = SetPartitionsTk(3); T3
-Set partitions of {1, ..., 3, -1, ..., -3} with block size 2 and that are planar
-sage: T3.cardinality()
-5
+EXAMPLES::
 
-sage: T3.first() #random
-{{1, -3}, {2, 3}, {-1, -2}}
-sage: T3.last() #random
-{{1, 2}, {3, -1}, {-3, -2}}
-sage: T3.random_element() #random
-{{1, -3}, {2, 3}, {-1, -2}}
+    sage: T3 = SetPartitionsTk(3); T3
+    Set partitions of {1, ..., 3, -1, ..., -3} with block size 2 and that are planar
+    sage: T3.cardinality()
+    5
 
-sage: T2p5 = SetPartitionsTk(2.5); T2p5
-Set partitions of {1, ..., 3, -1, ..., -3} with 3 and -3 in the same block and with block size 2 and that are planar
-sage: T2p5.cardinality()
-2
+    sage: T3.first() #random
+    {{1, -3}, {2, 3}, {-1, -2}}
+    sage: T3.last() #random
+    {{1, 2}, {3, -1}, {-3, -2}}
+    sage: T3.random_element() #random
+    {{1, -3}, {2, 3}, {-1, -2}}
 
-sage: T2p5.first() #random
-{{2, -2}, {3, -3}, {1, -1}}
-sage: T2p5.last() #random
-{{1, 2}, {3, -3}, {-1, -2}}
+    sage: T2p5 = SetPartitionsTk(2.5); T2p5
+    Set partitions of {1, ..., 3, -1, ..., -3} with 3 and -3 in the same block and with block size 2 and that are planar
+    sage: T2p5.cardinality()
+    2
+
+    sage: T2p5.first() #random
+    {{2, -2}, {3, -3}, {1, -1}}
+    sage: T2p5.last() #random
+    {{1, 2}, {3, -3}, {-1, -2}}
 
 """
 class SetPartitionsTk_k(SetPartitionsBk_k):
@@ -1821,4 +1827,3 @@ def set_partition_composition(sp1, sp2):
 
 
     return ( Set(res), total_removed )
-

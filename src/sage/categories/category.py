@@ -129,6 +129,8 @@ class Category(UniqueRepresentation, SageObject):
     - Cs(): the category of multiplicative monoids
     - Ds(): the category of rings
 
+    ::
+
         sage: from sage.categories.all import Category
         sage: from sage.misc.lazy_attribute import lazy_attribute
         sage: class As (Category):
@@ -171,7 +173,7 @@ class Category(UniqueRepresentation, SageObject):
         ...
 
     Categories should always have uniq representation. We check
-    this before proceeding:
+    this before proceeding::
 
         sage: id(As()) == id(As())
         True
@@ -182,12 +184,15 @@ class Category(UniqueRepresentation, SageObject):
     Ds().parent_class, and check that it has access to all the
     methods provided by all the categories, with the appropriate
     inheritance order.
+    ::
 
         sage: D = Ds().parent_class()
         sage: [ D.fA(), D.fB(), D.fC(), D.fD() ]
         ['A', 'B', 'C', 'D']
         sage: D.f()
         'C'
+
+    ::
 
         sage: C = Cs().parent_class()
         sage: [ C.fA(), C.fC() ]
@@ -196,7 +201,7 @@ class Category(UniqueRepresentation, SageObject):
         'C'
 
     Here is the parallel hierarchy of classes which has been built
-    automatically, together with the method resolution order (.mro())::
+    automatically, together with the method resolution order (``.mro()``)::
 
         sage: As().parent_class
         <class '__main__.As.parent_class'>
@@ -205,6 +210,8 @@ class Category(UniqueRepresentation, SageObject):
         sage: As().parent_class.mro()
         [<class '__main__.As.parent_class'>, <type 'object'>]
 
+    ::
+
         sage: Bs().parent_class
         <class '__main__.Bs.parent_class'>
         sage: Bs().parent_class.__bases__
@@ -212,12 +219,16 @@ class Category(UniqueRepresentation, SageObject):
         sage: Bs().parent_class.mro()
         [<class '__main__.Bs.parent_class'>, <class '__main__.As.parent_class'>, <type 'object'>]
 
+    ::
+
         sage: Cs().parent_class
         <class '__main__.Cs.parent_class'>
         sage: Cs().parent_class.__bases__
         (<class '__main__.As.parent_class'>,)
         sage: Cs().parent_class.__mro__
         (<class '__main__.Cs.parent_class'>, <class '__main__.As.parent_class'>, <type 'object'>)
+
+    ::
 
         sage: Ds().parent_class
         <class '__main__.Ds.parent_class'>
@@ -241,7 +252,7 @@ class Category(UniqueRepresentation, SageObject):
         sage: Coalgebras(QQ).parent_class is Coalgebras(FractionField(QQ[x])).parent_class # todo: not implemented
         True
 
-    We now construct a parent in the usual way:
+    We now construct a parent in the usual way::
 
         sage: class myparent(Parent):
         ...       def __init__(self):
@@ -279,6 +290,8 @@ class Category(UniqueRepresentation, SageObject):
         sage: D.g()
         'myparent'
 
+    ::
+
         sage: D.element_class
         <class '__main__.myparent_with_category.element_class'>
         sage: D.element_class.mro()
@@ -312,6 +325,7 @@ class Category(UniqueRepresentation, SageObject):
         Initializes this category.
 
         INPUT:
+
         - s -- A string giving the name of this category.  If None,
           the name is determined from the name of the class.
 
@@ -356,7 +370,6 @@ class Category(UniqueRepresentation, SageObject):
 
             sage: FiniteGroups()._repr_object_names()
             'finite groups'
-
             sage: AlgebrasWithBasis(QQ)._repr_object_names()
             'algebras with basis over Rational Field'
         """
@@ -390,7 +403,7 @@ class Category(UniqueRepresentation, SageObject):
             Category of rings
 
         Parametrized categories should overload this default
-        implementation to provide appropriate arguments:
+        implementation to provide appropriate arguments::
 
             sage: Algebras.an_instance()
             Category of algebras over Rational Field
@@ -445,7 +458,7 @@ class Category(UniqueRepresentation, SageObject):
         return "Category of %s"%self._repr_object_names()
 
     def _latex_(self):
-        """
+        r"""
         Returns the latex representation of this category.
 
         EXAMPLES::
@@ -692,6 +705,8 @@ class Category(UniqueRepresentation, SageObject):
             sage: Rings().is_subcategory(CatJ)
             True
 
+        ::
+
             sage: V3 = VectorSpaces(FiniteField(3))
             sage: POSet = PartiallyOrderedSets()
             sage: PoV3 = Category.join((V3, POSet))
@@ -716,7 +731,9 @@ class Category(UniqueRepresentation, SageObject):
 
          - ``category`` - a sub category of ``self``, tuple/list thereof, or None
 
-        OUTPUT: a category
+        OUTPUT:
+
+        a category
 
         Returns ``category`` or ``self`` if ``category`` is None.
 
@@ -733,6 +750,7 @@ class Category(UniqueRepresentation, SageObject):
             Join of Category of finite enumerated sets and Category of groups
 
         An error if raised if category is not a subcategory of ``self``.
+        ::
 
             sage: Monoids().or_subcategory(EnumeratedSets())
             Traceback (most recent call last):
@@ -805,10 +823,10 @@ class Category(UniqueRepresentation, SageObject):
 
         FIXME:
 
-         - If A is a subcategory of B, A has *more* structure than B,
-           but then *less* objects in there. We should choose an
-           appropriate convention for A<B. Using subcategory calls
-           for A<B, but the current meet and join call for A>B.
+        - If A is a subcategory of B, A has *more* structure than B,
+          but then *less* objects in there. We should choose an
+          appropriate convention for A<B. Using subcategory calls
+          for A<B, but the current meet and join call for A>B.
         """
         if self is other: # useful? fast pathway
             return self
@@ -824,7 +842,7 @@ class Category(UniqueRepresentation, SageObject):
 
         INPUT:
 
-         - ``categories`` - a non empty list (or iterable) of categories
+        - ``categories`` - a non empty list (or iterable) of categories
 
         EXAMPLES::
 
@@ -854,8 +872,8 @@ class Category(UniqueRepresentation, SageObject):
 
         INPUT:
 
-         - a sequence of categories (FIXME: should this be a list or iterable?)
-         - as_list: a boolean, False by default (keyword only)
+        - a sequence of categories (FIXME: should this be a list or iterable?)
+        - as_list: a boolean, False by default (keyword only)
 
         EXAMPLES::
 
@@ -1040,6 +1058,7 @@ class Category(UniqueRepresentation, SageObject):
         Returns an object in this category. Most of the time, this is a parent.
 
         This serves three purposes:
+
          - Give a typical example to better explain what the category is all about.
            (and by the way prove that the category is non empty :-) )
          - Provide a minimal template for implementing other objects in this category
@@ -1101,7 +1120,8 @@ def category_graph(categories = None):
     Returns the graph of the categories in Sage
 
     INPUT:
-     - ``categories`` -- a list (or iterable) of categories
+
+    - ``categories`` -- a list (or iterable) of categories
 
     If ``categories`` is specified, then the graph will contain the
     mentionned categories together with all their super
@@ -1241,8 +1261,11 @@ class AbstractCategory(Category):
         Initializes this AbstractCategory
 
         INPUT:
+
         - ``category`` -- the category of which this category forms the abstract category.
         - ``name`` -- An optional name for this category.
+
+        TESTS::
 
             sage: C = sage.categories.category.AbstractCategory(Sets())
             sage: C

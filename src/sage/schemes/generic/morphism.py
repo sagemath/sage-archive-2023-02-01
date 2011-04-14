@@ -105,9 +105,11 @@ class SchemeMorphism(PyMorphism):
         Assuming that self and other are open immersions with the same
         domain, return scheme obtained by gluing along the images.
 
-        EXAMPLES: We construct a scheme isomorphic to the projective line
-        over `\mathrm{Spec}(\QQ)` by gluing two copies of
-        `\mathbb{A}^1` minus a point.
+        EXAMPLES:
+
+        We construct a scheme isomorphic to the projective line over
+        `\mathrm{Spec}(\QQ)` by gluing two copies of `\mathbb{A}^1`
+        minus a point.
 
         ::
 
@@ -177,8 +179,8 @@ class SchemeMorphism_structure_map(SchemeMorphism):
         """
         INPUT:
 
-           - ``parent`` - homset with codomain equal to the base
-            scheme of the domain.
+        - ``parent`` - homset with codomain equal to the base
+          scheme of the domain.
         """
         SchemeMorphism.__init__(self, parent)
         if self.domain().base_scheme() != self.codomain():
@@ -263,7 +265,9 @@ class SchemeMorphism_on_points(SchemeMorphism):
     A morphism of schemes determined by rational functions that define
     what the morphism does on points in the ambient space.
 
-    EXAMPLES: An example involving the affine plane::
+    EXAMPLES:
+
+    An example involving the affine plane::
 
         sage: R.<x,y> = QQ[]
         sage: A2 = AffineSpace(R)

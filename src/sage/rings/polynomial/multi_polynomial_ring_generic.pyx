@@ -37,7 +37,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             sage: cr['x,y']
             Multivariate Polynomial Ring in x, y over ...
 
-        TESTS::
+        TESTS:
 
         Check that containment works correctly (ticket #10355)::
 
@@ -146,6 +146,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
           ring.
 
         TESTS:
+
         This fairly complicated code (from Michel Vandenbergh) ends up
         implicitly calling ``_coerce_c_impl``::
 

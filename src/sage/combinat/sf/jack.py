@@ -617,8 +617,7 @@ class ZonalPolynomials(JackPolynomials_p):
         """
         EXAMPLES::
 
-        sage: Z = ZonalPolynomials(QQ)
-
+            sage: Z = ZonalPolynomials(QQ)
             sage: P = Z._P; P
             Jack polynomials in the P basis with t=2 over Rational Field
             sage: Z(P[2,1] + 2*P[3,1])

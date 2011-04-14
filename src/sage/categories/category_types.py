@@ -29,7 +29,8 @@ class Elements(Category):
     """
     The category of all elements of a given parent.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: a = IntegerRing()(5)
         sage: C = a.category(); C
         Category of elements of Integer Ring
@@ -59,7 +60,8 @@ class Elements(Category):
 
     def _call_(self, x):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: V = VectorSpace(QQ,3)
             sage: x = V.0
             sage: C = x.category()
@@ -80,7 +82,9 @@ class Elements(Category):
             sage: Elements(ZZ).super_categories()
             [Category of objects]
 
-          TODO: check that this is what we want:
+        TODO:
+
+        check that this is what we want.
         """
         from objects import Objects
         return [Objects()]
@@ -95,7 +99,7 @@ class Elements(Category):
         return "elements of %s"%self.object()
 
     def _latex_(self):
-        """
+        r"""
         EXAMPLES::
 
             sage: V = VectorSpace(QQ,3)
@@ -113,7 +117,7 @@ class Sequences(Category):
     """
     The category of sequences of elements of a given object.
 
-    This category is deprecated
+    This category is deprecated.
 
     EXAMPLES::
 
@@ -127,8 +131,8 @@ class Sequences(Category):
         True
 
         True
-            sage: Sequences(ZZ).category()
-            Category of objects
+        sage: Sequences(ZZ).category()
+        Category of objects
     """
     def __init__(self, object):
         Category.__init__(self)
@@ -184,7 +188,7 @@ class Sequences(Category):
         return "sequences in %s"%self.object()
 
     def _latex_(self):
-        """
+        r"""
         EXAMPLES::
 
             sage: v = Sequence([1,2,3])
@@ -227,7 +231,7 @@ class Category_over_base(Category):
         return Category._repr_object_names(self) + " over %s"%self.__base
 
     def _latex_(self):
-        """
+        r"""
         EXAMPLES::
 
             sage: latex(ModulesWithBasis(QQ))

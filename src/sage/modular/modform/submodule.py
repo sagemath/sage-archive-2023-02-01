@@ -1,7 +1,8 @@
 """
 Submodules of spaces of modular forms
 
-EXAMPLES:
+EXAMPLES::
+
     sage: M = ModularForms(Gamma1(13),2); M
     Modular Forms space of dimension 13 for Congruence Subgroup Gamma1(13) of weight 2 over Rational Field
     sage: M.eisenstein_subspace()
@@ -31,13 +32,16 @@ class ModularFormsSubmodule(space.ModularFormsSpace,
     """
     def __init__(self, ambient_module, submodule, dual=None, check=False):
         """
-            ambient_module -- ModularFormsSpace
-            submodule -- a submodule of the ambient space.
-            dual_module -- (default: None) ignored
-            check -- (default: False) whether to check that the
-                     submodule is Hecke equivariant
+        INPUT:
 
-        EXAMPLES:
+        - ambient_module -- ModularFormsSpace
+        - submodule -- a submodule of the ambient space.
+        - dual_module -- (default: None) ignored
+        - check -- (default: False) whether to check that the
+                   submodule is Hecke equivariant
+
+        EXAMPLES::
+
           sage: M = ModularForms(Gamma1(13),2); M
           Modular Forms space of dimension 13 for Congruence Subgroup Gamma1(13) of weight 2 over Rational Field
           sage: M.eisenstein_subspace()
@@ -51,7 +55,8 @@ class ModularFormsSubmodule(space.ModularFormsSpace,
 
     def _repr_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
           sage: ModularForms(Gamma1(13),2).eisenstein_subspace()._repr_()
           'Eisenstein subspace of dimension 11 of Modular Forms space of dimension 13 for Congruence Subgroup Gamma1(13) of weight 2 over Rational Field'
         """
@@ -64,7 +69,8 @@ class ModularFormsSubmodule(space.ModularFormsSpace,
 
         TODO: Implement this function.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: M = ModularForms(6,4).cuspidal_subspace()
             sage: M._compute_coefficients( M.basis()[0], range(1,100) )
             Traceback (most recent call last):
@@ -77,24 +83,24 @@ class ModularFormsSubmodule(space.ModularFormsSpace,
         """
         Compute q_expansions to precision prec for each element in self.basis().
 
-        sage: M = ModularForms(Gamma1(13),2); M
-        Modular Forms space of dimension 13 for Congruence Subgroup Gamma1(13) of weight 2 over Rational Field
+        EXAMPLES::
 
-        sage: S = M.eisenstein_subspace(); S
-        Eisenstein subspace of dimension 11 of Modular Forms space of dimension 13 for Congruence Subgroup Gamma1(13) of weight 2 over Rational Field
-
-        sage: S._compute_q_expansion_basis(5)
-        [1 + O(q^5),
-        q + O(q^5),
-        q^2 + O(q^5),
-        q^3 + O(q^5),
-        q^4 + O(q^5),
-        O(q^5),
-        O(q^5),
-        O(q^5),
-        O(q^5),
-        O(q^5),
-        O(q^5)]
+            sage: M = ModularForms(Gamma1(13),2); M
+            Modular Forms space of dimension 13 for Congruence Subgroup Gamma1(13) of weight 2 over Rational Field
+            sage: S = M.eisenstein_subspace(); S
+            Eisenstein subspace of dimension 11 of Modular Forms space of dimension 13 for Congruence Subgroup Gamma1(13) of weight 2 over Rational Field
+            sage: S._compute_q_expansion_basis(5)
+            [1 + O(q^5),
+             q + O(q^5),
+             q^2 + O(q^5),
+             q^3 + O(q^5),
+             q^4 + O(q^5),
+             O(q^5),
+             O(q^5),
+             O(q^5),
+             O(q^5),
+             O(q^5),
+             O(q^5)]
         """
         A = self.ambient_module()
         return [A._q_expansion(element = f.element(), prec=prec) for f in self.basis()]

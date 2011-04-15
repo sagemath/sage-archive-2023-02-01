@@ -307,7 +307,6 @@ from sage.misc.prandom import random
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 from sage.rings.rational import Rational
-from sage.groups.perm_gps.partn_ref.refinement_graphs import isomorphic, search_tree
 from generic_graph_pyx import GenericGraph_pyx, spring_layout_fast
 from sage.graphs.dot2tex_utils import assert_have_dot2tex
 
@@ -16531,6 +16530,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.is_isomorphic(gg)
             False
         """
+        from sage.groups.perm_gps.partn_ref.refinement_graphs import isomorphic
         possible = True
         if self._directed != other._directed:
             possible = False
@@ -16681,7 +16681,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.canonical_label(edge_labels=True,certify=True)
             (Graph on 5 vertices, {0: 4, 1: 3, 2: 0, 3: 1, 4: 2})
         """
-        import sage.groups.perm_gps.partn_ref.refinement_graphs
         from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
         from copy import copy
 

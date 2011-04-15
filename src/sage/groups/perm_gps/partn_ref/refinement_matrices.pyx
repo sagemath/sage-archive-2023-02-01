@@ -46,10 +46,8 @@ cdef class MatrixStruct:
         num_rows = <int *> sage_malloc(self.nsymbols * sizeof(int))
         self.temp_col_ps = PS_new(self.degree, 1)
         if num_rows is NULL or self.temp_col_ps is NULL:
-            if num_rows is not NULL:
-                sage_free(num_rows)
-            if self.temp_col_ps is not NULL:
-                PS_dealloc(self.temp_col_ps)
+            sage_free(num_rows)
+            PS_dealloc(self.temp_col_ps)
             raise MemoryError
 
         for i from 0 <= i < self.nsymbols:
@@ -81,10 +79,7 @@ cdef class MatrixStruct:
     def __dealloc__(self):
         PS_dealloc(self.temp_col_ps)
         if self.output is not NULL:
-            sage_free(self.output.generators)
-            SC_dealloc(self.output.group)
-            sage_free(self.output.relabeling)
-            sage_free(self.output)
+            deallocate_agcl_output(self.output)
 
     def display(self):
         """
@@ -161,7 +156,7 @@ cdef class MatrixStruct:
         if part is NULL:
             raise MemoryError
 
-        self.output = get_aut_gp_and_can_lab(<void *> self, part, self.degree, &all_matrix_children_are_equivalent, &refine_matrix, &compare_matrices, 1, NULL)
+        self.output = get_aut_gp_and_can_lab(<void *> self, part, self.degree, &all_matrix_children_are_equivalent, &refine_matrix, &compare_matrices, 1, NULL, NULL, NULL)
 
         PS_dealloc(part)
 
@@ -233,24 +228,25 @@ cdef class MatrixStruct:
             S_temp.first_time = 1
         part = PS_new(n, 1)
         ordering = <int *> sage_malloc(self.degree * sizeof(int))
-        if part is NULL or ordering is NULL:
-            if part is not NULL: PS_dealloc(part)
-            if ordering is not NULL: sage_free(ordering)
+        output = <int *> sage_malloc(self.degree * sizeof(int))
+        if part is NULL or ordering is NULL or output is NULL:
+            PS_dealloc(part)
+            sage_free(ordering)
+            sage_free(output)
             raise MemoryError
         for i from 0 <= i < self.degree:
             ordering[i] = i
 
-        output = double_coset(<void *> self, <void *> other, part, ordering, self.degree, &all_matrix_children_are_equivalent, &refine_matrix, &compare_matrices, NULL)
+        cdef bint isomorphic = double_coset(<void *> self, <void *> other, part, ordering, self.degree, &all_matrix_children_are_equivalent, &refine_matrix, &compare_matrices, NULL, NULL, output)
 
         PS_dealloc(part)
         sage_free(ordering)
-
-        if output is NULL:
-            return False
-        else:
+        if isomorphic:
             output_py = [output[i] for i from 0 <= i < self.degree]
-            sage_free(output)
-            return output_py
+        else:
+            output_py = False
+        sage_free(output)
+        return output_py
 
 cdef int refine_matrix(PartitionStack *PS, void *S, int *cells_to_refine_by, int ctrb_len):
     cdef MatrixStruct M = <MatrixStruct> S
@@ -265,7 +261,7 @@ cdef int refine_matrix(PartitionStack *PS, void *S, int *cells_to_refine_by, int
             changed = 0
     return invariant
 
-cdef int compare_matrices(int *gamma_1, int *gamma_2, void *S1, void *S2):
+cdef int compare_matrices(int *gamma_1, int *gamma_2, void *S1, void *S2, int degree):
     cdef MatrixStruct MS1 = <MatrixStruct> S1
     cdef MatrixStruct MS2 = <MatrixStruct> S2
     M1 = MS1.matrix
@@ -273,7 +269,7 @@ cdef int compare_matrices(int *gamma_1, int *gamma_2, void *S1, void *S2):
     cdef int i
     MM1 = Matrix(M1.base_ring(), M1.nrows(), M1.ncols(), sparse=M1.is_sparse())
     MM2 = Matrix(M2.base_ring(), M2.nrows(), M2.ncols(), sparse=M2.is_sparse())
-    for i from 0 <= i < M1.ncols():
+    for i from 0 <= i < degree:
         MM1.set_column(i, M1.column(gamma_1[i]))
         MM2.set_column(i, M2.column(gamma_2[i]))
     return cmp(sorted(MM1.rows()), sorted(MM2.rows()))

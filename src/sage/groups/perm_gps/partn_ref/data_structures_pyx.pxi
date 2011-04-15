@@ -23,7 +23,7 @@ REFERENCES:
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include '../../../misc/bitset.pxi'
+include 'sage/misc/bitset.pxi'
 
 cdef extern from "math.h":
     float log(float x)
@@ -239,12 +239,20 @@ cdef inline PartitionStack *PS_new(int n, bint unit_partition):
     PS.depth  = 0
     PS.degree = n
     if unit_partition:
-        for i from 0 <= i < n-1:
-            PS.entries[i] = i
-            PS.levels[i] = n
-        PS.entries[n-1] = n-1
-        PS.levels[n-1] = -1
+        PS_unit_partition(PS)
     return PS
+
+cdef void PS_unit_partition(PartitionStack *PS):
+    """
+    Set partition stack to a single partition with a single cell.
+    """
+    cdef int i, n = PS.degree
+    PS.depth = 0
+    for i from 0 <= i < n-1:
+        PS.entries[i] = i
+        PS.levels[i] = n
+    PS.entries[n-1] = n-1
+    PS.levels[n-1] = -1
 
 cdef inline PartitionStack *PS_copy(PartitionStack *PS):
     """
@@ -308,7 +316,7 @@ cdef PS_print(PartitionStack *PS):
     Print a visual representation of PS.
     """
     cdef int i
-    for i from 0 <= i < PS.depth + 1:
+    for i from 0 <= i <= PS.depth:
         PS_print_partition(PS, i)
     print
 
@@ -874,7 +882,7 @@ cdef inline SC_dealloc(StabilizerChain *SC):
 
 cdef StabilizerChain *SC_copy(StabilizerChain *SC, int level):
     """
-    Creates a copy of the first `level` levels of SC. Must have 0 < level <= SC.base_size.
+    Creates a copy of the first `level` levels of SC. Must have 0 < level.
 
     Returns a null pointer in case of allocation failure.
     """
@@ -979,12 +987,28 @@ cdef int SC_update(StabilizerChain *dest, StabilizerChain *source, int level):
     mpz_init(dst_order)
     SC_order(source, level, src_order)
     SC_order(dest, level, dst_order)
+    cdef int i, first_moved, b
     while mpz_cmp(dst_order, src_order):
         SC_random_element(source, level, perm)
-        if SC_insert(dest, level, perm, 1):
-            mpz_clear(dst_order)
-            mpz_clear(src_order)
-            return 1
+        i = level
+        while i < dest.base_size:
+            b = dest.base_orbits[i][0]
+            if perm[b] != b:
+                break
+            i += 1
+        else:
+            for b from 0 <= b < dest.degree:
+                if perm[b] != b:
+                    break
+            else:
+                continue
+            SC_add_base_point(dest, b)
+        first_moved = i
+        for i from level <= i <= first_moved:
+            if SC_insert_and_sift(dest, i, perm, 1, 0): # don't sift!
+                mpz_clear(dst_order)
+                mpz_clear(src_order)
+                return 1
         SC_order(dest, level, dst_order)
     mpz_clear(src_order)
     mpz_clear(dst_order)
@@ -1000,7 +1024,11 @@ cdef StabilizerChain *SC_insert_base_point(StabilizerChain *SC, int level, int p
     Returns a null pointer in case of an allocation failure.
     """
     cdef int i, b, n = SC.degree
-    cdef StabilizerChain *NEW = SC_copy(SC, level)
+    cdef StabilizerChain *NEW
+    if level > 0:
+        NEW = SC_copy(SC, level)
+    else:
+        NEW = SC_new(n)
     if NEW is NULL:
         return NULL
     SC_add_base_point(NEW, p)
@@ -1930,7 +1958,7 @@ cdef int refine_by_orbits(PartitionStack *PS, StabilizerChain *SC, int *perm_sta
     contains elements from at most one orbit, and sort the refined cells by
     their minimal cell representatives in the orbit of the group.
     """
-    cdef int start, end, level, gen_index, i, j, k, x, n = SC.degree
+    cdef int start, level, gen_index, i, j, k, x, n = SC.degree
     cdef int *gen, *min_cell_reps = SC.perm_scratch, *perm = perm_stack + n*PS.depth
     cdef OrbitPartition *OP = SC.OP_scratch
     cdef int invariant = 1
@@ -1947,20 +1975,19 @@ cdef int refine_by_orbits(PartitionStack *PS, StabilizerChain *SC, int *perm_sta
             x = PS.entries[start+i]
             x = perm[x]
             min_cell_reps[i] = OP.mcr[OP_find(OP, x)]
-            if PS.levels[start+i] <= PS.depth:
-                break
             i += 1
+            if PS.levels[start+i-1] <= PS.depth:
+                break
         invariant += sort_by_function(PS, start, min_cell_reps)
         invariant += i
         # update cells_to_refine_by
         k = start
         for j from start <= j < start+i:
             if PS.levels[j] == PS.depth:
+                k = j+1
                 cells_to_refine_by[ctrb_len[0]] = k
                 ctrb_len[0] += 1
-                k = j+1
-        start += i+1
-
+        start += i
     return invariant
 
 cdef inline int split_point_and_refine_by_orbits(PartitionStack *PS, int v,
@@ -1989,7 +2016,7 @@ cdef int compute_relabeling(StabilizerChain *group, StabilizerChain *scratch_gro
     """
     Technically, compute the INVERSE of the relabeling
     """
-    cdef int i, j, x, y, m, n = group.degree
+    cdef int i, j, x, y, m, n = group.degree, orbit_element
     cdef int *scratch = group.perm_scratch
     if SC_new_base_nomalloc(scratch_group, group, permutation, n):
         return 1
@@ -1998,12 +2025,13 @@ cdef int compute_relabeling(StabilizerChain *group, StabilizerChain *scratch_gro
     for i from 0 <= i < n:
         m = n
         for j from 0 <= j < group.orbit_sizes[i]:
-            x = relabeling[group.base_orbits[i][j]]
+            orbit_element = group.base_orbits[i][j]
+            x = relabeling[orbit_element]
             if x < m:
                 m = x
-                y = group.base_orbits[i][j]
+                y = orbit_element
         SC_invert_perm(scratch, relabeling, n)
-        SC_compose_up_to_base(group, i, y, scratch) # doesn't use group.perm_scratch
+        SC_compose_up_to_base(group, i, y, scratch)
         SC_invert_perm(relabeling, scratch, n)
     SC_invert_perm(scratch, relabeling, n)
     memcpy(relabeling, scratch, n*sizeof(int))

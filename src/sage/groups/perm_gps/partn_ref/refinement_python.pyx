@@ -355,7 +355,7 @@ class PythonObjectWrapper:
             ...    return 0
             sage: def rari(a,b,c):
             ...    return 0
-            sage: def cs(a,b,c,d):
+            sage: def cs(a,b,c,d,e):
             ...    return 0
             sage: from sage.groups.perm_gps.partn_ref.refinement_python import PythonObjectWrapper
             sage: P = PythonObjectWrapper(None, acae, rari, cs, 7) # implicit doctest
@@ -396,15 +396,15 @@ cdef int refine_and_return_invariant_python(PartitionStack *PS, void *S, int *ce
     cdef list ctrb_py = [cells_to_refine_by[i] for i from 0 <= i < ctrb_len]
     return S_obj.rari_fn(Py_PS, S_obj.obj, ctrb_py)
 
-cdef int compare_structures_python(int *gamma_1, int *gamma_2, void *S1, void *S2):
+cdef int compare_structures_python(int *gamma_1, int *gamma_2, void *S1, void *S2, int degree):
     """
     Python conversion of compare_structures function.
     """
     cdef int i
     cdef object S1_obj = <object> S1, S2_obj = <object> S2
-    cdef list gamma_1_py = [gamma_1[i] for i from 0 <= i < S1_obj.degree]
-    cdef list gamma_2_py = [gamma_2[i] for i from 0 <= i < S1_obj.degree]
-    return S1_obj.cs_fn(gamma_1_py, gamma_2_py, S1_obj.obj, S2_obj.obj)
+    cdef list gamma_1_py = [gamma_1[i] for i from 0 <= i < degree]
+    cdef list gamma_2_py = [gamma_2[i] for i from 0 <= i < degree]
+    return S1_obj.cs_fn(gamma_1_py, gamma_2_py, S1_obj.obj, S2_obj.obj, degree)
 
 def aut_gp_and_can_lab_python(S, partition, n,
     all_children_are_equivalent,
@@ -443,7 +443,7 @@ def aut_gp_and_can_lab_python(S, partition, n,
         ...    return 0
         sage: def rari(a,b,c):
         ...    return 0
-        sage: def cs(a,b,c,d):
+        sage: def cs(a,b,c,d,e):
         ...    return 0
         sage: aut_gp_and_can_lab_python(None, [[0,1,2,3],[4,5]], 6, acae, rari, cs, True, True, True)
         ([[0, 1, 3, 2, 4, 5],
@@ -471,7 +471,7 @@ def aut_gp_and_can_lab_python(S, partition, n,
         &all_children_are_equivalent_python,
         &refine_and_return_invariant_python,
         &compare_structures_python,
-        canonical_label, NULL)
+        canonical_label, NULL, NULL, NULL)
 
     list_of_gens = []
     for i from 0 <= i < output.num_gens:
@@ -486,11 +486,7 @@ def aut_gp_and_can_lab_python(S, partition, n,
         SC_order(output.group, 0, I.value)
         return_tuple.append(I)
     PS_dealloc(part)
-    sage_free(output.generators)
-    SC_dealloc(output.group)
-    if canonical_label:
-        sage_free(output.relabeling)
-    sage_free(output)
+    deallocate_agcl_output(output)
     if len(return_tuple) == 1:
         return return_tuple[0]
     else:
@@ -529,12 +525,12 @@ def double_coset_python(S1, S2, partition1, ordering2, n,
         ...    return 0
         sage: def rari(a,b,c):
         ...    return 0
-        sage: def cs(a,b,c,d):
+        sage: def cs(a,b,c,d,e):
         ...    return 0
         sage: double_coset_python(None, None, [[0,1,2,3],[4,5]], [2,3,1,5,0,4], 6, acae, rari, cs)
         [1, 2, 3, 5, 0, 4]
 
-        sage: def compare_lists(p1,p2,l1,l2):
+        sage: def compare_lists(p1,p2,l1,l2,deg):
         ...    for i in xrange(len(l1)):
         ...        j = cmp(l1[p1[i]], l2[p2[i]])
         ...        if j != 0: return j
@@ -549,27 +545,29 @@ def double_coset_python(S1, S2, partition1, ordering2, n,
 
     cdef PartitionStack *part = PS_from_list(partition1)
     cdef int *ordering = <int *> sage_malloc(n * sizeof(int))
-    if part is NULL or ordering is NULL:
-        if part is not NULL: PS_dealloc(part)
-        if ordering is not NULL: sage_free(ordering)
+    cdef int *output = <int *> sage_malloc(n * sizeof(int))
+    if part is NULL or ordering is NULL or output is NULL:
+        PS_dealloc(part)
+        sage_free(ordering)
+        sage_free(output)
         raise MemoryError
     for i from 0 <= i < n:
         ordering[i] = ordering2[i]
 
-    cdef int *output = double_coset(<void *> obj_wrapper1, <void *> obj_wrapper2,
+    cdef bint isomorphic = double_coset(<void *> obj_wrapper1, <void *> obj_wrapper2,
         part, ordering, n,
         &all_children_are_equivalent_python,
         &refine_and_return_invariant_python,
-        &compare_structures_python, NULL)
+        &compare_structures_python, NULL, NULL, output)
 
     PS_dealloc(part)
     sage_free(ordering)
-
-    if output is NULL:
-        return False
-    else:
+    if isomorphic:
         output_py = [output[i] for i from 0 <= i < n]
-        sage_free(output)
-        return output_py
+    else:
+        output_py = False
+    sage_free(output)
+    return output_py
+
 
 

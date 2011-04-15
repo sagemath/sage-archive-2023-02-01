@@ -187,7 +187,7 @@ cdef class DenseGraph(CGraph):
             if self.edges: sage_free(self.edges)
             if self.in_degrees: sage_free(self.in_degrees)
             if self.out_degrees: sage_free(self.out_degrees)
-            raise RuntimeError("Failure allocating memory.")
+            raise MemoryError
         for i from 0 <= i < self.num_longs * total_verts:
             self.edges[i] = 0
         for i from 0 <= i < total_verts:
@@ -403,10 +403,7 @@ cdef class DenseGraph(CGraph):
         """
         cdef int place = (u * self.num_longs) + (v >> self.radix_div_shift)
         cdef unsigned long word = (<unsigned long>1) << (v & self.radix_mod_mask)
-        if self.edges[place] & word:
-            return 1
-        else:
-            return 0
+        return (self.edges[place] & word) >> (v & self.radix_mod_mask)
 
     cpdef bint has_arc(self, int u, int v):
         """
@@ -537,7 +534,7 @@ cdef class DenseGraph(CGraph):
         cdef int size = self.out_degrees[u]
         cdef int *neighbors = <int *> sage_malloc(size * sizeof(int))
         if not neighbors:
-            raise RuntimeError("Failure allocating memory.")
+            raise MemoryError
         num_nbrs = self.out_neighbors_unsafe(u, neighbors, size)
         output = [neighbors[i] for i from 0 <= i < num_nbrs]
         sage_free(neighbors)
@@ -596,7 +593,7 @@ cdef class DenseGraph(CGraph):
         cdef int size = self.in_degrees[v]
         cdef int *neighbors = <int *> sage_malloc(size * sizeof(int))
         if not neighbors:
-            raise RuntimeError("Failure allocating memory.")
+            raise MemoryError
         num_nbrs = self.in_neighbors_unsafe(v, neighbors, size)
         output = [neighbors[i] for i from 0 <= i < num_nbrs]
         sage_free(neighbors)

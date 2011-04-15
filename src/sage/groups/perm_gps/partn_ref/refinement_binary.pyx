@@ -47,12 +47,12 @@ cdef class LinearBinaryCodeStruct(BinaryCodeStruct):
         if self.basis       is NULL or self.scratch_bitsets is NULL \
         or self.alpha_is_wd is NULL or self.word_ps         is NULL \
         or self.alpha       is NULL or self.scratch         is NULL:
-            if self.basis is not NULL: sage_free(self.basis)
-            if self.scratch_bitsets is not NULL: sage_free(self.scratch_bitsets)
-            if self.alpha_is_wd is not NULL: sage_free(self.alpha_is_wd)
-            if self.word_ps is not NULL: PS_dealloc(self.word_ps)
-            if self.alpha is not NULL: sage_free(self.alpha)
-            if self.scratch is not NULL: sage_free(self.scratch)
+            sage_free(self.basis)
+            sage_free(self.scratch_bitsets)
+            sage_free(self.alpha_is_wd)
+            PS_dealloc(self.word_ps)
+            sage_free(self.alpha)
+            sage_free(self.scratch)
             raise MemoryError
 
         cdef bint memerr = 0
@@ -233,7 +233,7 @@ cdef class LinearBinaryCodeStruct(BinaryCodeStruct):
 
         self.first_time = 1
 
-        self.output = get_aut_gp_and_can_lab(<void *>self, part, n, &all_children_are_equivalent, &refine_by_bip_degree, &compare_linear_codes, 1, NULL)
+        self.output = get_aut_gp_and_can_lab(<void *>self, part, n, &all_children_are_equivalent, &refine_by_bip_degree, &compare_linear_codes, 1, NULL, NULL, NULL)
 
         PS_dealloc(part)
 
@@ -306,26 +306,27 @@ cdef class LinearBinaryCodeStruct(BinaryCodeStruct):
         cdef PartitionStack *part
         part = PS_new(n, 1)
         ordering = <int *> sage_malloc(self.degree * sizeof(int))
-        if part is NULL or ordering is NULL:
-            if part is not NULL: PS_dealloc(part)
-            if ordering is not NULL: sage_free(ordering)
+        output = <int *> sage_malloc(self.degree * sizeof(int))
+        if part is NULL or ordering is NULL or output is NULL:
+            PS_dealloc(part)
+            sage_free(ordering)
+            sage_free(output)
             raise MemoryError
         for i from 0 <= i < n:
             ordering[i] = i
         self.first_time = 1
         other.first_time = 1
 
-        output = double_coset(<void *> self, <void *> other, part, ordering, n, &all_children_are_equivalent, &refine_by_bip_degree, &compare_linear_codes, NULL)
+        cdef bint isomorphic = double_coset(<void *> self, <void *> other, part, ordering, n, &all_children_are_equivalent, &refine_by_bip_degree, &compare_linear_codes, NULL, NULL, output)
 
         PS_dealloc(part)
         sage_free(ordering)
-
-        if output is NULL:
-            return False
-        else:
+        if isomorphic:
             output_py = [output[i] for i from 0 <= i < n]
-            sage_free(output)
-            return output_py
+        else:
+            output_py = False
+        sage_free(output)
+        return output_py
 
     def __dealloc__(self):
         cdef int j
@@ -338,10 +339,7 @@ cdef class LinearBinaryCodeStruct(BinaryCodeStruct):
         sage_free(self.alpha_is_wd); PS_dealloc(self.word_ps)
         sage_free(self.alpha); sage_free(self.scratch)
         if self.output is not NULL:
-            sage_free(self.output.generators)
-            SC_dealloc(self.output.group)
-            sage_free(self.output.relabeling)
-            sage_free(self.output)
+            deallocate_agcl_output(self.output)
 
 cdef int ith_word_linear(BinaryCodeStruct self, int i, bitset_s *word):
     cdef LinearBinaryCodeStruct LBCS = <LinearBinaryCodeStruct> self
@@ -374,12 +372,12 @@ cdef class NonlinearBinaryCodeStruct(BinaryCodeStruct):
         if self.words       is NULL or self.scratch_bitsets is NULL \
         or self.alpha_is_wd is NULL or self.word_ps         is NULL \
         or self.alpha       is NULL or self.scratch         is NULL:
-            if self.words is not NULL: sage_free(self.words)
-            if self.scratch_bitsets is not NULL: sage_free(self.scratch_bitsets)
-            if self.alpha_is_wd is not NULL: sage_free(self.alpha_is_wd)
-            if self.word_ps is not NULL: PS_dealloc(self.word_ps)
-            if self.alpha is not NULL: sage_free(self.alpha)
-            if self.scratch is not NULL: sage_free(self.scratch)
+            sage_free(self.words)
+            sage_free(self.scratch_bitsets)
+            sage_free(self.alpha_is_wd)
+            PS_dealloc(self.word_ps)
+            sage_free(self.alpha)
+            sage_free(self.scratch)
             raise MemoryError
 
         cdef bint memerr = 0
@@ -444,10 +442,7 @@ cdef class NonlinearBinaryCodeStruct(BinaryCodeStruct):
         sage_free(self.alpha_is_wd); PS_dealloc(self.word_ps)
         sage_free(self.alpha); sage_free(self.scratch)
         if self.output is not NULL:
-            sage_free(self.output.generators)
-            SC_dealloc(self.output.group)
-            sage_free(self.output.relabeling)
-            sage_free(self.output)
+            deallocate_agcl_output(self.output)
 
     def run(self, partition=None):
         """
@@ -498,7 +493,7 @@ cdef class NonlinearBinaryCodeStruct(BinaryCodeStruct):
             raise MemoryError
         self.first_time = 1
 
-        self.output = get_aut_gp_and_can_lab(<void *> self, part, self.degree, &all_children_are_equivalent, &refine_by_bip_degree, &compare_nonlinear_codes, 1, NULL)
+        self.output = get_aut_gp_and_can_lab(<void *> self, part, self.degree, &all_children_are_equivalent, &refine_by_bip_degree, &compare_nonlinear_codes, 1, NULL, NULL, NULL)
 
         PS_dealloc(part)
 
@@ -571,26 +566,27 @@ cdef class NonlinearBinaryCodeStruct(BinaryCodeStruct):
         cdef PartitionStack *part
         part = PS_new(n, 1)
         ordering = <int *> sage_malloc(n * sizeof(int))
-        if part is NULL or ordering is NULL:
-            if part is not NULL: PS_dealloc(part)
-            if ordering is not NULL: sage_free(ordering)
+        output = <int *> sage_malloc(n * sizeof(int))
+        if part is NULL or ordering is NULL or output is NULL:
+            PS_dealloc(part)
+            sage_free(ordering)
+            sage_free(output)
             raise MemoryError
         for i from 0 <= i < n:
             ordering[i] = i
         self.first_time = 1
         other.first_time = 1
 
-        output = double_coset(<void *> self, <void *> other, part, ordering, n, &all_children_are_equivalent, &refine_by_bip_degree, &compare_nonlinear_codes, NULL)
+        cdef bint isomorphic = double_coset(<void *> self, <void *> other, part, ordering, n, &all_children_are_equivalent, &refine_by_bip_degree, &compare_nonlinear_codes, NULL, NULL, output)
 
         PS_dealloc(part)
         sage_free(ordering)
-
-        if output is NULL:
-            return False
+        if isomorphic:
+            output_py = [output[i] for i from 0 <= i < n]
         else:
-            output_py = [output[i] for i from 0 <= i < self.degree]
-            sage_free(output)
-            return output_py
+            output_py = False
+        sage_free(output)
+        return output_py
 
 cdef int ith_word_nonlinear(BinaryCodeStruct self, int i, bitset_s *word):
     cdef NonlinearBinaryCodeStruct NBCS = <NonlinearBinaryCodeStruct> self
@@ -721,7 +717,7 @@ cdef int refine_by_bip_degree(PartitionStack *col_ps, void *S, int *cells_to_ref
         current_cell_against += 1
     return invariant
 
-cdef int compare_linear_codes(int *gamma_1, int *gamma_2, void *S1, void *S2):
+cdef int compare_linear_codes(int *gamma_1, int *gamma_2, void *S1, void *S2, int degree):
     """
     Compare gamma_1(S1) and gamma_2(S2).
 
@@ -794,7 +790,7 @@ cdef int compare_linear_codes(int *gamma_1, int *gamma_2, void *S1, void *S2):
                     return <int>bitset_check(&basis_2[i], gamma_2[cur_col]) - <int>bitset_check(&basis_1[i], gamma_1[cur_col])
     return 0
 
-cdef int compare_nonlinear_codes(int *gamma_1, int *gamma_2, void *S1, void *S2):
+cdef int compare_nonlinear_codes(int *gamma_1, int *gamma_2, void *S1, void *S2, int degree):
     """
     Compare gamma_1(S1) and gamma_2(S2).
 

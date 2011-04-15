@@ -42,10 +42,10 @@ A. \code{refine_and_return_invariant}:
     partition stack in such a way that any automorphism that respects the
     partition also respects the resulting partition. The array
     cells_to_refine_by is a list of the beginning positions of some cells which
-    have been changed since the last refinement. It is not necessary to use
-    this in an implementation of this function, but it will affect performance.
-    One should consult \code{refinement_graphs} for more details and ideas for
-    particular implementations.
+    have been changed since the last refinement, of length ctrb_len. It is not
+    necessary to use this in an implementation of this function, but it will
+    affect performance. One should consult \code{refinement_graphs} for more
+    details and ideas for particular implementations.
 
     Output:
 
@@ -58,13 +58,16 @@ B. \code{compare_structures}:
 
     Signature:
 
-    \code{int compare_structures(int *gamma_1, int *gamma_2, void *S1, void *S2)}
+    \code{int compare_structures(int *gamma_1, int *gamma_2, void *S1, void *S2, int degree)}
 
     This function must implement a total ordering on the set of objects of fixed
     order. Return:
         -1 if \code{gamma_1^{-1}(S1) < gamma_2^{-1}(S2)},
         0 if \code{gamma_1^{-1}(S1) == gamma_2^{-1}(S2)},
         1 if \code{gamma_1^{-1}(S1) > gamma_2^{-1}(S2)}.
+
+    The value ``degree`` indicates the degree of the permutations ``gamma1`` and
+    ``gamma_2``.
 
     Important note:
 
@@ -105,7 +108,7 @@ REFERENCE:
 include 'data_structures_pyx.pxi' # includes bitsets
 include 'sage/ext/interrupt.pxi'
 
-cdef inline int cmp(int a, int b):
+cdef inline int agcl_cmp(int a, int b):
     if a < b: return -1
     elif a == b: return 0
     else: return 1
@@ -118,7 +121,7 @@ cdef bint all_children_are_equivalent_trivial(PartitionStack *PS, void *S):
 cdef int refine_and_return_invariant_trivial(PartitionStack *PS, void *S, int *cells_to_refine_by, int ctrb_len):
     return 0
 
-cdef int compare_structures_trivial(int *gamma_1, int *gamma_2, void *S1, void *S2):
+cdef int compare_structures_trivial(int *gamma_1, int *gamma_2, void *S1, void *S2, int degree):
     return 0
 
 def test_get_aut_gp_and_can_lab_trivially(int n=6,
@@ -150,15 +153,11 @@ def test_get_aut_gp_and_can_lab_trivially(int n=6,
     if part is NULL:
         raise MemoryError
     cdef object empty_list = []
-    output = get_aut_gp_and_can_lab(<void *> empty_list, part, n, &all_children_are_equivalent_trivial, &refine_and_return_invariant_trivial, &compare_structures_trivial, canonical_label, NULL)
+    output = get_aut_gp_and_can_lab(<void *> empty_list, part, n, &all_children_are_equivalent_trivial, &refine_and_return_invariant_trivial, &compare_structures_trivial, canonical_label, NULL, NULL, NULL)
     SC_order(output.group, 0, I.value)
     print I
     PS_dealloc(part)
-    SC_dealloc(output.group)
-    sage_free(output.generators)
-    if canonical_label:
-        sage_free(output.relabeling)
-    sage_free(output)
+    deallocate_agcl_output(output)
 
 def test_intersect_parabolic_with_alternating(int n=9, list partition=[[0,1,2],[3,4],[5,6,7,8]]):
     """
@@ -194,21 +193,19 @@ def test_intersect_parabolic_with_alternating(int n=9, list partition=[[0,1,2],[
         PS_dealloc(part)
         raise MemoryError
     cdef object empty_list = []
-    output = get_aut_gp_and_can_lab(<void *> empty_list, part, n, &all_children_are_equivalent_trivial, &refine_and_return_invariant_trivial, &compare_structures_trivial, 0, group)
+    output = get_aut_gp_and_can_lab(<void *> empty_list, part, n, &all_children_are_equivalent_trivial, &refine_and_return_invariant_trivial, &compare_structures_trivial, 0, group, NULL, NULL)
     SC_order(output.group, 0, I.value)
     print I
     PS_dealloc(part)
-    SC_dealloc(output.group)
     SC_dealloc(group)
-    sage_free(output.generators)
-    sage_free(output)
+    deallocate_agcl_output(output)
 
-cdef int compare_perms(int *gamma_1, int *gamma_2, void *S1, void *S2):
+cdef int compare_perms(int *gamma_1, int *gamma_2, void *S1, void *S2, int degree):
     cdef list MS1 = <list> S1
     cdef list MS2 = <list> S2
     cdef int i, j
-    for i from 0 <= i < len(MS1):
-        j = cmp(MS1[gamma_1[i]], MS2[gamma_2[i]])
+    for i from 0 <= i < degree:
+        j = agcl_cmp(MS1[gamma_1[i]], MS2[gamma_2[i]])
         if j != 0: return j
     return 0
 
@@ -270,7 +267,7 @@ def coset_rep(list perm=[0,1,2,3,4,5], list gens=[[1,2,3,4,5,0]]):
         for i from 0 <= i < n:
             c_perm[i] = g[i]
         SC_insert(group, 0, c_perm, 1)
-    output = get_aut_gp_and_can_lab(<void *> perm, part, n, &all_children_are_equivalent_trivial, &refine_and_return_invariant_trivial, &compare_perms, 1, group)
+    output = get_aut_gp_and_can_lab(<void *> perm, part, n, &all_children_are_equivalent_trivial, &refine_and_return_invariant_trivial, &compare_perms, 1, group, NULL, NULL)
     SC_order(output.group, 0, I.value)
     assert I == 1
     r_inv = range(n)
@@ -278,21 +275,121 @@ def coset_rep(list perm=[0,1,2,3,4,5], list gens=[[1,2,3,4,5,0]]):
         r_inv[output.relabeling[i]] = i
     label = [perm[r_inv[i]] for i in range(n)]
     PS_dealloc(part)
-    SC_dealloc(output.group)
     SC_dealloc(group)
-    sage_free(output.generators)
-    sage_free(output.relabeling)
-    sage_free(output)
+    deallocate_agcl_output(output)
     sage_free(c_perm)
     return label
+
+cdef aut_gp_and_can_lab *allocate_agcl_output(int n):
+    r"""
+    Allocate an instance of the aut_gp_and_can_lab struct of degree n. This can
+    be input to the get_aut_gp_and_can_lab function, and the output will be
+    stored to it.
+    """
+    cdef aut_gp_and_can_lab *output = <aut_gp_and_can_lab *> sage_malloc(sizeof(aut_gp_and_can_lab))
+    if output is NULL:
+        return NULL
+    output.group = SC_new(n)
+    output.relabeling = <int *> sage_malloc(n*sizeof(int))
+    output.generators = <int *> sage_malloc(2*n*n*sizeof(int))
+    output.size_of_generator_array = 2*n*n
+    if output.group      is NULL or \
+       output.relabeling is NULL or \
+       output.generators is NULL:
+        deallocate_agcl_output(output)
+        return NULL
+    return output
+
+cdef void deallocate_agcl_output(aut_gp_and_can_lab *output):
+    r"""
+    Deallocates an aut_gp_and_can_lab struct.
+    """
+    if output is not NULL:
+        SC_dealloc(output.group)
+        sage_free(output.relabeling)
+        sage_free(output.generators)
+    sage_free(output)
+
+cdef agcl_work_space *allocate_agcl_work_space(int n):
+    r"""
+    Allocates work space for the get_aut_gp_and_can_lab function. It can be
+    input to the function in which case it must be deallocated after the
+    function is called.
+    """
+    cdef int *int_array
+
+    cdef agcl_work_space *work_space
+    work_space = <agcl_work_space *> sage_malloc(sizeof(agcl_work_space))
+    if work_space is NULL:
+        return NULL
+
+    work_space.degree = n
+    int_array = <int *> sage_malloc((n*n + # for perm_stack
+                                     n   + # for label_indicators
+                                     7*n   # for int_array
+                                    )*sizeof(int))
+    work_space.group1 = SC_new(n)
+    work_space.group2 = SC_new(n)
+    work_space.label_ps = PS_new(n,0)
+    work_space.bitset_array = <bitset_t *> sage_malloc((n + 2*len_of_fp_and_mcr + 1)*sizeof(bitset_t))
+    work_space.orbits_of_subgroup = OP_new(n)
+    work_space.orbits_of_permutation = OP_new(n)
+    work_space.first_ps = PS_new(n,0)
+
+    if int_array                        is NULL or \
+       work_space.group1                is NULL or \
+       work_space.group2                is NULL or \
+       work_space.label_ps              is NULL or \
+       work_space.bitset_array          is NULL or \
+       work_space.orbits_of_subgroup    is NULL or \
+       work_space.orbits_of_permutation is NULL or \
+       work_space.first_ps              is NULL:
+        deallocate_agcl_work_space(work_space)
+        return NULL
+
+    work_space.perm_stack       = int_array
+    work_space.label_indicators = int_array + n*n
+    work_space.int_array        = int_array + n*n + n
+
+    cdef int i
+    for i from 0 <= i < n + 2*len_of_fp_and_mcr + 1:
+        work_space.bitset_array[i].bits = NULL
+    try:
+        for i from 0 <= i < n + 2*len_of_fp_and_mcr + 1:
+            bitset_init(work_space.bitset_array[i], n)
+    except MemoryError:
+        deallocate_agcl_work_space(work_space)
+        return NULL
+    return work_space
+
+cdef void deallocate_agcl_work_space(agcl_work_space *work_space):
+    r"""
+    Deallocate work space for the get_aut_gp_and_can_lab function.
+    """
+    if work_space is NULL:
+        return
+    cdef int i, n = work_space.degree
+    if work_space.bitset_array is not NULL:
+        for i from 0 <= i < n + 2*len_of_fp_and_mcr + 1:
+            bitset_free(work_space.bitset_array[i])
+    sage_free(work_space.perm_stack)
+    SC_dealloc(work_space.group1)
+    SC_dealloc(work_space.group2)
+    PS_dealloc(work_space.label_ps)
+    sage_free(work_space.bitset_array)
+    OP_dealloc(work_space.orbits_of_subgroup)
+    OP_dealloc(work_space.orbits_of_permutation)
+    PS_dealloc(work_space.first_ps)
+    sage_free(work_space)
 
 cdef aut_gp_and_can_lab *get_aut_gp_and_can_lab(void *S,
     PartitionStack *partition, int n,
     bint (*all_children_are_equivalent)(PartitionStack *PS, void *S),
     int (*refine_and_return_invariant)\
          (PartitionStack *PS, void *S, int *cells_to_refine_by, int ctrb_len),
-    int (*compare_structures)(int *gamma_1, int *gamma_2, void *S1, void *S2),
-    bint canonical_label, StabilizerChain *input_group) except NULL:
+    int (*compare_structures)(int *gamma_1, int *gamma_2, void *S1, void *S2, int degree),
+    bint canonical_label, StabilizerChain *input_group,
+    agcl_work_space *work_space_prealloc, aut_gp_and_can_lab *output_prealloc) except NULL:
     """
     Traverse the search space for subgroup/canonical label calculation.
 
@@ -322,6 +419,7 @@ cdef aut_gp_and_can_lab *get_aut_gp_and_can_lab(void *S,
         INPUT:
         gamma_1, gamma_2 -- (list) permutations of the points of S1 and S2
         S1, S2 -- pointers to the structures
+        degree -- degree of gamma_1 and 2
         OUTPUT:
         int -- 0 if gamma_1(S1) = gamma_2(S2), otherwise -1 or 1 (see docs for cmp),
             such that the set of all structures is well-ordered
@@ -345,165 +443,152 @@ cdef aut_gp_and_can_lab *get_aut_gp_and_can_lab(void *S,
     cdef int label_and_current_indicator_same = -1
     cdef int compared_current_and_label_indicators
 
-    cdef OrbitPartition *orbits_of_subgroup, *orbits_of_permutation
+    cdef OrbitPartition *orbits_of_subgroup, *orbits_of_permutation, *orbits_of_supergroup
     cdef int subgroup_primary_orbit_size = 0
     cdef int minimal_in_primary_orbit
-    cdef int size_of_generator_array = 2*n*n
 
     cdef bitset_t *fixed_points_of_generators # i.e. fp
     cdef bitset_t *minimal_cell_reps_of_generators # i.e. mcr
-    cdef int len_of_fp_and_mcr = 100
     cdef int index_in_fp_and_mcr = -1
 
     cdef bitset_t *vertices_to_split
-    cdef bitset_t vertices_have_been_reduced
+    cdef bitset_t *vertices_have_been_reduced
     cdef int *permutation, *label_perm, *id_perm, *cells_to_refine_by
     cdef int *vertices_determining_current_stack
     cdef int *perm_stack
     cdef StabilizerChain *group = NULL, *old_group, *tmp_gp
 
-    cdef int i, j, k
+    cdef int i, j, k, ell, b
     cdef bint discrete, automorphism, update_label
     cdef bint backtrack, new_vertex, narrow, mem_err = 0
 
-    cdef aut_gp_and_can_lab *output = <aut_gp_and_can_lab *> sage_malloc(sizeof(aut_gp_and_can_lab))
-    if output is NULL:
-        raise MemoryError
-    output.group = SC_new(n)
-    if output.group is NULL:
-        sage_free(output)
-        raise MemoryError
+    cdef aut_gp_and_can_lab *output
+    cdef agcl_work_space *work_space
+
+    if output_prealloc is not NULL:
+        output = output_prealloc
+        output.group.base_size = 0
+    else:
+        output = allocate_agcl_output(n)
+        if output is NULL:
+            raise MemoryError
+
+    output.num_gens = 0
     if n == 0:
-        output.generators = NULL
-        output.num_gens = 0
-        output.relabeling = NULL
         return output
 
-    # Allocate:
-    output.generators = <int *> sage_malloc( size_of_generator_array * sizeof(int) )
-    output.num_gens = 0
-    cdef int *int_array = <int *> sage_malloc( 7*n * sizeof(int) )
-    if input_group is not NULL:
-        perm_stack = <int *> sage_malloc( n*n * sizeof(int) )
-        group = SC_copy(input_group, n)
-        old_group = SC_new(n)
-        if perm_stack is NULL or group is NULL or old_group is NULL:
-            mem_err = 1
-        else:
-            SC_identify(perm_stack, n)
-    if canonical_label:
-        label_indicators  = <int *> sage_malloc( n * sizeof(int) )
-        output.relabeling = <int *> sage_malloc( n * sizeof(int) )
+    if work_space_prealloc is not NULL:
+        work_space = work_space_prealloc
     else:
-        output.relabeling = NULL
-    cdef bitset_t *bitset_array = <bitset_t *> sage_malloc( (n+2*len_of_fp_and_mcr) * sizeof(bitset_t) )
-    orbits_of_subgroup    = OP_new(n)
-    orbits_of_permutation = OP_new(n)
+        work_space = allocate_agcl_work_space(n)
+        if work_space is NULL:
+            if output_prealloc is NULL:
+                deallocate_agcl_output(output)
+            raise MemoryError
 
-    if output.generators is NULL or int_array          is NULL or \
-       bitset_array      is NULL or orbits_of_subgroup is NULL or \
-       orbits_of_permutation is NULL:
-        mem_err = 1
-    elif canonical_label and (label_indicators is NULL or output.relabeling is NULL):
-        mem_err = 1
+    # Allocate:
+    if input_group is not NULL:
+        perm_stack                     = work_space.perm_stack
+        group                          = work_space.group1
+        old_group                      = work_space.group2
+        orbits_of_supergroup           = input_group.OP_scratch
+        SC_copy_nomalloc(group, input_group, n)
+        SC_identify(perm_stack, n)
+    if canonical_label:
+        label_indicators               = work_space.label_indicators
+        label_ps                       = work_space.label_ps
+    first_ps                           = work_space.first_ps
+    orbits_of_subgroup                 = work_space.orbits_of_subgroup
+    orbits_of_permutation              = work_space.orbits_of_permutation
 
-    if not mem_err:
-        current_indicators                 = int_array
-        first_indicators                   = int_array +   n
-        permutation                        = int_array + 2*n
-        id_perm                            = int_array + 3*n
-        cells_to_refine_by                 = int_array + 4*n
-        vertices_determining_current_stack = int_array + 5*n
-        label_perm                         = int_array + 6*n
+    current_indicators                 = work_space.int_array
+    first_indicators                   = work_space.int_array +   n
+    permutation                        = work_space.int_array + 2*n
+    id_perm                            = work_space.int_array + 3*n
+    cells_to_refine_by                 = work_space.int_array + 4*n
+    vertices_determining_current_stack = work_space.int_array + 5*n
+    label_perm                         = work_space.int_array + 6*n
 
-        fixed_points_of_generators      = bitset_array
-        minimal_cell_reps_of_generators = bitset_array + len_of_fp_and_mcr
-        vertices_to_split               = bitset_array + 2*len_of_fp_and_mcr
-        try:
-            for i from 0 <= i < n+2*len_of_fp_and_mcr:
-                bitset_init(bitset_array[i], n)
-            bitset_init(vertices_have_been_reduced, n)
-        except MemoryError:
-            mem_err = 1
+    fixed_points_of_generators         = work_space.bitset_array
+    minimal_cell_reps_of_generators    = work_space.bitset_array + len_of_fp_and_mcr
+    vertices_to_split                  = work_space.bitset_array + 2*len_of_fp_and_mcr
+    vertices_have_been_reduced         = work_space.bitset_array + 2*len_of_fp_and_mcr + n
 
-    if not mem_err:
-        bitset_zero(vertices_have_been_reduced)
-        current_ps = partition
-        current_ps.depth = 0
+    if work_space_prealloc is not NULL:
+        OP_clear(orbits_of_subgroup)
 
-        # default values of "infinity"
+    bitset_zero(vertices_have_been_reduced[0])
+    current_ps = partition
+    current_ps.depth = 0
+
+    # default values of "infinity"
+    for i from 0 <= i < n:
+        first_indicators[i] = -1
+    if canonical_label:
         for i from 0 <= i < n:
-            first_indicators[i] = -1
-        if canonical_label:
-            for i from 0 <= i < n:
-                label_indicators[i] = -1
+            label_indicators[i] = -1
 
-        # set up the identity permutation
-        for i from 0 <= i < n:
-            id_perm[i] = i
+    # set up the identity permutation
+    for i from 0 <= i < n:
+        id_perm[i] = i
 
-        # Our first refinement needs to check every cell of the partition,
-        # so cells_to_refine_by needs to be a list of pointers to each cell.
-        j = 1
-        cells_to_refine_by[0] = 0
-        for i from 0 < i < n:
-            if current_ps.levels[i-1] == 0:
-                cells_to_refine_by[j] = i
-                j += 1
-        # Ignore the invariant this time, since we are
-        # creating the root of the search tree.
-        if input_group is NULL:
-            refine_and_return_invariant(current_ps, S, cells_to_refine_by, j)
+    # Our first refinement needs to check every cell of the partition,
+    # so cells_to_refine_by needs to be a list of pointers to each cell.
+    j = 1
+    cells_to_refine_by[0] = 0
+    for i from 0 < i < n:
+        if current_ps.levels[i-1] == 0:
+            cells_to_refine_by[j] = i
+            j += 1
+    # Ignore the invariant this time, since we are
+    # creating the root of the search tree.
+    if input_group is NULL:
+        refine_and_return_invariant(current_ps, S, cells_to_refine_by, j)
+    else:
+        refine_also_by_orbits(current_ps, S, refine_and_return_invariant,
+            cells_to_refine_by, j, group, perm_stack)
+    PS_move_all_mins_to_front(current_ps)
+
+    # Refine down to a discrete partition
+    while not PS_is_discrete(current_ps):
+        i = current_ps.depth
+        if not all_children_are_equivalent(current_ps, S):
+            current_kids_are_same = i + 1
+        vertices_determining_current_stack[i] = PS_first_smallest(current_ps, vertices_to_split[i])
+        bitset_unset(vertices_have_been_reduced[0], i)
+        if input_group is not NULL:
+            OP_clear(orbits_of_supergroup)
+            for j from i <= j < group.base_size:
+                for ell from 0 <= ell < group.num_gens[j]:
+                    OP_merge_list_perm(orbits_of_supergroup, group.generators[j] + n*ell)
+            b = orbits_of_supergroup.mcr[OP_find(orbits_of_supergroup, perm_stack[i*n + vertices_determining_current_stack[i]])]
+            tmp_gp = group
+            group = old_group
+            old_group = tmp_gp
+            if SC_insert_base_point_nomalloc(group, old_group, i, b):
+                mem_err = 1
+                break
+            current_indicators[i] = split_point_and_refine_by_orbits(current_ps,
+                vertices_determining_current_stack[i], S, refine_and_return_invariant,
+                cells_to_refine_by, group, perm_stack)
         else:
-            refine_also_by_orbits(current_ps, S, refine_and_return_invariant,
-                cells_to_refine_by, j, group, perm_stack)
+            current_indicators[i] = split_point_and_refine(current_ps, vertices_determining_current_stack[i], S, refine_and_return_invariant, cells_to_refine_by)
         PS_move_all_mins_to_front(current_ps)
-
-        # Refine down to a discrete partition
-        while not PS_is_discrete(current_ps):
-            i = current_ps.depth
-            if not all_children_are_equivalent(current_ps, S):
-                current_kids_are_same = i + 1
-            vertices_determining_current_stack[i] = PS_first_smallest(current_ps, vertices_to_split[i])
-            bitset_unset(vertices_have_been_reduced, i)
-            if input_group is not NULL:
-                # split the point
-                current_ps.depth += 1
-                PS_clear(current_ps)
-                cells_to_refine_by[0] = PS_split_point(current_ps, vertices_determining_current_stack[i])
-                # update the base
-                tmp_gp = group
-                group = old_group
-                old_group = tmp_gp
-                if SC_insert_base_point_nomalloc(group, old_group, i, vertices_determining_current_stack[i]):
-                    mem_err = 1
-                    break
-                # update perm_stack
-                SC_identify(perm_stack + n*current_ps.depth, n)
-                # do the refinements
-                current_indicators[i] = refine_also_by_orbits(current_ps, S, refine_and_return_invariant, cells_to_refine_by, 1, group, perm_stack)
-            else:
-                current_indicators[i] = split_point_and_refine(current_ps, vertices_determining_current_stack[i], S, refine_and_return_invariant, cells_to_refine_by)
-            PS_move_all_mins_to_front(current_ps)
-            first_indicators[i] = current_indicators[i]
-            if canonical_label:
-                label_indicators[i] = current_indicators[i]
-            SC_add_base_point(output.group, vertices_determining_current_stack[i])
+        first_indicators[i] = current_indicators[i]
+        if canonical_label:
+            label_indicators[i] = current_indicators[i]
+        SC_add_base_point(output.group, vertices_determining_current_stack[i])
 
     if not mem_err:
         first_meets_current = current_ps.depth
         first_kids_are_same = current_ps.depth
         first_and_current_indicator_same = current_ps.depth
-        first_ps = PS_copy(current_ps)
-        if first_ps is NULL:
-            mem_err = 1
+        PS_copy_from_to(current_ps, first_ps)
         if canonical_label:
             label_meets_current = current_ps.depth
             label_and_current_indicator_same = current_ps.depth
             compared_current_and_label_indicators = 0
-            label_ps = PS_copy(current_ps)
-            if label_ps is NULL:
-                mem_err = 1
+            PS_copy_from_to(current_ps, label_ps)
             if input_group is not NULL:
                 if compute_relabeling(group, old_group, label_ps.entries, label_perm):
                     mem_err = 1
@@ -513,26 +598,10 @@ cdef aut_gp_and_can_lab *get_aut_gp_and_can_lab(void *S,
     while current_ps.depth != -1:
 
         if mem_err:
-            sage_free(int_array)
-            OP_dealloc(orbits_of_subgroup)
-            OP_dealloc(orbits_of_permutation)
-            if canonical_label:
-                sage_free(label_indicators)
-                sage_free(output.relabeling)
-                PS_dealloc(label_ps)
-            sage_free(output.generators)
-            SC_dealloc(output.group)
-            if input_group is not NULL:
-                sage_free(perm_stack)
-                SC_dealloc(old_group)
-                SC_dealloc(group)
-            sage_free(output)
-            if bitset_array is not NULL:
-                for i from 0 <= i < n+2*len_of_fp_and_mcr:
-                    bitset_free(bitset_array[i])
-            bitset_free(vertices_have_been_reduced)
-            sage_free(bitset_array)
-            PS_dealloc(first_ps)
+            if output_prealloc is NULL:
+                deallocate_agcl_output(output)
+            if work_space_prealloc is NULL:
+                deallocate_agcl_work_space(work_space_prealloc)
             raise MemoryError
 
         # If necessary, update label_meets_current
@@ -544,7 +613,7 @@ cdef aut_gp_and_can_lab *get_aut_gp_and_can_lab(void *S,
         if current_ps.depth > first_meets_current:
             # If we are not at a node of the first stack, reduce size of
             # vertices_to_split by using the symmetries we already know.
-            if not bitset_check(vertices_have_been_reduced, current_ps.depth):
+            if not bitset_check(vertices_have_been_reduced[0], current_ps.depth):
                 for i from 0 <= i <= index_in_fp_and_mcr:
                     j = 0
                     while j < current_ps.depth and bitset_check(fixed_points_of_generators[i], vertices_determining_current_stack[j]):
@@ -556,7 +625,7 @@ cdef aut_gp_and_can_lab *get_aut_gp_and_can_lab(void *S,
                         for k from 0 <= k < n:
                             if bitset_check(vertices_to_split[current_ps.depth], k) and not bitset_check(minimal_cell_reps_of_generators[i], k):
                                 bitset_flip(vertices_to_split[current_ps.depth], k)
-                bitset_flip(vertices_have_been_reduced, current_ps.depth)
+                bitset_flip(vertices_have_been_reduced[0], current_ps.depth)
             # Look for a new point to split.
             i = vertices_determining_current_stack[current_ps.depth] + 1
             i = bitset_next(vertices_to_split[current_ps.depth], i)
@@ -636,14 +705,16 @@ cdef aut_gp_and_can_lab *get_aut_gp_and_can_lab(void *S,
                     vertices_determining_current_stack[i], S,
                     refine_and_return_invariant, cells_to_refine_by)
             PS_move_all_mins_to_front(current_ps)
-            if first_and_current_indicator_same == i and current_indicators[i] == first_indicators[i]:
+            if first_and_current_indicator_same == i and \
+              current_indicators[i] == first_indicators[i] and \
+              stacks_are_equivalent(first_ps, current_ps):
                 first_and_current_indicator_same += 1
             if canonical_label:
                 if compared_current_and_label_indicators == 0:
                     if label_indicators[i] == -1:
                         compared_current_and_label_indicators = -1
                     else:
-                        compared_current_and_label_indicators = cmp(current_indicators[i], label_indicators[i])
+                        compared_current_and_label_indicators = agcl_cmp(current_indicators[i], label_indicators[i])
                 if label_and_current_indicator_same == i and compared_current_and_label_indicators == 0:
                     label_and_current_indicator_same += 1
                 if compared_current_and_label_indicators > 0:
@@ -655,7 +726,24 @@ cdef aut_gp_and_can_lab *get_aut_gp_and_can_lab(void *S,
                 discrete = 1
                 break
             vertices_determining_current_stack[current_ps.depth] = PS_first_smallest(current_ps, vertices_to_split[current_ps.depth])
-            bitset_unset(vertices_have_been_reduced, current_ps.depth)
+            if input_group is not NULL:
+                i = current_ps.depth
+                k = vertices_determining_current_stack[i]
+                if group.parents[i][perm_stack[n*i + k]] == -1:
+                    # if we get here then canonical_label must be true
+                    # and we have to make a change of base
+                    OP_clear(orbits_of_supergroup)
+                    for j from i <= j < group.base_size:
+                        for ell from 0 <= ell < group.num_gens[j]:
+                            OP_merge_list_perm(orbits_of_supergroup, group.generators[j] + n*ell)
+                    b = orbits_of_supergroup.mcr[OP_find(orbits_of_supergroup, perm_stack[i*n + k])]
+                    tmp_gp = group
+                    group = old_group
+                    old_group = tmp_gp
+                    if SC_insert_base_point_nomalloc(group, old_group, i, b):
+                        mem_err = 1
+                        break
+            bitset_unset(vertices_have_been_reduced[0], current_ps.depth)
             if not all_children_are_equivalent(current_ps, S):
                 current_kids_are_same = current_ps.depth + 1
 
@@ -664,7 +752,7 @@ cdef aut_gp_and_can_lab *get_aut_gp_and_can_lab(void *S,
         if discrete:
             if current_ps.depth == first_and_current_indicator_same:
                 PS_get_perm_from(current_ps, first_ps, permutation)
-                if compare_structures(permutation, id_perm, S, S) == 0:
+                if compare_structures(permutation, id_perm, S, S, n) == 0:
                     if input_group is NULL or SC_contains(group, 0, permutation, 0):
                         # TODO: might be slight optimization for containment using perm_stack
                         automorphism = 1
@@ -675,15 +763,19 @@ cdef aut_gp_and_can_lab *get_aut_gp_and_can_lab(void *S,
                 # if we get here, discrete must be true
                 update_label = 0
                 if (compared_current_and_label_indicators > 0) or (current_ps.depth < label_ps.depth):
+                    if input_group is not NULL:
+                        if compute_relabeling(group, old_group, current_ps.entries, permutation):
+                            mem_err = 1
+                            break
                     update_label = 1
                 else:
                     if input_group is NULL:
-                        i = compare_structures(current_ps.entries, label_ps.entries, S, S)
+                        i = compare_structures(current_ps.entries, label_ps.entries, S, S, n)
                     else:
                         if compute_relabeling(group, old_group, current_ps.entries, permutation):
                             mem_err = 1
                             break
-                        i = compare_structures(permutation, label_perm, S, S)
+                        i = compare_structures(permutation, label_perm, S, S, n)
                     if i > 0:
                         update_label = 1
                     elif i < 0:
@@ -691,10 +783,13 @@ cdef aut_gp_and_can_lab *get_aut_gp_and_can_lab(void *S,
                     else:
                         if input_group is NULL:
                             PS_get_perm_from(current_ps, label_ps, permutation)
-                        else:
+                            automorphism = 1
+                        elif memcmp(permutation, label_perm, n*sizeof(int)):
                             SC_invert_perm(group.perm_scratch, permutation, n)
                             SC_mult_perms(permutation, group.perm_scratch, label_perm, n)
-                        automorphism = 1
+                            automorphism = 1
+                        else:
+                            backtrack = 1
                 if update_label:
                     PS_copy_from_to(current_ps, label_ps)
                     if input_group is not NULL:
@@ -723,10 +818,10 @@ cdef aut_gp_and_can_lab *get_aut_gp_and_can_lab(void *S,
                         bitset_set(minimal_cell_reps_of_generators[index_in_fp_and_mcr], orbits_of_permutation.mcr[i])
             if OP_merge_list_perm(orbits_of_subgroup, permutation): # if permutation made orbits coarser
                 # add permutation as a generator of the automorphism group
-                if n*output.num_gens == size_of_generator_array:
+                if n*output.num_gens == output.size_of_generator_array:
                     # must double its size
-                    size_of_generator_array *= 2
-                    output.generators = <int *> sage_realloc( output.generators, size_of_generator_array * sizeof(int) )
+                    output.size_of_generator_array *= 2
+                    output.generators = <int *> sage_realloc( output.generators, output.size_of_generator_array * sizeof(int) )
                     if output.generators is NULL:
                         mem_err = True
                         continue # main loop
@@ -735,7 +830,7 @@ cdef aut_gp_and_can_lab *get_aut_gp_and_can_lab(void *S,
                     output.generators[j + i] = permutation[i]
                 output.num_gens += 1
                 if SC_update_tree(output.group, first_meets_current, permutation, 1):
-                    mem_err = True
+                    mem_err = 1
                     continue # main loop
                 if orbits_of_subgroup.mcr[OP_find(orbits_of_subgroup, minimal_in_primary_orbit)] != minimal_in_primary_orbit:
                     current_ps.depth = first_meets_current
@@ -744,7 +839,7 @@ cdef aut_gp_and_can_lab *get_aut_gp_and_can_lab(void *S,
                 current_ps.depth = label_meets_current
             else:
                 current_ps.depth = first_meets_current
-            if bitset_check(vertices_have_been_reduced, current_ps.depth):
+            if bitset_check(vertices_have_been_reduced[0], current_ps.depth):
                 bitset_and(vertices_to_split[current_ps.depth], vertices_to_split[current_ps.depth], minimal_cell_reps_of_generators[index_in_fp_and_mcr])
             continue # main loop
         if backtrack:
@@ -764,31 +859,21 @@ cdef aut_gp_and_can_lab *get_aut_gp_and_can_lab(void *S,
                     if PS_is_fixed(current_ps, i):
                         bitset_set(fixed_points_of_generators[index_in_fp_and_mcr], i)
             current_ps.depth = j
-            if bitset_check(vertices_have_been_reduced, current_ps.depth):
+            if bitset_check(vertices_have_been_reduced[0], current_ps.depth):
                 bitset_and(vertices_to_split[current_ps.depth], vertices_to_split[current_ps.depth], minimal_cell_reps_of_generators[index_in_fp_and_mcr])
 
     # End of main loop.
 
     if canonical_label:
-        for i from 0 <= i < n:
-            output.relabeling[label_ps.entries[i]] = i
+        if input_group is NULL:
+            for i from 0 <= i < n:
+                output.relabeling[label_ps.entries[i]] = i
+        else:
+            for i from 0 <= i < n:
+                output.relabeling[label_perm[i]] = i
 
-    # Deallocate:
-    sage_free(int_array)
-    OP_dealloc(orbits_of_subgroup)
-    OP_dealloc(orbits_of_permutation)
-    if input_group is not NULL:
-        sage_free(perm_stack)
-        SC_dealloc(old_group)
-        SC_dealloc(group)
-    if canonical_label:
-        sage_free(label_indicators)
-        PS_dealloc(label_ps)
-    for i from 0 <= i < n+2*len_of_fp_and_mcr:
-        bitset_free(bitset_array[i])
-    bitset_free(vertices_have_been_reduced)
-    sage_free(bitset_array)
-    PS_dealloc(first_ps)
+    if work_space_prealloc is NULL:
+        deallocate_agcl_work_space(work_space)
 
     return output
 

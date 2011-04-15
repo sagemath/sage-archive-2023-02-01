@@ -41,7 +41,7 @@ B. \code{compare_structures}:
 
     Signature:
 
-    \code{int compare_structures(int *gamma_1, int *gamma_2, void *S1, void *S2)}
+    \code{int compare_structures(int *gamma_1, int *gamma_2, void *S1, void *S2, int degree)}
 
     This function must implement a total ordering on the set of objects of fixed
     order. Return:
@@ -104,11 +104,11 @@ cdef bint all_children_are_equivalent_trivial(PartitionStack *PS, void *S):
 cdef int refine_and_return_invariant_trivial(PartitionStack *PS, void *S, int *cells_to_refine_by, int ctrb_len):
     return 0
 
-cdef int compare_perms(int *gamma_1, int *gamma_2, void *S1, void *S2):
+cdef int compare_perms(int *gamma_1, int *gamma_2, void *S1, void *S2, int degree):
     cdef list MS1 = <list> S1
     cdef list MS2 = <list> S2
     cdef int i, j
-    for i from 0 <= i < len(MS1):
+    for i from 0 <= i < degree:
         j = cmp(MS1[gamma_1[i]], MS2[gamma_2[i]])
         if j != 0: return j
     return 0
@@ -171,10 +171,12 @@ def coset_eq(list perm1=[0,1,2,3,4,5], list perm2=[1,2,3,4,5,0], list gens=[[1,2
     cdef PartitionStack *part = PS_new(n, 1)
     cdef int *c_perm = <int *> sage_malloc(n * sizeof(int))
     cdef StabilizerChain *group = SC_new(n, 1)
-    if part is NULL or c_perm is NULL or group is NULL:
+    cdef int *isomorphism = <int *> sage_malloc(n * sizeof(int))
+    if part is NULL or c_perm is NULL or group is NULL or isomorphism is NULL:
         sage_free(c_perm)
         PS_dealloc(part)
         SC_dealloc(group)
+        sage_free(isomorphism)
         raise MemoryError
     for g in gens:
         for i from 0 <= i < n:
@@ -182,23 +184,91 @@ def coset_eq(list perm1=[0,1,2,3,4,5], list perm2=[1,2,3,4,5,0], list gens=[[1,2
         SC_insert(group, 0, c_perm, 1)
     for i from 0 <= i < n:
         c_perm[i] = i
-    cdef int *output = double_coset(<void *> perm1, <void *> perm2, part, c_perm, n, &all_children_are_equivalent_trivial, &refine_and_return_invariant_trivial, &compare_perms, group)
+    cdef bint isomorphic = double_coset(<void *> perm1, <void *> perm2, part, c_perm, n, &all_children_are_equivalent_trivial, &refine_and_return_invariant_trivial, &compare_perms, group, NULL, isomorphism)
     sage_free(c_perm)
     PS_dealloc(part)
     SC_dealloc(group)
-    if output is NULL:
-        return False
+    if isomorphic:
+        x = [isomorphism[i] for i from 0 <= i < n]
     else:
-        x = [output[i] for i from 0 <= i < n]
-        sage_free(output)
-        return x
+        x = False
+    sage_free(isomorphism)
+    return x
 
-cdef int *double_coset(void *S1, void *S2, PartitionStack *partition1, int *ordering2,
+cdef dc_work_space *allocate_dc_work_space(int n):
+    r"""
+    Allocates work space for the double_coset function. It can be
+    input to the function in which case it must be deallocated after the
+    function is called.
+    """
+    cdef int *int_array
+
+    cdef dc_work_space *work_space
+    work_space = <dc_work_space *> sage_malloc(sizeof(dc_work_space))
+    if work_space is NULL:
+        return NULL
+
+    work_space.degree = n
+    int_array = <int *> sage_malloc((n*n + # for perm_stack
+                                     5*n   # for int_array
+                                    )*sizeof(int))
+    work_space.group1 = SC_new(n)
+    work_space.group2 = SC_new(n)
+    work_space.current_ps = PS_new(n,0)
+    work_space.first_ps   = PS_new(n,0)
+    work_space.bitset_array = <bitset_t *> sage_malloc((n + 2*len_of_fp_and_mcr + 1)*sizeof(bitset_t))
+    work_space.orbits_of_subgroup = OP_new(n)
+
+    if int_array                        is NULL or \
+       work_space.group1                is NULL or \
+       work_space.group2                is NULL or \
+       work_space.current_ps            is NULL or \
+       work_space.first_ps              is NULL or \
+       work_space.bitset_array          is NULL or \
+       work_space.orbits_of_subgroup    is NULL:
+        deallocate_dc_work_space(work_space)
+        return NULL
+
+    work_space.perm_stack = int_array
+    work_space.int_array  = int_array + n*n
+
+    cdef int i
+    for i from 0 <= i < n + 2*len_of_fp_and_mcr + 1:
+        work_space.bitset_array[i].bits = NULL
+    try:
+        for i from 0 <= i < n + 2*len_of_fp_and_mcr + 1:
+            bitset_init(work_space.bitset_array[i], n)
+    except MemoryError:
+        deallocate_dc_work_space(work_space)
+        return NULL
+    return work_space
+
+cdef void deallocate_dc_work_space(dc_work_space *work_space):
+    r"""
+    Deallocates work space for the double_coset function.
+    """
+    if work_space is NULL:
+        return
+    cdef int i, n = work_space.degree
+    if work_space.bitset_array is not NULL:
+        for i from 0 <= i < n + 2*len_of_fp_and_mcr + 1:
+            bitset_free(work_space.bitset_array[i])
+    sage_free(work_space.perm_stack)
+    SC_dealloc(work_space.group1)
+    SC_dealloc(work_space.group2)
+    PS_dealloc(work_space.current_ps)
+    PS_dealloc(work_space.first_ps)
+    sage_free(work_space.bitset_array)
+    OP_dealloc(work_space.orbits_of_subgroup)
+    sage_free(work_space)
+
+cdef int double_coset(void *S1, void *S2, PartitionStack *partition1, int *ordering2,
     int n, bint (*all_children_are_equivalent)(PartitionStack *PS, void *S),
     int (*refine_and_return_invariant)\
          (PartitionStack *PS, void *S, int *cells_to_refine_by, int ctrb_len),
-    int (*compare_structures)(int *gamma_1, int *gamma_2, void *S1, void *S2),
-    StabilizerChain *input_group):
+    int (*compare_structures)(int *gamma_1, int *gamma_2, void *S1, void *S2, int degree),
+    StabilizerChain *input_group,
+    dc_work_space *work_space_prealloc, int *isom) except -1:
     """
     Traverse the search space for double coset calculation.
 
@@ -227,9 +297,14 @@ cdef int *double_coset(void *S1, void *S2, PartitionStack *partition1, int *orde
         INPUT:
         gamma_1, gamma_2 -- (list) permutations of the points of S1 and S2
         S1, S2 -- pointers to the structures
+        degree -- degree of gamma_1 and 2
         OUTPUT:
         int -- 0 if gamma_1(S1) = gamma_2(S2), otherwise -1 or 1 (see docs for cmp),
             such that the set of all structures is well-ordered
+    input_group -- either a specified group to limit the search to,
+        or NULL for the full symmetric group
+    isom -- space to store the isomorphism to,
+        or NULL if isomorphism is not needed
 
     NOTE:
     The partition ``partition1`` and the resulting partition from ``ordering2``
@@ -237,8 +312,7 @@ cdef int *double_coset(void *S1, void *S2, PartitionStack *partition1, int *orde
     first!
 
     OUTPUT:
-    If S1 and S2 are isomorphic, a pointer to an integer array representing an
-    isomorphism. Otherwise, a NULL pointer.
+    1 if S1 and S2 are isomorphic, otherwise 0.
 
     """
     cdef PartitionStack *current_ps, *first_ps, *left_ps
@@ -248,7 +322,7 @@ cdef int *double_coset(void *S1, void *S2, PartitionStack *partition1, int *orde
 
     cdef int *indicators
 
-    cdef OrbitPartition *orbits_of_subgroup
+    cdef OrbitPartition *orbits_of_subgroup, *orbits_of_supergroup
     cdef int subgroup_primary_orbit_size = 0
     cdef int minimal_in_primary_orbit
 
@@ -258,135 +332,126 @@ cdef int *double_coset(void *S1, void *S2, PartitionStack *partition1, int *orde
     cdef int index_in_fp_and_mcr = -1
 
     cdef bitset_t *vertices_to_split
-    cdef bitset_t vertices_have_been_reduced
+    cdef bitset_t *vertices_have_been_reduced
     cdef int *permutation, *id_perm, *cells_to_refine_by
     cdef int *vertices_determining_current_stack
     cdef int *perm_stack
     cdef StabilizerChain *group, *old_group, *tmp_gp
 
-    cdef int *output
-
-    cdef int i, j, k
+    cdef int i, j, k, ell, b
     cdef bint discrete, automorphism, update_label
     cdef bint backtrack, new_vertex, narrow, mem_err = 0
 
     if n == 0:
-        return NULL
+        return 0
 
-    cdef int *int_array = <int *> sage_malloc( 5*n * sizeof(int) )
-    output = <int *> sage_malloc( n * sizeof(int) )
+    if work_space_prealloc is not NULL:
+        work_space = work_space_prealloc
+    else:
+        work_space = allocate_dc_work_space(n)
+        if work_space is NULL:
+            raise MemoryError
+
+    # Allocate:
     if input_group is not NULL:
-        perm_stack = <int *> sage_malloc( n*n * sizeof(int) )
-        group = SC_copy(input_group, n)
-        old_group = SC_new(n)
-        if perm_stack is NULL or group is NULL or old_group is NULL:
-            mem_err = 1
-        else:
-            SC_identify(perm_stack, n)
-    cdef bitset_t *bitset_array = <bitset_t *> sage_malloc( (n+2*len_of_fp_and_mcr) * sizeof(bitset_t) )
+        perm_stack                     = work_space.perm_stack
+        group                          = work_space.group1
+        old_group                      = work_space.group2
+        orbits_of_supergroup           = input_group.OP_scratch
+        SC_copy_nomalloc(group, input_group, n)
+        SC_identify(perm_stack, n)
+
+    current_ps                         = work_space.current_ps
+    first_ps                           = work_space.first_ps
+    orbits_of_subgroup                 = work_space.orbits_of_subgroup
+
+    indicators                         = work_space.int_array
+    permutation                        = work_space.int_array +   n
+    id_perm                            = work_space.int_array + 2*n
+    cells_to_refine_by                 = work_space.int_array + 3*n
+    vertices_determining_current_stack = work_space.int_array + 4*n
+
+    fixed_points_of_generators         = work_space.bitset_array
+    minimal_cell_reps_of_generators    = work_space.bitset_array + len_of_fp_and_mcr
+    vertices_to_split                  = work_space.bitset_array + 2*len_of_fp_and_mcr
+    vertices_have_been_reduced         = work_space.bitset_array + 2*len_of_fp_and_mcr + n
+
+    if work_space_prealloc is not NULL:
+        OP_clear(orbits_of_subgroup)
+
+    bitset_zero(vertices_have_been_reduced[0])
     left_ps = partition1
-    current_ps = PS_new(n, 0)
-    orbits_of_subgroup = OP_new(n)
-
-    if int_array  is NULL or output is NULL or bitset_array is NULL or \
-       current_ps is NULL or orbits_of_subgroup is NULL:
-        mem_err = 1
-
-    if not mem_err:
-        indicators                         = int_array
-        permutation                        = int_array +   n
-        id_perm                            = int_array + 2*n
-        cells_to_refine_by                 = int_array + 3*n
-        vertices_determining_current_stack = int_array + 4*n
-
-        fixed_points_of_generators      = bitset_array
-        minimal_cell_reps_of_generators = bitset_array + len_of_fp_and_mcr
-        vertices_to_split               = bitset_array + 2*len_of_fp_and_mcr
-        try:
-            for i from 0 <= i < n+2*len_of_fp_and_mcr:
-                bitset_init(bitset_array[i], n)
-            bitset_init(vertices_have_been_reduced, n)
-        except MemoryError:
-            mem_err = 1
 
     cdef bint possible = 1
     cdef bint unknown = 1
 
-    if not mem_err:
-        bitset_zero(vertices_have_been_reduced)
+    # set up the identity permutation
+    for i from 0 <= i < n:
+        id_perm[i] = i
+    if ordering2 is NULL:
+        ordering2 = id_perm
 
-        # set up the identity permutation
-        for i from 0 <= i < n:
-            id_perm[i] = i
-        if ordering2 is NULL:
-            ordering2 = id_perm
+    # Copy reordering of left_ps coming from ordering2 to current_ps.
+    memcpy(current_ps.entries, ordering2,      n*sizeof(int))
+    memcpy(current_ps.levels,  left_ps.levels, n*sizeof(int))
+    current_ps.depth = left_ps.depth
 
-        # Copy reordering of left_ps coming from ordering2 to current_ps.
-        for i from 0 <= i < n:
-            current_ps.entries[i] = ordering2[i] # memcpy faster?
-            current_ps.levels[i] = left_ps.levels[i]
-        # note that current_ps depth and degree already set
+    # default values of "infinity"
+    for i from 0 <= i < n:
+        indicators[i] = -1
 
-        # default values of "infinity"
-        for i from 0 <= i < n:
-            indicators[i] = -1
+    # Our first refinement needs to check every cell of the partition,
+    # so cells_to_refine_by needs to be a list of pointers to each cell.
+    j = 1
+    cells_to_refine_by[0] = 0
+    for i from 0 < i < n:
+        if left_ps.levels[i-1] == 0:
+            cells_to_refine_by[j] = i
+            j += 1
+    if input_group is NULL:
+        k = refine_and_return_invariant(left_ps, S1, cells_to_refine_by, j)
+    else:
+        k = refine_also_by_orbits(left_ps, S1, refine_and_return_invariant,
+            cells_to_refine_by, j, group, perm_stack)
+    j = 1
+    cells_to_refine_by[0] = 0
+    for i from 0 < i < n:
+        if current_ps.levels[i-1] == 0:
+            cells_to_refine_by[j] = i
+            j += 1
+    if input_group is NULL:
+        j = refine_and_return_invariant(current_ps, S2, cells_to_refine_by, j)
+    else:
+        j = refine_also_by_orbits(current_ps, S2, refine_and_return_invariant,
+            cells_to_refine_by, j, group, perm_stack)
+    if k != j:
+        possible = 0; unknown = 0
+    elif not stacks_are_equivalent(left_ps, current_ps):
+        possible = 0; unknown = 0
+    else:
+        PS_move_all_mins_to_front(current_ps)
 
-        # Our first refinement needs to check every cell of the partition,
-        # so cells_to_refine_by needs to be a list of pointers to each cell.
-        j = 1
-        cells_to_refine_by[0] = 0
-        for i from 0 < i < n:
-            if left_ps.levels[i-1] == 0:
-                cells_to_refine_by[j] = i
-                j += 1
-        if input_group is NULL:
-            k = refine_and_return_invariant(left_ps, S1, cells_to_refine_by, j)
+    # Refine down to a discrete partition
+    while not PS_is_discrete(left_ps):
+        i = left_ps.depth
+        k = PS_first_smallest(left_ps, vertices_to_split[i]) # writes to vertices_to_split, but this is never used
+        if input_group is not NULL:
+            OP_clear(orbits_of_supergroup)
+            for j from i <= j < group.base_size:
+                for ell from 0 <= ell < group.num_gens[j]:
+                    OP_merge_list_perm(orbits_of_supergroup, group.generators[j] + n*ell)
+            b = orbits_of_supergroup.mcr[OP_find(orbits_of_supergroup, perm_stack[i*n + k])]
+            tmp_gp = group
+            group = old_group
+            old_group = tmp_gp
+            if SC_insert_base_point_nomalloc(group, old_group, i, b):
+                mem_err = 1
+                break
+            indicators[i] = split_point_and_refine_by_orbits(left_ps, k, S1, refine_and_return_invariant, cells_to_refine_by, group, perm_stack)
         else:
-            k = refine_also_by_orbits(left_ps, S1, refine_and_return_invariant,
-                cells_to_refine_by, j, group, perm_stack)
+            indicators[i] = split_point_and_refine(left_ps, k, S1, refine_and_return_invariant, cells_to_refine_by)
+        bitset_unset(vertices_have_been_reduced[0], left_ps.depth)
 
-        j = 1
-        cells_to_refine_by[0] = 0
-        for i from 0 < i < n:
-            if current_ps.levels[i-1] == 0:
-                cells_to_refine_by[j] = i
-                j += 1
-        if input_group is NULL:
-            j = refine_and_return_invariant(current_ps, S2, cells_to_refine_by, j)
-        else:
-            j = refine_also_by_orbits(current_ps, S2, refine_and_return_invariant,
-                cells_to_refine_by, j, group, perm_stack)
-
-        if k != j:
-            possible = 0; unknown = 0
-        elif not stacks_are_equivalent(left_ps, current_ps):
-            possible = 0; unknown = 0
-        else:
-            PS_move_all_mins_to_front(current_ps)
-
-        first_ps = NULL
-        # Refine down to a discrete partition
-        while not PS_is_discrete(left_ps):
-            i = left_ps.depth
-            k = PS_first_smallest(left_ps, vertices_to_split[i]) # writes to vertices_to_split, but this is never used
-            if input_group is not NULL:
-                # split the point
-                left_ps.depth += 1
-                PS_clear(left_ps)
-                cells_to_refine_by[0] = PS_split_point(left_ps, k)
-                # update the base
-                tmp_gp = group
-                group = old_group
-                old_group = tmp_gp
-                if SC_insert_base_point_nomalloc(group, old_group, i, k):
-                    mem_err = 1
-                    break
-                SC_identify(perm_stack + n*left_ps.depth, n)
-                # do the refinements
-                indicators[i] = refine_also_by_orbits(left_ps, S1, refine_and_return_invariant, cells_to_refine_by, 1, group, perm_stack)
-            else:
-                indicators[i] = split_point_and_refine(left_ps, k, S1, refine_and_return_invariant, cells_to_refine_by)
-            bitset_unset(vertices_have_been_reduced, left_ps.depth)
     if not mem_err:
         while not PS_is_discrete(current_ps) and possible:
             i = current_ps.depth
@@ -397,21 +462,8 @@ cdef int *double_coset(void *S1, void *S2, PartitionStack *partition1, int *orde
             while possible:
                 i = current_ps.depth
                 if input_group is not NULL:
-                    # split the point
-                    current_ps.depth += 1
-                    PS_clear(current_ps)
-                    cells_to_refine_by[0] = PS_split_point(current_ps, vertices_determining_current_stack[i])
-                    # update the base
-                    tmp_gp = group
-                    group = old_group
-                    old_group = tmp_gp
-                    if SC_insert_base_point_nomalloc(group, old_group, i, vertices_determining_current_stack[i]):
-                        mem_err = 1
-                        break
-                    # update perm_stack
-                    update_perm_stack(group, current_ps.depth, vertices_determining_current_stack[i], perm_stack)
-                    # do the refinements
-                    j = refine_also_by_orbits(current_ps, S2, refine_and_return_invariant, cells_to_refine_by, 1, group, perm_stack)
+                    j = split_point_and_refine_by_orbits(current_ps, vertices_determining_current_stack[i],
+                        S2, refine_and_return_invariant, cells_to_refine_by, group, perm_stack)
                 else:
                     j = split_point_and_refine(current_ps,
                         vertices_determining_current_stack[i], S2,
@@ -438,35 +490,22 @@ cdef int *double_coset(void *S1, void *S2, PartitionStack *partition1, int *orde
                         break # found another
         if possible:
             if input_group is NULL:
-                if compare_structures(left_ps.entries, current_ps.entries, S1, S2) == 0:
+                if compare_structures(left_ps.entries, current_ps.entries, S1, S2, n) == 0:
                     unknown = 0
             else:
                 PS_get_perm_from(left_ps, current_ps, permutation)
-                if SC_contains(group, 0, permutation, 0) and compare_structures(permutation, id_perm, S1, S2) == 0:
+                if SC_contains(group, 0, permutation, 0) and compare_structures(permutation, id_perm, S1, S2, n) == 0:
                     # TODO: might be slight optimization for containment using perm_stack
                     unknown = 0
             if unknown:
                 first_meets_current = current_ps.depth
                 first_kids_are_same = current_ps.depth
-                first_ps = PS_copy(current_ps)
-                if first_ps is NULL:
-                    mem_err = 1
+                PS_copy_from_to(current_ps, first_ps)
                 current_ps.depth -= 1
 
     if mem_err:
-        sage_free(int_array)
-        if input_group is not NULL:
-            sage_free(perm_stack)
-            SC_dealloc(group)
-            SC_dealloc(old_group)
-        OP_dealloc(orbits_of_subgroup)
-        sage_free(output)
-        if bitset_array is not NULL:
-            for i from 0 <= i < n+2*len_of_fp_and_mcr:
-                bitset_free(bitset_array[i])
-        bitset_free(vertices_have_been_reduced)
-        sage_free(bitset_array)
-        PS_dealloc(current_ps)
+        if work_space_prealloc is NULL:
+            deallocate_dc_work_space(work_space)
         raise MemoryError
 
     # Main loop:
@@ -477,7 +516,7 @@ cdef int *double_coset(void *S1, void *S2, PartitionStack *partition1, int *orde
         if current_ps.depth > first_meets_current:
             # If we are not at a node of the first stack, reduce size of
             # vertices_to_split by using the symmetries we already know.
-            if not bitset_check(vertices_have_been_reduced, current_ps.depth):
+            if not bitset_check(vertices_have_been_reduced[0], current_ps.depth):
                 for i from 0 <= i <= index_in_fp_and_mcr:
                     j = 0
                     while j < current_ps.depth and bitset_check(fixed_points_of_generators[i], vertices_determining_current_stack[j]):
@@ -489,7 +528,7 @@ cdef int *double_coset(void *S1, void *S2, PartitionStack *partition1, int *orde
                         for k from 0 <= k < n:
                             if bitset_check(vertices_to_split[current_ps.depth], k) and not bitset_check(minimal_cell_reps_of_generators[i], k):
                                 bitset_flip(vertices_to_split[current_ps.depth], k)
-                bitset_flip(vertices_have_been_reduced, current_ps.depth)
+                bitset_flip(vertices_have_been_reduced[0], current_ps.depth)
             # Look for a new point to split.
             i = vertices_determining_current_stack[current_ps.depth] + 1
             i = bitset_next(vertices_to_split[current_ps.depth], i)
@@ -594,7 +633,7 @@ cdef int *double_coset(void *S1, void *S2, PartitionStack *partition1, int *orde
                 break
             if PS_is_discrete(current_ps):
                 break
-            bitset_unset(vertices_have_been_reduced, current_ps.depth)
+            bitset_unset(vertices_have_been_reduced[0], current_ps.depth)
             if not all_children_are_equivalent(current_ps, S2):
                 current_kids_are_same = current_ps.depth + 1
 
@@ -602,7 +641,7 @@ cdef int *double_coset(void *S1, void *S2, PartitionStack *partition1, int *orde
         automorphism = 0
         if possible:
             PS_get_perm_from(first_ps, current_ps, permutation)
-            if compare_structures(permutation, id_perm, S2, S2) == 0:
+            if compare_structures(permutation, id_perm, S2, S2, n) == 0:
                 if input_group is NULL or SC_contains(group, 0, permutation, 0):
                     # TODO: might be slight optimization for containment using perm_stack
                     automorphism = 1
@@ -611,14 +650,14 @@ cdef int *double_coset(void *S1, void *S2, PartitionStack *partition1, int *orde
             if current_ps.depth != left_ps.depth:
                 possible = 0
             elif input_group is NULL:
-                if compare_structures(left_ps.entries, current_ps.entries, S1, S2) == 0:
+                if compare_structures(left_ps.entries, current_ps.entries, S1, S2, n) == 0:
                     unknown = 0
                     break
                 else:
                     possible = 0
             else:
                 PS_get_perm_from(left_ps, current_ps, permutation)
-                if SC_contains(group, 0, permutation, 0) and compare_structures(permutation, id_perm, S1, S2) == 0:
+                if SC_contains(group, 0, permutation, 0) and compare_structures(permutation, id_perm, S1, S2, n) == 0:
                     # TODO: might be slight optimization for containment using perm_stack
                     unknown = 0
                     break
@@ -648,7 +687,7 @@ cdef int *double_coset(void *S1, void *S2, PartitionStack *partition1, int *orde
             if OP_merge_list_perm(orbits_of_subgroup, permutation): # if permutation made orbits coarser
                 if orbits_of_subgroup.mcr[OP_find(orbits_of_subgroup, minimal_in_primary_orbit)] != minimal_in_primary_orbit:
                     continue # main loop
-            if bitset_check(vertices_have_been_reduced, current_ps.depth):
+            if bitset_check(vertices_have_been_reduced[0], current_ps.depth):
                 bitset_and(vertices_to_split[current_ps.depth], vertices_to_split[current_ps.depth], minimal_cell_reps_of_generators[index_in_fp_and_mcr])
             continue # main loop
         if not possible:
@@ -669,33 +708,18 @@ cdef int *double_coset(void *S1, void *S2, PartitionStack *partition1, int *orde
                     if PS_is_fixed(current_ps, i):
                         bitset_set(fixed_points_of_generators[index_in_fp_and_mcr], i)
             current_ps.depth = j
-            if bitset_check(vertices_have_been_reduced, current_ps.depth):
+            if bitset_check(vertices_have_been_reduced[0], current_ps.depth):
                 bitset_and(vertices_to_split[current_ps.depth], vertices_to_split[current_ps.depth], minimal_cell_reps_of_generators[index_in_fp_and_mcr])
 
     # End of main loop.
-
-    if possible and not unknown:
+    if possible and not unknown and isom is not NULL:
         for i from 0 <= i < n:
-            output[left_ps.entries[i]] = current_ps.entries[i]
-    else:
-        sage_free(output)
-        output = NULL
+            isom[left_ps.entries[i]] = current_ps.entries[i]
 
     # Deallocate:
-    sage_free(int_array)
-    OP_dealloc(orbits_of_subgroup)
-    if bitset_array is not NULL:
-        for i from 0 <= i < n+2*len_of_fp_and_mcr:
-            bitset_free(bitset_array[i])
-    bitset_free(vertices_have_been_reduced)
-    sage_free(bitset_array)
-    if input_group is not NULL:
-        sage_free(perm_stack)
-        SC_dealloc(group)
-        SC_dealloc(old_group)
-    PS_dealloc(first_ps)
-    PS_dealloc(current_ps)
-    return output
+    if work_space_prealloc is NULL:
+        deallocate_dc_work_space(work_space)
+    return 1 if (possible and not unknown) else 0
 
 
 

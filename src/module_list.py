@@ -507,6 +507,13 @@ ext_modules = [
               extra_compile_args = ['-std=c99'],
               depends = flint_depends),
 
+    Extension('sage.groups.perm_gps.partn_ref.canonical_augmentation',
+              sources = ['sage/groups/perm_gps/partn_ref/canonical_augmentation.pyx'],
+              libraries = ['gmp', 'flint'],
+              include_dirs = [SAGE_ROOT + '/local/include/FLINT/'],
+              extra_compile_args = ['-std=c99'],
+              depends = [SAGE_ROOT + "/local/include/FLINT/flint.h"]),
+
     Extension('sage.groups.perm_gps.partn_ref.double_coset',
               sources = ['sage/groups/perm_gps/partn_ref/double_coset.pyx'],
               libraries = ['gmp', 'flint'],
@@ -548,6 +555,13 @@ ext_modules = [
               include_dirs = [SAGE_INC + 'FLINT/'],
               extra_compile_args = ['-std=c99'],
               depends = flint_depends),
+
+    Extension('sage.groups.perm_gps.partn_ref.refinement_sets',
+              sources = ['sage/groups/perm_gps/partn_ref/refinement_sets.pyx'],
+              libraries = ['gmp', 'flint'],
+              include_dirs = [SAGE_ROOT + '/local/include/FLINT/'],
+              extra_compile_args = ['-std=c99'],
+              depends = [SAGE_ROOT + "/local/include/FLINT/flint.h"]),
 
     ################################
     ##

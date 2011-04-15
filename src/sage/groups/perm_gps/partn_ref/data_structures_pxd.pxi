@@ -6,15 +6,23 @@
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include '../../../ext/cdefs.pxi'
-include '../../../ext/stdsage.pxi'
-include '../../../misc/bitset_pxd.pxi'
+include 'sage/ext/cdefs.pxi'
+include 'sage/ext/stdsage.pxi'
+include 'sage/misc/bitset_pxd.pxi'
 
 cdef extern from "stdlib.h":
     int rand()
 
 cdef extern from "FLINT/long_extras.h":
     int z_isprime(unsigned long n)
+
+cdef enum:
+    # The following is for the automorphism group computation, says what the
+    # length of fixed point and minimal cell representative arrays should be,
+    # which are used to prune the search tree under known symmetries.
+    # Increasing this may make certain automorphism_group_and_canonical_label
+    # computations faster for incredibly large groups.
+    len_of_fp_and_mcr = 100
 
 cdef struct OrbitPartition:
     # Disjoint set data structure for representing the orbits of the generators

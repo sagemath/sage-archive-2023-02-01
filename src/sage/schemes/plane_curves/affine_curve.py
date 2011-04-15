@@ -376,17 +376,18 @@ class AffineCurve_prime_finite_field(AffineCurve_finite_field):
                 raise RuntimeError, str(s) + "\n\n ** Unable to use the Brill-Noether Singular package to compute all points (see above)."
 
             X2 = singular.NSplaces(1, X1)
-            X3 = singular.extcurve(1, X2)
-            R = X3[1][5]
+            R = X2[5][1][1]
             singular.set_ring(R)
 
             # We use sage_flattened_str_list since iterating through
             # the entire list through the sage/singular interface directly
-            # would involve hundreds of calls to singular, and timing issues with
-            # the expect interface could crop up.  Also, this is vastly
+            # would involve hundreds of calls to singular, and timing issues
+            # with the expect interface could crop up.  Also, this is vastly
             # faster (and more robust).
             v = singular('POINTS').sage_flattened_str_list()
             pnts = [self(int(v[3*i]), int(v[3*i+1])) for i in range(len(v)/3) if int(v[3*i+2])!=0]
+            # remove multiple points
+            pnts = list(set(pnts))
             pnts.sort()
             return pnts
 

@@ -497,11 +497,14 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
             sage: x, y, z = PolynomialRing(GF(5), 3, 'xyz').gens()
             sage: f = y^2*z^7 - x^9 - x*z^8
             sage: C = Curve(f); C
-            Projective Curve over Finite Field of size 5 defined by -x^9 + y^2*z^7 - x*z^8
+            Projective Curve over Finite Field of size 5 defined by
+            -x^9 + y^2*z^7 - x*z^8
             sage: C._points_via_singular()
-            [(0 : 0 : 1), (0 : 1 : 0), (2 : 2 : 1), (2 : 3 : 1), (3 : 1 : 1), (3 : 4 : 1)]
+            [(0 : 0 : 1), (0 : 1 : 0), (2 : 2 : 1), (2 : 3 : 1),
+             (3 : 1 : 1), (3 : 4 : 1)]
             sage: C._points_via_singular(sort=False)     #random
-            [(0 : 1 : 0), (3 : 1 : 1), (3 : 4 : 1), (2 : 2 : 1), (0 : 0 : 1), (2 : 3 : 1)]
+            [(0 : 1 : 0), (3 : 1 : 1), (3 : 4 : 1), (2 : 2 : 1),
+             (0 : 0 : 1), (2 : 3 : 1)]
 
 
         .. note::
@@ -516,11 +519,12 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
         try:
             X1 = f.Adj_div()
         except (TypeError, RuntimeError), s:
-            raise RuntimeError, str(s) + "\n\n ** Unable to use the Brill-Noether Singular package to compute all points (see above)."
+            raise RuntimeError, str(s) + "\n\n ** Unable to use the\
+                                          Brill-Noether Singular package to\
+                                          compute all points (see above)."
 
         X2 = singular.NSplaces(1, X1)
-        X3 = singular.extcurve(1, X2)
-        R = X3[1][5]
+        R = X2[5][1][1]
         singular.set_ring(R)
 
         # We use sage_flattened_str_list since iterating through
@@ -529,9 +533,18 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
         # the expect interface could crop up.  Also, this is vastly
         # faster (and more robust).
         v = singular('POINTS').sage_flattened_str_list()
-        pnts = [self(int(v[3*i]), int(v[3*i+1]), int(v[3*i+2])) for i in range(len(v)/3)]
-
-
+        pnts = [self(int(v[3*i]), int(v[3*i+1]), int(v[3*i+2]))
+                for i in range(len(v)/3)]
+        # singular always dehomogenizes with respect to the last variable
+        # so if this variable divides the curve equation, we need to add
+        # points at infinity
+        F = self.defining_polynomial()
+        z = F.parent().gens()[-1]
+        if z.divides(F):
+            pnts += [self(1,a,0) for a in self.base_ring()]
+            pnts += [self(0,1,0)]
+        # remove multiple points
+        pnts = list(set(pnts))
         if sort:
             pnts.sort()
         return pnts
@@ -631,12 +644,20 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
             sage: x, y, z = PolynomialRing(GF(5), 3, 'xyz').gens()
             sage: f = y^2*z^7 - x^9 - x*z^8
             sage: C = Curve(f); C
-            Projective Curve over Finite Field of size 5 defined by -x^9 + y^2*z^7 - x*z^8
+            Projective Curve over Finite Field of size 5 defined by
+            -x^9 + y^2*z^7 - x*z^8
             sage: C.rational_points()
-            [(0 : 0 : 1), (0 : 1 : 0), (2 : 2 : 1), (2 : 3 : 1), (3 : 1 : 1), (3 : 4 : 1)]
+            [(0 : 0 : 1), (0 : 1 : 0), (2 : 2 : 1), (2 : 3 : 1),
+             (3 : 1 : 1), (3 : 4 : 1)]
             sage: C = Curve(x - y + z)
             sage: C.rational_points()
-            [(0 : 1 : 1), (1 : 1 : 0), (1 : 2 : 1), (2 : 3 : 1), (3 : 4 : 1), (4 : 0 : 1)]
+            [(0 : 1 : 1), (1 : 1 : 0), (1 : 2 : 1), (2 : 3 : 1),
+             (3 : 4 : 1), (4 : 0 : 1)]
+            sage: C = Curve(x*z+z^2)
+            sage: C.rational_points('all')
+            [(0 : 1 : 0), (1 : 0 : 0), (1 : 1 : 0), (2 : 1 : 0),
+             (3 : 1 : 0), (4 : 0 : 1), (4 : 1 : 0), (4 : 1 : 1),
+             (4 : 2 : 1), (4 : 3 : 1), (4 : 4 : 1)]
 
         .. note::
 
@@ -646,7 +667,9 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
         """
         if algorithm == "enum":
 
-            return ProjectiveCurve_finite_field.rational_points(self, algorithm="enum", sort=sort)
+            return ProjectiveCurve_finite_field.rational_points(self,
+                                                                algorithm="enum",
+                                                                sort=sort)
 
         elif algorithm == "bn":
 
@@ -657,7 +680,9 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
             S_enum = self.rational_points(algorithm = "enum")
             S_bn = self.rational_points(algorithm = "bn")
             if S_enum != S_bn:
-                raise RuntimeError, "Bug in rational_points -- different algorithms give different answers for curve %s!"%self
+                raise RuntimeError, "Bug in rational_points -- different\
+                                     algorithms give different answers for\
+                                     curve %s!"%self
             return S_enum
 
         else:

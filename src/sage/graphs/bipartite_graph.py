@@ -220,6 +220,21 @@ class BipartiteGraph(Graph):
         sage: B.allows_multiple_edges()
         True
 
+    Ensure that we can construct a ``BipartiteGraph`` with isolated vertices
+    via the reduced adjacency matrix (trac #10356)::
+
+        sage: a=BipartiteGraph(matrix(2,2,[1,0,1,0]))
+        sage: a
+        Bipartite graph on 4 vertices
+        sage: a.vertices()
+        [0, 1, 2, 3]
+        sage: g = BipartiteGraph(matrix(4,4,[1]*4+[0]*12))
+        sage: g.vertices()
+        [0, 1, 2, 3, 4, 5, 6, 7]
+        sage: sorted(g.left.union(g.right))
+        [0, 1, 2, 3, 4, 5, 6, 7]
+
+
     """
 
     def __init__(self, *args, **kwds):
@@ -275,6 +290,12 @@ class BipartiteGraph(Graph):
             nrows = arg1.nrows()
             self.left = set(xrange(ncols))
             self.right = set(xrange(ncols, nrows + ncols))
+
+            # ensure that the vertices exist even if there
+            # are no associated edges (trac #10356)
+            self.add_vertices(self.left)
+            self.add_vertices(self.right)
+
             if kwds.get("multiedges", False):
                 for ii in range(ncols):
                     for jj in range(nrows):
@@ -1110,6 +1131,7 @@ class BipartiteGraph(Graph):
             sage: B = BipartiteGraph(M, weighted=True, sparse=True)
             sage: M == B.reduced_adjacency_matrix()
             True
+
         """
         if self.multiple_edges() and self.weighted():
             raise NotImplementedError(

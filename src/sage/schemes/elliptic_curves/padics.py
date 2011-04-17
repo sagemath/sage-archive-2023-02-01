@@ -244,7 +244,13 @@ def padic_regulator(self, p, prec=20, height=None, check_hypotheses=True):
         sage: E.padic_regulator(7) == Em.padic_regulator(7)
         True
 
+    Allow a Python int as input::
+
+        sage: E = EllipticCurve('37a')
+        sage: E.padic_regulator(int(5))
+        5 + 5^2 + 5^3 + 3*5^6 + 4*5^7 + 5^9 + 5^10 + 3*5^11 + 3*5^12 + 5^13 + 4*5^14 + 5^15 + 2*5^16 + 5^17 + 2*5^18 + 4*5^19 + O(5^20)
     """
+    p = Integer(p)  # this is assumed in code below
     if check_hypotheses:
         if not p.is_prime():
             raise ValueError, "p = (%s) must be prime"%p

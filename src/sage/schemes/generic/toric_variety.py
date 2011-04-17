@@ -1181,6 +1181,27 @@ class ToricVariety_field(AmbientSpace):
                 "Got %s" % another)
         raise NotImplementedError("isomorphism check is not yet implemented!")
 
+    def is_affine(self):
+        r"""
+        Check if ``self`` is an affine toric variety.
+
+        An affine toric variety is a toric variety whose fan is the
+        face lattice of a single cone. See also
+        :func:`AffineToricVariety`.
+
+        OUTPUT:
+
+        Boolean.
+
+        EXMAMPLES:
+
+            sage: toric_varieties.A2().is_affine()
+            True
+            sage: toric_varieties.P1xA1().is_affine()
+            False
+        """
+        return self.fan().ngenerating_cones() == 1
+
     def is_complete(self):
         r"""
         Check if ``self`` is complete.
@@ -1662,8 +1683,12 @@ class ToricVariety_field(AmbientSpace):
               To:   Spectrum of Rational Field
               Defn: Structure map
         """
-        from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_toric
-        return AlgebraicScheme_subscheme_toric(self, polynomials)
+        from sage.schemes.generic.algebraic_scheme import \
+            AlgebraicScheme_subscheme_toric, AlgebraicScheme_subscheme_affine_toric
+        if self.is_affine():
+            return AlgebraicScheme_subscheme_affine_toric(self, polynomials)
+        else:
+            return AlgebraicScheme_subscheme_toric(self, polynomials)
 
     def Stanley_Reisner_ideal(self):
         """

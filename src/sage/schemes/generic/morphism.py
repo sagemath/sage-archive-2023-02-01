@@ -369,6 +369,24 @@ class SchemeMorphism_on_points(SchemeMorphism):
             sage: f([2,3])
             (3, 7)
 
+        An example with algebraic schemes::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: X = A.subscheme(x)
+            sage: Y = A.subscheme(y)
+            sage: Hom_XY = X.Hom(Y)
+            sage: f = Hom_XY([y,0])   # (0,y) |-> (y,0)
+            sage: f
+            Scheme morphism:
+              From: Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
+              x
+              To:   Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
+              y
+              Defn: Defined on coordinates by sending (x, y) to
+                    (y, 0)
+            sage: f([0,3])
+            (3, 0)
+
         We illustrate type checking of the input::
 
             sage: f(0)
@@ -452,6 +470,19 @@ class SchemeMorphism_on_points_projective_space(SchemeMorphism_on_points):
           To:   Projective Curve over Rational Field defined by -x^3 + y^2*z + 6400/3*z^3
           Defn: Defined on coordinates by sending (x : y : z) to
                 (z : x - y : -1/80*x - 1/80*y)
+
+    A more complicated example::
+
+        sage: P2.<x,y,z> = ProjectiveSpace(2,QQ)
+        sage: P1 = P2.subscheme(x-y)
+        sage: H12 = P1.Hom(P2)
+        sage: H12([x^2,x*z, z^2])
+        Scheme morphism:
+        From: Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
+        x - y
+        To:   Projective Space of dimension 2 over Rational Field
+        Defn: Defined on coordinates by sending (x : y : z) to
+              (y^2 : y*z : z^2)
 
     We illustrate some error checking::
 

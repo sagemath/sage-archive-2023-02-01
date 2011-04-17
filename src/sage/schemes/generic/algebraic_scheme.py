@@ -101,7 +101,8 @@ AUTHORS:
 - David Kohel (2005): initial version.
 - William Stein (2005): initial version.
 - Andrey Novoseltsev (2010-05-17): subschemes of toric varieties.
-- Volker Braun (2010-12-24): documentation of schemes and refactoring.
+- Volker Braun (2010-12-24): documentation of schemes and
+  refactoring. Added coordinate neighborhoods and is_smooth()
 """
 
 #*****************************************************************************
@@ -118,12 +119,13 @@ AUTHORS:
 
 
 #*** A quick overview over the class hierarchy:
-# class AlgebraicScheme(scheme.Scheme):
-#    class AlgebraicScheme_subscheme(AlgebraicScheme):
-#       class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
-#       class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
-#       class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
-#    class AlgebraicScheme_quasi(AlgebraicScheme):
+# class AlgebraicScheme(scheme.Scheme)
+#    class AlgebraicScheme_subscheme
+#       class AlgebraicScheme_subscheme_affine
+#       class AlgebraicScheme_subscheme_projective
+#       class AlgebraicScheme_subscheme_toric
+#          class AlgebraicScheme_subscheme_affine_toric
+#    class AlgebraicScheme_quasi
 
 
 
@@ -137,6 +139,7 @@ from sage.rings.all import (
 from sage.misc.latex import latex
 from sage.misc.misc import is_iterator
 from sage.structure.all import Sequence
+from sage.calculus.functions import jacobian
 import ambient_space
 import affine_space
 import projective_space
@@ -315,7 +318,6 @@ class AlgebraicScheme(scheme.Scheme):
             sage: S = A.subscheme([])
             sage: S.ngens()
             2
-
             sage: P.<x, y, z> = ProjectiveSpace(2, ZZ)
             sage: S = P.subscheme([x-y, x-z])
             sage: P.ngens()
@@ -516,6 +518,10 @@ class AlgebraicScheme_quasi(AlgebraicScheme):
             sage: U = T.complement(S)
             sage: U._check_satisfies_equations([2, 4])
             True
+            sage: U.point([2,4])
+            (2, 4)
+            sage: U._check_satisfies_equations(_)
+            True
             sage: U._check_satisfies_equations([1, 1])
             Traceback (most recent call last):
             ...
@@ -535,11 +541,12 @@ class AlgebraicScheme_quasi(AlgebraicScheme):
             and Y is defined by:
               x - y
         """
+        coords = list(v)
         for f in self.__X.defining_polynomials():
-            if f(v) != 0:
+            if f(coords) != 0:
                 raise TypeError, "Coordinates %s do not define a point on %s"%(v,self)
         for f in self.__Y.defining_polynomials():
-            if f(v) == 0:
+            if f(coords) == 0:
                 raise TypeError, "Coordinates %s do not define a point on %s"%(v,self)
         return True
 
@@ -683,14 +690,15 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             of Projective Space of dimension 2 over Rational Field defined by:
               x^2 - y*z
         """
+        coords = list(v)
         for f in self.defining_polynomials():
-            if f(v) != 0:   # it must be "!=0" instead of "if f(v)", e.g.,
-                            # because of p-adic base rings.
-                raise TypeError, "Coordinates %s do not define a point on %s"%(list(v),self)
+            if f(coords) != 0:   # it must be "!=0" instead of "if f(v)", e.g.,
+                                 # because of p-adic base rings.
+                raise TypeError, "Coordinates %s do not define a point on %s"%(coords,self)
         try:
-            return self.ambient_space()._check_satisfies_equations(v)
+            return self.ambient_space()._check_satisfies_equations(coords)
         except TypeError:
-            raise TypeError, "Coordinates %s do not define a point on %s"%(list(v),self)
+            raise TypeError, "Coordinates %s do not define a point on %s"%(coords,self)
 
     def base_extend(self, R):
         """
@@ -791,6 +799,11 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         Return the polynomials that define this scheme as a subscheme
         of its ambient space.
 
+        OUTPUT:
+
+        A tuple of polynomials in the coordinate ring of the ambient
+        space.
+
         EXAMPLES::
 
             sage: P.<x, y, z> = ProjectiveSpace(2, ZZ)
@@ -804,6 +817,10 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         """
         Return the ideal that defines this scheme as a subscheme
         of its ambient space.
+
+        OUTPUT:
+
+        An ideal in the coordinate ring of the ambient space.
 
         EXAMPLES::
 
@@ -819,6 +836,26 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             self.__I = R.ideal(self.defining_polynomials())
             return self.__I
 
+    # Note: dimension must be implemented by the derived classes
+    def codimension(self):
+        r"""
+        Return the codimension of the algebraic subscheme.
+
+        OUTPUT:
+
+        Integer.
+
+        EXAMPLES::
+
+            sage: PP.<x,y,z,w,v> = ProjectiveSpace(4,QQ)
+            sage: V = PP.subscheme(x*y)
+            sage: V.codimension()
+            1
+            sage: V.dimension()
+            3
+        """
+        return self.ambient_space().dimension() - self.dimension()
+
     def irreducible_components(self):
         r"""
         Return the irreducible components of this algebraic scheme, as
@@ -832,9 +869,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         EXAMPLES:
 
         We define what is clearly a union of four hypersurfaces in
-        `\P^4_{\QQ}` then find the irreducible components.
-
-        ::
+        `\P^4_{\QQ}` then find the irreducible components::
 
             sage: PP.<x,y,z,w,v> = ProjectiveSpace(4,QQ)
             sage: V = PP.subscheme( (x^2 - y^2 - z^2)*(w^5 -  2*v^2*z^3)* w * (v^3 - x^2*z) )
@@ -901,35 +936,95 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         self.__irreducible_components = C
         return C
 
+    def Jacobian_matrix(self):
+        r"""
+        Return the matrix `\frac{\partial f_i}{\partial x_j}` of
+        (formal) partial derivatives.
+
+        OUTPUT:
+
+        A matrix of polynomials.
+
+        EXAMPLES::
+
+            sage: P3.<w,x,y,z> = ProjectiveSpace(3, QQ)
+            sage: twisted_cubic = P3.subscheme(matrix([[w, x, y],[x, y, z]]).minors(2))
+            sage: twisted_cubic.Jacobian_matrix()
+            [   y -2*x    w    0]
+            [   z   -y   -x    w]
+            [   0    z -2*y    x]
+        """
+        R = self.ambient_space().coordinate_ring()
+        return jacobian(self.defining_polynomials(), R.gens())
+
+    def Jacobian(self):
+        r"""
+        Return the Jacobian ideal.
+
+        This is the ideal generated by
+
+        * the `d\times d` minors of the Jacobian matrix, where `d` is
+          the :meth:`codimension` of the algebraic scheme, and
+
+        * the defining polynomials of the algebraic scheme. Note that
+          some authors do not include these in the definition of the
+          Jacobian ideal. An example of a reference that does include
+          the defining equations is [LazarsfeldJacobian].
+
+        OUTPUT:
+
+        An ideal in the coordinate ring of the ambient space.
+
+        REFERENCES:
+
+        ..  [LazarsfeldJacobian]
+            Robert Lazarsfeld:
+            Positivity in algebraic geometry II;
+            Positivity for Vector Bundles, and Multiplier Ideals,
+            page 181.
+
+        EXAMPLES::
+
+            sage: P3.<w,x,y,z> = ProjectiveSpace(3, QQ)
+            sage: twisted_cubic = P3.subscheme(matrix([[w, x, y],[x, y, z]]).minors(2))
+            sage: twisted_cubic.Jacobian()
+            Ideal (-x^2 + w*y, -x*y + w*z, -y^2 + x*z, x*z, -2*w*z, w*y, 3*w*y, -2*w*x,
+            w^2, y*z, -2*x*z, w*z, 3*w*z, -2*w*y, w*x, z^2, -2*y*z, x*z, 3*x*z, -2*w*z,
+            w*y) of Multivariate Polynomial Ring in w, x, y, z over Rational Field
+            sage: twisted_cubic.defining_ideal()
+            Ideal (-x^2 + w*y, -x*y + w*z, -y^2 + x*z) of Multivariate Polynomial Ring
+            in w, x, y, z over Rational Field
+        """
+        d = self.codimension()
+        minors = self.Jacobian_matrix().minors(d)
+        I = self.defining_ideal()
+        minors = tuple([ I.reduce(m) for m in minors ])
+        return I.ring().ideal(I.gens() + minors)
+
     def reduce(self):
         r"""
         Return the corresponding reduced algebraic space associated to this
         scheme.
 
         EXAMPLES: First we construct the union of a doubled and tripled
-        line in the affine plane over `\QQ`.
-
-        ::
+        line in the affine plane over `\QQ` ::
 
             sage: A.<x,y> = AffineSpace(2, QQ)
             sage: X = A.subscheme([(x-1)^2*(x-y)^3]); X
             Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-              x^5 - 3*x^4*y + 3*x^3*y^2 - x^2*y^3 - 2*x^4 + 6*x^3*y - 6*x^2*y^2 + 2*x*y^3 + x^3 - 3*x^2*y + 3*x*y^2 - y^3
+              x^5 - 3*x^4*y + 3*x^3*y^2 - x^2*y^3 - 2*x^4 + 6*x^3*y
+              - 6*x^2*y^2 + 2*x*y^3 + x^3 - 3*x^2*y + 3*x*y^2 - y^3
             sage: X.dimension()
             1
 
-        Then we compute the corresponding reduced scheme.
-
-        ::
+        Then we compute the corresponding reduced scheme::
 
             sage: Y = X.reduce(); Y
             Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
               x^2 - x*y - x + y
 
         Finally, we verify that the reduced scheme `Y` is the union
-        of those two lines.
-
-        ::
+        of those two lines::
 
             sage: L1 = A.subscheme([x-1]); L1
             Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
@@ -1038,12 +1133,14 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             sage: X = A.subscheme([x+y-z])
             sage: Y = A.subscheme([x-y+z])
             sage: Y.complement(X)
-            Quasi-affine subscheme X - Y of Affine Space of dimension 3 over Integer Ring, where X is defined by:
+            Quasi-affine subscheme X - Y of Affine Space of
+            dimension 3 over Integer Ring, where X is defined by:
               x + y - z
             and Y is defined by:
               x - y + z
             sage: Y.complement()
-            Quasi-affine subscheme X - Y of Affine Space of dimension 3 over Integer Ring, where X is defined by:
+            Quasi-affine subscheme X - Y of Affine Space of
+            dimension 3 over Integer Ring, where X is defined by:
               (no polynomials)
             and Y is defined by:
               x - y + z
@@ -1051,12 +1148,14 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             sage: X = P.subscheme([x^2+y^2+z^2])
             sage: Y = P.subscheme([x*y+y*z+z*x])
             sage: Y.complement(X)
-            Quasi-projective subscheme X - Y of Projective Space of dimension 2 over Rational Field, where X is defined by:
+            Quasi-projective subscheme X - Y of Projective Space of
+            dimension 2 over Rational Field, where X is defined by:
               x^2 + y^2 + z^2
             and Y is defined by:
               x*y + x*z + y*z
             sage: Y.complement(P)
-            Quasi-projective subscheme X - Y of Projective Space of dimension 2 over Rational Field, where X is defined by:
+            Quasi-projective subscheme X - Y of Projective Space of
+            dimension 2 over Rational Field, where X is defined by:
               (no polynomials)
             and Y is defined by:
               x*y + x*z + y*z
@@ -1076,30 +1175,26 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
 
     def rational_points(self, F=None, bound=0):
         """
+        Return the rational points on the algebraic subscheme.
+
         EXAMPLES:
 
         One can enumerate points up to a given bound on a projective scheme
-        over the rationals.
-
-        ::
+        over the rationals::
 
             sage: E = EllipticCurve('37a')
             sage: E.rational_points(bound=8)
             [(-1 : -1 : 1), (-1 : 0 : 1), (0 : -1 : 1), (0 : 0 : 1), (0 : 1 : 0), (1/4 : -5/8 : 1), (1/4 : -3/8 : 1), (1 : -1 : 1), (1 : 0 : 1), (2 : -3 : 1), (2 : 2 : 1)]
 
         For a small finite field, the complete set of points can be
-        enumerated.
-
-        ::
+        enumerated. ::
 
             sage: Etilde = E.base_extend(GF(3))
             sage: Etilde.rational_points()
             [(0 : 0 : 1), (0 : 1 : 0), (0 : 2 : 1), (1 : 0 : 1), (1 : 2 : 1), (2 : 0 : 1), (2 : 2 : 1)]
 
         The class of hyperelliptic curves does not (yet) support
-        desingularization of the places at infinity into two points.
-
-        ::
+        desingularization of the places at infinity into two points::
 
             sage: FF = FiniteField(7)
             sage: P.<x> = PolynomialRing(FiniteField(7))
@@ -1138,12 +1233,51 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
 # Affine varieties
 #*******************************************************************
 class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
+    """
+    Construct an algebraic subscheme of affine space.
+
+    .. WARNING::
+
+        You should not create objects of this class directly. The
+        preferred method to construct such subschemes is to use
+        :meth:`~sage.schemes.generic.affine_space.AffineSpace_generic.subscheme`
+        method of :class:`affine space
+        <sage.schemes.generic.affine_space.AffineSpace_generic>`.
+
+    INPUT:
+
+    - ``A`` -- ambient :class:`affine space
+      <sage.schemes.generic.affine_space.AffineSpace_generic>`
+
+    - ``polynomials`` -- single polynomial, ideal or iterable of
+      defining polynomials.
+
+    EXAMPLES::
+
+        sage: A3.<x, y, z> = AffineSpace(3, QQ)
+        sage: A3.subscheme([x^2-y*z])
+        Closed subscheme of Affine Space of dimension 3 over Rational Field defined by:
+          x^2 - y*z
+
+    TESTS::
+
+        sage: from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_affine
+        sage: AlgebraicScheme_subscheme_affine(A3, [x^2-y*z])
+        Closed subscheme of Affine Space of dimension 3 over Rational Field defined by:
+          x^2 - y*z
+    """
 
     def _point_morphism_class(self, *args, **kwds):
         return morphism.SchemeMorphism_on_points_affine_space(*args, **kwds)
 
     def dimension(self):
         """
+        Return the dimension of the affine algebraic subscheme.
+
+        OUTPUT:
+
+        Integer.
+
         EXAMPLES::
 
             sage: A.<x,y> = AffineSpace(2, QQ)
@@ -1158,9 +1292,7 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
             sage: A.subscheme([x*(x-1), y*(y-1)]).dimension()
             0
 
-        Something less obvious
-
-        ::
+        Something less obvious::
 
             sage: A.<x,y,z,w> = AffineSpace(4, QQ)
             sage: X = A.subscheme([x^2, x^2*y^2 + z^2, z^2 - w^2, 10*x^2 + w^2 - z^2])
@@ -1186,14 +1318,13 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
 
         INPUT:
 
-
-        -  ``i`` - integer (default: dimension of self = last
+        -  ``i`` -- integer (default: dimension of self = last
            coordinate) determines which projective embedding to compute. The
            embedding is that which has a 1 in the i-th coordinate, numbered
            from 0.
 
 
-        -  ``X`` - (default: None) projective scheme, i.e., codomain of
+        -  ``X`` -- (default: None) projective scheme, i.e., codomain of
            morphism; this is constructed if it is not given.
 
         EXAMPLES::
@@ -1241,42 +1372,162 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
         self.__projective_embedding[i] = phi
         return phi
 
+    def is_smooth(self, point=None):
+        r"""
+        Test whether the algebraic subscheme is smooth.
+
+        INPUT:
+
+        - ``point`` -- A point or ``None`` (default). The point to
+          test smoothness at.
+
+        OUTPUT:
+
+        Boolean. If no point was specified, returns whether the
+        algebraic subscheme is smooth everywhere. Otherwise,
+        smoothness at the specified point is tested.
+
+        EXAMPLES::
+
+            sage: A2.<x,y> = AffineSpace(2,QQ)
+            sage: cuspidal_curve = A2.subscheme([y^2-x^3])
+            sage: cuspidal_curve
+            Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
+              -x^3 + y^2
+            sage: smooth_point = cuspidal_curve.point([1,1])
+            sage: smooth_point in cuspidal_curve
+            True
+            sage: singular_point = cuspidal_curve.point([0,0])
+            sage: singular_point in cuspidal_curve
+            True
+            sage: cuspidal_curve.is_smooth(smooth_point)
+            True
+            sage: cuspidal_curve.is_smooth(singular_point)
+            False
+            sage: cuspidal_curve.is_smooth()
+            False
+        """
+        R = self.ambient_space().coordinate_ring()
+        if not point is None:
+            self._check_satisfies_equations(point)
+            point_subs = dict(zip(R.gens(), point))
+            Jac = self.Jacobian().subs(point_subs)
+            return not Jac.is_zero()
+
+        # testing smoothness everywhere tends to be expensive
+        try:
+            return self._smooth
+        except AttributeError:
+            pass
+        sing_dim = self.Jacobian().dimension()
+        self._smooth = (sing_dim == -1)
+        return self._smooth
+
 
 
 #*******************************************************************
 # Projective varieties
 #*******************************************************************
 class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
+    """
+    Construct an algebraic subscheme of projective space.
+
+    .. WARNING::
+
+        You should not create objects of this class directly. The
+        preferred method to construct such subschemes is to use
+        :meth:`~sage.schemes.generic.projective_space.ProjectiveSpace_field.subscheme`
+        method of :class:`projective space
+        <sage.schemes.generic.projective_space.ProjectiveSpace_field>`.
+
+    INPUT:
+
+    - ``A`` -- ambient :class:`projective space
+      <sage.schemes.generic.projective_space.ProjectiveSpace_field>`.
+
+    - ``polynomials`` -- single polynomial, ideal or iterable of
+      defining homogeneous polynomials.
+
+    EXAMPLES::
+
+        sage: P.<x, y, z> = ProjectiveSpace(2, QQ)
+        sage: P.subscheme([x^2-y*z])
+        Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
+          x^2 - y*z
+
+    TESTS::
+
+        sage: from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_projective
+        sage: AlgebraicScheme_subscheme_projective(P, [x^2-y*z])
+        Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
+          x^2 - y*z
+    """
 
     def _point_morphism_class(self, *args, **kwds):
+        r"""
+        Construct a morphism determined by action on points of ``self``.
+
+        For internal use only.
+
+        INPUT:
+
+        - same as for
+          :class:`~sage.schemes.generic.morphism.SchemeMorphism_on_points_projective_space`.
+
+        OUPUT:
+
+        - :class:`~sage.schemes.generic.morphism.SchemeMorphism_on_points_projective_space`.
+
+        TESTS::
+
+            sage: P1.<x,y> = ProjectiveSpace(1,QQ)
+            sage: P2 = ProjectiveSpace(2,QQ)
+            sage: H12 = P1.Hom(P2)
+            sage: H12([x^2,x*y, y^2])    # indirect doctest
+            Scheme morphism:
+              From: Projective Space of dimension 1 over Rational Field
+              To:   Projective Space of dimension 2 over Rational Field
+              Defn: Defined on coordinates by sending (x : y) to
+                (x^2 : x*y : y^2)
+            sage: P1._point_morphism_class(H12, [x^2,x*y, y^2])
+            Scheme morphism:
+              From: Projective Space of dimension 1 over Rational Field
+              To:   Projective Space of dimension 2 over Rational Field
+              Defn: Defined on coordinates by sending (x : y) to
+                (x^2 : x*y : y^2)
+        """
         return morphism.SchemeMorphism_on_points_projective_space(*args, **kwds)
 
     def dimension(self):
         """
+        Return the dimension of the projective algebraic subscheme.
+
+        OUTPUT:
+
+        Integer.
+
         EXAMPLES::
 
-            sage: A.<x,y> = AffineSpace(2, QQ)
-            sage: A.subscheme([]).dimension()
+            sage: P2.<x,y,z> = ProjectiveSpace(2, QQ)
+            sage: P2.subscheme([]).dimension()
             2
-            sage: A.subscheme([x]).dimension()
+            sage: P2.subscheme([x]).dimension()
             1
-            sage: A.subscheme([x^5]).dimension()
+            sage: P2.subscheme([x^5]).dimension()
             1
-            sage: A.subscheme([x^2 + y^2 - 1]).dimension()
+            sage: P2.subscheme([x^2 + y^2 - z^2]).dimension()
             1
-            sage: A.subscheme([x*(x-1), y*(y-1)]).dimension()
+            sage: P2.subscheme([x*(x-z), y*(y-z)]).dimension()
             0
 
-        Something less obvious
+        Something less obvious::
 
-        ::
-
-            sage: A.<x,y,z,w> = AffineSpace(4, QQ)
-            sage: X = A.subscheme([x^2, x^2*y^2 + z^2, z^2 - w^2, 10*x^2 + w^2 - z^2])
+            sage: P3.<x,y,z,w,t> = ProjectiveSpace(4, QQ)
+            sage: X = P3.subscheme([x^2, x^2*y^2 + z^2*t^2, z^2 - w^2, 10*x^2 + w^2 - z^2])
             sage: X
-            Closed subscheme of Affine Space of dimension 4 over Rational Field defined by:
+            Closed subscheme of Projective Space of dimension 4 over Rational Field defined by:
               x^2,
-              x^2*y^2 + z^2,
+              x^2*y^2 + z^2*t^2,
               z^2 - w^2,
               10*x^2 - z^2 + w^2
             sage: X.dimension()
@@ -1300,7 +1551,8 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
 
         OUTPUT:
 
-        An affine scheme with fixed :meth:`projective_embedding` map.
+        An affine algebraic scheme with fixed
+        :meth:`projective_embedding` map.
 
         EXAMPLES::
 
@@ -1340,6 +1592,170 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         phi = U.projective_embedding(i, self)
         self.__affine_patches[i] = U
         return U
+
+    def _best_affine_patch(self, point):
+        r"""
+        Return the best affine patch of the ambient projective space.
+
+        The "best" affine patch is where you end up dividing by the
+        homogeneous coordinate with the largest absolutue
+        value. Division by small numbers is numerically unstable.
+
+        INPUT:
+
+        - ``point`` -- a point of the algebraic subscheme.
+
+        OUTPUT:
+
+        Integer. The index of the patch. See :meth:`affine_patch`.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z>= ProjectiveSpace(QQ,2)
+            sage: S = P.subscheme(x+2*y+3*z)
+            sage: S._best_affine_patch(P.point([0,-3,2]))
+            1
+            sage: S._best_affine_patch([0,-3,2])
+            1
+
+        TESTS::
+
+            sage: F = GF(3)
+            sage: P.<x,y,z>= ProjectiveSpace(F,2)
+            sage: S._best_affine_patch([0,1,2])
+            2
+        """
+        point = list(point)
+        try:
+            abs_point = map(abs, point)
+        except ArithmeticError:
+            # our base ring does not know abs
+            abs_point = point
+        # find best patch
+        i_max = 0
+        p_max = abs_point[i_max]
+        for i in range(1,len(point)):
+            if abs_point[i]>p_max:
+                i_max = i
+                p_max = abs_point[i_max]
+        return i_max
+
+    def affine_neighborhood(self, point):
+        r"""
+        Return a local isomorphism from an affine algebraic subscheme
+        to a neighborhood of the ``point``.
+
+        INPUT:
+
+        - ``point`` -- a point of the projective subscheme.
+
+        OUTPUT
+
+        A scheme isomorphism
+
+        * from an affine subscheme
+
+        * to a neighborhood of the ``point``, such that
+
+        * the origin of the domain affine space is mapped to
+          ``point``. The origin is also stored in the
+          ``point_preimage`` attribute of the returned object.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z>= ProjectiveSpace(QQ,2)
+            sage: S = P.subscheme(x+2*y+3*z)
+            sage: s = S.point([0,-3,2]); s
+            (0 : -3/2 : 1)
+            sage: patch = S.affine_neighborhood(s); patch
+            Scheme morphism:
+              From: Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
+              x0 + 3*x1
+              To:   Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
+              x + 2*y + 3*z
+              Defn: Defined on coordinates by sending (x0, x1) to
+                    (-3*x1 : -3/2 : x1 + 1)
+            sage: patch([0,0])
+            (0 : -3/2 : 1)
+            sage: patch.point_preimage
+            (0, 0)
+            sage: patch(patch.point_preimage)
+            (0 : -3/2 : 1)
+        """
+        point = list(point)
+        self._check_satisfies_equations(point)
+        PP = self.ambient_space()
+        n = PP.dimension()
+        i = self._best_affine_patch(point)
+
+        patch_cover = PP.affine_patch(i)
+        R = patch_cover.coordinate_ring()
+
+        phi = list(point)
+        for j in range(0,i):
+            phi[j] = phi[j] + R.gen(j)
+        for j in range(i,n):
+            phi[j+1] = phi[j+1] + R.gen(j)
+
+        pullback_polys = [f(phi) for f in self.defining_polynomials()]
+        patch = patch_cover.subscheme(pullback_polys)
+        patch_hom = patch.hom(phi,self)
+        patch_hom.point_preimage = patch.point([0]*n)
+        return patch_hom
+
+    def is_smooth(self, point=None):
+        r"""
+        Test whether the algebraic subscheme is smooth.
+
+        INPUT:
+
+        - ``point`` -- A point or ``None`` (default). The point to
+          test smoothness at.
+
+        OUTPUT:
+
+        Boolean. If no point was specified, returns whether the
+        algebraic subscheme is smooth everywhere. Otherwise,
+        smoothness at the specified point is tested.
+
+        EXAMPLES::
+
+            sage: P2.<x,y,z> = ProjectiveSpace(2,QQ)
+            sage: cuspidal_curve = P2.subscheme([y^2*z-x^3])
+            sage: cuspidal_curve
+            Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
+              -x^3 + y^2*z
+            sage: cuspidal_curve.is_smooth([1,1,1])
+            True
+            sage: cuspidal_curve.is_smooth([0,0,1])
+            False
+            sage: cuspidal_curve.is_smooth()
+            False
+            sage: P2.subscheme([y^2*z-x^3+z^3+1/10*x*y*z]).is_smooth()
+            True
+
+        TESTS::
+
+            sage: H = P2.subscheme(x)
+            sage: H.is_smooth()  # one of the few cases where the cone over the subvariety is smooth
+            True
+        """
+        if not point is None:
+            self._check_satisfies_equations(point)
+            R = self.ambient_space().coordinate_ring()
+            point_subs = dict(zip(R.gens(), point))
+            Jac = self.Jacobian().subs(point_subs)
+            return not Jac.is_zero()
+
+        # testing smoothness everywhere tends to be expensive
+        try:
+            return self._smooth
+        except AttributeError:
+            pass
+        sing_dim = self.Jacobian().dimension()
+        # We really test the affine cone here; the origin is always a singular point:
+        self._smooth = (sing_dim <= 0)
+        return self._smooth
 
 
 #*******************************************************************
@@ -1392,6 +1808,10 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
           x*s + y*t,
           x^3 + y^3
     """
+
+    # Implementation note: if the toric variety is affine you should
+    # construct instances of the derived class
+    # AlgebraicScheme_subscheme_affine_toric instead.
 
     def __init__(self, toric_variety, polynomials):
         r"""
@@ -1500,9 +1920,123 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
         phi_p = ambient_patch.embedding_morphism().defining_polynomials()
         patch = ambient_patch.subscheme(
                             [p(phi_p) for p in self.defining_polynomials()])
-        patch._embedding_morphism = patch.hom(phi_p, self)
+        patch._embedding_morphism = patch.hom(phi_p, self, check=False)
         self._affine_patches[i] = patch
         return patch
+
+    def _best_affine_patch(self, point):
+        r"""
+        Return the best affine patch of the ambient toric variety.
+
+        INPUT:
+
+        - ``point`` -- a point of the algebraic subscheme.
+
+        OUTPUT:
+
+        Integer. The index of the patch. See :meth:`affine_patch`.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z>= toric_varieties.P2()
+            sage: S = P.subscheme(x+2*y+3*z)
+            sage: S._best_affine_patch(P.point([2,-3,0]))
+            1
+            sage: S._best_affine_patch([2,-3,0])
+            1
+        """
+        # TODO: this method should pick a "best" patch in the sense
+        # that it is numerically stable to dehomogenize, see the
+        # corresponding method for projective varieties.
+        point = list(point)
+        zeros = set(i for i, coord in enumerate(point) if coord == 0)
+        for cone_idx, cone in enumerate(self.ambient_space().fan().generating_cones()):
+            if zeros.issubset(cone.ambient_ray_indices()):
+                return cone_idx
+        assert False, 'The point must not have been a point of the toric variety.'
+
+    def affine_neighborhood(self, point):
+        r"""
+        Return a local isomorphism from an affine toric subscheme to a
+        neighborhood of the ``point``.
+
+        INPUT:
+
+        - ``point`` -- a point of the algebraic subscheme.
+
+        OUTPUT
+
+        A scheme isomorphism
+
+        * from a subscheme of an affine toric variety
+
+        * to a neighborhood of the ``point``
+
+        Moreover, the result has an attribute ``point_preimage`` which
+        contains the preimage of the given ``point``.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z>= toric_varieties.P2()
+            sage: S = P.subscheme(x+2*y+3*z)
+            sage: s = S.point([0,-3,2]); s
+            [0 : -3 : 2]
+            sage: patch = S.affine_neighborhood(s); patch
+            Scheme morphism:
+              From: Closed subscheme of 2-d affine toric variety defined by:
+              x + 2*y + 6
+              To:   Closed subscheme of 2-d CPR-Fano toric variety covered by 3 affine patches defined by:
+              x + 2*y + 3*z
+              Defn: Defined on coordinates by sending [x : y] to
+                    [-2*y - 6 : y : 2]
+            sage: patch.point_preimage
+            [0 : -3]
+            sage: patch(patch.point_preimage)
+            [0 : -3 : 2]
+
+        A more complicated example::
+
+            sage: dP6.<x0,x1,x2,x3,x4,x5> = toric_varieties.dP6()
+            sage: twoP1 = dP6.subscheme(x0*x3)
+            sage: patch = twoP1.affine_neighborhood([0,1,2, 3,4,5])
+            sage: patch
+            Scheme morphism:
+              From: Closed subscheme of 2-d affine toric variety defined by:
+              3*x0
+              To:   Closed subscheme of 2-d CPR-Fano toric variety covered by 6 affine patches defined by:
+              x0*x3
+              Defn: Defined on coordinates by sending [x0 : x1] to
+                    [0 : x1 : 2 : 3 : 4 : 5]
+            sage: patch.point_preimage
+            [0 : 1]
+            sage: patch(patch.point_preimage)
+            [0 : 1 : 2 : 3 : 4 : 5]
+        """
+        point = list(point)
+        self._check_satisfies_equations(point)
+        PP = self.ambient_space()
+        n = PP.dimension()
+        fan = PP.fan()
+        cone_idx = self._best_affine_patch(point)
+        cone = fan.generating_cone(cone_idx)
+
+        patch_cover = PP.affine_patch(cone_idx)
+        R = patch_cover.coordinate_ring()
+
+        phi = []
+        point_preimage = []
+        for i in range(0,fan.nrays()):
+            try:
+                ray_index = cone.ambient_ray_indices().index(i)
+                phi.append(R.gen(ray_index))
+                point_preimage.append(point[i])
+            except ValueError:
+                phi.append(point[i])
+        pullback_polys = [f(phi) for f in self.defining_polynomials()]
+        patch = patch_cover.subscheme(pullback_polys)
+        patch_hom = patch.hom(phi,self)
+        patch_hom.point_preimage = patch(point_preimage)
+        return patch_hom
 
     def dimension(self):
         """
@@ -1510,8 +2044,8 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
 
         .. NOTE::
 
-            Currently the dimension of subschemes of toric varieties can be
-            returned only if it was somehow set before.
+            Currently the dimension of subschemes of smooth toric
+            varieties can be computed.
 
         OUTPUT:
 
@@ -1525,14 +2059,15 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
             Defining z0, z1, z2, z3
             sage: P1 = P1xP1.subscheme(z0-z2)
             sage: P1.dimension()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError:
-            cannot compute dimension of this scheme!
+            1
+            sage: P1xP1.subscheme([z0-z2, (z0-z2)^2]).dimension()
+            1
         """
-        if "_dimension" not in self.__dict__:
-            raise NotImplementedError(
-                                "cannot compute dimension of this scheme!")
+        if '_dimension' in self.__dict__:
+            return self._dimension
+        npatches = self.ambient_space().fan().ngenerating_cones()
+        dims = [ self.affine_patch(i).dimension() for i in range(0,npatches) ]
+        self._dimension = max(dims)
         return self._dimension
 
     def embedding_morphism(self):
@@ -1575,15 +2110,220 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
             Scheme morphism:
               From: Closed subscheme of 2-d affine toric variety defined by:
               -y + 1
-              To:   Closed subscheme of 2-d toric variety
-              covered by 4 affine patches defined by:
+              To:   Closed subscheme of 2-d toric variety covered by 4 affine patches defined by:
               x - y
               Defn: Defined on coordinates by sending [y : t] to
-                    [1 : 1 : 1 : t]
+                    [1 : 1 : y : t]
         """
         try:
             return self._embedding_morphism
         except AttributeError:
             raise ValueError("no default embedding was defined for this "
                              "subscheme of a toric variety!")
+
+    def is_smooth(self, point=None):
+        r"""
+        Test whether the algebraic subscheme is smooth.
+
+        INPUT:
+
+        - ``point`` -- A point or ``None`` (default). The point to
+          test smoothness at.
+
+        OUTPUT:
+
+        Boolean. If no point was specified, returns whether the
+        algebraic subscheme is smooth everywhere. Otherwise,
+        smoothness at the specified point is tested.
+
+        EXAMPLES::
+
+            sage: P2.<x,y,z> = toric_varieties.P2()
+            sage: cuspidal_curve = P2.subscheme([y^2*z-x^3])
+            sage: cuspidal_curve
+            Closed subscheme of 2-d CPR-Fano toric variety covered by 3 affine patches defined by:
+              -x^3 + y^2*z
+            sage: cuspidal_curve.is_smooth([1,1,1])
+            True
+            sage: cuspidal_curve.is_smooth([0,0,1])
+            False
+            sage: cuspidal_curve.is_smooth()
+            False
+
+            sage: P2.subscheme([y^2*z-x^3+z^3+1/10*x*y*z]).is_smooth()
+            True
+
+            sage: dP6.<x0,x1,x2,x3,x4,x5> = toric_varieties.dP6()
+            sage: disjointP1s = dP6.subscheme(x0*x3)
+            sage: disjointP1s.is_smooth()
+            True
+            sage: intersectingP1s = dP6.subscheme(x0*x1)
+            sage: intersectingP1s.is_smooth()
+            False
+        """
+        if not point is None:
+            toric_patch = self.affine_neighborhood(point)
+            return toric_patch.domain().is_smooth(toric_patch.point_preimage)
+
+        # testing smoothness everywhere tends to be expensive
+        if '_smooth' in self.__dict__:
+            return self._smooth
+        npatches = self.ambient_space().fan().ngenerating_cones()
+        self._smooth = all(self.affine_patch(i).is_smooth() for i in range(0,npatches))
+        return self._smooth
+
+
+class AlgebraicScheme_subscheme_affine_toric(AlgebraicScheme_subscheme_toric):
+    r"""
+    Construct an algebraic subscheme of an affine toric variety.
+
+    .. WARNING::
+
+        You should not create objects of this class directly. The preferred
+        method to construct such subschemes is to use
+        :meth:`~ToricVariety_field.subscheme` method of
+        :class:`toric varieties <ToricVariety_field>`.
+
+    INPUT:
+
+    - ``toric_variety`` -- ambient :class:`affine toric variety
+      <ToricVariety_field>`;
+
+    - ``polynomials`` -- single polynomial, list, or ideal of defining
+      polynomials in the coordinate ring of ``toric_variety``.
+
+    OUTPUT:
+
+    A :class:`algebraic subscheme of an affine toric variety
+    <AlgebraicScheme_subscheme_affine_toric>`.
+
+    TESTS::
+
+        sage: fan = FaceFan(lattice_polytope.octahedron(2))
+        sage: P1xP1 = ToricVariety(fan, "x s y t")
+        sage: P1xP1.inject_variables()
+        Defining x, s, y, t
+        sage: import sage.schemes.generic.algebraic_scheme as SCM
+        sage: X = SCM.AlgebraicScheme_subscheme_toric(
+        ...         P1xP1, [x*s + y*t, x^3+y^3])
+        sage: X
+        Closed subscheme of 2-d toric variety
+        covered by 4 affine patches defined by:
+          x*s + y*t,
+          x^3 + y^3
+
+    A better way to construct the same scheme as above::
+
+        sage: P1xP1.subscheme([x*s + y*t, x^3+y^3])
+        Closed subscheme of 2-d toric variety
+        covered by 4 affine patches defined by:
+          x*s + y*t,
+          x^3 + y^3
+    """
+
+    def __init__(self, toric_variety, polynomials):
+        r"""
+        See :class:`AlgebraicScheme_subscheme_toric` for documentation.
+
+        TESTS::
+
+            sage: fan = FaceFan(lattice_polytope.octahedron(2))
+            sage: P1xP1 = ToricVariety(fan, "x s y t")
+            sage: P1xP1.inject_variables()
+            Defining x, s, y, t
+            sage: import sage.schemes.generic.algebraic_scheme as SCM
+            sage: X = SCM.AlgebraicScheme_subscheme_toric(
+            ...         P1xP1, [x*s + y*t, x^3+y^3])
+            sage: X
+            Closed subscheme of 2-d toric variety
+            covered by 4 affine patches defined by:
+              x*s + y*t,
+              x^3 + y^3
+        """
+        assert toric_variety.is_affine(), 'The toric variety must be affine!'
+        # Just to make sure that keyword arguments will be passed correctly
+        super(AlgebraicScheme_subscheme_affine_toric, self).__init__(toric_variety,
+                                                                     polynomials)
+
+    def dimension(self):
+        """
+        Return the dimension of ``self``.
+
+        OUTPUT:
+
+        - integer.
+
+        EXAMPLES::
+
+            sage: P1xP1.<s0,s1,t0,t1> = toric_varieties.P1xP1()
+            sage: P1 = P1xP1.subscheme(s0-s1)
+            sage: P1.dimension()
+            1
+        """
+        if '_dimension' in self.__dict__:
+            return self._dimension
+
+        if self.ambient_space().is_smooth():
+            self._dimension = self.defining_ideal().dimension()
+        else:
+            raise NotImplementedError, 'cannot compute dimension of this scheme!'
+        return self._dimension
+
+    def is_smooth(self, point=None):
+        r"""
+        Test whether the algebraic subscheme is smooth.
+
+        INPUT:
+
+        - ``point`` -- A point or ``None`` (default). The point to
+          test smoothness at.
+
+        OUTPUT:
+
+        Boolean. If no point was specified, returns whether the
+        algebraic subscheme is smooth everywhere. Otherwise,
+        smoothness at the specified point is tested.
+
+        EXAMPLES::
+
+            sage: A2.<x,y> = toric_varieties.A2()
+            sage: cuspidal_curve = A2.subscheme([y^2-x^3])
+            sage: cuspidal_curve
+            Closed subscheme of 2-d affine toric variety defined by:
+              -x^3 + y^2
+            sage: cuspidal_curve.is_smooth([1,1])
+            True
+            sage: cuspidal_curve.is_smooth([0,0])
+            False
+            sage: cuspidal_curve.is_smooth()
+            False
+            sage: circle = A2.subscheme(x^2+y^2-1)
+            sage: circle.is_smooth([1,0])
+            True
+            sage: circle.is_smooth()
+            True
+        """
+        if not point is None:
+            self._check_satisfies_equations(point)
+            if self.ambient_space().is_smooth():
+                R = self.ambient_space().coordinate_ring()
+                point_subs = dict(zip(R.gens(), point))
+                Jac = self.Jacobian().subs(point_subs)
+                return not Jac.is_zero()
+            else:
+                raise NotImplementedError
+
+        # testing smoothness everywhere tends to be expensive
+        if '_smooth' in self.__dict__:
+            return self._smooth
+
+        if self.ambient_space().is_smooth():
+            sing_dim = self.Jacobian().dimension()
+            self._smooth = (sing_dim == -1)
+        else:
+            raise NotImplementedError
+
+        return self._smooth
+
+
 

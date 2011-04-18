@@ -649,18 +649,32 @@ class HasseDiagram(DiGraph):
             yield x
 
     def cardinality(self):
-        """
+        r"""
         Returns the number of elements in the poset.
 
         EXAMPLES::
 
             sage: Poset([[1,2,3],[4],[4],[4],[]]).cardinality()
             5
+
+        TESTS:
+
+        For a time, this function was named ``size()``, which
+        would override the same-named method of the underlying
+        digraph.  Trac #8735 renamed this method to ``cardinality()``
+        with a deprecation warning.  Trac #11214 removed the warning
+        since code for graphs was raising the warning inadvertently.
+        This tests that ``size()`` for a Hasse diagram returns the
+        number of edges in the digraph. ::
+
+            sage: L = Posets.BooleanLattice(5)
+            sage: H = L.hasse_diagram()
+            sage: H.size()
+            80
+            sage: H.size() == H.num_edges()
+            True
         """
         return self.order()
-
-    from sage.misc.misc import deprecated_function_alias
-    size = deprecated_function_alias(cardinality, 'Sage Version 4.4 (2010-05)')
 
     def mobius_function(self,i,j): # dumb algorithm
         r"""

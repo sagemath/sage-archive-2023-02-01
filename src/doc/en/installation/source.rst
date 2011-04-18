@@ -51,7 +51,6 @@ a Fortran compiler on OS X):
        g++        (Version 4.0.1 to 4.5.2. Do not use g++ 4.6.0)
        gfortran   (Version 4.0.1 to 4.5.2. Do not use gfortran 4.6.0)
        make       (For Solaris or OpenSolaris, GNU make, version 3.80 or later)
-       m4
        perl       (Version 5.8.0 or later)
        ranlib
        tar        (For Solaris or OpenSolaris, GNU tar, version 1.17 or later)
@@ -61,20 +60,19 @@ a Fortran compiler on OS X):
 The programs ``gcc``, ``g++`` and ``gfortran`` are all part of the `GNU Compiler Collection (GCC) <http://gcc.gnu.org/>`_.
 You are generally advised to use a recent version of GCC, though
 some obscure bugs have stopped specific versions of GCC
-compiling Sage on particular platforms. GCC 4.6.0 will not build Sage
-4.7.0.
+compiling Sage on particular platforms.
+Also note that version 4.6.0 of GCC is currently not supported.
 
-To check if you have ``m4`` installed, for example, type
+To check if you have ``perl`` installed, for example, type
 
 ::
 
-       command -v m4
+       command -v perl
 
 
 on the command line. If it gives an error (or returns nothing), then
-either ``m4`` is not installed, or it is installed but not in your
-`PATH <http://en.wikipedia.org/wiki/PATH_%28variable%29>`_
-(On Solaris 10, ``m4`` resides in ``/usr/ccs/bin``).
+either ``perl`` is not installed, or it is installed but not in your
+`PATH <http://en.wikipedia.org/wiki/PATH_%28variable%29>`_.
 It is highly recommended that you have `Latex <http://en.wikipedia.org/wiki/LaTeX>`_
 installed, but it is not required. If you don't have ``ssh-keygen`` on your
 local system, then you cannot run the notebook in secure mode, which the uses
@@ -100,7 +98,7 @@ but on a `Debian <http://www.debian.org/>`_ based system (e.g. `Ubuntu <http://w
 
 ::
 
-     sudo apt-get install build-essential m4 gfortran
+     sudo apt-get install build-essential gfortran
 
 (this was tested on Ubuntu 9.04).
 

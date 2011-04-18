@@ -47,10 +47,10 @@ a Fortran compiler on OS X):
 
 ::
 
-       gcc        (Version 4.0.1 or later)
-       g++        (Version 4.0.1 or later)
-       gfortran   (Version 4.0.1 or later)
-       make       (GNU make, version 3.80 or later)
+       gcc        (Version 4.0.1 to 4.5.2. Do not use gcc 4.6.0)
+       g++        (Version 4.0.1 to 4.5.2. Do not use g++ 4.6.0)
+       gfortran   (Version 4.0.1 to 4.5.2. Do not use gfortran 4.6.0)
+       make       (For Solaris or OpenSolaris, GNU make, version 3.80 or later)
        m4
        perl       (Version 5.8.0 or later)
        ranlib
@@ -61,7 +61,8 @@ a Fortran compiler on OS X):
 The programs ``gcc``, ``g++`` and ``gfortran`` are all part of the `GNU Compiler Collection (GCC) <http://gcc.gnu.org/>`_.
 You are generally advised to use a recent version of GCC, though
 some obscure bugs have stopped specific versions of GCC
-compiling Sage on particular platforms.
+compiling Sage on particular platforms. GCC 4.6.0 will not build Sage
+4.7.0.
 
 To check if you have ``m4`` installed, for example, type
 
@@ -118,7 +119,8 @@ installed using
 On other systems it might be necessary to install TeX Live from source code,
 which is quite easy, though a rather time-consuming process.
 
-(You must have the GNU version of ``make`` installed and it must be the first
+On Solaris or OpenSolaris, you must have the GNU version of ``make``
+installed and it must be the first
 ``make`` in your PATH. On Solaris 10, a version of GNU ``make`` may be found
 at ``/usr/sfw/bin/gmake`` but you will need to copy it somewhere else
 and rename it to ``make``. The same is true for GNU ``tar`` - there is a version

@@ -83,6 +83,14 @@ def guess_category(obj):
     #    return Sets()
     return None # don't want to risk importing stuff...
 
+def check_default_category(default_category, category):
+    if category is None:
+        return default_category
+    else:
+        #assert category.is_subcategory(default_category), "%s is not a subcategory of %s"%(category, default_category)
+        #return category
+        return default_category.join([default_category,category])
+
 cdef class CategoryObject(sage_object.SageObject):
     """
     An object in some category.
@@ -404,7 +412,11 @@ cdef class CategoryObject(sage_object.SageObject):
         """
         This is used by the variable names context manager.
         """
-        old = self._names, self._latex_names
+        #old = self._names, self._latex_names
+        # We can not assume that self *has* _latex_variable_names.
+        # But there is a method that returns them and sets
+        # the attribute at the same time, if needed.
+        old = self.variable_names(), self.latex_variable_names()
         self._names, self._latex_names = names, latex_names
         return old
 
@@ -621,7 +633,15 @@ cdef class CategoryObject(sage_object.SageObject):
         try:
             if version == 1:
                 self._generators = d['_generators']
-                self._category = d['_category']
+                if d['_category'] is not None:
+                    # We must not erase the category information of
+                    # self.  Otherwise, pickles break (e.g., QQ should
+                    # be a commutative ring, but when QQ._category is
+                    # None then it only knows that it is a ring!
+                    if self._category is None:
+                        self._category = d['_category']
+                    else:
+                        self._category = self._category.join([self._category,d['_category']])
                 self._base = d['_base']
                 self._cdata = d['_cdata']
                 self._names = d['_names']

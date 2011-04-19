@@ -62,6 +62,8 @@ cdef class LazyField(Field):
     """
     The base class for lazy real fields.
     """
+    def __init__(self, base=None, names=None, normalize=True, category=None):
+        Field.__init__(self,base or self, names=names, normalize=normalize, category=category)
     def __getattr__(self, name):
         """
         Simulates a list of methods found on the real/complex rings.

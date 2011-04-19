@@ -38,8 +38,20 @@ from sage.algebras.algebra import Algebra
 from sage.algebras.free_algebra import is_FreeAlgebra
 from sage.algebras.free_algebra_quotient_element import FreeAlgebraQuotientElement
 from sage.structure.parent_gens import ParentWithGens
+from sage.structure.unique_representation import UniqueRepresentation
 
-class FreeAlgebraQuotient(Algebra, object):
+class FreeAlgebraQuotient(UniqueRepresentation, Algebra, object):
+    @staticmethod
+    def __classcall__(cls, A, mons, mats, names):
+        new_mats = []
+        for M in mats:
+            M = M.parent()(M)
+            M.set_immutable()
+            new_mats.append(M)
+        return super(FreeAlgebraQuotient, cls).__classcall__(cls, A, tuple(mons),
+                                                  tuple(new_mats), tuple(names))
+
+    Element = FreeAlgebraQuotientElement
     def __init__(self, A, mons, mats, names):
         """
         Returns a quotient algebra defined via the action of a free algebra
@@ -87,6 +99,11 @@ class FreeAlgebraQuotient(Algebra, object):
             1 + i + j + i*j
             sage: x**128
             -170141183460469231731687303715884105728 + 170141183460469231731687303715884105728*i + 170141183460469231731687303715884105728*j + 170141183460469231731687303715884105728*i*j
+
+        TEST::
+
+            sage: TestSuite(H2).run()
+
         """
         if not is_FreeAlgebra(A):
             raise TypeError, "Argument A must be an algebra."
@@ -101,7 +118,7 @@ class FreeAlgebraQuotient(Algebra, object):
         self.__module = FreeModule(R,self.__dim)
         self.__matrix_action = mats
         self.__monomial_basis = mons # elements of free monoid
-        ParentWithGens.__init__(self, R, names, normalize=True)
+        Algebra.__init__(self, R, names, normalize=True)
 
     def __eq__(self,right):
         return type(self) == type(right) and \
@@ -112,23 +129,13 @@ class FreeAlgebraQuotient(Algebra, object):
                self.monomial_basis() == right.monomial_basis()
 
 
-    def __call__(self, x):
+    def _element_constructor_(self, x):
         if isinstance(x, FreeAlgebraQuotientElement) and x.parent() is self:
             return x
-        return FreeAlgebraQuotientElement(self,x)
+        return self.element_class(self,x)
 
-    def _coerce_impl(self, x):
-        """
-        Return the coercion of x into this free algebra quotient.
-
-        The algebras that coerce into this quotient ring canonically, are:
-
-        - this quotient algebra
-
-        - anything that coerces into the algebra of which this is the
-          quotient
-        """
-        return self._coerce_try(x, [self.__free_algebra, self.base_ring()])
+    def _coerce_map_from_(self,S):
+        return S==self or self.__free_algebra.has_coerce_map_from(S)
 
     def _repr_(self):
         R = self.base_ring()
@@ -136,9 +143,6 @@ class FreeAlgebraQuotient(Algebra, object):
         r = self.__module.dimension()
         x = self.variable_names()
         return "Free algebra quotient on %s generators %s and dimension %s over %s"%(n,x,r,R)
-
-    def __contains__(self, x):
-        return isinstance(x, FreeAlgebraQuotientElement) and x.parent() == self
 
     def gen(self,i):
         """
@@ -150,7 +154,7 @@ class FreeAlgebraQuotient(Algebra, object):
         R = self.base_ring()
         F = self.__free_algebra.monoid()
         n = self.__ngens
-        return FreeAlgebraQuotientElement(self,{F.gen(i):R(1)})
+        return self.element_class(self,{F.gen(i):R(1)})
 
     def ngens(self):
         """

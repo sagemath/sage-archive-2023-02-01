@@ -11,7 +11,7 @@ Modules
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.categories.all import Bimodules, HomCategory, Fields
+from sage.categories.category import HomCategory
 from category_types import Category_module
 from sage.misc.cachefunc import cached_method
 
@@ -110,6 +110,7 @@ class Modules(Category_module):
             sage: TestSuite(C).run()
 
         """
+        from sage.categories.fields import Fields
         if dispatch and base_ring in Fields():
             from vector_spaces import VectorSpaces
             return VectorSpaces(base_ring)
@@ -133,6 +134,7 @@ class Modules(Category_module):
             [Category of modules over Rational Field]
         """
         R = self.base_ring()
+        from sage.categories.bimodules import Bimodules
         return [Bimodules(R,R)]
 
     class ParentMethods:

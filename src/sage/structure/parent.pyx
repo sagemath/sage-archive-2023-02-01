@@ -364,12 +364,14 @@ def dir_with_other_class(self, cls):
 
     Check that objects without dicts are well handled::
 
-        sage: F.<x0,x1> = BooleanPolynomialRing()
-        sage: hasattr(F, '__dict__')
+        sage: cython("cdef class A:\n    cdef public int a")
+        sage: cython("cdef class B:\n    cdef public int b")
+        sage: x = A()
+        sage: x.a = 1
+        sage: hasattr(x,'__dict__')
         False
-        sage: sage.structure.parent.dir_with_other_class(F, B)
-        [..., ... '__class__', ..., '_test_pickling', ..., 'b', ..., 'extension', ...]
-
+        sage: sage.structure.parent.dir_with_other_class(x, B)
+        [..., 'a', 'b']
     """
     # This tries to emulate the standard dir function
     # Is there a better way to call dir on self, while ignoring this
@@ -604,9 +606,11 @@ cdef class Parent(category_object.CategoryObject):
         """
         This function is used in translating from the old to the new coercion model.
 
-        It is called from sage.structure.parent_old.Parent.__init__ when an old style parent provides a _element_constructor_ method.
+        It is called from sage.structure.parent_old.Parent.__init__
+        when an old style parent provides a _element_constructor_ method.
 
-        It just asserts that this _element_constructor_ is callable and also sets self._element_init_pass_parent
+        It just asserts that this _element_constructor_ is callable and
+        also sets self._element_init_pass_parent
 
         EXAMPLES::
 
@@ -1572,6 +1576,17 @@ cdef class Parent(category_object.CategoryObject):
         """
         self._embedding = None
         self._unset_coercions_used()
+
+    cpdef bint is_coercion_cached(self, domain):
+        """
+
+        """
+        return domain in self._coerce_from_hash
+
+    cpdef bint is_conversion_cached(self, domain):
+        """
+        """
+        return domain in self._convert_from_hash
 
     cpdef register_coercion(self, mor):
         r"""

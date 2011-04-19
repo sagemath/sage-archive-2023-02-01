@@ -606,9 +606,11 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
         True
         sage: from sage.rings.polynomial.infinite_polynomial_ring import InfinitePolynomialRing_sparse
         sage: Z = InfinitePolynomialRing_sparse(QQ, ['x','y'], 'lex')
+
+    Nevertheless, since infinite polynomial rings are supposed to be unique
+    parent structures, they do not evaluate equal.
+
         sage: Z == X
-        True
-        sage: Z is X
         False
 
     The last parameter ('lex' in the above example) can also be
@@ -683,7 +685,8 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
         # some basic data
         self._order = order
         self._name_dict = dict([(names[i],i) for i in xrange(len(names))])
-        CommutativeRing.__init__(self, base=R)
+        from sage.categories.commutative_algebras import CommutativeAlgebras
+        CommutativeRing.__init__(self, R, category=CommutativeAlgebras(R))
 
         # some tools to analyse polynomial string representations.
         self._identify_variable = lambda x,y:(-self._names.index(x),int(y))
@@ -1183,31 +1186,6 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
         except (KeyError, ValueError, TypeError):
             raise ValueError, "%s or %s is not a valid variable name"%(x,y)
 
-    def __cmp__(self, x):
-        """
-        EXAMPLES::
-
-            sage: X.<x> = InfinitePolynomialRing(QQ)
-            sage: X2.<x> = InfinitePolynomialRing(QQ)
-            sage: X3.<x> = InfinitePolynomialRing(QQ, order='deglex')
-            sage: Y.<y> = InfinitePolynomialRing(QQ)
-            sage: Z.<z> = InfinitePolynomialRing(GF(5))
-            sage: X == X
-            True
-            sage: X == X2
-            True
-            sage: X == X3
-            False
-            sage: X == Y
-            False
-            sage: X == Z
-            False
-
-        """
-        if not isinstance(x, InfinitePolynomialRing_sparse):
-            return -1
-        return cmp( (self._base, self._names, self._order), (x.base_ring(), x._names, x._order) )
-
     def ngens(self):
         """
         Returns the number of generators for this ring.  Since there
@@ -1619,17 +1597,21 @@ class InfinitePolynomialRing_dense(InfinitePolynomialRing_sparse):
 
         .. note::
 
-           This ring returned can change over time as more variables
+           The ring returned can change over time as more variables
            are used.
+
+           Since the rings are cached, we create here a ring with variable
+           names that do not occur in other doc tests, so that we avoid
+           side effects.
 
         EXAMPLES::
 
-            sage: X.<x, y> = InfinitePolynomialRing(ZZ)
+            sage: X.<xx, yy> = InfinitePolynomialRing(ZZ)
             sage: X.polynomial_ring()
-            Multivariate Polynomial Ring in x_0, y_0 over Integer Ring
-            sage: a = y[3]
+            Multivariate Polynomial Ring in xx_0, yy_0 over Integer Ring
+            sage: a = yy[3]
             sage: X.polynomial_ring()
-            Multivariate Polynomial Ring in x_3, x_2, x_1, x_0, y_3, y_2, y_1, y_0 over Integer Ring
+            Multivariate Polynomial Ring in xx_3, xx_2, xx_1, xx_0, yy_3, yy_2, yy_1, yy_0 over Integer Ring
 
         """
         return self._P

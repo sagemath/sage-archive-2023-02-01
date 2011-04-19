@@ -53,6 +53,8 @@ class Rings(Category):
         return [Rngs(), Semirings()]
 
     class ParentMethods:
+        def is_field(self):
+            raise NotImplementedError
 
         def bracket(self, x, y):
             """

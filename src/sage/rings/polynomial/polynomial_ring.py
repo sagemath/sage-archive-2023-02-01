@@ -172,6 +172,11 @@ from sage.rings.fraction_field_element import FractionFieldElement
 
 from polynomial_element import PolynomialBaseringInjection
 
+from sage.categories.algebras import Algebras
+from sage.categories.commutative_algebras import CommutativeAlgebras
+from sage.categories.commutative_rings import CommutativeRings
+
+
 import cyclotomic
 
 ZZ_sage = IntegerRing()
@@ -229,7 +234,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
     """
     Univariate polynomial ring over a ring.
     """
-    def __init__(self, base_ring, name=None, sparse=False, element_class=None):
+    def __init__(self, base_ring, name=None, sparse=False, element_class=None, category=None):
         """
         EXAMPLES::
 
@@ -240,9 +245,10 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             x^3 - 26/3*x^2 + 64/3*x - 32/3
 
             sage: category(ZZ['x'])
-            Category of unique factorization domains
+            Join of Category of unique factorization domains and Category of commutative algebras over Integer Ring
             sage: category(GF(7)['x'])
-            Category of euclidean domains
+            Join of Category of euclidean domains and Category of commutative algebras over Finite Field of size 7
+
         """
         R_cat = base_ring.category()
         if R_cat.is_subcategory(categories.Fields()):
@@ -251,8 +257,15 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             category = categories.UniqueFactorizationDomains()
         elif R_cat.is_subcategory(categories.IntegralDomains()):
             category = categories.IntegralDomains()
-        else:
+        elif R_cat.is_subcategory(categories.CommutativeRings()):
             category = categories.CommutativeRings()
+        else:
+            category = categories.Rings()
+        if R_cat.is_subcategory(categories.CommutativeRings()):
+            category = category.join([category,sage.categories.commutative_algebras.CommutativeAlgebras(base_ring)])
+        else:
+            category = category.join([category,sage.categories.algebras.Algebras(base_ring)])
+
         self.__is_sparse = sparse
         if element_class:
             self._polynomial_class = element_class
@@ -1276,11 +1289,15 @@ class PolynomialRing_commutative(PolynomialRing_general, commutative_algebra.Com
     """
     Univariate polynomial ring over a commutative ring.
     """
-    def __init__(self, base_ring, name=None, sparse=False, element_class=None):
-        if not isinstance(base_ring, commutative_ring.CommutativeRing):
+    def __init__(self, base_ring, name=None, sparse=False, element_class=None, category=None):
+        if not (isinstance(base_ring, commutative_ring.CommutativeRing) or base_ring in CommutativeRings()):
             raise TypeError, "Base ring must be a commutative ring."
+        if category is not None:
+            category = category.join([category, CommutativeAlgebras(base_ring)])
+        else:
+            category = CommutativeAlgebras(base_ring)
         PolynomialRing_general.__init__(self, base_ring, name=name,
-                sparse=sparse, element_class=element_class)
+                sparse=sparse, element_class=element_class, category=category)
 
     def quotient_by_principal_ideal(self, f, names=None):
         """
@@ -1954,6 +1971,7 @@ class PolynomialRing_dense_mod_n(PolynomialRing_commutative):
         PolynomialRing_commutative.__init__(self, base_ring, name=name,
                 element_class=element_class)
 
+    @cached_method
     def modulus(self):
         """
         EXAMPLES::
@@ -1962,7 +1980,7 @@ class PolynomialRing_dense_mod_n(PolynomialRing_commutative):
             sage: R.modulus()
             15
         """
-        return self.__modulus
+        return self.base_ring().characteristic()
 
     def _repr_(self):
         """
@@ -2009,20 +2027,20 @@ class PolynomialRing_dense_mod_p(PolynomialRing_field,
         """
         from sage.rings.polynomial.polynomial_zmod_flint import \
                 Polynomial_zmod_flint
-        self.__modulus = base_ring.characteristic()
+        __modulus = base_ring.characteristic()
         element_class = None
-        if self.__modulus == 2:
+        if __modulus == 2:
             import sage.rings.polynomial.polynomial_gf2x as polynomial_gf2x
             element_class = polynomial_gf2x.Polynomial_GF2X
             self._implementation_repr = ' (using NTL)'
         elif implementation is None or implementation == 'FLINT':
             import sys
-            if self.__modulus < sys.maxint:
+            if __modulus < sys.maxint:
                 self._implementation_names = (None, 'FLINT')
                 self._implementation_repr = ''
                 element_class = Polynomial_zmod_flint
             elif implementation == 'FLINT':
-                raise ValueError, "FLINT does not support modulus %s"%(self.__modulus)
+                raise ValueError, "FLINT does not support modulus %s"%(__modulus)
         if not element_class:
             from sage.rings.polynomial.polynomial_modn_dense_ntl import \
                     Polynomial_dense_mod_p

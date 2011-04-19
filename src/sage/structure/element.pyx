@@ -315,7 +315,7 @@ cdef class Element(sage_object.SageObject):
             sage: C = EuclideanDomains()
             sage: P.<x> = QQ[]
             sage: C.element_class.__foo = 'bar'
-            sage: x.parent().category() is C
+            sage: x.parent() in C
             True
             sage: x.__foo
             Traceback (most recent call last):
@@ -592,13 +592,20 @@ cdef class Element(sage_object.SageObject):
         if not hasattr(self,'__call__'):
             return self
         parent=self._parent
-        from sage.structure.parent_gens import is_ParentWithGens
-        if not is_ParentWithGens(parent):
+        # We should better not test for ParentWIthGens,
+        # as this is essentially deprecated.
+        #from sage.structure.parent_gens import is_ParentWithGens
+        #if not is_ParentWithGens(parent):
+        #    return self
+        # Better: Duck typing!
+        try:
+            ngens = parent.ngens()
+        except (AttributeError, NotImplementedError, TypeError):
             return self
         variables=[]
         # use "gen" instead of "gens" as a ParentWithGens is not
         # required to have the latter
-        for i in xrange(0,parent.ngens()):
+        for i in xrange(0,ngens):
             gen=parent.gen(i)
             if kwds.has_key(str(gen)):
                 variables.append(kwds[str(gen)])

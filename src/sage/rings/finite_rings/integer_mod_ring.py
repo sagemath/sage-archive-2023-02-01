@@ -45,6 +45,8 @@ AUTHORS:
 - Robert Bradshaw (2006-08-24): convert to SageX (Cython)
 
 - William Stein (2007-04-29): square_roots_of_one
+
+- Simon King (2011-04-21): allow to prescribe a category
 """
 
 #*****************************************************************************
@@ -79,7 +81,7 @@ from sage.structure.parent_gens import ParentWithGens
 from sage.libs.pari.all import pari, PariError
 
 import sage.interfaces.all
-
+from sage.misc.cachefunc import cached_method
 
 from sage.structure.factory import UniqueFactory
 
@@ -113,8 +115,10 @@ class IntegerModFactory(UniqueFactory):
         sage: Integers() is Integers(0) is ZZ
         True
     """
-    def create_key(self, order=0):
-        return order
+    def create_key(self, order=0, category=None):
+        if category is None:
+            return order
+        return (order, category)
 
     def create_object(self, version, order):
         """
@@ -123,12 +127,15 @@ class IntegerModFactory(UniqueFactory):
             sage: R = Integers(10)
             sage: TestSuite(R).run() # indirect doctest
         """
+        category=None
+        if isinstance(order, tuple):
+            order, category = order
         if order < 0:
             order = -order
         if order == 0:
             return integer_ring.IntegerRing()
         else:
-            return IntegerModRing_generic(order)
+            return IntegerModRing_generic(order,category=category)
 
 Zmod = Integers = IntegerModRing = IntegerModFactory("IntegerModRing")
 
@@ -194,7 +201,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             sage: FF
             Ring of integers modulo 17
             sage: FF.category()
-            Join of Category of commutative rings and Category of finite enumerated sets
+            Join of Category of commutative rings and Category of subquotients of monoids and Category of quotients of semigroups and Category of finite enumerated sets
             sage: FF.is_field()
             True
             sage: FF.characteristic()
@@ -214,10 +221,10 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
         One can force `FF` to be in the category of fields::
 
-            sage: FF = IntegerModRing(17, category = Fields()) # todo: not implemented
-            sage: FF.category()                                # todo: not implemented
-            Join of Category of fields and Category of finite enumerated sets
-            sage: TestSuite(FF).run()                          # todo: not implemented
+            sage: FF = IntegerModRing(17, category = Fields())
+            sage: FF.category()
+            Join of Category of subquotients of monoids and Category of quotients of semigroups and Category of fields
+            sage: TestSuite(FF).run()
 
         Next we compute with the integers modulo `16`.
 
@@ -225,7 +232,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
             sage: Z16 = IntegerModRing(16)
             sage: Z16.category()
-            Join of Category of commutative rings and Category of finite enumerated sets
+            Join of Category of commutative rings and Category of subquotients of monoids and Category of quotients of semigroups and Category of finite enumerated sets
             sage: Z16.is_field()
             False
             sage: Z16.order()
@@ -278,17 +285,23 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         self.__unit_group_exponent = None
         self.__factored_order = None
         self.__factored_unit_order = None
-        # Give the generator a 'name' to make quotients work.  The
-        # name 'x' is used because it's also used for the ring of
-        # integers: see the __init__ method for IntegerRing_class in
-        # sage/rings/integer_ring.pyx.
-        quotient_ring.QuotientRing_generic.__init__(self, ZZ, ZZ.ideal(order), names=('x',))
         if category is None:
             from sage.categories.commutative_rings import CommutativeRings
             from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
             from sage.categories.category import Category
             category = Category.join([CommutativeRings(), FiniteEnumeratedSets()])
-        ParentWithGens.__init__(self, self, category = category)
+        # Give the generator a 'name' to make quotients work.  The
+        # name 'x' is used because it's also used for the ring of
+        # integers: see the __init__ method for IntegerRing_class in
+        # sage/rings/integer_ring.pyx.
+        quotient_ring.QuotientRing_generic.__init__(self, ZZ, ZZ.ideal(order),
+                                                    names=('x',),
+                                                    category=category)
+        # Calling ParentWithGens is not needed, the job is done in
+        # the quotient ring initialisation.
+        #ParentWithGens.__init__(self, self, category = category)
+        # We want that the ring is its own base ring.
+        self._base = self
         if cache is None:
             cache = order < 500
         if cache:
@@ -354,6 +367,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         """
         return True
 
+    @cached_method
     def is_prime_field(self):
         """
         Return ``True`` if the order is prime.
@@ -383,6 +397,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         H = [i for i in range(N) if gcd(i, N) == 1]
         return H
 
+    @cached_method
     def multiplicative_subgroups(self):
         r"""
         Return generators for each subgroup of
@@ -391,11 +406,11 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         EXAMPLES::
 
             sage: Integers(5).multiplicative_subgroups()
-            [[2], [4], []]
+            ([2], [4], [])
             sage: Integers(15).multiplicative_subgroups()
-            [[11, 7], [4, 11], [8], [11], [14], [7], [4], []]
+            ([11, 7], [4, 11], [8], [11], [14], [7], [4], [])
             sage: Integers(2).multiplicative_subgroups()
-            [[]]
+            ([],)
             sage: len(Integers(341).multiplicative_subgroups())
             80
         """
@@ -409,7 +424,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             mysubs.append([])
             for s in G.gens():
                 mysubs[-1].append(mul([U[i] ** s.list()[i] for i in xrange(len(U))]))
-        return mysubs
+        return tuple(mysubs) # make it immutable, so that we can cache
 
     def is_finite(self):
         """
@@ -423,6 +438,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         """
         return True
 
+    @cached_method
     def is_integral_domain(self, proof = True):
         """
         Return True if and only if the order of self is prime.
@@ -436,6 +452,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         """
         return is_prime(self.order())
 
+    @cached_method
     def is_field(self, proof = True):
         """
         Return True precisely if the order is prime.
@@ -451,6 +468,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         """
         return self.order().is_prime()
 
+    @cached_method
     def field(self):
         """
         If this ring is a field, return the corresponding field as a finite
@@ -504,6 +522,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         """
         return self
 
+    @cached_method
     def multiplicative_group_is_cyclic(self):
         """
         Return True if the multiplicative group of this field is cyclic.
@@ -545,7 +564,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         else:
             return False
 
-
+    @cached_method
     def multiplicative_generator(self):
         """
         Return a generator for the multiplicative group of this ring,

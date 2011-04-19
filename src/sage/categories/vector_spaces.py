@@ -12,7 +12,7 @@ Vector Spaces
 #******************************************************************************
 
 from category_types import Category_module
-from sage.categories.all import Fields, Modules
+from sage.categories.fields import Fields
 from sage.categories.dual import DualObjectsCategory
 from sage.misc.cachefunc import cached_method
 
@@ -89,6 +89,7 @@ class VectorSpaces(Category_module):
             [Category of modules over Rational Field]
         """
         R = self.base_field()
+        from sage.categories.modules import Modules
         return [Modules(R, dispatch = False)]
 
     class ParentMethods:

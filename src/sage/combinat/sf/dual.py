@@ -180,12 +180,14 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
 
             sage: e = SFAElementary(QQ)
             sage: f = e.dual_basis()
+            sage: f._precompute(0)
+            sage: f._precompute(1)
             sage: f._precompute(2)
             sage: l = lambda c: [ (i[0],[j for j in sorted(i[1].items())]) for i in sorted(c.items())]
             sage: l(f._to_self_cache) # note: this may depend on possible previous computations!
-            [([1, 1], [([1, 1], 2), ([2], 1)]), ([2], [([1, 1], 1), ([2], 1)])]
+            [([], [([], 1)]), ([1], [([1], 1)]), ([1, 1], [([1, 1], 2), ([2], 1)]), ([2], [([1, 1], 1), ([2], 1)])]
             sage: l(f._from_self_cache)
-            [([1, 1], [([1, 1], 1), ([2], -1)]), ([2], [([1, 1], -1), ([2], 2)])]
+            [([], [([], 1)]), ([1], [([1], 1)]), ([1, 1], [([1, 1], 1), ([2], -1)]), ([2], [([1, 1], -1), ([2], 2)])]
             sage: f._transition_matrices[2]
             [1 1]
             [1 2]

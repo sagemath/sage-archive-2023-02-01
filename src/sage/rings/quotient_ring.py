@@ -4,14 +4,16 @@ Quotient Rings
 AUTHORS:
 
 - William Stein
+- Simon King (2011-04): Put it into the category framework, use the
+  new coercion model.
 
 TESTS::
 
     sage: R.<x> = PolynomialRing(ZZ)
     sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
     sage: S = R.quotient_ring(I);
-    sage: S == loads(dumps(S))
-    True
+    sage: TestSuite(S).run()
+
 """
 
 ###########################################################################
@@ -32,6 +34,8 @@ import ideal
 import sage.rings.polynomial.multi_polynomial_ideal
 import sage.structure.parent_gens
 from sage.interfaces.all import singular as singular_default, is_SingularElement
+from sage.misc.cachefunc import cached_method
+from sage.categories.rings import Rings
 
 def QuotientRing(R, I, names=None):
     r"""
@@ -146,11 +150,6 @@ def QuotientRing(R, I, names=None):
         I_lift = S.ideal(G)
         J = R.defining_ideal()
         return QuotientRing_generic(S, I_lift + J, names)
-    if R.is_field():
-        if I.is_zero():
-            return R
-        else:
-            return 0
     return QuotientRing_generic(R, I, names)
 
 def is_QuotientRing(x):
@@ -205,7 +204,8 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         sage: T.gens()
         (0, d)
     """
-    def __init__(self, R, I, names):
+    Element = quotient_ring_element.QuotientRingElement
+    def __init__(self, R, I, names, category=None):
         """
         Create the quotient ring of `R` by the ideal `I`.
 
@@ -223,9 +223,21 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             sage: R.quotient_ring(x^2 + y^2)
             Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
         """
+        from sage.categories.rings import Rings
+        if R not in Rings():
+            raise TypeError, "The first argument must be a ring, but %s is not"%R
+        if I not in R.ideal_monoid():
+            raise TypeError, "The second argument must be an ideal of the given ring, but %s is not"%I
         self.__R = R
         self.__I = I
-        sage.structure.parent_gens.ParentWithGens.__init__(self, R.base_ring(), names)
+        #sage.structure.parent_gens.ParentWithGens.__init__(self, R.base_ring(), names)
+        from sage.structure.category_object import check_default_category
+        from sage.categories.commutative_rings import CommutativeRings
+        if R in CommutativeRings():
+            category = check_default_category(CommutativeRings().Quotients(),category)
+        else:
+            category = check_default_category(Rings().Quotients(),category)
+        commutative_ring.CommutativeRing.__init__(self, R.base_ring(), names=names, category=category)
         # self._populate_coercion_lists_([R]) # we don't want to do this, since subclasses will often implement improved coercion maps.
 
     def construction(self):
@@ -280,6 +292,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         """
         return "%s/%s"%(latex.latex(self.cover_ring()), latex.latex(self.defining_ideal()))
 
+    @cached_method
     def cover(self):
         r"""
         The covering ring homomorphism `R \to R/I`, equipped with a
@@ -321,12 +334,13 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         except AttributeError:
             import morphism
             pi = morphism.RingHomomorphism_cover(self.__R.Hom(self))
-            lift = self.lift()
+            lift = self.lifting_map()
             pi._set_lift(lift)
             self.__cover = pi
             return self.__cover
 
-    def lift(self):
+    @cached_method
+    def lifting_map(self):
         """
         Return the lifting map to the cover.
 
@@ -339,7 +353,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
               From: Multivariate Polynomial Ring in x, y over Rational Field
               To:   Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
               Defn: Natural quotient map
-            sage: L = S.lift(); L
+            sage: L = S.lifting_map(); L
             Set-theoretic ring morphism:
               From: Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
               To:   Multivariate Polynomial Ring in x, y over Rational Field
@@ -360,6 +374,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             -x*y^2 + 2*y^2
             sage: L(z) == x^3 + 2*y^2
             False
+
         """
         try:
             return self.__lift
@@ -367,6 +382,58 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             from morphism import RingMap_lift
             self.__lift = RingMap_lift(self, self.__R)
             return self.__lift
+
+    # The following is to make the category framework happy.
+    def lift(self,x=None):
+        """
+        Return the lifting map to the cover, or the image
+        of an element under the lifting map.
+
+        NOTE:
+
+        The category framework imposes that ``Q.lift(x)`` returns
+        the image of an element `x` under the lifting map. For
+        backwards compatibility, we let ``Q.lift()`` return the
+        lifting map.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = PolynomialRing(QQ, 2)
+            sage: S = R.quotient(x^2 + y^2)
+            sage: S.lift()
+            Set-theoretic ring morphism:
+              From: Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
+              To:   Multivariate Polynomial Ring in x, y over Rational Field
+              Defn: Choice of lifting map
+            sage: S.lift(S.0) == x
+            True
+
+        """
+        if x is None:
+            return self.lifting_map()
+        return self.lifting_map()(x)
+
+    def retract(self,x):
+        """
+        The image of an element of the cover ring under the quotient map.
+
+        INPUT:
+
+        An element of the cover ring
+
+        OUTPUT:
+
+        The image of the given element in ``self``.
+
+        EXAMPLE::
+
+            sage: R.<x,y> = PolynomialRing(QQ, 2)
+            sage: S = R.quotient(x^2 + y^2)
+            sage: S.retract((x+y)^2)
+            2*xbar*ybar
+
+        """
+        return self.cover()(x)
 
     def characteristic(self):
         r"""
@@ -410,6 +477,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         """
         return self.__I
 
+    @cached_method
     def is_field(self, proof = True):
         r"""
         Returns ``True`` if the quotient ring is a field. Checks to see if the
@@ -438,6 +506,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             except NotImplementedError:
                 return False
 
+    @cached_method
     def is_integral_domain(self, proof=True):
         r"""
         With ``proof`` equal to ``True``  (the default), this function may
@@ -509,6 +578,9 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
 
         raise NotImplementedError
 
+    # This is to make the category framework happy
+    def ambient(self):
+        return self.__R
 
     def cover_ring(self):
         r"""
@@ -605,12 +677,12 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             x = x.lift()
         if is_SingularElement(x):
             #self._singular_().set_ring()
-            x = quotient_ring_element.QuotientRingElement(self, x.sage_poly(self.cover_ring()))
+            x = self.element_class(self, x.sage_poly(self.cover_ring()))
             return x
         if coerce:
             R = self.cover_ring()
             x = R(x)
-        return quotient_ring_element.QuotientRingElement(self, x)
+        return self.element_class(self, x)
 
     def _coerce_map_from_(self, R):
         """
@@ -763,7 +835,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             sage: S = R.quotient_ring(x^2+y^2)
             sage: T = S._singular_init_()
             sage: parent(S)
-            <class 'sage.rings.quotient_ring.QuotientRing_generic'>
+            <class 'sage.rings.quotient_ring.QuotientRing_generic_with_category'>
             sage: parent(T)
             Singular
         """

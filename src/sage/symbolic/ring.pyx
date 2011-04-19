@@ -50,7 +50,7 @@ cdef class SymbolicRing(CommutativeRing):
             sage: sage.symbolic.ring.SymbolicRing()
             Symbolic Ring
         """
-        ParentWithBase.__init__(self, self)
+        CommutativeRing.__init__(self, self)
         self._populate_coercion_lists_(convert_method_name='_symbolic_')
 
     def __reduce__(self):

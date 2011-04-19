@@ -8,6 +8,8 @@ AUTHORS:
 - William Stein (2006-11-01): add all doctests; implemented many
   things.
 
+- Simon King (2011-04): Put free algebras into the category framework.
+
 EXAMPLES::
 
     sage: F = FreeAlgebra(ZZ,3,'x,y,z')
@@ -21,37 +23,34 @@ EXAMPLES::
 TESTS::
 
     sage: F = FreeAlgebra(GF(5),3,'x')
-    sage: F == loads(dumps(F))
-    True
+    sage: TestSuite(F).run()
 
 ::
 
     sage: F.<x,y,z> = FreeAlgebra(GF(5),3)
-    sage: F == loads(dumps(F))
-    True
+    sage: TestSuite(F).run()
 
 ::
 
     sage: F = FreeAlgebra(GF(5),3, ['xx', 'zba', 'Y'])
-    sage: F == loads(dumps(F))
-    True
+    sage: TestSuite(F).run()
 
 ::
 
     sage: F = FreeAlgebra(GF(5),3, 'abc')
-    sage: F == loads(dumps(F))
-    True
+    sage: TestSuite(F).run()
 
 ::
 
     sage: F = FreeAlgebra(FreeAlgebra(ZZ,1,'a'), 2, 'x')
-    sage: F == loads(dumps(F))
-    True
+    sage: TestSuite(F).run()
+
 """
 
 #*****************************************************************************
 #  Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu>
 #  Copyright (C) 2005,2006 William Stein <wstein@gmail.com>
+#  Copyright (C) 2011 Simon King <simon.king@uni-jena.de>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
@@ -164,6 +163,7 @@ class FreeAlgebra_generic(Algebra):
         sage: (2 + x*z + x^2)^2 + (x - y)^2
         4 + 5*x^2 - x*y + 4*x*z - y*x + y^2 + x^4 + x^3*z + x*z*x^2 + x*z*x*z
     """
+    Element = FreeAlgebraElement
     def __init__(self, R, n, names):
         """
         INPUT:
@@ -179,7 +179,8 @@ class FreeAlgebra_generic(Algebra):
             raise TypeError, "Argument R must be a ring."
         self.__monoid = FreeMonoid(n, names=names)
         self.__ngens = n
-        sage.structure.parent_gens.ParentWithGens.__init__(self, R, names)
+        #sage.structure.parent_gens.ParentWithGens.__init__(self, R, names)
+        Algebra.__init__(self, R,names=names)
 
     def is_field(self, proof = True):
         """
@@ -250,23 +251,25 @@ class FreeAlgebra_generic(Algebra):
         EXAMPLES::
 
             sage: F = FreeAlgebra(QQ,3,'x')
-            sage: print F
+            sage: print F  # indirect doctest
             Free Algebra on 3 generators (x0, x1, x2) over Rational Field
             sage: F.rename('QQ<<x0,x1,x2>>')
             sage: print F
             QQ<<x0,x1,x2>>
+            sage: FreeAlgebra(ZZ,1,['a'])
+            Free Algebra on 1 generators (a,) over Integer Ring
         """
         return "Free Algebra on %s generators %s over %s"%(
             self.__ngens, self.gens(), self.base_ring())
 
-    def __call__(self, x):
+    def _element_constructor_(self, x):
         """
        Coerce x into self.
 
        EXAMPLES::
 
            sage: R.<x,y> = FreeAlgebra(QQ,2)
-           sage: R(3)
+           sage: R(3) # indirect doctest
            3
        """
         if isinstance(x, FreeAlgebraElement):
@@ -274,19 +277,19 @@ class FreeAlgebra_generic(Algebra):
             if P is self:
                 return x
             if not (P is self.base_ring()):
-                return FreeAlgebraElement(self, x)
+                return self.element_class(self, x)
         # ok, not a free algebra element (or should not be viewed as one).
         F = self.__monoid
         R = self.base_ring()
         # coercion from free monoid
         if isinstance(x, FreeMonoidElement) and x.parent() is F:
-            return FreeAlgebraElement(self,{x:R(1)})
+            return self.element_class(self,{x:R(1)})
         # coercion via base ring
         x = R(x)
         if x == 0:
-            return FreeAlgebraElement(self,{})
+            return self.element_class(self,{})
         else:
-            return FreeAlgebraElement(self,{F(1):x})
+            return self.element_class(self,{F(1):x})
 
     def _coerce_impl(self, x):
         """
@@ -320,7 +323,7 @@ class FreeAlgebra_generic(Algebra):
 
         ::
 
-            sage: F._coerce_(1)
+            sage: F._coerce_(1)       # indirect doctest
             1
 
         There is no coerce map from QQ to GF(7).
@@ -330,7 +333,8 @@ class FreeAlgebra_generic(Algebra):
             sage: F._coerce_(2/3)
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion of element into self
+            TypeError: no canonical coercion from Rational Field to Free Algebra
+            on 3 generators (x, y, z) over Finite Field of size 7
 
         Elements of the base ring coerce in.
 
@@ -359,7 +363,9 @@ class FreeAlgebra_generic(Algebra):
             sage: G._coerce_(x^3*y)
             Traceback (most recent call last):
             ...
-            TypeError: no natural map between bases of free algebras
+            TypeError: no canonical coercion from Free Algebra on 3 generators
+            (x, y, z) over Finite Field of size 7 to Free Algebra on 3
+            generators (x, y, z) over Integer Ring
         """
         try:
             R = x.parent()
@@ -382,19 +388,19 @@ class FreeAlgebra_generic(Algebra):
         # any ring that coerces to the base ring of this free algebra.
         return self._coerce_try(x, [self.base_ring()])
 
-    def coerce_map_from_impl(self, R):
-        if R is self.__monoid:
+    def _coerce_map_from_(self, R):
+        if self.__monoid.has_coerce_map_from(R):
             return True
 
         # polynomial rings in the same variable over any base that coerces in:
         if is_FreeAlgebra(R):
             if R.variable_names() == self.variable_names():
-                if self.has_coerce_map_from(R.base_ring()):
+                if self.base_ring().has_coerce_map_from(R.base_ring()):
                     return True
                 else:
                     return False
 
-        return Algebra.coerce_map_from_impl(self, R)
+        return self.base_ring().has_coerce_map_from(R)
 
     def gen(self,i):
         """
@@ -411,7 +417,7 @@ class FreeAlgebra_generic(Algebra):
             raise IndexError, "Argument i (= %s) must be between 0 and %s."%(i, n-1)
         R = self.base_ring()
         F = self.__monoid
-        return FreeAlgebraElement(self,{F.gen(i):R(1)})
+        return self.element_class(self,{F.gen(i):R(1)})
 
     def quotient(self, mons, mats, names):
         """

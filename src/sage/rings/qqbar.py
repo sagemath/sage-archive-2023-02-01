@@ -592,7 +592,7 @@ class AlgebraicRealField(_uniq_alg_r, AlgebraicField_common):
     """
 
     def __init__(self):
-        ParentWithGens.__init__(self, self, ('x',), normalize=False)
+        AlgebraicField_common.__init__(self, self, ('x',), normalize=False)
 
     def _element_constructor_(self, x):
         r"""
@@ -779,7 +779,7 @@ class AlgebraicField(_uniq_alg, AlgebraicField_common):
     """
 
     def __init__(self):
-        ParentWithGens.__init__(self, AA, ('I',), normalize=False)
+        AlgebraicField_common.__init__(self, AA, ('I',), normalize=False)
 
     def _element_constructor_(self, x):
         """

@@ -479,8 +479,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
             return MPolynomial_polydict(self, {self._zero_tuple:c})
 
 class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
-                                      MPolynomialRing_polydict,
-                                      MPolynomialRing_macaulay2_repr):
+                                      MPolynomialRing_polydict):
     def __init__(self, base_ring, n, names, order):
         order = TermOrder(order,n)
         MPolynomialRing_polydict.__init__(self, base_ring, n, names, order)

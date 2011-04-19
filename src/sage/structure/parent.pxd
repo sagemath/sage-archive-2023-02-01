@@ -22,6 +22,8 @@ cdef class Parent(category_object.CategoryObject):
     cdef public _initial_convert_list
     cdef readonly bint _coercions_used
 
+    cpdef bint is_coercion_cached(self, domain)
+    cpdef bint is_conversion_cached(self, domain)
     cpdef register_coercion(self, mor)
     cpdef register_action(self, action)
     cpdef register_conversion(self, mor)

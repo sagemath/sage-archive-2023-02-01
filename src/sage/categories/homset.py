@@ -50,7 +50,6 @@ def Hom(X, Y, category=None):
     -  ``category`` - (optional) category in which the morphisms
        must be
 
-
     OUTPUT: a homset in category
 
     EXAMPLES::
@@ -71,6 +70,38 @@ def Hom(X, Y, category=None):
         sage: Hom(FreeModule(QQ,1), FreeModule(ZZ,1))
         Set of Morphisms from Vector space of dimension 1 over Rational Field to Ambient free module of rank 1 over the principal ideal domain Integer Ring in Category of vector spaces over Rational Field
 
+    TESTS:
+
+    Some doc tests in :mod:`sage.rings` (need to) break the unique parent assumption.
+    But if domain or codomain are not unique parents, then the hom set won't fit.
+    That's to say, the hom set found in the cache will have a (co)domain that is
+    equal to, but not identic with, the given (co)domain.
+
+    By trac ticket #9138, we abandon the uniqueness of hom sets, if the domain or
+    codomain break uniqueness::
+
+        sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
+        sage: P.<x,y,z>=MPolynomialRing_polydict_domain(QQ, 3, order='degrevlex')
+        sage: Q.<x,y,z>=MPolynomialRing_polydict_domain(QQ, 3, order='degrevlex')
+        sage: P == Q
+        True
+        sage: P is Q
+        False
+
+    Hence, P and Q are not unique parents. By consequence, the following homsets
+    aren't either::
+
+        sage: H1 = Hom(QQ,P)
+        sage: H2 = Hom(QQ,Q)
+        sage: H1 == H2
+        True
+        sage: H1 is H2
+        False
+
+    It is always the most recently constructed hom set that remains in the cache::
+
+        sage: H2 is Hom(QQ,Q)
+        True
 
     TODO: design decision: how much of the homset comes from the
     category of X and Y, and how much from the specific X and Y.  In
@@ -91,7 +122,9 @@ def Hom(X, Y, category=None):
         # What is this test for? Why does the cache ever contain a 0 value?
         # This actually occurs: see e.g. sage -t  sage-combinat/sage/categories/modules_with_basis.py
         if H:
-            return H
+            # Are domain or codomain breaking the unique parent condition?
+            if H.domain() is X and H.codomain() is Y:
+                return H
 
     try:
         return X._Hom_(Y, category)
@@ -139,6 +172,14 @@ def Hom(X, Y, category=None):
     else:
         raise TypeError, "Argument category (= %s) must be a category."%category
 
+    # Now, as the category may have changed, we try to find the hom set in the cache, again:
+    key = (X,Y,category)
+    if _cache.has_key(key):
+        H = _cache[key]()
+        if H:
+            # Are domain or codomain breaking the unique parent condition?
+            if H.domain() is X and H.codomain() is Y:
+                return H
 
     # coercing would be incredibly annoying, since the domain and codomain
     # are totally different objects
@@ -152,7 +193,6 @@ def Hom(X, Y, category=None):
 
     ##_cache[key] = weakref.ref(H)
     _cache[(X, Y, category)] = weakref.ref(H)
-
     return H
 
 def hom(X, Y, f):

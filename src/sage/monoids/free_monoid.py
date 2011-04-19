@@ -4,6 +4,7 @@ Free Monoids
 AUTHORS:
 
 - David Kohel (2005-09)
+- Simon King (2011-04): Put free monoids into the category framework
 
 Sage supports free monoids on any prescribed finite number
 `n\geq 0` of generators. Use the ``FreeMonoid``
@@ -37,6 +38,7 @@ from monoid import Monoid_class
 
 
 from sage.structure.factory import UniqueFactory
+from sage.misc.cachefunc import cached_method
 
 class FreeMonoidFactory(UniqueFactory):
     """
@@ -96,12 +98,12 @@ class FreeMonoid_class(Monoid_class):
     """
     The free monoid on `n` generators.
     """
+    Element = FreeMonoidElement
     def __init__(self, n, names=None):
         """
         Create free monoid on `n` generators.
 
         INPUT:
-
 
         -  ``n`` - integer
 
@@ -123,15 +125,15 @@ class FreeMonoid_class(Monoid_class):
         ::
 
             sage: M = FreeMonoid(3, names=['a','b','c'])
-            sage: loads(M.dumps()) == M
-            True
+            sage: TestSuite(M).run()
         """
         if not isinstance(n, (int, long, Integer)):
             raise TypeError, "n (=%s) must be an integer."%n
         if n < 0:
             raise ValueError, "n (=%s) must be nonnegative."%n
         self.__ngens = int(n)
-        self._assign_names(names)
+        #self._assign_names(names)
+        Monoid_class.__init__(self,names)
 
     def __cmp__(self, other):
         if not isinstance(other, FreeMonoid_class):
@@ -142,10 +144,10 @@ class FreeMonoid_class(Monoid_class):
             return 0
         return 1
 
-    def __repr__(self):
+    def _repr_(self):
         return "Free monoid on %s generators %s"%(self.__ngens,self.gens())
 
-    def __call__(self, x, check=True):
+    def _element_constructor_(self, x, check=True):
         """
         Return `x` coerced into this free monoid.
 
@@ -175,11 +177,11 @@ class FreeMonoid_class(Monoid_class):
         if isinstance(x, FreeMonoidElement) and x.parent() is self:
                 return x
         if isinstance(x, FreeMonoidElement) and x.parent() == self:
-            return FreeMonoidElement(self,x._element_list,check)
+            return self.element_class(self,x._element_list,check)
         elif isinstance(x, (int, long, Integer)) and x == 1:
-            return FreeMonoidElement(self, x, check)
+            return self.element_class(self, x, check)
         elif isinstance(x, list):
-            return FreeMonoidElement(self, x, check)
+            return self.element_class(self, x, check)
         else:
             raise TypeError, "Argument x (= %s) is of the wrong type."%x
 
@@ -209,7 +211,7 @@ class FreeMonoid_class(Monoid_class):
         n = self.__ngens
         if i < 0 or not i < n:
             raise IndexError, "Argument i (= %s) must be between 0 and %s."%(i, n-1)
-        return FreeMonoidElement(self,[(Integer(i),Integer(1))])
+        return self.element_class(self,[(Integer(i),Integer(1))])
 
     def ngens(self):
         """
@@ -223,7 +225,7 @@ class FreeMonoid_class(Monoid_class):
         """
         return self.__ngens
 
-
+    @cached_method
     def one_element(self):
         """
         Returns the identity element in this monoid.

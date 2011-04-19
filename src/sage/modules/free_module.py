@@ -480,7 +480,7 @@ def span(gens, base_ring=None, check=True, already_echelonized=False):
     else:
         R = base_ring
 
-    if not isinstance(R, principal_ideal_domain.PrincipalIdealDomain):
+    if R not in PrincipalIdealDomains():
         raise TypeError, "The base_ring (= %s) must be a principal ideal domain."%R
     if len(gens) == 0:
         return FreeModule(R, 0)
@@ -1960,9 +1960,7 @@ class FreeModule_generic_pid(FreeModule_generic):
             Ambient free module of rank 2 over the principal ideal domain Univariate Polynomial Ring in x over Finite Field of size 7
         """
         # The first check should go away once everything is categorized...
-        if (not isinstance(base_ring,
-                           principal_ideal_domain.PrincipalIdealDomain)
-            and base_ring not in PrincipalIdealDomains()):
+        if base_ring not in PrincipalIdealDomains():
             raise TypeError("The base_ring must be a principal ideal domain.")
         super(FreeModule_generic_pid, self).__init__(base_ring, rank, degree,
                                                      sparse)

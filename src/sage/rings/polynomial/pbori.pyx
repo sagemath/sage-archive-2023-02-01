@@ -42,6 +42,11 @@ AUTHORS:
 - Martin Albrecht <malb@informatik.uni-bremen.de>: some
   contributions to the Sage wrapper
 
+- Simon King <simon.king@uni-jena.de>:
+  Adopt the new coercion model. Fix conversion from univariate
+  polynomial rings. Pickling of :class:`BooleanMonomialMonoid`
+  (via :class:`~sage.structure.unique_representation.UniqueRepresentation`)
+  and :class:`BooleanMonomial`.
 
 EXAMPLES:
 
@@ -187,6 +192,7 @@ from sage.rings.finite_rings.constructor import FiniteField as GF
 from sage.rings.polynomial.polynomial_element cimport Polynomial
 from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
 from sage.rings.polynomial.term_order import TermOrder
+from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
 
 from sage.structure.element cimport Element
 from sage.structure.element cimport RingElement
@@ -195,6 +201,7 @@ from sage.structure.element cimport ModuleElement
 from sage.structure.parent cimport Parent
 from sage.structure.sequence import Sequence
 from sage.structure.element import coerce_binop
+from sage.structure.unique_representation import UniqueRepresentation
 
 from sage.categories.action cimport Action
 
@@ -286,6 +293,29 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         True
         sage: x2 > x3
         True
+        sage: TestSuite(P).run()
+
+    Boolean polynomial rings are unique parent structures. We
+    thus have::
+
+        sage: P.<x,y> = BooleanPolynomialRing(2)
+        sage: R.<x,y> = BooleanPolynomialRing(2)
+        sage: P is R
+        True
+
+    ::
+
+        sage: Q.<x,z> = BooleanPolynomialRing(2)
+        sage: P == Q
+        False
+
+    ::
+
+        sage: S.<x,y> = BooleanPolynomialRing(2, order='deglex')
+        sage: P == S
+        False
+
+
     """
     def __init__(self, n=None, names=None, order='lex'):
         """
@@ -494,88 +524,163 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             self._repr = "Boolean PolynomialRing in %s"%(gens)
         return self._repr
 
+    #### Coercion
+    cpdef _coerce_map_from_(self,S):
+        """
+        There is coercion from the base ring, from any boolean
+        polynomial ring with compatible variable names,
+        any boolean monomial monoid with compatible variable
+        names, and any polynomial ring with compatible variable
+        names and base ring.
+
+        Before trac ticket #9138, boolean polynomial rings had
+        a custom containment test, but that is not needed now
+        since it now uses Sage's new coercion model. So, we
+        move the tests from the old ``__contains__`` to here.
+
+        TESTS::
+
+            sage: B.<a,b,c,d> = BooleanPolynomialRing()
+            sage: a in B
+            True
+
+        Any boolean monomial is contained in the ring::
+
+            sage: e = B.random_element(); e
+            a*c + a*d + a + b*d + 1
+            sage: e.lt()
+            a*c
+            sage: e.lt().parent()
+            MonomialMonoid of Boolean PolynomialRing in a, b, c, d
+            sage: e.lt() in B   # indirect doctest
+            True
+
+        Note that all integers are considered to be in the boolean
+        polynomial ring::
+
+            sage: 0 in B
+            True
+            sage: 1 in B
+            True
+            sage: 7 in B
+            True
+            sage: 7 in GF(2)
+            True
+
+        We test that #10173 is fixed::
+
+            sage: R = BooleanPolynomialRing(256,'x')
+            sage: S = PolynomialRing(GF(2),256,'y')
+            sage: S.gen(8) in R
+            False
+
+        Of course, coercion is also responsible for arithmetics
+        involving different rings. There is coercion from uni- and
+        multivariate polynomial rings whose base rings coerce into
+        ``GF(2)``::
+
+            sage: ZZ['a','b'].gen() + c
+            a + c
+            sage: ZZ['a'].gen() + c
+            a + c
+
+        """
+        if self._base.has_coerce_map_from(S):
+            return True
+        if isinstance(S,(MPolynomialRing_generic,PolynomialRing_general,BooleanMonomialMonoid)):
+            try:
+                get_var_mapping(self,S)
+            except NameError:
+                return False
+            return self._base.has_coerce_map_from(S.base())
+
     cdef _coerce_c_impl(self, other):
         r"""
-        Canonical conversion of elements from other domains to this boolean
-        polynomial ring.
+        Canonical conversion of elements from other domains to
+        this boolean polynomial ring.
+
+        NOTE:
+
+        Inspite of its name, we use this method for conversion,
+        not coercion.
 
         EXAMPLES:
 
-        Coerce elements of ``self``.
+        Convert elements of ``self``.
 
         ::
 
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: p = x*y + x
-            sage: P._coerce_(p)
+            sage: P(p)
             x*y + x
 
-        Coerce from monomials over the same ring.
+        Convert from monomials over the same ring.
 
         ::
 
-            sage: P._coerce_(p.lm())
+            sage: P(p.lm())  # indirect doctest
             x*y
 
-        Coerce from a different BooleanPolynomialRing.
+        Convert from a different BooleanPolynomialRing.
 
         ::
 
             sage: P.<x,y> = BooleanPolynomialRing(2)
             sage: R = BooleanPolynomialRing(2,'y,x')
-            sage: p = R._coerce_(x+y+x*y+1)
+            sage: p = R(x+y+x*y+1)
             sage: p.parent()
             Boolean PolynomialRing in y, x
             sage: p
             y*x + y + x + 1
 
-        Coerce from polynomials over the integers.
+        Convert from polynomials over the integers.
 
         ::
 
             sage: P = BooleanPolynomialRing(3,'x,y,z')
             sage: R.<z,x,y> = ZZ['z,x,y']
             sage: t = x^2*z+5*y^3
-            sage: p = P._coerce_(t)
+            sage: p = P(t)
             sage: p.parent()
             Boolean PolynomialRing in x, y, z
             sage: p
             x*z + y
 
-        Coerce from integers.
+        Convert from integers.
 
         ::
 
             sage: P = BooleanPolynomialRing(3,'x,y,z')
-            sage: p = P._coerce_(1)
+            sage: p = P(1)
             sage: p.is_one()
             True
-            sage: p = P._coerce_(6)
+            sage: p = P(6)
             sage: p.is_zero()
             True
 
-        Coerce from GF(2).
+        Conversion from GF(2).
 
         ::
 
             sage: P = BooleanPolynomialRing(3,'x,y,z')
             sage: F = GF(2)
-            sage: p = P._coerce_(F.zero_element())
+            sage: p = P(F.zero_element())
             sage: p.is_zero()
             True
-            sage: p = P._coerce_(F.one_element())
+            sage: p = P(F.one_element())
             sage: p.is_one()
             True
 
-        Coerce from boolean monomials over a different boolean polynomial
-        ring.
+        Conversion from boolean monomials over a different boolean
+        polynomial ring.
 
         ::
 
             sage: R.<y,x> = BooleanPolynomialRing(2)
             sage: M = R._monom_monoid
             sage: P = BooleanPolynomialRing(3,'x,y,z')
-            sage: t = P._coerce_(M(x*y))
+            sage: t = P(M(x*y))
             sage: t
             x*y
             sage: t.parent()
@@ -585,22 +690,22 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
             sage: P.<x,y> = BooleanPolynomialRing(2)
             sage: R = BooleanPolynomialRing(1,'y')
-            sage: p = R._coerce_(x+y+x*y+1)
+            sage: p = R(x+y+x*y+1)
             Traceback (most recent call last):
             ...
-            TypeError: cannot coerce from <type 'sage.rings.polynomial.pbori.BooleanPolynomial'> to Boolean PolynomialRing in y
+            TypeError: cannot convert polynomial x*y + x + y + 1 to Boolean PolynomialRing in y: name x not defined
 
         ::
 
             sage: P = BooleanPolynomialRing(2,'x,y')
             sage: R.<z,x,y> = ZZ['z,x,y']
             sage: t = x^2*z+5*y^3
-            sage: p = P._coerce_(t)
+            sage: p = P(t)
             Traceback (most recent call last):
             ...
-            TypeError: cannot coerce from <type 'sage.rings.polynomial.multi_polynomial_libsingular.MPolynomial_libsingular'> to Boolean PolynomialRing in x, y
+            TypeError: cannot convert polynomial z*x^2 + 5*y^3 to Boolean PolynomialRing in x, y: name z not defined
 
-        Test coercion from a ring that compares equal.
+        Test conversion from a ring that compares equal.
 
         ::
 
@@ -611,7 +716,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             sage: P(x)
             x
 
-        Test coercion between 'degrevlex' and 'lex'::
+        Test conversion between 'degrevlex' and 'lex'::
 
             sage: B.<a,b,c> = BooleanPolynomialRing(order='lex')
             sage: P.<a,b,c> = BooleanPolynomialRing(order='degrevlex')
@@ -688,7 +793,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                     exponents = other.exponents()
                     coefs = other.coefficients()
                     for i in range(len(coefs)):
-                        if self._base._coerce_(coefs[i]).is_one():
+                        if self._base(coefs[i]).is_one():
                             m = self._monom_monoid._one_element
                             for j in range(len(exponents[i])):
                                 if exponents[i][j] > 0:
@@ -706,14 +811,14 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             raise TypeError, "cannot coerce from %s to %s" % \
                     (type(other), str(self))
 
-    def __call__(self, other):
+    def _element_constructor_(self, other):
         """
         Convert ``other`` to this Boolean polynomial ring.
 
         EXAMPLE::
 
             sage: P.<x,y> = BooleanPolynomialRing(2)
-            sage: P(5)
+            sage: P(5)    # indirect doctest
             1
 
             sage: P(x+y)
@@ -744,17 +849,26 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             TypeError: cannot convert polynomial x*y + x + y + 1 to Boolean PolynomialRing in y: name x not defined
 
             sage: P = BooleanPolynomialRing(2,'x,y')
-            sage: R.<z,x,y> = ZZ['z,x,y']
+            sage: R.<z,x,y> = ZZ[]
             sage: t = x^2*z+5*y^3
             sage: p = P(t)
             Traceback (most recent call last):
             ...
             TypeError: cannot convert polynomial z*x^2 + 5*y^3 to Boolean PolynomialRing in x, y: name z not defined
+
+        We test that univariate polynomials convert into the
+        boolean polynomial ring (trac ticket #9138)::
+
+            sage: R.<x> = ZZ[]
+            sage: p = x^3+2*x^2+x+1
+            sage: P(p)
+            x
+
         """
         cdef int i
 
         try:
-            return self._coerce_c(other)
+            return self._coerce_c_impl(other)
         except NameError, msg:
             raise NameError, msg
         except TypeError:
@@ -794,8 +908,17 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                     p = self._zero_element
                     exponents = other.exponents()
                     coefs = other.coefficients()
+                    if PY_TYPE_CHECK(other, Polynomial):
+                        # we have a univariate polynomial.
+                        # That case had only been implemented
+                        # in trac ticket #9138:
+                        for i in range(len(coefs)):
+                            if self._base(coefs[i]).is_one():
+                                p += var_mapping[0]
+                        return p
+
                     for i in range(len(coefs)):
-                        if self._base._coerce_(coefs[i]).is_one():
+                        if self._base(coefs[i]).is_one():
                             m = self._monom_monoid._one_element
                             for j in range(len(exponents[i])):
                                 if exponents[i][j] > 0:
@@ -822,47 +945,6 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         else:
             return self._zero_element
 
-    def __richcmp__(left, right, int op):
-        """
-        BooleanPolynomialRings are equal if they have the same
-
-          - number of variables
-          - variable names
-          - order type
-
-        EXAMPLES::
-
-            sage: P.<x,y> = BooleanPolynomialRing(2)
-            sage: R.<x,y> = BooleanPolynomialRing(2)
-            sage: P == R
-            True
-
-        ::
-
-            sage: Q.<x,z> = BooleanPolynomialRing(2)
-            sage: P == Q
-            False
-
-        ::
-
-            sage: S.<x,y> = BooleanPolynomialRing(2, order='deglex')
-            sage: P == S
-            False
-        """
-        return (<Parent>left)._richcmp(right, op)
-
-
-    cdef int _cmp_c_impl(left, Parent right) except -2:
-        r"""
-        See ``self.__richcmp__``
-        """
-        if PY_TYPE_CHECK(right, BooleanPolynomialRing):
-
-            return cmp( (type(left), left._names, left.term_order()),
-                   (type(right), right._names, right.term_order()))
-        else:
-            return -1
-
     def __hash__(self):
         """
         Return a hash of this boolean polynomial ring.
@@ -878,56 +960,6 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         cdef long _hash = hash(self.variable_names()) ^ 42
         _hash ^= hash(self.term_order())
         return _hash
-
-
-    def __contains__(self, x):
-        """
-        An element ``x`` is considered to be a member of this ring if
-        there is a coercion defined for ``x`` to this ring.
-
-        EXAMPLE::
-
-            sage: B.<a,b,c,d> = BooleanPolynomialRing()
-            sage: a in B
-            True
-
-            sage: e = B.random_element(); e
-            a*c + a*d + a + b*d + 1
-
-            sage: e.lt()
-            a*c
-
-            sage: e.lt() in B
-            True
-
-
-            sage: 0 in B
-            True
-
-        Note that all integers are considered to be in the boolean
-        polynomial ring::
-
-            sage: 7 in B
-            True
-
-            sage: 7 in GF(2)
-            True
-
-        TESTS::
-
-        We test that #10173 is fixed::
-
-            sage: R = BooleanPolynomialRing(256,'x')
-            sage: S = PolynomialRing(GF(2),256,'y')
-            sage: S.gen(8) in R
-            False
-
-        """
-        try:
-            self._coerce_(x)
-            return True
-        except TypeError:
-            return False
 
     def gens_dict(self):
         """
@@ -1626,7 +1658,7 @@ def get_var_mapping(ring, other):
         [None, x]
     """
     my_names = list(ring._names) # we need .index(.)
-    if PY_TYPE_CHECK(other, ParentWithGens):
+    if isinstance(other, (ParentWithGens,BooleanMonomialMonoid)):
         variables = range(other.ngens())
         ovar_names = other._names
     else:
@@ -1651,7 +1683,7 @@ def get_var_mapping(ring, other):
         var_mapping[i] = ring.gen(ind)
     return var_mapping
 
-class BooleanMonomialMonoid(Monoid_class):
+class BooleanMonomialMonoid(UniqueRepresentation,Monoid_class):
     """
     Construct a boolean monomial monoid given a boolean polynomial
     ring.
@@ -1675,12 +1707,20 @@ class BooleanMonomialMonoid(Monoid_class):
         (x, y)
         sage: type(M.gen(0))
         <type 'sage.rings.polynomial.pbori.BooleanMonomial'>
+
+    Since trac ticket #9138, boolean monomial monoids are
+    unique parents and are fit into the category framework::
+
+        sage: loads(dumps(M)) is M
+        True
+        sage: TestSuite(M).run()
+
     """
     def __init__(self, BooleanPolynomialRing polring):
         """
         Create a new boolean polynomial ring.
 
-        EXAMPLES::
+        TESTS::
 
             sage: from polybori import BooleanMonomialMonoid
             sage: B.<a,b,c> = BooleanPolynomialRing(3)
@@ -1688,13 +1728,15 @@ class BooleanMonomialMonoid(Monoid_class):
             sage: M
             MonomialMonoid of Boolean PolynomialRing in a, b, c
 
+
         .. note::
 
           See class documentation for parameters.
         """
         cdef BooleanMonomial m
         self._ring = polring
-        ParentWithGens.__init__(self, GF(2), polring._names)
+        from  sage.categories.monoids import Monoids
+        Parent.__init__(self, GF(2), names=polring._names, category=Monoids())
 
         m = new_BM(self, polring)
         PBMonom_construct(&m._pbmonom)
@@ -1816,16 +1858,16 @@ class BooleanMonomialMonoid(Monoid_class):
             sage: M = BooleanMonomialMonoid(P)
             sage: x_monom = M(x); x_monom
             x
-            sage: M._coerce_(x_monom) # indirect doctest
+            sage: M(x_monom) # indirect doctest
             x
 
-        Coerce elements from :class:`BooleanMonomialMonoid` where the
+        Convert elements from :class:`BooleanMonomialMonoid` where the
         generators of self include the generators of the other monoid::
 
             sage: from polybori import BooleanMonomialMonoid
             sage: R.<z,y> = BooleanPolynomialRing(2)
             sage: N = BooleanMonomialMonoid(R)
-            sage: m = M._coerce_(N(y*z)); m
+            sage: m = M(N(y*z)); m
             y*z
             sage: m.parent() is M
             True
@@ -1835,18 +1877,18 @@ class BooleanMonomialMonoid(Monoid_class):
             sage: from polybori import BooleanMonomialMonoid
             sage: R.<t,y> = BooleanPolynomialRing(2)
             sage: N = BooleanMonomialMonoid(R)
-            sage: m = M._coerce_(N(y)); m
+            sage: m = M(N(y)); m
             Traceback (most recent call last):
             ...
-            ValueError: cannot coerce monomial y to MonomialMonoid of Boolean PolynomialRing in x, y, z: name t not defined
+            TypeError: list indices must be integers, not sage.rings.polynomial.pbori.BooleanMonomial
 
             sage: from polybori import BooleanMonomialMonoid
             sage: R.<t,x,y,z> = BooleanPolynomialRing(4)
             sage: N = BooleanMonomialMonoid(R)
-            sage: m = M._coerce_(N(x*y*z)); m
+            sage: m = M(N(x*y*z)); m
             Traceback (most recent call last):
             ...
-            TypeError: coercion from <type 'sage.rings.polynomial.pbori.BooleanMonomial'> to MonomialMonoid of Boolean PolynomialRing in x, y, z not implemented
+            TypeError: list indices must be integers, not sage.rings.polynomial.pbori.BooleanMonomial
         """
         if PY_TYPE_CHECK(other, BooleanMonomial) and \
             ((<BooleanMonomial>other)._parent.ngens() <= \
@@ -1862,7 +1904,7 @@ class BooleanMonomialMonoid(Monoid_class):
         raise TypeError, "coercion from %s to %s not implemented" % \
             (type(other), str(self))
 
-    def __call__(self, other = None):
+    def _element_constructor_(self, other = None):
         """
         Convert elements of other objects to elements of this monoid.
 
@@ -1889,12 +1931,12 @@ class BooleanMonomialMonoid(Monoid_class):
             ...
             TypeError: cannot convert to BooleanMonomialMonoid
 
-        Convert elements of self.::
+        Convert elements of self::
 
             sage: M(x_monom)
             x
 
-        Convert from other :class:`BooleanPolynomialRing`s.::
+        Convert from other :class:`BooleanPolynomialRing`s::
 
             sage: R.<z,x> = BooleanPolynomialRing(2)
             sage: t = M(z); t
@@ -1902,13 +1944,27 @@ class BooleanMonomialMonoid(Monoid_class):
             sage: t.parent() is M
             True
 
-        Convert :class:`BooleanMonomial`s over other :class:`BooleanPolynomialRing`s.::
+        Convert :class:`BooleanMonomial`s over other
+        :class:`BooleanPolynomialRing`s::
 
             sage: N = BooleanMonomialMonoid(R)
             sage: t = M(N(x*z)); t
             x*z
             sage: t.parent() is M
             True
+
+        Convert :class:`BooleSet`s::
+
+            sage: t = M.an_element(); t
+            x
+            sage: M(t.set()) == t
+            True
+
+        Convert a tuple of integers::
+
+            sage: M((0,2,0))
+            x*z
+
         """
         cdef BooleanMonomial m
         cdef PBMonom t
@@ -1917,11 +1973,18 @@ class BooleanMonomialMonoid(Monoid_class):
         if other is None:
             return self._one_element
 
+###  We must not call this explicitly in an element constructor.
+###  It used to be ok, when there was a custom __call__
+#        try:
+#            return self._coerce_(other)
+#        except ValueError:
+#            pass
+#        except TypeError:
+#            pass
+
         try:
-            return self._coerce_(other)
-        except ValueError:
-            pass
-        except TypeError:
+            return self._coerce_impl(other)
+        except (ValueError,TypeError):
             pass
 
         if PY_TYPE_CHECK(other, BooleanPolynomial) and \
@@ -1956,6 +2019,8 @@ class BooleanMonomialMonoid(Monoid_class):
                 for i in other:
                     m *= var_mapping[i]
                 return m
+        elif PY_TYPE_CHECK(other, BooleSet):
+            return self(self._ring(other))
         elif PY_TYPE_CHECK(other, Element) and \
                 self.base_ring().has_coerce_map_from(other.parent()) and \
                         self.base_ring()(other).is_one():
@@ -1966,7 +2031,17 @@ class BooleanMonomialMonoid(Monoid_class):
         elif isinstance(other, (list, set)):
             result = self._one_element
             for elt in other:
-              result = result * elt
+                result = result * elt
+            return result
+        elif isinstance(other, tuple):
+            # S.K.: Tuples of integers have not been converted
+            # into monomials before. I think that would be very
+            # natural (namely the integers providing the index
+            # of generators). It is also useful for pickling.
+            result = self._one_element
+            gens = self.gens()
+            for ind in other:
+                result *= gens[ind]
             return result
 
         raise TypeError, "cannot convert to BooleanMonomialMonoid"
@@ -2002,6 +2077,7 @@ cdef class BooleanMonomial(MonoidElement):
             sage: BooleanMonomial(M)
             1
 
+
         .. note::
 
           See class documentation for parameters.
@@ -2013,6 +2089,22 @@ cdef class BooleanMonomial(MonoidElement):
 
     def __dealloc__(self):
         PBMonom_destruct(&self._pbmonom)
+
+    def __reduce__(self):
+        """
+        Pickling
+
+        TEST::
+
+            sage: from polybori import BooleanMonomialMonoid
+            sage: R.<z,x> = BooleanPolynomialRing(2)
+            sage: M = BooleanMonomialMonoid(R)
+            sage: t = M.0*M.1
+            sage: loads(dumps(t)) == t   # indirect doctest
+            True
+        """
+        gens = self._parent.gens()
+        return self._parent, (tuple([gens.index(x) for x in self.variables()]),)
 
     def __richcmp__(left, right, int op):
         """
@@ -2442,7 +2534,7 @@ cdef class BooleanMonomial(MonoidElement):
         elif right == 0:
             raise ZeroDivisionError
         elif not PY_TYPE_CHECK(right, BooleanMonomial):
-            other = left._parent._coerce_(right)
+            other = left._parent(right)
         else:
             other = <BooleanMonomial>right
 
@@ -4220,10 +4312,17 @@ cdef class PolynomialFactory:
         if PY_TYPE_CHECK(x, BooleanPolynomial):
             return x
         elif PY_TYPE_CHECK(x, BooleanMonomial):
-            return (<BooleanMonomial>x)._ring._coerce_(x)
+            return (<BooleanMonomial>x)._ring(x)
 #new_BP_from_PBMonom((<BooleanMonomial>x)._ring, (<BooleanMonomial>x)._pbmonom)
         else:
-            return get_cring()._coerce_(x)
+            #return get_cring()._coerce_(x)
+            # It is a wrong use of the notion of "coercion"
+            # to say that the boolean set is "coerced" into
+            # a boolean polynomial ring: Boolean sets have
+            # no parent, and thus there is no coercion map
+            # from that parent to the ring.
+            # So, it is just a conversion. [Simon King]
+            return get_cring()(x)
 
 cdef class MonomialFactory:
     """
@@ -4335,6 +4434,9 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
             sage: I = P.ideal(x0*x1*x2*x3 + x0*x1*x3 + x0*x1 + x0*x2 + x0)
             sage: I
             Ideal (x0*x1*x2*x3 + x0*x1*x3 + x0*x1 + x0*x2 + x0) of Boolean PolynomialRing in x0, x1, x2, x3
+            sage: loads(dumps(I)) == I
+            True
+
         """
         MPolynomialIdeal.__init__(self, ring, gens, coerce)
 

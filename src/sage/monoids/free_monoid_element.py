@@ -45,7 +45,7 @@ class FreeMonoidElement(MonoidElement):
         sage: x**(-1)
         Traceback (most recent call last):
         ...
-        TypeError: bad operand type for unary ~: 'FreeMonoidElement'
+        TypeError: bad operand type for unary ~: 'FreeMonoid_class_with_category.element_class'
     """
     def __init__(self, F, x, check=True):
         """
@@ -222,7 +222,7 @@ class FreeMonoidElement(MonoidElement):
 
         return result
 
-    def __mul__(self, y):
+    def _mul_(self, y):
         """
         Multiply 2 free monoid elements.
 
@@ -234,8 +234,6 @@ class FreeMonoidElement(MonoidElement):
             sage: x*y
             a0*a1*a4^4*a0*a1
         """
-        if not isinstance(y, FreeMonoidElement):
-            raise TypeError, "Argument y (= %s) is of wrong type."%y
         M = self.parent()
         z = M(1)
         x_elt = self._element_list

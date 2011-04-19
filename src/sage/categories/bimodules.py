@@ -12,7 +12,6 @@ Bimodules
 #******************************************************************************
 
 from sage.categories.category import Category
-from sage.categories.all import LeftModules, RightModules
 from sage.misc.cachefunc import cached_method
 
 #?class Bimodules(Category_over_base_rng, Category_over_base_rng):
@@ -113,6 +112,8 @@ class Bimodules(Category):
         """
         R = self.left_base_ring()
         S = self.right_base_ring()
+        from sage.categories.left_modules import LeftModules
+        from sage.categories.right_modules import RightModules
         return [LeftModules(R), RightModules(S)]
 
     class ParentMethods:

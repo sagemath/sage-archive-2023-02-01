@@ -226,13 +226,31 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
                         nrows,
                         ncols=None,
                         sparse=False):
+        """
+        TEST:
 
+        We test that in the real or complex double dense case,
+        conversion from the base ring is done by a call morphism.
+        Note that by trac ticket #9138, other algebras usually
+        get a conversion map by multiplication with the one element.
+        ::
+
+            sage: MS = MatrixSpace(RDF, 2, 2)
+            sage: MS.convert_map_from(RDF)
+            Call morphism:
+              From: Real Double Field
+              To:   Full MatrixSpace of 2 by 2 dense matrices over Real Double Field
+            sage: MS = MatrixSpace(CDF, 2, 2)
+            sage: MS.convert_map_from(CDF)
+            Call morphism:
+              From: Complex Double Field
+              To:   Full MatrixSpace of 2 by 2 dense matrices over Complex Double Field
+
+        """
         if ncols == None: ncols = nrows
         from sage.categories.all import Modules, Algebras
         parent_gens.ParentWithGens.__init__(self, base_ring) # category = Modules(base_ring)
         # Temporary until the inheritance glitches are fixed
-        category = Algebras(base_ring) if nrows == ncols else Modules(base_ring)
-        sage.structure.category_object.CategoryObject._init_category_(self, category)
 
         if not base_ring in Rings():
             raise TypeError("base_ring must be a ring")
@@ -255,6 +273,18 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         else:
             self.__ncols = ncols
         self.__matrix_class = self._get_matrix_class()
+        if nrows == ncols:
+            # For conversion from the base ring, multiplication with the one element is *slower*
+            # than creating a new diagonal matrix. Hence, we circumvent
+            # the conversion that is provided by Algebras(base_ring).parent_class.
+            from sage.categories.morphism import CallMorphism
+            from sage.categories.homset import Hom
+            self.register_coercion(CallMorphism(Hom(base_ring,self)))
+            category = Algebras(base_ring)
+        else:
+            category = Modules(base_ring)
+        sage.structure.parent.Parent.__init__(self, category=category)
+        #sage.structure.category_object.CategoryObject._init_category_(self, category)
 
     def __reduce__(self):
         """

@@ -25,7 +25,7 @@ cdef class MPolynomial(CommutativeRingElement):
         TESTS::
 
             sage: type(RR['x,y'])
-            <class 'sage.rings.polynomial.multi_polynomial_ring.MPolynomialRing_polydict_domain'>
+            <class 'sage.rings.polynomial.multi_polynomial_ring.MPolynomialRing_polydict_domain_with_category'>
             sage: type(RR['x, y'](0))
             <class 'sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict'>
 

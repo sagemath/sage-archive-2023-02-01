@@ -17,7 +17,7 @@ AUTHORS:
 #******************************************************************************
 
 from category_types import Category_over_base_ring
-from sage.categories.all import Hom, Rings, Modules
+from sage.categories.homset import Hom
 from sage.categories.cartesian_product import CartesianProductsCategory, cartesian_product
 from sage.categories.dual import DualObjectsCategory
 from sage.categories.tensor import TensorProductsCategory, tensor
@@ -74,6 +74,8 @@ class Algebras(Category_over_base_ring):
             [Category of rings, Category of modules over Integer Ring]
         """
         R = self.base_ring()
+        from sage.categories.rings import Rings
+        from sage.categories.modules import Modules
         return [Rings(), Modules(R)]
 
     class ParentMethods: # (Algebra):  # Eventually, the content of Algebra should be moved here
@@ -112,9 +114,60 @@ class Algebras(Category_over_base_ring):
                   To:   An example of an algebra with basis: the free algebra on the generators ('a', 'b', 'c') over Rational Field, None)
                 sage: A(1)          # indirect doctest
                 B[word: ]
+
             """
             # Should be a morphism of Algebras(self.base_ring()), but e.g. QQ is not in Algebras(QQ)
-            mor = SetMorphism(function = self.from_base_ring, parent = Hom(self.base_ring(), self, Rings()))
+            from sage.categories.rings import Rings
+            base_ring = self.base_ring()
+            if base_ring is self:
+                # There are rings that are their own base rings. No need to register that.
+                return
+            if self.is_coercion_cached(base_ring):
+                # We will not use any generic stuff, since a (presumably) better conversion
+                # has already been registered.
+                return
+            mor = None
+            H = Hom(base_ring, self, Rings())
+
+            # Idea: There is a generic method "from_base_ring", that just does multiplication with
+            # the multiplicative unit. However, the unit is constructed repeatedly, which is slow.
+            # Hence, if the unit is available *now*, then we store it.
+            #
+            # However, if there is a specialised from_base_ring method, then it should be used!
+            try:
+                has_custom_conversion = self.category().parent_class.from_base_ring.__func__ is not self.from_base_ring.__func__
+            except AttributeError:
+                # Sometimes from_base_ring is a lazy attribute
+                has_custom_conversion = True
+            if has_custom_conversion:
+                mor = SetMorphism(function = self.from_base_ring, parent = H)
+                try:
+                    self.register_coercion(mor)
+                except AssertionError:
+                    pass
+                return
+
+            try:
+                one = self.one()
+            except (NotImplementedError, AttributeError, TypeError):
+                # The unit is not available, yet. But there are cases
+                # in which it will be available later. Hence:
+                mor = SetMorphism(function = self.from_base_ring, parent = H)
+            # try sanity of one._lmul_
+            if mor is None:
+                try:
+                    if one._lmul_(base_ring.an_element()) is None:
+                        # There are cases in which lmul returns None, believe it or not.
+                        # One example: Hecke algebras.
+                        # In that case, the generic implementation of from_base_ring would
+                        # fail as well. Hence, unless it is overruled, we will not use it.
+                        #mor = SetMorphism(function = self.from_base_ring, parent = H)
+                        return
+                except (NotImplementedError, AttributeError, TypeError):
+                    # it is possible that an_element or lmul are not implemented.
+                    return
+                    #mor = SetMorphism(function = self.from_base_ring, parent = H)
+                mor = SetMorphism(function = one._lmul_, parent = H)
             try:
                 self.register_coercion(mor)
             except AssertionError:

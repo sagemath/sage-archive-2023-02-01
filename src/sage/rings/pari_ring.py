@@ -39,7 +39,7 @@ class Pari(ring_element.RingElement):
             sage: f
             x^3 + 1/2
             sage: type(f)
-            <class 'sage.rings.pari_ring.PariRing.element_class'>
+            <class 'sage.rings.pari_ring.PariRing_with_category.element_class'>
             sage: loads(f.dumps()) == f
             True
         """

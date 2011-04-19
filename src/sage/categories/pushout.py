@@ -1816,7 +1816,17 @@ class SubspaceFunctor(ConstructionFunctor):
         """
         c = cmp(type(self), type(other))
         if c == 0:
-            c = cmp(self.basis, other.basis)
+            # since comparing the basis involves constructing the pushout
+            # of the ambient module, we can not do:
+            #c = cmp(self.basis, other.basis)
+            # Instead, we only test whether there are coercions.
+            L = self.basis.universe()
+            R = other.basis.universe()
+            c = cmp(L,R)
+            if L.has_coerce_map_from(R):
+                c = cmp(tuple(self.basis),tuple(L(x) for x in other.basis))
+            elif R.has_coerce_map_from(L):
+                c = cmp(tuple(other.basis),tuple(R(x) for x in self.basis))
         return c
 
     def merge(self, other):
@@ -1868,7 +1878,11 @@ class SubspaceFunctor(ConstructionFunctor):
                 P = pushout(self.basis[0].parent().ambient_module(),other.basis[0].parent().ambient_module())
             except CoercionException:
                 return None
-            S = P.submodule(self.basis+other.basis).echelonized_basis()
+            try:
+                submodule = P.submodule
+            except AttributeError:
+                return None
+            S = submodule(self.basis+other.basis).echelonized_basis()
             return SubspaceFunctor(S)
         else:
             return None
@@ -2239,15 +2253,16 @@ class QuotientFunctor(ConstructionFunctor):
             sage: F(QQ['x','y'])     # indirect doctest
             Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + 2, y^2 + 3*x)
 
-        Note that the ``quo()`` method of a field returns the integer zero.
-        The quotient construction functor, when applied to a field, returns
-        the trivial ring::
+        Note that the ``quo()`` method of a field used to return the
+        integer zero. That strange behaviour was removed in trac
+        ticket #9138. It now returns a trivial quotient ring when
+        applied to a field::
 
             sage: F = ZZ.quo([5]*ZZ).construction()[0]
             sage: F(QQ) is Integers(1)
             True
-            sage: QQ.quo(5) is int(0)
-            True
+            sage: QQ.quo(5)
+            Quotient of Rational Field by the ideal (1)
 
         """
         I = self.I

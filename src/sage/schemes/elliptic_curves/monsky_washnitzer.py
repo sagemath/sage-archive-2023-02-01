@@ -182,7 +182,13 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
                   "2 and 3 must be invertible in the coefficient ring (=%s) of Q" % \
                   base_ring
 
-        CommutativeAlgebra.__init__(self, base_ring)
+        # CommutativeAlgebra.__init__ tries to establish a coercion
+        # from the base ring, by trac ticket #9138. The corresponding
+        # hom set is cached.  In order to use self as cache key, its
+        # string representation is used. In otder to get the string
+        # representation, we need to know the attributes _a and
+        # _b. Hence, in #9138, we have to move CommutativeAlgebra.__init__
+        # further down:
         self._a = Q[1]
         self._b = Q[0]
         if laurent_series:
@@ -190,6 +196,7 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
         else:
             self._poly_ring = PolynomialRing(base_ring, 'T')    # R[T]
         self._poly_generator = self._poly_ring.gen(0)    # the generator T
+        CommutativeAlgebra.__init__(self, base_ring)
 
         # Precompute a matrix that is used in the Toom-Cook multiplication.
         # This is where we need 2 and 3 invertible.
@@ -1818,7 +1825,12 @@ class SpecialHyperellipticQuotientRing_class(CommutativeAlgebra):
         if R is None:
             R = Q.base_ring()
 
-        CommutativeAlgebra.__init__(self, R)
+        # Trac ticket #9138: CommutativeAlgebra.__init__ must not be
+        # done so early.  It tries to register a coercion, but that
+        # requires the hash bein available.  But the hash, in its
+        # default implementation, relies on the string representation,
+        # which is not available at this point.
+        #CommutativeAlgebra.__init__(self, R)  # moved to below.
 
         x = PolynomialRing(R, 'xx').gen(0)
         if is_EllipticCurve(Q):
@@ -1855,6 +1867,11 @@ class SpecialHyperellipticQuotientRing_class(CommutativeAlgebra):
         self._series_ring = (LaurentSeriesRing if invert_y else PolynomialRing)(R, 'y')
         self._series_ring_y = self._series_ring.gen(0)
         self._series_ring_0 = self._series_ring(0)
+
+        # Trac ticket #9138: Initialise the commutative algebra here!
+        # Below, we do self(self._poly_ring.gen(0)), which requires
+        # the initialisation being finished.
+        CommutativeAlgebra.__init__(self, R)
 
         self._poly_ring = PolynomialRing(self._series_ring, 'x')
 

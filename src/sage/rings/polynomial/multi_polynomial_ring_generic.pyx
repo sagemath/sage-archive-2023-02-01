@@ -14,7 +14,7 @@ from sage.rings.polynomial.polydict import PolyDict
 from sage.misc.latex import latex_variable_name
 import multi_polynomial_element
 import polynomial_ring
-
+from sage.categories.commutative_rings import CommutativeRings
 
 def is_MPolynomialRing(x):
     return bool(PY_TYPE_CHECK(x, MPolynomialRing_generic))
@@ -28,14 +28,16 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
             sage: R.<x,y> = ZZ['x,y']; R
             Multivariate Polynomial Ring in x, y over Integer Ring
-            sage: class CR(Ring):
-            ...       def is_commutative(self):
-            ...           return True
+            sage: class CR(CommutativeRing):
+            ...       def __init__(self):
+            ...           CommutativeRing.__init__(self,self)
             ...       def __call__(self,x):
             ...           return None
-            sage: cr = CR(None)
+            sage: cr = CR()
+            sage: cr.is_commutative()
+            True
             sage: cr['x,y']
-            Multivariate Polynomial Ring in x, y over ...
+            Multivariate Polynomial Ring in x, y over <class '....CR_with_category'>
 
         TESTS:
 
@@ -48,18 +50,22 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             sage: A1(a) in A2
             True
         """
-        order = TermOrder(order,n)
-
-        if not base_ring.is_commutative():
-            raise TypeError, "Base ring must be a commutative ring."
+        if not (base_ring in CommutativeRings() or isinstance(base_ring,sage.rings.ring.CommutativeRing)):
+            raise TypeError, "The base ring %s is not a commutative ring"%base_ring
+        from sage.categories.commutative_algebras import CommutativeAlgebras
         n = int(n)
         if n < 0:
             raise ValueError, "Multivariate Polynomial Rings must " + \
                   "have more than 0 variables."
+        order = TermOrder(order,n)
         self.__ngens = n
         self.__term_order = order
         self._has_singular = False #cannot convert to Singular by default
-        ParentWithGens.__init__(self, base_ring, names)
+        # Ring.__init__ already does assign the names.
+        # It would be a mistake to call ParentWithGens.__init__
+        # as well, assigning the names twice.
+        #ParentWithGens.__init__(self, base_ring, names)
+        sage.rings.ring.Ring.__init__(self, base_ring, names, category=CommutativeAlgebras(base_ring))
 
     def is_integral_domain(self, proof = True):
         """

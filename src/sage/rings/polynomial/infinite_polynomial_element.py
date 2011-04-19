@@ -539,6 +539,28 @@ class InfinitePolynomial_sparse(RingElement):
             R = self._p.base_ring()
         return InfinitePolynomial_sparse(self.parent(),R(self._p) * R(x._p))
 
+    def _rmul_(self, left):
+        """
+        TEST::
+
+            sage: R.<alpha,beta> = InfinitePolynomialRing(QQ, implementation='sparse')
+            sage: R.from_base_ring(4)   # indirect doctest
+            4
+
+        """
+        return InfinitePolynomial_sparse(self.parent(),left*self._p)
+
+    def _lmul_(self, right):
+        """
+        TEST::
+
+            sage: R.<alpha,beta> = InfinitePolynomialRing(QQ, implementation='sparse')
+            sage: alpha[3]*4   # indirect doctest
+            4*alpha_3
+
+        """
+        return InfinitePolynomial_sparse(self.parent(),self._p*right)
+
     def _div_(self, x):
         """
         Division of Infinite Polynomials. Note that the divisor must
@@ -860,7 +882,7 @@ class InfinitePolynomial_sparse(RingElement):
             sage: Z
             Infinite polynomial ring in a over Multivariate Polynomial Ring in y, z over Infinite polynomial ring in x over Integer Ring
             sage: type(Z._P)
-            <class 'sage.rings.polynomial.multi_polynomial_ring.MPolynomialRing_polydict'>
+            <class 'sage.rings.polynomial.multi_polynomial_ring.MPolynomialRing_polydict_with_category'>
             sage: p = a[12]^3*a[2]^7*a[4] + a[4]*a[2]
             sage: sorted(p.footprint().items())
             [(2, [7]), (4, [1]), (12, [3])]
@@ -1332,6 +1354,28 @@ class InfinitePolynomial_dense(InfinitePolynomial_sparse):
         self._p = P._P(self._p)
         x._p = P._P(x._p)
         return InfinitePolynomial_dense(self.parent(),self._p * x._p)
+
+    def _rmul_(self, left):
+        """
+        TEST::
+
+            sage: R.<alpha,beta> = InfinitePolynomialRing(QQ)
+            sage: R.from_base_ring(4)   # indirect doctest
+            4
+
+        """
+        return InfinitePolynomial_dense(self.parent(),left*self._p)
+
+    def _lmul_(self, right):
+        """
+        TEST::
+
+            sage: R.<alpha,beta> = InfinitePolynomialRing(QQ)
+            sage: alpha[3]*4   # indirect doctest
+            4*alpha_3
+
+        """
+        return InfinitePolynomial_dense(self.parent(),self._p*right)
 
     def _sub_(self, x):
         """

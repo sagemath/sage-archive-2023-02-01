@@ -8,7 +8,6 @@ Right modules
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.categories.all import CommutativeAdditiveGroups
 from category_types import Category_over_base_ring
 from sage.misc.cachefunc import cached_method
 
@@ -39,6 +38,7 @@ class RightModules(Category_over_base_ring):
             sage: RightModules(QQ).super_categories()
             [Category of commutative additive groups]
         """
+        from sage.categories.commutative_additive_groups import CommutativeAdditiveGroups
         return [CommutativeAdditiveGroups()]
 
     class ParentMethods:

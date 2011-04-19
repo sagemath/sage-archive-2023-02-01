@@ -13,6 +13,7 @@ Commutative algebras
 from sage.misc.cachefunc import cached_method
 from category_types import Category_over_base_ring
 from algebras import Algebras
+from commutative_rings import CommutativeRings
 
 class CommutativeAlgebras(Category_over_base_ring):
     """
@@ -41,7 +42,7 @@ class CommutativeAlgebras(Category_over_base_ring):
 
             sage: QQ['a'] in CommutativeAlgebras(QQ)
             True
-            sage: QQ['a,b'] in CommutativeAlgebras(QQ) # todo: not implemented
+            sage: QQ['a,b'] in CommutativeAlgebras(QQ)
             True
             sage: FreeAlgebra(QQ,2,'a,b') in CommutativeAlgebras(QQ)
             False
@@ -58,7 +59,7 @@ class CommutativeAlgebras(Category_over_base_ring):
         EXAMPLES::
 
             sage: CommutativeAlgebras(QQ).super_categories()
-            [Category of algebras over Rational Field]
+            [Category of algebras over Rational Field, Category of commutative rings]
         """
         R = self.base_ring()
-        return [Algebras(R)]
+        return [Algebras(R), CommutativeRings()]

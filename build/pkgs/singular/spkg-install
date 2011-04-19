@@ -49,27 +49,29 @@ if [ "x$SAGE_DEBUG" = "xyes" ]; then
   CFLAGS="$CFLAGS -O0 -g"
 else
   ENABLE_DEBUG="--disable-debug"
-  # singular-3-0-4-2-20080405 miscompiled with RHEL 5/Itanium
-  # when we use "-O3" and the default compiler, so let's use
-  # "-O2" for now.
-  # singular-3-1-0-2-20090512 test failure every time
-  # on *iras* (SUSE Itanium on skynet) when we use "-O2",
-  # so let's use "O0" for now (see trac #6360 and #6240)
+
   if [ `uname -m` = "ia64" ]; then
+    # singular-3-1-0-2-20090512 test failure every time
+    # on *iras* (SUSE Itanium on skynet) when we use "-O2",
+    # so let's use "-O0" for now (see trac #6360 and #6240)
     CXXFLAGS="$CXXFLAGS -O0 -g"
     CFLAGS="$CFLAGS -O0 -g"
   else
-    CXXFLAGS="$CXXFLAGS -O3 -g"
-    CFLAGS="$CFLAGS -O3 -g"
+    # By default, parts of Singular are compiled with -O2 and parts
+    # with -O3.  If we do set any CFLAGS, this always overrides the
+    # default CFLAGS set by upstream.  In order to be compatible, we
+    # set the optimization to -O2.
+    CXXFLAGS="$CXXFLAGS -O2 -g"
+    CFLAGS="$CFLAGS -O2 -g"
   fi
 fi
 
 if [ "x$SAGE64" = xyes ]; then
     echo "Building a 64-bit version of Singular"
-    CFLAGS="-O2 -g -m64 "
-    CXXFLAGS="-O2 -g -m64"
-    CPPFLAGS="-O2 -g -m64"
-    LDFLAGS="-m64 "; export LDFLAGS
+    CFLAGS="$CFLAGS -m64 "
+    CXXFLAGS="$CXXFLAGS -m64"
+    CPPFLAGS="$CPPFLAGS -m64"
+    LDFLAGS="$LDFLAGS -m64 "; export LDFLAGS
     if [ "x`uname`" = xSunOS ] ; then
       CC="$CC -m64"
       export CC
@@ -143,20 +145,20 @@ config()
                 --with-apint=gmp \
                 --with-gmp="$SAGE_LOCAL" \
                 --with-ntl="$SAGE_LOCAL" \
-	        --with-NTL \
-	        --without-MP \
+                --with-NTL \
+                --without-MP \
                 --without-lex \
                 --without-bison \
                 --without-Boost \
                 --enable-gmp="$SAGE_LOCAL" \
                 --enable-Singular \
-		--enable-factory \
-		--enable-libfac \
+                --enable-factory \
+                --enable-libfac \
                 --enable-IntegerProgramming \
                 --disable-doc  \
                 $DYNAMIC_KERNEL \
                 --with-malloc=system \
-		$ENABLE_DEBUG
+                $ENABLE_DEBUG
 
     if [ $? -ne 0 ]; then
         echo "Unable to configure Singular."
@@ -278,9 +280,9 @@ build_factory()
                 --with-apint=gmp \
                 --with-gmp="$SAGE_LOCAL" \
                 --with-ntl="$SAGE_LOCAL" \
-	        --with-NTL \
+                --with-NTL \
                 --enable-gmp="$SAGE_LOCAL" \
-		"$ENABLE_DEBUG"
+                "$ENABLE_DEBUG"
 
     if [ $? -ne 0 ]; then
         echo "Error configuring the standalone factory."
@@ -323,12 +325,12 @@ build_libfac()
                 --with-apint=gmp \
                 --with-gmp="$SAGE_LOCAL" \
                 --with-ntl="$SAGE_LOCAL" \
-	        --with-NTL \
-		--enable-factory \
-		--enable-libfac \
+                --with-NTL \
+                --enable-factory \
+                --enable-libfac \
                 --enable-omalloc \
                 --enable-gmp="$SAGE_LOCAL" \
-		"$ENABLE_DEBUG"
+                "$ENABLE_DEBUG"
 
     if [ $? -ne 0 ]; then
         echo "Error configuring libfac."

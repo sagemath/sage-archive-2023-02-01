@@ -42,6 +42,13 @@ MPIR, NTL, Termcap, Readline and MPFR
 
 == ChangeLog ==
 
+=== singular-3-1-1-4.p8 (Jeroen Demeyer, Alexander Dreyer, David Kirkby, 19th April 2011) ===
+*  #11084. Drop optimisation level to -O2 since that is what upstream
+   mostly uses.
+*  When building with SAGE64 set, *append* -m64 to the various flags
+   instead of overriding.
+*  Merged changes from Sage's Trac #11084 into the package from #9497
+
 === singular-3-1-1-4.p6 (John Palmieri, 26th March 2011) ===
 *  change "$RM" to "rm" in spkg-install
 

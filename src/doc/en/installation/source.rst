@@ -54,7 +54,7 @@ a Fortran compiler on OS X):
        m4
        perl       (Version 5.8.0 or later)
        ranlib
-       tar        (GNU tar, version 1.17 or later)
+       tar        (For Solaris or OpenSolaris, GNU tar, version 1.17 or later)
        ssh-keygen (Needed to run the notebook in secure mode)
        latex      (Highly recommended, though not strictly required)
 
@@ -125,7 +125,9 @@ installed and it must be the first
 at ``/usr/sfw/bin/gmake`` but you will need to copy it somewhere else
 and rename it to ``make``. The same is true for GNU ``tar`` - there is a version
 called ``gtar`` in ``/usr/sfw/bin`` but it will need to be copied somewhere
-else and renamed to ``tar``).
+else and renamed to ``tar``). If you attempt to build Sage on AIX or HP-UX,
+you will need to install both GNU tar and GNU make. On OS X, the BSD tar
+suppied will build Sage, so there is no need to install GNU tar.
 
 For Solaris, it is recommended you create a directory ``$HOME/bins-for-sage`` and
 put the GNU versions of ``tar`` and ``make`` in that directory. Then ensure that

@@ -1,16 +1,19 @@
 #!/usr/bin/env bash
 
-if [ "$SAGE_LOCAL" = "" ]; then
-   echo "SAGE_LOCAL undefined ... exiting";
+if [ "x$SAGE_LOCAL" = "x" ]; then
+   echo "SAGE_LOCAL undefined ... exiting"
    echo "Maybe run 'sage -sh'?"
    exit 1
 fi
 
-# copy patched file
-cp patches/__init__.py src/Bio/Wise/
-
 cd src
 python setup.py build
+
+if [ $? -ne 0 ]; then
+   echo "Error building biopython"
+   exit 1
+fi
+
 python setup.py install
 
 if [ $? -ne 0 ]; then

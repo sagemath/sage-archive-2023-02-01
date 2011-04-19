@@ -47,10 +47,13 @@ Your Sage Session
 The session is the sequence of input and output
 from when you start Sage until you quit. Sage logs all Sage input,
 via IPython. In fact, if you're using the interactive shell (not the
-notebook interface), then at any point you may type ``%hist`` to
+notebook interface), then at any point you may type ``%history`` (or ``%hist``) to
 get a listing of all input lines typed so far. You can type ``?`` at
 the Sage prompt to find out more about IPython, e.g.,
-"IPython offers numbered prompts ... with input and output caching. All input is saved and can be retrieved as variables (besides the usual arrow key recall). The following GLOBAL variables always exist (so don't overwrite them!)":
+"IPython offers numbered prompts ... with input and output
+caching. All input is saved and can be retrieved as variables (besides
+the usual arrow key recall). The following GLOBAL variables always
+exist (so don't overwrite them!)":
 
 ::
 
@@ -361,6 +364,77 @@ on the machine ``sage.math.washington.edu``). Because of the pexpect
 interface overhead, it is perhaps unfair to compare these to Sage,
 which is the fastest.
 
+Other IPython tricks
+====================
+
+As noted above, Sage uses IPython as its front end, and so you can use
+any of IPython's commands and features.  You can read the `full
+IPython documentation <http://ipython.scipy.org/moin/Documentation>`_.
+Meanwhile, here are some fun tricks -- these are called "Magic
+commands" in IPython:
+
+- You can use ``%bg`` to run a command in the background, and then use
+  ``jobs`` to access the results, as follows.  (The comments ``not
+  tested`` are here because the ``%bg`` syntax doesn't work well with
+  Sage's automatic testing facility.  If you type this in yourself, it
+  should work as written.  This is of course most useful with commands
+  which take a while to complete.)
+
+  ::
+
+    sage: def quick(m): return 2*m
+    sage: %bg quick(20)  # not tested
+    Starting job # 0 in a separate thread.
+    sage: jobs.status()  # not tested
+    Completed jobs:
+    0 : quick(20)
+    sage: jobs[0].result  # the actual answer, not tested
+    40
+
+  Note that jobs run in the background don't use the Sage preparser --
+  see :ref:`section-mathannoy` for more information.  One
+  (perhaps awkward) way to get around this would be to run ::
+
+    sage: %bg eval(preparse('quick(20)')) # not tested
+
+  It is safer and easier, though, to just use ``%bg`` on commands
+  which don't require the preparser.
+
+- You can use ``%edit`` (or ``%ed`` or ``ed``) to open an editor, if
+  you want to type in some complex code.  Before you start Sage, make
+  sure that the :envvar:`EDITOR` environment variable is set to your
+  favorite editor (by putting ``export EDITOR=/usr/bin/emacs`` or
+  ``export EDITOR=/usr/bin/vim`` or something similar in the
+  appropriate place, like a ``.profile`` file).  From the Sage prompt,
+  executing ``%edit`` will open up the named editor.  Then within the
+  editor you can define a function::
+
+    def some_function(n):
+        return n**2 + 3*n + 2
+
+  Save and quit from the editor.  For the rest of your Sage session,
+  you can then use ``some_function``.  If you want to modify it, type
+  ``%edit some_function`` from the Sage prompt.
+
+- If you have a computation and you want to modify its output for
+  another use, perform the computation and type ``%rep``: this will
+  place the output from the previous command at the Sage prompt, ready
+  for you to edit it. ::
+
+    sage: f(x) = cos(x)
+    sage: f(x).derivative(x)
+    -sin(x)
+
+  At this point, if you type ``%rep`` at the Sage prompt, you will get
+  a new Sage prompt, followed by ``-sin(x)``, with the cursor at the
+  end of the line.
+
+For more, type ``%quickref`` to get a quick reference guide to
+IPython.  As of this writing (April 2011), Sage uses version 0.9.1 of
+IPython, and the `documentation for its magic commands
+<http://ipython.scipy.org/doc/rel-0.9.1/html/interactive/reference.html#magic-commands>`_
+is available online.
+
 Errors and Exceptions
 =====================
 
@@ -438,7 +512,16 @@ Type Ctrl-D or ``quit`` to return to Sage.
 Reverse Search and Tab Completion
 =================================
 
-First create the three dimensional vector space
+Reverse search:
+Type the beginning of a command, then ``Ctrl-p`` (or just hit the up
+arrow key) to go back to each line you have entered that begins in
+that way. This works even if you completely exit Sage and restart
+later. You can also do a reverse search through the history using
+``Ctrl-r``. All these features use the ``readline`` package, which is
+available on most flavors of Linux.
+
+To illustrate tab completion,
+first create the three dimensional vector space
 :math:`V=\QQ^3` as follows:
 
 ::
@@ -453,14 +536,7 @@ You can also use the following more concise notation:
 
     sage: V = QQ^3
 
-Type the beginning of a command, then ``Ctrl-p`` (or just hit the up
-arrow key) to go back to each line you have entered that begins in
-that way. This works even if you completely exit Sage and restart
-later. You can also do a reverse search through the history using
-``Ctrl-r``. All these features use the ``readline`` package, which is
-available on most flavors of Linux.
-
-It is easy to list all member functions for :math:`V` using tab
+Then it is easy to list all member functions for :math:`V` using tab
 completion. Just type ``V.``, then type the ``[tab key]`` key on your
 keyboard:
 

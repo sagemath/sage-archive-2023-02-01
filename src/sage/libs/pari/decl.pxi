@@ -1569,25 +1569,24 @@ cdef extern from 'pari/pari.h':
 include 'declinl.pxi'
 
 
+cdef extern from *:   # paristio.h
+    struct PariOUT:
+        void (*putch)(char)
+        void (*puts)(char*)
+        void (*flush)()
+    extern PariOUT* pariOut
+
+
 cdef extern from 'pari/paripriv.h':
-    struct __x:
+    struct pariout_t:
         char format  # e,f,g
         long fieldw  # 0 (ignored) or field width
         long sigd    # -1 (all) or number of significant digits printed */
         int sp       # 0 = suppress whitespace from output */
         int prettyp  # output style: raw, prettyprint, etc */
         int TeXstyle
-    ctypedef __x pariout_t
 
-    struct __z:
+    struct gp_data:
         jmp_buf env
         pariout_t *fmt
-    ctypedef __z gp_data
     extern gp_data* GP_DATA
-
-
-cdef extern:   # paristio.h
-    ctypedef struct PariOUT:
-        void (*putch)(char)
-        void (*puts)(char*)
-        void (*flush)()

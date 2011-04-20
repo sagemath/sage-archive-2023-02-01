@@ -44,26 +44,20 @@ if [ "$UNAME" = "Darwin" ]; then
 fi
 
 if [ "x$SAGE_DEBUG" = "xyes" ]; then
-  ENABLE_DEBUG="--enable-debug"
-  CXXFLAGS="$CXXFLAGS -O0 -g"
-  CFLAGS="$CFLAGS -O0 -g"
-else
-  ENABLE_DEBUG="--disable-debug"
-
-  if [ `uname -m` = "ia64" ]; then
-    # singular-3-1-0-2-20090512 test failure every time
-    # on *iras* (SUSE Itanium on skynet) when we use "-O2",
-    # so let's use "-O0" for now (see trac #6360 and #6240)
+    ENABLE_DEBUG="--enable-debug"
     CXXFLAGS="$CXXFLAGS -O0 -g"
     CFLAGS="$CFLAGS -O0 -g"
-  else
+else
+    ENABLE_DEBUG="--disable-debug"
+
     # By default, parts of Singular are compiled with -O2 and parts
     # with -O3.  If we do set any CFLAGS, this always overrides the
     # default CFLAGS set by upstream.  In order to be compatible, we
-    # set the optimization to -O2.
+    # set the optimization to -O2.  Increasing the optimization level
+    # to -O3 has caused various problems in the past either with
+    # specific compilers or on specific platforms.
     CXXFLAGS="$CXXFLAGS -O2 -g"
     CFLAGS="$CFLAGS -O2 -g"
-  fi
 fi
 
 if [ "x$SAGE64" = xyes ]; then

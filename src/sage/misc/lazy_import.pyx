@@ -303,6 +303,44 @@ cdef class LazyImport(object):
         """
         return len(self._get_object())
 
+    def __get__(self, instance, owner):
+        """
+        EXAMPLES:
+
+        Here we show how to take a function in a module, and lazy
+        import it as a method of a class. For the sake of this
+        example, we add manually a function in sage.all::
+
+            sage: def my_method(self): return self
+            sage: sage.all.my_method = my_method
+
+        Now we lazy import it as a method of a new class ``Foo``::
+
+            sage: from sage.misc.lazy_import import LazyImport
+            sage: class Foo:
+            ...       my_method = LazyImport('sage.all', 'my_method')
+
+        Now we can use it as a usual method::
+
+            sage: Foo().my_method()
+            <__main__.Foo instance at ...>
+            sage: Foo.my_method
+            <unbound method Foo.my_method>
+            sage: Foo().my_method
+            <bound method Foo.my_method of <__main__.Foo instance at ...>>
+
+        Currently, ``my_method`` remains a lazy imported object in the
+        class dictionary, even when it has already been used, which is
+        not as efficient as it could be (but see #11003)::
+
+            sage: type(Foo.__dict__["my_method"])
+            <type 'sage.misc.lazy_import.LazyImport'>
+        """
+        obj = self._get_object()
+        if hasattr(obj, "__get__"):
+            return obj.__get__(instance, owner)
+        return obj
+
     def __getitem__(self, key):
         """
         TESTS::

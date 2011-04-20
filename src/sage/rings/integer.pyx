@@ -4285,7 +4285,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         EXAMPLES::
 
-            sage: K = NumberField(x**2 - 2, 'beta')
+            sage: K = NumberField(x^2 - 2, 'beta')
             sage: n = 4
             sage: n.is_norm(K)
             True
@@ -4294,7 +4294,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 7.is_norm(QQ)
             True
             sage: n.is_norm(K, element=True)
-            (True, 4*beta + 6)
+            (True, -4*beta + 6)
             sage: n.is_norm(K, element=True)[1].norm()
             4
             sage: n = 5
@@ -4317,7 +4317,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 3._bnfisnorm(QuadraticField(-1, 'i'))
             (1, 3)
             sage: 7._bnfisnorm(CyclotomicField(7))
-            (-zeta7^2 + zeta7, 1)
+            (-zeta7 + 1, 1)            # 64-bit
+            (-zeta7^5 + zeta7^4, 1)    # 32-bit
         """
         from sage.rings.rational_field import QQ
         return QQ(self)._bnfisnorm(K, certify=certify, extra_primes=extra_primes)

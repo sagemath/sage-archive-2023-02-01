@@ -1745,7 +1745,7 @@ cdef class PowerSeries(AlgebraElement):
             sage: pari(O(x^1))
             O(x)
             sage: pari(O(x^0))
-            O(1)
+            O(x^0)
         """
         n = self.prec()
         if n is infinity:

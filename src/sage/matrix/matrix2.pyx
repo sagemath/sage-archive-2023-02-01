@@ -1,13 +1,16 @@
-
-"""
+r"""
 Base class for matrices, part 2
+
+For design documentation see matrix/docs.py.
 
 AUTHORS:
 
-    - William Stein: initial version
-    - Miguel Marco (2010-06-19): modified eigenvalues and eigenvectors functions to
-      allow the option extend=False
-    - Rob Beezer (2011-02-05): refactored all of the matrix kernel routines
+- William Stein: initial version
+
+- Miguel Marco (2010-06-19): modified eigenvalues and eigenvectors functions to
+  allow the option extend=False
+
+- Rob Beezer (2011-02-05): refactored all of the matrix kernel routines
 
 TESTS::
 
@@ -15,16 +18,14 @@ TESTS::
     sage: TestSuite(m).run()
 """
 
-# For design documentation see matrix/docs.py.
-
-################################################################################
+#*****************************************************************************
 #       Copyright (C) 2005, 2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL).
-#  The full text of the GPL is available at:
-#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-################################################################################
+#*****************************************************************************
 
 include "../ext/stdsage.pxi"
 include "../ext/python.pxi"
@@ -10155,7 +10156,7 @@ cdef class Matrix(matrix1.Matrix):
             ...     -2*a^2 + 4*a - 2, -2*a^2 + 1, 2*a, a^2 - 6, 3*a^2 - a ])
             sage: r,s,p = m._echelon_form_PID()
             sage: s[2]
-            (0, 0, 3*a^2 + 18*a - 34, 68*a^2 - 134*a + 53, 111*a^2 - 275*a + 90)
+            (0, 0, -3*a^2 - 18*a + 34, -68*a^2 + 134*a - 53, -111*a^2 + 275*a - 90)
             sage: r * m == s and r.det() == 1
             True
 

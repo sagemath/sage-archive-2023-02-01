@@ -2244,8 +2244,8 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: P = E(26,-120)
             sage: E.discriminant().support()
             [Fractional ideal (i + 1),
-            Fractional ideal (i + 2),
-            Fractional ideal (-i + 2),
+            Fractional ideal (-i - 2),
+            Fractional ideal (i - 2),
             Fractional ideal (3)]
             sage: [E.tamagawa_exponent(p) for p in E.discriminant().support()]
             [1, 4, 4, 4]

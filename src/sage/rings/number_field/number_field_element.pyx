@@ -1036,7 +1036,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: Q.<X> = K[]
             sage: L.<b> = NumberField(X^4 + a)
             sage: t = (-a).is_norm(L, element=True); t
-            (True, b^3 + 1)
+            (True, -b^3 + 1)
             sage: t[1].norm(K)
             -a
 
@@ -1137,11 +1137,11 @@ cdef class NumberFieldElement(FieldElement):
             sage: Q.<X> = K[]
             sage: L.<b> = NumberField(X^4 + a)
             sage: t = (-a)._rnfisnorm(L); t
-            (b^3 + 1, 1)
+            (-b^3 + 1, 1)
             sage: t[0].norm(K)
             -a
             sage: t = K(3)._rnfisnorm(L); t
-            ((-a^2 - 1)*b^3 + b^2 + a*b + a^2 + 1, -3*a)
+            ((a^2 + 1)*b^3 + b^2 - a*b + a^2 + 1, -3*a)
             sage: t[0].norm(K)*t[1]
             3
 
@@ -1149,10 +1149,12 @@ cdef class NumberFieldElement(FieldElement):
 
             sage: K.<a, b> = NumberField([x^2 - 2, x^2 - 3])
             sage: L.<c> = K.extension(x^3 + 2)
-            sage: t = (2*a + b)._rnfisnorm(L); t[1]
-            (b - 2)*a + 2*b - 3
-            sage: t[0].norm(K)*t[1]
-            2*a + b
+            sage: s = 2*a + b
+            sage: t = s._rnfisnorm(L)
+            sage: t[1] == 1 # True iff s is a norm
+            False
+            sage: s == t[0].norm(K)*t[1]
+            True
 
         AUTHORS:
 
@@ -3032,7 +3034,7 @@ cdef class NumberFieldElement(FieldElement):
 
             sage: P5s = F(5).support()
             sage: P5s
-            [Fractional ideal (t^2 + 1), Fractional ideal (t^2 - 2*t - 1)]
+            [Fractional ideal (-t^2 - 1), Fractional ideal (t^2 - 2*t - 1)]
             sage: all(5 in P5 for P5 in P5s)
             True
             sage: all(P5.is_prime() for P5 in P5s)

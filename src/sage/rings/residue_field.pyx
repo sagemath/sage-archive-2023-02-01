@@ -18,11 +18,11 @@ monogenic (i.e., 2 is an essential discriminant divisor)::
 
     sage: K.<a> = NumberField(x^3 + x^2 - 2*x + 8)
     sage: F = K.factor(2); F
-    (Fractional ideal (1/2*a^2 - 1/2*a + 1)) * (Fractional ideal (a^2 - 2*a + 3)) * (Fractional ideal (3/2*a^2 - 5/2*a + 4))
+    (Fractional ideal (-1/2*a^2 + 1/2*a - 1)) * (Fractional ideal (-a^2 + 2*a - 3)) * (Fractional ideal (3/2*a^2 - 5/2*a + 4))
     sage: F[0][0].residue_field()
-    Residue field of Fractional ideal (1/2*a^2 - 1/2*a + 1)
+    Residue field of Fractional ideal (-1/2*a^2 + 1/2*a - 1)
     sage: F[1][0].residue_field()
-    Residue field of Fractional ideal (a^2 - 2*a + 3)
+    Residue field of Fractional ideal (-a^2 + 2*a - 3)
     sage: F[2][0].residue_field()
     Residue field of Fractional ideal (3/2*a^2 - 5/2*a + 4)
 
@@ -235,9 +235,9 @@ class ResidueFieldFactory(UniqueFactory):
     the index of ZZ[a] in the maximal order for all a::
 
         sage: K.<a> = NumberField(x^3 + x^2 - 2*x + 8); P = K.ideal(2).factor()[0][0]; P
-        Fractional ideal (1/2*a^2 - 1/2*a + 1)
+        Fractional ideal (-1/2*a^2 + 1/2*a - 1)
         sage: F = K.residue_field(P); F
-        Residue field of Fractional ideal (1/2*a^2 - 1/2*a + 1)
+        Residue field of Fractional ideal (-1/2*a^2 + 1/2*a - 1)
         sage: F(a)
         0
         sage: B = K.maximal_order().basis(); B
@@ -247,7 +247,7 @@ class ResidueFieldFactory(UniqueFactory):
         sage: F(B[2])
         0
         sage: F
-        Residue field of Fractional ideal (1/2*a^2 - 1/2*a + 1)
+        Residue field of Fractional ideal (-1/2*a^2 + 1/2*a - 1)
         sage: F.degree()
         1
 
@@ -676,7 +676,7 @@ class ResidueField_generic(Field):
 
             sage: K.<a> = NumberField(x^3-11)
             sage: F = K.ideal(37).factor(); F
-            (Fractional ideal (37, a + 12)) * (Fractional ideal (2*a - 5)) * (Fractional ideal (37, a + 9))
+            (Fractional ideal (37, a + 12)) * (Fractional ideal (-2*a + 5)) * (Fractional ideal (37, a + 9))
             sage: k = K.residue_field(F[0][0])
             sage: l = K.residue_field(F[1][0])
             sage: k == l
@@ -752,7 +752,7 @@ cdef class ReductionMap(Map):
             sage: F.reduction_map()
             Partially defined reduction map:
               From: Number Field in a with defining polynomial x^3 + x^2 - 2*x + 8
-              To:   Residue field of Fractional ideal (1/2*a^2 - 1/2*a + 1)
+              To:   Residue field of Fractional ideal (-1/2*a^2 + 1/2*a - 1)
 
             sage: K.<theta_5> = CyclotomicField(5)
             sage: F = K.factor(7)[0][0].residue_field()
@@ -818,10 +818,10 @@ cdef class ReductionMap(Map):
 
             sage: K.<i> = NumberField(x^2 + 1)
             sage: P1, P2 = [g[0] for g in K.factor(5)]; (P1,P2)
-            (Fractional ideal (i + 2), Fractional ideal (-i + 2))
+            (Fractional ideal (-i - 2), Fractional ideal (i - 2))
             sage: a = 1/(1+2*i)
             sage: F1, F2 = [g.residue_field() for g in [P1,P2]]; (F1,F2)
-            (Residue field of Fractional ideal (i + 2), Residue field of Fractional ideal (-i + 2))
+            (Residue field of Fractional ideal (-i - 2), Residue field of Fractional ideal (i - 2))
             sage: a.valuation(P1)
             0
             sage: F1(i/7)
@@ -833,7 +833,7 @@ cdef class ReductionMap(Map):
             sage: F2(a)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Cannot reduce field element -2/5*i + 1/5 modulo Fractional ideal (-i + 2): it has negative valuation
+            ZeroDivisionError: Cannot reduce field element -2/5*i + 1/5 modulo Fractional ideal (i - 2): it has negative valuation
         """
         # The reduction map is just x |--> F(to_vs(x) * (PB**(-1))) if
         # either x is integral or the denominator of x is coprime to
@@ -895,7 +895,7 @@ cdef class ReductionMap(Map):
             sage: f = k.convert_map_from(K)
             sage: s = f.section(); s
             Lifting map:
-              From: Residue field in abar of Fractional ideal (14*a^4 - 24*a^3 - 26*a^2 + 58*a - 15)
+              From: Residue field in abar of Fractional ideal (-14*a^4 + 24*a^3 + 26*a^2 - 58*a + 15)
               To:   Number Field in a with defining polynomial x^5 - 5*x + 2
             sage: s(k.gen())
             a
@@ -1039,7 +1039,7 @@ cdef class ResidueFieldHomomorphism_global(RingHomomorphism):
             sage: f = k.coerce_map_from(K.ring_of_integers())
             sage: s = f.section(); s
             Lifting map:
-              From: Residue field in abar of Fractional ideal (14*a^4 - 24*a^3 - 26*a^2 + 58*a - 15)
+              From: Residue field in abar of Fractional ideal (-14*a^4 + 24*a^3 + 26*a^2 - 58*a + 15)
               To:   Maximal Order in Number Field in a with defining polynomial x^5 - 5*x + 2
             sage: s(k.gen())
             a

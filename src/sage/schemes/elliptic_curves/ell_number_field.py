@@ -252,6 +252,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             v =  [1, 1, [[Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7)]]]
             (1, 1, [(1/2*a + 3/2 : -a - 2 : 1)])
 
+
         A curve with 2-torsion::
 
             sage: K.<a> = NumberField(x^2 + 7, 'a')
@@ -670,14 +671,14 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: K.<i> = NumberField(x^2+1)
             sage: E = EllipticCurve([1 + i, 0, 1, 0, 0])
             sage: E.local_data()
-            [Local data at Fractional ideal (-i + 2):
+            [Local data at Fractional ideal (i - 2):
             Reduction type: bad non-split multiplicative
             Local minimal model: Elliptic Curve defined by y^2 + (i+1)*x*y + y = x^3 over Number Field in i with defining polynomial x^2 + 1
             Minimal discriminant valuation: 1
             Conductor exponent: 1
             Kodaira Symbol: I1
             Tamagawa Number: 1,
-            Local data at Fractional ideal (-2*i + 3):
+            Local data at Fractional ideal (-3*i - 2):
             Reduction type: bad split multiplicative
             Local minimal model: Elliptic Curve defined by y^2 + (i+1)*x*y + y = x^3 over Number Field in i with defining polynomial x^2 + 1
             Minimal discriminant valuation: 2
@@ -1224,7 +1225,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             Fractional ideal (21*i - 3)
             sage: K.<a>=NumberField(x^2-x+3)
             sage: EllipticCurve([1 + a , -1 + a , 1 + a , -11 + a , 5 -9*a  ]).conductor()
-            Fractional ideal (-6*a)
+            Fractional ideal (6*a)
 
         A not so well known curve with everywhere good reduction::
 
@@ -1931,10 +1932,10 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: K.<i> = QuadraticField(-1)
             sage: E1 = EllipticCurve([i + 1, 0, 1, -240*i - 400, -2869*i - 2627])
             sage: E1.conductor()
-            Fractional ideal (-7*i + 4)
+            Fractional ideal (4*i + 7)
             sage: E2 = EllipticCurve([1+i,0,1,0,0])
             sage: E2.conductor()
-            Fractional ideal (-7*i + 4)
+            Fractional ideal (4*i + 7)
             sage: E1.is_isogenous(E2)
             Traceback (most recent call last):
             ...

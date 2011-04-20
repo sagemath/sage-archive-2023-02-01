@@ -29,8 +29,7 @@ TESTS::
     True
 """
 
-
-###########################################################################
+#*****************************************************************************
 #       Copyright (C) 2004, 2006 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -38,6 +37,7 @@ TESTS::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 
 include "../ext/interrupt.pxi"  # ctrl-c interrupt block support
 include "../ext/gmp.pxi"
@@ -1207,7 +1207,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: 0.is_norm(K)
             True
             sage: (1/7).is_norm(K, element=True)
-            (True, -3/7*beta + 5/7)
+            (True, -1/7*beta - 3/7)
             sage: (1/10).is_norm(K, element=True)
             (False, None)
             sage: (1/691).is_norm(QQ, element=True)

@@ -360,12 +360,14 @@ class FractionalIdealClass(AbelianGroupElement):
 
             sage: k.<a> = NumberField(x^2 + 20072); G = k.class_group(); G
             Class group of order 76 with structure C38 x C2 of Number Field in a with defining polynomial x^2 + 20072
-            sage: I = G.0; I
+            sage: I = (G.0)^35; I
             Fractional ideal class (41, 1/2*a + 5)
             sage: J = G(I.ideal()^5); J
             Fractional ideal class (115856201, 1/2*a + 40407883)
             sage: J.reduce()
             Fractional ideal class (57, 1/2*a + 44)
+            sage: J == I^5
+            True
         """
         return self.parent()(self.__ideal.reduce_equiv())
 

@@ -4,7 +4,9 @@ Relative Number Field Ideals
 AUTHORS:
 
 - Steven Sivek (2005-05-16)
+
 - William Stein (2007-09-06)
+
 - Nick Alexander (2009-01)
 
 EXAMPLES::
@@ -25,16 +27,11 @@ EXAMPLES::
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 
 from number_field_ideal import NumberFieldFractionalIdeal
 from sage.structure.factorization import Factorization
@@ -351,7 +348,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             sage: K.<a> = NumberField(x^2+6)
             sage: L.<b> = K.extension(K['x'].gen()^4 + a)
             sage: N = L.ideal(b).relative_norm(); N
-            Fractional ideal (a)
+            Fractional ideal (-a)
             sage: N.parent()
             Monoid of ideals of Number Field in a with defining polynomial x^2 + 6
             sage: N.ring()
@@ -472,7 +469,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             sage: K.<c> = F.extension(Y^2 - (1 + a)*(a + b)*a*b)
             sage: I = K.ideal(3, c)
             sage: J = I.ideal_below(); J
-            Fractional ideal (b)
+            Fractional ideal (-b)
             sage: J.number_field() == F
             True
         """
@@ -840,7 +837,7 @@ def is_NumberFieldFractionalIdeal_rel(x):
         sage: is_NumberFieldFractionalIdeal_rel(I)
         True
         sage: N = I.relative_norm(); N
-        Fractional ideal (a)
+        Fractional ideal (-a)
         sage: is_NumberFieldFractionalIdeal_rel(N)
         False
         sage: is_NumberFieldFractionalIdeal(N)

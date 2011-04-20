@@ -22,7 +22,7 @@ EXAMPLES::
     1
     sage: K.<a> = QuadraticField(-8)
     sage: K.factor(3)
-    (Fractional ideal (-1/2*a - 1)) * (Fractional ideal (1/2*a - 1))
+    (Fractional ideal (1/2*a + 1)) * (Fractional ideal (1/2*a - 1))
 
 Next try an inert prime::
 
@@ -3067,7 +3067,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
 
             sage: E = EllipticCurve('77a1')
             sage: P = E.heegner_point(-19); y = P._trace_numerical_conductor_1(); [c.real() for c in y]
-            [-1.261...e-16, -1.00000000000000, 1.00000000000000]
+            [-1.2...e-16, -1.00000000000000, 1.00000000000000]
             sage: -2*E.gens()[0]
             (0 : -1 : 1)
             sage: P._trace_index()

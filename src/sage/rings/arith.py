@@ -1239,11 +1239,11 @@ def divisors(n):
 
         sage: K.<a> = QuadraticField(7)
         sage: divisors(K.ideal(7))
-        [Fractional ideal (1), Fractional ideal (-a), Fractional ideal (7)]
+        [Fractional ideal (1), Fractional ideal (a), Fractional ideal (7)]
         sage: divisors(K.ideal(3))
-        [Fractional ideal (1), Fractional ideal (3), Fractional ideal (a - 2), Fractional ideal (a + 2)]
+        [Fractional ideal (1), Fractional ideal (3), Fractional ideal (-a + 2), Fractional ideal (-a - 2)]
         sage: divisors(K.ideal(35))
-        [Fractional ideal (1), Fractional ideal (35), Fractional ideal (-5*a), Fractional ideal (5), Fractional ideal (-a), Fractional ideal (7)]
+        [Fractional ideal (1), Fractional ideal (35), Fractional ideal (5*a), Fractional ideal (5), Fractional ideal (a), Fractional ideal (7)]
 
     TESTS::
 
@@ -2298,14 +2298,14 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
 
     ::
 
-        sage: factor(2^197 + 1)  # long time
+        sage: factor(2^197 + 1)  # long time (2s)
         3 * 197002597249 * 1348959352853811313 * 251951573867253012259144010843
 
     Any object which has a factor method can be factored like this::
 
         sage: K.<i> = QuadraticField(-1)
-        sage: factor(122+454*i)
-        (-1) * (-2*i - 3) * (-i + 4) * (i + 1)^3 * (-i + 2)^3
+        sage: factor(122 - 454*i)
+        (-1) * (-3*i - 2) * (-i - 4) * (i + 1)^3 * (-i - 2)^3
 
     To access the data in a factorization::
 

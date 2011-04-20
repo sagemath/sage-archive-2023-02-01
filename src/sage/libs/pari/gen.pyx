@@ -2486,7 +2486,8 @@ cdef class gen(sage.structure.element.RingElement):
 
 
         The optional D is 0 by default and initializes Shank's distance if
-        `b^2 - 4ac > 0`.
+        `b^2 - 4ac > 0`.  The discriminant of the quadratic form must not
+        be a perfect square.
 
         .. note::
 
@@ -2515,15 +2516,19 @@ cdef class gen(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: pari(3).Qfb(7, 2)
-            Qfb(3, 7, 2, 0.E-19)
+            sage: pari(3).Qfb(7, 1)
+            Qfb(3, 7, 1, 0.E-19)
+            sage: pari(3).Qfb(7, 2)  # discriminant is 25
+            Traceback (most recent call last):
+            ...
+            PariError:  (5)
         """
         t0GEN(b); t1GEN(c); t2GEN(D)
         sig_on()
         return P.new_gen(Qfb0(a.g, t0, t1, t2, prec))
 
 
-    def Ser(gen x, v=-1):
+    def Ser(gen x, v=-1, long seriesprecision = 16):
         """
         Ser(x,v=x): Create a power series from x with main variable v and
         return the result.
@@ -2571,11 +2576,13 @@ cdef class gen(sage.structure.element.RingElement):
             1 + 2*v + 3*v^2 + 4*v^3 + 5*v^4 + O(v^5)
             sage: pari(1)/f
             1 - 2*v + v^2 + O(v^5)
-            sage: pari(1).Ser()
-            1 + O(x^16)
+            sage: pari('x^5').Ser(seriesprecision = 20)
+            x^5 + O(x^25)
+            sage: pari('1/x').Ser(seriesprecision = 1)
+            x^-1 + O(x^0)
         """
         sig_on()
-        return P.new_gen(gtoser(x.g, P.get_var(v)))
+        return P.new_gen(gtoser(x.g, P.get_var(v), seriesprecision))
 
 
     def Set(gen x):
@@ -8665,45 +8672,30 @@ cdef class gen(sage.structure.element.RingElement):
         # the argument prec has no effect
         return self.new_gen(elleisnum(self.g, k, flag, prec))
 
-    def ellwp(self, z='z', long n=20, long flag=0):
+    def ellwp(gen self, z='z', long n=20, long flag=0):
         """
-        ellwp(E, z,flag=0): Return the complex value of the Weierstrass
-        P-function at z on the lattice defined by e.
+        Return the value or the series expansion of the Weierstrass
+        `P`-function at `z` on the lattice `self` (or the lattice
+        defined by the elliptic curve `self`).
 
         INPUT:
 
+        -  ``self`` -- an elliptic curve created using ``ellinit`` or a
+           list ``[om1, om2]`` representing generators for a lattice.
 
-        -  ``E`` - list OR elliptic curve
+        -  ``z`` -- (default: 'z') a complex number or a variable name
+           (as string or PARI variable).
 
-        -  ``list`` - [om1, om2], which are Z-generators for a
-           lattice
+        -  ``n`` -- (default: 20) if 'z' is a variable, compute the
+           series expansion up to at least `O(z^n)`.
 
-        -  ``elliptic curve`` - created using ellinit
-
-        -  ``z`` - (optional) complex number OR string (default
-           = "z")
-
-        -  ``complex number`` - any number in the complex
-           plane
-
-        -  ``string (or PARI variable)`` - name of a variable.
-
-        -  ``n`` - int (optional: default 20) if z is a
-           variable, compute up to at least `o(z^n)`.
-
-        -  ``flag`` - int: 0 (default): compute only P(z) 1
-           compute [P(z),P'(z)] 2 consider om or E as an elliptic curve and
-           use P-function to compute the point on E (with the Weierstrass
-           equation for E) P(z) for that curve (identical to ellztopoint in
-           this case).
-
+        -  ``flag`` -- (default = 0): If ``flag`` is 0, compute only
+           `P(z)`.  If ``flag`` is 1, compute `[P(z), P'(z)]`.
 
         OUTPUT:
 
-
-        -  ``gen`` - complex number or list of two complex
+        - `P(z)` (if ``flag`` is 0) or `[P(z), P'(z)]` (if ``flag`` is 1).
            numbers
-
 
         EXAMPLES:
 
@@ -8711,16 +8703,12 @@ cdef class gen(sage.structure.element.RingElement):
 
             sage: E = pari([0,-1,1,-10,-20]).ellinit()
 
-        Compute P(1).
-
-        ::
+        Compute P(1)::
 
             sage: E.ellwp(1)
             13.9658695257485 + 0.E-18*I
 
-        Compute P(1+i), where i = sqrt(-1).
-
-        ::
+        Compute P(1+i), where i = sqrt(-1)::
 
             sage: C.<i> = ComplexField()
             sage: E.ellwp(pari(1+i))
@@ -8728,7 +8716,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: E.ellwp(1+i)
             -1.11510682565555 + 2.33419052307470*I
 
-        The series expansion, to the default 20 precision::
+        The series expansion, to the default `O(z^20)` precision::
 
             sage: E.ellwp()
             z^-2 + 31/15*z^2 + 2501/756*z^4 + 961/675*z^6 + 77531/41580*z^8 + 1202285717/928746000*z^10 + 2403461/2806650*z^12 + 30211462703/43418875500*z^14 + 3539374016033/7723451736000*z^16 + 413306031683977/1289540602350000*z^18 + O(z^20)
@@ -8744,28 +8732,20 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari([1.2692, 0.63 + 1.45*i]).ellwp(1)
             13.9656146936689 + 0.000644829272810...*I
 
-        With flag 1 compute the pair P(z) and P'(z)::
+        With flag=1, compute the pair P(z) and P'(z)::
 
             sage: E.ellwp(1, flag=1)
             [13.9658695257485 + 0.E-18*I, 50.5619300880073 ... E-18*I]
-
-        With flag=2, the computed pair is (x,y) on the curve instead of
-        [P(z),P'(z)]::
-
-            sage: E.ellwp(1, flag=2)
-            [14.2992028590818 + 0.E-18*I, 50.0619300880073 ... E-18*I]
         """
         t0GEN(z)
-        if n < 0:
-            n = 0
-        if n%2 == 1:
-            n = n + 1
         sig_on()
-        try:
-            dprec = prec_words_to_dec(z.precision())
-        except AttributeError:
+        cdef long dprec
+        dprec = gprecision(t0)
+        if dprec:
+            dprec = prec_words_to_dec(dprec)
+        else:
             dprec = prec
-        return self.new_gen(ellwp0(self.g, t0, flag, dprec, (n+2)/2))
+        return self.new_gen(ellwp0(self.g, t0, flag, n+2, dprec))
 
     def ellchangepoint(self, y):
         """

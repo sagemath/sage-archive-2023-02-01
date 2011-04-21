@@ -1416,9 +1416,14 @@ class EllipticCurveIsogeny(Morphism):
             ((x^2 + 1)/x, (x^2*y - y)/x^2)
             sage: phi._EllipticCurveIsogeny__initialize_rational_maps()
 
+            sage: E = EllipticCurve([1,2,3,4,5])
+            sage: Eshort = E.short_weierstrass_model()
+            sage: phi = E.isogeny(E(0), Eshort)
+            sage: phiX, phiY = phi.rational_maps()
+            sage: phiX(1,2), phiY(1,2)
+            (63, 864)
         """
-
-        if (self.__rational_maps_initialized):
+        if self.__rational_maps_initialized:
             return
 
         if precomputed_maps is None:
@@ -1429,23 +1434,20 @@ class EllipticCurveIsogeny(Morphism):
         else:
             X_map, Y_map = precomputed_maps
 
-        if (self.__prei_x_coord_ratl_map is not None):
+        if self.__prei_x_coord_ratl_map is not None:
             prei_X_map = self.__prei_x_coord_ratl_map
             prei_Y_map = self.__prei_y_coord_ratl_map
+            X_map, Y_map = X_map.subs(x=prei_X_map, y=prei_Y_map), \
+                           Y_map.subs(x=prei_X_map, y=prei_Y_map)
 
-            X_map = X_map.subs(x=prei_X_map, y=prei_Y_map)
-            Y_map = Y_map.subs(x=prei_X_map, y=prei_Y_map)
-
-        if (self.__posti_x_coord_ratl_map is not None):
-            X_map = self.__posti_x_coord_ratl_map.subs(x=X_map, y=Y_map)
-            Y_map = self.__posti_y_coord_ratl_map.subs(x=X_map, y=Y_map)
+        if self.__posti_x_coord_ratl_map is not None:
+            X_map, Y_map = \
+            self.__posti_x_coord_ratl_map.subs(x=X_map, y=Y_map), \
+            self.__posti_y_coord_ratl_map.subs(x=X_map, y=Y_map)
 
         self.__X_coord_rational_map = X_map
         self.__Y_coord_rational_map = Y_map
-
         self.__rational_maps_initialized = True
-
-        return
 
 
     def __init_kernel_polynomial(self):

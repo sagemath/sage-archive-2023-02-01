@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 if [ "x$UNAME" = xCYGWIN ] ; then
-   if ! patch --version | grep >/dev/null 'patch 2\.5'; then
-      echo "On Cygwin you must patch installed"
+   if ! patch --version | grep >/dev/null 'patch '; then
+      echo "On Cygwin you must have patch installed"
       echo "via the Cygwin setup.exe program"
       exit 1
    fi

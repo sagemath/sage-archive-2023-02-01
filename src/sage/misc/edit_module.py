@@ -44,6 +44,8 @@ then the system will use that if no template has been set explicitly.
 import sage.misc.sageinspect
 import inspect
 import os
+import re
+import IPython
 
 from string import Template
 
@@ -118,7 +120,6 @@ def file_and_line(obj):
    sageroot = sage.misc.sageinspect.SAGE_ROOT+'/'
    runpathpattern = '^'+sageroot+'local/lib/python[^/]*/site-packages'
    develbranch = sageroot+'devel/sage'
-   import re
    filename=re.sub(runpathpattern,develbranch,filename)
 
    return filename, lineno+1
@@ -280,3 +281,32 @@ def edit(obj, editor=None, bg=None):
       cmd=cmd[:-1]
 
    os.system(cmd)
+
+
+def edit_devel(self, filename, linenum):
+    """
+    This hook calls the default implementation but with a diffrent filename.
+
+    If the filename begins with SAGE_ROOT/local/lib/python2.6/site-packages/
+    it replaces this by SAGE_ROOT/devel/sage
+
+    This function is called by IPython when you do either:
+
+    sage: %edit gcd         # not tested
+    sage: %ed gcd           # not tested
+
+    The above should open your favorite editor (as stored in the environment
+    variable $EDITOR) with the file in witch gcd is defined, and when your
+    editor supports it, also at the line in wich gcd is defined.
+    """
+    sageroot = sage.misc.sageinspect.SAGE_ROOT+'/'
+    runpathpattern = '^'+sageroot+'local/lib/python[^/]*/site-packages'
+    develbranch = sageroot+'devel/sage'
+    filename=re.sub(runpathpattern,develbranch,filename)
+    IPython.hooks.editor(self, filename, linenum)
+
+ip = IPython.ipapi.get()
+if ip:
+    ip.set_hook('editor', edit_devel)
+
+

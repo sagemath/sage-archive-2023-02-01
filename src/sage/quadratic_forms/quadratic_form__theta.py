@@ -391,9 +391,9 @@ def theta_series_degree_2(Q, prec):
     verbose("Computed vectors_by_length" , t)
 
     # Deal with the singular part
-    coeffs = {(0,0,0):1}
+    coeffs = {(0,0,0):ZZ(1)}
     for i in range(1,max+1):
-        coeffs[(0,0,i)] = 2 * len(v_list[i])
+        coeffs[(0,0,i)] = ZZ(2) * len(v_list[i])
 
     # Now deal with the non-singular part
     a_max = int(floor(sqrt(X/3)))
@@ -409,7 +409,7 @@ def theta_series_degree_2(Q, prec):
                     b = abs(B_v1(v2))
                     if b <= a and 4*a*c-b*b <= X:
                         qf = (a,b,c)
-                        count = 4 if b == 0 else 2
+                        count = ZZ(4) if b == 0 else ZZ(2)
                         coeffs[qf] = coeffs.get(qf, ZZ(0)) + count
         verbose("done a = %d" % a, t)
 

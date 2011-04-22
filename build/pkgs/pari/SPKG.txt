@@ -79,6 +79,10 @@ exactly where it says native, but I would expect a grep to find it.
 
 == Changelog ==
 
+=== pari-2.4.3.alpha.p6 (Dima Pasechnik, 22 April, 2010) ===
+ * made a proper check for libpari.dll on Cygwin, as described in
+   trac #10240
+
 === pari-2.4.3.alpha.p5 (Jeroen Demeyer, January 23th, 2010) ===
  * Avoid parallel "make install" because of race conditions.
  * Remove Makefile_mv.patch because it doesn't actually fix the race

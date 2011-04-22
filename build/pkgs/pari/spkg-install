@@ -256,6 +256,8 @@ install
 
 if [ "$UNAME" = "Darwin" ]; then
     pari_shlib="libpari.dylib"
+elif [ "$UNAME" = "CYGWIN" ]; then
+    pari_shlib="libpari.dll"
 else
     pari_shlib="libpari.so"
 fi

@@ -286,12 +286,15 @@ see how things are done.
 Closing tickets
 ===============
 
-**Do not close tickets.** That is the job of the acting Sage release
-manager. If you feel strongly that a ticket should be closed or
-deleted, send an email to the current release manager explaining the
-situation. You can also comment on the ticket, explaining why it
+Closing tickets is not possible unless you have "TICKET_ADMIN" rights in
+Trac. This is because only the current Sage release manager should ever
+close tickets. If you feel strongly that a ticket should be closed or
+deleted, then change the status of the ticket to ``needs review`` and
+change the milestone to ``sage-duplictate/invalid/wontfix``.
+You should also comment on the ticket, explaining why it
 should be closed. A related issue is re-opening tickets. You should
-refrain from re-opening a ticket that is already closed.
+refrain from re-opening a ticket that is already closed. Instead
+ask the release manager what to do.
 
 
 Reasons to invalidate tickets
@@ -333,13 +336,6 @@ work. How do I do this?" That is usually not a bug in Sage and it
 is likely that ``sage-support`` can answer that question for you. If
 it turns out that you did hit a bug, somebody will open a concise
 and to-the-point ticket.
-
-**No Closing Or Invalidating**: Unless you have admin powers in
-trac (which includes all the people who have ever done releases of
-Sage), do not close tickets unless you are explicitly told to do so.
-If you think that a ticket is invalid or has been fixed, just comment
-on it and the current release manager will take a look and close it if
-appropriate.
 
 **Solution Must Be Achievable**: Tickets must be achievable. Many
 times, tickets that fall into this category usually ran afoul to

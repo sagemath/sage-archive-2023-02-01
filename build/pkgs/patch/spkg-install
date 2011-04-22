@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 
+if [ -z $SAGE_LOCAL ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
 if [ "x$UNAME" = xCYGWIN ] ; then
    if ! patch --version | grep >/dev/null 'patch '; then
       echo "On Cygwin you must have patch installed"
@@ -7,12 +13,6 @@ if [ "x$UNAME" = xCYGWIN ] ; then
       exit 1
    fi
    exit 0
-fi
-
-if [ -z $SAGE_LOCAL ]; then
-   echo "SAGE_LOCAL undefined ... exiting";
-   echo "Maybe run 'sage -sh'?"
-   exit 1
 fi
 
 # Let the user define the environment variable CFLAG64 to

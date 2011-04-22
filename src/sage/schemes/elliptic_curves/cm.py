@@ -26,7 +26,7 @@ This module implements the functions
 
 from sage.interfaces.all import magma
 from sage.rings.all import (Integer,
-                            RationalField,
+                            QQ,
                             IntegerRing,
                             is_fundamental_discriminant,
                             PolynomialRing)
@@ -150,7 +150,7 @@ def cm_j_invariants(K):
 
     INPUT:
 
-    - ``K`` -- a number field (currently only implemented for `K=\QQ`)
+    - ``K`` -- a number field (currently only implemented for `K` of degree at most 2)
 
     OUTPUT:
 
@@ -158,31 +158,42 @@ def cm_j_invariants(K):
 
     .. note::
 
-       This is currently only implemented for the rationals.  David
-       Kohel has large tables for other fields, but they are not in
-       Sage yet.
+       This is currently only implemented for the rationals and
+       quadratic fields.  David Kohel has large tables for other
+       functions, but they are not in Sage yet.
 
     EXAMPLE::
 
         sage: cm_j_invariants(QQ)
         [0, 54000, -12288000, 1728, 287496, -3375, 16581375, 8000, -32768, -884736, -884736000, -147197952000, -262537412640768000]
 
-    ::
+    Over imaginary quadratic fields there are no more than over `QQ`::
 
         sage: cm_j_invariants(QuadraticField(-1, 'i'))
+        [0, 54000, -12288000, 1728, 287496, -3375, 16581375, 8000, -32768, -884736, -884736000, -147197952000, -262537412640768000]
+
+    Over real quadratic fields there may be more::
+
+        sage: cm_j_invariants(QuadraticField(5, 'a'))
+        [0, 54000, -12288000, 1728, 287496, -3375, 16581375, 8000, -32768, -884736, -884736000, -147197952000, -262537412640768000, 282880*a + 632000, -282880*a + 632000, 95178240*a + 212846400, -95178240*a + 212846400, 85995/2*a - 191025/2, -85995/2*a - 191025/2, 16554983445/2*a + 37018076625/2, -16554983445/2*a + 37018076625/2, 26378240*a - 58982400, -26378240*a - 58982400, 95673435586560*a - 213932305612800, -95673435586560*a - 213932305612800, 184068066743177379840*a - 411588709724712960000, -184068066743177379840*a - 411588709724712960000]
+
+    Over fields of higher degree this is not yet implemented::
+
+        sage: K.<a> = NumberField(x^3-2)
+        sage: cm_j_invariants(K)
         Traceback (most recent call last):
         ...
-        NotImplementedError: Enumeration of CM j-invariants over Number Field in i with defining polynomial x^2 + 1 not yet implemented
+        NotImplementedError: Enumeration of CM j-invariants over fields of degree 3 not yet implemented
 
     """
-    if K == RationalField():
+    if K == QQ:
         return [Integer(x) for x in [0, 54000, -12288000, 1728, \
                                287496, -3375, 16581375, 8000, \
                                -32768,  -884736, -884736000,\
                                -147197952000, -262537412640768000]]
-    else:
-        raise NotImplementedError, "Enumeration of CM j-invariants over %s not yet implemented"%K
 
+    else:
+        return [j for D,f,j in cm_j_invariants_and_orders(K)]
 
 def cm_j_invariants_and_orders(K):
     r"""
@@ -190,28 +201,43 @@ def cm_j_invariants_and_orders(K):
 
     INPUT:
 
-    - ``K`` -- a number field (currently only implemented for `K=\QQ`)
+    - ``K`` -- a number field (currently only implemented for `K` of degree at most 2)
 
     OUTPUT:
 
     (list) A list of 3-tuples `(D,f,j)` where `j` is a CM
-    `j`-invariant with quadratic fundamental discriminant `D` and
-    conductor `f`
+    `j`-invariant in `K` with quadratic fundamental discriminant `D`
+    and conductor `f`.
 
     EXAMPLE::
 
         sage: cm_j_invariants_and_orders(QQ)
-        [(-3, 3, -12288000), (-3, 2, 54000), (-3, 1, 0), (-4, 2, 287496), (-4, 1, 1728), (-7, 2, 16581375), (-7, 1, -3375), (-8, 1, 8000), (-11, 1, -32768), (-19, 1, -884736), (-43, 1, -884736000), (-67, 1, -147197952000), (-163, 1, -262537412640768000)]
+        [(-3, 1, 0), (-3, 2, 54000), (-3, 3, -12288000), (-4, 1, 1728), (-4, 2, 287496), (-7, 1, -3375), (-7, 2, 16581375), (-8, 1, 8000), (-11, 1, -32768), (-19, 1, -884736), (-43, 1, -884736000), (-67, 1, -147197952000), (-163, 1, -262537412640768000)]
 
-    ::
+    Over an imaginary quadratic field there are no more than over `QQ`::
 
         sage: cm_j_invariants_and_orders(QuadraticField(-1, 'i'))
+        [(-3, 1, 0), (-3, 2, 54000), (-3, 3, -12288000), (-4, 1, 1728), (-4, 2, 287496), (-7, 1, -3375), (-7, 2, 16581375), (-8, 1, 8000), (-11, 1, -32768), (-19, 1, -884736), (-43, 1, -884736000), (-67, 1, -147197952000), (-163, 1, -262537412640768000)]
+
+    Over real quadratic fields there may be more::
+
+        sage: cm_j_invariants_and_orders(QuadraticField(5,'a'))
+        [(-3, 1, 0), (-3, 2, 54000), (-3, 3, -12288000), (-4, 1, 1728), (-4, 2, 287496), (-7, 1, -3375), (-7, 2, 16581375), (-8, 1, 8000), (-11, 1, -32768), (-19, 1, -884736), (-43, 1, -884736000), (-67, 1, -147197952000), (-163, 1, -262537412640768000), (-20, 1, 282880*a + 632000), (-20, 1, -282880*a + 632000), (-40, 1, 95178240*a + 212846400), (-40, 1, -95178240*a + 212846400), (-15, 1, 85995/2*a - 191025/2), (-15, 1, -85995/2*a - 191025/2), (-15, 2, 16554983445/2*a + 37018076625/2), (-15, 2, -16554983445/2*a + 37018076625/2), (-35, 1, 26378240*a - 58982400), (-35, 1, -26378240*a - 58982400), (-115, 1, 95673435586560*a - 213932305612800), (-115, 1, -95673435586560*a - 213932305612800), (-235, 1, 184068066743177379840*a - 411588709724712960000), (-235, 1, -184068066743177379840*a - 411588709724712960000)]
+
+        sage: [(D,f) for D,f,j in cm_j_invariants_and_orders(QuadraticField(5,'a')) if j not in QQ]
+        [(-20, 1), (-20, 1), (-40, 1), (-40, 1), (-15, 1), (-15, 1), (-15, 2), (-15, 2), (-35, 1), (-35, 1), (-115, 1), (-115, 1), (-235, 1), (-235, 1)]
+
+    Over fields of higher degree this is not yet implemented::
+
+        sage: K.<a> = NumberField(x^3-2)
+        sage: cm_j_invariants_and_orders(K)
         Traceback (most recent call last):
         ...
-        NotImplementedError: Enumeration of CM j-invariants over Number Field in i with defining polynomial x^2 + 1 not yet implemented
+        NotImplementedError: Enumeration of CM j-invariants over fields of degree 3 not yet implemented
+
 
     """
-    if K == RationalField():
+    if K == QQ:
         T = [ (0,-3, 1), (54000,-3,2), (-12288000, -3,3), (1728,-1, 1), \
                (287496,-1, 2), (-3375,-7,1), (16581375, -7, 2), (8000,-2,1), \
                (-32768, -11, 1),  (-884736, -19,1), (-884736000,-43,1),\
@@ -219,9 +245,30 @@ def cm_j_invariants_and_orders(K):
                ]
         dis = lambda D:  Integer(D) if D%4 in [0,1] else Integer(4*D)
         T = [(dis(D),Integer(f),Integer(j)) for (j,D,f) in T]
-        T.sort()
-        T.reverse()
         return T
-    else:
-        raise NotImplementedError, "Enumeration of CM j-invariants over %s not yet implemented"%K
 
+    if K.degree()==2:
+        # Below we use that the imaginary quadratic orders of class number 2 are the
+        # maximal orders in Q(sqrt(-d)) for d in
+        # [-5,-6,-10,-13,-15,-22,-35,-37,-51,-58,-91,-115,-123,-187,-235,-267,-403,-427]
+        # and the order of index 2 in Q(sqrt(-15)). [Reference: many
+        # places including J E Cremona, Abelian Varieties with Extra
+        # Twist, Cusp Forms, and Elliptic Curves Over Imaginary
+        # Quadratic Fields, Journal of the London Mathematical Society
+        # 45 (1992) 402-416.]
+
+        def data_for_discriminant(d):
+            D = d if d%4 == 1 else 4*d
+            for j in hilbert_class_polynomial(D).roots(K,multiplicities=False):
+                yield (Integer(D), Integer(1), j)
+            # the only non-maximal order of class number 2 is for d == -15
+            if d == -15:
+                for j in hilbert_class_polynomial(-60).roots(K,multiplicities=False):
+                    yield (Integer(-15), Integer(2), j)
+
+        # list the discriminants of class number 2:
+        dlist = [-5,-6,-10,-13,-15,-22,-35,-37,-51,-58,-91,-115,-123,-187,-235,-267,-403,-427]
+        return sum((list(data_for_discriminant(d)) for d in dlist), cm_j_invariants_and_orders(QQ))
+
+    raise NotImplementedError, "Enumeration of CM j-invariants over fields of degree %s not yet implemented"%K.degree()
+    # If you want to implement this in general, see the remarks at trac 11220.

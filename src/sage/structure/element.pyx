@@ -518,7 +518,7 @@ cdef class Element(sage_object.SageObject):
             sage: CCls(Parent())._test_eq()
             Traceback (most recent call last):
             ...
-            AssertionError: Generic element of a structure == None
+            AssertionError: broken equality: Generic element of a structure == None
 
         Let us now break inequality::
 
@@ -531,8 +531,13 @@ cdef class Element(sage_object.SageObject):
             AssertionError: broken non-equality: Generic element of a structure != itself
         """
         tester = self._tester(**options)
-        tester.assertEqual(self, self)
-        tester.assertNotEqual(self, None)
+        # We don't use assertEqual / assertNonEqual in order to be
+        # 100% sure we indeed call the operators == and !=, whatever
+        # the version of Python is (see #11236)
+        tester.assertTrue(self == self,
+                   LazyFormat("broken equality: %s == itself is False")%self)
+        tester.assertFalse(self == None,
+                   LazyFormat("broken equality: %s == None")%self)
         tester.assertFalse(self != self,
                            LazyFormat("broken non-equality: %s != itself")%self)
         tester.assertTrue(self != None,

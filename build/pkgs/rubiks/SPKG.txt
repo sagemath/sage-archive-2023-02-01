@@ -25,6 +25,10 @@ Eric Dietz (GPL) http://www.wrongway.org/?rubiksource
 
 == Changelog ==
 
+=== rubiks-20070912.p14 (David Kirkby, 23rd April 2011) ===
+ * Drop optimisation level to -O1 on all platforms, but
+   only if gcc 4.6.0 is used.
+
 === rubiks-20070912.p13 (David Kirkby, 10th April 2011) ===
  * Drop optimisation level on Solaris to -O1 as this
    mis-compiles on OpenSolaris with gcc 4.6.0. It is not

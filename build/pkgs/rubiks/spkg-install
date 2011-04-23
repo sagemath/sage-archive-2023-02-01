@@ -5,7 +5,7 @@
 ###########################################
 
 if [ -z "$SAGE_LOCAL" ] ; then
-   echo "SAGE_LOCAL undefined ... exiting";
+   echo "SAGE_LOCAL undefined ... exiting"
    echo "Maybe run 'sage -sh'?"
    exit 1
 fi
@@ -14,8 +14,9 @@ set -e
 
 # Add a sensible default optimisation flag. Change if necessary.
 OPTIMIZATION_FLAGS="-O2"
-if [ "x$UNAME" = xSunOS ] ; then
-  OPTIMIZATION_FLAGS="-O1"
+if [ "x`$SAGE_LOCAL/bin/testcc.sh $CC`" = xGCC ] && [ "x`$CC -dumpversion`" = x4.6.0 ] ; then
+   echo "Warning: Reducing the optimisation level to -O1 due to a bug in gcc 4.6.0"
+   OPTIMIZATION_FLAGS="-O1"
 fi
 
 # Most packages do not need all these set
@@ -26,8 +27,6 @@ CFLAGS="$CFLAGS $OPTIMIZATION_FLAGS "
 CXXFLAGS="$CXXFLAGS $OPTIMIZATION_FLAGS "
 FCFLAGS="$FCFLAGS $OPTIMIZATION_FLAGS "
 F77FLAGS="$F77FLAGS $OPTIMIZATION_FLAGS "
-#CPPFLAGS="$CPPFLAGS -I$SAGE_LOCAL/include"
-#LDFLAGS="$LDFLAGS -L$SAGE_LOCAL/lib"
 
 # Compile for 64-bit if SAGE64 is set to 'yes'
 if [ "x$SAGE64" = xyes ] ; then
@@ -57,12 +56,12 @@ if [ "x$SAGE64" = xyes ] ; then
    # 64-bit and one third build 64-bit is very unprofessional, and
    # could lead to confusion by later developers. It is far better
    # if all of Sage builds 64-bit, as then it will be easier to find
-   # any components which are failing to do so. Whilst it may not
+   # any components which are failing to do so. While it may not
    # matter for some components, for others it will. Having all of
-   # Sage 32-bit or all of Sage 64-bit makes more sence.
+   # Sage 32-bit or all of Sage 64-bit makes more sense.
 
    # Use 'sed' to add ${CFLAG64} to the list of compiler flags (CFLAGS).
-   # The orignal line is
+   # The original line is
    # CFLAGS = -O -DLARGE_MEM -DVERBOSE
    # This will be changed to:
    # CFLAGS = ${CFLAG64} -O -DLARGE_MEM -DVERBOSE
@@ -79,7 +78,7 @@ fi
 
 if [ "x$SAGE_DEBUG" = "x" ] || [ "x$SAGE_DEBUG" = "xyes" ] ; then
    echo "Code will be built with debugging information present. Set 'SAGE_DEBUG' to 'no' if you don't want that."
-   # Actually anything othe than 'yes' or '1' will cause
+   # Actually anything other than 'yes' will cause
    # no debugging information to be added.
    CFLAGS="$CFLAGS -g "
    CXXFLAGS="$CXXFLAGS -g "

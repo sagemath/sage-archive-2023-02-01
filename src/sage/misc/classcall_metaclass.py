@@ -16,10 +16,10 @@ class ClasscallMetaclass(NestedClassMetaclass):
     A metaclass providing support for special methods for classes.
 
     From the Section ``Special method names`` of the Python Reference
-    Manual: 'a class ``cls`` can implement certain operations on its
+    Manual: \`a class ``cls`` can implement certain operations on its
     instances that are invoked by special syntax (such as arithmetic
     operations or subscripting and slicing) by defining methods with
-    special names'. The purpose of this metaclass is to allow the
+    special names\'. The purpose of this metaclass is to allow for the
     class ``cls`` to implement analogues of those special methods for
     the operations on the class itself.
 
@@ -28,22 +28,33 @@ class ClasscallMetaclass(NestedClassMetaclass):
      - ``.__classcall__`` (and ``.__classcall_private__``) for
        customizing ``cls(...)`` (analogue of ``.__call__``).
 
+     - ``.__classcontains__`` for customizing membership testing
+       ``x in cls`` (analogue of ``.__contains__``).
+
      - ``.__classget__`` for customizing the binding behavior in
        ``foo.cls`` (analogue of ``.__get__``).
 
     See the documentation of :meth:`.__call__` and of :meth:`.__get__`
-    for the description of the respective protocols.
+    and :meth:`.__contains__` for the description of the respective
+    protocols.
+
+    .. warning:: for technical reasons, ``__classcall__``,
+        ``__classcall_private__``, ``__classcontains__``, and
+        ``__classget__`` must be defined as :func:`staticmethod`'s, even
+        though they receive the class itself as their first argument.
 
     TODO: find a good name for this metaclass.
 
     AUTHORS:
 
-     - Nicolas M. Thiery (2009-10) first implementation of __classcall__ and __classget__
-     - Florent Hivert (2010-01): implementation of __classcall_private__, doc
+     - Nicolas M. Thiery (2009-2011) implementation of
+       ``__classcall__``, ``__classget__``, ``__classcontains__``;
+     - Florent Hivert (2010-01): implementation of ``__classcall_private__``,
+       documentation.
     """
 
     def __get__(cls, instance, owner):
-        """
+        r"""
         This method implements instance binding behavior for nested classes.
 
         Suppose that a class ``Outer`` contains a nested class ``cls`` which
@@ -55,6 +66,10 @@ class ClasscallMetaclass(NestedClassMetaclass):
         Similarily, a class binding as in ``Outer.cls`` is delegated
         to ``cls.__classget__(Outer, None, owner)`` if available and
         to ``cls`` if not.
+
+        .. warning:: for technical reasons, ``__classget__`` must be
+            defined as a :func:`staticmethod`, even though it receives
+            the class itself as its first argument.
 
         For technical details, and in particular the description of
         the ``owner`` argument, see the Section ``Implementing
@@ -99,9 +114,9 @@ class ClasscallMetaclass(NestedClassMetaclass):
             sage: type(bar) is Inner
             True
 
-        ..warning:: Inner has to be a new style class (i.e. a subclass of object).
+        .. warning:: Inner has to be a new style class (i.e. a subclass of object).
 
-        ..warning:: calling ``obj.Inner`` does no longer return a class::
+        .. warning:: calling ``obj.Inner`` does no longer return a class::
 
             sage: bind = obj.Inner
             calling __classget__(<class '__main__.Outer.Inner'>, <__main__.Outer object at 0x...>, <class '__main__.Outer'>)
@@ -114,11 +129,11 @@ class ClasscallMetaclass(NestedClassMetaclass):
             return cls
 
     def __call__(cls, *args, **options):
-        """
+        r"""
         This method implements ``cls(<some arguments>)``.
 
-        Let ``cls`` be a class in ``ClasscallMetaclass``, and consider
-        a call of the form:
+        Let ``cls`` be a class in :class:`ClasscallMetaclass`, and
+        consider a call of the form:
 
             ``cls(<some arguments>)``
 
@@ -136,6 +151,10 @@ class ClasscallMetaclass(NestedClassMetaclass):
         ``type.__call__(cls, <some arguments>)`` is called, which in turn
         uses :meth:`__new__` and :meth:`__init__` as usual (see Section
         "Basic Customization" in the Python Reference Manual).
+
+        .. warning:: for technical reasons, ``__classcall__`` must be
+            defined as a :func:`staticmethod`, even though it receives
+            the class itself as its first argument.
 
         EXAMPLES::
 
@@ -243,7 +262,6 @@ class ClasscallMetaclass(NestedClassMetaclass):
          - ``sub(<args>)`` will call ``cls.__classcall__(sub, <args>)``
 
 
-
         TESTS:
 
         We check that the idiom ``method_name in cls.__dict__`` works
@@ -258,3 +276,53 @@ class ClasscallMetaclass(NestedClassMetaclass):
             return cls.__classcall__(cls, *args, **options)
         else:
             return type.__call__(cls, *args, **options)
+
+    def __contains__(cls, x):
+        r"""
+        This method implements membership testing for a class
+
+        Let ``cls`` be a class in :class:`ClasscallMetaclass`, and consider
+        a call of the form:
+
+            ``x in cls``
+
+        If ``cls`` defines a method ``__classcontains__``, then this
+        results in a call to::
+
+         - ``cls.__classcontains__(cls, x)``
+
+        .. warning:: for technical reasons, ``__classcontains__`` must
+            be defined as a :func:`staticmethod`, even though it
+            receives the class itself as its first argument.
+
+        EXAMPLES:
+
+        We construct a class which implements membership testing, and
+        which contains ``1`` and no other x::
+
+            sage: from sage.misc.classcall_metaclass import ClasscallMetaclass
+            sage: class Foo(object):
+            ...       __metaclass__ = ClasscallMetaclass
+            ...       @staticmethod
+            ...       def __classcontains__(cls, x):
+            ...           return x == 1
+            sage: 1 in Foo
+            True
+            sage: 2 in Foo
+            False
+
+        We now check that for a class without ``__classcontains__``
+        method, we emulate the usual error message::
+
+            sage: from sage.misc.classcall_metaclass import ClasscallMetaclass
+            sage: class Bar(object):
+            ...       __metaclass__ = ClasscallMetaclass
+            sage: 1 in Bar
+            Traceback (most recent call last):
+            ...
+            TypeError: argument of type 'type' is not iterable
+        """
+        if hasattr(cls, "__classcontains__"):
+            return cls.__classcontains__(cls, x)
+        else:
+            return x in object

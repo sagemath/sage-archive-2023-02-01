@@ -2229,6 +2229,8 @@ class FreeModule_generic_pid(FreeModule_generic):
             Free module of degree 2 and rank 1 over Integer Ring
             Echelon basis matrix:
             [3 3]
+            sage: M1.intersection(M2) is M2
+            True
 
         We intersection two submodules of `\ZZ^3` of rank
         `2`, whose intersection has rank `1`.
@@ -2298,9 +2300,9 @@ class FreeModule_generic_pid(FreeModule_generic):
             raise NotImplementedError, "intersection of modules over different base rings (neither a field) is not implemented."
 
         # dispense with the three easy cases
-        if self == self.ambient_vector_space():
+        if self == self.ambient_vector_space() or other.is_submodule(self):
             return other
-        elif other == other.ambient_vector_space():
+        elif other == other.ambient_vector_space() or self.is_submodule(other):
             return self
         elif self.rank() == 0 or other.rank() == 0:
             if self.base_ring().is_field():

@@ -347,7 +347,7 @@ def Cone(data, lattice=None, check=True, normalize=True):
     if isinstance(data, Polyhedron):
         polyhedron = data
         if lattice is None:
-            lattice = ToricLattice(polyhedron.lattice_dim())
+            lattice = ToricLattice(polyhedron.ambient_dim())
         if polyhedron.n_vertices() > 1:
             raise ValueError("%s is not a cone!" % polyhedron)
         apex = polyhedron.vertices()[0]
@@ -875,8 +875,8 @@ class IntegralRayCollection(SageObject,
             [ 1  0  0]
         """
         if "_ray_matrix" not in self.__dict__:
-            self._ray_matrix = matrix(self.nrays(), self.lattice_dim(),
-                                      self._rays).transpose()
+            self._ray_matrix = matrix(ZZ, self.nrays(),
+                            self.lattice().degree(), self._rays).transpose()
             self._ray_matrix.set_immutable()
         return self._ray_matrix
 
@@ -2511,7 +2511,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         if "_lattice_polytope" not in self.__dict__:
             m = self.ray_matrix()
             if self.is_strictly_convex():
-                m = m.augment(matrix(ZZ, self.lattice_dim(), 1)) # the origin
+                m = m.augment(matrix(ZZ, self.lattice().degree(), 1)) # origin
             self._lattice_polytope = LatticePolytope(m,
                                 compute_vertices=False, copy_vertices=False)
         return self._lattice_polytope

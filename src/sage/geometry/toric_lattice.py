@@ -551,7 +551,50 @@ class ToricLattice_generic(FreeModule_generic_pid):
         latex_dual_name = make_name(self.dual(), other.dual(), True)
         return ToricLattice(rank, name, dual_name, latex_name, latex_dual_name)
 
-    def quotient(self, sub, check=True, positive_point=None, positive_dual_point=None):
+    def intersection(self, other):
+        r"""
+        Return the intersection of ``self`` and ``other``.
+
+        INPUT:
+
+        - ``other`` - a toric (sub)lattice.dual
+
+        OUTPUT:
+
+        - a toric (sub)lattice.
+
+        EXAMPLES::
+
+            sage: N = ToricLattice(3)
+            sage: Ns1 = N.submodule([N(2,4,0), N(9,12,0)])
+            sage: Ns2 = N.submodule([N(1,4,9), N(9,2,0)])
+            sage: Ns1.intersection(Ns2)
+            Sublattice <N(54, 12, 0)>
+
+        Note that if one of the intersecting sublattices is a sublattice of
+        another, no new lattices will be constructed::
+
+            sage: N.intersection(N) is N
+            True
+            sage: Ns1.intersection(N) is Ns1
+            True
+            sage: N.intersection(Ns1) is Ns1
+            True
+        """
+        # Lattice-specific input check
+        if not is_ToricLattice(other):
+            raise TypeError("%s is not a toric lattice!" % other)
+        if self.ambient_module() != other.ambient_module():
+            raise ValueError("%s and %s have different ambient lattices!" %
+                             (self, other))
+        # Construct a generic intersection, but make sure to return a lattice.
+        I = super(ToricLattice_generic, self).intersection(other)
+        if not is_ToricLattice(I):
+            I = self.ambient_module().submodule(I.basis())
+        return I
+
+    def quotient(self, sub, check=True,
+                 positive_point=None, positive_dual_point=None):
         """
         Return the quotient of ``self`` by the given sublattice ``sub``.
 
@@ -585,7 +628,8 @@ class ToricLattice_generic(FreeModule_generic_pid):
             sage: Ns = N.submodule([N(2,4,0), N(9,12,0)])
             sage: Q = N/Ns
             sage: Q
-            Quotient with torsion of 3-d lattice N by Sublattice <N(1, 8, 0), N(0, 12, 0)>
+            Quotient with torsion of 3-d lattice N
+            by Sublattice <N(1, 8, 0), N(0, 12, 0)>
 
         See :class:`ToricLattice_quotient` for more examples.
         """

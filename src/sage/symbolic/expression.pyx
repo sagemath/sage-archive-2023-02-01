@@ -2679,13 +2679,15 @@ cdef class Expression(CommutativeRingElement):
 
     def series(self, symbol, int order):
         r"""
-        Return the power series expansion of self in terms of the variable
-        symbol to the given order.
+        Return the power series expansion of self in terms of the
+        given variable to the given order.
 
         INPUT:
 
-        - ``symbol`` - a variable
-
+        - ``symbol`` - a symbolic variable or symbolic equality
+          such as ``x == 5``; if an equality is given, the
+          expansion is around the value on the right hand side
+          of the equality
         - ``order`` - an integer
 
         OUTPUT:

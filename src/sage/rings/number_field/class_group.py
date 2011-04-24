@@ -244,7 +244,7 @@ class FractionalIdealClass(AbelianGroupElement):
         """
         self.__ideal = ideal
         if element is None:
-            element = ideal._ideal_class_log(proof = parent._proof_flag)
+            element = map(int, ideal._ideal_class_log(proof=parent._proof_flag))
         AbelianGroupElement.__init__(self, parent, element)
 
     def _repr_(self):
@@ -376,13 +376,8 @@ class FractionalIdealClass(AbelianGroupElement):
             sage: K.<w>=QuadraticField(-23)
             sage: OK=K.ring_of_integers()
             sage: C=OK.class_group()
-            sage: h=C.order(); h
-            3
-            sage: P2a,P2b=[P for P,e in (2*OK).factor()]
-            sage: c=C(P2a); c
-            Fractional ideal class (2, 1/2*w - 1/2)
-            sage: c.order()
-            3
+            sage: [c.order() for c in C]
+            [1, 3, 3]
 
             sage: k.<a> = NumberField(x^2 + 20072); G = k.class_group(); G
             Class group of order 76 with structure C38 x C2 of Number Field in a with defining polynomial x^2 + 20072

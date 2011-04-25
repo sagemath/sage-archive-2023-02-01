@@ -25,12 +25,17 @@ Eric Dietz (GPL) http://www.wrongway.org/?rubiksource
 
 == Changelog ==
 
+=== rubiks-20070912.p15 (Jeroen Demeyer, 25 April 2011) ===
+ * #11168: Instead of using -O1 with gcc 4.6.0, use -O2 -fno-ivopts
+   The is because the bug is in the file gcc/tree-ssa-loop-ivopts.c,
+   see http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48702
+
 === rubiks-20070912.p14 (David Kirkby, 23rd April 2011) ===
- * Drop optimisation level to -O1 on all platforms, but
+ * #11168: Drop optimisation level to -O1 on all platforms, but
    only if gcc 4.6.0 is used.
 
 === rubiks-20070912.p13 (David Kirkby, 10th April 2011) ===
- * Drop optimisation level on Solaris to -O1 as this
+ * #11168: Drop optimisation level on Solaris to -O1 as this
    mis-compiles on OpenSolaris with gcc 4.6.0. It is not
    worth making the test too specific, so the optimisation
    level is dropped to -O1 on any sort of Solaris machine.

@@ -2718,6 +2718,7 @@ def RestrictedPartitions(n, S, k=None):
         [[2, 1, 1, 1]]
     """
     import warnings
+    warnings.resetwarnings()
     warnings.warn('RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.', DeprecationWarning, stacklevel=2)
     from sage.misc.misc import deprecation
     deprecation('RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.')
@@ -2739,6 +2740,7 @@ class RestrictedPartitions_nsk(CombinatorialClass):
             True
         """
         import warnings
+        warnings.resetwarnings()
         warnings.warn('RestrictedPartitions_nsk is deprecated; use Partitions with the parts_in keyword instead.', DeprecationWarning, stacklevel=2)
         from sage.misc.misc import deprecation
         deprecation('RestrictedPartitions_nsk is deprecated; use Partitions with the parts_in keyword instead.')

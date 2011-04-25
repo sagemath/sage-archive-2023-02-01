@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# creating patch files for all patched files
+
+CUR=`pwd`
+
+rm patches/*.patch
+
+for j in `ls patches/*.[hc]` ; do
+   i=$(basename $j)
+   diff -Naur src/$i patches/$i >patches/$i.patch
+done
+

@@ -1,0 +1,10 @@
+--- src/ZmodF_mul.c	2009-09-23 18:03:27.000000000 +0800
++++ patches/ZmodF_mul.c	2011-04-25 22:32:40.000000000 +0800
+@@ -30,7 +30,6 @@
+ ******************************************************************************/
+ 
+ #include <math.h>
+-#include "ZmodF.h"
+ #include "ZmodF_poly.h"
+ #include "ZmodF_mul.h"
+ #include "mpn_extras.h"

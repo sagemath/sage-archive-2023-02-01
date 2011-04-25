@@ -85,6 +85,9 @@ export FLINT_LINK_OPTIONS
 # This is not an officially supported option because flint is pure C
 # and the NTL interface requires C++.
 cp patches/makefile src/
+for j in `ls patches/*.patch` ; do
+   patch -p0 < $j
+done
 
 cd src
 

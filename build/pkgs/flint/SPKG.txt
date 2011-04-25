@@ -32,6 +32,11 @@ We patch the makefile slightly to add 64 bit OSX build support and also changes 
 
 == Changelog ==
 
+=== flint-1.5.0.p6 (Dima Pasechnik, 25th April 2011) ===
+ * removed extraneous #include statements in ZmodF_mul.c, ZmodF_poly.c, and, mpn_extras.h, which
+   triggered a clash of typedef for ulong in sys/types.h and #define ulong in flint.h
+   on Cygwin (trac ticket 11246).
+
 === flint-1.5.0.p5 (David Kirkby, 19th June 2010) ===
  * #9277 Add -m64 flag when building the Flint test suite
    if SAGE64 is set to "yes". Otherwise it builds 32-bit

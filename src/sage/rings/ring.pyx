@@ -40,21 +40,17 @@ AUTHORS:
 
 - David Harvey (2006-10-16): changed :class:`CommutativeAlgebra` to derive from
   :class:`CommutativeRing` instead of from :class:`Algebra`
+
 - David Loeffler (2009-07-09): documentation fixes, added to reference manual
+
 """
 
 #*****************************************************************************
-#       Copyright (C) 2005,2007 William Stein <wstein@gmail.com>
+#       Copyright (C) 2005, 2007 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -315,6 +311,18 @@ cdef class Ring(ParentWithGens):
             Ideal (y^2 + x) of Multivariate Polynomial Ring in x, y over Rational Field
             sage: R.ideal( [x^3,y^3+x^3] )
             Ideal (x^3, x^3 + y^3) of Multivariate Polynomial Ring in x, y over Rational Field
+
+        TESTS:
+
+        Make sure that ticket #11139 is fixed::
+
+            sage: R.<x> = QQ[]
+            sage: R.ideal([])
+            Principal ideal (0) of Univariate Polynomial Ring in x over Rational Field
+            sage: R.ideal(())
+            Principal ideal (0) of Univariate Polynomial Ring in x over Rational Field
+            sage: R.ideal()
+            Principal ideal (0) of Univariate Polynomial Ring in x over Rational Field
         """
         if kwds.has_key('coerce'):
             coerce = kwds['coerce']
@@ -323,29 +331,30 @@ cdef class Ring(ParentWithGens):
             coerce = True
 
         from sage.rings.ideal import Ideal_generic
-        if len(args) == 0:
-            gens = [self(0)]
-        else:
-            gens = args
-            while isinstance(gens, (list, tuple, GeneratorType)) and len(gens) == 1:
-                first = gens[0]
-                if isinstance(first, Ideal_generic):
-                    R = first.ring()
-                    m = self.convert_map_from(R)
-                    if m is not None:
-                        gens = [m(g) for g in first.gens()]
-                        coerce = False
-                    else:
-                        m = R.convert_map_from(self)
-                        if m is not None:
-                            raise NotImplementedError
-                        else:
-                            raise TypeError
-                    break
-                elif isinstance(first, (list, tuple, GeneratorType)):
-                    gens = first
+        gens = args
+        while isinstance(gens, (list, tuple)) and len(gens) == 1:
+            first = gens[0]
+            if isinstance(first, Ideal_generic):
+                R = first.ring()
+                m = self.convert_map_from(R)
+                if m is not None:
+                    gens = [m(g) for g in first.gens()]
+                    coerce = False
                 else:
-                    break
+                    m = R.convert_map_from(self)
+                    if m is not None:
+                        raise NotImplementedError
+                    else:
+                        raise TypeError
+                break
+            elif isinstance(first, (list, tuple)):
+                gens = first
+            else:
+                break
+
+        if len(gens) == 0:
+            gens = [self(0)]
+
         if coerce:
             #print [type(g) for g in gens]
             gens = [self(g) for g in gens]

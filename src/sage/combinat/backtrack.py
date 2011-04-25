@@ -376,7 +376,7 @@ class SearchForest(Parent):
             An enumerated set with a forest structure
     """
     def __init__(self, roots = None, children = None, post_process = None,
-                 algorithm = 'depth', category=None):
+                 algorithm = 'depth', facade = None, category=None):
         r"""
         TESTS::
 
@@ -391,7 +391,7 @@ class SearchForest(Parent):
         if post_process is not None:
             self.post_process = post_process
         self._algorithm = algorithm
-        Parent.__init__(self, category = EnumeratedSets().or_subcategory(category))
+        Parent.__init__(self, facade = facade, category = EnumeratedSets().or_subcategory(category))
 
     def _repr_(self):
         r"""
@@ -661,22 +661,22 @@ class PositiveIntegerSemigroup(UniqueRepresentation, SearchForest):
         sage: from sage.combinat.backtrack import PositiveIntegerSemigroup
         sage: PP = PositiveIntegerSemigroup()
         sage: PP.category()
-        Join of Category of infinite enumerated sets and Category of commutative additive semigroups and Category of monoids
+        Join of Category of infinite enumerated sets and Category of commutative additive semigroups and Category of monoids and Category of facade sets
         sage: PP.cardinality()
         +Infinity
         sage: PP.one()
         1
         sage: PP.an_element()
         1
-        sage: list(PP.some_elements())
+        sage: some_elements = list(PP.some_elements()); some_elements
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100]
 
     TESTS::
 
         sage: from sage.combinat.backtrack import PositiveIntegerSemigroup
         sage: PP = PositiveIntegerSemigroup()
-        sage: # TODO: remove the skip; see #9065
-        sage: TestSuite(PP).run(skip='_test_one')  # long time
+        sage: TestSuite(PP).run(elements=some_elements)
+        sage: TestSuite(PP).run()  # long time
     """
     def __init__(self):
         r"""
@@ -685,7 +685,7 @@ class PositiveIntegerSemigroup(UniqueRepresentation, SearchForest):
             sage: from sage.combinat.backtrack import PositiveIntegerSemigroup
             sage: PP = PositiveIntegerSemigroup()
         """
-        SearchForest.__init__(self, category=(InfiniteEnumeratedSets(), CommutativeAdditiveSemigroups(), Monoids()))
+        SearchForest.__init__(self, facade = ZZ, category=(InfiniteEnumeratedSets(), CommutativeAdditiveSemigroups(), Monoids()))
 
     def roots(self):
         r"""

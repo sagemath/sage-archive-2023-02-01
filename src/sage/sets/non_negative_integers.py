@@ -76,10 +76,11 @@ class NonNegativeIntegers(UniqueRepresentation, Parent):
             sage: NN
             Non negative integers
             sage: NN.category()
-            Category of infinite enumerated sets
+            Category of facade infinite enumerated sets
             sage: TestSuite(NN).run()
         """
-        Parent.__init__(self, category = InfiniteEnumeratedSets().or_subcategory(category) )
+        from sage.rings.integer_ring import ZZ
+        Parent.__init__(self, facade = ZZ, category = InfiniteEnumeratedSets().or_subcategory(category) )
 
     def _repr_(self):
         """

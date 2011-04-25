@@ -76,12 +76,14 @@ class PrimeNumbers(UniqueRepresentation, Parent):
         """
         TESTS::
 
-            sage: from sage.categories.examples.sets_cat import PrimeNumbers_Facade
-            sage: P = PrimeNumbers_Facade()
+            sage: from sage.categories.examples.sets_cat import PrimeNumbers
+            sage: P = PrimeNumbers()
             sage: P.category()
-            Category of sets
+            Category of facade sets
+            sage: P is Sets().example()
+            True
         """
-        Parent.__init__(self, category = Sets())
+        Parent.__init__(self, facade = IntegerRing(), category = Sets())
 
     def _repr_(self):
         """
@@ -627,6 +629,14 @@ class PrimeNumbers_Facade(PrimeNumbers_Abstract):
         running ._test_pickling() . . . pass
         running ._test_some_elements() . . . pass
     """
+
+    def __init__(self):
+        """
+        TESTS::
+
+            sage: P = Sets().example("inherits")
+        """
+        Parent.__init__(self, facade = IntegerRing(), category = Sets())
 
     def _repr_(self):
         """

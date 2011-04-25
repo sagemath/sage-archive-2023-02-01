@@ -50,7 +50,7 @@ class FiniteEnumeratedSet(UniqueRepresentation, Parent):
         sage: S.first()
         1
         sage: S.category()
-        Category of finite enumerated sets
+        Category of facade finite enumerated sets
         sage: TestSuite(S).run()
 
     Note that being and enumerated set, the result depends on the order::
@@ -107,13 +107,12 @@ class FiniteEnumeratedSet(UniqueRepresentation, Parent):
         TESTS::
 
             sage: S = FiniteEnumeratedSet([1,2,3])
-            sage: S == loads(dumps(S))
-            True
+            sage: TestSuite(S).run()
         """
         self._elements = elements
-        Parent.__init__(self, category = FiniteEnumeratedSets())
+        Parent.__init__(self, facade = True, category = FiniteEnumeratedSets())
 
-    def __repr__(self):
+    def _repr_(self):
         """
         TESTS::
 
@@ -141,8 +140,14 @@ class FiniteEnumeratedSet(UniqueRepresentation, Parent):
             False
             sage: ZZ in S
             False
+
+            sage: S.is_parent_of(2)
+            True
+            sage: S.is_parent_of(4)
+            False
         """
         return x in self._elements
+    is_parent_of = __contains__
 
     def list(self):
         """

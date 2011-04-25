@@ -72,7 +72,7 @@ class CommutativeAdditiveMonoids(Category):
             tester = self._tester(**options)
             zero = self.zero()
             # TODO: also call is_zero once it will work
-            tester.assert_(zero.parent() == self)
+            tester.assert_(self.is_parent_of(zero))
             for x in tester.some_elements():
                 tester.assert_(x + zero == x)
             # Check that zero is immutable by asking its hash:

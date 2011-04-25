@@ -13,6 +13,7 @@ from sage.structure.element_wrapper import ElementWrapper
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.rings.integer import Integer
+from sage.rings.integer_ring import IntegerRing
 from sage.functions.other import sqrt
 
 class Example(UniqueRepresentation, Parent):
@@ -38,9 +39,7 @@ class Example(UniqueRepresentation, Parent):
     return consistent results::
 
         sage: TestSuite(C).run(verbose = True)
-        running ._test_an_element() . . .
-          The set doesn't seems to implement __call__; skipping test of construction idempotency
-         pass
+        running ._test_an_element() . . . pass
         running ._test_category() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
@@ -67,11 +66,11 @@ class Example(UniqueRepresentation, Parent):
             sage: C
             An example of a finite enumerated set: {1,2,3}
             sage: C.category()
-            Category of finite enumerated sets
+            Category of facade finite enumerated sets
             sage: TestSuite(C).run()
         """
         self._set = map(Integer, [1,2,3])
-        Parent.__init__(self, category = FiniteEnumeratedSets())
+        Parent.__init__(self, facade = IntegerRing(), category = FiniteEnumeratedSets())
 
     def _repr_(self):
         """
@@ -114,11 +113,11 @@ class IsomorphicObjectOfFiniteEnumeratedSet(UniqueRepresentation, Parent):
             sage: C
             The image by some isomorphism of An example of a finite enumerated set: {1,2,3}
             sage: C.category()
-            Category of isomorphic objects of finite enumerated sets
+            Category of facade isomorphic objects of finite enumerated sets
             sage: TestSuite(C).run()
         """
         self._ambient = ambient
-        Parent.__init__(self, category = FiniteEnumeratedSets().IsomorphicObjects())
+        Parent.__init__(self, facade = IntegerRing(), category = FiniteEnumeratedSets().IsomorphicObjects())
 
     def ambient(self):
         """

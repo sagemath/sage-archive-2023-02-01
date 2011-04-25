@@ -53,11 +53,11 @@ class PositiveIntegers(IntegerRangeInfinite):
 
             sage: PP = PositiveIntegers()
             sage: PP.category()
-            Category of infinite enumerated sets
+            Category of facade infinite enumerated sets
         """
         IntegerRangeInfinite.__init__(self, Integer(1), Integer(1))
 
-    def __repr__(self):
+    def _repr_(self):
         r"""
         EXAMPLES::
 

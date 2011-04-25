@@ -110,7 +110,7 @@ class EnumeratedSets(Category):
             sage: S = EnumeratedSets()([1, 2, 3]); S
             {1, 2, 3}
             sage: S.category()
-            Category of finite enumerated sets
+            Category of facade finite enumerated sets
 
             sage: S = EnumeratedSets()((1, 2, 3)); S
             {1, 2, 3}
@@ -119,7 +119,7 @@ class EnumeratedSets(Category):
             sage: S = EnumeratedSets()(Set([1, 2, 3])); S
             {1, 2, 3}
             sage: S.category()
-            Category of finite enumerated sets
+            Category of facade finite enumerated sets
         """
         import sage.sets.set
         if isinstance(X, (tuple, list, set, sage.sets.set.Set_object_enumerated)):

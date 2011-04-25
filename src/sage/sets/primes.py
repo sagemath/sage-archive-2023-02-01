@@ -77,7 +77,12 @@ class Primes(Set_generic, UniqueRepresentation):
 
         TESTS::
 
+            sage: P.category()
+            Category of facade infinite enumerated sets
             sage: TestSuite(P).run()
+
+            sage: Q.category()
+            Category of facade infinite enumerated sets
             sage: TestSuite(Q).run()
 
         The set of primes can be compared to various things,
@@ -104,7 +109,7 @@ class Primes(Set_generic, UniqueRepresentation):
             sage: cmp('foo', Primes()) != cmp(Primes(), 'foo')
             True
         """
-        super(Primes, self).__init__(category = InfiniteEnumeratedSets())
+        super(Primes, self).__init__(facade = ZZ, category = InfiniteEnumeratedSets())
         self.__proof = proof
 
     def _repr_(self):

@@ -124,6 +124,14 @@ Categories
    sage/categories/vector_spaces
    sage/categories/weyl_groups
 
+Technical Categories
+====================
+
+.. toctree::
+   :maxdepth: 2
+
+   sage/categories/facade_sets
+
 Examples of parents using categories
 =====================================
 

@@ -1386,7 +1386,20 @@ class JoinCategory(Category):
 
         EXAMPLES::
 
-            sage: J = Category.join((Groups(), CommutativeAdditiveMonoids())); J #indirect doctest
+            sage: Category.join((Groups(), CommutativeAdditiveMonoids())) #indirect doctest
             Join of Category of groups and Category of commutative additive monoids
+
+        TODO: find a better place to implement this representation improvement:
+
+            sage: Category.join((Groups(), Sets().Facades()))
+            Category of facade groups
+            sage: Category.join((Sets().Facades(), Groups()))
+            Category of facade groups
         """
+        categories = self.super_categories()
+        from sets_cat import Sets
+        if len(categories) == 2 and Sets().Facades() in categories:
+            categories = list(categories)
+            categories.remove(Sets().Facades())
+            return "Category of facade %s"%(categories[0]._repr_object_names())
         return "Join of %s"%(" and ".join(str(cat) for cat in self.super_categories()))

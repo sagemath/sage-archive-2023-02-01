@@ -120,7 +120,7 @@ class Monoids(Category):
             """
             tester = self._tester(**options)
             one = self.one()
-            tester.assert_(one.parent() == self)
+            tester.assert_(self.is_parent_of(one))
             for x in tester.some_elements():
                 tester.assert_(x * one == x)
                 tester.assert_(one * x == x)

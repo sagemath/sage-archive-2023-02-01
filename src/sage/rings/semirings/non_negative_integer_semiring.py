@@ -26,14 +26,14 @@ class NonNegativeIntegerSemiring(NonNegativeIntegers):
         sage: NonNegativeIntegerSemiring()
         Non negative integer semiring
 
-    For convenience, ``NN`` is a chortcut for
+    For convenience, ``NN`` is a shortcut for
     ``NonNegativeIntegerSemiring()``::
 
         sage: NN is NonNegativeIntegerSemiring()
         True
 
         sage: NN.category()
-        Join of Category of semirings and Category of infinite enumerated sets
+        Join of Category of semirings and Category of infinite enumerated sets and Category of facade sets
 
     Here is a piece of the Cayley graph for the multiplicative structure::
 
@@ -58,19 +58,16 @@ class NonNegativeIntegerSemiring(NonNegativeIntegers):
         sage: x+3
         18
 
-    TESTS::
-
-        sage: # TODO : remove this skip, see #9065
-        sage: TestSuite(NN).run(skip=["_test_one","_test_zero"])
     """
     def __init__(self):
         r"""
         TESTS::
 
-            sage: NonNegativeIntegerSemiring()
+            sage: NN = NonNegativeIntegerSemiring(); NN
             Non negative integer semiring
-            sage: NonNegativeIntegerSemiring().category().super_categories()
-            [Category of semirings, Category of infinite enumerated sets]
+            sage: NN.category()
+            Join of Category of semirings and Category of infinite enumerated sets and Category of facade sets
+            sage: TestSuite(NN).run()
         """
         NonNegativeIntegers.__init__(self, category=(Semirings(), InfiniteEnumeratedSets()) )
 

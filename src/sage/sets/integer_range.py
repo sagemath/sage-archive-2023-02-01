@@ -16,9 +16,9 @@ AUTHORS:
 from sage.structure.parent import Parent
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.categories.sets_cat import EmptySetError
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.integer import Integer
+from sage.rings.integer_ring import IntegerRing
 from sage.rings.infinity import Infinity, MinusInfinity, PlusInfinity
 
 class IntegerRange(UniqueRepresentation, Parent):
@@ -65,7 +65,7 @@ class IntegerRange(UniqueRepresentation, Parent):
         sage: list(I)
         [2, 7, 12, 17, 22, 27, 32, 37, 42, 47, 52, 57, 62, 67, 72, 77, 82, 87, 92, 97]
         sage: I.category()
-        Category of finite enumerated sets
+        Category of facade finite enumerated sets
         sage: I[1].parent()
         Integer Ring
 
@@ -89,7 +89,7 @@ class IntegerRange(UniqueRepresentation, Parent):
         sage: I = IntegerRange(54,Infinity,3); I
         {54, 57, ..}
         sage: I.category()
-        Category of infinite enumerated sets
+        Category of facade infinite enumerated sets
         sage: p = iter(I)
         sage: (p.next(), p.next(), p.next(), p.next(), p.next(), p.next())
         (54, 57, 60, 63, 66, 69)
@@ -97,7 +97,7 @@ class IntegerRange(UniqueRepresentation, Parent):
         sage: I = IntegerRange(54,-Infinity,-3); I
         {54, 51, ..}
         sage: I.category()
-        Category of infinite enumerated sets
+        Category of facade infinite enumerated sets
         sage: p = iter(I)
         sage: (p.next(), p.next(), p.next(), p.next(), p.next(), p.next())
         (54, 51, 48, 45, 42, 39)
@@ -111,7 +111,7 @@ class IntegerRange(UniqueRepresentation, Parent):
         sage: I = IntegerRange(-Infinity,Infinity,37,-12); I
         Integer progression containing -12 with increment 37 and bounded with -Infinity and +Infinity
         sage: I.category()
-        Category of infinite enumerated sets
+        Category of facade infinite enumerated sets
         sage: -12 in I
         True
         sage: -15 in I
@@ -285,7 +285,7 @@ class IntegerRangeEmpty(IntegerRange, FiniteEnumeratedSet):
             sage: I = IntegerRangeEmpty(); I
             {}
             sage: I.category()
-            Category of finite enumerated sets
+            Category of facade finite enumerated sets
             sage: TestSuite(I).run()
             sage: I(0)
             Traceback (most recent call last):
@@ -307,13 +307,13 @@ class IntegerRangeFinite(IntegerRange):
 
             sage: I = IntegerRange(123,12,-4)
             sage: I.category()
-            Category of finite enumerated sets
+            Category of facade finite enumerated sets
             sage: TestSuite(I).run()
         """
         self._begin = begin
         self._end = end
         self._step = step
-        Parent.__init__(self, category = FiniteEnumeratedSets())
+        Parent.__init__(self, facade = IntegerRing(), category = FiniteEnumeratedSets())
 
     def __contains__(self, elt):
         r"""
@@ -450,13 +450,13 @@ class IntegerRangeInfinite(IntegerRange):
 
             sage: I = IntegerRange(-57,Infinity,8)
             sage: I.category()
-            Category of infinite enumerated sets
+            Category of facade infinite enumerated sets
             sage: TestSuite(I).run()
         """
         assert isinstance(begin, Integer)
         self._begin = begin
         self._step = step
-        Parent.__init__(self, category = InfiniteEnumeratedSets())
+        Parent.__init__(self, facade = IntegerRing(), category = InfiniteEnumeratedSets())
 
     def _repr_(self):
         r"""
@@ -551,11 +551,11 @@ class IntegerRangeFromMiddle(IntegerRange):
             sage: from sage.sets.integer_range import IntegerRangeFromMiddle
             sage: I = IntegerRangeFromMiddle(-100,100,10,0)
             sage: I.category()
-            Category of finite enumerated sets
+            Category of facade finite enumerated sets
             sage: TestSuite(I).run()
             sage: I = IntegerRangeFromMiddle(Infinity,-Infinity,-37,0)
             sage: I.category()
-            Category of infinite enumerated sets
+            Category of facade infinite enumerated sets
             sage: TestSuite(I).run()
 
             sage: IntegerRange(0, 5, 1, -3)
@@ -571,9 +571,9 @@ class IntegerRangeFromMiddle(IntegerRange):
 
         if (begin != Infinity and begin != -Infinity) and \
              (end != Infinity and end != -Infinity):
-            Parent.__init__(self, category = FiniteEnumeratedSets())
+            Parent.__init__(self, facade = IntegerRing(), category = FiniteEnumeratedSets())
         else:
-            Parent.__init__(self, category = InfiniteEnumeratedSets())
+            Parent.__init__(self, facade = IntegerRing(), category = InfiniteEnumeratedSets())
 
     def __repr__(self):
         r"""

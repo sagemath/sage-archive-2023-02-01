@@ -11,7 +11,7 @@ Sets
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.misc.lazy_import import lazy_import
+from sage.misc.lazy_import import lazy_import, LazyImport
 from sage.misc.cachefunc import cached_method
 from sage.misc.sage_unittest import TestSuite
 from sage.misc.abstract_method import abstract_method
@@ -28,7 +28,6 @@ from sage.categories.algebra_functor import AlgebrasCategory
 from sage.categories.cartesian_product import cartesian_product, CartesianProductsCategory
 
 lazy_import('sage.sets.cartesian_product', 'CartesianProduct')
-
 
 class EmptySetError(ValueError):
     """
@@ -198,7 +197,7 @@ class Sets(Category):
               sage: S = Sets()([1, 2, 3]); S.category()
               Category of sets
               sage: S = Sets()([1, 2, 3], True); S.category()
-              Category of finite enumerated sets
+              Category of facade finite enumerated sets
         """
         import sage.sets.all
         if enumerated_set_if_possible:
@@ -306,6 +305,32 @@ class Sets(Category):
             """
             return self.element_class(parent = self, *args, **keywords)
 
+        def is_parent_of(self, element):
+            """
+            Returns whether ``self`` is the parent of ``element``
+
+            INPUT:
+             - ``element`` -- any object
+
+            EXAMPLES::
+
+                sage: S = ZZ
+                sage: S.is_parent_of(1)
+                True
+                sage: S.is_parent_of(2/1)
+                False
+
+            This method differs from :meth:`__contains__` because it
+            does not attempt any coercion::
+
+                sage: 2/1 in S, S.is_parent_of(2/1)
+                (True, False)
+                sage: int(1) in S, S.is_parent_of(int(1))
+                (True, False)
+            """
+            from sage.structure.element import parent
+            return parent(element) == self
+
         @abstract_method
         def __contains__(self, x):
             """
@@ -377,14 +402,9 @@ class Sets(Category):
             except EmptySetError:
                 return
             tester.assertTrue(an_element in self, "self.an_element() is not in self")
-
-            try:
-                element_parent = an_element.parent()
-            except AttributeError:
-                tester.info("\n  self.an_element doesn't have any parent")
-                element_parent = None
-
-            if element_parent is self:
+#            tester.assertTrue(self.is_parent_of(an_element), "self is not the parent of self.an_element()")
+#            tester.assertEqual(self(an_element), an_element, "element construction is not idempotent")
+            if self.is_parent_of(an_element):
                 tester.assertEqual(self(an_element), an_element, "element construction is not idempotent")
             else: # Allows self(an_element) to fails for facade parent.
                 try:
@@ -698,6 +718,8 @@ class Sets(Category):
 
     class HomCategory(HomCategory):
         pass
+
+    Facades = LazyImport('sage.categories.facade_sets', 'FacadeSets')
 
     class Subquotients(SubquotientsCategory):
         """

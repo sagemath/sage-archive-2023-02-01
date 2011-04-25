@@ -403,7 +403,8 @@ cdef class Parent(category_object.CategoryObject):
 
     """
 
-    def __init__(self, base=None, *, category=None, element_constructor=None, gens=None, names=None, normalize=True, **kwds):
+    def __init__(self, base=None, *, category=None, element_constructor=None,
+                 gens=None, names=None, normalize=True, facade=None, **kwds):
         """
 
         category: a category or list/tuple of categories
@@ -420,9 +421,10 @@ cdef class Parent(category_object.CategoryObject):
         - base -- An algebraic structure considered to be the "base"
           of this parent (e.g. the base field for a vector space).
 
-        - category -- The category in which this parent lies.  Since
-          categories support more general super-categories, this
-          should be the most specific category possible.
+        - category -- The category in which this parent lies (or list
+          or tuple thereof).  Since categories support more general
+          super-categories, this should be the most specific category
+          possible.
 
         - element_constructor -- A class or function that creates
           elements of this Parent given appropriate input (can also be
@@ -434,6 +436,13 @@ cdef class Parent(category_object.CategoryObject):
         - names -- Names of generators.
 
         - normalize -- Whether to standardize the names (remove punctuation, etc)
+
+        - ``facade`` -- a parent, or tuple thereof, or ``True``
+
+        If ``facade`` is specified, then ``Sets().Facades()`` is added
+        to the categories of the parent. Furthermore, if ``facade`` is
+        not ``True``, the internal attribute _facade_for is set
+        accordingly for use by :meth:`Sets.Facades.ParentMethods.facade_for`.
         """
 
         # TODO: in the long run, we want to get rid of the element_constructor = argument
@@ -441,6 +450,17 @@ cdef class Parent(category_object.CategoryObject):
         # Then, all the element_constructor logic should be moved to init_coerce.
 
         CategoryObject.__init__(self, base = base)
+        if facade is not None and facade is not False:
+            if isinstance(facade, Parent):
+                facade = (facade,)
+            if facade is not True:
+                assert isinstance(facade, tuple)
+                self._facade_for = facade
+            from sage.categories.sets_cat import Sets
+            if category is None:
+                category = Sets().Facades()
+            else:
+                category = Category.join((category, Sets().Facades()))
         # Setting the categories is currently done in a separate
         # method to let some subclasses (like ParentsWithBase)
         # call it without calling the full constructor
@@ -2290,7 +2310,7 @@ cdef class Parent(category_object.CategoryObject):
 
             sage: S = FiniteEnumeratedSet([1,2,3])
             sage: S.category()
-            Category of finite enumerated sets
+            Category of facade finite enumerated sets
             sage: super(Parent, S)._an_element_
             Cached version of <function _an_element_from_iterator at ...>
             sage: S._an_element_()

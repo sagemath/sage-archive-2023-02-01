@@ -24,6 +24,13 @@ http://users.tkk.fi/pat/cliquer.html
 
 == Changelog ==
 
+=== cliquer-1.2.p8 (Jeroen Demeyer, 25 April 2011) ===
+ * #11227: When compiling with gcc 4.6.0, add compiler flag -fno-ivopts
+   to work around a gcc bug.
+ * Use `patch` for patching the Makefile and put patches/Makefile.patch
+   under hg control.
+ * Some minor cleanup of spkg-install and Makefile.
+
 === cliquer-1.2.p7 David Kirkby, Leif Leonhardy  (14 September 2010) ===
  * #9871 Change flags passed to the linker on Solaris to avoid problems with the
    link-editor believing the shared library contains text relocations. This

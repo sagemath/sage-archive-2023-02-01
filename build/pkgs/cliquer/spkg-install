@@ -12,6 +12,11 @@ set -e
 
 # Add a sensible default optimisation flag. Change if necessary.
 OPTIMIZATION_FLAGS="-O2"
+# Work around a bug in gcc 4.6.0, probably http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48702
+if [ "x`$SAGE_LOCAL/bin/testcc.sh $CC`" = xGCC ] && [ "x`$CC -dumpversion 2>/dev/null`" = x4.6.0 ] ; then
+    echo "Warning: Working around bug in gcc 4.6.0"
+    OPTIMIZATION_FLAGS="$OPTIMIZATION_FLAGS -fno-ivopts"
+fi
 
 # Most packages do not need all these set. But it is better to do them all
 # each time, rather than omit a flag by mistake.
@@ -148,31 +153,27 @@ export ABI
 SAGESOFLAGS=" "
 if [ "$UNAME" = "Linux" ] || [ "$UNAME" = "FreeBSD" ]; then
     SAGESOFLAGS="-shared -Wl,-soname,libcliquer.so"
-    export SAGESOFLAGS
 elif [ "$UNAME" = "Darwin" ]; then
     MACOSX_DEPLOYMENT_TARGET="10.3"
     export MACOSX_DEPLOYMENT_TARGET
     SAGESOFLAGS="-dynamiclib -single_module -flat_namespace -undefined dynamic_lookup"
-    export SAGESOFLAGS
 elif [ "$UNAME" = "SunOS" ]; then
     SAGESOFLAGS="-shared -Wl,-h,libcliquer.so -Wl,-ztext"
-    export SAGESOFLAGS
 elif [ "$UNAME" = "CYGWIN" ]; then
     SAGESOFLAGS="-shared -Wl,-soname,libcliquer.so"
-    export SAGESOFLAGS
 else
     echo "Cannot determine your platform or it is not supported"
     echo "Since SAGE_PORT is set, setting SAGESOFLAGS to Linux defaults."
     SAGESOFLAGS="-shared -Wl,-soname,libcliquer.so"
-    export SAGESOFLAGS
 fi
-
-# Copy over custom Makefile for Sage. This custom Makefile contains Sage
-# specific compilation and linking flags. More importantly, we're building
-# cliquer as a dynamic shared library, instead of a stand alone program.
-cp -f patch/Makefile src/
+export SAGESOFLAGS
 
 cd src
+
+# Patch the Makefile for Sage. This custom Makefile contains Sage
+# specific compilation and linking flags. More importantly, we're building
+# cliquer as a dynamic shared library, instead of a stand alone program.
+patch -p1 <../patches/Makefile.patch
 
 #Do not exit script if there is an error, but instead print an
 # informative error message.

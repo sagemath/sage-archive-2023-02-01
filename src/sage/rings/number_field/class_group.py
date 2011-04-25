@@ -296,6 +296,8 @@ class FractionalIdealClass(AbelianGroupElement):
             Trivial principal fractional ideal class
             sage: c^1000
             Fractional ideal class (2, a)
+            sage: (c^2)^2
+            Fractional ideal class (2, a)
         """
         # We use MonoidElement's __pow__ routine, since that does
         # repeated squaring, and hence the ideal gets reduced as

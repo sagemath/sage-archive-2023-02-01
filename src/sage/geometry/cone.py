@@ -1050,7 +1050,10 @@ class IntegralRayCollection(SageObject,
             [ 1  1  1  0]
             [ 1  1  1  1]
         """
-        return matrix(ZZ, self.ray_basis()).transpose()
+        basis = self.ray_basis()
+        m = self._lattice.degree()
+        n = len(basis)
+        return matrix(ZZ, n, m, basis).transpose()
 
 
 # Derived classes MUST allow construction of their objects using ``ambient``
@@ -1172,9 +1175,21 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             Generator_System {point(0/1, 0/1), ray(0, 1), ray(1, 0)}
             sage: c._PPL_cone().minimized_constraints()
             Constraint_System {x1>=0, x0>=0}
+
+        TESTS:
+
+        There are no empty cones, the origin always belongs to them::
+
+            sage: Cone([(0,0)])._PPL_cone()
+            A 0-dimensional polyhedron in QQ^2
+            defined as the convex hull of 1 point.
+            sage: Cone([], lattice=ToricLattice(2))._PPL_cone()
+            A 0-dimensional polyhedron in QQ^2
+            defined as the convex hull of 1 point.
         """
         if "_PPL_C_Polyhedron" not in self.__dict__:
-            gs = Generator_System( PPL_point() )
+            gs = Generator_System(
+                            PPL_point(Linear_Expression(self._lattice(0), 0)))
             for r in self.rays():
                 gs.insert( PPL_ray(Linear_Expression(r,0)) )
             self._PPL_C_Polyhedron = C_Polyhedron(gs)
@@ -1264,14 +1279,20 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
                               stacklevel=3)
             return False
 
-        if region == 'whole cone':
-            return self.polyhedron().contains(point)
-        elif region == 'interior':
-            return self.polyhedron().interior_contains(point)
-        elif region == 'relative interior':
-            return self.polyhedron().relative_interior_contains(point)
-        else:
+        if region not in ("whole cone", "relative interior", "interior"):
             raise ValueError("%s is an unknown region of the cone!" % region)
+        if region == "interior" and self.dim() < self.lattice_dim():
+            return False
+        need_strict = region.endswith("interior")
+        M = self.dual_lattice()
+        for c in self._PPL_cone().minimized_constraints():
+            pr = M(c.coefficients()) * point
+            if c.is_equality():
+                if pr != 0:
+                    return False
+            elif pr < 0 or need_strict and pr == 0:
+                return False
+        return True
 
     def interior_contains(self, *args):
         r"""
@@ -2906,38 +2927,27 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: trivial_cone._orthogonal_sublattice_complement
             Sublattice <>
         """
-        if self.is_trivial():
-            Nsigma = matrix(ZZ, self.lattice().dimension(), 0)
-        else:
-            Nsigma = self.ray_basis_matrix()
+        Nsigma = self.ray_basis_matrix()
         r = Nsigma.ncols()
         D, U, V = Nsigma.smith_form()  # D = U*N*V <=> N = Uinv*D*Vinv
         Uinv = U.inverse()
         n = Uinv.ncols()
 
+        N = self.lattice()
         # basis for the spanned lattice
         basis = [ Uinv.column(i) for i in range(0,r) ]
-        self._sublattice = self.lattice().submodule_with_basis(basis)
-
+        self._sublattice = N.submodule_with_basis(basis)
         # basis for a complement to the spanned lattice
         basis = [ Uinv.column(i) for i in range(r,n) ]
-        self._sublattice_complement = self.lattice().submodule_with_basis(basis)
+        self._sublattice_complement = N.submodule_with_basis(basis)
 
+        M = self.dual_lattice()
         # basis for the dual spanned lattice
-        if r<n:
-            basis = [ U.row(i) for i in range(r,n) ]
-        else:
-            basis = []
-        self._orthogonal_sublattice = \
-            self.dual_lattice().submodule_with_basis(basis)
-
+        basis = [U.row(i) for i in range(r, n)]
+        self._orthogonal_sublattice = M.submodule_with_basis(basis)
         # basis for a complement to the dual spanned lattice
-        if r>0:
-            basis = [ U.row(i) for i in range(0,r) ]
-        else:
-            basis = []
-        self._orthogonal_sublattice_complement = \
-            self.dual_lattice().submodule_with_basis(basis)
+        basis = [U.row(i) for i in range(r)]
+        self._orthogonal_sublattice_complement = M.submodule_with_basis(basis)
 
     def sublattice(self, *args, **kwds):
         r"""
@@ -3150,7 +3160,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             Sublattice <M(-1, 0, 1)>
         """
         if "_orthogonal_sublattice" not in self.__dict__:
-                self._split_ambient_lattice()
+            self._split_ambient_lattice()
         if args or kwds:
             return self._orthogonal_sublattice(*args, **kwds)
         else:

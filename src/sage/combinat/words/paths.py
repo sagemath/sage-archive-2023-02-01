@@ -1309,7 +1309,7 @@ class FiniteWordPath_all(SageObject):
             yield R * q
 
     def plot_projection(self, v=None, letters=None, color=None, ring=None,
-            kind='right'):
+            size=12, kind='right'):
         r"""
         Return an image of the projection of the successive points of the
         path into the space orthogonal to the given vector.
@@ -1330,6 +1330,8 @@ class FiniteWordPath_all(SageObject):
 
         - ``ring`` - ring (optional, default: None) where to do the
           computations. If None, RealField(53) is used.
+
+        - ``size`` - number (optional, default: ``12``) size of the points.
 
         - ``kind`` - string (optional, default ``'right'``) either
           ``'right'`` or ``'left'``. The color of a letter is given to the
@@ -1363,6 +1365,10 @@ class FiniteWordPath_all(SageObject):
         changing the ring of the projection matrix::
 
             sage: w.plot_projection(v, ring=RealField(20)) # optional long time (2 s)
+
+        You can change the size of the points::
+
+            sage: w.plot_projection(v, size=30) # optional long time (2 s)
 
         You can assign the color of a letter to the projected prefix to the
         right or the left of the letter::
@@ -1413,7 +1419,7 @@ class FiniteWordPath_all(SageObject):
             start = it.next()
         elif kind is not 'left':
             raise ValueError, 'unknown value for kind (=%s)'%kind
-        tout = [point([c], color=color[a]) for a, c in izip(self, it) if a in letters]
+        tout = [point([c], color=color[a], size=size) for a, c in izip(self, it) if a in letters]
         return sum(tout)
 
     def projected_path(self, v=None, ring=None):

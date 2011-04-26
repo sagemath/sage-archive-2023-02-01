@@ -8598,6 +8598,449 @@ cdef class Matrix(matrix1.Matrix):
             self.cache('cholesky', L)
         return L
 
+    def LU(self, pivot='auto', format='plu'):
+        r"""
+        Finds a decomposition into a lower-triangular matrix and
+        an upper-triangular matrix.
+
+        INPUT:
+
+        - ``pivot`` - pivoting strategy
+
+          - 'auto' (default) - see if the matrix entries are
+            ordered (i.e. if they have an absolute value method),
+            and if so, use a the partial pivoting strategy.
+            Otherwise, fall back to the nonzero strategy.  This
+            is the best choice for general routines that may
+            call this for matrix entries of a variety of types.
+
+          - 'partial' - each column is examined for
+            the element with the largest absolute value and the
+            row containing this element is swapped into place.
+
+          - 'nonzero' - the first nonzero element in a column
+            is located and the row with this element is used.
+
+        - ``format`` - contents of output, see more discussion
+          below about output.
+
+          - 'plu' (default) - a triple; matrices P, L and U
+            such that A = P*L*U.
+
+          - 'compact' - a pair; row permutation as a tuple, and the
+            matrices L and U combined into one matrix.
+
+        OUTPUT:
+
+        Suppose that `A` is an `m\times n` matrix, then an LU
+        decomposition is a lower-triangular `m\times m` matrix
+        `L` with every diagonal element equal to 1, and an
+        upper-triangular `m\times n` matrix, `U` such that the
+        product `LU`, after a permutation of the rows, is then
+        equal to `A`.  For the 'plu' format the permutation is
+        returned as an `m\times m` permutation matrix `P` such
+        that
+
+        .. math::
+
+            A = PLU
+
+        It is more common to place the permutation matrix just
+        to the left of `A`.  If you desire this version, then
+        use the inverse of `P` which is computed most efficiently
+        as its transpose.
+
+        If the 'partial' pivoting strategy is used, then the
+        non-diagonal entries of `L` will be less than or equal
+        to 1 in absolute value.  The 'nonzero' pivot strategy may
+        be faster, but the growth of data structures for elements of
+        the decomposition might counteract the advantage.
+
+        By necessity, returned matrices have a base ring equal
+        to the fraction field of the base ring of the original matrix.
+
+        In the 'compact' format, the first returned value is a
+        tuple that is a permutation of the rows of `LU` that yields
+        `A`.  See the doctest for how you might employ this
+        permutation.  Then the matrices `L` and `U` are merged
+        into one matrix -- remove the diagonal of ones in `L`
+        and the remaining nonzero entries can replace the
+        entries of `U` beneath the diagonal.
+
+        The results are cached, only in the compact format, separately
+        for each pivot strategy called.  Repeated requests for the
+        'plu' format will require just a small amount of overhead
+        in each call to bust out the compact format to the three
+        matrices.  Since only the compact format is cached, the
+        components of the compact format are immutable, while the
+        components of the 'plu' format are regenerated, and hence
+        are mutable.
+
+        Notice that while `U` is similar to row-echelon form and the
+        rows of `U` span the row space of `A`, the rows of `U` are not
+        generally linearly independent.  Nor are the pivot columns
+        (or rank) immediately obvious.  However for rings without
+        specialized echelon form routines, this method is about
+        twice as fast as the generic echelon form routine since
+        it only acts "below the diagonal", as would be predicted
+        from a theoretical analysis of the algorithms.
+
+        .. note::
+
+            This is an exact computation, so limited to exact
+            rings. If you need numerical results, convert the
+            base ring to the field of real double numbers,
+            ``RDF`` or the field of complex double numbers,
+            ``CDF``, which will use a faster routine that
+            is careful about numerical subtleties.
+
+        ALGORITHM:
+
+            "Gaussian Elimination with Partial Pivoting,"
+            Algorithm 21.1 of [TREFETHEN-BAU]_.
+
+        EXAMPLES:
+
+        Notice the difference in the `L` matrix as a result of different
+        pivoting strategies.  With partial pivoting, every entry of `L`
+        has absolute value 1 or less.  ::
+
+            sage: A = matrix(QQ, [[1, -1,  0,  2,  4,  7, -1],
+            ...                   [2, -1,  0,  6,  4,  8, -2],
+            ...                   [2,  0,  1,  4,  2,  6,  0],
+            ...                   [1,  0, -1,  8, -1, -1, -3],
+            ...                   [1,  1,  2, -2, -1,  1,  3]])
+            sage: P, L, U = A.LU(pivot='partial')
+            sage: P
+            [0 0 0 0 1]
+            [1 0 0 0 0]
+            [0 0 0 1 0]
+            [0 0 1 0 0]
+            [0 1 0 0 0]
+            sage: L
+            [   1    0    0    0    0]
+            [ 1/2    1    0    0    0]
+            [ 1/2  1/3    1    0    0]
+            [   1  2/3  1/5    1    0]
+            [ 1/2 -1/3 -2/5    0    1]
+            sage: U
+            [    2    -1     0     6     4     8    -2]
+            [    0   3/2     2    -5    -3    -3     4]
+            [    0     0  -5/3  20/3    -2    -4 -10/3]
+            [    0     0     0     0   2/5   4/5     0]
+            [    0     0     0     0   1/5   2/5     0]
+            sage: A == P*L*U
+            True
+            sage: P, L, U = A.LU(pivot='nonzero')
+            sage: P
+            [1 0 0 0 0]
+            [0 1 0 0 0]
+            [0 0 1 0 0]
+            [0 0 0 1 0]
+            [0 0 0 0 1]
+            sage: L
+            [ 1  0  0  0  0]
+            [ 2  1  0  0  0]
+            [ 2  2  1  0  0]
+            [ 1  1 -1  1  0]
+            [ 1  2  2  0  1]
+            sage: U
+            [ 1 -1  0  2  4  7 -1]
+            [ 0  1  0  2 -4 -6  0]
+            [ 0  0  1 -4  2  4  2]
+            [ 0  0  0  0  1  2  0]
+            [ 0  0  0  0 -1 -2  0]
+            sage: A == P*L*U
+            True
+
+        An example of the compact format.  ::
+
+            sage: B = matrix(QQ, [[ 1,  3,  5,  5],
+            ...                   [ 1,  4,  7,  8],
+            ...                   [-1, -4, -6, -6],
+            ...                   [ 0, -2, -5, -8],
+            ...                   [-2, -6, -6, -2]])
+            sage: perm, M = B.LU(format='compact')
+            sage: perm
+            (4, 3, 0, 1, 2)
+            sage: M
+            [  -2   -6   -6   -2]
+            [   0   -2   -5   -8]
+            [-1/2    0    2    4]
+            [-1/2 -1/2  3/4    0]
+            [ 1/2  1/2 -1/4    0]
+
+        We can easily illustrate the relationships between
+        the two formats with a square matrix.  ::
+
+            sage: C = matrix(QQ, [[-2,  3, -2, -5],
+            ...                   [ 1, -2,  1,  3],
+            ...                   [-4,  7, -3, -8],
+            ...                   [-3,  8, -1, -5]])
+            sage: P, L, U = C.LU(format='plu')
+            sage: perm, M = C.LU(format='compact')
+            sage: (L - identity_matrix(4)) + U == M
+            True
+            sage: p = [perm[i]+1 for i in range(len(perm))]
+            sage: PP = Permutation(p).to_matrix()
+            sage: PP == P
+            True
+
+        For a nonsingular matrix, and the 'nonzero' pivot
+        strategy there is no need to permute rows, so the
+        permutation matrix will be the identity.  Furthermore,
+        it can be shown that then the `L` and `U` matrices
+        are uniquely determined by requiring `L` to have ones
+        on the diagonal.  ::
+
+            sage: D = matrix(QQ, [[ 1,  0,  2,  0, -2, -1],
+            ...                   [ 3, -2,  3, -1,  0,  6],
+            ...                   [-4,  2, -3,  1, -1, -8],
+            ...                   [-2,  2, -3,  2,  1,  0],
+            ...                   [ 0, -1, -1,  0,  2,  5],
+            ...                   [-1,  2, -4, -1,  5, -3]])
+            sage: P, L, U = D.LU(pivot='nonzero')
+            sage: P
+            [1 0 0 0 0 0]
+            [0 1 0 0 0 0]
+            [0 0 1 0 0 0]
+            [0 0 0 1 0 0]
+            [0 0 0 0 1 0]
+            [0 0 0 0 0 1]
+            sage: L
+            [   1    0    0    0    0    0]
+            [   3    1    0    0    0    0]
+            [  -4   -1    1    0    0    0]
+            [  -2   -1   -1    1    0    0]
+            [   0  1/2  1/4  1/2    1    0]
+            [  -1   -1 -5/2   -2   -6    1]
+            sage: U
+            [   1    0    2    0   -2   -1]
+            [   0   -2   -3   -1    6    9]
+            [   0    0    2    0   -3   -3]
+            [   0    0    0    1    0    4]
+            [   0    0    0    0 -1/4 -3/4]
+            [   0    0    0    0    0    1]
+            sage: D == L*U
+            True
+
+        The base ring of the matrix may be any field, or a ring
+        which has a fraction field implemented in Sage. The ring
+        needs to be exact (there is a numerical LU decomposition
+        for matrices over ``RDF`` and ``CDF``).  Matrices returned
+        are over the original field, or the fraction field of the
+        ring.  If the field is not ordered (i.e. the absolute value
+        function is not implemented), then the pivot strategy needs
+        to be 'nonzero'.  ::
+
+            sage: A = matrix(RealField(100), 3, 3, range(9))
+            sage: P, L, U = A.LU()
+            Traceback (most recent call last):
+            ...
+            TypeError: base ring of the matrix must be exact, this is not the case for Real Field with 100 bits of precision
+
+            sage: A = matrix(Integers(6), 3, 2, range(6))
+            sage: A.LU()
+            Traceback (most recent call last):
+            ...
+            TypeError: base ring of the matrix needs a field of fractions, this is not possible for Ring of integers modulo 6
+
+            sage: R.<y> = PolynomialRing(QQ, 'y')
+            sage: B = matrix(R, [[y+1, y^2+y], [y^2, y^3]])
+            sage: P, L, U = B.LU(pivot='partial')
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot take absolute value of matrix entries, try 'pivot=auto' or 'pivot=nonzero'
+            sage: P, L, U = B.LU(pivot='nonzero')
+            sage: P
+            [1 0]
+            [0 1]
+            sage: L
+            [          1           0]
+            [y^2/(y + 1)           1]
+            sage: U
+            [  y + 1 y^2 + y]
+            [      0       0]
+            sage: L.base_ring()
+            Fraction Field of Univariate Polynomial Ring in y over Rational Field
+            sage: B == P*L*U
+            True
+
+            sage: F.<a> = FiniteField(5^2)
+            sage: C = matrix(F, [[a + 3, 4*a + 4, 2, 4*a + 2],
+            ...                  [3, 2*a + 4, 2*a + 4, 2*a + 1],
+            ...                  [3*a + 1, a + 3, 2*a + 4, 4*a + 3],
+            ...                  [a, 3, 3*a + 1, a]])
+            sage: P, L, U = C.LU(pivot='nonzero')
+            sage: P
+            [1 0 0 0]
+            [0 1 0 0]
+            [0 0 1 0]
+            [0 0 0 1]
+            sage: L
+            [      1       0       0       0]
+            [3*a + 3       1       0       0]
+            [    2*a 4*a + 2       1       0]
+            [2*a + 3       2 2*a + 4       1]
+            sage: U
+            [  a + 3 4*a + 4       2 4*a + 2]
+            [      0   a + 1   a + 3 2*a + 4]
+            [      0       0       1 4*a + 2]
+            [      0       0       0       0]
+            sage: L.base_ring()
+            Finite Field in a of size 5^2
+            sage: C == P*L*U
+            True
+
+        The 'auto' pivoting strategy (the default) will try to use
+        partial pivoting, and fall back to the nonzero strategy.
+        For the nonsingular matrix below, we see evidence of
+        pivoting when viewed over the rationals, and no pivoting
+        over the integers mod 29.  ::
+
+            sage: entries = [3, 20, 11, 7, 16, 28, 5, 15, 21, 23, 22, 18, 8, 23, 15, 2]
+            sage: A = matrix(Integers(29), 4, 4, entries)
+            sage: perm, _ = A.LU(pivot='auto', format='compact'); perm
+            (0, 1, 2, 3)
+            sage: B = matrix(QQ, 4, 4, entries)
+            sage: perm, _ = B.LU(pivot='auto', format='compact'); perm
+            (2, 0, 1, 3)
+
+        The `U` matrix is only guaranteed to be upper-triangular.
+        The rows are not necessarily linearly independent, nor are
+        the pivots columns or rank in evidence.  ::
+
+            sage: A = matrix(QQ, [[ 1, -4,  1,  0, -2,  1, 3,  3,  2],
+            ...                   [-1,  4,  0, -4,  0, -4, 5, -7, -7],
+            ...                   [ 0,  0,  1, -4, -1, -3, 6, -5, -6],
+            ...                   [-2,  8, -1, -4,  2, -4, 1, -8, -7],
+            ...                   [ 1, -4,  2, -4, -3,  2, 5,  6,  4]])
+            sage: P, L, U = A.LU()
+            sage: U
+            [   -2     8    -1    -4     2    -4     1    -8    -7]
+            [    0     0   1/2    -2    -1    -2   9/2    -3  -7/2]
+            [    0     0   3/2    -6    -2     0  11/2     2   1/2]
+            [    0     0     0     0  -1/3    -1   5/3  -5/3  -5/3]
+            [    0     0     0     0   1/3    -3   7/3 -19/3 -19/3]
+            sage: A.rref()
+            [ 1 -4  0  4  0  0 -1 -1 -1]
+            [ 0  0  1 -4  0  0  1  0 -1]
+            [ 0  0  0  0  1  0 -2 -1 -1]
+            [ 0  0  0  0  0  1 -1  2  2]
+            [ 0  0  0  0  0  0  0  0  0]
+            sage: A.pivots()
+            (0, 2, 4, 5)
+
+        TESTS:
+
+        Unknown keywords are caught.  ::
+
+            sage: A = matrix(ZZ, 2, range(4))
+            sage: A.LU(pivot='junk')
+            Traceback (most recent call last):
+            ...
+            ValueError: pivot strategy must be 'auto', 'partial' or 'nonzero', not junk
+            sage: A.LU(format='garbage')
+            Traceback (most recent call last):
+            ...
+            ValueError: format must be 'plu' or 'compact', not garbage
+
+        Components of the 'compact' format are immutable, while
+        components of the 'plu' format are not.  ::
+
+            sage: A = matrix(ZZ, 2, range(4))
+            sage: perm, M = A.LU(format='compact')
+            sage: perm[0] = 25
+            Traceback (most recent call last):
+            ...
+            TypeError: 'tuple' object does not support item assignment
+            sage: M.is_immutable()
+            True
+            sage: P, L, U = A.LU(format='plu')
+            sage: all([A.is_mutable() for A in [P, L, U]])
+            True
+
+        AUTHOR:
+
+        - Rob Beezer (2011-04-26)
+        """
+        if not pivot in ['auto', 'partial', 'nonzero']:
+            raise ValueError("pivot strategy must be 'auto', 'partial' or 'nonzero', not {0}".format(pivot))
+        if not format in ['compact', 'plu']:
+            raise ValueError("format must be 'plu' or 'compact', not {0}".format(format))
+        cdef Py_ssize_t m, n, d, i, j, k, p, max_location
+        cdef Matrix M
+        m, n = self._nrows, self._ncols
+        d = min(m, n)
+        key = 'LU_' + pivot
+        compact = self.fetch(key)
+        if compact is None:
+            R = self.base_ring()
+            if not R.is_exact():
+                raise TypeError('base ring of the matrix must be exact, this is not the case for {0}'.format(R))
+            if not R.is_field():
+                try:
+                    R = R.fraction_field()
+                    M = self.change_ring(R)
+                except:
+                    raise TypeError('base ring of the matrix needs a field of fractions, this is not possible for {0}'.format(R))
+            else:
+                M = self.__copy__()
+            ordered = False
+            if pivot in ['auto', 'partial']:
+                try:
+                    abs(R.an_element())
+                    ordered = True
+                except:
+                    if pivot == 'partial':
+                        raise TypeError("cannot take absolute value of matrix entries, try 'pivot=auto' or 'pivot=nonzero'")
+            perm = range(m)
+            zero = R(0)
+            for k in range(d):
+                max_location = -1
+                max_entry = zero
+                if ordered:
+                    for i in range(k,m):
+                        entry = abs(M.get_unsafe(i,k))
+                        if entry > max_entry:
+                            max_location = i
+                            max_entry = entry
+                else:
+                    for i in range(k,m):
+                        if M.get_unsafe(i,k) != zero:
+                            max_location = i
+                            break
+                if max_location != -1:
+                    perm[k], perm[max_location] = perm[max_location], perm[k]
+                    M.swap_rows(k, max_location)
+                    for j in range(k+1, m):
+                        scale = -M.get_unsafe(j,k)/M.get_unsafe(k,k)
+                        M.set_unsafe(j,k, -scale)
+                        for p in range(k+1,n):
+                            M.set_unsafe(j,p, M.get_unsafe(j,p) + scale*M.get_unsafe(k,p))
+            perm = tuple(perm)
+            M.set_immutable()
+            compact = (perm, M)
+            self.cache(key, compact)
+
+        if format == 'compact':
+            return compact
+        elif format == 'plu':
+            import sage.matrix.constructor
+            import sage.combinat.permutation
+            perm = compact[0]
+            M = compact[1].__copy__()
+            R = M.base_ring()
+            zero = R(0)
+            perm = [perm[i]+1 for i in range(m)]
+            P = sage.combinat.permutation.Permutation(perm).to_matrix()
+            L = sage.matrix.constructor.identity_matrix(R, m)
+            for i in range(1, m):
+                for k in range(min(i,d)):
+                    L[i,k] = M[i,k]
+                    M[i,k] = zero
+            return P, L, M
+
     def hadamard_bound(self):
         r"""
         Return an int n such that the absolute value of the determinant of

@@ -1243,20 +1243,6 @@ class Word_class(SageObject):
             if p.is_palindrome():
                 yield p
 
-    @lazy_attribute
-    def _word_content(self):
-        r"""
-        EXAMPLES::
-
-            sage: w = Word('abaccefa')
-            sage: w._word_content
-            doctest:...: DeprecationWarning: _word_content is deprecated! try to_integer_word instead! See the documentation for more information
-            word: 01022340
-        """
-        from sage.misc.misc import deprecation
-        deprecation("_word_content is deprecated! try to_integer_word instead! See the documentation for more information")
-        return self.to_integer_word()
-
     def alphabet(self):
         r"""
         EXAMPLES::

@@ -591,24 +591,6 @@ class ImplicitSuffixTree(SageObject):
         # but it is useful for the other methods.
         self._word = word
 
-    @lazy_attribute
-    def _word_content(self):
-        r"""
-        This function is deprecated, use _letters instead.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.words.suffix_trees import ImplicitSuffixTree
-            sage: w = Words('cao')('cacao')
-            sage: s = ImplicitSuffixTree(w)
-            sage: s._word_content
-            doctest:...: DeprecationWarning: _word_content is deprecated, use _letters instead
-            ['c', 'a', 'c', 'a', 'o']
-        """
-        from sage.misc.misc import deprecation
-        deprecation("_word_content is deprecated, use _letters instead")
-        return self._letters
-
     def _process_letter(self, letter):
         r"""
         This is the main part of Ukkonen's algorithm. This corresponds to

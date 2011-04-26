@@ -228,53 +228,6 @@ class Words_all(InfiniteAbstractCombinatorialClass):
         kwds['caching'] = caching
         #kwds['alphabet'] = self
 
-        ## BACKWARD COMPATIBILITY / DEPRECATION WARNINGS.
-        # In earlier versions, the first argument was ``obj``. We change
-        # this to ``data`` for consistency with the Word interface.
-        if kwds.has_key('obj'):
-            from sage.misc.misc import deprecation
-            deprecation("obj argument is deprecated, use data instead")
-            kwds['data'] = kwds['obj']
-            del kwds['obj']
-        # In earlier versions, the third argument was ``format``, which
-        # could have been: 'empty', 'letter', 'list', 'function',
-        # 'iterator', 'content'.
-        if kwds.has_key('format'):
-            from sage.misc.misc import deprecation
-            deprecation("format argument is deprecated, use datatype instead")
-            datatype = kwds['format']
-            del kwds['format']
-        if datatype == 'empty':
-            if kwds['data'] is not None:
-                raise TypeError, "trying to build an empty word with something other than None"
-            kwds['data'] = []
-            datatype = 'list'
-        elif datatype == 'letter':
-            kwds['data'] = [kwds['data'],]
-            datatype = 'list'
-        elif datatype == 'function':
-            datatype = 'callable'
-        elif datatype == 'iterator':
-            datatype = 'iter'
-        elif datatype == 'content':
-            datatype = None
-        kwds['datatype'] = datatype
-        # In earlier versions, the second argument was ``part``, which was
-        # supposed to be a slice object.
-        if isinstance(length, slice):
-            kwds['part'] = length
-            del kwds['length']
-        if kwds.has_key('part'):
-            from sage.misc.misc import deprecation
-            deprecation("part argument is deprecated, use length instead")
-            part = kwds['part']
-            del kwds['part']
-            #alphabet = kwds['alphabet']
-            #del kwds['alphabet']
-            w = Word(data=self._construct_word(**kwds)[part],alphabet=self)
-            return w
-        ## END OF BACKWARD COMPATIBILITY / DEPRECATION WARNINGS.
-
         # The function _construct_word handles the construction of the words.
         w = self._construct_word(**kwds)
         self._check(w)
@@ -517,7 +470,6 @@ class Words_all(InfiniteAbstractCombinatorialClass):
 
         # Guess the datatype if it is not given.
         if datatype is None:
-            from sage.combinat.words.word_content import WordContent
             if isinstance(data, (list, CombinatorialObject)):
                 datatype = "list"
             elif isinstance(data, (str)):
@@ -528,10 +480,6 @@ class Words_all(InfiniteAbstractCombinatorialClass):
                 datatype = "callable"
             elif hasattr(data,"__iter__"):
                 datatype = "iter"
-            elif isinstance(data, WordContent):
-                # For backwards compatibility (picklejar)
-                from sage.combinat.words.word import _word_from_word_content
-                return _word_from_word_content(data=data, parent=self)
             else:
                 raise ValueError, "Cannot guess a datatype from data (=%s); please specify one"%data
         else:
@@ -542,7 +490,7 @@ class Words_all(InfiniteAbstractCombinatorialClass):
                 raise ValueError, "Your data is not callable"
             elif datatype not in ("list", "tuple", "str",
                                 "callable", "iter", "pickled_function"):
-                raise ValueError, "Unknown datatype"
+                raise ValueError, "Unknown datatype (=%s)" % datatype
 
         # If `data` is a pickled_function, restore the function
         if datatype == 'pickled_function':

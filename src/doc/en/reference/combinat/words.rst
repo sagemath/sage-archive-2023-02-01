@@ -16,5 +16,3 @@ Words
    ../sage/combinat/words/suffix_trees
    ../sage/combinat/words/morphism
    ../sage/combinat/words/paths
-   ../sage/combinat/words/utils
-   ../sage/combinat/words/word_content

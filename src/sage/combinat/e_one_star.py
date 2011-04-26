@@ -506,7 +506,7 @@ class Patch(SageObject):
     ::
 
         sage: face_contour = {}
-        sage: face_contour[1] =  map(vector, [(0,0,0),(0,1,0),(0,1,1),(0,0,1)])
+        sage: face_contour[1] = map(vector, [(0,0,0),(0,1,0),(0,1,1),(0,0,1)])
         sage: face_contour[2] = map(vector, [(0,0,0),(0,0,1),(1,0,1),(1,0,0)])
         sage: face_contour[3] = map(vector, [(0,0,0),(1,0,0),(1,1,0),(0,1,0)])
         sage: Patch([Face((0,0,0),t) for t in [1,2,3]], face_contour=face_contour)
@@ -528,7 +528,7 @@ class Patch(SageObject):
             sage: P
             Patch: [[(0, 0, 0), 1]*, [(0, 0, 0), 2]*, [(0, 0, 0), 3]*, [(0, 1, 0), 3]*]
         """
-        self._faces = list(faces)
+        self._faces = [Face(f.vector(), f.type(), f.color()) for f in faces]
 
         if not face_contour is None:
             self._face_contour = face_contour
@@ -573,7 +573,21 @@ class Patch(SageObject):
             sage: E1Star(s * t)(P) == E1Star(t)(E1Star(s)(P))
             True
         """
-        return (isinstance(other, Patch) and set(self) == set(other))
+        return (isinstance(other, Patch) and set(self._faces) == set(other._faces))
+
+    def __hash__(self):
+        r"""
+        Hash function of Patch.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.e_one_star import E1Star, Face, Patch
+            sage: x = [Face((0,0,0),t) for t in [1,2,3]]
+            sage: P = Patch(x)
+            sage: hash(P)
+            -4839605361791007520
+        """
+        return hash(frozenset(self))
 
     def __len__(self):
         r"""
@@ -698,9 +712,32 @@ class Patch(SageObject):
             Patch: [[(0, 0, 0), 1]*, [(0, 0, 0), 2]*, [(1, 2, 3), 3]*, [(1, 2, 3), 3]*, [(2, 3, 3), 2]*]
         """
         if isinstance(faces, Face):
-            self._faces.append(faces)
+            self._faces = Patch(self._faces + [faces])._faces
         else:
-            self._faces.extend(faces)
+            faces = list(faces)
+            self._faces = Patch(self._faces + faces)._faces
+
+    def remove(self, faces):
+        r"""
+        Removes a face or many faces to the patch. This changes the patch.
+        The input can be a Face or a list of faces.
+        If a face appears multiple times in self, all the copies are removed.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.e_one_star import E1Star, Face, Patch
+            sage: P = Patch([Face((0,0,0),t) for t in [1,2,3]])
+            sage: P.remove(Face([0,0,0],2))
+            sage: P
+            Patch: [[(0, 0, 0), 1]*, [(0, 0, 0), 3]*]
+        """
+        if isinstance(faces, Face):
+            while faces in self._faces:
+                self._faces.remove(faces)
+        else:
+            for f in faces:
+                while f in self._faces:
+                    self._faces.remove(f)
 
     def faces_of_vector(self, v):
         r"""

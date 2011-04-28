@@ -1051,6 +1051,51 @@ class MPolynomialIdeal_singular_repr:
         """
         return [P for _,P in self.complete_primary_decomposition(algorithm)]
 
+    def is_prime(self, **kwds):
+        r"""
+        Return ``True`` if this ideal is prime.
+
+        INPUT::
+
+        - keyword arguments are passed on to
+          ``complete_primary_decomposition``; in this way you can
+          specify the algorithm to use.
+
+        EXAMPLES::
+
+            sage: R.<x, y> = PolynomialRing(QQ, 2)
+            sage: I = (x^2 - y^2 - 1)*R
+            sage: I.is_prime()
+            True
+            sage: (I^2).is_prime()
+            False
+
+            sage: J = (x^2 - y^2)*R
+            sage: J.is_prime()
+            False
+            sage: (J^3).is_prime()
+            False
+
+            sage: (I * J).is_prime()
+            False
+
+            The following is Trac #5982.  Note that the quotient ring
+            is not recognized as being a field at this time, so the
+            fraction field is not the quotient ring itself::
+
+            sage: Q = R.quotient(I); Q
+            Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 - y^2 - 1)
+            sage: Q.fraction_field()
+            Fraction Field of Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 - y^2 - 1)
+        """
+        if not self.ring().base_ring().is_field():
+            raise NotImplementedError
+        CPD = self.complete_primary_decomposition(**kwds)
+        if len(CPD) != 1:
+            return False
+        _, P = CPD[0]
+        return self == P
+
     @require_field
     @singular_standard_options
     @libsingular_standard_options

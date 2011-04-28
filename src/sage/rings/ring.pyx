@@ -1038,10 +1038,15 @@ cdef class CommutativeRing(Ring):
             sage: R.fraction_field()
             Fraction Field of Multivariate Polynomial Ring in x, y over Ring of integers modulo 389
         """
-        if self.is_field():
-            return self
-        elif not self.is_integral_domain():
+        if not self.is_integral_domain():
             raise TypeError, "self must be an integral domain."
+
+        try:
+            if self.is_field():
+                return self
+        except NotImplementedError:
+            pass
+
         if self.__fraction_field is not None:
             return self.__fraction_field
         else:

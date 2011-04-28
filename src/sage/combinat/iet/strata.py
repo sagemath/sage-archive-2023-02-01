@@ -1344,7 +1344,7 @@ class ConnectedComponentOfAbelianStratum(SageObject):
                 return -1
             return 0
 
-        return type.__cmp__(type(self),type(other))
+        return cmp(type(self),type(other))
 
 CCA = ConnectedComponentOfAbelianStratum
 

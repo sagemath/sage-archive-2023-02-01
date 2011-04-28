@@ -292,7 +292,7 @@ def getattr_from_other_class(self, cls, name):
     raise_attribute_error(self, name)
 
 def dir_with_other_class(self, cls):
-    """
+    r"""
     Emulates ``dir(self)``, as if self was also an instance ``cls``,
     right after ``caller_class`` in the method resolution order
     (``self.__class__.mro()``)
@@ -312,7 +312,7 @@ def dir_with_other_class(self, cls):
         sage: sage.structure.parent.dir_with_other_class(x, B)
         [..., 'a', 'b', 'c', 'd', 'e']
 
-    Check that objects without dicts are well handled
+    Check that objects without dicts are well handled::
 
         sage: F.<x0,x1> = BooleanPolynomialRing()
         sage: hasattr(F, '__dict__')

@@ -13,8 +13,12 @@
     :license: BSD, see LICENSE for details.
 
     AUTHORS:
-    ? (before 2011) - Initial version derived from sphinx.ext.autodoc
-    Johan S. R. Nielsen - Support for _sage_argspec_
+
+    - ? (before 2011) - Initial version derived from sphinx.ext.autodoc
+    - Johan S. R. Nielsen - Support for _sage_argspec_
+    - Simon King (2011-04) - Use sageinspect. Include public cython attributes
+      only in the documentation if they have a docstring.
+
 """
 
 import re
@@ -1093,8 +1097,12 @@ class AttributeDocumenter(ClassLevelDocumenter):
 
     @classmethod
     def can_document_member(cls, member, membername, isattr, parent):
+        # "isdescriptor(member) and not isinstance(member, (FunctionType, BuiltinFunctionType))"
+        # is true for public cython attributes of a class. But in this case, the doc string is None,
+        # and so we would not include it into the documentation.
         return (isdescriptor(member) and not
-                isinstance(member, (FunctionType, BuiltinFunctionType))) \
+                isinstance(member, (FunctionType, BuiltinFunctionType))
+                and (hasattr(member,'__doc__') and member.__doc__ is not None)) \
                or (not isinstance(parent, ModuleDocumenter) and isattr)
 
     def document_members(self, all_members=False):

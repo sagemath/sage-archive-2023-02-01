@@ -13,6 +13,7 @@ AUTHORS:
 - Martin Albrecht (2009-07): clean up, enhancements, etc.
 - Michael Brickenstein (2009-10): extension to more Singular types
 - Martin Albrecht (2010-01): clean up, support for attributes
+- Simon King (2011-04): include the documentation provided by Singular as a code block.
 
 EXAMPLES:
 
@@ -1080,8 +1081,9 @@ EXAMPLE::
 
 The Singular documentation for '%s' is given below.
 """%(self._name,self._name)
-
-        return prefix + get_docstring(self._name)
+        # Trac ticket #11268: Include the Singular documentation as a block of code
+        singular_doc = get_docstring(self._name).split('\n')
+        return prefix + "\n::\n\n"+'\n'.join(["    "+L for L in singular_doc])
 
     cdef MPolynomialRing_libsingular common_ring(self, tuple args, ring=None):
         """

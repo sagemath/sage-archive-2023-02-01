@@ -392,7 +392,7 @@ cdef class Riemann_Map:
 
             sage: s = spline(points)
             sage: s(3*pi / 4)
-            0.00121587378429...
+            0.0012158...
             sage: plot(s,0,2*pi) # plot the kernel
 
         The unit circle with a small hole::
@@ -465,7 +465,7 @@ cdef class Riemann_Map:
 
             sage: s = spline(points)
             sage: s(3*pi / 4)
-            1.62766037996...
+            1.627660...
 
         The unit circle with a small hole::
 
@@ -570,12 +570,12 @@ cdef class Riemann_Map:
             sage: fprime(t) = I*e^(I*t) + 0.5*I*e^(-I*t)
             sage: m = Riemann_Map([f], [fprime], 0)
             sage: m.riemann_map(0.25 + sqrt(-0.5))
-            (0.137514...+0.87669602...j)
+            (0.137514...+0.876696...j)
             sage: m.riemann_map(1.3*I)
             (-1.56...e-05+0.989694...j)
             sage: I = CDF.gen()
             sage: m.riemann_map(0.4)
-            (0.733242677...+3.2...e-06j)
+            (0.73324...+3.2...e-06j)
             sage: import numpy as np
             sage: m.riemann_map(np.complex(-3, 0.0001))
             (1.405757...e-05+8.06...e-10j)
@@ -656,14 +656,14 @@ cdef class Riemann_Map:
             sage: fprime(t) = I*e^(I*t) + 0.5*I*e^(-I*t)
             sage: m = Riemann_Map([f], [fprime], 0)
             sage: m.inverse_riemann_map(0.5 + sqrt(-0.5))
-            (0.406880548363...+0.361470279816...j)
+            (0.406880...+0.3614702...j)
             sage: m.inverse_riemann_map(0.95)
-            (0.486319431795...-4.90019052...j)
+            (0.486319...-4.90019052...j)
             sage: m.inverse_riemann_map(0.25 - 0.3*I)
-            (0.165324498558...-0.180936785500...j)
+            (0.1653244...-0.180936...j)
             sage: import numpy as np
             sage: m.inverse_riemann_map(np.complex(-0.2, 0.5))
-            (-0.156280570579...+0.321819151891...j)
+            (-0.156280...+0.321819...j)
         """
         if self.exterior:
             pt = 1/pt
@@ -1057,37 +1057,6 @@ cpdef get_derivatives(np.ndarray[COMPLEX_T, ndim=2]z_values, FLOAT_T xstep, FLOA
     zabs = np.abs(z_values[1:-1,1:-1]) # the abs(derivative) scaled by distance from origin
     dtheta = np.divide(dr,zabs)
     return dr, dtheta
-
--cdef inline double mag_to_lightness(double r):
--    Tweak this to adjust how the magnitude affects the color.
--    Note this method is customized for riemann plots, the
--    magnitude loops rather than fading to black.
-
-     INPUT:
-
--    - ``r`` -- a non-negative real number.
-
-     OUTPUT:
-
--    A value between `-1` (black) and `+1` (white), inclusive.
-
--    EXAMPLES:
-
-
--    This tests it implicitly::
--
--        sage: from sage.calculus.riemann import complex_to_rgb
--        sage: import numpy
--        sage: complex_to_rgb(numpy.array([[0, 1, 1000]],dtype = numpy.complex128))
--        array([[[   1.,    1.,    1.],
--                [   1.,    0.,    0.],
--                [-998.,    0.,    0.]]])
-     """
--    return 1 - r
--
--cpdef complex_to_rgb(np.ndarray z_values):
--    r"""
--    Convert from an array of complex numbers to its corresponding matrix of
 
 cpdef complex_to_spiderweb(np.ndarray[COMPLEX_T, ndim = 2]z_values, np.ndarray[FLOAT_T, ndim = 2] dr, np.ndarray[FLOAT_T, ndim = 2] dtheta, spokes, circles, rgbcolor, thickness, withcolor):
     """

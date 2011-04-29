@@ -901,6 +901,15 @@ class NumberFieldIdeal(Ideal_generic):
             sage: B = L.ideal([6, (-1/2*b + 1)*a - b - 5/2])
             sage: A.intersection(B) == L.ideal(-1/2*a - 3/2*b - 1)
             True
+
+        TESTS:
+
+        Test that this works with non-integral ideals (#10767)::
+
+            sage: K = QuadraticField(-2)
+            sage: I = K.ideal(1/2)
+            sage: I.intersection(I)
+            Fractional ideal (1/2)
         """
         L = self.number_field()
         other = L.ideal(other)

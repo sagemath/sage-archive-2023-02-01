@@ -1320,7 +1320,7 @@ if 'install' in COMMAND_LINE_TARGETS:
 
     if HAVE_PYTHON_EXTENSION or extern_python_ext:
         cmdline = """$PYTHON -c "import compileall; compileall.compile_dir('"""
-        cmdline += InstPyPath() + """', ddir = ''); """
+        cmdline += InstPyPath('polybori') + """', ddir = ''); """
         cmdline += """compileall.compile_dir('"""+ InstPath(GUIPath())
         cmdline += """', ddir='')" """
         FinalizeNonExecs(env.Command([file.path + 'c' for file in pyfiles],

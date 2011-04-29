@@ -1,5 +1,5 @@
 --- ../src/polybori-0.7/SConstruct	2011-04-27 13:00:31.000000000 +0200
-+++ SConstruct	2011-04-27 14:19:44.000000000 +0200
++++ SConstruct	2011-04-29 22:51:48.000000000 +0200
 @@ -372,7 +372,7 @@
  if not env.GetOption('clean'):
      conf = Configure(env)
@@ -43,3 +43,12 @@
  
  libCuddShared = slib(CuddPath(cudd_name), list(shared_resources))
  
+@@ -1319,7 +1320,7 @@
+ 
+     if HAVE_PYTHON_EXTENSION or extern_python_ext:
+         cmdline = """$PYTHON -c "import compileall; compileall.compile_dir('"""
+-        cmdline += InstPyPath() + """', ddir = ''); """ 
++        cmdline += InstPyPath('polybori') + """', ddir = ''); """ 
+         cmdline += """compileall.compile_dir('"""+ InstPath(GUIPath())
+         cmdline += """', ddir='')" """
+         FinalizeNonExecs(env.Command([file.path + 'c' for file in pyfiles],

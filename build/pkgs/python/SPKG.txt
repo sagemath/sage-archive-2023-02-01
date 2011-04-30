@@ -66,9 +66,18 @@ http://www.python.org/community/
  * socketmodule.c Makes sure some things are defined before trying to compile
    them. This was to work around a failure of _socket to build on OpenSolaris.
    see  http://bugs.python.org/issue8852 and Sage trac #9041 and #9022
+ * Modules/Setup.dist is patched on Ubuntu 11.04 - see #11243
 
 
 == Changelog ==
+
+=== python-2.6.4.p10 (Jan Groenewald and David Kirkby, April 24th 2011) ===
+ * #11243 crypt module fails to build on Ubuntu 11.04 See:
+   http://groups.google.com/group/sage-devel/browse_thread/thread/593b9a4124f5075d
+ * Simplified the method for checking that Python modules are imported
+   OK, which removes the need to repeating code by using a loop.
+ * Adds a check that the crypt module imports OK. This is done on every platform -
+   not just Ubuntu.
 
 === python-2.6.4.p9 (Robert Bradsure and David Kirkby, June 21st, 2010) ===
  * #9042 - Cython fails to build on OpenSolaris x64

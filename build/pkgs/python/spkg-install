@@ -13,6 +13,18 @@ fi
 
 # PATCH
 
+# Due to issues building Python on Ubuntu 11.04, a file is patched
+# on these systems.
+
+if [ -f /etc/issue ] && grep "Ubuntu 11.04" /etc/issue ; then
+   echo "Patching src/Modules/Setup.dist as this is Ubuntu 11.04"
+   patch -p0 < patches/Modules.Setup.dist.patch
+   if [ $? -ne 0 ]; then
+      echo "Error patching src/Modules/Setup.dist"
+      exit 1
+   fi
+fi
+
 # Due to a python bug with Solaris
 # see http://bugs.python.org/issue1759169
 # it is necessary to apply a patch to configure.in
@@ -229,23 +241,15 @@ echo "Sleeping for three seconds before testing python"
 sleep 3
 
 # Make sure extension modules were built correctly.
-python -c "import math"
+# All these modules are important and if any one
+# fails to build, Sage will not work.
 
-if [ $? -eq 0 -a -f "$SAGE_LOCAL/bin/python" ]; then
-    echo "math module OK"
-else
-    echo "math module failed to import"
-    exit 1
-fi
-
-# Make sure sufficient crypto support is available in the built python.
-# This is critical.
-python -c "import hashlib"
-
-if [ $? -eq 0 -a -f "$SAGE_LOCAL/bin/python" ]; then
-    echo "hashlib module imported"
-    exit 0
-else
-    echo "hashlib module failed to import"
-    exit 1
-fi
+for module in math hashlib crypt ; do
+   "$SAGE_LOCAL/bin/python" -c "import $module"
+   if [ $? -eq 0 ] ; then
+      echo "$module module imported OK"
+   else
+      echo "$module module failed to import"
+      exit 1
+   fi
+done

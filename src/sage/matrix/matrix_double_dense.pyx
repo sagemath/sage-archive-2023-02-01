@@ -2,36 +2,45 @@
 Dense matrices using a NumPy backend.  This serves as a base class for
 dense matrices over Real Double Field and Complex Double Field.
 
-EXAMPLES:
+AUTHORS:
+
+- Jason Grout, Sep 2008: switch to NumPy backend, factored out the Matrix_double_dense class
+
+- Josh Kantor
+
+- William Stein: many bug fixes and touch ups.
+
+EXAMPLES::
+
     sage: b=Mat(RDF,2,3).basis()
     sage: b[0]
     [1.0 0.0 0.0]
     [0.0 0.0 0.0]
 
 
-We deal with the case of zero rows or zero columns:
+We deal with the case of zero rows or zero columns::
+
     sage: m = MatrixSpace(RDF,0,3)
     sage: m.zero_matrix()
     []
 
-TESTS:
+TESTS::
+
     sage: a = matrix(RDF,2,range(4), sparse=False)
     sage: TestSuite(a).run()
     sage: a = matrix(CDF,2,range(4), sparse=False)
     sage: TestSuite(a).run()
-
-AUTHORS:
-    -- Jason Grout, Sep 2008: switch to NumPy backend, factored out the Matrix_double_dense class
-    -- Josh Kantor
-    -- William Stein: many bug fixes and touch ups.
 """
 
-##############################################################################
+#*****************************************************************************
 #       Copyright (C) 2004,2005,2006 Joshua Kantor <kantor.jm@gmail.com>
+#
 #  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##############################################################################
+#*****************************************************************************
+
 import math
 
 import sage.rings.real_double
@@ -1387,7 +1396,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: U, S, V = A.SVD()
             sage: U.is_unitary()
             True
-            sage: V.is_unitary()
+            sage: V.is_unitary()  # not tested - known bug (trac #11248)
             True
 
         If we make the tolerance too strict we can get misleading results.  ::

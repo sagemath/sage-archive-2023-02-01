@@ -30,6 +30,9 @@
 
 == Releases/Changelog ==
 
+=== cryptominisat-2.9.0 (Martin Albrecht, April 30th, 2011) ===
+ * new upstream release
+
 === cryptominisat-2.7.1 (Martin Albrecht, November 3rd 2010) ===
  * initially Sage-ification of CryptoMiniSat
 

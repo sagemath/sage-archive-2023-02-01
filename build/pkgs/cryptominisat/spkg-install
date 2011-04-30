@@ -54,21 +54,21 @@ $MAKE clean
 ./configure --prefix=$SAGE_LOCAL $ENABLE_DEBUG
 
 if [ $? -ne 0 ]; then
-    echo "Error configuring libcryptominisat"
+    echo "Error configuring cryptominisat"
     exit 1
 fi
 
 $MAKE
 
 if [ $? -ne 0 ]; then
-    echo "Error building libcryptominisat"
+    echo "Error building cryptominisat"
     exit 1
 fi
 
 $MAKE install
 
 if [ $? -ne 0 ]; then
-    echo "Error installing libcryptominisat"
+    echo "Error installing cryptominisat"
     exit 1
 fi
 

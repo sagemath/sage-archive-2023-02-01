@@ -322,6 +322,9 @@ ext_modules = [
     Extension('sage.graphs.graph_decompositions.vertex_separation',
               sources = ['sage/graphs/graph_decompositions/vertex_separation.pyx']),
 
+    Extension('sage.graphs.convexity_properties',
+              sources = ['sage/graphs/convexity_properties.pyx']),
+
     Extension('sage.graphs.generic_graph_pyx',
               sources = ['sage/graphs/generic_graph_pyx.pyx'],
               libraries = ['gmp']),

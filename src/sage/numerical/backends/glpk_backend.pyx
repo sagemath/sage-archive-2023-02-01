@@ -179,7 +179,7 @@ cdef class GLPKBackend(GenericBackend):
                 glp_set_col_kind(self.lp, n_var - i, GLP_IV)
 
             if obj:
-                self.bjective_coefficient(n_var - i - 1, obj)
+                self.objective_coefficient(n_var - i - 1, obj)
 
             if names is not None:
                 glp_set_col_name(self.lp, n_var, names[number - i - 1])

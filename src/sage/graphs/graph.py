@@ -3031,6 +3031,48 @@ class Graph(GenericGraph):
         from matchpoly import matching_polynomial
         return matching_polynomial(self, complement=complement, name=name)
 
+    ### Convexity
+
+    def convexity_properties(self):
+        r"""
+        Returns a ``ConvexityProperties`` objet corresponding to ``self``.
+
+        This object contains the methods related to convexity in graphs (convex
+        hull, hull number) and caches useful information so that it becomes
+        comparatively cheaper to compute the convex hull of many different sets
+        of the same graph.
+
+        .. SEEALSO::
+
+            In order to know what can be done through this object, please refer
+            to module :mod:`sage.graphs.convexity_properties`.
+
+        .. NOTE::
+
+            If you want to compute many convex hulls, keep this object in memory
+            ! When it is created, it builds a table of useful information to
+            compute convex hulls. As a result ::
+
+                sage: g = graphs.PetersenGraph()
+                sage: g.convexity_properties().hull([1, 3])
+                [1, 2, 3]
+                sage: g.convexity_properties().hull([3, 7])
+                [2, 3, 7]
+
+            Is a terrible waste of computations, while ::
+
+                sage: g = graphs.PetersenGraph()
+                sage: CP = g.convexity_properties()
+                sage: CP.hull([1, 3])
+                [1, 2, 3]
+                sage: CP.hull([3, 7])
+                [2, 3, 7]
+
+            Makes perfect sense.
+        """
+        from sage.graphs.convexity_properties import ConvexityProperties
+        return ConvexityProperties(self)
+
     ### Centrality
 
     def centrality_betweenness(self, normalized=True):

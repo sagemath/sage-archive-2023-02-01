@@ -269,6 +269,11 @@ def cube(center=(0,0,0), size=1, color=None, frame_thickness=0, frame_color=None
 
         sage: c.show(viewer='tachyon')
 
+    This shows #11272 has been fixed::
+
+        sage: cube(center=(10, 10, 10), size=0.5).bounding_box()
+        ((9.75, 9.75, 9.75), (10.25, 10.25, 10.25))
+
     AUTHORS:
 
     - William Stein

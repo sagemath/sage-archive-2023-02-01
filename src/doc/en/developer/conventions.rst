@@ -851,7 +851,7 @@ and ``.sage`` files.
 
 Of course in ReST files, one often inserts explanatory texts between
 different verbatim environments. To link together verbatim
-environments, use the ``.. link::`` comment. For example::
+environments, use the ``.. link`` comment. For example::
 
     ::
 
@@ -860,16 +860,24 @@ environments, use the ``.. link::`` comment. For example::
 
     Next we add 1 to ``a``.
 
-    .. link::
+    .. link
 
     ::
 
             sage: 1 + a
             2
 
-You can also put ``.. skip::`` right before a verbatim environment to
-have that example skipped when testing the file.  This goes right in
-the same place as the ``.. link::`` in the previous example.
+If you want to link all the verbatim environments together, you can
+put ``.. linkall`` anywhere in the file, on a line by itself.  (For
+clarity, it might be best to put it near the top of the file.)  Then
+``sage -t`` will act as if there were a ``.. link`` before each
+verbatim environment.  The file
+``SAGE_ROOT/devel/sage/doc/en/tutorial/interfaces.rst`` contains a
+``.. linkall`` directive, for example.
+
+You can also put ``.. skip`` right before a verbatim environment to
+have that example skipped when testing the file.  This goes in
+the same place as the ``.. link`` in the previous example.
 
 See the files in ``SAGE_ROOT/devel/sage/doc/en/tutorial/`` for many
 examples of how to include automated testing in ReST documentation

@@ -1,3 +1,5 @@
+.. linkall
+
 **********
 Interfaces
 **********
@@ -104,8 +106,6 @@ Every PARI object is of type ``py_pari.gen``. The PARI type of the
 underlying object can be obtained using the ``type`` member
 function.
 
-.. link
-
 ::
 
     sage: v.type()
@@ -115,8 +115,6 @@ In PARI, to create an elliptic curve we enter
 ``ellinit([1,2,3,4,5])``. Sage is similar, except that ``ellinit`` is a
 method that can be called on any PARI object, e.g., our
 ``t\_VEC v``.
-
-.. link
 
 ::
 
@@ -128,8 +126,6 @@ method that can be called on any PARI object, e.g., our
 
 Now that we have an elliptic curve object, we can compute some
 things about it.
-
-.. link
 
 ::
 
@@ -215,8 +211,6 @@ Singular (do not type the ``...``):
     ...   9*x^12*y^3 - 18*x^13*y^2 + 9*x^16')
 
 Now that we have defined :math:`f`, we print it and factor.
-
-.. link
 
 ::
 

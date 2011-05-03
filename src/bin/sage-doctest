@@ -529,6 +529,8 @@ def pythonify_rst(F):
     """
     import re
 
+    link_all = re.search(r'^\s*\.\.\s+linkall\s*$', F, re.M)
+
     def get_next_verbatim_block(s, pos):
         while True:
             # regular expression search in string s[pos:] for:
@@ -553,7 +555,7 @@ def pythonify_rst(F):
 
             #Check to see if we need to link up with the previous
             #block
-            link_previous = True if '.. link' in options else False
+            link_previous = link_all or ('.. link' in options)
 
             #Find the first line that isn't indented as much as
             #whatever followed the double colon.  The whitespace before
@@ -581,7 +583,7 @@ def pythonify_rst(F):
 
         #Check to see if we have to link this block
         #up with the previous block
-        if link_previous:
+        if link_previous and s != "":
             #Get rid of the trailing quotes and newlines from the
             #previous block
             s = s[:-5]

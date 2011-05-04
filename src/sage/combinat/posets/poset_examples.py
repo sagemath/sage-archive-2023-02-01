@@ -238,16 +238,68 @@ class PosetsGenerator(object):
         return Poset(H.reverse())
 
     def RandomPoset(self, n,p):
-        """
+        r"""
         Generate a random poset on ``n`` vertices according to a
-        probability distribution ``p``.
+        probability ``p``.
+
+        INPUT:
+
+        - ``n`` - number of vertices, a non-negative integer
+
+        - ``p`` - a probability, a real number between 0 and 1 (inclusive)
+
+        OUTPUT:
+
+        A poset on ``n`` vertices.  The construction decides to make an
+        ordered pair of vertices comparable in the poset with probability
+        ``p``, however a pair is not made comparable if it would violate
+        the defining properties of a poset, such as transitivity.
+
+        So in practice, once the probability exceeds a small number the
+        generated posets may be very similar to a chain.  So to create
+        interesting examples, keep the probability small, perhaps on the
+        order of `1/n`.
 
         EXAMPLES::
 
             sage: Posets.RandomPoset(17,.15)
             Finite poset containing 17 elements
+
+        TESTS::
+
+            sage: Posets.RandomPoset('junk', 0.5)
+            Traceback (most recent call last):
+            ...
+            TypeError: number of elements must be an integer, not junk
+
+            sage: Posets.RandomPoset(-6, 0.5)
+            Traceback (most recent call last):
+            ...
+            ValueError: number of elements must be non-negative, not -6
+
+            sage: Posets.RandomPoset(6, 'garbage')
+            Traceback (most recent call last):
+            ...
+            TypeError: probability must be a real number, not garbage
+
+            sage: Posets.RandomPoset(6, -0.5)
+            Traceback (most recent call last):
+            ...
+            ValueError: probability must be between 0 and 1, not -0.5
         """
-        p = float(p)
+        try:
+            n = Integer(n)
+        except:
+            raise TypeError("number of elements must be an integer, not {0}".format(n))
+        if n < 0:
+            raise ValueError("number of elements must be non-negative, not {0}".format(n))
+        try:
+            p = float(p)
+        except:
+            raise TypeError("probability must be a real number, not {0}".format(p))
+        if p < 0 or p> 1:
+            raise ValueError("probability must be between 0 and 1, not {0}".format(p))
+
         D = DiGraph(loops=False,multiedges=False)
         D.add_vertices(range(n))
         for i in range(n):

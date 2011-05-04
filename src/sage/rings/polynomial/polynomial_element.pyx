@@ -2511,11 +2511,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: x = polygen(QQ)
             sage: K.<z> = CyclotomicField(3)
             sage: L.<a> = K.extension(x^3 - 2)
-            sage: x = polygen(L)
-            sage: f = (x^3 + x + a)*(x^5 + x + z); f
-            x^8 + x^6 + a*x^5 + x^4 + z*x^3 + x^2 + (a + z)*x + z*a
+            sage: t = polygen(L, 't')
+            sage: f = (t^3 + t + a)*(t^5 + t + z); f
+            t^8 + t^6 + a*t^5 + t^4 + z*t^3 + t^2 + (a + z)*t + z*a
             sage: f.factor()
-            (x^3 + x + a) * (x^5 + x + z)
+            (t^3 + t + a) * (t^5 + t + z)
 
         Over the real double field::
 
@@ -2769,7 +2769,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             from_M, to_M = M.structure()
             g = M['x']([to_M(x) for x in self.list()])
             F = g.factor()
-            S = R['x']
+            S = self.parent()
             v = [(S([from_M(x) for x in f.list()]), e) for f, e in g.factor()]
             return Factorization(v, from_M(F.unit()))
 

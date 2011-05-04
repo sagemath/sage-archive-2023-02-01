@@ -695,6 +695,64 @@ class FinitePoset(ParentWithBase):
         for u,v,l in self._hasse_diagram.edge_iterator():
             yield map(self._vertex_to_element,(u,v))
 
+    def relations(self):
+        r"""
+        Returns a list of all relations of the poset.
+
+        OUTPUT:
+
+        A list of pairs (each pair is a list), where the first element
+        of the pair is less than or equal to the second element.
+
+        Pairs are produced in a rough sort of lexicographic order,
+        where earlier elements are from lower levels of the poset.
+
+        EXAMPLES::
+
+            sage: Q = Poset({0:[2], 1:[2], 2:[3], 3:[4], 4:[]})
+            sage: Q.relations()
+            [[1, 1], [1, 2], [1, 3], [1, 4], [0, 0], [0, 2], [0, 3], [0, 4], [2, 2], [2, 3], [2, 4], [3, 3], [3, 4], [4, 4]]
+
+        AUTHOR:
+
+        - Rob Beezer (2011-05-04)
+        """
+        return list(self.relations_iterator())
+
+    def relations_iterator(self):
+        r"""
+        Returns an iterator for all the relations of the poset.
+
+        OUTPUT:
+
+        A generator that produces pairs (each pair is a list), where the
+        first element of the pair is less than or equal to the second element.
+
+        Pairs are produced in a rough sort of lexicographic order,
+        where earlier elements are from lower levels of the poset.
+
+        EXAMPLES::
+
+            sage: Q = Poset({0:[2], 1:[2], 2:[3], 3:[4], 4:[]})
+            sage: type(Q.relations_iterator())
+            <type 'generator'>
+            sage: [z for z in Q.relations_iterator()]
+            [[1, 1], [1, 2], [1, 3], [1, 4], [0, 0], [0, 2], [0, 3], [0, 4], [2, 2], [2, 3], [2, 4], [3, 3], [3, 4], [4, 4]]
+
+        AUTHOR:
+
+        - Rob Beezer (2011-05-04)
+        """
+        # Relies on vertices the fact that _elements correspond to the rows and
+        # columns of the lequal matrix
+        leq_mat = self.lequal_matrix()
+        n = leq_mat.nrows()
+        elements = self._elements
+        for i in range(n):
+            for j in range(i, n):
+                if leq_mat[i,j]:
+                    yield [elements[i], elements[j]]
+
     def is_lequal(self, x, y):
         """
         Returns True if x is less than or equal to y in the poset, and

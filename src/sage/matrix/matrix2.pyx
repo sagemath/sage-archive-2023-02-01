@@ -28,6 +28,7 @@ TESTS::
 
 include "../ext/stdsage.pxi"
 include "../ext/python.pxi"
+include "../ext/interrupt.pxi"
 
 from sage.misc.randstate cimport randstate, current_randstate
 from sage.structure.sequence import Sequence
@@ -4671,7 +4672,7 @@ cdef class Matrix(matrix1.Matrix):
         pivots = []
 
         for c from 0 <= c < nc:
-            if PyErr_CheckSignals(): raise KeyboardInterrupt
+            sig_check()
             for r from start_row <= r < nr:
                 if A.get_unsafe(r, c):
                     pivots.append(c)

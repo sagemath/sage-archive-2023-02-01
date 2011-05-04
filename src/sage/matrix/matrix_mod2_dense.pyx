@@ -259,7 +259,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         k = 0
 
         for i from 0 <= i < self._nrows:
-            if PyErr_CheckSignals(): raise KeyboardInterrupt
+            sig_check()
             for j from 0 <= j < self._ncols:
                 mzd_write_bit(self._entries,i,j, R(entries[k]))
                 k = k + 1

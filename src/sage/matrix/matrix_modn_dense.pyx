@@ -253,7 +253,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         cdef long tmp
 
         for i from 0 <= i < self._nrows:
-            if PyErr_CheckSignals(): raise KeyboardInterrupt
+            sig_check()
             v = self._matrix[i]
             for j from 0 <= j < self._ncols:
                 x = entries[k]
@@ -1149,7 +1149,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
                              level = 2,
                              caller_name = 'matrix_modn_dense echelon')
             #end if
-            if PyErr_CheckSignals(): raise KeyboardInterrupt
+            sig_check()
             for r from start_row <= r < nr:
                 a = m[r][c]
                 if a:
@@ -1258,7 +1258,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 ##                              level = 2,
 ##                              caller_name = 'matrix_modn_dense echelon mod n')
 
-##             if PyErr_CheckSignals(): raise KeyboardInterrupt
+##             sig_check()
 ##             for r from start_row <= r < nr:
 ##                 a = m[r][c]
 ##                 if a:

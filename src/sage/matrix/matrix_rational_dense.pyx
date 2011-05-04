@@ -1657,7 +1657,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef mpq_t tmp, tmp2
         mpq_init(tmp); mpq_init(tmp2)
         for c in range(nc):
-            if PyErr_CheckSignals(): raise KeyboardInterrupt
+            sig_check()
             for r in range(start_row, nr):
                 if mpq_sgn(self._matrix[r][c]):
                     pivots.append(c)

@@ -37,6 +37,9 @@ reference implementation for Gröbner basis computation.
 
 == Releases ==
 
+=== polybori-0.7.0.p2 (Alexander Dreyer, March 30th, 2011) ===
+ * Fixed building on OpenSolaris with gcc-4.6.0 (#11083)
+
 === polybori-0.7.0.p1 (Alexander Dreyer, March 8th, 2011) ===
  * backporting a bugfix
 

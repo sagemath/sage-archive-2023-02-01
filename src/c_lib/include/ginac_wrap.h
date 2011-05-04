@@ -68,6 +68,13 @@ bool relational_to_bool(const ex& e) {
 	return 0;
 }
 
+bool g_is_a_terminating_series(const ex& e) {
+    if (is_a<pseries>(e)) {
+	return (ex_to<pseries>(e)).is_terminating();
+    }
+    return false;
+}
+
 relational::operators relational_operator(const ex& e) {
     // unsafe cast -- be damn sure the input is a relational.
     return (ex_to<relational>(e)).the_operator();

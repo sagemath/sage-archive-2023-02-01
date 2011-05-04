@@ -959,7 +959,7 @@ cdef class Expression(CommutativeRingElement):
 
         OUTPUT:
 
-        - float - double precision evaluation of self
+        A ``float``. Double precision evaluation of self.
 
         EXAMPLES::
 
@@ -1497,6 +1497,87 @@ cdef class Expression(CommutativeRingElement):
         """
         return is_a_numeric(self._gobj)
 
+    def is_series(self):
+        """
+        Return True if ``self`` is a series.
+
+        Series are special kinds of symbolic expressions that are
+        constructed via the :meth:`series` method. They usually have
+        an ``Order()`` term unless the series representation is exact,
+        see :meth:`is_terminating_series`.
+
+        OUTPUT:
+
+        Boolean. Whether ``self`` is a series symbolic
+        expression. Usually, this means that it was constructed by the
+        :meth:`series` method.
+
+        Returns ``False`` if only a subexpression of the symbolic
+        expression is a series.
+
+        EXAMPLES::
+
+            sage: SR(5).is_series()
+            False
+            sage: var('x')
+            x
+            sage: x.is_series()
+            False
+            sage: exp(x).is_series()
+            False
+            sage: exp(x).series(x,10).is_series()
+            True
+
+        Laurent series are series, too::
+
+            sage: laurent_series = (cos(x)/x).series(x, 5)
+            sage: laurent_series
+            1*x^(-1) + (-1/2)*x + 1/24*x^3 + Order(x^5)
+            sage: laurent_series.is_series()
+            True
+
+        Something only containing a series as a subexpression is not a
+        series::
+
+            sage: sum_expr = 1 + exp(x).series(x,5); sum_expr
+            (1 + 1*x + 1/2*x^2 + 1/6*x^3 + 1/24*x^4 + Order(x^5)) + 1
+            sage: sum_expr.is_series()
+            False
+        """
+        return is_a_series(self._gobj)
+
+    def is_terminating_series(self):
+        """
+        Return True if ``self`` is a series without order term.
+
+        A series is terminating if it can be represented exactly,
+        without requiring an order term. See also :meth:`is_series`
+        for general series.
+
+        OUTPUT:
+
+        Boolean. Whether ``self`` was constructed by :meth:`series`
+        and has no order term.
+
+        EXAMPLES::
+
+            sage: (x^5+x^2+1).series(x,10)
+            1 + 1*x^2 + 1*x^5
+            sage: (x^5+x^2+1).series(x,10).is_series()
+            True
+            sage: (x^5+x^2+1).series(x,10).is_terminating_series()
+            True
+            sage: SR(5).is_terminating_series()
+            False
+            sage: var('x')
+            x
+            sage: x.is_terminating_series()
+            False
+            sage: exp(x).series(x,10).is_terminating_series()
+            False
+        """
+        return g_is_a_terminating_series(self._gobj)
+
     cpdef bint is_polynomial(self, var):
         """
         Return True if self is a polynomial in the given variable.
@@ -1796,11 +1877,15 @@ cdef class Expression(CommutativeRingElement):
                      regard overlapping (potentially equal) intervals as equal,
                      and return True if all tests succeeded.
 
-        OUTPUT::
+        OUTPUT:
 
-            True - this relation holds in the domain and has no variables
-            False - a contradiction was found
-            NotImplemented - no contradiction found
+        Boolean or ``NotImplemented``, meaning
+
+        - ``True`` -- this relation holds in the domain and has no variables.
+
+        - ``False`` -- a contradiction was found.
+
+        - ``NotImplemented`` -- no contradiction found.
 
         EXAMPLES::
 
@@ -2438,11 +2523,14 @@ cdef class Expression(CommutativeRingElement):
         Return self raised to the power of exp.
 
         INPUT:
-            self -- symbolic expression
-            exp -- something that coerces to a symbolic expressions
+
+        - ``self`` -- symbolic expression.
+
+        - ``exp`` -- something that coerces to a symbolic expressions.
 
         OUTPUT:
-            symbolic expression
+
+        A symbolic expression.
 
         EXAMPLES:
             sage: var('x,y')
@@ -2752,10 +2840,10 @@ cdef class Expression(CommutativeRingElement):
 
         OUTPUT:
 
-        - a power series
+        A power series.
 
         To truncate the power series and obtain a normal expression, use the
-        truncate command.
+        :meth:`truncate` command.
 
         EXAMPLES:
 
@@ -2901,11 +2989,11 @@ cdef class Expression(CommutativeRingElement):
 
         INPUT:
 
-        - a series as output by the series command
+        - ``self`` -- a series as output by the :meth:`series` command.
 
         OUTPUT:
 
-        - expression
+        A symbolic expression.
 
         EXAMPLES::
 
@@ -3020,7 +3108,9 @@ cdef class Expression(CommutativeRingElement):
            if times is True.
 
 
-        OUTPUT: a symbolic expression
+        OUTPUT:
+
+        A symbolic expression.
 
         EXAMPLES::
 
@@ -3079,7 +3169,9 @@ cdef class Expression(CommutativeRingElement):
           these transformations. If not specified, all variables are
           used.
 
-        OUTPUT: a symbolic expression
+        OUTPUT:
+
+        A symbolic expression.
 
         EXAMPLES::
 
@@ -3115,15 +3207,17 @@ cdef class Expression(CommutativeRingElement):
 
         INPUT:
 
-        -  ``pattern`` - a symbolic expression, possibly containing wildcards
+        -  ``pattern`` -- a symbolic expression, possibly containing wildcards
            to match for
 
         OUTPUT:
 
-        - None - if there is no match
-        - a dictionary mapping the wildcards to the matching values if a match
-          was found. Note that the dictionary is empty if there were no
-          wildcards in the given pattern.
+        One of
+
+        ``None`` if there is no match, or a dictionary mapping the
+        wildcards to the matching values if a match was found. Note
+        that the dictionary is empty if there were no wildcards in the
+        given pattern.
 
         See also http://www.ginac.de/tutorial/Pattern-matching-and-advanced-substitutions.html
 
@@ -4165,7 +4259,7 @@ cdef class Expression(CommutativeRingElement):
 
         OUTPUT:
 
-        - coefficient of s^n
+        A symbolic expression. The coefficient of `s^n`.
 
         Sometimes it may be necessary to expand or factor first, since this
         is not done automatically.
@@ -4221,12 +4315,12 @@ cdef class Expression(CommutativeRingElement):
 
         INPUT:
 
-        -  ``x`` - optional variable
+        -  ``x`` -- optional variable.
 
         OUTPUT:
 
-        - A list of pairs (expr, n), where expr is a symbolic
-          expression and n is a power.
+        A list of pairs ``(expr, n)``, where ``expr`` is a symbolic
+        expression and ``n`` is a power.
 
         EXAMPLES::
 
@@ -4312,7 +4406,7 @@ cdef class Expression(CommutativeRingElement):
 
         OUTPUT:
 
-        - an integer <= 0.
+        An integer ``<= 0``.
 
         EXAMPLES::
 
@@ -4338,7 +4432,7 @@ cdef class Expression(CommutativeRingElement):
 
         OUTPUT:
 
-        - an integer >= 0.
+        An integer ``>= 0``.
 
         EXAMPLES::
 
@@ -4668,11 +4762,11 @@ cdef class Expression(CommutativeRingElement):
         """
         INPUT:
 
-        - ``s`` - a symbol
+        - ``s`` -- a symbol
 
         OUTPUT:
 
-        - expression
+        A symbolic expression.
 
         EXAMPLES::
 
@@ -6026,7 +6120,8 @@ cdef class Expression(CommutativeRingElement):
         Return the factorial of self.
 
         OUTPUT:
-            symbolic expression
+
+        A symbolic expression.
 
         EXAMPLES:
             sage: var('x, y')
@@ -6070,7 +6165,8 @@ cdef class Expression(CommutativeRingElement):
         Return binomial coefficient "self choose k".
 
         OUTPUT:
-            symbolic expression
+
+        A symbolic expression.
 
         EXAMPLES:
             sage: var('x, y')
@@ -6125,9 +6221,11 @@ cdef class Expression(CommutativeRingElement):
         Order, as in big oh notation.
 
         OUTPUT:
-            symbolic expression
 
-        EXAMPLES:
+        A symbolic expression.
+
+        EXAMPLES::
+
             sage: n = var('n')
             sage: t = (17*n^3).Order(); t
             Order(n^3)
@@ -6378,7 +6476,9 @@ cdef class Expression(CommutativeRingElement):
            variable)
 
 
-        OUTPUT: Symbolic expression
+        OUTPUT:
+
+        A symbolic expression.
 
         EXAMPLES::
 
@@ -7171,7 +7271,7 @@ cdef class Expression(CommutativeRingElement):
 
         OUTPUT:
 
-            - `symbolic expression`
+        A symbolic expression.
 
         EXAMPLES::
 
@@ -7266,7 +7366,7 @@ cdef class Expression(CommutativeRingElement):
 
         OUTPUT:
 
-        list of pairs (root, multiplicity) or list of roots
+        A list of pairs ``(root, multiplicity)`` or list of roots.
 
         If there are infinitely many roots, e.g., a function like
         `\sin(x)`, only one is returned.
@@ -7901,10 +8001,13 @@ cdef class Expression(CommutativeRingElement):
 
         OUTPUT:
 
-        - ``minval`` - (float) the minimum value that self takes on in the
-          interval [a,b]
+        A tuple ``(minval, x)``, where
 
-        - ``x`` - (float) the point at which self takes on the minimum value
+        - ``minval`` -- float. The minimum value that self takes on in
+          the interval ``[a,b]``.
+
+        - ``x`` -- float. The point at which self takes on the minimum
+          value.
 
         EXAMPLES::
 

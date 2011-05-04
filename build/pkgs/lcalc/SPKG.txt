@@ -26,31 +26,31 @@ version 1.23, which I removed. (David Kirkby, 27th May 2010).
 
 Michael Rubinstein <mrubinst@uwaterloo.ca>
 
-=== lcalc-1.23.p6 (Volker Braun, March 8, 2011) ===
+=== lcalc-20100428-1.23.p6 (Volker Braun, March 8, 2011) ===
  * upstream commented out lcalc_to_double(long double), but this is
    now required with gcc-4.6. Comment back in!
 
-=== lcalc-1.23.p5 (Jeroen Demeyer, September 19, 2010) ===
+=== lcalc-20100428-1.23.p5 (Jeroen Demeyer, September 19, 2010) ===
  * Remove dist directory
  * Put back SAGE_LOCAL sanity check in spkg-install
  * Change "make" to "$MAKE"
 
-=== lcalc-1.23.p4 (Mike Hansen, William Stein, September 2, 2010) ===
+=== lcalc-20100428-1.23.p4 (Mike Hansen, William Stein, September 2, 2010) ===
  * Add time.h include to Lcommandline_numbertheory.h (this should get upstreamed)
 
-=== lcalc-1.23.p3 (Mike Hansen, August 21, 2010) ===
+=== lcalc-20100428-1.23.p3 (Mike Hansen, August 21, 2010) ===
  * Update to work on Cygwin.
  * #9775: lcalc should make a .dll file on Cygwin instead of .so file
 
-=== lcalc-1.23.p2 (John Cremona, August 13 2010 following Jeroen Demeyer, July 24, 2010)  ===
+=== lcalc-20100428-1.23.p2 (John Cremona, August 13 2010 following Jeroen Demeyer, July 24, 2010)  ===
  * Upgrade to PARI/GP 2.4.3 (#9343 and #9592).
  * Removed some code from spkg-install made redundant when upgrading to 1.23
    in March 2010.
 
-=== lcalc-1.23.p1 (Rishikesh, 2nd Aug 2010)  ===
+=== lcalc-20100428-1.23.p1 (Rishikesh, 2nd Aug 2010)  ===
  * Detect OS X 10.4 and copy to libLfunction.dylib instead of libLfunction.so
 
-=== lcalc-1.23.p0 (David Kirkby, 27th May 2010)  ===
+=== lcalc-20100428-1.23.p0 (David Kirkby, 27th May 2010)  ===
  * See: #9043 - lcalc failing to build on OpenSolaris x64.
  * Force 64-bit build if SAGE64 is set to "yes" and not "yes"
    and "1" as before, since an early part of Sage ensures SAGE64
@@ -71,11 +71,11 @@ Michael Rubinstein <mrubinst@uwaterloo.ca>
    ./src/include/.Lvalue.h.swp
    ./src/include/.Lexplicit_formula.h.swp
 
-=== lcalc-1.23 (Rishikesh, 24th March 2010)  ===
+=== lcalc-20100428-1.23 (Rishikesh, 24th March 2010)  ===
  * changed spkg-install to change location of header files (#4793)
  * changed compile flags so that lcalc compiles on OSX (#4793)
 
-=== lcalc-1.23 (Rishikesh, 9th March 2010)  ===
+=== lcalc-20100428-1.23 (Rishikesh, 9th March 2010)  ===
  * Changed makefile to compile on solaris (#5396)
  * For lcalc wrapper, changed so that the library is copied(#5396)
  * Replace the hard coded path to pari makefile to the $SAGE_LOCAL(#5396)

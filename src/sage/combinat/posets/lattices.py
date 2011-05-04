@@ -111,7 +111,7 @@ class FiniteMeetSemilattice(FinitePoset):
 
     def meet(self,x,y):
         r"""
-        Return the meet of ``self`` and ``other`` in the lattice.
+        Return the meet of two elements in the lattice.
 
         EXAMPLES::
 
@@ -124,8 +124,18 @@ class FiniteMeetSemilattice(FinitePoset):
             0
             sage: D(1) * D(4)
             1
+
+        If this method is used directly, it is not necessary to coerce
+        elements into the poset. (Trac #11292)  ::
+
+            sage: D = Posets.DiamondPoset(5)
+            sage: D.meet(1, 0)
+            0
+            sage: D.meet(1, 4)
+            1
         """
-        return self._vertex_to_element(self._hasse_diagram._meet[x.vertex,y.vertex])
+        i, j = map(self._element_to_vertex,(x,y))
+        return self._vertex_to_element(self._hasse_diagram._meet[i,j])
 
 ####################################################################################
 
@@ -215,7 +225,7 @@ class FiniteJoinSemilattice(FinitePoset):
 
     def join(self,x,y):
         r"""
-        Return the join of ``self`` and ``other`` in the lattice.
+        Return the join of two elements in the lattice.
 
         EXAMPLES::
 
@@ -228,8 +238,18 @@ class FiniteJoinSemilattice(FinitePoset):
             4
             sage: D(1) + D(0)
             1
+
+        If this method is used directly, it is not necessary to coerce
+        elements into the poset. (Trac #11292)  ::
+
+            sage: D = Posets.DiamondPoset(5)
+            sage: D.join(1, 0)
+            1
+            sage: D.join(1, 4)
+            4
         """
-        return self._vertex_to_element(self._hasse_diagram._join[x.vertex,y.vertex])
+        i, j = map(self._element_to_vertex,(x,y))
+        return self._vertex_to_element(self._hasse_diagram._join[i,j])
 
 ####################################################################################
 

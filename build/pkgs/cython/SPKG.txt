@@ -31,15 +31,14 @@ Apache License, Version 2.0
 
 == Changelog ==
 
-=== cython-0.14.1 (Robert Bradshaw, February 2011, #10493) ===
-
+=== cython-0.14.1.p3 (Robert Bradshaw, 1 March 2011, #10493) ===
+ * Upgrade Cython to 0.14.1
  * Disable (broken) temp arg assignments.
 
-=== cython-0.13 ===
-
+=== cython-0.13.p1 (Robert Bradshaw, 1 October 2010) ===
  * Removed __getattr__ hack (upstreamed).
 
-=== cython-0.13.p0 (Robert Bradshaw, September 16th 2010) ===
+=== cython-0.13.p0 (Robert Bradshaw, 16 September 2010) ===
  * New upstream release.
  * Add a patch to speed up __getattr__().
  * Minor clean-up in spkg-install.

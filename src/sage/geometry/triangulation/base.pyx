@@ -264,7 +264,7 @@ cdef class PointConfiguration_base(Parent):
     cpdef tuple _pts
     cpdef int _ambient_dim
     cpdef int _dim
-
+    cpdef object _base_ring
 
     cdef _init_points(self, tuple projective_points):
         """
@@ -302,6 +302,7 @@ cdef class PointConfiguration_base(Parent):
             'Not all points are pairwise distinct.'
 
         proj = matrix(projective_points).transpose()
+        self._base_ring = proj.base_ring()
 
         if all([ x==1 for x in proj.row(self.ambient_dim()) ]):
             aff = proj.submatrix(0,0,nrows=self.ambient_dim())
@@ -355,6 +356,32 @@ cdef class PointConfiguration_base(Parent):
             0
         """
         return self._dim
+
+
+    cpdef base_ring(self):
+        r"""
+        Return the base ring, that is, the ring containing the
+        coordinates of the points.
+
+        OUTPUT:
+
+        A ring.
+
+        EXAMPLES::
+
+            sage: p = PointConfiguration([(0,0)]);
+            sage: p.base_ring()
+            Integer Ring
+
+            sage: p = PointConfiguration([(1/2,3)]);
+            sage: p.base_ring()
+            Rational Field
+
+            sage: p = PointConfiguration([(0.2, 5)]);
+            sage: p.base_ring()
+            Real Field with 53 bits of precision
+        """
+        return self._base_ring
 
 
     def __getitem__(self, i):

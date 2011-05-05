@@ -636,6 +636,63 @@ class Triangulation(Element):
         return tuple( pc.simplex_to_int(t) for t in self )
 
 
+    def fan(self, origin=None):
+        r"""
+        Construct the fan of cones over the simplices of the triangulation.
+
+        INPUT:
+
+        - ``origin`` -- ``None`` (default) or coordinates of a
+          point. The common apex of all cones of the fan. If ``None``,
+          the triangulation must be a star triangulation and the
+          distinguished central point is used as origin.
+
+        OUTPUT:
+
+        A :class:`sage.geometry.fan.RationalPolyhedralFan`. The
+        coordinates of the points are shifted such that the apex of
+        the fan is the origin of the coordinates system. The set of
+        cones over the simplices need not be a fan, in which case a
+        suitable error is raised.
+
+        EXAMPLES::
+
+            sage: pc = PointConfiguration([(0,0), (1,0), (0,1), (-1,-1)], star=0, fine=True)
+            sage: p.set_engine('internal')   # to make doctests independent of TOPCOM
+            sage: triangulation = pc.triangulate()
+            sage: fan = triangulation.fan(); fan
+            Rational polyhedral fan in 2-d lattice N
+            sage: fan.is_equivalent( toric_varieties.P2().fan() )
+            True
+
+        Toric diagrams (the `\ZZ_5` hyperconifold)::
+
+            sage: vertices=[(0, 1, 0), (0, 3, 1), (0, 2, 3), (0, 0, 2)]
+            sage: interior=[(0, 1, 1), (0, 1, 2), (0, 2, 1), (0, 2, 2)]
+            sage: points = vertices+interior
+            sage: pc = PointConfiguration(points, fine=True)
+            sage: p.set_engine('internal')   # to make doctests independent of TOPCOM
+            sage: triangulation = pc.triangulate()
+            sage: fan = triangulation.fan( (-1,0,0) )
+            sage: fan
+            sage: fan.rays()
+            (N(1, 1, 0), N(1, 2, 1), N(1, 2, 2), N(1, 3, 1),
+             N(1, 2, 3), N(1, 0, 2), N(1, 1, 2), N(1, 1, 1))
+        """
+        from sage.geometry.cone import Cone
+        from sage.geometry.fan import Fan
+        if origin is None:
+            origin = vector(self.base_ring(), self.point_configuration().star_center())
+        else:
+            origin = vector(self.base_ring(), origin)
+
+        rays = [ vector(p)-origin for p in self.point_configuration().points() ]
+        cones = []
+        for simplex in self:
+            cone = Cone([ rays[i] for i in simplex ])
+            cones.append(cone)
+        return Fan(cones)
+
 
 
 ########################################################################
@@ -830,6 +887,44 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             (engine=='TOPCOM') or (engine=='auto' and have_TOPCOM)
 
 
+    def star_center(self):
+        r"""
+        Return the center used for star triangulations.
+
+        .. seealso:: :meth:`restrict_to_star_triangulations`.
+
+        OUTPUT:
+
+        A :class:`sage.geometry.triangulation.base.Point` if a
+        distinguished star central point has been fixed,
+        ``ValueError`` otherwise.
+
+        EXAMPLES::
+
+            sage: pc = PointConfiguration([(1,0),(-1,0),(0,1),(0,2)], star=(0,1)); pc
+            A point configuration in QQ^2 consisting of 4 points. The
+            triangulations of this point configuration are assumed to be
+            connected, not necessarily fine, not necessarily regular, and
+            star with center P(0, 1).
+            sage: pc.star_center()
+            P(0, 1)
+
+            sage: pc_nostar = pc.restrict_to_star_triangulations(None)
+            sage: pc_nostar
+            A point configuration in QQ^2 consisting of 4 points. The
+            triangulations of this point configuration are assumed to be
+            connected, not necessarily fine, not necessarily regular.
+            sage: pc_nostar.star_center()
+            Traceback (most recent call last):
+            ...
+            ValueError: The point configuration has no star center defined.
+        """
+        if self._star is None:
+            raise ValueError, 'The point configuration has no star center defined.'
+        else:
+            return self[self._star]
+
+
     def __reduce__(self):
         r"""
         Override __reduce__ to correctly pickle/unpickle.
@@ -938,7 +1033,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         if self._star==None:
             s += '.'
         else:
-            s += ', and star with center '+str(self._star)+'.'
+            s += ', and star with center '+str(self.star_center())+'.'
         return s
 
 

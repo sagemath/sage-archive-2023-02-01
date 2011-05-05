@@ -200,9 +200,9 @@ class ModularForm_abstract(ModuleElement):
 
     def qexp(self, prec=None):
         """
-        Same as self.q_expansion(prec).
+        Same as ``self.q_expansion(prec)``.
 
-        .. seealso: :meth:`q_expansion`
+        .. seealso:: :meth:`q_expansion`
 
         EXAMPLES::
 

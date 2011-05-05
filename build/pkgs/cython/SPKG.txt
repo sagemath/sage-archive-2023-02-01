@@ -24,12 +24,16 @@ Apache License, Version 2.0
  * Robert Bradshaw
 
 == Upstream Contact ==
- * cython-dev@codespeak.net
+ * cython-devel@python.org
 
 == Dependencies ==
  * Python
 
 == Changelog ==
+
+=== cython-0.14.1 (Robert Bradshaw, February 2011, #10493) ===
+
+ * Disable (broken) temp arg assignments.
 
 === cython-0.13 ===
 

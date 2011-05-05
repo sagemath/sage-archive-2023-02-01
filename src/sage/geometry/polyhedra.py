@@ -6249,6 +6249,43 @@ class Polytopes():
         return Polyhedron(vertices = verts)
 
 
+    def parallelotope(self, generators):
+        r"""
+        Return the parallelotope spanned by the generators.
+
+        INPUT:
+
+        - ``generators`` -- an iterable of anything convertible to vector
+          (for example, a list of vectors) such that the vectors all
+          have the same dimension.
+
+        OUTPUT:
+
+        The parallelotope. This is the multi-dimensional
+        generalization of a parallelogram (2 generators) and a
+        parallelepiped (3 generators).
+
+        EXAMPLES::
+
+            sage: polytopes.parallelotope([ (1,0), (0,1) ])
+            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices.
+            sage: polytopes.parallelotope([[1,2,3,4],[0,1,0,7],[3,1,0,2],[0,0,1,0]])
+            A 4-dimensional polyhedron in QQ^4 defined as the convex hull of 16 vertices.
+        """
+        try:
+            generators = [ vector(QQ,v) for v in generators ]
+            field = QQ
+        except TypeError:
+            generators = [ vector(RDF,v) for v in generators ]
+            field = RDF
+
+        from sage.combinat.combination import Combinations
+        par =  [ 0*generators[0] ]
+        par += [ sum(c) for c in Combinations(generators) if c!=[] ]
+        return Polyhedron(vertices=par, field=field)
+
+
+
 polytopes = Polytopes()
 
 

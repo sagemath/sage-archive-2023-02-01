@@ -22,6 +22,8 @@ AUTHORS:
 - Volker Braun (2010-06-21): various spanned/quotient/dual lattice
   computations added.
 
+- Volker Braun (2010-12-28): Hilbert basis for cones.
+
 EXAMPLES:
 
 Use :func:`Cone` to construct cones::
@@ -3361,4 +3363,240 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         cached_values[supercone] = Q
         return Q
 
+    def semigroup_generators(self):
+        r"""
+        Return a set of generators for semigroup of integral points of
+        the cone.
+
+        OUTPUT:
+
+        A tuple of lattice points generating the cone. No attempt is
+        made to return a minimal set of generators, see
+        :meth:`Hilbert_basis` for that.
+
+        EXAMPLES::
+
+            sage: PointConfiguration.set_engine('internal')   # to make doctests independent of TOPCOM
+            sage: Cone([ (1,0), (1,2) ]).semigroup_generators()
+            [N(1, 1), N(1, 0), N(1, 2)]
+
+        A non-simplicial cone works, too::
+
+            sage: cone = Cone([(3,0,-1), (1,-1,0), (0,1,0), (0,0,1)])
+            sage: cone.semigroup_generators()
+            (N(1, 1, 0), N(3, 0, -1), N(2, 1, 0), N(1, 0, 0), N(2, -1, 0),
+             N(0, 0, 1), N(1, -1, 0), N(3, -1, 0), N(0, 1, 0), N(2, 0, 0))
+
+        GAP's toric package thinks this is challenging::
+
+            sage: cone = Cone([[1,2,3,4],[0,1,0,7],[3,1,0,2],[0,0,1,0]]).dual()
+            sage: len( cone.semigroup_generators() )
+            4208
+
+        The cone need not be strictly convex::
+
+            sage: halfplane = Cone([(1,0),(2,1),(-1,0)])
+            sage: halfplane.semigroup_generators()
+            (N(0, 1), N(1, 0), N(-1, 0))
+            sage: line = Cone([(1,1,1),(-1,-1,-1)])
+            sage: line.semigroup_generators()
+            (N(1, 1, 1), N(-1, -1, -1))
+            sage: wedge = Cone([ (1,0,0), (1,2,0), (0,0,1), (0,0,-1) ])
+            sage: wedge.semigroup_generators()
+            (N(1, 1, 0), N(1, 1, -1), N(1, 0, 0), N(0, 0, 1), N(0, 0, -1), N(1, 1, 1), N(1, 2, 0))
+
+        ALGORITHM:
+
+        If the cone is not simplicial, it is first triangulated. Each
+        simplicial subcone has the integral points of the spaned
+        parallelotope as generators. This is the first step of the
+        primal Normaliz algorithm, see [Normaliz]_.
+        """
+        N = self.lattice()
+        if not self.is_simplicial():   # triangulate and run recursively
+            gens = set()
+            from sage.geometry.triangulation.point_configuration import PointConfiguration
+            origin = self.nrays() # last one in pc
+            pc = PointConfiguration(self.rays() + (N(0),), fine=True, star=origin)
+            triangulation = pc.triangulate()
+            subcones = [ Cone([self.ray(i) for i in simplex if i!=origin])
+                         for simplex in triangulation ]
+            gens = set()
+            for cone in subcones:
+                gens.update(map(tuple,cone.semigroup_generators()))
+            return tuple(map(N,gens))
+
+        # if the cone is simplicial, just take integral points in
+        # the parallelepiped spanned by the rays
+        from sage.geometry.polyhedra import polytopes
+        par = polytopes.parallelotope(self.rays())
+        gens = par.integral_points()
+        # remove the vertices that are not generators:
+        for vertex in par.vertex_generator():
+            gens.remove(vertex.vector())
+        gens.extend([ vector(list(ray)) for ray in self.rays() ])
+        gens = map(N,gens)
+        for gen in gens:
+            gen.set_immutable()
+        return gens
+
+    def Hilbert_basis(self):
+        r"""
+        Return the Hilbert basis of the cone.
+
+        Given a strictly convex cone `C\subset \RR^d`, the Hilbert
+        basis of `C` is the set of all irreducible elements in the
+        semigroup `C\cap \ZZ^d`. It is the unique minimal generating
+        set over `\ZZ` for the integral points `C\cap \ZZ^d`.
+
+        If the cone `C` is not strictly convex, this method finds the
+        (unique) minimial set of lattice points that need to be added
+        to the defining rays of the cone to generate the whole
+        semigroup `C\cap \ZZ^d`. But because the rays of the cone are
+        not unique nor necessarily minimal in this case, neither is
+        the returned generating set (consisting of the rays plus
+        additional generators).
+
+        See also :meth:`semigroup_generators` if you are not
+        interested in a minimal set of generators.
+
+        OUTPUT:
+
+        A tuple of lattice points. The rays of the cone are the first
+        ``self.nrays()`` entries.
+
+        EXAMPLES::
+
+            sage: PointConfiguration.set_engine('internal')   # to make doctests independent of TOPCOM
+            sage: Cone([ (1,0), (1,2) ]).Hilbert_basis()
+            (N(1, 0), N(1, 2), N(1, 1))
+
+        Two more complicate example from GAP/toric::
+
+            sage: Cone([[1,0],[3,4]]).dual().Hilbert_basis()
+            (M(0, 1), M(4, -3), M(3, -2), M(2, -1), M(1, 0))
+            sage: cone = Cone([[1,2,3,4],[0,1,0,7],[3,1,0,2],[0,0,1,0]]).dual()
+            sage: cone.Hilbert_basis()           # long time
+            (M(10, -7, 0, 1), M(-5, 21, 0, -3), M(0, -2, 0, 1), M(15, -63, 25, 9),
+             M(2, -3, 0, 1), M(4, -4, 0, 1), M(1, -4, 1, 1), M(-1, 3, 0, 0),
+             M(6, -5, 0, 1), M(3, -5, 1, 1), M(1, -5, 2, 1), M(8, -6, 0, 1),
+             M(5, -6, 1, 1), M(2, -6, 2, 1), M(0, 1, 0, 0), M(3, -13, 5, 2),
+             M(-2, 8, 0, -1), M(7, -7, 1, 1), M(4, -7, 2, 1), M(5, -14, 5, 2),
+             M(6, -21, 8, 3), M(1, 0, 0, 0), M(-1, 7, 0, -1), M(7, -28, 11, 4),
+             M(2, -7, 3, 1), M(-3, 14, 0, -2), M(10, -42, 17, 6), M(5, -21, 9, 3),
+             M(0, 0, 1, 0))
+
+        Not a strictly convex cone::
+
+            sage: wedge = Cone([ (1,0,0), (1,2,0), (0,0,1), (0,0,-1) ])
+            sage: wedge.semigroup_generators()
+            (N(1, 1, 0), N(1, 1, -1), N(1, 0, 0), N(0, 0, 1), N(0, 0, -1), N(1, 1, 1), N(1, 2, 0))
+            sage: wedge.Hilbert_basis()
+            (N(1, 2, 0), N(1, 0, 0), N(0, 0, 1), N(0, 0, -1), N(1, 1, 0))
+
+        ALGORITHM:
+
+        The primal Normaliz algorithm, see [Normaliz]_.
+
+        REFERENCES:
+
+        ..  [Normaliz]
+            Winfried Bruns, Bogdan Ichim, and Christof Soeger:
+            Normaliz.
+            http://www.mathematik.uni-osnabrueck.de/normaliz/
+        """
+        if '_Hilbert_basis' in self.__dict__:
+            return self._Hilbert_basis
+
+        if self.is_strictly_convex():
+            def not_in_linear_subspace(x): return True
+        else:
+            linear_subspace = self.linear_subspace()
+            def not_in_linear_subspace(x): return not x in linear_subspace
+
+        irreducible = list(self.rays())  # these are irreducible for sure
+        gens = list(self.semigroup_generators())
+        for x in irreducible:
+            try:
+                gens.remove(x)
+            except ValueError:
+                pass
+
+        while len(gens)>0:
+            x = gens.pop()
+            if any(not_in_linear_subspace(y) and x-y in self
+                   for y in irreducible+gens):
+                continue
+            irreducible.append(x)
+
+        Hilbert_basis = tuple(irreducible)
+        self._Hilbert_basis = Hilbert_basis
+        return Hilbert_basis
+
+    def Hilbert_coefficients(self, point):
+        r"""
+        Return the expansion coefficients of ``point`` with respect to
+        :meth:`Hilbert_basis`.
+
+        INPUT:
+
+        - ``point`` -- a :meth:`lattice` point in the cone, or
+          something that can be converted to a point. For example, a
+          list or tuple of integers.
+
+        OUTPUT:
+
+        A `\ZZ`-vector with ``len(self.Hilbert_basis())`` nonnegative
+        components. Note that, because the Hilbert basis elements are
+        not necessarily linearly independent, the expansion
+        coefficients are not unique. However, this method will always
+        return the same expansion coefficients when invoked with the
+        same argument.
+
+        EXAMPLES::
+
+            sage: cone = Cone([(1,0),(0,1)])
+            sage: cone.rays()
+            (N(1, 0), N(0, 1))
+            sage: cone.Hilbert_coefficients([3,2])
+            (3, 2)
+
+        A more complicated example::
+
+            sage: N = ToricLattice(2)
+            sage: cone = Cone([N(1,0),N(1,2)])
+            sage: cone.Hilbert_basis()
+            (N(1, 0), N(1, 2), N(1, 1))
+            sage: cone.Hilbert_coefficients( N(1,1) )
+            (0, 0, 1)
+
+        The cone need not be strictly convex::
+
+            sage: N = ToricLattice(3)
+            sage: cone = Cone([N(1,0,0),N(1,2,0),N(0,0,1),N(0,0,-1)])
+            sage: cone.Hilbert_basis()
+            (N(1, 2, 0), N(1, 0, 0), N(0, 0, 1), N(0, 0, -1), N(1, 1, 0))
+            sage: cone.Hilbert_coefficients( N(1,1,3) )
+            (0, 0, 3, 0, 1)
+        """
+        if self.is_strictly_convex():
+            def in_linear_subspace(x): return False
+        else:
+            linear_subspace = self.linear_subspace()
+            def in_linear_subspace(x): return x in linear_subspace
+
+        point = self.lattice()(point)
+        assert point in self, 'The given point is not in the cone!'
+        basis = self.Hilbert_basis()
+
+        from sage.numerical.mip import MixedIntegerLinearProgram
+        p = MixedIntegerLinearProgram(maximization=False)
+        p.set_objective(None)
+        x = p.new_variable(integer=True)
+        x = [ x[i] for i in range(0,len(basis)) ]
+        for i in range(0,self.lattice_dim()):
+            p.add_constraint(sum(b[i]*x[j] for j,b in enumerate(basis)) == point[i])
+        p.solve()
+
+        return vector(ZZ, p.get_values(x))
 

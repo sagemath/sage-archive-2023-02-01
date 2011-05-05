@@ -186,9 +186,10 @@ def _extract_embedded_position(docstring):
        sage: _extract_embedded_position(inspect.getdoc(var))[1][-21:]
        'sage/calculus/var.pyx'
 
-    AUTHOR:
-        -- William Stein
-        -- Extensions by Nick Alexander
+    AUTHORS:
+
+    - William Stein
+    - Extensions by Nick Alexander
     """
     if docstring is None:
         return None
@@ -885,13 +886,20 @@ def sage_getfile(obj):
         sage: sage_getfile(obj)
         '...sage/combinat/partition_algebra.py'
 
-    AUTHOR:
+    And here is another bug, fixed in trac ticket #11298::
+
+        sage: P.<x,y> = QQ[]
+        sage: sage_getfile(P)
+        '...sage/rings/polynomial/multi_polynomial_libsingular.pyx'
+
+    AUTHORS:
 
     - Nick Alexander
+    - Simon King
     """
-    # We try to extract from docstrings, because Python's inspect
-    # will happily report compiled .so files
-    d = inspect.getdoc(obj)
+    # We try to extract from docstrings, but not using Python's inspect
+    # because _sage_getdoc_unformatted is more robust.
+    d = _sage_getdoc_unformatted(obj)
     pos = _extract_embedded_position(d)
     if pos is not None:
         (_, filename, _) = pos
@@ -901,7 +909,8 @@ def sage_getfile(obj):
     if isclassinstance(obj):
         if isinstance(obj, functools.partial):
             return sage_getfile(obj.func)
-        return inspect.getabsfile(obj.__class__)
+        return sage_getfile(obj.__class__) #inspect.getabsfile(obj.__class__)
+
     # No go? fall back to inspect.
     return inspect.getabsfile(obj)
 
@@ -990,7 +999,7 @@ def sage_getargspec(obj):
     an instance of that class does not coincide with the argspec
     of its call method. That behaviour is intended, since a
     decorated method appears to have the generic signature
-    `*args,**kwds`, but in fact it is only supposed to be called
+    ``*args,**kwds``, but in fact it is only supposed to be called
     with the arguments requested by the underlying undecorated
     method. We saw an easy example above, namely `I.groebner_basis`.
     Here is a more difficult::
@@ -1339,11 +1348,35 @@ def sage_getsourcelines(obj, is_binary=False):
         ...
         '    raise ValueError, "k must be an integer or an integer + 1/2"\n'], 31)
 
+    Here are some cases that where covered in trac ticket #11298::
+
+        sage: P.<x,y> = QQ[]
+        sage: I = P*[x,y]
+        sage: sage_getsourcelines(P)
+        (['cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):\n',
+          "    def __init__(self, base_ring, n, names, order='degrevlex'):\n",
+        ...
+          '          M.append(new_MP(self, p_Copy(tempvector,_ring)))\n',
+          '          return M\n'], 225)
+        sage: sage_getsourcelines(I)
+        (['class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \\\n',
+        ...
+        '        return result_ring.ideal(result)\n'], 2612)
+        sage: x = var('x')
+        sage: sage_getsourcelines(x)
+        (['cdef class Expression(CommutativeRingElement):\n',
+          '    cpdef object pyobject(self):\n',
+        ...
+          '        return self / x\n'], 191)
+
+
     AUTHORS:
 
     - William Stein
     - Extensions by Nick Alexander
     - Extension to interactive Cython code by Simon King
+    - Simon King: If a class has no docstring then let the class
+      definition be found starting from the ``__init__`` method.
     """
 
     try:
@@ -1358,12 +1391,22 @@ def sage_getsourcelines(obj, is_binary=False):
         else:
             obj=obj.__class__
 
-    # If we can handle it, we do.  This is because Python's inspect will
-    # happily dump binary for cython extension source code.
+    # If we can handle it, we do.  We first try Python's inspect, and
+    # if that fails then we try _sage_getdoc_unformatted. We can not use
+    # the latter right away, since otherwise there is an import problem
+    # at sage startup, believe it or not.
     d = inspect.getdoc(obj)
     pos = _extract_embedded_position(d)
     if pos is None:
-        return inspect.getsourcelines(obj)
+        d = _sage_getdoc_unformatted(obj)
+        pos = _extract_embedded_position(d)
+        if pos is None:
+            try:
+                return inspect.getsourcelines(obj)
+            except IOError:
+                if obj.__class__ != type:
+                    return sage_getsourcelines(obj.__class__)
+                raise
 
     (orig, filename, lineno) = pos
     try:
@@ -1377,6 +1420,35 @@ def sage_getsourcelines(obj, is_binary=False):
         except IOError:
             return None
 
+    # It is possible that the source lines belong to the __init__ method,
+    # rather than to the class. So, we try to look back and find the class
+    # definition.
+    first_line = source_lines[lineno-1]
+    leading_blanks = len(first_line)-len(first_line.lstrip())
+    if first_line.lstrip().startswith('def ') and "__init__" in first_line and obj.__name__!='__init__':
+        ignore = False
+        double_quote = None
+        for lnb in xrange(lineno,0,-1):
+            new_first_line = source_lines[lnb-1]
+            nfl_strip = new_first_line.lstrip()
+            if nfl_strip.startswith('"""'):
+                if double_quote is None:
+                    double_quote=True
+                if double_quote:
+                    ignore = not ignore
+            elif nfl_strip.startswith("'''"):
+                if double_quote is None:
+                    double_quote=False
+                if double_quote is False:
+                    ignore = not ignore
+            if ignore:
+                continue
+            if len(new_first_line)-len(nfl_strip)<leading_blanks and nfl_strip:
+                # We are not inside a doc string. So, if the indentation
+                # is less than the indentation of the __init__ method
+                # then we must be at the class definition!
+                lineno = lnb
+                break
     return _extract_source(source_lines, lineno), lineno
 
 def sage_getvariablename(obj, omit_underscore_names=True):

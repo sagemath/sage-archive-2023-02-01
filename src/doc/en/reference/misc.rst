@@ -35,7 +35,9 @@ Miscellaneous
    sage/misc/func_persist
    sage/misc/sage_eval
    sage/misc/random_testing
+   sage/misc/sageinspect
    sage/misc/sagedoc
+   sage/misc/edit_module
    sage/rings/arith
    sage/misc/nested_class
    sage/misc/nested_class_test

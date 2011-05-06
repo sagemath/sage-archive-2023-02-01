@@ -2319,7 +2319,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         self.cache(key, b)
         return b
 
-    def is_unitary(self, tol=1e-12):
+    def is_unitary(self, tol=1e-12, algorithm='orthonormal'):
         r"""
         Returns ``True`` if the columns of the matrix are an orthonormal basis.
 
@@ -2333,6 +2333,10 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
           absolute value of the difference between two matrix entries
           for which they will still be considered equal.
 
+        - ``algorithm`` - default: 'orthonormal' - set to 'orthonormal'
+          for a stable procedure and set to 'naive' for a fast
+          procedure.
+
         OUTPUT:
 
         ``True`` if the matrix is square and its conjugate-transpose is
@@ -2344,7 +2348,25 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         to be equal if there is a slight difference due to round-off
         and other imprecisions.
 
-        The result is cached, on a per-tolerance basis.
+        The result is cached, on a per-tolerance and per-algorithm basis.
+
+        ALGORITHMS::
+
+        The naive algorithm simply computes the product of the
+        conjugate-transpose with the matrix and compares the entries
+        to the identity matrix, with equality controlled by the
+        tolerance parameter.
+
+        The orthonormal algorithm first computes a Schur decomposition
+        (via the :meth:`schur` method) and checks that the result is a
+        diagonal matrix with entries of modulus 1, which is equivalent to
+        being unitary.
+
+        So the naive algorithm might finish fairly quickly for a matrix
+        that is not unitary, once the product has been computed.
+        However, the orthonormal algorithm will compute a Schur
+        decomposition before going through a similar check of a
+        matrix entry-by-entry.
 
         EXAMPLES:
 
@@ -2358,6 +2380,10 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             [296.0 332.0 368.0 404.0]
             sage: A.is_unitary()
             False
+            sage: A.is_unitary(algorithm='naive')
+            False
+            sage: A.is_unitary(algorithm='orthonormal')
+            False
 
         The QR decoposition will produce a unitary matrix as Q and the
         SVD decomposition will create two unitary matrices, U and V. ::
@@ -2370,16 +2396,20 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: Q.is_unitary()
             True
             sage: U, S, V = A.SVD()
-            sage: U.is_unitary()
+            sage: U.is_unitary(algorithm='naive')
             True
-            sage: V.is_unitary()  # not tested - known bug (trac #11248)
+            sage: U.is_unitary(algorithm='orthonormal')
+            True
+            sage: V.is_unitary(algorithm='naive')  # not tested - known bug (trac #11248)
             True
 
         If we make the tolerance too strict we can get misleading results.  ::
 
             sage: A = matrix(RDF, 10, 10, [1/(i+j+1) for i in range(10) for j in range(10)])
             sage: Q, R = A.QR()
-            sage: Q.is_unitary(tol=1e-16)
+            sage: Q.is_unitary(algorithm='naive', tol=1e-16)
+            False
+            sage: Q.is_unitary(algorithm='orthonormal', tol=1e-17)
             False
 
         Rectangular matrices are not unitary/orthogonal, even if their
@@ -2389,15 +2419,56 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: A.is_unitary()
             False
 
-        A trivial case.  ::
+        The smallest cases.  The Schur decomposition used by the
+        orthonormal algorithm will fail on a matrix of size zero.  ::
 
-            sage: P = matrix(CDF,0,0)
-            sage: P.is_unitary()
+            sage: P = matrix(CDF, 0, 0)
+            sage: P.is_unitary(algorithm='naive')
             True
+
+            sage: P = matrix(CDF, 1, 1, [1])
+            sage: P.is_unitary(algorithm='orthonormal')
+            True
+
+            sage: P = matrix(CDF, 0, 0,)
+            sage: P.is_unitary(algorithm='orthonormal')
+            Traceback (most recent call last):
+            ...
+            ValueError: failed to create intent(cache|hide)|optional array-- must have defined dimensions but got (0,)
+
+        TESTS::
+
+            sage: P = matrix(CDF, 2, 2)
+            sage: P.is_unitary(tol='junk')
+            Traceback (most recent call last):
+            ...
+            TypeError: tolerance must be a real number, not junk
+
+            sage: P.is_unitary(tol=-0.3)
+            Traceback (most recent call last):
+            ...
+            ValueError: tolerance must be positive, not -0.3
+
+            sage: P.is_unitary(algorithm='junk')
+            Traceback (most recent call last):
+            ...
+            ValueError: algorithm must be 'naive' or 'orthonormal', not junk
+
+
+        AUTHOR:
+
+        - Rob Beezer (2011-05-04)
         """
         global numpy
-        tol = float(tol)
-        key = 'unitary_%s'%tol
+        try:
+            tol = float(tol)
+        except:
+            raise TypeError('tolerance must be a real number, not {0}'.format(tol))
+        if tol <= 0:
+            raise ValueError('tolerance must be positive, not {0}'.format(tol))
+        if not algorithm in ['naive', 'orthonormal']:
+            raise ValueError("algorithm must be 'naive' or 'orthonormal', not {0}".format(algorithm))
+        key = 'unitary_{0}_{1}'.format(algorithm, tol)
         b = self.fetch(key)
         if not b is None:
             return b
@@ -2406,20 +2477,32 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             return False
         if numpy is None:
             import numpy
-        cdef Matrix_double_dense P
-        P = self.conjugate().transpose()*self
         cdef Py_ssize_t i, j
-        unitary = True
-        for i from 0 < i < self._nrows:
-            # off-diagonal
-            for j from 0 <= j < i:
-                if numpy.absolute(P.get_unsafe(i,j)) > tol:
+        cdef Matrix_double_dense T, P
+        if algorithm == 'orthonormal':
+            # Schur decomposition over CDF will be unitary
+            # iff diagonal with unit modulus entries
+            _, T = self.schur(base_ring=sage.rings.complex_double.CDF)
+            unitary = T._is_lower_triangular(tol)
+            if unitary:
+                for 0 <= i < self._nrows:
+                    if numpy.absolute(numpy.absolute(T.get_unsafe(i,i)) - 1) > tol:
+                        unitary = False
+                        break
+        elif algorithm == 'naive':
+            P = self.conjugate().transpose()*self
+            unitary = True
+            for i from 0 <= i < self._nrows:
+                # off-diagonal, since P is Hermitian
+                for j from 0 <= j < i:
+                    if numpy.absolute(P.get_unsafe(i,j)) > tol:
+                        unitary = False
+                        break
+                # at diagonal
+                if numpy.absolute(P.get_unsafe(i,i)-1) > tol:
                     unitary = False
+                if not unitary:
                     break
-            # at diagonal
-            if numpy.absolute(P.get_unsafe(i,i)-1) > tol:
-                unitary = False
-                break
         self.cache(key, unitary)
         return unitary
 

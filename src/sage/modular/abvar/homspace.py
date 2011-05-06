@@ -183,6 +183,7 @@ import sage.rings.integer_ring
 import sage.rings.all
 
 from sage.rings.ring import Ring
+from sage.categories.rings import Rings
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import Matrix, identity_matrix
 from sage.structure.element import is_Matrix
@@ -701,12 +702,25 @@ class EndomorphismSubring(Homspace, Ring):
             Endomorphism ring of Abelian variety J0(25) of dimension 0
             sage: type(J0(11).endomorphism_ring())
             <class 'sage.modular.abvar.homspace.EndomorphismSubring_with_category'>
+
+        TESTS:
+
+        The following tests against a problem on 32 bit machines that
+        occured while working on trac ticket #9944::
+
+            sage: sage.modular.abvar.homspace.EndomorphismSubring(J1(12345))
+            Endomorphism ring of Abelian variety J1(12345) of dimension 5405473
+
         """
         self._J = A.ambient_variety()
         self._A = A
-        Homspace.__init__(self, A, A, A.category())
-        Ring.__init__(self, A.base_ring())
 
+        # Initialise self with the correct category.
+        # We need to initialise it as a ring first
+        cat = A.category()
+        cat = cat.join([cat.hom_category(),Rings()])
+        Ring.__init__(self, A.base_ring(), category=cat)
+        Homspace.__init__(self, A, A, cat=cat)
         if gens is None:
             self._gens = None
         else:

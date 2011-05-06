@@ -149,6 +149,20 @@ this operation is an involution::
     sage: Partition([4,1]).conjugate().conjugate()
     [4, 1]
 
+If we create a partition with extra zeros at the end, they will be dropped::
+
+    sage: Partition([4,1,0,0])
+    [4, 1]
+
+The idea of a partition being followed by infinitely many parts of size `0` is
+consistent with the ``get_part`` method::
+
+    sage: p = Partition([5, 2])
+    sage: p.get_part(0)
+    5
+    sage: p.get_part(10)
+    0
+
 We can go back and forth between the exponential notations of a
 partition. The exponential notation can be padded with extra
 zeros::
@@ -711,6 +725,26 @@ class Partition_class(CombinatorialObject):
         for (i,j) in self.cells():
             res *= (a - (i-1)/alpha+j-1)
         return res
+
+    def get_part(self, i, default=Integer(0)):
+        r"""
+        Return the `i^{th}` part of self, or ``default`` if it does not exist.
+
+        EXAMPLES::
+
+            sage: p = Partition([2,1])
+            sage: p.get_part(0), p.get_part(1), p.get_part(2)
+            (2, 1, 0)
+            sage: p.get_part(10,-1)
+            -1
+            sage: Partition([]).get_part(0)
+            0
+        """
+        if i < len(self._list):
+            return self._list[i]
+        else:
+            return default
+
 
     def conjugate(self):
         """

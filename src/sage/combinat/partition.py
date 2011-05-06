@@ -581,9 +581,11 @@ class Partition_class(CombinatorialObject):
             [[3, 1, 1], [2, 2, 1], [2, 1, 1, 1]]
             sage: [p for p in Partition([3,2]).up()]
             [[4, 2], [3, 3], [3, 2, 1]]
+            sage: [p for p in Partition([]).up()]
+            [[1]]
         """
         p = self
-        previous = p[0] + 1
+        previous = p.get_part(0) + 1
         for i, current in enumerate(p):
             if current < previous:
                 yield Partition(p[:i] + [ p[i] + 1 ] + p[i+1:])
@@ -594,7 +596,7 @@ class Partition_class(CombinatorialObject):
     def up_list(self):
         """
         Returns a list of the partitions that can be formed from the
-        partition p by adding a cell.
+        partition `p` by adding a cell.
 
         EXAMPLES::
 
@@ -602,6 +604,8 @@ class Partition_class(CombinatorialObject):
             [[3, 1, 1], [2, 2, 1], [2, 1, 1, 1]]
             sage: Partition([3,2]).up_list()
             [[4, 2], [3, 3], [3, 2, 1]]
+            sage: Partition([]).up_list()
+            [[1]]
         """
         return [p for p in self.up()]
 

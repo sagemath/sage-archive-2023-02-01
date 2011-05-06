@@ -28,7 +28,7 @@ Here, unit faces are defined by
     \,[x, 3]^* & = & \{x + \lambda e_1 + \mu e_2 : \lambda, \mu \in [0,1]\}
     \end{array}
 
-and the generalized substitution `E_1^*(\sigma)` is defined by
+and the dual substitution `E_1^*(\sigma)` is defined by
 
 .. MATH::
 
@@ -50,7 +50,7 @@ REFERENCES:
    Pisot substitutions and Rauzy fractals,
    Bull. Belg. Math. Soc. 8 (2), 2001, pp. 181--207
 
-.. [AIS] Y. Sano, P. Arnoux, S. Ito,
+.. [SAI] Y. Sano, P. Arnoux, S. Ito,
    Higher dimensional extensions of substitutions and their dual maps,
    J. Anal. Math. 83, 2001, pp. 183--206
 
@@ -70,7 +70,7 @@ We apply a substitution to this patch, and draw the result::
     sage: sigma = WordMorphism({1:[1,2], 2:[1,3], 3:[1]})
     sage: E = E1Star(sigma)
     sage: E(P)
-    Patch: [[(1, 0, -1), 1]*, [(0, 1, -1), 2]*, [(0, 0, 0), 3]*, [(0, 0, 0), 1]*, [(0, 0, 0), 2]*]
+    Patch: [[(0, 0, 0), 1]*, [(0, 0, 0), 2]*, [(0, 0, 0), 3]*, [(0, 1, -1), 2]*, [(1, 0, -1), 1]*]
     sage: E(P).plot()                #not tested
 
 .. NOTE::
@@ -85,66 +85,55 @@ We apply a substitution to this patch, and draw the result::
 
 ::
 
-    sage: x = [Face((0,0,0),1), Face((0,0,0),2), Face((0,0,0),3)]
-    sage: P = Patch(x)
+    sage: P = Patch([Face((0,0,0),1), Face((0,0,0),2), Face((0,0,0),3)])
     sage: sigma = WordMorphism({1:[1,2], 2:[1,3], 3:[1]})
     sage: E = E1Star(sigma)
     sage: E(P)
-    Patch: [[(1, 0, -1), 1]*, [(0, 1, -1), 2]*, [(0, 0, 0), 3]*, [(0, 0, 0), 1]*, [(0, 0, 0), 2]*]
-
-We can also use the Patch method ``apply_substitution``, which changes the patch::
-
-    sage: sigma = WordMorphism({1:[1,3,1], 2:[1], 3:[1,1,3,2]})
-    sage: E = E1Star(sigma)
-    sage: p = Patch([Face((0,0,0),t) for t in [1,2,3]])
-    sage: p.apply_substitution(E, 5)
-    sage: p
-    Patch of 723 faces
+    Patch: [[(0, 0, 0), 1]*, [(0, 0, 0), 2]*, [(0, 0, 0), 3]*, [(0, 1, -1), 2]*, [(1, 0, -1), 1]*]
 
 The application of an ``E1Star`` substitution assigns to each new face the color of its preimage.
 The ``repaint`` method allows us to repaint the faces of a patch.
 A single color can also be assigned to every face, by specifying a list of a single color::
 
-    sage: p = Patch([Face((0,0,0),t) for t in [1,2,3]])
-    sage: p.apply_substitution(E, 5)
-    sage: p.repaint(['green'])
-    sage: p.plot()                   #not tested
+    sage: P = Patch([Face((0,0,0),t) for t in [1,2,3]])
+    sage: P = E(P, 5)
+    sage: P.repaint(['green'])
+    sage: P.plot()                   #not tested
 
 A list of colors allows us to color the faces sequentially::
 
-    sage: p = Patch([Face((0,0,0),t) for t in [1,2,3]])
-    sage: p.apply_substitution(E)
-    sage: p.repaint(['red', 'yellow', 'green', 'blue', 'black'])
-    sage: p.apply_substitution(E, 3)
-    sage: p.plot()                   #not tested
+    sage: P = Patch([Face((0,0,0),t) for t in [1,2,3]])
+    sage: P = E(P)
+    sage: P.repaint(['red', 'yellow', 'green', 'blue', 'black'])
+    sage: P = E(P, 3)
+    sage: P.plot()                   #not tested
 
 All the color schemes from ``matplotlib.cm.datad.keys()`` can be used::
 
-    sage: p = Patch([Face((0,0,0),t) for t in [1,2,3]])
-    sage: p.repaint(cmap='summer')
-    sage: p.apply_substitution(E, 3)
-    sage: p.plot()                   #not tested
-    sage: p.repaint(cmap='hsv')
-    sage: p.apply_substitution(E, 2)
-    sage: p.plot()                   #not tested
+    sage: P = Patch([Face((0,0,0),t) for t in [1,2,3]])
+    sage: P.repaint(cmap='summer')
+    sage: P = E(P, 3)
+    sage: P.plot()                   #not tested
+    sage: P.repaint(cmap='hsv')
+    sage: P = E(P, 2)
+    sage: P.plot()                   #not tested
 
 It is also possible to specify a dictionary to color the faces according to their type::
 
-    sage: p = Patch([Face((0,0,0),t) for t in [1,2,3]])
-    sage: p.apply_substitution(E, 5)
-    sage: p.repaint({1:(0.7, 0.7, 0.7), 2:(0.5,0.5,0.5), 3:(0.3,0.3,0.3)})
-    sage: p.plot()                   #not tested
-    sage: p.repaint({1:'red', 2:'yellow', 3:'green'})
-    sage: p.plot()                   #not tested
+    sage: P = Patch([Face((0,0,0),t) for t in [1,2,3]])
+    sage: P = E(P, 5)
+    sage: P.repaint({1:(0.7, 0.7, 0.7), 2:(0.5,0.5,0.5), 3:(0.3,0.3,0.3)})
+    sage: P.plot()                   #not tested
+    sage: P.repaint({1:'red', 2:'yellow', 3:'green'})
+    sage: P.plot()                   #not tested
 
 Let us look at a nice big patch in 3D::
 
     sage: sigma = WordMorphism({1:[1,2], 2:[3], 3:[1]})
     sage: E = E1Star(sigma)
-    sage: x = [Face((0,0,0),t) for t in [1,2,3]]
-    sage: P = Patch(x)
-    sage: P.add(P.translate([-1,1,0]))
-    sage: P.apply_substitution(E, 11)
+    sage: P = Patch([Face((0,0,0),t) for t in [1,2,3]])
+    sage: P = P + P.translate([-1,1,0])
+    sage: P = E(P, 11)
     sage: P.plot3d()                 #not tested
 
 Plotting with TikZ pictures is possible::
@@ -154,12 +143,12 @@ Plotting with TikZ pictures is possible::
     sage: print s
     \begin{tikzpicture}
     [x={(-0.216506cm,-0.125000cm)}, y={(0.216506cm,-0.125000cm)}, z={(0.000000cm,0.250000cm)}]
-    \definecolor{facecolor}{rgb}{1.000000,0.000000,0.000000}
-    \fill[fill=facecolor, draw=black, shift={(0,0,0)}]
-    (0, 0, 0) -- (0, 1, 0) -- (0, 1, 1) -- (0, 0, 1) -- cycle;
     \definecolor{facecolor}{rgb}{0.000000,1.000000,0.000000}
     \fill[fill=facecolor, draw=black, shift={(0,0,0)}]
     (0, 0, 0) -- (0, 0, 1) -- (1, 0, 1) -- (1, 0, 0) -- cycle;
+    \definecolor{facecolor}{rgb}{1.000000,0.000000,0.000000}
+    \fill[fill=facecolor, draw=black, shift={(0,0,0)}]
+    (0, 0, 0) -- (0, 1, 0) -- (0, 1, 1) -- (0, 0, 1) -- cycle;
     \definecolor{facecolor}{rgb}{0.000000,0.000000,1.000000}
     \fill[fill=facecolor, draw=black, shift={(0,0,0)}]
     (0, 0, 0) -- (1, 0, 0) -- (1, 1, 0) -- (0, 1, 0) -- cycle;
@@ -176,12 +165,11 @@ Plotting patches made of unit segments instead of unit faces::
 Everything works in any dimension (except for the plotting features
 which only work in dimension two or three)::
 
-    sage: x = [Face((0,0,0,0),1), Face((0,0,0,0),4)]
-    sage: P = Patch(x)
+    sage: P = Patch([Face((0,0,0,0),1), Face((0,0,0,0),4)])
     sage: sigma = WordMorphism({1:[1,2], 2:[1,3], 3:[1,4], 4:[1]})
     sage: E = E1Star(sigma)
     sage: E(P)
-    Patch: [[(1, 0, 0, -1), 1]*, [(0, 1, 0, -1), 2]*, [(0, 0, 1, -1), 3]*, [(0, 0, 0, 0), 4]*, [(0, 0, 0, 0), 3]*]
+    Patch: [[(0, 0, 0, 0), 3]*, [(0, 0, 0, 0), 4]*, [(0, 0, 1, -1), 3]*, [(0, 1, 0, -1), 2]*, [(1, 0, 0, -1), 1]*]
 
 ::
 
@@ -190,21 +178,21 @@ which only work in dimension two or three)::
     sage: E
     E_1^*(WordMorphism: 1->12, 10->1,11, 11->1,12, 12->1, 2->13, 3->14, 4->15, 5->16, 6->17, 7->18, 8->19, 9->1,10)
     sage: P = Patch([Face((0,0,0,0,0,0,0,0,0,0,0,0),t) for t in [1,2,3]])
-    sage: for x in E(P): print x
-    [(1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1), 1]*
-    [(0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1), 2]*
-    [(0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, -1), 3]*
-    [(0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, -1), 4]*
-    [(0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, -1), 5]*
-    [(0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, -1), 6]*
-    [(0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1), 7]*
-    [(0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, -1), 8]*
-    [(0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, -1), 9]*
-    [(0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1), 10]*
-    [(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, -1), 11]*
-    [(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), 12]*
+    sage: for x in sorted(list(E(P)), key=lambda x : (x.vector(),x.type())): print x
     [(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), 1]*
     [(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), 2]*
+    [(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), 12]*
+    [(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, -1), 11]*
+    [(0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1), 10]*
+    [(0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, -1), 9]*
+    [(0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, -1), 8]*
+    [(0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1), 7]*
+    [(0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, -1), 6]*
+    [(0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, -1), 5]*
+    [(0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, -1), 4]*
+    [(0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, -1), 3]*
+    [(0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1), 2]*
+    [(1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1), 1]*
 """
 #*****************************************************************************
 #       Copyright (C) 2010 Franco Saliola <saliola@gmail.com>
@@ -256,7 +244,7 @@ class Face(SageObject):
 
     EXAMPLES::
 
-        sage: from sage.combinat.e_one_star import E1Star, Face, Patch
+        sage: from sage.combinat.e_one_star import Face
         sage: f = Face((0,2,0), 3)
         sage: f.vector()
         (0, 2, 0)
@@ -275,7 +263,7 @@ class Face(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.combinat.e_one_star import E1Star, Face, Patch
+            sage: from sage.combinat.e_one_star import Face
             sage: f = Face((0,2,0), 3)
             sage: f.vector()
             (0, 2, 0)
@@ -312,7 +300,7 @@ class Face(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.combinat.e_one_star import E1Star, Face, Patch
+            sage: from sage.combinat.e_one_star import Face
             sage: f = Face((0,0,0,3), 3)
             sage: f
             [(0, 0, 0, 3), 3]*
@@ -329,7 +317,7 @@ class Face(SageObject):
         r"""
         EXAMPLES::
 
-            sage: from sage.combinat.e_one_star import E1Star, Face, Patch
+            sage: from sage.combinat.e_one_star import Face
             sage: f = Face((0,0,0,3), 3)
             sage: g = Face((0,0,0,3), 3)
             sage: f == g
@@ -344,7 +332,7 @@ class Face(SageObject):
         r"""
         EXAMPLES::
 
-            sage: from sage.combinat.e_one_star import E1Star, Face, Patch
+            sage: from sage.combinat.e_one_star import Face
             sage: f = Face((0,0,0,3), 3)
             sage: g = Face((0,0,0,3), 3)
             sage: hash(f) == hash(g)
@@ -352,13 +340,37 @@ class Face(SageObject):
         """
         return hash((self.vector(), self.type()))
 
+    def __add__(self, other):
+        r"""
+        Addition of self with a Face, a Patch or a finite iterable of faces.
+
+        INPUT:
+
+        - ``other`` - a Patch or a Face or a finite iterable of faces
+
+        EXAMPLES::
+
+            sage: from sage.combinat.e_one_star import Face, Patch
+            sage: f = Face([0,0,0], 3)
+            sage: g = Face([0,1,-1], 2)
+            sage: f + g
+            Patch: [[(0, 0, 0), 3]*, [(0, 1, -1), 2]*]
+            sage: P = Patch([Face([0,0,0], 1), Face([0,0,0], 2)])
+            sage: f + P
+            Patch: [[(0, 0, 0), 1]*, [(0, 0, 0), 2]*, [(0, 0, 0), 3]*]
+        """
+        if isinstance(other, Face):
+            return Patch([self, other])
+        else:
+            return other.union(self)
+
     def vector(self):
         r"""
         Return the vector of the face.
 
         EXAMPLES::
 
-            sage: from sage.combinat.e_one_star import E1Star, Face, Patch
+            sage: from sage.combinat.e_one_star import Face
             sage: f = Face((0,2,0), 3)
             sage: f.vector()
             (0, 2, 0)
@@ -371,7 +383,7 @@ class Face(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.combinat.e_one_star import E1Star, Face, Patch
+            sage: from sage.combinat.e_one_star import Face
             sage: f = Face((0,2,0), 3)
             sage: f.type()
             3
@@ -400,7 +412,7 @@ class Face(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.combinat.e_one_star import E1Star, Face, Patch
+            sage: from sage.combinat.e_one_star import Face
             sage: f = Face((0,2,0), 3)
             sage: f.color()
             RGB color (0.0, 0.0, 1.0)
@@ -431,7 +443,7 @@ class Face(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.combinat.e_one_star import E1Star, Face, Patch
+            sage: from sage.combinat.e_one_star import Face
             sage: f = Face((0,0,3), 3)
             sage: projmat = matrix(2, [-1.7320508075688772*0.5, 1.7320508075688772*0.5, 0, -0.5, -0.5, 1])
             sage: face_contour = {1: map(vector, [(0,0,0),(0,1,0),(0,1,1),(0,0,1)]), 2: map(vector, [(0,0,0),(0,0,1),(1,0,1),(1,0,0)]), 3: map(vector, [(0,0,0),(1,0,0),(1,1,0),(0,1,0)])}
@@ -472,7 +484,7 @@ class Face(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.combinat.e_one_star import E1Star, Face, Patch
+            sage: from sage.combinat.e_one_star import Face
             sage: f = Face((0,0,3), 3)
             sage: face_contour = {1: map(vector, [(0,0,0),(0,1,0),(0,1,1),(0,0,1)]), 2: map(vector, [(0,0,0),(0,0,1),(1,0,1),(1,0,0)]), 3: map(vector, [(0,0,0),(1,0,0),(1,1,0),(0,1,0)])}
             sage: G = f._plot3d(face_contour)      #not tested
@@ -487,6 +499,11 @@ class Patch(SageObject):
     r"""
     A class to model a collection of faces.
 
+    .. NOTE::
+
+        Since version 4.7.1, Patches are immutable, except for the colors of the
+        faces, which are not taken into account for equality tests and hash functions.
+
     INPUT:
 
     - ``faces`` - finite iterable of faces
@@ -497,9 +514,8 @@ class Patch(SageObject):
 
     EXAMPLES::
 
-        sage: from sage.combinat.e_one_star import E1Star, Face, Patch
-        sage: x = [Face((0,0,0),t) for t in [1,2,3]]
-        sage: P = Patch(x)
+        sage: from sage.combinat.e_one_star import Face, Patch
+        sage: P = Patch([Face((0,0,0),t) for t in [1,2,3]])
         sage: P
         Patch: [[(0, 0, 0), 1]*, [(0, 0, 0), 2]*, [(0, 0, 0), 3]*]
 
@@ -518,17 +534,28 @@ class Patch(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.combinat.e_one_star import E1Star, Face, Patch
-            sage: x = [Face((0,0,0),t) for t in [1,2,3]]
-            sage: P = Patch(x)
+            sage: from sage.combinat.e_one_star import Face, Patch
+            sage: P = Patch([Face((0,0,0),t) for t in [1,2,3]])
             sage: P
             Patch: [[(0, 0, 0), 1]*, [(0, 0, 0), 2]*, [(0, 0, 0), 3]*]
-            sage: y = Face((0,1,0), 3)
-            sage: P.add(y)
-            sage: P
-            Patch: [[(0, 0, 0), 1]*, [(0, 0, 0), 2]*, [(0, 0, 0), 3]*, [(0, 1, 0), 3]*]
+
+        TEST:
+
+        We test that colors are not anymore mixed up between Patches (see #11255)::
+
+            sage: P = Patch([Face([0,0,0],1), Face([0,0,0],2)])
+            sage: Q = Patch(P)
+            sage: P[0].color()
+            RGB color (0.0, 1.0, 0.0)
+            sage: Q[0].color('yellow')
+            sage: P[0].color()
+            RGB color (0.0, 1.0, 0.0)
+
         """
-        self._faces = [Face(f.vector(), f.type(), f.color()) for f in faces]
+        if isinstance(faces, Patch):
+            self._faces = frozenset([Face(f.vector(), f.type(), f.color()) for f in faces])
+        else:
+            self._faces = frozenset(faces)
 
         if not face_contour is None:
             self._face_contour = face_contour
@@ -551,15 +578,12 @@ class Patch(SageObject):
         EXAMPLES::
 
             sage: from sage.combinat.e_one_star import E1Star, Face, Patch
-            sage: x = [Face((0,0,0),1), Face((0,0,0),2), Face((0,0,0),3)]
-            sage: y = [Face((0,1,0),1), Face((0,0,0),3)]
-            sage: P = Patch(x)
-            sage: Q = Patch(y)
-            sage: R = Patch(x)
+            sage: P = Patch([Face((0,0,0),1), Face((0,0,0),2), Face((0,0,0),3)])
+            sage: Q = Patch([Face((0,1,0),1), Face((0,0,0),3)])
+            sage: P == P
+            True
             sage: P == Q
             False
-            sage: P == R
-            True
             sage: P == 4
             False
 
@@ -570,10 +594,10 @@ class Patch(SageObject):
             sage: P = Patch([Face((0,0,0), 1), Face((0,0,0), 2), Face((0,0,0), 3)])
             sage: E1Star(s)(P) == E1Star(t)(P)
             False
-            sage: E1Star(s * t)(P) == E1Star(t)(E1Star(s)(P))
+            sage: E1Star(s*t)(P) == E1Star(t)(E1Star(s)(P))
             True
         """
-        return (isinstance(other, Patch) and set(self._faces) == set(other._faces))
+        return (isinstance(other, Patch) and self._faces == other._faces)
 
     def __hash__(self):
         r"""
@@ -581,13 +605,26 @@ class Patch(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.combinat.e_one_star import E1Star, Face, Patch
+            sage: from sage.combinat.e_one_star import Face, Patch
             sage: x = [Face((0,0,0),t) for t in [1,2,3]]
             sage: P = Patch(x)
             sage: hash(P)
             -4839605361791007520
+
+        TEST:
+
+        We test that two equal patches have the same hash (see #11255)::
+
+            sage: P = Patch([Face([0,0,0],1), Face([0,0,0],2)])
+            sage: Q = Patch([Face([0,0,0],2), Face([0,0,0],1)])
+            sage: P == Q
+            True
+            sage: hash(P)
+            4715913349302436779
+            sage: hash(Q)
+            4715913349302436779
         """
-        return hash(frozenset(self))
+        return hash(self._faces)
 
     def __len__(self):
         r"""
@@ -599,7 +636,7 @@ class Patch(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.combinat.e_one_star import E1Star, Face, Patch
+            sage: from sage.combinat.e_one_star import Face, Patch
             sage: x = [Face((0,0,0),t) for t in [1,2,3]]
             sage: P = Patch(x)
             sage: len(P)       #indirect doctest
@@ -617,11 +654,11 @@ class Patch(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.combinat.e_one_star import E1Star, Face, Patch
+            sage: from sage.combinat.e_one_star import Face, Patch
             sage: x = [Face((0,0,0),t) for t in [1,2,3]]
             sage: P = Patch(x)
             sage: list(P)
-            [[(0, 0, 0), 1]*, [(0, 0, 0), 2]*, [(0, 0, 0), 3]*]
+            [[(0, 0, 0), 2]*, [(0, 0, 0), 1]*, [(0, 0, 0), 3]*]
         """
         return iter(self._faces)
 
@@ -633,43 +670,67 @@ class Patch(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.combinat.e_one_star import E1Star, Face, Patch
+            sage: from sage.combinat.e_one_star import Face, Patch
             sage: x = [Face((0,0,0),t) for t in [1,2,3]]
             sage: P = Patch(x)
             sage: P[1]
-            [(0, 0, 0), 2]*
+            [(0, 0, 0), 1]*
         """
-        return self._faces[key]
+        return list(self._faces)[key]
 
     def __add__(self, other):
         r"""
-        Addition of patches (union). A face already in both patches will
-        appear twice in the new patch. No verification of unicity is done.
+        Addition of patches (union).
 
         INPUT:
 
-        - ``other`` - a Patch
+        - ``other`` - a Patch or a Face or a finite iterable of faces
 
         EXAMPLES::
 
-            sage: from sage.combinat.e_one_star import Face, Patch, E1Star
-            sage: P = Patch([Face([0,0,0], 1), Face([0,0,0], 2), Face([0,0,0], 3)])
+            sage: from sage.combinat.e_one_star import Face, Patch
+            sage: P = Patch([Face([0,0,0], 1), Face([0,0,0], 2)])
             sage: Q = P.translate([1,-1,0])
             sage: P + Q
-            Patch: [[(0, 0, 0), 1]*, [(0, 0, 0), 2]*, [(0, 0, 0), 3]*, [(1, -1, 0), 1]*, [(1, -1, 0), 2]*, [(1, -1, 0), 3]*]
+            Patch: [[(0, 0, 0), 1]*, [(0, 0, 0), 2]*, [(1, -1, 0), 1]*, [(1, -1, 0), 2]*]
+            sage: P + Face([0,0,0],3)
+            Patch: [[(0, 0, 0), 1]*, [(0, 0, 0), 2]*, [(0, 0, 0), 3]*]
+            sage: P + [Face([0,0,0],3), Face([1,1,1],2)]
+            Patch: [[(0, 0, 0), 1]*, [(0, 0, 0), 2]*, [(0, 0, 0), 3]*, [(1, 1, 1), 2]*]
         """
-        return Patch(self._faces + other._faces)
+        return self.union(other)
+
+    def __sub__(self, other):
+        r"""
+        Substraction of patches (difference).
+
+        INPUT:
+
+        - ``other`` - a Patch or a Face or a finite iterable of faces
+
+        EXAMPLES::
+
+            sage: from sage.combinat.e_one_star import Face, Patch
+            sage: P = Patch([Face((0,0,0),t) for t in [1,2,3]])
+            sage: P - Face([0,0,0],2)
+            Patch: [[(0, 0, 0), 1]*, [(0, 0, 0), 3]*]
+            sage: P - P[0]
+            Patch: [[(0, 0, 0), 1]*, [(0, 0, 0), 3]*]
+            sage: P - P
+            Patch: []
+        """
+        return self.difference(other)
 
     def __repr__(self):
         r"""
         String representation of a patch.
 
         Displays all the faces if there less than 20,
-        otherwise displays the number of faces.
+        otherwise displays only the number of faces.
 
         EXAMPLES::
 
-            sage: from sage.combinat.e_one_star import E1Star, Face, Patch
+            sage: from sage.combinat.e_one_star import Face, Patch
             sage: x = [Face((0,0,0),t) for t in [1,2,3]]
             sage: P = Patch(x)
             sage: P
@@ -683,61 +744,78 @@ class Patch(SageObject):
             Patch of 25 faces
         """
         if len(self) <= 20:
-            return "Patch: %s"%self._faces
+            L = list(self)
+            L.sort(key=lambda x : (x.vector(),x.type()))
+            return "Patch: %s"%L
         else:
             return "Patch of %s faces"%len(self)
 
-    def add(self, faces):
+    def add(self, other):
         r"""
-        Add a face or many faces to the patch. This changes the patch.
+        Returns a Patch consisting of the union of self and other.
 
-        .. NOTE::
+        INPUT:
 
-            The faces to be added are assumed to be distinct from those
-            already in the patch. A face already in the patch will be
-            added twice. No verification of unicity is done.
+        - ``other`` - a Patch or a Face or a finite iterable of faces
 
         EXAMPLES::
 
-            sage: from sage.combinat.e_one_star import E1Star, Face, Patch
-            sage: x = [Face((0,0,0),t) for t in [1,2]]
-            sage: P = Patch(x)
-            sage: P
-            Patch: [[(0, 0, 0), 1]*, [(0, 0, 0), 2]*]
-            sage: P.add(Face((1,2,3), 3))
-            sage: P
+            sage: from sage.combinat.e_one_star import Face, Patch
+            sage: P = Patch([Face((0,0,0),1), Face((0,0,0),2)])
+            sage: P.add(Face((1,2,3), 3)) # not tested
             Patch: [[(0, 0, 0), 1]*, [(0, 0, 0), 2]*, [(1, 2, 3), 3]*]
-            sage: P.add([Face((1,2,3), 3), Face((2,3,3), 2)])
-            sage: P
-            Patch: [[(0, 0, 0), 1]*, [(0, 0, 0), 2]*, [(1, 2, 3), 3]*, [(1, 2, 3), 3]*, [(2, 3, 3), 2]*]
+            sage: P.add([Face((1,2,3), 3), Face((2,3,3), 2)]) # not tested
+            Patch: [[(0, 0, 0), 1]*, [(0, 0, 0), 2]*, [(1, 2, 3), 3]*, [(2, 3, 3), 2]*]
         """
-        if isinstance(faces, Face):
-            self._faces = Patch(self._faces + [faces])._faces
-        else:
-            faces = list(faces)
-            self._faces = Patch(self._faces + faces)._faces
+        from sage.misc.misc import deprecation
+        deprecation("Objects sage.combinat.e_one_star.Patch" + \
+                    "are immutable since Sage-4.7.1. " + \
+                    "Use the usual addition (P + Q) or use the Patch.union method.")
+        return self.union(other)
 
-    def remove(self, faces):
+    def union(self, other):
         r"""
-        Removes a face or many faces to the patch. This changes the patch.
-        The input can be a Face or a list of faces.
-        If a face appears multiple times in self, all the copies are removed.
+        Returns a Patch consisting of the union of self and other.
+
+        INPUT:
+
+        - ``other`` - a Patch or a Face or a finite iterable of faces
 
         EXAMPLES::
 
-            sage: from sage.combinat.e_one_star import E1Star, Face, Patch
-            sage: P = Patch([Face((0,0,0),t) for t in [1,2,3]])
-            sage: P.remove(Face([0,0,0],2))
-            sage: P
-            Patch: [[(0, 0, 0), 1]*, [(0, 0, 0), 3]*]
+            sage: from sage.combinat.e_one_star import Face, Patch
+            sage: P = Patch([Face((0,0,0),1), Face((0,0,0),2)])
+            sage: P.union(Face((1,2,3), 3))
+            Patch: [[(0, 0, 0), 1]*, [(0, 0, 0), 2]*, [(1, 2, 3), 3]*]
+            sage: P.union([Face((1,2,3), 3), Face((2,3,3), 2)])
+            Patch: [[(0, 0, 0), 1]*, [(0, 0, 0), 2]*, [(1, 2, 3), 3]*, [(2, 3, 3), 2]*]
         """
-        if isinstance(faces, Face):
-            while faces in self._faces:
-                self._faces.remove(faces)
+        if isinstance(other, Face):
+            return Patch(self._faces.union([other]))
         else:
-            for f in faces:
-                while f in self._faces:
-                    self._faces.remove(f)
+            return Patch(self._faces.union(other))
+
+    def difference(self, other):
+        r"""
+        Returns the difference of self and other.
+
+        INPUT:
+
+        - ``other`` - a finite iterable of faces or a single face
+
+        EXAMPLES::
+
+            sage: from sage.combinat.e_one_star import Face, Patch
+            sage: P = Patch([Face((0,0,0),t) for t in [1,2,3]])
+            sage: P.difference(Face([0,0,0],2))
+            Patch: [[(0, 0, 0), 1]*, [(0, 0, 0), 3]*]
+            sage: P.difference(P)
+            Patch: []
+        """
+        if isinstance(other, Face):
+            return Patch(self._faces.difference([other]))
+        else:
+            return Patch(self._faces.difference(other))
 
     def faces_of_vector(self, v):
         r"""
@@ -749,7 +827,7 @@ class Patch(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.combinat.e_one_star import E1Star, Face, Patch
+            sage: from sage.combinat.e_one_star import Face, Patch
             sage: P = Patch([Face((0,0,0),1), Face((1,2,0),3), Face((1,2,0),1)])
             sage: P.faces_of_vector([1,2,0])
             [[(1, 2, 0), 3]*, [(1, 2, 0), 1]*]
@@ -766,7 +844,7 @@ class Patch(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.combinat.e_one_star import E1Star, Face, Patch
+            sage: from sage.combinat.e_one_star import Face, Patch
             sage: P = Patch([Face((0,0,0),1), Face((1,2,0),3), Face((1,2,0),1)])
             sage: P.faces_of_type(1)
             [[(0, 0, 0), 1]*, [(1, 2, 0), 1]*]
@@ -775,24 +853,18 @@ class Patch(SageObject):
 
     def translate(self, v):
         r"""
-        Translates all the faces by the vector ``v``.
-
-        This does not change self. It returns a copy.
+        Returns a translated copy of self by vector ``v``.
 
         INPUT:
 
         - ``v`` - vector or tuple
 
-        OUTPUT:
-
-            a Patch
-
         EXAMPLES::
 
-            sage: from sage.combinat.e_one_star import E1Star, Face, Patch
+            sage: from sage.combinat.e_one_star import Face, Patch
             sage: P = Patch([Face((0,0,0),1), Face((1,2,0),3), Face((1,2,0),1)])
             sage: P.translate([-1,-2,0])
-            Patch: [[(-1, -2, 0), 1]*, [(0, 0, 0), 3]*, [(0, 0, 0), 1]*]
+            Patch: [[(-1, -2, 0), 1]*, [(0, 0, 0), 1]*, [(0, 0, 0), 3]*]
         """
         v = vector(v)
         return Patch(Face(f.vector()+v, f.type(), f.color()) for f in self)
@@ -828,7 +900,7 @@ class Patch(SageObject):
             sage: P = E(P,4)
             sage: Q = Patch([Face([0,0,0], 1), Face([0,0,0], 2)])
             sage: P.occurrences_of(Q)
-            [(1, 1, -2), (1, 1, -3), (1, 0, -1), (0, 1, -1), (0, 0, 1), (0, 0, 0)]
+            [(0, 0, 0), (0, 0, 1), (1, 1, -3), (1, 1, -2), (1, 0, -1), (0, 1, -1)]
         """
         x = other[0].vector()
         t = other[0].type()
@@ -843,11 +915,9 @@ class Patch(SageObject):
 
     def apply_substitution(self, E, iterations=1):
         r"""
-        Applies the substitution ``E`` on the patch.
+        Returns the image of self by the E1Star substitution ``E``.
 
         The color of every new face in the image is given the same color as its preimage.
-
-        This changes self.
 
         INPUT:
 
@@ -862,29 +932,24 @@ class Patch(SageObject):
             sage: from sage.combinat.e_one_star import E1Star, Face, Patch
             sage: sigma = WordMorphism({1:[1,2], 2:[1,3], 3:[1]})
             sage: E = E1Star(sigma)
-            sage: p = Patch([Face((0,0,0),t) for t in [1,2,3]])
-            sage: p.apply_substitution(E)
-            sage: p.plot()                   #not tested
-
-        ::
-
-            sage: x = (0,0,0)
-            sage: p = Patch([Face(x, 1, 'red'), Face(x, 2, 'yellow'), Face(x, 3, 'green')])
-            sage: p.apply_substitution(E, 4)
-            sage: p
-            Patch of 31 faces
-            sage: p.plot()                   #not tested
+            sage: P = Patch([Face((0,0,0),t) for t in [1,2,3]])
+            sage: P.apply_substitution(E,6) # not tested
+            Patch of 105 faces
         """
         if not isinstance(E, E1Star):
             raise TypeError, "E must be an instance of E1Star"
 
-        self._faces = E(self, iterations=iterations)._faces
+        from sage.misc.misc import deprecation
+        deprecation("Objects sage.combinat.e_one_star.Patch" + \
+                    "are immutable since Sage-4.7.1. " + \
+                    "Use the usual calling method of E1Star (E(P)).")
+        return E(self, iterations=iterations)
 
     def repaint(self, cmap='Set1'):
         r"""
         Repaints all the faces of self from the given color map.
 
-        This changes self.
+        This only changes the colors of the faces of self.
 
         INPUT:
 
@@ -904,33 +969,33 @@ class Patch(SageObject):
 
         Using a color map::
 
-            sage: from sage.combinat.e_one_star import E1Star, Face, Patch
+            sage: from sage.combinat.e_one_star import Face, Patch
             sage: color = (0, 0, 0)
-            sage: p = Patch([Face((0,0,0),t,color) for t in [1,2,3]])
-            sage: for f in p: f.color()
+            sage: P = Patch([Face((0,0,0),t,color) for t in [1,2,3]])
+            sage: for f in P: f.color()
             RGB color (0.0, 0.0, 0.0)
             RGB color (0.0, 0.0, 0.0)
             RGB color (0.0, 0.0, 0.0)
-            sage: p.repaint()
-            sage: p[1].color()
+            sage: P.repaint()
+            sage: P[1].color()
             RGB color (0.498..., 0.432..., 0.522...)
 
         Using a list of colors::
 
-            sage: p = Patch([Face((0,0,0),t,color) for t in [1,2,3]])
-            sage: p.repaint([(0.9, 0.9, 0.9), (0.65,0.65,0.65), (0.4,0.4,0.4)])
-            sage: for f in p: f.color()
+            sage: P = Patch([Face((0,0,0),t,color) for t in [1,2,3]])
+            sage: P.repaint([(0.9, 0.9, 0.9), (0.65,0.65,0.65), (0.4,0.4,0.4)])
+            sage: for f in P: f.color()
             RGB color (0.9000..., 0.9000..., 0.9000...)
             RGB color (0.6500..., 0.6500..., 0.6500...)
             RGB color (0.4000..., 0.4000..., 0.4000...)
 
         Using a dictionary to color faces according to their type::
 
-            sage: p = Patch([Face((0,0,0),t) for t in [1,2,3]])
-            sage: p.repaint({1:'black', 2:'yellow', 3:'green'})
-            sage: p.plot()                   #not tested
-            sage: p.repaint({})
-            sage: p.plot()                   #not tested
+            sage: P = Patch([Face((0,0,0),t) for t in [1,2,3]])
+            sage: P.repaint({1:'black', 2:'yellow', 3:'green'})
+            sage: P.plot()                   #not tested
+            sage: P.repaint({})
+            sage: P.plot()                   #not tested
         """
         if cmap == {}:
             cmap = {1: 'red', 2:'green', 3:'blue'}
@@ -982,14 +1047,14 @@ class Patch(SageObject):
 
             sage: from sage.combinat.e_one_star import E1Star, Face, Patch
             sage: P = Patch([Face((0,0,0),t) for t in [1,2,3]])
-            sage: P.plot()                   #not tested
+            sage: P.plot()
 
         ::
 
             sage: sigma = WordMorphism({1:[1,2], 2:[1,3], 3:[1]})
             sage: E = E1Star(sigma)
             sage: P = Patch([Face((0,0,0),t) for t in [1,2,3]])
-            sage: P.apply_substitution(E, 5)
+            sage: P = E(P, 5)
             sage: P.plot()
 
         Plot with a different projection matrix::
@@ -998,7 +1063,7 @@ class Patch(SageObject):
             sage: E = E1Star(sigma)
             sage: P = Patch([Face((0,0,0),t) for t in [1,2,3]])
             sage: M = matrix(2, 3, [1,0,-1,0.3,1,-3])
-            sage: P.apply_substitution(E, 3)
+            sage: P = E(P, 3)
             sage: P.plot(projmat=M)
 
         Plot patches made of unit segments::
@@ -1048,7 +1113,7 @@ class Patch(SageObject):
             sage: sigma = WordMorphism({1:[1,2], 2:[1,3], 3:[1]})
             sage: E = E1Star(sigma)
             sage: P = Patch([Face((0,0,0),t) for t in [1,2,3]])
-            sage: P.apply_substitution(E, 5)
+            sage: P = E(P, 5)
             sage: P.repaint()
             sage: P.plot3d()                #not tested
         """
@@ -1096,12 +1161,12 @@ class Patch(SageObject):
             sage: print s
             \begin{tikzpicture}
             [x={(-0.216506cm,-0.125000cm)}, y={(0.216506cm,-0.125000cm)}, z={(0.000000cm,0.250000cm)}]
-            \definecolor{facecolor}{rgb}{1.000000,0.000000,0.000000}
-            \fill[fill=facecolor, draw=black, shift={(0,0,0)}]
-            (0, 0, 0) -- (0, 1, 0) -- (0, 1, 1) -- (0, 0, 1) -- cycle;
             \definecolor{facecolor}{rgb}{0.000000,1.000000,0.000000}
             \fill[fill=facecolor, draw=black, shift={(0,0,0)}]
             (0, 0, 0) -- (0, 0, 1) -- (1, 0, 1) -- (1, 0, 0) -- cycle;
+            \definecolor{facecolor}{rgb}{1.000000,0.000000,0.000000}
+            \fill[fill=facecolor, draw=black, shift={(0,0,0)}]
+            (0, 0, 0) -- (0, 1, 0) -- (0, 1, 1) -- (0, 0, 1) -- cycle;
             \definecolor{facecolor}{rgb}{0.000000,0.000000,1.000000}
             \fill[fill=facecolor, draw=black, shift={(0,0,0)}]
             (0, 0, 0) -- (1, 0, 0) -- (1, 1, 0) -- (0, 1, 0) -- cycle;
@@ -1112,7 +1177,7 @@ class Patch(SageObject):
             sage: sigma = WordMorphism({1:[1,2], 2:[1,3], 3:[1]})
             sage: E = E1Star(sigma)
             sage: P = Patch([Face((0,0,0),t) for t in [1,2,3]])
-            sage: P.apply_substitution(E, 4)
+            sage: P = E(P, 4)
             sage: from sage.misc.latex import latex             #not tested
             sage: latex.add_to_preamble('\\usepackage{tikz}')   #not tested
             sage: view(P, tightpage=true)                       #not tested
@@ -1123,9 +1188,7 @@ class Patch(SageObject):
             sage: E = E1Star(sigma)
             sage: P = Patch([Face((0,0,0),t) for t in [1,2,3]])
             sage: P.repaint([(0.9, 0.9, 0.9), (0.65,0.65,0.65), (0.4,0.4,0.4)])
-            sage: P.apply_substitution(E, 4)
-            sage: P
-            Patch of 31 faces
+            sage: P = E(P, 4)
             sage: s = P.plot_tikz()
 
         Plotting with various options::
@@ -1134,7 +1197,7 @@ class Patch(SageObject):
             sage: E = E1Star(sigma)
             sage: P = Patch([Face((0,0,0),t) for t in [1,2,3]])
             sage: M = matrix(2, 3, map(float, [1,0,-0.7071,0,1,-0.7071]))
-            sage: P.apply_substitution(E, 3)
+            sage: P = E(P, 3)
             sage: s = P.plot_tikz(projmat=M, edgecolor='facecolor', scale=0.6, drawzero=True)
 
         Adding X, Y, Z axes using the extra code feature::
@@ -1162,12 +1225,12 @@ class Patch(SageObject):
             \node at (0,1.80000000000000,0) {$y$};
             \node at (0,0,1.80000000000000) {$z$};
             \draw[->, thick, black] (0,0,0) -- (0, 0, 1.50000000000000);
-            \definecolor{facecolor}{rgb}{1.000000,0.000000,0.000000}
-            \fill[fill=facecolor, draw=black, shift={(0,0,0)}]
-            (0, 0, 0) -- (0, 1, 0) -- (0, 1, 1) -- (0, 0, 1) -- cycle;
             \definecolor{facecolor}{rgb}{0.000000,1.000000,0.000000}
             \fill[fill=facecolor, draw=black, shift={(0,0,0)}]
             (0, 0, 0) -- (0, 0, 1) -- (1, 0, 1) -- (1, 0, 0) -- cycle;
+            \definecolor{facecolor}{rgb}{1.000000,0.000000,0.000000}
+            \fill[fill=facecolor, draw=black, shift={(0,0,0)}]
+            (0, 0, 0) -- (0, 1, 0) -- (0, 1, 1) -- (0, 0, 1) -- cycle;
             \definecolor{facecolor}{rgb}{0.000000,0.000000,1.000000}
             \fill[fill=facecolor, draw=black, shift={(0,0,0)}]
             (0, 0, 0) -- (1, 0, 0) -- (1, 1, 0) -- (0, 1, 0) -- cycle;
@@ -1224,6 +1287,10 @@ class E1Star(SageObject):
     - ``sigma`` - unimodular ``WordMorphism``, i.e. such that its incidence
       matrix has determinant `\pm 1`.
 
+    - ``method`` - 'prefix' or 'suffix' (optional, default: 'suffix')
+      Enables to use an alternative definition `E_1^*(\sigma)` substitutions,
+      where the abelianized of the prefix` is used instead of the suffix.
+
     .. NOTE::
 
         The alphabet of the domain and the codomain of `\sigma` must be
@@ -1238,7 +1305,15 @@ class E1Star(SageObject):
         sage: sigma = WordMorphism({1:[1,2], 2:[1,3], 3:[1]})
         sage: E = E1Star(sigma)
         sage: E(P)
-        Patch: [[(1, 0, -1), 1]*, [(0, 1, -1), 2]*, [(0, 0, 0), 3]*, [(0, 0, 0), 1]*, [(0, 0, 0), 2]*]
+        Patch: [[(0, 0, 0), 1]*, [(0, 0, 0), 2]*, [(0, 0, 0), 3]*, [(0, 1, -1), 2]*, [(1, 0, -1), 1]*]
+
+    ::
+
+        sage: P = Patch([Face((0,0,0),t) for t in [1,2,3]])
+        sage: sigma = WordMorphism({1:[1,2], 2:[1,3], 3:[1]})
+        sage: E = E1Star(sigma, method='prefix')
+        sage: E(P)
+        Patch: [[(0, 0, 0), 1]*, [(0, 0, 0), 2]*, [(0, 0, 0), 3]*, [(0, 0, 1), 1]*, [(0, 0, 1), 2]*]
 
     ::
 
@@ -1247,9 +1322,9 @@ class E1Star(SageObject):
         sage: sigma = WordMorphism({1:[1,2], 2:[1,3], 3:[1,4], 4:[1]})
         sage: E = E1Star(sigma)
         sage: E(P)
-        Patch: [[(1, 0, 0, -1), 1]*, [(0, 1, 0, -1), 2]*, [(0, 0, 1, -1), 3]*, [(0, 0, 0, 0), 4]*, [(0, 0, 0, 0), 3]*]
+        Patch: [[(0, 0, 0, 0), 3]*, [(0, 0, 0, 0), 4]*, [(0, 0, 1, -1), 3]*, [(0, 1, 0, -1), 2]*, [(1, 0, 0, -1), 1]*]
     """
-    def __init__(self, sigma):
+    def __init__(self, sigma, method='suffix'):
         r"""
         E1Star constructor. See class doc for more information.
 
@@ -1277,6 +1352,25 @@ class E1Star(SageObject):
         self._sigma = WordMorphism(sigma)
         self._d = self._sigma.domain().size_of_alphabet()
 
+        # self._base_iter is a base for the iteration of the application of self on set
+        # of faces. (Exploits the linearity of `E_1^*(\sigma)` to optimize computation.)
+        alphabet = self._sigma.domain().alphabet()
+        X = {}
+        for k in alphabet:
+            subst_im = self._sigma.image(k)
+            for n, letter in enumerate(subst_im):
+                if method == 'suffix':
+                    image_word = subst_im[n+1:]
+                elif method == 'prefix':
+                    image_word = subst_im[:n]
+                else:
+                    raise ValueError, "Option 'method' can only be 'prefix' or 'suffix'."
+                if not letter in X:
+                    X[letter] = []
+                v = self.inverse_matrix()*vector(image_word.parikh_vector())
+                X[letter].append((v, k))
+        self._base_iter = X
+
     def __eq__(self, other):
         r"""
         Equality test for E1Star morphisms.
@@ -1294,8 +1388,11 @@ class E1Star(SageObject):
             sage: T = E1Star(t)
             sage: S == T
             False
+            sage: S2 = E1Star(s, method='prefix')
+            sage: S == S2
+            False
         """
-        return (isinstance(other, E1Star) and self.sigma() == other.sigma())
+        return (isinstance(other, E1Star) and self._base_iter == other._base_iter)
 
     def __call__(self, patch, iterations=1):
         r"""
@@ -1319,7 +1416,7 @@ class E1Star(SageObject):
             sage: sigma = WordMorphism({1:[1,2], 2:[1,3], 3:[1]})
             sage: E = E1Star(sigma)
             sage: E(P)
-            Patch: [[(1, 0, -1), 1]*, [(0, 1, -1), 2]*, [(0, 0, 0), 3]*, [(0, 0, 0), 1]*, [(0, 0, 0), 2]*]
+            Patch: [[(0, 0, 0), 1]*, [(0, 0, 0), 2]*, [(0, 0, 0), 3]*, [(0, 1, -1), 2]*, [(1, 0, -1), 1]*]
             sage: E(P, iterations=4)
             Patch of 31 faces
 
@@ -1333,15 +1430,18 @@ class E1Star(SageObject):
             sage: E(P, iterations=0)
             Patch: [[(0, 0, 0), 1]*, [(0, 0, 0), 2]*, [(0, 0, 0), 3]*]
         """
-        old_faces = patch
-        new_faces = patch # this is useful if iterations=0, to behave as identity
-        for i in xrange(iterations):
-            new_faces = []
-            for f in old_faces:
-                new_faces.extend(self._call_on_face(f, color=f.color()))
-            old_faces = new_faces
-
-        return Patch(new_faces)
+        if iterations == 0:
+            return patch
+        elif iterations <0:
+            raise ValueError, "Option 'iterations' must be >= 0."
+        else:
+            old_faces = patch
+            for i in xrange(iterations):
+                new_faces = []
+                for f in old_faces:
+                    new_faces.extend(self._call_on_face(f, color=f.color()))
+                old_faces = new_faces
+            return Patch(new_faces)
 
     def __mul__(self, other):
         r"""
@@ -1385,107 +1485,6 @@ class E1Star(SageObject):
             E_1^*(WordMorphism: 1->12, 2->13, 3->1)
         """
         return "E_1^*(%s)" % str(self._sigma)
-
-    @lazy_attribute
-    def _base_iter(self):
-        r"""
-        Returns a base for the iteration of the application of self on set
-        of faces. (Exploits the linearity of `E_1^*(\sigma)` to optimize computation.)
-
-        EXAMPLES::
-
-            sage: from sage.combinat.e_one_star import E1Star, Face, Patch
-            sage: sigma = WordMorphism({1:[1,2], 2:[1,3], 3:[1]})
-            sage: E = E1Star(sigma)
-            sage: E._base_iter.keys()
-            [1, 2, 3]
-            sage: E._base_iter[1]
-            [((1, 0, -1), 1), ((0, 1, -1), 2), ((0, 0, 0), 3)]
-            sage: E._base_iter[2]
-            [((0, 0, 0), 1)]
-            sage: E._base_iter[3]
-            [((0, 0, 0), 2)]
-
-        ::
-
-            sage: sigma = WordMorphism({1:[1,2], 2:[1,3], 3:[1]})
-            sage: E = E1Star(sigma)
-            sage: sorted(E._base_iter.keys())
-            [1, 2, 3]
-            sage: E._base_iter[1]
-            [((1, 0, -1), 1), ((0, 1, -1), 2), ((0, 0, 0), 3)]
-            sage: E._base_iter[2]
-            [((0, 0, 0), 1)]
-            sage: E._base_iter[3]
-            [((0, 0, 0), 2)]
-
-        ::
-
-            sage: sigma = WordMorphism({1:[1,2], 2:[1,3], 3:[1]})
-            sage: E = E1Star(sigma)
-            sage: sorted(E._base_iter.keys())
-            [1, 2, 3]
-            sage: E._base_iter[1]
-            [((1, 0, -1), 1), ((0, 1, -1), 2), ((0, 0, 0), 3)]
-            sage: E._base_iter[1]
-            [((1, 0, -1), 1), ((0, 1, -1), 2), ((0, 0, 0), 3)]
-            sage: E._base_iter[2]
-            [((0, 0, 0), 1)]
-            sage: E._base_iter[3]
-            [((0, 0, 0), 2)]
-
-        ::
-
-            sage: sigma = WordMorphism({1:[1,3,1], 2:[1], 3:[1,1,3,2]})
-            sage: E = E1Star(sigma)
-            sage: sorted(E._base_iter.keys())
-            [1, 2, 3]
-            sage: E._base_iter[1]
-            [((1, -1, 0), 1), ((0, 0, 0), 1), ((0, 0, 0), 2), ((0, -1, 1), 3), ((0, -2, 1), 3)]
-            sage: E._base_iter[2]
-            [((0, 0, 0), 3)]
-            sage: E._base_iter[3]
-            [((0, 1, 0), 1), ((-1, 0, 1), 3)]
-
-        ::
-
-            sage: sigma = WordMorphism({1:[1,2], 2:[3], 3:[1]})
-            sage: E = E1Star(sigma)
-            sage: sorted(E._base_iter.keys())
-            [1, 2, 3]
-            sage: E._base_iter[1]
-            [((1, 0, -1), 1), ((0, 0, 0), 3)]
-            sage: E._base_iter[2]
-            [((0, 0, 0), 1)]
-            sage: E._base_iter[3]
-            [((0, 0, 0), 2)]
-
-        ::
-
-            sage: sigma = WordMorphism({1:[1,2], 2:[1,3], 3:[1,4], 4:[1]})
-            sage: E = E1Star(sigma)
-            sage: sorted(E._base_iter.keys())
-            [1, 2, 3, 4]
-            sage: E._base_iter[1]
-            [((1, 0, 0, -1), 1), ((0, 1, 0, -1), 2), ((0, 0, 1, -1), 3), ((0, 0, 0, 0), 4)]
-            sage: E._base_iter[2]
-            [((0, 0, 0, 0), 1)]
-            sage: E._base_iter[3]
-            [((0, 0, 0, 0), 2)]
-            sage: E._base_iter[4]
-            [((0, 0, 0, 0), 3)]
-        """
-        alphabet = self._sigma.domain().alphabet()
-        X = {}
-        for k in alphabet:
-            subst_im = self._sigma.image(k)
-            for n, letter in enumerate(subst_im):
-                suffix = subst_im[n+1:]
-                if not letter in X:
-                    X[letter] = []
-                v = self.inverse_matrix()*vector(suffix.parikh_vector())
-                X[letter].append((v, k))
-        return X
 
     def _call_on_face(self, face, color=None):
         r"""
@@ -1564,5 +1563,4 @@ class E1Star(SageObject):
             WordMorphism: 1->12, 2->13, 3->1
         """
         return self._sigma
-
 

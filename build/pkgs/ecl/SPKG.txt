@@ -49,6 +49,10 @@ Website: http://ecls.sourceforge.net/
 
 == Changelog ==
 
+=== ecl-11.1.1.p1 (Dmitrii Pasechnik, 6th May 2011) ===
+  * altivec must be disabled for ECL on PPC OSX 10.5
+    (hopefully ECL people will fix it, then it can be removed)
+
 === ecl-11.1.1.p0 (Francois Bissey, 23rd March 2011) ===
   * #10986 on some configuration (debian and gentoo are case in point)
     etags can be linked to exuberant-ctags. ecl building system automatically

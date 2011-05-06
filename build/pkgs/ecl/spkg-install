@@ -47,6 +47,12 @@ else
    CXXFLAGS="-g -O2 $CXXFLAGS"
 fi
 
+if [ "`uname -sm`" = "Darwin Power Macintosh" ] ; then
+# disbaling altivec instructions (trac 11297)
+    CFLAGS="$CFLAGS -mno-altivec -mabi=no-altivec"
+    export CFLAGS
+fi
+
 # These are all used by GNU to specify compilers.
 echo "Using CC=$CC"
 echo "Using CXX=$CXX"

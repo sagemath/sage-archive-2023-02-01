@@ -3365,20 +3365,27 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
     def semigroup_generators(self):
         r"""
-        Return a set of generators for semigroup of integral points of
-        the cone.
+        Return generators for the semigroup of lattice points of ``self``.
 
         OUTPUT:
 
-        A tuple of lattice points generating the cone. No attempt is
-        made to return a minimal set of generators, see
-        :meth:`Hilbert_basis` for that.
+        A tuple of lattice points generating the semigroup of lattice points
+        contained in this cone.
 
-        EXAMPLES::
+        .. note:: No attempt is made to return a minimal set of generators, see
+            :meth:`Hilbert_basis` for that.
 
-            sage: PointConfiguration.set_engine('internal')   # to make doctests independent of TOPCOM
+        EXAMPLES:
+
+        The following command ensures that the output ordering in the examples
+        below is independent of TOPCOM, you don't have to use it::
+
+            sage: PointConfiguration.set_engine('internal')
+
+        We start with a simple case of a non-smooth 2-dimensional cone::
+
             sage: Cone([ (1,0), (1,2) ]).semigroup_generators()
-            [N(1, 1), N(1, 0), N(1, 2)]
+            (N(1, 1), N(1, 0), N(1, 2))
 
         A non-simplicial cone works, too::
 
@@ -3403,7 +3410,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             (N(1, 1, 1), N(-1, -1, -1))
             sage: wedge = Cone([ (1,0,0), (1,2,0), (0,0,1), (0,0,-1) ])
             sage: wedge.semigroup_generators()
-            (N(1, 1, 0), N(1, 1, -1), N(1, 0, 0), N(0, 0, 1), N(0, 0, -1), N(1, 1, 1), N(1, 2, 0))
+            (N(1, 1, 0), N(1, 1, -1), N(1, 0, 0), N(0, 0, 1),
+             N(0, 0, -1), N(1, 1, 1), N(1, 2, 0))
 
         ALGORITHM:
 
@@ -3414,31 +3422,31 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         """
         N = self.lattice()
         if not self.is_simplicial():   # triangulate and run recursively
-            gens = set()
             from sage.geometry.triangulation.point_configuration import PointConfiguration
             origin = self.nrays() # last one in pc
             pc = PointConfiguration(self.rays() + (N(0),), fine=True, star=origin)
             triangulation = pc.triangulate()
-            subcones = [ Cone([self.ray(i) for i in simplex if i!=origin])
+            subcones = [ Cone([self.ray(i) for i in simplex if i!=origin],
+                              lattice=N, check=False)
                          for simplex in triangulation ]
             gens = set()
             for cone in subcones:
-                gens.update(map(tuple,cone.semigroup_generators()))
-            return tuple(map(N,gens))
+                gens.update(cone.semigroup_generators())
+            return tuple(gens)
 
         # if the cone is simplicial, just take integral points in
         # the parallelepiped spanned by the rays
         from sage.geometry.polyhedra import polytopes
         par = polytopes.parallelotope(self.rays())
         gens = par.integral_points()
-        # remove the vertices that are not generators:
+        # Remove parallelotope vertices, we will add ray generators later.
         for vertex in par.vertex_generator():
             gens.remove(vertex.vector())
-        gens.extend([ vector(list(ray)) for ray in self.rays() ])
         gens = map(N,gens)
         for gen in gens:
             gen.set_immutable()
-        return gens
+        gens.extend(self.rays())
+        return tuple(gens)
 
     def Hilbert_basis(self):
         r"""
@@ -3465,13 +3473,19 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         A tuple of lattice points. The rays of the cone are the first
         ``self.nrays()`` entries.
 
-        EXAMPLES::
+        EXAMPLES:
 
-            sage: PointConfiguration.set_engine('internal')   # to make doctests independent of TOPCOM
+        The following command ensures that the output ordering in the examples
+        below is independent of TOPCOM, you don't have to use it::
+
+            sage: PointConfiguration.set_engine('internal')
+
+        We start with a simple case of a non-smooth 2-dimensional cone::
+
             sage: Cone([ (1,0), (1,2) ]).Hilbert_basis()
             (N(1, 0), N(1, 2), N(1, 1))
 
-        Two more complicate example from GAP/toric::
+        Two more complicated example from GAP/toric::
 
             sage: Cone([[1,0],[3,4]]).dual().Hilbert_basis()
             (M(0, 1), M(4, -3), M(3, -2), M(2, -1), M(1, 0))
@@ -3490,7 +3504,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: wedge = Cone([ (1,0,0), (1,2,0), (0,0,1), (0,0,-1) ])
             sage: wedge.semigroup_generators()
-            (N(1, 1, 0), N(1, 1, -1), N(1, 0, 0), N(0, 0, 1), N(0, 0, -1), N(1, 1, 1), N(1, 2, 0))
+            (N(1, 1, 0), N(1, 1, -1), N(1, 0, 0), N(0, 0, 1),
+             N(0, 0, -1), N(1, 1, 1), N(1, 2, 0))
             sage: wedge.Hilbert_basis()
             (N(1, 2, 0), N(1, 0, 0), N(0, 0, 1), N(0, 0, -1), N(1, 1, 0))
 
@@ -3522,7 +3537,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             except ValueError:
                 pass
 
-        while len(gens)>0:
+        while gens:
             x = gens.pop()
             if any(not_in_linear_subspace(y) and x-y in self
                    for y in irreducible+gens):
@@ -3546,12 +3561,15 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         OUTPUT:
 
-        A `\ZZ`-vector with ``len(self.Hilbert_basis())`` nonnegative
-        components. Note that, because the Hilbert basis elements are
-        not necessarily linearly independent, the expansion
-        coefficients are not unique. However, this method will always
-        return the same expansion coefficients when invoked with the
-        same argument.
+        A `\ZZ`-vector of length ``len(self.Hilbert_basis())`` with nonnegative
+        components.
+
+        .. note::
+
+            Since the Hilbert basis elements are not necessarily linearly
+            independent, the expansion coefficients are not unique. However,
+            this method will always return the same expansion coefficients when
+            invoked with the same argument.
 
         EXAMPLES::
 

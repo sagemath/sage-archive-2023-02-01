@@ -209,7 +209,8 @@ class Mwrank_class(Expect):
         if self._expect is None: return
         try:
             os.kill(self._expect.pid, 9)
-        except: pass
+        except OSError:
+            pass
         self._expect = None
 
 

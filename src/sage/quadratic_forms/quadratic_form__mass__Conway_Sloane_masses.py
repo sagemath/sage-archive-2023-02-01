@@ -647,7 +647,7 @@ def conway_mass(self):
     ## Try to use the cached result
     try:
         return self.__conway_mass
-    except:
+    except AttributeError:
         ## Double the form so it's integer-matrix
         Q = self.scale_by_factor(2)
 

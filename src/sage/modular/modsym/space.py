@@ -1713,7 +1713,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         # For Gamma_0(N), n = \frac{k}{12}[\SL_2(\Z):\Gamma_0(N)]
         try:
             return self.__sturm_bound
-        except:
+        except AttributeError:
             if self.character() is not None:
                 self.__sturm_bound = Gamma0(self.level()).sturm_bound(self.weight())
             else:

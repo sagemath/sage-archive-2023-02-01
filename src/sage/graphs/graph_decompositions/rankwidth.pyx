@@ -162,7 +162,7 @@ def rank_decomposition(G, verbose = False):
         sage: rank_decomposition(g)
         Traceback (most recent call last):
         ...
-        Exception: The rank decomposition cannot be computed on graphs of >= 32 vertices.
+        RuntimeError: the rank decomposition cannot be computed on graphs of >= 32 vertices
 
     The empty graph::
 
@@ -173,8 +173,8 @@ def rank_decomposition(G, verbose = False):
     cdef int n = G.order()
 
     if n >= 32:
-        raise Exception("The rank decomposition cannot be computed "+
-                        "on graphs of >= 32 vertices.")
+        raise RuntimeError("the rank decomposition cannot be computed "+
+                        "on graphs of >= 32 vertices")
 
     elif n == 0:
         from sage.graphs.graph import Graph

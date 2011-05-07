@@ -1435,7 +1435,7 @@ def cellular_automaton(
     """
     from sage.all import Integer
     if not 0 <= rule_number <= 255:
-        raise Exception('Invalid rule number')
+        raise ValueError('Invalid rule number')
     binary_digits = Integer(rule_number).digits(base=2)
     rule = binary_digits + [0]*(8-len(binary_digits))
 

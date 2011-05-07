@@ -909,8 +909,6 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
         try:
             return self._coerce_c_impl(other)
-        except NameError, msg:
-            raise NameError, msg
         except TypeError:
             pass
 
@@ -4169,7 +4167,7 @@ cdef class BooleanPolynomial(MPolynomial):
         M = self.set()
         try: # 0
             d = iter(M).next().degree()
-        except:
+        except StopIteration:
             return True
         for m in M:
             if m.degree() != d:

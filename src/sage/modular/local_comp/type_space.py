@@ -667,7 +667,7 @@ class TypeSpace(SageObject):
         if d % p != 0:
             try:
                 a = self._a
-            except:
+            except AttributeError:
                 self._discover_torus_action()
                 a = self._a
             i = 0

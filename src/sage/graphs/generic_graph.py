@@ -430,7 +430,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         # inputs must be (di)graphs:
         if not isinstance(other, GenericGraph):
-            raise TypeError("Cannot compare graph to non-graph (%s)."%str(other))
+            raise TypeError("cannot compare graph to non-graph (%s)"%str(other))
         from sage.graphs.all import Graph
         g1_is_graph = isinstance(self, Graph) # otherwise, DiGraph
         g2_is_graph = isinstance(other, Graph) # otherwise, DiGraph
@@ -504,13 +504,13 @@ class GenericGraph(GenericGraph_pyx):
         """
         if isinstance(n, (int, long, Integer)):
             if n < 1:
-                raise TypeError('Multiplication of a graph and a nonpositive integer is not defined.')
+                raise TypeError('multiplication of a graph and a nonpositive integer is not defined')
             if n == 1:
                 from copy import copy
                 return copy(self)
             return sum([self]*(n-1), self)
         else:
-            raise TypeError('Multiplication of a graph and something other than an integer is not defined.')
+            raise TypeError('multiplication of a graph and something other than an integer is not defined')
 
     def __ne__(self, other):
         """
@@ -1058,7 +1058,7 @@ class GenericGraph(GenericGraph_pyx):
 
         """
         if self.has_multiple_edges():
-            raise NotImplementedError, "Don't know how to represent weights for a multigraph."
+            raise NotImplementedError("don't know how to represent weights for a multigraph")
 
         verts = self.vertices(boundary_first=boundary_first)
         new_indices = dict((v,i) for i,v in enumerate(verts))
@@ -1292,12 +1292,12 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.set_embedding({'s': [1, 5, 4], 1: [0, 2, 6], 2: [1, 3, 7], 3: [8, 2, 4], 4: [0, 9, 3], 5: [0, 8, 7], 6: [8, 1, 9], 7: [9, 2, 5], 8: [3, 5, 6], 9: [4, 6, 7]})
             Traceback (most recent call last):
             ...
-            Exception: embedding is not valid for Petersen graph
+            ValueError: embedding is not valid for Petersen graph
         """
         if self.check_embedding_validity(embedding):
             self._embedding = embedding
         else:
-            raise Exception('embedding is not valid for %s'%self)
+            raise ValueError('embedding is not valid for %s'%self)
 
     def get_embedding(self):
         """
@@ -1319,7 +1319,7 @@ class GenericGraph(GenericGraph_pyx):
         if self.check_embedding_validity():
             return self._embedding
         else:
-            raise Exception('%s has been modified and the embedding is no longer valid.'%self)
+            raise ValueError('%s has been modified and the embedding is no longer valid'%self)
 
     def check_embedding_validity(self, embedding=None):
         """
@@ -3090,7 +3090,7 @@ class GenericGraph(GenericGraph_pyx):
             if self.check_embedding_validity(on_embedding):
                 return (0 == self.genus(minimal=False,set_embedding=False,on_embedding=on_embedding))
             else:
-                raise Exception('on_embedding is not a valid embedding for %s.'%self)
+                raise ValueError('on_embedding is not a valid embedding for %s'%self)
         else:
             from sage.graphs.planarity import is_planar
             G = self.to_undirected()
@@ -3323,7 +3323,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.set_planar_positions(test=True,set_embedding=True)
             Traceback (most recent call last):
             ...
-            Exception: Complete graph is not a planar graph.
+            ValueError: Complete graph is not a planar graph
         """
         from sage.graphs.schnyder import _triangulate, _normal_label, _realizer, _compute_coordinates
 
@@ -3335,23 +3335,23 @@ class GenericGraph(GenericGraph_pyx):
         embedding_copy = None
         if set_embedding:
             if not (G.is_planar(set_embedding=True)):
-                raise Exception('%s is not a planar graph.'%self)
+                raise ValueError('%s is not a planar graph'%self)
             embedding_copy = G._embedding
         else:
             if on_embedding is not None:
                 if G.check_embedding_validity(on_embedding):
                     if not (G.is_planar(on_embedding=on_embedding)):
-                        raise Exception( 'Provided embedding is not a planar embedding for %s.'%self )
+                        raise ValueError('provided embedding is not a planar embedding for %s'%self )
                 else:
-                    raise Exception('Provided embedding is not a valid embedding for %s. Try putting set_embedding=True.'%self)
+                    raise ValueError('provided embedding is not a valid embedding for %s. Try putting set_embedding=True'%self)
             else:
                 if hasattr(G,'_embedding'):
                     if G.check_embedding_validity():
                         if not (G.is_planar(on_embedding=G._embedding)):
-                            raise Exception('%s has nonplanar _embedding attribute.  Try putting set_embedding=True.'%self)
+                            raise ValueError('%s has nonplanar _embedding attribute.  Try putting set_embedding=True'%self)
                         embedding_copy = G._embedding
                     else:
-                        raise Exception('Provided embedding is not a valid embedding for %s. Try putting set_embedding=True.'%self)
+                        raise ValueError('provided embedding is not a valid embedding for %s. Try putting set_embedding=True'%self)
                 else:
                     G.is_planar(set_embedding=True)
 
@@ -3378,7 +3378,7 @@ class GenericGraph(GenericGraph_pyx):
         #        self.add_edge( (v3, v1) )
         #        other_added_edges.append( (v3, v1) )
         #    if not self.is_planar(set_embedding=True): # get new combinatorial embedding (with added edges)
-        #        raise Exception('Modified graph %s is not planar.  Try specifying an external face.'%self)
+        #        raise ValueError('modified graph %s is not planar.  Try specifying an external face'%self)
 
         # Triangulate the graph
         extra_edges = _triangulate( G, G._embedding)
@@ -3389,7 +3389,7 @@ class GenericGraph(GenericGraph_pyx):
             test_faces = G.trace_faces(G._embedding)
             for face in test_faces:
                 if len(face) != 3:
-                    raise Exception('BUG: Triangulation returned face: %s'%face)
+                    raise RuntimeError('BUG: Triangulation returned face: %s'%face)
 
         G.is_planar(set_embedding=True)
         faces = G.trace_faces(G._embedding)
@@ -3635,9 +3635,10 @@ class GenericGraph(GenericGraph_pyx):
             if self.has_loops() or self.is_directed() or self.has_multiple_edges():
                 raise NotImplementedError, "Can't work with embeddings of non-simple graphs"
             if on_embedding: #i.e., if on_embedding True (returns False if on_embedding is of type dict)
-                if not hasattr(self,'_embedding'):
-                    raise Exception("Graph must have attribute _embedding set to compute current (embedded) genus.")
-                faces = len(self.trace_faces(self._embedding))
+                try:
+                    faces = len(self.trace_faces(self._embedding))
+                except AttributeError:
+                    raise AttributeError('graph must have attribute _embedding set to compute current (embedded) genus')
                 return (2-verts+edges-faces)/2
             else: # compute genus on the provided dict
                 faces = len(self.trace_faces(on_embedding))
@@ -6856,7 +6857,7 @@ class GenericGraph(GenericGraph_pyx):
            sage: g.matching(algorithm="somethingdifferent")
            Traceback (most recent call last):
            ...
-           ValueError: Algorithm must be set to either "Edmonds" or "LP".
+           ValueError: algorithm must be set to either "Edmonds" or "LP"
         """
         from sage.rings.real_mpfr import RR
         weight = lambda x: x if x in RR else 1
@@ -6909,8 +6910,7 @@ class GenericGraph(GenericGraph_pyx):
                         if b[min(u, v)][max(u, v)] == 1]
 
         else:
-            raise ValueError(
-                'Algorithm must be set to either "Edmonds" or "LP".')
+            raise ValueError('algorithm must be set to either "Edmonds" or "LP"')
 
     def dominating_set(self, independent=False, value_only=False, solver=None, verbose=0):
         r"""
@@ -10532,7 +10532,7 @@ class GenericGraph(GenericGraph_pyx):
             # answer is valid, especally when it is so cheap ;-)
 
             if hole.order() <= 3 or not hole.is_regular(k=2):
-                raise Exception("The graph is not chordal, and something went wrong in the computation of the certificate. Please report this bug, providing the graph if possible !")
+                raise RuntimeError("the graph is not chordal, and something went wrong in the computation of the certificate. Please report this bug, providing the graph if possible!")
 
             return (False, hole)
 
@@ -13051,10 +13051,10 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.complement()
             Traceback (most recent call last):
             ...
-            TypeError: Complement not well defined for (di)graphs with multiple edges.
+            TypeError: complement not well defined for (di)graphs with multiple edges
         """
         if self.has_multiple_edges():
-            raise TypeError('Complement not well defined for (di)graphs with multiple edges.')
+            raise TypeError('complement not well defined for (di)graphs with multiple edges')
         from copy import copy
         G = copy(self)
         G.delete_edges(G.edges())
@@ -13222,7 +13222,7 @@ class GenericGraph(GenericGraph_pyx):
             [0, 1, 2, 'a', 'b']
         """
         if (self._directed and not other._directed) or (not self._directed and other._directed):
-            raise TypeError('Both arguments must be of the same class.')
+            raise TypeError('both arguments must be of the same class')
 
         if not verbose_relabel:
             r_self = {}; r_other = {}; i = 0
@@ -13260,7 +13260,7 @@ class GenericGraph(GenericGraph_pyx):
             [(0, 1), (0, 2), (0, 3), (1, 2), (2, 3)]
         """
         if (self._directed and not other._directed) or (not self._directed and other._directed):
-            raise TypeError('Both arguments must be of the same class.')
+            raise TypeError('both arguments must be of the same class')
         if self._directed:
             from sage.graphs.all import DiGraph
             G = DiGraph()
@@ -13331,7 +13331,7 @@ class GenericGraph(GenericGraph_pyx):
             from sage.graphs.all import Graph
             G = Graph()
         else:
-            raise TypeError('The graphs should be both directed or both undirected.')
+            raise TypeError('the graphs should be both directed or both undirected')
 
         G.add_vertices( [(u,v) for u in self for v in other] )
         for u,w in self.edge_iterator(labels=None):
@@ -13412,7 +13412,7 @@ class GenericGraph(GenericGraph_pyx):
             from sage.graphs.all import Graph
             G = Graph()
         else:
-            raise TypeError('The graphs should be both directed or both undirected.')
+            raise TypeError('the graphs should be both directed or both undirected')
         G.add_vertices( [(u,v) for u in self for v in other] )
         for u,w in self.edges(labels=None):
             for v,x in other.edges(labels=None):
@@ -13478,7 +13478,7 @@ class GenericGraph(GenericGraph_pyx):
             from sage.graphs.all import Graph
             G = Graph()
         else:
-            raise TypeError('The graphs should be both directed or both undirected.')
+            raise TypeError('the graphs should be both directed or both undirected')
         G.add_vertices( [(u,v) for u in self for v in other] )
         for u,w in self.edges(labels=None):
             for v in other:
@@ -13546,7 +13546,7 @@ class GenericGraph(GenericGraph_pyx):
             from sage.graphs.all import Graph
             G = Graph()
         else:
-            raise TypeError('The graphs should be both directed or both undirected.')
+            raise TypeError('the graphs should be both directed or both undirected')
 
         G.add_vertices( [(u,v) for u in self for v in other] )
         for u,w in self.edges(labels=None):
@@ -13611,7 +13611,7 @@ class GenericGraph(GenericGraph_pyx):
             from sage.graphs.all import Graph
             G = Graph()
         else:
-            raise TypeError('The graphs should be both directed or both undirected.')
+            raise TypeError('the graphs should be both directed or both undirected')
 
         G.add_vertices( [(u,v) for u in self for v in other] )
         for u,w in self.edges(labels=None):

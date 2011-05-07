@@ -170,9 +170,10 @@ class AmbientSpace(ClearCacheOnPickle, CombinatorialFreeModule):
             sage: e[0]
             Traceback (most recent call last):
             ...
-            AssertionError: Value out of range
+            IndexError: value out of range
         """
-        assert (i > 0 and i <= self.dimension()), "Value out of range"
+        if not (i > 0 and i <= self.dimension()):
+            raise IndexError("value out of range")
         return self.monomial(i-1)
 
     def coroot_lattice(self):

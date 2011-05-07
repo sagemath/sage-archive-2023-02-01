@@ -1245,8 +1245,8 @@ class LinearCode(module.Module_old):
         r = C.CoveringRadius()
         try:
             return ZZ(r)
-        except:
-            raise ValueError("Sorry, the covering radius of this code cannot be computed by Guava.")
+        except TypeError:
+            raise RuntimeError("the covering radius of this code cannot be computed by Guava")
 
     @rename_keyword(deprecation=11033, method="algorithm")
     def decode(self, right, algorithm="syndrome"):

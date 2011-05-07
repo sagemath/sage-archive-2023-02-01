@@ -512,22 +512,15 @@ class ode_solver(object):
                         sig_on()
                         status = gsl_odeiv_evolve_apply (e, c, s, &sys, &t, t_end, &h, y)
                         sig_off()
-                    except:
+                        if (status != GSL_SUCCESS):
+                            raise RuntimeError
+                    except RuntimeError:
                         gsl_odeiv_evolve_free (e)
                         gsl_odeiv_control_free (c)
                         gsl_odeiv_step_free (s)
                         sage_free(y)
                         sage_free(scale_abs_array)
-                        raise ValueError,"error solving"
-
-
-                    if (status != GSL_SUCCESS):
-                        gsl_odeiv_evolve_free (e)
-                        gsl_odeiv_control_free (c)
-                        gsl_odeiv_step_free (s)
-                        sage_free(y)
-                        sage_free(scale_abs_array)
-                        raise ValueError,"error solving"
+                        raise ValueError("error solving")
 
                 for j  from 0<=j<dim:
                     v[j]=<double> y[j]
@@ -546,24 +539,15 @@ class ode_solver(object):
                         sig_on()
                         status = gsl_odeiv_evolve_apply (e, c, s, &sys, &t, t_end, &h, y)
                         sig_off()
-                    except:
+                        if (status != GSL_SUCCESS):
+                            raise RuntimeError
+                    except RuntimeError:
                         gsl_odeiv_evolve_free (e)
                         gsl_odeiv_control_free (c)
                         gsl_odeiv_step_free (s)
                         sage_free(y)
                         sage_free(scale_abs_array)
-                        raise ValueError,"error solving"
-
-
-                    if (status != GSL_SUCCESS):
-                        gsl_odeiv_evolve_free (e)
-                        gsl_odeiv_control_free (c)
-                        gsl_odeiv_step_free (s)
-                        sage_free(y)
-                        sage_free(scale_abs_array)
-                        raise ValueError,"error solving"
-
-
+                        raise ValueError("error solving")
 
                 for j from 0<=j<dim:
                     v[j]=<double> y[j]

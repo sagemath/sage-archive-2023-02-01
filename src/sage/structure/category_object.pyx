@@ -58,7 +58,7 @@ def guess_category(obj):
         if obj.is_field():
             from sage.categories.all import Fields
             return Fields()
-    except:
+    except (AttributeError, NotImplementedError):
         pass
     try:
         if obj.is_ring():

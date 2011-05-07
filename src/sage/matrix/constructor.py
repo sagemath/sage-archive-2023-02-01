@@ -1967,7 +1967,7 @@ def elementary_matrix(arg0, arg1=None, **kwds):
         raise ValueError('size of elementary matrix must be given')
     try:
         n = rings.Integer(arg0)
-    except:
+    except TypeError:
         raise TypeError('size of elementary matrix must be an integer, not {0}'.format(arg0))
     if n <= 0:
         raise ValueError('size of elementary matrix must be 1 or greater, not {0}'.format(n))
@@ -1995,14 +1995,14 @@ def elementary_matrix(arg0, arg1=None, **kwds):
     # analyze parameters to determine matrix type
     try:
         row1 = rings.Integer(row1)
-    except:
+    except TypeError:
         raise TypeError('{0} of elementary matrix must be an integer, not {1}'.format(opstring, row1))
     if row1 < 0 or row1 >= n :
         raise ValueError('{0} of elementary matrix must be positive and smaller than {1}, not {2}'.format(opstring, n, row1))
     if not row2 is None:
         try:
             row2 = rings.Integer(row2)
-        except:
+        except TypeError:
             raise TypeError('{0} of elementary matrix must be an integer, not {1}'.format(opstring, row2))
         if row2 < 0 or row2 >= n :
             raise ValueError('{0} of elementary matrix must be positive and smaller than {1}, not {2}'.format(opstring, n, row2))

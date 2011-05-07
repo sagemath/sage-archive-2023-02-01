@@ -1865,7 +1865,7 @@ def number_field_elements_from_algebraics(numbers, minimal=False):
     single_number = False
     try:
         len(numbers)
-    except:
+    except TypeError:
         numbers = [numbers]
         single_number = True
 

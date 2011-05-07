@@ -351,7 +351,7 @@ class Posets(object):
         """
         try:
             n = Integer(n)
-        except:
+        except TypeError:
             raise TypeError("number of elements must be an integer, not {0}".format(n))
         if n < 0:
             raise ValueError("number of elements must be non-negative, not {0}".format(n))

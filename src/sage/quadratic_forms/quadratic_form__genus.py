@@ -151,7 +151,7 @@ def CS_genus_symbol_list(self, force_recomputation=False):
     if force_recomputation == False:
         try:
             return self.__CS_genus_symbol_list
-        except:
+        except AttributeError:
             pass
 
     ## Otherwise recompute and cache the list

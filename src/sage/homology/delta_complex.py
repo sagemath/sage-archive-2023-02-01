@@ -1578,15 +1578,15 @@ class DeltaComplexExamples():
             sage: delta_g4.homology() == simpl_g4.homology()
             True
         """
-        if g < 0:
-            raise ValueError, "Genus must be a non-negative integer."
         try:
-            Integer(g)
-        except:
-            raise ValueError, "Genus must be a non-negative integer."
+            g = Integer(g)
+        except TypeError:
+            raise ValueError("genus must be a non-negative integer")
+        if g < 0:
+            raise ValueError("genus must be a non-negative integer")
         if g == 0:
             if not orientable:
-                raise ValueError, "No non-orientable surface of genus zero."
+                raise ValueError("no non-orientable surface of genus zero")
             else:
                 return delta_complexes.Sphere(2)
         if orientable:

@@ -5,7 +5,7 @@ import glob, logging, optparse, os, shutil, subprocess, sys, textwrap
 #so that we import sage from the proper spot
 try:
     sys.path.remove(os.path.realpath(os.getcwd()))
-except:
+except ValueError:
     pass
 
 from sage.misc.cachefunc import cached_method

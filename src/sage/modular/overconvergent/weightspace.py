@@ -68,6 +68,7 @@ from sage.rings.all import ZZ, QQ, divisors, IntegerModRing, Qp, Infinity
 from sage.rings.padics.padic_generic_element import pAdicGenericElement
 from sage.misc.misc import verbose
 from sage.misc.cachefunc import cached_method
+from sage.rings.padics.precision_error import PrecisionError
 import weakref
 
 _wscache = {}
@@ -529,7 +530,7 @@ class AlgebraicWeight(WeightCharacter):
             if x.parent().prime() != self._p:
                 raise TypeError, "x must be an integer or a %s-adic integer" % self._p
             if self._p**(x.precision_absolute()) < self._chi.conductor():
-                raise Exception, "Precision too low"
+                raise PrecisionError("Precision too low")
             xint = x.lift()
         else:
             xint = x

@@ -144,7 +144,7 @@ cdef class SageObject:
             name = self.__custom_name
             if name is not None:
                 return name
-        except:
+        except AttributeError:
             pass
         try:
             repr_func = self._repr_

@@ -251,7 +251,7 @@ def rename_vertex(n, keep, left = True):
     lookup = dict(zip(keep, range(len(keep))))
     try:
         return lookup[n]
-    except:
+    except KeyError:
         if left:
             return "L" + str(n)
         else:

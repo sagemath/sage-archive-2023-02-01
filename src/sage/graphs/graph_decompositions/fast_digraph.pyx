@@ -28,7 +28,7 @@ cdef class FastDigraph:
         Constructor for ``FastDigraph``.
         """
         if D.order() > 8*sizeof(int):
-            raise Exception("Too many vertices. This structure can only encode digraphs on at most sizeof(int) vertices.")
+            raise OverflowError("Too many vertices. This structure can only encode digraphs on at most %i vertices"%(8*sizeof(int)))
 
         self.n = D.order()
         self.graph = NULL

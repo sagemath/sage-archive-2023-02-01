@@ -1290,7 +1290,7 @@ class QuadraticForm():
         """
         try:
             return self.__det
-        except:
+        except AttributeError:
             ## Compute the determinant
             if self.dim() == 0:
                 new_det = self.base_ring()(1)
@@ -1395,7 +1395,7 @@ class QuadraticForm():
         ## Try to return the cached level
         try:
             return self.__level
-        except:
+        except AttributeError:
 
             ## Check that the base ring is a PID
             if not is_PrincipalIdealDomain(self.base_ring()):
@@ -1411,7 +1411,7 @@ class QuadraticForm():
             ## Check invertibility and find the inverse
             try:
                 mat_inv = self.matrix()**(-1)
-            except:
+            except ZeroDivisionError:
                 raise TypeError, "Oops!  The quadratic form is degenerate (i.e. det = 0). =("
 
             ## Compute the level

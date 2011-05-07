@@ -1628,15 +1628,15 @@ class CubicalComplexExamples():
             sage: cubical_complexes.SurfaceOfGenus(1, orientable=False)
             Cubical complex with 21 vertices and 81 cubes
         """
-        if g < 0:
-            raise ValueError, "Genus must be a non-negative integer."
         try:
-            Integer(g)
-        except:
-            raise ValueError, "Genus must be a non-negative integer."
+            g = Integer(g)
+        except TypeError:
+            raise ValueError("genus must be a non-negative integer")
+        if g < 0:
+            raise ValueError("genus must be a non-negative integer")
         if g == 0:
             if not orientable:
-                raise ValueError, "No non-orientable surface of genus zero."
+                raise ValueError("no non-orientable surface of genus zero")
             else:
                 return cubical_complexes.Sphere(2)
         if orientable:

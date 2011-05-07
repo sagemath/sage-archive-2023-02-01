@@ -1069,10 +1069,6 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             True
         """
         mons = self.element().dict().keys()
-        try:
-            len(mons[0]) # number of generators
-        except:
-            return True # zero
 
         found = -1
         for mon in mons:

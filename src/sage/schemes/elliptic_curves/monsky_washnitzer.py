@@ -2564,8 +2564,9 @@ class MonskyWashnitzerDifferentialRing_class(Module):
         """
         try:
             return self._helper_matrix
-        except:
-            AttributeError
+        except AttributeError:
+            pass
+
         # The smallest y term of (1/j) d(x^i y^j) is constant for all j.
         L = []
         x, y = self.base_ring().gens()

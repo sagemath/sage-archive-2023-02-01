@@ -579,7 +579,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         from integer import Integer
         try:
            n = Integer(n)
-        except:
+        except TypeError:
            raise ValueError, "n must be a positive integer"
 
         if n<1:

@@ -359,7 +359,7 @@ cdef class ParametricSurface(IndexFaceSet):
         try:
             self.realloc((m+1)*(n+1), m*n, 4*m*n)
             self.eval_grid(urange, vrange)
-        except:       # TODO -- this would catch control-C,etc. -- FIX THIS TO CATCH WHAT IS RAISED!!!!
+        except StandardError:
             sig_off()
             self.fcount = self.vcount = 0
             self.render_grid = None

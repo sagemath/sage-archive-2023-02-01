@@ -778,7 +778,7 @@ def is_Infinite(x):
     """
     return isinstance(x, InfinityElement)
 
-class SignError(Exception):
+class SignError(ArithmeticError):
     pass
 
 class InfinityRing_class(_uniq, Ring):

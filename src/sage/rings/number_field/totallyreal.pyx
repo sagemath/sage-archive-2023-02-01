@@ -263,7 +263,7 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
     if not isinstance(n, Integer):
         try:
             n = Integer(n)
-        except:
+        except TypeError:
             raise TypeError, "cannot coerce n (= %s) to an integer"%n
     if (n < 1):
         raise ValueError, "n must be at least 1."

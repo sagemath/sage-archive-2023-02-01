@@ -1078,7 +1078,7 @@ class Factorization(SageObject):
         if not isinstance(n, Integer):
             try:
                 n = Integer(n)
-            except:
+            except TypeError:
                 raise TypeError, "Exponent n (= %s) must be an integer." % n
         if n == 1:
             return self

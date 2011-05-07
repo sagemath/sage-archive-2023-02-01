@@ -299,7 +299,7 @@ class ComplexField_class(field.Field):
 
             try:
                 return self(x.sage())
-            except:
+            except (AttributeError, TypeError):
                 pass
             try:
                 return x._complex_mpfr_field_( self )

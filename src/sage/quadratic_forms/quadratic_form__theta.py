@@ -59,7 +59,7 @@ def theta_series(self, Max=10, var_str='q', safe_flag=True):
     ## Sanity Check: Max is an integer or an allowed string:
     try:
         M = ZZ(Max)
-    except:
+    except TypeError:
         M = -1
 
     if (Max not in ['mod_form']) and (not M >= 0):
@@ -369,7 +369,7 @@ def theta_series_degree_2(Q, prec):
         raise ValueError, "The quadratic form must be positive definite"
     try:
         X = ZZ(prec-1)    # maximum discriminant
-    except:
+    except TypeError:
         raise TypeError, "prec is not an integer"
 
     if X < -1:

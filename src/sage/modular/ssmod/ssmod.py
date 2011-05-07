@@ -733,7 +733,7 @@ class SupersingularModule(hecke.HeckeModule_free_module):
         """
         try:
             return self.__dimension
-        except:
+        except AttributeError:
             pass
         if self.__level == 1:
             G = Gamma0(self.__prime)
@@ -861,7 +861,7 @@ class SupersingularModule(hecke.HeckeModule_free_module):
         """
         try:
             return (self._ss_points_dic, self._ss_points)
-        except:
+        except AttributeError:
             pass
         Fp2 = self.__finite_field
         level = self.__level

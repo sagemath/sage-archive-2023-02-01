@@ -822,7 +822,7 @@ def is_positive_definite(self):
     ## Try to use the cached value
     try:
         def_str = self.__definiteness_string
-    except:
+    except AttributeError:
         self.compute_definiteness()
         def_str = self.__definiteness_string
 
@@ -861,7 +861,7 @@ def is_negative_definite(self):
     ## Try to use the cached value
     try:
         def_str = self.__definiteness_string
-    except:
+    except AttributeError:
         self.compute_definiteness()
         def_str = self.__definiteness_string
 
@@ -899,7 +899,7 @@ def is_indefinite(self):
     ## Try to use the cached value
     try:
         def_str = self.__definiteness_string
-    except:
+    except AttributeError:
         self.compute_definiteness()
         def_str = self.__definiteness_string
 
@@ -936,7 +936,7 @@ def is_definite(self):
     ## Try to use the cached value
     try:
         def_str = self.__definiteness_string
-    except:
+    except AttributeError:
         self.compute_definiteness()
         def_str = self.__definiteness_string
 

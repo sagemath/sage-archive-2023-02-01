@@ -448,7 +448,7 @@ class ECM:
         child.sendline(str(n))
         try:
             child.sendeof()
-        except:
+        except Exception:
             pass
         child.expect('20\s+25\s+30\s+35\s+40\s+45\s+50\s+55\s+60\s+65')
         if verbose:

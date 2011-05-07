@@ -136,7 +136,7 @@ class Benchmark:
         """
         try:
             return self.repr_str
-        except:
+        except AttributeError:
             return 'sage.tests.benchmark.Benchmark instance'
 
 class Divpoly(Benchmark):

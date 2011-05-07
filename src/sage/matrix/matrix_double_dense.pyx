@@ -745,7 +745,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         else:
             try:
                 p = sage.rings.integer.Integer(p)
-            except:
+            except TypeError:
                 raise ValueError("condition number 'p' must be +/- infinity, 'frob', 'sv' or an integer, not %s" % p)
             if p not in [-2,-1,1,2]:
                 raise ValueError("condition number integer values of 'p' must be -2, -1, 1 or 2, not %s" % p)
@@ -885,7 +885,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         else:
             try:
                 p = sage.rings.integer.Integer(p)
-            except:
+            except TypeError:
                 raise ValueError("matrix norm 'p' must be +/- infinity, 'frob' or an integer, not %s" % p)
             if not p in [-2,-1,1,2]:
                 raise ValueError("matrix norm integer values of 'p' must be -2, -1, 1 or 2, not %s" % p)

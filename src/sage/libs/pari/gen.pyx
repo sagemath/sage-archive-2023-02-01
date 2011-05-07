@@ -10412,7 +10412,7 @@ cdef public void _pari_trap "_pari_trap" (long errno, long retries) except *:
         P.allocatemem(silent=True)
     elif errno == user:
         sig_off()
-        raise Exception, "PARI user exception"
+        raise RuntimeError("PARI user exception")
     else:
         sig_off()
         raise PariError, errno

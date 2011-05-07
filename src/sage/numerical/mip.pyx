@@ -1668,7 +1668,7 @@ cdef class MixedIntegerLinearProgram:
         else:
             self._backend.solver_parameter(name, value)
 
-class MIPSolverException(Exception):
+class MIPSolverException(RuntimeError):
     r"""
     Exception raised when the solver fails.
     """
@@ -1687,7 +1687,7 @@ class MIPSolverException(Exception):
 
         TESTS:
 
-         No continuous solution::
+        No continuous solution::
 
             sage: p=MixedIntegerLinearProgram(solver="GLPK")
             sage: v=p.new_variable()
@@ -1695,14 +1695,14 @@ class MIPSolverException(Exception):
             sage: p.add_constraint(v[0],min=7.6)
             sage: p.set_objective(v[0])
 
-         Tests of GLPK's Exceptions::
+        Tests of GLPK's Exceptions::
 
             sage: p.solve()
             Traceback (most recent call last):
             ...
             MIPSolverException: 'GLPK : Solution is undefined'
 
-         No integer solution::
+        No integer solution::
 
             sage: p=MixedIntegerLinearProgram(solver="GLPK")
             sage: v=p.new_variable()
@@ -1711,7 +1711,7 @@ class MIPSolverException(Exception):
             sage: p.set_objective(v[0])
             sage: p.set_integer(v)
 
-         Tests of GLPK's Exceptions::
+        Tests of GLPK's Exceptions::
 
             sage: p.solve()
             Traceback (most recent call last):

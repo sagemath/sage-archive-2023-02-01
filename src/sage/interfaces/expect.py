@@ -1006,8 +1006,10 @@ If this all works, you can then make calls like:
         ::
 
             sage: t = walltime()
-            sage: try: r._expect_expr('25', timeout=0.5)
-            ... except: print 'Did not get expression'
+            sage: try:
+            ...    r._expect_expr('25', timeout=0.5)
+            ... except Exception:
+            ...    print 'Did not get expression'
             Did not get expression
 
         A quick consistency check on the time that the above took::

@@ -444,17 +444,17 @@ class GraphClass(SageObject, UniqueRepresentation):
             sage: graph_classes.Chordal > graph_classes.Tree
             Traceback (most recent call last):
             ...
-            Exception: Not Implemented
+            NotImplementedError
             sage: graph_classes.Chordal < graph_classes.Tree
             Traceback (most recent call last):
             ...
-            Exception: Not Implemented
+            NotImplementedError
             sage: graph_classes.Chordal != graph_classes.Tree
             Traceback (most recent call last):
             ...
-            Exception: Not Implemented
+            NotImplementedError
         """
-        raise Exception("Not Implemented")
+        raise NotImplementedError
 
     __gt__ = __ne__ = __lt__
 

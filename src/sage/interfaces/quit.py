@@ -75,7 +75,7 @@ def kill_spawned_jobs(verbose=False):
             if verbose:
                 print "Killing spawned job %s"%pid
             os.killpg(int(pid), 9)
-        except:
+        except OSError:
             pass
 
 def is_running(pid):

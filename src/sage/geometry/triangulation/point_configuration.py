@@ -645,20 +645,21 @@ class Triangulation(Element):
         - ``origin`` -- ``None`` (default) or coordinates of a
           point. The common apex of all cones of the fan. If ``None``,
           the triangulation must be a star triangulation and the
-          distinguished central point is used as origin.
+          distinguished central point is used as the origin.
 
         OUTPUT:
 
         A :class:`sage.geometry.fan.RationalPolyhedralFan`. The
-        coordinates of the points are shifted such that the apex of
-        the fan is the origin of the coordinates system. The set of
-        cones over the simplices need not be a fan, in which case a
-        suitable error is raised.
+        coordinates of the points are shifted so that the apex of
+        the fan is the origin of the coordinate system.
+
+        .. note:: If the set of cones over the simplices is not a fan, a
+            suitable exception is raised.
 
         EXAMPLES::
 
             sage: pc = PointConfiguration([(0,0), (1,0), (0,1), (-1,-1)], star=0, fine=True)
-            sage: p.set_engine('internal')   # to make doctests independent of TOPCOM
+            sage: pc.set_engine('internal')   # to make doctests independent of TOPCOM
             sage: triangulation = pc.triangulate()
             sage: fan = triangulation.fan(); fan
             Rational polyhedral fan in 2-d lattice N
@@ -671,27 +672,22 @@ class Triangulation(Element):
             sage: interior=[(0, 1, 1), (0, 1, 2), (0, 2, 1), (0, 2, 2)]
             sage: points = vertices+interior
             sage: pc = PointConfiguration(points, fine=True)
-            sage: p.set_engine('internal')   # to make doctests independent of TOPCOM
+            sage: pc.set_engine('internal')   # to make doctests independent of TOPCOM
             sage: triangulation = pc.triangulate()
             sage: fan = triangulation.fan( (-1,0,0) )
             sage: fan
+            Rational polyhedral fan in 3-d lattice N
             sage: fan.rays()
-            (N(1, 1, 0), N(1, 2, 1), N(1, 2, 2), N(1, 3, 1),
-             N(1, 2, 3), N(1, 0, 2), N(1, 1, 2), N(1, 1, 1))
+            (N(1, 1, 0), N(1, 3, 1), N(1, 2, 3), N(1, 0, 2),
+             N(1, 1, 1), N(1, 1, 2), N(1, 2, 1), N(1, 2, 2))
         """
-        from sage.geometry.cone import Cone
         from sage.geometry.fan import Fan
         if origin is None:
-            origin = vector(self.base_ring(), self.point_configuration().star_center())
-        else:
-            origin = vector(self.base_ring(), origin)
-
-        rays = [ vector(p)-origin for p in self.point_configuration().points() ]
-        cones = []
-        for simplex in self:
-            cone = Cone([ rays[i] for i in simplex ])
-            cones.append(cone)
-        return Fan(cones)
+            origin = self.point_configuration().star_center()
+        R = self.base_ring()
+        origin = vector(R, origin)
+        points = self.point_configuration().points()
+        return Fan(self, (vector(R, p) - origin for p in points))
 
 
 
@@ -896,8 +892,8 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         OUTPUT:
 
         A :class:`sage.geometry.triangulation.base.Point` if a
-        distinguished star central point has been fixed,
-        ``ValueError`` otherwise.
+        distinguished star central point has been fixed.
+        ``ValueError`` exception is raised otherwise.
 
         EXAMPLES::
 

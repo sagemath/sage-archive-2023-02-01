@@ -887,6 +887,16 @@ class NumberField_relative(NumberField_generic):
             sage: L(L.polynomial_ring().random_element())
             (z^5 + 1/3*z^4 - z^3 + z^2 - z + 2/3)*a + 1/4*z^5 - 7/2*z^4 + 5/3*z^3 - 1/4*z^2 + 3/2*z - 1
 
+        Examples from Trac \#11307::
+
+            sage: L = NumberField([x^2 + 1, x^2 - 3], 'a')
+            sage: L(L)
+            Traceback (most recent call last):
+            ...
+            TypeError: <class 'sage.rings.number_field.number_field_rel.NumberField_relative_with_category'>
+            sage: L in L
+            False
+
         MORE TESTS:
         We construct the composite of three quadratic fields, then
         coerce from the quartic subfield of the relative extension::
@@ -963,7 +973,11 @@ class NumberField_relative(NumberField_generic):
             f = R( [ K(coeff) for coeff in x.list() ] )
             return self._element_class(self, f(self.gen()).polynomial() )
         else:
-            return self._element_class(self, x._rational_())
+            try:
+                return self._element_class(self, x._rational_())
+            except AttributeError:
+                pass
+            raise TypeError, type(x)
 
     def _coerce_map_from_(self, R):
         """

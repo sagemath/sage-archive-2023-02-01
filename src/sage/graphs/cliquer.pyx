@@ -1,12 +1,31 @@
 r"""
 Cliquer: routines for finding cliques in graphs
 
-This module defines functions based on Cliquer, an exact branch-and-bound algorithm developed by Patric R. J. Ostergard and written by Sampo Niskanen.
+This module defines functions based on Cliquer, an exact
+branch-and-bound algorithm developed by Patric R. J. Ostergard and
+written by Sampo Niskanen.
 
 AUTHORS:
 
 - Nathann Cohen (2009-08-14): Initial version
+
+- Jeroen Demeyer (2011-05-06): Make cliquer interruptible (#11252)
+
 """
+
+#*****************************************************************************
+#       Copyright (C) 2009 Nathann Cohen <nathann.cohen@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+
+include "../ext/interrupt.pxi"
+
+
 def max_clique(graph):
     """
     Returns the vertex set of a maximum complete subgraph.
@@ -40,13 +59,15 @@ def max_clique(graph):
     parse_input(buf,g)
 
     for e in graph.edge_iterator():
-          (u,v,w)=e
-          buf=' e %d %d' %(u+1,v+1)
-          parse_input(buf,g)
+        (u,v,w)=e
+        buf=' e %d %d' %(u+1,v+1)
+        parse_input(buf,g)
 
     cdef int* list
     cdef int size
-    size=sage_clique_max(g, &list)
+    sig_on()
+    size = sage_clique_max(g, &list)
+    sig_off()
     b = []
     cdef int i
     for i in range(size):
@@ -81,22 +102,24 @@ def all_max_clique(graph):
     parse_input(buf,g)
 
     for e in graph.edge_iterator():
-          (u,v,w)=e
-          buf=' e %d %d' %(u+1,v+1)
-          parse_input(buf,g)
+        (u,v,w)=e
+        buf=' e %d %d' %(u+1,v+1)
+        parse_input(buf,g)
 
     cdef int* list
     cdef int size
-    size=sage_all_clique_max(g, &list)
+    sig_on()
+    size = sage_all_clique_max(g, &list)
+    sig_off()
     b = []
     c=[]
     cdef int i
     for i in range(size):
         if(list[i]!=-1):
-                c.append(list[i])
+            c.append(list[i])
         else:
-                b.append(list_composition(c,d_inv))
-                c=[]
+            b.append(list_composition(c,d_inv))
+            c=[]
     return b
 
 
@@ -127,17 +150,22 @@ def clique_number(graph):
     parse_input(buf,g)
 
     for e in graph.edge_iterator():
-          (u,v,w)=e
-          buf=' e %d %d' %(u+1,v+1)
-          parse_input(buf,g)
-    return sage_clique_number(g)
+        (u,v,w)=e
+        buf=' e %d %d' %(u+1,v+1)
+        parse_input(buf,g)
+
+    cdef int c
+    sig_on()
+    c = sage_clique_number(g)
+    sig_off()
+    return c
 
 
 def list_composition(a,b):
     """
     Composes a list ``a`` with a map ``b``.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.cliquer import list_composition
         sage: list_composition([1,3,'a'], {'a':'b', 1:2, 2:3, 3:4})

@@ -1243,6 +1243,26 @@ cdef class Expression(CommutativeRingElement):
             sage: forget(y < 2)
             sage: assumptions()
             [x > 0]
+
+        TESTS:
+
+        Check if #7507 is fixed::
+
+            sage: forget()
+            sage: n = var('n')
+            sage: foo=sin((-1)*n*pi)
+            sage: foo.simplify()
+            -sin(pi*n)
+            sage: assume(n, 'odd')
+            sage: assumptions()
+            [n is odd]
+            sage: foo.simplify()
+            0
+            sage: forget(n, 'odd')
+            sage: assumptions()
+            []
+            sage: foo.simplify()
+            -sin(pi*n)
         """
         from sage.symbolic.assumptions import _assumptions
         from sage.calculus.calculus import maxima

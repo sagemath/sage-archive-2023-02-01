@@ -25,13 +25,11 @@ special method ``_latex_(self)`` that returns a string.
 
 EMBEDDED_MODE = False
 
-COMMON_HEADER='\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\\usepackage{graphicx}\\usepackage{pstricks}\\pagestyle{empty}\n\\usepackage[utf8]{inputenc}\\usepackage[T1]{fontenc}\n'
+COMMON_HEADER='\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\n\\usepackage{graphicx}\n\\pagestyle{empty}\n\\usepackage[utf8]{inputenc}\n\\usepackage[T1]{fontenc}\n'
 
-LATEX_HEADER='\\documentclass{article}' + COMMON_HEADER + '\\oddsidemargin 0.0in\n\\evensidemargin 0.0in\n\\textwidth 6.45in\n\\topmargin 0.0in\n\\headheight 0.0in\n\\headsep 0.0in\n\\textheight 9.0in\n'
+LATEX_HEADER='\\documentclass{article}\n' + COMMON_HEADER + '\\oddsidemargin 0.0in\n\\evensidemargin 0.0in\n\\textwidth 6.45in\n\\topmargin 0.0in\n\\headheight 0.0in\n\\headsep 0.0in\n\\textheight 9.0in\n'
 
-SLIDE_HEADER='\\documentclass[a0,8pt]{beamer}' + COMMON_HEADER + '\\textwidth=1.1\\textwidth\\textheight=2\\textheight\n'
-
-#SLIDE_HEADER='\\documentclass[landscape]{slides}\\usepackage{fullpage}\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\\usepackage{graphicx}\usepackage{pstricks}\pagestyle{empty}\n'
+SLIDE_HEADER='\\documentclass[a0,8pt]{beamer}\n' + COMMON_HEADER + '\\textwidth=1.1\\textwidth\n\\textheight=2\\textheight\n'
 
 import shutil, re
 import os.path
@@ -1822,6 +1820,17 @@ def view(objects, title='SAGE', debug=False, sep='', tiny=False, pdflatex=None, 
         sage: view(3, mode='display')
         <html><div class="math">\newcommand{\Bold}[1]{\mathbf{#1}}3</div></html>
         sage: sage.misc.latex.EMBEDDED_MODE = False
+
+    TESTS::
+
+        sage: from sage.misc.latex import _run_latex_, _latex_file_
+        sage: g = sage.misc.latex.latex_examples.graph()
+        sage: latex.add_to_preamble(r"\usepackage{tkz-graph}")
+        sage: file = os.path.join(SAGE_TMP, "temp.tex")
+        sage: O = open(file, 'w'); O.write(_latex_file_(g)); O.close()
+        sage: _run_latex_(file, engine="pdflatex") # optional - latex
+        'pdf'
+
     """
     if isinstance(objects, LatexExpr):
         s = str(objects)
@@ -2422,10 +2431,16 @@ and try again from the notebook -- you should get a nice picture.
             """
             return """LaTeX example for testing display of pstricks output.
 
-To use, view this object.  It should work okay from the command
-line but not from the notebook.  In the notebook, run
-'latex.add_to_jsmath_avoid_list("pspicture")' and try again -- you
-should get a picture (of forces acting on a mass on a pendulum)."""
+To use, first try calling 'view' on this object -- you
+should get gibberish.  Now, make sure that you have the most
+recent version of the TeX package pstricks installed. Run
+'latex.add_to_preamble("\\usepackage{pstricks}")' and try
+viewing it again. From the command line, this should pop
+open a nice window with a picture of forces acting on a mass
+on a pendulum. In the notebook, you should get an error.
+Finally, run
+'latex.add_to_jsmath_avoid_list("pspicture")' and try again
+-- you should get a nice picture."""
 
         def _latex_(self):
             """

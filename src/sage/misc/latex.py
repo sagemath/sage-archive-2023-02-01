@@ -593,7 +593,7 @@ def latex_extra_preamble():
 
         sage: from sage.misc.latex import latex_extra_preamble
         sage: print latex_extra_preamble()
-        <BLANKLINE>
+        ...
         \newcommand{\ZZ}{\Bold{Z}}
         \newcommand{\NN}{\Bold{N}}
         \newcommand{\RR}{\Bold{R}}
@@ -676,14 +676,34 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
     if engine is None:
         engine = _Latex_prefs._option["engine"]
 
-    if not engine and not have_latex():
-        print "Error: LaTeX does not seem to be installed.  Download it from"
-        print "ctan.org and try again."
-        return "Error"
-    if engine and not have_pdflatex() and not have_xelatex():
-        print "Error: %s does not seem to be installed.  Download it from" % _Latex_prefs._option["engine_name"]
-        print "ctan.org and try again."
-        return "Error"
+    if not engine or engine == "latex":
+        if not have_latex():
+            print "Error: LaTeX does not seem to be installed.  Download it from"
+            print "ctan.org and try again."
+            return "Error"
+        command = "latex"
+        # 'suffix' is used in the 'convert' command list
+        suffix = "ps"
+        return_suffix = "dvi"
+    elif engine == "pdflatex":
+        if not have_pdflatex():
+            print "Error: PDFLaTeX does not seem to be installed.  Download it from"
+            print "ctan.org and try again."
+            return "Error"
+        command = "pdflatex"
+        suffix = "pdf"
+        return_suffix = "pdf"
+    elif engine == "xelatex":
+        if not have_xelatex():
+            print "Error: XeLaTeX does not seem to be installed.  Download it from"
+            print "ctan.org and try again."
+            return "Error"
+        command = "xelatex"
+        suffix = "pdf"
+        return_suffix = "pdf"
+    else:
+        raise ValueError, "Unsupported LaTeX engine."
+
     # if png output + latex, check to see if dvipng or convert is installed.
     if png:
         if (not engine or engine == "latex") and not (have_dvipng() or have_convert()):
@@ -735,22 +755,6 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
     #     background = ' &'
     # else:
     #     background = ''
-
-    if not engine or engine == "latex":
-        command = "latex"
-        # 'suffix' is used in the 'convert' command list
-        suffix = "ps"
-        return_suffix = "dvi"
-    elif engine == "pdflatex":
-        command = "pdflatex"
-        suffix = "pdf"
-        return_suffix = "pdf"
-    elif engine == "xelatex":
-        command = "xelatex"
-        suffix = "pdf"
-        return_suffix = "pdf"
-    else:
-        raise ValueError, "Unsupported LaTeX engine."
 
     # Define the commands to be used:
     lt = ['sage-native-execute', command, r'\nonstopmode', r'\input{' + filename + '.tex}']
@@ -1997,6 +2001,18 @@ def view(objects, title='SAGE', debug=False, sep='', tiny=False, pdflatex=None, 
         sage: _run_latex_(file, engine="pdflatex") # optional - latex
         'pdf'
 
+        sage: latex.extra_preamble('') # reset the preamble
+
+        sage: view(4, engine="garbage")
+        Traceback (most recent call last):
+        ...
+        ValueError: Unsupported LaTeX engine.
+        sage: sage.misc.latex.EMBEDDED_MODE = True
+        sage: view(4, engine="garbage", viewer="pdf")
+        Traceback (most recent call last):
+        ...
+        ValueError: Unsupported LaTeX engine.
+
     """
     if tightpage == True:
         latex_options = {'extra_preamble':'\\usepackage[tightpage,active]{preview}\\PreviewEnvironment{page}',
@@ -2004,6 +2020,10 @@ def view(objects, title='SAGE', debug=False, sep='', tiny=False, pdflatex=None, 
     else:
         latex_options = {}
     s = _latex_file_(objects, title=title, sep=sep, tiny=tiny, debug=debug, **latex_options)
+    if engine is None:
+        engine = _Latex_prefs._option["engine"]
+    if pdflatex or (viewer == "pdf" and engine == "latex"):
+        engine = "pdflatex"
     # notebook
     if EMBEDDED_MODE and viewer is None:
         jsMath_okay = True
@@ -2015,10 +2035,6 @@ def view(objects, title='SAGE', debug=False, sep='', tiny=False, pdflatex=None, 
         if jsMath_okay:
             print JSMath().eval(objects, mode=mode)  # put comma at end of line?
         else:
-            if pdflatex is True:
-                engine = "pdflatex"
-            else:
-                engine = _Latex_prefs._option["engine"]
             base_dir = os.path.abspath("")
             png_file = graphics_filename(ext='png')
             png_link = "cell://" + png_file
@@ -2027,12 +2043,6 @@ def view(objects, title='SAGE', debug=False, sep='', tiny=False, pdflatex=None, 
             print '<html><img src="%s"></html>'%png_link  # put comma at end of line?
         return
     # command line or notebook with viewer
-    if pdflatex:
-        engine = "pdflatex"
-    else:
-        engine = _Latex_prefs._option["engine"]
-        if viewer == "pdf" and engine == "latex":
-            engine = "pdflatex"
     tmp = tmp_dir('sage_viewer')
     tex_file = os.path.join(tmp, "sage.tex")
     open(tex_file,'w').write(s)

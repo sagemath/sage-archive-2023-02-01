@@ -37,6 +37,7 @@ from group_algebra import GroupAlgebra, GroupAlgebraElement
 
 from iwahori_hecke_algebra import IwahoriHeckeAlgebraT
 from affine_nil_temperley_lieb import AffineNilTemperleyLiebTypeA
+from nil_coxeter_algebra import NilCoxeterAlgebra
 
 def is_R_algebra(Q, R):
     # TODO: do something nontrivial when morphisms are defined.

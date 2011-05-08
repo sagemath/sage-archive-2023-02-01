@@ -10,3 +10,5 @@ Combinatorial Algebras
    ../sage/combinat/schubert_polynomial
    ../sage/combinat/partition_algebra
    ../sage/algebras/iwahori_hecke_algebra
+   ../sage/algebras/nil_coxeter_algebra
+   ../sage/algebras/affine_nil_temperley_lieb

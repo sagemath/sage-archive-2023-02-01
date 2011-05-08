@@ -177,7 +177,7 @@ class AffineNilTemperleyLiebTypeA(CombinatorialFreeModule):
 
     def product_on_basis(self, w, w1):
         """
-        Returns `a_w a_w1`, where `w` and `w1` are in the Weyl group
+        Returns `a_w a_{w1}`, where `w` and `w1` are in the Weyl group
         assuming that `w` does not contain any braid relations.
 
         EXAMPLES::

@@ -1084,7 +1084,7 @@ void expairseq::make_flat(const exvector &v, bool hold)
 			++cit;
 		}
 	} else
-		this->setflag(status_flags::evaluated);
+		this->hold();
 	
 	// reserve seq and coeffseq which will hold all operands
 	seq.reserve(v.size()+noperands-nexpairseqs);

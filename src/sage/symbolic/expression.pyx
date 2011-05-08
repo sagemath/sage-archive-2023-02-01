@@ -2751,6 +2751,13 @@ cdef class Expression(CommutativeRingElement):
             1*x + (-1/3)*x^3 + 1/5*x^5 + (-1/7)*x^7 + 1/9*x^9 + Order(x^10)
             sage: float(16*f.subs(x==1/5) - 4*f.subs(x==1/239))
             3.1415926824043994
+
+        TESTS:
+
+        Check if #8943 is fixed::
+
+            sage: ((1+arctan(x))**(1/x)).series(x==0, 3)
+            (e) + (-1/2*e)*x + (1/8*e)*x^2 + Order(x^3)
         """
         cdef Expression symbol0 = self.coerce_in(symbol)
         cdef GEx x

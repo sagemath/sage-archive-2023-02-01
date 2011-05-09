@@ -1676,9 +1676,23 @@ def from_chain(chain):
                 res[j][k] = i -1
     return Tableau_class(res)
 
-def from_shape_and_word(shape, w):
-    """
+def from_shape_and_word(shape, w, order = "French"):
+    r"""
     Returns a tableau from a shape and word.
+
+    INPUT:
+
+    - ``shape`` -- a partition
+    - ``w`` -- a word whose length equals that of the partition
+    - ``order`` -- a string which can take values "French" or "English"; the default is "French"
+
+    OUTPUT:
+
+    A tableau, whose shape is ``shape`` and whose reading word is ``w``.
+    If the order is specified to "French", the reading word is to be read starting
+    from the top row in French notation (= the bottom row in English notation).
+    If the order is specified to "English", the reading word is to be read starting with the
+    top row in English notation.
 
     EXAMPLES::
 
@@ -1686,17 +1700,23 @@ def from_shape_and_word(shape, w):
         sage: t = Tableau([[1, 3], [2], [4]])
         sage: shape = t.shape(); shape
         [2, 1, 1]
-        sage: word  = t.to_word(); word
+        sage: word = t.to_word(); word
         word: 4213
         sage: from_shape_and_word(shape, word)
+        [[1, 3], [2], [4]]
+        sage: word = Word(flatten(t))
+        sage: from_shape_and_word(shape, word, order = "English")
         [[1, 3], [2], [4]]
     """
     res = []
     j = 0
-    for i in reversed(range(len(shape))):
-        res.append( list(w[j:j+shape[i]]) )
-        j += shape[i]
-    res.reverse()
+    if order == "French":
+        shape = reversed(shape)
+    for l in shape:
+        res.append( list(w[j:j+l]) )
+        j += l
+    if order == "French":
+        res.reverse()
     return Tableau_class(res)
 
 def Tableaux(n=None):

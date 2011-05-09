@@ -32,6 +32,14 @@ in the src directory.
 
 == Changelog ==
 
+=== pynac-0.2.2 (Burcin Erocal, May 9, 2011) ===
+ * Merge patches from upstream with the following:
+  * Sage issue #9981 where (5-e^x).substitute(x=log(x)) gave 5-log(x)
+  * Sage issue #9947 where add.eval() did not canonicalize expression properly
+  * Sage issue #8943, series expansion can handle some trivial singularities now
+  * conjugate functions for sinh, cosh and tanh
+  * bunch of fixes for msvc compiler
+
 === pynac-0.2.1 (Burcin Erocal, September 12, 2010) ===
  * Print rational functions and mul objects better.
  * Include patches from GiNaC to fix memory leaks in power::eval and improve

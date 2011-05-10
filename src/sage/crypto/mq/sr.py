@@ -1665,7 +1665,10 @@ class SR_generic(MPolynomialSystemGenerator):
 
             sage: sr = mq.SR(2, 1, 1, 4)
             sage: sr.block_order()
-            degrevlex(16),degrevlex(16),degrevlex(4) term order
+            Block term order with blocks:
+            (Degree reverse lexicographic term order of length 16,
+             Degree reverse lexicographic term order of length 16,
+             Degree reverse lexicographic term order of length 4)
 
         ::
 

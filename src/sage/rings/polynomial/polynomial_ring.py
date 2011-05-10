@@ -818,7 +818,6 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             except AttributeError:
                 return self.base_ring()
 
-
     def characteristic(self):
         """
         Return the characteristic of this polynomial ring, which is the

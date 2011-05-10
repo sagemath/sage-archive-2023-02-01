@@ -49,6 +49,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             True
         """
         order = TermOrder(order,n)
+
         if not base_ring.is_commutative():
             raise TypeError, "Base ring must be a commutative ring."
         n = int(n)
@@ -326,7 +327,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         _repr += "       Size : %d Variables\n"%(n,)
         offset = 0
         i = 0
-        for order in T.blocks:
+        for order in T.blocks():
             _repr += "   Block % 2d : Ordering : %s\n"%(i,inv_singular_name_mapping.get(order.singular_str(), order.singular_str()))
             _repr += "              Names    : %s\n"%(", ".join(names[offset:offset + len(order)]))
             offset += len(order)

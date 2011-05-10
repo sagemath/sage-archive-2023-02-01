@@ -478,13 +478,11 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
             c = self.base_ring()(x)
             return MPolynomial_polydict(self, {self._zero_tuple:c})
 
-
-
 class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
                                       MPolynomialRing_polydict,
                                       MPolynomialRing_macaulay2_repr):
     def __init__(self, base_ring, n, names, order):
-        order = TermOrder(order, n)
+        order = TermOrder(order,n)
         MPolynomialRing_polydict.__init__(self, base_ring, n, names, order)
 
     def is_integral_domain(self, proof = True):
@@ -522,7 +520,6 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
         if (kwds.has_key('coerce') and kwds['coerce']) or do_coerce:
             gens = [self(x) for x in gens]  # this will even coerce from singular ideals correctly!
         return multi_polynomial_ideal.MPolynomialIdeal(self, gens, **kwds)
-
 
     def monomial_quotient(self,f, g, coeff=False):
         """
@@ -725,7 +722,6 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
             except ZeroDivisionError:
                 return 0,0
         return 0,0
-
 
     def monomial_divides(self, a, b):
         """

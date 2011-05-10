@@ -263,7 +263,9 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
         sage: R = BooleanPolynomialRing(5,'x',order='deglex(3),deglex(2)')
         sage: R.term_order()
-        deglex(3),deglex(2) term order
+        Block term order with blocks:
+        (Degree lexicographic term order of length 3,
+         Degree lexicographic term order of length 2)
 
     ::
 
@@ -326,16 +328,16 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         except KeyError:
             raise ValueError, "Only lex, deglex, degrevlex orders are supported."
 
-        if len(order.blocks) > 1:
+        if order.is_block_order():
             if pb_order_code is pblp:
                 raise ValueError, "Only deglex and degrevlex are supported for block orders."
             elif pb_order_code is pbdlex:
                 pb_order_code = pbblock_dlex
             elif pb_order_code is pbdp_asc:
                 pb_order_code = pbblock_dp_asc
-            for i in range(1, len(order.blocks)):
-                if order[0] != order[i]:
-                    raise ValueError, "Each block must have the same order type (deglex or degrevlex) for block orderings."
+            for i in range(1, len(order.blocks())):
+                if order[0].name() != order[i].name():
+                    raise ValueError, "Each block must have the same order type (deglex or degrevlex) for block orders."
 
         if (pb_order_code is pbdlex) or (pb_order_code is pblp) or \
                 (pb_order_code is pbblock_dlex):
@@ -347,7 +349,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         else:
             # pb_order_code is block_dp_asc:
             bstart = 0
-            for i from 0 <= i < len(order.blocks):
+            for i from 0 <= i < len(order.blocks()):
                 bsize = len(order[i])
                 for j from 0 <= j < bsize:
                     self.pbind[bstart + j] = bstart + bsize - j -1
@@ -357,7 +359,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         MPolynomialRing_generic.__init__(self, GF(2), n, names, order)
 
         counter = 0
-        for i in range(len(order.blocks)-1):
+        for i in range(len(order.blocks())-1):
             counter += len(order[i])
             pb_append_block(counter)
 
@@ -7056,7 +7058,9 @@ def get_cring():
         sage: change_ordering(block_dp_asc)
         sage: append_ring_block(5)
         sage: get_cring().term_order()
-        deglex_asc(5),deglex_asc(5) term order
+        Block term order with blocks:
+        (deglex_asc term order of length 5,
+         deglex_asc term order of length 5)
         sage: change_ordering(lp)
 
         sage: from polybori.blocks import *
@@ -7129,7 +7133,7 @@ cdef BooleanPolynomialRing BooleanPolynomialRing_from_PBRing(PBRing _ring):
     else:
         # pb_order_code is block_dp_asc:
         bstart = 0
-        for i from 0 <= i < len(T.blocks):
+        for i from 0 <= i < len(T.blocks()):
             bsize = len(T[i])
             for j from 0 <= j < bsize:
                 self.pbind[bstart + j] = bstart + j

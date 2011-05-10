@@ -556,7 +556,9 @@ def BooleanPolynomialRing_constructor(n=None, names=None, order="lex"):
 
         sage: R = BooleanPolynomialRing(5,'x',order='deglex(3),deglex(2)')
         sage: R.term_order()
-        deglex(3),deglex(2) term order
+        Block term order with blocks:
+        (Degree lexicographic term order of length 3,
+         Degree lexicographic term order of length 2)
 
         sage: R = BooleanPolynomialRing(3,'x',order='degrevlex')
         sage: R.term_order()
@@ -593,6 +595,7 @@ def BooleanPolynomialRing_constructor(n=None, names=None, order="lex"):
 
     from sage.rings.polynomial.term_order import TermOrder
     from sage.rings.polynomial.pbori import set_cring
+
     order = TermOrder(order, n)
 
     key = ("pbori", names, n, order)

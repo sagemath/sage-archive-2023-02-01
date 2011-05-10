@@ -2176,7 +2176,10 @@ class DeprecatedFunctionAlias(object):
             True
         """
         self.__doc__ = func.__doc__
-        self.__dict__.update(func.__dict__)
+        try:
+            self.__dict__.update(func.__dict__)
+        except AttributeError:
+            pass # Cython classes don't have __dict__
         self.func = func
         self.version  = version
         self.instance = None # for use with methods

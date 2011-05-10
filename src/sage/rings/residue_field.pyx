@@ -527,8 +527,8 @@ class ResidueField_generic(Field):
             sage: F = OK.residue_field(P)
             sage: F.has_coerce_map_from(GF(13)) # indirect doctest
             True
-            sage: GF(13).has_coerce_map_from(F)
-            False
+            sage: GF(13).has_coerce_map_from(F)  # See trac 11319
+            True
 
             #sage: R.<t> = GF(17)[]; P = R.ideal(t^3 + t^2 + 7)
             #sage: k.<a> = P.residue_field()

@@ -137,6 +137,8 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
             5
             sage: 12 % 7
             5
+            sage: ZZ.residue_field(7).hom(GF(7))(1)  # See trac 11319
+            1
         """
         from sage.rings.integer_ring import ZZ
         from sage.rings.finite_rings.integer_mod_ring import IntegerModRing_generic
@@ -146,7 +148,8 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
             return integer_mod.Integer_to_IntegerMod(self)
         elif isinstance(S, IntegerModRing_generic):
             from sage.rings.residue_field import ResidueField_generic
-            if S.characteristic() == self.characteristic() and not isinstance(S, ResidueField_generic):
+            if S.characteristic() == self.characteristic() and \
+               (not isinstance(S, ResidueField_generic) or S.degree() == 1):
                 try:
                     return integer_mod.IntegerMod_to_IntegerMod(S, self)
                 except TypeError:

@@ -358,11 +358,18 @@ class Face(SageObject):
             sage: P = Patch([Face([0,0,0], 1), Face([0,0,0], 2)])
             sage: f + P
             Patch: [[(0, 0, 0), 1]*, [(0, 0, 0), 2]*, [(0, 0, 0), 3]*]
+
+        Adding a finite iterable of faces::
+
+            sage: from sage.combinat.e_one_star import Face
+            sage: f = Face([0,0,0], 3)
+            sage: f + [f,f]
+            Patch: [[(0, 0, 0), 3]*]
         """
         if isinstance(other, Face):
             return Patch([self, other])
         else:
-            return other.union(self)
+            return Patch([self]).union(other)
 
     def vector(self):
         r"""
@@ -608,7 +615,7 @@ class Patch(SageObject):
             sage: from sage.combinat.e_one_star import Face, Patch
             sage: x = [Face((0,0,0),t) for t in [1,2,3]]
             sage: P = Patch(x)
-            sage: hash(P)
+            sage: hash(P)      # random
             -4839605361791007520
 
         TEST:
@@ -619,10 +626,17 @@ class Patch(SageObject):
             sage: Q = Patch([Face([0,0,0],2), Face([0,0,0],1)])
             sage: P == Q
             True
-            sage: hash(P)
-            4715913349302436779
-            sage: hash(Q)
-            4715913349302436779
+            sage: hash(P) == hash(Q)
+            True
+
+        Changing the color does not affect the hash value::
+
+            sage: p = Patch([Face((0,0,0), t) for t in [1,2,3]])
+            sage: H1 = hash(p)
+            sage: p.repaint(['blue'])
+            sage: H2 = hash(p)
+            sage: H1 == H2
+            True
         """
         return hash(self._faces)
 
@@ -657,8 +671,17 @@ class Patch(SageObject):
             sage: from sage.combinat.e_one_star import Face, Patch
             sage: x = [Face((0,0,0),t) for t in [1,2,3]]
             sage: P = Patch(x)
-            sage: list(P)
-            [[(0, 0, 0), 2]*, [(0, 0, 0), 1]*, [(0, 0, 0), 3]*]
+            sage: it = iter(P)
+            sage: type(it.next())
+            <class 'sage.combinat.e_one_star.Face'>
+            sage: type(it.next())
+            <class 'sage.combinat.e_one_star.Face'>
+            sage: type(it.next())
+            <class 'sage.combinat.e_one_star.Face'>
+            sage: type(it.next())
+            Traceback (most recent call last):
+            ...
+            StopIteration
         """
         return iter(self._faces)
 
@@ -702,7 +725,7 @@ class Patch(SageObject):
 
     def __sub__(self, other):
         r"""
-        Substraction of patches (difference).
+        Subtraction of patches (difference).
 
         INPUT:
 
@@ -768,7 +791,7 @@ class Patch(SageObject):
             Patch: [[(0, 0, 0), 1]*, [(0, 0, 0), 2]*, [(1, 2, 3), 3]*, [(2, 3, 3), 2]*]
         """
         from sage.misc.misc import deprecation
-        deprecation("Objects sage.combinat.e_one_star.Patch" + \
+        deprecation("Objects sage.combinat.e_one_star.Patch " + \
                     "are immutable since Sage-4.7.1. " + \
                     "Use the usual addition (P + Q) or use the Patch.union method.")
         return self.union(other)
@@ -899,8 +922,9 @@ class Patch(SageObject):
             sage: P = Patch([Face([0,0,0], 1), Face([0,0,0], 2), Face([0,0,0], 3)])
             sage: P = E(P,4)
             sage: Q = Patch([Face([0,0,0], 1), Face([0,0,0], 2)])
-            sage: P.occurrences_of(Q)
-            [(0, 0, 0), (0, 0, 1), (1, 1, -3), (1, 1, -2), (1, 0, -1), (0, 1, -1)]
+            sage: L = P.occurrences_of(Q)
+            sage: sorted(L)
+            [(0, 0, 0), (0, 0, 1), (0, 1, -1), (1, 0, -1), (1, 1, -3), (1, 1, -2)]
         """
         x = other[0].vector()
         t = other[0].type()
@@ -940,7 +964,7 @@ class Patch(SageObject):
             raise TypeError, "E must be an instance of E1Star"
 
         from sage.misc.misc import deprecation
-        deprecation("Objects sage.combinat.e_one_star.Patch" + \
+        deprecation("Objects sage.combinat.e_one_star.Patch " + \
                     "are immutable since Sage-4.7.1. " + \
                     "Use the usual calling method of E1Star (E(P)).")
         return E(self, iterations=iterations)
@@ -1432,8 +1456,8 @@ class E1Star(SageObject):
         """
         if iterations == 0:
             return patch
-        elif iterations <0:
-            raise ValueError, "Option 'iterations' must be >= 0."
+        elif iterations < 0:
+            raise ValueError, "iterations (=%s) must be >= 0." % iterations
         else:
             old_faces = patch
             for i in xrange(iterations):

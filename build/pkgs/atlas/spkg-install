@@ -181,6 +181,10 @@ cp('patches/Make.top',
 cp('patches/*tgz',
    'src/CONFIG/ARCHS')
 
+# hardcoded gcc in SpewMakeInc.c
+edit_in_place('src/CONFIG/src/SpewMakeInc.c') \
+    .replace('   goodgcc = .*', '   goodgcc = "' + os.environ['CC'] + '";') \
+    .close()
 
 
 ######################################################################
@@ -233,7 +237,7 @@ def configure(arch=None, isa_ext=None):
     cmd = '../src/configure'
     cmd += ' --prefix=' + conf['SAGE_LOCAL']
     cmd += ' --with-netlib-lapack=' + os.path.join(conf['SAGE_LOCAL'],'lib','liblapack.a')
-    cmd += ' --cc=' + os.environ['CC']
+    cmd += ' --cc="' + os.environ['CC'] + '"'
 
     # -Si cputhrchk 0: Ignore/heed CPU throttle probe
     cmd += ' -Si cputhrchk 0'
@@ -247,14 +251,13 @@ def configure(arch=None, isa_ext=None):
     # set fortran compiler
     cmd += ' -C if sage_fortran'
 
-    ## set C compiler
-    cmd += ' -C xc ' + os.environ['CC']
-    cmd += ' -C gc ' + os.environ['CC']
-    cmd += ' -C ic ' + os.environ['CC']
-    cmd += ' -C dm ' + os.environ['CC']
-    cmd += ' -C sm ' + os.environ['CC']
-    cmd += ' -C dk ' + os.environ['CC']
-    cmd += ' -C sk ' + os.environ['CC']
+    # set C compiler
+    cmd += ' -C xc "' + os.environ['CC'] + '"'
+    cmd += ' -C ic "' + os.environ['CC'] + '"'
+    cmd += ' -C dm "' + os.environ['CC'] + '"'
+    cmd += ' -C sm "' + os.environ['CC'] + '"'
+    cmd += ' -C dk "' + os.environ['CC'] + '"'
+    cmd += ' -C sk "' + os.environ['CC'] + '"'
 
     # set bit width
     cmd += ' -b ' + conf['bits'][0:2]
@@ -280,14 +283,6 @@ def configure(arch=None, isa_ext=None):
 
     print 'Running', cmd
     rc = os.system(cmd)
-
-    # The ATLAS configuration system does not always correctly
-    # generate the GOODGCC variable (it assumes that $CC starts with
-    # 'gcc', which need not be the case):
-    edit_in_place('Make.inc') \
-        .replace('   GOODGCC = .*', '   GOODGCC = ' + os.environ['CC']) \
-        .close()
-
     return rc
 
 

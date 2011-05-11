@@ -66,6 +66,8 @@ if conf['Darwin?']:
 if os.environ.has_key('SAGE_ATLAS_LIB'):
     ATLAS_LIB = os.environ['SAGE_ATLAS_LIB']
     library_extensions = ['.a', '.so', '.dylib']
+    libraries = ['libatlas', 'liblapack', 'libcblas', 'libf77blas']
+    libraries_optional = ['libptcblas', 'libptf77blas']
 
     def is_atlas_lib_path(path):
         if path is None:
@@ -75,12 +77,7 @@ if os.environ.has_key('SAGE_ATLAS_LIB'):
         def library_exists(lib):
             library_base = os.path.join(path, lib)
             return any(os.path.exists(library_base+ext) for ext in library_extensions)
-        # Check for 4 libraries.
-        has_atlas   = library_exists('libatlas')
-        has_lapack  = library_exists('liblapack')
-        has_cblas   = library_exists('libcblas')
-        has_f77blas = library_exists('libf77blas')
-        return has_atlas and has_lapack and has_cblas and has_f77blas
+        return all(library_exists(lib) for lib in libraries)
 
     paths = [ os.path.join(ATLAS_LIB, 'lib'),
               ATLAS_LIB,
@@ -124,7 +121,10 @@ if os.environ.has_key('SAGE_ATLAS_LIB'):
             lib = library_basename + ext
             source = os.path.join(ATLAS_LIB, lib)
             destination = os.path.join(SAGE_LOCAL_LIB, lib)
+            if not os.path.exists(source):
+                continue
             # ln -sf source destination
+            print 'Symlinking '+source+' -> '+destination
             try:
                 os.remove(destination)
             except OSError:
@@ -133,10 +133,8 @@ if os.environ.has_key('SAGE_ATLAS_LIB'):
                 os.symlink(source, destination)
             except OSError:
                 pass
-    symlinkOSlibrary('libatlas')
-    symlinkOSlibrary('libcblas')
-    symlinkOSlibrary('liblapack')
-    symlinkOSlibrary('libf77blas')
+    for lib in libraries + libraries_optional:
+        symlinkOSlibrary(lib)
     sys.exit(0)
 
 
@@ -235,6 +233,7 @@ def configure(arch=None, isa_ext=None):
     cmd = '../src/configure'
     cmd += ' --prefix=' + conf['SAGE_LOCAL']
     cmd += ' --with-netlib-lapack=' + os.path.join(conf['SAGE_LOCAL'],'lib','liblapack.a')
+    cmd += ' --cc=' + os.environ['CC']
 
     # -Si cputhrchk 0: Ignore/heed CPU throttle probe
     cmd += ' -Si cputhrchk 0'
@@ -247,6 +246,15 @@ def configure(arch=None, isa_ext=None):
 
     # set fortran compiler
     cmd += ' -C if sage_fortran'
+
+    ## set C compiler
+    cmd += ' -C xc ' + os.environ['CC']
+    cmd += ' -C gc ' + os.environ['CC']
+    cmd += ' -C ic ' + os.environ['CC']
+    cmd += ' -C dm ' + os.environ['CC']
+    cmd += ' -C sm ' + os.environ['CC']
+    cmd += ' -C dk ' + os.environ['CC']
+    cmd += ' -C sk ' + os.environ['CC']
 
     # set bit width
     cmd += ' -b ' + conf['bits'][0:2]
@@ -272,6 +280,14 @@ def configure(arch=None, isa_ext=None):
 
     print 'Running', cmd
     rc = os.system(cmd)
+
+    # The ATLAS configuration system does not always correctly
+    # generate the GOODGCC variable (it assumes that $CC starts with
+    # 'gcc', which need not be the case):
+    edit_in_place('Make.inc') \
+        .replace('   GOODGCC = .*', '   GOODGCC = ' + os.environ['CC']) \
+        .close()
+
     return rc
 
 

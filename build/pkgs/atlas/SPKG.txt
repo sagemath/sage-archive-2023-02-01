@@ -88,6 +88,10 @@ The package can be configured via two environment variables:
 
 == ChangeLog ==
 
+
+== atlas-3.8.3.p18 (Mariah Lenox, 11 May 2011) ==
+ * Make atlas respect CC environment variable.
+
 == atlas-3.8.3.p17 (Volker Braun, November 5th 2010) ==
  * Rewrite the spkg-install script in pure python. Introduce the
    SAGE_ATLAS_ARCH environment variable.

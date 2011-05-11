@@ -383,7 +383,7 @@ def make_lapack_library():
             fortran_lib = '-lgfortran'
         libraries = ['liblapack', 'libf77blas']
         # call gcc instead of ld in order to find libgfortran.so
-        cmd = 'gcc ' + fortran_dir + sage_local_lib_dir + \
+        cmd = os.environ['CC'] + ' ' + fortran_dir + sage_local_lib_dir + \
             ' -shared -Wl,-soname,{0}.so ' + \
             '  -Wl,-whole-archive {0}.a -Wl,-no-whole-archive' + \
             ' -o {0}.so -lc -lm ' + fortran_lib

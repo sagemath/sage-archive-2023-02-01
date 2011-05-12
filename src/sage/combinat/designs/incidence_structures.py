@@ -103,12 +103,28 @@ class IncidenceStructure(object):
             sage: IncidenceStructure(range(7),[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
             Incidence structure with 7 points and 7 blocks
 
+        Points are sorted  ::
+
+            sage: BD1 = IncidenceStructure([4,6,0,3,2,5,1],[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
+            sage: BD1.points()
+            [0, 1, 2, 3, 4, 5, 6]
+
+        TESTS:
+
+        The following shows that Trac Ticket #11333  is fixed.  ::
+
+            sage: A = IncidenceStructure([0,1],[[0]])
+            sage: B = IncidenceStructure([1,0],[[0]])
+            sage: B==A
+            True
+
         REFERENCES:
 
         - E. Assmus, J. Key, Designs and their codes, CUP, 1992.
         """
         bs = []
         self.pnts = pts
+        self.pnts.sort()
         v, blocks = len(pts), blks
         for block in blocks:
             if test:

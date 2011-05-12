@@ -319,10 +319,6 @@ if [ "$MAKE" = "" ]; then
     MAKE="make"         && export MAKE
 fi
 
-if [ "$RM" = "" ]; then
-    RM="rm"  && export RM
-fi
-
 if [ "$RANLIB" = "" ]; then
     RANLIB="ranlib"  && export RANLIB
 fi

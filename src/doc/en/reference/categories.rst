@@ -142,6 +142,7 @@ Examples of parents using categories
    sage/categories/examples/commutative_additive_monoids
    sage/categories/examples/commutative_additive_semigroups
    sage/categories/examples/coxeter_groups
+   sage/categories/examples/crystals
    sage/categories/examples/finite_coxeter_groups
    sage/categories/examples/finite_enumerated_sets
    sage/categories/examples/finite_monoids

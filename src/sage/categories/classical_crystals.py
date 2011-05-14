@@ -40,6 +40,7 @@ class ClassicalCrystals(Category):
           running ._test_eq() . . . pass
           running ._test_not_implemented_methods() . . . pass
           running ._test_pickling() . . . pass
+          running ._test_stembridge_local_axioms() . . . pass
           pass
         running ._test_elements_eq() . . . pass
         running ._test_enumerated_set_contains() . . . pass
@@ -50,6 +51,7 @@ class ClassicalCrystals(Category):
         running ._test_not_implemented_methods() . . . pass
         running ._test_pickling() . . . pass
         running ._test_some_elements() . . . pass
+        running ._test_stembridge_local_axioms() . . . pass
     """
 
     @cached_method
@@ -268,6 +270,7 @@ class ClassicalCrystals(Category):
                 sage: U=TensorProductOfCrystals(C,E,generators=[[C(1),E.list()[0]]])
                 sage: T.cardinality()
                 56
+
                 sage: TestSuite(T).run(verbose = True)
                 running ._test_an_element() . . . pass
                 running ._test_category() . . . pass
@@ -277,6 +280,7 @@ class ClassicalCrystals(Category):
                   running ._test_eq() . . . pass
                   running ._test_not_implemented_methods() . . . pass
                   running ._test_pickling() . . . pass
+                  running ._test_stembridge_local_axioms() . . . pass
                   pass
                 running ._test_elements_eq() . . . pass
                 running ._test_enumerated_set_contains() . . . pass
@@ -287,6 +291,8 @@ class ClassicalCrystals(Category):
                 running ._test_not_implemented_methods() . . . pass
                 running ._test_pickling() . . . pass
                 running ._test_some_elements() . . . pass
+                running ._test_stembridge_local_axioms() . . . pass
+
                 sage: TestSuite(U).run(verbose = True)
                 running ._test_an_element() . . . pass
                 running ._test_category() . . . pass
@@ -296,6 +302,7 @@ class ClassicalCrystals(Category):
                   running ._test_eq() . . . pass
                   running ._test_not_implemented_methods() . . . pass
                   running ._test_pickling() . . . pass
+                  running ._test_stembridge_local_axioms() . . . pass
                   pass
                 running ._test_elements_eq() . . . pass
                 running ._test_enumerated_set_contains() . . . pass
@@ -306,6 +313,7 @@ class ClassicalCrystals(Category):
                 running ._test_not_implemented_methods() . . . pass
                 running ._test_pickling() . . . pass
                 running ._test_some_elements() . . . pass
+                running ._test_stembridge_local_axioms() . . . pass
 
             Bump's systematic tests::
 
@@ -334,11 +342,12 @@ class ClassicalCrystals(Category):
                 running ._test_an_element() . . . pass
                 running ._test_category() . . . pass
                 running ._test_elements() . . .
-                  Running the test suite of self.an_element()
+                Running the test suite of self.an_element()
                   running ._test_category() . . . pass
                   running ._test_eq() . . . pass
                   running ._test_not_implemented_methods() . . . pass
                   running ._test_pickling() . . . pass
+                  running ._test_stembridge_local_axioms() . . . pass
                   pass
                 running ._test_elements_eq() . . . pass
                 running ._test_enumerated_set_contains() . . . pass
@@ -350,6 +359,7 @@ class ClassicalCrystals(Category):
                 running ._test_not_implemented_methods() . . . pass
                 running ._test_pickling() . . . pass
                 running ._test_some_elements() . . . pass
+                running ._test_stembridge_local_axioms() . . . pass
 
             ::
 

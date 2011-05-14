@@ -43,6 +43,7 @@ class HighestWeightCrystals(Category):
           running ._test_eq() . . . pass
           running ._test_not_implemented_methods() . . . pass
           running ._test_pickling() . . . pass
+          running ._test_stembridge_local_axioms() . . . pass
           pass
         running ._test_elements_eq() . . . pass
         running ._test_enumerated_set_contains() . . . pass
@@ -53,6 +54,7 @@ class HighestWeightCrystals(Category):
         running ._test_not_implemented_methods() . . . pass
         running ._test_pickling() . . . pass
         running ._test_some_elements() . . . pass
+        running ._test_stembridge_local_axioms() . . . pass
     """
 
     @cached_method

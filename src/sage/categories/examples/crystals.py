@@ -12,6 +12,7 @@ from sage.structure.parent import Parent
 from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.classical_crystals import ClassicalCrystals
+from sage.graphs.all import DiGraph
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.combinat.root_system.cartan_type import CartanType
 
@@ -51,6 +52,7 @@ class HighestWeightCrystalOfTypeA(UniqueRepresentation, Parent):
 
     TESTS::
 
+        sage: C = Crystals().example()
         sage: TestSuite(C).run(verbose = True)
         running ._test_an_element() . . . pass
         running ._test_category() . . . pass
@@ -60,6 +62,7 @@ class HighestWeightCrystalOfTypeA(UniqueRepresentation, Parent):
           running ._test_eq() . . . pass
           running ._test_not_implemented_methods() . . . pass
           running ._test_pickling() . . . pass
+          running ._test_stembridge_local_axioms() . . . pass
           pass
         running ._test_elements_eq() . . . pass
         running ._test_enumerated_set_contains() . . . pass
@@ -70,13 +73,13 @@ class HighestWeightCrystalOfTypeA(UniqueRepresentation, Parent):
         running ._test_not_implemented_methods() . . . pass
         running ._test_pickling() . . . pass
         running ._test_some_elements() . . . pass
+        running ._test_stembridge_local_axioms() . . . pass
 
     Only the following basic operations are implemented:
-     - :meth:`.cartan_type` or an attribute _cartan_type
-     - an attribute `module_generators`
+     - :meth:`~sage.categories.crystals.Crystals.cartan_type` or an attribute _cartan_type
+     - an attribute module_generators
      - :meth:`.Element.e`
      - :meth:`.Element.f`
-     - :meth:`.Element.weight`
 
     All the other usual crystal operations are inherited from the
     categories; for example::
@@ -89,8 +92,8 @@ class HighestWeightCrystalOfTypeA(UniqueRepresentation, Parent):
         """
         EXAMPLES::
 
-            sage: C = sage.categories.examples.crystals.HighestWeightCrystalOfTypeA(4)
-            sage: C == Crystals().example(4)
+            sage: C = sage.categories.examples.crystals.HighestWeightCrystalOfTypeA(n=4)
+            sage: C == Crystals().example(n=4)
             True
         """
         Parent.__init__(self, category = ClassicalCrystals())
@@ -144,4 +147,81 @@ class HighestWeightCrystalOfTypeA(UniqueRepresentation, Parent):
             else:
                 return None
 
-Example = HighestWeightCrystalOfTypeA
+
+class NaiveCrystal(UniqueRepresentation, Parent):
+    r"""
+    This is an example of a "crystal" which does not come from any kind of
+    representation, designed primarily to test the Stembridge local rules with.
+    The crystal has vertices labeled 0 through 5, with 0 the highest weight.
+
+    The code here could also possibly be generalized to create a class that
+    automatically builds a crystal from an edge-colored digraph, if someone
+    feels adventurous.
+
+    Currently, only the methods :meth:`highest_weight_vector`, :meth:`e`, and :meth:`f` are
+    guaranteed to work.
+
+    EXAMPLES::
+
+        sage: C = Crystals().example(choice='naive')
+        sage: C.highest_weight_vector()
+        0
+    """
+    def __init__(self):
+        """
+        EXAMPLES::
+
+            sage: C = sage.categories.examples.crystals.NaiveCrystal()
+            sage: C == Crystals().example(choice='naive')
+            True
+        """
+        Parent.__init__(self, category = ClassicalCrystals())
+        self.n = 2
+        self._cartan_type = CartanType(['A',2])
+        self.G = DiGraph(5)
+        self.G.add_edges([ [0,1,1], [1,2,1], [2,3,1], [3,5,1],  [0,4,2], [4,5,2] ])
+        self.module_generators = [ self(0) ]
+
+    def __repr__(self):
+        """
+        EXAMPLES::
+
+            sage: Crystals().example(choice='naive')
+            A broken crystal, defined by digraph, of dimension five.
+        """
+        return "A broken crystal, defined by digraph, of dimension five."
+
+    class Element(ElementWrapper):
+        def e(self, i):
+            r"""
+            Returns the action of `e_i` on ``self``.
+
+            EXAMPLES::
+
+                sage: C = Crystals().example(choice='naive')
+                sage: [[c,i,c.e(i)] for i in C.index_set() for c in [C(j) for j in [0..5]] if c.e(i) is not None]
+                [[1, 1, 0], [2, 1, 1], [3, 1, 2], [5, 1, 3], [4, 2, 0], [5, 2, 4]]
+            """
+            assert i in self.index_set()
+            for edge in self.parent().G.edges():
+               if edge[1]==int(str(self)) and edge[2]==i:
+                   return self.parent()(edge[0])
+            return None
+
+        def f(self, i):
+            r"""
+            Returns the action of `f_i` on ``self``.
+
+            EXAMPLES::
+
+                sage: C = Crystals().example(choice='naive')
+                sage: [[c,i,c.f(i)] for i in C.index_set() for c in [C(j) for j in [0..5]] if c.f(i) is not None]
+                [[0, 1, 1], [1, 1, 2], [2, 1, 3], [3, 1, 5], [0, 2, 4], [4, 2, 5]]
+            """
+            assert i in self.index_set()
+            for edge in self.parent().G.edges_incident(int(str(self))):
+                if edge[2] == i:
+                    return self.parent()(edge[1])
+            return None
+
+

@@ -15,7 +15,9 @@ from sage.categories.category import Category
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.misc.latex import latex
 from sage.combinat import ranker
+from sage.combinat.subset import Subsets
 from sage.graphs.dot2tex_utils import have_dot2tex
+from sage.rings.integer import Integer
 
 class Crystals(Category):
     """
@@ -65,6 +67,7 @@ class Crystals(Category):
           running ._test_eq() . . . pass
           running ._test_not_implemented_methods() . . . pass
           running ._test_pickling() . . . pass
+          running ._test_stembridge_local_axioms() . . . pass
           pass
         running ._test_elements_eq() . . . pass
         running ._test_enumerated_set_contains() . . . pass
@@ -75,6 +78,7 @@ class Crystals(Category):
         running ._test_not_implemented_methods() . . . pass
         running ._test_pickling() . . . pass
         running ._test_some_elements() . . . pass
+        running ._test_stembridge_local_axioms() . . . pass
     """
 
     @cached_method
@@ -87,11 +91,40 @@ class Crystals(Category):
         """
         return [EnumeratedSets()]
 
+    def example(self, choice="highwt", **kwds):
+        r"""
+        Returns an example of a crystal, as per
+        :meth:`Category.example()
+        <sage.categories.category.Category.example>`.
+
+        INPUT::
+
+         - ``choice`` -- str [default: 'highwt']. Can be either 'highwt'
+           for the highest weight crystal of type A, or 'naive' for an
+           example of a broken crystal.
+
+         - ``**kwds`` -- keyword arguments passed onto the constructor for the
+           chosen crystal.
+
+        EXAMPLES::
+
+            sage: Crystals().example(choice='highwt', n=5)
+            Highest weight crystal of type A_5 of highest weight omega_1
+            sage: Crystals().example(choice='naive')
+            A broken crystal, defined by digraph, of dimension five.
+        """
+        import sage.categories.examples.crystals as examples
+        if choice == "naive":
+            return examples.NaiveCrystal(**kwds)
+        else:
+            if isinstance(choice, Integer):
+                return examples.HighestWeightCrystalOfTypeA(n=choice, **kwds)
+            else:
+                return examples.HighestWeightCrystalOfTypeA(**kwds)
+
     class ParentMethods:
 
-        #TODO: implement tests for the TestSuite to check whether the crystal satisfies the Stembridge rules
-
-        def _an_element_(self):
+        def an_element(self):
             """
             Returns an element of ``self``
 
@@ -614,7 +647,6 @@ class Crystals(Category):
             G = self.digraph(**options)
             return G.plot3d()
 
-
     class ElementMethods:
 
         def index_set(self):
@@ -877,6 +909,193 @@ class Crystals(Category):
             for k in range(self.phi(i)):
                 l.append(self.f_string([i for j in range(k+1)]))
             return(l)
+
+        def stembridgeDelta_depth(self,i,j):
+            r"""
+            The `i`-depth of a crystal node `x` is ``-x.epsilon(i)``.
+            This function returns the difference in the `j`-depth of `x` and ``x.e(i)``,
+            where `i` and `j` are in the index set of the underlying crystal.
+            This function is useful for checking the Stembridge local axioms for crystal bases.
+
+            EXAMPLES::
+
+                sage: T = CrystalOfTableaux(['A',2], shape=[2,1])
+                sage: t=T(rows=[[1,2],[2]])
+                sage: t.stembridgeDelta_depth(1,2)
+                0
+                sage: s=T(rows=[[2,3],[3]])
+                sage: s.stembridgeDelta_depth(1,2)
+                -1
+            """
+            if self.e(i) is None: return 0
+            return -self.e(i).epsilon(j) + self.epsilon(j)
+
+        def stembridgeDelta_rise(self,i,j):
+            r"""
+            The `i`-rise of a crystal node `x` is ``x.phi(i)``.
+
+            This function returns the difference in the `j`-rise of `x` and ``x.e(i)``,
+            where `i` and `j` are in the index set of the underlying crystal.
+            This function is useful for checking the Stembridge local axioms for crystal bases.
+
+            EXAMPLES::
+
+                sage: T = CrystalOfTableaux(['A',2], shape=[2,1])
+                sage: t=T(rows=[[1,2],[2]])
+                sage: t.stembridgeDelta_rise(1,2)
+                -1
+                sage: s=T(rows=[[2,3],[3]])
+                sage: s.stembridgeDelta_rise(1,2)
+                0
+            """
+            if self.e(i) is None: return 0
+            return self.e(i).phi(j) - self.phi(j)
+
+        def stembridgeDel_depth(self,i,j):
+            r"""
+            The `i`-depth of a crystal node `x` is ``-x.epsilon(i)``.
+            This function returns the difference in the `j`-depth of `x` and ``x.f(i)``,
+            where `i` and `j` are in the index set of the underlying crystal.
+            This function is useful for checking the Stembridge local axioms for crystal bases.
+
+            EXAMPLES::
+
+                sage: T = CrystalOfTableaux(['A',2], shape=[2,1])
+                sage: t=T(rows=[[1,1],[2]])
+                sage: t.stembridgeDel_depth(1,2)
+                0
+                sage: s=T(rows=[[1,3],[3]])
+                sage: s.stembridgeDel_depth(1,2)
+                -1
+            """
+            if self.f(i) is None: return 0
+            return -self.epsilon(j) + self.f(i).epsilon(j)
+
+        def stembridgeDel_rise(self,i,j):
+            r"""
+            The `i`-rise of a crystal node `x` is ``x.phi(i)``.
+            This function returns the difference in the `j`-rise of `x` and ``x.f(i)``,
+            where `i` and `j` are in the index set of the underlying crystal.
+            This function is useful for checking the Stembridge local axioms for crystal bases.
+
+            EXAMPLES::
+
+                sage: T = CrystalOfTableaux(['A',2], shape=[2,1])
+                sage: t=T(rows=[[1,1],[2]])
+                sage: t.stembridgeDel_rise(1,2)
+                -1
+                sage: s=T(rows=[[1,3],[3]])
+                sage: s.stembridgeDel_rise(1,2)
+                0
+            """
+            if self.f(i) is None: return 0
+            return self.phi(j)-self.f(i).phi(j)
+
+        def stembridgeTriple(self,i,j):
+            r"""
+            Let `A` be the Cartan matrix of the crystal, `x` a crystal element,
+            and let `i` and `j` be in the index set of the crystal.
+            Further, set
+            ``b=stembridgeDelta_depth(x,i,j)``, and
+            ``c=stembridgeDelta_rise(x,i,j))``.
+            If ``x.e(i)`` is non-empty, this function returns the triple
+            `( A_{ij}, b, c )`; otherwise it returns ``None``.
+            By the Stembridge local characterization of crystal bases, one should have `A_{ij}=b+c`.
+
+            EXAMPLES::
+
+                sage: T = CrystalOfTableaux(['A',2], shape=[2,1])
+                sage: t=T(rows=[[1,1],[2]])
+                sage: t.stembridgeTriple(1,2)
+                sage: s=T(rows=[[1,2],[2]])
+                sage: s.stembridgeTriple(1,2)
+                (-1, 0, -1)
+
+                sage: T = CrystalOfTableaux(['B',2], shape=[2,1])
+                sage: t=T(rows=[[1,2],[2]])
+                sage: t.stembridgeTriple(1,2)
+                (-2, 0, -2)
+                sage: s=T(rows=[[-1,-1],[0]])
+                sage: s.stembridgeTriple(1,2)
+                (-2, -2, 0)
+                sage: u=T(rows=[[0,2],[1]])
+                sage: u.stembridgeTriple(1,2)
+                (-2, -1, -1)
+            """
+            if self.e(i) is None: return None
+            A=self.cartan_type().cartan_matrix()
+            b=self.stembridgeDelta_depth(i,j)
+            c=self.stembridgeDelta_rise(i,j)
+            dd=self.cartan_type().dynkin_diagram()
+            a=dd[j,i]
+            return (a, b, c)
+
+        def _test_stembridge_local_axioms(self, index_set=None, verbose=False, **options):
+            r"""
+            This implements tests for the Stembridge local characterization on the element of a crystal ``self``.
+            The current implementation only uses the axioms for simply-laced types.  Crystals
+            of other types should still pass the test, but in non-simply-laced types,
+            passing is not a guarantee that the crystal arises from a representation.
+
+            One can specify an index set smaller than the full index set of the crystal,
+            using the option ``index_set``.
+
+            Running with ``verbose=True`` will print warnings when a test fails.
+
+            REFERENCES::
+
+                .. [S2003] John R. Stembridge, A Local Characterization of Simply-Laced Crystals,
+                   Transactions of the American Mathematical Society, Vol. 355, No. 12 (Dec., 2003), pp. 4807-4823
+
+
+            EXAMPLES::
+
+                sage: T = CrystalOfTableaux(['A',2], shape=[2,1])
+                sage: t=T(rows=[[1,1],[2]])
+                sage: t._test_stembridge_local_axioms()
+                True
+                sage: t._test_stembridge_local_axioms(index_set=[1,3])
+                True
+                sage: t._test_stembridge_local_axioms(verbose=True)
+                True
+            """
+            tester = self._tester(**options)
+            goodness=True
+            A=self.cartan_type().cartan_matrix()
+            if index_set is None: index_set=self.index_set()
+
+            for (i,j) in Subsets(index_set, 2):
+                if self.e(i) is not None and self.e(j) is not None:
+                    triple=self.stembridgeTriple(i,j)
+                    #Test axioms P3 and P4.
+                    if not triple[0]==triple[1]+triple[2] or triple[1]>0 or triple[2]>0:
+                        if verbose:
+                            print 'Warning: Failed axiom P3 or P4 at vector ', self, 'i,j=', i, j, 'Stembridge triple:', self.stembridgeTriple(i,j)
+                            goodness=False
+                        else:
+                            tester.fail()
+                    if self.stembridgeDelta_depth(i,j)==0:
+                        #check E_i E_j(x)= E_j E_i(x)
+                        if self.e(i).e(j)!=self.e(j).e(i) or self.e(i).e(j).stembridgeDel_rise(j, i)!=0:
+                            if complete:
+                                print 'Warning: Failed axiom P5 at: vector ', self, 'i,j=', i, j, 'Stembridge triple:', stembridgeTriple(x,i,j)
+                                goodness=False
+                            else:
+                                tester.fail()
+                    if self.stembridgeDelta_depth(i,j)==-1 and self.stembridgeDelta_depth(j,i)==-1:
+                        #check E_i E_j^2 E_i (x)= E_j E_i^2 E_j (x)
+                        y1=self.e(j).e(i).e(i).e(j)
+                        y2=self.e(j).e(i).e(i).e(j)
+                        a=y1.stembridgeDel_rise(j, i)
+                        b=y2.stembridgeDel_rise(i, j)
+                        if y1!=y2 or a!=-1 or b!=-1:
+                            if verbose:
+                                print 'Warning: Failed axiom P6 at: vector ', x, 'i,j=', i, j, 'Stembridge triple:', stembridgeTriple(x,i,j)
+                                goodness=False
+                            else:
+                                tester.fail()
+            tester.assertTrue(goodness)
+            return goodness
 
         def is_highest_weight(self, index_set = None):
             r"""

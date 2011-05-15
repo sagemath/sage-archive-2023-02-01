@@ -425,14 +425,12 @@ ex pseries::conjugate() const
 	epvector * newseq = conjugateepvector(seq);
 	ex newpoint = point.conjugate();
 
-	if (!newseq	&& are_ex_trivially_equal(point, newpoint)) {
+	if (!newseq && are_ex_trivially_equal(point, newpoint)) {
 		return *this;
 	}
 
 	ex result = (new pseries(var==newpoint, newseq ? *newseq : seq))->setflag(status_flags::dynallocated);
-	if (newseq) {
-		delete newseq;
-	}
+	delete newseq;
 	return result;
 }
 

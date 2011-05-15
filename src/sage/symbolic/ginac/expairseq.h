@@ -106,9 +106,9 @@ protected:
 	                       unsigned upper_precedence) const;
 	virtual expair split_ex_to_pair(const ex & e) const;
 	virtual expair combine_ex_with_coeff_to_pair(const ex & e,
-												 const ex & c) const;
+	                                             const ex & c) const;
 	virtual expair combine_pair_with_coeff_to_pair(const expair & p,
-												   const ex & c) const;
+	                                               const ex & c) const;
 	virtual ex recombine_pair_to_ex(const expair & p) const;
 	virtual bool expair_needs_further_processing(epp it);
 	virtual ex default_overall_coeff() const;

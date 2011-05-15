@@ -1162,6 +1162,38 @@ retry1:
 	return ((*this)/divide_by)*multiply_by;
 }
 
+ex mul::conjugate() const
+{
+	// The base class' method is wrong here because we have to be careful at
+	// branch cuts. power::conjugate takes care of that already, so use it.
+	epvector *newepv = 0;
+	for (epvector::const_iterator i=seq.begin(); i!=seq.end(); ++i) {
+		if (newepv) {
+			newepv->push_back(split_ex_to_pair(recombine_pair_to_ex(*i).conjugate()));
+			continue;
+		}
+		ex x = recombine_pair_to_ex(*i);
+		ex c = x.conjugate();
+		if (c.is_equal(x)) {
+			continue;
+		}
+		newepv = new epvector;
+		newepv->reserve(seq.size());
+		for (epvector::const_iterator j=seq.begin(); j!=i; ++j) {
+			newepv->push_back(*j);
+		}
+		newepv->push_back(split_ex_to_pair(c));
+	}
+	ex x = overall_coeff.conjugate();
+	if (!newepv && are_ex_trivially_equal(x, overall_coeff)) {
+		return *this;
+	}
+	ex result = thisexpairseq(newepv ? *newepv : seq, x);
+	delete newepv;
+	return result;
+}
+
+
 // protected
 
 /** Implementation of ex::diff() for a product.  It applies the product rule.

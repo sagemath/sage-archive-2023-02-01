@@ -65,6 +65,7 @@ public:
 	ex smod(const numeric &xi) const;
 	numeric max_coefficient() const;
 	exvector get_free_indices() const;
+	ex conjugate() const;
 protected:
 	ex derivative(const symbol & s) const;
 	ex eval_ncmul(const exvector & v) const;

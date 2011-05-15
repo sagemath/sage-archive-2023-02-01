@@ -1460,7 +1460,7 @@ static ex tanh_imag_part(const ex & x)
 
 static ex tanh_conjugate(const ex & x)
 {
-	// conjugate(tan(x))==tan(conjugate(x))
+	// conjugate(tanh(x))==tanh(conjugate(x))
 	return tanh(x.conjugate());
 }
 

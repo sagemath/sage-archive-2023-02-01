@@ -5,7 +5,7 @@ AUTHORS:
 
  *   Mike Hanson (2007) - original module
  *   Nathann Cohen, David Joyner (2009-2010) - Gale-Ryser stuff
-
+ *   Nathann Cohen, David Joyner (2011) - Gale-Ryser bugfix
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -103,13 +103,15 @@ def is_gale_ryser(r,s):
     #                                same number of 1s           domination
     return len(rstar) <= len(s2) and  sum(r2) == sum(s2) and rstar.dominates(s)
 
-def _slider01(A, t, k):
+def _slider01(A, t, k, p1, p2, fixedcols=[]):
     r"""
     Assumes `A` is a `(0,1)`-matrix. For each of the
     `t` rows with highest row sums, this function
     returns a matrix `B` which is the same as `A` except that it
-    has slid exactly one `1` in `A` over to the `k`-th
-    column.
+    has slid `t` of the `1` in each of these rows of `A`
+    over towards the `k`-th column. Care must be taken when the
+    last leading 1 is in column >=k. It avoids those in columns
+    listed in fixedcols.
 
     This is a 'private' function for use in gale_ryser_theorem.
 
@@ -117,6 +119,8 @@ def _slider01(A, t, k):
 
     - ``A`` -- an `m\times n` (0,1) matrix
     - ``t``, ``k`` -- integers satisfying `0 < t < m`, `0 < k < n`
+    - ``fixedcols`` -- those columns (if any) whose entries
+                       aren't permitted to slide
 
     OUTPUT:
 
@@ -133,42 +137,50 @@ def _slider01(A, t, k):
         [1 1 1 0]
         [1 0 0 0]
         [1 0 0 0]
-        sage: _slider01(A, 1, 3)
-        [1 1 1 0]
+        sage: _slider01(A, 1, 3, [3,3,1,1], [3,3,1,1])
         [1 1 0 1]
-        [1 0 0 0]
-        [1 0 0 0]
-        sage: _slider01(A, 3, 3)
-        [1 1 1 0]
         [1 1 1 0]
         [1 0 0 0]
+        [1 0 0 0]
+        sage: _slider01(A, 3, 3, [3,3,1,1], [3,3,1,1])
+        [1 1 0 1]
+        [1 0 1 1]
         [0 0 0 1]
+        [1 0 0 0]
 
     """
+    # we assume that the rows of A are arranged so that
+    # there row sums are decreasing as you go from the
+    # top row to the bottom row
+    import copy
     from sage.matrix.constructor import matrix
-    maxrows = []
     m = len(A.rows())
+    rs = [sum(x) for x in A.rows()]
     n = len(A.columns())
-    B = matrix(m,n)
-    rowsums = [sum(A.row(i)) for i in range(m)]
-    maxrows = [rowsums[i] for i in range(t)] # t rows with max rowsums
-    maxRows = [] # want these to correspond to elts of maxrows
-    B = [list(A.row(i)) for i in range(m)]
-    for i in range(m):
-        if sum(A.row(i)) in maxrows:
-            maxRows.append(i)  # >= t rows numbers with max rowsums
-    for j in range(len(maxrows)):
-        i = maxRows[-1]
-        rw = A.row(i) # to make mutable
+    cs = [sum(x) for x in A.columns()]
+    B = [copy.deepcopy(list(A.row(j))) for j in range(m)]
+    c = 0 # initializing counter
+    for ii in range(m):
+      rw = copy.deepcopy(B[ii]) # to make mutable
         # now we want to move the rightmost left 1 to the k-th column
-        rwlist = list(rw)
-        if not(0 in rwlist):
-            N = n-1
+      fixedcols = [l for l in range(n) if p2[l]==sum(matrix(B).column(l))]
+      JJ = range(n)
+      JJ.reverse()
+      for jj in JJ:
+        if t==sum(matrix(B).column(k)):
+            break
+        if jj<k and rw[jj]==1 and rw[k]==0 and not(jj in fixedcols):
+            # fixedcols check: only change B if the col sums get "better"
+            rw[jj] = 0
+            rw[k] = 1
+            B[ii] = rw
+            c = c+1
+            if c>=t: next
+            j=n-1
         else:
-            N = rwlist.index(0)
-        rwlist[int(N)-1] = 0
-        rwlist[k] = 1
-        B[i] = rwlist
+            next
+        if c>=t:
+            break
     return matrix(B)
 
 def gale_ryser_theorem(p1, p2, algorithm="ryser"):
@@ -246,10 +258,16 @@ def gale_ryser_theorem(p1, p2, algorithm="ryser"):
             sage: from sage.combinat.integer_vector import gale_ryser_theorem
             sage: p1 = [2,2,1]
             sage: p2 = [2,2,1]
-            sage: print gale_ryser_theorem(p1, p2, algorithm="gale") # Optional - requires GLPK or CBC
-            [0 1 1]
+            sage: print gale_ryser_theorem(p1, p2, algorithm="gale")
             [1 1 0]
-            [1 0 0]
+            [1 0 1]
+            [0 1 0]
+            sage: A = gale_ryser_theorem(p1, p2)
+            sage: rs = [sum(x) for x in A.rows()]
+            sage: cs = [sum(x) for x in A.columns()]
+            sage: p1 == rs; p2 == cs
+            True
+            True
 
         Or for a non-square matrix with `p_1=3+3+2+1` and `p_2=3+2+2+1+1` ::
 
@@ -257,10 +275,10 @@ def gale_ryser_theorem(p1, p2, algorithm="ryser"):
             sage: p1 = [3,3,1,1]
             sage: p2 = [3,3,1,1]
             sage: gale_ryser_theorem(p1, p2)
-            [1 1 1 0]
             [1 1 0 1]
-            [1 0 0 0]
+            [1 1 1 0]
             [0 1 0 0]
+            [1 0 0 0]
             sage: p1 = [4,2,2]
             sage: p2 = [3,3,1,1]
             sage: gale_ryser_theorem(p1, p2)
@@ -276,22 +294,58 @@ def gale_ryser_theorem(p1, p2, algorithm="ryser"):
             [0 0 0 0 0 0]
             sage: p1 = [3,3,2,1]
             sage: p2 = [3,2,2,1,1]
-            sage: print gale_ryser_theorem(p1, p2, algorithm="gale") # Optional - requires GLPK or CBC
-            [1 0 1 1 0]
-            [1 0 1 0 1]
-            [1 1 0 0 0]
-            [0 1 0 0 0]
+            sage: print gale_ryser_theorem(p1, p2, algorithm="gale")
+            [1 1 1 0 0]
+            [1 1 0 0 1]
+            [1 0 1 0 0]
+            [0 0 0 1 0]
 
         With `0` in the sequences, and with unordered inputs ::
 
             sage: from sage.combinat.integer_vector import gale_ryser_theorem
             sage: gale_ryser_theorem([3,3,0,1,1,0], [3,1,3,1,0])
-            [1 1 1 0 0]
             [1 0 1 1 0]
+            [1 1 1 0 0]
             [0 0 0 0 0]
-            [1 0 0 0 0]
             [0 0 1 0 0]
+            [1 0 0 0 0]
             [0 0 0 0 0]
+            sage: p1 = [3,1,1,1,1]; p2 = [3,2,2,0]
+            sage: gale_ryser_theorem(p1, p2)
+            [1 1 1 0]
+            [0 0 1 0]
+            [0 1 0 0]
+            [1 0 0 0]
+            [1 0 0 0]
+
+
+        TESTS:
+
+        This test created a random bipartite graph on n+m vertices. Its
+        adjacency matrix is binary, and it is used to create some
+        "random-looking" sequences which correspond to an existing matrix. The
+        ``gale_ryser_theorem`` is then called on these sequences, and the output
+        checked for correction.::
+
+            sage: def test_algorithm(algorithm, low = 10, high = 50):
+            ...      n,m = randint(low,high), randint(low,high)
+            ...      g = graphs.RandomBipartite(n, m, .3)
+            ...      s1 = sorted(g.degree([(0,i) for i in range(n)]), reverse = True)
+            ...      s2 = sorted(g.degree([(1,i) for i in range(m)]), reverse = True)
+            ...      m = gale_ryser_theorem(s1, s2, algorithm = algorithm)
+            ...      ss1 = sorted(map(lambda x : sum(x) , m.rows()), reverse = True)
+            ...      ss2 = sorted(map(lambda x : sum(x) , m.columns()), reverse = True)
+            ...      if ((ss1 == s1) and (ss2 == s2)):
+            ...          return True
+            ...      print s1, ss1
+            ...      print s2, ss2
+            ...      return False
+
+            sage: for algorithm in ["gale", "ryser"]:                            # long time
+            ...      for i in range(50):                                         # long time
+            ...         if not test_algorithm(algorithm, 3, 10):                 # long time
+            ...             print "Something wrong with algorithm ", algorithm   # long time
+            ...             break                                                # long time
 
         REFERENCES:
 
@@ -305,7 +359,6 @@ def gale_ryser_theorem(p1, p2, algorithm="ryser"):
 
         if not(is_gale_ryser(p1,p2)):
             return False
-
 
         if algorithm=="ryser": # ryser's algorithm
             from sage.combinat.permutation import Permutation
@@ -322,23 +375,12 @@ def gale_ryser_theorem(p1, p2, algorithm="ryser"):
             s_permutation = [x-1 for x in Permutation([x[0]+1 for x in tmp]).inverse()]
             n = len(s)
 
-            rowsA0 = [[0]*n]*m
-            for j in range(m):
-                if j<m:
-                    rowsA0[j] = [1]*r[j]+[0]*(n-r[j])
-                else:
-                    rowsA0[j] = [0]*n
-            A0 = matrix(rowsA0)
+            A0 = matrix([[1]*r[j]+[0]*(n-r[j]) for j in range(m)])
 
-            for j in range(1,n-1):
-                # starts for loop, k = n-1, ..., 1
-                # which finds the 1st column with
-                # incorrect column sum. For that bad
-                # column index, apply slider again
-                for k in range(1,n):
-                    if sum(A0.column(n-k))<>s[n-k]:
-                         break
-                A0 = _slider01(A0,s[n-k],n-k)
+            for k in range(1,n+1):
+                goodcols = [i for i in range(n) if s[i]==sum(A0.column(i))]
+                if sum(A0.column(n-k))<>s[n-k]:
+                    A0 = _slider01(A0,s[n-k],n-k, p1, p2, goodcols)
 
             # If we need to add empty rows/columns
             if len(p1)!=m:
@@ -373,7 +415,6 @@ def gale_ryser_theorem(p1, p2, algorithm="ryser"):
 
         else:
             raise ValueError("The only two algorithms available are \"gale\" and \"ryser\"")
-
 
 def _default_function(l, default, i):
     """

@@ -3299,7 +3299,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
 
             sage: v = vector([-1,0,3,pi])
             sage: type(v)
-            <type 'sage.modules.free_module_element.FreeModuleElement_generic_dense'>
+            <class 'sage.modules.vector_symbolic_dense.Vector_symbolic_dense'>
             sage: v._hash()   # random output
         """
         return hash(tuple(list(self)))
@@ -3312,7 +3312,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
 
             sage: v = vector([-1,0,3,pi])
             sage: type(v)
-            <type 'sage.modules.free_module_element.FreeModuleElement_generic_dense'>
+            <class 'sage.modules.vector_symbolic_dense.Vector_symbolic_dense'>
             sage: v.__copy__()
             (-1, 0, 3, pi)
             sage: v.__copy__() is v
@@ -3332,7 +3332,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         EXAMPLES::
 
             sage: type(vector([-1,0,3,pi]))   # indirect doctest
-            <type 'sage.modules.free_module_element.FreeModuleElement_generic_dense'>
+            <class 'sage.modules.vector_symbolic_dense.Vector_symbolic_dense'>
         """
         FreeModuleElement.__init__(self, parent)
         R = self.parent().base_ring()
@@ -3564,7 +3564,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
 
             sage: v = vector([1,2/3,pi])
             sage: type(v)
-            <type 'sage.modules.free_module_element.FreeModuleElement_generic_dense'>
+            <class 'sage.modules.vector_symbolic_dense.Vector_symbolic_dense'>
             sage: a = v.list(); a
             [1, 2/3, pi]
             sage: a[0] = 20; v
@@ -3605,7 +3605,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             sage: g
             (2*x, 2*y)
             sage: type(g)
-            <type 'sage.modules.free_module_element.FreeModuleElement_generic_dense'>
+            <class 'sage.modules.vector_symbolic_dense.Vector_symbolic_dense'>
             sage: g(y=2, x=3)
             (6, 4)
             sage: f(x,y) = x^2 + y^2

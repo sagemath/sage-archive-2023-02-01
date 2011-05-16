@@ -6274,6 +6274,8 @@ def element_class(R, is_sparse):
         return sage.modules.vector_real_double_dense.Vector_real_double_dense
     elif sage.rings.complex_double.is_ComplexDoubleField(R) and not is_sparse:
         return sage.modules.vector_complex_double_dense.Vector_complex_double_dense
+    elif sage.symbolic.ring.is_SymbolicExpressionRing(R) and not is_sparse:
+        return sage.modules.vector_symbolic_dense.Vector_symbolic_dense
     elif sage.symbolic.callable.is_CallableSymbolicExpressionRing(R) and not is_sparse:
         return sage.modules.vector_callable_symbolic_dense.Vector_callable_symbolic_dense
     else:

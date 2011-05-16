@@ -347,9 +347,12 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
     def _Cartier_matrix_cached(self):
         r"""
         INPUT:
-        - 'E' - Hyperelliptic Curve of the form `y^2 = f(x)` over a finite field, `\mathbb{F}_q`
+
+        - 'E' - Hyperelliptic Curve of the form `y^2 = f(x)` over a
+          finite field, `\mathbb{F}_q`
 
         OUTPUT:
+
         - matrix(Fq,M)' The matrix $M = (c_(pi-j)), f(x)^((p-1)/2) = \sum c_i x^i$
         - 'Coeff' List of Coeffs of F, this is needed for Hasse-Witt function.
         - 'g' genus of the curve self, this is needed by a-number.
@@ -564,19 +567,17 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             ValueError: so curve is not smooth
 
         """
-        #checking first that Cartier matrix is not already cached. Since it can be called by either Hasse_Witt or a_number
-        #This way it does not matter which function is called first in the code.
-
-        A=self._Cartier_matrix_cached.get_cache()
-        if len(A) !=0:
-            if A.items()[-1][-1][-1]==self:
-                M,Coeffs,g, Fq, p,E = A.items()[-1][1];
-            else:
-                A.clear()
-                M, Coeffs,g, Fq, p, E= self._Cartier_matrix_cached()
-        else:
-            A.clear()
-            M, Coeffs,g, Fq, p, E = self._Cartier_matrix_cached()
+        #checking first that Cartier matrix is not already cached. Since
+        #it can be called by either Hasse_Witt or a_number.
+        #This way it does not matter which function is called first
+        #in the code.
+        # Trac Ticket #11115: Why shall we waste time by studying
+        # the cache manually? We only need to check whether the cached
+        # data belong to self.
+        M, Coeffs,g, Fq, p, E= self._Cartier_matrix_cached()
+        if E!=self:
+            self._Cartier_matrix_cached.clear_cache()
+            M, Coeffs,g, Fq, p, E= self._Cartier_matrix_cached()
         return M
 
     #This where Hasse_Witt is actually computed. This is either called by E.Hasse_Witt or p_rank
@@ -644,16 +645,14 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         #compute it. If it is cached then we need to make sure that we have the correct one. So check
         #which curve does the matrix correspond to. Since caching stores a lot of stuff, we only check
         #the last entry in A. If it does not match, clear A and compute Cartier.
-        A=self._Cartier_matrix_cached.get_cache()
-        if len(A) !=0:
-            if A.items()[-1][-1][-1]==self:
-                M,Coeffs,g, Fq, p,E = A.items()[-1][1];
-            else:
-                A.clear()
-                M, Coeffs,g, Fq, p, E= self._Cartier_matrix_cached()
-        else:
-            A.clear()
-            M, Coeffs,g, Fq, p, E = self._Cartier_matrix_cached()
+        #
+        #Since Trac Ticket #11115, there is a different cache for methods
+        #that don't  accept arguments. Anyway, the easiest is to call
+        #the cached method and simply see whether the data belong to self.
+        M, Coeffs,g, Fq, p, E= self._Cartier_matrix_cached()
+        if E!=self:
+            self._Cartier_matrix_cached.clear_cache()
+            M, Coeffs,g, Fq, p, E= self._Cartier_matrix_cached()
 
         #This compute the action of p^kth Frobenius  on list of coefficients
         def frob_mat(Coeffs, k):
@@ -664,8 +663,6 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
                 H=[(Coeffs[j]) for j in range((p*i-1), (p*i - g-1), -1)]
                 mat.append(H);
             return matrix(Fq,mat)
-
-
 
         #Computes all the different possible action of frobenius on matrix M and stores in list Mall
         Mall = [M] + [frob_mat(Coeffs,k) for k in range(1,g)]
@@ -727,15 +724,15 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
 
 
         """
-        A=self._Hasse_Witt_cached.get_cache()
-        if len(A) !=0:
-            if A.items()[-1][-1][-1]==self:
-                N, E = A.items()[-1][1];
-            else:
-                A.clear()
-                N, E= self._Hasse_Witt_cached()
-        else:
-            A.clear()
+        # Since Trac Ticket #11115, there is a special
+        # type of cached for those methods that don't
+        # accept arguments. We want to get Hasse-Witt
+        # from the cache - but apparently it could be
+        # that the cached value does not belong to self.
+        # So, the easiest is:
+        N, E= self._Hasse_Witt_cached()
+        if E!=self:
+            self._Hasse_Witt_cached.clear_cache()
             N, E= self._Hasse_Witt_cached()
         return N
 
@@ -775,20 +772,16 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         #compute it. If it is cached then we need to make sure that we have the correct one. So check
         #which curve does the matrix correspond to. Since caching stores a lot of stuff, we only check
         #the last entry in A. If it does not match, clear A and compute Cartier.
-
-        A=self._Cartier_matrix_cached.get_cache()
-        if len(A) !=0:
-            if A.items()[-1][-1][-1]==self:
-                M,Coeffs,g, Fq, p,E = A.items()[-1][1];
-            else:
-                A.clear()
-                M,Coeffs,g, Fq, p,E= self._Cartier_matrix_cached()
-        else:
-            A.clear()
+        # Since Trac Ticket #11115, there is a special cache for methods
+        # that don't accept arguments. The easiest is: Call the cached
+        # method, and test whether the last entry is self.
+        M,Coeffs,g, Fq, p,E= self._Cartier_matrix_cached()
+        if E != self:
+            self._Cartier_matrix_cached.clear_cache()
             M,Coeffs,g, Fq, p,E= self._Cartier_matrix_cached()
-
         a=g-rank(M);
         return a;
+
     def p_rank(self):
         r"""
         INPUT:
@@ -816,30 +809,18 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             sage: E=HyperellipticCurve(x^29+1,0)
             sage: E.p_rank()
             0
-
-
-
-
         """
         #We use caching here since Hasse Witt is needed to compute p_rank. So if the Hasse Witt
         #is already computed it is stored in list A. If it was not cached (i.e. A is empty), we simply
         #compute it. If it is cached then we need to make sure that we have the correct one. So check
         #which curve does the matrix correspond to. Since caching stores a lot of stuff, we only check
         #the last entry in A. If it does not match, clear A and compute Hasse Witt.
-
-        A=self._Hasse_Witt_cached.get_cache()
-        if len(A) !=0:
-            if A.items()[-1][-1][-1]==self:
-                N,E = A.items()[-1][1];
-            else:
-                A.clear()
-                N,E= self._Hasse_Witt_cached()
-        else:
-            A.clear()
+        # However, it seems a waste of time to manually analyse the cache
+        # -- See Trac Ticket #11115
+        N,E= self._Hasse_Witt_cached()
+        if E!=self:
+            self._Hasse_Witt_cached.clear_cache()
             N,E= self._Hasse_Witt_cached()
-
-
-
         pr=rank(N);
         return pr
 

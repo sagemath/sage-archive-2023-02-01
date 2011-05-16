@@ -32,7 +32,6 @@ from sage.interfaces.singular import singular as singular_default
 import sage.rings.infinity
 from sage.structure.sequence import Sequence
 
-
 def Ideal(*args, **kwds):
     r"""
     Create the ideal in ring with given generators.

@@ -96,9 +96,11 @@ cdef class Parent(parent.Parent):
 
     cpdef coerce_map_from_c(self, S):
         """
-        EXAMPLES:
-          Check to make sure that we handle coerce maps from Python native types
-          correctly.
+        EXAMPLES::
+
+        Check to make sure that we handle coerce maps from Python
+        native types correctly::
+
             sage: QQ['q,t'].coerce_map_from(int)
             Composite map:
               From: Set of Python objects of type 'int'

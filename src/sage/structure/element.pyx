@@ -50,6 +50,7 @@ abstract base classes.
 
             MonoidElement
                 MultiplicativeGroupElement
+        ElementWithCachedMethod
 
 
 How to Define a New Element Class
@@ -959,6 +960,218 @@ def is_ModuleElement(x):
     """
     return IS_INSTANCE(x, ModuleElement)
 
+cdef class ElementWithCachedMethod(Element):
+    r"""
+    An element class that fully supports cached methods.
+
+    NOTE:
+
+    The :class:`~sage.misc.cachefunc.cached_method` decorator provides
+    a convenient way to automatically cache the result of a computation.
+    Since trac ticket #11115, the cached method decorator applied to a
+    method without optional arguments is faster than a hand-written cache
+    in Python, and a cached method without any arguments (except ``self``)
+    is actually faster than a Python method that does nothing more but
+    to return ``1``. A cached method can also be inherited from the parent
+    or element class of a category.
+
+    However, this holds true only if attribute assignment is supported.
+    If you write an extension class in Cython that does not accept attribute
+    assignment then a cached method inherited from the category will be
+    slower (for :class:`~sage.structure.parent.Parent`) or the cache would
+    even break (for :class:`Element`).
+
+    This class should be used if you write an element class, can not provide
+    it with attribute assignment, but want that it inherits a cached method
+    from the category. Under these conditions, your class should inherit
+    from this class rather than :class:`Element`. Then, the cache will work,
+    but certainly slower than with attribute assignment. Lazy attributes
+    work as well.
+
+    EXAMPLE:
+
+    We define three element extension classes. The first inherits from
+    :class:`Element`, the second from this class, and the third simply
+    is a Python class. We also define a parent class and, in Python, a
+    category whose element and parent classes define cached methods.
+    ::
+
+        sage: cython_code = ["from sage.structure.element cimport Element, ElementWithCachedMethod",
+        ... "cdef class MyBrokenElement(Element):",
+        ... "    cdef public object x",
+        ... "    def __init__(self,P,x):",
+        ... "        self.x=x",
+        ... "        Element.__init__(self,P)",
+        ... "    def __neg__(self):",
+        ... "        return MyBrokenElement(self.parent(),-self.x)",
+        ... "    def _repr_(self):",
+        ... "        return '<%s>'%self.x",
+        ... "    def __hash__(self):",
+        ... "        return hash(self.x)",
+        ... "    def __cmp__(left, right):",
+        ... "        return (<Element>left)._cmp(right)",
+        ... "    def __richcmp__(left, right, op):",
+        ... "        return (<Element>left)._richcmp(right,op)",
+        ... "    cdef int _cmp_c_impl(left, Element right) except -2:",
+        ... "        return cmp(left.x,right.x)",
+        ... "    def raw_test(self):",
+        ... "        return -self",
+        ... "cdef class MyElement(ElementWithCachedMethod):",
+        ... "    cdef public object x",
+        ... "    def __init__(self,P,x):",
+        ... "        self.x=x",
+        ... "        Element.__init__(self,P)",
+        ... "    def __neg__(self):",
+        ... "        return MyElement(self.parent(),-self.x)",
+        ... "    def _repr_(self):",
+        ... "        return '<%s>'%self.x",
+        ... "    def __hash__(self):",
+        ... "        return hash(self.x)",
+        ... "    def __cmp__(left, right):",
+        ... "        return (<Element>left)._cmp(right)",
+        ... "    def __richcmp__(left, right, op):",
+        ... "        return (<Element>left)._richcmp(right,op)",
+        ... "    cdef int _cmp_c_impl(left, Element right) except -2:",
+        ... "        return cmp(left.x,right.x)",
+        ... "    def raw_test(self):",
+        ... "        return -self",
+        ... "class MyPythonElement(MyBrokenElement): pass",
+        ... "from sage.structure.parent cimport Parent",
+        ... "cdef class MyParent(Parent):",
+        ... "    Element = MyElement"]
+        sage: cython('\n'.join(cython_code))
+        sage: cython_code = ["from sage.all import cached_method, cached_in_parent_method, Category",
+        ... "class MyCategory(Category):",
+        ... "    @cached_method",
+        ... "    def super_categories(self):",
+        ... "        return [Objects()]",
+        ... "    class ElementMethods:",
+        ... "        @cached_method",
+        ... "        def element_cache_test(self):",
+        ... "            return -self",
+        ... "        @cached_in_parent_method",
+        ... "        def element_via_parent_test(self):",
+        ... "            return -self",
+        ... "    class ParentMethods:",
+        ... "        @cached_method",
+        ... "        def one(self):",
+        ... "            return self.element_class(self,1)",
+        ... "        @cached_method",
+        ... "        def invert(self, x):",
+        ... "            return -x"]
+        sage: cython('\n'.join(cython_code))
+        sage: C = MyCategory()
+        sage: P = MyParent(category=C)
+        sage: ebroken = MyBrokenElement(P,5)
+        sage: e = MyElement(P,5)
+
+    The cached methods inherited by ``MyElement`` works::
+
+        sage: e.element_cache_test()
+        <-5>
+        sage: e.element_cache_test() is e.element_cache_test()
+        True
+        sage: e.element_via_parent_test()
+        <-5>
+        sage: e.element_via_parent_test() is e.element_via_parent_test()
+        True
+
+    The other element class can only inherit a
+    ``cached_in_parent_method``, since the cache is stored in the
+    parent. In fact, equal elements share the cache, even if they are
+    of different types::
+
+        sage: e == ebroken
+        True
+        sage: type(e) == type(ebroken)
+        False
+        sage: ebroken.element_via_parent_test() is e.element_via_parent_test()
+        True
+
+    However, the cache of the other inherited method breaks, although the method
+    as such works::
+
+        sage: ebroken.element_cache_test()
+        <-5>
+        sage: ebroken.element_cache_test() is ebroken.element_cache_test()
+        False
+
+    Since ``e`` and ``ebroken`` share the cache, when we empty it for one element
+    it is empty for the other as well::
+
+        sage: b = ebroken.element_via_parent_test()
+        sage: e.element_via_parent_test.clear_cache()
+        sage: b is ebroken.element_via_parent_test()
+        False
+
+    Note that the cache only breaks for elements that do no allow attribute assignment.
+    A Python version of ``MyBrokenElement`` therefore allows for cached methods::
+
+        sage: epython = MyPythonElement(P,5)
+        sage: epython.element_cache_test()
+        <-5>
+        sage: epython.element_cache_test() is epython.element_cache_test()
+        True
+
+    """
+    def __getattr__(self, name):
+        """
+        This getattr method ensures that cached methods and lazy attributes
+        can be inherited from the element class of a category.
+
+        NOTE:
+
+        The use of cached methods is demonstrated in the main doc string of
+        this class. Here, we demonstrate lazy attributes.
+
+        EXAMPLE::
+
+            sage: cython_code = ["from sage.structure.element cimport ElementWithCachedMethod",
+            ... "cdef class MyElement(ElementWithCachedMethod):",
+            ... "    cdef public object x",
+            ... "    def __init__(self,P,x):",
+            ... "        self.x=x",
+            ... "        ElementWithCachedMethod.__init__(self,P)",
+            ... "    def _repr_(self):",
+            ... "        return '<%s>'%self.x",
+            ... "from sage.structure.parent cimport Parent",
+            ... "cdef class MyParent(Parent):",
+            ... "    Element = MyElement",
+            ... "from sage.all import cached_method, lazy_attribute, Category",
+            ... "class MyCategory(Category):",
+            ... "    @cached_method",
+            ... "    def super_categories(self):",
+            ... "        return [Objects()]",
+            ... "    class ElementMethods:",
+            ... "        @lazy_attribute",
+            ... "        def my_lazy_attr(self):",
+            ... "            return 'lazy attribute of <%d>'%self.x"]
+            sage: cython('\n'.join(cython_code))
+            sage: C = MyCategory()
+            sage: P = MyParent(category=C)
+            sage: e = MyElement(P,5)
+            sage: e.my_lazy_attr
+            'lazy attribute of <5>'
+            sage: e.my_lazy_attr is e.my_lazy_attr
+            True
+
+        """
+        if name.startswith('__') and not name.endswith('_'):
+            raise AttributeError, AttributeErrorMessage(self, name)
+        try:
+            return self.__cached_methods[name]
+        except KeyError:
+            attr = getattr_from_other_class(self,
+                                        self._parent.category().element_class,
+                                        name)
+            self.__cached_methods[name] = attr
+            return attr
+        except TypeError:
+            attr = getattr_from_other_class(self,
+                                        self._parent.category().element_class,
+                                        name)
+            self.__cached_methods = {name : attr}
+            return attr
 
 cdef class ModuleElement(Element):
     """

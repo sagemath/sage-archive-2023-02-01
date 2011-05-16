@@ -1028,6 +1028,9 @@ ext_modules = [
     Extension('sage.misc.bitset',
               sources = ['sage/misc/bitset.pyx']),
 
+    Extension('sage.misc.cachefunc',
+              sources = ['sage/misc/cachefunc.pyx']),
+
     Extension('sage.misc.citation',
               sources = ['sage/misc/citation.pyx']),
 

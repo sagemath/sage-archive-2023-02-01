@@ -109,62 +109,42 @@ cdef class ArgumentFixer:
         ...      def __init__(self, x = 1):
         ...         self.x = x
         sage: af = ArgumentFixer(one.__init__.im_func, classmethod=True)
-        sage: af.fix_to_pos()
-        ((1,), ())
-        sage: af.fix_to_named()
-        ((), (('x', 1),))
-    """
-    cdef dict _defaults
-    cdef int _ndefault, _nargs
+        sage: af.fix_to_pos(1,2,3,a=31,b=2,n=3)
+        ((1, 2, 3), (('a', 31), ('b', 2), ('n', 3)))
+
+        """
+
+    cdef public object f
+    cdef public int _ndefault
+    cdef public int _nargs
     cdef tuple _arg_names
-    cdef object f
     cdef bint _classmethod
+    cdef dict _defaults
+    cdef public tuple _default_tuple
     def __init__(self, f, classmethod = False):
-        """
-        INPUT:
-
-        - ``f`` -- a function
-        - ``classmethod`` (optional bool, default ``False``) --
-          tells whether ``f`` is supposed to be a method of a class
-
-        NOTE:
-
-        Currently, we need to assume that ``f`` is a Python function, not
-        a Cython function. This is since some essential arguments are not
-        available from Cython functions.
-
-        TESTS::
-
-            sage: from sage.misc.function_mangling import ArgumentFixer
-            sage: def f(a,b,m=1,n=2): return a*m+b*n
-            sage: a = ArgumentFixer(f, classmethod=False)
-            sage: a.fix_to_pos(a=31,b=2,n=3)
-            ((31, 2, 1, 3), ())
-            sage: a = ArgumentFixer(f, classmethod=True)
-            sage: a.fix_to_pos(a=31,b=2,n=3)
-            ((2, 1, 3), (('a', 31),))
-
-        """
-        defaults = f.func_defaults
+        from sage.misc.sageinspect import sage_getargspec
+        arg_names, varargs, varkw, defaults = sage_getargspec(f)
         if defaults is None:
-            defaults = []
+            self._default_tuple = defaults = ()
+        else:
+            self._default_tuple = tuple(defaults)
 
-        code = f.func_code
+        #code = f.func_code
 
         self.f = f
         self._ndefault = len(defaults)
         if classmethod:
-            self._nargs = code.co_argcount-1
-            self._arg_names = code.co_varnames[1:self._nargs+1]
+            self._nargs = len(arg_names)-1 #code.co_argcount-1
+            self._arg_names = tuple(arg_names[1:]) #code.co_varnames[1:self._nargs+1]
         else:
-            self._nargs = code.co_argcount
-            self._arg_names = code.co_varnames[:self._nargs]
+            self._nargs = len(arg_names) #code.co_argcount
+            self._arg_names = tuple(arg_names) #code.co_varnames[:self._nargs]
         self._classmethod = classmethod
 
-        default_map = {}
+        cdef dict default_map
+        self._defaults = default_map = {}
         for k,v in zip(self._arg_names[-self._ndefault:], defaults):
             default_map[k] = v
-        self._defaults = default_map
 
     def __repr__(self):
         """
@@ -248,13 +228,20 @@ cdef class ArgumentFixer:
             ARGS.append((k,kwargs_[k]))
         return tuple(extra_args), tuple(ARGS)
 
-    def fix_to_pos(self, *args, **kwargs):
+    cpdef tuple defaults_to_pos(self, tuple Args):
+        cdef int lenargs = len(Args)
+        cdef int nargs = self._nargs
+        if lenargs>=nargs:
+            return Args, ()
+        return Args+self._default_tuple[-nargs+lenargs:],()
+
+    def fix_to_pos(self, *args, **kwds):
         """
         Normalize the arguments with a preference for positional arguments.
 
         INPUT:
 
-        - any positional and named arguments.
+        Any positional or named arguments
 
         OUTPUT:
 
@@ -264,7 +251,7 @@ cdef class ArgumentFixer:
 
         where `n_1, ... , n_m` are the names of the arguments and
         `v_1, ..., v_m` are the values passed in; and `e_1, ..., e_k`
-        are the unnamed arguments.  We minimize `m`.
+        are the unnamed arguments. We minimize `m`.
 
         The commands
         ::
@@ -295,30 +282,34 @@ cdef class ArgumentFixer:
             sage: do_something(1,2,3,4,5,6,f=14,e=16)
             1 2 3 (4, 5, 6) {'e': 16, 'f': 14}
         """
+        cdef tuple Args = args
+        cdef dict kwargs = kwds
+        cdef int lenargs = len(Args)
+        cdef int nargs = self._nargs
+        cdef tuple arg_names = self._arg_names
+        cdef dict defaults = self._defaults
         # a shortpath for the case of no named arguments:
         if not kwargs:
+            if lenargs>=nargs:
+                return args, ()
             # we take the given arguments, plus the default arguments
-            return tuple(list(args)+[self._defaults[k] for k in self._arg_names[len(args):]]),()
-        cdef tuple arg_names = self._arg_names
-        cdef int lenargs = len(args)
-        cdef list ARGS = []
-        cdef dict defaults = self._defaults
-        cdef dict kwargs_ = dict(kwargs)
+            return Args+self._default_tuple[-nargs+lenargs:],() #tuple(list(Args)+[defaults[k] for k in arg_names[lenargs:]]),()
+        cdef list Largs = list(Args)
         cdef int i
-        for i from 0<=i<self._nargs:
-            if i >= lenargs:
-                name = arg_names[i]
-                if name in kwargs_:
-                    val = kwargs_[name]
-                    del kwargs_[name]
-                else:
-                    val = defaults[name]
+        for i from lenargs<=i<nargs:
+        #for name,val in defaults.iteritems():
+            # in addition to the positional arguments, we take the
+            # ones with default values, unless they are overridded by
+            # the named arguments.
+            name = arg_names[i]
+            if name in kwargs:
+                val = kwargs[name]
+                del kwargs[name]
             else:
-                val = args[i]
-            ARGS.append(val)
-        ARGS+= args[self._nargs:]
-        cdef list Items = kwargs_.items()
+                val = defaults[name]
+            Largs.append(val) #kwargs.pop(name,val))
+        cdef list Items = kwargs.items()
         Items.sort()
-        return tuple(ARGS), tuple(Items) #(k,kwargs_[k]) for k in sorted(kwargs_.keys()))
+        return tuple(Largs), tuple(Items) #(k,kwargs_[k]) for k in sorted(kwargs_.keys()))
 
 

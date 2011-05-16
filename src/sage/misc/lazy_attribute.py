@@ -202,7 +202,7 @@ class lazy_attribute(object):
     second one brings up the code of this class, both being not very
     useful.
 
-    TESTS::
+    TESTS:
 
     .. rubric:: Partial support for old style classes
 
@@ -301,7 +301,7 @@ class lazy_attribute(object):
         calculating x from y in B
         1
 
-    .. rubric:: lazy_attributes and cpdef functions
+    .. rubric:: lazy_attributes and Cython
 
     This attempts to check that lazy_attributes work with built-in
     functions like cpdef methods::
@@ -313,6 +313,19 @@ class lazy_attribute(object):
         ...
         sage: A().len
         5
+
+    Since #11115, extension classes derived from :class:`~sage.structure.parent.Parent`
+    can inherit a lazy attribute, such as ``element_class``::
+
+        sage: cython_code = ["from sage.structure.parent cimport Parent",
+        ... "from sage.structure.element cimport Element",
+        ... "cdef class MyElement(Element): pass",
+        ... "cdef class MyParent(Parent):",
+        ... "    Element = MyElement"]
+        sage: cython('\n'.join(cython_code))
+        sage: P = MyParent(category=Rings())
+        sage: P.element_class    # indirect doctest
+        <type '...MyElement'>
 
     .. rubric:: About descriptor specifications
 
@@ -505,6 +518,20 @@ class lazy_attribute(object):
         """
         if a is None: # when doing cls.x for cls a class and x a lazy attribute
             return self
+        try:
+            # __cached_methods is supposed to be a public Cython attribute.
+            # Apparently, these are *not* subject to name mangling.
+            CM = getattr(a, '__cached_methods')
+            if CM is None:
+                CM = {}
+                setattr(a, '__cached_methods', CM)
+        except AttributeError,msg:
+            CM = None
+        if CM is not None:
+            try:
+                return CM[self.f.__name__]
+            except KeyError:
+                pass
         result = self.f(a)
         if result is NotImplemented:
             # Workaround: we make sure that cls is the class
@@ -515,9 +542,14 @@ class lazy_attribute(object):
                 if self.f.__name__ in supercls.__dict__ and self is supercls.__dict__[self.f.__name__]:
                     cls = supercls
             return getattr(super(cls, a),self.f.__name__)
-        setattr(a, self.f.__name__, result)
+        try:
+            setattr(a, self.f.__name__, result)
+        except AttributeError:
+            if CM is not None:
+                CM[self.f.__name__] = result
+                return result
+            raise
         return result
-
 
 class lazy_class_attribute(lazy_attribute):
     """

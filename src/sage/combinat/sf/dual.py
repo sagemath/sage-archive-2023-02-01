@@ -178,7 +178,7 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
 
         EXAMPLES::
 
-            sage: e = SFAElementary(QQ)
+            sage: e = SFAElementary(QQ['t'])
             sage: f = e.dual_basis()
             sage: f._precompute(0)
             sage: f._precompute(1)

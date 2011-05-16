@@ -270,6 +270,9 @@ class GraphGenerators():
     representatives. Iterates over distinct, exhaustive
     representatives.
 
+    Also: see the use of the optional nauty package for generating graphs
+    at the :meth:`nauty_geng` method.
+
     INPUT:
 
     - ``vertices`` -- natural number.
@@ -6497,29 +6500,125 @@ class GraphGenerators():
         from trees import TreeIterator
         return iter(TreeIterator(vertices))
 
-    def nauty_geng(self, options=""):
+    def nauty_geng(self, options="", debug=False):
         r"""
-        Calls the geng program in the optional nauty spkg to generate
-        graphs. The options argument is passed straight to nauty.
+        Returns a generator which creates graphs from nauty's geng program.
+
+        .. note::
+
+            Due to license restrictions, the nauty package is distributed
+            as a Sage optional package.  At a system command line, execute
+            ``sage -i nauty`` to see the nauty license and install the
+            package.
 
         INPUT:
 
+        - ``options`` - a string passed to  geng  as if it was run at
+          a system command line. At a minimum, you *must* pass the
+          number of vertices you desire.  Sage expects the graphs to be
+          in nauty's "graph6" format, do not set an option to change
+          this default or results will be unpredictable.
 
-        -  ``options`` - a string passed to the command line of
-           geng. You *must* pass the number of vertices you desire.
+        - ``debug`` - default: ``False`` - if ``True`` the first line of
+          geng's output to standard error is captured and the first call
+          to the generator's ``next()`` function will return this line
+          as a string.  A line leading with ">A" indicates a successful
+          initiation of the program with some information on the arguments,
+          while a line beginning with ">E" indicates an error with the input.
 
+        The possible options, obtained as output of ``geng --help``::
 
-        EXAMPLES::
+                 n    : the number of vertices
+            mine:maxe : a range for the number of edges
+                        #:0 means '# or more' except in the case 0:0
+              res/mod : only generate subset res out of subsets 0..mod-1
 
-            sage: graph_list = graphs.nauty_geng("-q 3") # requires the optional nauty package
-            sage: len(graph_list) # requires the optional nauty package
-            4
+                -c    : only write connected graphs
+                -C    : only write biconnected graphs
+                -t    : only generate triangle-free graphs
+                -f    : only generate 4-cycle-free graphs
+                -b    : only generate bipartite graphs
+                            (-t, -f and -b can be used in any combination)
+                -m    : save memory at the expense of time (only makes a
+                            difference in the absence of -b, -t, -f and n <= 28).
+                -d#   : a lower bound for the minimum degree
+                -D#   : a upper bound for the maximum degree
+                -v    : display counts by number of edges
+                -l    : canonically label output graphs
+
+                -q    : suppress auxiliary output (except from -v)
+
+        Options which cause geng to use an output format different
+        than the graph6 format are not listed above (-u, -g, -s, -y, -h)
+        as they will confuse the creation of a Sage graph.  The res/mod
+        option can be useful when using the output in a routine run
+        several times in parallel.
+
+        OUTPUT:
+
+        A generator which will produce the graphs as Sage graphs.
+        These will be simple graphs: no loops, no multiple edges, no
+        directed edges.
+
+        EXAMPLES:
+
+        The generator can be used to construct graphs for testing,
+        one at a time (usually inside a loop).  Or it can be used to
+        create an entire list all at once if there is sufficient memory
+        to contain it.  ::
+
+            sage: gen = graphs.nauty_geng("2") # optional nauty
+            sage: gen.next() # optional nauty
+            Graph on 2 vertices
+            sage: gen.next() # optional nauty
+            Graph on 2 vertices
+            sage: gen.next() # optional nauty
+            Traceback (most recent call last):
+            ...
+            StopIteration: Exhausted list of graphs from nauty geng
+
+        A list of all graphs on 7 vertices.  This agrees with
+        Sloane's OEIS sequence A000088.  ::
+
+            sage: gen = graphs.nauty_geng("7") # optional nauty
+            sage: len(list(gen))  # optional nauty
+            1044
+
+        A list of just the connected graphs on 7 vertices.  This agrees with
+        Sloane's OEIS sequence A001349.  ::
+
+            sage: gen = graphs.nauty_geng("7 -c") # optional nauty
+            sage: len(list(gen))  # optional nauty
+            853
+
+        The ``debug`` switch can be used to examine geng's reaction
+        to the input in the ``options`` string.  We illustrate success.
+        (A failure will be a string beginning with ">E".)  Passing the
+        "-q" switch to geng will supress the indicator of a
+        successful initiation.  ::
+
+            sage: gen = graphs.nauty_geng("4", debug=True) # optional nauty
+            sage: print gen.next() # optional nauty
+            >A nauty-geng -d0D3 n=4 e=0-6
         """
-        import os
+        import subprocess
         from sage.misc.package import is_package_installed
         if not is_package_installed("nauty"):
             raise TypeError, "the optional nauty package is not installed"
-        return [graph.Graph(g) for g in os.popen("nauty-geng %s"%(options) ).read().split()]
+        sp = subprocess.Popen("nauty-geng {0}".format(options), shell=True,
+                              stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE, close_fds=True)
+        if debug:
+            yield sp.stderr.readline()
+        gen = sp.stdout
+        while True:
+            try:
+                s = gen.next()
+            except StopIteration:
+                raise StopIteration("Exhausted list of graphs from nauty geng")
+            G = graph.Graph(s[:-1], format='graph6')
+            yield G
+
 
     def cospectral_graphs(self, vertices, matrix_function=lambda g: g.adjacency_matrix(), graphs=None):
         r"""

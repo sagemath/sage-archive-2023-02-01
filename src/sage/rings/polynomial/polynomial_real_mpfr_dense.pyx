@@ -4,8 +4,7 @@ Dense univariate polynomials over `\RR`, implemented using MPFR
 include "../../ext/stdsage.pxi"
 include "../../ext/interrupt.pxi"
 
-from python_int cimport PyInt_AS_LONG
-from python_float cimport PyFloat_AS_DOUBLE
+from cpython cimport PyInt_AS_LONG, PyFloat_AS_DOUBLE
 
 from sage.structure.parent cimport Parent
 from polynomial_element cimport Polynomial
@@ -45,6 +44,29 @@ cdef class PolynomialRealDense(Polynomial):
             sage: PolynomialRealDense(RR['x'], None)
             0
 
+        TESTS:
+
+        Check that errors and interrupts are handled properly (see #10100)::
+
+            sage: a = var('a')
+            sage: PolynomialRealDense(RR['x'], [1,a])
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot evaluate symbolic expression to a numeric value.
+            sage: R.<x> = SR[]
+            sage: (x-a).change_ring(RR)
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot evaluate symbolic expression to a numeric value.
+            sage: from sage.tests.interrupt import *
+            sage: sig_on_count()
+            0
+            sage: try:
+            ...    interrupt_after_delay()
+            ...    PolynomialRealDense(RR['x'], ZZ)  # Will loop forever
+            ... except KeyboardInterrupt:
+            ...     print "ok"
+            ok
         """
         Polynomial.__init__(self, parent, is_gen=is_gen)
         self._base_ring = parent._base
@@ -63,35 +85,45 @@ cdef class PolynomialRealDense(Polynomial):
             x = [x]
         elif isinstance(x, dict):
             degree = max(x.keys())
-            coeffs = [0] * (degree+1)
+            c = [0] * (degree+1)
             for i, a in x.items():
-                coeffs[i] = a
-            x = coeffs
+                c[i] = a
+            x = c
         elif isinstance(x, pari_gen):
             x = [self._base_ring(w) for w in x.Vecrev()]
         elif not isinstance(x, list):
+            sig_on()
             try:
                 x = list(x)
-            except:
+            except TypeError:  # x is not iterable
                 x = [self._base_ring(x)]
+            finally:
+                sig_off()
+
+        sig_on()
         degree = self._degree = len(x) - 1
-        self._coeffs = <mpfr_t*>sage_malloc(sizeof(mpfr_t)*(degree+1))
-        for i from 0 <= i <= degree:
-            mpfr_init2(self._coeffs[i], prec)
-            a = x[i]
-            if PY_TYPE_CHECK_EXACT(a, RealNumber):
-                mpfr_set(self._coeffs[i], (<RealNumber>a).value, rnd)
-            elif PY_TYPE_CHECK_EXACT(a, int):
-                mpfr_set_si(self._coeffs[i], PyInt_AS_LONG(a), rnd)
-            elif PY_TYPE_CHECK_EXACT(a, float):
-                mpfr_set_d(self._coeffs[i], PyFloat_AS_DOUBLE(a), rnd)
-            elif PY_TYPE_CHECK_EXACT(a, Integer):
-                mpfr_set_z(self._coeffs[i], (<Integer>a).value, rnd)
-            elif PY_TYPE_CHECK_EXACT(a, Rational):
-                mpfr_set_q(self._coeffs[i], (<Rational>a).value, rnd)
-            else:
-                a = self._base_ring(a)
-                mpfr_set(self._coeffs[i], (<RealNumber>a).value, rnd)
+        cdef mpfr_t* coeffs
+        coeffs = <mpfr_t*>sage_malloc(sizeof(mpfr_t)*(degree+1))
+        try:  # We might get Python exceptions here
+            for i from 0 <= i <= degree:
+                mpfr_init2(coeffs[i], prec)
+                a = x[i]
+                if PY_TYPE_CHECK_EXACT(a, RealNumber):
+                    mpfr_set(coeffs[i], (<RealNumber>a).value, rnd)
+                elif PY_TYPE_CHECK_EXACT(a, int):
+                    mpfr_set_si(coeffs[i], PyInt_AS_LONG(a), rnd)
+                elif PY_TYPE_CHECK_EXACT(a, float):
+                    mpfr_set_d(coeffs[i], PyFloat_AS_DOUBLE(a), rnd)
+                elif PY_TYPE_CHECK_EXACT(a, Integer):
+                    mpfr_set_z(coeffs[i], (<Integer>a).value, rnd)
+                elif PY_TYPE_CHECK_EXACT(a, Rational):
+                    mpfr_set_q(coeffs[i], (<Rational>a).value, rnd)
+                else:
+                    a = self._base_ring(a)
+                    mpfr_set(coeffs[i], (<RealNumber>a).value, rnd)
+        finally:
+            sig_off()
+        self._coeffs = coeffs
         self._normalize()
 
     def __dealloc__(self):

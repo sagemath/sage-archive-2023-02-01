@@ -1242,6 +1242,13 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E=EllipticCurve([w,-1,0,-w-6,0])
             sage: E.conductor()
             Fractional ideal (86304, w + 5898)
+
+        An example raised in \#11346::
+
+            sage: K.<g> = NumberField(x^2 - x - 1)
+            sage: E1 = EllipticCurve(K,[0,0,0,-1/48,-161/864])
+            sage: [(p.smallest_integer(),e) for p,e in E1.conductor().factor()]
+            [(2, 4), (3, 1), (5, 1)]
         """
         try:
             return self._conductor
@@ -1253,7 +1260,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         # K==QQ it has to be ZZ.ideal(1).
         OK = self.base_ring().ring_of_integers()
         self._conductor = prod([d.prime()**(d.conductor_valuation()) \
-                                for d in self.local_data()],\
+                                for d in self.integral_model().local_data()],\
                                OK.ideal(1))
         return self._conductor
 

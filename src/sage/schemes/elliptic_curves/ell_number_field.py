@@ -1288,6 +1288,16 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
             sage: E2.local_data()
             []
+
+        See trac \#11347::
+
+            sage: K.<g> = NumberField(x^2 - x - 1)
+            sage: E = EllipticCurve(K,[0,0,0,-1/48,161/864]).integral_model().global_minimal_model(); E
+            Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 over Number Field in g with defining polynomial x^2 - x - 1
+            sage: [(p.norm(), e) for p, e in E.conductor().factor()]
+            [(9, 1), (5, 1)]
+            sage: [(p.norm(), e) for p, e in E.discriminant().factor()]
+            [(9, 1), (-5, 2)]
         """
         if proof is None:
             import sage.structure.proof.proof
@@ -1298,7 +1308,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             raise ValueError, "global minimal models only exist in general for class number 1"
 
         E = self.global_integral_model()
-        primes = self.base_ring()(self.discriminant()).support()
+        primes = E.base_ring()(E.discriminant()).support()
         for P in primes:
             E = E.local_data(P,proof).minimal_model()
         return E._reduce_model()

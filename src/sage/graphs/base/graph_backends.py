@@ -492,12 +492,7 @@ class NetworkXGraphDeprecated(SageObject):
             doctest:...
             <class 'sage.graphs.base.graph_backends.NetworkXGraphDeprecated'>
         """
-        import warnings
         from sage.misc.misc import deprecation
-        warnings.warn("Your graph object is saved in an old format since networkx "+
-                      "was updated to 1.0.1. You can re-save your graph by typing "+
-                      "graph.save(filename) to make this warning go away.",
-                      DeprecationWarning, stacklevel=2)
         deprecation("Your graph object is saved in an old format since networkx "+
                     "was updated to 1.0.1. You can re-save your graph by typing "+
                     "graph.save(filename) to make this warning go away.")
@@ -565,12 +560,7 @@ class NetworkXDiGraphDeprecated(SageObject):
             doctest:...
             <class 'sage.graphs.base.graph_backends.NetworkXDiGraphDeprecated'>
         """
-        import warnings
         from sage.misc.misc import deprecation
-        warnings.warn("Your digraph object is saved in an old format since networkx "+
-                      "was updated to 1.0.1. You can re-save your digraph by typing "+
-                      "digraph.save(filename) to make this warning go away.",
-                      DeprecationWarning, stacklevel=2)
         deprecation("Your digraph object is saved in an old format since networkx "+
                     "was updated to 1.0.1. You can re-save your digraph by typing "+
                     "digraph.save(filename) to make this warning go away.")

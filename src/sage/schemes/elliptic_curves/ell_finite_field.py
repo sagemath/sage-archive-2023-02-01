@@ -9,6 +9,8 @@ AUTHORS:
 
 - John Cremona (2008-02): Point counting and group structure for
   non-prime fields, Frobenius endomorphism and order, elliptic logs
+
+- Mariah Lenox (2011-03): Added set_order method
 """
 
 #*****************************************************************************
@@ -1750,6 +1752,146 @@ self.cardinality(extension_degree=field.degree()//self.base_field().degree())\
 
         """
         return not is_j_supersingular(self.j_invariant(), proof=proof)
+
+    def set_order(self, value, num_checks=8):
+        r"""
+        Set the value of self._order to value.
+
+        Use this when you know a priori the order of the curve to
+        avoid a potentially expensive order calculation.
+
+        INPUT:
+
+        - ``value`` - Integer in the Hasse-Weil range for this
+          curve.
+
+        - ``num_checks`` - Integer (default: 8) number of times to
+          check whether value*(a random point on this curve) is
+          equal to the identity.
+
+
+        OUTPUT:
+
+        None
+
+        EXAMPLES:
+
+        This example illustrates basic usage.
+
+        ::
+
+            sage: E = EllipticCurve(GF(7), [0, 1]) # This curve has order 6
+            sage: E.set_order(6)
+            sage: E.order()
+            6
+            sage: E.order() * E.random_point()
+            (0 : 1 : 0)
+
+        We now give a more interesting case, the NIST-P521 curve. Its
+        order is too big to calculate with Sage, and takes a long time
+        using other packages, so it is very useful here.
+
+        ::
+
+            sage: p = 2^521 - 1
+            sage: prev_proof_state = proof.arithmetic()
+            sage: proof.arithmetic(False) # turn off primality checking
+            sage: F = GF(p)
+            sage: A = p - 3
+            sage: B = 1093849038073734274511112390766805569936207598951683748994586394495953116150735016013708737573759623248592132296706313309438452531591012912142327488478985984
+            sage: q = 6864797660130609714981900799081393217269435300143305409394463459185543183397655394245057746333217197532963996371363321113864768612440380340372808892707005449
+            sage: E = EllipticCurve([F(A), F(B)])
+            sage: E.set_order(q)
+            sage: G = E.random_point()
+            sage: E.order() * G  # This takes practically no time.
+            (0 : 1 : 0)
+            sage: proof.arithmetic(prev_proof_state) # restore state
+
+        It is an error to pass a value which is not an integer in the
+        Hasse-Weil range::
+
+            sage: E = EllipticCurve(GF(7), [0, 1]) # This curve has order 6
+            sage: E.set_order("hi")
+            Traceback (most recent call last):
+            ...
+            ValueError: Value hi illegal (not an integer in the Hasse range)
+            sage: E.set_order(3.14159)
+            Traceback (most recent call last):
+            ...
+            ValueError: Value 3.14159000000000 illegal (not an integer in the Hasse range)
+            sage: E.set_order(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: Value 0 illegal (not an integer in the Hasse range)
+            sage: E.set_order(1000)
+            Traceback (most recent call last):
+            ...
+            ValueError: Value 1000 illegal (not an integer in the Hasse range)
+
+        It is also very likely an error to pass a value which is not
+        the actual order of this curve. How unlikely is determined by
+        num_checks, the factorization of the actual order, and the
+        actual group structure::
+
+            sage: E = EllipticCurve(GF(7), [0, 1]) # This curve has order 6
+            sage: E.set_order(11)
+            Traceback (most recent call last):
+            ...
+            ValueError: Value 11 illegal (multiple of random point not the identity)
+
+        However, set_order can be fooled, though it's not likely in
+        "real cases of interest". For instance, the order can be set
+        to a multiple of the actual order::
+
+            sage: E = EllipticCurve(GF(7), [0, 1]) # This curve has order 6
+            sage: E.set_order(12)  # 12 just fits in the Hasse range
+            sage: E.order()
+            12
+
+        Or, the order can be set incorrectly along with num_checks set
+        too small::
+
+            sage: E = EllipticCurve(GF(7), [0, 1]) # This curve has order 6
+            sage: E.set_order(4, num_checks=0)
+            WARNING: No checking done in set_order
+            sage: E.order()
+            4
+
+        The value of num_checks must be an integer. Negative values
+        are interpreted as zero, which means don't do any checking::
+
+            sage: E = EllipticCurve(GF(7), [0, 1]) # This curve has order 6
+            sage: E.set_order(4, num_checks=-12)
+            WARNING: No checking done in set_order
+            sage: E.order()
+            4
+
+        NOTES:
+
+        The implementation is based on the fact that orders of elliptic curves
+        are cached in the (pseudo-private) _order slot.
+
+        AUTHORS:
+
+         - Mariah Lenox (2011-02-16)
+        """
+        # Is value in the Hasse range?
+        q = self.base_field().order()
+        a,b = Hasse_bounds(q,1)
+        #a = q + 1 - 2*q.isqrt()
+        #b = q + 1 + 2*q.isqrt()
+        if not value in ZZ:
+            raise ValueError('Value %s illegal (not an integer in the Hasse range)'%value)
+        if not a <= value <= b:
+            raise ValueError('Value %s illegal (not an integer in the Hasse range)'%value)
+        # Is value*random == identity?
+        for i in range(num_checks):
+            G = self.random_point()
+            if value * G != self(0):
+                raise ValueError('Value %s illegal (multiple of random point not the identity)'%value)
+        if(num_checks <= 0):
+            print 'WARNING: No checking done in set_order'
+        self._order = value
 
 def supersingular_j_polynomial(p):
     """

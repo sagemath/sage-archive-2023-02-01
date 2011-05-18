@@ -100,6 +100,7 @@ AUTHORS:
 - John Cremona (Aug 2008) -- Introduced ``EllipticCurvePoint_number_field`` class
 - Tobias Nagel, Michael Mardaus, John Cremona (Dec 2008) -- `p`-adic elliptic logarithm over `\QQ`
 - David Hansen (Jan 2009) -- Added ``weil_pairing`` function to ``EllipticCurvePoint_finite_field`` class
+- Mariah Lenox (March 2011) -- Added ``tate_pairing`` and ``ate_pairing`` functions to ``EllipticCurvePoint_finite_field`` class
 """
 
 #*****************************************************************************
@@ -133,8 +134,9 @@ import sage.misc.misc as misc
 from sage.groups.all import AbelianGroup
 import sage.groups.generic as generic
 from sage.libs.pari.all import pari, PariError
-
 from sage.structure.sequence  import Sequence
+
+from sage.schemes.plane_curves.projective_curve import Hasse_bounds
 from sage.schemes.generic.morphism import (SchemeMorphism_projective_coordinates_ring,
                                            SchemeMorphism_abelian_variety_coordinates_field,
                                            is_SchemeMorphism, SchemeMorphism_coordinates)
@@ -1109,6 +1111,115 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
             pts = Q.division_points(p)
         return (Q,k)
 
+    def set_order(self, value):
+        r"""
+        Set the value of self._order to value.
+
+        Use this when you know a priori the order of this point to avoid a
+        potentially expensive order calculation.
+
+        INPUT:
+
+        - ``value`` - positive Integer
+
+        OUTPUT:
+
+        None
+
+        EXAMPLES:
+
+        This example illustrates basic usage.
+
+        ::
+
+            sage: E = EllipticCurve(GF(7), [0, 1]) # This curve has order 6
+            sage: G = E(5, 0)
+            sage: G.set_order(2)
+            sage: 2*G
+            (0 : 1 : 0)
+
+        We now give a more interesting case, the NIST-P521 curve. Its
+        order is too big to calculate with SAGE, and takes a long time
+        using other packages, so it is very useful here.
+
+        ::
+
+            sage: p = 2^521 - 1
+            sage: prev_proof_state = proof.arithmetic()
+            sage: proof.arithmetic(False) # turn off primality checking
+            sage: F = GF(p)
+            sage: A = p - 3
+            sage: B = 1093849038073734274511112390766805569936207598951683748994586394495953116150735016013708737573759623248592132296706313309438452531591012912142327488478985984
+            sage: q = 6864797660130609714981900799081393217269435300143305409394463459185543183397655394245057746333217197532963996371363321113864768612440380340372808892707005449
+            sage: E = EllipticCurve([F(A), F(B)])
+            sage: G = E.random_point()
+            sage: G.set_order(q)
+            sage: G.order() * G  # This takes practically no time.
+            (0 : 1 : 0)
+            sage: proof.arithmetic(prev_proof_state) # restore state
+
+        It is an error to pass a `value` equal to `0`::
+
+            sage: E = EllipticCurve(GF(7), [0, 1]) # This curve has order 6
+            sage: G = E.random_point()
+            sage: G.set_order(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: Value 0 illegal for point order
+            sage: G.set_order(1000)
+            Traceback (most recent call last):
+            ...
+            ValueError: Value 1000 illegal: outside max Hasse bound
+
+        It is also very likely an error to pass a value which is not the actual
+        order of this point. How unlikely is determined by the factorization of
+        the actual order, and the actual group structure::
+
+            sage: E = EllipticCurve(GF(7), [0, 1]) # This curve has order 6
+            sage: G = E(5, 0)   # G has order 2
+            sage: G.set_order(11)
+            Traceback (most recent call last):
+            ...
+            ValueError: Value 11 illegal: 11 * (5 : 0 : 1) is not the identity
+
+        However, set_order can be fooled, though it's not likely in "real cases
+        of interest". For instance, the order can be set to a multiple the
+        actual order::
+
+            sage: E = EllipticCurve(GF(7), [0, 1]) # This curve has order 6
+            sage: G = E(5, 0)   # G has order 2
+            sage: G.set_order(8)
+            sage: G.order()
+            8
+
+        NOTES:
+
+        The implementation is based of the fact that orders of elliptic curve
+        points are cached in the (pseudo-private) _order slot.
+
+        AUTHORS:
+
+         - Mariah Lenox (2011-02-16)
+        """
+        E = self.curve()
+        q = E.base_ring().order()
+        O = E(0)
+        if value == 0:
+            raise ValueError('Value 0 illegal for point order')
+        if value == 1:
+            if self == O:
+                self._order = 1
+                return
+            else:
+                raise ValueError('Value 1 illegal order for non-identity')
+        low, hi = Hasse_bounds(q)
+        if value > hi:
+            raise ValueError('Value %s illegal: outside max Hasse bound'%value)
+        if value * self != O:
+            raise ValueError('Value %s illegal: %s * %s is not the identity'%(value, value, self))
+        if (value - 1) * self == O:
+            raise ValueError('Value %s illegal: %s * %s is the identity'%(value, value-1, self))
+        self._order = value
 
     ##############################  end  ################################
 
@@ -1188,18 +1299,19 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
 
     def _miller_(self,Q,n):
         r"""
-        Compute the value at `Q` of the rational function `f_{n,P}`, where the divisor of `f_{n,P}` is `n[P]-n[O]`.
+        Return the value at `Q` of the rational function `f_{n,P}`, where the divisor of `f_{n,P}` is `n[P]-[nP]-(n-1)[O]`.
 
         INPUT:
 
         - ``Q`` -- a nonzero point on self.curve().
 
-        - ``n`` -- an integer such that `n*P = n*Q = (0:1:0)` where `P`=self.
+        - ``n`` -- an nonzero integer. If `n<0` then return `Q`
+                   evaluated at `1/(v_{nP}*f_{n,P})` (used in the ate pairing).
 
         OUTPUT:
 
         An element in the base field self.curve().base_field()
-        A ValueError is raised if ``Q`` is zero.
+        A ValueError is raised if `Q` is zero.
 
         EXAMPLES::
 
@@ -1237,6 +1349,85 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
             ...
             ZeroDivisionError: division by zero in finite field.
 
+        A small example of embedding degree 6::
+
+            sage: q = 401; F = GF(q); a = 146; b = 400; k = 6
+            sage: E = EllipticCurve([F(a), F(b)])
+            sage: R.<x> = F[]; K.<a> = GF(q^k, modulus=x^6 + 4*x^4 + 115*x^3 + 81*x^2 + 51*x + 3)
+            sage: EK = E.base_extend(K)
+            sage: P = E([F(338), F(227)])
+            sage: Q_x = 333*a^5 + 391*a^4 + 160*a^3 + 335*a^2 + 71*a + 93
+            sage: Q_y = 343*a^5 + 273*a^4 + 26*a^3 + 342*a^2 + 340*a + 210
+            sage: Q = EK([Q_x, Q_y])
+            sage: P._miller_(Q, 127)
+            371*a^5 + 39*a^4 + 355*a^3 + 233*a^2 + 20*a + 275
+
+        A series of small examples and small torsions.  We start with
+        `n=1`, which is trivial: the function is the constant
+        1::
+
+            sage: E = EllipticCurve([GF(7)(0), 2])
+            sage: P = E(5, 1); Q = E(0, 3); I = E(0)
+            sage: I._miller_(P, 1)
+            1
+            sage: I._miller_(Q, 1)
+            1
+
+        A two-torsion example. In this case `f_{n,P}(Q) = x_Q - x_P`::
+
+            sage: E = EllipticCurve([GF(7)(-1), 0])
+            sage: P = E(0,0); Q = E(1, 0);
+            sage: P._miller_(P, 2)
+            0
+            sage: Q._miller_(Q, 2)
+            0
+            sage: P._miller_(Q, 2)
+            1
+            sage: Q._miller_(P, 2)
+            6
+
+        A three-torsion example::
+
+            sage: E = EllipticCurve([GF(7)(0), 2])
+            sage: P = E(5, 1); Q = E(0, 3);
+            sage: P._miller_(Q, 3)
+            4
+
+        A 4-torsion example::
+
+            sage: E = EllipticCurve([GF(7)(-1), 0])
+            sage: P = E(5, 1); Q = E(4, 2)
+            sage: P._miller_(Q, 4)
+            3
+
+        A 5-torsion example::
+
+            sage: E = EllipticCurve([GF(7)(-1), 4])
+            sage: P = E(4, 1); Q = E(6, 5)
+            sage: P._miller_(Q, 5)
+            1
+
+        A 6-torsion example::
+
+            sage: E = EllipticCurve([GF(7)(3), 1])
+            sage: P = E(5, 1); Q = E(3, 3)
+            sage: P._miller_(Q, 6)
+            5
+
+        An example which is part of an ate pairing calculation. The trace of
+        the curve is negative, so it should exercise the `n<0` case in the
+        code::
+
+            sage: p = 2017; A = 1; B = 30; r = 29; t = -70; k = 7;
+            sage: F = GF(p); R.<x> = F[]
+            sage: E = EllipticCurve([F(A), F(B)]); P = E(369, 716)
+            sage: K.<a> = GF(p^k, modulus=x^k+2); EK = E.base_extend(K)
+            sage: Qx = 1226*a^6 + 1778*a^5 + 660*a^4 + 1791*a^3 + 1750*a^2 + 867*a + 770
+            sage: Qy = 1764*a^6 + 198*a^5 + 1206*a^4 + 406*a^3 + 1200*a^2 + 273*a + 1712
+            sage: Q = EK(Qx, Qy)
+            sage: Q._miller_(P, t-1)
+            1311*a^6 + 1362*a^5 + 1177*a^4 + 807*a^3 + 1331*a^2 + 1530*a + 1931
+
         ALGORITHM:
 
             Double-and-add.
@@ -1245,28 +1436,43 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
 
         - [Mil04] Victor S. Miller, "The Weil pairing, and its efficient calculation", J. Cryptol., 17(4):235-261, 2004
 
-        AUTHOR:
+        AUTHORS:
 
         - David Hansen (2009-01-25)
-
+        - Mariah Lenox (2011-03-07) -- Added more doctests and support for
+          negative n.
         """
         if Q.is_zero():
             raise ValueError, "Q must be nonzero."
+        if n.is_zero():
+            raise ValueError, "n must be nonzero."
+        n_is_negative = False
+        if n < 0:
+            n = n.abs()
+            n_is_negative = True
 
-        t = self.curve().base_field().one_element()
+        one = self.curve().base_field().one_element()
+        t = one
         V = self
         S = 2*V
         nbin = n.bits()
         i = n.nbits() - 2
         while i > -1:
             S = 2*V
-            t = (t**2)*(V._line_(V,Q)/S._line_(-S,Q))
+            ell = V._line_(V,Q)
+            vee = S._line_(-S,Q)
+            t = (t**2)*(ell/vee)
             V = S
             if nbin[i] == 1:
                 S = V+self
-                t=t*(V._line_(self,Q)/S._line_(-S,Q))
+                ell = V._line_(self,Q)
+                vee = S._line_(-S,Q)
+                t=t*(ell/vee)
                 V = S
             i=i-1
+        if n_is_negative:
+            vee = V._line_(-V, Q)
+            t = 1/(t*vee)
         return t
 
     def weil_pairing(self, Q, n):
@@ -1397,6 +1603,370 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
             return ((-1)**n.test_bit(0))*(P._miller_(Q,n)/Q._miller_(P,n))
         except ZeroDivisionError, detail:
             return one
+
+    def tate_pairing(self, Q, n, k, q=None):
+        r"""
+        Return Tate pairing of `n`-torsion point `P = self` and point `Q`.
+
+        The value returned is `f_{n,P}(Q)^e` where `f_{n,P}` is a function with
+        divisor `n[P]-n[O].`. This is also known as the "modified Tate
+        pairing". It is a well-defined bilinear map.
+
+        INPUT:
+
+        - ``P=self`` - Elliptic curve point having order n
+
+        - ``Q`` - Elliptic curve point on same curve as P (can be any order)
+
+        - ``n`` - positive integer: order of P
+
+        - ``k`` - positive integer: embedding degree
+
+        - ``q`` - positive integer: size of base field (the "big"
+          field is `GF(q^k)`. `q` needs to be set only if its value
+          cannot be deduced.)
+
+        OUTPUT:
+
+        An `n`'th root of unity in the base field self.curve().base_field()
+
+        EXAMPLES::
+
+        A simple example, pairing a point with itself, and pairing a point with
+        another rational point::
+
+            sage: p = 103; A = 1; B = 18; E = EllipticCurve(GF(p), [A, B])
+            sage: P = E(33, 91); n = P.order(); n
+            19
+            sage: k = GF(n)(p).multiplicative_order(); k
+            6
+            sage: P.tate_pairing(P, n, k)
+            1
+            sage: Q = E(87, 51)
+            sage: P.tate_pairing(Q, n, k)
+            1
+            sage: set_random_seed(35)
+            sage: P.tate_pairing(P,n,k)
+            1
+
+
+        We now let Q be a point on the same curve as above, but defined over
+        the pairing extension field, and we also demonstrate the bilinearity of
+        the pairing::
+
+            sage: K.<a> = GF(p^k)
+            sage: EK = E.base_extend(K); P = EK(P)
+            sage: Qx = 69*a^5 + 96*a^4 + 22*a^3 + 86*a^2 + 6*a + 35
+            sage: Qy = 34*a^5 + 24*a^4 + 16*a^3 + 41*a^2 + 4*a + 40
+            sage: Q = EK(Qx, Qy);
+            sage: # multiply by cofactor so Q has order n:
+            sage: h = 551269674; Q = h*Q
+            sage: P = EK(P); P.tate_pairing(Q, n, k)
+            24*a^5 + 34*a^4 + 3*a^3 + 69*a^2 + 86*a + 45
+            sage: s = Integer(randrange(1,n))
+            sage: ans1 = (s*P).tate_pairing(Q, n, k)
+            sage: ans2 = P.tate_pairing(s*Q, n, k)
+            sage: ans3 = P.tate_pairing(Q, n, k)^s
+            sage: ans1 == ans2 == ans3
+            True
+            sage: (ans1 != 1) and (ans1^n == 1)
+            True
+
+        Here is an example of using the Tate pairing to compute the Weil
+        pairing (using the same data as above)::
+
+            sage: e = Integer((p^k-1)/n); e
+            62844857712
+            sage: P.weil_pairing(Q, n)^e
+            94*a^5 + 99*a^4 + 29*a^3 + 45*a^2 + 57*a + 34
+            sage: P.tate_pairing(Q, n, k) == P._miller_(Q, n)^e
+            True
+            sage: Q.tate_pairing(P, n, k) == Q._miller_(P, n)^e
+            True
+            sage: P.tate_pairing(Q, n, k)/Q.tate_pairing(P, n, k)
+            94*a^5 + 99*a^4 + 29*a^3 + 45*a^2 + 57*a + 34
+
+        An example where we have to pass the base field size (and we again have
+        agreement with the Weil pairing)::
+
+            sage: F.<a>=GF(2^5)
+            sage: E=EllipticCurve(F,[0,0,1,1,1])
+            sage: P = E(a^4 + 1, a^3)
+            sage: Fx.<b>=GF(2^(4*5))
+            sage: Ex=EllipticCurve(Fx,[0,0,1,1,1])
+            sage: phi=Hom(F,Fx)(F.gen().minpoly().roots(Fx)[0][0])
+            sage: Px=Ex(phi(P.xy()[0]),phi(P.xy()[1]))
+            sage: Qx = Ex(b^19+b^18+b^16+b^12+b^10+b^9+b^8+b^5+b^3+1, b^18+b^13+b^10+b^8+b^5+b^4+b^3+b)
+            sage: Px.tate_pairing(Qx, n=41, k=4)
+            Traceback (most recent call last):
+            ...
+            ValueError: Unexpected field degree: set keyword argument q equal to the size of the base field (big field is GF(q^4)).
+            sage: num = Px.tate_pairing(Qx, n=41, k=4, q=32); num
+            b^19 + b^14 + b^13 + b^12 + b^6 + b^4 + b^3
+            sage: den = Qx.tate_pairing(Px, n=41, k=4, q=32); den
+            b^19 + b^17 + b^16 + b^15 + b^14 + b^10 + b^6 + b^2 + 1
+            sage: e = Integer((32^4-1)/41); e
+            25575
+            sage: Px.weil_pairing(Qx, 41)^e == num/den
+            True
+
+        NOTES:
+
+        This function uses Miller's algorithm, followed by a naive
+        exponentiation. It does not do anything fancy. In the case
+        that there is an issue with `Q` being on one of the lines
+        generated in the `r*P` calculation, `Q` is offset by a random
+        point `R` and P.tate_pairing(Q+R,n,k)/P.tate_pairing(R,n,k)
+        is returned.
+
+        AUTHORS:
+
+        - Mariah Lenox (2011-03-07)
+        """
+        P = self
+        E = P.curve()
+
+        if not Q.curve() is E:
+            raise ValueError, "Points must both be on the same curve"
+
+        K = E.base_ring()
+        d = K.degree()
+        if q == None:
+            if d == 1:
+                q = K.order()
+            elif d == k:
+                q = K.base_ring().order()
+            else:
+                raise ValueError("Unexpected field degree: set keyword argument q equal to the size of the base field (big field is GF(q^%s))."%k)
+
+        if n*P != E(0):
+            raise ValueError('This point is not of order n=%s' %n)
+
+        # In small cases, or in the case of pairing an element with
+        # itself, Q could be on one of the lines in the Miller
+        # algorithm. If this happens we try again, with an offset of a
+        # random point.
+        try:
+            ret = self._miller_(Q, n)
+            e = rings.Integer((q**k - 1)/n)
+            ret = ret**e
+        except (ZeroDivisionError, ValueError):
+            R = E.random_point()
+            ret = self.tate_pairing(Q + R, n, k)/self.tate_pairing(R, n, k)
+        return ret
+
+    def ate_pairing(self, Q, n, k, t, q=None):
+        r"""
+        Return ate pairing of `n`-torsion points `P=self` and `Q`.
+
+        Also known as the `n`-th modified ate pairing. `P` is `GF(q)`-rational,
+        and `Q` must be an element of `Ker(\pi-p)`, where `\pi` is the
+        `q`-frobenius map (and hence `Q` is `GF(q^k)`-rational).
+
+        INPUT:
+
+        - ``P=self`` - Elliptic curve point -- order `n`, in `ker(\pi-1)`, where
+          `\pi` is the `q`-Frobenius map (e.g., `P` is `q-rational`).
+
+        - ``Q`` - Elliptic curve point -- order `n`, in `ker(\pi-q)`
+
+        - ``n`` - positive Integer -- order of `P` and `Q`.
+
+        - ``k`` - positive Integer -- embedding degree.
+
+        - ``t`` - Integer -- trace of Frobenius of the curve over `GF(q)`.
+
+        - ``q`` - positive Integer (default:None) -- size of base field (the
+          "big" field is `GF(q^k)`. `q` needs to be set only if its value
+          cannot be deduced.
+
+
+        OUTPUT:
+
+        FiniteFieldElement in `GF(q^k)` -- the ate pairing of `P` and `Q`.
+
+        EXAMPLES:
+
+        An example with embedding degree 6
+
+        ::
+
+            sage: p = 7549; A = 0; B = 1; n = 157; k = 6; t = 14
+            sage: F = GF(p); E = EllipticCurve(F, [A, B])
+            sage: R.<x> = F[]; K.<a> = GF(p^k, modulus=x^k+2)
+            sage: EK = E.base_extend(K)
+            sage: P = EK(3050, 5371); Q = EK(6908*a^4, 3231*a^3)
+            sage: P.ate_pairing(Q, n, k, t)
+            6708*a^5 + 4230*a^4 + 4350*a^3 + 2064*a^2 + 4022*a + 6733
+            sage: s = Integer(randrange(1, n))
+            sage: (s*P).ate_pairing(Q, n, k, t) == P.ate_pairing(s*Q, n, k, t)
+            True
+            sage: P.ate_pairing(s*Q, n, k, t) == P.ate_pairing(Q, n, k, t)^s
+            True
+
+        Another example with embedding degree 7 and positive trace:
+
+        ::
+
+            sage: p = 2213; A = 1; B = 49; n = 1093; k = 7; t = 28
+            sage: F = GF(p); E = EllipticCurve(F, [A, B])
+            sage: R.<x> = F[]; K.<a> = GF(p^k, modulus=x^k+2)
+            sage: EK = E.base_extend(K)
+            sage: P = EK(1583, 1734)
+            sage: Qx = 1729*a^6+1767*a^5+245*a^4+980*a^3+1592*a^2+1883*a+722
+            sage: Qy = 1299*a^6+1877*a^5+1030*a^4+1513*a^3+1457*a^2+309*a+1636
+            sage: Q = EK(Qx, Qy)
+            sage: P.ate_pairing(Q, n, k, t)
+            1665*a^6 + 1538*a^5 + 1979*a^4 + 239*a^3 + 2134*a^2 + 2151*a + 654
+            sage: s = Integer(randrange(1, n))
+            sage: (s*P).ate_pairing(Q, n, k, t) == P.ate_pairing(s*Q, n, k, t)
+            True
+            sage: P.ate_pairing(s*Q, n, k, t) == P.ate_pairing(Q, n, k, t)^s
+            True
+
+        Another example with embedding degree 7 and negative trace:
+
+        ::
+
+            sage: p = 2017; A = 1; B = 30; n = 29; k = 7; t = -70
+            sage: F = GF(p); E = EllipticCurve(F, [A, B])
+            sage: R.<x> = F[]; K.<a> = GF(p^k, modulus=x^k+2)
+            sage: EK = E.base_extend(K)
+            sage: P = EK(369, 716)
+            sage: Qx = 1226*a^6+1778*a^5+660*a^4+1791*a^3+1750*a^2+867*a+770
+            sage: Qy = 1764*a^6+198*a^5+1206*a^4+406*a^3+1200*a^2+273*a+1712
+            sage: Q = EK(Qx, Qy)
+            sage: P.ate_pairing(Q, n, k, t)
+            1794*a^6 + 1161*a^5 + 576*a^4 + 488*a^3 + 1950*a^2 + 1905*a + 1315
+            sage: s = Integer(randrange(1, n))
+            sage: (s*P).ate_pairing(Q, n, k, t) == P.ate_pairing(s*Q, n, k, t)
+            True
+            sage: P.ate_pairing(s*Q, n, k, t) == P.ate_pairing(Q, n, k, t)^s
+            True
+
+        Using the same data, we show that the ate pairing is a power of the
+        Tate pairing (see [HSV]_ end of section 3.1)::
+
+            sage: c = (k*p^(k-1)).mod(n); T = t - 1
+            sage: N = gcd(T^k - 1, p^k - 1)
+            sage: s = Integer(N/n)
+            sage: L = Integer((T^k - 1)/N)
+            sage: M = (L*s*c.inverse_mod(n)).mod(n)
+            sage: P.ate_pairing(Q, n, k, t) == Q.tate_pairing(P, n, k)^M
+            True
+
+        An example where we have to pass the base field size (and we again have
+        agreement with the Tate pairing). Note that though `Px` is not
+        `F`-rational, (it is the homomorphic image of an `F`-rational point) it
+        is nonetheless in `ker(\pi-1)`, and so is a legitimate input::
+
+            sage: q = 2^5; F.<a>=GF(q)
+            sage: n = 41; k = 4; t = -8
+            sage: E=EllipticCurve(F,[0,0,1,1,1])
+            sage: P = E(a^4 + 1, a^3)
+            sage: Fx.<b>=GF(q^k)
+            sage: Ex=EllipticCurve(Fx,[0,0,1,1,1])
+            sage: phi=Hom(F,Fx)(F.gen().minpoly().roots(Fx)[0][0])
+            sage: Px=Ex(phi(P.xy()[0]),phi(P.xy()[1]))
+            sage: Qx = Ex(b^19+b^18+b^16+b^12+b^10+b^9+b^8+b^5+b^3+1, b^18+b^13+b^10+b^8+b^5+b^4+b^3+b)
+            sage: Qx = Ex(Qx[0]^q, Qx[1]^q) - Qx  # ensure Qx is in ker(pi - q)
+            sage: Px.ate_pairing(Qx, n, k, t)
+            Traceback (most recent call last):
+            ...
+            ValueError: Unexpected field degree: set keyword argument q equal to the size of the base field (big field is GF(q^4)).
+            sage: Px.ate_pairing(Qx, n, k, t, q)
+            b^19 + b^18 + b^17 + b^16 + b^15 + b^14 + b^13 + b^12 + b^11 + b^9 + b^8 + b^5 + b^4 + b^2 + b + 1
+            sage: s = Integer(randrange(1, n))
+            sage: (s*Px).ate_pairing(Qx, n, k, t, q) == Px.ate_pairing(s*Qx, n, k, t, q)
+            True
+            sage: Px.ate_pairing(s*Qx, n, k, t, q) == Px.ate_pairing(Qx, n, k, t, q)^s
+            True
+            sage: c = (k*q^(k-1)).mod(n); T = t - 1
+            sage: N = gcd(T^k - 1, q^k - 1)
+            sage: s = Integer(N/n)
+            sage: L = Integer((T^k - 1)/N)
+            sage: M = (L*s*c.inverse_mod(n)).mod(n)
+            sage: Px.ate_pairing(Qx, n, k, t, q) == Qx.tate_pairing(Px, n, k, q)^M
+            True
+
+        It is an error if `Q` is not in the kernel of `\pi - p`, where `\pi` is
+        the Frobenius automorphism::
+
+            sage: p = 29; A = 1; B = 0; n = 5; k = 2; t = 10
+            sage: F = GF(p); R.<x> = F[]
+            sage: E = EllipticCurve(F, [A, B]);
+            sage: K.<a> = GF(p^k, modulus=x^k+2); EK = E.base_extend(K)
+            sage: P = EK(13, 8); Q = EK(13, 21)
+            sage: P.ate_pairing(Q, n, k, t)
+            Traceback (most recent call last):
+            ...
+            ValueError: Point (13 : 21 : 1) not in Ker(pi - q)
+
+        It is also an error if `P` is not in the kernel os `\pi - 1`::
+
+            sage: p = 29; A = 1; B = 0; n = 5; k = 2; t = 10
+            sage: F = GF(p); R.<x> = F[]
+            sage: E = EllipticCurve(F, [A, B]);
+            sage: K.<a> = GF(p^k, modulus=x^k+2); EK = E.base_extend(K)
+            sage: P = EK(14, 10*a); Q = EK(13, 21)
+            sage: P.ate_pairing(Q, n, k, t)
+            Traceback (most recent call last):
+            ...
+            ValueError: This point (14 : 10*a : 1) is not in Ker(pi - 1)
+
+        NOTES:
+
+        First defined in the paper of [HSV]_, the ate pairing can be
+        computationally effective in those cases when the trace of the curve
+        over the base field is significantly smaller than the expected
+        value. This implementation is simply Miller's algorithm followed by a
+        naive exponentiation, and makes no claims towards efficiency.
+
+        REFERENCES:
+
+        .. [HSV] Hess, Smart, Vercauteren, "The Eta Pairing Revisited", IEEE
+        Trans. Information Theory, 52(10): 4595-4602, 2006.
+
+        AUTHORS:
+
+         - Mariah Lenox (2011-03-08)
+        """
+        P = self
+        # check for same curve
+        E = P.curve()
+        O = E(0)
+        if not Q.curve() is E:
+            raise ValueError, "Points must both be on the same curve"
+
+        # set q to be the order of the base field
+        K = E.base_ring()
+        F = K.base_ring()
+        if q == None:
+            d = K.degree()
+            if d == k:
+                q = K.base_ring().order()
+            else:
+                raise ValueError("Unexpected field degree: set keyword argument q equal to the size of the base field (big field is GF(q^%s))." %k)
+
+        # check order of P
+        if n*P != O:
+            raise ValueError('This point %s is not of order n=%s' % (P,n))
+
+        # check for P in kernel pi - 1:
+        piP = E(P[0]**q, P[1]**q)
+        if piP - P != O:
+            raise ValueError('This point %s is not in Ker(pi - 1)' % P)
+
+        # check for Q in kernel pi - q:
+        piQ = E(Q[0]**q, Q[1]**q)
+        if piQ - q*Q != O:
+            raise ValueError('Point %s not in Ker(pi - q)' % Q)
+
+        T = t-1
+        ret = Q._miller_(P, T)
+        e = rings.Integer((q**k - 1)/n)
+        ret = ret**e
+        return ret
 
 class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
     """

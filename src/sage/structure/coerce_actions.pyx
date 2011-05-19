@@ -226,6 +226,17 @@ cdef class ModuleAction(Action):
             Left scalar multiplication by Rational Field on Univariate Polynomial Ring in x over Integer Ring
             sage: LeftModuleAction(QQ, ZZ['x']['y'])
             Left scalar multiplication by Rational Field on Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Integer Ring
+
+        The following tests against a problem that was relevant during work on
+        trac ticket #9944::
+
+            sage: R.<x> = PolynomialRing(ZZ)
+            sage: S.<x> = PolynomialRing(ZZ, sparse=True)
+            sage: 1/R.0
+            1/x
+            sage: 1/S.0
+            1/x
+
         """
         Action.__init__(self, G, S, not PY_TYPE_CHECK(self, RightModuleAction), operator.mul)
         if not isinstance(G, Parent):
@@ -265,7 +276,7 @@ cdef class ModuleAction(Action):
         # At this point, we can assert it is safe to call _Xmul_c
         the_ring = G if self.connecting is None else self.connecting.codomain()
         the_set = S if self.extended_base is None else self.extended_base
-        assert the_ring is the_set.base(), "BUG in coercion model"
+        assert the_ring is the_set.base(), "BUG in coercion model\n    Apparently there are two versions of\n        %s\n    in the cache."%the_ring
 
         g = G.an_element()
         a = S.an_element()

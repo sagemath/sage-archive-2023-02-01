@@ -299,11 +299,11 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
         TEST:
 
-        Make sure that a faster conversion map from the base ring is used;
+        Make sure that a faster coercion map from the base ring is used;
         see trac ticket #9944::
 
             sage: R.<x,y> = PolynomialRing(ZZ)
-            sage: R.convert_map_from(R.base_ring())
+            sage: R.coerce_map_from(R.base_ring())
             Polynomial base injection morphism:
               From: Integer Ring
               To:   Multivariate Polynomial Ring in x, y over Integer Ring
@@ -315,6 +315,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         self.__ngens = n
         self._ring = singular_ring_new(base_ring, n, self._names, order)
         self._one_element = <MPolynomial_libsingular>new_MP(self,p_ISet(1, self._ring))
+        self._one_element_poly = (<MPolynomial_libsingular>self._one_element)._poly
         self._zero_element = <MPolynomial_libsingular>new_MP(self,NULL)
         # This polynomial ring should belong to Algebras(base_ring).
         # Algebras(...).parent_class, which was called from MPolynomialRing_generic.__init__,
@@ -324,7 +325,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         # wipe the memory and construct the conversion from scratch.
         from sage.rings.polynomial.polynomial_element import PolynomialBaseringInjection
         base_inject = PolynomialBaseringInjection(base_ring, self)
-        self.register_conversion(base_inject)
+        self.register_coercion(base_inject)
 
     def __dealloc__(self):
         r"""
@@ -773,9 +774,11 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
             return new_MP(self, _p)
 
-        if hasattr(element,'_polynomial_'):
+        try: #if hasattr(element,'_polynomial_'):
             # SymbolicVariable
             return element._polynomial_(self)
+        except AttributeError:
+            pass
 
         if is_Macaulay2Element(element):
             return self(element.external_string())
@@ -1719,6 +1722,29 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         # for some mysterious reason, various things may be NULL in some cases
         if self._parent is not <ParentWithBase>None and (<MPolynomialRing_libsingular>self._parent)._ring != NULL and self._poly != NULL:
             p_Delete(&self._poly, (<MPolynomialRing_libsingular>self._parent)._ring)
+
+    cpdef MPolynomial_libsingular _new_constant_poly(self, x, MPolynomialRing_libsingular P):
+        r"""
+        Quickly create a new constant polynomial with value x in the parent P.
+
+        ASSUMPTION:
+
+        The value x must be an element of the base ring. That assumption is
+        not verified.
+
+        EXAMPLE::
+
+            sage: R.<x,y> = QQ[]
+            sage: x._new_constant_poly(2/1,R)
+            2
+
+        """
+        if not x:
+            return <MPolynomial_libsingular>new_MP(P, NULL)
+        cdef ring *_ring = P._ring
+        cdef poly *_p
+        singular_polynomial_rmul(&_p, P._one_element_poly, x, _ring)
+        return new_MP(P,_p)
 
     def __call__(self, *x, **kwds):
         """

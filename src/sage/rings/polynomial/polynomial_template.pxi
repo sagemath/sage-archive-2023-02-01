@@ -147,7 +147,6 @@ cdef class Polynomial_template(Polynomial):
             _parent = get_cparent(parent)
 
             celement_construct(&self.x, get_cparent(parent))
-
             gen = celement_new(_parent)
             monomial = celement_new(_parent)
 
@@ -156,7 +155,7 @@ cdef class Polynomial_template(Polynomial):
 
             for deg, coef in x.iteritems():
                 celement_pow(monomial, gen, deg, NULL, _parent)
-                celement_mul(monomial, &(<Polynomial_template>parent(coef)).x, monomial, _parent)
+                celement_mul(monomial, &(<Polynomial_template>self.__class__(parent, coef)).x, monomial, _parent)
                 celement_add(&self.x, &self.x, monomial, _parent)
 
             celement_delete(gen, _parent)

@@ -1099,7 +1099,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             (Call morphism:
               From: Multivariate Polynomial Ring in x, y over Integer Ring
               To:   Multivariate Polynomial Ring in x, y over Real Double Field,
-             Call morphism:
+             Polynomial base injection morphism:
               From: Real Double Field
               To:   Multivariate Polynomial Ring in x, y over Real Double Field)
 

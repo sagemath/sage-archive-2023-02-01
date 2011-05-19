@@ -80,6 +80,29 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         x._is_gen = 0
         return x
 
+    cpdef Polynomial _new_constant_poly(self, a, Parent P):
+        r"""
+        Quickly creates a new constant polynomial with value a in parent P
+
+        ASSUMPTION:
+
+        The given value has to be in the base ring of P. This assumption is not
+        verified.
+
+        EXAMPLE::
+
+            sage: R.<x> = ZZ[]
+            sage: x._new_constant_poly(2,R)
+            2
+
+        """
+        cdef Polynomial_integer_dense_flint x = PY_NEW(Polynomial_integer_dense_flint)
+        x._parent = P
+        x._is_gen = 0
+        if not PY_TYPE_CHECK(a, Integer):
+            a = ZZ(a)
+        fmpz_poly_set_coeff_mpz(x.__poly, 0, (<Integer>a).value)
+        return x
 
     def __init__(self, parent, x=None, check=True, is_gen=False,
             construct=False):

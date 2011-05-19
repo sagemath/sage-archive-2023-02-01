@@ -1387,10 +1387,14 @@ def matrix_of_frobenius(Q, p, M, trace=None, compute_exact_forms=False):
         answer mod `p^{\mathrm{prec}}` at the end.
 
 
-  OUTPUT: 2x2 matrix of frobenius on Monsky-Washnitzer cohomology,
+  OUTPUT:
+
+  2x2 matrix of frobenius on Monsky-Washnitzer cohomology,
   with entries in the coefficient ring of Q.
 
-  EXAMPLES: A simple example::
+  EXAMPLES:
+
+  A simple example::
 
       sage: p = 5
       sage: prec = 3

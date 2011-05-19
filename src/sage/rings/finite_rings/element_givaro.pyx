@@ -4,15 +4,18 @@ Finite Extension Fields of cardinality up to $2^{16}$
 Sage includes the Givaro finite field library, for highly optimized
 arithmetic in finite fields.
 
-NOTES: The arithmetic is performed by the Givaro C++ library which
-uses Zech logs internally to represent finite field elements. This
+NOTES:
+
+The arithmetic is performed by the Givaro C++ library which uses Zech
+logs internally to represent finite field elements. This
 implementation is the default finite extension field implementation in
 Sage for the cardinality $< 2^{16}$, as it is vastly faster than the
 PARI implementation which uses polynomials to represent finite field
 elements. Some functionality in this class however is implemented
 using the PARI implementation.
 
-EXAMPLES:
+EXAMPLES::
+
     sage: k = GF(5); type(k)
     <class 'sage.rings.finite_rings.finite_field_prime_modn.FiniteField_prime_modn_with_category'>
     sage: k = GF(5^2,'c'); type(k)
@@ -31,9 +34,11 @@ EXAMPLES:
     <class 'sage.rings.finite_rings.finite_field_givaro.FiniteField_givaro_with_category'>
 
 AUTHORS:
-     -- Martin Albrecht <malb@informatik.uni-bremen.de> (2006-06-05)
-     -- William Stein (2006-12-07): editing, lots of docs, etc.
-     -- Robert Bradshaw (2007-05-23): is_square/sqrt, pow.
+
+- Martin Albrecht <malb@informatik.uni-bremen.de> (2006-06-05)
+- William Stein (2006-12-07): editing, lots of docs, etc.
+- Robert Bradshaw (2007-05-23): is_square/sqrt, pow.
+
 """
 
 
@@ -409,6 +414,10 @@ cdef class Cache_givaro(SageObject):
             except OverflowError:
                 e = e % self.characteristic()
                 res = self.objectptr.initi(res,int(e))
+
+        elif e is None:
+            e_int = 0
+            res = self.objectptr.initi(res,e_int)
 
         elif PY_TYPE_CHECK(e, float):
             res = self.objectptr.initd(res,e)

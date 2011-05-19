@@ -87,6 +87,7 @@ from sage.rings.all import is_Infinite, Rational, Integer, ZZ, QQ
 from sage.rings.integer_ring import IntegerRing
 from sage.structure.parent_base import ParentWithBase
 from sage.structure.element import Element, is_InfinityElement
+from sage.misc.cachefunc import cached_method
 
 _nfcusps_cache = {}
 
@@ -331,7 +332,7 @@ class NFCuspsSpace(ParentWithBase):
 
     def __call__(self, x):
         """
-        Coerce x into the set of cusps of a number field.
+        Convert x into the set of cusps of a number field.
 
         EXAMPLES::
 
@@ -352,6 +353,27 @@ class NFCuspsSpace(ParentWithBase):
             Cusp Infinity of Number Field in a with defining polynomial x^2 + 5
         """
         return NFCusp(self.number_field(), x, parent=self)
+
+    @cached_method
+    def zero_element(self):
+        """
+        Return the zero cusp.
+
+        NOTE:
+
+        This method just exists to make some general algorithms work.
+        It is not intended that the returned cusp is an additive
+        neutral element.
+
+        EXAMPLE::
+
+             sage: k.<a> = NumberField(x^2 + 5)
+             sage: kCusps = NFCusps(k)
+             sage: kCusps.zero_element()
+             Cusp [0: 1] of Number Field in a with defining polynomial x^2 + 5
+
+        """
+        return self(0)
 
     def number_field(self):
         """

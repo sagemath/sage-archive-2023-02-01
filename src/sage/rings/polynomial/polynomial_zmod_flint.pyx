@@ -112,6 +112,35 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         e._parent = self._parent
         return e
 
+    cpdef Polynomial _new_constant_poly(self, x, Parent P):
+        r"""
+        Quickly creates a new constant polynomial with value x in parent P.
+
+        ASSUMPTION:
+
+        x must convertible to an int.
+
+        The modulus of P must coincide with the modulus of this element.
+        That assumption is not verified!
+
+        EXAMPLE::
+
+            sage: R.<x> = GF(3)[]
+            sage: x._new_constant_poly(4,R)
+            1
+            sage: x._new_constant_poly('4',R)
+            1
+            sage: x._new_constant_poly('4.1',R)
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid literal for int() with base 10: '4.1'
+
+        """
+        cdef Polynomial_template r = <Polynomial_template>PY_NEW(self.__class__)
+        r._parent = P
+        zmod_poly_init(&r.x, zmod_poly_modulus(&self.x))
+        celement_set_si(&r.x, int(x), get_cparent(P))
+        return r
 
     cdef _set_list(self, x):
         """

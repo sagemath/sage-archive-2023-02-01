@@ -33,6 +33,7 @@ from sage.structure.parent_base import ParentWithBase
 from sage.structure.element import Element, is_InfinityElement
 from sage.modular.modsym.p1list import lift_to_sl2z_llong
 from sage.matrix.all import is_Matrix
+from sage.misc.cachefunc import cached_method
 
 class Cusps_class(ParentWithBase):
     """
@@ -147,6 +148,24 @@ class Cusps_class(ParentWithBase):
             return Cusp(x, parent=self)
         else:
             return self._coerce_try(x, QQ)
+
+    @cached_method
+    def zero_element(self):
+        """
+        Return the zero cusp.
+
+        NOTE:
+
+        The existence of this method is assumed by some
+        parts of Sage's coercion model.
+
+        EXAMPLE::
+
+            sage: Cusps.zero_element()
+            0
+
+        """
+        return Cusp(0, parent=self)
 
 Cusps = Cusps_class()
 

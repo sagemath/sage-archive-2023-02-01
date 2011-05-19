@@ -203,19 +203,19 @@ class FiniteField_givaro(FiniteField):
         Coerces several data types to self.
 
         INPUT:
-            e -- data to coerce
+
+        e -- data to coerce
 
         EXAMPLES:
 
-            FiniteField_givaroElement are accepted where the parent
-            is either self, equals self or is the prime subfield
+        FiniteField_givaroElement are accepted where the parent
+        is either self, equals self or is the prime subfield::
 
             sage: k = GF(2**8, 'a')
             sage: k.gen() == k(k.gen())
             True
 
-
-            Floats, ints, longs, Integer are interpreted modulo characteristic
+        Floats, ints, longs, Integer are interpreted modulo characteristic::
 
             sage: k(2)
             0
@@ -224,15 +224,15 @@ class FiniteField_givaro(FiniteField):
             sage: k(float(2.0))
             0
 
-            Rational are interpreted as
-                             self(numerator)/self(denominator).
-            Both may not be >= self.characteristic().
+        Rational are interpreted as self(numerator)/self(denominator).
+        Both may not be >= self.characteristic().
+        ::
 
             sage: k = GF(3**8, 'a')
             sage: k(1/2) == k(1)/k(2)
             True
 
-            Free module elements over self.prime_subfield() are interpreted 'little endian'
+        Free module elements over self.prime_subfield() are interpreted 'little endian'::
 
             sage: k = GF(2**8, 'a')
             sage: e = k.vector_space().gen(1); e
@@ -240,13 +240,19 @@ class FiniteField_givaro(FiniteField):
             sage: k(e)
             a
 
-            Strings are evaluated as polynomial representation of elements in self
+        'None' yields zero::
+
+            sage: k(None)
+            0
+
+        Strings are evaluated as polynomial representation of elements in self::
 
             sage: k('a^2+1')
             a^2 + 1
 
         Univariate polynomials coerce into finite fields by evaluating
-        the polynomial at the field's generator:
+        the polynomial at the field's generator::
+
             sage: from sage.rings.finite_rings.finite_field_givaro import FiniteField_givaro
             sage: R.<x> = QQ[]
             sage: k, a = FiniteField_givaro(5^2, 'a').objgen()
@@ -269,7 +275,8 @@ class FiniteField_givaro(FiniteField):
             q^2 + 2*q + 4
 
 
-        Multivariate polynomials only coerce if constant:
+        Multivariate polynomials only coerce if constant::
+
             sage: R = k['x,y,z']; R
             Multivariate Polynomial Ring in x, y, z over Finite Field in a of size 5^2
             sage: k(R(2))
@@ -281,8 +288,8 @@ class FiniteField_givaro(FiniteField):
             ZeroDivisionError: division by zero in finite field.
 
 
-            PARI elements are interpreted as finite field elements; this PARI flexibility
-            is (absurdly!) liberal:
+        PARI elements are interpreted as finite field elements; this PARI flexibility
+        is (absurdly!) liberal::
 
             sage: k = GF(2**8, 'a')
             sage: k(pari('Mod(1,2)'))
@@ -292,7 +299,7 @@ class FiniteField_givaro(FiniteField):
             sage: k(pari('Mod(1,3)*a^20'))
             a^7 + a^5 + a^4 + a^2
 
-            GAP elements need to be finite field elements:
+        GAP elements need to be finite field elements::
 
             sage: from sage.rings.finite_rings.finite_field_givaro import FiniteField_givaro
             sage: x = gap('Z(13)')

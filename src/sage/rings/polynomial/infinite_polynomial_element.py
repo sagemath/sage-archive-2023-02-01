@@ -565,9 +565,12 @@ class InfinitePolynomial_sparse(RingElement):
             Infinite polynomial ring in x over Rational Field
 
         """
-        if x._p not in self.base_ring():
+#        if x._p not in self.base_ring():
+        try:
+            p = self.base_ring()(x._p)
+        except TypeError:
             raise NotImplementedError, "Fraction Fields of Infinite Polynomial Rings are not implemented"
-        divisor = self.base_ring().one_element()/x._p # use induction...
+        divisor = self.base_ring().one_element()/p # use induction...
         OUTP = self.parent().tensor_with_ring(divisor.base_ring())
         return OUTP(self)*OUTP(divisor)
 

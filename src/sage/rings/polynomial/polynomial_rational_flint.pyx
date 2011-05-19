@@ -101,6 +101,46 @@ cdef class Polynomial_rational_flint(Polynomial):
         res._is_gen = 0
         return res
 
+    cpdef Polynomial _new_constant_poly(self, x, Parent P):
+        r"""
+        Quickly creates a new constant polynomial with value x in parent P
+
+        ASSUMPTION:
+
+        x must be a rational or convertible to an int.
+
+        EXAMPLE::
+
+        sage: R.<x> = QQ[]
+            sage: x._new_constant_poly(2/1,R)
+            2
+            sage: x._new_constant_poly(2,R)
+            2
+            sage: x._new_constant_poly("2",R)
+            2
+            sage: x._new_constant_poly("2.1",R)
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid literal for int() with base 10: '2.1'
+
+        """
+        cdef Polynomial_rational_flint res = PY_NEW(Polynomial_rational_flint)
+        res._parent = P
+        res._is_gen = <char>0
+        if PY_TYPE_CHECK(x, int):
+            fmpq_poly_set_si(res.__poly, <int> x)
+
+        elif PY_TYPE_CHECK(x, Integer):
+            fmpq_poly_set_mpz(res.__poly, (<Integer> x).value)
+
+        elif PY_TYPE_CHECK(x, Rational):
+            fmpq_poly_set_mpq(res.__poly, (<Rational> x).value)
+
+        else:
+            fmpq_poly_set_si(res.__poly, int(x))
+        return res
+
+
     def __cinit__(self):
         """
         Initialises the underlying data structure.

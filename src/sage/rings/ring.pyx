@@ -361,7 +361,7 @@ cdef class Ring(ParentWithGens):
                 break
 
         if len(gens) == 0:
-            gens = [self(0)]
+            gens = [self.zero_element()]
 
         if coerce:
             #print [type(g) for g in gens]
@@ -492,7 +492,7 @@ cdef class Ring(ParentWithGens):
             True
         """
         if self._zero_ideal is None:
-            I = Ring.ideal(self, [self(0)], coerce=False)
+            I = Ring.ideal(self, [self.zero_element()], coerce=False)
             self._zero_ideal = I
             return I
         return self._zero_ideal

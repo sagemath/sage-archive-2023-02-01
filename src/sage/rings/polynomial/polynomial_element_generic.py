@@ -88,7 +88,9 @@ class Polynomial_generic_sparse(Polynomial):
                 w = {}
                 for n, c in x.dict().iteritems():
                     w[n] = R(c)
-                #raise TypeError, "Cannot coerce %s into %s."%(x, parent)
+                # The following line has been added in trac ticket #9944.
+                # Apparently, the "else" case has never occured before.
+                x = w
         elif isinstance(x, list):
             y = {}
             for i in xrange(len(x)):
@@ -418,6 +420,7 @@ class Polynomial_generic_sparse(Polynomial):
             x^100000 + 4*x^75000 + 3*x
 
         AUTHOR:
+
         - David Harvey (2006-08-05)
         """
         output = dict(self.__coeffs)

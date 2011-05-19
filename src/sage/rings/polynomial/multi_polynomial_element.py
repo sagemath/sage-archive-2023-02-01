@@ -335,6 +335,24 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             x = polydict.PolyDict(x, parent.base_ring()(0), remove_zero=True)
         MPolynomial_element.__init__(self, parent, x)
 
+    def _new_constant_poly(self, x, P):
+        """
+        Quickly create a new constant polynomial with value x in parent P.
+
+        ASSUMPTION:
+
+        x must be an element of the base ring of P. That assumption is
+        not verified.
+
+        EXAMPLE::
+
+            sage: R.<x,y> = QQ['t'][]
+            sage: x._new_constant_poly(R.base_ring()(2),R)
+            2
+
+        """
+        return MPolynomial_polydict(P, {P._zero_tuple:x})
+
     def __neg__(self):
         """
         EXAMPLES::

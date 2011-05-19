@@ -77,6 +77,23 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             sage: R.<x> = PolynomialRing(K,implementation='NTL')
             sage: x^2+a
             x^2 + a
+
+        TEST:
+
+        The following tests against a bug that was fixed in trac ticket #9944.
+        With the ring definition above, we now have::
+
+            sage: R([3,'1234'])
+            1234*x + 3
+            sage: R([3,'12e34'])
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert '12e34' into the base ring
+            sage: R([3,x])
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert x into the base ring
+
         """
         cdef cparent _parent
         cdef ntl_ZZ_pE d
@@ -97,12 +114,20 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             celement_construct(&self.x, _parent)
             K = parent.base_ring()
             for i,e in enumerate(x):
-                if not hasattr(e,'polynomial'):
+                try:
+                    e_polynomial = e.polynomial()
+                except (AttributeError, TypeError):
+                    # A type error may occur, since sometimes
+                    # e.polynomial expects an additional argument
                     try:
-                        e = K.coerce(e)
-                    except:
-                        TypeError("unable to coerce this value to the base ring")
-                d = parent._modulus.ZZ_pE(list(e.polynomial()))
+                        # self(x) is supposed to be a conversion,
+                        # not necessarily a coercion. So, we must
+                        # not do K.coerce(e) but K(e).
+                        e = K(e) # K.coerce(e)
+                        e_polynomial = e.polynomial()
+                    except TypeError:
+                        raise TypeError, "unable to convert %s into the base ring"%repr(e)
+                d = parent._modulus.ZZ_pE(list(e_polynomial))
                 ZZ_pEX_SetCoeff(self.x, i, d.x)
             return
 

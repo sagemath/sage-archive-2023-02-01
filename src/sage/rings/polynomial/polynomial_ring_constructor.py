@@ -4,7 +4,7 @@ Constructors for polynomial rings
 This module provides the function :func:`PolynomialRing`, which constructs
 rings of univariate and multivariate polynomials, and implements caching to
 prevent the same ring being created in memory multiple times (which is
-wasteful).
+wasteful and breaks the general assumption in Sage that parents are unique).
 
 There is also a function :func:`BooleanPolynomialRing_constructor`, used for
 constructing Boolean polynomial rings, which are not technically polynomial
@@ -82,6 +82,17 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
       where Sage includes multiple choices (currently `\ZZ[x]` can be
       implemented with 'NTL' or 'FLINT'; default is 'FLINT')
 
+    NOTE:
+
+    The following rules were introduced in trac ticket #9944, in order
+    to preserve the "unique parent assumption" in Sage (i.e., if two
+    parents evaluate equal then they should actually be identical).
+
+    - In the multivariate case, a dense representation is not supported. Hence,
+      the argument ``sparse=False`` is silently ignored in that case.
+    - If the given implementation does not exist for rings with the given number
+      of generators and the given sparsity, then an error results.
+
     OUTPUT:
 
     ``PolynomialRing(base_ring, name, sparse=False)`` returns a univariate
@@ -106,7 +117,8 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
 
         You can't just globally change the names of those variables.
         This is because objects all over Sage could have pointers to
-        that polynomial ring. ::
+        that polynomial ring.
+        ::
 
             sage: R._assign_names(['z','w'])
             Traceback (most recent call last):
@@ -120,7 +132,8 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
             ...
             z^2 - 2*w^2
 
-        After the ``with`` block the names revert to what they were before. ::
+        After the ``with`` block the names revert to what they were before.
+        ::
 
             sage: print f
             x^2 - 2*y^2
@@ -189,7 +202,8 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
        integers, one based on NTL and one based on FLINT.  The default
        is FLINT. Note that FLINT uses a "more dense" representation for
        its polynomials than NTL, so in particular, creating a polynomial
-       like 2^1000000 * x^1000000 in FLINT may be unwise. ::
+       like 2^1000000 * x^1000000 in FLINT may be unwise.
+       ::
 
         sage: ZxNTL = PolynomialRing(ZZ, 'x', implementation='NTL'); ZxNTL
         Univariate Polynomial Ring in x over Integer Ring (using NTL)
@@ -206,16 +220,17 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
         sage: xFLINT.parent()
         Univariate Polynomial Ring in x over Integer Ring
 
-       There is a coercion between the two rings, so the values can be
-       mixed in a single expression. ::
+       There is a coercion from the non-default to the default
+       implementation, so the values can be mixed in a single
+       expression::
 
         sage: (xNTL + xFLINT^2)
         x^2 + x
 
-       Unfortunately, it is unpredictable whether the result of such an
-       expression will use the NTL or FLINT implementation. ::
+       The result of such an expression will use the default, i.e.,
+       the FLINT implementation::
 
-        sage: (xNTL + xFLINT^2).parent()        # random output
+        sage: (xNTL + xFLINT^2).parent()
         Univariate Polynomial Ring in x over Integer Ring
 
     2. ``PolynomialRing(base_ring, names,   order='degrevlex')``
@@ -299,6 +314,41 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
         Defining x2, x3, x5, x7, x11, x13, x17, x19, x23, x29, x31, x37, x41, x43, x47, x53, x59, x61, x67, x71, x73, x79, x83, x89, x97
         sage: (x2 + x41 + x71)^2
         x2^2 + 2*x2*x41 + x41^2 + 2*x2*x71 + 2*x41*x71 + x71^2
+
+    TESTS:
+
+    We test here some changes introduced in #9944.
+
+    If there is no dense implementation for the given number of
+    variables, then requesting a dense ring results yields the
+    corresponding sparse ring::
+
+        sage: R.<x,y> = QQ[]
+        sage: S.<x,y> = PolynomialRing(QQ, sparse=False)
+        sage: R is S
+        True
+
+    If the requested implementation is not known or not supported for
+    the given number of variables and the given sparsity, then an
+    error results::
+
+        sage: R.<x> = PolynomialRing(ZZ, implementation='Foo')
+        Traceback (most recent call last):
+        ...
+        ValueError: Unknown implementation Foo for ZZ[x]
+        sage: R.<x,y> = PolynomialRing(ZZ, implementation='FLINT')
+        Traceback (most recent call last):
+        ...
+        ValueError: The FLINT implementation is not known for multivariate polynomial rings
+
+    The following corner case used to result in a warning message from
+    ``libSingular``, and the generators of the resulting polynomial
+    ring were not zero::
+
+        sage: R = Integers(1)['x','y']
+        sage: R.0 == 0
+        True
+
     """
     import sage.rings.polynomial.polynomial_ring as m
 
@@ -332,7 +382,7 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
             raise TypeError, "You *must* specify the names of the variables."
         n = int(arg2)
         names = arg1
-        R = _multi_variate(base_ring, names, n, sparse, order)
+        R = _multi_variate(base_ring, names, n, sparse, order, implementation)
 
     elif isinstance(arg1, str) or (isinstance(arg1, (list,tuple)) and len(arg1) == 1):
         if not ',' in arg1:
@@ -347,12 +397,12 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
                 raise TypeError, "invalid input to PolynomialRing function; please see the docstring for that function"
             names = arg1.split(',')
             n = len(names)
-            R = _multi_variate(base_ring, names, n, sparse, order)
+            R = _multi_variate(base_ring, names, n, sparse, order, implementation)
     elif isinstance(arg1, (list, tuple)):
             # PolynomialRing(base_ring, names (list or tuple), order='degrevlex'):
             names = arg1
             n = len(names)
-            R = _multi_variate(base_ring, names, n, sparse, order)
+            R = _multi_variate(base_ring, names, n, sparse, order, implementation)
 
     if arg1 is None and arg2 is None:
         raise TypeError, "you *must* specify the indeterminates (as not None)."
@@ -376,11 +426,11 @@ def MPolynomialRing(*args, **kwds):
 
 def _get_from_cache(key):
     try:
-        if _cache.has_key(key):
-            return _cache[key] #()
+        return _cache[key] #()
     except TypeError, msg:
         raise TypeError, 'key = %s\n%s'%(key,msg)
-    return None
+    except KeyError:
+        return None
 
 def _save_in_cache(key, R):
     try:
@@ -393,7 +443,7 @@ def _save_in_cache(key, R):
 def _single_variate(base_ring, name, sparse, implementation):
     import sage.rings.polynomial.polynomial_ring as m
     name = normalize_names(1, name)
-    key = (base_ring, name, sparse, implementation)
+    key = (base_ring, name, sparse, implementation if not sparse else None)
     R = _get_from_cache(key)
     if not R is None: return R
 
@@ -437,7 +487,17 @@ def _single_variate(base_ring, name, sparse, implementation):
         _save_in_cache(key, R)
     return R
 
-def _multi_variate(base_ring, names, n, sparse, order):
+def _multi_variate(base_ring, names, n, sparse, order, implementation):
+#    if not sparse:
+#        raise ValueError, "A dense representation of multivariate polynomials is not supported"
+    sparse = False
+    # "True" would be correct, since there is no dense implementation of
+    # multivariate polynomials. However, traditionally, "False" is used in the key,
+    # even though it is meaningless.
+
+    if implementation is not None:
+        raise ValueError, "The %s implementation is not known for multivariate polynomial rings"%implementation
+
     names = normalize_names(n, names)
 
     import sage.rings.polynomial.multi_polynomial_ring as m
@@ -460,11 +520,13 @@ def _multi_variate(base_ring, names, n, sparse, order):
             except ( TypeError, NotImplementedError ):
                 R = m.MPolynomialRing_polydict_domain(base_ring, n, names, order)
     else:
-        try:
-            R = MPolynomialRing_libsingular(base_ring, n, names, order)
-        except ( TypeError, NotImplementedError ):
+        if not base_ring.is_zero():
+            try:
+                R = MPolynomialRing_libsingular(base_ring, n, names, order)
+            except ( TypeError, NotImplementedError ):
+                R = m.MPolynomialRing_polydict(base_ring, n, names, order)
+        else:
             R = m.MPolynomialRing_polydict(base_ring, n, names, order)
-
     _save_in_cache(key, R)
     return R
 

@@ -565,7 +565,7 @@ class PolynomialFunctor(ConstructionFunctor):
     """
     Construction functor for univariate polynomial rings.
 
-    EXAMPLE:
+    EXAMPLE::
 
         sage: P = ZZ['t'].construction()[0]
         sage: P(GF(3))
@@ -577,10 +577,29 @@ class PolynomialFunctor(ConstructionFunctor):
         sage: P(f)((x+y)*P(R).0)
         (-x + y)*t
 
+    By trac ticket #9944, the construction functor distinguishes sparse and
+    dense polynomial rings. Before, the following example failed::
+
+        sage: R.<x> = PolynomialRing(GF(5), sparse=True)
+        sage: F,B = R.construction()
+        sage: F(B) is R
+        True
+        sage: S.<x> = PolynomialRing(ZZ)
+        sage: R.has_coerce_map_from(S)
+        False
+        sage: S.has_coerce_map_from(R)
+        False
+        sage: S.0 + R.0
+        2*x
+        sage: (S.0 + R.0).parent()
+        Univariate Polynomial Ring in x over Finite Field of size 5
+        sage: (S.0 + R.0).parent().is_sparse()
+        False
+
     """
     rank = 9
 
-    def __init__(self, var, multi_variate=False):
+    def __init__(self, var, multi_variate=False, sparse=False):
         """
         TESTS::
 
@@ -603,6 +622,7 @@ class PolynomialFunctor(ConstructionFunctor):
         Functor.__init__(self, Rings(), Rings())
         self.var = var
         self.multi_variate = multi_variate
+        self.sparse = sparse
 
     def _apply_functor(self, R):
         """
@@ -616,7 +636,7 @@ class PolynomialFunctor(ConstructionFunctor):
 
         """
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        return PolynomialRing(R, self.var)
+        return PolynomialRing(R, self.var, sparse=self.sparse)
 
     def __cmp__(self, other):
         """
@@ -667,7 +687,10 @@ class PolynomialFunctor(ConstructionFunctor):
         if isinstance(other, MultiPolynomialFunctor):
             return other.merge(self)
         elif self == other:
-            return self
+            # i.e., they only differ in sparsity
+            if not self.sparse:
+                return self
+            return other
         else:
             return None
 
@@ -2244,8 +2267,11 @@ class QuotientFunctor(ConstructionFunctor):
             Q = R.quo(I,names=self.names)
         except IndexError: # That may happen!
             raise CoercionException, "Can not apply this quotient functor to %s"%R
-        if self.as_field and hasattr(Q, 'field'):
-            Q = Q.field()
+        if self.as_field:# and hasattr(Q, 'field'):
+            try:
+                Q = Q.field()
+            except AttributeError:
+                pass
         return Q
 
     def __cmp__(self, other):
@@ -2676,10 +2702,12 @@ class AlgebraicClosureFunctor(ConstructionFunctor):
             sage: F(QQ)       # indirect doctest
             Algebraic Field
         """
-        if hasattr(R,'construction'):
+        try:
             c = R.construction()
             if c is not None and c[0]==self:
                 return R
+        except AttributeError:
+            pass
         return R.algebraic_closure()
 
     def merge(self, other):

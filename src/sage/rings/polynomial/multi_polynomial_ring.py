@@ -159,7 +159,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
         if n:
             from sage.rings.polynomial.polynomial_element import PolynomialBaseringInjection
             base_inject = PolynomialBaseringInjection(base_ring, self)
-            self.register_conversion(base_inject)
+            self.register_coercion(base_inject)
 
     def _monomial_order_function(self):
         return self.__monomial_order_function

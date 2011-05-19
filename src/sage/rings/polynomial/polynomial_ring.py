@@ -14,7 +14,10 @@ AUTHOR:
 
 - Martin Albrecht (2006-08-25): removed it again as it isn't needed anymore
 
+- Simon King (2011-05): Dense and sparse polynomial rings must not be equal.
+
 EXAMPLES:
+
 Creating a polynomial ring injects the variable into the interpreter namespace::
 
     sage: z = QQ['z'].0
@@ -32,11 +35,7 @@ Saving and loading of polynomial rings works::
     sage: k = PolynomialRing(ZZ,'y', sparse=True); loads(dumps(k))
     Sparse Univariate Polynomial Ring in y over Integer Ring
 
-The rings of sparse and dense polynomials in the same variable are
-canonically isomorphic::
-
-    sage: PolynomialRing(ZZ,'y', sparse=True) == PolynomialRing(ZZ,'y')
-    True
+Rings with different variable names are not equal::
 
     sage: QQ['y'] < QQ['x']
     False
@@ -57,6 +56,58 @@ We create a polynomial ring over a quaternion algebra::
     w^2 + (i + j)*w + k
     sage: g * f
     w^2 + (i + j)*w - k
+
+Trac ticket #9944 introduced some changes related with
+coercion. Previously, a dense and a sparse polynomial ring with the
+same variable name over the same base ring evaluated equal, but of
+course they were not identical.Coercion maps are cached - but if a
+coercion to a dense ring is requested and a coercion to a sparse ring
+is returned instead (since the cache keys are equal!), all hell breaks
+loose.
+
+Therefore, the coercion between rings of sparse and dense polynomials
+works as follows::
+
+    sage: R.<x> = PolynomialRing(QQ, sparse=True)
+    sage: S.<x> = QQ[]
+    sage: S == R
+    False
+    sage: S.has_coerce_map_from(R)
+    True
+    sage: R.has_coerce_map_from(S)
+    False
+    sage: (R.0+S.0).parent()
+    Univariate Polynomial Ring in x over Rational Field
+    sage: (S.0+R.0).parent()
+    Univariate Polynomial Ring in x over Rational Field
+
+It may be that one has rings of dense or sparse polynomials over
+different base rings. In that situation, coercion works by means of
+the :func:`~sage.categories.pushout.pushout` formalism::
+
+    sage: R.<x> = PolynomialRing(GF(5), sparse=True)
+    sage: S.<x> = PolynomialRing(ZZ)
+    sage: R.has_coerce_map_from(S)
+    False
+    sage: S.has_coerce_map_from(R)
+    False
+    sage: S.0 + R.0
+    2*x
+    sage: (S.0 + R.0).parent()
+    Univariate Polynomial Ring in x over Finite Field of size 5
+    sage: (S.0 + R.0).parent().is_sparse()
+    False
+
+Similarly, there is a coercion from the (non-default) NTL
+implementation for univariate polynomials over the integers
+to the default FLINT implementation, but not vice versa::
+
+    sage: R.<x> = PolynomialRing(ZZ, implementation = 'NTL')
+    sage: S.<x> = PolynomialRing(ZZ, implementation = 'FLINT')
+    sage: (S.0+R.0).parent() is S
+    True
+    sage: (R.0+S.0).parent() is S
+    True
 
 TESTS::
 
@@ -108,9 +159,12 @@ import sage.rings.rational_field as rational_field
 from sage.rings.integer_ring import is_IntegerRing, IntegerRing
 from sage.rings.integer import Integer
 from sage.libs.pari.all import pari_gen
+
 import sage.misc.defaults
 import sage.misc.latex as latex
 from sage.misc.prandom import randint
+from sage.misc.cachefunc import cached_method
+
 from sage.rings.real_mpfr import is_RealField
 from polynomial_real_mpfr_dense import PolynomialRealDense
 from sage.rings.polynomial.polynomial_singular_interface import PolynomialRing_singular_repr
@@ -233,7 +287,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
     def _element_constructor_(self, x=None, check=True, is_gen = False, construct=False, **kwds):
         r"""
-        Coerce ``x`` into this univariate polynomial ring,
+        Convert ``x`` into this univariate polynomial ring,
         possibly non-canonically.
 
         Stacked polynomial rings coerce into constants if possible. First,
@@ -287,6 +341,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             -y
 
         TESTS:
+
         This shows that the issue at trac #4106 is fixed::
 
             sage: x = var('x')
@@ -296,18 +351,34 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             x
         """
         C = self._polynomial_class
+        if isinstance(x, list):
+            return C(self, x, check=check, is_gen=False,construct=construct)
         if isinstance(x, Element):
             P = x.parent()
             if P is self:
                 return x
+            elif P is self.base_ring():
+                # It *is* the base ring, hence, we should not need to check.
+                # Moreover, if x is equal to zero then we usually need to
+                # provide [] to the polynomial class, not [x], if we don't want
+                # to check (normally, polynomials like to strip trailing zeroes).
+                # However, in the padic case, we WANT that trailing
+                # zeroes are not stripped, because O(5)==0, but still it must
+                # not be forgotten. It should be the job of the __init__ method
+                # to decide whether to strip or not to strip.
+                return C(self, [x], check=False, is_gen=False,
+                         construct=construct)
             elif P == self.base_ring():
                 return C(self, [x], check=True, is_gen=False,
-                        construct=construct)
+                         construct=construct)
+
             elif self.base_ring().has_coerce_map_from(P):
                 return C(self, [x], check=True, is_gen=False,
                         construct=construct)
-        if hasattr(x, '_polynomial_'):
+        try: #if hasattr(x, '_polynomial_'):
             return x._polynomial_(self)
+        except AttributeError:
+            pass
         if isinstance(x, SingularElement) and self._has_singular:
             self._singular_().set_ring()
             try:
@@ -333,7 +404,6 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
                 raise TypeError, "denominator must be a unit"
             if x.type() != 't_POL':
                 x = x.Polrev()
-
         return C(self, x, check, is_gen, construct=construct, **kwds)
 
     def is_integral_domain(self, proof = True):
@@ -352,7 +422,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
     def construction(self):
         from sage.categories.pushout import PolynomialFunctor
-        return PolynomialFunctor(self.variable_name()), self.base_ring()
+        return PolynomialFunctor(self.variable_name(), sparse=self.__is_sparse), self.base_ring()
 
     def completion(self, p, prec=20, extras=None):
         """
@@ -393,7 +463,11 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         - any ring that canonically coerces to the base ring of this ring.
 
         - polynomial rings in the same variable over any base ring that
-          canonically coerces to the base ring of this ring
+          canonically coerces to the base ring of this ring.
+
+        Caveat: There is no coercion from a dense into a sparse
+        polynomial ring. So, when adding a dense and a sparse
+        polynomial, the result will be dense. See trac ticket #9944.
 
         EXAMPLES::
 
@@ -420,6 +494,17 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
                       Polynomial base injection morphism:
                       From: Rational Field
                       To:   Univariate Polynomial Ring in x over Rational Field
+
+        Here we test against the change in the coercions introduced
+        in trac ticket #9944::
+
+            sage: R.<x> = PolynomialRing(QQ, sparse=True)
+            sage: S.<x> = QQ[]
+            sage: (R.0+S.0).parent()
+            Univariate Polynomial Ring in x over Rational Field
+            sage: (S.0+R.0).parent()
+            Univariate Polynomial Ring in x over Rational Field
+
         """
         # handle constants that canonically coerce into self.base_ring()
         # first, if possible
@@ -434,6 +519,8 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         # coerces into self.base_ring()
         try:
             if is_PolynomialRing(P):
+                if self.__is_sparse and not P.is_sparse():
+                    return False
                 if P.variable_name() == self.variable_name():
                     if P.base_ring() is self.base_ring() and \
                             self.base_ring() is ZZ_sage:
@@ -566,21 +653,39 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             # of the polynomial ring canonically coerce into codomain.
             # Since poly rings are free, any image of the gen
             # determines a homomorphism
-            codomain.coerce(self.base_ring()(1))
+            codomain.coerce(self.base_ring().one_element())
         except TypeError:
             return False
         return True
 
-    def __cmp__(left, right):
-        c = cmp(type(left),type(right))
-        if c: return c
-        return cmp((left.base_ring(), left.variable_name()), (right.base_ring(), right.variable_name()))
+#    Polynomial rings should be unique parents. Hence,
+#    no need for __cmp__. Or actually, having a __cmp__
+#    method that identifies a dense with a sparse ring
+#    is a bad bad idea!
+#    def __cmp__(left, right):
+#        c = cmp(type(left),type(right))
+#        if c: return c
+#        return cmp((left.base_ring(), left.variable_name()), (right.base_ring(), right.variable_name()))
+
+    def __hash__(self):
+        # should be faster than just relying on the string representation
+        try:
+            return self._cached_hash
+        except AttributeError:
+            pass
+        h = self._cached_hash = hash((self.base_ring(),self.variable_name()))
+        return h
 
     def _repr_(self):
+        try:
+            return self._cached_repr
+        except AttributeError:
+            pass
         s = "Univariate Polynomial Ring in %s over %s"%(
                 self.variable_name(), self.base_ring())
         if self.is_sparse():
             s = "Sparse " + s
+        self._cached_repr = s
         return s
 
     def _latex_(self):
@@ -969,7 +1074,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         Refer to monics() for full documentation.
         """
         base = self.base_ring()
-        for coeffs in sage.misc.mrange.xmrange_iter([[base(1)]]+[base]*of_degree):
+        for coeffs in sage.misc.mrange.xmrange_iter([[base.one_element()]]+[base]*of_degree):
             # Each iteration returns a *new* list!
             # safe to mutate the return
             coeffs.reverse()
@@ -988,8 +1093,9 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         Refer to polynomials() for full documentation.
         """
         base = self.base_ring()
+        base0 = base.zero_element()
         for leading_coeff in base:
-            if leading_coeff != base(0):
+            if leading_coeff != base0:
                 for lt1 in sage.misc.mrange.xmrange_iter([base]*(of_degree)):
                     # Each iteration returns a *new* list!
                     # safe to mutate the return
@@ -1208,7 +1314,7 @@ class PolynomialRing_integral_domain(PolynomialRing_commutative, integral_domain
                     element_class = Polynomial_integer_dense_flint
                     self._implementation_names = (None, 'FLINT')
                 else:
-                    raise ValueError, "Unknown implementation %s for ZZ[x]"
+                    raise ValueError, "Unknown implementation %s for ZZ[x]"%implementation
         PolynomialRing_commutative.__init__(self, base_ring, name=name,
                 sparse=sparse, element_class=element_class)
 

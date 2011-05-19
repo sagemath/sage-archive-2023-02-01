@@ -12,6 +12,7 @@ include "../../libs/flint/fmpz_poly.pxi"
 include "../../libs/flint/fmpq_poly.pxd"
 
 from sage.rings.polynomial.polynomial_element cimport Polynomial
+from sage.structure.parent cimport Parent
 
 cdef class Polynomial_rational_flint(Polynomial):
     cdef fmpq_poly_t __poly

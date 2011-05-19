@@ -176,6 +176,7 @@ classical) does not apply.
 
 from sage.matrix.all        import matrix, MatrixSpace, diagonal_matrix
 from sage.misc.misc         import verbose
+from sage.misc.cachefunc    import cached_method
 from sage.modular.all       import (DirichletGroup, trivial_character, EtaProduct,
                                     j_invariant_qexp, hecke_operator_on_qexp)
 from sage.modular.arithgroup.all import (Gamma1, is_Gamma0, is_Gamma1)
@@ -621,6 +622,8 @@ class OverconvergentModularFormsSpace(Module_old):
 
     #####################################
     # Element construction and coercion #
+    #   (unfortunately not using        #
+    #    the new coercion model)        #
     #####################################
 
     def __call__(self, input):
@@ -721,6 +724,19 @@ class OverconvergentModularFormsSpace(Module_old):
 
         else:
             raise TypeError, "Don't know how to create an overconvergent modular form from %s" % input
+
+    @cached_method
+    def zero_element(self):
+        """
+        Return the zero of this space.
+
+        EXAMPLE::
+
+            sage: K.<w> = Qp(13).extension(x^2-13); M = OverconvergentModularForms(13, 20, radius=1/2, base_ring=K)
+            sage: K.zero_element()
+            0
+        """
+        return self(0)
 
     def _coerce_from_ocmf(self, f):
         r"""

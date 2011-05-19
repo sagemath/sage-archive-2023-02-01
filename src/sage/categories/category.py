@@ -989,9 +989,9 @@ class Category(UniqueRepresentation, SageObject):
             Category of hom sets in Category of sets
 
         """
-        if hasattr(self, "HomCategory"):
+        try: #if hasattr(self, "HomCategory"):
             return self.HomCategory(self)
-        else:
+        except AttributeError:
             return Category.join((category.hom_category() for category in self.super_categories()))
 
     def abstract_category(self):

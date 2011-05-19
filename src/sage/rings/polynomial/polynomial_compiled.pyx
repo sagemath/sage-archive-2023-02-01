@@ -114,6 +114,9 @@ cdef class CompiledPolynomialFunction:
     def __repr__(self):
         return "CompiledPolynomialFunction(%s)"%(self._dag)
 
+    def __call__(self, x):
+        return self.eval(x)
+
     cdef object eval(CompiledPolynomialFunction self, object x):
         cdef object temp
         try:

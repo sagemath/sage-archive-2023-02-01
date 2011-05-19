@@ -37,6 +37,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
             (1 + O(13^7))*t + (2 + O(13^7))
         """
         Polynomial.__init__(self, parent, is_gen=is_gen)
+        parentbr = parent.base_ring()
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         if construct:
             (self._poly, self._valbase, self._relprecs, self._normalized, self._valaddeds, self._list) = x #the last two of these may be None
@@ -45,7 +46,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
             self._poly = PolynomialRing(ZZ, parent.variable_name()).gen()
             self._valbase = 0
             self._valaddeds = [infinity, 0]
-            self._relprecs = [infinity, parent.base_ring().precision_cap()]
+            self._relprecs = [infinity, parentbr.precision_cap()]
             self._normalized = True
             self._list = None
             return
@@ -75,8 +76,8 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
             elif x.base_ring() is ZZ:
                 self._poly = x
                 self._valbase = Integer(0)
-                p = parent.base_ring().prime()
-                self._relprecs = [c.valuation(p) + parent.base_ring().precision_cap() for c in x.list()]
+                p = parentbr.prime()
+                self._relprecs = [c.valuation(p) + parentbr.precision_cap() for c in x.list()]
                 self._comp_valaddeds()
                 self._normalized = len(self._valaddeds) == 0 or (min(self._valaddeds) == 0)
                 self._list = None
@@ -84,24 +85,28 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
                     self._adjust_prec_info(absprec, relprec)
                 return
             else:
-                x = [parent.base_ring()(a) for a in x.list()]
+                x = [parentbr(a) for a in x.list()]
                 check = False
         elif isinstance(x, dict):
-            zero = parent.base_ring()(0)
+            zero = parentbr.zero_element()
             n = max(x.keys())
             v = [zero for _ in xrange(n + 1)]
             for i, z in x.iteritems():
                 v[i] = z
             x = v
         elif isinstance(x, pari_gen):
-            x = [parent.base_ring()(w) for w in x.Vecrev()]
+            x = [parentbr(w) for w in x.Vecrev()]
             check = False
         #The default behavior if we haven't already figured out what the type is is to assume it coerces into the base_ring as a constant polynomial
         elif not isinstance(x, list):
             x = [x] # constant polynomial
 
+        # In contrast to other polynomials, the zero element is not distinguished
+        # by having its list empty. Instead, it has list [0]
+        if not x:
+            x = [parentbr.zero_element()]
         if check:
-            x = [parent.base_ring()(z) for z in x]
+            x = [parentbr(z) for z in x]
 
         # Remove this -- for p-adics this is terrible, since it kills any non exact zero.
         #if len(x) == 1 and not x[0]:
@@ -124,6 +129,24 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
             self._normalized = True
             if not absprec is infinity or not relprec is infinity:
                 self._adjust_prec_info(absprec, relprec)
+
+    def _new_constant_poly(self, a, P):
+        """
+        Create a new constant polynomial in parent P with value a.
+
+        ASSUMPTION:
+
+        The value a must be an element of the base ring of P. That
+        assumption is not verified.
+
+        EXAMPLE::
+
+            sage: R.<t> = Zp(5)[]
+            sage: t._new_constant_poly(O(5),R)
+            (O(5))
+
+        """
+        return self.__class__(P,[a], check=False)
 
     def _normalize(self):
         # Currently slow: need to optimize

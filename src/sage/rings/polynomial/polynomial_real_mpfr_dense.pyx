@@ -42,12 +42,21 @@ cdef class PolynomialRealDense(Polynomial):
             sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
             sage: PolynomialRealDense(RR['x'], [1, int(2), RR(3), 4/1, pi])
             3.14159265358979*x^4 + 4.00000000000000*x^3 + 3.00000000000000*x^2 + 2.00000000000000*x + 1.00000000000000
+            sage: PolynomialRealDense(RR['x'], None)
+            0
+
         """
         Polynomial.__init__(self, parent, is_gen=is_gen)
         self._base_ring = parent._base
         cdef Py_ssize_t i, degree
         cdef int prec = self._base_ring.__prec
         cdef mp_rnd_t rnd = self._base_ring.rnd
+        if x is None:
+            self._coeffs = <mpfr_t*>sage_malloc(sizeof(mpfr_t)) # degree zero
+            mpfr_init2(self._coeffs[0], prec)
+            mpfr_set_si(self._coeffs[0], PyInt_AS_LONG(int(0)), rnd)
+            self._normalize()
+            return
         if is_gen:
             x = [0, 1]
         elif isinstance(x, (int, float, Integer, Rational, RealNumber)):

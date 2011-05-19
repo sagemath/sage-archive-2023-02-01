@@ -46,9 +46,15 @@ cdef class PowerSeries_poly(PowerSeries):
                 prec = (<PowerSeries_poly>f)._prec
                 f = R((<PowerSeries_poly>f).__f)
             else:
-                f = R(f, check=check)
+                if f:
+                    f = R(f, check=check)
+                else:
+                    f = R(None)
         else:
-            f = R(f, check=check)
+            if f:
+                f = R(f, check=check)
+            else: # None is supposed to yield zero
+                f = R(None)
 
         self.__f = f
         if check and not (prec is infinity):
@@ -79,7 +85,7 @@ cdef class PowerSeries_poly(PowerSeries):
 
             sage: A.<z> = RR[[]]
             sage: f = z - z^3 + O(z^10)
-            sage: f == loads(dumps(f)) # uses __reduce__
+            sage: f == loads(dumps(f)) # indirect doctest
             True
         """
         # do *not* delete old versions.

@@ -74,6 +74,7 @@ import sage.categories.homset
 import sage.modules.free_module_morphism
 import sage.matrix.all as matrix
 import free_module_morphism
+from inspect import isfunction
 
 from matrix_morphism import MatrixMorphism
 
@@ -95,8 +96,11 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
     def __call__(self, A, check=True):
         """
         INPUT:
-            A -- either a matrix or a list/tuple of images of generators
-            check -- bool (default: True)
+
+        - A -- either a matrix or a list/tuple of images of generators,
+          or a function returning elements of the codomain for elements
+          of the domain.
+        - check -- bool (default: True)
 
         If A is a matrix, then it is the matrix of this linear
         transformation, with respect to the basis for the domain and
@@ -104,6 +108,7 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
         identity morphism.
 
         EXAMPLES::
+
             sage: V = (QQ^3).span_of_basis([[1,1,0],[1,0,2]])
             sage: H = V.Hom(V); H
             Set of Morphisms from ...
@@ -119,16 +124,42 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
             True
             sage: phi(V.0) == V.1
             True
+
+        The following tests against a bug that was fixed in trac
+        ticket #9944. The method ``zero()`` calls this hom space with
+        a function, not with a matrix, and that case had previously
+        not been taken care of::
+
+            sage: V = span([[1/2,1,1],[3/2,2,1],[0,0,1]],ZZ)
+            sage: V.Hom(V).zero()   # indirect doctest
+            Free module morphism defined by the matrix
+            [0 0 0]
+            [0 0 0]
+            [0 0 0]
+            Domain: Free module of degree 3 and rank 3 over Integer Ring
+            Echelon ...
+            Codomain: Free module of degree 3 and rank 3 over Integer Ring
+            Echelon ...
+
         """
         if not matrix.is_Matrix(A):
             # Compute the matrix of the morphism that sends the
             # generators of the domain to the elements of A.
             C = self.codomain()
-            try:
-                v = [C(a) for a in A]
-                A = matrix.matrix([C.coordinates(a) for a in v])
-            except TypeError:
-                pass
+            if isfunction(A):
+                try:
+                    v = [C(A(g)) for g in self.domain().gens()]
+                    A = matrix.matrix([C.coordinates(a) for a in v])
+                except TypeError, msg:
+                    # Let us hope that FreeModuleMorphism knows to handle that case
+                    pass
+            else:
+                try:
+                    v = [C(a) for a in A]
+                    A = matrix.matrix([C.coordinates(a) for a in v])
+                except TypeError, msg:
+                    # Let us hope that FreeModuleMorphism knows to handle that case
+                    pass
         return free_module_morphism.FreeModuleMorphism(self, A)
 
     def _matrix_space(self):
@@ -137,7 +168,8 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
         the homomorphisms in this free module homspace.
 
         OUTPUT:
-            - matrix space
+
+        - matrix space
 
         EXAMPLES::
 
@@ -158,7 +190,8 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
         Return a basis for this space of free module homomorphisms.
 
         OUTPUT:
-            - tuple
+
+        - tuple
 
         EXAMPLES::
 

@@ -46,10 +46,12 @@ def simon_two_descent(E, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, lim
     """
     Interface to Simon's gp script for two-descent.
 
-    NOTE:
+    .. NOTE::
+
        Users should instead run E.simon_two_descent()
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: import sage.schemes.elliptic_curves.gp_simon
         sage: E=EllipticCurve('389a1')
         sage: sage.schemes.elliptic_curves.gp_simon.simon_two_descent(E)
@@ -57,7 +59,8 @@ def simon_two_descent(E, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, lim
         sage: E.simon_two_descent()
         (2, 2, [(1 : 0 : 1), (-11/9 : -55/27 : 1)])
 
-    TESTS:
+    TESTS::
+
         sage: E = EllipticCurve('37a1').change_ring(QuadraticField(-11,'x'))
         sage: E.simon_two_descent()
         (1, 1, [(-1 : 0 : 1)])
@@ -103,6 +106,8 @@ def simon_two_descent(E, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, lim
     if verbose > 0:
         print s
     v = gp.eval('ans')
+    if v=='ans': # then the call to ellrank() or bnfellrank() failed
+        return 'fail'
     if verbose >= 2:
         print "v = ", v
     # pari represents field elements as Mod(poly, defining-poly)

@@ -1440,7 +1440,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E = EllipticCurve('5077a1')
             sage: set_random_seed(0)
             sage: E.simon_two_descent()
-            (3, 3, [(1 : 0 : 1), (0 : 2 : 1), (2 : -1 : 1)])
+            (3, 3, [(1 : -1 : 1), (2 : 0 : 1), (0 : 2 : 1)])
 
         In this example Simon's program does not find any points, though it
         does correctly compute the rank of the 2-Selmer group.
@@ -1463,7 +1463,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             (4, 4, [(4 : 3 : 1), (5 : -2 : 1), (6 : -1 : 1), (8 : 7 : 1)])
             sage: E = EllipticCurve([0, 0, 1, -79, 342])
             sage: set_random_seed(0)
-            sage: E.simon_two_descent()
+            sage: E.simon_two_descent()  # long time (9s on sage.math, 2011)
             (5, 5, [(5 : 8 : 1), (4 : 9 : 1), (3 : 11 : 1), (-1 : 20 : 1), (-6 : -25 : 1)])
             sage: E = EllipticCurve([1, 1, 0, -2582, 48720])
             sage: set_random_seed(0)
@@ -1490,10 +1490,16 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         t = simon_two_descent(self, verbose=verbose, lim1=lim1, lim3=lim3, limtriv=limtriv,
                               maxprob=maxprob, limbigprime=limbigprime)
+        if t=='fail':
+            raise RuntimeError, 'Run-time error in simon_two_descent.'
+        if verbose>0:
+            print "simon_two_descent returns", t
         rank_low_bd = rings.Integer(t[0])
         two_selmer_rank = rings.Integer(t[1])
         gens_mod_two = [self(P) for P in t[2]]
         if rank_low_bd == two_selmer_rank - self.two_torsion_rank():
+            if verbose>0:
+                print "Rank determined successfully, saturating..."
             gens = [P for P in gens_mod_two if P.has_infinite_order()]
             gens = self.saturation(gens)[0]
             self.__gens[True] = gens

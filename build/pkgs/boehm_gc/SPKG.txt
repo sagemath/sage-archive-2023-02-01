@@ -27,6 +27,10 @@ None. Sources in src are vanilla.
 
 == Changelog ==
 
+=== boehm_gc-7.1.p7 (Mike Hansen, Aug 17th 2010) ===
+ * ##9154: boehm_gc (still, still) fails to build on Cygwin
+   spkg-install tweaked to properly sed the Makefile generated
+
 === boehm_gc-7.1.p6 (David Kirkby, 20th June 2010) ===
  * #9067: boehmc_gc does not run self-tests when SAGE_CHECK=yes
    A spkg-check file was added for this purpose

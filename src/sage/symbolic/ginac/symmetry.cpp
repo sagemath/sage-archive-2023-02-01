@@ -22,6 +22,7 @@
 
 #include "symmetry.h"
 #include "lst.h"
+#include "add.h"
 #include "numeric.h" // for factorial()
 #include "operators.h"
 #include "archive.h"
@@ -494,7 +495,8 @@ static ex symm(const ex & e, exvector::const_iterator first, exvector::const_ite
 
 	// Loop over all permutations (the first permutation, which is the
 	// identity, is unrolled)
-	ex sum = e;
+	exvector sum_v;
+	sum_v.push_back(e);
 	while (std::next_permutation(iv, iv + num)) {
 		lst new_lst;
 		for (unsigned i=0; i<num; i++)
@@ -504,8 +506,9 @@ static ex symm(const ex & e, exvector::const_iterator first, exvector::const_ite
 			memcpy(iv2, iv, num * sizeof(unsigned));
 			term *= permutation_sign(iv2, iv2 + num);
 		}
-		sum += term;
+		sum_v.push_back(term);
 	}
+	ex sum = (new add(sum_v))->setflag(status_flags::dynallocated);
 
 	delete[] iv;
 	delete[] iv2;

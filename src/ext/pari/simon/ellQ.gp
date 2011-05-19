@@ -753,10 +753,20 @@ if( DEBUGLEVEL_ell >= 4, print("matrice des hauteurs = ",M));
   M = round( M*10^(default(realprecision)-10) );
   U = qflll(M,4);
   U = concat(U[1],U[2]);
-  limgoodrelations = 0;
-  while( limgoodrelations+1 <= d
-    && vecmax(abs(U[,limgoodrelations+1])) < 20, limgoodrelations++);
-  U = vecextract(U,1<<limgoodrelations-1);
+
+  /* BEGIN patch to work with PARI 2.4.4 */
+  /* AUTHORS: John Cremona, Jeroen Demeyer (Sage Trac #11130) */
+if( DEBUGLEVEL_ell >= 4, print("    change of basis proposed by LLL = ",U));
+  \\ The columns of U that have very small coefficients (coeff < 20)
+  \\ are either exact relations or reductions.  These are the ones we
+  \\ want to keep, the other ones are irrelevant.
+  keep = 0;
+  for( i = 1, d,
+    if( vecmax(abs(U[,i])) < 20, keep += 1<<(i-1))
+  );
+  U = vecextract(U, keep);
+  /* END patch from Sage Ticket #11130 to work with PARI 2.4.4 */
+
   U = completebasis(U);
 if( DEBUGLEVEL_ell >= 4, print("changement de base = ",U));
 

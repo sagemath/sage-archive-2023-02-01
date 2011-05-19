@@ -1060,6 +1060,22 @@ cdef class Parent(category_object.CategoryObject):
         to search through the elements, but a request by
         this method for the entire list should fail.
 
+        NOTE:
+
+        Some objects ``X`` do not know if they are finite or not. If
+        ``X.is_finite()`` fails with a ``NotImplementedError``, then
+        ``X.list()`` will simply try. In that case, it may run without
+        stopping.
+
+        However, if ``X`` knows that it is infinite, then running
+        ``X.list()`` will raise an appropriate error, while running
+        ``list(X)`` will run indefinitely.  For many Sage objects
+        ``X``, using ``X.list()`` is preferable to using ``list(X)``.
+
+        Nevertheless, since the whole list of elements is created and
+        cached by ``X.list()``, it may be better to do ``for x in
+        X:``, not ``for x in X.list():``.
+
         EXAMPLES::
 
             sage: R = Integers(11)
@@ -1089,22 +1105,48 @@ cdef class Parent(category_object.CategoryObject):
             sage: R.list()
             ['junk', 1, 2]
 
-        Some objects do not know if they are finite or not, and so a request
-        for the entire list of an infinite set could run without stopping.
-        Asking for ``F.list()`` below  will not finish without an interruption
-        like pressing Ctrl-C.  Try it. ::
+        Here we test that for an object that does not know whether it
+        is finite or not.  Calling ``X.list()`` simply tries to create
+        the list (but here it fails, since the object is not
+        iterable). This was fixed in trac ticket #11350::
 
-            sage: R.<t> = QQ[]
-            sage: F = FractionField(R)
-            sage: F.is_finite()
+            sage: R.<t,p> = QQ[]
+            sage: Q = R.quotient(t^2-t+1)
+            sage: Q.is_finite()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+            sage: Q.list()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: object does not support iteration
+
+        Here is another example. We artificially create a version of
+        the ring of integers that does not know whether it is finite
+        or not.
+        ::
+
+            sage: from sage.rings.integer_ring import IntegerRing_class
+            sage: class MyIntegers_class(IntegerRing_class):
+            ...        def is_finite(self):
+            ...            raise NotImplementedError
+            sage: MyIntegers = MyIntegers_class()
+            sage: MyIntegers.is_finite()
             Traceback (most recent call last):
             ...
             NotImplementedError
 
-        Note that if an object ``X`` is infinite, then running
-        ``X.list()`` will raise an appropriate error, while running
-        ``list(X)`` will run indefinitely.  For many Sage objects
-        ``X``, using ``X.list()`` is preferable to using ``list(X)``.
+        Asking for ``list(MyIntegers)`` below  will never finish without
+        pressing Ctrl-C.  We let it run for 1 second and then interrupt::
+
+            sage: try:
+            ...     alarm(1)
+            ...     list(MyIntegers)
+            ... except KeyboardInterrupt:
+            ...     print "Caught KeyboardInterrupt"
+            ...
+            Caught KeyboardInterrupt
+
         """
         try:
             if self._list is not None:
@@ -1116,7 +1158,7 @@ cdef class Parent(category_object.CategoryObject):
         try:
             if not self.is_finite():
                 raise ValueError('since it is infinite, cannot list %s' % self )
-        except AttributeError, NotImplementedError:
+        except (AttributeError, NotImplementedError):
             pass
         the_list = list(self.__iter__())
         try:

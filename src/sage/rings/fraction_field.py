@@ -331,6 +331,23 @@ class FractionField_generic(field.Field):
         """
         return True
 
+    def is_finite(self):
+        """
+        Tells whether this fraction field is finite.
+
+        .. NOTE::
+
+           A fraction field is finite if and only if the associated
+           integral domain is finite.
+
+        EXAMPLE::
+
+            sage: Frac(QQ['a','b','c']).is_finite()
+            False
+
+        """
+        return self._R.is_finite()
+
     def base_ring(self):
         """
         Return the base ring of self; this is the base ring of the ring

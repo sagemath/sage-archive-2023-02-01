@@ -45,13 +45,23 @@ all: doc # (already) indirectly depends on build
 build: $(PIPE)
 	cd spkg && "../$(PIPE)" "./install all 2>&1" "tee -a ../install.log"
 
+# You can choose to have the built HTML version of the documentation link to
+# the PDF version. To do so, you need to build both the HTML and PDF versions.
+# To have the HTML version link to the PDF version, do
+#
+# $ ./sage -docbuild all html
+# $ ./sage -docbuild all pdf
+#
+# For more information on the docbuild utility, do
+#
+# $ ./sage -docbuild -H
 doc: doc-html
 
 doc-html: build # (already) indirectly depends on $(PIPE)
-	$(PIPE) "./sage -docbuild all html $(SAGE_DOCBUILD_OPTS) 2>&1" "tee -a dochtml.log"
+	$(PIPE) "./sage -docbuild --no-pdf-links all html $(SAGE_DOCBUILD_OPTS) 2>&1" "tee -a dochtml.log"
 
 doc-html-jsmath: build # (already) indirectly depends on $(PIPE)
-	$(PIPE) "./sage -docbuild all html -j $(SAGE_DOCBUILD_OPTS) 2>&1" "tee -a dochtml.log"
+	$(PIPE) "./sage -docbuild --no-pdf-links all html -j $(SAGE_DOCBUILD_OPTS) 2>&1" "tee -a dochtml.log"
 
 doc-pdf: build # (already) indirectly depends on $(PIPE)
 	$(PIPE) "./sage -docbuild all pdf $(SAGE_DOCBUILD_OPTS) 2>&1" "tee -a docpdf.log"

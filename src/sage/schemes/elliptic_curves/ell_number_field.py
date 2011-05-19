@@ -714,7 +714,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             proof = sage.structure.proof.proof.get_flag(None, "number_field")
 
         if P is None:
-            primes = self.base_ring()(self.discriminant()).support()
+            primes = self.base_ring()(self.integral_model().discriminant()).support()
             return [self._get_local_data(pr, proof) for pr in primes]
 
         from sage.schemes.elliptic_curves.ell_local_data import check_prime
@@ -1260,7 +1260,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         # K==QQ it has to be ZZ.ideal(1).
         OK = self.base_ring().ring_of_integers()
         self._conductor = prod([d.prime()**(d.conductor_valuation()) \
-                                for d in self.integral_model().local_data()],\
+                                for d in self.local_data()],\
                                OK.ideal(1))
         return self._conductor
 

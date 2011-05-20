@@ -1,0 +1,10 @@
+--- setup.py	2007-09-04 19:18:46.000000000 +0300
++++ setup.py	2007-11-04 09:49:18.000000000 +0200
+@@ -26,7 +26,6 @@
+     url = "http://pypi.python.org/pypi/setuptools",
+     test_suite = 'setuptools.tests',
+     packages = find_packages(),
+-    package_data = {'setuptools':['*.exe']},
+ 
+     py_modules = ['pkg_resources', 'easy_install', 'site'],
+ 

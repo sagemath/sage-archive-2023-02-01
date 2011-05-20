@@ -23,6 +23,12 @@ PSF or ZPL. i.e Python Software Foundation License or Zope Public License
 
 == Changelog ==
 
+=== setuptools-0.6.16 (François Bissey, May 21, 2011) ===
+ * Update to 0.6.16, adopt a Gentoo patch to avoid warnings
+   with python-2.7 (works with 2.6 too).
+ * Remove the two windows binaries and patch so setup.py doesn't
+   try to install them.
+
 === setuptools-0.6c9 (Mike Hansen, February 19, 2008) ===
  * Update to 0.6c9
 

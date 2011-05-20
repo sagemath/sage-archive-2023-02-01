@@ -2,5 +2,8 @@
 
 cd src
 
+patch -p0 < ../patches/setuptools-noexecs.patch
+patch -p0 < ../patches/distribute-0.6.16-fix_deprecation_warnings.patch
+
 python setup.py install
 

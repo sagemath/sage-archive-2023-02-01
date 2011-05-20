@@ -507,9 +507,9 @@ def CPRFanoToricVariety(Delta=None,
         sage: (a^2+b^2) * (c+d)
         a^2*c + b^2*c + a^2*d + b^2*d
     """
-    if not names is None:
-        assert coordinate_names is None, \
-            'You must not specify both coordinate_names and names!'
+    if names is not None:
+        if coordinate_names is not None:
+            raise ValueError('You must not specify both coordinate_names and names!')
         coordinate_names = names
     # Check/normalize Delta_polar
     if Delta is None and Delta_polar is None:

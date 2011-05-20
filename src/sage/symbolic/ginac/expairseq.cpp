@@ -381,11 +381,22 @@ ex expairseq::conjugate() const
 
 bool expairseq::is_polynomial(const ex & var) const
 {
-	if (!is_exactly_a<add>(*this) && !is_exactly_a<mul>(*this))
+	if (is_exactly_a<add>(*this)) {
+		for (epvector::const_iterator i=seq.begin(); i!=seq.end(); ++i) {
+			if (!(i->rest).is_polynomial(var)) {
+				return false;
+			}
+		}
+	}
+	else if (is_exactly_a<mul>(*this)) {
+		for (epvector::const_iterator i=seq.begin(); i!=seq.end(); ++i) {
+			if (!(i->rest).is_polynomial(var) || !(i->coeff.info(info_flags::integer))) {
+				return false;
+			}
+		}
+	}
+	else {
 		return basic::is_polynomial(var);
-	for (epvector::const_iterator i=seq.begin(); i!=seq.end(); ++i) {
-		if (!(i->rest).is_polynomial(var))
-			return false;
 	}
 	return true;
 }

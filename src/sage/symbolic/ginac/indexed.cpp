@@ -811,6 +811,7 @@ ex simplify_indexed_product(const ex & e, exvector & free_indices, exvector & du
 
 	// Perform contractions
 	bool something_changed = false;
+	bool has_nonsymmetric = false;
 	GINAC_ASSERT(v.size() > 1);
 	exvector::iterator it1, itend = v.end(), next_to_last = itend - 1;
 	for (it1 = v.begin(); it1 != next_to_last; it1++) {
@@ -820,6 +821,7 @@ try_again:
 			continue;
 
 		bool first_noncommutative = (it1->return_type() != return_types::commutative);
+		bool first_nonsymmetric = ex_to<symmetry>(ex_to<indexed>(*it1).get_symmetry()).has_nonsymmetric();
 
 		// Indexed factor found, get free indices and look for contraction
 		// candidates
@@ -896,6 +898,11 @@ contraction_done:
 				something_changed = true;
 				goto try_again;
 			}
+			else if (!has_nonsymmetric &&
+					(first_nonsymmetric ||
+					 ex_to<symmetry>(ex_to<indexed>(*it2).get_symmetry()).has_nonsymmetric())) {
+				has_nonsymmetric = true;
+			}
 		}
 	}
 
@@ -949,20 +956,22 @@ contraction_done:
 	// The result should be symmetric with respect to exchange of dummy
 	// indices, so if the symmetrization vanishes, the whole expression is
 	// zero. This detects things like eps.i.j.k * p.j * p.k = 0.
-	ex q = idx_symmetrization<idx>(r, local_dummy_indices);
-	if (q.is_zero()) {
-		free_indices.clear();
-		return _ex0;
-	}
-	q = idx_symmetrization<varidx>(q, local_dummy_indices);
-	if (q.is_zero()) {
-		free_indices.clear();
-		return _ex0;
-	}
-	q = idx_symmetrization<spinidx>(q, local_dummy_indices);
-	if (q.is_zero()) {
-		free_indices.clear();
-		return _ex0;
+	if (has_nonsymmetric) {
+		ex q = idx_symmetrization<idx>(r, local_dummy_indices);
+		if (q.is_zero()) {
+			free_indices.clear();
+			return _ex0;
+		}
+		q = idx_symmetrization<varidx>(q, local_dummy_indices);
+		if (q.is_zero()) {
+			free_indices.clear();
+			return _ex0;
+		}
+		q = idx_symmetrization<spinidx>(q, local_dummy_indices);
+		if (q.is_zero()) {
+			free_indices.clear();
+			return _ex0;
+		}
 	}
 
 	// Dummy index renaming

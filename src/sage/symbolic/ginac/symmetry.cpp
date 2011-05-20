@@ -269,6 +269,18 @@ void symmetry::do_print_tree(const print_tree & c, unsigned level) const
 // non-virtual functions in this class
 //////////
 
+bool symmetry::has_nonsymmetric() const
+{
+	if (type == antisymmetric || type == cyclic)
+		return true;
+
+	for (exvector::const_iterator i=children.begin(); i!=children.end(); ++i)
+		if (ex_to<symmetry>(*i).has_nonsymmetric())
+			return true;
+
+	return false;
+}
+
 bool symmetry::has_cyclic() const
 {
 	if (type == cyclic)

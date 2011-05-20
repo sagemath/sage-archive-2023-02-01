@@ -80,6 +80,8 @@ public:
 
 	/** Check whether this node actually represents any kind of symmetry. */
 	bool has_symmetry() const {return type != none || !children.empty(); }
+	/** Check whether this node involves anything non symmetric. */
+	bool has_nonsymmetric() const;
 	/** Check whether this node involves a cyclic symmetry. */
 	bool has_cyclic() const;
 

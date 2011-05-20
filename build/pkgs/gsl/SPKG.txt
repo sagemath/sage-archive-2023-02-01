@@ -38,9 +38,9 @@ GSL mailing lists:
 
 == Dependencies ==
 
- * None - GSL 1.14 does not depend on any other Sage package to compile,
+ * None - GSL 1.15 does not depend on any other Sage package to compile,
    link and pass all of GSL's self-tests. Despite that fact, as of
-   21st July 2010, ATLAS is listed as a dependency in spkg/standard/deps.
+   20th May 2011, ATLAS is listed as a dependency in spkg/standard/deps.
    (It comes with its own CBLAS implementation that is e.g. used when running
    the GSL test suite during installation; however, the Sage library only
    uses it as a fall-back, if e.g. ATLAS's CBLAS library is not present.)
@@ -49,6 +49,12 @@ GSL mailing lists:
  * Currently, nothing special to be done.
 
 == Changelog ==
+
+=== gsl-1.15 (David Kirkby, 20th May 2011) ===
+ * #11357 Update to the latest version of GSL from the one currently in Sage
+   which was the previous version.
+   This also fixes bug #10000, as the failure to build on AIX has been fixed
+   (my own changes were accepted upstream).
 
 === gsl-1.14 (David Kirkby, 21st July 2010) ===
  * #9533 Update GSL to the latest upstream release - the previous

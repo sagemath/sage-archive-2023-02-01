@@ -98,6 +98,11 @@ def is_gale_ryser(r,s):
     from sage.combinat.partition import Partition
     r2 = Partition(sorted([x for x in r if x>0], reverse=True))
     s2 = Partition(sorted([x for x in s if x>0], reverse=True))
+
+    # If the two sequences only contained zeroes
+    if len(r2) == 0 and len(s2) == 0:
+        return True
+
     rstar = Partition(r2).conjugate()
 
     #                                same number of 1s           domination
@@ -183,7 +188,7 @@ def _slider01(A, t, k, p1, p2, fixedcols=[]):
             break
     return matrix(B)
 
-def gale_ryser_theorem(p1, p2, algorithm="ryser"):
+def gale_ryser_theorem(p1, p2, algorithm="gale"):
         r"""
         Returns the binary matrix given by the Gale-Ryser theorem.
 
@@ -200,30 +205,26 @@ def gale_ryser_theorem(p1, p2, algorithm="ryser"):
 
         - ``algorithm`` -- two possible string values :
 
-            - ``"ryser"`` (default) implements the construction due
+            - ``"ryser"`` implements the construction due
               to Ryser [Ryser63]_.
 
-            - ``"gale"`` implements the construction due to Gale [Gale57]_.
-
+            - ``"gale"`` (default) implements the construction due to Gale [Gale57]_.
 
         OUTPUT:
 
         - A binary matrix if it exists, ``None`` otherwise.
 
-
         Gale's Algorithm:
 
         (Gale [Gale57]_): A matrix satisfying the constraints of its
         sums can be defined as the solution of the following
-        Linear Program, which Sage knows how to solve (requires
-        packages GLPK or CBC).
+        Linear Program, which Sage knows how to solve.
 
         .. MATH::
 
             \forall i&\sum_{j=1}^{k_2} b_{i,j}=p_{1,j}\\
             \forall i&\sum_{j=1}^{k_1} b_{j,i}=p_{2,j}\\
             &b_{i,j}\mbox{ is a binary variable}
-
 
         Ryser's Algorithm:
 
@@ -258,7 +259,7 @@ def gale_ryser_theorem(p1, p2, algorithm="ryser"):
             sage: from sage.combinat.integer_vector import gale_ryser_theorem
             sage: p1 = [2,2,1]
             sage: p2 = [2,2,1]
-            sage: print gale_ryser_theorem(p1, p2, algorithm="gale")
+            sage: print gale_ryser_theorem(p1, p2)
             [1 1 0]
             [1 0 1]
             [0 1 0]
@@ -269,25 +270,25 @@ def gale_ryser_theorem(p1, p2, algorithm="ryser"):
             True
             True
 
-        Or for a non-square matrix with `p_1=3+3+2+1` and `p_2=3+2+2+1+1` ::
+        Or for a non-square matrix with `p_1=3+3+2+1` and `p_2=3+2+2+1+1`, using Ryser's algorithm ::
 
             sage: from sage.combinat.integer_vector import gale_ryser_theorem
             sage: p1 = [3,3,1,1]
             sage: p2 = [3,3,1,1]
-            sage: gale_ryser_theorem(p1, p2)
+            sage: gale_ryser_theorem(p1, p2, algorithm = "ryser")
             [1 1 0 1]
             [1 1 1 0]
             [0 1 0 0]
             [1 0 0 0]
             sage: p1 = [4,2,2]
             sage: p2 = [3,3,1,1]
-            sage: gale_ryser_theorem(p1, p2)
+            sage: gale_ryser_theorem(p1, p2, algorithm = "ryser")
             [1 1 1 1]
             [1 1 0 0]
             [1 1 0 0]
             sage: p1 = [4,2,2,0]
             sage: p2 = [3,3,1,1,0,0]
-            sage: gale_ryser_theorem(p1, p2)
+            sage: gale_ryser_theorem(p1, p2, algorithm = "ryser")
             [1 1 1 1 0 0]
             [1 1 0 0 0 0]
             [1 1 0 0 0 0]
@@ -303,7 +304,7 @@ def gale_ryser_theorem(p1, p2, algorithm="ryser"):
         With `0` in the sequences, and with unordered inputs ::
 
             sage: from sage.combinat.integer_vector import gale_ryser_theorem
-            sage: gale_ryser_theorem([3,3,0,1,1,0], [3,1,3,1,0])
+            sage: gale_ryser_theorem([3,3,0,1,1,0], [3,1,3,1,0], algorithm = "ryser")
             [1 0 1 1 0]
             [1 1 1 0 0]
             [0 0 0 0 0]
@@ -311,17 +312,16 @@ def gale_ryser_theorem(p1, p2, algorithm="ryser"):
             [1 0 0 0 0]
             [0 0 0 0 0]
             sage: p1 = [3,1,1,1,1]; p2 = [3,2,2,0]
-            sage: gale_ryser_theorem(p1, p2)
+            sage: gale_ryser_theorem(p1, p2, algorithm = "ryser")
             [1 1 1 0]
             [0 0 1 0]
             [0 1 0 0]
             [1 0 0 0]
             [1 0 0 0]
 
-
         TESTS:
 
-        This test created a random bipartite graph on n+m vertices. Its
+        This test created a random bipartite graph on `n+m` vertices. Its
         adjacency matrix is binary, and it is used to create some
         "random-looking" sequences which correspond to an existing matrix. The
         ``gale_ryser_theorem`` is then called on these sequences, and the output
@@ -337,8 +337,6 @@ def gale_ryser_theorem(p1, p2, algorithm="ryser"):
             ...      ss2 = sorted(map(lambda x : sum(x) , m.columns()), reverse = True)
             ...      if ((ss1 == s1) and (ss2 == s2)):
             ...          return True
-            ...      print s1, ss1
-            ...      print s2, ss2
             ...      return False
 
             sage: for algorithm in ["gale", "ryser"]:                            # long time
@@ -346,6 +344,17 @@ def gale_ryser_theorem(p1, p2, algorithm="ryser"):
             ...         if not test_algorithm(algorithm, 3, 10):                 # long time
             ...             print "Something wrong with algorithm ", algorithm   # long time
             ...             break                                                # long time
+
+        Null matrix::
+
+            sage: gale_ryser_theorem([0,0,0],[0,0,0,0], algorithm="gale")
+            [0 0 0 0]
+            [0 0 0 0]
+            [0 0 0 0]
+            sage: gale_ryser_theorem([0,0,0],[0,0,0,0], algorithm="ryser")
+            [0 0 0 0]
+            [0 0 0 0]
+            [0 0 0 0]
 
         REFERENCES:
 
@@ -395,14 +404,14 @@ def gale_ryser_theorem(p1, p2, algorithm="ryser"):
             return A0
 
         elif algorithm == "gale":
-          from sage.numerical.mip import MixedIntegerLinearProgram
+          from sage.numerical.mip import MixedIntegerLinearProgram, Sum
           k1, k2=len(p1), len(p2)
           p = MixedIntegerLinearProgram()
           b = p.new_variable(dim=2)
           for (i,c) in enumerate(p1):
-              p.add_constraint(sum([b[i][j] for j in xrange(k2)]),min=c,max=c)
+              p.add_constraint(Sum([b[i][j] for j in xrange(k2)]),min=c,max=c)
           for (i,c) in enumerate(p2):
-              p.add_constraint(sum([b[j][i] for j in xrange(k1)]),min=c,max=c)
+              p.add_constraint(Sum([b[j][i] for j in xrange(k1)]),min=c,max=c)
           p.set_objective(None)
           p.set_binary(b)
           p.solve()

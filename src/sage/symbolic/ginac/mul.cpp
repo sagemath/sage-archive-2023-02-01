@@ -500,6 +500,17 @@ bool mul::info(unsigned inf) const
 	return inherited::info(inf);
 }
 
+bool mul::is_polynomial(const ex & var) const
+{
+	for (epvector::const_iterator i=seq.begin(); i!=seq.end(); ++i) {
+		if (!i->rest.is_polynomial(var) ||
+		    (i->rest.has(var) && !i->coeff.info(info_flags::integer))) {
+			return false;
+		}
+	}
+	return true;
+}
+
 int mul::degree(const ex & s) const
 {
 	// Sum up degrees of factors

@@ -50,6 +50,7 @@ public:
 public:
 	unsigned precedence() const {return 50;}
 	bool info(unsigned inf) const;
+	bool is_polynomial(const ex & var) const;
 	int degree(const ex & s) const;
 	int ldegree(const ex & s) const;
 	ex coeff(const ex & s, int n = 1) const;

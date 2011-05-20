@@ -290,6 +290,16 @@ bool add::info(unsigned inf) const
 	return inherited::info(inf);
 }
 
+bool add::is_polynomial(const ex & var) const
+{
+	for (epvector::const_iterator i=seq.begin(); i!=seq.end(); ++i) {
+		if (!(i->rest).is_polynomial(var)) {
+			return false;
+		}
+	}
+	return true;
+}
+
 int add::degree(const ex & s) const
 {
 	int deg = std::numeric_limits<int>::min();

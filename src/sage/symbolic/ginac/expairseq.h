@@ -87,7 +87,6 @@ public:
 	bool match(const ex & pattern, lst & repl_lst) const;
 	ex subs(const exmap & m, unsigned options = 0) const;
 	ex conjugate() const;
-	bool is_polynomial(const ex & var) const;
 	numeric calc_total_degree() const;
 protected:
 	bool is_equal_same_type(const basic & other) const;

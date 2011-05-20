@@ -684,7 +684,7 @@ def StandardSkewTableaux(skp=None):
     if skp is None:
         return StandardSkewTableaux_all()
     elif isinstance(skp, (int, Integer)):
-        return StandardSkewTableaux_n(skp)
+        return StandardSkewTableaux_size(skp)
     elif skp in skew_partition.SkewPartitions():
         return StandardSkewTableaux_skewpartition(skew_partition.SkewPartition(skp))
     else:
@@ -735,10 +735,10 @@ class StandardSkewTableaux_all(InfiniteAbstractCombinatorialClass):
             sage: [it.next() for i in range(10)]
             [[], [[1]], [[1, 2]], [[1], [2]], [[None, 1], [2]], [[None, 2], [1]], [[1, 2, 3]], [[1, 2], [3]], [[1, 3], [2]], [[None, 1, 2], [3]]]
         """
-        return StandardSkewTableaux_n(n)
+        return StandardSkewTableaux_size(n)
 
 
-class StandardSkewTableaux_n(CombinatorialClass):
+class StandardSkewTableaux_size(CombinatorialClass):
     def __init__(self, n):
         """
         EXAMPLES::
@@ -912,16 +912,16 @@ def SemistandardSkewTableaux(p=None, mu=None):
 
     if isinstance(p, (int, Integer)):
         if mu is None:
-            return SemistandardSkewTableaux_n(p)
+            return SemistandardSkewTableaux_size(p)
         else:
-            return SemistandardSkewTableaux_nmu(p, mu)
+            return SemistandardSkewTableaux_size_weight(p, mu)
 
     if p in skew_partition.SkewPartitions():
         p = skew_partition.SkewPartition(p)
         if mu is None:
-            return SemistandardSkewTableaux_p(p)
+            return SemistandardSkewTableaux_shape(p)
         else:
-            return SemistandardSkewTableaux_pmu(p, mu)
+            return SemistandardSkewTableaux_shape_weight(p, mu)
 
 
 
@@ -935,7 +935,7 @@ class SemistandardSkewTableaux_all(CombinatorialClass):
         """
         return "Semistandard skew tableaux"
 
-class SemistandardSkewTableaux_n(CombinatorialClass):
+class SemistandardSkewTableaux_size(CombinatorialClass):
     def __init__(self, n):
         """
         EXAMPLES::
@@ -964,7 +964,7 @@ class SemistandardSkewTableaux_n(CombinatorialClass):
         """
         count = 0
         for p in skew_partition.SkewPartitions(self.n):
-            count += SemistandardSkewTableaux_p(p).cardinality()
+            count += SemistandardSkewTableaux_shape(p).cardinality()
         return count
 
     def __iter__(self):
@@ -982,10 +982,10 @@ class SemistandardSkewTableaux_n(CombinatorialClass):
              [[None, 2], [2]]]
         """
         for p in skew_partition.SkewPartitions(self.n):
-            for ssst in SemistandardSkewTableaux_p(p):
+            for ssst in SemistandardSkewTableaux_shape(p):
                 yield ssst
 
-class SemistandardSkewTableaux_nmu(CombinatorialClass):
+class SemistandardSkewTableaux_size_weight(CombinatorialClass):
     def __init__(self, n, mu):
         """
         EXAMPLES::
@@ -1015,7 +1015,7 @@ class SemistandardSkewTableaux_nmu(CombinatorialClass):
         """
         count = 0
         for p in skew_partition.SkewPartitions(self.n):
-            count += SemistandardSkewTableaux_pmu(p, self.mu).cardinality()
+            count += SemistandardSkewTableaux_shape_weight(p, self.mu).cardinality()
         return count
 
     def __iter__(self):
@@ -1026,10 +1026,10 @@ class SemistandardSkewTableaux_nmu(CombinatorialClass):
             [[[1, 2]], [[1], [2]], [[None, 2], [1]], [[None, 1], [2]]]
         """
         for p in skew_partition.SkewPartitions(self.n):
-            for ssst in SemistandardSkewTableaux_pmu(p, self.mu):
+            for ssst in SemistandardSkewTableaux_shape_weight(p, self.mu):
                 yield ssst
 
-class SemistandardSkewTableaux_p(CombinatorialClass):
+class SemistandardSkewTableaux_shape(CombinatorialClass):
     def __init__(self, p):
         """
         EXAMPLES::
@@ -1058,7 +1058,7 @@ class SemistandardSkewTableaux_p(CombinatorialClass):
         """
         count = 0
         for mu in IntegerVectors(self.p.size(), self.p.size()):
-            count += SemistandardSkewTableaux_pmu(self.p, mu).cardinality()
+            count += SemistandardSkewTableaux_shape_weight(self.p, mu).cardinality()
         return count
 
     def __iter__(self):
@@ -1076,10 +1076,10 @@ class SemistandardSkewTableaux_p(CombinatorialClass):
              [[2, 3], [3]]]
         """
         for mu in IntegerVectors(self.p.size(), self.p.size()):
-            for ssst in SemistandardSkewTableaux_pmu(self.p, mu):
+            for ssst in SemistandardSkewTableaux_shape_weight(self.p, mu):
                 yield ssst
 
-class SemistandardSkewTableaux_pmu(CombinatorialClass):
+class SemistandardSkewTableaux_shape_weight(CombinatorialClass):
     def __init__(self, p, mu):
         """
         EXAMPLES::
@@ -1161,4 +1161,70 @@ def from_shape_and_word(shape, word):
                 st[i][j] = word[w_count]
                 w_count += 1
     return SkewTableau(st)
+
+
+# Deprecation of internal classes seems to be unnecessarily painful...
+from sage.misc.superseded import deprecation
+
+def SemistandardSkewTableaux_n(*args, **kargs):
+    """
+    EXAMPLES::
+
+        sage: sage.combinat.skew_tableau.SemistandardSkewTableaux_n(3)
+        doctest:1: DeprecationWarning: this class is deprecated. Use SemistandardSkewTableaux_size instead
+        See http://trac.sagemath.org/9265 for details.
+        Semistandard skew tableaux of size 3
+    """
+    deprecation(9265,'this class is deprecated. Use SemistandardSkewTableaux_size instead')
+    return SemistandardSkewTableaux(*args, **kargs)
+
+def SemistandardSkewTableaux_nmu(*args, **kargs):
+    """
+    EXAMPLES::
+
+        sage: sage.combinat.skew_tableau.SemistandardSkewTableaux_nmu(3,[2,1])
+        doctest:1: DeprecationWarning: this class is deprecated. Use SemistandardSkewTableaux_size_weight instead
+        See http://trac.sagemath.org/9265 for details.
+        Semistandard skew tableaux of size 3 and weight [2, 1]
+    """
+    deprecation(9265,'this class is deprecated. Use SemistandardSkewTableaux_size_weight instead')
+    return SemistandardSkewTableaux(*args, **kargs)
+
+def SemistandardSkewTableaux_p(*args, **kargs):
+    """
+    EXAMPLES::
+
+        sage: sage.combinat.skew_tableau.SemistandardSkewTableaux_p([[2,1],[]])
+        doctest:1: DeprecationWarning: this class is deprecated. Use SemistandardSkewTableaux_shape instead
+        See http://trac.sagemath.org/9265 for details.
+        Semistandard skew tableaux of shape [[2, 1], []]
+    """
+    deprecation(9265,'this class is deprecated. Use SemistandardSkewTableaux_shape instead')
+    return SemistandardSkewTableaux_shape(*args, **kargs)
+
+def SemistandardSkewTableaux_pmu(*args, **kargs):
+    """
+    EXAMPLES::
+
+        sage: sage.combinat.skew_tableau.SemistandardSkewTableaux_pmu([[2,1],[]],[2,1])
+        doctest:1: DeprecationWarning: this class is deprecated. Use SemistandardSkewTableaux_shape_weight instead
+        See http://trac.sagemath.org/9265 for details.
+        Semistandard skew tableaux of shape [[2, 1], []] and weight [2, 1]
+    """
+    deprecation(9265,'this class is deprecated. Use SemistandardSkewTableaux_shape_weight instead')
+    return SemistandardSkewTableaux_shape_weight(*args, **kargs)
+
+def StandardSkewTableaux_n(*args, **kargs):
+    """
+    EXAMPLES::
+
+        sage: sage.combinat.skew_tableau.StandardSkewTableaux_n(2)
+        doctest:1: DeprecationWarning: this class is deprecated. Use StandardSkewTableaux_size instead
+        See http://trac.sagemath.org/9265 for details.
+        Standard skew tableaux of size 2
+    """
+    deprecation(9265,'this class is deprecated. Use StandardSkewTableaux_size instead')
+    return StandardSkewTableaux(*args, **kargs)
+
+
 

@@ -366,7 +366,7 @@ cdef extern from 'symmetrica/def.h':
 ##########################################
 cdef object matrix_constructor
 cdef object Integer
-cdef object Tableau, Tableau_class, SkewTableau, SkewTableau_class
+cdef object Tableau, SkewTableau, SkewTableau_class
 cdef object SkewPartition, SkewPartition_class
 cdef object Partition, Partition_class
 cdef object Permutation_class, Permutations
@@ -386,7 +386,6 @@ cdef void late_import():
     global matrix_constructor, \
            Integer, \
            Tableau, \
-           Tableau_class, \
            SkewTableau, \
            SkewTableau_class, \
            SkewPartition, \
@@ -417,7 +416,6 @@ cdef void late_import():
 
     import sage.combinat.tableau
     Tableau = sage.combinat.tableau.Tableau
-    Tableau_class = sage.combinat.tableau.Tableau_class
 
     import sage.combinat.skew_tableau
     SkewTableau = sage.combinat.skew_tableau.SkewTableau
@@ -1171,7 +1169,7 @@ cdef object _py_tableau(OP t):
     if is_skew:
         return SkewTableau_class(res)
     else:
-        return Tableau_class(res)
+        return Tableau(res)
 
 
 

@@ -249,7 +249,7 @@ def Permutation(l):
 
     #if l is a pair of tableaux or a pair of lists
     elif isinstance(l, (tuple, list)) and len(l) == 2 and \
-        all(map(lambda x: isinstance(x, tableau.Tableau_class), l)):
+        all(map(lambda x: isinstance(x, tableau.Tableau), l)):
         return robinson_schensted_inverse(*l)
     elif isinstance(l, (tuple, list)) and len(l) == 2 and \
         all(map(lambda x: isinstance(x, list), l)):

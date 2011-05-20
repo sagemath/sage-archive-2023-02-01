@@ -13,7 +13,7 @@ from free_module import CombinatorialFreeModule
 from sage.categories.all import FiniteDimensionalAlgebrasWithBasis
 import permutation
 import partition
-from tableau import Tableau, StandardTableaux_n, StandardTableaux_partition, StandardTableaux
+from tableau import Tableau, StandardTableaux_size, StandardTableaux_shape, StandardTableaux
 from sage.interfaces.all import gap
 from sage.rings.all import factorial, QQ, PolynomialRing
 from sage.matrix.all import matrix
@@ -361,7 +361,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         """
         basis = []
         for part in partition.Partitions_n(self.n):
-            stp = StandardTableaux_partition(part)
+            stp = StandardTableaux_shape(part)
             for t1 in stp:
                 for t2 in stp:
                     basis.append(self.epsilon_ik(t1,t2))
@@ -431,7 +431,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         it = Tableau(itab)
         kt = Tableau(ktab)
 
-        stn = StandardTableaux_n(self.n)
+        stn = StandardTableaux_size(self.n)
 
         if it not in stn:
             raise TypeError, "it must be a standard tableaux of size %s"%self.n

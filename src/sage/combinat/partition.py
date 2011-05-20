@@ -2352,7 +2352,7 @@ class Partition_class(CombinatorialObject):
             [[[1, 2, 3, 6], [4, 5]], [[1, 2, 3], [4, 5], [6]]]
         """
         res = []
-        for tab in tableau.StandardTableaux_n(self.size()):
+        for tab in tableau.StandardTableaux_size(self.size()):
             if tab.atom() == self:
                 res.append(tab)
         return res
@@ -2381,7 +2381,7 @@ class Partition_class(CombinatorialObject):
             sage: Partition([]).k_atom(1)
             [[]]
         """
-        res = [ tableau.Tableau_class([]) ]
+        res = [ tableau.Tableau([]) ]
         for i in range(len(self)):
             res = [ x.promotion_operator( self[-i-1] ) for x in res]
             res = sum(res, [])

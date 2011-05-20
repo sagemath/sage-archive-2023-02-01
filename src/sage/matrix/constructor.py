@@ -2682,6 +2682,202 @@ def jordan_block(eigenvalue, size, sparse=False):
         block[i,i+1]=1
     return block
 
+def companion_matrix(poly, format='right'):
+    r"""
+    Create a companion matrix from a monic polynomial.
+
+    INPUT:
+
+    - ``poly`` - a univariate polynomial, or an iterable containing
+      the coefficients of a polynomial, with low-degree coefficients first.
+      The polynomial (or the polynomial implied by the coefficients) must
+      be monic.  In other words, the leading coefficient must be one.
+      A symbolic expression that might also be a polynomial is not
+      proper input, see examples below.
+
+    - ``format`` - default: 'right' - specifies one of four
+      variations of a companion matrix.  Allowable values are
+      'right', 'left', 'top' and 'bottom', which indicates which
+      border of the matrix contains the negatives of the coefficients.
+
+    OUTPUT:
+
+    A square matrix with a size equal to the degree of the polynomial.
+    The returned matrix has ones above, or below the diagonal, and the
+    negatives of the coefficients along the indicated border of the
+    matrix (excepting the leading one coefficient).
+    See the first examples below for precise illustrations.
+
+    EXAMPLES:
+
+    Each of the four possibilities.  Notice that the coefficients are
+    specified and their negatives become the entries of the matrix.  The
+    leading one must be given, but is not used.  The permutation matrix
+    ``P`` is the identity matrix, with the columns reversed.  The last three
+    statements test the general relationships between the four variants.  ::
+
+        sage: poly = [-2, -3, -4, -5, -6, 1]
+        sage: R = companion_matrix(poly, format='right'); R
+        [0 0 0 0 2]
+        [1 0 0 0 3]
+        [0 1 0 0 4]
+        [0 0 1 0 5]
+        [0 0 0 1 6]
+        sage: L = companion_matrix(poly, format='left'); L
+        [6 1 0 0 0]
+        [5 0 1 0 0]
+        [4 0 0 1 0]
+        [3 0 0 0 1]
+        [2 0 0 0 0]
+        sage: B = companion_matrix(poly, format='bottom'); B
+        [0 1 0 0 0]
+        [0 0 1 0 0]
+        [0 0 0 1 0]
+        [0 0 0 0 1]
+        [2 3 4 5 6]
+        sage: T = companion_matrix(poly, format='top'); T
+        [6 5 4 3 2]
+        [1 0 0 0 0]
+        [0 1 0 0 0]
+        [0 0 1 0 0]
+        [0 0 0 1 0]
+
+        sage: perm = Permutation([5, 4, 3, 2, 1])
+        sage: P = perm.to_matrix()
+        sage: L == P*R*P
+        True
+        sage: B == R.transpose()
+        True
+        sage: T == P*R.transpose()*P
+        True
+
+    A polynomial may be used as input, however a symbolic expression,
+    even if it looks like a polynomial, is not regarded as such when used
+    as input to this routine.  Obtaining the list of coefficients from a
+    symbolic polynomial is one route to the companion matrix. ::
+
+        sage: x = polygen(QQ, 'x')
+        sage: p = x^3 - 4*x^2 + 8*x - 12
+        sage: companion_matrix(p)
+        [ 0  0 12]
+        [ 1  0 -8]
+        [ 0  1  4]
+
+        sage: y = var('y')
+        sage: q = y^3 -2*y + 1
+        sage: companion_matrix(q)
+        Traceback (most recent call last):
+        ...
+        TypeError: input must be a polynomial (not a symbolic expression, see docstring), or other iterable, not y^3 - 2*y + 1
+
+        sage: coeff_list = [q(y=0)] + [q.coeff(y^k) for k in range(1, q.degree(y)+1)]
+        sage: coeff_list
+        [1, -2, 0, 1]
+        sage: companion_matrix(coeff_list)
+        [ 0  0 -1]
+        [ 1  0  2]
+        [ 0  1  0]
+
+    The minimal polynomial of a companion matrix is equal to the
+    polynomial used to create it.  Used in a block diagonal
+    construction, they can be used to create matrices with
+    any desired minimal polynomial, or characteristic polynomial.  ::
+
+        sage: t = polygen(QQ, 't')
+        sage: p = t^12 - 7*t^4 + 28*t^2 - 456
+        sage: C = companion_matrix(p, format='top')
+        sage: q = C.minpoly(var=t); q
+        t^12 - 7*t^4 + 28*t^2 - 456
+        sage: p == q
+        True
+
+        sage: p = t^3 + 3*t - 8
+        sage: q = t^5 + t - 17
+        sage: A = block_diagonal_matrix( companion_matrix(p),
+        ...                              companion_matrix(p^2),
+        ...                              companion_matrix(q),
+        ...                              companion_matrix(q) )
+        sage: A.charpoly(var=t).factor()
+        (t^3 + 3*t - 8)^3 * (t^5 + t - 17)^2
+        sage: A.minpoly(var=t).factor()
+        (t^3 + 3*t - 8)^2 * (t^5 + t - 17)
+
+    TESTS::
+
+        sage: companion_matrix([4, 5, 1], format='junk')
+        Traceback (most recent call last):
+        ...
+        ValueError: format must be 'right', 'left', 'top' or 'bottom', not junk
+
+        sage: companion_matrix(sin(x))
+        Traceback (most recent call last):
+        ...
+        TypeError: input must be a polynomial (not a symbolic expression, see docstring), or other iterable, not sin(x)
+
+        sage: companion_matrix([2, 3, 896])
+        Traceback (most recent call last):
+        ...
+        ValueError: polynomial (or the polynomial implied by coefficients) must be monic, not a leading coefficient of 896
+
+        sage: F.<a> = GF(2^2)
+        sage: companion_matrix([4/3, a+1, 1])
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to find common ring for coefficients from polynomial
+
+        sage: A = companion_matrix([1])
+        sage: A.nrows(); A.ncols()
+        0
+        0
+
+        sage: A = companion_matrix([])
+        Traceback (most recent call last):
+        ...
+        ValueError: polynomial cannot be specified by an empty list
+
+    AUTHOR:
+
+    - Rob Beezer (2011-05-19)
+    """
+    import sage.matrix.constructor
+    if format not in ['right', 'left', 'top', 'bottom']:
+        raise ValueError("format must be 'right', 'left', 'top' or 'bottom', not {0}".format(format))
+    try:
+        poly = list(poly)
+    except TypeError:
+        raise TypeError('input must be a polynomial (not a symbolic expression, see docstring), or other iterable, not {0}'.format(poly))
+    n = len(poly) - 1
+    if n == -1:
+        raise ValueError('polynomial cannot be specified by an empty list')
+    if not poly[n] == 1:
+        raise ValueError('polynomial (or the polynomial implied by coefficients) must be monic, not a leading coefficient of {0}'.format(poly[n]))
+    entries = [0]*(n*n)
+    # 1's below diagonal, or above diagonal
+    if format in ['right', 'top']:
+        for i in range(n-1):
+            entries[(i+1)*n + i] = 1
+    else:
+        for i in range(n-1):
+            entries[i*n + i+1] = 1
+    # right side, left side (reversed), bottom edge, top edge (reversed)
+    if format == 'right':
+        for i in range(n):
+            entries[i*n + n-1] = -poly[i]
+    elif format == 'left':
+        for i in range(n):
+            entries[(n-1-i)*n + 0] = -poly[i]
+    elif format == 'bottom':
+        for i in range(n):
+            entries[(n-1)*n + i] = -poly[i]
+    elif format == 'top':
+        for i in range(n):
+            entries[0*n + n-1-i] = -poly[i]
+    try:
+        M = sage.matrix.constructor.matrix(n, n, entries)
+    except TypeError:
+        raise TypeError("unable to find common ring for coefficients from polynomial")
+    return M
+
 def random_rref_matrix(parent, num_pivots):
     r"""
     Generate a matrix in reduced row-echelon form with a specified number of non-zero rows.

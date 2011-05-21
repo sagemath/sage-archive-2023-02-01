@@ -198,6 +198,9 @@ ext_modules = [
     Extension('sage.combinat.dict_addition',
               sources=['sage/combinat/dict_addition.pyx']),
 
+    Extension('sage.combinat.debruijn_sequence',
+              sources=['sage/combinat/debruijn_sequence.pyx']),
+
     Extension('sage.combinat.combinat_cython',
               sources=['sage/combinat/combinat_cython.pyx'],
               libraries=['gmp']),

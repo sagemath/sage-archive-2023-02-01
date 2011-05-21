@@ -13,7 +13,8 @@ ROOT_DIR="`pwd`"
 INCLUDES="-I$SAGE_LOCAL/include"
 LIBDIRS="-L$SAGE_LOCAL/lib"
 
-CFLAGS="$CFLAGS $INCLUDES $LIBDIRS -g"
+CFLAGS="$CFLAGS $INCLUDES -g"
+LDFLAGS="$LIBDIRS"
 
 COMPILER=`./testcc.sh`
 
@@ -47,7 +48,7 @@ fi
 export CFLAGS
 export CPPFLAGS
 export CXXFLAGS
-# export LDFLAGS
+export LDFLAGS
 
 if [ "x$SAGE_FAT_BINARY" = "xyes" ]; then
     DISABLE_SSE2="--disable-sse2"

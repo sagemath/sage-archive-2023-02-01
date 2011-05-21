@@ -43,14 +43,11 @@ from sage.structure.element import coerce_binop, parent
 
 ctypedef unsigned long cparent
 
-cdef inline cparent get_cparent(parent):
-    if parent is None:
-        return 0
+cdef inline cparent get_cparent(parent) except? 0:
     try:
-        m = parent.modulus()
-    except:
+        return <unsigned long>(parent.modulus())
+    except AttributeError:
         return 0
-    return <unsigned long>(parent.modulus())
 
 # first we include the definitions
 include "../../libs/flint/zmod_poly_linkage.pxi"

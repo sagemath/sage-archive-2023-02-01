@@ -24,7 +24,7 @@ from sage.libs.ntl.ntl_ZZ_p_decl cimport ZZ_p_rep
 
 ctypedef ZZ_pEContext_c *cparent
 
-cdef cparent get_cparent(parent):
+cdef cparent get_cparent(parent) except? NULL:
     if parent is None:
         return NULL
     cdef ntl_ZZ_pEContext_class c

@@ -174,6 +174,7 @@ class HasseDiagram(DiGraph):
     def cover_relations_iterator(self):
         r"""
         TESTS::
+
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
             sage: H = HasseDiagram({0:[2,3], 1:[3,4], 2:[5], 3:[5], 4:[5]})
             sage: list(H.cover_relations_iterator())
@@ -185,6 +186,7 @@ class HasseDiagram(DiGraph):
     def cover_relations(self,element=None):
         r"""
         TESTS::
+
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
             sage: H = HasseDiagram({0:[2,3], 1:[3,4], 2:[5], 3:[5], 4:[5]})
             sage: H.cover_relations()
@@ -202,6 +204,7 @@ class HasseDiagram(DiGraph):
             redefined to use the cached matrix (see ``_alternate_is_lequal``).
 
         TESTS::
+
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
             sage: H = HasseDiagram({0:[2], 1:[2], 2:[3], 3:[4], 4:[]})
             sage: x,y,z = 0, 1, 4
@@ -638,6 +641,7 @@ class HasseDiagram(DiGraph):
         Returns the list of elements that are covered by ``element``.
 
         EXAMPLES::
+
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
             sage: H = HasseDiagram({0:[1,3,2],1:[4],2:[4,5,6],3:[6],4:[7],5:[7],6:[7],7:[]})
             sage: list(H.lower_covers_iterator(0))
@@ -1191,6 +1195,7 @@ class HasseDiagram(DiGraph):
         join of ``x`` and ``y`` is the top element of ``self``.
 
         EXAMPLES::
+
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
             sage: H = HasseDiagram({0:[1,2,3],1:[4],2:[4],3:[4]})
             sage: H.complements()

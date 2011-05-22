@@ -149,15 +149,28 @@ def is_extension_type(cls):
         False
     """
     # Robert B claims that this should be robust
-    return hasattr(cls, "__dictoffset__") and cls.__dictoffset__ == 0
+    try:
+        return cls.__dictoffset__ == 0
+    except AttributeError:
+        pass
+    return False
 
 class A(object):
     pass
 methodwrapper = type(A.__call__)
 
-cdef inline raise_attribute_error(self, name):
+cdef class AttributeErrorMessage:
     """
-    Tries to emulate the standard Python AttributeError exception
+    Tries to emulate the standard Python ``AttributeError`` message.
+
+    NOTE:
+
+    The typical fate of an attribute error is being caught. Hence,
+    under normal circumstances, nobody will ever see the error
+    message. The idea for this class is to provide an object that
+    is fast to create and whose string representation is an attribute
+    error's message. That string representation is only created if
+    someone wants to see it.
 
     EXAMPLES::
 
@@ -169,14 +182,51 @@ cdef inline raise_attribute_error(self, name):
         Traceback (most recent call last):
         ...
         AttributeError: 'sage.rings.polynomial.polynomial_rational_flint.Polynomial_rational_flint' object has no attribute 'bla'
-    """
-    cls = type(self)
-    if is_extension_type(cls):
-        raise AttributeError, "'%s.%s' object has no attribute '%s'"%(cls.__module__, cls.__name__, name)
-    else:
-        raise AttributeError, "'%s' object has no attribute '%s'"%(cls.__name__, name)
+        sage: from sage.structure.parent import AttributeErrorMessage
+        sage: AttributeErrorMessage(int(1),'bla')
+        'int' object has no attribute 'bla'
 
-def getattr_from_other_class(self, cls, name):
+    AUTHOR:
+
+    - Simon King (2011-05-21)
+    """
+#    raise AttributeError, AttributeErrorMessage(self,name)
+    def __init__(self, P,str name):
+        """
+        INPUT:
+
+        - ``P``, any object
+        - ``name``, a string
+
+        TEST::
+
+            sage: from sage.structure.parent import AttributeErrorMessage
+            sage: AttributeErrorMessage(int(1),'bla')
+            'int' object has no attribute 'bla'
+
+        """
+        self.cls = type(P)
+        self.name = name
+    def __repr__(self):
+        """
+        TEST::
+
+            sage: from sage.structure.parent import AttributeErrorMessage
+            sage: AttributeErrorMessage(int(1),'bla')
+            'int' object has no attribute 'bla'
+
+        """
+        cdef int dictoff
+        try:
+            dictoff = self.cls.__dictoffset__
+        except AttributeError:
+            return "'"+self.cls.__name__+"' object has no attribute '"+self.name+"'"
+        if dictoff:
+            return "'"+self.cls.__name__+"' object has no attribute '"+self.name+"'"
+        return repr(self.cls)[6:-1] + " object has no attribute '"+self.name+"'"
+
+
+def getattr_from_other_class(self, cls, str name):
     """
     INPUT::
 
@@ -269,14 +319,14 @@ def getattr_from_other_class(self, cls, name):
         ...
         AttributeError: 'sage.rings.integer.Integer' object has no attribute '__call__'
     """
-    if isinstance(self, cls):
-        raise_attribute_error(self, name)
+    if PY_TYPE_CHECK(self, cls):
+        raise AttributeError, AttributeErrorMessage(self, name)
     try:
         attribute = getattr(cls, name)
     except AttributeError:
-        raise_attribute_error(self, name)
-    if isinstance(attribute, methodwrapper):
-        raise_attribute_error(self, name)
+        raise AttributeError, AttributeErrorMessage(self, name)
+    if PY_TYPE_CHECK(attribute, methodwrapper):
+        raise AttributeError, AttributeErrorMessage(self, name)
     try:
         getter = attribute.__get__
     except AttributeError:
@@ -289,7 +339,7 @@ def getattr_from_other_class(self, cls, name):
         return getter(self, cls)
     except TypeError:
         pass
-    raise_attribute_error(self, name)
+    raise AttributeError, AttributeErrorMessage(self, name)
 
 def dir_with_other_class(self, cls):
     r"""
@@ -696,7 +746,7 @@ cdef class Parent(category_object.CategoryObject):
             self._convert_from_hash = {}
             self._embedding = None
 
-    def __getattr__(self, name):
+    def __getattr__(self, str name):
         """
         Let cat be the category of ``self``. This method emulates
         ``self`` being an instance of both ``Parent`` and
@@ -756,12 +806,9 @@ cdef class Parent(category_object.CategoryObject):
             AttributeError: 'sage.structure.parent.Parent' object has no attribute '__foo'
 
         """
-        if name.startswith('__') and not name.endswith('_'):
-            raise_attribute_error(self, name)
-        if self._is_category_initialized():
-            return getattr_from_other_class(self, self.category().parent_class, name)
-        else:
-            raise_attribute_error(self, name)
+        if (name.startswith('__') and not name.endswith('_')) or self._category is None:
+            raise AttributeError, AttributeErrorMessage(self, name)
+        return getattr_from_other_class(self, self._category.parent_class, name)
 
     def __dir__(self):
         """

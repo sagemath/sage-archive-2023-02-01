@@ -176,6 +176,8 @@ def detex(s, embedded=False):
     for a,b in nonmath_substitutes:
         s = s.replace(a,b)
     if not embedded: # not in the notebook
+        s = _rmcmd(s, 'mathop')
+        s = _rmcmd(s, 'mathrm')
         s = sphinxify(s, format='text')
         for a,b in math_substitutes:  # do math substitutions
             s = s.replace(a,b)

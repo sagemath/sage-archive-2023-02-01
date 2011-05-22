@@ -299,7 +299,7 @@ ex remove_dirac_ONE(const ex & e, unsigned char rl = 0, unsigned options = 0);
  *
  *  @param e Expression to be processed
  *  @ignore_ONE defines if clifford_ONE should be ignored in the search*/
-char clifford_max_label(const ex & e, bool ignore_ONE = false);
+int clifford_max_label(const ex & e, bool ignore_ONE = false);
 
 /** Calculation of the norm in the Clifford algebra. */
 ex clifford_norm(const ex & e);

@@ -1127,7 +1127,7 @@ ex remove_dirac_ONE(const ex & e, unsigned char rl, unsigned options)
 	return e1;
 }
 
-char clifford_max_label(const ex & e, bool ignore_ONE)
+int clifford_max_label(const ex & e, bool ignore_ONE)
 {
 	if (is_a<clifford>(e))
 		if (ignore_ONE && is_a<diracone>(e.op(0)))
@@ -1135,7 +1135,7 @@ char clifford_max_label(const ex & e, bool ignore_ONE)
 		else
 			return ex_to<clifford>(e).get_representation_label();
 	else {
-		char rl = -1;
+		int rl = -1;
 		for (size_t i=0; i < e.nops(); i++) 
 			rl = (rl > clifford_max_label(e.op(i), ignore_ONE)) ? rl : clifford_max_label(e.op(i), ignore_ONE);
 		return rl;

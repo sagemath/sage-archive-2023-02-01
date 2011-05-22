@@ -338,7 +338,7 @@ ex add::coeff(const ex & s, int n) const
 {
 	std::auto_ptr<epvector> coeffseq(new epvector);
 	std::auto_ptr<epvector> coeffseq_cliff(new epvector);
-	char rl = clifford_max_label(s);
+	int rl = clifford_max_label(s);
 	bool do_clifford = (rl != -1);
 	bool nonscalar = false;
 

@@ -24,6 +24,11 @@ http://users.tkk.fi/pat/cliquer.html
 
 == Changelog ==
 
+=== cliquer-1.2.p9 (Jeroen Demeyer, 4 May 2011) ===
+ * #11227: Apply workaround also for versions 4.6.1 of gcc, not only
+   version 4.6.0.  This is to support pre-release versions of
+   gcc 4.6.1, the bug should be fixed in the final gcc 4.6.1.
+
 === cliquer-1.2.p8 (Jeroen Demeyer, 25 April 2011) ===
  * #11227: When compiling with gcc 4.6.0, add compiler flag -fno-ivopts
    to work around a gcc bug.

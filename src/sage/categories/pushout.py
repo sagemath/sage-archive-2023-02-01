@@ -2686,7 +2686,7 @@ class AlgebraicClosureFunctor(ConstructionFunctor):
         """
         Mathematically, Algebraic Closure subsumes Algebraic Extension.
         However, it seems that people do want to work with algebraic
-        extensions of ``RR``. Therefore, we dont merge with algebraic extension.
+        extensions of ``RR``. Therefore, we do not merge with algebraic extension.
 
         TEST::
 
@@ -2851,28 +2851,28 @@ class BlackBoxConstructionFunctor(ConstructionFunctor):
 def pushout(R, S):
     r"""
     Given a pair of Objects R and S, try and construct a
-    reasonable object $Y$ and return maps such that
+    reasonable object Y and return maps such that
     canonically $R \leftarrow Y \rightarrow S$.
 
     ALGORITHM:
 
     This incorporates the idea of functors discussed Sage Days 4.
-    Every object $R$ can be viewed as an initial object and
+    Every object R can be viewed as an initial object and
     a series of functors (e.g. polynomial, quotient, extension,
     completion, vector/matrix, etc.). Call the series of
     increasingly-simple rings (with the associated functors)
-    the "tower" of $R$. The \code{construction} method is used to
+    the "tower" of R. The construction method is used to
     create the tower.
 
-    Given two objects $R$ and $S$, try and find a common initial
-    object $Z$. If the towers of $R$ and $S$ meet, let $Z$ be their
+    Given two objects R and S, try and find a common initial
+    object Z. If the towers of R and S meet, let Z be their
     join. Otherwise, see if the top of one coerces naturally into
     the other.
 
-    Now we have an initial object and two \emph{ordered} lists of
+    Now we have an initial object and two ordered lists of
     functors to apply. We wish to merge these in an unambiguous order,
     popping elements off the top of one or the other tower as we
-    apply them to $Z$.
+    apply them to Z.
 
     - If the functors are distinct types, there is an absolute ordering
       given by the rank attribute. Use this.
@@ -2881,7 +2881,7 @@ def pushout(R, S):
 
       - If the tops are equal, we (try to) merge them.
 
-      - If \emph{exactly} one occurs lower in the other tower
+      - If exactly one occurs lower in the other tower
         we may unambiguously apply the other (hoping for a later merge).
 
       - If the tops commute, we can apply either first.
@@ -2890,8 +2890,8 @@ def pushout(R, S):
 
     EXAMPLES:
 
-    Here our "towers" are $R = Complete_7(Frac(\ZZ)$ and $Frac(Poly_x(\ZZ))$,
-    which give us $Frac(Poly_x(Complete_7(Frac(\ZZ)))$::
+    Here our "towers" are $R = Complete_7(Frac(\ZZ))$ and $Frac(Poly_x(\ZZ))$,
+    which give us $Frac(Poly_x(Complete_7(Frac(\ZZ))))$::
 
         sage: from sage.categories.pushout import pushout
         sage: pushout(Qp(7), Frac(ZZ['x']))

@@ -20,7 +20,7 @@ cdef class Spline:
     This is the example in the GSL documentation.
         sage: v = [(i + sin(i)/2, i+cos(i^2)) for i in range(10)]
         sage: s = spline(v)
-        sage: show(point(v) + plot(s,0,11, hue=.8))
+        sage: show(point(v) + plot(s,0,9, hue=.8))
     """
     def __init__(self, v=[]):
         self.v = list(v)

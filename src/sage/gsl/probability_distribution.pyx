@@ -385,7 +385,7 @@ cdef class RealDistribution(ProbabilityDistribution):
         sage: T.get_random_element() # random
         0.103230507883
         sage: T.distribution_function(0)
-        0.0
+        +infinity
         sage: T.cum_distribution_function(1)
         0.682689492137
         sage: T.cum_distribution_function_inv(.5)

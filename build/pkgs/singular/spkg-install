@@ -53,11 +53,24 @@ else
     # By default, parts of Singular are compiled with -O2 and parts
     # with -O3.  If we do set any CFLAGS, this always overrides the
     # default CFLAGS set by upstream.  In order to be compatible, we
-    # set the optimization to -O2.  Increasing the optimization level
-    # to -O3 has caused various problems in the past either with
-    # specific compilers or on specific platforms.
-    CXXFLAGS="$CXXFLAGS -O2 -g"
-    CFLAGS="$CFLAGS -O2 -g"
+    # set the optimization to -O2.
+    # Increasing the optimization level to -O3 has caused various
+    # problems in the past either with specific compilers or on specific
+    # platforms.
+    OPTIMIZATION_FLAGS="-O2"
+
+    # To work around problems with old (4.0.x) gcc versions on older
+    # Mac OS X systems, we actually use -O3 for such versions of gcc.
+    # When compiling with -O1 or -O2, we get linker errors related to
+    # restFP/saveFP, see Sage Trac #11278.
+    if [ "x`$SAGE_LOCAL/bin/testcc.sh $CC`" = xGCC ] ; then
+        if $CC -dumpversion 2>/dev/null |grep >/dev/null '^4\.0\.' ; then
+            OPTIMIZATION_FLAGS="-O3"
+        fi
+    fi
+
+    CXXFLAGS="$CXXFLAGS $OPTIMIZATION_FLAGS -g"
+    CFLAGS="$CFLAGS $OPTIMIZATION_FLAGS -g"
 fi
 
 if [ "x$SAGE64" = xyes ]; then

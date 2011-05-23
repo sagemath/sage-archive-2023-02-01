@@ -42,6 +42,11 @@ MPIR, NTL, Termcap, Readline and MPFR
 
 == ChangeLog ==
 
+=== singular-3-1-1-4.p9 (Jeroen Demeyer, 3 May 2011) ===
+*  #11278: When compiling with gcc version 4.0.x, build with -O3
+   optimization instead of -O2 to fix build errors on older Mac OS X
+   systems.
+
 === singular-3-1-1-4.p8 (Jeroen Demeyer, Alexander Dreyer, David Kirkby, 19th April 2011) ===
 *  #11084. Drop optimisation level to -O2 since that is what upstream
    mostly uses.

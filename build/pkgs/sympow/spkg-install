@@ -21,6 +21,17 @@ if [ "x$SAGE64" = xyes ] ; then
    export LDFLAGS
 fi
 
+# Workaround problems with gcc 4.6.0 on ia64 systems:
+if [ "x`uname -m`" = "xia64" ] && [ "x`$SAGE_LOCAL/bin/testcc.sh $CC`" = xGCC ] ; then
+    if $CC -dumpversion 2>/dev/null |grep >/dev/null '^4\.6\.' ; then
+        echo "Detected GCC version `$CC -dumpversion` on Itanium. Adding"
+	echo "work-around to fix a bug when sympow is compiled with gcc 4.6.0"
+        CFLAGS="$CFLAGS -fno-expensive-optimizations"
+        export CFLAGS
+    fi
+fi
+
+
 # Add some code to disable the extended precision of Intel
 # x86 based floating point processors. The code in SYMPOW
 # already works for Linux, so there's no need to do that.

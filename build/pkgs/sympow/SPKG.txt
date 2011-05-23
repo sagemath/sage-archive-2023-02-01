@@ -46,6 +46,11 @@ curve L-functions. It can compute up to about 64 digits of precision.
 
 == Changelog ==
 
+=== sympow-1.018.1.p9 (Jeroen Demeyer, 2 May 2011) ===
+ * #11226: Add flag -fno-expensive-optimizations when compiling with
+   gcc 4.6.x on a ia64 system.  See also gcc bugzilla:
+   http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48823
+
 === sympow-1.018.1.p8 (David Kirkby, 21st August 2010) ===
  * #9703 + #9166 Implement inline assembly code to set the control
    word of the floating point processor to round to an

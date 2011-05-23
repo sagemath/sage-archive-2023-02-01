@@ -8,11 +8,13 @@ fi
 
 CUR=`pwd`
 
-# patch() {}
-# no current patches against Maxima
-# patch
-
 cd src/
+
+# Apply patches
+for patch in ../patches/*.patch; do
+        patch -p1 <$patch || exit 1
+done
+
 
 MAKE="$MAKE -j1"  # force sequential build (1 job)
 

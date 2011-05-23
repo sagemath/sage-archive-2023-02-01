@@ -3461,8 +3461,8 @@ def from_reduced_word(rw):
         sage: permutation.from_reduced_word([])
         []
     """
-    if rw == []:
-        return []
+    if not rw:
+        return Permutation([])
 
     p = [i+1 for i in range(max(rw)+1)]
 
@@ -4239,8 +4239,11 @@ def to_standard(p):
         [2, 1, 3]
         sage: permutation.to_standard([1,2,3])
         [1, 2, 3]
+        sage: permutation.to_standard([])
+        []
     """
-
+    if not p:
+        return Permutation([])
     s = p[:]
     biggest = max(p) + 1
     i = 1

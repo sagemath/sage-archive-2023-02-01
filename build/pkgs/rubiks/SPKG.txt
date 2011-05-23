@@ -25,6 +25,10 @@ Eric Dietz (GPL) http://www.wrongway.org/?rubiksource
 
 == Changelog ==
 
+=== rubiks-20070912.p16 (Jeroen Demeyer, 3 May 2011) ===
+ * #11168: Apply workaround for versions 4.6.x of gcc, not only
+   version 4.6.0.
+
 === rubiks-20070912.p15 (Jeroen Demeyer, 25 April 2011) ===
  * #11168: Instead of using -O1 with gcc 4.6.0, use -O2 -fno-ivopts
    The is because the bug is in the file gcc/tree-ssa-loop-ivopts.c,

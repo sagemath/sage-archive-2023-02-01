@@ -114,6 +114,7 @@ if os.environ.has_key('SAGE_DEBIAN'):
     include_dirs = include_dirs + debian_include_dirs
 
 extra_compile_args = [ ]
+extra_link_args = [ ]
 
 # comment these four lines out to turn on warnings from gcc
 import distutils.sysconfig
@@ -203,7 +204,8 @@ if os.path.exists(sage.misc.lazy_import_cache.get_cache_file()):
 
 for m in ext_modules:
     m.libraries = ['csage'] + m.libraries + ['stdc++', 'ntl']
-    m.extra_compile_args += extra_compile_args # + ["-DCYTHON_REFNANNY"]
+    m.extra_compile_args += extra_compile_args
+    m.extra_link_args += extra_link_args
     if os.environ.has_key('SAGE_DEBIAN'):
         m.library_dirs += ['/usr/lib','/usr/lib/eclib','/usr/lib/singular','/usr/lib/R/lib','%s/lib' % SAGE_LOCAL]
     else:

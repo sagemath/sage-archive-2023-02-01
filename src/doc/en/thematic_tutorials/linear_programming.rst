@@ -216,7 +216,7 @@ following MILP
 
 .. MATH::
     \text{Max: } & \sum_{o \in L} \text{usefulness}_o \times \text{taken}_o\\
-    \text{Such that: } & \sum_{o \in L} \text{usefulness}_o \times \text{taken}_o \leq C\\
+    \text{Such that: } & \sum_{o \in L} \text{weight}_o \times \text{taken}_o \leq C\\
 
 Using Sage, we will give to our items a random weight::
 
@@ -232,7 +232,7 @@ Using Sage, we will give to our items a random weight::
 
 ::
 
-    sage: L.extend(["divers_" + str(i) for i in range(20)])
+    sage: L.extend(["random_stuff_" + str(i) for i in range(20)])
 
 .. link
 

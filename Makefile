@@ -91,7 +91,7 @@ distclean: clean
 	rm -f .BUILDSTART
 
 TESTPRELIMS = . local/bin/sage-env && sage-starts &&
-TESTDIRS = devel/sage/doc/common devel/sage/doc/en devel/sage/doc/fr devel/sage/sage
+TESTDIRS = devel/sage/doc/common devel/sage/doc/de devel/sage/doc/en devel/sage/doc/fr devel/sage/sage
 
 test: all # i.e. build and (HTML) doc
 	@# $(TESTPRELIMS) (also) puts sage-maketest into the path

@@ -35,11 +35,14 @@ Saving and loading of polynomial rings works::
     sage: k = PolynomialRing(ZZ,'y', sparse=True); loads(dumps(k))
     Sparse Univariate Polynomial Ring in y over Integer Ring
 
-Rings with different variable names are not equal::
+Rings with different variable names are not equal; in fact,
+by trac ticket #9944, poynomial rings are equal if and only
+if they are identic (which should be the  case for all parent
+structures in Sage)::
 
-    sage: QQ['y'] < QQ['x']
-    False
-    sage: QQ['y'] < QQ['z']
+    sage: QQ['y'] != QQ['x']
+    True
+    sage: QQ['y'] != QQ['z']
     True
 
 We create a polynomial ring over a quaternion algebra::

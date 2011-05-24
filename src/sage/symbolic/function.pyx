@@ -127,7 +127,6 @@ cdef class Function(SageObject):
     cdef _register_function(self):
         cdef GFunctionOpt opt
         opt = g_function_options_args(self._name, self._nargs)
-        opt.set_python_func()
 
         if hasattr(self, '_eval_'):
             opt.eval_func(self)

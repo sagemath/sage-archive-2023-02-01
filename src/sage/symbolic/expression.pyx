@@ -6716,16 +6716,12 @@ cdef class Expression(CommutativeRingElement):
         Check that the problem with applying full_simplify() to gamma functions (Trac 9240)
         has been fixed::
 
-            sage: gamma(37)
-            371993326789901217467999448150835200000000
-            sage: gamma(0)
-            Infinity
-            sage: gamma(-4)
-            Infinity
-            sage: gamma(-4/3)
-            gamma(-4/3)
+            sage: gamma(1/3)
+            gamma(1/3)
             sage: gamma(1/3).full_simplify()
             gamma(1/3)
+            sage: gamma(4/3)
+            gamma(4/3)
             sage: gamma(4/3).full_simplify()
             1/3*gamma(1/3)
 

@@ -4,6 +4,7 @@ Other functions
 from sage.symbolic.function import GinacFunction, BuiltinFunction
 from sage.symbolic.expression import Expression
 from sage.symbolic.pynac import register_symbol, symbol_table
+from sage.symbolic.pynac import py_factorial_py
 from sage.libs.pari.gen import pari
 from sage.symbolic.all import SR
 from sage.rings.all import Integer, Rational, RealField, CC, RR, \
@@ -733,7 +734,11 @@ def gamma(a, *args, **kwds):
             120
             sage: gamma(1/2)
             sqrt(pi)
+            sage: gamma(-4/3)
+            gamma(-4/3)
             sage: gamma(-1)
+            Infinity
+            sage: gamma(0)
             Infinity
 
         ::
@@ -1045,6 +1050,38 @@ class Function_factorial(GinacFunction):
         """
         GinacFunction.__init__(self, "factorial", latex_name='{\\rm factorial}',
                 conversions=dict(maxima='factorial', mathematica='Factorial'))
+
+    def _eval_(self, x):
+        """
+        Evaluate the factorial function.
+
+        Note that this method overrides the eval method defined in GiNaC
+        which calls numeric evaluation on all numeric input. We preserve
+        exact results if the input is a rational number.
+
+        EXAMPLES::
+
+            sage: k = var('k')
+            sage: k.factorial()
+            factorial(k)
+            sage: SR(1/2).factorial()
+            1/2*sqrt(pi)
+            sage: SR(3/4).factorial()
+            gamma(7/4)
+            sage: SR(5).factorial()
+            120
+            sage: SR(3245908723049857203948572398475r).factorial()
+            factorial(3245908723049857203948572398475L)
+            sage: SR(3245908723049857203948572398475).factorial()
+            factorial(3245908723049857203948572398475)
+        """
+        if isinstance(x, Rational):
+            return gamma(x+1)
+        elif isinstance(x, (Integer, int)) or \
+                (not isinstance(x, Expression) and is_inexact(x)):
+            return py_factorial_py(x)
+
+        return None
 
 factorial = Function_factorial()
 

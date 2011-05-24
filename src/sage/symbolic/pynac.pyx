@@ -1097,16 +1097,63 @@ cdef public object py_RDF_from_double(double x) except +:
 # SPECIAL FUNCTIONS
 #################################################################
 cdef public object py_tgamma(object x) except +:
+    """
+    The gamma function exported to pynac.
+
+    TESTS::
+
+        sage: from sage.symbolic.pynac import py_tgamma_for_doctests as py_tgamma
+        sage: py_tgamma(4)
+        6
+        sage: py_tgamma(1/2)
+        1.77245385090552
+    """
+    if PY_TYPE_CHECK_EXACT(x, int) or PY_TYPE_CHECK_EXACT(x, long):
+        x = float(x)
     if PY_TYPE_CHECK_EXACT(x, float):
         return sage_tgammal(x)
-    #FIXME: complex
+
+    # try / except blocks are faster than
+    # if hasattr(x, 'gamma')
     try:
-        return x.gamma()
+        res = x.gamma()
     except AttributeError:
         return CC(x).gamma()
 
+    # the result should be numeric, however the gamma method of rationals may
+    # return symbolic expressions. for example (1/2).gamma() -> sqrt(pi).
+    if isinstance(res, Expression):
+        try:
+            return RR(res)
+        except ValueError:
+            return CC(res)
+    return res
+
+def py_tgamma_for_doctests(x):
+    """
+    This function is for testing py_tgamma().
+
+    TESTS::
+
+        sage: from sage.symbolic.pynac import py_tgamma_for_doctests
+        sage: py_tgamma_for_doctests(3)
+        2
+    """
+    return py_tgamma(x)
+
 from sage.rings.arith import factorial
 cdef public object py_factorial(object x) except +:
+    """
+    The factorial function exported to pynac.
+
+    TESTS::
+
+        sage: from sage.symbolic.pynac import py_factorial_py as py_factorial
+        sage: py_factorial(4)
+        24
+        sage: py_factorial(-2/3)
+        2.67893853470775
+    """
     # factorial(x) is only defined for non-negative integers x
     # so we first test if x can be coerced into ZZ and is non-negative.
     # If this is not the case then we return the symbolic expression gamma(x+1)
@@ -1121,6 +1168,20 @@ cdef public object py_factorial(object x) except +:
         return factorial(x)
     else:
         return py_tgamma(x+1)
+
+def py_factorial_py(x):
+    """
+    This function is a python wrapper around py_factorial(). This wrapper
+    is needed when we override the eval() method for GiNaC's factorial
+    function in sage.functions.other.Function_factorial.
+
+    TESTS::
+
+        sage: from sage.symbolic.pynac import py_factorial_py
+        sage: py_factorial_py(3)
+        6
+    """
+    return py_factorial(x)
 
 cdef public object py_doublefactorial(object x) except +:
     n = Integer(x)
@@ -1534,12 +1595,21 @@ cdef public object py_lgamma(object x) except +:
         gsl_sf_lngamma_complex_e(PyComplex_RealAsDouble(x),PyComplex_ImagAsDouble(x), &lnr, &arg)
         res = gsl_complex_polar(lnr.val, arg.val)
         return PyComplex_FromDoubles(res.dat[0], res.dat[1])
-    elif hasattr(x, 'log_gamma'):
-         return x.log_gamma()
     elif isinstance(x, Integer):
         return x.gamma().log().n()
-    elif hasattr(x, 'gamma'):
+
+    # try / except blocks are faster than
+    # if hasattr(x, 'log_gamma')
+    try:
+        return x.log_gamma()
+    except AttributeError:
+        pass
+
+    try:
         return x.gamma().log()
+    except AttributeError:
+        pass
+
     return CC(x).gamma().log()
 
 def py_lgamma_for_doctests(x):

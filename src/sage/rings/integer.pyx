@@ -3566,7 +3566,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     def factorial(self):
         r"""
         Return the factorial `n! = 1 \cdot 2 \cdot 3 \cdots n`.
-        Self must fit in an ``unsigned long int``.
+
+        If the input does not fit in an ``unsigned long int`` a symbolic
+        expression is returned.
 
         EXAMPLES::
 
@@ -3579,12 +3581,15 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             4 24
             5 120
             6 720
+            sage: 234234209384023842034.factorial()
+            factorial(234234209384023842034)
         """
         if mpz_sgn(self.value) < 0:
             raise ValueError, "factorial -- self = (%s) must be nonnegative"%self
 
         if not mpz_fits_uint_p(self.value):
-            raise ValueError, "factorial not implemented for n >= 2^32.\nThis is probably OK, since the answer would have billions of digits."
+            from sage.functions.all import factorial
+            return factorial(self, hold=True)
 
         cdef Integer z = PY_NEW(Integer)
 

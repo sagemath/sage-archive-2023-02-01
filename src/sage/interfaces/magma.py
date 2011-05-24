@@ -511,7 +511,7 @@ class Magma(Expect):
 
         Verify that trac 9705 is fixed::
 
-            sage: magma.eval("_<x>:=PolynomialRing(Rationals());repeatg:=3*b*x^4+18*c*x^3-6*b^2*x^2-6*b*c*x-b^3-9*c^2 where b:=Random([-10..10]) where c:=Random([-10..10]);until g ne 0 and Roots(g) ne []; print \"success\";")      # optional - magma
+            sage: magma.eval("_<x>:=PolynomialRing(Rationals());repeat g:=3*b*x^4+18*c*x^3-6*b^2*x^2-6*b*c*x-b^3-9*c^2 where b:=Random([-10..10]) where c:=Random([-10..10]);until g ne 0 and Roots(g) ne []; print \"success\";")      # optional - magma
             'success'
         """
         x = self._preparse(x)

@@ -508,9 +508,10 @@ Beyond the Sage library
 =======================
 
 The doctesting scripts of a Sage installation currently have limited
-support for doctesting of modules outside of that Sage library. We
-cannot use the doctesting scripts of Sage 4.1.1 to doctest modules in,
-say, Sage 4.1. Doing so would result in errors::
+support for doctesting of modules outside of the Sage library for
+that version of Sage. We cannot use the doctesting scripts of Sage
+4.1.1 to doctest modules in, say, Sage 4.1. Doing so would result
+in errors::
 
     [mvngu@sage sage-4.1.1]$ ./sage -t ../sage-4.1/devel/sage-main/sage/games/sudoku.py
     sage -t  "../sage-4.1/devel/sage-main/sage/games/sudoku.py"

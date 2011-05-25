@@ -650,6 +650,17 @@ cdef class Expression(CommutativeRingElement):
             x - (2*I - 1)*y
             sage: latex(x+(1-2*I)*y)
             x - \left(2 i - 1\right) \, y
+
+        Check if complex coefficients with denominators are displayed
+        correctly #10769::
+
+            sage: var('a x')
+            (a, x)
+            sage: latex(1/2*I/x)
+            \frac{i}{2 \, x}
+            sage: ratio = i/2* x^2/a
+            sage: latex(ratio)
+            \frac{i \, x^{2}}{2 \, a}
         """
         return self._parent._latex_element_(self)
 

@@ -949,20 +949,87 @@ cdef public bint py_is_prime(object n) except +:
     return False
 
 cdef public object py_numer(object n) except +:
+    """
+    Return the numerator of the given object. This is called for
+    typesetting coefficients.
+
+    TESTS::
+
+        sage: from sage.symbolic.pynac import py_numer_for_doctests as py_numer
+        sage: py_numer(2r)
+        2
+        sage: py_numer(3)
+        3
+        sage: py_numer(2/3)
+        2
+        sage: C.<i> = NumberField(x^2+1)
+        sage: py_numer(2/3*i)
+        2*i
+        sage: class no_numer:
+        ...     def denominator(self):
+        ...         return 5
+        ...     def __mul__(left, right):
+        ...         return 42
+        ...
+        sage: py_numer(no_numer())
+        42
+    """
     if isinstance(n, (int, long, Integer)):
         return n
     try:
         return n.numerator()
     except AttributeError:
-        return n
+        try:
+            return n*n.denominator()
+        except AttributeError:
+            return n
+
+def py_numer_for_doctests(n):
+    """
+    This function is used to test py_numer().
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.pynac import py_numer_for_doctests
+        sage: py_numer_for_doctests(2/3)
+        2
+    """
+    return py_numer(n)
 
 cdef public object py_denom(object n) except +:
+    """
+    Return the denominator of the given object. This is called for
+    typesetting coefficients.
+
+    TESTS::
+
+        sage: from sage.symbolic.pynac import py_denom_for_doctests as py_denom
+        sage: py_denom(5)
+        1
+        sage: py_denom(2/3)
+        3
+        sage: C.<i> = NumberField(x^2+1)
+        sage: py_denom(2/3*i)
+        3
+    """
     if isinstance(n, (int, long, Integer)):
         return 1
     try:
         return n.denominator()
     except AttributeError:
         return 1
+
+def py_denom_for_doctests(n):
+    """
+    This function is used to test py_denom().
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.pynac import py_denom_for_doctests
+        sage: py_denom_for_doctests(2/3)
+        3
+    """
+    return py_denom(n)
 
 cdef public bint py_is_cinteger(object x) except +:
     return py_is_integer(x) or (py_is_crational(x) and py_denom(x) == 1)

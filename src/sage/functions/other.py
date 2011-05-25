@@ -1450,6 +1450,17 @@ class Function_conjugate(GinacFunction):
             y
             sage: conjugate(sqrt(y))
             sqrt(y)
+
+        Check if #10964 is fixed::
+
+            sage: z= I*sqrt(-3); z
+            I*sqrt(-3)
+            sage: conjugate(z)
+            -I*conjugate(sqrt(-3))
+            sage: var('a')
+            a
+            sage: conjugate(a*sqrt(-2)*sqrt(-3))
+            conjugate(a)*conjugate(sqrt(-3))*conjugate(sqrt(-2))
         """
         GinacFunction.__init__(self, "conjugate")
 

@@ -11,6 +11,8 @@
 # we do *not* have to use sig_on() and sig_off(). We do use it a little
 # in the actual pyx code to catch control-c for long running functions.
 
+from cpython cimport PyObject
+
 cdef extern from "ginac_wrap.h":
     void ginac_pyinit_Integer(object)
     void ginac_pyinit_Float(object)
@@ -441,7 +443,7 @@ cdef extern from "ginac_wrap.h":
         object (*py_integer_from_long)(long int x) except +
         object (*py_integer_from_python_obj)(object x) except +
 
-        object (*py_float)(object a, object parent) except +
+        object (*py_float)(object a, PyObject* parent) except +
         object (*py_RDF_from_double)(double x)
 
 

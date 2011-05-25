@@ -1054,7 +1054,7 @@ def py_is_cinteger_for_doctest(x):
     """
     return py_is_cinteger(x)
 
-cdef public object py_float(object n, object parent) except +:
+cdef public object py_float(object n, PyObject* parent) except +:
     """
     Evaluate pynac numeric objects numerically.
 
@@ -1074,7 +1074,13 @@ cdef public object py_float(object n, object parent) except +:
         sage: type(py_float(1/2, CC))
         <type 'sage.rings.complex_number.ComplexNumber'>
     """
-    return parent(n)
+    if parent is not NULL:
+        return (<object>parent)(n)
+    else:
+        try:
+            return RR(n)
+        except TypeError:
+            return CC(n)
 
 def py_float_for_doctests(n, prec):
     """
@@ -1086,7 +1092,7 @@ def py_float_for_doctests(n, prec):
         sage: py_float_for_doctests(pi, RealField(80))
         3.1415926535897932384626
     """
-    return py_float(n, prec)
+    return py_float(n, <PyObject*>prec)
 
 # TODO: Optimize this
 from sage.rings.real_double import RDF

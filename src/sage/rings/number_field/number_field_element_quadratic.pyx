@@ -1178,6 +1178,20 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
                 const = lin = Rational(0)
             return const.denominator().lcm(lin.denominator())
 
+    def numerator(self):
+        """
+        Return self*self.denominator().
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^2+x+41)
+            sage: b = (2*a+1)/6
+            sage: b.denominator()
+            6
+            sage: b.numerator()
+            2*a + 1
+        """
+        return self*self.denominator()
 
     cdef bint is_rational_c(self):
         return mpz_cmp_ui(self.b, 0) == 0

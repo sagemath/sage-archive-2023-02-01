@@ -41,7 +41,7 @@ where `\ell(s)` is the abelianized of `s`, and `M` is the matrix of `\sigma`.
 AUTHORS:
 
 - Franco Saliola (2009): initial version
-- Vincent Delecroix, Timo Jolivet, Stepan Starosta (2010-05): redesign
+- Vincent Delecroix, Timo Jolivet, Stepan Starosta, Sebastien Labbe (2010-05): redesign
 - Timo Jolivet (2010-08, 2010-09, 2011): redesign
 
 REFERENCES:
@@ -199,6 +199,7 @@ which only work in dimension two or three)::
 #                          Vincent Delecroix <20100.delecroix@gmail.com>
 #                          Timo Jolivet <timo.jolivet@gmail.com>
 #                          Stepan Starosta <stepan.starosta@gmail.com>
+#                          Sebastien Labbe <slabqc at gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -484,7 +485,10 @@ class Face(SageObject):
             sage: from sage.combinat.e_one_star import Face
             sage: f = Face((0,0,3), 3)
             sage: projmat = matrix(2, [-1.7320508075688772*0.5, 1.7320508075688772*0.5, 0, -0.5, -0.5, 1])
-            sage: face_contour = {1: map(vector, [(0,0,0),(0,1,0),(0,1,1),(0,0,1)]), 2: map(vector, [(0,0,0),(0,0,1),(1,0,1),(1,0,0)]), 3: map(vector, [(0,0,0),(1,0,0),(1,1,0),(0,1,0)])}
+            sage: face_contour = {}
+            sage: face_contour[1] = map(vector, [(0,0,0),(0,1,0),(0,1,1),(0,0,1)])
+            sage: face_contour[2] = map(vector, [(0,0,0),(0,0,1),(1,0,1),(1,0,0)])
+            sage: face_contour[3] = map(vector, [(0,0,0),(1,0,0),(1,1,0),(0,1,0)])
             sage: G = f._plot(projmat, face_contour, 0.75)
 
         ::
@@ -588,19 +592,21 @@ class Patch(SageObject):
 
             sage: P = Patch([Face([0,0,0],2)])
             sage: Q = Patch(P)
-            sage: list(P)[0].color()
+            sage: next(iter(P)).color()
             RGB color (0.0, 1.0, 0.0)
-            sage: list(Q)[0].color('yellow')
-            sage: list(P)[0].color()
+            sage: next(iter(Q)).color('yellow')
+            sage: next(iter(P)).color()
             RGB color (0.0, 1.0, 0.0)
 
         """
-        self._faces = frozenset([Face(f.vector(), f.type(), f.color()) for f in faces])
+        self._faces = frozenset(Face(f.vector(), f.type(), f.color()) for f in faces)
 
         try:
-            self._dimension = len(list(faces)[0].vector())
-        except IndexError:
+            f0 = next(iter(self._faces))
+        except StopIteration:
             self._dimension = None
+        else:
+            self._dimension = len(f0.vector())
 
         if not face_contour is None:
             self._face_contour = face_contour
@@ -863,7 +869,9 @@ class Patch(SageObject):
     def dimension(self):
         r"""
         Returns the dimension of the vectors of the faces of self
-        (returns 0 if self is the empty patch).
+
+        It returns ``None`` if self is the empty patch.
+
         The dimension of a patch is the length of the vectors of the faces in the patch,
         which is assumed to be the same for every face in the patch.
 
@@ -872,6 +880,19 @@ class Patch(SageObject):
             sage: from sage.combinat.e_one_star import Face, Patch
             sage: P = Patch([Face((0,0,0),t) for t in [1,2,3]])
             sage: P.dimension()
+            3
+
+        TESTS::
+
+            sage: from sage.combinat.e_one_star import Patch
+            sage: p = Patch([])
+            sage: p.dimension() is None
+            True
+
+        It works when the patch is created from an iterator::
+
+            sage: p = Patch(Face((0,0,0),t) for t in [1,2,3])
+            sage: p.dimension()
             3
         """
         return self._dimension
@@ -891,7 +912,8 @@ class Patch(SageObject):
             sage: P.faces_of_vector([1,2,0])
             [[(1, 2, 0), 3]*, [(1, 2, 0), 1]*]
         """
-        return [Face(f.vector(), f.type(), f.color()) for f in self if f.vector() == vector(v)]
+        v = vector(v)
+        return [f for f in self if f.vector() == v]
 
     def faces_of_type(self, t):
         r"""
@@ -908,7 +930,25 @@ class Patch(SageObject):
             sage: P.faces_of_type(1)
             [[(0, 0, 0), 1]*, [(1, 2, 0), 1]*]
         """
-        return [Face(f.vector(), f.type(), f.color()) for f in self if f.type() == t]
+        return [f for f in self if f.type() == t]
+
+    def faces_of_color(self, color):
+        r"""
+        Returns a list of the faces that have the given color.
+
+        INPUT:
+
+        - ``color`` - color
+
+        EXAMPLES::
+
+            sage: from sage.combinat.e_one_star import Face, Patch
+            sage: P = Patch([Face((0,0,0),1, 'red'), Face((1,2,0),3, 'blue'), Face((1,2,0),1, 'red')])
+            sage: P.faces_of_color('red')
+            [[(0, 0, 0), 1]*, [(1, 2, 0), 1]*]
+        """
+        color = tuple(Color(color))
+        return [f for f in self if tuple(f.color()) == color]
 
     def translate(self, v):
         r"""
@@ -962,7 +1002,7 @@ class Patch(SageObject):
             sage: sorted(L)
             [(0, 0, 0), (0, 0, 1), (0, 1, -1), (1, 0, -1), (1, 1, -3), (1, 1, -2)]
         """
-        f0 = list(other)[0]
+        f0 = next(iter(other))
         x = f0.vector()
         t = f0.type()
         L = self.faces_of_type(t)
@@ -1037,7 +1077,7 @@ class Patch(SageObject):
             RGB color (0.0, 0.0, 0.0)
             RGB color (0.0, 0.0, 0.0)
             sage: P.repaint()
-            sage: list(P)[1].color()    #random
+            sage: next(iter(P)).color()    #random
             RGB color (0.498..., 0.432..., 0.522...)
 
         Using a list of colors::

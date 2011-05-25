@@ -1519,6 +1519,12 @@ cdef class Expression(CommutativeRingElement):
             sage: f(x) = function('f',x)
             sage: f(x).diff(x).is_zero()
             False
+
+        Check if #11352 is fixed::
+
+            sage: el = -1/2*(2*x^2 - sqrt(2*x - 1)*sqrt(2*x + 1) - 1)
+            sage: el.is_polynomial(x)
+            False
         """
         cdef Expression symbol0 = self.coerce_in(var)
         return self._gobj.is_polynomial(symbol0._gobj)

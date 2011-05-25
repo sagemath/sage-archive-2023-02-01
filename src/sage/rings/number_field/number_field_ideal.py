@@ -1077,10 +1077,17 @@ class NumberFieldIdeal(Ideal_generic):
             [1]
             sage: I._S_ideal_class_log([])
             [3]
+
+        TESTS::
+
             sage: K.<a> = QuadraticField(-974)
             sage: S = K.primes_above(2)
-            sage: [P._S_ideal_class_log(S) for P in K.primes_above(11)]
-            [[5, 2], [1, 1]]
+            sage: G = K.S_class_group(S)
+            sage: I0 = G.0.ideal(); I1 = G.1.ideal()
+            sage: for p in prime_range(100):
+            ...       for P in K.primes_above(p):
+            ...           v = P._S_ideal_class_log(S)
+            ...           assert(G(P) == G(I0^v[0] * I1^v[1]))
         """
         from sage.modules.free_module_element import vector
         from sage.rings.finite_rings.integer_mod_ring import Zmod
@@ -1099,6 +1106,9 @@ class NumberFieldIdeal(Ideal_generic):
         """
         Return True iff self is the zero ideal
 
+        Note that `(0)` is a ``NumberFieldIdeal``, not a
+        ``NumberFieldFractionalIdeal``.
+
         EXAMPLES::
 
             sage: K.<a> = NumberField(x^2 + 2); K
@@ -1109,8 +1119,6 @@ class NumberFieldIdeal(Ideal_generic):
             True
             sage: I
             Ideal (0) of Number Field in a with defining polynomial x^2 + 2
-
-            (0 is a NumberFieldIdeal, not a NumberFieldFractionIdeal)
         """
         return self == self.number_field().ideal(0)
 

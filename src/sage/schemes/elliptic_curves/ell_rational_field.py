@@ -1447,9 +1447,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         ::
 
-            sage: E = EllipticCurve([1, -1, 0, -751055859, -7922219731979])     # long time (0.6 seconds)
-            sage: set_random_seed(0)        # long time
-            sage: E.simon_two_descent ()    # long time
+            sage: E = EllipticCurve([1, -1, 0, -751055859, -7922219731979])
+            sage: set_random_seed(0)
+            sage: E.simon_two_descent()
             (1, 1, [])
 
         The rest of these entries were taken from Tom Womack's page
@@ -1479,6 +1479,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             (8, 8)
 
         Example from trac 10832::
+
             sage: E = EllipticCurve([1,0,0,-6664,86543])
             sage: E.simon_two_descent()
             (2, 3, [(173 : 1943 : 1), (-73 : -394 : 1), (323/4 : 1891/8 : 1)])
@@ -1607,19 +1608,19 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             2
             sage: EllipticCurve('5077a').rank()
             3
-            sage: EllipticCurve([1, -1, 0, -79, 289]).rank()   # long time.  This will use the default proof behavior of True.
+            sage: EllipticCurve([1, -1, 0, -79, 289]).rank()   # This will use the default proof behavior of True
             4
-            sage: EllipticCurve([0, 0, 1, -79, 342]).rank(proof=False)  # long time -- but under a minute
+            sage: EllipticCurve([0, 0, 1, -79, 342]).rank(proof=False)
             5
-            sage: EllipticCurve([0, 0, 1, -79, 342]).simon_two_descent()[0]  # much faster -- almost instant.
+            sage: EllipticCurve([0, 0, 1, -79, 342]).simon_two_descent()[0]
             5
 
         Examples with denominators in defining equations::
 
-            sage: E = EllipticCurve( [0, 0, 0, 0, -675/4])
+            sage: E = EllipticCurve([0, 0, 0, 0, -675/4])
             sage: E.rank()
             0
-            sage: E = EllipticCurve( [0, 0, 1/2, 0, -1/5])
+            sage: E = EllipticCurve([0, 0, 1/2, 0, -1/5])
             sage: E.rank()
             1
             sage: E.minimal_model().rank()
@@ -1999,7 +2000,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         EXAMPLES::
 
             sage: E = EllipticCurve([0, 0, 1, -1, 0])
-            sage: E.regulator()              # long time (1 second)
+            sage: E.regulator()
             0.0511114082399688
             sage: EllipticCurve('11a').regulator()
             1.00000000000000
@@ -2009,9 +2010,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             0.152460177943144
             sage: EllipticCurve('5077a').regulator()
             0.41714355875838...
-            sage: EllipticCurve([1, -1, 0, -79, 289]).regulator()  # long time (seconds)
+            sage: EllipticCurve([1, -1, 0, -79, 289]).regulator()
             1.50434488827528
-            sage: EllipticCurve([0, 0, 1, -79, 342]).regulator(proof=False)  # long time (seconds)
+            sage: EllipticCurve([0, 0, 1, -79, 342]).regulator(proof=False)  # long time (6s on sage.math, 2011)
             14.790527570131...
         """
         if precision is None:
@@ -2086,8 +2087,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
            regulator of saturated points.
 
 
-        IMPLEMENTATION: Uses Cremona's mwrank package. With max_prime=0,
-        we call mwrank with successively larger prime bounds until the full
+        ALGORITHM: Uses Cremona's ``mwrank`` package. With ``max_prime=0``,
+        we call ``mwrank`` with successively larger prime bounds until the full
         saturation is provably found. The results of saturation at the
         previous primes is stored in each case, so this should be
         reasonably fast.
@@ -2103,7 +2104,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         TESTS:
 
-        See #10590.   This example would loop for ever at default precision::
+        See #10590.  This example would loop for ever at default precision::
 
             sage: E = EllipticCurve([1, 0, 1, -977842, -372252745])
             sage: P = E([-192128125858676194585718821667542660822323528626273/336995568430319276695106602174283479617040716649, 70208213492933395764907328787228427430477177498927549075405076353624188436/195630373799784831667835900062564586429333568841391304129067339731164107, 1])
@@ -2115,8 +2116,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             ...
             ([(1755450733726721618440965414535034458701302721700399/970334851896750960577261378321772998240802013604 : -59636173615502879504846810677646864329901430096139563516090202443694810309127/955833935771565601591243078845907133814963790187832340692216425242529192 : 1)], 2, 113.302910926080)
 
-
-        See #10840.  This cause eclib to crash since the curve is
+        See #10840.  This causes eclib to crash since the curve is
         non-minimal at 2::
 
             sage: E = EllipticCurve([0,0,0,-13711473216,0])
@@ -2126,7 +2126,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: S = E([-113288,-9969344])
             sage: E.saturation([P,Q,R,S])
             ([(-19992 : 16313472 : 1), (-24108 : -17791704 : 1), (-97104 : -20391840 : 1), (-113288 : -9969344 : 1)], 1, 172.792031341679)
-
 
         """
         if not isinstance(points, list):
@@ -3263,7 +3262,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E = EllipticCurve('242a1')
             sage: E.modular_degree()
             16
-            sage: E.congruence_number()  # long time
+            sage: E.congruence_number()  # long time (4s on sage.math, 2011)
             176
 
 
@@ -5695,13 +5694,13 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         Output checked with Magma (corrected in 3 cases)::
 
-            sage: [len(e.S_integral_points([2], both_signs=False)) for e in cremona_curves([11..100])] # long time
+            sage: [len(e.S_integral_points([2], both_signs=False)) for e in cremona_curves([11..100])] # long time (19s on sage.math, 2011)
             [2, 0, 2, 3, 3, 1, 3, 1, 3, 5, 3, 5, 4, 1, 1, 2, 2, 2, 3, 1, 2, 1, 0, 1, 3, 3, 1, 1, 5, 3, 4, 2, 1, 1, 5, 3, 2, 2, 1, 1, 1, 0, 1, 3, 0, 1, 0, 1, 1, 3, 7, 1, 3, 3, 3, 1, 1, 2, 3, 1, 2, 3, 1, 2, 1, 3, 3, 1, 1, 1, 0, 1, 3, 3, 1, 1, 7, 1, 0, 1, 1, 0, 1, 2, 0, 3, 1, 2, 1, 3, 1, 2, 2, 4, 5, 3, 2, 1, 1, 6, 1, 0, 1, 3, 1, 3, 3, 1, 1, 1, 1, 1, 3, 1, 5, 1, 2, 4, 1, 1, 1, 1, 1, 0, 1, 0, 2, 2, 0, 0, 1, 0, 1, 1, 6, 1, 0, 1, 1, 0, 4, 3, 1, 2, 1, 2, 3, 1, 1, 1, 1, 8, 3, 1, 2, 1, 2, 0, 8, 2, 0, 6, 2, 3, 1, 1, 1, 3, 1, 3, 2, 1, 3, 1, 2, 1, 6, 9, 3, 3, 1, 1, 2, 3, 1, 1, 5, 5, 1, 1, 0, 1, 1, 2, 3, 1, 1, 2, 3, 1, 3, 1, 1, 1, 1, 0, 0, 1, 3, 3, 1, 3, 1, 1, 2, 2, 0, 0, 6, 1, 0, 1, 1, 1, 1, 3, 1, 2, 6, 3, 1, 2, 2, 1, 1, 1, 1, 7, 5, 4, 3, 3, 1, 1, 1, 1, 1, 1, 8, 5, 1, 1, 3, 3, 1, 1, 3, 3, 1, 1, 2, 3, 6, 1, 1, 7, 3, 3, 4, 5, 9, 6, 1, 0, 7, 1, 1, 3, 1, 1, 2, 3, 1, 2, 1, 1, 1, 1, 1, 1, 1, 7, 8, 2, 3, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1]
 
         An example from [PZGH]::
 
             sage: E = EllipticCurve([0,0,0,-172,505])
-            sage: E.rank(), len(E.S_integral_points([3,5,7]))  # long time (~7s)
+            sage: E.rank(), len(E.S_integral_points([3,5,7]))  # long time (5s on sage.math, 2011)
             (4, 72)
 
         This is curve "7690e1" which failed until \#4805 was fixed::

@@ -240,7 +240,7 @@ Fourier transform code (which I know nearly nothing about).
     sage: timeit('f*g')               # random output
     625 loops, best of 3: 310 microseconds per loop
     sage: ff = magma(f); gg = magma(g)  #optional - magma
-    sage: s = 'time v := [%s * %s for _ in [1..10^5]];'%(ff.name(), gg.name()) #optional - magma
+    sage: s = 'time v := [%s * %s : i in [1..10^5]];'%(ff.name(), gg.name()) #optional - magma
     sage: magma.eval(s)     #optional - magma
     'Time: 17.120'
     sage: (17.120/10^5)*10^(6)    # convert to microseconds

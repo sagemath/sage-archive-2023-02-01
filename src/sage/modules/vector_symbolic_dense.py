@@ -1,16 +1,15 @@
 """
 Vectors over the symbolic ring.
 
-Implements vectors over the symbolic ring.  Currently, this class only
-provides methods for the simplification of symbolic vectors, as this
-functionality was needed during the development of Trac #10132.  In the
-long run, this class could be extended along the lines of
-``sage.matrix.matrix_symbolic_dense``.
+Implements vectors over the symbolic ring.
 
 
 AUTHOR:
 
-    -- Joris Vankerschaver (2011-05-15)
+    -- Robert Bradshaw (2011-05-25): Added more element-wise simplification methods
+
+    -- Joris Vankerschaver (2011-05-15): Initial version
+
 
 EXAMPLES::
 
@@ -46,23 +45,61 @@ TESTS::
 #*****************************************************************************
 
 import free_module_element
-from sage.symbolic.ring import SR
+from sage.symbolic.all import SR, Expression
 
 
-class Vector_symbolic_dense(free_module_element.FreeModuleElement_generic_dense):
+def apply_map(phi):
+    """
+    Returns a function that applies phi to its argument.
 
-    def simplify_full(self):
+    EXAMPLES::
+
+        sage: from sage.modules.vector_symbolic_dense import apply_map
+        sage: v = vector([1,2,3])
+        sage: f = apply_map(lambda x: x+1)
+        sage: f(v)
+        (2, 3, 4)
+
+    """
+    def apply(self, *args, **kwds):
         """
-        Applies :meth:`simplify_full` to the entries of self.
+        Generic function used to implement common symbolic operations
+        elementwise as methods of a vector.
 
         EXAMPLES::
 
-            sage: u = vector([sin(x)^2 + cos(x)^2, 1])
-            sage: u.simplify_full()
-            (1, 1)
-            sage: v = vector([log(exp(x))])
+            sage: var('x,y')
+            (x, y)
+            sage: v = vector([sin(x)^2 + cos(x)^2, log(x*y), sin(x/(x^2 + x)), factorial(x+1)/factorial(x)])
+            sage: v.simplify_trig()
+            (1, log(x*y), sin(1/(x + 1)), factorial(x + 1)/factorial(x))
+            sage: v.simplify_radical()
+            (sin(x)^2 + cos(x)^2, log(x) + log(y), sin(1/(x + 1)), factorial(x + 1)/factorial(x))
+            sage: v.simplify_rational()
+            (sin(x)^2 + cos(x)^2, log(x*y), sin(1/(x + 1)), factorial(x + 1)/factorial(x))
+            sage: v.simplify_factorial()
+            (sin(x)^2 + cos(x)^2, log(x*y), sin(x/(x^2 + x)), x + 1)
             sage: v.simplify_full()
-            (x)
+            (1, log(x*y), sin(1/(x + 1)), x + 1)
 
+            sage: v = vector([sin(2*x), sin(3*x)])
+            sage: v.simplify_trig()
+            (2*sin(x)*cos(x), (4*cos(x)^2 - 1)*sin(x))
+            sage: v.simplify_trig(False)
+            (sin(2*x), sin(3*x))
+            sage: v.simplify_trig(expand=False)
+            (sin(2*x), sin(3*x))
         """
-        return (SR**len(self))([fun.simplify_full() for fun in self])
+        return self.apply_map(lambda x: phi(x, *args, **kwds))
+    apply.__doc__ += "\nSee Expression." + phi.__name__ + "() for optional arguments."
+    return apply
+
+
+class Vector_symbolic_dense(free_module_element.FreeModuleElement_generic_dense):
+    pass
+
+# Add elementwise methods.
+for method in ['simplify', 'simplify_exp', 'simplify_factorial',
+        'simplify_log', 'simplify_radical', 'simplify_rational',
+        'simplify_trig', 'simplify_full', 'trig_expand', 'trig_reduce']:
+    setattr(Vector_symbolic_dense, method, apply_map(getattr(Expression, method)))

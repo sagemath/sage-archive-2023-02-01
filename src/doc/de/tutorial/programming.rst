@@ -423,7 +423,7 @@ Folge haben einen gemeinsamen Obertyp, der das Folgenuniversum genannt wird.
     sage: v
     [1, 2, 3, 4/5]
     sage: type(v)
-    <class 'sage.structure.sequence.Sequence'>
+    <class 'sage.structure.sequence.Sequence_generic'>
     sage: type(v[1])
     <type 'sage.rings.rational.Rational'>
     sage: v.universe()
@@ -461,7 +461,7 @@ Vektorräumen. Es ist wichtig, dass sie nicht verändert werden können.
     (0, 0, 1)
     ]
     sage: type(B)
-    <class 'sage.structure.sequence.Sequence'>
+    <class 'sage.structure.sequence.Sequence_generic'>
     sage: B[0] = B[1]
     Traceback (most recent call last):
     ...

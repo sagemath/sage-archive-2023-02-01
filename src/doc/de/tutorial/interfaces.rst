@@ -313,16 +313,16 @@ Ein 2D-Plot verschiedener Funktionen (ohne ``...`` eingeben):
 ::
 
     sage: maxima.plot2d('[cos(7*x),cos(23*x)^4,sin(13*x)^3]','[x,0,1]',\
-    ...   '[plot_format,openmath]')
+    ...   '[plot_format,openmath]') # not tested
 
 Ein "live" 3D-Plot, den man mit der Maus bewegen kann:
 
 ::
 
     sage: maxima.plot3d ("2^(-u^2 + v^2)", "[u, -3, 3]", "[v, -2, 2]",\
-    ...   '[plot_format, openmath]') # nicht getestet
+    ...   '[plot_format, openmath]') # not tested
     sage: maxima.plot3d("atan(-x^2 + y^3/4)", "[x, -4, 4]", "[y, -4, 4]",\
-    ...   "[grid, 50, 50]",'[plot_format, openmath]') # nicht getestet
+    ...   "[grid, 50, 50]",'[plot_format, openmath]') # not tested
 
 Der nächste Plot ist das berühmte Möbiusband:
 
@@ -330,7 +330,7 @@ Der nächste Plot ist das berühmte Möbiusband:
 
     sage: maxima.plot3d("[cos(x)*(3 + y*cos(x/2)), sin(x)*(3 + y*cos(x/2)),\
     ...   y*sin(x/2)]", "[x, -4, 4]", "[y, -4, 4]",\
-    ...   '[plot_format, openmath]') # nicht getestet
+    ...   '[plot_format, openmath]') # not tested
 
 Und der letzte ist die berühmte Kleinsche Flasche:
 
@@ -345,5 +345,5 @@ Und der letzte ist die berühmte Kleinsche Flasche:
     5*(cos(x/2)*sin(2*y)-sin(x/2)*cos(y))
     sage: maxima.plot3d ("[expr_1, expr_2, expr_3]", "[x, -%pi, %pi]",\
     ...   "[y, -%pi, %pi]", "['grid, 40, 40]",\
-    ...   '[plot_format, openmath]') # nicht getestet
+    ...   '[plot_format, openmath]') # not tested
 

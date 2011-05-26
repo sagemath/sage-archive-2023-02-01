@@ -1348,7 +1348,9 @@ def sage_getsourcelines(obj, is_binary=False):
         ...
         '    raise ValueError, "k must be an integer or an integer + 1/2"\n'], 31)
 
-    Here are some cases that where covered in trac ticket #11298::
+    Here are some cases that where covered in trac ticket #11298;
+    note that line numbers may easily change, and therefore we do
+    not test them::
 
         sage: P.<x,y> = QQ[]
         sage: I = P*[x,y]
@@ -1357,17 +1359,17 @@ def sage_getsourcelines(obj, is_binary=False):
           "    def __init__(self, base_ring, n, names, order='degrevlex'):\n",
         ...
           '          M.append(new_MP(self, p_Copy(tempvector,_ring)))\n',
-          '          return M\n'], 225)
+          '          return M\n'], ...)
         sage: sage_getsourcelines(I)
         (['class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \\\n',
         ...
-        '        return result_ring.ideal(result)\n'], 2612)
+        '        return result_ring.ideal(result)\n'], ...)
         sage: x = var('x')
         sage: sage_getsourcelines(x)
         (['cdef class Expression(CommutativeRingElement):\n',
           '    cpdef object pyobject(self):\n',
         ...
-          '        return self / x\n'], 191)
+          '        return self / x\n'], ...)
 
 
     AUTHORS:

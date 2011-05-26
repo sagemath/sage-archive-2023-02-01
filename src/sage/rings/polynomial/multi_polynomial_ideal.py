@@ -424,7 +424,7 @@ class SingularDefaultContext:
             pass
 
 def singular_standard_options(func):
-    """
+    r"""
     Decorator to force a reduced Singular groebner basis.
 
     TESTS::
@@ -435,26 +435,37 @@ def singular_standard_options(func):
         sage: "buchberger" in sage_getsource(J.interreduced_basis)
         True
 
+    The following tests against a bug that was fixed in trac ticket #11298::
+
+        sage: from sage.misc.sageinspect import sage_getsourcelines, sage_getargspec
+        sage: P.<x,y> = QQ[]
+        sage: I = P*[x,y]
+        sage: sage_getargspec(I.interreduced_basis)
+        ArgSpec(args=['self'], varargs=None, keywords=None, defaults=None)
+        sage: sage_getsourcelines(I.interreduced_basis)
+        (['    @singular_standard_options\n',
+          '    @libsingular_standard_options\n',
+          '    def interreduced_basis(self):\n',
+          ...
+          '        return ret\n'], ...)
+
     .. note::
 
        This decorator is used automatically internally so the user
        does not need to use it manually.
     """
+    from sage.misc.decorators import sage_wraps
+    @sage_wraps(func)
     def wrapper(*args, **kwds):
-        """
-        Execute function in ``SingularDefaultContext``.
-        """
+#        """
+#        Execute function in ``SingularDefaultContext``.
+#        """
         with SingularDefaultContext():
             return func(*args, **kwds)
-
-    from sage.misc.sageinspect import sage_getsource
-    wrapper._sage_src_ = lambda: sage_getsource(func)
-    wrapper.__name__ = func.__name__
-    wrapper.__doc__ = func.__doc__
     return wrapper
 
 def libsingular_standard_options(func):
-    """
+    r"""
     Decorator to force a reduced Singular groebner basis.
 
     TESTS::
@@ -465,22 +476,33 @@ def libsingular_standard_options(func):
         sage: "buchberger" in sage_getsource(J.interreduced_basis)
         True
 
+    The following tests against a bug that was fixed in trac ticket #11298::
+
+        sage: from sage.misc.sageinspect import sage_getsourcelines, sage_getargspec
+        sage: P.<x,y> = QQ[]
+        sage: I = P*[x,y]
+        sage: sage_getargspec(I.interreduced_basis)
+        ArgSpec(args=['self'], varargs=None, keywords=None, defaults=None)
+        sage: sage_getsourcelines(I.interreduced_basis)
+        (['    @singular_standard_options\n',
+          '    @libsingular_standard_options\n',
+          '    def interreduced_basis(self):\n',
+          ...
+          '        return ret\n'], ...)
+
     .. note::
 
        This decorator is used automatically internally so the user
        does not need to use it manually.
     """
+    from sage.misc.decorators import sage_wraps
+    @sage_wraps(func)
     def wrapper(*args, **kwds):
         """
         Execute function in ``LibSingularDefaultContext``.
         """
         with LibSingularDefaultContext():
             return func(*args, **kwds)
-
-    from sage.misc.sageinspect import sage_getsource
-    wrapper._sage_src_ = lambda: sage_getsource(func)
-    wrapper.__name__ = func.__name__
-    wrapper.__doc__ = func.__doc__
     return wrapper
 
 class MagmaDefaultContext:
@@ -531,6 +553,7 @@ def magma_standard_options(func):
     Decorator to force default options for Magma.
 
     EXAMPLE::
+
         sage: P.<a,b,c,d,e> = PolynomialRing(GF(127))
         sage: J = sage.rings.ideal.Cyclic(P).homogenize()
         sage: from sage.misc.sageinspect import sage_getsource
@@ -538,17 +561,14 @@ def magma_standard_options(func):
         True
 
     """
+    from sage.misc.decorators import sage_wraps
+    @sage_wraps(func)
     def wrapper(*args, **kwds):
         """
         Execute function in ``MagmaDefaultContext``.
         """
         with MagmaDefaultContext():
             return func(*args, **kwds)
-
-    from sage.misc.sageinspect import sage_getsource
-    wrapper._sage_src_ = lambda: sage_getsource(func)
-    wrapper.__name__ = func.__name__
-    wrapper.__doc__ = func.__doc__
     return wrapper
 
 class RequireField(MethodDecorator):
@@ -901,7 +921,9 @@ class MPolynomialIdeal_singular_repr:
             ...
             ValueError: Coefficient ring must be a field for function 'complete_primary_decomposition'.
 
-        ALGORITHM: Uses Singular.
+        ALGORITHM:
+
+        Uses Singular.
 
         .. note::
 
@@ -977,7 +999,9 @@ class MPolynomialIdeal_singular_repr:
             sage: reduce(lambda Qi,Qj: Qi.intersection(Qj), pd) == I
             True
 
-        ALGORITHM: Uses Singular.
+        ALGORITHM:
+
+        Uses Singular.
 
         REFERENCES:
 
@@ -1041,7 +1065,9 @@ class MPolynomialIdeal_singular_repr:
             [Ideal (z^3 + 2, y - z^2) of Multivariate Polynomial Ring in x, y, z over Rational Field,
              Ideal (z^2 + 1, y + 1) of Multivariate Polynomial Ring in x, y, z over Rational Field]
 
-        ALGORITHM: Uses Singular.
+        ALGORITHM:
+
+        Uses Singular.
 
         REFERENCES:
 
@@ -1252,7 +1278,9 @@ class MPolynomialIdeal_singular_repr:
             verbose 0 (...: multi_polynomial_ideal.py, dimension) Warning: falling back to very slow toy implementation.
             2
 
-        ALGORITHM: Uses Singular, unless the characteristic is too large.
+        ALGORITHM:
+
+        Uses Singular, unless the characteristic is too large.
 
         .. note::
 
@@ -1321,7 +1349,9 @@ class MPolynomialIdeal_singular_repr:
         Return the vector space dimension of the ring modulo this ideal. If
         the ideal is not zero-dimensional, a TypeError is raised.
 
-        ALGORITHM: Uses Singular.
+        ALGORITHM:
+
+        Uses Singular.
 
         EXAMPLE::
 
@@ -1395,7 +1425,9 @@ class MPolynomialIdeal_singular_repr:
              b*d^4 - b + d^5 - d, b*c - b*d + c^2*d^4 + c*d - 2*d^2,
              b^2 + 2*b*d + d^2, a + b + c + d]
 
-        ALGORITHM: Uses Singular.
+        ALGORITHM:
+
+        Uses Singular.
 
         .. note::
 
@@ -1541,7 +1573,9 @@ class MPolynomialIdeal_singular_repr:
             b*d^4 - b + d^5 - d, b*c - b*d + c^2*d^4 + c*d - 2*d^2,
             b^2 + 2*b*d + d^2, a + b + c + d]
 
-        ALGORITHM: Uses libSINGULAR.
+        ALGORITHM:
+
+        Uses libSINGULAR.
         """
         from sage.rings.polynomial.multi_polynomial_ideal_libsingular import std_libsingular, slimgb_libsingular
         from sage.libs.singular import singular_function
@@ -1660,7 +1694,9 @@ class MPolynomialIdeal_singular_repr:
             of Multivariate Polynomial Ring in x, y, z over Rational
             Field]
 
-        ALGORITHM: Uses Singular.
+        ALGORITHM:
+
+        Uses Singular.
         """
         import sage.libs.singular
         minAssGTZ = sage.libs.singular.ff.primdec__lib.minAssGTZ
@@ -1750,7 +1786,9 @@ class MPolynomialIdeal_singular_repr:
             sage: I.integral_closure()
             [x^2, y^5, -x*y^3]
 
-        ALGORITHM: Use libSingular
+        ALGORITHM:
+
+        Uses libSINGULAR.
         """
         from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
 
@@ -1780,7 +1818,9 @@ class MPolynomialIdeal_singular_repr:
             sage: M*G
             (0, 0)
 
-        ALGORITHM: Uses Singular's syz command
+        ALGORITHM:
+
+        Uses Singular's syz command.
         """
         import sage.libs.singular
         syz = sage.libs.singular.ff.syz
@@ -1872,7 +1912,9 @@ class MPolynomialIdeal_singular_repr:
             sage: I.interreduced_basis()
             [x]
 
-        ALGORITHM: Uses Singular's interred command or
+        ALGORITHM:
+
+        Uses Singular's interred command or
         :func:`sage.rings.polynomial.toy_buchberger.inter_reduction``
         if conversion to Singular fails.
         """
@@ -1917,7 +1959,9 @@ class MPolynomialIdeal_singular_repr:
 
             S * G = \sum_{i=0}^{m} h_ig_i ---->_G 0.
 
-        ALGORITHM: Uses Singular
+        ALGORITHM:
+
+        Uses Singular.
 
         EXAMPLE::
 
@@ -2070,7 +2114,9 @@ class MPolynomialIdeal_singular_repr:
              y^9 - y^7*x^2 - y^7*x - y^6*x^3 - y^6*x^2 - 3*y^6 - 3*y^5*x - y^3*x^7 - 3*y^3*x^6
              - 3*y^3*x^5 - y^3*x^4 - 9*y^2*x^5 - 18*y^2*x^4 - 9*y^2*x^3 - 27*y*x^3 - 27*y*x^2 - 27*x]
 
-        ALGORITHM: Uses Singular
+        ALGORITHM:
+
+        Uses Singular.
         """
         from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
         R = self.ring()
@@ -2121,7 +2167,9 @@ class MPolynomialIdeal_singular_repr:
             Ideal (y^2 - x*z, x*y - z, x^2 - y) of Multivariate
             Polynomial Ring in x, y, t, s, z over Rational Field
 
-        ALGORITHM: Uses SINGULAR
+        ALGORITHM:
+
+        Uses Singular.
 
         .. note::
 
@@ -2386,7 +2434,9 @@ class MPolynomialIdeal_singular_repr:
             sage: I.variety()
             [...{y: -q^3, x: 0}...]
 
-        ALGORITHM: Uses triangular decomposition.
+        ALGORITHM:
+
+        Uses triangular decomposition.
         """
         def _variety(T, V, v=None):
             """
@@ -2539,8 +2589,10 @@ class MPolynomialIdeal_singular_repr:
         in case it is finite dimensional and if the input is a standard
         basis with respect to the ring ordering.
 
-        INPUT: algorithm - defaults to use libsingular, if it is anything
-        else we will use the kbase() command
+        INPUT:
+
+        ``algorithm`` - defaults to use libsingular, if it is anything
+        else we will use the ``kbase()`` command
 
         EXAMPLES::
 
@@ -2604,9 +2656,11 @@ class MPolynomialIdeal_macaulay2_repr:
         Return the Groebner basis for this ideal, computed using
         Macaulay2.
 
-        ALGORITHM: Computed using Macaulay2. A big advantage of Macaulay2
-        is that it can compute the Groebner basis of ideals in polynomial rings
-        over the integers.
+        ALGORITHM:
+
+        Computed using Macaulay2. A big advantage of Macaulay2 is that
+        it can compute the Groebner basis of ideals in polynomial
+        rings over the integers.
 
         EXAMPLE::
 
@@ -2689,7 +2743,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         Return a set of generators / a basis of self. This is usually the
         set of generators provided during object creation.
 
-        EXAMPLE:
+        EXAMPLE::
 
            sage: P.<x,y> = PolynomialRing(QQ,2)
            sage: I = Ideal([x,y+1]); I
@@ -3083,8 +3137,10 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             Y^2 + (-3/5)*Z^2 + (2/5*t^2 - 2/5*t + 1/15)*Y + (-2/5*t^2 + 2/5*t - 1/15)*Z - 1/10*t^4 + 1/5*t^3 - 7/30*t^2 + 2/5*t + 11/90,
             Y*Z + 6/5*Z^2 + (1/5*t^2 - 1/5*t + 1/30)*Y + (4/5*t^2 - 4/5*t + 2/15)*Z + 1/5*t^4 - 2/5*t^3 + 7/15*t^2 - 3/10*t - 11/45, X + 2*Y + 2*Z + t^2 - t - 1/3]
 
-        ALGORITHM: Uses Singular, Magma (if available), Macaulay2 (if
-        available), or a toy implementation.
+        ALGORITHM:
+
+        Uses Singular, Magma (if available), Macaulay2 (if available),
+        or a toy implementation.
         """
         from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
         from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence

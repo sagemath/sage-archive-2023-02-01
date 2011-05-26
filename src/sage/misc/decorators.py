@@ -6,17 +6,20 @@ Python decorators for use in Sage.
 AUTHORS:
 
 - Tim Dumol (5 Dec 2009) -- initial version.
-- Johan S. R. Nielsen (2010) -- collect decorators from various modules
-- Johan S. R. Nielsen (8 apr 2011) -- improve introspection on decorators
+- Johan S. R. Nielsen (2010) -- collect decorators from various modules.
+- Johan S. R. Nielsen (8 apr 2011) -- improve introspection on decorators.
+- Simon King (2011-05-26) -- improve introspection of sage_wraps. Put this
+  file into the reference manual.
+
 """
 from functools import partial, update_wrapper, WRAPPER_ASSIGNMENTS, WRAPPER_UPDATES
 from copy import copy
-from sage.misc.sageinspect import sage_getsource
+from sage.misc.sageinspect import sage_getsource, sage_getsourcelines
 from sage.misc.misc import verbose, deprecation
 from inspect import ArgSpec
 
 def sage_wraps(wrapped, assigned = WRAPPER_ASSIGNMENTS, updated = WRAPPER_UPDATES):
-    """
+    r"""
     Decorator factory which should be used in decorators for making sure that
     meta-information on the decorated callables are retained through the
     decorator, such that the introspection functions of
@@ -30,10 +33,10 @@ def sage_wraps(wrapped, assigned = WRAPPER_ASSIGNMENTS, updated = WRAPPER_UPDATE
     the special attribute ``_sage_argspec_`` of the wrapping function (for an
     example, see e.g. ``@options`` decorator in this module).
 
-    EXAMPLES::
+    EXAMPLES:
 
     Demonstrate that documentation string and source are retained from the
-    decorated function
+    decorated function::
 
         sage: def square(f):
         ...     @sage_wraps(f)
@@ -50,12 +53,12 @@ def sage_wraps(wrapped, assigned = WRAPPER_ASSIGNMENTS, updated = WRAPPER_UPDATE
         x^2
         sage: g.__doc__
         'My little function'
-        sage: from sage.misc.sageinspect import sage_getsource
+        sage: from sage.misc.sageinspect import sage_getsource, sage_getsourcelines, sage_getfile
         sage: sage_getsource(g)
         '@square...def g(x)...'
 
     Demonstrate that the argument description are retained from the decorated
-    function through the special method (when left unchanged) (see trac #9976).
+    function through the special method (when left unchanged) (see trac #9976)::
 
         sage: def diff_arg_dec(f):
         ...     @sage_wraps(f)
@@ -73,8 +76,23 @@ def sage_wraps(wrapped, assigned = WRAPPER_ASSIGNMENTS, updated = WRAPPER_UPDATE
         sage: sage_getargspec(g)
         ArgSpec(args=['x'], varargs=None, keywords=None, defaults=None)
 
+    Demonstrate that it correctly gets the source lines and the source
+    file, which is essential for interactive code edition; note that we
+    do not test the line numbers, as they may easily change::
+
+        sage: P.<x,y> = QQ[]
+        sage: I = P*[x,y]
+        sage: sage_getfile(I.interreduced_basis)
+        '...sage/rings/polynomial/multi_polynomial_ideal.py'
+        sage: sage_getsourcelines(I.interreduced_basis)
+        (['    @singular_standard_options\n',
+          '    @libsingular_standard_options\n',
+          '    def interreduced_basis(self):\n',
+          ...
+          '        return ret\n'], ...)
+
     Demonstrate that sage_wraps works for non-function callables
-    (Trac 9919)
+    (Trac 9919)::
 
         sage: def square_for_met(f):
         ...     @sage_wraps(f)
@@ -99,10 +117,11 @@ def sage_wraps(wrapped, assigned = WRAPPER_ASSIGNMENTS, updated = WRAPPER_UPDATE
     def f(wrapper):
         update_wrapper(wrapper, wrapped, assigned=assigned, updated=updated)
         wrapper._sage_src_=lambda: sage_getsource(wrapped)
+        wrapper._sage_src_lines_=lambda: sage_getsourcelines(wrapped)
         #Getting the signature right in documentation by Sphinx (Trac 9976)
         #The attribute _sage_argspec_() is read by Sphinx if present and used
         #as the argspec of the function instead of using reflection.
-        from sageinspect import sage_getargspec
+        from sageinspect import sage_getargspec, sage_getsource
         argspec = sage_getargspec(wrapped)
         wrapper._sage_argspec_ = lambda: argspec
         return wrapper
@@ -365,12 +384,12 @@ class suboptions(object):
     def __init__(self, name, **options):
         """
         A decorator for functions which collects all keywords
-        starting with name_ and collects them into a dictionary
+        starting with ``name+'_'`` and collects them into a dictionary
         which will be passed on to the wrapped function as a
-        dictionary called name_options.
+        dictionary called ``name_options``.
 
         The keyword arguments passed into the constructor are taken
-        to be default for the name_options dictionary.
+        to be default for the ``name_options`` dictionary.
 
         EXAMPLES::
 
@@ -464,7 +483,7 @@ class options(object):
             {'rgbcolor': (0, 0, 1)}
 
         Demonstrate that the introspected argument specification of the wrapped
-        function is updated (see trac #9976).
+        function is updated (see trac #9976)::
 
             sage: from sage.misc.decorators import options
             sage: o = options(rgbcolor=(0,0,1))

@@ -8,3 +8,4 @@ Rubik's cube solver (see :ref:`Rubik's Cube Group <sec-rubik>`).
    :maxdepth: 2
 
    sage/games/sudoku
+   sage/games/quantumino

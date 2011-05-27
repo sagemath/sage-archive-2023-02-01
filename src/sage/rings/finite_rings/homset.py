@@ -131,6 +131,17 @@ class FiniteFieldHomset(RingHomset_generic):
               Defn: z |--> 3*z^5 + 5*z^4 + 5*z^2 + 2*z + 3,
              Ring endomorphism of Finite Field in z of size 7^6
               Defn: z |--> z]
+
+        TESTS:
+
+        Check that Trac #11390 is fixed::
+
+            sage: K = GF(1<<16,'a'); L = GF(1<<32,'b')
+            sage: K.Hom(L)[0]
+            Ring morphism:
+              From: Finite Field in a of size 2^16
+              To:   Finite Field in b of size 2^32
+              Defn: a |--> b^29 + b^27 + b^26 + b^23 + b^21 + b^19 + b^18 + b^16 + b^14 + b^13 + b^11 + b^10 + b^9 + b^8 + b^7 + b^6 + b^5 + b^2 + b
         """
         try:
             return self.__list

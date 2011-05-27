@@ -35,12 +35,18 @@ import sage.structure.element
 
 include "../ext/stdsage.pxi"
 
+cdef inline category(x):
+    try:
+        return x.category()
+    except AttributeError:
+        import sage.categories.all
+        return sage.categories.all.Objects()
 
 cdef class Action(Functor):
 
     def __init__(self, G, S, bint is_left = 1, op=None):
         from groupoid import Groupoid
-        Functor.__init__(self, Groupoid(G), S.category())
+        Functor.__init__(self, Groupoid(G), category(S))
         self.G = G
         self.S = S
         self._is_left = is_left
@@ -64,7 +70,7 @@ cdef class Action(Functor):
             else:
                 return self._call_(self.S(args[0]), self.G(args[1]))
 
-    cpdef Element _call_(self, a, b):
+    cpdef _call_(self, a, b):
         raise NotImplementedError, "Action not implemented."
 
     def act(self, g, a):
@@ -151,7 +157,7 @@ cdef class InverseAction(Action):
             pass
         raise TypeError, "No inverse defined for %r." % action
 
-    cpdef Element _call_(self, a, b):
+    cpdef _call_(self, a, b):
         if self._action._is_left:
             if self.S_precomposition is not None:
                 b = self.S_precomposition(b)
@@ -191,7 +197,7 @@ cdef class PrecomposedAction(Action):
         self.left_precomposition = left_precomposition
         self.right_precomposition = right_precomposition
 
-    cpdef Element _call_(self, a, b):
+    cpdef _call_(self, a, b):
         if self.left_precomposition is not None:
             a = self.left_precomposition._call_(a)
         if self.right_precomposition is not None:

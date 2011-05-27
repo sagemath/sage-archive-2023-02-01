@@ -27,12 +27,21 @@ cdef _record_exception():
     from element import get_coercion_model
     get_coercion_model()._record_exception()
 
+cdef inline an_element(R):
+    if isinstance(R, Parent):
+        return R.an_element()
+    else:
+        for x in ([(1, 2)], "abc", 10.5, 10):
+            try:
+                return R(x)
+            except Exception:
+                pass
 
 cdef class LAction(Action):
     """Action calls _l_action of the actor."""
     def __init__(self, G, S):
         Action.__init__(self, G, S, True, operator.mul)
-    cpdef Element _call_(self, g, a):
+    cpdef _call_(self, g, a):
         return g._l_action(a)  # a * g
 
 
@@ -40,7 +49,7 @@ cdef class RAction(Action):
     """Action calls _r_action of the actor."""
     def __init__(self, G, S):
         Action.__init__(self, G, S, False, operator.mul)
-    cpdef Element _call_(self, a, g):
+    cpdef _call_(self, a, g):
         return g._r_action(a)  # g * a
 
 
@@ -48,9 +57,9 @@ cdef class RAction(Action):
 
 cdef class GenericAction(Action):
 
-    cdef Parent _codomain
+    cdef _codomain
 
-    def __init__(self, Parent G, Parent S, is_left, bint check=True):
+    def __init__(self, Parent G, S, is_left, bint check=True):
         """
         TESTS::
 
@@ -73,7 +82,7 @@ cdef class GenericAction(Action):
             res = self.act(G.an_element(), S.an_element())
             if res is None:
                 raise CoercionException
-            _codomain = (<Element?>res)._parent
+            _codomain = parent_c(res)
 
     def codomain(self):
         """
@@ -91,7 +100,7 @@ cdef class GenericAction(Action):
             Multivariate Polynomial Ring in x, y, z over Rational Field
         """
         if self._codomain is None:
-            self._codomain = (<Element?>self.act(self.G.an_element(), self.S.an_element()))._parent
+            self._codomain = parent_c(self.act(an_element(self.G), an_element(self.S)))
         return self._codomain
 
 
@@ -99,7 +108,7 @@ cdef class ActOnAction(GenericAction):
     """
     Class for actions defined via the _act_on_ method.
     """
-    cpdef Element _call_(self, a, b):
+    cpdef _call_(self, a, b):
         """
         TESTS::
 
@@ -123,7 +132,7 @@ cdef class ActedUponAction(GenericAction):
     """
     Class for actions defined via the _acted_upon_ method.
     """
-    cpdef Element _call_(self, a, b):
+    cpdef _call_(self, a, b):
         """
         TESTS::
 
@@ -141,8 +150,7 @@ cdef class ActedUponAction(GenericAction):
         else:
             return (<Element>a)._acted_upon_(b, True)
 
-
-def detect_element_action(Parent X, Parent Y, bint X_on_left):
+def detect_element_action(Parent X, Y, bint X_on_left):
     r"""
     Returns an action of X on Y or Y on X as defined by elements X, if any.
 
@@ -172,12 +180,17 @@ def detect_element_action(Parent X, Parent Y, bint X_on_left):
         sage: detect_element_action(A, ZZ, True)
         Traceback (most recent call last):
         ...
-        RuntimeError: an_element() returned None
+        RuntimeError: an_element() for <class '__main__.MyParent'> returned None
     """
-    cdef Element x = X.an_element()
-    cdef Element y = Y.an_element()
-    if x is None or y is None:
-        raise RuntimeError, "an_element() returned None"
+    cdef Element x = an_element(X)
+    if x is None:
+        raise RuntimeError, "an_element() for %s returned None" % X
+    y = an_element(Y)
+    if y is None:
+        if isinstance(Y, Parent):
+            raise RuntimeError, "an_element() for %s returned None" % Y
+        else:
+            return # don't know how to make elements of this type...
     if isinstance(x, ModuleElement) and isinstance(y, RingElement):
         # Elements defining _lmul_ and _rmul_
         try:
@@ -190,12 +203,13 @@ def detect_element_action(Parent X, Parent Y, bint X_on_left):
             return ActOnAction(X, Y, X_on_left, False)
     except CoercionException:
         _record_exception()
-    try:
-        # Elements defining _acted_upon_
-        if x._acted_upon_(y, X_on_left) is not None:
-            return ActedUponAction(Y, X, not X_on_left, False)
-    except CoercionException:
-        _record_exception()
+    if isinstance(Y, Parent):
+        try:
+            # Elements defining _acted_upon_
+            if x._acted_upon_(y, X_on_left) is not None:
+                return ActedUponAction(Y, X, not X_on_left, False)
+        except CoercionException:
+            _record_exception()
 
 
 cdef class ModuleAction(Action):
@@ -337,7 +351,7 @@ cdef class ModuleAction(Action):
 
 cdef class LeftModuleAction(ModuleAction):
 
-    cpdef Element _call_(self, g, a):
+    cpdef _call_(self, g, a):
         """
         A left module action is an action that takes the ring element as the
         first argument (the left side) and the module element as the second
@@ -369,7 +383,7 @@ cdef class RightModuleAction(ModuleAction):
     def __cinit__(self):
         self.is_inplace = 0
 
-    cpdef Element _call_(self, a, g):
+    cpdef _call_(self, a, g):
         """
         A right module action is an action that takes the module element as the
         first argument (the left side) and the ring element as the second
@@ -435,7 +449,7 @@ cdef class IntegerMulAction(Action):
         test = M.an_element() + (-M.an_element()) # make sure addition and negation is allowed
         Action.__init__(self, ZZ, M, is_left, operator.mul)
 
-    cpdef Element _call_(self, nn, a):
+    cpdef _call_(self, nn, a):
         """
         EXAMPLES::
 

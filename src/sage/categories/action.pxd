@@ -8,7 +8,7 @@ cdef class Action(Functor):
     cdef S
     cdef bint _is_left
     cdef op
-    cpdef Element _call_(self, a, b)
+    cpdef _call_(self, a, b)
 
 
 cdef class InverseAction(Action):

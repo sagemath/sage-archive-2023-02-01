@@ -1581,8 +1581,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 'hi' * 8
             'hihihihihihihihi'
         """
-        if isinstance(s, (str, list, tuple)):
-            return s*int(self)
+        if isinstance(s, (list, tuple, basestring)):
+            if mpz_fits_slong_p(self.value):
+                return s * mpz_get_si(self.value)
+            else:
+                return s * int(self) # will raise the appropriate exception
 
     cdef ModuleElement _mul_long(self, long n):
         """

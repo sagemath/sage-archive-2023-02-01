@@ -2196,7 +2196,7 @@ cdef class Parent(category_object.CategoryObject):
 
         # We didn't find an action in the list, but maybe the elements
         # define special action methods
-        if op is operator.mul and PY_TYPE_CHECK(S, Parent):
+        if op is operator.mul:
             # TODO: if _xmul_/_x_action_ code does stuff like
             # if self == 0:
             #    return self
@@ -2214,10 +2214,8 @@ cdef class Parent(category_object.CategoryObject):
                     # maybe there is a more clever way of detecting ZZ than importing here...
                     from sage.rings.integer_ring import ZZ
                     if S is ZZ and not self.has_coerce_map_from(ZZ):
-                        #print "IntegerMulAction"
                         from sage.structure.coerce_actions import IntegerMulAction
                         action = IntegerMulAction(S, self, not self_on_left)
-                        #print "got", action
                         return action
                 except (CoercionException, TypeError):
                     _record_exception()

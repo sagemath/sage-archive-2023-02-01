@@ -42,12 +42,6 @@ To install, nothing more than a standard Sage install. The
 `spkg-check` script will exit without actually testing anything if
 it cannot find "latex" in your path.
 
-If the documentation is not in SAGE_ROOT/local/share/doc/sagetex, then
-you can either build it by reinstalling this spkg with
-the environment variable SAGE_SPKG_INSTALL_DOCS set to "yes" or download
-it from http://bitbucket.org/ddrake/sagetex/downloads. There should be
-two files: example.pdf and sagetex.pdf.
-
 == Notes ==
 
 To use SageTeX, both Sage and LaTeX need to know about it. SageTeX comes
@@ -73,6 +67,13 @@ SageTeX [[http://tug.ctan.org/pkg/sagetex|from CTAN]] instead of
 downloading this spkg.
 
 == Changelog ==
+
+=== sagetex-2.3.1 (Dan Drake, 27 May 2011) ===
+
+ * Include various fixes; see #10146. This now installs the PDFs of the
+   documentation to SAGE_ROOT/local/share/doc/sagetex as a sort of
+   halfway-not-really implementation of the SAGE_SPKG_INSTALL_DOCS
+   stuff. (See #10908 and #11197.)
 
 === sagetex-2.3 (Dan Drake, 20 Oct 2010) ===
 

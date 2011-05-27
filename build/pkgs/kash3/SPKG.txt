@@ -19,9 +19,8 @@ Closed source.  I have received oral permission to redistribute the binary.
 
 == ChangeLog ==
 
+=== kash3-2008-07-31.p0 (John Palmieri, May 26, 2011) ===
+* fix use of "tar" so it works on OS X.
+
 === kash3-2008-07-31 (William Stein, December 24, 2008) ===
- * initial version, based on some old kash3 packages I made years ago.
-
-
-
-
+* initial version, based on some old kash3 packages I made years ago.

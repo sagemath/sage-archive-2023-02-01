@@ -1286,6 +1286,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
             sage: g.minpoly()(g)
             0
         """
+        (<FiniteField_ntl_gf2e>self._parent).F.restore()
         cdef GF2X_c r = GF2X_IrredPolyMod(GF2E_rep(self.x), GF2E_modulus())
         cdef int i
         C = []

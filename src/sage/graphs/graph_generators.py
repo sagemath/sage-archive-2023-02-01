@@ -2104,7 +2104,19 @@ class GraphGenerators():
         """
         import networkx
         G = networkx.icosahedral_graph()
-        return graph.Graph(G, name="Icosahedron")
+
+        pos = {}
+        r1 = 5
+        r2 = 2
+        for i,v in enumerate([2,8,7,11,4,6]):
+            i = i + .5
+            pos[v] = (r1*cos(i*pi/3),r1*sin(i*pi/3))
+
+        for i,v in enumerate([1,9,0,10,5,3]):
+            i = i + .5
+            pos[v] = (r2*cos(i*pi/3),r2*sin(i*pi/3))
+
+        return graph.Graph(G, name="Icosahedron", pos = pos)
 
     def DodecahedralGraph(self):
         """

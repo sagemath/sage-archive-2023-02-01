@@ -178,7 +178,15 @@ class HTML:
         2D graphics will be displayed in the cells.  Expressions will
         be latexed.
 
-        EXAMPLES:
+
+        INPUT:
+
+          - ``x`` -- a list of lists (i.e., a list of table rows)
+          - ``header`` -- a row of headers.  If True, then the first
+             row of the table is taken to be the header.
+
+        EXAMPLES::
+
             sage: html.table([(i, j, i == j) for i in [0..1] for j in [0..1]])
             <html>
             <div class="notruncate">
@@ -227,6 +235,37 @@ class HTML:
             </table>
             </div>
             </html>
+
+            sage: html.table([(x,n(sin(x), digits=2)) for x in [0..3]], header = ["$x$", "$\sin(x)$"])
+            <html>
+            <div class="notruncate">
+            <table class="table_form">
+            <tbody>
+            <tr>
+            <th><span class="math">x</span></th>
+            <th><span class="math">\sin(x)</span></th>
+            </tr>
+            <tr class ="row-a">
+            <td><span class="math">0</span></td>
+            <td><span class="math">0.00</span></td>
+            </tr>
+            <tr class ="row-b">
+            <td><span class="math">1</span></td>
+            <td><span class="math">0.84</span></td>
+            </tr>
+            <tr class ="row-a">
+            <td><span class="math">2</span></td>
+            <td><span class="math">0.91</span></td>
+            </tr>
+            <tr class ="row-b">
+            <td><span class="math">3</span></td>
+            <td><span class="math">0.14</span></td>
+            </tr>
+            </tbody>
+            </table>
+            </div>
+            </html>
+
         """
         import types
         from sage.misc.all import latex
@@ -242,11 +281,14 @@ class HTML:
                 else:
                     print "<html>\n<div class=\"truncate\">\n<table class=\"table_form\">\n<tbody>"
 
-                if header == True:
+                if header is True:
+                    header=x[0]
+                    x = list(x[1:])
+
+                if header is not False:
                     print "<tr>"
-                    self._table_columns(x[0], True)
+                    self._table_columns(header, True)
                     print "</tr>"
-                    x = x[1:]
 
                 for row_class, row in zip(cycle(["row-a", "row-b"]), x):
                     print "<tr class =\"%s\">" % row_class

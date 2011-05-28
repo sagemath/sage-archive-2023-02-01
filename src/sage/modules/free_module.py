@@ -2468,13 +2468,14 @@ class FreeModule_generic_pid(FreeModule_generic):
             return self
         try:
             A, _ = self.basis_matrix()._clear_denom()
-            S = A.saturation()
-            return S.row_space()
+            S = A.saturation().row_space()
         except AttributeError:
             # fallback in case _clear_denom isn't written
             V = self.vector_space()
             A = self.ambient_module()
-            return V.intersection(A)
+            S = V.intersection(A)
+        # Return exactly self if it is already saturated.
+        return self if self == S else S
 
     def span(self, gens, base_ring=None, check=True, already_echelonized=False):
         """

@@ -10,6 +10,8 @@ provide support for working with lattice morphisms compatible with fans via
 AUTHORS:
 
 - Andrey Novoseltsev (2010-10-17): initial version.
+- Andrey Novoseltsev (2011-04-11): added tests for injectivity/surjectivity,
+    fibration, bundle, as well as some related methods.
 
 EXAMPLES:
 
@@ -70,11 +72,12 @@ import operator
 
 from sage.categories.all import Hom
 from sage.geometry.cone import Cone
-from sage.geometry.fan import Fan, is_Fan
-from sage.matrix.all import is_Matrix
-from sage.misc.all import latex, walltime
+from sage.geometry.fan import Fan, is_Fan, discard_faces
+from sage.matrix.all import matrix, is_Matrix
+from sage.misc.all import cached_method, latex, walltime
 from sage.modules.free_module_morphism import (FreeModuleMorphism,
                                                is_FreeModuleMorphism)
+from sage.rings.all import ZZ, is_Infinite
 
 
 class FanMorphism(FreeModuleMorphism):
@@ -273,6 +276,7 @@ class FanMorphism(FreeModuleMorphism):
         self._image_cone = dict()
         self._preimage_cones = dict()
         self._preimage_fans = dict()
+        self._primitive_preimage_cones = dict()
         if codomain_fan is None:
             self._construct_codomain_fan()
         else:
@@ -405,6 +409,7 @@ class FanMorphism(FreeModuleMorphism):
         self._codomain_fan = Fan(cones=(domain_cone.ambient_ray_indices()
                                         for domain_cone in domain_fan),
                                  rays=(self(ray) for ray in domain_fan.rays()),
+                                 lattice=self.codomain(),
                                  discard_warning=False)
 
     def _latex_(self):
@@ -435,6 +440,48 @@ class FanMorphism(FreeModuleMorphism):
         """
         return (r"%s : %s \to %s" % (latex(self.matrix()),
                         latex(self.domain_fan()), latex(self.codomain_fan())))
+
+    @cached_method
+    def _ray_index_map(self):
+        r"""
+        Return the map between indices of rays in domain and codomain fans.
+
+        OUTPUT:
+
+        - a tuple of integers. If the `i`-th entry is -1, the `i`-th ray of the
+          domain fan is mapped to the origin. If it is `j`, then the `i`-th ray
+          of the domain fan is mapped onto the `j`-th ray of the codomain fan.
+          If there is a ray in the domain fan which is mapped into the relative
+          interior of a higher dimensional cone, a ``ValueError`` exception is
+          raised.
+
+        .. NOTE::
+
+            This method is used by :meth:`is_bundle` and :meth:`is_fibration`.
+
+        TESTS::
+
+            sage: Sigma = toric_varieties.dP8().fan()
+            sage: Sigma_p = toric_varieties.P1().fan()
+            sage: phi = FanMorphism(matrix([[1], [-1]]), Sigma, Sigma_p)
+            sage: phi._ray_index_map()
+            (-1, 1, -1, 0)
+            sage: xi = FanMorphism(matrix([[1, 0]]), Sigma_p, Sigma)
+            sage: xi._ray_index_map()
+            Traceback (most recent call last):
+            ...
+            ValueError: ray #1 is mapped into a 2-d cone!
+        """
+        Sigma = self.domain_fan()
+        ray_index_map = [-1] * Sigma.nrays()
+        for i, rho in enumerate(Sigma(1)):
+            sigma_p = self.image_cone(rho)
+            if sigma_p.nrays() > 1:
+                raise ValueError("ray #%d is mapped into a %d-d cone!" %
+                                 (i, sigma_p.dim()))
+            elif sigma_p.nrays() == 1:
+                ray_index_map[i] = sigma_p.ambient_ray_indices()[0]
+        return tuple(ray_index_map)
 
     def _repr_(self):
         r"""
@@ -858,6 +905,366 @@ class FanMorphism(FreeModuleMorphism):
                                                     self(ray) for ray in cone)
         return self._image_cone[cone]
 
+    @cached_method
+    def index(self):
+        r"""
+        Return the index of ``self`` as a map between lattices.
+
+        OUTPUT:
+
+        - an integer or infinity.
+
+        EXAMPLES::
+
+            sage: Sigma = toric_varieties.dP8().fan()
+            sage: Sigma_p = toric_varieties.P1().fan()
+            sage: phi = FanMorphism(matrix([[1], [-1]]), Sigma, Sigma_p)
+            sage: phi.index()
+            1
+            sage: psi = FanMorphism(matrix([[2], [-2]]), Sigma, Sigma_p)
+            sage: psi.index()
+            2
+            sage: xi = FanMorphism(matrix([[1, 0]]), Sigma_p, Sigma)
+            sage: xi.index()
+            +Infinity
+        """
+        return self.matrix().image().index_in(self.codomain())
+
+    @cached_method
+    def is_bundle(self):
+        r"""
+        Check if ``self`` is a bundle.
+
+        OUTPUT:
+
+        - ``True`` if ``self`` is a bundle, ``False`` otherwise.
+
+        Let `\phi: \Sigma \to \Sigma'` be a fan morphism such that the
+        underlying lattice morphism `\phi: N \to N'` is surjective. Let
+        `\Sigma_0` be the kernel fan of `\phi`. Then `\phi` is a **bundle** (or
+        splitting) if there is a subfan `\widehat{\Sigma}` of `\Sigma` such
+        that the following two conditions are satisfied:
+
+            #. Cones of `\Sigma` are precisely the cones of the form
+               `\sigma_0 + \widehat{\sigma}`, where `\sigma_0 \in \Sigma_0` and
+               `\widehat{\sigma} \in \widehat{\Sigma}`.
+
+            #. Cones of `\widehat{\Sigma}` are in bijection with cones of
+               `\Sigma'` induced by `\phi` and `\phi` maps lattice points in
+               every cone `\widehat{\sigma} \in \widehat{\Sigma}` bijectively
+               onto lattice points in `\phi(\widehat{\sigma})`.
+
+        If a fan morphism `\phi: \Sigma \to \Sigma'` is a bundle, then
+        `X_\Sigma` is a fiber bundle over `X_{\Sigma'}` with fibers
+        `X_{\Sigma_0, N_0}`, where `N_0` is the kernel lattice of `\phi`. See
+        [CLS11]_ for more details.
+
+        .. seealso:: :meth:`is_fibration`, :meth:`kernel_fan`.
+
+        REFERENCES:
+
+        ..  [CLS11]
+            David A. Cox, John Little, and Hal Schenck.
+            *Toric Varieties*.
+            Volume 124 of *Graduate Studies in Mathematics*.
+            American Mathematical Society, Providence, RI, 2011.
+
+        EXAMPLES:
+
+        We consider several maps between fans of a del Pezzo surface and the
+        projective line::
+
+            sage: Sigma = toric_varieties.dP8().fan()
+            sage: Sigma_p = toric_varieties.P1().fan()
+            sage: phi = FanMorphism(matrix([[1], [-1]]), Sigma, Sigma_p)
+            sage: psi = FanMorphism(matrix([[2], [-2]]), Sigma, Sigma_p)
+            sage: xi = FanMorphism(matrix([[1, 0]]), Sigma_p, Sigma)
+            sage: phi.is_bundle()
+            True
+            sage: phi.is_fibration()
+            True
+            sage: phi.index()
+            1
+            sage: psi.is_bundle()
+            False
+            sage: psi.is_fibration()
+            True
+            sage: psi.index()
+            2
+            sage: xi.is_fibration()
+            False
+            sage: xi.index()
+            +Infinity
+
+        The first of these maps induces not only a fibration, but a fiber
+        bundle structure. The second map is very similar, yet it fails to be
+        a bundle, as its index is 2. The last map is not even a fibration.
+        """
+        if self.index() != 1:
+            return False    # Not surjective between lattices.
+        Sigma = self.domain_fan()
+        Sigma_p = self.codomain_fan()
+        Sigma_0 = self.kernel_fan()
+        if (Sigma.ngenerating_cones() !=
+            Sigma_0.ngenerating_cones() * Sigma_p.ngenerating_cones()):
+            return False    # Definitely no splitting.
+        try:
+            ray_index_map = self._ray_index_map()
+        except ValueError:
+            return False  # Rays are not mapped onto rays or the origin.
+        # Figure out how Sigma_0 sits inside Sigma in terms of ray indices.
+        I_0s = [Sigma.embed(sigma_0).ambient_ray_indices()
+                for sigma_0 in Sigma_0]
+        # We examine only generating cones, this is sufficient.
+        for sigma_p in Sigma_p:
+            primitive_cones = self.primitive_preimage_cones(sigma_p)
+            if len(primitive_cones) != 1:   # Should be only sigma_hat.
+                return False
+            sigma_hat = primitive_cones[0]
+            if sigma_p.dim() != sigma_hat.dim():
+                return False    # sigma -> sigma_p is not a bijection
+            I_p = sigma_p.ambient_ray_indices()
+            I_hat = sigma_hat.ambient_ray_indices()
+            if I_p != tuple(sorted(ray_index_map[i] for i in I_hat)):
+                return False    # sigma -> sigma_p is not a bijection
+            # Check that sigma_hat + sigma_0 is always in Sigma.
+            for I_0 in I_0s:
+                I = tuple(sorted(I_hat + I_0))
+                if all(sigma.ambient_ray_indices() != I for sigma in Sigma):
+                    return False
+        return True
+
+    @cached_method
+    def is_fibration(self):
+        r"""
+        Check if ``self`` is a fibration.
+
+        OUTPUT:
+
+        - ``True`` if ``self`` is a fibration, ``False`` otherwise.
+
+        A fan morphism `\phi: \Sigma \to \Sigma'` is a **fibration** if for any
+        cone `\sigma' \in \Sigma'` and any primitive preimage cone `\sigma \in
+        \Sigma` corresponding to `\sigma'` the linear map of vector spaces
+        `\phi_\RR` induces a bijection between `\sigma` and `\sigma'`, and, in
+        addition, `\phi_\RR: N_\RR \to N'_\RR$ is surjective.
+
+        If a fan morphism `\phi: \Sigma \to \Sigma'` is a fibration, then the
+        associated morphism between toric varieties `\tilde{\phi}: X_\Sigma \to
+        X_{\Sigma'}` is a fibration in the sense that it is surjective and all
+        of its fibers have the same dimension, namely `\dim X_\Sigma -
+        \dim X_{\Sigma'}`. These fibers do *not* have to be isomorphic, i.e. a
+        fibration is not necessarily a fiber bundle. See [HLY02]_ for more
+        details.
+
+        .. seealso:: :meth:`is_bundle`, :meth:`primitive_preimage_cones`.
+
+        REFERENCES:
+
+        ..  [HLY02]
+            Yi Hu, Chien-Hao Liu, and Shing-Tung Yau.
+            Toric morphisms and fibrations of toric Calabi-Yau hypersurfaces.
+            *Adv. Theor. Math. Phys.*, 6(3):457-506, 2002.
+            arXiv:math/0010082v2 [math.AG].
+
+        EXAMPLES:
+
+        We consider several maps between fans of a del Pezzo surface and the
+        projective line::
+
+            sage: Sigma = toric_varieties.dP8().fan()
+            sage: Sigma_p = toric_varieties.P1().fan()
+            sage: phi = FanMorphism(matrix([[1], [-1]]), Sigma, Sigma_p)
+            sage: psi = FanMorphism(matrix([[2], [-2]]), Sigma, Sigma_p)
+            sage: xi = FanMorphism(matrix([[1, 0]]), Sigma_p, Sigma)
+            sage: phi.is_bundle()
+            True
+            sage: phi.is_fibration()
+            True
+            sage: phi.index()
+            1
+            sage: psi.is_bundle()
+            False
+            sage: psi.is_fibration()
+            True
+            sage: psi.index()
+            2
+            sage: xi.is_fibration()
+            False
+            sage: xi.index()
+            +Infinity
+
+        The first of these maps induces not only a fibration, but a fiber
+        bundle structure. The second map is very similar, yet it fails to be
+        a bundle, as its index is 2. The last map is not even a fibration.
+
+        TESTS:
+
+        We check that reviewer's example on Trac 11200 works as expected::
+
+            sage: P1 = toric_varieties.P1()
+            sage: A1 = toric_varieties.A1()
+            sage: phi = FanMorphism(matrix([[1]]), A1.fan(), P1.fan())
+            sage: phi.is_fibration()
+            False
+        """
+        if not self.is_surjective():
+            return False
+        try:
+            ray_index_map = self._ray_index_map()
+        except ValueError:
+            return False    # Rays are not mapped onto rays or the origin.
+        Sigma_p = self.codomain_fan()
+        # Rays are already checked, the origin is trivial, start with 2-cones.
+        for d in range(2, Sigma_p.dim() + 1):
+            for sigma_p in Sigma_p(d):
+                I_p = sigma_p.ambient_ray_indices()
+                for sigma in self.primitive_preimage_cones(sigma_p):
+                    if sigma.dim() != d:
+                        return False    # sigma -> sigma_p is not a bijection
+                    I = sigma.ambient_ray_indices()
+                    if I_p != tuple(sorted(ray_index_map[i] for i in I)):
+                        return False    # sigma -> sigma_p is not a bijection
+        return True
+
+    @cached_method
+    def is_injective(self):
+        r"""
+        Check if ``self`` is injective.
+
+        OUTPUT:
+
+        - ``True`` if ``self`` is injective, ``False`` otherwise.
+
+        Let `\phi: \Sigma \to \Sigma'` be a fan morphism such that the
+        underlying lattice morphism `\phi: N \to N'` bijectively maps `N` to a
+        *saturated* sublattice of `N'`. Let `\psi: \Sigma \to \Sigma'_0` be the
+        restriction of `\phi` to the image. Then `\phi` is **injective** if the
+        map between cones corresponding to `\psi` (injectively) maps each cone
+        of `\Sigma` to a cone of the same dimension.
+
+        If a fan morphism `\phi: \Sigma \to \Sigma'` is injective, then the
+        associated morphism between toric varieties `\tilde{\phi}: X_\Sigma \to
+        X_{\Sigma'}` is injective.
+
+        .. seealso:: :meth:`restrict_to_image`.
+
+        EXAMPLES:
+
+        Consider the fan of the affine plane::
+
+            sage: A2 = toric_varieties.A(2).fan()
+
+        We will map several fans consisting of a single ray into the interior
+        of the 2-cone::
+
+            sage: Sigma = Fan([Cone([(1,1)])])
+            sage: m = identity_matrix(2)
+            sage: FanMorphism(m, Sigma, A2).is_injective()
+            False
+
+        This morphism was not injective since (in the toric varieties
+        interpretation) the 1-dimensional orbit corresponding to the ray was
+        mapped to the 0-dimensional orbit corresponding to the 2-cone. ::
+
+            sage: Sigma = Fan([Cone([(1,)])])
+            sage: m = matrix(1, 2, [1,1])
+            sage: FanMorphism(m, Sigma, A2).is_injective()
+            True
+
+        While the fans in this example are close to the previous one, here the
+        ray corresponds to a 0-dimensional orbit. ::
+
+            sage: Sigma = Fan([Cone([(1,)])])
+            sage: m = matrix(1, 2, [2,2])
+            sage: FanMorphism(m, Sigma, A2).is_injective()
+            False
+
+        Here the problem is that ``m`` maps the domain lattice to a
+        non-saturated sublattice of the codomain. The corresponding map of the
+        toric varieties is a two-sheeted cover of its image.
+
+        We also embed the affine plane into the projective one::
+
+            sage: P2 = toric_varieties.P(2).fan()
+            sage: m = identity_matrix(2)
+            sage: FanMorphism(m, A2, P2).is_injective()
+            True
+        """
+        if self.matrix().index_in_saturation() != 1:
+            return False
+        if self.image().dimension() < self.codomain().dimension():
+            return self.restrict_to_image().is_injective()
+        # Now we know that underlying lattice morphism is bijective.
+        Sigma = self.domain_fan()
+        return all(all(self.image_cone(sigma).dim() == d for sigma in Sigma(d))
+                   for d in range(1, Sigma.dim() + 1))
+
+    @cached_method
+    def is_surjective(self):
+        r"""
+        Check if ``self`` is surjective.
+
+        OUTPUT:
+
+        - ``True`` if ``self`` is surjective, ``False`` otherwise.
+
+        A fan morphism `\phi: \Sigma \to \Sigma'` is **surjective** if the
+        corresponding map between cones is surjective, i.e. for each cone
+        `\sigma' \in \Sigma'` there is at least one preimage cone `\sigma \in
+        \Sigma` such that the relative interior of `\sigma` is mapped to the
+        relative interior of `\sigma'` and, in addition,
+        `\phi_\RR: N_\RR \to N'_\RR$ is surjective.
+
+        If a fan morphism `\phi: \Sigma \to \Sigma'` is surjective, then the
+        associated morphism between toric varieties `\tilde{\phi}: X_\Sigma \to
+        X_{\Sigma'}` is surjective.
+
+        .. seealso:: :meth:`is_bundle`, :meth:`is_fibration`,
+            :meth:`preimage_cones`.
+
+        EXAMPLES:
+
+        We check that the blow up of the affine plane at the origin is
+        surjective::
+
+            sage: A2 = toric_varieties.A(2).fan()
+            sage: Bl = A2.subdivide([(1,1)])
+            sage: m = identity_matrix(2)
+            sage: FanMorphism(m, Bl, A2).is_surjective()
+            True
+
+        It remains surjective if we throw away "south and north poles" of the
+        exceptional divisor::
+
+            sage: FanMorphism(m, Fan(Bl.cones(1)), A2).is_surjective()
+            True
+
+        But a single patch of the blow up does not cover the plane::
+
+            sage: F = Fan([Bl.generating_cone(0)])
+            sage: FanMorphism(m, F, A2).is_surjective()
+            False
+
+        TESTS:
+
+        We check that reviewer's example on Trac 11200 works as expected::
+
+            sage: P1 = toric_varieties.P1()
+            sage: A1 = toric_varieties.A1()
+            sage: phi = FanMorphism(matrix([[1]]), A1.fan(), P1.fan())
+            sage: phi.is_surjective()
+            False
+        """
+        if is_Infinite(self.index()):
+            return False    # Not surjective between vector spaces.
+        for dcones in self.codomain_fan().cones():
+            for sigma_p in dcones:
+                if not self.preimage_cones(sigma_p):
+                    return False
+        return True
+
+    @cached_method
     def kernel_fan(self):
         r"""
         Return the subfan of the domain fan mapped into the origin.
@@ -868,9 +1275,10 @@ class FanMorphism(FreeModuleMorphism):
 
         .. NOTE::
 
-            The lattice of the kernel fan is the kernel sublattice of ``self``.
+            The lattice of the kernel fan is the :meth:`kernel` sublattice of
+            ``self``.
 
-        .. seealso:: :meth:`kernel_lattice`, :meth:`preimage_fan`.
+        .. seealso:: :meth:`preimage_fan`.
 
         EXAMPLES::
 
@@ -881,33 +1289,13 @@ class FanMorphism(FreeModuleMorphism):
             sage: _.ray_matrix()
             [1]
             [1]
-            sage: fm.kernel_fan().cones() # not tested - TODO: make it work
+            sage: fm.kernel_fan().cones()
             ((0-d cone of Rational polyhedral fan in Sublattice <N(1, 1)>,),
              (1-d cone of Rational polyhedral fan in Sublattice <N(1, 1)>,))
         """
         fan = self.preimage_fan(Cone([], lattice=self.codomain()))
         return Fan((cone.ambient_ray_indices() for cone in fan), fan.rays(),
-                   self.kernel_lattice(), check=False)
-
-    def kernel_lattice(self):
-        r"""
-        Return the sublattice of the domain lattice mapped to the origin.
-
-        OUTPUT:
-
-        - a sublattice.
-
-        .. seealso:: :meth:`kernel_fan`.
-
-        EXAMPLE::
-
-            sage: fan = Fan(rays=[(1,0), (1,1), (0,1)], cones=[(0,1), (1,2)])
-            sage: fm = FanMorphism(matrix([1,-1]), fan, ToricLattice(1))
-            sage: fm.kernel_lattice()
-            Sublattice <N(1, 1)>
-        """
-        return self.domain().submodule_with_basis(
-                                        self.matrix().integer_kernel().basis())
+                   lattice=self.kernel(), check=False)
 
     def preimage_cones(self, cone):
         r"""
@@ -923,7 +1311,7 @@ class FanMorphism(FreeModuleMorphism):
 
         - a :class:`tuple` of :class:`cones
           <sage.geometry.cone.ConvexRationalPolyhedralCone>` of the
-          :meth:`domain_fan` of ``self``.
+          :meth:`domain_fan` of ``self``, sorted by dimension.
 
         .. seealso:: :meth:`preimage_fan`.
 
@@ -1030,3 +1418,146 @@ class FanMorphism(FreeModuleMorphism):
             self._preimage_fans[cone] = Fan(cones,
                             domain_fan.rays(sorted(ray_indices)), check=False)
         return self._preimage_fans[cone]
+
+    def primitive_preimage_cones(self, cone):
+        r"""
+        Return the primitive cones of the domain fan corresponding to ``cone``.
+
+        INPUT:
+
+        - ``cone`` -- a :class:`cone
+          <sage.geometry.cone.ConvexRationalPolyhedralCone>` equivalent to a
+          cone of the :meth:`codomain_fan` of ``self``.
+
+        OUTPUT:
+
+        - a :class:`cone <sage.geometry.cone.ConvexRationalPolyhedralCone>`.
+
+        Let `\phi: \Sigma \to \Sigma'` be a fan morphism, let `\sigma \in
+        \Sigma`, and let `\sigma' = \phi(\sigma)`. Then `\sigma` is a
+        **primitive cone corresponding to** `\sigma'` if there is no proper
+        face `\tau` of `\sigma` such that `\phi(\tau) = \sigma'`.
+
+        Primitive cones play an important role for fibration morphisms.
+
+        .. seealso:: :meth:`is_fibration`, :meth:`preimage_cones`,
+            :meth:`preimage_fan`.
+
+        EXAMPLES:
+
+        Consider a projection of a del Pezzo surface onto the projective line::
+
+            sage: Sigma = toric_varieties.dP6().fan()
+            sage: Sigma.ray_matrix()
+            [ 0 -1 -1  0  1  1]
+            [ 1  0 -1 -1  0  1]
+            sage: Sigma_p = toric_varieties.P1().fan()
+            sage: phi = FanMorphism(matrix([[1], [-1]]), Sigma, Sigma_p)
+
+        Under this map, one pair of rays is mapped to the origin, one in the
+        positive direction, and one in the negative one. Also three
+        2-dimensional cones are mapped in the positive direction and three in
+        the negative one, so there are 5 preimage cones corresponding to either
+        of the rays of the codomain fan ``Sigma_p``::
+
+            sage: len(phi.preimage_cones(Cone([(1,)])))
+            5
+
+        Yet only rays are primitive::
+
+            sage: phi.primitive_preimage_cones(Cone([(1,)]))
+            (1-d cone of Rational polyhedral fan in 2-d lattice N,
+             1-d cone of Rational polyhedral fan in 2-d lattice N)
+
+        Since all primitive cones are mapped onto their images bijectively, we
+        get a fibration::
+
+            sage: phi.is_fibration()
+            True
+
+        But since there are several primitive cones corresponding to the same
+        cone of the codomain fan, this map is not a bundle, even though its
+        index is 1::
+
+            sage: phi.is_bundle()
+            False
+            sage: phi.index()
+            1
+        """
+        sigma_p = self._codomain_fan.embed(cone) # Necessary if used as a key
+        if sigma_p not in self._primitive_preimage_cones:
+            primitive_cones = []
+            for sigma in self.preimage_cones(sigma_p):  # Sorted by dimension
+                if not any(tau.is_face_of(sigma) for tau in primitive_cones):
+                    primitive_cones.append(sigma)
+            self._primitive_preimage_cones[sigma_p] = tuple(primitive_cones)
+        return self._primitive_preimage_cones[sigma_p]
+
+    @cached_method
+    def restrict_to_image(self):
+        r"""
+        Return the fan morphism from the domain fan to the image fan.
+
+        OUTPUT:
+
+        - a :class:`fan morphism <FanMorphism>`.
+
+        .. note::
+
+            By the *image fan* of a fan morphism we mean the fan generated by
+            the intersections of cones of the codomain fan with the image
+            vector space of ``self``. The lattice of this fan is the saturation
+            of the image of ``self``.
+
+        EXAMPLES:
+
+        We embed a projective line "diagonally" into the product of two lines::
+
+            sage: Sigma = toric_varieties.P1().fan()
+            sage: Sigmap = toric_varieties.P1xP1().fan()
+            sage: m = matrix(1, 2, [1,1])
+            sage: phi = FanMorphism(m, Sigma, Sigmap)
+            sage: phi
+            Fan morphism defined by the matrix
+            [1 1]
+            Domain fan: Rational polyhedral fan in 1-d lattice N
+            Codomain fan: Rational polyhedral fan in 2-d lattice N
+
+        Now we restrict this morphism to its image::
+
+            sage: psi = phi.restrict_to_image()
+            sage: psi
+            Fan morphism defined by the matrix
+            [1]
+            Domain fan: Rational polyhedral fan in 1-d lattice N
+            Codomain fan: Rational polyhedral fan in Sublattice <N(1, 1)>
+
+        Note that the matrix defining a morphism to a fan in a sublattice
+        operates with generators of this sublattice, so ``[1]`` in the above
+        example means that `\psi` sends the only generator of the domain
+        lattice to the generator of the image sublattice::
+
+            sage: psi.codomain().gens()
+            (N(1, 1),)
+            sage: psi.codomain_fan().ray_matrix()
+            [ 1 -1]
+            [ 1 -1]
+
+        Restriction to image returns exactly the same map if the corresponding
+        map of vector spaces is surjective, e.g. in the case of double
+        restriction::
+
+            sage: psi.restrict_to_image() is psi
+            True
+        """
+        L = self.image().saturation()
+        d = L.dimension()
+        if self.codomain().dimension() == d:
+            return self
+        m = self.matrix()
+        m = matrix(ZZ, m.nrows(), d, (L.coordinates(c) for c in m.rows()))
+        L_cone = Cone(sum(([g, -g] for g in L.gens()), []))
+        Sigma = Fan(cones=discard_faces(L_cone.intersection(cone)
+                                        for cone in self.codomain_fan()),
+                    lattice=L, check=False)
+        return FanMorphism(m, self.domain_fan(), Sigma)

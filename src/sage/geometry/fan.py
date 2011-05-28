@@ -1125,25 +1125,21 @@ class RationalPolyhedralFan(IntegralRayCollection,
             False
             sage: cone1_f.is_equivalent(cone1)
             True
-            sage: cone1   in Fan([cone1, cone2])  # not a cone of any particular fan
+            sage: cone1 in Fan([cone1, cone2])  # not a cone of any particular fan
             True
             sage: cone1_f in Fan([cone1, cone2])  # belongs to different fan, but equivalent cone
             True
         """
-        if not is_Cone(cone):
-            return False
-        if cone.lattice() != self.lattice():
-            warnings.warn("you have checked if a fan contains a cone "
-                          "from another lattice, this is always False!",
-                          stacklevel=3)
-            # We may need to take into account canonical maps, perhaps...
-            return False
-        if (not cone.is_strictly_convex()
-            or not cone.ray_set().issubset(self.ray_set())):
-            return False
         try:
-            return cone.is_equivalent(self.cone_containing(cone.rays()))
-        except ValueError:  # No cone of then fan contains all these rays
+            self.embed(cone)    # Fails if cone is not in self.
+            return True
+        except TypeError:   # cone is not a cone
+            return False
+        except ValueError:  # cone is a cone, but wrong
+            if not cone.lattice().is_submodule(self.lattice()):
+                warnings.warn("you have checked if a fan contains a cone "
+                              "from another lattice, this is always False!",
+                              stacklevel=3)
             return False
 
     def support_contains(self, *args):
@@ -1899,17 +1895,20 @@ class RationalPolyhedralFan(IntegralRayCollection,
             ValueError: 2-d cone in 3-d lattice N does not belong
             to Rational polyhedral fan in 3-d lattice N!
         """
-        assert is_Cone(cone)
+        if not is_Cone(cone):
+            raise TypeError("%s is not a cone!" % cone)
         if cone.ambient() is self:
             return cone
         rays = self.rays()
         try:
-            # Compute ray indices
+            # Compute ray indices.
             ray_indices = [rays.index(ray) for ray in cone.rays()]
             # Get the smallest cone containing them
             result = self.cone_containing(*ray_indices)
-            # It should be equivalent to the original one
-            if not result.is_equivalent(cone):
+            # If there is a cone containing all of the rays of the given cone,
+            # they must be among its generating rays and we only need to worry
+            # if there are any extra ones.
+            if cone.nrays() != result.nrays():
                 raise ValueError
         except ValueError:
             raise ValueError("%s does not belong to %s!" % (cone, self))
@@ -2462,3 +2461,45 @@ class RationalPolyhedralFan(IntegralRayCollection,
             gens.append( sum([ self.ray(i)[d] * ring.gen(i)
                                for i in range(0, self.nrays()) ]) )
         return ring.ideal(gens)
+
+
+def discard_faces(cones):
+    r"""
+    Return the cones of the given list which are not faces of each other.
+
+    INPUT:
+
+    - ``cones`` -- a list of
+      :class:`cones <sage.geometry.cone.ConvexRationalPolyhedralCone>`.
+
+    OUTPUT:
+
+    - a list of
+      :class:`cones <sage.geometry.cone.ConvexRationalPolyhedralCone>`,
+      sorted by dimension in decreasing order.
+
+    EXAMPLES:
+
+    Consider all cones of a fan::
+
+        sage: Sigma = toric_varieties.P2().fan()
+        sage: cones = flatten(Sigma.cones())
+        sage: len(cones)
+        7
+
+    Most of them are not necessary to generate this fan::
+
+        sage: from sage.geometry.fan import discard_faces
+        sage: len(discard_faces(cones))
+        3
+        sage: Sigma.ngenerating_cones()
+        3
+    """
+    # Convert to a list or make a copy, so that the input is unchanged.
+    cones = list(cones)
+    cones.sort(key=lambda cone: cone.dim(), reverse=True)
+    generators = []
+    for cone in cones:
+        if not any(cone.is_face_of(other) for other in generators):
+            generators.append(cone)
+    return generators

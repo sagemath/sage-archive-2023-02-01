@@ -192,6 +192,39 @@ def is_ToricLattice(x):
     return isinstance(x, ToricLattice_generic)
 
 
+def is_ToricLatticeQuotient(x):
+    r"""
+    Check if ``x`` is a toric lattice quotient.
+
+    INPUT:
+
+    - ``x`` -- anything.
+
+    OUTPUT:
+
+    - ``True`` if ``x`` is a toric lattice quotient and ``False`` otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.geometry.toric_lattice import (
+        ...     is_ToricLatticeQuotient)
+        sage: is_ToricLatticeQuotient(1)
+        False
+        sage: N = ToricLattice(3)
+        sage: N
+        3-d lattice N
+        sage: is_ToricLatticeQuotient(N)
+        False
+        sage: Q = N / N.submodule([(1,2,3), (3,2,1)])
+        sage: Q
+        Quotient with torsion of 3-d lattice N
+        by Sublattice <N(1, 2, 3), N(0, 4, 8)>
+        sage: is_ToricLatticeQuotient(Q)
+        True
+    """
+    return isinstance(x, ToricLattice_quotient)
+
+
 class ToricLatticeFactory(UniqueFactory):
     r"""
     Create a lattice for toric geometry objects.
@@ -643,6 +676,29 @@ class ToricLattice_generic(FreeModule_generic_pid):
                                      positive_point=positive_point,
                                      positive_dual_point=positive_dual_point)
 
+    def saturation(self):
+        r"""
+        Return the saturation of ``self``.
+
+        OUTPUT:
+
+        - a :class:`toric lattice <ToricLatticeFactory>`.
+
+        EXAMPLES::
+
+            sage: N = ToricLattice(3)
+            sage: Ns = N.submodule([(1,2,3), (4,5,6)])
+            sage: Ns
+            Sublattice <N(1, 2, 3), N(0, 3, 6)>
+            sage: Ns_sat = Ns.saturation()
+            sage: Ns_sat
+            Sublattice <N(1, 0, -1), N(0, 1, 2)>
+            sage: Ns_sat is Ns_sat.saturation()
+            True
+        """
+        S = super(ToricLattice_generic, self).saturation()
+        return S if is_ToricLattice(S) else self.ambient_module().submodule(S)
+
     def span(self, *args, **kwds):
         """
         Return the span of the given generators.
@@ -1020,14 +1076,40 @@ class ToricLattice_sublattice_with_basis(ToricLattice_generic,
 
             sage: L = ToricLattice(3, "L")
             sage: L.submodule_with_basis([(3,2,1),(1,2,3)])._latex_()
-            '\\left\\langle\\left(3,\\,2,\\,1\\right)_{L}, \\left(1,\\,2,\\,3\\right)_{L}\\right\\rangle'
+            '\\left\\langle\\left(3,\\,2,\\,1\\right)_{L},
+             \\left(1,\\,2,\\,3\\right)_{L}\\right\\rangle'
             sage: L.submodule([(3,2,1),(1,2,3)])._latex_()
-            '\\left\\langle\\left(1,\\,2,\\,3\\right)_{L}, \\left(0,\\,4,\\,8\\right)_{L}\\right\\rangle'
+            '\\left\\langle\\left(1,\\,2,\\,3\\right)_{L},
+             \\left(0,\\,4,\\,8\\right)_{L}\\right\\rangle'
         """
         s  = '\\left\\langle'
         s += ', '.join([ b._latex_() for b in self.basis() ])
         s += '\\right\\rangle'
         return s
+
+    def dual(self):
+        r"""
+        Return the lattice dual to ``self``.
+
+        OUTPUT:
+
+        - a :class:`toric lattice quotient <ToricLattice_quotient>`.
+
+        EXAMPLES::
+
+            sage: N = ToricLattice(3)
+            sage: Ns = N.submodule([(1,1,0), (3,2,1)])
+            sage: Ns.dual()
+            2-d lattice, quotient of 3-d lattice M by Sublattice <M(1, -1, -1)>
+        """
+        if "_dual" not in self.__dict__:
+            if not self is self.saturation():
+                raise ValueError("only dual lattices of saturated sublattices "
+                                 "can be constructed! Got %s." % self)
+            self._dual = (self.ambient_module().dual() /
+                          self.basis_matrix().right_kernel())
+            self._dual._dual = self
+        return self._dual
 
     def plot(self, **options):
         r"""
@@ -1188,6 +1270,27 @@ class ToricLattice_quotient_element(FGP_Element):
         """
         return str(self.lift()).replace("(", "[", 1).replace(")", "]", 1)
 
+    def set_immutable(self):
+        r"""
+        Make ``self`` immutable.
+
+        OUTPUT:
+
+        - none.
+
+        .. note:: Elements of toric lattice quotients are always immutable, so
+            this method does nothing, it is introduced for compatibility
+            purposes only.
+
+        EXAMPLES::
+
+            sage: N = ToricLattice(3)
+            sage: Ns = N.submodule([N(2,4,0), N(9,12,0)])
+            sage: Q = N/Ns
+            sage: Q.0.set_immutable()
+        """
+        pass
+
 
 class ToricLattice_quotient(FGP_Module_class):
     r"""
@@ -1344,7 +1447,7 @@ class ToricLattice_quotient(FGP_Module_class):
             sage: N = ToricLattice(3)
             sage: Ns = N.submodule([N(2,4,0), N(9,12,0)])
             sage: Q = N/Ns
-            sage: x = Q(1,2,3)
+            sage: x = Q(1,2,3)  # indirect doctest
             sage: x
             N[1, 2, 3]
             sage: type(x)

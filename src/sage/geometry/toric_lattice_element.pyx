@@ -289,10 +289,10 @@ cdef class ToricLatticeElement(Vector_integer_dense):
             sage: n * B
             (8, 10, 12)
         """
+        Ns = self.parent()
         # We try to deal only with the case of two lattice elements...
         if is_ToricLatticeElement(other):
-            if (other.parent().ambient_module()
-                is self.parent().ambient_module().dual()):
+            if other.parent().ambient_module() is Ns.ambient_module().dual():
                 # Our own _dot_product_ is disabled
                 return Vector_integer_dense._dot_product_(self, other)
             raise CoercionException("only elements of dual toric lattices "
@@ -302,6 +302,16 @@ cdef class ToricLatticeElement(Vector_integer_dense):
         # then the dot product will be called for elements of the same lattice
         if isinstance(other, Vector_integer_dense):
             return Vector_integer_dense._dot_product_(self, other)
+        # We also allow action on elements of lattice quotients
+        try:
+            lift = other.lift()
+            if is_ToricLatticeElement(lift):
+                if other.parent().W().is_submodule(Ns.dual().W()):
+                    return Vector_integer_dense._dot_product_(self, lift)
+                raise CoercionException("only elements of dual toric lattices "
+                                        "can act on each other!")
+        except AttributeError:  # No lift
+            pass
         # Now let the standard framework work...
         return Vector_integer_dense._act_on_(self, other, self_on_left)
 

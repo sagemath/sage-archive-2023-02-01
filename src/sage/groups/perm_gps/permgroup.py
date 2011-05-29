@@ -1129,6 +1129,49 @@ class PermutationGroup_generic(group.Group):
             return self.subgroup(gens=self.gens())
         return self.subgroup(gap_group=gap.Stabilizer(self, point))
 
+    def base(self, seed=None):
+        r"""
+        Returns a (minimum) base of this permutation group. A base $B$
+        of a permutation group is a subset of the domain of the group
+        such that the only group element stabilizing all of $B$ is the
+        identity.
+
+        The argument `seed` is optional and must be a subset of the domain
+        of `base`. When used, an attempt to create a base containing all or part
+        of `seed` will be made.
+
+        EXAMPLES::
+
+            sage: G = PermutationGroup([(1,2,3),(6,7,8)])
+            sage: G.base()
+            [1, 6]
+            sage: G.base([2])
+            [2, 6]
+
+            sage: H = PermutationGroup([('a','b','c'),('a','y')])
+            sage: H.base()
+            ['a', 'b', 'c']
+
+            sage: S = SymmetricGroup(13)
+            sage: S.base()
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+
+            sage: S = MathieuGroup(12)
+            sage: S.base()
+            [1, 2, 3, 4, 5]
+            sage: S.base([1,3,5,7,9,11]) # create a base for M12 with only odd integers
+            [1, 3, 5, 7, 9]
+        """
+        if seed is None:
+            seed = self.domain()
+
+        try:
+            seed = [self._domain_to_gap[point] for point in seed]
+        except KeyError:
+            raise ValueError, "seed must be a subset of self.domain()"
+
+        return [self._domain_from_gap[x] for x in self._gap_().StabChain(seed).BaseStabChain().sage()]
+
     def strong_generating_system(self, base_of_group=None):
         """
         Return a Strong Generating System of ``self`` according the given

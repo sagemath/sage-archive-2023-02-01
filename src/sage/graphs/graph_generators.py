@@ -1961,7 +1961,12 @@ class GraphGenerators():
         """
         import networkx
         G = networkx.tetrahedral_graph()
-        return graph.Graph(G, name="Tetrahedron")
+        return graph.Graph(G, name="Tetrahedron", pos =
+                           { 0 : (0, 0),
+                             1 : (0, 1),
+                             2 : (cos(3.5*pi/3), sin(3.5*pi/3)),
+                             3 : (cos(5.5*pi/3), sin(5.5*pi/3))}
+                           )
 
     def HexahedralGraph(self):
         """
@@ -2055,7 +2060,20 @@ class GraphGenerators():
         """
         import networkx
         G = networkx.octahedral_graph()
-        return graph.Graph(G, name="Octahedron")
+
+        pos = {}
+        r1 = 5
+        r2 = 1
+        for i,v in enumerate([0,1,2]):
+            i = i + 0.75
+            pos[v] = (r1*cos(i*2*pi/3),r1*sin(i*2*pi/3))
+
+        for i,v in enumerate([4,3,5]):
+            i = i + .25
+            pos[v] = (r2*cos(i*2*pi/3),r2*sin(i*2*pi/3))
+
+
+        return graph.Graph(G, name="Octahedron", pos=pos)
 
     def IcosahedralGraph(self):
         """
@@ -2163,7 +2181,30 @@ class GraphGenerators():
         """
         import networkx
         G = networkx.dodecahedral_graph()
-        return graph.Graph(G, name="Dodecahedron")
+
+        pos = {}
+        r1 = 7
+        r2 = 4.7
+        r3 = 3.8
+        r4 = 1.5
+
+        for i,v in enumerate([19,0,1,2,3]):
+            i = i + .25
+            pos[v] = (r1*cos(i*2*pi/5),r1*sin(i*2*pi/5))
+
+        for i,v in enumerate([18,10,8,6,4]):
+            i = i + .25
+            pos[v] = (r2*cos(i*2*pi/5),r2*sin(i*2*pi/5))
+
+        for i,v in enumerate([17,11,9,7,5]):
+            i = i - .25
+            pos[v] = (r3*cos(i*2*pi/5),r3*sin(i*2*pi/5))
+
+        for i,v in enumerate([12,13,14,15,16]):
+            i = i + .75
+            pos[v] = (r4*cos(i*2*pi/5),r4*sin(i*2*pi/5))
+
+        return graph.Graph(G, name="Dodecahedron", pos=pos)
 
     #######################################################################
     #   Named Graphs

@@ -33,7 +33,7 @@
 mymkdir()
 {
     if [ ! -d $1 ]; then
-	    mkdir $1
+        mkdir $1
     fi
 }
 
@@ -82,17 +82,17 @@ fi
 # The following sets environment variables for building packages.
 # Since this is sourced, it returns a non-zero value on errors rather
 # than exiting.  Using dot suggested by W. Cheung.
-. "$SAGE_ROOT/local/bin/sage-env"
+. "$SAGE_ROOT/spkg/bin/sage-env"
 
 if [ $? -ne 0 ]; then
-    echo "Error setting environment variables by running \"$SAGE_ROOT/local/bin/sage-env\";"
+    echo "Error setting environment variables by sourcing '$SAGE_ROOT/spkg/bin/sage-env';"
     echo "possibly contact sage-devel (see http://groups.google.com/group/sage-devel)."
     exit 1
 fi
 
 if [ $# -eq 0 ]; then
     echo "Currently installed packages:"
-    /bin/ls -1 "$SAGE_PACKAGES/installed/"
+    ls -1 "$SAGE_PACKAGES/installed/"
     exit 0
 fi
 
@@ -236,7 +236,7 @@ if [ ! -f "$PKG_SRC" ]; then
         PKG_NAME=`sage-latest-online-package "$PKG_NAME"`
         if [ $? -eq 0 ]; then
             echo "Found package $PKG_NAME"
-	    FOUND_VERSION='1'
+            FOUND_VERSION='1'
         else
             echo "$PKG_NAME"
             exit 1
@@ -263,13 +263,13 @@ if [ ! -f "$PKG_SRC" ]; then
     # download the package specified by $1, since it either already
     # contains the version number or is a URL.
     if [ "x$FOUND_VERSION" = "x" ]; then
-	sage-download_package "$1"
+        sage-download_package "$1"
     else
-	sage-download_package "$PKG_NAME"
+        sage-download_package "$PKG_NAME"
     fi
     if [ ! -f "$PKG_NAME.spkg" ]; then
-	    echo "sage: Failed to download package $PKG_NAME from $SAGE_SERVER"
-	    exit 1
+        echo "sage: Failed to download package $PKG_NAME from $SAGE_SERVER"
+        exit 1
     fi
     PKG_SRC="`pwd`/$PKG_NAME.spkg"
     cd "$CUR"
@@ -380,9 +380,9 @@ BASEDIR=`pwd`
 if [ -n "$DEBIAN_RELEASE" ]; then
     SAGE_CHECK=''
     if [ -e ./spkg-debian ]; then
-	    time ./spkg-debian
+        time ./spkg-debian
     else
-	    time sage-build-debian $BASEDIR
+        time sage-build-debian $BASEDIR
     fi
 else
     time ./spkg-install
@@ -399,7 +399,7 @@ if [ $? -eq 0 ]; then
     echo "INSTALL DATE: `date`" >> "$PKG_NAME"
     echo "UNAME: `uname -a`" >> "$PKG_NAME"
     if [ -f "$SAGE_ROOT"/VERSION.txt ]; then
-	cat "$SAGE_ROOT"/VERSION.txt >> "$PKG_NAME"
+        cat "$SAGE_ROOT"/VERSION.txt >> "$PKG_NAME"
     fi
     echo "Successfully installed $PKG_NAME"
 
@@ -422,7 +422,7 @@ if [ $? -eq 0 ]; then
     if [ $DELETE_TMP -eq 1 ]; then
         echo "Now cleaning up tmp files."
         if [ -d "$SAGE_PACKAGES/build/$PKG_NAME" ]; then
-           # the if is there only to avoid the possibility of a weird bug.
+            # the if is there only to avoid the possibility of a weird bug.
             cd "$SAGE_PACKAGES/build/"
             rm -rf "$SAGE_PACKAGES/build/$PKG_NAME"
         fi
@@ -438,11 +438,13 @@ fi
 
 
 # 'sage-make_relative' is currently a Python script.
-# Only run it if Sage's Python is already installed (cf. #9992):
-if [[ -x "$SAGE_LOCAL"/bin/python ]]; then
-    echo "Making Sage/Python scripts relocatable..."
-    cd "$SAGE_LOCAL"/bin
-    ./sage-make_relative
+# Only run it if Sage's Python is already installed (cf. #9992) and if
+# sage_scripts (which includes sage-make_relative) is installed.
+# This must be run from the directory SAGE_LOCAL/bin
+cd "$SAGE_LOCAL/bin"
+if [ -x ./python -a -f sage-make_relative ]; then
+    echo "Making Python scripts relocatable..."
+    ./python sage-make_relative
 fi
 
 echo "Finished installing $PKG_NAME.spkg"

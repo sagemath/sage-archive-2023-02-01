@@ -84,20 +84,20 @@ distclean: clean
 	rm -f .BUILDSTART
 
 micro_release:
-	. local/bin/sage-env && local/bin/sage-micro_release
+	. spkg/bin/sage-env && local/bin/sage-micro_release
 
 text-expand:
-	./spkg/base/text-expand
+	./spkg/bin/text-expand
 
 text-collapse:
-	./spkg/base/text-collapse
+	./spkg/bin/text-collapse
 
 TESTPRELIMS = local/bin/sage-starts
 TESTDIRS = devel/sage/doc/common devel/sage/doc/de devel/sage/doc/en devel/sage/doc/fr devel/sage/doc/ru devel/sage/sage
 
 test: all # i.e. build and (HTML) doc
 	$(TESTPRELIMS)
-	. local/bin/sage-env && sage-maketest
+	. spkg/bin/sage-env && sage-maketest
 
 check: test
 

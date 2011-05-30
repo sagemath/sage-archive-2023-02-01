@@ -215,17 +215,18 @@ usage_advanced() {
     exit 0
 }
 
+# Save the current directory, so we can change back after startup
+# If pwd fails, we fall back to SAGE_ROOT
+CUR=`pwd` || CUR="$SAGE_ROOT"
+export CUR
+
+cd "$SAGE_ROOT"
+
 # Do NOT redirect stderr and stdout to /dev/null,
 # since sage-env might print important error messages:
-. "$SAGE_ROOT"/local/bin/sage-env
-
-# The following doesn't make much sense, since we *source* sage-env,
-# and if that does exit, it exits *this* shell(!). Only if sourcing
-# the file itself fails (because e.g. sage-env does not exist, or a
-# syntax error occurs in its last command), the error message below
-# will be printed:
+. spkg/bin/sage-env
 if [ $? -ne 0 ]; then
-   echo >&2 "Error setting environment variables by running \"$SAGE_ROOT/local/bin/sage-env\";"
+   echo >&2 "Error setting environment variables by sourcing '$SAGE_ROOT/spkg/bin/sage-env';"
    echo >&2 "possibly contact sage-devel (see http://groups.google.com/group/sage-devel)."
    exit 1
 fi
@@ -319,8 +320,7 @@ if [ "$1" = '-min' -o "$1" = '--min' ]; then
     SAGE_IMPORTALL="no"
     export SAGE_IMPORTALL
     shift
-    sage-sage "$@"
-    exit $?
+    exec sage "$@"
 fi
 
 #####################################################################
@@ -880,8 +880,10 @@ fi
 
 if [ "$1" = '-ldist' -o "$1" = "--ldist" ]; then
    echo "sage -ldist currently disabled"
-   echo "To work on it, remove the exit after this message in SAGE_ROOT/local/bin/sage-sage"
+   echo "To work on it, remove the exit after this message in"
+   echo "$SAGE_ROOT/spkg/bin/sage"
    exit 1
+
    if [ $# -ne 2 ]; then
        echo >&2 "** MISSING VERSION NUMBER! **"
        exit 1

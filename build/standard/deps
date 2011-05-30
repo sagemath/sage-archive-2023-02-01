@@ -4,7 +4,13 @@
 
 INST = installed
 # Let e.g. SAGE_ROOT/spkg/install pass options to sage-spkg, i.e. currently
-# "-f", to force rebuilding dependent packages during an upgrade (#9896):
+# "-f", to force rebuilding dependent packages during an upgrade (#9896).
+#
+# When upgrading from a 4.x version of Sage, the script "sage-spkg" will be
+# found in SAGE_ROOT/local/bin until the new sage_root repo is installed.
+# After that, it will be found in SAGE_ROOT/spkg/bin
+# (SAGE_ROOT/spkg/bin is added to the PATH in spkg/install).
+# Therefore, do not put an explicit path for sage-spkg here.
 SAGE_SPKG = sage-spkg $${SAGE_SPKG_OPTS}
 PIPE = $(SAGE_ROOT)/spkg/pipestatus
 
@@ -386,7 +392,7 @@ $(INST)/$(FLINT): $(BASE) $(INST)/$(MPIR) $(INST)/$(NTL) $(INST)/$(PATCH)
 	+$(PIPE) "$(SAGE_SPKG) $(FLINT) 2>&1" "tee -a $(SAGE_LOGS)/$(FLINT).log"
 
 # Mercurial must be built before building extcode. See trac ticket #6508.
-$(INST)/$(EXTCODE): $(BASE) $(INST)/$(MERCURIAL) $(INST)/$(PATCH)
+$(INST)/$(EXTCODE): $(BASE) $(INST)/$(MERCURIAL)
 	+$(PIPE) "$(SAGE_SPKG) $(EXTCODE) 2>&1" "tee -a $(SAGE_LOGS)/$(EXTCODE).log"
 
 $(INST)/$(LIBM4RI): $(BASE) $(INST)/$(PATCH)
@@ -402,7 +408,7 @@ $(INST)/$(ZNPOLY): $(BASE) $(INST)/$(MPIR) $(INST)/$(PYTHON) $(INST)/$(PATCH)
 
 # the spkg-install file for the root repo uses many 'hg' commands, so
 # build mercurial first.
-$(INST)/$(SAGE_ROOT_REPO): $(BASE) $(INST)/$(MERCURIAL) $(INST)/$(PATCH)
+$(INST)/$(SAGE_ROOT_REPO): $(BASE) $(INST)/$(MERCURIAL)
 	+$(PIPE) "$(SAGE_SPKG) $(SAGE_ROOT_REPO) 2>&1" "tee -a $(SAGE_LOGS)/$(SAGE_ROOT_REPO).log"
 
 # setuptools forgets to update easy-install.pth during parallel
@@ -510,7 +516,12 @@ $(INST)/$(SAGE): $(BASE) \
 # These are (as of Sage 4.7.2):
 # - The Sage library, $(SAGE)
 # - sagetex, but this in turn depends on $(SAGE)
-$(INST)/$(SAGE_SCRIPTS): $(BASE)
+#
+# Because of ticket #11073 (remove the base repo), merged in sage-5.0,
+# a version 5.x scripts repo does not work together with a version 4.x
+# root repo.  When upgrading, we must therefore install the new root
+# repo before the scripts repo.
+$(INST)/$(SAGE_SCRIPTS): $(BASE) $(INST)/$(SAGE_ROOT_REPO)
 	+$(PIPE) "$(SAGE_SPKG) $(SAGE_SCRIPTS) 2>&1" "tee -a $(SAGE_LOGS)/$(SAGE_SCRIPTS).log"
 
 ###############################################################################

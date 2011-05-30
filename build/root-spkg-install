@@ -12,6 +12,11 @@ HEREDOC
 
 CUR=`pwd`
 
+# Remove the spkg/base repository, this is needed for upgrading from
+# Sage versions 4.x, see Trac #11073.
+cd "$SAGE_ROOT/spkg/base" && \
+rm -rf .hg* json_bundle.py stdint.h_Solaris9 sage-* text-* *.sh
+
 TARGET="$SAGE_ROOT"
 
 cd "$TARGET"
@@ -56,52 +61,15 @@ else
     # Initial install.  First get rid of "makefile" (since it's been
     # renamed to "Makefile" in the repo, and if both "makefile" and
     # "Makefile" are present, the former gets used).
-    if [ -f "$TARGET"/makefile ]; then
-        mv "$TARGET"/makefile "$TARGET"/Makefile.old
-    fi
-    if [ $? -ne 0 ]; then
-        echo "Root repo: Error backing up old makefile"
-        exit 1
-    fi
+    rm -f makefile
 
     # Now just copy all the files over.
     cd "$CUR"
-    cp -rp .hg* COPYING.txt README.txt sage ipython "$TARGET"
+    cp -pR .hg* COPYING.txt README.txt sage Makefile ipython spkg "$TARGET"
     if [ $? -ne 0 ]; then
         echo "Root repo: Error copying files from Sage root repo to $TARGET"
         exit 1
     fi
-
-    if [ -f makefile ]; then
-        cp makefile "$TARGET"/Makefile
-    else
-        cp Makefile "$TARGET"
-    fi
-    if [ $? -ne 0 ]; then
-        echo "Root repo: Error copying Makefile"
-        exit 1
-    fi
-
-    mkdir -p "$TARGET/spkg/standard"
-    if [ $? -ne 0 ]; then
-        echo "Root repo: Error creating directory $TARGET/spkg/standard"
-        exit 1
-    fi
-
-    cd spkg
-    cp README.txt gen_html install pipestatus root-spkg-install "$TARGET/spkg"
-    if [ $? -ne 0 ]; then
-        echo "Root repo: Error copying files to $TARGET/spkg"
-        exit 1
-    fi
-
-    cd standard
-    cp README.txt deps libdist_filelist newest_version "$TARGET/spkg/standard"
-    if [ $? -ne 0 ]; then
-        echo "Root repo: Error copying files to $TARGET/spkg/standard"
-        exit 1
-    fi
-
 fi
 
 create_hgrc

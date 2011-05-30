@@ -13,9 +13,6 @@
 # then pipestatus CMD1 CMD2 will act as A && (B | C).  This also implies
 # that CMD1 and CMD2 *MUST NOT* contain pipes, or this script will break.
 #
-# IMPORTANT: if you edit this file, be sure to also edit spkg/install
-#            where this file is created for upgrading.
-#
 #
 # AUTHORS:
 #

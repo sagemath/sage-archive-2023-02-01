@@ -7,7 +7,7 @@ mymkdir()
 {
     echo "$1"
     if [ ! -d "$1" ]; then
-	mkdir "$1"
+        mkdir "$1"
     fi
 }
 
@@ -23,7 +23,8 @@ build()
    mymkdir "$BUILD"
    mymkdir "installed/"
 
-   cp base/sage-* ../local/bin/
+   # Remove this line in Trac #12311
+   cp -p bin/testcc.sh bin/testcxx.sh ../local/bin
 
    if [ "CYGPKG" = "yes" ]; then
        ln -s /lib/python2.4 ../local/lib/python2.4

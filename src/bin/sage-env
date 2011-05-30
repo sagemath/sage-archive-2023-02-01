@@ -5,6 +5,10 @@
 #  Set environment variables for building and/or running Sage.
 #  You must *source* this instead of executing; see below!
 #
+#  IMPORTANT: use "return" instead of "exit" to signal a failure when
+#             sourcing this script.  An "exit" here will actually exit
+#             spkg/bin/sage, which is probably not intented.
+#
 #  AUTHORS:   William Stein                            2005-12
 #             David Kirkby <david.kirkby@onetel.net>   2005-12-17
 #
@@ -15,10 +19,10 @@
 #  If you want to set all environment variables for your shell like
 #  they are during the build of Sage packages, type
 #
-#             source local/bin/sage-env
+#             source spkg/bin/sage-env
 #
 #  from the SAGE_ROOT directory.   To do the same from a /bin/bash
-#  script use ". local/bin/sage-env".
+#  script use ". spkg/bin/sage-env".
 #
 ##########################################################################
 
@@ -215,7 +219,7 @@ SAGE_PACKAGES="$SAGE_ROOT/spkg" && export SAGE_PACKAGES
 SAGE_LOCAL="$SAGE_ROOT/local"   && export SAGE_LOCAL
 SAGE_DATA="$SAGE_ROOT/data"     && export SAGE_DATA
 SAGE_DOC="$SAGE_ROOT/devel/sage/doc" && export SAGE_DOC
-PATH="$SAGE_ROOT:$SAGE_LOCAL/bin:$PATH" && export PATH
+PATH="$SAGE_PACKAGES/bin:$SAGE_LOCAL/bin:$PATH" && export PATH
 
 # We offer a toolchain option, so if $SAGE_LOCAL/toolchain/toolchain-env exists source it.
 # Since the user might do something crazy we do not do any checks, but hope for the best.
@@ -253,7 +257,7 @@ HGENCODING="utf8" && export HGENCODING
 
 # Make Mercurial not use any user defaults (like enabling the pager extension)
 # This is needed in order to use mercurial in scripts.  When running hg
-# directly through "sage -hg", we will disable HGPLAIN in sage-sage.
+# directly through "sage -hg", we will disable HGPLAIN in spkg/bin/sage.
 # See Trac Ticket #12058
 HGPLAIN="yes" && export HGPLAIN
 
@@ -268,16 +272,16 @@ fi
 # Check that $HOME exists
 if [ "$HOME" = "" ]; then
     echo >&2 'Error: environment variable $HOME is not set.'
-    exit 1
+    return 1
 fi
 if ! [ -d "$HOME" ]; then
     echo >&2 "Error: HOME directory '$HOME' does not exist."
-    exit 1
+    return 1
 fi
 
 if [ "$DOT_SAGE" = "" ]; then
     # It is *not* an error if this directory does not exist, it will
-    # be created in sage-sage.  This also works if $HOME/.sage is a
+    # be created in spkg/bin/sage.  This also works if $HOME/.sage is a
     # symbolic link to a non-existing directory.
     DOT_SAGE=`resolvelinks "$HOME/.sage"`
 

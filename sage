@@ -116,29 +116,10 @@ fi
 
 # Make SAGE_ROOT absolute
 SAGE_ROOT=`cd "$SAGE_ROOT" && pwd -P`
-
-# Save the current directory, so we can change back after startup
-# If pwd fails, we fall back to SAGE_ROOT
-CUR=`pwd` || CUR="$SAGE_ROOT"
-
-if [ ! -f "$SAGE_ROOT/local/bin/sage-sage" ]; then
-cat >&2 <<COMPLAINT
-************************************************************************
-You must compile Sage first using 'make' in the Sage root directory.
-(If you have already compiled Sage, you must set the SAGE_ROOT variable
-in the file '$0').
-************************************************************************
-COMPLAINT
-    exit 1
-fi
-
 export SAGE_ROOT
-export CUR
-
 
 # Run the actual Sage script
-cd "$SAGE_ROOT"
-local/bin/sage-sage "$@"
+"$SAGE_ROOT/spkg/bin/sage" "$@"
 
 
 # Kill all processes in the current process group.  In practice, this

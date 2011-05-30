@@ -13,7 +13,10 @@ examples
 .*\.log
 local
 tmp
-spkg/base
+spkg/base/prereq-0.7-install
+spkg/base/prereq-0.8-install
+spkg/base/bzip2-.*\.tar\.gz
+spkg/base/prereq-.*\.tar
 spkg/build
 spkg/installed
 spkg/logs
@@ -24,6 +27,6 @@ spkg/optional
 sage-python
 Makefile.old
 VERSION.txt
-^spkg-install$
+spkg-install
 spkg/parallel_make.cfg
 rsyncpack.sh

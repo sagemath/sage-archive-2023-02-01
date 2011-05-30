@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
 ########################################################
-# Rebuild SAGE packages related to development, e.g.,
-#    sage_scripts, sage, doc, extcode
-# This script should be called by the SAGE script
+# Rebuild Sage packages related to development, e.g.,
+#    sage_scripts, sage, sage_root, extcode
+# This script should be called by the sage-sdist script
 ########################################################
 
 if [ $# -ne 2 -a $# -ne 3 ]; then
@@ -20,8 +20,6 @@ TARGET=sage-$1
 
 # REMOVE OLD PACKAGES
 cd "$SAGE_ROOT"/spkg/standard/
-rm doc-*.spkg
-rm examples-*.spkg
 rm extcode-*.spkg
 rm sage-*.spkg
 rm sage_scripts-*.spkg
@@ -49,7 +47,6 @@ if [ -d "$SAGE_ROOT"/devel/sage ]; then
    hg tag "$SAGE_VERSION"
    hg commit -m "$SAGE_VERSION"
    #./sage-push
-   chmod +x spkg-dist
    ./spkg-dist "$SAGE_VERSION" "$SAGE_ROOT"
    if [ $? -ne 0 ]; then
        echo "Error building the Sage source code package"
@@ -73,7 +70,6 @@ if [ -d "$SAGE_ROOT"/data/extcode ]; then
    hg commit -m "$SAGE_VERSION"
 
    #./sage-push
-   chmod +x spkg-dist
    ./spkg-dist "$SAGE_VERSION" "$SAGE_ROOT"
    if [ $? -ne 0 ]; then
        echo "Error building the extcode package"
@@ -110,9 +106,6 @@ fi
 
 rm -rf "$SCRIPTS"
 mkdir "$SCRIPTS"
-chmod +x sage-*
-chmod -x sage-README-osx.txt sage-banner sage-env sage-gdb-commands
-chmod -x sage-maxima.lisp sage-verify-pyc
 rm sage-*~
 
 cp -pr sage-* .hg* ipy_profile_sage.py "$SCRIPTS"/
@@ -148,18 +141,19 @@ echo "Copying root repository..."
 hg clone --pull "$SAGE_ROOT" .
 
 if [ $? -ne 0 ]; then
-    echo "Error copying Sage root repository."
+    echo >&2 "Error cloning Sage root repository."
     exit 1
 fi
 
-rm .hg/hgrc
-cd "$SAGE_ROOT"
+# Copy spkg-install
+cp -p "$SAGE_ROOT"/spkg/root-spkg-install spkg-install
+chmod +x spkg-install
 
-cp -p "$SAGE_ROOT"/spkg/root-spkg-install "$ROOT_REPO"/spkg-install
-chmod +x "$ROOT_REPO"/spkg-install
+rm .hg/hgrc
 
 echo "Done copying root repository."
 
+cd "$SAGE_ROOT"
 tar -jcf "$ROOT_REPO".spkg "$ROOT_REPO"
 mv "$ROOT_REPO".spkg "$DESTINATION"/
 rm -rf "$ROOT_REPO"

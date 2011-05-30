@@ -418,7 +418,8 @@ def do_update():
 if __name__ == '__main__':
     # Make sure the SAGE_ROOT variable is set.  This should always be
     # set because sage-update is only supposed to be called by
-    # sage-upgrade, which is called only by sage-sage, after sage-env.
+    # sage-upgrade, which is called only by spkg/bin/sage, after
+    # sourcing sage-env.
     if 'SAGE_ROOT' not in os.environ:
         raise RuntimeError("The environment variable SAGE_ROOT must be set.")
     SAGE_ROOT = os.environ["SAGE_ROOT"]

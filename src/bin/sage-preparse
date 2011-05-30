@@ -11,7 +11,7 @@ AUTHOR:
 
 import os, sys, re
 
-# The sage-sage script that calls sage-preparse passes the current
+# The spkg/bin/sage script that calls sage-preparse passes the current
 # directory in as the first argument.
 os.chdir(sys.argv[1])
 

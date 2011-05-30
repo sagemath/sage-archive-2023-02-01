@@ -350,7 +350,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef unsigned long i, j, truerow
         cdef unsigned long start, shift
         cdef m4ri_word row_xor
-        cdef m4ri_word end_mask = ~(((<m4ri_word>1)<<(RADIX - self._ncols%RADIX))-1)
+        cdef m4ri_word end_mask = __M4RI_LEFT_BITMASK(self._ncols%m4ri_radix)
         cdef m4ri_word top_mask, bot_mask
         cdef m4ri_word cur
         cdef m4ri_word* row
@@ -370,7 +370,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             row = self._entries.rows[i]
             start = (i*self._entries.ncols) >> 6
             shift = (i*self._entries.ncols) & 0x3F
-            bot_mask = (~(<m4ri_word>0)) << shift
+            bot_mask = __M4RI_LEFT_BITMASK(m4ri_radix - shift)
             top_mask = ~bot_mask
 
             if self._entries.width > 1:
@@ -379,7 +379,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
                 for j from 1 <= j < self._entries.width - 1:
                     row_xor ^= row[j]
-                    cur = ((row[j-1] << (63-shift)) << 1) ^ (row[j] >> shift)
+                    cur = ((row[j-1] >> (63-shift)) >> 1) ^ (row[j] << shift)
                     running_parity ^= (start+j) & parity_mask(cur)
 
                 running_parity ^= (start+j) & parity_mask(row[j-1] & top_mask)
@@ -393,16 +393,15 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             running_parity ^= (start+j) & parity_mask(cur & bot_mask)
             running_parity ^= (start+j+1) & parity_mask(cur & top_mask)
 
-            start = (i*self._entries.ncols) & (RADIX-1)
-            running_xor ^= (row_xor >> start) ^ ((row_xor << (RADIX-1-start)) << 1)
+            running_xor ^= (row_xor << shift) ^ ((row_xor >> (63-shift)) >> 1)
 
         cdef unsigned long bit_is_set
         cdef unsigned long h
 
         # Now we assemble the running_parity and running_xor to get the hash.
         # Viewing the flattened matrix as a list of a_i, the hash is the xor
-        # of the i for which a_i is non-zero. We split i into the lower RADIX
-        # bits and the rest, so i = i1 << RADIX + i0. Now two matching i0
+        # of the i for which a_i is non-zero. We split i into the lower m4ri_radix
+        # bits and the rest, so i = i1 << m4ri_radix + i0. Now two matching i0
         # would cancel, so we only need the parity of how many of each
         # possible i0 occur. This is stored in the bits of running_xor.
         # Similarly, running_parity is the xor of the i1 needed. It's called
@@ -410,10 +409,11 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         # the number of i1 to add is equal to the number of set bits in that
         # word (but because two cancel, we only need keep track of the
         # parity.
-        h = RADIX * running_parity
-        for i from 0 <= i < RADIX:
-            bit_is_set = (running_xor >> (RADIX-1-i)) & 1
-            h ^= (RADIX-1) & ~(bit_is_set-1) & i
+
+        h = m4ri_radix * running_parity
+        for i from 0 <= i < m4ri_radix:
+            bit_is_set = (running_xor >> i) & 1
+            h ^= (m4ri_radix-1) & ~(bit_is_set-1) & i
 
         if h == -1:
             h = -2
@@ -665,10 +665,11 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef Vector_mod2_dense c = PY_NEW(Vector_mod2_dense)
         c._init(self._nrows, VS)
         c._entries = mzd_init(1, self._nrows)
-        tmp = mzd_init(self._nrows, 1)
-        _mzd_mul_naive(tmp, self._entries, (<Vector_mod2_dense>v)._entries, 0)
-        mzd_transpose(c._entries, tmp)
-        mzd_free(tmp)
+        if c._entries.nrows and c._entries.ncols:
+            tmp = mzd_init(self._nrows, 1)
+            _mzd_mul_naive(tmp, self._entries, (<Vector_mod2_dense>v)._entries, 0)
+            mzd_transpose(c._entries, tmp)
+            mzd_free(tmp)
         return c
 
     cdef Matrix _matrix_times_matrix_(self, Matrix right):
@@ -1266,19 +1267,19 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef int i, j, k
         cdef int nc
         cdef unsigned int low, high
-        cdef m4ri_word mask = 1
+        cdef m4ri_word mask = 0
 
         # Original code, before adding the ``nonzero`` option.
         if not nonzero:
             if density == 1:
                 assert(sizeof(m4ri_word) == 8)
-                mask = ~((mask<<(RADIX - self._entries.ncols%RADIX))-1)
+                mask = __M4RI_LEFT_BITMASK(self._entries.ncols % m4ri_radix)
                 for i from 0 <= i < self._nrows:
                     for j from 0 <= j < self._entries.width:
                         # for portability we get 32-bit twice rather than 64-bit once
                         low = gmp_urandomb_ui(rstate.gmp_state, 32)
                         high = gmp_urandomb_ui(rstate.gmp_state, 32)
-                        self._entries.rows[i][j] = ((<unsigned long long>high)<<32) | (<unsigned long long>low)
+                        self._entries.rows[i][j] = m4ri_swap_bits( ((<unsigned long long>high)<<32) | (<unsigned long long>low) )
                     self._entries.rows[i][self._entries.width - 1] &= mask
             else:
                 nc = self._ncols

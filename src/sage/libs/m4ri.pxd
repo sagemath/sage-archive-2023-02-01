@@ -1,19 +1,21 @@
 cdef extern from "m4ri/m4ri.h":
+    ctypedef int rci_t
+    ctypedef int wi_t
     ctypedef unsigned long long m4ri_word "word"
+    ctypedef int BIT
 
     ctypedef struct mzd_t:
-        int nrows
-        int ncols
-        int width
+        rci_t nrows
+        rci_t ncols
+        wi_t width
+        int offset
         m4ri_word **rows
 
     ctypedef struct mzp_t:
-        int *values
-        int size
+        rci_t *values
+        rci_t size
 
-    ctypedef int BIT
-
-    cdef int RADIX
+    cdef int m4ri_radix
 
     ##############
     # Maintainance
@@ -28,10 +30,10 @@ cdef extern from "m4ri/m4ri.h":
     ##############
 
     # create empty matrix
-    cdef mzd_t *mzd_init(int,int)
+    cdef mzd_t *mzd_init(rci_t , rci_t)
 
     # create the identity permutation
-    cdef mzp_t *mzp_init(long)
+    cdef mzp_t *mzp_init(rci_t)
 
     # free memory for the matrix
     cdef void mzd_free(mzd_t *)
@@ -43,50 +45,53 @@ cdef extern from "m4ri/m4ri.h":
     cdef void mzd_randomize(mzd_t *)
 
     # identity matrix if i%2
-    cdef void mzd_set_ui(mzd_t *, unsigned int i)
+    cdef void mzd_set_ui(mzd_t *, unsigned int )
 
     # [A],[B] -> [AB]
-    cdef mzd_t *mzd_concat(mzd_t *C, mzd_t *A, mzd_t *B)
+    cdef mzd_t *mzd_concat(mzd_t *, mzd_t *, mzd_t *)
 
     # [A],[B] -> | A |
     #            | B |
-    cdef mzd_t *mzd_stack(mzd_t *C, mzd_t *A, mzd_t *B)
+    cdef mzd_t *mzd_stack(mzd_t *, mzd_t *, mzd_t *)
 
     # returns a submatrix from a
-    cdef mzd_t *mzd_submatrix(mzd_t *S, mzd_t *A, int lowr, int lowc, int highr, int highc)
+    cdef mzd_t *mzd_submatrix(mzd_t *, mzd_t *, rci_t lowr, rci_t lowc, rci_t highr, rci_t highc)
 
     # return a matrix window to A
-    cdef mzd_t *mzd_init_window( mzd_t *A, int lowr, int lowc, int highr, int highc)
+    cdef mzd_t *mzd_init_window(mzd_t *, rci_t lowr, rci_t lowc, rci_t highr, rci_t highc)
 
     cdef void mzd_free_window(mzd_t *)
 
     # deep copy
     cdef mzd_t *mzd_copy(mzd_t *, mzd_t *)
 
+    # printing
+    cdef void mzd_print(mzd_t *)
+
     ##############
     # Bit Level IO
     ##############
 
     # set BIT
-    cdef void mzd_write_bit( mzd_t *m, int row, int col, BIT value)
+    cdef void mzd_write_bit( mzd_t *m, rci_t row, rci_t col, BIT value)
 
     # get BIT
-    cdef BIT mzd_read_bit( mzd_t *m, int row, int col )
+    cdef BIT mzd_read_bit( mzd_t *m, rci_t row, rci_t col )
 
     # get BITs (n<=64)
-    cdef m4ri_word mzd_read_bits( mzd_t *m, int row, int col, int n)
+    cdef m4ri_word mzd_read_bits( mzd_t *m, rci_t row, rci_t col, int n)
 
     #####################
     # Row/Column Based IO
     #####################
 
-    cdef void mzd_row_swap(mzd_t *, int, int)
+    cdef void mzd_row_swap(mzd_t *, rci_t, rci_t)
 
-    cdef void mzd_col_swap(mzd_t *, int, int)
+    cdef void mzd_col_swap(mzd_t *, rci_t, rci_t)
 
-    cdef void mzd_row_clear_offset(mzd_t *m, int, int)
+    cdef void mzd_row_clear_offset(mzd_t *m, rci_t, rci_t)
 
-    cdef void mzd_row_add_offset(mzd_t *m, int, int, int)
+    cdef void mzd_row_add_offset(mzd_t *m, rci_t, rci_t, rci_t)
 
     ############
     # Arithmetic
@@ -171,11 +176,17 @@ cdef extern from "m4ri/m4ri.h":
     # reduced row echelon form using PLUQ factorization
     cdef mzd_t *mzd_kernel_left_pluq(mzd_t *A, int cutoff)
 
+    ########################
+    # Bit operations
+    ########################
+
+    cdef m4ri_word __M4RI_LEFT_BITMASK(int)
+
+    cdef m4ri_word m4ri_swap_bits(m4ri_word)
+
     ##################################
     # Internal Functions for Debugging
     ##################################
-
-    cdef void mzd_write_zeroed_bits(mzd_t *m, int x, int y, int n, m4ri_word values)
 
     cdef void mzd_clear_bits(mzd_t *m, int x, int y, int n)
 

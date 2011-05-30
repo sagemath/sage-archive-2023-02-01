@@ -4907,7 +4907,7 @@ class GenericGraph(GenericGraph_pyx):
             return g
 
 
-    def traveling_salesman_problem(self, weighted = True, solver = None, constraint_generation = True, verbose = 0, verbose_constraints = False):
+    def traveling_salesman_problem(self, weighted = True, solver = None, constraint_generation = None, verbose = 0, verbose_constraints = False):
         r"""
         Solves the traveling salesman problem (TSP)
 
@@ -4938,8 +4938,10 @@ class GenericGraph(GenericGraph_pyx):
           :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``constraint_generation`` (boolean) -- whether to use constraint
-          generation when solving the Mixed Integer Linear Program (default:
-          ``True``).
+          generation when solving the Mixed Integer Linear Program.
+
+          When ``constraint_generation = None``, constraint generation is used
+          whenever the graph has a density larger than 70%.
 
         - ``verbose`` -- integer (default: ``0``). Sets the level of
           verbosity. Set to 0 by default, which means quiet.
@@ -4993,7 +4995,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: tsp = g.traveling_salesman_problem()
             Traceback (most recent call last):
             ...
-            ValueError: The given graph is not Hamiltonian
+            ValueError: The given graph is not hamiltonian
+
 
         One easy way to change is is obviously to add to this graph the edges
         corresponding to a Hamiltonian cycle.
@@ -5071,8 +5074,14 @@ class GenericGraph(GenericGraph_pyx):
             ...           break
 
         """
+        if constraint_generation is None:
+            if self.density() > .7:
+                constraint_generation = False
+            else:
+                constraint_generation = True
+
         ###############################
-        # Quick cheks of connectivity #
+        # Quick checks of connectivity #
         ###############################
 
         # TODO : Improve it by checking vertex-connectivity instead of
@@ -5411,7 +5420,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.hamiltonian_cycle()
             Traceback (most recent call last):
             ...
-            ValueError: The given graph is not Hamiltonian
+            ValueError: The given graph is not hamiltonian
 
         Now, using the backtrack algorithm in the Heawood graph ::
 

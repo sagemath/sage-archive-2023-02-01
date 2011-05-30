@@ -65,8 +65,9 @@ class Line(GraphicPrimitive_xydata):
               "The style of the line, which is one of '--' (dashed), '-.' (dash dot), '-' (solid), 'steps', ':' (dotted)."),
              ('marker',
               "'0' (tickleft), '1' (tickright), '2' (tickup), '3' (tickdown), '' (nothing), ' ' (nothing), '+' (plus), ',' (pixel), '.' (point), '1' (tri_down), '3' (tri_left), '2' (tri_up), '4' (tri_right), '<' (triangle_left), '>' (triangle_right), 'None' (nothing), 'D' (diamond), 'H' (hexagon2), '_' (hline), '^' (triangle_up), 'd' (thin_diamond), 'h' (hexagon1), 'o' (circle), 'p' (pentagon), 's' (square), 'v' (triangle_down), 'x' (x), '|' (vline)"),
-             ('markeredgecolor', 'the markerfacecolor can be any color arg'),
+             ('markeredgecolor', 'the color of the marker edge'),
              ('markeredgewidth', 'the size of the marker edge in points'),
+             ('markerfacecolor', 'the color of the marker face'),
              ('markersize', 'the size of the marker in points'),
              ('rgbcolor', 'The color as an RGB tuple.'),
              ('thickness', 'How thick the line is.'),
@@ -80,8 +81,9 @@ class Line(GraphicPrimitive_xydata):
                 'linestyle':"The style of the line, which is one of '--' (dashed), '-.' (dash dot), '-' (solid), 'steps', ':' (dotted).",
                 'marker':"'0' (tickleft), '1' (tickright), '2' (tickup), '3' (tickdown), '' (nothing), ' ' (nothing), '+' (plus), ',' (pixel), '.' (point), '1' (tri_down), '3' (tri_left), '2' (tri_up), '4' (tri_right), '<' (triangle_left), '>' (triangle_right), 'None' (nothing), 'D' (diamond), 'H' (hexagon2), '_' (hline), '^' (triangle_up), 'd' (thin_diamond), 'h' (hexagon1), 'o' (circle), 'p' (pentagon), 's' (square), 'v' (triangle_down), 'x' (x), '|' (vline)",
                 'markersize':'the size of the marker in points',
-                'markeredgecolor':'the markerfacecolor can be any color arg',
+                'markeredgecolor':'the color of the marker edge',
                 'markeredgewidth':'the size of the marker edge in points',
+                'markerfacecolor':'the color of the marker face',
                 'zorder':'The layer level in which to draw'
                 }
 
@@ -242,6 +244,8 @@ class Line(GraphicPrimitive_xydata):
         del options['thickness']
         del options['rgbcolor']
         del options['legend_label']
+        if 'linestyle' in options:
+            del options['linestyle']
         p = lines.Line2D(self.xdata, self.ydata, **options)
         options = self.options()
         a = float(options['alpha'])
@@ -249,6 +253,10 @@ class Line(GraphicPrimitive_xydata):
         p.set_linewidth(float(options['thickness']))
         p.set_color(to_mpl_color(options['rgbcolor']))
         p.set_label(options['legend_label'])
+        # we don't pass linestyle in directly since the drawstyles aren't
+        # pulled off automatically.  This (I think) is a bug in matplotlib 1.0.1
+        if 'linestyle' in options:
+            p.set_linestyle(options['linestyle'])
         subplot.add_line(p)
 
 def line(points, **kwds):
@@ -298,48 +306,41 @@ def line2d(points, **options):
 
     Any MATPLOTLIB line option may also be passed in.  E.g.,
 
-    - ``linestyle`` -- The style of the line, which is one of:
+    - ``linestyle`` - The style of the line, which is one of
+       - ``"-"`` (solid) -- default
+       - ``"--"`` (dashed)
+       - ``"-."`` (dash dot)
+       - ``":"`` (dotted)
+       - ``"None"`` or ``" "`` or ``""`` (nothing)
 
-      - ``'--'`` (dashed)
-      - ``'-.'`` (dash dot)
-      - ``'-'`` (solid)
-      - ``'steps'``
-      - ``':'`` (dotted)
+       The linestyle can also be prefixed with a drawing style (e.g., ``"steps--"``)
 
-    - ``marker`` -- The style of the marker, which is one of:
+       - ``"default"`` (connect the points with straight lines)
+       - ``"steps"`` or ``"steps-pre"`` (step function; horizontal
+         line is to the left of point)
+       - ``"steps-mid"`` (step function; points are in the middle of
+         horizontal lines)
+       - ``"steps-post"`` (step function; horizontal line is to the
+         right of point)
 
-      - ``'0'`` (tickleft)
-      - ``'1'`` (tickright)
-      - ``'2'`` (tickup)
-      - ``'3'`` (tickdown)
-      - ``''`` (nothing)
-      - ``' '`` (nothing)
-      - ``'+'`` (plus)
-      - ``','`` (pixel)
-      - ``'.'`` (point)
-      - ``'1'`` (tri_down)
-      - ``'3'`` (tri_left)
-      - ``'2'`` (tri_up)
-      - ``'4'`` (tri_right)
-      - ``'<'`` (triangle_left)
-      - ``'>'`` (triangle_right)
-      - ``'None'`` (nothing)
-      - ``'D'`` (diamond)
-      - ``'H'`` (hexagon2)
-      - ``'_'`` (hline)
-      - ``'\^'`` (triangle_up)
-      - ``'d'`` (thin_diamond)
-      - ``'h'`` (hexagon1)
-      - ``'o'`` (circle)
-      - ``'p'`` (pentagon)
-      - ``'s'`` (square)
-      - ``'v'`` (triangle_down)
-      - ``'x'`` (x)
-      - ``'|'`` (vline)
+    - ``marker``  - The style of the markers, which is one of
+       - ``"None"`` or ``" "`` or ``""`` (nothing) -- default
+       - ``","`` (pixel), ``"."`` (point)
+       - ``"_"`` (horizontal line), ``"|"`` (vertical line)
+       - ``"o"`` (circle), ``"p"`` (pentagon), ``"s"`` (square), ``"x"`` (x), ``"+"`` (plus), ``"*"`` (star)
+       - ``"D"`` (diamond), ``"d"`` (thin diamond)
+       - ``"H"`` (hexagon), ``"h"`` (alternative hexagon)
+       - ``"<"`` (triangle left), ``">"`` (triangle right), ``"^"`` (triangle up), ``"v"`` (triangle down)
+       - ``"1"`` (tri down), ``"2"`` (tri up), ``"3"`` (tri left), ``"4"`` (tri right)
+       - ``0`` (tick left), ``1`` (tick right), ``2`` (tick up), ``3`` (tick down)
+       - ``4`` (caret left), ``5`` (caret right), ``6`` (caret up), ``7`` (caret down)
+       - ``"$...$"`` (math TeX string)
 
     - ``markersize`` -- the size of the marker in points
 
-    - ``markeredgecolor`` -- the markerfacecolor can be any color arg
+    - ``markeredgecolor`` -- the color of the marker edge
+
+    - ``markerfacecolor`` -- the color of the marker face
 
     - ``markeredgewidth`` -- the size of the marker edge in points
 

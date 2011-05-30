@@ -2673,20 +2673,40 @@ def plot(funcs, *args, **kwds):
     Any MATPLOTLIB line option may also be passed in.  E.g.,
 
     - ``linestyle`` - The style of the line, which is one of
-      '--' (dashed), '-.' (dash dot), '-' (solid),
-      'steps', ':' (dotted)
+       - ``"-"`` (solid) -- default
+       - ``"--"`` (dashed)
+       - ``"-."`` (dash dot)
+       - ``":"`` (dotted)
+       - ``"None"`` or ``" "`` or ``""`` (nothing)
 
-    - ``marker``  - "'0' (tickleft), '1' (tickright), '2' (tickup), '3' (tickdown),
-      '' (nothing), ' ' (nothing), '+' (plus), ',' (pixel), '.' (point),
-      '1' (tri_down), '3' (tri_left), '2' (tri_up), '4' (tri_right),
-      '<' (triangle_left), '>' (triangle_right), 'None' (nothing),
-      'D' (diamond), 'H' (hexagon2), '_' (hline), '\^' (triangle_up),
-      'd' (thin_diamond), 'h' (hexagon1), 'o' (circle), 'p' (pentagon),
-      's' (square), 'v' (triangle_down), 'x' (x), '|' (vline)"
+       The linestyle can also be prefixed with a drawing style (e.g., ``"steps--"``)
+
+       - ``"default"`` (connect the points with straight lines)
+       - ``"steps"`` or ``"steps-pre"`` (step function; horizontal
+         line is to the left of point)
+       - ``"steps-mid"`` (step function; points are in the middle of
+         horizontal lines)
+       - ``"steps-post"`` (step function; horizontal line is to the
+         right of point)
+
+    - ``marker``  - The style of the markers, which is one of
+       - ``"None"`` or ``" "`` or ``""`` (nothing) -- default
+       - ``","`` (pixel), ``"."`` (point)
+       - ``"_"`` (horizontal line), ``"|"`` (vertical line)
+       - ``"o"`` (circle), ``"p"`` (pentagon), ``"s"`` (square), ``"x"`` (x), ``"+"`` (plus), ``"*"`` (star)
+       - ``"D"`` (diamond), ``"d"`` (thin diamond)
+       - ``"H"`` (hexagon), ``"h"`` (alternative hexagon)
+       - ``"<"`` (triangle left), ``">"`` (triangle right), ``"^"`` (triangle up), ``"v"`` (triangle down)
+       - ``"1"`` (tri down), ``"2"`` (tri up), ``"3"`` (tri left), ``"4"`` (tri right)
+       - ``0`` (tick left), ``1`` (tick right), ``2`` (tick up), ``3`` (tick down)
+       - ``4`` (caret left), ``5`` (caret right), ``6`` (caret up), ``7`` (caret down)
+       - ``"$...$"`` (math TeX string)
 
     - ``markersize`` - the size of the marker in points
 
-    - ``markeredgecolor`` - the markerfacecolor can be any color arg
+    - ``markeredgecolor`` -- the color of the marker edge
+
+    - ``markerfacecolor`` -- the color of the marker face
 
     - ``markeredgewidth`` - the size of the marker edge in points
 
@@ -2694,8 +2714,6 @@ def plot(funcs, *args, **kwds):
       Either a list of real numbers, or an equation in one variable.
 
     FILLING OPTIONS:
-    INPUT:
-
 
     - ``fill`` - (Default: False) One of:
 
@@ -2850,10 +2868,18 @@ def plot(funcs, *args, **kwds):
         sage: E = EllipticCurve([0,-1])
         sage: plot(E, (1, 4), color=hue(0.6))
 
-    We can change the line style to one of ``'--'`` (two hyphens, yielding
-    dashed), ``'-.'`` (dash dot), ``'-'`` (solid), ``'steps'``, ``':'`` (dotted)::
+    We can change the line style as well::
 
-        sage: plot(sin(x), 0, 10, linestyle='-.')
+        sage: plot(sin(x), (x, 0, 10), linestyle='-.')
+
+    If we have an empty linestyle and specify a marker, we can see the
+    points that are actually being plotted::
+
+        sage: plot(sin(x), (x,0,10), plot_points=20, linestyle='', marker='.')
+
+    The marker can be a TeX symbol as well::
+
+        sage: plot(sin(x), (x,0,10), plot_points=20, linestyle='', marker=r'$\checkmark$')
 
     Sage currently ignores points that cannot be evaluated
 

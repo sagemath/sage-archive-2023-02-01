@@ -32,6 +32,14 @@ in the src directory.
 
 == Changelog ==
 
+=== pynac-0.2.3 (Burcin Erocal, May 31, 2011) ===
+ * Fix tests for custom evaluation functions defined in Python to use
+   bitwise and (Sage issue #9240)
+ * Remove extra {} printed when typesetting mul objects
+ * Merge patches from upstream:
+  * Sage issue #10964: fix conjugates of mul objects with rational exponents
+  * Sage issue #11352: fix is_polynomial()
+
 === pynac-0.2.2 (Burcin Erocal, May 9, 2011) ===
  * Merge patches from upstream with the following:
   * Sage issue #9981 where (5-e^x).substitute(x=log(x)) gave 5-log(x)

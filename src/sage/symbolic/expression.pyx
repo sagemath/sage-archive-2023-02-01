@@ -141,6 +141,7 @@ import ring
 import sage.rings.integer
 import sage.rings.rational
 from sage.structure.element cimport ModuleElement, RingElement, Element
+from sage.symbolic.getitem cimport OperandsWrapper
 from sage.symbolic.function import get_sfunction_from_serial, SymbolicFunction
 from sage.rings.rational import Rational  # Used for sqrt.
 from sage.misc.derivative import multi_derivative
@@ -3833,66 +3834,37 @@ cdef class Expression(CommutativeRingElement):
                     raise ValueError, "expressions containing only a numeric coefficient, constant or symbol have no operands"
         return new_ExpIter_from_Expression(self)
 
-##     def __getitem__(self, ind):
-##         """
-##         EXAMPLES::
+    property op:
+        def __get__(self):
+            """
+            Provide access to the operands of an expression through a property.
 
-##             sage: x,y,z = var('x,y,z')
-##             sage: e = x + x*y + z^y + 3*y*z; e
-##             x*y + 3*y*z + z^y + x
-##             sage: e[1]
-##             3*y*z
-##             sage: e[-1]
-##             x
-##             sage: e[1:]
-##             [3*y*z, z^y, x]
-##             sage: e[:2]
-##             [x*y, 3*y*z]
-##             sage: e[-2:]
-##             [z^y, x]
-##             sage: e[:-2]
-##             [x*y, 3*y*z]
 
-##         """
-##         cdef int bind, eind, step, i
-##         cdef int n_ops = self._gobj.nops()
-##         if PY_TYPE_CHECK(ind, slice):
-##             if ind.start:
-##                 bind = ind.start
-##                 if bind != ind.start:
-##                     raise ValueError, "integer index expected"
-##                 if bind < 0:
-##                     bind = n_ops + bind
-##             else:
-##                 bind = 0
-##             if ind.stop:
-##                 eind = ind.stop
-##                 if eind != ind.stop:
-##                     raise ValueError, "integer index expected"
-##                 if eind > n_ops:
-##                     eind = n_ops
-##                 if eind < 0:
-##                     eind = n_ops + eind
-##             else:
-##                 eind = n_ops
-##             if ind.step:
-##                 step = ind.step
-##                 if step != ind.step:
-##                     raise ValueError, "step value must be an integer"
-##             else:
-##                 step = 1
-##             return [new_Expression_from_GEx(self._parent, self._gobj.op(i))
-##                     for i in xrange(bind, eind, step)]
+            EXAMPLES::
 
-##         try:
-##             bind = ind
-##             if bind != ind:
-##                 raise ValueError, "integer index expected"
-##         except TypeError:
-##             raise TypeError, "index should either be a slice object, or an integer"
-##         if bind < 0:
-##             bind = n_ops + bind
-##         return new_Expression_from_GEx(self._parent, self._gobj.op(bind))
+                sage: t = 1+x+x^2
+                sage: t.op
+                Operands of x^2 + x + 1
+                sage: x.op
+                Traceback (most recent call last):
+                ...
+                TypeError: expressions containing only a numeric coefficient, constant or symbol have no operands
+                sage: t.op[0]
+                x^2
+
+            Indexing directly with ``t[1]`` causes problems with numpy types.
+
+                sage: t[1]
+                Traceback (most recent call last):
+                ...
+                TypeError: 'sage.symbolic.expression.Expression' object does not support indexing
+            """
+            if is_a_symbol(self._gobj) or is_a_constant(self._gobj) or \
+                is_a_numeric(self._gobj):
+                    raise TypeError, "expressions containing only a numeric coefficient, constant or symbol have no operands"
+            cdef OperandsWrapper res = OperandsWrapper.__new__(OperandsWrapper)
+            res._expr = self
+            return res
 
     def _numerical_approx(self, prec=None, digits=None):
         """

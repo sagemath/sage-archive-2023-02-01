@@ -160,7 +160,7 @@ Gruppen Datenbank benötigt, die separat installiert werden muss, wie unten besc
     Group( [ (1,2,3)(4,5), (3,4) ] )
     sage: G.Center()
     Group( () )
-    sage: G.IdGroup()
+    sage: G.IdGroup()    # requires optional database_gap package
     [ 120, 34 ]
     sage: G.Order()
     120
@@ -173,7 +173,7 @@ die GAP-Schnittstelle aufzurufen:
     sage: G = PermutationGroup([[(1,2,3),(4,5)],[(3,4)]])
     sage: G.center()
     Permutation Group with generators [()]
-    sage: G.group_id()     # benötigt das optionale database_gap Paket
+    sage: G.group_id()    # requires optional database_gap package
     [120, 34]
     sage: n = G.order(); n
     120

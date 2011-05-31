@@ -243,7 +243,7 @@ void mul::do_print_rat_func(const print_context & c, unsigned level,
 {
 	if (precedence() <= level){
 		if (latex_tags)
-			c.s << "{\\left(";
+			c.s << "\\left(";
 		else
 			c.s << '(';
 	}
@@ -351,7 +351,7 @@ void mul::do_print_rat_func(const print_context & c, unsigned level,
 	}
 	if (precedence() <= level){
 		if (latex_tags)
-			c.s << "\\right)}";
+			c.s << "\\right)";
 		else
 			c.s << ')';
 	}

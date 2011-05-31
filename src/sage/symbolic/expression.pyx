@@ -566,9 +566,9 @@ cdef class Expression(CommutativeRingElement):
             sage: latex((n+A/B)^(n+1))
             {\left(n + \frac{A}{B}\right)}^{n + 1}
             sage: latex((A*B)^n)
-            {\left(A B\right)}^{n}
+            \left(A B\right)^{n}
             sage: latex((A*B)^(n-1))
-            {\left(A B\right)}^{n - 1}
+            \left(A B\right)^{n - 1}
 
         Powers where the base or exponent is a Python object::
 
@@ -579,7 +579,7 @@ cdef class Expression(CommutativeRingElement):
             sage: latex((2/3)^(2/3))
             \left(\frac{2}{3}\right)^{\frac{2}{3}}
             sage: latex((-x)^(1/4))
-            {\left(-x\right)}^{\frac{1}{4}}
+            \left(-x\right)^{\frac{1}{4}}
             sage: k.<a> = GF(9)
             sage: latex(SR(a+1)^x)
             \left(a + 1\right)^{x}

@@ -954,14 +954,10 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
             sage: R = RealIntervalAbsoluteField(100)
             sage: R(1).sin()
             0.841470984807896506652502321631?
-            sage: R(2).sqrt()
-            1.414213562373095048801688724210?
             sage: R(2).log()
             0.693147180559945309417232121458?
             sage: R(1).exp().log()
             1.00000000000000000000000000000?
-            sage: R((4,9)).sqrt().endpoints()
-            (2, 3)
 
             sage: R((0,10)).sin().endpoints()
             (-1, 1)
@@ -972,6 +968,19 @@ cdef class RealIntervalAbsoluteElement(FieldElement):
             return MpfrOp(self, name)
         else:
             raise AttributeError, name
+
+    def sqrt(self):
+        """
+        EXAMPLES::
+
+            sage: from sage.rings.real_interval_absolute import RealIntervalAbsoluteField
+            sage: R = RealIntervalAbsoluteField(100)
+            sage: R(2).sqrt()
+            1.414213562373095048801688724210?
+            sage: R((4,9)).sqrt().endpoints()
+            (2, 3)
+        """
+        return self._parent(self._real_mpfi_(RealIntervalField(self.mpfi_prec())).sqrt())
 
 cdef class MpfrOp:
     """

@@ -320,18 +320,29 @@ def from_core_and_quotient(core, quotient):
 
         sage: Partition(core=[2,1], quotient=[[2,1],[3],[1,1,1]])
         [11, 5, 5, 3, 2, 2, 2]
+        sage: test = lambda x, k: x == Partition(core=x.core(k),quotient=x.quotient(k))
+        sage: all(test(mu,k) for k in range(1,5) for n in range(10) for mu in Partitions(n))
+        True
+        sage: test2 = lambda core, mus: \
+        Partition(core=core, quotient=mus).core(len(mus)) == core and \
+        Partition(core=core, quotient=mus).quotient(len(mus)) == mus
+        sage: all(test2(core,tuple(mus)) for k in range(1,10) for n_core in range(10-k) for core in Partitions(n_core) if core.core(k) == core for n_mus in range(10-k) for mus in PartitionTuples(n_mus,k))
+        True
     """
     length = len(quotient)
-    k = length*max( [ceil(len(core)/length),len(core)] + [len(q) for q in quotient] ) + length
-    v = [ core[i]-(i+1)+1 for i in range(len(core))] + [ -i + 1 for i in range(len(core)+1,k+1) ]
+    k = length*max(len(q) for q in quotient) + len(core)
+    # k needs to be large enough. this seems to me like the smallest it can be
+    v = [core[i]-i for i in range(len(core))] + [ -i for i in range(len(core),k) ]
     w = [ filter(lambda x: (x-i) % length == 0, v) for i in range(1, length+1) ]
     new_w = []
     for i in range(length):
-        new_w += [ w[i][j] + length*quotient[i][j] for j in range(len(quotient[i]))]
-        new_w += [ w[i][j] for j in range(len(quotient[i]), len(w[i])) ]
-    new_w.sort()
-    new_w.reverse()
-    return Partition([new_w[i-1]+i-1 for i in range(1, len(new_w)+1)])
+        lw = len(w[i])
+        lq = len(quotient[i])
+        # k needs to be chosen so lw >= lq
+        new_w += [ w[i][j] + length*quotient[i][j] for j in range(lq)]
+        new_w += [ w[i][j] for j in range(lq,lw)]
+    new_w.sort(reverse=True)
+    return Partition([new_w[i]+i for i in range(len(new_w))])
 
 class Partition_class(CombinatorialObject):
     def ferrers_diagram(self):

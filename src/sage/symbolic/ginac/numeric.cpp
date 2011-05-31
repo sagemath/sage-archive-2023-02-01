@@ -421,7 +421,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
     // We should never use this. 
     verbose("Number_T(const char* s)");
     t = DOUBLE;
-    sscanf(s, "%f", &v._double); 
+    sscanf(s, "%lf", &v._double);
   }
 
   Number_T::Number_T(PyObject* o) {

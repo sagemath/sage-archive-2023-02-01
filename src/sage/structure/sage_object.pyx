@@ -1012,11 +1012,12 @@ def picklejar(obj, dir=None):
     Test an unaccessible directory::
 
         sage: import os
-        sage: os.chmod(dir, 0)
+        sage: os.chmod(dir, 0000)
         sage: sage.structure.sage_object.picklejar(1, dir + '/noaccess')
         Traceback (most recent call last):
         ...
         OSError: ...
+        sage: os.chmod(dir, 0755)
     """
     if dir is None:
         dir = os.environ['SAGE_ROOT'] + '/tmp/pickle_jar/'

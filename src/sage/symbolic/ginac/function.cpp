@@ -767,7 +767,7 @@ ex function::eval(int level) const
 	}
 	current_serial = serial;
 
-	if (opt.python_func && function_options::eval_python_f) {
+	if (opt.python_func & function_options::eval_python_f) {
 		// convert seq to a PyTuple of Expressions
 		PyObject* args = py_funcs.exvector_to_PyTuple(seq);
 		// call opt.eval_f with this list
@@ -837,7 +837,7 @@ ex function::evalf(int level, PyObject* parent) const
 		return function(serial,eseq).hold();
 	}
 	current_serial = serial;
-	if (opt.python_func && function_options::evalf_python_f) { 
+	if (opt.python_func & function_options::evalf_python_f) { 
 		// convert seq to a PyTuple of Expressions
 		PyObject* args = py_funcs.exvector_to_PyTuple(eseq);
 		// create a dictionary {'prec':prec} for the precision argument
@@ -912,7 +912,7 @@ ex function::series(const relational & r, int order, unsigned options) const
 	}
 	ex res;
 	current_serial = serial;
-	if (opt.python_func && function_options::series_python_f) {
+	if (opt.python_func & function_options::series_python_f) {
 		// convert seq to a PyTuple of Expressions
 		PyObject* args = py_funcs.exvector_to_PyTuple(seq);
 		// create a dictionary {'order': order, 'options':options}
@@ -985,7 +985,7 @@ ex function::conjugate() const
 		return conjugate_function(*this).hold();
 	}
 
-	if (opt.python_func && function_options::conjugate_python_f) {
+	if (opt.python_func & function_options::conjugate_python_f) {
 		// convert seq to a PyTuple of Expressions
 		PyObject* args = py_funcs.exvector_to_PyTuple(seq);
 		// call opt.conjugate_f with this list
@@ -1031,7 +1031,7 @@ ex function::real_part() const
 	if (opt.real_part_f==0)
 		return basic::real_part();
 
-	if (opt.python_func && function_options::real_part_python_f) {
+	if (opt.python_func & function_options::real_part_python_f) {
 		// convert seq to a PyTuple of Expressions
 		PyObject* args = py_funcs.exvector_to_PyTuple(seq);
 		// call opt.real_part_f with this list
@@ -1075,7 +1075,7 @@ ex function::imag_part() const
 	if (opt.imag_part_f==0)
 		return basic::imag_part();
 
-	if (opt.python_func && function_options::imag_part_python_f) {
+	if (opt.python_func & function_options::imag_part_python_f) {
 		// convert seq to a PyTuple of Expressions
 		PyObject* args = py_funcs.exvector_to_PyTuple(seq);
 		// call opt.imag_part_f with this list
@@ -1132,7 +1132,7 @@ ex function::derivative(const symbol & s) const
 		if (opt.derivative_f == NULL)
 			throw(std::runtime_error("function::derivative(): custom derivative function must be defined"));
 
-		if (opt.python_func && function_options::derivative_python_f) {
+		if (opt.python_func & function_options::derivative_python_f) {
 			// convert seq to a PyTuple of Expressions
 			PyObject* args = py_funcs.exvector_to_PyTuple(seq);
 			// create a dictionary {'diff_param': s}
@@ -1288,7 +1288,7 @@ ex function::pderivative(unsigned diff_param) const // partial differentiation
 		return fderivative(serial, diff_param, seq);
 
 	current_serial = serial;
-	if (opt.python_func && function_options::derivative_python_f) {
+	if (opt.python_func & function_options::derivative_python_f) {
 		// convert seq to a PyTuple of Expressions
 		PyObject* args = py_funcs.exvector_to_PyTuple(seq);
 		// create a dictionary {'diff_param': diff_param}
@@ -1340,7 +1340,7 @@ ex function::power(const ex & power_param) const // power of function
 	                                               status_flags::evaluated);
 
 	current_serial = serial;
-	if (opt.python_func && function_options::power_python_f) {
+	if (opt.python_func & function_options::power_python_f) {
 		// convert seq to a PyTuple of Expressions
 		PyObject* args = py_funcs.exvector_to_PyTuple(seq);
 		// create a dictionary {'power_param': power_param}

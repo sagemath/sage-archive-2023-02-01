@@ -1612,6 +1612,15 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
 
         sage: maxima('3*li[2](u)+8*li[33](exp(u))').sage()
         3*polylog(2, u) + 8*polylog(33, e^u)
+
+    Check if #8345 is fixed::
+
+        sage: assume(x,'complex')
+        sage: t = x.conjugate()
+        sage: latex(t)
+        \overline{x}
+        sage: latex(t._maxima_()._sage_())
+        \overline{x}
     """
     syms = sage.symbolic.pynac.symbol_table.get('maxima', {}).copy()
 

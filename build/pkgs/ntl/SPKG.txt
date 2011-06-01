@@ -14,7 +14,7 @@ GPL
  * William Stein
 
 == Upstream Contact ==
- * Vicor Shoup - for contact info see http://www.shoup.net/
+ * Victor Shoup - for contact info see http://www.shoup.net/
 
 == Dependencies ==
  * gmp
@@ -26,6 +26,9 @@ GPL
  * We modify DoConfig and disable the help option
 
 == Changelog ==
+
+=== ntl-5.5.2 (Martin Raum, March 22nd 2011) ===
+ * Update to ntl-5.5.2, update the patches for the new version.
 
 === ntl-5.4.2.p12 (Mike Hansen, May 25th 2010) ===
  * Rename libntl.dll to libntl.dll.a on Cygwin.  This is #9050.

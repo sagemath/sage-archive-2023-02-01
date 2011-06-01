@@ -1,8 +1,10 @@
-r""" Simple profiling tool.
+r"""
+Simple profiling tool
 
-AUTHOR:
-    -- David Harvey (August 2006)
-    -- Martin Albrecht
+AUTHORS:
+
+- David Harvey (August 2006)
+- Martin Albrecht
 """
 
 #*****************************************************************************
@@ -19,51 +21,60 @@ import sys
 
 
 class Profiler:
-    """
+    r"""
     Keeps track of CPU time used between a series of user-defined checkpoints.
 
     It's probably not a good idea to use this class in an inner loop :-)
 
-    EXAMPLE:
-        sage: def f():                 # not tested
-        ...      p = Profiler()        # not tested
+    EXAMPLE::
 
-        Calling p(message) creates a checkpoint:
-        sage:    p("try factoring 15")        # not tested
+        sage: def f():                        # not tested
+        ...       p = Profiler()              # not tested
 
-        Do something time-consuming:
-        sage:    x = factor(15)               # not tested
+    Calling ``p(message)`` creates a checkpoint::
 
-        You can create a checkpoints without a string; the Profiler
-        will use the source code instead:
-        sage:    p()                          # not tested
+        sage: p("try factoring 15")           # not tested
 
-        sage:    y = factor(25)               # not tested
-        sage:    p("last step")               # not tested
-        sage:    z = factor(35)               # not tested
-        sage:    p()                          # not tested
+    Do something time-consuming::
 
-        This will give a nice list of timings between checkpoints:
-        sage:    print p                      # not tested
+        sage: x = factor(15)                  # not tested
 
-        Let's try it out:
-        sage: f()                            # not tested
+    You can create a checkpoints without a string; ``Profiler``
+    will use the source code instead::
+
+        sage: p()                             # not tested
+        sage: y = factor(25)                  # not tested
+        sage: p("last step")                  # not tested
+        sage: z = factor(35)                  # not tested
+        sage: p()                             # not tested
+
+    This will give a nice list of timings between checkpoints::
+
+        sage: print p                         # not tested
+
+    Let's try it out::
+
+        sage: f()                             # not tested
             3.020s -- try factoring 15
            15.240s -- line 17: y = factor(25)
          5000.190s -- last step
 
-    TODO:
-        -- Add Pyrex source code inspection (I assume it doesn't
-           currently do this)
-        -- Add ability to sort output by time
-        -- Add option to constructor to print timing immediately when
-           checkpoint is reached
-        -- Migrate to Pyrex?
-        -- Add ability to return timings in a more machine-friendly
-           format
+    .. seealso:: :func:`runsnake`
+
+    .. todo::
+
+        - Add Pyrex source code inspection (I assume it doesn't
+          currently do this)
+        - Add ability to sort output by time
+        - Add option to constructor to print timing immediately when
+          checkpoint is reached
+        - Migrate to Pyrex?
+        - Add ability to return timings in a more machine-friendly
+          format
 
     AUTHOR:
-        -- David Harvey (August 2006)
+
+    - David Harvey (August 2006)
     """
 
     def __init__(self, systems=[], verbose=False):

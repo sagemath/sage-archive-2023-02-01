@@ -12,6 +12,8 @@ from misc import (alarm, ellipsis_range, ellipsis_iter, srange, xsrange, sxrange
 
 from misc_c import prod, running_total, balanced_sum
 
+from dev_tools import runsnake, import_statements
+
 from html import html
 
 from sage_timeit_class import timeit

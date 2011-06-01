@@ -9,6 +9,8 @@ Miscellaneous
    sage/misc/abstract_method
    sage/misc/cachefunc
    sage/misc/classgraph
+   sage/misc/dev_tools
+   sage/misc/profiler
    sage/misc/function_mangling
    sage/misc/exceptions
    sage/misc/misc

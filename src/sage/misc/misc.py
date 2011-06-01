@@ -2543,6 +2543,58 @@ def is_in_string(line, pos):
     return in_quote()
 
 
+def get_main_globals():
+    """
+    Return the main global namespace
+
+    EXAMPLES::
+
+        sage: from sage.misc.misc import get_main_globals
+        sage: G = get_main_globals()
+        sage: bla = 1
+        sage: G['bla']
+        1
+        sage: bla = 2
+        sage: G['bla']
+        2
+        sage: G['ble'] = 5
+        sage: ble
+        5
+
+    This is analogous to :func:`globals`, except that it can be called
+    from any function, even if it is in a Python module::
+
+        sage: def f():
+        ...       G = get_main_globals()
+        ...       assert G['bli'] == 14
+        ...       G['blo'] = 42
+        sage: bli = 14
+        sage: f()
+        sage: blo
+        42
+
+    ALGORITHM:
+
+    The main global namespace is discovered by going up the frame
+    stack until the frame for the :mod:`__main__` module is found.
+    Should this frame not be found (this should not occur in normal
+    operation), an exception "ValueError: call stack is not deep
+    enough" will be raised by ``_getframe``.
+
+    See :meth:`inject_variable_test` for a real test that this works
+    within deeply nested calls in a function defined in a Python
+    module.
+    """
+    import sys
+    depth = 0
+    while True:
+        G = sys._getframe(depth).f_globals
+        if G["__name__"] == "__main__" and G["__package__"] is None:
+            break
+        depth += 1
+    return G
+
+
 def inject_variable(name, value):
     """
     inject a variable into the main global namespace
@@ -2578,23 +2630,10 @@ def inject_variable(name, value):
     Use with care!
     """
     assert type(name) is str
-    import sys
     # Using globals() does not work, even in Cython, because
-    # inject_variable is to be called not only from the interpreter,
-    # but also from functions in various modules
-    #
-    # This instead looks up the main global namespace by going up the
-    # frame stack until it finds the frame for the __main__ module.
-    #
-    # If for some reason this frame is not found (this should not
-    # occur in normal operation), an exception "ValueError: call stack
-    # is not deep enough" will be raised by _getframe.
-    depth = 0
-    while True:
-        G = sys._getframe(depth).f_globals
-        if G["__name__"] == "__main__" and G["__package__"] is None:
-            break
-        depth += 1
+    # inject_variable is called not only from the interpreter, but
+    # also from functions in various modules.
+    G = get_main_globals()
     if name in G:
         warn("redefining global value `%s`"%name, RuntimeWarning, stacklevel = 2)
     G[name] = value

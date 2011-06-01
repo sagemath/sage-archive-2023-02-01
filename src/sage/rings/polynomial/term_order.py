@@ -154,7 +154,7 @@ Negative degree lexicographic (negdeglex)
         sage: x^2*y*z^2 > x*y^3*z
         True
 
-Weighted degree reverse lexicographic (wdegrevlex)
+Weighted degree reverse lexicographic (wdegrevlex), positive integral weights
     Let `\deg_w(x^a) = a_1w_1 + a_2w_2 + \dots + a_nw_n` with weights `w`, then
     `x^a < x^b` if and only if `\deg_w(x^a) < \deg_w(x^b)` or `\deg_w(x^a) = \deg_w(x^b)` and
     there exists `1 \le i \le n` such that `a_n = b_n, \dots, a_{i+1} = b_{i+1}, a_i > b_i`.
@@ -176,7 +176,7 @@ Weighted degree reverse lexicographic (wdegrevlex)
         sage: y*z > x^3*y
         False
 
-Weighted degree lexicographic (wdeglex)
+Weighted degree lexicographic (wdeglex), positive integral weights
     Let `\deg_w(x^a) = a_1w_1 + a_2w_2 + \dots + a_nw_n` with weights `w`, then
     `x^a < x^b` if and only if `\deg_w(x^a) < \deg_w(x^b)` or `\deg_w(x^a) = \deg_w(x^b)` and
     there exists `1 \le i \le n` such that `a_1 = b_1, \dots, a_{i-1} = b_{i-1}, a_i < b_i`.
@@ -198,7 +198,7 @@ Weighted degree lexicographic (wdeglex)
         sage: y*z > x^3*y
         False
 
-Negative weighted degree reverse lexicographic (negwdegrevlex)
+Negative weighted degree reverse lexicographic (negwdegrevlex), positive integral weights
     Let `\deg_w(x^a) = a_1w_1 + a_2w_2 + \dots + a_nw_n` with weights `w`, then
     `x^a < x^b` if and only if `\deg_w(x^a) > \deg_w(x^b)` or `\deg_w(x^a) = \deg_w(x^b)` and
     there exists `1 \le i \le n` such that `a_n = b_n, \dots, a_{i+1} = b_{i+1}, a_i > b_i`.
@@ -220,7 +220,7 @@ Negative weighted degree reverse lexicographic (negwdegrevlex)
         sage: y*z > x^3*y
         False
 
-Negative weighted degree lexicographic (negwdeglex)
+Negative weighted degree lexicographic (negwdeglex), positive integral weights
     Let `\deg_w(x^a) = a_1w_1 + a_2w_2 + \dots + a_nw_n` with weights `w`, then
     `x^a < x^b` if and only if `\deg_w(x^a) > \deg_w(x^b)` or `\deg_w(x^a) = \deg_w(x^b)` and
     there exists `1 \le i \le n` such that `a_1 = b_1, \dots, a_{i-1} = b_{i-1}, a_i < b_i`.
@@ -242,8 +242,8 @@ Negative weighted degree lexicographic (negwdeglex)
         sage: y*z > x^3*y
         False
 
-Of these, only 'degrevlex', 'deglex', 'wdegrevlex', 'wdeglex', 'invlex' and 'lex' are global
-orders.
+Of these, only 'degrevlex', 'deglex', 'wdegrevlex', 'wdeglex',
+'invlex' and 'lex' are global orders.
 
 Sage also supports matrix term order. Given a square matrix `A`,
 
@@ -535,8 +535,9 @@ class TermOrder(SageObject):
 
         - ``name`` - name of the term order (default: lex)
 
-        - ``n`` - number of variables (default is `0`) or weights for
-          weighted degree orders
+        - ``n`` - number of variables (default is `0`) weights for
+          weighted degree orders. The weights are converted to
+          integers and must be positive.
 
         - ``blocks`` - this is deprecated.
 
@@ -582,6 +583,20 @@ class TermOrder(SageObject):
            non-block orders like `deglex` are
            constructed. However, it is useful if block orders are
            to be constructed from this ``TermOrder`` object later.
+
+        TEST:
+
+        We demonstrate that non-positive weights are refused and non-integral weights
+        are converted to integers (and potentially rounded)::
+
+            sage: N.<a,b,c> = PolynomialRing(QQ, 3, order=TermOrder('wdeglex',[-1,2,-3]))
+            Traceback (most recent call last):
+            ...
+            ValueError: the degree weights must be positive integers
+            sage: N.<a,b,c> = PolynomialRing(QQ, 3, order=TermOrder('wdeglex',[1.1,2,3]))
+            sage: a.degree()
+            1
+
         """
         if isinstance(name, TermOrder):
             self.__copy(name)
@@ -687,7 +702,9 @@ class TermOrder(SageObject):
         elif isinstance(name, str) and (isinstance(n, tuple) or isinstance(n,list)): # weighted degree term orders
             if name not in print_name_mapping.keys() and name not in singular_name_mapping.values() and not force:
                 raise TypeError, "Unknown term order '%s'"%(name,)
-            weights = tuple(n) # n is a tuple of weights
+            weights = tuple(int(w) for w in n) # n is a tuple of weights
+            if any([w<=0 for w in weights]):
+                raise ValueError, "the degree weights must be positive integers"
 
             self._length = len(weights)
             self._name = name
@@ -1527,6 +1544,7 @@ class TermOrder(SageObject):
             //        block   3 : ordering lp
             //                  : names    x8 x9
             //        block   4 : ordering C
+
         """
         return self._singular_str
 
@@ -1573,6 +1591,12 @@ class TermOrder(SageObject):
     def blocks(self):
         """
         Return the term order blocks of self.
+
+        NOTE:
+
+        This method has been added in trac ticket #11316. There used
+        to be an *attribute* of the same name and the same content.
+        So, it is a backward incompatible syntax change.
 
         EXAMPLE::
 

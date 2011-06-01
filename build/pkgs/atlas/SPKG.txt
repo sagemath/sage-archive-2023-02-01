@@ -40,7 +40,6 @@ also work on OSX and Solaris.
    started sooner in parallel builds. This should reduce the overall time to
    build Sage.
  * The package is never installed on Cygwin or OS X.
- * The code which calls 'readelf' can almost certainly be removed.
 
 The package can be configured via two environment variables:
 
@@ -88,6 +87,12 @@ The package can be configured via two environment variables:
 
 == ChangeLog ==
 
+
+== atlas-3.8.4 (Volker Braun, 1 June 2011) ==
+ * Updated to new upstream stable version.
+ * Removed SpewMakeInc.c.patch, archinfo_linux.c.patch,
+   archinfo_x86.c.patch, probe_comp.c as they are included in new
+   upstream version.
 
 == atlas-3.8.3.p18 (Mariah Lenox, 11 May 2011) ==
  * Make atlas respect CC environment variable.

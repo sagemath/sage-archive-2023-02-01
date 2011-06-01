@@ -156,23 +156,6 @@ if conf['Solaris?'] and conf['machine'] == 'sun4v':
     cp('patches/mmsearch-with-temp-Solaris-fix.c',
        'src/tune/blas/gemm/mmsearch.c')
 
-# Patching SpewMakeInc.c for FreeBSD-specific build
-if conf['FreeBSD?']:
-    cp('patches/SpewMakeInc.c',
-       'src/CONFIG/src/SpewMakeInc.c')
-
-# add PPC4 7447 CPU and better Itanium2 detection:
-cp('patches/archinfo_linux.c',
-   'src/CONFIG/src/backend/archinfo_linux.c')
-
-# add Pentium D and E as well as Core2Duo and Dunnington CPUids
-cp('patches/archinfo_x86.c',
-   'src/CONFIG/src/backend/archinfo_x86.c')
-
-# work around "-m64" cflag issue on Itanium
-cp('patches/probe_comp.c',
-   'src/CONFIG/src/probe_comp.c')
-
 # add dynamic libs make install targets to Make.top
 cp('patches/Make.top',
    'src')

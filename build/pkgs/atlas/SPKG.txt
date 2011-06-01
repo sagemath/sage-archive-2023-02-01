@@ -93,6 +93,7 @@ The package can be configured via two environment variables:
  * Removed SpewMakeInc.c.patch, archinfo_linux.c.patch,
    archinfo_x86.c.patch, probe_comp.c as they are included in new
    upstream version.
+ * Rediffed Make.top
 
 == atlas-3.8.3.p18 (Mariah Lenox, 11 May 2011) ==
  * Make atlas respect CC environment variable.

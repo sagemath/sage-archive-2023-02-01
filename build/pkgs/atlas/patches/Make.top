@@ -13,8 +13,8 @@ leafstart:
 	cd $(leaf) ; ln -s $(BLDdir)/Make.inc Make.inc
 
 build:
-	cd bin/ ; $(MAKE) xatlas_install
-	cd bin/ ; ./xatlas_install $(INSTFLAGS)
+	cd bin/ ; $(MAKE) xatlas_build
+	cd bin/ ; ./xatlas_build $(INSTFLAGS)
 time:
 	./xatlbench -dc $(BLDdir)/bin/INSTALL_LOG -dp $(BLDdir)/ARCHS/$(ARCH)
 C_sanity_test:
@@ -298,11 +298,12 @@ install_lib:
 	- chmod 0644 $(INSTdir)/libf77blas.a
 	- cp $(LIBdir)/libptcblas.a $(INSTdir)/.
 	- cp $(LIBdir)/libptf77blas.a $(INSTdir)/.
+	- chmod 0644 $(INSTdir)/libptcblas.a $(INSTdir)/libptf77blas.a
 	- cp $(LIBdir)/libatlas.so $(INSTdir)/.
 	- cp $(LIBdir)/libcblas.so $(INSTdir)/.
 	- cp $(LIBdir)/libf77blas.so $(INSTdir)/.
 	- cp $(LIBdir)/liblapack.so $(INSTdir)/.
 	- chmod 0644 $(INSTdir)/libatlas.so $(INSTdir)/liblapack.so \
 		     $(INSTdir)/libcblas.so $(INSTdir)/libcblas.so
-	- chmod 0644 $(INSTdir)/libptcblas.a $(INSTdir)/libptf77blas.a
+
 

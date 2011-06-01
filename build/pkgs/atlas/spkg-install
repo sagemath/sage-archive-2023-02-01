@@ -451,6 +451,16 @@ print 'Finished building LAPACK+ATLAS library.'
 ######################################################################
 
 def install():
+    library_extensions = ['.a', '.so', '.dylib']
+    libraries = ['libatlas', 'liblapack', 'libcblas', 'libf77blas', 'libptcblas', 'libptf77blas']
+    for lib in libraries:
+        for ext in library_extensions:
+            try:
+                filename = os.path.join(conf['SAGE_LOCAL'], 'lib', lib+ext)
+                os.remove(filename)
+                print('Removed file from previous installation: '+filename)
+            except OSError:
+                pass
     os.chdir(BUILD_DIR)
     rc = os.system('$MAKE install')
     os.chdir('..')

@@ -4,11 +4,11 @@
 PYTHONSTARTUP=$SAGE_ROOT/local/bin/sage-ipython
 export PYTHONSTARTUP
 echo $PYTHONSTARTUP
-if [ ! -d "$HOME/.sage/valgrind" ]; then
-    mkdir "$HOME/.sage/valgrind"
+if [ ! -d "$DOT_SAGE/valgrind" ]; then
+    mkdir "$DOT_SAGE/valgrind"
 fi
 
-LOG="$HOME"/.sage/valgrind/sage-cachegrind.%p
+LOG="$DOT_SAGE"/valgrind/sage-cachegrind.%p
 echo "Log file is $LOG"
 
 CACHEGRIND_FLAGS="--log-file=$LOG "; export CACHEGRIND_FLAGS

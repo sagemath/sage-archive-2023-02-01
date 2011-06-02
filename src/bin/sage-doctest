@@ -102,7 +102,7 @@ if os.environ.has_key('SAGE_PATH'):
 ######################################################
 # Custom flags for the valgrind modes
 ######################################################
-logfile = ' --log-file=' + os.path.join('$HOME', '.sage', 'valgrind', 'sage-%s') + ' '
+logfile = ' --log-file=' + os.path.join(DOT_SAGE, 'valgrind', 'sage-%s') + ' '
 try:
     SAGE_MEMCHECK_FLAGS = os.environ['SAGE_MEMCHECK_FLAGS']
     print SAGE_MEMCHECK_FLAGS

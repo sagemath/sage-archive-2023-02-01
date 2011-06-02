@@ -4,12 +4,11 @@
 PYTHONSTARTUP=$SAGE_ROOT/local/bin/sage-ipython
 export PYTHONSTARTUP
 echo $PYTHONSTARTUP
-
-if [ ! -d "$HOME/.sage/valgrind" ]; then
-    mkdir "$HOME/.sage/valgrind"
+if [ ! -d "$DOT_SAGE/valgrind" ]; then
+    mkdir "$DOT_SAGE/valgrind"
 fi
 
-LOG="$HOME"/.sage/valgrind/sage-memcheck.%p
+LOG="$DOT_SAGE"/valgrind/sage-memcheck.%p
 echo "Log file is $LOG"
 
 MEMCHECK_FLAGS="--leak-resolution=high --log-file=$LOG --leak-check=full --num-callers=25 --suppressions=$SAGE_LOCAL/lib/valgrind/sage.supp "; export MEMCHECK_FLAGS

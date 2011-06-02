@@ -94,6 +94,8 @@ Enjoy Sage!
    modmisc
    tensor
 
+   todolist
+
    history_and_license
 
 Indices and tables

@@ -189,16 +189,14 @@ contains the following combinatorial functions:
 -  matrix method of PermutationGroupElement yielding the
    permutation matrix of the group element.
 
+.. TODO::
 
-::
-
-    TODO:
-       GUAVA commands:
+    GUAVA commands:
         * MOLS returns a list of n Mutually Orthogonal Latin Squares (MOLS).
         * VandermondeMat
         * GrayMat returns a list of all different vectors of length n over
           the field F, using Gray ordering.
-       Not in GAP:
+    Not in GAP:
         * Rencontres numbers
           http://en.wikipedia.org/wiki/Rencontres_number
 

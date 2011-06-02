@@ -397,6 +397,20 @@ a guide.
           build, it is very likely that you would be requested to
           change your patch.
 
+- A TODO block for rooms for improvements. The TODO block might
+  contains disabled doctests to demonstrate the desired feature.  A TODO block
+  should start with ``.. TODO::``. It can also be the lower-case form
+  ``.. todo::``. However, you are encouraged to use the upper-case form
+  ``.. TODO::``. Here's an example of a TODO block::
+
+      .. TODO::
+
+          Improve further function ``have_fresh_beers`` using algorithm
+	  ``buy_a_better_fridge``::
+
+	      sage: have_fresh_beers('Bière de l'Yvette') # todo: not implemented
+	      Enjoy !
+
 - A REFERENCES block to list books or papers (optional). This block serves
   a similar purpose to a list of references in a research paper, or a
   bibliography in a monograph. If your method, function or class uses an

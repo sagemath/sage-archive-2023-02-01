@@ -353,6 +353,13 @@ def format(s, embedded=False):
         'identity_matrix>>>\n'
         sage: format('<<<identity_matrix>>>')[:28]
         'Definition: identity_matrix('
+
+    TESTS:
+
+    We check that the todo Sphinx extension is correctly activated::
+
+        sage: sage.misc.sagedoc.format(sage.combinat.ranker.on_fly.__doc__)
+        "   Returns ...  Todo: add tests as in combinat::rankers\n"
     """
     if not isinstance(s, str):
         raise TypeError, "s must be a string"

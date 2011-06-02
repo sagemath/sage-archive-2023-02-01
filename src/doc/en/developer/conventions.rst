@@ -397,7 +397,7 @@ a guide.
           build, it is very likely that you would be requested to
           change your patch.
 
-- A TODO block for rooms for improvements. The TODO block might
+- A TODO block for room for improvements. The TODO block might
   contains disabled doctests to demonstrate the desired feature.  A TODO block
   should start with ``.. TODO::``. It can also be the lower-case form
   ``.. todo::``. However, you are encouraged to use the upper-case form

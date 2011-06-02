@@ -12,7 +12,7 @@ There is still some work to do :-) :
 
     .. todo::
 
-        rewrite the hand written TODO by using the correct ``.. todo::``
-        markup ;-).
+        Rewrite the hand-written TODOs by using the correct ``.. todo::``
+        markup.
 
 .. todolist::

@@ -14,9 +14,9 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import os, sys
+import os, sys, platform
 
-from misc import SPYX_TMP, SAGE_ROOT
+from misc import SPYX_TMP, SAGE_ROOT, SAGE_LOCAL
 from sage.misc.misc import UNAME
 
 def cblas():
@@ -43,10 +43,10 @@ def atlas():
     else:
         return 'atlas'
 
-include_dirs = ['%s/local/include/csage/'%SAGE_ROOT,
-                '%s/local/include/'%SAGE_ROOT,  \
-                '%s/local/include/python%s/'%(SAGE_ROOT, sys.version[:3]), \
-                '%s/local/lib/python%s/site-packages/numpy/core/include'%(SAGE_ROOT, sys.version[:3]), \
+include_dirs = ['%sinclude/csage/'%SAGE_LOCAL,
+                '%sinclude/'%SAGE_LOCAL,  \
+                '%sinclude/python%s/'%(SAGE_LOCAL, platform.python_version().rsplit('.', 1)[0]), \
+                '%slib/python%s/site-packages/numpy/core/include'%(SAGE_LOCAL, platform.python_version().rsplit('.', 1)[0]), \
                 '%s/devel/sage/sage/ext/'%SAGE_ROOT, \
                 '%s/devel/sage/'%SAGE_ROOT, \
                 '%s/devel/sage/sage/gsl/'%SAGE_ROOT]

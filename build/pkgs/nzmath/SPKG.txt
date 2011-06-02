@@ -20,6 +20,8 @@ and distributed under the BSD license.
 
 == Changelog ==
 
+=== nzmath-1.1.0 (Mariah Lenox, 1 June 2011) ===
+ * upgrade to version 1.1.0
 === nzmath-1.0.0 (William Stein, 6 June 2010) ===
  * upgrade to version 1.0.0, create SPKG.txt
 

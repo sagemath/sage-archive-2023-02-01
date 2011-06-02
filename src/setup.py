@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os, sys, time, errno
+import os, sys, time, errno, platform
 from distutils.core import setup
 from distutils.extension import Extension
 from glob import glob, fnmatch
@@ -47,16 +47,9 @@ except KeyError:
     compile_result_dir = None
     keep_going = False
 
-SITE_PACKAGES = '%s/lib/python/site-packages/'%SAGE_LOCAL
+SITE_PACKAGES = '%s/lib/python%s/site-packages/'%(SAGE_LOCAL,platform.python_version().rsplit('.', 1)[0])
 if not os.path.exists(SITE_PACKAGES):
-    SITE_PACKAGES = '%s/lib/python2.5/site-packages/'%SAGE_LOCAL
-    if not os.path.exists(SITE_PACKAGES):
-        SITE_PACKAGES = '%s/lib/python2.4/site-packages/'%SAGE_LOCAL
-        if not os.path.exists(SITE_PACKAGES) and os.environ.has_key('SAGE_DEBIAN'):
-            SITE_PACKAGES = '%s/lib/python2.5/site-packages/'%SAGE_LOCAL
-            os.system('mkdir -p "%s"'%SITE_PACKAGES)
-        if not os.path.exists(SITE_PACKAGES):
-            raise RuntimeError, "Unable to find site-packages directory (see setup.py file in sage python code)."
+    raise RuntimeError, "Unable to find site-packages directory (see setup.py file in sage python code)."
 
 if not os.path.exists('build/sage'):
     os.makedirs('build/sage')
@@ -72,7 +65,7 @@ include_dirs = ['%s/include'%SAGE_LOCAL,
                 '%s/sage/sage/ext'%SAGE_DEVEL]
 
 # search for dependencies only
-extra_include_dirs = ['%s/include/python2.6'%SAGE_LOCAL,
+extra_include_dirs = ['%s/include/python%s'%(SAGE_LOCAL,platform.python_version().rsplit('.', 1)[0]),
                       # finally, standard C/C++ include dirs
                       '/usr/local/include/',
                       '/usr/include']
@@ -83,35 +76,6 @@ try:
     extra_include_dirs.extend( gccinclude.splitlines() )
 except OSError:
     pass
-
-
-#########################################################
-### Debian-related stuff
-#########################################################
-
-if os.environ.has_key('SAGE_DEBIAN'):
-    debian_include_dirs=["/usr/include",
-                         "/usr/include/cudd",
-                         "/usr/include/eclib",
-                         "/usr/include/FLINT",
-                         "/usr/include/fplll",
-                         "/usr/include/givaro",
-                         "/usr/include/gmp++",
-                         "/usr/include/gsl",
-                         "/usr/include/linbox",
-                         "/usr/include/NTL",
-                         "/usr/include/numpy",
-                         "/usr/include/pari",
-                         "/usr/include/polybori",
-                         "/usr/include/polybori/groebner",
-                         "/usr/include/qd",
-                         "/usr/include/singular",
-                         "/usr/include/singular/singular",
-                         "/usr/include/symmetrica",
-                         "/usr/share/python-support/cython/Cython/Includes/"
-                         "/usr/share/pyshared/Cython/Includes/"
-                         "/usr/include/zn_poly"]
-    include_dirs = include_dirs + debian_include_dirs
 
 extra_compile_args = [ ]
 extra_link_args = [ ]
@@ -206,10 +170,7 @@ for m in ext_modules:
     m.libraries = ['csage'] + m.libraries + ['stdc++', 'ntl']
     m.extra_compile_args += extra_compile_args
     m.extra_link_args += extra_link_args
-    if os.environ.has_key('SAGE_DEBIAN'):
-        m.library_dirs += ['/usr/lib','/usr/lib/eclib','/usr/lib/singular','/usr/lib/R/lib','%s/lib' % SAGE_LOCAL]
-    else:
-        m.library_dirs += ['%s/lib' % SAGE_LOCAL]
+    m.library_dirs += ['%s/lib' % SAGE_LOCAL]
 
 
 
@@ -943,7 +904,7 @@ code = setup(name = 'sage',
 
                      'sage.combinat.words',
 
-                    'sage.combinat.iet',
+                     'sage.combinat.iet',
 
                      'sage.crypto',
                      'sage.crypto.block_cipher',

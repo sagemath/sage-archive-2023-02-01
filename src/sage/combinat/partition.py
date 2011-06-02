@@ -320,13 +320,25 @@ def from_core_and_quotient(core, quotient):
 
         sage: Partition(core=[2,1], quotient=[[2,1],[3],[1,1,1]])
         [11, 5, 5, 3, 2, 2, 2]
-        sage: test = lambda x, k: x == Partition(core=x.core(k),quotient=x.quotient(k))
-        sage: all(test(mu,k) for k in range(1,5) for n in range(10) for mu in Partitions(n))
+
+    TESTS: We check that #11412 is actually fixed::
+
+        sage: test = lambda x, k: x == Partition(core=x.core(k),
+        ...                                      quotient=x.quotient(k))
+        sage: all(test(mu,k) for k in range(1,5)
+        ...       for n in range(10) for mu in Partitions(n))
         True
-        sage: test2 = lambda core, mus: \
-        Partition(core=core, quotient=mus).core(len(mus)) == core and \
-        Partition(core=core, quotient=mus).quotient(len(mus)) == mus
-        sage: all(test2(core,tuple(mus)) for k in range(1,10) for n_core in range(10-k) for core in Partitions(n_core) if core.core(k) == core for n_mus in range(10-k) for mus in PartitionTuples(n_mus,k))
+        sage: test2 = lambda core, mus: (
+        ...       Partition(core=core, quotient=mus).core(len(mus)) == core
+        ...       and
+        ...       Partition(core=core, quotient=mus).quotient(len(mus)) == mus)
+        sage: all(test2(core,tuple(mus))
+        ...       for k in range(1,10)
+        ...       for n_core in range(10-k)
+        ...       for core in Partitions(n_core)
+        ...       if core.core(k) == core
+        ...       for n_mus in range(10-k)
+        ...       for mus in PartitionTuples(n_mus,k))
         True
     """
     length = len(quotient)

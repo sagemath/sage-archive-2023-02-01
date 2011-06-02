@@ -35,7 +35,7 @@
 ## subdirectories, and $SAGE_ROOT/local/include has a link into
 ## this directory.
 ##
-import os
+import os, platform
 
 # Note that SCons's strong point is not the './configure' step of
 # autotools.  However, for this build we know that we are in a
@@ -118,13 +118,15 @@ if env['PLATFORM']=="darwin":
 # SCons doesn't automatically pull in system environment variables
 # However, we only need SAGE_LOCAL, so that's easy.
 env['SAGE_LOCAL'] = os.environ['SAGE_LOCAL']
-if os.environ.has_key('SAGE_DEBIAN'):
-    env['SAGE_LOCAL'] = '/usr'
+
+# Get the python version number. We want this to be a bit more resistant to major
+# change of version.
+env['PYV']=platform.python_version().rsplit('.', 1)[0]
 
 # The SCons convenience function Split is the only strange thing
 # to python programmers. It just makes a list by splitting on
 # whitespace without the syntax clutter of lists of strings.
-includes = ['$SAGE_LOCAL/include/', '$SAGE_LOCAL/include/python2.6/',
+includes = ['$SAGE_LOCAL/include/', '$SAGE_LOCAL/include/python$PYV/',
             '$SAGE_LOCAL/include/NTL/', 'include']
 cFiles = Split( "convert.c  interrupt.c  memory.c  mpn_pylong.c  mpz_pylong.c") + \
          Split( "mpz_longlong.c stdsage.c  gmp_globals.c" )
@@ -132,8 +134,8 @@ cppFiles = Split( "ZZ_pylong.cpp  ntl_wrap.cpp" )
 srcFiles = cFiles + cppFiles
 
 lib = env.SharedLibrary( "csage", [ "src/" + x for x in srcFiles ],
-                         LIBS=['ntl', 'pari', 'gmp', 'python2.6'],
-                         LIBPATH=['$SAGE_LOCAL/lib','$SAGE_LOCAL/lib/python/config/'],
+                         LIBS=['ntl', 'pari', 'gmp', 'python$PYV'],
+                         LIBPATH=['$SAGE_LOCAL/lib','$SAGE_LOCAL/lib/python$PYV/config/'],
                          CPPPATH=includes )
 env.Install("$SAGE_LOCAL/lib", lib)
 

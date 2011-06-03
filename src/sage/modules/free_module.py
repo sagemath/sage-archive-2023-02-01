@@ -2891,6 +2891,12 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             Vector space of dimension 2 over Rational Field
             sage: FreeModule(FiniteField(2), 7)
             Vector space of dimension 7 over Finite Field of size 2
+
+        We test that the issue at Trac #11166 is solved::
+
+            sage: from sage.modules.free_module import FreeModule_generic_field
+            sage: FreeModule_generic_field(QQ, 5, 5)
+            <class 'sage.modules.free_module.FreeModule_generic_field_with_category'>
         """
         if not isinstance(base_field, field.Field):
             raise TypeError, "The base_field (=%s) must be a field"%base_field

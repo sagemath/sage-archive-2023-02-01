@@ -2956,13 +2956,13 @@ class NumberField_generic(number_field_base.NumberField):
 
             sage: K.<a> = QuadraticField(-5)
             sage: K.S_class_group([])
-            Class group of order 2 with structure C2 of Number Field in a with defining polynomial x^2 + 5
+            S-class group of order 2 with structure C2 of Number Field in a with defining polynomial x^2 + 5
 
         When we include the prime `(2, a+1)`, the S-class group becomes
         trivial::
 
             sage: K.S_class_group([K.ideal(2,a+1)])
-            Class group of order 1 of Number Field in a with defining polynomial x^2 + 5
+            S-class group of order 1 of Number Field in a with defining polynomial x^2 + 5
 
         TESTS::
 
@@ -2970,17 +2970,20 @@ class NumberField_generic(number_field_base.NumberField):
             sage: I = K.ideal(2,a)
             sage: S = (I,)
             sage: CS = K.S_class_group(S);CS
-            Class group of order 2 with structure C2 of Number Field in a with defining polynomial x^2 + 14
+            S-class group of order 2 with structure C2 of Number Field in a with defining polynomial x^2 + 14
             sage: T = tuple([])
             sage: CT = K.S_class_group(T);CT
-            Class group of order 4 with structure C4 of Number Field in a with defining polynomial x^2 + 14
+            S-class group of order 4 with structure C4 of Number Field in a with defining polynomial x^2 + 14
             sage: K.class_group()
             Class group of order 4 with structure C4 of Number Field in a with defining polynomial x^2 + 14
-
         """
         proof = proof_flag(proof)
-        Slist = self._S_class_group_and_units(tuple(S), proof = proof)[1]
-        return SClassGroup([s[1] for s in Slist],names,self,[s[0] for s in Slist],S)
+        if all(P.is_principal() for P in S):
+            C = self.class_group(proof=proof)
+            Slist = zip([g.ideal() for g in C.gens()], C.invariants())
+        else:
+            Slist = self._S_class_group_and_units(tuple(S), proof=proof)[1]
+        return SClassGroup([s[1] for s in Slist], names, self, [s[0] for s in Slist], S)
 
     def S_units(self, S, proof=True):
         """
@@ -3058,7 +3061,7 @@ class NumberField_generic(number_field_base.NumberField):
         pari_cyc = result[4][1]
         pari_gens = result[4][2]
         clgp_gens = []
-        for k in range(0,len(pari_cyc)):
+        for k in range(len(pari_cyc)):
             order = ZZ(pari_cyc[k])
             if order > 1: # since some generators are given "of order 1"
                 I = self.ideal(pari_gens[k])
@@ -3084,14 +3087,22 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K._S_class_group_quotient_matrix(())
             [1 0]
             [0 1]
+            sage: K.<a> = QuadraticField(-105)
+            sage: K._S_class_group_quotient_matrix((K.ideal(11, a + 4),))
+            [0 0]
+            [1 0]
+            [0 1]
         """
         from sage.matrix.constructor import matrix
-        clgp_gens = self._S_class_group_and_units(S)[1]
-        C = self.class_group()
-        a = len(clgp_gens)
-        c = C.ngens()
-        M = matrix(ZZ, [C(x).list() for x in ([u[0] for u in clgp_gens] + list(S))])
-        return (M.hermite_form(transformation=True)[1][:a,:c]).transpose()
+        S_clgp_gens = self._S_class_group_and_units(S)[1]
+        a = len(S_clgp_gens)
+        c = self.class_group().ngens()
+        M = [u[0]._ideal_class_log() for u in S_clgp_gens]
+        M += [x._ideal_class_log() for x in S]
+        M = matrix(ZZ, M)
+        A, Q = M.hermite_form(transformation=True)
+        assert A[:c] == 1 and A[c:] == 0
+        return Q[:c, :a]
 
     def selmer_group(self, S, m, proof=True):
         r"""

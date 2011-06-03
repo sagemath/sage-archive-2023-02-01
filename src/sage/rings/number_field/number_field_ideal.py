@@ -1066,8 +1066,8 @@ class NumberFieldIdeal(Ideal_generic):
             return self._ideal_class_log(proof)
         except KeyError:
             bnf = self.number_field().pari_bnf(proof)
-            v = bnf.bnfisprincipal(self.pari_hnf())
-            self.__ideal_class_log[proof] = list(v[0])
+            v = bnf.bnfisprincipal(self.pari_hnf(), flag=0)
+            self.__ideal_class_log[proof] = list(v)
             return self.__ideal_class_log[proof]
 
     def _S_ideal_class_log(self, S):
@@ -1078,21 +1078,27 @@ class NumberFieldIdeal(Ideal_generic):
 
             sage: K.<a> = QuadraticField(-14)
             sage: S = K.primes_above(2)
-            sage: I = K.ideal(3, a-1)
+            sage: I = K.ideal(3, a + 1)
             sage: I._S_ideal_class_log(S)
             [1]
             sage: I._S_ideal_class_log([])
-            [1]
-            sage: I._ideal_class_log()
-            [1]
+            [3]
+            sage: K.<a> = QuadraticField(-974)
+            sage: S = K.primes_above(2)
+            sage: [P._S_ideal_class_log(S) for P in K.primes_above(11)]
+            [[5, 2], [1, 1]]
         """
         from sage.modules.free_module_element import vector
         from sage.rings.finite_rings.integer_mod_ring import Zmod
         v = vector(ZZ, self._ideal_class_log())
-        D = self.number_field()._S_class_group_and_units(tuple(S))
-        M = self.number_field()._S_class_group_quotient_matrix(tuple(S))
-        L = (v * M).list()
-        invs = [x[1] for x in D[1]]
+        if all(P.is_principal() for P in S):
+            L = v.list()
+            invs = self.number_field().class_group().invariants()
+        else:
+            M = self.number_field()._S_class_group_quotient_matrix(tuple(S))
+            L = (v * M).list()
+            D = self.number_field()._S_class_group_and_units(tuple(S))[1]
+            invs = [x[1] for x in D]
         return [Zmod(invs[i])(L[i]) for i in xrange(len(L))]
 
     def is_zero(self):

@@ -852,6 +852,9 @@ class ToricVariety_field(AmbientSpace):
         The result is cached, so the ``i``-th patch is always the same object
         in memory.
 
+        See also :meth:`affine_algebraic_patch`, which expresses the
+        patches as subvarieties of affine space instead.
+
         EXAMPLES::
 
             sage: fan = FaceFan(lattice_polytope.octahedron(2))
@@ -2217,6 +2220,159 @@ class ToricVariety_field(AmbientSpace):
         """
         from sage.schemes.generic.toric_divisor import ToricDivisorGroup
         return ToricDivisorGroup(self, base_ring);
+
+    def _semigroup_ring(self, cone=None, names=None):
+        r"""
+        Return a presentation of the semigroup ring for the dual of ``cone``.
+
+        INPUT:
+
+        See :meth:`Spec`.
+
+        OUTPUT:
+
+        For the given ``cone`` `\sigma`, return a tuple consisting of
+
+        * a polynomial ring `R`,
+
+        * an ideal `I\in R`,
+
+        * the dual cone `\sigma^\vee`
+
+        such that `R/I \sim k[\sigma^\vee \cap M]`, where `k` is the
+        :meth:`base_ring` of the toric variety.
+
+        EXAMPLES::
+
+            sage: A2Z2 = Cone([(0,1),(2,1)])
+            sage: AffineToricVariety(A2Z2)._semigroup_ring()
+            (Multivariate Polynomial Ring in z0, z1, z2 over Rational Field,
+             Ideal (-z0*z1 + z2^2) of Multivariate Polynomial Ring in z0, z1, z2 over Rational Field,
+             2-d cone in 2-d lattice M)
+
+             sage: P2 = toric_varieties.P2()
+             sage: cone = P2.fan().generating_cone(0)
+             sage: P2._semigroup_ring(cone)
+             (Multivariate Polynomial Ring in z0, z1 over Rational Field,
+              Ideal (0) of Multivariate Polynomial Ring in z0, z1 over Rational Field,
+              2-d cone in 2-d lattice M)
+             sage: P2.change_ring(GF(101))._semigroup_ring(cone)
+             (Multivariate Polynomial Ring in z0, z1 over Finite Field of size 101,
+              Ideal (0) of Multivariate Polynomial Ring in z0, z1 over Finite Field of size 101,
+              2-d cone in 2-d lattice M)
+        """
+        from sage.schemes.generic.toric_ideal import ToricIdeal
+        if cone is None:
+            assert self.is_affine(), \
+                'You may only omit the cone argument for an affine toric variety!'
+            cone = self.fan().generating_cone(0)
+
+        cone = self.fan().embed(cone)
+        dual = cone.dual()
+        basis = dual.Hilbert_basis()
+        N = len(basis)
+        names = normalize_names(names, N, DEFAULT_PREFIX)
+        A = matrix(ZZ,basis).transpose()
+        IA = ToricIdeal(A, names, base_ring=self.base_ring())
+        return (IA.ring(), IA, dual)
+
+    def Spec(self, cone=None, names=None):
+        r"""
+        Return the spectrum associated to the dual cone.
+
+        Let `\sigma \in N_\RR` be a cone and `\sigma^\vee \cap M` the
+        associated semigroup of lattice points in the dual cone. Then
+
+        .. MATH::
+
+            S = \CC[\sigma^\vee \cap M]
+
+        is a `\CC`-algebra. It is spanned over `\CC` by the points of
+        `\sigma \cap N`, addition is formal linear combination of
+        lattice points, and multiplication of lattice points is the
+        semigroup law (that is, addition of lattice points). The
+        `\CC`-algebra `S` then defines a scheme `\mathop{Spec}(S)`.
+
+        For example, if `\sigma=\{(x,y)|x\geq 0,y\geq 0\}` is the
+        first quadrant then `S` is the polynomial ring in two
+        variables. The associated scheme is `\mathop{Spec}(S) =
+        \CC^2`.
+
+        The same construction works over any base field, this
+        introduction only used `\CC` for simplicity.
+
+        INPUT:
+
+        - ``cone`` -- a :class:`Cone
+          <sage.geometry.cone.ConvexRationalPolyhedralCone>`. Can be
+          omitted for an affine toric variety, in which case the
+          (unique) generating cone is used.
+
+        - ``names`` -- (optional). Names of variables for the
+          semigroup ring, see :func:`normalize_names` for acceptable
+          formats. If not given, indexed variable names will be
+          created automatically.
+
+        Output:
+
+        The spectrum of the semigroup ring `\CC[\sigma^\vee \cap M]`.
+
+        EXAMPLES::
+
+            sage: quadrant = Cone([(1,0),(0,1)])
+            sage: AffineToricVariety(quadrant).Spec()
+            Spectrum of Quotient of Multivariate Polynomial Ring
+            in z0, z1 over Rational Field by the ideal (0)
+
+        A more interesting example::
+
+            sage: A2Z2 = Cone([(0,1),(2,1)])
+            sage: AffineToricVariety(A2Z2).Spec(names='u,v,t')
+            Spectrum of Quotient of Multivariate Polynomial Ring
+            in u, v, t over Rational Field by the ideal (-u*v + t^2)
+        """
+        from sage.schemes.generic.spec import Spec
+        R, I, dualcone = self._semigroup_ring(cone, names)
+        return Spec(R.quotient(I))
+
+    def affine_algebraic_patch(self, cone=None, names=None):
+        r"""
+        Return the patch corresponding to ``cone`` as an affine
+        algebraic subvariety.
+
+        INPUT:
+
+        - ``cone`` -- a :class:`Cone
+          <sage.geometry.cone.ConvexRationalPolyhedralCone>` `\sigma`
+          of the fan. It can be omitted for an affine toric variety,
+          in which case the single generating cone is used.
+
+        OUTPUT:
+
+        A :class:`affine algebraic subscheme
+        <sage.schemes.generic.algebraic_scheme.AlgebraicScheme_subscheme_affine>`
+        corresponding to the patch `\mathop{Spec}(\sigma^\vee \cap M)`
+        associated to the cone `\sigma`.
+
+        See also :meth:`affine_patch`, which expresses the patches as
+        subvarieties of affine toric varieties instead.
+
+        EXAMPLES::
+
+            sage: cone = Cone([(0,1),(2,1)])
+            sage: A2Z2 = AffineToricVariety(cone)
+            sage: A2Z2.affine_algebraic_patch()
+            Closed subscheme of Affine Space of dimension 3 over Rational Field defined by:
+              -z0*z1 + z2^2
+            sage: A2Z2.affine_algebraic_patch(Cone([(0,1)]), names='x, y, t')
+            Closed subscheme of Affine Space of dimension 3 over Rational Field defined by:
+              1
+        """
+        R, I, dualcone = self._semigroup_ring(cone, names)
+        from affine_space import AffineSpace
+        patch_cover = AffineSpace(R)
+        patch = patch_cover.subscheme(I)
+        return patch
 
 
 

@@ -244,6 +244,9 @@ class ToricIdeal(MPolynomialIdeal):
             sage: ToricIdeal(A, names='x', base_ring=GF(101))
             Ideal (-x1^2 + x0*x2) of Multivariate Polynomial Ring
             in x0, x1, x2 over Finite Field of size 101
+            sage: ToricIdeal(A, names='x', base_ring=FractionField(QQ['t']))
+            Ideal (-x1^2 + x0*x2) of Multivariate Polynomial Ring
+            in x0, x1, x2 over Fraction Field of Univariate Polynomial Ring in t over Rational Field
         """
         self._A = matrix(ZZ, A)
         if polynomial_ring:
@@ -427,7 +430,6 @@ class ToricIdeal(MPolynomialIdeal):
         x = [ y[i-n] for i in range(0,N) ]
         y_to_x = dict(zip(x,y))
         x_to_y = dict(zip(y,x))
-
         # swap variables such that the n-th variable becomes the last one
         J = ideal.subs(y_to_x)
 
@@ -437,12 +439,16 @@ class ToricIdeal(MPolynomialIdeal):
         basis = J.groebner_basis()
 
         x_n = y[0]   # the cheapest variable in the revlex order
+        def subtract(e,power):
+            l = list(e)
+            return tuple([l[0]-power] + l[1:])
         def divide_by_x_n(p):
-            power = min([ e[0] for e in p.exponents() ])
-            return p/x_n**power
-
+            d_old = p.dict()
+            power = min([ e[0] for e in d_old.keys() ])
+            d_new = dict( (subtract(exponent,power), coefficient)
+                          for exponent, coefficient in d_old.iteritems() )
+            return p.parent()(d_new)
         basis = map(divide_by_x_n, basis)
-
         quotient = ring.ideal(basis)
         return quotient.subs(x_to_y)
 

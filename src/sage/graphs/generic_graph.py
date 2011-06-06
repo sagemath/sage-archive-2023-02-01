@@ -2065,7 +2065,7 @@ class GenericGraph(GenericGraph_pyx):
         - ``weight_function`` -- A function that takes an edge and returns a
           numeric weight. Defaults to assigning each edge a weight of 1.
 
-        - ``algorithm`` -- The algorithm to use in computing a minimum sapnning
+        - ``algorithm`` -- The algorithm to use in computing a minimum spanning
           tree of ``G``. The default is to use Kruskal's algorithm. The
           following algorithms are supported:
 

@@ -1858,3 +1858,60 @@ class TermOrder(SageObject):
             True
         """
         return self._weights is not None
+
+def TermOrder_from_Singular(S):
+    """
+    Return the Sage term order of the basering in the given Singular interface
+
+    INPUT:
+
+    An instance of the Singular interface.
+
+    NOTE:
+
+    A term order in Singular also involves information on
+    orders for modules. This is not taken into account in
+    Sage.
+
+    EXAMPLE::
+
+        sage: singular.eval('ring r1 = (9,x),(a,b,c,d,e,f),(M((1,2,3,0)),wp(2,3),lp)')
+        'ring r1 = (9,x),(a,b,c,d,e,f),(M((1,2,3,0)),wp(2,3),lp);'
+        sage: from sage.rings.polynomial.term_order import TermOrder_from_Singular
+        sage: TermOrder_from_Singular(singular)
+        Block term order with blocks:
+        (Matrix term order with matrix
+        [1 2]
+        [3 0],
+         Weighted degree reverse lexicographic term order with weights (2, 3),
+         Lexicographic term order of length 2)
+
+    AUTHOR:
+
+    - Simon King (2011-06-06)
+
+    """
+    from sage.all import ZZ
+    singular = S
+    T = singular('ringlist(basering)[3]')
+    nblocks = ZZ(singular.eval('size(%s)'%T.name()))
+    order = []
+    for block in T:
+        blocktype = singular.eval('%s[1]'%block.name())
+        if blocktype in ['c','C','a']:
+            continue
+        elif blocktype == 'M':
+            from sage.matrix.constructor import matrix
+            coefs = list(block[2].sage())
+            n = ZZ(len(coefs)).sqrt()
+            order.append(TermOrder(matrix(n,coefs)))
+        elif blocktype[0] in ['w','W']:
+            order.append(TermOrder(inv_singular_name_mapping[blocktype], list(block[2].sage())))
+        else:
+            order.append(TermOrder(inv_singular_name_mapping[blocktype], ZZ(singular.eval("size(%s[2])"%block.name()))))
+    if not order:
+        raise ValueError, "Invalid termorder in Singular"
+    out = order.pop(0)
+    while order:
+        out = out + order.pop(0)
+    return out

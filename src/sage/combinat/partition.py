@@ -2624,6 +2624,30 @@ class Partition_class(CombinatorialObject):
             path_counts = [larger_quotients[i].dimension(smaller_quotients[i]) for i in range(k)]
             return multinomial_with_partitions(sizes,path_counts)
 
+    def plancherel_measure(self):
+        r"""
+        Returns the probability of self under the Plancherel probability measure on partitions of the same size.
+
+        EXAMPLES::
+
+            sage: Partition([]).plancherel_measure()
+            1
+            sage: Partition([1]).plancherel_measure()
+            1
+            sage: Partition([2]).plancherel_measure()
+            1/2
+            sage: [mu.plancherel_measure() for mu in Partitions(3)]
+            [1/6, 2/3, 1/6]
+            sage: Partition([5,4]).plancherel_measure()
+            7/1440
+
+        TESTS::
+
+            sage: all(sum(mu.plancherel_measure() for mu in Partitions(n))==1 for n in range(10))
+            True
+        """
+        return self.dimension()**2/factorial(self.size())
+
 
 ##################################################
 
@@ -3036,6 +3060,8 @@ class RestrictedPartitions_nsk(CombinatorialClass):
             sage: RestrictedPartitions(8,[1,3,5,7]).list()
             doctest:...: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
             See http://trac.sagemath.org/5478 for details.
+            doctest:...: DeprecationWarning: RestrictedPartitions_nsk is deprecated; use Partitions with the parts_in keyword instead.
+            See http://trac.sagemath.org/5478 for details.
             [[7, 1], [5, 3], [5, 1, 1, 1], [3, 3, 1, 1], [3, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1]]
             sage: RestrictedPartitions(8,[1,3,5,7],2).list()
             [[7, 1], [5, 3]]
@@ -3060,8 +3086,6 @@ class RestrictedPartitions_nsk(CombinatorialClass):
 
             sage: RestrictedPartitions(8,[1,3,5,7]).cardinality()
             doctest:...: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
-            See http://trac.sagemath.org/5478 for details.
-            doctest:...: DeprecationWarning: RestrictedPartitions_nsk is deprecated; use Partitions with the parts_in keyword instead.
             See http://trac.sagemath.org/5478 for details.
             6
             sage: RestrictedPartitions(8,[1,3,5,7],2).cardinality()

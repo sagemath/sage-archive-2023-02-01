@@ -6,9 +6,7 @@ print open(os.environ['SAGE_ROOT'] + '/local/bin/sage-banner').read()
 
 print "Please wait while the Sage Notebook server starts..."
 
-from sage.server.notebook.all import notebook
-
-print "..."
+from sage.all import *
 
 if len(sys.argv) > 1:
     notebook(secure=False, *sys.argv[1:])

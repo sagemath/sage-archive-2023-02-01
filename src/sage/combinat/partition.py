@@ -2500,6 +2500,130 @@ class Partition_class(CombinatorialObject):
         #Apply the umbral operator and return the result
         return misc.umbral_operation(res)
 
+    def dimension(self, smaller = [], k = 1):
+        r"""
+        This function computes the number of paths from the
+        ``smaller`` partition to the partition ``self``, where each step
+        consists of adding a `k`-ribbon while keeping a partition.
+
+        Note that a 1-ribbon is just a single cell, so this gives path
+        lengths in the Young graph when `k=1`.
+
+        Note also that the defaut case (`k=1` and ``smaller=[]``) gives the
+        dimension of characters of the symmetric groups.
+
+        INPUT:
+
+        - ``self`` - a partition
+        - ``smaller`` - a partition (default: empty)
+        - `k` - a positive integer (default: 1)
+
+        OUTPUT:
+
+        integer -- the number of such paths
+
+        EXAMPLES:
+
+        Looks at the number of ways of getting from [5,4] to the empty partition, removing one cell at a time::
+
+            sage: mu = Partition([5,4])
+            sage: mu.dimension()
+            42
+
+        Same, but removing one 3-ribbon at a time. Note that the 3-core of mu is empty::
+
+            sage: mu.dimension(k=3)
+            3
+
+        The 2-core of mu is not the empty partition::
+
+            sage: mu.dimension(k=2)
+            0
+
+        Indeed, the 2-core of mu is [1]::
+
+            sage: mu.dimension(Partition([1]),k=2)
+            2
+
+        TESTS:
+
+        Checks that the sum of squares of dimensions of characters of the symmetric group is the order of the group::
+
+            sage: all(sum(mu.dimension()^2 for mu in Partitions(i))==factorial(i) for i in range(10))
+            True
+
+        A check coming from the theory of `k`-differentiable posets::
+
+            sage: k=2; core = Partition([2,1])
+            sage: all(sum(mu.dimension(core,k=2)^2 for mu in Partitions(3+i*2) if mu.core(2) == core)==2^i*factorial(i) for i in range(10))
+            True
+
+        Checks that the dimension satisfies the obvious recursion relation::
+
+            sage: test = lambda larger, smaller: larger.dimension(smaller) == sum(mu.dimension(smaller) for mu in larger.down())
+            sage: all(test(larger,smaller) for l in xrange(1,10) for s in xrange(0,10) for larger in Partitions(l) for smaller in Partitions(s) if smaller<>larger)
+            True
+
+        ALGORITHM:
+
+        Depending on the parameters given, different simplifications
+        occur. When `k=1` and ``smaller`` is empty, this function uses
+        the hook formula. When `k=1` and ``smaller`` is not empty, it
+        uses a formula from [ORV]_.
+
+        When `k \not{=} 1`, we first check that both ``self`` and
+        ``smaller`` have the same `k`-core, then use the `k`-quotients
+        and the same algorithm on each of the `k`-quotients.
+
+        REFERENCES:
+
+        .. [ORV] Olshanski, Regev, Vershik, "Frobenius-Schur functions"
+
+        AUTHORS:
+
+        - Paul-Olivier Dehaye (2011-06-07)
+
+        """
+        larger = self
+        if smaller == []:
+            smaller = Partition([])
+        if k == 1:
+            if smaller == Partition([]):        # In this case, use the hook dimension formula
+                return factorial(larger.size())/prod(larger.hooks())
+            else:
+                if not larger.contains(smaller):    # easy case
+                    return 0
+                else:
+                    # relative dimension
+                    # Uses a formula of Olshanski, Regev, Vershik (see reference)
+                    def inv_factorial(i):
+                        if i < 0:
+                            return 0
+                        else:
+                            return 1/factorial(i)
+                    len_range = range(larger.length())
+                    from sage.matrix.constructor import matrix
+                    M = matrix(QQ,[[inv_factorial(larger.get_part(i)-smaller.get_part(j)-i+j) for i in len_range] for j in len_range])
+                    return factorial(larger.size()-smaller.size())*M.determinant()
+        else:
+            larger_core = larger.core(k)
+            smaller_core = smaller.core(k)
+            if smaller_core <> larger_core:     #   easy case
+                return 0
+            larger_quotients = larger.quotient(k)
+            smaller_quotients = smaller.quotient(k)
+
+            def multinomial_with_partitions(sizes,path_counts):
+            # count the number of ways of performing the k paths in parallel,
+            # if we know the total length alloted for each of the paths (sizes), and the number
+            # of paths for each component. A multinomial picks the ordering of the components where
+            # each step is taken.
+                return prod(path_counts)*factorial(sum(sizes))/prod(map(factorial,sizes))
+
+            sizes = [larger_quotients[i].size()-smaller_quotients[i].size() for i in range(k)]
+            path_counts = [larger_quotients[i].dimension(smaller_quotients[i]) for i in range(k)]
+            return multinomial_with_partitions(sizes,path_counts)
+
 
 ##################################################
 
@@ -2827,8 +2951,6 @@ def RestrictedPartitions(n, S, k=None):
         sage: RestrictedPartitions(5,[3,2,1])
         doctest:...: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
         See http://trac.sagemath.org/5478 for details.
-        doctest:...: DeprecationWarning: RestrictedPartitions_nsk is deprecated; use Partitions with the parts_in keyword instead.
-        See http://trac.sagemath.org/5478 for details.
         Partitions of 5 restricted to the values [1, 2, 3]
         sage: RestrictedPartitions(5,[3,2,1]).list()
         [[3, 2], [3, 1, 1], [2, 2, 1], [2, 1, 1, 1], [1, 1, 1, 1, 1]]
@@ -2938,6 +3060,8 @@ class RestrictedPartitions_nsk(CombinatorialClass):
 
             sage: RestrictedPartitions(8,[1,3,5,7]).cardinality()
             doctest:...: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
+            See http://trac.sagemath.org/5478 for details.
+            doctest:...: DeprecationWarning: RestrictedPartitions_nsk is deprecated; use Partitions with the parts_in keyword instead.
             See http://trac.sagemath.org/5478 for details.
             6
             sage: RestrictedPartitions(8,[1,3,5,7],2).cardinality()

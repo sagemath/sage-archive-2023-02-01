@@ -705,17 +705,23 @@ class Partition_class(CombinatorialObject):
             [[2, 2], [3, 1]]
             sage: [p for p in Partition([3,2,1]).down()]
             [[2, 2, 1], [3, 1, 1], [3, 2]]
+
+        TESTS: We check that #11435 is actually fixed::
+
+            sage: Partition([]).down_list() #indirect doctest
+            []
         """
         p = self
-        for i in range(len(p)-1):
+        l = len(p)
+        for i in range(l-1):
             if p[i] > p[i+1]:
                 yield Partition(p[:i] + [ p[i]-1 ] + p[i+1:])
-
-        last = p[-1]
-        if last == 1:
-            yield Partition(p[:-1])
-        else:
-            yield Partition(p[:-1] + [ p[-1] - 1 ])
+        if l >= 1:
+            last = p[-1]
+            if last == 1:
+                yield Partition(p[:-1])
+            else:
+                yield Partition(p[:-1] + [ p[-1] - 1 ])
 
 
     def down_list(self):
@@ -731,6 +737,8 @@ class Partition_class(CombinatorialObject):
             [[2, 2], [3, 1]]
             sage: Partition([3,2,1]).down_list()
             [[2, 2, 1], [3, 1, 1], [3, 2]]
+            sage: Partition([]).down_list()  #checks trac #11435
+            []
         """
         return [p for p in self.down()]
 

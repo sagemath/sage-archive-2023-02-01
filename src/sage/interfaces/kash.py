@@ -66,7 +66,6 @@ Next we obtain the result as a new KASH object.
 ::
 
     sage: a = kash('(9 - 7) * (5 + 6)'); a              # optional -- kash
-
     22
     sage: a.parent()                                    # optional -- kash
     Kash

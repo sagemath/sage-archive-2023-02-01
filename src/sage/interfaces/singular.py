@@ -19,6 +19,8 @@ AUTHORS:
 
 - Martin Albrecht (2006-05-18): added sage_poly.
 
+- Simon King (2011-06-06): Make conversion from Singular to Sage more flexible.
+
 Introduction
 ------------
 
@@ -42,6 +44,11 @@ with Sage. The interface offers three pieces of functionality:
 
 #. ``singular.eval(expr)`` - Evaluation of arbitrary
    Singular expressions, with the result returned as a string.
+
+Of course, there are polynomial rings and ideals in Sage as well
+(often based on a C-library interface to Singular). One can convert
+an object in the Singular interpreter interface to Sage by the
+method ``sage()``.
 
 
 Tutorial
@@ -87,11 +94,12 @@ as well.
 
 ::
 
-    sage: R.<x, y> = PolynomialRing(QQ,2)
-    sage: g = eval(f.sage_polystring()); g
+    sage: g = f.sage(); g
     9*x^16 - 18*x^13*y^2 - 9*x^12*y^3 + 9*x^10*y^4 - 18*x^11*y^2 + 36*x^8*y^4 + 18*x^7*y^5 - 18*x^5*y^6 + 9*x^6*y^4 - 18*x^3*y^6 - 9*x^2*y^7 + 9*y^8
-    sage: eval(F[1][2].sage_polystring())
+    sage: F[1][2].sage()
     x^6 - 2*x^3*y^2 - x^2*y^3 + y^4
+    sage: g.parent()
+    Multivariate Polynomial Ring in x, y over Rational Field
 
 This example illustrates polynomial GCD's::
 
@@ -126,6 +134,9 @@ interface documentation::
     x0*x2^3-x1^2*x2^2+x1*x2^3,
     x0*x1-x0*x2-x1*x2,
     x0^2*x2-x0*x2^2-x1*x2^2
+    sage: I2.sage()
+    Ideal (x1^2*x2^2, x0*x2^3 - x1^2*x2^2 + x1*x2^3, x0*x1 - x0*x2 - x1*x2, x0^2*x2 - x0*x2^2 - x1*x2^2) of Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
+
 
 This example illustrates moving a polynomial from one ring to
 another. It also illustrates calling a method of an object with an
@@ -158,8 +169,14 @@ The Jacobian applied twice yields the Hessian matrix of
     6*x+6*x*y^2-2*y^3,6*x^2*y-6*x*y^2,  0,
     6*x^2*y-6*x*y^2,  6*y+2*x^3-6*x^2*y,0,
     0,                0,                2
-    sage: H.det()
+    sage: H.sage()
+    [6*x + 6*x*y^2 - 2*y^3     6*x^2*y - 6*x*y^2                     0]
+    [    6*x^2*y - 6*x*y^2 6*y + 2*x^3 - 6*x^2*y                     0]
+    [                    0                     0                     2]
+    sage: H.det()   # This is a polynomial in Singular
     72*x*y+24*x^4-72*x^3*y+72*x*y^3-24*y^4-48*x^4*y^2+64*x^3*y^3-48*x^2*y^4
+    sage: H.det().sage()   # This is the corresponding polynomial in Sage
+    72*x*y + 24*x^4 - 72*x^3*y + 72*x*y^3 - 24*y^4 - 48*x^4*y^2 + 64*x^3*y^3 - 48*x^2*y^4
 
 The 1x1 and 2x2 minors::
 
@@ -1337,7 +1354,7 @@ class SingularElement(ExpectElement):
         """
         return str(self).replace('^','**')
 
-    def sage_basering(self):
+    def sage_global_ring(self):
         """
         Return the current basering in Singular as a polynomial ring or quotient ring.
 
@@ -1345,7 +1362,7 @@ class SingularElement(ExpectElement):
 
             sage: singular.eval('ring r1 = (9,x),(a,b,c,d,e,f),(M((1,2,3,0)),wp(2,3),lp)')
             'ring r1 = (9,x),(a,b,c,d,e,f),(M((1,2,3,0)),wp(2,3),lp);'
-            sage: R = singular('r1').sage_basering()
+            sage: R = singular('r1').sage_global_ring()
             sage: R
             Multivariate Polynomial Ring in a, b, c, d, e, f over Finite Field in x of size 3^2
             sage: R.term_order()
@@ -1360,7 +1377,7 @@ class SingularElement(ExpectElement):
 
             sage: singular.eval('ring r2 = (0,x),(a,b,c),dp')
             'ring r2 = (0,x),(a,b,c),dp;'
-            sage: singular('r2').sage_basering()
+            sage: singular('r2').sage_global_ring()
             Multivariate Polynomial Ring in a, b, c over Fraction Field of Univariate Polynomial Ring in x over Rational Field
 
         ::
@@ -1369,15 +1386,25 @@ class SingularElement(ExpectElement):
             'ring r3 = (3,z),(a,b,c),dp;'
             sage: singular.eval('minpoly = 1+z+z2+z3+z4')
             'minpoly = 1+z+z2+z3+z4;'
-            sage: singular('r3').sage_basering()
+            sage: singular('r3').sage_global_ring()
             Multivariate Polynomial Ring in a, b, c over Univariate Quotient Polynomial Ring in z over Finite Field of size 3 with modulus z^4 + z^3 + z^2 + z + 1
+
+        Real and complex fields in both Singular and Sage are defined with a precision.
+        The precision in Singular is given in terms of digits, but in Sage it is given
+        in terms of bits. So, the digit precision is internally converted to a reasonable
+        bit precision::
+
+            sage: singular.eval('ring r4 = (real,20),(a,b,c),dp')
+            'ring r4 = (real,20),(a,b,c),dp;'
+            sage: singular('r4').sage_global_ring()
+            Multivariate Polynomial Ring in a, b, c over Real Field with 70 bits of precision
 
         The case of complex coefficients is not fully supported, yet, since
         the generator of a complex field in Sage is always called "I"::
 
-            sage: singular.eval('ring r4 = (complex,15,j),(a,b,c),dp')
-            'ring r4 = (complex,15,j),(a,b,c),dp;'
-            sage: R = singular('r4').sage_basering(); R
+            sage: singular.eval('ring r5 = (complex,15,j),(a,b,c),dp')
+            'ring r5 = (complex,15,j),(a,b,c),dp;'
+            sage: R = singular('r5').sage_global_ring(); R
             Multivariate Polynomial Ring in a, b, c over Complex Field with 54 bits of precision
             sage: R.base_ring()('j')
             Traceback (most recent call last):
@@ -1388,10 +1415,10 @@ class SingularElement(ExpectElement):
 
         In our last example, the base ring is a quotient ring::
 
-            sage: singular.eval('ring r5 = (9,a), (x,y,z),lp')
-            'ring r5 = (9,a), (x,y,z),lp;'
+            sage: singular.eval('ring r6 = (9,a), (x,y,z),lp')
+            'ring r6 = (9,a), (x,y,z),lp;'
             sage: Q = singular('std(ideal(x^2,x+y^2+z^3))', type='qring')
-            sage: Q.sage_basering()
+            sage: Q.sage_global_ring()
             Quotient of Multivariate Polynomial Ring in x, y, z over Finite Field in a of size 3^2 by the ideal (y^4 - y^2*z^3 + z^6, x + y^2 + z^3)
 
         AUTHOR:
@@ -1411,12 +1438,14 @@ class SingularElement(ExpectElement):
             from sage.all import QQ
             br = QQ
         elif charstr[0]=='real':
-            from sage.all import RR
-            br = RR
+            from sage.all import RealField, ceil, log
+            prec = singular.eval('ringlist(basering)[1][2][1]')
+            br = RealField(ceil((ZZ(prec)+1)/log(2,10)))
             is_extension = False
         elif charstr[0]=='complex':
             from sage.all import ComplexField, ceil, log
-            prec, I = charstr[1].split(',')
+            prec = singular.eval('ringlist(basering)[1][2][1]')
+            I = singular.eval('ringlist(basering)[1][3]')
             br = ComplexField(ceil((ZZ(prec)+1)/log(2,10)))
             is_extension = False
         else:
@@ -1451,11 +1480,11 @@ class SingularElement(ExpectElement):
 
         # Now, we form the polynomial ring over BR with the given variables,
         # using Singular's term order
-        from sage.rings.polynomial.term_order import TermOrder_from_Singular
+        from sage.rings.polynomial.term_order import termorder_from_singular
         from sage.all import PolynomialRing
         if singular.eval('typeof(basering)')=='ring':
-            return PolynomialRing(BR, names=singular.eval('varstr(basering)'), order=TermOrder_from_Singular(singular))
-        P = PolynomialRing(BR, names=singular.eval('varstr(basering)'), order=TermOrder_from_Singular(singular))
+            return PolynomialRing(BR, names=singular.eval('varstr(basering)'), order=termorder_from_singular(singular))
+        P = PolynomialRing(BR, names=singular.eval('varstr(basering)'), order=termorder_from_singular(singular))
         return P.quotient(singular('ringlist(basering)[4]')._sage_(P), names=singular.eval('varstr(basering)'))
 
     def sage_poly(self, R=None, kcache=None):
@@ -1467,10 +1496,10 @@ class SingularElement(ExpectElement):
 
 
         -  ``R`` - (default: None); an optional polynomial ring.
-           If it is provided, then you *must* take care it
+           If it is provided, then you have to make sure that it
            matches the current singular ring as, e.g., returned by
            singular.current_ring(). By default, the output of
-           :meth:`sage_basering` is used.
+           :meth:`sage_global_ring` is used.
 
         -  ``kcache`` - (default: None); an optional dictionary
            for faster finite field lookups, this is mainly useful for finite
@@ -1539,7 +1568,7 @@ class SingularElement(ExpectElement):
         ring_is_fine = False
         if R is None:
             ring_is_fine = True
-            R = self.sage_basering()
+            R = self.sage_global_ring()
 
         sage_repr = {}
         k = R.base_ring()
@@ -1651,7 +1680,7 @@ class SingularElement(ExpectElement):
 
         -  ``R`` - (default: None); an optional ring, over which
            the resulting matrix is going to be defined.
-           By default, the output of :meth:`sage_basering` is used.
+           By default, the output of :meth:`sage_global_ring` is used.
 
         - ``sparse`` - (default: True); determines whether the
           resulting matrix is sparse or not.
@@ -1671,7 +1700,7 @@ class SingularElement(ExpectElement):
         nrows, ncols = int(self.nrows()),int(self.ncols())
 
         if R is None:
-            R = self.sage_basering()
+            R = self.sage_global_ring()
             A = Matrix(R, nrows, ncols, sparse=sparse)
             #this is slow
             for x in range(nrows):
@@ -1778,12 +1807,12 @@ class SingularElement(ExpectElement):
         elif typ == 'string':
             return repr(self)
         elif typ == 'ideal':
-            R = R or self.sage_basering()
+            R = R or self.sage_global_ring()
             return R.ideal([p.sage_poly(R) for p in self])
         elif typ in ['ring', 'qring']:
             br = singular('basering')
             self.set_ring()
-            R = self.sage_basering()
+            R = self.sage_global_ring()
             br.set_ring()
             return R
         raise NotImplementedError, "Coercion of this datatype not implemented yet"

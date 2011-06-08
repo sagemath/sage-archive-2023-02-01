@@ -1859,7 +1859,7 @@ class TermOrder(SageObject):
         """
         return self._weights is not None
 
-def TermOrder_from_Singular(S):
+def termorder_from_singular(S):
     """
     Return the Sage term order of the basering in the given Singular interface
 
@@ -1877,8 +1877,8 @@ def TermOrder_from_Singular(S):
 
         sage: singular.eval('ring r1 = (9,x),(a,b,c,d,e,f),(M((1,2,3,0)),wp(2,3),lp)')
         'ring r1 = (9,x),(a,b,c,d,e,f),(M((1,2,3,0)),wp(2,3),lp);'
-        sage: from sage.rings.polynomial.term_order import TermOrder_from_Singular
-        sage: TermOrder_from_Singular(singular)
+        sage: from sage.rings.polynomial.term_order import termorder_from_singular
+        sage: termorder_from_singular(singular)
         Block term order with blocks:
         (Matrix term order with matrix
         [1 2]
@@ -1910,7 +1910,7 @@ def TermOrder_from_Singular(S):
         else:
             order.append(TermOrder(inv_singular_name_mapping[blocktype], ZZ(singular.eval("size(%s[2])"%block.name()))))
     if not order:
-        raise ValueError, "Invalid termorder in Singular"
+        raise ValueError, "Invalid term order in Singular"
     out = order.pop(0)
     while order:
         out = out + order.pop(0)

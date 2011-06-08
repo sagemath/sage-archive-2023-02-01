@@ -39,7 +39,9 @@ build_polybori()
 install_polybori()
 {
     cd ${PBDIR}
-    ${SCONS} devel-install install PREFIX=${SAGE_LOCAL} INSTALLDIR=${SAGE_LOCAL}/share/polybori
+    ${SCONS} devel-install install PREFIX=${SAGE_LOCAL} \
+        INSTALLDIR=${SAGE_LOCAL}/share/polybori \
+        CONFFILE=${SAGE_LOCAL}/share/polybori/flags.conf
     if [ $? -ne 0 ]; then
         echo "Error installing PolyBoRi."
         exit 1

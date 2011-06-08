@@ -1,56 +1,6 @@
---- src/polybori-0.7/SConstruct	Mi. Feb 23 14:59:49 2011
-+++ patches/SConstruct	Mi. Mär 30 23:35:59 2011
-@@ -154,19 +154,12 @@
- opts.Add('CXXFLAGS', "C++ compiler flags", "-std=c++98 -ftemplate-depth-100",
-          converter = Split)
- 
--for var in Split("""CCCOM CXXCOM SHCCCOM SHCXXCOM SHLINKCOM LINKCOM LINK SHLINK
--SHLIBPREFIX LIBPREFIX SHLIBSUFFIX LIBSUFFIX"""):
--    if defaultenv.has_key(var):
--        opts.Add(var, "inherited from SCons", defaultenv[var])
--    else:
--        print "Variable", var, "not in default environment!"
--
--for flag in Split("""SHCCFLAGS SHCFLAGS SHCXXFLAGS"""):
--    if defaultenv.has_key(flag):
--        opts.Add(flag, "flags inherited from SCons",
--             defaultenv[flag], converter = Split)
--    else:
--        print "Flags", flag, "not in default environment!"        
-+#The following linker flags causes the build to fail on OSX 10.4, but works on 10.5
-+# opts.Add('LINKFLAGS', "Linker flags", ['-s'], converter = Split)
-+# Instead we add "-m64" in case we build on multiarch in  64 bit mode (OSX now, Solaris later)
-+if os.environ['SAGE64'] == "yes":
-+         opts.Add('LINKFLAGS', "Linker flags", ['-m64'], converter = Split)
-+#End modifications
-     
- opts.Add('LINKFLAGS', "Linker flags", defaultenv['LINKFLAGS'])# + ['-s'])
- opts.Add('LIBS', 'custom libraries needed for build', [], converter = Split)
-@@ -246,7 +239,23 @@
-             if arg in tools:
-                 tools.remove(arg)
-                 tools +=  [ 'gcc', 'g++', 'ar']
-+        defaultenv = Environment(tools=tools)
- 
-+for var in Split("""CCCOM CXXCOM SHCCCOM SHCXXCOM SHLINKCOM LINKCOM LINK SHLINK
-+SHLIBPREFIX LIBPREFIX SHLIBSUFFIX LIBSUFFIX"""):
-+    if defaultenv.has_key(var):
-+        opts.Add(var, "inherited from SCons", defaultenv[var])
-+    else:
-+        print "Variable", var, "not in default environment!"
-+
-+for flag in Split("""SHCCFLAGS SHCFLAGS SHCXXFLAGS"""):
-+    if defaultenv.has_key(flag):
-+        opts.Add(flag, "flags inherited from SCons",
-+             defaultenv[flag], converter = Split)
-+    else:
-+        print "Flags", flag, "not in default environment!"
-+
-+
- if not GetOption('clean'):
-     tools +=  ["disttar", "doxygen"]
- 
-@@ -351,7 +360,7 @@
+--- ../src/polybori-0.7/SConstruct	2011-04-27 13:00:31.000000000 +0200
++++ SConstruct	2011-04-27 14:19:44.000000000 +0200
+@@ -372,7 +372,7 @@
  if not env.GetOption('clean'):
      conf = Configure(env)
      if conf.CheckCHeader("gd.h") and conf.CheckLib("gd"):
@@ -59,7 +9,7 @@
          env.Append(CPPDEFINES=["HAVE_GD"])
  
      if env['FORCE_HASH_MAP']:
-@@ -415,7 +424,7 @@
+@@ -436,7 +436,7 @@
                  print "Tutorial will not be installed"
      external_m4ri = conf.CheckLib('m4ri')
      if conf.CheckCHeader("gd.h") and conf.CheckLib("gd"):
@@ -68,16 +18,7 @@
          env.Append(CPPDEFINES=["HAVE_GD"])
      if external_m4ri:
         env['LIBS'] += ['m4ri']
-@@ -423,7 +432,7 @@
-        env['CPPPATH'] += ['M4RI']
- 
-        # generate M4RI/m4ri, to allow canonical #include <m4ri/m4ri.h>
--       if not path.exists(m4ri_inc):
-+       if not (external_m4ri) and not (path.exists(m4ri_inc)):
-            print "Symlinking to", m4ri_inc, "..."
-            os.symlink('.', m4ri_inc)
- 
-@@ -484,8 +493,7 @@
+@@ -505,8 +505,7 @@
  
  env.Append(LIBPATH=[CuddPath()])
  
@@ -87,31 +28,18 @@
  
  cudd_headers = [ CuddPath(fname) for fname in ['obj/cuddObj.hh', 'util/util.h',
                                                 'cudd/cuddInt.h'] ] 
-@@ -544,10 +552,12 @@
+@@ -565,9 +564,11 @@
  slib = env.SharedLibrary
  if env['SHLIBVERSIONING']:
      slib = VersionatedSharedLibrary
 -#if env['PLATFORM']=="darwin":
 -#    slib=env.LoadableModule
+-
 +# since "slib = VersionatedSharedLibrary" is broken on OSX 10.4 we use the 
 +# following. We are currently not using shared libraries anyway due to
 +# bugs in the deallocation of the various PolyBoRi libraries
 +if env['PLATFORM']=="darwin":
 +    slib=env.LoadableModule
  
--
  libCuddShared = slib(CuddPath(cudd_name), list(shared_resources))
  
- 
-@@ -1314,6 +1324,11 @@
-     env.Alias('install', ipboribin)
-     env.AlwaysBuild(guibin)   
-     env.Alias('install', guibin)
-+
-+    # we dump the flags for reuse by Sage
-+    if not path.exists(InstPath()):
-+        Execute(Mkdir(InstPath())) 
-+    opts.Save(InstPath("flags.conf"), env)
-     
- env.Alias('prepare-devel', devellibs + readabledevellibs)
- env.Alias('prepare-install', [pyroot, DocPath()])

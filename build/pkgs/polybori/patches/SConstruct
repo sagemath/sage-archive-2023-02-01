@@ -9,8 +9,13 @@ opts = Variables('custom.py')
 
 # Some hard-coded settings
 pboriname = 'PolyBoRi'
-pboriversion = "0.7"
-pborirelease = "0"
+try:
+    versionnumber = open('versionnumber', 'r').read().rstrip()
+    (pboriversion, pborirelease) = (versionnumber.split('-') + [''])[:2]
+except:
+    pboriversion = "0.0"
+    pborirelease = "0"
+
 
 libraryversion = "0.0.0"
 debname = "polybori-" + pboriversion
@@ -28,6 +33,16 @@ m4ri=["grayflex.c", "permutation.c",
 m4ri=[path.join("M4RI", m) for m in m4ri]
 
 m4ri_inc = 'M4RI/m4ri'
+
+
+def preprocessed_substitute(target, source, env):
+    def preprocess_at(page):
+        import re
+        p = re.compile('@([^@\n]*) @', re.VERBOSE)
+        return p.sub(r'$\1', page)
+
+    substitute_install(target, source, env, preprocess=preprocess_at)
+
 
 # Fix some paths and names
 class PathJoiner(object):
@@ -154,14 +169,7 @@ opts.Add('CFLAGS', "C compiler flags", "-std=c99",
 opts.Add('CXXFLAGS', "C++ compiler flags", "-std=c++98 -ftemplate-depth-100",
          converter = Split)
 
-#The following linker flags causes the build to fail on OSX 10.4, but works on 10.5
-# opts.Add('LINKFLAGS', "Linker flags", ['-s'], converter = Split)
-# Instead we add "-m64" in case we build on multiarch in  64 bit mode (OSX now, Solaris later)
-if os.environ['SAGE64'] == "yes":
-         opts.Add('LINKFLAGS', "Linker flags", ['-m64'], converter = Split)
-#End modifications
-
-opts.Add('LINKFLAGS', "Linker flags", defaultenv['LINKFLAGS'])# + ['-s'])
+opts.Add('LINKFLAGS', "Linker flags", defaultenv['LINKFLAGS'] + ['-s'])
 opts.Add('LIBS', 'custom libraries needed for build', [], converter = Split)
 
 opts.Add('PREFIX', 'installation prefix directory', '/usr/local')
@@ -238,7 +246,7 @@ if defaultenv['PLATFORM'] == "sunos":  # forcing gcc, keeping linker
         for arg in ['default', 'suncc', 'sunc++', 'sunar']:
             if arg in tools:
                 tools.remove(arg)
-                tools +=  [ 'gcc', 'g++', 'ar']
+        tools +=  [ 'gcc', 'g++', 'ar']
         defaultenv = Environment(tools=tools)
 
 for var in Split("""CCCOM CXXCOM SHCCCOM SHCXXCOM SHLINKCOM LINKCOM LINK SHLINK
@@ -256,6 +264,9 @@ for flag in Split("""SHCCFLAGS SHCFLAGS SHCXXFLAGS"""):
         print "Flags", flag, "not in default environment!"
 
 
+opts.Add('CONFFILE', "Dump settings to file, if given", '')
+
+
 if not GetOption('clean'):
     tools +=  ["disttar", "doxygen"]
 
@@ -267,6 +278,7 @@ for key in ['PATH', 'HOME', 'LD_LIBRARY_PATH'] :
         getenv[key] = os.environ[key]
     except KeyError:
         pass
+
 
 env = Environment(ENV = getenv, options = opts, tools = tools, toolpath = '.')
 
@@ -432,7 +444,7 @@ if not env.GetOption('clean'):
        env['CPPPATH'] += ['M4RI']
 
        # generate M4RI/m4ri, to allow canonical #include <m4ri/m4ri.h>
-       if not (external_m4ri) and not (path.exists(m4ri_inc)):
+       if not path.exists(m4ri_inc):
            print "Symlinking to", m4ri_inc, "..."
            os.symlink('.', m4ri_inc)
 
@@ -593,9 +605,11 @@ env.Clean([libpb] + pb_shared, cache_opts)
 
 gb_src=Split("groebner.cc literal_factorization.cc randomset.cc pairs.cc groebner_alg.cc fglm.cc polynomial_properties.cc lexbuckets.cc dlex4data.cc dp_asc4data.cc lp4data.cc nf.cc interpolate.cc")
 gb_src = [GBPath('src', source) for source in gb_src]
+
 if not(external_m4ri):
    gb_src += m4ri
-gb=env.StaticLibrary(GBPath('groebner'), gb_src)#+[libpb])
+
+gb=env.StaticLibrary(GBPath('groebner'), gb_src)
 
 #print "gb:", gb, dir(gb)
 #sometimes l seems to be boxed by a list
@@ -814,14 +828,15 @@ if HAVE_SINGULAR_EXTENSION:
 # Source distribution archive generation
 env.Append(DISTTAR_EXCLUDEEXTS = Split(""".o .os .so .a .dll .cache .pyc
            .cvsignore .dblite .log .sconsign .depend .out .graphViz_temp
-           .kprof.html .rpm .spec .so.0 .so.0.0.0 .0"""),
+           .kprof.html .rpm .spec .so.0 .so.0.0.0 .0 .gcda .orig .rej"""),
            DISTTAR_EXCLUDEDIRS = Split("""CVS .svn .sconf_temp SOURCES BUILD
            auxiliary"""),
            DISTTAR_EXCLUDEPATTERN = Split(""".#* #*# *~ profiled cacheopts.h
            coding.py """))
 
 if distribute or rpm_generation or deb_generation:
-    allsrcs = Split("SConstruct README LICENSE ChangeLog disttar.py doxygen.py")
+    allsrcs = Split("""SConstruct README LICENSE ChangeLog versionnumber
+disttar.py doxygen.py""")
     for dirname in Split("""groebner ipbori M4RI polybori
     PyPolyBoRi pyroot Singular pkgs gui"""):
         allsrcs.append(env.Dir(dirname))
@@ -847,8 +862,8 @@ if distribute or rpm_generation or deb_generation:
     # doc is not distributed completely
     allsrcs += [ DocPath(dsrc) for dsrc in Split("""doxygen.conf index.html.in
     tutorial/tutorial.tex tutorial/tutorial_content.tex tutorial/PolyGui.png
-    tutorial/PolyGui-Options.png python/genpythondoc.py
-    man/ipbori.1 """) ]
+    tutorial/PolyGui-Options.png tutorial/versionnumber.in python/genpythondoc.py
+    man/ipbori.1 man/PolyGUI.1 """) ]
     allsrcs.append(env.Dir(DocPath('images')))
 
 
@@ -1096,7 +1111,8 @@ def generate_rpmbuilder(rpmopts, emitt = rpmemitter):
                    Dir(RPMPath()).abspath +  "' $SOURCE", emitter = emitt)
 
 srpmbld  = generate_rpmbuilder('-bs', srpmemitter)
-rpmbld  = generate_rpmbuilder('-bb', rpmemitter)
+rpmbld  = generate_rpmbuilder('--define="jobs ' + str(GetOption('num_jobs')) +
+                              '" -bb', rpmemitter)
 
 # debbuilder is very experimental, we ignore dependencies currently (-d)
 debbld = Builder(action = "dpkg-buildpackage -d -rfakeroot")
@@ -1105,7 +1121,12 @@ env.Append(BUILDERS={'SpecBuilder': specbld,
                      'RPMBuilder': rpmbld, 'SRPMBuilder': srpmbld,
                      'DebBuilder': debbld})
 
-tutorial_srcs = [DocPath('tutorial/tutorial.tex')] + glob(DocPath('tutorial/*.tex'))
+
+version4tex = env.Command([DocPath('tutorial/versionnumber')],
+                          DocPath('tutorial/versionnumber.in'),
+                          preprocessed_substitute)
+
+tutorial_srcs = [DocPath('tutorial/tutorial.tex')] + version4tex + glob(DocPath('tutorial/*.tex'))
 if have_l2h:
     tutorial = env.L2H(env.Dir(DocPath('tutorial/tutorial')), tutorial_srcs)
 else:
@@ -1124,7 +1145,7 @@ env.DocuMaster(DocPath('index.html'), [DocPath('index.html.in')] + [
     env.Dir(DocPath(srcs)) for srcs in Split(documastersubdirs) ] + [
     env.Dir('Cudd/cudd/doc')])
 
-pbrpmname = pboriname + '-' + pboriversion + "-" + pborirelease
+pbrpmname = pboriname + '-' + pboriversion + "." + pborirelease
 
 if rpm_generation:
     # Some file servers use invalid group-ids, so change to current gid
@@ -1132,12 +1153,12 @@ if rpm_generation:
         os.chown(target[0].path, -1, os.getgid())
 
     rpmsrcs = FinalizeNonExecs(env.DistTar(RPMPath('SOURCES',
-                                                   "PolyBoRi-" + pboriversion),
-                                           allsrcs))
+                                                   pbrpmname),
+                                           allsrcs, DISTTAR_FORMAT = 'bz2'))
     env.AddPostAction(rpmsrcs, correctgid)
 
-    pbspec = FinalizeNonExecs(env.SpecBuilder(SpecsPath(pbrpmname +'.spec'),
-                                              SpecsPath('PolyBoRi.spec.in')))
+    pbspec = FinalizeNonExecs(env.SpecBuilder(SpecsPath(pboriname +'.spec'),
+                                              RPMPath('PolyBoRi.spec.in')))
 
 
     env.AddPostAction(pbspec, correctgid)
@@ -1170,13 +1191,6 @@ if prepare_deb or generate_deb:
                                                   DebPath('control.in')))
     env['cdbs'] = 'cdbs (>= 0.4.23-1.1), debhelper (>= 5), quilt, patchutils (>= 0.2.25), cdbs (>= 0.4.27-1)'
 
-    def preprocessed_substitute(target, source, env):
-        def preprocess_at(page):
-            import re
-            p = re.compile('@([^@\n]*) @', re.VERBOSE)
-            return p.sub(r'$\1', page)
-
-        substitute_install(target, source, env, preprocess=preprocess_at)
 
     debsrc += FinalizeNonExecs(env.Command([DebInstPath('control')],
                                            DebPath('control.in'),
@@ -1240,13 +1254,15 @@ if 'install' in COMMAND_LINE_TARGETS:
                       InstManPath()]:
         env.Alias('install', inst_path)
     FinalizeNonExecs(env.Install(InstManPath('man1'), DocPath('man/ipbori.1')))
+    FinalizeNonExecs(env.Install(InstManPath('man1'), DocPath('man/PolyGUI.1')))
 
     # Executables and shared libraries to be installed
-    pyfiles = []
+    so_pyfiles = []
     for instfile in dynamic_modules :
         installedfile = InstPyPath(relpath(pyroot, instfile.path))
-        pyfiles += FinalizeExecs(env.InstallAs(installedfile, instfile))
+        so_pyfiles += FinalizeExecs(env.InstallAs(installedfile, instfile))
 
+    pyfiles = []
     env['GUIPYPREFIX'] = relpath(expand_repeated(InstPath(GUIPath()), env),
                                  env['PYINSTALLPREFIX'])
 
@@ -1303,10 +1319,15 @@ if 'install' in COMMAND_LINE_TARGETS:
         pyfiles += FinalizeNonExecs(env.InstallAs(targetfile, instfile))
 
     if HAVE_PYTHON_EXTENSION or extern_python_ext:
-        FinalizeNonExecs(GeneratePyc(pyfiles))
+        cmdline = """$PYTHON -c "import compileall; compileall.compile_dir('"""
+        cmdline += InstPyPath() + """', ddir = ''); """
+        cmdline += """compileall.compile_dir('"""+ InstPath(GUIPath())
+        cmdline += """', ddir='')" """
+        FinalizeNonExecs(env.Command([file.path + 'c' for file in pyfiles],
+                                     pyfiles, cmdline))
 
     env['PYINSTALLPREFIX'] = expand_repeated(env['PYINSTALLPREFIX'], env)
-    env['RELATIVEPYPREFIX'] = relpath(expand_repeated(IPBPath(),env),
+    env['RELATIVEPYPREFIX'] = relpath(expand_repeated(InstPath(IPBPath()),env),
                                       env['PYINSTALLPREFIX'])
 
     for instfile in [IPBPath('ipythonrc-polybori') ] :
@@ -1325,10 +1346,20 @@ if 'install' in COMMAND_LINE_TARGETS:
     env.AlwaysBuild(guibin)
     env.Alias('install', guibin)
 
-    # we dump the flags for reuse by Sage
-    if not path.exists(InstPath()):
-        Execute(Mkdir(InstPath()))
-    opts.Save(InstPath("flags.conf"), env)
+    # we dump the flags for reuse by other developers
+    def build_conffile(target, source, env):
+        opts.Save(target[0].path, env)
+        return None
+
+    conffilebld = Builder(action = build_conffile)
+    env.Append(BUILDERS = {'ConfFile': Builder(action = build_conffile)})
+
+    conffilename = env['CONFFILE']
+    if conffilename:
+        conffile = env.ConfFile(target = conffilename, source = 'SConstruct')
+        env.AlwaysBuild(conffile)
+        env.Alias('install', conffile)
+
 
 env.Alias('prepare-devel', devellibs + readabledevellibs)
 env.Alias('prepare-install', [pyroot, DocPath()])

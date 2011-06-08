@@ -1757,7 +1757,7 @@ cdef class Parent(category_object.CategoryObject):
             sage: S3.register_embedding(phi)
             sage: S3.coerce_embedding()
             Generic morphism:
-              From: AlternatingGroup(3)
+              From: Alternating group of order 3!/2 as a permutation group
               To:   Special Linear Group of degree 3 over Rational Field
             sage: S3.coerce_embedding()(p)
             [0 0 1]

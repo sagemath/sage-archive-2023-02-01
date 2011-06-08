@@ -115,7 +115,7 @@ cdef class Map(Element):
             sage: Map(QQ['x'], SymmetricGroup(6))
             Generic map:
               From: Univariate Polynomial Ring in x over Rational Field
-              To:   SymmetricGroup(6)
+              To:   Symmetric group of order 6! as a permutation group
         """
         if codomain is not None:
             if PY_TYPE_CHECK(parent, type):

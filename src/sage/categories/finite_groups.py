@@ -82,7 +82,7 @@ class FiniteGroups(Category):
 
                 sage: A = AlternatingGroup(4)
                 sage: A.semigroup_generators()
-                Family ((1,2,3), (2,3,4))
+                Family ((2,3,4), (1,2,3))
             """
             return self.group_generators()
 

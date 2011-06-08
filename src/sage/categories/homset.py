@@ -62,7 +62,7 @@ def Hom(X, Y, category=None):
         Category of vector spaces over Rational Field
         sage: G = AlternatingGroup(3)
         sage: Hom(G, G)
-        Set of Morphisms from AlternatingGroup(3) to AlternatingGroup(3) in Category of finite permutation groups
+        Set of Morphisms from Alternating group of order 3!/2 as a permutation group to Alternating group of order 3!/2 as a permutation group in Category of finite permutation groups
         sage: Hom(ZZ, QQ, Sets())
         Set of Morphisms from Integer Ring to Rational Field in Category of sets
 
@@ -195,7 +195,7 @@ def End(X, category=None):
 
         sage: G = AlternatingGroup(3)
         sage: S = End(G); S
-        Set of Morphisms from AlternatingGroup(3) to AlternatingGroup(3) in Category of finite permutation groups
+        Set of Morphisms from Alternating group of order 3!/2 as a permutation group to Alternating group of order 3!/2 as a permutation group in Category of finite permutation groups
         sage: from sage.categories.homset import is_Endset
         sage: is_Endset(S)
         True
@@ -360,26 +360,26 @@ class Homset(Set_generic):
             sage: phi = Hom(SymmetricGroup(5), SymmetricGroup(6)).natural_map()
             sage: phi
             Coercion morphism:
-              From: SymmetricGroup(5)
-              To:   SymmetricGroup(6)
+              From: Symmetric group of order 5! as a permutation group
+              To:   Symmetric group of order 6! as a permutation group
             sage: H(phi)
             Composite map:
-              From: SymmetricGroup(4)
-              To:   SymmetricGroup(7)
+              From: Symmetric group of order 4! as a permutation group
+              To:   Symmetric group of order 7! as a permutation group
               Defn:   Composite map:
-                      From: SymmetricGroup(4)
-                      To:   SymmetricGroup(6)
+                      From: Symmetric group of order 4! as a permutation group
+                      To:   Symmetric group of order 6! as a permutation group
                       Defn:   Call morphism:
-                              From: SymmetricGroup(4)
-                              To:   SymmetricGroup(5)
+                              From: Symmetric group of order 4! as a permutation group
+                              To:   Symmetric group of order 5! as a permutation group
                             then
                               Coercion morphism:
-                              From: SymmetricGroup(5)
-                              To:   SymmetricGroup(6)
+                              From: Symmetric group of order 5! as a permutation group
+                              To:   Symmetric group of order 6! as a permutation group
                     then
                       Call morphism:
-                      From: SymmetricGroup(6)
-                      To:   SymmetricGroup(7)
+                      From: Symmetric group of order 6! as a permutation group
+                      To:   Symmetric group of order 7! as a permutation group
 
             sage: H = Hom(ZZ, ZZ, Sets())
             sage: f = H( lambda x: x + 1 )

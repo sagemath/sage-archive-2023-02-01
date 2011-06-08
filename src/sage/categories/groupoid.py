@@ -50,7 +50,7 @@ class Groupoid(Category):
 
             sage: S8 = SymmetricGroup(8)
             sage: Groupoid(S8)
-            Groupoid with underlying set SymmetricGroup(8)
+            Groupoid with underlying set Symmetric group of order 8! as a permutation group
         """
         return "Groupoid with underlying set %s"%self.__G
 
@@ -76,7 +76,7 @@ class Groupoid(Category):
         EXAMPLES::
 
             sage: Groupoid.an_instance() # indirect doctest
-            Groupoid with underlying set SymmetricGroup(8)
+            Groupoid with underlying set Symmetric group of order 8! as a permutation group
         """
         from sage.groups.perm_gps.permgroup_named import SymmetricGroup
         G = SymmetricGroup(8)

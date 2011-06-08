@@ -25,7 +25,7 @@ class GSets(Category):
 
         sage: S = SymmetricGroup(3)
         sage: GSets(S)
-        Category of G-sets for SymmetricGroup(3)
+        Category of G-sets for Symmetric group of order 3! as a permutation group
 
     TODO: should this derive from Category_over_base?
     """
@@ -44,7 +44,7 @@ class GSets(Category):
         EXAMPLES::
 
             sage: GSets(SymmetricGroup(8)) # indirect doctests
-            Category of G-sets for SymmetricGroup(8)
+            Category of G-sets for Symmetric group of order 8! as a permutation group
         """
         return "G-sets for %s"%self.__G
 
@@ -70,7 +70,7 @@ class GSets(Category):
         EXAMPLES::
 
             sage: GSets.an_instance() # indirect doctest
-            Category of G-sets for SymmetricGroup(8)
+            Category of G-sets for Symmetric group of order 8! as a permutation group
         """
         from sage.groups.perm_gps.permgroup_named import SymmetricGroup
         G = SymmetricGroup(8)

@@ -181,6 +181,18 @@ class FiniteEnumeratedSet(UniqueRepresentation, Parent):
         """
         return Integer(len(self._elements))
 
+    def index(self, x):
+        """
+        Returns the index of ``x`` in this finite enumerated set.
+
+        EXAMPLES::
+
+            sage: S = FiniteEnumeratedSet(['a','b','c'])
+            sage: S.index('b')
+            1
+        """
+        return self._elements.index(x)
+
     def _element_constructor_(self, el):
         """
         TESTS::

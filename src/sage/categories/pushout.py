@@ -2738,16 +2738,17 @@ class PermutationGroupFunctor(ConstructionFunctor):
 
     rank = 10
 
-    def __init__(self, gens):
+    def __init__(self, gens, domain):
         """
         EXAMPLES::
 
             sage: from sage.categories.pushout import PermutationGroupFunctor
-            sage: PF = PermutationGroupFunctor([PermutationGroupElement([(1,2)])]); PF
+            sage: PF = PermutationGroupFunctor([PermutationGroupElement([(1,2)])], [1,2]); PF
             PermutationGroupFunctor[(1,2)]
         """
         Functor.__init__(self, Groups(), Groups())
         self._gens = gens
+        self._domain = domain
 
     def __repr__(self):
         """
@@ -2770,7 +2771,8 @@ class PermutationGroupFunctor(ConstructionFunctor):
             Permutation Group with generators [(1,2)]
         """
         from sage.groups.perm_gps.permgroup import PermutationGroup
-        return PermutationGroup([g for g in (R.gens() + self.gens()) if not g.is_one()])
+        return PermutationGroup([g for g in (R.gens() + self.gens()) if not g.is_one()],
+                                domain=self._domain)
 
     def gens(self):
         """
@@ -2798,7 +2800,12 @@ class PermutationGroupFunctor(ConstructionFunctor):
         """
         if self.__class__ != other.__class__:
             return None
-        return PermutationGroupFunctor(self.gens() + other.gens())
+        from sage.sets.all import FiniteEnumeratedSet
+
+        new_domain = set(self._domain).union(set(other._domain))
+        new_domain = FiniteEnumeratedSet(sorted(new_domain))
+        return PermutationGroupFunctor(self.gens() + other.gens(),
+                                       new_domain)
 
 class BlackBoxConstructionFunctor(ConstructionFunctor):
     """

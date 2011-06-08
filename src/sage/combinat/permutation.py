@@ -561,6 +561,8 @@ class Permutation_class(CombinatorialObject):
                 cycles.append(tuple(cycle))
         return cycles
 
+    cycle_tuples = to_cycles
+
     def _to_cycles_orig(self, singletons=True):
         r"""
         Returns the permutation p as a list of disjoint cycles.
@@ -3422,6 +3424,8 @@ def from_cycles(n, cycles):
 
     p = range(1,n+1)
     for cycle in cycles:
+        if not cycle:
+            continue
         first = cycle[0]
         for i in range(len(cycle)-1):
             p[cycle[i]-1] = cycle[i+1]

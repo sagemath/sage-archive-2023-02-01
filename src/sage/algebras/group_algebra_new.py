@@ -50,7 +50,7 @@ map from `\ZZ[D_2]` to `\QQ[S_4]`::
     sage: a * b  # a is automatically converted to an element of B
     7*() + 5*(3,4) + 3*(2,3) + 9*(2,3,4) + 3*(1,2) + 6*(1,2)(3,4) + 3*(1,2,3) + (1,2,3,4) + 9*(1,3,2) + 3*(1,3,4)
     sage: parent(a * b)
-    Group algebra of group "SymmetricGroup(4)" over base ring Rational Field
+    Group algebra of group "Symmetric group of order 4! as a permutation group" over base ring Rational Field
 
     sage: G = GL(3, GF(7))
     sage: ZG = GroupAlgebra(G)

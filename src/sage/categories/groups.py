@@ -68,7 +68,7 @@ class Groups(Category):
 
                 sage: A = AlternatingGroup(4)
                 sage: A.group_generators()
-                Family ((1,2,3), (2,3,4))
+                Family ((2,3,4), (1,2,3))
             """
             return Family(self.gens())
 

@@ -828,7 +828,7 @@ class AbelianGroup_class(group.AbelianGroup):
             sage: G = AbelianGroup(2,[2,3]); G
             Multiplicative Abelian Group isomorphic to C2 x C3
             sage: G.permutation_group()
-            Permutation Group with generators [(1,4)(2,5)(3,6), (1,2,3)(4,5,6)]
+            Permutation Group with generators [(1,2,3)(4,5,6), (1,4)(2,5)(3,6)]
         """
         from sage.groups.perm_gps.permgroup import PermutationGroup
         s = 'Image(IsomorphismPermGroup(%s))'%self._gap_init_()

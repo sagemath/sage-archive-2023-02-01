@@ -368,7 +368,7 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
         if d.has_key('_element_constructor'):
             return parent.Parent.__setstate__(self, d)
         try:
-            self.__dict__ = d
+            self.__dict__.update(d)
             self._generator_orders = d['_generator_orders']
         except (AttributeError,KeyError):
             pass

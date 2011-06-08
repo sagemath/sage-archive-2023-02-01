@@ -340,8 +340,10 @@ class GaloisGroup_v2(PermutationGroup_generic):
             sage: G.subgroup([ G(1), G([(1,5,2),(3,4,6)]), G([(1,2,5),(3,6,4)])])
             Subgroup [(), (1,5,2)(3,4,6), (1,2,5)(3,6,4)] of Galois group of Number Field in b with defining polynomial x^6 - 14*x^4 + 20*x^3 + 49*x^2 - 140*x + 307
         """
-        if len(elts) == self.order(): return self
-        else: return GaloisGroup_subgroup(self, elts)
+        if len(elts) == self.order():
+            return self
+        else:
+            return GaloisGroup_subgroup(self, elts)
 
     # Proper number theory starts here. All the functions below make no sense
     # unless the field is Galois.
@@ -557,11 +559,14 @@ class GaloisGroup_subgroup(GaloisGroup_v2):
             sage: GaloisGroup_subgroup( G, [ G(1), G([(1,5,2),(3,4,6)]), G([(1,2,5),(3,6,4)])])
             Subgroup [(), (1,5,2)(3,4,6), (1,2,5)(3,6,4)] of Galois group of Number Field in b with defining polynomial x^6 - 14*x^4 + 20*x^3 + 49*x^2 - 140*x + 307
         """
-
+        #XXX: This should be fixed so that this can use GaloisGroup_v2.__init__
         PermutationGroup_generic.__init__(self, elts, canonicalize = True)
         self._ambient = ambient
         self._number_field = ambient.number_field()
-        self._galois_closure=ambient._galois_closure
+        self._galois_closure = ambient._galois_closure
+        self._pari_data = ambient._pari_data
+        self._pari_gc = ambient._pari_gc
+        self._gc_map = ambient._gc_map
         self._elts = elts
 
     def fixed_field(self):
@@ -680,7 +685,8 @@ class GaloisGroupElement(PermutationGroupElement):
         return min(w)
 
     def __cmp__(self, other):
-        r"""Compare self to other. For some bizarre reason, if you just let it
+        r"""
+        Compare self to other. For some bizarre reason, if you just let it
         inherit the cmp routine from PermutationGroupElement, cmp(x, y) works
         but sorting lists doesn't.
 
@@ -688,9 +694,9 @@ class GaloisGroupElement(PermutationGroupElement):
 
             sage: K.<a> = NumberField(x^6 + 40*x^3 + 1372);G = K.galois_group()
             sage: sorted([G.artin_symbol(Q) for Q in K.primes_above(5)])
-            [(1,2)(3,4)(5,6), (1,3)(2,6)(4,5), (1,5)(2,4)(3,6)]
+            [(1,3)(2,6)(4,5), (1,2)(3,4)(5,6), (1,5)(2,4)(3,6)]
         """
-        return cmp(self.list(), other.list())
+        return PermutationGroupElement.__cmp__(self, other)
 
 
 

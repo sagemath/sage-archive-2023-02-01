@@ -123,7 +123,7 @@ class HopfAlgebrasWithBasis(Category_over_base_ring):
         An other group can be specified as optional argument::
 
             sage: HopfAlgebrasWithBasis(QQ).example(SymmetricGroup(4))
-            An example of Hopf algebra with basis: the group algebra of the SymmetricGroup(4) over Rational Field
+            An example of Hopf algebra with basis: the group algebra of the Symmetric group of order 4! as a permutation group over Rational Field
         """
         from sage.categories.examples.hopf_algebras_with_basis import MyGroupAlgebra
         from sage.groups.perm_gps.permgroup_named import DihedralGroup

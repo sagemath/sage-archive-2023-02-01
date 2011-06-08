@@ -100,10 +100,10 @@ class CycleSpeciesStructure(GenericSpeciesStructure):
             sage: [a.transport(perm) for perm in a.automorphism_group()]
             [(1, 2, 3, 4), (1, 2, 3, 4), (1, 2, 3, 4), (1, 2, 3, 4)]
         """
-        from sage.groups.all import SymmetricGroup
+        from sage.groups.all import SymmetricGroup, PermutationGroup
         S = SymmetricGroup(len(self._labels))
         p = self.permutation_group_element()
-        return S.centralizer(p)
+        return PermutationGroup(S.centralizer(p).gens())
 
 @accept_size
 @cached_function

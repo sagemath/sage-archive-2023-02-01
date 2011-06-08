@@ -47,9 +47,9 @@ a Fortran compiler on OS X):
 
 ::
 
-       gcc        (Version 4.0.1 to 4.5.2. Do not use gcc 4.6.0)
-       g++        (Version 4.0.1 to 4.5.2. Do not use g++ 4.6.0)
-       gfortran   (Version 4.0.1 to 4.5.2. Do not use gfortran 4.6.0)
+       gcc        (Version 4.0.1 or later)
+       g++        (Version 4.0.1 or later)
+       gfortran   (Version 4.0.1 or later)
        make       (For Solaris or OpenSolaris, GNU make, version 3.80 or later)
        perl       (Version 5.8.0 or later)
        ranlib
@@ -64,7 +64,6 @@ The programs ``gcc``, ``g++`` and ``gfortran`` are all part of the `GNU Compiler
 You are generally advised to use a recent version of GCC, though
 some obscure bugs have stopped specific versions of GCC
 compiling Sage on particular platforms.
-Also note that version 4.6.0 of GCC is currently not supported.
 
 To check if you have ``perl`` installed, for example, type
 
@@ -371,7 +370,7 @@ spaces in its name will also fail.
 
        $ sage
        ----------------------------------------------------------------------
-       | Sage Version 4.6, Release Date: 2010-10-30                         |
+       | Sage Version 4.7, Release Date: 2011-05-23                         |
        | Type notebook() for the GUI, and license() for information.        |
        ----------------------------------------------------------------------
        sage:
@@ -821,14 +820,14 @@ System-wide install
 
    ::
 
-       cp /usr/local/sage-4.6.2/sage /usr/local/bin/
+       cp /usr/local/sage-4.7/sage /usr/local/bin/
 
-   Make sure that all files in ``/usr/local/sage-4.6.2`` are readable by
+   Make sure that all files in ``/usr/local/sage-4.7`` are readable by
    all:
 
    ::
 
-       chmod a+rX -R /usr/local/sage-4.6.2
+       chmod a+rX -R /usr/local/sage-4.7
 
 
 Special Notes
@@ -855,4 +854,4 @@ Special Notes
   :ref:`installation in a multiuser environment
   <sagetex_installation_multiuser>`.
 
-  **This page was last updated in April 2011**
+  **This page was last updated in June 2011**

@@ -1,0 +1,11 @@
+--- ../src/polybori-0.7/groebner/src/nf.cc	2011-04-27 13:00:31.000000000 +0200
++++ nf.cc	2011-04-29 22:29:13.000000000 +0200
+@@ -63,7 +63,7 @@
+ 
+ static int log2_floor(int n){
+     int i;
+-    for(i=0;TWOPOW(i)<=n;i++){}
++    for(i=0;__M4RI_TWOPOW(i)<=n;i++){}
+     return i-1;
+ }
+ static int optimal_k_for_multiplication(int a,int b,int c,const GroebnerStrategy& strat){

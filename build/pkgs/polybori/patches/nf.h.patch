@@ -1,0 +1,13 @@
+--- ../src/polybori-0.7/groebner/src/nf.h	2011-04-27 13:00:31.000000000 +0200
++++ nf.h	2011-04-29 22:29:13.000000000 +0200
+@@ -13,6 +13,10 @@
+ #if HAVE_M4RI
+ extern "C"{
+ #include "m4ri/m4ri.h"
++
++#ifndef __M4RI_TWOPOW
++#define __M4RI_TWOPOW TWOPOW
++#endif
+ }
+ #endif
+ #ifndef PBORI_GB_NF_H

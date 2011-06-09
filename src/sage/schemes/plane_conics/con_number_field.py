@@ -103,7 +103,12 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
            (cannot be combined with ``point = True``, not yet implemented
            for number fields other than `QQ`, see Sage trac ticket #10742.)
 
-         - ``'default'`` -- Use ``'rnfisnorm'``.
+         - ``'default'`` -- Use ``'rnfisnorm'``
+
+         - ``'magma'`` (requires Magma to be installed) --
+           delegates the task to the Magma computer algebra
+           system.
+
 
         EXAMPLES:
 
@@ -134,11 +139,20 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
             sage: C.has_rational_point(point = True, algorithm = 'rnfisnorm')
             (True, (5/3 : -1/3 : 1))
 
+            sage: K.<a> = NumberField(x^4+2)
+            sage: Conic(QQ, [4,5,6]).has_rational_point()
+            False
+            sage: Conic(K, [4,5,6]).has_rational_point()
+            True
+            sage: Conic(K, [4,5,6]).has_rational_point(algorithm='magma', read_cache=False) # optional - magma
+            True
+
         TESTS:
 
         Create a bunch of conics over number fields and check if ``has_rational_point``
         runs without errors for ``algorithm = 'rnfisnorm'``. Check if all points
-        returned are valid. ::
+        returned are valid. If Magma is available, then also check if the output
+        agrees with Magma. ::
 
             sage: P.<X> = QQ[]
             sage: Q = P.fraction_field()
@@ -151,9 +165,12 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
             sage: m = [[Q(b)(F.gen()) for b in a] for a in l for F in [K, L, M]]
             sage: d = []
             sage: c = []
-            sage: c = [Conic(a) for a in m if a != [0,0,0]] # long time: 1 second
-            sage: d = [C.has_rational_point(algorithm = 'rnfisnorm', point = True) for C in c] # long time: 15 seconds
-            sage: assert all([c[k].defining_polynomial()(Sequence(d[k][1])) == 0 for k in range(len(c)) if d[k][0]])
+            sage: c = [Conic(a) for a in m if a != [0,0,0]]
+            sage: d = [C.has_rational_point(algorithm = 'rnfisnorm', point = True) for C in c] # long time: 6 seconds
+            sage: all([c[k].defining_polynomial()(Sequence(d[k][1])) == 0 for k in range(len(d)) if d[k][0]])
+            True
+            sage: [C.has_rational_point(algorithm = 'magma', read_cache=False) for C in c] == [o[0] for o in d] # long time, optional - magma
+            True
 
         Create a bunch of conics that are known to have rational points
         already over `\QQ` and check if points are found by
@@ -258,8 +275,11 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
         if algorithm == 'qfsolve':
             raise TypeError, "Algorithm qfsolve in has_rational_point only " \
                                  "for conics over QQ, not over %s" % B
-        raise ValueError, "Unknown algorithm %s in has_rational_point for %s" \
-                          % algorithm, self
+        if obstruction:
+            raise ValueError, "Invalid combination: obstruction=True and algorithm=%s" % algorithm
+
+        return ProjectiveConic_field.has_rational_point(self, point = point,
+                           algorithm = algorithm, read_cache = False)
 
 
     def is_locally_solvable(self, p):

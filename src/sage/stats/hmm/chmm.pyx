@@ -342,7 +342,7 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
 
         EXAMPLES::
 
-            sage: m =hmm.GaussianHiddenMarkovModel([[.1,.9],[.5,.5]], [(1,.5), (-1,3)], [.1,.9])
+            sage: m = hmm.GaussianHiddenMarkovModel([[.1,.9],[.5,.5]], [(1,.5), (-1,3)], [.1,.9])
             sage: m.generate_sequence(5)
             ([-3.0505, 0.5317, -4.5065, 0.6521, 1.0435], [1, 0, 1, 0, 1])
             sage: m.generate_sequence(0)
@@ -351,6 +351,18 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
             Traceback (most recent call last):
             ...
             ValueError: length must be nonnegative
+
+        Example in which the starting state is 0 (see trac 11452)::
+
+            sage: set_random_seed(23);  m.generate_sequence(2)
+            ([0.6501, -2.0151], [0, 1])
+
+        Verify numerically that the starting state is 0 with probability about 0.1::
+
+            sage: set_random_seed(0)
+            sage: v = [m.generate_sequence(1)[1][0] for i in range(10^5)]
+            sage: 1.0 * v.count(int(0)) / len(v)
+            0.0998200000000000
         """
         if length < 0:
             raise ValueError, "length must be nonnegative"
@@ -375,6 +387,7 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
         for i in range(self.N):
             if r < self.pi._values[i] + accum:
                 q = i
+                break
             else:
                 accum += self.pi._values[i]
 

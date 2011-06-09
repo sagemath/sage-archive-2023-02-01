@@ -595,6 +595,45 @@ class ProjectiveConic_field(ProjectiveCurve_generic):
         return self.determinant() != 0
 
 
+    def _magma_init_(self, magma):
+        """
+        Internal function. Returns a string to initialize this
+        conic in the Magma subsystem.
+
+        EXAMPLES::
+
+            sage: C = Conic(QQ, [1,2,3])
+            sage: C._magma_init_(magma)                          # optional - magma
+            'Conic([_sage_ref1|1,2,3,0,0,0])'
+            sage: C = Conic(GF(41), [-1,2,5])                    # optional - magma
+            sage: C._magma_init_(magma)                          # optional - magma
+            'Conic([_sage_ref2|GF(41)!40,GF(41)!2,GF(41)!5,GF(41)!0,GF(41)!0,GF(41)!0])'
+            sage: F.<a> = GF(25)
+            sage: C = Conic([3,0,1,4,a,2])
+            sage: C
+            Projective Conic Curve over Finite Field in a of size 5^2 defined by -2*x^2 - y^2 + x*z + (a)*y*z + 2*z^2
+            sage: magma(C)                                       # optional - magma
+            Conic over GF(5^2) defined by
+            3*X^2 + 4*Y^2 + X*Z + a*Y*Z + 2*Z^2
+            sage: magma(Conic([1/2,2/3,-4/5,6/7,8/9,-10/11]))    # optional - magma
+            Conic over Rational Field defined by
+            1/2*X^2 + 2/3*X*Y + 6/7*Y^2 - 4/5*X*Z + 8/9*Y*Z - 10/11*Z^2
+            sage: R.<x> = Frac(QQ['x'])
+            sage: magma(Conic([x,1+x,1-x]))                      # optional - magma
+            Conic over Univariate rational function field over Rational Field defined by
+            x*X^2 + (x + 1)*Y^2 + (-x + 1)*Z^2
+            sage: P.<x> = QQ[]
+            sage: K.<b> = NumberField(x^3+x+1)
+            sage: magma(Conic([b,1,2]))                          # optional - magma
+            Conic over Number Field with defining polynomial x^3 + x + 1 over the Rational Field defined by
+            b*X^2 + Y^2 + 2*Z^2
+        """
+        kmn = magma(self.base_ring())._ref()
+        coeffs = self.coefficients()
+        magma_coeffs = [coeffs[i]._magma_init_(magma) for i in [0, 3, 5, 1, 4, 2]]
+        return 'Conic([%s|%s])' % (kmn,','.join(magma_coeffs))
+
+
     def matrix(self):
         r"""
         Returns a matrix `M` such that `(x, y, z) M (x, y, z)^t`

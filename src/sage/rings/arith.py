@@ -619,15 +619,23 @@ def is_pseudoprime_small_power(n, bound=1024, get_data=False):
         [(3, 1024)]
         sage: is_pseudoprime_small_power(2^256, get_data=True)
         [(2, 256)]
+        sage: is_pseudoprime_small_power(31, get_data=True)
+        [(31, 1)]
         sage: is_pseudoprime_small_power(15, get_data=True)
         False
     """
     n = ZZ(n)
-    if n.is_pseudoprime() or n == 1:
+    if n == 1:
+        # canonical way to write 1 as a prime power?
         return True
-    if n < 0:
+    if n <= 0:
         return False
-    for i in range(2, bound + 1):
+    if n.is_pseudoprime():
+        if get_data == True:
+            return [(n, 1)]
+        else:
+            return True
+    for i in xrange(2, bound + 1):
         p, boo = n.nth_root(i, truncate_mode=True)
         if boo:
             if p.is_pseudoprime():

@@ -242,6 +242,8 @@ if [ -z "$RHOME" ]; then
     RHOME="$SAGE_LOCAL/lib/R" && export RHOME
 fi
 
+MAXIMA_PREFIX="$SAGE_ROOT/local" && export MAXIMA_PREFIX
+
 # PKG_CONFIG_PATH is used by 'pkg-config' on Solaris and Linux,
 # but at least some versions of OS X do not have the pkg-config
 # command, so relying on this is not wise on OS X.

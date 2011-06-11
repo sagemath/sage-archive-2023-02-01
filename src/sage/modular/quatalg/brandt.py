@@ -367,12 +367,16 @@ def maximal_order(A):
         sage: A = BrandtModule(17).quaternion_algebra()
         sage: sage.modular.quatalg.brandt.maximal_order(A)
         Order of Quaternion Algebra (-17, -3) with base ring Rational Field with basis (1/2 + 1/2*j, 1/2*i + 1/2*k, -1/3*j - 1/3*k, k)
+
+        sage: A = QuaternionAlgebra(17,names='i,j,k')
+        sage: A.maximal_order()
+        Order of Quaternion Algebra (-3, -17) with base ring Rational Field with basis (1/2 + 1/2*j, 1/2*i + 1/2*k, -1/3*j - 1/3*k, k)
     """
     L = A.ramified_primes()
     if len(L) > 1:
         raise NotImplementedError
     p = L[0]
-    QA, QB = A.invariants()
+
     i,j,k = A.gens()
     if p == 2:
         basis = [(1+i+j+k)/2, i, j, k]
@@ -381,10 +385,17 @@ def maximal_order(A):
     elif p % 8 == 5:
         basis = [(1+j+k)/2, (i+2*j+k)/4, j, k]
     elif p % 8 == 1:
+        QA, QB = A.invariants()
+        if(QA%p==0):
+            q=-QB
+        else:
+            q=-QA
+        assert(q%4==3)
+        assert(kronecker_symbol(p,q)==-1)
         a = 0
-        while (a*a*p + 1)%QB != 0:
+        while (a*a*p + 1)%q != 0:
             a += 1
-        basis = [(1+j)/2, (i+k)/2, (j+a*k)/QB, k]
+        basis = [(1+j)/2, (i+k)/2, -(j+a*k)/q, k]
     return A.quaternion_order(basis)
 
 def basis_for_left_ideal(R, gens):

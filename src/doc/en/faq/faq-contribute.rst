@@ -208,3 +208,53 @@ mailing lists and respond politely to any relevant email threads, with
 clear explanation on why your patch is relevant. Monitor the
 ``#sage-devel`` IRC channel, taking care to strategically time your
 reminders.
+
+
+I wrote some Sage code and I want it to be integrated into sage. However after renaming my file ``a.sage`` to ``a.py`` I got syntax errors. Do i have to rewrite all my code in Python instead of Sage?
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+The basic answer is yes, but Rewriting is a big word for what is really
+needed. There is little work to do since Sage mostly follows Python syntax.
+The two main difference are handling of integer (see `afterword`_
+), and the necessity to
+import what you need.
+
+- **Handling of integer.** you need to take care of the following changes:
+
+  - Notation for exponentiation: In Python ``**`` means exponentiation and
+    ``^`` means “xor”.
+  - If you need to return an integer for the user, write it return
+    ``Integer(1)`` instead of return 1. In Python 1 is a machine integer
+    ``int`` (32 or 64 bits depending on your machine) and ``Integer(1)`` is a
+    Sage/Gmp arbitrary precision integer. Also ``Integer`` are much more
+    powerful than ``int``, for example they know about prime and
+    factorization.
+  - Also you should take care that ``2/3`` does not anymore means
+    ``Integer(2)/Integer(3)`` and return ``2/3`` but rather ``int(2)/int(3)``
+    and therfore returns ``0`` due to integer division. If you are dealing
+    with ``Integer`` but you really need an integer division you can use
+    ``Integer(2)//Integer(3)``.
+
+- **Importing stuff.** The second big change is the necessity to import all
+   what you need. More precisely, each time you use some Sage function, you
+   need to import it at the beginning of the file. for example if you want to
+   you ``PolynomialRing``, you need to write::
+
+       from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
+   You can ask Sage where to find PolynomialRing using::
+
+       sage: PolynomialRing.__module__
+       'sage.rings.polynomial.polynomial_ring_constructor'
+
+   This also correspond to the path starting after ``site-packages``
+   given when you are asking Sage for ``PolynomialRing`` help::
+
+       sage: PolynomialRing?
+       Type:           function
+       [...]
+       File:           /home/florent/src/Sage/sage/local/lib/python2.6/site-packages/sage/rings/polynomial/polynomial_ring_constructor.py
+       [...]
+
+
+.. _afterword: http://www.sagemath.org/doc/tutorial/afterword.html

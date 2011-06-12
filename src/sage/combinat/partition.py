@@ -1,3 +1,4 @@
+
 r"""
 Partitions
 
@@ -233,6 +234,13 @@ the partition back up from them::
     ([2, 1], [4], [1, 1, 1])
     sage: Partition(core=[],quotient=([2, 1], [4], [1, 1, 1]))
     [11, 5, 5, 3, 2, 2, 2]
+
+We can compute the `0-1` sequence and go back and forth::
+
+    sage: Partitions().from_zero_one([1, 1, 1, 1, 0, 1, 0])
+    [5, 4]
+    sage: all(Partitions().from_zero_one(mu.zero_one_sequence()) == mu for n in range(5) for mu in Partitions(n))
+    True
 
 We can compute the Frobenius coordinates and go back and forth::
 
@@ -485,6 +493,7 @@ class Partition(CombinatorialObject, Element):
     - a list (the default)
     - using exponential notation
     - by Frobenius coordinates
+    - specifying its `0-1` sequence
     - specifying the core and the quotient
 
     See the examples below.
@@ -550,6 +559,8 @@ class Partition(CombinatorialObject, Element):
         [11, 5, 5, 3, 2, 2, 2]
         sage: Partition(frobenius_coordinates=([3,2],[4,0]))
         [4, 4, 1, 1, 1]
+        sage: Partitions().from_zero_one([1, 1, 1, 1, 0, 1, 0])
+        [5, 4]
         sage: [2,1] in Partitions()
         True
         sage: [2,1,0] in Partitions()
@@ -612,6 +623,8 @@ class Partition(CombinatorialObject, Element):
             return Partitions().from_exp(keyword['exp'])
         elif 'frobenius_coordinates' in keyword and len(keyword) == 1:
             return Partitions().from_frobenius_coordinates(keyword['frobenius_coordinates'])
+        elif 'zero_one' in keyword and len(keyword) == 1:
+            return Partitions().from_zero_one(keyword['zero_one'])
         else:
             raise ValueError('incorrect syntax for Partition()')
 
@@ -2700,6 +2713,43 @@ class Partition(CombinatorialObject, Element):
         res.append((0, prevLen))
         return res
 
+    def zero_one_sequence(self):
+        r"""
+        Computes the finite `0-1` sequence of the partition.
+
+        The full `0-1` sequence is the sequence (infinite in both
+        directions) indicating the steps taken when following the
+        outer rim of the diagram of the partition. In the English
+        notation, a 1 corresponds to an East step, while a 0
+        corresponds to a North step.
+
+        Every full `0-1` sequence starts with infinitely many 0's and
+        ends with infinitely many 1's.
+
+        OUTPUT:
+
+        The finite `0-1` sequence is obtained from the full `0-1`
+        sequence by omitting all heading 0's and trailing 1's. The
+        output sequence is finite, starts with a 1 and ends with a
+        0 (unless it is empty, for the empty partition).
+
+        EXAMPLES::
+
+            sage: Partition([5,4]).zero_one_sequence()
+            [1, 1, 1, 1, 0, 1, 0]
+            sage: Partition([]).zero_one_sequence()
+            []
+            sage: Partition([2]).zero_one_sequence()
+            [1, 1, 0]
+
+        TESTS::
+
+            sage: all(Partitions().from_zero_one(mu.zero_one_sequence()) == mu for n in range(10) for mu in Partitions(n))
+            True
+        """
+        tmp = [self.get_part(i)-i for i in range(len(self))]
+        return ([Integer(not (i in tmp)) for i in range(-len(self)+1,self.get_part(0)+1)])
+
     def core(self, length):
         """
         Return the core of the partition -- in the literature the core is
@@ -4073,6 +4123,44 @@ class Partitions(UniqueRepresentation, Parent):
         for i in reversed(range(len(exp))):
             p += [i+1]*exp[i]
         return self.element_class(self, p)
+
+    def from_zero_one(self, seq):
+        r"""
+        Returns a partition from its `0-1` sequence.
+
+        The full `0-1` sequence is the sequence (infinite in both
+        directions) indicating the steps taken when following the outer
+        rim of the diagram of the partition. In the English notation, a 1
+        corresponds to an East step, while a 0 corresponds to a North
+        step. Every `0-1` sequence starts with infinitely many 0's and ends
+        with infinitely many 1's.
+
+        INPUT:
+
+        The input should be a finite sequence of 0's and 1's. The
+        heading 0's and trailing 1's will be discarded.
+
+        EXAMPLES::
+
+            sage: Partitions().from_zero_one([])
+            []
+            sage: Partitions().from_zero_one([1,0])
+            [1]
+            sage: Partitions().from_zero_one([1, 1, 1, 1, 0, 1, 0])
+            [5, 4]
+
+        Heading 0's and trailing 1's are correctly handled::
+
+            sage: Partitions().from_zero_one([0,0,1,1,1,1,0,1,0,1,1,1])
+            [5, 4]
+
+        TESTS::
+
+            sage: all(Partitions().from_zero_one(mu.zero_one_sequence()) == mu for n in range(10) for mu in Partitions(n))
+            True
+        """
+        tmp = [i for i in range(len(seq)) if seq[i] == 0]
+        return Partition([tmp[i]-i for i in range(len(tmp)-1,-1,-1)])
 
     def from_core_and_quotient(self, core, quotient):
         """

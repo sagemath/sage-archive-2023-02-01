@@ -26,10 +26,10 @@ def normalize_input(a):
 
     OUTPUT:
 
-    args -- tuple
-    kwds -- dictionary
+    - ``args`` -- tuple
+    - ``kwds`` -- dictionary
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: sage.parallel.decorate.normalize_input( (2, {3:4}) )
         ((2, {3: 4}), {})
@@ -95,7 +95,7 @@ class Parallel:
 
         decorated version of f
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.parallel.decorate import Parallel
             sage: p = Parallel()
@@ -174,4 +174,3 @@ def parallel(p_iter = 'fork', ncpus=None, **kwds):
     if isinstance(p_iter, types.FunctionType):
         return Parallel()(p_iter)
     return Parallel(p_iter, ncpus, **kwds)
-

@@ -14,6 +14,17 @@ Parallel Iterator built using the fork system call
 class p_iter_fork:
     """
     A parallel iterator implemented using fork.
+
+    EXAMPLES::
+
+        sage: X = sage.parallel.use_fork.p_iter_fork(2,3, False); X
+        <sage.parallel.use_fork.p_iter_fork instance at ...>
+        sage: X.ncpus
+        2
+        sage: X.timeout
+        3.0
+        sage: X.verbose
+        False
     """
     def __init__(self, ncpus, timeout=0, verbose=False):
         """

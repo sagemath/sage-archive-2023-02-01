@@ -49,6 +49,7 @@ Enjoy Sage!
    graphs
    constants
    functions
+   parallel
    structure
    coercion
    misc

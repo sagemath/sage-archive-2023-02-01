@@ -22,13 +22,16 @@ def pyprocessing(processes=0):
     implemented using pyprocessing.
 
     INPUTS:
-         processes -- integer (default: 0); if 0, set to the
-             number of processors on the computer.
+
+    - ``processes`` -- integer (default: 0); if 0, set to the number
+      of processors on the computer.
 
     OUTPUT:
-         a (partially evaluated) function
 
-    EXAMPLES:
+    - a (partially evaluated) function
+
+    EXAMPLES::
+
         sage: from sage.parallel.multiprocessing_sage import pyprocessing
         sage: p_iter = pyprocessing(4)
         sage: P = parallel(p_iter=p_iter)
@@ -44,14 +47,17 @@ def parallel_iter(processes, f, inputs):
     Return a parallel iterator.
 
     INPUT:
-        processes -- integer
-        f -- function
-        inputs -- an iterable of pairs (args, kwds)
+
+    - ``processes`` -- integer
+    - ``f`` -- function
+    - ``inputs`` -- an iterable of pairs (args, kwds)
 
     OUTPUT:
-        iterator over values of f at args,kwds in some random order.
 
-    EXAMPLES:
+    - iterator over values of ``f`` at ``args,kwds`` in some random order.
+
+    EXAMPLES::
+
         sage: def f(x): return x+x
         sage: import sage.parallel.multiprocessing_sage
         sage: v = list(sage.parallel.multiprocessing_sage.parallel_iter(2, f, [((2,), {}), ((3,),{})]))

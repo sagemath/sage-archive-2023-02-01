@@ -1,3 +1,6 @@
+"""
+CPU Detection
+"""
 # Parallel Python Software: http://www.parallelpython.com
 # Copyright (c) 2005-2008, Vitalii Vanovschi
 # All rights reserved.
@@ -33,7 +36,8 @@ def ncpus():
     """
     Detects the number of effective CPUs in the system.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: sage.parallel.ncpus.ncpus()  # random output -- depends on machine.
         2
     """

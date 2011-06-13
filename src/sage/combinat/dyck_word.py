@@ -27,6 +27,10 @@ from combinat import CombinatorialClass, CombinatorialObject, catalan_number, In
 from backtrack import GenericBacktracker
 from sage.rings.all import infinity
 
+from sage.structure.parent import Parent
+from sage.structure.unique_representation import UniqueRepresentation
+from sage.categories.all import Posets
+
 open_symbol = 1
 close_symbol = 0
 
@@ -227,6 +231,7 @@ class DyckWord_class(CombinatorialObject):
             sage: DyckWord([1, 1, 0, 0, 1, 1, 1, 0, 0, 0]).height()
             3
         """
+        # calling max(self.heights()) has a significant overhead (20%)
         height = 0
         height_max = 0
         for letter in self:
@@ -236,6 +241,144 @@ class DyckWord_class(CombinatorialObject):
             elif letter == close_symbol:
                 height -= 1
         return height_max
+
+    def heights(self):
+        r"""
+        Returns the heights of the Dyck word.
+
+        We view the Dyck word as a Dyck path from `(0,0)` to
+        `(2n,0)` in the first quadrant by letting '1's represent
+        steps in the direction `(1,1)` and '0's represent steps in
+        the direction `(1,-1)`.
+
+        The heights is the sequence of `y`-coordinate reached.
+
+        EXAMPLES::
+
+            sage: DyckWord([]).heights()
+            (0,)
+            sage: DyckWord([1,0]).heights()
+            (0, 1, 0)
+            sage: DyckWord([1, 1, 0, 0]).heights()
+            (0, 1, 2, 1, 0)
+            sage: DyckWord([1, 1, 0, 1, 0]).heights()
+            (0, 1, 2, 1, 2, 1)
+            sage: DyckWord([1, 1, 0, 0, 1, 0]).heights()
+            (0, 1, 2, 1, 0, 1, 0)
+            sage: DyckWord([1, 0, 1, 0]).heights()
+            (0, 1, 0, 1, 0)
+            sage: DyckWord([1, 1, 0, 0, 1, 1, 1, 0, 0, 0]).heights()
+            (0, 1, 2, 1, 0, 1, 2, 3, 2, 1, 0)
+
+        .. seealso:: :meth:`from_heights` :meth:`min_from_heights`.
+        """
+        height  = 0
+        heights = [0]*(len(self)+1)
+        for i, letter in enumerate(self):
+            if letter == open_symbol:
+                height += 1
+            elif letter == close_symbol:
+                height -= 1
+            heights[i+1] = height
+        return tuple(heights)
+
+    @classmethod
+    def from_heights(cls, heights):
+        """
+        Compute a dyck word knowing its heights.
+
+        We view the Dyck word as a Dyck path from `(0,0)` to
+        `(2n,0)` in the first quadrant by letting '1's represent
+        steps in the direction `(1,1)` and '0's represent steps in
+        the direction `(1,-1)`.
+
+        The :meth:`heights` is the sequence of `y`-coordinate reached.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.dyck_word import DyckWord_class
+            sage: DyckWord_class.from_heights((0,))
+            []
+            sage: DyckWord_class.from_heights((0, 1, 0))
+            [1, 0]
+            sage: DyckWord_class.from_heights((0, 1, 2, 1, 0))
+            [1, 1, 0, 0]
+            sage: DyckWord_class.from_heights((0, 1, 2, 1, 2, 1))
+            [1, 1, 0, 1, 0]
+
+        This also works for prefix of Dyck words::
+
+            sage: DyckWord_class.from_heights((0, 1, 2, 1))
+            [1, 1, 0]
+
+        .. seealso:: :meth:`heights` :meth:`min_from_heights`.
+
+        TESTS::
+
+            sage: all(dw == DyckWord_class.from_heights(dw.heights())
+            ...       for i in range(7) for dw in DyckWords(i))
+            True
+
+            sage: DyckWord_class.from_heights((1, 2, 1))
+            Traceback (most recent call last):
+            ...
+            ValueError: heights must start with 0: (1, 2, 1)
+            sage: DyckWord_class.from_heights((0, 1, 4, 1))
+            Traceback (most recent call last):
+            ...
+            ValueError: consecutive heights must only differ by 1: (0, 1, 4, 1)
+        """
+        l1 = len(heights)-1
+        res = [0]*(l1)
+        if heights[0] != 0:
+            raise ValueError, "heights must start with 0: %s"%(heights,)
+        for i in range(l1):
+            if heights[i] == heights[i+1]-1:
+                res[i] = 1
+            elif heights[i] != heights[i+1]+1:
+                raise ValueError, (
+                    "consecutive heights must only differ by 1: %s"%(heights,))
+        return cls(res)
+
+    @classmethod
+    def min_from_heights(cls, heights):
+        """
+        Compute the smallest dyck word which lies some heights.
+
+        .. seealso:: :meth:`heights` :meth:`from_heights`.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.dyck_word import DyckWord_class
+            sage: DyckWord_class.min_from_heights((0,))
+            []
+            sage: DyckWord_class.min_from_heights((0, 1, 0))
+            [1, 0]
+            sage: DyckWord_class.min_from_heights((0, 0, 2, 0, 0))
+            [1, 1, 0, 0]
+            sage: DyckWord_class.min_from_heights((0, 0, 2, 0, 2, 0))
+            [1, 1, 0, 1, 0]
+            sage: DyckWord_class.min_from_heights((0, 0, 1, 0, 1, 0))
+            [1, 1, 0, 1, 0]
+        """
+        # round heights to the smallest even-odd integer
+        heights = list(heights)
+        for i in range(0, len(heights), 2):
+            if heights[i] % 2 == 1:
+                heights[i]+=1
+        for i in range(1, len(heights), 2):
+            if heights[i] % 2 == 0:
+                heights[i]+=1
+
+        # smooth heights
+        for i in range(len(heights)-1):
+            if heights[i+1] < heights[i]:
+                heights[i+1] = heights[i]-1
+        for i in range(len(heights)-1, 0, -1):
+            if heights[i] > heights[i-1]:
+                heights[i-1] = heights[i]-1
+        return cls.from_heights(heights)
+
 
     def associated_parenthesis(self, pos):
         r"""
@@ -468,6 +611,22 @@ class DyckWord_class(CombinatorialObject):
             [1, 3, 5]
         """
         return [i for i in range(len(self)-1) if self[i] == open_symbol and self[i+1] == close_symbol]
+
+    def valleys(self):
+        r"""
+        Returns a list of the positions of the valleys of a Dyck
+        word. A valley is 0 followed by a 1.
+
+        EXAMPLES::
+
+            sage: DyckWord([1, 0, 1, 0]).valleys()
+            [1]
+            sage: DyckWord([1, 1, 0, 0]).valleys()
+            []
+            sage: DyckWord([1,1,0,1,0,1,0,0]).valleys()
+            [2, 4]
+        """
+        return [i for i in xrange(len(self)-1) if self[i] == close_symbol and self[i+1] == open_symbol]
 
     def to_tableau(self):
         r"""
@@ -809,6 +968,73 @@ class DyckWords_all(InfiniteAbstractCombinatorialClass):
          """
         return DyckWords_size(n, n)
 
+    def _an_element_(self):
+        """
+        TESTS::
+
+            sage: DyckWords().an_element()
+            [1, 0, 1, 0, 1, 0, 1, 0, 1, 0]
+        """
+        return self._infinite_cclass_slice(5).an_element()
+
+    class height_poset(UniqueRepresentation, Parent):
+        r"""
+        The poset of dyck word compared by heights
+        """
+        def __init__(self):
+            """
+            TESTS::
+
+                sage: poset = DyckWords().height_poset()
+                sage: TestSuite(poset).run()
+            """
+            Parent.__init__(self,
+                            facade = DyckWords_all(),
+                            category = Posets())
+        def _an_element_(self):
+            """
+            TESTS::
+
+                sage: DyckWords().height_poset().an_element()   # indirect doctest
+                [1, 0, 1, 0, 1, 0, 1, 0, 1, 0]
+
+            """
+            return DyckWords_all().an_element()
+
+        def __call__(self, obj):
+            """
+            TESTS::
+
+                sage: poset = DyckWords().height_poset()
+                sage: poset([1,0,1,0])
+                [1, 0, 1, 0]
+            """
+            return DyckWords_all()(obj)
+
+        def le(self, dw1, dw2):
+            r"""
+            Compare two dyck words.
+
+            EXAMPLES::
+
+                sage: poset = DyckWords().height_poset()
+                sage: poset.le(DyckWord([]), DyckWord([]))
+                True
+                sage: poset.le(DyckWord([1,0]), DyckWord([1,0]))
+                True
+                sage: poset.le(DyckWord([1,0,1,0]), DyckWord([1,1,0,0]))
+                True
+                sage: poset.le(DyckWord([1,1,0,0]), DyckWord([1,0,1,0]))
+                False
+                sage: [poset.le(dw1, dw2)
+                ...       for dw1 in DyckWords(3) for dw2 in DyckWords(3)]
+                [True, True, True, True, True, False, True, False, True, True, False, False, True, True, True, False, False, False, True, True, False, False, False, False, True]
+            """
+            assert len(dw1)==len(dw2), "Length mismatch: %s and %s"%(dw1, dw2)
+            sh = dw1.heights()
+            oh = dw2.heights()
+            return all(sh[i] <= oh[i] for i in range(len(dw1)))
+
 
 class DyckWordBacktracker(GenericBacktracker):
     r"""
@@ -994,6 +1220,18 @@ class DyckWords_size(CombinatorialClass):
             for w in DyckWordBacktracker(self.k1, self.k2):
                 yield DyckWord_class(w)
 
+    def _an_element_(self):
+        r"""
+        TESTS::
+
+            sage: DyckWords(0).an_element()    # indirect doctest
+            []
+            sage: DyckWords(1).an_element()    # indirect doctest
+            [1, 0]
+            sage: DyckWords(2).an_element()    # indirect doctest
+            [1, 0, 1, 0]
+        """
+        return iter(self).next()
 
 
 def is_a_prefix(obj, k1 = None, k2 = None):

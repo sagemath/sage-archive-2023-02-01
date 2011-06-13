@@ -52,6 +52,7 @@ def normalize_input(a):
 class Parallel:
     r"""
     Create a ``parallel``-decorated function.
+    This is the object created by :func:`parallel`.
     """
     def __init__(self, p_iter='fork', ncpus=None, **kwds):
         """
@@ -86,10 +87,11 @@ class Parallel:
 
     def __call__(self, f):
         r"""
-        Create a function that wraps ``f()`` and that when called with a
-        list of inputs returns an iterator over pairs ``(x, f(x))``
-        in possibly random order.  Here ``x`` is replaced by its
-        normalized form ``(args, kwds)`` using ``normalize_inputs()``.
+        Create a callable object that wraps ``f`` and that when called
+        with a list of inputs returns an iterator over pairs ``(x,
+        f(x))`` in possibly random order. Here ``x`` is replaced by
+        its normalized form ``(args, kwds)`` using
+        :func:`normalize_inputs`.
 
         INPUT:
 
@@ -105,9 +107,7 @@ class Parallel:
             sage: p = Parallel()
             sage: f = x^2-1
             sage: p(f)
-            <function g at ...
-            sage: p(f)(x=5)
-            24
+            <sage.parallel.decorate.ParallelFunction object at ...>
 
             sage: P = sage.parallel.decorate.Parallel()
             sage: def g(n,m): return n+m
@@ -115,15 +115,176 @@ class Parallel:
             sage: list(h([(2,3)]))
             [(((2, 3), {}), 5)]
         """
-        # Construct the wrapper parallel version of the function we're wrapping.
-        # We may rework this so g is a class instance, which has the plus that
-        # we can query g for how it works, etc.
-        def g(*args, **kwds):
-            if len(args) > 0 and isinstance(args[0], (list, types.GeneratorType)):
-                return self.p_iter(f, (normalize_input(a) for a in args[0]))
-            else:
-                return f(*args, **kwds)
-        return g
+        return ParallelFunction(self, f)
+
+class ParallelFunction(object):
+    """
+    Class which parallelizes a function or class method.
+    This is typically accessed indirectly through
+    :meth:`Parallel.__call__`.
+    """
+    def __init__(self, parallel, func):
+        """
+        .. note::
+
+           This is typically accessed indirectly through
+           :meth:`Parallel.__call__`.
+
+        INPUT:
+
+        - ``parallel`` -- a :class:`Parallel` object which controls
+          how the parallel execution will be done.
+
+        - ``func`` -- Python callable object or function
+
+        """
+        self.parallel = parallel
+        self.func = func
+
+    def __call__(self, *args, **kwds):
+        """
+        EXAMPLES::
+
+            sage: from sage.parallel.decorate import Parallel
+            sage: p = Parallel()
+            sage: def f(x):
+            ...       return x*x
+            sage: pf = p(f); pf
+            <sage.parallel.decorate.ParallelFunction object at ...>
+            sage: pf(2)
+            4
+            sage: sorted(pf([2,3]))
+            [(((2,), {}), 4), (((3,), {}), 9)]
+            """
+        if len(args) > 0 and isinstance(args[0], (list,
+types.GeneratorType)):
+            return self.parallel.p_iter(self.func, (normalize_input(a)
+for a in args[0]))
+        else:
+            return self.func(*args, **kwds)
+
+    def __get__(self, instance, owner):
+        """
+        Implement part of the descriptor protocol for
+        :class:`ParallelFunction` objects.
+
+        .. note::
+
+           This is the key to fixing Trac #11461.
+
+        EXAMPLES:
+
+        We verify the the decorated functions work correctly on
+        methods, classmethods, and staticmethods, for both the
+        parallel and non-parallel versions::
+
+            sage: class Foo(object):
+            ...       @parallel(2)
+            ...       def square(self, n):
+            ...           return n*n
+            ...       @parallel(2)
+            ...       @classmethod
+            ...       def square_classmethod(cls, n):
+            ...           return n*n
+            ...       @parallel(2)
+            ...       @staticmethod
+            ...       def square_staticmethod(n):
+            ...           return n*n
+            sage: a = Foo()
+            sage: a.square(3)
+            9
+            sage: sorted(a.square([2,3]))
+            [(((2,), {}), 4), (((3,), {}), 9)]
+            sage: a.square_classmethod(3)
+            9
+            sage: sorted(a.square_classmethod([2,3]))
+            [(((2,), {}), 4), (((3,), {}), 9)]
+            sage: Foo.square_classmethod(3)
+            9
+            sage: sorted(Foo.square_classmethod([2,3]))
+            [(((2,), {}), 4), (((3,), {}), 9)]
+            sage: a.square_staticmethod(3)
+            9
+            sage: sorted(a.square_staticmethod([2,3]))
+            [(((2,), {}), 4), (((3,), {}), 9)]
+            sage: Foo.square_staticmethod(3)
+            9
+            sage: sorted(Foo.square_staticmethod([2,3]))
+            [(((2,), {}), 4), (((3,), {}), 9)]
+        """
+        try:
+            #If this ParallelFunction object is accessed as an
+            #attribute of a class or instance, the underlying function
+            #should be "accessed" in the same way.
+            new_func = self.func.__get__(instance, owner)
+        except AttributeError:
+            #This will happen if a non-function attribute is
+            #decorated.  For example, an expression that's an
+            #attribute of a class.
+            new_func = self.func
+        return ParallelFunction(self.parallel, new_func)
+
+    def _sage_argspec_(self):
+        """
+        Returns the argument specification for this object, which is
+        just the argument specification for the underlying function.
+        See :module:`sage.misc.sageinspect` for more information on
+        this convention.
+
+        EXAMPLES::
+
+            sage: from sage.parallel.decorate import Parallel
+            sage: p = Parallel(2)
+            sage: def f(x, y):
+            ...       return x + y
+            sage: from sage.misc.sageinspect import sage_getargspec
+            sage: sage_getargspec(p(f))
+            ArgSpec(args=['x', 'y'], varargs=None, keywords=None, defaults=None)
+        """
+        from sage.misc.sageinspect import sage_getargspec
+        return sage_getargspec(self.func)
+
+    def _sage_src_(self):
+        """
+        Returns the source code for this object, which is just the
+        source code for the underlying function.  See
+        :module:`sage.misc.sageinspect` for more information on this
+        convention.
+
+        EXAMPLES::
+
+            sage: from sage.parallel.decorate import Parallel
+            sage: p = Parallel(2)
+            sage: def f(x, y):
+            ...       return x + y
+            sage: from sage.misc.sageinspect import sage_getsource
+            sage: 'return x + y' in sage_getsource(p(f))
+            True
+        """
+        from sage.misc.sageinspect import sage_getsource
+        return sage_getsource(self.func)
+
+    def _sage_doc_(self):
+        """
+        Returns the docstring for this object, which is just the
+        docstring for the underlying function.  See
+        :module:`sage.misc.sageinspect` for more information on this
+        convention.
+
+        EXAMPLES::
+
+            sage: from sage.parallel.decorate import Parallel
+            sage: p = Parallel(2)
+            sage: def f(x, y):
+            ...       '''Test docstring'''
+            ...       return x + y
+            sage: from sage.misc.sageinspect import sage_getdoc
+            sage: sage_getdoc(p(f))
+            'Test docstring\n'
+        """
+        from sage.misc.sageinspect import sage_getdoc
+        return sage_getdoc(self.func)
+
 
 def parallel(p_iter='fork', ncpus=None, **kwds):
     r"""
@@ -214,6 +375,35 @@ def parallel(p_iter='fork', ncpus=None, **kwds):
         sage: for X, Y in sorted(list(firstEntry([((1,2,3,4),),((5,6,7,8),)]))): print X, Y
         (((1, 2, 3, 4),), {}) 1
         (((5, 6, 7, 8),), {}) 5
+
+    The parallel decorator also works with methods, classmethods, and
+    staticmethods.  Be sure to apply the parallel decorator after ("above")
+    either the ``classmethod`` or ``staticmethod`` decorators::
+
+        sage: class Foo(object):
+        ...       @parallel(2)
+        ...       def square(self, n):
+        ...           return n*n
+        ...       @parallel(2)
+        ...       @classmethod
+        ...       def square_classmethod(cls, n):
+        ...           return n*n
+        sage: a = Foo()
+        sage: a.square(3)
+        9
+        sage: sorted(a.square([2,3]))
+        [(((2,), {}), 4), (((3,), {}), 9)]
+        sage: Foo.square_classmethod(3)
+        9
+        sage: sorted(Foo.square_classmethod([2,3]))
+        [(((2,), {}), 4), (((3,), {}), 9)]
+        sage: Foo.square_classmethod(3)
+        9
+
+    .. warning::
+
+       Currently, parallel methods do not work with the
+       multiprocessing implementation.
     """
     import types
     if isinstance(p_iter, types.FunctionType):

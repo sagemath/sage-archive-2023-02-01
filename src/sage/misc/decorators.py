@@ -14,7 +14,7 @@ AUTHORS:
 """
 from functools import partial, update_wrapper, WRAPPER_ASSIGNMENTS, WRAPPER_UPDATES
 from copy import copy
-from sage.misc.sageinspect import sage_getsource, sage_getsourcelines
+from sage.misc.sageinspect import sage_getsource, sage_getsourcelines, sage_getargspec
 from sage.misc.misc import verbose, deprecation
 from inspect import ArgSpec
 

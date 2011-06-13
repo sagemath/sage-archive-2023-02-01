@@ -687,6 +687,28 @@ class Triangulation(Element):
         return Fan(self, (vector(R, p) - origin for p in points))
 
 
+    def simplicial_complex(self):
+        r"""
+        Return a simplicial complex from a triangulation of the point
+        configuration.
+
+        OUTPUT:
+
+        A :class:`~sage.homology.simplicial_complex.SimplicialComplex`.
+
+        EXAMPLES::
+
+            sage: p = polytopes.cuboctahedron()
+            sage: sc = p.triangulate().simplicial_complex()
+            sage: sc
+            Simplicial complex with 12 vertices and 16 facets
+        """
+        from sage.homology.simplicial_complex import SimplicialComplex
+        from sage.misc.all import flatten
+        vertex_set = set(flatten(self))
+        return SimplicialComplex(vertex_set = vertex_set,
+                                 maximal_faces = self)
+
 
 ########################################################################
 class PointConfiguration(UniqueRepresentation, PointConfiguration_base):

@@ -1233,6 +1233,21 @@ class Vertex(Vrepresentation):
         """
         return Hobj.A() * self._representation_vector + Hobj.b()
 
+    def is_integral(self):
+        r"""
+        Return whether the coordinates of the vertex are all integral.
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: p = Polyhedron([(1/2,3,5), (0,0,0), (2,3,7)])
+            sage: [ v.is_integral() for v in p.vertex_generator() ]
+            [False, True, True]
+        """
+        return all(x in ZZ for x in self._representation_vector)
 
 
 class Ray(Vrepresentation):
@@ -3401,7 +3416,6 @@ class Polyhedron(SageObject):
 
         return True
 
-
     def gale_transform(self):
         """
         Return the Gale transform of a polytope as described in the
@@ -3426,7 +3440,7 @@ class Polyhedron(SageObject):
 
             Lectures in Geometric Combinatorics, R.R.Thomas, 2006, AMS Press.
         """
-        if not self.is_compact(): raise ValueError, "Not a polytope"
+        if not self.is_compact(): raise ValueError('Not a polytope.')
 
         A = matrix(self.n_vertices(),
                    [ [1]+list(x) for x in self.vertex_generator()])
@@ -3434,6 +3448,79 @@ class Polyhedron(SageObject):
         A_ker = A.right_kernel()
         return A_ker.basis_matrix().transpose().rows()
 
+    def triangulate(self, engine='auto', connected=True, fine=False, regular=None, star=None):
+        r"""
+        Returns a triangulation of the polytope.
+
+        INPUT:
+
+        - ``engine`` -- either 'auto' (default), 'internal', or
+          'TOPCOM'.  The latter two instruct this package to always
+          use its own triangulation algorithms or TOPCOM's algorithms,
+          respectively. By default ('auto'), TOPCOM is used if it is
+          available and internal routines otherwise.
+
+        The remaining keyword parameters are passed through to the
+        :class:`~sage.geometry.triangulation.point_configuration.PointConfiguration`
+        constructor:
+
+        - ``connected`` -- boolean (default: ``True``). Whether the
+          triangulations should be connected to the regular
+          triangulations via bistellar flips. These are much easier to
+          compute than all triangulations.
+
+        - ``fine`` -- boolean (default: ``False``). Whether the
+          triangulations must be fine, that is, make use of all points
+          of the configuration.
+
+        - ``regular`` -- boolean or ``None`` (default:
+          ``None``). Whether the triangulations must be regular. A
+          regular triangulation is one that is induced by a
+          piecewise-linear convex support function. In other words,
+          the shadows of the faces of a polyhedron in one higher
+          dimension.
+
+          * ``True``: Only regular triangulations.
+
+          * ``False``: Only non-regular triangulations.
+
+          * ``None`` (default): Both kinds of triangulation.
+
+        - ``star`` -- either ``None`` (default) or a point. Whether
+          the triangulations must be star. A triangulation is star if
+          all maximal simplices contain a common point. The central
+          point can be specified by its index (an integer) in the
+          given points or by its coordinates (anything iterable.)
+
+        OUTPUT:
+
+        A triangulation of the convex hull of the vertices as a
+        :class:`~sage.geometry.triangulation.point_configuration.Triangulation`. The
+        indices in the triangulation correspond to the
+        :meth:`Vrepresentation` objects.
+
+        EXAMPLES::
+
+            sage: cube = polytopes.n_cube(3)
+            sage: triangulation = cube.triangulate(engine='internal') # to make doctest independent of TOPCOM
+            sage: triangulation
+            (<0,1,2,4>, <1,2,3,4>, <1,3,4,5>, <2,3,4,6>, <3,4,5,6>, <3,5,6,7>)
+            sage: simplex_indices = triangulation[0]; simplex_indices
+            (0, 1, 2, 4)
+            sage: simplex_vertices = [ cube.Vrepresentation(i) for i in simplex_indices ]
+            sage: simplex_vertices
+            [A vertex at (1, 1, 1), A vertex at (-1, 1, 1),
+             A vertex at (1, -1, 1), A vertex at (1, 1, -1)]
+            sage: Polyhedron(simplex_vertices)
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 4 vertices.
+        """
+        if not self.is_compact():
+            raise NotImplementedError('I can only triangulate compact polytopes.')
+        from sage.geometry.triangulation.point_configuration import PointConfiguration
+        pc = PointConfiguration((v.vector() for v in self.vertex_generator()),
+                                connected=connected, fine=fine, regular=regular, star=star)
+        pc.set_engine(engine)
+        return pc.triangulate()
 
     def triangulated_facial_incidences(self):
         """
@@ -3453,6 +3540,8 @@ class Polyhedron(SageObject):
         If the figure is already composed of triangles, then all is well::
 
             sage: Polyhedron(vertices = [[5,0,0],[0,5,0],[5,5,0],[2,2,5]]).triangulated_facial_incidences()
+            doctest:...: DeprecationWarning: (Since Sage Version 4.7.1)
+            This method is deprecated. Use triangulate() instead.
             [[0, [0, 2, 3]], [1, [0, 1, 2]], [2, [1, 2, 3]], [3, [0, 1, 3]]]
 
         Otherwise some faces get split up to triangles::
@@ -3461,6 +3550,8 @@ class Polyhedron(SageObject):
             sage: Polyhedron(vertices = [[2,0,0],[4,1,0],[0,5,0],[5,5,0],[1,1,0],[0,0,1]]).triangulated_facial_incidences()
             [[0, [0, 1, 5]], [1, [0, 4, 5]], [2, [2, 4, 5]], [3, [2, 3, 5]], [4, [1, 3, 5]], [5, [0, 1, 4]], [5, [1, 4, 3]], [5, [4, 3, 2]]]
         """
+        from sage.misc.misc import deprecation
+        deprecation('This method is deprecated. Use triangulate() instead.', 'Sage Version 4.7.1')
         try:
             return self._triangulated_facial_incidences
         except AttributeError:
@@ -3527,9 +3618,16 @@ class Polyhedron(SageObject):
 
             sage: p = polytopes.cuboctahedron()
             sage: sc = p.simplicial_complex()
+            doctest:...: DeprecationWarning: (Since Sage Version 4.7.1)
+            This method is deprecated. Use triangulate().simplicial_complex() instead.
+            doctest:...: DeprecationWarning: (Since Sage Version 4.7.1)
+            This method is deprecated. Use triangulate() instead.
             sage: sc
             Simplicial complex with 13 vertices and 20 facets
         """
+        from sage.misc.misc import deprecation
+        deprecation('This method is deprecated. Use triangulate().simplicial_complex() instead.',
+                    'Sage Version 4.7.1')
         from sage.homology.simplicial_complex import SimplicialComplex
         return SimplicialComplex(vertex_set = self.n_vertices(),
                                  maximal_faces = [x[1] for x in self.triangulated_facial_incidences()])
@@ -4386,6 +4484,21 @@ class Polyhedron(SageObject):
 
         return True
 
+    def is_simplex(self):
+        r"""
+        Return whether the polyhedron is a simplex.
+
+        EXAMPLES::
+
+            sage: Polyhedron([(0,0,0), (1,0,0), (0,1,0)]).is_simplex()
+            True
+            sage: polytopes.n_simplex(3).is_simplex()
+            True
+            sage: polytopes.n_cube(3).is_simplex()
+            False
+        """
+        return self.is_compact() and (self.dim()+1==self.n_vertices())
+
     def is_lattice_polytope(self):
         r"""
         Return whether the polyhedron is a lattice polytope.
@@ -4406,15 +4519,8 @@ class Polyhedron(SageObject):
             return self._is_lattice_polytope
         except AttributeError:
             pass
-
-        self._is_lattice_polytope = False
-        if self.is_compact():
-            try:
-                matrix(ZZ, self.vertices())
-                self._is_lattice_polytope = True
-            except TypeError:
-                pass
-
+        self._is_lattice_polytope = self.is_compact() and \
+            all(v.is_integral() for v in self.vertex_generator())
         return self._is_lattice_polytope
 
     def lattice_polytope(self, envelope=False):
@@ -4517,6 +4623,121 @@ class Polyhedron(SageObject):
         self._lattice_polytope = LatticePolytope(vertices)
         return self._lattice_polytope
 
+    def _integral_points_PALP(self):
+        r"""
+        Return the integral points in the polyhedron using PALP.
+
+        This method is for testing purposes and will eventually be removed.
+
+        OUTPUT:
+
+        The list of integral points in the polyhedron. If the
+        polyhedron is not compact, a ``ValueError`` is raised.
+
+        EXAMPLES::
+
+            sage: Polyhedron(vertices=[(-1,-1),(1,0),(1,1),(0,1)])._integral_points_PALP()
+            [(-1, -1), (1, 0), (1, 1), (0, 1), (0, 0)]
+            sage: Polyhedron(vertices=[(-1/2,-1/2),(1,0),(1,1),(0,1)]).lattice_polytope(True).points()
+            [ 0 -1 -1  1  1  0  0]
+            [-1  0 -1  0  1  1  0]
+            sage: Polyhedron(vertices=[(-1/2,-1/2),(1,0),(1,1),(0,1)])._integral_points_PALP()
+            [(1, 0), (1, 1), (0, 1), (0, 0)]
+        """
+        if not self.is_compact():
+            raise ValueError, 'Can only enumerate points in a compact polyhedron.'
+
+        lp = self.lattice_polytope(True)
+
+        # remove cached values to get accurate timings
+        try:
+            del lp._points
+            del lp._npoints
+        except AttributeError:
+            pass
+
+        if self.is_lattice_polytope():
+            return lp.points().columns()
+
+        points = filter(lambda p: self.contains(p),
+                        lp.points().columns())
+        return points
+
+    def _integral_points_lattice_simplex(self, vertices=None):
+        r"""
+        Return the integral points in a lattice simplex.
+
+        INPUT:
+
+        - ``vertices`` -- ``None`` (default) or a list of
+          integers. The indices of vertices that span the simplex
+          under consideration. By default, it is assumed that the
+          polytope itself is a simplex and all vertices are used.
+
+        OUTPUT:
+
+        A tuple containing the integral point coordinates as `\ZZ`-vectors.
+
+        EXAMPLES::
+
+            sage: simplex = Polyhedron([(1,2,3), (2,3,7), (-2,-3,-11)])
+            sage: simplex._integral_points_lattice_simplex()
+            ((-2, -3, -11), (0, 0, -2), (1, 2, 3), (2, 3, 7))
+
+        The simplex need not be full-dimensional::
+
+            sage: simplex = Polyhedron([(1,2,3,5), (2,3,7,5), (-2,-3,-11,5)])
+            sage: simplex._integral_points_lattice_simplex()
+            ((-2, -3, -11, 5), (0, 0, -2, 5), (1, 2, 3, 5), (2, 3, 7, 5))
+
+            sage: point = Polyhedron([(2,3,7)])
+            sage: point._integral_points_lattice_simplex()
+            ((2, 3, 7),)
+
+        TESTS::
+
+            sage: v = [(1,0,7,-1), (-2,-2,4,-3), (-1,-1,-1,4), (2,9,0,-5), (-2,-1,5,1)]
+            sage: simplex = Polyhedron(v); simplex
+            A 4-dimensional polyhedron in QQ^4 defined as the convex hull of 5 vertices.
+            sage: len(simplex._integral_points_lattice_simplex())
+            49
+
+            sage: v = [(4,-1,-1,-1), (-1,4,-1,-1), (-1,-1,4,-1), (-1,-1,-1,4), (-1,-1,-1,-1)]
+            sage: P4mirror = Polyhedron(v)
+            sage: len( P4mirror._integral_points_lattice_simplex() )
+            126
+        """
+        if not vertices:
+            assert self.is_simplex() and self.is_lattice_polytope()
+            vertices = [ vector(ZZ, v) for v in self.Vrepresentation() ]
+        else:
+            vertices = [ vector(ZZ, self.Vrepresentation(i)) for i in vertices ]
+
+        origin = vertices.pop()
+        origin.set_immutable()
+        if len(vertices)==0:
+            return tuple([origin])
+        rays = [ v-origin for v in vertices ]
+
+        # Find equation Ax<=b that cuts out simplex from parallelotope
+        R = matrix(rays)
+        if R.is_square():
+            b = 1
+            A = R.solve_right(vector([1]*len(rays)))
+        else:
+            b = 1
+            RRt = R * R.transpose()
+            A = RRt.solve_right(vector([1]*len(rays))) * R
+
+        from sage.geometry.cone import parallelotope_points
+        gens = list(parallelotope_points(rays)) + list(rays)
+        gens = [ origin+x for x in
+                 list(parallelotope_points(rays)) + list(rays)
+                 if A*x<=b ]
+        for x in gens:
+            x.set_immutable()
+        return tuple(gens)
+
     def integral_points(self):
         r"""
         Return the integral points in the polyhedron.
@@ -4529,25 +4750,41 @@ class Polyhedron(SageObject):
         EXAMPLES::
 
             sage: Polyhedron(vertices=[(-1,-1),(1,0),(1,1),(0,1)]).integral_points()
-            [(-1, -1), (1, 0), (1, 1), (0, 1), (0, 0)]
-            sage: Polyhedron(vertices=[(-1/2,-1/2),(1,0),(1,1),(0,1)]).lattice_polytope(True).points()
-            [ 0 -1 -1  1  1  0  0]
-            [-1  0 -1  0  1  1  0]
-            sage: Polyhedron(vertices=[(-1/2,-1/2),(1,0),(1,1),(0,1)]).integral_points()
-            [(1, 0), (1, 1), (0, 1), (0, 0)]
+            ((0, 1), (1, 0), (0, 0), (1, 1), (-1, -1))
+
+        Finally, 3-d reflexive polytope number 4078::
+
+            sage: v = [(1,0,0), (0,1,0), (0,0,1), (0,0,-1), (0,-2,1),
+            ...        (-1,2,-1), (-1,2,-2), (-1,1,-2), (-1,-1,2), (-1,-3,2)]
+            sage: pts1 = set(Polyhedron(v).integral_points())    # Sage's own code
+            sage: pts2 = LatticePolytope(v).points().columns()   # PALP
+            sage: for p in pts2:
+            ...       p.set_immutable()
+            sage: pts2 = set(pts2)
+            sage: pts1 == pts2
+            True
+
+        TODO: profile and make faster::
+
+            sage: timeit('Polyhedron(v).integral_points()')   # random output
+            sage: timeit('LatticePolytope(v).points()')       # random output
         """
         if not self.is_compact():
-            raise ValueError, 'Can only enumerate points in a compact polyhedron.'
+            raise ValueError('Can only enumerate points in a compact polyhedron.')
+        if not self.is_lattice_polytope():
+            raise NotImplementedError('Only implemented for polyhedra with integral vertices')
 
-        lp = self.lattice_polytope(True)
+        if self.is_simplex():
+            points = self._integral_points_lattice_simplex()
+        else:
+            triangulation = self.triangulate()
+            points = set()
+            for simplex in triangulation:
+                points.update(self._integral_points_lattice_simplex(simplex))
+            points = tuple(points)
 
-        if self.is_lattice_polytope():
-            return lp.points().columns()
-
-        points = filter(lambda p: self.contains(p),
-                        lp.points().columns())
+        # assert all(self.contains(p) for p in points)   # slow
         return points
-
 
     def combinatorial_automorphism_group(self):
         """

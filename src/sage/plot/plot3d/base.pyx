@@ -1126,7 +1126,12 @@ end_scene""" % (render_params.antialiasing,
 
             # We need a script to load the file
             f = open(filename + '.jmol', 'w')
-            f.write('set defaultdirectory "%s"\n' % archive_name)
+            if EMBEDDED_MODE:
+                import sagenb
+                path = "cells/%s/%s" %(sagenb.notebook.interact.SAGE_CELL_ID, archive_name)
+            else:
+                path = archive_name
+            f.write('set defaultdirectory "%s"\n' %path)
             f.write('script SCRIPT\n')
             f.close()
 

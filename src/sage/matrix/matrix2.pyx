@@ -9429,6 +9429,976 @@ cdef class Matrix(matrix1.Matrix):
 
         return left_mat, a, pivs
 
+    def _zigzag_form(self, basis=True):
+        r"""
+        Helper method for computation of ZigZag form.
+
+        INPUT:
+
+        - ``self`` - a square matrix over an exact field.
+
+        - ``basis`` - default; ``True`` - controls whether or not to
+          compute a change-of-basis matrix (also called a transformation
+          matrix).
+
+        OUTPUT:
+
+        See the documentation for the :meth:`zigzag_form` method for a
+        description of ZigZag form and notes on the algorithm employed.
+
+        When ``basis=True`` four items are returned.  The first is a matrix
+        whose columns form a basis so that a matrix representation of ``self``
+        relative to this basis will be the ZigZag form.  More precisely, if
+        `A` is the matrix, `U` is the change-of-basis matrix and `Z` is
+        the ZigZag form, then
+
+        .. math::
+
+            U^{-1}*A*U = Z
+
+        The second item returned is the ZigZag form of the matrix.  The
+        third item is a list of lists, where each list is the coefficients
+        of the polynomial associated with a companion matrix in the form.
+        Finally, the fourth item is a list of the entries in the upper-left
+        corner of each off-diagonal block, which will be a zero or a one.
+        The length of the list of corner entries will be one less than the
+        length of list of polynomials.
+
+        When ``basis=False`` only three items are returned.  These are
+        just as above, but without the change-of-basis matrix.
+
+        The compuation of the change-of-basis matrix has not been optimized.
+        As a helper method, no error checking is performed on the inputs -
+        that should be performed by the calling method.
+
+        ALGORITHM:
+
+        ZigZag form, and its computation, are due to Arne Storjohann
+        and are  described in [STORJOHANN-THESIS]_ and
+        [STORJOHANN-ISACC98]_, where the former is more
+        representative of the code here.
+
+        EXAMPLE:
+
+            sage: A = matrix(QQ, [[-68,   69, -27, -11, -65,   9, -181, -32],
+            ...                   [-52,   52, -27,  -8, -52, -16, -133, -14],
+            ...                   [ 92,  -97,  47,  14,  90,  32,  241,  18],
+            ...                   [139, -144,  60,  18, 148, -10,  362,  77],
+            ...                   [ 40,  -41,  12,   6,  45, -24,  105,  42],
+            ...                   [-46,   48, -20,  -7, -47,   0, -122, -22],
+            ...                   [-26,   27, -13,  -4, -29,  -6,  -66, -14],
+            ...                   [-33,   34, -13,  -5, -35,   7,  -87, -23]])
+            sage: Z, polys, corners = A._zigzag_form(basis=False)
+            sage: Z
+            [  0   0   0  40   1   0   0   0]
+            [  1   0   0  52   0   0   0   0]
+            [  0   1   0  18   0   0   0   0]
+            [  0   0   1  -1   0   0   0   0]
+            [  0   0   0   0   0   1   0   0]
+            [  0   0   0   0 -25  10   0   0]
+            [  0   0   0   0   1   0   0  -4]
+            [  0   0   0   0   0   0   1  -4]
+            sage: polys
+            [[-40, -52, -18, 1, 1], [25, -10, 1], [4, 4, 1]]
+            sage: corners
+            [1, 1]
+            sage: len(polys) == len(corners) + 1
+            True
+
+            sage: U, X, polys, corners = A._zigzag_form()
+            sage: 38416*U
+            [        38416      -2612288      -8797264     -47943168   83753660284  -16775074316    1574993574  -12141218334]
+            [            0      -1997632      -7222208     -38108672   66323477868  -13362573684    3694412232  -12414630592]
+            [            0       3534272      12523616      66920672 -116699384082   23442252424   -4176610942   18012693216]
+            [            0       5339824      18631760     100842000 -175585304193   35191011843   -3619613634   22708786576]
+            [            0       1536640       5301408      28812000  -50432310506   10071675864      79884994    5258177064]
+            [            0      -1767136      -6261808     -33460336   58377759731  -11719115889    1849749314   -8725304756]
+            [            0       -998816      -3611104     -19054336   33189768208   -6681286842    1651135654   -5815174372]
+            [            0      -1267728      -4456256     -23933168   41831027339   -8380482791     785625330   -5536675718]
+            sage: X == Z
+            True
+            sage: U.inverse()*A*U == X
+            True
+
+        AUTHOR:
+
+        - Rob Beezer (2011-06-09)
+        """
+        import sage.matrix.constructor
+        cdef Py_ssize_t n, s, c, i, j, k
+
+        n = self._ncols
+        R = self.base_ring()
+        zero = R(0)
+        one = R(1)
+        cdef Matrix Z
+        Z = self.__copy__()
+        polys = []    # coefficients for polynomials of companion matrices
+        corners = []  # zero or one in corner of off-diagonal blocks
+        if basis:
+            U = sage.matrix.constructor.identity_matrix(R, n) # transformation matrix
+        # parity switch, True iff working on transpose
+        # if False, mimic row operations only on U
+        # if True,  mimic column operations only on U
+        trans = False
+        s = 0  # index of top row of current block
+        c = 0  # index of current row of current block
+        while s < n:
+            zigging = True
+            # check for totally zero column below diagonal
+            while zigging:  # zigging means we are building a block
+                nonzero = -1
+                for i in range(c+1, n):
+                    if Z[i, c] != 0:
+                        nonzero = i
+                        break
+                zigging = (nonzero != -1)
+                if zigging:
+                    Z.swap_rows(nonzero, c+1)
+                    Z.swap_columns(nonzero, c+1)
+                    if basis:
+                        if trans:
+                            U.swap_columns(nonzero, c+1)
+                        else:
+                            U.swap_rows(nonzero, c+1)
+
+                    # create a subdiagonal entry 1
+                    scale = Z[c+1, c]
+                    Z.rescale_row(c+1, 1/scale)
+                    Z.rescale_col(c+1, scale)
+                    if basis:
+                        if trans:
+                            U.rescale_col(c+1, scale)
+                        else:
+                            U.rescale_row(c+1, 1/scale)
+
+                    # clear column throughout the block,and in all rows below
+                    for i in range(s, n):
+                        if i != c+1:
+                            scale = Z[i, c]
+                            Z.add_multiple_of_row(i, c+1, -scale)
+                            Z.add_multiple_of_column(c+1, i, scale)
+                            if basis:
+                                if trans:
+                                    U.add_multiple_of_column(c+1, i, scale)
+                                else:
+                                    U.add_multiple_of_row(i, c+1, -scale)
+                    # move to next column
+                    # column of coefficients will cause zero search to fail
+                    # at the top of this loop, and then we leave the column alone
+                    # having built a block
+                    c = c + 1
+
+            # now have a companion matrix between rows  s  and  c
+            # (inclusive), use it to clear entries to the right
+            # but first record polynomial for block just built
+            # this is the full monic polynomial, with correct coefficients
+            p = []
+            for i in range(s, c+1):
+                p.append(-Z[i, c])
+            p.append(R(1))
+            polys.append(p)
+
+            # use new unit columns (i) to clear rows to right (j)
+            # all but top row of block to the right will become zero
+            # it is important that the loop on  i  goes in reverse
+            for i in range(c-1, s-1, -1):
+                for j in range(c+1, n):
+                    scale = Z[i+1, j]
+                    # Effectively: Z.add_multiple_of_column(j, i, -scale)
+                    Z.set_unsafe(i+1, j, zero)
+                    # row j leads with zeros, up to, and including column c
+                    # Effectively: Z.add_multiple_of_row(i, j, scale)
+                    for k in range(c+1, n):
+                        # Z[i,k] = Z[i,k] + scale*Z[j,k]
+                        Z.set_unsafe(i, k, Z.get_unsafe(i,k)+scale*Z.get_unsafe(j,k))
+                    if basis:
+                        if trans:
+                            U.add_multiple_of_column(j, i, -scale)
+                        else:
+                            U.add_multiple_of_row(i, j, scale)
+
+            # row  s  to the right of the block needs care
+            # we will be left with a leading one, or totally zeros
+            nonzero = -1
+            # locate a nonzero entry in row  s
+            for j in range(c+1, n):
+                if Z[s, j] != 0:
+                    nonzero = j
+                    break
+            if (nonzero != -1):
+                # swap column wih nonzero entry just outside block
+                if nonzero != c+1:
+                    Z.swap_columns(c+1, nonzero)
+                    Z.swap_rows(c+1, nonzero)
+                    if basis:
+                        if trans:
+                            U.swap_columns(c+1, nonzero)
+                        else:
+                            U.swap_rows(c+1, nonzero)
+                scale = Z[s, c+1]
+                Z.rescale_col(c+1, 1/scale)
+                Z.rescale_row(c+1, scale)
+                if basis:
+                    if trans:
+                        U.rescale_col(c+1, 1/scale)
+                    else:
+                        U.rescale_row(c+1, scale)
+                for j in range(c+2, n):
+                    scale = Z[s, j]
+                    # exploiting leading zeros does not seem too beneficial here
+                    Z.add_multiple_of_column(j, c+1, -scale)
+                    Z.add_multiple_of_row(c+1, j, scale)
+                    if basis:
+                        if trans:
+                            U.add_multiple_of_column(j, c+1, -scale)
+                        else:
+                            U.add_multiple_of_row(c+1, j, scale)
+
+            # maybe move this closer to where we know which it is
+            if c < n-1:
+                corners.append(Z[s, c+1])
+            # reset indices for constructing next block
+            # transpose all elements, this is a zig or a zag
+            c = c+1
+            s = c
+            Z = Z.transpose()
+            if basis:
+                U = U.transpose()
+            trans = not trans
+
+        # maybe return to un-transposed state
+        if trans:
+            Z = Z.transpose()
+            if basis:
+                U = U.transpose()
+        if basis:
+            # Storjohann computes U, we return its inverse
+            # after this step, the columns of U are basis for representing self
+            # code could be re-arranged to compute U's inverse directly
+            return U.inverse(), Z, polys, corners
+        return Z, polys, corners
+
+    def zigzag_form(self, subdivide=True, transformation=False):
+        r"""
+        Find a matrix in ZigZag form that is similar to ``self``.
+
+        INPUT:
+
+        - ``self`` - a square matrix with entries from an exact field.
+
+        - ``transformation`` - default: False - if ``True`` return a
+          change-of-basis matrix relating the matrix and its ZigZag form.
+
+        - ``subdivide`` - default: ``True`` - if ``True`` the ZigZag
+          form matrix is subdivided according to the companion matrices
+          described in the output section below.
+
+        OUTPUT:
+
+        A matrix in ZigZag form has blocks on the main diagonal that are
+        companion matrices.  The first companion matrix has ones just below
+        the main diagonal.  The last column has the negatives of coefficients
+        of a monic polynomial, but not the leading one.  Low degree monomials
+        have their coefficients in the earlier rows.  The second companion
+        matrix is like the first only transposed.  The third is like the first.
+        The fourth is like the second.  And so on.
+
+        These blocks on the main diagonal define blocks just off the diagonal.
+        To the right of the first companion matrix, and above the second
+        companion matrix is a block that is totally zero, except the entry
+        of the first row and first column may be a one.  Below the second
+        block and to the left of the third block is a block that is totally
+        zero, except the entry of the first row and first column may be one.
+        This alternating pattern continues. It may now be apparent how this
+        form gets its name.  Any other entry of the matrix is zero.  So this
+        form is reminiscent of rational canonical form and is a good precursor
+        to that form.
+
+        If ``transformation`` is ``True``, then the output is a pair of
+        matrices.  The first is the form ``Z`` and the second is an invertible
+        matrix ``U`` such that ``U.inverse()*self*U`` equals ``Z``.  In other
+        words, the repsentation of ``self`` with respect to the columns
+        of ``U`` will be ``Z``.
+
+        If subdivide is ``True`` then the matrix returned as the form is
+        partitioned according to the companion matrices and these may be
+        manipulated by several different matrix methods.
+
+        For output that may be more useful as input to other routines,
+        see the helper method :meth:`_zigzag_form`.
+
+        .. note::
+
+            An efffort has been made to optimize computation of the form,
+            but no such work has been done for the computation of the
+            transformation matrix, so for fastest results do not request the
+            transformation matrix.
+
+        ALGORITHM:
+
+        ZigZag form, and its computation, are due to Arne Storjohann
+        and are  described in [STORJOHANN-THESIS]_ and
+        [STORJOHANN-ISACC98]_, where the former is more
+        representative of the code here.
+
+        EXAMPLES:
+
+        Two examples that illustrate ZigZag form well. Notice that this is
+        *not* a canonical form.  The two matrices below are similar, since
+        they have equal Jordan canonical forms, yet their ZigZag forms are
+        quite different.  In other words, while the computation of the form
+        is deterministic, the final result, when viewed as a property of a
+        linear transformation, is dependent on the basis used for the
+        matrix representation.  ::
+
+            sage: A = matrix(QQ, [[-68,   69, -27, -11, -65,   9, -181, -32],
+            ...                   [-52,   52, -27,  -8, -52, -16, -133, -14],
+            ...                   [ 92,  -97,  47,  14,  90,  32,  241,  18],
+            ...                   [139, -144,  60,  18, 148, -10,  362,  77],
+            ...                   [ 40,  -41,  12,   6,  45, -24,  105,  42],
+            ...                   [-46,   48, -20,  -7, -47,   0, -122, -22],
+            ...                   [-26,   27, -13,  -4, -29,  -6,  -66, -14],
+            ...                   [-33,   34, -13,  -5, -35,   7,  -87, -23]])
+            sage: Z, U = A.zigzag_form(transformation=True)
+            sage: Z
+            [  0   0   0  40|  1   0|  0   0]
+            [  1   0   0  52|  0   0|  0   0]
+            [  0   1   0  18|  0   0|  0   0]
+            [  0   0   1  -1|  0   0|  0   0]
+            [---------------+-------+-------]
+            [  0   0   0   0|  0   1|  0   0]
+            [  0   0   0   0|-25  10|  0   0]
+            [---------------+-------+-------]
+            [  0   0   0   0|  1   0|  0  -4]
+            [  0   0   0   0|  0   0|  1  -4]
+            sage: U.inverse()*A*U == Z
+            True
+
+            sage: B = matrix(QQ, [[ 16,  69, -13,   2, -52,  143,   90,  -3],
+            ...                   [ 26,  54,   6,  -5, -28,   73,   73, -48],
+            ...                   [-16, -79,  12, -10,  64, -142, -115,  41],
+            ...                   [ 27,  -7,  21, -33,  39,  -20,  -42,  43],
+            ...                   [  8, -75,  34, -32,  86, -156, -130,  42],
+            ...                   [  2, -17,   7,  -8,  20,  -33,  -31,  16],
+            ...                   [-24, -80,   7,  -3,  56, -136, -112,  42],
+            ...                   [ -6, -19,   0,  -1,  13,  -28,  -27,  15]])
+            sage: Z, U = B.zigzag_form(transformation=True)
+            sage: Z
+            [   0    0    0    0    0 1000|   0|   0]
+            [   1    0    0    0    0  900|   0|   0]
+            [   0    1    0    0    0  -30|   0|   0]
+            [   0    0    1    0    0 -153|   0|   0]
+            [   0    0    0    1    0    3|   0|   0]
+            [   0    0    0    0    1    9|   0|   0]
+            [-----------------------------+----+----]
+            [   0    0    0    0    0    0|  -2|   0]
+            [-----------------------------+----+----]
+            [   0    0    0    0    0    0|   1|  -2]
+            sage: U.inverse()*B*U == Z
+            True
+
+            sage: A.jordan_form() == B.jordan_form()
+            True
+
+        Two more examples, illustrating the two extremes of the zig-zag
+        nature of this form.  The first has a one in each of the
+        off-diagonal blocks, the second has all zeros in each off-diagonal
+        block.  Notice again that the two matrices are similar, since their
+        Jordan canonical forms are equal. ::
+
+            sage: C = matrix(QQ, [[2,  31, -10,  -9, -125,  13,  62, -12],
+            ...                   [0,  48, -16, -16, -188,  20,  92, -16],
+            ...                   [0,   9,  -1,   2,  -33,   5,  18,   0],
+            ...                   [0,  15,  -5,   0,  -59,   7,  30,  -4],
+            ...                   [0, -21,   7,   2,   84, -10, -42,   5],
+            ...                   [0, -42,  14,   8,  167, -17, -84,  13],
+            ...                   [0, -50,  17,  10,  199, -23, -98,  14],
+            ...                   [0,  15,  -5,  -2,  -59,   7,  30, -2]])
+            sage: Z, U = C.zigzag_form(transformation=True)
+            sage: Z
+            [2|1|0|0|0|0|0|0]
+            [-+-+-+-+-+-+-+-]
+            [0|2|0|0|0|0|0|0]
+            [-+-+-+-+-+-+-+-]
+            [0|1|2|1|0|0|0|0]
+            [-+-+-+-+-+-+-+-]
+            [0|0|0|2|0|0|0|0]
+            [-+-+-+-+-+-+-+-]
+            [0|0|0|1|2|1|0|0]
+            [-+-+-+-+-+-+-+-]
+            [0|0|0|0|0|2|0|0]
+            [-+-+-+-+-+-+-+-]
+            [0|0|0|0|0|1|2|1]
+            [-+-+-+-+-+-+-+-]
+            [0|0|0|0|0|0|0|2]
+            sage: U.inverse()*C*U == Z
+            True
+
+            sage: D = matrix(QQ, [[ -4,   3,    7,   2,  -4,   5,    7,   -3],
+            ...                   [ -6,   5,    7,   2,  -4,   5,    7,   -3],
+            ...                   [ 21, -12,   89,  25,   8,  27,   98,  -95],
+            ...                   [ -9,   5,  -44, -11,  -3, -13,  -48,   47],
+            ...                   [ 23, -13,   74,  21,  12,  22,   85,  -84],
+            ...                   [ 31, -18,  135,  38,  12,  47,  155, -147],
+            ...                   [-33,  19, -138, -39, -13, -45, -156,  151],
+            ...                   [ -7,   4,  -29,  -8,  -3, -10,  -34,  34]])
+            sage: Z, U = D.zigzag_form(transformation=True)
+            sage: Z
+            [ 0 -4| 0  0| 0  0| 0  0]
+            [ 1  4| 0  0| 0  0| 0  0]
+            [-----+-----+-----+-----]
+            [ 0  0| 0  1| 0  0| 0  0]
+            [ 0  0|-4  4| 0  0| 0  0]
+            [-----+-----+-----+-----]
+            [ 0  0| 0  0| 0 -4| 0  0]
+            [ 0  0| 0  0| 1  4| 0  0]
+            [-----+-----+-----+-----]
+            [ 0  0| 0  0| 0  0| 0  1]
+            [ 0  0| 0  0| 0  0|-4  4]
+            sage: U.inverse()*D*U == Z
+            True
+
+            sage: C.jordan_form() == D.jordan_form()
+            True
+
+        ZigZag form is achieved entirely with the operations of the field, so
+        while the eigenvalues may lie outside the field, this does not impede
+        the computation of the form.  ::
+
+            sage: F.<a> = GF(5^4)
+            sage: A = matrix(F, [[     a,      0,  0, a + 3],
+            ...                  [     0,a^2 + 1,  0,     0],
+            ...                  [     0,      0,a^3,     0],
+            ...                  [a^2 +4 ,     0,   0,a + 2]])
+            sage: A.zigzag_form()
+            [                    0 a^3 + 2*a^2 + 2*a + 2|                    0|                    0]
+            [                    1               2*a + 2|                    0|                    0]
+            [-------------------------------------------+---------------------+---------------------]
+            [                    0                     0|                  a^3|                    0]
+            [-------------------------------------------+---------------------+---------------------]
+            [                    0                     0|                    0|              a^2 + 1]
+            sage: A.eigenvalues()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: eigenvalues() is not implemented for matrices with eigenvalues that are not in the fraction field of the base ring or in QQbar
+
+        Subdivisions are optional.  ::
+
+            sage: F.<a> = GF(5^4)
+            sage: A = matrix(F, [[     a,      0,  0, a + 3],
+            ...                  [     0,a^2 + 1,  0,     0],
+            ...                  [     0,      0,a^3,     0],
+            ...                  [a^2 +4 ,     0,   0,a + 2]])
+            sage: A.zigzag_form(subdivide=False)
+            [                    0 a^3 + 2*a^2 + 2*a + 2                     0                     0]
+            [                    1               2*a + 2                     0                     0]
+            [                    0                     0                   a^3                     0]
+            [                    0                     0                     0               a^2 + 1]
+
+        TESTS::
+
+            sage: A = matrix(QQ, 2, 3, range(6))
+            sage: A.zigzag_form()
+            Traceback (most recent call last):
+            ...
+            TypeError: matrix must be square, not 2 x 3
+
+            sage: A = matrix(Integers(6), 2, 2, range(4))
+            sage: A.zigzag_form()
+            Traceback (most recent call last):
+            ...
+            TypeError: matrix entries must come from an exact field, not Ring of integers modulo 6
+
+            sage: A = matrix(RDF, 2, 2, range(4))
+            sage: A.zigzag_form()
+            Traceback (most recent call last):
+            ...
+            TypeError: matrix entries must come from an exact field, not Real Double Field
+
+            sage: A = matrix(QQ, 2, range(4))
+            sage: A.zigzag_form(transformation='junk')
+            Traceback (most recent call last):
+            ...
+            ValueError: 'transformation' keyword must be True or False, not junk
+
+            sage: A = matrix(QQ, 2, range(4))
+            sage: A.zigzag_form(subdivide='garbage')
+            Traceback (most recent call last):
+            ...
+            ValueError: 'subdivide' keyword must be True or False, not garbage
+
+        .. rubric:: Citations
+
+        .. [STORJOHANN-THESIS] A. Storjohann, Algorithms
+           for Matrix Canonical Forms. PhD Thesis. Department
+           of Computer Science, Swiss Federal Institute of
+           Technology -- ETH, 2000.
+
+        .. [STORJOHANN-ISACC98] A. Storjohann, An O(n^3)
+           algorithm for Frobenius normal form. Proceedings
+           of the International Symposium on Symbolic and
+           Algebraic Computation (ISSAC'98), ACM Press, 1998, pp. 101-104.
+
+        AUTHOR:
+
+        - Rob Beezer (2011-06-09)
+        """
+        R = self.base_ring()
+        if not self.is_square():
+            raise TypeError("matrix must be square, not {0} x {1}".format(self.nrows(), self.ncols()))
+        if not (R.is_field() and R.is_exact()):
+            raise TypeError("matrix entries must come from an exact field, not {0}".format(R))
+        if transformation not in [True, False]:
+            raise ValueError("'transformation' keyword must be True or False, not {0}".format(transformation))
+        if subdivide not in [True, False]:
+            raise ValueError("'subdivide' keyword must be True or False, not {0}".format(subdivide))
+        if transformation:
+            U, Z, polys, corners = self._zigzag_form(basis=True)
+        else:
+            Z, polys, corners = self._zigzag_form(basis=False)
+        if subdivide:
+            s = 0
+            splits = []
+            for p in polys[:-1]:
+                s = s + len(p) - 1
+                splits.append(s)
+            Z.subdivide(splits, splits)
+        if transformation:
+            return Z, U
+        else:
+            return Z
+
+    def rational_form(self, format='right', subdivide=True):
+        r"""
+        Returns the rational canonical form, also known as Frobenius form.
+
+        INPUT:
+
+        - ``self`` - a square matrix with entries from an exact field.
+
+        - ``format`` - default: 'right' - one of 'right', 'bottom',
+          'left', 'top' or 'invariants'.  The first four will cause a
+          matrix to be returned with companion matrices dictated by the
+          keyword.  The value 'invariants' will cause a list of lists to
+          be returned, where each list contains coefficients of a
+          polynomial associated with a companion matrix.
+
+        - `subdivide` - default: 'True' - if 'True' and a matrix is
+          returned, then it contains subdivisions delineating the
+          companion matrices along the diagonal.
+
+        OUTPUT:
+
+        The rational form of a matrix is a similar matrix composed of
+        submatrices ("blocks") placed on the main diagonal.  Each block
+        is a companion matrix.  Associated with each companion matrix is a
+        polynomial.  In rational form, the polynomial of one block will
+        divide the polynomial of the next block (and thus, the polynomials
+        of all subsequent blocks).
+
+        Rational form, also known as Frobenius form, is a canonical form.
+        In other words, two matrices are similar if and only if their
+        rational canonical forms are equal.  The algorithm used does not
+        provide the similarity transformation matrix (also known as the
+        change-of-basis matrix).
+
+        Companion matrices may be written in one of four styles, and any
+        such style may be selected with the ``format`` keyword.  See the
+        companion matrix constructor,
+        :meth:`sage.matrix.constructor.companion_matrix`,
+        for more information about companion matrices.
+
+        If the 'invariants' value is used for the ``format`` keyword,
+        then the return value is a list of lists, where each list is the
+        coefficients of the polynomial associated with one of the companion
+        matrices on the diagonal.  These coefficients include the leading
+        one of the monic polynomial and are ready to be coerced into
+        any polynomial ring over the same field (see examples of this below).
+        This return value is intended to be the most compact representation
+        and the easiest to use for testing equality of rational forms.
+
+        Because the minimal and characteristic polynomials of a companion
+        matrix are the associated polynomial, it is easy to see that the
+        product of the polynomials of the blocks will be the characteristic
+        polynomial and the final polynomial will be the minimal polynomial
+        of the entire matrix.
+
+        ALGORITHM:
+
+        We begin with ZigZag form, which is due to Arne Storjohann
+        and is documented at :meth:`zigzag_form`.  Then we eliminate
+        ''corner'' entries enroute to rational form via an additional
+        algorithm of Storjohann's [STORJOHANN-EMAIL]_.
+
+        EXAMPLES:
+
+        The lists of coefficients returned with the ``invariants`` keyword
+        are designed to easily convert to the polynomials associated with
+        the companion matrices.  This is illustrated by the construction
+        below of the ``polys`` list.  Then we can test the divisibility
+        condition on the list of polynomials. Also the minimal and
+        characteristic polynomials are easy to determine from this list. ::
+
+            sage: A = matrix(QQ, [[ 11,  14, -15,  -4, -38, -29,  1,  23,  14, -63,  17,  24,  36,  32],
+            ...                   [ 18,   6, -17, -11, -31, -43, 12,  26,   0, -69,  11,  13,  17,  24],
+            ...                   [ 11,  16, -22,  -8, -48, -34,  0,  31,  16, -82,  26,  31,  39,  37],
+            ...                   [ -8, -18,  22,  10,  46,  33,  3, -27, -12,  70, -19, -20, -42, -31],
+            ...                   [-13, -21,  16,  10,  52,  43,  4, -28, -25,  89, -37, -20, -53, -62],
+            ...                   [ -2,  -6,   0,   0,   6,  10,  1,   1,  -7,  14, -11,  -3, -10, -18],
+            ...                   [ -9, -19,  -3,   4,  23,  30,  8,  -3, -27,  55, -40,  -5, -40, -69],
+            ...                   [  4,  -8,  -1,  -1,   5,  -4,  9,   5, -11,   4, -14,  -2, -13, -17],
+            ...                   [  1,  -2,  16,  -1,  19,  -2, -1, -17,   2,  19,   5, -25,  -7,  14],
+            ...                   [  7,   7, -13,  -4, -26,  -21, 3,  18,   5, -40,   7,  15,  20,  14],
+            ...                   [ -6,  -7, -12,   4,  -1,  18,  3,   8, -11,  15, -18,  17, -15, -41],
+            ...                   [  5,  11, -11,  -3, -26, -19, -1,  14,  10, -42,  14,  17,  25,  23],
+            ...                   [-16, -15,   3,  10,  29,  45, -1, -13, -19,  71, -35,  -2, -35, -65],
+            ...                   [  4,   2,   3,  -2,  -2, -10,  1,   0,   3, -11,   6,  -4,   6,  17]])
+            sage: A.rational_form()
+            [   0   -4|   0    0    0    0|   0    0    0    0    0    0    0    0]
+            [   1    4|   0    0    0    0|   0    0    0    0    0    0    0    0]
+            [---------+-------------------+---------------------------------------]
+            [   0    0|   0    0    0   12|   0    0    0    0    0    0    0    0]
+            [   0    0|   1    0    0   -4|   0    0    0    0    0    0    0    0]
+            [   0    0|   0    1    0   -9|   0    0    0    0    0    0    0    0]
+            [   0    0|   0    0    1    6|   0    0    0    0    0    0    0    0]
+            [---------+-------------------+---------------------------------------]
+            [   0    0|   0    0    0    0|   0    0    0    0    0    0    0 -216]
+            [   0    0|   0    0    0    0|   1    0    0    0    0    0    0  108]
+            [   0    0|   0    0    0    0|   0    1    0    0    0    0    0  306]
+            [   0    0|   0    0    0    0|   0    0    1    0    0    0    0 -271]
+            [   0    0|   0    0    0    0|   0    0    0    1    0    0    0  -41]
+            [   0    0|   0    0    0    0|   0    0    0    0    1    0    0  134]
+            [   0    0|   0    0    0    0|   0    0    0    0    0    1    0  -64]
+            [   0    0|   0    0    0    0|   0    0    0    0    0    0    1   13]
+
+            sage: R = PolynomialRing(QQ, 'x')
+            sage: invariants = A.rational_form(format='invariants')
+            sage: invariants
+            [[4, -4, 1], [-12, 4, 9, -6, 1], [216, -108, -306, 271, 41, -134, 64, -13, 1]]
+            sage: polys = [R(p) for p in invariants]
+            sage: [p.factor() for p in polys]
+            [(x - 2)^2, (x - 3) * (x + 1) * (x - 2)^2, (x + 1)^2 * (x - 3)^3 * (x - 2)^3]
+            sage: all(polys[i].divides(polys[i+1]) for i in range(len(polys)-1))
+            True
+            sage: polys[-1] == A.minimal_polynomial(var='x')
+            True
+            sage: prod(polys) == A.characteristic_polynomial(var='x')
+            True
+
+        Rational form is a canonical form.  Any two matrices are similar
+        if and only if their rational forms are equal.  By starting with
+        Jordan canonical forms, the matrices ``C`` and ``D`` below were
+        built as similar matrices, while ``E`` was built to be just
+        slightly different.  All three matrices have equal characteristic
+        polynomials though ``E``'s minimal polynomial differs. ::
+
+            sage: C = matrix(QQ, [[2,  31, -10,  -9, -125,  13,  62, -12],
+            ...                   [0,  48, -16, -16, -188,  20,  92, -16],
+            ...                   [0,   9,  -1,   2,  -33,   5,  18,   0],
+            ...                   [0,  15,  -5,   0,  -59,   7,  30,  -4],
+            ...                   [0, -21,   7,   2,   84, -10, -42,   5],
+            ...                   [0, -42,  14,   8,  167, -17, -84,  13],
+            ...                   [0, -50,  17,  10,  199, -23, -98,  14],
+            ...                   [0,  15,  -5,  -2,  -59,   7,  30, -2]])
+            sage: C.minimal_polynomial().factor()
+            (x - 2)^2
+            sage: C.characteristic_polynomial().factor()
+            (x - 2)^8
+            sage: C.rational_form()
+            [ 0 -4| 0  0| 0  0| 0  0]
+            [ 1  4| 0  0| 0  0| 0  0]
+            [-----+-----+-----+-----]
+            [ 0  0| 0 -4| 0  0| 0  0]
+            [ 0  0| 1  4| 0  0| 0  0]
+            [-----+-----+-----+-----]
+            [ 0  0| 0  0| 0 -4| 0  0]
+            [ 0  0| 0  0| 1  4| 0  0]
+            [-----+-----+-----+-----]
+            [ 0  0| 0  0| 0  0| 0 -4]
+            [ 0  0| 0  0| 0  0| 1  4]
+
+            sage: D = matrix(QQ, [[ -4,   3,    7,   2,  -4,   5,    7,   -3],
+            ...                   [ -6,   5,    7,   2,  -4,   5,    7,   -3],
+            ...                   [ 21, -12,   89,  25,   8,  27,   98,  -95],
+            ...                   [ -9,   5,  -44, -11,  -3, -13,  -48,   47],
+            ...                   [ 23, -13,   74,  21,  12,  22,   85,  -84],
+            ...                   [ 31, -18,  135,  38,  12,  47,  155, -147],
+            ...                   [-33,  19, -138, -39, -13, -45, -156,  151],
+            ...                   [ -7,   4,  -29,  -8,  -3, -10,  -34,  34]])
+            sage: D.minimal_polynomial().factor()
+            (x - 2)^2
+            sage: D.characteristic_polynomial().factor()
+            (x - 2)^8
+            sage: D.rational_form()
+            [ 0 -4| 0  0| 0  0| 0  0]
+            [ 1  4| 0  0| 0  0| 0  0]
+            [-----+-----+-----+-----]
+            [ 0  0| 0 -4| 0  0| 0  0]
+            [ 0  0| 1  4| 0  0| 0  0]
+            [-----+-----+-----+-----]
+            [ 0  0| 0  0| 0 -4| 0  0]
+            [ 0  0| 0  0| 1  4| 0  0]
+            [-----+-----+-----+-----]
+            [ 0  0| 0  0| 0  0| 0 -4]
+            [ 0  0| 0  0| 0  0| 1  4]
+
+            sage: E = matrix(QQ, [[ 0, -8,   4, -6, -2,   5, -3,  11],
+            ...                   [-2, -4,   2, -4, -2,   4, -2,   6],
+            ...                   [ 5, 14,  -7, 12,  3,  -8,  6, -27],
+            ...                   [-3, -8,   7, -5,  0,   2, -6,  17],
+            ...                   [ 0,  5,   0,  2,  4,  -4,  1,   2],
+            ...                   [-3, -7,   5, -6, -1,   5, -4,  14],
+            ...                   [ 6, 18, -10, 14,  4, -10, 10, -28],
+            ...                   [-2, -6,   4, -5, -1,   3,  -3, 13]])
+            sage: E.minimal_polynomial().factor()
+            (x - 2)^3
+            sage: E.characteristic_polynomial().factor()
+            (x - 2)^8
+            sage: E.rational_form()
+            [  2|  0   0|  0   0|  0   0   0]
+            [---+-------+-------+-----------]
+            [  0|  0  -4|  0   0|  0   0   0]
+            [  0|  1   4|  0   0|  0   0   0]
+            [---+-------+-------+-----------]
+            [  0|  0   0|  0  -4|  0   0   0]
+            [  0|  0   0|  1   4|  0   0   0]
+            [---+-------+-------+-----------]
+            [  0|  0   0|  0   0|  0   0   8]
+            [  0|  0   0|  0   0|  1   0 -12]
+            [  0|  0   0|  0   0|  0   1   6]
+
+
+        The principal feature of rational canonical form is that it
+        can be computed over any field using only field operations.  Other
+        forms, such as Jordan canonical form, are complicated by the need to
+        determine the eigenvalues of the matrix, which can lie outside
+        the field.  The following matrix has all of its eigenvalues
+        outside the rationals - some are irrational (`\pm\sqrt{2}`) and
+        the rest are complex (`-1\pm 2i`).  ::
+
+            sage: A = matrix(QQ,
+            ...   [[-154,  -3,  -54,   44,   48, -244,  -19,   67, -326,   85,   355,   581],
+            ...    [ 504,  25,  156, -145, -171,  793,   99, -213, 1036, -247, -1152, -1865],
+            ...    [ 294,  -1,  112,  -89,  -90,  469,   36, -128,  634, -160,  -695, -1126],
+            ...    [ -49,  -32,  25,    7,   37,  -64,  -58,   12,  -42,  -14,    72,   106],
+            ...    [-261, -123,  65,   47,  169, -358, -254,   70, -309,  -29,   454,   673],
+            ...    [-448, -123, -10,  109,  227, -668, -262,  163, -721,   95,   896,  1410],
+            ...    [  38,    7,   8,  -14,  -17,   66,    6,  -23,   73,  -29,   -78,  -143],
+            ...    [ -96,   10, -55,   37,   24, -168,   17,   56, -231,   88,   237,   412],
+            ...    [ 310,   67,  31,  -81, -143,  473,  143, -122,  538,  -98,  -641, -1029],
+            ...    [ 139,  -35,  99,  -49,  -18,  236,  -41,  -70,  370, -118,  -377,  -619],
+            ...    [ 243,    9,  81,  -72,  -81,  386,   43, -105,  508, -124,  -564,  -911],
+            ...    [-155,   -3, -55,   45,   50, -245,  -27,   65, -328,   77,   365,  583]])
+            sage: A.characteristic_polynomial().factor()
+            (x^2 - 2)^2 * (x^2 + 2*x + 5)^4
+            sage: A.eigenvalues(extend=False)
+            []
+            sage: A.rational_form()
+            [  0  -5|  0   0   0   0|  0   0   0   0   0   0]
+            [  1  -2|  0   0   0   0|  0   0   0   0   0   0]
+            [-------+---------------+-----------------------]
+            [  0   0|  0   0   0  10|  0   0   0   0   0   0]
+            [  0   0|  1   0   0   4|  0   0   0   0   0   0]
+            [  0   0|  0   1   0  -3|  0   0   0   0   0   0]
+            [  0   0|  0   0   1  -2|  0   0   0   0   0   0]
+            [-------+---------------+-----------------------]
+            [  0   0|  0   0   0   0|  0   0   0   0   0  50]
+            [  0   0|  0   0   0   0|  1   0   0   0   0  40]
+            [  0   0|  0   0   0   0|  0   1   0   0   0   3]
+            [  0   0|  0   0   0   0|  0   0   1   0   0 -12]
+            [  0   0|  0   0   0   0|  0   0   0   1   0 -12]
+            [  0   0|  0   0   0   0|  0   0   0   0   1  -4]
+            sage: F.<x> = QQ[]
+            sage: polys = A.rational_form(format='invariants')
+            sage: [F(p).factor() for p in polys]
+            [x^2 + 2*x + 5, (x^2 - 2) * (x^2 + 2*x + 5), (x^2 - 2) * (x^2 + 2*x + 5)^2]
+
+        Rational form may be computed over any field.  The matrix below is
+        an example where the eigenvalues lie outside the field.  ::
+
+            sage: F.<a> = FiniteField(7^2)
+            sage: A = matrix(F,
+            ...   [[5*a + 3, 4*a + 1, 6*a + 2, 2*a + 5,       6, 4*a + 5, 4*a + 5,       5,   a + 6,      5,  4*a + 4],
+            ...    [6*a + 3, 2*a + 4,       0,       6, 5*a + 5,     2*a, 5*a + 1,       1, 5*a + 2,     4*a, 5*a + 6],
+            ...    [3*a + 1, 6*a + 6,   a + 6,       2,       0, 3*a + 6, 5*a + 4, 5*a + 6, 5*a + 2,       3, 4*a + 2],
+            ...    [    3*a,     6*a,     3*a,     4*a, 4*a + 4, 3*a + 6,     6*a,       4, 3*a + 4, 6*a + 2,     4*a],
+            ...    [4*a + 5,   a + 1, 4*a + 3, 6*a + 5, 5*a + 2, 5*a + 2,     6*a, 4*a + 6, 6*a + 4, 5*a + 3, 3*a + 1],
+            ...    [    3*a,     6*a, 4*a + 1, 6*a + 2, 2*a + 5, 4*a + 6,       2,   a + 5, 2*a + 4, 2*a + 1, 2*a + 1],
+            ...    [4*a + 5, 3*a + 3,       6, 4*a + 1, 4*a + 3, 6*a + 3,       6, 3*a + 3,       3,   a + 3,       0],
+            ...    [6*a + 6,   a + 4, 2*a + 6, 3*a + 5, 4*a + 3,       2,       a, 3*a + 4,     5*a, 2*a + 5, 4*a + 3],
+            ...    [3*a + 5, 6*a + 2,     4*a,   a + 5,       0,     5*a, 6*a + 5, 2*a + 1, 3*a + 1, 3*a + 5, 4*a + 2],
+            ...    [3*a + 2,   a + 3, 3*a + 6,       a, 3*a + 5, 5*a + 1, 3*a + 2,   a + 3,   a + 2, 6*a + 1, 3*a + 3],
+            ...    [6*a + 6, 5*a + 1,     4*a,       2, 5*a + 5, 3*a + 5, 3*a + 1,     2*a,     2*a, 2*a + 4, 4*a + 2]])
+            sage: A.rational_form()
+            [  a + 2|      0       0       0|      0       0       0       0       0       0       0]
+            [-------+-----------------------+-------------------------------------------------------]
+            [      0|      0       0   a + 6|      0       0       0       0       0       0       0]
+            [      0|      1       0 6*a + 4|      0       0       0       0       0       0       0]
+            [      0|      0       1 6*a + 4|      0       0       0       0       0       0       0]
+            [-------+-----------------------+-------------------------------------------------------]
+            [      0|      0       0       0|      0       0       0       0       0       0     2*a]
+            [      0|      0       0       0|      1       0       0       0       0       0 6*a + 3]
+            [      0|      0       0       0|      0       1       0       0       0       0 6*a + 1]
+            [      0|      0       0       0|      0       0       1       0       0       0   a + 2]
+            [      0|      0       0       0|      0       0       0       1       0       0   a + 6]
+            [      0|      0       0       0|      0       0       0       0       1       0 2*a + 1]
+            [      0|      0       0       0|      0       0       0       0       0       1 2*a + 1]
+            sage: invariants = A.rational_form(format='invariants')
+            sage: invariants
+            [[6*a + 5, 1], [6*a + 1, a + 3, a + 3, 1], [5*a, a + 4, a + 6, 6*a + 5, 6*a + 1, 5*a + 6, 5*a + 6, 1]]
+            sage: R.<x> = F[]
+            sage: polys = [R(p) for p in invariants]
+            sage: [p.factor() for p in polys]
+            [x + 6*a + 5, (x + 6*a + 5) * (x^2 + (2*a + 5)*x + 5*a), (x + 6*a + 5) * (x^2 + (2*a + 5)*x + 5*a)^3]
+            sage: polys[-1] == A.minimal_polynomial()
+            True
+            sage: prod(polys) == A.characteristic_polynomial()
+            True
+            sage: A.eigenvalues()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: eigenvalues() is not implemented for matrices with eigenvalues that are not in the fraction field of the base ring or in QQbar
+
+        Companion matrices may be selected as any one of four different types.
+        See the documentation for the companion matrix constructor,
+        :meth:`sage.matrix.constructor.companion_matrix`, for more information. ::
+
+            sage: A = matrix(QQ, [[35, -18, -2, -45],
+            ...                   [22, -22, 12, -16],
+            ...                   [ 5, -12, 12,   4],
+            ...                   [16,  -6, -4, -23]])
+            sage: A.rational_form(format='right')
+            [ 2| 0  0  0]
+            [--+--------]
+            [ 0| 0  0 10]
+            [ 0| 1  0 -1]
+            [ 0| 0  1  0]
+            sage: A.rational_form(format='bottom')
+            [ 2| 0  0  0]
+            [--+--------]
+            [ 0| 0  1  0]
+            [ 0| 0  0  1]
+            [ 0|10 -1  0]
+            sage: A.rational_form(format='left')
+            [ 2| 0  0  0]
+            [--+--------]
+            [ 0| 0  1  0]
+            [ 0|-1  0  1]
+            [ 0|10  0  0]
+            sage: A.rational_form(format='top')
+            [ 2| 0  0  0]
+            [--+--------]
+            [ 0| 0 -1 10]
+            [ 0| 1  0  0]
+            [ 0| 0  1  0]
+
+        TESTS::
+
+            sage: A = matrix(QQ, 2, 3, range(6))
+            sage: A.rational_form()
+            Traceback (most recent call last):
+            ...
+            TypeError: matrix must be square, not 2 x 3
+
+            sage: A = matrix(Integers(6), 2, 2, range(4))
+            sage: A.rational_form()
+            Traceback (most recent call last):
+            ...
+            TypeError: matrix entries must come from an exact field, not Ring of integers modulo 6
+
+            sage: A = matrix(RDF, 2, 2, range(4))
+            sage: A.rational_form()
+            Traceback (most recent call last):
+            ...
+            TypeError: matrix entries must come from an exact field, not Real Double Field
+
+            sage: A = matrix(QQ, 2, range(4))
+            sage: A.rational_form(format='junk')
+            Traceback (most recent call last):
+            ...
+            ValueError: 'format' keyword must be 'right', 'bottom', 'left', 'top' or 'invariants', not junk
+
+            sage: A = matrix(QQ, 2, range(4))
+            sage: A.rational_form(subdivide='garbage')
+            Traceback (most recent call last):
+            ...
+            ValueError: 'subdivide' keyword must be True or False, not garbage
+
+        .. rubric:: Citations
+
+        .. [STORJOHANN-EMAIL] A. Storjohann, Email Communication. 30 May 2011.
+
+        AUTHOR:
+
+        - Rob Beezer (2011-06-09)
+        """
+        from sage.rings.arith import gcd   # remove if translated to object-oriented calls
+        import sage.rings.polynomial.polynomial_ring_constructor
+        import sage.matrix.constructor
+
+        R = self.base_ring()
+        if not self.is_square():
+            raise TypeError("matrix must be square, not {0} x {1}".format(self.nrows(), self.ncols()))
+        if not (R.is_field() and R.is_exact()):
+            raise TypeError("matrix entries must come from an exact field, not {0}".format(R))
+        if format not in ['right', 'bottom', 'left', 'top', 'invariants']:
+            raise ValueError("'format' keyword must be 'right', 'bottom', 'left', 'top' or 'invariants', not {0}".format(format))
+        if subdivide not in [True, False]:
+            raise ValueError("'subdivide' keyword must be True or False, not {0}".format(subdivide))
+
+        _, polys, corners = self._zigzag_form(basis=False)
+        k = len(polys)
+        F = sage.rings.polynomial.polynomial_ring_constructor.PolynomialRing(R, 'x')
+        C = [F(p) for p in polys]
+        B = [(b == 1) for b in corners]
+        B.append(False)  # no last block, so no corner
+
+        if B[0]:
+            V = [F(1)]
+        else:
+            V = [F(0)]
+
+        for j in range(1, k):
+            V[j-1] = gcd([V[j-1],C[j],C[j-1]])
+            for i in range(j-2, -1, -1):
+                V[i] = gcd([V[i], V[i+1], C[i]])
+            m = F(-1)
+            for i in range(j):
+                g = gcd(m*V[i], C[i])
+                q, _ = C[i].quo_rem(g)
+                C[i] = g
+                if B[j]:
+                    _, V[i] = m.quo_rem(C[i])
+                else:
+                    V[i] = F(0)
+                m = m * q
+            C[j] = m * C[j]
+            if B[j]:
+                V.append(m)
+            else:
+                V.append(F(0))
+
+        # Leading constant polynomials in C are size zero blocks, so toss them
+        # Massage remainder to have leading coefficient 1
+        while (len(C) > 0) and C[0].degree() == 0:
+            C.remove(C[0])
+        for i in range(len(C)):
+            unit = C[i].list()[-1]
+            if unit != R(1):
+                C[i] = (1/unit)*C[i]
+
+        if format == 'invariants':
+            inv = []
+            for poly in C:
+                inv.append(poly.list())
+            return inv
+        elif format in ['right', 'left', 'top', 'bottom']:
+            companions = []
+            for poly in C:
+                companions.append(sage.matrix.constructor.companion_matrix(poly, format=format))
+            return sage.matrix.constructor.block_diagonal_matrix(companions, subdivide=subdivide)
+
     # end of Matrix class methods
 
 def _smith_diag(d):

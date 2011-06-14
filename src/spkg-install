@@ -1,7 +1,9 @@
 #!/bin/sh
+# This is the spkg-install script which will be emplaced within the SPKG for
+# the sage library repository whenever it is packaged.
 
 #######################################
-# Install SAGE libraries
+# Install Sage libraries
 #######################################
 
 CUR=`pwd`
@@ -106,6 +108,7 @@ if [ -d "$DEVEL/sage-main" ]; then
     # Make the pulled in changes take effect.
     hg update
 
+
     # Since we are doing an upgrade, it is very important that the
     # build always completely works with no dependency issues. It is
     # OK if the build takes a little longer, since this is a full
@@ -119,25 +122,32 @@ if [ -d "$DEVEL/sage-main" ]; then
 
     "$SAGE_ROOT/sage" -b
     if [ $? -ne 0 ]; then
-        echo "Error building new version of SAGE."
+        echo "Error building new version of Sage."
         echo "You might try typing 'sage -ba' or write to sage-support with as much information as possible."
         exit 1
     fi
-    exit 0
+
+else
+
+    cd "$CUR"
+    mkdir "$DEVEL/sage-main"
+    cp -pr * .hg* "$DEVEL/sage-main/"
+
+    cd "$DEVEL"
+    rm -rf sage
+    ln -sf sage-main sage
+
+    sage -ba-force
+
+    if [ $? -ne 0 ]; then
+        echo "ERROR installing Sage"
+        exit 1
+    fi
+
 fi
 
-cd "$CUR"
-mkdir "$DEVEL/sage-main"
-cp -pr * .hg* "$DEVEL/sage-main/"
-
-cd "$DEVEL"
-rm -rf sage
-ln -sf sage-main sage
-
-
-sage -ba-force
-
-if [ $? -ne 0 ]; then
-    echo "ERROR installing SAGE"
-    exit 1
-fi
+# Create an appropriate hgrc file for the target
+cat > "$DEVEL/sage-main/.hg/hgrc" <<"HEREDOC"
+[diff]
+git = true
+HEREDOC

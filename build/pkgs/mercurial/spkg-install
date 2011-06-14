@@ -36,6 +36,28 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+mkdir -p "$SAGE_LOCAL/etc/mercurial"
+cat > "$SAGE_LOCAL/etc/mercurial/hgrc" <<HEREDOC
+[trusted]
+users = $USER
+
+[diff]
+git = true
+
+[extensions]
+color =
+mq =
+pager =
+rebase =
+relink =
+
+[pager]
+attend = annotate, cat, diff, log, glog, qdiff
+HEREDOC
+if [ $? -ne 0 ]; then
+    echo "Error installing custom hgrc"
+fi
+
 if [ "$UNAME" = "Darwin" ]; then
     echo 'Copying custom hgmerge script over to $SAGE_LOCAL/bin/'
     cd "$CUR"

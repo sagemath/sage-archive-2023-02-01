@@ -27,7 +27,8 @@ See http://mercurial.selenic.com/ for more information.
 
 == Changelog ==
 
-=== mercurial-1.6.4.p1  (Keshav Kini, 2011-04-06) ===
+=== mercurial-1.8.4  (Keshav Kini, 2011-06-13) ===
+ * Upgrade Mercurial to version 1.8.4
  * Add some useful default configuration settings
  * Remove obsolete hgmerge-osx patch since Mercurial has provided an autodetect
    configuration file for a few versions now

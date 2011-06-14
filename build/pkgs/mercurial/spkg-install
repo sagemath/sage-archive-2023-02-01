@@ -58,14 +58,10 @@ if [ $? -ne 0 ]; then
     echo "Error installing custom hgrc"
 fi
 
-if [ "$UNAME" = "Darwin" ]; then
-    echo 'Copying custom hgmerge script over to $SAGE_LOCAL/bin/'
-    cd "$CUR"
-    cp patches/hgmerge-osx "$SAGE_LOCAL/bin/hgmerge"
-    if [ $? -ne 0 ]; then
-        echo "Error copying custom hgmerge script"
-        exit 1 # Really exit?
-    fi
+mkdir -p "$SAGE_LOCAL/etc/mercurial/hgrc.d"
+cp contrib/mergetools.hgrc "$SAGE_LOCAL/etc/mercurial/hgrc.d/mergetools.rc"
+if [ $? -ne 0 ]; then
+    echo "Error installing mergetools.rc"
 fi
 
 echo "Deleting dead links"

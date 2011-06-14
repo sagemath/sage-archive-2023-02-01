@@ -29,6 +29,8 @@ See http://mercurial.selenic.com/ for more information.
 
 === mercurial-1.6.4.p1  (Keshav Kini, 2011-04-06) ===
  * Add some useful default configuration settings
+ * Remove obsolete hgmerge-osx patch since Mercurial has provided an autodetect
+   configuration file for a few versions now
 
 === mercurial-1.7.3  (Ryan Grout, January 11, 2010) ===
  * Updated to Mercurial 1.7.3

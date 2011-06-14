@@ -179,7 +179,9 @@ Sage также может быть использован для создани
 
 Ниже показаны несколько примеров:
 
-`Лист Мебиуса <http://en.wikipedia.org/wiki/Cross-cap>`__:
+`Скрещенный колпак <http://en.wikipedia.org/wiki/Cross-cap>`__ (близкий
+родственник широко известного `листа Мёбиуса
+<http://en.wikipedia.org/wiki/Cross-cap>`__):
 
 ::
 

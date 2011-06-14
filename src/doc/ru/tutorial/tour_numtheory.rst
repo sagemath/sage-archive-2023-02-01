@@ -155,7 +155,7 @@ Sage содержит стандартные функции теории чис�
     sage: K.discriminant()
     -503
     sage: K.class_group()
-    Class group of order 1 with structure  of Number Field in a with
+    Class group of order 1 of Number Field in a with
     defining polynomial x^3 + x^2 - 2*x + 8
     sage: K.class_number()
     1

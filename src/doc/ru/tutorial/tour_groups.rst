@@ -18,7 +18,7 @@ Sage поддерживает вычисления с группами пере�
     120
     sage: G.is_abelian()
     False
-    sage: G.derived_series()           # random-ish output
+    sage: G.derived_series()           # random output
     [Permutation Group with generators [(1,2,3)(4,5), (3,4)],
      Permutation Group with generators [(1,5)(3,4), (1,5)(2,4), (1,3,5)]]
     sage: G.center()

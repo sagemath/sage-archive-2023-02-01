@@ -218,7 +218,7 @@ C и обработан компилятором C.
 
     sage: s = "sage"; type(s)
     <type 'str'>
-    sage: s = 'sage'; type(s)      # you can use either single or double quotes
+    sage: s = 'sage'; type(s)      # Вы можете использовать двойные или одинарные кавычки
     <type 'str'>
     sage: s = [1,2,3,4]; type(s)
     <type 'list'>
@@ -318,10 +318,10 @@ Python, сработает нормально.
     sage: v = [1,2,3]
     sage: v[2]
     3
-    sage: n = 2      # SAGE Integer
-    sage: v[n]       # Perfectly OK!
+    sage: n = 2      # целое число Sage
+    sage: v[n]       # работает правильно
     3
-    sage: v[int(n)]  # Also OK.
+    sage: v[int(n)]  # тоже работает правильно
     3
 
 Функция ``range`` создает список целых чисел, используемых Python(не Sage):
@@ -341,7 +341,7 @@ Python, сработает нормально.
     sage: L[12]
     13
     sage: type(L[12])
-    <class 'sage.structure.factorization.Factorization'>
+    <class 'sage.structure.factorization_integer.IntegerFactorization'>
     sage: [factor(n) for n in range(1, 15) if is_odd(n)]
     [1, 3, 5, 7, 3^2, 11, 13]
 
@@ -391,7 +391,7 @@ Python, сработает нормально.
     sage: v
     [1, 2, 3, 4/5]
     sage: type(v)
-    <class 'sage.structure.sequence.Sequence'>
+    <class 'sage.structure.sequence.Sequence_generic'>
     sage: type(v[1])
     <type 'sage.rings.rational.Rational'>
     sage: v.universe()
@@ -428,7 +428,7 @@ Python, сработает нормально.
     (0, 0, 1)
     ]
     sage: type(B)
-    <class 'sage.structure.sequence.Sequence'>
+    <class 'sage.structure.sequence.Sequence_generic'>
     sage: B[0] = B[1]
     Traceback (most recent call last):
     ...
@@ -544,7 +544,7 @@ http://docs.python.org/lib/typesmapping.html) произвольным объе�
 ::
 
     sage: w = (4*p + 1 for p in Primes() if is_prime(4*p+1))
-    sage: w         # in the next line, 0xb0853d6c is a random 0x number
+    sage: w         # random output на следующей строке 0xb0853d6c может быть другим шестнадцатиричным числом
     <generator object at 0xb0853d6c>
     sage: w.next()
     13
@@ -567,7 +567,7 @@ http://docs.python.org/lib/typesmapping.html) произвольным объе�
     sage: W.next()
     (0, -1)
 
-Циклы, Функции, Управляющие Конструкции и Сравнения
+Циклы, функции, управляющие конструкции и сравнения
 ===================================================
 
 Мы уже видели несколько примеров с использованием циклов ``for``. В Python
@@ -592,7 +592,7 @@ http://docs.python.org/lib/typesmapping.html) произвольным объе�
 ::
 
     sage: for i in range(5):
-    ...       print(i)  # now hit enter twice
+    ...       print(i)  # нажмите Enter дважды
     0
     1
     2
@@ -657,7 +657,7 @@ http://docs.python.org/lib/typesmapping.html) произвольным объе�
 
     sage: 2 < CC(3.1,1)
     True
-    sage: 5 < VectorSpace(QQ,3)   # output can be somewhat random
+    sage: 5 < VectorSpace(QQ,3)   # random output
     True
 
 Используйте переменные bool для символьных неравенств:

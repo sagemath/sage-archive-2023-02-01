@@ -34,7 +34,7 @@ Sage поддерживает стандартные конструкции из
     sage: X = A.solve_right(Y)
     sage: X
     (-2, 1, 0)
-    sage: A * X   # checking our answer...
+    sage: A * X   # проверка...
     (0, -4, -1)
 
 ``\`` может быть использован вместо ``solve_right``; используйте

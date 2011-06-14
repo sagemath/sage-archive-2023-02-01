@@ -1,6 +1,6 @@
 .. _section-rings:
 
-Базисные кольца
+Основные кольца
 ===============
 
 При объявлении матриц, векторов или полиномов для них иногда полезно,
@@ -49,7 +49,7 @@
 
 ::
 
-    sage: i  # square root of -1
+    sage: i  # квадратный корень из -1
     I
     sage: i in QQ
     False
@@ -71,16 +71,16 @@
 
 ::
 
-    sage: i = CC(i)       # floating point complex number
+    sage: i = CC(i)       # комплексное число с плавающей запятой
     sage: i == CC.0
     True
     sage: a, b = 4/3, 2/3
     sage: z = a + b*i
     sage: z
     1.33333333333333 + 0.666666666666667*I
-    sage: z.imag()        # imaginary part
+    sage: z.imag()        # мнимая часть
     0.666666666666667
-    sage: z.real() == a   # automatic coercion before comparison
+    sage: z.real() == a   # автоматическое приведение типов перед сравнением
     True
     sage: a + b
     2
@@ -90,9 +90,9 @@
     Rational Field
     sage: parent(4/2)
     Rational Field
-    sage: 2/3 + 0.1       # automatic coercion before addition
+    sage: 2/3 + 0.1       # автоматическое приведение типов перед сложением
     0.766666666666667
-    sage: 0.1 + 2/3       # coercion rules are symmetric in SAGE
+    sage: 0.1 + 2/3       # приведение типов в Sage симметрично
     0.766666666666667
 
 Далее следуют примеры базовых колец в Sage. Как отмечено выше,
@@ -135,9 +135,9 @@
 
     sage: GF(3)
     Finite Field of size 3
-    sage: GF(27, 'a')  # need to name the generator if not a prime field
+    sage: GF(27, 'a')  # если поле не простое, нужно задать имя генератора
     Finite Field in a of size 3^3
     sage: Zp(5)
     5-adic Ring with capped relative precision 20
-    sage: sqrt(3) in QQbar # algebraic closure of QQ
+    sage: sqrt(3) in QQbar # алгебраическое замыкакие QQ
     True

@@ -21,9 +21,10 @@ SageTeX known to TeX" `Руководства по установке Sage
 
 .. warning::
 
-  The text below will have several errors about unknown control
-  sequences if you are viewing this in the "live" help. Use the static
-  version to see the correct text.
+  Нижеследующий текст может содержать несколько сообщений об ошибках, связанных
+  с неизвестными управляющими последовательностями, если Вы используете
+  интерактивную помощь. Откройте статическую версию, чтобы увидеть правильный
+  текст.
 
 .. code-block:: latex
 

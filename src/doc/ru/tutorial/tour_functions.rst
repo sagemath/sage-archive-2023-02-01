@@ -33,7 +33,7 @@
 
 ::
 
-       sage: var('z')   # define z to be a variable
+       sage: var('z')   # определение переменной z для символьных вычислений
        z
        sage: f(z)
        z^2
@@ -47,7 +47,7 @@
 ::
 
        sage: g(x) = x^2
-       sage: g        # g sends x to x^2
+       sage: g        # g отображает x в x^2
        x |--> x^2
        sage: g(3)
        9
@@ -169,7 +169,7 @@
 
 ::
 
-         sage: f(x) = x        # instead of 'f = x'
+         sage: f(x) = x        # вместо 'f = x'
          sage: g = f.derivative()
          sage: g
          x |--> 1
@@ -183,7 +183,7 @@
 ::
 
          sage: f = x
-         sage: g(x) = f.derivative()  # instead of 'g = f.derivative()'
+         sage: g(x) = f.derivative()  # вместо 'g = f.derivative()'
          sage: g
          x |--> 1
          sage: g(3)
@@ -200,7 +200,7 @@
          sage: g = f.derivative()
          sage: g
          1
-         sage: g(x=3)    # instead of 'g(3)'
+         sage: g(x=3)    # вместо 'g(3)'
          1
 
 Есть еще один способ, как определить различие между производными
@@ -210,9 +210,9 @@
 
        sage: f(x) = x
        sage: g = f.derivative()
-       sage: g.variables()  # the variables present in g
+       sage: g.variables()  # переменные, которые присутствуют в g
        ()
-       sage: g.arguments()  # the arguments which can be plugged into g
+       sage: g.arguments()  # аргументы, которые могут быть подставлены в g
        (x,)
        sage: f = x
        sage: h = f.derivative()

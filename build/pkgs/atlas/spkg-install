@@ -282,6 +282,10 @@ def configure_fast():
       print 'Fast configuration on PPC.'
       arch = 'POWER5'
       isa_ext = ('AltiVec', )
+   elif conf['IA64?']:
+      print 'Fast configuration on Itanium.'
+      arch = 'IA64Itan2'
+      isa_ext = ()
    else:
       raise NotImplementedError, 'I don\'t know a "fast" configuration for your cpu.'
    return configure(arch, isa_ext)
@@ -299,6 +303,10 @@ def configure_base():
    elif conf['PPC?']:
       print 'Base configuration on PPC.'
       arch = 'POWER4'
+      isa_ext = ()
+   elif conf['IA64?']:
+      print 'Base configuration on Itanium.'
+      arch = 'IA64Itan'
       isa_ext = ()
    else:
       raise NotImplementedError, 'I don\'t know a "base" configuration for your cpu.'

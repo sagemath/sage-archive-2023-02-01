@@ -114,6 +114,7 @@ conf['processor'] = platform.processor()
 
 conf['Intel?'] = (platform.machine() in ('i386', 'i486', 'i586', 'i686', 'x86_64',
                                          'AMD64', 'i86pc'))
+conf['IA64?']   = (platform.processor() == 'ia64')
 conf['PPC?']   = (platform.processor() == 'powerpc')
 conf['SPARC?'] = (platform.processor() == 'sparc')
 

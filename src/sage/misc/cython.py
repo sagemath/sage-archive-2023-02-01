@@ -163,6 +163,7 @@ def pyx_preparse(s):
         ['.../local/include/csage/',
         '.../local/include/',
         '.../local/include/python2.6/',
+        '.../local/lib/python2.6/site-packages/numpy/core/include',
         '.../devel/sage/sage/ext/',
         '.../devel/sage/',
         '.../devel/sage/sage/gsl/'],
@@ -190,6 +191,7 @@ def pyx_preparse(s):
         '.../local/include/csage/',
         '.../local/include/',
         '.../local/include/python2.6/',
+        '.../local/lib/python2.6/site-packages/numpy/core/include',
         '.../devel/sage/sage/ext/',
         '.../devel/sage/',
         '.../devel/sage/sage/gsl/']

@@ -612,11 +612,6 @@ cdef public unsigned py_get_serial_for_new_sfunction(stdstring &s,
 
 from sage.structure.element cimport Element
 
-# We declare the functions defined below as extern here, to prevent Cython
-# from generating separate declarations for them which confuse g++
-cdef extern from *:
-    int py_get_parent_char(object o) except -1
-
 cdef public int py_get_parent_char(object o) except -1:
     if isinstance(o, Element):
         return (<Element>o)._parent.characteristic()

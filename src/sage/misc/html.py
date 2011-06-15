@@ -322,4 +322,54 @@ class HTML:
                                     + latex(row[column])
                                     + '</span>')
 
+    def iframe(self, url, height=400, width=800):
+        r"""
+        Put an existing web page into a worksheet.
+
+        INPUT:
+
+            - ``url`` -- a url string, either with or without URI scheme
+              (defaults to "http").
+            - ``height`` -- the number of pixels for the page height.
+              Defaults to 400.
+            - ``width`` -- the number of pixels for the page width.
+              Defaults to 800.
+
+        OUTPUT:
+
+            Opens the url in a worksheet. If the url is a regular web page it
+            will appear in the worksheet. This was originally intended to bring
+            GeoGebra worksheets into Sage, but it can be used for many other
+            purposes.
+
+        EXAMPLES::
+
+            sage: html.iframe("sagemath.org")
+            <html><font color='black'><iframe height="400" width="800"
+            src="http://sagemath.org"></iframe></font></html>
+            sage: html.iframe("http://sagemath.org",30,40)
+            <html><font color='black'><iframe height="30" width="40"
+            src="http://sagemath.org"></iframe></font></html>
+            sage: html.iframe("https://sagemath.org",30)
+            <html><font color='black'><iframe height="30" width="800"
+            src="https://sagemath.org"></iframe></font></html>
+            sage: html.iframe("/home/admin/0/data/filename")
+            <html><font color='black'><iframe height="400" width="800"
+            src="/home/admin/0/data/filename"></iframe></font></html>
+            sage: html.iframe('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA'
+            ... 'AUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBA'
+            ... 'AO9TXL0Y4OHwAAAABJRU5ErkJggg=="')
+            <html><font color='black'><iframe height="400" width="800"
+            src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==""></iframe></font></html>
+
+        AUTHOR:
+
+        - Bruce Cohen (2011-06-14)
+        """
+        if ":" not in url and not url.startswith('/'):
+            url = "http://" + url
+        string = ( '<iframe height="%d" width="%d" src="%s"></iframe>' %
+                    (height, width, url) )
+        return html(string)
+
 html = HTML()

@@ -64,7 +64,7 @@ class LazyFormat(str):
         ValueError: Don't ever try to print me !
 
     This behavior can induce major performance penalties when testing.
-    Note that this issue does not impact the usual assert:
+    Note that this issue does not impact the usual assert::
 
         sage: assert True, "%s is wrong"%IDontLikeBeingPrinted()
 

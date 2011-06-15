@@ -6,10 +6,11 @@ AUTHOR:
 - Martin Albrecht <malb@informatik.uni-bremen.de>
 """
 ###############################################################################
-#   Sage: System for Algebra and Geometry Experimentation
 #       Copyright (C) 2005, 2006 William Stein <wstein@gmail.com>
+#
 #  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 ###############################################################################
 
@@ -26,7 +27,8 @@ import os
 from sage.misc.misc_c import is_64_bit
 
 from sage.libs.singular.decl cimport intvec
-from sage.libs.singular.decl cimport SR_HDL, SR_INT, SR_TO_INT, singular_options, singular_verbose_options
+from sage.libs.singular.decl cimport SR_HDL, SR_INT, SR_TO_INT
+from sage.libs.singular.decl cimport singular_options, singular_verbose_options
 from sage.libs.singular.decl cimport On, Off, SW_USE_NTL, SW_USE_NTL_GCD_0, SW_USE_EZGCD, SW_USE_NTL_SORT, SW_USE_NTL_GCD_P
 from sage.libs.singular.decl cimport napoly, lnumber, Sy_bit, OPT_REDSB, OPT_INTSTRATEGY, OPT_REDTAIL, OPT_REDTHROUGH
 from sage.libs.singular.decl cimport nlGetNumerator, nlGetDenom, nlDelete, nlInit2gmp
@@ -78,9 +80,9 @@ cdef Rational si2sa_QQ(number *n, ring *_ring):
     mpq_init(_z)
 
     ##  Immediate integers handles carry the tag 'SR_INT', i.e. the last bit is 1.
-    ##  This distinguishes immediate integers from other handles which  point  to
-    ##  structures aligned on 4 byte boundaries and therefor have last bit  zero.
-    ##  (The second bit is reserved as tag to allow extensions of  this  scheme.)
+    ##  This distinguishes immediate integers from other handles which point to
+    ##  structures aligned on 4 byte boundaries and therefor have last bit zero.
+    ##  (The second bit is reserved as tag to allow extensions of this scheme.)
     ##  Using immediates as pointers and dereferencing them gives address errors.
     nom = nlGetNumerator(n, _ring)
     mpz_init(nom_z)
@@ -269,7 +271,7 @@ cdef object si2sa_NF(number *n, ring *_ring, object base):
         if e == 0:
             ret = ret + coeff
         elif coeff != 0:
-            ret = ret  + coeff * a**e
+            ret = ret + coeff * a**e
         z = <napoly*>pNext(<poly*>z)
     return base(ret)
 
@@ -342,7 +344,7 @@ cdef number *sa2si_GFqGivaro(int quo, ring *_ring):
     cdef int b
 
     rChangeCurrRing(_ring)
-    b   = - _ring.ch;
+    b = - _ring.ch;
 
     a = naPar(1)
 
@@ -353,9 +355,11 @@ cdef number *sa2si_GFqGivaro(int quo, ring *_ring):
         coeff = naInit(quo%b, _ring)
 
         if not naIsZero(coeff):
-            n2 = naAdd( naMult(coeff, apow1),  n1)
-            naDelete(&n1, _ring);
-            n1= n2
+            apow2 = naMult(coeff, apow1)
+            n2 = naAdd(apow2, n1)
+            naDelete(&apow2, _ring)
+            naDelete(&n1, _ring)
+            n1 = n2
 
         apow2 = naMult(apow1, a)
         naDelete(&apow1, _ring)
@@ -387,9 +391,11 @@ cdef number *sa2si_GFqNTLGF2E(FFgf2eE elem, ring *_ring):
             coeff = naInit(GF2_conv_to_long(GF2X_coeff(rep,i)), _ring)
 
             if not naIsZero(coeff):
-                n2 = naAdd( naMult(coeff, apow1),  n1)
+                apow2 = naMult(coeff, apow1)
+                n2 = naAdd(apow2, n1)
+                naDelete(&apow2, _ring)
                 naDelete(&n1, _ring);
-                n1= n2
+                n1 = n2
 
             apow2 = naMult(apow1, a)
             naDelete(&apow1, _ring)
@@ -400,7 +406,7 @@ cdef number *sa2si_GFqNTLGF2E(FFgf2eE elem, ring *_ring):
         naDelete(&apow1, _ring)
         naDelete(&a, _ring)
     else:
-       n1 = naInit(GF2_conv_to_long(GF2X_coeff(rep,0)), _ring)
+        n1 = naInit(GF2_conv_to_long(GF2X_coeff(rep,0)), _ring)
 
     return n1
 
@@ -424,9 +430,11 @@ cdef number *sa2si_GFqPari(object elem, ring *_ring):
             coeff = naInit(int(elem[i]), _ring)
 
             if not naIsZero(coeff):
-                n2 = naAdd( naMult(coeff, apow1),  n1)
+                apow2 = naMult(coeff, apow1)
+                n2 = naAdd(apow2, n1)
+                naDelete(&apow2, _ring)
                 naDelete(&n1, _ring);
-                n1= n2
+                n1 = n2
 
             apow2 = naMult(apow1, a)
             naDelete(&apow1, _ring)
@@ -461,7 +469,9 @@ cdef number *sa2si_NF(object elem, ring *_ring):
         nlDelete(&nlCoeff, _ring)
 
         # faster would be to assign the coefficient directly
-        n2 = naAdd( naMult(naCoeff, apow1),  n1)
+        apow2 = naMult(naCoeff, apow1)
+        n2 = naAdd(apow2, n1)
+        naDelete(&apow2, _ring)
         naDelete(&n1, _ring);
         naDelete(&naCoeff, _ring)
         n1 = n2
@@ -630,7 +640,7 @@ cdef inline int overflow_check(long e) except -1:
     """
     if unlikely(e > max_exponent_size):
         raise OverflowError("Exponent overflow (%d)."%(e))
-    return 0;
+    return 0
 
 # Our attempt at avoiding exponent overflows.
 cdef unsigned int max_exponent_size
@@ -701,4 +711,3 @@ init_libsingular()
 cdef void libsingular_error_callback(const_char_ptr s):
     _s = s
     error_messages.append(_s)
-

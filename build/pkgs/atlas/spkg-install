@@ -160,6 +160,18 @@ if conf['Solaris?'] and conf['machine'] == 'sun4v':
 cp('patches/Make.top',
    'src')
 
+# add PPC4 7447 CPU and better Itanium2 detection:
+cp('patches/archinfo_linux.c',
+   'src/CONFIG/src/backend/archinfo_linux.c')
+
+# add Core2Duo and Dunnington CPUids
+cp('patches/archinfo_x86.c',
+   'src/CONFIG/src/backend/archinfo_x86.c')
+
+# work around "-m64" cflag issue on Itanium
+cp('patches/probe_comp.c',
+   'src/CONFIG/src/probe_comp.c')
+
 # add K7, Pentium M and non-AltiVec G4 profiles
 cp('patches/*tgz',
    'src/CONFIG/ARCHS')

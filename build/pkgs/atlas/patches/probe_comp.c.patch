@@ -1,0 +1,11 @@
+--- probe_comp.c.orig	2011-06-15 10:20:18.336648039 -0700
++++ probe_comp.c	2011-06-15 10:22:01.323647990 -0700
+@@ -532,6 +532,8 @@
+       return(sp);
+    else if (OS == OSAIX)
+       sp = (ptrbits == 64) ? "-maix64" : "-maix32";
++   else if (arch == IA64Itan2)
++      printf("Itanium2 - not setting -m64"); // -m64 is not supported on RHEL 5/Itanium
+    else if ((MachIsX86(arch) || MachIsPPC(arch) || MachIsUS(arch)) ||
+             arch == IbmPwr7 || arch == IbmPwr6)
+    {

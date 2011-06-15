@@ -698,7 +698,7 @@ end_scene""" % (render_params.antialiasing,
         return []
 
     def tachyon_repr(self, render_params):
-        """
+        r"""
         A (possibly nested) list of strings which will be concatenated and
         used by tachyon to render self. (Nested lists of strings are used
         because otherwise all the intermediate concatenations can kill
@@ -706,6 +706,7 @@ end_scene""" % (render_params.antialiasing,
         is stored elsewhere.
 
         EXAMPLES::
+
             sage: G = sage.plot.plot3d.base.Graphics3d()
             sage: G.tachyon_repr(G.default_render_params())
             []

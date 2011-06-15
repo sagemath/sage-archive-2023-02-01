@@ -1,9 +1,28 @@
+"""
+Randomized tests of GiNaC / PyNaC.
+"""
+
+###############################################################################
+#   Sage: Open Source Mathematical Software
+#       Copyright (C) 2008 William Stein <wstein@gmail.com>
+#       Copyright (C) 2008 Burcin Erocal <burcin@erocal.org>
+#  Distributed under the terms of the GNU General Public License (GPL),
+#  version 2 or any later version.  The full text of the GPL is available at:
+#                  http://www.gnu.org/licenses/
+###############################################################################
+
+
 from sage.misc.prandom import randint, random
 import operator
 from sage.rings.all import QQ
 import sage.calculus.calculus
 import sage.symbolic.pynac
 from sage.symbolic.constants import *
+
+
+###################################################################
+### Generate random expressions for doctests ######################
+###################################################################
 
 def _mk_full_functions():
     r"""
@@ -161,7 +180,8 @@ def random_integer_vector(n, length):
         sage: random_integer_vector(100, 2)
         [4, 96]
         sage: random_integer_vector(10000, 20)
-        [332, 529, 185, 738, 82, 964, 596, 892, 732, 134, 834, 765, 398, 608, 358, 300, 652, 249, 586, 66]
+        [332, 529, 185, 738, 82, 964, 596, 892, 732, 134,
+         834, 765, 398, 608, 358, 300, 652, 249, 586, 66]
     """
     if length == 0:
         return []
@@ -184,7 +204,8 @@ def random_expr_helper(n_nodes, internal, leaves, verbose):
     EXAMPLES::
 
         sage: from sage.symbolic.random_tests import *
-        sage: random_expr_helper(9, [(0.5, operator.add, 2), (0.5, operator.neg, 1)], [(0.5, 1), (0.5, x)], True)
+        sage: random_expr_helper(9, [(0.5, operator.add, 2),
+        ...       (0.5, operator.neg, 1)], [(0.5, 1), (0.5, x)], True)
         About to apply <built-in function add> to [1, x]
         About to apply <built-in function add> to [x, x + 1]
         About to apply <built-in function neg> to [1]
@@ -208,7 +229,10 @@ def random_expr_helper(n_nodes, internal, leaves, verbose):
             print "About to apply %r to %r" % (r[1], children)
         return r[1](*children)
 
-def random_expr(size, nvars=1, ncoeffs=None, var_frac=0.5, internal=full_internal, nullary=full_nullary, nullary_frac=0.2, coeff_generator=QQ.random_element, verbose=False):
+def random_expr(size, nvars=1, ncoeffs=None, var_frac=0.5,
+                internal=full_internal,
+                nullary=full_nullary, nullary_frac=0.2,
+                coeff_generator=QQ.random_element, verbose=False):
     r"""
     Produce a random symbolic expression of the given size.  By
     default, the expression involves (at most) one variable, an arbitrary
@@ -257,3 +281,132 @@ def random_expr(size, nvars=1, ncoeffs=None, var_frac=0.5, internal=full_interna
     internal = normalize_prob_list(internal)
 
     return random_expr_helper(size, internal, leaves, verbose)
+
+
+###################################################################
+### Test the ordering of operands #################################
+###################################################################
+
+def assert_strict_weak_order(a,b,c, cmp_func):
+    r"""
+    Checks that ``cmp_func`` is a strict weak order.
+
+    A strict weak order is a binary relation ``<`` such that
+
+    * For all `x`, it is not the case that `x < x` (irreflexivity).
+
+    * For all `x\not=y`, if `x < y` then it is not the case that `y <
+      x` (asymmetric).
+
+    * For all `x`, `y`, and `z`, if `x < y` and `y < z` then `x < z`
+      (transitivity).
+
+    * For all `x`, `y`, and `z`, if x is incomparable with `y`, and
+      `y` is incomparable with `z`, then `x` is incomparable with `z`
+      (transitivity of equivalence).
+
+    INPUT:
+
+    - ``a``, ``b``, ``c`` -- anything that can be compared by ``cmp_func``.
+
+    - ``cmp_func`` -- function of two arguments that returns their
+      comparison (i.e. either ``True`` or ``False``).
+
+    OUTPUT:
+
+    Does not return anything. Raises a ``ValueError`` if ``cmp_func``
+    is not a strict weak order on the three given elements.
+
+    REFERENCES:
+
+    http://en.wikipedia.org/wiki/Strict_weak_ordering
+
+    EXAMPLES:
+
+    The usual ordering of integers is a strict weak order::
+
+        sage: from sage.symbolic.random_tests import assert_strict_weak_order
+        sage: a, b, c = [ randint(-10,10) for i in range(0,3) ]
+        sage: assert_strict_weak_order(a,b,c, lambda x,y: x<y)
+
+        sage: x = [SR(unsigned_infinity), SR(oo), -SR(oo)]
+        sage: cmp = matrix(3,3)
+        sage: indices = list(CartesianProduct(range(0,3),range(0,3)))
+        sage: for i,j in CartesianProduct(range(0,3),range(0,3)):
+        ...       cmp[i,j] = x[i].__cmp__(x[j])
+        sage: cmp
+        [ 0  1  1]
+        [-1  0 -1]
+        [-1  1  0]
+    """
+    from sage.matrix.constructor import matrix
+    from sage.combinat.cartesian_product import CartesianProduct
+    from sage.combinat.permutation import Permutations
+    x = (a,b,c)
+    cmp = matrix(3,3)
+    indices = list(CartesianProduct(range(0,3),range(0,3)))
+    for i,j in indices:
+        cmp[i,j] = (cmp_func(x[i], x[j]) == 1)   # or -1, doesn't matter
+    msg = 'The binary relation failed to be a strict weak order on the elements\n'
+    msg += ' a = '+str(a)+'\n'
+    msg += ' b = '+str(b)+'\n'
+    msg += ' c = '+str(c)+'\n'
+    msg += str(cmp)
+
+    for i in range(0,3):   # irreflexivity
+        if cmp[i,i]: raise ValueError, msg
+
+    for i,j in indices:    # asymmetric
+        if i==j: continue
+        #if x[i] == x[j]: continue
+        if cmp[i,j] and cmp[j,i]: raise ValueError, msg
+
+    for i,j,k in Permutations([0,1,2]):   # transitivity
+        if cmp[i,j] and cmp[j,k] and not cmp[i,k]: raise ValueError, msg
+
+    def incomparable(i,j):
+        return (not cmp[i,j]) and (not cmp[j,i])
+    for i,j,k in Permutations([0,1,2]):   # transitivity of equivalence
+        if incomparable(i,j) and incomparable(j,k) and not incomparable(i,k): raise ValueError, msg
+
+def test_symbolic_expression_order(repetitions=100):
+    r"""
+    Tests whether the comparison of random symbolic expressions
+    satisfies the strict weak order axioms.
+
+    This is important because the C++ extension class uses
+    ``std::sort()`` which requires a strict weak order. See also
+    :trac:`9880`.
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.random_tests import test_symbolic_expression_order
+        sage: test_symbolic_expression_order(200)
+        sage: test_symbolic_expression_order(10000)  # long time
+    """
+    rnd_length = 50
+    nvars = 10
+    ncoeffs = 10
+    var_frac = 0.5
+    nullary_frac = 0.05
+
+    def coeff_generator():
+        return randint(-100,100)/randint(1,100)
+
+    def make_random_expr():
+        while True:
+            try:
+                return sage.symbolic.random_tests.random_expr(
+                    rnd_length, nvars=nvars, ncoeffs=ncoeffs, var_frac=var_frac,
+                    nullary_frac=nullary_frac, coeff_generator=coeff_generator,
+                    internal=sage.symbolic.random_tests.fast_nodes)
+            except (ZeroDivisionError, ValueError):
+                pass
+
+    for rep in range(0, repetitions):
+        a = make_random_expr()
+        b = make_random_expr()
+        c = make_random_expr()
+        assert_strict_weak_order(a, b, c, lambda x,y: x._cmp_(y))
+        assert_strict_weak_order(a, b, c, lambda x,y: x._cmp_add(y))
+        assert_strict_weak_order(a, b, c, lambda x,y: x._cmp_mul(y))

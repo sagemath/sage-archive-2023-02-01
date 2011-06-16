@@ -2681,6 +2681,15 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: add([Q[i]*M[i] for i in range(n)])
             -1
 
+        TESTS::
+
+            sage: matrix(ZZ, 0, 0).LLL()
+            []
+            sage: matrix(ZZ, 3, 0).LLL()
+            []
+            sage: matrix(ZZ, 0, 3).LLL()
+            []
+
         ALGORITHM: Uses the NTL library by Victor Shoup or fpLLL library by
         Damien Stehle depending on the chosen algorithm.
 
@@ -2689,6 +2698,10 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         - ``ntl.mat_ZZ`` or ``sage.libs.fplll.fplll`` for details on
           the used algorithms.
         """
+        if self.ncols()==0 or self.nrows()==0:
+            verbose("Trivial matrix, nothing to do")
+            return self
+
         tm = verbose("LLL of %sx%s matrix (algorithm %s)"%(self.nrows(), self.ncols(), algorithm))
         import sage.libs.ntl.all
         ntl_ZZ = sage.libs.ntl.all.ZZ

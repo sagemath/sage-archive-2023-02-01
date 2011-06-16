@@ -61,8 +61,17 @@ cdef class FP_LLL:
             sage: FP_LLL(A)
             fpLLL wrapper acting on a 10 x 10 matrix
 
+            sage: A = matrix(ZZ, 2, 0)
+            sage: FP_LLL(A).fast()
+            sage: A = matrix(ZZ, 0, 2)
+            sage: FP_LLL(A)
+            Traceback (most recent call last):
+            ...
+            ValueError: fpLLL cannot handle matrices with zero rows.
         """
         cdef int i,j
+        if A._nrows==0:
+            raise ValueError('fpLLL cannot handle matrices with zero rows.')
         self._lattice = ZZ_mat_new(A._nrows,A._ncols)
 
         cdef Z_NR *t

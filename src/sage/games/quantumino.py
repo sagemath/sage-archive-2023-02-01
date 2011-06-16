@@ -448,16 +448,20 @@ class QuantuminoSolver(SageObject):
         pieces = pentaminos[:self._aside] + pentaminos[self._aside+1:]
         return TilingSolver(pieces, box=self._box)
 
-    def solve(self, include_partial=False):
+    def solve(self, partial=None):
         r"""
         Return an iterator over the solutions where one of the pentamino is
         put aside.
 
         INPUT:
 
-        - ``include_partial`` - boolean (optional, default: ``False``),
-          whether to include partial (incomplete) solutions, i.e. the
-          common part between two consecutive solutions.
+        - ``partial`` - string (optional, default: ``None``), whether to
+          include partial (incomplete) solutions. It can be one of the
+          following:
+
+          - ``None`` - include only complete solution
+          - ``'common'`` - common part between two consecutive solutions
+          - ``'incremental'`` - one piece change at a time
 
         OUTPUT:
 
@@ -507,7 +511,7 @@ class QuantuminoSolver(SageObject):
         With the partial solutions included, one can see the evolution
         between consecutive solutions (an animation would be better)::
 
-            sage: it = QuantuminoSolver(0).solve(include_partial=True)
+            sage: it = QuantuminoSolver(0).solve(partial='common')
             sage: it.next().show3d()               # not tested (2s)
             sage: it.next().show3d()               # not tested (< 1s)
             sage: it.next().show3d()               # not tested (< 1s)
@@ -540,7 +544,7 @@ class QuantuminoSolver(SageObject):
         """
         T = self.tiling_solver()
         aside = pentaminos[self._aside]
-        for pentos in T.solve(include_partial=include_partial):
+        for pentos in T.solve(partial=partial):
             yield QuantuminoState(pentos, aside)
 
     def number_of_solutions(self):

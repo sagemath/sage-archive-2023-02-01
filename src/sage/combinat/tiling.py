@@ -159,6 +159,35 @@ Donald Knuth [1] considered the problem of packing 45 Y pentominoes into a
     sage: T.number_of_solutions()                      #not tested
     212
 
+Animation of Donald Knuth's dancing links
+-----------------------------------------
+
+::
+
+    sage: from sage.combinat.tiling import Polyomino, TilingSolver
+    sage: Y = Polyomino([(0,0),(1,0),(2,0),(3,0),(2,1)], color='yellow')
+    sage: T = TilingSolver([Y], box=(15,15), reusable=True, reflection=True)
+    sage: a = T.animate(stop=40)            # long time
+    sage: a                                 # long time
+    Animation with 40 frames
+    sage: a.show()                          # not tested
+
+5d Easy Example
+---------------
+
+Here is a 5d example. Let's try to fill the `2 \times 2 \times 2 \times 2
+\times 2` rectangle with reusable `1 \times 1 \times 1 \times 1 \times 1`
+rectangles. Obviously, there is one solution::
+
+    sage: from sage.combinat.tiling import Polyomino, TilingSolver
+    sage: p = Polyomino([(0,0,0,0,0)])
+    sage: T = TilingSolver([p], box=(2,2,2,2,2), reusable=True)
+    sage: rows = T.rows()                               # long time (3s)
+    sage: rows                                          # long time (fast)
+    [[0], [1], [2], [3], [4], [5], [6], [7], [8], [9], [10], [11], [12], [13], [14], [15], [16], [17], [18], [19], [20], [21], [22], [23], [24], [25], [26], [27], [28], [29], [30], [31]]
+    sage: T.number_of_solutions()                       # long time (fast)
+    1
+
 REFERENCES:
 
 - [1] Knuth, Donald (2000). "Dancing links". `arXiv:cs/0011047
@@ -182,6 +211,7 @@ from sage.plot.plot import Graphics
 from sage.plot.polygon import polygon
 from sage.modules.free_module_element import vector
 from sage.plot.plot3d.platonic import cube
+from sage.plot.animate import Animation
 from sage.misc.mrange import xmrange
 
 ############################
@@ -900,6 +930,7 @@ class TilingSolver(SageObject):
         if not self._rotation and self._reflection:
             raise NotImplementedError, "When reflection is allowed and rotation is not allowed"
         self._reusable = reusable
+        self._starting_rows = None    # the starting row of each piece
 
     def __repr__(self):
         r"""
@@ -1115,7 +1146,9 @@ class TilingSolver(SageObject):
         """
         coord_to_int = self.coord_to_int_dict()
         rows = []
+        self._starting_rows = []
         for i,p in enumerate(self._pieces):
+            self._starting_rows.append(len(rows))
             if self._rotation and self._reflection:
                 it = p.translated_orthogonals(self._box, orientation_preserving=False)
             elif self._rotation and not self._reflection:
@@ -1130,10 +1163,32 @@ class TilingSolver(SageObject):
             else:
                 for q in it:
                     rows.append([i] + [coord_to_int[coord] for coord in q])
+        self._starting_rows.append(len(rows))
         if verbose:
             print "Number of rows : %s" % len(rows)
             print "Number of distinct rows : %s" % len(set(tuple(sorted(row)) for row in rows))
         return rows
+
+    def nrows_per_piece(self):
+        r"""
+        Return the number of rows necessary by each piece.
+
+        OUPUT:
+
+            list
+
+        EXAMPLES::
+
+            sage: from sage.games.quantumino import QuantuminoSolver
+            sage: q = QuantuminoSolver(0)
+            sage: T = q.tiling_solver()
+            sage: T.nrows_per_piece()                           # long time (10s)
+            [360, 360, 360, 360, 360, 180, 180, 672, 672, 360, 360, 180, 180, 360, 360, 180]
+        """
+        if self._starting_rows is None:
+            rows = self.rows()
+        L = self._starting_rows
+        return [L[i+1] - L[i] for i in xrange(len(L)-1)]
 
     def dlx_solver(self):
         r"""
@@ -1184,7 +1239,7 @@ class TilingSolver(SageObject):
         while x.search() == 1:
             yield x.get_solution()
 
-    def dlx_partial_solutions(self):
+    def dlx_common_part_solutions(self):
         r"""
         Return an iterator over the row indices of solutions and of partial
         solutions, i.e. the common part of two consecutive solutions.
@@ -1205,7 +1260,7 @@ class TilingSolver(SageObject):
             sage: T = TilingSolver([p,q,r], box=(1,1,6))
             sage: list(T.dlx_solutions())
             [[0, 7, 14], [0, 12, 10], [6, 13, 5], [6, 14, 2], [11, 9, 5], [11, 10, 3]]
-            sage: list(T.dlx_partial_solutions())
+            sage: list(T.dlx_common_part_solutions())
             [[0, 7, 14], [0], [0, 12, 10], [], [6, 13, 5], [6], [6, 14, 2], [], [11, 9, 5], [11], [11, 10, 3]]
         """
         it = self.dlx_solutions()
@@ -1219,16 +1274,63 @@ class TilingSolver(SageObject):
                     common.append(a)
             yield common
 
-    def solve(self, include_partial=False):
+    def dlx_incremental_solutions(self):
+        r"""
+        Return an iterator over the row indices of the incremental
+        solutions.
+
+        Between two incremental solution, either one piece is added or one
+        piece is removed.
+
+        The purpose is to illustrate the backtracking and construct an
+        animation of the evolution of solutions.
+
+        OUPUT:
+
+            iterator
+
+        EXAMPLES::
+
+            sage: from sage.combinat.tiling import TilingSolver, Polyomino
+            sage: p = Polyomino([(0,0,0)])
+            sage: q = Polyomino([(0,0,0), (0,0,1)])
+            sage: r = Polyomino([(0,0,0), (0,0,1), (0,0,2)])
+            sage: T = TilingSolver([p,q,r], box=(1,1,6))
+            sage: list(T.dlx_solutions())
+            [[0, 7, 14], [0, 12, 10], [6, 13, 5], [6, 14, 2], [11, 9, 5], [11, 10, 3]]
+            sage: list(T.dlx_incremental_solutions())
+            [[0, 7, 14], [0, 7], [0], [0, 12], [0, 12, 10], [0, 12], [0], [], [6], [6, 13], [6, 13, 5], [6, 13], [6], [6, 14], [6, 14, 2], [6, 14], [6], [], [11], [11, 9], [11, 9, 5], [11, 9], [11], [11, 10], [11, 10, 3]]
+        """
+        it = self.dlx_solutions()
+        B = it.next()
+        while True:
+            yield B
+            A, B = B, it.next()
+            common = []
+            for i in reversed(xrange(len(A))):
+                if A[i] == B[i]:
+                    break
+                else:
+                    yield A[:i]
+            else:
+                i -= 1
+            for j in xrange(i+2, len(A)):
+                yield B[:j]
+
+    def solve(self, partial=None):
         r"""
         Returns an iterator of list of 3D polyominoes that are an exact
         cover of the box.
 
         INPUT:
 
-        - ``include_partial`` - boolean (optional, default: ``False``),
-          whether to include partial (incomplete) solutions, i.e. the
-          common part between two consecutive solutions.
+        - ``partial`` - string (optional, default: ``None``), whether to
+          include partial (incomplete) solutions. It can be one of the
+          following:
+
+          - ``None`` - include only complete solution
+          - ``'common'`` - common part between two consecutive solutions
+          - ``'incremental'`` - one piece change at a time
 
         OUTPUT:
 
@@ -1257,7 +1359,7 @@ class TilingSolver(SageObject):
 
         Including the partial solutions::
 
-            sage: it = T.solve(include_partial=True)
+            sage: it = T.solve(partial='common')
             sage: for p in it.next(): p
             Polyomino: [(0, 0, 0)], Color: gray
             Polyomino: [(0, 0, 1), (0, 0, 2)], Color: gray
@@ -1274,6 +1376,21 @@ class TilingSolver(SageObject):
             Polyomino: [(0, 0, 2), (0, 0, 3), (0, 0, 4)], Color: gray
             Polyomino: [(0, 0, 5)], Color: gray
 
+        Colors are preserved when the polyomino can be reused::
+
+            sage: p = Polyomino([(0,0,0)], color='yellow')
+            sage: q = Polyomino([(0,0,0), (0,0,1)], color='yellow')
+            sage: r = Polyomino([(0,0,0), (0,0,1), (0,0,2)], color='yellow')
+            sage: T = TilingSolver([p,q,r], box=(1,1,6), reusable=True)
+            sage: it = T.solve()
+            sage: for p in it.next(): p
+            Polyomino: [(0, 0, 0)], Color: yellow
+            Polyomino: [(0, 0, 1)], Color: yellow
+            Polyomino: [(0, 0, 2)], Color: yellow
+            Polyomino: [(0, 0, 3)], Color: yellow
+            Polyomino: [(0, 0, 4)], Color: yellow
+            Polyomino: [(0, 0, 5)], Color: yellow
+
         TESTS::
 
             sage: T = TilingSolver([p,q,r], box=(1,1,7))
@@ -1287,17 +1404,24 @@ class TilingSolver(SageObject):
             raise StopIteration
         int_to_coord = self.int_to_coord_dict()
         rows = self.rows()
-        if include_partial:
-            it = self.dlx_partial_solutions()
-        else:
+        if partial is None:
             it = self.dlx_solutions()
+        elif partial == 'common':
+            it = self.dlx_common_part_solutions()
+        elif partial == 'incremental':
+            it = self.dlx_incremental_solutions()
+        else:
+            raise ValueError("Unknown value for partial (=%s)" % partial)
         for solution in it:
             pentos = []
             for row_number in solution:
                 row = rows[row_number]
                 if self._reusable:
+                    no = -1
+                    while self._starting_rows[no] < row_number:
+                        no += 1
                     coords = [int_to_coord[i] for i in row]
-                    p = Polyomino(coords)
+                    p = Polyomino(coords, color=self._pieces[no].color())
                 else:
                     no = row[0]
                     coords = [int_to_coord[i] for i in row[1:]]
@@ -1336,4 +1460,61 @@ class TilingSolver(SageObject):
         while x.search() == 1:
             N += 1
         return N
+
+    def animate(self, partial='incremental', stop=None):
+        r"""
+        Return an animation of evolving solutions.
+
+        INPUT:
+
+        - ``partial`` - string (optional, default: ``None``), whether to
+          include partial (incomplete) solutions. It can be one of the
+          following:
+
+          - ``None`` - include only complete solution
+          - ``'common'`` - common part between two consecutive solutions
+          - ``'incremental'`` - one piece change at a time
+
+        - ``stop`` - integer (optional, default:``None``), number of frames
+
+        EXAMPLES::
+
+            sage: from sage.combinat.tiling import Polyomino, TilingSolver
+            sage: y = Polyomino([(0,0),(1,0),(2,0),(3,0),(2,1)], color='yellow')
+            sage: T = TilingSolver([y], box=(5,10), reusable=True, reflection=True)
+            sage: a = T.animate()                   # long time (2s)
+            sage: a                                 # long time (2s)
+            Animation with 42 frames
+            sage: a.show()                          # not tested
+
+        ::
+
+            sage: a = T.animate('common')                   # not tested
+            sage: a                                         # not tested
+            Animation with 19 frames
+
+        Without partial solutions::
+
+            sage: a = T.animate(None)                       # not tested
+            sage: a                                         # not tested
+            Animation with 10 frames
+
+        Limit the number of frames::
+
+            sage: a = T.animate('incremental', 13)          # not tested
+            sage: a                                         # not tested
+            Animation with 13 frames
+        """
+        dimension = len(self._box)
+        if dimension == 2:
+            it = self.solve(partial=partial)
+            it = itertools.islice(it, stop)
+            L = [sum([piece.show2d() for piece in solution], Graphics()) for solution in it]
+            xmax, ymax = self._box
+            a = Animation(L, xmin=0, ymin=0, xmax=xmax, ymax=ymax, aspect_ratio=1)
+            return a
+        elif dimension == 3:
+            raise NotImplementedError("Animation must be implemented in Jmol first")
+        else:
+            raise NotImplementedError("Dimension must be 2 or 3 in order to make an animation")
 

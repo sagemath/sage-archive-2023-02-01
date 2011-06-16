@@ -480,6 +480,27 @@ def solve(f, *args, **kwds):
        an empty dictionary). Likewise, if there's only a single solution,
        return a list containing one dictionary with that solution.
 
+    There are a few optional keywords if you are trying to solve a single
+    equation.  They may only be used in that context.
+
+    -  ``multiplicities`` - bool (default: False); if True,
+       return corresponding multiplicities.  This keyword is
+       incompatible with ``to_poly_solve=True`` and does not make
+       any sense when solving inequalities.
+
+    -  ``explicit_solutions`` - bool (default: False); require that
+       all roots be explicit rather than implicit. Not used
+       when solving inequalities.
+
+    -  ``to_poly_solve`` - bool (default: False) or string; use
+       Maxima's ``to_poly_solver`` package to search for more possible
+       solutions, but possibly encounter approximate solutions.
+       This keyword is incompatible with ``multiplicities=True``
+       and is not used when solving inequality. Setting ``to_poly_solve``
+       to 'force' (string) omits Maxima's solve command (useful when
+       some solution of trigonometric equations are lost).
+
+
     EXAMPLES::
 
         sage: x, y = var('x, y')
@@ -520,10 +541,27 @@ def solve(f, *args, **kwds):
         sage: solve( [y^6 == y], y)==solve( y^6 == y, y)
         True
 
+    Here we demonstrate very basic use of the optional keywords for
+    a single expression to be solved::
+
+        sage: ((x^2-1)^2).solve(x)
+        [x == -1, x == 1]
+        sage: ((x^2-1)^2).solve(x,multiplicities=True)
+        ([x == -1, x == 1], [2, 2])
+        sage: solve(sin(x)==x,x)
+        [x == sin(x)]
+        sage: solve(sin(x)==x,x,explicit_solutions=True)
+        []
+        sage: solve(abs(1-abs(1-x)) == 10, x)
+        [abs(abs(x - 1) - 1) == 10]
+        sage: solve(abs(1-abs(1-x)) == 10, x, to_poly_solve=True)
+        [x == -10, x == 12]
+
     .. note::
 
-        For more details about solving a single equations, see
-        the documentation for its solve.
+        For more details about solving a single equation, see
+        the documentation for the single-expression
+        :meth:`~sage.symbolic.expression.Expression.solve`.
 
     ::
 
@@ -561,7 +599,7 @@ def solve(f, *args, **kwds):
     be implicitly an integer (hence the ``z``)::
 
         sage: solve([cos(x)*sin(x) == 1/2, x+y == 0],x,y)
-        [[x == 1/4*pi + pi*z68, y == -1/4*pi - pi*z68]]
+        [[x == 1/4*pi + pi*z78, y == -1/4*pi - pi*z78]]
 
     Expressions which are not equations are assumed to be set equal
     to zero, as with `x` in the following example::
@@ -605,7 +643,8 @@ def solve(f, *args, **kwds):
         sage: solve(x^2>8,x)
         [[x < -2*sqrt(2)], [x > 2*sqrt(2)]]
 
-    Use use_grobner if no solution is obtained from to_poly_solve::
+    We use ``use_grobner`` in Maxima if no solution is obtained from
+    Maxima's ``to_poly_solve``::
 
        sage: x,y=var('x y'); c1(x,y)=(x-5)^2+y^2-16; c2(x,y)=(y-3)^2+x^2-9
        sage: solve([c1(x,y),c2(x,y)],[x,y])

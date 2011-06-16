@@ -71,6 +71,7 @@ cdef extern from "ginac_wrap.h":
         GEx collect(GEx s, bint dist) except +
         GEx diff(GSymbol s, int d)    except +
         GEx series(GEx s, int order, unsigned options) except +
+        bint is_equal(GEx s)          except +
         bint is_zero()                except +
         bint is_polynomial(GEx vars)  except +
         bint match(GEx pattern, GExList s) except +

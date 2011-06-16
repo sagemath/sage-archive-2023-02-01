@@ -1200,6 +1200,28 @@ cdef class Expression(CommutativeRingElement):
             x^3 - y^10 >= x^10 + y
             sage: x^2 > x
             x^2 > x
+
+        Testing trac #11309 which changes the behavior of comparison of
+        comparisons::
+
+            sage: (-x + y < 0) in [x - y < 0]
+            False
+            sage: Set([-x + y < 0, x - y < 0])
+            {-x + y < 0, x - y < 0}
+            sage: (x < y) == (x > y)
+            False
+            sage: (x < 0) < (x < 1)
+            False
+            sage: (x < y) != (y > x)
+            True
+            sage: (x < x) == (x < x)
+            True
+            sage: (y > y) != (y > y)
+            False
+            sage: (x < y) != x
+            True
+            sage: x == (x == x)
+            False
         """
         return (<Element>left)._richcmp(right, op)
 
@@ -1209,15 +1231,32 @@ cdef class Expression(CommutativeRingElement):
         l = left
         r = right
 
-        if is_a_relational(l._gobj) or is_a_relational(r._gobj):
-            c = cmp(hash(l), hash(r))
-            if op == Py_NE:
-                return c != 0
-            elif op == Py_EQ:
-                return c == 0
+        # resolve relation immediately if lhs or rhs is already a relation
+        if is_a_relational(l._gobj):
+            if is_a_relational(r._gobj):
+                if l.operator() == r.operator():
+                    e2 = ( l._gobj.lhs().is_equal(r._gobj.lhs()) and
+                          l._gobj.rhs().is_equal(r._gobj.rhs()) )
+                else:
+                    e2 = False          # l and r are different relations
+            else:
+                e2 = False              # l is relational but r isn't.
+
+            if op == Py_EQ:
+                return e2
+            elif op == Py_NE:
+                return not e2
+            else:
+                return False
+        elif is_a_relational(r._gobj):  # l isn't relational but r is.
+            if op == Py_EQ:
+                return False
+            elif op == Py_NE:
+                return True
             else:
                 return False
 
+        # neither was relational, so we can create a symbolic relation
         cdef GEx e
         if op == Py_LT:
             e = g_lt(l._gobj, r._gobj)

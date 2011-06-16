@@ -1126,9 +1126,36 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         return self.dimension()
 
     def matrix(self, x=0, coerce=True, copy=True, rows=True):
-        """
-        Create a matrix in self. The entries can be specified either as a
-        single list of length nrows\*ncols, or as a list of lists.
+        r"""
+        Create a matrix in ``self``.
+
+        INPUT:
+
+        - ``x`` -- (default: 0) data to construct a new matrix from. Can be one
+          of the following:
+
+          * 0, corresponding to the zero matrix;
+
+          * a matrix, whose dimension must match ``self`` and whose base ring
+            must be convertible to the base ring of ``self``;
+
+          * a list of entries corresponding to all elements of the new matrix;
+
+          * a list of lists with each inner list being either a row or a column
+            of the new matrix.
+
+        - ``coerce`` -- (default: ``True``) whether to coerce ``x`` into self;
+
+        - ``copy`` -- (default: ``True``) whether to copy ``x`` during
+          construction (makes a difference only if ``x`` is a matrix in
+          ``self``);
+
+        - ``rows`` -- (default: ``True``) whether entries are given row by row
+          or column by column.
+
+        OUTPUT:
+
+        - a matrix in ``self``.
 
         EXAMPLES::
 
@@ -1145,6 +1172,36 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             sage: M.matrix([1,2,3,4],rows=False)
             [1 3]
             [2 4]
+
+        Note that the last "flip" cannot be performed if ``x`` is a matrix, no
+        matter what is ``rows`` (it used to be possible but was fixed by
+        Trac 10793)::
+
+            sage: projection = matrix(ZZ,[[1,0,0],[0,1,0]])
+            sage: projection
+            [1 0 0]
+            [0 1 0]
+            sage: projection.parent()
+            Full MatrixSpace of 2 by 3 dense matrices over Integer Ring
+            sage: M = MatrixSpace(ZZ, 3 , 2)
+            sage: M
+            Full MatrixSpace of 3 by 2 dense matrices over Integer Ring
+            sage: M(projection)
+            Traceback (most recent call last):
+            ...
+            ValueError: a matrix from
+            Full MatrixSpace of 2 by 3 dense matrices over Integer Ring
+            cannot be converted to a matrix in
+            Full MatrixSpace of 3 by 2 dense matrices over Integer Ring!
+
+        If you really want to make from a matrix another matrix of different
+        dimensions, use either transpose method or explicit conversion to a
+        list::
+
+            sage: M(projection.list())
+            [1 0]
+            [0 0]
+            [1 0]
         """
         if isinstance(x, (types.GeneratorType, xrange)):
             x = list(x)
@@ -1156,7 +1213,12 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
                     return x
                 else:
                     return x.__copy__()
-            x = x.list()
+            else:
+                if x.nrows() == self.__nrows and x.ncols() == self.__ncols:
+                    x = x.list()
+                else:
+                    raise ValueError("a matrix from %s cannot be converted to "
+                                     "a matrix in %s!" % (x.parent(), self))
         if isinstance(x, list) and len(x) > 0:
             if isinstance(x[0], list):
                 x = sum(x,[])

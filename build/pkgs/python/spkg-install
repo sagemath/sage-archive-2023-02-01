@@ -13,16 +13,14 @@ fi
 
 # PATCH
 
-# Due to issues building Python on Ubuntu 11.04, a file is patched
-# on these systems.
-
-if [ -f /etc/issue ] && grep "Ubuntu 11.04" /etc/issue ; then
-   echo "Patching src/Modules/Setup.dist as this is Ubuntu 11.04"
-   patch -p0 < patches/Modules.Setup.dist.patch
-   if [ $? -ne 0 ]; then
-      echo "Error patching src/Modules/Setup.dist"
-      exit 1
-   fi
+# When building Python 2.6 on Debian and derivatives with multiarch,
+# system library directories are not correctly setup.  This patch
+# fixes this, with no-op on other systems.
+echo "Patching src/setup.py for multiarch."
+patch -p0 < patches/setup.py.multiarch.patch
+if [ $? -ne 0 ]; then
+    echo "Error patching src/setup.py"
+    exit 1
 fi
 
 # Due to a python bug with Solaris

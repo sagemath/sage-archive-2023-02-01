@@ -1,0 +1,44 @@
+--- src/setup.py	2011-06-17 14:33:23.324161577 -0400
++++ patches/setup.py.multiarch	2011-06-17 17:09:30.053348790 -0400
+@@ -15,6 +15,7 @@
+ from distutils.command.build_ext import build_ext
+ from distutils.command.install import install
+ from distutils.command.install_lib import install_lib
++from distutils.spawn import find_executable
+ 
+ # This global variable is used to hold the list of modules to be disabled.
+ disabled_module_list = []
+@@ -308,10 +309,33 @@
+                 return platform
+         return sys.platform
+ 
++    def add_multiarch_paths(self):
++        # Debian/Ubuntu multiarch support.
++        # https://wiki.ubuntu.com/MultiarchSpec
++        if not find_executable('dpkg-architecture'):
++            return
++        tmpfile = os.path.join(self.build_temp, 'multiarch')
++        if not os.path.exists(self.build_temp):
++            os.makedirs(self.build_temp)
++        ret = os.system(
++            'dpkg-architecture -qDEB_HOST_MULTIARCH > %s 2> /dev/null' %
++            tmpfile)
++        try:
++            if ret >> 8 == 0:
++                with open(tmpfile) as fp:
++                    multiarch_path_component = fp.readline().strip()
++                add_dir_to_list(self.compiler.library_dirs,
++                                '/usr/lib/' + multiarch_path_component)
++                add_dir_to_list(self.compiler.include_dirs,
++                                '/usr/include/' + multiarch_path_component)
++        finally:
++            os.unlink(tmpfile)
++
+     def detect_modules(self):
+         # Ensure that /usr/local is always used
+         add_dir_to_list(self.compiler.library_dirs, '/usr/local/lib')
+         add_dir_to_list(self.compiler.include_dirs, '/usr/local/include')
++        self.add_multiarch_paths()
+ 
+         # Add paths specified in the environment variables LDFLAGS and
+         # CPPFLAGS for header and library files.

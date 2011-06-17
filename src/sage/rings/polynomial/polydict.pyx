@@ -390,7 +390,7 @@ cdef class PolyDict:
         return PolyDict(H, zero=self.__zero, force_etuples=False)
 
     def latex(PolyDict self, vars, atomic_exponents=True, atomic_coefficients=True, cmpfn = None):
-        """
+        r"""
         Return a nice polynomial latex representation of this PolyDict, where
         the vars are substituted in.
 
@@ -405,7 +405,7 @@ cdef class PolyDict:
             sage: from sage.rings.polynomial.polydict import PolyDict
             sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
             sage: f.latex(['a','WW'])
-            '2 a^{2}WW^{3} + 4 a^{2}WW + 3 aWW^{2}'
+            '2 a^{2} WW^{3} + 4 a^{2} WW + 3 a WW^{2}'
 
         When ``atomic_exponents`` is False, the exponents are surrounded in
         parenthesis, since ^ has such high precedence::
@@ -414,6 +414,15 @@ cdef class PolyDict:
             #sage: f = PolyDict({(2/3,3,5):2, (1,2,1):3, (2,1,1):4}, force_int_exponents=False)
             #sage: f.latex(['a','b','c'], atomic_exponents=False)
             #'4 a^{2}bc + 3 ab^{2}c + 2 a^{2/3}b^{3}c^{5}'
+
+        TESTS:
+
+        We check that the issue on Trac 9478 is resolved::
+
+            sage: R2.<a> = QQ[]
+            sage: R3.<xi, x> = R2[]
+            sage: print latex(xi*x)
+            \xi x
         """
         n = len(vars)
         poly = ""
@@ -434,11 +443,9 @@ cdef class PolyDict:
             if c != self.__zero:
                 sign_switch = False
                 # First determine the multinomial:
-                multi = ""
-                for j in e.nonzero_positions(sort=True):
-                    multi = multi + vars[j]
-                    if e[j] != 1:
-                        multi =  multi +"^{%s}"%e[j]
+                multi = " ".join([vars[j] +
+                                  ("^{%s}" % e[j] if e[j] != 1 else "")
+                                 for j in e.nonzero_positions(sort=True)])
                 # Next determine coefficient of multinomial
                 if len(multi) == 0:
                     multi = latex(c)

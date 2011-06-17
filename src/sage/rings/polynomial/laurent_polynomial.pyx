@@ -165,7 +165,7 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
             sage: a = w^2*z^-1+3; a
             w^2*z^-1 + 3
             sage: latex(a)
-            w^{2}z^{-1} + 3
+            w^{2} z^{-1} + 3
 
         """
         if self._prod is None:

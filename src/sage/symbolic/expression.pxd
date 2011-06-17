@@ -10,6 +10,7 @@ cdef class Expression(CommutativeRingElement):
     cpdef object _convert(self, R)
     cpdef bint is_polynomial(self, var)
     cpdef bint is_relational(self)
+    cpdef bint is_infinity(self)
     cpdef object pyobject(self)
     cpdef Expression _subs_expr(self, expr)
 

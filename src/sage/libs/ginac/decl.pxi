@@ -18,6 +18,9 @@ cdef extern from "ginac_wrap.h":
     void ginac_pyinit_Float(object)
     void ginac_pyinit_I(object)
 
+    # forward declaration of GEx
+    ctypedef struct GEx "ex"
+
     ctypedef struct GBasic "basic":
         unsigned int gethash()
         int compare(GBasic other)
@@ -25,6 +28,14 @@ cdef extern from "ginac_wrap.h":
     ctypedef struct GConstant "constant":
         unsigned get_serial()
 
+    ctypedef struct GInfinity "infinity":
+        bint is_unsigned_infinity()
+        bint is_plus_infinity()
+        bint is_minus_infinity()
+        GEx get_direction()
+        GEx conjugate()
+        GEx real_part()
+        GEx imag_part()
 
     ctypedef struct GSymbol "symbol":
         unsigned get_domain()
@@ -42,9 +53,6 @@ cdef extern from "ginac_wrap.h":
         pass
     ctypedef struct GExMap "exmap":
         void insert(GExPair e)
-
-    # forward declaration of GEx
-    ctypedef struct GEx "ex"
 
     ctypedef struct GExListIter "GiNaC::lst::const_iterator":
         void inc "operator++" ()
@@ -161,9 +169,6 @@ cdef extern from "ginac_wrap.h":
     GEx g_Pi "Pi"
     GEx g_Catalan "Catalan"
     GEx g_Euler "Euler"
-    GEx g_UnsignedInfinity "UnsignedInfinity"
-    GEx g_Infinity "Infinity"
-    GEx g_mInfinity "-Infinity"
 
     GConstant* GConstant_construct(void *mem, char* name, char* texname, unsigned domain)
     bint is_a_constant "is_a<constant>" (GEx e)
@@ -171,6 +176,12 @@ cdef extern from "ginac_wrap.h":
     GConstant* GConstant_construct_str "Construct_p<constant, char*>" \
             (void *mem, char* name) except +
 
+    # Infinities
+    bint is_a_infinity "is_a<infinity>" (GEx e)
+    GEx g_UnsignedInfinity "UnsignedInfinity"
+    GEx g_Infinity "Infinity"
+    GEx g_mInfinity "-Infinity"
+    GInfinity ex_to_infinity "ex_to<infinity>" (GEx e)
 
     # I is not a constant, but a numeric object
     # we declare it here for easy reference

@@ -145,7 +145,7 @@ from sage.symbolic.getitem cimport OperandsWrapper
 from sage.symbolic.function import get_sfunction_from_serial, SymbolicFunction
 from sage.rings.rational import Rational  # Used for sqrt.
 from sage.misc.derivative import multi_derivative
-from sage.rings.infinity import AnInfinity
+from sage.rings.infinity import AnInfinity, infinity, minus_infinity, unsigned_infinity
 from sage.misc.decorators import rename_keyword
 from sage.misc.misc import deprecated_function_alias
 
@@ -203,9 +203,13 @@ def is_SymbolicEquation(x):
 cdef class Expression(CommutativeRingElement):
     cpdef object pyobject(self):
         """
-        Get the underlying Python object corresponding to this
-        expression, assuming this expression is a single numerical
-        value.   Otherwise, a TypeError is raised.
+        Get the underlying Python object.
+
+        OUTPUT:
+
+        The python object corresponding to this expression, assuming
+        this expression is a single numerical value. Otherwise, a
+        TypeError is raised.
 
         EXAMPLES::
 
@@ -217,11 +221,31 @@ cdef class Expression(CommutativeRingElement):
             -17/3
             sage: a.pyobject() is b
             True
+
+        TESTS::
+
+            sage: SR(oo).pyobject()
+            +Infinity
+            sage: SR(-oo).pyobject()
+            -Infinity
+            sage: SR(unsigned_infinity).pyobject()
+            Infinity
+            sage: SR(I*oo).pyobject()
+            Traceback (most recent call last):
+            ...
+            ValueError: Python infinity cannot have complex phase.
         """
         cdef GConstant* c
         if is_a_constant(self._gobj):
             from sage.symbolic.constants import constants_name_table
             return constants_name_table[GEx_to_str(&self._gobj)]
+
+        if is_a_infinity(self._gobj):
+            if (ex_to_infinity(self._gobj).is_unsigned_infinity()): return unsigned_infinity
+            if (ex_to_infinity(self._gobj).is_plus_infinity()):     return infinity
+            if (ex_to_infinity(self._gobj).is_minus_infinity()):    return minus_infinity
+            raise TypeError('Python infinity cannot have complex phase.')
+
         if not is_a_numeric(self._gobj):
             raise TypeError, "self must be a numeric expression"
         return py_object_from_numeric(self._gobj)
@@ -1660,6 +1684,19 @@ cdef class Expression(CommutativeRingElement):
         """
         return is_a_relational(self._gobj)
 
+    cpdef bint is_infinity(self):
+        """
+        Return True if self is a infinite expression.
+
+        EXAMPLES::
+
+            sage: SR(oo).is_infinity()
+            True
+            sage: x.is_infinity()
+            False
+        """
+        return is_a_infinity(self._gobj)
+
     def left_hand_side(self):
         """
         If self is a relational expression, return the left hand side
@@ -1859,16 +1896,29 @@ cdef class Expression(CommutativeRingElement):
             sage: bool(x != y) # The same comment as above applies here as well
             True
             sage: forget()
+
+        Comparisons of infinities::
+
+            sage: assert( (1+I)*oo == (2+2*I)*oo )
+            sage: assert( SR(unsigned_infinity) == SR(unsigned_infinity) )
+            sage: assert( SR(I*oo) == I*oo )
+            sage: assert( SR(-oo) <= SR(oo) )
+            sage: assert( SR(oo) >= SR(-oo) )
+            sage: assert( SR(oo) != SR(-oo) )
+            sage: assert( sqrt(2)*oo != I*oo )
         """
         if self.is_relational():
-            #If both the left hand side and right hand side are wrappers
-            #around Sage objects, then we should do the comparison directly
-            #with those objects
+            # constants are wrappers around Sage objects, compare directly
             if is_a_constant(self._gobj.lhs()) and is_a_constant(self._gobj.rhs()):
                 return self.operator()(self.lhs().pyobject(), self.rhs().pyobject())
 
-            res = relational_to_bool(self._gobj)
-            if res:
+            pynac_result = relational_to_bool(self._gobj)
+
+            # pynac is guaranteed to give the correct answer for comparing infinities
+            if is_a_infinity(self._gobj.lhs()) or is_a_infinity(self._gobj.rhs()):
+                return pynac_result
+
+            if pynac_result:
                 if self.operator() == operator.ne: # this hack is necessary to catch the case where the operator is != but is False because of assumptions made
                     m = self._maxima_()
                     s = m.parent()._eval_line('is (notequal(%s,%s))'%(repr(m.lhs()),repr(m.rhs())))

@@ -41,6 +41,18 @@ reference implementation for Gröbner basis computation.
 === polybori-0.7.0.p4 (Jeroen Demeyer, 8 August 2011) ===
  * Trac #11664: Make all files world-readable
 
+=== polybori-0.7.1.p3 (Alexander Dreyer, April 27th, 2011) ===
+ * Another backport from 0.8: use jinja2 for plotting (if available)
+
+=== polybori-0.7.1.p2 (Alexander Dreyer, April 27th, 2011) ===
+ * Rebase on Sage 4.7's official spkg for PolyBoRi 0.7-0
+
+=== polybori-0.7.1.p1 (Alexander Dreyer, April 27th, 2011) ===
+ * Backporting fix for compatibility with new M4RI from PolyBoRi 0.8
+
+=== polybori-0.7.1.p0 (Alexander Dreyer, April 27th, 2011) ===
+ * Upgrading sources to PolyBoRi 0.7.1  (#12261)
+
 === polybori-0.7.0.p3 (Alexander Dreyer, May 13th, 2011) ===
  * Fixed building on OS X 10.4 PPC G4  (#11331)
 

@@ -23,6 +23,7 @@ patch()
     cp patches/COrderedIter.h        src/${PBDIR}/polybori/include
     cp patches/nf.h                  src/${PBDIR}/groebner/src
     cp patches/nf.cc                 src/${PBDIR}/groebner/src
+    cp patches/plot.py               src/${PBDIR}/pyroot/polybori
 }
 
 

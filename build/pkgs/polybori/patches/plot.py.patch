@@ -1,0 +1,22 @@
+# HG changeset patch
+# User Alexander Dreyer <adreyer@gmx.de>
+# Date 1308310931 -7200
+# Node ID c7ef133412d45b4a4675cffcd4e628e066f74b68
+# Parent  6ecb8b6558ca6c9d06f19303f89d5fd18ce1703d
+FIX: use jinja2 if available
+
+diff -r 6ecb8b6558ca -r c7ef133412d4 pyroot/polybori/plot.py
+--- a/pyroot/polybori/plot.py	Thu Jun 16 10:23:57 2011 +0200
++++ b/pyroot/polybori/plot.py	Fri Jun 17 13:42:11 2011 +0200
+@@ -68,7 +68,10 @@
+     return str(stream)
+ 
+ def render_jinja(data_dict):
+-    from jinja import Environment
++    try:
++        from jinja2 import Environment
++    except:
++        from jinja import Environment        
+     env = Environment()
+     tmpl = env.from_string(graph_template_jinja)
+     return tmpl.render(**data_dict)

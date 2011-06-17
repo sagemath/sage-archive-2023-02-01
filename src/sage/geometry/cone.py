@@ -180,7 +180,7 @@ from sage.geometry.toric_lattice import ToricLattice, is_ToricLattice
 from sage.geometry.toric_plotter import ToricPlotter, label_list
 from sage.graphs.all import DiGraph
 from sage.matrix.all import matrix, identity_matrix
-from sage.misc.all import flatten, latex
+from sage.misc.all import flatten, latex, prod
 from sage.modules.all import span, vector
 from sage.rings.all import QQ, RR, ZZ, gcd
 from sage.structure.all import SageObject
@@ -188,6 +188,7 @@ from sage.structure.coerce import parent
 from sage.libs.ppl import C_Polyhedron, Generator_System, Constraint_System, \
     Linear_Expression, ray as PPL_ray, point as PPL_point, \
     Poly_Con_Relation
+from sage.combinat.cartesian_product import CartesianProduct
 
 
 def is_Cone(x):
@@ -3391,14 +3392,13 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: cone = Cone([(3,0,-1), (1,-1,0), (0,1,0), (0,0,1)])
             sage: cone.semigroup_generators()
-            (N(1, 1, 0), N(3, 0, -1), N(2, 1, 0), N(1, 0, 0), N(2, -1, 0),
-             N(0, 0, 1), N(1, -1, 0), N(3, -1, 0), N(0, 1, 0), N(2, 0, 0))
+            (N(1, 0, 0), N(0, 0, 1), N(0, 1, 0), N(3, 0, -1), N(1, -1, 0))
 
         GAP's toric package thinks this is challenging::
 
             sage: cone = Cone([[1,2,3,4],[0,1,0,7],[3,1,0,2],[0,0,1,0]]).dual()
             sage: len( cone.semigroup_generators() )
-            4208
+            2806
 
         The cone need not be strictly convex::
 
@@ -3410,21 +3410,73 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             (N(1, 1, 1), N(-1, -1, -1))
             sage: wedge = Cone([ (1,0,0), (1,2,0), (0,0,1), (0,0,-1) ])
             sage: wedge.semigroup_generators()
-            (N(1, 1, 0), N(1, 1, -1), N(1, 0, 0), N(0, 0, 1),
-             N(0, 0, -1), N(1, 1, 1), N(1, 2, 0))
+            (N(1, 0, 0), N(1, 1, 0), N(1, 2, 0), N(0, 0, 1), N(0, 0, -1))
+
+        Nor does it have to be full-dimensional (see
+        http://trac.sagemath.org/sage_trac/ticket/11312)::
+
+            sage: Cone([(1,1,0), (-1,1,0)]).semigroup_generators()
+            (N(0, 1, 0), N(1, 1, 0), N(-1, 1, 0))
+
+        Neither full-dimensional nor simplicial::
+
+            sage: A = matrix([(1, 3, 0), (-1, 0, 1), (1, 1, -2), (15, -2, 0)])
+            sage: A.elementary_divisors()
+            [1, 1, 1, 0]
+            sage: cone3d = Cone([(3,0,-1), (1,-1,0), (0,1,0), (0,0,1)])
+            sage: rays = [ A*vector(v) for v in cone3d.rays() ]
+            sage: gens = Cone(rays).semigroup_generators(); gens
+            (N(1, -1, 1, 15), N(0, 1, -2, 0), N(-2, -1, 0, 17), N(3, -4, 5, 45), N(3, 0, 1, -2))
+            sage: set(map(tuple,gens)) == set([ tuple(A*r) for r in cone3d.semigroup_generators() ])
+            True
+
+        TESTS::
+
+            sage: len(Cone(identity_matrix(10).rows()).semigroup_generators())
+            10
+
+            sage: trivial_cone = Cone([], lattice=ToricLattice(3))
+            sage: trivial_cone.semigroup_generators()
+            ()
 
         ALGORITHM:
 
         If the cone is not simplicial, it is first triangulated. Each
         simplicial subcone has the integral points of the spaned
         parallelotope as generators. This is the first step of the
-        primal Normaliz algorithm, see [Normaliz]_.
+        primal Normaliz algorithm, see [Normaliz]_. For each
+        simplicial cone (of dimension `d`), the integral points of the
+        open parallelotope
+
+        .. math::
+
+            par \langle x_1, \dots, x_d \rangle =
+            \ZZ^n \cap
+            \left\{
+            q_1 x_1 + \cdots +q_d x_d
+            :~
+            0 \leq q_i < 1
+            \right\}
+
+        are then computed [BrunsKoch]_.
+
+        Finally, the the union of the generators of all simplicial
+        subcones is returned.
+
+        REFERENCES:
+
+        ..  [BrunsKoch]
+            W. Bruns and R. Koch,
+            Computing the integral closure of an affine semigroup.
+            Uni. Iaggelonicae Acta Math. 39, (2001), 59-70
         """
+        # if the cone is not simplicial, triangulate and run
+        # recursively
         N = self.lattice()
-        if not self.is_simplicial():   # triangulate and run recursively
+        if not self.is_simplicial():
             from sage.geometry.triangulation.point_configuration import PointConfiguration
             origin = self.nrays() # last one in pc
-            pc = PointConfiguration(self.rays() + (N(0),), fine=True, star=origin)
+            pc = PointConfiguration(self.rays() + (N(0),), star=origin)
             triangulation = pc.triangulate()
             subcones = [ Cone([self.ray(i) for i in simplex if i!=origin],
                               lattice=N, check=False)
@@ -3434,18 +3486,10 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
                 gens.update(cone.semigroup_generators())
             return tuple(gens)
 
-        # if the cone is simplicial, just take integral points in
-        # the parallelepiped spanned by the rays
-        from sage.geometry.polyhedra import polytopes
-        par = polytopes.parallelotope(self.rays())
-        gens = par.integral_points()
-        # Remove parallelotope vertices, we will add ray generators later.
-        for vertex in par.vertex_generator():
-            gens.remove(vertex.vector())
-        gens = map(N,gens)
-        for gen in gens:
-            gen.set_immutable()
-        gens.extend(self.rays())
+        if self.is_trivial():
+            return tuple()
+        gens = list(parallelotope_points(self.rays())) + list(self.rays())
+        gens = filter(lambda v:gcd(v)==1, gens)
         return tuple(gens)
 
     def Hilbert_basis(self):
@@ -3492,22 +3536,27 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: cone = Cone([[1,2,3,4],[0,1,0,7],[3,1,0,2],[0,0,1,0]]).dual()
             sage: cone.Hilbert_basis()           # long time
             (M(10, -7, 0, 1), M(-5, 21, 0, -3), M(0, -2, 0, 1), M(15, -63, 25, 9),
-             M(2, -3, 0, 1), M(4, -4, 0, 1), M(1, -4, 1, 1), M(-1, 3, 0, 0),
-             M(6, -5, 0, 1), M(3, -5, 1, 1), M(1, -5, 2, 1), M(8, -6, 0, 1),
-             M(5, -6, 1, 1), M(2, -6, 2, 1), M(0, 1, 0, 0), M(3, -13, 5, 2),
-             M(-2, 8, 0, -1), M(7, -7, 1, 1), M(4, -7, 2, 1), M(5, -14, 5, 2),
-             M(6, -21, 8, 3), M(1, 0, 0, 0), M(-1, 7, 0, -1), M(7, -28, 11, 4),
-             M(2, -7, 3, 1), M(-3, 14, 0, -2), M(10, -42, 17, 6), M(5, -21, 9, 3),
-             M(0, 0, 1, 0))
+             M(2, -3, 0, 1), M(1, -4, 1, 1), M(-1, 3, 0, 0), M(4, -4, 0, 1),
+             M(1, -5, 2, 1), M(3, -5, 1, 1), M(6, -5, 0, 1), M(3, -13, 5, 2),
+             M(2, -6, 2, 1), M(5, -6, 1, 1), M(0, 1, 0, 0), M(8, -6, 0, 1),
+             M(-2, 8, 0, -1), M(10, -42, 17, 6), M(7, -28, 11, 4), M(5, -21, 9, 3),
+             M(6, -21, 8, 3), M(5, -14, 5, 2), M(2, -7, 3, 1), M(4, -7, 2, 1),
+             M(7, -7, 1, 1), M(0, 0, 1, 0), M(-3, 14, 0, -2), M(-1, 7, 0, -1),
+             M(1, 0, 0, 0))
 
         Not a strictly convex cone::
 
             sage: wedge = Cone([ (1,0,0), (1,2,0), (0,0,1), (0,0,-1) ])
             sage: wedge.semigroup_generators()
-            (N(1, 1, 0), N(1, 1, -1), N(1, 0, 0), N(0, 0, 1),
-             N(0, 0, -1), N(1, 1, 1), N(1, 2, 0))
+            (N(1, 0, 0), N(1, 1, 0), N(1, 2, 0), N(0, 0, 1), N(0, 0, -1))
             sage: wedge.Hilbert_basis()
             (N(1, 2, 0), N(1, 0, 0), N(0, 0, 1), N(0, 0, -1), N(1, 1, 0))
+
+        Not full-dimensional cones are ok, too (see
+        http://trac.sagemath.org/sage_trac/ticket/11312)::
+
+            sage: Cone([(1,1,0), (-1,1,0)]).Hilbert_basis()
+            (N(1, 1, 0), N(-1, 1, 0), N(0, 1, 0))
 
         ALGORITHM:
 
@@ -3617,4 +3666,96 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         p.solve()
 
         return vector(ZZ, p.get_values(x))
+
+
+
+#################################################################
+def parallelotope_points(spanning_points):
+    r"""
+    Return integral points in the parallelotope spanned by a the
+    rays.
+
+    See :meth:`~ConvexRationalPolyhedralCone.semigroup_generators` for a description of the
+    algorithm.
+
+    INPUT:
+
+    - ``spanning_points`` -- a non-empty list of linearly independent
+      rays (`\ZZ`-vectors or :class:`toric lattice
+      <sage.geometry.toric_lattice.ToricLatticeFactory>` elements),
+      not necessarily primitive lattice points.
+
+    OUTPUT:
+
+    The tuple of all lattice points in the half-open parallelotope
+    spanned by the rays `r_i`,
+
+    .. math::
+
+        \mathop{par}(\{r_i\}) =
+        \sum_{0\leq a_i < 1} a_i r_i
+
+    By half-open parallelotope, we mean that the
+    points in the facets not meeting the origin are omitted.
+
+    EXAMPLES:
+
+    Note how the points on the outward-facing factes are omitted::
+
+        sage: from sage.geometry.cone import parallelotope_points
+        sage: rays = map(vector, [(2,0), (0,2)])
+        sage: parallelotope_points(rays)
+        ((0, 0), (1, 0), (0, 1), (1, 1))
+
+    The rays can also be toric lattice points::
+
+        sage: rays = map(ToricLattice(2), [(2,0), (0,2)])
+        sage: parallelotope_points(rays)
+        (N(0, 0), N(1, 0), N(0, 1), N(1, 1))
+
+    A non-smooth cone::
+
+        sage: c = Cone([ (1,0), (1,2) ])
+        sage: parallelotope_points(c.rays())
+        (N(0, 0), N(1, 1))
+
+    A ``ValueError`` is raised if the ``spanning_points`` are not
+    linearly independent::
+
+        sage: rays = map(ToricLattice(2), [(1,1)]*2)
+        sage: parallelotope_points(rays)
+        Traceback (most recent call last):
+        ...
+        ValueError: The spanning points are not linearly independent!
+    """
+    N = spanning_points[0].parent()  # this is why there needs to be at least one ray
+
+    # compute points in the open parallelotope, see [BrunsKoch]
+    R = matrix(spanning_points).transpose()
+    D,U,V = R.smith_form()
+    e = D.diagonal()          # the elementary divisors
+    d = prod(e)               # the determinant
+    if d==0:
+        raise ValueError('The spanning points are not linearly independent!')
+    u = U.inverse().columns() # generators for gp(semigroup)
+    gens = []
+
+    # "inverse" of the ray matrix as far as possible over ZZ
+    # R*Rinv == diagonal_matrix([d]*D.ncols() + [0]*(D.nrows()-D.ncols()))
+    # If R is full rank, this is Rinv = matrix(ZZ, R.inverse() * d)
+    Dinv = D.transpose()
+    for i in range(0,D.ncols()):
+        Dinv[i,i] = d/D[i,i]
+    Rinv = V * Dinv * U
+
+    for b in CartesianProduct(*[ range(0,i) for i in e ]):
+        # this is our generator modulo the lattice spanned by the rays
+        gen_mod_rays = sum( b_i*u_i for b_i, u_i in zip(b,u) )
+        q_times_d = Rinv * gen_mod_rays
+        q_times_d = vector(ZZ,[ q_i % d  for q_i in q_times_d ])
+        gen = N(R*q_times_d / d)
+        gen.set_immutable()
+        gens.append(gen)
+    assert(len(gens) == d)
+    return tuple(gens)
 

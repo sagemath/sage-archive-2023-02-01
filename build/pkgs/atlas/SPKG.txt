@@ -93,6 +93,7 @@ The package can be configured via two environment variables:
  * Removed SpewMakeInc.c.patch as it is included in new upstream
    version.
  * Rediffed other patches.
+ * Cygwin library name fix.
 
 == atlas-3.8.3.p18 (Mariah Lenox, 11 May 2011) ==
  * Make atlas respect CC environment variable.

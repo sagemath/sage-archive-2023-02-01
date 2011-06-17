@@ -45,13 +45,16 @@ os.environ['MAKE'] += ' -j1'
 # On Cygwin we simply require that the system-wide lapack is installed.
 # This includes BLAS and is enough to build the rest of Sage.
 if conf['CYGWIN?']:
-    if os.path.exists('/usr/lib/libblas.a'):
-        sys.exit(0)
-    print "*"*75
-    print "On Cygwin you must install the standard LAPACK Cygwin package"
-    print "via the Cygwin setup.exe program in the 'Math' category."
-    print "*"*75
-    sys.exit(1)
+    lib = '/usr/lib/libblas.dll.a'
+    if not os.path.exists(lib):
+        print '*'*75
+        print 'On Cygwin you must install the standard LAPACK Cygwin package'
+        print 'via the Cygwin setup.exe program in the "Math" category.'
+        print '*'*75
+        sys.exit(1)
+    cp(lib, os.path.join(conf['SAGE_LOCAL'], 'lib'))
+    sys.exit(0)
+
 
 
 if conf['Darwin?']:

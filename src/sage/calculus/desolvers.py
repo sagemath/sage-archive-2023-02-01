@@ -1497,8 +1497,11 @@ def desolve_odeint(des, ics, times, dvars, ivar=None, compute_jac=False, args=()
             ivar = ivars.pop()
         elif not ivars:
             from sage.symbolic.ring import var
-            safe_name = 't_' + str(dvars)
-            ivar = var(safe_name)
+            try:
+                safe_names = [ 't_' + str(dvar) for dvar in dvars ]
+            except TypeError:  # not iterable
+                safe_names = [ 't_' + str(dvars) ]
+            ivar = map(var, safe_names)
         else:
             raise ValueError, "Unable to determine independent variable, please specify."
 

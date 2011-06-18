@@ -531,21 +531,42 @@ cdef class SymbolicRing(CommutativeRing):
             <type 'sage.symbolic.expression.Expression'>
             sage: t = SR.var('theta2'); t
             theta2
+
+        TESTS::
+
+            sage: var(' x y  z    ')
+            (x, y, z)
+            sage: var(' x  ,  y ,  z    ')
+            (x, y, z)
+            sage: var(' ')
+            Traceback (most recent call last):
+            ...
+            ValueError: You need to specify the name of the new variable.
         """
         if is_Expression(name):
             return name
         if not isinstance(name, str):
             name = repr(name)
+
         if ',' in name:
-            if latex_name:
-                raise ValueError, "cannot specify latex_name for multiple symbol names"
-            return tuple([self.symbol(s.strip(), domain=domain) for s in name.split(',')])
+            names_list = [s.strip() for s in name.split(',' )]
         elif ' ' in name:
+            names_list = [s.strip() for s in name.split()]
+        else:
+            names_list = [name]
+
+        for s in names_list:
+            if not isidentifier(s):
+                raise ValueError('The name "'+s+'" is not a valid Python identifier.')
+
+        if len(names_list) == 0:
+            raise ValueError('You need to specify the name of the new variable.')
+        if len(names_list) == 1:
+            return self.symbol(name, latex_name=latex_name, domain=domain)
+        if len(names_list) > 1:
             if latex_name:
                 raise ValueError, "cannot specify latex_name for multiple symbol names"
-            return tuple([self.symbol(s.strip(), domain=domain) for s in name.split(' ')])
-        else:
-            return self.symbol(name, latex_name=latex_name, domain=domain)
+            return tuple([self.symbol(s, domain=domain) for s in names_list])
 
     def _repr_element_(self, Expression x):
         """
@@ -808,3 +829,45 @@ def is_SymbolicVariable(x):
         Univariate Polynomial Ring in x over Integer Ring
     """
     return is_Expression(x) and is_a_symbol((<Expression>x)._gobj)
+
+def isidentifier(x):
+    """
+    Return whether ``x`` is a valid identifier.
+
+    When we switch to Python 3 this function can be replaced by the
+    official Python function of the same name.
+
+    INPUT:
+
+    - ``x`` -- a string.
+
+    OUTPUT:
+
+    Boolean. Whether the string ``x`` can be used as a variable name.
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.ring import isidentifier
+        sage: isidentifier('x')
+        True
+        sage: isidentifier(' x')   # can't start with space
+        False
+        sage: isidentifier('ceci_n_est_pas_une_pipe')
+        True
+        sage: isidentifier('1 + x')
+        False
+        sage: isidentifier('2good')
+        False
+        sage: isidentifier('good2')
+        True
+        sage: isidentifier('lambda s:s+1')
+        False
+    """
+    import parser
+    try:
+        code = parser.expr(x).compile()
+    except (MemoryError, OverflowError, SyntaxError, SystemError, parser.ParserError), msg:
+        return False
+    return len(code.co_names)==1 and code.co_names[0]==x
+
+

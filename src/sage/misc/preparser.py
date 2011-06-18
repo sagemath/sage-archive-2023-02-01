@@ -792,6 +792,33 @@ def preparse_calculus(code):
         ';__tmp__=var("t,s"); f = symbolic_expression(t^2).function(t,s);'
         sage: preparse_calculus(";f( t , s ) = t^2;")
         ';__tmp__=var("t,s"); f = symbolic_expression(t^2).function(t,s);'
+
+    TESTS:
+
+    The arguments in the definition must be symbolic variables #10747::
+
+        sage: preparse_calculus(";f(_sage_const_)=x;")
+        Traceback (most recent call last):
+        ...
+        ValueError: Argument names should be valid python identifiers.
+
+    Although preparse_calculus returns something for f(1)=x, when
+    preparsing a file an exception is raised because it is invalid python::
+
+        sage: preparse_calculus(";f(1)=x;")
+        ';__tmp__=var("1"); f = symbolic_expression(x).function(1);'
+
+        sage: from sage.misc.preparser import preparse_file
+        sage: preparse_file("f(1)=x")
+        Traceback (most recent call last):
+        ...
+        ValueError: Argument names should be valid python identifiers.
+
+        sage: from sage.misc.preparser import preparse_file
+        sage: preparse_file("f(x,1)=2")
+        Traceback (most recent call last):
+        ...
+        ValueError: Argument names should be valid python identifiers.
     """
     new_code = []
     last_end = 0

@@ -31,6 +31,34 @@ When you do arithmetic with
     sage: f + g
     (x, y, t, w) |--> t + w + x + y
 
+TESTS:
+
+The arguments in the definition must be symbolic variables #10747::
+
+    sage: f(1)=2
+    Traceback (most recent call last):
+    ...
+    SyntaxError: can't assign to function call ...
+
+    sage: f(x,1)=2
+    Traceback (most recent call last):
+    ...
+    SyntaxError: can't assign to function call ...
+
+    sage: f(1,2)=3
+    Traceback (most recent call last):
+    ...
+    SyntaxError: can't assign to function call ...
+
+    sage: f(1,2)=x
+    Traceback (most recent call last):
+    ...
+    SyntaxError: can't assign to function call ...
+
+    sage: f(x,2)=x
+    Traceback (most recent call last):
+    ...
+    SyntaxError: can't assign to function call ...
 """
 
 from sage.symbolic.ring import SymbolicRing, SR, ParentWithBase

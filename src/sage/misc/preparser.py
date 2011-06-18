@@ -798,7 +798,14 @@ def preparse_calculus(code):
     #                                   f         (  vars  )   =      expr
     for m in re.finditer(r";(\s*)([a-zA-Z_]\w*) *\(([^()]+)\) *= *([^;#=][^;#]*)", code):
         ident, func, vars, expr = m.groups()
-        vars = ','.join(v.strip() for v in vars.split(','))
+        stripped_vars = [v.strip() for v in vars.split(',')]
+        # if the variable name starts with numeric_literal_prefix
+        # the argument name for the symbolic expression is a numeric literal
+        # such as f(2)=5
+        if any(n.startswith(numeric_literal_prefix) for n in stripped_vars):
+            raise ValueError("Argument names should be valid python identifiers.")
+        vars = ','.join(stripped_vars)
+
         new_code.append(code[last_end:m.start()])
         new_code.append(';%s__tmp__=var("%s"); %s = symbolic_expression(%s).function(%s)' % (ident, vars, func, expr, vars))
         last_end = m.end()

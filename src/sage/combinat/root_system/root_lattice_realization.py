@@ -306,6 +306,48 @@ class RootLatticeRealization(SageObject):
         assert self.cartan_type().is_finite()
         return TransitiveIdeal(attrcall('pred'), self.simple_roots())
 
+    def root_poset(self, restricted=False):
+        r"""
+        Returns the (restricted) root poset associated to ``self``.
+
+        The elements are given by the positive roots (resp. non-simple, positive roots), and
+        `\alpha \leq \beta` iff `\beta - \alpha` is a non-negative linear combination of simple roots.
+
+        INPUT:
+
+        - restricted -- (default:False) if True, only non-simple roots are considered.
+
+        EXAMPLES::
+
+            sage: Phi = RootSystem(['A',2]).root_poset(); Phi
+            Finite poset containing 3 elements
+            sage: Phi.cover_relations()
+            [[alpha[1], alpha[1] + alpha[2]], [alpha[2], alpha[1] + alpha[2]]]
+
+            sage: Phi = RootSystem(['A',3]).root_poset(restricted=True); Phi
+            Finite poset containing 3 elements
+            sage: Phi.cover_relations()
+            [[alpha[1] + alpha[2], alpha[1] + alpha[2] + alpha[3]], [alpha[2] + alpha[3], alpha[1] + alpha[2] + alpha[3]]]
+
+            sage: Phi = RootSystem(['B',2]).root_poset(); Phi
+            Finite poset containing 4 elements
+            sage: Phi.cover_relations()
+            [[alpha[1], alpha[1] + alpha[2]], [alpha[2], alpha[1] + alpha[2]], [alpha[1] + alpha[2], alpha[1] + 2*alpha[2]]]
+        """
+        from sage.combinat.posets.posets import Poset
+        rels = []
+        dim = self.dimension()
+        pos_roots = set(self.positive_roots())
+        simple_roots = self.simple_roots()
+        if restricted:
+            pos_roots = [ beta for beta in pos_roots if beta not in simple_roots ]
+        for root in pos_roots:
+            for i in range(1,dim+1):
+                root_cover = root + simple_roots[i]
+                if root_cover in pos_roots:
+                    rels.append((root,root_cover))
+        return Poset(([],rels),cover_relations=True)
+
     def negative_roots(self):
         r"""
         Returns the negative roots of self.

@@ -395,14 +395,42 @@ class RootSystem(UniqueRepresentation, SageObject):
         """
         Returns the root space associated to self.
 
-        EXAMPLES
-
-        ::
+        EXAMPLES::
 
             sage: RootSystem(['A',3]).root_space()
             Root space over the Rational Field of the Root system of type ['A', 3]
         """
         return RootSpace(self, base_ring)
+
+    def root_poset(self, restricted=False):
+        r"""
+        Returns the (restricted) root poset associated to ``self``.
+
+        The elements are given by the positive roots (resp. non-simple, positive roots), and
+        `\alpha \leq \beta` iff `\beta - \alpha` is a non-negative linear combination of simple roots.
+
+        INPUT:
+
+        - restricted -- (default:False) if True, only non-simple roots are considered.
+
+        EXAMPLES::
+
+            sage: Phi = RootSystem(['A',2]).root_poset(); Phi
+            Finite poset containing 3 elements
+            sage: Phi.cover_relations()
+            [[alpha[1], alpha[1] + alpha[2]], [alpha[2], alpha[1] + alpha[2]]]
+
+            sage: Phi = RootSystem(['A',3]).root_poset(restricted=True); Phi
+            Finite poset containing 3 elements
+            sage: Phi.cover_relations()
+            [[alpha[1] + alpha[2], alpha[1] + alpha[2] + alpha[3]], [alpha[2] + alpha[3], alpha[1] + alpha[2] + alpha[3]]]
+
+            sage: Phi = RootSystem(['B',2]).root_poset(); Phi
+            Finite poset containing 4 elements
+            sage: Phi.cover_relations()
+            [[alpha[1], alpha[1] + alpha[2]], [alpha[2], alpha[1] + alpha[2]], [alpha[1] + alpha[2], alpha[1] + 2*alpha[2]]]
+        """
+        return self.root_lattice().root_poset(restricted=restricted)
 
     def coroot_lattice(self):
         """

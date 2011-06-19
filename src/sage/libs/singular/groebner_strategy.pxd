@@ -1,11 +1,13 @@
-from sage.libs.singular.decl cimport skStrategy
+from sage.libs.singular.decl cimport skStrategy, ring
 
-from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomialRing_libsingular, MPolynomial_libsingular
+from sage.rings.polynomial.multi_polynomial_libsingular cimport \
+    MPolynomialRing_libsingular, MPolynomial_libsingular
 from sage.structure.sage_object cimport SageObject
 
 
 cdef class GroebnerStrategy(SageObject):
     cdef skStrategy *_strat
+    cdef ring *_parent_ring
     cdef MPolynomialRing_libsingular _parent
     cdef object _ideal
 

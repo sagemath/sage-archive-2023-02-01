@@ -55,6 +55,8 @@ order_dict = {
     "Ws": ringorder_Ws,
 }
 
+
+#############################################################################
 cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
     """
     Create a new Singular ring over the ``base_ring`` in ``n``
@@ -292,8 +294,181 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
     _ring.ShortOut = 0
 
     rChangeCurrRing(_ring)
+
+    wrapped_ring = wrap_ring(_ring)
+    if wrapped_ring in ring_refcount_dict:
+        raise ValueError('newly created ring already in dictionary??')
+    ring_refcount_dict[wrapped_ring] = 1
     return _ring
 
+
+#############################################################################
+ring_refcount_dict = {}
+
+
+cdef class ring_wrapper_Py(object):
+    r"""
+    Python object wrapping the ring pointer.
+
+    This is useful to store ring pointers in Python containers.
+
+    You must not construct instances of this class yourself, use
+    :func:`wrap_ring` instead.
+
+    EXAMPLES::
+
+        sage: from sage.libs.singular.ring import ring_wrapper_Py
+        sage: ring_wrapper_Py
+        <type 'sage.libs.singular.ring.ring_wrapper_Py'>
+    """
+
+    cdef ring* _ring
+
+    def __cinit__(self):
+        """
+        The Cython constructor.
+
+        EXAMPLES::
+
+            sage: from sage.libs.singular.ring import ring_wrapper_Py
+            sage: t = ring_wrapper_Py(); t
+            The ring pointer 0x0
+            sage: TestSuite(t).run()
+        """
+        self._ring = NULL
+
+    def __hash__(self):
+        """
+        Return a hash value so that instances can be used as dictionary keys.
+
+        OUTPUT:
+
+        Integer.
+
+        EXAMPLES::
+
+            sage: from sage.libs.singular.ring import ring_wrapper_Py
+            sage: t = ring_wrapper_Py()
+            sage: t.__hash__()
+            0
+        """
+        return <long>(self._ring)
+
+    def __repr__(self):
+        """
+        Return a string representation.
+
+        OUTPUT:
+
+        String.
+
+        EXAMPLES::
+
+            sage: from sage.libs.singular.ring import ring_wrapper_Py
+            sage: t = ring_wrapper_Py()
+            sage: t
+            The ring pointer 0x0
+            sage: t.__repr__()
+            'The ring pointer 0x0'
+        """
+        return 'The ring pointer '+hex(self.__hash__())
+
+    def __cmp__(ring_wrapper_Py left, ring_wrapper_Py right):
+        """
+        Compare ``left`` and ``right`` so that instances can be used as dictionary keys.
+
+        INPUT:
+
+        - ``right`` -- a :class:`ring_wrapper_Py`
+
+        OUTPUT:
+
+        -1, 0, or +1 depending on whether ``left`` and ``right`` are
+         less than, equal, or greather than.
+
+        EXAMPLES::
+
+            sage: from sage.libs.singular.ring import ring_wrapper_Py
+            sage: t = ring_wrapper_Py()
+            sage: t.__cmp__(t)
+            0
+        """
+        if left._ring < right._ring:
+            return -1
+        if left._ring > right._ring:
+            return +1
+        return 0
+
+
+cdef wrap_ring(ring* R):
+    """
+    Wrap a C ring pointer into a Python object.
+
+    INPUT:
+
+    - ``R`` -- a singular ring (a C datastructure).
+
+    OUTPUT:
+
+    A Python object :class:`ring_wrapper_Py` wrapping the C pointer.
+    """
+    cdef ring_wrapper_Py W = ring_wrapper_Py()
+    W._ring = R
+    return W
+
+
+cdef ring *singular_ring_reference(ring *existing_ring) except NULL:
+    """
+    Refcount the ring ``existing_ring``.
+
+    INPUT:
+
+    - ``existing_ring`` -- an existing Singular ring.
+
+    OUTPUT:
+
+    The same ring with its refcount increased. After calling this
+    function `n` times, you need to call :func:`singular_ring_delete`
+    `n+1` times to actually deallocate the ring.
+
+    EXAMPLE::
+
+        sage: import gc
+        sage: from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
+        sage: from sage.libs.singular.groebner_strategy import GroebnerStrategy
+        sage: from sage.libs.singular.ring import ring_refcount_dict
+        sage: n = len(ring_refcount_dict)
+        sage: prev_rings = set(ring_refcount_dict.keys())
+        sage: P = MPolynomialRing_libsingular(GF(541), 2, ('x', 'y'), TermOrder('degrevlex', 2))
+        sage: ring_ptr = set(ring_refcount_dict.keys()).difference(prev_rings).pop()
+        sage: ring_ptr  # random output
+        The ring pointer 0x7f78a646b8d0
+        sage: ring_refcount_dict[ring_ptr]
+        4
+
+        sage: strat = GroebnerStrategy(Ideal([P.gen(0) + P.gen(1)]))
+        sage: ring_refcount_dict[ring_ptr]
+        6
+
+        sage: del strat
+        sage: _ = gc.collect()
+        sage: ring_refcount_dict[ring_ptr]
+        4
+
+        sage: del P
+        sage: _ = gc.collect()
+        sage: ring_ptr in ring_refcount_dict
+        False
+    """
+    if existing_ring==NULL:
+        raise ValueError('singular_ring_reference(ring*) called with NULL pointer.')
+    cdef object r = wrap_ring(existing_ring)
+    refcount = ring_refcount_dict.pop(r)
+    ring_refcount_dict[r] = refcount+1
+    return existing_ring
+
+
+#############################################################################
 cdef void singular_ring_delete(ring *doomed):
     """
     Carefully deallocate the ring, without changing "currRing" (since
@@ -320,13 +495,27 @@ cdef void singular_ring_delete(ring *doomed):
         sage: del R3
         sage: _ = gc.collect()
     """
-    cdef ring *oldRing = NULL
-    if currRing != doomed:
-        oldRing = currRing
+    if doomed==NULL:
+        print 'singular_ring_delete(ring*) called with NULL pointer.'
+        # this function is typically called in __deallocate__, so we can't raise an exception
+        import traceback
+        traceback.print_stack()
+
+    if not ring_refcount_dict:  # arbitrary finalization order when we shut Sage down
+        return
+
+    cdef ring_wrapper_Py r = wrap_ring(doomed)
+    refcount = ring_refcount_dict.pop(r)
+    if refcount > 1:
+        ring_refcount_dict[r] = refcount-1
+        return
+
+    cdef ring *oldRing = currRing
+    if currRing == doomed:
+        rDelete(doomed)
+        currRing = <ring*>NULL
+    else:
         rChangeCurrRing(doomed)
         rDelete(doomed)
         rChangeCurrRing(oldRing)
-    else:
-        (&currRing)[0] = NULL
-        rDelete(doomed)
 

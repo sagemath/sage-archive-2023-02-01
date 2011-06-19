@@ -27,6 +27,8 @@ from sage.libs.singular.decl cimport new_skStrategy, delete_skStrategy, idRankFr
 from sage.libs.singular.decl cimport initEcartBBA, enterSBba, initBuchMoraCrit, initS, pNorm, id_Delete, kTest
 from sage.libs.singular.decl cimport omfree, redNF, p_Copy, redtailBba
 
+from sage.libs.singular.ring cimport singular_ring_reference, singular_ring_delete
+
 from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
 from sage.rings.polynomial.multi_polynomial_ideal_libsingular cimport sage_ideal_to_singular_ideal
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular, MPolynomialRing_libsingular, new_MP
@@ -42,7 +44,7 @@ cdef class GroebnerStrategy(SageObject):
 
     Uses Singular via libSINGULAR
     """
-    def __init__(self, L):
+    def __cinit__(self, L):
         """
         Create a new :class:`GroebnerStrategy` object for the
         generators of the ideal ``L``.
@@ -100,6 +102,7 @@ cdef class GroebnerStrategy(SageObject):
 
         cdef MPolynomialRing_libsingular R = <MPolynomialRing_libsingular>L.ring()
         self._parent = R
+        self._parent_ring = singular_ring_reference(R._ring)
 
         if not R.term_order().is_global():
             raise NotImplementedError("The local case is not implemented yet.")
@@ -141,6 +144,8 @@ cdef class GroebnerStrategy(SageObject):
             sage: strat = GroebnerStrategy(I)
             sage: del strat
         """
+        # WARNING: the Cython class self._parent is no longer accessible!
+        # see http://trac.sagemath.org/sage_trac/ticket/11339
         cdef ring *oldRing = NULL
         if self._strat:
             omfree(self._strat.sevS)
@@ -152,15 +157,16 @@ cdef class GroebnerStrategy(SageObject):
             omfree(self._strat.L)
             omfree(self._strat.B)
             omfree(self._strat.fromQ)
-            id_Delete(&self._strat.Shdl, self._parent._ring)
+            id_Delete(&self._strat.Shdl, self._parent_ring)
 
-            if self._parent._ring != currRing:
+            if self._parent_ring != currRing:
                 oldRing = currRing
-                rChangeCurrRing(self._parent._ring)
+                rChangeCurrRing(self._parent_ring)
                 delete_skStrategy(self._strat)
                 rChangeCurrRing(oldRing)
             else:
                 delete_skStrategy(self._strat)
+        singular_ring_delete(self._parent_ring)
 
     def _repr_(self):
         """

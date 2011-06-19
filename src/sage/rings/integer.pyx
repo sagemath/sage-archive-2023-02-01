@@ -41,6 +41,8 @@ AUTHORS:
 
 - David Loeffler (2011-01-15): fixed bug #10625 (inverse_mod should accept an ideal as argument)
 
+- Vincent Delecroix (2010-12-28): added unicode in Integer.__init__
+
 EXAMPLES:
 
 Add 2 integers::
@@ -560,6 +562,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             4
             sage: ZZ(MyFloat(5))
             5
+
+        ::
+
+            sage: Integer(u'0')
+            0
+            sage: Integer(u'0X2AEEF')
+            175855
         """
 
         # TODO: All the code below should somehow be in an external
@@ -627,7 +636,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                     if mpz_set_str(self.value, s, base) != 0:
                         raise TypeError, "Unable to coerce PARI %s to an Integer."%x
 
-            elif PyString_Check(x):
+            elif PyString_Check(x) or PY_TYPE_CHECK(x,unicode):
                 if base < 0 or base > 36:
                     raise ValueError, "base (=%s) must be between 2 and 36"%base
 

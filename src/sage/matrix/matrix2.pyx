@@ -8209,12 +8209,12 @@ cdef class Matrix(matrix1.Matrix):
         if transformation not in [True, False]:
             raise ValueError('transformation keyword must be True or False, not {0}'.format(transformation))
         # easy false situations
-        if not self.is_square() or not other.is_square:
+        if not self.is_square() or not other.is_square():
             if transformation:
                 return (False, None)
             else:
                 return False
-        if self.nrows() != self.nrows():
+        if self.nrows() != other.nrows():
             if transformation:
                 return (False, None)
             else:

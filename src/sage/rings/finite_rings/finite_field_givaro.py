@@ -542,20 +542,6 @@ class FiniteField_givaro(FiniteField):
         return finite_field_ext_pari.FiniteField_ext_pari(self.order(),
                                                           self.variable_name(), f)
 
-    def _finite_field_ext_pari_modulus_as_str(self):  # todo -- cache
-        """
-        Return a string representing the modulus as a PARI string,
-        this is mainly of internal interest and might go away
-        eventually.
-
-        EXAMPLE:
-            sage: GF(3^4,'z')._finite_field_ext_pari_modulus_as_str()
-            'Mod(1, 3)*z^4 + Mod(2, 3)*z^3 + Mod(2, 3)'
-            sage: pari('Mod(1, 3)*z^4 + Mod(2, 3)*z^3 + Mod(2, 3)')
-            Mod(1, 3)*z^4 + Mod(2, 3)*z^3 + Mod(2, 3)
-        """
-        return self._finite_field_ext_pari_().modulus()._pari_init_()
-
     def __iter__(self):
         """
         Finite fields may be iterated over:

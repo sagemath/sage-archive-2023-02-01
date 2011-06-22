@@ -1561,19 +1561,33 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
         return k(ret)
 
     def _pari_(FiniteField_givaroElement self, var=None):
-        """
-        Return PARI representation of this finite field element
+        r"""
+        Return PARI representation of this finite field element.
 
         INPUT:
-            var -- optional variable string (default: none)
 
-        EXAMPLES:
+            ``var`` -- optional variable string (default: ``None``)
+
+        EXAMPLES::
+
             sage: k.<a> = GF(5^3)
             sage: a._pari_()
-            Mod(a, Mod(1, 5)*a^3 + Mod(3, 5)*a + Mod(3, 5))
+            Mod(Mod(1, 5)*a, Mod(1, 5)*a^3 + Mod(3, 5)*a + Mod(3, 5))
 
             sage: a._pari_('b')
-            Mod(b, Mod(1, 5)*b^3 + Mod(3, 5)*b + Mod(3, 5))
+            Mod(Mod(1, 5)*b, Mod(1, 5)*b^3 + Mod(3, 5)*b + Mod(3, 5))
+
+            sage: t = 3*a^2 + 2*a + 4
+            sage: t_string = t._pari_init_('y')
+            sage: t_string
+            'Mod(Mod(3, 5)*y^2 + Mod(2, 5)*y + Mod(4, 5), Mod(1, 5)*y^3 + Mod(3, 5)*y + Mod(3, 5))'
+            sage: type(t_string)
+            <type 'str'>
+            sage: t_element = t._pari_('b')
+            sage: t_element
+            Mod(Mod(3, 5)*b^2 + Mod(2, 5)*b + Mod(4, 5), Mod(1, 5)*b^3 + Mod(3, 5)*b + Mod(3, 5))
+            sage: t_element.parent()
+            Interface to the PARI C library
         """
         return pari(self._pari_init_(var))
 

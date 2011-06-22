@@ -674,23 +674,6 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
         f = self.polynomial()
         return FiniteField_ext_pari(self.order(), self.variable_name(), f)
 
-    def _finite_field_ext_pari_modulus_as_str(self):
-        """
-        Return a PARI string representation of the modulus.
-
-        This method might vanish eventually, because PARI is getting
-        replaced by NTL as main implementation for finite extension
-        fields.
-
-        EXAMPLE:
-            sage: k.<a> = GF(2^16)
-            sage: k.polynomial()
-            a^16 + a^5 + a^3 + a^2 + 1
-            sage: k._finite_field_ext_pari_modulus_as_str()
-            'Mod(1, 2)*a^16 + Mod(1, 2)*a^5 + Mod(1, 2)*a^3 + Mod(1, 2)*a^2 + Mod(1, 2)'
-        """
-        return self._finite_field_ext_pari_().modulus()._pari_init_()
-
     def __richcmp__(left, right, int op):
         """
         EXAMPLES::
@@ -1399,16 +1382,33 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
 
     def _pari_(self, var=None):
         r"""
-        Return a \PARI representation of this element.
+        Return PARI representation of this element.
 
-        EXAMPLE:
+        INPUT:
+
+            ``var`` -- optional variable string (default: ``None``)
+
+        EXAMPLE::
+
             sage: k.<a> = GF(2^17)
             sage: e = a^3 + a + 1
             sage: e._pari_()
-            Mod(a^3 + a + 1, Mod(1, 2)*a^17 + Mod(1, 2)*a^3 + Mod(1, 2))
+            Mod(Mod(1, 2)*a^3 + Mod(1, 2)*a + Mod(1, 2), Mod(1, 2)*a^17 + Mod(1, 2)*a^3 + Mod(1, 2))
 
             sage: e._pari_('w')
-            Mod(w^3 + w + 1, Mod(1, 2)*w^17 + Mod(1, 2)*w^3 + Mod(1, 2))
+            Mod(Mod(1, 2)*w^3 + Mod(1, 2)*w + Mod(1, 2), Mod(1, 2)*w^17 + Mod(1, 2)*w^3 + Mod(1, 2))
+
+            sage: t = a^5 + a + 4
+            sage: t_string = t._pari_init_('y')
+            sage: t_string
+            'Mod(Mod(1, 2)*y^5 + Mod(1, 2)*y, Mod(1, 2)*y^17 + Mod(1, 2)*y^3 + Mod(1, 2))'
+            sage: type(t_string)
+            <type 'str'>
+            sage: t_element = t._pari_('b')
+            sage: t_element
+            Mod(Mod(1, 2)*b^5 + Mod(1, 2)*b, Mod(1, 2)*b^17 + Mod(1, 2)*b^3 + Mod(1, 2))
+            sage: t_element.parent()
+            Interface to the PARI C library
         """
         return pari(self._pari_init_(var))
 

@@ -327,24 +327,49 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             return str(self)
 
     def _pari_init_(self, var=None):
-        """
-        Return string that when evaluated in PARI defines this element.
+        r"""
+        Return a string that defines this element when evaluated in PARI.
+
+        INPUT:
+
+        - ``var`` - default: ``None`` - a string for a new variable name to use.
 
         EXAMPLES::
 
             sage: S.<b> = GF(5^2); S
             Finite Field in b of size 5^2
             sage: b._pari_init_()
-            'Mod(b, Mod(1, 5)*b^2 + Mod(4, 5)*b + Mod(2, 5))'
+            'Mod(Mod(1, 5)*b, Mod(1, 5)*b^2 + Mod(4, 5)*b + Mod(2, 5))'
             sage: (2*b+3)._pari_init_()
-            'Mod(2*b + 3, Mod(1, 5)*b^2 + Mod(4, 5)*b + Mod(2, 5))'
+            'Mod(Mod(2, 5)*b + Mod(3, 5), Mod(1, 5)*b^2 + Mod(4, 5)*b + Mod(2, 5))'
+
+        TESTS:
+
+        The following tests against a bug fixed in trac ticket #11530.  ::
+
+            sage: F.<d> = GF(3^4)
+            sage: F.modulus()
+            x^4 + 2*x^3 + 2
+            sage: d._pari_init_()
+            'Mod(Mod(1, 3)*d, Mod(1, 3)*d^4 + Mod(2, 3)*d^3 + Mod(2, 3))'
+            sage: (d^2+2*d+1)._pari_init_("p")
+            'Mod(Mod(1, 3)*p^2 + Mod(2, 3)*p + Mod(1, 3), Mod(1, 3)*p^4 + Mod(2, 3)*p^3 + Mod(2, 3))'
+            sage: d._pari_()
+            Mod(Mod(1, 3)*d, Mod(1, 3)*d^4 + Mod(2, 3)*d^3 + Mod(2, 3))
+
+            sage: K.<M> = GF(2^8)
+            sage: K.modulus()
+            x^8 + x^4 + x^3 + x^2 + 1
+            sage: (M^3+1)._pari_init_()
+            'Mod(Mod(1, 2)*M^3 + Mod(1, 2), Mod(1, 2)*M^8 + Mod(1, 2)*M^4 + Mod(1, 2)*M^3 + Mod(1, 2)*M^2 + Mod(1, 2))'
+            sage: M._pari_init_(var='foo')
+            'Mod(Mod(1, 2)*foo, Mod(1, 2)*foo^8 + Mod(1, 2)*foo^4 + Mod(1, 2)*foo^3 + Mod(1, 2)*foo^2 + Mod(1, 2))'
         """
-        g = self.parent()._finite_field_ext_pari_modulus_as_str()
-        f = str(self.polynomial())
-        s = 'Mod(%s, %s)'%(f, g)
         if var is None:
-            return s
-        return s.replace(self.parent().variable_name(), var)
+            var = self.parent().variable_name()
+        g = self.parent().modulus()._pari_with_name(var)
+        f = self.polynomial()._pari_with_name(var)
+        return 'Mod({0}, {1})'.format(f, g)
 
     def charpoly(self, var='x', algorithm='matrix'):
         """

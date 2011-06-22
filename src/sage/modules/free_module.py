@@ -3451,6 +3451,164 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         """
         return self.submodule([], check=False, already_echelonized=True)
 
+    def linear_dependence(self, vectors, zeros='left', check=True):
+        r"""
+        Returns a list of vectors giving relations of linear dependence for the input list of vectors.
+        Can be used to check linear independence of a set of vectors.
+
+        INPUT:
+
+        - ``vectors`` - A list of vectors, all from the same vector space.
+        - ``zeros`` - default: ``'left'`` - ``'left'`` or ``'right'`` as a general
+          preference for where zeros are located in the returned coefficients
+        - ``check`` - default: ``True`` - if ``True`` each item in the list ``vectors``
+          is checked for membership in ``self``.  Set to ``False`` if you
+          can be certain the vectors come from the vector space.
+
+        OUTPUT:
+
+        Returns a list of vectors.  The scalar entries of each vector provide
+        the coefficients for a linear combination of the input vectors that
+        will equal the zero vector in ``self``.  Furthermore, the returned list
+        is linearly independent in the vector space over the same base field
+        with degree equal to the length of the list ``vectors``.
+
+        The linear independence of ``vectors`` is equivalent to the returned
+        list being empty, so this provides a test - see the examples below.
+
+        The returned vectors are always independent, and with ``zeros`` set to
+        ``'left'`` they have 1's in their first non-zero entries and a qualitative
+        disposition to having zeros in the low-index entries.  With ``zeros`` set
+        to ``'right'`` the situation is reversed with a qualitative disposition
+        for zeros in the high-index entries.
+
+        If the vectors in ``vectors`` are made the rows of a matrix `V` and
+        the returned vectors are made the rows of a matrix `R`, then the
+        matrix product `RV` is a zero matrix of the proper size.  And
+        `R` is a matrix of full rank.  This routine uses kernels of
+        matrices to compute these relations of linear dependence,
+        but handles all the conversions between sets of vectors
+        and matrices. If speed is important, consider working with
+        the appropriate matrices and kernels instead.
+
+        EXAMPLES:
+
+        We begin with two linearly independent vectors, and add three
+        non-trivial linear combinations to the set.  We illustrate
+        both types of output and check a selected relation of linear
+        dependence. ::
+
+            sage: v1 = vector(QQ, [2, 1, -4, 3])
+            sage: v2 = vector(QQ, [1, 5, 2, -2])
+            sage: V = QQ^4
+            sage: V.linear_dependence([v1,v2])
+            [
+            <BLANKLINE>
+            ]
+
+            sage: v3 = v1 + v2
+            sage: v4 = 3*v1 - 4*v2
+            sage: v5 = -v1 + 2*v2
+            sage: L = [v1, v2, v3, v4, v5]
+
+            sage: relations = V.linear_dependence(L, zeros='left')
+            sage: relations
+            [
+            (1, 0, 0, -1, -2),
+            (0, 1, 0, -1/2, -3/2),
+            (0, 0, 1, -3/2, -7/2)
+            ]
+            sage: v2 + (-1/2)*v4 + (-3/2)*v5
+            (0, 0, 0, 0)
+
+            sage: relations = V.linear_dependence(L, zeros='right')
+            sage: relations
+            [
+            (-1, -1, 1, 0, 0),
+            (-3, 4, 0, 1, 0),
+            (1, -2, 0, 0, 1)
+            ]
+            sage: z = sum([relations[2][i]*L[i] for i in range(len(L))])
+            sage: z == zero_vector(QQ, 4)
+            True
+
+        A linearly independent set returns an empty list,
+        a result that can be tested. ::
+
+            sage: v1 = vector(QQ, [0,1,-3])
+            sage: v2 = vector(QQ, [4,1,0])
+            sage: V = QQ^3
+            sage: relations = V.linear_dependence([v1, v2]); relations
+            [
+            <BLANKLINE>
+            ]
+            sage: relations == []
+            True
+
+        Exact results result from exact fields. We start with three
+        linearly independent vectors and add in two linear combinations
+        to make a linearly dependent set of five vectors. ::
+
+            sage: F = FiniteField(17)
+            sage: v1 = vector(F, [1, 2, 3, 4, 5])
+            sage: v2 = vector(F, [2, 4, 8, 16, 15])
+            sage: v3 = vector(F, [1, 0, 0, 0, 1])
+            sage: (F^5).linear_dependence([v1, v2, v3]) == []
+            True
+            sage: L = [v1, v2, v3, 2*v1+v2, 3*v2+6*v3]
+            sage: (F^5).linear_dependence(L)
+            [
+            (1, 0, 16, 8, 3),
+            (0, 1, 2, 0, 11)
+            ]
+            sage: v1 + 16*v3 + 8*(2*v1+v2) + 3*(3*v2+6*v3)
+            (0, 0, 0, 0, 0)
+            sage: v2 + 2*v3 + 11*(3*v2+6*v3)
+            (0, 0, 0, 0, 0)
+            sage: (F^5).linear_dependence(L, zeros='right')
+            [
+            (15, 16, 0, 1, 0),
+            (0, 14, 11, 0, 1)
+            ]
+
+        TESTS:
+
+        With ``check=True`` (the default) a mismatch between vectors
+        and the vector space is caught. ::
+
+            sage: v1 = vector(RR, [1,2,3])
+            sage: v2 = vector(RR, [1,2,3,4])
+            sage: (RR^3).linear_dependence([v1,v2], check=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: vector (1.00000000000000, 2.00000000000000, 3.00000000000000, 4.00000000000000) is not an element of Vector space of dimension 3 over Real Field with 53 bits of precision
+
+        The ``zeros`` keyword is checked. ::
+
+            sage: (QQ^3).linear_dependence([vector(QQ,[1,2,3])], zeros='bogus')
+            Traceback (most recent call last):
+            ...
+            ValueError: 'zeros' keyword must be 'left' or 'right', not 'bogus'
+
+        An empty input set is linearly independent, vacuously. ::
+
+            sage: (QQ^3).linear_dependence([]) == []
+            True
+        """
+        if check:
+            for v in vectors:
+                if not v in self:
+                    raise ValueError('vector %s is not an element of %s' % (v, self))
+        if zeros == 'left':
+            basis = 'echelon'
+        elif zeros == 'right':
+            basis = 'pivot'
+        else:
+            raise ValueError("'zeros' keyword must be 'left' or 'right', not '%s'" % zeros)
+        import sage.matrix.constructor
+        A = sage.matrix.constructor.matrix(vectors)  # as rows, so get left kernel
+        return A.left_kernel(basis=basis).basis()
+
     def __div__(self, sub, check=True):
         """
         Return the quotient of self by the given subspace sub.

@@ -141,6 +141,7 @@ pngtogd
 pngtogd2
 projection
 projection_gmp
+pybabel
 pycolor
 pydoc
 pyhtmlizer
@@ -283,13 +284,7 @@ rules
 sage
 sagemath.install
 pygmentize
-rst2html.py
-rst2latex.py
-rst2newlatex.py
-rst2pseudoxml.py
-rst2s5.py
-rst2xml.py
-rstpep2html.py
+rst.*\.py
 sphinx-build
 sphinx-quickstart
 ncadoctest.pyc

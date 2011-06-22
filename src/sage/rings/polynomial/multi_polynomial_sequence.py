@@ -16,6 +16,7 @@ AUTHORS:
 - Martin Albrecht (2007ff): initial version
 - Martin Albrecht (2009): refactoring, clean-up, new functions
 - Martin Albrecht (2011): refactoring, moved to sage.rings.polynomial
+- Alex Raichev (2011-06): added algebraic_dependence()
 
 EXAMPLES:
 
@@ -538,6 +539,89 @@ class PolynomialSequence_generic(Sequence_generic):
             20
         """
         return len(self.variables())
+
+    def algebraic_dependence(self):
+        r"""
+        Returns the ideal of annihilating polynomials for the
+        polynomials in ``self``, if those polynomials are algebraically
+        dependent.
+        Otherwise, returns the zero ideal.
+
+        OUTPUT:
+
+        If the polynomials `f_1,\ldots,f_r` in ``self`` are algebraically
+        dependent, then the output is the ideal
+        `\{F \in K[T_1,\ldots,T_r] : F(f_1,\ldots,f_r) = 0\}` of
+        annihilating polynomials of `f_1,\ldots,f_r`.
+        Here `K` is the coefficient ring of polynomial ring of `f_1,\ldots,f_r`
+        and `T_1,\ldots,T_r` are new indeterminates.
+        If `f_1,\ldots,f_r` are algebraically independent, then the output
+        is the zero ideal in `K[T_1,\ldots,T_r]`.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: S = Sequence([x, x*y])
+            sage: I = S.algebraic_dependence(); I
+            Ideal (0) of Multivariate Polynomial Ring in T0, T1 over Rational Field
+
+        ::
+
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: S = Sequence([x, (x^2 + y^2 - 1)^2, x*y - 2])
+            sage: I = S.algebraic_dependence(); I
+            Ideal (16 + 32*T2 - 8*T0^2 + 24*T2^2 - 8*T0^2*T2 + 8*T2^3 + 9*T0^4 - 2*T0^2*T2^2 + T2^4 - T0^4*T1 + 8*T0^4*T2 - 2*T0^6 + 2*T0^4*T2^2 + T0^8) of Multivariate Polynomial Ring in T0, T1, T2 over Rational Field
+            sage: [F(S) for F in I.gens()]
+            [0]
+
+        ::
+
+            sage: R.<x,y> = PolynomialRing(GF(7))
+            sage: S = Sequence([x, (x^2 + y^2 - 1)^2, x*y - 2])
+            sage: I = S.algebraic_dependence(); I
+            Ideal (2 - 3*T2 - T0^2 + 3*T2^2 - T0^2*T2 + T2^3 + 2*T0^4 - 2*T0^2*T2^2 + T2^4 - T0^4*T1 + T0^4*T2 - 2*T0^6 + 2*T0^4*T2^2 + T0^8) of Multivariate Polynomial Ring in T0, T1, T2 over Finite Field of size 7
+            sage: [F(S) for F in I.gens()]
+            [0]
+
+        .. NOTE::
+
+            This function's code also works for sequences of polynomials from a
+            univariate polynomial ring, but i don't know where in the Sage codebase
+            to put it to use it to that effect.
+
+        AUTHORS:
+
+        - Alex Raichev (2011-06-22)
+        """
+        R = self.ring()
+        K = R.base_ring()
+        Xs = list(R.gens())
+        r = len(self)
+        d = len(Xs)
+
+        # Expand R by r new variables.
+        T = 'T'
+        while T in [str(x) for x in Xs]:
+            T = T+'T'
+        Ts = [T + str(j) for j in range(r)]
+        RR = PolynomialRing(K,d+r,tuple(Xs+Ts))
+        Vs = list(RR.gens())
+        Xs = Vs[0 :d]
+        Ts = Vs[d:]
+
+        J = RR.ideal([ Ts[j] - RR(self[j]) for j in range(r)])
+        JJ = J.elimination_ideal(Xs)
+        # By the elimination theorem, JJ is the kernel of the ring homorphism
+        # `phi:K[\bar T] \to K[\bar X]` that fixes `K` and sends each
+        # `T_i` to `f_i`.
+        # So JJ is the ideal of annihilating polynomials of `f_1,\ldots,f_r`,
+        # which is the zero ideal in case `f_1,\ldots,f_r` are algebraically
+        # independent.
+
+        # Coerce JJ into `K[T_1,\ldots,T_r]`.
+        # Choosing the negdeglex order simply because i find it useful in my work.
+        RRR = PolynomialRing(K,r,tuple(Ts),order='negdeglex')
+        return RRR.ideal(JJ.gens())
 
     def coefficient_matrix(self, sparse=True):
         """

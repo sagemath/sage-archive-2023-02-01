@@ -1,5 +1,5 @@
---- ../src/unix/Make-arch	2010-01-18 14:13:41.000000000 -0500
-+++ Make-arch	2011-01-24 22:35:00.176826642 -0500
+--- src/unix/Make-arch	2011-03-13 07:01:07.000000000 -0400
++++ patches/Make-arch	2011-06-22 12:32:58.000000000 -0400
 @@ -7,7 +7,8 @@
  
  # Some machines don't have/need ranlib, in their case, use 'touch'
@@ -318,8 +318,9 @@
  	$(MAKE) all \
  	"ARCH = win32" \
 -	"CC = gcc" \
- 	"CFLAGS = -mpentium -Wall -O3 -fomit-frame-pointer -ffast-math -DWIN32 $(MISCFLAGS)" \
+-	"CFLAGS = -mpentium -Wall -O3 -fomit-frame-pointer -ffast-math -DWIN32 $(MISCFLAGS)" \
 -	"AR = ar" \
++	"CFLAGS = -Wall -O3 -fomit-frame-pointer -ffast-math -DWIN32 $(MISCFLAGS)" \
  	"ARFLAGS = r" \
  	"STRIP = echo" \
 -	"RANLIB = echo" \
@@ -329,8 +330,9 @@
  	$(MAKE) all \
  	"ARCH = win32-mpi" \
 -	"CC = gcc" \
- 	"CFLAGS = -mpentium -Wall -O3 -fomit-frame-pointer -ffast-math -DWIN32 $(MISCFLAGS) -I'/Program files/MPIPro/INCLUDE' -DMPI" \
+-	"CFLAGS = -mpentium -Wall -O3 -fomit-frame-pointer -ffast-math -DWIN32 $(MISCFLAGS) -I'/Program files/MPIPro/INCLUDE' -DMPI" \
 -	"AR = ar" \
++	"CFLAGS = -Wall -O3 -fomit-frame-pointer -ffast-math -DWIN32 $(MISCFLAGS) -I'/Program files/MPIPro/INCLUDE' -DMPI" \
  	"ARFLAGS = r" \
  	"STRIP = echo" \
 -	"RANLIB = echo" \

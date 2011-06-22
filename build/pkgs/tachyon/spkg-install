@@ -37,7 +37,7 @@ if [ $UNAME = "Darwin" ]; then
     #make macosx-thr
     # The threaded version of the 0.98 beta doesn't work on OS X.
     if [ "$SAGE64" = "yes" ]; then
-        echo "Building 64 bit MaxOSX"
+        echo "Building 64 bit MacOSX"
         $MAKE macosx-64
     else
         $MAKE macosx

@@ -1017,7 +1017,7 @@ bsd-sparc:
 win32:
 	$(MAKE) all \
 	"ARCH = win32" \
-	"CFLAGS = -mpentium -Wall -O3 -fomit-frame-pointer -ffast-math -DWIN32 $(MISCFLAGS)" \
+	"CFLAGS = -Wall -O3 -fomit-frame-pointer -ffast-math -DWIN32 $(MISCFLAGS)" \
 	"ARFLAGS = r" \
 	"STRIP = echo" \
 	"LIBS = -L. -ltachyon $(MISCLIB) -lm"
@@ -1025,7 +1025,7 @@ win32:
 win32-mpi:
 	$(MAKE) all \
 	"ARCH = win32-mpi" \
-	"CFLAGS = -mpentium -Wall -O3 -fomit-frame-pointer -ffast-math -DWIN32 $(MISCFLAGS) -I'/Program files/MPIPro/INCLUDE' -DMPI" \
+	"CFLAGS = -Wall -O3 -fomit-frame-pointer -ffast-math -DWIN32 $(MISCFLAGS) -I'/Program files/MPIPro/INCLUDE' -DMPI" \
 	"ARFLAGS = r" \
 	"STRIP = echo" \
 	"LIBS = -L. -L'/Program files/MPIPro/LIB' -ltachyon -lmpi $(MISCLIB) -lm"

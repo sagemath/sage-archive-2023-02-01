@@ -62,6 +62,9 @@ This spkg depends on:
 
 == Changelog ==
 
+=== tachyon-0.98.9.p4 (Karl-Dieter Crisman, June 22, 2011)
+ * #11504: Made package build on Cygwin (again)
+
 === tachyon-0.98.9.p3 (Julien Puydt, March 12, 2011)
  * #10820: Made package compile on ARM
 

@@ -1347,6 +1347,10 @@ class EllipticCurve_number_field(EllipticCurve_field):
            Traceback (most recent call last):
            ...
            ValueError: The ideal must be prime.
+           sage: K=QQ.extension(x^2+x+1,"a")
+           sage: E=EllipticCurve([1024*K.0,1024*K.0])
+           sage: E.reduction(2*K)
+           Elliptic Curve defined by y^2 + (abar+1)*y = x^3 over Residue field in abar of Fractional ideal (2)
        """
        K = self.base_field()
        OK = K.ring_of_integers()
@@ -1358,6 +1362,10 @@ class EllipticCurve_number_field(EllipticCurve_field):
            raise ValueError, "The ideal must be prime."
        disc = self.discriminant()
        if not K.ideal(disc).valuation(place) == 0:
+           local_data=self.local_data(place)
+           if local_data.has_good_reduction():
+               Fv = OK.residue_field(place)
+               return local_data.minimal_model().change_ring(Fv)
            raise ValueError, "The curve must have good reduction at the place."
        Fv = OK.residue_field(place)
        return self.change_ring(Fv)

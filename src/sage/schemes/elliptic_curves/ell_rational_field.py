@@ -3350,8 +3350,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
        .. note::
 
-          All is done in ``self.change_ring(GF(p))``; all we do is
-          check that p is prime and does not divide the discriminant.
+          The actual reduction is done in ``self.change_ring(GF(p))``;
+          the reduction is performed after changing to a model which
+          is minimal at p.
 
        INPUT:
 
@@ -3377,12 +3378,18 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
            Traceback (most recent call last):
            ...
            AttributeError: The curve must have good reduction at p.
+           sage: E=EllipticCurve([5^4,5^6])
+           sage: E.reduction(5)
+           Elliptic Curve defined by y^2 = x^3 + x + 1 over Finite Field of size 5
        """
        p = rings.Integer(p)
        if not p.is_prime():
            raise AttributeError, "p must be prime."
        disc = self.discriminant()
        if not disc.valuation(p) == 0:
+           local_data=self.local_data(p)
+           if local_data.has_good_reduction():
+               return local_data.minimal_model().change_ring(rings.GF(p))
            raise AttributeError, "The curve must have good reduction at p."
        return self.change_ring(rings.GF(p))
 

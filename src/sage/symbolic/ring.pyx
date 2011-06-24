@@ -808,6 +808,20 @@ def var(name, **kwds):
         (x, y, z)
         sage: var("z")
         z
+
+    TESTS:
+
+    These examples test that variables can only be made from
+    valid identifiers.  See Trac 7496 (and 9724) for details::
+
+        sage: var(' ')
+        Traceback (most recent call last):
+        ...
+        ValueError: You need to specify the name of the new variable.
+        sage: var('3')
+        Traceback (most recent call last):
+        ...
+        ValueError: The name "3" is not a valid Python identifier.
     """
     return SR.var(name, **kwds)
 

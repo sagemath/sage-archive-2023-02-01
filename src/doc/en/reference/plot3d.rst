@@ -7,6 +7,7 @@
    sage/plot/plot3d/examples
    sage/plot/plot3d/parametric_plot3d
    sage/plot/plot3d/parametric_surface
+   sage/plot/plot3d/revolution_plot3d
    sage/plot/plot3d/plot_field3d
    sage/plot/plot3d/implicit_plot3d
    sage/plot/plot3d/list_plot3d

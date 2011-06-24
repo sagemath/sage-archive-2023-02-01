@@ -1,3 +1,11 @@
+"""
+Surfaces of revolution
+
+AUTHORS:
+
+- Oscar Gerardo Lazo Arjona (2010): initial version.
+"""
+
 #*****************************************************************************
 #       Copyright (C) 2010 Oscar Gerardo Lazo Arjona algebraicamente@gmail.com
 #

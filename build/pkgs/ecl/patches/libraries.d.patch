@@ -1,0 +1,10 @@
+--- src/c/ffi/libraries.d	2011-06-24 10:21:48.000000000 -0400
++++ src/c/ffi/libraries.d	2011-06-24 10:34:21.000000000 -0400
+@@ -69,6 +69,7 @@
+ #endif /* ENABLE_DLOPEN */
+ #include <ecl/ecl-inl.h>
+ #include <ecl/internal.h>
++#include <sys/stat.h>
+ 
+ static cl_object
+ copy_object_file(cl_object original)

@@ -49,6 +49,12 @@ Website: http://ecls.sourceforge.net/
 
 == Changelog ==
 
+=== ecl-11.1.1.p2 (Karl-Dieter Crisman, 24th June 2011) ===
+  * Fix for Cygwin, including sys/stat.h in ffi/libraries.d
+  * This should be removed, or a if/else statement for which version
+    of Cygwin once a different fix is in a released version
+    (see http://cygwin.com/ml/cygwin/2011-04/msg00336.html)
+
 === ecl-11.1.1.p1 (Dmitrii Pasechnik, 6th May 2011) ===
   * altivec must be disabled for ECL on PPC OSX 10.5
     (hopefully ECL people will fix it, then it can be removed)

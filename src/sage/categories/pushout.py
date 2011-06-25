@@ -2182,7 +2182,7 @@ class QuotientFunctor(ConstructionFunctor):
         sage: F(QQ['y','z'])
         Traceback (most recent call last):
         ...
-        TypeError: not a constant polynomial
+        TypeError: Could not find a mapping of the passed element to this ring.
     """
     rank = 7
 

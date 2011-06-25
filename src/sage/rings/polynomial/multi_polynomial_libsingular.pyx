@@ -550,14 +550,14 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
         EXAMPLES::
 
-        Call supports all conversions _coerce_ supports, plus:
-        coercion from strings::
+        Call supports all conversions ``_coerce_`` supports, plus:
+        conversion from strings::
 
             sage: P.<x,y,z> = QQ[]
             sage: P('x+y + 1/4')
             x + y + 1/4
 
-        , coercion from SINGULAR elements::
+        Coercion from SINGULAR elements::
 
             sage: P._singular_()
             //   characteristic : 0
@@ -570,21 +570,28 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: P(singular('x + 3/4'))
             x + 3/4
 
-        , coercion from symbolic variables::
+        Coercion from symbolic variables::
 
             sage: x,y,z = var('x,y,z')
             sage: R = QQ[x,y,z]
             sage: R(x)
             x
 
-        , coercion from 'similar' rings::
+        Coercion from 'similar' rings, which maps by index::
 
             sage: P.<x,y,z> = QQ[]
             sage: R.<a,b,c> = ZZ[]
             sage: P(a)
             x
 
-        , coercion from PARI objects::
+        ::
+
+            sage: P.<x,y> = QQ[]
+            sage: R.<a,b,c> = QQ[]
+            sage: R(x)
+            a
+
+        Coercion from PARI objects::
 
             sage: P.<x,y,z> = QQ[]
             sage: P(pari('x^2 + y'))
@@ -592,18 +599,56 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: P(pari('x*y'))
             x*y
 
-        , coercion from boolean polynomials::
+        Coercion from boolean polynomials, also by index::
 
             sage: B.<x,y,z> = BooleanPolynomialRing(3)
             sage: P.<x,y,z> = QQ[]
             sage: P(B.gen(0))
             x
 
-        . If everything else fails, we try to coerce to the base ring::
+        If everything else fails, we try to coerce to the base ring::
 
             sage: R.<x,y,z> = GF(3)[]
             sage: R(1/2)
             -1
+
+        Finally, conversions from other polynomial rings which are not
+        coercions are provided. Variables are mapped as follows. Say,
+        we are mapping an element from `P` to `Q` (this ring). If the
+        variables of `P` are a subset of `Q`, we perform a name
+        preserving conversion::
+
+            sage: P.<y_2, y_1, z_3, z_2, z_1> = GF(3)[]
+            sage: Q = GF(3)['y_4', 'y_3', 'y_2', 'y_1', 'z_5', 'z_4', 'z_3', 'z_2', 'z_1']
+            sage: Q(y_1*z_2^2*z_1)
+            y_1*z_2^2*z_1
+
+        Otherwise, if `P` has less than or equal the number of
+        variables as `Q`, we perform a conversion by index::
+
+            sage: P.<a,b,c> = GF(2)[]
+            sage: Q = GF(2)['c','b','d','e']
+            sage: f = Q.convert_map_from(P)
+            sage: f(a), f(b), f(c)
+            (c, b, d)
+
+        ::
+
+            sage: P.<a,b,c> = GF(2)[]
+            sage: Q = GF(2)['c','b','d']
+            sage: f = Q.convert_map_from(P)
+            sage: f(a),f(b),f(c)
+            (c, b, d)
+
+        In all other cases, we fail::
+
+            sage: P.<a,b,c,f> = GF(2)[]
+            sage: Q = GF(2)['c','d','e']
+            sage: f = Q.convert_map_from(P)
+            sage: f(a)
+            Traceback (most recent call last):
+            ...
+            TypeError: Could not find a mapping of the passed element to this ring.
 
         TESTS::
 
@@ -628,7 +673,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: S(5*x*y + x + 17*y)
             xx + 2*yy
 
-        See trac 5292::
+        See #5292::
 
             sage: R.<x> = QQ[]; S.<q,t> = QQ[]; F = FractionField(S);
             sage: x in S
@@ -642,6 +687,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             0
             sage: P.<x,y> = Zmod(2^10)[]; P(0)
             0
+
         """
         cdef poly *_p, *mon, *_element
         cdef ring *_ring = self._ring
@@ -650,6 +696,8 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         cdef MPolynomialRing_libsingular El_parent
         cdef unsigned int i, j
         if _ring!=currRing: rChangeCurrRing(_ring)
+        cdef list ind_map = []
+        cdef int e
 
         # try to coerce first
         try:
@@ -661,30 +709,19 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
            PY_TYPE_CHECK(element, sage.libs.pari.gen.gen):
             element = str(element)
 
-        if PY_TYPE_CHECK(element, basestring):
-            # let python do the parsing
-            d = self.gens_dict()
-            if self.base_ring().gen() != 1:
-                d[str(self.base_ring().gen())]=self.base_ring().gen()
-            try:
-                if '/' in element:
-                    element = sage_eval(element,d)
-                else:
-                    element = element.replace("^","**")
-                    element = eval(element, d, {})
-            except (SyntaxError, NameError):
-                raise TypeError
+        if PY_TYPE_CHECK(element, MPolynomial_libsingular) and element.parent() is not self and element.parent() != self:
 
-            # we need to do this, to make sure that we actually get an
-            # element in self.
-            return self._coerce_c(element)
+            variable_names_s = element.parent().variable_names()
+            variable_names_t = self.variable_names()
 
-        if PY_TYPE_CHECK(element, MPolynomial_libsingular):
-            if element.parent() is not self and element.parent() != self and  element.parent().ngens() == self.ngens():
-                # Map the variables in some crazy way (but in order,
-                # of course).  This is here since R(blah) is supposed
-                # to be "make an element of R if at all possible with
-                # no guarantees that this is mathematically solid."
+            if set(variable_names_s).issubset(variable_names_t):
+                for v in variable_names_s:
+                    ind_map.append(variable_names_t.index(v)+1)
+            else:
+                ind_map = [i+1 for i in range(_ring.N)]
+
+            if element.parent().ngens() <= self.ngens():
+                # Map the variables by indices
                 _p = p_ISet(0, _ring)
                 K = self.base_ring()
                 base = self._base
@@ -706,21 +743,28 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                         rChangeCurrRing(_ring)
                         mon = p_Init(_ring)
                         p_SetCoeff(mon, sa2si(c , _ring), _ring)
-                        for j from 1 <= j <= _ring.N:
-                            mpos = p_GetExp(_element,j,_ring)
-                            if mpos:
-                                p_SetExp(mon, j, mpos, _ring)
+                        for j from 1 <= j <= El_ring.N:
+                            e = p_GetExp(_element, j, El_ring)
+                            if e:
+                                p_SetExp(mon, ind_map[j-1], e, _ring)
                         p_Setm(mon, _ring)
                         _p = p_Add_q(_p, mon, _ring)
                     _element = pNext(_element)
                 return new_MP(self, _p)
 
         if PY_TYPE_CHECK(element, MPolynomial_polydict):
-            if element.parent().ngens() == self.ngens():
-                # Map the variables in some crazy way (but in order,
-                # of course).  This is here since R(blah) is supposed
-                # to be "make an element of R if at all possible with
-                # no guarantees that this is mathematically solid."
+
+            variable_names_s = element.parent().variable_names()
+            variable_names_t = self.variable_names()
+
+            if set(variable_names_s).issubset(variable_names_t):
+                for v in variable_names_s:
+                    ind_map.append(variable_names_t.index(v)+1)
+            else:
+                ind_map = [i+1 for i in range(_ring.N)]
+
+            if element.parent().ngens() <= self.ngens():
+                # Map variables by indices
                 _p = p_ISet(0, _ring)
                 K = self.base_ring()
                 for (m,c) in element.element().dict().iteritems():
@@ -734,22 +778,50 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                     p_SetCoeff(mon, sa2si(c , _ring), _ring)
                     for pos in m.nonzero_positions():
                         overflow_check(m[pos])
-                        p_SetExp(mon, pos+1, m[pos], _ring)
+                        p_SetExp(mon, ind_map[pos], m[pos], _ring)
                     p_Setm(mon, _ring)
                     _p = p_Add_q(_p, mon, _ring)
                 return new_MP(self, _p)
 
         from sage.rings.polynomial.pbori import BooleanPolynomial
 
-        if PY_TYPE_CHECK(element, BooleanPolynomial) and \
-               element.parent().ngens() == _ring.N and \
-               element.parent().variable_names() == self.variable_names():
+        if PY_TYPE_CHECK(element, BooleanPolynomial):
+
             if element.constant():
                 if element:
                     return self._one_element
                 else:
                     return self._zero_element
-            return eval(str(element),self.gens_dict())
+
+
+            variable_names_s = set(element.parent().variable_names())
+            variable_names_t = self.variable_names()
+
+            if variable_names_s.issubset(variable_names_t):
+                return eval(str(element),self.gens_dict())
+
+            elif element.parent().ngens() <= self.ngens():
+                Q = element.parent()
+                gens_map = dict(zip(Q.variable_names(),self.gens()[:Q.ngens()]))
+                return eval(str(element),gens_map)
+
+        if PY_TYPE_CHECK(element, basestring):
+            # let python do the parsing
+            d = self.gens_dict()
+            if self.base_ring().gen() != 1:
+                d[str(self.base_ring().gen())]=self.base_ring().gen()
+            try:
+                if '/' in element:
+                    element = sage_eval(element,d)
+                else:
+                    element = element.replace("^","**")
+                    element = eval(element, d, {})
+            except (SyntaxError, NameError):
+                raise TypeError("Could not find a mapping of the passed element to this ring.")
+
+            # we need to do this, to make sure that we actually get an
+            # element in self.
+            return self._coerce_c(element)
 
         if PY_TYPE_CHECK(element, dict):
             _p = p_ISet(0, _ring)
@@ -788,10 +860,13 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         except TypeError:
             pass
 
-        # now try calling the base ring's __call__ methods
-        element = self.base_ring()(element)
-        _p = p_NSet(sa2si(element,_ring), _ring)
-        return new_MP(self,_p)
+        try:
+            # now try calling the base ring's __call__ methods
+            element = self.base_ring()(element)
+            _p = p_NSet(sa2si(element,_ring), _ring)
+            return new_MP(self,_p)
+        except (TypeError,ValueError):
+            raise TypeError("Could not find a mapping of the passed element to this ring.")
 
     def _repr_(self):
         """

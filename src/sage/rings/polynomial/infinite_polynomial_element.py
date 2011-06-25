@@ -139,7 +139,7 @@ def InfinitePolynomial(A, p):
         sage: InfinitePolynomial(X, (alpha_1+alpha_2)^2)
         Traceback (most recent call last):
         ...
-        TypeError
+        TypeError: Could not find a mapping of the passed element to this ring.
 
     When extending the underlying polynomial ring, the construction of
     an infinite polynomial works::

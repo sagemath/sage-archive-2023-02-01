@@ -1115,3 +1115,7 @@ class PolynomialSequence_gf2e(PolynomialSequence_generic):
         J = self.ideal().weil_restriction()
         J += FieldIdeal(J.ring())
         return PolynomialSequence(J)
+
+
+
+

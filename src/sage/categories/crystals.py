@@ -1139,7 +1139,7 @@ class Crystals(Category):
                 index_set = self.index_set()
             return all(self.f(i) is None for i in index_set)
 
-        def to_highest_weight(self, list = [], index_set = None):
+        def to_highest_weight(self, index_set = None):
             r"""
             Yields the highest weight element `u` and a list `[i_1,...,i_k]`
             such that `self = f_{i_1} ... f_{i_k} u`, where `i_1,...,i_k` are
@@ -1174,10 +1174,11 @@ class Crystals(Category):
             for i in index_set:
                 if self.epsilon(i) <> 0:
                     self = self.e(i)
-                    return self.to_highest_weight(list = list + [i], index_set = index_set)
-            return [self, list]
+                    hw = self.to_highest_weight(index_set = index_set)
+                    return [hw[0], [i] + hw[1]]
+            return [self, []]
 
-        def to_lowest_weight(self, list = [], index_set = None):
+        def to_lowest_weight(self, index_set = None):
             r"""
             Yields the lowest weight element `u` and a list `[i_1,...,i_k]`
             such that `self = e_{i_1} ... e_{i_k} u`, where `i_1,...,i_k` are
@@ -1214,5 +1215,6 @@ class Crystals(Category):
             for i in index_set:
                 if self.phi(i) <> 0:
                     self = self.f(i)
-                    return self.to_lowest_weight(list = list + [i], index_set = index_set)
-            return [self, list]
+                    lw = self.to_lowest_weight(index_set = index_set)
+                    return [lw[0], [i] + lw[1]]
+            return [self, []]

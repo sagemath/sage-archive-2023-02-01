@@ -405,7 +405,6 @@ class ClassicalCrystals(Category):
         def lusztig_involution(self):
             r"""
             Returns the Lusztig involution on the classical highest weight crystal self.
-            It is assumed that self has only one highest weight vector.
 
             The Lusztig involution on a finite-dimensional highest weight crystal `B(\lambda)` of highest weight `\lambda`
             maps the highest weight vector to the lowest weight vector and the Kashiwara operator `f_i` to
@@ -445,4 +444,4 @@ class ClassicalCrystals(Category):
             hw = self.to_highest_weight()[1]
             hw.reverse()
             hw = [self.parent().opposition_automorphism()[i] for i in hw]
-            return self.parent().lowest_weight_vectors()[0].e_string(hw)
+            return self.to_lowest_weight()[0].e_string(hw)

@@ -480,3 +480,39 @@ Perfect crystals can be used to construct infinite-dimensional highest weight cr
 Demazure crystals using the Kyoto path model [KKMMNN1992]_.
 
 
+Energy function
+---------------
+
+For tensor products of Kirillov-Reshehtikhin crystals, there also exists the important notion of
+the energy function. It can be defined as the sum of certain local energy functions and the `R`-matrix.
+In Theorem 7.5 in [SchillingTingley2011]_ it was shown that for perfect crystals of the same level the
+energy `D(b)` is the same as the affine grading (up to a normalization). The affine grading
+is defined as the minimal number of applications of `e_0` to `b` to reach a ground state path.
+Computationally, this algorithm is a lot more efficient than the computation involving the `R`-matrix
+and has been implemented in Sage::
+
+    sage: K = KirillovReshetikhinCrystal(['A',2,1],1,1)
+    sage: T = TensorProductOfCrystals(K,K,K)
+    sage: hw = [b for b in T if all(b.epsilon(i)==0 for i in [1,2])]
+    sage: for b in hw:
+    ...      print b, b.energy_function()
+    ...
+    [[[1]], [[1]], [[1]]] 0
+    [[[1]], [[2]], [[1]]] 2
+    [[[2]], [[1]], [[1]]] 1
+    [[[3]], [[2]], [[1]]] 3
+
+The affine grading can be computed even for nonperfect crystals::
+
+    sage: K = KirillovReshetikhinCrystal(['C',4,1],1,2)
+    sage: K1 = KirillovReshetikhinCrystal(['C',4,1],1,1)
+    sage: T = TensorProductOfCrystals(K,K1)
+    sage: hw = [b for b in T if all(b.epsilon(i)==0 for i in [1,2,3,4])]
+    sage: for b in hw:
+    ...       print b, b.affine_grading()
+    ...
+    [[], [[1]]] 1
+    [[[1, 1]], [[1]]] 2
+    [[[1, 2]], [[1]]] 1
+    [[[1, -1]], [[1]]] 0
+

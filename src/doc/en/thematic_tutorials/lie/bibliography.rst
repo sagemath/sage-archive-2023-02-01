@@ -98,6 +98,10 @@ Bibliography
    Kirillov--Reshetikhin crystals for nonexceptional types.
    *Representation Theory* 12:186--207, 2008.
 
+.. [SchillingTingley2011] A. Schilling, P. Tingley.
+   Demazure crystals, Kirillov-Reshetikhin crystals, and the energy function.
+   preprint arXiv:1104.2359
+
 .. [Stanley1999] R. P. Stanley. *Enumerative Combinatorics, Volume
    2*. Cambridge University Press, 1999.
 

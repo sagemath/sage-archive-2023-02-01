@@ -1,5 +1,5 @@
 r"""
-Affine crystals
+Kirillov-Reshetikhin Crystals
 """
 
 #*****************************************************************************
@@ -38,6 +38,7 @@ from sage.combinat.crystals.spins import CrystalOfSpins
 from sage.combinat.tableau import Tableau
 from sage.combinat.partition import Partition, Partitions
 from sage.combinat.integer_vector import IntegerVectors
+from sage.functions.other import floor, ceil
 
 
 def KirillovReshetikhinCrystal(cartan_type, r, s):
@@ -316,7 +317,7 @@ class KirillovReshetikhinGenericCrystal(Parent):
         """
         Returns r of the underlying Kirillov-Reshetikhin crystal `B^{r,s}`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K = KirillovReshetikhinCrystal(['D',4,1], 2, 1)
             sage: K.r()
@@ -328,13 +329,73 @@ class KirillovReshetikhinGenericCrystal(Parent):
         """
         Returns s of the underlying Kirillov-Reshetikhin crystal `B^{r,s}`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K = KirillovReshetikhinCrystal(['D',4,1], 2, 1)
             sage: K.s()
             1
         """
         return self._s
+
+    def is_perfect(self):
+        r"""
+        Returns True or False depending on whether ``self`` is a perfect crystal or not, respectively.
+
+        If ``self`` is the Kirillov-Reshetikhin crystal `B^{r,s}`, then it was proven in [FOS2010]_
+        that it is perfect if and only if `s/c_r` is an integer (where `c_r` is a constant related to the
+        type of the crystal).
+
+        REFERENCES:
+
+            .. [FOS2010] G. Fourier, M. Okado, A. Schilling.
+               Perfectness of Kirillov-Reshetikhin crystals for nonexceptional types
+               Contemp. Math. 506 (2010) 127-143 ( arXiv:0811.1604 [math.RT] )
+
+        EXAMPLES::
+
+            sage: K = KirillovReshetikhinCrystal(['A',2,1], 1, 1)
+            sage: K.is_perfect()
+            True
+
+            sage: K = KirillovReshetikhinCrystal(['C',2,1], 1, 1)
+            sage: K.is_perfect()
+            False
+
+            sage: K = KirillovReshetikhinCrystal(['C',2,1], 1, 2)
+            sage: K.is_perfect()
+            True
+        """
+        x = self.s()/self.cartan_type().c()[self.r()]
+        return x - ceil(x) == 0
+
+    def level(self):
+        r"""
+        Returns the level of ``self`` assuming that it is a perfect crystal.
+
+        If ``self`` is the Kirillov-Reshetikhin crystal `B^{r,s}`, then it was proven in [FOS2010]_
+        that its level is `s/c_r` which is an integer if ``self`` is perfect
+        (here `c_r` is a constant related to the type of the crystal).
+
+        EXAMPLES::
+
+            sage: K = KirillovReshetikhinCrystal(['A',2,1], 1, 1)
+            sage: K.level()
+            1
+            sage: K = KirillovReshetikhinCrystal(['C',2,1], 1, 2)
+            sage: K.level()
+            1
+            sage: K = KirillovReshetikhinCrystal(['D',4,1], 1, 3)
+            sage: K.level()
+            3
+
+            sage: K = KirillovReshetikhinCrystal(['C',2,1], 1, 1)
+            sage: K.level()
+            Traceback (most recent call last):
+            ...
+            AssertionError: This crystal is not perfect!
+        """
+        assert self.is_perfect(), "This crystal is not perfect!"
+        return self.s()/self.cartan_type().c()[self.r()]
 
     def R_matrix(self, K):
         r"""
@@ -461,7 +522,7 @@ class KR_type_A(KirillovReshetikhinCrystalFromPromotion):
         For type A this corresponds to the Dynkin diagram automorphism which maps i to i+1 mod n+1,
         where n is the rank.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: K = KirillovReshetikhinCrystal(['A',3,1], 2,2)
             sage: b = K.classical_decomposition()(rows=[[1,2],[3,4]])
@@ -476,7 +537,7 @@ class KR_type_A(KirillovReshetikhinCrystalFromPromotion):
         For type A this corresponds to the Dynkin diagram automorphism which maps i to i-1 mod n+1,
         where n is the rank.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: K = KirillovReshetikhinCrystal(['A',3,1], 2,2)
             sage: b = K.classical_decomposition()(rows=[[1,3],[2,4]])
@@ -562,7 +623,7 @@ class KR_type_vertical(KirillovReshetikhinCrystalFromPromotion):
         and leaves all other nodes unchanged. On the level of crystals it is constructed using
         `\pm` diagrams.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: K = KirillovReshetikhinCrystal(['D',4,1], 2,2)
             sage: promotion = K.promotion()
@@ -898,7 +959,7 @@ class KR_type_E6(KirillovReshetikhinCrystalFromPromotion):
         """
         Specifies the promotion operator used to construct the affine type `E_6^{(1)}` crystal.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: K = KirillovReshetikhinCrystal(['E',6,1], 2,1)
             sage: promotion = K.promotion()

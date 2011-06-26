@@ -618,6 +618,169 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent):
         """
         return '\otimes'.join(latex(c) for c in self)
 
+    def energy_function(self):
+        r"""
+        Returns the energy function of `self`.
+
+        INPUT:
+
+        - ``self`` -- an element of a tensor product of perfect Kirillov-Reshetkhin crystals of the same level.
+
+        OUTPUT: an integer
+
+        The energy is only defined when ``self`` is an element of a tensor product of affine Kirillov-Reshetikhin crystals.
+        In this implementation, it is assumed that ``self`` is an element of a tensor product of perfect crystals of the
+        same level, see Theorem 7.5 in [SchillingTingley2011]_.
+
+        REFERENCES:
+
+            .. [SchillingTingley2011] A. Schilling, P. Tingley.
+               Demazure crystals, Kirillov-Reshetikhin crystals, and the energy function.
+               preprint arXiv:1104.2359
+
+        EXAMPLES::
+
+            sage: K = KirillovReshetikhinCrystal(['A',2,1],1,1)
+            sage: T = TensorProductOfCrystals(K,K,K)
+            sage: hw = [b for b in T if all(b.epsilon(i)==0 for i in [1,2])]
+            sage: for b in hw:
+            ...      print b, b.energy_function()
+            ...
+            [[[1]], [[1]], [[1]]] 0
+            [[[1]], [[2]], [[1]]] 2
+            [[[2]], [[1]], [[1]]] 1
+            [[[3]], [[2]], [[1]]] 3
+
+            sage: K = KirillovReshetikhinCrystal(['C',2,1],1,2)
+            sage: T = TensorProductOfCrystals(K,K)
+            sage: hw = [b for b in T if all(b.epsilon(i)==0 for i in [1,2])]
+            sage: for b in hw:
+            ...       print b, b.energy_function()
+            ...
+            [[], []] 4
+            [[], [[1, 1]]] 1
+            [[[1, 1]], []] 3
+            [[[1, 1]], [[1, 1]]] 0
+            [[[1, 2]], [[1, 1]]] 1
+            [[[2, 2]], [[1, 1]]] 2
+            [[[-1, -1]], [[1, 1]]] 2
+            [[[1, -1]], [[1, 1]]] 2
+            [[[2, -1]], [[1, 1]]] 2
+
+            sage: K = KirillovReshetikhinCrystal(['C',2,1],1,1)
+            sage: T = TensorProductOfCrystals(K)
+            sage: t = T.module_generators[0]
+            sage: t.energy_function()
+            Traceback (most recent call last):
+            ...
+            AssertionError: All crystals in the tensor product need to be perfect of the same level
+        """
+        C = self.parent().crystals[0]
+        ell = ceil(C.s()/C.cartan_type().c()[C.r()])
+        assert all(ell == K.s()/K.cartan_type().c()[K.r()] for K in self.parent().crystals), \
+            "All crystals in the tensor product need to be perfect of the same level"
+        t = self.parent()(*[K.module_generator() for K in self.parent().crystals])
+        d = t.affine_grading()
+        return d - self.affine_grading()
+
+    def affine_grading(self):
+        r"""
+        Returns the affine grading of `self`.
+
+        INPUT:
+
+        - ``self`` -- an element of a tensor product of Kirillov-Reshetikhin crystals.
+
+        OUTPUT: an integer
+
+        The affine grading is only defined when ``self`` is an element of a tensor product of affine Kirillov-Reshetikhin crystals.
+        It is calculated by finding a path from ``self`` to a ground state path using the helper method
+        :meth:`e_string_to_ground_state` and counting the number of affine Kashiwara operators `e_0` applied on the way.
+
+        EXAMPLES::
+
+            sage: K = KirillovReshetikhinCrystal(['A',2,1],1,1)
+            sage: T = TensorProductOfCrystals(K,K)
+            sage: t = T.module_generators[0]
+            sage: t.affine_grading()
+            1
+
+            sage: K = KirillovReshetikhinCrystal(['A',2,1],1,1)
+            sage: T = TensorProductOfCrystals(K,K,K)
+            sage: hw = [b for b in T if all(b.epsilon(i)==0 for i in [1,2])]
+            sage: for b in hw:
+            ...      print b, b.affine_grading()
+            ...
+            [[[1]], [[1]], [[1]]] 3
+            [[[1]], [[2]], [[1]]] 1
+            [[[2]], [[1]], [[1]]] 2
+            [[[3]], [[2]], [[1]]] 0
+
+            sage: K = KirillovReshetikhinCrystal(['C',2,1],1,1)
+            sage: T = TensorProductOfCrystals(K,K,K)
+            sage: hw = [b for b in T if all(b.epsilon(i)==0 for i in [1,2])]
+            sage: for b in hw:
+            ...       print b, b.affine_grading()
+            ...
+            [[[1]], [[1]], [[1]]] 2
+            [[[1]], [[2]], [[1]]] 1
+            [[[1]], [[-1]], [[1]]] 0
+            [[[2]], [[1]], [[1]]] 1
+            [[[-2]], [[2]], [[1]]] 0
+            [[[-1]], [[1]], [[1]]] 1
+        """
+        return self.e_string_to_ground_state().count(0)
+
+    @cached_method
+    def e_string_to_ground_state(self):
+        r"""
+        Returns a string of integers in the index set `(i_1,\ldots,i_k)` such that `e_{i_k} \cdots e_{i_1} self` is
+        the ground state.
+
+        INPUT:
+
+        - ``self`` -- an element of a tensor product of Kirillov-Reshetikhin crystals.
+
+        OUTPUT: a tuple of integers `(i_1,\ldots,i_k)`
+
+        This method is only defined when ``self`` is an element of a tensor product of affine Kirillov-Reshetikhin crystals.
+        It calculates a path from ``self`` to a ground state path using Demazure arrows as defined in
+        Lemma 7.3 in [SchillingTingley2011]_.
+
+        EXAMPLES::
+
+            sage: K = KirillovReshetikhinCrystal(['A',2,1],1,1)
+            sage: T = TensorProductOfCrystals(K,K)
+            sage: t = T.module_generators[0]
+            sage: t.e_string_to_ground_state()
+            (0, 2)
+
+            sage: K = KirillovReshetikhinCrystal(['C',2,1],1,1)
+            sage: T = TensorProductOfCrystals(K,K)
+            sage: t = T.module_generators[0]; t
+            [[[1]], [[1]]]
+            sage: t.e_string_to_ground_state()
+            (0,)
+            sage: x=t.e(0)
+            sage: x.e_string_to_ground_state()
+            ()
+            sage: y=t.f_string([1,2,1,1,0]); y
+            [[[2]], [[1]]]
+            sage: y.e_string_to_ground_state()
+            ()
+        """
+        assert self.parent().crystals[0].__module__ == 'sage.combinat.crystals.kirillov_reshetikhin', \
+            "All crystals in the tensor product need to be Kirillov-Reshetikhin crystals"
+        I = self.index_set()
+        I.remove(0)
+        ell = max(ceil(K.s()/K.cartan_type().c()[K.r()]) for K in self.parent().crystals)
+        for i in I:
+            if self.epsilon(i) > 0:
+                return (i,) + (self.e(i)).e_string_to_ground_state()
+        if self.epsilon(0) > ell:
+            return (0,) + (self.e(0)).e_string_to_ground_state()
+        return ()
+
 CrystalOfWords.Element = TensorProductOfCrystalsElement
 
 

@@ -3279,7 +3279,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         # Create a new dense free module element with minimal overhead and
         # no type checking.
         cdef FreeModuleElement_generic_dense x
-        x = PY_NEW(FreeModuleElement_generic_dense)
+        x = <FreeModuleElement_generic_dense>PY_NEW(<object>PY_TYPE(self))
         x._is_mutable = 1
         x._parent = self._parent
         x._entries = v

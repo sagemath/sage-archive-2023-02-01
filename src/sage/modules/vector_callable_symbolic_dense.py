@@ -14,9 +14,9 @@ EXAMPLES::
     sage: f[0]
     (r, theta, z) |--> r*cos(theta)
     sage: f+f
-    ((r, theta, z) |--> 2*r*cos(theta), (r, theta, z) |--> 2*r*sin(theta), (r, theta, z) |--> 2*z)
+    (r, theta, z) |--> (2*r*cos(theta), 2*r*sin(theta), 2*z)
     sage: 3*f
-    ((r, theta, z) |--> 3*r*cos(theta), (r, theta, z) |--> 3*r*sin(theta), (r, theta, z) |--> 3*z)
+    (r, theta, z) |--> (3*r*cos(theta), 3*r*sin(theta), 3*z)
     sage: f*f # dot product
     (r, theta, z) |--> r^2*sin(theta)^2 + r^2*cos(theta)^2 + z^2
     sage: f.diff()(0,1,2) # the matrix derivative

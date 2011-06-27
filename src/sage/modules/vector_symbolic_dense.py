@@ -21,6 +21,22 @@ EXAMPLES::
     sage: u.simplify_full()
     (1, log(6) + 2*log(y))
 
+Check that the outcome of arithmetic with symbolic vectors is again
+a symbolic vector (#11549):
+
+    sage: v = vector(SR, [1, 2])
+    sage: w = vector(SR, [sin(x), 0])
+    sage: type(v)
+    <class 'sage.modules.vector_symbolic_dense.Vector_symbolic_dense'>
+    sage: type(w)
+    <class 'sage.modules.vector_symbolic_dense.Vector_symbolic_dense'>
+    sage: type(v + w)
+    <class 'sage.modules.vector_symbolic_dense.Vector_symbolic_dense'>
+    sage: type(-v)
+    <class 'sage.modules.vector_symbolic_dense.Vector_symbolic_dense'>
+    sage: type(5*w)
+    <class 'sage.modules.vector_symbolic_dense.Vector_symbolic_dense'>
+
 TESTS::
 
     sage: u = vector(SR, [sin(x^2)])

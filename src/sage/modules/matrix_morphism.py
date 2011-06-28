@@ -820,25 +820,56 @@ class MatrixMorphism(MatrixMorphism_abstract):
         return self._matrix.kernel().dimension() == 0
 
     def is_surjective(self):
-        """
+        r"""
         Tell whether ``self`` is surjective.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: V1 = QQ^2
             sage: V2 = QQ^3
-            sage: phi = V1.hom(Matrix([[1,2],[3,4],[5,6]]),V2)
+            sage: phi = V1.hom(Matrix([[1,2],[3,4],[5,6]]), V2)
             sage: phi.is_surjective()
             False
-            sage: psi = V2.hom(Matrix([[1,2,3],[4,5,6]]),V1)
+            sage: psi = V2.hom(Matrix([[1,2,3],[4,5,6]]), V1)
             sage: psi.is_surjective()
             True
 
-        AUTHOR:
+        An example over a PID that is not `\ZZ`.  ::
 
-        -- Simon King (2010-05)
+            sage: R = PolynomialRing(QQ, 'x')
+            sage: A = R^2
+            sage: B = R^2
+            sage: H = A.hom([B([x^2-1, 1]), B([x^2, 1])])
+            sage: H.image()
+            Free module of degree 2 and rank 2 over Univariate Polynomial Ring in x over Rational Field
+            Echelon basis matrix:
+            [ 1  0]
+            [ 0 -1]
+            sage: H.is_surjective()
+            True
+
+        This tests if Trac #11552 is fixed. ::
+
+            sage: V = ZZ^2
+            sage: m = matrix(ZZ, [[1,2],[0,2]])
+            sage: phi = V.hom(m, V)
+            sage: phi.lift(vector(ZZ, [0, 1]))
+            Traceback (most recent call last):
+            ...
+            ValueError: element is not in the image
+            sage: phi.is_surjective()
+            False
+
+        AUTHORS:
+
+        - Simon King (2010-05)
+        - Rob Beezer (2011-06-28)
         """
-        return self._matrix.rank() == self.codomain().dimension()
+        # Testing equality of free modules over PIDs is unreliable
+        #   see Trac #11579 for explanation and status
+        # We test if image equals codomain with two inclusions
+        #   reverse inclusion of below is trivially true
+        return self.codomain().is_submodule(self.image())
 
     def _repr_(self):
         """

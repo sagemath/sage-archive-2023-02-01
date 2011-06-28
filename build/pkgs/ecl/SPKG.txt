@@ -49,6 +49,13 @@ Website: http://ecls.sourceforge.net/
 
 == Changelog ==
 
+=== ecl-11.1.1.p3 (Karl-Dieter Crisman, 27th June 2011) ===
+  * Two more fixes for Cygwin from upstream, fixing
+    double inclusion of fenv.h in h/impl/math_fenv.h and
+    c/unixint.d
+  * These two fixes and the one in p2 are all in ECL CVS
+    and should be removed upon upgrade.
+
 === ecl-11.1.1.p2 (Karl-Dieter Crisman, 24th June 2011) ===
   * Fix for Cygwin, including sys/stat.h in ffi/libraries.d
   * This should be removed, or a if/else statement for which version

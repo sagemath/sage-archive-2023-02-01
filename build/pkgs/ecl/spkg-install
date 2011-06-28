@@ -15,10 +15,13 @@ fi
 cd src
 patch -p0 < ../patches/ecls-11.1.1-cmploc.lisp.patch
 
-# apply patch for Cygwin build
-# a different fix is in Cygwin CVS, but not in a released version
+# apply patches for Cygwin build
+# these patches is in ECL CVS, remove upon upgrade
+# Cygwin also has upstream fixes that are closely related, keep track
 # See Trac 11119
 patch -p0 < ../patches/libraries.d.patch
+patch -p0 < ../patches/unixint.d.patch
+patch -p0 < ../patches/math_fenv.h.patch
 
 if [ "x$CFLAG64" = x ] ; then
    CFLAG64=-m64

@@ -1,0 +1,30 @@
+= lrcalc =
+
+== Description ==
+
+lrcalc 1.1.5 : Littlewood-Richardson Calculator
+
+http://math.rutgers.edu/~asbuch/lrcalc/
+
+== License ==
+
+GNU General Public License V2+
+
+== SPKG Maintainers ==
+
+Mike Hansen, Nicolas M. Thiéry
+
+== Upstream Contact ==
+
+Anders S. Buch (abuch@math.mit.edu)
+
+== Dependencies ==
+
+== Special Update/Build Instructions ==
+
+== Changelog ==
+
+1.1.5b: Upgrade to lrcal 1.1.5 together with autotools build system
+
+1.1.4: Initial version by Mike Hansen
+

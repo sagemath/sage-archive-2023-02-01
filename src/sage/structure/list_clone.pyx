@@ -1,7 +1,7 @@
 """
 Elements, Array and Lists With Clone Protocol
 
-This module defines several class which are subclasses of
+This module defines several classes which are subclasses of
 :class:`Element<sage.structure.element.Element>` and which roughly implement
 the "prototype" design pattern (see [Pro]_, [GOF]_). Those classes are
 intended to be used to model *mathematical* objects, which are by essence
@@ -19,8 +19,11 @@ the list or cycling some values. Though the result is clearly a permutations
 there's no way to avoid breaking the permutations invariants at some point
 during the modifications.
 
-The main purpose of this module is two define the class
-:class:`ClonableElement` and its subclasses:
+The main purpose of this module is to define the class
+
+- :class:`ClonableElement` as an abstract super class,
+
+and its subclasses:
 
 - :class:`ClonableArray` for arrays (lists of fixed length) of objects;
 - :class:`ClonableList` for (resizable) lists of objects;
@@ -41,7 +44,8 @@ We now demonstrate how :class:`IncreasingArray` works, creating an instance
 ``el`` through its parent ``IncreasingArrays()``::
 
     sage: from sage.structure.list_clone import IncreasingArrays
-    sage: el = IncreasingArrays()([1, 4 ,8]); el
+    sage: P = IncreasingArrays()
+    sage: P([1, 4 ,8])
     [1, 4, 8]
 
 If one tries to create this way a list which in not increasing, an error is
@@ -54,6 +58,7 @@ raised::
 
 Once created modifying ``el`` is forbidden::
 
+    sage: el = P([1, 4 ,8])
     sage: el[1] = 3
     Traceback (most recent call last):
     ...
@@ -76,29 +81,29 @@ state::
     ...
     ValueError: object is immutable; please change a copy instead.
 
-You can break the property that the lists is increasing during the
+You can break the property that the list is increasing during the
 modification::
 
-    sage: with el.clone() as el2:
-    ...      el2[1] = 12
-    ...      print el2
-    ...      el2[2] = 25
+    sage: with el.clone() as elc2:
+    ...      elc2[1] = 12
+    ...      print elc2
+    ...      elc2[2] = 25
     [1, 12, 8]
-    sage: el2
+    sage: elc2
     [1, 12, 25]
 
-But it must be restored at the end of the ``with`` block, otherwise an error
-is raised::
+But this property must be restored at the end of the ``with`` block; otherwise
+an error is raised::
 
-    sage: with el2.clone() as el3:
+    sage: with elc2.clone() as el3:
     ...      el3[1] = 100
     Traceback (most recent call last):
     ...
     AssertionError: array is not increasing
 
-Finally, let us mention that same feature is achievable by hands::
+Finally, as an alternative to the ``with`` syntax one can use::
 
-    sage: el4 = copy(el2)
+    sage: el4 = copy(elc2)
     sage: el4[1] = 10
     sage: el4.set_immutable()
     sage: el4.check()
@@ -139,7 +144,7 @@ cdef class ClonableElement(Element):
     Abstract class for elements with clone protocol
 
     This class is a subclasse of
-    :class:`Element<sage.structure.element.Element>` and implement the
+    :class:`Element<sage.structure.element.Element>` and implements the
     "prototype" design pattern (see [Pro]_, [GOF]_). The role of this class
     is:
 
@@ -182,12 +187,13 @@ cdef class ClonableElement(Element):
        new_obj.check()
        # invariants are ensured to be fulfilled
 
-    Finally, is the class implement the ``_hash_`` method then
-    :class:`ClonableElement` ensure that hash value is only computed on immutable
-    object and cache it so that it is only computed once.
+    Finally, if the class implements the ``_hash_`` method, then
+    :class:`ClonableElement` ensures that the hash value can only be
+    computed on an immutable object. It furthermore caches it so that
+    it is only computed once.
 
-    .. warning:: for the hashing mechanism to work correctly, the hash value
-       cannot be 0.
+    .. warning:: for the hash caching mechanism to work correctly, the hash
+       value cannot be 0.
 
     EXAMPLES:
 
@@ -205,7 +211,7 @@ cdef class ClonableElement(Element):
         ...       def _repr_(self):
         ...           return "(x=%s, y=%s)"%(self._x, self._y)
         ...       def check(self):
-        ...           assert self._x < self._y, "Bad ordered pair"
+        ...           assert self._x < self._y, "Incorrectly ordered pair"
         ...       def get_x(self): return self._x
         ...       def get_y(self): return self._y
         ...       def set_x(self, v): self._require_mutable(); self._x = v
@@ -249,11 +255,11 @@ cdef class ClonableElement(Element):
     A modification which doesn't restore the invariant `x < y` at the end is
     illegal and raise an exception::
 
-        sage: with el.clone() as el2:
-        ...       el2.set_x(5)
+        sage: with el.clone() as elc2:
+        ...       elc2.set_x(5)
         Traceback (most recent call last):
         ...
-        AssertionError: Bad ordered pair
+        AssertionError: Incorrectly ordered pair
     """
     def __cinit__(self):
         """
@@ -438,9 +444,9 @@ cdef class ClonableElement(Element):
 
         Lets try to make a broken list::
 
-            sage: el2 = el.clone().__enter__()
-            sage: el2[1] = 7
-            sage: el2.__exit__(None, None, None)
+            sage: elc2 = el.clone().__enter__()
+            sage: elc2[1] = 7
+            sage: elc2.__exit__(None, None, None)
             Traceback (most recent call last):
             ...
             AssertionError: array is not increasing
@@ -491,7 +497,7 @@ cdef class ClonableArray(ClonableElement):
             ...
             TypeError: 'NoneType' object is not iterable
 
-        You are not suppose to do the following (giving a wrong list and
+        You are not supposed to do the following (giving a wrong list and
         desactivating checks)::
 
             sage: broken = IncreasingArrays()([3,2,1], False)
@@ -514,7 +520,7 @@ cdef class ClonableArray(ClonableElement):
 
     def __nonzero__(self):
         """
-        Tests if self is not Empty.
+        Tests if self is not empty.
 
         EXAMPLES::
 
@@ -1147,7 +1153,7 @@ cdef class ClonableList(ClonableArray):
 
     cpdef remove(self, el):
         """
-        Remove the fisrt occurence of el from ``self``
+        Remove the first occurence of ``el`` from ``self``
 
         INPUT: ``el`` - any object
 
@@ -1241,7 +1247,7 @@ class IncreasingLists(IncreasingArrays):
 
 cdef class IncreasingList(ClonableList):
     """
-    A small extension class for testing :class:`ClonableList`.
+    A small extension class for testing :class:`ClonableList`
 
     TESTS::
 
@@ -1252,7 +1258,7 @@ cdef class IncreasingList(ClonableList):
 
     cpdef check(self):
         """
-        Check that ``self`` is increasing.
+        Check that ``self`` is increasing
 
         EXAMPLES::
 
@@ -1323,7 +1329,7 @@ cdef class ClonableIntArray(ClonableElement):
             []
 
 
-        You are not suppose to do the following (giving a wrong list and
+        You are not supposed to do the following (giving a wrong list and
         desactivating checks)::
 
             sage: broken = IncreasingIntArrays()([3,2,1], False)

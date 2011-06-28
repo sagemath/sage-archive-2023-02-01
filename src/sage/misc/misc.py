@@ -2172,10 +2172,9 @@ class DeprecatedFunctionAlias(object):
             sage: from sage.misc.misc import deprecated_function_alias
             sage: g = deprecated_function_alias(number_of_partitions,
             ...     'Sage Version 42.132')
-            sage: g.__doc__ is number_of_partitions.__doc__
-            True
+            sage: g.__doc__
+            '.. deprecated:: Sage Version 42.132. Use :func:`number_of_partitions` instead.\n\n'
         """
-        self.__doc__ = func.__doc__
         try:
             self.__dict__.update(func.__dict__)
         except AttributeError:
@@ -2183,6 +2182,12 @@ class DeprecatedFunctionAlias(object):
         self.func = func
         self.version  = version
         self.instance = None # for use with methods
+        if type(func) == type(deprecation):
+            sphinxrole = "func"
+        else:
+            sphinxrole = "meth"
+        self.__doc__ = (".. deprecated:: %s. Use :%s:`%s` instead.\n\n"%(
+                self.version, sphinxrole, self.func.__name__))
 
     @lazy_attribute
     def __name__(self):

@@ -47,8 +47,9 @@ AUTHOR:
 - William Stein (2005-01-07): added __reduce__
 
 - Craig Citro (2008-03-18): refactored MatrixMorphism class
-"""
 
+- Rob Beezer (2011-07-15): additional methods, bug fixes, documentation
+"""
 
 import sage.categories.morphism
 import sage.categories.homset
@@ -191,6 +192,129 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             return self.parent().reversed()(B)
         except TypeError:
             raise ZeroDivisionError, "matrix morphism not invertible"
+
+    def inverse(self):
+        r"""
+        Returns the inverse of this matrix morphism, if the inverse exists.
+
+        Raises a ``ZeroDivisionError`` if the inverse does not exist.
+
+        EXAMPLES:
+
+        An invertible morphism created as a restriction of
+        a non-invertible morphism, and which has an unequal
+        domain and codomain.  ::
+
+            sage: V = QQ^4
+            sage: W = QQ^3
+            sage: m = matrix(QQ, [[2, 0, 3], [-6, 1, 4], [1, 2, -4], [1, 0, 1]])
+            sage: phi = V.hom(m, W)
+            sage: rho = phi.restrict_domain(V.span([V.0, V.3]))
+            sage: zeta = rho.restrict_codomain(W.span([W.0, W.2]))
+            sage: x = vector(QQ, [2, 0, 0, -7])
+            sage: y = zeta(x); y
+            (-3, 0, -1)
+            sage: inv = zeta.inverse(); inv
+            Free module morphism defined by the matrix
+            [-1  3]
+            [ 1 -2]
+            Domain: Vector space of degree 3 and dimension 2 over Rational Field
+            Basis ...
+            Codomain: Vector space of degree 4 and dimension 2 over Rational Field
+            Basis ...
+            sage: inv(y) == x
+            True
+
+        An example of an invertible morphism between modules,
+        (rather than between vector spaces).  ::
+
+            sage: M = ZZ^4
+            sage: p = matrix(ZZ, [[ 0, -1,  1, -2],
+            ...                   [ 1, -3,  2, -3],
+            ...                   [ 0,  4, -3,  4],
+            ...                   [-2,  8, -4,  3]])
+            sage: phi = M.hom(p, M)
+            sage: x = vector(ZZ, [1, -3, 5, -2])
+            sage: y = phi(x); y
+            (1, 12, -12, 21)
+            sage: rho = phi.inverse(); rho
+            Free module morphism defined by the matrix
+            [ -5   3  -1   1]
+            [ -9   4  -3   2]
+            [-20   8  -7   4]
+            [ -6   2  -2   1]
+            Domain: Ambient free module of rank 4 over the principal ideal domain ...
+            Codomain: Ambient free module of rank 4 over the principal ideal domain ...
+            sage: rho(y) == x
+            True
+
+        A non-invertible morphism, despite having an appropriate
+        domain and codomain.  ::
+
+            sage: V = QQ^2
+            sage: m = matrix(QQ, [[1, 2], [20, 40]])
+            sage: phi = V.hom(m, V)
+            sage: phi.is_bijective()
+            False
+            sage: phi.inverse()
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: matrix morphism not invertible
+
+        The matrix representation of this morphism is invertible
+        over the rationals, but not over the integers, thus the
+        morphism is not invertible as a map between modules.
+        It is easy to notice from the definition that every
+        vector of the image will have a second entry that
+        is an even integer.  ::
+
+            sage: V = ZZ^2
+            sage: q = matrix(ZZ, [[1, 2], [3, 4]])
+            sage: phi = V.hom(q, V)
+            sage: phi.matrix().change_ring(QQ).inverse()
+            [  -2    1]
+            [ 3/2 -1/2]
+            sage: phi.is_bijective()
+            False
+            sage: phi.image()
+            Free module of degree 2 and rank 2 over Integer Ring
+            Echelon basis matrix:
+            [1 0]
+            [0 2]
+            sage: phi.lift(vector(ZZ, [1, 1]))
+            Traceback (most recent call last):
+            ...
+            ValueError: element is not in the image
+            sage: phi.inverse()
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: matrix morphism not invertible
+
+        The unary invert operator (~, tilde, "wiggle") is synonymous
+        with the ``inverse()`` method (and a lot easier to type).  ::
+
+            sage: V = QQ^2
+            sage: r = matrix(QQ, [[4, 3], [-2, 5]])
+            sage: phi = V.hom(r, V)
+            sage: rho = phi.inverse()
+            sage: zeta = ~phi
+            sage: rho == zeta
+            True
+
+        TESTS::
+
+            sage: V = QQ^2
+            sage: W = QQ^3
+            sage: U = W.span([W.0, W.1])
+            sage: m = matrix(QQ, [[2, 1], [3, 4]])
+            sage: phi = V.hom(m, U)
+            sage: inv = phi.inverse()
+            sage: (inv*phi).is_identity()
+            True
+            sage: (phi*inv).is_identity()
+            True
+        """
+        return self.__invert__()
 
     def __rmul__(self, left):
         """
@@ -449,6 +573,16 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
                                          check=False) for V, _ in E],
                             cr=True, check=False)
 
+    def trace(self):
+        """
+        EXAMPLES::
+
+            sage: V = ZZ^2; phi = V.hom([V.0+V.1, 2*V.1])
+            sage: phi.trace()
+            3
+        """
+        return self.matrix().trace()
+
     def det(self):
         """
         Return the determinant of this endomorphism.
@@ -571,7 +705,9 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
         raise NotImplementedError, "this method must be overridden in the extension class"
 
     def rank(self):
-        """
+        r"""
+        Returns the rank of the matrix representing this morphism.
+
         EXAMPLES::
 
             sage: V = ZZ^2; phi = V.hom(V.basis())
@@ -582,6 +718,272 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             1
         """
         return self.matrix().rank()
+
+    def nullity(self):
+        r"""
+        Returns the nullity of the matrix representing this morphism.
+
+        EXAMPLES::
+
+            sage: V = ZZ^2; phi = V.hom(V.basis())
+            sage: phi.nullity()
+            0
+            sage: V = ZZ^2; phi = V.hom([V.0, V.0])
+            sage: phi.nullity()
+            1
+        """
+        return self.matrix().left_nullity()
+
+    def is_bijective(self):
+        r"""
+        Tell whether ``self`` is bijective.
+
+        EXAMPLES:
+
+        Two morphisms that are obviously not bijective, simply on
+        considerations of the dimensions.  However, each fullfills
+        half of the requirements to be a bijection.  ::
+
+            sage: V1 = QQ^2
+            sage: V2 = QQ^3
+            sage: m = matrix(QQ, [[1,2],[3,4],[5,6]])
+            sage: phi = V1.hom(m, V2)
+            sage: phi.is_injective()
+            True
+            sage: phi.is_bijective()
+            False
+            sage: rho = V2.hom(m.transpose(), V1)
+            sage: rho.is_surjective()
+            True
+            sage: rho.is_bijective()
+            False
+
+        We construct a simple bijection between two one-dimensional
+        vector spaces.  ::
+
+            sage: V1 = QQ^3
+            sage: V2 = QQ^2
+            sage: phi = V1.hom(matrix(QQ, [[1, 2, 3], [4, 5, 6]]), V2)
+            sage: x = vector(QQ, [1, -1, 4])
+            sage: y = phi(x); y
+            (18, 22)
+            sage: rho = phi.restrict_domain(V1.span([x]))
+            sage: zeta = rho.restrict_codomain(V2.span([y]))
+            sage: zeta.is_bijective()
+            True
+
+        AUTHOR:
+
+        - Rob Beezer (2011-06-28)
+        """
+        return self.is_injective() and self.is_surjective()
+
+    def is_identity(self):
+        r"""
+        Determines if this morphism is an identity function or not.
+
+        EXAMPLES:
+
+        A homomorphism that cannot possibly be the identity
+        due to an unequal domain and codomain.  ::
+
+            sage: V = QQ^3
+            sage: W = QQ^2
+            sage: m = matrix(QQ, [[1, 2], [3, 4], [5, 6]])
+            sage: phi = V.hom(m, W)
+            sage: phi.is_identity()
+            False
+
+        A bijection, but not the identity. ::
+
+            sage: V = QQ^3
+            sage: n = matrix(QQ, [[3, 1, -8], [5, -4, 6], [1, 1, -5]])
+            sage: phi = V.hom(n, V)
+            sage: phi.is_bijective()
+            True
+            sage: phi.is_identity()
+            False
+
+        A restriction that is the identity.  ::
+
+            sage: V = QQ^3
+            sage: p = matrix(QQ, [[1, 0, 0], [5, 8, 3], [0, 0, 1]])
+            sage: phi = V.hom(p, V)
+            sage: rho = phi.restrict(V.span([V.0, V.2]))
+            sage: rho.is_identity()
+            True
+
+        An identity linear transformation that is defined with a
+        domain and codomain with wildly different bases, so that the
+        matrix representation is not simply the identity matrix. ::
+
+            sage: A = matrix(QQ, [[1, 1, 0], [2, 3, -4], [2, 4, -7]])
+            sage: B = matrix(QQ, [[2, 7, -2], [-1, -3, 1], [-1, -6, 2]])
+            sage: U = (QQ^3).subspace_with_basis(A.rows())
+            sage: V = (QQ^3).subspace_with_basis(B.rows())
+            sage: H = Hom(U, V)
+            sage: id = lambda x: x
+            sage: phi = H(id)
+            sage: phi([203, -179, 34])
+            (203, -179, 34)
+            sage: phi.matrix()
+            [  1   0   1]
+            [ -9 -18  -2]
+            [-17 -31  -5]
+            sage: phi.is_identity()
+            True
+
+        TEST::
+
+            sage: V = QQ^10
+            sage: H = Hom(V, V)
+            sage: id = H.identity()
+            sage: id.is_identity()
+            True
+
+        AUTHOR:
+
+        - Rob Beezer (2011-06-28)
+        """
+        if self.domain() != self.codomain():
+            return False
+        # testing for the identity matrix will only work for
+        #   endomorphisms which have the same basis for domain and codomain
+        #   so we test equality on a basis, which is sufficient
+        return all( self(u) == u for u in self.domain().basis() )
+
+    def is_zero(self):
+        r"""
+        Determines if this morphism is a zero function or not.
+
+        EXAMPLES:
+
+        A zero morphism created from a function.  ::
+
+            sage: V = ZZ^5
+            sage: W = ZZ^3
+            sage: z = lambda x: zero_vector(ZZ, 3)
+            sage: phi = V.hom(z, W)
+            sage: phi.is_zero()
+            True
+
+        An image list that just barely makes a non-zero morphism.  ::
+
+            sage: V = ZZ^4
+            sage: W = ZZ^6
+            sage: z = zero_vector(ZZ, 6)
+            sage: images = [z, z, W.5, z]
+            sage: phi = V.hom(images, W)
+            sage: phi.is_zero()
+            False
+
+        TEST::
+
+            sage: V = QQ^10
+            sage: W = QQ^3
+            sage: H = Hom(V, W)
+            sage: rho = H.zero()
+            sage: rho.is_zero()
+            True
+
+        AUTHOR:
+
+        - Rob Beezer (2011-07-15)
+        """
+        # any nonzero entry in any matrix representation
+        #   disqualifies the morphism as having totally zero outputs
+        return self.matrix().is_zero()
+
+    def is_equal_function(self, other):
+        r"""
+        Determines if two morphisms are equal functions.
+
+        INPUT:
+
+        - ``other`` - a morphism to compare with ``self``
+
+        OUTPUT:
+
+        Returns ``True`` precisely when the two morphisms have
+        equal domains and codomains (as sets) and produce identical
+        output when given the same input.  Otherwise returns ``False``.
+
+        This is useful when ``self`` and ``other`` may have different
+        representations.
+
+        Sage's default comparison of matrix morphisms requires the
+        domains to have the same bases and the codomains to have the
+        same bases, and then compares the matrix representations.
+        This notion of equality is more permissive (it will
+        return ``True`` "more often"), but is more correct
+        mathematically.
+
+        EXAMPLES:
+
+        Three morphisms defined by combinations of different
+        bases for the domain and codomain and different functions.
+        Two are equal, the third is different from both of the others.  ::
+
+            sage: B = matrix(QQ, [[-3,  5, -4,  2],
+            ...                   [-1,  2, -1,  4],
+            ...                   [ 4, -6,  5, -1],
+            ...                   [-5,  7, -6,  1]])
+            sage: U = (QQ^4).subspace_with_basis(B.rows())
+            sage: C = matrix(QQ, [[-1, -6, -4],
+            ...                   [ 3, -5,  6],
+            ...                   [ 1,  2,  3]])
+            sage: V = (QQ^3).subspace_with_basis(C.rows())
+            sage: H = Hom(U, V)
+
+            sage: D = matrix(QQ, [[-7, -2, -5,  2],
+            ...                   [-5,  1, -4, -8],
+            ...                   [ 1, -1,  1,  4],
+            ...                   [-4, -1, -3,   1]])
+            sage: X = (QQ^4).subspace_with_basis(D.rows())
+            sage: E = matrix(QQ, [[ 4, -1,  4],
+            ...                   [ 5, -4, -5],
+            ...                   [-1,  0, -2]])
+            sage: Y = (QQ^3).subspace_with_basis(E.rows())
+            sage: K = Hom(X, Y)
+
+            sage: f = lambda x: vector(QQ, [x[0]+x[1], 2*x[1]-4*x[2], 5*x[3]])
+            sage: g = lambda x: vector(QQ, [x[0]-x[2], 2*x[1]-4*x[2], 5*x[3]])
+
+            sage: rho = H(f)
+            sage: phi = K(f)
+            sage: zeta = H(g)
+
+            sage: rho.is_equal_function(phi)
+            True
+            sage: phi.is_equal_function(rho)
+            True
+            sage: zeta.is_equal_function(rho)
+            False
+            sage: phi.is_equal_function(zeta)
+            False
+
+        TEST::
+
+            sage: H = Hom(ZZ^2, ZZ^2)
+            sage: phi = H(matrix(ZZ, 2, range(4)))
+            sage: phi.is_equal_function('junk')
+            Traceback (most recent call last):
+            ...
+            TypeError: can only compare to a matrix morphism, not junk
+
+        AUTHOR:
+
+        - Rob Beezer (2011-07-15)
+        """
+        if not is_MatrixMorphism(other):
+            msg = 'can only compare to a matrix morphism, not {0}'
+            raise TypeError(msg.format(other))
+        if self.domain() != other.domain():
+            return False
+        if self.codomain() != other.codomain():
+            return False
+        # check agreement on any basis of the domain
+        return all( self(u) == other(u) for u in self.domain().basis() )
 
     def restrict_domain(self, sub):
         """
@@ -742,15 +1144,6 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
         H = sage.categories.homset.End(sub, self.domain().category())
         return H(A)
 
-    def trace(self):
-        """
-        EXAMPLES::
-
-            sage: V = ZZ^2; phi = V.hom([V.0+V.1, 2*V.1])
-            sage: phi.trace()
-            3
-        """
-        return self.matrix().trace()
 
 class MatrixMorphism(MatrixMorphism_abstract):
     """

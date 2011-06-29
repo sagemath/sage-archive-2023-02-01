@@ -24,6 +24,10 @@ http://users.tkk.fi/pat/cliquer.html
 
 == Changelog ==
 
+=== cliquer-1.2.p10 (Karl-Dieter Crisman, 28 June 2011) ===
+ * #11547: Make sure that libcliquer.so is copied as both
+   .dll and .so files on Cygwin
+
 === cliquer-1.2.p9 (Jeroen Demeyer, 4 May 2011) ===
  * #11227: Apply workaround also for versions 4.6.1 of gcc, not only
    version 4.6.0.  This is to support pre-release versions of

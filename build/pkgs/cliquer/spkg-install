@@ -221,6 +221,7 @@ if [ "$UNAME" = "Darwin" ]; then
     cp -f libcliquer.so "$SAGE_LOCAL/lib/libcliquer.so"
 elif [ "$UNAME" = "CYGWIN" ]; then
     cp -f libcliquer.so "$SAGE_LOCAL/lib/libcliquer.dll"
+    cp -f libcliquer.so "$SAGE_LOCAL/lib/libcliquer.so"
 else
     cp -f libcliquer.so "$SAGE_LOCAL/lib/"
 fi

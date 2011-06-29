@@ -1269,20 +1269,18 @@ class MatrixMorphism(MatrixMorphism_abstract):
         return self.codomain().is_submodule(self.image())
 
     def _repr_(self):
-        """
-        Return string representation of this morphism (this gets overloaded in the derived class).
+        r"""
+        Return string representation of this matrix morphism.
+
+        This will typically be overloaded in a derived class.
 
         EXAMPLES::
 
             sage: V = ZZ^2; phi = V.hom([3*V.0, 2*V.1])
-            sage: phi._repr_()
-            'Free module morphism defined by the matrix\n[3 0]\n[0 2]\nDomain: Ambient free module of rank 2 over the principal ideal domain ...\nCodomain: Ambient free module of rank 2 over the principal ideal domain ...'
             sage: sage.modules.matrix_morphism.MatrixMorphism._repr_(phi)
             'Morphism defined by the matrix\n[3 0]\n[0 2]'
+
+            sage: phi._repr_()
+            'Free module morphism defined by the matrix\n[3 0]\n[0 2]\nDomain: Ambient free module of rank 2 over the principal ideal domain Integer Ring\nCodomain: Ambient free module of rank 2 over the principal ideal domain Integer Ring'
         """
-        if max(self.matrix().nrows(),self.matrix().ncols()) > 5:
-            mat = "(not printing %s x %s matrix)"%(self.matrix().nrows(),
-                                                   self.matrix().ncols())
-        else:
-            mat = str(self.matrix())
-        return "Morphism defined by the matrix\n%s"%mat
+        return "Morphism defined by the matrix\n{0}".format(self.matrix())

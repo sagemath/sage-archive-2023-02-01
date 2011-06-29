@@ -142,7 +142,7 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
         return matrix_morphism.MatrixMorphism.__call__(self, x)
 
     def _repr_(self):
-        """
+        r"""
         Return string representation of this morphism of free modules.
 
         EXAMPLES::
@@ -151,13 +151,36 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
             sage: phi = V.hom(matrix(QQ,3,[1..9]))
             sage: phi._repr_()
             'Free module morphism defined by the matrix\n[1 2 3]\n[4 5 6]\n[7 8 9]\nDomain: Vector space of dimension 3 over Rational Field\nCodomain: Vector space of dimension 3 over Rational Field'
+
+            sage: V = ZZ^6
+            sage: W = ZZ^4
+            sage: m = matrix(QQ, [[1, 0, 0 ,0], [0]*4, [0]*4, [0]*4, [0]*4, [0]*4])
+            sage: phi = V.hom(m, W)
+            sage: rho = phi.restrict_codomain(W.span([W.0]))
+            sage: rho
+            Free module morphism defined by the matrix
+            [1]
+            [0]
+            [0]
+            [0]
+            [0]
+            [0]
+            Domain: Ambient free module of rank 6 over the principal ideal domain Integer Ring
+            Codomain: Free module of degree 4 and rank 1 over Integer Ring
+            Echelon basis matrix:
+            [1 0 0 0]
+
+            sage: V = QQ^40
+            sage: m = matrix(QQ, 40, 40, 1600)
+            sage: phi = V.hom(m, V)
+            sage: phi
+            Free module morphism defined by the matrix
+            40 x 40 dense matrix over Rational Field
+            Domain: Vector space of dimension 40 over Rational Field
+            Codomain: Vector space of dimension 40 over Rational Field
         """
-        if max(self.matrix().nrows(),self.matrix().ncols()) > 5:
-            mat = "(not printing %s x %s matrix)"%(self.matrix().nrows(), self.matrix().ncols())
-        else:
-            mat = str(self.matrix())
-        return "Free module morphism defined by the matrix\n%s\nDomain: %s\nCodomain: %s"%(\
-            mat, misc.strunc(self.domain()), misc.strunc(self.codomain()))
+        r = "Free module morphism defined by the matrix\n{0}\nDomain: {1}\nCodomain: {2}"
+        return r.format(self.matrix(), self.domain(), self.codomain())
 
     def change_ring(self, R):
         """

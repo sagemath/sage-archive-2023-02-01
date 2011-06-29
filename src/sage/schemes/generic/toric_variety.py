@@ -236,7 +236,7 @@ import sys
 from sage.geometry.cone import Cone, is_Cone
 from sage.geometry.fan import Fan
 from sage.matrix.all import matrix
-from sage.misc.all import latex, prod
+from sage.misc.all import latex, prod, uniq
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.modules.free_module_element import vector
 from sage.rings.all import PolynomialRing, ZZ, QQ, is_Field, is_FractionField
@@ -2373,6 +2373,90 @@ class ToricVariety_field(AmbientSpace):
         patch_cover = AffineSpace(R)
         patch = patch_cover.subscheme(I)
         return patch
+
+
+    def _orbit_closure_projection(self, cone, x):
+        r"""
+        The projection of points or cones onto the orbit closure of
+        ``cone``.
+
+        See :meth:`orbit_closure` for more details.
+
+        INPUT:
+
+        - ``x`` -- a lattice point or cone of :meth:`fan`.
+
+        OUTPUT:
+
+        The ``cone`` (denoted as `\sigma` in the following) defines
+        the orbit closure `V(\sigma)=\overline{O(\sigma)}`, which is
+        again a toric variety. This method maps lattice points and
+        cones to the corresponding lattice points and cones of
+        `O(\sigma)`.
+
+        - If ``x`` is a point of the ambient lattice of the fan, the
+          projected points is returned.
+
+        - If ``x`` is a cone, the corresponding cone in the orbit
+          closure `V(\sigma)` is returned. If the cone is not in the
+          star of `\sigma`, a ``IndexError`` is raised.
+
+        EXAMPLES::
+
+            sage: P2 = toric_varieties.P2()
+            sage: H = P2.fan(1)[0]
+            sage: [ P2._orbit_closure_projection(H, p) for p in P2.fan().rays() ]
+            [(0), (1), (-1)]
+            sage: P2._orbit_closure_projection(H, P2.fan(2)[0])
+            1-d cone in 1-d lattice N
+        """
+        cone = self.fan().embed(cone)
+        quot = cone.sublattice_quotient()
+        if x in cone.lattice():
+            return vector(quot(x))
+
+        assert is_Cone(x)
+        rays = [ vector(quot(r)) for r in x.rays() ]
+        return Cone(rays)
+
+
+    def orbit_closure(self, cone):
+        r"""
+        Returns the orbit closure of ``cone``.
+
+        Note that the cones of the fan are in one-to-one
+        correspondence with the torus orbits of the toric
+        variety. Each orbit is isomorphic to `(\CC^\times)^d` for some
+        `d`. Just like the toric variety itself, these orbits are
+        (partially) compactified by lower-dimensional orbits. In
+        particular, one can define the closure (in the ambient toric
+        variety) of a torus orbit, which is again a toric variety.
+
+        See Proposition 3.2.7 of [CLS]_ for more details.
+
+        INPUT:
+
+        - ``cone`` -- a cone of the fan.
+
+        OUTPUT:
+
+        The torus orbit closure associated to ``cone`` as a toric
+        variety.
+
+        EXAMPLES::
+
+            sage: P1xP1 = toric_varieties.P1xP1()
+            sage: H = P1xP1.fan(1)[0]
+            sage: P1xP1.orbit_closure(H)
+            1-d toric variety covered by 2 affine patches
+        """
+        cone = self.fan().embed(cone)
+        cones = []
+        for star_cone in cone.star_generators():
+            cones.append( self._orbit_closure_projection(cone, star_cone) )
+        from sage.geometry.fan import discard_faces
+        return ToricVariety(Fan(discard_faces(cones), check=False))
+
 
 
 

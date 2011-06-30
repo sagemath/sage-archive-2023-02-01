@@ -21,6 +21,7 @@ Miscellaneous
    sage/misc/explain_pickle
    sage/misc/getusage
    sage/misc/sage_timeit
+   sage/misc/sage_timeit_class
    sage/misc/mrange
    sage/misc/dist
    sage/misc/hg

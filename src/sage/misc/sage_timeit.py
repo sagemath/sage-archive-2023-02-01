@@ -39,7 +39,7 @@ class SageTimeitResult():
         sage: SageTimeitResult( (3, 5, int(8), pi, 'ms') )
         3 loops, best of 5: 3.1415927 ms per loop
 
-    blah::
+    ::
 
         sage: units = ["s", "ms", "\xc2\xb5s", "ns"]
         sage: scaling = [1, 1e3, 1e6, 1e9]
@@ -96,7 +96,7 @@ def sage_timeit(stmt, globals_dict=None, preparse=None, number=0, repeat=3, prec
 
     - ``stmt`` -- a text string.
 
-    - ``globals_dict`` -- a dictionary or ``None`` (default). evaluate
+    - ``globals_dict`` -- a dictionary or ``None`` (default). Evaluate
       ``stmt`` in the context of the globals dictionary. If not set,
       the current ``globals()`` dictionary is used.
 

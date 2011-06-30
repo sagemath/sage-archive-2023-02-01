@@ -1,16 +1,22 @@
+"""
+The ``timeit`` command.
+
+This uses the function :func:`~sage.misc.sage_timeit.sage_timeit`.
+"""
+
 # This is here in Cython so we can get the interpreter globals
 
 import sage_timeit
 
 class SageTimeit:
-    """
+    r"""
     Time execution of a command or block of commands.  Displays the
     best WALL TIME for execution of the given code.  This is based on
     the Python timeit module, which avoids a number of common traps
     for measuring execution times.  It is also based on IPython's
     %timeout command.
 
-    TYPICAL INPUT FORMAT:
+    TYPICAL INPUT FORMAT::
 
         timeit(statement, preparse=None, number=0, repeat=3, precision=3)
 
@@ -53,18 +59,16 @@ class SageTimeit:
           ``preparse``, ``number``, ``repeat``, ``precision``. See
           :func:`~sage.misc.sage_timeit.sage_timeit` for details.
 
-        OUTPUT:
+        OUTPUT: string -- timing information as a string
 
-            string -- timing information as a string
-
-        EXAMPLES:
+        EXAMPLES::
 
             sage: timeit.eval("2+2")                     # random output
             '625 loops, best of 3: 1.47 us per loop'
 
         We emphasize that timeit times WALL TIME.  This is good in the context of
         Sage where commands often call out to other subprocesses that don't appear
-        in CPU time.
+        in CPU time. ::
 
             sage: timeit('sleep(0.5)', number=3)
             3 loops, best of 3: ... ms per loop
@@ -97,7 +101,7 @@ class SageTimeit:
         OUTPUT:
 
         This method prints the timing information and does not return
-        anything. Except if the option ``seconds=True`` was passed, in
+        anything, except if the option ``seconds=True`` was passed, in
         which case the wall time in seconds is returned.
 
         EXAMPLES::

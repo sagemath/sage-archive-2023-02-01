@@ -20,6 +20,7 @@ Miscellaneous
    sage/misc/package
    sage/misc/explain_pickle
    sage/misc/getusage
+   sage/misc/sage_timeit
    sage/misc/mrange
    sage/misc/dist
    sage/misc/hg
@@ -45,3 +46,4 @@ Miscellaneous
    sage/misc/classcall_metaclass
    sage/misc/sage_unittest
    sage/misc/randstate
+

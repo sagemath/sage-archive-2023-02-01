@@ -24,9 +24,18 @@ sympy mailinglist: http://groups.google.com/group/sympy
 
 == Special Update/Build Instructions ==
 
- * None
+ * A simple script can be used to ease the updating of the SPKG. See the README.
 
 == Changelog ==
+
+=== sympy-0.7.0 (Francois Bissey, July 1st, 2011) ===
+ * trac 11560: update to new upstream release
+ * clean old obsolete script.
+ * add a patch to deal with sage's Negative infinity from upstream, see:
+https://github.com/asmeurer/sympy/commit/f2760590ce48a22f9ef41eddcadad84987d972c0
+ * mention the update instruction of the README in this file
+ * update spkg-install to clean old sympy version in all python 2.x install not just python2.5,
+ when sage is currently using 2.6
 
 === sympy-0.6.4 (Ondrej Certik, April 5th, 2008) ===
  * new upstream release

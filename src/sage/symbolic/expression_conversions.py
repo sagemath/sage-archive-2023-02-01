@@ -557,7 +557,7 @@ class SympyConverter(Converter):
         (x, y)
         sage: f = exp(x^2) - arcsin(pi+x)/y
         sage: f._sympy_()
-        -asin(pi + x)/y + exp(x**2)
+        exp(x**2) - asin(x + pi)/y
         sage: _._sage_()
         -arcsin(pi + x)/y + e^(x^2)
 
@@ -589,7 +589,7 @@ class SympyConverter(Converter):
             sage: s = SympyConverter()
             sage: f = x + 2
             sage: s.arithmetic(f, f.operator())
-            2 + x
+            x + 2
         """
         import sympy
         operator = arithmetic_operators[operator]

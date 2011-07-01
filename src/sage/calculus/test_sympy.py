@@ -152,7 +152,7 @@ Mixing SymPy with Sage::
     sage: type(e)
     <class 'sympy.core.add.Add'>
     sage: e
-    cos(x) + sin(y)
+    sin(y) + cos(x)
     sage: e=e._sage_()
     sage: type(e)
     <type 'sage.symbolic.expression.Expression'>

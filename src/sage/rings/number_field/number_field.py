@@ -1032,6 +1032,70 @@ class NumberField_generic(number_field_base.NumberField):
         embedding = number_field_morphisms.create_embedding_from_approx(self, embedding)
         self._populate_coercion_lists_(embedding=embedding)
 
+    @cached_method
+    def _magma_polynomial_(self, magma):
+        """
+        Return Magma version of the defining polynomial of this number field.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]                                                   # optional - magma
+            sage: K.<a> = NumberField(x^3+2)                                     # optional - magma
+            sage: K._magma_polynomial_(magma)                                    # optional - magma
+            x^3 + 2
+            sage: magma2=Magma()                                                 # optional - magma
+            sage: K._magma_polynomial_(magma2)                                   # optional - magma
+            x^3 + 2
+            sage: K._magma_polynomial_(magma) is K._magma_polynomial_(magma)     # optional - magma
+            True
+            sage: K._magma_polynomial_(magma) is K._magma_polynomial_(magma2)    # optional - magma
+            False
+        """
+        # NB f must not be garbage-collected, otherwise the
+        # return value of this function is invalid
+        return magma(self.defining_polynomial())
+
+    def _magma_init_(self, magma):
+        """
+        Return a Magma version of this number field.
+
+        EXAMPLES::
+
+            sage: R.<t> = QQ[]
+            sage: K.<a> = NumberField(t^2 + 1)
+            sage: K._magma_init_(magma)                            # optional - magma
+            'SageCreateWithNames(NumberField(_sage_[...]),["a"])'
+            sage: L = magma(K)    # optional - magma
+            sage: L               # optional - magma
+            Number Field with defining polynomial t^2 + 1 over the Rational Field
+            sage: L.sage()        # optional - magma
+            Number Field in a with defining polynomial t^2 + 1
+            sage: L.sage() is K   # optional - magma
+            True
+            sage: L.1             # optional - magma
+            a
+            sage: L.1^2           # optional - magma
+            -1
+            sage: m = magma(a+1/2); m    # optional - magma
+            1/2*(2*a + 1)
+            sage: m.sage()        # optional - magma
+            a + 1/2
+
+        A relative number field::
+
+            sage: S.<u> = K[]
+            sage: M.<b> = NumberField(u^3+u+a)
+            sage: L = magma(M)    # optional - magma
+            sage: L               # optional - magma
+            Number Field with defining polynomial u^3 + u + a over its ground field
+            sage: L.sage() is M   # optional - magma
+            True
+        """
+        # Get magma version of defining polynomial of this number field
+        f = self._magma_polynomial_(magma)
+        s = 'NumberField(%s)'%f.name()
+        return magma._with_names(s, self.variable_names())
+
     def construction(self):
         r"""
         Construction of self
@@ -5205,53 +5269,6 @@ class NumberField_absolute(NumberField_generic):
                     # the forgetful coercion. But this yields to non-commuting
                     # coercions, as was pointed out at ticket #8800
                     return None
-
-    @cached_method
-    def _magma_polynomial_(self, magma):
-        """
-        Return Magma version of the defining polynomial of this number field.
-
-        EXAMPLES::
-
-            sage: R.<x> = QQ[]                                                   # optional - magma
-            sage: K.<a> = NumberField(x^3+2)                                     # optional - magma
-            sage: K._magma_polynomial_(magma)                                    # optional - magma
-            x^3 + 2
-            sage: magma2=Magma()                                                 # optional - magma
-            sage: K._magma_polynomial_(magma2)                                   # optional - magma
-            x^3 + 2
-            sage: K._magma_polynomial_(magma) is K._magma_polynomial_(magma)     # optional - magma
-            True
-            sage: K._magma_polynomial_(magma) is K._magma_polynomial_(magma2)    # optional - magma
-            False
-        """
-        # NB f must not be garbage-collected, otherwise the
-        # return value of this function is invalid
-        return magma(self.defining_polynomial())
-
-
-    def _magma_init_(self, magma):
-        """
-        Return Magma version of this number field.
-
-        EXAMPLES::
-
-            sage: R.<t> = QQ[]
-            sage: K.<a> = NumberField(t^2 + 1)
-            sage: K._magma_init_(magma)                            # optional - magma
-            'SageCreateWithNames(NumberField(_sage_[...]),["a"])'
-            sage: L = magma(K)    # optional - magma
-            sage: L               # optional - magma
-            Number Field with defining polynomial t^2 + 1 over the Rational Field
-            sage: L.1             # optional - magma
-            a
-            sage: L.1^2           # optional - magma
-            -1
-        """
-        # Get magma version of defining polynomial of this number field
-        f = self._magma_polynomial_(magma)
-        s = 'NumberField(%s)'%f.name()
-        return magma._with_names(s, self.variable_names())
 
     def base_field(self):
         """

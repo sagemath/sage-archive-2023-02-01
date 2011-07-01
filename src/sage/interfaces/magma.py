@@ -1867,6 +1867,8 @@ class MagmaElement(ExpectElement):
         Return Sage version of this object. Use self.sage() to get the Sage
         version.
 
+        Edit extcode/magma/sage.m to add functionality.
+
         EXAMPLES: Enumerated Sets::
 
             sage: a = magma('{1,2/3,-5/9}')       # optional - magma
@@ -1915,6 +1917,51 @@ class MagmaElement(ExpectElement):
             sage: m.sage()                           # optional - magma
             [1 2 3]
             [4 5 6]
+
+        Number fields and their elements::
+
+            sage: L.<alpha> = NumberField(x^3+2*x+2)
+            sage: K = magma(L)                       # optional - magma
+            sage: K.sage()                           # optional - magma
+            Number Field in alpha with defining polynomial x^3 + 2*x + 2
+            sage: K.sage() is L                      # optional - magma
+            True
+            sage: magma(alpha).sage()                # optional - magma
+            alpha
+
+        Relative number field elements can be converted from Magma
+        to Sage, but the other direction has not yet been implemented.::
+
+            sage: P.<y> = L[]
+            sage: N.<b> = NumberField(y^2-alpha)
+            sage: M = magma(N)                   # optional - magma
+            sage: M.1.sage()                     # optional - magma
+            b
+            sage: _^2                            # optional - magma
+            alpha
+            sage: magma(b)                       # optional - magma
+            Traceback (most recent call last):
+            ...
+            TypeError: Error evaluating Magma code.
+            ...
+
+        Sage does not have absolute number fields defined by
+        two polynomials, like Magma does. They are converted
+        to relative number fields. Conversion of their elements
+        has not yet been implemented.::
+
+            sage: magma.eval('P<x> := PolynomialRing(Rationals());') # optional - magma
+            ''
+            sage: K = magma('NumberField([x^2-2,x^2-3]:Abs);')        # optional - magma
+            sage: L = K.sage(); L                                     # optional - magma
+            Number Field in K1 with defining polynomial x^2 - 2 over its base field
+            sage: L.base_field()                                      # optional - magma
+            Number Field in K2 with defining polynomial x^2 - 3
+            sage: K.GeneratorsSequence()[1].sage()                    # optional - magma
+            Traceback (most recent call last):
+            ...
+            NameError: name 'K' is not defined
+
         """
         z, preparse = self.Sage(nvals = 2)
         s = str(z)

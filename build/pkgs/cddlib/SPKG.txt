@@ -39,10 +39,20 @@ http://www.ifor.math.ethz.ch/staff/fukuda/
 == Special Update/Build Instructions ==
 From clean upstream sources:
  * remove directories doc, examples/*, src-mathlink/*, autom4te.cache
-
+ * Important - when recreating spkg, must make sure to first use hard links
+   See Trac 11245, where this caused it to fail on Cygwin:
+   Instructions from Dima Pasechnik, where of course foo = cddlib-vers
+   /* on a Unix, with good tar: */
+   $ tar xjf foo.spkg
+   $ tar chjf foo.spkg foo/
+   $ tar xjf foo.spkg
+   $ sage -spkg foo
 
 == Changelog ==
 
+=== cddlib-094f.p9 (Karl-Dieter Crisman, 1st July 2011) ===
+ * Changed to hard links so that the package would build on Cygwin
+   See Trac 11245
 
 === cddlib-094f.p8 (Volker Braun, 21th Sept 2010) ===
  * Add command line option to cdd_both_reps to optionally skip

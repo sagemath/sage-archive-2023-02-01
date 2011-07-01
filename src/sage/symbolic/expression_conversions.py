@@ -619,7 +619,7 @@ class SympyConverter(Converter):
             <class 'sympy.core.symbol.Symbol'>
         """
         import sympy
-        return sympy.symbols(repr(ex), each_char=False)
+        return sympy.symbols(repr(ex))
 
     def composition(self, ex, operator):
         """

@@ -1421,47 +1421,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         import sage.matrix.symplectic_basis
         return sage.matrix.symplectic_basis.symplectic_basis_over_ZZ(self)
 
-    def hermite_form(self, *args, **kwds):
-        r"""
-        Return the Hermite normal form of self.
-
-        This is a synonym for ``self.echelon_form(...)``. See
-        the documentation for ``self.echelon_form`` for more
-        details.
-
-        EXAMPLES::
-
-            sage: A = matrix(ZZ, 3, 5, [-1, -1, -2, 2, -2, -4, -19, -17, 1, 2, -3, 1, 1, -4, 1])
-            sage: E, U = A.hermite_form(transformation=True)
-            sage: E
-            [   1    0   52 -133  109]
-            [   0    1   19  -47   38]
-            [   0    0   69 -178  145]
-            sage: U
-            [-46   3  11]
-            [-16   1   4]
-            [-61   4  15]
-            sage: U*A
-            [   1    0   52 -133  109]
-            [   0    1   19  -47   38]
-            [   0    0   69 -178  145]
-            sage: A.hermite_form()
-            [   1    0   52 -133  109]
-            [   0    1   19  -47   38]
-            [   0    0   69 -178  145]
-
-        TESTS: This example illustrated trac 2398.
-
-        ::
-
-            sage: a = matrix([(0, 0, 3), (0, -2, 2), (0, 1, 2), (0, -2, 5)])
-            sage: a.hermite_form()
-            [0 1 2]
-            [0 0 3]
-            [0 0 0]
-            [0 0 0]
-        """
-        return self.echelon_form(*args, **kwds)
+    hermite_form = echelon_form
 
     def echelon_form(self, algorithm="default", proof=None, include_zero_rows=True,
                      transformation=False, D=None):
@@ -1471,16 +1431,15 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         INPUT:
 
+        - ``algorithm`` -- String. The algorithm to use. Valid options are:
 
-        - ``algorithm``
+          - ``'default'`` -- Let Sage pick an algorithm (default). Up
+            to 10 rows or columns: pari with flag 0; Up to 75 rows or
+            columns: pari with flag 1; Larger: use padic algorithm.
 
-          --``'default'`` - max 10 rows or columns: pari with flag 0
-                            max 75 rows or columns: pari with flag 1
-                            larger -- use padic algorithm
-
-          - ``'padic'`` - an asymptotically fast p-adic modular algorithm,
-                          If your matrix has large coefficients and is small,
-                          you may also want to try this.
+          - ``'padic'`` - an asymptotically fast p-adic modular
+            algorithm, If your matrix has large coefficients and is
+            small, you may also want to try this.
 
           - ``'pari'`` - use PARI with flag 1
 
@@ -1489,7 +1448,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
           - ``'pari4'`` - use PARI with flag 4 (use heuristic LLL)
 
           - ``'ntl'`` - use NTL (only works for square matrices of
-                         full rank!)
+            full rank!)
 
         -  ``proof`` - (default: True); if proof=False certain
            determinants are computed using a randomized hybrid p-adic
@@ -1507,17 +1466,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
            is 'ntl', then D must be a multiple of the determinant and this
            function will use that fact.
 
-
         OUTPUT:
 
-
-        -  ``matrix`` - the Hermite normal form (=echelon form
-           over ZZ) of self.
-
-
-        .. note::
-
-           The result is cached.
+        The Hermite normal form (=echelon form over `\ZZ`) of self.
 
         EXAMPLES::
 
@@ -1627,6 +1578,17 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [1 0 0]
             [0 1 0]
             [0 0 3]
+
+        TESTS:
+
+        This example illustrated trac 2398::
+
+            sage: a = matrix([(0, 0, 3), (0, -2, 2), (0, 1, 2), (0, -2, 5)])
+            sage: a.hermite_form()
+            [0 1 2]
+            [0 0 3]
+            [0 0 0]
+            [0 0 0]
         """
         if self._nrows == 0 or self._ncols == 0:
             self.cache('pivots', ())

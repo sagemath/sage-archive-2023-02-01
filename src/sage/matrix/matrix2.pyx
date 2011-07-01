@@ -5215,21 +5215,39 @@ cdef class Matrix(matrix1.Matrix):
             )
             sage: E == T*m
             True
+
+        TESTS:
+
+        Check that http://trac.sagemath.org/sage_trac/ticket/11558 is fixed::
+
+            sage: matrix(ZZ, [[1,2],[4,6]], sparse=False).echelon_form(transformation=True)
+            (
+            [1 0]  [-3  1]
+            [0 2], [ 4 -1]
+            )
+            sage: matrix(ZZ, [[1,2],[4,6]], sparse=True).echelon_form(transformation=True)
+            (
+            [1 0]  [-3  1]
+            [0 2], [ 4 -1]
+            )
         """
         self.check_mutability()
         cdef Matrix d, a
         cdef Py_ssize_t r, c
+        cdef bint transformation = kwds.has_key('transformation') and kwds['transformation']
         if self._base_ring == ZZ:
             if kwds.has_key('include_zero_rows') and not kwds['include_zero_rows']:
                 raise ValueError, "cannot echelonize in place and delete zero rows"
-            d = self.dense_matrix().echelon_form(**kwds)
+            if transformation:
+                d, a = self.dense_matrix().echelon_form(**kwds)
+            else:
+                d = self.dense_matrix().echelon_form(**kwds)
             for c from 0 <= c < self.ncols():
                 for r from 0 <= r < self.nrows():
                     self.set_unsafe(r, c, d.get_unsafe(r,c))
             self.clear_cache()
             self.cache('pivots', d.pivots())
             self.cache('in_echelon_form', True)
-            return
         else:
             try:
                 a, d, p = self._echelon_form_PID()
@@ -5242,31 +5260,49 @@ cdef class Matrix(matrix1.Matrix):
             self.clear_cache()
             self.cache('pivots', tuple(p))
             self.cache('in_echelon_form', True)
-            if kwds.has_key('transformation') and kwds['transformation']:
-                return a
-            else:
-                return
+        if transformation:
+            return a
+        else:
+            return
 
     def echelonize(self, algorithm="default", cutoff=0, **kwds):
         r"""
-        Transform self into a matrix in echelon form over the same base
-        ring as self.
+        Transform ``self`` into a matrix in echelon form over the same
+        base ring as self.
+
+        .. note::
+
+            This row reduction does not use division if the
+            matrix is not over a field (e.g., if the matrix is over
+            the integers).  If you want to calculate the echelon form
+            using division, then use :meth:`rref`, which assumes that
+            the matrix entries are in a field (specifically, the field
+            of fractions of the base ring of the matrix).
 
         INPUT:
 
+        - ``algorithm`` -- string. Which algorithm to use. Choices are
 
-        -  ``algorithm`` - string, which algorithm to use
-           (default: 'default')
+          - ``'default'``: Let Sage choose an algorithm (default).
 
-        -  ``'default'`` - use a default algorithm, chosen by
-           Sage
+          - ``'classical'``: Gauss elimination.
 
-        -  ``'strassen'`` - use a Strassen divide and conquer
-           algorithm (if available)
+          - ``'strassen'``: use a Strassen divide and conquer
+            algorithm (if available)
 
-        -  ``cutoff`` - integer; only used if the Strassen
-           algorithm is selected.
+        - ``cutoff`` -- integer. Only used if the Strassen algorithm
+          is selected.
 
+        - ``transformation`` -- boolean. Whether to also return the
+          transformation matrix. Some matrix backends do not provide
+          this information, in which case this option is ignored.
+
+        OUTPUT:
+
+        The matrix ``self`` is put into echelon form. Nothing is
+        returned unless the keyword option ``transformation=True`` is
+        specified, in which case the transformation matrix is
+        returned.
 
         EXAMPLES::
 
@@ -5287,7 +5323,8 @@ cdef class Matrix(matrix1.Matrix):
             sage: a.echelonize()
             Traceback (most recent call last):
             ...
-            ValueError: matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).
+            ValueError: matrix is immutable; please change a copy instead
+            (i.e., use copy(M) to change a copy of M).
             sage: a.echelon_form()
             [ 1  0 -1]
             [ 0  1  2]
@@ -5339,6 +5376,13 @@ cdef class Matrix(matrix1.Matrix):
             [ 1  0  2]
             [ 0  1 -1]
             [ 0  0  0]
+
+        The transformation matrix is optionally returned::
+
+            sage: m_original = m
+            sage: transformation_matrix = m.echelonize(transformation=True)
+            sage: m == transformation_matrix * m_original
+            True
         """
         self.check_mutability()
 
@@ -5377,17 +5421,31 @@ cdef class Matrix(matrix1.Matrix):
 
         INPUT:
 
+        - ``algorithm`` -- string. Which algorithm to use. Choices are
 
-        -  ``matrix`` - an element A of a MatrixSpace
+          - ``'default'``: Let Sage choose an algorithm (default).
 
+          - ``'classical'``: Gauss elimination.
+
+          - ``'strassen'``: use a Strassen divide and conquer
+            algorithm (if available)
+
+        - ``cutoff`` -- integer. Only used if the Strassen algorithm is selected.
+
+        - ``transformation`` -- boolean. Whether to also return the
+          transformation matrix. Some matrix backends do not provide
+          this information, in which case this option is ignored.
 
         OUTPUT:
 
+        The reduced row echelon form of ``self``, as an immutable
+        matrix. Note that self is *not* changed by this command. Use
+        :meth:`echelonize` to change ``self`` in place.
 
-        -  ``matrix`` - The reduced row echelon form of A, as
-           an immutable matrix. Note that self is *not* changed by this
-           command. Use A.echelonize() to change A in place.
-
+        If the optional parameter ``transformation=True`` is
+        specified, the output consists of a pair `(E,T)` of matrices
+        where `E` is the echelon form of ``self`` and `T` is the
+        transformation matrix.
 
         EXAMPLES::
 
@@ -5400,14 +5458,33 @@ cdef class Matrix(matrix1.Matrix):
             sage: C.echelon_form()
             [ 1  0 18]
             [ 0  1  2]
+
+        The matrix library used for `\ZZ/p`-matrices does not return
+        the transformation matrix, so the ``transformation`` option is
+        ignored::
+
+            sage: C.echelon_form(transformation=True)
+            [ 1  0 18]
+            [ 0  1  2]
+
+            sage: D = matrix(ZZ, 2, 3, [1,2,3,4,5,6])
+            sage: D.echelon_form(transformation=True)
+            (
+            [1 2 3]  [ 1  0]
+            [0 3 6], [ 4 -1]
+            )
+            sage: E, T = D.echelon_form(transformation=True)
+            sage: T*D == E
+            True
         """
+        cdef bint transformation = (kwds.has_key('transformation') and kwds['transformation'])
         x = self.fetch('echelon_form')
         if x is not None:
-            if not (kwds.has_key('transformation') and kwds['transformation']):
+            if not transformation:
                 return x
             y = self.fetch('echelon_transformation')
             if y:
-                return x, y
+                return (x, y)
 
         E = self.__copy__()
         if algorithm == 'default':
@@ -5419,8 +5496,8 @@ cdef class Matrix(matrix1.Matrix):
         if v is not None:
             self.cache('echelon_transformation', v)
         self.cache('pivots', E.pivots())
-        if v is not None and (kwds.has_key('transformation') and kwds['transformation']):
-            return E, v
+        if transformation and v is not None:
+            return (E, v)
         else:
             return E
 

@@ -492,6 +492,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
         """
         return self.dense_matrix()._right_kernel_matrix(**kwds)
 
+    hermite_form = Matrix.echelon_form
 
     def elementary_divisors(self, algorithm='pari'):
         """

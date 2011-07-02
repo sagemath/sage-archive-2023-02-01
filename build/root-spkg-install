@@ -2,6 +2,14 @@
 
 # spkg-install file for sage root repo.
 
+create_hgrc() {
+# Create an appropriate hgrc file for the target
+cat > "$TARGET/.hg/hgrc" <<"HEREDOC"
+[diff]
+git = true
+HEREDOC
+}
+
 CUR=`pwd`
 
 TARGET="$SAGE_ROOT"
@@ -17,6 +25,7 @@ if [ $? -eq 0 ]; then  # valid repo
     status=$?
     if [ $status -eq 1 ]; then
         # No changes to pull
+        create_hgrc
         exit 0
     fi
     if [ $status -ne 0 ]; then
@@ -94,3 +103,5 @@ else
     fi
 
 fi
+
+create_hgrc

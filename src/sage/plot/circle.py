@@ -232,7 +232,7 @@ def circle(center, radius, **options):
     - ``edgecolor`` - default: 'black' (2D plotting only)
 
     - ``facecolor`` - default: 'red' (2D plotting only, useful only
-      if Fill=True)
+      if fill=True)
 
     - ``legend_label`` -- the label for this item in the legend
 

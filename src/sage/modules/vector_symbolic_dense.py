@@ -3,13 +3,11 @@ Vectors over the symbolic ring.
 
 Implements vectors over the symbolic ring.
 
+AUTHORS:
 
-AUTHOR:
+- Robert Bradshaw (2011-05-25): Added more element-wise simplification methods
 
-    -- Robert Bradshaw (2011-05-25): Added more element-wise simplification methods
-
-    -- Joris Vankerschaver (2011-05-15): Initial version
-
+- Joris Vankerschaver (2011-05-15): Initial version
 
 EXAMPLES::
 
@@ -21,8 +19,10 @@ EXAMPLES::
     sage: u.simplify_full()
     (1, log(6) + 2*log(y))
 
+TESTS:
+
 Check that the outcome of arithmetic with symbolic vectors is again
-a symbolic vector (#11549):
+a symbolic vector (#11549)::
 
     sage: v = vector(SR, [1, 2])
     sage: w = vector(SR, [sin(x), 0])
@@ -37,7 +37,7 @@ a symbolic vector (#11549):
     sage: type(5*w)
     <class 'sage.modules.vector_symbolic_dense.Vector_symbolic_dense'>
 
-TESTS::
+Test pickling/unpickling::
 
     sage: u = vector(SR, [sin(x^2)])
     sage: loads(dumps(u)) == u
@@ -49,14 +49,8 @@ TESTS::
 #       Copyright (C) 2011 Joris Vankerschaver (jv@caltech.edu)
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 

@@ -723,7 +723,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         - ``kernel``    - a kernel, either a point in ``E``, a list of points
                           in ``E``, a univariate kernel polynomial or ``None``.
                           If initiating from a domain/codomain, this must be
-                          set to None.
+                          set to None.  Validity of input is *not* fully checked.
 
         - ``codomain``  - an elliptic curve (default:None).  If ``kernel`` is
                           None, then this must be the codomain of a separable
@@ -747,8 +747,12 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
                           rationals, then the codomain is set to be the unique
                           global minimum model.
 
-        - ``check`` (default: True) checks if the input is valid to define an
-                          isogeny
+        - ``check`` (default: True) does some partial checks that the
+                          input is valid (e.g., that the points
+                          defined by the kernel polynomial are
+                          torsion); however, invalid input can in some
+                          cases still pass, since that the points define
+                          a group is not checked.
 
         OUTPUT:
 
@@ -785,6 +789,19 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             ...
             ValueError: The polynomial does not define a finite subgroup of the elliptic curve.
 
+        An example in which we construct an invalid morphism, which
+        illustrates that the check for correctness of the input is not
+        sufficient. (See trac 11578.)::
+
+            sage: R.<x> = QQ[]
+            sage: K.<a> = NumberField(x^2-x-1)
+            sage: E = EllipticCurve(K, [-13392, -1080432])
+            sage: R.<x> = K[]
+            sage: phi = E.isogeny( (x-564)*(x - 396/5*a + 348/5) )
+            sage: phi.codomain().conductor().norm().factor()
+            5^2 * 11^2 * 3271 * 15806939 * 4169267639351
+            sage: phi.domain().conductor().norm().factor()
+            11^2
         """
         return EllipticCurveIsogeny(self, kernel, codomain, degree, model, check=check)
 

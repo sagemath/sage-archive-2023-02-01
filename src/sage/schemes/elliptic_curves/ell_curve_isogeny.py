@@ -2290,7 +2290,7 @@ class EllipticCurveIsogeny(Morphism):
 
 
     #
-    # This is the vast omega computation that works when characteristic is not 2
+    # This is the fast omega computation that works when characteristic is not 2
     #
     def __compute_omega_fast(self, E, psi, psi_pr, phi, phi_pr):
         r"""

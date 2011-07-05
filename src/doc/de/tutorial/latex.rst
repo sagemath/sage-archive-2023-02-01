@@ -71,7 +71,7 @@ Hier führen wir einige grundlegenden Funktionen von ``latex()`` vor. ::
     sage: latex(integrate(z^4, z))
     \frac{1}{5} \, z^{5}
     sage: latex('a string')
-    \texttt{a string}
+    \verb|a|\phantom{x}\verb|string|
     sage: latex(QQ)
     \Bold{Q}
     sage: latex(matrix(QQ, 2, 3, [[2,4,6],[-1,-1,-1]]))

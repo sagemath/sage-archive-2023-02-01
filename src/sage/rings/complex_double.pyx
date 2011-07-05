@@ -234,7 +234,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         z._complex = gsl_complex_rect(real, imag)
         return z
 
-    def __repr__(self):
+    def _repr_(self):
         """
         Print out this complex double field.
 
@@ -246,6 +246,21 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             Complex Double Field
         """
         return "Complex Double Field"
+
+    def _latex_(self):
+        r"""
+        Return a LaTeX representation of ``self``.
+
+        OUTPUT:
+
+        - a string.
+
+        TESTS::
+
+            sage: print CDF._latex_()
+            \Bold{C}
+        """
+        return r"\Bold{C}"
 
     def _cmp_(self, x):
         """

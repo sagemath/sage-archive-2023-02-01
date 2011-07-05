@@ -138,15 +138,10 @@ class HTML:
 
     def eval(self, s, globals=None, locals=None):
         r"""
-        EXAMPLES:
+        EXAMPLES::
+
             sage: html.eval('<hr>')
             <html><font color='black'><hr></font></html>
-            ''
-
-        We work around a limitation of jsmath (it can't typeset '\texttt')::
-
-            sage: html.eval('<sage>Primes</sage>')
-            <html><font color='black'><span class="math">\hbox{<class 'sage.sets.primes.Primes'>}</span></font></html>
             ''
         """
         if globals is None:
@@ -166,7 +161,7 @@ class HTML:
                  t += s
                  break
             t += s[:i] + '<span class="math">%s</span>'%\
-                     latex(sage_eval(s[6+i:j], locals=locals)).replace('\\texttt','\\hbox')
+                     latex(sage_eval(s[6+i:j], locals=locals))
             s = s[j+7:]
         print "<html><font color='black'>%s</font></html>"%t
         return ''
@@ -195,22 +190,22 @@ class HTML:
             <tr class ="row-a">
             <td><span class="math">0</span></td>
             <td><span class="math">0</span></td>
-            <td><span class="math">\mbox{\rm True}</span></td>
+            <td><span class="math">\mathrm{True}</span></td>
             </tr>
             <tr class ="row-b">
             <td><span class="math">0</span></td>
             <td><span class="math">1</span></td>
-            <td><span class="math">\mbox{\rm False}</span></td>
+            <td><span class="math">\mathrm{False}</span></td>
             </tr>
             <tr class ="row-a">
             <td><span class="math">1</span></td>
             <td><span class="math">0</span></td>
-            <td><span class="math">\mbox{\rm False}</span></td>
+            <td><span class="math">\mathrm{False}</span></td>
             </tr>
             <tr class ="row-b">
             <td><span class="math">1</span></td>
             <td><span class="math">1</span></td>
-            <td><span class="math">\mbox{\rm True}</span></td>
+            <td><span class="math">\mathrm{True}</span></td>
             </tr>
             </tbody>
             </table>
@@ -296,28 +291,20 @@ class HTML:
                     print "</tr>"
                 print "</tbody>\n</table>\n</div>\n</html>"
 
-    def _table_columns(self, row, header = False):
+    def _table_columns(self, row, header=False):
         r"""
         Print the items of a list as the columns of a HTML table.
 
-        TESTS:
+        TESTS::
+
             sage: html._table_columns(["a $x^2$",1, sin(x)])
             <td>a <span class="math">x^2</span></td>
             <td><span class="math">1</span></td>
             <td><span class="math">\sin\left(x\right)</span></td>
-            sage: html._table_columns("a", header = True)
+            sage: html._table_columns("a", header=True)
             <th>a</th>
-
-        We work around a limitation of jsmath (it can't typeset '\texttt')::
-
-            sage: html._table_columns([Primes])
-            <td><span class="math">\hbox{<class 'sage.sets.primes.Primes'>}</span></td>
         """
-        if header == False:
-            column_tag = "<td>%s</td>"
-        else:
-            column_tag = "<th>%s</th>"
-
+        column_tag = "<th>%s</th>" if header else "<td>%s</td>"
         from sage.plot.plot import Graphics
         import types
         if isinstance(row, types.GeneratorType):
@@ -332,7 +319,7 @@ class HTML:
                 print column_tag % math_parse(row[column])
             else:
                 print column_tag % ('<span class="math">'
-                                    + latex(row[column]).replace('\\texttt','\\hbox')
+                                    + latex(row[column])
                                     + '</span>')
 
 html = HTML()

@@ -1595,9 +1595,13 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
             2\left(0, 1, 2\right)
         """
         from sage.misc.latex import latex
-        import re
+
         s = latex(m)
-        s = re.sub("\\\\texttt{([^}]*)}", "\\1", s)
+        if s.find('\\verb') != -1:
+            import re
+            s = re.sub("\\\\verb(.)(.*?)\\1", "\\2", s)
+            s = s.replace("\\phantom{x}", " ")
+
         # dictionary with left-right pairs of "brackets".  put pairs
         # in here accept \\left and \\right as prefixes.
         bracket_d = {"{": "\\}", "[": "]", "(": ")", "\\{": "\\}",
@@ -2104,7 +2108,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                 sage: F.rename("F")
                 sage: G.rename("G")
                 sage: latex(tensor([F, F, G])) # indirect doctest
-                \texttt{F} \otimes \texttt{F} \otimes \texttt{G}
+                \verb|F| \otimes \verb|F| \otimes \verb|G|
                 sage: F._latex_ = lambda : "F"
                 sage: G._latex_ = lambda : "G"
                 sage: latex(tensor([F, F, G])) # indirect doctest

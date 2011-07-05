@@ -2,7 +2,8 @@
 LaTeX printing support
 
 In order to support latex formatting, an object should define a
-special method ``_latex_(self)`` that returns a string.
+special method ``_latex_(self)`` that returns a string, which will be typeset
+in a mathematical mode (the exact mode depends on circumstances).
 """
 
 #*****************************************************************************
@@ -25,33 +26,54 @@ special method ``_latex_(self)`` that returns a string.
 
 EMBEDDED_MODE = False
 
-COMMON_HEADER='\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\n\\usepackage{graphicx}\n\\pagestyle{empty}\n\\usepackage[utf8]{inputenc}\n\\usepackage[T1]{fontenc}\n'
+COMMON_HEADER = \
+r'''\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{graphicx}
+\pagestyle{empty}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+'''
 
-LATEX_HEADER='\\documentclass{article}\n' + COMMON_HEADER + '\\oddsidemargin 0.0in\n\\evensidemargin 0.0in\n\\textwidth 6.45in\n\\topmargin 0.0in\n\\headheight 0.0in\n\\headsep 0.0in\n\\textheight 9.0in\n'
+LATEX_HEADER = (
+r'''\documentclass{article}
+''' + COMMON_HEADER +
+r'''\oddsidemargin 0.0in
+\evensidemargin 0.0in
+\textwidth 6.45in
+\topmargin 0.0in
+\headheight 0.0in
+\headsep 0.0in
+\textheight 9.0in
+''')
 
-SLIDE_HEADER='\\documentclass[a0,8pt]{beamer}\n' + COMMON_HEADER + '\\textwidth=1.1\\textwidth\n\\textheight=2\\textheight\n'
+SLIDE_HEADER = (
+r'''\documentclass[a0,8pt]{beamer}
+''' + COMMON_HEADER +
+r'''\textwidth=1.1\textwidth
+\textheight=2\textheight
+''')
+
 
 import shutil, re
 import os.path
 import random
 import subprocess
+import types
 
 from misc import tmp_dir, graphics_filename
 import sage_eval
 from sage.misc.misc import SAGE_DOC
 from sage.misc.sage_ostools import have_program
-from sage.misc.cachefunc import cached_method
+from sage.misc.cachefunc import cached_function, cached_method
 
-_have_latex = None
+@cached_function
 def have_latex():
     """
-    Return True if this computer has the program latex.
+    Return ``True`` if this computer has the program ``latex``.
 
-    The first time it is run, this function caches its result in the
-    variable ``_have_latex``, and any subsequent time, it just
-    checks the value of the variable.
-
-    If this computer doesn't have latex installed, you may obtain it
+    If this computer doesn't have LaTeX installed, you may obtain it
     from http://ctan.org/.
 
     EXAMPLES::
@@ -59,24 +81,14 @@ def have_latex():
         sage: from sage.misc.latex import have_latex
         sage: have_latex() # random
         True
-        sage: sage.misc.latex._have_latex is None
-        False
-        sage: sage.misc.latex._have_latex == have_latex()
-        True
     """
-    global _have_latex
-    if _have_latex is None:
-        _have_latex = have_program('latex')
-    return _have_latex
+    return have_program('latex')
 
-_have_pdflatex = None
+
+@cached_function
 def have_pdflatex():
     """
-    Return True if this computer has the program pdflatex.
-
-    The first time it is run, this function caches its result in the
-    variable ``_have_pdflatex``, and any subsequent time, it just
-    checks the value of the variable.
+    Return ``True`` if this computer has the program ``pdflatex``.
 
     If this computer doesn't have pdflatex installed, you may obtain it
     from http://ctan.org/.
@@ -86,24 +98,14 @@ def have_pdflatex():
         sage: from sage.misc.latex import have_pdflatex
         sage: have_pdflatex() # random
         True
-        sage: sage.misc.latex._have_pdflatex is None
-        False
-        sage: sage.misc.latex._have_pdflatex == have_pdflatex()
-        True
     """
-    global _have_pdflatex
-    if _have_pdflatex is None:
-        _have_pdflatex = have_program('pdflatex')
-    return _have_pdflatex
+    return have_program('pdflatex')
 
-_have_xelatex = None
+
+@cached_function
 def have_xelatex():
     """
-    Return True if this computer has the program xelatex.
-
-    The first time it is run, this function caches its result in the
-    variable ``_have_xelatex``, and any subsequent time, it just
-    checks the value of the variable.
+    Return ``True`` if this computer has the program ``xelatex``.
 
     If this computer doesn't have xelatex installed, you may obtain it
     from http://ctan.org/.
@@ -113,24 +115,14 @@ def have_xelatex():
         sage: from sage.misc.latex import have_xelatex
         sage: have_xelatex() # random
         True
-        sage: sage.misc.latex._have_xelatex is None
-        False
-        sage: sage.misc.latex._have_xelatex == have_xelatex()
-        True
     """
-    global _have_xelatex
-    if _have_xelatex is None:
-        _have_xelatex = have_program('xelatex')
-    return _have_xelatex
+    return have_program('xelatex')
 
-_have_dvipng = None
+
+@cached_function
 def have_dvipng():
     """
-    Return True if this computer has the program dvipng.
-
-    The first time it is run, this function caches its result in the
-    variable ``_have_dvipng``, and any subsequent time, it just
-    checks the value of the variable.
+    Return ``True`` if this computer has the program ``dvipng``.
 
     If this computer doesn't have dvipng installed, you may obtain it
     from http://sourceforge.net/projects/dvipng/
@@ -140,24 +132,14 @@ def have_dvipng():
         sage: from sage.misc.latex import have_dvipng
         sage: have_dvipng() # random
         True
-        sage: sage.misc.latex._have_dvipng is None
-        False
-        sage: sage.misc.latex._have_dvipng == have_dvipng()
-        True
     """
-    global _have_dvipng
-    if _have_dvipng is None:
-        _have_dvipng = have_program('dvipng')
-    return _have_dvipng
+    return have_program('dvipng')
 
-_have_convert = None
+
+@cached_function
 def have_convert():
     """
-    Return True if this computer has the program convert.
-
-    The first time it is run, this function caches its result in the
-    variable ``_have_convert``, and any subsequent time, it just
-    checks the value of the variable.
+    Return ``True`` if this computer has the program ``convert``.
 
     If this computer doesn't have convert installed, you may obtain it
     (along with the rest of the ImageMagick suite) from
@@ -168,15 +150,9 @@ def have_convert():
         sage: from sage.misc.latex import have_convert
         sage: have_convert() # random
         True
-        sage: sage.misc.latex._have_convert is None
-        False
-        sage: sage.misc.latex._have_convert == have_convert()
-        True
     """
-    global _have_convert
-    if _have_convert is None:
-        _have_convert = have_program('convert')
-    return _have_convert
+    return have_program('convert')
+
 
 def list_function(x):
     r"""
@@ -204,6 +180,7 @@ def list_function(x):
     """
     return "\\left[" + ", ".join([latex(v) for v in x]) + "\\right]"
 
+
 def tuple_function(x):
     r"""
     Returns the LaTeX code for a tuple ``x``.
@@ -218,6 +195,7 @@ def tuple_function(x):
     """
     return "\\left(" + ", ".join([latex(v) for v in x]) + "\\right)"
 
+
 def bool_function(x):
     r"""
     Returns the LaTeX code for a boolean ``x``.
@@ -227,38 +205,55 @@ def bool_function(x):
     EXAMPLES::
 
         sage: from sage.misc.latex import bool_function
-        sage: bool_function(2==3)
-        '\\mbox{\\rm False}'
-        sage: bool_function(3==(2+1))
-        '\\mbox{\\rm True}'
+        sage: print bool_function(2==3)
+        \mathrm{False}
+        sage: print bool_function(3==(2+1))
+        \mathrm{True}
     """
-    if x:
-        s = "\\mbox{\\rm True}"
-    else:
-        s = "\\mbox{\\rm False}"
-    if EMBEDDED_MODE:
-        return s[5:]
-    return s
+    return r"\mathrm{%s}" % bool(x)
 
-def str_function(x, escape_underscores=False):
+
+def None_function(x):
     r"""
-    Returns the LaTeX code for a string ``x``.  If ``x`` contains only
-    digits, digits with a single decimal point, or either of these with
-    a minus sign in front, then return ``x`` itself.  Otherwise, enclose
-    ``x`` in "\texttt{}" and return that.
+    Returns the LaTeX code for ``None``.
 
-    If optional argument ``escape_underscores`` is True,
-    replace "_" with "\\_".
+    INPUT: ``x`` - ``None``.
+
+    EXAMPLES::
+
+        sage: from sage.misc.latex import None_function
+        sage: print None_function(None)
+        \mathrm{None}
+    """
+    assert x is None
+    return r"\mathrm{None}"
+
+
+def str_function(x):
+    r"""
+    Return a LaTeX representation of the string ``x``.
+
+    The main purpose of this function is to generate LaTeX representation for
+    classes that do not provide a customized method.
+
+    If ``x`` contains only digits with, possibly, a single decimal point and/or
+    a sign in front, it is considered to be its own representation. Otherwise
+    each line of ``x`` is wrapped in a ``\verb`` command and these lines are
+    assembled in a left-justified array. This gives to complicated strings the
+    closest look to their "terminal representation".
+
+    .. warning:: Such wrappers **cannot** be used as arguments of LaTeX
+        commands or in command definitions. If this causes you any problems,
+        they probably can be solved by implementing a suitable ``_latex_``
+        method for an appropriate class.
 
     INPUT:
 
-    - ``x`` - a string
-
-    - ``escape_underscores`` - boolean (optional, default False)
+    - ``x`` -- a string.
 
     OUTPUT:
 
-    - a string
+    - a string.
 
     EXAMPLES::
 
@@ -269,21 +264,57 @@ def str_function(x, escape_underscores=False):
         '34.5'
         sage: str_function('-34.5')
         '-34.5'
-        sage: str_function('abc')
-        '\\texttt{abc}'
-        sage: str_function('hello_world')  # note that this produces invalid LaTeX
-        '\\texttt{hello_world}'
-        sage: str_function('hello_world', escape_underscores=True)  # valid LaTeX
-        '\\texttt{hello\\_world}'
+        sage: str_function('+34.5')
+        '+34.5'
+        sage: str_function('hello_world')
+        '\\verb|hello_world|'
     """
-    m = re.match('-?[0-9]*\.?[0-9]*$', x)
-    if m is None:  # x contains something other than digits (possibly with decimal point and minus sign)
-        if escape_underscores:
-            return '\\texttt{%s}'%(x.replace('_','\\_'))
-        else:
-            return '\\texttt{%s}'%x
-    else:
+    # Check if x is just a number with a possible sign and/or decimal point.
+    if re.match(r'(\+|-)?[0-9]*\.?[0-9]*$', x):
         return x
+    # Try to pick a delimiter.
+    for delimiter in """|"'`#%&,.:;?!@_~^+-/\=<>()[]{}0123456789E""":
+        if delimiter == "E":
+            # x is too complicated
+            return "\\begin{verbatim}\n%s\n\\end{verbatim}\n" % x
+        if delimiter not in x:
+            break
+    wrapper = "\\verb" + delimiter + "%s" + delimiter
+
+    # Strategy:
+    # 1) break x into lines;
+    # 2) wrap each line into \verb;
+    # 3) assemble lines into a left-justified array.
+
+    # There is a bug in verb-space treatment in jsMath...
+    spacer = "\\phantom{%s}"
+    # \phantom{\verb!%s!} is more accurate and it works, but it is not a valid
+    # LaTeX and may cause problems, so let's live with the above variant until
+    # spaces are properly treated in jsMath/MathJax and we don't need to worry.
+    lines = []
+    for line in x.split("\n"):
+        parts = []
+        nspaces = 0
+        for part in line.split(" "):
+            if part == "":
+                nspaces += 1
+                continue
+            if nspaces > 0:
+                parts.append(spacer % ("x" * nspaces))
+            nspaces = 1
+            parts.append(wrapper % part)
+        # There is also a bug with omitting empty lines in arrays...
+        line = "".join(parts)
+        if not line:
+            line = spacer % "x"
+        lines.append(line)
+    x = "\\\\\n".join(lines)
+    # If the bugs were fixed, the above block could be just
+    # x = "\\\\\n".join(wrapper % line for line in x.split("\n"))
+    if "\n" in x:
+        x = "\\begin{array}{l}\n%s\n\\end{array}" % x
+    return x
+
 
 def dict_function(x):
     r"""
@@ -295,13 +326,17 @@ def dict_function(x):
 
         sage: from sage.misc.latex import dict_function
         sage: x,y,z = var('x,y,z')
-        sage: dict_function({x/2: y^2})
-        '\\left\\{\\frac{1}{2} \\, x:\\: y^{2}\\right\\}'
+        sage: print dict_function({x/2: y^2})
+        \left\{\frac{1}{2} \, x : y^{2}\right\}
         sage: d = {(1,2,x^2): [sin(z^2), y/2]}
         sage: latex(d)
-        \left\{\left(1, 2, x^{2}\right):\: \left[\sin\left(z^{2}\right), \frac{1}{2} \, y\right]\right\}
+        \left\{\left(1, 2, x^{2}\right) :
+               \left[\sin\left(z^{2}\right), \frac{1}{2} \, y\right]\right\}
     """
-    return "\\left\\{" + ", ".join([latex(key) + ":\\: " + latex(value) for key,value in x.iteritems()]) + "\\right\\}"
+    return "".join([r"\left\{",
+                    ", ".join(r"%s : %s" % (latex(key), latex(value))
+                              for key, value in x.iteritems()),
+                    r"\right\}"])
 
 # One can add to the latex_table in order to install latexing
 # functionality for other types.  (Suggested by Robert Kerns of Enthought.)
@@ -332,8 +367,17 @@ def float_function(x):
     from sage.all import RDF
     return latex(RDF(x))
 
-latex_table = {list: list_function, tuple:tuple_function, bool:bool_function,
-               str: str_function, int:str, long:str, float:float_function, dict: dict_function}
+
+latex_table = {types.NoneType: None_function,
+               bool: bool_function,
+               dict: dict_function,
+               float: float_function,
+               int: str,
+               list: list_function,
+               long: str,
+               str: str_function,
+               tuple: tuple_function}
+
 
 class LatexExpr(str):
     """
@@ -442,13 +486,31 @@ def latex_extra_preamble():
     EXAMPLES::
 
         sage: from sage.misc.latex import latex_extra_preamble
-        sage: latex_extra_preamble()
-        '\n\\newcommand{\\ZZ}{\\Bold{Z}}\n\\newcommand{\\RR}{\\Bold{R}}\n\\newcommand{\\CC}{\\Bold{C}}\n\\newcommand{\\QQ}{\\Bold{Q}}\n\\newcommand{\\QQbar}{\\overline{\\QQ}}\n\\newcommand{\\GF}[1]{\\Bold{F}_{#1}}\n\\newcommand{\\Zp}[1]{\\ZZ_{#1}}\n\\newcommand{\\Qp}[1]{\\QQ_{#1}}\n\\newcommand{\\Zmod}[1]{\\ZZ/#1\\ZZ}\n\\newcommand{\\CDF}{\\texttt{Complex Double Field}}\n\\newcommand{\\CIF}{\\Bold{C}}\n\\newcommand{\\CLF}{\\Bold{C}}\n\\newcommand{\\RDF}{\\Bold{R}}\n\\newcommand{\\RIF}{\\Bold{I} \\Bold{R}}\n\\newcommand{\\RLF}{\\Bold{R}}\n\\newcommand{\\CFF}{\\Bold{CFF}}\n\\newcommand{\\Bold}[1]{\\mathbf{#1}}\n'
+        sage: print latex_extra_preamble()
+        <BLANKLINE>
+        \newcommand{\ZZ}{\Bold{Z}}
+        \newcommand{\RR}{\Bold{R}}
+        \newcommand{\CC}{\Bold{C}}
+        \newcommand{\QQ}{\Bold{Q}}
+        \newcommand{\QQbar}{\overline{\QQ}}
+        \newcommand{\GF}[1]{\Bold{F}_{#1}}
+        \newcommand{\Zp}[1]{\ZZ_{#1}}
+        \newcommand{\Qp}[1]{\QQ_{#1}}
+        \newcommand{\Zmod}[1]{\ZZ/#1\ZZ}
+        \newcommand{\CDF}{\Bold{C}}
+        \newcommand{\CIF}{\Bold{C}}
+        \newcommand{\CLF}{\Bold{C}}
+        \newcommand{\RDF}{\Bold{R}}
+        \newcommand{\RIF}{\Bold{I} \Bold{R}}
+        \newcommand{\RLF}{\Bold{R}}
+        \newcommand{\CFF}{\Bold{CFF}}
+        \newcommand{\Bold}[1]{\mathbf{#1}}
+        <BLANKLINE>
     """
     from sage.misc.latex_macros import sage_latex_macros
-    return (_Latex_prefs._option['preamble'] + "\n"
-                + "\n".join(sage_latex_macros) + "\n"
-                + _Latex_prefs._option['macros'])
+    return "\n".join([_Latex_prefs._option['preamble'],
+                     "\n".join(sage_latex_macros),
+                     _Latex_prefs._option['macros']])
 
 def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_in_background=False):
     """
@@ -716,22 +778,17 @@ class Latex:
             sage: latex(Integer(3))  # indirect doctest
             3
             sage: latex(1==0)
-            \mbox{\rm False}
+            \mathrm{False}
             sage: print latex([x,2])
             \left[x, 2\right]
         """
         if has_latex_attr(x):
             return LatexExpr(x._latex_())
-
         try:
             f = latex_table[type(x)]
             return LatexExpr(f(x))
-
         except KeyError:
-            if x is None:
-                return LatexExpr("\\mbox{\\mathrm{None}}")
-
-            return LatexExpr(str_function(str(x), escape_underscores=True))
+            return LatexExpr(str_function(str(x)))
 
     def _relation_symbols(self):
         """
@@ -1621,32 +1678,19 @@ class JSMath:
             sage: JSMath().eval(3, mode='inline')
             <html><span class="math">\newcommand{\Bold}[1]{\mathbf{#1}}3</span></html>
             sage: JSMath().eval(type(3), mode='inline')
-            <html><span class="math">\newcommand{\Bold}[1]{\mathbf{#1}}\hbox{ < type 'sage.rings.integer.Integer' > }</span></html>
+            <html>...\verb|&lt;type|\phantom{x}\verb|'sage.rings.integer.Integer'&gt;|</span></html>
         """
-        # try to get a latex representation of the object
+        # If x is already a LaTeX expression, i.e. the output of latex(blah),
+        # we will treat it as a string, so that we can see the code itself.
         if isinstance(x, LatexExpr):
-            # already a latex expression, so the output of
-            # latex(blah).  so treat as a string.
-            x = "\\hbox{%s}"%str(x.replace('\\texttt','\\hbox'))
-            # add spaces around < and > to help jsMath to parse them
-            x = x.replace('<', ' < ')
-            x = x.replace('>', ' > ')
-        elif has_latex_attr(x):
-            x = LatexExpr(x._latex_().replace('\\texttt','\\hbox'))
-        else:
-            try:
-                f = latex_table[type(x)]
-                x = LatexExpr(f(x).replace('\\texttt','\\hbox'))
-            except KeyError:
-                # otherwise just get the string representation
-                x = "\\hbox{%s}"%str(x)
-                # add spaces around < and > to help jsMath to parse them
-                x = x.replace('<', ' < ')
-                x = x.replace('>', ' > ')
-
-        # in JSMath:
-        # inline math: <span class="math">...</span>
-        # displaymath: <div class="math">...</div>
+            x = str(x)
+        # Now get a regular LaTeX representation of x...
+        x = latex(x)
+        # ... and make it suitable for jsMath, which has issues with < and >.
+        x = x.replace('<', '&lt;').replace('>', '&gt;')
+        # In jsMath:
+        #   inline math: <span class="math">...</span>
+        #   displaymath: <div class="math">...</div>
         from sage.misc.latex_macros import sage_configurable_latex_macros
         if 'display' == mode:
             return JSMathExpr('<html><div class="math">'
@@ -2003,9 +2047,9 @@ def repr_lincomb(symbols, coeffs):
         sage: t = PolynomialRing(QQ, 't').0
         sage: from sage.misc.latex import repr_lincomb
         sage: repr_lincomb(['a', 's', ''], [-t, t - 2, t^12 + 2])
-        '-t\\texttt{a} + \\left(t - 2\\right)\\texttt{s} + \\left(t^{12} + 2\\right)'
+        '-t\\verb|a| + \\left(t - 2\\right)\\verb|s| + \\left(t^{12} + 2\\right)'
         sage: repr_lincomb(['a', 'b'], [1,1])
-        '\\texttt{a} + \\texttt{b}'
+        '\\verb|a| + \\verb|b|'
 
     Verify that a certain corner case works (see trac 5707 and 5766)::
 
@@ -2130,7 +2174,7 @@ def pretty_print_default(enable=True):
 
         sage: pretty_print_default(True)
         sage: sys.displayhook
-        <html><span class="math">...\hbox{ < function pretty_print at ... > }</span></html>
+        <html>...\verb|&lt;function|\phantom{x}\verb|pretty_print|...</html>
         sage: pretty_print_default(False)
         sage: sys.displayhook == sys.__displayhook__
         True

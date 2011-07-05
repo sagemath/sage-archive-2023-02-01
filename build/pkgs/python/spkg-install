@@ -5,10 +5,10 @@
 
 CUR=`pwd`
 
-if [ "$SAGE_LOCAL" = "" ]; then
-   echo "SAGE_LOCAL undefined ... exiting";
-   echo "Maybe run 'sage -sh'?"
-   exit 1
+if [ -z "$SAGE_LOCAL" ]; then
+    echo >&2 "SAGE_LOCAL undefined ... exiting"
+    echo >&2 "Maybe run 'sage -sh'?"
+    exit 1
 fi
 
 # PATCH
@@ -16,10 +16,12 @@ fi
 # When building Python 2.6 on Debian and derivatives with multiarch,
 # system library directories are not correctly setup.  This patch
 # fixes this, with no-op on other systems.
+# The fix requires 'dpkg-architecture' to be installed there though
+# (see below).
 echo "Patching src/setup.py for multiarch."
 patch -p0 < patches/setup.py.multiarch.patch
 if [ $? -ne 0 ]; then
-    echo "Error patching src/setup.py"
+    echo >&2 "Error patching src/setup.py"
     exit 1
 fi
 
@@ -36,9 +38,9 @@ if [ "x`uname`" = xSunOS ] ; then
    echo "http://trac.sagemath.org/sage_trac/ticket/7867"
    cp -r patches/autom4te.cache patches/configure patches/configure.in src
    if [ $? -ne 0 ]; then
-      echo "Failed to apply the Solaris patches needed for"
-      echo "http://bugs.python.org/issue1759169"
-      echo "http://trac.sagemath.org/sage_trac/ticket/7867"
+      echo >&2 "Failed to apply the Solaris patches needed for"
+      echo >&2 "http://bugs.python.org/issue1759169"
+      echo >&2 "http://trac.sagemath.org/sage_trac/ticket/7867"
       exit 1
    fi
    echo "Setting  HAVE_FD_TRANSFER=0 for Solaris to allow"
@@ -46,8 +48,8 @@ if [ "x`uname`" = xSunOS ] ; then
    echo "See: http://trac.sagemath.org/sage_trac/ticket/8440"
    cp patches/setup.py src
    if [ $? -ne 0 ]; then
-      echo "Failed to apply the Solaris patch needed for"
-      echo "http://trac.sagemath.org/sage_trac/ticket/8440"
+      echo >&2 "Failed to apply the Solaris patch needed for"
+      echo >&2 "http://trac.sagemath.org/sage_trac/ticket/8440"
       exit 1
    fi
 fi
@@ -55,37 +57,37 @@ fi
 
 cp patches/locale.py src/Lib/locale.py
 if [ $? -ne 0 ]; then
-    echo "Error copying patched locale.py"
+    echo >&2 "Error copying patched locale.py"
     exit 1
 fi
 
 cp patches/Makefile.pre.in src/Makefile.pre.in
 if [ $? -ne 0 ]; then
-    echo "Error copying patched Makefile.pre.in"
+    echo >&2 "Error copying patched Makefile.pre.in"
     exit 1
 fi
 
 cp patches/sdist.py src/Lib/distutils/command/sdist.py
 if [ $? -ne 0 ]; then
-    echo "Error copying patched sdist.py"
+    echo >&2 "Error copying patched sdist.py"
     exit 1
 fi
 
 cp patches/socket.py src/Lib/socket.py
 if [ $? -ne 0 ]; then
-    echo "Error copying patched socket.py"
+    echo >&2 "Error copying patched socket.py"
     exit 1
 fi
 
 cp patches/pickle.py src/Lib/pickle.py
 if [ $? -ne 0 ]; then
-    echo "Error copying patched pickle.py"
+    echo >&2 "Error copying patched pickle.py"
     exit 1
 fi
 
 cp patches/cPickle.c src/Modules/cPickle.c
 if [ $? -ne 0 ]; then
-    echo "Error copying patched cPickle.c"
+    echo >&2 "Error copying patched cPickle.c"
     exit 1
 fi
 
@@ -99,7 +101,7 @@ fi
 
 cp patches/Modules.socketmodule.c src/Modules/socketmodule.c
 if [ $? -ne 0 ]; then
-    echo "Error copying patched socketmodule.c"
+    echo >&2 "Error copying patched socketmodule.c"
     exit 1
 fi
 
@@ -119,7 +121,7 @@ else
 fi
 
 if [ $? -ne 0 ]; then
-    echo "Error copying patched readline.c"
+    echo >&2 "Error copying patched readline.c"
     exit 1
 fi
 
@@ -185,27 +187,30 @@ build()
             --enable-unicode=ucs4
         fi
     else
-        ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL"  --enable-unicode=ucs4 CC="$CC $CFLAGS" CXX="$CXX $CXXFLAGS"
+        ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL"  --enable-unicode=ucs4 \
+            CC="$CC $CFLAGS" CXX="$CXX $CXXFLAGS"
     fi
 
 
     if [ $? -ne 0 ]; then
-        echo "Error configuring Python."
+        echo >&2 "Error configuring Python."
         exit 1
     fi
 
     $MAKE
     if [ $? -ne 0 ]; then
-        echo "Error building Python."
+        echo >&2 "Error building Python."
         exit 1
     fi
 
     # running 'make install' in parallel is a bad, bad idea
+    # FIXME: The proper way to disable parallel make is to use
+    #        $MAKE -j1 ... (We rely on GNU make anyway).
     MAKE=make; export MAKE
     # the "-i" is crucial, esp. in the case of a major upgrade
     make -i install
     if [ $? -ne 0 ]; then
-        echo "Error installing Python."
+        echo >&2 "Error installing Python."
         exit 1
     fi
 }
@@ -214,11 +219,11 @@ build()
 # informative error message. This is helps in determining why the
 # configuration, compilation or installation failed. So put this before the
 # build() function.
-set +e
+set +e # This is redundant here, but doesn't hurt to keep it... ;-)
 
 build
 
-cd $SAGE_LOCAL/lib
+cd "$SAGE_LOCAL/lib"
 
 # move the python directory if we're upgrading from a version
 # of sage with python 2.5
@@ -229,12 +234,13 @@ fi
 rm -rf python/python2.6 python/python2.5 python/python python python2.4 python2.5
 ln -s python2.6 python
 if [ $? -ne 0 ]; then
-    echo "Error creating symbolic link"
+    echo >&2 "Error creating symbolic link"
     exit 1
 fi
 
 # Sleeping for three seconds so that parallel 'make install' catches up
 # with the following test.
+# XXX We have disabled parallel 'make install' above, but never mind.
 echo "Sleeping for three seconds before testing python"
 sleep 3
 
@@ -242,12 +248,28 @@ sleep 3
 # All these modules are important and if any one
 # fails to build, Sage will not work.
 
+import_errors=false
 for module in math hashlib crypt ; do
    "$SAGE_LOCAL/bin/python" -c "import $module"
    if [ $? -eq 0 ] ; then
       echo "$module module imported OK"
    else
-      echo "$module module failed to import"
-      exit 1
+      echo >&2 "$module module failed to import"
+      import_errors=true
+      # exit 1 # not yet
    fi
 done
+
+if $import_errors; then
+    echo >&2 "Error: One or more modules failed to import."
+    # Check if we are on Debian or one of its derivatives:
+    if command -v dpkg && ! command -v dpkg-architecture >/dev/null; then
+        echo >&2 "You may have to install 'dpkg-architecture'"
+        echo >&2 "which is part of the Debian package 'dpkg-dev'."
+        echo >&2 "Try installing it by typing"
+        echo >&2 "    sudo apt-get install dpkg-dev"
+        echo >&2 "and rerun 'make'."
+    fi
+    exit 1
+fi
+

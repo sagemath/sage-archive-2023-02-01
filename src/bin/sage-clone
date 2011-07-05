@@ -4,7 +4,7 @@ import os, sys, shutil, subprocess
 
 SAGE_ROOT = os.environ['SAGE_ROOT']
 
-os.chdir(SAGE_ROOT + "/devel")
+os.chdir(os.path.join(SAGE_ROOT, "devel"))
 
 def usage():
     print "\n\n"
@@ -112,6 +112,15 @@ except:
 print cmd
 if os.system(cmd):
     print "Error building Sage"
+    sys.exit(1)
+
+HGRC = open(os.path.join(SAGE_ROOT, "devel", "sage", ".hg", "hgrc"),
+            mode='a')
+HGRC.write("""
+[diff]
+git = true
+""")
+HGRC.close()
 
 try:
     index = open(os.path.join(SAGE_ROOT, "devel/sage/doc/output/html/en/reference/index.html"))

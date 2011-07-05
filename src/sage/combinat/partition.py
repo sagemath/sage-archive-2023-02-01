@@ -197,6 +197,18 @@ the partition back up from them::
     ([2, 1], [4], [1, 1, 1])
     sage: Partition(core=[],quotient=([2, 1], [4], [1, 1, 1]))
     [11, 5, 5, 3, 2, 2, 2]
+
+We can compute the Frobenius coordinates (or beta numbers), and go back
+and forth::
+
+    sage: Partition([7,3,1]).frobenius_coordinates()
+    ([6, 1], [2, 0])
+    sage: Partition(frobenius_coordinates=([6,1],[2,0]))
+    [7, 3, 1]
+    sage: all(mu == Partition(frobenius_coordinates=mu.frobenius_coordinates()) for n in range(30)\
+    for mu in Partitions(n))
+    True
+
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -234,7 +246,7 @@ def Partition(mu=None, **keyword):
 
       * a list (the default)
       * using exponential notation
-      * by beta numbers (TODO)
+      * by Frobenius coordinates (also called beta numbers)
       * specifying the core and the quotient
       * specifying the core and the canonical quotient (TODO)
 
@@ -255,6 +267,8 @@ def Partition(mu=None, **keyword):
         [3, 2, 1, 1]
         sage: Partition(core=[2,1], quotient=[[2,1],[3],[1,1,1]])
         [11, 5, 5, 3, 2, 2, 2]
+        sage: Partition(frobenius_coordinates=([3,2],[4,0]))
+        [4, 4, 1, 1, 1]
         sage: [2,1] in Partitions()
         True
         sage: [2,1,0] in Partitions()
@@ -270,8 +284,8 @@ def Partition(mu=None, **keyword):
             return Partition_class(mu)
         else:
             raise ValueError, "%s is not a valid partition"%mu
-    elif 'beta_numbers' in keyword and len(keyword)==1:
-        raise NotImplementedError
+    elif 'frobenius_coordinates' in keyword and len(keyword)==1:
+        return from_frobenius_coordinates(keyword['frobenius_coordinates'])
     elif 'exp' in keyword and len(keyword)==1:
         return from_exp(keyword['exp'])
     elif 'core' in keyword and 'quotient' in keyword and len(keyword)==2:
@@ -283,6 +297,52 @@ def Partition(mu=None, **keyword):
         return from_core_and_quotient(*keyword['core_and_quotient'])
     else:
         raise ValueError, 'incorrect syntax for Partition()'
+
+def from_frobenius_coordinates(frobenius_coordinates):
+    """
+    Returns a partition from a couple of sequences of Frobenius coordinates
+
+    .. note::
+
+       This function is for internal use only;
+       use Partition(frobenius_coordinates=*) instead.
+
+    EXAMPLES::
+
+        sage: Partition(frobenius_coordinates=([],[]))
+        []
+        sage: Partition(frobenius_coordinates=([0],[0]))
+        [1]
+        sage: Partition(frobenius_coordinates=([1],[1]))
+        [2, 1]
+        sage: Partition(frobenius_coordinates=([6,3,2],[4,1,0]))
+        [7, 5, 5, 1, 1]
+    """
+    if len(frobenius_coordinates) <> 2:
+        raise ValueError, '%s is not a valid partition, two sequences of coordinates are needed'%str(frobenius_coordinates)
+    else:
+        a = frobenius_coordinates[0]
+        b = frobenius_coordinates[1]
+        if len(a) <> len(b):
+            raise ValueError, '%s is not a valid partition, the sequences of coordinates need to be the same length'%str(frobenius_coordinates)
+            # should add tests to see if a and b are sorted down, nonnegative and strictly decreasing
+    r = len(a)
+    if r == 0:
+        return Partition([])
+    tmp = [a[i]+i+1 for i in range(r)]
+    # should check that a is strictly decreasing
+    if a[-1] < 0:
+        raise ValueError, '%s is not a partition, no coordinate can be negative'%str(frobenius_coordinates)
+    if b[-1] >= 0:
+        tmp.extend([r]*b[r-1])
+    else:
+        raise ValueError, '%s is not a partition, no coordinate can be negative'%str(frobenius_coordinates)
+    for i in xrange(r-1,0,-1):
+        if b[i-1]-b[i] > 0:
+            tmp.extend([i]*(b[i-1]-b[i]-1))
+        else:
+            raise ValueError, '%s is not a partition, the coordinates need to be strictly decreasing'%str(frobenius_coordinates)
+    return Partition(tmp)
 
 def from_exp(exp):
     """
@@ -673,6 +733,60 @@ class Partition_class(CombinatorialObject):
             [[2, 2, 1], [3, 1, 1], [3, 2]]
         """
         return [p for p in self.down()]
+
+    def frobenius_coordinates(self):
+        """ Returns a couple of sequences of beta numbers aka Frobenius coordinates of the partition.
+        These are two striclty decreasing sequences of nonnegative integers, of the same length.
+
+        EXAMPLES::
+            sage: Partition([]).frobenius_coordinates()
+            ([], [])
+            sage: Partition([1]).frobenius_coordinates()
+            ([0], [0])
+            sage: Partition([3,3,3]).frobenius_coordinates()
+            ([2, 1, 0], [2, 1, 0])
+            sage: Partition([9,1,1,1,1,1,1]).frobenius_coordinates()
+            ([8], [6])
+
+        """
+        mu = self
+        muconj = mu.conjugate()     # Naive implementation
+        if len(mu) <= len(muconj):
+            a = filter(lambda x: x>=0, [val-i-1 for i, val in enumerate(mu)])
+            b = filter(lambda x: x>=0, [muconj[i]-i-1 for i in range(len(a))])
+        else:
+            b = filter(lambda x: x>=0, [val-i-1 for i, val in enumerate(muconj)])
+            a = filter(lambda x: x>=0, [mu[i]-i-1 for i in range(len(b))])
+        return (a,b)
+
+    beta_numbers = frobenius_coordinates
+
+    def frobenius_rank(self):
+        """ Returns the Frobenius rank of the partition, which is the number of cells on the main diagonal.
+
+        EXAMPLES::
+            sage: Partition([]).frobenius_rank()
+            0
+            sage: Partition([1]).frobenius_rank()
+            1
+            sage: Partition([3,3,3]).frobenius_rank()
+            3
+            sage: Partition([9,1,1,1,1,1]).frobenius_rank()
+            1
+            sage: Partition([2,1,1,1,1,1]).frobenius_rank()
+            1
+            sage: Partition([2,2,1,1,1,1]).frobenius_rank()
+            2
+        """
+        mu = self
+        if mu == []:
+            return 0
+        if len(mu) <= mu[0]:
+            return len(filter(lambda x: x>=0, [val-i-1 for i, val in enumerate(mu)]))
+        else:
+            muconj = mu.conjugate()
+            return len(filter(lambda x: x>=0, [val-i-1 for i, val in enumerate(muconj)]))
+
 
     def dominates(self, p2):
         r"""

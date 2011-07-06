@@ -92,7 +92,7 @@ class ArithmeticSubgroup(group.Group):
 
     def coset_reps(self, G=None):
         r"""
-        Return coset representatives for self \\ G, where G is another
+        Return right coset representatives for self \\ G, where G is another
         arithmetic subgroup that contains self.  If G = None, default to G =
         SL2Z.
 
@@ -117,89 +117,168 @@ class ArithmeticSubgroup(group.Group):
         return self.todd_coxeter(G)[0]
 
     @cached_method
-    def todd_coxeter(self, G=None, limit = 100):
+    def todd_coxeter(self, G=None, on_right=True):
         r"""
-        Compute coset representatives for self \\ G via Todd-Coxeter enumeration.
-        If G = None, default to G = SL2Z. Also computes generators for G at the
-        same time. Return value is a tuple (list of coset reps, list of
-        generators).
+        Compute coset representatives for self \\ G and action of standard
+        generators on them via Todd-Coxeter enumeration.
+
+        If ``G`` is ``None``, default to ``SL2Z``. The method also computes
+        generators of the subgroup at same time.
+
+        INPUT:
+
+        - ``G`` - intermediate subgroup (currently not implemented if diffferent
+          from SL(2,Z))
+
+        - ``on_right`` - boolean (default: True) - if True return right coset
+          enumeration, if False return left one.
 
         This is *extremely* slow in general.
 
-        EXAMPLE:
+        OUTPUT:
 
-            sage: Gamma0(3).todd_coxeter()
-            ([[1 0]
-            [0 1], [ 0 -1]
-            [ 1  0], [ 0 -1]
-            [ 1  1], [ 0 -1]
-            [ 1  2]], [[1 1]
-            [0 1], [-1  0]
-            [ 0 -1], [ 1  0]
-            [-3  1], [-2 -1]
-            [ 3  1], [-1 -1]
-            [ 3  2]])
+        - a list of coset representatives
+
+        - a list of generators for the group
+
+        - ``l`` - list of integers that correspond to the action of the
+          standard parabolic element [[1,1],[0,1]] of `SL(2,\ZZ)` on the cosets
+          of self.
+
+        - ``s`` - list of integers that correspond to the action of the standard
+          element of order `2` [[0,-1],[1,0]] on the cosets of self.
+
+        EXAMPLES::
+
+            sage: L = SL2Z([1,1,0,1])
+            sage: S = SL2Z([0,-1,1,0])
+
+            sage: G = Gamma(2)
+            sage: reps, gens, l, s = G.todd_coxeter()
+            sage: len(reps) == G.index()
+            True
+            sage: all(reps[i] * L * ~reps[l[i]] in G for i in xrange(6))
+            True
+            sage: all(reps[i] * S * ~reps[s[i]] in G for i in xrange(6))
+            True
+
+            sage: G = Gamma0(7)
+            sage: reps, gens, l, s = G.todd_coxeter()
+            sage: len(reps) == G.index()
+            True
+            sage: all(reps[i] * L * ~reps[l[i]] in G for i in xrange(8))
+            True
+            sage: all(reps[i] * S * ~reps[s[i]] in G for i in xrange(8))
+            True
+
+            sage: G = Gamma1(3)
+            sage: reps, gens, l, s = G.todd_coxeter(on_right=False)
+            sage: len(reps) == G.index()
+            True
+            sage: all(~reps[l[i]] * L * reps[i] in G for i in xrange(8))
+            True
+            sage: all(~reps[s[i]] * S * reps[i] in G for i in xrange(8))
+            True
+
+            sage: G = Gamma0(5)
+            sage: reps, gens, l, s = G.todd_coxeter(on_right=False)
+            sage: len(reps) == G.index()
+            True
+            sage: all(~reps[l[i]] * L * reps[i] in G for i in xrange(6))
+            True
+            sage: all(~reps[s[i]] * S * reps[i] in G for i in xrange(6))
+            True
         """
-
         from all import SL2Z
 
         if G is None:
             G = SL2Z
         if G != SL2Z:
             raise NotImplementedError, "Don't know how to compute coset reps for subgroups yet"
-        s = SL2Z([1,1,0,1])
-        t = SL2Z([0,-1,1,0])
 
-        reps = [SL2Z(1)]
-        schecked = []
-        tchecked = []
+        id = SL2Z([1,0,0,1])
+        l = SL2Z([1,1,0,1])
+        s = SL2Z([0,-1,1,0])
+
+        reps = [id]       # coset representatives
+        reps_inv = {id:0} # coset representatives index
+
+        l_wait_back = [id] # rep with no incoming s_edge
+        s_wait_back = [id] # rep with no incoming l_edge
+        l_wait = [id]      # rep with no outgoing l_edge
+        s_wait = [id]      # rep with no outgoing s_edge
+
+        l_edges = [None]    # edges for l
+        s_edges = [None]    # edges for s
 
         gens = []
 
-        for i in xrange(limit):
-            found_new = 0
+        while l_wait or s_wait:
+            if l_wait:
+                x = l_wait.pop(0)
+                y = x
+                not_end = True
+                while not_end:
+                    if on_right:
+                        y = y*l
+                    else:
+                        y = l*y
+                    for i in xrange(len(l_wait_back)):
+                        v = l_wait_back[i]
+                        if on_right:
+                            yy = y*~v
+                        else:
+                            yy = ~v*y
+                        if yy in self:
+                            l_edges[reps_inv[x]] = reps_inv[v]
+                            del l_wait_back[i]
+                            if yy != id:
+                                gens.append(self(yy))
+                            not_end = False
+                            break
+                    else:
+                        reps_inv[y] = len(reps)
+                        l_edges[reps_inv[x]] = len(reps)
+                        reps.append(y)
+                        l_edges.append(None)
+                        s_edges.append(None)
+                        s_wait_back.append(y)
+                        s_wait.append(y)
+                    x = y
 
-            for x in reps:
-
-                if not (x in schecked):
-                    schecked.append(x)
-                    y = x
-                    end = 0
-                    while end == 0:
+            if s_wait:
+                x = s_wait.pop(0)
+                y = x
+                not_end = True
+                while not_end:
+                    if on_right:
                         y = y*s
-                        yknown = False
-                        for v in reps:
-                            if y*(~v) in self:
-                                if y*(~v) != SL2Z(1):
-                                    gens.append(y*(~v))
-                                end = 1
-                                break
-                        if not end:
-                            reps.append(y)
-                            schecked.append(y)
-                            found_new = 1
+                    else:
+                        y = s*y
+                    for i in xrange(len(s_wait_back)):
+                        v = s_wait_back[i]
+                        if on_right:
+                            yy = y*~v
+                        else:
+                            yy = ~v*y
+                        if yy in self:
+                            s_edges[reps_inv[x]] = reps_inv[v]
+                            del s_wait_back[i]
+                            if yy != id:
+                                gens.append(self(yy))
+                            not_end = False
+                            break
+                    else:
+                        reps_inv[y] = len(reps)
+                        s_edges[reps_inv[x]] = len(reps)
+                        reps.append(y)
+                        l_edges.append(None)
+                        s_edges.append(None)
+                        l_wait_back.append(y)
+                        l_wait.append(y)
+                    x = y
 
-                if not (x in tchecked):
-                    tchecked.append(x)
-                    y = x
-                    end = 0
-                    while end == 0:
-                        y = y*t
-                        yknown = False
-                        for v in reps:
-                            if y*(~v) in self:
-                                if y*(~v) != SL2Z(1):
-                                    gens.append(y*(~v))
-                                end = 1
-                                break
-                        if not end:
-                            reps.append(y)
-                            tchecked.append(y)
-                            found_new = 1
-
-            if found_new == 0:
-                return reps, gens
-        raise Exception, "Todd-Coxeter enumeration did not terminate in %s steps" % limit
+        return reps, gens, l_edges, s_edges
 
     def nu2(self):
         r"""
@@ -412,7 +491,6 @@ class ArithmeticSubgroup(group.Group):
             False
         """
         return [-1, 0, 0, -1] in self
-
 
     def order(self):
         r"""
@@ -732,7 +810,6 @@ class ArithmeticSubgroup(group.Group):
 
         return ZZ(1 + (self.projective_index()) / ZZ(12)  - (self.nu2())/ZZ(4) - (self.nu3())/ZZ(3) - self.ncusps()/ZZ(2))
 
-    @cached_method
     def generators(self):
         r"""
         Return generators for this congruence subgroup.
@@ -747,20 +824,13 @@ class ArithmeticSubgroup(group.Group):
 
             sage: Gamma(2).generators()
             [[1 2]
-            [0 1],
-            [-1  0]
-            [ 0 -1],
-            [-1  0]
-            [ 0 -1],
-            [ 1  0]
-            [-2  1],
-            [-1  2]
-            [-2  3],
-            [-1  0]
-            [ 2 -1],
-            [1 0]
+            [0 1], [-1  0]
+            [ 0 -1], [ 1  0]
+            [-2  1], [-1  0]
+            [ 0 -1], [-1  2]
+            [-2  3], [-1  0]
+            [ 2 -1], [1 0]
             [2 1]]
-
         """
         return self.todd_coxeter()[1]
 
@@ -972,7 +1042,6 @@ class ArithmeticSubgroup(group.Group):
                     else:
                         raise NotImplementedError, "Computation of dimensions of weight 1 cusp forms spaces not implemented in general"
 
-
     def dimension_eis(self, k=2):
         r"""
         Return the dimension of the space of weight k Eisenstein series for
@@ -1012,23 +1081,47 @@ class ArithmeticSubgroup(group.Group):
             else: # k = 1
                 return ZZ(self.nregcusps()/ ZZ(2))
 
-
     def as_permutation_group(self):
         r"""
-        Return a representation of this arithmetic subgroup in terms of the
-        permutation action of SL2Z on the cosets of G.
+        Return self as an arithmetic subgroup defined in terms of the
+        permutation action of `SL(2,\ZZ)` on its right cosets.
 
-        At present this is only implemented for even subgroups.
+        This method uses Todd-coxeter enumeration (via the method todd_coxeter) which
+        can be extremly slow for arithmetic subgroup with relatively large index in
+        `SL(2,\ZZ)`.
 
-        EXAMPLE::
+        EXAMPLES::
 
-            sage: Gamma0(3).as_permutation_group()
-            Arithmetic subgroup corresponding to permutations L=(2,3,4), R=(1,3,4)
-
+            sage: G = Gamma(3)
+            sage: P = G.as_permutation_group(); P
+            Arithmetic subgroup of index 24
+            sage: G.ncusps() == P.ncusps()
+            True
+            sage: G.nu2() == P.nu2()
+            True
+            sage: G.nu3() == P.nu3()
+            True
+            sage: G.an_element() in P
+            True
+            sage: P.an_element() in G
+            True
         """
-        if not self.is_even(): raise NotImplementedError, "Permutation form only implemented for subgroups containing -1 at present"
-        from arithgroup_perm import convert_to_permgroup
-        return convert_to_permgroup(self)
+        _,_,l_edges,s2_edges=self.todd_coxeter()
+        n = len(l_edges)
+        s3_edges = [None] * n
+        r_edges = [None] * n
+        for i in xrange(n):
+            ii = s2_edges[l_edges[i]]
+            s3_edges[ii] = i
+            r_edges[ii] = s2_edges[i]
+        if self.is_even():
+            from sage.modular.arithgroup.arithgroup_perm import EvenArithmeticSubgroup_Permutation
+            g=EvenArithmeticSubgroup_Permutation(S2=s2_edges,S3=s3_edges,L=l_edges,R=r_edges)
+        else:
+            from sage.modular.arithgroup.arithgroup_perm import OddArithmeticSubgroup_Permutation
+            g=OddArithmeticSubgroup_Permutation(S2=s2_edges,S3=s3_edges,L=l_edges,R=r_edges)
+        g.relabel()
+        return g
 
     def sturm_bound(self, weight=2):
         r"""

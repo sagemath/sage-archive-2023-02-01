@@ -1,13 +1,9 @@
-= M4RI & M4RIE =
+= M4RI =
 
 == Description ==
 
 M4RI: Library for matrix multiplication, reduction and inversion over
 GF(2).  (See also m4ri/README for a brief overview.)
-
-M4RIE: Library for matrix multiplication, reduction and inversion over
-GF(2^k) for 2 <= k <= 16.
-
 
 == License ==
 
@@ -25,15 +21,18 @@ GF(2^k) for 2 <= k <= 16.
 
 == Dependencies ==
 
- Givaro (for testing)
+ none
 
 == Special Update/Build Instructions ==
- * Delete the upstream Mercurial repositories (file m4ri(e)/.hgtags, directory m4ri(e)/.hg).
- * Delete the directory m4ri(e)/autom4te.cache (if present).
+ * Delete the upstream Mercurial repositories (file m4ri/.hgtags, directory m4ri/.hg).
+ * Delete the directory m4ri/autom4te.cache (if present).
  * Delete m4ri.vcproj (and perhaps other unnecessary baggage).
- * Touch m4ri(e)/configure to make sure it is newer than its sources.
+ * Touch m4ri/configure to make sure it is newer than its sources.
 
 == Releases/Changelog ==
+
+=== libm4ri-20110715 (Martin Albrecht, July 6th 2011) ===
+ * split M4RI and M4RIE in separate packages
 
 === libm4ri-20100817 (Martin Albrecht, August 18th 2010) ===
  * Including M4RIE, an extension to M4RI for small extensions of GF(2).

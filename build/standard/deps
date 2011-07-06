@@ -79,6 +79,7 @@ all: $(BASE) \
      $(INST)/$(LIBGCRYPT) \
      $(INST)/$(LIBGPG_ERROR) \
      $(INST)/$(LIBM4RI) \
+     $(INST)/$(LIBM4RIE) \
      $(INST)/$(LIBPNG) \
      $(INST)/$(LINBOX) \
      $(INST)/$(MATPLOTLIB) \
@@ -406,6 +407,9 @@ $(INST)/$(EXTCODE): $(BASE) $(INST)/$(MERCURIAL) $(INST)/$(PATCH)
 $(INST)/$(LIBM4RI): $(BASE) $(INST)/$(PATCH)
 	$(INSTALL) "$(SAGE_SPKG) $(LIBM4RI) 2>&1" "tee -a $(SAGE_LOGS)/$(LIBM4RI).log"
 
+$(INST)/$(LIBM4RIE): $(BASE) $(INST)/$(PATCH) $(INST)/$(LIBM4RI)
+	$(INSTALL) "$(SAGE_SPKG) $(LIBM4RIE) 2>&1" "tee -a $(SAGE_LOGS)/$(LIBM4RIE).log"
+
 # zn_poly really does depend on Python, despite this is far from obvious.
 # The 'configure' script in zn_poly calls Python to make a 'makefile'.
 $(INST)/$(ZNPOLY): $(BASE) $(INST)/$(MPIR) $(INST)/$(PYTHON) $(INST)/$(PATCH)
@@ -481,6 +485,7 @@ $(INST)/$(SAGE): $(BASE) \
 		 $(INST)/$(IPYTHON) \
 		 $(INST)/$(LCALC) \
 		 $(INST)/$(LIBM4RI) \
+		 $(INST)/$(LIBM4RIE) \
 		 $(INST)/$(LINBOX) \
 		 $(INST)/$(MATPLOTLIB) \
 		 $(INST)/$(MERCURIAL) \

@@ -223,6 +223,9 @@ export PATCH
 LIBM4RI=`$newest libm4ri`
 export LIBM4RI
 
+LIBM4RIE=`$newest libm4rie`
+export LIBM4RIE
+
 FORTRAN=`$newest fortran`
 export FORTRAN
 

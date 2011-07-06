@@ -57,11 +57,7 @@ fi
 
 #build M4RI
 
-cd $ROOT_DIR/m4ri
-
-$MAKE distclean
-
-cd $ROOT_DIR/build/m4ri
+cd $ROOT_DIR/build/
 
 $ROOT_DIR/m4ri/configure --prefix=$SAGE_LOCAL $ENABLE_DEBUG $DISABLE_SSE2 $ENABLE_CACHETUNE
 

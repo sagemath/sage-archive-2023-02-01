@@ -6,13 +6,6 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-./test_gcc_version.sh
-if [ $? -ne 0 ]; then
-   echo "GCC version less than 3.4.0"
-   echo "Flint will not be able to compile successfully"
-   exit 1
-fi
-
 if [ $UNAME = "CYGWIN" ]; then
    # we'll move the libntl.a temporarily out of the way and move it back at the
    # end of this spkg-install script
@@ -27,7 +20,6 @@ if [ "`uname`" = "Linux" -a "`uname -m`" = "x86_64" ]; then
    #FLINT_TUNE="-mtune=opteron -march=opteron -fPIC -funroll-loops "
 
    FLINT_TUNE="-fPIC -funroll-loops "
-
 elif [ "`uname`" = "Darwin" -a "`uname -m`" = "Power Macintosh" ]; then
    FLINT_TUNE=" -fPIC -funroll-loops "
 elif [ "`uname -m`" = "ia64" ]; then
@@ -54,7 +46,7 @@ fi
 
 
 if [ "x$SAGE64" = xyes ]; then
-   FLINT_TUNE=" -fPIC $CFLAG64 -funroll-loops"
+   FLINT_TUNE="$FLINT_TUNE $CFLAG64"
    export CXXFLAG64
 fi
 
@@ -81,15 +73,16 @@ export FLINT_NTL_LIB_DIR
 FLINT_LINK_OPTIONS=""
 export FLINT_LINK_OPTIONS
 
-# Patched makefile that links NTL interface into the flint library.
-# This is not an officially supported option because flint is pure C
-# and the NTL interface requires C++.
-cp patches/makefile src/
-for j in `ls patches/*.patch` ; do
-   patch -p0 < $j
-done
-
+# Apply all patches
 cd src
+echo "Patching Flint"
+for p in ../patches/*.patch; do
+    patch -p1 <"$p"
+    if [ $? -ne 0 ]; then
+        echo "Applying patch $p failed"
+        exit 1
+    fi
+done
 
 # UNIX
 if [ $UNAME != "Darwin" ]; then
@@ -149,4 +142,3 @@ for i in {FLINT/,FLINT/zn_poly/src/}; do
 	    exit 1
 	fi
 done
-

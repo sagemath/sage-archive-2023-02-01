@@ -28,9 +28,20 @@ GPL V2+
 
 == Special Update/Build Instructions ==
 
-We patch the makefile slightly to add 64 bit OSX build support and also changes LIBS and LIBS slightly since we use the NTL interface per default.
+We patch the makefile slightly to add 64 bit OSX build support and also change
+LIBS such that the NTL interface is linked into the flint library.
+This is not an officially supported option because flint is pure C
+and the NTL interface requires C++.
 
 == Changelog ==
+
+=== flint-1.5.0.p7 (Jeroen Demeyer, 6 July 2011) ===
+ * Trac #11246: remove check for gcc version since we require gcc >= 4.0.1
+   for Sage anyway.
+ * Use `patch` instead of `cp` for patching the makefile
+ * Remove test_gcc_version.sh and the horrible makepatchfiles
+ * Check that `patch` succeeded in spkg-install, apply patches at -p1 level
+ * Remove obsolete dist/debian directory
 
 === flint-1.5.0.p6 (Dima Pasechnik, 25th April 2011) ===
  * removed extraneous #include statements in ZmodF_mul.c, ZmodF_poly.c, and, mpn_extras.h, which

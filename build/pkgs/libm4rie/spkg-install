@@ -49,11 +49,7 @@ export LDFLAGS
 
 # build M4RIE
 
-cd $ROOT_DIR/m4rie
-
-$MAKE distclean
-
-cd $ROOT_DIR/build/m4rie
+cd $ROOT_DIR/build/
 $ROOT_DIR/m4rie/configure --prefix=$SAGE_LOCAL $ENABLE_DEBUG
 
 if [ $? -ne 0 ]; then

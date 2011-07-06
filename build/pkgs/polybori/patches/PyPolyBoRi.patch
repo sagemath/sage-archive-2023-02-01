@@ -1,6 +1,7 @@
---- src/polybori-0.7/pyroot/polybori/PyPolyBoRi.py	2011-02-15 23:01:45.000000000 +0000
-+++ patches/PyPolyBoRi.py	2011-02-18 10:27:15.224324004 +0000
-@@ -1,146 +1,22 @@
+diff --git a/PyPolyBoRi.py b/PyPolyBoRi.py
+--- a/PyPolyBoRi.py
++++ b/PyPolyBoRi.py
+@@ -1,140 +1,21 @@
 -from sys import modules
 -from itertools import chain
 -import re
@@ -24,9 +25,14 @@
 -    
 -replace_init_proc(BoolePolynomialVector)
 -replace_init_proc(IntVector)
--
++from sage import all
++from sage.rings.polynomial.pbori import *
+ 
 -monomial_old_init=Monomial.__init__
--def monomial_new_init(self,arg=None):
++class OrderCode:
++    pass
+ 
+-def monomial_new_init(self, arg=None):
 -    """
 -    Constructor of the class Monomial
 -    Constructs a Monomial from
@@ -34,19 +40,21 @@
 -      - Variable
 -      - sequence of variables
 -    """
--    if arg==None:
--        monomial_old_init(self)
--    else:
--        try:
--            monomial_old_init(self,arg)
--        except:
--            prototype=Monomial()
--            items=sorted((x for x in arg),reverse=True, key=top_index)
--            for x in items:
--                prototype*=x
--            monomial_old_init(self,prototype)
+-    try:
+-        monomial_old_init(self,arg)
+-    except:
+-        items=sorted((x for x in arg),reverse=True, key=top_index)
+-        prototype=Monomial(items[0])
+-        for x in items[1:]:
+-            prototype*=x
++OrderCode.__dict__ = order_dict
+ 
+-        monomial_old_init(self,prototype)
+-            
 -Monomial.__init__=monomial_new_init
--
++def Ring(n, order='lp'):
++    return BooleanPolynomialRing(n, 'x', order=order)
+ 
 -booleset_old_init=BooleSet.__init__
 -def booleset_new_init(self,arg=None, second=None):
 -    """
@@ -54,9 +62,7 @@
 -       arg    : of type polybori.dynamic.PyPolyBoRi.CCuddNavigator
 -       second : of type polybori.dynamic.PyPolyBoRi.BooleRing 
 -    """
--    if arg==None:
--        booleset_old_init(self)
--    elif second != None:
+-    if second != None:
 -        booleset_old_init(self, arg, second)
 -    else:
 -        try:
@@ -64,14 +70,17 @@
 -        except:
 -            s=set()
 -            v=BoolePolynomialVector()
--            for i in list(arg):
+-            arglist = list(arg)
+-            for i in arglist:
 -		s.add(Monomial(i))
 -            for i in s:
 -                v.append(i)
--            p=add_up_polynomials(v)
+-            p=add_up_polynomials(v, Polynomial(arglist[0].ring().zero()))
 -            booleset_old_init(self,p.set())
+-
 -BooleSet.__init__=booleset_new_init
 -
+- 
 -for k in OrderCode.values:
 -    globals()[str(OrderCode.values[k])]=OrderCode.values[k]
 -
@@ -94,11 +103,13 @@
 -        return Polynomial(0, self.ring())
 -
 -Variable.__div__ = variable_python_div
--_gauss_on_polys=gauss_on_polys
--def gauss_on_polys(l):
--    vec=BoolePolynomialVector(l)
--    return list(_gauss_on_polys(vec))
--
++BoolePolynomialVector = BooleanPolynomialVector
+ 
+ _gauss_on_polys=gauss_on_polys
+ def gauss_on_polys(l):
+     vec=BoolePolynomialVector(l)
+     return list(_gauss_on_polys(vec))
+ 
 -snake_pattern=re.compile('(((?<=[a-z])[A-Z])|([A-Z](?![A-Z]|$)))')
 -def to_snake_case(s):
 -    return snake_pattern.sub('_\\1', s).lower().strip('_')
@@ -136,36 +147,14 @@
 -    GroebnerStrategy.__getattr__=_strategy_getattr
 -    GroebnerStrategy.__setattr__=_strategy_setattr
 -
--_add_up_polynomials=add_up_polynomials
--def add_up_polynomials(polys):
--    """
--    Adds up the polynomials in polys (which should be a BoolePolynomialVector or a sequence of ???
--    """
--    if not isinstance(polys, BoolePolynomialVector):
--        vec = BoolePolynomialVector
--        for p in polys:
--            vec.append(p)
--        polys=vec
--    return _add_up_polynomials(polys)
-+from sage import all
-+from sage.rings.polynomial.pbori import *
-+
-+def global_ring():
-+    return get_cring()
-+
-+Polynomial = PolynomialFactory()
-+
-+Monomial = MonomialFactory()
-+
-+class OrderCode:
-+    pass
-+
-+OrderCode.__dict__ = order_dict
-+
-+Variable = VariableFactory()
-+
-+def Ring(n, order='lp'):
-+    return BooleanPolynomialRing(n, 'x', order=order)
-+
-+BoolePolynomialVector = BooleanPolynomialVector
-+
+ _add_up_polynomials=add_up_polynomials
+ def add_up_polynomials(polys, init):
+     """
+@@ -155,7 +36,6 @@
+ 
+ Ring.var=ring_var
+ 
+-
+ def weakringref_call(self):
+     if self.is_valid():
+         return self.deref()

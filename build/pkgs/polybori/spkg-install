@@ -6,24 +6,18 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-PBDIR=polybori-0.7
+PBDIR=polybori-0.8
 WORKDIR=${PWD}/src
 SCONS=scons
 
 patch()
 {
-    cp patches/custom.py src/${PBDIR}
-
     if [ $UNAME = "CYGWIN" ]; then
         export PROGSUFFIX=.exe
     fi
 
-    cp patches/SConstruct            src/${PBDIR}/SConstruct
+    cp patches/custom.py             src/${PBDIR}
     cp patches/PyPolyBoRi.py         src/${PBDIR}/pyroot/polybori
-    cp patches/COrderedIter.h        src/${PBDIR}/polybori/include
-    cp patches/nf.h                  src/${PBDIR}/groebner/src
-    cp patches/nf.cc                 src/${PBDIR}/groebner/src
-    cp patches/plot.py               src/${PBDIR}/pyroot/polybori
 }
 
 

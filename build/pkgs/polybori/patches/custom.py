@@ -6,7 +6,7 @@ CCFLAGS=["-O3 -Wno-long-long -Wreturn-type -g -fPIC"]
 #CXXFLAGS=CCFLAGS+["-ftemplate-depth-100 -g -fPIC"]
 CXXFLAGS=CCFLAGS+["-ftemplate-depth-100"]
 
-LIBS+=["png12","z"])
+LIBS+=["png12","z"]
 
 # FIXME: Should we include LDFLAGS here? (see above)
 if not globals().has_key("LINKFLAGS"): LINKFLAGS=[] # s.t. we can *append* below

@@ -105,12 +105,31 @@ def install_package(package=None, force=False):
 
     INPUT:
 
-
-    -  ``package`` - optional; if specified, install the
+    -  ``package`` -- optional; if specified, install the
        given package. If not, list all installed packages.
 
+    - ``force`` -- boolean (default: ``False``); if ``True``, reinstall
+      the package given if it is already installed. (Otherwise, an already
+      installed package doesn't get reinstalled, as with 'sage -i ...'.)
 
-    IMPLEMENTATION: calls 'sage -f'.
+    EXAMPLES:
+
+    With no arguments, list the installed packages::
+
+        sage: install_package()
+        ['atlas...', 'blas...', ...]
+
+    With an argument, install the named package::
+
+        sage: install_package('chomp')  # not tested
+        Attempting to download package chomp-20100213.p2
+        ...
+
+    IMPLEMENTATION:
+
+    Calls 'sage -f ...' to (re)install the package if a package name is
+    given. If no package name is given, simply list the contents of
+    ``spkg/installed``.
 
     .. seealso:: :func:`optional_packages`, :func:`upgrade`
     """
@@ -118,19 +137,17 @@ def install_package(package=None, force=False):
     if os.uname()[0][:6] == 'CYGWIN' and package is not None:
         print "install_package may not work correctly under Microsoft Windows"
         print "since you can't change an opened file.  Quit all"
-        print "instances of sage and use 'sage -i' instead or"
-        print "use the force option to install_package."
+        print "instances of Sage and use 'sage -i %s' instead or" % package
+        print "use the force option to install_package()."
 
     if package is None:
         if __installed_packages is None:
-            X = os.popen('sage -f').read().split('\n')
-            i = X.index('Currently installed packages:')
-            X = [Y for Y in X[i+1:] if Y != '']
-            X.sort()
-            __installed_packages = X
+            __installed_packages = sorted(os.listdir(
+                os.path.join(os.environ["SAGE_PACKAGES"], 'installed')))
         return __installed_packages
-    # Get full package name
+    # Get full package name / list of candidates:
     if force:
+        # Also search packages already installed.
         S = [P for P in standard_packages()[0] if P.startswith(package)]
         O = [P for P in optional_packages()[0] if P.startswith(package)]
         E = [P for P in experimental_packages()[0] if P.startswith(package)]
@@ -153,6 +170,7 @@ def install_package(package=None, force=False):
             if is_package_installed(package):
                 raise ValueError, "Package is already installed. Try install_package('%s',force=True)"%(package)
         raise ValueError, "There is no package name starting with '%s'."%(package)
+    # len(L)==1, i.e. exactly one package matches the given one.
     os.system('sage -f "%s"'%(L[0]))
     __installed_packages = None
 
@@ -195,7 +213,8 @@ def standard_packages():
         j = X.index('NOT INSTALLED:')
     except ValueError, msg:
         print R
-        print "standard package list (shown above) appears to be currently not available or corrupted (network error?)."
+        print "Standard package list (shown above) appears to be currently"
+        print "not available or corrupted (network error?)."
         return [], []
 
     installed = []

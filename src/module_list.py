@@ -189,9 +189,9 @@ ext_modules = [
 
     Extension('sage.structure.list_clone',
               sources=['sage/structure/list_clone.pyx']),
+
     Extension('sage.structure.list_clone_timings_cy',
               sources=['sage/structure/list_clone_timings_cy.pyx']),
-
 
     Extension('sage.sets.finite_set_map_cy',
               sources=['sage/sets/finite_set_map_cy.pyx']),
@@ -217,6 +217,9 @@ ext_modules = [
 
     Extension('sage.combinat.debruijn_sequence',
               sources=['sage/combinat/debruijn_sequence.pyx']),
+
+    Extension('sage.combinat.degree_sequences',
+              sources = ['sage/combinat/degree_sequences.pyx']),
 
     Extension('sage.combinat.combinat_cython',
               sources=['sage/combinat/combinat_cython.pyx'],

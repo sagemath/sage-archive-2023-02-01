@@ -1619,6 +1619,9 @@ cdef class Matrix(sage.structure.element.Matrix):
           elements of the base ring and values the desired string
           representation.  Values sent in via the other keyword
           arguments will override values in the dictionary.
+          Use of a dictionary can potentially take a very long time
+          due to the need to hash entries of the matrix.  Matrices
+          with entries from ``QQbar`` are one example.
 
           If ``rep_mapping`` is callable then it will be called with
           elements of the matrix and must return a string.  Simply
@@ -1663,6 +1666,17 @@ cdef class Matrix(sage.structure.element.Matrix):
             '[+ .]\n[+ -]'
             sage: M.str(repr)
             '[ 1  0]\n[ 2 -1]'
+
+        TESTS:
+
+        Prior to Trac #11544 this could take a full minute to run (2011). ::
+
+            sage: A = matrix(QQ, 4, 4, [1, 2, -2, 2, 1, 0, -1, -1, 0, -1, 1, 1, -1, 2, 1/2, 0])
+            sage: e = A.eigenvalues()[3]
+            sage: K = (A-e).kernel()
+            sage: P = K.basis_matrix()
+            sage: P.str()
+            '[             1.000000000000000? + 0.?e-17*I -2.116651487479748? + 0.0255565807096352?*I -0.2585224251020429? + 0.288602340904754?*I -0.4847545623533090? - 1.871890760086142?*I]'
         """
         #x = self.fetch('repr')  # too confusing!!
         #if not x is None: return x
@@ -1692,7 +1706,8 @@ cdef class Matrix(sage.structure.element.Matrix):
             # Override the usual representations with those specified
             if callable(rep_mapping):
                 rep = rep_mapping(x)
-            elif rep_mapping.has_key(x):
+            # avoid hashing entries, especially algebraic numbers
+            elif rep_mapping and rep_mapping.has_key(x):
                 rep = rep_mapping.get(x)
             else:
                 rep = repr(x)

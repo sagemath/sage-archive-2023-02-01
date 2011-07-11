@@ -2209,6 +2209,8 @@ def deprecation(message, version=None):
 
 
 from sage.misc.lazy_attribute import lazy_attribute
+import inspect
+
 class DeprecatedFunctionAlias(object):
     """
     A wrapper around methods or functions which automatically print the correct
@@ -2217,8 +2219,9 @@ class DeprecatedFunctionAlias(object):
     AUTHORS:
 
      - Florent Hivert (2009-11-23), with the help of Mike Hansen.
+     - Luca De Feo (2011-07-11), printing the full module path when different from old path
     """
-    def __init__(self, func, version):
+    def __init__(self, func, version, module):
         """
         TESTS::
 
@@ -2235,6 +2238,7 @@ class DeprecatedFunctionAlias(object):
         self.func = func
         self.version  = version
         self.instance = None # for use with methods
+        self.__module__ = module
         if type(func) == type(deprecation):
             sphinxrole = "func"
         else:
@@ -2307,8 +2311,13 @@ class DeprecatedFunctionAlias(object):
             doctest:1: DeprecationWarning: (Since Sage Version 42.132) blo is deprecated. Please use bla instead.
             42
         """
+        if self.instance is None and self.__module__ != self.func.__module__:
+            other = self.func.__module__ + "." + self.func.__name__
+        else:
+            other = self.func.__name__
+
         deprecation("%s is deprecated. Please use %s instead."%(self.__name__,
-                                                               self.func.__name__),
+                                                                other),
                     self.version)
         if self.instance is None:
             return self.func(*args, **kwds)
@@ -2353,7 +2362,7 @@ def deprecated_function_alias(func, version):
         sage: g = deprecated_function_alias(number_of_partitions,
         ...     'Sage Version 42.132')
         sage: g(5)
-        doctest:...: DeprecationWarning: (Since Sage Version 42.132) g is deprecated. Please use number_of_partitions instead.
+        doctest:...: DeprecationWarning: (Since Sage Version 42.132) g is deprecated. Please use sage.combinat.partition.number_of_partitions instead.
         7
 
     This also works for methods::
@@ -2366,11 +2375,23 @@ def deprecated_function_alias(func, version):
         doctest:...: DeprecationWarning: (Since Sage Version 42.132) old_meth is deprecated. Please use new_meth instead.
         42
 
+    Trac #11585::
+
+        sage: def a(): pass
+        sage: b = deprecated_function_alias(a, 'Sage Version 42.132')
+        sage: b()
+        doctest:...: DeprecationWarning: (Since Sage Version 42.132) b is deprecated. Please use a instead.
+
     AUTHORS:
 
      - Florent Hivert (2009-11-23), with the help of Mike Hansen.
+     - Luca De Feo (2011-07-11), printing the full module path when different from old path
     """
-    return DeprecatedFunctionAlias(func, version)
+    module_name = inspect.getmodulename(
+        inspect.currentframe(1).f_code.co_filename)
+    if module_name is None:
+        module_name = '__main__'
+    return DeprecatedFunctionAlias(func, version, module_name)
 
 def deprecated_callable_import(module_name, globs, locs, fromlist, message=None):
     """

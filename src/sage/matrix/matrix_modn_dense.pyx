@@ -186,9 +186,15 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             raise OverflowError, "p (=%s) must be < %s"%(p, MAX_MODULUS)
         self.gather = MOD_INT_OVERFLOW/<mod_int>(p*p)
 
-        sig_on()
-        self._entries = <mod_int *> sage_malloc(sizeof(mod_int)*self._nrows*self._ncols)
-        sig_off()
+        if not isinstance(entries, list):
+            sig_on()
+            self._entries = <mod_int *> sage_calloc(self._nrows*self._ncols,sizeof(mod_int))
+            sig_off()
+        else:
+            sig_on()
+            self._entries = <mod_int *> sage_malloc(self._nrows*self._ncols * sizeof(mod_int))
+            sig_off()
+
         if self._entries == NULL:
            raise MemoryError, "Error allocating matrix"
 
@@ -230,10 +236,10 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 
         # scalar?
         if not isinstance(entries, list):
-            sig_on()
-            for i from 0 <= i < self._nrows*self._ncols:
-                self._entries[i] = 0
-            sig_off()
+            # sig_on()
+            # for i from 0 <= i < self._nrows*self._ncols:
+            #     self._entries[i] = 0
+            # sig_off()
             if entries is None:
                 # zero matrix
                 pass

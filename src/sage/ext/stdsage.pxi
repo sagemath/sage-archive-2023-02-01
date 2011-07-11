@@ -43,6 +43,7 @@ cdef extern from "stdsage.h":
     void  sage_free(void *p)
     void* sage_realloc(void *p, size_t n)
     void* sage_malloc(size_t)
+    void* sage_calloc(size_t nmemb, size_t size)
     void  init_csage()
     void  init_csage_module()
     void  init_memory_functions()

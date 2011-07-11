@@ -77,11 +77,12 @@ import sage.rings.number_field.all
 import sage.rings.finite_rings.integer_mod_ring
 import sage.rings.polynomial.multi_polynomial_ring_generic
 import sage.misc.latex as latex
-#import sage.rings.real_double as real_double
 import sage.misc.mrange
 import sage.modules.free_module_element
 import sage.modules.free_module
 from sage.structure.sequence import Sequence
+
+from sage.misc.all import lazy_attribute
 
 from sage.categories.rings import Rings
 
@@ -267,6 +268,42 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         """
         return MatrixSpace, (self.base_ring(), self.__nrows, self.__ncols, self.__is_sparse)
 
+    @lazy_attribute
+    def _copy_zero(self):
+        """
+        Is it faster to copy a zero matrix or is it faster to create a
+        new matrix from scratch?
+
+        EXAMPLE::
+
+            sage: MS = MatrixSpace(GF(2),200,200)
+            sage: MS._copy_zero
+            False
+
+            sage: MS = MatrixSpace(GF(3),20,20)
+            sage: MS._copy_zero
+            True
+
+            sage: MS = MatrixSpace(GF(3),200,200)
+            sage: MS._copy_zero
+            False
+
+            sage: MS = MatrixSpace(ZZ,200,200)
+            sage: MS._copy_zero
+            True
+        """
+        if self.__is_sparse:
+            return False
+        elif self.__matrix_class is sage.matrix.matrix_mod2_dense.Matrix_mod2_dense:
+            return False
+        elif self.__matrix_class == sage.matrix.matrix_modn_dense.Matrix_modn_dense:
+            if self.__nrows > 100 and self.__ncols > 100:
+                return False
+            else:
+                return True
+        else:
+            return True
+
     def __call__(self, entries=0, coerce=True, copy=True, rows=None):
         """
         EXAMPLES::
@@ -353,10 +390,10 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             True
         """
         if entries is None or entries == 0:
-            if self.__is_sparse: # faster to create a new one than copy.
-                return self.__matrix_class(self, {}, coerce=coerce, copy=copy)
-            else:
+            if self._copy_zero: # faster to copy than to create a new one.
                 return self.zero_matrix().__copy__()
+            else:
+                return self.__matrix_class(self, 0, coerce=coerce, copy=copy)
 
         if isinstance(entries, (list, tuple)) and len(entries) > 0 and \
            sage.modules.free_module_element.is_FreeModuleElement(entries[0]):

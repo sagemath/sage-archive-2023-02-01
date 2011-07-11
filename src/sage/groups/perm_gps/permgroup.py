@@ -2347,11 +2347,21 @@ class PermutationGroup_generic(group.Group):
             True
             sage: G = PermutationGroup([(1,2,3), (2,3)])
             sage: H = PermutationGroup([(1,2,4), (1,4)])
-            sage: G.isomorphism_to(H)
+            sage: G.isomorphism_to(H)  # not tested, see below
             Permutation group morphism:
               From: Permutation Group with generators [(2,3), (1,2,3)]
               To:   Permutation Group with generators [(1,2,4), (1,4)]
               Defn: [(2,3), (1,2,3)] -> [(2,4), (1,2,4)]
+
+        TESTS:
+
+        Partial check that the output makes some sense::
+
+            sage: G.isomorphism_to(H)
+            Permutation group morphism:
+              From: Permutation Group with generators [(2,3), (1,2,3)]
+              To:   Permutation Group with generators [(1,2,4), (1,4)]
+              Defn: [(2,3), (1,2,3)] -> [...]
         """
         current_randstate().set_seed_gap()
         if not isinstance(right, PermutationGroup_generic):

@@ -10,12 +10,12 @@ extend the method for any dimension.
 
 This module defines two classes:
 
-- :class:`sage.games.quantumino.Polyomino` class, to represent polyominoes
+- :class:`sage.combinat.tiling.Polyomino` class, to represent polyominoes
   in arbitrary dimension. The goal of this class is to return all the
   rotated, reflected and/or translated copies of a polyomino that are
   contained in a certain box.
 
-- :class:`sage.games.quantumino.TilingSolver` class, to solve the general
+- :class:`sage.combinat.tiling.TilingSolver` class, to solve the general
   problem of tiling a rectangular `n`-dimensional box with a set of
   `n`-dimensional polyominoes. One can specify if rotations and reflections
   are allowed or not and if pieces can be reused or not. This class convert
@@ -447,7 +447,7 @@ class Polyomino(SageObject):
 
         .. NOTE::
 
-            No guarentee of unicity.
+            No guarantee of unicity.
 
         INPUT:
 

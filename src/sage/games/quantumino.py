@@ -10,7 +10,7 @@ left at the dinner room of the Laboratoire de Combinatoire Informatique
 Mathematique in Montreal by Franco Saliola during winter 2011.
 
 The solution uses the dancing links code which is in Sage and is based on
-the more general code available in the module ``sage.combinat.tiling``.
+the more general code available in the module :mod:`sage.combinat.tiling`.
 Dancing links were originally introduced by Donald Knuth in 2000 [3]. In
 particular, Knuth used dancing links to solve tilings of a region by 2D
 pentaminos.  Here we extend the method for 3D pentaminos.
@@ -75,7 +75,7 @@ To solve the puzzle where the pentamino numbered 7 is put aside::
     Polyomino: [(0, 0, 0), (0, 1, 0), (0, 2, 0), (0, 2, 1), (1, 0, 0)], Color: orange
     sage: s.show3d()                                      # long time (<1s)
 
-The solution is iterable. This may be used to explicit the positions of each
+The solution is iterable. This may be used to explicitly list the positions of each
 pentamino::
 
     sage: for p in s: p                                   # long time (<1s)
@@ -128,8 +128,9 @@ If there are no solution, a StopIteration error is raised::
     ...
     StopIteration
 
-The implementation allows a lot of introspection. From the TilingSolver
-object, it is possible to retrieve the rows that are passed to the DLX
+The implementation allows a lot of introspection. From the
+:class:`~sage.combinat.tiling.TilingSolver` object,
+it is possible to retrieve the rows that are passed to the DLX
 solver and count them. It is also possible to get an instance of the DLX
 solver to play with it::
 
@@ -371,7 +372,7 @@ class QuantuminoState(SageObject):
 ##############################
 class QuantuminoSolver(SageObject):
     r"""
-    Return the Quantumino solver for the giving box where one of the
+    Return the Quantumino solver for the given box where one of the
     pentamino is put aside.
 
     INPUT:

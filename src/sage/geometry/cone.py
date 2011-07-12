@@ -174,9 +174,10 @@ import copy
 import warnings
 
 from sage.combinat.posets.posets import FinitePoset
-from sage.geometry.lattice_polytope import LatticePolytope
+from sage.geometry.lattice_polytope import LatticePolytope, integral_length
 from sage.geometry.polyhedra import Polyhedron, Hasse_diagram_from_incidences
-from sage.geometry.toric_lattice import ToricLattice, is_ToricLattice
+from sage.geometry.toric_lattice import ToricLattice, is_ToricLattice, \
+    is_ToricLatticeQuotient
 from sage.geometry.toric_plotter import ToricPlotter, label_list
 from sage.graphs.all import DiGraph
 from sage.matrix.all import matrix, identity_matrix
@@ -402,10 +403,17 @@ def Cone(rays, lattice=None, check=True, normalize=True):
     if not check or not rays:
         return ConvexRationalPolyhedralCone(rays, lattice)
     # Any set of rays forms a cone, but we want to keep only generators
-    gs = Generator_System( PPL_point(Linear_Expression(lattice(0),0)) )
-    for r in rays:
-        if not r.is_zero():
-            gs.insert( PPL_ray(Linear_Expression(r,0)) )
+    if is_ToricLatticeQuotient(lattice):
+        gs = Generator_System(
+                        PPL_point(Linear_Expression(lattice(0).vector(), 0)))
+        for r in rays:
+            if not r.is_zero():
+                gs.insert(PPL_ray(Linear_Expression(r.vector(), 0)))
+    else:
+        gs = Generator_System( PPL_point(Linear_Expression(lattice(0),0)) )
+        for r in rays:
+            if not r.is_zero():
+                gs.insert( PPL_ray(Linear_Expression(r,0)) )
     cone = C_Polyhedron(gs)
     return _Cone_from_PPL(cone, lattice, rays)
 
@@ -513,6 +521,12 @@ def normalize_rays(rays, lattice):
             ray_parent = parent(rays[0])
             lattice = (ray_parent if is_ToricLattice(ray_parent)
                                   else ToricLattice(len(rays[0])))
+        # Are we dealing with a quotient lattice?
+        try:
+            if not lattice.is_torsion_free():
+                raise ValueError("cannot normalize rays of torsion quotients!")
+        except AttributeError:
+            pass
         V = lattice.base_extend(QQ)
         for n, ray in enumerate(rays):
             try:
@@ -522,8 +536,7 @@ def normalize_rays(rays, lattice):
             if ray.is_zero():
                 ray = lattice(0)
             else:
-                ray = ray.denominator() * ray
-                ray = lattice(ray / gcd(lattice(ray)))
+                ray = lattice(ray / integral_length(ray))
             ray.set_immutable()
             rays[n] = ray
     return rays

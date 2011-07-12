@@ -2377,35 +2377,40 @@ class ToricVariety_field(AmbientSpace):
 
     def _orbit_closure_projection(self, cone, x):
         r"""
-        The projection of points or cones onto the orbit closure of
-        ``cone``.
-
-        See :meth:`orbit_closure` for more details.
+        Return the projection of ``x`` onto the quotient lattice of ``cone``.
 
         INPUT:
 
-        - ``x`` -- a lattice point or cone of :meth:`fan`.
+        - ``cone`` -- a :class:`cone
+          <sage.geometry.cone.ConvexRationalPolyhedralCone>` of the :meth:`fan`
+          of ``self``;
+
+        - ``x`` -- a lattice point or a cone of the :meth:`fan` of ``self``.
 
         OUTPUT:
 
-        The ``cone`` (denoted as `\sigma` in the following) defines
-        the orbit closure `V(\sigma)=\overline{O(\sigma)}`, which is
-        again a toric variety. This method maps lattice points and
-        cones to the corresponding lattice points and cones of
-        `O(\sigma)`.
+        - the projection of ``x`` onto the quotient lattice of ``cone``, which
+          is either a lattice point or a cone depending on the type of ``x``.
+          This quotient lattice is the ambient lattice for the fan of the orbit
+          closure corresponding to ``cone``.
 
-        - If ``x`` is a point of the ambient lattice of the fan, the
-          projected points is returned.
+        If ``x`` is a cone not in the star of ``cone``, an ``IndexError`` is
+        raised.
 
-        - If ``x`` is a cone, the corresponding cone in the orbit
-          closure `V(\sigma)` is returned. If the cone is not in the
-          star of `\sigma`, a ``IndexError`` is raised.
+        See :meth:`orbit_closure` for more details.
+
+        .. warning::
+
+            Due to incomplete support of quotient lattices (as of 12-07-2011),
+            this function actually operates with a generic toric lattice of the
+            same dimension as the qppropriate quotient lattice. This behaviour
+            is likely to change in the future releases of Sage.
 
         EXAMPLES::
 
             sage: P2 = toric_varieties.P2()
             sage: H = P2.fan(1)[0]
-            sage: [ P2._orbit_closure_projection(H, p) for p in P2.fan().rays() ]
+            sage: [P2._orbit_closure_projection(H, p) for p in P2.fan().rays()]
             [(0), (1), (-1)]
             sage: P2._orbit_closure_projection(H, P2.fan(2)[0])
             1-d cone in 1-d lattice N
@@ -2419,29 +2424,37 @@ class ToricVariety_field(AmbientSpace):
         rays = [ vector(quot(r)) for r in x.rays() ]
         return Cone(rays)
 
+        # TODO: make the following work nicely.
+        #if x in cone.lattice():
+            #return quot(x)
+        #assert is_Cone(x)
+        #return Cone(x.rays(), lattice=quot)
+
 
     def orbit_closure(self, cone):
         r"""
-        Returns the orbit closure of ``cone``.
+        Return the orbit closure of ``cone``.
 
-        Note that the cones of the fan are in one-to-one
-        correspondence with the torus orbits of the toric
-        variety. Each orbit is isomorphic to `(\CC^\times)^d` for some
-        `d`. Just like the toric variety itself, these orbits are
-        (partially) compactified by lower-dimensional orbits. In
-        particular, one can define the closure (in the ambient toric
-        variety) of a torus orbit, which is again a toric variety.
+        The cones `\sigma` of a fan `\Sigma` are in one-to-one correspondence
+        with the torus orbits `O(\sigma)` of the corresponding toric variety
+        `X_\Sigma`. Each orbit is isomorphic to a lower dimensional torus (of
+        dimension equal to the codimension of `\sigma`). Just like the toric
+        variety `X_\Sigma` itself, these orbits are (partially) compactified by
+        lower-dimensional orbits. In particular, one can define the closure
+        `V(\sigma)` of the torus orbit `O(\sigma)` in the ambient toric
+        variety `X_\Sigma`, which is again a toric variety.
 
         See Proposition 3.2.7 of [CLS]_ for more details.
 
         INPUT:
 
-        - ``cone`` -- a cone of the fan.
+        - ``cone`` -- a :class:`cone
+          <sage.geometry.cone.ConvexRationalPolyhedralCone>` of the fan.
 
         OUTPUT:
 
-        The torus orbit closure associated to ``cone`` as a toric
-        variety.
+        - a torus orbit closure associated to ``cone`` as a
+          :class:`toric variety <ToricVariety_field>`.
 
         EXAMPLES::
 

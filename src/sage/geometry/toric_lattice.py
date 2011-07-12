@@ -1464,7 +1464,7 @@ class ToricLattice_quotient(FGP_Module_class):
             sage: x == y
             True
         """
-        if len(x) == 1:
+        if len(x) == 1 and (x[0] not in ZZ or x[0] == 0):
             x = x[0]
         if parent(x) is self:
             return x
@@ -1472,7 +1472,10 @@ class ToricLattice_quotient(FGP_Module_class):
             x = x.lift()
         except AttributeError:
             pass
-        return self.element_class(self, self._V(x), **kwds)
+        try:
+            return self.element_class(self, self._V(x), **kwds)
+        except TypeError:
+            return self.linear_combination_of_smith_form_gens(x)
 
     def _latex_(self):
         r"""

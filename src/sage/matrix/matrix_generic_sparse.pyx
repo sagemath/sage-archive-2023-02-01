@@ -83,14 +83,17 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
     def __cinit__(self, parent, entries=0, coerce=True, copy=True):
         self._entries = {}  # crucial so that pickling works
 
-    def __init__(self, parent, entries=0, coerce=True, copy=True):
+    def __init__(self, parent, entries=None, coerce=True, copy=True):
         cdef Py_ssize_t i, j
         matrix.Matrix.__init__(self, parent)
 
         R = self._base_ring
         self._zero = R(0)
         if not isinstance(entries, (list, dict)):
-            x = R(entries)
+            if entries is None:
+                x = R.zero_element()
+            else:
+                x = R(entries)
             entries = {}
             if x != self._zero:
                 if self._nrows != self._ncols:

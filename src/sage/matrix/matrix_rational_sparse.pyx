@@ -101,6 +101,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
         cdef Rational z
         cdef void** X
 
+        if entries is None: return
         # fill in entries in the dict case
         if isinstance(entries, dict):
             R = self.base_ring()

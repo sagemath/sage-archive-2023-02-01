@@ -174,11 +174,12 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         sage_free(self._entries)
         sage_free(self._matrix)
 
-    def __init__(self, parent, entries=0, coerce=True, copy=True):
+    def __init__(self, parent, entries=None, coerce=True, copy=True):
 
         cdef Py_ssize_t i
         cdef Rational z
 
+        if entries is None: return
         if isinstance(entries, (list, tuple)):
             if len(entries) != self._nrows * self._ncols:
                 raise TypeError("entries has the wrong length")

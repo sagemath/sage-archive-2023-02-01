@@ -92,6 +92,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
         cdef void** X
 
         # fill in entries in the dict case
+        if entries is None: return
         if isinstance(entries, dict):
             R = self.base_ring()
             for ij, x in entries.iteritems():

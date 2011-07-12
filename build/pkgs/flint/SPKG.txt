@@ -28,12 +28,18 @@ GPL V2+
 
 == Special Update/Build Instructions ==
 
-We patch the makefile slightly to add 64 bit OSX build support and also change
-LIBS such that the NTL interface is linked into the flint library.
-This is not an officially supported option because flint is pure C
-and the NTL interface requires C++.
+ * We patch the makefile slightly to add 64 bit OSX build support and also change
+   LIBS such that the NTL interface is linked into the flint library.
+   This is not an officially supported option because flint is pure C
+   and the NTL interface requires C++.
+ * Remove the '.svn' directories from upstream ('src/') if present.
 
 == Changelog ==
+
+=== flint-1.5.0.p8 (Karl-Dieter Crisman, 12th July 2011) ===
+  * Enable both libflint.dll and .so on Cygwin (see Trac 11547).
+  * Use 'cp' rather than '$CP' (affects only Cygwin).
+  * Remove '.svn' directories from upstream.
 
 === flint-1.5.0.p7 (Jeroen Demeyer, 6 July 2011) ===
  * Trac #11246: remove check for gcc version since we require gcc >= 4.0.1

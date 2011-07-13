@@ -377,6 +377,21 @@ cdef class pAdicZZpXElement(pAdicExtElement):
            1 + 5^2 + O(5^5)
            sage: ((1+2*w)).norm()^5
            1 + 5^2 + O(5^5)
+
+        TESTS:
+
+        Check that #11586 has been resolved::
+
+            sage: R.<x> = QQ[]
+            sage: f = x^2 + 3*x + 1
+            sage: M.<a> = Qp(7).extension(f)
+            sage: M(7).norm()
+            7^2 + O(7^22)
+            sage: b = 7*a + 35
+            sage: b.norm()
+            4*7^2 + 7^3 + O(7^22)
+            sage: b*b.frobenius()
+            4*7^2 + 7^3 + O(7^22)
         """
         if base is not None:
             if base is self.parent():
@@ -387,10 +402,13 @@ cdef class pAdicZZpXElement(pAdicExtElement):
             return self.parent().ground_ring()(0)
         elif self._is_inexact_zero():
             return self.ground_ring(0, self.valuation())
-        norm_of_uniformizer = (-1)**self.parent().degree() * self.parent().defining_polynomial()[0]
         if self.valuation() == 0:
-            return self.parent().ground_ring()(self.unit_part().matrix_mod_pn().det())
+            return self.parent().ground_ring()(self.matrix_mod_pn().det())
         else:
+            if self.parent().e() == 1:
+                norm_of_uniformizer = self.parent().ground_ring().uniformizer_pow(self.parent().degree())
+            else:
+                norm_of_uniformizer = (-1)**self.parent().degree() * self.parent().defining_polynomial()[0]
             return self.parent().ground_ring()(self.unit_part().matrix_mod_pn().det()) * norm_of_uniformizer**self.valuation()
 
     def trace(self, base = None):

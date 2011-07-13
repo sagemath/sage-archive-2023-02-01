@@ -83,6 +83,7 @@ cdef extern from "../../../local/include/glpk.h":
      int glp_get_col_kind(c_glp_prob *lp, int)
      double glp_get_obj_coef(c_glp_prob *lp, int)
      int glp_get_obj_dir(c_glp_prob *lp)
+     void glp_copy_prob(c_glp_prob *dst, c_glp_prob *src, int names)
 
 
 
@@ -112,4 +113,4 @@ cdef extern from "../../../local/include/glpk.h":
 cdef class GLPKBackend(GenericBackend):
     cdef c_glp_prob * lp
     cdef c_glp_iocp * iocp
-
+    cpdef GLPKBackend copy(self)

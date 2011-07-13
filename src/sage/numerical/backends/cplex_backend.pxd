@@ -21,6 +21,7 @@ cdef class CPLEXBackend(GenericBackend):
     cdef c_cpxlp * env
     cdef c_cpxlp * lp
     cdef current_sol
+    cpdef CPLEXBackend copy(self)
 
 cdef extern from "../../local/include/cplex.h":
 
@@ -157,11 +158,17 @@ cdef extern from "../../local/include/cplex.h":
      # Get the problem's type
      int CPXgetprobtype(c_cpxlp * env, c_cpxlp * lp)
 
+     # Set the problem's type
+     int CPXchgprobtype(c_cpxlp * env, c_cpxlp * lp, int type)
+
      # Change a row's range
      int CPXchgrngval(c_cpxlp * env, c_cpxlp * lp, int cnt, int * indices, double * values)
 
      # Get a row's range
      int CPXgetrngval(c_cpxlp * env, c_cpxlp * lp, double * rngval, int begin, int end)
+
+     # Copy a LP
+     c_cpxlp * CPXcloneprob(c_cpxlp * env, c_cpxlp * lp, int * status_p)
 
      # CONSTANTS
      int CPX_ON = 1

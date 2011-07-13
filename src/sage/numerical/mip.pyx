@@ -88,7 +88,7 @@ The following example shows all these steps::
 include "../ext/stdsage.pxi"
 include "../ext/interrupt.pxi"
 include "../ext/cdefs.pxi"
-from copy import deepcopy
+from copy import copy,deepcopy
 
 cdef class MixedIntegerLinearProgram:
     r"""
@@ -238,6 +238,29 @@ cdef class MixedIntegerLinearProgram:
 
                  ", " + str(b.ncols()) + " variables, " +
                  str(b.nrows()) + " constraints )")
+
+    def __copy__(self):
+        r"""
+        Returns a copy of self
+        """
+        cdef MixedIntegerLinearProgram p = MixedIntegerLinearProgram(solver="GLPK")
+        try:
+            p._mipvariables = copy(self._mipvariables)
+        except AttributeError:
+            pass
+
+        try:
+            p._variables = copy(self._variables)
+        except AttributeError:
+            pass
+
+        try:
+            p._default_mipvariable = self._default_mipvariable
+        except AttributeError:
+            pass
+
+        p._backend = (<GenericBackend> self._backend).copy()
+        return p
 
     def __getitem__(self, v):
         r"""

@@ -1235,6 +1235,33 @@ cdef class CPLEXBackend(GenericBackend):
         status = CPXwriteprob(self.env, self.lp, filename, ext)
         check(status)
 
+    cpdef CPLEXBackend copy(self):
+        r"""
+        Returns a copy of self.
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = MixedIntegerLinearProgram(solver = "CPLEX")        # optional - CPLEX
+            sage: b = p.new_variable()                         # optional - CPLEX
+            sage: p.add_constraint(b[1] + b[2] <= 6)           # optional - CPLEX
+            sage: p.set_objective(b[1] + b[2])                 # optional - CPLEX
+            sage: copy(p).solve()                              # optional - CPLEX
+            6.0
+        """
+        cdef CPLEXBackend p = CPLEXBackend()
+
+        p.lp = CPXcloneprob(p.env, self.lp, &status)
+        check(status)
+
+        p._mixed = self._mixed
+        p.current_sol = self.current_sol
+
+        status = CPXchgprobtype(p.env, p.lp, CPXgetprobtype(self.env, self.lp))
+        check(status)
+
+        return p
+
     def __dealloc__(self):
         r"""
         Destructor for the class

@@ -1047,6 +1047,25 @@ cdef class GLPKBackend(GenericBackend):
         """
         glp_write_mps(self.lp, modern, NULL,  filename)
 
+    cpdef GLPKBackend copy(self):
+        """
+        Returns a copy of self.
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = MixedIntegerLinearProgram(solver = "GLPK")
+            sage: b = p.new_variable()
+            sage: p.add_constraint(b[1] + b[2] <= 6)
+            sage: p.set_objective(b[1] + b[2])
+            sage: copy(p).solve()
+            6.0
+        """
+        cdef GLPKBackend p = GLPKBackend(maximization = (1 if self.is_maximization() else -1))
+        glp_copy_prob(p.lp, self.lp, 1)
+        return p
+
+
     def __dealloc__(self):
         """
         Destructor

@@ -36,4 +36,3 @@ cdef class GenericBackend:
     cpdef col_name(self, int index)
     cpdef variable_upper_bound(self, int index, value = *)
     cpdef variable_lower_bound(self, int index, value = *)
-

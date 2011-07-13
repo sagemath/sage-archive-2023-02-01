@@ -52,8 +52,12 @@ cdef extern from "../../local/include/coin/CbcModel.hpp":
      c_CbcModel *new_c_CbcModel "new CbcModel" ()
      void del_CbcModel "delete" (c_CbcModel *)
 
+cdef extern from "../../local/include/coin/OsiSolverInterface.hpp":
+     cdef cppclass OsiSolverInterface:
+         pass
+
 cdef extern from "../../local/include/coin/OsiCbcSolverInterface.hpp":
-     ctypedef struct c_OsiCbcSolverInterface "OsiCbcSolverInterface":
+     cdef cppclass c_OsiCbcSolverInterface "OsiCbcSolverInterface":
          double getInfinity()
          void loadProblem(c_CoinPackedMatrix, const_double_ptr, const_double_ptr, const_double_ptr, const_double_ptr, const_double_ptr)
          void assignProblem(c_CoinPackedMatrix *, const_double_ptr, const_double_ptr, const_double_ptr, const_double_ptr, const_double_ptr)
@@ -93,8 +97,11 @@ cdef extern from "../../local/include/coin/OsiCbcSolverInterface.hpp":
          void addCol (int numberElements, int *rows, double *elements, double collb, double colub, double obj)
          void addRow (c_CoinPackedVector vec, double rowlb, double rowub)
          c_CoinPackedMatrix * getMatrixByRow()
+         c_OsiCbcSolverInterface * c_OsiCbcSolverInterface(OsiSolverInterface * solver)
      c_OsiCbcSolverInterface *new_c_OsiCbcSolverInterface "new OsiCbcSolverInterface" ()
+     c_OsiCbcSolverInterface * new2_c_OsiCbcSolverInterface "new OsiCbcSolverInterface" (OsiSolverInterface * solver)
      void del_OsiCbcSolverInterface "delete" (c_OsiCbcSolverInterface *)
 
 cdef class CoinBackend(GenericBackend):
-    cdef c_OsiCbcSolverInterface* si
+    cdef c_OsiCbcSolverInterface * si
+    cpdef CoinBackend copy(self)

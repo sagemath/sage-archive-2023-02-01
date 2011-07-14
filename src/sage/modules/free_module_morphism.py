@@ -319,6 +319,11 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
         r"""
         Given an element of the image, return an element of the codomain that maps onto it.
 
+        Note that ``lift`` and ``preimage_representative`` are
+        equivalent names for this method, with the latter suggesting
+        that the return value is a coset representative of the domain
+        modulo the kernel of the morphism.
+
         EXAMPLE::
 
             sage: X = QQ**2
@@ -354,6 +359,16 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
             sage: w = W((17, -2, 0))
             sage: f(f.lift(w)) == w
             True
+
+        This example illustrates the use of the ``preimage_representative``
+        as an equivalent name for this method.  ::
+
+            sage: V = ZZ^3
+            sage: W = ZZ^2
+            sage: w = vector(ZZ, [1,2])
+            sage: f = V.hom([w, w, w], W)
+            sage: f.preimage_representative(vector(ZZ, [10, 20]))
+            (0, 0, 10)
         """
         from free_module_element import vector
         x = self.codomain()(x)
@@ -377,6 +392,8 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
             raise ValueError, "element is not in the image"
         assert self(t) == x
         return t
+
+    preimage_representative = lift
 
     def eigenvalues(self,extend=True):
         r"""

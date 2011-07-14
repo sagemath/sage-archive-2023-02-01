@@ -1324,22 +1324,28 @@ class OddArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
              S3=(1,2,3)
              L=(2,3,4)
              R=(1,4,2)
+
+            sage: H = ArithmeticSubgroup_Permutation(S2 = '(1,4,11,14)(2,7,12,17)(3,5,13,15)(6,9,16,19)(8,10,18,20)', S3 = '(1,2,3,11,12,13)(4,5,6,14,15,16)(7,8,9,17,18,19)(10,20)')
+            sage: G = H.to_even_subgroup(relabel=False); G
+            Arithmetic subgroup with permutations of right cosets
+             S2=(1,4)(2,7)(3,5)(6,9)(8,10)
+             S3=(1,2,3)(4,5,6)(7,8,9)
+             L=(1,5)(2,4,9,10,8)(3,7,6)
+             R=(1,7,10,8,6)(2,5,9)(3,4)
+            sage: H.is_subgroup(G)
+            True
         """
         N = self.index()
 
         # build equivalence classes in e
         s2 = self._S2
-        e = set([])
+        e = []
+        e2i = [None]*N
         for i in xrange(N):
             j = s2[s2[i]]
             if i < j:
-                e.add((i,j))
-
-        # build index for equivalence classes
-        e2i = [None]*N  # eq. class to index
-        for i,(j0,j1) in enumerate(e):
-            e2i[j0] = i
-            e2i[j1] = i
+                e2i[i] = e2i[j] = len(e)
+                e.append((i,j))
 
         # build the quotient permutations
         ss2 = [None]*(N/2)

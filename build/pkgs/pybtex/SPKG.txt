@@ -1,0 +1,30 @@
+= name of spkg =
+
+== Description ==
+
+Describe the package here.
+
+== License ==
+
+Describe the package's license here.
+
+== SPKG Maintainers ==
+
+List the maintainers here
+
+== Upstream Contact ==
+
+Provide information for upstream contact.
+
+== Dependencies ==
+
+List the dependencies here
+
+== Special Update/Build Instructions ==
+
+List patches that need to be applied and what they do
+
+== Changelog ==
+
+Provide a changelog of the spkg here.
+

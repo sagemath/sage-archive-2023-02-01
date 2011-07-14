@@ -8,19 +8,7 @@ fi
 
 cd src
 
-./configure --prefix="$SAGE_LOCAL"
-if [ $? -ne 0 ]; then
-   echo "Error configuring PACKAGE_NAME."
-   exit 1
-fi
-
-$MAKE
-if [ $? -ne 0 ]; then
-   echo "Error building PACKAGE_NAME."
-   exit 1
-fi
-
-$MAKE install
+python setup.py
 if [ $? -ne 0 ]; then
    echo "Error installing PACKAGE_NAME."
    exit 1
@@ -49,12 +37,8 @@ if [ "x$SAGE_SPKG_INSTALL_DOCS" = xyes ] ; then
    # cd doc
    # $MAKE html
 
-   if [ $? -ne 0 ]; then
-      echo "Error building PACKAGE_NAME docs."
-      exit 1
-   fi
    mkdir -p $SAGE_ROOT/local/share/doc/PACKAGE_NAME
    # assuming the docs are in doc/*
-   cp -r doc/* $SAGE_ROOT/local/share/doc/PACKAGE_NAME/
+   cp -r docs/* $SAGE_ROOT/local/share/doc/PACKAGE_NAME/
 fi
 

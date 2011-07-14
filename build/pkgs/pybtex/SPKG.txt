@@ -1,30 +1,31 @@
-= name of spkg =
+= pybtex =
 
 == Description ==
 
-Describe the package here.
+Pybtex is a drop-in replacement for BibTeX written in Python.
 
 == License ==
 
-Describe the package's license here.
+MIT
 
 == SPKG Maintainers ==
 
-List the maintainers here
+Niels Ranosch
 
 == Upstream Contact ==
 
-Provide information for upstream contact.
+Andrey Golovizin <golovizin at gmail com>
+http://pybtex.sourceforge.net/
 
 == Dependencies ==
 
-List the dependencies here
+python
 
 == Special Update/Build Instructions ==
 
-List patches that need to be applied and what they do
+Don't know yet.
 
 == Changelog ==
 
-Provide a changelog of the spkg here.
+Initial release in 2011. Stay tuned.
 

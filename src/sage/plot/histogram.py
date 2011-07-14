@@ -57,9 +57,21 @@ class Histogram(GraphicPrimitive):
                  bins=options['bins'],
                  normed=options['normed'],
                  weights=options['weights'])
-        ydata,xdata=numpy.histogram(self.datalist, **opt)
-        return minmax_data(xdata,[0]+list(ydata), dict=True)
-
+ 
+        #check to see if a list of datasets
+        if not hasattr(self.datalist[0],'__contains__' ):
+            ydata,xdata=numpy.histogram(self.datalist, **opt)
+            return minmax_data(xdata,[0]+list(ydata), dict=True)
+        else:
+            m = { 'xmax': 0, 'xmin':0, 'ymax':0, 'ymin':0}
+            for d in self.datalist:
+                ydata, xdata = numpy.histogram(d,**opt)
+                m['xmax'] = max([m['xmax']] + list(xdata))
+                m['xmin'] = min([m['xmin']] + list(xdata))
+                m['ymax'] = max([m['ymax']] + list(ydata))
+                m['ymin'] = min([m['ymin']] + list(ydata))
+            return m
+     
     def _allowed_options(self):
         """
         Return the allowed options with descriptions for this graphics

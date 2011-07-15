@@ -19,7 +19,8 @@ http://pybtex.sourceforge.net/
 
 == Dependencies ==
 
-python
+PyYAML
+pyparsing
 
 == Special Update/Build Instructions ==
 

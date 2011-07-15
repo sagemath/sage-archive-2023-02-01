@@ -6,6 +6,19 @@ if [ "x$SAGE_LOCAL" = x ]; then
    exit 1
 fi
 
+PYYAML=`cd $SAGE_ROOT/spkg/standard/; ./newest_version pyyaml`
+if [ $? -ne 0 ]; then
+    echo "Failed to find PyYAML. Please install the PyYAML spkg"
+    exit 1
+fi
+
+PYPARSING=`cd SAGE_ROOT/spkg/standard/; ./newest_version pyparsing`
+if [ $? -ne 0 ]; then
+    echo "Failed to find pyparsing. Please install the pyparsing spkg"
+    exit 1
+fi
+
+
 cd src
 
 python setup.py install

@@ -51,7 +51,7 @@ import re
 import os
 from sage.rings.integer import Integer
 from sqlite3 import dbapi2 as sqlite # if anyone would like to explain why dbapi2...
-from sage.databases.database import GenericSQLDatabase, GenericSQLQuery, SQLQuery
+from sage.databases.sql_db import SQLDatabase, SQLQuery
 from sage.misc.misc import SAGE_DATA
 from sage.graphs.graph import Graph
 dblocation = SAGE_DATA + '/graphs/graphs.db'
@@ -132,7 +132,8 @@ def subgraphs_to_query(subgraphs, db):
         sage: gd = GraphDatabase()
         sage: q = subgraphs_to_query(['all_of','A?','B?','C?'],gd)
         sage: q.get_query_string()
-        'SELECT , ,, ,,  FROM misc WHERE ( ( misc.induced_subgraphs regexp ? ) AND ( misc.induced_subgraphs regexp ? ) ) AND ( misc.induced_subgraphs regexp ? )'
+        'SELECT ,,,,,  FROM misc WHERE ( ( misc.induced_subgraphs regexp ? ) AND (
+        misc.induced_subgraphs regexp ? ) ) AND ( misc.induced_subgraphs regexp ? )'
     """
     q = GraphQuery(graph_db=db,induced_subgraphs=subgraphs[1])
     if subgraphs[0] == 'all_of':
@@ -227,7 +228,7 @@ def graph_db_info(tablename=None):
         info = info[tablename]
     return info
 
-class GenericGraphQuery(GenericSQLQuery):
+class GenericGraphQuery(SQLQuery):
 
     def __init__(self, query_string, database=None, param_tuple=None):
         """
@@ -260,7 +261,7 @@ class GenericGraphQuery(GenericSQLQuery):
             {...
 
         to see the underlying structure of the database. Also see
-        GenericSQLQuery in sage.databases.database for more info and a
+        SQLQuery in sage.databases.database for more info and a
         tutorial.
 
         A piece of advice about '?' and param_tuple: It is generally
@@ -272,7 +273,7 @@ class GenericGraphQuery(GenericSQLQuery):
             sage: G = GraphDatabase()
             sage: q = 'select graph_id,graph6,num_vertices,num_edges from graph_data where graph_id<=(?) and num_vertices=(?)'
             sage: param = (22,5)
-            sage: Q = GenericSQLQuery(G,q,param)
+            sage: Q = SQLQuery(G,q,param)
             sage: Q.show()
             graph_id             graph6               num_vertices         num_edges
             --------------------------------------------------------------------------------
@@ -285,9 +286,9 @@ class GenericGraphQuery(GenericSQLQuery):
         if database == None: database = GraphDatabase()
         if not isinstance(database, GraphDatabase):
             raise TypeError('%s is not a valid GraphDatabase'%database)
-        GenericSQLQuery.__init__(self,database,query_string,param_tuple)
+        SQLQuery.__init__(self,database,query_string,param_tuple)
 
-class GraphQuery(SQLQuery, GenericGraphQuery):
+class GraphQuery(GenericGraphQuery):
 
     def __init__(self, graph_db=None, query_dict=None, display_cols=None, **kwds):
         """
@@ -623,12 +624,14 @@ class GraphQuery(SQLQuery, GenericGraphQuery):
             format_cols = {'degree_sequence': (lambda x,y: data_to_degseq(x,y))}
         else: format_cols = {}
         if with_picture:
-            GenericSQLQuery.show(self,max_field_size, \
+            SQLQuery.show(self, max_field_size=max_field_size, \
                                 plot_cols={'graph6': (lambda x: graph6_to_plot(x))}, \
                                 format_cols=format_cols, id_col='graph6', \
                                 relabel_cols=relabel)
         else:
-            GenericSQLQuery.show(self,max_field_size, format_cols=format_cols, relabel_cols=relabel, id_col='graph6')
+            SQLQuery.show(self, max_field_size=max_field_size, \
+                                format_cols=format_cols, relabel_cols=relabel, \
+                                id_col='graph6')
 
     def get_graphs_list(self):
         """
@@ -648,7 +651,7 @@ class GraphQuery(SQLQuery, GenericGraphQuery):
         s = self.__query_string__
         re.sub('SELECT.*FROM ', 'SELECT graph6 FROM ', s)
         q = GenericGraphQuery(s, self.__database__, self.__param_tuple__)
-        graph6_list = q.run_query()
+        graph6_list = q.query_results()
         return [Graph(str(g[0])) for g in graph6_list]
 
     def number_of(self):
@@ -666,9 +669,9 @@ class GraphQuery(SQLQuery, GenericGraphQuery):
         s = self.__query_string__
         re.sub('SELECT.*FROM ', 'SELECT graph6 FROM ', s)
         q = GenericGraphQuery(s, self.__database__, self.__param_tuple__)
-        return len(q.run_query())
+        return len(q.query_results())
 
-class GraphDatabase(GenericSQLDatabase):
+class GraphDatabase(SQLDatabase):
 
     def __init__(self):
         """
@@ -680,7 +683,7 @@ class GraphDatabase(GenericSQLDatabase):
         immutable database that inherits from SQLDatabase (see
         sage.databases.database.py). The display functions and get_graphs_list
         create their own queries, but it is also possible to query the
-        database by constructing either a GenericSQLQuery or a SQLQuery.
+        database by constructing either a SQLQuery.
 
         The database contains all unlabeled graphs with 7 or fewer nodes.
         This class will also interface with the optional database package
@@ -708,9 +711,180 @@ class GraphDatabase(GenericSQLDatabase):
 
             sage: G = GraphDatabase()
             sage: G.get_skeleton()
-            {u'aut_grp': {u'edge_transitive': {'index': True, 'primary_key': False, 'sql': u'BOOLEAN'}, u'vertex_transitive': {'index': True, 'primary_key': False, 'sql': u'BOOLEAN'}, u'aut_grp_size': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}, u'graph_id': {'index': False, 'primary_key': False, 'sql': u'INTEGER'}, u'num_orbits': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}, u'num_fixed_points': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}}, u'degrees': {u'graph_id': {'index': False, 'primary_key': False, 'sql': u'INTEGER'}, u'degrees_sd': {'index': True, 'primary_key': False, 'sql': u'REAL'}, u'max_degree': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}, u'regular': {'index': True, 'primary_key': False, 'sql': u'BOOLEAN'}, u'average_degree': {'index': True, 'primary_key': False, 'sql': u'REAL'}, u'degree_sequence': {'index': False, 'primary_key': False, 'sql': u'INTEGER'}, u'min_degree': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}}, u'spectrum': {u'max_eigenvalue': {'index': True, 'primary_key': False, 'sql': u'REAL'}, u'energy': {'index': True, 'primary_key': False, 'sql': u'REAL'}, u'spectrum': {'index': False, 'primary_key': False, 'sql': u'TEXT'}, u'eigenvalues_sd': {'index': True, 'primary_key': False, 'sql': u'REAL'}, u'graph_id': {'index': False, 'primary_key': False, 'sql': u'INTEGER'}, u'min_eigenvalue': {'index': True, 'primary_key': False, 'sql': u'REAL'}}, u'misc': {u'diameter': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}, u'vertex_connectivity': {'index': True, 'primary_key': False, 'sql': u'BOOLEAN'}, u'graph_id': {'index': False, 'primary_key': False, 'sql': u'INTEGER'}, u'num_components': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}, u'min_vertex_cover_size': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}, u'edge_connectivity': {'index': True, 'primary_key': False, 'sql': u'BOOLEAN'}, u'num_spanning_trees': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}, u'induced_subgraphs': {'index': True, 'primary_key': False, 'sql': u'TEXT'}, u'radius': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}, u'num_cut_vertices': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}, u'clique_number': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}, u'independence_number': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}, u'girth': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}}, u'graph_data': {u'perfect': {'index': True, 'primary_key': False, 'sql': u'BOOLEAN'}, u'planar': {'index': True, 'primary_key': False, 'sql': u'BOOLEAN'}, u'graph_id': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}, u'complement_graph6': {'index': True, 'primary_key': False, 'sql': u'TEXT'}, u'num_edges': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}, u'num_cycles': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}, u'graph6': {'index': True, 'primary_key': False, 'sql': u'TEXT'}, u'num_hamiltonian_cycles': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}, u'lovasz_number': {'index': True, 'primary_key': False, 'sql': u'REAL'}, u'eulerian': {'index': True, 'primary_key': False, 'sql': u'BOOLEAN'}, u'num_vertices': {'index': True, 'primary_key': False, 'sql': u'INTEGER'}}}
+            {u'aut_grp':    {u'edge_transitive':        {'index': True,
+                                                         'unique': False,
+                                                         'primary_key': False,
+                                                         'sql': u'BOOLEAN'},
+                             u'vertex_transitive':      {'index': True,
+                                                         'unique': False,
+                                                         'primary_key': False,
+                                                         'sql': u'BOOLEAN'},
+                             u'aut_grp_size':           {'index': True,
+                                                         'unique': False,
+                                                         'primary_key': False,
+                                                         'sql': u'INTEGER'},
+                             u'graph_id':               {'index': False,
+                                                         'unique': False,
+                                                         'primary_key': False,
+                                                         'sql': u'INTEGER'},
+                             u'num_orbits':             {'index': True,
+                                                         'unique': False,
+                                                         'primary_key': False,
+                                                         'sql': u'INTEGER'},
+                             u'num_fixed_points':       {'index': True,
+                                                         'unique': False,
+                                                         'primary_key': False,
+                                                         'sql': u'INTEGER'}},
+             u'degrees':    {u'graph_id':               {'index': False,
+                                                         'unique': False,
+                                                         'primary_key': False,
+                                                         'sql': u'INTEGER'},
+                             u'degrees_sd':             {'index': True,
+                                                         'unique': False,
+                                                         'primary_key': False,
+                                                         'sql': u'REAL'},
+                             u'max_degree':             {'index': True,
+                                                         'unique': False,
+                                                         'primary_key': False,
+                                                         'sql': u'INTEGER'},
+                             u'regular':                {'index': True,
+                                                         'unique': False,
+                                                         'primary_key': False,
+                                                         'sql': u'BOOLEAN'},
+                             u'average_degree':         {'index': True,
+                                                         'unique': False,
+                                                         'primary_key': False,
+                                                         'sql': u'REAL'},
+                             u'degree_sequence':        {'index': False,
+                                                         'unique': False,
+                                                         'primary_key': False,
+                                                         'sql': u'INTEGER'},
+                             u'min_degree':             {'index': True,
+                                                         'unique': False,
+                                                         'primary_key': False,
+                                                         'sql': u'INTEGER'}},
+             u'spectrum':   {u'max_eigenvalue':         {'index': True,
+                                                         'unique': False,
+                                                         'primary_key': False,
+                                                         'sql': u'REAL'},
+                             u'energy':                 {'index': True,
+                                                         'unique': False,
+                                                         'primary_key': False,
+                                                         'sql': u'REAL'},
+                             u'spectrum':               {'index': False,
+                                                         'unique': False,
+                                                         'primary_key': False,
+                                                         'sql': u'TEXT'},
+                             u'eigenvalues_sd':         {'index': True,
+                                                         'unique': False,
+                                                         'primary_key': False,
+                                                         'sql': u'REAL'},
+                             u'graph_id':               {'index': False,
+                                                         'unique': False,
+                                                         'primary_key': False,
+                                                         'sql': u'INTEGER'},
+                             u'min_eigenvalue':         {'index': True,
+                                                         'unique': False,
+                                                         'primary_key': False,
+                                                         'sql': u'REAL'}},
+             u'misc':       {u'diameter':               {'index': True,
+                                                         'unique': False,
+                                                         'primary_key': False,
+                                                         'sql': u'INTEGER'},
+                             u'vertex_connectivity':    {'index': True,
+                                                         'unique': False,
+                                                         'primary_key': False,
+                                                         'sql': u'BOOLEAN'},
+                             u'graph_id':               {'index': False,
+                                                         'unique': False,
+                                                         'primary_key': False,
+                                                         'sql': u'INTEGER'},
+                             u'num_components':         {'index': True,
+                                                         'unique': False,
+                                                         'primary_key': False,
+                                                         'sql': u'INTEGER'},
+                             u'min_vertex_cover_size':  {'index': True,
+                                                         'unique': False,
+                                                         'primary_key': False,
+                                                         'sql': u'INTEGER'},
+                             u'edge_connectivity':      {'index': True,
+                                                         'unique': False,
+                                                         'primary_key': False,
+                                                         'sql': u'BOOLEAN'},
+                             u'num_spanning_trees':     {'index': True,
+                                                         'unique': False,
+                                                         'primary_key': False,
+                                                         'sql': u'INTEGER'},
+                             u'induced_subgraphs':      {'index': True,
+                                                         'unique': False,
+                                                         'primary_key': False,
+                                                         'sql': u'TEXT'},
+                             u'radius':                 {'index': True,
+                                                         'unique': False,
+                                                         'primary_key': False,
+                                                         'sql': u'INTEGER'},
+                             u'num_cut_vertices':       {'index': True,
+                                                         'unique': False,
+                                                         'primary_key': False,
+                                                         'sql': u'INTEGER'},
+                             u'clique_number':          {'index': True,
+                                                         'unique': False,
+                                                         'primary_key': False,
+                                                         'sql': u'INTEGER'},
+                             u'independence_number':    {'index': True,
+                                                         'unique': False,
+                                                         'primary_key': False,
+                                                         'sql': u'INTEGER'},
+                             u'girth':                  {'index': True,
+                                                         'unique': False,
+                                                         'primary_key': False,
+                                                         'sql': u'INTEGER'}},
+             u'graph_data': {u'perfect':                {'index': True,
+                                                         'unique': False,
+                                                         'primary_key': False,
+                                                         'sql': u'BOOLEAN'},
+                             u'planar':                 {'index': True,
+                                                         'unique': False,
+                                                         'primary_key': False,
+                                                         'sql': u'BOOLEAN'},
+                             u'graph_id':               {'index': True,
+                                                         'unique': True,
+                                                         'primary_key': False,
+                                                         'sql': u'INTEGER'},
+                             u'complement_graph6':      {'index': True,
+                                                         'unique': False,
+                                                         'primary_key': False,
+                                                         'sql': u'TEXT'},
+                             u'num_edges':              {'index': True,
+                                                         'unique': False,
+                                                         'primary_key': False,
+                                                         'sql': u'INTEGER'},
+                             u'num_cycles':             {'index': True,
+                                                         'unique': False,
+                                                         'primary_key': False,
+                                                         'sql': u'INTEGER'},
+                             u'graph6':                 {'index': True,
+                                                         'unique': False,
+                                                         'primary_key': False,
+                                                         'sql': u'TEXT'},
+                             u'num_hamiltonian_cycles': {'index': True,
+                                                         'unique': False,
+                                                         'primary_key': False,
+                                                         'sql': u'INTEGER'},
+                             u'lovasz_number':          {'index': True,
+                                                         'unique': False,
+                                                         'primary_key': False,
+                                                         'sql': u'REAL'},
+                             u'eulerian':               {'index': True,
+                                                         'unique': False,
+                                                         'primary_key': False,
+                                                         'sql': u'BOOLEAN'},
+                             u'num_vertices':           {'index': True,
+                                                         'unique': False,
+                                                         'primary_key': False,
+                                                         'sql': u'INTEGER'}}}
         """
-        GenericSQLDatabase.__init__(self,dblocation)
+        SQLDatabase.__init__(self,dblocation)
 
     def _gen_interact_func(self, display, **kwds):
         """

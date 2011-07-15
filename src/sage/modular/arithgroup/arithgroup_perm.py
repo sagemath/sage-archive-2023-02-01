@@ -1312,6 +1312,36 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
         """
         return arith.lcm(self.cusp_widths())
 
+    def congruence_closure(self):
+        r"""
+        Returns the smallest congruence subgroup containing self. If self is
+        congruence, this is just self, but represented as a congruence subgroup
+        data type. If self is not congruence, then it may be larger.
+
+        In practice, we use the following criterion: let `m` be the generalised
+        level of self. If this subgroup is even, let `n = m`, else let `n =
+        2m`. Then any congruence subgroup containing self contains `\Gamma(n)`
+        (a generalisation of Wohlfahrt's theorem due to Kiming, Verrill and
+        Schuett). So we compute the image of self modulo `n` and return the
+        preimage of that.
+
+        EXAMPLE::
+
+            sage: Gamma1(3).as_permutation_group().congruence_closure()
+            Congruence subgroup of SL(2,Z) of level 3, preimage of:
+             Matrix group over Ring of integers modulo 3 with 2 generators:
+              [[[1, 2], [0, 1]], [[1, 1], [0, 1]]]
+            sage: sage.modular.arithgroup.arithgroup_perm.HsuExample10().congruence_closure() # long time (40 sec)
+            Modular Group SL(2,Z)
+        """
+        if self.is_even():
+            N = self.generalised_level()
+        else:
+            N = 2*self.generalised_level()
+
+        from congroup_generic import CongruenceSubgroup_constructor as CS
+        return CS(N, [x.matrix() for x in self.gens()])
+
 class OddArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
     def __init__(self, S2, S3, L, R, canonical_labels=False):
         r"""

@@ -97,6 +97,14 @@ class SL2Z_class(Gamma0_class):
         r"""
         Create an element of self from x. If check=True (the default), check
         that x really defines a 2x2 integer matrix of det 1.
+
+        EXAMPLE::
+
+            sage: SL2Z([1,0,0,1])
+            [1 0]
+            [0 1]
+            sage: SL2Z([1, QQ, False], check=False) # don't do this!
+            [1, Rational Field, False]
         """
         return ArithmeticSubgroupElement(self, x, check=check)
 

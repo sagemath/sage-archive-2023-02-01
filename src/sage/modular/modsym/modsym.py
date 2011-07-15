@@ -124,7 +124,10 @@ def canonical_parameters(group, weight, sign, base_ring):
         # TODO -- implement minimize_base_ring over finite fields
             eps = group
         G = eps.parent()
-        group = (eps, G)
+        if eps.is_trivial():
+            group = arithgroup.Gamma0(eps.modulus())
+        else:
+            group = (eps, G)
         if base_ring is None: base_ring = eps.base_ring()
 
     if base_ring is None: base_ring = rational_field.RationalField()

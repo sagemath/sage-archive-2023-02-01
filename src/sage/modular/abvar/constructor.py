@@ -128,8 +128,8 @@ def JH(N, H):
 
     EXAMPLES::
 
-        sage: JH(389,[2])
-        Abelian variety JH(389,[2]) of dimension 32
+        sage: JH(389,[16])
+        Abelian variety JH(389,[16]) of dimension 64
     """
     key = 'JH(%s,%s)'%(N,H)
     try:

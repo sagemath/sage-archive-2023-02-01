@@ -17,7 +17,9 @@ Congruence Subgroup `\Gamma(N)`
 from congroup_generic import CongruenceSubgroup
 from arithgroup_element import ArithmeticSubgroupElement
 from sage.misc.misc import prod
-from sage.rings.all import ZZ
+from sage.rings.all import ZZ, Zmod
+from sage.groups.matrix_gps.matrix_group import MatrixGroup
+from sage.matrix.constructor import matrix
 
 _gamma_cache = {}
 def Gamma_constructor(N):
@@ -166,6 +168,35 @@ class Gamma_class(CongruenceSubgroup):
         if n==2:
             return ZZ(3)
         return prod([p**(2*e) - p**(2*e-2) for (p,e) in n.factor()])//2
+
+    def nu3(self):
+        r"""
+        Return the number of elliptic points of order 3 for this arithmetic
+        subgroup. Since this subgroup is `\Gamma(N)` for `N \ge 2`, there are
+        no such points, so we return 0.
+
+        EXAMPLE::
+
+            sage: Gamma(89).nu3()
+            0
+        """
+        return 0
+
+    # We don't need to override nu2, since the default nu2 implementation knows
+    # that nu2 = 0 for odd subgroups.
+
+    def image_mod_n(self):
+        r"""
+        Return the image of this group modulo `N`, as a subgroup of `SL(2, \ZZ
+        / N\ZZ)`. This is just the trivial subgroup.
+
+        EXAMPLE::
+
+            sage: Gamma(3).image_mod_n()
+            Matrix group over Ring of integers modulo 3 with 1 generators:
+             [[[1, 0], [0, 1]]]
+        """
+        return MatrixGroup([matrix(Zmod(self.level()), 2, 2, 1)])
 
 
 def is_Gamma(x):

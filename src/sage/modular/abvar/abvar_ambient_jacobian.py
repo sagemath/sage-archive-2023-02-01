@@ -144,8 +144,8 @@ class ModAbVar_ambient_jacobian_class(ModularAbelianVariety_modsym_abstract):
             J_0(37)
             sage: J1(13)._latex_()
             'J_1(13)'
-            sage: latex(JH(389,[2]))
-            J_H(389,[2])
+            sage: latex(JH(389,[16]))
+            J_H(389,[16])
         """
         return self._ambient_latex_repr()
 

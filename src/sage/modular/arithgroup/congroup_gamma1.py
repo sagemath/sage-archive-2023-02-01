@@ -19,6 +19,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.misc import prod
 from congroup_generic import is_CongruenceSubgroup
 from congroup_gammaH import GammaH_class, is_GammaH, GammaH_constructor
+#from congroup_gamma0 import Gamma0_constructor -- circular!
 from arithgroup_element import ArithmeticSubgroupElement
 from sage.rings.all import ZZ, euler_phi as phi, moebius, divisors
 from sage.modular.dirichlet import DirichletGroup
@@ -41,7 +42,9 @@ def is_Gamma1(x):
         True
         sage: is_Gamma1(Gamma0(6))
         False
-        sage: is_Gamma1(GammaH(12, []))
+        sage: is_Gamma1(GammaH(12, [])) # trick question!
+        True
+        sage: is_Gamma1(GammaH(12, [5]))
         False
     """
     #from congroup_sl2z import is_SL2Z
@@ -65,6 +68,9 @@ def Gamma1_constructor(N):
         sage: G is loads(dumps(G))
         True
     """
+    if N == 1 or N == 2:
+        from congroup_gamma0 import Gamma0_constructor
+        return Gamma0_constructor(N)
     try:
         return _gamma1_cache[N]
     except KeyError:

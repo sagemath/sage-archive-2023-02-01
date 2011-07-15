@@ -504,6 +504,22 @@ class ArithmeticSubgroup(group.Group):
         """
         return [-1, 0, 0, -1] in self
 
+    def to_even_subgroup(self):
+        r"""
+        Return the smallest even subgroup of `SL(2, \ZZ)` containing self.
+
+        EXAMPLE::
+
+            sage: sage.modular.arithgroup.arithgroup_generic.ArithmeticSubgroup().to_even_subgroup()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        if self.is_even():
+            return self
+        else:
+            raise NotImplementedError
+
     def order(self):
         r"""
         Return the number of elements in this arithmetic subgroup.
@@ -747,8 +763,13 @@ class ArithmeticSubgroup(group.Group):
     def generalised_level(self):
         r"""
         Return the generalised level of self, i.e. the least common multiple of
-        the widths of all cusps. Wohlfart's theorem tells us that this is equal
-        to the (conventional) level of self when self is a congruence subgroup.
+        the widths of all cusps.
+
+        If self is *even*, Wohlfart's theorem tells us that this is equal to
+        the (conventional) level of self when self is a congruence subgroup.
+        This can fail if self is odd, but the actual level is at most twice the
+        generalised level. See the paper by Kiming, Schuett and Verrill for
+        more examples.
 
         EXAMPLE::
 
@@ -758,6 +779,17 @@ class ArithmeticSubgroup(group.Group):
             Traceback (most recent call last):
             ...
             NotImplementedError
+
+        In the following example, the actual level is twice the generalised
+        level. This is the group `G_2` from Example 17 of K-S-V.
+
+        ::
+
+            sage: G = CongruenceSubgroup(8, [ [1,1,0,1], [3,-1,4,-1] ])
+            sage: G.level()
+            8
+            sage: G.generalised_level()
+            4
         """
         return arith.lcm([self.cusp_width(c) for c in self.cusps()])
 

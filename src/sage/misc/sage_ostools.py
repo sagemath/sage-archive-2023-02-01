@@ -2,13 +2,15 @@
 Miscellaneous operating system functions
 """
 
-def have_program(program):
+def have_program(program, path=None):
     """
     Return ``True`` if ``program`` is found in the path.
 
     INPUT:
 
-    - ``program`` - a string, the name of the program to check
+    - ``program`` - a string, the name of the program to check.
+    - ``path`` - string or None.  If a nonempty string, use this as
+      the setting for the PATH environment variable.
 
     OUTPUT: bool
 
@@ -29,8 +31,17 @@ def have_program(program):
         False
     """
     from subprocess import call, PIPE
+    import os
     try:
-        return not call('command -v ' + program, shell=True, stdout=PIPE, stderr=PIPE)
+        if path:
+            # env is a copy of the current environment, so modifying
+            # it won't affect os.environ.
+            env = os.environ.copy()
+            env['PATH'] = path
+            return not call('command -v %s' % program, shell=True,
+                            stdout=PIPE, env=env)
+        else:
+            return not call('command -v %s' % program, shell=True,
+                            stdout=PIPE)
     except OSError:
         return False
-

@@ -8,7 +8,7 @@ fi
 
 cd src
 
-python setup.py
+python setup.py install
 if [ $? -ne 0 ]; then
    echo "Error installing PACKAGE_NAME."
    exit 1

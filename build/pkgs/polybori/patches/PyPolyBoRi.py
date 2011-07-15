@@ -1,6 +1,6 @@
 from sage import all
 from sage.rings.polynomial.pbori import *
-
+import weakref
 class OrderCode:
     pass
 
@@ -29,16 +29,11 @@ def add_up_polynomials(polys, init):
 
     return _add_up_polynomials(polys, init)
 
-old_ring_var=Ring.var
-def ring_var(self, i):
-    warnings.warn('Ring.var is deprectated')
-    return old_ring_var(self, i)
+#todo: PolyBoRi's original interface uses its WeakRingPtr here
+def WeakRingRef(ring):
+    return weakref.weakref(ring)
 
-Ring.var=ring_var
+Monomial = MonomialFactory()
+Polynomial = PolynomialFactory()
+Variable = VariableFactory()
 
-def weakringref_call(self):
-    if self.is_valid():
-        return self.deref()
-    return None
-
-WeakRingRef.__call__ = weakringref_call

@@ -27,8 +27,10 @@ def random_even_arithgroup(index,nu2_max=None,nu3_max=None):
     EXAMPLES::
 
         sage: import sage.modular.arithgroup.tests as tests
-        sage: tests.random_even_arithgroup(30) #random
+        sage: G = tests.random_even_arithgroup(30); G # random
         Arithmetic subgroup of index 30
+        sage: G.is_even()
+        True
     """
     from sage.groups.perm_gps.permgroup import PermutationGroup
 
@@ -36,8 +38,12 @@ def random_even_arithgroup(index,nu2_max=None,nu3_max=None):
 
     if nu2_max is None:
         nu2_max = index//5
+    elif nu2_max == 0:
+        assert index%2 == 0
     if nu3_max is None:
         nu3_max = index//7
+    elif nu3_max == 0:
+        assert index%3 == 0
 
     while not test:
         nu2 = prandom.randint(0,nu2_max)
@@ -63,11 +69,27 @@ def random_even_arithgroup(index,nu2_max=None,nu3_max=None):
 
     return ArithmeticSubgroup_Permutation(S2=S2,S3=S3)
 
+def random_odd_arithgroup(index,nu3_max=None):
+    r"""
+    Return a random odd arithmetic subgroup
+
+    EXAMPLES::
+
+        sage: from sage.modular.arithgroup.tests import random_odd_arithgroup
+        sage: G = random_odd_arithgroup(20); G #random
+        Arithmetic subgroup of index 20
+        sage: G.is_odd()
+        True
+    """
+    assert index%4 == 0
+    G = random_even_arithgroup(index//2,nu2_max=0,nu3_max=nu3_max)
+    return G.one_odd_subgroup(random=True)
+
 class Test:
     r"""
     Testing class for arithmetic subgroup implemented via permutations.
     """
-    def __init__(self, index=20, index_max=50):
+    def __init__(self, index=20, index_max=50, odd_probability=0.5):
         r"""
         Create an arithmetic subgroup testing object.
 
@@ -85,6 +107,9 @@ class Test:
         """
         self.congroups = []
         i = 1
+        self.odd_probability = odd_probability
+        if index%2:
+            self.odd_probability=0
         while Gamma(i).index() < index_max:
             self.congroups.append(Gamma(i))
             i += 1
@@ -204,17 +229,24 @@ class Test:
             sage: from sage.modular.arithgroup.tests import Test
             sage: Test().test_relabel() # random
         """
-        G = random_even_arithgroup(self.index)
+        if prandom.uniform(0,1) < self.odd_probability:
+            G = random_odd_arithgroup(self.index)
+        else:
+            G = random_even_arithgroup(self.index)
+
         G.relabel()
         s2 = G._S2
         s3 = G._S3
         l = G._L
         r = G._R
 
+        # 0 should be stabilized by the mapping
+        # used for renumbering so we start at 1
         p = range(1,self.index)
 
         for _ in xrange(10):
             prandom.shuffle(p)
+            # we add 0 to the mapping
             pp = [0] + p
             ss2 = [None]*self.index
             ss3 = [None]*self.index
@@ -291,7 +323,10 @@ class Test:
             sage: from sage.modular.arithgroup.tests import Test
             sage: Test().test_contains() #random
         """
-        G = random_even_arithgroup(self.index)
+        if prandom.uniform(0,1) < self.odd_probability:
+            G = random_odd_arithgroup(self.index)
+        else:
+            G = random_even_arithgroup(self.index)
 
         for _ in xrange(20):
             g = G.random_element()

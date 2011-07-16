@@ -34,6 +34,7 @@ GPL version 2+
  * MPIR (in place of GMP)
  * Readline
  * Termcap
+ * GNU patch (shipped with Sage)
 
 == Special Update/Build Instructions ==
 
@@ -79,16 +80,21 @@ exactly where it says native, but I would expect a grep to find it.
 
 == Changelog ==
 
-=== pari-2.4.3.alpha.p6 (Dima Pasechnik, 22 April, 2010) ===
+=== pari-2.4.3.alpha.p7 (Leif Leonhardy, July 16th, 2011) ===
+ * #11605: Fix typo in spkg-install and add `exit 1` (again) in case
+   the build fails.
+ * Quote some more variables and filenames in messages.
+
+=== pari-2.4.3.alpha.p6 (Dima Pasechnik, 22 April, 2011) ===
  * made a proper check for libpari.dll on Cygwin, as described in
    trac #10240
 
-=== pari-2.4.3.alpha.p5 (Jeroen Demeyer, January 23th, 2010) ===
+=== pari-2.4.3.alpha.p5 (Jeroen Demeyer, January 23th, 2011) ===
  * Avoid parallel "make install" because of race conditions.
  * Remove Makefile_mv.patch because it doesn't actually fix the race
    conditions in "make install".
 
-=== pari-2.4.3.alpha.p4 (Jeroen Demeyer, January 11th, 2010) ===
+=== pari-2.4.3.alpha.p4 (Jeroen Demeyer, January 11th, 2011) ===
  * Ticket #10430 (fixing also #9620, #10279, #10369, #10559)
  * Use `patch` to apply patches (at -p0 level because this is how svn
    gives the diffs).

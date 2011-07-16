@@ -17,9 +17,9 @@ TOP=`pwd`
 #######################################################################
 cd src
 for patch in ../patches/*.patch; do
-    patch -p0 <$patch
+    patch -p0 <"$patch"
     if [ $? -ne 0 ]; then
-        echo >&2 "Error applying $patch"
+        echo >&2 "Error applying '$patch'"
         exit 1
     fi
 done
@@ -182,8 +182,9 @@ build()
     fi
 
     $MAKE $PARI_MAKEFLAGS gp
-    if [ $? -ne 0]; then
-        echo >&2 "Error: building PARI/GP failed."
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error: Building PARI/GP failed."
+        exit 1
     fi
 }
 
@@ -262,6 +263,6 @@ else
     pari_shlib="libpari.so"
 fi
 if [ ! -f "$SAGE_LOCAL/lib/$pari_shlib" ]; then
-    echo "Error: PARI's shared library $pari_shlib has not been installed!"
+    echo "Error: PARI's shared library '$pari_shlib' has not been installed!"
     exit 1
 fi

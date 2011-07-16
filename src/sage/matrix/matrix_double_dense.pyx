@@ -1275,6 +1275,14 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         Computes the left eigenspaces of a matrix of double precision
         real or complex numbers (i.e. RDF or CDF).
 
+        .. warning::
+
+            This method returns eigenspaces that are all of
+            dimension one, since it is impossible to ascertain
+            if the numerical results belong to the same eigenspace.
+            So this is deprecated in favor of the eigenmatrix routines,
+            such as :meth:`sage.matrix.matrix2.Matrix.eigenmatrix_right`.
+
         INPUT:
 
         - ``var`` - ignored for numerical matrices
@@ -1295,7 +1303,17 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         by a sign. So for doctests we have normalized output by creating an
         eigenspace with a canonical basis.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        This first test simply raises the deprecation warning.  ::
+
+            sage: A = identity_matrix(RDF, 2)
+            sage: es = A.eigenspaces_left()
+            doctest:...: DeprecationWarning: Eigenspaces of RDF/CDF matrices are
+            deprecated as of Sage version 5.0,
+            please use "eigenmatrix_left" instead
+
+        ::
 
             sage: m = matrix(RDF, [[-5, 3, 2, 8],[10, 2, 4, -2],[-1, -10, -10, -17],[-2, 7, 6, 13]])
             sage: spectrum = m.eigenspaces_left()
@@ -1319,6 +1337,11 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             ...
             ValueError: algebraic_multiplicity must be set to False for double precision matrices
         """
+        from sage.misc.misc import deprecation
+        msg = ('Eigenspaces of RDF/CDF matrices are deprecated as of ',
+               'Sage version 5.0',
+               ', please use "eigenmatrix_left" instead')
+        deprecation(''.join(msg))
         # For numerical values we leave decisions about
         # multiplicity to the calling routine
         if algebraic_multiplicity:
@@ -1337,6 +1360,14 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         r"""
         Computes the right eigenspaces of a matrix of double precision
         real or complex numbers (i.e. RDF or CDF).
+
+        .. warning::
+
+            This method returns eigenspaces that are all of
+            dimension one, since it is impossible to ascertain
+            if the numerical results belong to the same eigenspace.
+            So this is deprecated in favor of the eigenmatrix routines,
+            such as :meth:`sage.matrix.matrix2.Matrix.eigenmatrix_right`.
 
         INPUT:
 
@@ -1359,7 +1390,17 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         eigenspace with a canonical basis.
 
 
-        EXAMPLES::
+        EXAMPLES:
+
+        This first test simply raises the deprecation warning.  ::
+
+            sage: A = identity_matrix(RDF, 2)
+            sage: es = A.eigenspaces_right()
+            doctest:...: DeprecationWarning: Eigenspaces of RDF/CDF matrices are
+            deprecated as of Sage version 5.0,
+            please use "eigenmatrix_right" instead
+
+        ::
 
             sage: m = matrix(RDF, [[-9, -14, 19, -74],[-1, 2, 4, -11],[-4, -12, 6, -32],[0, -2, -1, 1]])
             sage: m
@@ -1388,6 +1429,11 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             ...
             ValueError: algebraic_multiplicity must be set to False for double precision matrices
         """
+        from sage.misc.misc import deprecation
+        msg = ('Eigenspaces of RDF/CDF matrices are deprecated as of ',
+               'Sage version 5.0',
+               ', please use "eigenmatrix_right" instead')
+        deprecation(''.join(msg))
         # For numerical values we leave decisions about
         # multiplicity to the calling routine
         if algebraic_multiplicity:

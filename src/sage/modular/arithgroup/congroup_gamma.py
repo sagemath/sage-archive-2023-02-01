@@ -17,9 +17,11 @@ Congruence Subgroup `\Gamma(N)`
 from congroup_generic import CongruenceSubgroup
 from arithgroup_element import ArithmeticSubgroupElement
 from sage.misc.misc import prod
-from sage.rings.all import ZZ, Zmod
+from sage.rings.all import ZZ, Zmod, gcd, QQ
+from sage.rings.integer import GCD_list
 from sage.groups.matrix_gps.matrix_group import MatrixGroup
 from sage.matrix.constructor import matrix
+from sage.modular.cusps import Cusp
 
 _gamma_cache = {}
 def Gamma_constructor(N):
@@ -169,6 +171,98 @@ class Gamma_class(CongruenceSubgroup):
             return ZZ(3)
         return prod([p**(2*e) - p**(2*e-2) for (p,e) in n.factor()])//2
 
+    def nirregcusps(self):
+        r"""
+        Return the number of irregular cusps of self. For principal congruence subgroups this is always 0.
+
+        EXAMPLE::
+
+            sage: Gamma(17).nirregcusps()
+            0
+        """
+        return 0
+
+    def _find_cusps(self):
+        r"""
+        Calculate the reduced representatives of the equivalence classes of
+        cusps for this group. Adapted from code by Ron Evans.
+
+        EXAMPLE::
+
+            sage: Gamma(8).cusps() # indirect doctest
+            [0, 1/4, 1/3, 3/8, 1/2, 2/3, 3/4, 1, 4/3, 3/2, 5/3, 2, 7/3, 5/2, 8/3, 3, 7/2, 11/3, 4, 14/3, 5, 6, 7, Infinity]
+        """
+        n = self.level()
+        C=[QQ(x) for x in xrange(n)]
+
+        n0=n//2
+        n1=(n+1)//2
+
+        for r in xrange(1, n1):
+            if r > 1 and gcd(r,n)==1:
+                C.append(ZZ(r)/ZZ(n))
+            if n0==n/2 and gcd(r,n0)==1:
+                C.append(ZZ(r)/ZZ(n0))
+
+        for s in xrange(2,n1):
+            for r in xrange(1, 1+n):
+                if GCD_list([s,r,n])==1:
+                    # GCD_list is ~40x faster than gcd, since gcd wastes loads
+                    # of time initialising a Sequence type.
+                    u,v = _lift_pair(r,s,n)
+                    C.append(ZZ(u)/ZZ(v))
+
+        return [Cusp(x) for x in sorted(C)] + [Cusp(1,0)]
+
+    def reduce_cusp(self, c):
+        r"""
+        Calculate the unique reduced representative of the equivalence of the
+        cusp `c` modulo this group. The reduced representative of an
+        equivalence class is the unique cusp in the class of the form `u/v`
+        with `u, v \ge 0` coprime, `v` minimal, and `u` minimal for that `v`.
+
+        EXAMPLES::
+
+            sage: Gamma(5).reduce_cusp(1/5)
+            Infinity
+            sage: Gamma(5).reduce_cusp(7/8)
+            3/2
+            sage: Gamma(6).reduce_cusp(4/3)
+            2/3
+
+        TESTS::
+
+            sage: G = Gamma(50); all([c == G.reduce_cusp(c) for c in G.cusps()])
+            True
+        """
+        N = self.level()
+        c = Cusp(c)
+        u,v = c.numerator() % N, c.denominator() % N
+        if (v > N//2) or (2*v == N and u > N//2):
+            u,v = -u,-v
+        u,v = _lift_pair(u,v,N)
+        return Cusp(u,v)
+
+    def are_equivalent(self, x, y, trans=False):
+        r"""
+        Check if the cusps `x` and `y` are equivalent under the action of this group.
+
+        ALGORITHM: The cusps `u_1 / v_1` and `u_2 / v_2` are equivalent modulo
+        `\Gamma(N)` if and only if `(u_1, v_1) = \pm (u_2, v_2) \bmod N`.
+
+        EXAMPLE::
+
+            sage: Gamma(7).are_equivalent(Cusp(2/3), Cusp(5/4))
+            True
+        """
+        if trans:
+            return CongruenceSubgroup.are_equivalent(self, x,y,trans=trans)
+        N = self.level()
+        u1,v1 = (x.numerator() % N, x.denominator() % N)
+        u2,v2 = (y.numerator(), y.denominator())
+
+        return ((u1,v1) == (u2 % N, v2 % N)) or ((u1,v1) == (-u2 % N, -v2 % N))
+
     def nu3(self):
         r"""
         Return the number of elliptic points of order 3 for this arithmetic
@@ -214,3 +308,36 @@ def is_Gamma(x):
 
     return isinstance(x, Gamma_class)
 
+def _lift_pair(U,V,N):
+    r"""
+    Utility function. Given integers ``U, V, N``, with `N \ge 1` and `{\rm
+    gcd}(U, V, N) = 1`, return a pair `(u, v)` congruent to `(U, V) \bmod N`,
+    such that `{\rm gcd}(u,v) = 1`, `u, v \ge 0`, `v` is as small as possible,
+    and `u` is as small as possible for that `v`.
+
+    *Warning*: As this function is for internal use, it does not do a
+    preliminary sanity check on its input, for efficiency. It will recover
+    reasonably gracefully if ``(U, V, N)`` are not coprime, but only after
+    wasting quite a lot of cycles!
+
+    EXAMPLE::
+
+        sage: from sage.modular.arithgroup.congroup_gamma import _lift_pair
+        sage: _lift_pair(2,4,7)
+        (9, 4)
+        sage: _lift_pair(2,4,8) # don't do this
+        Traceback (most recent call last):
+        ...
+        ValueError: (U, V, N) must be coprime
+    """
+    u = U % N
+    v = V % N
+    if v == 0:
+        if u == 1:
+            return (1,0)
+        else:
+            v = N
+    while gcd(u, v) > 1:
+        u = u+N
+        if u > N*v: raise ValueError, "(U, V, N) must be coprime"
+    return (u, v)

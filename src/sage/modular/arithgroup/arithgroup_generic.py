@@ -543,11 +543,10 @@ class ArithmeticSubgroup(group.Group):
 
     def reduce_cusp(self, c):
         r"""
-        Given a cusp `c \in \mathbb{P}^1(\QQ)`, return the
-        unique reduced cusp equivalent to c under the action of self,
-        where a reduced cusp is an element `\tfrac{r}{s}` with r,s coprime
-        integers, s as small as possible, and r as small as possible
-        for that s.
+        Given a cusp `c \in \mathbb{P}^1(\QQ)`, return the unique reduced cusp
+        equivalent to c under the action of self, where a reduced cusp is an
+        element `\tfrac{r}{s}` with r,s coprime non-negative integers, s as
+        small as possible, and r as small as possible for that s.
 
         NOTE: This function should be overridden by all subclasses.
 

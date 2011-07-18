@@ -24,8 +24,18 @@ See http://www.mpir.org
 == Special Update/Build Instructions ==
  * Make sure the patches still apply; also, putting "-Wl,z,noexecstack"
    into LDFLAGS might not be necessary for later versions.
+ * The race condition in `make install` was fixed in MPIR 2.1.4, so the
+   message regarding this could be removed; on the other hand it doesn't
+   hurt. (Later MPIR releases could introduce similar problems.)
+ * Perhaps make sure we still delete the correct files on 32-bit MacOS X
+   on Intel hardware (x86) to not break PIC there.
 
 == Changelog ==
+
+=== mpir-2.1.3.p3 (Leif Leonhardy, July 18th, 2011) ===
+ * #8664: Upgrade Sage's MPIR spkg to version 2.1.3
+ * Support MacOS 10.7 (Darwin 11) and later.
+ * Add warning if SAGE_DEBUG=yes since we then disable optimization.
 
 === mpir-2.1.3.p2 (Leif Leonhardy, November 24th, 2010) ===
  * #8664: Upgrade Sage's MPIR spkg to version 2.1.3

@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+###############################################################################
+# IMPORTANT: WHEN EDITING THIS FILE, MAKE SURE YOUR EDITOR DOES NOT REPLACE
+#            TABS BY SPACES.
+###############################################################################
+
 if [ -z "$SAGE_LOCAL" ]; then
     echo "Error: SAGE_LOCAL undefined - exiting..."
     echo "Maybe run 'sage -sh'?"
@@ -34,6 +39,9 @@ fi
 
 remove_32_bit_assembly_code() # MacOS X 10.4 and 10.5 on Intel (x86) only.
 {
+    # We could actually do this by using 'patch', at the expense of
+    # a larger Mercurial repository, and the need to rebase the patches
+    # whenever these files change, so better just delete them with 'rm'.
     echo "Deleting assembly files which depend on PIC assembly" \
         "working on 32-bit MacOS X on Intel hardware..."
     saved=`pwd`
@@ -126,6 +134,7 @@ SAGE_CONF_OPTS=""
 if [ "$SAGE_DEBUG" = yes ]; then
     # Disable optimization, add debug symbols:
     required_cflags="$required_cflags -g -O0"
+    echo "Warning: Building MPIR with SAGE_DEBUG=yes disables optimization."
 else
     # Add debug symbols by default, enable optimization, but do not (yet)
     # add processor-specific flags (these are eventually added later):
@@ -149,16 +158,14 @@ case "$UNAME" in
             echo "Building a 64-bit version of MPIR"
             ABI=64
         else
-            # Do not set ABI=32 on OS X 10.6, since there everything
-            # defaults to 64-bit:
-            # XXX This will most probably fail on the next Darwin release
-            # XXX (>10.6 / after Darwin 10).
-            if [ "`uname -r | sed 's/\..*//'`" != "10" ]; then
+            # Do not set ABI=32 on OS X 10.6 (Darwin 10) and later, since
+            # there everything defaults to 64-bit:
+            if [ "`uname -r | sed 's/\..*//'`" -lt 10 ]; then
                 # Assume MacOS X 10.4 or 10.5 (Darwin 8 or 9); also, PPC CPUs
                 # are only supported by these, not later versions.
                 ABI=32
                 case "`uname -m`" in
-                    i386)
+                    i[3456]86)
                         # Remove x86 assembly code that breaks PIC on MacOS X:
                         remove_32_bit_assembly_code
                         ;;

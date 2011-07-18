@@ -44,6 +44,7 @@ def strassen_window_multiply(C, A,B, cutoff):
     AUTHORS:
 
     - David Harvey
+    - Simon King (2011-07): Improve memory efficiency; trac ticket #11610
     """
     strassen_window_multiply_c(C, A, B, cutoff)
 
@@ -76,6 +77,8 @@ cdef strassen_window_multiply_c(MatrixWindow C, MatrixWindow A,
     A_sub_ncols = A_ncols >> 1     # this is also like B_sub_nrows
     B_sub_ncols = B_ncols >> 1
 
+    cdef bint have_cutoff = (A_sub_nrows <= cutoff) or (A_sub_ncols <= cutoff) or (B_sub_ncols <= cutoff)
+
     cdef MatrixWindow A00, A01, A10, A11, B00, B01, B10, B11
     A00 = A.matrix_window(0,           0,           A_sub_nrows, A_sub_ncols)
     A01 = A.matrix_window(0,           A_sub_ncols, A_sub_nrows, A_sub_ncols)
@@ -87,134 +90,125 @@ cdef strassen_window_multiply_c(MatrixWindow C, MatrixWindow A,
     B11 = B.matrix_window(A_sub_ncols, B_sub_ncols, A_sub_ncols, B_sub_ncols)
 
     # Allocate temp space.
+    # S.K: We already have allocated C, so, we should use it for temporary results.
+    # We use the schedule from Douglas-Heroux-Slishman-Smith (see also Boyer-Pernet-Zhou,
+    # "Memory efficient scheduling of Strassen-Winograd's matrix multiplication algorithm",
+    # Table 1).
 
-    cdef MatrixWindow S0, S1, S2, S3, T0, T1 ,T2, T3, Q0, Q1, Q2
-    cdef MatrixWindow tmp
+    cdef MatrixWindow S0, S1, S2, S3, T0, T1 ,T2, T3, P0, P1, P2, P3, P4, P5, P6, U0, U1, U2, U3, U4, U5, U6
+    cdef MatrixWindow X, Y
     cdef Py_ssize_t tmp_cols, start_row
-    tmp_cols = A_sub_ncols
-    if (tmp_cols < B_sub_ncols):
-        tmp_cols = B_sub_ncols # tmp_cols = max(A_sub_ncols, B_sub_ncols)
-    tmp = A.new_empty_window(7*A_sub_nrows + 4*A_sub_ncols, tmp_cols)
+    X = A.new_empty_window(A_sub_nrows, max(A_sub_ncols,B_sub_ncols))
+    Y = B.new_empty_window(A_sub_ncols, B_sub_ncols)
 
-    start_row = 0
-    S0 = tmp.matrix_window(start_row, 0, A_sub_nrows, A_sub_ncols)
-    start_row += A_sub_nrows
-    S1 = tmp.matrix_window(start_row, 0, A_sub_nrows, A_sub_ncols)
-    start_row += A_sub_nrows
-    S2 = tmp.matrix_window(start_row, 0, A_sub_nrows, A_sub_ncols)
-    start_row += A_sub_nrows
-    S3 = tmp.matrix_window(start_row, 0, A_sub_nrows, A_sub_ncols)
-    start_row += A_sub_nrows
-
-    T0 = tmp.matrix_window(start_row, 0, A_sub_ncols, B_sub_ncols)
-    start_row += A_sub_ncols
-    T1 = tmp.matrix_window(start_row, 0, A_sub_ncols, B_sub_ncols)
-    start_row += A_sub_ncols
-    T2 = tmp.matrix_window(start_row, 0, A_sub_ncols, B_sub_ncols)
-    start_row += A_sub_ncols
-    T3 = tmp.matrix_window(start_row, 0, A_sub_ncols, B_sub_ncols)
-    start_row += A_sub_ncols
-
-    Q0 = tmp.matrix_window(start_row, 0, A_sub_nrows, B_sub_ncols)
-    start_row += A_sub_nrows
-    Q1 = tmp.matrix_window(start_row, 0, A_sub_nrows, B_sub_ncols)
-    start_row += A_sub_nrows
-    Q2 = tmp.matrix_window(start_row, 0, A_sub_nrows, B_sub_ncols)
-
-
-    # Preparatory matrix additions/subtractions.
-
-    # todo: we can probably save some memory in these
-    # operations by reusing some of the buffers, if we interleave
-    # these additions with the multiplications (below)
-
-    # (I believe we can save on one S buffer and one T buffer)
-
-    # S0 = A10 + A11,  T0 = B01 - B00
-    # S1 = S0 - A00,   T1 = B11 - T0
-    # S2 = A00 - A10,  T2 = B11 - B01
-    # S3 = A01 - S1,   T3 = B10 - T1
-
-    S0.set_to_sum(A10, A11)
-    S1.set_to_diff(S0, A00)
+    # 1 S2 = A00-A10 in X
+    S2 = X.matrix_window(0, 0, A_sub_nrows, A_sub_ncols)
     S2.set_to_diff(A00, A10)
-    S3.set_to_diff(A01, S1)
 
-    T0.set_to_diff(B01, B00)
-    T1.set_to_diff(B11, T0)
+    # 2 T2 = B11-B01 in Y
+    T2 = Y
     T2.set_to_diff(B11, B01)
-    T3.set_to_diff(B10, T1)
 
-
-    # The relations we need now are:
-
-    # P0 = A00*B00
-    # P1 = A01*B10
-    # P2 =  S0*T0
-    # P3 =  S1*T1
-    # P4 =  S2*T2
-    # P5 =  S3*B11
-    # P6 = A11*T3
-
-    # U0 = P0 + P1
-    # U1 = P0 + P3
-    # U2 = U1 + P4
-    # U3 = U2 + P6
-    # U4 = U2 + P2
-    # U5 = U1 + P2
-    # U6 = U5 + P5
-
-    # We place the final answer into the matrix:
-    # U0 U6
-    # U3 U4
-
-    cdef MatrixWindow U0, U6, U3, U4
-    U0 = C.matrix_window(0,           0,           A_sub_nrows, B_sub_ncols)
-    U6 = C.matrix_window(0,           B_sub_ncols, A_sub_nrows, B_sub_ncols)
-    U3 = C.matrix_window(A_sub_nrows, 0,           A_sub_nrows, B_sub_ncols)
-    U4 = C.matrix_window(A_sub_nrows, B_sub_ncols, A_sub_nrows, B_sub_ncols)
-
-    if (A_sub_nrows <= cutoff) or (A_sub_ncols <= cutoff) or (B_sub_ncols <= cutoff):
-        # This is the base case, so we use MatrixWindow methods directly.
-
-        # This next chunk is arranged so that each output cell gets written
-        # to exactly once. This is important because the output blocks might
-        # be quite fragmented in memory, whereas our temporary buffers
-        # (Q0, Q1, Q2) will be quite localised, so we can afford to do a bit
-        # of arithmetic in them.
-
-        Q0.set_to_prod(A00, B00)         # now Q0 holds P0
-        Q1.set_to_prod(A01, B10)         # now Q1 holds P1
-        U0.set_to_sum(Q0, Q1)            # now U0 is correct
-        Q0.add_prod(S1, T1)              # now Q0 holds U1
-        Q1.set_to_prod(S2, T2)           # now Q1 holds P4
-        Q1.add(Q0)                       # now Q1 holds U2
-        Q2.set_to_prod(A11, T3)          # now Q2 holds P6
-        U3.set_to_sum(Q1, Q2)            # now U3 is correct
-        Q2.set_to_prod(S0, T0)           # now Q2 holds P2
-        U4.set_to_sum(Q2, Q1)            # now U4 is correct
-        Q0.add(Q2)                       # now Q0 holds U5
-        Q2.set_to_prod(S3, B11)          # now Q2 holds P5
-        U6.set_to_sum(Q0, Q2)            # now U6 is correct
-
+    # 3 P6 = S2*T2 in C10
+    P6 = C.matrix_window(A_sub_nrows, 0,           A_sub_nrows, B_sub_ncols)
+    if have_cutoff:
+        P6.set_to_prod(S2, T2)
     else:
-        # Recurse into sub-products.
+        strassen_window_multiply_c(P6, S2, T2, cutoff)
 
-        strassen_window_multiply_c(Q0, A00, B00, cutoff)   # now Q0 holds P0
-        strassen_window_multiply_c(Q1, A01, B10, cutoff)   # now Q1 holds P1
-        U0.set_to_sum(Q0, Q1)                              # now U0 is correct
-        strassen_window_multiply_c(Q1, S1, T1, cutoff)     # now Q1 holds P3
-        Q0.add(Q1)                                         # now Q0 holds U1
-        strassen_window_multiply_c(Q1, S2, T2, cutoff)     # now Q1 holds P4
-        Q1.add(Q0)                                         # now Q1 holds U2
-        strassen_window_multiply_c(Q2, A11, T3, cutoff)    # now Q2 holds P6
-        U3.set_to_sum(Q1, Q2)                              # now U3 is correct
-        strassen_window_multiply_c(Q2, S0, T0, cutoff)     # now Q2 holds P2
-        U4.set_to_sum(Q2, Q1)                              # now U4 is correct
-        Q0.add(Q2)                                         # now Q0 holds U5
-        strassen_window_multiply_c(Q2, S3, B11, cutoff)    # now Q2 holds P5
-        U6.set_to_sum(Q0, Q2)                              # now U6 is correct
+    # 4 S0 = A10+A11 in X
+    S0 = X.matrix_window(0, 0, A_sub_nrows, A_sub_ncols)
+    S0.set_to_sum(A10, A11)
 
+    # 5 T0 = B01-B00 in Y
+    T0 = Y
+    T0.set_to_diff(B01, B00)
+
+    # 6 P4 = S0*T0 in C11
+    P4 = C.matrix_window(A_sub_nrows, B_sub_ncols, A_sub_nrows, B_sub_ncols)
+    if have_cutoff:
+        P4.set_to_prod(S0, T0)
+    else:
+        strassen_window_multiply_c(P4, S0, T0, cutoff)
+
+    # 7 S1 = S0-A00 in X
+    S1 = X.matrix_window(0, 0, A_sub_nrows, A_sub_ncols)
+    S1.set_to_diff(S0, A00)
+
+    # 8 T1 = B11-T0 in Y
+    T1 = Y
+    T1.set_to_diff(B11,T0)
+
+    # 9 P5 = S1*T1 in C01
+    P5 = C.matrix_window(0,           B_sub_ncols, A_sub_nrows, B_sub_ncols)
+    if have_cutoff:
+        P5.set_to_prod(S1, T1)
+    else:
+        strassen_window_multiply_c(P5, S1, T1, cutoff)
+
+    #10 S3 = A01-S1 in X
+    S3 = X.matrix_window(0, 0, A_sub_nrows, A_sub_ncols)
+    S3.set_to_diff(A01,S1)
+
+    #11 P2 = S3*B11 in C00
+    P2 = C.matrix_window(0,           0,           A_sub_nrows, B_sub_ncols)
+    if have_cutoff:
+        P2.set_to_prod(S3, B11)
+    else:
+        strassen_window_multiply_c(P2, S3, B11, cutoff)
+
+    #12 P0 = A00*B00 in X
+    P0 = X.matrix_window(0, 0, A_sub_nrows, B_sub_ncols)
+    if have_cutoff:
+        P0.set_to_prod(A00, B00)
+    else:
+        strassen_window_multiply_c(P0, A00, B00, cutoff)
+
+    #13 U1 = P0+P5 in C01
+    U1 = C.matrix_window(0,           B_sub_ncols, A_sub_nrows, B_sub_ncols)
+    U1.set_to_sum(P0, P5)
+
+    #14 U2 = U1+P6 in C10
+    U2 = C.matrix_window(A_sub_nrows, 0,           A_sub_nrows, B_sub_ncols)
+    U2.set_to_sum(U1, P6)
+
+    #15 U3 = U1+P4 in C01
+    U3 = C.matrix_window(0,           B_sub_ncols, A_sub_nrows, B_sub_ncols)
+    U3.set_to_sum(U1, P4)
+
+    #16 U6 = U2+P4 in C11 (final)
+    U6 = C.matrix_window(A_sub_nrows, B_sub_ncols, A_sub_nrows, B_sub_ncols)
+    U6.set_to_sum(U2, P4)
+
+    #17 U4 = U3+P2 in C01 (final)
+    U4 = C.matrix_window(0,           B_sub_ncols, A_sub_nrows, B_sub_ncols)
+    U4.set_to_sum(U3, P2)
+
+    #18 T3 = T1-B10 in Y
+    T3 = Y
+    T3.set_to_diff(T1, B10)
+
+    #19 P3 = A11*T3 in C00
+    P3 = C.matrix_window(0,           0,           A_sub_nrows, B_sub_ncols)
+    if have_cutoff:
+        P3.set_to_prod(A11, T3)
+    else:
+        strassen_window_multiply_c(P3, A11, T3, cutoff)
+
+    #20 U5 = U2-P3 in C10 (final)
+    U5 = C.matrix_window(A_sub_nrows, 0,           A_sub_nrows, B_sub_ncols)
+    U5.set_to_diff(U2, P3)
+
+    #21 P1 = A01*B10 in C00
+    P1 = C.matrix_window(0,           0,           A_sub_nrows, B_sub_ncols)
+    if have_cutoff:
+        P1.set_to_prod(A01, B10)
+    else:
+        strassen_window_multiply_c(P1, A01, B10, cutoff)
+
+    #22 U0 = P0+P1 in C00 (final)
+    U0 = C.matrix_window(0,           0,           A_sub_nrows, B_sub_ncols)
+    U0.set_to_sum(P0, P1)
 
     # Now deal with the leftover row and/or column (if they exist).
 

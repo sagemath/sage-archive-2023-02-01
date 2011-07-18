@@ -29,6 +29,10 @@ See http://www.mpir.org
    hurt. (Later MPIR releases could introduce similar problems.)
  * Perhaps make sure we still delete the correct files on 32-bit MacOS X
    on Intel hardware (x86) to not break PIC there.
+ * Remove some files / directories not needed for Sage from upstream:
+     rm -rf src/build.vc*             # Microsoft Visual C build files
+     rm -rf src/yasm/Mkfiles/{dj,vc*} # DJGPP, Microsoft Visual C
+   (Saves 13 of 40 MB uncompressed.)
 
 == Changelog ==
 

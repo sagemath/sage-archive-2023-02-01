@@ -1152,7 +1152,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
             - ``max_iter`` -- integer (default: 100) maximum number
               of Baum-Welch steps to take
 
-            - ``log_likehood_cutoff`` -- positive float (default: 1e-4);
+            - ``log_likelihood_cutoff`` -- positive float (default: 1e-4);
               the minimal improvement in likelihood with respect to
               the last iteration required to continue. Relative value
               to log likelihood.

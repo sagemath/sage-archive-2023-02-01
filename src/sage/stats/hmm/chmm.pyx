@@ -804,7 +804,7 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
             - max_iter -- integer (default: 500) maximum number
               of Baum-Welch steps to take
 
-            - log_likehood_cutoff -- positive float (default: 1e-4);
+            - log_likelihood_cutoff -- positive float (default: 1e-4);
               the minimal improvement in likelihood with respect to
               the last iteration required to continue. Relative value
               to log likelihood.
@@ -969,7 +969,9 @@ cdef class GaussianMixtureHiddenMarkovModel(GaussianHiddenMarkovModel):
 
         - ``A``  -- matrix; the N x N transition matrix
 
-        - ``B`` -- list of pairs (mu,sigma) that define the distributions
+        - ``B`` -- list of mixture definitions for each state.  Each
+          state may have a varying number of gaussians with selection
+          probabilities that sum to 1 and encoded as (p,(mu,sigma))
 
         - ``pi`` -- initial state probabilities
 
@@ -1265,7 +1267,7 @@ cdef class GaussianMixtureHiddenMarkovModel(GaussianHiddenMarkovModel):
             - obs -- a time series of emissions
             - max_iter -- integer (default: 1000) maximum number
               of Baum-Welch steps to take
-            - log_likehood_cutoff -- positive float (default: 1e-12);
+            - log_likelihood_cutoff -- positive float (default: 1e-12);
               the minimal improvement in likelihood with respect to
               the last iteration required to continue. Relative value
               to log likelihood.

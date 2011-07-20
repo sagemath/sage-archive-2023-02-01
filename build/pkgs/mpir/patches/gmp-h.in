@@ -2383,9 +2383,9 @@ enum
 
 #define __MPIR_VERSION 2
 #define __MPIR_VERSION_MINOR 1
-#define __MPIR_VERSION_PATCHLEVEL 1
+#define __MPIR_VERSION_PATCHLEVEL 3
 #if defined( _MSC_VER )
-#define _MSC_MPIR_VERSION "2.1.1"
+#define _MSC_MPIR_VERSION "2.1.3"
 #endif
 
 /* These are for programs like MPFR to use the same CC and CFLAGS as MPIR */

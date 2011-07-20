@@ -22,6 +22,9 @@ See http://www.mpir.org
  * iconv
 
 == Special Update/Build Instructions ==
+ * TODO: Use 'patch' rather than copying over patched upstream files.
+         (The currently patched file for Sun CC on SunOS has to be refreshed on
+         each upgrade.)
  * Make sure the patches still apply; also, putting "-Wl,z,noexecstack"
    into LDFLAGS might not be necessary for later versions.
  * The race condition in `make install` was fixed in MPIR 2.1.4, so the
@@ -34,7 +37,22 @@ See http://www.mpir.org
      rm -rf src/yasm/Mkfiles/{dj,vc*} # DJGPP, Microsoft Visual C
    (Saves 13 of 40 MB uncompressed.)
 
+=== Patches ===
+ * We currently only apply a trivial patch to gmp-h.in on SunOS such that
+   MPIR would compile with Sun CC there. See also `spkg-install`.
+
 == Changelog ==
+
+=== mpir-2.1.3.p4 (Leif Leonhardy, July 19th, 2011) ===
+ * #8664: Upgrade Sage's MPIR spkg to version 2.1.3
+ * Do not delete old GMP/MPIR shared libraries as Sage's versions of libraries
+   used by GCC might still refer to them, such that their deletion would break
+   GCC inside Sage. (PPL e.g. refers to libgmpxx; MPFR and MPC are equally
+   dangerous, since they're [also] used by recent versions of GCC.)
+ * Some more messages (e.g on rebuilding the Sage library and other packages
+   after installation) and comments added.
+ * "Patches" section added.
+ * Also refreshed the patched gmp-h.in for SunOS. ;-)
 
 === mpir-2.1.3.p3 (Leif Leonhardy, July 18th, 2011) ===
  * #8664: Upgrade Sage's MPIR spkg to version 2.1.3
@@ -119,8 +137,8 @@ See http://www.mpir.org
  * Put ABI=32 back except on OS X 10.6
 
 === mpir-1.2.p5 (William Stein, Sept 24, 2009) ===
- * Remove explicit ABI=32 for OS X; instead let the OS decide. This is needed for 10.6 where
-   the default is 64-bit instead of 32-bit.
+ * Remove explicit ABI=32 for OS X; instead let the OS decide. This is needed
+   for 10.6 where the default is 64-bit instead of 32-bit.
 
 === mpir-1.2.p3 (Nick Alexander, June 9, 2009) ===
  * Update to latest MPIR 1.2 final release.

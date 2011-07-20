@@ -18,8 +18,12 @@ CUR=`pwd`
 ###############################################################################
 
 # Add a patch which allows MPIR to build with Sun Studio:
+# (This only adds some includes if __SUNPRO_CC is defined, so is a completely
+# harmless change that doesn't depend on the actual compiler used.)
 if [ "$UNAME" = SunOS ]; then
-    # XXX Independent of the actual compiler used?
+    # TODO: Use 'patch' instead of copying over a patched version, which
+    #       has to be refreshed on each new release, since gmp-h.in also
+    #       contains the full version number.
     echo "Copying a version of gmp-h.in which is patched for Sun Studio..."
     cp patches/gmp-h.in src/
     if [ $? -ne 0 ]; then
@@ -292,6 +296,8 @@ else
     # necessary) and only add some useful ones to improve code generation:
     echo "Using user-specified settings (overriding defaults), with some additions."
     CFLAGS="$default_cflags $user_cflags $required_cflags"
+
+    # Now add processor-specific flags if appropriate:
     if [ -z "`get_processor_specific_cflags $CFLAGS`" ]; then
         # User didn't specify specific architecture, so try to add such flag(s):
         if [ -n "$mpir_cflags" ]; then
@@ -307,6 +313,13 @@ else
         elif [ "$SAGE_FAT_BINARY" != yes ]; then
             CFLAGS="`native_build_cflags_if_supported` $CFLAGS"
         fi
+    else
+        # User did specify some processor-specific CFLAGS.
+        # We *might* prepend all of MPIR's CFLAGS here in addition,
+        # but doing so could raise a conflict.
+        # (I'm not aware of any processor-specific flags MPIR uses / writes
+        # to gmp.h other than -mcpu, -mtune / -march.)
+        :;
     fi
 fi
 
@@ -352,13 +365,27 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+echo "Build succeeded."
+
 ###############################################################################
 # Remove previous installation (if any), *after* a successful build:
 ###############################################################################
 
-echo "Build succeeded, removing old headers and libraries..."
-rm -f "$SAGE_LOCAL"/include/mpir*.h "$SAGE_LOCAL"/include/gmp*.h
-rm -f "$SAGE_LOCAL"/lib/libmpir* "$SAGE_LOCAL"/lib/libgmp*
+echo "Removing old GMP/MPIR headers..."
+rm -f "$SAGE_LOCAL"/include/{gmp,mpir}*.h
+
+# Do NOT delete old GMP/MPIR shared libraries as Sage's versions of libraries
+# used by GCC might still refer to them, such that their deletion would break
+# GCC inside Sage. (We could perhaps remove libmpir* though.)
+if false; then
+    echo "Removing old GMP/MPIR libraries..."
+    rm -f "$SAGE_LOCAL"/lib/lib{gmp,mpir}*
+else
+    echo "Not removing old GMP/MPIR shared libraries, as other libraries"
+    echo "and executables might still refer to them:"
+    ls -l "$SAGE_LOCAL"/lib/lib{gmp,mpir}*.so.*
+    echo "(Libraries with the same version number will get updated though.)"
+fi
 
 ###############################################################################
 # Now install MPIR:
@@ -384,6 +411,15 @@ EOF
         exit 1
     fi
 fi
+
+echo "Remember to rebuild the Sage library ('./sage -b') such that it"
+echo "will use the new MPIR."
+echo "You may also have to (or want to) rebuild other Sage packages"
+echo "that use MPIR. Provided that this MPIR spkg is in 'spkg/standard/',"
+echo "you can rebuild all packages depending on MPIR by typing:"
+echo "    cd $SAGE_ROOT"
+echo "    env SAGE_UPGRADING=yes make"
+echo "but note that this will usually take quite a lot of time."
 
 # All errors catched above, on Cygwin we ignore the last:
 exit 0

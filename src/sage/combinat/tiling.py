@@ -1,12 +1,15 @@
 r"""
 Tiling Solver
 
-Finding a tiling of a box into non-intersecting polyominoes.
+Tiling a n-dimensional box into non-intersecting n-dimensional polyominoes.
 
 This uses dancing links code which is in Sage.  Dancing links were
 originally introduced by Donald Knuth in 2000 [1]. In particular, Knuth
 used dancing links to solve tilings of a region by 2D pentaminos.  Here we
-extend the method for any dimension.
+extend the method to any dimension.
+
+In particular, the :mod:`sage.games.quantumino` module is based on
+the Tiling Solver and allows to solve the 3d Quantumino puzzle.
 
 This module defines two classes:
 
@@ -89,29 +92,30 @@ The following is a puzzle owned by Florent Hivert::
     sage: L.append(Polyomino([(0,1),(0,2),(0,3),(1,0),(1,1),(1,2)]))
     sage: L.append(Polyomino([(0,0),(0,1),(0,2),(1,0),(1,1),(1,2)]))
 
-By default, rotations are allowed and reflections are not. In this case, if
-reflections are not allowed, there are no solution::
+By default, rotations are allowed and reflections are not. In this case,
+there are no solution::
 
     sage: T = TilingSolver(L, (8,8))
     sage: T.number_of_solutions()                             # long time (2.5 s)
     0
 
-Allow reflections, solve the puzzle and show one solution::
+If reflections are allowed, there are solutions. Solve the puzzle and show
+one solution::
 
     sage: T = TilingSolver(L, (8,8), reflection=True)
     sage: solution = T.solve().next()
-    sage: G = sum([piece.show2d() for piece in solution], Graphics())
+    sage: G = sum([piece.show2d(size=0.85) for piece in solution], Graphics())
     sage: G.show(aspect_ratio=1)
 
-Let's compute the number of solutions::
+Compute the number of solutions::
 
-    sage: T.number_of_solutions()                              # long time (6s the first time)
+    sage: T.number_of_solutions()                              # long time (2.6s)
     328
 
 3d Puzzle
 ---------
 
-The same thing done in 3d without allowing reflections this time::
+The same thing done in 3d *without* allowing reflections this time::
 
     sage: from sage.combinat.tiling import Polyomino, TilingSolver
     sage: L = []
@@ -130,7 +134,7 @@ Solve the puzzle and show one solution::
 
     sage: T = TilingSolver(L, (8,8,1))
     sage: solution = T.solve().next()
-    sage: G = sum([piece.show3d() for piece in solution], Graphics())
+    sage: G = sum([piece.show3d(size=0.85) for piece in solution], Graphics())
     sage: G.show(aspect_ratio=1, viewer='tachyon')
 
 Let's compute the number of solutions::
@@ -162,7 +166,7 @@ Donald Knuth [1] considered the problem of packing 45 Y pentominoes into a
 Animation of Donald Knuth's dancing links
 -----------------------------------------
 
-::
+Animation of the solutions::
 
     sage: from sage.combinat.tiling import Polyomino, TilingSolver
     sage: Y = Polyomino([(0,0),(1,0),(2,0),(3,0),(2,1)], color='yellow')
@@ -170,7 +174,14 @@ Animation of Donald Knuth's dancing links
     sage: a = T.animate(stop=40)            # long time
     sage: a                                 # long time
     Animation with 40 frames
-    sage: a.show()                          # not tested
+    sage: a.show()                          # not tested  - requires convert command
+
+Incremental animation of the solutions (one piece is removed/added at a time)::
+
+    sage: a = T.animate('incremental', stop=40)   # long time
+    sage: a                                       # long time
+    Animation with 40 frames
+    sage: a.show(delay=50, iterations=1)     # not tested  - requires convert command
 
 5d Easy Example
 ---------------
@@ -787,21 +798,41 @@ class Polyomino(SageObject):
             last = s[-1]
             if last == 1 and all(f == 0 for f in firsts):
                 yield (P + Q) / 2.0
+    def center(self):
+        r"""
+        Return the center of the polyomino.
 
-    def show3d(self, size=0.75):
+        EXAMPLES::
+
+            sage: from sage.combinat.tiling import Polyomino
+            sage: p = Polyomino([(0,0,0),(0,0,1)])
+            sage: p.center()
+            (0, 0, 1/2)
+
+        In 3d::
+
+            sage: p = Polyomino([(0,0,0),(1,0,0),(1,1,0),(1,1,1),(1,2,0)], color='deeppink')
+            sage: p.center()
+            (4/5, 4/5, 1/5)
+
+        In 2d::
+
+            sage: p = Polyomino([(0,0),(1,0),(1,1),(1,2)])
+            sage: p.center()
+            (3/4, 3/4)
+        """
+        return sum(vector(t) for t in self) / len(self)
+
+    def show3d(self, size=1):
         r"""
         Returns a 3d Graphic object representing the polyomino.
-
-        .. NOTE::
-
-            For now this is simply a bunch of intersecting cubes. It could
-            be improved to give better results.
 
         INPUT:
 
         - ``self`` - a polyomino of dimension 3
-        - ``size`` - number (optional, default: ``0.75``), the size of the
-          ``1 \times 1 \times 1`` cubes
+        - ``size`` - number (optional, default: ``1``), the size of each
+          ``1 \times 1 \times 1`` cube. This does a homothety with respect
+          to the center of the polyomino.
 
         EXAMPLES::
 
@@ -812,25 +843,23 @@ class Polyomino(SageObject):
         assert self._dimension == 3, "To show a polyomino in 3d, its dimension must be 3."
         G = Graphics()
         for p in self:
-            G += cube(p, color=self._color, size=size)
-        for m in self.middle_of_neighbor_coords():
-            G += cube(m, color=self._color, size=size)
+            G += cube(p, color=self._color)
+        center = self.center()
+        G = G.translate(-center)
+        G = G.scale(size)
+        G = G.translate(center)
         return G
 
-    def show2d(self, size=0.75):
+    def show2d(self, size=1):
         r"""
         Returns a 2d Graphic object representing the polyomino.
-
-        .. NOTE::
-
-            For now this is simply a bunch of intersecting cubes. It could
-            be improved to give better results.
 
         INPUT:
 
         - ``self`` - a polyomino of dimension 2
-        - ``size`` - number (optional, default: ``0.75``), the size of the
-          ``1 \times 1 \times 1`` cubes
+        - ``size`` - number (optional, default: ``1``), the size of each
+          ``1 \times 1`` square. This does a homothety with respect
+          to the center of the polyomino.
 
         EXAMPLES::
 
@@ -839,11 +868,11 @@ class Polyomino(SageObject):
             sage: p.show2d()              # long time (0.5s)
         """
         assert self._dimension == 2, "To show a polyomino in 2d, its dimension must be 2."
+        center = self.center()
+        transformed = [size * (vector(t) - center) + center for t in self]
         h = size / 2.0
         G = Graphics()
-        for a,b in self:
-            G += polygon([(a-h,b-h), (a+h,b-h), (a+h,b+h), (a-h,b+h), (a-h,b-h)], color=self._color)
-        for a,b in self.middle_of_neighbor_coords():
+        for a,b in transformed:
             G += polygon([(a-h,b-h), (a+h,b-h), (a+h,b+h), (a-h,b+h), (a-h,b-h)], color=self._color)
         return G
 
@@ -1115,7 +1144,7 @@ class TilingSolver(SageObject):
             return dict( (i+number_of_pieces,c) for i,c in enumerate(self.space()) )
 
     @cached_method
-    def rows(self, verbose=False):
+    def rows(self):
         r"""
         Creation of the rows
 
@@ -1146,7 +1175,7 @@ class TilingSolver(SageObject):
         """
         coord_to_int = self.coord_to_int_dict()
         rows = []
-        self._starting_rows = []
+        self._starting_rows = [] # indices of the first row for each piece
         for i,p in enumerate(self._pieces):
             self._starting_rows.append(len(rows))
             if self._rotation and self._reflection:
@@ -1164,9 +1193,6 @@ class TilingSolver(SageObject):
                 for q in it:
                     rows.append([i] + [coord_to_int[coord] for coord in q])
         self._starting_rows.append(len(rows))
-        if verbose:
-            print "Number of rows : %s" % len(rows)
-            print "Number of distinct rows : %s" % len(set(tuple(sorted(row)) for row in rows))
         return rows
 
     def nrows_per_piece(self):
@@ -1239,10 +1265,10 @@ class TilingSolver(SageObject):
         while x.search() == 1:
             yield x.get_solution()
 
-    def dlx_common_part_solutions(self):
+    def dlx_common_prefix_solutions(self):
         r"""
         Return an iterator over the row indices of solutions and of partial
-        solutions, i.e. the common part of two consecutive solutions.
+        solutions, i.e. the common prefix of two consecutive solutions.
 
         The purpose is to illustrate the backtracking and construct an
         animation of the evolution of solutions.
@@ -1260,19 +1286,47 @@ class TilingSolver(SageObject):
             sage: T = TilingSolver([p,q,r], box=(1,1,6))
             sage: list(T.dlx_solutions())
             [[0, 7, 14], [0, 12, 10], [6, 13, 5], [6, 14, 2], [11, 9, 5], [11, 10, 3]]
-            sage: list(T.dlx_common_part_solutions())
+            sage: list(T.dlx_common_prefix_solutions())
             [[0, 7, 14], [0], [0, 12, 10], [], [6, 13, 5], [6], [6, 14, 2], [], [11, 9, 5], [11], [11, 10, 3]]
+
+        ::
+
+            sage: from sage.combinat.tiling import TilingSolver, Polyomino
+            sage: y = Polyomino([(0,0),(1,0),(2,0),(3,0),(2,1)], color='yellow')
+            sage: T = TilingSolver([y], box=(5,10), reusable=True, reflection=True)
+            sage: for a in T.dlx_common_prefix_solutions(): a
+            [18, 119, 68, 33, 48, 23, 8, 73, 58, 43]
+            [18, 119, 68, 33, 48]
+            [18, 119, 68, 33, 48, 133, 8, 73, 168, 43]
+            [18, 119]
+            [18, 119, 178, 143, 48, 23, 8, 73, 58, 43]
+            [18, 119, 178, 143, 48]
+            [18, 119, 178, 143, 48, 133, 8, 73, 168, 43]
+            [18, 119, 178]
+            [18, 119, 178, 164, 152, 73, 8, 133, 159, 147]
+            []
+            [74, 19, 177, 33, 49, 134, 109, 72, 58, 42]
+            [74, 19, 177]
+            [74, 19, 177, 54, 151, 72, 109, 134, 160, 37]
+            [74, 19, 177, 54, 151]
+            [74, 19, 177, 54, 151, 182, 109, 134, 160, 147]
+            [74]
+            [74, 129, 177, 164, 151, 72, 109, 134, 160, 37]
+            [74, 129, 177, 164, 151]
+            [74, 129, 177, 164, 151, 182, 109, 134, 160, 147]
         """
         it = self.dlx_solutions()
         B = it.next()
         while True:
             yield B
             A, B = B, it.next()
-            common = []
+            common_prefix = []
             for a,b in itertools.izip(A,B):
                 if a == b:
-                    common.append(a)
-            yield common
+                    common_prefix.append(a)
+                else:
+                    break
+            yield common_prefix
 
     def dlx_incremental_solutions(self):
         r"""
@@ -1300,21 +1354,39 @@ class TilingSolver(SageObject):
             [[0, 7, 14], [0, 12, 10], [6, 13, 5], [6, 14, 2], [11, 9, 5], [11, 10, 3]]
             sage: list(T.dlx_incremental_solutions())
             [[0, 7, 14], [0, 7], [0], [0, 12], [0, 12, 10], [0, 12], [0], [], [6], [6, 13], [6, 13, 5], [6, 13], [6], [6, 14], [6, 14, 2], [6, 14], [6], [], [11], [11, 9], [11, 9, 5], [11, 9], [11], [11, 10], [11, 10, 3]]
+
+        ::
+
+            sage: y = Polyomino([(0,0),(1,0),(2,0),(3,0),(2,1)], color='yellow')
+            sage: T = TilingSolver([y], box=(5,10), reusable=True, reflection=True)
+            sage: for a in T.dlx_solutions(): a
+            [18, 119, 68, 33, 48, 23, 8, 73, 58, 43]
+            [18, 119, 68, 33, 48, 133, 8, 73, 168, 43]
+            [18, 119, 178, 143, 48, 23, 8, 73, 58, 43]
+            [18, 119, 178, 143, 48, 133, 8, 73, 168, 43]
+            [18, 119, 178, 164, 152, 73, 8, 133, 159, 147]
+            [74, 19, 177, 33, 49, 134, 109, 72, 58, 42]
+            [74, 19, 177, 54, 151, 72, 109, 134, 160, 37]
+            [74, 19, 177, 54, 151, 182, 109, 134, 160, 147]
+            [74, 129, 177, 164, 151, 72, 109, 134, 160, 37]
+            [74, 129, 177, 164, 151, 182, 109, 134, 160, 147]
+            sage: len(list(T.dlx_incremental_solutions()))
+            123
         """
         it = self.dlx_solutions()
         B = it.next()
         while True:
             yield B
             A, B = B, it.next()
-            common = []
-            for i in reversed(xrange(len(A))):
-                if A[i] == B[i]:
-                    break
+            common_prefix = 0
+            for a,b in itertools.izip(A,B):
+                if a == b:
+                    common_prefix += 1
                 else:
-                    yield A[:i]
-            else:
-                i -= 1
-            for j in xrange(i+2, len(A)):
+                    break
+            for i in xrange(1,len(A)-common_prefix):
+                yield A[:-i]
+            for j in xrange(common_prefix, len(B)):
                 yield B[:j]
 
     def solve(self, partial=None):
@@ -1329,7 +1401,7 @@ class TilingSolver(SageObject):
           following:
 
           - ``None`` - include only complete solution
-          - ``'common'`` - common part between two consecutive solutions
+          - ``'common_prefix'`` - common prefix between two consecutive solutions
           - ``'incremental'`` - one piece change at a time
 
         OUTPUT:
@@ -1359,7 +1431,7 @@ class TilingSolver(SageObject):
 
         Including the partial solutions::
 
-            sage: it = T.solve(partial='common')
+            sage: it = T.solve(partial='common_prefix')
             sage: for p in it.next(): p
             Polyomino: [(0, 0, 0)], Color: gray
             Polyomino: [(0, 0, 1), (0, 0, 2)], Color: gray
@@ -1406,14 +1478,14 @@ class TilingSolver(SageObject):
         rows = self.rows()
         if partial is None:
             it = self.dlx_solutions()
-        elif partial == 'common':
-            it = self.dlx_common_part_solutions()
+        elif partial == 'common_prefix':
+            it = self.dlx_common_prefix_solutions()
         elif partial == 'incremental':
             it = self.dlx_incremental_solutions()
         else:
             raise ValueError("Unknown value for partial (=%s)" % partial)
         for solution in it:
-            pentos = []
+            pieces = []
             for row_number in solution:
                 row = rows[row_number]
                 if self._reusable:
@@ -1426,8 +1498,8 @@ class TilingSolver(SageObject):
                     no = row[0]
                     coords = [int_to_coord[i] for i in row[1:]]
                     p = Polyomino(coords, color=self._pieces[no].color())
-                pentos.append(p)
-            yield pentos
+                pieces.append(p)
+            yield pieces
 
     def number_of_solutions(self):
         r"""
@@ -1461,7 +1533,7 @@ class TilingSolver(SageObject):
             N += 1
         return N
 
-    def animate(self, partial='incremental', stop=None):
+    def animate(self, partial=None, stop=None, size=0.9):
         r"""
         Return an animation of evolving solutions.
 
@@ -1471,37 +1543,52 @@ class TilingSolver(SageObject):
           include partial (incomplete) solutions. It can be one of the
           following:
 
-          - ``None`` - include only complete solution
-          - ``'common'`` - common part between two consecutive solutions
+          - ``None`` - include only complete solutions
+          - ``'common_prefix'`` - common prefix between two consecutive solutions
           - ``'incremental'`` - one piece change at a time
 
         - ``stop`` - integer (optional, default:``None``), number of frames
 
+        - ``size`` - number (optional, default: ``0.9``), the size of each
+          ``1 \times 1`` square. This does a homothety with respect
+          to the center of each polyomino.
+
         EXAMPLES::
 
             sage: from sage.combinat.tiling import Polyomino, TilingSolver
-            sage: y = Polyomino([(0,0),(1,0),(2,0),(3,0),(2,1)], color='yellow')
+            sage: y = Polyomino([(0,0),(1,0),(2,0),(3,0),(2,1)], color='cyan')
             sage: T = TilingSolver([y], box=(5,10), reusable=True, reflection=True)
-            sage: a = T.animate()                   # long time (2s)
+            sage: a = T.animate()
+            sage: a
+            Animation with 10 frames
+
+        Include partial solutions (common prefix between two consecutive
+        solutions)::
+
+            sage: a = T.animate('common_prefix')
+            sage: a
+            Animation with 19 frames
+
+        Incremental solutions (one piece removed or added at a time)::
+
+            sage: a = T.animate('incremental')      # long time (2s)
             sage: a                                 # long time (2s)
-            Animation with 42 frames
-            sage: a.show()                          # not tested
+            Animation with 123 frames
 
         ::
 
-            sage: a = T.animate('common')                   # not tested
-            sage: a                                         # not tested
-            Animation with 19 frames
+            sage: a.show()                 # optional - requires convert command
 
-        Without partial solutions::
+        The ``show`` function takes arguments to specify the delay between
+        frames (measured in hundredths of a second, default value 20) and
+        the number of iterations (default value 0, which means to iterate
+        forever). To iterate 4 times with half a second between each frame::
 
-            sage: a = T.animate(None)                       # not tested
-            sage: a                                         # not tested
-            Animation with 10 frames
+            sage: a.show(delay=50, iterations=4) # optional
 
         Limit the number of frames::
 
-            sage: a = T.animate('incremental', 13)          # not tested
+            sage: a = T.animate('incremental', stop=13)     # not tested
             sage: a                                         # not tested
             Animation with 13 frames
         """
@@ -1509,12 +1596,12 @@ class TilingSolver(SageObject):
         if dimension == 2:
             it = self.solve(partial=partial)
             it = itertools.islice(it, stop)
-            L = [sum([piece.show2d() for piece in solution], Graphics()) for solution in it]
+            L = [sum([piece.show2d(size) for piece in solution], Graphics()) for solution in it]
             xmax, ymax = self._box
             a = Animation(L, xmin=0, ymin=0, xmax=xmax, ymax=ymax, aspect_ratio=1)
             return a
         elif dimension == 3:
-            raise NotImplementedError("Animation must be implemented in Jmol first")
+            raise NotImplementedError("3d Animation must be implemented in Jmol first")
         else:
             raise NotImplementedError("Dimension must be 2 or 3 in order to make an animation")
 

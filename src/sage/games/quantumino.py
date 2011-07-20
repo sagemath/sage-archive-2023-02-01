@@ -11,9 +11,10 @@ Mathematique in Montreal by Franco Saliola during winter 2011.
 
 The solution uses the dancing links code which is in Sage and is based on
 the more general code available in the module :mod:`sage.combinat.tiling`.
-Dancing links were originally introduced by Donald Knuth in 2000 [3]. In
-particular, Knuth used dancing links to solve tilings of a region by 2D
-pentaminos.  Here we extend the method for 3D pentaminos.
+Dancing links were originally introduced by Donald Knuth in 2000
+(`arXiv:cs/0011047 <http://arxiv.org/abs/cs/0011047>`_). In particular,
+Knuth used dancing links to solve tilings of a region by 2D pentaminos.
+Here we extend the method for 3D pentaminos.
 
 This module defines two classes :
 
@@ -562,7 +563,7 @@ class QuantuminoSolver(SageObject):
             sage: QuantuminoSolver(4, box=(3,2,2)).number_of_solutions()
             0
 
-        ::
+        This computation takes several days::
 
             sage: QuantuminoSolver(0).number_of_solutions()                # not tested
             ??? hundreds of millions ???

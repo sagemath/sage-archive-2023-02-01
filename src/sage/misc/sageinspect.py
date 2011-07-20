@@ -1001,8 +1001,8 @@ def sage_getargspec(obj):
     decorated method appears to have the generic signature
     ``*args,**kwds``, but in fact it is only supposed to be called
     with the arguments requested by the underlying undecorated
-    method. We saw an easy example above, namely `I.groebner_basis`.
-    Here is a more difficult::
+    method. We saw an easy example above, namely ``I.groebner_basis``.
+    Here is a more difficult one::
 
         sage: cython_code = [
         ... 'cdef class MyClass:',
@@ -1348,7 +1348,7 @@ def sage_getsourcelines(obj, is_binary=False):
         ...
         '    raise ValueError, "k must be an integer or an integer + 1/2"\n'], 31)
 
-    Here are some cases that where covered in trac ticket #11298;
+    Here are some cases that were covered in trac ticket #11298;
     note that line numbers may easily change, and therefore we do
     not test them::
 

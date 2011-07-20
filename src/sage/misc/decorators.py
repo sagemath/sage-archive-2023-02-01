@@ -121,7 +121,7 @@ def sage_wraps(wrapped, assigned = WRAPPER_ASSIGNMENTS, updated = WRAPPER_UPDATE
         #Getting the signature right in documentation by Sphinx (Trac 9976)
         #The attribute _sage_argspec_() is read by Sphinx if present and used
         #as the argspec of the function instead of using reflection.
-        from sageinspect import sage_getargspec, sage_getsource
+        from sageinspect import sage_getargspec
         argspec = sage_getargspec(wrapped)
         wrapper._sage_argspec_ = lambda: argspec
         return wrapper

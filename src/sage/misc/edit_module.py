@@ -88,7 +88,7 @@ def file_and_line(obj):
    The following tests against a bug that was fixed in trac ticket #11298::
 
       sage: edit_module.file_and_line(x)
-      ('...sage/symbolic/expression.pyx', 191)
+      ('...sage/symbolic/expression.pyx', ...)
 
    """
    #d = inspect.getdoc(obj)

@@ -10,11 +10,11 @@ MIT
 
 == SPKG Maintainers ==
 
-Niels Ranosch
+Niels Ranosch <ranosch@mfo.de>
 
 == Upstream Contact ==
 
-Andrey Golovizin <golovizin at gmail com>
+Andrey Golovizin <golovizin@gmail com>
 http://pybtex.sourceforge.net/
 
 == Dependencies ==

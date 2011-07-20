@@ -859,12 +859,28 @@ mind:
 
   .. note::
 
-      Any text after ``optional`` is interpreted as a package name.
-      Therefore if the doctest is marked ``optional: requires
-      chomp``, then ``requires`` is viewed as a package
-      name, so the test would only be run by either ``sage -t
-      --optional f.py`` or ``sage -t
-      --only-optional=requires,chomp f.py``.
+      Any text after ``optional`` is interpreted as a list of package
+      names, separated by spaces, although the words "needs" and
+      "requires" are ignored.  Colons, periods, commas, and hyphens
+      are also ignored, and all text is converted to lower case.
+      Therefore if the doctest is marked ``optional: needs package
+      CHomP``, then it would be run by ``sage -t --optional f.py`` or
+      ``sage -t --only-optional=chomp,package f.py``.  This is
+      probably not what was intended: the doctest should have been
+      labeled ``optional: needs CHomP`` or just ``optional: chomp``.
+
+- If you are documenting a known bug in Sage, mark it as ``known bug``
+  or ``optional: bug``.  For example::
+
+     The following should yield 4.  See trac ticket #2::
+
+        sage: 2+2 # optional: bug
+	5
+
+  Then the doctest will be skipped by default, but could be revealed
+  by running ``sage -t --only-optional=bug ...``.  (A doctest marked
+  as ``known bug`` gets automatically converted to ``optional bug``,
+  so it is also detected by ``--optional`` or  ``--only-optional=bug``.)
 
 -  If the entire documentation string contains all three words
    ``optional``, ``package``, and ``installed``, then the entire

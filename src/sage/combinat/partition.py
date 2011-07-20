@@ -1479,12 +1479,22 @@ class Partition_class(CombinatorialObject):
         return d
 
     def centralizer_size(self, t=0, q=0):
-        """
+        r"""
         Returns the size of the centralizer of any permutation of cycle type
-        ``self``. If m_i is the multiplicity of i as a part of p, this is given
-        by `\prod_i (i^m[i])*(m[i]!)`. Including the optional
-        parameters t and q gives the q-t analog which is the former product
-        times `\prod_{i=1}^{length(p)} (1 - q^{p[i]}) / (1 - t^{p[i]}).`
+        ``self``. If `m_i` is the multiplicity of `i` as a part of `p`, this is given
+        by
+
+        .. math::
+
+           \prod_i m_i! i^{m_i}.
+
+        Including the optional
+        parameters `t` and `q` gives the `q`-`t` analog which is the former product
+        times
+
+        .. math::
+
+           \prod_{i=1}^{\mathrm{length}(p)} \frac{1 - q^{p_i}}{1 - t^{p_i}}.
 
         EXAMPLES::
 

@@ -226,8 +226,21 @@ def comment_modifier(s):
     eind = s.find('###',sind+1)
     L = s[sind+1:eind].lower()
     v = []
-    if ('optional' in L) or ('known bug' in L):
+    if 'optional' in L:
         v.append(OPTIONAL)
+    if 'known bug' in L:
+        # Doctests marked like this should be automatically converted
+        # to "optional bug", so they will be run by
+        #
+        #    sage -t ... --only-optional=bug
+        #
+        # So replace 'known' with '' or 'optional', depending on
+        # whether 'optional' is already there.
+        if 'optional' in L:
+            L = L.replace('known', '')
+        else:
+            v.append(OPTIONAL)
+            L = L.replace('known', 'optional')
     if 'long time' in L:
         v.append(LONG_TIME)
     if 'not implemented' in L:
@@ -400,12 +413,15 @@ def only_optional_include(s):
     if i == -1:
         return False
     if len(only_optional_tags) == 0:
-        # this doctest has # optional in it, but there are no tags, which
+        # This doctest has # optional in it, but there are no tags, which
         # mean test everything that is optional.
         return True
-    # delete all white spaces and -'s
-    s = ''.join(s[i+len('optional')+1:].replace('-','').split())
+    # Delete all white space, colons, periods, commas, and hyphens:
+    s = ','.join(s[i+len('optional')+1:].translate(None, '-:,.').split())
     v = set(s.split(','))
+    # Delete 'needs' and 'requires'.
+    v.discard('needs')
+    v.discard('requires')
     return (len(v) > 0 and v.issubset(only_optional_tags))
 
 

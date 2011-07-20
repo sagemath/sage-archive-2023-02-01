@@ -7305,9 +7305,9 @@ cdef class Expression(CommutativeRingElement):
             sage: (units.mass.kilogram*units.length.meter/units.time.second^2).convert(units.force.newton)
             newton
             sage: (units.length.foot^3).convert(units.area.acre*units.length.inch)
-            1/3630*acre*inch
+            1/3630*(acre*inch)
             sage: (units.charge.coulomb).convert(units.current.ampere*units.time.second)
-            ampere*second
+            (ampere*second)
             sage: (units.pressure.pascal*units.si_prefixes.kilo).convert(units.pressure.pounds_per_square_inch)
             1290320000000/8896443230521*pounds_per_square_inch
 

@@ -31,7 +31,7 @@ You may call the convert function with units::
 
     sage: t = units.mass.gram*units.length.centimeter/units.time.second^2
     sage: t.convert(units.mass.pound*units.length.foot/units.time.hour^2)
-    5400000000000/5760623099*foot*pound/hour^2
+    5400000000000/5760623099*(foot*pound/hour^2)
     sage: t.convert(units.force.newton)
     1/100000*newton
 
@@ -879,7 +879,7 @@ unit_docs = {
 
 
 ###############################################################################
-# Dictionary for converting from derived units to base si units.
+# Dictionary for converting from derived units to base SI units.
 ###############################################################################
 
 unit_derivations = {'acceleration':'length/time^2',
@@ -1259,9 +1259,9 @@ def convert(expr, target):
         sage: sage.symbolic.units.convert(units.mass.kilogram*units.length.meter/units.time.second^2, units.force.newton)
         newton
         sage: sage.symbolic.units.convert(units.length.foot^3, units.area.acre*units.length.inch)
-        1/3630*acre*inch
+        1/3630*(acre*inch)
         sage: sage.symbolic.units.convert(units.charge.coulomb, units.current.ampere*units.time.second)
-        ampere*second
+        (ampere*second)
         sage: sage.symbolic.units.convert(units.pressure.pascal*units.si_prefixes.kilo, units.pressure.pounds_per_square_inch)
         1290320000000/8896443230521*pounds_per_square_inch
 
@@ -1269,6 +1269,20 @@ def convert(expr, target):
 
         sage: sage.symbolic.units.convert(units.pressure.pascal*units.si_prefixes.kilo, units.pressure.pounds_per_square_inch)*1.0
         0.145037737730209*pounds_per_square_inch
+
+    You can also convert quantities of units::
+
+        sage: sage.symbolic.units.convert(cos(50) * units.angles.radian, units.angles.degree)
+        (180*cos(50)/pi)*degree
+        sage: sage.symbolic.units.convert(cos(30) * units.angles.radian, units.angles.degree).polynomial(RR)
+        8.83795706233228*degree
+        sage: sage.symbolic.units.convert(50 * units.length.light_year / units.time.year, units.length.foot / units.time.second)
+        6249954068750/127*(foot/second)
+
+    Quantities may contain variables (not for temperature conversion, though)::
+
+        sage: sage.symbolic.units.convert(50 * x * units.area.square_meter, units.area.acre)
+        (1953125/158080329*x)*acre
     """
     base_target = target
     z = {}
@@ -1292,10 +1306,11 @@ def convert(expr, target):
         base_target = base_target.subs(tz)
         coeff = (expr/base_target).expand()
 
-        if len(coeff.variables()) != 0:
-            raise ValueError, "Incompatible units"
+        for variable in coeff.variables():
+            if is_unit(str(variable)):
+                raise ValueError, "Incompatible units"
 
-        return coeff*target
+        return coeff.mul(target, hold=True)
 
 def base_units(unit):
     """
@@ -1387,7 +1402,7 @@ def convert_temperature(expr, target):
 
     We directly call the convert_temperature function::
 
-        sage: sage.symbolic.units.convert_temperature(37*units.temperature.celsius,  units.temperature.fahrenheit)
+        sage: sage.symbolic.units.convert_temperature(37*units.temperature.celsius, units.temperature.fahrenheit)
         493/5*fahrenheit
         sage: 493/5.0
         98.6000000000000

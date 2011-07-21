@@ -5,9 +5,10 @@
     <a href="http://www.sagemath.org"><img src="{{ pathto('_static/sagelogo.png', 1) }}" style="vertical-align: middle" title="Sage Logo"></a>
   {% else %}
     {% if pathto(master_doc).endswith('.html') %}
-      <a href="{{ '../' + pathto(master_doc) }}"><img src="{{ pathto('_static/sagelogo.png', 1) }}" style="vertical-align: middle" title="Sage Logo"></a>
+      <a href="{{ '../../' + pathto(master_doc) }}"><img src="{{ pathto('_static/sagelogo.png', 1) }}" style="vertical-align: middle" title="Sage Logo"></a>
     {% else %}
-      <a href="{{ '../' + pathto(master_doc, 1) + '.html' }}"><img src="{{ pathto('_static/sagelogo.png', 1) }}" style="vertical-align: middle" title="Sage Logo"></a>
+      <a href="{{ '../../' + pathto(master_doc,1) + '.html' }}"><img src="{{ pathto('_static/sagelogo.png', 1) }}" style="vertical-align: middle" title="Sage Logo"></a>
+      <a href="{{ '../' + 'index.html' }}"> Sage Reference Manual </a> &raquo;
     {% endif %}
   {% endif %}
   {{ super() }}
@@ -160,10 +161,10 @@ jq(document).ready(function () {
             <h3>{{ _('Quick search') }}</h3>
               <form class="search" action="{{ pathto('search') }}" method="get">
                 <input type="text" name="q" size="18" />
-                <!-- The shading of the "Go" button should be consistent -->
-                <!-- with the colour of the header and footer. See the file -->
-                <!-- doc/common/themes/sage/theme.conf for colours used by -->
-                <!-- the Sage theme. -->
+               <!-- The shading of the "Go" button should be consistent -->
+               <!-- with the colour of the header and footer. See the file -->
+               <!-- doc/common/themes/sage/theme.conf for colours used by -->
+               <!-- the Sage theme. -->
                 <input type="submit" style="background-color: #B8B9F6" value="{{ _('Go') }}" />
                 <input type="hidden" name="check_keywords" value="yes" />
                 <input type="hidden" name="area" value="default" />

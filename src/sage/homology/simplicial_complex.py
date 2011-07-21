@@ -34,7 +34,7 @@ simplices of `K`.  Frequently, one abuses notation and uses `K` to
 denote both the simplicial complex and the associated topological
 space.
 
-.. image:: ../../media/homology/simplices.png
+.. image:: ../../media/simplices.png
 
 For any simplicial complex `K` and any commutative ring `R` there is
 an associated chain complex, with differential of degree `-1`.  The

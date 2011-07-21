@@ -61,6 +61,32 @@ def copytree(src, dst, symlinks=False, ignore_errors=False):
         raise shutil.Error(errors)
 
 
+##########################################
+#      Parallel Building Ref Manual      #
+##########################################
+
+def build_ref_doc(doc, lang, format, output_dir, *args, **kwds):
+    # Build the reference manual for doc
+    static_dir = os.path.join(output_dir, 'reference', '_static')
+    bad_static = os.path.join(output_dir, doc, '_static')
+    # We need to remove the link to "_static" before generating the
+    # documentation, because the html doc builder writes to the
+    # _static directory.
+    if (os.path.isdir(static_dir) and os.path.isdir(bad_static)
+        and os.path.islink(bad_static)):
+        os.remove(bad_static)
+    getattr(ReferenceSubBuilder(doc, lang), format)(*args, **kwds)
+    # The standard Sphinx html build puts a copy of the "static"
+    # directory in reference/doc/_static.  For the reference manual,
+    # these are all identical to reference/_static, so delete the
+    # directory reference/doc/_static and replace it with a link to
+    # reference/_static.  This saves hundreds of megabytes of disk
+    # space.
+    if (os.path.isdir(static_dir) and os.path.isdir(bad_static)
+        and not os.path.islink(bad_static)):
+        shutil.rmtree(bad_static)
+    if os.path.isdir(static_dir):
+        os.symlink(static_dir, bad_static)
 
 ##########################################
 #             Builders                   #
@@ -103,11 +129,15 @@ class DocBuilder(object):
 
         - ``lang`` - (default "en") the language of the document.
         """
-        if '/' in name:
-            lang, name = name.split(os.path.sep)
-        self.name = name
+        doc = name.split(os.path.sep)
+
+        if doc[0] in LANGUAGES:
+            lang = doc[0]
+            doc.pop(0)
+
+        self.name = os.path.join(*doc)
         self.lang = lang
-        self.dir = os.path.join(SAGE_DOC, lang, name)
+        self.dir = os.path.join(SAGE_DOC, self.lang, self.name)
 
         #Make sure the .static and .templates directories are there
         mkdir(os.path.join(self.dir, "static"))
@@ -209,6 +239,7 @@ class DocBuilder(object):
     changes = builder_helper('changes')
     linkcheck = builder_helper('linkcheck')
 
+
 class AllBuilder(object):
     """
     A class used to build all of the documentation.
@@ -228,7 +259,25 @@ class AllBuilder(object):
         This is the function which goes through all of the documents
         and does the actual building.
         """
-        for document in self.get_all_documents():
+        docs = self.get_all_documents()
+        refs = [x for x in docs if x.endswith('reference')]
+        others = [x for x in docs if not x.endswith('reference')]
+        for document in others:
+            logger.warning("\nBuilding %s.\n" % document)
+            getattr(get_builder(document), name)(*args, **kwds)
+        # Build the reference manual twice to resolve references.
+        # That is, build once to construct the intersphinx inventory
+        # files, and then build the second time for real.  So the
+        # first build should be as fast as possible; thus do an html
+        # build first.
+        logger.warning("\nBuilding reference manual, first pass.\n")
+        global ALLSPHINXOPTS
+        ALLSPHINXOPTS += ' -Q '
+        for document in refs:
+            getattr(get_builder(document), 'html')(*args, **kwds)
+        logger.warning("Building reference manual, second pass.\n")
+        ALLSPHINXOPTS = ALLSPHINXOPTS.replace('-Q', '-q') + ' '
+        for document in refs:
             getattr(get_builder(document), name)(*args, **kwds)
 
     def get_all_documents(self):
@@ -261,6 +310,7 @@ class AllBuilder(object):
 
         return documents
 
+
 class WebsiteBuilder(DocBuilder):
     def html(self):
         """
@@ -292,9 +342,209 @@ class WebsiteBuilder(DocBuilder):
 
         DocBuilder.clean(self)
 
-class ReferenceBuilder(DocBuilder):
+
+class ReferenceBuilder(AllBuilder):
     """
-    This the class used to build the reference manual.  It is
+    This class builds the reference manual.  It uses DocBuilder to
+    build the top-level page and ReferenceSubBuilder for each
+    sub-component.
+    """
+    def __init__(self, name, lang='en'):
+        """
+        Records the reference manual's name, in case it's not
+        identical to 'reference'.
+        """
+        AllBuilder.__init__(self)
+        doc = name.split(os.path.sep)
+
+        if doc[0] in LANGUAGES:
+            lang = doc[0]
+            doc.pop(0)
+
+        self.name = doc[0]
+        self.lang = lang
+
+    def _output_dir(self, type, lang='en'):
+        """
+        Returns the directory where the output of type type is stored.
+        If the directory does not exist, then it will automatically be
+        created.
+
+        EXAMPLES::
+
+            sage: import os, sys; sys.path.append(os.environ['SAGE_DOC']+'/common/'); import builder
+            sage: b = builder.ReferenceBuilder('reference')
+            sage: b._output_dir('html')
+            '.../devel/sage/doc/output/html/en/reference'
+        """
+        return mkdir(os.path.join(SAGE_DOC, "output", type, lang, self.name))
+
+    def _wrapper(self, format, *args, **kwds):
+        """
+        Builds reference manuals.  For each language, it builds the
+        top-level document and its components.
+        """
+        for lang in LANGUAGES:
+            refdir = os.path.join(SAGE_DOC, lang, self.name)
+            if not os.path.exists(refdir):
+                continue
+
+            output_dir = self._output_dir(format, lang)
+            getattr(DocBuilder(self.name, lang), format)(*args, **kwds)
+
+            from multiprocessing import Pool, cpu_count
+            # Determine the number of threads from the environment variable
+            # SAGE_NUM_THREADS.
+            pool = Pool(int(os.environ.get('SAGE_NUM_THREADS', 1)))
+            for doc in self.get_all_documents(refdir):
+                pool.apply_async(build_ref_doc,
+                                 (doc, lang, format,
+                                  os.path.split(output_dir)[0]) + args, kwds)
+            pool.close()
+            pool.join()
+            if format == 'html':
+                # html build: combine the todo lists from the
+                # different modules.
+                todofile = os.path.join(output_dir, 'todolist', 'index.html')
+                old = open(todofile).read()
+                note = "The combined to do list is only available in the html version of the reference manual."
+                preamble = old.find(note)
+                postamble = preamble + len(note)
+                if preamble != -1:
+                    old_todofile = os.path.join(output_dir, 'todolist', 'index-old.html')
+                    shutil.move(todofile, old_todofile)
+                    new = open(todofile, 'w')
+                    new.write(old[:preamble])
+                    for f in os.listdir(output_dir):
+                        index = os.path.join(output_dir, f, 'index.html')
+                        if (f != 'todolist' and os.path.exists(index)):
+                            html = open(index).read()
+                            start = html.find('<div class="admonition-todo')
+                            end = html.find('<div class="section" id="indices-and-tables">')
+                            if start != -1:
+                                html = html[start:end].replace('sage/%s' %f,
+                                                               '../%s/sage/%s' % (f, f))
+                                new.write(html)
+                    new.write(old[postamble:])
+                    new.close()
+
+                logger.warning('''
+Build finished.  The Sage reference manual can be found in
+
+  %s
+''' % (os.path.join(output_dir, 'index.html')))
+            # PDF: we need to build master index file which lists all
+            # of the PDF file.  So we create an html file, based on
+            # the file index.html from the "website" target.
+            if format == 'pdf':
+                import re
+                # First build the website page.  (This only takes a
+                # few seconds.)
+                getattr(get_builder('website'), 'html')()
+                # Copy the relevant pieces of
+                # output/html/en/website/_static to output_dir.
+                # (Don't copy all of _static to save some space: we
+                # don't need all of the MathJax stuff, and in
+                # particular we don't need the fonts.)
+                website_dir = os.path.join(SAGE_DOC, 'output', 'html',
+                                           'en', 'website')
+                static_files = ['COPYING.txt', 'basic.css', 'blank.gif',
+                         'default.css', 'doctools.js', 'favicon.ico',
+                         'file.png', 'jquery.js', 'minus.png',
+                         'pdf.png', 'plus.png', 'pygments.css',
+                         'sage.css', 'sageicon.png', 'sagelogo.png',
+                         'searchtools.js', 'sidebar.js', 'underscore.js']
+                try:
+                    os.mkdir(os.path.join(output_dir, '_static'))
+                except OSError:
+                    pass
+                for f in static_files:
+                    shutil.copyfile(os.path.join(website_dir, '_static', f),
+                                    os.path.join(output_dir, '_static', f))
+                # Now modify website's index.html page and write it
+                # to output_dir.
+                f = open(os.path.join(website_dir, 'index.html'))
+                html = f.read().replace('Documentation', 'Reference')
+                f.close()
+                html_output_dir = os.path.dirname(website_dir)
+                html = html.replace('http://www.sagemath.org',
+                                    os.path.join(html_output_dir, 'index.html'))
+                # From index.html, we want the preamble and the tail.
+                html_end_preamble = html.find('<h1>Sage Reference')
+                html_bottom = html.rfind('</table>') + len('</table>')
+                # For the content, we modify doc/en/reference/index.rst,
+                # which has two parts: the body and the table of contents.
+                f = open(os.path.join(SAGE_DOC, lang, 'reference', 'index.rst'))
+                rst = f.read()
+                f.close()
+                # Replace rst links with html links.  There are two types:
+                #
+                # `blah`__
+                # __ link
+                #
+                # `blah <module/index.html>`_
+                #
+                # For the second type, also change "module/index.html"
+                # to "module/module.pdf".
+                rst = re.sub('`([^`]*)`__\.\n\n__ (.*)',
+                                  r'<a href="\2">\1</a>.', rst)
+                rst = re.sub(r'`([^<]*?)\s+<(.*)/index\.html>`_',
+                             r'<a href="\2/\2.pdf">\1 <img src="_static/pdf.png" /></a>',
+                             rst)
+                start = rst.find('=\n') + 1
+                end = rst.find('Table of Contents')
+                # Body: add paragraph <p> markup.
+                rst_body = rst[start:end]
+                rst_body = rst_body.replace('\n\n', '</p>\n<p>')
+                start = rst.find('Table of Contents') + 2*len('Table of Contents') + 1
+                end = rst.find('.. include:: footer.txt')
+                # TOC: change * to <li>, change rst headers to html headers.
+                rst_toc = rst[start:end]
+                rst_toc = rst_toc.replace('*', '<li>')
+                rst_toc = re.sub('\n([A-Z][a-zA-Z, ]*)\n-*\n',
+                             '</ul>\n\n\n<h2>\\1</h2>\n\n<ul>\n', rst_toc)
+                # Now write the file.
+                new_index = open(os.path.join(output_dir, 'index.html'), 'w')
+                new_index.write(html[:html_end_preamble])
+                new_index.write('<h1>' + rst[:rst.find('\n')] +
+                                ' (PDF version)'+ '</h1>')
+                new_index.write(rst_body)
+                new_index.write('<h2>Table of Contents</h2>\n\n<ul>')
+                new_index.write(rst_toc)
+                new_index.write('</ul>\n\n')
+                new_index.write(html[html_bottom:])
+                new_index.close()
+                logger.warning('''
+PDF documents have been created in subdirectories of
+
+  %s
+
+Alternatively, you can open
+
+  %s
+
+for a webpage listing all of the documents.''' % (output_dir,
+                                                 os.path.join(output_dir,
+                                                              'index.html')))
+
+    def get_all_documents(self, refdir):
+        """
+        Returns a list of all reference manual components to build.
+        We add a component name if it's a subdirectory of the manual's
+        directory and contains a file named 'index.rst'.
+        """
+        documents = []
+
+        for doc in os.listdir(refdir):
+            if os.path.exists(os.path.join(refdir, doc, 'index.rst')):
+                documents.append(os.path.join(self.name, doc))
+
+        return documents
+
+
+class ReferenceSubBuilder(DocBuilder):
+    """
+    This class builds sub-components of the reference manual.  It is
     resposible for making sure the auto generated ReST files for the
     Sage library are up to date.
 
@@ -705,14 +955,16 @@ class ReferenceBuilder(DocBuilder):
 
 def get_builder(name):
     """
-    Returns a either a AllBuilder or DocBuilder object depending
-    on whether ``name`` is 'all' or not.  These are the objects
-    which do all the real work in building the documentation.
+    Returns an appropriate *Builder object for the document ``name``.
+    DocBuilder and its subclasses do all the real work in building the
+    documentation.
     """
     if name == 'all':
         return AllBuilder()
     elif name.endswith('reference'):
         return ReferenceBuilder(name)
+    elif 'reference' in name:
+        return ReferenceSubBuilder(name)
     elif name.endswith('website'):
         return WebsiteBuilder(name)
     elif name in get_documents() or name in AllBuilder().get_all_documents():
@@ -802,9 +1054,14 @@ def help_documents(s=u""):
     shortcut 'all' for all documents, available to the Sage
     documentation builder.
     """
+    docs = get_documents()
     s += "DOCUMENTs:\n"
-    s += format_columns(get_documents() + ['all  (!)'])
-    s += "(!) Builds everything.\n"
+    s += format_columns(docs + ['all  (!)'])
+    s += "(!) Builds everything.\n\n"
+    if 'reference' in docs:
+        s+= "Other valid document names take the form 'reference/DIR', where\n"
+        s+= "DIR is a subdirectory of SAGE_ROOT/devel/sage/doc/en/reference/.\n"
+        s+= "This builds just the specified part of the reference manual.\n"
     return s
 
 def get_formats():

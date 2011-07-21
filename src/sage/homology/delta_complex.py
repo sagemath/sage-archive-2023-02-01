@@ -149,7 +149,7 @@ class DeltaComplex(GenericCellComplex):
       first in the prescribed way.  The three edges each start and end
       at the single vertex, ``Simplex(0)``.
 
-      .. image:: ../../media/homology/torus_labelled.png
+      .. image:: ../../media/torus_labelled.png
 
     - ``data`` may be nested lists or tuples.  The nth entry in the
       list is a list of the n-simplices in the complex, and each
@@ -178,7 +178,7 @@ class DeltaComplex(GenericCellComplex):
       If one draws two triangles and identifies them according to this
       description, the result is the real projective plane.
 
-      .. image:: ../../media/homology/rp2.png
+      .. image:: ../../media/rp2.png
 
       ::
 
@@ -1483,7 +1483,7 @@ class DeltaComplexExamples():
         A `\Delta`-complex representation of the torus, consisting of one
         vertex, three edges, and two triangles.
 
-        .. image:: ../../media/homology/torus.png
+        .. image:: ../../media/torus.png
 
         EXAMPLES::
 
@@ -1497,7 +1497,7 @@ class DeltaComplexExamples():
         A `\Delta`-complex representation of the real projective plane,
         consisting of two vertices, three edges, and two triangles.
 
-        .. image:: ../../media/homology/rp2.png
+        .. image:: ../../media/rp2.png
 
         EXAMPLES::
 
@@ -1518,7 +1518,7 @@ class DeltaComplexExamples():
         A `\Delta`-complex representation of the Klein bottle, consisting
         of one vertex, three edges, and two triangles.
 
-        .. image:: ../../media/homology/klein.png
+        .. image:: ../../media/klein.png
 
         EXAMPLES::
 

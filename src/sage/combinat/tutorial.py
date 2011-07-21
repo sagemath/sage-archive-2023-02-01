@@ -209,7 +209,7 @@ node to which two complete binary trees are attached (see
 
 .. _figure-examples-catalan-trees:
 
-.. figure:: ../../media/combinat/complete-binary-trees-4.png
+.. figure:: ../../media/complete-binary-trees-4.png
     :scale: 150 %
 
     Figure: The five complete binary trees with four leaves
@@ -866,7 +866,7 @@ Partial orders on a set of `8` elements, up to isomorphism::
 
     sage: C.unrank(20).plot()
 
-.. image:: ../../media/combinat/a_poset.png
+.. image:: ../../media/a_poset.png
 
 One can iterate through all graphs up to isomorphism. For example,
 there are 34 simple graphs with 5 vertices::
@@ -878,7 +878,7 @@ Here are those with at most `4` edges::
 
     sage: show(graphs(5, lambda G: G.size() <= 4))
 
-.. image:: ../../media/combinat/graphs-5.png
+.. image:: ../../media/graphs-5.png
 
 However, the *set* ``C`` of these graphs is not yet available in
 ``Sage``; as a result, the following commands are not yet
@@ -1609,7 +1609,7 @@ prefix tree on the elements of `S`: a node of the tree at depth
 
 .. _figure-prefix-tree-partitions:
 
-.. figure:: ../../media/combinat/prefix-tree-partitions-5.png
+.. figure:: ../../media/prefix-tree-partitions-5.png
     :scale: 150%
 
     Figure: The prefix tree of the partitions of 5.
@@ -1674,7 +1674,7 @@ This polytope can be visualized in 3D with ``L.plot3d()`` (see
 
 .. _figure-polytope:
 
-.. figure:: ../../media/combinat/polytope.png
+.. figure:: ../../media/polytope.png
     :scale: 75%
 
     Figure: The polytope `L` and its integer points, in cross-eyed stereographic perspective.
@@ -1840,7 +1840,7 @@ the possible ways to `G`, and then selecting, from among those graphs,
 the ones that are still canonical [4]_. Recursively, one obtains all
 the canonical graphs.
 
-.. figure:: ../../media/combinat/prefix-tree-graphs-4.png
+.. figure:: ../../media/prefix-tree-graphs-4.png
 
    Figure: The generation tree of simple graphs with `4` vertices.
 

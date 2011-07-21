@@ -56,7 +56,7 @@ LaTeX
 .. toctree::
    :maxdepth: 2
 
-   other/sagetex
+   sagetex
    sage/misc/latex
    sage/misc/latex_macros
 

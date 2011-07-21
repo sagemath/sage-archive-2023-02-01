@@ -15,4 +15,6 @@ There is still some work to do :-) :
         Rewrite the hand-written TODOs by using the correct ``.. todo::``
         markup.
 
+The combined to do list is only available in the html version of the reference manual.
+
 .. todolist::

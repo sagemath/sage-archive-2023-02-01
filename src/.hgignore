@@ -60,3 +60,5 @@ sage/modular/arithgroup/farey_symbol.h
 doc/output/
 doc/en/reference/sage/
 doc/en/reference/sagenb/
+doc/en/reference/.*/sage/
+doc/en/reference/.*/sagenb/

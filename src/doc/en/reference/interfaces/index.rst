@@ -3,7 +3,8 @@ Interpreter Interfaces
 
 Sage provides a unified interface to the best computational
 software. This is accomplished using both C-libraries (see
-:ref:`ch:libraries`) and interpreter interfaces, which are
+`C/C++ Library Interfaces <../libs/index.html>`_)
+and interpreter interfaces, which are
 implemented using pseudo-tty's, system files, etc. This chapter is
 about these interpreter interfaces.
 
@@ -18,7 +19,8 @@ about these interpreter interfaces.
     There is overhead associated with each call to one of these
     systems. For example, computing ``2+2`` thousands of times using
     the GAP interface will be slower than doing it directly in
-    Sage. In contrast, the C-library interfaces of :ref:`ch:libraries`
+    Sage. In contrast, the C-library interfaces of
+    `C/C++ Library Interfaces <../libs/index.html>`_
     incur less overhead.
 
 

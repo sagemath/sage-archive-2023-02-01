@@ -64,7 +64,7 @@ we must ensure several things.
 
   A contradiction indeed.
 
-  .. image:: ../../../media/graphs/cycle.png
+  .. image:: ../../../media/cycle.png
 
   That means that, for instance, the edges of a triangle necessarily have the
   same color.
@@ -76,7 +76,7 @@ we must ensure several things.
   In this situation, opposed edges necessarily have the same colors because of
   the previous remark.
 
-  .. image:: ../../../media/graphs/square.png
+  .. image:: ../../../media/square.png
 
   **1st criterion** : As a corollary, we know that:
 

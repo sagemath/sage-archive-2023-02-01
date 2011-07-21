@@ -24,7 +24,7 @@ Author:
 Data structure
 --------------
 
-.. image:: ../../../media/graphs/structure.png
+.. image:: ../../../media/structure.png
 
 The data structure is actually pretty simple and compact. ``short_digraph`` has
 three fields

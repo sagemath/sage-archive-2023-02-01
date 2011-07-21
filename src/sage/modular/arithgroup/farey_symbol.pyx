@@ -419,7 +419,7 @@ cdef class Farey:
         Farey symbol of the arithmetic group. The sides of the
         hyperbolic polygon are numbered 0, 1, ... from left to right.
 
-        .. image:: ../../../media/modular/arithgroup/pairing.png
+        .. image:: ../../../media/pairing.png
 
         EXAMPLES::
 

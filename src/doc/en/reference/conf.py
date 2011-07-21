@@ -15,6 +15,16 @@ import sys, os
 sys.path.append(os.environ['SAGE_DOC'])
 from common.conf import *
 
+# settings for the intersphinx extension:
+
+ref_src = os.path.join(SAGE_DOC, 'en', 'reference')
+ref_out = os.path.join(SAGE_DOC, 'output', 'html', 'en', 'reference')
+intersphinx_mapping[ref_out] = None
+
+for doc in os.listdir(ref_src):
+    if os.path.exists(os.path.join(ref_src, doc, 'index.rst')):
+        intersphinx_mapping[os.path.join(ref_out, doc)] = None
+
 # General information about the project.
 project = u"Sage Reference Manual"
 name = "reference"
@@ -50,3 +60,67 @@ latex_elements['preamble'] += r'''
 
 #Ignore all .rst in the _sage subdirectory
 exclude_trees = exclude_trees + ['_sage']
+
+# List of directories, relative to source directory, that shouldn't be
+# searched for source files.
+exclude_trees = exclude_trees + [
+    'algebras',
+    'arithgroup',
+    'calculus',
+    'categories',
+    'cmd',
+    'coding',
+    'coercion',
+    'combinat',
+    'constants',
+    'cryptography',
+    'databases',
+    'finance',
+    'finite_rings',
+    'function_fields',
+    'functions',
+    'games',
+    'geometry',
+    'graphs',
+    'groups',
+    'hecke',
+    'history_and_license',
+    'homology',
+    'interfaces',
+    'lfunctions',
+    'libs',
+    'logic',
+    'matrices',
+    'misc',
+    'modabvar',
+    'modfrm',
+    'modmisc',
+    'modsym',
+    'modules',
+    'monoids',
+    'notebook',
+    'number_fields',
+    'numerical',
+    'options',
+    'padics',
+    'parallel',
+    'plane_curves',
+    'plot3d',
+    'plotting',
+    'polynomial_rings',
+    'power_series',
+    'probability',
+    'quadratic_forms',
+    'quat_algebras',
+    'rings',
+    'rings_numerical',
+    'rings_standard',
+    'sage',
+    'sagenb',
+    'schemes',
+    'semirings',
+    'stats',
+    'structure',
+    'tensor',
+    'todolist'
+    ]

@@ -377,6 +377,13 @@ class Gp(Expect):
 
             sage: gp._eval_line('2+2')
             '4'
+
+        TESTS:
+
+        We verify that trac 11617 is fixed::
+
+            sage: gp._eval_line('a='+str(range(2*10^5)))[:70]
+            '[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,'
         """
         line = line.strip()
         if len(line) == 0:
@@ -389,7 +396,8 @@ class Gp(Expect):
             b = self.eval("allocatemem()")
             if b.find("Warning: not enough memory") != -1:
                 raise RuntimeError, a
-            return self._eval_line(line)
+            return self._eval_line(line, allow_use_file=allow_use_file,
+                                   wait_for_prompt=wait_for_prompt)
         else:
             return a
 

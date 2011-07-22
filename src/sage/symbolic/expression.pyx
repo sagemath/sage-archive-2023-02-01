@@ -7662,12 +7662,12 @@ cdef class Expression(CommutativeRingElement):
             sage: (x^2>1).solve(x)
             [[x < -1], [x > 1]]
 
-	Catch error message from Maxima::
+        Catch error message from Maxima::
 
             sage: solve(acot(x),x)
             []
 
-	::
+        ::
 
             sage: solve(acot(x),x,to_poly_solve=True)
             []
@@ -7700,6 +7700,12 @@ cdef class Expression(CommutativeRingElement):
 
             sage: solve(sin(x)==1/2,x,to_poly_solve='force')
             [x == 5/6*pi + 2*pi*z86, x == 1/6*pi + 2*pi*z84]
+
+        Trac #11618 fixed::
+
+            sage: g(x)=0
+            sage: solve(g(x)==0,x,solution_dict=True)
+            [{x: r1}]
         """
         import operator
         cdef Expression ex
@@ -7752,9 +7758,9 @@ cdef class Expression(CommutativeRingElement):
 
         if s == 'all':
             if solution_dict:
-                ans = (dict([[x,self.parent().var('r1')]]))
+                ans = [ {x: self.parent().var('r1')} ]
             else:
-                ans = ([x == self.parent().var('r1')])
+                ans = [x == self.parent().var('r1')]
             if multiplicities:
                 return ans,[]
             else:

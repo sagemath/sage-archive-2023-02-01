@@ -107,7 +107,7 @@ has a hierarchy of classes, namely for sets, rings, fields, and so on:
 In algebra, objects sharing the same kind of algebraic structures are
 collected in so-called "categories". So, there is a rough analogy
 between the class hierarchy in Sage and the hierarchy of
-categores. However, this analogy of Python classes and categories
+categories. However, this analogy of Python classes and categories
 shouldn't be stressed too much. After all, mathematical categories are
 implemented in Sage as well:
 
@@ -204,7 +204,7 @@ type conversion in C with conversion in Sage!
 
 We give here a rather brief account. For a detailed description and
 for information on the implementation, we refer to the section on
-Coercion in the reference manual and to a `tutorial worksheet
+coercion in the reference manual and to the `tutorial worksheet
 <http://flask.sagenb.org/home/pub/82/>`_.
 
 There are two extremal positions concerning the possibility
@@ -302,7 +302,7 @@ in violation to consistency.
 
 If there is a coercion, it will be used to compare elements of
 different rings or to do arithmetic. This is often convenient, but
-the user should be aware that extending the ``==``-relation accross
+the user should be aware that extending the ``==``-relation across
 the borders of different parents may easily result in overdoing it.
 For example, while ``==`` is supposed to be an equivalence relation
 on the elements of *one* ring, this is not necessarily the case if
@@ -378,7 +378,7 @@ fraction field of ``ZZ['x']``. However, Sage tries to choose a
 in our example). If several potential common parents seem equally
 natural, Sage will *not* pick one of them at random, in order to have
 a reliable result. The mechanisms which that choice is based upon is
-explained in a `tutorial worksheet <http://flask.sagenb.org/home/pub/82/>`_
+explained in the `tutorial worksheet <http://flask.sagenb.org/home/pub/82/>`_
 
 No coercion into a common parent will take place in the following
 example:

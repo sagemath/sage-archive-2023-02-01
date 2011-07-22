@@ -331,7 +331,7 @@ class QuantuminoState(SageObject):
         """
         return list(self)
 
-    def show3d(self, size=0.75):
+    def show3d(self, size=0.85):
         r"""
         Return the solution as a 3D Graphic object.
 

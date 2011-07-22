@@ -81,16 +81,16 @@ The following is a puzzle owned by Florent Hivert::
 
     sage: from sage.combinat.tiling import Polyomino, TilingSolver
     sage: L = []
-    sage: L.append(Polyomino([(0,0),(0,1),(0,2),(0,3),(1,0),(1,1),(1,2),(1,3)]))
-    sage: L.append(Polyomino([(0,0),(0,1),(0,2),(0,3),(1,0),(1,1),(1,2)]))
-    sage: L.append(Polyomino([(0,0),(0,1),(0,2),(0,3),(1,0),(1,1),(1,3)]))
-    sage: L.append(Polyomino([(0,0),(0,1),(0,2),(0,3),(1,0),(1,3)]))
-    sage: L.append(Polyomino([(0,0),(0,1),(0,2),(0,3),(1,0),(1,1)]))
-    sage: L.append(Polyomino([(0,0),(0,1),(0,2),(0,3),(1,1),(1,2)]))
-    sage: L.append(Polyomino([(0,0),(0,1),(0,2),(0,3),(1,1),(1,3)]))
-    sage: L.append(Polyomino([(0,1),(0,2),(0,3),(1,0),(1,1),(1,3)]))
-    sage: L.append(Polyomino([(0,1),(0,2),(0,3),(1,0),(1,1),(1,2)]))
-    sage: L.append(Polyomino([(0,0),(0,1),(0,2),(1,0),(1,1),(1,2)]))
+    sage: L.append(Polyomino([(0,0),(0,1),(0,2),(0,3),(1,0),(1,1),(1,2),(1,3)], 'yellow'))
+    sage: L.append(Polyomino([(0,0),(0,1),(0,2),(0,3),(1,0),(1,1),(1,2)], "black"))
+    sage: L.append(Polyomino([(0,0),(0,1),(0,2),(0,3),(1,0),(1,1),(1,3)], "gray"))
+    sage: L.append(Polyomino([(0,0),(0,1),(0,2),(0,3),(1,0),(1,3)],"cyan"))
+    sage: L.append(Polyomino([(0,0),(0,1),(0,2),(0,3),(1,0),(1,1)],"red"))
+    sage: L.append(Polyomino([(0,0),(0,1),(0,2),(0,3),(1,1),(1,2)],"blue"))
+    sage: L.append(Polyomino([(0,0),(0,1),(0,2),(0,3),(1,1),(1,3)],"green"))
+    sage: L.append(Polyomino([(0,1),(0,2),(0,3),(1,0),(1,1),(1,3)],"magenta"))
+    sage: L.append(Polyomino([(0,1),(0,2),(0,3),(1,0),(1,1),(1,2)],"orange"))
+    sage: L.append(Polyomino([(0,0),(0,1),(0,2),(1,0),(1,1),(1,2)],"pink"))
 
 By default, rotations are allowed and reflections are not. In this case,
 there are no solution::
@@ -104,13 +104,19 @@ one solution::
 
     sage: T = TilingSolver(L, (8,8), reflection=True)
     sage: solution = T.solve().next()
-    sage: G = sum([piece.show2d(size=0.85) for piece in solution], Graphics())
-    sage: G.show(aspect_ratio=1)
+    sage: G = sum([piece.show2d() for piece in solution], Graphics())
+    sage: G.show(aspect_ratio=1, axes=False)
 
 Compute the number of solutions::
 
     sage: T.number_of_solutions()                              # long time (2.6s)
     328
+
+Create a animation of all the solutions::
+
+    sage: a = T.animate()                            # not tested
+    sage: a                                          # not tested
+    Animation with 328 frames
 
 3d Puzzle
 ---------
@@ -220,6 +226,8 @@ from sage.misc.misc import prod
 from sage.combinat.all import WeylGroup
 from sage.plot.plot import Graphics
 from sage.plot.polygon import polygon
+from sage.plot.line import line
+from sage.plot.circle import circle
 from sage.modules.free_module_element import vector
 from sage.plot.plot3d.platonic import cube
 from sage.plot.animate import Animation
@@ -334,6 +342,7 @@ class Polyomino(SageObject):
         assert isinstance(color, str)
         self._color = color
         self._blocs = frozenset(tuple(c) for c in coords)
+        assert len(self._blocs) != 0, "Polyomino must be non empty"
         dimension_set = set(len(a) for a in self._blocs)
         assert len(dimension_set) <= 1, "coord must be all of the same dimension"
         self._dimension = dimension_set.pop()
@@ -759,37 +768,39 @@ class Polyomino(SageObject):
                 yield t
 
 
-    def middle_of_neighbor_coords(self):
+    def neighbor_edges(self):
         r"""
-        Return the list of middle of neighbor coords.
+        Return an iterator over the pairs of neighbor coordinates of the
+        polyomino.
 
-        This is use to draw cube in between two neighbor cubes.
+        Two points `P` and `Q` are neighbor if `P - Q` has one coordinate
+        equal to `+1` or `-1` and zero everywhere else.
 
         EXAMPLES::
 
             sage: from sage.combinat.tiling import Polyomino
             sage: p = Polyomino([(0,0,0),(0,0,1)])
-            sage: list(p.middle_of_neighbor_coords())
-            [(0.0, 0.0, 0.5)]
+            sage: list(sorted(edge) for edge in p.neighbor_edges())
+            [[(0, 0, 0), (0, 0, 1)]]
 
         In 3d::
 
             sage: p = Polyomino([(0,0,0),(1,0,0),(1,1,0),(1,1,1),(1,2,0)], color='deeppink')
-            sage: L = sorted(p.middle_of_neighbor_coords())
+            sage: L = sorted(sorted(edge) for edge in p.neighbor_edges())
             sage: for a in L: a
-            (0.5, 0.0, 0.0)
-            (1.0, 0.5, 0.0)
-            (1.0, 1.0, 0.5)
-            (1.0, 1.5, 0.0)
+            [(0, 0, 0), (1, 0, 0)]
+            [(1, 0, 0), (1, 1, 0)]
+            [(1, 1, 0), (1, 1, 1)]
+            [(1, 1, 0), (1, 2, 0)]
 
         In 2d::
 
             sage: p = Polyomino([(0,0),(1,0),(1,1),(1,2)])
-            sage: L = sorted(p.middle_of_neighbor_coords())
+            sage: L = sorted(sorted(edge) for edge in p.neighbor_edges())
             sage: for a in L: a
-            (0.5, 0.0)
-            (1.0, 0.5)
-            (1.0, 1.5)
+            [(0, 0), (1, 0)]
+            [(1, 0), (1, 1)]
+            [(1, 1), (1, 2)]
         """
         for P, Q in itertools.combinations(self, 2):
             P, Q = vector(P), vector(Q)
@@ -797,7 +808,8 @@ class Polyomino(SageObject):
             firsts = s[:-1]
             last = s[-1]
             if last == 1 and all(f == 0 for f in firsts):
-                yield (P + Q) / 2.0
+                yield P, Q
+
     def center(self):
         r"""
         Return the center of the polyomino.
@@ -823,6 +835,53 @@ class Polyomino(SageObject):
         """
         return sum(vector(t) for t in self) / len(self)
 
+    def boundary(self):
+        r"""
+        Return the boundary of a 2D polyomino.
+
+        INPUT:
+
+        - ``self`` - a 2D polyomino
+
+        OUTPUT:
+
+        - list of edges (an edge is a pair of adjacent 2D coordinates)
+
+        EXAMPLES::
+
+            sage: from sage.combinat.tiling import Polyomino
+            sage: p = Polyomino([(0,0), (1,0), (0,1), (1,1)])
+            sage: p.boundary()
+            [((0.5, 1.5), (1.5, 1.5)), ((-0.5, -0.5), (0.5, -0.5)), ((0.5, -0.5), (1.5, -0.5)), ((-0.5, 1.5), (0.5, 1.5)), ((-0.5, 0.5), (-0.5, 1.5)), ((-0.5, -0.5), (-0.5, 0.5)), ((1.5, 0.5), (1.5, 1.5)), ((1.5, -0.5), (1.5, 0.5))]
+            sage: len(_)
+            8
+            sage: p = Polyomino([(5,5)])
+            sage: p.boundary()
+            [((4.5, 5.5), (5.5, 5.5)), ((4.5, 4.5), (5.5, 4.5)), ((4.5, 4.5), (4.5, 5.5)), ((5.5, 4.5), (5.5, 5.5))]
+        """
+        if self._dimension != 2:
+            raise NotImplementedError("The method boundary is currently implemented "
+                                      "only for dimension 2")
+        from collections import defaultdict
+        horizontal = defaultdict(int)
+        vertical = defaultdict(int)
+        for a in self:
+            x,y = a = tuple(a)
+            horizontal[a] += 1
+            vertical[a] += 1
+            horizontal[(x,y+1)] -= 1
+            vertical[(x+1,y)] -= 1
+        edges = []
+        h = 0.5
+        for (x,y), coeff in horizontal.iteritems():
+            if coeff != 0:
+                edges.append(((x-h,y-h),(x+h,y-h)))
+        for (x,y), coeff in vertical.iteritems():
+            if coeff != 0:
+                edges.append(((x-h,y-h),(x-h,y+h)))
+        return edges
+
+
     def show3d(self, size=1):
         r"""
         Returns a 3d Graphic object representing the polyomino.
@@ -840,7 +899,7 @@ class Polyomino(SageObject):
             sage: p = Polyomino([(0,0,0), (0,1,0), (1,1,0), (1,1,1)], color='blue')
             sage: p.show3d()
         """
-        assert self._dimension == 3, "To show a polyomino in 3d, its dimension must be 3."
+        assert self._dimension == 3, "Dimension of the polyomino must be 3."
         G = Graphics()
         for p in self:
             G += cube(p, color=self._color)
@@ -850,16 +909,19 @@ class Polyomino(SageObject):
         G = G.translate(center)
         return G
 
-    def show2d(self, size=1):
+    def show2d(self, size=0.7, color='black', thickness=1):
         r"""
         Returns a 2d Graphic object representing the polyomino.
 
         INPUT:
 
         - ``self`` - a polyomino of dimension 2
-        - ``size`` - number (optional, default: ``1``), the size of each
-          ``1 \times 1`` square. This does a homothety with respect
-          to the center of the polyomino.
+        - ``size`` - number (optional, default: ``0.7``), the size of each
+          square.
+        - ``color`` - color (optional, default: ``'black'``), color of
+          the boundary line.
+        - ``thickness`` - number (optional, default: ``1``), how thick the
+          boundary line is.
 
         EXAMPLES::
 
@@ -867,13 +929,17 @@ class Polyomino(SageObject):
             sage: p = Polyomino([(0,0),(1,0),(1,1),(1,2)], color='deeppink')
             sage: p.show2d()              # long time (0.5s)
         """
-        assert self._dimension == 2, "To show a polyomino in 2d, its dimension must be 2."
-        center = self.center()
-        transformed = [size * (vector(t) - center) + center for t in self]
+        assert self._dimension == 2, "Dimension of the polyomino must be 2."
         h = size / 2.0
         G = Graphics()
-        for a,b in transformed:
-            G += polygon([(a-h,b-h), (a+h,b-h), (a+h,b+h), (a-h,b+h), (a-h,b-h)], color=self._color)
+        for a,b in self:
+            G += circle((a,b), h, fill=True, color=self._color)
+        k = h / 2.0
+        for P,Q in self.neighbor_edges():
+            a,b = (P + Q) / 2.0
+            G += polygon([(a-k,b-k), (a+k,b-k), (a+k,b+k), (a-k,b+k), (a-k,b-k)], color=self._color)
+        for edge in self.boundary():
+            G += line(edge, color=color, thickness=thickness)
         return G
 
 #######################
@@ -1533,7 +1599,7 @@ class TilingSolver(SageObject):
             N += 1
         return N
 
-    def animate(self, partial=None, stop=None, size=0.9):
+    def animate(self, partial=None, stop=None, size=0.75, axes=False):
         r"""
         Return an animation of evolving solutions.
 
@@ -1549,9 +1615,12 @@ class TilingSolver(SageObject):
 
         - ``stop`` - integer (optional, default:``None``), number of frames
 
-        - ``size`` - number (optional, default: ``0.9``), the size of each
+        - ``size`` - number (optional, default: ``0.75``), the size of each
           ``1 \times 1`` square. This does a homothety with respect
           to the center of each polyomino.
+
+        - ``axes`` - bool (optional, default:``False``), whether the x and
+          y axes are shown.
 
         EXAMPLES::
 
@@ -1598,7 +1667,9 @@ class TilingSolver(SageObject):
             it = itertools.islice(it, stop)
             L = [sum([piece.show2d(size) for piece in solution], Graphics()) for solution in it]
             xmax, ymax = self._box
-            a = Animation(L, xmin=0, ymin=0, xmax=xmax, ymax=ymax, aspect_ratio=1)
+            xmax = xmax-0.5
+            ymax = ymax-0.5
+            a = Animation(L, xmin=-0.5, ymin=-0.5, xmax=xmax, ymax=ymax, aspect_ratio=1, axes=axes)
             return a
         elif dimension == 3:
             raise NotImplementedError("3d Animation must be implemented in Jmol first")

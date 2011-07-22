@@ -6854,9 +6854,7 @@ class NumberField_cyclotomic(NumberField_absolute):
             sage: latex(Z) # indirect doctest
             \Bold{Q}(\zeta_{4})
 
-        Latex printing respects the generator name.
-
-        ::
+        Latex printing respects the generator name::
 
             sage: k.<a> = CyclotomicField(4)
             sage: latex(k)
@@ -6865,6 +6863,18 @@ class NumberField_cyclotomic(NumberField_absolute):
             Cyclotomic Field of order 4 and degree 2
             sage: k.gen()
             a
+
+        TESTS:
+
+        We check that the bug reported on Trac #8938 is fixed::
+
+            sage: C5.<z> = CyclotomicField(5)
+            sage: P.<s, t> = C5[]
+            sage: f = (z^2 + z)*s
+            sage: f
+            (z^2 + z)*s
+            sage: latex(f)
+            \left(z^{2} + z\right) s
         """
         v = self.latex_variable_name()
         if v.startswith('\\zeta_'):

@@ -787,9 +787,18 @@ def load(*filename, compress=True, verbose=True):
 
 def save(obj, filename=None, compress=True, **kwds):
     """
-    Save obj to the file with name filename, which will
-    have an .sobj extension added if it doesn't have one.
-    This will *replace* the contents of filename.
+    Save ``obj`` to the file with name ``filename``, which will have an
+    ``.sobj`` extension added if it doesn't have one, or if ``obj``
+    doesn't have its own ``save()`` method, like e.g. Python tuples.
+
+    For image objects and the like (which have their own ``save()`` method),
+    you may have to specify a specific extension, e.g. ``.png``, if you
+    don't want the object to be saved as a Sage object (or likewise, if
+    ``filename`` could be interpreted as already having some extension).
+
+    .. warning::
+
+       This will *replace* the contents of the file if it already exists.
 
     EXAMPLES::
 
@@ -802,8 +811,12 @@ def save(obj, filename=None, compress=True, **kwds):
         [   3 -5/2]
         sage: E = EllipticCurve([-1,0])
         sage: P = plot(E)
-        sage: save(P, objfile_short)
+        sage: save(P, objfile_short)   # saves the plot to "test.sobj"
         sage: save(P, filename=SAGE_TMP + "sage.png", xmin=-2)
+        sage: save(P, SAGE_TMP + "filename.with.some.wrong.ext")
+        Traceback (most recent call last):
+        ...
+        ValueError: allowed file extensions for images are '.eps', '.pdf', '.png', '.ps', '.sobj', '.svg'!
         sage: print load(objfile)
         Graphics object consisting of 2 graphics primitives
         sage: save("A python string", SAGE_TMP + 'test')
@@ -811,9 +824,22 @@ def save(obj, filename=None, compress=True, **kwds):
         'A python string'
         sage: load(objfile_short)
         'A python string'
+
+    TESTS:
+
+    Check that #11577 is fixed::
+
+        sage: filename = SAGE_TMP + "foo.bar" # filename containing a dot
+        sage: save((1,1),filename)            # saves tuple to "foo.bar.sobj"
+        sage: load(filename)
+        (1, 1)
     """
     # Add '.sobj' if the filename currently has no extension
-    if os.path.splitext(filename)[1] == '':
+    # and also if the object doesn't have its own save() method (#11577)
+    # since we otherwise assume below it is an image object:
+    if (os.path.splitext(filename)[1] == ''
+        or (os.path.splitext(filename)[1] != '.sobj'
+             and not hasattr(obj,"save"))):
         filename += '.sobj'
 
     if filename.endswith('.sobj'):

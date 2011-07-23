@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Space of boundary modular symbols.
+Space of boundary modular symbols
 
 Used mainly for computing the cuspidal subspace of modular symbols. The space
 of boundary symbols of sign 0 is isomorphic as a Hecke module to the dual of

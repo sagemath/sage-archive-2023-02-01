@@ -1,5 +1,5 @@
 """
-Unramified Extension Generic.
+Unramified Extension Generic
 
 This file implements the shared functionality for unramified extensions.
 

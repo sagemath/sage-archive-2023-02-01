@@ -1,5 +1,5 @@
 r"""
-Dense matrices over `\ZZ/n\ZZ` for `n` small.
+Dense matrices over `\ZZ/n\ZZ` for `n` small
 
 AUTHORS:
 

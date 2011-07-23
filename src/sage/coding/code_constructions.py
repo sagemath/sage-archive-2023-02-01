@@ -1,5 +1,5 @@
 r"""
-Linear code constructions.
+Linear code constructions
 
 AUTHOR:
 

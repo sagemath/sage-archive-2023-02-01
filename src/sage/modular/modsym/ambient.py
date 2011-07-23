@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Ambient spaces of modular symbols.
+Ambient spaces of modular symbols
 
 This module defines the following classes.  There is an abstract base
 class ``ModularSymbolsAmbient``, derived from

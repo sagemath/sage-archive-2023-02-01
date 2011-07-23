@@ -1,5 +1,5 @@
 r"""
-Combinatorial Functions.
+Combinatorial Functions
 
 AUTHORS:
 

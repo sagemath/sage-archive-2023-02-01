@@ -1,5 +1,5 @@
 """
-`p`-Adic ``ZZ_pX Element``.
+`p`-Adic ``ZZ_pX Element``
 
 A common superclass implementing features shared by all elements that
 use NTL's ``ZZ_pX`` as the fundamental data type.

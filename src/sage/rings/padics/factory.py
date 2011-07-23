@@ -1,5 +1,5 @@
 """
-Factory.
+Factory
 
 This file contains the constructor classes and functions for `p`-adic rings and fields.
 

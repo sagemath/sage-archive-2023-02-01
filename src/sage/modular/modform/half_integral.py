@@ -1,5 +1,5 @@
 r"""
-Compute spaces of half-integral weight modular forms.
+Compute spaces of half-integral weight modular forms
 
 Based on an algorithm in Basmaji's thesis.
 

@@ -1,5 +1,5 @@
 """
-Dense matrices over the rational field.
+Dense matrices over the rational field
 
 EXAMPLES:
 

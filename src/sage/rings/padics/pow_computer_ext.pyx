@@ -1,5 +1,5 @@
 """
-PowComputer_ext.
+PowComputer_ext
 
 The classes in this file are designed to be attached to p-adic parents
 and elements for Cython access to properties of the parent.

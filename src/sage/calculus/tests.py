@@ -1,5 +1,5 @@
 r"""
-Calculus Tests and Examples.
+Calculus Tests and Examples
 
 Compute the Christoffel symbol.
 

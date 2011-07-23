@@ -1,5 +1,5 @@
 """
-Pickling for the old RDF vector class.
+Pickling for the old RDF vector class
 
 AUTHORS:
 

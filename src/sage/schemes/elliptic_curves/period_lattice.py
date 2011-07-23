@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Period lattices of elliptic curves and related functions.
+Period lattices of elliptic curves and related functions
 
 Let `E` be an elliptic curve defined over a number field `K`
 (including `\QQ`).  We attach a period lattice (a discrete rank 2

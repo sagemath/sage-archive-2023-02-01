@@ -1,5 +1,5 @@
 r"""
-Plotting Functions.
+Plotting Functions
 
 EXAMPLES::
 

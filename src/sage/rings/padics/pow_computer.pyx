@@ -1,5 +1,5 @@
 """
-PowComputer.
+PowComputer
 
 A class for computing and caching powers of the same integer.
 

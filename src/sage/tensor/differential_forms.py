@@ -1,5 +1,5 @@
 r"""
-Algebra of differential forms.
+Algebra of differential forms
 
 Algebra of differential forms defined on a CoordinatePatch (an open subset of
 Euclidian space, see ``CoordinatePatch`` for details).

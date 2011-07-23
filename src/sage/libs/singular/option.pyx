@@ -1,5 +1,5 @@
 """
-libSingular: Options.
+libSingular: Options
 
 Singular uses a set of global options to determine verbosity and the
 behavior of certain algorithms. We provide an interface to these

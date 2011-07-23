@@ -1,5 +1,5 @@
 r"""
-Generic Convolution.
+Generic Convolution
 
 Asymptotically fast convolution of lists over any commutative ring
 in which the multiply-by-two map is injective. (More precisely, if

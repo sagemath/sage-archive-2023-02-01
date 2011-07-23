@@ -1,5 +1,5 @@
 r"""
-Small Scale Variants of the AES (SR) Polynomial System Generator.
+Small Scale Variants of the AES (SR) Polynomial System Generator
 
 Sage supports polynomial system generation for small scale (and full
 scale) AES variants over `\GF{2}` and `\GF{2^e}`. Also, Sage supports

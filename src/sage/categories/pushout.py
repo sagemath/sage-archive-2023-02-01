@@ -1,5 +1,5 @@
 """
-Coercion via Construction Functors.
+Coercion via Construction Functors
 """
 from functor import Functor, IdentityFunctor_generic
 from basic import *

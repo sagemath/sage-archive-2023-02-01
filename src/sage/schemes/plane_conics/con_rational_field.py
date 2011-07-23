@@ -1,5 +1,5 @@
 r"""
-Projective plane conics over `\QQ`.
+Projective plane conics over `\QQ`
 
 AUTHORS:
 

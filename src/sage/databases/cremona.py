@@ -1,5 +1,5 @@
 """
-Cremona's tables of elliptic curves.
+Cremona's tables of elliptic curves
 
 Sage includes John Cremona's tables of elliptic curves in an
 easy-to-use format. An instance of the class CremonaDatabase()

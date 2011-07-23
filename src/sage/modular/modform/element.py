@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Elements of modular forms spaces.
+Elements of modular forms spaces
 """
 
 #########################################################################

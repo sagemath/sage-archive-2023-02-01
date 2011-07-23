@@ -1,5 +1,5 @@
 """
-Functional notation support for common calculus methods.
+Functional notation support for common calculus methods
 
 EXAMPLES: We illustrate each of the calculus functional functions.
 

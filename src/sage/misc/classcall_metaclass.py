@@ -1,5 +1,5 @@
 r"""
-Special Methods for Classes.
+Special Methods for Classes
 """
 #*****************************************************************************
 #  Copyright (C) 2009    Nicolas M. Thiery <nthiery at users.sf.net>

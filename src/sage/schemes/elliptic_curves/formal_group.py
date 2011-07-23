@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Formal groups of elliptic curves.
+Formal groups of elliptic curves
 
 AUTHORS:
 

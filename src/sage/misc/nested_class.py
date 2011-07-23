@@ -1,5 +1,5 @@
 """
-Fixing Pickle for Nested Classes.
+Fixing Pickle for Nested Classes
 
 As of Python 2.6, names for nested classes are set by Python in  a
 way which is incompatible with the pickling of such classes (pickling by name)::

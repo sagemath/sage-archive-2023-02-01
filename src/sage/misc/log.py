@@ -1,5 +1,5 @@
 r"""
-Logging of Sage sessions.
+Logging of Sage sessions
 
 TODO: Pressing "control-D" can mess up the I/O sequence because of
 a known bug.

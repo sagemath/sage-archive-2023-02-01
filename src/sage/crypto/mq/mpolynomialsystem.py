@@ -1,5 +1,5 @@
 """
-Multivariate Polynomial Systems.
+Multivariate Polynomial Systems
 
 We call a finite set of multivariate polynomials an ``MPolynomialSystem``.
 

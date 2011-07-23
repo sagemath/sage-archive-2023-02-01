@@ -1,5 +1,5 @@
 r"""
-Base class for parent objects with generators.
+Base class for parent objects with generators
 
 .. note::
 

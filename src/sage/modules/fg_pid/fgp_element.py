@@ -1,5 +1,5 @@
 r"""
-Elements of finitely generated modules over a PID.
+Elements of finitely generated modules over a PID
 
 AUTHOR:
     - William Stein, 2009

@@ -1,5 +1,5 @@
 """
-Local Generic Element.
+Local Generic Element
 
 This file contains a common superclass for `p`-adic elements and power
 series elements.

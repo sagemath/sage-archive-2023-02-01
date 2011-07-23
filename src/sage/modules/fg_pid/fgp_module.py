@@ -1,5 +1,5 @@
 r"""
-Finitely generated modules over a PID.
+Finitely generated modules over a PID
 
 You can use Sage to compute with finitely generated modules (FGM's)
 over a principal ideal domain R presented as a quotient V/W, where V

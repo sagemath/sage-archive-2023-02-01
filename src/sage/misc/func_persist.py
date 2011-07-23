@@ -1,5 +1,5 @@
 r"""
-Support for persistent functions in .sage files.
+Support for persistent functions in .sage files
 
 Persistent functions are functions whose values are stored on disk
 so they do not have to be recomputed.

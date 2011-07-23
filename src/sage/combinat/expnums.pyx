@@ -1,5 +1,5 @@
 r"""
-Compute Bell and Uppuluri-Carpenter numbers.
+Compute Bell and Uppuluri-Carpenter numbers
 
 AUTHORS:
 

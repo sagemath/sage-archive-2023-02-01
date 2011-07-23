@@ -1,5 +1,5 @@
 r"""
-Kodaira symbols.
+Kodaira symbols
 
 Kodaira symbols encode the type of reduction of an elliptic curve at a
 (finite) place.

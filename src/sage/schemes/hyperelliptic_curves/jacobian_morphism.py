@@ -1,5 +1,5 @@
 r"""
-Jacobian 'morphism' as a class in the Picard group.
+Jacobian 'morphism' as a class in the Picard group
 
 This module implements the group operation in the Picard group of a
 hyperelliptic curve, represented as divisors in Mumford

@@ -1,5 +1,5 @@
 r"""
-Lists of Manin symbols (elements of `\mathbb{P}^1(R/N)`) over number fields.
+Lists of Manin symbols (elements of `\mathbb{P}^1(R/N)`) over number fields
 
 Lists of elements of `\mathbb{P}^1(R/N)` where `R` is the ring of integers of a number
 field `K` and `N` is an integral ideal.

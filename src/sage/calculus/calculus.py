@@ -1,5 +1,5 @@
 r"""
-Symbolic Computation.
+Symbolic Computation
 
 AUTHORS:
 

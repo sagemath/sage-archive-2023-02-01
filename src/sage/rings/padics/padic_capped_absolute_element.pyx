@@ -1,5 +1,5 @@
 """
-`p`-Adic Capped Absolute Element.
+`p`-Adic Capped Absolute Element
 
 Elements of `p`-Adic Rings with Absolute Precision Cap
 

@@ -1,5 +1,5 @@
 r"""
-List of coset representatives for `\Gamma_H(N)` in `{\rm SL}_2(\ZZ)`.
+List of coset representatives for `\Gamma_H(N)` in `{\rm SL}_2(\ZZ)`
 """
 
 ###########################################################################

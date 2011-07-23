@@ -1,5 +1,5 @@
 r"""
-Projective `n` space over a ring.
+Projective `n` space over a ring
 
 EXAMPLES: We construct projective space over various rings of
 various dimensions.

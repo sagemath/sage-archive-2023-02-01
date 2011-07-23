@@ -1,5 +1,5 @@
 """
-`p`-Adic Base Leaves.
+`p`-Adic Base Leaves
 
 Implementations of `\mathbb{Z}_p` and `\mathbb{Q}_p`
 

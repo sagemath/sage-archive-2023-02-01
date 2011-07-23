@@ -1,5 +1,5 @@
 """
-Local Generic.
+Local Generic
 
 Superclass for `p`-adic and power series rings.
 

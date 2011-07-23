@@ -1,5 +1,5 @@
 r"""
-Symbolic Equations and Inequalities.
+Symbolic Equations and Inequalities
 
 Sage can solve symbolic equations and inequalities. For
 example, we derive the quadratic formula as follows::

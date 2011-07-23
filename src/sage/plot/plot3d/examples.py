@@ -1,5 +1,5 @@
 r"""
-Introduction.
+Introduction
 
 EXAMPLES::
 

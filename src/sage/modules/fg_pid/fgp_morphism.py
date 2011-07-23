@@ -1,5 +1,5 @@
 r"""
-Morphisms between finitely generated modules over a PID.
+Morphisms between finitely generated modules over a PID
 
 AUTHOR:
 - William Stein, 2009

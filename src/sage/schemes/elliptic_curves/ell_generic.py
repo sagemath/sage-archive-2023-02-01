@@ -1,5 +1,5 @@
 r"""
-Elliptic curves over a general ring.
+Elliptic curves over a general ring
 
 Sage defines an elliptic curve over a ring `R` as a 'Weierstrass Model' with
 five coefficients `[a_1,a_2,a_3,a_4,a_6]` in `R` given by

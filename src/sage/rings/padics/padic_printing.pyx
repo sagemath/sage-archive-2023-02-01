@@ -1,5 +1,5 @@
 """
-p-Adic Printing.
+p-Adic Printing
 
 This file contains code for printing p-adic elements.
 

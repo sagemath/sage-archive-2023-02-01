@@ -1,5 +1,5 @@
 """
-p-Adic Extension Element.
+p-Adic Extension Element
 
 A common superclass for all elements of extension rings and field of Zp and Qp.
 

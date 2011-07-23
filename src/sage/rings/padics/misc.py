@@ -1,5 +1,5 @@
 """
-Miscellaneous Functions.
+Miscellaneous Functions
 
 This file contains some miscellaneous functions used by p-adics.
 

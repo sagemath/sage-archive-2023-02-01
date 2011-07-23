@@ -1,5 +1,5 @@
 """
-Torsion subgroups of modular abelian varieties.
+Torsion subgroups of modular abelian varieties
 
 Sage can compute information about the structure of the torsion
 subgroup of a modular abelian variety. Sage computes a multiple of

@@ -1,5 +1,5 @@
 """
-`p`-Adic ``ZZ_pX`` FM Element.
+`p`-Adic ``ZZ_pX`` FM Element
 
 This file implements elements of Eisenstein and unramified extensions
 of `\mathbb{Z}_p` with fixed modulus precision.

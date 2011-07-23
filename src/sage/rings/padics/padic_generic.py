@@ -1,5 +1,5 @@
 """
-p-Adic Generic.
+p-Adic Generic
 
 A generic superclass for all p-adic parents.
 

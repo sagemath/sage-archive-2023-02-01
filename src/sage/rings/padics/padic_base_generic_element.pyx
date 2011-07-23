@@ -1,5 +1,5 @@
 """
-`p`-Adic Base Generic Element.
+`p`-Adic Base Generic Element
 
 A common superclass for features shared among all elements of `\mathbb{Z}_p` and
 `\mathbb{Q}_p` (regardless of implementation).

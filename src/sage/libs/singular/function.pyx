@@ -1,5 +1,5 @@
 """
-libSingular: Functions.
+libSingular: Functions
 
 Sage implements a C wrapper around the Singular interpreter which
 allows to call any function directly from Sage without string parsing

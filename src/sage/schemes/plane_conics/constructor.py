@@ -1,5 +1,5 @@
 r"""
-Plane conic constructor.
+Plane conic constructor
 
 AUTHORS:
 

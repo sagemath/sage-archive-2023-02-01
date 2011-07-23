@@ -1,5 +1,5 @@
 """
-Dense matrices over the integer ring.
+Dense matrices over the integer ring
 
 AUTHORS:
 

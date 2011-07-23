@@ -1,5 +1,5 @@
 r"""
-Weierstrass `\wp` function for elliptic curves.
+Weierstrass `\wp` function for elliptic curves
 
 The Weierstrass `\wp` function associated to an elliptic curve over a field `k` is a Laurent series
 of the form

@@ -1,5 +1,5 @@
 r"""
-Elements of the algebra of differential forms.
+Elements of the algebra of differential forms
 
 AUTHORS:
 

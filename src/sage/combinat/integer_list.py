@@ -1,5 +1,5 @@
 r"""
-Tools for generating lists of integers in lexicographic order.
+Tools for generating lists of integers in lexicographic order
 
 IMPORTANT NOTE (2009/02):
 The internal functions in this file will be deprecated soon.

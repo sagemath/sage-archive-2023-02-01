@@ -1,5 +1,5 @@
 r"""
-Interface to the Gnuplot interpreter.
+Interface to the Gnuplot interpreter
 """
 
 #*****************************************************************************

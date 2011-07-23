@@ -1,5 +1,5 @@
 r"""
-Projective plane conics over finite fields.
+Projective plane conics over finite fields
 
 AUTHORS:
 

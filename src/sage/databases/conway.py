@@ -1,5 +1,5 @@
 """
-Frank Luebeck's tables of Conway polynomials over finite fields.
+Frank Luebeck's tables of Conway polynomials over finite fields
 """
 
 

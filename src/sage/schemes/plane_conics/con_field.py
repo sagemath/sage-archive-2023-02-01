@@ -1,5 +1,5 @@
 r"""
-Projective plane conics over a field.
+Projective plane conics over a field
 
 AUTHORS:
 

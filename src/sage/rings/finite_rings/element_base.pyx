@@ -1,5 +1,5 @@
 """
-Base class for finite field elements.
+Base class for finite field elements
 
 AUTHORS::
 

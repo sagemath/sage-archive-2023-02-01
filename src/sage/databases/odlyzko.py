@@ -1,5 +1,5 @@
 """
-Tables of zeros of the Riemann-Zeta function.
+Tables of zeros of the Riemann-Zeta function
 """
 
 #*****************************************************************************

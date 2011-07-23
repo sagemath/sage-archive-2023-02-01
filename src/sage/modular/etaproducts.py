@@ -1,5 +1,5 @@
 r"""
-Eta-products on modular curves :math:`X_0(N)`.
+Eta-products on modular curves :math:`X_0(N)`
 
 This package provides a class for representing eta-products, which
 are meromorphic functions on modular curves of the form

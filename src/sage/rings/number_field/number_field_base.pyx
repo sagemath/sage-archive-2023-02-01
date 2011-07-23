@@ -1,5 +1,5 @@
 """
-Base class for all number fields.
+Base class for all number fields
 
 
 TESTS::

@@ -1,5 +1,5 @@
 r"""
-Field `\QQ` of Rational Numbers.
+Field `\QQ` of Rational Numbers
 
 The class ``RationalField`` represents the field
 `\QQ` of (arbitrary precision) rational numbers.

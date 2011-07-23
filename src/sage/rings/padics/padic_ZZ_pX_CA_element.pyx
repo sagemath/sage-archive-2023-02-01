@@ -1,5 +1,5 @@
 """
-`p`-Adic ``ZZ_pX`` CA Element.
+`p`-Adic ``ZZ_pX`` CA Element
 
 This file implements elements of eisenstein and unramified extensions
 of ``Zp`` with capped absolute precision.

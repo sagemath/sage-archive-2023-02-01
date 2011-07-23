@@ -1,5 +1,5 @@
 """
-Specific category classes.
+Specific category classes
 
 This is placed in a separate file from categories.py to avoid circular imports
 (as morphisms must be very low in the hierarchy with the new coercion model).

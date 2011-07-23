@@ -1,5 +1,5 @@
 r"""
-Homology of modular abelian varieties.
+Homology of modular abelian varieties
 
 Sage can compute with homology groups associated to modular abelian
 varieties with coefficients in any commutative ring. Supported

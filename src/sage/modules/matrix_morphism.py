@@ -1,5 +1,5 @@
 r"""
-Morphisms defined by a matrix.
+Morphisms defined by a matrix
 
 A matrix morphism is a morphism that is defined by multiplication
 by a matrix. Elements of domain must either have a method

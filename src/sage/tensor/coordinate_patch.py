@@ -1,5 +1,5 @@
 r"""
-Open subset of Euclidian space with coordinates.
+Open subset of Euclidian space with coordinates
 
 An open subset of Euclidian space with a specific set of coordinates.  This
 is the background on which differential forms can be defined.

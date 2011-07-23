@@ -1,5 +1,5 @@
 r"""
-Projective plane conics over prime finite fields.
+Projective plane conics over prime finite fields
 
 AUTHORS:
 

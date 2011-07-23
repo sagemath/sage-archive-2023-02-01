@@ -1,5 +1,5 @@
 """
-p-Adic Capped Relative Element.
+p-Adic Capped Relative Element
 
 Elements of p-Adic Rings with Capped Relative Precision
 

@@ -1,5 +1,5 @@
 """
-A single element of an ambient space of modular symbols.
+A single element of an ambient space of modular symbols
 """
 
 #*****************************************************************************

@@ -1,5 +1,5 @@
 r"""
-Sparse matrices over `\ZZ/n\ZZ` for `n` small.
+Sparse matrices over `\ZZ/n\ZZ` for `n` small
 
 This is a compiled implementation of sparse matrices over
 `\ZZ/n\ZZ` for `n` small.

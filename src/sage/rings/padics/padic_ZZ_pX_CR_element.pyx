@@ -1,5 +1,5 @@
 """
-`p`-Adic ``ZZ_pX`` CR Element.
+`p`-Adic ``ZZ_pX`` CR Element
 
 This file implements elements of Eisenstein and unramified extensions
 of `\mathbb{Z}_p` and `\mathbb{Q}_p` with capped relative precision.

@@ -1,5 +1,5 @@
 r"""
-The Stein-Watkins table of elliptic curves.
+The Stein-Watkins table of elliptic curves
 
 Sage gives access to the Stein-Watkins table of elliptic curves,
 via an optional package that you must install. This is a huge

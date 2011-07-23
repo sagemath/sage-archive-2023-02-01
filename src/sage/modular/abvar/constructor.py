@@ -1,5 +1,5 @@
 """
-Constructors for certain modular abelian varieties.
+Constructors for certain modular abelian varieties
 
 AUTHORS:
 

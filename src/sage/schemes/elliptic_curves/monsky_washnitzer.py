@@ -1,5 +1,5 @@
 r"""
-Computation of Frobenius matrix on Monsky-Washnitzer cohomology.
+Computation of Frobenius matrix on Monsky-Washnitzer cohomology
 
 The most interesting functions to be exported here are
 matrix_of_frobenius() and adjusted_prec().

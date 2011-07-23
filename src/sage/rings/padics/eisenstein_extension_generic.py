@@ -1,5 +1,5 @@
 """
-Eisenstein Extension Generic.
+Eisenstein Extension Generic
 
 This file implements the shared functionality for Eisenstein extensions.
 

@@ -1,5 +1,5 @@
 r"""
-Random testing.
+Random testing
 
 Some Sage modules do random testing in their doctests; that is, they
 construct test cases using a random number generator.  To get the

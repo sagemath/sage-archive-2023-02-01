@@ -1,5 +1,5 @@
 r"""
-Interface to the GP calculator of PARI/GP.
+Interface to the GP calculator of PARI/GP
 
 Type ``gp.[tab]`` for a list of all the functions
 available from your Gp install. Type ``gp.[tab]?`` for

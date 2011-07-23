@@ -1,5 +1,5 @@
 r"""
-Piecewise-defined Functions.
+Piecewise-defined Functions
 
 Sage implements a very simple class of piecewise-defined functions.
 Functions may be any type of symbolic expression. Infinite

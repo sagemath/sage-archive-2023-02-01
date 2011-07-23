@@ -1,5 +1,5 @@
 r"""
-Pickling for the old CDF vector class.
+Pickling for the old CDF vector class
 
 AUTHORS:
 

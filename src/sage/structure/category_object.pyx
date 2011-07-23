@@ -1,5 +1,5 @@
 r"""
-Base class for objects of a category.
+Base class for objects of a category
 
 CLASS HIERARCHY:
 

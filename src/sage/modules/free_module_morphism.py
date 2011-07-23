@@ -1,5 +1,5 @@
 """
-Morphisms of free modules.
+Morphisms of free modules
 
 AUTHORS:
     - William Stein: initial version

@@ -1,5 +1,5 @@
 """
-Spaces of homomorphisms between modular abelian varieties.
+Spaces of homomorphisms between modular abelian varieties
 
 EXAMPLES:
 

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Modular parametrization of elliptic curves over `\QQ`.
+Modular parametrization of elliptic curves over `\QQ`
 
 By the work of Taylor--Wiles et al. it is known that there
 is a surjective morphism

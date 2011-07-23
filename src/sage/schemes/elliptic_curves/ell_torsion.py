@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Torsion subgroups of elliptic curves over number fields (including `\QQ`).
+Torsion subgroups of elliptic curves over number fields (including `\QQ`)
 
 AUTHORS:
 

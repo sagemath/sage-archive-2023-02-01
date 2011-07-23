@@ -1,5 +1,5 @@
 """
-Space of homomorphisms between two rings.
+Space of homomorphisms between two rings
 """
 
 #*****************************************************************************

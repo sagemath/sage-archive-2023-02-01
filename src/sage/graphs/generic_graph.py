@@ -15384,6 +15384,20 @@ class GenericGraph(GenericGraph_pyx):
             sage: D.is_isomorphic(D,edge_labels=True, certify = True)
             (True, {0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5})
 
+        Ensure that trac #11620 is fixed::
+
+            sage: G1 = DiGraph([(0, 0, 'c'), (0, 4, 'b'), (0, 5, 'c'),
+            ...   (0, 5, 't'), (1, 1, 'c'), (1, 3,'c'), (1, 3, 't'), (1, 5, 'b'),
+            ...   (2, 2, 'c'), (2, 3, 'b'), (2, 4, 'c'),(2, 4, 't'), (3, 1, 't'),
+            ...   (3, 2, 'b'), (3, 2, 'c'), (3, 4, 'c'), (4, 0,'b'), (4, 0, 'c'),
+            ...   (4, 2, 't'), (4, 5, 'c'), (5, 0, 't'), (5, 1, 'b'), (5, 1, 'c'),
+            ...   (5, 3, 'c')], loops=True, multiedges=True)
+            sage: G2 = G1.relabel({0:4, 1:5, 2:3, 3:2, 4:1,5:0}, inplace=False)
+            sage: G1.canonical_label(edge_labels=True) == G2.canonical_label(edge_labels=True)
+            True
+            sage: G1.is_isomorphic(G2,edge_labels=True)
+            True
+
         """
         possible = True
         if self._directed != other._directed:
@@ -15719,7 +15733,7 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
         [(0, 4, None), (1, 4, None), (1, 5, None), (2, 3, None), (2, 5, None)]
 
         sage: g = graph_isom_equivalent_non_edge_labeled_graph(G,standard_label='string',return_edge_labels=True); g
-        [Graph on 6 vertices, [[0, 1, 2, 3], [5], [4]], [[[None, 1]], [[9, 1], [8, 1], [7, 1], [6, 1], [5, 1], [4, 1], [3, 1], [2, 1], [1, 1], [0, 1]], [['string', 1]]]]
+        [Graph on 6 vertices, [[0, 1, 2, 3], [5], [4]], [[[None, 1]], [[0, 1], [1, 1], [2, 1], [3, 1], [4, 1], [5, 1], [6, 1], [7, 1], [8, 1], [9, 1]], [['string', 1]]]]
         sage: g[0].edges()
         [(0, 4, None), (1, 2, None), (1, 4, None), (2, 5, None), (3, 5, None)]
 
@@ -15754,6 +15768,7 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
                         break
                 if not seen_label:
                     label_list.append([l,1])
+                    label_list.sort()
                     G.set_edge_label(u,v,label_list)
         if G.order() < g.order():
             G.add_vertices(g)
@@ -15789,20 +15804,25 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
         else:
             i += 1
     i = G_order
-    edge_partition = [[] for _ in xrange(len(edge_labels))]
+    edge_partition = [(el,[]) for el in edge_labels]
 
     if g_has_multiple_edges: standard_label = [[standard_label,1]]
 
     for u,v,l in edges:
         if not l == standard_label:
             index = edge_labels.index(l)
-            edge_partition[index].append(i)
+            for el, part in edge_partition:
+                if el == l:
+                    part.append(i)
+                    break
             G._backend.add_edge(u,i,None,True)
             G._backend.add_edge(i,v,None,True)
             G.delete_edge(u,v)
             i += 1
         elif standard_label is not None:
             G._backend.set_edge_label(u,v,None,True)
+
+    edge_partition = [el[1] for el in sorted(edge_partition)]
 
     if ignore_edge_labels:
         edge_partition = [sum(edge_partition,[])]

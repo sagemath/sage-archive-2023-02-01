@@ -10515,6 +10515,7 @@ class GenericGraph(GenericGraph_pyx):
                 nextList = set()
                 for v in thisList:
                     for u in self.neighbors(v):
+                        if u<i: continue
                         if not u in span:
                             span.add(u)
                             nextList.add(u)

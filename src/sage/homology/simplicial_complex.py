@@ -1591,8 +1591,8 @@ class SimplicialComplex(GenericCellComplex):
             sage: circle = SimplicialComplex(2, [[0,1], [1,2], [0, 2]])
             sage: circle._homology_()
             {0: 0, 1: Z}
-            sage: sphere = SimplicialComplex(3, [[0,1,2,3]])
-            sage: sphere.remove_face([0,1,2,3])
+            sage: disk = SimplicialComplex(3, [[0,1,2,3]])
+            sage: sphere = disk.remove_face([0,1,2,3])
             sage: sphere
             Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
             sage: sphere._homology_()
@@ -1697,7 +1697,7 @@ class SimplicialComplex(GenericCellComplex):
 
         :param face: a subset of the vertex set
 
-        This changes the simplicial complex, adding a new face and all
+        This *changes* the simplicial complex, adding a new face and all
         of its subfaces.
 
         EXAMPLES::
@@ -1755,73 +1755,44 @@ class SimplicialComplex(GenericCellComplex):
 
     def remove_face(self, face):
         """
-        Remove a face from this simplicial complex
+        Remove a face from this simplicial complex and return the
+        resulting simplicial complex.
 
         :param face: a face of the simplicial complex
 
-        This changes the simplicial complex, removing the given face
-        any face which contains it.
-
-        Algorithm: check if the face is a facet. If so, simply add its
-        faces and remove it. Otherwise, take the Alexander dual, add
-        the complement of ``face``, and then take the Alexander dual
-        again.
+        Algorithm: the facets of the new simplicial complex are
+        the facets of the original complex not containing ``face``,
+        together with those of ``link(face)*boundary(face)``.
 
         EXAMPLES::
 
             sage: S = range(1,5)
             sage: Z = SimplicialComplex(S, [S]); Z
             Simplicial complex with vertex set (1, 2, 3, 4) and facets {(1, 2, 3, 4)}
-            sage: Z.remove_face([1,2])
-            sage: Z
+            sage: Z2 = Z.remove_face([1,2])
+            sage: Z2
             Simplicial complex with vertex set (1, 2, 3, 4) and facets {(1, 3, 4), (2, 3, 4)}
 
             sage: S = SimplicialComplex(4,[[0,1,2],[2,3]])
             sage: S
             Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(0, 1, 2), (2, 3)}
-            sage: S.remove_face([0,1,2])
-            sage: S
+            sage: S2 = S.remove_face([0,1,2])
+            sage: S2
             Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(1, 2), (2, 3), (0, 2), (0, 1)}
         """
-        face = Simplex(face)
-        if not Simplex(face).is_face(self.vertices()):
-            raise ValueError, "The face to be removed is not a subset of the vertex set."
-        else:
-            # first, we check if face is a maximal facet.
-            # if so, there is a faster method, which we use.
-            count = 0
-            ec = 0
-            for i in self.facets():
-                if face == i:
-                    ec = ec+1
-                if face.is_face(i):
-                    count = count+1
-            if ec == 1 and count == 1:
-                F = SimplicialComplex(face.tuple(),[face])
-                G = F.n_skeleton(face.dimension()-1)
-                old_facets = self.facets().list()
-                old_facets.remove(face)
-                new_facets = old_facets + G.facets().list()
-                self.__init__(self.vertices(),new_facets,maximality_check=True)
-            else:
-                X = self.alexander_dual()
-                X.add_face(self._complement(face))
-                self._facets = X.alexander_dual()._facets
-                if None in self._faces:
-                    s = Simplex(face)
-                    bad_faces = SimplicialComplex(self.vertices(), [s]).faces()
-                    for dim in range(0, s.dimension()+1):
-                        self._faces[None][dim] = self._faces[None][dim].difference(bad_faces[dim])
-            # update self._graph if necessary
-            if self._graph is None:
-                pass
-            else:
-                d = Simplex(face).dimension()
-                if d==1:
-                    self._graph.delete_edge([face[0],face[1]])
-                if d==0:
-                    self._graph.delete_vertex(face[0])
-            return None
+        simplex = Simplex(face)
+        facets = self.facets()
+        if all([not simplex.is_face(F) for F in facets]):
+            # face is not in self: nothing to remove
+            return self
+        link = self.link(simplex)
+        join_facets = []
+        for f in simplex.faces():
+            for g in link.facets():
+                join_facets.append(f.join(g, rename_vertices=False))
+        # join_facets is the list of facets in the join bdry(face) * link(face)
+        other_facets = [elem for elem in facets if not simplex.is_face(elem)]
+        return SimplicialComplex(self.vertices(), join_facets + other_facets)
 
     def connected_sum(self, other):
         """
@@ -2415,13 +2386,13 @@ class SimplicialComplex(GenericCellComplex):
 
         EXAMPLES::
 
-            sage: sphere = SimplicialComplex(3, [[0,1,2,3]])
-            sage: sphere.remove_face([0,1,2,3])
+            sage: disk = SimplicialComplex(3, [[0,1,2,3]])
+            sage: sphere = disk.remove_face([0,1,2,3])
             sage: sphere
             Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
             sage: L = sphere._contractible_subcomplex(); L
-            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3)}
-
+            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (1, 2, 3), (0, 1, 3)}
+            sage: L.homology()
             {0: 0, 1: 0, 2: 0}
         """
         vertices = self.vertices()

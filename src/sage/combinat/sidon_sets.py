@@ -1,18 +1,33 @@
 r"""
-Implementations for Sidon sets and their generalizations, Sidon `g`-sets.
+Sidon sets and their generalizations, Sidon `g`-sets.
 
 AUTHORS:
 
 - Martin Raum (07-25-2011)
 """
-
+#*****************************************************************************
+#                 Copyright (C) 2011 Martin Raum
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+from sage.sets.set import Set
 from sage.misc.all import cached_function
 from sage.rings.all import Integer
 
-@cached_function
-def sidon_sets(N, g = 1) :
+
+def sidon_sets(N, g = 1):
     r"""
-    Compute all Sidon-`g` sets, that have elements less or equal than `N`.
+    Return the set of all Sidon-`g` sets that have elements less than or equal
+    to `N`.
+
+    A Sidon-`g` set is a set of positive integers `A \subset [1, N]` such
+    that any integer `M` can be obtain at most `g` times as sums of unordered pairs of
+    elements of `A` (the two elements are not necessary distinct):
+
+    .. math::
+
+        \#\{ (a_i, a_j) | a_i, a_j \in A, a_i + a_j = M,a_i \leq a_j \} \leq g
 
     INPUT:
 
@@ -21,24 +36,57 @@ def sidon_sets(N, g = 1) :
 
     OUTPUT:
 
-    - A frozen set of frozen sets of integers.
+    - A Sage set with categories whose element are also set of integers.
 
     EXAMPLES::
 
-        sage: sidon_sets(3, 2)
-        frozenset([frozenset([3]), frozenset([1, 2]), frozenset([]), frozenset([2, 3]), frozenset([1]), frozenset([1, 3]), frozenset([1, 2, 3]), frozenset([2])])
+        sage: S = sidon_sets(3, 2)
+        sage: S
+        {{2}, {3}, {1, 2}, {}, {2, 3}, {1}, {1, 3}, {1, 2, 3}}
+        sage: S.cardinality()
+        8
+        sage: S.category()
+        Category of sets
+        sage: sid = S.an_element()
+        sage: sid
+        {2}
+        sage: sid.category()
+        Category of sets
 
     TESTS::
 
-        sage: sidon_sets(1,1)
-        frozenset([frozenset([]), frozenset([1])])
-        sage: frozenset([1,2,4,8,13]) in sidon_sets(13)
+        sage: S = sidon_sets(10)
+        sage: TestSuite(S).run()
+        sage: Set([1,2,4,8,13]) in sidon_sets(13)
         True
+
+    The following piece of code computes the first values of the Sloane sequence
+    entitled 'Length of shortest (or optimal) Golomb ruler with n marks' with a
+    very dumb algorithm. (sequence identifier A003022)::
+
+        sage: n = 1
+        sage: L = []
+        sage: for i in range(1,19):
+        ...       nb = max([S.cardinality() for S in sidon_sets(i)])
+        ...       if nb > n:
+        ...           L.append(i-1)
+        ...           n = nb
+        sage: L
+        [1, 3, 6, 11, 17]
+
+    The following tests check that some generalized Sidon sets satisfy the right
+    conditions, using a dumb but exhaustive algorithm::
+
         sage: from itertools import groupby
         sage: all(all(l <= 3 for l in map(lambda s: len(list(s[1])), groupby(sorted(a + ap for a in sid for ap in sid if a >= ap), lambda s: s))) for sid in sidon_sets(10, 3))
         True
         sage: all(all(l <= 5 for l in map(lambda s: len(list(s[1])), groupby(sorted(a + ap for a in sid for ap in sid if a >= ap), lambda s: s))) for sid in sidon_sets(10, 5))
         True
+
+    Checking of arguments::
+
+        sage: sidon_sets(1,1)
+        {{}, {1}}
         sage: sidon_sets(-1,3)
         Traceback (most recent call last):
         ...
@@ -53,14 +101,32 @@ def sidon_sets(N, g = 1) :
     elif not isinstance(g, (int, Integer)) or g < 1 :
         raise ValueError( "g must be a positive integer" )
 
+    return sidon_sets_rec(N, g = g)
+
+
+# This recursive and cached slave function is mainly here because
+# caching the user entry function 'sidon_sets' prevents it from
+# appearing in the built documentation.
+@cached_function
+def sidon_sets_rec(N, g = 1):
+    r"""
+    Return the set of all Sidon-`g` sets that have elements less than or equal
+    to `N` without checking the arguments. This internal function should not
+    be call directly by user.
+
+    TESTS::
+
+        sage: from sage.combinat.sidon_sets import sidon_sets_rec
+        sage: sidon_sets_rec(3,2)
+        {{2}, {3}, {1, 2}, {}, {2, 3}, {1}, {1, 3}, {1, 2, 3}}
+    """
     if N == 1 :
-        return frozenset([frozenset([]), frozenset([1])])
+        return Set([Set([]), Set([1])])
 
     pre_sidons = sidon_sets(N - 1, g)
     sidons = set(pre_sidons)
     for psid in pre_sidons :
-        psid_shift = set(n - 1 for n in psid if n != 1)
-        psid_shift.add(N - 1)
+        psid_shift = Set([n - 1 for n in psid if n != 1] + [N - 1])
         if not psid_shift in pre_sidons :
             continue
 
@@ -77,8 +143,6 @@ def sidon_sets(N, g = 1) :
                         break
 
         if add_sid :
-            sid = set(psid)
-            sid.add(N)
-            sidons.add(frozenset(sid))
+            sidons.add(Set(psid.list()+[N]))
 
-    return frozenset(sidons)
+    return Set(sidons)

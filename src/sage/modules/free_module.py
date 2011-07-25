@@ -816,7 +816,7 @@ class FreeModule_generic(module.Module_old):
 
         ::
 
-            sage: v = matrix(RDF, 3, range(9)).eigenspaces()[0][1].basis()[0]
+            sage: v = matrix(RDF, 3, range(9)).eigenspaces_left()[0][1].basis()[0]
             sage: v.complex_vector()
             (...0.440242867..., ...0.567868371..., ...0.695493875...)
             sage: v.complex_vector().parent().echelonized_basis_matrix()[0] * v[0]

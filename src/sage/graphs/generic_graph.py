@@ -14471,7 +14471,9 @@ class GenericGraph(GenericGraph_pyx):
             M = self.kirchhoff_matrix()
         else:
             M = self.adjacency_matrix()
-        return M.right_eigenspaces(algebraic_multiplicity=False)
+        # could pass format='all' to get QQbar eigenvalues and eigenspaces
+        # which would be a change in default behavior
+        return M.right_eigenspaces(format='galois', algebraic_multiplicity=False)
 
     ### Automorphism and isomorphism
 

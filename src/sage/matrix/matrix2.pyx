@@ -4362,44 +4362,53 @@ cdef class Matrix(matrix1.Matrix):
                 break
         return f
 
-    def eigenspaces(self, var='a', even_if_inexact=None):
+    # Deprecated Aug 2008 Trac #3794
+    # Removed July 2011
+    # def eigenspaces(self, var='a', even_if_inexact=None):
+
+    def eigenspaces_left(self, format='all', var='a', algebraic_multiplicity=False):
         r"""
-        Deprecated: Instead of eigenspaces, use eigenspaces_left
-        """
-        # sage.misc.misc.deprecation("Use eigenspaces_left")
-        if even_if_inexact is not None:
-            sage.misc.misc.deprecation("The 'even_if_inexact' parameter is deprecated; a warning will be issued if called over an inexact ring.")
-        return self.eigenspaces_left(var=var)
+        Compute the left eigenspaces of a matrix.
 
-
-
-    def eigenspaces_left(self, var='a', algebraic_multiplicity=False):
-        r"""
-        Compute left eigenspaces of a matrix.
-
-        If algebraic_multiplicity=False, return a list of pairs (e, V)
-        where e runs through all eigenvalues (up to Galois conjugation) of
-        this matrix, and V is the corresponding left eigenspace.
-
-        If algebraic_multiplicity=True, return a list of pairs (e, V, n)
-        where e and V are as above and n is the algebraic multiplicity of
-        the eigenvalue. If the eigenvalues are given symbolically, as roots
-        of an irreducible factor of the characteristic polynomial, then the
-        algebraic multiplicity returned is the multiplicity of each
-        conjugate eigenvalue.
-
-        The eigenspaces are returned sorted by the corresponding
-        characteristic polynomials, where polynomials are sorted in
-        dictionary order starting with constant terms.
+        Note that ``eigenspaces_left()`` and ``left_eigenspaces()``
+        are identical methods.  Here "left" refers to the eigenvectors
+        being placed to the left of the matrix.
 
         INPUT:
 
+        - ``self`` - a square matrix over an exact field.  For inexact
+          matrices consult the numerical or symbolic matrix classes.
 
-        -  ``var`` - variable name used to represent elements
-           of the root field of each irreducible factor of the characteristic
-           polynomial I.e., if var='a', then the root fields will be in terms
-           of a0, a1, a2, ..., ak.
+        - ``format`` - default: 'all'
+          - 'all' - attempts to create every eigenspace.  This will
+            always be possible for matrices with rational entries.
+          - 'galois' - for each irreducible factor of the characteristic
+            polynomial, a single eigenspace will be output for a
+            single root/eigenvalue for the irreducible factor.
 
+        - ``var`` - default: 'a' - variable name used to
+          represent elements of the root field of each
+          irreducible factor of the characteristic polynomial.
+          If var='a', then the root fields will be in terms of
+          a0, a1, a2, ...., where the numbering runs across all
+          the irreducible factors of the characteristic polynomial,
+          even for linear factors.
+
+        - ``algebraic_multiplicity`` - default: False - whether or
+          not to include the algebraic multiplicity of each eigenvalue
+          in the output.  See the discussion below.
+
+        OUTPUT:
+
+        If algebraic_multiplicity=False, return a list of pairs (e, V)
+        where e is an eigenvalue of the matrix, and V is the corresponding
+        left eigenspace.  For Galois conjugates of eigenvalues, there
+        may be just one representative eigenspace, depending on the
+        ``format`` keyword.
+
+        If algebraic_multiplicity=True, return a list of triples (e, V, n)
+        where e and V are as above and n is the algebraic multiplicity of
+        the eigenvalue.
 
         .. warning::
 
@@ -4407,21 +4416,32 @@ cdef class Matrix(matrix1.Matrix):
            characteristic polynomial and computes kernels directly
            over the extension field).
 
-        TODO:
+        EXAMPLES:
 
-        Maybe implement the better algorithm that is in
-        dual_eigenvector in sage/modular/hecke/module.py.
-
-        EXAMPLES: We compute the left eigenspaces of a `3\times 3`
-        rational matrix.
-
-        ::
+        We compute the left eigenspaces of a `3\times 3`
+        rational matrix. First, we request `all` of the eigenvalues,
+        so the results are in the field of algebraic numbers, `QQbar`.
+        Then we request just one eigenspace per irreducible factor of
+        the characteristic polynomial with the `galois` keyword.  ::
 
             sage: A = matrix(QQ,3,3,range(9)); A
             [0 1 2]
             [3 4 5]
             [6 7 8]
-            sage: es = A.eigenspaces_left(); es
+            sage: es = A.eigenspaces_left(format='all'); es
+            [
+            (0, Vector space of degree 3 and dimension 1 over Rational Field
+            User basis matrix:
+            [ 1 -2  1]),
+            (-1.348469228349535?, Vector space of degree 3 and dimension 1 over Algebraic Field
+            User basis matrix:
+            [                   1  0.3101020514433644? -0.3797958971132713?]),
+            (13.34846922834954?, Vector space of degree 3 and dimension 1 over Algebraic Field
+            User basis matrix:
+            [                 1 1.289897948556636? 1.579795897113272?])
+            ]
+
+            sage: es = A.eigenspaces_left(format='galois'); es
             [
             (0, Vector space of degree 3 and dimension 1 over Rational Field
             User basis matrix:
@@ -4430,7 +4450,7 @@ cdef class Matrix(matrix1.Matrix):
             User basis matrix:
             [            1 1/15*a1 + 2/5 2/15*a1 - 1/5])
             ]
-            sage: es = A.eigenspaces_left(algebraic_multiplicity=True); es
+            sage: es = A.eigenspaces_left(format='galois', algebraic_multiplicity=True); es
             [
             (0, Vector space of degree 3 and dimension 1 over Rational Field
             User basis matrix:
@@ -4444,13 +4464,13 @@ cdef class Matrix(matrix1.Matrix):
             sage: abs(abs(delta)) < 1e-10
             True
 
-        The same computation, but with implicit base change to a field::
+        The same computation, but with implicit base change to a field.  ::
 
             sage: A = matrix(ZZ,3,range(9)); A
             [0 1 2]
             [3 4 5]
             [6 7 8]
-            sage: A.eigenspaces_left()
+            sage: A.eigenspaces_left(format='galois')
             [
             (0, Vector space of degree 3 and dimension 1 over Rational Field
             User basis matrix:
@@ -4461,9 +4481,8 @@ cdef class Matrix(matrix1.Matrix):
             ]
 
         We compute the left eigenspaces of the matrix of the Hecke operator
-        `T_2` on level 43 modular symbols.
-
-        ::
+        `T_2` on level 43 modular symbols, both with all eigenvalues (the default)
+        and with one subspace per factor. ::
 
             sage: A = ModularSymbols(43).T(2).matrix(); A
             [ 3  0  0  0  0  0 -1]
@@ -4488,14 +4507,31 @@ cdef class Matrix(matrix1.Matrix):
             User basis matrix:
             [ 0  1  0  1 -1  1 -1]
             [ 0  0  1  0 -1  2 -1], 2),
+            (-1.414213562373095?, Vector space of degree 7 and dimension 2 over Algebraic Field
+            User basis matrix:
+            [                  0                   1                   0                  -1 0.4142135623730951?                   1                  -1]
+            [                  0                   0                   1                   0                  -1                   0  2.414213562373095?], 2),
+            (1.414213562373095?, Vector space of degree 7 and dimension 2 over Algebraic Field
+            User basis matrix:
+            [                   0                    1                    0                   -1  -2.414213562373095?                    1                   -1]
+            [                   0                    0                    1                    0                   -1                    0 -0.4142135623730951?], 2)
+            ]
+            sage: A.eigenspaces_left(format='galois', algebraic_multiplicity=True)
+            [
+            (3, Vector space of degree 7 and dimension 1 over Rational Field
+            User basis matrix:
+            [   1    0  1/7    0 -1/7    0 -2/7], 1),
+            (-2, Vector space of degree 7 and dimension 2 over Rational Field
+            User basis matrix:
+            [ 0  1  0  1 -1  1 -1]
+            [ 0  0  1  0 -1  2 -1], 2),
             (a2, Vector space of degree 7 and dimension 2 over Number Field in a2 with defining polynomial x^2 - 2
             User basis matrix:
             [      0       1       0      -1 -a2 - 1       1      -1]
             [      0       0       1       0      -1       0 -a2 + 1], 2)
             ]
 
-        Next we compute the left eigenspaces over the finite field of order
-        11::
+        Next we compute the left eigenspaces over the finite field of order 11. ::
 
             sage: A = ModularSymbols(43, base_ring=GF(11), sign=1).T(2).matrix(); A
             [ 3  9  0  0]
@@ -4506,7 +4542,7 @@ cdef class Matrix(matrix1.Matrix):
             Finite Field of size 11
             sage: A.charpoly()
             x^4 + 10*x^3 + 3*x^2 + 2*x + 1
-            sage: A.eigenspaces_left(var = 'beta')
+            sage: A.eigenspaces_left(format='galois', var = 'beta')
             [
             (9, Vector space of degree 4 and dimension 1 over Finite Field of size 11
             User basis matrix:
@@ -4519,106 +4555,189 @@ cdef class Matrix(matrix1.Matrix):
             [           0            1            0 5*beta2 + 10])
             ]
 
-        TESTS:
+        This method is only applicable to exact matrices.
+        The "eigenmatrix" routines for matrices with double-precision
+        floating-point entries (``RDF``, ``CDF``) are the best
+        alternative.  There are also "eigenmatrix" routines for
+        matrices with symbolic entries.  ::
 
-        Warnings are issued if the generic algorithm is used over
-        inexact fields. Garbage may result in these cases because of
-        numerical precision issues.
+            sage: A = matrix(QQ, 3, 3, range(9))
+            sage: A.change_ring(RR).eigenspaces_left()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: eigenspaces cannot be computed reliably for inexact rings such as Real Field with 53 bits of precision,
+            consult numerical or symbolic matrix classes for other options
 
-        ::
+            sage: em = A.change_ring(RDF).eigenmatrix_left()
+            sage: eigenvalues = em[0]; eigenvalues
+            [    13.3484692...                 0                 0]
+            [                0    -1.34846922...                 0]
+            [                0                 0 -6.2265089...e-16]
+            sage: eigenvectors = em[1]; eigenvectors
+            [ 0.440242867...  0.567868371...  0.695493875...]
+            [ 0.897878732...  0.278434036... -0.341010658...]
+            [ 0.408248290... -0.816496580...  0.408248290...]
 
-            sage: R=RealField(30)
-            sage: M=matrix(R,2,[2,1,1,1])
-            sage: M.eigenspaces_left() # random output from numerical issues
+            sage: x, y = var('x y')
+            sage: S = matrix([[x, y], [y, 3*x^2]])
+            sage: em = S.eigenmatrix_left()
+            sage: eigenvalues = em[0]; eigenvalues
+            [-1/2*sqrt(9*x^4 - 6*x^3 + x^2 + 4*y^2) + 3/2*x^2 + 1/2*x                                                        0]
+            [                                                       0  3/2*x^2 + 1/2*x + 1/2*sqrt(9*x^4 - 6*x^3 + x^2 + 4*y^2)]
+            sage: eigenvectors = em[1]; eigenvectors
+            [                                                     1  1/2*(3*x^2 - x - sqrt(9*x^4 - 6*x^3 + x^2 + 4*y^2))/y]
+            [                                                     1 -1/2*(x - sqrt(9*x^4 - 6*x^3 + x^2 + 4*y^2) - 3*x^2)/y]
+
+        A request for ``'all'`` the eigenvalues, when it is not
+        possible, will raise an error.  Using the ``'galois'``
+        format option is more likely to be successful.  ::
+
+            sage: F.<b> = FiniteField(11^2)
+            sage: A = matrix(F, [[b + 1, b + 1], [10*b + 4, 5*b + 4]])
+            sage: A.eigenspaces_left(format='all')
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: unable to construct eigenspaces for eigenvalues outside the base field,
+            try the keyword option: format='galois'
+
+            sage: A.eigenspaces_left(format='galois')
             [
-            (2.6180340, Vector space of degree 2 and dimension 0 over Real Field with 30 bits of precision
+            (a0, Vector space of degree 2 and dimension 1 over Univariate Quotient Polynomial Ring in a0 over Finite Field in b of size 11^2 with modulus x^2 + (5*b + 6)*x + 8*b + 10
             User basis matrix:
-            []),
-            (0.38196601, Vector space of degree 2 and dimension 0 over Real Field with 30 bits of precision
-            User basis matrix:
-            [])
+            [               1 6*b*a0 + 3*b + 1])
             ]
-            sage: R=ComplexField(30)
-            sage: N=matrix(R,2,[2,1,1,1])
-            sage: N.eigenspaces_left() # random output from numerical issues
-            [
-            (2.6180340, Vector space of degree 2 and dimension 0 over Complex Field with 30 bits of precision
-            User basis matrix:
-            []),
-            (0.38196601, Vector space of degree 2 and dimension 0 over Complex Field with 30 bits of precision
-            User basis matrix:
-            [])
-            ]
+
+        TESTS::
+
+            sage: B = matrix(QQ, 2, 3, range(6))
+            sage: B.eigenspaces_left()
+            Traceback (most recent call last):
+            ...
+            TypeError: matrix must be square, not 2 x 3
+
+            sage: B = matrix(QQ, 4, 4, range(16))
+            sage: B.eigenspaces_left(format='junk')
+            Traceback (most recent call last):
+            ...
+            ValueError: format keyword must be 'all' or 'galois', not junk
+
+            sage: B.eigenspaces_left(algebraic_multiplicity='garbage')
+            Traceback (most recent call last):
+            ...
+            ValueError: algebraic_multiplicity keyword must be True or False
+
         """
-        x = self.fetch('eigenspaces_left')
+        if not format in ['all', 'galois']:
+            raise ValueError("format keyword must be 'all' or 'galois', not {0}".format(format))
+        if not algebraic_multiplicity in [True, False]:
+            raise ValueError('algebraic_multiplicity keyword must be True or False'.format(algebraic_multiplicity))
+        if not self.is_square():
+            raise TypeError('matrix must be square, not {0} x {1}'.format(self.nrows(), self.ncols()))
+        if not self.base_ring().is_exact():
+            msg = ("eigenspaces cannot be computed reliably for inexact rings such as {0},\n",
+                   "consult numerical or symbolic matrix classes for other options")
+            raise NotImplementedError(''.join(msg).format(self.base_ring()))
+
+        key = 'eigenspaces_left_' + format + '{0}'.format(var)
+        x = self.fetch(key)
         if not x is None:
             if algebraic_multiplicity:
                 return x
             else:
-                return  Sequence([(e[0],e[1]) for e in x], cr=True)
+                return Sequence([(e[0],e[1]) for e in x], cr=True, check=False)
 
-        if not self.base_ring().is_exact():
-            from warnings import warn
-            warn("Using generic algorithm for an inexact ring, which will probably give incorrect results due to numerical precision issues.")
+        # Possible improvements:
+        # algorithm for dual_eigenvector in sage/modular/hecke/module.py
+        # use minpoly when algebraic_multiplicity=False
+        # as of 2007-03-25 minpoly is unreliable via linbox
 
-
-
-        # minpoly is rarely implemented and is unreliable (leading to hangs) via linbox when implemented
-        # as of 2007-03-25.
-        #try:
-        #    G = self.minpoly().factor()  # can be computed faster when available.
-        #except NotImplementedError:
-        G = self.fcp()   # factored charpoly of self.
+        import sage.rings.qqbar
+        import sage.categories.homset
+        G = self.fcp()   # factored characteristic polynomial
         V = []
-        i = 0
+        i = -1 # variable name index, increments for each eigenvalue
         for h, e in G:
+            i = i + 1
             if h.degree() == 1:
                 alpha = -h[0]/h[1]
                 F = alpha.parent()
                 if F != self.base_ring():
                     self = self.change_ring(F)
                 A = self - alpha
+                W = A.kernel()
+                V.append((alpha, W.ambient_module().span_of_basis(W.basis()), e))
             else:
-                F = h.root_field('%s%s'%(var,i))
+                F = h.root_field('{0}{1}'.format(var,i))
                 alpha = F.gen(0)
                 A = self.change_ring(F) - alpha
-            W = A.kernel()
-            i = i + 1
-            V.append((alpha, W.ambient_module().span_of_basis(W.basis()), e))
-        V = Sequence(V, cr=True)
-        self.cache('eigenspaces_left', V)
+                W = A.kernel()
+                WB = W.basis()
+                if format == 'galois':
+                    V.append((alpha, W.ambient_module().span_of_basis(WB), e))
+                elif format == 'all':
+                    try:
+                        alpha_conj = alpha.galois_conjugates(sage.rings.qqbar.QQbar)
+                    except (AttributeError, TypeError):
+                        msg = ("unable to construct eigenspaces for eigenvalues outside the base field,\n"
+                               "try the keyword option: format='galois'")
+                        raise NotImplementedError(''.join(msg))
+                    for ev in alpha_conj:
+                        m = sage.categories.homset.hom(alpha.parent(), ev.parent(), ev)
+                        space = (ev.parent())**self.nrows()
+                        evec_list = [(space)([m(i) for i in v]) for v in WB]
+                        V.append((ev, space.span_of_basis(evec_list, already_echelonized=True), e))
+        V = Sequence(V, cr=True, check=False)
+        self.cache(key, V)
         if algebraic_multiplicity:
             return V
         else:
-            return Sequence([(e[0],e[1]) for e in V], cr=True)
+            return Sequence([(e[0],e[1]) for e in V], cr=True, check=False)
 
-    def eigenspaces_right(self, var='a', algebraic_multiplicity=False):
+    left_eigenspaces = eigenspaces_left
+
+    def eigenspaces_right(self, format='all', var='a', algebraic_multiplicity=False):
         r"""
-        Compute right eigenspaces of a matrix.
+        Compute the right eigenspaces of a matrix.
 
-        If algebraic_multiplicity=False, return a list of pairs (e, V)
-        where e runs through all eigenvalues (up to Galois conjugation) of
-        this matrix, and V is the corresponding right eigenspace.
-
-        If algebraic_multiplicity=True, return a list of pairs (e, V, n)
-        where e and V are as above and n is the algebraic multiplicity of
-        the eigenvalue. If the eigenvalues are given symbolically, as roots
-        of an irreducible factor of the characteristic polynomial, then the
-        algebraic multiplicity returned is the multiplicity of each
-        conjugate eigenvalue.
-
-        The eigenspaces are returned sorted by the corresponding
-        characteristic polynomials, where polynomials are sorted in
-        dictionary order starting with constant terms.
+        Note that ``eigenspaces_right()`` and ``right_eigenspaces()``
+        are identical methods.  Here "right" refers to the eigenvectors
+        being placed to the right of the matrix.
 
         INPUT:
 
+        - ``self`` - a square matrix over an exact field.  For inexact
+          matrices consult the numerical or symbolic matrix classes.
 
-        -  ``var`` - variable name used to represent elements
-           of the root field of each irreducible factor of the characteristic
-           polynomial I.e., if var='a', then the root fields will be in terms
-           of a0, a1, a2, ..., ak.
+        - ``format`` - default: 'all'
+          - 'all' - attempts to create every eigenspace.  This will
+            always be possible for matrices with rational entries.
+          - 'galois' - for each irreducible factor of the characteristic
+            polynomial, a single eigenspace will be output for a
+            single root/eigenvalue for the irreducible factor.
 
+        - ``var`` - default: 'a' - variable name used to
+          represent elements of the root field of each
+          irreducible factor of the characteristic polynomial.
+          If var='a', then the root fields will be in terms of
+          a0, a1, a2, ...., where the numbering runs across all
+          the irreducible factors of the characteristic polynomial,
+          even for linear factors.
+
+        - ``algebraic_multiplicity`` - default: False - whether or
+          not to include the algebraic multiplicity of each eigenvalue
+          in the output.  See the discussion below.
+
+        OUTPUT:
+
+        If algebraic_multiplicity=False, return a list of pairs (e, V)
+        where e is an eigenvalue of the matrix, and V is the corresponding
+        left eigenspace.  For Galois conjugates of eigenvalues, there
+        may be just one representative eigenspace, depending on the
+        ``format`` keyword.
+
+        If algebraic_multiplicity=True, return a list of triples (e, V, n)
+        where e and V are as above and n is the algebraic multiplicity of
+        the eigenvalue.
 
         .. warning::
 
@@ -4626,19 +4745,31 @@ cdef class Matrix(matrix1.Matrix):
            characteristic polynomial and computes kernels directly
            over the extension field).
 
-        TODO: Maybe implement the better algorithm that
-        is in dual_eigenvector in sage/modular/hecke/module.py.
+        EXAMPLES:
 
-        EXAMPLES: We compute the right eigenspaces of a `3\times 3`
-        rational matrix.
+        Right eigenspaces are computed from the left eigenspaces of the
+        transpose of the matrix.  As such, there is a greater collection
+        of illustrative examples at the :meth:`eigenspaces_left`.
 
-        ::
+        We compute the right eigenspaces of a `3\times 3` rational matrix.  ::
 
-            sage: A = matrix(QQ,3,3,range(9)); A
+            sage: A = matrix(QQ, 3 ,3, range(9)); A
             [0 1 2]
             [3 4 5]
             [6 7 8]
-            sage: es = A.eigenspaces_right(); es
+            sage: A.eigenspaces_right()
+            [
+            (0, Vector space of degree 3 and dimension 1 over Rational Field
+            User basis matrix:
+            [ 1 -2  1]),
+            (-1.348469228349535?, Vector space of degree 3 and dimension 1 over Algebraic Field
+            User basis matrix:
+            [                   1  0.1303061543300932? -0.7393876913398137?]),
+            (13.34846922834954?, Vector space of degree 3 and dimension 1 over Algebraic Field
+            User basis matrix:
+            [                 1 3.069693845669907? 5.139387691339814?])
+            ]
+            sage: es = A.eigenspaces_right(format='galois'); es
             [
             (0, Vector space of degree 3 and dimension 1 over Rational Field
             User basis matrix:
@@ -4647,7 +4778,7 @@ cdef class Matrix(matrix1.Matrix):
             User basis matrix:
             [           1 1/5*a1 + 2/5 2/5*a1 - 1/5])
             ]
-            sage: es = A.eigenspaces_right(algebraic_multiplicity=True); es
+            sage: es = A.eigenspaces_right(format='galois', algebraic_multiplicity=True); es
             [
             (0, Vector space of degree 3 and dimension 1 over Rational Field
             User basis matrix:
@@ -4663,11 +4794,11 @@ cdef class Matrix(matrix1.Matrix):
 
         The same computation, but with implicit base change to a field::
 
-            sage: A = matrix(ZZ,3,range(9)); A
+            sage: A = matrix(ZZ, 3, range(9)); A
             [0 1 2]
             [3 4 5]
             [6 7 8]
-            sage: A.eigenspaces_right()
+            sage: A.eigenspaces_right(format='galois')
             [
             (0, Vector space of degree 3 and dimension 1 over Rational Field
             User basis matrix:
@@ -4677,36 +4808,84 @@ cdef class Matrix(matrix1.Matrix):
             [           1 1/5*a1 + 2/5 2/5*a1 - 1/5])
             ]
 
-        TESTS: Warnings are issued if the generic algorithm is used over
-        inexact fields. Garbage may result in these cases because of
-        numerical precision issues.
+        This method is only applicable to exact matrices.
+        The "eigenmatrix" routines for matrices with double-precision
+        floating-point entries (``RDF``, ``CDF``) are the best
+        alternative.  There are also "eigenmatrix" routines for
+        matrices with symbolic entries.  ::
 
-        ::
+            sage: B = matrix(RR, 3, 3, range(9))
+            sage: B.eigenspaces_right()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: eigenspaces cannot be computed reliably for inexact rings such as Real Field with 53 bits of precision,
+            consult numerical or symbolic matrix classes for other options
 
-            sage: R=RealField(30)
-            sage: M=matrix(R,2,[2,1,1,1])
-            sage: M.eigenspaces_right() # random output from numerical issues
-            [(2.6180340,
-            Vector space of degree 2 and dimension 0 over Real Field with 30 bits of precision
-            User basis matrix:
-            []),
-            (0.38196601,
-            Vector space of degree 2 and dimension 0 over Real Field with 30 bits of precision
-            User basis matrix:
-            [])]
-            sage: R=ComplexField(30)
-            sage: N=matrix(R,2,[2,1,1,1])
-            sage: N.eigenspaces_right() # random output from numerical issues
-            [(2.6180340,
-            Vector space of degree 2 and dimension 0 over Complex Field with 30 bits of precision
-            User basis matrix:
-            []),
-            (0.38196601,
-            Vector space of degree 2 and dimension 0 over Complex Field with 30 bits of precision
-            User basis matrix:
-            [])]
+            sage: em = B.change_ring(RDF).eigenmatrix_right()
+            sage: eigenvalues = em[0]; eigenvalues
+            [     13.3484692...                  0                  0]
+            [                 0     -1.34846922...                  0]
+            [                 0                  0 -8.86256604...e-16]
+            sage: eigenvectors = em[1]; eigenvectors
+            [ 0.164763817...  0.799699663...  0.408248290...]
+            [ 0.505774475...  0.104205787... -0.816496580...]
+            [ 0.846785134... -0.591288087...  0.408248290...]
+
+            sage: x, y = var('x y')
+            sage: S = matrix([[x, y], [y, 3*x^2]])
+            sage: em = S.eigenmatrix_right()
+            sage: eigenvalues = em[0]; eigenvalues
+            [-1/2*sqrt(9*x^4 - 6*x^3 + x^2 + 4*y^2) + 3/2*x^2 + 1/2*x                                                        0]
+            [                                                       0  3/2*x^2 + 1/2*x + 1/2*sqrt(9*x^4 - 6*x^3 + x^2 + 4*y^2)]
+            sage: eigenvectors = em[1]; eigenvectors
+            [                                                     1                                                      1]
+            [ 1/2*(3*x^2 - x - sqrt(9*x^4 - 6*x^3 + x^2 + 4*y^2))/y -1/2*(x - sqrt(9*x^4 - 6*x^3 + x^2 + 4*y^2) - 3*x^2)/y]
+
+        TESTS::
+
+            sage: B = matrix(QQ, 2, 3, range(6))
+            sage: B.eigenspaces_right()
+            Traceback (most recent call last):
+            ...
+            TypeError: matrix must be square, not 2 x 3
+
+            sage: B = matrix(QQ, 4, 4, range(16))
+            sage: B.eigenspaces_right(format='junk')
+            Traceback (most recent call last):
+            ...
+            ValueError: format keyword must be 'all' or 'galois', not junk
+
+            sage: B.eigenspaces_right(algebraic_multiplicity='garbage')
+            Traceback (most recent call last):
+            ...
+            ValueError: algebraic_multiplicity keyword must be True or False
         """
-        return self.transpose().eigenspaces_left(var=var, algebraic_multiplicity=algebraic_multiplicity)
+        if not format in ['all', 'galois']:
+            raise ValueError("format keyword must be 'all' or 'galois', not {0}".format(format))
+        if not algebraic_multiplicity in [True, False]:
+            raise ValueError('algebraic_multiplicity keyword must be True or False'.format(algebraic_multiplicity))
+        if not self.is_square():
+            raise TypeError('matrix must be square, not {0} x {1}'.format(self.nrows(), self.ncols()))
+        if not self.base_ring().is_exact():
+            msg = ("eigenspaces cannot be computed reliably for inexact rings such as {0},\n",
+                   "consult numerical or symbolic matrix classes for other options")
+            raise NotImplementedError(''.join(msg).format(self.base_ring()))
+
+        key = 'eigenspaces_right_' + format + '{0}'.format(var)
+        x = self.fetch(key)
+        if not x is None:
+            if algebraic_multiplicity:
+                return x
+            else:
+                return Sequence([(e[0],e[1]) for e in x], cr=True, check=False)
+
+        V = self.transpose().eigenspaces_left(format=format, var=var, algebraic_multiplicity=True)
+
+        self.cache(key, V)
+        if algebraic_multiplicity:
+            return V
+        else:
+            return Sequence([(e[0],e[1]) for e in V], cr=True, check=False)
 
     right_eigenspaces = eigenspaces_right
 
@@ -4883,7 +5062,7 @@ cdef class Matrix(matrix1.Matrix):
         V = []
         from sage.rings.qqbar import QQbar
         from sage.categories.homset import hom
-        eigenspaces = self.eigenspaces_left(algebraic_multiplicity=True)
+        eigenspaces = self.eigenspaces_left(format='galois', algebraic_multiplicity=True)
         evec_list=[]
         n = self._nrows
         evec_eval_list = []

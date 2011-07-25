@@ -143,7 +143,7 @@ class QuadraticFormLocalRepresentationConditions():
         ## Compute the local conditions at the real numbers (i.e. "p = infinity")
         ## ----------------------------------------------------------------------
         M = Q.matrix()
-        E = M.eigenspaces()
+        E = M.eigenspaces_left()
         M_eigenvalues = [E[i][0]  for i in range(len(E))]
 
         pos_flag = infinity

@@ -84,8 +84,8 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
         EXAMPLES::
 
             sage: from sage.modules.matrix_morphism import MatrixMorphism
-            sage: T = End(QQ^3)
-            sage: M = MatrixSpace(QQ,3)
+            sage: T = End(ZZ^3)
+            sage: M = MatrixSpace(ZZ,3)
             sage: I = M.identity_matrix()
             sage: A = MatrixMorphism(T, I)
             sage: loads(A.dumps()) == A
@@ -118,9 +118,11 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
 
             sage: V = QQ^3; W = QQ^2
             sage: H = Hom(V, W); H
-            Set of Morphisms from Vector space of dimension 3 over Rational Field to Vector space of dimension 2 over Rational Field in Category of vector spaces over Rational Field
-            sage: phi = H(range(6)); phi
-            Free module morphism defined by the matrix
+            Set of Morphisms (Linear Transformations) from
+            Vector space of dimension 3 over Rational Field to
+            Vector space of dimension 2 over Rational Field
+            sage: phi = H(matrix(QQ, 3, 2, range(6))); phi
+            Vector space morphism represented by the matrix:
             [0 1]
             [2 3]
             [4 5]
@@ -168,7 +170,7 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
 
             sage: V = QQ^2; phi = V.hom([3*V.0, 2*V.1])
             sage: phi^(-1)
-            Free module morphism defined by the matrix
+            Vector space morphism represented by the matrix:
             [1/3   0]
             [  0 1/2]
             Domain: Vector space of dimension 2 over Rational Field
@@ -213,13 +215,17 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             sage: y = zeta(x); y
             (-3, 0, -1)
             sage: inv = zeta.inverse(); inv
-            Free module morphism defined by the matrix
+            Vector space morphism represented by the matrix:
             [-1  3]
             [ 1 -2]
             Domain: Vector space of degree 3 and dimension 2 over Rational Field
-            Basis ...
+            Basis matrix:
+            [1 0 0]
+            [0 0 1]
             Codomain: Vector space of degree 4 and dimension 2 over Rational Field
-            Basis ...
+            Basis matrix:
+            [1 0 0 0]
+            [0 0 0 1]
             sage: inv(y) == x
             True
 
@@ -296,7 +302,7 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             sage: phi = V.hom(r, V)
             sage: rho = phi.inverse()
             sage: zeta = ~phi
-            sage: rho == zeta
+            sage: rho.is_equal_function(zeta)
             True
 
         TESTS::
@@ -348,14 +354,14 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             sage: V = QQ^3
             sage: E = V.endomorphism_ring()
             sage: phi = E(Matrix(QQ,3,range(9))) ; phi
-            Free module morphism defined by the matrix
+            Vector space morphism represented by the matrix:
             [0 1 2]
             [3 4 5]
             [6 7 8]
             Domain: Vector space of dimension 3 over Rational Field
             Codomain: Vector space of dimension 3 over Rational Field
             sage: phi*phi
-            Free module morphism defined by the matrix
+            Vector space morphism represented by the matrix:
             [ 15  18  21]
             [ 42  54  66]
             [ 69  90 111]
@@ -371,14 +377,14 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             sage: W = QQ**4
             sage: E_VW = V.Hom(W)
             sage: psi = E_VW(Matrix(QQ,3,4,range(12))) ; psi
-            Free module morphism defined by the matrix
+            Vector space morphism represented by the matrix:
             [ 0  1  2  3]
             [ 4  5  6  7]
             [ 8  9 10 11]
             Domain: Vector space of dimension 3 over Rational Field
             Codomain: Vector space of dimension 4 over Rational Field
             sage: psi*phi
-            Free module morphism defined by the matrix
+            Vector space morphism represented by the matrix:
             [ 20  23  26  29]
             [ 56  68  80  92]
             [ 92 113 134 155]
@@ -399,13 +405,13 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             sage: V, VtoK, KtoV = K.vector_space()
             sage: f = V.hom([V.0 - V.1, V.0 + V.1])*KtoV; f
             Composite map:
-              From: Number Field in a with defining polynomial x^2 + 23
-              To:   Vector space of dimension 2 over Rational Field
-              Defn:   Isomorphism map:
-                      From: Number Field in a with defining polynomial x^2 + 23
-                      To:   Vector space of dimension 2 over Rational Field
+            From: Number Field in a with defining polynomial x^2 + 23
+            To:   Vector space of dimension 2 over Rational Field
+            Defn:   Isomorphism map:
+                    From: Number Field in a with defining polynomial x^2 + 23
+                    To:   Vector space of dimension 2 over Rational Field
                     then
-                      Free module morphism defined by the matrix
+                    Vector space morphism represented by the matrix:
                     [ 1 -1]
                     [ 1  1]
                     Domain: Vector space of dimension 2 over Rational Field
@@ -513,9 +519,11 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
         """
         return self.domain().base_ring()
 
-    def charpoly(self, var='x'):
-        """
+    def characteristic_polynomial(self, var='x'):
+        r"""
         Return the characteristic polynomial of this endomorphism.
+
+        ``characteristic_polynomial`` and ``char_poly`` are the same method.
 
         INPUT:
             - var -- variable
@@ -523,6 +531,8 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
         EXAMPLES::
 
             sage: V = ZZ^2; phi = V.hom([V.0+V.1, 2*V.1])
+            sage: phi.characteristic_polynomial()
+            x^2 - 3*x + 2
             sage: phi.charpoly()
             x^2 - 3*x + 2
             sage: phi.matrix().charpoly()
@@ -534,6 +544,8 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             raise ArithmeticError, "charpoly only defined for endomorphisms " +\
                     "(i.e., domain = range)"
         return self.matrix().charpoly(var)
+
+    charpoly = characteristic_polynomial
 
     def decomposition(self, *args, **kwds):
         """
@@ -629,7 +641,7 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             Vector space of degree 3 and dimension 1 over Rational Field
             Basis matrix:
             [ 1 -2  1]
-            sage: hom(CC^2, CC^2, 1).kernel()
+            sage: hom(CC^2, CC^2, matrix(CC, [[1,0], [0,1]])).kernel()
             Vector space of degree 2 and dimension 0 over Complex Field with 53 bits of precision
             Basis matrix:
             []
@@ -651,13 +663,13 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
         EXAMPLES::
 
             sage: V = VectorSpace(QQ,3)
-            sage: phi = V.Hom(V)(range(9))
+            sage: phi = V.Hom(V)(matrix(QQ, 3, range(9)))
             sage: phi.image()
             Vector space of degree 3 and dimension 2 over Rational Field
             Basis matrix:
             [ 1  0 -1]
             [ 0  1  2]
-            sage: hom(GF(7)^3, GF(7)^2, 0).image()
+            sage: hom(GF(7)^3, GF(7)^2, zero_matrix(GF(7), 3, 2)).image()
             Vector space of degree 2 and dimension 0 over Finite Field of size 7
             Basis matrix:
             []
@@ -1066,12 +1078,13 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             sage: phi(V.1) in X
             True
             sage: psi = phi.restrict_codomain(X); psi
-            Free module morphism defined by the matrix
+            Vector space morphism represented by the matrix:
             [1]
             [2]
             Domain: Vector space of dimension 2 over Rational Field
             Codomain: Vector space of degree 2 and dimension 1 over Rational Field
-            Basis ...
+            Basis matrix:
+            [1 2]
             sage: psi(V.0)
             (1, 2)
             sage: psi(V.1)
@@ -1117,12 +1130,14 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             Basis matrix:
             [  1 4/3]
             sage: psi = phi.restrict(W); psi
-            Free module morphism defined by the matrix
+            Vector space morphism represented by the matrix:
             [2]
             Domain: Vector space of degree 2 and dimension 1 over Rational Field
-            Basis ...
+            Basis matrix:
+            [  1 4/3]
             Codomain: Vector space of degree 2 and dimension 1 over Rational Field
-            Basis ...
+            Basis matrix:
+            [  1 4/3]
             sage: psi.domain() == W
             True
             sage: psi(W.0) == 2*W.0
@@ -1163,8 +1178,8 @@ class MatrixMorphism(MatrixMorphism_abstract):
         EXAMPLES::
 
             sage: from sage.modules.matrix_morphism import MatrixMorphism
-            sage: T = End(QQ^3)
-            sage: M = MatrixSpace(QQ,3)
+            sage: T = End(ZZ^3)
+            sage: M = MatrixSpace(ZZ,3)
             sage: I = M.identity_matrix()
             sage: A = MatrixMorphism(T, I)
             sage: loads(A.dumps()) == A
@@ -1182,18 +1197,58 @@ class MatrixMorphism(MatrixMorphism_abstract):
         self._matrix = A
         MatrixMorphism_abstract.__init__(self, parent)
 
-    def matrix(self):
-        """
-        Return matrix that defines this morphism.
+    def matrix(self, side='left'):
+        r"""
+        Return a matrix that defines this morphism.
+
+        INPUT:
+
+        - ``side`` - default:``'left'`` - the side of the matrix
+          where a vector is placed to effect the morphism (function).
+
+        OUTPUT:
+
+        A matrix which represents the morphism, relative to bases
+        for the domain and codomain.  If the modules are provided
+        with user bases, then the representation is relative to
+        these bases.
+
+        Internally, Sage represents a matrix morphism with the
+        matrix multiplying a row vector placed to the left of the
+        matrix.  If the option ``side='right'`` is used, then a
+        matrix is returned that acts on a vector to the right of
+        the matrix.  These two matrices are just transposes of
+        each other and the difference is just a preference for
+        the style of representation.
 
         EXAMPLES::
 
-            sage: V = ZZ^2; phi = V.hom([3*V.0, 2*V.1])
+            sage: V = ZZ^2; W = ZZ^3
+            sage: phi = V.hom([3*V.0 - 5*V.1, 4*V.0 + 2*V.1, V.0 + V.1], W)
             sage: phi.matrix()
-            [3 0]
-            [0 2]
+            [ 3  4  1]
+            [-5  2  1]
+
+            sage: phi.matrix(side='right')
+            [ 3 -5]
+            [ 4  2]
+            [ 1  1]
+
+        TESTS::
+
+            sage: V = ZZ^2
+            sage: phi = V.hom([3*V.0, 2*V.1])
+            sage: phi.matrix(side='junk')
+            Traceback (most recent call last):
+            ...
+            ValueError: side must be 'left' or 'right', not junk
         """
-        return self._matrix
+        if not side in ['left', 'right']:
+            raise ValueError("side must be 'left' or 'right', not {0}".format(side))
+        if side == 'left':
+            return self._matrix
+        else:
+            return self._matrix.transpose()
 
     def is_injective(self):
         """

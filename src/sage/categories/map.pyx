@@ -1416,7 +1416,7 @@ cdef class FormalCompositeMap(Map):
         If the first map is surjective and the second map is not injective,
         then the composition is not injective::
 
-            sage: psi2 = V1.hom([1,1],QQ^1)
+            sage: psi2 = V1.hom([[1],[1]],QQ^1)
             sage: c3 = FormalCompositeMap(Hom(V2,QQ^1,phi2.category_for()),psi2,psi1)
             sage: c3.is_injective()
             False
@@ -1456,13 +1456,13 @@ cdef class FormalCompositeMap(Map):
         If the second map is not surjective, the composition is not
         surjective::
 
-            sage: FormalCompositeMap(Hom(V3,V1,phi32.category_for()),phi32,V2.hom(Matrix([[0,0]]),V1)).is_surjective()
+            sage: FormalCompositeMap(Hom(V3,V1,phi32.category_for()),phi32,V2.hom(Matrix([[0],[0]]),V1)).is_surjective()
             False
 
         If the second map is an isomorphism and the first map is not
         surjective, then the composition is not surjective::
 
-            sage: FormalCompositeMap(Hom(V2,V1,phi32.category_for()),V2.hom(Matrix([[0,0]]),V1),V1.hom(Matrix([[1]]),V1)).is_surjective()
+            sage: FormalCompositeMap(Hom(V2,V1,phi32.category_for()),V2.hom(Matrix([[0],[0]]),V1),V1.hom(Matrix([[1]]),V1)).is_surjective()
             False
 
         Otherwise, surjectivity of the composition can not be determined::

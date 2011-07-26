@@ -29,4 +29,8 @@ from module_element import ModuleElement, is_ModuleElement
 
 import vector_callable_symbolic_dense
 
+from vector_space_homspace import is_VectorSpaceHomspace
+
+from vector_space_morphism import is_VectorSpaceMorphism, linear_transformation
+
 import vector_symbolic_dense

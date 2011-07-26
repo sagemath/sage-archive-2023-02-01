@@ -70,8 +70,8 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
 
         EXAMPLES::
 
-            sage: V = QQ^3; W = span([[1,2,3],[-1,2,5/3]], QQ)
-            sage: phi = V.hom(matrix(QQ,3,[1..9]))
+            sage: V = ZZ^3; W = span([[1,2,3],[-1,2,8]], ZZ)
+            sage: phi = V.hom(matrix(ZZ,3,[1..9]))
             sage: type(phi)
             <class 'sage.modules.free_module_morphism.FreeModuleMorphism'>
         """
@@ -147,10 +147,10 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
 
         EXAMPLES::
 
-            sage: V = QQ^3; W = span([[1,2,3],[-1,2,5/3]], QQ)
-            sage: phi = V.hom(matrix(QQ,3,[1..9]))
+            sage: V = ZZ^3; W = span([[1,2,3],[-1,2,8]], ZZ)
+            sage: phi = V.hom(matrix(ZZ,3,[1..9]))
             sage: phi._repr_()
-            'Free module morphism defined by the matrix\n[1 2 3]\n[4 5 6]\n[7 8 9]\nDomain: Vector space of dimension 3 over Rational Field\nCodomain: Vector space of dimension 3 over Rational Field'
+            'Free module morphism defined by the matrix\n[1 2 3]\n[4 5 6]\n[7 8 9]\nDomain: Ambient free module of rank 3 over the principal ideal domain Integer Ring\nCodomain: Ambient free module of rank 3 over the principal ideal domain Integer Ring'
 
             sage: V = ZZ^6
             sage: W = ZZ^4
@@ -174,7 +174,7 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
             sage: m = matrix(QQ, 40, 40, 1600)
             sage: phi = V.hom(m, V)
             sage: phi
-            Free module morphism defined by the matrix
+            Vector space morphism represented by the matrix:
             40 x 40 dense matrix over Rational Field
             Domain: Vector space of dimension 40 over Rational Field
             Codomain: Vector space of dimension 40 over Rational Field
@@ -200,19 +200,29 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
             sage: h.change_ring(QQ).base_ring()
             Rational Field
             sage: f = h.change_ring(QQ); f
-            Free module morphism defined by the matrix
+            Vector space morphism represented by the matrix:
             [-3 -3]
             [-3 -3]
             Domain: Vector space of degree 3 and dimension 2 over Rational Field
-            Basis ...
+            Basis matrix:
+            [0 1 0]
+            [0 0 1]
             Codomain: Vector space of degree 2 and dimension 2 over Rational Field
-            Basis ...
+            Basis matrix:
+            [1 0]
+            [0 1]
             sage: f = h.change_ring(GF(7)); f
-            Free module morphism defined by the matrix
+            Vector space morphism represented by the matrix:
             [4 4]
             [4 4]
-            Domain: Vector space of degree 3 and dimension 2 over Finite Field of ...
-            Codomain: Vector space of degree 2 and dimension 2 over Finite Field of ...
+            Domain: Vector space of degree 3 and dimension 2 over Finite Field of size 7
+            Basis matrix:
+            [0 1 0]
+            [0 0 1]
+            Codomain: Vector space of degree 2 and dimension 2 over Finite Field of size 7
+            Basis matrix:
+            [1 0]
+            [0 1]
         """
         D = self.domain().change_ring(R)
         C = self.codomain().change_ring(R)
@@ -467,13 +477,10 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
         with a basis of the corresponding subspace of eigenvectors, and the
         algebraic multiplicity of the eigenvalue.
 
-        EXAMPLES:
-
-
-        ::
+        EXAMPLES::
 
             sage: V=(QQ^4).subspace([[0,2,1,4],[1,2,5,0],[1,1,1,1]])
-            sage: H=(V.Hom(V))([[0,1,0],[-1,0,0],[0,0,3]])
+            sage: H=(V.Hom(V))(matrix(QQ, [[0,1,0],[-1,0,0],[0,0,3]]))
             sage: H.eigenvectors()
             [(3, [
             (0, 0, 1, -6/7)
@@ -486,7 +493,7 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
             [(3, [
             (0, 0, 1, -6/7)
             ], 1)]
-            sage: H1=(V.Hom(V))([[2,1,0],[0,2,0],[0,0,3]])
+            sage: H1=(V.Hom(V))(matrix(QQ, [[2,1,0],[0,2,0],[0,0,3]]))
             sage: H1.eigenvectors()
             [(3, [
             (0, 0, 1, -6/7)
@@ -499,8 +506,6 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
             ], 1), (2, [
             (0, 1, 0, 17/7)
             ], 2)]
-
-
         """
         if self.base_ring().is_field():
             if self.is_endomorphism():
@@ -516,10 +521,11 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
         else:
             raise NotImplementedError, "module must be a vector space"
 
-
-    def minpoly(self,var='x'):
-        """
+    def minimal_polynomial(self,var='x'):
+        r"""
         Computes the minimal polynomial.
+
+        ``minpoly()`` and ``minimal_polynomial()`` are the same method.
 
         INPUT:
 
@@ -531,32 +537,35 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
 
         EXAMPLES:
 
-        Compute the minimal polynomial, and check it
-
-        ::
+        Compute the minimal polynomial, and check it. ::
 
             sage: V=GF(7)^3
             sage: H=V.Hom(V)([[0,1,2],[-1,0,3],[2,4,1]])
             sage: H
-            Free module morphism defined by the matrix
+            Vector space morphism represented by the matrix:
             [0 1 2]
             [6 0 3]
             [2 4 1]
             Domain: Vector space of dimension 3 over Finite Field of size 7
             Codomain: Vector space of dimension 3 over Finite Field of size 7
+
             sage: H.minpoly()
             x^3 + 6*x^2 + 6*x + 1
-            sage: H^3+6*H^2+6*H+1
-            Free module morphism defined by the matrix
+
+            sage: H.minimal_polynomial()
+            x^3 + 6*x^2 + 6*x + 1
+
+            sage: H^3 + (H^2)*6 + H*6 + 1
+            Vector space morphism represented by the matrix:
             [0 0 0]
             [0 0 0]
             [0 0 0]
             Domain: Vector space of dimension 3 over Finite Field of size 7
             Codomain: Vector space of dimension 3 over Finite Field of size 7
-
         """
         if self.is_endomorphism():
             return self.matrix().minpoly(var)
         else:
             raise TypeError, "not an endomorphism"
 
+    minpoly = minimal_polynomial

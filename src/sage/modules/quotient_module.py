@@ -48,11 +48,21 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
         Basis matrix:
         [    1 1/3*i 1/3*i]
         sage: U.quotient_map()
-        Free module morphism defined by the matrix
+        Vector space morphism represented by the matrix:
         [  1]
         [3*i]
-        Domain: Vector space of degree 3 and dimension 2 over Number Field in ...
-        Codomain: Vector space quotient V/W of dimension 1 over Number Field in ...
+        Domain: Vector space of degree 3 and dimension 2 over Number Field in i with defining polynomial x^2 + 1
+        Basis matrix:
+        [ 1  0  i]
+        [ 0  1 -2]
+        Codomain: Vector space quotient V/W of dimension 1 over Number Field in i with defining polynomial x^2 + 1 where
+        V: Vector space of degree 3 and dimension 2 over Number Field in i with defining polynomial x^2 + 1
+        Basis matrix:
+        [ 1  0  i]
+        [ 0  1 -2]
+        W: Vector space of degree 3 and dimension 1 over Number Field in i with defining polynomial x^2 + 1
+        Basis matrix:
+        [    1 1/3*i 1/3*i]
         sage: Z = V.quotient(W)
         sage: Z == U
         True
@@ -262,12 +272,16 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
         EXAMPLES:
             sage: M = QQ^3 / [[1,2,3]]
             sage: M.quotient_map()
-            Free module morphism defined by the matrix
+            Vector space morphism represented by the matrix:
             [   1    0]
             [   0    1]
             [-1/3 -2/3]
             Domain: Vector space of dimension 3 over Rational Field
-            Codomain: Vector space quotient V/W of dimension 2 over Rational Field ...
+            Codomain: Vector space quotient V/W of dimension 2 over Rational Field where
+            V: Vector space of dimension 3 over Rational Field
+            W: Vector space of degree 3 and dimension 1 over Rational Field
+            Basis matrix:
+            [1 2 3]
 
             sage: M.quotient_map()( (QQ^3)([1,2,3]) )
             (0, 0)
@@ -282,10 +296,14 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
         EXAMPLES:
             sage: M = QQ^3 / [[1,2,3]]
             sage: M.lift_map()
-            Free module morphism defined by the matrix
+            Vector space morphism represented by the matrix:
             [1 0 0]
             [0 1 0]
-            Domain: Vector space quotient V/W of dimension 2 over Rational Field ...
+            Domain: Vector space quotient V/W of dimension 2 over Rational Field where
+            V: Vector space of dimension 3 over Rational Field
+            W: Vector space of degree 3 and dimension 1 over Rational Field
+            Basis matrix:
+            [1 2 3]
             Codomain: Vector space of dimension 3 over Rational Field
         """
         return self.__lift_map

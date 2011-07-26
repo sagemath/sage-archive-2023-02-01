@@ -18,18 +18,20 @@ basis.
     Domain: Ambient free module of rank 2 over the principal ideal domain ...
     Codomain: Ambient free module of rank 2 over the principal ideal domain ...
 
-We create `\mathrm{Hom}(\QQ^3, \QQ^2)` and
+We create `\mathrm{Hom}(\ZZ^3, \ZZ^2)` and
 compute a basis.
 
 ::
 
-    sage: V3 = VectorSpace(RationalField(),3)
-    sage: V2 = VectorSpace(RationalField(),2)
+    sage: V3 = FreeModule(IntegerRing(),3)
+    sage: V2 = FreeModule(IntegerRing(),2)
     sage: H = Hom(V3,V2)
     sage: H
-    Set of Morphisms from Vector space of dimension 3 over Rational Field
-    to Vector space of dimension 2 over Rational Field in Category of
-    vector spaces over Rational Field
+    Set of Morphisms from Ambient free module of rank 3
+    over the principal ideal domain Integer Ring to
+    Ambient free module of rank 2
+    over the principal ideal domain Integer Ring
+    in Category of modules with basis over Integer Ring
     sage: B = H.basis()
     sage: len(B)
     6
@@ -47,7 +49,7 @@ TESTS::
 
 See trac 5886::
 
-    sage: V = (QQ^2).span_of_basis([[1,2],[3,4]])
+    sage: V = (ZZ^2).span_of_basis([[1,2],[3,4]])
     sage: V.hom([V.0, V.1])
     Free module morphism defined by the matrix
     [1 0]
@@ -77,22 +79,48 @@ from inspect import isfunction
 
 
 def is_FreeModuleHomspace(x):
-    """
-    Return True if x is a Free module homspace.
+    r"""
+    Return ``True`` if ``x`` is a free module homspace.
 
-    EXAMPLES::
+    EXAMPLES:
 
-        sage: H = Hom(QQ^3, QQ^2)
+    Notice that every vector space is a field, but when we construct a set of
+    morphisms between two vector spaces, it is a ``VectorSpaceHomspace``,
+    which qualifies as a ``FreeModuleHomspace``, since the former is
+    special case of the latter.
+
+        sage: H = Hom(ZZ^3, ZZ^2)
+        sage: type(H)
+        <class 'sage.modules.free_module_homspace.FreeModuleHomspace_with_category'>
         sage: sage.modules.free_module_homspace.is_FreeModuleHomspace(H)
         True
-        sage: sage.modules.free_module_homspace.is_FreeModuleHomspace(2)
+
+        sage: K = Hom(QQ^3, ZZ^2)
+        sage: type(K)
+        <class 'sage.modules.free_module_homspace.FreeModuleHomspace_with_category'>
+        sage: sage.modules.free_module_homspace.is_FreeModuleHomspace(K)
+        True
+
+        sage: L = Hom(ZZ^3, QQ^2)
+        sage: type(L)
+        <class 'sage.modules.free_module_homspace.FreeModuleHomspace_with_category'>
+        sage: sage.modules.free_module_homspace.is_FreeModuleHomspace(L)
+        True
+
+        sage: P = Hom(QQ^3, QQ^2)
+        sage: type(P)
+        <class 'sage.modules.vector_space_homspace.VectorSpaceHomspace_with_category'>
+        sage: sage.modules.free_module_homspace.is_FreeModuleHomspace(P)
+        True
+
+        sage: sage.modules.free_module_homspace.is_FreeModuleHomspace('junk')
         False
     """
     return isinstance(x, FreeModuleHomspace)
 
 class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
     def __call__(self, A, check=True):
-        """
+        r"""
         INPUT:
 
         - A -- either a matrix or a list/tuple of images of generators,
@@ -107,7 +135,7 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
 
         EXAMPLES::
 
-            sage: V = (QQ^3).span_of_basis([[1,1,0],[1,0,2]])
+            sage: V = (ZZ^3).span_of_basis([[1,1,0],[1,0,2]])
             sage: H = V.Hom(V); H
             Set of Morphisms from ...
             sage: H([V.0,V.1])                    # indirect doctest
@@ -193,18 +221,17 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
 
         EXAMPLES::
 
-            sage: H = Hom(QQ^2, QQ^1)
+            sage: H = Hom(ZZ^2, ZZ^1)
             sage: H.basis()
             (Free module morphism defined by the matrix
             [1]
             [0]
-            Domain: Vector space of dimension 2 over Rational Field
-            Codomain: Vector space of dimension 1 over Rational Field,
-             Free module morphism defined by the matrix
+            Domain: Ambient free module of rank 2 over the principal ideal domain ...
+            Codomain: Ambient free module of rank 1 over the principal ideal domain ..., Free module morphism defined by the matrix
             [0]
             [1]
-            Domain: Vector space of dimension 2 over Rational Field
-            Codomain: Vector space of dimension 1 over Rational Field)
+            Domain: Ambient free module of rank 2 over the principal ideal domain ...
+            Codomain: Ambient free module of rank 1 over the principal ideal domain ...)
         """
         try:
             return self.__basis
@@ -215,27 +242,25 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
             return self.__basis
 
     def identity(self):
-       r"""
-       Return identity morphism in an endomorphism ring.
+        r"""
+        Return identity morphism in an endomorphism ring.
 
-       EXAMPLE::
+        EXAMPLE::
 
-           sage: V=VectorSpace(QQ,5)
-           sage: H=V.Hom(V)
-           sage: H.identity()
-           Free module morphism defined by the matrix
-           [1 0 0 0 0]
-           [0 1 0 0 0]
-           [0 0 1 0 0]
-           [0 0 0 1 0]
-           [0 0 0 0 1]
-           Domain: Vector space of dimension 5 over Rational Field
-           Codomain: Vector space of dimension 5 over Rational Field
-       """
-       if self.is_endomorphism_set():
-           return self(matrix.identity_matrix(self.base_ring(),self.domain().rank()))
-       else:
-           raise TypeError, "Identity map only defined for endomorphisms. Try natural_map() instead."
-
-
+            sage: V=FreeModule(ZZ,5)
+            sage: H=V.Hom(V)
+            sage: H.identity()
+            Free module morphism defined by the matrix
+            [1 0 0 0 0]
+            [0 1 0 0 0]
+            [0 0 1 0 0]
+            [0 0 0 1 0]
+            [0 0 0 0 1]
+            Domain: Ambient free module of rank 5 over the principal ideal domain ...
+            Codomain: Ambient free module of rank 5 over the principal ideal domain ...
+        """
+        if self.is_endomorphism_set():
+            return self(matrix.identity_matrix(self.base_ring(),self.domain().rank()))
+        else:
+            raise TypeError, "Identity map only defined for endomorphisms. Try natural_map() instead."
 

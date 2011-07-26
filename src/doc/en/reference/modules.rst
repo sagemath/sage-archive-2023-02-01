@@ -14,6 +14,9 @@ Modules
    sage/modules/real_double_vector
    sage/modules/vector_callable_symbolic_dense
 
+   sage/modules/vector_space_homspace
+   sage/modules/vector_space_morphism
+
    sage/modules/free_module_homspace
    sage/modules/free_module_morphism
 

@@ -603,6 +603,7 @@ class FreeModule_generic(module.Module_old):
 
     # FIXME: what's the level of generality of FreeModuleHomspace?
     # Should there be a category for free modules accepting it as hom space?
+    # See similar method for FreeModule_generic_field class
     def _Hom_(self, Y, category):
         from free_module_homspace import FreeModuleHomspace
         return FreeModuleHomspace(self, Y, category)
@@ -2933,6 +2934,53 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         if not isinstance(base_field, field.Field):
             raise TypeError, "The base_field (=%s) must be a field"%base_field
         FreeModule_generic_pid.__init__(self, base_field, dimension, degree, sparse=sparse)
+
+    def _Hom_(self, Y, category):
+        r"""
+        Returns a homspace whose morphisms have this vector space as domain.
+
+        This is called by the general methods such as
+        :meth:`sage.structure.parent.Parent.Hom` and
+        :meth:`sage.structure.parent_base.ParentWithBase.Hom`.
+
+        INPUT:
+
+        - ``Y`` - a free module (or vector space) that will
+          be the codomain of the morphisms in returned homspace
+        - ``category`` - the category for the homspace
+
+        OUTPUT:
+
+        If ``Y`` is a free module over a field, in other words, a vector space,
+        then this returns a space of homomorphisms between vector spaces,
+        in other words a space of linear transformations.
+
+        If ``Y`` is a free module that is not a vector space, then
+        the returned space contains homomorphisms between free modules.
+
+        EXAMPLES::
+
+            sage: V = QQ^2
+            sage: W = QQ^3
+            sage: H = V._Hom_(W, category=None)
+            sage: type(H)
+            <class 'sage.modules.vector_space_homspace.VectorSpaceHomspace_with_category'>
+            sage: H
+            Set of Morphisms (Linear Transformations) from Vector space of dimension 2 over Rational Field to Vector space of dimension 3 over Rational Field
+
+            sage: V = QQ^2
+            sage: W = ZZ^3
+            sage: H = V._Hom_(W, category=None)
+            sage: type(H)
+            <class 'sage.modules.free_module_homspace.FreeModuleHomspace_with_category'>
+            sage: H
+            Set of Morphisms from Vector space of dimension 2 over Rational Field to Ambient free module of rank 3 over the principal ideal domain Integer Ring in Category of vector spaces over Rational Field
+        """
+        if Y.base_ring().is_field():
+            import vector_space_homspace
+            return vector_space_homspace.VectorSpaceHomspace(self, Y, category)
+        import free_module_homspace
+        return free_module_homspace.FreeModuleHomspace(self, Y, category)
 
     def scale(self, other):
         """

@@ -57,9 +57,9 @@ def Hom(X, Y, category=None):
 
         sage: V = VectorSpace(QQ,3)
         sage: Hom(V, V)
-        Set of Morphisms from Vector space of dimension 3 over Rational
-        Field to Vector space of dimension 3 over Rational Field in
-        Category of vector spaces over Rational Field
+        Set of Morphisms (Linear Transformations) from
+        Vector space of dimension 3 over Rational Field to
+        Vector space of dimension 3 over Rational Field
         sage: G = AlternatingGroup(3)
         sage: Hom(G, G)
         Set of Morphisms from Alternating group of order 3!/2 as a permutation group to Alternating group of order 3!/2 as a permutation group in Category of finite permutation groups
@@ -187,9 +187,9 @@ def End(X, category=None):
 
         sage: V = VectorSpace(QQ, 3)
         sage: End(V)
-        Set of Morphisms from Vector space of dimension 3 over Rational
-        Field to Vector space of dimension 3 over Rational Field in
-        Category of vector spaces over Rational Field
+        Set of Morphisms (Linear Transformations) from
+        Vector space of dimension 3 over Rational Field to
+        Vector space of dimension 3 over Rational Field
 
     ::
 
@@ -245,8 +245,9 @@ class Homset(Set_generic):
         True
     """
     def __init__(self, X, Y, category=None, base = None, check=True):
-        """
+        r"""
         TESTS::
+
             sage: X = ZZ['x']; X.rename("X")
             sage: Y = ZZ['y']; Y.rename("Y")
             sage: class MyHomset(Homset):
@@ -521,8 +522,9 @@ class Homset(Set_generic):
 # Really needed???
 class HomsetWithBase(Homset):
     def __init__(self, X, Y, category=None, check=True, base=None):
-        """
+        r"""
         TESTS::
+
             sage: X = ZZ['x']; X.rename("X")
             sage: Y = ZZ['y']; Y.rename("Y")
             sage: class MyHomset(HomsetWithBase):

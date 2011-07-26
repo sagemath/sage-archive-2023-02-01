@@ -32,7 +32,10 @@ htmlhelp_basename = "thematic_tutorials"
 # following line turns it into bold face only when using jsMath, thus
 # avoiding the errors, while keeping the nice mathfrak fonts when not
 # using jsMath.
-html_theme_options['jsmath_macros'] = ["mathfrak : ['\\\\mathbf{#1}', 1]"]
+try:
+    html_theme_options['jsmath_macros'].append("mathfrak : ['\\\\mathbf{#1}', 1]")
+except KeyError:
+    html_theme_options['jsmath_macros'] = ["mathfrak : ['\\\\mathbf{#1}', 1]"]
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author,

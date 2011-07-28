@@ -34,6 +34,10 @@ from sage.structure.formal_sum import FormalSums, FormalSum
 from sage.sets.set import Set
 
 
+from sage.misc.misc import deprecation
+deprecation("The module group_algebra is deprecated and will be removed in a future version of Sage. Use group_algebra_new instead.")
+
+
 class GroupAlgebra(Algebra):
 
     def __init__(self, group, base_ring = IntegerRing()):
@@ -46,6 +50,8 @@ class GroupAlgebra(Algebra):
 
         EXAMPLES::
 
+            sage: from sage.algebras.group_algebra import GroupAlgebra
+            doctest:1: DeprecationWarning:...
             sage: GroupAlgebra(GL(3, GF(7)))
             Group algebra of group "General Linear Group of degree 3 over Finite
             Field of size 7" over base ring Integer Ring
@@ -72,6 +78,7 @@ class GroupAlgebra(Algebra):
     def group(self):
         r""" Return the group of this group algebra.
         EXAMPLES:
+            sage: from sage.algebras.group_algebra import GroupAlgebra
             sage: GroupAlgebra(GL(3, GF(11))).group()
             General Linear Group of degree 3 over Finite Field of size 11
             sage: GroupAlgebra(SymmetricGroup(10)).group()
@@ -84,6 +91,7 @@ class GroupAlgebra(Algebra):
         self.group() is abelian.
 
         EXAMPLES:
+            sage: from sage.algebras.group_algebra import GroupAlgebra
             sage: GroupAlgebra(SymmetricGroup(2)).is_commutative()
             True
             sage: GroupAlgebra(SymmetricGroup(3)).is_commutative()
@@ -95,6 +103,7 @@ class GroupAlgebra(Algebra):
         r""" Return True if self is a field. This is always false unless
         self.group() is trivial and self.base_ring() is a field.
         EXAMPLES:
+            sage: from sage.algebras.group_algebra import GroupAlgebra
             sage: GroupAlgebra(SymmetricGroup(2)).is_field()
             False
             sage: GroupAlgebra(SymmetricGroup(1)).is_field()
@@ -111,6 +120,7 @@ class GroupAlgebra(Algebra):
         self.group() and self.base_ring() are both finite.
 
         EXAMPLES:
+            sage: from sage.algebras.group_algebra import GroupAlgebra
             sage: GroupAlgebra(SymmetricGroup(2), IntegerModRing(10)).is_finite()
             True
             sage: GroupAlgebra(SymmetricGroup(2)).is_finite()
@@ -126,6 +136,7 @@ class GroupAlgebra(Algebra):
         and self.base_ring().
 
         EXAMPLES:
+            sage: from sage.algebras.group_algebra import GroupAlgebra
             sage: GroupAlgebra(GL(3, GF(7))).is_exact()
             True
             sage: GroupAlgebra(GL(3, GF(7)), RR).is_exact()
@@ -145,6 +156,7 @@ class GroupAlgebra(Algebra):
         finitely generated.
 
         EXAMPLES:
+            sage: from sage.algebras.group_algebra import GroupAlgebra
             sage: GroupAlgebra(SymmetricGroup(2)).is_integral_domain()
             False
             sage: GroupAlgebra(SymmetricGroup(1)).is_integral_domain()
@@ -199,6 +211,7 @@ class GroupAlgebra(Algebra):
         Return an element of self.
 
         EXAMPLE:
+            sage: from sage.algebras.group_algebra import GroupAlgebra
             sage: GroupAlgebra(SU(2, 13), QQ).an_element() # random; hideous formatting!
             -1/95*[       9 2*a + 12]
             [       0        3] - 4*[      9 9*a + 2]
@@ -229,6 +242,7 @@ class GroupAlgebra(Algebra):
             -- a GroupAlgebraElement instance whose parent is self.
 
         EXAMPLES:
+            sage: from sage.algebras.group_algebra import GroupAlgebra
             sage: G = AbelianGroup(1)
             sage: f = G.gen()
             sage: ZG = GroupAlgebra(G)
@@ -266,6 +280,7 @@ class GroupAlgebra(Algebra):
     def __eq__(self, other):
         r""" Test for equality.
         EXAMPLES:
+            sage: from sage.algebras.group_algebra import GroupAlgebra
             sage: GroupAlgebra(AbelianGroup(1)) == GroupAlgebra(AbelianGroup(1))
             True
             sage: GroupAlgebra(AbelianGroup(1), QQ) == GroupAlgebra(AbelianGroup(1), ZZ)
@@ -288,6 +303,7 @@ class GroupAlgebra(Algebra):
         The class of elements of self, which is GroupAlgebraElement.
 
         EXAMPLES:
+            sage: from sage.algebras.group_algebra import GroupAlgebra
             sage: GroupAlgebra(SU(2, GF(4,'a'))).element_class()
             <class 'sage.algebras.group_algebra.GroupAlgebraElement'>
         """
@@ -329,6 +345,7 @@ class GroupAlgebraElement(AlgebraElement):
         Add self to other.
 
         EXAMPLE:
+            sage: from sage.algebras.group_algebra import GroupAlgebra
             sage: G = GL(3, GF(7))
             sage: ZG = GroupAlgebra(G)
             sage: g1 = G([0,0,2,2,5,0,6,6,2])
@@ -345,6 +362,7 @@ class GroupAlgebraElement(AlgebraElement):
         r""" Calculate self*right, where both self and right are GroupAlgebraElements.
 
         EXAMPLE:
+            sage: from sage.algebras.group_algebra import GroupAlgebra
             sage: G = GL(3, GF(7))
             sage: ZG = GroupAlgebra(G)
             sage: a, b = G.random_element(), G.random_element()
@@ -375,6 +393,7 @@ class GroupAlgebraElement(AlgebraElement):
         r""" Test if self is equal to other.
 
         EXAMPLES:
+            sage: from sage.algebras.group_algebra import GroupAlgebra
             sage: G = AbelianGroup(1,[4])
             sage: a = GroupAlgebra(G)(1)
             sage: b = GroupAlgebra(G)(2)

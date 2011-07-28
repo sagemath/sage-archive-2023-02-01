@@ -31,7 +31,7 @@ from free_algebra_quotient import FreeAlgebraQuotient
 
 from steenrod.all import *
 
-from group_algebra import GroupAlgebra, GroupAlgebraElement
+from group_algebra_new import GroupAlgebra
 
 from iwahori_hecke_algebra import IwahoriHeckeAlgebraT
 from affine_nil_temperley_lieb import AffineNilTemperleyLiebTypeA

@@ -1826,7 +1826,7 @@ cdef class Matrix(matrix0.Matrix):
         else:
             return MS
 
-    def new_matrix(self, nrows=None, ncols=None, entries=0,
+    def new_matrix(self, nrows=None, ncols=None, entries=None,
                    coerce=True, copy=True, sparse=None):
         """
         Create a matrix in the parent of this matrix with the given number

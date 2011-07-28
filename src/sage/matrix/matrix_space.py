@@ -1260,6 +1260,8 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
           * a list of lists with each inner list being either a row or a column
             of the new matrix.
 
+          * a list of vectors or matrices
+
         - ``coerce`` -- (default: ``True``) whether to coerce ``x`` into self;
 
         - ``copy`` -- (default: ``True``) whether to copy ``x`` during
@@ -1318,6 +1320,40 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             [1 0]
             [0 0]
             [1 0]
+
+        Trac ticket #10628 enables to provide the data be lists of matrices::
+
+            sage: MS = MatrixSpace(ZZ,4,2)
+            sage: MS0 = MatrixSpace(ZZ,2)
+            sage: MS.matrix([MS0([1,2,3,4]), MS0([5,6,7,8])])
+            [1 2]
+            [3 4]
+            [5 6]
+            [7 8]
+
+        A mixed list of matrices and vectors is allowed as well::
+
+            sage: MS.matrix( [MS0([1,2,3,4])] + list(MS0([5,6,7,8])) )
+            [1 2]
+            [3 4]
+            [5 6]
+            [7 8]
+
+
+        TESTS:
+
+        The following corner cases were problematic while working on #10628::
+
+            sage: MS = MatrixSpace(ZZ,2,1)
+            sage: MS([[1],[2]])
+            [1]
+            [2]
+            sage: MS = MatrixSpace(CC,2,1)
+            sage: F = NumberField(x^2+1, name='x')
+            sage: MS([F(1),F(0)])
+            [1.00000000000000]
+            [               0]
+
         """
         if isinstance(x, (types.GeneratorType, xrange)):
             x = list(x)
@@ -1335,22 +1371,37 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
                 else:
                     raise ValueError("a matrix from %s cannot be converted to "
                                      "a matrix in %s!" % (x.parent(), self))
-        if isinstance(x, list) and len(x) > 0:
-            if isinstance(x[0], (list,tuple)) or hasattr(x[0], "is_vector"):# TODO: is this the best way to test is_vector?
-                e = []
-                for v in x:
-                    e.extend(v)
-                x = e
 
-
-            if not rows:
-                new_x = []
-                for k in range(len(x)):
-                    i = k % self.__ncols
-                    j = k // self.__ncols
-                    new_x.append( x[ i*self.__nrows + j ] )
-                x = new_x
-
+        if isinstance(x, (list, tuple)):
+            lenx = len(x)
+            if lenx > 0:
+                if (self.__ncols == 1 or lenx < self.__ncols*self.__nrows):
+                    # If the list has less than the expected length, then
+                    # we are likely to have a list of lists or matrices or vectors.
+                    # Hence, we expand the entries of x.
+                    e = []
+                    for v in x:
+                        if isinstance(v,(list, tuple)):
+                            e.extend(v)
+                        elif hasattr(v,'row'):
+                            try:
+                                e.extend(v.list())
+                            except AttributeError:
+                                pass
+                        else:
+                            e.append(v)
+                    x = e
+                    # x is a new list, hence, copy=False is OK
+                    copy = False
+                # Now, x presumably is a list of ring elements.
+                if not rows:
+                    new_x = []
+                    for k in xrange(len(x)):
+                        i = k % self.__ncols
+                        j = k // self.__ncols
+                        new_x.append( x[ i*self.__nrows + j ] )
+                    x = new_x
+                    copy = False
         return self.__matrix_class(self, entries=x, copy=copy, coerce=coerce)
 
     def matrix_space(self, nrows=None, ncols=None, sparse=False):

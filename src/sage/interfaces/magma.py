@@ -1915,6 +1915,22 @@ class MagmaElement(ExpectElement):
             sage: type(z)                              # optional - magma
             <type 'list'>
 
+        Tuples get converted to tuples::
+
+            sage: m = magma('<1,2,<3>>')        # optional - magma
+            sage: z = m.sage(); z               # optional - magma
+            (1, 2, (3,))
+            sage: type(z)                       # optional - magma
+            <type 'tuple'>
+
+        Sequences get converted to lists::
+
+            sage: m = magma('[<1>,<2>]')        # optional - magma
+            sage: z = m.sage(); z               # optional - magma
+            [(1,), (2,)]
+            sage: type(z)                       # optional - magma
+            <type 'list'>
+
         Matrices::
 
             sage: a = matrix(ZZ,3,3,[1..9])
@@ -1933,6 +1949,15 @@ class MagmaElement(ExpectElement):
             sage: m.sage()                           # optional - magma
             [1 2 3]
             [4 5 6]
+
+        Multivariate polynomials::
+
+            sage: R.<x,y,z> = QQ[]                   # optional - magma
+            sage: f = x^2+3*y                        # optional - magma
+            sage: g = magma(f).sage(); g             # optional - magma
+            x^2 + 3*y
+            sage: parent(f) == parent(g)             # optional - magma
+            True
 
         Number fields and their elements::
 

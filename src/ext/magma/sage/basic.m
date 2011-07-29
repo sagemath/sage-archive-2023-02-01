@@ -19,6 +19,17 @@ intrinsic Sage(X::SeqEnum) -> MonStgElt, BoolElt
     return Sprintf("%o", Y), true;
 end intrinsic;
 
+intrinsic Sage(X::Tup) -> MonStgElt, BoolElt
+{Return a Magma Tuple as a Sage Tuple}
+    if #X eq 0 then
+        return "()", true;
+    elif #X eq 1 then
+        return Sprintf("(%o,)",Sage(X[1])),true;
+    end if;
+    r := Sprintf("%o",[Sage(x) : x in X]);
+    return "(" cat Substring(r,2,#r-2) cat ")",true;
+end intrinsic;
+
 intrinsic Sage(X::SetEnum) -> MonStgElt, BoolElt
 {Convert an enumerated set to Sage.}
     Y := [Sage(z) : z in X];
@@ -157,11 +168,12 @@ intrinsic Sage(X::RngMPol) -> MonStgElt, BoolElt
   return Sprintf("%o['%o'.replace('$.', 'x').replace('.', '')]", Sage(BaseRing(X)), SageNamesHelper(X)), false;
 end intrinsic;
 
-/* intrinsic Sage(X::RngMPolElt) -> MonStgElt, BoolElt */
-/*   {} */
-/*   /\* XXX - this doesn't work quite yet *\/ */
-/*   return Sprintf("%o(%o)", Sage(Parent(X)), Sage(Coefficients(X))), false; */
-/* end intrinsic; */
+intrinsic Sage(X::RngMPolElt) -> MonStgElt, BoolElt
+{}
+  Y := Sage([ < <e : e in Exponents(t)>, Coefficients(t)[1]> : t in Terms(X)]);
+  R := Sage(Parent(X));
+  return Sprintf("%o(dict(%o))",R,Y),true;
+end intrinsic;
 
 /* Number fields  */
 

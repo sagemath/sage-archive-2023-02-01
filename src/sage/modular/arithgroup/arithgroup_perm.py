@@ -287,9 +287,13 @@ def equalize_perms(l):
     for p in l:
         p.extend(xrange(len(p),n))
 
+# Tedious point: in order to unpickle pickled objects from prior to patch
+# #11422, this function needs to accept two non-keyword arguments, to be
+# interpreted as L and R. Hence the order of the arguments is slightly
+# different from the class __init__ methods.
 
 def ArithmeticSubgroup_Permutation(
-        S2=None, S3=None, L=None, R=None,
+        L=None, R=None, S2=None, S3=None,
         relabel=False,
         check=True):
     r"""

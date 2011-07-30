@@ -10308,46 +10308,64 @@ class GenericGraph(GenericGraph_pyx):
         """
         Returns the core number for each vertex in an ordered list.
 
-           K-cores in graph theory were introduced by Seidman in 1983
-           and by Bollobas in 1984 as a method of (destructively)
-           simplifying graph topology to aid in analysis and
-           visualization. They have been more recently defined as the
-           following by Batagelj et al: given a graph `G` with
-           vertices set `V` and edges set `E`, the `k`-core is
-           computed by pruning all the vertices (with their respective
-           edges) with degree less than `k`. That means that if a
-           vertex `u` has degree `d_u`, and it has `n` neighbors with
-           degree less than `k`, then the degree of `u` becomes `d_u -
-           n`, and it will be also pruned if `k > d_u - n`. This
-           operation can be useful to filter or to study some
-           properties of the graphs. For instance, when you compute
-           the 2-core of graph G, you are cutting all the vertices
-           which are in a tree part of graph.  (A tree is a graph with
-           no loops). [WPkcore]_
 
-        [PSW1996]_ defines a `k`-core as the largest subgraph with minimum
-        degree at least `k`.
+        **DEFINITIONS**
+
+        * *K-cores* in graph theory were introduced by Seidman in 1983 and by
+          Bollobas in 1984 as a method of (destructively) simplifying graph
+          topology to aid in analysis and visualization. They have been more
+          recently defined as the following by Batagelj et al:
+
+          *Given a graph `G` with vertices set `V` and edges set `E`, the
+          `k`-core of `G` is the graph obtained from `G` by recursively removing
+          the vertices with degree less than `k`, for as long as there are any.*
+
+          This operation can be useful to filter or to study some properties of
+          the graphs. For instance, when you compute the 2-core of graph G, you
+          are cutting all the vertices which are in a tree part of graph.  (A
+          tree is a graph with no loops). [WPkcore]_
+
+          [PSW1996]_ defines a `k`-core of `G` as the largest subgraph (it is
+          unique) of `G` with minimum degree at least `k`.
+
+        * Core number of a vertex
+
+          The core number of a vertex `v` is the largest integer `k` such that
+          `v` belongs to the `k`-core of `G`.
+
+        * Degeneracy
+
+          The *degeneracy* of a graph `G`, usually denoted `\delta^*(G)`, is the
+          smallest integer `k` such that the graph `G` can be reduced to the
+          empty graph by iteratively removing vertices of degree `\leq
+          k`. Equivalently, `\delta^*(G)=k` if `k` is the smallest integer such
+          that the `k`-core of `G` is empty.
+
+        **IMPLEMENTATION**
 
         This implementation is based on the NetworkX implementation of
         the algorithm described in [BZ]_.
 
-        INPUT:
+        **INPUT**
 
-        - ``k`` (integer) --
+        - ``k`` (integer)
 
-            * If ``k = None`` (default), returns the core number for
-              each vertex, according to the value of ``with_labels``.
+            * If ``k = None`` (default), returns the core number for each vertex.
 
-            * Otherwise, returns a pair ``(ordering, core)``, where
-              ``core`` is the list of vertices in the `k`-core of
-              ``self``, and ``ordering`` is an elimination order for
-              the others vertices such that each vertex is of degree
-              strictly less than `k` when it is to be eliminated from
-              the graph.
+            * If ``k`` is an integer, returns a pair ``(ordering, core)``, where
+              ``core`` is the list of vertices in the `k`-core of ``self``, and
+              ``ordering`` is an elimination order for the others vertices such
+              that each vertex is of degree strictly less than `k` when it is to
+              be eliminated from the graph.
 
-        -  ``with_labels`` - default False returns list as
-           described above. True returns dict keyed by vertex labels.
+        - ``with_labels`` (boolean)
 
+           * When set to ``False``, and ``k = None``, the method returns a list
+             whose `i` th element is the core number of the `i` th vertex. When
+             set to ``True``, the method returns a dictionary whose keys are
+             vertices, and whose values are the corresponding core numbers.
+
+             By default, ``with_labels = False``.
 
         REFERENCE:
 

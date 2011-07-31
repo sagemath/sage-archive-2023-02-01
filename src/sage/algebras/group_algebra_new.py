@@ -112,7 +112,9 @@ from sage.rings.all import IntegerRing
 from sage.misc.cachefunc import cached_method
 from sage.categories.pushout import ConstructionFunctor
 from sage.combinat.free_module import CombinatorialFreeModule
-from sage.categories.all import Rings, HopfAlgebrasWithBasis
+from sage.categories.all import Rings, HopfAlgebrasWithBasis, Hom
+from sage.categories.morphism import SetMorphism
+
 
 class GroupAlgebraFunctor (ConstructionFunctor) :
     r"""
@@ -159,9 +161,9 @@ class GroupAlgebraFunctor (ConstructionFunctor) :
          """
         return self.__group
 
-    def __call__(self, base_ring) :
+    def _apply_functor(self, base_ring) :
         r"""
-        Create the group algebra with given base ring over self.group().
+        Create the group algebra with given base ring over ``self.group()``.
 
         INPUT :
 
@@ -179,6 +181,30 @@ class GroupAlgebraFunctor (ConstructionFunctor) :
             Group algebra of group "Cyclic group of order 17 as a permutation group" over base ring Rational Field
         """
         return GroupAlgebra(self.__group, base_ring)
+
+    def _apply_functor_to_morphism(self, f) :
+        r"""
+        Lift a homomorphism of rings to the corresponding homomorphism of the group algebras of ``self.group()``.
+
+        INPUT:
+
+        - ``f`` - a morphism of rings.
+
+        OUTPUT:
+
+        A morphism of group algebras.
+
+        EXAMPLES::
+
+            sage: G = SymmetricGroup(3)
+            sage: A = GroupAlgebra(G, ZZ)
+            sage: h = sage.categories.morphism.SetMorphism(Hom(ZZ, GF(5), Rings()), lambda x: GF(5)(x))
+            sage: hh = A.construction()[0](h)
+            sage: hh(A.0 + 5 * A.1)
+            (1,2,3)
+        """
+        codomain = self(f.codomain())
+        return SetMorphism(Hom(self(f.domain()), codomain, Rings()), lambda x: sum(codomain(g) * f(c) for (g, c) in dict(x).iteritems()))
 
 class GroupAlgebra(CombinatorialFreeModule, Algebra):
     r"""

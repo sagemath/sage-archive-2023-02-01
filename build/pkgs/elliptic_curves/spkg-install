@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+cd cremona_mini
+./spkg-install
+
+if [ $? -ne 0 ]; then
+   echo "Error installing cremona mini database"
+   exit $?
+fi
+
+cd ../ellcurves
+./spkg-install
+
+if [ $? -ne 0 ]; then
+   echo "Error installing ellcurves database"
+   exit $?
+fi

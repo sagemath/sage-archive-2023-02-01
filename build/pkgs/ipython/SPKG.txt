@@ -44,6 +44,12 @@ ipython-user@scipy.org
 
 == Changelog ==
 
+=== ipython-0.10.2 (François Bissey, August 1st, 2011) ===
+ * trac #11460 update to IPython 0.10.2
+ * remove all the patches as they don't seem to be necessary anymore,
+   IPython/Magic.py has been fixed upstream. sage -gdb seem to work properly here.
+
+
 === ipython-0.9.1 (Mike Hansen, June 17th, 2009) ===
  * Remove usage of Set.
 

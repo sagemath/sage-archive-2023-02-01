@@ -23,10 +23,10 @@ from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
-DB_HOME = '%s/kohel'%sage.misc.misc.SAGE_DATA
+dblocation = '%s/kohel'%sage.misc.misc.SAGE_DATA
 
 def _dbz_to_integer_list(name):
-    file = '%s/%s'%(DB_HOME, name)
+    file = '%s/%s'%(dblocation, name)
     if not os.path.exists(file):
         raise RuntimeError, "Modular polynomial database file %s not available"%file
     data = bz2.decompress(open(file).read())

@@ -52,9 +52,9 @@ import os
 from sage.rings.integer import Integer
 from sqlite3 import dbapi2 as sqlite # if anyone would like to explain why dbapi2...
 from sage.databases.database import GenericSQLDatabase, GenericSQLQuery, SQLQuery
-from sage.databases.db import DB_HOME
+from sage.misc.misc import SAGE_DATA
 from sage.graphs.graph import Graph
-dblocation = DB_HOME + '/graphs/graphs.db'
+dblocation = SAGE_DATA + '/graphs/graphs.db'
 
 def degseq_to_data(degree_sequence):
     """

@@ -431,9 +431,7 @@ unlike for the other interfaces.
 #*****************************************************************************
 
 from expect import Expect, ExpectElement
-from sage.misc.misc import SAGE_ROOT
 import os
-DB_HOME = "%s/data/"%SAGE_ROOT
 
 class Kash(Expect):
     r"""

@@ -59,8 +59,8 @@ def rebuild(data_tgz, largest_conductor, decompress=True):
     Rebuild the LargeCremonaDatabase from scratch using the data_tgz
     tarball.
     """
-    if os.path.exists("%s/cremona"%sage.databases.db.DB_HOME):
-        raise RuntimeError, "Please (re)move %s/cremona before rebuilding database."%sage.databases.db.DB_HOME
+    if os.path.exists("%s/cremona"%sage.misc.misc.SAGE_DATA):
+        raise RuntimeError, "Please (re)move %s/cremona before rebuilding database."%sage.misc.misc.SAGE_DATA
     if not os.path.exists(data_tgz):
         raise IOError, "The data file is not at %s"%data_tgz
     t = sage.misc.misc.cputime()

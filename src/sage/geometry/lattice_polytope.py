@@ -100,12 +100,11 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.databases.db import DB_HOME
 from sage.graphs.all import Graph
 from sage.interfaces.all import maxima
 from sage.matrix.all import matrix, is_Matrix
 from sage.misc.all import tmp_filename
-from sage.misc.misc import deprecation
+from sage.misc.misc import deprecation, SAGE_DATA
 from sage.modules.all import vector
 from sage.plot.plot import hue
 from sage.plot.plot3d.index_face_set import IndexFaceSet
@@ -128,7 +127,7 @@ import StringIO
 import zlib
 
 
-data_location = DB_HOME + '/reflexive_polytopes/'
+data_location = SAGE_DATA + '/reflexive_polytopes/'
 
 
 class SetOfAllLatticePolytopesClass(Set_generic):

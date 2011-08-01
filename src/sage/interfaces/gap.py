@@ -177,14 +177,13 @@ AUTHORS:
 
 import expect
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
-from sage.misc.misc import SAGE_ROOT, DOT_SAGE, is_64_bit, is_in_string
+from sage.misc.misc import SAGE_ROOT, SAGE_DATA, DOT_SAGE, is_64_bit, is_in_string
 from IPython.genutils import page
 import re
 import os
 import pexpect
 import time
 
-DB_HOME = "%s/data/"%SAGE_ROOT
 WORKSPACE = "%s/gap/workspace-%s"%(DOT_SAGE, abs(hash(SAGE_ROOT)))
 
 GAP_STAMP = '%s/local/bin/gap_stamp'%SAGE_ROOT
@@ -835,7 +834,7 @@ class Gap(Gap_generic):
                 cmd += " -o 9999G"
             else:
                 cmd += " -o 3900m"
-        cmd += " %s/extcode/gap/sage.g"%DB_HOME
+        cmd += " %s/extcode/gap/sage.g"%SAGE_DATA
         Expect.__init__(self,
                         name = 'gap',
                         prompt = 'gap> ',

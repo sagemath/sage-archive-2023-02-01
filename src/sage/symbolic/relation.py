@@ -769,6 +769,15 @@ def solve_mod(eqns, modulus, solution_dict = False):
         sage: d[y]
         8610183
 
+    For cases where there are relatively few solutions and the prime
+    factors are small, this can be efficient even if the modulus itself
+    is large::
+
+        sage: sorted(solve_mod([x^2 == 41], 10^20))
+        [(4538602480526452429,), (11445932736758703821,), (38554067263241296179,),
+        (45461397519473547571,), (54538602480526452429,), (61445932736758703821,),
+        (88554067263241296179,), (95461397519473547571,)]
+
     We solve a simple equation modulo 2::
 
         sage: x,y = var('x,y')
@@ -777,37 +786,82 @@ def solve_mod(eqns, modulus, solution_dict = False):
 
     .. warning::
 
-       The current implementation splits the modulus into prime powers,
-       then naively enumerates all possible solutions and finally combines
-       the solution using the Chinese Remainder Theorem.
-       The interface is good, but the algorithm is horrible if the modulus
-       has some larger prime factors! Sage *does* have the ability to do
-       something much faster in certain cases at least by using Groebner
-       basis, linear algebra techniques, etc. But for a lot of toy problems
-       this function as is might be useful. At least it establishes an interface.
+       The current implementation splits the modulus into prime
+       powers, then naively enumerates all possible solutions
+       (starting modulo primes and then working up through prime
+       powers), and finally combines the solution using the Chinese
+       Remainder Theorem.  The interface is good, but the algorithm is
+       very inefficient if the modulus has some larger prime factors! Sage
+       *does* have the ability to do something much faster in certain
+       cases at least by using Groebner basis, linear algebra
+       techniques, etc. But for a lot of toy problems this function as
+       is might be useful. At least it establishes an interface.
+
+
+    TESTS:
+
+    Make sure that we short-circuit in at least some cases::
+
+        sage: solve_mod([2*x==1], 2*next_prime(10^50))
+        []
+
+    Try multi-equation cases::
+
+        sage: x, y, z = var("x y z")
+        sage: solve_mod([2*x^2 + x*y, -x*y+2*y^2+x-2*y, -2*x^2+2*x*y-y^2-x-y], 12)
+        [(0, 0), (4, 4), (0, 3), (4, 7)]
+        sage: eqs = [-y^2+z^2, -x^2+y^2-3*z^2-z-1, -y*z-z^2-x-y+2, -x^2-12*z^2-y+z]
+        sage: solve_mod(eqs, 11)
+        [(8, 5, 6)]
+
+    Confirm that modulus 1 now behaves as it should::
+
+        sage: x, y = var("x y")
+        sage: solve_mod([x==1], 1)
+        [(0,)]
+        sage: solve_mod([2*x^2+x*y, -x*y+2*y^2+x-2*y, -2*x^2+2*x*y-y^2-x-y], 1)
+        [(0, 0)]
+
+
     """
-    from sage.rings.all import Integer, Integers, PolynomialRing, factor, crt_basis
+    from sage.rings.all import Integer, Integers, crt_basis
+    from sage.symbolic.expression import is_Expression
     from sage.misc.all import cartesian_product_iterator
     from sage.modules.all import vector
     from sage.matrix.all import matrix
 
     if not isinstance(eqns, (list, tuple)):
         eqns = [eqns]
+    eqns = [eq if is_Expression(eq) else (eq.lhs()-eq.rhs()) for eq in eqns]
     modulus = Integer(modulus)
     if modulus < 1:
         raise ValueError, "the modulus must be a positive integer"
     vars = list(set(sum([list(e.variables()) for e in eqns], [])))
-    vars.sort(cmp = lambda x,y: cmp(repr(x), repr(y)))
-    n = len(vars)
+    vars.sort(key=repr)
 
-    factors = [p**i for p,i in factor(modulus)]
-    crt_basis = vector(Integers(modulus), crt_basis(factors))
-    solutions = [solve_mod_enumerate(eqns, p) for p in factors]
+    if modulus == 1: # degenerate case
+        ans = [tuple(Integers(1)(0) for v in vars)]
+        return ans
+
+    factors = modulus.factor()
+    crt_basis = vector(Integers(modulus), crt_basis([p**i for p,i in factors]))
+    solutions = []
+
+    has_solution = True
+    for p,i in factors:
+        solution =_solve_mod_prime_power(eqns, p, i, vars)
+        if len(solution) > 0:
+            solutions.append(solution)
+        else:
+            has_solution = False
+            break
+
 
     ans = []
-    for solution in cartesian_product_iterator(solutions):
-        solution_mat = matrix(Integers(modulus), solution)
-        ans.append(tuple(c.dot_product(crt_basis) for c in solution_mat.columns()))
+    if has_solution:
+        for solution in cartesian_product_iterator(solutions):
+            solution_mat = matrix(Integers(modulus), solution)
+            ans.append(tuple(c.dot_product(crt_basis) for c in solution_mat.columns()))
 
     # if solution_dict == True:
     # Relaxed form suggested by Mike Hansen (#8553):
@@ -817,22 +871,28 @@ def solve_mod(eqns, modulus, solution_dict = False):
     else:
         return ans
 
-def solve_mod_enumerate(eqns, modulus):
+def _solve_mod_prime_power(eqns, p, m, vars):
     r"""
-    Return all solutions to an equation or list of equations modulo the
-    given integer modulus. Each equation must involve only polynomials
+    Internal help function for solve_mod, does little checking since it expects
+    solve_mod to do that
+
+    Return all solutions to an equation or list of equations modulo p^m.
+    Each equation must involve only polynomials
     in 1 or many variables.
 
     The solutions are returned as `n`-tuples, where `n`
-    is the number of variables appearing anywhere in the given
-    equations. The variables are in alphabetical order.
+    is the number of variables in vars.
 
     INPUT:
 
 
     -  ``eqns`` - equation or list of equations
 
-    -  ``modulus`` - an integer
+    -  ``p`` - a prime
+
+    -  ``i`` - an integer > 0
+
+    -  ``vars`` - a list of variables to solve for
 
 
     EXAMPLES::
@@ -860,39 +920,45 @@ def solve_mod_enumerate(eqns, modulus):
 
     .. warning::
 
-       Currently this naively enumerates all possible solutions.  The
-       interface is good, but the algorithm is horrible if the modulus
-       is at all large! Sage *does* have the ability to do something
-       much faster in certain cases at least by using the Chinese
-       Remainder Theorem, Groebner basis, linear algebra techniques,
-       etc. But for a lot of toy problems this function as is might be
-       useful. At the very least, it establishes an interface.
+       Currently this constructs possible solutions by building up
+       from the smallest prime factor of the modulus.  The interface
+       is good, but the algorithm is horrible if the modulus isn't the
+       product of many small primes! Sage *does* have the ability to
+       do something much faster in certain cases at least by using the
+       Chinese Remainder Theorem, Groebner basis, linear algebra
+       techniques, etc. But for a lot of toy problems this function as
+       is might be useful. At the very least, it establishes an
+       interface.
+
+    TESTS:
+
+    Confirm we can reproduce the first few terms of OEIS A187719::
+
+        sage: from sage.symbolic.relation import _solve_mod_prime_power
+        sage: [sorted(_solve_mod_prime_power([x^2==41], 10, i, [x]))[0][0] for i in [1..13]]
+        [1, 21, 71, 1179, 2429, 47571, 1296179, 8703821, 26452429, 526452429,
+        13241296179, 19473547571, 2263241296179]
+
     """
-    from sage.rings.all import Integer, Integers, PolynomialRing
-    from sage.symbolic.expression import is_Expression
+    from sage.rings.all import Integers, PolynomialRing
+    from sage.modules.all import vector
     from sage.misc.all import cartesian_product_iterator
 
-    if not isinstance(eqns, (list, tuple)):
-        eqns = [eqns]
-    modulus = Integer(modulus)
-    if modulus < 1:
-        raise ValueError, "the modulus must be a positive integer"
-    vars = list(set(sum([list(e.variables()) for e in eqns], [])))
-    vars.sort(cmp = lambda x,y: cmp(repr(x), repr(y)))
-    n = len(vars)
-    R = Integers(modulus)
-    S = PolynomialRing(R, len(vars), vars)
-    eqns_mod = [S(eq) if is_Expression(eq) else
-                S(eq.lhs() - eq.rhs()) for eq in eqns]
+    mrunning = 1
     ans = []
-    for t in cartesian_product_iterator([R]*len(vars)):
-        is_soln = True
-        for e in eqns_mod:
-            if e(t) != 0:
-                is_soln = False
-                break
-        if is_soln:
-            ans.append(t)
+    for mi in xrange(m):
+        mrunning *= p
+        R = Integers(mrunning)
+        S = PolynomialRing(R, len(vars), vars)
+        eqns_mod = [S(eq) for eq in eqns]
+        if mi == 0:
+            possibles = cartesian_product_iterator([xrange(len(R)) for _ in xrange(len(vars))])
+        else:
+            shifts = cartesian_product_iterator([xrange(p) for _ in xrange(len(vars))])
+            pairs = cartesian_product_iterator([shifts, ans])
+            possibles = (tuple(vector(t)+vector(shift)*(mrunning//p)) for shift, t in pairs)
+        ans = list(t for t in possibles if all(e(*t) == 0 for e in eqns_mod))
+        if not ans: return ans
 
     return ans
 

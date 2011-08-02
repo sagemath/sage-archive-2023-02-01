@@ -306,17 +306,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E._set_conductor(99)      # bogus value -- not checked
             sage: E.conductor()             # returns bogus cached value
             99
-
-        This will not work since the conductor is used when searching the
-        database::
-
-            sage: E._set_conductor(E.database_curve().conductor())
-            Traceback (most recent call last):
-            ...
-            RuntimeError: Elliptic curve ... not in the database.
-            sage: E._set_conductor(EllipticCurve(list(E.a_invariants())).database_curve().conductor())
-            sage: E.conductor()             # returns correct value
-            37
         """
         self.__conductor_pari = Integer(N)
 
@@ -751,7 +740,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             D = sage.databases.cremona.CremonaDatabase()
             ainvs = list(self.minimal_model().ainvs())
             try:
-                self.__database_curve = D.elliptic_curve_from_ainvs(self.conductor(), ainvs)
+                self.__database_curve = D.elliptic_curve_from_ainvs(ainvs)
             except RuntimeError:
                 raise RuntimeError, "Elliptic curve %s not in the database."%self
             return self.__database_curve

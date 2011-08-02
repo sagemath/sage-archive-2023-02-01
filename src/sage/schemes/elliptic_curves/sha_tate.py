@@ -100,6 +100,7 @@ class Sha(SageObject):
     EXAMPLES::
 
         sage: E = EllipticCurve('571a1')
+        sage: E._set_gens([])
         sage: S = E.sha()
         sage: S.bound_kato()
         [2, 3]

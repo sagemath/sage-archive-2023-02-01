@@ -139,6 +139,14 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
             5
             sage: ZZ.residue_field(7).hom(GF(7))(1)  # See trac 11319
             1
+            sage: K.<w> = QuadraticField(337)  # See trac 11319
+            sage: pp = K.ideal(13).factor()[0][0]
+            sage: RF13 = K.residue_field(pp)
+            sage: RF13.hom([GF(13)(1)])
+            Ring morphism:
+             From: Residue field of Fractional ideal (w - 18)
+             To:   Finite Field of size 13
+             Defn: 1 |--> 1
         """
         from sage.rings.integer_ring import ZZ
         from sage.rings.finite_rings.integer_mod_ring import IntegerModRing_generic

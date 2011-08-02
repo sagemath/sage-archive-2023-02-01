@@ -34,7 +34,6 @@ import matrix
 import matrix_generic_dense
 import matrix_generic_sparse
 
-import matrix_modn_dense
 import matrix_modn_sparse
 
 import matrix_mod2_dense
@@ -902,10 +901,15 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             elif R==sage.rings.complex_double.CDF:
                 import matrix_complex_double_dense
                 return matrix_complex_double_dense.Matrix_complex_double_dense
-            elif sage.rings.finite_rings.integer_mod_ring.is_IntegerModRing(R) and R.order() < matrix_modn_dense.MAX_MODULUS:
+            elif sage.rings.finite_rings.integer_mod_ring.is_IntegerModRing(R):
+                import matrix_modn_dense_double, matrix_modn_dense_float
                 if R.order() == 2:
                     return matrix_mod2_dense.Matrix_mod2_dense
-                return matrix_modn_dense.Matrix_modn_dense
+                elif R.order() < matrix_modn_dense_double.MAX_MODULUS:
+                    return matrix_modn_dense_double.Matrix_modn_dense_double
+                elif R.order() < matrix_modn_dense_float.MAX_MODULUS:
+                    return matrix_modn_dense_float.Matrix_modn_dense_float
+                return matrix_generic_dense.Matrix_generic_dense
             elif sage.rings.polynomial.multi_polynomial_ring_generic.is_MPolynomialRing(R) and R.base_ring().is_field():
                 return matrix_mpolynomial_dense.Matrix_mpolynomial_dense
             #elif isinstance(R, sage.rings.padics.padic_ring_capped_relative.pAdicRingCappedRelative):

@@ -1,0 +1,39 @@
+= database_cremona_ellcurve =
+
+== Description ==
+John Cremona's huge database of elliptic curves
+
+See http://www.warwick.ac.uk/~masgaj/ftp/data/ or
+http://sage.math.washington.edu/cremona/INDEX.html
+
+This is an optional package, not included by default.
+
+== SPKG Maintainers ==
+ * R. Andrew Ohana
+
+== Upstream Contact ==
+
+ * Author: John Cremona
+ * Email: john.cremona@gmail.com
+ * Website: http://www.warwick.ac.uk/~masgaj/ftp/data/
+
+== Changelog ==
+
+=== database_cremona_ellcurve-20110801 (R. Andrew Ohana, 1 August 2011) ===
+ * Updated the database to use SQLite3
+ * Updated the tables to include all conductors up to 17000
+ * Introduced a mercurial repository in the spkg
+
+=== database_cremona_ellcurve-20071019.p0 (David Kirkby, 14th Nov 2009) ===
+ * Fix trac #7464
+   Remove the '-v' option to 'cp' as '-v' is not a
+   POSIX option for 'cp' and was not implemented on
+   Solaris. It is only to display what is actaully being
+   copied, and so there is no need to use this GNUism.
+ * Renamed SAGE.txt to SPKG.txt to be like other packages.
+ * Added an upstream contact, and other data found in
+   a typical SPKG.txt file
+
+=== previous versions ===
+ * lost to history
+

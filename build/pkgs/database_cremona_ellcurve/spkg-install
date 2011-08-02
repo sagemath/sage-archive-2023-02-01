@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+if [ "x$SAGE_DATA" = x ]; then
+   echo "SAGE_DATA undefined ... exiting"
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+TARGET="$SAGE_DATA/cremona"
+
+if [ ! -d "$TARGET" ]; then
+   mkdir "$TARGET"
+fi
+
+cd src
+
+cp * "$TARGET/"
+
+if [ $? -ne 0 ]; then
+   echo "Error installing cremona database"
+   exit 1
+fi

@@ -204,6 +204,23 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         return PolynomialRing(self.base_ring(), vars)
 
+    def univariate_ring(self, x):
+        """
+        Return a univariate polynomial ring whose base ring comprises all but one variables of self.
+
+        INPUT:
+
+        x - a variable of self.
+
+        EXAMPLE::
+
+            sage: P.<x,y,z> = QQ[]
+            sage: P.univariate_ring(y)
+            Univariate Polynomial Ring in y over Multivariate Polynomial Ring in x, z over Rational Field
+
+        """
+        return self.remove_var(x)[str(x)]
+
     cdef _coerce_c_impl(self, x):
         """
         Return the canonical coercion of x to this multivariate

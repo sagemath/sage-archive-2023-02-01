@@ -465,6 +465,11 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         - polynomial rings in the same variable over any base ring that
           canonically coerces to the base ring of this ring.
 
+        - a multivariate polynomial ring P such that self's variable name
+          is among the variable names of P, and the ring obtained by
+          removing that variable is different from the base ring of self,
+          but coerces into it.
+
         Caveat: There is no coercion from a dense into a sparse
         polynomial ring. So, when adding a dense and a sparse
         polynomial, the result will be dense. See trac ticket #9944.
@@ -505,6 +510,25 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             sage: (S.0+R.0).parent()
             Univariate Polynomial Ring in x over Rational Field
 
+        Here we test a feature that was implemented in trac ticket #813::
+
+            sage: P = QQ['x','y']
+            sage: Q = Frac(QQ['x'])['y']
+            sage: Q.has_coerce_map_from(P)
+            True
+            sage: P.0+Q.0
+            y + x
+
+        In order to avoid bidirectional coercions (which are generally
+        problematic), we only have a coercion from P to Q if the base
+        ring of Q is more complicated than "P minus one variable"::
+
+            sage: Q = QQ['x']['y']
+            sage: Q.has_coerce_map_from(P)
+            False
+            sage: Q.base_ring() is P.remove_var(Q.variable_name())
+            True
+
         """
         # handle constants that canonically coerce into self.base_ring()
         # first, if possible
@@ -539,6 +563,11 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
                     return self.base_ring().has_coerce_map_from(P.base_ring())
         except AttributeError:
             pass
+        # Last, we consider multivariate polynomial rings:
+        from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
+        if is_MPolynomialRing(P) and self.variable_name() in P.variable_names():
+            P_ = P.remove_var(self.variable_name())
+            return self.base_ring()!=P_ and self.base_ring().has_coerce_map_from(P_)
 
     def _magma_init_(self, magma):
         """

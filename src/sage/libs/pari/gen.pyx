@@ -160,7 +160,6 @@ from sage.misc.misc_c import is_64_bit
 
 #include '../../ext/interrupt.pxi'
 include 'pari_err.pxi'
-include 'setlvalue.pxi'
 include '../../ext/stdsage.pxi'
 
 cdef extern from "convert.h":
@@ -2789,7 +2788,7 @@ cdef class gen(sage.structure.element.RingElement):
             y = cgetg(lx-1, t_VEC)
             for i from 1 <= i <= lx-2:
                 # no need to copy, since new_gen will deep copy
-                __set_lvalue__(gel(y,i), gel(x.g,i+1))
+                set_gel(y,i, gel(x.g,i+1))
             return P.new_gen(y)
         elif typ(x.g) == t_SER:
             lx = lg(x.g)
@@ -2799,10 +2798,10 @@ cdef class gen(sage.structure.element.RingElement):
                 raise ValueError, "Vecrev() is not defined for Laurent series"
             y = cgetg(vx+lx-1, t_VEC)
             for i from 1 <= i <= vx:
-                __set_lvalue__(gel(y,i), gen_0)
+                set_gel(y,i, gen_0)
             for i from 1 <= i <= lx-2:
                 # no need to copy, since new_gen will deep copy
-                __set_lvalue__(gel(y,vx+i), gel(x.g,i+1))
+                set_gel(y,vx+i, gel(x.g,i+1))
             return P.new_gen(y)
         else:
             sig_off()
@@ -6789,11 +6788,12 @@ cdef class gen(sage.structure.element.RingElement):
 
     def idealhnf(self, a, b=None):
         t0GEN(a)
-        sig_on()
         if b is None:
+            sig_on()
             return self.new_gen(idealhnf(self.g, t0))
         else:
             t1GEN(b)
+            sig_on()
             return self.new_gen(idealhnf0(self.g, t0, t1))
 
     def idealintersection(self, x, y):
@@ -8997,36 +8997,35 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         return z
 
     cdef gen new_gen_from_mpz_t(self, mpz_t value):
-        cdef GEN z
+        """
+        Create a new gen from a given MPIR-integer ``value``.
+
+        TESTS:
+
+        Check that the hash of an integer does not depend on existing
+        garbage on the stack (#11611)::
+
+            sage: foo = pari(2^(32*1024));  # Create large integer to put PARI stack in known state
+            sage: a5 = pari(5);
+            sage: foo = pari(0xDEADBEEF * (2^(32*1024)-1)//(2^32 - 1));  # Dirty PARI stack
+            sage: b5 = pari(5);
+            sage: a5.__hash__() == b5.__hash__()
+            True
+        """
+        sig_on()
+        return self.new_gen(self._new_GEN_from_mpz_t(value))
+
+    cdef inline GEN _new_GEN_from_mpz_t(self, mpz_t value):
+        # Create a new PARI GEN from a mpz_t.  For internal use only,
+        # this directly uses the PARI stack.
+        # One should call sig_on() before and sig_off() after.
 
         cdef unsigned long limbs = mpz_size(value)
-        if (limbs > 500):
-            sig_on()
-        z = cgetg( limbs+2, t_INT )
-        setlgefint( z, limbs+2 )
-        setsigne( z, mpz_sgn(value) )
-        mpz_export( int_LSW(z), NULL, -1, sizeof(long), 0, 0, value )
-        g = self.new_gen_noclear(z)
-        if (limbs > 500):
-            sig_off()
 
-        # Clear the PARI stack
-        global mytop, avma
-        avma = mytop
-
-        return g
-
-    cdef GEN new_GEN_from_mpz_t(self, mpz_t value):
-        ## expects that you sig_on() before entry
-        cdef GEN z
-        cdef long limbs = 0
-
-        limbs = mpz_size(value)
-
-        z = cgetg( limbs+2, t_INT )
-        setlgefint( z, limbs+2 )
-        setsigne( z, mpz_sgn(value) )
-        mpz_export( int_LSW(z), NULL, -1, sizeof(long), 0, 0, value )
+        cdef GEN z = cgeti(limbs + 2)
+        # Set sign and "effective length"
+        z[1] = evalsigne(mpz_sgn(value)) + evallgefint(limbs + 2)
+        mpz_export(int_LSW(z), NULL, -1, sizeof(long), 0, 0, value)
 
         return z
 
@@ -9055,12 +9054,12 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         cdef int i
 
         sig_on()
-        z = cgetg( length + 2, t_POL )
-        setvarn(z, varnum)
+        z = cgetg(length + 2, t_POL)
+        z[1] = evalvarn(varnum)
         if length != 0:
             setsigne(z,1)
             for i from 0 <= i < length:
-                __set_lvalue__(gel(z,i+2), stoi(vals[i]))
+                set_gel(z,i+2, stoi(vals[i]))
         else:
             ## polynomial is zero
             setsigne(z,0)
@@ -9071,12 +9070,11 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
                                 mpz_t prime, mpz_t p_pow, mpz_t unit):
         cdef GEN z
         sig_on()
-        z = cgetg( 5, t_PADIC )
-        setprecp( z, relprec )
-        setvalp( z, ordp )
-        z[2] = <long>self.new_GEN_from_mpz_t(prime)
-        z[3] = <long>self.new_GEN_from_mpz_t(p_pow)
-        z[4] = <long>self.new_GEN_from_mpz_t(unit)
+        z = cgetg(5, t_PADIC)
+        z[1] = evalprecp(relprec) + evalvalp(ordp)
+        set_gel(z, 2, self._new_GEN_from_mpz_t(prime))
+        set_gel(z, 3, self._new_GEN_from_mpz_t(p_pow))
+        set_gel(z, 4, self._new_GEN_from_mpz_t(unit))
         return self.new_gen(z)
 
     def double_to_gen(self, x):
@@ -9135,8 +9133,8 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         cdef GEN cp
         sig_on()
         cp = cgetg(3, t_COMPLEX)
-        __set_lvalue__(gel(cp, 1), t0)
-        __set_lvalue__(gel(cp, 2), t1)
+        set_gel(cp, 1, t0)
+        set_gel(cp, 2, t1)
         return self.new_gen(cp)
 
     cdef GEN deepcopy_to_python_heap(self, GEN x, pari_sp* address):

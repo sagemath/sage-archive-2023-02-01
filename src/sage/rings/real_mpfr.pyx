@@ -2637,10 +2637,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
             # Create a PARI REAL
             pari_float = cgetr(2 + rounded_prec / wordsize)
+            pari_float[1] = evalexpo(exponent + rounded_prec - 1) + evalsigne(mpfr_sgn(self.value))
             mpz_export(&pari_float[2], NULL, 1, wordsize/8, 0, 0, mantissa)
             mpz_clear(mantissa)
-            setexpo(pari_float, exponent + rounded_prec - 1)
-            setsigne(pari_float, mpfr_sgn(self.value))
 
         cdef PariInstance P
         P = sage.libs.pari.all.pari

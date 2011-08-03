@@ -14,13 +14,15 @@ cdef extern from "string.h":
 
 cdef extern from "stdio.h":
     ctypedef struct FILE
+    cdef FILE *stdin
+    cdef FILE *stdout
+    cdef FILE *stderr
     int printf(char *format, ...)
     int fprintf(FILE *stream, char *format, ...)
     int sprintf(char *str, char *format, ...)
     FILE *fopen(char *path, char *mode)
     int fclose(FILE *stream)
     int fflush(FILE *stream)
-    cdef FILE *stdout
     int scanf(char *format, ...)
 
 cdef extern from "math.h":

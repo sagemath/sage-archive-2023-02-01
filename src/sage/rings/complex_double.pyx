@@ -74,9 +74,6 @@ cdef extern from "complex.h":
     double complex csqrt(double complex)
     double cabs(double complex)
 
-cdef extern from "stdsage.h":
-    void set_gel(GEN x, long n, GEN z)
-
 cimport sage.rings.ring
 
 cimport sage.rings.integer

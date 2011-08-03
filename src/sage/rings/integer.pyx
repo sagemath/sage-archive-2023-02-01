@@ -4586,7 +4586,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return self._pari_c()
 
     cdef _pari_c(self):
-
         cdef PariInstance P
         P = sage.libs.pari.gen.pari
         return P.new_gen_from_mpz_t(self.value)

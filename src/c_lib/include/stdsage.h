@@ -49,7 +49,7 @@ extern "C" {
 
  *****************************************/
 
-#define set_gel(x, n, z)  gel(x,n)=z;
+#define set_gel(x, n, z)  (gel(x,n) = z)
 
 /******************************************
  Some macros exported for Pyrex in cdefs.pxi

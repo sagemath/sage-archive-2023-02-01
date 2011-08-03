@@ -72,6 +72,14 @@ cdef extern from 'pari/pari.h':
     long    setprecp(GEN x, long s)
     long    varn(GEN x)
     long    setvarn(GEN x, long s)
+    long    evaltyp(long x)
+    long    evallg(long x)
+    long    evalvarn(long x)
+    long    evalsigne(long x)
+    long    evalprecp(long x)
+    long    evalvalp(long x)
+    long    evalexpo(long x)
+    long    evallgefint(long x)
 
     # paricast.h
 
@@ -1563,6 +1571,9 @@ cdef extern from 'pari/pari.h':
 
     # misc...
     extern char* diffptr
+
+cdef extern from 'stdsage.h':
+    GEN set_gel(GEN x, long n, GEN z)    # gel(x,n) = z
 
 
 # Inline functions in separate file

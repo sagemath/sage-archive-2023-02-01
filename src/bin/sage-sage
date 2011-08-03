@@ -534,18 +534,6 @@ if [ "$1" = '-hg'  -o "$1" = '--hg' ]; then
     exit $?
 fi
 
-if [ "$1" = '-hgmerge'  -o "$1" = '--hgmerge' ]; then
-    ## NEED in Sage Environment under OS X
-    unset LIBRARY_PATH
-    unset LD_LIBRARY_PATH
-    unset DYLD_LIBRARY_PATH
-
-    cd "$CUR"
-    shift
-    hgmerge "$@"
-    exit $?
-fi
-
 if [ "$1" = '-merge' ]; then
     cd "$CUR"
     shift

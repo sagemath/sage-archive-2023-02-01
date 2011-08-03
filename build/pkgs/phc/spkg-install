@@ -24,7 +24,10 @@ if main_arch == "Linux":
 #if main_arch == "AIX": #Not currently supported by Sage, although phcpack binaries exist
 #    ARCH = "aix"
 if main_arch == "SunOS":
-    ARCH = "sun"
+    if 'sun' in main_arch:
+        ARCH = "sun"
+    else:
+        print("This package does not work on OpenSolaris on x86.")
 sage_local = os.environ['SAGE_LOCAL']
 print sage_local
 os.system('mv ' + 'binaries/phc_' + ARCH + ' ' + sage_local + '/bin/phc')

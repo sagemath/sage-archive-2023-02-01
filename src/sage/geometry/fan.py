@@ -230,6 +230,7 @@ from sage.geometry.toric_plotter import ToricPlotter
 from sage.graphs.all import DiGraph
 from sage.matrix.all import matrix
 from sage.misc.all import flatten, walltime, prod
+from sage.misc.misc import deprecation
 from sage.modules.all import vector
 from sage.rings.all import QQ, RR, ZZ
 from sage.structure.all import Sequence
@@ -263,7 +264,7 @@ def is_Fan(x):
 
 
 def Fan(cones, rays=None, lattice=None, check=True, normalize=True,
-        is_complete=None, discard_warning=True):
+        is_complete=None, discard_faces=False, **kwds):
     r"""
     Construct a rational polyhedral fan.
 
@@ -281,7 +282,8 @@ def Fan(cones, rays=None, lattice=None, check=True, normalize=True,
     - ``cones`` -- list of either
       :class:`Cone<sage.geometry.cone.ConvexRationalPolyhedralCone>` objects
       or lists of integers interpreted as indices of generating rays in
-      ``rays``;
+      ``rays``. These must be only **maximal** cones of the fan, unless
+      ``discard_faces=True`` option is specified;
 
     - ``rays`` -- list of rays given as list or vectors convertible to the
       rational extension of ``lattice``. If ``cones`` are given by
@@ -298,10 +300,9 @@ def Fan(cones, rays=None, lattice=None, check=True, normalize=True,
       be made to determine an appropriate toric lattice automatically;
 
     - ``check`` -- by default the input data will be checked for correctness
-      (e.g. that intersection of any two given cones is a face of each) and
-      generating cones will be selected. If you know for sure that the input
-      is the set of generating cones of a fan, you may significantly
-      decrease construction time using ``check=False`` option;
+      (e.g. that intersection of any two given cones is a face of each). If you
+      know for sure that the input is correct, you may significantly decrease
+      construction time using ``check=False`` option;
 
     - ``normalize`` -- you can further speed up construction using
       ``normalize=False`` option. In this case ``cones`` must be a list of
@@ -320,15 +321,18 @@ def Fan(cones, rays=None, lattice=None, check=True, normalize=True,
       integrity of data structures of the fan and lead to wrong results, so
       you should be very careful if you decide to use this option;
 
-    - ``discard_warning`` -- by default, the fan constructor will show a
-      warning the first time you try to construct a fan from non-generating
-      cones, in which case some of them will be automatically discarded. If you
-      are writing a code where it is reasonable to expect extra cones as input,
-      you may pass ``discard_warning=False`` option to suppress this warning.
+    - ``discard_faces`` -- by default, the fan constructor expects the list of
+      **maximal** cones. If you provide "extra" ones and leave ``check=True``
+      (default), an exception will be raised. If you provide "extra" cones and
+      set ``check=False``, you may get wrong results as assumptions on internal
+      data structures will be invalid. If you want the fan constructor to
+      select the maximal cones from the given input, you may provide
+      ``discard_faces=True`` option (it works both for ``check=True`` and
+      ``check=False``).
 
     OUTPUT:
 
-    - :class:`rational polyhedral fan <RationalPolyhedralFan>`.
+    - a :class:`fan <RationalPolyhedralFan>`.
 
     EXAMPLES:
 
@@ -338,13 +342,24 @@ def Fan(cones, rays=None, lattice=None, check=True, normalize=True,
         sage: cone1 = Cone([(1,0), (0,1)])
         sage: cone2 = Cone([(0,1), (-1,-1)])
         sage: cone3 = Cone([(-1,-1), (1,0)])
-        sage: P2 = Fan([cone1, cone2, cone2]) # random output (warning)
+        sage: P2 = Fan([cone1, cone2, cone2])
+        Traceback (most recent call last):
+        ...
+        ValueError: you have provided 3 cones, but only 2 of them are maximal!
+        Use discard_faces=False if you indeed need to construct a fan from
+        these cones.
+
+    Oops! There was a typo and ``cone2`` was listed twice as a generating cone
+    of the fan. If it was intentional (e.g. the list of cones was generated
+    automatically and it is possible that it contains repetitions or faces of
+    other cones), use ``discard_faces=True`` option::
+
+        sage: P2 = Fan([cone1, cone2, cone2], discard_faces=True)
         sage: P2.ngenerating_cones()
         2
 
-    Oops! There was a typo and the second ``cone2`` got discarded (you will
-    actually see a warning the first time you do such a thing yourself, i.e.
-    provide a non-minimal generating set of cones of a fan). Let's fix it::
+    However, in this case it was definitely a typo, since the fan of
+    `\mathbb{P}^2` has 3 maximal cones::
 
         sage: P2 = Fan([cone1, cone2, cone3])
         sage: P2.ngenerating_cones()
@@ -413,7 +428,15 @@ def Fan(cones, rays=None, lattice=None, check=True, normalize=True,
         sage: F.dim()
         0
     """
-    if not check and not normalize:
+    if "discard_warning" in kwds:
+        deprecation("discard_warning is deprecated, use discard_faces instead.",
+                    "Sage Version 4.7.2")
+        discard_faces = not discard_warning
+        kwds.pop(discard_warning)
+    if kwds:
+        raise ValueError("unrecognized keywords: %s" % kwds)
+
+    if not check and not normalize and not discard_faces:
         return RationalPolyhedralFan(cones, rays, lattice, is_complete)
     if not isinstance(cones, list):
         try:
@@ -474,11 +497,9 @@ def Fan(cones, rays=None, lattice=None, check=True, normalize=True,
         if check:
             # Maybe we should compute all faces of all cones and save them for
             # later if we are doing this check?
-            # Should we try to keep the order of cones when we select
-            # generating ones? Sorting by dimension is necessary here.
-            cones.sort(key=lambda cone: cone.dim(), reverse=True)
             generating_cones = []
-            for cone in cones:
+            for cone in sorted(cones, key=lambda cone: cone.dim(),
+                               reverse=True):
                 is_generating = True
                 for g_cone in generating_cones:
                     i_cone = cone.intersection(g_cone)
@@ -493,12 +514,16 @@ def Fan(cones, rays=None, lattice=None, check=True, normalize=True,
                                 % (g_cone.rays(), cone.rays()))
                 if is_generating:
                     generating_cones.append(cone)
-            if discard_warning and len(cones) > len(generating_cones):
-                warnings.warn("you have provided a non-minimal set of "
-                    "generating cones, %d of them were discarded!"
-                    % (len(cones) - len(generating_cones)),
-                    stacklevel=2)
-            cones = generating_cones
+            if len(cones) > len(generating_cones):
+                if discard_faces:
+                    cones = generating_cones
+                else:
+                    raise ValueError("you have provided %d cones, but only %d "
+                        "of them are maximal! Use discard_faces=False if you "
+                        "indeed need to construct a fan from these cones." %
+                        (len(cones), len(generating_cones)))
+        elif discard_faces:
+            cones = _discard_faces(cones)
         return RationalPolyhedralFan(
             (tuple(sorted(rays.index(ray) for ray in cone.rays()))
             for cone in cones), rays, lattice, is_complete)
@@ -508,14 +533,13 @@ def Fan(cones, rays=None, lattice=None, check=True, normalize=True,
         try:
             cones[n] = sorted(cone)
         except TypeError:
-            raise TypeError("since rays are given, cones must be iterables!"
-                            "\nGot: %s" % cone)
-    if not check:
+            raise TypeError("cannot interpret %s as a cone!" % cone)
+    if not check and not discard_faces:
         return RationalPolyhedralFan(cones, rays, lattice, is_complete)
     # If we do need to make all the check, build explicit cone objects first
     return Fan((Cone([rays[n] for n in cone], lattice) for cone in cones),
                rays, lattice, is_complete=is_complete,
-               discard_warning=discard_warning)
+               discard_faces=discard_faces)
 
 
 def FaceFan(polytope, lattice=None):
@@ -2503,3 +2527,5 @@ def discard_faces(cones):
         if not any(cone.is_face_of(other) for other in generators):
             generators.append(cone)
     return generators
+
+_discard_faces = discard_faces  # Due to a name conflict in Fan constructor

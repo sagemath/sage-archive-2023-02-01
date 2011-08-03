@@ -427,18 +427,15 @@ def CPRFanoToricVariety(Delta=None,
         sage: FTV = CPRFanoToricVariety(Delta_polar=square,
         ...         coordinate_points=[0,1,2,3,4],
         ...         charts=bad_charts)
-        d...: UserWarning: you have provided a non-minimal set
-        of generating cones, 1 of them were discarded!
-        sage: FTV.fan().ray_matrix()
-        [-1  1 -1  1 -1]
-        [ 1  1 -1 -1  0]
-        sage: [cone.ambient_ray_indices() for cone in FTV.fan()]
-        [(0, 1), (1, 3), (2, 3), (2, 4), (0, 4)]
+        Traceback (most recent call last):
+        ...
+        ValueError: you have provided 5 cones, but only 4 of them are maximal!
+        Use discard_faces=False if you indeed need to construct a fan from
+        these cones.
 
-    OK, everything still works but that's because these charts still define a
-    valid fan, they just happened to list one cone twice and it was discarded
-    by the fan constructor. However, when you try to speed up your code such
-    charts are indeed bad::
+    These charts are technically correct, they just happened to list one of
+    them twice, but it is assumed that such a situation will not happen. It is
+    especially important when you try to speed up your code::
 
         sage: FTV = CPRFanoToricVariety(Delta_polar=square,
         ...         coordinate_points=[0,1,2,3,4],
@@ -455,8 +452,7 @@ def CPRFanoToricVariety(Delta=None,
     variety may lead to mathematically wrong results, so use ``check=False``
     carefully!
 
-    Let's also look at some of the mistakes which are reported, rather than
-    fixed::
+    Here are some other possible mistakes::
 
         sage: bad_charts = charts + [(0,3)]
         sage: FTV = CPRFanoToricVariety(Delta_polar=square,

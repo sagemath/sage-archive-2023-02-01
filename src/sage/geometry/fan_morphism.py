@@ -410,7 +410,7 @@ class FanMorphism(FreeModuleMorphism):
                                         for domain_cone in domain_fan),
                                  rays=(self(ray) for ray in domain_fan.rays()),
                                  lattice=self.codomain(),
-                                 discard_warning=False)
+                                 discard_faces=True)
 
     def _latex_(self):
         r"""

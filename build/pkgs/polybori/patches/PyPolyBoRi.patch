@@ -1,6 +1,6 @@
 --- ../src/polybori-0.8/pyroot/polybori/PyPolyBoRi.py	2011-08-04 11:48:47.389840374 +0200
-+++ PyPolyBoRi.py	2011-08-04 15:50:13.323386405 +0200
-@@ -1,140 +1,25 @@
++++ PyPolyBoRi.py	2011-08-04 16:36:44.330127740 +0200
+@@ -1,238 +1,44 @@
 -from sys import modules
 -from itertools import chain
 -import re
@@ -29,10 +29,19 @@
 +import weakref
 +class OrderCode:
 +    pass
++
++OrderCode.__dict__ = order_dict
++
++def Ring(n, order='lp', names=[], blocks=[]):
++
++    order = TermOrder_from_pb_order(n, order, blocks)
++    R =  BooleanPolynomialRing(n, names='x', order=order)
++    for (idx, name) in enumerate(names):
++        R._set_variable_name(idx, name)
++    return R
  
 -monomial_old_init=Monomial.__init__
-+OrderCode.__dict__ = order_dict
- 
+-
 -def monomial_new_init(self, arg=None):
 -    """
 -    Constructor of the class Monomial
@@ -52,8 +61,7 @@
 -        monomial_old_init(self,prototype)
 -            
 -Monomial.__init__=monomial_new_init
-+def Ring(n, order='lp', names=[], blocks=[]):
- 
+-
 -booleset_old_init=BooleSet.__init__
 -def booleset_new_init(self,arg=None, second=None):
 -    """
@@ -100,11 +108,7 @@
 -        return variable_cplusplus_div(self,arg)
 -    except ValueError:
 -        return Polynomial(0, self.ring())
-+    
-+    allnames = names + ['x' + str(i) for i in xrange(len(names), n)]
-+    order = TermOrder_from_pb_order(n, order, blocks)
-+    return BooleanPolynomialRing(n, names=allnames, order=order)
- 
+-
 -Variable.__div__ = variable_python_div
 +BoolePolynomialVector = BooleanPolynomialVector
  
@@ -153,7 +157,13 @@
  _add_up_polynomials=add_up_polynomials
  def add_up_polynomials(polys, init):
      """
-@@ -148,91 +33,11 @@
+     Adds up the polynomials in polys (which should be a BoolePolynomialVector or a sequence of ???
+     """
+     if not isinstance(polys, BoolePolynomialVector):
+         vec = BoolePolynomialVector
+         for p in polys:
+             vec.append(p)
+         polys=vec
  
      return _add_up_polynomials(polys, init)
  

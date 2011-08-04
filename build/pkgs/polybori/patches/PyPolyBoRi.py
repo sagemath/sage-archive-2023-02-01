@@ -8,10 +8,11 @@ OrderCode.__dict__ = order_dict
 
 def Ring(n, order='lp', names=[], blocks=[]):
 
-
-    allnames = names + ['x' + str(i) for i in xrange(len(names), n)]
     order = TermOrder_from_pb_order(n, order, blocks)
-    return BooleanPolynomialRing(n, names=allnames, order=order)
+    R =  BooleanPolynomialRing(n, names='x', order=order)
+    for (idx, name) in enumerate(names):
+        R._set_variable_name(idx, name)
+    return R
 
 BoolePolynomialVector = BooleanPolynomialVector
 

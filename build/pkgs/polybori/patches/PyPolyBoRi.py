@@ -6,8 +6,12 @@ class OrderCode:
 
 OrderCode.__dict__ = order_dict
 
-def Ring(n, order='lp'):
-    return BooleanPolynomialRing(n, 'x', order=order)
+def Ring(n, order='lp', names=[], blocks=[]):
+
+
+    allnames = names + ['x' + str(i) for i in xrange(len(names), n)]
+    order = TermOrder_from_pb_order(n, order, blocks)
+    return BooleanPolynomialRing(n, names=allnames, order=order)
 
 BoolePolynomialVector = BooleanPolynomialVector
 
@@ -33,7 +37,7 @@ def add_up_polynomials(polys, init):
 def WeakRingRef(ring):
     return weakref.weakref(ring)
 
-Monomial = MonomialFactory()
-Polynomial = PolynomialFactory()
-Variable = VariableFactory()
+Monomial = MonomialConstruct()
+Polynomial = PolynomialConstruct()
+Variable = VariableConstruct()
 

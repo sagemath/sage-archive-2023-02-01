@@ -37,6 +37,9 @@ reference implementation for Gröbner basis computation.
  * libz         (accomplished because e.g. libpng depends on it)
 
 == Releases ==
+=== polybori-0.8-alpha.p2 (Alexander Dreyer, August 4th, 2011) ===
+ * Updating sources to PolyBoRi 0.8 alpha1
+
 === polybori-0.8-alpha.p1 (Alexander Dreyer, July 15th, 2011) ===
  * First working Version of the PolyBoRi 0.8 spkg
 

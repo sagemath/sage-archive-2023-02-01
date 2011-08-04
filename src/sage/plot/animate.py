@@ -290,16 +290,20 @@ class Animation(SageObject):
         ncols = int(ncols)
         return plot.graphics_array(self.__frames, int(n/ncols),  ncols)
 
-    def gif(self, delay=20, savefile=None, iterations=0, show_path=False):
+    def gif(self, delay=20, savefile=None, iterations=0, show_path=False,
+            use_ffmpeg=False):
         r"""
         Returns an animated gif composed from rendering the graphics
         objects in self.
 
         This function will only work if either (a) the ImageMagick
         software suite is installed, i.e., you have the ``convert``
-        command or (b) ffmpeg is installed.  See www.imagemagick.org
-        for more about ImageMagic, and see www.ffmpeg.org for more
-        about ffmpeg.
+        command or (b) ``ffmpeg`` is installed.  See
+        www.imagemagick.org for more about ImageMagic, and see
+        www.ffmpeg.org for more about ``ffmpeg``.  By default, this
+        produces the gif using ``convert`` if it is present.  If this
+        can't find ``convert`` or if ``use_ffmpeg`` is True, then it
+        uses ``ffmpeg`` instead.
 
         INPUT:
 
@@ -315,6 +319,9 @@ class Animation(SageObject):
         -  ``show_path`` - boolean (default: False); if True,
            print the path to the saved file
 
+        - ``use_ffmpeg`` - boolean (default: False); if True, use
+          'ffmpeg' by default instead of 'convert'.
+
         If savefile is not specified: in notebook mode, display the
         animation; otherwise, save it to a default file name.
 
@@ -327,14 +334,13 @@ class Animation(SageObject):
             sage: a.gif(savefile=dir + 'my_animation.gif', delay=35, iterations=3)  # optional -- ImageMagick
             sage: a.gif(savefile=dir + 'my_animation.gif', show_path=True) # optional -- ImageMagick
             Animation saved to .../my_animation.gif.
+            sage: a.gif(savefile=dir + 'my_animation.gif', show_path=True, use_ffmpeg=True) # optional -- ffmpeg
+            Animation saved to .../my_animation.gif.
 
         .. note::
 
            If neither ffmpeg nor ImageMagick is installed, you will
            get an error message like this::
-
-              /usr/local/share/sage/local/bin/sage-native-execute: 8: convert:
-              not found
 
               Error: Neither ImageMagick nor ffmpeg appears to be installed. Saving an
               animation to a GIF file or displaying an animation requires one of these
@@ -346,10 +352,27 @@ class Animation(SageObject):
 
         - William Stein
         """
-        if self._have_ffmpeg():
-            self.ffmpeg(savefile=savefile, show_path=show_path,
-                        output_format='gif', delay=delay,
-                        iterations=iterations)
+        from sage.misc.sage_ostools import have_program
+        have_convert = have_program('convert')
+        have_ffmpeg = self._have_ffmpeg()
+        if use_ffmpeg or not have_convert:
+            if have_ffmpeg:
+                self.ffmpeg(savefile=savefile, show_path=show_path,
+                            output_format='gif', delay=delay,
+                            iterations=iterations)
+            else:
+                if not have_convert:
+                    msg = """
+Error: Neither ImageMagick nor ffmpeg appears to be installed. Saving an
+animation to a GIF file or displaying an animation requires one of these
+packages, so please install one of them and try again.
+
+See www.imagemagick.org and www.ffmpeg.org for more information."""
+                else:
+                    msg = """
+Error: ffmpeg does not appear to be installed.  Download it from
+www.ffmpeg.org, or use 'convert' to produce gifs instead."""
+                raise OSError, msg
         else:
             if not savefile:
                 savefile = sage.misc.misc.graphics_filename(ext='gif')
@@ -414,9 +437,6 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
 
            If you don't have ffmpeg or ImageMagick installed, you will
            get an error message like this::
-
-              /usr/local/share/sage/local/bin/sage-native-execute: 8: convert:
-              not found
 
               Error: Neither ImageMagick nor ffmpeg appears to be installed. Saving an
               animation to a GIF file or displaying an animation requires one of these
@@ -566,7 +586,7 @@ please install it and try again."""
                 print "Error running ffmpeg."
                 raise
 
-    def save(self, filename=None, show_path=False):
+    def save(self, filename=None, show_path=False, use_ffmpeg=False):
         """
         Save this animation.
 
@@ -576,6 +596,10 @@ please install it and try again."""
 
         -  ``show_path`` - boolean (default: False); if True,
            print the path to the saved file
+
+        - ``use_ffmpeg`` - boolean (default: False); if True, use
+          'ffmpeg' by default instead of 'convert' when creating GIF
+          files.
 
         If filename is None, then in notebook mode, display the
         animation; otherwise, save the animation to a GIF file.  If
@@ -611,7 +635,8 @@ please install it and try again."""
                 suffix = '.gif'
 
         if filename is None or suffix == '.gif':
-            self.gif(savefile=filename, show_path=show_path)
+            self.gif(savefile=filename, show_path=show_path,
+                     use_ffmpeg=use_ffmpeg)
             return
         elif suffix == '.sobj':
             SageObject.save(self, filename)

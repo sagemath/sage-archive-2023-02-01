@@ -394,6 +394,7 @@ PYGMENTS=`newest_version pygments`
 PYNAC=`newest_version pynac`
 PYTHON=`newest_version python`
 R=`newest_version r`
+RPY=`newest_version rpy2`
 RATPOINTS=`newest_version ratpoints`
 READLINE=`newest_version readline`
 RUBIKS=`newest_version rubiks`

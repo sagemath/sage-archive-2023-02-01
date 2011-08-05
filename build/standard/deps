@@ -93,6 +93,7 @@ all: $(BASE) \
      $(INST)/$(PYTHON) \
      $(INST)/$(RATPOINTS) \
      $(INST)/$(R) \
+     $(INST)/$(RPY) \
      $(INST)/$(READLINE) \
      $(INST)/$(RUBIKS) \
      $(INST)/$(SAGE) \
@@ -114,10 +115,6 @@ all: $(BASE) \
      $(INST)/$(ZLIB) \
      $(INST)/$(ZNPOLY) \
      $(INST)/$(ZODB)
-# Necessary when #9906 gets merged:
-#     $(INST)/$(RPY) \
-# (But move this up; it's just here because 'make' doesn't support comments
-# within line continuations.)
 
 base: $(BASE)
 
@@ -367,16 +364,14 @@ $(INST)/$(ECL): $(BASE) $(INST)/$(MPIR) \
 $(INST)/$(MAXIMA): $(BASE) $(INST)/$(ECL) $(INST)/$(PATCH)
 	+$(PIPE) "$(SAGE_SPKG) $(MAXIMA) 2>&1" "tee -a $(SAGE_LOGS)/$(MAXIMA).log"
 
-# Note that even with a separate RPy spkg (#9906), Sage's R will still depend on
-# Python.  R depends on SAGE_ROOT_REPO because it needs an up-to-date
+# R depends on SAGE_ROOT_REPO because it needs an up-to-date
 # sage-env script which sets $OBJC on OS X.
-$(INST)/$(R): $(BASE) $(INST)/$(PYTHON) $(INST)/$(ATLAS) $(INST)/$(ICONV) \
-		$(INST)/$(PATCH) $(INST)/$(SAGE_ROOT_REPO)
+$(INST)/$(R): $(BASE) $(INST)/$(ATLAS) $(INST)/$(ICONV) \
+		$(INST)/$(PATCH) $(INST)/$(SAGE_ROOT_REPO) $(INST)/$(READLINE)
 	+$(PIPE) "$(SAGE_SPKG) $(R) 2>&1" "tee -a $(SAGE_LOGS)/$(R).log"
 
-# Needed when #9906 gets merged (moving RPy out of R's spkg):
-# $(INST)/$(RPY): $(BASE) $(INST)/$(PYTHON) $(INST)/$(R) $(INST)/$(PATCH)
-# 	+$(PIPE) "$(SAGE_SPKG) $(RPY) 2>&1" "tee -a $(SAGE_LOGS)/$(RPY).log"
+$(INST)/$(RPY): $(BASE) $(INST)/$(PYTHON) $(INST)/$(R) $(INST)/$(PATCH)
+	+$(PIPE) "$(SAGE_SPKG) $(RPY) 2>&1" "tee -a $(SAGE_LOGS)/$(RPY).log"
 
 $(INST)/$(SYMPY): $(BASE) $(INST)/$(PYTHON) $(INST)/$(PATCH)
 	+$(PIPE) "$(SAGE_SPKG) $(SYMPY) 2>&1" "tee -a $(SAGE_LOGS)/$(SYMPY).log"

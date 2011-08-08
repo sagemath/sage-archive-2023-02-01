@@ -23,6 +23,10 @@ GAP does not depend on any spkg's to build.
 
 == Change log ==
 
+=== gap-4.4.12.p6 (Jeroen Demeyer, 8 August 2011) ===
+ * Trac #11661: Make all files world-readable
+ * Remove obsolete dist directory and spkg-debian script
+
 === gap-4.4.12.p5 (Jason Grout, 22 Feb 2011) ===
  * #10825: Add SAGE_SPKG_INSTALL_DOCS support to build and install docs in $SAGE_ROOT/local/share/doc/
 

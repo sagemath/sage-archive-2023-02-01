@@ -52,15 +52,17 @@ Here is a description of patches on top of Sphinx 1.0.4:
 
 * patches/Makefile.patch: This patches the file
   src/sphinx/texinputs/Makefile to increase the save size stack to
-  20,000 and increase the pool size stack to 2,000,000. These
+  50,000 and increase the pool size stack to 4,000,000. These
   increased stack sizes should be sufficient for LaTeX to handle the
   huge index of the Sage reference manual when building the PDF
   version of that manual.
 
 == Changelog ==
 
-=== sphinx-1.0.4.p6 (Jeroen Demeyer, 2011-01-31) ===
+=== sphinx-1.0.4.p7 (Jeroen Demeyer, 2011-08-08) ===
+ * Ticket #11659: Increase LaTeX SAVE_SIZE from 20000 to 50000
 
+=== sphinx-1.0.4.p6 (Jeroen Demeyer, 2011-01-31) ===
  * Ticket #10721: Double LaTeX POOL_SIZE to 40000000
 
 === sphinx-1.0.4.p5 (Jeroen Demeyer, 2010-12-05) ===

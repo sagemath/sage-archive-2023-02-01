@@ -6,7 +6,7 @@ diff -ru src/sphinx/texinputs/Makefile src.patched/sphinx/texinputs/Makefile
  # Additional LaTeX options
  LATEXOPTS =
 +POOL_SIZE = 4000000
-+SAVE_SIZE = 20000
++SAVE_SIZE = 50000
  
  all: $(ALLPDF)
  all-pdf: $(ALLPDF)

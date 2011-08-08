@@ -113,7 +113,7 @@ class p_iter_fork:
                             raise RuntimeError, "SIGALRM"
                         oldest = min([X[1] for X in workers.values()])
                         signal.signal(signal.SIGALRM, mysig)
-                        signal.alarm(int(walltime() - oldest)+1)
+                        signal.alarm(max(int(timeout - (walltime()-oldest)), 1))
                     try:
                         pid = os.wait()[0]
                         signal.signal(signal.SIGALRM, signal.SIG_IGN)

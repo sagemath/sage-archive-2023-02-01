@@ -23,41 +23,57 @@ Author:  Georg Brandl <georg at python org>
 Home Page: http://sphinx.pocoo.org
 
 == Dependencies ==
-
-This depends on Jinja >= 2.2, Pygments >= 1.3.1, docutils >= 0.4.
+ * Jinja >= 2.2
+ * Pygments >= 1.3.1
+ * docutils >= 0.4
+ * distutils
+ * Python
+ * GNU patch
 
 == Special Update/Build Instructions ==
 
 Here is a description of patches on top of Sphinx 1.0.4:
 
-* patches/autodoc.patch: This patches src/sphinx/ext/autodoc.py. This
-  adds an option to Sphinx to provide a function to get the argspecs of
-  built-in functions.
+ * patches/autodoc.patch: This patches src/sphinx/ext/autodoc.py. This
+   adds an option to Sphinx to provide a function to get the argspecs of
+   built-in functions.
 
-* patches/environment.patch: This patches the file src/sphinx/environment.py.
-  Patching it should prevent Sphinx from rebuilding documentation that
-  is already built.
+ * patches/environment.patch: This patches the file src/sphinx/environment.py.
+   Patching it should prevent Sphinx from rebuilding documentation that
+   is already built.
 
-* patches/highlighting.patch: This patches the file
-  src/sphinx/highlighting.py. The patch should allow Sphinx to
-  recognize the Sage prompt "sage:" the same way it recognizes the
-  ">>>" from Python.
+ * patches/highlighting.patch: This patches the file
+   src/sphinx/highlighting.py. The patch should allow Sphinx to
+   recognize the Sage prompt "sage:" the same way it recognizes the
+   ">>>" from Python.
 
-* patches/pngmath.patch: This replaces \usepackage[utf8x]{inputenc}
-  by \usepackage[utf8]{inputenc} in the LaTeX preamble for building
-  images in the HTML documentation.  This change is done because some
-  LaTeX installations have only utf8, not utf8x (utf8x adds support for
-  much more Unicode characters, but these are not needed to typeset the
-  mathematics in the Sage documentation).
+ * patches/pngmath.patch: This replaces \usepackage[utf8x]{inputenc}
+   by \usepackage[utf8]{inputenc} in the LaTeX preamble for building
+   images in the HTML documentation.  This change is done because some
+   LaTeX installations have only utf8, not utf8x (utf8x adds support for
+   much more Unicode characters, but these are not needed to typeset the
+   mathematics in the Sage documentation).
 
-* patches/Makefile.patch: This patches the file
-  src/sphinx/texinputs/Makefile to increase the save size stack to
-  50,000 and increase the pool size stack to 4,000,000. These
-  increased stack sizes should be sufficient for LaTeX to handle the
-  huge index of the Sage reference manual when building the PDF
-  version of that manual.
+ * patches/Makefile.patch: This patches the file
+   src/sphinx/texinputs/Makefile to increase the save size stack to
+   50,000 and increase the pool size stack to 4,000,000. These
+   increased stack sizes should be sufficient for LaTeX to handle the
+   huge index of the Sage reference manual when building the PDF
+   version of that manual.
 
 == Changelog ==
+
+=== sphinx-1.0.4.p8 (Leif Leonhardy, August 8th 2011) ===
+ * #11665: Don't delete previously built Sage documentation (in
+   $SAGE_ROOT/devel/sage-*/doc/output/) until Sphinx has been successfully
+   reinstalled.
+ * Also, don't delete a previous Sphinx installation until Sphinx has been
+   successfully (re)built. To achieve this, we now first run 'python
+   setup.py build', then delete any previously installed version, and after
+   that run 'python setup.py install'.
+ * Quote the filename of patches.
+ * Some clean-up, add some messages (and blank lines to separate the output).
+ * Added some more of Sphinx' dependencies.
 
 === sphinx-1.0.4.p7 (Jeroen Demeyer, 2011-08-08) ===
  * Ticket #11659: Increase LaTeX SAVE_SIZE from 20000 to 50000

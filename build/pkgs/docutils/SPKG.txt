@@ -31,6 +31,9 @@ None
 
 == Changelog ==
 
+=== docutils-0.7.p0 (Jeroen Demeyer, 8 August 2011) ===
+ * Trac #11660: Change permissions of files inside /src to world-readable
+
 === docutils-0.7 (Pablo De Napoli, 24 October 2010) ===
  * Upgrade to latest upstream stable release (trac #10166)
 

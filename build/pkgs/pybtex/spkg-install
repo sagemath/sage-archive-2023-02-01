@@ -12,7 +12,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-PYPARSING=`cd SAGE_ROOT/spkg/standard/; ./newest_version pyparsing`
+PYPARSING=`cd $SAGE_ROOT/spkg/standard/; ./newest_version pyparsing`
 if [ $? -ne 0 ]; then
     echo "Failed to find pyparsing. Please install the pyparsing spkg"
     exit 1

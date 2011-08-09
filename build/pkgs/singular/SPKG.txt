@@ -42,6 +42,32 @@ MPIR, NTL, Termcap, Readline and MPFR
 
 == ChangeLog ==
 
+=== singular-3-1-1-4.p11 (Jeroen Demeyer, 9 August 2011) ===
+ * Trac #11663: Make all files world-readable
+ * Use `cp -p` in spkg-install to preserve permissions
+ * In spkg-install, remove chmod for the Singular library
+ * Made the following files inside src/ non-executable:
+Singular/LIB/phindex.lib
+Singular/LIB/findifs.lib
+Singular/LIB/dmodvar.lib
+Singular/LIB/dmod.lib
+Singular/LIB/jacobson.lib
+Singular/LIB/bfun.lib
+Singular/wrapper.cc
+Singular/janet.cc
+Singular/janet.h
+doc/README_download.plural.texi
+doc/INSTALL_unix.plural.texi
+doc/singular.dic
+doc/plural.doc
+doc/letterplace.doc
+doc/sca.doc
+doc/NEWS.plural.texi
+doc/INSTALL_win.plural.texi
+doc/HOWTO.ispell
+doc/COPYING.plural.texi
+factory/cf_gcd_smallp.cc
+
 === singular-3-1-1-4.p9 (Jeroen Demeyer, 3 May 2011) ===
 *  #11278: When compiling with gcc version 4.0.x, build with -O3
    optimization instead of -O2 to fix build errors on older Mac OS X

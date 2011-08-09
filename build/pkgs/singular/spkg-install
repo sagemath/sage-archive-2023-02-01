@@ -184,11 +184,6 @@ build_singular()
         exit 1
     fi
 
-    # For some reason the permissions are set for the user to read only
-    # for singular's library.  This causes problems on multi-user system
-    # install.
-    $CHMOD a+r Singular/LIB/*
-
     cd "$SAGE_LOCAL"
     if [ -d LIB -a ! -h LIB ]; then
         echo "skipping since filenames not case sensitive."
@@ -361,14 +356,9 @@ build_libfac()
 
 install_docs()
 {
-    cp $SHARED/singular.hlp $SAGE_LOCAL/share/singular/
+    cp -p "$SHARED/singular.hlp" "$SHARED/singular.idx" "$SAGE_LOCAL/share/singular/"
     if [ $? -ne 0 ]; then
-        echo "Error installing documentation while copying singular.hlp"
-        exit 1
-    fi
-    cp $SHARED/singular.idx $SAGE_LOCAL/share/singular/
-    if [ $? -ne 0 ]; then
-        echo "Error installing documentation while copying singular.idx"
+        echo "Error installing documentation"
         exit 1
     fi
 }

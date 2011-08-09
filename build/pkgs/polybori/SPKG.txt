@@ -38,6 +38,9 @@ reference implementation for Gröbner basis computation.
 
 == Releases ==
 
+=== polybori-0.7.1.p4 (Alexander Dreyer, August 9th, 2011) ===
+ * Rebased on polybori-0.7.0.p4
+
 === polybori-0.7.0.p4 (Jeroen Demeyer, 8 August 2011) ===
  * Trac #11664: Make all files world-readable
 

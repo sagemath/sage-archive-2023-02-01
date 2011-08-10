@@ -264,7 +264,9 @@ in a robust manner, as long as you are creating a new object.
     sage: a = singular.eval(t)
     sage: a = singular(t)
 
-TESTS: We test an automatic coercion::
+TESTS:
+
+We test an automatic coercion::
 
     sage: a = 3*singular('2'); a
     6
@@ -274,6 +276,12 @@ TESTS: We test an automatic coercion::
     6
     sage: type(a)
     <class 'sage.interfaces.singular.SingularElement'>
+
+Create a ring over GF(9) to check that ``gftables`` has been installed,
+see ticket #11645::
+
+    sage: singular.eval("ring testgf9 = (9,x),(a,b,c,d,e,f),(M((1,2,3,0)),wp(2,3),lp);")
+    'ring testgf9 = (9,x),(a,b,c,d,e,f),(M((1,2,3,0)),wp(2,3),lp);'
 """
 
 #We could also do these calculations without using the singular

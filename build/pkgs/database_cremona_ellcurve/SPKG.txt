@@ -19,9 +19,12 @@ This is an optional package, not included by default.
 
 == Changelog ==
 
+=== database_cremona_ellcurve-20110809 (R. Andrew Ohana, 9 August 2011) ===
+ * Updated the tables to include all conductors up to 180000
+
 === database_cremona_ellcurve-20110801 (R. Andrew Ohana, 1 August 2011) ===
  * Updated the database to use SQLite3
- * Updated the tables to include all conductors up to 17000
+ * Updated the tables to include all conductors up to 170000
  * Introduced a mercurial repository in the spkg
 
 === database_cremona_ellcurve-20071019.p0 (David Kirkby, 14th Nov 2009) ===

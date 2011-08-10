@@ -42,6 +42,10 @@ MPIR, NTL, Termcap, Readline and MPFR
 
 == ChangeLog ==
 
+=== singular-3-1-1-4.p12 (Leif Leonhardy, Jeroen Demeyer, 10 August 2011) ===
+ * Trac #11645: Fix installation of gftables on Solaris
+   by applying a patch to Singular/Makefile.in
+
 === singular-3-1-1-4.p11 (Jeroen Demeyer, 9 August 2011) ===
  * Trac #11663: Make all files world-readable
  * Use `cp -p` in spkg-install to preserve permissions

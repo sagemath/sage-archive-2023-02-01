@@ -548,7 +548,9 @@ installslib-nolns: LIB
 	  ${INSTALL_DATA}  $$file ${slibdir}; \
 	done
 	${MKINSTALLDIRS} ${slibdir}/gftables
-	${INSTALL_DATA} `pwd`/LIB/gftables/* ${slibdir}/gftables/
+	for file in `pwd`/LIB/gftables/*; do \
+	  ${INSTALL_DATA}  $$file ${slibdir}/gftables/; \
+	done
 
 install-libsingular: libsingular
 	${MKINSTALLDIRS} ${includedir}/singular

@@ -1,5 +1,5 @@
---- ../src/Singular/Makefile.in	2010-07-15 12:19:00.000000000 +0200
-+++ Singular-Makefile.in	2010-09-09 09:36:53.975341044 +0200
+--- src.old/Singular/Makefile.in	2010-07-15 12:19:00.000000000 +0200
++++ src/Singular/Makefile.in	2011-08-09 19:05:42.000000000 +0200
 @@ -377,7 +377,7 @@
  claptmpl.o: claptmpl.cc mod2.h
  	${CXX} ${CXXFLAGS}  ${CPPFLAGS} ${DEFS} -c $<
@@ -18,3 +18,14 @@
                            ipconv.cc tok.h mpsr_Tok.cc grammar.h mod2.h
  	${CXX} ${CXXFLAGS} ${CPPFLAGS} ${CXXTEMPLFLAGS} ${DEFS} -DGENTABLE \
  	     -o gentable2 claptmpl.o iparith.cc tesths.cc mpsr_Tok.cc \
+@@ -548,7 +548,9 @@
+ 	  ${INSTALL_DATA}  $$file ${slibdir}; \
+ 	done
+ 	${MKINSTALLDIRS} ${slibdir}/gftables
+-	${INSTALL_DATA} `pwd`/LIB/gftables/* ${slibdir}/gftables/
++	for file in `pwd`/LIB/gftables/*; do \
++	  ${INSTALL_DATA}  $$file ${slibdir}/gftables/; \
++	done
+ 
+ install-libsingular: libsingular
+ 	${MKINSTALLDIRS} ${includedir}/singular

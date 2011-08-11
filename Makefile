@@ -103,6 +103,12 @@ distclean: clean
 micro_release:
 	. local/bin/sage-env && local/bin/sage-micro_release
 
+text-expand:
+	./spkg/base/text-expand
+
+text-collapse:
+	./spkg/base/text-collapse
+
 TESTPRELIMS = . local/bin/sage-env && sage-starts &&
 TESTDIRS = devel/sage/doc/common devel/sage/doc/de devel/sage/doc/en devel/sage/doc/fr devel/sage/doc/ru devel/sage/sage
 

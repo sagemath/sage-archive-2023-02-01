@@ -28,6 +28,7 @@ MPIR, NTL, Termcap, Readline and MPFR
  * assert.h: logic seems to be broken on some platforms
  * src/Singular/libparse.cc and src/factory/configure touched
    to avoid attempts to regenerate these files. (See #9160 and #3158)
+ * Minor.h needs to have <time.h> included on Cygwin
 
  Other notes
  * The option '--without-dynamic-kernel' is used on *all*
@@ -39,8 +40,14 @@ MPIR, NTL, Termcap, Readline and MPFR
    on Solaris. This is not done currently. Since this does not build
    fully as a 64-bit application on Solaris, CONFIG_SHELL should be
    investigated as a possible cause later.
+ * Be sure that Singular/Singular.rc.in is present, as occasionally this
+   was missing, which caused problems on Cygwin (e.g., see #10235)
 
 == ChangeLog ==
+
+=== singular-3-1-1-4.p13 (Karl-Dieter Crisman, 12 August 2011) ===
+ * Trac #11550: For Cygwin, we need to include time.h in
+   Singular/Minor.h
 
 === singular-3-1-1-4.p12 (Leif Leonhardy, Jeroen Demeyer, 10 August 2011) ===
  * Trac #11645: Fix installation of gftables on Solaris

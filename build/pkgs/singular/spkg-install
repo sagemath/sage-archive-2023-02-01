@@ -114,6 +114,7 @@ patch()
         # Fine to make this patch on any system, because it is code that is only compiled on Windows.
         cp patches/sing_win.cc src/Singular/
         cp patches/IntegerProgramming-Makefile.in src/IntegerProgramming/Makefile.in
+        cp patches/Minor.h src/Singular/
     fi
 
     # parallel build patches

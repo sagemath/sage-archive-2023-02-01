@@ -155,7 +155,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
         c_pE = ZZ_pEX_coeff(self.x, i)
 
         K = self._parent.base_ring()
-        return K(K.polynomial_ring()(ZZ_pE_c_to_list(c_pE)))
+        return K(ZZ_pE_c_to_list(c_pE))
 
     cpdef ModuleElement _rmul_(self, RingElement left):
         """

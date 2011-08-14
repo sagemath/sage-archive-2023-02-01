@@ -2,11 +2,22 @@
 
 == Description ==
 
-From the Matplotlib website: matplotlib is a python 2D plotting library which produces publication quality figures in a variety of hardcopy formats and interactive environments across platforms. matplotlib can be used in python scripts, the python and ipython shell (ala matlab or mathematica), web application servers, and six graphical user interface toolkits.
+From the Matplotlib website: matplotlib is a python 2D plotting
+library which produces publication quality figures in a variety of
+hardcopy formats and interactive environments across
+platforms. matplotlib can be used in python scripts, the python and
+ipython shell (ala matlab or mathematica), web application servers,
+and six graphical user interface toolkits.
 
 == License ==
 
-The Matplotlib license - see http://matplotlib.sourceforge.net/users/license.html: Matplotlib only uses BSD compatible code, and its license is based on the PSF license. See the Open Source Initiative licenses page for details on individual licenses. Non-BSD compatible licenses (eg LGPL) are acceptable in matplotlib Toolkits. For a discussion of the motivations behind the licencing choice, see Licenses.
+The Matplotlib license - see
+http://matplotlib.sourceforge.net/users/license.html: Matplotlib only
+uses BSD compatible code, and its license is based on the PSF
+license. See the Open Source Initiative licenses page for details on
+individual licenses. Non-BSD compatible licenses (eg LGPL) are
+acceptable in matplotlib Toolkits. For a discussion of the motivations
+behind the licencing choice, see Licenses.
 
 == SPKG Maintainers ==
 
@@ -20,16 +31,53 @@ The matplotlib mailing lists: see http://sourceforge.net/projects/matplotlib
 
  * python
  * numpy
+ * freetype
+ * patch (used in spkg-install)
 
 == Build Instructions/Changes ==
 
 The following patches are in the patches subdirectory.
-The patches are applied in during the build process.
+The patches are applied during the build process.
 
-* setupext.py: link to libpng12 instead of libpng to apparently avoid
-  some name clashes on OSX.
+ * setupext.py: link to libpng12 instead of libpng to apparently avoid
+   some name clashes on OSX.  See Sage trac #4774.
+
+ * __init__.py, finance.py, texmanager.py: instead of "if
+   not.os.path.exists(DIR): os.mkdir(DIR)", do "try os.mkdir(DIR)" and
+   then catch the error if the directory already exists.  This is safer
+   in general, and should avoid problems if two doctests try to create
+   the directory at the same time.
+
+ * NOTE: as of matplotlib 1.0.0 and Sage 4.6, Sage does not use
+   $HOME/.matplotlib (or whatever the user has set in MPLCONFIGDIR).
+   Instead, it sets MPLCONFIGDIR to $DOT_SAGE/matplotlib-VER, where
+   VER is the matplotlib version number.  This is because of
+   incompatibilities between the contents of .matplotlib between
+   matplotlib versions 0.99.3 and 1.0.0.  Sage reads the version
+   number VER by searching through
+   SAGE_ROOT/local/lib/python/site-packages/matplotlib/__init__.py,
+   looking for a line of the form
+
+     __version__ = '1.0.0'
+
+   So when updating matplotlib, make sure that
+   src/lib/matplotlib/__init__.py has a line of this form.  Extra
+   white spaces shouldn't matter, but if the single quotes change to
+   double quotes, for example, we either need to patch that file or
+   patch the sage-env script.  See
+   http://trac.sagemath.org/sage_trac/ticket/6235.  Also, at the end
+   of the install process for matplotlib, the spkg-install file prints
+   a message showing what MPLCONFIGDIR will be set to, using the
+   command from sage-env, so this should provide a check.
 
 == Changelog ==
+
+=== matplotlib 1.0.1.p0 (John Palmieri, 13 Aug 2011) ===
+ * Patch __init__.py, finance.py, and texmanager.py to avoid race
+   conditions when creating directories.  See Sage trac #11686
+   and #10159.  Also replaced the "src" directory with a freshly
+   downloaded copy of the vanilla source code.
+
 === matplotlib 1.0.1 (Ryan Grout, 10 Jan 2011) ===
  * Update to matplotlib 1.0.1.  Fixes a handful of annoying bugs in SAGE.
 

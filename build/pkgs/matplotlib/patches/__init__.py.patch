@@ -1,0 +1,26 @@
+--- src/lib/matplotlib/__init__.py	2011-01-10 21:47:07.000000000 -0800
++++ src/lib/matplotlib/__init__.py	2011-08-13 09:21:40.000000000 -0700
+@@ -103,7 +103,7 @@
+ __revision__ = '$Revision: 8897 $'
+ __date__     = '$Date: 2011-01-06 05:50:07 -0800 (Thu, 06 Jan 2011) $'
+ 
+-import os, re, shutil, subprocess, sys, warnings
++import os, re, shutil, subprocess, sys, warnings, errno
+ import distutils.sysconfig
+ import distutils.version
+ 
+@@ -470,7 +470,13 @@
+         if not _is_writable_dir(h):
+             raise RuntimeError("Failed to create %s/.matplotlib; consider setting MPLCONFIGDIR to a writable directory for matplotlib configuration data"%h)
+ 
+-        os.mkdir(p)
++        try:
++            os.mkdir(p)
++        except OSError, e:
++            if e.errno == errno.EEXIST:
++                pass
++            else:
++                raise
+ 
+     return p
+ get_configdir = verbose.wrap('CONFIGDIR=%s', _get_configdir, always=False)

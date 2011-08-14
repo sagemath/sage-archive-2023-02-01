@@ -157,6 +157,29 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
         K = self._parent.base_ring()
         return K(ZZ_pE_c_to_list(c_pE))
 
+    def list(self):
+        """
+        Returs the list of coefficients.
+
+        EXAMPLE::
+
+            sage: K.<a> = GF(5^3)
+            sage: P = PolynomialRing(K, 'x')
+            sage: f = P.random_element(100)
+            sage: f.list() == [f[i] for i in  range(f.degree()+1)]
+            True
+            sage: P.0.list()
+            [0, 1]
+
+        """
+        cdef Py_ssize_t i
+
+        cdef cparent _parent = get_cparent(self._parent)
+        _parent[0].restore()
+
+        K = self._parent.base_ring()
+        return [K(ZZ_pE_c_to_list(ZZ_pEX_coeff(self.x, i))) for i in range(celement_len(&self.x, _parent))]
+
     cpdef ModuleElement _rmul_(self, RingElement left):
         """
         EXAMPLE::

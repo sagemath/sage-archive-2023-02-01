@@ -588,6 +588,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
                 \left(\sum_{i,j}\left\lvert{a_{i,j}}\right\rvert^2\right)^{1/2}
 
+        - ``p = 'sv'``: the quotient of the maximal and minimal singular value.
         - ``p = Infinity`` or ``p = oo``: the maximum row sum.
         - ``p = -Infinity`` or ``p = -oo``: the minimum column sum.
         - ``p = 1``: the maximum column sum.
@@ -654,7 +655,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
             sage: A = matrix(RDF, 10, [1/(i+j+1) for i in range(10) for j in range(10)])
             sage: A.condition()
-            1.63346888329e+13
+            1.633...e+13
             sage: id = identity_matrix(CDF, 10)
             sage: id.condition(p=1)
             1.0
@@ -665,13 +666,16 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: A.condition() in RDF
             True
 
-        Rectangular and singular matrices raise errors.  ::
+        Rectangular and singular matrices raise errors if p is not 'sv'.  ::
 
             sage: A = matrix(RDF, 2, 3, range(6))
             sage: A.condition()
             Traceback (most recent call last):
             ...
-            TypeError: matrix must be square, not 2 x 3
+            TypeError: matrix must be square if p is not 'sv', not 2 x 3
+
+            sage: A.condition('sv')
+            7.34...
 
             sage: A = matrix(QQ, 5, range(25))
             sage: A.is_singular()
@@ -688,7 +692,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: A.condition(p='bogus')
             Traceback (most recent call last):
             ...
-            ValueError: condition number 'p' must be +/- infinity, 'frob' or an integer, not bogus
+            ValueError: condition number 'p' must be +/- infinity, 'frob', 'sv' or an integer, not bogus
             sage: A.condition(p=632)
             Traceback (most recent call last):
             ...
@@ -709,8 +713,8 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: abs(c-d) < 1.0e-14
             True
         """
-        if not self.is_square():
-            raise TypeError("matrix must be square, not %s x %s" % (self.nrows(), self.ncols()))
+        if not self.is_square() and p != 'sv':
+            raise TypeError("matrix must be square if p is not 'sv', not %s x %s" % (self.nrows(), self.ncols()))
         global numpy
         if numpy is None:
             import numpy
@@ -723,11 +727,13 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             p = -numpy.inf
         elif p == 'frob':
             p = 'fro'
+        elif p == 'sv' :
+            p = None
         else:
             try:
                 p = sage.rings.integer.Integer(p)
             except:
-                raise ValueError("condition number 'p' must be +/- infinity, 'frob' or an integer, not %s" % p)
+                raise ValueError("condition number 'p' must be +/- infinity, 'frob', 'sv' or an integer, not %s" % p)
             if p not in [-2,-1,1,2]:
                 raise ValueError("condition number integer values of 'p' must be -2, -1, 1 or 2, not %s" % p)
         # may raise a LinAlgError if matrix is singular
@@ -798,8 +804,8 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             6.0
             sage: A.norm(p=2)
             7.99575670...
-            sage: A.norm(p=-2)
-            3.84592537...e-16
+            sage: A.norm(p=-2) < 10^-15
+            True
 
         And over the complex numbers.  ::
 
@@ -2523,12 +2529,9 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             [  0.139 -0.3892 -0.2648  0.8713]
             [ 0.4361   0.359  0.7599  0.3217]
             [ -0.836  0.3945  0.1438  0.3533]
-            sage: T = T.zero_at(1.0e-12).change_ring(RDF)
-            sage: T.round(4)
-            [-13.5698      0.0      0.0      0.0]
-            [     0.0  -0.8508      0.0      0.0]
-            [     0.0      0.0   7.7664      0.0]
-            [     0.0      0.0      0.0  11.6542]
+            sage: T = T.zero_at(10^-12)
+            sage: all(abs(e) < 10^-4 for e in (T - diagonal_matrix(RDF, [-13.5698, -0.8508, 7.7664, 11.6542])).list())
+            True
             sage: (Q*Q.transpose()).zero_at(1.0e-12)
             [1.0 0.0 0.0 0.0]
             [0.0 1.0 0.0 0.0]

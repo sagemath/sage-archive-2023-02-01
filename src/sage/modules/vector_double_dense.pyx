@@ -679,7 +679,7 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
             sage: v.norm(p=-oo)
             0.0
             sage: v.norm(p=0)
-            8
+            8.0
             sage: v.norm(p=0.3)
             4099.153615...
 
@@ -691,7 +691,7 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
             sage: w.norm(p=2)
             13.9283882...
             sage: w.norm(p=0)
-            2
+            2.0
             sage: w.norm(p=4.2)
             13.0555695...
             sage: w.norm(p=oo)
@@ -741,10 +741,7 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
                 raise ValueError("vector norm 'p' must be +/- infinity or a real number, not %s" % p)
         n = numpy.linalg.norm(self._vector_numpy, ord=p)
         # p = 0 returns integer *count* of non-zero entries
-        if n.dtype == numpy.int64:
-            return sage.rings.integer.Integer(n)
-        else:
-            return RDF(n)
+        return RDF(n)
 
 
     #############################

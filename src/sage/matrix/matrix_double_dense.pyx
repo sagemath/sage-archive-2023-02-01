@@ -995,8 +995,8 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: B.rank()
             12
             sage: A = B.change_ring(RDF)
-            sage: round(A.condition(), 12)
-            1.72371181602e+16
+            sage: A.condition() > 1.7 * 10^16
+            True
 
             sage: sv = A.singular_values(eps=None)
             sage: [round(sv[i],15) for i in range(12)]
@@ -1063,7 +1063,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         diag = min(self._nrows, self._ncols)
         sv = [RDF(S[i,i]) for i in range(diag)]
         # no cutoff, send raw data back
-        if eps == None:
+        if eps is None:
             verbose("singular values, no zero cutoff specified", level=1)
             return sv
         # set cutoff as RDF element

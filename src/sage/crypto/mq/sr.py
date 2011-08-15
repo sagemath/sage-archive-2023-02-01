@@ -88,6 +88,13 @@ Also, the ``MixColumns`` matrix is the identity matrix.::
     [          a^3 + a               a^2               a^2                 1]
     [                1               a^3             a + 1             a + 1]
 
+
+However, for larger instances of SR Mstar is not equal to M::
+
+    sage: sr = mq.SR(10,4,4,8)
+    sage: sr.Mstar == ~sr.MixColumns * sr.M
+    True
+
 We can compute a Groebner basis for the ideals spanned by SR
 instances to recover all solutions to the system.::
 
@@ -536,14 +543,14 @@ class SR_generic(MPolynomialSystemGenerator):
 
             sage: sr = mq.SR(1, 2, 1, 4, gf2=True)
             sage: sr.Mstar
-            [0 1 1 0 1 1 0 1]
-            [0 0 1 1 1 1 1 0]
-            [0 0 1 0 1 1 0 0]
-            [1 1 0 0 1 0 1 1]
-            [1 1 0 1 0 1 1 0]
-            [1 1 1 0 0 0 1 1]
-            [1 1 0 0 0 0 1 0]
-            [1 0 1 1 1 1 0 0]
+            [1 0 1 1 0 0 0 0]
+            [1 1 0 1 0 0 0 0]
+            [1 1 1 0 0 0 0 0]
+            [0 1 1 1 0 0 0 0]
+            [0 0 0 0 1 0 1 1]
+            [0 0 0 0 1 1 0 1]
+            [0 0 0 0 1 1 1 0]
+            [0 0 0 0 0 1 1 1]
         """
         if attr == "e":
             return self._e
@@ -578,7 +585,7 @@ class SR_generic(MPolynomialSystemGenerator):
             return self.M
 
         elif attr == "Mstar":
-            self.Mstar = self.MixColumns * self.ShiftRows * self.Lin
+            self.Mstar = self.ShiftRows * self.Lin
             return self.Mstar
 
         raise AttributeError, "%s has no attribute %s"%(type(self), attr)
@@ -1831,6 +1838,10 @@ class SR_generic(MPolynomialSystemGenerator):
             return tuple((w1 + k0 + plaintext).list())
 
         elif i>0 and i<=n:
+
+            if self._star and i == n:
+                M = self.Mstar
+
             xj = Matrix(R, r*c*e, 1, _vars("x", i, r*c, e))
             ki = Matrix(R, r*c*e, 1, _vars("k", i, r*c, e))
             rcon = Matrix(R, r*c*e, 1, self.phi([self.sbox_constant()]*r*c))
@@ -2000,7 +2011,6 @@ class SR_generic(MPolynomialSystemGenerator):
             sage: len(F.ideal().variety())
             2
 
-
         In the following example we provide ``C`` explicitly::
 
            sage: C = sr(P,K)
@@ -2033,6 +2043,12 @@ class SR_generic(MPolynomialSystemGenerator):
             sage: F.part(-2)
             (k100 + x100 + x102 + x103 + C000, k101 + x100 + x101 + x103 + C001 + 1, ...)
 
+        We show that the (returned) key is a solution to the returned system::
+
+            sage: sr = mq.SR(3,4,4,8, star=True, gf2=True, polybori=True)
+            sage: F,s = sr.polynomial_system()
+            sage: F.subs(s).groebner_basis() # long time
+            Polynomial Sequence with 1248 Polynomials in 1248 Variables
         """
         plaintext = P
         key = K

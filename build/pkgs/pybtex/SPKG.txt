@@ -4,6 +4,8 @@
 
 Pybtex is a drop-in replacement for BibTeX written in Python.
 
+This package also installs pyparsing and PyYAML which are needed for pybtex.
+
 == License ==
 
 MIT
@@ -11,6 +13,7 @@ MIT
 == SPKG Maintainers ==
 
 Niels Ranosch <ranosch@mfo.de>
+Burcin Erocal <burcin@erocal.org>
 
 == Upstream Contact ==
 
@@ -19,14 +22,25 @@ http://pybtex.sourceforge.net/
 
 == Dependencies ==
 
-PyYAML
-pyparsing
+This package is self contained.
 
 == Special Update/Build Instructions ==
 
-Don't know yet.
+Make sure the easy_install commands in spkg-install work without internet
+access.
+
+We include a patch for pybtex to improve it's support for bibtex formats:
+
+https://code.launchpad.net/~matthias-troffaes/pybtex/doctree/+merge/55170
+
+The original version of this patch as of August 10, 2011 can be found in
+
+patches/pybtex-doc_tree.patch.org
+
+The file patches/pybtex-doc_tree.patch is rebased to apply to pybtex-0.15.
 
 == Changelog ==
 
-Initial release in 2011. Stay tuned.
+=== pybtex-0.15 (Burcin Erocal, Niels Ranosch, August 10, 2011) ===
+ * initial version
 

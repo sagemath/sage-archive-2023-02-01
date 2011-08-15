@@ -6,52 +6,30 @@ if [ "x$SAGE_LOCAL" = x ]; then
    exit 1
 fi
 
-PYYAML=`cd $SAGE_ROOT/spkg/standard/; ./newest_version pyyaml`
+# use easy_install for the dependencies
+easy_install PyYAML-3.10.zip
 if [ $? -ne 0 ]; then
-    echo "Failed to find PyYAML. Please install the PyYAML spkg"
-    exit 1
+   echo "Error installing PyYAML."
+   exit 1
 fi
-
-PYPARSING=`cd $SAGE_ROOT/spkg/standard/; ./newest_version pyparsing`
+easy_install pyparsing-1.5.6.zip
 if [ $? -ne 0 ]; then
-    echo "Failed to find pyparsing. Please install the pyparsing spkg"
-    exit 1
-fi
-
-
-cd src
-
-python setup.py install
-if [ $? -ne 0 ]; then
-   echo "Error installing PACKAGE_NAME."
+   echo "Error installing pyparsing."
    exit 1
 fi
 
-if [ "x$SAGE_SPKG_INSTALL_DOCS" = xyes ] ; then
-   # Before trying to build the documentation, check if any
-   # needed programs are present. In the example below, we
-   # check for 'latex', but this will depend on the package.
-   # Some packages may need no extra tools installed, others
-   # may require some.  We use 'command -v' for testing this,
-   # and not 'which' since 'which' is not portable, whereas
-   # 'command -v' is defined by POSIX.
+# pybtex needs a patch, so easy_install is not available
+cd src
 
-   # if [ `command -v latex` ] ; then
-   #    echo "Good, latex was found, so building the documentation"
-   # else
-   #    echo "Sorry, can't build the documentation for PACKAGE_NAME as latex is
-   #    not installed"
-   #    exit 1
-   # fi
-
-
-   # make the documentation in a package-specific way
-   # for example, we might have
-   # cd doc
-   # $MAKE html
-
-   mkdir -p $SAGE_ROOT/local/share/doc/PACKAGE_NAME
-   # assuming the docs are in doc/*
-   cp -r docs/* $SAGE_ROOT/local/share/doc/PACKAGE_NAME/
+# apply patch to make pybtex support bibtex standards better
+patch -p0 < ../patches/pybtex-doc_tree.patch
+if [ $? -ne 0 ]; then
+   echo "Applying patch to pybtex failed."
+   exit 1
 fi
 
+python setup.py install --prefix="$SAGE_LOCAL"
+if [ $? -ne 0 ]; then
+   echo "Error installing pybtex."
+   exit 1
+fi

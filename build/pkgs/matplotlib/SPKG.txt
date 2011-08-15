@@ -39,14 +39,19 @@ The matplotlib mailing lists: see http://sourceforge.net/projects/matplotlib
 The following patches are in the patches subdirectory.
 The patches are applied during the build process.
 
- * setupext.py: link to libpng12 instead of libpng to apparently avoid
-   some name clashes on OSX.  See Sage trac #4774.
+ * setupext.py.patch: explicitly searches for and uses 'libpng12'
+   instead of 'libpng' to apparently avoid some name clashes on OS X.
+   As of spkg version 1.0.1.p0, this patch is only applied on OS X,
+   and it tests for the presence of 'pkg-config': if it is not
+   installed, then it uses libpng12 instead of libpng, as above;
+   otherwise it uses libpng, which is the behavior before the patch.
+   See Sage trac #4774 and #11686.
 
- * __init__.py, finance.py, texmanager.py: instead of "if
-   not.os.path.exists(DIR): os.mkdir(DIR)", do "try os.mkdir(DIR)" and
-   then catch the error if the directory already exists.  This is safer
-   in general, and should avoid problems if two doctests try to create
-   the directory at the same time.
+ * __init__.py.patch, finance.py.patch, texmanager.py.patch: instead
+   of "if not.os.path.exists(DIR): os.mkdir(DIR)", do "try
+   os.mkdir(DIR)" and then catch the error if the directory already
+   exists.  This is safer in general, and should avoid problems if two
+   doctests try to create the directory at the same time.
 
  * NOTE: as of matplotlib 1.0.0 and Sage 4.6, Sage does not use
    $HOME/.matplotlib (or whatever the user has set in MPLCONFIGDIR).
@@ -75,8 +80,20 @@ The patches are applied during the build process.
 === matplotlib 1.0.1.p0 (John Palmieri, 13 Aug 2011) ===
  * Patch __init__.py, finance.py, and texmanager.py to avoid race
    conditions when creating directories.  See Sage trac #11686
-   and #10159.  Also replaced the "src" directory with a freshly
-   downloaded copy of the vanilla source code.
+   and #10159.
+
+ * Updated the list of prerequisites in this file.
+
+ * Changed spkg-install so that the patches are now applied using
+   'patch'.
+
+ * The patch to setupext.py is now only applied on OS X.  The patch
+   itself tests whether pkg-config is installed: if so, it maintains
+   the status quo, and if not, it passes the argument 'libpng12' when
+   configuring the png package.
+
+ * Replaced the "src" directory with a freshly downloaded copy of
+   the vanilla source code.
 
 === matplotlib 1.0.1 (Ryan Grout, 10 Jan 2011) ===
  * Update to matplotlib 1.0.1.  Fixes a handful of annoying bugs in SAGE.

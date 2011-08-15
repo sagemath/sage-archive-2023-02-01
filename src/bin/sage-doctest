@@ -445,8 +445,9 @@ def change_warning_output(file):
 
         elif ext in ['.py', '.sage']:
 
-            target_name = "%s_%d" % (file_name, os.getpid()) # like 'name', but unique
-            target_base = os.path.join(SAGE_TESTDIR, target_name) # like 'base', also unique
+            root_name = os.path.basename(root_name)
+            target_name = "%s_%d" % (root_name, os.getpid()) # like 'root_name', but unique
+            target_base = os.path.join(SAGE_TESTDIR, target_name) # like 'target_name' but with full path
 
             if ext == '.sage':
                 # TODO: preparse "<file>.sage" with a Sage library call
@@ -463,7 +464,7 @@ def change_warning_output(file):
                 # TODO: instead of copying the file, add its source
                 # directory to PYTHONPATH.  We would also have to
                 # import from 'name' instead of 'target_name'.
-                os.system("cp '%s' %s.py" % (source, target_base))
+                os.system("cp '%s' %s.py" % (file_name, target_base))
 
             s += "from %s import *\n\n" % target_name
 

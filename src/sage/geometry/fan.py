@@ -229,7 +229,7 @@ from sage.geometry.toric_lattice import is_ToricLattice
 from sage.geometry.toric_plotter import ToricPlotter
 from sage.graphs.all import DiGraph
 from sage.matrix.all import matrix
-from sage.misc.all import flatten, walltime, prod
+from sage.misc.all import cached_method, flatten, walltime, prod
 from sage.misc.misc import deprecation
 from sage.modules.all import vector
 from sage.rings.all import QQ, RR, ZZ
@@ -2188,6 +2188,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
             self._is_simplicial = all(cone.is_simplicial() for cone in self)
         return self._is_simplicial
 
+    @cached_method
     def is_smooth(self, codim=None):
         r"""
         Check if ``self`` is smooth.
@@ -2197,15 +2198,21 @@ class RationalPolyhedralFan(IntegralRayCollection,
         cone form a part of an *integral* basis of the ambient
         space. In this case the corresponding toric variety is smooth.
 
-        A `n`-dimensional fan is smooth up to a given codimension `d`
-        if all cones of codimension `\geq d` are smooth, that is, all
-        cones of dimension `\leq n-d` are smooth. In this case the
-        singular set of the corresponding toric variety is of
-        dimension `< d`.
+        A fan in an `n`-dimensional lattice is smooth up to codimension `c`
+        if all cones of codimension greater than or equal to `c` are smooth,
+        i.e. if all cones of dimension less than or equal to `n-c` are smooth.
+        In this case the singular set of the corresponding toric variety is of
+        dimension less than `c`.
+
+        INPUT:
+
+        - ``codim`` -- codimension in which smoothness has to be checked, by
+          default complete smoothness will be checked.
 
         OUTPUT:
 
-        - ``True`` if ``self`` is smooth and ``False`` otherwise.
+        - ``True`` if ``self`` is smooth (in codimension ``codim``, if it was
+          given) and ``False`` otherwise.
 
         EXAMPLES::
 
@@ -2227,15 +2234,12 @@ class RationalPolyhedralFan(IntegralRayCollection,
             sage: fan.generating_cone(0).ray_matrix().det()
             2
         """
-        if not codim is None:
-            for d in range(codim, self.lattice_dim()+1):
-                if not all(cone.is_smooth() for cone in self(codim=d)):
-                    return False
+        if codim is None or codim < 0:
+            codim = 0
+        if codim > self.lattice_dim() - 2:
             return True
-
-        if "_is_smooth" not in self.__dict__:
-            self._is_smooth = all(cone.is_smooth() for cone in self)
-        return self._is_smooth
+        return all(cone.is_smooth() for cone in self(codim=codim)) and \
+               self.is_smooth(codim + 1)
 
     def make_simplicial(self, **kwds):
         r"""

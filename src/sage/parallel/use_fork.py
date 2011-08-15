@@ -1,5 +1,5 @@
 """
-Parallel Iterator built using the fork system call
+Parallel iterator built using the ``fork()`` system call.
 """
 
 ################################################################################
@@ -13,7 +13,7 @@ Parallel Iterator built using the fork system call
 
 class p_iter_fork:
     """
-    A parallel iterator implemented using fork.
+    A parallel iterator implemented using ``fork()``.
 
     EXAMPLES::
 
@@ -26,15 +26,21 @@ class p_iter_fork:
         sage: X.verbose
         False
     """
-    def __init__(self, ncpus, timeout=0, verbose=False):
+    def __init__(self, ncpus, timeout=0, verbose=False, reset_interfaces=True):
         """
-        Create fork-based parallel iterator.
+        Create a ``fork()``-based parallel iterator.
 
         INPUT:
 
-            - ``ncpus`` -- the maximal number of simultaneous processes to spawn
-            - ``timeout`` -- (float) time in seconds until a subprocess is automatically killed
-            - ``verbose`` -- whether to print anything about what the iterator does (e.g., killing subprocesses)
+            - ``ncpus`` -- the maximal number of simultaneous
+              subprocesses to spawn
+            - ``timeout`` -- (float, default: 0) wall time in seconds until
+              a subprocess is automatically killed
+            - ``verbose`` -- (default: False) whether to print
+              anything about what the iterator does (e.g., killing
+              subprocesses)
+            - ``reset_interfaces`` -- (default: True) whether to reset
+              all pexpect interfaces
 
         EXAMPLES::
 
@@ -52,16 +58,17 @@ class p_iter_fork:
             raise TypeError, "ncpus must be an integer"
         self.timeout = float(timeout)  # require a float
         self.verbose = verbose
+        self.reset_interfaces = reset_interfaces
 
     def __call__(self, f, inputs):
         """
-        Parallel iterator using fork.
+        Parallel iterator using ``fork()``.
 
         INPUT:
 
-            - `f` -- a Python function that need not be picklable or anything else!
-            - ``inputs`` -- a list of pickleable pairs (args, kwds), where
-              args is a tuple and kwds is a dictionary.
+            - ``f`` -- a Python function that need not be pickleable or anything else!
+            - ``inputs`` -- a list of pickleable pairs ``(args, kwds)``, where
+              ``args`` is a tuple and ``kwds`` is a dictionary.
 
         OUTPUT:
 
@@ -171,17 +178,17 @@ class p_iter_fork:
 
     def _subprocess(self, f, dir, x):
         """
-        Setup and run evaluation of f(*x[0], **x[1]), storing the
-        result in the given directory.  This method is called by each
+        Setup and run evaluation of ``f(*x[0], **x[1])``, storing the
+        result in the given directory ``dir``.  This method is called by each
         forked subprocess.
 
         INPUT:
 
-            - `f` -- a function
+            - ``f`` -- a function
             - ``dir`` -- name of a directory
-            - `x` -- 2-tuple, with args and kwds
+            - ``x`` -- 2-tuple, with args and kwds
 
-        EXAMPLES::
+        EXAMPLES:
 
         We have only this indirect test, since a direct test would terminate the Sage session.
 
@@ -204,9 +211,10 @@ class p_iter_fork:
             import sage.misc.misc
             reload(sage.misc.misc)
 
-            # The expect interfaces (and objects defined in them) are
+            # The pexpect interfaces (and objects defined in them) are
             # not valid.
-            sage.interfaces.quit.invalidate_all()
+            if self.reset_interfaces:
+                sage.interfaces.quit.invalidate_all()
 
             # Now evaluate the function f.
             value = f(*x[0], **x[1])

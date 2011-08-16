@@ -13199,11 +13199,6 @@ class GenericGraph(GenericGraph_pyx):
           plot will show each cell in a different color. vertex_colors
           takes precedence.
 
-        - ``scaling_term`` -- default is 0.05. if vertices are getting
-          chopped off, increase; if graph is too small,
-          decrease. should be positive, but values much bigger than
-          1/8 won't be useful unless the vertices are huge
-
         - ``talk`` - if true, prints large vertices with white
           backgrounds so that labels are legible on slides
 

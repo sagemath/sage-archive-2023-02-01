@@ -45,6 +45,9 @@ fixed at some point, a spkg-check file should be added.
 
 == Changelog ==
 
+=== patch-2.5.9.p2 (Jeroen Demeyer, 16 August 2011) ===
+ * #11232: Make all files in src/ owner-writable.
+
 === patch-2.5.9.p1 (Dima Pasechnik, 21nd March 2011)  ===
  * #11232 We should not build patch on Cygwin, and rely on Cygwin-supplied
    one.

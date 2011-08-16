@@ -574,14 +574,16 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
                             cr=True, check=False)
 
     def trace(self):
-        """
+        r"""
+        Return the trace of this endomorphism.
+
         EXAMPLES::
 
             sage: V = ZZ^2; phi = V.hom([V.0+V.1, 2*V.1])
             sage: phi.trace()
             3
         """
-        return self.matrix().trace()
+        return self._matrix.trace()
 
     def det(self):
         """
@@ -721,7 +723,8 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
 
     def nullity(self):
         r"""
-        Returns the nullity of the matrix representing this morphism.
+        Returns the nullity of the matrix representing this morphism, which is the
+        dimension of its kernel.
 
         EXAMPLES::
 
@@ -732,7 +735,7 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             sage: phi.nullity()
             1
         """
-        return self.matrix().left_nullity()
+        return self._matrix.left_nullity()
 
     def is_bijective(self):
         r"""
@@ -892,7 +895,7 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
         """
         # any nonzero entry in any matrix representation
         #   disqualifies the morphism as having totally zero outputs
-        return self.matrix().is_zero()
+        return self._matrix.is_zero()
 
     def is_equal_function(self, other):
         r"""

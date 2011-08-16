@@ -17,6 +17,7 @@ Modular Forms
    sage/modular/modform/cuspidal_submodule
    sage/modular/modform/eisenstein_submodule
    sage/modular/modform/eis_series
+   sage/modular/modform/eis_series_cython
    sage/modular/modform/element
    sage/modular/modform/hecke_operator_on_qexp
    sage/modular/modform/numerical

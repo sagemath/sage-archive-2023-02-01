@@ -23,7 +23,7 @@ from sage.rings.all import (bernoulli, CyclotomicField,
                             is_FiniteField, ZZ, QQ, Integer, divisors,
                             LCM, is_squarefree)
 from sage.rings.power_series_ring import PowerSeriesRing
-from eis_series_cython import eisenstein_series_poly
+from eis_series_cython import eisenstein_series_poly, Ek_ZZ
 
 def eisenstein_series_qexp(k, prec = 10, K=QQ, var='q') :
     r"""
@@ -91,15 +91,21 @@ def eisenstein_series_qexp(k, prec = 10, K=QQ, var='q') :
 
 
     R = PowerSeriesRing(K, var)
-    if K is QQ :
-        return a0fac*R(eisenstein_series_poly(k, prec).list(), prec=prec, check=False)
+    if K == QQ:
+        ls = Ek_ZZ(k, prec)
+        # The following is *dramatically* faster than doing the more natural
+        # "R(ls)" would be:
+        E = ZZ[var](ls, prec=prec, check=False).change_ring(QQ)
+        if len(ls)>0:
+            E._unsafe_mutate(0, a0)
+        return R(E, prec)
+        # The following is an older slower alternative to the above three lines:
+        #return a0fac*R(eisenstein_series_poly(k, prec).list(), prec=prec, check=False)
     else:
         # this is a temporary fix due to a change in the
         # polynomial constructor over finite fields; this
         # is a notable speed regression, to be fixed soon.
         return a0fac*R(eisenstein_series_poly(k, prec).list(), prec=prec, check=True)
-
-######################################################################
 
 def __common_minimal_basering(chi, psi):
     """

@@ -1,3 +1,7 @@
+"""
+Eisenstein Series (optimized compiled functions)
+"""
+
 include 'sage/ext/cdefs.pxi'
 include 'sage/ext/stdsage.pxi'
 include 'sage/ext/interrupt.pxi'
@@ -6,9 +10,135 @@ include 'sage/libs/flint/fmpz_poly.pxi'
 
 from sage.rings.rational_field import QQ
 from sage.rings.power_series_ring import PowerSeriesRing
-from sage.rings.arith import primes, bernoulli
 from sage.rings.integer cimport Integer
+from sage.rings.arith import primes, bernoulli
+from sage.rings.fast_arith cimport prime_range
 from sage.libs.flint.fmpz_poly cimport Fmpz_poly
+
+cpdef Ek_ZZ(int k, int prec=10):
+    """
+    Return list of prec integer coefficients of the weight k
+    Eisenstein series of level 1, normalized so the coefficient of q
+    is 1, except that the 0th coefficient is set to 1 instead of its
+    actual value.
+
+    INPUT:
+
+    - `k` -- int
+    - ``prec`` -- int
+
+    OUTPUT:
+
+    - list of Sage Integers.
+
+    EXAMPLES::
+
+        sage: from sage.modular.modform.eis_series_cython import Ek_ZZ
+        sage: Ek_ZZ(4,10)
+        [1, 1, 9, 28, 73, 126, 252, 344, 585, 757]
+        sage: [sigma(n,3) for n in [1..9]]
+        [1, 9, 28, 73, 126, 252, 344, 585, 757]
+        sage: Ek_ZZ(10,10^3) == [1] + [sigma(n,9) for n in range(1,10^3)]
+        True
+    """
+    cdef Integer pp
+    cdef mpz_t q, current_sum, q_plus_one
+
+    cdef unsigned long p
+    cdef Py_ssize_t i, ind
+    cdef bint continue_flag
+
+    cdef list power_sum_ls
+
+    cdef unsigned long max_power_sum, temp_index
+    cdef unsigned long remainder, prev_index
+    cdef unsigned long additional_p_powers
+
+    mpz_init(q)
+    mpz_init(current_sum)
+    mpz_init(q_plus_one)
+
+    # allocate the list for the result
+    cdef list val = []
+    for i from 0 <= i < prec:
+        pp = <Integer>(PY_NEW(Integer))
+        mpz_set_si(pp.value, 1)
+        val.append(pp)
+
+    # no need to reallocate this list every time -- just reuse the
+    # Integers in it
+    power_sum_ls = []
+    max_power_sum = prec
+    while max_power_sum:
+        max_power_sum >>= 1
+        pp = <Integer>(PY_NEW(Integer))
+        mpz_set_si(pp.value, 1)
+        power_sum_ls.append(pp)
+
+    for pp in prime_range(prec):
+        p = mpz_get_ui((<Integer>pp).value)
+        mpz_ui_pow_ui(q, p, k - 1)
+        mpz_add_ui(q_plus_one, q, 1)
+        mpz_set(current_sum, q_plus_one)
+
+        # NOTE: I (wstein) did benchmarks, and the use of
+        # PyList_GET_ITEM in the code below is worth it since it leads
+        # to a significant speedup by not doing bounds checking.
+
+        # set power_sum_ls[1] = q+1
+        mpz_set((<Integer>(PyList_GET_ITEM(power_sum_ls, 1))).value,
+                current_sum)
+        max_power_sum = 1
+
+        ind = 0
+        while True:
+            continue_flag = 0
+            # do the first p-1
+            for i from 0 < i < p:
+                ind += p
+                if (ind >= prec):
+                    continue_flag = 1
+                    break
+                mpz_mul((<Integer>(PyList_GET_ITEM(val, ind))).value,
+                        (<Integer>(PyList_GET_ITEM(val, ind))).value,
+                        q_plus_one)
+            ind += p
+            if (ind >= prec or continue_flag):
+                break
+
+            # now do the pth one, which is harder.
+
+            # compute the valuation of n at p
+            additional_p_powers = 0
+            temp_index = ind / p
+            remainder = 0
+            while not remainder:
+                additional_p_powers += 1
+                prev_index = temp_index
+                temp_index = temp_index / p
+                remainder = prev_index - p*temp_index
+
+            # if we need a new sum, it has to be the next uncomputed one.
+            if (additional_p_powers > max_power_sum):
+                mpz_mul(current_sum, current_sum, q)
+                mpz_add_ui(current_sum, current_sum, 1)
+                max_power_sum += 1
+
+                mpz_set((<Integer>(PyList_GET_ITEM(power_sum_ls,
+                                                   max_power_sum))).value,
+                        current_sum)
+
+            # finally, set the coefficient
+            mpz_mul((<Integer>(PyList_GET_ITEM(val, ind))).value,
+                    (<Integer>(PyList_GET_ITEM(val, ind))).value,
+                    (<Integer>(PyList_GET_ITEM(power_sum_ls,
+                                               additional_p_powers))).value)
+
+    mpz_clear(q)
+    mpz_clear(current_sum)
+    mpz_clear(q_plus_one)
+
+    return val
 
 
 cpdef eisenstein_series_poly(int k, int prec = 10) :
@@ -22,7 +152,7 @@ cpdef eisenstein_series_poly(int k, int prec = 10) :
     :func:`~sage.modular.modform.vm_basis.victor_miller_basis`; see the
     docstring of the former for further details.
 
-    EXAMPLES :
+    EXAMPLES::
 
         sage: from sage.modular.modform.eis_series_cython import eisenstein_series_poly
         sage: eisenstein_series_poly(12, prec=5)

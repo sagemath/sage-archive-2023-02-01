@@ -1,5 +1,7 @@
 include "../ext/cdefs.pxi"
 
+cpdef prime_range(start, stop=*, algorithm=*, bint py_ints=*)
+
 cdef class arith_int:
     cdef int abs_int(self, int x) except -1
     cdef int sign_int(self, int n) except -2

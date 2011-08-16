@@ -919,6 +919,14 @@ class Graph(GenericGraph):
             sage: g.get_pos() == h.get_pos()
             True
 
+        Loops are not counted as multiedges (see trac 11693) and edges
+        are not counted twice ::
+
+            sage: Graph([[1,1]],multiedges=False).num_edges()
+            1
+            sage: Graph([[1,2],[1,2]],multiedges=True).num_edges()
+            2
+
         Invalid sequence of edges given as an input (they do not all
         have the same length)::
 
@@ -1023,7 +1031,6 @@ class Graph(GenericGraph):
                         if not v in data:
                             data[v] = []
                         data[u].append(v)
-                        data[v].append(u)
 
                     format = 'dict_of_lists'
 

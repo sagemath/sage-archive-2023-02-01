@@ -53,7 +53,7 @@ The patches are applied during the build process.
    exists.  This is safer in general, and should avoid problems if two
    doctests try to create the directory at the same time.
 
- * NOTE: as of matplotlib 1.0.0 and Sage 4.6, Sage does not use
+ * NOTE: as of matplotlib-1.0.0 and Sage 4.6, Sage does not use
    $HOME/.matplotlib (or whatever the user has set in MPLCONFIGDIR).
    Instead, it sets MPLCONFIGDIR to $DOT_SAGE/matplotlib-VER, where
    VER is the matplotlib version number.  This is because of
@@ -77,7 +77,7 @@ The patches are applied during the build process.
 
 == Changelog ==
 
-=== matplotlib 1.0.1.p0 (John Palmieri, 13 Aug 2011) ===
+=== matplotlib-1.0.1.p0 (John Palmieri, 13 Aug 2011) ===
  * Patch __init__.py, finance.py, and texmanager.py to avoid race
    conditions when creating directories.  See Sage trac #11686
    and #10159.
@@ -95,11 +95,12 @@ The patches are applied during the build process.
  * Replaced the "src" directory with a freshly downloaded copy of
    the vanilla source code.
 
-=== matplotlib 1.0.1 (Ryan Grout, 10 Jan 2011) ===
- * Update to matplotlib 1.0.1.  Fixes a handful of annoying bugs in SAGE.
+=== matplotlib-1.0.1 (Ryan Grout, 10 Jan 2011) ===
+ * Update to matplotlib 1.0.1.  Fixes a handful of annoying bugs in Sage.
 
-=== matplotlib 1.0.0 (Jason Grout, 01 Oct 2010) ===
- * Update to matplotlib 1.0.0.  Include two upstream fixes that were committed since 1.0.0.
+=== matplotlib-1.0.0 (Jason Grout, 01 Oct 2010) ===
+ * Update to matplotlib 1.0.0.  Include two upstream fixes that were committed
+   since 1.0.0.
 
 === matplotlib-0.99.3-svn8415 (Jason Grout, 11 Jun 2010) ===
  * Update to SVN revision 8415 (which is 0.99.3 + some bugfixes we
@@ -117,30 +118,40 @@ The patches are applied during the build process.
  * Re-implemented hideous temporary hack (trac 7865).
 
 === matplotlib-0.99.1.p2 (William Stein, 29 Sep 2009) ===
- * Implemented hideous temporary hack to get around issue with pyCXX crashing on OS X 10.6
+ * Implemented hideous temporary hack to get around issue with pyCXX crashing
+   on OS X 10.6
 
 === matplotlib-0.99.1 (Jason Grout, 22 Sep 2009) ===
- * Update to matplotlib 0.99.1.  Several of our patches were incorporated upstream, so deleted those and updated the others.
+ * Update to matplotlib 0.99.1.  Several of our patches were incorporated
+   upstream, so deleted those and updated the others.
 
 === matplotlib-0.99.0 (Jason Grout, August 9th, 2009) ===
  * Update to matplotlib 0.99.0
 
 === matplotlib-0.98.5.3rc0-svn6910.p3 (Michael Abshoff, February 20th, 2009) ===
- * Turn off GUI backend unconditionally since they cause trouble on systems without X, ie. sage.math, too. This might be a bug in Matplotlib, but until this is resolved it stays off.
+ * Turn off GUI backend unconditionally since they cause trouble on
+   systems without X, ie. sage.math, too. This might be a bug in Matplotlib,
+   but until this is resolved it stays off.
 
 === matplotlib-0.98.5.3rc0-svn6910.p2 (William Stein, February 20th, 2009) ===
- * Don't build GUI backends on OS X by default.  See trac #5301. This is really a problem with libpng, so this is temporary.
+ * Don't build GUI backends on OS X by default. See trac #5301. This is
+   really a problem with libpng, so this is temporary.
 
 === matplotlib-0.98.5.3rc0-svn6910.p1 (Jason Grout, February 14, 2009) ===
- * Add a patch for patches.py, which ignores the errors generated when trying to draw arrows that are "too short".
+ * Add a patch for patches.py, which ignores the errors generated when trying
+   to draw arrows that are "too short".
 
 === matplotlib-0.98.5.3rc0-svn6910.p0 (Michael Abshoff, February 14, 2009) ===
  * link against libpng12 instead of libpng (#4774)
  * disable tkagg on all machines since it causes too much trouble
 
 === matplotlib-0.98.5.3rc0-svn6910 (Jason Grout, February 13, 2009) ===
- * Update to the latest SVN version (6910) of Matplotlib and update patches.  Two patches disappear because one patch was just updating quiver.py to a mid-release version and arrow_line.py is now subsumed by much nicer functionality in Matplotlib.
- * removed the two images src/doc/_static/eeg* and src/doc/pyplots/(plotmap.png|tex_demo.pdf|plotmap.hires.png|plotmap.pdf) to save space
+ * Update to the latest SVN version (6910) of Matplotlib and update patches.
+   Two patches disappear because one patch was just updating quiver.py to a
+   mid-release version and arrow_line.py is now subsumed by much nicer
+   functionality in Matplotlib.
+ * in order to save space, removed the two images src/doc/_static/eeg* and
+   src/doc/pyplots/(plotmap.png|tex_demo.pdf|plotmap.hires.png|plotmap.pdf)
 
 === matplotlib-0.98.3.p5 (Michael Abshoff, January 19th, 2009) ===
  * Work around Solaris 10 with gcc 4.3.2 problem in ttconv/pprdrv_tt2.cpp (#5008)
@@ -149,10 +160,12 @@ The patches are applied during the build process.
  * apply Craig Citro's OSX build fix (#4680)
 
 === matplotlib-0.98.3.p3 (William Stein, 25 Nov 2008) ===
- * fix so matplotlib may build in a fallback case (there is a stupid bug in upstreams setupext.py)
+ * fix so matplotlib may build in a fallback case (there is a stupid bug in
+   upstreams setupext.py)
 
 == matplotlib-0.98.3.p2 (Jason Grout, 20 Sep 2008) ===
- * Update quiver.py to the SVN version 6115 to make the vector field plots respect aspect ratio.
+ * Update quiver.py to the SVN version 6115 to make the vector field plots
+   respect aspect ratio.
 
 == matplotlib-0.98.3.p1 (Jason Grout, 03 Sep 2008) ===
  * Add an arrow_line.py file as a patch for "nice" arrows in matplotlib

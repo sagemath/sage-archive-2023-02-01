@@ -83,6 +83,27 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
         """
         Create element of a finite field.
 
+        INPUT:
+
+        - ``parent``: A finite field, the parent of this element.
+        - ``value``: Anything that can be converted into the Pari
+          interface and can be interpreted as an element of ``parent``.
+        - ``value_from_pari``: optional bool, default False. If it evaluates
+          as true, then ``value`` *must* be an element of the
+          Pari interface, and there will be no conversion.
+
+        NOTE:
+
+        If the given value is a list or an element of the vector space
+        associated with the given parent, then it is interpreted as
+        the list of coefficients of a polynomial over the prime subfield,
+        and that polynomial is interpreted as an element of the given
+        parent. The empty list results in zero.
+
+        If ``value_from_pari==True`` then it is assumed that the given value
+        is a suitable representation of the element in Pari, and there is no
+        conversion. Hence, it is very fast, but must be used with care.
+
         EXAMPLES::
 
             sage: from sage.rings.finite_rings.finite_field_ext_pari import FiniteField_ext_pari
@@ -129,6 +150,23 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
             sage: k([ R(-1), x/x ])
             t + 2
 
+        We demonstrate the creation of an element via polynomials::
+
+            sage: k.polynomial()
+            t^11 + 2*t^2 + 1
+            sage: P = k.polynomial_ring()
+            sage: k(P.0^11)
+            t^2 + 2
+
+        We demonstrate the creation of an element via a vector::
+
+            sage: V = k.vector_space()
+            sage: V
+            Vector space of dimension 11 over Finite Field of size 3
+            sage: v = V([0,1,2,0,1,2,0,1,2,0,1])
+            sage: k(v)
+            t^10 + 2*t^8 + t^7 + 2*t^5 + t^4 + 2*t^2 + t
+
         TESTS:
 
         Check that zeros are created correctly (#11685)::
@@ -166,6 +204,26 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
             sage: v = K([1])*K([0]); pari(K(v)).lift()
             Mod(0, 3)
             sage: v = a*0; pari(K(v)).lift()
+            Mod(0, 3)
+
+        The following test documents the optional argument ``value_from_pari``. It is
+        for internal use only and greatly improves the speed in arithmetic
+        operations. However, the example shows why it must only be used
+        carefully::
+
+            sage: from sage.rings.finite_rings.element_ext_pari import FiniteField_ext_pariElement
+            sage: a = FiniteField_ext_pariElement(K,pari(0),value_from_pari=True)
+            sage: a
+            0
+            sage: a == K(0)
+            False
+
+        The reason is that the pari elements representing ``a`` and ``K(0)`` are
+        different::
+
+            sage: pari(a).lift()
+            0
+            sage: pari(K(0)).lift()
             Mod(0, 3)
 
         """

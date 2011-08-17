@@ -1393,8 +1393,8 @@ cdef class FormalCompositeMap(Map):
 
             sage: V1 = QQ^2
             sage: V2 = QQ^3
-            sage: phi1 = (QQ^1).hom(Matrix([[1],[1]]),V1)
-            sage: phi2 = V1.hom(Matrix([[1,2],[3,4],[5,6]]),V2)
+            sage: phi1 = (QQ^1).hom(Matrix([[1,1]]),V1)
+            sage: phi2 = V1.hom(Matrix([[1,2,3],[4,5,6]]),V2)
 
         If both constituents are injective, the composition is injective::
 
@@ -1406,7 +1406,7 @@ cdef class FormalCompositeMap(Map):
         If it can not be determined whether the composition is injective,
         an error is raised::
 
-            sage: psi1 = V2.hom(Matrix([[1,2,3],[4,5,6]]),V1)
+            sage: psi1 = V2.hom(Matrix([[1,2],[3,4],[5,6]]),V1)
             sage: c2 = FormalCompositeMap(Hom(V1,V1,phi2.category_for()),phi2,psi1)
             sage: c2.is_injective()
             Traceback (most recent call last):
@@ -1447,8 +1447,8 @@ cdef class FormalCompositeMap(Map):
 
         If both maps are surjective, the composition is surjective::
 
-            sage: phi32 = V3.hom(Matrix([[1,2,3],[4,5,6]]),V2)
-            sage: phi21 = V2.hom(Matrix([[1,1]]),V1)
+            sage: phi32 = V3.hom(Matrix([[1,2],[3,4],[5,6]]),V2)
+            sage: phi21 = V2.hom(Matrix([[1],[1]]),V1)
             sage: c_phi = FormalCompositeMap(Hom(V3,V1,phi32.category_for()),phi32,phi21)
             sage: c_phi.is_surjective()
             True
@@ -1467,7 +1467,9 @@ cdef class FormalCompositeMap(Map):
 
         Otherwise, surjectivity of the composition can not be determined::
 
-            sage: FormalCompositeMap(Hom(V2,V1,phi32.category_for()),V2.hom(Matrix([[1,1],[1,1]]),V2),V2.hom(Matrix([[1,1]]),V1)).is_surjective()
+            sage: FormalCompositeMap(Hom(V2, V1, phi32.category_for()),
+            ...     V2.hom(Matrix([[1,1], [1,1]]), V2),
+            ...     V2.hom(Matrix([[1], [1]]), V1)).is_surjective()
             Traceback (most recent call last):
             ...
             NotImplementedError: Not enough information to deduce surjectivity.

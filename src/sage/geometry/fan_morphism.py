@@ -1283,7 +1283,7 @@ class FanMorphism(FreeModuleMorphism):
         EXAMPLES::
 
             sage: fan = Fan(rays=[(1,0), (1,1), (0,1)], cones=[(0,1), (1,2)])
-            sage: fm = FanMorphism(matrix([1,-1]), fan, ToricLattice(1))
+            sage: fm = FanMorphism(matrix(2, 1, [1,-1]), fan, ToricLattice(1))
             sage: fm.kernel_fan()
             Rational polyhedral fan in Sublattice <N(1, 1)>
             sage: _.ray_matrix()

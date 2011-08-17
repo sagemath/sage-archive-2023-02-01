@@ -1011,7 +1011,7 @@ class SR_generic(MPolynomialSystemGenerator):
 
         if is_Matrix(d):
             if d.nrows() == r*c*e:
-                return Matrix(k, c, r, self.antiphi(d)).transpose()
+                return Matrix(k, c, r, self.antiphi(d).list()).transpose()
             elif d.ncols() == c and d.nrows() == r and d.base_ring() == k:
                 return d
 
@@ -2129,7 +2129,7 @@ class SR_gf2n(SR_generic):
         if d is None:
             return Matrix(k, r*c*e, 1)
         elif d.ncols() == c and d.nrows() == r and d.base_ring() == k:
-            return Matrix(k, r*c*e, 1, self.phi(d).transpose())
+            return Matrix(k, r*c*e, 1, self.phi(d).transpose().list())
 
     def is_vector(self, d):
         """

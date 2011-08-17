@@ -335,7 +335,10 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             sage: phi + psi
             Traceback (most recent call last):
             ...
-            TypeError: entries has the wrong length
+            ValueError: a matrix from
+            Full MatrixSpace of 3 by 3 dense matrices over Integer Ring
+            cannot be converted to a matrix in
+            Full MatrixSpace of 2 by 2 dense matrices over Integer Ring!
         """
         # TODO: move over to any coercion model!
         if not isinstance(right, MatrixMorphism):
@@ -806,10 +809,10 @@ class MatrixMorphism(MatrixMorphism_abstract):
 
             sage: V1 = QQ^2
             sage: V2 = QQ^3
-            sage: phi = V1.hom(Matrix([[1,2],[3,4],[5,6]]),V2)
+            sage: phi = V1.hom(Matrix([[1,2,3],[4,5,6]]),V2)
             sage: phi.is_injective()
             True
-            sage: psi = V2.hom(Matrix([[1,2,3],[4,5,6]]),V1)
+            sage: psi = V2.hom(Matrix([[1,2],[3,4],[5,6]]),V1)
             sage: psi.is_injective()
             False
 
@@ -827,10 +830,10 @@ class MatrixMorphism(MatrixMorphism_abstract):
 
             sage: V1 = QQ^2
             sage: V2 = QQ^3
-            sage: phi = V1.hom(Matrix([[1,2],[3,4],[5,6]]), V2)
+            sage: phi = V1.hom(Matrix([[1,2,3],[4,5,6]]), V2)
             sage: phi.is_surjective()
             False
-            sage: psi = V2.hom(Matrix([[1,2,3],[4,5,6]]), V1)
+            sage: psi = V2.hom(Matrix([[1,2],[3,4],[5,6]]), V1)
             sage: psi.is_surjective()
             True
 

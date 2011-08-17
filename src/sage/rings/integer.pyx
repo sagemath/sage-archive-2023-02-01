@@ -531,12 +531,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         ::
 
-            sage: t = pari(0*ZZ[x].0 + 3)
-            sage: t.type()
-            't_POL'
-            sage: ZZ(t)
-            3
-
             sage: ZZ(float(2.0))
             2
             sage: ZZ(float(1.0/0.0))
@@ -569,6 +563,39 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             0
             sage: Integer(u'0X2AEEF')
             175855
+
+        Test conversion from PARI (#11685)::
+
+            sage: ZZ(pari(-3))
+            -3
+            sage: ZZ(pari("-3.0"))
+            -3
+            sage: ZZ(pari("-3.5"))
+            Traceback (most recent call last):
+            ...
+            TypeError: Attempt to coerce non-integral real number to an Integer
+            sage: ZZ(pari("1e100"))
+            Traceback (most recent call last):
+            ...
+            PariError: precision too low (10)
+            sage: ZZ(pari("10^50"))
+            100000000000000000000000000000000000000000000000000
+            sage: ZZ(pari("Pol(3)"))
+            3
+            sage: ZZ(GF(3^20,'t')(1))
+            1
+            sage: ZZ(pari(GF(3^20,'t')(1)))
+            1
+            sage: x = polygen(QQ)
+            sage: K.<a> = NumberField(x^2+3)
+            sage: ZZ(a^2)
+            -3
+            sage: ZZ(pari(a)^2)
+            -3
+            sage: ZZ(pari("Mod(x, x^3+x+1)"))   # Note error message refers to lifted element
+            Traceback (most recent call last):
+            ...
+            TypeError: Unable to coerce PARI x to an Integer
         """
 
         # TODO: All the code below should somehow be in an external
@@ -583,6 +610,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         cdef Integer tmp
         cdef char* xs
+        cdef int paritype
 
         cdef Element lift
 
@@ -613,28 +641,34 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                     raise TypeError, "Cannot convert non-integral float to integer"
 
             elif PY_TYPE_CHECK(x, pari_gen):
-
-                if typ((<pari_gen>x).g) == t_INT:
-                    t_INT_to_ZZ(self.value, (<pari_gen>x).g)
-
-                else:
-                    if typ((<pari_gen>x).g) == t_INTMOD:
+                # Simplify and lift until we get an integer
+                while typ((<pari_gen>x).g) != t_INT:
+                    x = x.simplify()
+                    paritype = typ((<pari_gen>x).g)
+                    if paritype == t_INT:
+                        break
+                    elif paritype == t_REAL:
+                        # Check that the fractional part is zero
+                        if not x.frac().gequal0():
+                            raise TypeError, "Attempt to coerce non-integral real number to an Integer"
+                        # floor yields an integer
+                        x = x.floor()
+                        break
+                    elif paritype == t_PADIC:
+                        # Lifting a PADIC yields an integer
                         x = x.lift()
-                    # TODO: figure out how to convert to pari integer in base 16 ?
+                        break
+                    elif paritype == t_INTMOD:
+                        # Lifting an INTMOD yields an integer
+                        x = x.lift()
+                        break
+                    elif paritype == t_POLMOD:
+                        x = x.lift()
+                    else:
+                        raise TypeError, "Unable to coerce PARI %s to an Integer"%x
 
-                    # todo: having this "s" variable around here is causing
-                    # Cython to play games with refcount for the None object, which
-                    # seems really stupid.
-
-                    try:
-                        s = hex(x)
-                        base = 16
-                    except:
-                        s = str(x)
-                        base = 10
-
-                    if mpz_set_str(self.value, s, base) != 0:
-                        raise TypeError, "Unable to coerce PARI %s to an Integer."%x
+                # Now we have a true PARI integer, convert it to Sage
+                t_INT_to_ZZ(self.value, (<pari_gen>x).g)
 
             elif PyString_Check(x) or PY_TYPE_CHECK(x,unicode):
                 if base < 0 or base > 36:

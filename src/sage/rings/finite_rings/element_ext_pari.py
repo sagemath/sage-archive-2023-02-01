@@ -79,7 +79,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
         sage: a - a == K(0)
         True
     """
-    def __init__(self, parent, value, check=True):
+    def __init__(self, parent, value, value_from_pari=False):
         """
         Create element of a finite field.
 
@@ -114,36 +114,89 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
             2*t
             sage: pari(x)
             Mod(Mod(2, 5)*a, Mod(1, 5)*a^2 + Mod(3, 5))
+
+        When initializing from a list, the elements are first coerced
+        to the prime field (#11685)::
+
+            sage: k = FiniteField_ext_pari(3^11, 't')
+            sage: k([ 0, 1/2 ])
+            2*t
+            sage: k([ k(0), k(1) ])
+            t
+            sage: k([ GF(3)(2), GF(3^5,'u')(1) ])
+            t + 2
+            sage: R.<x> = PolynomialRing(k)
+            sage: k([ R(-1), x/x ])
+            t + 2
+
+        TESTS:
+
+        Check that zeros are created correctly (#11685)::
+
+            sage: from sage.rings.finite_rings.finite_field_ext_pari import FiniteField_ext_pari
+            sage: K = FiniteField_ext_pari(3^11, 't'); a = K.0
+            sage: v = 0; pari(K(v)).lift()
+            Mod(0, 3)
+            sage: v = Mod(0,3); pari(K(v)).lift()
+            Mod(0, 3)
+            sage: v = pari(0); pari(K(v)).lift()
+            Mod(0, 3)
+            sage: v = pari("Mod(0,3)"); pari(K(v)).lift()
+            Mod(0, 3)
+            sage: v = []; pari(K(v)).lift()
+            Mod(0, 3)
+            sage: v = [0]; pari(K(v)).lift()
+            Mod(0, 3)
+            sage: v = [0,0]; pari(K(v)).lift()
+            Mod(0, 3)
+            sage: v = pari("Pol(0)"); pari(K(v)).lift()
+            Mod(0, 3)
+            sage: v = pari("Mod(0, %s)"%K._pari_modulus()); pari(K(v)).lift()
+            Mod(0, 3)
+            sage: v = pari("Mod(Pol(0), %s)"%K._pari_modulus()); pari(K(v)).lift()
+            Mod(0, 3)
+            sage: v = K(1) - K(1); pari(K(v)).lift()
+            Mod(0, 3)
+            sage: v = K([1]) - K([1]); pari(K(v)).lift()
+            Mod(0, 3)
+            sage: v = a - a; pari(K(v)).lift()
+            Mod(0, 3)
+            sage: v = K(1)*0; pari(K(v)).lift()
+            Mod(0, 3)
+            sage: v = K([1])*K([0]); pari(K(v)).lift()
+            Mod(0, 3)
+            sage: v = a*0; pari(K(v)).lift()
+            Mod(0, 3)
+
         """
         field_element.FieldElement.__init__(self, parent)
         self.__class__ = dynamic_FiniteField_ext_pariElement
-        if isinstance(value, str):
-            raise TypeError, "value must not be a string"
-        if not check:
-            if not value:  # see comment below about this workaround
-                self.__value = pari(0).Mod(parent._pari_modulus())*parent._pari_one()
-            else:
-                self.__value = value
+
+        # If value_from_pari is True, directly set self.__value to value.
+        # This assumes that value is a POLMOD with the correct modulus
+        # whose lift is either an INTMOD or a POL with INTMOD
+        # coefficients. In practice, this means that value comes from a
+        # PARI calculation with other elements of this finite field.
+        # This assumption is not checked.
+        if value_from_pari:
+            self.__value = value
             return
+
         try:
             if isinstance(value, pari_gen):
                 try:
                     # In some cases we get two different versions of
                     # the 0 element of a finite field.  This has to do
-                    # with how PARI's Mod function works -- it treats
-                    # 0 differently.  In particular, if value is a a
-                    # pari t_POLMOD that is 0, modding it simply
-                    # doesn't work correctly.  We fix this by changing
-                    # the value in the 0 case to the standard pari 0,
-                    # which works correctly.  Note -- probably all
-                    # this code should be replaced by much faster
-                    # finite field arithmetic programmed against NTL.
-                    if not value:
-                        value = pari(0)
-                    if value.type() == "t_POLMOD":
-                        self.__value = value * parent._pari_one()
-                    else:
-                        self.__value = value.Mod(parent._pari_modulus())*parent._pari_one()
+                    # with how PARI's Mod() function works -- it treats
+                    # polynomials different from integers.
+                    # Also, we need to fix things like ``1/Mod(3,5)`` when
+                    # we want ``Mod(2,5)``.
+                    # These issues are solved by first simplifying the
+                    # given value.
+                    value = value.simplify()
+                    if value.type() != "t_POLMOD":
+                        value = value.Mod(parent._pari_modulus())
+                    self.__value = value * parent._pari_one()
                 except RuntimeError:
                     raise TypeError, "no possible coercion implemented"
             elif isinstance(value, FiniteField_ext_pariElement):
@@ -158,11 +211,32 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
                 for i in range(len(value)):
                     self.__value = self.__value + pari(int(value[i])).Mod(parent._pari_modulus())*pari("a^%s"%i)
             elif isinstance(value, list):
-                # Make the list into a polynomial with variable "a",
-                # multiply it with _pari_one (which equals Mod(1,p)) to
-                # fix the characteristic and then mod out by the modulus.
-                # See #10486.
-                self.__value = (pari(value).Polrev("a") * parent._pari_one()).Mod(parent._pari_modulus())
+                # AUTHOR: Jeroen Demeyer
+                # See Trac #10486 and #11685 for comments about this
+                # implementation
+
+                # We need a special case for the empty list because
+                # PARI's ``Pol([])`` returns an exact 0 while we want
+                # ``Mod(0,3)``.
+                if not value:
+                    value = [0]
+                try:
+                    # First, try the conversion directly in PARI.  This
+                    # should cover the most common cases, like converting
+                    # from integers or intmods.
+                    # Convert the list to PARI, then mod out the
+                    # characteristic (PARI can do this directly for lists),
+                    # convert to a polynomial with variable "a" and finally
+                    # mod out the field modulus.
+                    self.__value = pari(value).Mod(parent.characteristic()).Polrev("a").Mod(parent._pari_modulus())
+                except RuntimeError:
+                    # That didn't work, do it in a more general but also
+                    # slower way: first convert all list elements to the
+                    # prime field.
+                    GFp = parent.prime_subfield()
+                    self.__value = pari([GFp(c) for c in value]).Polrev("a").Mod(parent._pari_modulus())
+            elif isinstance(value, str):
+                raise TypeError, "value must not be a string"
             else:
                 try:
                     self.__value = pari(value).Mod(parent._pari_modulus())*parent._pari_one()
@@ -378,7 +452,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
             sage: a is a
             True
         """
-        return FiniteField_ext_pariElement(self.parent(), self.__value, check=False)
+        return FiniteField_ext_pariElement(self.parent(), self.__value, value_from_pari=True)
 
     def _pari_(self, var=None):
         """
@@ -489,18 +563,18 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
             raise TypeError, "Parents of finite field elements must be equal."
 
     def _add_(self, right):
-        return FiniteField_ext_pariElement(self.parent(), self.__value + right.__value, check=False)
+        return FiniteField_ext_pariElement(self.parent(), self.__value + right.__value, value_from_pari=True)
 
     def _sub_(self, right):
-        return FiniteField_ext_pariElement(self.parent(), self.__value - right.__value, check=False)
+        return FiniteField_ext_pariElement(self.parent(), self.__value - right.__value, value_from_pari=True)
 
     def _mul_(self, right):
-        return FiniteField_ext_pariElement(self.parent(), self.__value * right.__value, check=False)
+        return FiniteField_ext_pariElement(self.parent(), self.__value * right.__value, value_from_pari=True)
 
     def _div_(self, right):
         if right.__value == 0:
             raise ZeroDivisionError
-        return FiniteField_ext_pariElement(self.parent(), self.__value / right.__value, check=False)
+        return FiniteField_ext_pariElement(self.parent(), self.__value / right.__value, value_from_pari=True)
 
     def __int__(self):
         try:
@@ -523,18 +597,42 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
         except ValueError:
             raise TypeError, "cannot coerce to float"
 
-    # commented out because PARI (used for .__value) prints
-    # out crazy warnings when the exponent is LARGE -- this
-    # is even a problem in gp!!!
-    # (Commenting out causes this to use a generic algorithm)
-    #def __pow__(self, _right):
-    #    right = int(_right)
-    #    if right != _right:
-    #         raise ValueError
-    #    return FiniteField_ext_pariElement(self.parent(), self.__value**right, check=False)
+    def __pow__(self, _right):
+        """
+        TESTS::
+
+            sage: K.<a> = GF(5^10)
+            sage: n = (2*a)/a
+
+        Naively compute n^-15 in PARI, note that the result is `1/3`.
+        This is mathematically correct (modulo 5), but not what we want.
+        In particular, comparisons will fail::
+
+            sage: pari(n)^-15
+            Mod(1/Mod(3, 5), Mod(1, 5)*a^10 + Mod(3, 5)*a^5 + Mod(3, 5)*a^4 + Mod(2, 5)*a^3 + Mod(4, 5)*a^2 + Mod(1, 5)*a + Mod(2, 5))
+
+        We need to ``simplify()`` the result (which is done in the
+        ``FiniteField_ext_pariElement()`` constructor::
+
+            sage: n^-15
+            2
+
+        Large exponents are not a problem::
+
+            sage: e = 3^10000
+            sage: a^e
+            2*a^9 + a^5 + 4*a^4 + 4*a^3 + a^2 + 3*a
+            sage: a^(e % (5^10 - 1))
+            2*a^9 + a^5 + 4*a^4 + 4*a^3 + a^2 + 3*a
+        """
+        right = int(_right)
+        if right != _right:
+             raise ValueError
+        # It is important to set value_from_pari=False, see doctest above!
+        return FiniteField_ext_pariElement(self.parent(), self.__value**right, value_from_pari=False)
 
     def __neg__(self):
-        return FiniteField_ext_pariElement(self.parent(), -self.__value, check=False)
+        return FiniteField_ext_pariElement(self.parent(), -self.__value, value_from_pari=True)
 
     def __pos__(self):
         return self
@@ -552,11 +650,13 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
             a + 2
             sage: (a+1)*a
             2*a + 1
+            sage: ~((2*a)/a)
+            2
         """
 
         if self.__value == 0:
             raise ZeroDivisionError, "Cannot invert 0"
-        return FiniteField_ext_pariElement(self.parent(), ~self.__value, check=False)
+        return FiniteField_ext_pariElement(self.parent(), ~self.__value, value_from_pari=True)
 
     def lift(self):
         """

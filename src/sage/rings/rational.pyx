@@ -429,7 +429,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: Rational(pari('x'))
             Traceback (most recent call last):
             ...
-            TypeError: Unable to coerce PARI x to an Integer.
+            TypeError: Unable to coerce PARI x to an Integer
         """
         mpq_set_str(self.value, s, 32)
 

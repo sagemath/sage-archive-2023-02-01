@@ -1838,10 +1838,31 @@ cdef class gen(sage.structure.element.RingElement):
             sage: a.gequal(c)
             False
         """
-        global t0
         t0GEN(b)
         sig_on()
-        ret = gequal(a.g, t0)
+        cdef int ret = gequal(a.g, t0)
+        sig_off()
+        return ret != 0
+
+    def gequal0(gen a):
+        r"""
+        Check whether `a` is equal to zero.
+
+        EXAMPLES::
+
+            sage: pari(0).gequal0()
+            True
+            sage: pari(1).gequal0()
+            False
+            sage: pari(1e-100).gequal0()
+            False
+            sage: pari("0.0 + 0.0*I").gequal0()
+            True
+            sage: pari(GF(3^20,'t')(0)).gequal0()
+            True
+        """
+        sig_on()
+        cdef int ret = gequal0(a.g)
         sig_off()
         return ret != 0
 
@@ -1868,7 +1889,7 @@ cdef class gen(sage.structure.element.RingElement):
             False
         """
         sig_on()
-        ret = gequalsg(b, a.g)
+        cdef int ret = gequalsg(b, a.g)
         sig_off()
         return ret != 0
 

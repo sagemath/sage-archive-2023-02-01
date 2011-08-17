@@ -40,12 +40,12 @@ The following patches are in the patches subdirectory.
 The patches are applied during the build process.
 
  * setupext.py.patch: explicitly searches for and uses 'libpng12'
-   instead of 'libpng' to apparently avoid some name clashes on OS X.
-   As of spkg version 1.0.1.p0, this patch is only applied on OS X,
-   and it tests for the presence of 'pkg-config': if it is not
-   installed, then it uses libpng12 instead of libpng, as above;
-   otherwise it uses libpng, which is the behavior before the patch.
-   See Sage trac #4774 and #11686.
+   instead of 'libpng' to apparently avoid some name clashes on OS X
+   and other platforms which don't have 'pkg-config' installed.
+   As of spkg version 1.0.1.p0, this patch tests for the presence of
+   'pkg-config': if it is not installed, then it uses libpng12 instead
+   of libpng, as above; otherwise it uses libpng, which is the
+   behavior before the patch. See Sage trac #4774 and #11686.
 
  * __init__.py.patch, finance.py.patch, texmanager.py.patch: instead
    of "if not.os.path.exists(DIR): os.mkdir(DIR)", do "try
@@ -77,7 +77,7 @@ The patches are applied during the build process.
 
 == Changelog ==
 
-=== matplotlib-1.0.1.p0 (John Palmieri, 13 Aug 2011) ===
+=== matplotlib-1.0.1.p0 (John Palmieri, 17 Aug 2011) ===
  * Patch __init__.py, finance.py, and texmanager.py to avoid race
    conditions when creating directories.  See Sage trac #11686
    and #10159.
@@ -87,10 +87,9 @@ The patches are applied during the build process.
  * Changed spkg-install so that the patches are now applied using
    'patch'.
 
- * The patch to setupext.py is now only applied on OS X.  The patch
-   itself tests whether pkg-config is installed: if so, it maintains
-   the status quo, and if not, it passes the argument 'libpng12' when
-   configuring the png package.
+ * The patch to setupext.py tests whether pkg-config is installed: if
+   so, it maintains the status quo, and if not, it passes the argument
+   'libpng12' when configuring the png package.
 
  * Replaced the "src" directory with a freshly downloaded copy of
    the vanilla source code.

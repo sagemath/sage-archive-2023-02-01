@@ -17,8 +17,8 @@ python make-setup-config.py
 
 cd src
 
-# Apply patches for all platforms.  See SPKG.txt for information about
-# what each patch does.
+# Apply patches.  See SPKG.txt for information about what each patch
+# does.
 for patch in ../patches/*.patch; do
     patch -p1 <"$patch"
     if [ $? -ne 0 ]; then
@@ -26,17 +26,6 @@ for patch in ../patches/*.patch; do
         exit 1
     fi
 done
-
-# Apply patches for OS X.
-if [ "$UNAME" = "Darwin" ]; then
-    for patch in ../patches/Darwin/*.patch; do
-	patch -p1 <"$patch"
-	if [ $? -ne 0 ]; then
-            echo >&2 "Error applying '$patch'"
-            exit 1
-	fi
-    done
-fi
 
 # Now build
 python setup.py build

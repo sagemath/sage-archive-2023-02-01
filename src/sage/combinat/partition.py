@@ -1843,6 +1843,66 @@ class Partition_class(CombinatorialObject):
     r_quotient = deprecated_function_alias(quotient,
         'Sage Version 4.3')
 
+    def is_core(self, k):
+        r"""
+        Tests whether the partition is a `k`-core or not. Visuallly, this can be checked
+        by trying to remove border strips of size `k` from ``self``. If this is not possible,
+        then ``self`` is a `k`-core.
+
+        EXAMPLES::
+
+            sage: p = Partition([12,8,5,5,2,2,1])
+            sage: p.is_core(4)
+            False
+            sage: p.is_core(5)
+            True
+            sage: p.is_core(0)
+            True
+        """
+        return not k in self.hooks()
+
+    def k_interior(self, k):
+        r"""
+        Returns the partition consisting of the cells of ``self``,
+        whose hook lengths are greater than `k`.
+
+        EXAMPLES::
+
+            sage: p = Partition([3,2,1])
+            sage: p.hook_lengths()
+            [[5, 3, 1], [3, 1], [1]]
+            sage: p.k_interior(2)
+            [2, 1]
+            sage: p.k_interior(3)
+            [1]
+
+            sage: p = Partition([])
+            sage: p.k_interior(3)
+            []
+        """
+        return Partition([len([i for i in row if i > k])
+                          for row in self.hook_lengths()])
+
+    def k_boundary(self, k):
+        r"""
+        Returns the skew partition formed by removing the cells of the
+        `k`-interior, see :meth:`k_interior`.
+
+        EXAMPLES::
+
+            sage: p = Partition([3,2,1])
+            sage: p.k_boundary(2)
+            [[3, 2, 1], [2, 1]]
+            sage: p.k_boundary(3)
+            [[3, 2, 1], [1]]
+
+            sage: p = Partition([12,8,5,5,2,2,1])
+            sage: p.k_boundary(4)
+            [[12, 8, 5, 5, 2, 2, 1], [8, 5, 2, 2]]
+        """
+        # bypass the checks
+        return sage.combinat.skew_partition.SkewPartition_class(
+            (self, self.k_interior(k)))
 
     def add_cell(self, i, j = None):
         r"""

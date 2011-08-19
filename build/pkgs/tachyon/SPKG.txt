@@ -1,6 +1,5 @@
 = tachyon =
 
-
 == Description ==
 
 Tachyon is a raytracer developed by John E. Stone. Tachyon supports
@@ -57,24 +56,49 @@ This spkg depends on:
 == Special Update/Build Instructions ==
 
  * Delete the scenes directory, which has lots of cool examples.
- * Delete the msvc directory
+ * Delete the msvc directory, which is also large and not used within Sage.
+ * The CVS subdirectories are currently (almost) empty, but should
+   otherwise be deleted.
+ * The upstream files had strange permissions, i.e. some source files
+   were executable, while almost all files weren't world-readable.
+ * There's seems to be some crap like `tachyon.html.tar.gz` and a few
+   `.#*` files I haven't [yet] deleted, since they're not that large.
+ * TODO: Check whether building multi-threaded versions on MacOS X
+         meanwhile works. (This was said to fail with an old beta.)
+ * TODO: Use `patch` instead of copying over pre-patched files.
+ * TODO: [Optionally] also install some of the documentation.
+ * TODO: I doubt the CFLAGS set for AIX and HP-UX won't get overridden
+         by the created Makefile, but that's a minor issue. -leif
 
 
 == Changelog ==
 
-=== tachyon-0.98.9.p4 (Karl-Dieter Crisman, June 22, 2011)
+=== tachyon-0.98.9.p5 (William Stein and Leif Leonhardy, August 19th 2011) ===
+ * #11706: Make package build on 64-bit PPC Linux, too (by using the `linux-ppc`
+   `make` target, which works for ppc64 as well).
+ * Check exit codes of `cp`, especially in the last case where the built
+   Tachyon executable gets installed. Also use `cp -p` (and `-f`) there, to
+   avoid permission issues in multi-user environments.
+ * Quote all instances of `$UNAME`.
+ * Copy / install `tachyon.exe` (instead of `tachyon`) on Cygwin.
+ * Make `spkg-install` executable.
+ * Fix all file permissions (see Special Update/Build Instructions).
+ * Fix mark-up of headings of changelog entries.
+ * Minor cosmetic clean-up.
+
+=== tachyon-0.98.9.p4 (Karl-Dieter Crisman, June 22, 2011) ===
  * #11504: Made package build on Cygwin (again)
 
-=== tachyon-0.98.9.p3 (Julien Puydt, March 12, 2011)
+=== tachyon-0.98.9.p3 (Julien Puydt, March 12, 2011) ===
  * #10820: Made package compile on ARM
 
-=== tachyon-0.98.9.p2 (Volker Braun, January 24, 2011)
+=== tachyon-0.98.9.p2 (Volker Braun, January 24, 2011) ===
  * #10681: Remove "CC=cc" for the maxosx (32-bit) make target
 
-=== tachyon-0.98.9.p1 (Willem Jan Palenstijn, January 12, 2011)
+=== tachyon-0.98.9.p1 (Willem Jan Palenstijn, January 12, 2011) ===
  * #10609: Fix filename extension detection
 
-=== tachyon-0.98.9 (Marshall Hampton, David Kirkby, Volker Braun, Leif Leonhardy January 11, 2011)
+=== tachyon-0.98.9 (Marshall Hampton, David Kirkby, Volker Braun, Leif Leonhardy, January 11, 2011) ===
  * #5281: upgrade to 0.98.9 form 0.98.beta.
  * Also cleaned up SPKG.txt and spkg-install.
  * Deleted scenes folder and msvc folders to save space.

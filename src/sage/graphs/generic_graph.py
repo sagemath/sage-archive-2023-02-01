@@ -14232,6 +14232,11 @@ class GenericGraph(GenericGraph_pyx):
         identity matrix of dimensions the same as `A`. The characteristic
         polynomial of `G` is defined as the determinant `\det(xI - A)`.
 
+        .. note::
+
+            ``characteristic_polynomial`` and ``charpoly`` are aliases and
+            thus provide exactly the same method.
+
         INPUT:
 
         - ``x`` -- (default: ``'x'``) the variable of the characteristic
@@ -14251,13 +14256,19 @@ class GenericGraph(GenericGraph_pyx):
             sage: P = graphs.PetersenGraph()
             sage: P.characteristic_polynomial()
             x^10 - 15*x^8 + 75*x^6 - 24*x^5 - 165*x^4 + 120*x^3 + 120*x^2 - 160*x + 48
+            sage: P.charpoly()
+            x^10 - 15*x^8 + 75*x^6 - 24*x^5 - 165*x^4 + 120*x^3 + 120*x^2 - 160*x + 48
             sage: P.characteristic_polynomial(laplacian=True)
-            x^10 - 30*x^9 + 390*x^8 - 2880*x^7 + 13305*x^6 - 39882*x^5 + 77640*x^4 - 94800*x^3 + 66000*x^2 - 20000*x
+            x^10 - 30*x^9 + 390*x^8 - 2880*x^7 + 13305*x^6 -
+            39882*x^5 + 77640*x^4 - 94800*x^3 + 66000*x^2 - 20000*x
         """
         if laplacian:
             return self.kirchhoff_matrix().charpoly(var=var)
         else:
             return self.adjacency_matrix().charpoly(var=var)
+
+    # alias, consistent with linear algebra code
+    charpoly = characteristic_polynomial
 
     def eigenvectors(self, laplacian=False):
         r"""

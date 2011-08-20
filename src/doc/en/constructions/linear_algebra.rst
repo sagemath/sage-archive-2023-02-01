@@ -238,36 +238,37 @@ gives matrices :math:`D` and :math:`P` such that :math:`AP=DP` (resp.
     sage: A*P == P*D
     True
 
-A word of caution - if the eigenvalues are not in the fraction field
-of the base ring of the matrix space (the eigenvalues below are
-:math:`\pm \sqrt{3}`) then the output of ``eigenspaces_right`` and
-``code{eigenspaces_left`` only lists a single eigenspace for each
-irreducible factor of the characteristic polynomial.
+For eigenvalues outside the fraction field of the base ring of the matrix,
+you can choose to have all the eigenspaces output when the algebraic closure
+of the field is implemented, such as the algebraic numbers, ``QQbar``.  Or you
+may request just a single eigenspace for each irreducible factor of the
+characteristic polynomial, since the others may be formed through Galois
+conjugation.  The eigenvalues of the matrix below are $\pm\sqrt{3}$ and
+we exhibit each possible output.
 
-Also, currently Sage does not implement multiprecision numerical
-eigenvalues/eigenvectors, so calling the eigen functions on a matrix
-from ``CC`` or ``RR`` will probably give inaccurate and
-nonsensical results (a warning is also printed).  Matrices over
-``CDF`` and ``RDF`` should work, though.
-
-::
+Also, currently Sage does not implement multiprecision numerical eigenvalues
+and eigenvectors, so calling the eigen functions on a matrix from
+``CC`` or ``RR`` will probably give inaccurate and nonsensical results
+(a warning is also printed).  Eigenvalues and eigenvectors of matrices with
+floating point entries (over ``CDF`` and ``RDF``) can be obtained with the
+"eigenmatrix" commands.  ::
 
     sage: MS = MatrixSpace(QQ, 2, 2)
     sage: A = MS([1,-4,1, -1])
-    sage: A.eigenspaces_left()
+    sage: A.eigenspaces_left(format='all')
+    [
+    (-1.732050807568878?*I, Vector space of degree 2 and dimension 1 over Algebraic Field
+    User basis matrix:
+    [                        1 -1 - 1.732050807568878?*I]),
+    (1.732050807568878?*I, Vector space of degree 2 and dimension 1 over Algebraic Field
+    User basis matrix:
+    [                        1 -1 + 1.732050807568878?*I])
+    ]
+    sage: A.eigenspaces_left(format='galois')
     [
     (a0, Vector space of degree 2 and dimension 1 over Number Field in a0 with defining polynomial x^2 + 3
     User basis matrix:
     [     1 a0 - 1])
-    ]
-    sage: MS = MatrixSpace(CC, 2, 2)
-    sage: A = MS([1,-4,1, -1])
-    sage: A.eigenspaces() # random output
-    [
-    (1.73205080756888*I, [
-    ]),
-    (-1.73205080756888*I, [
-    ])
     ]
 
 Another approach is to use the interface with Maxima:

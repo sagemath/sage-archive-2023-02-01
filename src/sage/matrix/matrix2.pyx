@@ -4366,6 +4366,74 @@ cdef class Matrix(matrix1.Matrix):
     # Removed July 2011
     # def eigenspaces(self, var='a', even_if_inexact=None):
 
+    def _eigenspace_format(self, format):
+        r"""
+        Helper method to control output format for eigenspaces.
+
+        INPUT:
+
+        - ``format`` - ``None``, ``'all'`` or ``'galois'``
+
+        OUTPUT:
+
+        Any format except ``None`` is just passed through.  When the
+        format is ``None`` a choice is made about the style of the output.
+        If there is an algebraically closed field that will contain the
+        possible eigenvalues, then 'all" of the eigenspaces are given.
+
+        However if this is not the case, then only one eigenspace is output
+        for each irreducible factor of the characteristic polynomial.
+
+        EXAMPLES:
+
+        Pass-through first.  ::
+
+            sage: A = matrix(QQ, 2, range(4))
+            sage: A._eigenspace_format('all') == 'all'
+            True
+            sage: A._eigenspace_format('galois') == 'galois'
+            True
+
+        The algebraic closure of the rationals, the field of algebraic numbers,
+        (aka ``QQbar``) is implemented, while in general the algebraic closure
+        of a finite field is not implemented.  ::
+
+            sage: A = matrix(QQ, 2, range(4))
+            sage: A._eigenspace_format(None) == 'all'
+            True
+            sage: B = matrix(GF(13), 2, range(4))
+            sage: B._eigenspace_format(None) == 'galois'
+            True
+
+        Subrings are promoted to fraction fields and then checked for the
+        existence of algebraic closures.  ::
+
+            sage: A = matrix(ZZ, 2, range(4))
+            sage: A._eigenspace_format(None) == 'all'
+            True
+        """
+        if not format in [None, 'all', 'galois']:
+            msg = "format keyword must be None, 'all' or 'galois', not {0}"
+            raise ValueError(msg.format(format))
+
+        # For subrings of implemented algebraically closed fields we
+        #   default to all eigenspaces in the absence of a format keyword
+        # Add newly implemented algebraically closed fields to list below
+        #   and implement the determintion of the actual eigenvalues
+        #   in the eigenspace_left() routine
+        if format is None:
+            R = self.base_ring()
+            from sage.rings.qqbar import QQbar
+            try:
+                if R.fraction_field().algebraic_closure() in [QQbar]:
+                    return 'all'
+                else:
+                    return 'galois'
+            except (NotImplementedError, AttributeError):
+                return 'galois'
+        else:
+            return format
+
     def eigenspaces_left(self, format='all', var='a', algebraic_multiplicity=False):
         r"""
         Compute the left eigenspaces of a matrix.
@@ -4379,12 +4447,16 @@ cdef class Matrix(matrix1.Matrix):
         - ``self`` - a square matrix over an exact field.  For inexact
           matrices consult the numerical or symbolic matrix classes.
 
-        - ``format`` - default: 'all'
-          - 'all' - attempts to create every eigenspace.  This will
+        - ``format`` - default: ``None``
+
+          - ``'all'`` - attempts to create every eigenspace.  This will
             always be possible for matrices with rational entries.
-          - 'galois' - for each irreducible factor of the characteristic
+          - ``'galois'`` - for each irreducible factor of the characteristic
             polynomial, a single eigenspace will be output for a
             single root/eigenvalue for the irreducible factor.
+          - ``None`` - Uses the 'all' format if the base ring is contained
+            in an algebraically closed field which is implemented.
+            Otherwise, uses the 'galois' format.
 
         - ``var`` - default: 'a' - variable name used to
           represent elements of the root field of each
@@ -4619,24 +4691,25 @@ cdef class Matrix(matrix1.Matrix):
             sage: B.eigenspaces_left(format='junk')
             Traceback (most recent call last):
             ...
-            ValueError: format keyword must be 'all' or 'galois', not junk
+            ValueError: format keyword must be None, 'all' or 'galois', not junk
 
             sage: B.eigenspaces_left(algebraic_multiplicity='garbage')
             Traceback (most recent call last):
             ...
             ValueError: algebraic_multiplicity keyword must be True or False
-
         """
-        if not format in ['all', 'galois']:
-            raise ValueError("format keyword must be 'all' or 'galois', not {0}".format(format))
         if not algebraic_multiplicity in [True, False]:
-            raise ValueError('algebraic_multiplicity keyword must be True or False'.format(algebraic_multiplicity))
+            msg = 'algebraic_multiplicity keyword must be True or False'
+            raise ValueError(msg.format(algebraic_multiplicity))
         if not self.is_square():
-            raise TypeError('matrix must be square, not {0} x {1}'.format(self.nrows(), self.ncols()))
+            msg = 'matrix must be square, not {0} x {1}'
+            raise TypeError(msg.format(self.nrows(), self.ncols()))
         if not self.base_ring().is_exact():
             msg = ("eigenspaces cannot be computed reliably for inexact rings such as {0},\n",
                    "consult numerical or symbolic matrix classes for other options")
             raise NotImplementedError(''.join(msg).format(self.base_ring()))
+
+        format = self._eigenspace_format(format)
 
         key = 'eigenspaces_left_' + format + '{0}'.format(var)
         x = self.fetch(key)
@@ -4651,8 +4724,9 @@ cdef class Matrix(matrix1.Matrix):
         # use minpoly when algebraic_multiplicity=False
         # as of 2007-03-25 minpoly is unreliable via linbox
 
-        import sage.rings.qqbar
         import sage.categories.homset
+        import sage.rings.qqbar
+
         G = self.fcp()   # factored characteristic polynomial
         V = []
         i = -1 # variable name index, increments for each eigenvalue
@@ -4708,12 +4782,16 @@ cdef class Matrix(matrix1.Matrix):
         - ``self`` - a square matrix over an exact field.  For inexact
           matrices consult the numerical or symbolic matrix classes.
 
-        - ``format`` - default: 'all'
-          - 'all' - attempts to create every eigenspace.  This will
+        - ``format`` - default: ``None``
+
+          - ``'all'`` - attempts to create every eigenspace.  This will
             always be possible for matrices with rational entries.
-          - 'galois' - for each irreducible factor of the characteristic
+          - ``'galois'`` - for each irreducible factor of the characteristic
             polynomial, a single eigenspace will be output for a
             single root/eigenvalue for the irreducible factor.
+          - ``None`` - Uses the 'all' format if the base ring is contained
+            in an algebraically closed field which is implemented.
+            Otherwise, uses the 'galois' format.
 
         - ``var`` - default: 'a' - variable name used to
           represent elements of the root field of each
@@ -4853,23 +4931,25 @@ cdef class Matrix(matrix1.Matrix):
             sage: B.eigenspaces_right(format='junk')
             Traceback (most recent call last):
             ...
-            ValueError: format keyword must be 'all' or 'galois', not junk
+            ValueError: format keyword must be None, 'all' or 'galois', not junk
 
             sage: B.eigenspaces_right(algebraic_multiplicity='garbage')
             Traceback (most recent call last):
             ...
             ValueError: algebraic_multiplicity keyword must be True or False
         """
-        if not format in ['all', 'galois']:
-            raise ValueError("format keyword must be 'all' or 'galois', not {0}".format(format))
         if not algebraic_multiplicity in [True, False]:
-            raise ValueError('algebraic_multiplicity keyword must be True or False'.format(algebraic_multiplicity))
+            msg = 'algebraic_multiplicity keyword must be True or False'
+            raise ValueError(msg.format(algebraic_multiplicity))
         if not self.is_square():
-            raise TypeError('matrix must be square, not {0} x {1}'.format(self.nrows(), self.ncols()))
+            msg = 'matrix must be square, not {0} x {1}'
+            raise TypeError(msg.format(self.nrows(), self.ncols()))
         if not self.base_ring().is_exact():
             msg = ("eigenspaces cannot be computed reliably for inexact rings such as {0},\n",
                    "consult numerical or symbolic matrix classes for other options")
             raise NotImplementedError(''.join(msg).format(self.base_ring()))
+
+        format = self._eigenspace_format(format)
 
         key = 'eigenspaces_right_' + format + '{0}'.format(var)
         x = self.fetch(key)

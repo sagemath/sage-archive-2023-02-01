@@ -57,9 +57,9 @@ fi
 
 #build M4RI
 
-cd $ROOT_DIR/build/
+cd $ROOT_DIR/m4ri/
 
-$ROOT_DIR/m4ri/configure --prefix=$SAGE_LOCAL $ENABLE_DEBUG $DISABLE_SSE2 $ENABLE_CACHETUNE
+./configure --prefix=$SAGE_LOCAL $ENABLE_DEBUG $DISABLE_SSE2 $ENABLE_CACHETUNE
 
 if [ $? -ne 0 ]; then
     echo "Error configuring libm4ri"

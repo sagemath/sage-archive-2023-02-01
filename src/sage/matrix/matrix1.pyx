@@ -1800,72 +1800,150 @@ cdef class Matrix(matrix0.Matrix):
 
 
     def set_row(self, row, v):
-        """
-        Sets the entries of row ``row`` in self to be the entries of
-        ``v``.
+        r"""
+        Sets the entries of row ``row`` to the entries of ``v``.
 
-        EXAMPLES::
+        INPUT:
 
-            sage: A = matrix([[1,2],[3,4]]); A
+        - ``row`` - index of row to be set.
+
+        - ``v`` - a list or vector of the new entries.
+
+        OUTPUT:
+
+        Changes the matrix in-place, so there is no output.
+
+        EXAMPLES:
+
+        New entries may be contained in a vector.::
+
+            sage: A = matrix(QQ, 5, range(25))
+            sage: u = vector(QQ, [0, -1, -2, -3, -4])
+            sage: A.set_row(2, u)
+            sage: A
+            [ 0  1  2  3  4]
+            [ 5  6  7  8  9]
+            [ 0 -1 -2 -3 -4]
+            [15 16 17 18 19]
+            [20 21 22 23 24]
+
+        New entries may be in any sort of list.::
+
+            sage: A = matrix([[1, 2], [3, 4]]); A
             [1 2]
             [3 4]
-            sage: A.set_row(0, [0,0]); A
+            sage: A.set_row(0, [0, 0]); A
             [0 0]
             [3 4]
-            sage: A.set_row(1, [0,0]); A
+            sage: A.set_row(1, (0, 0)); A
             [0 0]
             [0 0]
-            sage: A.set_row(2, [0,0]); A
+
+        TESTS::
+
+            sage: A = matrix([[1, 2], [3, 4]])
+            sage: A.set_row(2, [0, 0]); A
             Traceback (most recent call last):
             ...
-            IndexError: index out of range
+            ValueError: row number must be between 0 and 1 (inclusive), not 2
 
-        ::
-
-            sage: A.set_row(0, [0,0,0])
+            sage: A.set_row(0, [0, 0, 0])
             Traceback (most recent call last):
             ...
-            ValueError: v must be of length 2
+            ValueError: list of new entries must be of length 2 (not 3)
+
+            sage: A = matrix(2, [1, 2, 3, 4])
+            sage: A.set_row(0, [1/3, 1]); A
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot set row with Rational Field elements over Integer Ring, use change_ring first.
         """
         if len(v) != self._ncols:
-            raise ValueError, "v must be of length %s"%self._ncols
+            msg = "list of new entries must be of length {0} (not {1})"
+            raise ValueError(msg.format(self._ncols, len(v)))
+        if (row < 0) or (row >= self._nrows):
+            msg = "row number must be between 0 and {0} (inclusive), not {1}"
+            raise ValueError(msg.format(self._nrows-1, row))
 
-        for j in range(self._ncols):
-            self[row,j] = v[j]
+        try:
+            for j in range(self._ncols):
+                self[row, j] = v[j]
+        except TypeError:
+            msg = "Cannot set row with {0} elements over {1}, use change_ring first."
+            raise TypeError(msg.format(v[j].parent(), self.base_ring()))
 
     def set_column(self, col, v):
-        """
-        Sets the entries of column ``col`` in self to be the entries of
-        ``v``.
+        r"""
+        Sets the entries of column ``col`` to the entries of ``v``.
 
-        EXAMPLES::
+        INPUT:
 
-            sage: A = matrix([[1,2],[3,4]]); A
+        - ``col`` - index of column to be set.
+
+        - ``v`` - a list or vector of the new entries.
+
+        OUTPUT:
+
+        Changes the matrix in-place, so there is no output.
+
+        EXAMPLES:
+
+        New entries may be contained in a vector.::
+
+            sage: A = matrix(QQ, 5, range(25))
+            sage: u = vector(QQ, [0, -1, -2, -3, -4])
+            sage: A.set_column(2, u)
+            sage: A
+            [ 0  1  0  3  4]
+            [ 5  6 -1  8  9]
+            [10 11 -2 13 14]
+            [15 16 -3 18 19]
+            [20 21 -4 23 24]
+
+        New entries may be in any sort of list.::
+
+            sage: A = matrix([[1, 2], [3, 4]]); A
             [1 2]
             [3 4]
-            sage: A.set_column(0, [0,0]); A
+            sage: A.set_column(0, [0, 0]); A
             [0 2]
             [0 4]
-            sage: A.set_column(1, [0,0]); A
+            sage: A.set_column(1, (0, 0)); A
             [0 0]
             [0 0]
-            sage: A.set_column(2, [0,0]); A
+
+        TESTS::
+
+            sage: A = matrix([[1, 2], [3, 4]])
+            sage: A.set_column(2, [0, 0]); A
             Traceback (most recent call last):
             ...
-            IndexError: index out of range
+            ValueError: column number must be between 0 and 1 (inclusive), not 2
 
-        ::
-
-            sage: A.set_column(0, [0,0,0])
+            sage: A.set_column(0, [0, 0, 0])
             Traceback (most recent call last):
             ...
-            ValueError: v must be of length 2
+            ValueError: list of new entries must be of length 2 (not 3)
+
+            sage: A = matrix(2, [1, 2, 3, 4])
+            sage: A.set_column(0, [1/4, 1]); A
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot set column with Rational Field elements over Integer Ring, use change_ring first.
         """
         if len(v) != self._nrows:
-            raise ValueError, "v must be of length %s"%self._nrows
+            msg = "list of new entries must be of length {0} (not {1})"
+            raise ValueError(msg.format(self._nrows, len(v)))
+        if (col < 0) or (col >= self._ncols):
+            msg = "column number must be between 0 and {0} (inclusive), not {1}"
+            raise ValueError(msg.format(self._ncols-1, col))
 
-        for i in range(self._nrows):
-            self[i,col] = v[i]
+        try:
+            for i in range(self._nrows):
+                self[i, col] = v[i]
+        except TypeError:
+            msg = "Cannot set column with {0} elements over {1}, use change_ring first."
+            raise TypeError(msg.format(v[i].parent(), self.base_ring()))
 
 
     ####################################################################################

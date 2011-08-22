@@ -38,15 +38,3 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-cd ../..
-cd build/m4rie
-
-echo "Testing the M4RIE library"
-
-$MAKE check
-
-if [ $? -ne 0 ]; then
-    echo "Error testing M4RIE"
-    exit 1
-fi
-

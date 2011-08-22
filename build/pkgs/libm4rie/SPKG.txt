@@ -30,5 +30,8 @@ GF(2^k) for 2 <= k <= 16.
 
 == Releases/Changelog ==
 
+=== libm4rie-20110821 (Martin Albrecht, August 21st, 2011) ===
+ * new upstream release in preparation for Sage inclusion
+
 === libm4rie-20110715 (Martin Albrecht, July 15th, 2011) ===
  * split form libm4ri

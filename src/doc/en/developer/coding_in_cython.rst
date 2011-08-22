@@ -104,11 +104,17 @@ pragmas are available:
 * cinclude --- additional directories to search for header files. The
   space separated list is split and passed to distutils.
 
+* cfile -- additional C or C++ files to be compiled
+
+* cargs -- additional parameters passed to the compiler
+
 For example::
 
     #clang C++
     #clib givaro
     #cinclude /usr/local/include/
+    #cargs -ggdb
+    #cfile foo.c
 
 
 Attaching or loading .spyx files

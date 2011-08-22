@@ -4,6 +4,7 @@ Cython -- C-Extensions for Python
 AUTHORS:
     -- William Stein (2006-01-18): initial version
     -- William Stein (2007-07-28): update from sagex to cython
+    -- Martin Albrecht & William Stein (2011-08): cfile & cargs
 """
 
 #*****************************************************************************
@@ -121,25 +122,34 @@ def environ_parse(s):
     return environ_parse(s)
 
 def pyx_preparse(s):
-    r"""
-    Preparse a Pyx file
+    """
+    Preparse a pyx file
       * include cdefs.pxi, interrupt.pxi, stdsage.pxi
       * parse clang pragma (c or c++)
       * parse clib pragma (additional libraries to link in)
       * parse cinclude (additional include directories)
+      * parse cfile (additional files to be included)
+      * parse cargs (additional parameters passed to the compiler)
 
     The pragmas:
-    \begin{description}
-      \item[clang] may be either c or c++ indicating whether a C or
-                   C++ compiler should be used
 
-      \item[clib] additional libraries to be linked in, the space
-                  separated list is split and passed to distutils.
+    - ``clang`` - may be either c or c++ indicating whether a C or C++
+      compiler should be used
 
-      \item[cinclude] additional directories to search for header
-                      files. The space separated list is split and
-                      passed to distutils.
-    \end{description}
+    - ``clib`` - additional libraries to be linked in, the space
+      separated list is split and passed to distutils.
+
+    - ``cinclude`` - additional directories to search for header
+      files. The space separated list is split and passed to
+      distutils.
+
+    - ``cfile`` - additional C or C++ files to be compiled
+      ('$SAGE_ROOT' is expanded, other environment variables are not.)
+
+    - ``cargs`` - additional parameters passed to the compiler
+
+    OUTPUT:
+       preamble, libs, includes, language, files, args
 
     EXAMPLE:
         sage: from sage.misc.cython import pyx_preparse
@@ -168,8 +178,8 @@ def pyx_preparse(s):
         '.../devel/sage/',
         '.../devel/sage/sage/gsl/'],
         'c',
-        [])
-        sage: s, libs, inc, lang, f = pyx_preparse("# clang c++\n #clib foo\n # cinclude bar\n")
+        [], ['-w', '-O2'])
+        sage: s, libs, inc, lang, f, args = pyx_preparse("# clang c++\n #clib foo\n # cinclude bar\n")
         sage: lang
         'c++'
 
@@ -195,10 +205,21 @@ def pyx_preparse(s):
         '.../devel/sage/sage/ext/',
         '.../devel/sage/',
         '.../devel/sage/sage/gsl/']
+
+        sage: s, libs, inc, lang, f, args = pyx_preparse("# cargs -O3 -ggdb\n")
+        sage: args
+        ['-w', '-O2', '-O3', '-ggdb']
+
+    TESTS::
+
+        sage: module = sage.misc.cython.import_test("trac11680")
+        sage: R.<x> = QQ[]
+        sage: module.evaluate_at_power_of_gen(x^3 + x - 7, 5)
+        x^15 + x^5 - 7
     """
-    lang = parse_keywords('clang', s)
-    if lang[0]:
-        lang = lang[0][0]
+    lang, s = parse_keywords('clang', s)
+    if lang:
+        lang = lang[0]
     else:
         lang = "c"
 
@@ -212,7 +233,10 @@ def pyx_preparse(s):
     s = """\ninclude "cdefs.pxi"\n""" + s
     if lang != "c++": # has issues with init_csage()
         s = """\ninclude "interrupt.pxi"  # ctrl-c interrupt block support\ninclude "stdsage.pxi"  # ctrl-c interrupt block support\n""" + s
-    return s, libs, inc, lang, additional_source_files
+    args, s = parse_keywords('cargs', s)
+    args = ['-w','-O2'] + args
+
+    return s, libs, inc, lang, additional_source_files, args
 
 ################################################################
 # If the user attaches a .spyx file and changes it, we have
@@ -289,7 +313,7 @@ def cython(filename, verbose=False, compile_message=False,
 
     F = open(filename).read()
 
-    F, libs, includes, language, additional_source_files = pyx_preparse(F)
+    F, libs, includes, language, additional_source_files, extra_args = pyx_preparse(F)
 
     # add the working directory to the includes so custom headers etc. work
     includes.append(os.path.split(os.path.splitext(filename)[0])[0])
@@ -310,8 +334,14 @@ def cython(filename, verbose=False, compile_message=False,
         # increment the sequence number so will use a different one next time.
         sequence_number[base] += 1
 
-    additional_source_files = ",".join(["'"+os.path.abspath(os.curdir)+"/"+fname+"'" \
-                                        for fname in additional_source_files])
+    file_list = []
+    for fname in additional_source_files:
+        fname = fname.replace("$SAGE_ROOT",SAGE_ROOT)
+        if fname.startswith(os.path.sep):
+            file_list.append("'"+fname+"'")
+        else:
+            file_list.append("'"+os.path.abspath(os.curdir)+"/"+fname+"'")
+    additional_source_files = ",".join(file_list)
 
     pyx = '%s/%s.pyx'%(build_dir, name)
     open(pyx,'w').write(F)
@@ -328,7 +358,7 @@ else:
     SAGE_LOCAL = SAGE_ROOT + '/local/'
 
 extra_link_args =  ['-L' + SAGE_LOCAL + '/lib']
-extra_compile_args = ['-w','-O2']
+extra_compile_args = %s
 
 ext_modules = [Extension('%s', sources=['%s.%s', %s],
                      libraries=%s,
@@ -339,7 +369,7 @@ ext_modules = [Extension('%s', sources=['%s.%s', %s],
 
 setup(ext_modules = ext_modules,
       include_dirs = %s)
-    """%(name, name, extension, additional_source_files, libs, language, includes)
+    """%(extra_args, name, name, extension, additional_source_files, libs, language, includes)
     open('%s/setup.py'%build_dir,'w').write(setup)
 
     cython_include = ' '.join(["-I '%s'"%x for x in includes if len(x.strip()) > 0 ])
@@ -573,4 +603,77 @@ def sanitize(f):
     return s
 
 
+def compile_and_load(code):
+    """
+    INPUT:
+
+        - ``code`` -- string containing code that could be in a .pyx
+          file that is attached or put in a %cython block in the
+          notebook.
+
+    OUTPUT:
+
+        - a module, which results from compiling the given code and
+          importing it
+
+    EXAMPLES::
+
+        sage: module = sage.misc.cython.compile_and_load("def f(int n):\n    return n*n")
+        sage: module.f(10)
+        100
+    """
+    from sage.misc.misc import tmp_filename
+    file = tmp_filename() + ".pyx"
+    open(file,'w').write(code)
+    from sage.server.support import cython_import
+    return cython_import(file)
+
+
+TESTS = {
+'trac11680':"""
+#cargs -std=c99 -O3 -ggdb
+#cinclude $SAGE_ROOT/devel/sage/sage/libs/flint $SAGE_LOCAL/include/FLINT
+#clib flint
+#cfile $SAGE_ROOT/devel/sage/sage/libs/flint/fmpq_poly.c
+
+from sage.rings.rational cimport Rational
+from sage.rings.polynomial.polynomial_rational_flint cimport Polynomial_rational_flint
+from sage.libs.flint.fmpq_poly cimport (fmpq_poly_get_coeff_mpq, fmpq_poly_set_coeff_mpq,
+                                        fmpq_poly_length)
+
+def evaluate_at_power_of_gen(Polynomial_rational_flint f, unsigned long n):
+    assert n >= 1
+    cdef Polynomial_rational_flint res = f._new()
+    cdef unsigned long k
+    cdef Rational z = Rational(0)
+    for k in range(fmpq_poly_length(f.__poly)):
+        fmpq_poly_get_coeff_mpq(z.value, f.__poly, k)
+        fmpq_poly_set_coeff_mpq(res.__poly, n*k, z.value)
+    return res
+""",
+
+'trac11680b':"""
+def f(int a, int b, int c):
+    return a+b+c
+"""
+}
+
+def import_test(name):
+    """
+    This is used by the testing infrastructure to test building
+    Cython programs.
+
+    INPUT:
+        - ``name`` -- string; name of a key to the TESTS dictionary above
+
+    OUTPUT:
+        - a module, which results from compiling the given code and importing it
+
+    EXAMPLES::
+
+        sage: module = sage.misc.cython.import_test("trac11680b")
+        sage: module.f(2,3,4)
+        9
+    """
+    return compile_and_load(TESTS[name])
 

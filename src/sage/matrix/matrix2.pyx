@@ -11144,23 +11144,84 @@ cdef class Matrix(matrix1.Matrix):
                 companions.append(sage.matrix.constructor.companion_matrix(poly, format=format))
             return sage.matrix.constructor.block_diagonal_matrix(companions, subdivide=subdivide)
 
-    """
-    Provides shortcuts for various methods like transpose()
-    """
+    # A limited number of access-only properties are provided for matrices
     property T:
-        "``m.T`` gives the transpose of the matrix ``m``"
+        r"""
+        Returns the transpose of a matrix.
+
+        EXAMPLE::
+
+            sage: A = matrix(QQ, 5, range(25))
+            sage: A.T
+            [ 0  5 10 15 20]
+            [ 1  6 11 16 21]
+            [ 2  7 12 17 22]
+            [ 3  8 13 18 23]
+            [ 4  9 14 19 24]
+        """
         def __get__(self):
             return self.transpose()
+
     property C:
-        "``m.C`` gives the conjugate of the matrix ``m``"
+        r"""
+        Returns the conjugate matrix.
+
+        EXAMPLE::
+
+            sage: A = matrix(QQbar, [[     -3,  5 - 3*I, 7 - 4*I],
+            ...                      [7 + 3*I, -1 + 6*I, 3 + 5*I],
+            ...                      [3 + 3*I, -3 + 6*I, 5 +   I]])
+            sage: A.C
+            [      -3  5 + 3*I  7 + 4*I]
+            [ 7 - 3*I -1 - 6*I  3 - 5*I]
+            [ 3 - 3*I -3 - 6*I  5 - 1*I]
+
+        """
         def __get__(self):
             return self.conjugate()
+
     property H:
-        """``m.H`` gives the conjugate transpose, or "Hermitian transpose", of the matrix ``m``"""
+        r"""
+        Returns the conjugate-transpose (Hermitian) matrix.
+
+        EXAMPLE::
+
+            sage: A = matrix(QQbar, [[     -3,  5 - 3*I, 7 - 4*I],
+            ...                      [7 + 3*I, -1 + 6*I, 3 + 5*I],
+            ...                      [3 + 3*I, -3 + 6*I, 5 +   I]])
+            sage: A.H
+            [      -3  7 - 3*I  3 - 3*I]
+            [ 5 + 3*I -1 - 6*I -3 - 6*I]
+            [ 7 + 4*I  3 - 5*I  5 - 1*I]
+        """
         def __get__(self):
             return self.conjugate().transpose()
+
     property I:
-        "``m.I`` gives the inverse of the matrix ``m``"
+        r"""
+        Returns the inverse of the matrix, if it exists.
+
+        EXAMPLES::
+
+            sage: A = matrix(QQ, [[-5, -3, -1, -7],
+            ...                   [ 1,  1,  1,  0],
+            ...                   [-1, -2, -2,  0],
+            ...                   [-2, -1,  0, -4]])
+            sage: A.I
+            [ 0  2  1  0]
+            [-4 -8 -2  7]
+            [ 4  7  1 -7]
+            [ 1  1  0 -2]
+
+            sage: B = matrix(QQ, [[-11, -5, 18,  -6],
+            ...                   [  1,  2, -6,   8],
+            ...                   [ -4, -2,  7,  -3],
+            ...                   [  1, -2,  5, -11]])
+            sage: B.I
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: input matrix must be nonsingular
+        """
         def __get__(self):
             return self.inverse()
 

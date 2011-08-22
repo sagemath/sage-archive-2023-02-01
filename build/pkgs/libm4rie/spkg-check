@@ -27,19 +27,7 @@ CXXFLAGS="$CXXFLAGS $INCLUDES $LIBDIRS -g"
 export CFLAGS
 export CXXFLAGS
 
-cd build/m4ri
-
-echo "Testing the M4RI library"
-
-$MAKE check
-
-if [ $? -ne 0 ]; then
-    echo "Error testing M4RI"
-    exit 1
-fi
-
-cd ../..
-cd build/m4rie
+cd m4rie
 
 echo "Testing the M4RIE library"
 

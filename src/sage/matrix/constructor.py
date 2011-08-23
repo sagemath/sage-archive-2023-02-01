@@ -2655,19 +2655,13 @@ def block_diagonal_matrix(*sub_matrices, **kwds):
 
 def jordan_block(eigenvalue, size, sparse=False):
     r"""
-    Form the Jordan block with the specified size associated with the
-    eigenvalue.
+    Returns the Jordan block for the given eigenvalue with given size.
 
     INPUT:
 
-
-    -  ``eigenvalue`` - eigenvalue for the diagonal entries
-       of the block
-
-    -  ``size`` - size of the Jordan block
-
-    -  ``sparse`` - (default False) if True, return a
-       sparse matrix
+    -  ``eigenvalue`` - eigenvalue for the diagonal entries of the block
+    -  ``size`` - size of the square matrix
+    -  ``sparse`` - (default: False) - if True, return a sparse matrix
 
 
     EXAMPLE::
@@ -2676,7 +2670,26 @@ def jordan_block(eigenvalue, size, sparse=False):
         [5 1 0]
         [0 5 1]
         [0 0 5]
+
+    TESTS::
+
+        sage: jordan_block(6.2, 'junk')
+        Traceback (most recent call last):
+        ...
+        TypeError: size of Jordan block needs to be an integer, not junk
+        sage: jordan_block(6.2, -1)
+        Traceback (most recent call last):
+        ...
+        ValueError: size of Jordan block must be non-negative, not -1
     """
+    try:
+        size = ZZ(size)
+    except TypeError:
+        msg = "size of Jordan block needs to be an integer, not {0}"
+        raise TypeError(msg.format(size))
+    if size < 0:
+        msg = "size of Jordan block must be non-negative, not {0}"
+        raise ValueError(msg.format(size))
     block = diagonal_matrix([eigenvalue]*size, sparse=sparse)
     for i in xrange(size-1):
         block[i,i+1]=1

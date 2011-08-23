@@ -559,16 +559,16 @@ cdef class Matrix(matrix0.Matrix):
     #############################################################################################
 
     def columns(self, copy=True):
-        """
+        r"""
         Return a list of the columns of self.
 
         INPUT:
 
         - ``copy`` - (default: True) if True, return a copy of the list
-           of columns which is safe to change.
+          of columns which is safe to change.
 
-        If self is sparse, returns columns as sparse vectors, and if self
-        is dense returns them as dense vectors.
+        If ``self`` is a sparse matrix, columns are returned as sparse vectors,
+        otherwise returned vectors are dense.
 
         EXAMPLES::
 
@@ -583,7 +583,25 @@ cdef class Matrix(matrix0.Matrix):
             sage: m = matrix(RR, 3, 3, {(1,2): pi, (2, 2): -1, (0,1): sqrt(2)})
             sage: parent(m.columns()[0])
             Sparse vector space of dimension 3 over Real Field with 53 bits of precision
+
+        Sparse matrices produce sparse columns.  ::
+
+            sage: A = matrix(QQ, 2, range(4), sparse=True)
+            sage: v = A.columns()[0]
+            sage: v.is_sparse()
+            True
+
+        TESTS::
+
+            sage: A = matrix(QQ, 4, range(16))
+            sage: A.columns('junk')
+            Traceback (most recent call last):
+            ...
+            ValueError: 'copy' must be True or False, not junk
         """
+        if not copy in [True, False]:
+            msg = "'copy' must be True or False, not {0}"
+            raise ValueError(msg.format(copy))
         x = self.fetch('columns')
         if not x is None:
             if copy: return list(x)
@@ -597,7 +615,7 @@ cdef class Matrix(matrix0.Matrix):
         return columns
 
     def rows(self, copy=True):
-        """
+        r"""
         Return a list of the rows of self.
 
         INPUT:
@@ -605,8 +623,8 @@ cdef class Matrix(matrix0.Matrix):
         - ``copy`` - (default: True) if True, return a copy of the list
           of rows which is safe to change.
 
-        If self is sparse, returns rows as sparse vectors, and if self is
-        dense returns them as dense vectors.
+        If ``self`` is a sparse matrix, rows are returned as sparse vectors,
+        otherwise returned vectors are dense.
 
         EXAMPLES::
 
@@ -621,7 +639,25 @@ cdef class Matrix(matrix0.Matrix):
             sage: m = matrix(RR, 3, 3, {(1,2): pi, (2, 2): -1, (0,1): sqrt(2)})
             sage: parent(m.rows()[0])
             Sparse vector space of dimension 3 over Real Field with 53 bits of precision
+
+        Sparse matrices produce sparse rows.  ::
+
+            sage: A = matrix(QQ, 2, range(4), sparse=True)
+            sage: v = A.rows()[0]
+            sage: v.is_sparse()
+            True
+
+        TESTS::
+
+            sage: A = matrix(QQ, 4, range(16))
+            sage: A.rows('junk')
+            Traceback (most recent call last):
+            ...
+            ValueError: 'copy' must be True or False, not junk
         """
+        if not copy in [True, False]:
+            msg = "'copy' must be True or False, not {0}"
+            raise ValueError(msg.format(copy))
         x = self.fetch('rows')
         if not x is None:
             if copy: return list(x)

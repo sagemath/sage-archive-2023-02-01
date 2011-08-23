@@ -60,8 +60,9 @@ QUICK INSTRUCTIONS TO BUILD FROM SOURCE
 ---------------------------------------
 
 The following steps briefly outline the process of building Sage from
-source. More detailed instructions are contained later in this README
-and in the Installation Guide:
+source. More detailed instructions, including how to build faster on
+multicore machines are contained later in this README and in the
+Installation Guide:
 
     http://www.sagemath.org/doc/installation
 
@@ -172,9 +173,15 @@ MORE DETAILED INSTRUCTIONS TO BUILD FROM SOURCE
 
        export MAKE="make -j4"
 
-   To start the build, type:
+   By default the above will only parallelize a small part of the build
+   process. To make the SPKG build part of the installation process
+   parallel do:
 
-       make
+       export SAGE_PARALLEL_SPKG_BUILD="yes"
+
+   The amount of processors used for the building of the SPKG's is the
+   determined by what you assigned to MAKE. So the above is useless if
+   you did export MAKE="make -j1".
 
    If you want to run the test suite for each individual spkg as it is
    installed, type:
@@ -183,6 +190,11 @@ MORE DETAILED INSTRUCTIONS TO BUILD FROM SOURCE
 
    before starting the Sage build. This will run each test suite and
    will raise an error if any failures occur.
+
+   To start the build, type:
+
+       make
+
 
 4. Wait about 1 hour to 14 days, depending on your computer (it took
    about 2 weeks to build Sage on the T-Mobile G1 Android cell phone).

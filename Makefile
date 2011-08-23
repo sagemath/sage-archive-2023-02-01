@@ -100,6 +100,9 @@ distclean: clean
 	rm -rf tmp
 	rm -f .BUILDSTART
 
+micro_release:
+	. local/bin/sage-env && local/bin/sage-micro_release
+
 TESTPRELIMS = . local/bin/sage-env && sage-starts &&
 TESTDIRS = devel/sage/doc/common devel/sage/doc/de devel/sage/doc/en devel/sage/doc/fr devel/sage/doc/ru devel/sage/sage
 

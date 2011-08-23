@@ -143,8 +143,9 @@ def pyx_preparse(s):
       files. The space separated list is split and passed to
       distutils.
 
-    - ``cfile`` - additional C or C++ files to be compiled
-      ('$SAGE_ROOT' is expanded, other environment variables are not.)
+    - ``cfile`` - additional C or C++ files to be compiled. Also,
+      ``$SAGE_ROOT`` is expanded, but other environment variables
+      are not.
 
     - ``cargs`` - additional parameters passed to the compiler
 

@@ -749,7 +749,7 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
 
             sage: V1 = QQ^2
             sage: V2 = QQ^3
-            sage: m = matrix(QQ, [[1,2],[3,4],[5,6]])
+            sage: m = matrix(QQ, [[1, 2, 3], [4, 5, 6]])
             sage: phi = V1.hom(m, V2)
             sage: phi.is_injective()
             True
@@ -766,7 +766,7 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
 
             sage: V1 = QQ^3
             sage: V2 = QQ^2
-            sage: phi = V1.hom(matrix(QQ, [[1, 2, 3], [4, 5, 6]]), V2)
+            sage: phi = V1.hom(matrix(QQ, [[1, 2], [3, 4], [5, 6]]), V2)
             sage: x = vector(QQ, [1, -1, 4])
             sage: y = phi(x); y
             (18, 22)

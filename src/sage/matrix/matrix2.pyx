@@ -8598,7 +8598,7 @@ cdef class Matrix(matrix1.Matrix):
             self.cache('cholesky', L)
         return L
 
-    def LU(self, pivot='auto', format='plu'):
+    def LU(self, pivot=None, format='plu'):
         r"""
         Finds a decomposition into a lower-triangular matrix and
         an upper-triangular matrix.
@@ -8837,20 +8837,20 @@ cdef class Matrix(matrix1.Matrix):
             sage: P, L, U = A.LU()
             Traceback (most recent call last):
             ...
-            TypeError: base ring of the matrix must be exact, this is not the case for Real Field with 100 bits of precision
+            TypeError: base ring of the matrix must be exact, not Real Field with 100 bits of precision
 
             sage: A = matrix(Integers(6), 3, 2, range(6))
             sage: A.LU()
             Traceback (most recent call last):
             ...
-            TypeError: base ring of the matrix needs a field of fractions, this is not possible for Ring of integers modulo 6
+            TypeError: base ring of the matrix needs a field of fractions, not Ring of integers modulo 6
 
             sage: R.<y> = PolynomialRing(QQ, 'y')
             sage: B = matrix(R, [[y+1, y^2+y], [y^2, y^3]])
             sage: P, L, U = B.LU(pivot='partial')
             Traceback (most recent call last):
             ...
-            TypeError: cannot take absolute value of matrix entries, try 'pivot=auto' or 'pivot=nonzero'
+            TypeError: cannot take absolute value of matrix entries, try 'pivot=nonzero'
             sage: P, L, U = B.LU(pivot='nonzero')
             sage: P
             [1 0]
@@ -8892,18 +8892,19 @@ cdef class Matrix(matrix1.Matrix):
             sage: C == P*L*U
             True
 
-        The 'auto' pivoting strategy (the default) will try to use
-        partial pivoting, and fall back to the nonzero strategy.
-        For the nonsingular matrix below, we see evidence of
-        pivoting when viewed over the rationals, and no pivoting
-        over the integers mod 29.  ::
+        With no pivoting strategy given (i.e. ``pivot=None``)
+        the routine will try to use partial pivoting, but then
+        fall back to the nonzero strategy. For the nonsingular
+        matrix below, we see evidence of pivoting when viewed
+        over the rationals, and no pivoting over the integers
+        mod 29.  ::
 
             sage: entries = [3, 20, 11, 7, 16, 28, 5, 15, 21, 23, 22, 18, 8, 23, 15, 2]
             sage: A = matrix(Integers(29), 4, 4, entries)
-            sage: perm, _ = A.LU(pivot='auto', format='compact'); perm
+            sage: perm, _ = A.LU(format='compact'); perm
             (0, 1, 2, 3)
             sage: B = matrix(QQ, 4, 4, entries)
-            sage: perm, _ = B.LU(pivot='auto', format='compact'); perm
+            sage: perm, _ = B.LU(format='compact'); perm
             (2, 0, 1, 3)
 
         The `U` matrix is only guaranteed to be upper-triangular.
@@ -8939,7 +8940,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: A.LU(pivot='junk')
             Traceback (most recent call last):
             ...
-            ValueError: pivot strategy must be 'auto', 'partial' or 'nonzero', not junk
+            ValueError: pivot strategy must be None, 'partial' or 'nonzero', not junk
             sage: A.LU(format='garbage')
             Traceback (most recent call last):
             ...
@@ -8964,42 +8965,61 @@ cdef class Matrix(matrix1.Matrix):
 
         - Rob Beezer (2011-04-26)
         """
-        if not pivot in ['auto', 'partial', 'nonzero']:
-            raise ValueError("pivot strategy must be 'auto', 'partial' or 'nonzero', not {0}".format(pivot))
+        if not pivot in [None, 'partial', 'nonzero']:
+            msg = "pivot strategy must be None, 'partial' or 'nonzero', not {0}"
+            raise ValueError(msg.format(pivot))
         if not format in ['compact', 'plu']:
-            raise ValueError("format must be 'plu' or 'compact', not {0}".format(format))
+            msg = "format must be 'plu' or 'compact', not {0}"
+            raise ValueError(msg.format(format))
+
+        # exact rings only, must have fraction field
+        R = self.base_ring()
+        if not R.is_exact():
+            msg = 'base ring of the matrix must be exact, not {0}'
+            raise TypeError(msg.format(R))
+        if not R.is_field():
+            try:
+                F = R.fraction_field()
+            except:
+                msg = 'base ring of the matrix needs a field of fractions, not {0}'
+                raise TypeError(msg.format(R))
+        else:
+            F = R
+
+        # 'nonzero' strategy passes through untouched
+        # 'partial' survives iff field has absolute value
+        # None will use 'partial' iff possible, else fallback to nonzero
+        if pivot in [None, 'partial']:
+            try:
+                abs(F.an_element())
+                pivot = 'partial'
+            except:
+                if pivot == 'partial':
+                    msg = "cannot take absolute value of matrix entries, try 'pivot=nonzero'"
+                    raise TypeError(msg)
+                pivot = 'nonzero'
+        partial = (pivot == 'partial')
+
         cdef Py_ssize_t m, n, d, i, j, k, p, max_location
         cdef Matrix M
-        m, n = self._nrows, self._ncols
-        d = min(m, n)
+
+        # can now access cache, else compute
+        #   the compact version of LU decomposition
         key = 'LU_' + pivot
         compact = self.fetch(key)
         if compact is None:
-            R = self.base_ring()
-            if not R.is_exact():
-                raise TypeError('base ring of the matrix must be exact, this is not the case for {0}'.format(R))
-            if not R.is_field():
-                try:
-                    R = R.fraction_field()
-                    M = self.change_ring(R)
-                except:
-                    raise TypeError('base ring of the matrix needs a field of fractions, this is not possible for {0}'.format(R))
-            else:
+            if F == R:
                 M = self.__copy__()
-            ordered = False
-            if pivot in ['auto', 'partial']:
-                try:
-                    abs(R.an_element())
-                    ordered = True
-                except:
-                    if pivot == 'partial':
-                        raise TypeError("cannot take absolute value of matrix entries, try 'pivot=auto' or 'pivot=nonzero'")
+            else:
+                M = self.change_ring(F)
+            m, n = M._nrows, M._ncols
+            d = min(m, n)
             perm = range(m)
-            zero = R(0)
+            zero = F(0)
             for k in range(d):
                 max_location = -1
                 max_entry = zero
-                if ordered:
+                if partial:
                     for i in range(k,m):
                         entry = abs(M.get_unsafe(i,k))
                         if entry > max_entry:
@@ -9030,11 +9050,13 @@ cdef class Matrix(matrix1.Matrix):
             import sage.combinat.permutation
             perm = compact[0]
             M = compact[1].__copy__()
-            R = M.base_ring()
-            zero = R(0)
+            F = M.base_ring()
+            m, n = M._nrows, M._ncols
+            d = min(m, n)
+            zero = F(0)
             perm = [perm[i]+1 for i in range(m)]
             P = sage.combinat.permutation.Permutation(perm).to_matrix()
-            L = sage.matrix.constructor.identity_matrix(R, m)
+            L = sage.matrix.constructor.identity_matrix(F, m)
             for i in range(1, m):
                 for k in range(min(i,d)):
                     L[i,k] = M[i,k]

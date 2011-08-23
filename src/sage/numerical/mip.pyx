@@ -372,6 +372,60 @@ cdef class MixedIntegerLinearProgram:
         self._mipvariables.append(v)
         return v
 
+    cpdef int number_of_constraints(self):
+      r"""
+      Returns the number of constraints assigned so far.
+
+      EXAMPLE::
+            sage: p = MixedIntegerLinearProgram()
+            sage: p.add_constraint(p[0] - p[2], min = 1, max = 4)
+            sage: p.add_constraint(p[0] - 2*p[1], min = 1)
+            sage: p.number_of_constraints()
+            2
+      """
+      return self._backend.nrows()
+
+    def constraints(self, indices = None):
+        r"""
+        Returns a list of constraints, as 3-tuples.
+        If `n` is `None`, this returns all constraints.
+        If `n` is an integer, this is similar (but not equivalent) to ``self.constraint(n)``.
+        If `n` is a list of integers, this is equivalent to ``[self.constraint
+        The first entry in each tuple is the lower bound;
+        the second entry is a pair ``(indices, coeffs)``
+        (see ``row`` for details); and
+        the third entry is the upper bound.
+
+        EXAMPLE::
+            sage: p = MixedIntegerLinearProgram()
+            sage: p.add_constraint(p[0] - p[2], min = 1, max = 4)
+            sage: p.add_constraint(p[0] - 2*p[1], min = 1)
+            sage: p.constraints()
+            [(1.0, ([1, 0], [-1.0, 1.0]), 4.0), (1.0, ([2, 0], [-2.0, 1.0]), None)]
+            sage: p.constraints(0)
+            [(1.0, ([1, 0], [-1.0, 1.0]), 4.0)]
+            sage: p.constraints([1])
+            [(1.0, ([2, 0], [-2.0, 1.0]), None)]
+        """
+        cdef int i
+        cdef str s
+        cdef GenericBackend b = self._backend
+
+        from sage.rings.integer import Integer as Integer
+
+        result = list()
+        if indices == None:
+          indices = xrange(b.nrows())
+        elif isinstance(indices, int) or isinstance(indices, Integer):
+            indices = [indices]
+        elif not isinstance(indices, list):
+          raise TypeError, "constraints() requires a list of integers, though it will accommodate None or an integer."
+        for i in indices:
+          lb, ub = b.row_bounds(i)
+          result.append((lb, b.row(i), ub))
+
+        return result
+
     def show(self):
         r"""
         Displays the ``MixedIntegerLinearProgram`` in a human-readable

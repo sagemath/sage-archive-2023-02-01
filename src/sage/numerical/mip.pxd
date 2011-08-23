@@ -19,6 +19,7 @@ cdef class MixedIntegerLinearProgram:
     cdef int __BINARY
     cdef int __REAL
     cdef int __INTEGER
+    cpdef int number_of_constraints(self)
 
 cdef class MIPVariable:
     cdef MixedIntegerLinearProgram _p

@@ -1,4 +1,4 @@
-r"""
+"""
 Field of Algebraic Numbers
 
 AUTHOR:
@@ -946,6 +946,122 @@ class AlgebraicField(_uniq_alg, AlgebraicField_common):
             True
         """
         return AlgebraicNumber(ANRoot(poly, interval, multiplicity))
+
+    def random_element(self, poly_degree=2, *args, **kwds):
+        r"""
+        Returns a random algebraic number.
+
+        INPUT:
+
+        - ``poly_degree`` - default: 2 - degree of the random
+          polynomial over the integers of which the returned
+          algebraic number is a root.  This is not the degree of
+          the minimal polynomial of the number. Increase this
+          parameter to achieve a greater diversity of algebraic
+          numbers, at a cost of greater computation time. You can
+          also vary the distribution of the coefficients but that
+          will not vary the degree of the extension containing
+          the element.
+
+        - ``args``, ``kwds`` - arguments and keywords passed to
+          the random number generator for elements of ``ZZ``, the
+          integers.  See
+          :meth:`~sage.rings.integer_ring.IntegerRing_class.random_element`
+          for details, or see example below.
+
+        OUTPUT:
+
+        An element of ``QQbar``, the field of algebraic
+        numbers (see :mod:`sage.rings.qqbar`).
+
+        ALGORITHM:
+
+        A polynomial with degree between 1 and ``poly_degree``,
+        with random integer coefficients is created.  A root of this
+        polynomial is chosen at random.  The default degree is
+        2 and the integer coefficients come from a distribution
+        heavily weighted towards $0, \pm 1, \pm 2$.
+
+        EXAMPLES::
+
+            sage: a = QQbar.random_element()
+            sage: a                         # random
+            0.2626138748742799? + 0.8769062830975992?*I
+            sage: a in QQbar
+            True
+
+            sage: b = QQbar.random_element(poly_degree=20)
+            sage: b                         # random
+            -0.8642649077479498? - 0.5995098147478391?*I
+            sage: b in QQbar
+            True
+
+        Parameters for the distribution of the integer coefficients
+        of the polynomials can be passed on to the random element method
+        for integers.  For example, current default behavior of this method
+        returns zero about 15% of the time; if we do not include zero as a
+        possible coefficient, there will never be a zero constant term, and
+        thus never a zero root. ::
+
+            sage: z = [QQbar.random_element(x=1, y=10) for _ in range(20)]
+            sage: QQbar(0) in z
+            False
+
+         If you just want real algebraic numbers you can filter them out.
+         Using an odd degree for the polynomials will insure some degree of
+         success.  ::
+
+            sage: r = []
+            sage: while len(r) < 3:
+            ...     x = QQbar.random_element(poly_degree=3)
+            ...     if x in AA:
+            ...       r.append(x)
+            sage: (len(r) == 3) and all([z in AA for z in r])
+            True
+
+        TESTS:
+
+            sage: QQbar.random_element('junk')
+            Traceback (most recent call last):
+            ...
+            TypeError: polynomial degree must be an integer, not junk
+            sage: QQbar.random_element(poly_degree=0)
+            Traceback (most recent call last):
+            ...
+            ValueError: polynomial degree must be greater than zero, not 0
+
+        Random vectors already have a 'degree' keyword, so
+        we cannot use that for the polynomial's degree.  ::
+
+            sage: v = random_vector(QQbar, degree=2, poly_degree=3)
+            sage: v                                 # random
+            (0.4694381338921299?, -0.500000000000000? + 0.866025403784439?*I)
+        """
+        import sage.rings.all
+        import sage.misc.prandom
+        try:
+            poly_degree = sage.rings.all.ZZ(poly_degree)
+        except TypeError:
+            msg = "polynomial degree must be an integer, not {0}"
+            raise TypeError(msg.format(poly_degree))
+        if poly_degree < 1:
+            msg = "polynomial degree must be greater than zero, not {0}"
+            raise ValueError(msg.format(poly_degree))
+        R = PolynomialRing(sage.rings.all.ZZ, 'x')
+        p = R.random_element(degree=poly_degree, *args, **kwds)
+        # degree zero polynomials have no roots
+        # totally zero poly has degree -1
+        # add a random leading term
+        if p.degree() < 1:
+            g = R.gen(0)
+            m = sage.misc.prandom.randint(1, poly_degree)
+            p = p + g**m
+        roots = p.roots(ring=QQbar, multiplicities=False)
+
+        # p will have at least one root; pick one at random
+        # could we instead just compute one root "randomly"?
+        m = sage.misc.prandom.randint(0, len(roots)-1)
+        return roots[m]
 
 def is_AlgebraicField(F):
     return isinstance(F, AlgebraicField)

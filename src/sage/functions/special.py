@@ -1689,30 +1689,6 @@ def lngamma(t):
     deprecation(6992, "The method lngamma() is deprecated. Use log_gamma() instead.")
     return log_gamma(t)
 
-def exp_int(t):
-    r"""
-    The exponential integral `\int_t^\infty e^{-x}/x dx` (t
-    belongs to RR).  This function is deprecated - please use
-    ``Ei`` or ``exponential_integral_1`` as needed instead.
-
-    EXAMPLES::
-
-        sage: exp_int(6)
-        doctest:...: DeprecationWarning: The method exp_int() is deprecated. Use -Ei(-x) or exponential_integral_1(x) as needed instead.
-        See http://trac.sagemath.org/6992 for details.
-        0.000360082452162659
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(6992, "The method exp_int() is deprecated. Use -Ei(-x) or exponential_integral_1(x) as needed instead.")
-    try:
-        return t.eint1()
-    except AttributeError:
-        from sage.libs.pari.all import pari
-        try:
-            return pari(t).eint1()
-        except:
-            raise NotImplementedError
-
 def error_fcn(t):
     r"""
     The complementary error function

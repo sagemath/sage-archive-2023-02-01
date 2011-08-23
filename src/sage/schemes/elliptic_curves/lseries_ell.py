@@ -9,7 +9,7 @@ from sage.rings.all import (
     RationalField,
     ComplexField)
 from math import sqrt, exp, ceil
-import sage.functions.transcendental as transcendental
+import sage.functions.exp_integral as exp_integral
 R = RealField()
 Q = RationalField()
 C = ComplexField()
@@ -471,7 +471,7 @@ class Lseries_ell(SageObject):
         an = self.__E.anlist(k)           # list of Sage Integers
         # Compute z = e^(-2pi/sqrt(N))
         pi = 3.14159265358979323846
-        v = transcendental.exponential_integral_1(2*pi/sqrtN, k)
+        v = exp_integral.exponential_integral_1(2*pi/sqrtN, k)
         L = 2*float(sum([ (v[n-1] * an[n])/n for n in xrange(1,k+1)]))
         error = 2*exp(-2*pi*(k+1)/sqrtN)/(1-exp(-2*pi/sqrtN))
         return R(L), R(error)

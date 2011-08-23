@@ -22,7 +22,7 @@ from sage.symbolic.constants import pi
 from sage.symbolic.function import is_inexact
 from sage.functions.log import exp
 from sage.functions.trig import arctan2
-from sage.functions.transcendental import Ei
+from sage.functions.exp_integral import Ei
 from sage.libs.mpmath import utils as mpmath_utils
 
 one_half = ~SR(2)

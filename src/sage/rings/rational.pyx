@@ -670,10 +670,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: n._magma_init_(magma)
             '-485/82847'
         """
-        s = self.numerator()._magma_init_(magma)
-        if not self.is_integral():
-            s += '/' + self.denominator()._magma_init_(magma)
-        return s
+        return self.numerator()._magma_init_(magma) + '/' + self.denominator()._magma_init_(magma)
 
     property __array_interface__:
         def __get__(self):

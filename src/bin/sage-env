@@ -22,44 +22,41 @@
 #
 ##########################################################################
 
-# GUESS SAGE_ROOT from pwd
-SAVEDIR="`pwd`"
-if [ -f sage -a -d spkg ]; then
-    GUESSED_SAGE_ROOT="`pwd`"
+
+# New value for SAGE_ROOT: either SAGE_ROOT (if given)
+# or a guessed value based on pwd.
+if [ -n "$SAGE_ROOT" ]; then
+    NEW_SAGE_ROOT="$SAGE_ROOT"
+elif [ -f sage -a -d spkg ]; then
+    NEW_SAGE_ROOT="."
+elif [ -f ../../sage -a -d ../../spkg ]; then
+    NEW_SAGE_ROOT="../.."
 else
-    if [ -f ../../sage -a -d ../../spkg ]; then
-        cd ../../
-        GUESSED_SAGE_ROOT="`pwd`"
-    else
-        GUESSED_SAGE_ROOT=""
-    fi
+    # No idea what SAGE_ROOT should be...
+    echo >&2 "Error: You must set the SAGE_ROOT environment variable or run this"
+    echo >&2 "script from the SAGE_ROOT or SAGE_ROOT/local/bin/ directory."
+    return 1
 fi
-cd "$SAVEDIR"
 
+# Make NEW_SAGE_ROOT absolute
+NEW_SAGE_ROOT=`cd "$NEW_SAGE_ROOT" && pwd -P`
 
-if [ "$SAGE_ROOT" = "" ]; then
-    if [ "$GUESSED_SAGE_ROOT" = "" ]; then
-        echo "Error: You must set the SAGE_ROOT environment"
-        echo "variable or run this script from the SAGE_ROOT or "
-        echo "SAGE_ROOT/local/bin/ directory."
-        return 1
-    else
-        SAGE_ROOT="$GUESSED_SAGE_ROOT"
-        EXPORT_SAGE_ROOT="yes"
-    fi
+# Sanity check NEW_SAGE_ROOT
+if [ -f "$NEW_SAGE_ROOT/sage" -a -d "$NEW_SAGE_ROOT/spkg" ]; then
+    :
 else
-    if [ -f "$SAGE_ROOT"/sage -a -d "$SAGE_ROOT"/spkg ]; then
-        # SAGE_ROOT points to a sage installation as expected
-        if [ "$SAGE_ROOT" != "$GUESSED_SAGE_ROOT" ]; then
-            echo "Warning: Attempted to overwrite SAGE_ROOT environment variable"
-        fi
-    else
-        echo "Error: The SAGE_ROOT environment variable is set to"
-        echo "a bad value. You must correct it or erase it and"
-        echo "run this script from the SAGE_ROOT or"
-        echo "SAGE_ROOT/local/bin/ directory."
-        return 1
-    fi
+    echo >&2 "Error: SAGE_ROOT is set to a bad value:"
+    echo >&2 "SAGE_ROOT=$SAGE_ROOT"
+    echo >&2 "You must correct it or erase it and run this script from the SAGE_ROOT"
+    echo >&2 "or SAGE_ROOT/local/bin/ directory."
+    return 1
+fi
+
+# Warn if NEW_SAGE_ROOT does not equal the old SAGE_ROOT
+if [ "$SAGE_ROOT" != "$NEW_SAGE_ROOT" -a -n "$SAGE_ROOT" ]; then
+    echo >&2 "Warning: overwriting SAGE_ROOT environment variable:"
+    echo >&2 "Old SAGE_ROOT=$SAGE_ROOT"
+    echo >&2 "New SAGE_ROOT=$NEW_SAGE_ROOT"
 fi
 
 # Don't execute the commands more than once.  Check this after
@@ -76,9 +73,9 @@ else
     return 0
 fi
 
-if [ "$EXPORT_SAGE_ROOT" = "yes" ]; then
-    export SAGE_ROOT
-fi
+SAGE_ROOT="$NEW_SAGE_ROOT"
+export SAGE_ROOT
+
 
 # Call with: contains_spaces X${VAR}X
 # i.e., WITHOUT quotes but some character(s) around the environment variable to test.
@@ -231,10 +228,10 @@ MPLINITFILE="$SAGE_LOCAL/lib/python/site-packages/matplotlib/__init__.py"
 if [ -f "$MPLINITFILE" ]; then
     MPLVERSION=`sed -n "/^__version__[ ]*=/s/[^']*'\([^']*\)'.*$/\1/p" "$MPLINITFILE"`
     if [ "$MPLVERSION" != "" ]; then
-	MPLCONFIGDIR="$DOT_SAGE/matplotlib-$MPLVERSION"
+        MPLCONFIGDIR="$DOT_SAGE/matplotlib-$MPLVERSION"
     else
-	# MPLVERSION is empty, so no version found.
-	MPLCONFIGDIR="$DOT_SAGE/matplotlib"
+        # MPLVERSION is empty, so no version found.
+        MPLCONFIGDIR="$DOT_SAGE/matplotlib"
     fi
     export MPLCONFIGDIR
     # Create the directory, because matplotlib doesn't seem to be happy otherwise.

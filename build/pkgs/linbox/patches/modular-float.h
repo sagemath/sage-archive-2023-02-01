@@ -70,7 +70,7 @@ namespace LinBox {
 
 		typedef float Element;
 		typedef ModularRandIter<float> RandIter;
-		typedef NonzeroRandIter<Modular<double>, ModularRandIter<double> > NonZeroRandIter;
+		typedef NonzeroRandIter<Modular<float>, ModularRandIter<float> > NonZeroRandIter;
 
 		static ClassifyRing<Modular<float> >::categoryTag getCategory() {return ClassifyRing<Modular<float> >::categoryTag();}
 

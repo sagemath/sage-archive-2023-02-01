@@ -23,6 +23,9 @@ LGPL V2 or later
 
 == Changelog ==
 
+=== linbox-1.1.6.p4 (Martin Albrecht, August 23rd, 2011) ===
+ * add NonZeroRandIter to modular-float.h (fixed in 1.1.7)
+
 === linbox-1.1.6.p3 (Jaap Spies, Jan 25th, 2010) ===
 
 === linbox-1.1.6.p2 (William Stein, ?) ===

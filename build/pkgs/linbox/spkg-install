@@ -16,6 +16,16 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+echo "Patching modular-float.h"
+
+cp patches/modular-float.h src/linbox/field/
+
+if [ $? -ne 0 ]; then
+    echo "Error copying modular-float fix"
+    exit 1
+fi
+
+
 cd src/
 
 CFLAGS="$CFLAGS -g -fPIC -I\"$SAGE_LOCAL/include\" -I\"$SAGE_LOCAL/include/linbox\"-L\"$SAGE_LOCAL/lib\""

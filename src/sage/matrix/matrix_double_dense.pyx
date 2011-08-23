@@ -964,9 +964,9 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: B = A.change_ring(CDF)
             sage: sv = B.singular_values()
             sage: sv[0:2]
-            [10.1973039839, 0.487045871772]
-            sage: sv[2:3]
-            [2.92724029018e-16]
+            [10.1973039..., 0.487045871...]
+            sage: sv[2] < 1e-14
+            True
 
         A matrix of rank 3 over the complex numbers.  ::
 
@@ -1030,7 +1030,9 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: A = matrix(CDF, 4, range(16))
             sage: set_verbose(1)
             sage: sv = A.singular_values(eps='auto'); sv
-            verbose 1 (<module>) singular values, smallest-non-zero:cutoff:largest-zero, 2.2766...:6.2421...e-14:1.4160...e-15
+            verbose 1 (<module>) singular values,
+            smallest-non-zero:cutoff:largest-zero,
+            2.2766...:6.2421...e-14:...
             [35.139963659, 2.27661020871, 0.0, 0.0]
             sage: set_verbose(0)
 

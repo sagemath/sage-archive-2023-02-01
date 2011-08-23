@@ -221,11 +221,11 @@ FLINT: Univariate Polynomial Arithmetic
 ---------------------------------------
 
 Sage uses Bill Hart and David Harvey's GPL'd Flint C library for
-arithmetic in :math:`\ZZ[x]`. Its main claim to fame is that it
-is the world's fastest for polynomial multiplication, e.g., in the
-benchmark below it is 3 times faster than NTL and twice as fast as
-Magma. Behind the scenes it contains some carefully tuned discrete
-Fourier transform code (which I know nearly nothing about).
+arithmetic in :math:`\ZZ[x]`. Its main claim to fame is that it is the
+world's fastest for polynomial multiplication, e.g., in the benchmark
+below it is faster than NTL and Magma on some systems (though such
+benchmarks of course change as software improves).  Behind the scenes
+Flint contains some carefully tuned discrete Fourier transform code.
 
 ::
 
@@ -242,9 +242,7 @@ Fourier transform code (which I know nearly nothing about).
     sage: ff = magma(f); gg = magma(g)  #optional - magma
     sage: s = 'time v := [%s * %s : i in [1..10^5]];'%(ff.name(), gg.name()) #optional - magma
     sage: magma.eval(s)     #optional - magma
-    'Time: 17.120'
-    sage: (17.120/10^5)*10^(6)    # convert to microseconds
-    171.200000000000
+    'Time: ...'
 
 Singular: Multivariate Polynomial Arithmetic
 --------------------------------------------
@@ -252,7 +250,7 @@ Singular: Multivariate Polynomial Arithmetic
 Multivariate polynomial arithmetic in many cases uses Singular in
 library mode (due to Martin Albrecht), which is quite fast. For example,
 below we do the Fateman benchmark over the finite field of order
-32003.
+32003, and compare the timing with Magma.
 
 ::
 
@@ -264,8 +262,6 @@ below we do the Fateman benchmark over the finite field of order
     sage: pp = magma(p); qq = magma(q) #optional - magma
     sage: s = 'time w := %s*%s;'%(pp.name(),qq.name()) #optional - magma
     sage: magma.eval(s) #optional - magma
-    'Time: 1.480'
+    'Time: ...'
 
-Notice that the multiplication takes about four times as long in
-Magma.
 

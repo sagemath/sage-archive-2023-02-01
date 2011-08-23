@@ -20,7 +20,6 @@ __ http://creativecommons.org/licenses/by-sa/3.0/
    lie
    linear_programming
    numtheory_rsa
-   bibliography
 
 Indices and tables
 ==================

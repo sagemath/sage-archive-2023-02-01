@@ -90,10 +90,6 @@ Bibliography
    Indices and Branching Rules for Representations of Simple Lie
    Algebras*. Marcel Dekker, 1981.
 
-.. [MenezesEtAl1996] A. J. Menezes, P. C. van Oorschot, and
-   S. A. Vanstone. *Handbook of Applied Cryptography*. CRC Press, Boca
-   Raton, FL, USA, 1996.
-
 .. [OkadoSchilling2008] M. Okado, A.Schilling. Existence of crystal bases for
    Kirillov--Reshetikhin crystals for nonexceptional types.
    *Representation Theory* 12:186--207, 2008.

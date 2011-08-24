@@ -473,6 +473,15 @@ Here are examples of all of these conversions::
     [42, None, None, -13, None, None, None]
     sage: convert_test_all(QQ)
     [42, 22/7, None, -13, 89/55, None, None]
+
+TESTS::
+
+Verify that trac 10981 is fixed::
+
+    sage: x = AA['x'].gen()
+    sage: P = 1/(1+x^4)
+    sage: P.partial_fraction_decomposition()
+    (0, [(-0.3535533905932738?*x + 1/2)/(x^2 - 1.414213562373095?*x + 1), (0.3535533905932738?*x + 1/2)/(x^2 + 1.414213562373095?*x + 1)])
 """
 
 import sage.rings.ring
@@ -3383,7 +3392,64 @@ class AlgebraicNumber(AlgebraicNumber_base):
 
 class AlgebraicReal(AlgebraicNumber_base):
     def __init__(self, x):
+        """
+        Create an algebraic real from x, possibly taking the real part of x.
+
+        TESTS::
+
+        Both of the following examples, from trac 11728, trigger
+        taking the real part below.  This is necessary because
+        sometimes a very small (e.g., 1e-17) complex part appears in a
+        complex interval used to create an AlgebraicReal.::
+
+            sage: a = QQbar((-1)^(1/4)); b = AA(a^3-a); t = b.as_number_field_element()
+            sage: b*1
+            -1.414213562373095?
+        """
         AlgebraicNumber_base.__init__(self, AA, x)
+        self._ensure_real()
+
+    def _ensure_real(self):
+        """
+        This is used internally by some methods to check if
+        self._value is a complex interval, and if so, take the real
+        part.
+
+        EXAMPLES::
+
+            sage: a = QQbar((-1)^(1/4)); b = AA(a^3-a); b._value
+            -1.4142135623730950488?
+            sage: b._value = a._value; b._value
+            0.70710678118654752440084436210484903929? + 0.70710678118654752440084436210484903929?*I
+            sage: b._ensure_real()
+            sage: b._value
+            0.70710678118654752440084436210484903929?
+            sage: type(b._value)
+            <type 'sage.rings.real_mpfi.RealIntervalFieldElement'>
+        """
+        if is_ComplexIntervalFieldElement(self._value):
+            self._value = self._value.real()
+
+    def _more_precision(self):
+        """
+        Recompute the interval bounding this number with higher-precision
+        interval arithmetic.
+
+        TESTS::
+
+        We have to ensure after doing this that self._value is still
+        real which isn't the case without calling _ensure_real (see
+        trac 11728)::
+
+            sage: P = AA[x](1+x^4); a1,a2 = P.factor()[0][0],P.factor()[1][0]; a1*a2
+            x^4 + 1.000000000000000?
+            sage: a1,a2
+            (x^2 - 1.414213562373095?*x + 1, x^2 + 1.414213562373095?*x + 1)
+            sage: a1*a2
+            x^4 + 1
+        """
+        AlgebraicNumber_base._more_precision(self)
+        self._ensure_real()
 
     def __reduce__(self):
         """

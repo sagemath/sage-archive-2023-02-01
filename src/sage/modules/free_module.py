@@ -332,7 +332,7 @@ class FreeModuleFactory(UniqueFactory):
         :meth:`_test_pickling` will test unique representation and not
         only equality.
         """
-        rank = int(rank)
+        rank = int(sage.rings.integer.Integer(rank))
 
         if not (inner_product_matrix is None):
             inner_product_matrix = sage.matrix.matrix_space.MatrixSpace(base_ring, rank)(inner_product_matrix)

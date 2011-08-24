@@ -110,15 +110,29 @@ from sage.structure.element import canonical_coercion
 
 import sage.rings.arith
 
-from sage.rings.ring import is_Ring
 from sage.rings.infinity import Infinity
-import sage.rings.integer_ring
 import sage.rings.integer
+from sage.rings.integer_ring import ZZ
 from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
 from sage.misc.derivative import multi_derivative
 
-#from sage.matrix.matrix cimport Matrix
+
+# We use some cimports for very quick checking of Integer and Ring
+# type to optimize vector(ring,n) for creating the zero vector.
+from sage.rings.ring cimport Ring
+from sage.rings.integer cimport Integer
+
+# We define our own faster is_Ring since is_Ring in the
+# sage.rings.ring module is slowedue to it doing an import every time,
+# and creating a category.  We should rarely hit the second case
+# (is_Ring_slow below).  Note that this function will slightly slow
+# down in the very rare case when R is not of type Ring, but it is in
+# the category of rings.  But it gives a big speedup for the most
+# common case when R is a Ring.
+from sage.rings.ring import is_Ring as is_Ring_slow
+cdef is_Ring(R):
+    return isinstance(R, Ring) or is_Ring_slow(R)
 
 def is_FreeModuleElement(x):
     """
@@ -262,6 +276,26 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
         sage: w.parent()
         Vector space of dimension 4 over Finite Field of size 7
 
+    The fastest method to construct a zero vector is to call the
+    :meth:`~sage.modules.free_module.FreeModule_generic.zero_vector`
+    method directly on a free module or vector space, since
+    vector(...)  must do a small amount of type checking.  Almost as
+    fast as the ``zero_vector()`` method is the
+    :func:`~sage.modules.free_module_element.zero_vector` constructor,
+    which defaults to the integers.  ::
+
+        sage: vector(ZZ, 5)          # works fine
+        (0, 0, 0, 0, 0)
+        sage: (ZZ^5).zero_vector()   # very tiny bit faster
+        (0, 0, 0, 0, 0)
+        sage: zero_vector(ZZ, 5)     # similar speed to vector(...)
+        (0, 0, 0, 0, 0)
+        sage: z = zero_vector(5); z
+        (0, 0, 0, 0, 0)
+        sage: z.parent()
+        Ambient free module of rank 5 over
+        the principal ideal domain Integer Ring
+
     Here we illustrate the creation of sparse vectors by using a
     dictionary. ::
 
@@ -289,6 +323,14 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
         Traceback (most recent call last):
         ...
         ValueError: cannot specify the degree of a vector as a negative integer (-4)
+
+    It is an error to create a zero vector but not provide
+    a ring as the first argument.  ::
+
+        sage: vector('junk', 20)
+        Traceback (most recent call last):
+        ...
+        TypeError: first argument must be base ring of zero vector, not junk
 
     And it is an error to specify an index in a dictionary
     that is greater than or equal to a requested degree. ::
@@ -370,6 +412,14 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
         sage: x.parent()
         Ambient free module of rank 0 over the principal ideal domain Integer Ring
     """
+    # We first efficiently handle the important special case of the zero vector
+    # over a ring. See trac 11657.
+    # !! PLEASE DO NOT MOVE THIS CODE LOWER IN THIS FUNCTION !!
+    if arg2 is None and is_Ring(arg0) and (isinstance(arg1, (int, long, Integer))):
+        return (arg0**arg1).zero_vector()
+
+    # WARNING TO FUTURE OPTIMIZERS: The following two hasattr's take
+    # quite a significant amount of time.
     if hasattr(arg0, '_vector_'):
         return arg0._vector_(arg1)
 
@@ -387,11 +437,14 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
             if not maxindex < arg1:
                 raise ValueError("dictionary of entries has a key (index) exceeding the requested degree")
         # arg1 is now a legitimate degree
-        # replace it with a zero list or a dictionary, or a size-checked iterable
-        # so then down to just two arguments
+        # With no arg2, we can try to return a zero vector
+        #   else we size-check arg2 and slide it into arg1
         degree = arg1
         if arg2 is None:
-            arg1 = [0]*degree
+            if not is_Ring(arg0):
+                msg = "first argument must be base ring of zero vector, not {0}"
+                raise TypeError(msg.format(arg0))
+            return (arg0**degree).zero_vector()
         else:
             if not isinstance(arg2, dict) and len(arg2) != degree:
                 raise ValueError, "incompatible degrees in vector constructor"
@@ -527,7 +580,7 @@ def prepare(v, R, degree=None):
     if R is None:
         try:
             if len(v) == 0:
-                R = sage.rings.integer_ring.IntegerRing()
+                R = ZZ
         except TypeError:
             pass
     v = Sequence(v, universe=R, use_sage_types=True)
@@ -589,31 +642,32 @@ def zero_vector(arg0, arg1=None):
         sage: zero_vector(5.6)
         Traceback (most recent call last):
         ...
-        ValueError: constructing a zero vector requires the degree as an integer, not 5.60000000000000
+        TypeError: Attempt to coerce non-integral RealNumber to Integer
 
     Negative degrees also give an error. ::
 
         sage: zero_vector(-3)
         Traceback (most recent call last):
         ...
-        ValueError: cannot specify the degree of a vector as a negative integer (-3)
+        ValueError: rank (=-3) must be nonnegative
 
     Garbage instead of a ring will be recognized as such. ::
 
         sage: zero_vector(x^2, 5)
         Traceback (most recent call last):
         ...
-        ValueError: elements of a zero vector belong in a ring, not x^2
+        TypeError: arg0 must be a ring
     """
-    # default to a zero vector over the integers (ZZ) if no ring given
     if arg1 is None:
-        arg1 = arg0
-        arg0 = sage.rings.integer_ring.IntegerRing()
-    if not (sage.rings.integer.is_Integer(arg1) or isinstance(arg1,(int,long))):
-        raise ValueError("constructing a zero vector requires the degree as an integer, not %s" % arg1)
-    if not is_Ring(arg0):
-        raise ValueError("elements of a zero vector belong in a ring, not %s" % arg0)
-    return vector(arg0, arg1)
+        # default to a zero vector over the integers (ZZ) if no ring given
+        return (ZZ**arg0).zero_vector()
+    if is_Ring(arg0):
+        # NOTE: The "or" above is for speed reasons: is_Ring only called in
+        # when not a ring (slow path, get error), or when is_Ring would do
+        # some slow category-theoretic check anyways.  We want to avoid
+        # calling is_Ring.
+        return (arg0**arg1).zero_vector()
+    raise TypeError, "arg0 must be a ring"
 
 def random_vector(ring, degree=None, *args, **kwds):
     r"""
@@ -733,7 +787,7 @@ def random_vector(ring, degree=None, *args, **kwds):
             arglist.insert(0, degree)
             args = tuple(arglist)
         degree = ring
-        ring = sage.rings.integer_ring.IntegerRing()
+        ring = ZZ
     if not (sage.rings.integer.is_Integer(degree) or isinstance(degree,(int,long))):
         raise TypeError("degree of a random vector must be an integer, not %s" % degree)
     if degree < 0:

@@ -1922,12 +1922,6 @@ hg_extcode = HG('%s/data/extcode'%SAGE_ROOT,
                 obj_name='extcode')
 
 
-hg_examples = HG('%s/data/examples'%SAGE_ROOT,
-                 'Sage Examples',
-                 pull_url='%s/examples/'%SAGE_INCOMING_SERVER,
-                 push_url='%s/examples/'%SAGE_OUTGOING_SERVER,
-                 obj_name='examples')
-
 hg_root = HG(SAGE_ROOT,
              'Sage Root',
              pull_url=SAGE_INCOMING_SERVER,

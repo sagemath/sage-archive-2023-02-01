@@ -424,7 +424,9 @@ class Stock:
         ``AAPL-minutely.csv``. One can load this information into a Stock
         object like so. Note that the path must be explicit::
 
-            sage: finance.Stock('aapl').load_from_file(SAGE_ROOT + '/examples/finance/AAPL-minutely.csv')[:5]
+            sage: filename = tmp_filename() + '.csv'
+            sage: open(filename,'w').write("Date,Open,High,Low,Close,Volume\n1212405780,187.80,187.80,187.80,187.80,100\n1212407640,187.75,188.00,187.75,188.00,2000\n1212407700,188.00,188.00,188.00,188.00,1000\n1212408000,188.00,188.11,188.00,188.00,2877\n1212408060,188.00,188.00,188.00,188.00,687")
+            sage: finance.Stock('aapl').load_from_file(filename)[:5]
             [
             1212408060 188.00 188.00 188.00 188.00        687,
             1212408000 188.00 188.11 188.00 188.00       2877,
@@ -440,7 +442,7 @@ class Stock:
         example, we can initialize a Stock object with the symbol ``'goog'``,
         but load data from ``'aapl'`` stock prices::
 
-            sage: finance.Stock('goog').load_from_file(SAGE_ROOT + '/examples/finance/AAPL-minutely.csv')[:5]
+            sage: finance.Stock('goog').load_from_file(filename)[:5]
             [
             1212408060 188.00 188.00 188.00 188.00        687,
             1212408000 188.00 188.11 188.00 188.00       2877,
@@ -452,16 +454,16 @@ class Stock:
         This tests a file that doesn't exist::
 
             sage: finance.Stock("AAPL").load_from_file("I am not a file")
-            Bad path or file name
+            Traceback (most recent call last):
+            ...
+            IOError: [Errno 2] No such file or directory: 'I am not a file'
         """
-        try:
-            file_obj = open(file, 'r')
-            R = file_obj.read();
-            self.__historical = self._load_from_csv(R)
-            file_obj.close()
-            return self.__historical
-        except IOError, msg:
-            print "Bad path or file name"
+        file_obj = open(file, 'r')
+        R = file_obj.read();
+        self.__historical = self._load_from_csv(R)
+        file_obj.close()
+        return self.__historical
+
 
     def _load_from_csv(self, R):
         """
@@ -469,7 +471,9 @@ class Stock:
 
         This indirectly tests ``_load_from_csv()``::
 
-            sage: finance.Stock('aapl').load_from_file(SAGE_ROOT + "/examples/finance/AAPL-minutely.csv")
+            sage: filename = tmp_filename() + '.csv'
+            sage: open(filename,'w').write("Date,Open,High,Low,Close,Volume\n1212405780,187.80,187.80,187.80,187.80,100\n1212407640,187.75,188.00,187.75,188.00,2000\n1212407700,188.00,188.00,188.00,188.00,1000\n1212408000,188.00,188.11,188.00,188.00,2877\n1212408060,188.00,188.00,188.00,188.00,687")
+            sage: finance.Stock('aapl').load_from_file(filename)
             [
             1212408060 188.00 188.00 188.00 188.00        687,
             1212408000 188.00 188.11 188.00 188.00       2877,

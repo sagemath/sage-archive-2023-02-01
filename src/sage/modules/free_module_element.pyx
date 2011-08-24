@@ -124,7 +124,7 @@ from sage.rings.ring cimport Ring
 from sage.rings.integer cimport Integer
 
 # We define our own faster is_Ring since is_Ring in the
-# sage.rings.ring module is slowedue to it doing an import every time,
+# sage.rings.ring module is slow due to it doing an import every time,
 # and creating a category.  We should rarely hit the second case
 # (is_Ring_slow below).  Note that this function will slightly slow
 # down in the very rare case when R is not of type Ring, but it is in
@@ -444,7 +444,6 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
             if not is_Ring(arg0):
                 msg = "first argument must be base ring of zero vector, not {0}"
                 raise TypeError(msg.format(arg0))
-            return (arg0**degree).zero_vector()
         else:
             if not isinstance(arg2, dict) and len(arg2) != degree:
                 raise ValueError, "incompatible degrees in vector constructor"
@@ -656,18 +655,14 @@ def zero_vector(arg0, arg1=None):
         sage: zero_vector(x^2, 5)
         Traceback (most recent call last):
         ...
-        TypeError: arg0 must be a ring
+        TypeError: first argument must be a ring
     """
     if arg1 is None:
         # default to a zero vector over the integers (ZZ) if no ring given
         return (ZZ**arg0).zero_vector()
     if is_Ring(arg0):
-        # NOTE: The "or" above is for speed reasons: is_Ring only called in
-        # when not a ring (slow path, get error), or when is_Ring would do
-        # some slow category-theoretic check anyways.  We want to avoid
-        # calling is_Ring.
         return (arg0**arg1).zero_vector()
-    raise TypeError, "arg0 must be a ring"
+    raise TypeError, "first argument must be a ring"
 
 def random_vector(ring, degree=None, *args, **kwds):
     r"""

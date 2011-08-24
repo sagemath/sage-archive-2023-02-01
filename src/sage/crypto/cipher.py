@@ -27,11 +27,11 @@ class Cipher(Element):
 
         EXAMPLES: None yet
         """
-        self._parent = parent
+        Element.__init__(self, parent)
         self._key = key
 
     def __eq__(self, right):
-        return type(self) == type(right) and self._parent == right._parent and self._key == right._key
+        return type(self) == type(right) and self.parent() == right.parent() and self._key == right._key
 
     def _repr_(self):
         r"""
@@ -50,13 +50,10 @@ class Cipher(Element):
         return self._key # was str(self._key)
 
     def domain(self):
-        return self._parent.cipher_domain()
+        return self.parent().cipher_domain()
 
     def codomain(self):
-        return self._parent().cipher_codomain()
-
-    def parent(self):
-        return self._parent
+        return self.parent().cipher_codomain()
 
 class SymmetricKeyCipher(Cipher):
     """

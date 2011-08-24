@@ -1,5 +1,12 @@
 """
 Ring of pari objects
+
+AUTHORS:
+
+- William Stein (2004): Initial version.
+- Simon King (2011-08-24): Use UniqueRepresentation, element_class and
+  proper initialisation of elements.
+
 """
 
 #*****************************************************************************
@@ -18,32 +25,79 @@ import sage.libs.pari.all as pari
 import sage.rings.ring as ring
 import ring_element
 
-_obj = {}
-class _uniq(object):
-    def __new__(cls):
-        if _obj.has_key(0):
-            return _obj[0]
-        O = object.__new__(cls)
-        _obj[0] = O
-        return O
+from sage.structure.unique_representation import UniqueRepresentation
 
-class PariRing(ring.Ring, _uniq):
+class Pari(ring_element.RingElement):
+    """
+    Element of Pari pseudo-ring.
+    """
+    def __init__(self, x, parent=None):
+        """
+        EXAMPLES:
+            sage: R = PariRing()
+            sage: f = R('x^3 + 1/2')
+            sage: f
+            x^3 + 1/2
+            sage: type(f)
+            <class 'sage.rings.pari_ring.PariRing.element_class'>
+            sage: loads(f.dumps()) == f
+            True
+        """
+        if parent is None:
+            parent = _inst
+        ring_element.RingElement.__init__(self, parent)
+        self.__x = pari.pari(x)
+
+    def __repr__(self):
+        return str(self.__x)
+
+    def _add_(self, other):
+        return self.__class__(self.__x + other.__x, parent=_inst)
+
+    def _sub_(self, other):
+        return self.__class__(self.__x - other.__x, parent=_inst)
+
+    def _mul_(self, other):
+        return self.__class__(self.__x * other.__x, parent=_inst)
+
+    def _div_(self, other):
+        return self.__x * (~other.__x)
+
+    def __neg__(self):
+        return self.__class__(-self.__x, parent=_inst)
+
+    def __pow__(self, other):
+        if not isinstance(other, Pari):
+            return bin_op(self, other, operator.pow)
+        return self.__class__(self.__x ** other.__x, parent=_inst)
+
+    def __invert__(self):
+        return self.__class__(~self.__x, parent=_inst)
+
+    def __cmp__(self, other):
+        return cmp(self.__x, other.__x)
+
+    def __int__(self):
+        return int(self.__x)
+
+class PariRing(UniqueRepresentation, ring.Ring):
     """
     EXAMPLES:
         sage: R = PariRing(); R
         Pseudoring of all PARI objects.
-        sage: loads(R.dumps()) == R
+        sage: loads(R.dumps()) is R
         True
     """
+    Element = Pari
     def __init__(self):
         ring.Ring.__init__(self, self)
     def __repr__(self):
         return 'Pseudoring of all PARI objects.'
 
-    def __call__(self, x):
+    def _element_constructor_(self, x):
         if isinstance(x, Pari):
             return x
-        return Pari(x)
+        return self.element_class(x, parent=self)
 
     def is_atomic_repr(self):
         return False
@@ -55,8 +109,37 @@ class PariRing(ring.Ring, _uniq):
         raise RuntimeError, "Not defined."
         #return 0
 
-    def random_element(self, bound=0):
-        return Pari(0)
+    def random_element(self, x=None, y=None, distribution=None):
+        """
+        Return a random integer in Pari.
+
+        NOTE:
+
+        The given arguments are passed to ``ZZ.random_element(...)``.
+
+        INPUT:
+
+        - `x`, `y` -- optional integers, that are lower and upper bound
+          for the result. If only `x` is provided, then the result is
+          between 0 and `x-1`, inclusive. If both are provided, then the
+          result is between `x` and `y-1`, inclusive.
+
+        - `distribution` -- optional string, so that ``ZZ`` can make sense
+          of it as a probability distribution.
+
+        EXAMPLE::
+
+            sage: R = PariRing()
+            sage: R.random_element()
+            -8
+            sage: R.random_element(5,13)
+            12
+            sage: [R.random_element(distribution="1/n") for _ in range(10)]
+            [0, 1, -1, 2, 1, -95, -1, -2, -12, 0]
+
+        """
+        from sage.all import ZZ
+        return self(ZZ.random_element(x,y,distribution))
 
     def random(self, bound=0):
         """
@@ -64,67 +147,17 @@ class PariRing(ring.Ring, _uniq):
         """
         raise NotImplementedError, "Deprecated: use random_element() instead"
 
-    def __cmp__(self, other):
-        return cmp(type(self),type(other))
-
     def zeta(self):
-        return Pari(-1)
+        """
+        Return -1.
 
+        EXAMPLE::
+
+            sage: R = PariRing()
+            sage: R.zeta()
+            -1
+        """
+        return self(-1)
 
 _inst = PariRing()
-
-class Pari(ring_element.RingElement):
-    """
-    Element of Pari pseudo-ring.
-    """
-    def __init__(self, x):
-        """
-        EXAMPLES:
-            sage: R = PariRing()
-            sage: f = R('x^3 + 1/2')
-            sage: f
-            x^3 + 1/2
-            sage: type(f)
-            <class 'sage.rings.pari_ring.Pari'>
-            sage: loads(f.dumps()) == f
-            True
-        """
-        self.__x = pari.pari(x)
-
-    def parent(self):
-        return _inst
-
-    def __repr__(self):
-        return str(self.__x)
-
-    def _add_(self, other):
-        return Pari(self.__x + other.__x)
-
-    def _sub_(self, other):
-        return Pari(self.__x - other.__x)
-
-    def _mul_(self, other):
-        return Pari(self.__x * other.__x)
-
-    def _div_(self, other):
-        return self.__x * (~other.__x)
-
-    def __neg__(self):
-        return Pari(-self.__x)
-
-    def __pow__(self, other):
-        if not isinstance(other, Pari):
-            return bin_op(self, other, operator.pow)
-        return Pari(self.__x ** other.__x)
-
-    def __invert__(self):
-        return Pari(~self.__x)
-
-    def __cmp__(self, other):
-        return cmp(self.__x, other.__x)
-
-    def __int__(self):
-        return int(self.__x)
-
-
 

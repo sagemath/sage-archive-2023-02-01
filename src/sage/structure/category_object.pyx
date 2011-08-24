@@ -455,12 +455,35 @@ cdef class CategoryObject(sage_object.SageObject):
     def __temporarily_change_names(self, names, latex_names):
         """
         This is used by the variable names context manager.
+
+        TEST:
+
+        In an old version, it was impossible to temporarily change
+        the names if no names were previously assigned. But if one
+        wants to print elements of the quotient of such an "unnamed"
+        ring, an error resulted. That was fixed in trac ticket
+        #11068.
+        ::
+
+            sage: MS = MatrixSpace(GF(5),2,2)
+            sage: I = MS*[MS.0*MS.1,MS.2+MS.3]*MS
+            sage: Q.<a,b,c,d> = MS.quo(I)
+            sage: a     #indirect doctest
+            [1 0]
+            [0 0]
+
         """
         #old = self._names, self._latex_names
         # We can not assume that self *has* _latex_variable_names.
         # But there is a method that returns them and sets
         # the attribute at the same time, if needed.
-        old = self.variable_names(), self.latex_variable_names()
+        # Simon King: It is not necessarily the case that variable
+        # names are assigned. In that case, self._names is None,
+        # and self.variable_names() raises a ValueError
+        try:
+            old = self.variable_names(), self.latex_variable_names()
+        except ValueError:
+            old = None, None
         self._names, self._latex_names = names, latex_names
         return old
 

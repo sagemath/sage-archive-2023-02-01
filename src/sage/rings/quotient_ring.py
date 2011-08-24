@@ -222,7 +222,10 @@ def QuotientRing(R, I, names=None):
     except (AttributeError, NotImplementedError):
         is_commutative = False
     if names is None:
-        names = tuple([x + 'bar' for x in R.variable_names()])
+        try:
+            names = tuple([x + 'bar' for x in R.variable_names()])
+        except ValueError: # no names are assigned
+            pass
     else:
         names = sage.structure.parent_gens.normalize_names(R.ngens(), names)
     if not isinstance(I, ideal.Ideal_generic) or I.ring() != R:

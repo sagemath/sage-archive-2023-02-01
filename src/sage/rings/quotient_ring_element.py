@@ -195,6 +195,16 @@ class QuotientRingElement(ring_element.RingElement):
             <class 'sage.rings.quotient_ring_element.QuotientRing_generic_with_category.element_class'>
             sage: a-2*a*b     # indirect doctest
             -2*a*b + a
+
+        In trac ticket #11068, the case of quotient rings without
+        assigned names has been covered as well::
+
+            sage: S = SteenrodAlgebra(2)
+            sage: I = S*[S.0+S.1]*S
+            sage: Q = S.quo(I)
+            sage: Q.0
+            Sq(1)
+
         """
         from sage.structure.parent_gens import localvars
         P = self.parent()
@@ -202,6 +212,13 @@ class QuotientRingElement(ring_element.RingElement):
         # We print by temporarily (and safely!) changing the variable
         # names of the covering structure R to those of P.
         # These names get changed back, since we're using "with".
+        # However, it may occur that no variable names are assigned.
+        # That holds, in particular, if there are infinitely many
+        # generators, as for Steenrod algebras.
+        try:
+            names = P.variable_names()
+        except ValueError:
+            return str(self.__rep)
         with localvars(R, P.variable_names(), normalize=False):
             return str(self.__rep)
 

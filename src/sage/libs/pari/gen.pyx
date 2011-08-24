@@ -9409,15 +9409,29 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         EXAMPLES::
 
             sage: pari.init_primes(200000)
+
+        We make sure that ticket #11741 has been fixed, and double check to
+        make sure that diffptr has not been freed::
+
+            sage: pari.init_primes(2^62)
+            Traceback (most recent call last):
+            ...
+            PariError: not enough memory (28)            # 64-bit
+            OverflowError: long int too large to convert # 32-bit
+            sage: pari.init_primes(200000)
         """
         cdef unsigned long M
+        cdef char *tmpptr
         M = _M
         global diffptr, num_primes
         if M <= num_primes:
             return
+        sig_on()
+        tmpptr = initprimes(M)
+        sig_off()
         pari_free(<void*> diffptr)
         num_primes = M
-        diffptr = initprimes(M)
+        diffptr = tmpptr
 
 
     ##############################################

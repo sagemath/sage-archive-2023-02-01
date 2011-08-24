@@ -176,6 +176,13 @@ cdef PariInstance pari_instance, P
 pari_instance = PariInstance(16000000, 500000)
 P = pari_instance   # shorthand notation
 
+# PariInstance.__init__ must not create gen objects because their parent is not constructed yet
+sig_on()
+pari_instance.PARI_ZERO = pari_instance.new_gen_noclear(gen_0)
+pari_instance.PARI_ONE  = pari_instance.new_gen_noclear(gen_1)
+pari_instance.PARI_TWO  = pari_instance.new_gen_noclear(gen_2)
+sig_off()
+
 # so Galois groups are represented in a sane way
 # See the polgalois section of the PARI users manual.
 new_galois_format = 1
@@ -8827,10 +8834,6 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         pariOut.putch = sage_putchar
         pariOut.puts = sage_puts
         pariOut.flush = sage_flush
-
-        self.PARI_ZERO = self.new_gen_noclear(gen_0)
-        self.PARI_ONE = self.new_gen_noclear(gen_1)
-        self.PARI_TWO = self.new_gen_noclear(gen_2)
         sig_off()
 
     def _unsafe_deallocate_pari_stack(self):

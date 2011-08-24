@@ -323,9 +323,12 @@ cdef class Element(sage_object.SageObject):
             AttributeError: 'sage.rings.polynomial.polynomial_rational_flint.Polynomial_rational_flint' object has no attribute '__foo'
 
         """
-        if (name.startswith('__') and not name.endswith('_')) or self._parent._category is None:
+        if (name.startswith('__') and not name.endswith('_')):
             raise AttributeError, AttributeErrorMessage(self, name)
-        return getattr_from_other_class(self, self._parent._category.element_class, name)
+        cdef Parent P = self._parent or self.parent()
+        if P is None or P._category is None:
+            raise AttributeError, AttributeErrorMessage(self, name)
+        return getattr_from_other_class(self, P._category.element_class, name)
 
     def __dir__(self):
         """

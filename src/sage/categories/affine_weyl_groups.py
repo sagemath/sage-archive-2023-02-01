@@ -70,7 +70,7 @@ class AffineWeylGroups(Category):
         def is_affine_grassmannian(self):
             """
             INPUT:
-             - self: an element of an affine weyl group
+             - self: an element of an affine Weyl group
 
             Tests whether self is Grassmannian, i.e. any of the following
             equivalent properties hold:
@@ -91,3 +91,76 @@ class AffineWeylGroups(Category):
                 True
             """
             return self.descents() in [[], [self.parent().special_node()]]
+
+        def affine_grassmannian_to_core(self):
+            r"""
+            Bijection between affine Grassmannian elements of type `A_k^{(1)}` and `(k+1)`-cores.
+
+            INPUT:
+
+            - ``self`` -- an affine Grassmannian element of some affine Weyl group of type `A_k^{(1)}`
+
+            Recall that an element `w` of an affine Weyl group is
+            affine Grassmannian if all its all reduced words end in 0, see :meth:`is_affine_grassmannian`.
+
+            OUTPUT:
+
+            - a `(k+1)`-core
+
+            See also :meth:`affine_grassmannian_to_partition`.
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(['A',2,1])
+                sage: w = W.from_reduced_word([0,2,1,0])
+                sage: la = w.affine_grassmannian_to_core(); la
+                [4, 2]
+                sage: type(la)
+                <class 'sage.combinat.core.Cores_length_with_category.element_class'>
+                sage: la.to_grassmannian() == w
+                True
+
+                sage: w = W.from_reduced_word([0,2,1])
+                sage: w.affine_grassmannian_to_core()
+                Traceback (most recent call last):
+                ...
+                ValueError: Error! this only works on type 'A' affine Grassmannian elements
+            """
+            from sage.combinat.partition import Partition
+            from sage.combinat.core import Core
+            if not self.is_affine_grassmannian() or not self.parent().cartan_type().letter == 'A':
+                raise ValueError, "Error! this only works on type 'A' affine Grassmannian elements"
+            out = Partition([])
+            rword = self.reduced_word()
+            kp1 = self.parent().n
+            for i in range(len(rword)):
+                for c in filter( lambda x: (x[1]-x[0])%kp1==rword[-i-1], out.outside_corners()):
+                    out = out.add_cell(c[0],c[1])
+            return Core(out._list,kp1)
+
+        def affine_grassmannian_to_partition(self):
+            r"""
+            Bijection between affine Grassmannian elements of type `A_k^{(1)}` and `k`-bounded partitions.
+
+            INPUT:
+
+            - ``self`` is affine Grassmannian element of the affine Weyl group of type `A_k^{(1)}` (i.e. all reduced words end in 0)
+
+            OUTPUT:
+
+            - `k`-bounded partition
+
+            See also :meth:`affine_grassmannian_to_core`.
+
+            EXAMPLES::
+
+                sage: k = 2
+                sage: W = WeylGroup(['A',k,1])
+                sage: w = W.from_reduced_word([0,2,1,0])
+                sage: la = w.affine_grassmannian_to_partition(); la
+                [2, 2]
+                sage: la.from_kbounded_to_grassmannian(k) == w
+                True
+            """
+            return self.affine_grassmannian_to_core().to_bounded_partition()
+

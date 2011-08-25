@@ -49,6 +49,9 @@ from partition import Partition, Partitions, PartitionsInBox,\
 from skew_partition import SkewPartition, SkewPartitions
 from partition_algebra import SetPartitionsAk, SetPartitionsPk, SetPartitionsTk, SetPartitionsIk, SetPartitionsBk, SetPartitionsSk, SetPartitionsRk, SetPartitionsRk, SetPartitionsPRk
 
+#Cores
+from core import Core, Cores
+
 #Tableaux
 from tableau import Tableau, StandardTableau, Tableaux, StandardTableaux, SemistandardTableaux
 from skew_tableau import SkewTableau, StandardSkewTableaux, SemistandardSkewTableaux

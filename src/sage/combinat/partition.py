@@ -1979,9 +1979,9 @@ class Partition_class(CombinatorialObject):
 
     def k_skew(self, k):
         r"""
-        Returns the k-skew partition.
+        Returns the `k`-skew partition.
 
-        The k-skew diagram of a k-bounded partition is the skew diagram
+        The `k`-skew diagram of a `k`-bounded partition is the skew diagram
         denoted `\lambda/^k` satisfying the conditions:
 
         1. row i of `\lambda/^k` has length `\lambda_i`
@@ -2039,8 +2039,25 @@ class Partition_class(CombinatorialObject):
 
         return sage.combinat.skew_partition.SkewPartition([outer, inner])
 
+    def to_core(self, k):
+        r"""
+        Maps the `k`-bounded partition ``self`` to its corresponding `k+1`-core.
 
-    def from_kbounded_to_reduced_word(p,k):
+        See also :meth:`k_skew`.
+
+        EXAMPLES::
+
+            sage: p = Partition([4,3,2,2,1,1])
+            sage: c = p.to_core(4); c
+            [9, 5, 3, 2, 1, 1]
+            sage: type(c)
+            <class 'sage.combinat.core.Cores_length_with_category.element_class'>
+            sage: c.to_bounded_partition() == p
+            True
+        """
+        return sage.combinat.core.Core(self.k_skew(k)[0],k+1)
+
+    def from_kbounded_to_reduced_word(self, k):
         r"""
         Maps a `k`-bounded partition to a reduced word for an element in
         the affine permutation group.
@@ -2071,7 +2088,7 @@ class Partition_class(CombinatorialObject):
             sage: p.from_kbounded_to_reduced_word(2)
             []
         """
-        p=p.k_skew(k)[0]
+        p=self.k_skew(k)[0]
         result = []
         while p != []:
             corners = p.corners()
@@ -2082,7 +2099,7 @@ class Partition_class(CombinatorialObject):
                 p = p.remove_cell(x[0])
         return result
 
-    def from_kbounded_to_grassmannian(p,k):
+    def from_kbounded_to_grassmannian(self, k):
         r"""
         Maps a `k`-bounded partition to a Grassmannian element in
         the affine Weyl group of type `A_k^{(1)}`.
@@ -2105,8 +2122,7 @@ class Partition_class(CombinatorialObject):
         """
         from sage.combinat.root_system.weyl_group import WeylGroup
         W=WeylGroup(['A',k,1])
-        return W.from_reduced_word(p.from_kbounded_to_reduced_word(k))
-
+        return W.from_reduced_word(self.from_kbounded_to_reduced_word(k))
 
     def to_list(self):
         r"""

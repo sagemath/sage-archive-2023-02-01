@@ -12,6 +12,7 @@ Combinatorics
    ../sage/combinat/combination
    ../sage/combinat/composition_signed
    ../sage/combinat/composition
+   ../sage/combinat/core
    ../sage/combinat/debruijn_sequence
    ../sage/combinat/dlx
    ../sage/combinat/matrices/dlxcpp

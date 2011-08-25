@@ -7,7 +7,7 @@ Coxeter Groups
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
-# With contributions from Dan Bump, Steve Pon, Qiang Wang
+# With contributions from Dan Bump, Steve Pon, Qiang Wang, Anne Schilling
 
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.misc.abstract_method import abstract_method
@@ -1031,6 +1031,45 @@ class CoxeterGroups(Category):
                 return [u.apply_simple_reflection(desc) for u in ww.bruhat_lower_covers() if not u.has_descent(desc)] + [ww]
             else:
                 return []
+
+        @cached_in_parent_method
+        def bruhat_upper_covers(self):
+            r"""
+            Returns all elements that cover ``self`` in (strong) Bruhat order.
+
+            The algorithm works recursively, using the 'inverse' of the method described for
+            lower covers :meth:`bruhat_lower_covers`. Namely, it runs through all `i` in the
+            index set: if `w`=``self`` has no right descent `i`, then `w s_i` is a cover;
+            if `w` has a decent at `i`, then `u_j s_i` is a cover of `w` where `u_j` is a cover
+            of `w s_i`.
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(['A',3,1])
+                sage: w = W.from_reduced_word([1,2,1])
+                sage: sorted([x.reduced_word() for x in w.bruhat_upper_covers()])
+                [[0, 1, 2, 1], [1, 2, 0, 1], [1, 2, 1, 0], [1, 2, 3, 1], [2, 3, 1, 2], [3, 1, 2, 1]]
+
+                sage: W = WeylGroup(['A',3])
+                sage: w = W.long_element()
+                sage: w.bruhat_upper_covers()
+                []
+
+                sage: W = WeylGroup(['A',3])
+                sage: w = W.from_reduced_word([1,2,1])
+                sage: S = [v for v in W if w in v.bruhat_lower_covers()]
+                sage: C = w.bruhat_upper_covers()
+                sage: set(S) == set(C)
+                True
+            """
+            Covers = []
+            for i in self.parent().index_set():
+                if i in self.descents():
+                    Covers += [ x.apply_simple_reflection(i) for x in self.apply_simple_reflection(i).bruhat_upper_covers()
+                                if i not in x.descents() ]
+                else:
+                    Covers += [ self.apply_simple_reflection(i) ]
+            return [x for x in set(Covers)]
 
         @cached_in_parent_method
         def bruhat_le(self, other):

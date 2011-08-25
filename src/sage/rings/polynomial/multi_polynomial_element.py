@@ -880,8 +880,10 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
 
     def is_monomial(self):
         """
-        Returns True if self is a monomial. A monomial is defined to be a
+        Returns True if self is a monomial, which we define to be a
         product of generators with coefficient 1.
+
+        Use is_term to allow the coefficient to not be 1.
 
         EXAMPLES::
 
@@ -894,6 +896,13 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             False
             sage: (x*y).is_monomial()
             True
+
+        To allow a non-1 leading coefficient, use is_term()::
+
+            sage: (2*x*y).is_term()
+            True
+            sage: (2*x*y).is_monomial()
+            False
         """
         term = (len(self.element().dict().keys()) == 1)
         if term:
@@ -903,6 +912,35 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
                 return False
         else:
             return False
+
+    def is_term(self):
+        """
+        Returns True if self is a term, which we define to be a
+        product of generators times some coefficient, which need
+        not be 1.
+
+        Use is_monomial to require that the coefficent be 1.
+
+        EXAMPLES::
+
+            sage: R.<x,y>=QQbar[]
+            sage: x.is_term()
+            True
+            sage: (x+2*y).is_term()
+            False
+            sage: (2*x).is_term()
+            True
+            sage: (7*x^5*y).is_term()
+            True
+
+        To require leading coefficient 1, use is_monomial()::
+
+            sage: (2*x*y).is_monomial()
+            False
+            sage: (2*x*y).is_term()
+            True
+        """
+        return len(self.element().dict().keys()) == 1
 
     def subs(self, fixed=None, **kw):
         """

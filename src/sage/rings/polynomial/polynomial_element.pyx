@@ -3216,7 +3216,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def is_monomial(self):
         """
-        Returns True if this is a monomial.
+        Returns True if self is a monomial, i.e., a power of the generator.
 
         EXAMPLES::
 
@@ -3227,6 +3227,48 @@ cdef class Polynomial(CommutativeAlgebraElement):
             False
             sage: (x^2).is_monomial()
             True
+            sage: R(1).is_monomial()
+            True
+
+        The coefficient must be 1::
+
+            sage: (2*x^5).is_monomial()
+            False
+
+        To allow a non-1 leading coefficient, use is_term()::
+
+            sage: (2*x^5).is_term()
+            True
+
+        .. warning::
+
+           The definition of is_monomial in Sage up to 4.7.1 was the
+           same as is_term, i.e., it allowed a coefficient not equal
+           to 1.
+        """
+        return len(self.exponents()) == 1 and self.leading_coefficient() == 1
+
+    def is_term(self):
+        """
+        Return True if self is an element of the base ring times a
+        power of the generator.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: x.is_term()
+            True
+            sage: R(1).is_term()
+            True
+            sage: (3*x^5).is_term()
+            True
+            sage: (1+3*x^5).is_term()
+            False
+
+        To require that the coefficient is 1, use is_monomial() instead::
+
+            sage: (3*x^5).is_monomial()
+            False
         """
         return len(self.exponents()) == 1
 

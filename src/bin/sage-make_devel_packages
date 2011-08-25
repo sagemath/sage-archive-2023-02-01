@@ -89,32 +89,6 @@ if [ ! -f "$PKG"/extcode-"$SAGE_VERSION".spkg ]; then
     exit 1
 fi
 
-# NEW SAGE EXAMPLE CODE PACKAGE
-if [ -d "$SAGE_ROOT"/examples ]; then
-   cd "$SAGE_ROOT"/examples
-   hg diff
-   hg status
-   hg tag "$SAGE_VERSION"
-   hg commit -m "$SAGE_VERSION"
-   #./sage-push
-   cd ..
-   rm -rf examples-"$SAGE_VERSION"
-   cp -r examples examples-"$SAGE_VERSION"
-   "$SAGE_ROOT"/sage -pkg examples-"$SAGE_VERSION"
-   if [ $? -ne 0 ]; then
-       echo "Error building examples package"
-       exit 1
-   fi
-   mv examples-"$SAGE_VERSION".spkg "$DESTINATION"/
-   rm -rf examples-"$SAGE_VERSION"
-   touch "$SPKG_INST"/examples-"$SAGE_VERSION"
-fi
-
-if [ ! -f "$PKG"/examples-"$SAGE_VERSION".spkg ]; then
-    echo "The package examples-$SAGE_VERSION.spkg wasn't created."
-    exit 1
-fi
-
 
 #################################
 

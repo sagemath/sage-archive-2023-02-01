@@ -28,21 +28,25 @@ SAGE_TRAC = 'http://trac.sagemath.org'
 TRAC_TICKET_PATH = '/sage_trac/ticket/'
 
 # TODO: load this from a file, convince make to do the same.
+# For the documentation directories, use the file
+# devel/sage/doc/common/build_options.py.
 DOCTEST_DIRS_RELATIVE = ['devel/sage/doc/common',
+                         'devel/sage/doc/de',
                          'devel/sage/doc/en',
                          'devel/sage/doc/fr',
+                         'devel/sage/doc/ru',
                          'devel/sage/sage' ]
 DOCTEST_DIRS = [ os.path.join(SAGE_ROOT, x) for x in DOCTEST_DIRS_RELATIVE ]
 
 DOCTEST_OPTIONS = ['none', 'files', 'directory', 'long']
 
-repository_ls = [ hg.hg_sage, hg.hg_scripts, hg.hg_extcode, hg.hg_examples ]
+repository_ls = [ hg.hg_sage, hg.hg_scripts, hg.hg_extcode, hg.hg_root ]
 repositories = { 'sage': hg.hg_sage,
                  'main': hg.hg_sage,
                  'scripts': hg.hg_scripts,
                  'bin': hg.hg_scripts,
                  'extcode': hg.hg_extcode,
-                 'examples': hg.hg_examples }
+                 'root': hg.hg_root }
 parser = OptionParser("""sage -merge [options] [ticket-number]
 
 Tries to automate the process of merging tickets in release management.

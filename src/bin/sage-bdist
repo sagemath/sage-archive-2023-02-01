@@ -54,7 +54,7 @@ echo "Done copying root repository."
 cd "$SAGE_ROOT"
 
 echo "Copying files over to tmp directory"
-cp $CP_OPT examples local data "$TMP"/
+cp $CP_OPT local data "$TMP"/
 
 if [ -d devel/sage-main ]; then
    echo "Copying Sage library over"

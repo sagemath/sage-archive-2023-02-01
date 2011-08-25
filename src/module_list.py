@@ -1281,7 +1281,8 @@ ext_modules = [
               define_macros=[('GSL_DISABLE_DEPRECATED','1')]),
 
     Extension('sage.rings.real_interval_absolute',
-              sources = ['sage/rings/real_interval_absolute.pyx']),
+              sources = ['sage/rings/real_interval_absolute.pyx'],
+              libraries = ['gmp']),
 
     Extension('sage.rings.real_lazy',
               sources = ['sage/rings/real_lazy.pyx']),

@@ -36,19 +36,107 @@ MAX_MODULUS = 2**8
 include "matrix_modn_dense_template.pxi"
 
 cdef class Matrix_modn_dense_float(Matrix_modn_dense_template):
-    """
+    r"""
     Dense matrices over `\ZZ/n\ZZ` for `n < 2^{11}` using LinBox's ``Modular<float>``
+
+    These are matrices with integer entries mod ``n`` represented as
+    floating-point numbers in a 32-bit word for use with LinBox routines.
+    This allows for ``n`` up to `2^{11}`.  The
+    ``Matrix_modn_dense_double`` class is used for larger moduli.
+
+    Routines here are for the most basic access, see the
+    `matrix_modn_dense_template.pxi` file for higher-level routines.
     """
     cdef set_unsafe_int(self, Py_ssize_t i, Py_ssize_t j, int value):
-        """
+        r"""
         Set the (i,j) entry of self to the int value.
+
+        EXAMPLES::
+
+            sage: A = random_matrix(GF(7), 4, 4); A
+            [3 1 6 6]
+            [4 4 2 2]
+            [3 5 4 5]
+            [6 2 2 1]
+            sage: A[0,0] = 12; A
+            [5 1 6 6]
+            [4 4 2 2]
+            [3 5 4 5]
+            [6 2 2 1]
+
+            sage: B = random_matrix(Integers(100), 4, 4); B
+            [13 95  1 16]
+            [18 33  7 31]
+            [92 19 18 93]
+            [82 42 15 38]
+            sage: B[0,0] = 422; B
+            [22 95  1 16]
+            [18 33  7 31]
+            [92 19 18 93]
+            [82 42 15 38]
         """
         self._matrix[i][j] = <float>value
 
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, x):
-        # doesn't do bounds or any other checks; assumes x is in self._base_ring
+        r"""
+        Set the (i,j) entry with no bounds-checking, or any other checks.
+
+        Assumes that `x` is in the base ring.
+
+        EXAMPLES::
+
+            sage: A = random_matrix(GF(13), 4, 4); A
+            [ 0  0  2  9]
+            [10  6 11  8]
+            [10 12  8  8]
+            [ 3  6  8  0]
+            sage: K = A.base_ring()
+            sage: x = K(27)
+            sage: A[0,0] = x; A
+            [ 1  0  2  9]
+            [10  6 11  8]
+            [10 12  8  8]
+            [ 3  6  8  0]
+
+            sage: B = random_matrix(Integers(200), 4, 4); B
+            [ 13  95 101 116]
+            [118 133   7 131]
+            [192  19 118 193]
+            [ 82 142 115  38]
+            sage: R = B.base_ring()
+            sage: x = R(311)
+            sage: B[0,0] = x; B
+            [111  95 101 116]
+            [118 133   7 131]
+            [192  19 118 193]
+            [ 82 142 115  38]
+        """
         self._matrix[i][j] = <float>(<IntegerMod_int>x).ivalue
 
     cdef IntegerMod_int get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
-        # doesn't do checks
+        r"""
+        Return the (i,j) entry with no bounds-checking.
+
+        EXAMPLES::
+
+            sage: A = random_matrix(Integers(100), 4, 4); A
+            [ 4 95 83 47]
+            [44 57 91 53]
+            [75 53 15 39]
+            [26 25 10 74]
+            sage: a = A[0,0]; a
+            4
+            sage: a in A.base_ring()
+            True
+
+            sage: B = random_matrix(Integers(100), 4, 4); B
+            [13 95  1 16]
+            [18 33  7 31]
+            [92 19 18 93]
+            [82 42 15 38]
+            sage: b = B[0,0]; b
+            13
+            sage: b in B.base_ring()
+            True
+        """
         return IntegerMod_int(self._base_ring, <mod_int>(<Matrix_modn_dense_template>self)._matrix[i][j])

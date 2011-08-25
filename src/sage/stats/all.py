@@ -3,6 +3,7 @@ from basic_stats import (mean, mode, std, variance, median, moving_average)
 
 import hmm.all as hmm
 
-from sage.finance.time_series import TimeSeries
-from intlist import IntList
-
+# We lazy_import the following modules since they import numpy which slows down sage startup
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.finance.time_series", ["TimeSeries"])
+lazy_import("sage.stats.intlist",["IntList"])

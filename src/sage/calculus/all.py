@@ -15,9 +15,10 @@ from desolvers import (desolve, desolve_laplace, desolve_system,
 
 from var import (var, function, clear_vars)
 
-from riemann import Riemann_Map
-
-from interpolators import polygon_spline, complex_cubic_spline
+# We lazy_import the following modules since they import numpy which slows down sage startup
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.calculus.riemann",["Riemann_Map"])
+lazy_import("sage.calculus.interpolators",["polygon_spline","complex_cubic_spline"])
 
 from sage.modules.all import vector
 

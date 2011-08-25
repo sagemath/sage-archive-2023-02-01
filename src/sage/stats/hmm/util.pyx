@@ -44,6 +44,7 @@ cdef class HMM_Util:
 
         EXAMPLES::
 
+            sage: import sage.stats.hmm.util
             sage: T = stats.TimeSeries([.1, .3, .7, .5])
             sage: u = sage.stats.hmm.util.HMM_Util()
             sage: u.normalize_probability_TimeSeries(T,0,3)
@@ -103,6 +104,7 @@ cdef class HMM_Util:
 
         EXAMPLES::
 
+            sage: import sage.stats.hmm.util
             sage: u = sage.stats.hmm.util.HMM_Util()
             sage: u.initial_probs_to_TimeSeries([0.1,0.2,0.9], True)
             [0.0833, 0.1667, 0.7500]
@@ -143,6 +145,7 @@ cdef class HMM_Util:
 
         EXAMPLES::
 
+            sage: import sage.stats.hmm.util
             sage: u = sage.stats.hmm.util.HMM_Util()
             sage: u.state_matrix_to_TimeSeries([[.1,.7],[3/7,4/7]], 2, True)
             [0.1250, 0.8750, 0.4286, 0.5714]

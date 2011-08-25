@@ -8,4 +8,8 @@ a warm cache) has not got out of hand.::
     ... else: print True   # nothing when not on sage.math
     True
 
+Ensure that certain modules are not loaded on startup::
+
+    sage: sage0("'numpy' in sys.modules")
+    False
 """

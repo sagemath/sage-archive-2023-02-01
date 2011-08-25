@@ -104,14 +104,15 @@ typing:
     export SAGE_FORTRAN_LIB=/path/to/fortran/libs/libgfortran.so
 
 Note that the SAGE_FORTRAN environment variable is supposed to impact
-*only* the Fortran Sage package, otherwise known as the Fortran spkg.
-Apart from that, this variable is *not* designed to do anything at all
-to other spkg's that use Fortran. For example, the Lapack spkg uses
-Fortran, but the compilation process of Lapack should ignore the
-SAGE_FORTRAN environment variable. The SAGE_FORTRAN environment variable
-does not mean "build any spkg that uses Fortran using this Fortran". It
-means "when installing the Fortran spkg, setup the sage_fortran script
-to run the Fortran specified by the SAGE_FORTRAN variable".
+*only* the Fortran Sage package, otherwise known as the Fortran spkg
+("spkg" stands for "Sage package").  Apart from that, this variable is
+*not* designed to do anything at all to other spkg's that use
+Fortran. For example, the Lapack spkg uses Fortran, but the
+compilation process of Lapack should ignore the SAGE_FORTRAN
+environment variable. The SAGE_FORTRAN environment variable does not
+mean "build any spkg that uses Fortran using this Fortran". It means
+"when installing the Fortran spkg, setup the sage_fortran script to
+run the Fortran specified by the SAGE_FORTRAN variable".
 
 
 SELINUX
@@ -174,12 +175,12 @@ MORE DETAILED INSTRUCTIONS TO BUILD FROM SOURCE
        export MAKE="make -j4"
 
    By default the above will only parallelize a small part of the build
-   process. To make the SPKG build part of the installation process
+   process. To make the spkg build part of the installation process
    parallel do:
 
        export SAGE_PARALLEL_SPKG_BUILD="yes"
 
-   The amount of processors used for the building of the SPKG's is the
+   The amount of processors used for the building of the spkg's is
    determined by what you assigned to MAKE. So the above is useless if
    you did export MAKE="make -j1".
 
@@ -189,7 +190,9 @@ MORE DETAILED INSTRUCTIONS TO BUILD FROM SOURCE
        export SAGE_CHECK="yes"
 
    before starting the Sage build. This will run each test suite and
-   will raise an error if any failures occur.
+   will raise an error if any failures occur.  Warning: on many
+   platforms, this will cause failures in the installation of the
+   Python spkg.
 
    To start the build, type:
 

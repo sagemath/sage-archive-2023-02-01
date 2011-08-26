@@ -1,4 +1,6 @@
 .BUILDSTART
+(^|/)\.DS_Store$
+(^|/)\._\.DS_Store$
 sage-README-osx.txt
 ~$
 \.pyc$

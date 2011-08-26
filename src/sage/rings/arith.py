@@ -2801,6 +2801,18 @@ def CRT_list(v, moduli):
         sage: c.parent()
         Univariate Polynomial Ring in x over Rational Field
 
+    It also works if the moduli are not coprime::
+
+        sage: CRT_list([32,2,2],[60,90,150])
+        452
+
+    But with non coprime moduli there is not always a solution::
+
+        sage: CRT_list([32,2,1],[60,90,150])
+        Traceback (most recent call last):
+        ...
+        ValueError: No solution to crt problem since gcd(180,150) does not divide 92-1
+
     The arguments must be lists::
 
         sage: CRT_list([1,2,3],"not a list")
@@ -2825,6 +2837,10 @@ def CRT_list(v, moduli):
         ...
         ValueError: Arguments to CRT_list should be lists of the same length
 
+    TESTS::
+
+        sage: CRT([32r,2r,2r],[60r,90r,150r])
+        452
 
     """
     if not isinstance(v,list) or not isinstance(moduli,list):
@@ -2839,7 +2855,7 @@ def CRT_list(v, moduli):
     m = moduli[0]
     for i in range(1,len(v)):
         x = CRT(x,v[i],m,moduli[i])
-        m *= moduli[i]
+        m = lcm(m,moduli[i])
     return x%m
 
 def CRT_basis(moduli):

@@ -1,6 +1,8 @@
 (^|/)\_darcs($|/)
 (^|/)\.hg($|/)
 (^|/)\.hgtags($|/)
+(^|/)\.DS_Store$
+(^|/)\._\.DS_Store$
 ^project.log$
 ^tailor.state$
 ^tailor.state.old$

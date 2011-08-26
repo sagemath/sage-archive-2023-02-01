@@ -828,7 +828,7 @@ class FreeModule_generic(module.Module_old):
         if isinstance(x, (int, long, sage.rings.integer.Integer)) and x==0:
             return self.zero_vector()
         elif isinstance(x, free_module_element.FreeModuleElement):
-            if x.parent() is self:
+            if x.parent() == self:
                 if copy:
                     return x.__copy__()
                 else:
@@ -2496,6 +2496,46 @@ class FreeModule_generic_pid(FreeModule_generic):
             Traceback (most recent call last):
             ...
             ArithmeticError: Argument gens (= [(0, 1, 0)]) does not generate a submodule of self.
+            sage: V.span([[1,0,0],[1/5,4,0],[6,3/4,0]])
+            Free module of degree 3 and rank 2 over Integer Ring
+            Echelon basis matrix:
+            [1/5   0   0]
+            [  0 1/4   0]
+
+
+        Show that it also works with other things than integers
+
+        ::
+
+            sage: R.<x>=QQ[]
+            sage: L=R^1
+            sage: a=L.span([(1/x,)])
+            sage: a
+            Free module of degree 1 and rank 1 over Univariate Polynomial Ring in x over Rational Field
+            Echelon basis matrix:
+            [1/x]
+            sage: b=L.span([(1/x,)])
+            sage: a(b.gens()[0])
+            (1/x)
+            sage: L2 = R^2
+            sage: L2.span([[(x^2+x)/(x^2-3*x+2),1/5],[(x^2+2*x)/(x^2-4*x+3),x]])
+            Free module of degree 2 and rank 2 over Univariate Polynomial Ring in x over Rational Field
+            Echelon basis matrix:
+            [x/(x^3 - 6*x^2 + 11*x - 6)  2/15*x^2 - 17/75*x - 1/75]
+            [                         0 x^3 - 11/5*x^2 - 3*x + 4/5]
+
+        Note that the base_ring can make a huge difference. If we just want the answer to be the
+        sub vectorspace over the fraction field of R everything becomes a lot easier.
+
+        ::
+
+            sage: L2.span([[(x^2+x)/(x^2-3*x+2),1/5],[(x^2+2*x)/(x^2-4*x+3),x]],base_ring=R.fraction_field())
+            Vector space of degree 2 and dimension 2 over Fraction Field of Univariate Polynomial Ring in x over Rational Field
+            Basis matrix:
+            [1 0]
+            [0 1]
+
+
         """
         if is_FreeModule(gens):
             gens = gens.gens()
@@ -5074,9 +5114,9 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         """
         if len(B) == 0:
             return 1
-        d = sage.rings.integer.Integer((hasattr(B[0],'denominator') and B[0].denominator()) or 1)
+        d = B[0].denominator()
         for x in B[1:]:
-            d = d.lcm((hasattr(x,'denominator') and x.denominator()) or 1)
+            d = d.lcm(x.denominator())
         return d
 
     def _repr_(self):

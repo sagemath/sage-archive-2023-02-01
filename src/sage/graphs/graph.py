@@ -2917,6 +2917,48 @@ class Graph(GenericGraph):
 
         return rs_dict
 
+
+    def rank_decomposition(self, verbose = False):
+        """
+        Returns an rank-decomposition of ``self`` achieving optiml rank-width.
+
+        See the documentation of the ``rankwidth`` module
+        :class:`<rankwidth sage.graphs.graph_decompositions.rankwidth>`.
+
+        INPUT:
+
+        - ``verbose`` (boolean) -- whether to display progress information while
+        computing the decomposition.
+
+        OUTPUT:
+
+        A pair ``(rankwidth, decomposition_tree)``, where ``rankwidth`` is a
+        numerical value and ``decomposition_tree`` is a ternary tree describing
+        the decomposition (cf. the module's documentation).
+
+        See the documentation of the ``rankwidth`` module for more information
+        on the tree
+        :class:`rankwidth <sage.graphs.graph_decompositions.rankwidth.`.
+
+        .. WARNING::
+
+            The current implementation cannot handle graphs of more than 32 vertices.
+
+        EXAMPLE::
+
+            sage: g = graphs.PetersenGraph()
+            sage: rw, tree = g.rank_decomposition()
+            sage: rw
+            3
+            sage: tree
+            Graph on 19 vertices
+            sage: tree.is_tree()
+            True
+        """
+
+        from sage.graphs.graph_decompositions.rankwidth import rank_decomposition
+        return rank_decomposition(self, verbose = verbose)
+
     ### Matching
 
     def matching_polynomial(self, complement=True, name=None):

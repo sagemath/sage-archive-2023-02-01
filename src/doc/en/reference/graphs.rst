@@ -50,6 +50,8 @@ Libraries of algorithms
    sage/graphs/pq_trees
    sage/graphs/matchpoly
    sage/graphs/graph_decompositions/vertex_separation
+   sage/graphs/graph_decompositions/rankwidth
+   sage/graphs/modular_decomposition/modular_decomposition
    sage/graphs/convexity_properties
    sage/graphs/distances_all_pairs
    sage/graphs/graph_latex

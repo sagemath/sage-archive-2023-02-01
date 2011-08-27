@@ -1,3 +1,7 @@
+r"""
+Modular decomposition
+"""
+
 #####################################################
 # The following code is mainly a Cythonized
 # copy of code found in src/random.c and src/dm.c
@@ -26,7 +30,7 @@ cdef dict codes = {
 
 cpdef modular_decomposition(g):
     r"""
-    Returns a modular decomposition of the given graph
+    Returns a modular decomposition of the given graph.
 
     INPUT:
 
@@ -42,38 +46,24 @@ cpdef modular_decomposition(g):
             * ``"Prime"``
             * ``"Serie"``
 
-        * The list of submodules (as list of pairs ``(type, list)``, recursively...)
-          or the vertex's name if the module is a singleton.
+        * The list of submodules (as list of pairs ``(type, list)``,
+          recursively...)  or the vertex's name if the module is a
+          singleton.
 
     .. NOTE::
 
-    As this fuction could be used by efficient C routines, the vertices returned are
-    not labels but identifiants from ``[0, ..., g.order()-1]``
-
-
+        As this fuction could be used by efficient C routines, the
+        vertices returned are not labels but identifiants from ``[0,
+        ..., g.order()-1]``
 
     ALGORITHM:
 
     This function uses a C implementation of a 2-step algorithm
-    implemented by Fabien de Montgolfier [FMDec]_ :
+    implemented by Fabien de Montgolfier [FMDecb]_ :
 
-        * Computation of a factorizing permutation [HabibViennot1999]_.
+        * Computation of a factorizing permutation [HabibViennot1999b]_.
 
-        * Computation of the tree itself [CapHabMont02]_.
-
-    REFERENCE:
-
-    .. [FMDec] Fabien de Montgolfier
-      http://www.liafa.jussieu.fr/~fm/algos/index.html
-
-    .. [HabibViennot1999] Michel Habib, Christiphe Paul, Laurent Viennot
-      Partition refinement techniques: An interesting algorithmic tool kit
-      International Journal of Foundations of Computer Science
-      vol. 10 n2 pp.147--170, 1999
-
-    .. [CapHabMont02] C. Capelle, M. Habib et F. de Montgolfier
-      Graph decomposition and Factorising Permutations
-      Discrete Mathematics and Theoretical Computer Sciences, vol 5 no. 1 , 2002.
+        * Computation of the tree itself [CapHabMont02b]_.
 
     EXAMPLES:
 
@@ -96,6 +86,21 @@ cpdef modular_decomposition(g):
         sage: g.add_edge(0,6)
         sage: modular_decomposition(g)
         ('Serie', [0, ('Parallel', [5, ('Serie', [1, 4, 3, 2]), 6])])
+
+
+    REFERENCES:
+
+    .. [FMDecb] Fabien de Montgolfier
+      http://www.liafa.jussieu.fr/~fm/algos/index.html
+
+    .. [HabibViennot1999b] Michel Habib, Christiphe Paul, Laurent Viennot
+      Partition refinement techniques: An interesting algorithmic tool kit
+      International Journal of Foundations of Computer Science
+      vol. 10 n2 pp.147--170, 1999
+
+    .. [CapHabMont02b] C. Capelle, M. Habib et F. de Montgolfier
+      Graph decomposition and Factorising Permutations
+      Discrete Mathematics and Theoretical Computer Sciences, vol 5 no. 1 , 2002.
     """
     cdef c_graphe G
     cdef c_adj * a

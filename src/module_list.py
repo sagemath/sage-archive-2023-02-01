@@ -405,6 +405,9 @@ ext_modules = [
                          'sage/graphs/planarity/platformTime.h',
                          'sage/graphs/planarity/stack.h']),
 
+    Extension('sage.graphs.graph_decompositions.rankwidth',
+              sources = ['sage/graphs/graph_decompositions/rankwidth.pyx']),
+
     Extension('sage.graphs.spanning_tree',
               sources = ['sage/graphs/spanning_tree.pyx']),
 

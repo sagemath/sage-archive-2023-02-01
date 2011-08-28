@@ -471,12 +471,12 @@ if not env.GetOption('clean'):
     else:
        env['CPPPATH'] += ['M4RI']
 
-       conf.GuessM4RIFlags()
-
        # generate M4RI/m4ri, to allow canonical #include <m4ri/m4ri.h>
        if not path.exists(m4ri_inc):
            print "Symlinking to", m4ri_inc, "..."
            os.symlink('.', m4ri_inc)
+
+    conf.GuessM4RIFlags()
 
     env = conf.Finish()
 

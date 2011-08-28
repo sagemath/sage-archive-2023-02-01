@@ -1,5 +1,5 @@
 --- ../src/polybori-0.7/SConstruct	2011-04-27 13:00:31.000000000 +0200
-+++ SConstruct	2011-08-28 22:30:37.714522113 +0200
++++ SConstruct	2011-08-28 22:58:12.868386382 +0200
 @@ -370,9 +370,37 @@
  external_m4ri = False
  
@@ -52,7 +52,7 @@
      else:
         env['CPPPATH'] += ['M4RI']
  
-+    conf.GuessM4RIFlags()
++       conf.GuessM4RIFlags()
 +
         # generate M4RI/m4ri, to allow canonical #include <m4ri/m4ri.h>
         if not path.exists(m4ri_inc):

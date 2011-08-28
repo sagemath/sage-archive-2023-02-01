@@ -169,6 +169,8 @@ opts.Add('CFLAGS', "C compiler flags", "-std=c99",
 opts.Add('CXXFLAGS', "C++ compiler flags", "-std=c++98 -ftemplate-depth-100",
          converter = Split)
 
+opts.Add('M4RI_CFLAGS', "C compiler flags for M4RI", converter = Split)
+
 opts.Add('LINKFLAGS', "Linker flags", defaultenv['LINKFLAGS'] + ['-s'])
 opts.Add('LIBS', 'custom libraries needed for build', [], converter = Split)
 
@@ -394,8 +396,8 @@ if not env.GetOption('clean'):
         result = (result == 1)
         if result:
             context.Display(values)
-            env.Append(CCFLAGS=Split(values))
-            env.Append(CXXFLAGS=Split(values))
+            env.Append(M4RI_CFLAGS=Split(values))
+
         context.Result(result)
         return result
 
@@ -524,6 +526,10 @@ def build_symlink(target, source, env):
 symlinkbld = Builder(action = build_symlink)
 
 env.Append(BUILDERS={'SymLink' : symlinkbld})
+
+env.Append(CCFLAGS=["$M4RI_CFLAGS"])
+if oldstyle_flags() :
+    env.Append(CXXFLAGS=["$M4RI_CFLAGS"])
 
 ######################################################################
 # Stuff for building Cudd library

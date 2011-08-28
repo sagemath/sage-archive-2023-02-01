@@ -528,7 +528,9 @@ symlinkbld = Builder(action = build_symlink)
 env.Append(BUILDERS={'SymLink' : symlinkbld})
 
 env.Append(CCFLAGS="$M4RI_CFLAGS")
-
+env.Append(CXXFLAGS="$M4RI_CFLAGS")
+env.Append(SHCCFLAGS="$M4RI_CFLAGS")
+env.Append(SHCXXFLAGS="$M4RI_CFLAGS")
 
 
 ######################################################################

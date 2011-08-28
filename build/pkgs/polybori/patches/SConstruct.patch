@@ -1,5 +1,5 @@
 --- ../src/polybori-0.7/SConstruct	2011-04-27 13:00:31.000000000 +0200
-+++ SConstruct	2011-08-29 00:38:19.310267441 +0200
++++ SConstruct	2011-08-29 01:29:00.818058618 +0200
 @@ -169,6 +169,8 @@
  opts.Add('CXXFLAGS', "C++ compiler flags", "-std=c++98 -ftemplate-depth-100",
           converter = Split)
@@ -69,16 +69,20 @@
      env = conf.Finish()
  
  
-@@ -493,6 +527,8 @@
+@@ -493,6 +527,12 @@
  
  env.Append(BUILDERS={'SymLink' : symlinkbld})
  
-+env.Append(CCFLAGS=["$M4RI_CFLAGS"])
++env.Append(CCFLAGS="$M4RI_CFLAGS")
++env.Append(CXXFLAGS="$M4RI_CFLAGS")
++env.Append(SHCCFLAGS="$M4RI_CFLAGS")
++env.Append(SHCXXFLAGS="$M4RI_CFLAGS")
++
 +
  ######################################################################
  # Stuff for building Cudd library
  ######################################################################
-@@ -505,8 +541,7 @@
+@@ -505,8 +545,7 @@
  
  env.Append(LIBPATH=[CuddPath()])
  
@@ -88,7 +92,7 @@
  
  cudd_headers = [ CuddPath(fname) for fname in ['obj/cuddObj.hh', 'util/util.h',
                                                 'cudd/cuddInt.h'] ] 
-@@ -565,9 +600,11 @@
+@@ -565,9 +604,11 @@
  slib = env.SharedLibrary
  if env['SHLIBVERSIONING']:
      slib = VersionatedSharedLibrary
@@ -103,7 +107,7 @@
  
  libCuddShared = slib(CuddPath(cudd_name), list(shared_resources))
  
-@@ -1319,7 +1356,7 @@
+@@ -1319,7 +1360,7 @@
  
      if HAVE_PYTHON_EXTENSION or extern_python_ext:
          cmdline = """$PYTHON -c "import compileall; compileall.compile_dir('"""

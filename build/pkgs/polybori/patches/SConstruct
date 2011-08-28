@@ -373,7 +373,7 @@ if not env.GetOption('clean'):
     def GuessM4RIFlags(context):
         context.Message('Guessing m4ri compile flags... ')
         test_src =  """
-        #include <m4ri/m4ri.h>
+        #include <m4ri/%s>
         #include <stdio.h>
         int main(int argc, char **argv) {
           /* we test for some possible current and future configurations */
@@ -381,14 +381,16 @@ if not env.GetOption('clean'):
           return 0;
         }
         """  %  \
-        ''.join(["""
+        ("%s", ''.join(["""
         #if defined(__M4RI_HAVE_%(macro)s) || defined(HAVE_%(macro)s )
           printf("-m%(option)s ");
         #endif""" % \
         dict(macro=opt.replace('.','_').upper(), option=opt) for opt in \
-            Split("sse sse2 sse3 sse4 sse4.1 sse4.2 sse4a ssse3 mmx 3dnow") ])
+            Split("sse sse2 sse3 sse4 sse4.1 sse4.2 sse4a ssse3 mmx 3dnow") ]) )
+        (result, values) = context.TryRun(test_src % "m4ri_config.h", '.c')
+	if result != 1:
+            (result, values) = context.TryRun(test_src % "config.h", '.c')
 
-        (result, values) = context.TryRun(test_src, '.c')
         result = (result == 1)
         if result:
             context.Display(values)

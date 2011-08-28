@@ -370,7 +370,35 @@ have_l2h = have_t4h = False
 external_m4ri = False
 
 if not env.GetOption('clean'):
-    conf = Configure(env)
+    def GuessM4RIFlags(context):
+        context.Message('Guessing m4ri compile flags... ')
+        test_src =  """
+        #include <m4ri/m4ri.h>
+        #include <stdio.h>
+        int main(int argc, char **argv) {
+          /* we test for some possible current and future configurations */
+          %s
+          return 0;
+        }
+        """  %  \
+        ''.join(["""
+        #if defined(__M4RI_HAVE_%(macro)s) || defined(HAVE_%(macro)s )
+          printf("-m%(option)s ");
+        #endif""" % \
+        dict(macro=opt.replace('.','_').upper(), option=opt) for opt in \
+            Split("sse sse2 sse3 sse4 sse4.1 sse4.2 sse4a ssse3 mmx 3dnow") ])
+
+        (result, values) = context.TryRun(test_src, '.c')
+        result = (result == 1)
+        if result:
+            context.Display(values)
+            env.Append(CCFLAGS=Split(values))
+            env.Append(CXXFLAGS=Split(values))
+        context.Result(result)
+        return result
+
+    conf = Configure(env, custom_tests = {'GuessM4RIFlags': GuessM4RIFlags})
+
     if conf.CheckCHeader("gd.h") and conf.CheckLib("gd"):
         env.Append(LIBS=["gd","png12","z"])
         env.Append(CPPDEFINES=["HAVE_GD"])
@@ -442,6 +470,8 @@ if not env.GetOption('clean'):
        env['LIBS'] += ['m4ri']
     else:
        env['CPPPATH'] += ['M4RI']
+
+    conf.GuessM4RIFlags()
 
        # generate M4RI/m4ri, to allow canonical #include <m4ri/m4ri.h>
        if not path.exists(m4ri_inc):

@@ -1,15 +1,46 @@
 --- ../src/polybori-0.7/SConstruct	2011-04-27 13:00:31.000000000 +0200
-+++ SConstruct	2011-04-29 22:51:48.000000000 +0200
-@@ -372,7 +372,7 @@
++++ SConstruct	2011-08-28 22:30:37.714522113 +0200
+@@ -370,9 +370,37 @@
+ external_m4ri = False
+ 
  if not env.GetOption('clean'):
-     conf = Configure(env)
+-    conf = Configure(env)
++    def GuessM4RIFlags(context):
++        context.Message('Guessing m4ri compile flags... ')
++        test_src =  """
++        #include <m4ri/m4ri.h>
++        #include <stdio.h>
++        int main(int argc, char **argv) {
++          /* we test for some possible current and future configurations */
++          %s
++          return 0;
++        }
++        """  %  \
++        ''.join(["""
++        #if defined(__M4RI_HAVE_%(macro)s) || defined(HAVE_%(macro)s )
++          printf("-m%(option)s ");
++        #endif""" % \
++        dict(macro=opt.replace('.','_').upper(), option=opt) for opt in \
++            Split("sse sse2 sse3 sse4 sse4.1 sse4.2 sse4a ssse3 mmx 3dnow") ])
++
++        (result, values) = context.TryRun(test_src, '.c')
++        result = (result == 1)
++        if result:
++            context.Display(values)
++            env.Append(CCFLAGS=Split(values))
++            env.Append(CXXFLAGS=Split(values))
++        context.Result(result)
++        return result
++
++    conf = Configure(env, custom_tests = {'GuessM4RIFlags': GuessM4RIFlags})
++
      if conf.CheckCHeader("gd.h") and conf.CheckLib("gd"):
 -        env.Append(LIBS=["gd"])
 +        env.Append(LIBS=["gd","png12","z"])
          env.Append(CPPDEFINES=["HAVE_GD"])
  
      if env['FORCE_HASH_MAP']:
-@@ -436,7 +436,7 @@
+@@ -436,13 +464,15 @@
                  print "Tutorial will not be installed"
      external_m4ri = conf.CheckLib('m4ri')
      if conf.CheckCHeader("gd.h") and conf.CheckLib("gd"):
@@ -18,7 +49,15 @@
          env.Append(CPPDEFINES=["HAVE_GD"])
      if external_m4ri:
         env['LIBS'] += ['m4ri']
-@@ -505,8 +505,7 @@
+     else:
+        env['CPPPATH'] += ['M4RI']
+ 
++    conf.GuessM4RIFlags()
++
+        # generate M4RI/m4ri, to allow canonical #include <m4ri/m4ri.h>
+        if not path.exists(m4ri_inc):
+            print "Symlinking to", m4ri_inc, "..."
+@@ -505,8 +535,7 @@
  
  env.Append(LIBPATH=[CuddPath()])
  
@@ -28,7 +67,7 @@
  
  cudd_headers = [ CuddPath(fname) for fname in ['obj/cuddObj.hh', 'util/util.h',
                                                 'cudd/cuddInt.h'] ] 
-@@ -565,9 +564,11 @@
+@@ -565,9 +594,11 @@
  slib = env.SharedLibrary
  if env['SHLIBVERSIONING']:
      slib = VersionatedSharedLibrary
@@ -43,7 +82,7 @@
  
  libCuddShared = slib(CuddPath(cudd_name), list(shared_resources))
  
-@@ -1319,7 +1320,7 @@
+@@ -1319,7 +1350,7 @@
  
      if HAVE_PYTHON_EXTENSION or extern_python_ext:
          cmdline = """$PYTHON -c "import compileall; compileall.compile_dir('"""

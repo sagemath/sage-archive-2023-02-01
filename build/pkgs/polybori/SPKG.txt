@@ -38,6 +38,9 @@ reference implementation for Gröbner basis computation.
 
 == Releases ==
 
+=== polybori-0.7.1.p5 (Alexander Dreyer, 28 August, 2011) ===
+ * #11574: add -msse2 option to compile flags if m4ri uses sse2
+
 === polybori-0.7.1.p4 (Alexander Dreyer, August 9th, 2011) ===
  * Rebased on polybori-0.7.0.p4
 

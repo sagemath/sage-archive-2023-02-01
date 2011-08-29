@@ -58,10 +58,26 @@ singular_depends = [SAGE_INC + 'libsingular.h']
 ginac_depends = [SAGE_INC + 'pynac/ginac.h']
 
 #########################################################
-### PolyBoRi defines
+### M4RI flags
 #########################################################
 
 import ast
+m4ri_have_sse2 = False
+for line in open(SAGE_INC + "m4ri/m4ri_config.h"):
+    if not line.startswith("#define __M4RI_HAVE_SSE2"):
+        continue
+    m4ri_have_sse2 = bool(ast.literal_eval(line[len("#define __M4RI_HAVE_SSE2"):].strip()))
+    break
+
+if m4ri_have_sse2:
+    m4ri_extra_compile_args = ['-msse', '-msse2']
+else:
+    m4ri_extra_compile_args = []
+
+#########################################################
+### PolyBoRi defines
+#########################################################
+
 polybori_extra_compile_args = []
 for line in open(SAGE_LOCAL + "/share/polybori/flags.conf"):
     if not line.startswith("CPPDEFINES"):
@@ -888,7 +904,8 @@ ext_modules = [
     # TODO -- change to use BLAS at some point.
     Extension('sage.matrix.matrix_integer_dense',
               sources = ['sage/matrix/matrix_integer_dense.pyx'],
-              extra_compile_args = ['-std=c99'],
+              extra_compile_args = ['-std=c99'] + m4ri_extra_compile_args,
+              depends = [SAGE_INC + 'm4ri/m4ri.h'],
               # order matters for cygwin!!
               libraries = ['iml', 'pari', 'm', 'gmp', BLAS, BLAS2]),
 
@@ -899,7 +916,7 @@ ext_modules = [
     Extension('sage.matrix.matrix_mod2_dense',
               sources = ['sage/matrix/matrix_mod2_dense.pyx'],
               libraries = ['gmp','m4ri', 'gd', 'png12', 'z'],
-              extra_compile_args = ['-std=c99'],
+              extra_compile_args = ['-std=c99'] + m4ri_extra_compile_args,
               depends = [SAGE_INC + "png.h", SAGE_INC + "m4ri/m4ri.h"]),
 
     Extension('sage.matrix.matrix_modn_dense',
@@ -1101,7 +1118,7 @@ ext_modules = [
     Extension('sage.modules.vector_mod2_dense',
               sources = ['sage/modules/vector_mod2_dense.pyx'],
               libraries = ['gmp','m4ri', 'png12', 'gd'],
-              extra_compile_args = ['-std=c99'],
+              extra_compile_args = ['-std=c99'] + m4ri_extra_compile_args,
               depends = [SAGE_INC + "png.h", SAGE_INC + "m4ri/m4ri.h"]),
 
     Extension('sage.modules.vector_rational_dense',
@@ -1486,7 +1503,9 @@ ext_modules = [
     Extension('sage.rings.polynomial.polynomial_gf2x',
               sources = ['sage/rings/polynomial/polynomial_gf2x.pyx'],
               libraries = ['ntl', 'stdc++', 'gmp'],
+              extra_compile_args = m4ri_extra_compile_args,
               language = 'c++',
+              depends = [SAGE_INC + 'm4ri/m4ri.h'],
               include_dirs = ['sage/libs/ntl/']),
 
     Extension('sage.rings.polynomial.polynomial_zz_pex',
@@ -1536,8 +1555,8 @@ ext_modules = [
                               SAGE_INC + 'polybori',
                               SAGE_INC + 'polybori/groebner',
                               "sage/libs/polybori"],
-              depends = [SAGE_INC + "polybori/polybori.h"],
-              extra_compile_args = polybori_extra_compile_args,
+              depends = [SAGE_INC + "polybori/polybori.h", SAGE_INC + 'm4ri/m4ri.h'],
+              extra_compile_args = polybori_extra_compile_args + m4ri_extra_compile_args,
               language = 'c++'),
 
     Extension('sage.rings.polynomial.polynomial_real_mpfr_dense',

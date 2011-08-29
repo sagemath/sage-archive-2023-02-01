@@ -175,6 +175,7 @@ def init_ecl():
         sigaction(i, NULL, &sage_action[i])
 
     #initialize ECL
+    ecl_set_option(ECL_OPT_SIGNAL_HANDLING_THREAD, 0)
     cl_boot(1, argv)
 
     #save signal handler from ECL

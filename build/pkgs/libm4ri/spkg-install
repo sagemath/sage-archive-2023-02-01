@@ -10,11 +10,7 @@ unset RM
 
 ROOT_DIR="`pwd`"
 
-INCLUDES="-I$SAGE_LOCAL/include"
-LIBDIRS="-L$SAGE_LOCAL/lib"
-
 CFLAGS="$CFLAGS $INCLUDES -g"
-LDFLAGS="$LIBDIRS"
 
 COMPILER=`./testcc.sh`
 
@@ -26,8 +22,6 @@ elif [ "x$COMPILER" = "xHP_on_HPUX" ] ; then
    CFLAGS="$CFLAGS + z"
 fi
 
-CPPFLAGS="$INCLUDES"
-
 if [ "x$SAGE_DEBUG" = "xyes" ]; then
    CFLAGS="$CFLAGS -O0"
    ENABLE_DEBUG="--enable-debug"
@@ -38,14 +32,9 @@ fi
 
 if [ "x$SAGE64" = "xyes" ]; then
     CFLAGS="$CFLAGS -m64"
-    CPPFLAGS="$CPPFLAGS -m64"
-    CXXFLAGS="$CXXFLAGS -m64"
 fi
 
 export CFLAGS
-export CPPFLAGS
-export CXXFLAGS
-export LDFLAGS
 
 if [ "x$SAGE_FAT_BINARY" = "xyes" ]; then
     DISABLE_SSE2="--disable-sse2"

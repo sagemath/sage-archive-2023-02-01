@@ -206,11 +206,11 @@ cdef class FractionFieldElement(FieldElement):
                     pass
             self.__numerator   = num
             self.__denominator = den
-        except AttributeError, s:
+        except AttributeError:
             raise ArithmeticError, "unable to reduce because lack of gcd or quo_rem algorithm"
-        except TypeError, s:
+        except TypeError:
             raise ArithmeticError, "unable to reduce because gcd algorithm doesn't work on input"
-        except NotImplementedError, s:
+        except NotImplementedError:
             raise ArithmeticError, "unable to reduce because gcd algorithm not implemented on input"
 
     def __copy__(self):

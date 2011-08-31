@@ -543,6 +543,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             2
             """
         self._exceptions_cleared = False
+        res = None
         if not PY_TYPE_CHECK(xp, type) and not PY_TYPE_CHECK(xp, Parent):
             xp = parent_c(xp)
         if not PY_TYPE_CHECK(yp, type) and not PY_TYPE_CHECK(yp, Parent):
@@ -739,6 +740,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                 return (<Action>action)._call_(x, y)
 
         try:
+            xy = None
             xy = self.canonical_coercion(x,y)
             return PyObject_CallObject(op, xy)
         except TypeError, err:

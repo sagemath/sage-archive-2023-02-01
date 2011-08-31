@@ -627,6 +627,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             sage: I.groebner_basis()
             [1]
         """
+        msg = None
         cdef BooleanPolynomial p
         # we check for other PolyBoRi types first since this conversion
         # is used by the PolyBoRi python code often
@@ -655,7 +656,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                     p *= var_mapping[i]
                 return p
             else:
-                raise TypeError, "cannot coerce monomial %s to %s: %s"%(other,self,msg)
+                raise TypeError, "cannot coerce monomial %s to %s"%(other,self)
 
         elif PY_TYPE_CHECK(other,BooleanPolynomial) and \
             ((<BooleanPolynomialRing>(<BooleanPolynomial>other)\
@@ -751,6 +752,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             ...
             TypeError: cannot convert polynomial z*x^2 + 5*y^3 to Boolean PolynomialRing in x, y: name z not defined
         """
+        msg = None
         cdef int i
 
         try:
@@ -1943,7 +1945,7 @@ class BooleanMonomialMonoid(Monoid_class):
                             m*= var_mapping[i]
                         return m
                 else:
-                    raise ValueError, "cannot convert polynomial %s to %s: %s"%(other,self,msg)
+                    raise ValueError, "cannot convert polynomial %s to %s"%(other,self)
 
         elif PY_TYPE_CHECK(other, BooleanMonomial) and \
             ((<BooleanMonomial>other)._pbmonom.deg() <= \

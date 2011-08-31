@@ -327,6 +327,7 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
         p = matrix_modn_sparse.MAX_MODULUS + 1
     else:
         p = matrix_modn_dense.MAX_MODULUS + 1
+    t = None
     X = []
     best_pivots = []
     prod = 1

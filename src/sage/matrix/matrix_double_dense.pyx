@@ -3059,6 +3059,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         if algorithm not in ('pade', 'eig', 'taylor'):
             raise ValueError("algorithm must be 'pade', 'eig', or 'taylor'")
 
+        global scipy
         if scipy is None:
             import scipy
         import scipy.linalg

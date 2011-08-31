@@ -663,7 +663,7 @@ cdef class Matrix_sparse(matrix.Matrix):
             m.subdivide(*self.subdivisions())
         return m
 
-    def _derivative(self, var=None):
+    def _derivative(self, var=None, R=None):
         """
         Differentiate with respect to var by differentiating each element
         with respect to var.

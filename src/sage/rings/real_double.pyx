@@ -1674,7 +1674,7 @@ cdef class RealDoubleElement(FieldElement):
                 return exponent.parent()(self) ** exponent # neither operand is RealDoubleElement
         else:
             try:
-                base = exp.parent()(self)
+                base = exponent.parent()(self)
                 return base.__pow_float((<RealDoubleElement>exponent)._value)
             except TypeError:
                 return self ** self.parent()(exponent) # neither operand is RealDoubleElement

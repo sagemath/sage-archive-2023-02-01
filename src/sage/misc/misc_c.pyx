@@ -42,6 +42,7 @@ def running_total(L, start=None):
         [101, 103, 106, 110, 115, 121, 128, 136, 145, 155]
     """
     cdef bint first = 1
+    running = None
     for x in L:
         if first:
             total = L[0] if start is None else L[0]+start

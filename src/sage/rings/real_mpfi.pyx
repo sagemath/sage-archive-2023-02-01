@@ -999,10 +999,10 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             mpfi_set_fr(self.value, rn.value)
         elif PY_TYPE_CHECK(x, Rational):
             rat = x
-            mpfi_set_q(self.value, <mpq_t> rat.value)
+            mpfi_set_q(self.value, rat.value)
         elif PY_TYPE_CHECK(x, Integer):
             integ = x
-            mpfi_set_z(self.value, <mpz_t> integ.value)
+            mpfi_set_z(self.value, integ.value)
         elif PY_TYPE_CHECK(x, int):
             ix = x
             mpfi_set_si(self.value, ix)

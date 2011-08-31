@@ -1107,6 +1107,7 @@ The Singular documentation for '%s' is given below.
         """
         from  sage.matrix.matrix_mpolynomial_dense import Matrix_mpolynomial_dense
         from sage.matrix.matrix_integer_dense import Matrix_integer_dense
+        ring2 = None
         for a in args:
             if PY_TYPE_CHECK(a, MPolynomialIdeal):
                 ring2 = a.ring()

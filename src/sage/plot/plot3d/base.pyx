@@ -906,9 +906,9 @@ end_scene""" % (render_params.antialiasing,
             from shapes2 import frame3d, frame_labels
             F = frame3d(xyz_min, xyz_max, opacity=0.5, color=(0,0,0), thickness=thickness)
             if labels:
-                F_text = frame_labels(xyz_min, xyz_max, a_min_orig, a_max_orig)
+                F += frame_labels(xyz_min, xyz_max, a_min_orig, a_max_orig)
 
-            X += F + F_text
+            X += F
 
         if axes:
             # draw axes

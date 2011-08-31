@@ -4148,7 +4148,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             raise RuntimeError, "Inconsistent results between GMP and PARI"
         return g.isprime(flag=flag)
 
-    def is_prime(self):
+    def is_prime(self, proof=None):
         r"""
         Returns ``True`` if ``self`` is prime.
 

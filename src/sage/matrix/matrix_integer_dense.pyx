@@ -1620,6 +1620,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         proof = get_proof_flag(proof, "linear_algebra")
         pivots = None
+        rank = None
 
         if algorithm == "padic":
             import matrix_integer_dense_hnf

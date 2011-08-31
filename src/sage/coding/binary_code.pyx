@@ -1516,7 +1516,7 @@ cdef class PartitionStack:
     """
     def __cinit__(self, arg1, arg2=None):
         cdef int k, nwords, ncols, sizeof_int
-        cdef PartitionStack other
+        cdef PartitionStack other = None
         cdef int *wd_ents, *wd_lvls, *col_ents, *col_lvls
         cdef int *col_degs, *col_counts, *col_output, *wd_degs, *wd_counts, *wd_output
         sizeof_int = sizeof(int)

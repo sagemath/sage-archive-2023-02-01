@@ -1956,8 +1956,8 @@ cdef class Expression(CommutativeRingElement):
             falsify = operator.lt
         cdef bint equality_ok = op in [equal, less_or_equal, greater_or_equal]
         cdef int errors = 0
+        val = None
         if len(vars) == 0:
-            val = None
             try:
                 val = domain(diff)
             except (TypeError, ValueError, ArithmeticError), ex:
@@ -2564,7 +2564,7 @@ cdef class Expression(CommutativeRingElement):
             sage: x^oo
             Traceback (most recent call last):
             ...
-            RuntimeError: power::eval(): pow(x, Infinity) for non numeric x is not defined.
+            ValueError: power::eval(): pow(x, Infinity) for non numeric x is not defined.
             sage: SR(oo)^2
             +Infinity
             sage: SR(-oo)^2
@@ -3454,11 +3454,11 @@ cdef class Expression(CommutativeRingElement):
             sage: (x^y).subs(x=oo)
             Traceback (most recent call last):
             ...
-            RuntimeError: power::eval(): pow(Infinity, x) for non numeric x is not defined.
+            ValueError: power::eval(): pow(Infinity, x) for non numeric x is not defined.
             sage: (x^y).subs(y=oo)
             Traceback (most recent call last):
             ...
-            RuntimeError: power::eval(): pow(x, Infinity) for non numeric x is not defined.
+            ValueError: power::eval(): pow(x, Infinity) for non numeric x is not defined.
             sage: (x+y).subs(x=oo)
             +Infinity
             sage: (x-y).subs(y=oo)

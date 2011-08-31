@@ -34,6 +34,7 @@ else:
     SAGE_ROOT  = os.environ['SAGE_ROOT']
     SAGE_LOCAL = SAGE_ROOT + '/local'
     SAGE_DEVEL = SAGE_ROOT + '/devel'
+    SAGE_INC   = SAGE_LOCAL + '/include/'
 
 if not os.environ.has_key('SAGE_VERSION'):
     SAGE_VERSION=0
@@ -166,12 +167,27 @@ if os.path.exists(sage.misc.lazy_import_cache.get_cache_file()):
 ######################################################################
 
 
+# Do not put all, but only the most common libraries and their headers
+# (that are likely to change on an upgrade) here:
+# [At least at the moment. Make sure the headers aren't copied with "-p",
+# or explicitly touch them in the respective spkg's spkg-install.]
+lib_headers = { "gmp":     [ SAGE_INC+"gmp.h" ],   # cf. #8664, #9896
+                "gmpxx":   [ SAGE_INC+"gmpxx.h" ]
+              }
+
 for m in ext_modules:
+
+    for lib in lib_headers.keys():
+        if lib in m.libraries:
+            m.depends += lib_headers[lib]
+
+    # FIMXE: Do NOT link the following libraries to each and
+    #        every module (regardless of the language btw.):
     m.libraries = ['csage'] + m.libraries + ['stdc++', 'ntl']
+
     m.extra_compile_args += extra_compile_args
     m.extra_link_args += extra_link_args
     m.library_dirs += ['%s/lib' % SAGE_LOCAL]
-
 
 
 

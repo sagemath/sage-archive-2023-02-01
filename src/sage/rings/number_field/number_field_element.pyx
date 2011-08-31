@@ -2982,8 +2982,7 @@ cdef class NumberFieldElement(FieldElement):
 
         (real) The absolute logarithmic height of this number field
         element; that is, the sum of the local heights at all finite
-        and infinite places, with the contributions from the infinite
-        places scaled by the degree to make the result independent of
+        and infinite places, scaled by the degree to make the result independent of
         the parent field.
 
         EXAMPLES::
@@ -2992,12 +2991,12 @@ cdef class NumberFieldElement(FieldElement):
             sage: K.<a> = NumberField(x^4+3*x^2-17)
             sage: b = a/2
             sage: b.global_height()
-            2.869222240687...
+            0.789780699008...
             sage: b.global_height(prec=200)
-            2.8692222406879748488543678846959454765968722137813736080066
+            0.78978069900813892060267152032141577237037181070060784564457
 
         The global height of an algebraic number is absolute, i.e. it
-        does not depend on th parent field::
+        does not depend on the parent field::
 
             sage: QQ(6).global_height()
             1.79175946922805
@@ -3011,8 +3010,17 @@ cdef class NumberFieldElement(FieldElement):
             1.41660667202811
             sage: (a^2).global_height() # element of K (degree 4 field)
             1.41660667202811
+
+        And of course every element has the same height as it's inverse::
+
+            sage: K.<s> = QuadraticField(2)
+            sage: s.global_height()
+            0.346573590279973
+            sage: (1/s).global_height()   #make sure that 11758 is fixed
+            0.346573590279973
+
         """
-        return self.global_height_non_arch(prec)+self.global_height_arch(prec)/self.number_field().absolute_degree()
+        return (self.global_height_non_arch(prec)+self.global_height_arch(prec))/self.number_field().absolute_degree()
 
     def numerator_ideal(self):
         """

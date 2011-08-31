@@ -64,6 +64,10 @@ fi
 
 # Don't execute the commands more than once.  Check this after
 # checking the validity of SAGE_ROOT, but before modifying its value.
+#
+# NOTE: This requires all environment variables to be exported, otherwise
+#       they won't be available / set in subshells which do not (fully)
+#       source sage-env themselves.
 if [ "x$SAGE_ENV_SOURCED" = "x" ]; then
     SAGE_ENV_SOURCED=1
     export SAGE_ENV_SOURCED
@@ -257,8 +261,10 @@ MAXIMA_PREFIX="$SAGE_ROOT/local" && export MAXIMA_PREFIX
 
 if [ -z "$PKG_CONFIG_PATH" ]; then
     PKG_CONFIG_PATH="$SAGE_LOCAL/lib/pkgconfig"
-    export PKG_CONFIG_PATH
+else
+    PKG_CONFIG_PATH="$SAGE_LOCAL/lib/pkgconfig:$PKG_CONFIG_PATH"
 fi
+export PKG_CONFIG_PATH
 
 
 ############ compilation flags

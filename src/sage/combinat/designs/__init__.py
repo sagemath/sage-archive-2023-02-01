@@ -5,3 +5,5 @@ Modules:
 
     block_design
 """
+
+import all

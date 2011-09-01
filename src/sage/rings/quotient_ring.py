@@ -535,13 +535,36 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
             sage: L(z) == x^3 + 2*y^2
             False
 
+        Test that there also is a lift for rings that are no
+        instances of :class:`~sage.rings.ring.Ring` (see trac
+        ticket #11068)::
+
+            sage: MS = MatrixSpace(GF(5),2,2)
+            sage: I = MS*[MS.0*MS.1,MS.2+MS.3]*MS
+            sage: Q = MS.quo(I)
+            sage: Q.lift()
+            Set-theoretic ring morphism:
+              From: Quotient of Full MatrixSpace of 2 by 2 dense matrices over Finite Field of size 5 by the ideal
+            (
+              [0 1]
+              [0 0],
+            <BLANKLINE>
+              [0 0]
+              [1 1]
+            )
+            <BLANKLINE>
+              To:   Full MatrixSpace of 2 by 2 dense matrices over Finite Field of size 5
+              Defn: Choice of lifting map
+
         """
         try:
             return self.__lift
         except AttributeError:
-            from morphism import RingMap_lift
-            self.__lift = RingMap_lift(self, self.__R)
-            return self.__lift
+            pass
+        from morphism import RingMap_lift
+        m = RingMap_lift(self, self.__R)
+        self.__lift = m
+        return m
 
     # The following is to make the category framework happy.
     def lift(self,x=None):

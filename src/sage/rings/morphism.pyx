@@ -452,6 +452,21 @@ cdef class RingMap_lift(RingMap):
           Defn: Choice of lifting map
         sage: S.lift() == 0
         False
+
+    Since trac ticket #11068, it is possible to create
+    quotient rings of non-commutative rings by two-sided
+    ideals. It was needed to modify :class:`RingMap_lift`
+    so that rings can be accepted that are no instances
+    of :class:`sage.rings.ring.Ring`, as in the following
+    example::
+
+        sage: MS = MatrixSpace(GF(5),2,2)
+        sage: I = MS*[MS.0*MS.1,MS.2+MS.3]*MS
+        sage: Q = MS.quo(I)
+        sage: Q.0*Q.1   # indirect doctest
+        [0 1]
+        [0 0]
+
     """
     def __init__(self, R, S):
         """

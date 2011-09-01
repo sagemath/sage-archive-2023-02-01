@@ -112,7 +112,7 @@ Unfortunately, there is no argspec extractable from builtins::
     sage: sage_getdef(str.find, 'find')
     'find( [noargspec] )'
 
-By trac ticket #9976, introspection also works for interactively
+By :trac:`9976`, introspection also works for interactively
 defined Cython code, and with rather tricky argument lines::
 
     sage: cython('def foo(x, a=\')"\', b={not (2+1==3):\'bar\'}): return')
@@ -879,14 +879,14 @@ def sage_getfile(obj):
         sage: sage_getfile(Sq)[-42:]
         'sage/algebras/steenrod/steenrod_algebra.py'
 
-    The following tests against some bugs fixed in trac ticket #9976::
+    The following tests against some bugs fixed in :trac:`9976`::
 
         sage: obj = sage.combinat.partition_algebra.SetPartitionsAk
         sage: obj = sage.combinat.partition_algebra.SetPartitionsAk
         sage: sage_getfile(obj)
         '...sage/combinat/partition_algebra.py'
 
-    And here is another bug, fixed in trac ticket #11298::
+    And here is another bug, fixed in :trac:`11298`::
 
         sage: P.<x,y> = QQ[]
         sage: sage_getfile(P)
@@ -970,7 +970,7 @@ def sage_getargspec(obj):
         ArgSpec(args=['self', 'element'], varargs=None, keywords=None, defaults=None)
 
     The following tests against various bugs that were fixed in
-    trac ticket #9976::
+    :trac:`9976`::
 
         sage: from sage.rings.polynomial.real_roots import bernstein_polynomial_factory_ratlist
         sage: sage_getargspec(bernstein_polynomial_factory_ratlist.coeffs_bitsize)
@@ -998,7 +998,7 @@ def sage_getargspec(obj):
 
     TESTS:
 
-    By trac ticket #9976, rather complicated cases work. In the
+    By :trac:`9976`, rather complicated cases work. In the
     following example, we dynamically create an extension class
     that returns some source code, and the example shows that
     the source code is taken for granted, i.e., the argspec of
@@ -1123,7 +1123,7 @@ def sage_getdef(obj, obj_name=''):
         sage: sage_getdef(identity_matrix, 'identity_matrix')
         'identity_matrix(ring, n=0, sparse=False)'
 
-    Check that trac ticket #6848 has been fixed::
+    Check that :trac:`6848` has been fixed::
 
         sage: sage_getdef(RDF.random_element)
         '(min=-1, max=1)'
@@ -1324,6 +1324,109 @@ def sage_getsource(obj, is_binary=False):
     (source_lines, lineno) = t
     return ''.join(source_lines)
 
+def _sage_getsourcelines_name_with_dot(object):
+    r"""
+    Get the source lines of an object whose name
+    contains a dot and whose source lines can not
+    be obtained by different methods.
+
+    EXAMPLES::
+
+        sage: C = Rings()
+        sage: from sage.misc.sageinspect import sage_getsource
+        sage: print sage_getsource(C.parent_class)  #indirect doctest
+        class ParentMethods:
+        ...
+                Returns the Lie bracket `[x, y] = x y - y x` of `x` and `y`.
+        ...
+
+    AUTHOR:
+
+    - Simon King (2011-09)
+    """
+    # First, split the name:
+    splitted_name = object.__name__.split('.')
+    path = object.__module__.split('.')+splitted_name[:-1]
+    name = splitted_name[-1]
+    try:
+        M = __import__(path.pop(0))
+    except ImportError:
+        try:
+            B = object.__base__
+            if B is None:
+                raise AttributeError
+        except AttributeError:
+            raise IOError, "could not get source code"
+        return sage_getsourcelines(B)
+    # M should just be the top-most module.
+    # Hence, normally it is just 'sage'
+    try:
+        while path:
+            M = getattr(M, path.pop(0))
+    except AttributeError:
+        try:
+            B = object.__base__
+            if B is None:
+                raise AttributeError
+        except AttributeError:
+            raise IOError, "could not get source code"
+        return sage_getsourcelines(B)
+
+    lines, base_lineno = sage_getsourcelines(M)
+    # the rest of the function is copied from
+    # inspect.findsource
+    if not lines:
+        raise IOError('could not get source code')
+
+    if inspect.ismodule(object):
+        return lines, base_lineno
+
+    if inspect.isclass(object):
+        pat = re.compile(r'^(\s*)class\s*' + name + r'\b')
+        # make some effort to find the best matching class definition:
+        # use the one with the least indentation, which is the one
+        # that's most probably not inside a function definition.
+        candidates = []
+        for i in range(len(lines)):
+            match = pat.match(lines[i])
+            if match:
+                # if it's at toplevel, it's already the best one
+                if lines[i][0] == 'c':
+                    return inspect.getblock(lines[i:]), i+base_lineno
+                # else add whitespace to candidate list
+                candidates.append((match.group(1), i))
+        if candidates:
+            # this will sort by whitespace, and by line number,
+            # less whitespace first
+            candidates.sort()
+            return inspect.getblock(lines[candidates[0][1]:]), candidates[0][1]+base_lineno
+        else:
+            raise IOError('could not find class definition')
+
+    if inspect.ismethod(object):
+        object = object.im_func
+    if inspect.isfunction(object):
+        object = object.func_code
+    if inspect.istraceback(object):
+        object = object.tb_frame
+    if inspect.isframe(object):
+        object = object.f_code
+    if inspect.iscode(object):
+        if not hasattr(object, 'co_firstlineno'):
+            raise IOError('could not find function definition')
+        pat = re.compile(r'^(\s*def\s)|(.*(?<!\w)lambda(:|\s))|^(\s*@)')
+        pmatch = pat.match
+        # fperez - fix: sometimes, co_firstlineno can give a number larger than
+        # the length of lines, which causes an error.  Safeguard against that.
+        lnum = min(object.co_firstlineno,len(lines))-1
+        while lnum > 0:
+            if pmatch(lines[lnum]): break
+            lnum -= 1
+
+        return inspect.getblock(lines[lnum:]), lnum+base_lineno
+    raise IOError('could not find code object')
+
+
 def sage_getsourcelines(obj, is_binary=False):
     r"""
     Return a pair ([source_lines], starting line number) of the source
@@ -1354,7 +1457,7 @@ def sage_getsourcelines(obj, is_binary=False):
         (['cpdef test_funct(x,y): return\n'], 6)
 
     The following tests that an instance of ``functools.partial`` is correctly
-    dealt with (see trac ticket #9976)::
+    dealt with (see :trac:`9976`)::
 
         sage: obj = sage.combinat.partition_algebra.SetPartitionsAk
         sage: sage_getsourcelines(obj)
@@ -1362,7 +1465,7 @@ def sage_getsourcelines(obj, is_binary=False):
         ...
         '    raise ValueError, "k must be an integer or an integer + 1/2"\n'], 31)
 
-    Here are some cases that were covered in trac ticket #11298;
+    Here are some cases that were covered in :trac`11298`;
     note that line numbers may easily change, and therefore we do
     not test them::
 
@@ -1386,6 +1489,49 @@ def sage_getsourcelines(obj, is_binary=False):
         ...
           '        return self / x\n'], ...)
 
+    We show some enhancements provided by :trac:`11768`. First, we
+    use a dummy parent class that has defined an element class by a
+    nested class definition::
+
+        sage: from sage.misc.nested_class_test import TestNestedParent
+        sage: from sage.misc.sageinspect import sage_getsource
+        sage: P = TestNestedParent()
+        sage: E = P.element_class
+        sage: E.__bases__
+        (<class sage.misc.nested_class_test.TestNestedParent.Element at ...>,
+         <class 'sage.categories.sets_cat.Sets.element_class'>)
+        sage: print sage_getsource(E)
+            class Element:
+                "This is a dummy element class"
+                pass
+        sage: print sage_getsource(P)
+        class TestNestedParent(UniqueRepresentation, Parent):
+            ...
+            class Element:
+                "This is a dummy element class"
+                pass
+
+    Here is another example that relies on a nested class definition
+    in the background::
+
+        sage: C = Rings()
+        sage: HC = C.hom_category()
+        sage: sage_getsourcelines(HC)
+        (['    class HomCategory(HomCategory):\n', ...], ...)
+
+
+    Testing against a bug that has occured during work on #11768::
+
+        sage: P.<x,y> = QQ[]
+        sage: I = P*[x,y]
+        sage: sage_getsourcelines(I)
+        (['class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \\\n',
+          '                        MPolynomialIdeal_macaulay2_repr, \\\n',
+          '                        MPolynomialIdeal_magma_repr, \\\n',
+          '                        Ideal_generic ):\n',
+          '    def __init__(self, ring, gens, coerce=True):\n',
+          ...
+          '        return result_ring.ideal(result)\n'], ...)
 
     AUTHORS:
 
@@ -1394,19 +1540,25 @@ def sage_getsourcelines(obj, is_binary=False):
     - Extension to interactive Cython code by Simon King
     - Simon King: If a class has no docstring then let the class
       definition be found starting from the ``__init__`` method.
+    - Simon King: Get source lines for dynamic classes.
+
     """
 
     try:
         return obj._sage_src_lines_()
-    except (AttributeError, TypeError):
+    except AttributeError:
         pass
+    except TypeError:
+        # That happes for instances of dynamic classes
+        return sage_getsourcelines(obj.__class__)
 
     # Check if we deal with instance
     if isclassinstance(obj):
         if isinstance(obj,functools.partial):
-            obj = obj.func
+            return sage_getsourcelines(obj.func)
         else:
-            obj=obj.__class__
+            #obj=obj.__class__
+            return sage_getsourcelines(obj.__class__)
 
     # If we can handle it, we do.  We first try Python's inspect, and
     # if that fails then we try _sage_getdoc_unformatted. We can not use
@@ -1421,6 +1573,18 @@ def sage_getsourcelines(obj, is_binary=False):
             try:
                 return inspect.getsourcelines(obj)
             except IOError:
+                if (not hasattr(obj, '__class__')) or hasattr(obj,'__metaclass__'):
+                    # That hapens for ParentMethods
+                    # of categories
+                    if '.' in obj.__name__:
+                        return _sage_getsourcelines_name_with_dot(obj)
+                if inspect.isclass(obj):
+                    try:
+                        B = obj.__base__
+                    except AttributeError:
+                        B = None
+                    if B is not None and B is not obj:
+                        return sage_getsourcelines(B)
                 if obj.__class__ != type:
                     return sage_getsourcelines(obj.__class__)
                 raise

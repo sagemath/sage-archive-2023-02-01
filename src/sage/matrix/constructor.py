@@ -3171,7 +3171,7 @@ def random_rref_matrix(parent, num_pivots):
     return return_matrix
 
 @matrix_method
-def random_echelonizable_matrix(parent, rank, upper_bound=None):
+def random_echelonizable_matrix(parent, rank, upper_bound=None, max_tries=100):
     r"""
     Generate a matrix of a desired size and rank, over a desired ring, whose reduced
     row-echelon form has only integral values.
@@ -3187,6 +3187,9 @@ def random_echelonizable_matrix(parent, rank, upper_bound=None):
     - ``upper_bound`` - If designated, size control of the matrix entries is desired.
       Set ``upper_bound`` to 1 more than the maximum value entries can achieve.
       If None, no size control occurs. (default: None)
+
+    - ``max_tries`` - If designated, number of tries used to generate each new random row;
+      only matters when upper_bound!=None. Used to prevent endless looping. (default: 100)
 
     OUTPUT:
 
@@ -3271,12 +3274,21 @@ def random_echelonizable_matrix(parent, rank, upper_bound=None):
 
     TESTS:
 
-    Matrices must have a rank zero or greater zero. ::
+    Matrices must have a rank zero or greater, and less than
+    both the number of rows and the number of columns. ::
 
         sage: random_matrix(QQ, 3, 4, algorithm='echelonizable', rank=-1)
         Traceback (most recent call last):
         ...
         ValueError: matrices must have rank zero or greater.
+        sage: random_matrix(QQ, 3, 8, algorithm='echelonizable', rank=4)
+        Traceback (most recent call last):
+        ...
+        ValueError: matrices cannot have rank greater than min(ncols,nrows).
+        sage: random_matrix(QQ, 8, 3, algorithm='echelonizable', rank=4)
+        Traceback (most recent call last):
+        ...
+        ValueError: matrices cannot have rank greater than min(ncols,nrows).
 
     The base ring must be exact. ::
 
@@ -3284,6 +3296,12 @@ def random_echelonizable_matrix(parent, rank, upper_bound=None):
         Traceback (most recent call last):
         ...
         TypeError: the base ring must be exact.
+
+    Works for rank==1, too. ::
+
+        sage: random_matrix( QQ, 3, 3, algorithm='echelonizable', rank=1).ncols()
+        3
+
 
     AUTHOR:
 
@@ -3297,43 +3315,13 @@ def random_echelonizable_matrix(parent, rank, upper_bound=None):
     if rank<0:
         raise ValueError("matrices must have rank zero or greater.")
     matrix = random_rref_matrix(parent, rank)
+
     # Entries of matrices over the ZZ or QQ can get large, entry size is regulated by finding the largest
     # entry of the resultant matrix after addition of scalar multiple of a row.
     if ring==QQ or ring==ZZ:
         # If upper_bound is not set, don't control entry size.
         if upper_bound==None:
-            upper_bound=50
-            size=False
-        else:
-            size=True
-        if size:
-            for pivots in range(len(matrix.pivots())-1,-1,-1):
-            # keep track of the pivot column positions from the pivot column with the largest index to
-            # the one with the smallest.
-                row_index=0
-                while row_index<rows:
-                    # To each row in a pivot column add a scalar multiple of the pivot row.
-                    # for full rank, square matrices, using only this row operation preserves the determinant of 1.
-                    if pivots!=row_index:
-                    # To ensure a leading one is not removed by the addition of the pivot row by its
-                    # additive inverse.
-                        matrix_copy=matrix.with_added_multiple_of_row(row_index,matrix.pivot_rows()[pivots],randint(-5,5))
-                        # Range for scalar multiples determined experimentally.
-                    if max(map(abs,matrix_copy.list()))<upper_bound:
-                    # Continue if the the largest entry after a row operation is within the bound.
-                        matrix=matrix_copy
-                        row_index+=1
-            # The leading one in row one has not been altered, so add a scalar multiple of a random row
-            # to row one.
-            row1=0
-            if rows>1:
-                while row1<1:
-                    matrix_copy=matrix.with_added_multiple_of_row(0,randint(1,rows-1),randint(-3,3))
-                    if max(map(abs,matrix_copy.list()))<upper_bound:
-                        matrix=matrix_copy
-                        row1+=1
         # If size control is not desired, the routine will run slightly faster, particularly with large matrices.
-        else:
             for pivots in range(rank-1,-1,-1):
                 row_index=0
                 while row_index<rows:
@@ -3344,6 +3332,51 @@ def random_echelonizable_matrix(parent, rank, upper_bound=None):
                         row_index+=1
             if rows>1:
                 matrix.add_multiple_of_row(0,randint(1,rows-1),randint(-3,3))
+        else:
+            if rank==1:  # would be better just to have a special generator...
+               tries = 0
+               while max(map(abs,matrix.list()))>=upper_bound:
+                  matrix = random_rref_matrix(parent, rank)
+                  tries += 1
+                  if tries > max_tries: # to prevent endless attempts
+                     raise ValueError("tried "+str(max_tries)+" times to get a rank 1 random matrix. Try bigger upper_bound?")
+               matrix_copy = matrix
+
+            rrr = range(len(matrix.pivots())-1,-1,-1)
+            print rrr
+            print matrix
+            for pivots in rrr:
+#            for pivots in range(len(matrix.pivots())-1,-1,-1):
+            # keep track of the pivot column positions from the pivot column with the largest index to
+            # the one with the smallest.
+                print pivots
+                row_index=0
+                tries = 0
+                while row_index<rows:
+                    # To each row in a pivot column add a scalar multiple of the pivot row.
+                    # for full rank, square matrices, using only this row operation preserves the determinant of 1.
+                    if pivots!=row_index:
+                    # To ensure a leading one is not removed by the addition of the pivot row by its
+                    # additive inverse.
+                        matrix_copy=matrix.with_added_multiple_of_row(row_index,matrix.pivot_rows()[pivots],randint(-5,5))
+                        tries += 1
+                        # Range for scalar multiples determined experimentally.
+                    if max(map(abs,matrix_copy.list()))<upper_bound:
+                    # Continue if the the largest entry after a row operation is within the bound.
+                        matrix=matrix_copy
+                        row_index+=1
+                        tries = 0
+                    if tries > max_tries: # to prevent endless unsuccessful row adding
+                        raise ValueError("tried "+str(max_tries)+" times to get row number "+str(row_index)+". Try bigger upper_bound?")
+            # The leading one in row one has not been altered, so add a scalar multiple of a random row
+            # to row one.
+            row1=0
+            if rows>1:
+                while row1<1:
+                    matrix_copy=matrix.with_added_multiple_of_row(0,randint(1,rows-1),randint(-3,3))
+                    if max(map(abs,matrix_copy.list()))<upper_bound:
+                        matrix=matrix_copy
+                        row1+=1
     # If the matrix generated over a different ring, random elements from the designated ring are used as and
     # the routine is run similarly to the size unchecked version for rationals and integers.
     else:
@@ -3494,12 +3527,17 @@ def random_subspaces_matrix(parent, rank=None):
 
     TESTS:
 
-    The designated rank of the L matrix cannot be greater than the number of desired rows. ::
+    The designated rank of the L matrix cannot be greater than the
+    number of desired rows, nor can the rank be negative. ::
 
         sage: random_matrix(QQ, 19, 20, algorithm='subspaces', rank=21)
         Traceback (most recent call last):
         ...
         ValueError: rank cannot exceed the number of rows or columns.
+        sage: random_matrix(QQ, 19, 20, algorithm='subspaces', rank=-1)
+        Traceback (most recent call last):
+        ...
+        ValueError: matrices must have rank zero or greater.
 
     REFERENCES:
 
@@ -3517,28 +3555,33 @@ def random_subspaces_matrix(parent, rank=None):
     rows = parent.nrows()
     columns = parent.ncols()
 
-    if rank>rows or rank>columns:
-        raise ValueError("rank cannot exceed the number of rows or columns.")
-    # If rank is not designated, generate using probability distribution skewing to smaller numbers, always at least 1.
-    if rank==None:
-        left_nullity_generator=pd.RealDistribution("beta",[1.4,5.5])
-        nullity=int(left_nullity_generator.get_random_element()*(rows-1)+1)
-        rank=rows-nullity
-    else:
-        rank=rank
-    nullity=rows-rank
-    B=random_matrix(ring, rows, columns, algorithm='echelon_form', num_pivots=rank)
-    # Create a nonsingular matrix whose columns will be used to stack a matrix over the L matrix, forming a nonsingular matrix.
-    K_nonzero_columns=random_matrix(ring, rank, rank, algorithm='echelonizable', rank=rank)
-    K=matrix(QQ,rank,rows)
-    L=random_matrix(ring, nullity, rows, algorithm='echelon_form', num_pivots=nullity)
+    # If rank is not designated, generate using probability distribution
+    # skewing to smaller numbers, always at least 1.
+    if rank is None:
+        left_nullity_generator = pd.RealDistribution("beta", [1.4, 5.5])
+        nullity = int(left_nullity_generator.get_random_element()*(rows-1) + 1)
+        rank = rows - nullity
+    if rank > rows or rank > columns:
+        raise ValueError("Rank cannot exceed the number of rows or columns.")
+    nullity = rows - rank
+    B = random_matrix(ring, rows, columns, algorithm='echelon_form',
+            num_pivots=rank)
+
+    # Create a nonsingular matrix whose columns will be used to stack a matrix
+    # over the L matrix, forming a nonsingular matrix.
+    K_nonzero_columns = random_matrix(ring, rank, rank,
+            algorithm='echelonizable', rank=rank)
+    K = matrix(QQ, rank, rows)
+    L = random_matrix(ring, nullity, rows, algorithm='echelon_form',
+            num_pivots=nullity)
     for column in range(len(L.nonpivots())):
         for entry in range(rank):
-            K[entry,L.nonpivots()[column]]=K_nonzero_columns[entry,column]
-    J=K.stack(L)
-    # by multiplying the B matrix by J.inverse() we hide the B matrix
-    # of the solution using row operations required to change the solution
-    # K matrix to the identity matrix.
+            K[entry, L.nonpivots()[column]] = K_nonzero_columns[entry, column]
+    J = K.stack(L)
+
+    # By multiplying the B matrix by J.inverse() we hide the B matrix of the
+    # solution using row operations required to change the solution K matrix to
+    # the identity matrix.
     return J.inverse()*B
 
 @matrix_method

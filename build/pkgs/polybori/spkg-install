@@ -6,7 +6,7 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-PBDIR=polybori-0.8
+PBDIR=polybori-0.8.0
 WORKDIR=${PWD}/src
 SCONS=scons
 

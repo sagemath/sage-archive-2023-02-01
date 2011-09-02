@@ -1506,8 +1506,8 @@ class IntegerPowerFunction(object):
         """
         return x**self.exponent
 
-builtin_functions = None
-cpdef get_builtin_functions():
+cdef dict builtin_functions = None
+cpdef dict get_builtin_functions():
     r"""
     To handle ExpressionCall, we need to map from Sage and
     Python functions to opcode names.
@@ -1554,7 +1554,9 @@ cpdef get_builtin_functions():
     builtin_functions[func_all.ln] = 'log'
     return builtin_functions
 
-cpdef generate_code(Expression expr, stream):
+cdef class InstructionStream  # forward declaration
+
+cpdef generate_code(Expression expr, InstructionStream stream):
     r"""
     Generate code from an Expression tree; write the result into an
     InstructionStream.
@@ -1717,53 +1719,76 @@ cpdef generate_code(Expression expr, stream):
         1.00000095367477
         sage: base^expo
         1.00000095367477
+
+    Make sure we don't overflow the stack with highly nested expressions (#11766):
+
+        sage: R.<x> = CC[]
+        sage: f = R(range(100000))
+        sage: ff = fast_callable(f)
+        sage: f(0.5)
+        2.00000000000000
+        sage: ff(0.5)
+        2.00000000000000
+        sage: f(0.9), ff(0.9)
+        (90.0000000000000, 90.0000000000000)
     """
     cdef ExpressionConstant econst
     cdef ExpressionVariable evar
     cdef ExpressionCall ecall
     cdef ExpressionChoice echoice
 
-    if isinstance(expr, ExpressionConstant):
-        econst = expr
-        stream.load_const(econst._value)
-    elif isinstance(expr, ExpressionVariable):
-        evar = expr
-        stream.load_arg(evar._variable_index)
-    elif isinstance(expr, ExpressionCall):
-        ecall = expr
-        fn = ecall._function
-        for arg in ecall._arguments:
-            generate_code(arg, stream)
-        builtins = get_builtin_functions()
-        if fn in builtins:
-            opname = builtins[fn]
-            if stream.has_instr(opname):
-                stream.instr(builtin_functions[fn])
-                return
-        if stream.has_instr('py_call'):
-            stream.instr('py_call', fn, len(ecall._arguments))
+    # Maintain our own stack to avoid crashing on deeply-nested expressions.
+    cdef list todo = [expr]
+    do_call = Expression(None)
+    while len(todo):
+        expr = todo.pop()
+        if isinstance(expr, ExpressionConstant):
+            econst = expr
+            stream.load_const(econst._value)
+        elif isinstance(expr, ExpressionVariable):
+            evar = expr
+            stream.load_arg(evar._variable_index)
+        elif isinstance(expr, ExpressionCall):
+            ecall = expr
+            todo.append(expr)
+            todo.append(do_call)
+            for arg in reversed(ecall._arguments):
+                todo.append(arg)
+            continue
+        elif expr is do_call:
+            # arguments already evaluated, make the call
+            ecall = todo.pop()
+            fn = ecall._function
+            opname = get_builtin_functions().get(fn)
+            if opname is not None:
+                if stream.has_instr(opname):
+                    stream.instr0(opname, ())
+                    continue
+            if stream.has_instr('py_call'):
+                stream.instr('py_call', fn, len(ecall._arguments))
+            else:
+                raise ValueError, "Unhandled function %s in generate_code" % fn
+        elif isinstance(expr, ExpressionIPow):
+            base = expr.base()
+            exponent = expr.exponent()
+            metadata = stream.get_metadata()
+            ipow_range = metadata.ipow_range
+            if ipow_range is True:
+                use_ipow = True
+            elif isinstance(ipow_range, tuple):
+                a,b = ipow_range
+                use_ipow = (a <= exponent <= b)
+            else:
+                use_ipow = False
+            generate_code(base, stream)
+            if use_ipow:
+                stream.instr('ipow', exponent)
+            else:
+                stream.instr('py_call', IntegerPowerFunction(exponent), 1)
         else:
-            raise ValueError, "Unhandled function %s in generate_code" % fn
-    elif isinstance(expr, ExpressionIPow):
-        base = expr.base()
-        exponent = expr.exponent()
-        metadata = stream.get_metadata()
-        ipow_range = metadata.ipow_range
-        if ipow_range is True:
-            use_ipow = True
-        elif isinstance(ipow_range, tuple):
-            a,b = ipow_range
-            use_ipow = (a <= exponent <= b)
-        else:
-            use_ipow = False
-        generate_code(base, stream)
-        if use_ipow:
-            stream.instr('ipow', exponent)
-        else:
-            stream.instr('py_call', IntegerPowerFunction(exponent), 1)
-    else:
-        raise ValueError, "Unhandled expression kind %s in generate_code" % type(expr)
+            raise ValueError, "Unhandled expression kind %s in generate_code" % type(expr)
 
+cdef class InterpreterMetadata  # forward declaration
 
 cdef class InstructionStream:
     r"""
@@ -1784,10 +1809,10 @@ cdef class InstructionStream:
     the information needed by the interpreter (as a Python dictionary).
     """
 
-    cdef object _metadata
-    cdef object _instrs
-    cdef object _bytecode
-    cdef object _constants
+    cdef InterpreterMetadata _metadata
+    cdef list _instrs
+    cdef list _bytecode
+    cdef list _constants
     cdef object _constant_locs
     cdef object _py_constants
     cdef object _py_constant_locs
@@ -1815,7 +1840,7 @@ cdef class InstructionStream:
             {'domain': None, 'code': [], 'py_constants': [], 'args': 1, 'stack': 0, 'constants': []}
             sage: md = instr_stream.get_metadata()
             sage: type(md)
-            <class 'sage.ext.fast_callable.InterpreterMetadata'>
+            <type 'sage.ext.fast_callable.InterpreterMetadata'>
             sage: md.by_opname['py_call']
             (CompilerInstrSpec(0, 1, ['py_constants', 'n_inputs']), 3)
             sage: md.by_opcode[3]
@@ -1873,7 +1898,7 @@ cdef class InstructionStream:
         """
         self.instr('load_arg', n)
 
-    def has_instr(self, opname):
+    cpdef bint has_instr(self, opname):
         r"""
         Check whether this InstructionStream knows how to generate code
         for a given instruction.
@@ -1916,13 +1941,19 @@ cdef class InstructionStream:
             sage: instr_stream.current_op_list()
             [('load_arg', 0), 'sin', ('py_call', <built-in function sin>, 1), 'abs', 'return']
         """
+        self.instr0(opname, args)
+
+    cdef instr0(self, opname, tuple args):
+        """
+        Cdef version of instr. (Can't cpdef because of star args.)
+        """
         cdef int i
 
         spec, opcode = self._metadata.by_opname[opname]
         assert len(spec.parameters) == len(args)
 
-        n_inputs = spec.n_inputs
-        n_outputs = spec.n_outputs
+        cdef int n_inputs = spec.n_inputs
+        cdef int n_outputs = spec.n_outputs
 
         self._bytecode.append(opcode)
         for i in range(len(args)):
@@ -1977,7 +2008,7 @@ cdef class InstructionStream:
             sage: instr_stream = InstructionStream(metadata, 1)
             sage: md = instr_stream.get_metadata()
             sage: type(md)
-            <class 'sage.ext.fast_callable.InterpreterMetadata'>
+            <type 'sage.ext.fast_callable.InterpreterMetadata'>
         """
         return self._metadata
 
@@ -2032,7 +2063,7 @@ cdef class InstructionStream:
              'domain': self._domain}
         return d
 
-class InterpreterMetadata(object):
+cdef class InterpreterMetadata(object):
     r"""
     The interpreter metadata for a fast_callable interpreter.  Currently
     consists of a dictionary mapping instruction names to
@@ -2048,6 +2079,9 @@ class InterpreterMetadata(object):
 
     NOTE: You must not modify the metadata.
     """
+    cdef public dict by_opname
+    cdef public list by_opcode
+    cdef public ipow_range
 
     def __init__(self, by_opname, by_opcode, ipow_range):
         r"""
@@ -2055,14 +2089,11 @@ class InterpreterMetadata(object):
 
         EXAMPLES:
             sage: from sage.ext.fast_callable import InterpreterMetadata
-
-        Currently we do no error checking or processing, so we can
-        use this simple test:
-            sage: metadata = InterpreterMetadata(by_opname='opname dict goes here', by_opcode='opcode list goes here', ipow_range=(2, 57))
+            sage: metadata = InterpreterMetadata(by_opname={'opname dict goes here': True}, by_opcode=['opcode list goes here'], ipow_range=(2, 57))
             sage: metadata.by_opname
-            'opname dict goes here'
+            {'opname dict goes here': True}
             sage: metadata.by_opcode
-            'opcode list goes here'
+            ['opcode list goes here']
             sage: metadata.ipow_range
             (2, 57)
         """

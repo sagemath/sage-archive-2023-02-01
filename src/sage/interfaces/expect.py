@@ -982,7 +982,8 @@ If this all works, you can then make calls like:
     # END Synchronization code.
     ###########################################################################
 
-    def eval(self, code, strip=True, synchronize=False, locals=None, split_lines=True, **kwds):
+    def eval(self, code, strip=True, synchronize=False, locals=None, allow_use_file=True,
+             split_lines="nofile", **kwds):
         """
         INPUT:
 
@@ -995,9 +996,17 @@ If this all works, you can then make calls like:
         - ``locals``      -- None (ignored); this is used for compatibility
                              with the Sage notebook's generic system interface.
 
-        - ``split_lines`` -- bool (default: True); if True then each line is
-                             evaluated separately.  If False, then the whole
-                             block of code is evaluated all at once.
+        - ``allow_use_file`` -- bool (default: True); if True and ``code`` exceeds an
+                                interface-specific threshold then ``code`` will be communicated
+                                via a temporary file rather that the character-based interface.
+                                If False then the code will be communicated via the character interface.
+
+        - ``split_lines`` -- Tri-state (default: "nofile"); if "nofile" then ``code`` is sent line by line
+                             unless it gets communicated via a temporary file.
+                             If True then ``code`` is sent line by line, but some lines individually
+                             might be sent via temporary file. Depending on the interface, this may transform
+                             grammatical ``code`` into ungrammatical input.
+                             If False, then the whole block of code is evaluated all at once.
 
         -  ``**kwds``     -- All other arguments are passed onto the _eval_line
                              method. An often useful example is reformat=False.
@@ -1022,10 +1031,14 @@ If this all works, you can then make calls like:
 
         try:
             with gc_disabled():
-                if split_lines:
-                    return '\n'.join([self._eval_line(L, **kwds) for L in code.split('\n') if L != ''])
+                if (split_lines is "nofile" and allow_use_file and
+                        self._eval_using_file_cutoff and len(code) > self._eval_using_file_cutoff):
+                    return self._eval_line_using_file(code)
+                elif split_lines:
+                    return '\n'.join([self._eval_line(L, allow_use_file=allow_use_file, **kwds)
+                                        for L in code.split('\n') if L != ''])
                 else:
-                    return self._eval_line(code, **kwds)
+                    return self._eval_line(code, allow_use_file=allow_use_file, **kwds)
         except KeyboardInterrupt:
             # DO NOT CATCH KeyboardInterrupt, as it is being caught
             # by _eval_line

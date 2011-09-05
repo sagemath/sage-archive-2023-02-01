@@ -87,6 +87,8 @@ class p_iter_fork:
         from sage.misc.misc import tmp_dir, walltime
         dir = tmp_dir()
         timeout = self.timeout
+        sys.stdout.flush()
+        sys.stderr.flush()
 
         workers = {}
         try:

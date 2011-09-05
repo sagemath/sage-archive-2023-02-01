@@ -4843,8 +4843,8 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: f.numerator().base_ring()
             Integer Ring
 
-        We check that the computation the numerator and denominator
-        are valid
+        We check that the computation of numerator and denominator
+        is valid.
 
         ::
 
@@ -4852,12 +4852,24 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: f=K.random_element()
             sage: f.numerator() / f.denominator() == f
             True
+
+        The following tests against a bug that has been fixed in trac ticket #11780::
+
+            sage: P.<foo,bar> = ZZ[]
+            sage: Q.<foo,bar> = QQ[]
+            sage: f = Q.random_element()
+            sage: f.numerator().parent() is P
+            True
         """
         if self.base_ring() == RationalField():
             #This part is for compatibility with the univariate case,
             #where the numerator of a polynomial over RationalField
             #is a polynomial over IntegerRing
-            integer_polynomial_ring = MPolynomialRing_libsingular(ZZ,\
+            #
+            # Trac ticket #11780: Create the polynomial ring over
+            # the integers using the (cached) polynomial ring constructor:
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+            integer_polynomial_ring = PolynomialRing(ZZ,\
             self.parent().ngens(), self.parent().gens(), order =\
             self.parent().term_order())
             return integer_polynomial_ring(self * self.denominator())

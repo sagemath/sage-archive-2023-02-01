@@ -35,6 +35,7 @@ from sage.rings.finite_rings.finite_field_base import FiniteField as FiniteField
 
 from sage.rings.polynomial.term_order import TermOrder
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular, MPolynomialRing_libsingular
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 
 from sage.misc.misc_c import is_64_bit
@@ -172,13 +173,19 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
         else:
             raise TypeError, "characteristic must be <= 2147483647."
         # TODO: This is lazy, it should only call Singular stuff not MPolynomial stuff
-        k = MPolynomialRing_libsingular(base_ring.prime_subfield(), 1, base_ring.variable_name(), 'lex')
+        try:
+            k = PolynomialRing(base_ring.prime_subfield(), 1, [base_ring.variable_name()], 'lex')
+        except TypeError:
+            raise TypeError, "The multivariate polynomial ring in a single variable %s in lex order over %s is supposed to be of type %s"%(base_ring.variable_name(), base_ring,MPolynomialRing_libsingular)
         minpoly = base_ring.polynomial()(k.gen())
         is_extension = True
 
     elif PY_TYPE_CHECK(base_ring, NumberField) and base_ring.is_absolute():
         characteristic = 1
-        k = MPolynomialRing_libsingular(RationalField(), 1, base_ring.variable_name(), 'lex')
+        try:
+            k = PolynomialRing(RationalField(), 1, [base_ring.variable_name()], 'lex')
+        except TypeError:
+            raise TypeError, "The multivariate polynomial ring in a single variable %s in lex order over Rational Field is supposed to be of type %s"%(base_ring.variable_name(), MPolynomialRing_libsingular)
         minpoly = base_ring.polynomial()(k.gen())
         is_extension = True
 

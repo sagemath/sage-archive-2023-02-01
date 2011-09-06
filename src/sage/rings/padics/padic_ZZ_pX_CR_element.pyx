@@ -106,7 +106,7 @@ An Eisenstein extension::
     sage: (1/w).parent()
     Eisenstein Extension of 5-adic Field with capped relative precision 5 in w defined by (1 + O(5^5))*x^5 + (O(5^6))*x^4 + (3*5^2 + O(5^6))*x^3 + (2*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))*x^2 + (5^3 + O(5^6))*x + (4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))
 
-An unramified extension::
+Unramified extensions::
 
     sage: g = x^3 + 3*x + 3
     sage: A.<a> = R.ext(g)
@@ -118,6 +118,16 @@ An unramified extension::
     (3*a^2 + 3*a + 1) + (4*a^2 + 3*a + 4)*5 + (4*a^2 + 4*a + 4)*5^2 + (4*a^2 + 4*a + 4)*5^3 + O(5^4)
     sage: 1/a
     (3*a^2 + 4) + (a^2 + 4)*5 + (3*a^2 + 4)*5^2 + (a^2 + 4)*5^3 + (3*a^2 + 4)*5^4 + O(5^5)
+    sage: FFp = R.residue_field()
+    sage: R(FFp(3))
+    3 + O(5)
+    sage: QQq.<zz> = Qq(25,4)
+    sage: QQq(FFp(3))
+    3 + O(5)
+    sage: FFq = QQq.residue_field(); QQq(FFq(3))
+    3 + O(5)
+    sage: zz0 = FFq.gen(); QQq(zz0^2)
+    (zz + 3) + O(5)
 
 Different printing modes::
 
@@ -154,6 +164,9 @@ NOTES::
 AUTHORS:
 
 - David Roe  (2008-01-01) initial version
+
+- Robert Harron (2011-09) fixes/enhancements
+
 """
 
 #*****************************************************************************
@@ -186,6 +199,7 @@ from sage.rings.padics.pow_computer_ext cimport PowComputer_ZZ_pX
 from sage.rings.padics.pow_computer_ext cimport PowComputer_ZZ_pX_small_Eis
 from sage.rings.padics.pow_computer_ext cimport PowComputer_ZZ_pX_big_Eis
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
+from sage.rings.padics.unramified_extension_generic import UnramifiedExtensionGeneric
 
 from sage.rings.real_double cimport RealDoubleElement
 
@@ -213,8 +227,8 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         - ``x`` -- an integer, rational, `p`-adic element, polynomial,
           list, integer_mod, pari int/frac/poly_t/pol_mod, an
-          ``ntl_ZZ_pX``, an ``ntl_ZZ``, an ``ntl_ZZ_p`` or an
-          ``ntl_ZZX``
+          ``ntl_ZZ_pX``, an ``ntl_ZZ``, an ``ntl_ZZ_p``, an
+          ``ntl_ZZX``, or something convertible into parent.residue_field()
 
         - ``absprec`` -- an upper bound on the absolute precision of the
           element created
@@ -242,6 +256,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             3 + O(w^3125)
             sage: W(w, 14)
             w + O(w^14)
+
         """
         pAdicZZpXElement.__init__(self, parent)
         self.relprec = 0
@@ -315,7 +330,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         elif is_IntegerMod(x):
             mpz_init(tmp)
             ctx_prec = mpz_remove(tmp, (<Integer>x.modulus()).value, self.prime_pow.prime.value)
-            if mpz_cmp_ui(tmp, 1):
+            if mpz_cmp_ui(tmp, 1) == 0:
                 mpz_clear(tmp)
                 x = x.lift()
                 if absprec is infinity or ctx_prec < aprec:
@@ -342,6 +357,14 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             x = tmp_Int
         elif isinstance(x, (int, long)):
             x = Integer(x)
+        elif x in parent.residue_field():
+            # Should only reach here if x is not in F_p
+            z = parent.gen()
+            poly = x.polynomial().list()
+            x = sum([poly[i].lift() * (z ** i) for i in range(len(poly))])
+            if absprec is infinity or 1 < aprec:
+                aprec = 1
+                absprec = 0 # absprec just has to be non-infinite: everything else uses aprec
         cdef pAdicZZpXCRElement _x
         if PY_TYPE_CHECK(x, Integer):
             if absprec is infinity:

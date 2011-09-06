@@ -100,6 +100,9 @@ An unramified extension::
     (3*a^2 + 3*a + 1) + (4*a^2 + 3*a + 4)*5 + (4*a^2 + 4*a + 4)*5^2 + (4*a^2 + 4*a + 4)*5^3 + O(5^4)
     sage: 1/a
     (3*a^2 + 4) + (a^2 + 4)*5 + (3*a^2 + 4)*5^2 + (a^2 + 4)*5^3 + (3*a^2 + 4)*5^4 + O(5^5)
+    sage: FFA = A.residue_field()
+    sage: a0 = FFA.gen(); A(a0^3)
+    (2*a + 2) + O(5)
 
 Different printing modes::
 
@@ -138,6 +141,9 @@ the ZZ_pX_c, you can get errors.
 AUTHORS:
 
 - David Roe  (2008-01-01) initial version
+
+- Robert Harron (2011-09) fixes/enhancements
+
 """
 
 #*****************************************************************************
@@ -188,8 +194,8 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
 
         - `x` -- an integer, rational, `p`-adic element, polynomial,
           list, integer_mod, pari int/frac/poly_t/pol_mod, an
-          ``ntl_ZZ_pX``, an ``ntl_ZZ``, an ``ntl_ZZ_p`` or an
-          ``ntl_ZZX``
+          ``ntl_ZZ_pX``, an ``ntl_ZZ``, an ``ntl_ZZ_p``, an
+          ``ntl_ZZX``, or something convertible into parent.residue_field()
 
         - ``absprec`` -- an upper bound on the absolute precision of
           the element created
@@ -295,7 +301,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         elif is_IntegerMod(x):
             mpz_init(tmp)
             ctx_prec = mpz_remove(tmp, (<Integer>x.modulus()).value, self.prime_pow.prime.value)
-            if mpz_cmp_ui(tmp, 1):
+            if mpz_cmp_ui(tmp, 1) == 0:
                 mpz_clear(tmp)
                 x = x.lift()
                 if ctx_prec < aprec:
@@ -320,6 +326,13 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
             x = tmp_Int
         elif isinstance(x, (int, long)):
             x = Integer(x)
+        elif x in parent.residue_field():
+            # Should only reach here if x is not in F_p
+            z = parent.gen()
+            poly = x.polynomial().list()
+            x = sum([poly[i].lift() * (z ** i) for i in range(len(poly))])
+            if 1 < aprec:
+                aprec = 1
         cdef pAdicZZpXCAElement _x
         if PY_TYPE_CHECK(x, Integer):
             if relprec is infinity:

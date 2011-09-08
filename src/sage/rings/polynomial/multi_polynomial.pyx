@@ -6,6 +6,7 @@ import sage.misc.misc as misc
 
 include "sage/ext/stdsage.pxi"
 from sage.rings.integer cimport Integer
+from sage.rings.integer_ring import ZZ
 
 from sage.misc.derivative import multi_derivative
 from sage.rings.infinity import infinity
@@ -864,7 +865,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: f = 1 + x*y + x^3 + y^3
             sage: P = f.newton_polytope()
             sage: P
-            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices
+            A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 3 vertices
             sage: P.is_simple()
             True
 
@@ -872,14 +873,15 @@ cdef class MPolynomial(CommutativeRingElement):
 
             sage: R.<x,y> = QQ[]
             sage: R(0).newton_polytope()
-            The empty polyhedron in QQ^0
+            The empty polyhedron in ZZ^0
             sage: R(1).newton_polytope()
-            A 0-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex
-
+            A 0-dimensional polyhedron in ZZ^2 defined as the convex hull of 1 vertex
+            sage: R(x^2+y^2).newton_polytope().integral_points()
+            ((0, 2), (1, 1), (2, 0))
         """
         from sage.geometry.polyhedron.constructor import Polyhedron
         e = self.exponents()
-        P = Polyhedron(vertices = e)
+        P = Polyhedron(vertices = e, base_ring=ZZ)
         return P
 
     def __iter__(self):

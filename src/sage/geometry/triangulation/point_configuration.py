@@ -1072,7 +1072,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
             sage: p = PointConfiguration([[0,0],[0,1],[1,0],[1,1],[-1,-1]])
             sage: p.convex_hull()
-            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices
+            A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 4 vertices
         """
         try:
             return self._polyhedron
@@ -1335,7 +1335,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
             sage: p = PointConfiguration([[0,0],[1,0],[2,1],[1,2],[0,1]])
             sage: poly = p.secondary_polytope()
-            sage: matrix(poly.vertices()).transpose()
+            sage: poly.vertices_matrix()
             [1 1 3 3 5]
             [3 5 1 4 1]
             [4 2 5 2 4]

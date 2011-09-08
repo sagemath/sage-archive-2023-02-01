@@ -84,5 +84,3 @@ class Polyhedron_QQ(Polyhedron_base):
 
     _base_ring = QQ
 
-
-

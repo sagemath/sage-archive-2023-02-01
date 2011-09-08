@@ -116,7 +116,7 @@ hardware::
 
     sage: basis = range(0,5)
     sage: gs = [ tuple(coeff) for coeff in permutations(basis) ]
-    sage: Polyhedron(vertices=gs, backend='cddr')  # long time (3s on sage.math, 2011)
+    sage: Polyhedron(vertices=gs, backend='cdd')  # long time (3s on sage.math, 2011)
     A 4-dimensional polyhedron in QQ^5 defined as the convex hull of 120 vertices
 
 DIFFERENCES VS. C++

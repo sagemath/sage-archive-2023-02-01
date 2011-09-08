@@ -127,3 +127,6 @@ from crystals import Crystals
 from highest_weight_crystals import HighestWeightCrystals
 from finite_crystals import FiniteCrystals
 from classical_crystals import ClassicalCrystals
+
+# polyhedra
+from polyhedra import PolyhedralSets

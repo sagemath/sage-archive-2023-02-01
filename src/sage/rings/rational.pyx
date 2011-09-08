@@ -292,6 +292,27 @@ cpdef rational_power_parts(a, b, factor_limit=10**5):
     return (c, d) if not b_negative else (c, ~d)
 
 
+def is_Rational(x):
+    """
+    Return true if x is of the Sage rational number type.
+
+    EXAMPLES::
+
+        sage: from sage.rings.rational import is_Rational
+        sage: is_Rational(2)
+        False
+        sage: is_Rational(2/1)
+        True
+        sage: is_Rational(int(2))
+        False
+        sage: is_Rational(long(2))
+        False
+        sage: is_Rational('5')
+        False
+    """
+    return isinstance(x, Rational)
+
+
 cdef class Rational(sage.structure.element.FieldElement):
     """
     A Rational number.

@@ -10,12 +10,6 @@ from sage.matrix.constructor import matrix
 from base import Polyhedron_base
 from base_QQ import Polyhedron_QQ
 from base_RDF import Polyhedron_RDF
-from representation import (
-    PolyhedronRepresentation,
-    Hrepresentation,
-    Inequality, Equation,
-    Vrepresentation,
-    Vertex, Ray, Line )
 
 
 
@@ -25,13 +19,11 @@ class Polyhedron_cdd(Polyhedron_base):
     Base class for the cdd backend.
     """
 
-    def _init_from_Vrepresentation(self, ambient_dim, vertices, rays, lines, verbose=False):
+    def _init_from_Vrepresentation(self, vertices, rays, lines, verbose=False):
         """
         Construct polyhedron from V-representation data.
 
         INPUT:
-
-        - ``ambient_dim`` -- integer. The dimension of the ambient space.
 
         - ``vertices`` -- list of point. Each point can be specified
            as any iterable container of
@@ -51,7 +43,7 @@ class Polyhedron_cdd(Polyhedron_base):
         EXAMPLES::
 
             sage: Polyhedron(vertices=[(0,0)], rays=[(1,1)],
-            ...              lines=[(1,-1)], backend='cddr')  # indirect doctest
+            ...              lines=[(1,-1)], backend='cdd', base_ring=QQ)  # indirect doctest
             A 2-dimensional polyhedron in QQ^2 defined as the
             convex hull of 1 vertex, 1 ray, 1 line
         """
@@ -60,13 +52,11 @@ class Polyhedron_cdd(Polyhedron_base):
         self._init_from_cdd_input(s, '--reps', verbose)
 
 
-    def _init_from_Hrepresentation(self, ambient_dim, ieqs, eqns, verbose=False):
+    def _init_from_Hrepresentation(self, ieqs, eqns, verbose=False):
         """
         Construct polyhedron from H-representation data.
 
         INPUT:
-
-        - ``ambient_dim`` -- integer. The dimension of the ambient space.
 
         - ``ieqs`` -- list of inequalities. Each line can be specified
           as any iterable container of
@@ -82,7 +72,7 @@ class Polyhedron_cdd(Polyhedron_base):
         EXAMPLES::
 
             sage: Polyhedron(ieqs=[(0,1,1)], eqns=[(0,1,-1)],
-            ...              backend='cddr')  # indirect doctest
+            ...              backend='cdd', base_ring=QQ)  # indirect doctest
             A 1-dimensional polyhedron in QQ^2 defined as the
             convex hull of 1 vertex and 1 ray
         """
@@ -98,7 +88,7 @@ class Polyhedron_cdd(Polyhedron_base):
 
         EXAMPLES::
 
-            sage: p = Polyhedron(vertices=[(0,0),(1,0),(0,1)], backend='cddr')
+            sage: p = Polyhedron(vertices=[(0,0),(1,0),(0,1)], backend='cdd', base_ring=QQ)
             sage: '_H_adjacency_matrix' in p.__dict__
             False
             sage: p._init_facet_adjacency_matrix()
@@ -118,7 +108,7 @@ class Polyhedron_cdd(Polyhedron_base):
 
         EXAMPLES::
 
-            sage: p = Polyhedron(vertices=[(0,0),(1,0),(0,1)], backend='cddr')
+            sage: p = Polyhedron(vertices=[(0,0),(1,0),(0,1)], backend='cdd', base_ring=QQ)
             sage: '_V_adjacency_matrix' in p.__dict__
             False
             sage: p._init_vertex_adjacency_matrix()
@@ -138,7 +128,7 @@ class Polyhedron_cdd(Polyhedron_base):
 
         TESTS::
 
-            sage: p = Polyhedron(vertices = [[0,0,0],[1,0,0],[0,1,0],[0,0,1]], backend='cddr')
+            sage: p = Polyhedron(vertices = [[0,0,0],[1,0,0],[0,1,0],[0,0,1]], backend='cdd', base_ring=QQ)
             sage: from sage.geometry.polyhedron.cdd_file_format import cdd_Vrepresentation
             sage: s = cdd_Vrepresentation('rational', [[0,0,1],[0,1,0],[1,0,0]], [], [])
             sage: p._init_from_cdd_input(s)
@@ -168,13 +158,14 @@ class Polyhedron_cdd(Polyhedron_base):
             sage: from subprocess import Popen, PIPE
             sage: cdd_proc = Popen(['cdd_both_reps_gmp', '--all'], stdin=PIPE, stdout=PIPE, stderr=PIPE)
             sage: ans, err = cdd_proc.communicate(input=s)
-            sage: p = Polyhedron(vertices = [[0,0],[1,0],[0,1],[1,1]], backend='cddr')
+            sage: p = Polyhedron(vertices = [[0,0],[1,0],[0,1],[1,1]], backend='cdd', base_ring=QQ)
             sage: p._init_from_cdd_output(ans)
             sage: p.vertices()
-            [[0, 0], [1, 0], [0, 1], [1, 1]]
+            (A vertex at (0, 0), A vertex at (1, 0), A vertex at (0, 1), A vertex at (1, 1))
         """
         cddout=cdd_output_string.splitlines()
         suppressed_vertex = False   # whether cdd suppressed the vertex in output
+        parent = self.parent()
 
         # nested function
         def expect_in_cddout(expected_string):
@@ -219,22 +210,22 @@ class Polyhedron_cdd(Polyhedron_base):
             lines = cdd_linearities()
             expect_in_cddout('begin')
             l = cddout.pop(0).split()
-            assert self._ambient_dim == int(l[1])-1,  "Different ambient dimension?"
+            assert self.ambient_dim() == int(l[1])-1,  "Different ambient dimension?"
             suppressed_vertex = True
             for i in range(int(l[0])):
                 l = cddout.pop(0).strip()
                 l_type = l[0]
                 l = l[1:]
                 if i in lines:
-                    Line(self, cdd_convert(l));
+                    parent._make_Line(self, cdd_convert(l));
                 elif l_type == '0':
-                    Ray(self, cdd_convert(l));
+                    parent._make_Ray(self, cdd_convert(l));
                 else:
-                    Vertex(self, cdd_convert(l));
+                    parent._make_Vertex(self, cdd_convert(l));
                     suppressed_vertex = False
             if suppressed_vertex and self.n_Vrepresentation()>0:
                 # cdd does not output the vertex if it is only the origin
-                Vertex(self, [0] * self._ambient_dim)
+                parent._make_Vertex(self, [0] * self.ambient_dim())
             self._Vrepresentation = tuple(self._Vrepresentation)
             expect_in_cddout('end')
 
@@ -243,13 +234,13 @@ class Polyhedron_cdd(Polyhedron_base):
             equations = cdd_linearities()
             expect_in_cddout('begin')
             l = cddout.pop(0).split()
-            assert self._ambient_dim == int(l[1])-1, "Different ambient dimension?"
+            assert self.ambient_dim() == int(l[1])-1, "Different ambient dimension?"
             for i in range(int(l[0])):
                 l = cddout.pop(0)
                 if i in equations:
-                    Equation(self, cdd_convert(l));
+                    parent._make_Equation(self, cdd_convert(l));
                 else:
-                    Inequality(self, cdd_convert(l));
+                    parent._make_Inequality(self, cdd_convert(l));
             self._Hrepresentation = tuple(self._Hrepresentation)
             expect_in_cddout('end')
 
@@ -306,16 +297,19 @@ class Polyhedron_QQ_cdd(Polyhedron_cdd, Polyhedron_QQ):
 
     INPUT:
 
-    - ``ambient_dim`` -- integer. The dimension of the ambient space.
+    - ``parent`` -- the parent, an instance of
+      :class:`~sage.geometry.polyhedron.parent.Polyhedra`.
 
-    - ``Vrep`` -- a list ``[vertices, rays, lines]``.
+    - ``Vrep`` -- a list ``[vertices, rays, lines]`` or ``None``.
 
-    - ``Hrep`` -- a list ``[ieqs, eqns]``.
+    - ``Hrep`` -- a list ``[ieqs, eqns]`` or ``None``.
 
     EXAMPLES::
 
+        sage: from sage.geometry.polyhedron.parent import Polyhedra
+        sage: parent = Polyhedra(QQ, 2, backend='cdd')
         sage: from sage.geometry.polyhedron.backend_cdd import Polyhedron_QQ_cdd
-        sage: Polyhedron_QQ_cdd(2, [ [(1,0),(0,1),(0,0)], [], []], None, verbose=False)
+        sage: Polyhedron_QQ_cdd(parent, [ [(1,0),(0,1),(0,0)], [], []], None, verbose=False)
         A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices
     """
 
@@ -323,7 +317,7 @@ class Polyhedron_QQ_cdd(Polyhedron_cdd, Polyhedron_QQ):
 
     _cdd_executable = 'cdd_both_reps_gmp'
 
-    def __init__(self, ambient_dim, Vrep, Hrep, **kwds):
+    def __init__(self, parent, Vrep, Hrep, **kwds):
         """
         The Python constructor.
 
@@ -332,12 +326,12 @@ class Polyhedron_QQ_cdd(Polyhedron_cdd, Polyhedron_QQ):
 
         TESTS::
 
-            sage: p = Polyhedron(backend='cddr')
+            sage: p = Polyhedron(backend='cdd', base_ring=QQ)
             sage: type(p)
-            <class 'sage.geometry.polyhedron.backend_cdd.Polyhedron_QQ_cdd'>
+            <class 'sage.geometry.polyhedron.backend_cdd.Polyhedra_QQ_cdd_with_category.element_class'>
             sage: TestSuite(p).run()
         """
-        Polyhedron_cdd.__init__(self, ambient_dim, Vrep, Hrep, **kwds)
+        Polyhedron_cdd.__init__(self, parent, Vrep, Hrep, **kwds)
 
 
 #########################################################################
@@ -349,21 +343,23 @@ class Polyhedron_RDF_cdd(Polyhedron_cdd, Polyhedron_RDF):
 
     - ``ambient_dim`` -- integer. The dimension of the ambient space.
 
-    - ``Vrep`` -- a list ``[vertices, rays, lines]``.
+    - ``Vrep`` -- a list ``[vertices, rays, lines]`` or ``None``.
 
-    - ``Hrep`` -- a list ``[ieqs, eqns]``.
+    - ``Hrep`` -- a list ``[ieqs, eqns]`` or ``None``.
 
     EXAMPLES::
 
+        sage: from sage.geometry.polyhedron.parent import Polyhedra
+        sage: parent = Polyhedra(RDF, 2, backend='cdd')
         sage: from sage.geometry.polyhedron.backend_cdd import Polyhedron_RDF_cdd
-        sage: Polyhedron_RDF_cdd(2, [ [(1,0),(0,1),(0,0)], [], []], None, verbose=False)
+        sage: Polyhedron_RDF_cdd(parent, [ [(1,0),(0,1),(0,0)], [], []], None, verbose=False)
         A 2-dimensional polyhedron in RDF^2 defined as the convex hull of 3 vertices
     """
     _cdd_type = 'real'
 
     _cdd_executable = 'cdd_both_reps'
 
-    def __init__(self, ambient_dim, Vrep, Hrep, **kwds):
+    def __init__(self, parent, Vrep, Hrep, **kwds):
         """
         The Python constructor.
 
@@ -372,10 +368,10 @@ class Polyhedron_RDF_cdd(Polyhedron_cdd, Polyhedron_RDF):
 
         TESTS::
 
-            sage: p = Polyhedron(backend='cddf')
+            sage: p = Polyhedron(backend='cdd', base_ring=RDF)
             sage: type(p)
-            <class 'sage.geometry.polyhedron.backend_cdd.Polyhedron_RDF_cdd'>
+            <class 'sage.geometry.polyhedron.backend_cdd.Polyhedra_RDF_cdd_with_category.element_class'>
             sage: TestSuite(p).run()
         """
-        Polyhedron_cdd.__init__(self, ambient_dim, Vrep, Hrep, **kwds)
+        Polyhedron_cdd.__init__(self, parent, Vrep, Hrep, **kwds)
 

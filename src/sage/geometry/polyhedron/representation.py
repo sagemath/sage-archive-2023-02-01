@@ -16,7 +16,6 @@ from sage.structure.sage_object import SageObject
 from sage.structure.element import is_Vector
 from sage.rings.all import QQ, ZZ, RDF
 from sage.modules.free_module_element import vector
-from sage.misc.all import cached_method
 
 
 
@@ -39,6 +38,11 @@ class PolyhedronRepresentation(SageObject):
         You should not (and cannot) instantiate it yourself. You can
         only obtain them from a Polyhedron() class.
 
+    TESTS::
+
+            sage: import sage.geometry.polyhedron.representation as P
+            sage: P.PolyhedronRepresentation()
+            <class 'sage.geometry.polyhedron.representation.PolyhedronRepresentation'>
     """
 
     # Numeric values for the output of the type() method
@@ -48,33 +52,18 @@ class PolyhedronRepresentation(SageObject):
     RAY = 3
     LINE = 4
 
-    def __init__(self, polyhedron, data):
-        """
-        Initializes the PolyhedronRepresentation object.
-
-        TESTS::
-
-            sage: import sage.geometry.polyhedron.representation as P
-            sage: pr = P.PolyhedronRepresentation(Polyhedron(vertices = [[1,2,3]]), [1,2,3])
-            sage: tuple(pr)
-            (1, 2, 3)
-            sage: TestSuite(pr).run(skip='_test_pickling')
-        """
-        self._representation_data = tuple(data)
-        self._polyhedron = polyhedron
-
     def __len__(self):
         """
         Returns the length of the representation data.
 
         TESTS::
 
-            sage: import sage.geometry.polyhedron.representation as P
-            sage: pr = P.PolyhedronRepresentation(Polyhedron(vertices = [[1,2,3]]), [1,2,3])
-            sage: pr.__len__()
+            sage: p = Polyhedron(vertices=[[1,2,3]])
+            sage: v = p.Vrepresentation(0)
+            sage: v.__len__()
             3
         """
-        return len(self._representation_data)
+        return self._vector.degree()
 
     def __getitem__(self, i):
         """
@@ -82,12 +71,100 @@ class PolyhedronRepresentation(SageObject):
 
         TESTS::
 
-            sage: import sage.geometry.polyhedron.representation as P
-            sage: pr = P.PolyhedronRepresentation(Polyhedron(vertices = [[1,2,3]]), [1,2,3])
-            sage: pr.__getitem__(1)
+            sage: p = Polyhedron(vertices=[[1,2,3]])
+            sage: v = p.Vrepresentation(0)
+            sage: v.__getitem__(1)
             2
         """
-        return self._representation_data[i]
+        return self._vector[i]
+
+    def __cmp__(self, other):
+        """
+        Compare two representation objects
+
+        They are equal if and only if they define the same
+        vertex/ray/line or inequality/equation in the ambient space,
+        regardless of the polyhedron that they belong to.
+
+        INPUT:
+
+        - ``other`` -- anything.
+
+        OUTPUT:
+
+        One of `-1`, `0`, `+1`.  ``True`` if and only if ``other`` represents the same
+        H-representation object.
+
+        EXAMPLES::
+
+            sage: triangle = Polyhedron([(0,0), (1,0), (0,1)])
+            sage: ieq = triangle.inequality_generator().next();  ieq
+            An inequality (1, 0) x + 0 >= 0
+            sage: ieq == copy(ieq)
+            True
+            sage: cmp(ieq, copy(ieq))
+            0
+
+            sage: cmp(ieq, 'a string')
+            -1
+
+            sage: square = Polyhedron([(0,0), (1,0), (0,1), (1,1)], base_ring=QQ)
+            sage: cmp(square.Vrepresentation(0), triangle.Vrepresentation(0))
+            0
+
+            sage: ieq = square.Hrepresentation(0);  ieq.vector()
+            (0, 1, 0)
+            sage: abs(cmp(ieq, Polyhedron([(0,1,0)]).Vrepresentation(0)))
+            1
+        """
+        if not isinstance(other, PolyhedronRepresentation):
+            return -1
+        type_cmp = cmp(type(self), type(other))
+        if (type_cmp != 0): return type_cmp
+        return cmp(self._vector, other._vector)
+
+    def vector(self, base_ring=None):
+        """
+        Returns the vector representation of the H/V-representation object.
+
+        INPUT:
+
+        - ``base_ring`` -- the base ring of the vector.
+
+        OUTPUT:
+
+        For a V-representation object, a vector of length
+        :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.ambient_dim`. For
+        a H-representation object, a vector of length
+        :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.ambient_dim`
+        + 1.
+
+        EXAMPLES::
+
+            sage: s = polytopes.cuboctahedron()
+            sage: v = s.vertex_generator().next()
+            sage: v
+            A vertex at (-1/2, -1/2, 0)
+            sage: v.vector()
+            (-1/2, -1/2, 0)
+            sage: v()
+            (-1/2, -1/2, 0)
+            sage: type(v())
+            <type 'sage.modules.vector_rational_dense.Vector_rational_dense'>
+
+       Conversion to a different base ring can be forced with the optional argument::
+
+            sage: v.vector(RDF)
+            (-0.5, -0.5, 0.0)
+            sage: vector(RDF, v)
+            (-0.5, -0.5, 0.0)
+        """
+        if (base_ring is None) or (base_ring is self._base_ring):
+            return self._vector
+        else:
+            return vector(base_ring, self._vector)
+
+    _vector_ = vector
 
     def polyhedron(self):
         """
@@ -95,10 +172,10 @@ class PolyhedronRepresentation(SageObject):
 
         TESTS::
 
-            sage: import sage.geometry.polyhedron.representation as P
-            sage: pr = P.PolyhedronRepresentation(Polyhedron(vertices = [[1,2,3]]), [1,2,3])
-            sage: pr.polyhedron()
-            A 0-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex
+            sage: p = Polyhedron(vertices=[[1,2,3]])
+            sage: v = p.Vrepresentation(0)
+            sage: v.polyhedron()
+            A 0-dimensional polyhedron in ZZ^3 defined as the convex hull of 1 vertex
         """
         return self._polyhedron
 
@@ -107,23 +184,14 @@ class PolyhedronRepresentation(SageObject):
         Returns the vector representation of the representation
         object. Shorthand for the vector() method.
 
-        Note that the vector() method is only implemented in derived
-        classes.
-
         TESTS::
 
-            sage: import sage.geometry.polyhedron.representation as P
-            sage: pr = Polyhedron(vertices = [[1,2,3]]).Vrepresentation(0)
-            sage: pr.__call__()
+            sage: p = Polyhedron(vertices=[[1,2,3]])
+            sage: v = p.Vrepresentation(0)
+            sage: v.__call__()
             (1, 2, 3)
-
-            sage: pr = P.PolyhedronRepresentation(Polyhedron(vertices = [[1,2,3]]), [1,2,3])
-            sage: pr.__call__()
-            Traceback (most recent call last):
-            ...
-            AttributeError: 'PolyhedronRepresentation' object has no attribute 'vector'
         """
-        return self.vector()
+        return self._vector
 
     def index(self):
         """
@@ -149,6 +217,75 @@ class PolyhedronRepresentation(SageObject):
         """
         return self._index
 
+    def __add__(self, coordinate_list):
+        """
+        Return the coordinates concatenated with ``coordinate_list``.
+
+        INPUT:
+
+        - ``coordinate_list`` -- a list.
+
+        OUTPUT:
+
+        The coordinates of ``self`` concatenated with ``coordinate_list``.
+
+        EXAMPLES::
+
+            sage: p = Polyhedron(ieqs = [[0,1,0],[0,0,1],[1,-1,0,],[1,0,-1]])
+            sage: v = p.Vrepresentation(0); v
+            A vertex at (1, 0)
+            sage: v + [4,5]
+            [1, 0, 4, 5]
+        """
+        if not isinstance(coordinate_list, list):
+            raise TypeError('Can only concatenate with a list of coordinates')
+        return list(self) + coordinate_list
+
+    def __radd__(self, coordinate_list):
+        """
+        Return ``coordinate_list`` concatenated with the coordinates.
+
+        INPUT:
+
+        - ``coordinate_list`` -- a list.
+
+        OUTPUT:
+
+        ``coordinate_list`` concatenated with the coordinates of ``self``.
+
+        EXAMPLES::
+
+            sage: p = Polyhedron(ieqs = [[0,1,0],[0,0,1],[1,-1,0,],[1,0,-1]])
+            sage: v = p.Vrepresentation(0); v
+            A vertex at (1, 0)
+            sage: [4,5] + v
+            [4, 5, 1, 0]
+        """
+        if not isinstance(coordinate_list, list):
+            raise TypeError('Can only concatenate with a list of coordinates')
+        return coordinate_list + list(self)
+
+    def count(self, i):
+        """
+        Count the number of occurrences of ``i`` in the coordinates.
+
+        INPUT:
+
+        - ``i`` -- Anything.
+
+        OUTPUT:
+
+        Integer. The number of occurrences of ``i`` in the coordinates.
+
+        EXAMPLES::
+
+            sage: p = Polyhedron(vertices=[(0,1,1,2,1)])
+            sage: v = p.Vrepresentation(0); v
+            A vertex at (0, 1, 1, 2, 1)
+            sage: v.count(1)
+            3
+        """
+        return sum([1 for j in self if i==j])
 
 
 class Hrepresentation(PolyhedronRepresentation):
@@ -156,47 +293,61 @@ class Hrepresentation(PolyhedronRepresentation):
     The internal base class for H-representation objects of
     a polyhedron. Inherits from ``PolyhedronRepresentation``.
     """
-    def __init__(self, polyhedron, data):
+
+    def __init__(self, polyhedron_parent):
+        """
+        Initializes the PolyhedronRepresentation object.
+
+        TESTS::
+
+            sage: from sage.geometry.polyhedron.representation import Hrepresentation
+            sage: pr = Hrepresentation(Polyhedron(vertices = [[1,2,3]]).parent())
+            sage: tuple(pr)
+            (0, 0, 0, 0)
+            sage: TestSuite(pr).run(skip='_test_pickling')
+        """
+        self._polyhedron_parent = polyhedron_parent
+        self._base_ring = polyhedron_parent.base_ring()
+        self._vector = polyhedron_parent.Hrepresentation_space()(0)
+        self._A = polyhedron_parent.ambient_space()(0)
+        self._b = polyhedron_parent.base_ring()(0)
+        self._index = 0
+
+    def _set_data(self, polyhedron, data):
         """
         Initialization function.
+
+        The H/V-representation objects are kept in a pool, and this
+        function is used to reassign new values to already existing
+        (but unused) objects. You must not call this function on
+        objects that are in normal use.
+
+        INPUT:
+
+        - ``polyhedron`` -- the new polyhedron.
+
+        - ``data`` -- the H-representation data.
 
         TESTS::
 
             sage: p = Polyhedron(ieqs = [[0,1,0],[0,0,1],[1,-1,0,],[1,0,-1]])
-            sage: pH = p.Hrepresentation(0)
+            sage: pH = p.Hrepresentation(0) # indirect doctest
             sage: TestSuite(pH).run(skip='_test_pickling')
         """
-        if len(data) != 1+polyhedron.ambient_dim():
+        assert polyhedron.parent() is self._polyhedron_parent
+        if len(data) != self._vector.degree():
             raise ValueError, \
                 'H-representation data requires a list of length ambient_dim+1'
-        super(Hrepresentation, self).__init__(polyhedron, data)
+
+        for i in range(0, self._vector.degree()):
+            self._vector.set(i, data[i])
+        for i in range(0, self._A.degree()):
+            self._A.set(i, data[i+1])
+        self._b = self._base_ring(data[0])
+
         self._index = len(polyhedron._Hrepresentation)
         polyhedron._Hrepresentation.append(self)
-
-    @cached_method
-    def vector(self):
-        """
-        Returns the vector representation of the H-representation object.
-
-        OUTPUT:
-
-        A vector of length
-        :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.ambient_dim` + 1.
-
-        EXAMPLES::
-
-            sage: s = polytopes.cuboctahedron()
-            sage: v = s.vertex_generator().next()
-            sage: v
-            A vertex at (-1/2, -1/2, 0)
-            sage: v.vector()
-            (-1/2, -1/2, 0)
-            sage: v()
-            (-1/2, -1/2, 0)
-            sage: type(v())
-            <type 'sage.modules.vector_rational_dense.Vector_rational_dense'>
-        """
-        return self.polyhedron().Hrepresentation_space()(self._representation_data)
+        self._polyhedron = polyhedron
 
     def is_H(self):
         """
@@ -238,7 +389,6 @@ class Hrepresentation(PolyhedronRepresentation):
         """
         return False
 
-    @cached_method
     def A(self):
         r"""
         Returns the coefficient vector `A` in `A\vec{x}+b`.
@@ -250,9 +400,8 @@ class Hrepresentation(PolyhedronRepresentation):
             sage: pH.A()
             (1, 0)
         """
-        return self.polyhedron().ambient_space()(self._representation_data[1:])
+        return self._A
 
-    @cached_method
     def b(self):
         r"""
         Returns the constant `b` in `A\vec{x}+b`.
@@ -264,7 +413,7 @@ class Hrepresentation(PolyhedronRepresentation):
             sage: pH.b()
             0
         """
-        return self._representation_data[0]
+        return self._b
 
     def neighbors(self):
         """
@@ -364,7 +513,6 @@ class Hrepresentation(PolyhedronRepresentation):
         if is_Vector(Vobj):
             return self.A() * Vobj + self.b()
         return Vobj.evaluated_on(self)
-        #return self.A() * Vobj.vector() + self.b()
 
     def incident(self):
         """
@@ -399,21 +547,6 @@ class Inequality(Hrepresentation):
     A linear inequality (supporting hyperplane) of the
     polyhedron. Inherits from ``Hrepresentation``.
     """
-    def __init__(self, polyhedron, data):
-        """
-        A linear inequality (supporting hyperplane) of the
-        polyhedron. Inherits from ``Hrepresentation``.
-
-        TESTS::
-
-            sage: p = Polyhedron(vertices = [[0,0,0],[1,1,0],[1,2,0]])
-            sage: a = p.inequality_generator().next()
-            sage: a
-            An inequality (-1, 1, 0) x + 0 >= 0
-            sage: TestSuite(a).run(skip='_test_pickling')
-        """
-        super(Inequality, self).__init__(polyhedron, data)
-
 
     def type(self):
         r"""
@@ -558,20 +691,6 @@ class Equation(Hrepresentation):
     strictly smaller-dimensional than the ambient space, and contained
     in this hyperplane. Inherits from ``Hrepresentation``.
     """
-    def __init__(self, polyhedron, data):
-        """
-        Initializes an equation object.
-
-        TESTS::
-
-            sage: p = Polyhedron(vertices = [[0,0,0],[1,1,0],[1,2,0]])
-            sage: a = p.equation_generator().next()
-            sage: a
-            An equation (0, 0, 1) x + 0 == 0
-            sage: TestSuite(a).run(skip='_test_pickling')
-        """
-        super(Equation, self).__init__(polyhedron, data)
-
 
     def type(self):
         r"""
@@ -692,52 +811,56 @@ class Vrepresentation(PolyhedronRepresentation):
     The base class for V-representation objects of a
     polyhedron. Inherits from ``PolyhedronRepresentation``.
     """
-    def __init__(self, polyhedron, data):
+
+    def __init__(self, polyhedron_parent):
         """
-        Initialization function for the vertex representation.
+        Initializes the PolyhedronRepresentation object.
 
         TESTS::
 
-            sage: p = Polyhedron(ieqs = [[1, 0, 0, 0, 1], [1, 1, 0, 0, 0], [1, 0, 1, 0, 0]])
-            sage: from sage.geometry.polyhedron.representation import Vrepresentation
-            sage: p._Vrepresentation = Sequence([])
-            sage: vr = Vrepresentation(p,[1,2,3,4])
-            sage: vr.__init__(p,[1,2,3,5])
-            sage: vr.vector()
-            (1, 2, 3, 5)
-            sage: TestSuite(vr).run(skip='_test_pickling')
+            sage: p = Polyhedron(vertices = [[0,0,0],[1,1,0],[1,2,0]])
+            sage: a = p.inequality_generator().next()
+            sage: a
+            An inequality (-1, 1, 0) x + 0 >= 0
+            sage: TestSuite(a).run(skip='_test_pickling')
         """
-        if len(data) != polyhedron.ambient_dim():
+        self._polyhedron_parent = polyhedron_parent
+        self._base_ring = polyhedron_parent.base_ring()
+        self._vector = polyhedron_parent.Vrepresentation_space()(0)
+        self._index = 0
+
+    def _set_data(self, polyhedron, data):
+        """
+        Initialization function.
+
+        The H/V-representation objects are kept in a pool, and this
+        function is used to reassign new values to already existing
+        (but unused) objects. You must not call this function on
+        objects that are in normal use.
+
+        INPUT:
+
+        - ``polyhedron`` -- the new polyhedron.
+
+        - ``data`` -- the V-representation data.
+
+        TESTS::
+
+            sage: p = Polyhedron(ieqs = [[0,1,0],[0,0,1],[1,-1,0,],[1,0,-1]])
+            sage: pV = p.Vrepresentation(0)   # indirect doctest
+            sage: TestSuite(pV).run(skip='_test_pickling')
+        """
+        assert polyhedron.parent() is self._polyhedron_parent
+        if len(data) != self._vector.degree():
             raise ValueError, \
                 'V-representation data requires a list of length ambient_dim'
-        super(Vrepresentation, self).__init__(polyhedron, data)
+
+        for i in range(0, self._vector.degree()):
+            self._vector.set(i, data[i])
+
         self._index = len(polyhedron._Vrepresentation)
         polyhedron._Vrepresentation.append(self)
-
-    @cached_method
-    def vector(self):
-        """
-        Returns the vector representation of the V-representation object.
-
-        OUTPUT:
-
-        A vector of length
-        :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.ambient_dim`.
-
-        EXAMPLES::
-
-            sage: s = polytopes.cuboctahedron()
-            sage: v = s.vertex_generator().next()
-            sage: v
-            A vertex at (-1/2, -1/2, 0)
-            sage: v.vector()
-            (-1/2, -1/2, 0)
-            sage: v()
-            (-1/2, -1/2, 0)
-            sage: type(v())
-            <type 'sage.modules.vector_rational_dense.Vector_rational_dense'>
-        """
-        return self.polyhedron().Vrepresentation_space()(self._representation_data)
+        self._polyhedron = polyhedron
 
     def is_V(self):
         """
@@ -905,20 +1028,6 @@ class Vertex(Vrepresentation):
     """
     A vertex of the polyhedron. Inherits from ``Vrepresentation``.
     """
-    def __init__(self, polyhedron, data):
-        """
-        Initializes the vertex object.
-
-        TESTS::
-
-            sage: p = Polyhedron(ieqs = [[0,0,1],[0,1,0],[1,-1,0]])
-            sage: v1 = p.vertex_generator().next()
-            sage: v1
-            A vertex at (1, 0)
-            sage: TestSuite(v1).run(skip='_test_pickling')
-        """
-        super(Vertex, self).__init__(polyhedron, data)
-
 
     def type(self):
         r"""
@@ -998,7 +1107,6 @@ class Vertex(Vrepresentation):
         """
         return Hobj.A() * self.vector() + Hobj.b()
 
-    @cached_method
     def is_integral(self):
         r"""
         Return whether the coordinates of the vertex are all integral.
@@ -1013,27 +1121,13 @@ class Vertex(Vrepresentation):
             sage: [ v.is_integral() for v in p.vertex_generator() ]
             [True, False, True]
         """
-        return all(x in ZZ for x in self._representation_data)
+        return (self._base_ring is ZZ) or all(x in ZZ for x in self)
 
 
 class Ray(Vrepresentation):
     """
     A ray of the polyhedron. Inherits from ``Vrepresentation``.
     """
-    def __init__(self, polyhedron, data):
-        """
-        Initializes a ray object.
-
-        TESTS::
-
-            sage: p = Polyhedron(ieqs = [[0,0,1],[0,1,0],[1,-1,0]])
-            sage: r1 = p.ray_generator().next()
-            sage: r1
-            A ray in the direction (0, 1)
-            sage: TestSuite(r1).run(skip='_test_pickling')
-        """
-        super(Ray, self).__init__(polyhedron, data)
-
 
     def type(self):
         r"""
@@ -1111,22 +1205,6 @@ class Line(Vrepresentation):
     A line (Minkowski summand `\simeq\RR`) of the
     polyhedron. Inherits from ``Vrepresentation``.
     """
-    def __init__(self, polyhedron, data):
-        """
-        Initializes the line object.
-
-        TESTS::
-
-            sage: p = Polyhedron(ieqs = [[1, 0, 0, 1],[1,1,0,0]])
-            sage: a = p.line_generator().next()
-            sage: p._Vrepresentation = Sequence([])
-            sage: a.__init__(p,[1,2,3])
-            sage: a
-            A line in the direction (1, 2, 3)
-            sage: TestSuite(a).run(skip='_test_pickling')
-        """
-        super(Line, self).__init__(polyhedron, data)
-
 
     def type(self):
         r"""
@@ -1156,7 +1234,6 @@ class Line(Vrepresentation):
             True
         """
         return self.LINE
-
 
     def is_line(self):
         """

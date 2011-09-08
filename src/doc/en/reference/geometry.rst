@@ -25,7 +25,9 @@ polytopes and polyhedra (with rational or numerical coordinates).
    sage/geometry/polyhedron/plot
    sage/geometry/polyhedron/base
    sage/geometry/polyhedron/base_QQ
+   sage/geometry/polyhedron/base_ZZ
    sage/geometry/polyhedron/base_RDF
+   sage/geometry/polyhedron/face
    sage/geometry/polyhedron/backend_cdd
    sage/geometry/polyhedron/backend_ppl
    sage/geometry/polyhedron/cdd_file_format

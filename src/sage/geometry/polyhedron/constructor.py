@@ -12,7 +12,7 @@ complementary representations of the same data:
     finite number of
 
         * linear inequalities `A \vec{x} + b \geq 0`, and
-        * linear equations  `C \vec{x} + d \geq 0`.
+        * linear equations  `C \vec{x} + d = 0`.
 
 
 **V(ertex)-representation**
@@ -39,7 +39,7 @@ EXAMPLES::
 
     sage: trunc_quadr = Polyhedron(vertices=[[1,0],[0,1]], rays=[[1,0],[0,1]])
     sage: trunc_quadr
-    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 2 vertices and 2 rays
+    A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices and 2 rays
     sage: v = trunc_quadr.vertex_generator().next()  # the first vertex in the internal enumeration
     sage: v
     A vertex at (0, 1)
@@ -56,9 +56,9 @@ EXAMPLES::
     sage: type(v)
     <class 'sage.geometry.polyhedron.representation.Vertex'>
     sage: type( v() )
-    <type 'sage.modules.vector_rational_dense.Vector_rational_dense'>
+    <type 'sage.modules.vector_integer_dense.Vector_integer_dense'>
     sage: v.polyhedron()
-    A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 2 vertices and 2 rays
+    A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices and 2 rays
     sage: r = trunc_quadr.ray_generator().next()
     sage: r
     A ray in the direction (0, 1)
@@ -105,9 +105,7 @@ AUTHORS:
 from sage.rings.all import QQ, ZZ, RDF
 from sage.misc.decorators import rename_keyword
 
-from misc import (
-    _set_to_None_if_empty, _set_to_empty_if_None,
-    _common_length_of )
+from misc import _make_listlist, _common_length_of
 
 
 
@@ -118,7 +116,7 @@ from misc import (
 @rename_keyword(deprecation=11634, field='base_ring')
 def Polyhedron(vertices=None, rays=None, lines=None,
                ieqs=None, eqns=None,
-               base_ring=QQ, minimize=True, verbose=False,
+               ambient_dim=None, base_ring=None, minimize=True, verbose=False,
                backend=None):
     """
     Construct a polyhedron object.
@@ -131,7 +129,9 @@ def Polyhedron(vertices=None, rays=None, lines=None,
     INPUT:
 
     - ``vertices`` -- list of point. Each point can be specified as
-      any iterable container of ``base_ring`` elements.
+      any iterable container of ``base_ring`` elements. If ``rays`` or
+      ``lines`` are specified but no ``vertices``, the origin is
+      taken to be the single vertex.
 
     - ``rays`` -- list of rays. Each ray can be specified as any
       iterable container of ``base_ring`` elements.
@@ -151,16 +151,20 @@ def Polyhedron(vertices=None, rays=None, lines=None,
       used. Floating point arithmetic is faster but might give the
       wrong result for degenerate input.
 
+    - ``ambient_dim`` -- integer. The ambient space dimension. Usually
+      can be figured out automatically from the H/Vrepresentation
+      dimensions.
+
     - ``backend`` -- string or ``None`` (default). The backend to use. Valid choices are
 
-      * ``'cddr'``: cdd (:mod:`~sage.geometry.polyhedron.backend_cdd`)
-        with rational coefficients
+      * ``'cdd'``: use cdd
+        (:mod:`~sage.geometry.polyhedron.backend_cdd`) with `\QQ` or
+        `\RDF` coefficients depending on ``base_ring``.
 
-      * ``'cddf'``: cdd with floating-point coefficients
 
       * ``'ppl'``: use ppl
-        (:mod:`~sage.geometry.polyhedron.backend_ppl`) with `\QQ`
-        coefficients.
+        (:mod:`~sage.geometry.polyhedron.backend_ppl`) with `\ZZ` or
+        `\QQ` coefficients depending on ``base_ring``.
 
     Some backends support further optional arguments:
 
@@ -221,8 +225,8 @@ def Polyhedron(vertices=None, rays=None, lines=None,
         sage: positive_coords = Polyhedron(ieqs=[
         ...       [0, 1, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0],
         ...       [0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 0, 1]])
-        sage: P = Polyhedron(ieqs=positive_coords.inequalities() + [
-        ...       [0,0,1,-1,-1,1,0], [0,0,-1,1,-1,1,0]], eqns=[[-31,1,1,1,1,1,1]])
+        sage: P = Polyhedron(ieqs=positive_coords.inequalities() + (
+        ...       [0,0,1,-1,-1,1,0], [0,0,-1,1,-1,1,0]), eqns=[[-31,1,1,1,1,1,1]])
         sage: P
         A 5-dimensional polyhedron in QQ^6 defined as the convex hull of 7 vertices
         sage: P.dim()
@@ -242,56 +246,99 @@ def Polyhedron(vertices=None, rays=None, lines=None,
         setting of cdd.
     """
     # Clean up the arguments
-    vertices = _set_to_None_if_empty(vertices)
-    rays     = _set_to_None_if_empty(rays)
-    lines    = _set_to_None_if_empty(lines)
-    ieqs     = _set_to_None_if_empty(ieqs)
-    eqns     = _set_to_None_if_empty(eqns)
+    vertices = _make_listlist(vertices)
+    rays     = _make_listlist(rays)
+    lines    = _make_listlist(lines)
+    ieqs     = _make_listlist(ieqs)
+    eqns     = _make_listlist(eqns)
 
-    got_Vrep = (vertices is not None or rays is not None or lines is not None)
-    got_Hrep = (ieqs is not None or eqns is not None)
+    got_Vrep = (len(vertices+rays+lines) > 0)
+    got_Hrep = (len(ieqs+eqns) > 0)
 
     if got_Vrep and got_Hrep:
         raise ValueError('You cannot specify both H- and V-representation.')
     elif got_Vrep:
-        vertices = _set_to_empty_if_None(vertices)
-        rays     = _set_to_empty_if_None(rays)
-        lines    = _set_to_empty_if_None(lines)
-        Vrep = [vertices, rays, lines]
-        Hrep = None
-        ambient_dim = _common_length_of(*Vrep)[1]
+        deduced_ambient_dim = _common_length_of(vertices, rays, lines)[1]
     elif got_Hrep:
-        ieqs = _set_to_empty_if_None(ieqs)
-        eqns = _set_to_empty_if_None(eqns)
-        Vrep = None
-        Hrep = [ieqs, eqns]
-        ambient_dim = _common_length_of(*Hrep)[1] - 1
+        deduced_ambient_dim = _common_length_of(ieqs, eqns)[1] - 1
     else:
-        Vrep = None
-        Hrep = None
-        ambient_dim = 0
+        if ambient_dim is None:
+            deduced_ambient_dim = 0
+        else:
+            deduced_ambient_dim = ambient_dim
+        if base_ring is None:
+            base_ring = ZZ
 
-    if backend is not None:
-        if backend=='ppl':
-            from backend_ppl import Polyhedron_QQ_ppl
-            return Polyhedron_QQ_ppl(ambient_dim, Vrep, Hrep, minimize=minimize)
-        if backend=='cddr':
-            from backend_cdd import Polyhedron_QQ_cdd
-            return Polyhedron_QQ_cdd(ambient_dim, Vrep, Hrep, verbose=verbose)
-        if backend=='cddf':
-            from backend_cdd import Polyhedron_RDF_cdd
-            return Polyhedron_RDF_cdd(ambient_dim, Vrep, Hrep, verbose=verbose)
+    # set ambient_dim
+    if ambient_dim is not None and deduced_ambient_dim!=ambient_dim:
+        raise ValueError('Ambient space dimension mismatch. Try removing the "ambient_dim" parameter.')
+    ambient_dim = deduced_ambient_dim
 
-    if base_ring is QQ:
-        from backend_ppl import Polyhedron_QQ_ppl
-        return Polyhedron_QQ_ppl(ambient_dim, Vrep, Hrep, minimize=minimize)
-    elif base_ring is RDF:
-        from backend_cdd import Polyhedron_RDF_cdd
-        return Polyhedron_RDF_cdd(ambient_dim, Vrep, Hrep, verbose=verbose)
+    # figure out base_ring
+    from sage.misc.flatten import flatten
+    values = flatten(vertices+rays+lines+ieqs+eqns)
+    if base_ring is not None:
+        try:
+            convert = not all(x.parent() is base_ring for x in values)
+        except AttributeError:   # No x.parent() method?
+            convert = True
     else:
-        raise ValueError('Polyhedron objects can only be constructed over QQ and RDF')
+        from sage.rings.integer import is_Integer
+        from sage.rings.rational import is_Rational
+        from sage.rings.real_double import is_RealDoubleElement
+        if all(is_Integer(x) for x in values):
+            if got_Vrep:
+                base_ring = ZZ
+            else:   # integral inequalities usually do not determine a latice polytope!
+                base_ring = QQ
+            convert=False
+        elif all(is_Rational(x) for x in values):
+            base_ring = QQ
+            convert=False
+        elif all(is_RealDoubleElement(x) for x in values):
+            base_ring = RDF
+            convert=False
+        else:
+            try:
+                map(ZZ, values)
+                if got_Vrep:
+                    base_ring = ZZ
+                else:
+                    base_ring = QQ
+                convert = True
+            except TypeError:
+                from sage.structure.sequence import Sequence
+                values = Sequence(values)
+                if QQ.has_coerce_map_from(values.universe()):
+                    base_ring = QQ
+                    convert = True
+                else:
+                    base_ring = RDF
+                    convert = True
 
+    # Add the origin if necesarry
+    if got_Vrep and len(vertices)==0:
+        vertices = [ [0]*ambient_dim ]
 
+    # Specific backends can override the base_ring
+    from sage.geometry.polyhedron.parent import Polyhedra
+    parent = Polyhedra(base_ring, ambient_dim, backend=backend)
+    base_ring = parent.base_ring()
 
+    # Convert into base_ring if necessary
+    def convert_base_ring(lstlst):
+        return [ [base_ring(x) for x in lst] for lst in lstlst]
+    Hrep = Vrep = None
+    if got_Hrep:
+        if convert:
+            Hrep = [convert_base_ring(ieqs), convert_base_ring(eqns)]
+        else:
+            Hrep = [ieqs, eqns]
+    if got_Vrep:
+        if convert:
+            Vrep = [convert_base_ring(vertices), convert_base_ring(rays), convert_base_ring(lines)]
+        else:
+            Vrep = [vertices, rays, lines]
 
-
+    # finally, construct the Polyhedron
+    return parent.element_class(parent, Vrep, Hrep)

@@ -1373,17 +1373,13 @@ class GroebnerFan(SageObject):
 
         INPUT:
 
-
-        -  ``polyhedral_data`` - an object with 4d vertex and
-           adjacency information
-
+        - ``polyhedral_data`` -- an object with 4d vertex and adjacency
+          information
 
         OUTPUT:
 
-
-        -  ``edges`` - a list of edges in 3d - each list item
-           is a pair of points
-
+        - ``edges`` -- a list of edges in 3d - each list item is a pair of
+          points
 
         EXAMPLES::
 
@@ -1404,18 +1400,19 @@ class GroebnerFan(SageObject):
         """
         fpoints = polyhedral_data.vertices()
         tpoints = [self._embed_tetra(q) for q in fpoints]
-        adj_data = polyhedral_data.vertex_adjacencies()
         edges = []
-        for adj in adj_data:
-            for vert in adj[1]:
-                if vert > adj[0]:
+        for vertex in polyhedral_data.vertices():
+            i = vertex.index()
+            for adjacent_vertex in vertex.adjacent():
+                j = adjacent_vertex.index()
+                if j>i:
                     try:
-                        edges.append([tpoints[adj[0]],tpoints[vert]])
+                        edges.append([tpoints[i],tpoints[j]])
                     except StandardError:
                         print adj
                         print 'tpoints: ' + str(tpoints)
                         print 'fpoints: ' + str(fpoints)
-                        print vert
+                        print adjacent_vertex
                         print polyhedral_data.ieqs()
                         raise RuntimeError, adj
         return edges
@@ -1459,10 +1456,12 @@ class GroebnerFan(SageObject):
         #This is really just for debugging
         if verbose:
             for x in cone_info:
-                print x.ieqs() + [[1,1,0,0,0],[1,0,1,0,0],[1,0,0,1,0],[1,0,0,0,1]]
-                print x.linearities()
+                print x.inequalities() + ([1,1,0,0,0],[1,0,1,0,0],[1,0,0,1,0],[1,0,0,0,1])
+                print x.equations()
                 print ""
-        cone_info = [Polyhedron(ieqs = x.ieqs() + [[1,1,0,0,0],[1,0,1,0,0],[1,0,0,1,0],[1,0,0,0,1]], eqns = x.linearities()) for x in cone_info]
+        cone_info = [Polyhedron(ieqs = x.inequalities() +
+                                ([1,1,0,0,0],[1,0,1,0,0],[1,0,0,1,0],[1,0,0,0,1]),
+                                eqns = x.equations()) for x in cone_info]
         all_lines = []
         for cone_data in cone_info:
             try:

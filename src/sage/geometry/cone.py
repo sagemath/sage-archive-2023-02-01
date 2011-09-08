@@ -171,7 +171,7 @@ corresponding to cones::
     sage: four_rays.lattice_polytope()
     A lattice polytope: 3-dimensional, 5 vertices.
     sage: four_rays.polyhedron()
-    A 3-dimensional polyhedron in QQ^3 defined as
+    A 3-dimensional polyhedron in ZZ^3 defined as
     the convex hull of 1 vertex and 4 rays
 
 And of course you are always welcome to suggest new features that should be
@@ -568,7 +568,10 @@ def normalize_rays(rays, lattice):
         V = lattice.base_extend(QQ)
         for n, ray in enumerate(rays):
             try:
-                ray = V(ray)
+                if isinstance(ray, (list, tuple, V._element_class)):
+                    ray = V(ray)
+                else:
+                    ray = V(list(ray))
             except TypeError:
                 raise TypeError("cannot convert %s to %s!" % (ray, V))
             if ray.is_zero():
@@ -3106,18 +3109,18 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: quadrant = Cone([(1,0), (0,1)])
             sage: quadrant.polyhedron()
-            A 2-dimensional polyhedron in QQ^2 defined as the convex hull
+            A 2-dimensional polyhedron in ZZ^2 defined as the convex hull
             of 1 vertex and 2 rays
             sage: line = Cone([(1,0), (-1,0)])
             sage: line.polyhedron()
-            A 1-dimensional polyhedron in QQ^2 defined as the convex hull
+            A 1-dimensional polyhedron in ZZ^2 defined as the convex hull
             of 1 vertex and 1 line
 
         Here is an example of a trivial cone (see Trac #10237)::
 
             sage: origin = Cone([], lattice=ZZ^2)
             sage: origin.polyhedron()
-            A 0-dimensional polyhedron in QQ^2 defined as the convex hull
+            A 0-dimensional polyhedron in ZZ^2 defined as the convex hull
             of 1 vertex
         """
         if "_polyhedron" not in self.__dict__:

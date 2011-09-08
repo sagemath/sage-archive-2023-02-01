@@ -984,39 +984,40 @@ def point3d(v, size=5, **kwds):
 
     INPUT:
 
+    -  ``v`` -- a point or list of points
 
-    -  ``v`` - a point or list of points
-
-    -  ``size`` - (default: 5) size of the point (or
+    -  ``size`` -- (default: 5) size of the point (or
        points)
 
-    -  ``color`` - a word that describes a color
+    -  ``color`` -- a word that describes a color
 
-    -  ``rgbcolor`` - (r,g,b) with r, g, b between 0 and 1
+    -  ``rgbcolor`` -- (r,g,b) with r, g, b between 0 and 1
        that describes a color
 
-    -  ``opacity`` - (default: 1) if less than 1 then is
+    -  ``opacity`` -- (default: 1) if less than 1 then is
        transparent
-
 
     EXAMPLES::
 
         sage: sum([point3d((i,i^2,i^3), size=5) for i in range(10)])
 
-    We check to make sure this works with vectors::
+    We check to make sure this works with vectors and other iterables::
 
         sage: pl = point3d([vector(ZZ,(1, 0, 0)), vector(ZZ,(0, 1, 0)), (-1, -1, 0)])
-        sage: p = point(vector((2,3,4)))
-        sage: print p
+        sage: print point(vector((2,3,4)))
         Graphics3d Object
 
+        sage: c = polytopes.n_cube(3)
+        sage: v = c.vertices()[0];  v
+        A vertex at (-1, -1, -1)
+        sage: print point(v)
+        Graphics3d Object
 
     We check to make sure the options work::
 
         sage: point3d((4,3,2),size=20,color='red',opacity=.5)
-
     """
-    if (isinstance(v,(list,tuple)) or is_Vector(v)) and len(v) == 3 and not (isinstance(v[0],(list,tuple)) or is_Vector(v[0])):
+    if len(v) == 3 and v[0] in RDF:
         return Point(v, size, **kwds)
     else:
         A = sum([Point(z, size, **kwds) for z in v])

@@ -266,7 +266,7 @@ def simplex_points(vertices):
 
         sage: v = [(1,0,7,-1), (-2,-2,4,-3), (-1,-1,-1,4), (2,9,0,-5), (-2,-1,5,1)]
         sage: simplex = Polyhedron(v); simplex
-        A 4-dimensional polyhedron in QQ^4 defined as the convex hull of 5 vertices
+        A 4-dimensional polyhedron in ZZ^4 defined as the convex hull of 5 vertices
         sage: pts = simplex_points(simplex.Vrepresentation())
         sage: len(pts)
         49
@@ -279,7 +279,7 @@ def simplex_points(vertices):
 
         sage: v = [(4,-1,-1,-1), (-1,4,-1,-1), (-1,-1,4,-1), (-1,-1,-1,4), (-1,-1,-1,-1)]
         sage: P4mirror = Polyhedron(v); P4mirror
-        A 4-dimensional polyhedron in QQ^4 defined as the convex hull of 5 vertices
+        A 4-dimensional polyhedron in ZZ^4 defined as the convex hull of 5 vertices
         sage: len( simplex_points(P4mirror.Vrepresentation()) )
         126
     """
@@ -878,7 +878,7 @@ cdef class InequalityCollection:
         max_abs_coordinates = permutation.action(max_abs_coordinates)
         self.ineqs_int = []
         self.ineqs_generic = []
-        if not polyhedron:
+        if polyhedron is None:
             return
         for Hrep_obj in polyhedron.inequality_generator():
             A, b = self._make_A_b(Hrep_obj, permutation)

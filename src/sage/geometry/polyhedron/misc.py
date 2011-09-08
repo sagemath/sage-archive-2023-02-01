@@ -58,29 +58,36 @@ def _set_to_None_if_empty(x):
         [1]
     """
     if x is None: return x
+    x = list(x)
     if len(x)==0: return None
     return x
 
 
 #########################################################################
-def _set_to_empty_if_None(x):
+def _make_listlist(x):
     """
-    Helper function to clean up arguments: Returns the empty list if
-    x==None or x is an empty container.
+    Helper function to clean up arguments.
+
+    INPUT:
+
+    - ``x`` -- ``None`` or an iterable of iterables.
+
+    OUTPUT
+
+    A list of lists.
 
     EXAMPLES::
 
         sage: import sage.geometry.polyhedron.misc as P
-        sage: [] == P._set_to_empty_if_None(tuple())
+        sage: [] == P._make_listlist(tuple())
         True
-        sage: [] == P._set_to_empty_if_None(None)
+        sage: [] == P._make_listlist(None)
         True
-        sage: P._set_to_empty_if_None([1])
-        [1]
+        sage: P._make_listlist([(1,2),[3,4]])
+        [[1, 2], [3, 4]]
     """
     if x is None: return []
-    if len(x)==0: return []
-    return x
+    return [list(y) for y in x]
 
 
 #########################################################################

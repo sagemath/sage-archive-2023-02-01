@@ -52,7 +52,6 @@ from sage.sets.set import Set
 from sage.misc.functional import is_even
 from sage.combinat.subset import Subsets
 import sage.misc.prandom as random
-from sage.groups.perm_gps.permgroup import PermutationGroup
 
 def matching(A, B):
     """
@@ -550,6 +549,7 @@ class SimplicialComplexExamples():
             # letters.  See the description in Example 3.12 in Datta.
             #
             # Define the group:
+            from sage.groups.perm_gps.permgroup import PermutationGroup
             g1 = '(2,7)(4,10)(5,6)(11,12)'
             g2 = '(1, 2, 3, 4, 5, 10)(6, 8, 9)(11, 12, 13, 14, 15, 16)'
             G = PermutationGroup([g1, g2])
@@ -586,13 +586,18 @@ class SimplicialComplexExamples():
         Returns a minimal triangulation of the K3 surface. This is
         a pure simplicial complex of dimension 4 with 16 vertices
         and 288 facets. It was constructed by Casella and Kühnel
-        in [CK2001]_.
+        in [CK2001]_.  The construction here uses the labeling from
+        Spreer and Kühnel [SK2011]_.
 
         REFERENCES:
 
-        - [CK2001] M. Casella and W. Kühnel, "A triangulated K3 surface with the minimum number of vertices", Topology 40 (2001), 753–772.
+        .. [CK2001] M. Casella and W. Kühnel, "A triangulated K3 surface
+           with the minimum number of vertices", Topology 40 (2001),
+           753–772.
 
-        - [SK2011] J. Spreer and W. Kühnel, "Combinatorial properties of the K3 surface: Simplicial blowups and slicings", Experimental Mathematics, Volume 20, Issue 2, 2011.
+        .. [SK2011] J. Spreer and W. Kühnel, "Combinatorial properties
+           of the K3 surface: Simplicial blowups and slicings", Experimental
+           Mathematics, Volume 20, Issue 2, 2011.
 
         EXAMPLES::
 
@@ -601,6 +606,7 @@ class SimplicialComplexExamples():
             sage: K3.f_vector()
             [1, 16, 120, 560, 720, 288]
         """
+        from sage.groups.perm_gps.permgroup import PermutationGroup
         G = PermutationGroup([[(1,3,8,4,9,16,15,2,14,12,6,7,13,5,10)],[(1,11,16),(2,10,14),(3,12,13),(4,9,15),(5,7,8)]])
         return SimplicialComplex([tuple([g(i) for i in (1,2,3,8,12)]) for g in G]+[tuple([g(i) for i in (1,2,5,8,14)]) for g in G])
 

@@ -38,6 +38,9 @@ reference implementation for Gröbner basis computation.
 
 == Releases ==
 
+=== polybori-0.8.0.p0 (Alexander Dreyer, September 8th, 2011) ===
+ * Updating sources to PolyBoRi's release 0.8.0
+
 === polybori-0.8-rc.p3 (Alexander Dreyer, September 2nd, 2011) ===
  * Updating sources to rc5 and merged with preliminary polybori-0.7.1.p5.spkg
 

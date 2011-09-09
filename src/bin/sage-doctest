@@ -279,14 +279,16 @@ def doc_preparse(s):
     for L in s.splitlines():
         if not L.strip():
             if has_tolerance:
-                t.append(close_tolerance(c))
+                t.append(close_tolerance(c) + old_cmd)
                 has_tolerance = False
 
         begin = L.lstrip()[:5]
         comment = ''
         if begin == 'sage:':
             if has_tolerance:
-                t.append(close_tolerance(c))
+                # old_cmd contains the command being tested along with
+                # the line number.
+                t.append(close_tolerance(c) + old_cmd)
             c, comment = comment_modifier(L)
             last_prompt_comment = comment
             line = ''
@@ -316,6 +318,12 @@ def doc_preparse(s):
                 # and an empty line, to ignore the output given in the test
                 line += '\n' + ' '*i + 'ignore ...\n'
             if has_tolerance:
+                # save the current command along with the line number
+                try:
+                    idx = line.index('###_sage"line')
+                    old_cmd = line[idx:]
+                except IndexError:
+                    old_cmd = ''
                 line += "\n>>> check_with_tolerance('''"
             t.append(line)
 
@@ -685,6 +693,16 @@ def post_process(s, file, tmpname):
         k += s[k:].find(',')
         j = s[i:].find('###line')
         s = s[:k] + ', ' + s[i+j+3:]
+        i = s.find("Failed example:")
+        if i != -1:
+            t = s[:i]
+        else:
+            t = s
+        if t.find('check_with_tolerance') != -1:
+            j = s.find('Exception raised')
+            ass = 'AssertionError: '
+            k = s.find(ass)
+            s = s[:j] + s[k+len(ass):]
         i = s.find("Failed example:")
         cnt += 1
         if cnt > 1000:

@@ -9683,7 +9683,7 @@ class GenericGraph(GenericGraph_pyx):
 
                     b, certif = gg.is_chordal(certificate = True)
                     if not b:
-                        return certif
+                        return False, certif
                     else:
                         peo.extend(certif)
 
@@ -9698,34 +9698,32 @@ class GenericGraph(GenericGraph_pyx):
         g = self.copy()
         peo.reverse()
 
-        # Remembering the (closed) neighborhoods of each vertex
-        from sage.combinat.subset import Subsets
-        neighbors_subsets = dict([(v,Subsets(self.neighbors(v)+[v])) for v in self.vertex_iterator()])
-
         # Iteratively removing vertices and checking everything is fine.
         for v in peo:
 
-            if t_peo.out_degree(v)>0 and g.neighbors(v) not in neighbors_subsets[t_peo.neighbor_out_iterator(v).next()]:
+            if t_peo.out_degree(v)>0:
 
-                if certificate:
+                x = t_peo.neighbor_out_iterator(v).next()
+                S = self.neighbors(x)+[x]
 
-                    # In this case, let us take two nonadjacent neighbors of v
+                if not frozenset(g.neighbors(v)).issubset(S):
 
-                    x = t_peo.neighbor_out_iterator(v).next()
-                    S = neighbors_subsets[x]
+                    if certificate:
 
-                    for y in g.neighbors(v):
-                        if [y] not in S:
-                            break
+                        # In this case, let us take two nonadjacent neighbors of v
 
-                    g.delete_vertex(v)
+                        for y in g.neighbors(v):
+                            if y not in S:
+                                break
 
-                    # Our hole is v + (a shortest path between x and y
-                    # not containing v)
+                        g.delete_vertex(v)
 
-                    return (False, self.subgraph([v] + g.shortest_path(x,y)))
-                else:
-                    return False
+                        # Our hole is v + (a shortest path between x and y
+                        # not containing v)
+
+                        return (False, self.subgraph([v] + g.shortest_path(x,y)))
+                    else:
+                        return False
 
             g.delete_vertex(v)
 
@@ -9806,14 +9804,10 @@ class GenericGraph(GenericGraph_pyx):
         if not self.is_chordal():
             return False
 
-        from sage.sets.set import Set
-        from sage.combinat.subset import Subsets
-
         # First, we need to gather the list of maximal cliques, which
         # is easy as the graph is chordal
 
         cliques = []
-        clique_subsets = []
 
         # As we will be deleting vertices ...
         g = self.copy()
@@ -9832,13 +9826,11 @@ class GenericGraph(GenericGraph_pyx):
 
             while peo:
                 v = peo.pop()
-                clique = Set( [v] + cc.neighbors(v))
+                clique = frozenset( [v] + cc.neighbors(v))
                 cc.delete_vertex(v)
 
-                if not any([clique in cs for cs in clique_subsets]):
+                if not any([clique.issubset(c) for c in cliques]):
                     cliques.append(clique)
-                    clique_subsets.append(Subsets(clique))
-
 
         from sage.graphs.pq_trees import reorder_sets
 

@@ -14143,8 +14143,9 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: G = Graph({0:{1:None,2:None}, 1:{0:None,2:None}, 2:{0:None,1:None,3:'foo'}, 3:{2:'foo'}},sparse=True)
-            sage: G.graphviz_to_file_named(os.environ['SAGE_TESTDIR']+'/temp_graphviz',edge_labels=True)
-            sage: print open(os.environ['SAGE_TESTDIR']+'/temp_graphviz').read()
+            sage: tempfile = os.path.join(SAGE_TMP, 'temp_graphviz')
+            sage: G.graphviz_to_file_named(tempfile, edge_labels=True)
+            sage: print open(tempfile).read()
             graph {
               "0" [label="0"];
               "1" [label="1"];

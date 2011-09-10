@@ -4349,6 +4349,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = x^2 + a
             sage: f.discriminant()
             1
+
+        The following examples show that #11782 has been fixed::
+
+            sage: ZZ.quo(81)[x](3*x^2 + 3*x + 3).discriminant()
+            54
+            sage: ZZ.quo(9)[x](2*x^3 + x^2 + x).discriminant()
+            2
         """
         if self.is_zero():
             return self.parent().zero_element()
@@ -4360,8 +4367,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
         u = -1 # (-1)**(n*(n-1)/2)
         if r == 0 or r == 1:
             u = 1
-        an = self[n]**(n - k - 2)
-        return self.base_ring()(u * self.resultant(d) * an)
+        try:
+            an = self[n]**(n - k - 2)
+            return self.base_ring()(u * self.resultant(d) * an)
+        except ZeroDivisionError:
+            # Rather than dividing the resultant by the leading coefficient,
+            # we alter the Sylvester matrix (see #11782).
+            mat = self.sylvester_matrix(d)
+            mat[0, 0] = self.base_ring()(1)
+            mat[n - 1, 0] = self.base_ring()(n)
+            return u * mat.determinant()
 
     def reverse(self, degree=None):
         """

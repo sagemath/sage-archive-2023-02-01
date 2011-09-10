@@ -267,8 +267,12 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             sage: r.parent() is GF(19)
             True
         """
-        res = zmod_poly_resultant(&(<Polynomial_template>self).x, &(<Polynomial_template>other).x)
-        return self.parent().base_ring()(res)
+        if self.base_ring().is_field():
+            res = zmod_poly_resultant(&(<Polynomial_template>self).x,
+                                      &(<Polynomial_template>other).x)
+            return self.parent().base_ring()(res)
+        else:
+            return self.sylvester_matrix(other).determinant()
 
     def small_roots(self, *args, **kwds):
         r"""

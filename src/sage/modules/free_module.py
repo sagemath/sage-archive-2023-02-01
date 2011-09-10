@@ -828,7 +828,7 @@ class FreeModule_generic(module.Module_old):
         if isinstance(x, (int, long, sage.rings.integer.Integer)) and x==0:
             return self.zero_vector()
         elif isinstance(x, free_module_element.FreeModuleElement):
-            if x.parent() == self:
+            if x.parent() is self:
                 if copy:
                     return x.__copy__()
                 else:
@@ -5115,8 +5115,9 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         if len(B) == 0:
             return 1
         d = B[0].denominator()
+        from sage.rings.arith import lcm
         for x in B[1:]:
-            d = d.lcm(x.denominator())
+            d = lcm(d,x.denominator())
         return d
 
     def _repr_(self):

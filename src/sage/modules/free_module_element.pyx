@@ -3382,6 +3382,33 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
 
             sage: type(vector([-1,0,3,pi]))   # indirect doctest
             <class 'sage.modules.vector_symbolic_dense.Vector_symbolic_dense'>
+
+        TESTS::
+
+        Check that #11751 is fixed::
+
+            sage: K.<x> = QQ[]
+            sage: M = K^1
+            sage: N = M.span([[1/x]]); N
+            Free module of degree 1 and rank 1 over Univariate Polynomial Ring in x over Rational Field
+            Echelon basis matrix:
+            [1/x]
+            sage: N([1/x]) # this used to fail prior to #11751
+            (1/x)
+            sage: N([1/x^2])
+            Traceback (most recent call last):
+            ...
+            TypeError: element (= [1/x^2]) is not in free module
+
+
+            sage: L=K^2
+            sage: R=L.span([[x,0],[0,1/x]], check=False, already_echelonized=True)
+            sage: R.basis()[0][0].parent()
+            Fraction Field of Univariate Polynomial Ring in x over Rational Field
+            sage: R=L.span([[x,x^2]])
+            sage: R.basis()[0][0].parent()
+            Univariate Polynomial Ring in x over Rational Field
+
         """
         FreeModuleElement.__init__(self, parent)
         R = self.parent().base_ring()
@@ -3389,17 +3416,18 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             entries = [R(0)]*self.degree()
         else:
             if not isinstance(entries, (list, tuple)):
-
                 raise TypeError, "entries (=%s) must be a list"%(entries, )
 
             if len(entries) != self.degree():
                 raise TypeError, "entries must be a list of length %s"%\
                             self.degree()
             if coerce:
-                try:
-                    entries = [R(x) for x in entries]
-                except TypeError:
-                    raise TypeError, "Unable to coerce entries (=%s) to %s"%(entries, R)
+                if len(entries) != 0:
+                    coefficient_ring = parent.basis()[0][0].parent()
+                    try:
+                        entries = [coefficient_ring(x) for x in entries]
+                    except TypeError:
+                        raise TypeError, "Unable to coerce entries (=%s) to coefficients in %s"%(entries, coefficient_ring)
             elif copy:
                 # Make a copy
                 entries = list(entries)
@@ -3828,6 +3856,34 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             (0, 5/4, 0)
             sage: v.is_sparse()
             True
+
+
+        TESTS::
+
+        Test that 11751 is fixed
+
+            sage: K.<x> = QQ[]
+            sage: M = FreeModule(K, 1, sparse=True)
+            sage: N = M.span([{0:1/x}]); N
+            Sparse free module of degree 1 and rank 1 over Univariate Polynomial Ring in x over Rational Field
+            Echelon basis matrix:
+            [1/x]
+            sage: N({0:1/x}) # this used to fail prior to #11751
+            (1/x)
+            sage: N({0:1/x^2})
+            Traceback (most recent call last):
+            ...
+            TypeError: element (= {0: 1/x^2}) is not in free module
+
+
+            sage: L = FreeModule(K, 2, sparse=True)
+            sage: R = L.span([{0:x, 1:0}, {0:0, 1:1/x}], check=False, already_echelonized=True)
+            sage: R.basis()[0][0].parent()
+            Fraction Field of Univariate Polynomial Ring in x over Rational Field
+            sage: R = L.span([{0:x, 1:x^2}])
+            sage: R.basis()[0][0].parent()
+            Univariate Polynomial Ring in x over Rational Field
+
         """
         #WARNING: In creation, we do not check that the i pairs satisfy
         #     0 <= i < degree.
@@ -3847,15 +3903,17 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                 copy = False
             if not isinstance(entries, dict):
                 raise TypeError, "entries must be a dict"
-            if coerce:
-                try:
-                    for k, x in entries.iteritems():
-                        entries[k] = R(x)
-                except TypeError:
-                    raise TypeError, "Unable to coerce values of entries dict (=%s) to %s"%(entries, R)
-            elif copy:
+            if copy:
                 # Make a copy
                 entries = dict(entries)
+            if coerce:
+                if len(entries) != 0:
+                    coefficient_ring = parent.basis()[0][0].parent()
+                    try:
+                        for k, x in entries.iteritems():
+                            entries[k] = coefficient_ring(x)
+                    except TypeError:
+                        raise TypeError, "Unable to coerce value (=%s) of entries dict (=%s) to %s"%(x, entries, coefficient_ring)
         self._entries = entries
 
     cpdef ModuleElement _add_(left, ModuleElement right):

@@ -9698,6 +9698,16 @@ class GenericGraph(GenericGraph_pyx):
           Incidence matrices and interval graphs
           Pacific J. Math 1965
           Vol. 15, number 3, pages 835--855
+
+        TESTS:
+
+        Trac Ticket #11735::
+
+           sage: g = Graph({3:[2,1,4],2:[1],4:[1],5:[2,1,4]})
+           sage: _, g1 = g.is_chordal(certificate=True); g1.is_chordal()
+           False
+           sage: g1.is_isomorphic(graphs.CycleGraph(g1.order()))
+           True
         """
 
         # If the graph is not connected, we are computing the result on each component
@@ -9737,20 +9747,34 @@ class GenericGraph(GenericGraph_pyx):
 
                 if not frozenset(g.neighbors(v)).issubset(S):
 
+                    # Do we need to return a hole ?
                     if certificate:
 
                         # In this case, let us take two nonadjacent neighbors of v
+                        # In this case, let us take two nonadjacent neighbors of
+                        # v. In order to do so, we pick a vertex y which is a
+                        # neighbor of v but is not adjacent to x, which we know
+                        # exists by the test written two lines above.
 
                         for y in g.neighbors(v):
                             if y not in S:
                                 break
 
+                        g.delete_vertices([vv for vv in g.neighbors(v) if vv != y and vv != x])
                         g.delete_vertex(v)
 
-                        # Our hole is v + (a shortest path between x and y
-                        # not containing v)
+                        # Our hole is v + (a shortest path between x and y not
+                        # containing v or any of its neighbors).
 
-                        return (False, self.subgraph([v] + g.shortest_path(x,y)))
+                        hole = self.subgraph([v] + g.shortest_path(x,y))
+
+                        # There was a bug there once, so it's better to check the
+                        # answer is valid, especally when it is so cheap ;-)
+
+                        if hole.order() <= 3 or not hole.is_regular(k=2):
+                            raise Exception("The graph is not chordal, and something went wrong in the computation of the certificate. Please report this bug, providing the graph if possible !")
+
+                        return (False, hole)
                     else:
                         return False
 

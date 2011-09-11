@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+###########################################
+## ellcurves
+###########################################
 
 if [ "x$SAGE_DATA" = x ]; then
    echo "SAGE_DATA undefined ... exiting"
@@ -17,6 +20,6 @@ cd src
 cp * "$TARGET/"
 
 if [ $? -ne 0 ]; then
-   echo "Error installing ellcurves database"
+   echo "Error copying files to $TARGET"
    exit 1
 fi

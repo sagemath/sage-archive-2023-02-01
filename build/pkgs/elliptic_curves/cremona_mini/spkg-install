@@ -1,22 +1,42 @@
-#!/usr/bin/env bash
+#!/usr/bin/env python
+###########################################
+## cremona_mini
+###########################################
 
-if [ "x$SAGE_DATA" = x ]; then
-   echo "SAGE_DATA undefined ... exiting"
-   echo "Maybe run 'sage -sh'?"
-   exit 1
-fi
+from sqlite3 import connect
+import os
 
-TARGET="$SAGE_DATA/cremona"
+if 'SAGE_DATA' not in os.environ:
+    raise RuntimeError("SAGE_DATA undefined, maybe run 'sage -sh'?")
 
-if [ ! -d "$TARGET" ]; then
-   mkdir "$TARGET"
-fi
+cremona_root=os.environ['SAGE_DATA']+'/cremona'
+if not os.path.exists(cremona_root):
+    os.makedirs(cremona_root)
 
-cd src
+target=cremona_root+'/cremona_mini.db'
 
-cp * "$TARGET/"
+if os.path.exists(target):
+    os.remove(target)
 
-if [ $? -ne 0 ]; then
-   echo "Error installing cremona mini database"
-   exit 1
-fi
+con = connect(target)
+
+con.execute('CREATE TABLE t_class(rank INTEGER, class TEXT PRIMARY KEY, conductor INTEGER)')
+con.execute('CREATE TABLE t_curve(curve TEXT PRIMARY KEY, class TEXT, tors INTEGER, eqn TEXT UNIQUE)')
+con.execute('CREATE INDEX i_t_class_conductor ON t_class(conductor)')
+con.execute('CREATE INDEX i_t_curve_class ON t_curve(class)')
+
+class_data = []
+curve_data = []
+
+for line in file('src/allcurves.00000-09999').readlines():
+    N, iso, num, eqn, r, tors = line.split()
+    cls = N+iso
+    cur = cls+num
+    if num == "1":
+        class_data.append((N,cls,r))
+    curve_data.append((cur,cls,eqn,tors))
+
+con.executemany('INSERT INTO t_class(conductor,class,rank) VALUES (?,?,?)', class_data)
+con.executemany('INSERT INTO t_curve(curve,class,eqn,tors) VALUES (?,?,?,?)', curve_data)
+
+con.commit()

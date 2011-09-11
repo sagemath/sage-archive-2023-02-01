@@ -26,7 +26,16 @@ Includes two databases:
  * Author: William Stein
  * Email: wstein@gmail.com
 
+== Dependencies ==
+
+ * sqlite
+ * python
+
 == Changelog ==
+
+=== elliptic_curves-0.3 (R. Andrew Ohana, 9 September 2011) ===
+ * Fixed a potential bug in spkg-install script
+ * cremona_mini install script now constructs the database from scratch
 
 === elliptic_curves-0.2 (R. Andrew Ohana, 1 August 2011) ===
  * Updated cremona_mini to use a SQLite3 database

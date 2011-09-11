@@ -1,17 +1,22 @@
 #!/usr/bin/env bash
+###########################################
+## elliptic_curves
+#########################################8#
 
 cd cremona_mini
 ./spkg-install
 
-if [ $? -ne 0 ]; then
+EXIT_CODE=$?
+if [ $EXIT_CODE -ne 0 ]; then
    echo "Error installing cremona mini database"
-   exit $?
+   exit $EXIT_CODE
 fi
 
 cd ../ellcurves
 ./spkg-install
 
-if [ $? -ne 0 ]; then
+EXIT_CODE=$?
+if [ $EXIT_CODE -ne 0 ]; then
    echo "Error installing ellcurves database"
-   exit $?
+   exit $EXIT_CODE
 fi

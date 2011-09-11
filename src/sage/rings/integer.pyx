@@ -1851,6 +1851,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             Traceback (most recent call last):
             ...
             TypeError: non-integral exponents not supported
+            sage: int(3)^-3
+            1/27
+            sage: type(int(3)^2)
+            <type 'sage.rings.integer.Integer'>
+            sage: type(int(3)^int(2))
+            <type 'int'>
         """
         if modulus is not None:
             #raise RuntimeError, "__pow__ dummy argument ignored"
@@ -1861,9 +1867,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         if not PY_TYPE_CHECK(self, Integer):
             if isinstance(self, str):
                 return self * n
-            else:
+            if not PY_TYPE_CHECK(self, int):
                 return self ** int(n)
-
+            else:
+                self = Integer(self)        #convert from int to Integer
         cdef Integer _self = <Integer>self
         cdef long nn
 

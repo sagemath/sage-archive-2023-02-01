@@ -12,35 +12,30 @@ rank, and torsion for curves up to conductor 10000.
 The large database includes all curves of conductor up to 180,000. It
 also includes data related to the BSD conjecture and modular degrees
 for all of these curves, and generators for the Mordell-Weil
-groups. To install it type the following in Sage:
+groups. To install it type the following in Sage::
 
-!sage -i database_cremona_ellcurve
+    !sage -i database_cremona_ellcurve
 
 This causes the latest version of the database to be downloaded from
 the internet.  You can also install it from a local copy of the
-database spkg file, using a command of the form
+database spkg file, using a command of the form::
 
-!sage -i database_cremona_ellcurve-20110809.spkg
+    !sage -i database_cremona_ellcurve-20110809.spkg
 
 Both the mini and full versions of John Cremona's tables are stored in
-SAGE_DATA/cremona as SQLite databases. The mini version has the layout:
+SAGE_DATA/cremona as SQLite databases. The mini version has the layout::
 
-CREATE TABLE t_class(conductor INTEGER, class TEXT PRIMARY KEY,
-                       rank INTEGER);
-CREATE TABLE t_curve(class TEXT, curve TEXT PRIMARY KEY, eqn TEXT UNIQUE,
-                       tors INTEGER);
-CREATE INDEX i_t_class_conductor ON t_class(conductor);
-CREATE INDEX i_t_curve_class ON t_curve(class);
+    CREATE TABLE t_class(conductor INTEGER, class TEXT PRIMARY KEY, rank INTEGER);
+    CREATE TABLE t_curve(class TEXT, curve TEXT PRIMARY KEY, eqn TEXT UNIQUE, tors INTEGER);
+    CREATE INDEX i_t_class_conductor ON t_class(conductor);
+    CREATE INDEX i_t_curve_class ON t_curve(class);
 
-while the full version has the layout
+while the full version has the layout::
 
-CREATE TABLE t_class(conductor INTEGER, class TEXT PRIMARY KEY,
-                       rank INTEGER, L REAL, deg INTEGER);
-CREATE TABLE t_curve(class TEXT, curve TEXT PRIMARY KEY, eqn TEXT UNIQUE,
-                       gens TEXT, tors INTEGER, cp INTEGER, om REAL,
-                       reg REAL, sha);
-CREATE INDEX i_t_class_conductor ON t_class(conductor);
-CREATE INDEX i_t_curve_class ON t_curve(class);
+    CREATE TABLE t_class(conductor INTEGER, class TEXT PRIMARY KEY, rank INTEGER, L REAL, deg INTEGER);
+    CREATE TABLE t_curve(class TEXT, curve TEXT PRIMARY KEY, eqn TEXT UNIQUE, gens TEXT, tors INTEGER, cp INTEGER, om REAL, reg REAL, sha);
+    CREATE INDEX i_t_class_conductor ON t_class(conductor);
+    CREATE INDEX i_t_curve_class ON t_curve(class);
 """
 #*****************************************************************************
 #       Copyright (C) 2011 R. Andrew Ohana <andrew.ohana@gmail.com>

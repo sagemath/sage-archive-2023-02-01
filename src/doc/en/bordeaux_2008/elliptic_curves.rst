@@ -4,11 +4,13 @@ Elliptic Curves
 Cremona's Databases
 -------------------
 
-Cremona's databases of elliptic curves is part of Sage. The curves up
-to conductor 10,000 come standard with Sage, and an optional 75MB
-download gives all his tables up to conductor 130,000. Type sage -i
-database cremona ellcurve-20071019 to automatically download and
-install this extended table.
+Cremona's databases of elliptic curves are part of Sage. The curves up
+to conductor 10,000 come standard with Sage, and an there is an optional
+download to gain access to his complete tables. From within sage run::
+
+    sage: install_package('database_cremona_ellcurve')  # not tested
+
+to automatically download and install the extended table.
 
 To use the database, just create a curve by giving
 
@@ -17,10 +19,8 @@ To use the database, just create a curve by giving
     sage: EllipticCurve('5077a1')
     Elliptic Curve defined by y^2 + y = x^3 - 7*x + 6 over Rational Field
     sage: C = CremonaDatabase()
-    sage: C.number_of_curves() #optional - cremona
-    847550
     sage: C[37]
-    {'a': {'a1': [[0, 0, 1, -1, 0], 1, 1],
+    {'allcurves': {'a1': [[0, 0, 1, -1, 0], 1, 1],
            'b1': [[0, 1, 1, -23, -50], 0, 3], ...
     sage: C.isogeny_class('37b')
     [Elliptic Curve defined by y^2 + y = x^3 + x^2 - 23*x - 50

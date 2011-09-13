@@ -3173,6 +3173,68 @@ cdef class NumberFieldElement(FieldElement):
             raise NotImplementedError, "inverse_mod is not implemented for non-integral elements"
 
 
+    def residue_symbol(self, P, m, check=True):
+        r"""
+        The m-th power residue symbol for an element self and proper ideal P.
+
+        .. math:: \left(\frac{\alpha}{\mathbf{P}}\right) \equiv \alpha^{\frac{N(\mathbf{P})-1}{m}} \operatorname{mod} \mathbf{P}
+
+        .. note:: accepts m=1, in which case returns 1
+
+        .. note:: can also be called for an ideal from sage.rings.number_field_ideal.residue_symbol
+
+        .. note:: self is coerced into the number field of the ideal P
+
+        .. note:: if m=2, self is an integer, and P is an ideal of a number field of absolute degree 1 (i.e. it is a copy of the rationals), then this calls kronecker_symbol, which is implemented using GMP.
+
+        INPUT:
+
+        - ``P`` - proper ideal of the number field (or an extension)
+
+        - ``m`` - positive integer
+
+        OUTPUT:
+
+        - an m-th root of unity in the number field
+
+        EXAMPLES:
+
+        Quadratic Residue (11 is not a square modulo 17)::
+
+            sage: K.<a> = NumberField(x - 1)
+            sage: K(11).residue_symbol(K.ideal(17),2)
+            -1
+            sage: kronecker_symbol(11,17)
+            -1
+
+        The result depends on the number field of the ideal::
+
+            sage: K.<a> = NumberField(x - 1)
+            sage: L.<b> = K.extension(x^2 + 1)
+            sage: K(7).residue_symbol(K.ideal(11),2)
+            -1
+            sage: K(7).residue_symbol(L.ideal(11),2)
+            1
+
+        Cubic Residue::
+
+            sage: K.<w> = NumberField(x^2 - x + 1)
+            sage: (w^2 + 3).residue_symbol(K.ideal(17),3)
+            -w
+
+        The field must contain the m-th roots of unity::
+
+            sage: K.<w> = NumberField(x^2 - x + 1)
+            sage: (w^2 + 3).residue_symbol(K.ideal(17),5)
+            Traceback (most recent call last):
+            ...
+            ValueError: The residue symbol to that power is not defined for the number field
+
+        """
+        return P.residue_symbol(self,m,check)
+
+
+
 cdef class NumberFieldElement_absolute(NumberFieldElement):
 
     def _pari_(self, var='x'):

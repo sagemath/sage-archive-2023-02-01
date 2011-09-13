@@ -1420,6 +1420,91 @@ class NumberFieldIdeal(Ideal_generic):
         """
         return self.number_field().galois_group().artin_symbol(self)
 
+    def residue_symbol(self, e, m, check=True):
+        r"""
+        The m-th power residue symbol for an element e and the proper ideal.
+
+        .. math:: \left(\frac{\alpha}{\mathbf{P}}\right) \equiv \alpha^{\frac{N(\mathbf{P})-1}{m}} \operatorname{mod} \mathbf{P}
+
+        .. note:: accepts m=1, in which case returns 1
+
+        .. note:: can also be called for an element from sage.rings.number_field_element.residue_symbol
+
+        .. note:: e is coerced into the number field of self
+
+        .. note:: if m=2, e is an integer, and self.number_field() has absolute degree 1 (i.e. it is a copy of the rationals), then this calls kronecker_symbol, which is implemented using GMP.
+
+        INPUT:
+
+        - ``e`` - element of the number field
+
+        - ``m`` - positive integer
+
+        OUTPUT:
+
+        - an m-th root of unity in the number field
+
+        EXAMPLES:
+
+        Quadratic Residue (7 is not a square modulo 11)::
+
+            sage: K.<a> = NumberField(x - 1)
+            sage: K.ideal(11).residue_symbol(7,2)
+            -1
+
+        Cubic Residue::
+
+            sage: K.<w> = NumberField(x^2 - x + 1)
+            sage: K.ideal(17).residue_symbol(w^2 + 3,3)
+            -w
+
+        The field must contain the m-th roots of unity::
+
+            sage: K.<w> = NumberField(x^2 - x + 1)
+            sage: K.ideal(17).residue_symbol(w^2 + 3,5)
+            Traceback (most recent call last):
+            ...
+            ValueError: The residue symbol to that power is not defined for the number field
+
+        """
+        from sage.rings.arith import kronecker_symbol
+
+        K = self.ring()
+        if m == 2 and K.absolute_degree() == 1:
+            try:
+                ze = ZZ(e)
+                zp = self.smallest_integer()
+            except TypeError:
+                pass
+            else:
+                return kronecker_symbol(ze, zp)
+        if check:
+            if self.is_trivial():
+                raise ValueError, "Ideal must be proper"
+            if m < 1:
+                raise ValueError, "Power must be positive"
+            if not self.is_coprime(e):
+                raise ValueError, "Element is not coprime to the ideal"
+            if not self.is_coprime(m):
+                raise ValueError, "Ideal is not coprime to the power"
+        primroot = K.primitive_root_of_unity()
+        rootorder = primroot.multiplicative_order()
+        if check:
+            if not rootorder%m == 0:
+                raise ValueError, "The residue symbol to that power is not defined for the number field"
+        if not self.is_prime():
+            return prod(Q.residue_symbol(e,m,check=False)**i for Q, i in self.factor())
+        k = self.residue_field()
+        try:
+            r = k(e)
+        except TypeError:
+            raise ValueError, "Element and ideal must be in a common number field"
+        r = k(r**((k.order()-1)/m))
+        resroot = primroot**(rootorder/m)
+        from sage.groups.generic import discrete_log
+        j = discrete_log(k(r), k(resroot), ord=m)
+        return resroot**j
+
 def basis_to_module(B, K):
     r"""
     Given a basis `B` of elements for a `\ZZ`-submodule of a number

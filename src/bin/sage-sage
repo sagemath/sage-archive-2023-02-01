@@ -25,6 +25,7 @@ usage() {
     echo "  -python [...]       -- run the Python interpreter"
     echo "  -R [...]            -- run Sage's R with given arguments"
     echo "  -singular [...]     -- run Sage's singular with given arguments"
+    echo "  -sqlite3 [...]      -- run Sage's sqlite3 with given arguments"
     echo "  -root               -- print the Sage root directory"
     echo "  -t [options] <files|dir>"
     echo "                      -- test examples in .py, .pyx, .sage or .tex files"
@@ -104,6 +105,7 @@ usage_advanced() {
     echo "  -scons [...]        -- run Sage's scons"
     echo "  -sh [...]           -- run \$SHELL ($SHELL) with Sage environment variables"
     echo "  -singular [...]     -- run Sage's singular with given arguments"
+    echo "  -sqlite3 [...]      -- run Sage's sqlite3 with given arguments"
     echo "  -twistd [...]       -- run Twisted server"
 
     echo
@@ -376,6 +378,13 @@ if [ "$1" = '-singular'  -o "$1" = '--singular' ]; then
     cd "$CUR"
     shift
     "$SAGE_LOCAL/bin/singular" "$@"
+    exit $?
+fi
+
+if [ "$1" = '-sqlite3'  -o "$1" = '--sqlite3' ]; then
+    cd "$CUR"
+    shift
+    "$SAGE_LOCAL/bin/sqlite3" "$@"
     exit $?
 fi
 

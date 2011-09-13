@@ -1094,7 +1094,7 @@ end_scene""" % (render_params.antialiasing,
             tachyon_rt(T.tachyon(), filename+".png", verbosity, True, opts)
             ext = "png"
             import sage.misc.viewer
-            viewer_app = sage.misc.viewer.browser()
+            viewer_app = sage.misc.viewer.png_viewer()
 
         if DOCTEST_MODE or viewer=='java3d':
             f = open(filename+".obj", "w")

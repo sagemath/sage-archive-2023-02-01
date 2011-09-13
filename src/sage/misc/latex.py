@@ -2074,11 +2074,11 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
     output_file = os.path.join(tmp, "sage." + suffix)
     # this should get changed if we switch the stuff in misc.viewer to
     # producing lists
-    if viewer.startswith('sage-native-execute '):
-        viewer = viewer.split()[1]
+    if not viewer.startswith('sage-native-execute '):
+        viewer = 'sage-native-execute ' + viewer
     if debug:
         print 'viewer: "{0}"'.format(viewer)
-    subprocess.call(['sage-native-execute', viewer, output_file],
+    subprocess.call('%s %s' % (viewer, output_file), shell=True,
                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     return
 

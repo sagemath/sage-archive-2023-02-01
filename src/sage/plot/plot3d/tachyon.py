@@ -322,7 +322,7 @@ class Tachyon(SageObject):
             return
         filename = tmp_filename(ext='.png')
         self.save(filename, verbose=verbose, extra_opts=extra_opts)
-        os.system('%s %s 2>/dev/null 1>/dev/null &'%(sage.misc.viewer.browser(), filename))
+        os.system('%s %s 2>/dev/null 1>/dev/null &'%(sage.misc.viewer.png_viewer(), filename))
 
     def _res(self):
         r"""

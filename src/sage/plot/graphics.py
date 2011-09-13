@@ -1742,7 +1742,7 @@ class Graphics(SageObject):
             kwds.setdefault('filename', tmp_filename(ext='.png'))
             self.save(**kwds)
             os.system('%s %s 2>/dev/null 1>/dev/null &'
-                      % (sage.misc.viewer.browser(), kwds['filename']))
+                      % (sage.misc.viewer.png_viewer(), kwds['filename']))
 
     def xmin(self, xmin=None):
         """
@@ -2969,6 +2969,6 @@ class GraphicsArray(SageObject):
             filename = tmp_filename(ext='.png')
         self._render(filename, dpi=dpi, figsize=self._figsize, axes = axes, **args)
         os.system('%s %s 2>/dev/null 1>/dev/null &'%(
-                         sage.misc.viewer.browser(), filename))
+                         sage.misc.viewer.png_viewer(), filename))
 
 

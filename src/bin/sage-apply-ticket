@@ -27,16 +27,15 @@ SAGE_COMMAND = os.path.join(SAGE_ROOT, 'sage')
 SAGE_TRAC = 'http://trac.sagemath.org'
 TRAC_TICKET_PATH = '/sage_trac/ticket/'
 
-# TODO: load this from a file, convince make to do the same.
-# For the documentation directories, use the file
-# devel/sage/doc/common/build_options.py.
-DOCTEST_DIRS_RELATIVE = ['devel/sage/doc/common',
-                         'devel/sage/doc/de',
-                         'devel/sage/doc/en',
-                         'devel/sage/doc/fr',
-                         'devel/sage/doc/ru',
-                         'devel/sage/sage' ]
-DOCTEST_DIRS = [ os.path.join(SAGE_ROOT, x) for x in DOCTEST_DIRS_RELATIVE ]
+oldpath = sys.path
+sys.path = oldpath + [os.path.join(SAGE_ROOT, 'devel', 'sage', 'doc', 'common')]
+# List of language directories for documentation:
+from build_options import LANGUAGES
+sys.path = oldpath
+
+DOCTEST_DIRS = [os.path.join(SAGE_ROOT, 'devel', 'sage', 'doc', L)
+                for L in LANGUAGES]
+DOCTEST_DIRS.append(os.path.join(SAGE_ROOT, 'devel', 'sage', 'sage'))
 
 DOCTEST_OPTIONS = ['none', 'files', 'directory', 'long']
 

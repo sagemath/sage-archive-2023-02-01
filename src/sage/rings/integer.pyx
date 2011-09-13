@@ -1201,10 +1201,16 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             9
             sage: 5.nbits()
             3
+            sage: 0.nbits() == len(0.bits()) == 0.ndigits(base=2)
+            True
             sage: 12345.nbits() == len(12345.binary())
             True
         """
-        return int(mpz_sizeinbase(self.value, 2))
+        # mpz_sizeinbase(0,2) always returns 1
+        if mpz_cmp_si(self.value,0) == 0:
+           return int(0)
+        else:
+           return int(mpz_sizeinbase(self.value, 2))
 
     def trailing_zero_bits(self):
         """

@@ -124,7 +124,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
     def weierstrass_points(self):
         """
         Return the Weierstrass points of self defined over self.base_ring(),
-        that is, the point at infinity and those points in the suport
+        that is, the point at infinity and those points in the support
         of the divisor of $y$
 
         EXAMPLES::

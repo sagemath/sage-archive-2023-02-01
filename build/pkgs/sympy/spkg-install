@@ -6,9 +6,20 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-# We need to delete the old path, so that there are no leftovers from the
-# previous installation, otherwise sympy could get broken (for example by
-# importing some local files instead of the standard library ones...)
+cd src/
+
+# Because sympy imports itself in setup.py we need to set PYTHONPATH
+# to avoid loading the currently installed version.
+echo "building sympy"
+PYTHONPATH="." python setup.py build
+
+if [ $? -ne 0 ]; then
+   echo "Error building sympy"
+   exit 1
+fi
+
+# Removing old sympy so that there are no leftover undesirable files,
+# we do this in any python2 install.
 if [ "$SAGE_ROOT" = "" ]; then
     echo "Please set the SAGE_ROOT variable"
     exit 1
@@ -16,13 +27,11 @@ fi
 echo "Deleting $SAGE_ROOT/local/lib/python2.x/site-packages/sympy*"
 rm -rf $SAGE_ROOT/local/lib/python2.*/site-packages/sympy*
 
-cd src/
+if [ $? -ne 0 ]; then
+   echo "Error removing old sympy"
+   exit 1
+fi
 
-# apply upstream fix for sage's Negative Infinity. Remove in the next release.
-# https://github.com/asmeurer/sympy/commit/f2760590ce48a22f9ef41eddcadad84987d972c0
-patch -p0 < ../patches/sympy-0.7.0-NegInfinity.patch
-python setup.py install
+echo "installing sympy"
+PYTHONPATH="." python setup.py install
 
-# ignore the error above, which doesn't matter
-
-exit 0

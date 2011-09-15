@@ -310,7 +310,7 @@ class PeriodLattice_ell(PeriodLattice):
 
         (complex number) The elliptic logarithm of the point `P` with
         respect to this period lattice.  If `E` is the elliptic curve
-        and `\sigma:K\to\CC` the embedding, the the returned value `z`
+        and `\sigma:K\to\CC` the embedding, the returned value `z`
         is such that `z\pmod{L}` maps to `\sigma(P)` under the
         standard Weierstrass isomorphism from `\CC/L` to `\sigma(E)`.
 
@@ -1294,7 +1294,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: L.coordinates(L.elliptic_logarithm(E(e3,0)))
             (0.500000000000000, 0.000000000000000)
 
-        TESTS (see #10026)::
+        TESTS (see #10026 and #11767)::
 
             sage: K.<w> = QuadraticField(2)
             sage: E = EllipticCurve([ 0, -1, 1, -3*w -4, 3*w + 4 ])
@@ -1304,7 +1304,13 @@ class PeriodLattice_ell(PeriodLattice):
             sage: Lambda = E.period_lattice(embs[0])
             sage: Lambda.elliptic_logarithm(P,100)
             4.7100131126199672766973600998
-
+            sage: R.<x> = QQ[]
+            sage: K.<a> = NumberField(x^2 + x + 5)
+            sage: E = EllipticCurve(K, [0,0,1,-3,-5])
+            sage: P = E([0,a])
+            sage: Lambda = P.curve().period_lattice(K.embeddings(ComplexField(600))[0])
+            sage: Lambda.elliptic_logarithm(P, prec=600)
+            -0.842248166487739393375018008381693990800588864069506187033873183845246233548058477561706400464057832396643843146464236956684557207157300006542470428493573195030603817094900751609464 - 0.571366031453267388121279381354098224265947866751130917440598461117775339240176310729173301979590106474259885638797913383502735083088736326391919063211421189027226502851390118943491*I
 
         """
         if not P.curve() is self.E:
@@ -1313,7 +1319,10 @@ class PeriodLattice_ell(PeriodLattice):
             prec = RealField().precision()
         if P.is_zero():
             return ComplexField(prec)(0)
-        prec2 = prec*2
+        # Note: using log2(prec) + 3 guard bits is usually enough.
+        # To avoid computing a logarithm, we use 40 guard bits which
+        # should be largely enough in practice.
+        prec2 = prec + 40
         R = RealField(prec2)
         C = ComplexField(prec2)
         pi = R.pi()
@@ -1340,7 +1349,7 @@ class PeriodLattice_ell(PeriodLattice):
 
         # NB The first block of code works fine for real embeddings as
         # well as complex embeddings.  The special code for real
-        # embeddings uses only real arithmetic i nthe iteraion, and is
+        # embeddings uses only real arithmetic in the iteration, and is
         # based on Cremona and Thongjunthug.
 
         # An older version, based on Cohen's Algorithm 7.4.8 also uses
@@ -1356,7 +1365,9 @@ class PeriodLattice_ell(PeriodLattice):
             r = C(((xP-e3)/(xP-e2)).sqrt())
             if r.real()<0: r=-r
             t = -C(wP)/(2*r*(xP-e2))
-            eps = R(1)>>(prec2);
+            # eps controls the end of the loop. Since we aim at a target
+            # precision of prec bits, eps = 2^(-prec) is enough.
+            eps = R(1) >> prec;
             while True:
                 s = b*r+a
                 a, b = (a+b)/2, (a*b).sqrt()
@@ -1391,7 +1402,9 @@ class PeriodLattice_ell(PeriodLattice):
                 r = R((xP-e1)/(xP-e2)).sqrt()
                 t = -R(wP)/(2*r*R(xP-e2))
 
-        eps = R(1)>>(prec2);
+        # eps controls the end of the loop. Since we aim at a target
+        # precision of prec bits, eps = 2^(-prec) is enough.
+        eps = R(1) >> prec;
         while True:
             s = b*r+a
             a, b = (a+b)/2, (a*b).sqrt()

@@ -310,7 +310,7 @@ class PeriodLattice_ell(PeriodLattice):
 
         (complex number) The elliptic logarithm of the point `P` with
         respect to this period lattice.  If `E` is the elliptic curve
-        and `\sigma:K\to\CC` the embedding, the returned value `z`
+        and `\sigma:K\to\CC` the embedding, then the returned value `z`
         is such that `z\pmod{L}` maps to `\sigma(P)` under the
         standard Weierstrass isomorphism from `\CC/L` to `\sigma(E)`.
 
@@ -1311,7 +1311,14 @@ class PeriodLattice_ell(PeriodLattice):
             sage: Lambda = P.curve().period_lattice(K.embeddings(ComplexField(600))[0])
             sage: Lambda.elliptic_logarithm(P, prec=600)
             -0.842248166487739393375018008381693990800588864069506187033873183845246233548058477561706400464057832396643843146464236956684557207157300006542470428493573195030603817094900751609464 - 0.571366031453267388121279381354098224265947866751130917440598461117775339240176310729173301979590106474259885638797913383502735083088736326391919063211421189027226502851390118943491*I
-
+            sage: K.<a> = QuadraticField(-5)
+            sage: E = EllipticCurve([1,1,a,a,0])
+            sage: P = E(0,0)
+            sage: L = P.curve().period_lattice(K.embeddings(ComplexField())[0])
+            sage: L.elliptic_logarithm(P, prec=500)
+            1.17058357737548897849026170185581196033579563441850967539191867385734983296504066660506637438866628981886518901958717288150400849746892393771983141354 - 1.13513899565966043682474529757126359416758251309237866586896869548539516543734207347695898664875799307727928332953834601460994992792519799260968053875*I
+            sage: L.elliptic_logarithm(P, prec=1000)
+            1.17058357737548897849026170185581196033579563441850967539191867385734983296504066660506637438866628981886518901958717288150400849746892393771983141354014895386251320571643977497740116710952913769943240797618468987304985625823413440999754037939123032233879499904283600304184828809773650066658885672885 - 1.13513899565966043682474529757126359416758251309237866586896869548539516543734207347695898664875799307727928332953834601460994992792519799260968053875387282656993476491590607092182964878750169490985439873220720963653658829712494879003124071110818175013453207439440032582917366703476398880865439217473*I
         """
         if not P.curve() is self.E:
             raise ValueError, "Point is on the wrong curve"
@@ -1367,7 +1374,7 @@ class PeriodLattice_ell(PeriodLattice):
             t = -C(wP)/(2*r*(xP-e2))
             # eps controls the end of the loop. Since we aim at a target
             # precision of prec bits, eps = 2^(-prec) is enough.
-            eps = R(1) >> prec;
+            eps = R(1) >> prec
             while True:
                 s = b*r+a
                 a, b = (a+b)/2, (a*b).sqrt()
@@ -1404,7 +1411,7 @@ class PeriodLattice_ell(PeriodLattice):
 
         # eps controls the end of the loop. Since we aim at a target
         # precision of prec bits, eps = 2^(-prec) is enough.
-        eps = R(1) >> prec;
+        eps = R(1) >> prec
         while True:
             s = b*r+a
             a, b = (a+b)/2, (a*b).sqrt()

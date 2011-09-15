@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+###########################################
+## database_cremona_ellcurve
+###########################################
 
 if [ "x$SAGE_DATA" = x ]; then
    echo "SAGE_DATA undefined ... exiting"

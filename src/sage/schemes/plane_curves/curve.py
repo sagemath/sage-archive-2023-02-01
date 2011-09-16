@@ -60,7 +60,8 @@ class Curve_generic(AlgebraicScheme_subscheme):
 
         The divisor group of the curve.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: x,y,z = PolynomialRing(QQ, 3, names='x,y,z').gens()
             sage: C  = Curve(y^2*z - x^3 - 17*x*z^2 + y*z^2)
             sage: Cp = Curve(y^2*z - x^3 - 17*x*z^2 + y*z^2)

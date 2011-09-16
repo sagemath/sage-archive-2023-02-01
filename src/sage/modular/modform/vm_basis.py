@@ -18,13 +18,14 @@ TESTS::
     True
 """
 
-#########################################################################
+#*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#########################################################################
+#*****************************************************************************
 
 import math
 
@@ -301,18 +302,17 @@ def _delta_poly_modulo(N, prec=10):
     for n in xrange(stop+1):
         v[n*(n+1)//2] = ((N-1)*(2*n+1) if (n & 1) else (2*n+1))
 
-    from sage.rings.polynomial.polynomial_zmod_flint import Polynomial_zmod_flint
     from sage.rings.all import Integers
 
     P = PolynomialRing(Integers(N), 'q')
-    f = Polynomial_zmod_flint(P, x=v, check=False)
+    f = P(v)
     t = verbose('made series')
     # fast way of computing f*f truncated at prec
-    f = f._mul_short(f, prec)
+    f = f._mul_trunc(f, prec)
     t = verbose('squared (1 of 3)', t)
-    f = f._mul_short(f, prec)
+    f = f._mul_trunc(f, prec)
     t = verbose('squared (2 of 3)', t)
-    f = f._mul_short(f, prec - 1)
+    f = f._mul_trunc(f, prec - 1)
     t = verbose('squared (3 of 3)', t)
     f = f.shift(1)
     t = verbose('shifted', t)
@@ -336,21 +336,20 @@ def delta_qexp(prec=10, var='q', K=ZZ) :
 
     OUTPUT:
 
-        a power series over K in the variable ``var``
+    a power series over K in the variable ``var``
 
     ALGORITHM:
 
-        Compute the theta series
+    Compute the theta series
 
-        .. math::
+    .. math::
 
-            \sum_{n \ge 0} (-1)^n (2n+1) q^{n(n+1)/2},
+        \sum_{n \ge 0} (-1)^n (2n+1) q^{n(n+1)/2},
 
-        a very simple explicit modular form whose 8th power is `\Delta`. Then
-        compute the 8th power using FLINT polynomial arithmetic, which is very
-        fast. (Note that all computations are done over `\ZZ` or `\ZZ` modulo
-        `N` depending on the characteristic of the given coefficient ring `K`,
-        and coerced into `K` afterwards.)
+    a very simple explicit modular form whose 8th power is `\Delta`. Then
+    compute the 8th power. All computations are done over `\ZZ` or `\ZZ`
+    modulo `N` depending on the characteristic of the given coefficient
+    ring `K`, and coerced into `K` afterwards.
 
     EXAMPLES::
 
@@ -369,9 +368,13 @@ def delta_qexp(prec=10, var='q', K=ZZ) :
         sage: delta_qexp(10, K = IntegerModRing(60))
         q + 36*q^2 + 12*q^3 + 28*q^4 + 30*q^5 + 12*q^6 + 56*q^7 + 57*q^9 + O(q^10)
 
-    TESTS::
+    TESTS:
+
+    Test algorithm with modular arithmetic (see also #11804)::
 
         sage: delta_qexp(10^4).change_ring(GF(13)) == delta_qexp(10^4, K=GF(13))
+        True
+        sage: delta_qexp(1000).change_ring(IntegerModRing(5^100)) == delta_qexp(1000, K=IntegerModRing(5^100))
         True
 
     AUTHORS:

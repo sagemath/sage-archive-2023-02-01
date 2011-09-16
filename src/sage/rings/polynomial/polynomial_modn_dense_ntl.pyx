@@ -223,14 +223,14 @@ cdef class Polynomial_dense_mod_n(Polynomial):
 ##        self._ntl_set_modulus()
         return self.parent()(self.__poly * (<Polynomial_dense_mod_n>right).__poly, construct=True)
 
-    def _rmul_(self, c):
+    cpdef ModuleElement _rmul_(self, RingElement c):
         try:
 ##            self._ntl_set_modulus()
             return self.parent()(ZZ_pX([c], self.parent().modulus()) * self.__poly, construct=True)
         except RuntimeError, msg: # should this really be a TypeError
             raise TypeError, msg
 
-    def _lmul_(self, c):
+    cpdef ModuleElement _lmul_(self, RingElement c):
         try:
 ##            self._ntl_set_modulus()
             return self.parent()(ZZ_pX([c], self.parent().modulus()) * self.__poly, construct=True)
@@ -748,6 +748,43 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
             zz_pX_sqr(r.x, self.x)
         else:
             zz_pX_mul(r.x, self.x, right.x)
+        if do_sig: sig_off()
+        return r
+
+    cpdef Polynomial_dense_modn_ntl_zz _mul_trunc(self, Polynomial_dense_modn_ntl_zz right, long n):
+        r"""
+        Return the product of ``self`` and ``right`` truncated to the
+        given length `n`, only return terms of degree less than `n`.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(Integers(100), implementation="NTL")
+            sage: f = x - 2
+            sage: g = x^2 - 8*x + 16
+            sage: f*g
+            x^3 + 90*x^2 + 32*x + 68
+            sage: f._mul_trunc(g, 42)
+            x^3 + 90*x^2 + 32*x + 68
+            sage: f._mul_trunc(g, 3)
+            90*x^2 + 32*x + 68
+            sage: f._mul_trunc(g, 2)
+            32*x + 68
+            sage: f._mul_trunc(g, 1)
+            68
+            sage: f._mul_trunc(g, 0)
+            0
+            sage: f = x^2 - 8*x + 16
+            sage: f._mul_trunc(f, 2)
+            44*x + 56
+        """
+        cdef Polynomial_dense_modn_ntl_zz r = self._new()
+        cdef bint do_sig = zz_pX_deg(self.x) + zz_pX_deg(right.x) > 10000
+        if do_sig: sig_on()
+        self.c.restore_c()
+        if self is right:
+            zz_pX_SqrTrunc(r.x, self.x, n)
+        else:
+            zz_pX_MulTrunc(r.x, self.x, right.x, n)
         if do_sig: sig_off()
         return r
 
@@ -1299,6 +1336,43 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
             ZZ_pX_sqr(r.x, self.x)
         else:
             ZZ_pX_mul(r.x, self.x, right.x)
+        if do_sig: sig_off()
+        return r
+
+    cpdef Polynomial_dense_modn_ntl_ZZ _mul_trunc(self, Polynomial_dense_modn_ntl_ZZ right, long n):
+        """
+        Return the product of ``self`` and ``right`` truncated to the
+        given length `n`, only return terms of degree less than `n`.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(Integers(10^30), implementation="NTL")
+            sage: f = x - 2
+            sage: g = x^2 - 8*x + 16
+            sage: f*g
+            x^3 + 999999999999999999999999999990*x^2 + 32*x + 999999999999999999999999999968
+            sage: f._mul_trunc(g, 42)
+            x^3 + 999999999999999999999999999990*x^2 + 32*x + 999999999999999999999999999968
+            sage: f._mul_trunc(g, 3)
+            999999999999999999999999999990*x^2 + 32*x + 999999999999999999999999999968
+            sage: f._mul_trunc(g, 2)
+            32*x + 999999999999999999999999999968
+            sage: f._mul_trunc(g, 1)
+            999999999999999999999999999968
+            sage: f._mul_trunc(g, 0)
+            0
+            sage: f = x^2 - 8*x + 16
+            sage: f._mul_trunc(f, 2)
+            999999999999999999999999999744*x + 256
+        """
+        cdef Polynomial_dense_modn_ntl_ZZ r = self._new()
+        cdef bint do_sig = (ZZ_pX_deg(self.x) + ZZ_pX_deg(right.x)) * self.c.p_bits > 1e5
+        if do_sig: sig_on()
+        self.c.restore_c()
+        if self is right:
+            ZZ_pX_SqrTrunc(r.x, self.x, n)
+        else:
+            ZZ_pX_MulTrunc(r.x, self.x, right.x, n)
         if do_sig: sig_off()
         return r
 

@@ -378,7 +378,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         zn_mod_clear(&zn_mod)
         return r
 
-    cpdef _mul_short(self, Polynomial_zmod_flint other, n):
+    cpdef _mul_trunc(self, Polynomial_zmod_flint other, n):
         """
         Return the product of this polynomial and other truncated to the
         given length `n`.
@@ -392,12 +392,12 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
 
             sage: P.<a>=GF(7)[]
             sage: a = P(range(10)); b = P(range(5, 15))
-            sage: a._mul_short(b, 5)
+            sage: a._mul_trunc(b, 5)
             4*a^4 + 6*a^3 + 2*a^2 + 5*a
 
         TESTS::
 
-            sage: a._mul_short(b, 0)
+            sage: a._mul_trunc(b, 0)
             Traceback (most recent call last):
             ...
             ValueError: length must be > 0
@@ -408,7 +408,9 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         zmod_poly_mul_trunc_n(&res.x, &self.x, &other.x, n)
         return res
 
-    cpdef _mul_short_opposite(self, Polynomial_zmod_flint other, n):
+    _mul_short = _mul_trunc
+
+    cpdef _mul_trunc_opposite(self, Polynomial_zmod_flint other, n):
         """
         Return the product of this polynomial and other ignoring the least
         significant `n` terms of the result which may be set to anything.
@@ -421,14 +423,14 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
 
             sage: P.<a>=GF(7)[]
             sage: a = P(range(10)); b = P(range(5, 15))
-            sage: a._mul_short_opposite(b, 10)
+            sage: a._mul_trunc_opposite(b, 10)
             5*a^17 + 2*a^16 + 6*a^15 + 4*a^14 + 4*a^13 + 5*a^10
-            sage: a._mul_short_opposite(b, 18)
+            sage: a._mul_trunc_opposite(b, 18)
             0
 
         TESTS::
 
-            sage: a._mul_short_opposite(b, -1)
+            sage: a._mul_trunc_opposite(b, -1)
             Traceback (most recent call last):
             ...
             ValueError: length must be >= 0
@@ -438,6 +440,8 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             raise ValueError, "length must be >= 0"
         zmod_poly_mul_trunc_left_n(&res.x, &self.x, &other.x, n)
         return res
+
+    _mul_short_opposite = _mul_trunc_opposite
 
     cpdef rational_reconstruct(self, m, n_deg=0, d_deg=0):
         """

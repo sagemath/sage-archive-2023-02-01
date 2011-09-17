@@ -69,7 +69,7 @@ AUTHORS:
 
 
 from sage.rings.arith import gcd
-from sage.rings.all import QQ, ZZ
+from sage.rings.all import ZZ
 from sage.misc.all import srange, cartesian_product_iterator
 from sage.schemes.all import is_Scheme
 

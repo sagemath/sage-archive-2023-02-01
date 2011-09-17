@@ -116,7 +116,7 @@ an inheritance can be partially emulated using :meth:`__getattr__`. See
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.misc.cachefunc import cached_method, cached_function
+from sage.misc.cachefunc import cached_function
 from sage.structure.unique_representation import ClasscallMetaclass
 
 def dynamic_class(name, bases, cls = None, reduction = None, doccls=None):

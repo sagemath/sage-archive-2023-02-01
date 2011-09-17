@@ -14,8 +14,6 @@ AUTHORS:
 
 from sage.categories.category import Category
 from sage.categories.covariant_functorial_construction import RegressiveCovariantConstructionCategory
-import sage.structure.parent
-import sage.structure.element
 
 # This is Category.Quotients
 def Quotients(self):

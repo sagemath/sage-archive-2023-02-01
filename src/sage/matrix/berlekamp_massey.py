@@ -22,7 +22,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import sage.rings.polynomial.polynomial_ring as polynomial_ring
 import sage.rings.rational_field
 
 def berlekamp_massey(a):

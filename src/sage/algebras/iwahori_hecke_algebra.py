@@ -10,14 +10,8 @@ Iwahori Hecke Algebras
 #*****************************************************************************
 from sage.categories.all import AlgebrasWithBasis, FiniteDimensionalAlgebrasWithBasis, CoxeterGroups
 import sage.combinat.root_system.cartan_type
-from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.weyl_group import WeylGroup
-from sage.structure.element import is_Element
-from sage.rings.all import ZZ
-from sage.misc.misc import repr_lincomb
-from sage.algebras.algebra_element import AlgebraElement
 from sage.combinat.family import Family
-import sage.rings.polynomial.laurent_polynomial
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
 from sage.misc.cachefunc import cached_method
 

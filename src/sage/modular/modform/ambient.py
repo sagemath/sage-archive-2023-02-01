@@ -67,24 +67,18 @@ TESTS::
 #########################################################################
 
 # system packages
-import math
-import weakref
 
 # Sage packages
 import sage.rings.all as rings
 import sage.modular.arithgroup.all as arithgroup
-import sage.misc.db as db
 import sage.modular.dirichlet as dirichlet
 import sage.modular.hecke.all as hecke
-import sage.misc.misc as misc
 import sage.modular.modsym.all as modsym
 import sage.modules.free_module as free_module
-import sage.modules.free_module_element as free_module_element
 import sage.rings.all as rings
 
 from sage.structure.sequence import Sequence
 
-from sage.misc.all import latex
 
 import cuspidal_submodule
 import defaults

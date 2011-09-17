@@ -4521,7 +4521,7 @@ def sqrt_poly(f):
 
 ####################################################################################################
 # Useful for decomposing exactly the sort of modular symbols spaces that come up here.
-from random import choice, randrange
+from random import randrange
 from sage.rings.arith import next_prime
 
 def random_hecke_operator(M, t=None, p=2):

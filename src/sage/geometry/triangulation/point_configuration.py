@@ -154,20 +154,17 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ########################################################################
 
-from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import Element
 
 from sage.combinat.combination import Combinations
-from sage.rings.all import Integer, QQ, ZZ
-from sage.rings.rational import Rational
-from sage.misc.misc import uniq
+from sage.rings.all import QQ, ZZ
 from sage.matrix.constructor import matrix
 from sage.modules.all import vector
-from sage.groups.perm_gps.permgroup import PermutationGroup, PermutationGroup_generic
+from sage.groups.perm_gps.permgroup import PermutationGroup
 
 from copy import copy
-import os, sys
+import sys
 import pexpect
 
 

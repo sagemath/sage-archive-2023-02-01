@@ -39,7 +39,6 @@ import sage.matrix.all as matrix
 sqrt = math.sqrt
 import monsky_washnitzer
 import sage.schemes.hyperelliptic_curves.hypellfrob
-from constructor import EllipticCurve
 
 def __check_padic_hypotheses(self, p):
     r"""

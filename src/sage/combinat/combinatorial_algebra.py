@@ -61,9 +61,7 @@ algebra.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import Integer
 #from sage.algebras.algebra import Algebra
-from sage.rings.ring import Ring
 #from sage.algebras.algebra_element import AlgebraElement
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.misc.misc import repr_lincomb

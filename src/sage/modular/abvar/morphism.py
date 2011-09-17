@@ -43,7 +43,6 @@ from sage.categories.morphism import Morphism as base_Morphism
 from sage.rings.all import ZZ, QQ
 import abvar as abelian_variety
 import sage.modules.matrix_morphism
-import sage.structure.element
 import sage.matrix.matrix_space as matrix_space
 
 from finite_subgroup import TorsionPoint

@@ -61,12 +61,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.structure.sage_object import SageObject
 from sage.structure.parent_base import ParentWithBase
 from sage.structure.element import Element
-from sage.modular.dirichlet import DirichletGroup, DirichletCharacter, trivial_character
+from sage.modular.dirichlet import DirichletGroup, trivial_character
 from sage.rings.all import ZZ, QQ, divisors, IntegerModRing, Qp, Infinity
-from sage.misc.misc import sxrange
 from sage.rings.padics.padic_generic_element import pAdicGenericElement
 from sage.misc.misc import verbose
 from sage.misc.cachefunc import cached_method

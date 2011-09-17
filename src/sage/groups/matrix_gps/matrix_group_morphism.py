@@ -19,8 +19,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.groups.group import Group
-from sage.rings.all import IntegerRing, is_Ring, Integer
 from sage.interfaces.gap import gap
 from sage.categories.morphism import *
 from sage.misc.latex import latex

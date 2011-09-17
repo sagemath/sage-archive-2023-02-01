@@ -19,7 +19,6 @@ AUTHORS:
 #                         http://www.gnu.org/licenses/
 ################################################################################
 
-import graph
 from   math import sin, cos, pi
 from sage.misc.randstate import current_randstate
 from sage.graphs.digraph import DiGraph

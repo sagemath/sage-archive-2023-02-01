@@ -39,12 +39,10 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-import weakref
 from sage.structure.parent_gens import normalize_names
 from sage.structure.element import is_Element
 from sage.rings.ring import is_Ring
 from sage.rings.integer import Integer
-from sage.rings.polynomial.polynomial_ring_constructor import _single_variate as _single_variate_poly
 from sage.rings.polynomial.polynomial_ring_constructor import _multi_variate as _multi_variate_poly
 from sage.misc.latex import latex
 from sage.rings.polynomial.laurent_polynomial import LaurentPolynomial_mpair

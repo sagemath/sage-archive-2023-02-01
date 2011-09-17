@@ -25,7 +25,6 @@ from sage.interfaces.gap import *
 from sage.categories.morphism import *
 from sage.categories.homset import *
 
-from sage.groups.abelian_gps.abelian_group import word_problem
 from sage.misc.misc import prod
 
 def is_AbelianGroupMorphism(f):

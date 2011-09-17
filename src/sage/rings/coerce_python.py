@@ -18,7 +18,6 @@ Coercion helper functions
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import __builtin__
 import operator
 
 import sage.structure.element

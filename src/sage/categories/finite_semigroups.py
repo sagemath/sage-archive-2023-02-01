@@ -10,7 +10,6 @@ Finite semigroups
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import attrcall
 from sage.categories.category import Category

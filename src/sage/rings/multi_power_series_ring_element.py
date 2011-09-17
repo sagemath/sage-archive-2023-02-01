@@ -160,18 +160,15 @@ AUTHORS:
 #*****************************************************************************
 
 
-from sage.rings.power_series_ring_element import is_PowerSeries, PowerSeries
+from sage.rings.power_series_ring_element import PowerSeries
 
-from sage.rings.polynomial.all import is_MPolynomialRing, is_PolynomialRing
+from sage.rings.polynomial.all import is_PolynomialRing
 from sage.rings.power_series_ring import is_PowerSeriesRing
 
 from sage.rings.integer import Integer
 from sage.rings.finite_rings.integer_mod_ring import Zmod
 
 from sage.rings.infinity import infinity
-from sage.structure.nonexact import Nonexact
-from sage.structure.parent_gens import ParentWithGens
-from sage.structure.category_object import CategoryObject
 
 
 def is_MPowerSeries(f):

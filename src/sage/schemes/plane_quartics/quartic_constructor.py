@@ -12,7 +12,6 @@ from sage.schemes.generic.all import is_ProjectiveSpace, ProjectiveSpace
 from sage.rings.all import is_MPolynomial
 
 from quartic_generic import QuarticCurve_generic
-from sage.schemes.plane_curves.projective_curve import ProjectiveCurve_generic
 
 #from sage.rings.all import is_FiniteField, is_RationalField
 

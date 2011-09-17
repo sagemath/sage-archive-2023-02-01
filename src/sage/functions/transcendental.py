@@ -20,10 +20,9 @@ Transcendental Functions
 import sys
 from sage.libs.mpmath import utils as mpmath_utils
 import  sage.libs.pari.all
-from sage.libs.pari.all import pari, PariError
+from sage.libs.pari.all import pari
 import sage.rings.complex_field as complex_field
 import sage.rings.real_double as real_double
-import sage.rings.complex_number
 from sage.gsl.integration import numerical_integral
 from sage.structure.parent import Parent
 from sage.structure.coerce import parent
@@ -35,9 +34,7 @@ from sage.rings.all import (is_RealNumber, RealField,
                             ZZ, RR, RDF, CDF, prime_range)
 
 from sage.symbolic.function import GinacFunction, BuiltinFunction, is_inexact
-from sage.symbolic.ring import SR
 
-import sage.plot.all
 
 CC = complex_field.ComplexField()
 I = CC.gen(0)

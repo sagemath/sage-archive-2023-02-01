@@ -8,10 +8,9 @@ Commutative additive semigroups
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.misc.abstract_method import abstract_method, AbstractMethod
+from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from sage.categories.category import Category
-from sage.categories.sets_cat import Sets
 from sage.categories.additive_magmas import AdditiveMagmas
 from sage.structure.sage_object import have_same_parent
 

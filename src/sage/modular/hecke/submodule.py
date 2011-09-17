@@ -19,7 +19,6 @@ Submodules of Hecke modules
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import sage.structure.factorization
 import sage.rings.arith as arith
 import sage.misc.misc as misc
 from sage.misc.cachefunc import cached_method
@@ -29,7 +28,6 @@ import sage.modules.all
 import module
 import ambient_module
 
-from sage.rings.polynomial.polynomial_ring import polygen
 
 def is_HeckeSubmodule(x):
     r"""

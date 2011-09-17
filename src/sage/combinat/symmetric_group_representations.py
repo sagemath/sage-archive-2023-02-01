@@ -28,15 +28,12 @@ from sage.combinat.combinat import CombinatorialClass
 from sage.combinat.partition import Partition, Partitions
 from sage.combinat.permutation import Permutation, Permutations
 from sage.combinat.tableau import StandardTableaux, Tableau
-from sage.combinat.words.word import Word
 from sage.combinat.yang_baxter_graph import YangBaxterGraph_partition
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.matrix.constructor import matrix
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.misc.misc import prod
 from sage.rings.integer_ring import ZZ
-from sage.rings.qqbar import QQbar
 from sage.rings.rational_field import QQ
 from sage.structure.sage_object import SageObject
 

@@ -151,10 +151,6 @@ Python floats.
 #                  http://www.gnu.org/licenses/
 ###########################################################################
 from axiom import PanAxiom, PanAxiomElement, PanAxiomFunctionElement, PanAxiomExpectFunction
-from pexpect import EOF
-from sage.misc.multireplace import multiple_replace
-from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
-from sage.misc.misc import verbose, DOT_SAGE, SAGE_ROOT
 
 
 class FriCAS(PanAxiom):

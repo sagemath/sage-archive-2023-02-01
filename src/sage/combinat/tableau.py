@@ -28,8 +28,6 @@ import permutation
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.misc.misc import uniq
 from combinat import CombinatorialClass, CombinatorialObject, InfiniteAbstractCombinatorialClass
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 import __builtin__
 
 def Tableau(t):

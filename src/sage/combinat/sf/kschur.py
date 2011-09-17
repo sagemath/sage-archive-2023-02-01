@@ -16,14 +16,11 @@ k-Schur Functions
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.rings.all import Integer, gcd, lcm, QQ, is_PolynomialRing, is_FractionField
 from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom
 from sage.categories.examples.infinite_enumerated_sets import NonNegativeIntegers
 import sage.combinat.partition
-from sage.misc.misc import prod
 import sfa
-import copy
 
 
 def kSchurFunctions(R, k, t=None):

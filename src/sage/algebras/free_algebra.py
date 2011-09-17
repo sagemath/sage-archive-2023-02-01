@@ -58,7 +58,6 @@ TESTS::
 #*****************************************************************************
 
 from sage.rings.ring import Ring
-from sage.rings.integer import Integer
 
 from sage.monoids.free_monoid import FreeMonoid
 from sage.monoids.free_monoid_element import FreeMonoidElement

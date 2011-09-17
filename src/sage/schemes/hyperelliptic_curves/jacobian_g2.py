@@ -10,8 +10,6 @@ Jacobian of a Hyperelliptic curve of Genus 2.
 
 import jacobian_generic
 import kummer_surface
-from sage.schemes.generic.projective_space import ProjectiveSpace
-from sage.categories.homset import Hom
 
 # The generic genus 2 curve in Weierstrass form:
 #

@@ -27,14 +27,11 @@ from copy import deepcopy
 
 from sage.matrix.constructor import matrix
 from sage.matrix.matrix_space import MatrixSpace
-from sage.matrix.matrix import Matrix, is_Matrix
-from sage.rings.integer import is_Integer
+from sage.matrix.matrix import is_Matrix
 from sage.rings.integer_ring import IntegerRing, ZZ
-from sage.rings.rational_field import RationalField, QQ
 from sage.rings.ring import Ring
 from sage.misc.functional import ideal, denominator, is_even, is_field
-from sage.rings.arith import GCD, LCM, valuation, kronecker_symbol
-from sage.rings.fraction_field import FractionField
+from sage.rings.arith import GCD, LCM
 from sage.rings.principal_ideal_domain import is_PrincipalIdealDomain
 from sage.rings.ring import is_Ring
 from sage.matrix.matrix import is_Matrix

@@ -178,17 +178,12 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.misc.cachefunc import cached_method
-from sage.rings.all import Ring, Integer, PolynomialRing, is_Polynomial, is_MPolynomial, ZZ, QQ
-from sage.algebras.algebra import Algebra
+from sage.rings.all import Integer, PolynomialRing, is_Polynomial, is_MPolynomial, ZZ, QQ
 import sage.combinat.partition
-import sage.combinat.skew_partition
-import sage.structure.parent_gens
-import sage.libs.symmetrica.all as symmetrica
+import sage.libs.symmetrica.all as symmetrica  # used in eval()
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.matrix.constructor import matrix
 from sage.misc.misc import repr_lincomb, prod, uniq
-from sage.algebras.algebra_element import AlgebraElement
-import operator
 from functools import partial
 from copy import copy
 

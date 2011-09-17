@@ -21,13 +21,11 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import (is_RationalField, is_RealField,
+from sage.rings.all import (is_RationalField,
                             is_RingHomomorphism, is_RealIntervalField,
                             is_ComplexField, is_ComplexIntervalField,
                             RDF, CDF, AA, QQbar, PolynomialRing)
 
-from sage.rings.number_field.number_field import is_NumberField
-from sage.modules.free_module_element import vector
 from con_field import ProjectiveConic_field
 
 class ProjectiveConic_number_field(ProjectiveConic_field):

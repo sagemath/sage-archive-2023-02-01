@@ -19,12 +19,9 @@ A single element of an ambient space of modular symbols.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import operator
 
 import sage.modules.free_module_element
-import sage.modules.module_element as module_element
 import sage.misc.misc as misc
-import sage.structure.element as element
 import sage.structure.formal_sum as formal_sum
 import ambient
 import sage.modular.hecke.all as hecke

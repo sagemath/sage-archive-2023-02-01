@@ -38,25 +38,18 @@ We test that pickling works::
 
 SMALL_DISC = 1000000
 
-import operator
 
 import sage.libs.all
 
 import sage.misc.latex as latex
 
-import sage.rings.field_element as field_element
-import sage.rings.polynomial.polynomial_element as polynomial
-import sage.rings.polynomial.polynomial_ring as polynomial_ring
 import sage.rings.rational_field as rational_field
 import sage.rings.integer_ring as integer_ring
-import sage.rings.rational as rational
-import sage.rings.integer as integer
 import sage.rings.arith as arith
 import sage.misc.misc as misc
 from sage.rings.finite_rings.constructor import FiniteField
 
 import number_field
-import number_field_element
 
 from sage.libs.all import pari_gen, PariError
 from sage.rings.ideal import (Ideal_generic, Ideal_fractional)

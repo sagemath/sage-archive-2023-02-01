@@ -92,11 +92,8 @@ finite polynomial rings are merged with infinite polynomial rings::
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 from sage.structure.element import RingElement
-from sage.rings.ring import CommutativeRing
-from sage.structure.all import Parent, SageObject
-from sage.structure.factory import UniqueFactory
 from sage.misc.cachefunc import cached_method
-import copy, operator, sys
+import copy
 
 def InfinitePolynomial(A, p):
     """

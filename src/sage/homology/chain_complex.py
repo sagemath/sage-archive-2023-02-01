@@ -40,7 +40,7 @@ from sage.modules.free_module import FreeModule, VectorSpace
 from sage.matrix.matrix0 import Matrix
 from sage.matrix.constructor import matrix, prepare_dict
 from sage.misc.latex import latex
-from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup, AdditiveAbelianGroup_fixed_gens
+from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup_fixed_gens
 from sage.modules.free_module import FreeModule
 #from sage.groups.abelian_gps.abelian_group import AbelianGroup_class
 from sage.rings.all import GF, prime_range

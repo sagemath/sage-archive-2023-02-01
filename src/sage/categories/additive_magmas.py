@@ -8,7 +8,7 @@ Additive Magmas
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.misc.abstract_method import abstract_method, AbstractMethod
+from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from sage.categories.category import Category
 from sage.categories.sets_cat import Sets

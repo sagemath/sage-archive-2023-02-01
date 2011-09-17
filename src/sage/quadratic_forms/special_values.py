@@ -11,7 +11,7 @@ from sage.rings.integer_ring import ZZ
 from sage.symbolic.constants import pi
 from sage.symbolic.pynac import I
 from sage.rings.real_mpfr import is_RealField
-from sage.misc.functional import denominator, numerator
+from sage.misc.functional import denominator
 from sage.rings.infinity import infinity
 
 

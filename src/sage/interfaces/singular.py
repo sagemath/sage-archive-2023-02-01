@@ -334,7 +334,6 @@ from sage.structure.sequence import Sequence
 
 from sage.structure.element import RingElement
 
-import sage.misc.misc as misc
 import sage.rings.integer
 
 from sage.misc.misc import get_verbose

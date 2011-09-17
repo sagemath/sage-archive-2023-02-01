@@ -151,16 +151,14 @@ REFERENCES:
 
 # TODO: change the "invariants" terminology everywhere to elementary_divisors
 
-import weakref
-import copy
 
 
 from sage.rings.integer import Integer
 
 from sage.rings.infinity import infinity
-from sage.rings.arith import factor,is_prime_power,divisors, gcd
-from abelian_group_element import AbelianGroupElement,is_AbelianGroupElement
-from sage.misc.misc import add, prod
+from sage.rings.arith import divisors, gcd
+from abelian_group_element import AbelianGroupElement
+from sage.misc.misc import prod
 from sage.misc.mrange import mrange, cartesian_product_iterator
 import sage.groups.group as group
 from sage.rings.integer_ring import IntegerRing

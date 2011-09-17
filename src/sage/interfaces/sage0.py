@@ -15,12 +15,12 @@ interpreter.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import cPickle, os, time
+import cPickle, os
 
 from expect import Expect, ExpectElement, FunctionElement
 import sage.misc.preparser
 
-from sage.structure.sage_object import dumps, loads, load
+from sage.structure.sage_object import dumps, load
 
 
 class Sage(Expect):

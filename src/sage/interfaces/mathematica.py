@@ -368,7 +368,7 @@ import re
 from expect import (Expect, ExpectElement, ExpectFunction,
                     FunctionElement, AsciiArtString)
 
-from sage.misc.misc import verbose, graphics_filename
+from sage.misc.misc import graphics_filename
 
 def clean_output(s):
     if s is None:

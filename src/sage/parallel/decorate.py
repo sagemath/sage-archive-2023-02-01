@@ -2,7 +2,6 @@ r"""
 Decorate interface for parallel computation.
 """
 
-import os
 import types
 
 from sage.rings.all import Integer

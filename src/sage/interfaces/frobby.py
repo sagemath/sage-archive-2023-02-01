@@ -19,7 +19,6 @@ NOTES:
     which also has documentation and papers describing the algorithms used.
 """
 
-import os
 from subprocess import *
 
 class Frobby:

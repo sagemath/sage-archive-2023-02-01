@@ -10,7 +10,7 @@
 #
 ##########################################################################
 
-from sage.interfaces.r import R, RElement
+from sage.interfaces.r import R
 
 # my own copy of an R interface
 myR = R()

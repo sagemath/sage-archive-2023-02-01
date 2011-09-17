@@ -28,10 +28,8 @@ SPARSE=True
 import sage.matrix.matrix_space as matrix_space
 import sage.matrix.all
 import sage.rings.all as rings
-from sage.rings.rational_field import RationalField
 from   sage.misc.search import search
 
-from sage.rings.rational import Rational
 
 import sage.misc.misc as misc
 

@@ -74,8 +74,6 @@ from sage.structure.sage_object import SageObject
 from sage.rings.integer import Integer
 from sage.sets.set import Set
 from sage.rings.integer_ring import ZZ
-from sage.rings.rational_field import QQ
-from sage.misc.latex import latex
 from sage.matrix.constructor import matrix
 from sage.homology.chain_complex import ChainComplex
 from sage.graphs.graph import Graph

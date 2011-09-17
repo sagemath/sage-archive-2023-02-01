@@ -9,7 +9,6 @@ import jacobian_g2
 
 import invariants
 
-from sage.schemes.generic.projective_space import ProjectiveSpace
 
 class HyperellipticCurve_g2_generic(hyperelliptic_generic.HyperellipticCurve_generic):
     def is_odd_degree(self):

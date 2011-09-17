@@ -58,7 +58,6 @@ from sage.misc.multireplace import multiple_replace
 import sage.server.support
 
 ##import sage.rings.all
-import sage.rings.complex_number
 
 from interface import (Interface, InterfaceElement, InterfaceFunctionElement,
   InterfaceFunction, AsciiArtString)

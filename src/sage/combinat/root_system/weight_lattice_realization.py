@@ -1,5 +1,4 @@
 from sage.misc.misc import prod
-from sage.rings.integer_ring import ZZ
 from sage.combinat.family import Family
 from root_lattice_realization import RootLatticeRealization
 

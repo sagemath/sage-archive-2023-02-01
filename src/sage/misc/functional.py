@@ -27,10 +27,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import math
 
 import sage.misc.latex
-import sage.server.support
 import sage.interfaces.expect
 import sage.interfaces.mathematica
 

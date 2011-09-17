@@ -30,10 +30,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.rings.integer import Integer
-from sage.sets.set import Set_object_enumerated
 from combinat import (CombinatorialClass, CombinatorialObject,
                       InfiniteAbstractCombinatorialClass, catalan_number)
-from composition import Compositions
 from copy import copy
 
 

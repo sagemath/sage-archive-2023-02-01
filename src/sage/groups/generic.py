@@ -106,10 +106,8 @@ Some examples in the group of points of an elliptic curve over a finite field:
 ###########################################################################
 
 from copy import copy
-import math
 
 import sage.misc.misc as misc
-import sage.misc.search
 import sage.rings.integer_ring as integer_ring
 import sage.rings.integer
 

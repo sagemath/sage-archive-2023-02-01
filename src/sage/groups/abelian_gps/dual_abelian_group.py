@@ -40,17 +40,11 @@ generators as arbitrary strings using the optional
 #                  http://www.gnu.org/licenses/
 ##########################################################################
 
-import weakref
-import copy
 
-from sage.rings.integer import Integer
 
 from sage.rings.infinity import infinity
-from sage.rings.arith import factor,is_prime_power,LCM
-from abelian_group_element import AbelianGroupElement,is_AbelianGroupElement
-from sage.misc.misc import add, prod
+from sage.rings.arith import LCM
 import sage.groups.group as group
-from abelian_group import AbelianGroup
 from dual_abelian_group_element import DualAbelianGroupElement,is_DualAbelianGroupElement
 from sage.misc.mrange import mrange
 from sage.rings.integer_ring import IntegerRing

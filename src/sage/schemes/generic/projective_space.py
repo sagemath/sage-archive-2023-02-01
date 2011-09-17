@@ -68,7 +68,6 @@ from sage.rings.all import (PolynomialRing,
                             is_MPolynomialRing,
                             Integer,
                             ZZ)
-from sage.modules.all import VectorSpace
 
 from sage.misc.all import latex
 

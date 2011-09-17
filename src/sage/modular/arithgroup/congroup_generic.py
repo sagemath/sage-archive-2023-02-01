@@ -22,12 +22,9 @@ AUTHORS:
 #
 ################################################################################
 
-from sage.rings.all import QQ, ZZ, divisors, euler_phi
+from sage.rings.all import QQ, ZZ
 from sage.rings.arith import gcd
-from sage.matrix.matrix_space import MatrixSpace
 #import sage.modular.cusps # circular!
-from sage.misc.misc import ellipsis_range
-from sage.misc.cachefunc import cached_method
 
 from arithgroup_element import ArithmeticSubgroupElement
 from arithgroup_generic import ArithmeticSubgroup

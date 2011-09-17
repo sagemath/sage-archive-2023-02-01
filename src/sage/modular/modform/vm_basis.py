@@ -28,8 +28,7 @@ TESTS::
 
 import math
 
-from sage.matrix.all import MatrixSpace, Matrix
-from sage.rings.all import QQ, ZZ, Integer, binomial,\
+from sage.rings.all import QQ, ZZ, Integer, \
         PolynomialRing, PowerSeriesRing, O as bigO
 from sage.structure.all import Sequence
 from sage.libs.flint.fmpz_poly import Fmpz_poly

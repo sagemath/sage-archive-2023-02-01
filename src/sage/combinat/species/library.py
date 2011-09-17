@@ -29,7 +29,7 @@ from product_species import ProductSpecies
 from composition_species import CompositionSpecies
 from functorial_composition_species import FunctorialCompositionSpecies
 
-from sage.misc.cachefunc import cached_method, cached_function
+from sage.misc.cachefunc import cached_function
 
 @cached_function
 def SimpleGraphSpecies():

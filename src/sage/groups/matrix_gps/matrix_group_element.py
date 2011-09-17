@@ -58,8 +58,7 @@ there::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.groups.group import Group
-from sage.rings.all import IntegerRing, is_Ring, Integer, Infinity
+from sage.rings.all import Integer, Infinity
 from sage.interfaces.gap import gap
 import sage.structure.element as element
 from sage.matrix.matrix import Matrix

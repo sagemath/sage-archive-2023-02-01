@@ -14,7 +14,6 @@ from sage.rings.all import Integer, is_CommutativeRing, ZZ
 
 from sage.structure.parent import Parent
 
-import algebraic_scheme
 import scheme
 
 def is_AmbientSpace(x):

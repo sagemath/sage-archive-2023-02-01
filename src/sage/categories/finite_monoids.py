@@ -9,7 +9,7 @@ Finite Monoids
 #******************************************************************************
 
 from sage.misc.cachefunc import cached_method
-from sage.categories.category import Category, HomCategory
+from sage.categories.category import Category
 from sage.categories.category import Category
 from sage.categories.finite_semigroups import FiniteSemigroups
 from sage.categories.monoids import Monoids

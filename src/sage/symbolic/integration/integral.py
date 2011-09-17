@@ -13,7 +13,6 @@ Symbolic Integration
 ##############################################################################
 
 from sage.symbolic.ring import SR, is_SymbolicVariable
-from sage.symbolic.expression import Expression
 from sage.symbolic.function import BuiltinFunction, Function
 
 ##################################################################

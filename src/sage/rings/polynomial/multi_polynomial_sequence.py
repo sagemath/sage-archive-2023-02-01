@@ -152,11 +152,8 @@ TEST::
 
 from types import GeneratorType
 
-from sage.structure.sage_object import SageObject
-from sage.structure.sequence import Sequence_generic, Sequence
+from sage.structure.sequence import Sequence_generic
 
-from sage.rings.integer_ring import ZZ
-from sage.rings.finite_rings.constructor import FiniteField as GF
 
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
 from sage.rings.quotient_ring import is_QuotientRing

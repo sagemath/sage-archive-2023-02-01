@@ -8,7 +8,6 @@
 
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
-from sage.rings.arith import gcd
 
 # Faster than SAGE's
 from math import log as pylog

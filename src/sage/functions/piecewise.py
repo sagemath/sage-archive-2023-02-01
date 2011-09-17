@@ -68,15 +68,11 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import sage.plot.plot
-import sage.interfaces.all
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.rational_field import RationalField
-from sage.rings.real_mpfr import RealField
 from sage.misc.sage_eval import sage_eval
 from sage.rings.all import QQ, RR, Integer, Rational, infinity
 from sage.calculus.functional import derivative
-from sage.symbolic.expression import Expression, is_Expression
+from sage.symbolic.expression import is_Expression
 from sage.symbolic.assumptions import assume, forget
 
 from sage.calculus.calculus import SR, maxima

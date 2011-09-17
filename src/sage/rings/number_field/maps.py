@@ -34,7 +34,6 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.structure.sage_object import SageObject
 from sage.categories.map import Map
 from sage.categories.homset import Hom
 from sage.categories.morphism import IdentityMorphism
@@ -43,7 +42,6 @@ import sage.rings.rational_field as rational_field
 
 from sage.libs.pari.all import pari
 
-import number_field_element
 
 QQ = rational_field.RationalField()
 

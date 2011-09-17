@@ -56,7 +56,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ##########################################################################
 
-from sage.interfaces.maxima import MaximaElement, Maxima
+from sage.interfaces.maxima import Maxima
 from sage.plot.all import line
 from sage.symbolic.expression import is_SymbolicEquation
 from sage.symbolic.ring import is_SymbolicVariable

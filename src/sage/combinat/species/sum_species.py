@@ -17,7 +17,6 @@ Sum species
 #*****************************************************************************
 from species import GenericCombinatorialSpecies
 from structure import SpeciesStructureWrapper
-import __builtin__
 from sage.misc.cachefunc import cached_function
 
 

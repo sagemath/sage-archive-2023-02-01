@@ -53,7 +53,6 @@ from   ell_number_field import EllipticCurve_number_field
 import ell_point
 import ell_tate_curve
 import ell_torsion
-import formal_group
 import heegner
 from   gp_simon import simon_two_descent
 from   lseries_ell import Lseries_ell
@@ -67,7 +66,6 @@ import sage.modular.modform.element
 import sage.libs.mwrank.all as mwrank
 import sage.databases.cremona
 
-import sage.groups.all
 import sage.rings.arith as arith
 import sage.rings.all as rings
 from sage.rings.all import (
@@ -82,8 +80,6 @@ import sage.misc.misc as misc
 from sage.misc.all import verbose
 
 from sage.misc.functional import log
-from sage.rings.padics.factory import Zp, Qp
-from sage.rings.padics.precision_error import PrecisionError
 from sage.sets.set import Set
 
 # Use some interval arithmetic to guarantee correctness.  We assume

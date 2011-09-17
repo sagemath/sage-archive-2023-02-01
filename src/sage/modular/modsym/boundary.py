@@ -98,14 +98,11 @@ REFERENCES:
 __doc_exclude = ['repr_lincomb', 'QQ']
 
 # Python imports
-import operator
-import weakref
 
 # Sage imports
 from   sage.misc.misc import repr_lincomb
 
 import sage.modules.free_module as free_module
-import sage.modules.module_element as module_element
 from   sage.modules.all import is_FreeModuleElement
 
 import sage.modular.arithgroup.all as arithgroup
@@ -115,7 +112,6 @@ import sage.modular.hecke.all as hecke
 
 import sage.rings.all as rings
 import sage.rings.arith as arith
-import sage.structure.parent_gens as gens
 
 import ambient
 import element

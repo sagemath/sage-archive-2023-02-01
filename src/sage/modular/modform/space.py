@@ -68,7 +68,6 @@ import submodule
 
 import sage.modular.modform.constructor
 
-from math import ceil
 from sage.matrix.constructor import zero_matrix
 from sage.rings.arith import gcd
 

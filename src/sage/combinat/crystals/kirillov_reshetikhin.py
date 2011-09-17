@@ -34,7 +34,6 @@ from sage.combinat.crystals.highest_weight_crystals import HighestWeightCrystal
 from sage.combinat.crystals.direct_sum import DirectSumOfCrystals
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.crystals.tensor_product import CrystalOfTableaux, TensorProductOfCrystals
-from sage.combinat.crystals.spins import CrystalOfSpins
 from sage.combinat.tableau import Tableau
 from sage.combinat.partition import Partition, Partitions
 from sage.combinat.integer_vector import IntegerVectors

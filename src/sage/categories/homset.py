@@ -33,7 +33,6 @@ from sage.categories.category import Category
 import morphism
 from sage.structure.parent import Parent, Set_generic
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.misc.cachefunc import cached_function
 import types
 
 _cache = {}

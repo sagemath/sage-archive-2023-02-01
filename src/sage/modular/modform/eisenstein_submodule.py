@@ -9,7 +9,6 @@ import sage.rings.all as rings
 from sage.categories.all import Objects
 from sage.matrix.all import Matrix
 
-from sage.rings.number_field.number_field_element import NumberFieldElement as NumberFieldElement
 
 import eis_series
 import element

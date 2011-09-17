@@ -134,10 +134,9 @@ prime conductor::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import bz2, os, random
+import bz2, os
 
 import sage.databases.db   # very important that this be fully qualified
-import sage.misc.misc
 
 class SteinWatkinsIsogenyClass:
     def __init__(self, conductor):

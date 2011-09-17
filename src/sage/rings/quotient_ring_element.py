@@ -26,10 +26,8 @@ AUTHORS:
 
 from __future__ import with_statement
 
-import operator
 
 import ring_element
-import quotient_ring
 
 from sage.interfaces.singular import singular as singular_default
 

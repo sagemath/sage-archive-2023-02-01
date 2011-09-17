@@ -23,17 +23,13 @@ import sage.rings.polynomial.multi_polynomial_element as multi_polynomial_elemen
 
 import sage.rings.integer as integer
 import sage.rings.rational as rational
-import sage.rings.finite_rings.integer_mod as integer_mod
-import sage.rings.finite_rings.integer_mod_ring as integer_mod_ring
 
 import sage.libs.pari.all as pari
 
 import element_ext_pari
 
-from sage.structure.element import RingElement
 from sage.rings.finite_rings.finite_field_base import FiniteField as FiniteField_generic
 
-from sage.structure.parent_gens import normalize_names, ParentWithGens
 
 import sage.interfaces.gap
 

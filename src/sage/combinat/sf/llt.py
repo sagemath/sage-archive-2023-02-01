@@ -18,7 +18,7 @@ LLT Polynomials
 import sfa
 import sage.combinat.ribbon_tableau as ribbon_tableau
 import sage.combinat.skew_partition
-from sage.rings.all import QQ, ZZ
+from sage.rings.all import ZZ
 import sage.combinat.partition
 from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom

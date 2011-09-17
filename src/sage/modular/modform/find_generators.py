@@ -9,7 +9,6 @@ AUTHORS:
 - William Stein (2007-08-24): first version
 """
 
-import random
 
 from sage.rings.all             import Integer, QQ, infinity
 from sage.misc.misc             import prod, verbose

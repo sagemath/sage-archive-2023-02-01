@@ -24,10 +24,7 @@ The Sage Notebook object
 #############################################################################
 
 import os
-import random
-import re
 import shutil
-import socket
 import time
 import bz2
 import cPickle

@@ -50,7 +50,7 @@ AUTHORS:
 import sage.combinat.combination as combination
 from sage.rings.arith import factorial
 import itertools
-from combinat import CombinatorialClass, CombinatorialObject
+from combinat import CombinatorialClass
 
 
 def Subwords(w, k=None):

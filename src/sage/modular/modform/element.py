@@ -15,7 +15,6 @@ import space
 import sage.modular.hecke.element as element
 import sage.rings.all as rings
 from sage.modular.modsym.space import is_ModularSymbolsSpace
-from sage.modular.modsym.modsym import ModularSymbols
 from sage.modules.module_element import ModuleElement
 from sage.modules.free_module_element import vector
 from sage.misc.misc import verbose

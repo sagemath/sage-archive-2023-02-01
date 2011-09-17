@@ -73,8 +73,7 @@ from cartesian_product import CartesianProduct
 import sage.combinat.subset as subset
 import sage.combinat.set_partition_ordered as set_partition_ordered
 import copy
-from combinat import CombinatorialClass, CombinatorialObject, bell_number, stirling_number2
-from subword import Subwords
+from combinat import CombinatorialClass, bell_number, stirling_number2
 from misc import IterableFunctionCall
 
 

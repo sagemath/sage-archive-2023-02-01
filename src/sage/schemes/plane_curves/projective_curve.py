@@ -24,7 +24,7 @@ AUTHORS:
 
 from sage.interfaces.all import singular
 from sage.misc.all import add, sage_eval
-from sage.rings.all import degree_lowest_rational_function, is_PrimeField
+from sage.rings.all import degree_lowest_rational_function
 
 from sage.schemes.generic.projective_space import is_ProjectiveSpace
 

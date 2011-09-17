@@ -28,10 +28,9 @@ Copyright 2007-2008 by David Joyner wdjoyner@gmail.com, Peter
 Dobcsanyi peter@designtheory.org.
 """
 
-import types
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.integer_ring import ZZ
-from sage.rings.arith import binomial, integer_floor
+from sage.rings.arith import binomial
 from sage.misc.decorators import rename_keyword
 
 ###  utility functions  -------------------------------------------------------

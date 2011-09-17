@@ -22,9 +22,7 @@ Elliptic curves over padic fields
 import sage.rings.ring as ring
 from ell_field import EllipticCurve_field
 import ell_point
-from sage.rings.all import PowerSeriesRing, PolynomialRing, IntegerModRing, ZZ, QQ
-from sage.misc.functional import ceil, log
-from sage.libs.pari.all import pari
+from sage.rings.all import PolynomialRing
 
 # Elliptic curves are very different than genus > 1 hyperelliptic curves,
 # there is an "is a" relationship here, and common implementation with regard

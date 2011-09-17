@@ -173,9 +173,8 @@ from sage.homology.simplicial_complex import SimplicialComplex
 from sage.misc.all import latex, flatten, prod
 from sage.modules.all import vector
 from sage.modules.free_module import FreeModule_ambient_field
-from sage.modules.vector_rational_dense import Vector_rational_dense
 from sage.rings.all import QQ, ZZ
-from sage.matrix.constructor import matrix, identity_matrix
+from sage.matrix.constructor import matrix
 from sage.schemes.generic.divisor import Divisor_generic
 from sage.schemes.generic.divisor_group import DivisorGroup_generic
 from sage.schemes.generic.toric_divisor_class import ToricRationalDivisorClass

@@ -76,7 +76,6 @@ factor `x`.
 from   sage.misc.search import search
 import sage.misc.latex as latex
 import sage.misc.misc as misc
-from sage.misc.cachefunc import cached_method
 
 import sage.matrix.matrix_space as matrix_space
 import sage.modules.free_module_element as free_module_element

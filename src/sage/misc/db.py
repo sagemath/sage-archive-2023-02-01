@@ -18,7 +18,7 @@ Saving Sage objects to a file
 #*****************************************************************************
 
 
-import cPickle,pickle
+import cPickle
 import os
 import misc
 

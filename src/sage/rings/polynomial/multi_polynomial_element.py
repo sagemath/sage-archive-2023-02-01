@@ -54,11 +54,9 @@ We verify Lagrange's four squares identity::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.arith import gcd
 
 from sage.structure.element import CommutativeRingElement, canonical_coercion, coerce_binop
 
-from sage.interfaces.all import macaulay2
 
 import sage.misc.misc as misc
 import sage.rings.integer
@@ -71,7 +69,6 @@ from sage.rings.polynomial.polynomial_singular_interface import Polynomial_singu
 
 from sage.structure.sequence import Sequence
 
-from sage.rings.integer_ring import ZZ
 
 from multi_polynomial import MPolynomial
 

@@ -17,7 +17,6 @@ TESTS::
     True
 """
 import math
-import random
 
 class MarkovSwitchingMultifractal:
     def __init__(self, kbar, m0, sigma, gamma_kbar, b):

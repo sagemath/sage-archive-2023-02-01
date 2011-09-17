@@ -75,7 +75,6 @@ TESTS::
 #*****************************************************************************
 
 import ring
-import integral_domain
 import field
 import fraction_field_element
 import sage.misc.latex as latex

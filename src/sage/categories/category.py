@@ -49,7 +49,7 @@ of all objects of `O`. For example::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.misc.abstract_method import abstract_method, abstract_methods_of_class
+from sage.misc.abstract_method import abstract_methods_of_class
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 #from sage.misc.misc import attrcall

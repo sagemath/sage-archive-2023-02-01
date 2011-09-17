@@ -63,7 +63,6 @@ Left-special and bispecial factors::
 #*****************************************************************************
 from sage.misc.cachefunc import cached_method
 from sage.combinat.words.abstract_word import Word_class
-from itertools import product, chain, tee
 from sage.sets.set import Set
 from sage.rings.all import Infinity
 

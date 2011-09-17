@@ -239,7 +239,7 @@ from sage.matrix.all import matrix
 from sage.misc.all import latex, prod, uniq
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.modules.free_module_element import vector
-from sage.rings.all import PolynomialRing, ZZ, QQ, is_Field, is_FractionField
+from sage.rings.all import PolynomialRing, ZZ, QQ, is_Field
 from sage.rings.quotient_ring_element import QuotientRingElement
 from sage.rings.quotient_ring import QuotientRing_generic
 from sage.schemes.generic.ambient_space import AmbientSpace
@@ -250,7 +250,6 @@ from sage.schemes.generic.morphism import (SchemeMorphism_on_points_toric_variet
                                            SchemeMorphism_coordinates,
                                            SchemeMorphism_on_points,
                                            is_SchemeMorphism)
-from sage.structure.sequence import Sequence
 from sage.functions.all import factorial
 
 

@@ -1,11 +1,7 @@
 """
 Logarithmic functions
 """
-from sage.symbolic.function import GinacFunction, BuiltinFunction
-from sage.libs.pari.gen import pari, PariError
-from sage.rings.all import CDF, Integer, Rational, RealField, ComplexField
-from sage.symbolic.all import SR
-import math
+from sage.symbolic.function import GinacFunction
 
 class Function_exp(GinacFunction):
     def __init__(self):

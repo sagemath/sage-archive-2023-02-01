@@ -134,7 +134,7 @@ import sage.misc.misc as misc
 import sage.rings.all as rings
 from sage.rings.all import RealField, GF
 from math import sqrt
-from sage.libs.pari.all import pari, PariError
+from sage.libs.pari.all import pari
 
 def _ex_set(p):
     """

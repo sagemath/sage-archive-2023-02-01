@@ -1,7 +1,6 @@
 import sage.libs.pari.gen as gen
 from sage.misc.sage_eval import sage_eval
 
-from math import log
 from sage.rings.all import *
 I = ComplexField().gen()
 

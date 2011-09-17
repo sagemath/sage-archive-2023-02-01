@@ -10,7 +10,6 @@ Examples of semigroups
 
 from sage.misc.cachefunc import cached_method
 from sage.structure.parent import Parent
-from sage.structure.element import Element
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element_wrapper import ElementWrapper
 from sage.categories.all import Semigroups

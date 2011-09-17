@@ -9,7 +9,6 @@
 
 import sage.misc.misc as misc
 from sage.rings.arith import LCM
-from sage.rings.real_mpfr import RealField
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.rational_field import RationalField

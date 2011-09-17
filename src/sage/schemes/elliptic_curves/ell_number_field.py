@@ -94,7 +94,7 @@ from ell_field import EllipticCurve_field
 import ell_point
 import sage.matrix.all as matrix
 from sage.rings.ring import Ring
-from sage.rings.arith import lcm, gcd, prime_divisors
+from sage.rings.arith import gcd, prime_divisors
 from sage.misc.misc import prod
 import sage.databases.cremona
 import ell_torsion
@@ -102,12 +102,9 @@ from ell_generic import is_EllipticCurve
 
 from gp_simon import simon_two_descent
 from constructor import EllipticCurve
-from sage.rings.all import PolynomialRing, QQ, ZZ, is_Ideal, is_NumberFieldElement, is_NumberFieldFractionalIdeal,is_NumberField, GF, prime_range, RealField
+from sage.rings.all import PolynomialRing, ZZ, RealField
 from sage.misc.misc import verbose, forall
-from sage.misc.functional import ideal
-from kodaira_symbol import KodairaSymbol
 from sage.rings.integer import Integer
-from sage.structure.element import RingElement
 from sage.rings.infinity import Infinity # just for verbose output
 from sage.rings.arith import valuation
 

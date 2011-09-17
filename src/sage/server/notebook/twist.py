@@ -47,18 +47,16 @@ SID_COOKIE = None
 ############################################################
 
 import os, shutil, time
-from sage.version import version
 import bz2
 from cgi import escape
 
-from twisted.web2 import server, http, resource, channel
-from twisted.web2 import static, http_headers, responsecode
+from twisted.web2 import http, resource
+from twisted.web2 import static, http_headers
 from twisted.web2.filter import gzip
 import zipfile
 
 import css, js, keyboards
 
-import notebook as _notebook
 
 from sage.server.notebook.template import template
 

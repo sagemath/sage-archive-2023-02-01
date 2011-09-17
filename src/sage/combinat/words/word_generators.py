@@ -36,7 +36,6 @@ EXAMPLES::
 from itertools import cycle, count
 from random import randint
 from sage.misc.cachefunc import cached_method
-from sage.structure.sage_object import SageObject
 from sage.rings.all import ZZ, RR
 from sage.rings.infinity import Infinity
 from sage.combinat.words.abstract_word import Word_class

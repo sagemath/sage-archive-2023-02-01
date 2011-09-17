@@ -22,7 +22,7 @@ AUTHOR::
     * Nick Alexander
 """
 
-from sage.rings.all import ZZ, QQ
+from sage.rings.all import ZZ
 from sage.rings.all import PolynomialRing
 
 def diffxy(f, x, xtimes, y, ytimes):

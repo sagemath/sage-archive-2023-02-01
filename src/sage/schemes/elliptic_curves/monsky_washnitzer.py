@@ -47,19 +47,15 @@ AUTHORS:
 
 
 from sage.rings.all import Integers, Integer, PolynomialRing, is_Polynomial, PowerSeriesRing, Rationals, Rational, LaurentSeriesRing
-from sage.algebras.all import FreeAlgebra, FreeAlgebraQuotient, Algebra, AlgebraElement
 from sage.modules.module import Module
 from sage.structure.element import ModuleElement
-from sage.algebras.free_algebra_quotient_element import FreeAlgebraQuotientElement
 from sage.matrix.all import matrix
 from sage.modules.all import vector
 from sage.rings.ring import CommutativeAlgebra
 from sage.structure.element import CommutativeAlgebraElement
-from sage.matrix.matrix_space import MatrixSpace
 
-from sage.rings.arith import binomial, integer_ceil as ceil, integer_floor as floor
-from math import floor
-from sage.misc.functional import log, sqrt
+from sage.rings.arith import binomial, integer_ceil as ceil
+from sage.misc.functional import log
 from sage.misc.misc import newton_method_sizes
 
 from ell_generic import is_EllipticCurve
@@ -1726,7 +1722,7 @@ import weakref
 
 from sage.schemes.hyperelliptic_curves.all import is_HyperellipticCurve, HyperellipticCurve
 from sage.rings.padics.all import pAdicField
-from sage.rings.all import QQ, is_LaurentSeries, is_LaurentSeriesRing, is_IntegralDomain
+from sage.rings.all import QQ, is_LaurentSeriesRing, is_IntegralDomain
 from sage.modules.all import FreeModule, is_FreeModuleElement
 
 from sage.misc.profiler import Profiler

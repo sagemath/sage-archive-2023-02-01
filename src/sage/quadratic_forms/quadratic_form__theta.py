@@ -14,14 +14,11 @@ AUTHORS:
 from copy import deepcopy
 
 from sage.rings.real_mpfr import RealField
-from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.power_series_ring import PowerSeriesRing
-from sage.rings.integer_ring import IntegerRing, ZZ
+from sage.rings.integer_ring import ZZ
 from sage.functions.all import sqrt, floor, ceil
 
-from sage.interfaces.gp import gp
 
-from sage.modular.dims import sturm_bound
 
 from sage.misc.misc import cputime, verbose
 

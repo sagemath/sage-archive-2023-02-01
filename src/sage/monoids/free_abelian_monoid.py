@@ -53,7 +53,6 @@ lists of integer exponents.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import weakref
 
 from sage.structure.parent_gens import ParentWithGens, normalize_names
 from free_abelian_monoid_element import FreeAbelianMonoidElement

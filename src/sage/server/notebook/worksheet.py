@@ -42,16 +42,13 @@ import os
 import copy
 import shutil
 import re
-import string
 import traceback
 import time
 import calendar
-import crypt
 import bz2
 import re
 
 # A library that we ship with sage
-import pexpect
 
 # General sage library code
 import sage.misc.remote_file as remote_file

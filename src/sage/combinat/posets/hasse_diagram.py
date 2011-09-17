@@ -17,15 +17,9 @@ Hasse diagrams of posets
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import __builtin__
-from sage.structure.parent_base import ParentWithBase
-from sage.structure.element import Element
-from sage.rings.integer import Integer
-from sage.graphs.all import Graph, DiGraph
-from sage.misc.sage_eval import sage_eval
+from sage.graphs.all import DiGraph
 from sage.matrix.constructor import matrix
-from sage.rings.finite_rings.constructor import FiniteField
-from sage.rings.integer_ring import IntegerRing, ZZ
+from sage.rings.integer_ring import ZZ
 from sage.matrix.constructor import matrix
 from sage.misc.misc import uniq
 

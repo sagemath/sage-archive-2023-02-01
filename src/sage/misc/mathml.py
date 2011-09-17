@@ -23,11 +23,8 @@ method _mathml_(self) that returns its MathML representation.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import os
 
-import os.path
 
-from misc import tmp_dir
 
 def list_function(x):
     return 'MATHML version of the list %s'%(x,)

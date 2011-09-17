@@ -10,7 +10,6 @@ Finite Permutation Groups
 #******************************************************************************
 
 from sage.misc.cachefunc import cached_method
-from sage.misc.misc import attrcall
 from sage.categories.category import Category
 from sage.categories.finite_groups import FiniteGroups
 

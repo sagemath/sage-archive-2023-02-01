@@ -27,13 +27,10 @@ TODO:
 #*****************************************************************************
 
 import copy
-import os
 from sage.structure.sage_object import SageObject
-from sage.rings.all import ComplexField, RealField, Integer
+from sage.rings.all import ComplexField, Integer
 from sage.misc.all import verbose, sage_eval
-from sage.schemes.all import is_EllipticCurve
 import sage.interfaces.gp
-from sage.misc.all import DOT_SAGE, SAGE_ROOT
 
 class Dokchitser(SageObject):
     r"""

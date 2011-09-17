@@ -63,7 +63,6 @@ The arguments in the definition must be symbolic variables #10747::
 
 from sage.symbolic.ring import SymbolicRing, SR, ParentWithBase
 from sage.categories.pushout import ConstructionFunctor
-import weakref
 
 #########################################################################################
 #  Callable functions

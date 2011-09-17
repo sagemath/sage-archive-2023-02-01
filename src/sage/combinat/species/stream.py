@@ -7,7 +7,6 @@ http://www.risc.uni-linz.ac.at/people/hemmecke/aldor/combinat/index.html.
 In particular, the relevant section for this file can be found at
 http://www.risc.uni-linz.ac.at/people/hemmecke/AldorCombinat/combinatse12.html.
 """
-import itertools
 import types
 from sage.structure.sage_object import SageObject
 

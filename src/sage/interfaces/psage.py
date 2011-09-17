@@ -43,7 +43,6 @@ finished::
 import os, time
 
 from sage0 import Sage, SageElement
-from expect import Expect
 
 
 number = 0

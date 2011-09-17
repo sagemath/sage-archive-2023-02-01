@@ -22,15 +22,12 @@ Standard test of pickleability::
 """
 
 from sage.structure.sage_object import SageObject
-from sage.rings.finite_rings.integer_mod_ring import Integers
 from sage.groups.perm_gps.permgroup import PermutationGroup_generic
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
-from sage.structure.parent_gens import ParentWithGens
 from sage.misc.cachefunc import cached_method
-from sage.libs.pari.gen import pari, PariError
+from sage.libs.pari.gen import pari
 from sage.rings.infinity import infinity
 from sage.rings.number_field.number_field import refine_embedding
-from sage.rings.all import AA
 from sage.rings.number_field.morphism import NumberFieldHomomorphism_im_gens
 
 class GaloisGroup_v1(SageObject):

@@ -4,11 +4,10 @@ Parametric Plots
 
 from parametric_surface import ParametricSurface
 from shapes2 import line3d
-from texture import Texture
 from sage.misc.misc import xsrange, srange
 from sage.structure.element import is_Vector
 
-from sage.ext.fast_eval import fast_float, fast_float_constant, is_fast_float
+from sage.ext.fast_eval import fast_float, fast_float_constant
 
 def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", boundary_style=None, **kwds):
     r"""

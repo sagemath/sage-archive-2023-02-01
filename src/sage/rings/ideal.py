@@ -26,11 +26,9 @@ from types import GeneratorType
 
 import sage.misc.latex as latex
 import sage.rings.ring
-import sage.rings.principal_ideal_domain
 import commutative_ring
-from sage.structure.sage_object import SageObject
 from sage.structure.element import MonoidElement
-from sage.interfaces.singular import singular as singular_default, is_SingularElement
+from sage.interfaces.singular import singular as singular_default
 import sage.rings.infinity
 from sage.structure.sequence import Sequence
 

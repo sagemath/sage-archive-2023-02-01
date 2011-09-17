@@ -37,7 +37,6 @@ constructor :func:`MPolynomialRing` (now subsumed by the generic
 from sage.structure.parent_gens import normalize_names
 from sage.structure.element import is_Element
 import sage.rings.ring as ring
-import weakref
 import sage.rings.padics.padic_base_leaves as padic_base_leaves
 
 from sage.rings.integer import Integer

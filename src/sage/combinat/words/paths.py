@@ -178,14 +178,11 @@ from itertools import izip
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.combinat.combinat import CombinatorialObject
-from sage.combinat.words.words import Words_over_OrderedAlphabet, Words
-from sage.combinat.words.abstract_word import Word_class
+from sage.combinat.words.words import Words_over_OrderedAlphabet
 from sage.combinat.words.word import FiniteWord_class
 from sage.combinat.words.alphabet import OrderedAlphabet
 from sage.plot.plot import arrow, line, polygon, point, Graphics
 from sage.modules.free_module_element import vector
-from sage.rings.integer import Integer
 from sage.rings.all import ZZ, RR, QuadraticField
 from word_datatypes import (WordDatatype_str,
                             WordDatatype_list,

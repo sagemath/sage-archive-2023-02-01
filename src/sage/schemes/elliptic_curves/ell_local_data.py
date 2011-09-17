@@ -98,10 +98,9 @@ AUTHORS:
 
 
 from sage.structure.sage_object import SageObject
-from sage.misc.misc import verbose, forall
+from sage.misc.misc import verbose
 
 from sage.rings.all import PolynomialRing, QQ, ZZ, Integer, is_Ideal, is_NumberFieldElement, is_NumberFieldFractionalIdeal, is_NumberField
-from sage.structure.element import RingElement
 from constructor import EllipticCurve
 from kodaira_symbol import KodairaSymbol
 

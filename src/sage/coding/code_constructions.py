@@ -141,23 +141,13 @@ REFERENCES:
 #############################################################################
 
 
-import copy
-import sage.modules.free_module as fm
-import sage.modules.module as module
-import sage.modules.free_module_element as fme
-from sage.interfaces.all import gap
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import matrix
 from sage.rings.finite_rings.constructor import FiniteField as GF
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
-from sage.misc.sage_eval import sage_eval
-from sage.misc.misc import prod, add
-from sage.misc.functional import log
-from sage.rings.rational_field import QQ
-from sage.structure.parent_gens import ParentWithGens
+from sage.misc.misc import prod
 from linear_code import LinearCodeFromVectorSpace, LinearCode
 from sage.modules.free_module import span
-from sage.misc.functional import rank
 from sage.schemes.generic.projective_space import ProjectiveSpace
 from sage.structure.sequence import Sequence
 from sage.rings.arith import GCD,LCM,divisors,quadratic_residues

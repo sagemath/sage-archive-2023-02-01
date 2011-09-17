@@ -38,7 +38,6 @@ TODO -- much functionality of gfan-0.3 is still not exposed
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import os
 from subprocess import *
 
 class Gfan:

@@ -87,7 +87,6 @@ import sage.modular.dirichlet as dirichlet
 import sage.rings.rational_field as rational_field
 import sage.rings.all as rings
 
-import element
 
 def canonical_parameters(group, weight, sign, base_ring):
     """

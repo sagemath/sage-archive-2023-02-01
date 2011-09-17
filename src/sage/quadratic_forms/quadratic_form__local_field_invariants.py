@@ -28,11 +28,10 @@ import copy
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.real_mpfr import RR
-from sage.rings.arith import prime_divisors, valuation, hilbert_symbol
+from sage.rings.arith import prime_divisors, hilbert_symbol
 from sage.functions.all import sgn
 from sage.rings.fraction_field import FractionField
 from sage.matrix.matrix_space import MatrixSpace
-from sage.rings.arith import GCD
 
 
 ## Routines to compute local (p-adic) invariants of a quadratic form Q:

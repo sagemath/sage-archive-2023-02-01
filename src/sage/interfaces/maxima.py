@@ -457,7 +457,7 @@ A long complicated input expression::
 
 from __future__ import with_statement
 
-import os, re, sys, subprocess
+import os, re
 import pexpect
 #cygwin = os.uname()[0][:6]=="CYGWIN"
 
@@ -466,7 +466,6 @@ from random import randrange
 from sage.misc.misc import DOT_SAGE, SAGE_ROOT
 
 ##import sage.rings.all
-import sage.rings.complex_number
 
 from expect import (Expect, ExpectElement, FunctionElement,
                     ExpectFunction, gc_disabled, AsciiArtString)

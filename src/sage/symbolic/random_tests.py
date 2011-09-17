@@ -1,5 +1,4 @@
 from sage.misc.prandom import randint, random
-from sage.ext.fast_callable import ExpressionTreeBuilder
 import operator
 from sage.rings.all import QQ
 import sage.calculus.calculus

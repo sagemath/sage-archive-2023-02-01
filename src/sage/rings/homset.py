@@ -11,7 +11,6 @@ Space of homomorphisms between two rings.
 #*****************************************************************************
 
 from sage.categories.homset import HomsetWithBase
-from sage.structure.parent_base import ParentWithBase
 
 import morphism
 import quotient_ring

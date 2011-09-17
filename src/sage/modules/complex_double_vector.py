@@ -20,6 +20,6 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 ###############################################################################
 
-from vector_complex_double_dense import Vector_complex_double_dense, unpickle_v0, unpickle_v1
+from vector_complex_double_dense import Vector_complex_double_dense
 
 ComplexDoubleVectorSpaceElement = Vector_complex_double_dense

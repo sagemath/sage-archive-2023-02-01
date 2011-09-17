@@ -157,7 +157,6 @@ AUTHORS:
 ###########################################################################
 
 # python imports
-import weakref
 
 
 # Sage imports

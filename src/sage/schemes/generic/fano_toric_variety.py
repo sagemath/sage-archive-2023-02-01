@@ -163,7 +163,6 @@ from sage.schemes.generic.toric_variety import (
                                             ToricVariety_field,
                                             normalize_names)
 from sage.symbolic.all import SR
-from sage.matrix.all import matrix
 
 
 # Default coefficient for anticanonical hypersurfaces

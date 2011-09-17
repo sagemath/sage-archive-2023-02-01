@@ -25,7 +25,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.structure.factorization import Factorization
 from sage.rings.ideal import Ideal_pid
 
 class Ideal_1poly_field(Ideal_pid):

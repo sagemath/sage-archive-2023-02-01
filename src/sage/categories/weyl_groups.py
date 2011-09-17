@@ -11,7 +11,7 @@ Weyl Groups
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.categories.category import Category
 from sage.categories.coxeter_groups import CoxeterGroups
-import sage.combinat.ranker
+import sage.combinat.sf
 from sage.rings.infinity import infinity
 from sage.rings.rational_field import QQ
 

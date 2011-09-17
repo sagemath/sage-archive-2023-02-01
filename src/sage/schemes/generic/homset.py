@@ -10,7 +10,6 @@ Set of homomorphisms between two schemes
 
 import sage.structure.parent_old as parent_old
 from sage.categories.homset import HomsetWithBase
-from sage.rings.arith import gcd
 from sage.rings.integer_ring import ZZ
 from sage.rings.finite_rings.constructor import is_FiniteField
 from sage.rings.rational_field import is_RationalField

@@ -83,7 +83,7 @@ Many other functionalities...::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from itertools import imap, ifilterfalse
+from itertools import ifilterfalse
 from sage.structure.sage_object import SageObject
 from sage.rings.infinity import Infinity
 from sage.matrix.constructor import Matrix

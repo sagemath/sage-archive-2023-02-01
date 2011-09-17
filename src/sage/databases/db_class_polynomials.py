@@ -18,7 +18,6 @@ Database of Hilbert Polynomials
 
 import bz2, os
 import sage.misc.misc
-from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 

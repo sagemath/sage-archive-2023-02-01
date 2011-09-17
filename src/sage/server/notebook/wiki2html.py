@@ -34,10 +34,9 @@ AUTHOR:
     -- William Stein: adoption for Sage
 """
 
-import os, re
+import re
 from MoinMoin import config, wikimacro, wikiutil
 from MoinMoin.Page import Page
-from MoinMoin.util import web
 
 Dependencies = []
 

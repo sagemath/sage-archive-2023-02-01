@@ -15,7 +15,6 @@ from sage.rings.arith import kronecker_symbol, bernoulli, prime_divisors
 #from sage.combinat.combinat import bernoulli_polynomial
 from sage.functions.all import sqrt
 #from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.misc.functional import ideal
 from sage.quadratic_forms.special_values import QuadraticBernoulliNumber
 
 from sage.misc.misc import verbose

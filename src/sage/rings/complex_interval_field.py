@@ -21,14 +21,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import complex_number
 import complex_double
 import field
-import integer_ring
 import integer
-import real_mpfr
 import weakref
-import ring
 import real_mpfi
 import complex_interval
 import complex_field

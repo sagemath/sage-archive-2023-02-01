@@ -11,7 +11,7 @@ Set of homomorphisms between two groups.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.categories.all import HomsetWithBase, Groups, Morphism
+from sage.categories.all import HomsetWithBase, Groups
 import sage.rings.integer_ring
 
 GROUPS = Groups()

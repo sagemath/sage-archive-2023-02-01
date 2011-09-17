@@ -52,12 +52,10 @@ list changes the object.
 #                  http://www.gnu.org/licenses/
 ###########################################################################
 
-import operator
 
 from sage.rings.integer import Integer
 from sage.structure.element import MultiplicativeGroupElement
 from sage.rings.infinity import infinity
-from sage.misc.misc import prod
 from sage.rings.arith import LCM, GCD
 
 def is_AbelianGroupElement(x):

@@ -47,24 +47,16 @@ AUTHORS:
 
 import math
 
-from sage.rings.all import PolynomialRing, polygen
+from sage.rings.all import PolynomialRing
 import sage.groups.additive_abelian.additive_abelian_group as groups
 import sage.groups.generic as generic
 import sage.plot.all as plot
 
 import sage.rings.arith as arith
 import sage.rings.all as rings
-import sage.rings.number_field as number_field
 from sage.rings.number_field.all import is_NumberField
-from sage.rings.all import is_Infinite
 import sage.misc.misc as misc
-import sage.misc.latex as latex
-import sage.modular.modform as modform
-import sage.functions.transcendental as transcendental
 
-from sage.categories.morphism import IdentityMorphism
-from sage.categories.homset import Hom
-from sage.rings.arith import lcm
 
 # Schemes
 import sage.schemes.generic.projective_space as projective_space
@@ -75,7 +67,6 @@ import ell_torsion
 import constructor
 import formal_group
 import weierstrass_morphism as wm
-from constructor import EllipticCurve
 
 
 factor = arith.factor

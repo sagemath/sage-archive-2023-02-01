@@ -31,7 +31,6 @@ interesting Javascript code is contained under
 
 from sage.misc.misc import SAGE_URL
 from compress.JavaScriptCompressor import JavaScriptCompressor
-import keyboards
 
 ###########################################################################
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>

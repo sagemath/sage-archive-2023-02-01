@@ -234,9 +234,8 @@ import composition
 from integer_vector import IntegerVectors
 from cartesian_product import CartesianProduct
 from integer_list import IntegerListsLex
-from sage.functions.other import ceil
 from sage.misc.misc import deprecation, deprecated_function_alias
-from sage.misc.prandom import random, randrange
+from sage.misc.prandom import randrange
 
 def Partition(mu=None, **keyword):
     """

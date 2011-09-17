@@ -34,18 +34,15 @@ from sage.structure.element import IntegralDomainElement, EuclideanDomainElement
 
 from sage.rings.polynomial.polynomial_singular_interface import Polynomial_singular_repr
 
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
-from sage.libs.pari.all import pari, pari_gen
+from sage.libs.pari.all import pari_gen
 from sage.structure.factorization import Factorization
 from sage.structure.element import coerce_binop
 
 from sage.rings.infinity import infinity
-from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 import sage.rings.integer as integer
 
-import sage.rings.fraction_field_element as fraction_field_element
 import sage.rings.polynomial.polynomial_ring
 
 

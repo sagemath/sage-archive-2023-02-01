@@ -34,8 +34,6 @@ from cartesian_product import CartesianProduct
 from integer_list import IntegerListsLex
 import __builtin__
 from sage.rings.integer import Integer
-from sage.rings.arith import binomial
-import misc
 
 def Composition(co=None, descents=None, code=None):
     """

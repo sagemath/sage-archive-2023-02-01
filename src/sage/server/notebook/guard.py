@@ -28,11 +28,10 @@ Keep out the bad guys.
 # * The file 'guard.py' used in the Stiq website code http://www.stiq.it
 
 #twisted modules
-from twisted.python import log, components
+from twisted.python import log
 from twisted.internet import task, defer
-from twisted.cred.error import UnauthorizedLogin
 from twisted.cred import credentials
-from zope.interface import Interface, implements
+from zope.interface import implements
 from twisted.web2 import iweb
 from twisted.web2 import server
 
@@ -42,7 +41,6 @@ import time
 import md5
 
 # Sage's twist stuff
-import twist
 
 
 class Session(object):

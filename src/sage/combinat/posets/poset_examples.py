@@ -23,7 +23,6 @@ from sage.combinat.posets.posets import Poset, Posets_all, FinitePosets_n
 from sage.combinat.posets.lattices import LatticePoset
 from sage.graphs.all import DiGraph
 from sage.rings.integer import Integer
-from sage.structure.sage_object import SageObject
 
 class PosetsGenerator(object):
     r"""

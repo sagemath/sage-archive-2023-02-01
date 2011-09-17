@@ -30,12 +30,11 @@ the optional ``names`` argument to the
 #*****************************************************************************
 
 from sage.rings.integer import Integer
-from sage.structure.parent_gens import ParentWithGens, normalize_names
+from sage.structure.parent_gens import normalize_names
 from free_monoid_element import FreeMonoidElement
 
 from monoid import Monoid_class
 
-import weakref
 
 from sage.structure.factory import UniqueFactory
 

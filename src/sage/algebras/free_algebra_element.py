@@ -33,10 +33,7 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import operator
 from sage.misc.misc import repr_lincomb
-from sage.rings.integer import Integer
-from sage.monoids.free_monoid import FreeMonoid
 from sage.monoids.free_monoid_element import FreeMonoidElement
 from sage.algebras.algebra_element import AlgebraElement
 

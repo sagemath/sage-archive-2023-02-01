@@ -38,7 +38,7 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #########################################################################
 
-from sage.rings.all import Integer, PowerSeriesRing
+from sage.rings.all import Integer
 from sage.misc.all import verbose
 from sage.matrix.all import Matrix
 

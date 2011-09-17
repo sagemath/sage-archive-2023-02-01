@@ -71,12 +71,10 @@ See trac 5886::
 #*****************************************************************************
 
 import sage.categories.homset
-import sage.modules.free_module_morphism
 import sage.matrix.all as matrix
 import free_module_morphism
 from inspect import isfunction
 
-from matrix_morphism import MatrixMorphism
 
 def is_FreeModuleHomspace(x):
     """

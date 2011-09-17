@@ -125,15 +125,12 @@ When you are done, log out::
 #############################################################################
 
 
-import re, random, os.path, shutil, time
+import re, random, shutil, time
 
 from twisted.internet.task import LoopingCall
-from twisted.python import log
-from twisted.internet import defer, reactor
-from twisted.cred import credentials
 
-from twisted.web2 import server, http, resource, channel
-from twisted.web2 import static, http_headers, responsecode
+from twisted.web2 import http, resource
+from twisted.web2 import static
 
 sessions = {}
 

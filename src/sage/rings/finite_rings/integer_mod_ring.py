@@ -66,7 +66,6 @@ AUTHORS:
 #*****************************************************************************
 
 import sage.misc.prandom as random
-import weakref
 
 from sage.rings.arith import is_prime, factor, CRT_basis, LCM, prime_divisors, euler_phi
 import sage.rings.commutative_ring as commutative_ring
@@ -74,10 +73,7 @@ import sage.rings.field as field
 import integer_mod
 import sage.rings.integer as integer
 import sage.rings.integer_ring as integer_ring
-import sage.rings.rational as rational
 import sage.rings.quotient_ring as quotient_ring
-import sage.rings.ideal as ideal
-import element_ext_pari
 from sage.structure.parent_gens import ParentWithGens
 
 from sage.libs.pari.all import pari, PariError

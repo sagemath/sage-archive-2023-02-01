@@ -1,6 +1,5 @@
 from sage.misc.all import latex
 
-from sage.rings.all import is_Field
 
 from sage.schemes.generic.algebraic_scheme import (
     AlgebraicScheme_subscheme, AlgebraicScheme_subscheme_projective)

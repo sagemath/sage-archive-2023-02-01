@@ -11,12 +11,11 @@ Hyperelliptic curves over a padic field.
 
 import hyperelliptic_generic
 
-from sage.rings.all import PowerSeriesRing, PolynomialRing, ZZ, QQ, Integers, Integer, O, pAdicField, mod, LaurentSeriesRing, GF, RR, RationalField, Infinity
-from sage.misc.functional import ceil, log, sqrt
+from sage.rings.all import PowerSeriesRing, PolynomialRing, ZZ, QQ, O, pAdicField, GF, RR, RationalField, Infinity
+from sage.misc.functional import log
 from sage.modules.free_module import VectorSpace
-from sage.matrix.constructor import matrix, identity_matrix
-import sage.rings.power_series_poly
-from sage.modules.all import vector, FreeModule
+from sage.matrix.constructor import matrix
+from sage.modules.all import vector
 
 
 class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_generic):

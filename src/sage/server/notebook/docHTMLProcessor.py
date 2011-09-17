@@ -43,7 +43,6 @@ Author:
 #############################################################################
 
 from sgmllib import SGMLParser
-from urllib import splittag
 from htmlentitydefs import entitydefs
 
 class SphinxHTMLProcessor(SGMLParser):

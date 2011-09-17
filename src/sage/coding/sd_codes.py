@@ -93,7 +93,6 @@ from linear_code import LinearCode
 from sage.matrix.constructor import block_diagonal_matrix
 from sage.rings.integer_ring import ZZ
 from sage.groups.perm_gps.permgroup import PermutationGroup
-from sage.rings.integer import Integer
 
 F = GF(2)
 

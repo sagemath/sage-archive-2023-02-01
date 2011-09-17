@@ -187,7 +187,6 @@ import sage.misc.latex as latex
 from sage.structure.nonexact import Nonexact
 
 from sage.structure.parent_gens import ParentWithGens
-from sage.structure.category_object import CategoryObject
 
 from sage.rings.multi_power_series_ring_element import MPowerSeries
 

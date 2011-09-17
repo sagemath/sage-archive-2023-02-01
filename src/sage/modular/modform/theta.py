@@ -7,7 +7,7 @@ AUTHOR:
 
 from sage.rings.all  import Integer, ZZ, PowerSeriesRing
 
-from math import ceil, sqrt
+from math import sqrt
 
 def theta2_qexp(prec=10, var='q', K=ZZ, sparse=False):
     r"""

@@ -3,7 +3,6 @@ Automorphisms of Quadratic Forms
 """
 from sage.interfaces.gp import gp
 from sage.matrix.constructor import Matrix
-from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 from sage.misc.mrange import mrange
 

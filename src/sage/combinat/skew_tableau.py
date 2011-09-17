@@ -16,19 +16,14 @@ Skew Tableaux
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import Integer, factorial
+from sage.rings.all import Integer
 from sage.misc.misc import uniq
 import partition
 import sage.combinat.tableau
 import skew_partition
 import partition
-import misc
-from sage.misc.all import prod
-import exceptions
-import random
 import copy
 from combinat import CombinatorialObject, CombinatorialClass, InfiniteAbstractCombinatorialClass
-from sage.graphs.all import DiGraph
 from integer_vector import IntegerVectors
 from sage.combinat.words.words import Words
 

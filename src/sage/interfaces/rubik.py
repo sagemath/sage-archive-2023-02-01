@@ -34,7 +34,7 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 ########################################################################
 
-import os, pexpect, time
+import pexpect, time
 import cleaner
 
 from sage.groups.perm_gps.cubegroup import *

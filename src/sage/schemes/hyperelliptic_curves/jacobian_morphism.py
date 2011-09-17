@@ -111,7 +111,6 @@ on the Jacobian of this reduction and the order of the Jacobian is
 
 from sage.misc.all import latex
 
-from sage.rings.all import PolynomialRing, ZZ
 from sage.structure.element import AdditiveGroupElement
 from sage.schemes.generic.morphism import SchemeMorphism
 

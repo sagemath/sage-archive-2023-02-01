@@ -31,7 +31,6 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.structure.sage_object import SageObject
-from sage.misc.lazy_attribute import lazy_attribute
 from sage.combinat.words.word_options import word_options
 from itertools import islice, izip, groupby
 from sage.rings.all import Integers, ZZ, Infinity

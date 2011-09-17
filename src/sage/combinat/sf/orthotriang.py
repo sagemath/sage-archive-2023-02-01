@@ -37,12 +37,7 @@ functions from this definition.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.combinat.combinat import CombinatorialClass
-from sage.libs.symmetrica.all import hall_littlewood
 import sfa
-import sage.combinat.partition
-from sage.matrix.all import matrix, MatrixSpace
-from sage.rings.all import ZZ, QQ
 from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom
 

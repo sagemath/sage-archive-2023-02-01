@@ -155,7 +155,6 @@ VERSION 3:
 """
 
 # Standard system libraries
-from base64 import standard_b64encode, standard_b64decode
 import inspect
 import math
 import types

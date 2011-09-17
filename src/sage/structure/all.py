@@ -25,6 +25,7 @@ from element import (\
     is_RingElement,
     is_Vector,
 
+    canonical_coercion,
     get_coercion_model,
     coercion_traceback
     )

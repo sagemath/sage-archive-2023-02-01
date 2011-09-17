@@ -15,11 +15,9 @@ upgrade existing MoinMoin wikis, please visit the `MoinMoin How-Tos`_
 
 import os
 import socket
-import sys
 import shutil
 
 import sage.misc.misc as misc
-from sage.misc.viewer import browser
 from sage.server.misc import print_open_msg
 
 join = os.path.join

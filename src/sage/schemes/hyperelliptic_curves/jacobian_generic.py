@@ -8,11 +8,8 @@ Jacobian of a General Hyperelliptic Curve
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import is_Ring, Integer
+from sage.rings.all import Integer
 from sage.schemes.jacobians.abstract_jacobian import Jacobian_generic
-import sage.schemes.generic.homset as homset
-import sage.schemes.generic.morphism as morphism
-from hyperelliptic_generic import is_HyperellipticCurve
 import jacobian_homset
 import jacobian_morphism
 

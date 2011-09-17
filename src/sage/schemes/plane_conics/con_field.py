@@ -24,7 +24,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import (PolynomialRing, QQ,
+from sage.rings.all import (PolynomialRing,
                             is_ComplexField, is_RealField,
                             is_Field)
 from sage.modules.free_module_element import vector

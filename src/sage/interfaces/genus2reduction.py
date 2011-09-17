@@ -29,7 +29,7 @@ code however they want.
 ########################################################################
 
 
-import os, weakref
+import os
 from expect import Expect
 from sage.structure.sage_object import SageObject
 

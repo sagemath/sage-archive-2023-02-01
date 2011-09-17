@@ -20,7 +20,7 @@ from sage.plot.colors import to_mpl_color
 
 from sage.plot.misc import options, rename_keyword
 
-from math import fmod, floor, sin, cos, sqrt, tan, pi, atan
+from math import fmod, sin, cos, pi, atan
 
 class Arc(GraphicPrimitive):
     """

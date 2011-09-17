@@ -82,8 +82,6 @@ Lift an MSymbol from P1NFList to a matrix in `SL(2, R)`
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import is_Infinite, Rational, Integer, ZZ, QQ
-from sage.rings.integer_ring import IntegerRing
 
 from sage.structure.sage_object import SageObject
 

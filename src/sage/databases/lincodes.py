@@ -19,8 +19,7 @@ Linear codes
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import os, re, urllib
-from sage.rings.all import Integer
+import re
 
 def parse_bound_html(text, n, k):
     lower, upper = -1, -1

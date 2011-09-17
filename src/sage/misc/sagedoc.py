@@ -22,7 +22,6 @@ AUTHORS:
 
 import os, re, sys
 import pydoc
-from subprocess import Popen, PIPE
 from sage.misc.viewer import browser
 from sage.misc.misc import SAGE_DOC, tmp_dir
 from sagenb.misc.sphinxify import sphinxify
@@ -1002,7 +1001,6 @@ def format_search_as_html(what, r, search):
 #######################################
 ## Add detex'ing of documentation
 #######################################
-import inspect
 import sageinspect
 
 def my_getdoc(obj):

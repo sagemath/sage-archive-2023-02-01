@@ -44,7 +44,6 @@ then the system will use that if no template has been set explicitly.
 import sage.misc.sageinspect
 import inspect
 import os
-import sys
 
 from string import Template
 

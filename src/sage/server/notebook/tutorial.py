@@ -300,7 +300,6 @@ a computation progress.  For example, try the following from the Sage
 Notebook:
 
 \begin{verbatim}
-import time
 for i in range(10):
     print i
     time.sleep(0.5)

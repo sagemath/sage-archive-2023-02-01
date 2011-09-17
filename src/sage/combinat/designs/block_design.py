@@ -46,12 +46,9 @@ TODO: Implement DerivedDesign, ComplementaryDesign,
 Hadamard3Design
 """
 
-import types
-from sage.matrix.matrix_space import MatrixSpace
 from sage.modules.free_module import VectorSpace
 from sage.rings.integer_ring import ZZ
 from sage.rings.arith import binomial, integer_floor
-from sage.rings.finite_rings.constructor import FiniteField
 from sage.combinat.designs.incidence_structures import IncidenceStructure, IncidenceStructureFromMatrix
 from sage.misc.decorators import rename_keyword
 

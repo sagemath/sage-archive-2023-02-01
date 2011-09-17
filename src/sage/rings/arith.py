@@ -14,18 +14,15 @@ Miscellaneous arithmetic functions
 import math
 import sys
 import sage.misc.misc as misc
-import sage.misc.search
-from sage.libs.pari.gen import pari, PariError, vecsmall_to_intlist
+from sage.libs.pari.gen import pari, vecsmall_to_intlist
 
 from sage.rings.rational_field import QQ
 import sage.rings.rational
 import sage.rings.complex_field
 import sage.rings.complex_number
 import sage.rings.real_mpfr
-from sage.structure.element import RingElement, canonical_coercion, bin_op, parent
-from sage.interfaces.all import gp
+from sage.structure.element import parent
 from sage.misc.misc import prod, union
-from sage.rings.fraction_field_element import is_FractionFieldElement
 from sage.rings.real_mpfi import RealIntervalField
 
 import fast_arith

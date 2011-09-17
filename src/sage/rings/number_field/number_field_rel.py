@@ -74,78 +74,40 @@ TESTS::
 
 from __future__ import with_statement
 from sage.structure.parent_gens import localvars
-from sage.categories.map import Map
 
 import sage.libs.ntl.all as ntl
 import sage.libs.pari.all as pari
-import sage.interfaces.gap
-import sage.misc.preparser
 import sage.rings.arith
 
-import sage.rings.complex_field
-import sage.rings.real_mpfr
-import sage.rings.real_mpfi
-import sage.rings.complex_double
-import sage.rings.real_double
-import sage.rings.real_lazy
-
-from sage.rings.finite_rings.integer_mod import mod
-
-import sage.rings.ring
-from sage.misc.latex import latex_variable_name, latex_varify
-
-from class_group import ClassGroup
-
-from sage.structure.element import is_Element
 from sage.categories.map import is_Map
 from sage.structure.sequence import Sequence
 
 import sage.structure.parent_gens
 
-from sage.structure.proof.proof import get_flag
 import maps
-import number_field_morphisms
-from itertools import count, izip
 
-from sage.rings.integer_ring import IntegerRing
 
-import operator
-import weakref
 from sage.misc.latex import latex
 from sage.misc.cachefunc import cached_method
 
-import sage.rings.arith as arith
-import sage.rings.rational_field as rational_field
-import sage.rings.integer_ring as integer_ring
-import sage.rings.infinity as infinity
 import sage.rings.rational as rational
 import sage.rings.integer as integer
-import sage.rings.polynomial.polynomial_ring as polynomial_ring
 import sage.rings.polynomial.polynomial_element as polynomial_element
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-import sage.rings.ideal as ideal
-import sage.rings.complex_field
-import sage.groups.abelian_gps.abelian_group
-import sage.rings.complex_interval_field
 
-from sage.structure.parent_gens import ParentWithGens
 import number_field_element
-import number_field_element_quadratic
-from number_field_ideal import NumberFieldIdeal, is_NumberFieldIdeal, NumberFieldFractionalIdeal
+from number_field_ideal import is_NumberFieldIdeal
 from sage.rings.number_field.number_field import NumberField, NumberField_generic, put_natural_embedding_first, proof_flag
 from sage.rings.number_field.number_field_base import is_NumberField
 from sage.rings.number_field.order import RelativeOrder
 from sage.rings.number_field.morphism import RelativeNumberFieldHomomorphism_from_abs
-from sage.rings.number_field.number_field_ideal_rel import NumberFieldFractionalIdeal_rel
 from sage.libs.all import pari, pari_gen
 
-QQ = rational_field.RationalField()
-ZZ = integer_ring.IntegerRing()
-RIF = sage.rings.real_mpfi.RealIntervalField()
+from sage.rings.rational_field import QQ
+from sage.rings.integer_ring import ZZ
+from sage.rings.real_mpfi import RIF
+import sage.rings.complex_interval_field
 CIF = sage.rings.complex_interval_field.ComplexIntervalField()
-from sage.rings.real_double import RDF
-from sage.rings.complex_double import CDF
-from sage.rings.real_lazy import RLF, CLF
 
 # from sage.rings.number_field.number_field import is_AbsoluteNumberField
 # from sage.rings.number_field.number_field import is_QuadraticField

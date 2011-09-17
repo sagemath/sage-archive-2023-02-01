@@ -8,11 +8,10 @@ for more about GMP-ECM.
 """
 
 import os, pexpect
-import re
 from math import ceil, floor
 
 from sage.rings.integer import Integer
-from sage.misc.misc import verbose, get_verbose, tmp_filename
+from sage.misc.misc import verbose, tmp_filename
 from sage.misc.decorators import rename_keyword
 
 import cleaner

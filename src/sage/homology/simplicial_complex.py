@@ -110,7 +110,6 @@ from sage.rings.integer import Integer
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.sets.set import Set
 from sage.rings.integer_ring import ZZ
-from sage.rings.rational_field import QQ
 from sage.structure.parent_gens import normalize_names
 from sage.misc.latex import latex
 from sage.matrix.constructor import matrix

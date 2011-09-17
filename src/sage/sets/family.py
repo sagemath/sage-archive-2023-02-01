@@ -32,7 +32,6 @@ from sage.misc.lazy_import import lazy_import
 lazy_import('sage.combinat.combinat', 'CombinatorialClass')
 from sage.rings.integer import Integer
 from sage.misc.misc import AttrCallObject
-from sage.misc.constant_function import ConstantFunction
 from warnings import warn
 name_warn_message = "The keyword name for family has never been used and will be removed shortly. Please update your code."
 

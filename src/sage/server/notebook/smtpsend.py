@@ -30,11 +30,9 @@ AUTHOR:
 """
 
 from twisted.mail import smtp, relaymanager
-from twisted.internet import reactor, defer
 from email.MIMEBase import MIMEBase
 from email.MIMEMultipart import MIMEMultipart
-from email import Encoders
-import sys, mimetypes, os
+import sys
 
 def buildMessage(fromaddr, toaddr, subject, body):
     message = MIMEMultipart()

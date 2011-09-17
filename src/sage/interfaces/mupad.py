@@ -93,10 +93,8 @@ import os
 from expect import (Expect, ExpectElement, ExpectFunction,
                     FunctionElement, AsciiArtString)
 
-import pexpect
 
 from sage.misc.misc import verbose, DOT_SAGE
-from sage.misc.pager import pager
 
 COMMANDS_CACHE = '%s/mupad_commandlist_cache.sobj'%DOT_SAGE
 PROMPT = ">>"

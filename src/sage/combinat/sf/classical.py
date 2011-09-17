@@ -18,21 +18,14 @@ Classical symmetric functions.
 
 from sage.rings.integer import Integer
 
-from sage.combinat.partition import Partitions
 import sage.combinat.skew_partition
-import sage.structure.parent_gens
 import sage.libs.symmetrica.all as symmetrica
-from sage.combinat.free_module import CombinatorialFreeModule
-from sage.matrix.constructor import matrix
-from sage.misc.lazy_attribute import lazy_attribute
 
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.rational_field import RationalField
 
-from sage.misc.misc import repr_lincomb
 
 
-import operator
 import hall_littlewood
 import sfa
 import llt

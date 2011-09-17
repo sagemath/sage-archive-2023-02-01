@@ -29,21 +29,17 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.misc.randstate import current_randstate
-import sys
-from math import ceil, floor, sqrt
 
 from sage.schemes.plane_curves.projective_curve import Hasse_bounds
 from ell_field import EllipticCurve_field
 from constructor import EllipticCurve, EllipticCurve_from_j
 from sage.schemes.hyperelliptic_curves.hyperelliptic_finite_field import HyperellipticCurve_finite_field
 import sage.rings.ring as ring
-from sage.rings.all import Integer, ZZ, PolynomialRing, ComplexField, FiniteField, GF, polygen
+from sage.rings.all import Integer, ZZ, PolynomialRing, GF, polygen
 from sage.rings.finite_rings.all import is_FiniteFieldElement
-from sage.groups.all import AdditiveAbelianGroup
 import sage.groups.generic as generic
 import ell_point
-from sage.functions.all import log
-from sage.rings.arith import integer_ceil, integer_floor, gcd, lcm
+from sage.rings.arith import gcd, lcm
 from sage.structure.sequence import Sequence
 
 import sage.plot.all as plot

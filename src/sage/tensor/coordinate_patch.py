@@ -43,7 +43,6 @@ TODO:
 
 
 from sage.structure.parent import Parent
-from sage.symbolic.ring import SR, var
 
 class CoordinatePatch(Parent):
     """

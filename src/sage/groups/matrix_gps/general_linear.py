@@ -46,7 +46,6 @@ AUTHORS:
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.all import is_FiniteField, Integer, FiniteField
 from matrix_group import MatrixGroup_gap, MatrixGroup_gap_finite_field
-from matrix_group_element import MatrixGroupElement
 
 def GL(n, R, var='a'):
     """

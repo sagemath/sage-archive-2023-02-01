@@ -16,8 +16,6 @@ Empty Species
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from species import GenericCombinatorialSpecies
-from generating_series import factorial_stream
-from structure import GenericSpeciesStructure
 from sage.misc.cachefunc import cached_function
 from series_order import inf
 

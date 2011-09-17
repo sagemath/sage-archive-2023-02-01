@@ -156,7 +156,6 @@ AUTHORS:
 
 
 
-from sage.structure.sage_object import SageObject
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.misc.misc_c import prod
 from sage.matrix.constructor import matrix

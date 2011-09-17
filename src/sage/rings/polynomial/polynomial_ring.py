@@ -153,17 +153,14 @@ import sage.rings.commutative_ring as commutative_ring
 import sage.rings.commutative_algebra as commutative_algebra
 import sage.rings.ring as ring
 import sage.rings.ring_element as ring_element
-import sage.rings.field as field
 import sage.rings.integral_domain as integral_domain
 import sage.rings.principal_ideal_domain as principal_ideal_domain
-from sage.rings.polynomial.polynomial_element import Polynomial
 import sage.rings.polynomial.polynomial_element_generic as polynomial_element_generic
 import sage.rings.rational_field as rational_field
 from sage.rings.integer_ring import is_IntegerRing, IntegerRing
 from sage.rings.integer import Integer
 from sage.libs.pari.all import pari_gen
 
-import sage.misc.defaults
 import sage.misc.latex as latex
 from sage.misc.prandom import randint
 from sage.misc.cachefunc import cached_method

@@ -40,10 +40,9 @@ list changes the object.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import operator
 
 from sage.rings.integer import Integer
-from sage.structure.element import MonoidElement, generic_power
+from sage.structure.element import MonoidElement
 
 def is_FreeAbelianMonoidElement(x):
     r"""

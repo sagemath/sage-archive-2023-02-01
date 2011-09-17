@@ -18,7 +18,6 @@ from sage.rings.integer import Integer
 
 from sage.modular.arithgroup.all import is_CongruenceSubgroup, Gamma0
 from sage.modular.modsym.space import is_ModularSymbolsSpace
-from sage.misc.misc import prod
 from abvar_newform import ModularAbelianVariety_newform
 import sage.modular.modform.element
 import abvar

@@ -16,11 +16,8 @@ Ribbons
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import sage.combinat.misc as misc
 import sage.combinat.skew_tableau
 import sage.combinat.permutation as permutation
-import sage.combinat.partition as partition
-import sage.combinat.skew_tableau as skew_tableau
 import sage.combinat.skew_partition
 import sage.rings.integer
 from combinat import CombinatorialClass, CombinatorialObject

@@ -1,7 +1,6 @@
 """
 Output functions
 """
-from sage.misc.latex import latex
 
 def tex_from_array(a):
     r"""

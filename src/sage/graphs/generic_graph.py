@@ -11,7 +11,6 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 from sage.rings.rational import Rational
 from sage.groups.perm_gps.partn_ref.refinement_graphs import isomorphic, search_tree
-import sage.graphs.generic_graph_pyx as generic_graph_pyx
 from generic_graph_pyx import GenericGraph_pyx, spring_layout_fast
 from sage.graphs.dot2tex_utils import assert_have_dot2tex
 

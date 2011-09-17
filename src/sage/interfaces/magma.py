@@ -221,10 +221,9 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import os, re, sys
+import re, sys
 
 from sage.structure.parent import Parent
-from sage.structure.element import RingElement
 from expect import console, Expect, ExpectElement, ExpectFunction, FunctionElement
 PROMPT = ">>>"
 

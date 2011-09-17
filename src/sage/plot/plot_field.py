@@ -18,8 +18,7 @@ Plotting fields
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.plot.primitive import GraphicPrimitive
-from sage.misc.decorators import options, rename_keyword
-from sage.plot.colors import to_mpl_color
+from sage.misc.decorators import options
 from sage.misc.misc import xsrange
 
 # Below is the base class that is used to make 'field plots'.

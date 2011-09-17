@@ -1,13 +1,8 @@
-from sage.misc.lazy_attribute import lazy_attribute
-from sage.misc.cachefunc import cached_method
-from sage.misc.misc import attrcall
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.all import Rings, GradedHopfAlgebrasWithBasis, ModulesWithBasis
-from sage.categories.homset import Hom
-from sage.combinat.partition import Partition, Partition_class, Partitions
+from sage.combinat.partition import Partitions
 from sage.combinat.free_module import CombinatorialFreeModule
-from sage.rings.integer import Integer
 from sage.rings.rational_field import QQ
 
 #from sage.combinat.sf.categories import *

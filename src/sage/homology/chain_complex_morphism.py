@@ -49,7 +49,6 @@ EXAMPLES::
 #
 #*****************************************************************************
 
-import sage.homology.simplicial_complex as simplicial_complex
 import sage.matrix.all as matrix
 from sage.structure.sage_object import SageObject
 from sage.rings.integer_ring import ZZ

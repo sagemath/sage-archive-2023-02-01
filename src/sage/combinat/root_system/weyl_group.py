@@ -42,7 +42,6 @@ from sage.rings.all import ZZ, QQ
 from sage.interfaces.gap import gap
 #from sage.misc.cache import Cache
 from sage.misc.cachefunc import cached_method, ClearCacheOnPickle
-from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc import deprecated_function_alias
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.matrix.constructor import matrix, diagonal_matrix

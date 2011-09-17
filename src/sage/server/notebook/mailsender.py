@@ -29,8 +29,6 @@ from twisted.mail import smtp, relaymanager
 from StringIO import StringIO
 from email.MIMEBase import MIMEBase
 from email.MIMEMultipart import MIMEMultipart
-from email import Encoders
-import mimetypes
 
 
 class MailMessage(MIMEMultipart):

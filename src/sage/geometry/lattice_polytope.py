@@ -106,25 +106,20 @@ from sage.matrix.all import matrix, is_Matrix
 from sage.misc.all import tmp_filename
 from sage.misc.misc import deprecation, SAGE_DATA
 from sage.modules.all import vector
-from sage.plot.plot import hue
 from sage.plot.plot3d.index_face_set import IndexFaceSet
 from sage.plot.plot3d.all import line3d, point3d
 from sage.plot.plot3d.shapes2 import text3d
-from sage.plot.plot3d.tachyon import Tachyon
 from sage.rings.all import Integer, ZZ, QQ, gcd, lcm
 from sage.sets.set import Set_generic
 from sage.structure.all import Sequence
 from sage.structure.sequence import Sequence_generic
-from sage.structure.sage_object import SageObject, load, loads
+from sage.structure.sage_object import SageObject
 
 import collections
 import copy_reg
 import os
 import subprocess
-import pickle
-import sage.misc.prandom as random
 import StringIO
-import zlib
 
 
 data_location = SAGE_DATA + '/reflexive_polytopes/'

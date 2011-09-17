@@ -24,10 +24,6 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import copy
-import sage.modules.free_module as fm
-import sage.modules.module as module
-import sage.modules.free_module_element as fme
 from sage.interfaces.all import gap
 from sage.misc.randstate import current_randstate
 from sage.misc.preparser import *
@@ -35,11 +31,6 @@ from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.finite_rings.constructor import FiniteField as GF
 from sage.interfaces.gap import gfq_gap_to_sage
 from sage.groups.perm_gps.permgroup import *
-from sage.misc.sage_eval import sage_eval
-from sage.misc.misc import prod, add
-from sage.misc.functional import log
-from sage.rings.rational_field import QQ
-from sage.structure.parent_gens import ParentWithGens
 from linear_code import *
 
 def BinaryReedMullerCode(r,k):

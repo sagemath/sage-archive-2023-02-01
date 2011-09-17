@@ -14,7 +14,6 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.constant_function import ConstantFunction
 from sage.misc.misc import prod, attrcall
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.categories.weyl_groups import WeylGroups
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.rational_field import QQ

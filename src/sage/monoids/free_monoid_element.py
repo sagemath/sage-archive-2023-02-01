@@ -24,10 +24,8 @@ pairs of integers.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import operator
 from sage.rings.integer import Integer
 from sage.structure.element import MonoidElement
-from sage.misc.latex import latex, latex_variable_name
 
 def is_FreeMonoidElement(x):
     return isinstance(x, FreeMonoidElement)

@@ -71,7 +71,6 @@ import sage.misc.latex
 from sage.modules.module import Module_old as Module
 from sage.structure.element import ModuleElement
 from sage.rings.integer_ring import ZZ
-from sage.rings.integer import Integer
 from sage.structure.parent import Parent
 from sage.structure.parent_base import ParentWithBase
 from sage.structure.coerce import LeftModuleAction, RightModuleAction

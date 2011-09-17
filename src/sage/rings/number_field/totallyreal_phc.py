@@ -54,8 +54,7 @@ def coefficients_to_power_sums(n, m, a):
         S[k] = -sum([a[n-i]*S[k-i] for i in range(1,k)])-k*a[n-k]
     return S
 
-import os, math
-import sage.combinat.combinat
+import os
 
 def __lagrange_bounds_phc(n, m, a, tmpfile=None):
     r"""

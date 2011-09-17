@@ -13,8 +13,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*******************************************************************************
 
-from sage.groups.group import AbelianGroup
-from sage.schemes.generic.divisor import is_Divisor, Divisor_generic, Divisor_curve
+from sage.schemes.generic.divisor import Divisor_generic, Divisor_curve
 from sage.structure.formal_sum import FormalSums
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.integer_ring import ZZ

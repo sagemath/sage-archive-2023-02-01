@@ -12,16 +12,12 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.misc.abstract_method import abstract_method
 from category import Category
 
 # could do SelfDualCategory
 
 from sage.categories.category import Category
 from sage.categories.covariant_functorial_construction import CovariantFunctorialConstruction, CovariantConstructionCategory
-from sage.categories.category_types import Category_over_base_ring
-import sage.structure.parent
-import sage.structure.element
 
 # This is Category.DualObjects
 def DualObjects(self):

@@ -16,7 +16,6 @@ from sage.modules.free_module_element import vector
 from sage.misc.misc import repr_lincomb
 from sage.modules.module import Module
 from sage.rings.all import Integer
-import sage.structure.parent_base
 import sage.structure.element
 from sage.combinat.family import Family
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet

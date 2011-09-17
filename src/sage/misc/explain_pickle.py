@@ -167,7 +167,6 @@ import pickletools
 import types
 
 import sys
-import os
 import sage.all
 import new
 import re

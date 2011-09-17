@@ -112,9 +112,8 @@ from sage.groups.abelian_gps.abelian_group import AbelianGroup_class
 from sage.groups.abelian_gps.abelian_group_element import AbelianGroupElement
 
 from sage.structure.sequence import Sequence
-from sage.structure.element import MultiplicativeGroupElement
 from sage.structure.proof.proof import get_flag
-from sage.libs.all import pari, pari_gen
+from sage.libs.all import pari
 from sage.misc.misc import prod
 from sage.rings.integer_ring import ZZ
 

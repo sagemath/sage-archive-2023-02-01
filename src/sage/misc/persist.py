@@ -22,7 +22,6 @@ save member functions and commands.
 
 -  Objects are zlib compressed for space efficiency.
 """
-import copy_reg
 
 from sage.structure.sage_object import save, load, \
      loads, dumps, SageObject

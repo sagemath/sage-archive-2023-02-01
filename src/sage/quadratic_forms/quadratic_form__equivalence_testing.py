@@ -8,7 +8,6 @@ from sage.rings.arith import hilbert_symbol, prime_divisors, is_prime, valuation
 from sage.rings.integer_ring import ZZ
 
 from quadratic_form import is_QuadraticForm
-from quadratic_form__genus import CS_genus_symbol_list
 
 
 from sage.misc.misc import SAGE_ROOT

@@ -69,10 +69,9 @@ from sage.categories import homset
 
 from sage.categories.morphism import Morphism
 
-from sage.structure.sage_object import SageObject
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.polynomial_ring import polygen
-from sage.rings.all import Integer, ZZ, FractionField
+from sage.rings.all import Integer, ZZ
 from sage.rings.laurent_series_ring import LaurentSeriesRing
 from sage.rings.polynomial.all import is_Polynomial
 from sage.schemes.elliptic_curves.all import EllipticCurve

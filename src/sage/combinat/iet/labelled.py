@@ -102,13 +102,12 @@ from sage.misc.lazy_attribute import lazy_attribute
 
 from copy import copy
 
-from sage.combinat.words.alphabet import Alphabet, OrderedAlphabet
+from sage.combinat.words.alphabet import Alphabet
 from sage.combinat.words.morphism import WordMorphism
 
-from sage.matrix.constructor import Matrix, identity_matrix
+from sage.matrix.constructor import identity_matrix
 from sage.rings.integer import Integer
 from sage.combinat.words.alphabet import Alphabet
-from sage.rings.infinity import Infinity
 
 from template import PermutationIET, PermutationLI
 from template import FlippedPermutationIET, FlippedPermutationLI

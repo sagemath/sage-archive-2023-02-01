@@ -15,11 +15,8 @@ EXAMPLE:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import PolynomialRing
-from sage.misc.all import latex
 
 import sage.schemes.plane_curves.projective_curve as projective_curve
-from sage.schemes.generic.all import ProjectiveSpace
 
 def is_QuarticCurve(C):
     return isinstance(C,QuarticCurve_generic)

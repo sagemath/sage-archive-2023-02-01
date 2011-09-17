@@ -20,11 +20,9 @@ AUTHORS:
 import complex_number
 import complex_double
 import field
-import integer_ring
 import integer
 import real_mpfr
 import weakref
-import ring
 from sage.misc.sage_eval import sage_eval
 
 from sage.structure.parent import Parent

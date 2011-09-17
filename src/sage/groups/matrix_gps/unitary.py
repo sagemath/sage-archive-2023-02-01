@@ -40,9 +40,8 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #*********************************************************************************
 
-from sage.rings.all import IntegerRing, is_FiniteField, GF, Integer
-from sage.interfaces.all import gap
-from matrix_group import MatrixGroup_gap, MatrixGroup_gap_finite_field
+from sage.rings.all import is_FiniteField, GF, Integer
+from matrix_group import MatrixGroup_gap_finite_field
 
 ###############################################################################
 # General Unitary Group

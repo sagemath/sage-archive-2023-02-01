@@ -50,9 +50,7 @@ from sage.rings.integer import Integer
 from sage.structure.element import MonoidElement
 from sage.rings.infinity import infinity
 from sage.rings.arith import *
-from sage.misc.misc import prod, add
-from abelian_group_element import AbelianGroupElement,is_AbelianGroupElement
-from abelian_group import AbelianGroup
+from sage.misc.misc import prod
 from sage.misc.functional import exp
 from sage.rings.complex_field import is_ComplexField
 

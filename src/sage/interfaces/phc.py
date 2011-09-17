@@ -28,10 +28,9 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 ########################################################################
 
-import copy, os
+import os
 
 import sage.misc.misc
-from sage.rings.complex_field import ComplexField
 from sage.rings.real_mpfr import RR
 from sage.rings.all import CC
 from sage.rings.integer import Integer

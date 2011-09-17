@@ -36,10 +36,9 @@ from sage.combinat.composition import Composition, Composition_class
 import tableau
 import sage.combinat.partition
 from permutation_nk import PermutationsNK
-import sage.rings.integer
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
-from sage.misc.prandom import randint, sample
+from sage.misc.prandom import sample
 from sage.graphs.all import DiGraph
 import itertools
 import __builtin__

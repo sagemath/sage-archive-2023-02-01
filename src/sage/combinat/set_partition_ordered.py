@@ -76,16 +76,14 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.arith import factorial, binomial
-import itertools
-import __builtin__
+from sage.rings.arith import factorial
 import sage.combinat.composition as composition
 from sage.combinat.words.word import Word
 import sage.combinat.permutation as permutation
 import sage.rings.integer
 from sage.combinat.combinat import stirling_number2
 from sage.sets.set import Set, is_Set
-from combinat import CombinatorialClass, CombinatorialObject
+from combinat import CombinatorialClass
 from sage.misc.misc import prod
 
 

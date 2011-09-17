@@ -23,7 +23,7 @@ AUTHORS:
 #*****************************************************************************
 
 
-from sage.symbolic.ring import SymbolicRing, SR
+from sage.symbolic.ring import SR
 from sage.rings.ring_element import RingElement
 from sage.algebras.algebra_element import AlgebraElement
 from sage.rings.integer import Integer

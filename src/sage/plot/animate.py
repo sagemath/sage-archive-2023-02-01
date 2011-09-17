@@ -16,7 +16,6 @@ We plot a circle shooting up to the right::
 ############################################################################
 
 import os
-import shutil
 
 from sage.structure.sage_object import SageObject
 

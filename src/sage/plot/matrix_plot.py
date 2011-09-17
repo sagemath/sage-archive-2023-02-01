@@ -19,8 +19,8 @@ Matrix Plots
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.plot.primitive import GraphicPrimitive
-from sage.misc.decorators import options, suboptions, rename_keyword
-from sage.plot.colors import to_mpl_color, get_cmap
+from sage.misc.decorators import options, suboptions
+from sage.plot.colors import get_cmap
 
 class MatrixPlot(GraphicPrimitive):
     """

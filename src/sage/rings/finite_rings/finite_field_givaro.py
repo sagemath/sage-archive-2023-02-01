@@ -1,7 +1,6 @@
 
 from sage.rings.finite_rings.finite_field_base import FiniteField, is_FiniteField
 from sage.rings.integer import Integer
-from sage.structure.parent_gens import ParentWithGens
 from sage.rings.finite_rings.element_givaro import Cache_givaro
 from sage.rings.integer_ring import ZZ
 from sage.databases.conway import ConwayPolynomials

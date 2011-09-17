@@ -18,15 +18,9 @@ Hecke operators
 #*****************************************************************************
 
 
-import math
-import operator
 
 import sage.algebras.algebra_element
 from sage.categories.homset import End
-import sage.misc.latex as latex
-import sage.misc.misc as misc
-import sage.modules.module
-import sage.modules.free_module_morphism as free_module_morphism
 import sage.rings.arith as arith
 from   sage.rings.integer import Integer
 

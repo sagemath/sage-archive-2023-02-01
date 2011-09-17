@@ -47,14 +47,13 @@ AUTHORS:
 ######################################################################
 
 from sage.rings.integer_ring import ZZ
-from sage.rings.rational_field import QQ
 from sage.rings.padics.factory import Qp
 from sage.structure.sage_object import SageObject
-from sage.rings.arith import valuation, LCM
+from sage.rings.arith import LCM
 from sage.modular.modform.constructor import EisensteinForms, CuspForms
 from sage.schemes.elliptic_curves.constructor import EllipticCurve
 from sage.misc.functional import log
-from sage.misc.all import verbose, denominator, prod
+from sage.misc.all import denominator, prod
 import sage.matrix.all as matrix
 
 class TateCurve(SageObject):

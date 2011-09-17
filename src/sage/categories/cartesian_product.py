@@ -14,9 +14,6 @@ AUTHORS:
 
 from sage.categories.category import Category
 from sage.categories.covariant_functorial_construction import CovariantFunctorialConstruction, CovariantConstructionCategory
-from sage.misc.cachefunc import cached_method
-import sage.structure.parent
-import sage.structure.element
 
 class CartesianProductFunctor(CovariantFunctorialConstruction):
     """

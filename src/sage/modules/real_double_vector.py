@@ -16,6 +16,6 @@ TESTS::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 ###############################################################################
-from vector_real_double_dense import Vector_real_double_dense, unpickle_v0, unpickle_v1
+from vector_real_double_dense import Vector_real_double_dense
 
 RealDoubleVectorSpaceElement = Vector_real_double_dense

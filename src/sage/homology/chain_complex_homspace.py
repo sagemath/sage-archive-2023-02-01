@@ -93,7 +93,6 @@ EXAMPLES::
 #*****************************************************************************
 
 import sage.categories.homset
-import sage.homology.chain_complex as chain_complex
 import sage.homology.chain_complex_morphism as chain_complex_morphism
 
 def is_ChainComplexHomspace(x):

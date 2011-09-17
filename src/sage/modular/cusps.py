@@ -29,7 +29,6 @@ EXAMPLES::
 #*****************************************************************************
 
 from sage.rings.all import is_Infinite, Rational, Integer, ZZ, QQ
-from sage.rings.integer_ring import IntegerRing
 from sage.structure.parent_base import ParentWithBase
 from sage.structure.element import Element, is_InfinityElement
 from sage.modular.modsym.p1list import lift_to_sl2z_llong

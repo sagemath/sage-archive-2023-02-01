@@ -1,7 +1,7 @@
 import __builtin__
 import os
 
-from sage.misc.misc import tmp_filename, tmp_dir
+from sage.misc.misc import tmp_filename
 
 count=0
 

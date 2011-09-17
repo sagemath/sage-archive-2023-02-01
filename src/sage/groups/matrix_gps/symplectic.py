@@ -29,7 +29,7 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import IntegerRing, is_FiniteField, Integer, FiniteField
+from sage.rings.all import is_FiniteField, Integer, FiniteField
 from matrix_group import MatrixGroup_gap, MatrixGroup_gap_finite_field
 
 def Sp(n, R, var='a'):

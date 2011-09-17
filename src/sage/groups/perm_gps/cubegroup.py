@@ -91,22 +91,15 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #**************************************************************************************
 
-from sage.groups.perm_gps.permgroup import PermutationGroup,PermutationGroup_generic, PermutationGroup_subgroup
-from sage.groups.perm_gps.permgroup_named import SymmetricGroup
+from sage.groups.perm_gps.permgroup import PermutationGroup, PermutationGroup_generic
 import random
 
 from sage.structure.sage_object import SageObject
-import sage.structure.element as element
-import sage.groups.group as group
 
 from sage.rings.all      import RationalField, Integer, RDF
 #from sage.matrix.all     import MatrixSpace
-from sage.interfaces.all import gap, is_GapElement, is_ExpectElement
+from sage.interfaces.all import gap
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
-import sage.structure.coerce as coerce
-from sage.rings.finite_rings.constructor import FiniteField as GF
-from sage.rings.arith import factor
-from sage.groups.abelian_gps.abelian_group import AbelianGroup
 from sage.plot.polygon import polygon
 from sage.plot.text import text
 pi = RDF.pi()

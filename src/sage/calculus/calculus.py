@@ -367,13 +367,13 @@ import re
 from sage.rings.all import RR, Integer, CC, QQ, RealDoubleElement, algdep
 from sage.rings.real_mpfr import create_RealNumber
 
-from sage.misc.latex import latex, latex_variable_name
+from sage.misc.latex import latex
 from sage.misc.parser import Parser
 
 from sage.symbolic.ring import var, SR, is_SymbolicVariable
 from sage.symbolic.expression import Expression
 from sage.symbolic.function import Function
-from sage.symbolic.function_factory import function_factory, function
+from sage.symbolic.function_factory import function_factory
 from sage.symbolic.integration.integral import indefinite_integral, \
         definite_integral
 import sage.symbolic.pynac

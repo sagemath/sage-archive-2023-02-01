@@ -26,7 +26,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ########################################################################
 
-import os, weakref
+import os
 from sage.structure.sage_object import SageObject
 from sage.misc.all import pager
 import sage.rings.all

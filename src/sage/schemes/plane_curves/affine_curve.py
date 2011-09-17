@@ -22,9 +22,9 @@ AUTHORS:
 
 from sage.interfaces.all import singular
 
-from sage.misc.all import latex, generic_cmp, add
+from sage.misc.all import add
 
-from sage.rings.all import degree_lowest_rational_function, is_PrimeField
+from sage.rings.all import degree_lowest_rational_function
 
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 

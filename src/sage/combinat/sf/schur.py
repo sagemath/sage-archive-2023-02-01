@@ -15,10 +15,9 @@ Schur symmetric functions
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-import sfa, classical, dual
+import classical, dual
 import sage.libs.symmetrica.all as symmetrica
-from sage.categories.basic import Monoids
-from sage.rings.all import ZZ, QQ, Integer, PolynomialRing
+from sage.rings.all import ZZ, QQ, Integer
 
 class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classical):
     def __init__(self, R):

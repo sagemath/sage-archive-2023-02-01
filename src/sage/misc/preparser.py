@@ -214,7 +214,6 @@ Behind the scenes what happens is the following::
 #                  http://www.gnu.org/licenses/
 ###########################################################################
 import os, re
-import pdb
 
 implicit_mul_level = False
 numeric_literal_prefix = '_sage_const_'

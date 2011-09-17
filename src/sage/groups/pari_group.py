@@ -3,7 +3,7 @@ PARI Groups
 """
 
 import group
-from sage.libs.all import pari, pari_gen
+from sage.libs.all import pari_gen
 from sage.rings.all import Integer
 from sage.structure.parent import Parent
 

@@ -52,7 +52,6 @@ from sage.rings.all import is_Polynomial, PolynomialRing, Integer, ZZ
 from sage.schemes.generic.homset import SchemeHomset_generic
 from sage.schemes.generic.morphism import is_SchemeMorphism
 #from sage.schemes.jacobians.abstract_jacobian import Jacobian_generic
-from hyperelliptic_generic import is_HyperellipticCurve
 from jacobian_morphism import JacobianMorphism_divisor_class_field
 from sage.rings.integer import Integer, is_Integer
 

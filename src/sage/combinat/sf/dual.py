@@ -19,7 +19,7 @@ from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom
 from sage.matrix.all import matrix
 import sage.combinat.partition
-import sfa, multiplicative, classical
+import sfa, classical
 
 class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical):
     def __init__(self, dual_basis, scalar, scalar_name="", prefix=None):

@@ -9,10 +9,7 @@ AUTHORS:
 """
 
 from padic_generic import pAdicGeneric
-from sage.rings.infinity import infinity
 from sage.rings.padics.pow_computer import PowComputer
-from sage.rings.integer_ring import ZZ
-from sage.rings.rational_field import QQ
 from sage.rings.padics.padic_base_coercion import pAdicCoercion_ZZ_CR, pAdicCoercion_QQ_CR, pAdicConvert_QQ_CR, pAdicCoercion_ZZ_CA, pAdicConvert_QQ_CA, pAdicCoercion_ZZ_FM, pAdicConvert_QQ_FM
 
 class pAdicBaseGeneric(pAdicGeneric):

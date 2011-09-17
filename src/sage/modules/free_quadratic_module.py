@@ -71,29 +71,18 @@ AUTHORS:
 import weakref
 
 # Sage imports
-import free_module_element
 
-import module
 
 import sage.matrix.matrix_space
 
 import sage.misc.latex as latex
 
-import sage.rings.commutative_ring as commutative_ring
 import sage.rings.principal_ideal_domain as principal_ideal_domain
 import sage.rings.field as field
 import sage.rings.integral_domain as integral_domain
-import sage.rings.ring as ring
-import sage.rings.integer_ring
-import sage.rings.rational_field
-import sage.rings.finite_rings.integer_mod_ring
-import sage.rings.infinity
 import sage.rings.integer
 import sage.structure.parent_gens as gens
-from sage.misc.randstate import current_randstate
-from sage.structure.sequence import Sequence
 
-from sage.structure.parent_gens import ParentWithGens
 
 import free_module
 

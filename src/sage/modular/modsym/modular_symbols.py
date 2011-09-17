@@ -37,7 +37,6 @@ import sage.modular.modsym.manin_symbols
 from sage.structure.sage_object import SageObject
 import sage.structure.formal_sum as formal_sum
 import sage.rings.arith as arith
-import sage.rings.rational_field as rational_field
 from sage.rings.integer_ring import ZZ
 from sage.misc.latex import latex
 

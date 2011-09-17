@@ -28,7 +28,7 @@ Notebook control object
 This is used for configuring and starting the Sage notebook server.
 """
 
-import time, os, shutil, signal, tempfile
+import os, shutil, tempfile
 
 import notebook as _notebook
 

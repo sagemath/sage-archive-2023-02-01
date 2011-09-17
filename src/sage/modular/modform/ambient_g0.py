@@ -23,7 +23,6 @@ import sage.modular.arithgroup.all as arithgroup
 import ambient
 import cuspidal_submodule
 import eisenstein_submodule
-import submodule
 
 class ModularFormsAmbient_g0_Q(ambient.ModularFormsAmbient):
     """

@@ -40,7 +40,7 @@ def extract_sublist_indices(Biglist, Smalllist):
 
     EXAMPLES::
 
-        sage: from sage.quadratic_forms.quadratic_form__local_density_congruence import extract_sublist_indices
+        sage: from sage.quadratic_forms.count_local_2 import extract_sublist_indices
 
         sage: biglist = [1,3,5,7,8,2,4]
         sage: sublist = [5,3,2]

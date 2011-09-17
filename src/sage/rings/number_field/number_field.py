@@ -89,12 +89,10 @@ from __future__ import with_statement
 from sage.structure.parent_gens import localvars
 from sage.misc.cachefunc import cached_method
 
-from sage.categories.map import Map
 
 import sage.libs.ntl.all as ntl
 import sage.libs.pari.all as pari
 import sage.interfaces.gap
-import sage.misc.preparser
 import sage.rings.arith
 
 import sage.rings.complex_field
@@ -107,7 +105,7 @@ import sage.rings.real_lazy
 from sage.rings.finite_rings.integer_mod import mod
 
 import sage.rings.ring
-from sage.misc.latex import latex_variable_name, latex_varify
+from sage.misc.latex import latex_variable_name
 
 from unit_group import UnitGroup
 from class_group import ClassGroup
@@ -123,7 +121,6 @@ import maps
 import number_field_morphisms
 from itertools import count, izip
 
-from sage.rings.integer_ring import IntegerRing
 
 def is_NumberFieldHomsetCodomain(codomain):
     """
@@ -184,7 +181,6 @@ def proof_flag(t):
     """
     return get_flag(t, "number_field")
 
-import operator
 
 import weakref
 
@@ -196,9 +192,7 @@ import sage.rings.integer_ring as integer_ring
 import sage.rings.infinity as infinity
 import sage.rings.rational as rational
 import sage.rings.integer as integer
-import sage.rings.polynomial.polynomial_ring as polynomial_ring
 import sage.rings.polynomial.polynomial_element as polynomial_element
-import sage.rings.ideal as ideal
 import sage.rings.complex_field
 import sage.groups.abelian_gps.abelian_group
 import sage.rings.complex_interval_field
@@ -206,8 +200,7 @@ import sage.rings.complex_interval_field
 from sage.structure.parent_gens import ParentWithGens
 import number_field_element
 import number_field_element_quadratic
-from number_field_ideal import NumberFieldIdeal, is_NumberFieldIdeal, NumberFieldFractionalIdeal
-from sage.rings.number_field.number_field_ideal_rel import NumberFieldFractionalIdeal_rel
+from number_field_ideal import is_NumberFieldIdeal, NumberFieldFractionalIdeal
 from sage.libs.all import pari, pari_gen
 
 QQ = rational_field.RationalField()

@@ -22,7 +22,6 @@ AUTHORS:
 __doc_exclude = ['gp', '_gp', 'Gp', 'Integer', 'sage_eval']
 
 from sage.interfaces.gp import Gp
-from sage.rings.all import Integer
 from sage.misc.all import sage_eval
 
 _gp = None

@@ -21,7 +21,6 @@ import sage.rings.all
 import sage.rings.arith as arith
 import sage.misc.misc as misc
 import sage.modules.module
-import sage.structure.factorization
 from sage.structure.all import Sequence
 import sage.matrix.matrix_space as matrix_space
 from sage.structure.parent_gens import ParentWithGens
@@ -30,7 +29,6 @@ import sage.misc.prandom as random
 
 import algebra
 import element
-import homspace
 import hecke_operator
 
 from sage.modules.all import FreeModule

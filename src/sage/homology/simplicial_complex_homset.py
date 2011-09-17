@@ -50,7 +50,6 @@ TESTS::
 #*****************************************************************************
 
 import sage.categories.homset
-import sage.homology.simplicial_complex as simplicial_complex
 import sage.homology.simplicial_complex_morphism as simplicial_complex_morphism
 
 def is_SimplicialComplexHomset(x):

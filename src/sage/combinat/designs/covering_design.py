@@ -44,13 +44,10 @@ AUTHORS:
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import types
 import urllib
 from sage.misc.sage_eval import sage_eval
 from sage.structure.sage_object import SageObject
-from sage.rings.integer import Integer
 from sage.rings.rational import Rational
-from sage.rings.integer_ring import ZZ
 from sage.rings.arith import binomial
 from sage.combinat.combination import Combinations
 from sage.combinat.designs.incidence_structures import IncidenceStructure

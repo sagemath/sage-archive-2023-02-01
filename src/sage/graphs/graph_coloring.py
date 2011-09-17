@@ -16,9 +16,7 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.combinat.matrices.dlxcpp import DLXCPP
-from sage.all import Matrix, vector, QQ
 from sage.plot.colors import rainbow
-from chrompoly import chromatic_polynomial
 from graph_generators import GraphGenerators
 
 def all_graph_colorings(G,n,count_only=False):

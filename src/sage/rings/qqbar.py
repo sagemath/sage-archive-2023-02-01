@@ -488,15 +488,14 @@ import sage.rings.ring
 from sage.structure.sage_object import SageObject
 from sage.structure.parent_gens import ParentWithGens
 from sage.rings.real_mpfr import RR
-from sage.rings.real_mpfi import RealIntervalField, RIF, RealIntervalFieldElement, is_RealIntervalFieldElement
+from sage.rings.real_mpfi import RealIntervalField, RIF, is_RealIntervalFieldElement
 from sage.rings.complex_field import ComplexField
 from sage.rings.complex_interval_field import ComplexIntervalField, is_ComplexIntervalField
-from sage.rings.complex_interval import ComplexIntervalFieldElement, is_ComplexIntervalFieldElement
+from sage.rings.complex_interval import is_ComplexIntervalFieldElement
 from sage.rings.polynomial.all import PolynomialRing, is_Polynomial
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
-from sage.rings.number_field.number_field import NumberField, NumberField_quadratic, QuadraticField, CyclotomicField
-from sage.rings.number_field.number_field_element import is_NumberFieldElement
+from sage.rings.number_field.number_field import NumberField, QuadraticField, CyclotomicField
 from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
 from sage.rings.arith import factor
 from sage.libs.pari.gen import pari

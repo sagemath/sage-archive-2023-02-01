@@ -11,7 +11,7 @@ Hopf algebras with basis
 
 from sage.categories.category_types import Category_over_base_ring
 from sage.categories.all import HopfAlgebras, BialgebrasWithBasis
-from sage.categories.tensor import tensor, TensorProductsCategory
+from sage.categories.tensor import TensorProductsCategory
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 

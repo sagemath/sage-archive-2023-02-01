@@ -55,7 +55,7 @@ Test pickling/unpickling::
 #*****************************************************************************
 
 import free_module_element
-from sage.symbolic.all import SR, Expression
+from sage.symbolic.all import Expression
 
 
 def apply_map(phi):

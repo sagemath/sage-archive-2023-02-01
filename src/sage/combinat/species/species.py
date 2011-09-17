@@ -54,7 +54,7 @@ from generating_series import OrdinaryGeneratingSeriesRing, ExponentialGeneratin
 from sage.rings.all import QQ
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
-from sage.combinat.species.structure import StructuresWrapper, IsotypesWrapper, SimpleStructuresWrapper, SimpleIsotypesWrapper
+from sage.combinat.species.structure import StructuresWrapper, IsotypesWrapper
 
 class GenericCombinatorialSpecies(SageObject):
     def __init__(self, min=None, max=None, weight=None):

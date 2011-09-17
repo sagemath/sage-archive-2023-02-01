@@ -85,8 +85,6 @@ import ambient
 import ambient_R
 import cuspidal_submodule
 import eisenstein_submodule
-import space
-import submodule
 
 class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
     """

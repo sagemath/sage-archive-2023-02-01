@@ -83,8 +83,6 @@ List representatives for Gamma_0(N) - equivalence classes of cusps:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import is_Infinite, Rational, Integer, ZZ, QQ
-from sage.rings.integer_ring import IntegerRing
 from sage.structure.parent_base import ParentWithBase
 from sage.structure.element import Element, is_InfinityElement
 from sage.misc.cachefunc import cached_method

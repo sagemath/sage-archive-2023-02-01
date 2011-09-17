@@ -29,11 +29,9 @@ EXAMPLE::
 #*****************************************************************************
 
 from sage.rings.all import PolynomialRing, RR, PowerSeriesRing, LaurentSeriesRing, O
-from sage.misc.all import latex
 from sage.functions.all import log
 
 import sage.schemes.plane_curves.projective_curve as plane_curve
-from sage.schemes.generic.all import ProjectiveSpace
 
 def is_HyperellipticCurve(C):
     """

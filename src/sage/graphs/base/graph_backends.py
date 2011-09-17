@@ -13,7 +13,6 @@ Implements various backends for Sage graphs.
 #*******************************************************************************
 
 from sage.structure.sage_object import SageObject
-from sage.rings.integer import Integer
 
 class GenericGraphBackend(SageObject):
     """

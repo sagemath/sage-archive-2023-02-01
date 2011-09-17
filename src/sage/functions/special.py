@@ -381,17 +381,11 @@ Added 16-02-2008 (wdj): optional calls to scipy and replace all
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import copy
 from sage.plot.plot import plot
-import sage.interfaces.all
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.rational_field import RationalField
 from sage.rings.real_mpfr import RealField
 from sage.rings.complex_field import ComplexField
 from sage.misc.sage_eval import sage_eval
-from sage.rings.all import ZZ, QQ, RR, RDF
-import sage.rings.commutative_ring as commutative_ring
-import sage.rings.ring as ring
+from sage.rings.all import ZZ, RR, RDF
 from sage.functions.other import real, imag
 from sage.symbolic.function import BuiltinFunction
 from sage.calculus.calculus import maxima

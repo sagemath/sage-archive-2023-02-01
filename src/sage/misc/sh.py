@@ -1,6 +1,5 @@
 import os
 
-from misc import tmp_filename
 
 class Sh:
     r"""

@@ -16,13 +16,12 @@ Jack Polynomials
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.rings.all import Integer, gcd, lcm, QQ, is_PolynomialRing, is_FractionField
-import sage.combinat.partition
+import sage.categories.all
+from sage.rings.all import Integer, gcd, lcm, QQ, is_FractionField
 from sage.misc.misc import prod
 from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom, End
 import sfa
-import copy
 
 def JackPolynomialsP(R, t=None):
     """

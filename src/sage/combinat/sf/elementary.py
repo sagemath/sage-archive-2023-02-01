@@ -15,9 +15,7 @@ Elementary symmetric functions
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-import sfa, multiplicative, classical, dual
-from sage.rings.all import PolynomialRing
-import sage.libs.symmetrica.all as symmetrica
+import sfa, multiplicative, classical
 
 ###################################
 #                                 #

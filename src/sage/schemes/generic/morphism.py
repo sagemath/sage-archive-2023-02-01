@@ -19,12 +19,10 @@ AUTHORS:
 from sage.rings.infinity import infinity
 from sage.structure.element   import AdditiveGroupElement, RingElement, Element, generic_power
 from sage.structure.sequence  import Sequence
-from sage.categories.morphism import Morphism
 from sage.categories.homset   import Homset
 from sage.rings.all           import is_RingHomomorphism, is_CommutativeRing, Integer
 from point                    import is_SchemeTopologicalPoint
 import scheme
-import spec
 
 def is_SchemeMorphism(f):
     """

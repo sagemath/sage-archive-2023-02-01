@@ -20,16 +20,13 @@
 #                  http://www.gnu.org/licenses/
 #####################################################################
 
-import crypt
-import os
 from   random import randint
 
 import twist
-from twisted.cred import portal, checkers, credentials, error as credError
-from twisted.internet import protocol, defer
-from zope.interface import Interface, implements
+from twisted.cred import portal, checkers, credentials
+from twisted.internet import defer
+from zope.interface import implements
 from twisted.web2 import iweb
-from twisted.python import log
 
 def user_type(avatarId):
     """

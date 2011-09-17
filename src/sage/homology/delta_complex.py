@@ -59,7 +59,6 @@ from copy import copy
 from sage.homology.cell_complex import GenericCellComplex
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
-from sage.rings.rational_field import QQ
 from sage.matrix.constructor import matrix
 from sage.homology.simplicial_complex import Simplex, lattice_paths, SimplicialComplex
 from sage.homology.chain_complex import ChainComplex

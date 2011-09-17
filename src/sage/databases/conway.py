@@ -63,7 +63,6 @@ Frank Luebeck's tables of Conway polynomials over finite fields.
 
 import os
 
-import sage.misc.misc
 import sage.databases.db   # very important that this be fully qualified
 _CONWAYDATA = "%s/conway_polynomials/"%sage.misc.misc.SAGE_DATA
 

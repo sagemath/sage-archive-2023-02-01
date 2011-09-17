@@ -51,9 +51,6 @@ AUTHORS:
 
 """
 
-import random
-import field
-import ring
 import rational
 import integer
 import infinity

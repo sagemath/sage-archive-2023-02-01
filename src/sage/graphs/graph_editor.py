@@ -14,7 +14,6 @@
 #*****************************************************************************
 import sys
 
-from graph import Graph
 from graph_generators import graphs
 from sage.misc.html import html
 

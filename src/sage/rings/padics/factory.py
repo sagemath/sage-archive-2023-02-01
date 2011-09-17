@@ -47,7 +47,6 @@ ext_table['u', pAdicRingCappedRelative] = UnramifiedExtensionRingCappedRelative
 ext_table['u', pAdicRingFixedMod] = UnramifiedExtensionRingFixedMod
 #ext_table['u', pAdicRingLazy] = UnramifiedExtensionRingLazy
 
-import weakref
 
 def get_key_base(p, prec, type, print_mode, halt, names, ram_name, print_pos, print_sep, print_alphabet, print_max_terms, check, valid_non_lazy_types):
     """

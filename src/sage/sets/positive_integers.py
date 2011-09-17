@@ -10,7 +10,6 @@ Positive Integers
 
 from sage.sets.integer_range import IntegerRangeInfinite
 from sage.rings.integer import Integer
-from sage.rings.infinity import Infinity
 
 class PositiveIntegers(IntegerRangeInfinite):
     r"""

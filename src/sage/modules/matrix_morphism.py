@@ -54,8 +54,6 @@ AUTHOR:
 import sage.categories.morphism
 import sage.categories.homset
 import sage.matrix.all as matrix
-import sage.misc.misc as misc
-import sage.modules.free_module as free_module
 from   sage.structure.all import Sequence
 
 def is_MatrixMorphism(x):

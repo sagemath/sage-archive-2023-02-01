@@ -19,22 +19,14 @@ Subspace of ambient spaces of modular symbols
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import weakref
 
-import ambient
-import sage.modules.free_module as free_module
-import sage.misc.misc as misc
-import sage.rings.arith as arith
-import sage.modules.free_module_morphism as free_module_morphism
 import sage.modular.hecke.all as hecke
 
 import sage.structure.factorization
 
 import sage.modular.modsym.space
 
-import sage.modular.modsym.element
 
-from sage.misc.cachefunc import cached_method
 
 class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, hecke.HeckeSubmodule):
     """

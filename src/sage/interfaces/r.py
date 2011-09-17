@@ -208,10 +208,8 @@ AUTHORS:
 
 from keyword import iskeyword
 from expect import Expect, ExpectElement, ExpectFunction, FunctionElement
-from sage.misc.misc import DOT_SAGE, UNAME
+from sage.misc.misc import DOT_SAGE
 from sage.misc.latex import LatexExpr
-import pexpect
-from random import randrange
 import re
 import sage.rings.integer
 

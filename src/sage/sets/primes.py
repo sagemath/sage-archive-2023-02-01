@@ -20,7 +20,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import Integer, ZZ, infinity
+from sage.rings.all import ZZ
 from set import Set_generic
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.rings.arith import nth_prime

@@ -26,14 +26,11 @@ TESTS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import sys
 
 from sage.rings.finite_rings.finite_field_base import FiniteField as FiniteField_generic
-from sage.structure.parent_gens import normalize_names, ParentWithGens
 
 import sage.rings.finite_rings.integer_mod_ring as integer_mod_ring
 import sage.rings.integer as integer
-import sage.rings.rational as rational
 import sage.rings.finite_rings.integer_mod as integer_mod
 import sage.rings.arith as arith
 

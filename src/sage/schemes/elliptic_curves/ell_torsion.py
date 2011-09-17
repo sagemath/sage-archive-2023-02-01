@@ -25,9 +25,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import sage.misc.misc as misc
 from sage.misc.cachefunc import cached_method
-import sage.rings.all as rings
 from sage.rings.all import (Integer, RationalField, ZZ)
 import sage.groups.additive_abelian.additive_abelian_wrapper as groups
 

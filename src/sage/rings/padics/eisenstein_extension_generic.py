@@ -17,7 +17,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from padic_generic import pAdicGeneric
 from padic_extension_generic import pAdicExtensionGeneric
 from sage.rings.infinity import infinity
 from sage.misc.latex import latex

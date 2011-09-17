@@ -40,19 +40,17 @@ classes.
 #                  http://www.gnu.org/licenses/
 ##########################################################################
 
-import math
 
-from sage.rings.arith import (factor, euler_phi as phi, divisors, is_prime,
+from sage.rings.arith import (factor, is_prime,
                               valuation, kronecker_symbol, gcd, euler_phi, lcm)
 
 from sage.misc.misc import mul
-from sage.rings.all import Mod, Integer, IntegerRing, IntegerModRing, ZZ, moebius
+from sage.rings.all import Mod, Integer, IntegerModRing, ZZ
 from sage.rings.rational_field import frac
 import dirichlet
 Z = ZZ  # useful abbreviation.
 
-from sage.modular.arithgroup.all import Gamma0, Gamma1, GammaH, is_ArithmeticSubgroup, is_GammaH, is_Gamma0, is_Gamma1
-from sage.modular.arithgroup.congroup_gammaH import mumu
+from sage.modular.arithgroup.all import Gamma0, Gamma1, is_ArithmeticSubgroup, is_GammaH
 
 ##########################################################################
 # Helper functions for calculating dimensions of spaces of modular forms

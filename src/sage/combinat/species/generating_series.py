@@ -78,7 +78,7 @@ from sage.rings.all import Integer, moebius, lcm, divisors
 from sage.combinat.partition import Partition, Partitions
 from functools import partial
 from sage.combinat.sf.all import SFAPower
-from sage.misc.cachefunc import cached_method, cached_function
+from sage.misc.cachefunc import cached_function
 
 @cached_function
 def OrdinaryGeneratingSeriesRing(R):

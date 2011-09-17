@@ -17,7 +17,7 @@ functions.
 
 from sage.structure.parent_base import ParentWithBase
 from sage.misc.functional import sqrt, log
-from sage.rings.all import RealField, RationalField, is_RealField, is_RationalField
+from sage.rings.all import RealField, is_RealField, is_RationalField
 from sage.sets.set import Set
 
 ################################################################################

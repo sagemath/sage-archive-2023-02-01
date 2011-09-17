@@ -123,17 +123,13 @@ AUTHORS:
 
 import math
 
-from sage.structure.element import AdditiveGroupElement, RingElement
-from sage.interfaces import gp
+from sage.structure.element import AdditiveGroupElement
 import sage.plot.all as plot
 
 from sage.rings.padics.factory import Qp
 from sage.rings.padics.precision_error import PrecisionError
 
-import ell_generic
 import sage.rings.all as rings
-import sage.rings.arith as arith
-import sage.misc.misc as misc
 from sage.groups.all import AbelianGroup
 import sage.groups.generic as generic
 from sage.libs.pari.all import pari, PariError
@@ -144,7 +140,6 @@ from sage.schemes.generic.morphism import (SchemeMorphism_projective_coordinates
                                            SchemeMorphism_abelian_variety_coordinates_field,
                                            is_SchemeMorphism, SchemeMorphism_coordinates)
 
-import sage.schemes.generic.scheme as scheme
 from constructor import EllipticCurve
 
 oo = rings.infinity       # infinity

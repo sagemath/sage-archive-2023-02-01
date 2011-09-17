@@ -35,7 +35,6 @@ from padic_ZZ_pX_FM_element import pAdicZZpXFMElement
 from padic_ZZ_pX_CR_element import pAdicZZpXCRElement
 from padic_ZZ_pX_CA_element import pAdicZZpXCAElement
 
-from sage.rings.integer_ring import ZZ
 
 class UnramifiedExtensionRingCappedRelative(UnramifiedExtensionGeneric, pAdicCappedRelativeRingGeneric):
     """

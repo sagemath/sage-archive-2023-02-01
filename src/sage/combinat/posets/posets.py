@@ -17,8 +17,7 @@ Posets
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import __builtin__
-from copy import copy, deepcopy
+from copy import deepcopy
 from sage.structure.parent_base import ParentWithBase
 from sage.rings.integer import Integer
 from sage.graphs.all import DiGraph

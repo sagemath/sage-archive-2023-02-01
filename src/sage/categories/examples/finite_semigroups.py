@@ -8,7 +8,6 @@ Examples of finite semigroups
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 from sage.sets.family import Family
 from sage.categories.all import FiniteSemigroups

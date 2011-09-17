@@ -54,18 +54,14 @@ AUTHORS:
 
 from sage.rings.number_field.number_field import CyclotomicField
 from sage.plot.all import polygon, line, text
-from sage.plot.plot import Graphics
-from sage.groups.abelian_gps.dual_abelian_group import DualAbelianGroup
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
-from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.groups.perm_gps.permgroup_element import is_PermutationGroupElement
-from sage.groups.matrix_gps.matrix_group import MatrixGroup
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 from sage.rings.arith import factor
 from sage.rings.rational_field import QQ
 from sage.rings.real_mpfr import RR
-from sage.rings.all import CC, I
+from sage.rings.all import I
 from sage.functions.all import sin, cos
 from sage.gsl.fft import FastFourierTransform
 from sage.gsl.dwt import WaveletTransform

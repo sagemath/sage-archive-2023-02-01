@@ -118,12 +118,11 @@ from sage.structure.sequence import Sequence
 from sage.categories.objects import Objects
 
 from subprocess import Popen, PIPE
-from sage.misc.all import SAGE_TMP, tmp_filename, union
+from sage.misc.all import tmp_filename
 from sage.misc.functional import norm
 from sage.misc.package import is_package_installed
 
 from sage.rings.all import Integer, QQ, ZZ, primes_first_n
-from sage.rings.rational import Rational
 from sage.rings.real_double import RDF
 from sage.modules.free_module_element import vector
 from sage.matrix.constructor import matrix, identity_matrix

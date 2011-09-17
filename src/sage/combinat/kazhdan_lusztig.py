@@ -12,7 +12,6 @@ Kazhdan-Lusztig Polynomials
 from sage.rings.all import is_Polynomial
 from sage.functions.other import floor
 from sage.misc.cachefunc import cached_method
-from sage.algebras.iwahori_hecke_algebra import IwahoriHeckeAlgebraT
 from sage.rings.polynomial.laurent_polynomial import LaurentPolynomial_mpair
 from sage.structure.sage_object import SageObject
 

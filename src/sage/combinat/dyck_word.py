@@ -25,7 +25,6 @@ AUTHORS:
 #*****************************************************************************
 from combinat import CombinatorialClass, CombinatorialObject, catalan_number, InfiniteAbstractCombinatorialClass
 from backtrack import GenericBacktracker
-from sage.rings.all import infinity
 
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation

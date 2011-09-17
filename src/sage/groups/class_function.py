@@ -18,7 +18,7 @@ a group is somewhat random.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.structure.sage_object import SageObject
-from sage.interfaces.gap import gap, GapElement, gfq_gap_to_sage
+from sage.interfaces.gap import gap, GapElement
 from sage.rings.all import Integer
 from sage.rings.all import CyclotomicField
 

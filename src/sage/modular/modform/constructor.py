@@ -34,13 +34,11 @@ import sage.modular.arithgroup.all as arithgroup
 import sage.modular.dirichlet as dirichlet
 import sage.rings.all as rings
 
-import ambient
 import ambient_eps
 import ambient_g0
 import ambient_g1
 import ambient_R
 import defaults
-import element
 
 
 def canonical_parameters(group, level, weight, base_ring):

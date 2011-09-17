@@ -64,7 +64,6 @@ import types
 
 from misc import tmp_dir, graphics_filename
 import sage_eval
-from sage.misc.misc import SAGE_DOC
 from sage.misc.sage_ostools import have_program
 from sage.misc.cachefunc import cached_function, cached_method
 

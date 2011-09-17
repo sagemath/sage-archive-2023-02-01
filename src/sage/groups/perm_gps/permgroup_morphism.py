@@ -39,7 +39,6 @@ EXAMPLES::
 
 from sage.misc.misc import deprecation
 from sage.categories.morphism import Morphism
-from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.groups.perm_gps.permgroup import PermutationGroup, PermutationGroup_generic
 
 class PermutationGroupMorphism(Morphism):

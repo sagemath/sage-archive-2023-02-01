@@ -10,11 +10,7 @@ Examples of commutative additive monoids
 
 from sage.misc.cachefunc import cached_method
 from sage.structure.parent import Parent
-from sage.structure.element import Element
-from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.element_wrapper import ElementWrapper
 from sage.categories.all import CommutativeAdditiveMonoids
-from sage.sets.family import Family
 from commutative_additive_semigroups import FreeCommutativeAdditiveSemigroup
 
 class FreeCommutativeAdditiveMonoid(FreeCommutativeAdditiveSemigroup):

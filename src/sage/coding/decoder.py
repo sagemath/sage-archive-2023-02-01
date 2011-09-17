@@ -20,7 +20,7 @@ TODO:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.coding.linear_code import hamming_weight, LinearCode
+from sage.coding.linear_code import hamming_weight
 from sage.misc.decorators import rename_keyword
 
 def syndrome(C, v):

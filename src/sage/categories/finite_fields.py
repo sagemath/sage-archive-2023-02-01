@@ -14,7 +14,6 @@ Finite Fields
 from sage.misc.cachefunc import cached_method
 from sage.categories.category import Category
 from sage.rings.field import is_Field
-from sage.misc.lazy_attribute import lazy_attribute
 
 class FiniteFields(Category):
     """

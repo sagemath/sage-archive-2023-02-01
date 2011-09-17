@@ -17,9 +17,9 @@ import sage.modular.dirichlet as dirichlet
 
 from sage.modular.arithgroup.congroup_gammaH import GammaH_class
 
-from sage.rings.all import ComplexField, RealField, Integer
+from sage.rings.all import Integer
 
-from sage.rings.all import (bernoulli, CyclotomicField, prime_range,
+from sage.rings.all import (bernoulli, CyclotomicField,
                             is_FiniteField, ZZ, QQ, Integer, divisors,
                             LCM, is_squarefree)
 from sage.rings.power_series_ring import PowerSeriesRing

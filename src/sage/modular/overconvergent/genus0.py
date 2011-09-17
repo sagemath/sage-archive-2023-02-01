@@ -180,7 +180,6 @@ from sage.misc.cachefunc    import cached_method
 from sage.modular.all       import (DirichletGroup, trivial_character, EtaProduct,
                                     j_invariant_qexp, hecke_operator_on_qexp)
 from sage.modular.arithgroup.all import (Gamma1, is_Gamma0, is_Gamma1)
-from sage.modular.hecke.all import HeckeModuleElement, HeckeModule_generic
 from sage.modular.modform.element import ModularFormElement
 from sage.modules.all       import vector
 from sage.modules.module    import Module_old

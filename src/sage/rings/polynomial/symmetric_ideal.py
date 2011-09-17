@@ -57,7 +57,6 @@ equal to `x_1` in ``Q``. Indeed, we have
 from sage.rings.ideal import Ideal_generic
 from sage.rings.integer import Integer
 from sage.structure.sequence import Sequence
-from sage.rings.integer_ring import ZZ
 from sage.misc.cachefunc import cached_method
 import sys
 

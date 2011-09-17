@@ -99,7 +99,7 @@ class MPolynomial_element(MPolynomial):
 
             sage: P.<x,y,z> = PolynomialRing(QQbar)
             sage: x + QQbar.random_element() # indirect doctest
-            x - 2
+            x + 4
         """
         return "%s"%self.__element
 

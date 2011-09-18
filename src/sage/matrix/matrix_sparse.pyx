@@ -380,6 +380,13 @@ cdef class Matrix_sparse(matrix.Matrix):
             sage: print A
             [1 2]
             [3 4]
+
+        ``.T`` is a convenient shortcut::
+
+           sage: A.T
+           [1 3]
+           [2 4]
+
         """
         cdef Matrix_sparse A
         A = self.new_matrix(self._ncols, self._nrows)

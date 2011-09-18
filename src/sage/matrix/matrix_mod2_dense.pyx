@@ -1448,10 +1448,24 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: B.transpose() == A
             True
 
+        ``.T`` is a convenient shortcut::
+            sage: A.T
+            [1 0 1]
+            [0 1 1]
+            [1 1 0]
+            [0 0 1]
+            [0 0 0]
+
         TESTS:
             sage: A = random_matrix(GF(2),0,40)
             sage: A.transpose()
             40 x 0 dense matrix over Finite Field of size 2
+
+            sage: A = Matrix(GF(2), [1,0])
+            sage: B = A.transpose()
+            sage: A[0,0] = 0
+            sage: B[0,0]
+            1
         """
         cdef Matrix_mod2_dense A = self.new_matrix(ncols = self._nrows,  nrows = self._ncols)
         if self._nrows == 0 or self._ncols == 0:

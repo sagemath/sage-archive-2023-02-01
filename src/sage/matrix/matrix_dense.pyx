@@ -147,6 +147,12 @@ cdef class Matrix_dense(matrix.Matrix):
             [1 2]
             [3 4]
 
+        ``.T`` is a convenient shortcut::
+
+           sage: A.T
+           [1 3]
+           [2 4]
+
         ::
 
             sage: A.subdivide(None, 1); A

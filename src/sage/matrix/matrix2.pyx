@@ -7224,6 +7224,9 @@ cdef class Matrix(matrix1.Matrix):
             sage: ~m
             [  -2    1]
             [ 3/2 -1/2]
+            sage: m.I
+            [  -2    1]
+            [ 3/2 -1/2]
 
         TESTS::
 
@@ -9480,6 +9483,16 @@ cdef class Matrix(matrix1.Matrix):
             [-j + 1      1]
             [     0   -2*j]
 
+        Shortcuts::
+            sage: M.C
+            [-j + 1      1]
+            [     0   -2*j]
+
+        Conjugate and transpose::
+            sage: M.H
+            [     1 -j + 1]
+            [  -2*j      0]
+
         Conjugates work (trivially) for matrices over rings that embed
         canonically into the real numbers::
 
@@ -11122,6 +11135,22 @@ cdef class Matrix(matrix1.Matrix):
             for poly in C:
                 companions.append(sage.matrix.constructor.companion_matrix(poly, format=format))
             return sage.matrix.constructor.block_diagonal_matrix(companions, subdivide=subdivide)
+
+    """
+    Provides shortcuts for various methods like transpose()
+    """
+    property T:
+        def __get__(self):
+            return self.transpose()
+    property C:
+        def __get__(self):
+            return self.conjugate()
+    property H:
+        def __get__(self):
+            return self.conjugate().transpose()
+    property I:
+        def __get__(self):
+            return self.inverse()
 
     # end of Matrix class methods
 

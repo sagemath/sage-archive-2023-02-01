@@ -1423,12 +1423,22 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             [0.0 3.0]
             [1.0 4.0]
             [2.0 5.0]
+
+        ``.T`` is a convenient shortcut::
+
+            sage: m.T
+            [2.0 3.0]
+            [1.0 4.0]
+            [2.0 5.0]
+
+       ::
             sage: m = matrix(RDF,0,3); m
             []
             sage: m.transpose()
             []
             sage: m.transpose().parent()
             Full MatrixSpace of 3 by 0 dense matrices over Real Double Field
+
         """
         if self._nrows == 0 or self._ncols == 0:
             return self.new_matrix(self._ncols, self._nrows)

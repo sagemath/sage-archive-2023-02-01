@@ -2356,6 +2356,15 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             [0 1 2]
             [3 4 5]
 
+        ``.T`` is a convenient shortcut::
+
+            sage: print A.T
+            [0 3]
+            [1 4]
+            [2 5]
+
+        ::
+
             sage: A.subdivide(None, 1); A
             [0|1 2]
             [3|4 5]

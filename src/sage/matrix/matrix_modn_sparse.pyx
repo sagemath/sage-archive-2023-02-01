@@ -678,6 +678,12 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             [0 2 3]
             [1 0 0]
             [0 0 0]
+
+        ``.T`` is a convenient shortcut::
+            sage: A.T
+            [0 2 3]
+            [1 0 0]
+            [0 0 0]
         """
         cdef int i, j
         cdef c_vector_modint row

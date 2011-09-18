@@ -4636,6 +4636,15 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [0 1 2]
             [3 4 5]
 
+        ``.T`` is a convenient shortcut::
+
+            sage: A.T
+            [0 3]
+            [1 4]
+            [2 5]
+
+        ::
+
             sage: A.subdivide(None, 1); A
             [0|1 2]
             [3|4 5]

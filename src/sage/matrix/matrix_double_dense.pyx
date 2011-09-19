@@ -706,11 +706,11 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: A = matrix(CDF, [[1,2,4],[5,3,9],[7,8,6]])
             sage: c = A.norm(2)*A.inverse().norm(2)
             sage: d = A.condition(2)
-            sage: abs(c-d) < 1.0e-14
+            sage: abs(c-d) < 1.0e-12
             True
             sage: c = A.norm(1)*A.inverse().norm(1)
             sage: d = A.condition(1)
-            sage: abs(c-d) < 1.0e-14
+            sage: abs(c-d) < 1.0e-12
             True
         """
         if not self.is_square() and p != 'sv':

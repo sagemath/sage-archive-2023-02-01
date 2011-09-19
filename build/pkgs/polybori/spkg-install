@@ -59,7 +59,7 @@ clean_polybori()
     rm -f ${SAGE_LOCAL}/lib/libpolybori*
     rm -f ${SAGE_LOCAL}/lib/libpboriCudd*
     rm -f ${SAGE_LOCAL}/lib/libgroebner*
-    rm -rf ${SAGE_LOCAL}/include/polybori
+    rm -rf ${SAGE_LOCAL}/include/polybori*
     rm -rf ${SAGE_LOCAL}/include/cudd
 }
 

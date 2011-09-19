@@ -38,6 +38,9 @@ reference implementation for Gröbner basis computation.
 
 == Releases ==
 
+=== polybori-0.7.1.p6 (Alexander Dreyer, 19 September, 2011) ===
+ * #11574: add -msse2 only of __M4RI_HAVE_SSE2 is defined *and* nonzero
+
 === polybori-0.7.1.p5 (Alexander Dreyer, 28 August, 2011) ===
  * #11574: add -msse2 option to compile flags if m4ri uses sse2
 

@@ -384,8 +384,9 @@ if not env.GetOption('clean'):
         }
         """  %  \
         ("%s", ''.join(["""
-        #if defined(__M4RI_HAVE_%(macro)s) || defined(HAVE_%(macro)s )
-          printf("-m%(option)s ");
+        #if defined(__M4RI_HAVE_%(macro)s)
+          if (__M4RI_HAVE_%(macro)s)
+            printf("-m%(option)s ");
         #endif""" % \
         dict(macro=opt.replace('.','_').upper(), option=opt) for opt in \
             Split("sse sse2 sse3 sse4 sse4.1 sse4.2 sse4a ssse3 mmx 3dnow") ]) )

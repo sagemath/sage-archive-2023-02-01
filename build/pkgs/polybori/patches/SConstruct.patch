@@ -1,5 +1,5 @@
 --- ../src/polybori-0.7/SConstruct	2011-04-27 13:00:31.000000000 +0200
-+++ SConstruct	2011-08-29 01:29:00.818058618 +0200
++++ SConstruct	2011-09-19 23:05:17.000000000 +0200
 @@ -169,6 +169,8 @@
  opts.Add('CXXFLAGS', "C++ compiler flags", "-std=c++98 -ftemplate-depth-100",
           converter = Split)
@@ -9,7 +9,7 @@
  opts.Add('LINKFLAGS', "Linker flags", defaultenv['LINKFLAGS'] + ['-s'])
  opts.Add('LIBS', 'custom libraries needed for build', [], converter = Split)
  
-@@ -370,9 +372,39 @@
+@@ -370,9 +372,40 @@
  external_m4ri = False
  
  if not env.GetOption('clean'):
@@ -26,8 +26,9 @@
 +        }
 +        """  %  \
 +        ("%s", ''.join(["""
-+        #if defined(__M4RI_HAVE_%(macro)s) || defined(HAVE_%(macro)s )
-+          printf("-m%(option)s ");
++        #if defined(__M4RI_HAVE_%(macro)s)
++          if (__M4RI_HAVE_%(macro)s)
++            printf("-m%(option)s ");
 +        #endif""" % \
 +        dict(macro=opt.replace('.','_').upper(), option=opt) for opt in \
 +            Split("sse sse2 sse3 sse4 sse4.1 sse4.2 sse4a ssse3 mmx 3dnow") ]) )
@@ -51,7 +52,7 @@
          env.Append(CPPDEFINES=["HAVE_GD"])
  
      if env['FORCE_HASH_MAP']:
-@@ -436,7 +468,7 @@
+@@ -436,7 +469,7 @@
                  print "Tutorial will not be installed"
      external_m4ri = conf.CheckLib('m4ri')
      if conf.CheckCHeader("gd.h") and conf.CheckLib("gd"):
@@ -60,7 +61,7 @@
          env.Append(CPPDEFINES=["HAVE_GD"])
      if external_m4ri:
         env['LIBS'] += ['m4ri']
-@@ -448,6 +480,8 @@
+@@ -448,6 +481,8 @@
             print "Symlinking to", m4ri_inc, "..."
             os.symlink('.', m4ri_inc)
  
@@ -69,7 +70,7 @@
      env = conf.Finish()
  
  
-@@ -493,6 +527,12 @@
+@@ -493,6 +528,12 @@
  
  env.Append(BUILDERS={'SymLink' : symlinkbld})
  
@@ -82,7 +83,7 @@
  ######################################################################
  # Stuff for building Cudd library
  ######################################################################
-@@ -505,8 +545,7 @@
+@@ -505,8 +546,7 @@
  
  env.Append(LIBPATH=[CuddPath()])
  
@@ -92,7 +93,7 @@
  
  cudd_headers = [ CuddPath(fname) for fname in ['obj/cuddObj.hh', 'util/util.h',
                                                 'cudd/cuddInt.h'] ] 
-@@ -565,9 +604,11 @@
+@@ -565,9 +605,11 @@
  slib = env.SharedLibrary
  if env['SHLIBVERSIONING']:
      slib = VersionatedSharedLibrary
@@ -107,7 +108,7 @@
  
  libCuddShared = slib(CuddPath(cudd_name), list(shared_resources))
  
-@@ -1319,7 +1360,7 @@
+@@ -1319,7 +1361,7 @@
  
      if HAVE_PYTHON_EXTENSION or extern_python_ext:
          cmdline = """$PYTHON -c "import compileall; compileall.compile_dir('"""

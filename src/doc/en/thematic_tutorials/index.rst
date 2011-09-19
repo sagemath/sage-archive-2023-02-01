@@ -15,6 +15,7 @@ __ http://creativecommons.org/licenses/by-sa/3.0/
 .. toctree::
    :maxdepth: 1
 
+   sandpile
    functional_programming
    group_theory
    lie

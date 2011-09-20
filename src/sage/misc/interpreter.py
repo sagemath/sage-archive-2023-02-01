@@ -22,6 +22,7 @@ Modified input.
   -- the R.<x,y,z> = ... notation
 
 TODO:
+
   I have no plans for anything further, except to improve the
   robustness of the above.  Preparsing may work incorrectly for
   multi-line input lines in some cases; this will be fixed.
@@ -47,7 +48,8 @@ I also fixed it so ^ is not replaced by ** inside strings.
 Finally, I added back the M.n notation for the n-th generator
 of object M, again like in MAGMA.
 
-EXAMPLE:
+EXAMPLE::
+
     sage: 2/3
     2/3
     sage: type(2/3)
@@ -66,6 +68,7 @@ breaks, or users have to type v[int(7)], which is insane.
 A fix would be to only not make what's in the brackets an
 Integer if what's before the bracket is a valid identifier,
 so the w = [5] above would work right.
+::
 
     sage: s = "x^3 + x + 1"
     sage: s
@@ -137,9 +140,9 @@ def do_prefilter_paste(line, continuation):
 
     INPUT:
 
-        - ``line`` -- a single line; must *not* have any newlines in it
-        - ``continuation`` -- whether the input line is really part
-          of the previous line, because of open parens or backslash.
+    - ``line`` -- a single line; must *not* have any newlines in it
+    - ``continuation`` -- whether the input line is really part
+      of the previous line, because of open parens or backslash.
     """
     if '\n' in line:
         raise RuntimeError, "bug in function that calls do_prefilter_paste -- there can be no newlines in the input"
@@ -272,9 +275,9 @@ def handle_encoding_declaration(contents, out):
         # -*- coding: utf-8 -*-
         'import os, sys\n...'
 
-    TESTS::
+    TESTS:
 
-    These are some of the tests listed in PEP 263.
+    These are some of the tests listed in PEP 263::
 
         sage: contents = '#!/usr/bin/python\n# -*- coding: latin-1 -*-\nimport os, sys'
         sage: handle_encoding_declaration(contents, sys.stdout)
@@ -323,24 +326,21 @@ def handle_encoding_declaration(contents, out):
         '#!/usr/local/bin/python\nimport os, sys'
 
 
-    NOTES::
+    NOTES:
 
-        PEP 263: http://www.python.org/dev/peps/pep-0263/
+    - PEP 263: http://www.python.org/dev/peps/pep-0263/
+    - PEP 263 says that Python will interpret a UTF-8 byte order mark
+      as a declaration of UTF-8 encoding, but I don't think we do
+      that; this function only sees a Python string so it can't
+      account for a BOM.
+    - We default to UTF-8 encoding even though PEP 263 says that
+      Python files should default to ASCII.
+    - Also see http://docs.python.org/ref/encodings.html.
 
-        PEP 263 says that Python will interpret a UTF-8 byte order mark
-        as a declaration of UTF-8 encoding, but I don't think we do
-        that; this function only sees a Python string so it can't
-        account for a BOM.
+    AUTHORS:
 
-        We default to UTF-8 encoding even though PEP 263 says that
-        Python files should default to ASCII.
-
-        Also see http://docs.python.org/ref/encodings.html.
-
-    AUTHORS::
-
-        - Lars Fischer
-        - Dan Drake (2010-12-08, rewrite for ticket #10440)
+    - Lars Fischer
+    - Dan Drake (2010-12-08, rewrite for ticket #10440)
     """
     lines = contents.splitlines()
     for num, line in enumerate(lines[:2]):
@@ -392,8 +392,9 @@ def sage_prefilter(self, block, continuation):
     line), return the preparsed version of it.
 
     INPUT:
-        block -- string (usually a single line, but not always)
-        continuation -- whether or not this line is a continuation.
+
+    - block -- string (usually a single line, but not always)
+    - continuation -- whether or not this line is a continuation.
     """
     try:
         block2 = ''
@@ -435,9 +436,11 @@ def preparser(on=True):
     Turn on or off the Sage preparser.
 
     INPUT:
-        - ``on`` -- bool (default: True) if True turn on preparsing; if False, turn it off.
 
-    EXAMPLES:
+    - ``on`` -- bool (default: True) if True turn on preparsing; if False, turn it off.
+
+    EXAMPLES::
+
         sage: 2/3
         2/3
         sage: preparser(False)
@@ -459,7 +462,7 @@ def preparser(on=True):
 import sagedoc
 import sageinspect
 import IPython.OInspect
-IPython.OInspect.getdoc = sagedoc.my_getdoc
+IPython.OInspect.getdoc = sageinspect.sage_getdoc #sagedoc.my_getdoc
 IPython.OInspect.getsource = sagedoc.my_getsource
 IPython.OInspect.getargspec = sageinspect.sage_getargspec
 

@@ -10,8 +10,8 @@ AUTHORS:
 - John Palmieri (2009-04-11): fix for #5754 plus doctests
 - Dan Drake (2009-05-21): refactor search_* functions, use system 'find' instead of sage -grep
 - John Palmieri (2009-06-28): don't use 'find' -- use Python (os.walk, re.search) instead.
-- Simon King (2011-09-19): use os.linesep, avoid destruction of embedding information,
-  enable nodetex in a docstring.
+- Simon King (2011-09): Use os.linesep, avoid destruction of embedding information,
+  enable nodetex in a docstring. Consequently use sage_getdoc.
 
 TESTS:
 
@@ -162,7 +162,9 @@ def detex(s, embedded=False):
     ``math_substitutes`` and ``nonmath_substitutes``.  If True, then
     only do ``nonmath_substitutes``.
 
-    OUTPUT: string
+    OUTPUT:
+
+    string
 
     EXAMPLES::
 
@@ -331,12 +333,20 @@ def process_mathtt(s, embedded=False):
     return s
 
 def format(s, embedded=False):
-    r"""
+    r"""noreplace
     Format Sage documentation ``s`` for viewing with IPython.
 
     This calls ``detex`` on ``s`` to convert LaTeX commands to plain
-    text, and if ``s`` contains a string of the form "<<<obj>>>",
-    then it replaces it with the docstring for "obj".
+    text, unless the directive ``nodetex`` is given in the first line
+    of the string.
+
+    Also, if ``s`` contains a string of the form ``<<<obj>>>``, then
+    it replaces it with the docstring for ``obj``, unless the
+    directive ``noreplace`` is given in the first line. If an error
+    occurs under the attempt to find the docstring for ``obj``, then
+    the substring ``<<<obj>>>`` is preserved.
+
+    Directives must be separated by a comma.
 
     NOTE:
 
@@ -366,7 +376,7 @@ def format(s, embedded=False):
     don't modify any TeX commands::
 
         sage: format("nodetex\n`x \\geq y`")
-        '\n`x \\geq y`'
+        '`x \\geq y`'
 
     Testing a string enclosed in triple angle brackets::
 
@@ -389,7 +399,7 @@ def format(s, embedded=False):
     a ``nodetex`` directive in the first "essential" line of the doc string
     is recognised. That has been implemented in trac ticket #11815::
 
-        sage: r = 'File: _local_user_with_a_very_long_name_that_would_normally_be_wrapped_sage_temp_machine_name_1234_tmp_1_spyx_0.pyx (starting at line 6)\nnodetex\nsome doc for a cython method\n`x \\geq y`'
+        sage: r = 'File: _local_user_with_a_very_long_name_that_would_normally_be_wrapped_sage_temp_machine_name_1234_tmp_1_spyx_0.pyx (starting at line 6)\nnodetex\nsome doc for a cython method\n`x \geq y`'
         sage: print format(r)
         File: _local_user_with_a_very_long_name_that_would_normally_be_wrapped_sage_temp_machine_name_1234_tmp_1_spyx_0.pyx (starting at line 6)
         <BLANKLINE>
@@ -416,6 +426,23 @@ def format(s, embedded=False):
             `x \geq y`
         <BLANKLINE>
 
+    We check that the ``noreplace`` directive works, even combined with ``nodetex`` and
+    an embedding information (see trac ticket #11817)::
+
+        sage: print format('File: bla.py (starting at line 1)\nnodetex, noreplace\n<<<identity_matrix>>>`\\not= 0`')
+        File: bla.py (starting at line 1)
+        <<<identity_matrix>>>`\not= 0`
+
+    If replacement is impossible, then no error is raised::
+
+        sage: print format('<<<bla\n<<<bla>>>\n<<<identity_matrix>>>')
+        <<<bla <<<bla>>>
+        <BLANKLINE>
+        Definition: identity_matrix(ring, n=0, sparse=False)
+        <BLANKLINE>
+           Return the n x n identity matrix over the given ring.
+        ...
+
     """
     if not isinstance(s, str):
         raise TypeError, "s must be a string"
@@ -431,7 +458,7 @@ def format(s, embedded=False):
         from sage.misc.sageinspect import _extract_embedded_position
         if _extract_embedded_position(first_line) is not None:
             embedding_info = first_line + os.linesep
-            s = s[first_newline+1:]
+            s = s[first_newline+len(os.linesep):]
             # Hence, by now, s starts with the second line.
     else:
         from sage.misc.sageinspect import _extract_embedded_position
@@ -443,7 +470,7 @@ def format(s, embedded=False):
     s = s.lstrip(os.linesep)
 
     # parse directives at beginning of docstring
-    # currently, only 'nodetex' is supported.
+    # currently, only 'nodetex' and 'noreplace' are supported.
     # 'no' + 'doctest' may be supported eventually (don't type that as
     # one word, or the whole file will not be doctested).
     first_newline = s.find(os.linesep)
@@ -454,32 +481,45 @@ def format(s, embedded=False):
     # Moreover, we must strip blank space in order to get the directives
     directives = [ d.strip().lower() for d in first_line.split(',') ]
 
+    if 'noreplace' in directives or 'nodetex' in directives:
+        s = s[first_newline+len(os.linesep):]
+
     import sage.all
     import sage.server.support
     docs = set([])
-    while True:
-        i = s.find("<<<")
-        if i == -1: break
-        j = s[i+3:].find('>>>')
-        if j == -1: break
-        obj = s[i+3:i+3+j]
-        if obj in docs:
-            t = ''
-        else:
-            x = eval('sage.all.%s'%obj, locals())
-            t0 = sage.misc.sageinspect.sage_getdef(x, obj)
-            t1 = my_getdoc(x)
-            t = 'Definition: ' + t0 + '\n\n' + t1
-            docs.add(obj)
-        s = s[:i] + '\n' + t + s[i+6+j:]
+    if 'noreplace' not in directives:
+        i_0 = 0
+        while True:
+            i = s[i_0:].find("<<<")
+            if i == -1: break
+            j = s[i_0+i+3:].find('>>>')
+            if j == -1: break
+            obj = s[i_0+i+3 : i_0+i+3+j]
+            if obj in docs:
+                t = ''
+            else:
+                try:
+                    x = eval('sage.all.%s'%obj, locals())
+                except AttributeError:
+                    # A pair <<<...>>> has been found, but the object not.
+                    i_0 += i+6+j
+                    continue
+                except SyntaxError:
+                    # This is a simple heuristics to cover the case of
+                    # a non-matching set of <<< and >>>
+                    i_0 += i+3
+                    continue
+                t0 = sage.misc.sageinspect.sage_getdef(x, obj)
+                t1 = sage.misc.sageinspect.sage_getdoc(x)
+                t = 'Definition: ' + t0 + '\n\n' + t1
+                docs.add(obj)
+            s = s[:i_0+i] + '\n' + t + s[i_0+i+6+j:]
+            i_0 += i
 
     if 'nodetex' not in directives:
         s = process_dollars(s)
         s = process_mathtt(s, embedded=embedded)
         s = detex(s, embedded=embedded)
-    else:
-        # strip the 'nodetex' directive from s
-        s = s.replace('nodetex', '', 1)
     return embedding_info+s
 
 def format_src(s):
@@ -1075,32 +1115,6 @@ def format_search_as_html(what, r, search):
 ## Add detex'ing of documentation
 #######################################
 import sageinspect
-
-def my_getdoc(obj):
-    """
-    Retrieve the documentation for ``obj``.
-
-    INPUT: ``obj`` - a Sage object, function, etc.
-
-    OUTPUT: its documentation (string)
-
-    EXAMPLES::
-
-        sage: from sage.misc.sagedoc import my_getdoc
-        sage: s = my_getdoc(identity_matrix)
-        sage: type(s)
-        <type 'str'>
-    """
-    try:
-        ds = obj._sage_doc_()
-    except (AttributeError, TypeError):  # TypeError for interfaces
-        try:
-            ds = sageinspect.sage_getdoc(obj)
-        except:
-            return None
-    if ds is None:
-        return None
-    return ds
 
 def my_getsource(obj, is_binary):
     """

@@ -3127,6 +3127,10 @@ def plot(funcs, *args, **kwds):
         Traceback (most recent call last):
         ...
         RuntimeError: Error in line(): option 'foo' not valid.
+        sage: P = plot(x, (x,1,1)) # trac ticket #11753
+        Traceback (most recent call last):
+        ...
+        ValueError: plot start point and end point must be different
 
     We test that we can plot `f(x)=x` (see Trac 10246)::
 

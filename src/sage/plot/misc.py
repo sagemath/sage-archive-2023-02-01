@@ -86,12 +86,16 @@ def setup_for_eval_on_grid(funcs, ranges, plot_points=None, return_vars=False):
         Traceback (most recent call last):
         ...
         ValueError: range variables should be distinct, but there are duplicates
+        sage: sage.plot.misc.setup_for_eval_on_grid(x+y, [(x,1,1),(y,-1,1)])
+        Traceback (most recent call last):
+        ...
+        ValueError: plot start point and end point must be different
         sage: sage.plot.misc.setup_for_eval_on_grid(x+y, [(x,1,-1),(y,-1,1)], return_vars=True)
         (<sage.ext...>, [(1.0, -1.0, 2.0), (-1.0, 1.0, 2.0)], [x, y])
         sage: sage.plot.misc.setup_for_eval_on_grid(x+y, [(y,1,-1),(x,-1,1)], return_vars=True)
         (<sage.ext...>, [(1.0, -1.0, 2.0), (-1.0, 1.0, 2.0)], [y, x])
     """
-    if max(len(r) for r in ranges)!=min(len(r) for r in ranges):
+    if max(map(len, ranges)) != min(map(len, ranges)):
         raise ValueError, "Some variable ranges specify variables while others do not"
 
     if len(ranges[0])==3:
@@ -122,6 +126,8 @@ def setup_for_eval_on_grid(funcs, ranges, plot_points=None, return_vars=False):
 
     plot_points = [int(p) if p>=2 else 2 for p in plot_points]
     range_steps = [abs(range[1] - range[0])/(p-1) for range, p in zip(ranges, plot_points)]
+    if min(range_steps) == float(0):
+        raise ValueError, "plot start point and end point must be different"
 
     options={}
     if nargs==1:

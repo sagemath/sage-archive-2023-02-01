@@ -1125,6 +1125,10 @@ def srange(start, end=None, step=1, universe=None, check=True, include_endpoint=
         []
         sage: srange(3,0,-1,include_endpoint=True)
         [3, 2, 1, 0]
+        sage: srange(1,1,0) # trac ticket #11753
+        Traceback (most recent call last):
+        ...
+        ValueError: srange() step argument must not be zero
     """
     from sage.structure.sequence import Sequence
     from sage.rings.all import ZZ
@@ -1137,6 +1141,9 @@ def srange(start, end=None, step=1, universe=None, check=True, include_endpoint=
         if universe is None:
             universe = Sequence([start, end, step]).universe()
         start, end, step = universe(start), universe(end), universe(step)
+
+    if step == Sequence([step]).universe()(0):
+        raise ValueError, "srange() step argument must not be zero"
 
     if universe in [int, long, ZZ]:
         if include_endpoint and (end-start) % step == 0:
@@ -1213,6 +1220,10 @@ def xsrange(start, end=None, step=1, universe=None, check=True, include_endpoint
         []
         sage: list(xsrange(1,QQ(0),-1,include_endpoint=True))
         [1, 0]
+        sage: xsrange(1,1,0) # trac ticket #11753
+        Traceback (most recent call last):
+        ...
+        ValueError: xsrange() step argument must not be zero
     """
     from sage.structure.sequence import Sequence
     from sage.rings.all import ZZ
@@ -1225,6 +1236,9 @@ def xsrange(start, end=None, step=1, universe=None, check=True, include_endpoint
         if universe is None:
             universe = Sequence([start, end, step]).universe()
         start, end, step = universe(start), universe(end), universe(step)
+
+    if step == Sequence([step]).universe()(0):
+        raise ValueError, "xsrange() step argument must not be zero"
 
     if universe in [int, long, ZZ]:
         if include_endpoint and (end-start) % step == 0:

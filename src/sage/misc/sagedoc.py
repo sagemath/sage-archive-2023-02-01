@@ -10,6 +10,8 @@ AUTHORS:
 - John Palmieri (2009-04-11): fix for #5754 plus doctests
 - Dan Drake (2009-05-21): refactor search_* functions, use system 'find' instead of sage -grep
 - John Palmieri (2009-06-28): don't use 'find' -- use Python (os.walk, re.search) instead.
+- Simon King (2011-09-19): use os.linesep, avoid destruction of embedding information,
+  enable nodetex in a docstring.
 """
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -325,6 +327,12 @@ def format(s, embedded=False):
     text, and if ``s`` contains a string of the form "<<<obj>>>",
     then it replaces it with the docstring for "obj".
 
+    NOTE:
+
+    If the first line of the string provides embedding information,
+    which is the case for doc strings from extension modules, then
+    the first line will not be changed.
+
     INPUT:
 
     - ``s`` - string
@@ -364,20 +372,76 @@ def format(s, embedded=False):
 
         sage: sage.misc.sagedoc.format(sage.combinat.ranker.on_fly.__doc__)
         "   Returns ...  Todo: add tests as in combinat::rankers\n"
+
+    We check that the embedding information of a doc string from an extension
+    module is preserved, even if it is longer than a usual line. Moreover,
+    a ``nodetex`` directive in the first "essential" line of the doc string
+    is recognised. That has been implemented in trac ticket #11815::
+
+        sage: r = 'File: _local_user_with_a_very_long_name_that_would_normally_be_wrapped_sage_temp_machine_name_1234_tmp_1_spyx_0.pyx (starting at line 6)\nnodetex\nsome doc for a cython method\n`x \\geq y`'
+        sage: print format(r)
+        File: _local_user_with_a_very_long_name_that_would_normally_be_wrapped_sage_temp_machine_name_1234_tmp_1_spyx_0.pyx (starting at line 6)
+        <BLANKLINE>
+        some doc for a cython method
+        `x \geq y`
+
+    In the following use case, the ``nodetex`` directive would have been ignored prior
+    to #11815::
+
+        sage: cython_code = ["def testfunc(x):",
+        ... "    '''",
+        ... "    nodetex",
+        ... "    This is a doc string with raw latex",
+        ... "",
+        ... "    `x \\geq y`",
+        ... "    '''",
+        ... "    return -x"]
+        sage: cython('\n'.join(cython_code))
+        sage: from sage.misc.sageinspect import sage_getdoc
+        sage: print sage_getdoc(testfunc)
+        <BLANKLINE>
+            This is a doc string with raw latex
+        <BLANKLINE>
+            `x \geq y`
+        <BLANKLINE>
+
     """
     if not isinstance(s, str):
         raise TypeError, "s must be a string"
+
+    # Doc strings may contain embedding information, which should not
+    # be subject to formatting (line breaks must not be inserted).
+    # Hence, we first try to find out whether there is an embedding
+    # information.
+    first_newline = s.find(os.linesep)
+    embedding_info = ''
+    if first_newline > -1:
+        first_line = s[:first_newline]
+        from sage.misc.sageinspect import _extract_embedded_position
+        if _extract_embedded_position(first_line) is not None:
+            embedding_info = first_line + os.linesep
+            s = s[first_newline+1:]
+            # Hence, by now, s starts with the second line.
+    else:
+        from sage.misc.sageinspect import _extract_embedded_position
+        if _extract_embedded_position(s) is not None:
+            return s
+
+    # Leading empty lines must be removed, since we search for directives
+    # in the first line.
+    s = s.lstrip(os.linesep)
 
     # parse directives at beginning of docstring
     # currently, only 'nodetex' is supported.
     # 'no' + 'doctest' may be supported eventually (don't type that as
     # one word, or the whole file will not be doctested).
-    first_newline = s.find('\n')
+    first_newline = s.find(os.linesep)
     if first_newline > -1:
         first_line = s[:first_newline]
     else:
         first_line = s
-    directives = [ d.lower() for d in first_line.split(',') ]
+    # Moreover, we must strip blank space in order to get the directives
+    directives = [ d.strip().lower() for d in first_line.split(',') ]
 
     import sage.all
     import sage.server.support
@@ -405,7 +469,7 @@ def format(s, embedded=False):
     else:
         # strip the 'nodetex' directive from s
         s = s.replace('nodetex', '', 1)
-    return s
+    return embedding_info+s
 
 def format_src(s):
     """

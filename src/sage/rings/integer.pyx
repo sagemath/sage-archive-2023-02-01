@@ -4127,13 +4127,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: (10000).is_prime_power(flag=1)
             False
 
-        .. note::
-
-           Currently in the case when self is a perfect power, we call
-           self.factor, due to a bug in Pari's ispower function.  See
-           Trac \#4777.  We illustrate that this is fixed below.
-
-        ::
+        We check that \#4777 is fixed::
 
             sage: n = 150607571^14
             sage: n.is_prime_power()
@@ -4149,13 +4143,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             return True
         if not self.is_perfect_power():
             return False
-        return len(self.factor()) == 1  # this is potentially very slow, but at least it is right!!
-        # PARI has a major bug -- see trac #4777. It gives wrong answer on
-        # input of "150607571^14".
-        #k, g = self._pari_().ispower()
-        #if not k:
-        #    raise RuntimeError, "inconsistent results between GMP and pari"
-        #return g.isprime(flag=flag)
+        k, g = self._pari_().ispower()
+        if not k:
+            raise RuntimeError, "inconsistent results between GMP and pari"
+        return g.isprime(flag=flag)
 
     def is_prime(self):
         r"""

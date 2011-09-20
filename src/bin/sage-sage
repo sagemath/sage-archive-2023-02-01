@@ -1009,6 +1009,7 @@ if [ $# -ge 1 ]; then
        exit $?
    fi
    cd "$SAGE_LOCAL/bin/"
+   SAGE_BANNER="no" sage_setup
    sage-run "$CUR" "$@"
    exit $?
 fi

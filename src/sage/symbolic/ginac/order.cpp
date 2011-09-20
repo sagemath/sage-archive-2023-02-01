@@ -183,7 +183,7 @@ int print_order::compare(const basic &lh, const basic &rh) const
 							     static_cast<const fderivative&>(rh));
 		else
 			// using GiNaC functions by default
-			return -lh.compare_same_type(rh);
+			return lh.compare_same_type(rh);
 		
 	// at present numerics are combined into overall_coefficient
 	// even when hold parameter is used

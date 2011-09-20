@@ -2319,6 +2319,57 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
                 return True
         return False
 
+    def reduction(self,p):
+        """
+        This finds the reduction of a point `P` on the elliptic curve modulo the prime `p`.
+
+        INPUT:
+
+        - ``self`` -- A point on an elliptic curve.
+
+        - ``p`` -- a prime number
+
+        OUTPUT:
+
+        The point reduced to be a point on the elliptic curve modulo `p`.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve([1,2,3,4,0])
+            sage: P = E(0,0)
+            sage: P.reduction(5)
+            (0 : 0 : 1)
+            sage: Q = E(98,931)
+            sage: Q.reduction(5)
+            (3 : 1 : 1)
+            sage: Q.reduction(5).curve() == E.reduction(5)
+            True
+
+        ::
+
+            sage: F.<a> = NumberField(x^2+5)
+            sage: E = EllipticCurve(F,[1,2,3,4,0])
+            sage: Q = E(98,931)
+            sage: Q.reduction(a)
+            (3 : 1 : 1)
+            sage: Q.reduction(11)
+            (10 : 7 : 1)
+
+        ::
+
+            sage: F.<a> = NumberField(x^3+x^2+1)
+            sage: E = EllipticCurve(F,[a,2])
+            sage: P = E(a,1)
+            sage: P.reduction(F.ideal(5))
+            (abar : 1 : 1)
+            sage: P.reduction(F.ideal(a^2-4*a-2))
+            (abar : 1 : 1)
+
+        """
+        P = self
+        E = P.curve()
+        return E.reduction(p)(P)
+
     def height(self, precision=None):
         """
         The Neron-Tate canonical height of the point.

@@ -9728,12 +9728,12 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
     def setrand(self, seed):
         """
-        Sets Pari's current random number seed.
+        Sets PARI's current random number seed.
 
         INPUT:
 
-        - ``seed`` -- either an integer, or a GEN of type t_VECSMALL
-          as output by ``getrand()``
+        - ``seed`` -- either a strictly positive integer or a GEN of
+          type ``t_VECSMALL`` as output by ``getrand()``
 
         This should not be called directly; instead, use Sage's global
         random number seed handling in ``sage.misc.randstate``
@@ -9747,12 +9747,28 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             sage: pari.setrand(a)
             sage: a == pari.getrand()
             True
+
+        TESTS:
+
+        Check that invalid inputs are handled properly (#11825)::
+
+            sage: pari.setrand(0)
+            Traceback (most recent call last):
+            ...
+            PariError: incorrect type (11)
+            sage: pari.setrand("foobar")
+            Traceback (most recent call last):
+            ...
+            PariError: incorrect type (11)
         """
-        setrand(P.toGEN(seed,0))
+        t0GEN(seed)
+        sig_on()
+        setrand(t0)
+        sig_off()
 
     def getrand(self):
         """
-        Returns Pari's current random number seed.
+        Returns PARI's current random number seed.
 
         OUTPUT:
 

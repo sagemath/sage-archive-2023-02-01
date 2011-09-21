@@ -419,7 +419,7 @@ class Order(IntegralDomain):
         .. note::
 
            For a (much smaller) list of ring generators use
-           ``ring_generators()``.
+           :meth:`~ring_generators`.
 
         EXAMPLES::
 
@@ -579,14 +579,21 @@ class Order(IntegralDomain):
             [1, 1/2*a^2 + 1/2*a, a^2]
             sage: O.ring_generators()
             [1/2*a^2 + 1/2*a, a^2]
+
+        An example in a relative number field::
+
+            sage: K.<a, b> = NumberField([x^2 + x + 1, x^3 - 3])
+            sage: O = K.maximal_order()
+            sage: O.ring_generators()
+            [(-5/3*b^2 + 3*b - 2)*a - 7/3*b^2 + b + 3, (-5*b^2 - 9)*a - 5*b^2 - b, (-6*b^2 - 11)*a - 6*b^2 - b]
         """
         try:
             return self.__ring_generators
         except AttributeError:
             K = self._K
             n = []
-            V, from_V, to_V = self._K.vector_space()
-            A = ZZ**self.rank()
+            V, from_V, to_V = self._K.absolute_vector_space()
+            A = ZZ**K.absolute_degree()
             remaining = [x for x in self.basis() if x != 1]
             gens = []
             while len(remaining) > 0:

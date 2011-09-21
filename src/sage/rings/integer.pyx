@@ -30,7 +30,7 @@ AUTHORS:
 
 - Robert Bradshaw (2007-04-12): is_perfect_power, Jacobi symbol (with
   Kronecker extension).  Convert some methods to use GMP directly
-  rather than pari, Integer(), PY_NEW(Integer)
+  rather than PARI, Integer(), PY_NEW(Integer)
 
 - David Roe (2007-03-21): sped up valuation and is_square, added
   val_unit, is_power, is_power_of and divide_knowing_divisible_by
@@ -337,7 +337,7 @@ set_zero_one_elements()
 cdef Integer zero = the_integer_ring._zero_element
 cdef Integer one = the_integer_ring._one_element
 
-# The documentation for the ispseudoprime function in the pari
+# The documentation for the ispseudoprime() function in the PARI
 # manual states that its result is always prime up to this 10^13.
 cdef mpz_t PARI_PSEUDOPRIME_LIMIT
 mpz_init(PARI_PSEUDOPRIME_LIMIT)
@@ -672,7 +672,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
             elif PyString_Check(x) or PY_TYPE_CHECK(x,unicode):
                 if base < 0 or base > 36:
-                    raise ValueError, "base (=%s) must be between 2 and 36"%base
+                    raise ValueError, "`base` (=%s) must be between 2 and 36."%base
 
                 xs = x
                 if xs[0] == c'+':
@@ -681,7 +681,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                     raise TypeError, "unable to convert x (=%s) to an integer"%x
 
             elif PyObject_HasAttrString(x, "_integer_"):
-                # todo: Note that PyObject_GetAttrString returns NULL if
+                # TODO: Note that PyObject_GetAttrString returns NULL if
                 # the attribute was not found. If we could test for this,
                 # we could skip the double lookup. Unfortunately Cython doesn't
                 # seem to let us do this; it flags an error if the function
@@ -4145,17 +4145,17 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             return False
         k, g = self._pari_().ispower()
         if not k:
-            raise RuntimeError, "inconsistent results between GMP and pari"
+            raise RuntimeError, "Inconsistent results between GMP and PARI"
         return g.isprime(flag=flag)
 
     def is_prime(self):
         r"""
-        Returns ``True`` if self is prime.
+        Returns ``True`` if ``self`` is prime.
 
         .. note::
 
            Integer primes are by definition *positive*! This is
-           different than Magma, but the same as in Pari. See also the
+           different than Magma, but the same as in PARI. See also the
            :meth:`.is_irreducible` method.
 
         EXAMPLES::
@@ -4537,7 +4537,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             n += 1
         else:
             n += 2
-        while not n.is_prime():  # pari isprime is provably correct
+        while not n.is_prime():  # PARI's isprime() is provably correct
             n += 2
         return integer_ring.ZZ(n)
 
@@ -5240,7 +5240,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: n.__invert__()
             1/10
         """
-        return one/self    # todo: optimize
+        return one/self    # TODO: optimize
 
     def inverse_of_unit(self):
         """
@@ -5444,11 +5444,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         INPUT:
 
-            - m -- an integer
+            - ``m`` -- an integer
 
-            - algorithm -- 'mpir' (default) or 'pari'; 'mpir' is
-              faster for small m, and 'pari' tends to be faster for
-              large m
+            - ``algorithm`` -- ``'mpir'`` (default) or ``'pari'``; ``'mpir'`` is
+              faster for small ``m``, and ``'pari'`` tends to be faster for
+              large ``m``
 
         OUTPUT:
 

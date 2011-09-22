@@ -642,6 +642,12 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             True
             sage: SteenrodAlgebra(profile=([1], [2, 2]), p=3)._has_nontrivial_profile()
             True
+
+        Check that a bug in #11832 has been fixed::
+
+            sage: P3 = SteenrodAlgebra(p=3, profile=(lambda n: Infinity, lambda n: 1))
+            sage: P3._has_nontrivial_profile()
+            True
         """
         from sage.rings.infinity import Infinity
         profile = self._profile
@@ -650,8 +656,9 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             return ((len(profile) > 0 and len(profile) > 0
                      and profile[0] < Infinity)
                     or (trunc < Infinity))
-        return ((profile != ((), ()) and len(profile[0]) > 0
-                 and profile[0][0] < Infinity)
+        return ((profile != ((), ()) and
+                  ((len(profile[0]) > 0 and profile[0][0] < Infinity)
+                     or (len(profile[1]) > 0 and min(profile[1]) == 1)))
                 or (trunc < Infinity))
 
     def _repr_(self):

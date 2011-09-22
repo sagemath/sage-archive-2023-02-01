@@ -568,6 +568,10 @@ def milnor_basis(n, p=2, **kwds):
         ((1, 1), (4,))
         sage: milnor_basis(4, 2, profile=[2,1])
         ((1, 1),)
+        sage: milnor_basis(4, 2, profile=(), truncation_type=0)
+        ()
+        sage: milnor_basis(4, 2, profile=(), truncation_type=Infinity)
+        ((1, 1), (4,))
         sage: milnor_basis(9, 3)
         (((1,), (1,)), ((0,), (2,)))
         sage: milnor_basis(17, 3)
@@ -580,6 +584,10 @@ def milnor_basis(n, p=2, **kwds):
         0
         sage: len(milnor_basis(240,7))
         3
+        sage: len(milnor_basis(240,7, profile=((),()), truncation_type=Infinity))
+        3
+        sage: len(milnor_basis(240,7, profile=((),()), truncation_type=0))
+        0
     """
     if n == 0:
         if p == 2:
@@ -591,8 +599,11 @@ def milnor_basis(n, p=2, **kwds):
     from sage.combinat.integer_vector_weighted import WeightedIntegerVectors
     profile = kwds.get("profile", None)
     trunc = kwds.get("truncation_type", None)
-    if profile is not None and trunc is None:
-        trunc = 0
+    if trunc is None:
+        if profile is not None:
+            trunc = 0
+        else:
+            trunc = Infinity
 
     result = []
     if p == 2:
@@ -609,6 +620,9 @@ def milnor_basis(n, p=2, **kwds):
                             and exponents[i] >= 2**trunc)):
                         okay = False
                         break
+            else:
+                # profile is empty
+                okay = (trunc == Infinity)
             if okay:
                 result.append(tuple(exponents))
     else:  # p odd
@@ -663,6 +677,9 @@ def milnor_basis(n, p=2, **kwds):
                                                  and p_mono[i] >= p**trunc)):
                                     okay = False
                                     break
+                        else:
+                            # profile is empty
+                            okay = (trunc == Infinity)
                         if okay:
                             if list(p_mono) == [0]:
                                 p_mono = []

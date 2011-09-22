@@ -234,14 +234,16 @@ def is_valid_profile(profile, truncation_type, p=2):
         sage: is_valid_profile(([1,2,1], []), 0, p=7)
         True
     """
+    from sage.rings.infinity import Infinity
     if p == 2:
         pro = list(profile) + [truncation_type]*len(profile)
         r = 0
         for pro_r in pro:
             r += 1 # index of pro_r
-            for i in range(1,r):
-                if pro_r < min(pro[r-i-1] - i, pro[i-1]):
-                    return False
+            if pro_r < Infinity:
+                for i in range(1,r):
+                    if pro_r < min(pro[r-i-1] - i, pro[i-1]):
+                        return False
     else:
         # p odd:
         e = list(profile[0]) + [truncation_type]*len(profile[0])
@@ -257,9 +259,10 @@ def is_valid_profile(profile, truncation_type, p=2):
         r = 0
         for e_r in e:
             r += 1 # index of e_r
-            for i in range(1,r):
-                if e_r < min(e[r-i-1] - i, e[i-1]):
-                    return False
+            if e_r < Infinity:
+                for i in range(1,r):
+                    if e_r < min(e[r-i-1] - i, e[i-1]):
+                        return False
         r = -1
         for k_r in k:
             r += 1 # index of k_r
@@ -351,6 +354,15 @@ def normalize_profile(profile, precision=None, truncation_type='auto', p=2):
         sage: normalize_profile([1,2,1,0,0])
         ((1, 2, 1), 0)
 
+    The full mod 2 Steenrod algebra::
+
+        sage: normalize_profile(Infinity)
+        ((), +Infinity)
+        sage: normalize_profile(None)
+        ((), +Infinity)
+        sage: normalize_profile(lambda n: Infinity)
+        ((), +Infinity)
+
     The ``precision`` argument has no effect when the first argument
     is a list or tuple::
 
@@ -385,15 +397,31 @@ def normalize_profile(profile, precision=None, truncation_type='auto', p=2):
         sage: normalize_profile(([2,1], [2,2,2]), p=13)
         (((2, 1), (2, 2, 2)), 0)
 
+    The full mod `p` Steenrod algebra::
+
+        sage: normalize_profile(None, p=7)
+        (((), ()), +Infinity)
+        sage: normalize_profile(Infinity, p=11)
+        (((), ()), +Infinity)
+        sage: normalize_profile((lambda n: Infinity, lambda n: 2), p=17)
+        (((), ()), +Infinity)
+
     Note that as at the prime 2, the ``precision`` argument has no
-    effect when the first entry in ``profile`` is a list or tuple.
-    The output value of ``precision`` is determined by the first
-    argument::
+    effect on a list or tuple in either entry of ``profile``.  If
+    ``truncation_type`` is 'auto', then it gets converted to either
+    ``0`` or ``+Infinity`` depending on the *first* entry of
+    ``profile``::
 
         sage: normalize_profile(([2,1], [2,2,2]), precision=84, p=13)
         (((2, 1), (2, 2, 2)), 0)
         sage: normalize_profile((lambda n: 0, lambda n: 2), precision=4, p=11)
         (((0, 0, 0), ()), +Infinity)
+        sage: normalize_profile((lambda n: 0, (1,1,1,1,1,1,1)), precision=4, p=11)
+        (((0, 0, 0), (1, 1, 1, 1, 1, 1, 1)), +Infinity)
+        sage: normalize_profile(((4,3,2,1), lambda n: 2), precision=6, p=11)
+        (((4, 3, 2, 1), (2, 2, 2, 2, 2)), 0)
+        sage: normalize_profile(((4,3,2,1), lambda n: 1), precision=3, p=11, truncation_type=Infinity)
+        (((4, 3, 2, 1), (1, 1)), +Infinity)
 
     As at the prime 2, negative numbers in the first component are
     converted to zeroes.  Numbers in the second component must be
@@ -424,26 +452,24 @@ def normalize_profile(profile, precision=None, truncation_type='auto', p=2):
             # trailing zeroes if truncation_type is 'auto' or 'zero'.
             if truncation_type == 'auto':
                 truncation_type = 0
-            if truncation_type == 0:
-                # remove trailing zeroes
-                while len(profile) > 0 and profile[-1] == 0:
-                    profile = profile[:-1]
+            # remove trailing zeroes or Infinitys
+            while len(profile) > 0 and profile[-1] == truncation_type:
+                profile = profile[:-1]
             new_profile = tuple(profile)
         elif isfunction(profile):
             # profile is a function: turn it into a tuple.  if
             # truncation_type not specified, set it to 'infinity' if
             # the function is ever infinite; otherwise set it to
             # 0.  remove trailing zeroes if truncation_type is
-            # 0.
+            # 0, trailing Infinitys if truncation_type is oo.
             if precision is None:
                 precision = 100
             if truncation_type == 'auto':
                 truncation_type = Infinity
             new_profile = [max(0, profile(i)) for i in range(1, precision)]
-            # remove trailing zeroes
-            if truncation_type == 0:
-                while len(new_profile) > 0 and new_profile[-1] == 0:
-                    del new_profile[-1]
+            # remove trailing zeroes or Infinitys:
+            while len(new_profile) > 0 and new_profile[-1] == truncation_type:
+                del new_profile[-1]
             new_profile = tuple(new_profile)
         if is_valid_profile(new_profile, truncation_type, p):
             return new_profile, truncation_type
@@ -463,37 +489,39 @@ def normalize_profile(profile, precision=None, truncation_type='auto', p=2):
             if isinstance(e, (list, tuple)):
                 # e is a list or tuple: use it as is.  if
                 # truncation_type not specified, set it to 0. remove
-                # trailing zeroes if truncation_type is 0.
+                # appropriate trailing terms.
                 if truncation_type == 'auto':
                     truncation_type = 0
-                if truncation_type == 0:
-                    # remove trailing zeroes
-                    while len(e) > 0 and e[-1] == 0:
-                        e = e[:-1]
+                # remove trailing terms
+                while len(e) > 0 and e[-1] == truncation_type:
+                    e = e[:-1]
                 e = tuple(e)
             elif isfunction(e):
                 # e is a function: turn it into a tuple.  if
                 # truncation_type not specified, set it to 'infinity'
                 # if the function is ever infinite; otherwise set it
-                # to 0.  remove trailing zeroes if truncation_type is
-                # 0.
+                # to 0.  remove appropriate trailing terms.
                 if precision is None:
-                    precision = 100
+                    e_precision = 100
+                else:
+                    e_precision = precision
                 if truncation_type == 'auto':
                     truncation_type = Infinity
-                e = [max(0, e(i)) for i in range(1, precision)]
-                # remove trailing zeroes
-                if truncation_type == 0:
-                    while len(e) > 0 and e[-1] == 0:
-                        del e[-1]
-                precision = len(e) + 1
+                e = [max(0, e(i)) for i in range(1, e_precision)]
+                # remove trailing terms
+                while len(e) > 0 and e[-1] == truncation_type:
+                    del e[-1]
                 e = tuple(e)
             if isinstance(k, (list, tuple)):
                 # k is a list or tuple: use it as is.
                 k = tuple(k)
             elif isfunction(k):
                 # k is a function: turn it into a tuple.
-                k = tuple([k(i) for i in range(precision-1)])
+                if precision is None:
+                    k_precision = 100
+                else:
+                    k_precision = precision
+                k = tuple([k(i) for i in range(k_precision-1)])
             # Remove trailing ones from k if truncation_type is 'zero',
             # remove trailing twos if truncation_type is 'Infinity'.
             if truncation_type == 0:

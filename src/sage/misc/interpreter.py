@@ -159,7 +159,10 @@ def do_prefilter_paste(line, continuation):
 
     # Process attached files.
     for F in modified_attached_files():
-        _ip.runlines(load_wrap(F))
+        # We attach the files again instead of loading them,
+        # to preserve tracebacks or efficiency according
+        # to the settings of load_attach_mode().
+        _ip.runlines(load_wrap(F, attach=True))
 
     # Get rid of leading sage: prompts so that pasting of examples
     # from the documentation works.  This is like MAGMA's

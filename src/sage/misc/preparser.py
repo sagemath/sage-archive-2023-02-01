@@ -1138,6 +1138,10 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
 ######################################################
 
 attached = {}
+
+load_debug_mode = False
+attach_debug_mode = True
+
 def preparse_file(contents, globals=None, numeric_literals=True):
     """
     Preparses input, attending to numeric literals and load/attach
@@ -1182,8 +1186,7 @@ def preparse_file(contents, globals=None, numeric_literals=True):
     for F, tm in attached.iteritems():
         new_tm = os.path.getmtime(F)
         if os.path.exists(F) and new_tm > tm:
-            contents = 'load "%s"\n'%F + contents
-        attached[F] = new_tm
+            contents = 'attach "%s"\n'%F + contents
 
     # We keep track of which files have been loaded so far
     # in order to avoid a recursive load that would result
@@ -1480,11 +1483,13 @@ def load(filename, globals, attach=False):
     ``filename`` itself is also evaluated in the scope.  If the name
     starts with ``http://``, it is treated as a URL and downloaded.
 
-    .. note:: For Cython files, the situation is more complicated --
-       the module is first compiled to a temporary module ``t`` and
-       executed via::
+    .. NOTE::
 
-           from t import *
+        For Cython files, the situation is more complicated --
+        the module is first compiled to a temporary module ``t`` and
+        executed via::
+
+            from t import *
 
     INPUT:
 
@@ -1630,7 +1635,16 @@ def load(filename, globals, attach=False):
     if fpath.endswith('.py'):
         execfile(fpath, globals)
     elif fpath.endswith('.sage'):
-        exec(preparse_file(open(fpath).read()) + "\n", globals)
+        if (attach and attach_debug_mode) or ((not attach) and load_debug_mode):
+            # Preparse to a file to enable tracebacks with
+            # code snippets. Use preparse_file_named to make
+            # the file name appear in the traceback as well.
+            # See Trac 11812.
+            from sage.misc.interpreter import preparse_file_named
+            execfile(preparse_file_named(fpath), globals)
+        else:
+            # Preparse in memory only for speed.
+            exec(preparse_file(open(fpath).read()) + "\n", globals)
     elif fpath.endswith('.spyx') or fpath.endswith('.pyx'):
         import interpreter
         exec(interpreter.load_cython(fpath), globals)
@@ -1646,6 +1660,55 @@ def load(filename, globals, attach=False):
         # TODO: Use the MD5 hash of the file, instead.
         fpath = os.path.abspath(fpath)
         attached[fpath] = os.path.getmtime(fpath)
+
+
+def load_attach_mode(load_debug=None, attach_debug=None):
+    """
+    Get or modify the current debug mode for loading and attaching
+    .sage files.
+
+    In debug mode, loaded or attached .sage files are preparsed
+    through a file to make their tracebacks more informative.
+    If not in debug mode, then .sage files are preparsed
+    in memory only for performance.
+
+    At startup, debug mode is ``True`` for attaching and ``False``
+    for loading.
+
+    INPUT:
+
+    - ``load_debug`` - boolean or (the default) ``None``;
+      if not ``None``, then set a new value for the debug mode
+      for loading files.
+
+    - ``attach_debug`` - boolean or (the default) ``None``;
+      same as ``load_debug``, but for attaching files.
+
+    OUTPUT:
+
+    - if all input values are ``None``, returns a tuple
+      giving the current modes for loading and attaching.
+
+    EXAMPLES::
+
+        sage: load_attach_mode()
+        (False, True)
+        sage: load_attach_mode(attach_debug=False)
+        sage: load_attach_mode()
+        (False, False)
+        sage: load_attach_mode(load_debug=True)
+        sage: load_attach_mode()
+        (True, False)
+        sage: load_attach_mode(load_debug=False, attach_debug=True)
+    """
+    global load_debug_mode
+    global attach_debug_mode
+    if load_debug is None and attach_debug is None:
+        return (load_debug_mode, attach_debug_mode)
+    if not load_debug is None:
+        load_debug_mode = load_debug
+    if not attach_debug is None:
+        attach_debug_mode = attach_debug
 
 
 def load_attach_path(path=None, replace=False):

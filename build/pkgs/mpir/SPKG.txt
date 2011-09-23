@@ -100,6 +100,10 @@ See http://www.mpir.org
    - Use $MAKE instead of 'make'.
    - Print messages on success and error.
 
+=== mpir-1.2.2.p2 (Volker Braun, Oct 28, 2010) ===
+ * Clear the execstack (executable stack) flag from the shared libraries.
+ NOTE: Obsoleted by the 2.1.3 spkg(s), not in the Mercurial repository.
+
 === mpir-2.1.1 (Mike Hansen, August 16th, 2010) ===
  * #8664: Upgrade Sage's MPIR spkg to version 2.1.1
 

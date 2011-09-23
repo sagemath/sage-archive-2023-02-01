@@ -19,8 +19,8 @@ over 25 years of hard work.
 
 == Dependencies ==
 
- * gmp
- * pari
+ * GMP / MPIR
+ * PARI
  * NTL
 
 == Distribution ==
@@ -36,6 +36,9 @@ over 25 years of hard work.
  * The makefiles do use GNU extensions. This causes build failures on systems like FreeBSD where GNU's make is usually called gmake. A workaround is to create a symlink from gmake to make in {{{~/bin}}} and to add that directory to {{{$PATH}}} before the directory that contains the BSD make
 
 == Changelog ==
+
+=== eclib-20100711.p0 (Mariah Lenox, May 19th 2011) ===
+ * Deleted the obsolete (Debian) dist/ directory.
 
 === eclib-20100711 (John Cremona, 11 July 2010) ===
  * Four changesets applied to source code, including

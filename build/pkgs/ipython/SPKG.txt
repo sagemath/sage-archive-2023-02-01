@@ -56,7 +56,7 @@ ipython-user@scipy.org
    IPython/Magic.py has been fixed upstream. sage -gdb seem to work
    properly here.
 
-=== ipython-0.9.1 (Mike Hansen, June 17th, 2009) ===
+=== ipython-0.9.1.p0 (Mike Hansen, June 17th, 2009) ===
  * Remove usage of Set.
 
 === ipython-0.9.1 (Mike Hansen, January 24th, 2009) ===

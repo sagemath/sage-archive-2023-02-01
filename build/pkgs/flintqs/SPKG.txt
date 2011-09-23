@@ -11,10 +11,12 @@ To get a new version:
 
 svn export https://svn.sourceforge.net/svnroot/fastlibnt/trunk/QS/ fastlibnt
 
-=== flintqs-20070817.p6
+== Changelog ==
+
+=== flintqs-20070817.p6 ===
  * make x86_64 systems build with -m64 rather than -march=opteron
 
-=== flintqs-20070817.p5
+=== flintqs-20070817.p5 ===
  * no record
 
 === flintqs-20070817.p4 (David Kirkby, 24th May 2010) ===

@@ -41,6 +41,7 @@ Includes two databases:
  * Updated cremona_mini to use a SQLite3 database
  * Made SPKG follow guidelines
 
-=== previous versions ===
+=== elliptic_curves-0.1 (unknown, unknown) ===
+ * previous version(s)
  * lost to history
 

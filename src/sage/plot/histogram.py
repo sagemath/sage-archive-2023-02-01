@@ -29,7 +29,7 @@ class Histogram(GraphicPrimitive):
 
     EXAMPLES::
 
-        sage: from sage.plot.bar_chart import BarChart
+        sage: from sage.plot.histogram import Histogram
         sage: g = Histogram(range(4), [1,3,2,0], {}); g
         Histogram defined by a 4 datalist 
         sage: type(g)
@@ -88,10 +88,18 @@ class Histogram(GraphicPrimitive):
              ('width', 'The width of the bars'),
              ('zorder', 'The layer level in which to draw')]
         """
-        return {'color':'The color as an RGB tuple.',
-                'hue':'The color given as a hue.',
-                'zorder':'The layer level in which to draw',
-                'bins': 'asdf', 'align': 'asf', 'range': 'asf', 'normed': 'asf', 'weights': 'asf','edgecolor':'asdf'}
+        return {'color': 'The color of the face of the bars or list of colors if multiple data sets are given.',
+                'rgbcolor': 'The color of the face of the bars an RGB tuple.',
+                'edgecolor':'The color of the the border of each bar.',
+                'hue':'The color of the bars given as a hue.',
+                'zorder':'The layer level to draw the histogram',
+                'bins': 'The number of sections in which to divide the range. Also can be a sequence of points within the range that create the partition.', 
+                'align': 'How the bars align inside of each bin. Acceptable values are "left", "right" or "mid".',
+                'rwidth': 'The relative width of the bars as a fraction of the bin width',
+                'range': 'A list [min, max] which define the range of the histogram. Values outside of this range are treated as outliers and omitted from counts.', 
+                'normed': '(True or False) If True, the counts are normalized to form a probability density. (n/(len(x)*dbin)', 
+                'weights': 'A sequence of weights the same length as the data list. If supplied, then each value contributes it\'s associated weight to the bin count.',
+                'label': 'A string label for each data list given.'}
 
     def _repr_(self):
         """
@@ -102,10 +110,10 @@ class Histogram(GraphicPrimitive):
             sage: from sage.plot.histogram import Histogram
             sage: g = Histogram(range(4), [1,3,2,0], {})
             sage: g._repr_()
-            'BarChart defined by a 4 datalist'         
+            'Histogram defined by a data list of size 4'         
         """
-        return "BarChart defined by a %s datalist"%(len(self.datalist))
-
+        return "Histogram defined by a data list of size %s"%(len(self.datalist))
+        
     def _render_on_subplot(self, subplot):
         """
         Render this bar chart graphics primitive on a matplotlib subplot
@@ -116,36 +124,31 @@ class Histogram(GraphicPrimitive):
         This rendering happens implicitly when the following command
         is executed::
 
-            sage: bar_chart([1,2,10])
+            sage: histogram([1,2,10])
         """
         options = self.options()
         subplot.hist(self.datalist, **options)
 
-@rename_keyword(rgbcolor='color')
-@options(color='lightblue',align='mid', weights=None, range=None, normed=False, bins=50,edgecolor='black')
+
+@options(color='blue',align='mid', weights=None, range=None, bins=10, normed=False, edgecolor='black')
 def histogram(datalist, **options):
     """
-    A bar chart of (currently) one list of numerical data.
-    Support for more data lists in progress.
+    Computes and draws the histogram for list(s) of numerical data.
 
     EXAMPLES:
 
-    A bar_chart with blue bars::
+    A histogram for four data points ::
 
-        sage: bar_chart([1,2,3,4])
+        sage: histogram([1,2,3,4])
 
-    A bar_chart with thinner bars::
+    A histogram with negative and positive values ::
 
-        sage: bar_chart([x^2 for x in range(1,20)], width=0.2)
+        sage: histogram([-3,4,-6,11])
 
-    A bar_chart with negative values and red bars::
+    A histogram of the same data with red bars::
 
-        sage: bar_chart([-3,5,-6,11], rgbcolor=(1,0,0))
+        sage: histogram([-3,5,-6,11], rgbcolor=(1,0,0))
 
-    Extra options will get passed on to show(), as long as they are valid::
-
-        sage: bar_chart([-2,8,-7,3], rgbcolor=(1,0,0), axes=False)
-        sage: bar_chart([-2,8,-7,3], rgbcolor=(1,0,0)).show(axes=False) # These are equivalent
     """
 
     g = Graphics()

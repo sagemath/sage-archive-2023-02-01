@@ -3746,24 +3746,91 @@ class Graph(GenericGraph):
         import networkx
         return BipartiteGraph(networkx.make_clique_bipartite(self.networkx_graph(copy=False), **kwds))
 
-    def independent_set(self):
+    def independent_set(self, algorithm = "Cliquer", verbose = 0):
         """
-        Returns a maximal independent set, which is a set of vertices which
-        induces an empty subgraph. Uses Cliquer [NisOst2003]_.
+        Returns a maximum independent set.
+
+        An independent set of a graph is a set of pairwise nonadjacent
+        vertices. A maximum independent set is an independent set of maximum
+        cardinality.  induces an empty subgraph.
+
+        INPUT:
+
+        - ``algorithm`` -- the algorithm to be used
+
+            * If ``algorithm = "Cliquer"`` (default), the problem is solved
+              using Cliquer [NisOst2003]_.
+
+              (see the :mod:`Cliquer modules <sage.graphs.cliquer>`)
+
+            * If ``algorithm = "MILP"``, the problem is solved through a Mixed
+              Integer Linear Program.
+
+              (see :class:`MixedIntegerLinearProgram
+              <sage.numerical.mip>`)
+
+        - ``verbose`` -- integer (default: ``0``). Sets the level of
+          verbosity. Set to 0 by default, which means quiet.
+
+          Only useful when ``algorithm = "MILP"``.
+
 
         .. NOTE::
 
-            Currently only implemented for undirected graphs. Use to_undirected
-            to convert a digraph to an undirected graph.
+            While Cliquer is usually (and by far) the most efficient of the two
+            implementations, the Mixed Integer Linear Program formulation
+            sometimes proves faster on very "symmetrical" graphs.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        Using Cliquer::
 
             sage: C=graphs.PetersenGraph()
             sage: C.independent_set()
             [0, 3, 6, 7]
+
+        As a linear program::
+
+            sage: C=graphs.PetersenGraph()
+            sage: len(C.independent_set(algorithm = "MILP"))
+            4
+
+        TESTS:
+
+        Given a wrong algorithm::
+
+            sage: C.independent_set(algorithm = "guess")
+            Traceback (most recent call last):
+            ...
+            ValueError: The algorithm must be either "Cliquer" or "MILP".
         """
-        from sage.graphs.cliquer import max_clique
-        return max_clique(self.complement())
+        if algorithm == "Cliquer":
+            from sage.graphs.cliquer import max_clique
+            return max_clique(self.complement())
+
+        elif algorithm == "MILP":
+            from sage.numerical.mip import MixedIntegerLinearProgram, Sum
+
+            p = MixedIntegerLinearProgram(maximization = True)
+
+            b = p.new_variable(binary = True)
+
+            p.set_objective(Sum([b[v] for v in self]))
+
+            for u,v in self.edges(labels = False):
+                if u == v:
+                    continue
+
+                p.add_constraint(b[u] + b[v] <= 1)
+
+            p.solve(log = verbose)
+
+            b = p.get_values(b)
+
+            return [v for v in self if b[v] > .5]
+
+        else:
+            raise ValueError("The algorithm must be either \"Cliquer\" or \"MILP\".")
 
     def cliques_vertex_clique_number(self, algorithm="cliquer", vertices=None,
                                      cliques=None):

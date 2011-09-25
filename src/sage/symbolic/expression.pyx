@@ -6816,11 +6816,19 @@ cdef class Expression(CommutativeRingElement):
     def simplify_radical(self):
         r"""
         Simplifies this symbolic expression, which can contain logs,
-        exponentials, and radicals, by converting it into a form which is
-        canonical over a large class of expressions and a given ordering of
-        variables
+        exponentials, and radicals, by trying to convert it into a canonical
+        form over a large class of expressions and a given ordering of
+        variables.
 
-        DETAILS: This uses the Maxima radcan() command. From the Maxima
+        .. WARNING::
+
+            As shown in the examples below, a canonical form is not always
+            returned, i.e., two mathematically identical expressions might
+            be simplified to different expressions.
+
+        ALGORITHM:
+
+        This uses the Maxima ``radcan()`` command. From the Maxima
         documentation: "All functionally equivalent forms are mapped into a
         unique form. For a somewhat larger class of expressions, produces a
         regular form. Two equivalent expressions in this class do not
@@ -6830,8 +6838,10 @@ cdef class Expression(CommutativeRingElement):
         among the components of the expression for simplifications based on
         factoring and partial fraction expansions of exponents."
 
-        ALIAS: radical_simplify, simplify_radical, exp_simplify, simplify_exp
-        are all the same
+        .. NOTE::
+
+            :meth:`radical_simplify`, :meth:`simplify_radical`,
+            :meth:`exp_simplify`, :meth:`simplify_exp` are all the same.
 
         EXAMPLES::
 
@@ -6855,6 +6865,20 @@ cdef class Expression(CommutativeRingElement):
             sage: f = (e^x-1)/(1+e^(x/2))
             sage: f.simplify_exp()
             e^(1/2*x) - 1
+
+        The example below shows two expressions e1 and e2 which are
+        "simplified" to different expressions, while their difference is
+        "simplified" to zero, thus ``simplify_radical`` does not return a
+        canonical form, except maybe for 0. ::
+
+            sage: e1 = 1/(sqrt(5)+sqrt(2))
+            sage: e2 = (sqrt(5)-sqrt(2))/3
+            sage: e1.simplify_radical()
+            1/(sqrt(2) + sqrt(5))
+            sage: e2.simplify_radical()
+            -1/3*sqrt(2) + 1/3*sqrt(5)
+            sage: (e1-e2).simplify_radical()
+            0
         """
         from sage.calculus.calculus import maxima
         maxima.eval('domain: real$')

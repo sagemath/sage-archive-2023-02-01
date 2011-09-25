@@ -2495,8 +2495,19 @@ cdef class Polynomial(CommutativeAlgebraElement):
              sage: (x^2 + 1).factor()
              x^2 + 1
              sage: QQ._factor_univariate_polynomial = lambda f: f.change_ring(CDF).factor()
-             sage: (x^2 + 1).factor()
+             sage: fz = (x^2 + 1).factor(); fz # random order of factors, with noise
              (x - ... + I) * (x - I)
+             sage: # Change noisy zero term which affects the order of factors:
+             sage: Factorization(
+             ...       [ ( parent(f)(
+             ...               [ (0.0,im) if abs(re)<=1e-16 else (re,im)
+             ...                 for re,im in f
+             ...               ]),
+             ...           e )
+             ...         for f,e in fz
+             ...       ])
+             (x - I) * (x + I)
+             sage: # Clean up:
              sage: del QQ._factor_univariate_polynomial
 
         Arbitrary precision real and complex factorization::

@@ -14,6 +14,8 @@ AUTHORS:
   sure it is immutable. Made :meth:`SimplicialComplex.remove_face()` into a
   mutator. Deprecated the ``vertex_set`` parameter.
 
+- Christian Stump (2011-06) - implementation of is_cohen_macaulay
+
 This module implements the basic structure of finite simplicial
 complexes. Given a set `V` of "vertices", a simplicial complex on `V`
 is a collection `K` of subsets of `V` satisfying the condition that if
@@ -603,7 +605,6 @@ class Simplex(SageObject):
             answer.append(Simplex(new))
         return answer
 
-
     def __cmp__(self, other):
         """
         Return ``True`` iff this simplex is the same as ``other``: that
@@ -669,7 +670,6 @@ class Simplex(SageObject):
             3\right)
         """
         return latex(self.__tuple)
-
 
 class SimplicialComplex(GenericCellComplex):
     r"""
@@ -1066,6 +1066,31 @@ class SimplicialComplex(GenericCellComplex):
                 bad_faces = bad_bdries
             self._faces[subcomplex] = Faces
         return self._faces[subcomplex]
+
+    def face_iterator(self, increasing=True):
+        """
+        An iterator for the faces in this simplicial complex.
+
+        INPUTS:
+
+        - ``increasing`` -- (optional, default ``True``) if ``True``, return
+          faces in increasing order of dimension, thus starting with
+          the empty face. Otherwise it returns faces in decreasing order of
+          dimension.
+
+        EXAMPLES::
+
+            sage: S1 = simplicial_complexes.Sphere(1)
+            sage: [f for f in S1.face_iterator()]
+            [(), (2,), (0,), (1,), (1, 2), (0, 2), (0, 1)]
+        """
+        Fs = self.faces()
+        dim_index = xrange(-1,self.dimension()+1)
+        if not increasing:
+            dim_index = reversed(dim_index)
+        for i in dim_index:
+            for F in Fs[i]:
+                yield F
 
     cells = faces
 
@@ -2121,6 +2146,76 @@ class SimplicialComplex(GenericCellComplex):
                 faces.append(Simplex(list(f.set().difference(s.set()))))
         return SimplicialComplex(faces, is_mutable=is_mutable)
 
+    def is_cohen_macaulay(self, ncpus=0):
+        r"""
+        Returns True if ``self`` is Cohen-Macaulay, i.e., if
+        `\tilde{H}_i(\operatorname{lk}_\Delta(F);\ZZ) = 0` for all
+        `F \in \Delta` and `i < \operatorname{dim}\operatorname{lk}_\Delta(F)`.
+        Here, `\Delta` is ``self``, and `\operatorname{lk}` denotes the
+        link operator on ``self``.
+
+        INPUT:
+
+        - ``ncpus`` -- (default: 0) number of cpus used for the
+          computation. If this is 0, determine the number of cpus
+          automatically based on the hardware being used.
+
+        For finite simplicial complexes, this is equivalent to the
+        statement that the Stanley-Reisner ring of ``self`` is
+        Cohen-Macaulay.
+
+        .. NOTE ::
+
+            This method, especially when it returns ``False``, may
+            print a message like ::
+
+                Exception OSError: (10, 'No child processes') in <generator object __call__ at 0x10c8e3af0>     ignored
+
+            This may be ignored.
+
+        EXAMPLES:
+
+        Spheres are Cohen-Macaulay::
+
+            sage: S = SimplicialComplex([[1,2],[2,3],[3,1]])
+            sage: S.is_cohen_macaulay(ncpus=3)
+            True
+
+        The following example is taken from Bruns, Herzog - Cohen-Macaulay
+        rings, Figure 5.3::
+
+            sage: S = SimplicialComplex([[1,2,3],[1,4,5]])
+            sage: S.is_cohen_macaulay(ncpus=3)
+            ...
+            False
+        """
+        from sage.parallel.decorate import parallel
+        from sage.rings.rational_field import QQ
+
+        if ncpus == 0:
+            import os
+            try:
+                ncpus = int(os.environ['SAGE_NUM_THREADS'])
+            except KeyError:
+                ncpus = 1
+
+        facs = [ x for x in self.face_iterator() ]
+        n = len(facs)
+        facs_divided = [ [] for i in range(ncpus) ]
+        for i in range(n):
+            facs_divided[i%ncpus].append(facs[i])
+
+        def all_homologies_vanish(F):
+            S = self.link(F)
+            H = S.homology(base_ring=QQ)
+            return all( H[j].dimension() == 0 for j in xrange(S.dimension()) )
+
+        @parallel(ncpus=ncpus)
+        def all_homologies_in_list_vanish(Fs):
+            return all( all_homologies_vanish(F) for F in Fs )
+
+        return all( answer[1] for answer in all_homologies_in_list_vanish(facs_divided) )
+
     def effective_vertices(self):
         """
         The set of vertices belonging to some face. Returns the list of
@@ -2691,9 +2786,7 @@ class SimplicialComplex(GenericCellComplex):
                 print "  looping through %s facets" % len(faces)
             for f in faces:
                 f_set = f.set()
-                int_facets = []
-                for a in new_facets:
-                    int_facets.append(a.set().intersection(f_set))
+                int_facets = set( a.set().intersection(f_set) for a in new_facets )
                 intersection = SimplicialComplex(int_facets)
                 if not intersection._facets[0].is_empty():
                     if (len(intersection._facets) == 1 or

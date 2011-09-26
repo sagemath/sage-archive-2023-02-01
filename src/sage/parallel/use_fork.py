@@ -176,7 +176,8 @@ class p_iter_fork:
 
             # Send "kill -9" signal to workers that are left.
             if len(workers) > 0:
-                print "Killing any remaining workers..."
+                if self.verbose:
+                    print "Killing any remaining workers..."
                 sys.stdout.flush()
                 for pid in workers.keys():
                     try:

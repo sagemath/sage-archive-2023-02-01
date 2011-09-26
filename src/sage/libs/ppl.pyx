@@ -96,28 +96,28 @@ original library class, that is, just ``Linear_Expression``. In short:
 * If you are writing your own Cython code, you can access the
   underlying C++ classes by adding the prefix ``PPL_``.
 
-Finally, PPL is fast. For example, here is the permutahedron of 6
+Finally, PPL is fast. For example, here is the permutahedron of 5
 basis vectors::
 
     sage: from sage.libs.ppl import Variable, Generator_System, point, C_Polyhedron
-    sage: basis = range(0,6)
+    sage: basis = range(0,5)
     sage: x = [ Variable(i) for i in basis ]
     sage: gs = Generator_System();
     sage: for coeff in permutations(basis):
     ...      gs.insert(point( sum( (coeff[i]+1)*x[i] for i in basis ) ))
     ...
     sage: C_Polyhedron(gs)
-    A 5-dimensional polyhedron in QQ^6 defined as the convex hull of 720 points.
+    A 4-dimensional polyhedron in QQ^5 defined as the convex hull of 120 points.
 
-The computation finishes without noticeable delay on my desktop
-(timeit measures it to be 35msec). Cddlib needs about 3 minutes on the
-same hardware::
+The above computation (using PPL) finishes without noticeable delay
+(timeit measures it to be 90 microseconds on sage.math). Below we do the same
+computation with cddlib, which needs about 4 seconds on the same
+hardware::
 
-    sage: basis = range(0,6)
-    sage: x = [ Variable(i) for i in basis ]
+    sage: basis = range(0,5)
     sage: gs = [ tuple(coeff) for coeff in permutations(basis) ]
     sage: Polyhedron(vertices=gs)   # long time
-    A 5-dimensional polyhedron in QQ^6 defined as the convex hull of 720 vertices.
+    A 4-dimensional polyhedron in QQ^5 defined as the convex hull of 120 vertices.
 
 DIFFERENCES VS. C++
 

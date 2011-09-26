@@ -571,6 +571,59 @@ cdef class Vector_double_dense(free_module_element.FreeModuleElement):
         return self.change_ring(CDF)
 
 
+    def zero_at(self, eps):
+        r"""
+        Returns a copy with small entries replaced by zeros.
+
+        This is useful for modifying output from algorithms
+        which have large relative errors when producing zero
+        elements, e.g. to create reliable doctests.
+
+        INPUT:
+
+        - ``eps`` - cutoff value
+
+        OUTPUT:
+
+        A modified copy of the vector.  Elements smaller than
+        or equal to ``eps`` are replaced with zeroes.  For
+        complex vectors, the real and imaginary parts are
+        considered individually.
+
+
+        EXAMPLES::
+
+            sage: v = vector(RDF, [1.0, 2.0, 10^-10, 3.0])
+            sage: v.zero_at(1e-8)
+            (1.0, 2.0, 0.0, 3.0)
+            sage: v.zero_at(1e-12)
+            (1.0, 2.0, 1e-10, 3.0)
+
+        For complex numbers the real and imaginary parts are considered
+        separately.  ::
+
+            sage: w = vector(CDF, [10^-6 + 5*I, 5 + 10^-6*I, 5 + 5*I, 10^-6 + 10^-6*I])
+            sage: w.zero_at(1.0e-4)
+            (5.0*I, 5.0, 5.0 + 5.0*I, 0)
+            sage: w.zero_at(1.0e-8)
+            (1e-06 + 5.0*I, 5.0 + 1e-06*I, 5.0 + 5.0*I, 1e-06 + 1e-06*I)
+        """
+        import sage.rings.complex_double
+        global numpy
+        cdef Vector_double_dense v
+        if numpy is None:
+            import numpy
+        eps = float(eps)
+        out = self._vector_numpy.copy()
+        if self._sage_dtype is sage.rings.complex_double.CDF:
+            out.real[numpy.abs(out.real) <= eps] = 0
+            out.imag[numpy.abs(out.imag) <= eps] = 0
+        else:
+            out[numpy.abs(out) <= eps] = 0
+        v = self._new(out)
+        return v
+
+
     #############################
     # statistics
     #############################

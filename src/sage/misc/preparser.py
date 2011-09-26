@@ -1384,11 +1384,15 @@ class BackslashOperator:
 
             sage: A = matrix(RDF, 5, 5, 2)
             sage: b = vector(RDF, 5, range(5))
-            sage: A \ b
+            sage: # On at least one platform, we get a "negative zero":
+            sage: v = A \ b
+            sage: v.zero_at(1e-19)
             (0.0, 0.5, 1.0, 1.5, 2.0)
-            sage: A._backslash_(b)
+            sage: v = A._backslash_(b)
+            sage: v.zero_at(1e-19)
             (0.0, 0.5, 1.0, 1.5, 2.0)
-            sage: A * BackslashOperator() * b
+            sage: v = A * BackslashOperator() * b
+            sage: v.zero_at(1e-19)
             (0.0, 0.5, 1.0, 1.5, 2.0)
         """
         return self.left._backslash_(right)

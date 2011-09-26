@@ -8,12 +8,17 @@ fi
 
 # need to suppress confusing error messages and don't depend on system
 # libraries, so easy_install is not available
-tar xjf PyYAML-3.10.zip
+mkdir tmp
+unzip PyYAML-3.10.zip -d tmp
+cd tmp/PyYAML-3.10
 python setup.py --without-libyaml install --prefix="$SAGE_LOCAL"
 if [ $? -ne 0 ]; then
    echo "Error installing PyYAML."
    exit 1
 fi
+
+cd ../..
+rm -rf tmp
 
 easy_install pyparsing-1.5.6.zip
 if [ $? -ne 0 ]; then

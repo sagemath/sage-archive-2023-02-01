@@ -1023,7 +1023,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<x> = RDF[]
             sage: f = inverse_mod(x^2 + 1, x^5 + x + 1); f
             0.4*x^4 - 0.2*x^3 - 0.4*x^2 + 0.2*x + 0.8
-            sage: f * (x^2 + 1) % (x^5 + x + 1)
+            sage: poly = f * (x^2 + 1) % (x^5 + x + 1)
+            sage: # Remove noisy zero terms:
+            sage: parent(poly)([ 0.0 if abs(c)<=1e-15 else c for c in poly.coeffs() ])
             1.0
             sage: f = inverse_mod(x^3 - x + 1, x - 2); f
             0.142857142857
@@ -1031,8 +1033,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
             1.0
             sage: g = 5*x^3+x-7; m = x^4-12*x+13; f = inverse_mod(g, m); f
             -0.0319636125...*x^3 - 0.0383269759...*x^2 - 0.0463050900...*x + 0.346479687...
-            sage: f*g % m
-            -8.881784...e-16*x^3 + 8.881784...e-16*x^2 - 8.881784...e-16*x + 1.0
+            sage: poly = f*g % m
+            sage: # Remove noisy zero terms:
+            sage: parent(poly)([ 0.0 if abs(c)<=1e-15 else c for c in poly.coeffs() ])
+            1.0
 
         ALGORITHM: Solve the system as + mt = 1, returning s as the inverse
         of a mod m.

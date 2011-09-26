@@ -9,7 +9,7 @@ fi
 # need to suppress confusing error messages and don't depend on system
 # libraries, so easy_install is not available
 mkdir tmp
-unzip PyYAML-3.10.zip -d tmp
+unzip -o PyYAML-3.10.zip -d tmp
 cd tmp/PyYAML-3.10
 python setup.py --without-libyaml install --prefix="$SAGE_LOCAL"
 if [ $? -ne 0 ]; then

@@ -4641,10 +4641,10 @@ cdef class Matrix(matrix1.Matrix):
             consult numerical or symbolic matrix classes for other options
 
             sage: em = A.change_ring(RDF).eigenmatrix_left()
-            sage: eigenvalues = em[0]; eigenvalues
+            sage: eigenvalues = em[0]; eigenvalues.dense_matrix().zero_at(2e-15)
             [    13.3484692...                 0                 0]
             [                0    -1.34846922...                 0]
-            [                0                 0 -6.2265089...e-16]
+            [                0                 0                 0]
             sage: eigenvectors = em[1]; eigenvectors
             [ 0.440242867...  0.567868371...  0.695493875...]
             [ 0.897878732...  0.278434036... -0.341010658...]
@@ -4900,10 +4900,10 @@ cdef class Matrix(matrix1.Matrix):
             consult numerical or symbolic matrix classes for other options
 
             sage: em = B.change_ring(RDF).eigenmatrix_right()
-            sage: eigenvalues = em[0]; eigenvalues
+            sage: eigenvalues = em[0]; eigenvalues.dense_matrix().zero_at(1e-15)
             [     13.3484692...                  0                  0]
             [                 0     -1.34846922...                  0]
-            [                 0                  0 -8.86256604...e-16]
+            [                 0                  0                  0]
             sage: eigenvectors = em[1]; eigenvectors
             [ 0.164763817...  0.799699663...  0.408248290...]
             [ 0.505774475...  0.104205787... -0.816496580...]

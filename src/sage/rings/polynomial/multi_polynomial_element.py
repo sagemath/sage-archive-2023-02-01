@@ -1510,6 +1510,13 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: R(1).factor()
             1.00000000000000
 
+        Check that we prohibit too large moduli, #11829::
+
+            sage: R.<x,y> = GF(previous_prime(2^31))[]
+            sage: factor(x+y+1,proof=False)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Factorization of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented.
         """
         R = self.parent()
 
@@ -1532,6 +1539,13 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             return Factorization([(R(f),m) for f,m in F], unit=F.unit())
         except TypeError:
             pass
+
+        base_ring = self.base_ring()
+        if base_ring.is_finite():
+            if base_ring.characteristic() > 1<<29:
+                raise NotImplementedError, "Factorization of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented."
+        if proof:
+            raise NotImplementedError, "proof = True factorization not implemented.  Call factor with proof=False."
 
         R._singular_().set_ring()
         S = self._singular_().factorize()

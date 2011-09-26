@@ -150,10 +150,10 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
     ##         q    q : GF(q=p^n)       *names         TRUE              (todo)
 
     if base_ring.is_field() and base_ring.is_finite() and base_ring.is_prime_field():
-        if base_ring.characteristic() <= 2147483629:
+        if base_ring.characteristic() <= 2147483647:
             characteristic = base_ring.characteristic()
         else:
-            raise TypeError, "Characteristic p must be <= 2147483629."
+            raise TypeError, "Characteristic p must be <= 2147483647."
 
     elif PY_TYPE_CHECK(base_ring, RationalField):
         characteristic = 0
@@ -165,10 +165,10 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
         ringtype = 4 # integer ring
 
     elif PY_TYPE_CHECK(base_ring, FiniteField_generic):
-        if base_ring.characteristic() <= 2147483629:
+        if base_ring.characteristic() <= 2147483647:
             characteristic = -base_ring.characteristic() # note the negative characteristic
         else:
-            raise TypeError, "characteristic must be <= 2147483629."
+            raise TypeError, "characteristic must be <= 2147483647."
         # TODO: This is lazy, it should only call Singular stuff not MPolynomial stuff
         k = MPolynomialRing_libsingular(base_ring.prime_subfield(), 1, base_ring.variable_name(), 'lex')
         minpoly = base_ring.polynomial()(k.gen())

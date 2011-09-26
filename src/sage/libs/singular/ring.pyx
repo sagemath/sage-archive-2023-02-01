@@ -223,6 +223,8 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
         raise NotImplementedError("Base ring is not supported.")
 
     _ring = <ring*>omAlloc0Bin(sip_sring_bin)
+    if (_ring is NULL):
+        raise ValueError("Failed to allocate Singular ring.")
     _ring.ch = characteristic
     _ring.ringtype = ringtype
     _ring.N = n

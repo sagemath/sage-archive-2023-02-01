@@ -8,6 +8,7 @@ cdef class MPolynomialRing_libsingular
 
 cdef class MPolynomial_libsingular(MPolynomial):
     cdef poly *_poly
+    cdef ring *_parent_ring
     cpdef _repr_short_(self)
     cpdef is_constant(self)
     cpdef _homogenize(self, int var)

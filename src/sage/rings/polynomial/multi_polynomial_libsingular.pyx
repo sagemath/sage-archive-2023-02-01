@@ -555,7 +555,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                     mon = p_Init(_ring)
                     p_SetCoeff(mon, sa2si(c, _ring), _ring)
                     for pos in m.nonzero_positions():
-                        overflow_check(m[pos])
+                        overflow_check(m[pos], _ring)
                         p_SetExp(mon, pos+1, m[pos], _ring)
                     p_Setm(mon, _ring)
                     _p = p_Add_q(_p, mon, _ring)
@@ -853,7 +853,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                     mon = p_Init(_ring)
                     p_SetCoeff(mon, sa2si(c , _ring), _ring)
                     for pos in m.nonzero_positions():
-                        overflow_check(m[pos])
+                        overflow_check(m[pos], _ring)
                         p_SetExp(mon, ind_map[pos], m[pos], _ring)
                     p_Setm(mon, _ring)
                     _p = p_Add_q(_p, mon, _ring)
@@ -912,7 +912,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                     raise TypeError, "tuple key must have same length as ngens"
                 for pos from 0 <= pos < len(m):
                     if m[pos]:
-                        overflow_check(m[pos])
+                        overflow_check(m[pos], _ring)
                         p_SetExp(mon, pos+1, m[pos], _ring)
                 p_Setm(mon, _ring)
                 _p = p_Add_q(_p, mon, _ring)
@@ -2812,7 +2812,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         m = p_ISet(1,r)
         i = 1
         for e in x:
-            overflow_check(e)
+            overflow_check(e, r)
             p_SetExp(m, i, int(e), r)
             i += 1
         p_Setm(m, r)
@@ -4349,7 +4349,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         cdef int lr = p_GetMaxExp(q._poly, r)
         cdef int esum = le + lr
 
-        overflow_check(esum)
+        overflow_check(esum, r)
 
         return new_MP(self._parent, p_Minus_mm_Mult_qq(p_Copy(self._poly, r), m._poly, q._poly, r))
 
@@ -4428,7 +4428,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         cdef int lr = p_GetMaxExp(q._poly, r)
         cdef int esum = le + lr
 
-        overflow_check(esum)
+        overflow_check(esum, r)
 
         return new_MP(self._parent, p_Plus_mm_Mult_qq(p_Copy(self._poly, r), m._poly, q._poly, r))
 
@@ -4836,7 +4836,7 @@ def unpickle_MPolynomial_libsingular(MPolynomialRing_libsingular R, d):
                 p_Delete(&p, r)
                 p_Delete(&m, r)
                 raise TypeError, "exponent too small"
-            overflow_check(_e)
+            overflow_check(_e, r)
             p_SetExp(m, _i+1, _e, r)
         p_SetCoeff(m, sa2si(c, r), r)
         p_Setm(m, r)

@@ -169,6 +169,7 @@ cdef extern from "libsingular.h":
         mpz_t ringflaga
         unsigned long ringflagb
         int pCompIndex # index of components
+        unsigned long bitmask # mask for getting single exponents
 
         n_Procs_s*    cf
         int ref

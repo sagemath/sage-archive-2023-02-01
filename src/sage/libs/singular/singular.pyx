@@ -625,20 +625,43 @@ cdef extern from "dlfcn.h":
     cdef long RTLD_LAZY
     cdef long RTLD_GLOBAL
 
-cdef inline int overflow_check(long e) except -1:
+# Our attempt at avoiding exponent overflows.
+cdef unsigned int max_exponent_size
+
+cdef inline int overflow_check(long e, ring *_ring) except -1:
     """
-    Raises an ``OverflowError`` if e is > ``max_exponent_size``.
+    Raises an ``OverflowError`` if e is > ``max_exponent_size``,
+    or if it is not acceptable for Singular as exponent of the
+    given ring.
 
     INPUT:
 
     - ``e`` - some integer representing a degree.
+    - ``_ring`` - a pointer to some ring.
+
+    TESTS:
+
+    Whether an overflow occurs or not, partially depends
+    on the number of variables in the ring. See trac ticket
+    #11856::
+
+        sage: P.<x,y,z> = QQ[]
+        sage: y^2^30
+        Traceback (most recent call last):
+        ...
+        OverflowError: Exponent overflow (1073741824).
+        sage: P.<x,y> = QQ[]
+        sage: y^2^30
+        y^1073741824
+        sage: x^2^30*x^2^30
+        Traceback (most recent call last):
+        ...
+        OverflowError: Exponent overflow (2147483648).
+
     """
-    if unlikely(e > max_exponent_size):
+    if unlikely(e > min(max_exponent_size,max(_ring.N,_ring.bitmask))):
         raise OverflowError("Exponent overflow (%d)."%(e))
     return 0
-
-# Our attempt at avoiding exponent overflows.
-cdef unsigned int max_exponent_size
 
 cdef init_libsingular():
     """

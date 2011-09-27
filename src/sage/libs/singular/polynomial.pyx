@@ -252,7 +252,7 @@ cdef int singular_polynomial_mul(poly** ret, poly *p, poly *q, ring *r) except -
     cdef unsigned long le = p_GetMaxExp(p, r)
     cdef unsigned long lr = p_GetMaxExp(q, r)
     cdef unsigned long esum = le + lr
-    overflow_check(esum)
+    overflow_check(esum, r)
     ret[0] = pp_Mult_qq(p, q, r)
     return 0;
 
@@ -319,7 +319,7 @@ cdef int singular_polynomial_pow(poly **ret, poly *p, long exp, ring *r) except 
     cdef unsigned long v = p_GetMaxExp(p, r)
     v = v * exp
 
-    overflow_check(v)
+    overflow_check(v, r)
 
     if(r != currRing): rChangeCurrRing(r)
     cdef int count = singular_polynomial_length_bounded(p,15)

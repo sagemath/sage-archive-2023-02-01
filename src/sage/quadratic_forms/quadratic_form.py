@@ -1480,6 +1480,66 @@ class QuadraticForm(SageObject):
 
         return ideal(self.base_ring()(self.level()))
 
+    def bilinear_map(self,v,w):
+        r"""
+        Returns the value of the associated bilinear map on two vectors
+
+        Given a quadratic form `Q` over some base ring `R` with
+        characteristic not equal to 2, this gives the image of two
+        vectors with coefficients in `R` under the associated bilinear
+        map `B`, given by the relation `2 B(v,w) = Q(v) + Q(w) - Q(v+w)`.
+
+        INPUT:
+
+        `v, w` -- two vectors
+
+        OUTPUT:
+
+        an element of the base ring `R`.
+
+        EXAMPLES:
+
+        First, an example over `\ZZ`::
+
+            sage: Q = QuadraticForm(ZZ,3,[1,4,0,1,4,1])
+            sage: v = vector(ZZ,(1,2,0))
+            sage: w = vector(ZZ,(0,1,1))
+            sage: Q.bilinear_map(v,w)
+            8
+
+        This also works over `\QQ`::
+
+            sage: Q = QuadraticForm(QQ,2,[1/2,2,1])
+            sage: v = vector(QQ,(1,1))
+            sage: w = vector(QQ,(1/2,2))
+            sage: Q.bilinear_map(v,w)
+            19/4
+
+        The vectors must have the correct length::
+
+            sage: Q = DiagonalQuadraticForm(ZZ,[1,7,7])
+            sage: v = vector((1,2))
+            sage: w = vector((1,1,1))
+            sage: Q.bilinear_map(v,w)
+            Traceback (most recent call last):
+            ...
+            TypeError: vectors must have length 3
+
+        This does not work if the characteristic is 2::
+
+            sage: Q = DiagonalQuadraticForm(GF(2),[1,1,1])
+            sage: v = vector((1,1,1))
+            sage: w = vector((1,1,1))
+            sage: Q.bilinear_map(v,w)
+            Traceback (most recent call last):
+            ...
+            TypeError: not defined for rings of characteristic 2
+        """
+        if len(v) != self.dim() or len(w) != self.dim():
+            raise TypeError("vectors must have length " + str(self.dim()))
+        if self.base_ring().characteristic() == 2:
+            raise TypeError("not defined for rings of characteristic 2")
+        return (self(v+w) - self(v) - self(w))/2
 
 
 ## =====================================================================================================
@@ -1506,7 +1566,6 @@ def DiagonalQuadraticForm(R, diag):
         [ * 3 0 0 ]
         [ * * 5 0 ]
         [ * * * 7 ]
-
     """
     Q = QuadraticForm(R, len(diag))
     for i in range(len(diag)):

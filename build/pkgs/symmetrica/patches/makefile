@@ -17,6 +17,12 @@ $(OBJS): %.o: %.c
 	$(CC) -c $(CFLAGS) $<
 
 libsymmetrica.a: $(OBJS)
-	ar crs libsymmetrica.a $(OBJS)
+	$(AR) crs $@ $(OBJS)
+	$(RANLIB) $@
+
+test: libsymmetrica.a test.c $(OBJS)
+	$(CC) -c $(CFLAGS) test.c
+	$(CC) -L. test.o $(OBJS) -o $@ -lsymmetrica -lm
+
 
 

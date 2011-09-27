@@ -1,40 +1,41 @@
 #!/usr/bin/env bash
 
-if [ "$SAGE_LOCAL" = "" ]; then
-   echo "SAGE_LOCAL undefined ... exiting";
+if [ -z "$SAGE_LOCAL" ] ; then
+   echo "SAGE_LOCAL undefined ... exiting"
    echo "Maybe run 'sage -sh'?"
    exit 1
 fi
 
-if [ -z $CFLAG64 ] ; then
+if [ -z "$CFLAG64" ] ; then
    CFLAG64=-m64
 fi
 
-if [ "x$SAGE64" = xyes ]; then
+if [ "x$SAGE64" = xyes ] ; then
    CFLAGS="$CFLAGS $CFLAG64"
-   export CFLAGS
 fi
 
-CFLAGS="$CFLAGS -O2 -fPIC -g -DFAST -DALLTRUE"
+CFLAGS="-O2 -g $CFLAGS -fPIC -DFAST -DALLTRUE"
 export CFLAGS
 
+set -o errexit
 cd src
 patch < ../patches/de.patch
 patch < ../patches/macro.h.patch
 patch < ../patches/sort_sum_rename.patch
-cp -f ../patches/makefile makefile
+cp -p -f ../patches/makefile makefile
+set +o errexit
 
-$MAKE -f makefile
+$MAKE
 if [ $? -ne 0 ]; then
     echo "Error building symmetrica."
     exit 1
 fi
 
-cp libsymmetrica.a $SAGE_LOCAL/lib/
+cp -p -f libsymmetrica.a "$SAGE_LOCAL"/lib/
 
 # upstream tarball has funky permissions
+mkdir -p "$SAGE_LOCAL"/include/symmetrica
 chmod 644 def.h macro.h
-mkdir -p $SAGE_LOCAL/include/symmetrica
-cp def.h macro.h $SAGE_LOCAL/include/symmetrica
+cp -p -f def.h macro.h "$SAGE_LOCAL"/include/symmetrica
 
 

@@ -15,8 +15,8 @@ University of Bayreuth. It has routines to handle the following topics
  * operations of finite groups.
  * ordinary representation theory of Hecke algebras of type A_n
 
-For more details check
-http://www.mathe2.uni-bayreuth.de/axel/symneu_engl.html
+For more details check http://www.symmetrica.de (currently redirects
+to http://www.algorithm.uni-bayreuth.de/en/research/SYMMETRICA)
 
 
 == License ==
@@ -27,7 +27,6 @@ states that Symmetrica is PUBLIC DOMAIN.
 
 == SPKG Maintainers ==
  * Mike Hansen
- * Michael Abshoff
 
 
 == Upstream Contact ==
@@ -44,8 +43,8 @@ The following patches are applied in spkg-install:
 
  * de.patch (Turn off banner)
  * macro.h.patch (Change some return types, this can be avoided)
- * makefile.patch (Fix compiler, inject CFLAGS)
- * sort_sum_rename.patch (rename sort tp sym_sort, sum to sym_sum)
+ * copy patches/makefile (Fix compiler, inject CFLAGS)
+ * sort_sum_rename.patch (rename sort to sym_sort, sum to sym_sum)
 
 Permissions in the upstream tarball are funky, please run
 "chmod 644 src/" after unpacking.
@@ -53,10 +52,12 @@ Permissions in the upstream tarball are funky, please run
 
 == Changelog ==
 
-=== symmetrica-2.0.p6 (Volker Braun, 31st January 2011) ===
+=== symmetrica-2.0.p6 (Volker Braun, 28st September 2011) ===
  * Change -lm option order in Makefile.
  * removed dist/ directory.
- * src is now the pristine upstream source, patches are applied in spkg-install
+ * src is now the pristine upstream source, patches are applied in
+   spkg-install
+ * added spkg-check
 
 === symmetrica-2.0.p5 (David Kirkby, 6th January 2009) ===
  * Allow SAGE64 to work on any platform, not just OS X.

@@ -181,9 +181,6 @@ export DOCUTILS
 ECM=`$newest ecm`
 export ECM
 
-EXAMPLES=`$newest examples`
-export EXAMPLES
-
 EXTCODE=`$newest extcode`
 export EXTCODE
 

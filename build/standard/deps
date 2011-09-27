@@ -45,7 +45,6 @@ all: $(BASE) \
      $(INST)/$(ECLIB) \
      $(INST)/$(ECM) \
      $(INST)/$(ELLIPTIC_CURVES) \
-     $(INST)/$(EXAMPLES) \
      $(INST)/$(EXTCODE) \
      $(INST)/$(F2C) \
      $(INST)/$(FLINT) \
@@ -394,9 +393,6 @@ $(INST)/$(FLINT): $(BASE) $(INST)/$(MPIR) $(INST)/$(NTL) $(INST)/$(PATCH)
 # Mercurial must be built before building extcode. See trac ticket #6508.
 $(INST)/$(EXTCODE): $(BASE) $(INST)/$(MERCURIAL) $(INST)/$(PATCH)
 	$(INSTALL) "$(SAGE_SPKG) $(EXTCODE) 2>&1" "tee -a $(SAGE_LOGS)/$(EXTCODE).log"
-
-$(INST)/$(EXAMPLES): $(BASE) $(INST)/$(PATCH)
-	$(INSTALL) "$(SAGE_SPKG) $(EXAMPLES) 2>&1" "tee -a $(SAGE_LOGS)/$(EXAMPLES).log"
 
 $(INST)/$(LIBM4RI): $(BASE) $(INST)/$(PATCH)
 	$(INSTALL) "$(SAGE_SPKG) $(LIBM4RI) 2>&1" "tee -a $(SAGE_LOGS)/$(LIBM4RI).log"

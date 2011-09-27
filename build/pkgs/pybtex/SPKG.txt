@@ -17,7 +17,7 @@ Burcin Erocal <burcin@erocal.org>
 
 == Upstream Contact ==
 
-Andrey Golovizin <golovizin@gmail com>
+Andrey Golovizin <golovizin@gmail.com>
 http://pybtex.sourceforge.net/
 
 == Dependencies ==
@@ -43,4 +43,7 @@ The file patches/pybtex-doc_tree.patch is rebased to apply to pybtex-0.15.
 
 === pybtex-0.15 (Burcin Erocal, Niels Ranosch, August 10, 2011) ===
  * initial version
+
+=== pybtex-0.15-r1 (Burcion Erocal, Niels Ranosch, September 27, 2011) ===
+ * prevent PyYAML from checking for libyaml
 

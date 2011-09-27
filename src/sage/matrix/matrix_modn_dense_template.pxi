@@ -156,6 +156,37 @@ cdef inline linbox_echelonize(celement modulus, celement* entries, Py_ssize_t nr
     del F
     return r, pivots
 
+cdef inline linbox_echelonize_efd(celement modulus, celement* entries, Py_ssize_t nrows, Py_ssize_t ncols):
+    cdef ModField *F = new ModField(<long>modulus)
+    cdef EchelonFormDomain *EF = new EchelonFormDomain(F[0])
+    cdef BlasMatrix[ModFieldElement] *A = new BlasMatrix[ModFieldElement](nrows, ncols)
+    cdef BlasMatrix[ModFieldElement] *E = new BlasMatrix[ModFieldElement](nrows, ncols)
+
+    cdef Py_ssize_t i,j
+
+    # TODO: can we avoid this copy?
+    for i in range(nrows):
+        for j in range(ncols):
+            A.setEntry(i, j, <ModFieldElement>entries[i*ncols+j])
+
+    cdef int r = EF.rowReducedEchelon(E[0], A[0])
+    for i in range(nrows):
+        for j in range(ncols):
+            entries[i*ncols+j] = <celement>E.getEntry(i,j)
+
+    cdef Py_ssize_t ii = 0
+    cdef list pivots = []
+    for i in range(r):
+        for j in range(ii,ncols):
+            if entries[i*ncols+j] == 1:
+                pivots.append(j)
+                ii = j+1
+                break
+
+    # TODO: recover pivots
+    del F, A, E, EF
+    return r, pivots
+
 cdef inline celement *linbox_copy(celement modulus, celement *entries,  Py_ssize_t nrows, Py_ssize_t ncols) except NULL:
     """
     Create a copy of the entries array.
@@ -1574,7 +1605,9 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
 
         - ``algorithm``
 
-          - ``linbox`` - uses the LinBox library
+          - ``linbox`` - uses the LinBox library (``EchelonFormDomain`` implementation, default)
+
+          - ``linbox_noefd`` - uses the LinBox library (FFPACK directly, less memory but slower)
 
           - ``gauss`` - uses a custom slower `O(n^3)` Gauss
             elimination implemented in Sage.
@@ -1761,26 +1794,38 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
             raise NotImplementedError("Echelon form not implemented over '%s'."%self.base_ring())
 
         if algorithm == 'linbox':
-            self._echelonize_linbox()
-
+            self._echelonize_linbox(efd=True)
+        elif algorithm == 'linbox_noefd':
+            self._echelonize_linbox(efd=False)
         elif algorithm == 'gauss':
             self._echelon_in_place_classical()
 
         elif algorithm == 'all':
             A = self.__copy__()
-            self._echelonize_linbox()
+            B = self.__copy__()
+            self._echelonize_linbox(efd=True)
             A._echelon_in_place_classical()
-            if A != self:
+            B._echelonize_linbox(efd=False)
+            if A != self or A != B:
                 raise ArithmeticError("Bug in echelon form.")
         else:
             raise ValueError("Algorithm '%s' not known"%algorithm)
 
-    def _echelonize_linbox(self):
+    def _echelonize_linbox(self, efd=True):
         """
         Puts ``self`` in row echelon form using LinBox.
 
         This function is called by echelonize if
         ``algorithm='linbox'``.
+
+        INPUT:
+
+        - ``efd`` - if ``True`` LinBox's ``EchelonFormDomain``
+          implementation is used, which is faster than the direct
+          ``LinBox::FFPACK`` implementation, since the latter also
+          computes the transformation matrix (which we
+          ignore). However, ``efd=True`` uses more memory than FFLAS
+          directly (default=``True``)
 
         EXAMPLES::
 
@@ -1812,7 +1857,10 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         self.clear_cache()
 
         t = verbose('Calling echelonize mod %d.'%self.p)
-        r, pivots = linbox_echelonize(self.p, self._entries, self._nrows, self._ncols)
+        if efd:
+            r, pivots = linbox_echelonize_efd(self.p, self._entries, self._nrows, self._ncols)
+        else:
+            r, pivots = linbox_echelonize(self.p, self._entries, self._nrows, self._ncols)
         verbose('done with echelonize',t)
 
         self.cache('in_echelon_form',True)

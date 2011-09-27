@@ -1,7 +1,5 @@
 from modular cimport ModDoubleField, ModFloatField, ModDoubleFieldElement, ModFloatFieldElement
 
-ctypedef unsigned long mod_int
-
 cdef extern from "linbox/fflas/fflas.h" namespace "std":
     cdef cppclass vector[T]:
         cppclass iterator:

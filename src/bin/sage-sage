@@ -480,7 +480,6 @@ if [ "$1" = '-sh'  -o "$1" = '--sh' ]; then
     # We must start a new shell with no .profile or .bashrc files
     # processed, so that we know our path is correct
     PS1="SAGE_ROOT=${SAGE_ROOT}\n(sage subshell) \h:\W \u\$ "
-    export PS1
     case $SHELL_NAME in
         bash)
             SHELL_OPTS=" --norc"
@@ -498,6 +497,8 @@ if [ "$1" = '-sh'  -o "$1" = '--sh' ]; then
             SHELL_OPTS=" -f"
             ;;
         zsh)
+PS1="SAGE_ROOT=${SAGE_ROOT}
+(sage subshell) %m:%~ %n$ "
             SHELL_OPTS=" -f -d"
             ;;
         *)
@@ -505,6 +506,7 @@ if [ "$1" = '-sh'  -o "$1" = '--sh' ]; then
             echo >&2 "Exiting Sage."
             exit 1
     esac
+    export PS1
 
     $SHELL_NAME $SHELL_OPTS "$@"
 

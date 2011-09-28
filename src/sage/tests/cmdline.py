@@ -26,6 +26,7 @@ test.sage
 --min
 --mwrank
 --optional
+--preparse
 --python
 -q
 --R
@@ -36,6 +37,7 @@ test.sage
 --sqlite3
 --standard
 --startuptime
+-t
 -v
 --zzfoobar (illegal option)
 
@@ -246,6 +248,51 @@ def test_executable(args, input="", timeout=50.0):
         sage: ret
         0
         sage: del F   # Close and delete the file
+
+    Testing "sage --preparse FILE" and "sage -t FILE".  First create a file and preparse it::
+
+        sage: import os
+        sage: s = '\"\"\"\nThis is a test file.\n\"\"\"\ndef my_add(a,b):\n    \"\"\"\n    Add a to b.\n\n        EXAMPLES::\n\n            sage: my_add(2,2)\n            4\n        \"\"\"\n    return a+b\n'
+        sage: script = os.path.join(SAGE_TMP, 'my_script.sage')
+        sage: F = open(script, 'w')
+        sage: F.write(s)
+        sage: F.close()
+        sage: os.chdir(SAGE_TMP)
+        sage: (out, err, ret) = test_executable(["sage", "--preparse", script])
+        sage: ret
+        0
+        sage: os.path.exists(os.path.join(SAGE_TMP, 'my_script.py'))
+        True
+
+    Now test my_script.sage and the preparsed version my_script.py::
+
+        sage: (out, err, ret) = test_executable(["sage", "-t", script])
+        sage: ret
+        0
+        sage: out.find("All tests passed!") >= 0
+        True
+        sage: (out, err, ret) = test_executable(["sage", "-t", os.path.join(SAGE_TMP, 'my_script.py')])
+        sage: ret
+        0
+        sage: out.find("All tests passed!") >= 0
+        True
+
+    Now for a file which should fail tests.  Run this test with
+    SAGE_TESTDIR equal to a temporary directory, because failed doctests
+    leave files lying around in SAGE_TESTDIR::
+
+        sage: s = s.replace('4', '5') # (2+2 != 5)
+        sage: F = open(script, 'w')
+        sage: F.write(s)
+        sage: F.close()
+        sage: OLD_TESTDIR = os.environ['SAGE_TESTDIR']
+        sage: os.environ['SAGE_TESTDIR'] = SAGE_TMP
+        sage: (out, err, ret) = test_executable(["sage", "-t", script])
+        sage: ret
+        128
+        sage: out.find("1 items had failures:") >= 0
+        True
+        sage: os.environ['SAGE_TESTDIR'] = OLD_TESTDIR  # just in case
 
     Test external programs being called by Sage::
 

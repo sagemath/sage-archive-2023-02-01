@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-if [ "$SAGE_LOCAL" = "" ]; then
-   echo "SAGE_LOCAL undefined ... exiting";
-   echo "Maybe run 'sage -sh'?"
-   exit 1
+if [ -z "$SAGE_LOCAL" ]; then
+    echo "SAGE_LOCAL undefined - exiting..."
+    echo "Maybe run 'sage -sh'?"
+    exit 1
 fi
 
 CUR=`pwd`
@@ -41,62 +41,79 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-if [ `uname` = "Darwin" ]; then
+if [ "$UNAME" = "Darwin" ]; then
     $MAKE dylib
 elif [ "$UNAME" = "CYGWIN" ]; then
     $MAKE dll
 else
     $MAKE so
 fi
-
 if [ $? -ne 0 ]; then
     echo "Error building eclib shared libraries"
     exit 1
 fi
 
-if [ `uname` = "Darwin" ]; then
-    cp lib/*.dylib "$SAGE_LOCAL"/lib/
+# Install libraries and headers by copying them over:
+
+if [ "$UNAME" = "Darwin" ]; then
+    cp -p lib/*.dylib "$SAGE_LOCAL"/lib/
+elif [ "$UNAME" = "CYGWIN" ]; then
+    cp -p lib/*.dll "$SAGE_LOCAL"/lib/
 else
-  if [ "$UNAME" = "CYGWIN" ]; then
-      cp lib/*.dll "$SAGE_LOCAL"/lib/
-  else
-      cp lib/*.so "$SAGE_LOCAL"/lib/
-  fi
+    cp -p lib/*.so "$SAGE_LOCAL"/lib/
+fi
+if [ $? -ne 0 ]; then
+    echo "Error copying over libraries"
+    exit 1
 fi
 
 INC_TARGET="$SAGE_LOCAL"/include/eclib
 rm -rf "$INC_TARGET"
-cp -r include "$INC_TARGET"
+cp -pr include "$INC_TARGET"
+if [ $? -ne 0 ]; then
+    echo "Error copying over header files"
+    exit 1
+fi
 
 if [ "$UNAME" = "CYGWIN" ]; then
    EXE_NAME=".exe"
 fi
 
-#delete some leftovers from mwrank
+# Delete some leftovers from mwrank:
 rm -rf "$SAGE_LOCAL"/include/mwrank"$EXE_NAME"
-rm -rf "$SAGE_LOCAL"/bin/tmwrank"$EXE_NAME"
+rm -rf "$SAGE_LOCAL"/bin/mwrank"$EXE_NAME"
 
-# copy new binaries
-cp qrank/mwrank"$EXE_NAME" "$SAGE_LOCAL"/bin
+# Copy new binaries:
+
+cp -p qrank/mwrank"$EXE_NAME" "$SAGE_LOCAL"/bin
+if [ $? -ne 0 ]; then
+    echo "Error copying over mwrank binary"
+    exit 1
+fi
 strip "$SAGE_LOCAL"/bin/mwrank"$EXE_NAME"
-cp qrank/ratpoint"$EXE_NAME" "$SAGE_LOCAL"/bin
-strip "$SAGE_LOCAL"/bin/ratpoint"$EXE_NAME"
-cp qcurves/findinf"$EXE_NAME" "$SAGE_LOCAL"/bin
-strip "$SAGE_LOCAL"/bin/findinf"$EXE_NAME"
-cp qcurves/tate"$EXE_NAME" "$SAGE_LOCAL"/bin
-strip "$SAGE_LOCAL"/bin/tate"$EXE_NAME"
-cp qcurves/conductor"$EXE_NAME" "$SAGE_LOCAL"/bin
-strip "$SAGE_LOCAL"/bin/conductor"$EXE_NAME"
-cp qcurves/torsion"$EXE_NAME" "$SAGE_LOCAL"/bin
-strip "$SAGE_LOCAL"/bin/torsion"$EXE_NAME"
-cp qcurves/twist"$EXE_NAME" "$SAGE_LOCAL"/bin
-strip "$SAGE_LOCAL"/bin/twist"$EXE_NAME"
-cp qcurves/allisog"$EXE_NAME" "$SAGE_LOCAL"/bin
-strip "$SAGE_LOCAL"/bin/allisog"$EXE_NAME"
-cp qcurves/indep"$EXE_NAME" "$SAGE_LOCAL"/bin
-strip "$SAGE_LOCAL"/bin/indep"$EXE_NAME"
-cp procs/tconic"$EXE_NAME" "$SAGE_LOCAL"/bin
+
+cp -p qrank/ratpoint"$EXE_NAME" "$SAGE_LOCAL"/bin &&
+strip "$SAGE_LOCAL"/bin/ratpoint"$EXE_NAME" &&
+cp -p qcurves/findinf"$EXE_NAME" "$SAGE_LOCAL"/bin &&
+strip "$SAGE_LOCAL"/bin/findinf"$EXE_NAME" &&
+cp -p qcurves/tate"$EXE_NAME" "$SAGE_LOCAL"/bin &&
+strip "$SAGE_LOCAL"/bin/tate"$EXE_NAME" &&
+cp -p qcurves/conductor"$EXE_NAME" "$SAGE_LOCAL"/bin &&
+strip "$SAGE_LOCAL"/bin/conductor"$EXE_NAME" &&
+cp -p qcurves/torsion"$EXE_NAME" "$SAGE_LOCAL"/bin &&
+strip "$SAGE_LOCAL"/bin/torsion"$EXE_NAME" &&
+cp -p qcurves/twist"$EXE_NAME" "$SAGE_LOCAL"/bin &&
+strip "$SAGE_LOCAL"/bin/twist"$EXE_NAME" &&
+cp -p qcurves/allisog"$EXE_NAME" "$SAGE_LOCAL"/bin &&
+strip "$SAGE_LOCAL"/bin/allisog"$EXE_NAME" &&
+cp -p qcurves/indep"$EXE_NAME" "$SAGE_LOCAL"/bin &&
+strip "$SAGE_LOCAL"/bin/indep"$EXE_NAME" &&
+cp -p procs/tconic"$EXE_NAME" "$SAGE_LOCAL"/bin &&
 strip "$SAGE_LOCAL"/bin/tconic"$EXE_NAME"
+if [ $? -ne 0 ]; then
+    echo "Error copying over (or stripping) other binaries"
+    exit 1
+fi
 
 cd "$SAGE_LOCAL"/include
 chmod 755 eclib

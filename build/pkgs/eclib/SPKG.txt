@@ -37,8 +37,17 @@ over 25 years of hard work.
 
 == Changelog ==
 
-=== eclib-20100711.p0 (Mariah Lenox, May 19th 2011) ===
- * Deleted the obsolete (Debian) dist/ directory.
+=== eclib-20100711.p0 (Mariah Lenox and Leif Leonhardy, September 28th 2011) ===
+ * #11354: Deleted the obsolete (Debian) dist/ directory. (May 2011)
+ * Comment by Leif:
+   Since (as release manager) I had to add this changelog entry, which was
+   missing, and fix the files' permissions anyway, I also did little "off-ticket"
+   clean-up (kind of "reviewer patch"):
+   - Use `cp -p` in all copy commands, since the current umask might break
+     permissions again.
+   - Check exit codes of `cp` (and `strip`) and all other important commands.
+   - Minor cosmetic clean-up, such as replacing `uname` by "$UNAME" and  else-if
+     ladders by `elif`.
 
 === eclib-20100711 (John Cremona, 11 July 2010) ===
  * Four changesets applied to source code, including

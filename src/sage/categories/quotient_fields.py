@@ -235,10 +235,6 @@ class QuotientFields(Category_singleton):
                 sage: R.<x,y> = GF(2)[]
                 sage: f = x*y/(x+y)
                 sage: f.factor()
-                Traceback (most recent call last):
-                ...
-                NotImplementedError: proof = True factorization not implemented.  Call factor with proof=False.
-                sage: f.factor(proof=False)
                 (x + y)^-1 * y * x
             """
             return (self.numerator().factor(*args, **kwds) /

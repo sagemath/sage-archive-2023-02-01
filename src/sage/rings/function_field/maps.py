@@ -324,7 +324,7 @@ class FunctionFieldMorphism_polymod(FunctionFieldMorphism):
             Morphism of function fields defined by y |--> 2*y
             sage: type(f)
             <class 'sage.rings.function_field.maps.FunctionFieldMorphism_polymod'>
-            sage: factor(L.polynomial(), proof=False)
+            sage: factor(L.polynomial())
             y^3 + 6*x^3 + x
             sage: f(y).charpoly('y')
             y^3 + 6*x^3 + x

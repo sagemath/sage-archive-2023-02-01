@@ -2362,7 +2362,7 @@ class MPolynomialIdeal_singular_repr(
         return R.ideal(quotient(self, J))
 
     @require_field
-    def variety(self, ring=None, proof=True):
+    def variety(self, ring=None):
         r"""
         Return the variety of ``self``.
 
@@ -2615,7 +2615,7 @@ class MPolynomialIdeal_singular_repr(
         except TypeError, msg: # conversion to Singular not supported
           if self.ring().term_order().is_global():
             verbose("Warning: falling back to very slow toy implementation.", level=0)
-            T = toy_variety.triangular_factorization(self.groebner_basis(),proof=proof)
+            T = toy_variety.triangular_factorization(self.groebner_basis())
           else:
             raise TypeError, "Local/unknown orderings not supported by 'toy_buchberger' implementation."
 

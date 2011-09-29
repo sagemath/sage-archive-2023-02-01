@@ -221,7 +221,7 @@ def linear_representation(p, polys):
   offset = M.ncols() - M.nrows()
   return [M[n,offset+each] / (-M[n,j]) for each in xrange(len(polys))]
 
-def triangular_factorization(B, n=-1, proof=True):
+def triangular_factorization(B, n=-1):
   """
   Compute the triangular factorization of the Groebner basis ``B`` of an ideal.
 
@@ -248,12 +248,7 @@ def triangular_factorization(B, n=-1, proof=True):
       sage: p2 = z^2 - z
       sage: p3 = (x-2)^2*(y-1)^3
       sage: I = R.ideal(p1,p2,p3)
-      sage: triangular_factorization(I.groebner_basis(), proof=True)
-      Traceback (most recent call last):
-      ...
-      NotImplementedError: proof = True factorization not implemented.  Call factor with proof=False.
-
-      sage: triangular_factorization(I.groebner_basis(), proof=False)
+      sage: triangular_factorization(I.groebner_basis())
       [[x^2 - 4*x + 4, y, z],
        [x^5 - 3*x^4 + 3*x^3 - x^2, y - 1, z],
        [x^2 - 4*x + 4, y, z - 1],
@@ -282,7 +277,7 @@ def triangular_factorization(B, n=-1, proof=True):
   family = []
   # recursively build the family,
   # looping through the factors of p
-  for (q,a) in p.factor(proof=proof):
+  for (q,a) in p.factor():
     # Construct an analog to I in (R.quotient(R.ideal(q)))[x_0,x_1,...x_{n-1}]
     I = R.ideal([each.reduce([q]) for each in G])
     if len(I.gens()) == 1:
@@ -290,7 +285,7 @@ def triangular_factorization(B, n=-1, proof=True):
       H = [I.gens()[0]]
     else:
       H = I.groebner_basis()
-    T = triangular_factorization(list(H),n-1, proof=proof)
+    T = triangular_factorization(list(H),n-1)
     # now add the current factor q of p to the factorization
     for each in T:
       each.append(q)

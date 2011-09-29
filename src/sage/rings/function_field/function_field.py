@@ -1124,19 +1124,14 @@ class RationalFunctionField(FunctionField):
             sage: f.factor().prod() == f
             True
 
-        You must pass in ``proof=False`` over finite fields, due to
-        Singular's factoring algorithm being incomplete::
+        We do a factorization over a finite prime field::
 
             sage: R.<t> = FunctionField(GF(7))
             sage: S.<X> = R[]
             sage: f = (1/t)*(X^4 - 1/t^2)*(X^3 - t^3)
             sage: f.factor()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: proof = True factorization not implemented.  Call factor with proof=False.
-            sage: f.factor(proof=False)
             (1/t) * (X + 3*t) * (X + 5*t) * (X + 6*t) * (X^2 + 1/t) * (X^2 + 6/t)
-            sage: f.factor(proof=False).prod() == f
+            sage: f.factor().prod() == f
             True
 
         Factoring over a function field over a non-prime finite field::
@@ -1145,13 +1140,13 @@ class RationalFunctionField(FunctionField):
             sage: R.<t> = FunctionField(k)
             sage: S.<X> = R[]
             sage: f = (1/t)*(X^3 - a*t^3)
-            sage: f.factor(proof=False)
+            sage: f.factor()
             (1/t) * (X + (a + 2)*t)^3
-            sage: f.factor(proof=False).prod() == f
+            sage: f.factor().prod() == f
             True
         """
         F, d = self._to_bivariate_polynomial(f)
-        fac = F.factor(proof=proof)
+        fac = F.factor()
         x = f.parent().gen()
         t = f.parent().base_ring().gen()
         phi = F.parent().hom([x, t])

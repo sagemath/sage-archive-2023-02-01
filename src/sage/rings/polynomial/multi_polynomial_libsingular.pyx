@@ -3768,9 +3768,13 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         return f
 
-    def factor(self, proof=None):
-        r"""
+    def factor(self, proof=True):
+        """
         Return the factorization of this polynomial.
+
+        INPUT:
+
+        - ``proof`` - ignored.
 
         EXAMPLES::
 
@@ -3782,16 +3786,28 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             x * (x^2 + x + 1) * (x^2 + 2*y^2)
 
         Next we factor the same polynomial, but over the finite field
-        of order 3. ::
+        of order 3.::
 
             sage: R.<x, y> = GF(3)[]
             sage: f = (x^3 + 2*y^2*x) * (x^2 + x + 1); f
             x^5 - x^3*y^2 + x^4 - x^2*y^2 + x^3 - x*y^2
-            sage: F = f.factor(proof=False)      # we use proof = False, since Singular's factorization has issues
+            sage: F = f.factor()
             sage: F # order is somewhat random
             (-1) * x * (-x + y) * (x + y) * (x - 1)^2
 
-        Next we factor a polynomial over a number field. ::
+        Next we factor a polynomial, but over a finite field of order 9.::
+
+            sage: K.<a> = GF(3^2)
+            sage: R.<x, y> = K[]
+            sage: f = (x^3 + 2*a*y^2*x) * (x^2 + x + 1); f
+            x^5 + (-a)*x^3*y^2 + x^4 + (-a)*x^2*y^2 + x^3 + (-a)*x*y^2
+            sage: F = f.factor()
+            sage: F
+            ((-a)) * x * (x - 1)^2 * ((-a + 1)*x^2 + y^2)
+            sage: f - F
+            0
+
+        Next we factor a polynomial over a number field.::
 
             sage: p = var('p')
             sage: K.<s> = NumberField(p^3-2)
@@ -3816,12 +3832,12 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
             sage: R.<x,y,z> = GF(32003)[]
             sage: f = 9*(x-1)^2*(y+z)
-            sage: f.factor(proof=False)
+            sage: f.factor()
             (9) * (y + z) * (x - 1)^2
 
             sage: R.<x,w,v,u> = QQ['x','w','v','u']
             sage: p = (4*v^4*u^2 - 16*v^2*u^4 + 16*u^6 - 4*v^4*u + 8*v^2*u^3 + v^4)
-            sage: p.factor(proof=False)
+            sage: p.factor()
             (-2*v^2*u + 4*u^3 + v^2)^2
             sage: R.<a,b,c,d> = QQ[]
             sage: f =  (-2) * (a - d) * (-a + b) * (b - d) * (a - c) * (b - c) * (c - d)
@@ -3838,23 +3854,8 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: P(2^3*7).factor()
             2^3 * 7
 
-        Factorization of multivariate polynomials over non-prime
-        finite fields is only implemented in Singular, and
-        unfortunately Singular is currently very buggy at this
-        computation.  So we disable it in Sage::
-
-            sage: k.<a> = GF(9)
-            sage: R.<x,y> = PolynomialRing(k)
-            sage: f = (x-a)*(y-a)
-            sage: f.factor()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: proof = True factorization not implemented.  Call factor with proof=False.
-            sage: f.factor(proof=False)
-            (y + (-a)) * (x + (-a))
-
-        Also, factorization for finite prime fields with
-        characteristic `> 2^{29}` is not supported either. ::
+        Factorization for finite prime fields with characteristic
+        `> 2^{29}` is not supported either. ::
 
             sage: q = 1073741789
             sage: T.<aa, bb> = PolynomialRing(GF(q))
@@ -3873,18 +3874,14 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             ...
             NotImplementedError: Factorization of multivariate polynomials over non-fields is not implemented.
 
+        TESTS:
+
         This shows that ticket \#10270 is fixed::
 
             sage: R.<x,y,z> = GF(3)[]
             sage: f = x^2*z^2+x*y*z-y^2
-            sage: proof.polynomial(False)
             sage: f.factor()
             x^2*z^2 + x*y*z - y^2
-            sage: proof.polynomial(True)
-            sage: f.factor()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: proof = True factorization not implemented.  Call factor with proof=False.
 
         This checks that ticket \#11838 is fixed::
 
@@ -3894,8 +3891,63 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: p=x^8*y^3 + x^2*y^9 + a*x^9 + a*x*y^4
             sage: q=y^11 + (a)*y^10 + (a + 1)*x*y^3
             sage: f = p*q
-            sage: f.factor(proof=False)
+            sage: f.factor()
             x * y^3 * (y^8 + (a)*y^7 + (a + 1)*x) * (x^7*y^3 + x*y^9 + (a)*x^8 + (a)*y^4)
+
+             ...
+             NotImplementedError: Factorization of multivariate polynomials over non-fields is not implemented.
+
+        We test several examples which were known to return wrong results in the past (\#10902)::
+
+            sage: R.<x,y> = GF(2)[]
+            sage: p = x^3*y^7 + x^2*y^6 + x^2*y^3
+            sage: q = x^3*y^5
+            sage: f = p*q
+            sage: p.factor()*q.factor()
+            x^5 * y^8 * (x*y^4 + y^3 + 1)
+            sage: f.factor()
+            x^5 * y^8 * (x*y^4 + y^3 + 1)
+            sage: f.factor().expand() == f
+            True
+
+        ::
+
+            sage: R.<x,y> = GF(2)[]
+            sage: p=x^8 + y^8; q=x^2*y^4 + x
+            sage: f=p*q
+            sage: lf = f.factor()
+            sage: f-lf
+            0
+
+        ::
+
+            sage: R.<x,y> = GF(3)[]
+            sage: p = -x*y^9 + x
+            sage: q = -x^8*y^2
+            sage: f = p*q
+            sage: f
+            x^9*y^11 - x^9*y^2
+            sage: f.factor()
+            y^2 * (y - 1)^9 * x^9
+            sage: f - f.factor()
+            0
+
+        ::
+
+            sage: R.<x,y> = GF(5)[]
+            sage: p=x^27*y^9 + x^32*y^3 + 2*x^20*y^10 - x^4*y^24 - 2*x^17*y
+            sage: q=-2*x^10*y^24 + x^9*y^24 - 2*x^3*y^30
+            sage: f=p*q; f-f.factor()
+            0
+
+        ::
+
+            sage: R.<x,y> = GF(7)[]
+            sage: p=-3*x^47*y^24
+            sage: q=-3*x^47*y^37 - 3*x^24*y^49 + 2*x^56*y^8 + 3*x^29*y^15 - x^2*y^33
+            sage: f=p*q
+            sage: f-f.factor()
+            0
         """
         cdef ring *_ring = self._parent_ring
         cdef poly *ptemp
@@ -3904,10 +3956,6 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         cdef ideal *I
         cdef MPolynomialRing_libsingular parent = self._parent
         cdef int i
-
-        if proof is None:
-            from sage.structure.proof.proof import get_flag
-            proof = get_flag(proof, "polynomial")
 
         if _ring!=currRing: rChangeCurrRing(_ring)
 
@@ -3920,19 +3968,14 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         if self._parent._base.is_finite():
             if self._parent._base.characteristic() > 1<<29:
                 raise NotImplementedError, "Factorization of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented."
-            if proof:
-                raise NotImplementedError, "proof = True factorization not implemented.  Call factor with proof=False."
 
         # I make a temporary copy of the poly in self because singclap_factorize appears to modify it's parameter
         ptemp = p_Copy(self._poly,_ring)
         iv = NULL
-        cdef int count = singular_polynomial_length_bounded(self._poly,5)
-        if count >= 5:
-            sig_on()
+        sig_on()
         if _ring!=currRing: rChangeCurrRing(_ring)   # singclap_factorize
         I = singclap_factorize ( ptemp, &iv , 0) #delete iv at some pointa
-        if count >= 5:
-            sig_off()
+        sig_off()
 
         ivv = iv.ivGetVec()
         v = [(new_MP(parent, p_Copy(I.m[i],_ring)) , ivv[i])   for i in range(1,I.ncols)]

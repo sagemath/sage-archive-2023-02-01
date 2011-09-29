@@ -7267,14 +7267,34 @@ cdef class gen(sage.structure.element.RingElement):
         in nf, that is 1 if X^2-aY^2-bZ^2 has a non-trivial solution (X,Y,Z)
         in nf, -1 otherwise. Otherwise compute the local symbol modulo the
         prime ideal p.
+
+        EXAMPLES::
+
+            sage: x = polygen(QQ)
+            sage: K.<t> = NumberField(x^3 - x + 1)
+            sage: pari(K).nfhilbert(t, t+2)  # not tested, known bug #11868
+            -1
+            sage: pari(K).nfhilbert(pari(t), pari(t+2))
+            -1
+            sage: P = K.ideal(t^2 + t - 2)   # Prime ideal above 5
+            sage: pari(K).nfhilbert(pari(t), pari(t+2), P.pari_prime())
+            -1
+            sage: P = K.ideal(t^2 + 3*t - 1) # Prime ideal above 23, ramified
+            sage: pari(K).nfhilbert(pari(t), pari(t+2), P.pari_prime())
+            1
         """
+        cdef long r
         t0GEN(a)
         t1GEN(b)
-        sig_on()
-        if p == None:
-            return nfhilbert(self.g, t0, t1)
-        t2GEN(p)
-        return nfhilbert0(self.g, t0, t1, t2)
+        if p:
+            t2GEN(p)
+            sig_on()
+            r = nfhilbert0(self.g, t0, t1, t2)
+        else:
+            sig_on()
+            r = nfhilbert(self.g, t0, t1)
+        P.clear_stack()
+        return r
 
 
     def nfinit(self, long flag=0, long precision=0):

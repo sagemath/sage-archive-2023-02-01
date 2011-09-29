@@ -6896,8 +6896,12 @@ class NumberField_absolute(NumberField_generic):
 
         INPUT:
 
-        - ``a, b`` -- elements of self
-        - ``P`` -- prime ideal of self
+        - ``a``, ``b`` -- elements of self
+
+        - ``P`` -- (default: None) If `P` is ``None``, compute the global
+          symbol.  Otherwise, `P` should be either a prime ideal of self
+          (which may also be given as a generator or set of generators)
+          or a real or complex embedding.
 
         OUTPUT:
 
@@ -6911,13 +6915,38 @@ class NumberField_absolute(NumberField_generic):
         If a and b are non-zero and P is unspecified, returns 1
         if the equation has a solution in self and -1 otherwise.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        Some global examples::
 
             sage: K.<a> = NumberField(x^2 - 23)
-            sage: O = K.maximal_order()
-            sage: K.hilbert_symbol(a, a+5, 5*O)
+            sage: K.hilbert_symbol(0, a+5)
+            0
+            sage: K.hilbert_symbol(a, 0)
+            0
+            sage: K.hilbert_symbol(-a, a+1)
             1
-            sage: K.hilbert_symbol(a+1, 13, (-a-6)*O)
+            sage: K.hilbert_symbol(-a, a+2)
+            -1
+            sage: K.hilbert_symbol(a, a+5)
+            -1
+
+        That the latter two are unsolvable should be visible in local
+        obstructions.  For the first, this is a prime ideal above 19.
+        For the second, the ramified prime above 23::
+
+            sage: K.hilbert_symbol(-a, a+2, a+2)
+            -1
+            sage: K.hilbert_symbol(a, a+5, K.ideal(23).factor()[0][0])
+            -1
+
+        More local examples::
+
+            sage: K.hilbert_symbol(a, 0, K.ideal(5))
+            0
+            sage: K.hilbert_symbol(a, a+5, K.ideal(5))
+            1
+            sage: K.hilbert_symbol(a+1, 13, (a+6)*K.maximal_order())
             -1
             sage: [emb1, emb2] = K.embeddings(AA)
             sage: K.hilbert_symbol(a, -1, emb1)
@@ -6925,7 +6954,7 @@ class NumberField_absolute(NumberField_generic):
             sage: K.hilbert_symbol(a, -1, emb2)
             1
 
-        Principal ideals P can be given by generators::
+        Ideals P can be given by generators::
 
             sage: K.<a> = NumberField(x^5 - 23)
             sage: pi = 2*a^4 + 3*a^3 + 4*a^2 + 15*a + 11
@@ -6933,6 +6962,17 @@ class NumberField_absolute(NumberField_generic):
             1
             sage: rho = 2*a^4 + 3*a^3 + 4*a^2 + 15*a + 11
             sage: K.hilbert_symbol(a, a+5, rho)
+            1
+
+        This also works for non-principal ideals::
+
+            sage: K.<a> = QuadraticField(-5)
+            sage: P = K.ideal(3).factor()[0][0]
+            sage: P.gens_reduced()  # random, could be the other factor
+            (3, a + 1)
+            sage: K.hilbert_symbol(a, a+3, P)
+            1
+            sage: K.hilbert_symbol(a, a+3, [3, a+1])
             1
 
         Primes above 2::
@@ -6987,21 +7027,16 @@ class NumberField_absolute(NumberField_generic):
             sage: K.hilbert_symbol(1/2, 1/6, 3*O)
             1
             sage: p = 1+i
-            sage: K.hilbert_symbol(p,p,p*O)
+            sage: K.hilbert_symbol(p, p, p)
+            1
+            sage: K.hilbert_symbol(p, 3*p, p)
+            -1
+            sage: K.hilbert_symbol(3, p, p)
             -1
             sage: K.hilbert_symbol(1/3, 1/5, 1+i)
             1
             sage: L = QuadraticField(5, 'a')
             sage: L.hilbert_symbol(-3, -1/2, 2)
-            1
-
-        a non-principal ideal P::
-
-            sage: K.<a> = QuadraticField(-5)
-            sage: P = K.ideal(3).factor()[0][0]
-            sage: P.is_principal()
-            False
-            sage: K.hilbert_symbol(a, a+3, P)
             1
 
         Various other examples::
@@ -7014,16 +7049,15 @@ class NumberField_absolute(NumberField_generic):
             sage: Q = K.ideal(-7*a^4 + 13*a^3 - 13*a^2 - 2*a + 50)
             sage: b = -a+5
             sage: K.hilbert_symbol(a,b,P)
-            -1
+            1
             sage: K.hilbert_symbol(a,b,Q)
             1
             sage: K.<a> = NumberField(x^5-23)
             sage: P = K.ideal(-1105*a^4 + 1541*a^3 - 795*a^2 - 2993*a + 11853)
-            sage: b = a+5
-            sage: K.hilbert_symbol(a, b, P)
-            -1
+            sage: K.hilbert_symbol(a, a+5, P)
+            1
             sage: K.hilbert_symbol(a, 2, P)
-            -1
+            1
             sage: K.hilbert_symbol(a+5, 2, P)
             -1
 
@@ -7033,42 +7067,40 @@ class NumberField_absolute(NumberField_generic):
 
         - Marco Streng (2010-12-06)
         """
-        if a == 0 or b == 0:
-            return ZZ(0)
-        if P != None:
-            if sage.rings.all.is_RingHomomorphism(P):
-                if not P.domain() == self:
-                    raise ValueError, "Domain of P (=%s) should be self (=%s) in self.hilbert_symbol" % (P, self)
-                codom = P.codomain()
-                one = ZZ(1)
-                from sage.rings.all import (is_ComplexField, AA, CDF, QQbar,
-                                    is_ComplexIntervalField, is_RealField,
-                                    is_RealIntervalField, RDF)
-                if is_ComplexField(codom) or is_ComplexIntervalField(codom) or \
-                                             codom is CDF or codom is QQbar:
-                    if P(self.gen()).imag() == 0:
-                        raise ValueError, "Possibly real place (=%s) given as complex embedding in hilbert_symbol. Is it real or complex?" % P
-                    return one
-                if is_RealField(codom) or codom is RDF or codom is AA:
-                    if P(a) > 0 or P(b) > 0:
-                        return one
-                    return -one
-            if P in self:
-                P = P*self.maximal_order()
-            if not is_NumberFieldIdeal(P):
-                raise ValueError, "P (=%s) should be an ideal or real or complex embedding in hilbert_symbol" % str(P)
-            if not P.number_field() == self:
-                raise ValueError, "P (=%s) should be an ideal of self (=%s) in hilbert_symbol, not of %s" % (P, self, P.number_field())
-            if not P.is_prime():
-                raise ValueError, "Non-prime ideal P (=%s) in hilbert_symbol" % P
-        k = pari(self)
-        if P != None:
-            P = k.idealfactor(pari(P))[0,0]
-        a = pari(self(a))
-        b = pari(self(b))
-        return ZZ(pari(self).nfhilbert(a, b, P))
+        if a.is_zero() or b.is_zero():
+            return 0
+        a = self(a)
+        b = self(b)
+        if P is None:
+            # We MUST convert a and b to pari before calling the function
+            # to work around Trac #11868 -- Jeroen Demeyer
+            return pari(self).nfhilbert(pari(a), pari(b))
 
-
+        if sage.rings.all.is_RingHomomorphism(P):
+            if not P.domain() == self:
+                raise ValueError, "Domain of P (=%s) should be self (=%s) in self.hilbert_symbol" % (P, self)
+            codom = P.codomain()
+            from sage.rings.all import (is_ComplexField, AA, CDF, QQbar,
+                                is_ComplexIntervalField, is_RealField,
+                                is_RealIntervalField, RDF)
+            if is_ComplexField(codom) or is_ComplexIntervalField(codom) or \
+                                         codom is CDF or codom is QQbar:
+                if P(self.gen()).imag() == 0:
+                    raise ValueError, "Possibly real place (=%s) given as complex embedding in hilbert_symbol. Is it real or complex?" % P
+                return 1
+            if is_RealField(codom) or codom is RDF or codom is AA:
+                if P(a) > 0 or P(b) > 0:
+                    return 1
+                return -1
+        if not is_NumberFieldIdeal(P):
+            P = self.ideal(P)
+        if not P.number_field() == self:
+            raise ValueError, "P (=%s) should be an ideal of self (=%s) in hilbert_symbol, not of %s" % (P, self, P.number_field())
+        if not P.is_prime():
+            raise ValueError, "Non-prime ideal P (=%s) in hilbert_symbol" % P
+        # We MUST convert a and b to pari before calling the function
+        # to work around Trac #11868 -- Jeroen Demeyer
+        return pari(self).nfhilbert(pari(a), pari(b), P.pari_prime())
 
 
 class NumberField_cyclotomic(NumberField_absolute):

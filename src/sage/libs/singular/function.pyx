@@ -405,17 +405,13 @@ cdef new_sage_polynomial(ring,  poly *p):
 
 def is_singular_poly_wrapper(p):
     """
-    Checks if p is some data type corresponding to some singular ``poly```.
+    Checks if p is some data type corresponding to some singular ``poly``.
 
     EXAMPLE::
 
-        sage: from sage.rings.polynomial.plural import NCPolynomialRing_plural
-        sage: from sage.matrix.constructor  import Matrix
         sage: from sage.libs.singular.function import is_singular_poly_wrapper
-        sage: c=Matrix(2)
-        sage: c[0,1]=-1
-        sage: P = NCPolynomialRing_plural(QQ, 2, 'x,y', c=c, d=Matrix(2))
-        sage: (x,y)=P.gens()
+        sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
+        sage: H.<x,y,z> = A.g_algebra({z*x:x*z+2*x, z*y:y*z-2*y})
         sage: is_singular_poly_wrapper(x+y)
         True
 
@@ -1645,7 +1641,7 @@ def singular_function(name):
         sage: singular_list(resolution)
         [[(-2*y, 2, y + 1, 0), (0, -2, x - 1, 0), (x*y - y, -y + 1, 1, -y), (x^2 + 1, -x - 1, -1, -x)], [(-x - 1, y - 1, 2*x, -2*y)], [(0)]]
 
-        sage: A.<x,y> = FreeAlgebra(QQ)
+        sage: A.<x,y> = FreeAlgebra(QQ, 2)
         sage: P.<x,y> = A.g_algebra({y*x:-x*y})
         sage: I= Sequence([x*y,x+y], check=False, immutable=True)
         sage: twostd = singular_function("twostd")

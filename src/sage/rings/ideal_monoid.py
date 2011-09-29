@@ -81,15 +81,23 @@ class IdealMonoid_c(Parent):
 
             sage: R.<a> = QuadraticField(-23)
             sage: M = sage.rings.ideal_monoid.IdealMonoid(R)
-            sage: M(a)
+            sage: M(a)   # indirect doctest
             Fractional ideal (a)
             sage: M([a-4, 13])
             Fractional ideal (13, 1/2*a + 9/2)
         """
-        #print x, type(x)
-        if isinstance(x, ideal.Ideal_generic):
+        try:
+            side = x.side()
+        except (AttributeError,TypeError):
+            side = None
+        try:
             x = x.gens()
-        y = self.__R.ideal(x)
+        except AttributeError:
+            pass
+        if side is None:
+            y = self.__R.ideal(x)
+        else:
+            y = self.__R.ideal(x,side=side)
         y._set_parent(self)
         return y
 

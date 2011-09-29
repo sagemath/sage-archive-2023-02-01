@@ -22,20 +22,23 @@ The PLURAL wrapper is due to
 
   - Alexander Dreyer (2010-07): noncommutative ring functionality and documentation
 
+  - Simon King (2011-09): left and two-sided ideals; normal forms; pickling;
+    documentation
+
 The underlying libSINGULAR interface was implemented by
 
-- Martin Albrecht (2007-01): initial implementation
+  - Martin Albrecht (2007-01): initial implementation
 
-- Joel Mohler (2008-01): misc improvements, polishing
+  - Joel Mohler (2008-01): misc improvements, polishing
 
-- Martin Albrecht (2008-08): added `\QQ(a)` and `\ZZ` support
+  - Martin Albrecht (2008-08): added `\QQ(a)` and `\ZZ` support
 
-- Simon King (2009-04): improved coercion
+  - Simon King (2009-04): improved coercion
 
-- Martin Albrecht (2009-05): added `\ZZ/n\ZZ` support, refactoring
+  - Martin Albrecht (2009-05): added `\ZZ/n\ZZ` support, refactoring
 
-- Martin Albrecht (2009-06): refactored the code to allow better
-  re-use
+  - Martin Albrecht (2009-06): refactored the code to allow better
+    re-use
 
 TODO:
 
@@ -46,9 +49,7 @@ EXAMPLES:
 We show how to construct various noncommutative polynomial rings::
 
     sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
-    sage: P = A.g_algebra(relations={y*x:-x*y}, order = 'lex')
-    sage: P.inject_variables()
-    Defining x, y, z
+    sage: P.<x,y,z> = A.g_algebra(relations={y*x:-x*y}, order = 'lex')
 
     sage: P
     Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {y*x: -x*y}
@@ -57,10 +58,7 @@ We show how to construct various noncommutative polynomial rings::
     -x*y + 1/2
 
     sage: A.<x,y,z> = FreeAlgebra(GF(17), 3)
-    sage: P = A.g_algebra(relations={y*x:-x*y}, order = 'lex')
-    sage: P.inject_variables()
-    Defining x, y, z
-
+    sage: P.<x,y,z> = A.g_algebra(relations={y*x:-x*y}, order = 'lex')
     sage: P
     Noncommutative Multivariate Polynomial Ring in x, y, z over Finite Field of size 17, nc-relations: {y*x: -x*y}
 
@@ -68,7 +66,9 @@ We show how to construct various noncommutative polynomial rings::
     -x*y + 7
 
 
-Raw use of this class::
+Raw use of this class; *this is not the intended use!*
+::
+
     sage: from sage.matrix.constructor  import Matrix
     sage: c = Matrix(3)
     sage: c[0,1] = -2
@@ -77,9 +77,12 @@ Raw use of this class::
 
     sage: d = Matrix(3)
     sage: d[0, 1] = 17
+    sage: P = QQ['x','y','z']
+    sage: c = c.change_ring(P)
+    sage: d = d.change_ring(P)
 
     sage: from sage.rings.polynomial.plural import NCPolynomialRing_plural
-    sage: R.<x,y,z> = NCPolynomialRing_plural(QQ, 3, c = c, d = d, order='lex')
+    sage: R.<x,y,z> = NCPolynomialRing_plural(QQ, c = c, d = d, order=TermOrder('lex',3),category=Algebras(QQ))
     sage: R
     Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {y*x: -2*x*y + 17}
 
@@ -90,19 +93,14 @@ Raw use of this class::
     sage: f = 57 * a^2*b + 43 * c + 1; f
     57*x^2*y + 43*z + 1
 
-    sage: R.term_order()
-    Lexicographic term order
-
 TESTS::
 
     sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
     sage: P = A.g_algebra(relations={y*x:-x*y}, order = 'lex')
-    sage: P.inject_variables()
-    Defining x, y, z
+    sage: TestSuite(P).run()
+    sage: loads(dumps(P)) is P
+    True
 
-    sage: from sage.rings.polynomial.plural import NCPolynomialRing_plural, NCPolynomial_plural
-    sage: TestSuite(NCPolynomialRing_plural).run()
-    sage: TestSuite(NCPolynomial_plural).run()
 """
 include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
@@ -198,6 +196,7 @@ class G_AlgFactory(UniqueFactory):
             sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
             sage: H = A.g_algebra({y*x:x*y-z, z*x:x*z+2*x, z*y:y*z-2*y})
             sage: H is A.g_algebra({y*x:x*y-z, z*x:x*z+2*x, z*y:y*z-2*y}) # indirect doctest
+            True
 
         """
         if names is None:
@@ -241,6 +240,13 @@ cdef class NCPolynomialRing_plural(Ring):
         Category of algebras over Rational Field
         sage: TestSuite(H).run()
 
+    Note that two variables commute if they are not part of the given
+    relations::
+
+        sage: H.<x,y,z> = A.g_algebra({z*x:x*z+2*x, z*y:y*z-2*y})
+        sage: x*y == y*x
+        True
+
     """
     def __init__(self, base_ring, names, c, d, order, category, check = True):
         """
@@ -258,23 +264,31 @@ cdef class NCPolynomialRing_plural(Ring):
 
             ``self.gen(j)*self.gen(i) == c[i, j] * self.gen(i)*self.gen(j) + d[i, j],``
 
-          where ``0 <= i < j < self.ngens()``.
+          where ``0 <= i < j < self.ngens()``. Note that two variables
+          commute if they are not part of one of these relations.
         - ``order`` - term order
         - ``check`` - check the noncommutative conditions (default: ``True``)
 
-        EXAMPLES::
+        TESTS:
+
+        It is strongly recommended to construct a g-algebra using
+        :class:`G_AlgFactory`. The following is just for documenting
+        the arguments of the ``__init__`` method::
 
             sage: from sage.matrix.constructor  import Matrix
-            sage: c = Matrix(3)
-            sage: c[0,1] = -1
-            sage: c[0,2] = 1
-            sage: c[1,2] = 1
+            sage: c0 = Matrix(3)
+            sage: c0[0,1] = -1
+            sage: c0[0,2] = 1
+            sage: c0[1,2] = 1
 
-            sage: d = Matrix(3)
-            sage: d[0, 1] = 17
+            sage: d0 = Matrix(3)
+            sage: d0[0, 1] = 17
+            sage: P = QQ['x','y','z']
+            sage: c = c0.change_ring(P)
+            sage: d = d0.change_ring(P)
 
             sage: from sage.rings.polynomial.plural import NCPolynomialRing_plural
-            sage: P.<x,y,z> = NCPolynomialRing_plural(QQ, c = c, d = d, order='lex')
+            sage: P.<x,y,z> = NCPolynomialRing_plural(QQ, c = c, d = d, order=TermOrder('lex',3), category=Algebras(QQ))
 
             sage: P # indirect doctest
             Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {y*x: -x*y + 17}
@@ -289,7 +303,10 @@ cdef class NCPolynomialRing_plural(Ring):
             Lexicographic term order
 
             sage: from sage.rings.polynomial.plural import NCPolynomialRing_plural
-            sage: P.<x,y,z> = NCPolynomialRing_plural(GF(7), 3, c = c, d = d, order='degrevlex')
+            sage: P = GF(7)['x','y','z']
+            sage: c = c0.change_ring(P)
+            sage: d = d0.change_ring(P)
+            sage: P.<x,y,z> = NCPolynomialRing_plural(GF(7), c = c, d = d, order=TermOrder('degrevlex',3), category=Algebras(GF(7)))
 
             sage: P # indirect doctest
             Noncommutative Multivariate Polynomial Ring in x, y, z over Finite Field of size 7, nc-relations: {y*x: -x*y + 3}
@@ -323,7 +340,7 @@ cdef class NCPolynomialRing_plural(Ring):
         self.__ngens = n
         self.__term_order = order
 
-        Ring.__init__(self, base_ring, names, category)
+        Ring.__init__(self, base_ring, names, category=category)
         self._populate_coercion_lists_()
 
         #MPolynomialRing_generic.__init__(self, base_ring, n, names, order)
@@ -364,8 +381,10 @@ cdef class NCPolynomialRing_plural(Ring):
         collection).
 
         TESTS:
+
         This example caused a segmentation fault with a previous version
-        of this method:
+        of this method::
+
             sage: import gc
             sage: from sage.rings.polynomial.plural import NCPolynomialRing_plural
             sage: from sage.algebras.free_algebra import FreeAlgebra
@@ -394,8 +413,8 @@ cdef class NCPolynomialRing_plural(Ring):
         Make sure element is a valid member of self, and return the constructed element.
 
         EXAMPLES::
-            sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
 
+            sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
             sage: P = A.g_algebra(relations={y*x:-x*y}, order = 'lex')
 
         We can construct elements from the base ring::
@@ -403,25 +422,21 @@ cdef class NCPolynomialRing_plural(Ring):
             sage: P(1/2)
             1/2
 
-
         and all kinds of integers::
 
             sage: P(17)
             17
-
             sage: P(int(19))
             19
-
             sage: P(long(19))
             19
 
-        TESTS::
+        TESTS:
 
         Check conversion from self::
+
             sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
-            sage: P = A.g_algebra(relations={y*x:-x*y}, order = 'lex')
-            sage: P.inject_variables()
-            Defining x, y, z
+            sage: P.<x,y,z> = A.g_algebra(relations={y*x:-x*y}, order = 'lex')
 
             sage: P._element_constructor_(1/2)
             1/2
@@ -432,28 +447,8 @@ cdef class NCPolynomialRing_plural(Ring):
             sage: P._element_constructor_(y*x)
             -x*y
 
-        Raw use of this class::
-            sage: from sage.matrix.constructor  import Matrix
-            sage: c = Matrix(3)
-            sage: c[0,1] = -2
-            sage: c[0,2] = 1
-            sage: c[1,2] = 1
-
-            sage: d = Matrix(3)
-            sage: d[0, 1] = 17
-
-            sage: from sage.rings.polynomial.plural import NCPolynomialRing_plural
-            sage: R.<x,y,z> = NCPolynomialRing_plural(QQ, 3, c = c, d = d, order='lex')
-            sage: R._element_constructor_(x*y)
-            x*y
-
-            sage: P._element_constructor_(17)
-            17
-
-            sage: P._element_constructor_(int(19))
-            19
-
         Testing special cases::
+
             sage: P._element_constructor_(1)
             1
 
@@ -536,13 +531,14 @@ cdef class NCPolynomialRing_plural(Ring):
     cpdef _coerce_map_from_(self, S):
        """
        The only things that coerce into this ring are:
-           - the integer ring
-           - other localizations away from fewer primes
 
-         EXAMPLES::
+       - the integer ring
+       - other localizations away from fewer primes
+
+       EXAMPLES::
+
            sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
            sage: P = A.g_algebra(relations={y*x:-x*y}, order = 'lex')
-
            sage: P._coerce_map_from_(ZZ)
            True
        """
@@ -553,96 +549,54 @@ cdef class NCPolynomialRing_plural(Ring):
 
 
     def __hash__(self):
-       """
-       Return a hash for this noncommutative ring, that is, a hash of the string
-       representation of this polynomial ring.
+        """
+        Return a hash for this noncommutative ring, that is, a hash of the string
+        representation of this polynomial ring.
 
-       EXAMPLES::
-           sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
-           sage: P = A.g_algebra(relations={y*x:-x*y}, order = 'lex')
-           sage: hash(P)      # somewhat random output
-           ...
+        NOTE:
 
-       TESTS::
-
-       Check conversion from self::
-           sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
-           sage: P = A.g_algebra(relations={y*x:-x*y}, order = 'lex')
-           sage: from sage.matrix.constructor  import Matrix
-           sage: c = Matrix(3)
-           sage: c[0,1] = -1
-           sage: c[0,2] = 1
-           sage: c[1,2] = 1
-
-           sage: from sage.rings.polynomial.plural import NCPolynomialRing_plural
-           sage: R.<x,y,z> = NCPolynomialRing_plural(QQ, 3, c = c, d = Matrix(3), order='lex')
-           sage: hash(R) == hash(P)
-           True
-       """
-       return hash(str(self.__repr__()) + str(self.term_order()) )
-
-
-    def __cmp__(self, right):
-        r"""
-        Non-commutative polynomial rings are said to be equal if:
-
-        - their base rings match,
-        - their generator names match,
-        - their term orderings match, and
-        - their relations match.
+        G-algebras are unique parents, provided that the g-algebra constructor
+        is used. Thus, the hash simply is the memory address of the g-algebra
+        (so, it is a session hash, but no stable hash). It is possible to
+        destroy uniqueness of g-algebras on purpose, but that's your own
+        problem if you do those things.
 
         EXAMPLES::
 
-           sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
-           sage: P = A.g_algebra(relations={y*x:-x*y}, order = 'lex')
+            sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
+            sage: P = A.g_algebra(relations={y*x:-x*y}, order = 'lex')
+            sage: {P:2}[P]            # indirect doctest
+            2
 
-           sage: P == P
-           True
-           sage: Q = A.g_algebra(relations={y*x:-x*y}, order = 'lex')
-           sage: Q == P
-           True
-
-           sage: from sage.matrix.constructor  import Matrix
-           sage: c = Matrix(3)
-           sage: c[0,1] = -1
-           sage: c[0,2] = 1
-           sage: c[1,2] = 1
-           sage: from sage.rings.polynomial.plural import NCPolynomialRing_plural
-           sage: R.<x,y,z> = NCPolynomialRing_plural(QQ, 3, c = c, d = Matrix(3), order='lex')
-           sage: R == P
-           True
-
-           sage: c[0,1] = -2
-           sage: R.<x,y,z> = NCPolynomialRing_plural(QQ, 3, c = c, d = Matrix(3), order='lex')
-           sage: P == R
-           False
         """
-
-        if PY_TYPE_CHECK(right, NCPolynomialRing_plural):
-
-            return cmp( (self.base_ring(), map(str, self.gens()),
-                         self.term_order(), self._c, self._d),
-                        (right.base_ring(), map(str, right.gens()),
-                         right.term_order(),
-                         (<NCPolynomialRing_plural>right)._c,
-                         (<NCPolynomialRing_plural>right)._d)
-                        )
-        else:
-            return cmp(type(self),type(right))
+        return id(self)
 
     def __pow__(self, n, _):
         """
         Return the free module of rank `n` over this ring.
 
-        EXAMPLES::
-            sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
-            sage: P = A.g_algebra(relations={y*x:-x*y}, order = 'lex')
-            sage: P.inject_variables()
-            Defining x, y, z
+        NOTE:
 
-            sage: f = x^3 + y
-            sage: f^2
-            x^6 + y^2
+        This is not properly implemented yet. Thus, there is
+        a warning.
+
+        EXAMPLES::
+
+            sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
+            sage: P.<x,y,z> = A.g_algebra(relations={y*x:-x*y}, order = 'lex')
+            sage: P^3
+            d...: UserWarning: You are constructing a free module
+            over a noncommutative ring. Sage does not have a concept
+            of left/right and both sided modules, so be careful.
+            It's also not guaranteed that all multiplications are
+            done from the right side.
+            d...: UserWarning: You are constructing a free module
+            over a noncommutative ring. Sage does not have a concept
+            of left/right and both sided modules, so be careful.
+            It's also not guaranteed that all multiplications are
+            done from the right side.
+            Ambient free module of rank 3 over Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {y*x: -x*y}
+
         """
         import sage.modules.all
         return sage.modules.all.FreeModule(self, n)
@@ -653,14 +607,14 @@ cdef class NCPolynomialRing_plural(Ring):
 
         EXAMPLES::
 
-        sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
-        sage: P = A.g_algebra(relations={y*x:-x*y}, order = 'lex')
-        sage: P.term_order()
-        Lexicographic term order
+            sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
+            sage: P = A.g_algebra(relations={y*x:-x*y}, order = 'lex')
+            sage: P.term_order()
+            Lexicographic term order
 
-        sage: P = A.g_algebra(relations={y*x:-x*y})
-        sage: P.term_order()
-        Degree reverse lexicographic term order
+            sage: P = A.g_algebra(relations={y*x:-x*y})
+            sage: P.term_order()
+            Degree reverse lexicographic term order
         """
         return self.__term_order
 
@@ -668,12 +622,14 @@ cdef class NCPolynomialRing_plural(Ring):
         """
         Return False.
 
+        .. todo:: Provide a mathematically correct answer.
+
         EXAMPLES::
 
-        sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
-        sage: P = A.g_algebra(relations={y*x:-x*y}, order = 'lex')
-        sage: P.is_commutative()
-        False
+            sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
+            sage: P = A.g_algebra(relations={y*x:-x*y}, order = 'lex')
+            sage: P.is_commutative()
+            False
         """
         return False
 
@@ -683,22 +639,20 @@ cdef class NCPolynomialRing_plural(Ring):
 
         EXAMPLES::
 
-        sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
-        sage: P = A.g_algebra(relations={y*x:-x*y}, order = 'lex')
-        sage: P.is_field()
-        False
+            sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
+            sage: P = A.g_algebra(relations={y*x:-x*y}, order = 'lex')
+            sage: P.is_field()
+            False
         """
         return False
 
     def _repr_(self):
         """
-        EXAMPLE:
-            sage: from sage.rings.polynomial.plural import NCPolynomialRing_plural
-            sage: from sage.matrix.constructor  import Matrix
-            sage: c=Matrix(2)
-            sage: c[0,1]=-1
-            sage: P.<x,y> = NCPolynomialRing_plural(QQ, 2, c=c, d=Matrix(2))
-            sage: P # indirect doctest
+        EXAMPLE::
+
+            sage: A.<x,y> = FreeAlgebra(QQ, 2)
+            sage: H.<x,y> = A.g_algebra({y*x:-x*y})
+            sage: H # indirect doctest
             Noncommutative Multivariate Polynomial Ring in x, y over Rational Field, nc-relations: {y*x: -x*y}
             sage: x*y
             x*y
@@ -715,39 +669,66 @@ cdef class NCPolynomialRing_plural(Ring):
         Return an internal list representation of the noncummutative ring.
 
         EXAMPLES::
-        sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
-        sage: P = A.g_algebra(relations={y*x:-x*y}, order = 'lex')
-        sage: P._ringlist()
-        [0, ['x', 'y', 'z'], [['lp', (1, 1, 1)], ['C', (0,)]], [0], [ 0 -1  1]
-        [ 0  0  1]
-        [ 0  0  0], [0 0 0]
-        [0 0 0]
-        [0 0 0]]
+
+            sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
+            sage: P = A.g_algebra(relations={y*x:-x*y}, order = 'lex')
+            sage: P._ringlist()
+            [0, ['x', 'y', 'z'], [['lp', (1, 1, 1)], ['C', (0,)]], [0], [ 0 -1  1]
+            [ 0  0  1]
+            [ 0  0  0], [0 0 0]
+            [0 0 0]
+            [0 0 0]]
         """
         cdef ring* _ring = self._ring
         if(_ring != currRing): rChangeCurrRing(_ring)
         from sage.libs.singular.function import singular_function
         ringlist = singular_function('ringlist')
         result = ringlist(self, ring=self)
-
-
-
-
         return result
 
 
     def relations(self, add_commutative = False):
         """
+        Return the relations of this g-algebra.
+
+        INPUT:
+
+        ``add_commutative`` (optional bool, default False)
+
+        OUTPUT:
+
+        The defining relations. There are some implicit relations:
+        Two generators commute if they are not part of any given
+        relation. The implicit relations are not provided, unless
+        ``add_commutative==True``.
+
         EXAMPLE::
 
-            sage: from sage.rings.polynomial.plural import NCPolynomialRing_plural
-            sage: from sage.matrix.constructor  import Matrix
-            sage: c=Matrix(2)
-            sage: c[0,1]=-1
-            sage: P = NCPolynomialRing_plural(QQ, 2, 'x,y', c=c, d=Matrix(2))
-            sage: P # indirect doctest
-            Noncommutative Multivariate Polynomial Ring in x, y over Rational Field, nc-relations: ...
+            sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
+            sage: H.<x,y,z> = A.g_algebra({z*x:x*z+2*x, z*y:y*z-2*y})
+            sage: x*y == y*x
+            True
+            sage: H.relations()
+            {z*y: y*z - 2*y, z*x: x*z + 2*x}
+            sage: H.relations(add_commutative=True)
+            {y*x: x*y, z*y: y*z - 2*y, z*x: x*z + 2*x}
+
         """
+        if add_commutative:
+            if self._relations_commutative is not None:
+                return self._relations_commutative
+
+            from sage.algebras.free_algebra import FreeAlgebra
+            A = FreeAlgebra( self.base_ring(), self.ngens(), self.gens() )
+
+            res = {}
+            n = self.ngens()
+            for r in range(0, n-1, 1):
+                for c in range(r+1, n, 1):
+                    res[ A.gen(c) * A.gen(r) ] = self.gen(c) * self.gen(r) # C[r, c] * P.gen(r) * P.gen(c) + D[r, c]
+            self._relations_commutative = res
+            return res
+
         if self._relations is not None:
             return self._relations
 
@@ -758,9 +739,8 @@ cdef class NCPolynomialRing_plural(Ring):
         n = self.ngens()
         for r in range(0, n-1, 1):
             for c in range(r+1, n, 1):
-                if  (self.gen(c) * self.gen(r) != self.gen(r) * self.gen(c)) or add_commutative:
+                if  (self.gen(c) * self.gen(r) != self.gen(r) * self.gen(c)):
                     res[ A.gen(c) * A.gen(r) ] = self.gen(c) * self.gen(r) # C[r, c] * P.gen(r) * P.gen(c) + D[r, c]
-
 
         self._relations = res
         return self._relations
@@ -772,10 +752,7 @@ cdef class NCPolynomialRing_plural(Ring):
         EXAMPLES::
 
             sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
-            sage: P = A.g_algebra(relations={y*x:-x*y}, order = 'lex')
-            sage: P.inject_variables()
-            Defining x, y, z
-
+            sage: P.<x,y,z> = A.g_algebra(relations={y*x:-x*y}, order = 'lex')
             sage: P.ngens()
             3
         """
@@ -797,8 +774,11 @@ cdef class NCPolynomialRing_plural(Ring):
             sage: P.gen(),P.gen(1)
             (x, y)
 
-            sage: P.gen(1)
-            y
+        Note that the generators are not cached::
+
+            sage: P.gen(1) is P.gen(1)
+            False
+
         """
         cdef poly *_p
         cdef ring *_ring = self._ring
@@ -820,22 +800,24 @@ cdef class NCPolynomialRing_plural(Ring):
         INPUT:
 
         - ``*gens`` - list or tuple of generators (or several input arguments)
-
         - ``coerce`` - bool (default: ``True``); this must be a
           keyword argument. Only set it to ``False`` if you are certain
           that each generator is already in the ring.
+        - ``side`` - string (either "left", which is the default, or "twosided")
+          Must be a keyword argument. Defines whether the ideal is a left ideal
+          or a two-sided ideal. Right ideals are not implemented.
 
         EXAMPLES::
+
             sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
-            sage: P = A.g_algebra(relations={y*x:-x*y}, order = 'lex')
-            sage: P.inject_variables()
-            Defining x, y, z
+            sage: P.<x,y,z> = A.g_algebra(relations={y*x:-x*y}, order = 'lex')
 
             sage: P.ideal([x + 2*y + 2*z-1, 2*x*y + 2*y*z-y, x^2 + 2*y^2 + 2*z^2-x])
-            Ideal (x + 2*y + 2*z - 1, 2*x*y + 2*y*z - y, x^2 - x + 2*y^2 + 2*z^2) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {y*x: -x*y}
+            Left Ideal (x + 2*y + 2*z - 1, 2*x*y + 2*y*z - y, x^2 - x + 2*y^2 + 2*z^2) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {y*x: -x*y}
+            sage: P.ideal([x + 2*y + 2*z-1, 2*x*y + 2*y*z-y, x^2 + 2*y^2 + 2*z^2-x], side="twosided")
+            Twosided Ideal (x + 2*y + 2*z - 1, 2*x*y + 2*y*z - y, x^2 - x + 2*y^2 + 2*z^2) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {y*x: -x*y}
+
         """
-#        from sage.rings.polynomial.multi_polynomial_ideal import \
-#                NCPolynomialIdeal
         coerce = kwds.get('coerce', True)
         if len(gens) == 1:
             gens = gens[0]
@@ -872,6 +854,7 @@ cdef class NCPolynomialRing_plural(Ring):
         ring = singular_function('ring')
         return ring(L, ring=self)
 
+# TODO: Implement this properly!
 #    def quotient(self, I):
 #        """
 #        Construct quotient ring of ``self`` and the two-sided Groebner basis of `ideal`
@@ -943,6 +926,7 @@ cdef class NCPolynomialRing_plural(Ring):
             2/3
 
         TESTS::
+
             sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
             sage: R = A.g_algebra(relations={y*x:-x*y},  order='lex')
             sage: R.inject_variables()
@@ -1037,6 +1021,7 @@ cdef class NCPolynomialRing_plural(Ring):
             False
 
         TESTS::
+
             sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
             sage: Q = A.g_algebra(relations={y*x:-x*y},  order='lex')
             sage: Q.inject_variables()
@@ -1164,6 +1149,7 @@ cdef class NCPolynomialRing_plural(Ring):
             (y, 1/4*x*y + 2/7)
 
         TESTS::
+
             sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
             sage: Q = A.g_algebra(relations={y*x:-x*y},  order='lex')
             sage: Q.inject_variables()
@@ -1314,6 +1300,18 @@ cdef class NCPolynomialRing_plural(Ring):
         return M
 
 def unpickle_NCPolynomial_plural(NCPolynomialRing_plural R, d):
+    """
+    Auxiliary function to unpickle a non-commutative polynomial.
+
+    TEST::
+
+        sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
+        sage: H.<x,y,z> = A.g_algebra({y*x:x*y-z, z*x:x*z+2*x, z*y:y*z-2*y})
+        sage: p = x*y+2*z+4*x*y*z*x
+        sage: loads(dumps(p)) == p  # indirect doctest
+        True
+
+    """
     cdef ring *r = R._ring
     cdef poly *m, *p
     cdef int _i, _e
@@ -1703,7 +1701,10 @@ cdef class NCPolynomial_plural(RingElement):
 
             sage: (x*z).reduce(I)
             -x
-            sage: I.twostd()
+
+        The Groebner basis shows that the result is correct::
+
+            sage: I.std()
             Left Ideal (z^2 - 1, y*z - y, x*z + x, y^2, 2*x*y - z - 1, x^2) of
             Noncommutative Multivariate Polynomial Ring in x, y, z over Rational
             Field, nc-relations: {y*x: x*y - z, z*y: y*z - 2*y, z*x: x*z + 2*x}
@@ -1833,7 +1834,8 @@ cdef class NCPolynomial_plural(RingElement):
           degree, which is the maximum degree of any monomial.
 
         OUTPUT:
-            integer
+
+        integer
 
         EXAMPLES::
 
@@ -1970,7 +1972,8 @@ cdef class NCPolynomial_plural(RingElement):
                 - a monomial (very fast, but not as flexible)
 
         OUTPUT:
-            element of the parent of this element.
+
+        element of the parent of this element.
 
         .. note::
 
@@ -2089,10 +2092,12 @@ cdef class NCPolynomial_plural(RingElement):
         - ``mon`` - a monomial
 
         OUTPUT:
-            coefficient in base ring
+
+        coefficient in base ring
 
         SEE ALSO:
-            For coefficients in a base ring of fewer variables, look at ``coefficient``.
+
+        For coefficients in a base ring of fewer variables, look at ``coefficient``.
 
         EXAMPLES::
 
@@ -2212,7 +2217,7 @@ cdef class NCPolynomial_plural(RingElement):
         INPUT:
 
         - ``x`` - a tuple or, in case of a single-variable MPolynomial
-        ring x can also be an integer.
+          ring x can also be an integer.
 
         EXAMPLES::
 
@@ -2276,7 +2281,7 @@ cdef class NCPolynomial_plural(RingElement):
         INPUT:
 
         - ``as_ETuples`` - (default: ``True``) if true returns the result as an list of ETuples
-                          otherwise returns a list of tuples
+          otherwise returns a list of tuples
 
 
         EXAMPLES::
@@ -2660,6 +2665,10 @@ cdef inline NCPolynomial_plural new_NCP(NCPolynomialRing_plural parent,
 
     EXAMPLES::
 
+        sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
+        sage: H = A.g_algebra({z*x:x*z+2*x, z*y:y*z-2*y})
+        sage: H.gen(2)   # indirect doctest
+        z
 
     """
     cdef NCPolynomial_plural p = PY_NEW(NCPolynomial_plural)
@@ -2676,6 +2685,7 @@ cpdef MPolynomialRing_libsingular new_CRing(RingWrap rw, base_ring):
     Construct MPolynomialRing_libsingular from ringWrap, assumming the ground field to be base_ring
 
     EXAMPLES::
+
         sage: H.<x,y,z> = PolynomialRing(QQ, 3)
         sage: from sage.libs.singular.function import singular_function
 
@@ -2719,7 +2729,6 @@ cpdef NCPolynomialRing_plural new_NRing(RingWrap rw, base_ring):
     """
     Construct NCPolynomialRing_plural from ringWrap, assumming the ground field to be base_ring
 
-    EXAMPLES::
     EXAMPLES::
 
         sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
@@ -2872,9 +2881,12 @@ def SCA(base_ring, names, alt_vars, order='degrevlex'):
             if (r in alt_vars) and (c in alt_vars):
                 relations[ A.gen(c) * A.gen(r) ] = - A.gen(r) * A.gen(c)
 
-    H = A.g_algebra(relations=relations, order=order)
+    cdef NCPolynomialRing_plural H = A.g_algebra(relations=relations, order=order)
     I = H.ideal([H.gen(i) *H.gen(i) for i in alt_vars]).twostd()
-    return H.quotient(I)
+    L = H._ringlist()
+    L[3] = I
+    W = H._list_to_ring(L)
+    return new_NRing(W, H.base_ring())
 
 cdef poly *addwithcarry(poly *tempvector, poly *maxvector, int pos, ring *_ring):
     if p_GetExp(tempvector, pos, _ring) < p_GetExp(maxvector, pos, _ring):

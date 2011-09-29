@@ -2964,7 +2964,7 @@ class NCPolynomialIdeal(MPolynomialIdeal_singular_repr, Ideal_nc):
         Apparently, ``x*y^2-y*z`` should be in the two-sided, but not
         in the left ideal::
 
-            sage: x*y^2-y*z in JL
+            sage: x*y^2-y*z in JL   #indirect doctest
             False
             sage: x*y^2-y*z in JT
             True
@@ -3011,12 +3011,11 @@ class NCPolynomialIdeal(MPolynomialIdeal_singular_repr, Ideal_nc):
             [                                                              x^3*z^2 + 7*x^3*z + 12*x^3                 -x*y^2*z^2 + 9*x*y^2*z - 4*y*z^3 - 20*x*y^2 + 52*y*z^2 - 224*y*z + 320*y                                                                                 -6*x*z^2]
             [  x^2*y^2*z + 4*x^2*y^2 - 8*x*y*z^2 - 48*x*y*z + 12*z^3 - 64*x*y + 108*z^2 + 312*z + 288                                                                           -y^4*z + 4*y^4                                                                                        0]
             [                                                  2*x^3*y*z + 8*x^3*y + 9*x^2*z + 27*x^2                                   -2*x*y^3*z + 8*x*y^3 - 12*y^2*z^2 + 99*y^2*z - 195*y^2                                                                -36*x*y*z + 24*z^2 + 18*z]
-            [                                                  2*x^3*y*z + 8*x^3*y + 9*x^2*z + 27*x^2                                   -2*x*y^3*z + 8*x*y^3 - 12*y^2*z^2 + 99*y^2*z - 195*y^2                                                                -36*x*y*z + 24*z^2 + 18*z]
             [                                                                           x^4*z + 4*x^4    -x^2*y^2*z + 4*x^2*y^2 - 4*x*y*z^2 + 32*x*y*z - 6*z^3 - 64*x*y + 66*z^2 - 240*z + 288                                                                                        0]
             [x^3*y^2*z + 4*x^3*y^2 + 18*x^2*y*z - 36*x*z^3 + 66*x^2*y - 432*x*z^2 - 1656*x*z - 2052*x                                      -x*y^4*z + 4*x*y^4 - 8*y^3*z^2 + 62*y^3*z - 114*y^3                                                                        48*y*z^2 - 36*y*z]
 
             sage: M*G
-            (0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+            (0, 0, 0, 0, 0, 0, 0, 0, 0)
 
         ALGORITHM: Uses Singular's syz command
         """
